@@ -1,392 +1,210 @@
-# autoapi/v2/impl/runtime/executor.py
+# autoapi/v2/_runner.py
 from __future__ import annotations
 
-from typing import (
-    Any,
-    Awaitable,
-    Callable,
-    Iterable,
-    Mapping,
-    MutableMapping,
-    Optional,
-    Sequence,
-    Union,
-    Protocol,
-    runtime_checkable,
-)
-import logging
+from inspect import isawaitable, iscoroutinefunction
+from typing import Callable, Mapping, MutableMapping, Any, Optional
+from types import SimpleNamespace
 
-try:
-    from fastapi import Request  # type: ignore
-except Exception:  # pragma: no cover
-    Request = Any  # type: ignore
-
-try:
-    from sqlalchemy.orm import Session  # type: ignore
-    from sqlalchemy.ext.asyncio import AsyncSession  # type: ignore
-except Exception:  # pragma: no cover
-    Session = Any  # type: ignore
-    AsyncSession = Any  # type: ignore
-
-from ..jsonrpc_models import create_standardized_error
-
-logger = logging.getLogger(__name__)
-
-
-# ───────────────────────────────────────────────────────────────────────────────
-# Types
-# ───────────────────────────────────────────────────────────────────────────────
-
-
-@runtime_checkable
-class _Step(Protocol):
-    def __call__(self, ctx: "_Ctx") -> Union[Any, Awaitable[Any]]: ...
-
-
-HandlerStep = Union[_Step, Callable[["_Ctx"], Any], Callable[["_Ctx"], Awaitable[Any]]]
-PhaseChains = Mapping[
-    str, Sequence[HandlerStep]
-]  # {"HANDLER": [...], "COMMIT": [...], ...}
+from ..hooks import Phase
 
 
 class _Ctx(dict):
-    """
-    Dict-like context with attribute access. Common keys:
-      • request: FastAPI Request (optional)
-      • db: Session | AsyncSession
-      • api/model/op: optional metadata
-      • result: last non-None step result
-      • error: last exception caught (on failure paths)
-      • response: SimpleNamespace(result=...) for POST_RESPONSE shaping
-    """
-
-    __slots__ = ()
-    __getattr__ = dict.get
+    __getattr__ = dict.__getitem__
     __setattr__ = dict.__setitem__
 
-    @classmethod
-    def ensure(
-        cls,
-        *,
-        request: Optional[Request],
-        db: Union[Session, AsyncSession, None],
-        seed: Optional[MutableMapping[str, Any]] = None,
-    ) -> "_Ctx":
-        ctx = cls() if seed is None else (seed if isinstance(seed, _Ctx) else cls(seed))
-        if request is not None:
-            ctx.request = request
-            state = getattr(request, "state", None)
-            if state is not None and getattr(state, "ctx", None) is None:
-                try:
-                    state.ctx = ctx  # make ctx available to deps
-                except Exception:  # pragma: no cover
-                    pass
-        if db is not None:
-            ctx.db = db
-        return ctx
+
+# ───────────────────────── helpers ─────────────────────────
 
 
-# ───────────────────────────────────────────────────────────────────────────────
-# Introspection & helpers
-# ───────────────────────────────────────────────────────────────────────────────
+def _is_async_session(db) -> bool:
+    # AsyncSession exposes run_sync; plain Session does not
+    return hasattr(db, "run_sync")
 
 
-def _is_async_db(db: Any) -> bool:
-    # AsyncSession exposes run_sync/commit/flush as async
-    return isinstance(db, AsyncSession) or hasattr(db, "run_sync")
-
-
-def _bool_call(meth: Any) -> bool:
+def _in_tx(db) -> bool:
     try:
-        return bool(meth())
-    except Exception:  # pragma: no cover
+        return bool(db.in_transaction())
+    except Exception:
         return False
 
 
-def _in_tx(db: Any) -> bool:
-    for name in ("in_transaction", "in_nested_transaction"):
-        meth = getattr(db, name, None)
-        if callable(meth) and _bool_call(meth):
-            return True
-    val = getattr(db, "in_transaction", False)
-    return bool(val)
-
-
-async def _maybe_await(v: Any) -> Any:
-    if hasattr(v, "__await__"):
-        return await v  # type: ignore[func-returns-value]
-    return v
-
-
-async def _run_chain(ctx: _Ctx, chain: Optional[Iterable[HandlerStep]]) -> None:
-    if not chain:
-        return
-    for step in chain:
-        rv = step(ctx)
-        rv = await _maybe_await(rv)
-        if rv is not None:
-            ctx.result = rv  # last non-None wins
-
-
-def _g(phases: Optional[PhaseChains], key: str) -> Sequence[HandlerStep]:
-    return () if not phases else phases.get(key, ())
-
-
-# ───────────────────────────────────────────────────────────────────────────────
-# DB guards (enforce per-phase flush/commit policy)
-# ───────────────────────────────────────────────────────────────────────────────
-
-
-class _GuardHandle:
-    __slots__ = ("db", "orig_commit", "orig_flush")
-
-    def __init__(self, db: Any, orig_commit: Any, orig_flush: Any) -> None:
-        self.db = db
-        self.orig_commit = orig_commit
-        self.orig_flush = orig_flush
-
-    def restore(self) -> None:
-        if self.orig_commit is not None:
-            try:
-                setattr(self.db, "commit", self.orig_commit)
-            except Exception:  # pragma: no cover
-                pass
-        if self.orig_flush is not None:
-            try:
-                setattr(self.db, "flush", self.orig_flush)
-            except Exception:  # pragma: no cover
-                pass
-
-
-def _install_db_guards(
-    db: Union[Session, AsyncSession],
-    *,
-    phase: str,
-    allow_flush: bool,
-    allow_commit: bool,
-    require_started_tx_for_commit: bool,
-    started_tx: bool,
-) -> _GuardHandle:
-    """
-    Monkey-patch db.commit/db.flush during a phase to enforce policy.
-    We assign simple callables on the instance so they are invoked without `self`.
-    """
-    orig_commit = getattr(db, "commit", None)
-    orig_flush = getattr(db, "flush", None)
-
-    def _raise(op: str) -> None:
-        raise RuntimeError(f"db.{op}() is not allowed during {phase} phase")
-
-    # commit wrapper
-    if not allow_commit:
-        if _is_async_db(db):
-
-            async def _blocked_commit() -> None:  # type: ignore[func-returns-value]
-                _raise("commit")
-        else:
-
-            def _blocked_commit() -> None:  # type: ignore[func-returns-value]
-                _raise("commit")
-
-        setattr(db, "commit", _blocked_commit)  # type: ignore[assignment]
-    else:
-        # allow commit, but optionally require that *this* run started the txn
-        if require_started_tx_for_commit and not started_tx:
-            if _is_async_db(db):
-
-                async def _blocked_commit_started() -> None:  # type: ignore[func-returns-value]
-                    _raise("commit")
+async def _rollback_safely(api, db, ctx):
+    try:
+        if _in_tx(db):
+            if iscoroutinefunction(db.rollback):
+                await db.rollback()
             else:
-
-                def _blocked_commit_started() -> None:  # type: ignore[func-returns-value]
-                    _raise("commit")
-
-            setattr(db, "commit", _blocked_commit_started)  # type: ignore[assignment]
-
-    # flush wrapper
-    if not allow_flush:
-        if _is_async_db(db):
-
-            async def _blocked_flush() -> None:  # type: ignore[func-returns-value]
-                _raise("flush")
-        else:
-
-            def _blocked_flush() -> None:  # type: ignore[func-returns-value]
-                _raise("flush")
-
-        setattr(db, "flush", _blocked_flush)  # type: ignore[assignment]
-
-    return _GuardHandle(db, orig_commit, orig_flush)
+                db.rollback()
+    finally:
+        # fire ON_ROLLBACK if defined
+        ph = getattr(Phase, "ON_ROLLBACK", None)
+        if ph is not None:
+            try:
+                await api._run(ph, ctx)
+            except Exception:
+                # rollback hooks must not mask original errors
+                pass
 
 
-async def _rollback_if_started(
-    db: Union[Session, AsyncSession],
-    started_tx: bool,
-    *,
-    phases: Optional[PhaseChains],
-    ctx: _Ctx,
-) -> None:
-    if not started_tx:
-        return
-    try:
-        if _is_async_db(db):
-            await db.rollback()  # type: ignore[func-returns-value]
-        else:
-            db.rollback()
-    except Exception as rb_exc:  # pragma: no cover
-        logger.exception("Rollback failed: %s", rb_exc)
-    # best-effort rollback hooks
-    try:
-        await _run_chain(ctx, _g(phases, "ON_ROLLBACK"))
-    except Exception:  # pragma: no cover
-        pass
+async def _run_phase(api, phase, ctx):
+    """Run a phase if it exists; return True if it ran."""
+    if phase is None:
+        return False
+    await api._run(phase, ctx)
+    return True
 
 
-# ───────────────────────────────────────────────────────────────────────────────
-# Public API
-# ───────────────────────────────────────────────────────────────────────────────
+def _phase(name: str):
+    """Fetch a Phase member by name; returns None if not declared yet."""
+    return getattr(Phase, name, None)
 
 
+# ---------------------------------------------------------------------------#
 async def _invoke(
+    api,
+    method: str,
     *,
-    request: Optional[Request],
-    db: Union[Session, AsyncSession],
-    phases: Optional[PhaseChains],  # must include at least "HANDLER"
-    ctx: Optional[MutableMapping[str, Any]] = None,
-) -> Any:
+    params: Mapping[str, Any],
+    ctx: MutableMapping[str, Any],
+    exec_fn: Optional[Callable[[str, Mapping[str, Any], Any], Any]] = None,
+):
     """
-    Execute an operation through explicit phases with strict write policies.
+    Unified execution engine (JSON-RPC & REST).
 
-    Required (typical) phases:
-      PRE_TX_BEGIN? → TX_BEGIN → PRE_HANDLER → HANDLER → POST_HANDLER → PRE_COMMIT → COMMIT → POST_COMMIT → POST_RESPONSE
-
-    Guard policies:
-      • PRE_HANDLER, HANDLER, POST_HANDLER: flush-only (commit forbidden)
-      • PRE_COMMIT, POST_COMMIT: no writes (flush & commit forbidden)
-      • COMMIT: commit allowed (and usually executed by a default hook)
-      • If `skip_persist` is true: no writes anywhere and TX_BEGIN/COMMIT are skipped.
+    Lifecycle:
+      PRE_TX_BEGIN
+      (begin transaction if needed)
+      PRE_HANDLER
+      handler
+      POST_HANDLER
+      PRE_COMMIT
+      COMMIT
+      POST_COMMIT
+      POST_RESPONSE
 
     Error handling:
-      • Each phase maps to ON_<PHASE>_ERROR (if present) else ON_ERROR.
-      • Phases inside the txn trigger rollback if this run opened the txn, then ON_ROLLBACK.
-      • POST_RESPONSE remains non-fatal; errors are reported but the prior result is returned.
+      • PRE_TX_BEGIN failure → ON_ERROR (no rollback)
+      • Failures during PRE_HANDLER / handler / POST_HANDLER / PRE_COMMIT / COMMIT
+          → rollback → ON_ROLLBACK → specific ON_*_ERROR (if present) else ON_ERROR
+      • POST_COMMIT failure → ON_POST_COMMIT_ERROR (or ON_ERROR), then raise
+      • POST_RESPONSE failure → ON_POST_RESPONSE_ERROR (or ON_ERROR), return pre-built result
     """
-    ctx = _Ctx.ensure(request=request, db=db, seed=ctx)
-    skip_persist: bool = bool(
-        ctx.get("__autoapi_skip_persist__") or ctx.get("skip_persist")
-    )
+    ctx = _Ctx(ctx)
+    db = ctx["db"]
 
-    existed_tx_before = _in_tx(db)
-    started_tx = False  # computed after TX_BEGIN
+    # ─── PRE_TX_BEGIN (no transaction) ────────────────────────────────────
+    try:
+        await api._run(Phase.PRE_TX_BEGIN, ctx)
+    except Exception as exc:
+        ctx["exc"] = exc
+        # generic error phase for pre-begin failures
+        await _run_phase(api, _phase("ON_ERROR"), ctx)
+        raise
 
-    # Helper to run a guarded phase
-    async def _run_phase(
-        name: str,
-        *,
-        allow_flush: bool,
-        allow_commit: bool,
-        in_tx: bool,
-        require_started_for_commit: bool = True,
-        nonfatal: bool = False,
-    ) -> None:
-        chain = _g(phases, name)
-        if not chain:
-            return
+    # Allow hooks to rewrite method/params after PRE_TX_BEGIN
+    method = getattr(ctx["env"], "method", method) or method
+    params = getattr(ctx["env"], "params", params)
+    ctx["payload"] = params  # legacy alias used by some hooks
 
-        # If skip_persist, no writes anywhere
-        eff_allow_flush = allow_flush and (not skip_persist)
-        eff_allow_commit = allow_commit and (not skip_persist)
+    # ─── Ensure a transaction is active for handler phases ───────────────
+    try:
+        if not _in_tx(db):
+            if _is_async_session(db):
+                await db.begin()
+            else:
+                db.begin()
+    except Exception as exc:  # unlikely, but treat as pre-handler error
+        ctx["exc"] = exc
+        # cannot rollback a tx we failed to begin; just signal error
+        await _run_phase(api, _phase("ON_ERROR"), ctx)
+        raise
 
-        guard = _install_db_guards(
-            db,
-            phase=name,
-            allow_flush=eff_allow_flush,
-            allow_commit=eff_allow_commit,
-            require_started_tx_for_commit=require_started_for_commit,
-            started_tx=started_tx,
-        )
+    # ─── PRE_HANDLER (inside transaction; may flush) ─────────────────────
+    try:
+        await _run_phase(api, _phase("PRE_HANDLER"), ctx)
+    except Exception as exc:
+        ctx["exc"] = exc
+        await _rollback_safely(api, db, ctx)
+        await _run_phase(api, _phase("ON_PRE_HANDLER_ERROR") or _phase("ON_ERROR"), ctx)
+        raise
 
-        try:
-            await _run_chain(ctx, chain)
-        except Exception as exc:
-            ctx.error = exc
-            # rollback only for phases that run inside a txn
-            if in_tx:
-                await _rollback_if_started(db, started_tx, phases=phases, ctx=ctx)
-            # run phase-specific error hooks (or ON_ERROR)
-            err_name = f"ON_{name}_ERROR"
-            try:
-                await _run_chain(ctx, _g(phases, err_name) or _g(phases, "ON_ERROR"))
-            except Exception:  # pragma: no cover
-                pass
-            if nonfatal:
-                # report and continue (POST_RESPONSE)
-                logger.exception("%s failed (nonfatal): %s", name, exc)
-                return
-            raise create_standardized_error(exc)
-        finally:
-            guard.restore()
+    # ─── Business logic / core call (may flush) ──────────────────────────
+    try:
+        if exec_fn is not None:
+            maybe = exec_fn(method, params, db)
+            result = await maybe if isawaitable(maybe) else maybe
+        else:
+            # Default adapter:
+            # - If we are in async mode and the RPC handler is sync, execute it
+            #   inside the engine’s sync context via AsyncSession.run_sync(...),
+            #   passing a real sync Session.
+            # - Otherwise, call directly and await if needed.
+            handler = api.rpc[method]
+            if _is_async_session(db) and not iscoroutinefunction(handler):
+                result = await db.run_sync(lambda s: handler(params, s))
+            else:
+                maybe = handler(params, db)
+                result = await maybe if isawaitable(maybe) else maybe
 
-    # ─── PRE_TX_BEGIN (outside txn) ────────────────────────────────────────────
-    await _run_phase("PRE_TX_BEGIN", allow_flush=False, allow_commit=False, in_tx=False)
+        ctx["result"] = result
+    except Exception as exc:
+        ctx["exc"] = exc
+        await _rollback_safely(api, db, ctx)
+        await _run_phase(api, _phase("ON_HANDLER_ERROR") or _phase("ON_ERROR"), ctx)
+        raise
 
-    # ─── TX_BEGIN (begin txn via hooks; skip when skip_persist) ────────────────
-    if not skip_persist:
+    # ─── POST_HANDLER (still in transaction; may flush) ──────────────────
+    try:
+        await _run_phase(api, _phase("POST_HANDLER"), ctx)
+    except Exception as exc:
+        ctx["exc"] = exc
+        await _rollback_safely(api, db, ctx)
         await _run_phase(
-            "TX_BEGIN",
-            allow_flush=False,
-            allow_commit=False,
-            in_tx=False,
-            require_started_for_commit=True,
+            api, _phase("ON_POST_HANDLER_ERROR") or _phase("ON_ERROR"), ctx
         )
-    # compute if *this* run started the transaction
-    started_tx = (not existed_tx_before) and _in_tx(db)
+        raise
 
-    # ─── PRE_HANDLER (flush-only) ──────────────────────────────────────────────
-    await _run_phase(
-        "PRE_HANDLER", allow_flush=True, allow_commit=False, in_tx=not skip_persist
-    )
+    # ─── PRE_COMMIT ──────────────────────────────────────────────────────
+    try:
+        await _run_phase(api, Phase.PRE_COMMIT, ctx)
+    except Exception as exc:
+        ctx["exc"] = exc
+        await _rollback_safely(api, db, ctx)
+        await _run_phase(api, _phase("ON_PRE_COMMIT_ERROR") or _phase("ON_ERROR"), ctx)
+        raise
 
-    # ─── HANDLER (flush-only; core lives here) ─────────────────────────────────
-    await _run_phase(
-        "HANDLER", allow_flush=True, allow_commit=False, in_tx=not skip_persist
-    )
+    # ─── COMMIT ──────────────────────────────────────────────────────────
+    try:
+        if iscoroutinefunction(db.commit):
+            await db.commit()
+        else:
+            db.commit()
+    except Exception as exc:
+        ctx["exc"] = exc
+        # best-effort rollback (may already be closed by failed commit)
+        await _rollback_safely(api, db, ctx)
+        await _run_phase(api, _phase("ON_COMMIT_ERROR") or _phase("ON_ERROR"), ctx)
+        raise
 
-    # ─── POST_HANDLER (flush-only) ─────────────────────────────────────────────
-    await _run_phase(
-        "POST_HANDLER", allow_flush=True, allow_commit=False, in_tx=not skip_persist
-    )
+    # ─── POST_COMMIT ─────────────────────────────────────────────────────
+    result = ctx.get("result")
+    try:
+        await _run_phase(api, Phase.POST_COMMIT, ctx)
+    except Exception as exc:
+        ctx["exc"] = exc
+        # cannot rollback after successful commit; just report
+        await _run_phase(api, _phase("ON_POST_COMMIT_ERROR") or _phase("ON_ERROR"), ctx)
+        raise
 
-    # ─── PRE_COMMIT (no writes) ────────────────────────────────────────────────
-    await _run_phase(
-        "PRE_COMMIT", allow_flush=False, allow_commit=False, in_tx=not skip_persist
-    )
-
-    # ─── COMMIT (commit-only hooks; skip when skip_persist) ────────────────────
-    if not skip_persist:
+    # ─── POST_RESPONSE (response shaping; non-fatal by design) ───────────
+    ctx["response"] = SimpleNamespace(result=result)
+    try:
+        await _run_phase(api, Phase.POST_RESPONSE, ctx)
+        return ctx["response"].result
+    except Exception as exc:
+        # Do not break the request; report via hook and return prior result
+        ctx["exc"] = exc
         await _run_phase(
-            "COMMIT",
-            allow_flush=True,  # a final flush right before commit is OK
-            allow_commit=True,  # commit allowed
-            in_tx=True,
-            require_started_for_commit=True,
+            api, _phase("ON_POST_RESPONSE_ERROR") or _phase("ON_ERROR"), ctx
         )
-
-    # ─── POST_COMMIT (no writes) ───────────────────────────────────────────────
-    await _run_phase("POST_COMMIT", allow_flush=False, allow_commit=False, in_tx=False)
-
-    # ─── POST_RESPONSE (non-fatal) ─────────────────────────────────────────────
-    from types import SimpleNamespace as _NS
-
-    ctx.response = _NS(result=ctx.get("result"))
-    await _run_phase(
-        "POST_RESPONSE",
-        allow_flush=False,
-        allow_commit=False,
-        in_tx=False,
-        nonfatal=True,
-    )
-    return ctx.response.result
-
-
-__all__ = ["_Ctx", "_invoke"]
+        return ctx["response"].result
