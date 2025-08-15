@@ -4,10 +4,26 @@ from __future__ import annotations
 import inspect
 import logging
 from types import SimpleNamespace
-from typing import Any, Callable, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+)
 
 from ..opspec import OpHook, OpSpec
-from ..opspec.types import PHASES, HookPhase, StepFn
+from ..opspec.types import PHASES, StepFn
+from ..config.constants import (
+    AUTOAPI_API_HOOKS_ATTR,
+    AUTOAPI_HOOKS_ATTR,
+    AUTOAPI_IMPERATIVE_HOOKS_ATTR,
+    CTX_SKIP_PERSIST_FLAG,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -22,21 +38,25 @@ _Key = Tuple[str, str]  # (alias, target)
 
 _PRE_LIKE = frozenset({"PRE_TX_BEGIN", "START_TX", "PRE_HANDLER", "PRE_COMMIT"})
 _POST_LIKE = frozenset({"POST_HANDLER", "POST_COMMIT", "POST_RESPONSE", "FINAL"})
-_ERROR_LIKE = frozenset({
-    "ON_ROLLBACK",
-    "ON_PRE_HANDLER_ERROR",
-    "ON_HANDLER_ERROR",
-    "ON_POST_HANDLER_ERROR",
-    "ON_PRE_COMMIT_ERROR",
-    # v3 uses END_TX; map v2's ON_COMMIT_ERROR → ON_END_TX_ERROR
-    "ON_END_TX_ERROR",
-    "ON_POST_COMMIT_ERROR",
-    "ON_POST_RESPONSE_ERROR",
-    "ON_ERROR",
-})
+_ERROR_LIKE = frozenset(
+    {
+        "ON_ROLLBACK",
+        "ON_PRE_HANDLER_ERROR",
+        "ON_HANDLER_ERROR",
+        "ON_POST_HANDLER_ERROR",
+        "ON_PRE_COMMIT_ERROR",
+        # v3 uses END_TX; map v2's ON_COMMIT_ERROR → ON_END_TX_ERROR
+        "ON_END_TX_ERROR",
+        "ON_POST_COMMIT_ERROR",
+        "ON_POST_RESPONSE_ERROR",
+        "ON_ERROR",
+    }
+)
+
 
 def _is_pre_like(p: str) -> bool:
     return p in _PRE_LIKE
+
 
 def _is_post_or_error(p: str) -> bool:
     return p in _POST_LIKE or p in _ERROR_LIKE
@@ -46,25 +66,32 @@ def _is_post_or_error(p: str) -> bool:
 # ctx helpers
 # ───────────────────────────────────────────────────────────────────────────────
 
+
 def _ctx_get(ctx: Mapping[str, Any], key: str, default: Any = None) -> Any:
     try:
         return ctx[key]
     except Exception:
         return getattr(ctx, key, default)
 
+
 def _ctx_db(ctx: Mapping[str, Any]) -> Any:
     return _ctx_get(ctx, "db")
+
 
 def _ctx_payload(ctx: Mapping[str, Any]) -> Mapping[str, Any]:
     return _ctx_get(ctx, "payload", {}) or {}
 
+
 def _is_async_db(db: Any) -> bool:
-    return hasattr(db, "run_sync") or inspect.iscoroutinefunction(getattr(db, "commit", None))
+    return hasattr(db, "run_sync") or inspect.iscoroutinefunction(
+        getattr(db, "commit", None)
+    )
 
 
 # ───────────────────────────────────────────────────────────────────────────────
 # Default transactional steps
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 def _default_start_tx() -> StepFn:
     async def _step(ctx: Any) -> None:
@@ -78,7 +105,9 @@ def _default_start_tx() -> StepFn:
             await begin()  # type: ignore[misc]
         else:
             begin()
+
     return _step
+
 
 def _default_end_tx() -> StepFn:
     async def _step(ctx: Any) -> None:
@@ -92,14 +121,17 @@ def _default_end_tx() -> StepFn:
             await commit()  # type: ignore[misc]
         else:
             commit()
+
     return _step
+
 
 def _mark_skip_persist() -> StepFn:
     async def _step(ctx: Any) -> None:
         try:
-            ctx["__autoapi_skip_persist__"] = True
+            ctx[CTX_SKIP_PERSIST_FLAG] = True
         except Exception:
-            setattr(ctx, "__autoapi_skip_persist__", True)
+            setattr(ctx, CTX_SKIP_PERSIST_FLAG, True)
+
     return _step
 
 
@@ -107,9 +139,11 @@ def _mark_skip_persist() -> StepFn:
 # Step wrappers
 # ───────────────────────────────────────────────────────────────────────────────
 
+
 def _wrap_hook(h: OpHook) -> StepFn:
     fn = h.fn
     pred = h.when
+
     async def _step(ctx: Any) -> Any:
         if pred is not None:
             payload = _ctx_payload(ctx)
@@ -125,7 +159,9 @@ def _wrap_hook(h: OpHook) -> StepFn:
         if inspect.isawaitable(rv):
             return await rv
         return rv
+
     return _step
+
 
 def _wrap_step_fn(fn: Callable[..., Any]) -> StepFn:
     async def _step(ctx: Any) -> Any:
@@ -133,6 +169,7 @@ def _wrap_step_fn(fn: Callable[..., Any]) -> StepFn:
         if inspect.isawaitable(rv):
             return await rv
         return rv
+
     return _step
 
 
@@ -142,6 +179,7 @@ def _wrap_step_fn(fn: Callable[..., Any]) -> StepFn:
 #   • { phase: Iterable[callable] }                      (applies to all aliases)
 #   • { alias: { phase: Iterable[callable] } }           (per-alias)
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 def _to_phase_map_for_alias(source: Any, alias: str) -> Dict[str, List[StepFn]]:
     """
@@ -177,6 +215,7 @@ def _to_phase_map_for_alias(source: Any, alias: str) -> Dict[str, List[StepFn]]:
 # Precedence merge
 # ───────────────────────────────────────────────────────────────────────────────
 
+
 def _merge_for_phase(
     phase: str,
     *,
@@ -190,6 +229,7 @@ def _merge_for_phase(
       • pre-like  → API + MODEL + OP + IMPERATIVE
       • post/error→ IMPERATIVE + OP + MODEL + API
     """
+
     def _get(m: Mapping[str, List[StepFn]] | None) -> List[StepFn]:
         if not m:
             return []
@@ -204,6 +244,7 @@ def _merge_for_phase(
 # ───────────────────────────────────────────────────────────────────────────────
 # Alias namespace helper
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 def _ensure_alias_hooks_ns(model: type, alias: str) -> SimpleNamespace:
     root = getattr(model, "hooks", None)
@@ -225,6 +266,7 @@ def _ensure_alias_hooks_ns(model: type, alias: str) -> SimpleNamespace:
 # Build / attach (with precedence)
 # ───────────────────────────────────────────────────────────────────────────────
 
+
 def _attach_one(model: type, sp: OpSpec) -> None:
     alias = sp.alias
     ns = _ensure_alias_hooks_ns(model, alias)
@@ -236,11 +278,11 @@ def _attach_one(model: type, sp: OpSpec) -> None:
     # Resolve source maps for this alias
     # API-level hooks may be injected by the API facade before binding:
     #   model.__autoapi_api_hooks__ = {phase:[...]} or {"*":{phase:[...]}, alias:{...}}
-    api_src = getattr(model, "__autoapi_api_hooks__", None)
+    api_src = getattr(model, AUTOAPI_API_HOOKS_ATTR, None)
     api_map = _to_phase_map_for_alias(api_src, alias)
 
     # Model/table-level defaults
-    model_src = getattr(model, "__autoapi_hooks__", None)
+    model_src = getattr(model, AUTOAPI_HOOKS_ATTR, None)
     model_map = _to_phase_map_for_alias(model_src, alias)
 
     # Op-level (from OpSpec.hooks)
@@ -250,12 +292,14 @@ def _attach_one(model: type, sp: OpSpec) -> None:
         op_map.setdefault(phase, []).append(_wrap_hook(h))
 
     # Imperative (runtime/registry) – same accepted shapes as API/MODEL
-    imp_src = getattr(model, "__autoapi_imperative_hooks__", None)
+    imp_src = getattr(model, AUTOAPI_IMPERATIVE_HOOKS_ATTR, None)
     imp_map = _to_phase_map_for_alias(imp_src, alias)
 
     # Build per-phase chains via precedence merge
     for ph in PHASES:
-        merged = _merge_for_phase(ph, api_map=api_map, model_map=model_map, op_map=op_map, imp_map=imp_map)
+        merged = _merge_for_phase(
+            ph, api_map=api_map, model_map=model_map, op_map=op_map, imp_map=imp_map
+        )
 
         # Inject default transactional steps (persistent ops only)
         if sp.persist != "skip":
@@ -272,10 +316,17 @@ def _attach_one(model: type, sp: OpSpec) -> None:
 
         setattr(ns, ph, merged)
 
-    logger.debug("hooks: %s.%s merged with precedence (persist=%s)", model.__name__, alias, sp.persist)
+    logger.debug(
+        "hooks: %s.%s merged with precedence (persist=%s)",
+        model.__name__,
+        alias,
+        sp.persist,
+    )
 
 
-def normalize_and_attach(model: type, specs: Sequence[OpSpec], *, only_keys: Optional[Sequence[_Key]] = None) -> None:
+def normalize_and_attach(
+    model: type, specs: Sequence[OpSpec], *, only_keys: Optional[Sequence[_Key]] = None
+) -> None:
     """
     Build sequential phase chains for each OpSpec and attach them to model.hooks.<alias>.
     If `only_keys` is provided, limit work to those (alias,target) pairs.

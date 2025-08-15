@@ -8,6 +8,7 @@ from ..hooks import Phase
 from ..jsonrpc_models import create_standardized_error
 from ..info_schema import check as _info_check
 from ..cfgs import AUTH_CONTEXT_KEY, INJECTED_FIELDS_KEY, TENANT_ID_KEY
+from ..config.constants import AUTOAPI_TENANT_POLICY_ATTR
 
 log = logging.getLogger(__name__)
 
@@ -63,7 +64,7 @@ class TenantBound(_RowBound):
     # -------------------------------------------------------------------
     @declared_attr
     def tenant_id(cls):
-        pol = getattr(cls, "__autoapi_tenant_policy__", TenantPolicy.CLIENT_SET)
+        pol = getattr(cls, AUTOAPI_TENANT_POLICY_ATTR, TenantPolicy.CLIENT_SET)
         schema = _infer_schema(cls, default="public")
 
         autoapi_meta: dict[str, object] = {}
@@ -98,7 +99,7 @@ class TenantBound(_RowBound):
     # -------------------------------------------------------------------
     @classmethod
     def __autoapi_register_hooks__(cls, api):
-        pol = cls.__autoapi_tenant_policy__
+        pol = getattr(cls, AUTOAPI_TENANT_POLICY_ATTR)
 
         def _err(code: int, msg: str):
             http_exc, _, _ = create_standardized_error(code, message=msg)
@@ -119,7 +120,7 @@ class TenantBound(_RowBound):
             provided = params.get("tenant_id")
             missing = _is_missing(provided)
             print(f"\n🚧🚧🚧{provided}")
-            if cls.__autoapi_tenant_policy__ == TenantPolicy.STRICT_SERVER:
+            if getattr(cls, AUTOAPI_TENANT_POLICY_ATTR) == TenantPolicy.STRICT_SERVER:
                 if injected_tid is None:
                     _err(400, "tenant_id is required.")
                 if not missing and _normalize_uuid(provided) != _normalize_uuid(

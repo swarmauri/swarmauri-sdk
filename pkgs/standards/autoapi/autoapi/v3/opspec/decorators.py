@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from functools import wraps
-from typing import Any, Callable, Iterable, Optional, Sequence, Tuple, Type
+from typing import Any, Callable, Sequence, Type
 
 from .types import (
     OpSpec,
@@ -12,10 +12,12 @@ from .types import (
     ReturnForm,
     OpHook,  # for optional hook lists passed in
 )
+from ..config.constants import AUTOAPI_CUSTOM_OP_ATTR, AUTOAPI_OPS_ATTR
 
 # ───────────────────────────────────────────────────────────────────────────────
 # Class-level alias decorator
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 def op_alias(
     *,
@@ -96,12 +98,17 @@ def op_alias(
 
     def deco(table_cls: Type):
         # attach to __autoapi_ops__ without touching the imperative registry
-        ops = list(getattr(table_cls, "__autoapi_ops__", ()))
+        ops = list(getattr(table_cls, AUTOAPI_OPS_ATTR, ()))
         spec = OpSpec(
             alias=alias,
             target=target,
             table=table_cls,
-            arity=arity or ("member" if target in {"read","update","replace","delete"} else "collection"),
+            arity=arity
+            or (
+                "member"
+                if target in {"read", "update", "replace", "delete"}
+                else "collection"
+            ),
             persist=persist,
             request_model=request_model,
             response_model=response_model,
@@ -117,14 +124,16 @@ def op_alias(
             expose_method=True if expose_method is None else bool(expose_method),
         )
         ops.append(spec)
-        setattr(table_cls, "__autoapi_ops__", tuple(ops))
+        setattr(table_cls, AUTOAPI_OPS_ATTR, tuple(ops))
         return table_cls
+
     return deco
 
 
 # ───────────────────────────────────────────────────────────────────────────────
 # Function/method-level custom op decorator
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 def op(
     *,
@@ -233,6 +242,7 @@ def op(
 
         {"degrees": 90}
     """
+
     def deco(fn: Callable[..., Any]):
         @wraps(fn)
         def _raw(*a, **kw):
@@ -240,26 +250,31 @@ def op(
             return fn(*a, **kw)
 
         # Stash an OpSpec shell; binder/collector will set table and handler.
-        _raw.__autoapi_custom_op__ = OpSpec(  # type: ignore[attr-defined]
-            alias=alias,
-            target="custom",
-            table=None,
-            arity=arity,
-            persist=persist,
-            returns=returns,
-            handler=None,  # collector will set to the decorated function if still None
-            request_model=request_model,
-            response_model=response_model,
-            http_methods=tuple(http_methods) if http_methods else None,
-            path_suffix=path_suffix,
-            tags=tuple(tags) if tags else (),
-            rbac_guard_op=rbac_guard_op,
-            hooks=tuple(hooks) if hooks else (),
-            expose_routes=True if expose_routes is None else bool(expose_routes),
-            expose_rpc=True if expose_rpc is None else bool(expose_rpc),
-            expose_method=True if expose_method is None else bool(expose_method),
+        setattr(
+            _raw,
+            AUTOAPI_CUSTOM_OP_ATTR,
+            OpSpec(  # type: ignore[attr-defined]
+                alias=alias,
+                target="custom",
+                table=None,
+                arity=arity,
+                persist=persist,
+                returns=returns,
+                handler=None,  # collector will set to the decorated function if still None
+                request_model=request_model,
+                response_model=response_model,
+                http_methods=tuple(http_methods) if http_methods else None,
+                path_suffix=path_suffix,
+                tags=tuple(tags) if tags else (),
+                rbac_guard_op=rbac_guard_op,
+                hooks=tuple(hooks) if hooks else (),
+                expose_routes=True if expose_routes is None else bool(expose_routes),
+                expose_rpc=True if expose_rpc is None else bool(expose_rpc),
+                expose_method=True if expose_method is None else bool(expose_method),
+            ),
         )
         return _raw
+
     return deco
 
 

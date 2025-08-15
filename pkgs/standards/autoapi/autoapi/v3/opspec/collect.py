@@ -4,26 +4,38 @@ from __future__ import annotations
 from dataclasses import replace
 import logging
 import re
-from typing import Any, Dict, Iterable, List, Mapping, MutableMapping, Optional, Sequence, Tuple, Type
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+)
 
 from .types import (
-    Arity,
     CANON,
-    HookPhase,
-    OpHook,
     OpSpec,
-    PersistPolicy,
-    ReturnForm,
     TargetOp,
     VerbAliasPolicy,
+)
+from ..config.constants import (
+    AUTOAPI_CUSTOM_OP_ATTR,
+    AUTOAPI_OPS_ATTR,
+    AUTOAPI_VERB_ALIAS_POLICY_ATTR,
+    AUTOAPI_VERB_ALIASES_ATTR,
 )
 
 try:
     # Per-model registry (observable, triggers rebind elsewhere)
     from .model_registry import get_registered_ops  # type: ignore
 except Exception:  # pragma: no cover
+
     def get_registered_ops(model: type) -> Sequence[OpSpec]:  # shim
         return ()
+
 
 logger = logging.getLogger(__name__)
 
@@ -34,10 +46,12 @@ _ALIAS_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 # Helpers
 # ───────────────────────────────────────────────────────────────────────────────
 
+
 def _ensure_spec_table(spec: OpSpec, table: type) -> OpSpec:
     if spec.table is table:
         return spec
     return replace(spec, table=table)
+
 
 def _as_specs(value: Any, table: type) -> List[OpSpec]:
     """
@@ -58,7 +72,9 @@ def _as_specs(value: Any, table: type) -> List[OpSpec]:
         try:
             return OpSpec(table=table, **kwargs)  # type: ignore[arg-type]
         except TypeError as e:
-            logger.error("Invalid OpSpec kwargs in __autoapi_ops__ for %s: %s", table.__name__, e)
+            logger.error(
+                "Invalid OpSpec kwargs in __autoapi_ops__ for %s: %s", table.__name__, e
+            )
             return None
 
     if isinstance(value, OpSpec):
@@ -84,13 +100,19 @@ def _as_specs(value: Any, table: type) -> List[OpSpec]:
                 if sp:
                     specs.append(sp)
     else:
-        logger.warning("__autoapi_ops__ on %s has unsupported type: %r", table.__name__, type(value))
+        logger.warning(
+            "__autoapi_ops__ on %s has unsupported type: %r",
+            table.__name__,
+            type(value),
+        )
 
     return specs
 
+
 def _collect_class_declared(model: type) -> List[OpSpec]:
-    declared = getattr(model, "__autoapi_ops__", None)
+    declared = getattr(model, AUTOAPI_OPS_ATTR, None)
     return _as_specs(declared, model)
+
 
 def _collect_decorators(model: type) -> List[OpSpec]:
     """
@@ -100,7 +122,7 @@ def _collect_decorators(model: type) -> List[OpSpec]:
     out: List[OpSpec] = []
     for cls in reversed(model.__mro__):  # base classes first; child overrides later
         for name, attr in cls.__dict__.items():
-            spec_meta = getattr(attr, "__autoapi_custom_op__", None)
+            spec_meta = getattr(attr, AUTOAPI_CUSTOM_OP_ATTR, None)
             if not spec_meta:
                 continue
             if isinstance(spec_meta, OpSpec):
@@ -115,15 +137,24 @@ def _collect_decorators(model: type) -> List[OpSpec]:
                 sp = OpSpec(table=model, handler=attr, **kwargs)  # type: ignore[arg-type]
                 out.append(sp)
             else:
-                logger.warning("Unknown custom_op payload on %s.%s: %r", cls.__name__, name, type(spec_meta))
+                logger.warning(
+                    "Unknown custom_op payload on %s.%s: %r",
+                    cls.__name__,
+                    name,
+                    type(spec_meta),
+                )
     return out
+
 
 def _collect_registry(model: type) -> List[OpSpec]:
     try:
-        return [ _ensure_spec_table(sp, model) for sp in (get_registered_ops(model) or ()) ]
+        return [
+            _ensure_spec_table(sp, model) for sp in (get_registered_ops(model) or ())
+        ]
     except Exception as e:  # pragma: no cover
         logger.exception("get_registered_ops failed for %s: %s", model.__name__, e)
         return []
+
 
 def _generate_canonical(model: type) -> List[OpSpec]:
     """
@@ -131,7 +162,13 @@ def _generate_canonical(model: type) -> List[OpSpec]:
     Bulk verbs can be added later by registry/decorators if supported.
     """
     canon_targets: Tuple[TargetOp, ...] = (
-        "create", "read", "update", "replace", "delete", "list", "clear"
+        "create",
+        "read",
+        "update",
+        "replace",
+        "delete",
+        "list",
+        "clear",
     )
     out: List[OpSpec] = []
     for target in canon_targets:
@@ -141,7 +178,9 @@ def _generate_canonical(model: type) -> List[OpSpec]:
                 alias=alias,
                 target=target,
                 table=model,
-                arity="member" if target in {"read", "update", "replace", "delete"} else "collection",
+                arity="member"
+                if target in {"read", "update", "replace", "delete"}
+                else "collection",
                 # persistent by default; binder will auto START_TX/END_TX where appropriate
                 persist="default",
                 returns="model" if target != "clear" else "raw",
@@ -149,7 +188,10 @@ def _generate_canonical(model: type) -> List[OpSpec]:
         )
     return out
 
-def _dedupe(existing: Dict[Tuple[str, str], OpSpec], incoming: Iterable[OpSpec]) -> None:
+
+def _dedupe(
+    existing: Dict[Tuple[str, str], OpSpec], incoming: Iterable[OpSpec]
+) -> None:
     """
     Merge specs into `existing` using (alias, target) as the key.
     Later sources overwrite earlier ones.
@@ -161,15 +203,18 @@ def _dedupe(existing: Dict[Tuple[str, str], OpSpec], incoming: Iterable[OpSpec])
             continue
         existing[(sp.alias, sp.target)] = sp  # last wins
 
-def _normalize_alias_map(model: type) -> Tuple[List[Tuple[str, TargetOp]], VerbAliasPolicy]:
+
+def _normalize_alias_map(
+    model: type,
+) -> Tuple[List[Tuple[str, TargetOp]], VerbAliasPolicy]:
     """
     Support both styles:
       {"soft_delete": "delete"}  → alias -> target
       {"delete": "soft_delete"}  → target -> alias
     Returns list of (alias, target). Only allows targets in CANON (including bulk, clear).
     """
-    raw = getattr(model, "__autoapi_verb_aliases__", {}) or {}
-    policy: VerbAliasPolicy = getattr(model, "__autoapi_verb_alias_policy__", "both")  # type: ignore[assignment]
+    raw = getattr(model, AUTOAPI_VERB_ALIASES_ATTR, {}) or {}
+    policy: VerbAliasPolicy = getattr(model, AUTOAPI_VERB_ALIAS_POLICY_ATTR, "both")  # type: ignore[assignment]
 
     pairs: List[Tuple[str, TargetOp]] = []
     for k, v in raw.items():
@@ -183,13 +228,21 @@ def _normalize_alias_map(model: type) -> Tuple[List[Tuple[str, TargetOp]], VerbA
 
         if alias and target:
             if not _ALIAS_RE.match(alias):
-                logger.warning("Invalid verb alias %r on %s; must match %s", alias, model.__name__, _ALIAS_RE.pattern)
+                logger.warning(
+                    "Invalid verb alias %r on %s; must match %s",
+                    alias,
+                    model.__name__,
+                    _ALIAS_RE.pattern,
+                )
                 continue
             pairs.append((alias, target))  # type: ignore[arg-type]
         else:
-            logger.warning("Unrecognized alias mapping on %s: %r -> %r", model.__name__, k, v)
+            logger.warning(
+                "Unrecognized alias mapping on %s: %r -> %r", model.__name__, k, v
+            )
 
     return pairs, policy
+
 
 def _apply_aliases(
     specs: List[OpSpec],
@@ -217,7 +270,12 @@ def _apply_aliases(
     for alias, target in pairs:
         base = canon_by_target.get(target)
         if not base:
-            logger.warning("Alias %r → %r has no base canonical spec on %s", alias, target, model.__name__)
+            logger.warning(
+                "Alias %r → %r has no base canonical spec on %s",
+                alias,
+                target,
+                model.__name__,
+            )
             continue
 
         # Clone with new alias; keep everything else; hide REST by default
@@ -249,6 +307,7 @@ def _apply_aliases(
 # ───────────────────────────────────────────────────────────────────────────────
 # Public API
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 def resolve(model: type) -> List[OpSpec]:
     """
