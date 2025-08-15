@@ -3,10 +3,26 @@ from __future__ import annotations
 
 import logging
 from types import SimpleNamespace
-from typing import Any, Awaitable, Callable, Dict, Iterable, Mapping, Optional, Sequence, Tuple, Type, Union
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+)
 
 from . import model as _binder  # bind(model) → builds/attaches namespaces
-from ..opspec import OpSpec
+from ..config.constants import (
+    GET_DB_ATTR,
+    GET_ASYNC_DB_ATTR,
+    AUTH_DEP_ATTR,
+    AUTHORIZE_ATTR,
+    REST_DEPS_ATTR,
+    RPC_DEPS_ATTR,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +34,7 @@ ApiLike = Any
 # Helpers: resource/prefix, namespaces, router mounting
 # ───────────────────────────────────────────────────────────────────────────────
 
+
 def _snake(name: str) -> str:
     out = []
     for i, ch in enumerate(name):
@@ -26,14 +43,22 @@ def _snake(name: str) -> str:
         out.append(ch.lower())
     return "".join(out)
 
+
 def _resource_name(model: type) -> str:
-    return getattr(model, "__resource__", None) or getattr(model, "__tablename__", None) or _snake(model.__name__)
+    return (
+        getattr(model, "__resource__", None)
+        or getattr(model, "__tablename__", None)
+        or _snake(model.__name__)
+    )
+
 
 def _default_prefix(model: type) -> str:
     return f"/{_resource_name(model)}"
 
+
 def _has_include_router(obj: Any) -> bool:
     return hasattr(obj, "include_router") and callable(getattr(obj, "include_router"))
+
 
 def _mount_router(app_or_router: Any, router: Any, *, prefix: str) -> None:
     """
@@ -73,6 +98,7 @@ def _ensure_api_ns(api: ApiLike) -> None:
 # Resource proxy: api.core.<ModelName>.<alias>(payload, *, db, request=None, ctx=None)
 # ───────────────────────────────────────────────────────────────────────────────
 
+
 class _ResourceProxy:
     """
     Lightweight dynamic proxy that forwards calls to model.rpc.<alias>.
@@ -93,13 +119,20 @@ class _ResourceProxy:
         if target is None:
             raise AttributeError(f"{self._model.__name__} has no RPC method '{alias}'")
 
-        async def _call(payload: Any = None, *, db: Any, request: Any = None, ctx: Optional[Dict[str, Any]] = None) -> Any:
+        async def _call(
+            payload: Any = None,
+            *,
+            db: Any,
+            request: Any = None,
+            ctx: Optional[Dict[str, Any]] = None,
+        ) -> Any:
             return await target(payload, db=db, request=request, ctx=ctx)
 
         _call.__name__ = f"{self._model.__name__}.{alias}"
         _call.__qualname__ = _call.__name__
         _call.__doc__ = f"Helper for RPC call {self._model.__name__}.{alias}"
         return _call
+
 
 # --- add near top of file ---
 def _seed_security_and_deps(api: Any, model: type) -> None:
@@ -114,9 +147,9 @@ def _seed_security_and_deps(api: Any, model: type) -> None:
     """
     # DB deps
     if getattr(api, "get_db", None):
-        setattr(model, "__autoapi_get_db__", api.get_db)
+        setattr(model, GET_DB_ATTR, api.get_db)
     if getattr(api, "get_async_db", None):
-        setattr(model, "__autoapi_get_async_db__", api.get_async_db)
+        setattr(model, GET_ASYNC_DB_ATTR, api.get_async_db)
 
     # Authn: prefer required auth if allow_anon is False, else optional if provided
     auth_dep = None
@@ -127,21 +160,23 @@ def _seed_security_and_deps(api: Any, model: type) -> None:
     elif getattr(api, "_authn", None):
         auth_dep = api._authn
     if auth_dep is not None:
-        setattr(model, "__autoapi_auth_dep__", auth_dep)
+        setattr(model, AUTH_DEP_ATTR, auth_dep)
 
     # Authz
     if getattr(api, "_authorize", None):
-        setattr(model, "__autoapi_authorize__", api._authorize)
+        setattr(model, AUTHORIZE_ATTR, api._authorize)
 
     # Extra deps (router-level)
     if getattr(api, "rest_dependencies", None):
-        setattr(model, "__autoapi_rest_dependencies__", list(api.rest_dependencies))
+        setattr(model, REST_DEPS_ATTR, list(api.rest_dependencies))
     if getattr(api, "rpc_dependencies", None):
-        setattr(model, "__autoapi_rpc_dependencies__", list(api.rpc_dependencies))
+        setattr(model, RPC_DEPS_ATTR, list(api.rpc_dependencies))
+
 
 # ───────────────────────────────────────────────────────────────────────────────
 # Inclusion logic
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 def _attach_to_api(api: ApiLike, model: type) -> None:
     """
@@ -161,9 +196,17 @@ def _attach_to_api(api: ApiLike, model: type) -> None:
     setattr(api.rpc, mname, getattr(model, "rpc", SimpleNamespace()))
     # rest (router lives on model.rest.router)
     rest_ns = getattr(api, "rest")
-    setattr(rest_ns, mname, SimpleNamespace(router=getattr(getattr(model, "rest", SimpleNamespace()), "router", None)))
+    setattr(
+        rest_ns,
+        mname,
+        SimpleNamespace(
+            router=getattr(getattr(model, "rest", SimpleNamespace()), "router", None)
+        ),
+    )
     # also keep a flat routers dict for quick access
-    api.routers[mname] = getattr(getattr(model, "rest", SimpleNamespace()), "router", None)
+    api.routers[mname] = getattr(
+        getattr(model, "rest", SimpleNamespace()), "router", None
+    )
 
     # Table metadata
     api.columns[mname] = tuple(getattr(model, "columns", ()))
@@ -197,7 +240,7 @@ def include_model(
     """
     # 0) seed deps/security so binders can see them
     _seed_security_and_deps(api, model)
-    
+
     # 1) Build/bind model namespaces (idempotent)
     _binder.bind(model)
 
@@ -233,7 +276,9 @@ def include_models(
     results: Dict[str, Any] = {}
     for mdl in models:
         px = (base_prefix.rstrip("/") if base_prefix else "") + _default_prefix(mdl)
-        _, router = include_model(api, mdl, app=app, prefix=px, mount_router=mount_router)
+        _, router = include_model(
+            api, mdl, app=app, prefix=px, mount_router=mount_router
+        )
         results[mdl.__name__] = router
     return results
 
@@ -241,6 +286,7 @@ def include_models(
 # ───────────────────────────────────────────────────────────────────────────────
 # Optional: generic RPC dispatcher on the api facade
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 async def rpc_call(
     api: ApiLike,
@@ -267,7 +313,9 @@ async def rpc_call(
 
     fn = getattr(getattr(mdl, "rpc", SimpleNamespace()), method, None)
     if fn is None:
-        raise AttributeError(f"{getattr(mdl, '__name__', mdl)} has no RPC method '{method}'")
+        raise AttributeError(
+            f"{getattr(mdl, '__name__', mdl)} has no RPC method '{method}'"
+        )
 
     return await fn(payload, db=db, request=request, ctx=ctx)
 

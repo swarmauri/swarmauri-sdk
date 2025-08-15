@@ -1,15 +1,17 @@
 from __future__ import annotations
 
 import warnings
-from types import SimpleNamespace
-from typing import Any, Callable, Dict, Optional, Sequence, Tuple
+from typing import Any, Callable
 
 from ..bindings.api import include_model
 from ..bindings.model import bind as bind_model
 from ..opspec import OpSpec, get_registry
+from ..config.constants import TX_MODELS_ATTR
+
 
 def _pascal(s: str) -> str:
     return "".join(p.capitalize() or "_" for p in s.replace("-", "_").split("_"))
+
 
 def _split_name(name: str | None, fn_name: str) -> tuple[str, str]:
     """
@@ -23,15 +25,16 @@ def _split_name(name: str | None, fn_name: str) -> tuple[str, str]:
         return (a or "txn", b or fn_name)
     return ("txn", name)
 
+
 def _ensure_tx_model(api: Any, scope: str, *, resource: str | None = None) -> type:
     """
     Get or create a synthetic model class for this transactional scope.
     We keep them on api.__autoapi_tx_models__ to avoid re-creating classes.
     """
-    store = getattr(api, "__autoapi_tx_models__", None)
+    store = getattr(api, TX_MODELS_ATTR, None)
     if store is None:
         store = {}
-        setattr(api, "__autoapi_tx_models__", store)
+        setattr(api, TX_MODELS_ATTR, store)
 
     key = scope.lower()
     mdl = store.get(key)
@@ -40,11 +43,16 @@ def _ensure_tx_model(api: Any, scope: str, *, resource: str | None = None) -> ty
 
     class_name = _pascal(scope)
     # A tiny, ops-only model (no table); resource controls REST prefix
-    mdl = type(class_name, (), {"__resource__": (resource if resource is not None else "txn")})
+    mdl = type(
+        class_name, (), {"__resource__": (resource if resource is not None else "txn")}
+    )
     store[key] = mdl
     return mdl
 
-def _normalize_rest_path(rest_path: str | None, name_for_default: str, alias: str) -> str:
+
+def _normalize_rest_path(
+    rest_path: str | None, name_for_default: str, alias: str
+) -> str:
     """
     If rest_path is given, use it as an absolute path.
     Else default to '/<name with dots -> slashes>' to mimic v2 behavior.
@@ -55,6 +63,7 @@ def _normalize_rest_path(rest_path: str | None, name_for_default: str, alias: st
         path = "/" + name_for_default.replace(".", "/")
     return path
 
+
 def transactional(  # noqa: D401 (compat docstring in v2)
     api: Any,
     fn: Callable[..., Any] | None = None,
@@ -63,7 +72,7 @@ def transactional(  # noqa: D401 (compat docstring in v2)
     rest_path: str | None = None,
     rest_method: str = "POST",
     tags: tuple[str, ...] = ("txn",),
-    returns: str = "raw",          # v3: 'raw' or 'model'
+    returns: str = "raw",  # v3: 'raw' or 'model'
     expose_rpc: bool = True,
     expose_routes: bool = True,
 ) -> Callable[..., Any]:
@@ -80,7 +89,8 @@ def transactional(  # noqa: D401 (compat docstring in v2)
     warnings.warn(
         "The transactional decorator is deprecated; prefer model-scoped OpSpecs. "
         "This shim wraps your function as a v3 custom op with START_TX/END_TX phases.",
-        DeprecationWarning, stacklevel=2
+        DeprecationWarning,
+        stacklevel=2,
     )
 
     def _wrap(user_fn: Callable[..., Any]) -> Callable[..., Any]:
@@ -91,23 +101,27 @@ def transactional(  # noqa: D401 (compat docstring in v2)
         sp = OpSpec(
             alias=alias,
             target="custom",
-            handler=user_fn,                 # v3 handlers will pass (ctx, db, payload, request, model, op) as needed
+            handler=user_fn,  # v3 handlers will pass (ctx, db, payload, request, model, op) as needed
             expose_rpc=expose_rpc,
             expose_routes=expose_routes,
             http_methods=(rest_method,),
-            path_suffix=_normalize_rest_path(rest_path, name or user_fn.__name__, alias),
+            path_suffix=_normalize_rest_path(
+                rest_path, name or user_fn.__name__, alias
+            ),
             tags=tags,
-            returns=returns,                 # 'raw' by default; set 'model' if you want schema-shaped responses
-            persist="always",                # ensure START_TX/END_TX are injected
+            returns=returns,  # 'raw' by default; set 'model' if you want schema-shaped responses
+            persist="always",  # ensure START_TX/END_TX are injected
         )
 
         # Register on the model's registry and (re)bind the model
         reg = get_registry(model)
-        reg.set(alias, sp)                  # idempotent replace per-alias
-        bind_model(model)                   # builds schemas/hooks/handlers/rpc/rest
+        reg.set(alias, sp)  # idempotent replace per-alias
+        bind_model(model)  # builds schemas/hooks/handlers/rpc/rest
 
         # Ensure router is mounted under the API (prefix '' so our absolute path_suffix is used verbatim)
-        include_model(api, model, app=getattr(api, "app", None), prefix="", mount_router=True)
+        include_model(
+            api, model, app=getattr(api, "app", None), prefix="", mount_router=True
+        )
 
         # For compatibility, return the original function (no wrapper needed)
         return user_fn

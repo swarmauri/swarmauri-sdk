@@ -15,30 +15,48 @@ from __future__ import annotations
 
 import logging
 import uuid
-from typing import Any, Dict, Iterable, Mapping, Set, Tuple, Type, Union, get_type_hints, Literal
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    Mapping,
+    Set,
+    Tuple,
+    Type,
+    Union,
+    get_type_hints,
+    Literal,
+)
 
 from pydantic import BaseModel, ConfigDict, Field, create_model
+from ..config.constants import REQUEST_EXTRAS_ATTR, RESPONSE_EXTRAS_ATTR
 
 try:
     # Optional: validate column meta (if available in your tree)
     from ..info_schema import check as _info_check  # type: ignore
 except Exception:  # pragma: no cover
+
     def _info_check(meta: Mapping[str, Any], attr_name: str, model_name: str) -> None:
         return None  # no-op if v3.info_schema is absent
+
 
 try:
     # Use SQLAlchemy's hybrid_property
     from sqlalchemy.ext.hybrid import hybrid_property  # type: ignore
 except Exception:  # pragma: no cover
+
     class hybrid_property:  # minimal shim
         pass
+
 
 try:
     # Pydantic v2 sentinel for "no default"
     from pydantic_core import PydanticUndefined  # type: ignore
 except Exception:  # pragma: no cover
+
     class PydanticUndefinedClass:  # shim
         pass
+
     PydanticUndefined = PydanticUndefinedClass()  # type: ignore
 
 
@@ -51,11 +69,11 @@ logger = logging.getLogger(__name__)
 _SchemaVerb = Union[
     # Canonical AutoAPI verbs
     Literal["create"],  # type: ignore[name-defined]
-    Literal["read"],    # type: ignore[name-defined]
+    Literal["read"],  # type: ignore[name-defined]
     Literal["update"],  # type: ignore[name-defined]
-    Literal["replace"], # type: ignore[name-defined]
+    Literal["replace"],  # type: ignore[name-defined]
     Literal["delete"],  # type: ignore[name-defined]
-    Literal["list"],    # type: ignore[name-defined]
+    Literal["list"],  # type: ignore[name-defined]
 ]
 
 _SchemaCache: Dict[Tuple[type, str, frozenset, frozenset], Type[BaseModel]] = {}
@@ -64,6 +82,7 @@ _SchemaCache: Dict[Tuple[type, str, frozenset, frozenset], Type[BaseModel]] = {}
 # ───────────────────────────────────────────────────────────────────────────────
 # Internal helpers
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 def _bool(x: Any) -> bool:
     try:
@@ -105,7 +124,7 @@ def _merge_request_extras(
     • Field(...) is used as-is; if only a type is provided, defaults to Field(None)
     • Recommend Field(exclude=True) for secrets so they drop from .model_dump()
     """
-    buckets = getattr(orm_cls, "__autoapi_request_extras__", None)
+    buckets = getattr(orm_cls, REQUEST_EXTRAS_ATTR, None)
     if not buckets:
         return
     if verb not in {"create", "update", "replace", "delete"}:
@@ -122,7 +141,12 @@ def _merge_request_extras(
             else:
                 py_t, fld = (spec or Any), Field(None)
             _add_field(fields, name=name, py_t=py_t, field=fld)
-            logger.debug("schema: added request-extra field %s (verb=%s, type=%r)", name, verb, py_t)
+            logger.debug(
+                "schema: added request-extra field %s (verb=%s, type=%r)",
+                name,
+                verb,
+                py_t,
+            )
 
 
 def _merge_response_extras(
@@ -134,7 +158,7 @@ def _merge_response_extras(
     exclude: Set[str] | None,
 ) -> None:
     """Merge **response-only** virtual fields into the output schema."""
-    buckets = getattr(orm_cls, "__autoapi_response_extras__", None)
+    buckets = getattr(orm_cls, RESPONSE_EXTRAS_ATTR, None)
     if not buckets:
         return
 
@@ -149,7 +173,12 @@ def _merge_response_extras(
             else:
                 py_t, fld = (spec or Any), Field(None)
             _add_field(fields, name=name, py_t=py_t, field=fld)
-            logger.debug("schema: added response-extra field %s (verb=%s, type=%r)", name, verb, py_t)
+            logger.debug(
+                "schema: added response-extra field %s (verb=%s, type=%r)",
+                name,
+                verb,
+                py_t,
+            )
 
 
 def _python_type(col: Any) -> type | Any:
@@ -168,13 +197,16 @@ def _is_required(col: Any, verb: str) -> bool:
     if getattr(col, "primary_key", False) and verb in {"update", "replace", "delete"}:
         return True
     is_nullable = bool(getattr(col, "nullable", True))
-    has_default = (getattr(col, "default", None) is not None) or (getattr(col, "server_default", None) is not None)
+    has_default = (getattr(col, "default", None) is not None) or (
+        getattr(col, "server_default", None) is not None
+    )
     return not is_nullable and not has_default
 
 
 # ───────────────────────────────────────────────────────────────────────────────
 # Public builders
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 def _schema(
     orm_cls: type,
@@ -205,7 +237,13 @@ def _schema(
         logger.debug("schema: cache hit %s verb=%s", orm_cls.__name__, verb)
         return cached
 
-    logger.debug("schema: building %s verb=%s include=%s exclude=%s", orm_cls.__name__, verb, include, exclude)
+    logger.debug(
+        "schema: building %s verb=%s include=%s exclude=%s",
+        orm_cls.__name__,
+        verb,
+        include,
+        exclude,
+    )
     fields: Dict[str, Tuple[type, Field]] = {}
 
     # ── PASS 1: table-backed columns only (avoid mapper relationships)
@@ -229,7 +267,9 @@ def _schema(
         # Legacy flags
         if verb == "create" and getattr(meta_src, "get", lambda *_: None)("no_create"):
             continue
-        if verb in {"update", "replace"} and getattr(meta_src, "get", lambda *_: None)("no_update"):
+        if verb in {"update", "replace"} and getattr(meta_src, "get", lambda *_: None)(
+            "no_update"
+        ):
             continue
 
         # Disable on verb
@@ -271,7 +311,9 @@ def _schema(
             py_t = Union[py_t, None]
 
         _add_field(fields, name=attr_name, py_t=py_t, field=fld)
-        logger.debug("schema: added field %s required=%s type=%r", attr_name, required, py_t)
+        logger.debug(
+            "schema: added field %s required=%s type=%r", attr_name, required, py_t
+        )
 
     # ── PASS 2: @hybrid_property (opt-in via meta["hybrid"])
     for attr_name, attr in list(getattr(orm_cls, "__dict__", {}).items()):
@@ -291,7 +333,11 @@ def _schema(
             continue
 
         # Write-phase without setter is not usable
-        if getattr(attr, "fset", None) is None and verb in {"create", "update", "replace"}:
+        if getattr(attr, "fset", None) is None and verb in {
+            "create",
+            "update",
+            "replace",
+        }:
             continue
 
         py_t = getattr(attr, "python_type", meta.get("py_type", Any))
@@ -338,8 +384,12 @@ def create_list_schema(model: type) -> Type[BaseModel]:
     table = getattr(model, "__table__", None)
     if table is None or not getattr(table, "columns", None):
         # No table info; return a minimal pager schema
-        schema = create_model(f"{tab}ListParams", __config__=ConfigDict(extra="forbid"), **base)  # type: ignore[arg-type]
-        logger.debug("schema: create_list_schema generated %s (no columns)", schema.__name__)
+        schema = create_model(
+            f"{tab}ListParams", __config__=ConfigDict(extra="forbid"), **base
+        )  # type: ignore[arg-type]
+        logger.debug(
+            "schema: create_list_schema generated %s (no columns)", schema.__name__
+        )
         return schema
 
     # Determine primary key name (first PK column)
@@ -379,10 +429,18 @@ def _strip_parent_fields(base: Type[BaseModel], *, drop: Set[str]) -> Type[BaseM
         if name in (drop or ()):
             continue
         typ = hints.get(name, Any)
-        default = finfo.default if getattr(finfo, "default", PydanticUndefined) is not PydanticUndefined else ...
+        default = (
+            finfo.default
+            if getattr(finfo, "default", PydanticUndefined) is not PydanticUndefined
+            else ...
+        )
         new_fields[name] = (typ, default)
 
-    clone = create_model(f"{base.__name__}Pruned", __config__=getattr(base, "model_config", None), **new_fields)  # type: ignore[arg-type]
+    clone = create_model(
+        f"{base.__name__}Pruned",
+        __config__=getattr(base, "model_config", None),
+        **new_fields,
+    )  # type: ignore[arg-type]
     clone.model_rebuild(force=True)
     return clone
 

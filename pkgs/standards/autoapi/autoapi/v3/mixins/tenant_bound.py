@@ -8,6 +8,7 @@ from ..hooks import Phase
 from ..jsonrpc_models import create_standardized_error
 from ..info_schema import check as _info_check
 from ..cfgs import AUTH_CONTEXT_KEY, INJECTED_FIELDS_KEY, TENANT_ID_KEY
+from ..config.constants import TENANT_POLICY_ATTR
 
 log = logging.getLogger(__name__)
 
@@ -63,7 +64,7 @@ class TenantBound(_RowBound):
     # -------------------------------------------------------------------
     @declared_attr
     def tenant_id(cls):
-        pol = getattr(cls, "__autoapi_tenant_policy__", TenantPolicy.CLIENT_SET)
+        pol = getattr(cls, TENANT_POLICY_ATTR, TenantPolicy.CLIENT_SET)
         schema = _infer_schema(cls, default="public")
 
         autoapi_meta: dict[str, object] = {}
