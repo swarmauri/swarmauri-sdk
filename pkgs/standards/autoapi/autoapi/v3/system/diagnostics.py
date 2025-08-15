@@ -8,8 +8,8 @@ Exposes a small router with:
   - GET /hookz       → per-op phase chains (sequential order)
 
 Usage:
-    from autoapi.v3.system.diagnostics import attach_diagnostics
-    app.include_router(attach_diagnostics(api, get_async_db=get_async_db), prefix="/system")
+    from autoapi.v3.system.diagnostics import mount_diagnostics
+    app.include_router(mount_diagnostics(api, get_async_db=get_async_db), prefix="/system")
 """
 
 from __future__ import annotations
@@ -17,7 +17,16 @@ from __future__ import annotations
 import inspect
 import logging
 from types import SimpleNamespace
-from typing import Any, Awaitable, Callable, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Sequence,
+)
 
 try:
     from fastapi import APIRouter, Request, Depends
@@ -27,16 +36,22 @@ except Exception:  # pragma: no cover
     class APIRouter:  # type: ignore
         def __init__(self, *a, **kw):
             self.routes = []
-        def add_api_route(self, path: str, endpoint: Callable, methods: Sequence[str], **opts):
+
+        def add_api_route(
+            self, path: str, endpoint: Callable, methods: Sequence[str], **opts
+        ):
             self.routes.append((path, methods, endpoint, opts))
+
     class Request:  # type: ignore
         def __init__(self, scope=None):
             self.scope = scope or {}
             self.state = SimpleNamespace()
             self.query_params = {}
+
     class JSONResponse(dict):  # type: ignore
         def __init__(self, content: Any, status_code: int = 200):
             super().__init__(content=content, status_code=status_code)
+
 
 from ..opspec.types import PHASES
 
@@ -47,12 +62,15 @@ logger = logging.getLogger(__name__)
 # Helpers
 # ───────────────────────────────────────────────────────────────────────────────
 
+
 def _model_iter(api: Any) -> Iterable[type]:
     models = getattr(api, "models", {}) or {}
     return models.values()
 
+
 def _opspecs(model: type):
     return getattr(getattr(model, "opspecs", SimpleNamespace()), "all", ()) or ()
+
 
 def _label_callable(fn: Any) -> str:
     # Best-effort human-readable name
@@ -61,6 +79,7 @@ def _label_callable(fn: Any) -> str:
     if hasattr(fn, "__qualname__"):
         return fn.__qualname__  # type: ignore[return-value]
     return repr(fn)
+
 
 async def _maybe_execute(db: Any, stmt: Any):
     try:
@@ -80,6 +99,7 @@ async def _maybe_execute(db: Any, stmt: Any):
 # Builders
 # ───────────────────────────────────────────────────────────────────────────────
 
+
 def _build_healthz_endpoint(dep: Optional[Callable[..., Any]]):
     """
     Returns a FastAPI endpoint function for /healthz.
@@ -87,6 +107,7 @@ def _build_healthz_endpoint(dep: Optional[Callable[..., Any]]):
     Otherwise, we try request.state.db.
     """
     if dep is not None:
+
         async def _healthz(db: Any = Depends(dep)):
             try:
                 await _maybe_execute(db, "SELECT 1")
@@ -94,6 +115,7 @@ def _build_healthz_endpoint(dep: Optional[Callable[..., Any]]):
             except Exception as e:  # pragma: no cover
                 logger.exception("/healthz failed")
                 return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
+
         return _healthz
 
     async def _healthz(request: Request):
@@ -107,6 +129,7 @@ def _build_healthz_endpoint(dep: Optional[Callable[..., Any]]):
         except Exception as e:  # pragma: no cover
             logger.exception("/healthz failed")
             return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
+
     return _healthz
 
 
@@ -134,6 +157,7 @@ def _build_methodz_endpoint(api: Any):
                 )
         methods.sort(key=lambda x: (x["model"], x["alias"]))
         return {"methods": methods}
+
     return _methodz
 
 
@@ -161,6 +185,7 @@ def _build_hookz_endpoint(api: Any):
                     phase_map[ph] = [_label_callable(fn) for fn in steps]
                 out[mname][alias] = phase_map
         return out
+
     return _hookz
 
 
@@ -168,7 +193,8 @@ def _build_hookz_endpoint(api: Any):
 # Public factory
 # ───────────────────────────────────────────────────────────────────────────────
 
-def attach_diagnostics(
+
+def mount_diagnostics(
     api: Any,
     *,
     get_db: Optional[Callable[..., Any]] = None,
@@ -185,11 +211,23 @@ def attach_diagnostics(
     # Prefer async DB getter if provided
     dep = get_async_db or get_db
 
-    router.add_api_route("/healthz", _build_healthz_endpoint(dep), methods=["GET"], name="autoapi.healthz")
-    router.add_api_route("/methodz", _build_methodz_endpoint(api), methods=["GET"], name="autoapi.methodz")
-    router.add_api_route("/hookz", _build_hookz_endpoint(api), methods=["GET"], name="autoapi.hookz")
+    router.add_api_route(
+        "/healthz",
+        _build_healthz_endpoint(dep),
+        methods=["GET"],
+        name="autoapi.healthz",
+    )
+    router.add_api_route(
+        "/methodz",
+        _build_methodz_endpoint(api),
+        methods=["GET"],
+        name="autoapi.methodz",
+    )
+    router.add_api_route(
+        "/hookz", _build_hookz_endpoint(api), methods=["GET"], name="autoapi.hookz"
+    )
 
     return router
 
 
-__all__ = ["attach_diagnostics"]
+__all__ = ["mount_diagnostics"]
