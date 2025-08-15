@@ -13,6 +13,7 @@ import uuid
 from typing import Any, Dict, Set, Tuple, Type, Union
 
 from pydantic import BaseModel, ConfigDict, Field, create_model
+from sqlalchemy import inspect as _sa_inspect
 
 from ..info_schema import check as _info_check
 from ..types import _SchemaVerb, hybrid_property
@@ -121,9 +122,7 @@ def _schema(
     if cache_key in _SchemaCache:
         print(f"_schema cache hit for {orm_cls} verb={verb}")
         return _SchemaCache[cache_key]
-    print(
-        f"_schema generating model for {orm_cls} verb={verb} include={include} exclude={exclude}"
-    )
+    print(f"_schema generating model for {orm_cls} verb={verb} include={include} exclude={exclude}")
 
     fields: Dict[str, Tuple[type, Field]] = {}
 
@@ -151,9 +150,7 @@ def _schema(
         # Legacy flags (kept for back-compat)
         if verb == "create" and getattr(col.info, "get", lambda *_: None)("no_create"):
             continue
-        if verb in {"update", "replace"} and getattr(col.info, "get", lambda *_: None)(
-            "no_update"
-        ):
+        if verb in {"update", "replace"} and getattr(col.info, "get", lambda *_: None)("no_update"):
             continue
 
         if verb in set(meta.get("disable_on", ()) or ()):
@@ -178,17 +175,11 @@ def _schema(
             py_t = Any
 
         is_nullable = bool(getattr(col, "nullable", True))
-        has_default = (getattr(col, "default", None) is not None) or (
-            getattr(col, "server_default", None) is not None
-        )
+        has_default = (getattr(col, "default", None) is not None) or (getattr(col, "server_default", None) is not None)
         required = not is_nullable and not has_default
 
         # Ensure PK required on write/delete verbs that need identification
-        if getattr(col, "primary_key", False) and verb in {
-            "update",
-            "replace",
-            "delete",
-        }:
+        if getattr(col, "primary_key", False) and verb in {"update", "replace", "delete"}:
             required = True
 
         # Field construction
@@ -207,13 +198,10 @@ def _schema(
         fields[attr_name] = (py_t, fld)
         print(f"Added field {attr_name} type={py_t} required={required}")
 
+
     # ── PASS 2: @hybrid_property (opt-in via meta["hybrid"])
-    for attr in (
-        v for v in orm_cls.__dict__.values() if isinstance(v, hybrid_property)
-    ):
-        attr_name = (
-            getattr(attr, "__name__", None) or getattr(attr, "key", None) or "<hybrid>"
-        )
+    for attr in (v for v in orm_cls.__dict__.values() if isinstance(v, hybrid_property)):
+        attr_name = getattr(attr, "__name__", None) or getattr(attr, "key", None) or "<hybrid>"
         if include and attr_name not in include:
             continue
         if exclude and attr_name in exclude:

@@ -1,19 +1,7 @@
 # autoapi/v2/impl/runtime/executor.py
 from __future__ import annotations
 
-from typing import (
-    Any,
-    Awaitable,
-    Callable,
-    Iterable,
-    Mapping,
-    MutableMapping,
-    Optional,
-    Sequence,
-    Union,
-    Protocol,
-    runtime_checkable,
-)
+from typing import Any, Awaitable, Callable, Iterable, Mapping, MutableMapping, Optional, Sequence, Union, Protocol, runtime_checkable
 import logging
 
 try:
@@ -28,7 +16,7 @@ except Exception:  # pragma: no cover
     Session = Any  # type: ignore
     AsyncSession = Any  # type: ignore
 
-from ..jsonrpc_models import create_standardized_error
+from .errors import create_standardized_error
 
 logger = logging.getLogger(__name__)
 
@@ -37,16 +25,13 @@ logger = logging.getLogger(__name__)
 # Types
 # ───────────────────────────────────────────────────────────────────────────────
 
-
 @runtime_checkable
 class _Step(Protocol):
     def __call__(self, ctx: "_Ctx") -> Union[Any, Awaitable[Any]]: ...
 
 
 HandlerStep = Union[_Step, Callable[["_Ctx"], Any], Callable[["_Ctx"], Awaitable[Any]]]
-PhaseChains = Mapping[
-    str, Sequence[HandlerStep]
-]  # {"HANDLER": [...], "COMMIT": [...], ...}
+PhaseChains = Mapping[str, Sequence[HandlerStep]]  # {"HANDLER": [...], "COMMIT": [...], ...}
 
 
 class _Ctx(dict):
@@ -59,7 +44,6 @@ class _Ctx(dict):
       • error: last exception caught (on failure paths)
       • response: SimpleNamespace(result=...) for POST_RESPONSE shaping
     """
-
     __slots__ = ()
     __getattr__ = dict.get
     __setattr__ = dict.__setitem__
@@ -90,18 +74,15 @@ class _Ctx(dict):
 # Introspection & helpers
 # ───────────────────────────────────────────────────────────────────────────────
 
-
 def _is_async_db(db: Any) -> bool:
     # AsyncSession exposes run_sync/commit/flush as async
     return isinstance(db, AsyncSession) or hasattr(db, "run_sync")
-
 
 def _bool_call(meth: Any) -> bool:
     try:
         return bool(meth())
     except Exception:  # pragma: no cover
         return False
-
 
 def _in_tx(db: Any) -> bool:
     for name in ("in_transaction", "in_nested_transaction"):
@@ -111,12 +92,10 @@ def _in_tx(db: Any) -> bool:
     val = getattr(db, "in_transaction", False)
     return bool(val)
 
-
 async def _maybe_await(v: Any) -> Any:
     if hasattr(v, "__await__"):
         return await v  # type: ignore[func-returns-value]
     return v
-
 
 async def _run_chain(ctx: _Ctx, chain: Optional[Iterable[HandlerStep]]) -> None:
     if not chain:
@@ -127,24 +106,19 @@ async def _run_chain(ctx: _Ctx, chain: Optional[Iterable[HandlerStep]]) -> None:
         if rv is not None:
             ctx.result = rv  # last non-None wins
 
-
 def _g(phases: Optional[PhaseChains], key: str) -> Sequence[HandlerStep]:
     return () if not phases else phases.get(key, ())
-
 
 # ───────────────────────────────────────────────────────────────────────────────
 # DB guards (enforce per-phase flush/commit policy)
 # ───────────────────────────────────────────────────────────────────────────────
 
-
 class _GuardHandle:
     __slots__ = ("db", "orig_commit", "orig_flush")
-
     def __init__(self, db: Any, orig_commit: Any, orig_flush: Any) -> None:
         self.db = db
         self.orig_commit = orig_commit
         self.orig_flush = orig_flush
-
     def restore(self) -> None:
         if self.orig_commit is not None:
             try:
@@ -156,7 +130,6 @@ class _GuardHandle:
                 setattr(self.db, "flush", self.orig_flush)
             except Exception:  # pragma: no cover
                 pass
-
 
 def _install_db_guards(
     db: Union[Session, AsyncSession],
@@ -180,40 +153,31 @@ def _install_db_guards(
     # commit wrapper
     if not allow_commit:
         if _is_async_db(db):
-
             async def _blocked_commit() -> None:  # type: ignore[func-returns-value]
                 _raise("commit")
         else:
-
             def _blocked_commit() -> None:  # type: ignore[func-returns-value]
                 _raise("commit")
-
         setattr(db, "commit", _blocked_commit)  # type: ignore[assignment]
     else:
         # allow commit, but optionally require that *this* run started the txn
         if require_started_tx_for_commit and not started_tx:
             if _is_async_db(db):
-
                 async def _blocked_commit_started() -> None:  # type: ignore[func-returns-value]
                     _raise("commit")
             else:
-
                 def _blocked_commit_started() -> None:  # type: ignore[func-returns-value]
                     _raise("commit")
-
             setattr(db, "commit", _blocked_commit_started)  # type: ignore[assignment]
 
     # flush wrapper
     if not allow_flush:
         if _is_async_db(db):
-
             async def _blocked_flush() -> None:  # type: ignore[func-returns-value]
                 _raise("flush")
         else:
-
             def _blocked_flush() -> None:  # type: ignore[func-returns-value]
                 _raise("flush")
-
         setattr(db, "flush", _blocked_flush)  # type: ignore[assignment]
 
     return _GuardHandle(db, orig_commit, orig_flush)
@@ -246,7 +210,6 @@ async def _rollback_if_started(
 # Public API
 # ───────────────────────────────────────────────────────────────────────────────
 
-
 async def _invoke(
     *,
     request: Optional[Request],
@@ -272,9 +235,7 @@ async def _invoke(
       • POST_RESPONSE remains non-fatal; errors are reported but the prior result is returned.
     """
     ctx = _Ctx.ensure(request=request, db=db, seed=ctx)
-    skip_persist: bool = bool(
-        ctx.get("__autoapi_skip_persist__") or ctx.get("skip_persist")
-    )
+    skip_persist: bool = bool(ctx.get("__autoapi_skip_persist__") or ctx.get("skip_persist"))
 
     existed_tx_before = _in_tx(db)
     started_tx = False  # computed after TX_BEGIN
@@ -332,42 +293,28 @@ async def _invoke(
 
     # ─── TX_BEGIN (begin txn via hooks; skip when skip_persist) ────────────────
     if not skip_persist:
-        await _run_phase(
-            "TX_BEGIN",
-            allow_flush=False,
-            allow_commit=False,
-            in_tx=False,
-            require_started_for_commit=True,
-        )
+        await _run_phase("TX_BEGIN", allow_flush=False, allow_commit=False, in_tx=False, require_started_for_commit=True)
     # compute if *this* run started the transaction
     started_tx = (not existed_tx_before) and _in_tx(db)
 
     # ─── PRE_HANDLER (flush-only) ──────────────────────────────────────────────
-    await _run_phase(
-        "PRE_HANDLER", allow_flush=True, allow_commit=False, in_tx=not skip_persist
-    )
+    await _run_phase("PRE_HANDLER", allow_flush=True, allow_commit=False, in_tx=not skip_persist)
 
     # ─── HANDLER (flush-only; core lives here) ─────────────────────────────────
-    await _run_phase(
-        "HANDLER", allow_flush=True, allow_commit=False, in_tx=not skip_persist
-    )
+    await _run_phase("HANDLER", allow_flush=True, allow_commit=False, in_tx=not skip_persist)
 
     # ─── POST_HANDLER (flush-only) ─────────────────────────────────────────────
-    await _run_phase(
-        "POST_HANDLER", allow_flush=True, allow_commit=False, in_tx=not skip_persist
-    )
+    await _run_phase("POST_HANDLER", allow_flush=True, allow_commit=False, in_tx=not skip_persist)
 
     # ─── PRE_COMMIT (no writes) ────────────────────────────────────────────────
-    await _run_phase(
-        "PRE_COMMIT", allow_flush=False, allow_commit=False, in_tx=not skip_persist
-    )
+    await _run_phase("PRE_COMMIT", allow_flush=False, allow_commit=False, in_tx=not skip_persist)
 
     # ─── COMMIT (commit-only hooks; skip when skip_persist) ────────────────────
     if not skip_persist:
         await _run_phase(
             "COMMIT",
-            allow_flush=True,  # a final flush right before commit is OK
-            allow_commit=True,  # commit allowed
+            allow_flush=True,           # a final flush right before commit is OK
+            allow_commit=True,          # commit allowed
             in_tx=True,
             require_started_for_commit=True,
         )
@@ -377,15 +324,8 @@ async def _invoke(
 
     # ─── POST_RESPONSE (non-fatal) ─────────────────────────────────────────────
     from types import SimpleNamespace as _NS
-
     ctx.response = _NS(result=ctx.get("result"))
-    await _run_phase(
-        "POST_RESPONSE",
-        allow_flush=False,
-        allow_commit=False,
-        in_tx=False,
-        nonfatal=True,
-    )
+    await _run_phase("POST_RESPONSE", allow_flush=False, allow_commit=False, in_tx=False, nonfatal=True)
     return ctx.response.result
 
 

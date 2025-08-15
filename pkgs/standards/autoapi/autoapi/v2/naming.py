@@ -29,7 +29,7 @@ _alias_re = re.compile(r"^[a-z][a-z0-9_]*$")
 
 
 def get_verb_alias_map(model) -> dict[str, str]:
-    print("deprecating - use opspec")
+    print('deprecating - use opspec')
     raw = getattr(model, "__autoapi_verb_aliases__", None)
     if callable(raw):
         raw = raw()
@@ -37,12 +37,12 @@ def get_verb_alias_map(model) -> dict[str, str]:
 
 
 def alias_policy(model) -> str:
-    print("deprecating - use opspec")
+    print('deprecating - use opspec')
     return getattr(model, "__autoapi_verb_alias_policy__", "both")
 
 
 def public_verb(model, canonical: str) -> str:
-    print("deprecating - use opspec")
+    print('deprecating - use opspec')
     ali = get_verb_alias_map(model).get(canonical)
     if not ali or ali == canonical:
         return canonical
@@ -54,6 +54,7 @@ def public_verb(model, canonical: str) -> str:
             "(must be lowercase [a-z0-9_], start with a letter)"
         )
     return ali
+
 
 
 def camel_to_snake(name: str) -> str:

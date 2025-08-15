@@ -11,8 +11,9 @@ import functools
 import inspect
 import re
 from types import SimpleNamespace
-from typing import Annotated, Any, List, Optional, Type
+from typing import Annotated, Any, List, Optional
 
+from sqlalchemy import inspect as _sa_inspect  # ← added
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
@@ -76,100 +77,6 @@ def _strip_parent_fields(base: type, *, drop: set[str]) -> type:
         return cls
 
     return base  # primitive / dict / etc.
-
-
-def _canonical(tab: str, verb: str) -> str:
-    """Return canonical RPC method name."""
-    cls_name = "".join(w.title() for w in tab.split("_")) if tab.islower() else tab
-    name = f"{cls_name}.{verb}"
-    print(f"_canonical generated {name}")
-    return name
-
-
-def _resource_pascal(tab_or_cls: str) -> str:
-    return (
-        "".join(w.title() for w in tab_or_cls.split("_"))
-        if tab_or_cls.islower()
-        else tab_or_cls
-    )
-
-
-def _nested_prefix(self, model: Type) -> Optional[str]:
-    """Return the user-supplied hierarchical prefix or *None*.
-
-    • If the SQLAlchemy model defines `__autoapi_nested_paths__`
-      → call it and return the result.
-    • Else, fall back to legacy `_nested_path` string if present.
-    • Otherwise → signal ``no nested route wanted`` with ``None``.
-    """
-
-    cb = getattr(model, "__autoapi_nested_paths__", None)
-    if callable(cb):
-        return cb()
-    return getattr(model, "_nested_path", None)
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# Verb aliasing (RPC exposure + helper names; REST paths unchanged)
-# ──────────────────────────────────────────────────────────────────────────────
-
-_VALID_VERBS = {
-    "create",
-    "read",
-    "update",
-    "delete",
-    "list",
-    "clear",
-    "replace",
-    "bulk_create",
-    "bulk_update",
-    "bulk_replace",
-    "bulk_delete",
-}
-
-_alias_re = re.compile(r"^[a-z][a-z0-9_]*$")
-
-
-def _get_verb_alias_map(model) -> dict[str, str]:
-    raw = getattr(model, "__autoapi_verb_aliases__", None)
-    if callable(raw):
-        raw = raw()
-    return dict(raw or {})
-
-
-def _alias_policy(model) -> str:
-    # "both" | "alias_only" | "canonical_only"
-    return getattr(model, "__autoapi_verb_alias_policy__", "both")
-
-
-def _public_verb(model, canonical: str) -> str:
-    ali = _get_verb_alias_map(model).get(canonical)
-    if not ali or ali == canonical:
-        return canonical
-    if canonical not in _VALID_VERBS:
-        raise RuntimeError(f"{model.__name__}: unsupported verb {canonical!r}")
-    if not _alias_re.match(ali):
-        raise RuntimeError(
-            f"{model.__name__}.__autoapi_verb_aliases__: bad alias {ali!r} for {canonical!r} "
-            "(must be lowercase [a-z0-9_], start with a letter)"
-        )
-    return ali
-
-
-def _route_label(resource_name: str, verb: str, model) -> str:
-    """Return '{Resource} - {verb/alias}' per policy."""
-    pol = _alias_policy(model)
-    pub = _public_verb(model, verb)
-    if pol == "alias_only" and pub != verb:
-        lab = pub
-    elif pol == "both" and pub != verb:
-        lab = f"{verb}/{pub}"
-    else:
-        lab = verb
-    return f"{_resource_pascal(resource_name)} - {lab}"
-
-
-# ──────────────────────────────────────────────────────────────────────────────
 
 
 def _register_routes_and_rpcs(  # noqa: N802 – bound as method
@@ -667,6 +574,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         setattr(self.core_raw, camel, _core_raw)
         _attach(self.core_raw, resource, verb, _core_raw)
 
+
     # ─── OpSpec-powered verbs (aliases + custom + skip/override) ────
     attach_op_specs(self, flat_router, model)
     if len(routers) > 1:
@@ -689,8 +597,8 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     decl = model
 
     # resolve what we already registered on the API object
-    methods_ns = getattr(self.methods, resource, SimpleNamespace())
-    core_ns = getattr(self.core, resource, SimpleNamespace())
+    methods_ns  = getattr(self.methods,  resource, SimpleNamespace())
+    core_ns     = getattr(self.core,     resource, SimpleNamespace())
     core_raw_ns = getattr(self.core_raw, resource, SimpleNamespace())
 
     # Build a schemas namespace by collecting all schema classes that start with this resource's prefix
@@ -701,7 +609,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             continue
         if not _name.startswith(_pref):
             continue
-        short = _name[len(_pref) :]  # "CreateIn", "UpdateOut", "ReadRpcIn", ...
+        short = _name[len(_pref):]  # "CreateIn", "UpdateOut", "ReadRpcIn", ...
         if short and short[0].isupper():
             setattr(schemas_ns, short, _cls)
 
@@ -732,14 +640,14 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
     )
 
     # Publish onto the un-instantiated declarative model class
-    setattr(decl, "schemas", schemas_ns)
-    setattr(decl, "methods", methods_ns)
-    setattr(decl, "rpc", rpc_ns)
-    setattr(decl, "core", core_ns)
-    setattr(decl, "core_raw", core_raw_ns)
-    setattr(decl, "handlers", methods_ns)  # convenience alias
-    setattr(decl, "raw_handlers", core_ns)  # convenience alias
-    setattr(decl, "router", router_ns)
+    setattr(decl, "schemas",       schemas_ns)
+    setattr(decl, "methods",       methods_ns)
+    setattr(decl, "rpc",           rpc_ns)
+    setattr(decl, "core",          core_ns)
+    setattr(decl, "core_raw",      core_raw_ns)
+    setattr(decl, "handlers",      methods_ns)   # convenience alias
+    setattr(decl, "raw_handlers",  core_ns)      # convenience alias
+    setattr(decl, "router",        router_ns)
     # (Optional) columns mirror for quick introspection
     try:
         setattr(decl, "columns", {c.key: c for c in model.__table__.columns})
@@ -762,9 +670,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         router=router_ns,
     )
 
-    print(
-        f"Bound helpers onto {decl.__name__}: schemas/methods/rpc/core/core_raw/router"
-    )
+    print(f"Bound helpers onto {decl.__name__}: schemas/methods/rpc/core/core_raw/router")
     # ─────────────────────────────────────────────────────────────────
 
     print(f"Routes registered for {resource}")
