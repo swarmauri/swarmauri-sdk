@@ -7,4 +7,4 @@ def test_jsonrpc_router_default_tag():
     api = SimpleNamespace()
     router = build_jsonrpc_router(api)
     route = router.routes[0]
-    assert route.tags == ["system"]
+    assert route.tags == ["rpc"]
