@@ -16,7 +16,7 @@ from typing import (
 )
 
 try:
-    from fastapi import APIRouter, Request, Body, Depends
+    from fastapi import APIRouter, Request, Body, Depends, HTTPException
     from fastapi import status as _status
 except Exception:  # pragma: no cover
     # Minimal shims so the module can be imported without FastAPI
@@ -41,9 +41,24 @@ except Exception:  # pragma: no cover
     def Depends(fn):  # type: ignore
         return fn
 
+    class HTTPException(Exception):  # type: ignore
+        def __init__(self, status_code: int, detail: str | None = None):
+            super().__init__(detail)
+            self.status_code = status_code
+            self.detail = detail
+
     class _status:  # type: ignore
         HTTP_200_OK = 200
         HTTP_201_CREATED = 201
+        HTTP_204_NO_CONTENT = 204
+        HTTP_400_BAD_REQUEST = 400
+        HTTP_401_UNAUTHORIZED = 401
+        HTTP_403_FORBIDDEN = 403
+        HTTP_404_NOT_FOUND = 404
+        HTTP_409_CONFLICT = 409
+        HTTP_422_UNPROCESSABLE_ENTITY = 422
+        HTTP_429_TOO_MANY_REQUESTS = 429
+        HTTP_500_INTERNAL_SERVER_ERROR = 500
 
 
 from pydantic import BaseModel
@@ -51,7 +66,12 @@ from pydantic import BaseModel
 from ..opspec import OpSpec
 from ..opspec.types import PHASES
 from ..runtime import executor as _executor  # expects _invoke(request, db, phases, ctx)
-from ..config.constants import AUTOAPI_GET_ASYNC_DB_ATTR, AUTOAPI_GET_DB_ATTR
+from ..config.constants import (
+    AUTOAPI_GET_ASYNC_DB_ATTR,
+    AUTOAPI_GET_DB_ATTR,
+    AUTOAPI_AUTH_DEP_ATTR,
+    AUTOAPI_REST_DEPENDENCIES_ATTR,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -85,6 +105,10 @@ def _resource_name(model: type) -> str:
 
 
 def _pk_name(model: type) -> str:
+    """
+    Single primary key name (fallback 'id'). For composite keys, still returns 'id'.
+    Used for backward-compat path-param aliasing and handler resolution.
+    """
     table = getattr(model, "__table__", None)
     if table is None:
         return "id"
@@ -98,6 +122,20 @@ def _pk_name(model: type) -> str:
     if len(cols) != 1:
         return "id"
     return getattr(cols[0], "name", "id")
+
+
+def _pk_names(model: type) -> set[str]:
+    """All PK column names (fallback {'id'})."""
+    table = getattr(model, "__table__", None)
+    try:
+        cols = getattr(getattr(table, "primary_key", None), "columns", None)
+        if cols is None:
+            return {"id"}
+        out = {getattr(c, "name", None) for c in cols}
+        out.discard(None)
+        return out or {"id"}
+    except Exception:
+        return {"id"}
 
 
 def _get_phase_chains(
@@ -211,6 +249,37 @@ def _validate_query(
     return dict(query)
 
 
+def _normalize_deps(deps: Optional[Sequence[Any]]) -> list[Any]:
+    """Turn callables into Depends(...) unless already a dependency object."""
+    if not deps:
+        return []
+    out: list[Any] = []
+    for d in deps:
+        is_dep_obj = getattr(d, "dependency", None) is not None
+        out.append(d if is_dep_obj else Depends(d))
+    return out
+
+
+def _status_for(target: str) -> int:
+    if target == "create":
+        return _status.HTTP_201_CREATED
+    if target in ("delete", "clear"):
+        return _status.HTTP_204_NO_CONTENT
+    return _status.HTTP_200_OK
+
+
+_RESPONSES_META = {
+    400: {"description": "Bad Request"},
+    401: {"description": "Unauthorized"},
+    403: {"description": "Forbidden"},
+    404: {"description": "Not Found"},
+    409: {"description": "Conflict"},
+    422: {"description": "Unprocessable Entity"},
+    429: {"description": "Too Many Requests"},
+    500: {"description": "Internal Server Error"},
+}
+
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Routing strategy
 # ───────────────────────────────────────────────────────────────────────────────
@@ -259,7 +328,10 @@ def _response_model_for(sp: OpSpec, model: type) -> Any | None:
     """
     Determine the FastAPI response_model based on presence of an out schema.
     If there is no out schema, return None (raw pass-through).
+    Suppress response_model for 204 routes (delete/clear).
     """
+    if sp.target in {"delete", "clear"}:
+        return None
     alias_ns = getattr(
         getattr(model, "schemas", None) or SimpleNamespace(), sp.alias, None
     )
@@ -286,7 +358,7 @@ def _request_model_for(sp: OpSpec, model: type) -> Any | None:
 
 
 # ───────────────────────────────────────────────────────────────────────────────
-# Endpoint factories
+# Endpoint factories (split by body/no-body and member/collection)
 # ───────────────────────────────────────────────────────────────────────────────
 
 
@@ -300,6 +372,48 @@ def _make_collection_endpoint(
     alias = sp.alias
     target = sp.target
 
+    # --- No body on GET list / DELETE clear ---
+    if target in {"list", "clear"}:
+
+        async def _endpoint(
+            request: Request,
+            db: Any = Depends(db_dep),
+        ):
+            if target == "list":
+                raw_query = dict(request.query_params)
+                payload = _validate_query(model, alias, target, raw_query)
+            else:
+                # clear: strict — ignore query/body entirely
+                payload = {}
+
+            ctx: Dict[str, Any] = {
+                "request": request,
+                "db": db,
+                "payload": payload,
+                "path_params": {},
+                "env": SimpleNamespace(
+                    method=alias, params=payload, target=target, model=model
+                ),
+            }
+            phases = _get_phase_chains(model, alias)
+            result = await _executor._invoke(
+                request=request,
+                db=db,
+                phases=phases,
+                ctx=ctx,
+            )
+            return _serialize_output(model, alias, target, sp, result)
+
+        _endpoint.__name__ = f"rest_{model.__name__}_{alias}_collection"
+        _endpoint.__qualname__ = _endpoint.__name__
+        _endpoint.__doc__ = (
+            f"REST collection endpoint for {model.__name__}.{alias} ({target})"
+        )
+        # NOTE: do NOT set body annotation for no-body endpoints
+        return _endpoint
+
+    # --- Body-based collection endpoints: create / bulk_* ---
+
     body_model = _request_model_for(sp, model)
     body_annotation = (
         (body_model | None) if body_model is not None else (Mapping[str, Any] | None)
@@ -310,25 +424,17 @@ def _make_collection_endpoint(
         db: Any = Depends(db_dep),
         body=Body(default=None),
     ):
-        # Build payload from query for list/clear; otherwise from body
-        if target in {"list", "clear"}:
-            raw_query = dict(request.query_params)
-            payload = _validate_query(model, alias, target, raw_query)
-        else:
-            payload = _validate_body(model, alias, target, body)
-
-        # Compose ctx
+        payload = _validate_body(model, alias, target, body)
         ctx: Dict[str, Any] = {
             "request": request,
             "db": db,
             "payload": payload,
-            "path_params": {},  # no member id
+            "path_params": {},
             "env": SimpleNamespace(
                 method=alias, params=payload, target=target, model=model
             ),
         }
         phases = _get_phase_chains(model, alias)
-
         result = await _executor._invoke(
             request=request,
             db=db,
@@ -357,6 +463,45 @@ def _make_member_endpoint(
     alias = sp.alias
     target = sp.target
     real_pk = _pk_name(model)
+    pk_names = _pk_names(model)
+
+    # --- No body on GET read / DELETE delete ---
+    if target in {"read", "delete"}:
+
+        async def _endpoint(
+            item_id: Any,
+            request: Request,
+            db: Any = Depends(db_dep),
+        ):
+            payload: Mapping[str, Any] = {}  # no body
+            ctx: Dict[str, Any] = {
+                "request": request,
+                "db": db,
+                "payload": payload,
+                # map generic item_id to real PK column name for handler resolution
+                "path_params": {real_pk: item_id, pk_param: item_id},
+                "env": SimpleNamespace(
+                    method=alias, params=payload, target=target, model=model
+                ),
+            }
+            phases = _get_phase_chains(model, alias)
+            result = await _executor._invoke(
+                request=request,
+                db=db,
+                phases=phases,
+                ctx=ctx,
+            )
+            return _serialize_output(model, alias, target, sp, result)
+
+        _endpoint.__name__ = f"rest_{model.__name__}_{alias}_member"
+        _endpoint.__qualname__ = _endpoint.__name__
+        _endpoint.__doc__ = (
+            f"REST member endpoint for {model.__name__}.{alias} ({target})"
+        )
+        # NOTE: do NOT set body annotation for no-body endpoints
+        return _endpoint
+
+    # --- Body-based member endpoints: PATCH update / PUT replace (and custom member) ---
 
     body_model = _request_model_for(sp, model)
     body_annotation = (
@@ -371,18 +516,28 @@ def _make_member_endpoint(
     ):
         payload = _validate_body(model, alias, target, body)
 
+        # Enforce path-PK canonicality. If body echoes PK: drop if equal, 409 if mismatch.
+        for k in pk_names:
+            if k in payload:
+                if str(payload[k]) != str(item_id) and len(pk_names) == 1:
+                    raise HTTPException(
+                        status_code=_status.HTTP_409_CONFLICT,
+                        detail=f"Identifier mismatch for '{k}': path={item_id}, body={payload[k]}",
+                    )
+                # Drop any echoed PK fields from body
+                payload.pop(k, None)
+        payload.pop(pk_param, None)
+
         ctx: Dict[str, Any] = {
             "request": request,
             "db": db,
             "payload": payload,
-            # map generic item_id to real PK column name for handler resolution
             "path_params": {real_pk: item_id, pk_param: item_id},
             "env": SimpleNamespace(
                 method=alias, params=payload, target=target, model=model
             ),
         }
         phases = _get_phase_chains(model, alias)
-
         result = await _executor._invoke(
             request=request,
             db=db,
@@ -405,7 +560,17 @@ def _make_member_endpoint(
 
 def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
     resource = _resource_name(model)
-    router = APIRouter()
+
+    # Router-level deps: extra deps + auth dep (parity with RPC)
+    extra_router_deps = _normalize_deps(
+        getattr(model, AUTOAPI_REST_DEPENDENCIES_ATTR, None)
+    )
+    auth_dep = getattr(model, AUTOAPI_AUTH_DEP_ATTR, None)
+    if auth_dep:
+        extra_router_deps += _normalize_deps([auth_dep])
+
+    router = APIRouter(dependencies=extra_router_deps or None)
+
     pk_param = "item_id"
     db_dep = (
         getattr(model, AUTOAPI_GET_ASYNC_DB_ATTR, None)
@@ -426,7 +591,7 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
         methods = list(sp.http_methods or _DEFAULT_METHODS.get(sp.target, ("POST",)))
         response_model = _response_model_for(sp, model)
 
-        # Build endpoint
+        # Build endpoint (split by body/no-body)
         if is_member:
             endpoint = _make_member_endpoint(
                 model, sp, resource=resource, db_dep=db_dep, pk_param=pk_param
@@ -436,12 +601,8 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
                 model, sp, resource=resource, db_dep=db_dep
             )
 
-        # Default status code (201 for create on collection; else 200)
-        status_code = (
-            _status.HTTP_201_CREATED
-            if sp.target == "create" and not is_member
-            else _status.HTTP_200_OK
-        )
+        # Status codes
+        status_code = _status_for(sp.target)
 
         # Attach route
         label = f"{model.__name__} - {sp.alias}"
@@ -455,6 +616,7 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
             response_model=response_model,
             status_code=status_code,
             tags=list(sp.tags or (resource,)),
+            responses=_RESPONSES_META,
         )
 
         logger.debug(
