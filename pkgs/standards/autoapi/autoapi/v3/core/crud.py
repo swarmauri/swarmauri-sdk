@@ -231,7 +231,7 @@ def _normalize_list_call(_args: tuple[Any, ...], _kwargs: dict[str, Any]) -> tup
       list(self, model, ...)                         # accidental bound 'self'
       list(model, filters, request, db=...)          # stray positional between
     """
-    args = list(_args)
+    args = _builtins.list(_args)
     kwargs = dict(_kwargs)
 
     _pop_bound_self(args)
@@ -243,6 +243,7 @@ def _normalize_list_call(_args: tuple[Any, ...], _kwargs: dict[str, Any]) -> tup
         model = kwargs.pop("model", None)
         if not isinstance(model, type):
             raise TypeError("list(model, ...) requires a model class")
+
 
     # filters
     filters = kwargs.pop("filters", None)
@@ -256,6 +257,7 @@ def _normalize_list_call(_args: tuple[Any, ...], _kwargs: dict[str, Any]) -> tup
     limit = _as_pos_int(kwargs.pop("limit", None))
     sort = kwargs.pop("sort", None)
 
+
     # If there are leftover ints, try to assign as skip/limit
     if skip is None and args:
         skip = _as_pos_int(args[0])
@@ -268,6 +270,7 @@ def _normalize_list_call(_args: tuple[Any, ...], _kwargs: dict[str, Any]) -> tup
 
     # db
     db = _extract_db(args, kwargs)
+
 
     # Default filters
     if filters is None:
@@ -356,11 +359,15 @@ async def list(*_args: Any, **_kwargs: Any) -> List[Any]:  # noqa: A001  (shadow
       - positional or keyword args
       - stray extras (e.g., request) which are ignored
     """
+
     model, params = _normalize_list_call(_args, _kwargs)
+
     filters: Mapping[str, Any] = _coerce_filters(model, params["filters"])
+
     skip: Optional[int] = params["skip"]
     limit: Optional[int] = params["limit"]
     db: Union[Session, AsyncSession] = params["db"]
+
     sort = params["sort"]
 
     if select is None:  # pragma: no cover
