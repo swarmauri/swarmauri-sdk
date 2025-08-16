@@ -393,11 +393,14 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
         )
 
         # Attach route
+        label = f"{model.__name__} - {sp.alias}"
         router.add_api_route(
             path,
             endpoint,
             methods=methods,
             name=f"{model.__name__}.{sp.alias}",
+            summary=label,
+            description=label,
             response_model=response_model,
             status_code=status_code,
             tags=list(sp.tags) if sp.tags else None,
