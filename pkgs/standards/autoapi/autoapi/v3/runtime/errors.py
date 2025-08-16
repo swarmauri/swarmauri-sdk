@@ -275,7 +275,7 @@ def _classify_exception(
         return status.HTTP_422_UNPROCESSABLE_ENTITY, _stringify_exc(exc), None
 
     if (OperationalError is not None) and isinstance(exc, OperationalError):
-        return status.HTTP_503_SERVICE_UNAVAILABLE, "Database operation failed", None
+        return status.HTTP_503_SERVICE_UNAVAILABLE, _stringify_exc(exc), None
 
     if (DBAPIError is not None) and isinstance(exc, DBAPIError):
         return status.HTTP_500_INTERNAL_SERVER_ERROR, _stringify_exc(exc), None
