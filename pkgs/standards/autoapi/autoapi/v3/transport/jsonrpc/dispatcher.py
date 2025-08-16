@@ -269,6 +269,7 @@ def build_jsonrpc_router(
     *,
     get_db: Optional[Callable[..., Any]] = None,
     get_async_db: Optional[Callable[..., Awaitable[Any]]] = None,
+    tags: Sequence[str] | None = ("system",),
 ) -> APIRouter:
     """
     Build and return an APIRouter that serves a single POST endpoint at "/".
@@ -283,6 +284,9 @@ def build_jsonrpc_router(
           so it runs before dispatch. It may set `request.state.user` and/or raise 401.
         • If `api._authorize` is set, we call it before executing the op; False/exception → 403.
         • Additional router-level dependencies can be provided via `api.rpc_dependencies`.
+
+    The generated endpoint is tagged as "system" by default. Supply a custom
+    sequence via ``tags`` to override or set ``None`` to omit tags.
     """
     # Extra router-level deps (e.g., tracing, IP allowlist)
     extra_router_deps = _normalize_deps(getattr(api, "rpc_dependencies", None))
@@ -405,6 +409,7 @@ def build_jsonrpc_router(
         endpoint=_endpoint,
         methods=["POST"],
         name="autoapi.jsonrpc",
+        tags=list(tags) if tags else None,
         # extra router deps already applied via APIRouter(dependencies=...)
     )
     return router

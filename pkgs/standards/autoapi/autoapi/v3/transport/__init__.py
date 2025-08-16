@@ -24,7 +24,7 @@ Quick usage:
 
 from __future__ import annotations
 
-from typing import Any, Awaitable, Callable, Optional
+from typing import Any, Awaitable, Callable, Optional, Sequence
 
 # JSON-RPC transport
 from .jsonrpc import build_jsonrpc_router
@@ -40,14 +40,23 @@ def mount_jsonrpc(
     prefix: str = "/rpc",
     get_db: Optional[Callable[..., Any]] = None,
     get_async_db: Optional[Callable[..., Awaitable[Any]]] = None,
+    tags: Sequence[str] | None = ("system",),
 ):
     """
     Build a JSON-RPC router for `api` and include it on the given FastAPI `app`
     (or any object exposing `include_router`).
 
     Returns the created router so you can keep a reference if desired.
+
+    Parameters
+    ----------
+    tags:
+        Optional tags applied to the mounted "/rpc" endpoint. Defaults to
+        ``("system",)``.
     """
-    router = build_jsonrpc_router(api, get_db=get_db, get_async_db=get_async_db)
+    router = build_jsonrpc_router(
+        api, get_db=get_db, get_async_db=get_async_db, tags=tags
+    )
     include_router = getattr(app, "include_router", None)
     if callable(include_router):
         include_router(router, prefix=prefix)
