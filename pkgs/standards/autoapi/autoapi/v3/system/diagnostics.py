@@ -172,7 +172,6 @@ def _build_hookz_endpoint(api: Any):
         out: Dict[str, Dict[str, Dict[str, List[str]]]] = {}
         for model in _model_iter(api):
             mname = getattr(model, "__name__", "Model")
-            out.setdefault(mname, {})
             hooks_root = getattr(model, "hooks", SimpleNamespace())
             # Build list of aliases from RPC ns or opspecs
             alias_sources = set()
@@ -181,13 +180,18 @@ def _build_hookz_endpoint(api: Any):
             for sp in _opspecs(model):
                 alias_sources.add(sp.alias)
 
+            model_map: Dict[str, Dict[str, List[str]]] = {}
             for alias in sorted(alias_sources):
                 alias_ns = getattr(hooks_root, alias, None) or SimpleNamespace()
                 phase_map: Dict[str, List[str]] = {}
                 for ph in PHASES:
                     steps = list(getattr(alias_ns, ph, []) or [])
-                    phase_map[ph] = [_label_callable(fn) for fn in steps]
-                out[mname][alias] = phase_map
+                    if steps:
+                        phase_map[ph] = [_label_callable(fn) for fn in steps]
+                if phase_map:
+                    model_map[alias] = phase_map
+            if model_map:
+                out[mname] = model_map
         return out
 
     return _hookz
