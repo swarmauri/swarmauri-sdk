@@ -38,7 +38,7 @@ def _pk_info(model: type) -> Tuple[str, type | Any]:
     Return (pk_name, python_type) for single-PK tables. If composite, returns (pk, Any).
     """
     table = getattr(model, "__table__", None)
-    if not table or not getattr(table, "primary_key", None):
+    if table is None or not getattr(table, "primary_key", None):
         return ("id", Any)
     cols = list(table.primary_key.columns)  # type: ignore[attr-defined]
     if not cols:
@@ -78,6 +78,17 @@ def _make_bulk_ids_model(
     )
 
 
+def _make_pk_model(
+    model: type, verb: str, pk_name: str, pk_type: type | Any
+) -> Type[BaseModel]:
+    """Build a wrapper schema with a single primary-key field."""
+    name = f"{model.__name__}{_camel(verb)}Request"
+    return create_model(  # type: ignore[call-arg]
+        name,
+        **{pk_name: (pk_type, Field(...))},  # type: ignore[name-defined]
+    )
+
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Core builder
 # ───────────────────────────────────────────────────────────────────────────────
@@ -112,7 +123,9 @@ def _schemas_for_spec(model: type, sp: OpSpec) -> Dict[str, Optional[Type[BaseMo
             result["out"] = result["out"] or read_schema
 
     elif target == "read":
-        # No body by default; OUT is the read schema
+        # Require PK in body for RPC; OUT uses the read schema
+        pk_name, pk_type = _pk_info(model)
+        result["in_"] = result["in_"] or _make_pk_model(model, "read", pk_name, pk_type)
         if sp.returns == "model":
             result["out"] = result["out"] or read_schema
 
@@ -137,13 +150,17 @@ def _schemas_for_spec(model: type, sp: OpSpec) -> Dict[str, Optional[Type[BaseMo
 
     elif target == "list":
         # Filters/paging in request; element OUT is the read schema
-        result["list"] = _build_list_params(model)
+        params = _build_list_params(model)
+        result["in_"] = result["in_"] or params
+        result["list"] = params
         if sp.returns == "model":
             result["out"] = result["out"] or read_schema
 
     elif target == "clear":
         # Same filters as list; OUT is raw by default ({"deleted": N})
-        result["in_"] = result["in_"] or _build_list_params(model)
+        params = _build_list_params(model)
+        result["in_"] = result["in_"] or params
+        result["list"] = params
         if sp.returns == "model":
             result["out"] = result["out"] or read_schema
         else:
@@ -227,13 +244,16 @@ def build_and_attach(
         ns = _ensure_alias_namespace(model, sp.alias)
         shapes = _schemas_for_spec(model, sp)
 
-        # Attach; allow None to signal "no body" or "raw" response
-        if "in_" in shapes:
-            setattr(ns, "in_", shapes["in_"])
-        if "out" in shapes:
-            setattr(ns, "out", shapes["out"])
-        if "list" in shapes:
-            setattr(ns, "list", shapes["list"])
+        # Attach only non-null schemas so the namespace reflects available shapes
+        in_schema = shapes.get("in_")
+        if in_schema is not None:
+            setattr(ns, "in_", in_schema)
+        out_schema = shapes.get("out")
+        if out_schema is not None:
+            setattr(ns, "out", out_schema)
+        list_schema = shapes.get("list")
+        if list_schema is not None:
+            setattr(ns, "list", list_schema)
 
         logger.debug(
             "schemas: %s.%s -> in=%s out=%s list=%s",
