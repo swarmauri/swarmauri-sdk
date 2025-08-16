@@ -50,7 +50,7 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
         )
         return asdict_desc(desc)
 
-    @op(alias="rotate", arity="collection", persist="default", returns="raw")
+    @op(alias="rotate", arity="member", persist="default", returns="raw")
     async def rotate(self, *, ctx, db, request, payload):
         from ..utils import auth_tenant_from_ctx, asdict_desc
 
@@ -65,7 +65,7 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
         )
         return asdict_desc(desc)
 
-    @op(alias="disable", arity="collection", persist="default", returns="raw")
+    @op(alias="disable", arity="member", persist="default", returns="raw")
     async def disable(self, *, ctx, db, request, payload):
         from ..utils import auth_tenant_from_ctx, asdict_desc
 
@@ -76,7 +76,7 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
         )
         return asdict_desc(desc)
 
-    @op(alias="encrypt", arity="collection", persist="skip", returns="raw")
+    @op(alias="encrypt", arity="member", persist="skip", returns="raw")
     async def encrypt(self, *, ctx, db, request, payload):
         from ..utils import b64e, b64d, b64d_optional, auth_tenant_from_ctx
 
@@ -106,7 +106,7 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
             **({"aad_b64": b64e(ct.aad)} if ct.aad else {}),
         }
 
-    @op(alias="decrypt", arity="collection", persist="skip", returns="raw")
+    @op(alias="decrypt", arity="member", persist="skip", returns="raw")
     async def decrypt(self, *, ctx, db, request, payload):
         from ..utils import b64e, b64d, b64d_optional, auth_tenant_from_ctx
 
@@ -131,7 +131,7 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
         pt = await cp.decrypt(key, ct, aad=ct.aad)
         return {"kid": key.kid, "version": key.version, "plaintext_b64": b64e(pt)}
 
-    @op(alias="wrap", arity="collection", persist="skip", returns="raw")
+    @op(alias="wrap", arity="member", persist="skip", returns="raw")
     async def wrap(self, *, ctx, db, request, payload):
         from ..utils import b64e, b64d_optional, auth_tenant_from_ctx
 
@@ -158,7 +158,7 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
             **({"nonce_b64": b64e(wrapped.nonce)} if wrapped.nonce else {}),
         }
 
-    @op(alias="unwrap", arity="collection", persist="skip", returns="raw")
+    @op(alias="unwrap", arity="member", persist="skip", returns="raw")
     async def unwrap(self, *, ctx, db, request, payload):
         from ..utils import b64e, b64d, b64d_optional, auth_tenant_from_ctx
 
@@ -181,7 +181,7 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
         dek = await cp.unwrap(kek, wrapped)
         return {"kek_kid": kek.kid, "kek_version": kek.version, "dek_b64": b64e(dek)}
 
-    @op(alias="encrypt_for_many", arity="collection", persist="skip", returns="raw")
+    @op(alias="encrypt_for_many", arity="member", persist="skip", returns="raw")
     async def encrypt_for_many(self, *, ctx, db, request, payload):
         from ..utils import b64e, b64d, b64d_optional, auth_tenant_from_ctx
 
