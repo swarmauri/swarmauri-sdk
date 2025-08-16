@@ -109,15 +109,11 @@ def _make_pk_model(
 
 
 def _schemas_for_spec(model: type, sp: OpSpec) -> Dict[str, Optional[Type[BaseModel]]]:
-    """
-    Decide which IN/OUT/LIST schemas to attach for a given OpSpec.
-    Returns a dict with keys: "in_", "out", "list".
-    """
+    """Decide which IN/OUT schemas to attach for a given OpSpec."""
     target = sp.target
     result: Dict[str, Optional[Type[BaseModel]]] = {
         "in_": None,
         "out": None,
-        "list": None,
     }
 
     # Respect explicit overrides first
@@ -154,13 +150,11 @@ def _schemas_for_spec(model: type, sp: OpSpec) -> Dict[str, Optional[Type[BaseMo
     elif target == "list":
         params = _build_list_params(model)
         result["in_"] = result["in_"] or params
-        result["list"] = params
         result["out"] = result["out"] or read_schema
 
     elif target == "clear":
         params = _build_list_params(model)
         result["in_"] = result["in_"] or params
-        result["list"] = params
         result["out"] = result["out"] or read_schema
 
     elif target == "bulk_create":
@@ -212,12 +206,13 @@ def build_and_attach(
     model: type, specs: Sequence[OpSpec], *, only_keys: Optional[Sequence[_Key]] = None
 ) -> None:
     """
-    Build request/response/list schemas per OpSpec and attach them under:
+    Build request and response schemas per OpSpec and attach them under:
         model.schemas.<alias>.in_   -> request model (or None)
         model.schemas.<alias>.out   -> response model (or None)
-        model.schemas.<alias>.list  -> list/filter params model (or None)
 
-    If `only_keys` is provided, limit work to those (alias,target) pairs.
+    For list/clear operations the list/filter params model is attached as the
+    ``in_`` schema. If `only_keys` is provided, limit work to those
+    (alias,target) pairs.
     """
     if not hasattr(model, "schemas"):
         model.schemas = SimpleNamespace()
@@ -239,17 +234,13 @@ def build_and_attach(
         out_schema = shapes.get("out")
         if out_schema is not None:
             setattr(ns, "out", out_schema)
-        list_schema = shapes.get("list")
-        if list_schema is not None:
-            setattr(ns, "list", list_schema)
 
         logger.debug(
-            "schemas: %s.%s -> in=%s out=%s list=%s",
+            "schemas: %s.%s -> in=%s out=%s",
             model.__name__,
             sp.alias,
             getattr(ns, "in_", None).__name__ if getattr(ns, "in_", None) else None,
             getattr(ns, "out", None).__name__ if getattr(ns, "out", None) else None,
-            getattr(ns, "list", None).__name__ if getattr(ns, "list", None) else None,
         )
 
 

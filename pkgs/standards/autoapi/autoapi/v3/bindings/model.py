@@ -63,7 +63,7 @@ def _ensure_model_namespaces(model: type) -> None:
     # opspec indexes & metadata
     if not hasattr(model, "opspecs"):
         model.opspecs = SimpleNamespace(all=(), by_key={}, by_alias={})
-    # pydantic schemas: .<alias>.in_ / .<alias>.out / .<alias>.list
+    # pydantic schemas: .<alias>.in_ / .<alias>.out
     if not hasattr(model, "schemas"):
         model.schemas = SimpleNamespace()
     # hooks: phase chains & raw hook descriptors if you want to expose them
@@ -165,7 +165,7 @@ def bind(model: type, *, only_keys: Optional[Set[_Key]] = None) -> Tuple[OpSpec,
       3) Optionally drop old entries for a targeted set of (alias,target) keys.
       4) Merge ctx-only hooks (@hook_ctx) into model.__autoapi_hooks__ (alias-aware).
       5) Rebuild & attach:
-         • schemas (in_/out/list)
+         • schemas (in_/out)
          • hooks (phase chains, with auto START_TX/END_TX defaults)
          • handlers (raw & handler entrypoint for HANDLER)
          • rpc (register callables under model.rpc.<alias>)

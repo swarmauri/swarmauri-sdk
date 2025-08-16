@@ -168,11 +168,7 @@ def _validate_body(
     alias_ns = getattr(schemas_root, alias, None)
     if not alias_ns:
         return dict(body)
-
     in_model = getattr(alias_ns, "in_", None)
-    if target in {"list", "clear"}:
-        # List/clear use query params primarily; body rarely used
-        in_model = getattr(alias_ns, "list", in_model)
 
     if in_model and inspect.isclass(in_model) and issubclass(in_model, BaseModel):
         try:
@@ -198,12 +194,7 @@ def _validate_query(
     alias_ns = getattr(schemas_root, alias, None)
     if not alias_ns:
         return dict(query)
-    # For list/clear, prefer .list
-    in_model = getattr(
-        alias_ns,
-        "list",
-        None if target not in {"list", "clear"} else getattr(alias_ns, "list", None),
-    )
+    in_model = getattr(alias_ns, "in_", None)
     if in_model and inspect.isclass(in_model) and issubclass(in_model, BaseModel):
         try:
             inst = in_model.model_validate(dict(query))  # type: ignore[arg-type]
@@ -287,10 +278,7 @@ def _request_model_for(sp: OpSpec, model: type) -> Any | None:
     alias_ns = getattr(
         getattr(model, "schemas", None) or SimpleNamespace(), sp.alias, None
     )
-    in_model = getattr(alias_ns, "in_", None)
-    if sp.target in {"list", "clear"}:
-        in_model = getattr(alias_ns, "list", in_model)
-    return in_model
+    return getattr(alias_ns, "in_", None)
 
 
 # ───────────────────────────────────────────────────────────────────────────────
