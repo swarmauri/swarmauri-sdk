@@ -19,13 +19,13 @@ def get_autoapi_schema(
     from .. import AutoAPI
 
     # -- define the four core variants ---------------------------------
-    def _schema(verb: str):
-        return AutoAPI._schema(orm_cls, verb=verb)
+    def _build_schema(verb: str):
+        return AutoAPI._build_schema(orm_cls, verb=verb)
 
-    SRead = _schema("read")
-    SCreate = _schema("create")
-    SUpdate = _schema("update")
-    SDelete = _schema("delete")
+    SRead = _build_schema("read")
+    SCreate = _build_schema("create")
+    SUpdate = _build_schema("update")
+    SDelete = _build_schema("delete")
 
     tab = orm_cls.__name__
 

@@ -9,7 +9,7 @@ from fastapi import Depends, Request, Path, Body
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
-from .schema import _schema
+from .schema import _build_schema
 from .rpc_adapter import _wrap_rpc
 from ._runner import _invoke
 from ..jsonrpc_models import _RPCReq, create_standardized_error
@@ -175,7 +175,7 @@ def _rest_path(table: Type, spec: OpSpec) -> str:
 
 def _in_model(table: Type, spec: OpSpec):
     # For canonical targets, reuse their input schemas; for custom default to create's shape unless overridden
-    return spec.request_model or _schema(
+    return spec.request_model or _build_schema(
         table, verb=(spec.target if spec.target != "custom" else "create")
     )
 
@@ -188,7 +188,7 @@ def _out_model(table: Type, spec: OpSpec):
     ):  # canonical create often uses 201 + body-less response_model
         return spec.response_model or None
     # default to canonical target (delete returns read_out for parity unless overridden)
-    return spec.response_model or _schema(
+    return spec.response_model or _build_schema(
         table, verb=("read" if spec.target == "delete" else spec.target)
     )
 

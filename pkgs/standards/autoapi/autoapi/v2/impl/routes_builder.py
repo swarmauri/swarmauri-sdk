@@ -31,7 +31,7 @@ from ..mixins import AsyncCapable, BulkCapable, Replaceable
 
 from .op_wiring import attach_op_specs
 from .rpc_adapter import _wrap_rpc
-from .schema import _schema
+from .schema import _build_schema
 from ._runner import _invoke
 
 
@@ -224,7 +224,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         if verb in {"update", "replace"}:
             # For update/replace we want the verb-specific model without the PK
             # (it's supplied separately via the path parameter)
-            rpc_in = _schema(model, verb=verb, exclude={pk})
+            rpc_in = _build_schema(model, verb=verb, exclude={pk})
 
         # Route label (name/summary) using alias policy
         label = route_label(

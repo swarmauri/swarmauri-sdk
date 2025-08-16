@@ -99,7 +99,7 @@ def _merge_response_extras(
             print(f"Added response-extra field {name} type={py_t} verb={verb}")
 
 
-def _schema(
+def _build_schema(
     orm_cls: type,
     *,
     name: str | None = None,
@@ -258,12 +258,12 @@ def _schema(
     return schema_cls
 
 
-def create_list_schema(model: type) -> Type[BaseModel]:
+def _build_list_params(model: type) -> Type[BaseModel]:
     """
     Create a list/filter schema for the given model.
     """
     tab = model.__name__
-    print(f"create_list_schema for {tab}")
+    print(f"_build_list_params for {tab}")
     base = dict(
         skip=(int | None, Field(None, ge=0)),
         limit=(int | None, Field(None, ge=10)),
@@ -284,5 +284,5 @@ def create_list_schema(model: type) -> Type[BaseModel]:
     schema = create_model(
         f"{tab}ListParams", __config__=ConfigDict(extra="forbid"), **base, **cols
     )
-    print(f"create_list_schema generated {schema.__name__}")
+    print(f"_build_list_params generated {schema.__name__}")
     return schema

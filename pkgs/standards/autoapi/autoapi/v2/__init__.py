@@ -20,7 +20,7 @@ from .hooks import Phase, _init_hooks, _run
 from .impl import (
     _crud,
     _register_routes_and_rpcs,
-    _schema,
+    _build_schema,
     _wrap_rpc,
 )
 from .impl.routes_builder import _attach
@@ -277,8 +277,8 @@ class AutoAPI:
             self._ddl_executed = True
 
     # ───────── bound helpers (delegated to sub-modules) ────────────
-    # schema = staticmethod(_schema)   # <- prevents self-binding
-    _schema = _schema  # keep the private alias if you still need it
+    # build_schema = staticmethod(_build_schema)   # <- prevents self-binding
+    _build_schema = _build_schema
     _Op = _Op
     _crud = _crud
     _wrap_rpc = _wrap_rpc

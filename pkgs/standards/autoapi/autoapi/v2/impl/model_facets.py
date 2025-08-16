@@ -5,7 +5,7 @@ from typing import Callable, Dict, List, Type
 
 from .crud_builder import create_crud_operations
 from .rpc_adapter import _wrap_rpc
-from .schema import _schema
+from .schema import _build_schema
 from .op_wiring import collect_all_specs_for_table
 from ..ops.spec import OpSpec
 from ..types.op_config_provider import should_wire_canonical
@@ -133,33 +133,33 @@ def init_model_facets(model: Type) -> None:
         if v in ("clear",):
             continue
         if v == "read":
-            IN = _schema(
+            IN = _build_schema(
                 model,
                 verb="delete",
                 include={next(iter(model.__table__.primary_key.columns)).name},
                 name=f"{model.__name__}ReadIn",
             )
-            OUT = _schema(model, verb="read")
+            OUT = _build_schema(model, verb="read")
         elif v == "delete":
-            IN = _schema(
+            IN = _build_schema(
                 model,
                 verb="delete",
                 include={next(iter(model.__table__.primary_key.columns)).name},
             )
             OUT = None
         elif v == "list":
-            IN = _schema(model, verb="list")
-            OUT = _schema(model, verb="read")
+            IN = _build_schema(model, verb="list")
+            OUT = _build_schema(model, verb="read")
         elif v in ("create", "replace"):
-            IN = _schema(model, verb="create")
-            OUT = _schema(model, verb="read")
+            IN = _build_schema(model, verb="create")
+            OUT = _build_schema(model, verb="read")
         elif v == "update":
-            IN = _schema(
+            IN = _build_schema(
                 model,
                 verb="update",
                 exclude={next(iter(model.__table__.primary_key.columns)).name},
             )
-            OUT = _schema(model, verb="read")
+            OUT = _build_schema(model, verb="read")
         else:
             IN = OUT = None
         if IN:

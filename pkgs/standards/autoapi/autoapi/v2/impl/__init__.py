@@ -14,7 +14,7 @@ Modules:
 from __future__ import annotations
 
 # Main function imports - only the core functions needed by AutoAPI
-from .schema import _schema
+from .schema import _build_schema
 from .crud_builder import _crud
 from .rpc_adapter import _wrap_rpc
 from .routes_builder import _register_routes_and_rpcs
@@ -45,7 +45,7 @@ def _commit_or_flush(self, db) -> None:
 
 # Export only the main functions that are needed by the AutoAPI class
 __all__ = [
-    "_schema",
+    "_build_schema",
     "_crud",
     "_wrap_rpc",
     "_register_routes_and_rpcs",

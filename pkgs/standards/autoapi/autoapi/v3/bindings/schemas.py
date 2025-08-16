@@ -8,8 +8,7 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple, Type
 from pydantic import BaseModel, Field, create_model
 
 from ..opspec import OpSpec
-from ..schema import _schema as _build_schema
-from ..schema import create_list_schema as _build_list_params
+from ..schema import _build_schema, _build_list_params
 
 logger = logging.getLogger(__name__)
 
@@ -118,53 +117,43 @@ def _schemas_for_spec(model: type, sp: OpSpec) -> Dict[str, Optional[Type[BaseMo
     # Canonical targets
     if target == "create":
         result["in_"] = result["in_"] or _build_schema(model, verb="create")
-        # If caller wants "model" return, supply read schema; otherwise keep None (raw)
-        if sp.returns == "model":
-            result["out"] = result["out"] or read_schema
+        result["out"] = result["out"] or read_schema
 
     elif target == "read":
         # Require PK in body for RPC; OUT uses the read schema
         pk_name, pk_type = _pk_info(model)
         result["in_"] = result["in_"] or _make_pk_model(model, "read", pk_name, pk_type)
-        if sp.returns == "model":
-            result["out"] = result["out"] or read_schema
+        result["out"] = result["out"] or read_schema
 
     elif target == "update":
         result["in_"] = result["in_"] or _build_schema(model, verb="update")
-        if sp.returns == "model":
-            result["out"] = result["out"] or read_schema
+        result["out"] = result["out"] or read_schema
 
     elif target == "replace":
         result["in_"] = result["in_"] or _build_schema(model, verb="replace")
-        if sp.returns == "model":
-            result["out"] = result["out"] or read_schema
+        result["out"] = result["out"] or read_schema
 
     elif target == "delete":
         # Require PK in body for RPC shape; REST may pass it as a path param.
-        result["in_"] = result["in_"] or _build_schema(model, verb="delete")
-        if sp.returns == "model":
-            result["out"] = result["out"] or read_schema
-        else:
-            # default raw (e.g., {"deleted": 1})
-            result["out"] = result["out"] or None
+        pk_name, pk_type = _pk_info(model)
+        result["in_"] = result["in_"] or _make_pk_model(
+            model, "delete", pk_name, pk_type
+        )
+        result["out"] = result["out"] or read_schema
 
     elif target == "list":
         # Filters/paging in request; element OUT is the read schema
         params = _build_list_params(model)
         result["in_"] = result["in_"] or params
         result["list"] = params
-        if sp.returns == "model":
-            result["out"] = result["out"] or read_schema
+        result["out"] = result["out"] or read_schema
 
     elif target == "clear":
-        # Same filters as list; OUT is raw by default ({"deleted": N})
+        # Same filters as list
         params = _build_list_params(model)
         result["in_"] = result["in_"] or params
         result["list"] = params
-        if sp.returns == "model":
-            result["out"] = result["out"] or read_schema
-        else:
-            result["out"] = result["out"] or None
+        result["out"] = result["out"] or read_schema
 
     # Bulk variants
     elif target == "bulk_create":
@@ -172,41 +161,33 @@ def _schemas_for_spec(model: type, sp: OpSpec) -> Dict[str, Optional[Type[BaseMo
         result["in_"] = result["in_"] or _make_bulk_rows_model(
             model, "bulk_create", item_in
         )
-        if sp.returns == "model":
-            result["out"] = result["out"] or read_schema
+        result["out"] = result["out"] or read_schema
 
     elif target == "bulk_update":
         item_in = _build_schema(model, verb="update")
         result["in_"] = result["in_"] or _make_bulk_rows_model(
             model, "bulk_update", item_in
         )
-        if sp.returns == "model":
-            result["out"] = result["out"] or read_schema
+        result["out"] = result["out"] or read_schema
 
     elif target == "bulk_replace":
         item_in = _build_schema(model, verb="replace")
         result["in_"] = result["in_"] or _make_bulk_rows_model(
             model, "bulk_replace", item_in
         )
-        if sp.returns == "model":
-            result["out"] = result["out"] or read_schema
+        result["out"] = result["out"] or read_schema
 
     elif target == "bulk_delete":
         pk_name, pk_type = _pk_info(model)
         result["in_"] = result["in_"] or _make_bulk_ids_model(
             model, "bulk_delete", pk_type
         )
-        # OUT defaults to raw ({"deleted": N}); only supply model if explicitly requested
-        if sp.returns == "model":
-            result["out"] = result["out"] or read_schema
-        else:
-            result["out"] = result["out"] or None
+        result["out"] = result["out"] or read_schema
 
-    # Custom ops: use overrides if present; otherwise
+    # Custom ops: use overrides if present; otherwise default to read schema
     elif target == "custom":
-        # No default IN unless provided; OUT uses read schema when returns="model"
-        if sp.returns == "model":
-            result["out"] = result["out"] or read_schema
+        result["in_"] = result["in_"] or _build_schema(model, verb="create")
+        result["out"] = result["out"] or read_schema
 
     else:
         # Unknown targets – leave as provided
@@ -225,8 +206,8 @@ def build_and_attach(
 ) -> None:
     """
     Build request/response/list schemas per OpSpec and attach them under:
-        model.schemas.<alias>.in_   -> request model (or None)
-        model.schemas.<alias>.out   -> response model (or None)
+        model.schemas.<alias>.in_   -> request model
+        model.schemas.<alias>.out   -> response model
         model.schemas.<alias>.list  -> list/filter params model (or None)
 
     If `only_keys` is provided, limit work to those (alias,target) pairs.

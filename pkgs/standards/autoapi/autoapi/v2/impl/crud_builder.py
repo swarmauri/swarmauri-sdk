@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import Dict
 
 from ..jsonrpc_models import create_standardized_error
-from .schema import _schema, create_list_schema
+from .schema import _build_schema, _build_list_params
 from ..types import Session
 from ..naming import camel_to_snake
 
@@ -102,16 +102,16 @@ def create_crud_operations(model: type, pk_name: str) -> Dict[str, callable]:
 
     # ── Schemas ───────────────────────────────────────────────────────────
     # Output for read:
-    SReadOut = _schema(model, verb="read")
+    SReadOut = _build_schema(model, verb="read")
     # Create/update/list:
-    SCreate = _schema(model, verb="create")
-    SUpdate = _schema(model, verb="update", exclude={pk_name})
-    SListIn = create_list_schema(model)
+    SCreate = _build_schema(model, verb="create")
+    SUpdate = _build_schema(model, verb="update", exclude={pk_name})
+    SListIn = _build_list_params(model)
     # Distinct pk-only *input* models for read vs delete (names differ for clarity)
-    SReadIn = _schema(
+    SReadIn = _build_schema(
         model, verb="delete", include={pk_name}, name=f"{model.__name__}ReadIn"
     )
-    SDeleteIn = _schema(
+    SDeleteIn = _build_schema(
         model, verb="delete", include={pk_name}, name=f"{model.__name__}DeleteIn"
     )
 
