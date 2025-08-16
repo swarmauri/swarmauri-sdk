@@ -52,8 +52,3 @@ api = AutoAPI(
 api.include_models([Key, KeyVersion], base_prefix="/kms")
 api.mount_jsonrpc(prefix="/kms/rpc")
 api.attach_diagnostics(prefix="/kms/system")
-
-
-@app.get("/healthz", include_in_schema=False)
-async def healthz():
-    return {"status": "alive"}
