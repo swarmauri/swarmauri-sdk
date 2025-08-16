@@ -17,6 +17,13 @@ from ..opspec import resolve as resolve_opspecs
 from ..opspec import get_registry, OpspecRegistry
 from ..config.constants import AUTOAPI_REGISTRY_LISTENER_ATTR
 
+# New: ctx-only decorators integration
+from ..decorators import (
+    collect_decorated_ops,
+    collect_decorated_hooks,
+    alias_map_for,
+)
+
 # These modules will be implemented next in the bindings package.
 # They should expose the functions used below with the given signatures.
 from . import (
@@ -56,7 +63,7 @@ def _ensure_model_namespaces(model: type) -> None:
     # opspec indexes & metadata
     if not hasattr(model, "opspecs"):
         model.opspecs = SimpleNamespace(all=(), by_key={}, by_alias={})
-    # pydantic schemas: .<alias>.in / .<alias>.out / .<alias>.list
+    # pydantic schemas: .<alias>.in_ / .<alias>.out / .<alias>.list
     if not hasattr(model, "schemas"):
         model.schemas = SimpleNamespace()
     # hooks: phase chains & raw hook descriptors if you want to expose them
@@ -152,31 +159,54 @@ def bind(model: type, *, only_keys: Optional[Set[_Key]] = None) -> Tuple[OpSpec,
     Build (or refresh) all AutoAPI namespaces on the model class.
 
     Steps:
-      1) Resolve effective OpSpecs (opspec.resolve).
-      2) Ensure model namespaces exist.
+      1) Ensure model namespaces exist.
+      2) Resolve canonical OpSpecs (opspec.resolve) and merge ctx-only ops (@op_ctx).
+         - If both define the same (alias,target), the ctx-only op overrides.
       3) Optionally drop old entries for a targeted set of (alias,target) keys.
-      4) Rebuild & attach:
-         • schemas (in/out/list)
+      4) Merge ctx-only hooks (@hook_ctx) into model.__autoapi_hooks__ (alias-aware).
+      5) Rebuild & attach:
+         • schemas (in_/out/list)
          • hooks (phase chains, with auto START_TX/END_TX defaults)
          • handlers (raw & handler entrypoint for HANDLER)
          • rpc (register callables under model.rpc.<alias>)
          • rest (attach/refresh model.rest.router)
-      5) Index opspecs under model.opspecs.{all, by_key, by_alias}
-      6) Install a registry listener (once) so imperative updates rebind automatically.
+      6) Index opspecs under model.opspecs.{all, by_key, by_alias}
+      7) Install a registry listener (once) so imperative updates rebind automatically.
 
     Returns:
       tuple of OpSpec (the effective set).
     """
     _ensure_model_namespaces(model)
 
-    # 1) Resolve opspecs (source of truth)
-    specs: List[OpSpec] = list(resolve_opspecs(model))
-    all_specs, by_key, by_alias = _index_specs(specs)
+    # 1) Resolve canonical specs (source of truth for canonical ops)
+    base_specs: List[OpSpec] = list(resolve_opspecs(model))
 
-    # 2) Drop per-op artifacts for targeted keys (if any)
+    # 2) Add ctx-only ops discovered via decorators (tables + mixins)
+    ctx_specs: List[OpSpec] = list(collect_decorated_ops(model))
+
+    # 2b) De-dupe by (alias,target) with ctx-only overriding canonical/defaults
+    merged_by_key: Dict[_Key, OpSpec] = {}
+    for sp in base_specs:
+        merged_by_key[_key(sp)] = sp
+    for sp in ctx_specs:
+        merged_by_key[_key(sp)] = sp
+    specs: List[OpSpec] = list(merged_by_key.values())
+
+    # 3) Drop per-op artifacts for targeted keys (if any)
     _drop_old_entries(model, keys=only_keys)
 
-    # 3) Attach schemas, hooks, handlers, rpc, router
+    # 4) Merge ctx-only hooks (alias-aware) BEFORE normalization/attachment
+    #    We compute the set of visible aliases from the final merged specs.
+    visible_aliases = {sp.alias for sp in specs}
+    ctx_hooks = collect_decorated_hooks(model, visible_aliases=visible_aliases)
+    base_hooks = getattr(model, "__autoapi_hooks__", {}) or {}
+    for alias, phases in ctx_hooks.items():
+        per = base_hooks.setdefault(alias, {})
+        for phase, fns in phases.items():
+            per.setdefault(phase, []).extend(fns)
+    setattr(model, "__autoapi_hooks__", base_hooks)
+
+    # 5) Attach schemas, hooks, handlers, rpc, router
     #    The submodules should handle `only_keys` and rebuild only what's needed.
     _schemas_binding.build_and_attach(model, specs, only_keys=only_keys)
     _hooks_binding.normalize_and_attach(model, specs, only_keys=only_keys)
@@ -184,14 +214,21 @@ def bind(model: type, *, only_keys: Optional[Set[_Key]] = None) -> Tuple[OpSpec,
     _rpc_binding.register_and_attach(model, specs, only_keys=only_keys)
     _rest_binding.build_router_and_attach(model, specs, only_keys=only_keys)
 
-    # 4) Index on the model (always overwrite with fresh views)
+    # 6) Index on the model (always overwrite with fresh views)
+    all_specs, by_key, by_alias = _index_specs(specs)
     model.opspecs = SimpleNamespace(
         all=all_specs,
         by_key=by_key,
         by_alias=by_alias,
     )
 
-    # 5) Ensure we have a registry listener to refresh on changes
+    # (Optional) expose resolved alias map for diagnostics
+    try:
+        model.alias_map = alias_map_for(model)
+    except Exception:  # defensive
+        pass
+
+    # 7) Ensure we have a registry listener to refresh on changes
     _ensure_registry_listener(model)
 
     logger.debug(

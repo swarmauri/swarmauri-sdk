@@ -6,20 +6,22 @@ OpSpec-centric building blocks to bind models, wire schemas/handlers/hooks,
 register RPC & REST, and (optionally) mount JSON-RPC and diagnostics.
 
 Quick start:
-    from autoapi.v3 import include_model, build_jsonrpc_router, attach_diagnostics
-    from autoapi.v3 import OpSpec, op, op_alias
+    from autoapi.v3 import include_model, build_jsonrpc_router, mount_diagnostics
+    from autoapi.v3 import OpSpec, hook_ctx, op_ctx, alias_ctx
 
     include_model(api, User, app=fastapi_app)
     app.include_router(build_jsonrpc_router(api), prefix="/rpc")
-    app.include_router(attach_diagnostics(api), prefix="/system")
+    app.include_router(mount_diagnostics(api), prefix="/system")
 """
 
 from __future__ import annotations
 
 # ── OpSpec (source of truth) ───────────────────────────────────────────────────
 from .opspec import OpSpec, get_registry
-from .opspec.decorators import op, op_alias
 from .opspec.types import PHASES, HookPhase
+
+# ── Ctx-only decorators (new surface; replaces legacy opspec.decorators) ───────
+from .decorators import alias_ctx, op_ctx, hook_ctx
 
 # ── Bindings (model + API orchestration) ───────────────────────────────────────
 from .bindings import (
@@ -54,7 +56,7 @@ from .autoapi import AutoAPI
 
 from .tables import Base
 
-__all__ = []
+__all__: list[str] = []
 
 __all__ += ["AutoAPI", "Base"]
 
@@ -62,10 +64,12 @@ __all__ += [
     # OpSpec core
     "OpSpec",
     "get_registry",
-    "op",
-    "op_alias",
     "PHASES",
     "HookPhase",
+    # Ctx-only decorators
+    "alias_ctx",
+    "op_ctx",
+    "hook_ctx",
     # Bindings
     "bind",
     "rebind",

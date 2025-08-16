@@ -17,13 +17,16 @@ Collection & Registry:
   - get_registered_ops(model)             → tuple[OpSpec, ...]
   - clear_registry(model)                 → None
 
-Decorators:
-  - op_alias(...)
-  - custom_op(...)
+Decorators (moved):
+  The legacy decorators under `autoapi.v3.opspec.decorators` are no longer supported.
+  Use the ctx-only decorators in `autoapi.v3.decorators` instead:
+    • alias_ctx(...)
+    • op_ctx(...)
+    • hook_ctx(...)
 
-Notes on phases (align with runtime.executor):
-  PRE_TX_BEGIN → START_TX → PRE_HANDLER → HANDLER → POST_HANDLER → PRE_COMMIT → END_TX → POST_COMMIT → POST_RESPONSE
-  Error hooks: ON_*_ERROR, plus ON_ROLLBACK
+Notes on phases (align with runtime.executor.PHASES):
+  PRE_* phases run before the handler; POST_* after; ON_*_ERROR on failures; and
+  transaction boundaries are modeled as START_TX / END_TX where applicable.
 """
 
 from __future__ import annotations
@@ -53,9 +56,6 @@ from .model_registry import (
     clear_registry,
 )
 
-# Decorators
-from .decorators import op_alias, op
-
 
 __all__ = [
     # types
@@ -76,7 +76,4 @@ __all__ = [
     "register_ops",
     "get_registered_ops",
     "clear_registry",
-    # decorators
-    "op_alias",
-    "op",
 ]

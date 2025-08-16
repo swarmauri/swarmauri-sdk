@@ -19,14 +19,11 @@ from .types import (
     CANON,
     OpSpec,
     TargetOp,
-    VerbAliasPolicy,
 )
 from ..config.constants import (
-    AUTOAPI_CUSTOM_OP_ATTR,
     AUTOAPI_OPS_ATTR,
-    AUTOAPI_VERB_ALIAS_POLICY_ATTR,
-    AUTOAPI_VERB_ALIASES_ATTR,
 )
+from ..decorators import alias_map_for  # new: canonical→alias mapping source
 
 try:
     # Per-model registry (observable, triggers rebind elsewhere)
@@ -114,38 +111,6 @@ def _collect_class_declared(model: type) -> List[OpSpec]:
     return _as_specs(declared, model)
 
 
-def _collect_decorators(model: type) -> List[OpSpec]:
-    """
-    Scan the MRO for callables decorated with @custom_op (they carry
-    `.__autoapi_custom_op__` which is either an OpSpec or a kwargs dict).
-    """
-    out: List[OpSpec] = []
-    for cls in reversed(model.__mro__):  # base classes first; child overrides later
-        for name, attr in cls.__dict__.items():
-            spec_meta = getattr(attr, AUTOAPI_CUSTOM_OP_ATTR, None)
-            if not spec_meta:
-                continue
-            if isinstance(spec_meta, OpSpec):
-                sp = _ensure_spec_table(spec_meta, model)
-                # If the spec didn't set a handler, use the function itself
-                if sp.handler is None and callable(attr):
-                    sp = replace(sp, handler=attr)
-                out.append(sp)
-            elif isinstance(spec_meta, Mapping):
-                kwargs = dict(spec_meta)
-                kwargs.setdefault("alias", name)
-                sp = OpSpec(table=model, handler=attr, **kwargs)  # type: ignore[arg-type]
-                out.append(sp)
-            else:
-                logger.warning(
-                    "Unknown custom_op payload on %s.%s: %r",
-                    cls.__name__,
-                    name,
-                    type(spec_meta),
-                )
-    return out
-
-
 def _collect_registry(model: type) -> List[OpSpec]:
     try:
         return [
@@ -159,7 +124,7 @@ def _collect_registry(model: type) -> List[OpSpec]:
 def _generate_canonical(model: type) -> List[OpSpec]:
     """
     Provide a baseline set of canonical specs for CRUD, list, clear.
-    Bulk verbs can be added later by registry/decorators if supported.
+    Bulk verbs can be added later by registry if supported.
     """
     canon_targets: Tuple[TargetOp, ...] = (
         "create",
@@ -172,7 +137,7 @@ def _generate_canonical(model: type) -> List[OpSpec]:
     )
     out: List[OpSpec] = []
     for target in canon_targets:
-        alias = target  # canonical alias matches the target
+        alias = target  # canonical alias matches the target (may be remapped by alias_ctx)
         out.append(
             OpSpec(
                 alias=alias,
@@ -204,104 +169,37 @@ def _dedupe(
         existing[(sp.alias, sp.target)] = sp  # last wins
 
 
-def _normalize_alias_map(
-    model: type,
-) -> Tuple[List[Tuple[str, TargetOp]], VerbAliasPolicy]:
-    """
-    Support both styles:
-      {"soft_delete": "delete"}  → alias -> target
-      {"delete": "soft_delete"}  → target -> alias
-    Returns list of (alias, target). Only allows targets in CANON (including bulk, clear).
-    """
-    raw = getattr(model, AUTOAPI_VERB_ALIASES_ATTR, {}) or {}
-    policy: VerbAliasPolicy = getattr(model, AUTOAPI_VERB_ALIAS_POLICY_ATTR, "both")  # type: ignore[assignment]
-
-    pairs: List[Tuple[str, TargetOp]] = []
-    for k, v in raw.items():
-        alias: Optional[str] = None
-        target: Optional[TargetOp] = None
-
-        if isinstance(v, str) and v in CANON:
-            alias, target = k, v  # alias -> target
-        elif isinstance(k, str) and k in CANON and isinstance(v, str):
-            alias, target = v, k  # target -> alias
-
-        if alias and target:
-            if not _ALIAS_RE.match(alias):
-                logger.warning(
-                    "Invalid verb alias %r on %s; must match %s",
-                    alias,
-                    model.__name__,
-                    _ALIAS_RE.pattern,
-                )
-                continue
-            pairs.append((alias, target))  # type: ignore[arg-type]
-        else:
-            logger.warning(
-                "Unrecognized alias mapping on %s: %r -> %r", model.__name__, k, v
-            )
-
-    return pairs, policy
-
-
-def _apply_aliases(
-    specs: List[OpSpec],
-    model: type,
+def _apply_alias_ctx_to_canon(
+    specs: List[OpSpec], model: type
 ) -> List[OpSpec]:
     """
-    Clone canonical specs per alias map. REST stays canonical by default.
-    Policy:
-      - both:         keep canonical; add alias (expose_rpc/method True, expose_routes False)
-      - alias_only:   hide canonical RPC/method; add alias; REST stays canonical
-      - canonical_only: ignore alias map
+    Apply @alias_ctx (canonical verb → alias) to canonical specs **by renaming** the
+    alias of canonical ops (alias==target). We do NOT create duplicate alias+canonical
+    entries and we do NOT support legacy alias policies.
     """
-    pairs, policy = _normalize_alias_map(model)
-    if not pairs or policy == "canonical_only":
+    aliases = alias_map_for(model)  # {verb: alias}
+    if not aliases:
         return specs
 
-    # Map from target -> canonical spec (prefer one with expose_routes True)
-    canon_by_target: Dict[str, OpSpec] = {}
+    out: List[OpSpec] = []
     for sp in specs:
-        if sp.alias == sp.target:  # heuristic for canonical
-            canon_by_target.setdefault(sp.target, sp)
-
-    new_specs: List[OpSpec] = list(specs)
-
-    for alias, target in pairs:
-        base = canon_by_target.get(target)
-        if not base:
-            logger.warning(
-                "Alias %r → %r has no base canonical spec on %s",
-                alias,
-                target,
-                model.__name__,
-            )
-            continue
-
-        # Clone with new alias; keep everything else; hide REST by default
-        alias_spec = replace(
-            base,
-            alias=alias,
-            expose_routes=False,
-            expose_rpc=True,
-            expose_method=True,
-        )
-        new_specs.append(alias_spec)
-
-        if policy == "alias_only":
-            # Hide canonical RPC/method; keep REST canonical endpoints
-            hidden = replace(
-                base,
-                expose_rpc=False,
-                expose_method=False,
-            )
-            # Replace in-place (maintain list order roughly)
-            for i, s in enumerate(new_specs):
-                if s is base:
-                    new_specs[i] = hidden
-                    break
-
-    return new_specs
+        # Only rewrite canonical alias (alias == target) and only for known verbs
+        new_alias = aliases.get(sp.target, sp.alias)  # type: ignore[arg-type]
+        if new_alias != sp.alias:
+            if not isinstance(new_alias, str) or not _ALIAS_RE.match(new_alias):
+                logger.warning(
+                    "Invalid alias %r for verb %r on %s; keeping %r",
+                    new_alias,
+                    sp.target,
+                    model.__name__,
+                    sp.alias,
+                )
+                out.append(sp)
+                continue
+            out.append(replace(sp, alias=new_alias))
+        else:
+            out.append(sp)
+    return out
 
 
 # ───────────────────────────────────────────────────────────────────────────────
@@ -314,28 +212,33 @@ def resolve(model: type) -> List[OpSpec]:
     Build the effective OpSpec list for a model class.
 
     Precedence (later wins):
-      1) Canonical defaults
+      1) Canonical defaults (subject to @alias_ctx renaming)
       2) Class-declared (__autoapi_ops__)
-      3) Decorator-defined (@custom_op)
-      4) Imperative registry (register_ops)
-      5) Aliasing (__autoapi_verb_aliases__/__autoapi_verb_alias_policy__)
+      3) Imperative registry (register_ops)
 
     Dedupe key: (alias, target)
+
+    Note:
+      • ctx-only ops declared via @op_ctx are collected in bindings.model.bind()
+        (not here) and then merged/overridden there.
+      • Legacy @custom_op and legacy alias policies are intentionally unsupported.
     """
-    # Start with canonical specs so every model gets a complete surface by default
+    # 1) Canonical specs (rename alias via alias_ctx if provided)
     canon = _generate_canonical(model)
+    canon = _apply_alias_ctx_to_canon(canon, model)
+
+    # 2) Class-declared specs
     class_specs = _collect_class_declared(model)
-    deco_specs = _collect_decorators(model)
+
+    # 3) Registry specs
     reg_specs = _collect_registry(model)
 
     merged: Dict[Tuple[str, str], OpSpec] = {}
     _dedupe(merged, canon)
     _dedupe(merged, class_specs)
-    _dedupe(merged, deco_specs)
     _dedupe(merged, reg_specs)
 
     specs = list(merged.values())
-    specs = _apply_aliases(specs, model)
 
     # Ensure all specs have table set to the model (defensive)
     specs = [_ensure_spec_table(sp, model) for sp in specs]
