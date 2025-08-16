@@ -26,11 +26,12 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
 
         return params(ctx)
 
-    # -------------------- Custom KMS operations (v3 OpSpecs) --------------------
-    # Each op validates payload (optional), runs in unified lifecycle, and returns raw dicts.
+    # -------------------- Custom KMS operations (ctx-only v3 ops) --------------------
+    # Each op receives only (cls, ctx) and returns raw dicts. Persistence is
+    # explicit via `persist`: "write" for mutating ops, "none" for crypto ops.
 
-    @op_ctx(alias="create", arity="collection", persist="default", returns="raw")
-    async def create_op(self, *, ctx, db, request, payload):
+    @op_ctx(verb="create", alias="create", target="collection", persist="write", returns="raw")
+    async def create_op(cls, ctx):
         from ..utils import (
             coerce_key_type_from_params,
             coerce_uses_from_params,
@@ -38,7 +39,7 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
             asdict_desc,
         )
 
-        p = self._params(ctx)
+        p = cls._params(ctx)
         sd = ctx["_kms_secrets"]
         desc = await sd.store_key(
             key_type=coerce_key_type_from_params(p),
@@ -50,11 +51,11 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
         )
         return asdict_desc(desc)
 
-    @op_ctx(alias="rotate", arity="member", persist="default", returns="raw")
-    async def rotate(self, *, ctx, db, request, payload):
+    @op_ctx(verb="update", alias="rotate", target="member", persist="write", returns="raw")
+    async def rotate(cls, ctx):
         from ..utils import auth_tenant_from_ctx, asdict_desc
 
-        p = self._params(ctx)
+        p = cls._params(ctx)
         sd = ctx["_kms_secrets"]
         desc = await sd.rotate(
             kid=p["kid"],
@@ -65,22 +66,22 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
         )
         return asdict_desc(desc)
 
-    @op_ctx(alias="disable", arity="member", persist="default", returns="raw")
-    async def disable(self, *, ctx, db, request, payload):
+    @op_ctx(verb="update", alias="disable", target="member", persist="write", returns="raw")
+    async def disable(cls, ctx):
         from ..utils import auth_tenant_from_ctx, asdict_desc
 
-        p = self._params(ctx)
+        p = cls._params(ctx)
         sd = ctx["_kms_secrets"]
         desc = await sd.set_state(
             kid=p["kid"], state="disabled", tenant=auth_tenant_from_ctx(ctx)
         )
         return asdict_desc(desc)
 
-    @op_ctx(alias="encrypt", arity="member", persist="skip", returns="raw")
-    async def encrypt(self, *, ctx, db, request, payload):
+    @op_ctx(verb="read", alias="encrypt", target="member", persist="none", returns="raw")
+    async def encrypt(cls, ctx):
         from ..utils import b64e, b64d, b64d_optional, auth_tenant_from_ctx
 
-        p = self._params(ctx)
+        p = cls._params(ctx)
         sd = ctx["_kms_secrets"]
         cp = ctx["_kms_crypto"]
         key = await sd.load_key(
@@ -106,11 +107,11 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
             **({"aad_b64": b64e(ct.aad)} if ct.aad else {}),
         }
 
-    @op_ctx(alias="decrypt", arity="member", persist="skip", returns="raw")
-    async def decrypt(self, *, ctx, db, request, payload):
+    @op_ctx(verb="read", alias="decrypt", target="member", persist="none", returns="raw")
+    async def decrypt(cls, ctx):
         from ..utils import b64e, b64d, b64d_optional, auth_tenant_from_ctx
 
-        p = self._params(ctx)
+        p = cls._params(ctx)
         sd = ctx["_kms_secrets"]
         cp = ctx["_kms_crypto"]
         key = await sd.load_key(
@@ -131,11 +132,11 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
         pt = await cp.decrypt(key, ct, aad=ct.aad)
         return {"kid": key.kid, "version": key.version, "plaintext_b64": b64e(pt)}
 
-    @op_ctx(alias="wrap", arity="member", persist="skip", returns="raw")
-    async def wrap(self, *, ctx, db, request, payload):
+    @op_ctx(verb="read", alias="wrap", target="member", persist="none", returns="raw")
+    async def wrap(cls, ctx):
         from ..utils import b64e, b64d_optional, auth_tenant_from_ctx
 
-        p = self._params(ctx)
+        p = cls._params(ctx)
         sd = ctx["_kms_secrets"]
         cp = ctx["_kms_crypto"]
         kek = await sd.load_key(
@@ -158,11 +159,11 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
             **({"nonce_b64": b64e(wrapped.nonce)} if wrapped.nonce else {}),
         }
 
-    @op_ctx(alias="unwrap", arity="member", persist="skip", returns="raw")
-    async def unwrap(self, *, ctx, db, request, payload):
+    @op_ctx(verb="read", alias="unwrap", target="member", persist="none", returns="raw")
+    async def unwrap(cls, ctx):
         from ..utils import b64e, b64d, b64d_optional, auth_tenant_from_ctx
 
-        p = self._params(ctx)
+        p = cls._params(ctx)
         sd = ctx["_kms_secrets"]
         cp = ctx["_kms_crypto"]
         kek = await sd.load_key(
@@ -181,11 +182,11 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
         dek = await cp.unwrap(kek, wrapped)
         return {"kek_kid": kek.kid, "kek_version": kek.version, "dek_b64": b64e(dek)}
 
-    @op_ctx(alias="encrypt_for_many", arity="member", persist="skip", returns="raw")
-    async def encrypt_for_many(self, *, ctx, db, request, payload):
+    @op_ctx(verb="read", alias="encrypt_for_many", target="member", persist="none", returns="raw")
+    async def encrypt_for_many(cls, ctx):
         from ..utils import b64e, b64d, b64d_optional, auth_tenant_from_ctx
 
-        p = self._params(ctx)
+        p = cls._params(ctx)
         sd = ctx["_kms_secrets"]
         cp = ctx["_kms_crypto"]
         t = auth_tenant_from_ctx(ctx)

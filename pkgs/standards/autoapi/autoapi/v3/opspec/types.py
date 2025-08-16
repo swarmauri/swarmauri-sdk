@@ -49,16 +49,12 @@ TargetOp = Literal[
 # Response serialization preference
 ReturnForm = Literal["model", "raw"]
 
-# Alias exposure policy for RPC/method helpers
+# Alias exposure policy for RPC/method helpers (legacy surface kept for types)
 VerbAliasPolicy = Literal["both", "alias_only", "canonical_only"]
 
 # ───────────────────────────────────────────────────────────────────────────────
 # Runtime phases (align with runtime/executor.py)
 # ───────────────────────────────────────────────────────────────────────────────
-# Flush-only: PRE_HANDLER, HANDLER, POST_HANDLER
-# No writes:  PRE_COMMIT, POST_COMMIT
-# Commit:     END_TX (commit allowed)
-# Begin:      START_TX (begin-only)
 HookPhase = Literal[
     "PRE_TX_BEGIN",
     "START_TX",
@@ -83,7 +79,6 @@ HookPhase = Literal[
     "ON_ROLLBACK",
 ]
 
-# An ordered, canonical listing some callers may want for UIs/validation
 PHASES: Tuple[HookPhase, ...] = (
     "PRE_TX_BEGIN",
     "START_TX",
@@ -165,6 +160,11 @@ class OpSpec:
       • Assembles HANDLER chain (pre/core/post/flushers) and per-phase hooks.
       • Registers REST & RPC if exposed. RBAC guard is applied per `rbac_guard_op`.
       • Auto-attaches START_TX/END_TX defaults unless persist="skip".
+
+    Notes:
+      • `target` is the canonical verb ("create", "read", ...).
+      • `verb` is an *optional* alias to accept legacy/convenience ctor kwargs.
+        If provided, it is normalized to `target` in __post_init__.
     """
 
     # Identity & exposure
@@ -183,9 +183,7 @@ class OpSpec:
 
     # Persistence & results
     persist: PersistPolicy = "default"  # "skip" → no START_TX/END_TX, writes forbidden
-    returns: ReturnForm = (
-        "model"  # "model" → serialize via schema; "raw" → pass-through
-    )
+    returns: ReturnForm = "model"       # "model" → serialize via schema; "raw" → pass-through
 
     # Schema overrides (otherwise builder generates them)
     request_model: Optional[Type[BaseModel]] = None
@@ -206,6 +204,19 @@ class OpSpec:
 
     # Extra metadata for integrators
     extra: Mapping[str, Any] = field(default_factory=dict)
+
+    # Convenience/compat: accept `verb=` in constructor; normalize to `target`.
+    verb: Optional[TargetOp] = None
+
+    def __post_init__(self) -> None:
+        # If caller provided `verb` (e.g., via decorators), ensure it mirrors `target`.
+        if self.verb is None:
+            # Set verb = target for convenient introspection
+            object.__setattr__(self, "verb", self.target)
+        # If both provided and they disagree, keep `target` as source of truth, but
+        # mirror it back into `verb` so downstream code sees a consistent view.
+        elif self.verb != self.target:
+            object.__setattr__(self, "verb", self.target)
 
 
 # ───────────────────────────────────────────────────────────────────────────────
