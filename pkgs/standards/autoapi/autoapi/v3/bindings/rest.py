@@ -69,11 +69,15 @@ def _snake(name: str) -> str:
 
 
 def _resource_name(model: type) -> str:
-    return (
-        getattr(model, "__resource__", None)
-        or getattr(model, "__tablename__", None)
-        or _snake(model.__name__)
-    )
+    override = getattr(model, "__resource__", None)
+    if override:
+        return override
+    # Mirror autoapi v2 behavior by deriving the REST resource from the model's
+    # class name rather than SQLAlchemy's ``__tablename__`` attribute.  The
+    # latter may be pluralized or retain casing (e.g., "Key"), which leads to
+    # inconsistent route prefixes like ``/Key`` or ``/key_versions``.  Using the
+    # class name ensures predictable snake_case resources across models.
+    return _snake(model.__name__)
 
 
 def _pk_name(model: type) -> str:
