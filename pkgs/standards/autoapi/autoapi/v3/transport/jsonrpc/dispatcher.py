@@ -411,6 +411,7 @@ def build_jsonrpc_router(
         name="jsonrpc",
         tags=list(tags) if tags else None,
         summary="JSONRPC",
+        description="JSON-RPC 2.0 endpoint.",
         # extra router deps already applied via APIRouter(dependencies=...)
     )
     return router

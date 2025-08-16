@@ -73,12 +73,10 @@ def _opspecs(model: type):
 
 
 def _label_callable(fn: Any) -> str:
-    # Best-effort human-readable name
-    if hasattr(fn, "__name__"):
-        return fn.__name__  # type: ignore[return-value]
-    if hasattr(fn, "__qualname__"):
-        return fn.__qualname__  # type: ignore[return-value]
-    return repr(fn)
+    """Return a module-qualified label for *fn* suitable for hook listings."""
+    n = getattr(fn, "__qualname__", getattr(fn, "__name__", repr(fn)))
+    m = getattr(fn, "__module__", None)
+    return f"{m}.{n}" if m else n
 
 
 async def _maybe_execute(db: Any, stmt: Any):
@@ -135,6 +133,7 @@ def _build_healthz_endpoint(dep: Optional[Callable[..., Any]]):
 
 def _build_methodz_endpoint(api: Any):
     async def _methodz():
+        """Ordered, canonical operation list."""
         methods: List[Dict[str, Any]] = []
         for model in _model_iter(api):
             mname = getattr(model, "__name__", "Model")
@@ -163,6 +162,13 @@ def _build_methodz_endpoint(api: Any):
 
 def _build_hookz_endpoint(api: Any):
     async def _hookz():
+        """
+        Expose hook execution order for each method.
+
+        Phases appear in runner order; error phases trail.
+        Within each phase, hooks are listed in execution order: global (None) hooks,
+        then method-specific hooks.
+        """
         out: Dict[str, Dict[str, Dict[str, List[str]]]] = {}
         for model in _model_iter(api):
             mname = getattr(model, "__name__", "Model")
@@ -176,9 +182,7 @@ def _build_hookz_endpoint(api: Any):
                 alias_sources.add(sp.alias)
 
             for alias in sorted(alias_sources):
-                alias_ns = getattr(hooks_root, alias, None)
-                if alias_ns is None:
-                    continue
+                alias_ns = getattr(hooks_root, alias, None) or SimpleNamespace()
                 phase_map: Dict[str, List[str]] = {}
                 for ph in PHASES:
                     steps = list(getattr(alias_ns, ph, []) or [])
@@ -218,6 +222,7 @@ def mount_diagnostics(
         name="healthz",
         tags=["system"],
         summary="Health",
+        description="Database connectivity check.",
     )
     router.add_api_route(
         "/methodz",
@@ -226,6 +231,7 @@ def mount_diagnostics(
         name="methodz",
         tags=["system"],
         summary="Methods",
+        description="Ordered, canonical operation list.",
     )
     router.add_api_route(
         "/hookz",
@@ -234,6 +240,12 @@ def mount_diagnostics(
         name="hookz",
         tags=["system"],
         summary="Hooks",
+        description=(
+            "Expose hook execution order for each method.\n\n"
+            "Phases appear in runner order; error phases trail.\n"
+            "Within each phase, hooks are listed in execution order: "
+            "global (None) hooks, then method-specific hooks."
+        ),
     )
 
     return router
