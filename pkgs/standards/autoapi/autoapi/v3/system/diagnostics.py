@@ -216,15 +216,24 @@ def mount_diagnostics(
         _build_healthz_endpoint(dep),
         methods=["GET"],
         name="autoapi.healthz",
+        tags=["system"],
+        summary="Health",
     )
     router.add_api_route(
         "/methodz",
         _build_methodz_endpoint(api),
         methods=["GET"],
         name="autoapi.methodz",
+        tags=["system"],
+        summary="Methods",
     )
     router.add_api_route(
-        "/hookz", _build_hookz_endpoint(api), methods=["GET"], name="autoapi.hookz"
+        "/hookz",
+        _build_hookz_endpoint(api),
+        methods=["GET"],
+        name="autoapi.hookz",
+        tags=["system"],
+        summary="Hooks",
     )
 
     return router
