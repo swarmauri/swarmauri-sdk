@@ -23,7 +23,7 @@ from .types import (
 from ..config.constants import (
     AUTOAPI_OPS_ATTR,
 )
-from ..decorators import alias_map_for  # new: canonical→alias mapping source
+from ..decorators import alias_map_for  # canonical→alias mapping source
 
 try:
     # Per-model registry (observable, triggers rebind elsewhere)
@@ -125,6 +125,9 @@ def _generate_canonical(model: type) -> List[OpSpec]:
     """
     Provide a baseline set of canonical specs for CRUD, list, clear.
     Bulk verbs can be added later by registry if supported.
+
+    NOTE: We do not wire any `returns` preference here. Serialization mode is
+    inferred later from the presence/absence of a response schema during binding.
     """
     canon_targets: Tuple[TargetOp, ...] = (
         "create",
@@ -141,14 +144,14 @@ def _generate_canonical(model: type) -> List[OpSpec]:
         out.append(
             OpSpec(
                 alias=alias,
-                target=target,
+                target=target,                 # ← canonical verb goes here
                 table=model,
                 arity="member"
                 if target in {"read", "update", "replace", "delete"}
                 else "collection",
                 # persistent by default; binder will auto START_TX/END_TX where appropriate
                 persist="default",
-                returns="model" if target != "clear" else "raw",
+                # Do not set `returns` here.
             )
         )
     return out
@@ -173,18 +176,33 @@ def _apply_alias_ctx_to_canon(
     specs: List[OpSpec], model: type
 ) -> List[OpSpec]:
     """
-    Apply @alias_ctx (canonical verb → alias) to canonical specs **by renaming** the
-    alias of canonical ops (alias==target). We do NOT create duplicate alias+canonical
-    entries and we do NOT support legacy alias policies.
+    Apply @alias_ctx to canonical specs:
+
+      • Rename canonical alias (alias==target) → provided alias.
+      • Apply per-verb overrides from `__autoapi_alias_overrides__`:
+          - request_schema    → OpSpec.request_model
+          - response_schema   → OpSpec.response_model
+          - persist           → OpSpec.persist
+          - arity             → OpSpec.arity
+          - rest (bool)       → OpSpec.expose_routes
+
+    We do NOT support any `returns` override. If no response schema is set,
+    binders should treat the op as returning raw.
     """
     aliases = alias_map_for(model)  # {verb: alias}
-    if not aliases:
+    overrides: Mapping[str, Mapping[str, Any]] = (
+        getattr(model, "__autoapi_alias_overrides__", {}) or {}
+    )
+
+    if not aliases and not overrides:
         return specs
 
     out: List[OpSpec] = []
     for sp in specs:
-        # Only rewrite canonical alias (alias == target) and only for known verbs
-        new_alias = aliases.get(sp.target, sp.alias)  # type: ignore[arg-type]
+        canon = sp.target  # canonical verb string
+        # 1) rename if applicable
+        new_alias = aliases.get(canon, sp.alias)  # type: ignore[arg-type]
+        mutated = sp
         if new_alias != sp.alias:
             if not isinstance(new_alias, str) or not _ALIAS_RE.match(new_alias):
                 logger.warning(
@@ -194,11 +212,37 @@ def _apply_alias_ctx_to_canon(
                     model.__name__,
                     sp.alias,
                 )
-                out.append(sp)
-                continue
-            out.append(replace(sp, alias=new_alias))
-        else:
-            out.append(sp)
+            else:
+                mutated = replace(mutated, alias=new_alias)
+
+        # 2) apply per-verb overrides (no returns handling)
+        ov = overrides.get(canon)  # type: ignore[index]
+        if ov:
+            repl_kwargs: Dict[str, Any] = {}
+            if ov.get("request_schema") is not None:
+                repl_kwargs["request_model"] = ov["request_schema"]
+            if ov.get("response_schema") is not None:
+                repl_kwargs["response_model"] = ov["response_schema"]
+            if ov.get("persist") is not None:
+                val = ov["persist"]
+                if val in ("default", "skip", "override"):
+                    repl_kwargs["persist"] = val
+                else:
+                    logger.warning("Invalid persist=%r for %s.%s", val, model.__name__, mutated.alias)
+            if ov.get("arity") is not None:
+                val = ov["arity"]
+                if val in ("member", "collection"):
+                    repl_kwargs["arity"] = val
+                else:
+                    logger.warning("Invalid arity=%r for %s.%s", val, model.__name__, mutated.alias)
+            if ov.get("rest") is not None:
+                repl_kwargs["expose_routes"] = bool(ov["rest"])
+
+            if repl_kwargs:
+                mutated = replace(mutated, **repl_kwargs)
+
+        out.append(mutated)
+
     return out
 
 
@@ -212,7 +256,7 @@ def resolve(model: type) -> List[OpSpec]:
     Build the effective OpSpec list for a model class.
 
     Precedence (later wins):
-      1) Canonical defaults (subject to @alias_ctx renaming)
+      1) Canonical defaults (subject to @alias_ctx renaming/overrides)
       2) Class-declared (__autoapi_ops__)
       3) Imperative registry (register_ops)
 
@@ -223,7 +267,7 @@ def resolve(model: type) -> List[OpSpec]:
         (not here) and then merged/overridden there.
       • Legacy @custom_op and legacy alias policies are intentionally unsupported.
     """
-    # 1) Canonical specs (rename alias via alias_ctx if provided)
+    # 1) Canonical specs (rename alias & apply overrides via alias_ctx if provided)
     canon = _generate_canonical(model)
     canon = _apply_alias_ctx_to_canon(canon, model)
 

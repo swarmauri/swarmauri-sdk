@@ -6,7 +6,7 @@ from typing import Any, Callable, Dict, Iterable, Optional, Union
 
 # Core types
 from autoapi.v3.opspec.types import (
-    OpSpec, Arity, TargetOp, PersistPolicy, ReturnForm,
+    OpSpec, Arity, TargetOp, PersistPolicy, SchemaArg,
 )
 from autoapi.v3.runtime.executor import _Ctx  # pipeline ctx normalizer
 
@@ -49,60 +49,121 @@ def _merge_mro_dict(cls: type, attr: str) -> Dict[str, Any]:
 
 
 # ──────────────────────────────────────────────────────────────────────
-# Public decorators (ctx-only)
+# alias_ctx with optional rich overrides
 # ──────────────────────────────────────────────────────────────────────
 
-def alias_ctx(**aliases: str):
+@dataclass(frozen=True)
+class AliasDecl:
+    alias: str
+    # Optional overrides (lazy-capable schema args are fine; resolved later)
+    request_schema: Optional[SchemaArg] = None
+    response_schema: Optional[SchemaArg] = None
+    persist: Optional[PersistPolicy] = None
+    arity: Optional[Arity] = None
+    rest: Optional[bool] = None
+
+def alias(name: str, **kw) -> AliasDecl:
+    """Convenience helper: alias('get', response_schema=..., rest=False)."""
+    return AliasDecl(alias=name, **kw)
+
+def alias_ctx(**verb_to_alias_or_decl: Union[str, AliasDecl]):
     """
-    Class decorator to map canonical verbs → aliases.
-    Example: @alias_ctx(create="add", read="get", update="patch")
+    Class decorator to map canonical verbs → aliases and (optionally) attach overrides.
+
+    Examples:
+        @alias_ctx(create="add", read="get")
+        @alias_ctx(create=alias("add",
+                                request_schema="create.in",
+                                response_schema=lambda cls: cls.schemas.read.out,
+                                arity="collection",
+                                rest=True))
     """
     def deco(cls: type):
-        existed = dict(getattr(cls, "__autoapi_aliases__", {}) or {})
-        existed.update(aliases)
-        setattr(cls, "__autoapi_aliases__", existed)
+        # plain alias map (verb -> alias)
+        amap = dict(getattr(cls, "__autoapi_aliases__", {}) or {})
+        # rich overrides keyed by canonical verb
+        overrides = dict(getattr(cls, "__autoapi_alias_overrides__", {}) or {})
+
+        for canon, value in verb_to_alias_or_decl.items():
+            if isinstance(value, AliasDecl):
+                amap[canon] = value.alias
+                overrides[canon] = {
+                    "request_schema": value.request_schema,
+                    "response_schema": value.response_schema,
+                    "persist": value.persist,
+                    "arity": value.arity,
+                    "rest": value.rest,
+                }
+            elif isinstance(value, str):
+                amap[canon] = value
+            else:
+                raise TypeError(
+                    f"alias_ctx[{canon}] must be str or AliasDecl, got {type(value)}"
+                )
+
+        setattr(cls, "__autoapi_aliases__", amap)
+        setattr(cls, "__autoapi_alias_overrides__", overrides)
         return cls
     return deco
 
 
+# ──────────────────────────────────────────────────────────────────────
+# op_ctx (single path: target + arity) with schema overrides
+# ──────────────────────────────────────────────────────────────────────
+
 @dataclass
 class _OpDecl:
     alias: Optional[str]
-    verb: Optional[str]
-    target: Union[str, TargetOp, None]
-    returns: Union[str, ReturnForm, None]
-    persist: Union[str, PersistPolicy, None]
-    arity: Union[str, Arity, None]
-    rest: Optional[bool]
-
+    target: Optional[TargetOp]            # canonical semantics (defaults to "custom")
+    arity: Optional[Arity]                # "member" | "collection"
+    rest: Optional[bool]                  # toggle REST exposure
+    request_schema: Optional[SchemaArg]   # lazy-capable schema override
+    response_schema: Optional[SchemaArg]
+    persist: Optional[PersistPolicy]      # TX policy override
 
 def op_ctx(
     *,
-    alias: str | None = None,
-    verb: Optional[str] = "custom",            # required: "create" | "read" | "update" | "replace" | "delete" | "list" | ...
-    target: TargetOp | str | None = None,      # default inferred from verb
-    returns: ReturnForm | str | None = None,   # default inferred from verb
-    persist: PersistPolicy | str | None = None,# default inferred from verb
-    arity: Arity | str | None = None,          # default inferred from verb/target
-    rest: bool | None = None,                  # None → default REST mapping
+    alias: Optional[str] = None,
+    target: Optional[TargetOp] = None,             # "create" | "read" | ... | "custom"
+    arity: Optional[Arity] = None,                 # "member" | "collection"
+    rest: Optional[bool] = None,
+    request_schema: Optional[SchemaArg] = None,
+    response_schema: Optional[SchemaArg] = None,
+    persist: Optional[PersistPolicy] = None,
 ):
     """
-    Declare a ctx-only custom operation. The method body is `(cls, ctx)`.
+    Declare a ctx-only operation whose body is `(cls, ctx)`.
+
+    • `target` controls canonical semantics (default "custom").
+    • `arity` controls REST path shape.
+    • `request_schema` / `response_schema` can reference existing schemas or pass Pydantic models.
+    • If no response schema is resolved at bind time, the op is treated as returning raw.
     """
     def deco(fn):
         cm = _ensure_cm(fn)
         f = _unwrap(cm)
         f.__autoapi_ctx_only__ = True
-        f.__autoapi_op_decl__ = _OpDecl(alias, verb, target, returns, persist, arity, rest)
+        f.__autoapi_op_decl__ = _OpDecl(
+            alias=alias,
+            target=target,
+            arity=arity,
+            rest=rest,
+            request_schema=request_schema,
+            response_schema=response_schema,
+            persist=persist,
+        )
         return cm
     return deco
 
+
+# ──────────────────────────────────────────────────────────────────────
+# hook_ctx (unchanged)
+# ──────────────────────────────────────────────────────────────────────
 
 @dataclass
 class _HookDecl:
     ops: Union[str, Iterable[str]]  # alias names, canonical verbs, or "*"
     phase: str                      # e.g., "PRE_HANDLER", "POST_COMMIT", "ON_HANDLER_ERROR"
-
 
 def hook_ctx(ops: Union[str, Iterable[str]], *, phase: str):
     """
@@ -161,11 +222,12 @@ def _wrap_ctx_hook(table: type, func: Callable[..., Any], phase: str) -> Callabl
 # Collection helpers (called by bind)
 # ──────────────────────────────────────────────────────────────────────
 
-# --- add near your other helpers ---
-_COLLECTION_VERBS = {"list", "bulk_create", "bulk_update", "bulk_replace", "bulk_delete", "clear"}
+_COLLECTION_VERBS = {
+    "list", "bulk_create", "bulk_update", "bulk_replace", "bulk_delete", "clear"
+}
 
-def _infer_arity(verb: str) -> str:
-    return "collection" if verb in _COLLECTION_VERBS else "member"
+def _infer_arity(target: str) -> str:
+    return "collection" if target in _COLLECTION_VERBS else "member"
 
 def _normalize_persist(p) -> str:
     if p is None:
@@ -179,19 +241,6 @@ def _normalize_persist(p) -> str:
         return "override"
     return "default"
 
-
-def _infer_target(verb: str) -> str:
-    return "collection" if verb in _COLLECTION_VERBS else "member"
-
-def _infer_returns(verb: str, target: str) -> str:
-    if verb == "list": return "rows"
-    if verb.startswith("bulk_"): return "count"
-    if verb in {"delete", "clear"}: return "ok"
-    return "row"
-
-def _infer_persist(verb: str) -> str:
-    return "read" if verb in {"read", "list"} else "write"
-
 def alias_map_for(table: type) -> Dict[str, str]:
     """Merge aliases across MRO; subclass wins."""
     return _merge_mro_dict(table, "__autoapi_aliases__")
@@ -203,11 +252,11 @@ def apply_alias(verb: str, alias_map: Dict[str, str]) -> str:
 def collect_decorated_ops(table: type) -> list[OpSpec]:
     """
     Scan MRO for ctx-only op declarations (@op_ctx) and build OpSpecs.
-    - decorator 'verb' is the canonical verb ('create','read','update','...')
-    - decorator 'target' is treated as:
-        • arity if in {'member','collection'}
-        • canonical verb if it matches a canonical verb (fallback if verb=None)
-    - 'rest' toggles expose_routes; we don't pass an unknown 'rest' kwarg to OpSpec.
+
+    Normalization:
+      • `target` is the canonical verb ("create","read","...", default "custom").
+      • `arity` is "member"/"collection". If omitted, inferred from target.
+      • `rest` toggles `expose_routes` on the spec.
     """
     out: list[OpSpec] = []
 
@@ -215,49 +264,29 @@ def collect_decorated_ops(table: type) -> list[OpSpec]:
         for name in dir(base):
             attr = getattr(base, name, None)
             func = _unwrap(attr)
-            decl = getattr(func, "__autoapi_op_decl__", None)
+            decl: _OpDecl | None = getattr(func, "__autoapi_op_decl__", None)
             if not decl:
                 continue
 
-            # 1) Canonical verb (TargetOp)
-            verb = decl.verb
-            # allow target to stand in for verb if it's a canonical verb string
-            if verb is None and isinstance(decl.target, str) and decl.target in {
-                "create","read","update","replace","delete","list","clear",
-                "bulk_create","bulk_update","bulk_replace","bulk_delete","custom",
-            }:
-                verb = decl.target
-            if verb is None:
-                verb = "custom"  # safe default
-
-            # 2) Arity (member/collection)
-            if isinstance(decl.target, str) and decl.target in {"member", "collection"}:
-                arity = decl.target
-            else:
-                arity = decl.arity or _infer_arity(verb)
-
-            # 3) Persist & returns
+            target = decl.target or "custom"
+            arity = decl.arity or _infer_arity(target)
             persist = _normalize_persist(decl.persist)
-            returns = decl.returns or "raw"  # default to raw for ctx-only ops
-
-            # 4) Alias (explicit or method name)
             alias = decl.alias or name
 
-            # 5) Optional REST exposure flag from 'rest'
             expose_kwargs = {}
             if decl.rest is not None:
                 expose_kwargs["expose_routes"] = bool(decl.rest)
 
-            # 6) Build OpSpec
             spec = OpSpec(
                 table=table,
                 alias=alias,
-                target=verb,          # canonical verb
+                target=target,                 # canonical verb
                 arity=arity,
                 persist=persist,
-                returns=returns,
-                handler=_wrap_ctx_core(table, func),  # <-- custom core goes here
-                hooks=(),             # hook_ctx handled separately
+                handler=_wrap_ctx_core(table, func),
+                request_model=decl.request_schema,
+                response_model=decl.response_schema,
+                hooks=(),
                 **expose_kwargs,
             )
             out.append(spec)

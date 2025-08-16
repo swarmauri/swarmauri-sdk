@@ -38,8 +38,3 @@ class KeyVersion(Base, GUIDPk, Timestamped):
     )
 
     key = relationship("Key", back_populates="versions", lazy="joined")
-
-    @classmethod
-    def __autoapi_register_hooks__(cls, api) -> None:
-        # No-op for now; extend with hooks as needed
-        return None

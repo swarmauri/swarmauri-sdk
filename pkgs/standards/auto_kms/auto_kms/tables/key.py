@@ -4,6 +4,7 @@ from typing import Any, Mapping
 
 from autoapi.v3.types import Column, String, SAEnum, Integer, relationship, HookProvider
 from autoapi.v3.decorators import op_ctx
+from autoapi.v3.opspec import SchemaRef
 from autoapi.v3.tables import Base
 from autoapi.v3.mixins import GUIDPk, Timestamped
 from swarmauri_core.crypto.types import AEADCiphertext, WrappedKey
@@ -27,10 +28,10 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
         return params(ctx)
 
     # -------------------- Custom KMS operations (ctx-only v3 ops) --------------------
-    # Each op receives only (cls, ctx) and returns raw dicts. Persistence is
+    # Each op receives only (cls, ctx) and request_schema raw dicts. Persistence is
     # explicit via `persist`: "write" for mutating ops, "none" for crypto ops.
 
-    @op_ctx(verb="create", alias="create", target="collection", persist="write", returns="raw")
+    @op_ctx(target="create", request_schema=SchemaRef("create","in"), alias="create", arity="collection", persist="write")
     async def create_op(cls, ctx):
         from ..utils import (
             coerce_key_type_from_params,
@@ -51,7 +52,7 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
         )
         return asdict_desc(desc)
 
-    @op_ctx(alias="rotate", target="member", persist="write", returns="raw")
+    @op_ctx(alias="rotate", arity="member", persist="write", request_schema="raw")
     async def rotate(cls, ctx):
         from ..utils import auth_tenant_from_ctx, asdict_desc
 
@@ -66,7 +67,7 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
         )
         return asdict_desc(desc)
 
-    @op_ctx(alias="disable", target="member", persist="write", returns="raw")
+    @op_ctx(alias="disable", arity="member", persist="write", request_schema="raw")
     async def disable(cls, ctx):
         from ..utils import auth_tenant_from_ctx, asdict_desc
 
@@ -77,7 +78,7 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
         )
         return asdict_desc(desc)
 
-    @op_ctx(alias="encrypt", target="member", persist="none", returns="raw")
+    @op_ctx(alias="encrypt", arity="member", persist="none", request_schema="raw")
     async def encrypt(cls, ctx):
         from ..utils import b64e, b64d, b64d_optional, auth_tenant_from_ctx
 
@@ -107,7 +108,7 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
             **({"aad_b64": b64e(ct.aad)} if ct.aad else {}),
         }
 
-    @op_ctx(alias="decrypt", target="member", persist="none", returns="raw")
+    @op_ctx(alias="decrypt", arity="member", persist="none", request_schema="raw")
     async def decrypt(cls, ctx):
         from ..utils import b64e, b64d, b64d_optional, auth_tenant_from_ctx
 
@@ -132,7 +133,7 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
         pt = await cp.decrypt(key, ct, aad=ct.aad)
         return {"kid": key.kid, "version": key.version, "plaintext_b64": b64e(pt)}
 
-    @op_ctx(alias="wrap", target="member", persist="none", returns="raw")
+    @op_ctx(alias="wrap", arity="member", persist="none", request_schema="raw")
     async def wrap(cls, ctx):
         from ..utils import b64e, b64d_optional, auth_tenant_from_ctx
 
@@ -159,7 +160,7 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
             **({"nonce_b64": b64e(wrapped.nonce)} if wrapped.nonce else {}),
         }
 
-    @op_ctx(alias="unwrap", target="member", persist="none", returns="raw")
+    @op_ctx(alias="unwrap", arity="member", persist="none", request_schema="raw")
     async def unwrap(cls, ctx):
         from ..utils import b64e, b64d, b64d_optional, auth_tenant_from_ctx
 
@@ -182,7 +183,7 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
         dek = await cp.unwrap(kek, wrapped)
         return {"kek_kid": kek.kid, "kek_version": kek.version, "dek_b64": b64e(dek)}
 
-    @op_ctx(alias="encrypt_for_many", target="member", persist="none", returns="raw")
+    @op_ctx(alias="encrypt_for_many", arity="member", persist="none", request_schema="raw")
     async def encrypt_for_many(cls, ctx):
         from ..utils import b64e, b64d, b64d_optional, auth_tenant_from_ctx
 

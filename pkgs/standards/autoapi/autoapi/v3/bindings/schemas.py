@@ -3,12 +3,12 @@ from __future__ import annotations
 
 import logging
 from types import SimpleNamespace
-from typing import Any, Dict, List, Optional, Sequence, Tuple, Type, Callable
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Type
 
 from pydantic import BaseModel, Field, create_model
 
 from ..opspec import OpSpec
-from ..opspec.types import SchemaRef, SchemaArg  # lazy-capable schema args
+from ..opspec.types import SchemaRef, SchemaArg  # lazy-capable schema args (runtime: we restrict forms)
 from ..schema import _build_schema, _build_list_params, namely_model
 
 logger = logging.getLogger(__name__)
@@ -20,10 +20,8 @@ _Key = Tuple[str, str]  # (alias, target)
 # Internal helpers
 # ───────────────────────────────────────────────────────────────────────────────
 
-
 def _camel(s: str) -> str:
     return "".join(p.capitalize() or "_" for p in s.split("_"))
-
 
 def _ensure_alias_namespace(model: type, alias: str) -> SimpleNamespace:
     ns = getattr(model.schemas, alias, None)
@@ -31,7 +29,6 @@ def _ensure_alias_namespace(model: type, alias: str) -> SimpleNamespace:
         ns = SimpleNamespace()
         setattr(model.schemas, alias, ns)
     return ns
-
 
 def _pk_info(model: type) -> Tuple[str, type | Any]:
     """
@@ -51,7 +48,6 @@ def _pk_info(model: type) -> Tuple[str, type | Any]:
     py_t = getattr(getattr(col, "type", None), "python_type", Any)
     return (getattr(col, "name", "id"), py_t or Any)
 
-
 def _make_bulk_rows_model(
     model: type, verb: str, item_schema: Type[BaseModel]
 ) -> Type[BaseModel]:
@@ -68,7 +64,6 @@ def _make_bulk_rows_model(
         name=name,
         doc=f"{verb} request schema for {model.__name__}",
     )
-
 
 def _make_bulk_ids_model(
     model: type, verb: str, pk_type: type | Any
@@ -87,7 +82,6 @@ def _make_bulk_ids_model(
         doc=f"{verb} request schema for {model.__name__}",
     )
 
-
 def _make_pk_model(
     model: type, verb: str, pk_name: str, pk_type: type | Any
 ) -> Type[BaseModel]:
@@ -103,55 +97,48 @@ def _make_pk_model(
         doc=f"{verb} request schema for {model.__name__}",
     )
 
-
 def _parse_str_ref(s: str) -> Tuple[str, str]:
     """
-    Parse dotted schema ref "alias.in" | "alias.out" (and tolerate ".list_out" by mapping to 'out').
+    Parse dotted schema ref "alias.in" | "alias.out".
     """
     s = s.strip()
     if "." not in s:
-        raise ValueError(f"Invalid schema path '{s}', expected 'alias.in|out|list_out'")
+        raise ValueError(f"Invalid schema path '{s}', expected 'alias.in' or 'alias.out'")
     alias, kind = s.split(".", 1)
     kind = kind.strip()
-    if kind == "list_out":
-        # This codebase only exposes `.out` for list ops; treat list_out as out.
-        kind = "out"
     if kind not in {"in", "out"}:
         raise ValueError(f"Invalid schema kind '{kind}', expected 'in' or 'out'")
     return alias.strip(), kind
 
-
-def _resolve_schema_arg(model: type, arg: SchemaArg) -> Type[BaseModel]:
+def _resolve_schema_arg(model: type, arg: SchemaArg) -> Optional[Type[BaseModel]]:
     """
-    Resolve a SchemaArg to an actual Pydantic model class.
-    Accepts:
-      • Pydantic model classes
-      • SchemaRef("alias","in|out|list_out")
-      • dotted "alias.in|out|list_out"
-      • thunk: lambda cls: cls.schemas.alias.in_ / .out
+    Resolve an override to a concrete Pydantic model or raw:
+      • SchemaRef("alias","in"|"out") → that model
+      • "alias.in" | "alias.out"      → that model
+      • "raw"                         → None (raw passthrough)
+      • None                          → caller should keep defaults for canonical ops;
+                                        for custom ops no defaults exist → raw
+    Unsupported (will raise):
+      • direct Pydantic model classes
+      • callables/thunks
+      • any other strings (including 'list_out')
     """
-    if arg is None:  # type: ignore[unreachable]
-        return None  # pragma: no cover
+    if arg is None:
+        return None
 
-    # direct class
-    if isinstance(arg, type) and issubclass(arg, BaseModel):
-        return arg  # type: ignore[return-value]
-
-    # callable thunk
-    if callable(arg):
-        res = arg(model)  # type: ignore[misc]
-        if not (isinstance(res, type) and issubclass(res, BaseModel)):
-            raise TypeError("Schema thunk must return a Pydantic model class")
-        return res  # type: ignore[return-value]
+    # explicit raw
+    if isinstance(arg, str) and arg.strip().lower() == "raw":
+        return None
 
     # SchemaRef
     if isinstance(arg, SchemaRef):
+        if arg.kind not in ("in", "out"):
+            raise ValueError(f"Unsupported SchemaRef kind '{arg.kind}'. Use 'in' or 'out'.")
         ns = getattr(model, "schemas", None)
         if ns is None or getattr(ns, arg.alias, None) is None:
-            raise KeyError(f"Unknown schema alias '{arg.alias}'")
+            raise KeyError(f"Unknown schema alias '{arg.alias}' on {model.__name__}")
         alias_ns = getattr(ns, arg.alias)
-        kind = "out" if arg.kind == "list_out" else arg.kind
-        attr = "in_" if kind == "in" else "out"
+        attr = "in_" if arg.kind == "in" else "out"
         res = getattr(alias_ns, attr, None)
         if res is None:
             raise KeyError(f"Schema '{arg.alias}.{attr}' not found on {model.__name__}")
@@ -162,7 +149,7 @@ def _resolve_schema_arg(model: type, arg: SchemaArg) -> Type[BaseModel]:
         alias, kind = _parse_str_ref(arg)
         ns = getattr(model, "schemas", None)
         if ns is None or getattr(ns, alias, None) is None:
-            raise KeyError(f"Unknown schema alias '{alias}'")
+            raise KeyError(f"Unknown schema alias '{alias}' on {model.__name__}")
         alias_ns = getattr(ns, alias)
         attr = "in_" if kind == "in" else "out"
         res = getattr(alias_ns, attr, None)
@@ -170,22 +157,29 @@ def _resolve_schema_arg(model: type, arg: SchemaArg) -> Type[BaseModel]:
             raise KeyError(f"Schema '{alias}.{attr}' not found on {model.__name__}")
         return res  # type: ignore[return-value]
 
-    raise TypeError(f"Unsupported SchemaArg type: {type(arg)}")
+    # Everything else is unsupported now
+    raise TypeError(
+        f"Unsupported SchemaArg type: {type(arg)}. "
+        "Use SchemaRef(...,'in'|'out'), 'alias.in'/'alias.out', 'raw', or None."
+    )
 
 
 # ───────────────────────────────────────────────────────────────────────────────
 # Core builder (defaults only; overrides are applied later)
 # ───────────────────────────────────────────────────────────────────────────────
 
-
 def _default_schemas_for_spec(model: type, sp: OpSpec) -> Dict[str, Optional[Type[BaseModel]]]:
     """
     Decide default IN/OUT schemas for a given OpSpec (ignores sp.request_model/response_model).
+
+    New rules:
+      • Canonical targets → provide canonical defaults.
+      • Custom target     → no defaults (raw) unless explicitly overridden.
     """
     target = sp.target
     result: Dict[str, Optional[Type[BaseModel]]] = {"in_": None, "out": None}
 
-    # Default element schema used for many OUT shapes
+    # Element schema for many OUT shapes
     read_schema: Optional[Type[BaseModel]] = _build_schema(model, verb="read")
 
     # Canonical targets
@@ -200,17 +194,13 @@ def _default_schemas_for_spec(model: type, sp: OpSpec) -> Dict[str, Optional[Typ
 
     elif target == "update":
         pk_name, _ = _pk_info(model)
-        result["in_"] = result["in_"] or _build_schema(
-            model, verb="update", exclude={pk_name}
-        )
-        result["out"] = result["out"] or read_schema
+        result["in_"] = _build_schema(model, verb="update", exclude={pk_name})
+        result["out"] = read_schema
 
     elif target == "replace":
         pk_name, _ = _pk_info(model)
-        result["in_"] = result["in_"] or _build_schema(
-            model, verb="replace", exclude={pk_name}
-        )
-        result["out"] = result["out"] or read_schema
+        result["in_"] = _build_schema(model, verb="replace", exclude={pk_name})
+        result["out"] = read_schema
 
     elif target == "delete":
         result["in_"] = _build_schema(model, verb="delete")
@@ -247,15 +237,14 @@ def _default_schemas_for_spec(model: type, sp: OpSpec) -> Dict[str, Optional[Typ
         result["out"] = read_schema
 
     elif target == "custom":
-        # No opinion on IN; OUT defaults to a read-like element
-        result["out"] = read_schema
+        # No defaults for custom: leave raw unless explicitly overridden
+        result["in_"] = None
+        result["out"] = None
 
     else:
-        result["out"] = read_schema
-
-    # Fallbacks (keep existing behavior)
-    result["in_"] = result["in_"] or _build_schema(model, verb="create")
-    result["out"] = result["out"] or read_schema
+        # Defensive default: treat unknown like custom (raw)
+        result["in_"] = None
+        result["out"] = None
 
     return result
 
@@ -263,7 +252,6 @@ def _default_schemas_for_spec(model: type, sp: OpSpec) -> Dict[str, Optional[Typ
 # ───────────────────────────────────────────────────────────────────────────────
 # Public API
 # ───────────────────────────────────────────────────────────────────────────────
-
 
 def build_and_attach(
     model: type, specs: Sequence[OpSpec], *, only_keys: Optional[Sequence[_Key]] = None
@@ -275,13 +263,14 @@ def build_and_attach(
 
     Two-pass strategy:
       1) Allocate alias namespaces and attach DEFAULT schemas for all specs
-         (ignoring per-spec overrides). Defaults are only set if not already present,
-         preserving prior overrides during incremental rebinds.
-      2) Resolve and apply overrides from OpSpec.request_model / response_model
-         (supports direct class, SchemaRef, dotted string, or lambda thunk).
+         (ignoring per-spec overrides). Canonical ops get defaults; custom stays raw.
+      2) Resolve and apply overrides from OpSpec.request_model / response_model:
+           • SchemaRef / "alias.in"|"alias.out" → set that model
+           • "raw" or None (when supplied as an override) → set to None
 
     If `only_keys` is provided, overrides are limited to those (alias,target) pairs.
-    Defaults are still ensured for all specs so cross-op SchemaRefs resolve reliably.
+    Defaults are still ensured for all specs so cross-op SchemaRefs resolve reliably
+    for canonical ops.
     """
     if not hasattr(model, "schemas"):
         model.schemas = SimpleNamespace()
@@ -297,7 +286,7 @@ def build_and_attach(
         ns = _ensure_alias_namespace(model, sp.alias)
         shapes = _default_schemas_for_spec(model, sp)
 
-        # Only set if missing to avoid overwriting any previous overrides
+        # Only set if missing to avoid overwriting any previous values
         if getattr(ns, "in_", None) is None and shapes.get("in_") is not None:
             setattr(ns, "in_", shapes["in_"])
         if getattr(ns, "out", None) is None and shapes.get("out") is not None:
@@ -321,24 +310,26 @@ def build_and_attach(
 
         if sp.request_model is not None:
             try:
-                resolved_in = _resolve_schema_arg(model, sp.request_model)  # type: ignore[arg-type]
+                resolved_in = _resolve_schema_arg(model, sp.request_model)  # Optional[Type[BaseModel]]
             except Exception as e:
                 logger.exception(
                     "Failed resolving request schema for %s.%s: %s",
                     model.__name__, sp.alias, e
                 )
                 raise
+            # Set to model or None (raw)
             setattr(ns, "in_", resolved_in)
 
         if sp.response_model is not None:
             try:
-                resolved_out = _resolve_schema_arg(model, sp.response_model)  # type: ignore[arg-type]
+                resolved_out = _resolve_schema_arg(model, sp.response_model)  # Optional[Type[BaseModel]]
             except Exception as e:
                 logger.exception(
                     "Failed resolving response schema for %s.%s: %s",
                     model.__name__, sp.alias, e
                 )
                 raise
+            # Set to model or None (raw)
             setattr(ns, "out", resolved_out)
 
         logger.debug(

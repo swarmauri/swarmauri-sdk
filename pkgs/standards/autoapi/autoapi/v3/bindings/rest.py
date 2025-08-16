@@ -114,8 +114,10 @@ def _get_phase_chains(
 def _serialize_output(
     model: type, alias: str, target: str, sp: OpSpec, result: Any
 ) -> Any:
-    if sp.returns != "model":
-        return result
+    """
+    If a response schema exists (model.schemas.<alias>.out), serialize to it.
+    Otherwise, return the raw result.
+    """
     schemas_root = getattr(model, "schemas", None)
     if not schemas_root:
         return result
@@ -254,8 +256,10 @@ def _path_for_spec(
 
 
 def _response_model_for(sp: OpSpec, model: type) -> Any | None:
-    if sp.returns != "model":
-        return None
+    """
+    Determine the FastAPI response_model based on presence of an out schema.
+    If there is no out schema, return None (raw pass-through).
+    """
     alias_ns = getattr(
         getattr(model, "schemas", None) or SimpleNamespace(), sp.alias, None
     )

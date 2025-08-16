@@ -6,9 +6,10 @@ Public surface (re-exports):
 
 Types:
   - OpSpec, OpHook
-  - TargetOp, Arity, PersistPolicy, ReturnForm
+  - TargetOp, Arity, PersistPolicy
   - HookPhase, PHASES
   - VerbAliasPolicy
+  - SchemaRef, SchemaArg
 
 Collection & Registry:
   - resolve(model)                        → list[OpSpec]
@@ -38,10 +39,11 @@ from .types import (
     TargetOp,
     Arity,
     PersistPolicy,
-    ReturnForm,
     HookPhase,
     PHASES,
     VerbAliasPolicy,
+    SchemaRef,
+    SchemaArg,
 )
 
 # Collector
@@ -64,10 +66,11 @@ __all__ = [
     "TargetOp",
     "Arity",
     "PersistPolicy",
-    "ReturnForm",
     "HookPhase",
     "PHASES",
     "VerbAliasPolicy",
+    "SchemaRef",
+    "SchemaArg",
     # collection
     "resolve",
     # registry
