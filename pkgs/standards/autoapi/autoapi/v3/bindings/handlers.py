@@ -127,6 +127,83 @@ def _resolve_ident(model: type, ctx: Mapping[str, Any]) -> Any:
 # ───────────────────────────────────────────────────────────────────────────────
 
 
+async def _call_list_core(fn: Callable[..., Any], model: type, payload: Mapping[str, Any], ctx: Mapping[str, Any]):
+    """
+    Call `_core.list` robustly across v2/v3 shapes, but ALWAYS include `db`.
+
+      v2: async def list(model, filters, db, *, skip=None, limit=None, request=None)
+      v3: async def list(model, *, filters, db, skip=None, limit=None, request=None)
+
+    We try only call patterns that include `db` to avoid the
+    "missing 1 required keyword-only argument: 'db'" error.
+    """
+    # Build filters dict and pull pagination out
+    filters = dict(payload) if isinstance(payload, Mapping) else {}
+    skip = filters.pop("skip", None)
+    limit = filters.pop("limit", None)
+    filters_arg = filters if filters else None
+
+    db = _ctx_db(ctx)
+    req = _ctx_request(ctx)
+
+    # Candidate calls (ALL include db):
+    candidates: list[tuple[tuple, dict]] = []
+
+    def add_candidate(use_pos_filters: bool, use_pos_db: bool, with_req: bool, with_pag: bool):
+        args: tuple = ()
+        kwargs: dict = {}
+        if use_pos_filters:
+            args += (filters_arg,)
+        else:
+            kwargs["filters"] = filters_arg
+
+        if use_pos_db:
+            args += (db,)
+        else:
+            kwargs["db"] = db
+
+        if with_req and req is not None:
+            kwargs["request"] = req
+        if with_pag:
+            if skip is not None:
+                kwargs["skip"] = skip
+            if limit is not None:
+                kwargs["limit"] = limit
+        candidates.append((args, kwargs))
+
+    # Try richer shapes first, then progressively simpler — but always include db.
+    add_candidate(use_pos_filters=False, use_pos_db=False, with_req=True,  with_pag=True)   # kw filters + kw db
+    add_candidate(use_pos_filters=True,  use_pos_db=False, with_req=True,  with_pag=True)   # pos filters + kw db
+    add_candidate(use_pos_filters=True,  use_pos_db=True,  with_req=True,  with_pag=True)   # pos filters + pos db
+
+    add_candidate(use_pos_filters=False, use_pos_db=False, with_req=False, with_pag=True)
+    add_candidate(use_pos_filters=True,  use_pos_db=False, with_req=False, with_pag=True)
+    add_candidate(use_pos_filters=True,  use_pos_db=True,  with_req=False, with_pag=True)
+
+    add_candidate(use_pos_filters=False, use_pos_db=False, with_req=True,  with_pag=False)
+    add_candidate(use_pos_filters=True,  use_pos_db=False, with_req=True,  with_pag=False)
+    add_candidate(use_pos_filters=True,  use_pos_db=True,  with_req=True,  with_pag=False)
+
+    # Minimal (still with db)
+    add_candidate(use_pos_filters=False, use_pos_db=False, with_req=False, with_pag=False)
+    add_candidate(use_pos_filters=True,  use_pos_db=False, with_req=False, with_pag=False)
+    add_candidate(use_pos_filters=True,  use_pos_db=True,  with_req=False, with_pag=False)
+
+    last_err: Optional[BaseException] = None
+    for args, kwargs in candidates:
+        try:
+            rv = fn(model, *args, **kwargs)
+            if inspect.isawaitable(rv):
+                return await rv
+            return rv
+        except TypeError as e:
+            last_err = e
+            continue
+    if last_err:
+        raise last_err
+    raise RuntimeError("list() call resolution failed unexpectedly")
+
+
 def _wrap_core(model: type, target: str) -> StepFn:
     """
     Turn a canonical core function into a StepFn(ctx) → Any.
@@ -137,48 +214,51 @@ def _wrap_core(model: type, target: str) -> StepFn:
         payload = _ctx_payload(ctx)
 
         if target == "create":
-            return await _core.create(model, payload, db)
+            return await _core.create(model, payload, db=db)
 
         if target == "read":
             ident = _resolve_ident(model, ctx)
-            return await _core.read(model, ident, db)
+            return await _core.read(model, ident, db=db)
 
         if target == "update":
             ident = _resolve_ident(model, ctx)
-            return await _core.update(model, ident, payload, db)
+            return await _core.update(model, ident, payload, db=db)
 
         if target == "replace":
             ident = _resolve_ident(model, ctx)
-            return await _core.replace(model, ident, payload, db)
+            return await _core.replace(model, ident, payload, db=db)
 
         if target == "delete":
             ident = _resolve_ident(model, ctx)
-            return await _core.delete(model, ident, db)
+            return await _core.delete(model, ident, db=db)
 
         if target == "list":
             # payload may contain skip/limit and filters
             skip = payload.get("skip")
             limit = payload.get("limit")
-            return await _core.list(model, payload, skip=skip, limit=limit, db=db)
+            # Only pass actual filters to core (skip/limit are separate)
+            filters = {k: v for k, v in payload.items() if k not in ("skip", "limit")}
+            return await _core.list(model, filters, skip=skip, limit=limit, db=db)
 
         if target == "clear":
-            return await _core.clear(model, payload, db)
+            # No request body for clear; align with REST semantics.
+            return await _core.clear(model, db=db)
 
         if target == "bulk_create":
             rows = payload.get("rows") or []
-            return await _core.bulk_create(model, rows, db)
+            return await _core.bulk_create(model, rows, db=db)
 
         if target == "bulk_update":
             rows = payload.get("rows") or []
-            return await _core.bulk_update(model, rows, db)
+            return await _core.bulk_update(model, rows, db=db)
 
         if target == "bulk_replace":
             rows = payload.get("rows") or []
-            return await _core.bulk_replace(model, rows, db)
+            return await _core.bulk_replace(model, rows, db=db)
 
         if target == "bulk_delete":
             ids = payload.get("ids") or []
-            return await _core.bulk_delete(model, ids, db)
+            return await _core.bulk_delete(model, ids, db=db)
 
         # Unknown canonical target – return payload to avoid hard failure
         return payload

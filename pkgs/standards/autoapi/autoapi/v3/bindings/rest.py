@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import inspect
 import logging
+import typing as _typing
 from types import SimpleNamespace
 from typing import (
     Any,
@@ -14,9 +15,10 @@ from typing import (
     Sequence,
     Tuple,
 )
+from typing import get_origin as _get_origin, get_args as _get_args
 
 try:
-    from fastapi import APIRouter, Request, Body, Depends, HTTPException
+    from fastapi import APIRouter, Request, Body, Depends, HTTPException, Query
     from fastapi import status as _status
 except Exception:  # pragma: no cover
     # Minimal shims so the module can be imported without FastAPI
@@ -41,6 +43,9 @@ except Exception:  # pragma: no cover
     def Depends(fn):  # type: ignore
         return fn
 
+    def Query(default=None, **kw):  # type: ignore
+        return default
+
     class HTTPException(Exception):  # type: ignore
         def __init__(self, status_code: int, detail: str | None = None):
             super().__init__(detail)
@@ -61,7 +66,7 @@ except Exception:  # pragma: no cover
         HTTP_500_INTERNAL_SERVER_ERROR = 500
 
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, create_model
 
 from ..opspec import OpSpec
 from ..opspec.types import PHASES
@@ -87,21 +92,15 @@ def _req_state_db(request: Request) -> Any:
 # ───────────────────────────────────────────────────────────────────────────────
 
 
-def _snake(name: str) -> str:
-    out = []
-    for i, ch in enumerate(name):
-        if ch.isupper() and i and (not name[i - 1].isupper()):
-            out.append("_")
-        out.append(ch.lower())
-    return "".join(out)
-
-
 def _resource_name(model: type) -> str:
+    """
+    Resource segment for HTTP paths/tags.
+
+    IMPORTANT: Never use table name here. Only allow an explicit __resource__
+    override or fall back to the model class name.
+    """
     override = getattr(model, "__resource__", None)
-    if override:
-        return override
-    tablename = getattr(model, "__tablename__", None)
-    return tablename or _snake(model.__name__)
+    return override or model.__name__
 
 
 def _pk_name(model: type) -> str:
@@ -228,6 +227,15 @@ def _validate_body(
 def _validate_query(
     model: type, alias: str, target: str, query: Mapping[str, Any]
 ) -> Mapping[str, Any]:
+    """
+    Validate list/clear inputs coming from the query string. We avoid instantiating
+    the model when the user supplied no filters, to prevent any schema defaults
+    (possibly invalid) from being applied.
+    """
+    # If nothing was supplied, don't instantiate the model (avoids bad defaults).
+    if not query or (isinstance(query, Mapping) and len(query) == 0):
+        return {}
+
     schemas_root = getattr(model, "schemas", None)
     if not schemas_root:
         return dict(query)
@@ -235,17 +243,41 @@ def _validate_query(
     if not alias_ns:
         return dict(query)
     in_model = getattr(alias_ns, "in_", None)
+
+    # If there's a Pydantic model, map aliases->field names before validation.
     if in_model and inspect.isclass(in_model) and issubclass(in_model, BaseModel):
         try:
-            inst = in_model.model_validate(dict(query))  # type: ignore[arg-type]
+            fields = getattr(in_model, "model_fields", {})
+            data: Dict[str, Any] = {}
+            for name, f in fields.items():
+                alias_key = getattr(f, "alias", None) or name
+                # Prefer alias if present; else accept field name
+                if alias_key in query:
+                    val = query[alias_key]
+                elif name in query:
+                    val = query[name]
+                else:
+                    continue
+                # Drop "unset" values (None, empty string, empty list/tuple/set)
+                if val is None:
+                    continue
+                if isinstance(val, str) and not val.strip():
+                    continue
+                if isinstance(val, (list, tuple, set)) and len(val) == 0:
+                    continue
+                data[name] = val
+
+            if not data:
+                return {}
+
+            inst = in_model.model_validate(data)  # type: ignore[arg-type]
             return inst.model_dump(exclude_none=True)
-        except Exception:
-            logger.debug(
-                "rest query validation failed for %s.%s",
-                model.__name__,
-                alias,
-                exc_info=True,
+        except Exception as e:
+            # Surface invalid user-supplied filters as 422
+            raise HTTPException(
+                status_code=_status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
             )
+    # No model — pass through what was provided
     return dict(query)
 
 
@@ -338,12 +370,10 @@ def _response_model_for(sp: OpSpec, model: type) -> Any | None:
     out_model = getattr(alias_ns, "out", None)
     if out_model is None:
         return None
-    # For list, FastAPI can accept typing.List[out_model]
+    # For list, FastAPI can accept typing-style list[out_model]
     if sp.target == "list":
-        from typing import List as _List
-
         try:
-            return _List[out_model]  # type: ignore[index]
+            return list[out_model]  # type: ignore[index]
         except Exception:
             return None
     return out_model
@@ -355,6 +385,121 @@ def _request_model_for(sp: OpSpec, model: type) -> Any | None:
         getattr(model, "schemas", None) or SimpleNamespace(), sp.alias, None
     )
     return getattr(alias_ns, "in_", None)
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# Query param dependency (so OpenAPI shows list filters)
+# ───────────────────────────────────────────────────────────────────────────────
+
+def _strip_optional(t: Any) -> Any:
+    """If annotation is Optional[T] (i.e., Union[T, None]), return T; else return the input."""
+    origin = _get_origin(t)
+    if origin is _typing.Union:
+        args = tuple(a for a in _get_args(t) if a is not type(None))
+        return args[0] if len(args) == 1 else Any
+    return t
+
+
+def _make_list_query_dep(model: type, alias: str):
+    """
+    Build a dependency whose signature exposes Query(...) params derived from
+    schemas.<alias>.in_ fields, so FastAPI documents them in OpenAPI. The dep
+    returns raw user-supplied values; we validate later in _validate_query().
+    """
+    alias_ns = getattr(getattr(model, "schemas", None) or SimpleNamespace(), alias, None)
+    in_model = getattr(alias_ns, "in_", None)
+
+    # If no model, return raw query as-is
+    if not (in_model and inspect.isclass(in_model) and issubclass(in_model, BaseModel)):
+        async def _dep(request: Request) -> Dict[str, Any]:
+            return dict(request.query_params)
+        _dep.__name__ = f"list_params_{model.__name__}_{alias}"
+        return _dep
+
+    fields = getattr(in_model, "model_fields", {})
+
+    async def _dep(**raw) -> Dict[str, Any]:
+        # Collect only user-supplied values; never apply schema defaults here
+        data: Dict[str, Any] = {}
+        for name, f in fields.items():
+            key = getattr(f, "alias", None) or name
+            if key not in raw:
+                continue
+            val = raw[key]
+            # drop "unset" values
+            if val is None:
+                continue
+            if isinstance(val, str) and not val.strip():
+                continue
+            if isinstance(val, (list, tuple, set)) and len(val) == 0:
+                continue
+            data[key] = val
+        return data  # raw; validation happens in _validate_query
+
+    # Build signature with Query(None) so OpenAPI shows optional filters
+    params: list[inspect.Parameter] = []
+    for name, f in fields.items():
+        key = getattr(f, "alias", None) or name
+        ann = getattr(f, "annotation", Any)
+        base = _strip_optional(ann)
+        origin = _get_origin(base)
+        if origin in (list, tuple, set):
+            inner = (_get_args(base) or (str,))[0]
+            annotation = list[inner]  # type: ignore[index]
+            default_q = Query(None, description=getattr(f, "description", None))
+        else:
+            annotation = base
+            default_q = Query(None, description=getattr(f, "description", None))
+        params.append(
+            inspect.Parameter(
+                name=key,
+                kind=inspect.Parameter.KEYWORD_ONLY,
+                default=default_q,
+                annotation=annotation,
+            )
+        )
+
+    _dep.__signature__ = inspect.Signature(
+        parameters=params, return_annotation=Dict[str, Any]
+    )
+    _dep.__name__ = f"list_params_{model.__name__}_{alias}"
+    return _dep
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# Optionalize list.in_ model (hardening against bad defaults)
+# ───────────────────────────────────────────────────────────────────────────────
+
+def _optionalize_list_in_model(in_model: type[BaseModel]) -> type[BaseModel]:
+    """
+    Build a drop-in replacement of `in_model` where every field is Optional[...] with default=None.
+    This prevents bogus defaults (like 'string' on enums) from being applied when no filters are supplied.
+    """
+    try:
+        fields = getattr(in_model, "model_fields", {})
+    except Exception:
+        return in_model
+
+    defs: Dict[str, tuple[Any, Any]] = {}
+    for name, f in fields.items():
+        ann = getattr(f, "annotation", Any)
+        opt_ann = _typing.Union[ann, type(None)]  # Optional[ann]
+        defs[name] = (
+            opt_ann,
+            Field(
+                default=None,
+                alias=getattr(f, "alias", None),
+                description=getattr(f, "description", None),
+            ),
+        )
+
+    New = create_model(  # type: ignore[misc]
+        f"{in_model.__name__}__Optionalized",
+        **defs,
+    )
+    # Flag to avoid re-optionalizing
+    setattr(New, "__autoapi_optionalized__", True)
+    return New
 
 
 # ───────────────────────────────────────────────────────────────────────────────
@@ -375,34 +520,56 @@ def _make_collection_endpoint(
     # --- No body on GET list / DELETE clear ---
     if target in {"list", "clear"}:
 
-        async def _endpoint(
-            request: Request,
-            db: Any = Depends(db_dep),
-        ):
-            if target == "list":
-                raw_query = dict(request.query_params)
-                payload = _validate_query(model, alias, target, raw_query)
-            else:
-                # clear: strict — ignore query/body entirely
-                payload = {}
+        if target == "list":
+            list_dep = _make_list_query_dep(model, alias)
 
-            ctx: Dict[str, Any] = {
-                "request": request,
-                "db": db,
-                "payload": payload,
-                "path_params": {},
-                "env": SimpleNamespace(
-                    method=alias, params=payload, target=target, model=model
-                ),
-            }
-            phases = _get_phase_chains(model, alias)
-            result = await _executor._invoke(
-                request=request,
-                db=db,
-                phases=phases,
-                ctx=ctx,
-            )
-            return _serialize_output(model, alias, target, sp, result)
+            async def _endpoint(
+                request: Request,
+                q: Mapping[str, Any] = Depends(list_dep),
+                db: Any = Depends(db_dep),
+            ):
+                payload = _validate_query(model, alias, target, dict(q))
+                ctx: Dict[str, Any] = {
+                    "request": request,
+                    "db": db,
+                    "payload": payload,
+                    "path_params": {},
+                    "env": SimpleNamespace(
+                        method=alias, params=payload, target=target, model=model
+                    ),
+                }
+                phases = _get_phase_chains(model, alias)
+                result = await _executor._invoke(
+                    request=request,
+                    db=db,
+                    phases=phases,
+                    ctx=ctx,
+                )
+                return _serialize_output(model, alias, target, sp, result)
+        else:
+            async def _endpoint(
+                request: Request,
+                db: Any = Depends(db_dep),
+            ):
+                # clear: strict — ignore query/body entirely
+                payload: Mapping[str, Any] = {}
+                ctx: Dict[str, Any] = {
+                    "request": request,
+                    "db": db,
+                    "payload": payload,
+                    "path_params": {},
+                    "env": SimpleNamespace(
+                        method=alias, params=payload, target=target, model=model
+                    ),
+                }
+                phases = _get_phase_chains(model, alias)
+                result = await _executor._invoke(
+                    request=request,
+                    db=db,
+                    phases=phases,
+                    ctx=ctx,
+                )
+                return _serialize_output(model, alias, target, sp, result)
 
         _endpoint.__name__ = f"rest_{model.__name__}_{alias}_collection"
         _endpoint.__qualname__ = _endpoint.__name__
@@ -587,6 +754,22 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
             model, sp, resource=resource, pk_param=pk_param
         )
 
+        # HARDEN list.in_ at runtime to avoid bogus defaults blowing up empty GETs
+        if sp.target == "list":
+            schemas_root = getattr(model, "schemas", None)
+            if schemas_root:
+                alias_ns = getattr(schemas_root, sp.alias, None)
+                if alias_ns:
+                    in_model = getattr(alias_ns, "in_", None)
+                    if (
+                        in_model
+                        and inspect.isclass(in_model)
+                        and issubclass(in_model, BaseModel)
+                        and not getattr(in_model, "__autoapi_optionalized__", False)
+                    ):
+                        safe = _optionalize_list_in_model(in_model)
+                        setattr(alias_ns, "in_", safe)
+
         # HTTP methods
         methods = list(sp.http_methods or _DEFAULT_METHODS.get(sp.target, ("POST",)))
         response_model = _response_model_for(sp, model)
@@ -615,7 +798,8 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
             description=label,
             response_model=response_model,
             status_code=status_code,
-            tags=list(sp.tags or (resource,)),
+            # IMPORTANT: only class name here; never table name
+            tags=list(sp.tags or (model.__name__,)),
             responses=_RESPONSES_META,
         )
 
