@@ -79,7 +79,7 @@ class _OpDecl:
 def op_ctx(
     *,
     alias: str | None = None,
-    verb: str,                                 # required: "create" | "read" | "update" | "replace" | "delete" | "list" | ...
+    verb: Optional[str] = "custom",            # required: "create" | "read" | "update" | "replace" | "delete" | "list" | ...
     target: TargetOp | str | None = None,      # default inferred from verb
     returns: ReturnForm | str | None = None,   # default inferred from verb
     persist: PersistPolicy | str | None = None,# default inferred from verb
