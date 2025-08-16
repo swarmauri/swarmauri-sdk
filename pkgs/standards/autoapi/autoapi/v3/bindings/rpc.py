@@ -76,11 +76,7 @@ def _coerce_payload(payload: Any) -> Mapping[str, Any]:
 def _validate_input(
     model: type, alias: str, target: str, payload: Mapping[str, Any]
 ) -> Mapping[str, Any]:
-    """
-    Choose the appropriate request schema (if any) and validate/normalize payload.
-    • Use .schemas.<alias>.in_ when present.
-    • For list/clear, prefer .schemas.<alias>.list.
-    """
+    """Choose the appropriate request schema (if any) and validate/normalize payload."""
     schemas_root = getattr(model, "schemas", None)
     if not schemas_root:
         return payload
@@ -89,8 +85,6 @@ def _validate_input(
         return payload
 
     in_model = getattr(alias_ns, "in_", None)
-    if target in {"list", "clear"}:
-        in_model = getattr(alias_ns, "list", in_model)
 
     if in_model and inspect.isclass(in_model) and issubclass(in_model, BaseModel):
         try:
