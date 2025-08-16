@@ -354,43 +354,77 @@ def _make_member_endpoint(
     target = sp.target
     real_pk = _pk_name(model)
 
-    body_model = _request_model_for(sp, model)
-    body_annotation = (
-        (body_model | None) if body_model is not None else (Mapping[str, Any] | None)
-    )
+    include_body = target not in {"read"}
 
-    async def _endpoint(
-        item_id: Any,
-        request: Request,
-        db: Any = Depends(db_dep),
-        body=Body(default=None),
-    ):
-        payload = _validate_body(model, alias, target, body)
-
-        ctx: Dict[str, Any] = {
-            "request": request,
-            "db": db,
-            "payload": payload,
-            # map generic item_id to real PK column name for handler resolution
-            "path_params": {real_pk: item_id, pk_param: item_id},
-            "env": SimpleNamespace(
-                method=alias, params=payload, target=target, model=model
-            ),
-        }
-        phases = _get_phase_chains(model, alias)
-
-        result = await _executor._invoke(
-            request=request,
-            db=db,
-            phases=phases,
-            ctx=ctx,
+    if include_body:
+        body_model = _request_model_for(sp, model)
+        body_annotation = (
+            (body_model | None)
+            if body_model is not None
+            else (Mapping[str, Any] | None)
         )
-        return _serialize_output(model, alias, target, sp, result)
+
+        async def _endpoint(
+            item_id: Any,
+            request: Request,
+            db: Any = Depends(db_dep),
+            body=Body(default=None),
+        ):
+            payload = _validate_body(model, alias, target, body)
+
+            ctx: Dict[str, Any] = {
+                "request": request,
+                "db": db,
+                "payload": payload,
+                # map generic item_id to real PK column name for handler resolution
+                "path_params": {real_pk: item_id, pk_param: item_id},
+                "env": SimpleNamespace(
+                    method=alias, params=payload, target=target, model=model
+                ),
+            }
+            phases = _get_phase_chains(model, alias)
+
+            result = await _executor._invoke(
+                request=request,
+                db=db,
+                phases=phases,
+                ctx=ctx,
+            )
+            return _serialize_output(model, alias, target, sp, result)
+
+        _endpoint.__annotations__["body"] = body_annotation
+    else:
+
+        async def _endpoint(
+            item_id: Any,
+            request: Request,
+            db: Any = Depends(db_dep),
+        ):
+            payload: Dict[str, Any] = {}
+
+            ctx: Dict[str, Any] = {
+                "request": request,
+                "db": db,
+                "payload": payload,
+                # map generic item_id to real PK column name for handler resolution
+                "path_params": {real_pk: item_id, pk_param: item_id},
+                "env": SimpleNamespace(
+                    method=alias, params=payload, target=target, model=model
+                ),
+            }
+            phases = _get_phase_chains(model, alias)
+
+            result = await _executor._invoke(
+                request=request,
+                db=db,
+                phases=phases,
+                ctx=ctx,
+            )
+            return _serialize_output(model, alias, target, sp, result)
 
     _endpoint.__name__ = f"rest_{model.__name__}_{alias}_member"
     _endpoint.__qualname__ = _endpoint.__name__
     _endpoint.__doc__ = f"REST member endpoint for {model.__name__}.{alias} ({target})"
-    _endpoint.__annotations__["body"] = body_annotation
     return _endpoint
 
 
