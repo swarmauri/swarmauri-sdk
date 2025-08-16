@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple, Type
 from pydantic import BaseModel, Field, create_model
 
 from ..opspec import OpSpec
-from ..schema import _build_schema, _build_list_params
+from ..schema import _build_schema, _build_list_params, namely_model
 
 logger = logging.getLogger(__name__)
 
@@ -58,9 +58,14 @@ def _make_bulk_rows_model(
     Build a wrapper schema with a `rows: List[item_schema]` field.
     """
     name = f"{model.__name__}{_camel(verb)}Request"
-    return create_model(  # type: ignore[call-arg]
+    schema = create_model(  # type: ignore[call-arg]
         name,
         rows=(List[item_schema], Field(...)),  # type: ignore[name-defined]
+    )
+    return namely_model(
+        schema,
+        name=name,
+        doc=f"{verb} request schema for {model.__name__}",
     )
 
 
@@ -71,9 +76,14 @@ def _make_bulk_ids_model(
     Build a wrapper schema with an `ids: List[pk_type]` field.
     """
     name = f"{model.__name__}{_camel(verb)}Request"
-    return create_model(  # type: ignore[call-arg]
+    schema = create_model(  # type: ignore[call-arg]
         name,
         ids=(List[pk_type], Field(...)),  # type: ignore[name-defined]
+    )
+    return namely_model(
+        schema,
+        name=name,
+        doc=f"{verb} request schema for {model.__name__}",
     )
 
 
@@ -82,9 +92,14 @@ def _make_pk_model(
 ) -> Type[BaseModel]:
     """Build a wrapper schema with a single primary-key field."""
     name = f"{model.__name__}{_camel(verb)}Request"
-    return create_model(  # type: ignore[call-arg]
+    schema = create_model(  # type: ignore[call-arg]
         name,
         **{pk_name: (pk_type, Field(...))},  # type: ignore[name-defined]
+    )
+    return namely_model(
+        schema,
+        name=name,
+        doc=f"{verb} request schema for {model.__name__}",
     )
 
 
