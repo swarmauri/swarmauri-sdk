@@ -116,6 +116,46 @@ StepFn = Callable[[Ctx], Union[Any, Awaitable[Any]]]
 HookPredicate = Callable[[Any], bool]
 
 # ───────────────────────────────────────────────────────────────────────────────
+# Lazy-capable schema argument types
+# ───────────────────────────────────────────────────────────────────────────────
+
+# Forward-declare BaseModel for type checkers without importing pydantic at runtime
+try:  # pragma: no cover
+    from pydantic import BaseModel  # type: ignore
+except Exception:  # pragma: no cover
+
+    class BaseModel:  # minimal stub for typing only
+        pass
+
+SchemaKind = Literal["in", "out", "list_out"]
+
+
+@dataclass(frozen=True, slots=True)
+class SchemaRef:
+    """
+    Lazy reference to a schema attached under `model.schemas.<alias>`.
+    Example usages:
+      • SchemaRef("create", "in")  → resolves to  model.schemas.create.in_
+      • SchemaRef("read", "out")   → resolves to  model.schemas.read.out
+      • SchemaRef("list_users","list_out") → resolves to model.schemas.list_users.list_out
+    """
+    alias: str
+    kind: SchemaKind = "in"
+
+
+# Accepted argument forms for request/response schema overrides:
+#   • a Pydantic model class
+#   • a SchemaRef("alias","in|out|list_out")
+#   • a dotted string "alias.in" | "alias.out" | "alias.list_out"
+#   • a thunk: Callable[[type], type[BaseModel]]  (e.g., lambda cls: cls.schemas.create.in_)
+SchemaArg = Union[
+    Type[BaseModel],
+    SchemaRef,
+    str,
+    Callable[[type], Type[BaseModel]],
+]
+
+# ───────────────────────────────────────────────────────────────────────────────
 # Hook & Spec dataclasses
 # ───────────────────────────────────────────────────────────────────────────────
 
@@ -138,15 +178,6 @@ class OpHook:
     when: Optional[HookPredicate] = None
     name: Optional[str] = None
     description: Optional[str] = None
-
-
-# Forward-declare BaseModel for type checkers without importing pydantic at runtime
-try:  # pragma: no cover
-    from pydantic import BaseModel  # type: ignore
-except Exception:  # pragma: no cover
-
-    class BaseModel:  # minimal stub for typing only
-        pass
 
 
 @dataclass(frozen=True, slots=True)
@@ -186,8 +217,9 @@ class OpSpec:
     returns: ReturnForm = "model"       # "model" → serialize via schema; "raw" → pass-through
 
     # Schema overrides (otherwise builder generates them)
-    request_model: Optional[Type[BaseModel]] = None
-    response_model: Optional[Type[BaseModel]] = None
+    # Accept lazy-capable SchemaArg; actual resolution is done by the schema binder.
+    request_model: Optional[SchemaArg] = None
+    response_model: Optional[SchemaArg] = None
 
     # Raw handler override (for custom ops); if None, binder uses core from core.crud
     handler: Optional[StepFn] = None
@@ -250,6 +282,9 @@ __all__ = [
     "Ctx",
     "StepFn",
     "HookPredicate",
+    "SchemaKind",
+    "SchemaRef",
+    "SchemaArg",
     "OpHook",
     "OpSpec",
     "CANON",
