@@ -106,6 +106,8 @@ def _default_start_tx() -> StepFn:
         else:
             begin()
 
+    _step.__name__ = "start_tx"
+    _step.__qualname__ = "start_tx"
     return _step
 
 
@@ -122,6 +124,8 @@ def _default_end_tx() -> StepFn:
         else:
             commit()
 
+    _step.__name__ = "end_tx"
+    _step.__qualname__ = "end_tx"
     return _step
 
 
@@ -132,6 +136,8 @@ def _mark_skip_persist() -> StepFn:
         except Exception:
             setattr(ctx, CTX_SKIP_PERSIST_FLAG, True)
 
+    _step.__name__ = "mark_skip_persist"
+    _step.__qualname__ = "mark_skip_persist"
     return _step
 
 
@@ -160,6 +166,8 @@ def _wrap_hook(h: OpHook) -> StepFn:
             return await rv
         return rv
 
+    _step.__name__ = getattr(fn, "__name__", _step.__name__)
+    _step.__qualname__ = getattr(fn, "__qualname__", _step.__name__)
     return _step
 
 
@@ -170,6 +178,8 @@ def _wrap_step_fn(fn: Callable[..., Any]) -> StepFn:
             return await rv
         return rv
 
+    _step.__name__ = getattr(fn, "__name__", _step.__name__)
+    _step.__qualname__ = getattr(fn, "__qualname__", _step.__name__)
     return _step
 
 
