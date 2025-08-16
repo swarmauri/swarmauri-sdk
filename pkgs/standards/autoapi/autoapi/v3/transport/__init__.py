@@ -40,7 +40,7 @@ def mount_jsonrpc(
     prefix: str = "/rpc",
     get_db: Optional[Callable[..., Any]] = None,
     get_async_db: Optional[Callable[..., Awaitable[Any]]] = None,
-    tags: Sequence[str] | None = ("system",),
+    tags: Sequence[str] | None = ("rpc",),
 ):
     """
     Build a JSON-RPC router for `api` and include it on the given FastAPI `app`
