@@ -238,11 +238,13 @@ def _wrap_core(model: type, target: str) -> StepFn:
             limit = payload.get("limit")
             # Only pass actual filters to core (skip/limit are separate)
             filters = {k: v for k, v in payload.items() if k not in ("skip", "limit")}
-            return await _core.list(model, filters, skip=skip, limit=limit, db=db)
+            filt_arg = filters or None
+            return await _core.list(model, filt_arg, skip=skip, limit=limit, db=db)
+            
 
         if target == "clear":
             # No request body for clear; align with REST semantics.
-            return await _core.clear(model, db=db)
+            return await _core.clear(model, {}, db=db)
 
         if target == "bulk_create":
             rows = payload.get("rows") or []

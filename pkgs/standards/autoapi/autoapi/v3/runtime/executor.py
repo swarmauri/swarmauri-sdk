@@ -169,7 +169,7 @@ class _GuardHandle:
 
 
 def _install_db_guards(
-    db: Union[Session, AsyncSession],
+    db: Union[Session, AsyncSession, None],
     *,
     phase: str,
     allow_flush: bool,
@@ -181,6 +181,8 @@ def _install_db_guards(
     Monkey-patch db.commit/db.flush during a phase to enforce policy.
     We assign simple callables on the instance so they are invoked without `self`.
     """
+    if db is None:
+        return _GuardHandle(None, None, None)
     orig_commit = getattr(db, "commit", None)
     orig_flush = getattr(db, "flush", None)
 
