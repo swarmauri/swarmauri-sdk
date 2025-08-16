@@ -285,7 +285,7 @@ def build_jsonrpc_router(
         • If `api._authorize` is set, we call it before executing the op; False/exception → 403.
         • Additional router-level dependencies can be provided via `api.rpc_dependencies`.
 
-    The generated endpoint is tagged as "system" by default. Supply a custom
+    The generated endpoint is tagged as "rpc" by default. Supply a custom
     sequence via ``tags`` to override or set ``None`` to omit tags.
     """
     # Extra router-level deps (e.g., tracing, IP allowlist)
@@ -410,7 +410,7 @@ def build_jsonrpc_router(
         methods=["POST"],
         name="jsonrpc",
         tags=list(tags) if tags else None,
-        summary="JSONRPC"
+        summary="JSONRPC",
         # extra router deps already applied via APIRouter(dependencies=...)
     )
     return router

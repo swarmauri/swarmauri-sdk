@@ -4,7 +4,7 @@ AutoAPI v3 – JSON-RPC transport.
 
 Public helper:
   - build_jsonrpc_router(
-        api, *, get_db=None, get_async_db=None, tags=("system",)
+        api, *, get_db=None, get_async_db=None, tags=("rpc",)
     ) -> APIRouter
 
 Usage:
