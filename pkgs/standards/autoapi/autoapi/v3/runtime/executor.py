@@ -106,11 +106,13 @@ def _bool_call(meth: Any) -> bool:
 
 def _in_tx(db: Any) -> bool:
     for name in ("in_transaction", "in_nested_transaction"):
-        meth = getattr(db, name, None)
-        if callable(meth) and _bool_call(meth):
+        attr = getattr(db, name, None)
+        if callable(attr):
+            if _bool_call(attr):
+                return True
+        elif attr:
             return True
-    val = getattr(db, "in_transaction", False)
-    return bool(val)
+    return False
 
 
 async def _maybe_await(v: Any) -> Any:
