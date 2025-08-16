@@ -403,7 +403,7 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
             description=label,
             response_model=response_model,
             status_code=status_code,
-            tags=list(sp.tags) if sp.tags else None,
+            tags=list(sp.tags or (resource,)),
         )
 
         logger.debug(
