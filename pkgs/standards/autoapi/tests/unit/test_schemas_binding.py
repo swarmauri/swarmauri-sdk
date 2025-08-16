@@ -23,6 +23,11 @@ def test_bind_generates_request_and_response_schemas():
     assert getattr(list_ns, "list", None) is not None
     assert getattr(list_ns, "out", None) is not None
 
+    # clear should expose request params and a response schema
+    clear_ns = Gadget.schemas.clear
+    assert getattr(clear_ns, "in_", None) is not None
+    assert getattr(clear_ns, "out", None) is not None
+
     # read should expose a response schema
     read_ns = Gadget.schemas.read
     assert getattr(read_ns, "out", None) is not None

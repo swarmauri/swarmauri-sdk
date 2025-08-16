@@ -89,6 +89,18 @@ def _make_pk_model(
     )
 
 
+def _make_deleted_response_model(model: type, verb: str) -> Type[BaseModel]:
+    """Return a `{\"deleted\": int}` response model for raw delete ops."""
+    name = f"{model.__name__}{_camel(verb)}Response"
+    return create_model(name, deleted=(int, Field(...)))  # type: ignore[name-defined]
+
+
+def _make_generic_response_model(model: type, verb: str) -> Type[BaseModel]:
+    """Fallback raw response model with a generic `result` field."""
+    name = f"{model.__name__}{_camel(verb)}Response"
+    return create_model(name, result=(Any, Field(...)))  # type: ignore[name-defined]
+
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Core builder
 # ───────────────────────────────────────────────────────────────────────────────
@@ -118,9 +130,12 @@ def _schemas_for_spec(model: type, sp: OpSpec) -> Dict[str, Optional[Type[BaseMo
     # Canonical targets
     if target == "create":
         result["in_"] = result["in_"] or _build_schema(model, verb="create")
-        # If caller wants "model" return, supply read schema; otherwise keep None (raw)
         if sp.returns == "model":
             result["out"] = result["out"] or read_schema
+        else:
+            result["out"] = result["out"] or _make_generic_response_model(
+                model, "create"
+            )
 
     elif target == "read":
         # Require PK in body for RPC; OUT uses the read schema
@@ -133,11 +148,19 @@ def _schemas_for_spec(model: type, sp: OpSpec) -> Dict[str, Optional[Type[BaseMo
         result["in_"] = result["in_"] or _build_schema(model, verb="update")
         if sp.returns == "model":
             result["out"] = result["out"] or read_schema
+        else:
+            result["out"] = result["out"] or _make_generic_response_model(
+                model, "update"
+            )
 
     elif target == "replace":
         result["in_"] = result["in_"] or _build_schema(model, verb="replace")
         if sp.returns == "model":
             result["out"] = result["out"] or read_schema
+        else:
+            result["out"] = result["out"] or _make_generic_response_model(
+                model, "replace"
+            )
 
     elif target == "delete":
         # Require PK in body for RPC shape; REST may pass it as a path param.
@@ -145,8 +168,9 @@ def _schemas_for_spec(model: type, sp: OpSpec) -> Dict[str, Optional[Type[BaseMo
         if sp.returns == "model":
             result["out"] = result["out"] or read_schema
         else:
-            # default raw (e.g., {"deleted": 1})
-            result["out"] = result["out"] or None
+            result["out"] = result["out"] or _make_deleted_response_model(
+                model, "delete"
+            )
 
     elif target == "list":
         # Filters/paging in request; element OUT is the read schema
@@ -155,16 +179,20 @@ def _schemas_for_spec(model: type, sp: OpSpec) -> Dict[str, Optional[Type[BaseMo
         result["list"] = params
         if sp.returns == "model":
             result["out"] = result["out"] or read_schema
+        else:
+            result["out"] = result["out"] or _make_generic_response_model(model, "list")
 
     elif target == "clear":
-        # Same filters as list; OUT is raw by default ({"deleted": N})
+        # Same filters as list; OUT defaults to {"deleted": N}
         params = _build_list_params(model)
         result["in_"] = result["in_"] or params
         result["list"] = params
         if sp.returns == "model":
             result["out"] = result["out"] or read_schema
         else:
-            result["out"] = result["out"] or None
+            result["out"] = result["out"] or _make_deleted_response_model(
+                model, "clear"
+            )
 
     # Bulk variants
     elif target == "bulk_create":
@@ -174,6 +202,10 @@ def _schemas_for_spec(model: type, sp: OpSpec) -> Dict[str, Optional[Type[BaseMo
         )
         if sp.returns == "model":
             result["out"] = result["out"] or read_schema
+        else:
+            result["out"] = result["out"] or _make_generic_response_model(
+                model, "bulk_create"
+            )
 
     elif target == "bulk_update":
         item_in = _build_schema(model, verb="update")
@@ -182,6 +214,10 @@ def _schemas_for_spec(model: type, sp: OpSpec) -> Dict[str, Optional[Type[BaseMo
         )
         if sp.returns == "model":
             result["out"] = result["out"] or read_schema
+        else:
+            result["out"] = result["out"] or _make_generic_response_model(
+                model, "bulk_update"
+            )
 
     elif target == "bulk_replace":
         item_in = _build_schema(model, verb="replace")
@@ -190,27 +226,44 @@ def _schemas_for_spec(model: type, sp: OpSpec) -> Dict[str, Optional[Type[BaseMo
         )
         if sp.returns == "model":
             result["out"] = result["out"] or read_schema
+        else:
+            result["out"] = result["out"] or _make_generic_response_model(
+                model, "bulk_replace"
+            )
 
     elif target == "bulk_delete":
         pk_name, pk_type = _pk_info(model)
         result["in_"] = result["in_"] or _make_bulk_ids_model(
             model, "bulk_delete", pk_type
         )
-        # OUT defaults to raw ({"deleted": N}); only supply model if explicitly requested
         if sp.returns == "model":
             result["out"] = result["out"] or read_schema
         else:
-            result["out"] = result["out"] or None
+            result["out"] = result["out"] or _make_deleted_response_model(
+                model, "bulk_delete"
+            )
 
     # Custom ops: use overrides if present; otherwise
     elif target == "custom":
         # No default IN unless provided; OUT uses read schema when returns="model"
         if sp.returns == "model":
             result["out"] = result["out"] or read_schema
+        else:
+            result["out"] = result["out"] or _make_generic_response_model(
+                model, sp.alias
+            )
 
     else:
-        # Unknown targets – leave as provided
-        pass
+        # Unknown targets – ensure at least a generic response model
+        result["out"] = result["out"] or _make_generic_response_model(model, sp.alias)
+
+    # Ensure request/response schemas exist even when empty
+    if result["in_"] is None:
+        result["in_"] = create_model(
+            f"{model.__name__}{_camel(sp.alias)}Request"  # type: ignore[name-defined]
+        )
+    if result["out"] is None:
+        result["out"] = _make_generic_response_model(model, sp.alias)
 
     return result
 
