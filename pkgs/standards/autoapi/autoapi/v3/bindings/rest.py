@@ -415,7 +415,7 @@ def _make_list_query_dep(model: type, alias: str):
     # If no model, return raw query as-is
     if not (in_model and inspect.isclass(in_model) and issubclass(in_model, BaseModel)):
 
-        async def _dep(request: Request) -> Dict[str, Any]:
+        def _dep(request: Request) -> Dict[str, Any]:
             return dict(request.query_params)
 
         _dep.__name__ = f"list_params_{model.__name__}_{alias}"
@@ -423,8 +423,8 @@ def _make_list_query_dep(model: type, alias: str):
 
     fields = getattr(in_model, "model_fields", {})
 
-    async def _dep(**raw) -> Dict[str, Any]:
-        # Collect only user-supplied values; never apply schema defaults here
+    def _dep(**raw: Any) -> Dict[str, Any]:
+        """Collect only user-supplied values; never apply schema defaults here."""
         data: Dict[str, Any] = {}
         for name, f in fields.items():
             key = getattr(f, "alias", None) or name
@@ -451,10 +451,9 @@ def _make_list_query_dep(model: type, alias: str):
         if origin in (list, tuple, set):
             inner = (_get_args(base) or (str,))[0]
             annotation = list[inner] | None  # type: ignore[index]
-            default_q = Query(None, description=getattr(f, "description", None))
         else:
             annotation = base | None
-            default_q = Query(None, description=getattr(f, "description", None))
+        default_q = Query(None, description=getattr(f, "description", None))
         params.append(
             inspect.Parameter(
                 name=key,
