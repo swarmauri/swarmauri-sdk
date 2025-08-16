@@ -183,6 +183,11 @@ def _wrap_core(model: type, target: str) -> StepFn:
         # Unknown canonical target – return payload to avoid hard failure
         return payload
 
+    fn = getattr(_core, target, None)
+    step.__name__ = getattr(fn, "__name__", step.__name__)
+    step.__qualname__ = getattr(fn, "__qualname__", step.__name__)
+    step.__module__ = getattr(fn, "__module__", step.__module__)
+
     return step
 
 
@@ -234,6 +239,10 @@ def _wrap_custom(model: type, sp: OpSpec, user_handler: Callable[..., Any]) -> S
         if inspect.isawaitable(rv):
             return await rv
         return rv
+
+    step.__name__ = getattr(user_handler, "__name__", step.__name__)
+    step.__qualname__ = getattr(user_handler, "__qualname__", step.__name__)
+    step.__module__ = getattr(user_handler, "__module__", step.__module__)
 
     return step
 
