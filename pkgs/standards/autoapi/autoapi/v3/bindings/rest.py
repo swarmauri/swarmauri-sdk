@@ -16,7 +16,7 @@ from typing import (
 )
 
 try:
-    from fastapi import APIRouter, Request, Body
+    from fastapi import APIRouter, Request, Body, Depends
     from fastapi import status as _status
 except Exception:  # pragma: no cover
     # Minimal shims so the module can be imported without FastAPI
@@ -38,6 +38,9 @@ except Exception:  # pragma: no cover
     def Body(default=None, **kw):  # type: ignore
         return default
 
+    def Depends(fn):  # type: ignore
+        return fn
+
     class _status:  # type: ignore
         HTTP_200_OK = 200
         HTTP_201_CREATED = 201
@@ -48,10 +51,15 @@ from pydantic import BaseModel
 from ..opspec import OpSpec
 from ..opspec.types import PHASES
 from ..runtime import executor as _executor  # expects _invoke(request, db, phases, ctx)
+from ..config.constants import AUTOAPI_GET_ASYNC_DB_ATTR, AUTOAPI_GET_DB_ATTR
 
 logger = logging.getLogger(__name__)
 
 _Key = Tuple[str, str]  # (alias, target)
+
+
+def _req_state_db(request: Request) -> Any:
+    return getattr(request.state, "db", None)
 
 
 # ───────────────────────────────────────────────────────────────────────────────
@@ -72,12 +80,8 @@ def _resource_name(model: type) -> str:
     override = getattr(model, "__resource__", None)
     if override:
         return override
-    # Mirror autoapi v2 behavior by deriving the REST resource from the model's
-    # class name rather than SQLAlchemy's ``__tablename__`` attribute.  The
-    # latter may be pluralized or retain casing (e.g., "Key"), which leads to
-    # inconsistent route prefixes like ``/Key`` or ``/key_versions``.  Using the
-    # class name ensures predictable snake_case resources across models.
-    return _snake(model.__name__)
+    tablename = getattr(model, "__tablename__", None)
+    return tablename or _snake(model.__name__)
 
 
 def _pk_name(model: type) -> str:
@@ -272,14 +276,18 @@ def _response_model_for(sp: OpSpec, model: type) -> Any | None:
 
 
 def _make_collection_endpoint(
-    model: type, sp: OpSpec, *, resource: str
+    model: type,
+    sp: OpSpec,
+    *,
+    resource: str,
+    db_dep: Callable[..., Any],
 ) -> Callable[..., Awaitable[Any]]:
     alias = sp.alias
     target = sp.target
 
     async def _endpoint(
         request: Request,
-        db: Any,
+        db: Any = Depends(db_dep),
         body: Mapping[str, Any] | None = Body(default=None),
     ):
         # Build payload from query for list/clear; otherwise from body
@@ -318,7 +326,12 @@ def _make_collection_endpoint(
 
 
 def _make_member_endpoint(
-    model: type, sp: OpSpec, *, resource: str, pk_param: str = "item_id"
+    model: type,
+    sp: OpSpec,
+    *,
+    resource: str,
+    db_dep: Callable[..., Any],
+    pk_param: str = "item_id",
 ) -> Callable[..., Awaitable[Any]]:
     alias = sp.alias
     target = sp.target
@@ -327,7 +340,7 @@ def _make_member_endpoint(
     async def _endpoint(
         item_id: Any,
         request: Request,
-        db: Any,
+        db: Any = Depends(db_dep),
         body: Mapping[str, Any] | None = Body(default=None),
     ):
         payload = _validate_body(model, alias, target, body)
@@ -367,6 +380,11 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
     resource = _resource_name(model)
     router = APIRouter()
     pk_param = "item_id"
+    db_dep = (
+        getattr(model, AUTOAPI_GET_ASYNC_DB_ATTR, None)
+        or getattr(model, AUTOAPI_GET_DB_ATTR, None)
+        or _req_state_db
+    )
 
     for sp in specs:
         if not sp.expose_routes:
@@ -384,10 +402,12 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
         # Build endpoint
         if is_member:
             endpoint = _make_member_endpoint(
-                model, sp, resource=resource, pk_param=pk_param
+                model, sp, resource=resource, db_dep=db_dep, pk_param=pk_param
             )
         else:
-            endpoint = _make_collection_endpoint(model, sp, resource=resource)
+            endpoint = _make_collection_endpoint(
+                model, sp, resource=resource, db_dep=db_dep
+            )
 
         # Default status code (201 for create on collection; else 200)
         status_code = (
