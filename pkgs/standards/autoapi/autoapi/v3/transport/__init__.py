@@ -52,10 +52,13 @@ def mount_jsonrpc(
     ----------
     tags:
         Optional tags applied to the mounted "/rpc" endpoint. Defaults to
-        ``("system",)``.
+        ``("rpc",)``.
     """
     router = build_jsonrpc_router(
-        api, get_db=get_db, get_async_db=get_async_db, tags=tags,
+        api,
+        get_db=get_db,
+        get_async_db=get_async_db,
+        tags=tags,
     )
     include_router = getattr(app, "include_router", None)
     if callable(include_router):
