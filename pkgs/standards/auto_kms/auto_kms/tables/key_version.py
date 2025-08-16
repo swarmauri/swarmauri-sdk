@@ -20,7 +20,7 @@ class KeyVersion(Base, GUIDPk, Timestamped):
 
     key_id = Column(
         PgUUID(as_uuid=True),
-        ForeignKey("Key.id", ondelete="CASCADE"),
+        ForeignKey("keys.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
