@@ -51,4 +51,4 @@ api = AutoAPI(
 )
 api.include_models([Key, KeyVersion], base_prefix="/kms")
 api.mount_jsonrpc(prefix="/kms/rpc")
-api.attach_diagnostics(prefix="/kms/system")
+api.attach_diagnostics(prefix="/system")
