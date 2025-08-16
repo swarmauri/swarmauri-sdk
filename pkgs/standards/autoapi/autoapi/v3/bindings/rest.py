@@ -147,15 +147,27 @@ def _serialize_output(
 
 
 def _validate_body(
-    model: type, alias: str, target: str, body: Mapping[str, Any] | None
+    model: type, alias: str, target: str, body: Any | None
 ) -> Mapping[str, Any]:
+    """Normalize and validate the incoming request body.
+
+    Accepts dict-like payloads or Pydantic models. If the AutoAPI schemas
+    define a request model, use it for validation; otherwise return the
+    payload as-is (coerced to a dict when possible).
+    """
+    if isinstance(body, BaseModel):
+        return body.model_dump(exclude_none=True)
+
     body = body or {}
+    if not isinstance(body, Mapping):
+        body = {}
+
     schemas_root = getattr(model, "schemas", None)
     if not schemas_root:
-        return body
+        return dict(body)
     alias_ns = getattr(schemas_root, alias, None)
     if not alias_ns:
-        return body
+        return dict(body)
 
     in_model = getattr(alias_ns, "in_", None)
     if target in {"list", "clear"}:
@@ -173,8 +185,8 @@ def _validate_body(
                 alias,
                 exc_info=True,
             )
-            return body
-    return body
+            return dict(body)
+    return dict(body)
 
 
 def _validate_query(
@@ -270,6 +282,17 @@ def _response_model_for(sp: OpSpec, model: type) -> Any | None:
     return out_model
 
 
+def _request_model_for(sp: OpSpec, model: type) -> Any | None:
+    """Fetch the request model for docs and validation."""
+    alias_ns = getattr(
+        getattr(model, "schemas", None) or SimpleNamespace(), sp.alias, None
+    )
+    in_model = getattr(alias_ns, "in_", None)
+    if sp.target in {"list", "clear"}:
+        in_model = getattr(alias_ns, "list", in_model)
+    return in_model
+
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Endpoint factories
 # ───────────────────────────────────────────────────────────────────────────────
@@ -285,10 +308,15 @@ def _make_collection_endpoint(
     alias = sp.alias
     target = sp.target
 
+    body_model = _request_model_for(sp, model)
+    body_annotation = (
+        (body_model | None) if body_model is not None else (Mapping[str, Any] | None)
+    )
+
     async def _endpoint(
         request: Request,
         db: Any = Depends(db_dep),
-        body: Mapping[str, Any] | None = Body(default=None),
+        body=Body(default=None),
     ):
         # Build payload from query for list/clear; otherwise from body
         if target in {"list", "clear"}:
@@ -322,6 +350,7 @@ def _make_collection_endpoint(
     _endpoint.__doc__ = (
         f"REST collection endpoint for {model.__name__}.{alias} ({target})"
     )
+    _endpoint.__annotations__["body"] = body_annotation
     return _endpoint
 
 
@@ -337,11 +366,16 @@ def _make_member_endpoint(
     target = sp.target
     real_pk = _pk_name(model)
 
+    body_model = _request_model_for(sp, model)
+    body_annotation = (
+        (body_model | None) if body_model is not None else (Mapping[str, Any] | None)
+    )
+
     async def _endpoint(
         item_id: Any,
         request: Request,
         db: Any = Depends(db_dep),
-        body: Mapping[str, Any] | None = Body(default=None),
+        body=Body(default=None),
     ):
         payload = _validate_body(model, alias, target, body)
 
@@ -368,6 +402,7 @@ def _make_member_endpoint(
     _endpoint.__name__ = f"rest_{model.__name__}_{alias}_member"
     _endpoint.__qualname__ = _endpoint.__name__
     _endpoint.__doc__ = f"REST member endpoint for {model.__name__}.{alias} ({target})"
+    _endpoint.__annotations__["body"] = body_annotation
     return _endpoint
 
 
