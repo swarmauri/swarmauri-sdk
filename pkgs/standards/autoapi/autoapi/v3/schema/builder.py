@@ -212,7 +212,7 @@ def _is_required(col: Any, verb: str) -> bool:
 # ───────────────────────────────────────────────────────────────────────────────
 
 
-def _schema(
+def _build_schema(
     orm_cls: type,
     *,
     name: str | None = None,
@@ -370,13 +370,13 @@ def _schema(
     return schema_cls
 
 
-def create_list_schema(model: type) -> Type[BaseModel]:
+def _build_list_params(model: type) -> Type[BaseModel]:
     """
     Create a list/filter schema for the given model (forbid extra keys).
     Includes: skip>=0, limit>=10, plus nullable scalar filters for non-PK columns.
     """
     tab = model.__name__
-    logger.debug("schema: create_list_schema for %s", tab)
+    logger.debug("schema: build_list_params for %s", tab)
 
     base = dict(
         skip=(int | None, Field(None, ge=0)),
@@ -392,7 +392,7 @@ def create_list_schema(model: type) -> Type[BaseModel]:
             f"{tab}ListParams", __config__=ConfigDict(extra="forbid"), **base
         )  # type: ignore[arg-type]
         logger.debug(
-            "schema: create_list_schema generated %s (no columns)", schema.__name__
+            "schema: build_list_params generated %s (no columns)", schema.__name__
         )
         return schema
 
@@ -416,7 +416,7 @@ def create_list_schema(model: type) -> Type[BaseModel]:
         **base,  # type: ignore[arg-type]
         **cols,  # type: ignore[arg-type]
     )
-    logger.debug("schema: create_list_schema generated %s", schema.__name__)
+    logger.debug("schema: build_list_params generated %s", schema.__name__)
     return schema
 
 
@@ -450,8 +450,8 @@ def _strip_parent_fields(base: Type[BaseModel], *, drop: Set[str]) -> Type[BaseM
 
 
 __all__ = [
-    "_schema",
-    "create_list_schema",
+    "_build_schema",
+    "_build_list_params",
     "_strip_parent_fields",
     "_merge_request_extras",
     "_merge_response_extras",

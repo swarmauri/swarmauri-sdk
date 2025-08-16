@@ -1,5 +1,5 @@
 # autoapi/v3/schema/__init__.py
-from .builder import _schema, create_list_schema
+from .builder import _build_schema, _build_list_params
 from .col_info import (
     VALID_KEYS,
     VALID_VERBS,
@@ -11,8 +11,8 @@ from .col_info import (
 )
 
 __all__ = [
-    "_schema",
-    "create_list_schema",
+    "_build_schema",
+    "_build_list_params",
     "VALID_KEYS",
     "VALID_VERBS",
     "WRITE_VERBS",
