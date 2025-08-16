@@ -55,7 +55,7 @@ _Key = Tuple[str, str]  # (alias, target)
 
 
 # ───────────────────────────────────────────────────────────────────────────────
-# Helpers: resource names, pk, schemas, phases, IO shaping
+# Helpers: resource names, primary keys, schemas, phases, IO shaping
 # ───────────────────────────────────────────────────────────────────────────────
 
 
@@ -227,11 +227,11 @@ def _default_path_suffix(sp: OpSpec) -> str | None:
 
 
 def _path_for_spec(
-    model: type, sp: OpSpec, *, resource: str, pk_param: str = "pk"
+    model: type, sp: OpSpec, *, resource: str, pk_param: str = "item_id"
 ) -> Tuple[str, bool]:
     """
-    Return (path, is_member). We use a generic {pk} placeholder for all member ops
-    and remap it to the model's real PK name inside ctx.path_params.
+    Return (path, is_member). We use a generic {item_id} placeholder for all member ops
+    and remap it to the model's real PK name inside ``ctx.path_params``.
     """
     suffix = sp.path_suffix or _default_path_suffix(sp) or ""
     if not suffix.startswith("/") and suffix:
@@ -314,14 +314,14 @@ def _make_collection_endpoint(
 
 
 def _make_member_endpoint(
-    model: type, sp: OpSpec, *, resource: str, pk_param: str = "pk"
+    model: type, sp: OpSpec, *, resource: str, pk_param: str = "item_id"
 ) -> Callable[..., Awaitable[Any]]:
     alias = sp.alias
     target = sp.target
     real_pk = _pk_name(model)
 
     async def _endpoint(
-        pk: Any,  # path param captured as a generic 'pk'
+        item_id: Any,
         request: Request,
         db: Any,
         body: Mapping[str, Any] | None = Body(default=None),
@@ -332,8 +332,8 @@ def _make_member_endpoint(
             "request": request,
             "db": db,
             "payload": payload,
-            # map generic pk name to real PK column name for handler resolution
-            "path_params": {real_pk: pk, "pk": pk},
+            # map generic item_id to real PK column name for handler resolution
+            "path_params": {real_pk: item_id, pk_param: item_id},
             "env": SimpleNamespace(
                 method=alias, params=payload, target=target, model=model
             ),
@@ -362,7 +362,7 @@ def _make_member_endpoint(
 def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
     resource = _resource_name(model)
     router = APIRouter()
-    pk_param = "pk"
+    pk_param = "item_id"
 
     for sp in specs:
         if not sp.expose_routes:
