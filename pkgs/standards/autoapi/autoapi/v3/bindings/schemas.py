@@ -227,13 +227,16 @@ def build_and_attach(
         ns = _ensure_alias_namespace(model, sp.alias)
         shapes = _schemas_for_spec(model, sp)
 
-        # Attach; allow None to signal "no body" or "raw" response
-        if "in_" in shapes:
-            setattr(ns, "in_", shapes["in_"])
-        if "out" in shapes:
-            setattr(ns, "out", shapes["out"])
-        if "list" in shapes:
-            setattr(ns, "list", shapes["list"])
+        # Attach only non-null schemas so the namespace reflects available shapes
+        in_schema = shapes.get("in_")
+        if in_schema is not None:
+            setattr(ns, "in_", in_schema)
+        out_schema = shapes.get("out")
+        if out_schema is not None:
+            setattr(ns, "out", out_schema)
+        list_schema = shapes.get("list")
+        if list_schema is not None:
+            setattr(ns, "list", list_schema)
 
         logger.debug(
             "schemas: %s.%s -> in=%s out=%s list=%s",

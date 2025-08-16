@@ -1,0 +1,28 @@
+from autoapi.v3.bindings.model import bind
+from autoapi.v3.tables import Base
+from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.types import Column, String
+
+
+class Gadget(Base, GUIDPk):
+    __tablename__ = "gadgets"
+    name = Column(String, nullable=False)
+
+
+def test_bind_generates_request_and_response_schemas():
+    bind(Gadget)
+
+    # create/update/replace/delete should have request and response schemas
+    for alias in ("create", "update", "replace", "delete"):
+        ns = getattr(Gadget.schemas, alias)
+        assert getattr(ns, "in_", None) is not None
+        assert getattr(ns, "out", None) is not None
+
+    # list should expose list params and response schema
+    list_ns = Gadget.schemas.list
+    assert getattr(list_ns, "list", None) is not None
+    assert getattr(list_ns, "out", None) is not None
+
+    # read should expose a response schema
+    read_ns = Gadget.schemas.read
+    assert getattr(read_ns, "out", None) is not None
