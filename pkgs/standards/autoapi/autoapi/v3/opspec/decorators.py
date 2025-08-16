@@ -91,7 +91,7 @@ def op_alias(
 
     Produced surface
     ----------------
-    • REST:   PATCH /user/{pk}/patch     (body validated with UpdateIn)
+    • REST:   PATCH /user/{item_id}/patch     (body validated with UpdateIn)
     • RPC:    method "User.patch"        (params validated with UpdateIn)
     • Phases: same as canonical "update" (PRE_HANDLER/HANDLER/POST_HANDLER, START_TX/END_TX, etc.)
     """
@@ -178,7 +178,7 @@ def op(
     adapt calls so these kwargs are available:
 
         async def myop(self, *, ctx, db, request, payload):
-            # ctx["path_params"] holds {<real_pk_name>: value, "pk": value} for member ops
+            # ctx["path_params"] holds {<real_pk_name>: value, "item_id": value} for member ops
             # payload is already validated (if request_model was provided)
             ...
 
@@ -189,8 +189,8 @@ def op(
         • RPC:    method "<Model>.<alias>", params = { ...payload... }
 
     For member ops (requires PK):
-        • REST:   /<resource>/{pk}/<path_suffix?>
-        • RPC:    method "<Model>.<alias>", params = {"pk": <id>, ...payload...}
+        • REST:   /<resource>/{item_id}/<path_suffix?>
+        • RPC:    method "<Model>.<alias>", params = {"item_id": <id>, ...payload...}
 
     Examples
     --------
@@ -220,18 +220,18 @@ def op(
                 rbac_guard_op="update",    # authorize like "update"
             )
             async def rotate(self, *, ctx, db, request, payload):
-                pk = ctx["path_params"]["id"]   # or your real PK name
+                item_id = ctx["path_params"]["id"]   # or your real PK name
                 deg = payload["degrees"]
                 # ... do stuff; may flush; commit happens in END_TX if persist != "skip"
                 return {"status": "ok", "applied": deg}
 
     JSON-RPC call
     -------------
-        # member op → include pk inside params
+        # member op → include item_id inside params
         {
           "jsonrpc": "2.0",
           "method":  "Wheel.rotate",
-          "params":  {"pk": 123, "degrees": 90},
+          "params":  {"item_id": 123, "degrees": 90},
           "id": 1
         }
 
