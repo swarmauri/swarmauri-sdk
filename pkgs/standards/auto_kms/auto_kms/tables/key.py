@@ -10,7 +10,7 @@ from swarmauri_core.crypto.types import AEADCiphertext, WrappedKey
 
 
 class Key(Base, GUIDPk, Timestamped, HookProvider):
-    __tablename__ = "Key"
+    __tablename__ = "keys"
 
     name = Column(String(120), nullable=False, index=True)
     algorithm = Column(SAEnum("AES256_GCM", name="KeyAlg"), nullable=False)
