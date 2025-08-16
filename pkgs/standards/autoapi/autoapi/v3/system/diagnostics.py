@@ -215,7 +215,7 @@ def mount_diagnostics(
         "/healthz",
         _build_healthz_endpoint(dep),
         methods=["GET"],
-        name="autoapi.healthz",
+        name="healthz",
         tags=["system"],
         summary="Health",
     )
@@ -223,7 +223,7 @@ def mount_diagnostics(
         "/methodz",
         _build_methodz_endpoint(api),
         methods=["GET"],
-        name="autoapi.methodz",
+        name="methodz",
         tags=["system"],
         summary="Methods",
     )
@@ -231,7 +231,7 @@ def mount_diagnostics(
         "/hookz",
         _build_hookz_endpoint(api),
         methods=["GET"],
-        name="autoapi.hookz",
+        name="hookz",
         tags=["system"],
         summary="Hooks",
     )
