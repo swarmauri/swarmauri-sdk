@@ -127,7 +127,12 @@ def _resolve_ident(model: type, ctx: Mapping[str, Any]) -> Any:
 # ───────────────────────────────────────────────────────────────────────────────
 
 
-async def _call_list_core(fn: Callable[..., Any], model: type, payload: Mapping[str, Any], ctx: Mapping[str, Any]):
+async def _call_list_core(
+    fn: Callable[..., Any],
+    model: type,
+    payload: Mapping[str, Any],
+    ctx: Mapping[str, Any],
+):
     """
     Call `_core.list` robustly across v2/v3 shapes, but ALWAYS include `db`.
 
@@ -149,7 +154,9 @@ async def _call_list_core(fn: Callable[..., Any], model: type, payload: Mapping[
     # Candidate calls (ALL include db):
     candidates: list[tuple[tuple, dict]] = []
 
-    def add_candidate(use_pos_filters: bool, use_pos_db: bool, with_req: bool, with_pag: bool):
+    def add_candidate(
+        use_pos_filters: bool, use_pos_db: bool, with_req: bool, with_pag: bool
+    ):
         args: tuple = ()
         kwargs: dict = {}
         if use_pos_filters:
@@ -172,22 +179,36 @@ async def _call_list_core(fn: Callable[..., Any], model: type, payload: Mapping[
         candidates.append((args, kwargs))
 
     # Try richer shapes first, then progressively simpler — but always include db.
-    add_candidate(use_pos_filters=False, use_pos_db=False, with_req=True,  with_pag=True)   # kw filters + kw db
-    add_candidate(use_pos_filters=True,  use_pos_db=False, with_req=True,  with_pag=True)   # pos filters + kw db
-    add_candidate(use_pos_filters=True,  use_pos_db=True,  with_req=True,  with_pag=True)   # pos filters + pos db
+    add_candidate(
+        use_pos_filters=False, use_pos_db=False, with_req=True, with_pag=True
+    )  # kw filters + kw db
+    add_candidate(
+        use_pos_filters=True, use_pos_db=False, with_req=True, with_pag=True
+    )  # pos filters + kw db
+    add_candidate(
+        use_pos_filters=True, use_pos_db=True, with_req=True, with_pag=True
+    )  # pos filters + pos db
 
-    add_candidate(use_pos_filters=False, use_pos_db=False, with_req=False, with_pag=True)
-    add_candidate(use_pos_filters=True,  use_pos_db=False, with_req=False, with_pag=True)
-    add_candidate(use_pos_filters=True,  use_pos_db=True,  with_req=False, with_pag=True)
+    add_candidate(
+        use_pos_filters=False, use_pos_db=False, with_req=False, with_pag=True
+    )
+    add_candidate(use_pos_filters=True, use_pos_db=False, with_req=False, with_pag=True)
+    add_candidate(use_pos_filters=True, use_pos_db=True, with_req=False, with_pag=True)
 
-    add_candidate(use_pos_filters=False, use_pos_db=False, with_req=True,  with_pag=False)
-    add_candidate(use_pos_filters=True,  use_pos_db=False, with_req=True,  with_pag=False)
-    add_candidate(use_pos_filters=True,  use_pos_db=True,  with_req=True,  with_pag=False)
+    add_candidate(
+        use_pos_filters=False, use_pos_db=False, with_req=True, with_pag=False
+    )
+    add_candidate(use_pos_filters=True, use_pos_db=False, with_req=True, with_pag=False)
+    add_candidate(use_pos_filters=True, use_pos_db=True, with_req=True, with_pag=False)
 
     # Minimal (still with db)
-    add_candidate(use_pos_filters=False, use_pos_db=False, with_req=False, with_pag=False)
-    add_candidate(use_pos_filters=True,  use_pos_db=False, with_req=False, with_pag=False)
-    add_candidate(use_pos_filters=True,  use_pos_db=True,  with_req=False, with_pag=False)
+    add_candidate(
+        use_pos_filters=False, use_pos_db=False, with_req=False, with_pag=False
+    )
+    add_candidate(
+        use_pos_filters=True, use_pos_db=False, with_req=False, with_pag=False
+    )
+    add_candidate(use_pos_filters=True, use_pos_db=True, with_req=False, with_pag=False)
 
     last_err: Optional[BaseException] = None
     for args, kwargs in candidates:
@@ -233,14 +254,7 @@ def _wrap_core(model: type, target: str) -> StepFn:
             return await _core.delete(model, ident, db=db)
 
         if target == "list":
-            # payload may contain skip/limit and filters
-            skip = payload.get("skip")
-            limit = payload.get("limit")
-            # Only pass actual filters to core (skip/limit are separate)
-            filters = {k: v for k, v in payload.items() if k not in ("skip", "limit")}
-            filt_arg = filters or None
-            return await _core.list(model, filt_arg, skip=skip, limit=limit, db=db)
-            
+            return await _call_list_core(_core.list, model, payload, ctx)
 
         if target == "clear":
             # No request body for clear; align with REST semantics.

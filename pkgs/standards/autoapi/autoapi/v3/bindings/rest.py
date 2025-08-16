@@ -391,6 +391,7 @@ def _request_model_for(sp: OpSpec, model: type) -> Any | None:
 # Query param dependency (so OpenAPI shows list filters)
 # ───────────────────────────────────────────────────────────────────────────────
 
+
 def _strip_optional(t: Any) -> Any:
     """If annotation is Optional[T] (i.e., Union[T, None]), return T; else return the input."""
     origin = _get_origin(t)
@@ -406,13 +407,17 @@ def _make_list_query_dep(model: type, alias: str):
     schemas.<alias>.in_ fields, so FastAPI documents them in OpenAPI. The dep
     returns raw user-supplied values; we validate later in _validate_query().
     """
-    alias_ns = getattr(getattr(model, "schemas", None) or SimpleNamespace(), alias, None)
+    alias_ns = getattr(
+        getattr(model, "schemas", None) or SimpleNamespace(), alias, None
+    )
     in_model = getattr(alias_ns, "in_", None)
 
     # If no model, return raw query as-is
     if not (in_model and inspect.isclass(in_model) and issubclass(in_model, BaseModel)):
+
         async def _dep(request: Request) -> Dict[str, Any]:
             return dict(request.query_params)
+
         _dep.__name__ = f"list_params_{model.__name__}_{alias}"
         return _dep
 
@@ -445,10 +450,10 @@ def _make_list_query_dep(model: type, alias: str):
         origin = _get_origin(base)
         if origin in (list, tuple, set):
             inner = (_get_args(base) or (str,))[0]
-            annotation = list[inner]  # type: ignore[index]
+            annotation = list[inner] | None  # type: ignore[index]
             default_q = Query(None, description=getattr(f, "description", None))
         else:
-            annotation = base
+            annotation = base | None
             default_q = Query(None, description=getattr(f, "description", None))
         params.append(
             inspect.Parameter(
@@ -469,6 +474,7 @@ def _make_list_query_dep(model: type, alias: str):
 # ───────────────────────────────────────────────────────────────────────────────
 # Optionalize list.in_ model (hardening against bad defaults)
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 def _optionalize_list_in_model(in_model: type[BaseModel]) -> type[BaseModel]:
     """
@@ -519,7 +525,6 @@ def _make_collection_endpoint(
 
     # --- No body on GET list / DELETE clear ---
     if target in {"list", "clear"}:
-
         if target == "list":
             list_dep = _make_list_query_dep(model, alias)
 
@@ -547,6 +552,7 @@ def _make_collection_endpoint(
                 )
                 return _serialize_output(model, alias, target, sp, result)
         else:
+
             async def _endpoint(
                 request: Request,
                 db: Any = Depends(db_dep),
