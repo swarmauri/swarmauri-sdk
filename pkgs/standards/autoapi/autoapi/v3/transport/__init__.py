@@ -55,7 +55,7 @@ def mount_jsonrpc(
         ``("system",)``.
     """
     router = build_jsonrpc_router(
-        api, get_db=get_db, get_async_db=get_async_db, tags=tags, name="rpc", summary="RPC Dispatcher"
+        api, get_db=get_db, get_async_db=get_async_db, tags=tags,
     )
     include_router = getattr(app, "include_router", None)
     if callable(include_router):

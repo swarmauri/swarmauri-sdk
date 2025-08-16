@@ -269,7 +269,7 @@ def build_jsonrpc_router(
     *,
     get_db: Optional[Callable[..., Any]] = None,
     get_async_db: Optional[Callable[..., Awaitable[Any]]] = None,
-    tags: Sequence[str] | None = ("system",),
+    tags: Sequence[str] | None = ("rpc",),
 ) -> APIRouter:
     """
     Build and return an APIRouter that serves a single POST endpoint at "/".
@@ -408,8 +408,9 @@ def build_jsonrpc_router(
         path="/",
         endpoint=_endpoint,
         methods=["POST"],
-        name="autoapi.jsonrpc",
+        name="jsonrpc",
         tags=list(tags) if tags else None,
+        summary="JSONRPC"
         # extra router deps already applied via APIRouter(dependencies=...)
     )
     return router
