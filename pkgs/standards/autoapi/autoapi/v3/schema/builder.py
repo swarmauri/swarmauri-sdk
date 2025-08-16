@@ -30,6 +30,8 @@ from typing import (
 
 from pydantic import BaseModel, ConfigDict, Field, create_model
 
+from .utils import namely_model
+
 try:
     # Optional: validate column meta (if available in your tree)
     from ..info_schema import check as _info_check  # type: ignore
@@ -365,6 +367,11 @@ def _build_schema(
 
     schema_cls = create_model(model_name, __config__=cfg, **fields)  # type: ignore[arg-type]
     schema_cls.model_rebuild(force=True)
+    schema_cls = namely_model(
+        schema_cls,
+        name=model_name,
+        doc=f"AutoAPI v3 {orm_cls.__name__} {verb} schema",
+    )
     _SchemaCache[cache_key] = schema_cls
     logger.debug("schema: created %s with %d fields", model_name, len(fields))
     return schema_cls
@@ -391,6 +398,11 @@ def _build_list_params(model: type) -> Type[BaseModel]:
         schema = create_model(
             f"{tab}ListParams", __config__=ConfigDict(extra="forbid"), **base
         )  # type: ignore[arg-type]
+        schema = namely_model(
+            schema,
+            name=f"{tab}ListParams",
+            doc=f"List parameters for {tab}",
+        )
         logger.debug(
             "schema: build_list_params generated %s (no columns)", schema.__name__
         )
@@ -415,6 +427,11 @@ def _build_list_params(model: type) -> Type[BaseModel]:
         __config__=ConfigDict(extra="forbid"),
         **base,  # type: ignore[arg-type]
         **cols,  # type: ignore[arg-type]
+    )
+    schema = namely_model(
+        schema,
+        name=f"{tab}ListParams",
+        doc=f"List parameters for {tab}",
     )
     logger.debug("schema: build_list_params generated %s", schema.__name__)
     return schema
