@@ -199,12 +199,18 @@ def _default_schemas_for_spec(model: type, sp: OpSpec) -> Dict[str, Optional[Typ
         result["out"] = read_schema
 
     elif target == "update":
-        result["in_"] = _build_schema(model, verb="update")
-        result["out"] = read_schema
+        pk_name, _ = _pk_info(model)
+        result["in_"] = result["in_"] or _build_schema(
+            model, verb="update", exclude={pk_name}
+        )
+        result["out"] = result["out"] or read_schema
 
     elif target == "replace":
-        result["in_"] = _build_schema(model, verb="replace")
-        result["out"] = read_schema
+        pk_name, _ = _pk_info(model)
+        result["in_"] = result["in_"] or _build_schema(
+            model, verb="replace", exclude={pk_name}
+        )
+        result["out"] = result["out"] or read_schema
 
     elif target == "delete":
         result["in_"] = _build_schema(model, verb="delete")

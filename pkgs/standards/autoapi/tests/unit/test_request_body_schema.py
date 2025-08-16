@@ -27,3 +27,19 @@ def test_request_body_uses_schema_model():
 
     widget_schema = spec["components"]["schemas"]["WidgetCreate"]
     assert "name" in widget_schema.get("properties", {})
+
+
+def test_replace_request_body_excludes_pk():
+    class Gadget(Base, GUIDPk):
+        __tablename__ = "gadget_replace_schema"
+        name = Column(String, nullable=False)
+
+    sp = OpSpec(alias="replace", target="replace")
+    router = _build_router(Gadget, [sp])
+    app = FastAPI()
+    app.include_router(router)
+    spec = app.openapi()
+
+    gadget_schema = spec["components"]["schemas"]["GadgetReplace"]
+    assert "id" not in gadget_schema.get("properties", {})
+    assert "id" not in gadget_schema.get("required", [])
