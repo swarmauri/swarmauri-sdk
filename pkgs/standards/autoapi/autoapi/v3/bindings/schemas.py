@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field, create_model
 from ..opspec import OpSpec
 from ..opspec.types import SchemaRef, SchemaArg  # lazy-capable schema args (runtime: we restrict forms)
 from ..schema import _build_schema, _build_list_params, namely_model
+from ..decorators import collect_decorated_schemas  # ← seed @schema_ctx declarations
 
 logger = logging.getLogger(__name__)
 
@@ -121,7 +122,7 @@ def _resolve_schema_arg(model: type, arg: SchemaArg) -> Optional[Type[BaseModel]
     Unsupported (will raise):
       • direct Pydantic model classes
       • callables/thunks
-      • any other strings (including 'list_out')
+      • any other strings
     """
     if arg is None:
         return None
@@ -262,11 +263,9 @@ def build_and_attach(
         model.schemas.<alias>.out   -> response model (or None)
 
     Two-pass strategy:
-      1) Allocate alias namespaces and attach DEFAULT schemas for all specs
-         (ignoring per-spec overrides). Canonical ops get defaults; custom stays raw.
-      2) Resolve and apply overrides from OpSpec.request_model / response_model:
-           • SchemaRef / "alias.in"|"alias.out" → set that model
-           • "raw" or None (when supplied as an override) → set to None
+      0) Seed namespaces from @schema_ctx declarations (so SchemaRef targets exist)
+      1) Attach DEFAULT schemas for canonical ops (custom stays raw)
+      2) Apply per-spec overrides (SchemaRef / 'alias.in'|'alias.out' / 'raw' / None)
 
     If `only_keys` is provided, overrides are limited to those (alias,target) pairs.
     Defaults are still ensured for all specs so cross-op SchemaRefs resolve reliably
@@ -277,7 +276,16 @@ def build_and_attach(
 
     wanted = set(only_keys or ())
 
-    # Pass 0: ensure a namespace per alias
+    # Pass 0: attach schemas declared via @schema_ctx
+    declared = collect_decorated_schemas(model)  # {alias: {"in": cls, "out": cls}}
+    for alias, kinds in (declared or {}).items():
+        ns = _ensure_alias_namespace(model, alias)
+        if "in" in kinds:
+            setattr(ns, "in_", kinds["in"])
+        if "out" in kinds:
+            setattr(ns, "out", kinds["out"])
+
+    # Ensure a namespace per op alias (even if empty)
     for sp in specs:
         _ = _ensure_alias_namespace(model, sp.alias)
 

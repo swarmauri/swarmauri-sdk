@@ -7,21 +7,38 @@ register RPC & REST, and (optionally) mount JSON-RPC and diagnostics.
 
 Quick start:
     from autoapi.v3 import include_model, build_jsonrpc_router, mount_diagnostics
-    from autoapi.v3 import OpSpec, hook_ctx, op_ctx, alias_ctx
+    from autoapi.v3 import OpSpec, hook_ctx, op_ctx, alias_ctx, schema_ctx, SchemaRef
 
     include_model(api, User, app=fastapi_app)
     app.include_router(build_jsonrpc_router(api), prefix="/rpc")
     app.include_router(mount_diagnostics(api), prefix="/system")
+
+    # Example: custom op using an existing schema
+    @op_ctx(alias="search", target="custom", arity="collection",
+            request_schema=SchemaRef("Search", "in"),
+            response_schema=SchemaRef("Search", "out"))
+    def search(cls, ctx):
+        ...
 """
 
 from __future__ import annotations
 
 # ── OpSpec (source of truth) ───────────────────────────────────────────────────
-from .opspec import OpSpec, get_registry
-from .opspec.types import PHASES, HookPhase
+from .opspec import (
+    OpSpec,
+    get_registry,
+    # types and helpers re-exported from opspec
+    TargetOp,
+    Arity,
+    PersistPolicy,
+    HookPhase,
+    PHASES,
+    SchemaRef,
+    SchemaArg,
+)
 
 # ── Ctx-only decorators (new surface; replaces legacy opspec.decorators) ───────
-from .decorators import alias_ctx, op_ctx, hook_ctx
+from .decorators import alias_ctx, op_ctx, hook_ctx, schema_ctx, alias
 
 # ── Bindings (model + API orchestration) ───────────────────────────────────────
 from .bindings import (
@@ -64,12 +81,20 @@ __all__ += [
     # OpSpec core
     "OpSpec",
     "get_registry",
+    # types
+    "TargetOp",
+    "Arity",
+    "PersistPolicy",
     "PHASES",
     "HookPhase",
+    "SchemaRef",
+    "SchemaArg",
     # Ctx-only decorators
     "alias_ctx",
     "op_ctx",
     "hook_ctx",
+    "schema_ctx",
+    "alias",
     # Bindings
     "bind",
     "rebind",

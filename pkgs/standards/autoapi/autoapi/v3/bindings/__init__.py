@@ -12,10 +12,13 @@ Model binding:
 
 Per-concern builders:
   - build_schemas(model, specs, *, only_keys=None)
+      • Seeds schemas declared via @schema_ctx before computing defaults.
+      • Supports overrides via SchemaRef("alias","in|out"), "alias.in"/"alias.out", or "raw".
   - build_hooks(model, specs, *, only_keys=None)
   - build_handlers(model, specs, *, only_keys=None)
   - register_rpc(model, specs, *, only_keys=None)
   - build_rest(model, specs, *, only_keys=None)
+      • Serializes responses only when a response schema exists; otherwise returns raw.
 
 API integration:
   - include_model(api, model, *, app=None, prefix=None, mount_router=True)
