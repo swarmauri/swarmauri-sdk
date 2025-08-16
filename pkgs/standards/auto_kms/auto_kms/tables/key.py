@@ -12,6 +12,7 @@ from swarmauri_core.crypto.types import AEADCiphertext, WrappedKey
 
 class Key(Base, GUIDPk, Timestamped, HookProvider):
     __tablename__ = "keys"
+    __resource__ = "key"
 
     name = Column(String(120), nullable=False, index=True)
     algorithm = Column(SAEnum("AES256_GCM", name="KeyAlg"), nullable=False)
