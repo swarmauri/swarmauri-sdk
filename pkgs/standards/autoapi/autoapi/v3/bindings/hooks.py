@@ -83,9 +83,23 @@ def _ctx_payload(ctx: Mapping[str, Any]) -> Mapping[str, Any]:
 
 
 def _is_async_db(db: Any) -> bool:
-    return hasattr(db, "run_sync") or inspect.iscoroutinefunction(
-        getattr(db, "commit", None)
-    )
+    """Return True when the DB exposes async transaction methods.
+
+    Some database implementations provide an async ``begin`` coroutine while
+    keeping ``commit`` synchronous. The previous implementation only inspected
+    ``commit`` which meant such databases were treated as synchronous and the
+    coroutine returned from ``begin`` went unawaited. This prevented the
+    transaction from ever starting and later caused ``db.commit()`` to be
+    blocked during ``END_TX``. By checking both ``begin`` and ``commit`` for
+    coroutine functions we correctly await ``begin`` whenever required.
+    """
+
+    if hasattr(db, "run_sync"):
+        return True
+    for attr in ("commit", "begin"):
+        if inspect.iscoroutinefunction(getattr(db, attr, None)):
+            return True
+    return False
 
 
 # ───────────────────────────────────────────────────────────────────────────────
@@ -101,10 +115,9 @@ def _default_start_tx() -> StepFn:
         begin = getattr(db, "begin", None)
         if begin is None:
             return
-        if _is_async_db(db):
-            await begin()  # type: ignore[misc]
-        else:
-            begin()
+        rv = begin()
+        if inspect.isawaitable(rv):
+            await rv  # type: ignore[misc]
 
     _step.__name__ = "start_tx"
     _step.__qualname__ = "start_tx"
@@ -119,10 +132,9 @@ def _default_end_tx() -> StepFn:
         commit = getattr(db, "commit", None)
         if commit is None:
             return
-        if _is_async_db(db):
-            await commit()  # type: ignore[misc]
-        else:
-            commit()
+        rv = commit()
+        if inspect.isawaitable(rv):
+            await rv  # type: ignore[misc]
 
     _step.__name__ = "end_tx"
     _step.__qualname__ = "end_tx"

@@ -14,6 +14,7 @@ from typing import (
     Protocol,
     runtime_checkable,
 )
+import inspect
 import logging
 
 try:
@@ -93,8 +94,14 @@ class _Ctx(dict):
 
 
 def _is_async_db(db: Any) -> bool:
-    # AsyncSession exposes run_sync/commit/flush as async
-    return isinstance(db, AsyncSession) or hasattr(db, "run_sync")
+    """Detect DB interfaces that require ``await`` for transactional methods."""
+
+    if isinstance(db, AsyncSession) or hasattr(db, "run_sync"):
+        return True
+    for attr in ("commit", "begin"):
+        if inspect.iscoroutinefunction(getattr(db, attr, None)):
+            return True
+    return False
 
 
 def _bool_call(meth: Any) -> bool:
