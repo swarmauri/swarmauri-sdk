@@ -271,11 +271,14 @@ def include_models(
 ) -> Dict[str, Any]:
     """
     Convenience helper to include multiple models.
-    Each model is mounted at `{base_prefix}/{resource}` when base_prefix is provided.
+
+    If ``base_prefix`` is provided, each model's router is mounted under that
+    prefix.  The router already includes its own ``/{resource}`` segment, so we
+    avoid appending it again here.
     """
     results: Dict[str, Any] = {}
     for mdl in models:
-        px = (base_prefix.rstrip("/") if base_prefix else "") + _default_prefix(mdl)
+        px = base_prefix.rstrip("/") if base_prefix else None
         _, router = include_model(
             api, mdl, app=app, prefix=px, mount_router=mount_router
         )
