@@ -2,16 +2,16 @@ from __future__ import annotations
 
 import uuid
 
-from autoapi.v2.types import (
+from autoapi.v3.types import (
     Boolean,
     Column,
     String,
     UniqueConstraint,
     HookProvider,
+    relationship,
 )
-from autoapi.v2.types import relationship
-from autoapi.v2.tables import Base
-from autoapi.v2.mixins import GUIDPk, Timestamped, UserMixin
+from autoapi.v3.tables import Base
+from autoapi.v3.mixins import GUIDPk, Timestamped, UserMixin
 from peagen.orm.mixins import RepositoryRefMixin
 
 
@@ -98,26 +98,24 @@ class DeployKey(Base, GUIDPk, RepositoryRefMixin, Timestamped, HookProvider):
 
     @classmethod
     def __autoapi_register_hooks__(cls, api) -> None:
-        from autoapi.v2 import Phase, get_schema
+        from autoapi.v3 import _schema
 
-        cls._SCreate = get_schema(cls, "create")
-        cls._SRead = get_schema(cls, "read")
-        cls._SDelete = get_schema(cls, "delete")
-        api.register_hook(Phase.PRE_TX_BEGIN, model="DeployKey", op="create")(
+        cls._SCreate = _schema(cls, verb="create")
+        cls._SRead = _schema(cls, verb="read")
+        cls._SDelete = _schema(cls, verb="delete")
+        api.register_hook("PRE_TX_BEGIN", model="DeployKey", op="create")(
             cls._pre_create
         )
-        api.register_hook(Phase.PRE_TX_BEGIN, model="DeployKey", op="delete")(
+        api.register_hook("PRE_TX_BEGIN", model="DeployKey", op="delete")(
             cls._pre_delete
         )
-        api.register_hook(Phase.POST_COMMIT, model="DeployKey", op="create")(
+        api.register_hook("POST_COMMIT", model="DeployKey", op="create")(
             cls._post_create
         )
-        api.register_hook(Phase.POST_COMMIT, model="DeployKey", op="delete")(
+        api.register_hook("POST_COMMIT", model="DeployKey", op="delete")(
             cls._post_delete
         )
-        api.register_hook(Phase.POST_HANDLER, model="DeployKey", op="read")(
-            cls._post_read
-        )
+        api.register_hook("POST_HANDLER", model="DeployKey", op="read")(cls._post_read)
 
 
 __all__ = ["PublicKey", "GPGKey", "DeployKey"]

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from autoapi.v2.types import (
+from autoapi.v3.types import (
     Column,
     String,
     Text,
@@ -10,18 +10,20 @@ from autoapi.v2.types import (
     PgUUID,
     relationship,
 )
-from autoapi.v2.tables import Base
-from autoapi.v2.mixins import GUIDPk, Timestamped, TenantBound, Ownable
+from autoapi.v3.tables import Base
+from autoapi.v3.mixins import GUIDPk, Timestamped, TenantBound, Ownable
 
-from .tenants import Tenant
 from .users import User
 
 
 class ProjectPayload(Base, GUIDPk, Timestamped, TenantBound, Ownable):
     __tablename__ = "project_payloads"
 
-    __table_args__= (UniqueConstraint("tenant_id", "name"),{"schema": "peagen"},)
-    
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "name"),
+        {"schema": "peagen"},
+    )
+
     doe_spec_id = Column(
         PgUUID(as_uuid=True),
         ForeignKey("peagen.doe_specs.id", ondelete="SET NULL"),

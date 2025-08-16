@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from autoapi.v2.types import (
+from autoapi.v3.types import (
     Column,
     String,
     UniqueConstraint,
@@ -8,8 +8,8 @@ from autoapi.v2.types import (
     HookProvider,
     relationship,
 )
-from autoapi.v2.tables import Base
-from autoapi.v2.mixins import GUIDPk, OrgMixin, Timestamped, UserMixin
+from autoapi.v3.tables import Base
+from autoapi.v3.mixins import GUIDPk, OrgMixin, Timestamped, UserMixin
 from peagen.orm.mixins import RepositoryMixin
 
 
@@ -68,13 +68,13 @@ class RepoSecret(
 
     @classmethod
     def __autoapi_register_hooks__(cls, api) -> None:
-        from autoapi.v2 import Phase, get_schema
+        from autoapi.v3 import _schema
 
-        cls._SRead = get_schema(cls, "read")
-        api.register_hook(Phase.POST_COMMIT, model="RepoSecret", op="create")(
+        cls._SRead = _schema(cls, verb="read")
+        api.register_hook("POST_COMMIT", model="RepoSecret", op="create")(
             cls._post_create
         )
-        api.register_hook(Phase.POST_COMMIT, model="RepoSecret", op="delete")(
+        api.register_hook("POST_COMMIT", model="RepoSecret", op="delete")(
             cls._post_delete
         )
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from enum import Enum, auto
 
-from autoapi.v2.types import (
+from autoapi.v3.types import (
     JSON,
     Column,
     String,
@@ -14,8 +14,8 @@ from autoapi.v2.types import (
     relationship,
     HookProvider,
 )
-from autoapi.v2.tables import Base
-from autoapi.v2.mixins import (
+from autoapi.v3.tables import Base
+from autoapi.v3.mixins import (
     GUIDPk,
     Timestamped,
     TenantBound,
@@ -186,26 +186,26 @@ class Task(
 
     @classmethod
     def __autoapi_register_hooks__(cls, api) -> None:
-        from autoapi.v2 import Phase, get_schema
+        from autoapi.v3 import _schema
 
-        cls._SCreate = get_schema(cls, "create")
-        cls._SRead = get_schema(cls, "read")
-        cls._SUpdate = get_schema(cls, "update")
+        cls._SCreate = _schema(cls, verb="create")
+        cls._SRead = _schema(cls, verb="read")
+        cls._SUpdate = _schema(cls, verb="update")
         model_name = cls.__name__
-        api.register_hook(Phase.PRE_TX_BEGIN, model=model_name, op="create")(
+        api.register_hook("PRE_TX_BEGIN", model=model_name, op="create")(
             cls._pre_create
         )
-        api.register_hook(Phase.PRE_TX_BEGIN, model=model_name, op="update")(
+        api.register_hook("PRE_TX_BEGIN", model=model_name, op="update")(
             cls._pre_update
         )
-        api.register_hook(Phase.PRE_TX_BEGIN, model=model_name, op="read")(cls._pre_read)
-        api.register_hook(Phase.POST_COMMIT, model=model_name, op="create")(
+        api.register_hook("PRE_TX_BEGIN", model=model_name, op="read")(cls._pre_read)
+        api.register_hook("POST_COMMIT", model=model_name, op="create")(
             cls._post_create
         )
-        api.register_hook(Phase.POST_COMMIT, model=model_name, op="update")(
+        api.register_hook("POST_COMMIT", model=model_name, op="update")(
             cls._post_update
         )
-        api.register_hook(Phase.POST_HANDLER, model=model_name, op="read")(cls._post_read)
+        api.register_hook("POST_HANDLER", model=model_name, op="read")(cls._post_read)
 
 
 __all__ = ["Action", "SpecKind", "Task"]
