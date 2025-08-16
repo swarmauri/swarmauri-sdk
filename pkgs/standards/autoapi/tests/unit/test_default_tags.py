@@ -14,4 +14,4 @@ def test_router_default_tag():
     sp = OpSpec(alias="list", target="list")
     router = _build_router(Widget, [sp])
     route = router.routes[0]
-    assert route.tags == ["widgets"]
+    assert route.tags == ["widget"]

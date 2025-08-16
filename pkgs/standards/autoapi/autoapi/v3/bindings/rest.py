@@ -16,7 +16,7 @@ from typing import (
 )
 
 try:
-    from fastapi import APIRouter, Request, Body
+    from fastapi import APIRouter, Request, Body, Depends
     from fastapi import status as _status
 except Exception:  # pragma: no cover
     # Minimal shims so the module can be imported without FastAPI
@@ -38,6 +38,9 @@ except Exception:  # pragma: no cover
     def Body(default=None, **kw):  # type: ignore
         return default
 
+    def Depends(fn):  # type: ignore
+        return fn
+
     class _status:  # type: ignore
         HTTP_200_OK = 200
         HTTP_201_CREATED = 201
@@ -48,6 +51,7 @@ from pydantic import BaseModel
 from ..opspec import OpSpec
 from ..opspec.types import PHASES
 from ..runtime import executor as _executor  # expects _invoke(request, db, phases, ctx)
+from ..config.constants import AUTOAPI_GET_ASYNC_DB_ATTR, AUTOAPI_GET_DB_ATTR
 
 logger = logging.getLogger(__name__)
 
@@ -277,37 +281,75 @@ def _make_collection_endpoint(
     alias = sp.alias
     target = sp.target
 
-    async def _endpoint(
-        request: Request,
-        db: Any,
-        body: Mapping[str, Any] | None = Body(default=None),
-    ):
-        # Build payload from query for list/clear; otherwise from body
-        if target in {"list", "clear"}:
-            raw_query = dict(request.query_params)
-            payload = _validate_query(model, alias, target, raw_query)
-        else:
-            payload = _validate_body(model, alias, target, body)
+    dep = getattr(model, AUTOAPI_GET_ASYNC_DB_ATTR, None) or getattr(
+        model, AUTOAPI_GET_DB_ATTR, None
+    )
 
-        # Compose ctx
-        ctx: Dict[str, Any] = {
-            "request": request,
-            "db": db,
-            "payload": payload,
-            "path_params": {},  # no member id
-            "env": SimpleNamespace(
-                method=alias, params=payload, target=target, model=model
-            ),
-        }
-        phases = _get_phase_chains(model, alias)
+    if dep is not None:
 
-        result = await _executor._invoke(
-            request=request,
-            db=db,
-            phases=phases,
-            ctx=ctx,
-        )
-        return _serialize_output(model, alias, target, sp, result)
+        async def _endpoint(
+            request: Request,
+            db: Any = Depends(dep),
+            body: Mapping[str, Any] | None = Body(default=None),
+        ):
+            # Build payload from query for list/clear; otherwise from body
+            if target in {"list", "clear"}:
+                raw_query = dict(request.query_params)
+                payload = _validate_query(model, alias, target, raw_query)
+            else:
+                payload = _validate_body(model, alias, target, body)
+
+            # Compose ctx
+            ctx: Dict[str, Any] = {
+                "request": request,
+                "db": db,
+                "payload": payload,
+                "path_params": {},  # no member id
+                "env": SimpleNamespace(
+                    method=alias, params=payload, target=target, model=model
+                ),
+            }
+            phases = _get_phase_chains(model, alias)
+
+            result = await _executor._invoke(
+                request=request,
+                db=db,
+                phases=phases,
+                ctx=ctx,
+            )
+            return _serialize_output(model, alias, target, sp, result)
+
+    else:
+
+        async def _endpoint(
+            request: Request,
+            body: Mapping[str, Any] | None = Body(default=None),
+        ):
+            db = getattr(request.state, "db", None)
+            if target in {"list", "clear"}:
+                raw_query = dict(request.query_params)
+                payload = _validate_query(model, alias, target, raw_query)
+            else:
+                payload = _validate_body(model, alias, target, body)
+
+            ctx: Dict[str, Any] = {
+                "request": request,
+                "db": db,
+                "payload": payload,
+                "path_params": {},
+                "env": SimpleNamespace(
+                    method=alias, params=payload, target=target, model=model
+                ),
+            }
+            phases = _get_phase_chains(model, alias)
+
+            result = await _executor._invoke(
+                request=request,
+                db=db,
+                phases=phases,
+                ctx=ctx,
+            )
+            return _serialize_output(model, alias, target, sp, result)
 
     _endpoint.__name__ = f"rest_{model.__name__}_{alias}_collection"
     _endpoint.__qualname__ = _endpoint.__name__
@@ -324,33 +366,68 @@ def _make_member_endpoint(
     target = sp.target
     real_pk = _pk_name(model)
 
-    async def _endpoint(
-        item_id: Any,
-        request: Request,
-        db: Any,
-        body: Mapping[str, Any] | None = Body(default=None),
-    ):
-        payload = _validate_body(model, alias, target, body)
+    dep = getattr(model, AUTOAPI_GET_ASYNC_DB_ATTR, None) or getattr(
+        model, AUTOAPI_GET_DB_ATTR, None
+    )
 
-        ctx: Dict[str, Any] = {
-            "request": request,
-            "db": db,
-            "payload": payload,
-            # map generic item_id to real PK column name for handler resolution
-            "path_params": {real_pk: item_id, pk_param: item_id},
-            "env": SimpleNamespace(
-                method=alias, params=payload, target=target, model=model
-            ),
-        }
-        phases = _get_phase_chains(model, alias)
+    if dep is not None:
 
-        result = await _executor._invoke(
-            request=request,
-            db=db,
-            phases=phases,
-            ctx=ctx,
-        )
-        return _serialize_output(model, alias, target, sp, result)
+        async def _endpoint(
+            item_id: Any,
+            request: Request,
+            db: Any = Depends(dep),
+            body: Mapping[str, Any] | None = Body(default=None),
+        ):
+            payload = _validate_body(model, alias, target, body)
+
+            ctx: Dict[str, Any] = {
+                "request": request,
+                "db": db,
+                "payload": payload,
+                # map generic item_id to real PK column name for handler resolution
+                "path_params": {real_pk: item_id, pk_param: item_id},
+                "env": SimpleNamespace(
+                    method=alias, params=payload, target=target, model=model
+                ),
+            }
+            phases = _get_phase_chains(model, alias)
+
+            result = await _executor._invoke(
+                request=request,
+                db=db,
+                phases=phases,
+                ctx=ctx,
+            )
+            return _serialize_output(model, alias, target, sp, result)
+
+    else:
+
+        async def _endpoint(
+            item_id: Any,
+            request: Request,
+            body: Mapping[str, Any] | None = Body(default=None),
+        ):
+            db = getattr(request.state, "db", None)
+            payload = _validate_body(model, alias, target, body)
+
+            ctx: Dict[str, Any] = {
+                "request": request,
+                "db": db,
+                "payload": payload,
+                "path_params": {real_pk: item_id, pk_param: item_id},
+                "env": SimpleNamespace(
+                    method=alias, params=payload, target=target, model=model
+                ),
+            }
+            phases = _get_phase_chains(model, alias)
+
+            result = await _executor._invoke(
+                request=request,
+                db=db,
+                phases=phases,
+                ctx=ctx,
+            )
+            return _serialize_output(model, alias, target, sp, result)
 
     _endpoint.__name__ = f"rest_{model.__name__}_{alias}_member"
     _endpoint.__qualname__ = _endpoint.__name__
