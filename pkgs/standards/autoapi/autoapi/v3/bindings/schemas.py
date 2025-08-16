@@ -136,11 +136,17 @@ def _schemas_for_spec(model: type, sp: OpSpec) -> Dict[str, Optional[Type[BaseMo
         result["out"] = result["out"] or read_schema
 
     elif target == "update":
-        result["in_"] = result["in_"] or _build_schema(model, verb="update")
+        pk_name, _ = _pk_info(model)
+        result["in_"] = result["in_"] or _build_schema(
+            model, verb="update", exclude={pk_name}
+        )
         result["out"] = result["out"] or read_schema
 
     elif target == "replace":
-        result["in_"] = result["in_"] or _build_schema(model, verb="replace")
+        pk_name, _ = _pk_info(model)
+        result["in_"] = result["in_"] or _build_schema(
+            model, verb="replace", exclude={pk_name}
+        )
         result["out"] = result["out"] or read_schema
 
     elif target == "delete":
