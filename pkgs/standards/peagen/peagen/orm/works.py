@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from autoapi.v3.types import (
+from autoapi.v2.types import (
     JSON,
     Column,
     PgUUID,
@@ -9,8 +9,8 @@ from autoapi.v3.types import (
     relationship,
     HookProvider,
 )
-from autoapi.v3.tables import Base
-from autoapi.v3.mixins import GUIDPk, Timestamped, StatusMixin
+from autoapi.v2.tables import Base
+from autoapi.v2.mixins import GUIDPk, Timestamped, StatusMixin
 
 from .tasks import Task
 
@@ -65,10 +65,12 @@ class Work(Base, GUIDPk, Timestamped, StatusMixin, HookProvider):
 
     @classmethod
     def __autoapi_register_hooks__(cls, api) -> None:
-        from autoapi.v3 import _schema
+        from autoapi.v2 import Phase, get_schema
 
-        cls._SRead = _schema(cls, verb="read")
-        api.register_hook("POST_COMMIT", model="Work", op="update")(cls._post_update)
+        cls._SRead = get_schema(cls, "read")
+        api.register_hook(Phase.POST_COMMIT, model="Work", op="update")(
+            cls._post_update
+        )
 
 
 __all__ = ["Work"]

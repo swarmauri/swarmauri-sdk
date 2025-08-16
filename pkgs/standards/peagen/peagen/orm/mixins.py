@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from autoapi.v3.types import (
+from autoapi.v2.types import (
     Column,
     ForeignKey,
     PgUUID,
