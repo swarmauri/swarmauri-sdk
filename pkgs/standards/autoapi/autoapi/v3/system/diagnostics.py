@@ -152,7 +152,7 @@ def _build_methodz_endpoint(api: Any):
                         "returns": sp.returns,
                         "routes": bool(getattr(sp, "expose_routes", True)),
                         "rpc": bool(getattr(sp, "expose_rpc", True)),
-                        "tags": list(getattr(sp, "tags", ()) or ()),
+                        "tags": list(getattr(sp, "tags", ()) or (mname,)),
                     }
                 )
         methods.sort(key=lambda x: (x["model"], x["alias"]))
