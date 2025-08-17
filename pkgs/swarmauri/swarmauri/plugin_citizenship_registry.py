@@ -10,6 +10,7 @@ first, second, and third-class citizens within the swarmauri framework.
 import logging
 from importlib.metadata import EntryPoint
 from typing import Dict, Optional
+from threading import RLock
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -42,6 +43,15 @@ class PluginCitizenshipRegistry:
           `'external_repo.OpenAIModel'`). This mapping facilitates dynamic loading and validation
           of plugins based on their classification and interface requirements.
     """
+    _lock = RLock()
+    
+    @classmethod
+    def reset_all(cls) -> None:
+        """Reset dynamic plugin registries for a clean test slate."""
+        with cls._lock:
+            # Keep FIRST_CLASS_REGISTRY intact (built-ins).
+            cls.SECOND_CLASS_REGISTRY.clear()
+            cls.THIRD_CLASS_REGISTRY.clear()
 
     # Class variables for registries
     FIRST_CLASS_REGISTRY: Dict[str, str] = {
