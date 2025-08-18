@@ -1,0 +1,26 @@
+# autoapi/v3/bindings/col_info.py
+"""
+Compat shim: bindings-level access to Column.info["autoapi"] utilities.
+Prefer importing from `autoapi.v3.schema.col_info`, but this keeps older code working.
+"""
+from __future__ import annotations
+
+from ..schema.col_info import (
+    VALID_KEYS,
+    VALID_VERBS,
+    WRITE_VERBS,
+    normalize,
+    check,
+    should_include_in_input,
+    should_include_in_output,
+)
+
+__all__ = [
+    "VALID_KEYS",
+    "VALID_VERBS",
+    "WRITE_VERBS",
+    "normalize",
+    "check",
+    "should_include_in_input",
+    "should_include_in_output",
+]
