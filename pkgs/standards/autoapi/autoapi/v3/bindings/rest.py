@@ -71,6 +71,13 @@ from pydantic import BaseModel, Field, create_model
 from ..opspec import OpSpec
 from ..opspec.types import PHASES
 from ..runtime import executor as _executor  # expects _invoke(request, db, phases, ctx)
+
+# Prefer Kernel phase-chains if available
+try:
+    from ..runtime.kernel import build_phase_chains as _kernel_build_phase_chains  # type: ignore
+except Exception:  # pragma: no cover
+    _kernel_build_phase_chains = None  # type: ignore
+
 from ..config.constants import (
     AUTOAPI_GET_ASYNC_DB_ATTR,
     AUTOAPI_GET_DB_ATTR,
@@ -90,7 +97,6 @@ def _req_state_db(request: Request) -> Any:
 # ───────────────────────────────────────────────────────────────────────────────
 # Helpers: resource names, primary keys, schemas, phases, IO shaping
 # ───────────────────────────────────────────────────────────────────────────────
-
 
 def _resource_name(model: type) -> str:
     """
@@ -140,6 +146,16 @@ def _pk_names(model: type) -> set[str]:
 def _get_phase_chains(
     model: type, alias: str
 ) -> Dict[str, Sequence[Callable[..., Awaitable[Any]]]]:
+    """
+    Prefer building via runtime Kernel (atoms + system steps + hooks in one lifecycle).
+    Fallback: read the pre-built model.hooks.<alias> chains directly.
+    """
+    if _kernel_build_phase_chains is not None:
+        try:
+            return _kernel_build_phase_chains(model, alias)
+        except Exception:
+            logger.exception("Kernel build_phase_chains failed for %s.%s; falling back to hooks",
+                             getattr(model, "__name__", model), alias)
     hooks_root = getattr(model, "hooks", None) or SimpleNamespace()
     alias_ns = getattr(hooks_root, alias, None)
     out: Dict[str, Sequence[Callable[..., Awaitable[Any]]]] = {}
@@ -311,7 +327,6 @@ _RESPONSES_META = {
     500: {"description": "Internal Server Error"},
 }
 
-
 # ───────────────────────────────────────────────────────────────────────────────
 # Routing strategy
 # ───────────────────────────────────────────────────────────────────────────────
@@ -331,14 +346,12 @@ _DEFAULT_METHODS: Dict[str, Tuple[str, ...]] = {
     "custom": ("POST",),  # default for custom ops
 }
 
-
 def _default_path_suffix(sp: OpSpec) -> str | None:
     if sp.target.startswith("bulk_"):
         return "/bulk"
     if sp.target == "custom":
         return f"/{sp.alias}"
     return None
-
 
 def _path_for_spec(
     model: type, sp: OpSpec, *, resource: str, pk_param: str = "item_id"
@@ -354,7 +367,6 @@ def _path_for_spec(
     if sp.arity == "member" or sp.target in {"read", "update", "replace", "delete"}:
         return f"/{resource}/{{{pk_param}}}{suffix}", True
     return f"/{resource}{suffix}", False
-
 
 def _response_model_for(sp: OpSpec, model: type) -> Any | None:
     """
@@ -378,7 +390,6 @@ def _response_model_for(sp: OpSpec, model: type) -> Any | None:
             return None
     return out_model
 
-
 def _request_model_for(sp: OpSpec, model: type) -> Any | None:
     """Fetch the request model for docs and validation."""
     alias_ns = getattr(
@@ -386,11 +397,9 @@ def _request_model_for(sp: OpSpec, model: type) -> Any | None:
     )
     return getattr(alias_ns, "in_", None)
 
-
 # ───────────────────────────────────────────────────────────────────────────────
 # Query param dependency (so OpenAPI shows list filters)
 # ───────────────────────────────────────────────────────────────────────────────
-
 
 def _strip_optional(t: Any) -> Any:
     """If annotation is Optional[T] (i.e., Union[T, None]), return T; else return the input."""
@@ -399,7 +408,6 @@ def _strip_optional(t: Any) -> Any:
         args = tuple(a for a in _get_args(t) if a is not type(None))
         return args[0] if len(args) == 1 else Any
     return t
-
 
 def _make_list_query_dep(model: type, alias: str):
     """
@@ -469,11 +477,9 @@ def _make_list_query_dep(model: type, alias: str):
     _dep.__name__ = f"list_params_{model.__name__}_{alias}"
     return _dep
 
-
 # ───────────────────────────────────────────────────────────────────────────────
 # Optionalize list.in_ model (hardening against bad defaults)
 # ───────────────────────────────────────────────────────────────────────────────
-
 
 def _optionalize_list_in_model(in_model: type[BaseModel]) -> type[BaseModel]:
     """
@@ -506,11 +512,9 @@ def _optionalize_list_in_model(in_model: type[BaseModel]) -> type[BaseModel]:
     setattr(New, "__autoapi_optionalized__", True)
     return New
 
-
 # ───────────────────────────────────────────────────────────────────────────────
 # Endpoint factories (split by body/no-body and member/collection)
 # ───────────────────────────────────────────────────────────────────────────────
-
 
 def _make_collection_endpoint(
     model: type,
@@ -518,7 +522,7 @@ def _make_collection_endpoint(
     *,
     resource: str,
     db_dep: Callable[..., Any],
-) -> Callable[..., Awaitable[Any]]:
+) -> Callable[..., Awaitable[Any]]]:
     alias = sp.alias
     target = sp.target
 
@@ -623,7 +627,6 @@ def _make_collection_endpoint(
     _endpoint.__annotations__["body"] = body_annotation
     return _endpoint
 
-
 def _make_member_endpoint(
     model: type,
     sp: OpSpec,
@@ -631,7 +634,7 @@ def _make_member_endpoint(
     resource: str,
     db_dep: Callable[..., Any],
     pk_param: str = "item_id",
-) -> Callable[..., Awaitable[Any]]:
+) -> Callable[..., Awaitable[Any]]]:
     alias = sp.alias
     target = sp.target
     real_pk = _pk_name(model)
@@ -724,16 +727,14 @@ def _make_member_endpoint(
     _endpoint.__annotations__["body"] = body_annotation
     return _endpoint
 
-
 # ───────────────────────────────────────────────────────────────────────────────
 # Router builder
 # ───────────────────────────────────────────────────────────────────────────────
 
-
 def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
     resource = _resource_name(model)
 
-    # Router-level deps: extra deps + auth dep (parity with RPC)
+    # Router-level deps: extra deps + auth dep (transport-only; never part of runtime plan)
     extra_router_deps = _normalize_deps(
         getattr(model, AUTOAPI_REST_DEPENDENCIES_ATTR, None)
     )
@@ -819,11 +820,9 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
 
     return router
 
-
 # ───────────────────────────────────────────────────────────────────────────────
 # Public API
 # ───────────────────────────────────────────────────────────────────────────────
-
 
 def build_router_and_attach(
     model: type, specs: Sequence[OpSpec], *, only_keys: Optional[Sequence[_Key]] = None
@@ -842,6 +841,5 @@ def build_router_and_attach(
         model.__name__,
         len(getattr(router, "routes", []) or []),
     )
-
 
 __all__ = ["build_router_and_attach"]

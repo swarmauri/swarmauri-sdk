@@ -4,14 +4,7 @@ from __future__ import annotations
 import inspect
 import logging
 from types import SimpleNamespace
-from typing import (
-    Any,
-    Callable,
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-)
+from typing import Any, Callable, Mapping, Optional, Sequence, Tuple
 
 from ..opspec import OpSpec
 from ..opspec.types import StepFn
@@ -24,7 +17,6 @@ _Key = Tuple[str, str]  # (alias, target)
 # ───────────────────────────────────────────────────────────────────────────────
 # Helpers: model.hooks / model.handlers alias namespaces
 # ───────────────────────────────────────────────────────────────────────────────
-
 
 def _ensure_alias_hooks_ns(model: type, alias: str) -> SimpleNamespace:
     hooks_root = getattr(model, "hooks", None)
@@ -61,11 +53,9 @@ def _append_handler_step(model: type, alias: str, step: StepFn) -> None:
     chain: list[StepFn] = getattr(ns, "HANDLER")
     chain.append(step)
 
-
 # ───────────────────────────────────────────────────────────────────────────────
-# Payload extraction helpers
+# Payload/ctx helpers
 # ───────────────────────────────────────────────────────────────────────────────
-
 
 def _ctx_get(ctx: Mapping[str, Any], key: str, default: Any = None) -> Any:
     try:
@@ -73,39 +63,31 @@ def _ctx_get(ctx: Mapping[str, Any], key: str, default: Any = None) -> Any:
     except Exception:
         return getattr(ctx, key, default)
 
-
 def _ctx_payload(ctx: Mapping[str, Any]) -> Mapping[str, Any]:
     return _ctx_get(ctx, "payload", {}) or {}
-
 
 def _ctx_db(ctx: Mapping[str, Any]) -> Any:
     return _ctx_get(ctx, "db")
 
-
 def _ctx_request(ctx: Mapping[str, Any]) -> Any:
     return _ctx_get(ctx, "request")
 
-
 def _ctx_path_params(ctx: Mapping[str, Any]) -> Mapping[str, Any]:
     return _ctx_get(ctx, "path_params", {}) or {}
-
 
 def _pk_name(model: type) -> str:
     table = getattr(model, "__table__", None)
     if not table or not getattr(table, "primary_key", None):
         return "id"
     cols = list(table.primary_key.columns)  # type: ignore[attr-defined]
-    if not cols:
-        return "id"
-    if len(cols) > 1:
-        # For composite PKs, we fall back to "id" and expect adapters to supply ident explicitly.
+    if not cols or len(cols) > 1:
+        # composite PKs → expect explicit ident (fall back to "id" extraction)
         return "id"
     return getattr(cols[0], "name", "id")
 
-
 def _resolve_ident(model: type, ctx: Mapping[str, Any]) -> Any:
     """
-    Try to find an identifier in common places:
+    Try common places for identifier:
       • ctx.path_params[pk]
       • ctx.payload[pk]
       • ctx.payload["id"]
@@ -121,11 +103,9 @@ def _resolve_ident(model: type, ctx: Mapping[str, Any]) -> Any:
         return payload["id"]
     return None
 
-
 # ───────────────────────────────────────────────────────────────────────────────
 # Core → StepFn adapters
 # ───────────────────────────────────────────────────────────────────────────────
-
 
 async def _call_list_core(
     fn: Callable[..., Any],
@@ -139,8 +119,8 @@ async def _call_list_core(
       v2: async def list(model, filters, db, *, skip=None, limit=None, request=None)
       v3: async def list(model, *, filters, db, skip=None, limit=None, request=None)
 
-    We try only call patterns that include `db` to avoid the
-    "missing 1 required keyword-only argument: 'db'" error.
+    We try only call patterns that include `db` to avoid
+    "missing 1 required keyword-only argument: 'db'".
     """
     # Build filters dict and pull pagination out
     filters = dict(payload) if isinstance(payload, Mapping) else {}
@@ -151,24 +131,19 @@ async def _call_list_core(
     db = _ctx_db(ctx)
     req = _ctx_request(ctx)
 
-    # Candidate calls (ALL include db):
     candidates: list[tuple[tuple, dict]] = []
 
-    def add_candidate(
-        use_pos_filters: bool, use_pos_db: bool, with_req: bool, with_pag: bool
-    ):
+    def add_candidate(use_pos_filters: bool, use_pos_db: bool, with_req: bool, with_pag: bool):
         args: tuple = ()
         kwargs: dict = {}
         if use_pos_filters:
             args += (filters_arg,)
         else:
             kwargs["filters"] = filters_arg
-
         if use_pos_db:
             args += (db,)
         else:
             kwargs["db"] = db
-
         if with_req and req is not None:
             kwargs["request"] = req
         if with_pag:
@@ -178,37 +153,22 @@ async def _call_list_core(
                 kwargs["limit"] = limit
         candidates.append((args, kwargs))
 
-    # Try richer shapes first, then progressively simpler — but always include db.
-    add_candidate(
-        use_pos_filters=False, use_pos_db=False, with_req=True, with_pag=True
-    )  # kw filters + kw db
-    add_candidate(
-        use_pos_filters=True, use_pos_db=False, with_req=True, with_pag=True
-    )  # pos filters + kw db
-    add_candidate(
-        use_pos_filters=True, use_pos_db=True, with_req=True, with_pag=True
-    )  # pos filters + pos db
+    # Richest → minimal, always passing db
+    add_candidate(False, False, True, True)
+    add_candidate(True,  False, True, True)
+    add_candidate(True,  True,  True, True)
 
-    add_candidate(
-        use_pos_filters=False, use_pos_db=False, with_req=False, with_pag=True
-    )
-    add_candidate(use_pos_filters=True, use_pos_db=False, with_req=False, with_pag=True)
-    add_candidate(use_pos_filters=True, use_pos_db=True, with_req=False, with_pag=True)
+    add_candidate(False, False, False, True)
+    add_candidate(True,  False, False, True)
+    add_candidate(True,  True,  False, True)
 
-    add_candidate(
-        use_pos_filters=False, use_pos_db=False, with_req=True, with_pag=False
-    )
-    add_candidate(use_pos_filters=True, use_pos_db=False, with_req=True, with_pag=False)
-    add_candidate(use_pos_filters=True, use_pos_db=True, with_req=True, with_pag=False)
+    add_candidate(False, False, True, False)
+    add_candidate(True,  False, True, False)
+    add_candidate(True,  True,  True, False)
 
-    # Minimal (still with db)
-    add_candidate(
-        use_pos_filters=False, use_pos_db=False, with_req=False, with_pag=False
-    )
-    add_candidate(
-        use_pos_filters=True, use_pos_db=False, with_req=False, with_pag=False
-    )
-    add_candidate(use_pos_filters=True, use_pos_db=True, with_req=False, with_pag=False)
+    add_candidate(False, False, False, False)
+    add_candidate(True,  False, False, False)
+    add_candidate(True,  True,  False, False)
 
     last_err: Optional[BaseException] = None
     for args, kwargs in candidates:
@@ -224,12 +184,59 @@ async def _call_list_core(
         raise last_err
     raise RuntimeError("list() call resolution failed unexpectedly")
 
+def _accepted_kw(handler: Callable[..., Any]) -> set[str]:
+    try:
+        sig = inspect.signature(handler)
+    except Exception:
+        return {"ctx"}  # safest default
+
+    names: set[str] = set()
+    for p in sig.parameters.values():
+        if p.kind in (p.VAR_KEYWORD, p.VAR_POSITIONAL):
+            # **kwargs or *args → we can pass everything
+            return {"ctx", "db", "payload", "request", "model", "op", "spec", "alias"}
+        names.add(p.name)
+    return names
+
+def _wrap_custom(model: type, sp: OpSpec, user_handler: Callable[..., Any]) -> StepFn:
+    """
+    Wrap a user-supplied handler so it can be executed as StepFn(ctx).
+    We pass keyword args selectively (ctx, db, payload, request, model, op/spec/alias).
+    """
+    wanted = _accepted_kw(user_handler)
+
+    async def step(ctx: Any) -> Any:
+        db = _ctx_db(ctx)
+        payload = _ctx_payload(ctx)
+        request = _ctx_request(ctx)
+
+        # Try to resolve a *bound* attribute from the class if available
+        bound = getattr(model, getattr(user_handler, "__name__", ""), user_handler)
+
+        kw = {}
+        if "ctx" in wanted:     kw["ctx"] = ctx
+        if "db" in wanted:      kw["db"] = db
+        if "payload" in wanted: kw["payload"] = payload
+        if "request" in wanted: kw["request"] = request
+        if "model" in wanted:   kw["model"] = model
+        if "op" in wanted:      kw["op"] = sp
+        if "spec" in wanted:    kw["spec"] = sp
+        if "alias" in wanted:   kw["alias"] = sp.alias
+
+        rv = bound(**kw)  # type: ignore[misc]
+        if inspect.isawaitable(rv):
+            return await rv
+        return rv
+
+    step.__name__ = getattr(user_handler, "__name__", step.__name__)
+    step.__qualname__ = getattr(user_handler, "__qualname__", step.__name__)
+    step.__module__ = getattr(user_handler, "__module__", step.__module__)
+    return step
 
 def _wrap_core(model: type, target: str) -> StepFn:
     """
     Turn a canonical core function into a StepFn(ctx) → Any.
     """
-
     async def step(ctx: Any) -> Any:
         db = _ctx_db(ctx)
         payload = _ctx_payload(ctx)
@@ -272,6 +279,10 @@ def _wrap_core(model: type, target: str) -> StepFn:
             rows = payload.get("rows") or []
             return await _core.bulk_replace(model, rows, db=db)
 
+        if target == "bulk_upsert":
+            rows = payload.get("rows") or []
+            return await _core.bulk_upsert(model, rows, db=db)
+
         if target == "bulk_delete":
             ids = payload.get("ids") or []
             return await _core.bulk_delete(model, ids, db=db)
@@ -283,77 +294,17 @@ def _wrap_core(model: type, target: str) -> StepFn:
     step.__name__ = getattr(fn, "__name__", step.__name__)
     step.__qualname__ = getattr(fn, "__qualname__", step.__name__)
     step.__module__ = getattr(fn, "__module__", step.__module__)
-
     return step
-
-
-def _accepted_kw(handler: Callable[..., Any]) -> set[str]:
-    try:
-        sig = inspect.signature(handler)
-    except Exception:
-        return {"ctx"}  # safest default
-
-    names: set[str] = set()
-    for p in sig.parameters.values():
-        if p.kind in (p.VAR_KEYWORD, p.VAR_POSITIONAL):
-            # **kwargs or *args → we can pass everything
-            return {"ctx", "db", "payload", "request", "model", "op"}
-        names.add(p.name)
-    return names
-
-
-def _wrap_custom(model: type, sp: OpSpec, user_handler: Callable[..., Any]) -> StepFn:
-    """
-    Wrap a user-supplied handler so it can be executed as StepFn(ctx).
-    We pass keyword args selectively (ctx, db, payload, request, model, op).
-    """
-    wanted = _accepted_kw(user_handler)
-
-    async def step(ctx: Any) -> Any:
-        db = _ctx_db(ctx)
-        payload = _ctx_payload(ctx)
-        request = _ctx_request(ctx)
-
-        # Try to resolve a *bound* attribute from the class if available (classmethod/staticmethod)
-        bound = getattr(model, getattr(user_handler, "__name__", ""), user_handler)
-
-        kw = {}
-        if "ctx" in wanted:
-            kw["ctx"] = ctx
-        if "db" in wanted:
-            kw["db"] = db
-        if "payload" in wanted:
-            kw["payload"] = payload
-        if "request" in wanted:
-            kw["request"] = request
-        if "model" in wanted:
-            kw["model"] = model
-        if "op" in wanted:
-            kw["op"] = sp
-
-        rv = bound(**kw)  # type: ignore[misc]
-        if inspect.isawaitable(rv):
-            return await rv
-        return rv
-
-    step.__name__ = getattr(user_handler, "__name__", step.__name__)
-    step.__qualname__ = getattr(user_handler, "__qualname__", step.__name__)
-    step.__module__ = getattr(user_handler, "__module__", step.__module__)
-
-    return step
-
 
 # ───────────────────────────────────────────────────────────────────────────────
 # Builder
 # ───────────────────────────────────────────────────────────────────────────────
-
 
 def _build_raw_step(model: type, sp: OpSpec) -> StepFn:
     if sp.target == "custom" and sp.handler is not None:
         return _wrap_custom(model, sp, sp.handler)  # user function
     # Canonical/default core
     return _wrap_core(model, sp.target)
-
 
 def _attach_one(model: type, sp: OpSpec) -> None:
     alias = sp.alias
@@ -375,22 +326,16 @@ def _attach_one(model: type, sp: OpSpec) -> None:
         sp.core = raw_step
         sp.core_raw = raw_step
     except Exception:
-        # OpSpec is frozen; ignore updating in-place (collector returns frozen dataclasses).
-        # If you want these available on the model, surface them here:
+        # OpSpec may be frozen; surface them via handlers namespace
         setattr(handlers_ns, "core", raw_step)
         setattr(handlers_ns, "core_raw", raw_step)
 
-    logger.debug(
-        "handlers: %s.%s → raw step attached & inserted into HANDLER",
-        model.__name__,
-        alias,
-    )
-
+    logger.debug("handlers: %s.%s → raw step attached & inserted into HANDLER",
+                 model.__name__, alias)
 
 # ───────────────────────────────────────────────────────────────────────────────
 # Public API
 # ───────────────────────────────────────────────────────────────────────────────
-
 
 def build_and_attach(
     model: type, specs: Sequence[OpSpec], *, only_keys: Optional[Sequence[_Key]] = None
@@ -405,12 +350,10 @@ def build_and_attach(
     If `only_keys` is provided, limit work to those (alias,target) pairs.
     """
     wanted = set(only_keys or ())
-
     for sp in specs:
         key = (sp.alias, sp.target)
         if wanted and key not in wanted:
             continue
         _attach_one(model, sp)
-
 
 __all__ = ["build_and_attach"]

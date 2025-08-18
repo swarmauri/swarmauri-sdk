@@ -21,15 +21,19 @@ from ..opspec import OpSpec
 from ..opspec.types import PHASES
 from ..runtime import executor as _executor  # expects _invoke(request, db, phases, ctx)
 
+# Prefer Kernel phase-chains if available (atoms + system steps + hooks)
+try:
+    from ..runtime.kernel import build_phase_chains as _kernel_build_phase_chains  # type: ignore
+except Exception:  # pragma: no cover
+    _kernel_build_phase_chains = None  # type: ignore
+
 logger = logging.getLogger(__name__)
 
 _Key = Tuple[str, str]  # (alias, target)
 
-
 # ───────────────────────────────────────────────────────────────────────────────
 # Helpers
 # ───────────────────────────────────────────────────────────────────────────────
-
 
 def _ns(obj: Any, name: str) -> Any:
     ns = getattr(obj, name, None)
@@ -38,24 +42,28 @@ def _ns(obj: Any, name: str) -> Any:
         setattr(obj, name, ns)
     return ns
 
-
 def _get_phase_chains(
     model: type, alias: str
 ) -> Dict[str, Sequence[Callable[..., Awaitable[Any]]]]:
     """
-    Build the mapping { phase_name: [step, ...], ... } expected by the executor.
-    Missing phases become empty lists.
+    Prefer building via runtime Kernel (atoms + system steps + hooks in one lifecycle).
+    Fallback: read the pre-built model.hooks.<alias> chains directly.
     """
+    if _kernel_build_phase_chains is not None:
+        try:
+            return _kernel_build_phase_chains(model, alias)
+        except Exception:
+            logger.exception(
+                "Kernel build_phase_chains failed for %s.%s; falling back to hooks",
+                getattr(model, "__name__", model),
+                alias,
+            )
     hooks_root = _ns(model, "hooks")
     alias_ns = getattr(hooks_root, alias, None)
-    if alias_ns is None:
-        return {ph: [] for ph in PHASES}
-
     out: Dict[str, Sequence[Callable[..., Awaitable[Any]]]] = {}
     for ph in PHASES:
         out[ph] = list(getattr(alias_ns, ph, []) or [])
     return out
-
 
 def _coerce_payload(payload: Any) -> Mapping[str, Any]:
     """
@@ -71,7 +79,6 @@ def _coerce_payload(payload: Any) -> Mapping[str, Any]:
     if isinstance(payload, Mapping):
         return dict(payload)
     return {}  # unexpected shapes → ignore
-
 
 def _validate_input(
     model: type, alias: str, target: str, payload: Mapping[str, Any]
@@ -100,7 +107,6 @@ def _validate_input(
                 exc_info=True,
             )
     return payload
-
 
 def _serialize_output(
     model: type, alias: str, target: str, sp: OpSpec, result: Any
@@ -146,18 +152,17 @@ def _serialize_output(
         )
         return result
 
-
 # ───────────────────────────────────────────────────────────────────────────────
 # RPC wrapper builder
 # ───────────────────────────────────────────────────────────────────────────────
-
 
 def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]]:
     """
     Create an async callable that:
       1) validates payload (if schema present),
-      2) runs the executor with the model's phase chains,
+      2) runs the executor with the model's phase chains (Kernel-preferred),
       3) serializes the result to the expected return form.
+
     Signature:
         async def rpc_method(payload: Mapping | BaseModel | None = None, *, db, request=None, ctx=None) -> Any
     """
@@ -208,18 +213,15 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
 
     return _rpc_method
 
-
 def _attach_one(model: type, sp: OpSpec) -> None:
     rpc_root = _ns(model, "rpc")
     fn = _build_rpc_callable(model, sp)
     setattr(rpc_root, sp.alias, fn)
     logger.debug("rpc: %s.%s registered", model.__name__, sp.alias)
 
-
 # ───────────────────────────────────────────────────────────────────────────────
 # Public API
 # ───────────────────────────────────────────────────────────────────────────────
-
 
 def register_and_attach(
     model: type, specs: Sequence[OpSpec], *, only_keys: Optional[Sequence[_Key]] = None
@@ -234,6 +236,5 @@ def register_and_attach(
         if wanted and key not in wanted:
             continue
         _attach_one(model, sp)
-
 
 __all__ = ["register_and_attach"]

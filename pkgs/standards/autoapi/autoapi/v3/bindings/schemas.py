@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 
 _Key = Tuple[str, str]  # (alias, target)
 
-
 # ───────────────────────────────────────────────────────────────────────────────
 # Internal helpers
 # ───────────────────────────────────────────────────────────────────────────────
@@ -164,7 +163,6 @@ def _resolve_schema_arg(model: type, arg: SchemaArg) -> Optional[Type[BaseModel]
         "Use SchemaRef(...,'in'|'out'), 'alias.in'/'alias.out', 'raw', or None."
     )
 
-
 # ───────────────────────────────────────────────────────────────────────────────
 # Core builder (defaults only; overrides are applied later)
 # ───────────────────────────────────────────────────────────────────────────────
@@ -204,6 +202,7 @@ def _default_schemas_for_spec(model: type, sp: OpSpec) -> Dict[str, Optional[Typ
         result["out"] = read_schema
 
     elif target == "delete":
+        # For RPC delete, a body with PK is allowed; REST delete ignores body.
         result["in_"] = _build_schema(model, verb="delete")
         result["out"] = read_schema
 
@@ -232,6 +231,12 @@ def _default_schemas_for_spec(model: type, sp: OpSpec) -> Dict[str, Optional[Typ
         result["in_"] = _make_bulk_rows_model(model, "bulk_replace", item_in)
         result["out"] = read_schema
 
+    elif target == "bulk_upsert":
+        # Prefer a dedicated 'upsert' item shape if available; otherwise fall back to 'replace'
+        item_in = _build_schema(model, verb="upsert") or _build_schema(model, verb="replace")
+        result["in_"] = _make_bulk_rows_model(model, "bulk_upsert", item_in)
+        result["out"] = read_schema
+
     elif target == "bulk_delete":
         pk_name, pk_type = _pk_info(model)
         result["in_"] = _make_bulk_ids_model(model, "bulk_delete", pk_type)
@@ -248,7 +253,6 @@ def _default_schemas_for_spec(model: type, sp: OpSpec) -> Dict[str, Optional[Typ
         result["out"] = None
 
     return result
-
 
 # ───────────────────────────────────────────────────────────────────────────────
 # Public API
@@ -347,6 +351,5 @@ def build_and_attach(
             getattr(ns, "in_", None).__name__ if getattr(ns, "in_", None) else None,
             getattr(ns, "out", None).__name__ if getattr(ns, "out", None) else None,
         )
-
 
 __all__ = ["build_and_attach"]
