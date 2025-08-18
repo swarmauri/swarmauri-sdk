@@ -32,6 +32,7 @@ app = FastAPI(
     title="AutoKMS", version="0.1.0", openapi_url="/openapi.json", docs_url="/docs"
 )
 
+
 # API-level hooks (v3): stash shared services into ctx before any handler runs
 async def _stash_ctx(ctx):
     global SECRETS, CRYPTO
@@ -52,3 +53,9 @@ api = AutoAPI(
 api.include_models([Key, KeyVersion], base_prefix="/kms")
 api.mount_jsonrpc(prefix="/kms/rpc")
 api.attach_diagnostics(prefix="/system")
+
+
+# Initialize database tables on startup
+@app.on_event("startup")
+async def startup_event():
+    await api.initialize_async()

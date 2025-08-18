@@ -29,3 +29,5 @@ pkgs/standards/peagen/peagen.zip
 pkgs/standards/peagen/.pymon
 *.pem
 kms.db
+
+*.asc
