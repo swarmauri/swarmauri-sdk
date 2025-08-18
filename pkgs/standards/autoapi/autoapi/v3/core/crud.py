@@ -16,13 +16,14 @@ from typing import (
 import builtins as _builtins
 
 try:
-    from sqlalchemy import select, delete, and_, asc, desc
+    from sqlalchemy import select, delete, and_, asc, desc, Enum as SAEnum
     from sqlalchemy.orm import Session
     from sqlalchemy.ext.asyncio import AsyncSession
     from sqlalchemy.orm.exc import NoResultFound  # type: ignore
 except Exception:  # pragma: no cover
     # Minimal shims so type-checkers don't explode if SQLAlchemy isn't present at import
     select = delete = and_ = asc = desc = None  # type: ignore
+    SAEnum = None  # type: ignore
     Session = object  # type: ignore
     AsyncSession = object  # type: ignore
 
@@ -192,6 +193,83 @@ def _set_attrs(
                 setattr(obj, c, None)
 
 
+# ───────────────────────────────────────────────────────────────────────────────
+# Enum validation on writes
+# ───────────────────────────────────────────────────────────────────────────────
+
+def _validate_enum_values(model: type, values: Mapping[str, Any]) -> None:
+    """
+    Reject any assignment to Enum-typed columns that isn't one of the allowed labels.
+    Works for Python Enum-backed SQLA Enum (via .enum_class) and string-only SQLA Enum (via .enums).
+
+    Accepts Python Enum members (of the right class), their .value strings, or .name strings.
+    """
+    if not values or SAEnum is None:
+        return
+
+    table = getattr(model, "__table__", None)
+    if table is None:
+        return
+
+    # ColumnCollection supports .get(name) in SQLAlchemy 2.x
+    get = getattr(table.c, "get", None)
+
+    for key, v in values.items():
+        col = get(key) if get else None
+        if col is None:
+            try:
+                col = table.c[key]  # type: ignore[index]
+            except Exception:
+                col = None
+        if col is None:
+            continue
+
+        col_type = getattr(col, "type", None)
+        if col_type is None or not isinstance(col_type, SAEnum):
+            continue  # not an Enum column
+
+        if v is None:
+            continue  # let DB nullability decide
+
+        enum_cls = getattr(col_type, "enum_class", None)
+        if enum_cls is not None:
+            # Python Enum-backed
+            try:
+                import enum as _enum  # local to avoid hard dep at import time
+            except Exception:  # pragma: no cover
+                _enum = None
+
+            if _enum is not None and isinstance(v, _enum.Enum):
+                if isinstance(v, enum_cls):
+                    continue
+                raise LookupError(
+                    f"{v!r} is not among the defined enum values. "
+                    f"Enum name: {enum_cls.__name__}. "
+                    f"Possible values: {', '.join([e.value for e in enum_cls])}"
+                )
+
+            allowed_values = [e.value for e in enum_cls]
+            allowed_names = [e.name for e in enum_cls]
+            if isinstance(v, str) and (v in allowed_values or v in allowed_names):
+                continue
+
+            raise LookupError(
+                f"{v!r} is not among the defined enum values. "
+                f"Enum name: {enum_cls.__name__}. "
+                f"Possible values: {', '.join(allowed_values)}"
+            )
+        else:
+            # String-only SQLAlchemy Enum
+            allowed = _builtins.list(getattr(col_type, "enums", []) or [])
+            if isinstance(v, str) and v in allowed:
+                continue
+            raise LookupError(
+                f"{v!r} is not among the defined enum values. "
+                f"Enum name: {getattr(col_type, 'name', 'Enum')}. "
+                f"Possible values: {', '.join(allowed) if allowed else '(none)'}"
+            )
+
+
 # Normalizers to tolerate positional, keyword and bound-method calls -------------
 def _pop_bound_self(args: list[Any]) -> None:
     # If the first positional thing isn't a type, it's likely the bound "self".
@@ -233,6 +311,7 @@ def _normalize_list_call(_args: tuple[Any, ...], _kwargs: dict[str, Any]) -> tup
     """
     args = _builtins.list(_args)
     kwargs = dict(_kwargs)
+    print('here')
 
     _pop_bound_self(args)
 
@@ -243,7 +322,6 @@ def _normalize_list_call(_args: tuple[Any, ...], _kwargs: dict[str, Any]) -> tup
         model = kwargs.pop("model", None)
         if not isinstance(model, type):
             raise TypeError("list(model, ...) requires a model class")
-
 
     # filters
     filters = kwargs.pop("filters", None)
@@ -257,8 +335,7 @@ def _normalize_list_call(_args: tuple[Any, ...], _kwargs: dict[str, Any]) -> tup
     limit = _as_pos_int(kwargs.pop("limit", None))
     sort = kwargs.pop("sort", None)
 
-
-    # If there are leftover ints, try to assign as skip/limit
+    # leftover ints → skip/limit
     if skip is None and args:
         skip = _as_pos_int(args[0])
         if skip is not None:
@@ -270,7 +347,6 @@ def _normalize_list_call(_args: tuple[Any, ...], _kwargs: dict[str, Any]) -> tup
 
     # db
     db = _extract_db(args, kwargs)
-
 
     # Default filters
     if filters is None:
@@ -292,7 +368,9 @@ async def create(
     Insert a single row. Returns the persisted model instance.
     Flush-only (commit happens later in END_TX).
     """
-    obj = model(**dict(data or {}))
+    data = dict(data or {})
+    _validate_enum_values(model, data)
+    obj = model(**data)
     if hasattr(db, "add"):
         db.add(obj)
     await _maybe_flush(db)
@@ -316,8 +394,10 @@ async def update(
     Partial update by primary key. Missing keys are left unchanged.
     Returns the updated model instance. Flush-only.
     """
+    data = dict(data or {})
+    _validate_enum_values(model, data)
     obj = await read(model, ident, db)
-    _set_attrs(obj, data or {}, allow_missing=True)
+    _set_attrs(obj, data, allow_missing=True)
     await _maybe_flush(db)
     return obj
 
@@ -329,8 +409,10 @@ async def replace(
     Replace semantics: attributes not provided are nulled (except PK).
     Returns the updated model instance. Flush-only.
     """
+    data = dict(data or {})
+    _validate_enum_values(model, data)
     obj = await read(model, ident, db)
-    _set_attrs(obj, data or {}, allow_missing=False)
+    _set_attrs(obj, data, allow_missing=False)
     await _maybe_flush(db)
     return obj
 
@@ -359,15 +441,12 @@ async def list(*_args: Any, **_kwargs: Any) -> List[Any]:  # noqa: A001  (shadow
       - positional or keyword args
       - stray extras (e.g., request) which are ignored
     """
-
     model, params = _normalize_list_call(_args, _kwargs)
 
     filters: Mapping[str, Any] = _coerce_filters(model, params["filters"])
-
     skip: Optional[int] = params["skip"]
     limit: Optional[int] = params["limit"]
     db: Union[Session, AsyncSession] = params["db"]
-
     sort = params["sort"]
 
     if select is None:  # pragma: no cover
@@ -447,7 +526,10 @@ async def bulk_create(
     Insert many rows. Returns the list of persisted instances.
     Flush-only.
     """
-    items = [model(**dict(r)) for r in (rows or ())]
+    items_data = [dict(r) for r in (rows or ())]
+    for r in items_data:
+        _validate_enum_values(model, r)
+    items = [model(**r) for r in items_data]
     if not items:
         return []
     if hasattr(db, "add_all"):
@@ -469,6 +551,8 @@ async def bulk_update(
     pk = _single_pk_name(model)
     updated: List[Any] = []
     for r in rows or ():
+        r = dict(r)
+        _validate_enum_values(model, r)
         ident = r.get(pk)
         if ident is None:
             raise ValueError(f"bulk_update requires '{pk}' in each row")
@@ -492,6 +576,8 @@ async def bulk_replace(
     pk = _single_pk_name(model)
     replaced: List[Any] = []
     for r in rows or ():
+        r = dict(r)
+        _validate_enum_values(model, r)
         ident = r.get(pk)
         if ident is None:
             raise ValueError(f"bulk_replace requires '{pk}' in each row")

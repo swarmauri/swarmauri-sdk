@@ -15,7 +15,8 @@ class Key(Base, GUIDPk, Timestamped, HookProvider):
     __resource__ = "key"
 
     name = Column(String(120), nullable=False, index=True)
-    algorithm = Column(SAEnum("AES256_GCM", name="KeyAlg"), nullable=False)
+    algorithm = Column(SAEnum("AES256_GCM", name="KeyAlg", native_enum=True, validate_strings=True, create_constraint=True), nullable=False)
+
     status = Column(SAEnum("enabled", name="KeyStatus"), nullable=False)
     primary_version = Column(Integer, default=1, nullable=False)
 
