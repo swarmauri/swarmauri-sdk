@@ -116,13 +116,26 @@ def _wrap_hook(h: OpHook) -> StepFn:
     async def _step(ctx: Any) -> Any:
         if pred is not None:
             payload = _ctx_payload(ctx)
+            # Evaluate predicate without ever boolean-testing SQLAlchemy clauses.
+            def _as_bool(val: object) -> bool:
+                if isinstance(val, bool):
+                    return val
+                try:
+                    return bool(val)
+                except TypeError:
+                    # e.g., SQLAlchemy ClauseElement: no boolean value → treat as pass
+                    return True
             try:
-                ok = bool(pred(payload))
+                res = pred(payload)
             except TypeError:
-                ok = bool(pred(ctx))  # type: ignore[misc]
+                # Signature mismatch? Try with ctx.
+                try:
+                    res = pred(ctx)  # type: ignore[misc]
+                except Exception:
+                    res = True
             except Exception:
-                ok = True
-            if not ok:
+                res = True
+            if not _as_bool(res):
                 return None
         rv = fn(ctx)
         if inspect.isawaitable(rv):

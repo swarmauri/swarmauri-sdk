@@ -20,12 +20,10 @@ try:
     from sqlalchemy.orm import Session
     from sqlalchemy.ext.asyncio import AsyncSession
     from sqlalchemy.orm.exc import NoResultFound  # type: ignore
-    from sqlalchemy.sql import ClauseElement as SAClause
 except Exception:  # pragma: no cover
     # Minimal shims so type-checkers don't explode if SQLAlchemy isn't present at import
     select = delete = and_ = asc = desc = None  # type: ignore
     SAEnum = None  # type: ignore
-    SAClause = None  # type: ignore
     Session = object  # type: ignore
     AsyncSession = object  # type: ignore
 
@@ -383,9 +381,13 @@ async def read(model: type, ident: Any, db: Union[Session, AsyncSession]) -> Any
     """
     Load a single row by primary key. Raises NoResultFound if not found.
     """
+    print('read1')
     obj = await _maybe_get(db, model, ident)
+    print('read2')
     if obj is None:
+        print('read3')
         raise NoResultFound(f"{model.__name__}({ident!r}) not found")
+    print('read4')
     return obj
 
 
@@ -445,7 +447,7 @@ async def list(*_args: Any, **_kwargs: Any) -> List[Any]:  # noqa: A001  (shadow
     """
     model, params = _normalize_list_call(_args, _kwargs)
 
-    raw_filters = params["filters"]
+    filters: Mapping[str, Any] = _coerce_filters(model, params["filters"])
     skip: Optional[int] = params["skip"]
     limit: Optional[int] = params["limit"]
     db: Union[Session, AsyncSession] = params["db"]
@@ -454,36 +456,15 @@ async def list(*_args: Any, **_kwargs: Any) -> List[Any]:  # noqa: A001  (shadow
     if select is None:  # pragma: no cover
         # Fallback: legacy query API
         q = db.query(model)  # type: ignore[attr-defined]
-        # If caller passed a mapping, use filter_by(**mapping). If they passed
-        # a SQLAlchemy ClauseElement, use .filter(clause).
-        if raw_filters:
-            if isinstance(raw_filters, Mapping):
-                filt_map = _coerce_filters(model, raw_filters)
-                if filt_map:
-                    q = q.filter_by(**filt_map)  # type: ignore[attr-defined]
-            else:
-                # assume ClauseElement or SQLA-compatible expression — pass through
-                q = q.filter(raw_filters)  # type: ignore[attr-defined]
+        if filters:
+            q = q.filter_by(**filters)  # type: ignore[attr-defined]
         if isinstance(skip, int):
             q = q.offset(max(skip, 0))  # type: ignore[attr-defined]
         if isinstance(limit, int) and limit is not None:
             q = q.limit(max(limit, 0))  # type: ignore[attr-defined]
         return _builtins.list(q.all())  # type: ignore[attr-defined]
 
-    # Modern select/stmt path
-    where = None
-    if isinstance(raw_filters, Mapping):
-        filt_map = _coerce_filters(model, raw_filters)
-        where = _apply_equality_filters(model, filt_map)
-    elif raw_filters is None:
-        where = None
-    elif SAClause is not None and isinstance(raw_filters, SAClause):
-        # caller provided a pre-built SQLAlchemy clause; do not bool() it
-        where = raw_filters
-    else:
-        # Unknown type — be explicit rather than silently bool-testing objects.
-        raise TypeError("filters must be a Mapping or a SQLAlchemy ClauseElement")
-
+    where = _apply_equality_filters(model, filters)
     stmt = select(model)
     if where is not None:
         stmt = stmt.where(where)
@@ -516,8 +497,7 @@ async def clear(
 
     if delete is None:  # pragma: no cover
         # Fallback path: manual iteration
-        # call list(...) with keyword filters so ClauseElements are preserved
-        items = await list(model, filters=raw_filters, db=db)
+        items = await list(model, raw_filters, db=db)
         n = 0
         for obj in items:
             db.delete(obj)  # type: ignore[attr-defined]
@@ -525,19 +505,8 @@ async def clear(
         await _maybe_flush(db)
         return {"deleted": n}
 
-    # If caller provided mapping-like filters, coerce → equality WHERE.
-    # If caller provided a ClauseElement, use it directly.
-    where = None
-    if isinstance(raw_filters, Mapping):
-        filt = _coerce_filters(model, raw_filters)
-        where = _apply_equality_filters(model, filt)
-    elif raw_filters is None:
-        where = None
-    elif SAClause is not None and isinstance(raw_filters, SAClause):
-        where = raw_filters
-    else:
-        raise TypeError("filters must be a Mapping or a SQLAlchemy ClauseElement")
-
+    filt = _coerce_filters(model, raw_filters)
+    where = _apply_equality_filters(model, filt)
     stmt = delete(model)
     if where is not None:
         stmt = stmt.where(where)
