@@ -133,13 +133,14 @@ class Kernel:
     """
 
     def __init__(self, atoms: Optional[Sequence[_DiscoveredAtom]] = None):
-        self._atoms: Optional[list[_DiscoveredAtom]] = list(atoms) if atoms is not None else None
+        # Use a distinct instance attribute name so it doesn't shadow the _atoms method.
+        self._atoms_cache: Optional[list[_DiscoveredAtom]] = list(atoms) if atoms is not None else None
 
     def _atoms(self) -> list[_DiscoveredAtom]:
-        if self._atoms is None:
+        if self._atoms_cache is None:
             # Cache discovery result
-            self._atoms = _discover_atoms()
-        return self._atoms
+            self._atoms_cache = _discover_atoms()
+        return self._atoms_cache
 
     def build(self, model: type, alias: str) -> Dict[str, List[StepFn]]:
         chains = _hook_phase_chains(model, alias)

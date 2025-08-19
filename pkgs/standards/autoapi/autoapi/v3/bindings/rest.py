@@ -522,7 +522,7 @@ def _make_collection_endpoint(
     *,
     resource: str,
     db_dep: Callable[..., Any],
-) -> Callable[..., Awaitable[Any]]]:
+) -> Callable[..., Awaitable[Any]]:
     alias = sp.alias
     target = sp.target
 
@@ -634,7 +634,7 @@ def _make_member_endpoint(
     resource: str,
     db_dep: Callable[..., Any],
     pk_param: str = "item_id",
-) -> Callable[..., Awaitable[Any]]]:
+) -> Callable[..., Awaitable[Any]]:
     alias = sp.alias
     target = sp.target
     real_pk = _pk_name(model)

@@ -64,7 +64,8 @@ def _ctx_get(ctx: Mapping[str, Any], key: str, default: Any = None) -> Any:
         return getattr(ctx, key, default)
 
 def _ctx_payload(ctx: Mapping[str, Any]) -> Mapping[str, Any]:
-    return _ctx_get(ctx, "payload", {}) or {}
+    v = _ctx_get(ctx, 'payload', None)
+    return v if v is not None else {}
 
 def _ctx_db(ctx: Mapping[str, Any]) -> Any:
     return _ctx_get(ctx, "db")
@@ -73,7 +74,8 @@ def _ctx_request(ctx: Mapping[str, Any]) -> Any:
     return _ctx_get(ctx, "request")
 
 def _ctx_path_params(ctx: Mapping[str, Any]) -> Mapping[str, Any]:
-    return _ctx_get(ctx, "path_params", {}) or {}
+    v = _ctx_get(ctx, 'path_params', None)
+    return v if v is not None else {}
 
 def _pk_name(model: type) -> str:
     table = getattr(model, "__table__", None)
@@ -268,19 +270,27 @@ def _wrap_core(model: type, target: str) -> StepFn:
             return await _core.clear(model, {}, db=db)
 
         if target == "bulk_create":
-            rows = payload.get("rows") or []
+            rows = payload.get("rows")
+            if rows is None:
+                rows = []
             return await _core.bulk_create(model, rows, db=db)
 
         if target == "bulk_update":
-            rows = payload.get("rows") or []
+            rows = payload.get("rows")
+            if rows is None:
+                rows = []
             return await _core.bulk_update(model, rows, db=db)
 
         if target == "bulk_replace":
-            rows = payload.get("rows") or []
+            rows = payload.get("rows")
+            if rows is None:
+                rows = []
             return await _core.bulk_replace(model, rows, db=db)
 
         if target == "bulk_upsert":
-            rows = payload.get("rows") or []
+            rows = payload.get("rows")
+            if rows is None:
+                rows = []
             return await _core.bulk_upsert(model, rows, db=db)
 
         if target == "bulk_delete":

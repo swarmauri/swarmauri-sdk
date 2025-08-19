@@ -59,7 +59,8 @@ def _ctx_db(ctx: Mapping[str, Any]) -> Any:
     return _ctx_get(ctx, "db")
 
 def _ctx_payload(ctx: Mapping[str, Any]) -> Mapping[str, Any]:
-    return _ctx_get(ctx, "payload", {}) or {}
+    v = _ctx_get(ctx, 'payload', None)
+    return v if v is not None else {}
 
 # ───────────────────────────────────────────────────────────────────────────────
 # System steps (conceptually distinct; injected for lifecycle completeness)
