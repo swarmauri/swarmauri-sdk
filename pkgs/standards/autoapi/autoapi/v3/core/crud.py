@@ -31,6 +31,32 @@ except Exception:  # pragma: no cover
         pass
 
 
+# Normalized filter operation names
+_CANON_OPS = {
+    "eq": "eq",
+    "=": "eq",
+    "==": "eq",
+    "ne": "ne",
+    "!=": "ne",
+    "<>": "ne",
+    "lt": "lt",
+    "<": "lt",
+    "gt": "gt",
+    ">": "gt",
+    "lte": "lte",
+    "le": "lte",
+    "<=": "lte",
+    "gte": "gte",
+    "ge": "gte",
+    ">=": "gte",
+    "like": "like",
+    "not_like": "not_like",
+    "ilike": "ilike",
+    "not_ilike": "not_ilike",
+    "in": "in",
+    "not_in": "not_in",
+    "nin": "not_in",
+}
 # ───────────────────────────────────────────────────────────────────────────────
 # Internal helpers
 # ───────────────────────────────────────────────────────────────────────────────
@@ -117,40 +143,68 @@ def _immutable_columns(model: type, verb: str) -> set[str]:
 def _coerce_filters(
     model: type, filters: Optional[Mapping[str, Any]]
 ) -> Dict[str, Any]:
-    """Keep only valid, filterable column names."""
+    """Keep only valid, filterable column names/ops."""
     cols = set(_model_columns(model))
     specs = _colspecs(model)
     raw = dict(filters or {})
     out: Dict[str, Any] = {}
     for k, v in raw.items():
-        if k not in cols:
+        name, op = k.split("__", 1) if "__" in k else (k, "eq")
+        if name not in cols:
             continue
-        sp = specs.get(k)
+        canon = _CANON_OPS.get(op, op)
+        sp = specs.get(name)
         if sp is not None:
             io = getattr(sp, "io", None)
-            ops = getattr(io, "filter_ops", ()) if io else ()
-            if ops and not any(op in {"eq", "==", "="} for op in ops):
+            ops = set(getattr(io, "filter_ops", ()) or [])
+            ops = {_CANON_OPS.get(o, o) for o in ops}
+            if not ops or canon not in ops:
                 continue
-        out[k] = v
+            key = name if canon == "eq" else f"{name}__{canon}"
+            out[key] = v
     return out
 
 
-def _apply_equality_filters(model: type, filters: Mapping[str, Any]) -> Any:
-    """
-    Convert simple equality filters into a SQLAlchemy WHERE clause.
-    """
+def _apply_filters(model: type, filters: Mapping[str, Any]) -> Any:
+    """Convert filters with optional operators into a WHERE clause."""
     if select is None:  # pragma: no cover
         return None
     clauses = []
     for k, v in filters.items():
-        col = getattr(model, k, None)
-        if col is not None:
+        name, op = k.split("__", 1) if "__" in k else (k, "eq")
+        canon = _CANON_OPS.get(op, op)
+        col = getattr(model, name, None)
+        if col is None:
+            continue
+        if canon == "eq":
             clauses.append(col == v)
+        elif canon == "ne":
+            clauses.append(col != v)
+        elif canon == "lt":
+            clauses.append(col < v)
+        elif canon == "gt":
+            clauses.append(col > v)
+        elif canon == "lte":
+            clauses.append(col <= v)
+        elif canon == "gte":
+            clauses.append(col >= v)
+        elif canon == "like":
+            clauses.append(col.like(v))
+        elif canon == "not_like":
+            clauses.append(~col.like(v))
+        elif canon == "ilike":
+            clauses.append(col.ilike(v))
+        elif canon == "not_ilike":
+            clauses.append(~col.ilike(v))
+        elif canon == "in":
+            seq = list(v) if isinstance(v, (list, tuple, set)) else [v]
+            clauses.append(col.in_(seq))
+        elif canon == "not_in":
+            seq = list(v) if isinstance(v, (list, tuple, set)) else [v]
+            clauses.append(~col.in_(seq))
     if not clauses:
         return None
-    if len(clauses) == 1:
-        return clauses[0]
-    return and_(*clauses)
+    return clauses[0] if len(clauses) == 1 else and_(*clauses)
 
 
 def _apply_sort(model: type, sort: Any) -> Sequence[Any] | None:
@@ -393,7 +447,6 @@ def _normalize_list_call(
     """
     args = _builtins.list(_args)
     kwargs = dict(_kwargs)
-    print("here")
 
     _pop_bound_self(args)
 
@@ -469,13 +522,9 @@ async def read(model: type, ident: Any, db: Union[Session, AsyncSession]) -> Any
     """
     Load a single row by primary key. Raises NoResultFound if not found.
     """
-    print("read1")
     obj = await _maybe_get(db, model, ident)
-    print("read2")
     if obj is None:
-        print("read3")
         raise NoResultFound(f"{model.__name__}({ident!r}) not found")
-    print("read4")
     return obj
 
 
@@ -553,7 +602,7 @@ async def list(*_args: Any, **_kwargs: Any) -> List[Any]:  # noqa: A001  (shadow
             q = q.limit(max(limit, 0))  # type: ignore[attr-defined]
         return _builtins.list(q.all())  # type: ignore[attr-defined]
 
-    where = _apply_equality_filters(model, filters)
+    where = _apply_filters(model, filters)
     stmt = select(model)
     if where is not None:
         stmt = stmt.where(where)
@@ -596,7 +645,7 @@ async def clear(
         return {"deleted": n}
 
     filt = _coerce_filters(model, raw_filters)
-    where = _apply_equality_filters(model, filt)
+    where = _apply_filters(model, filt)
     stmt = sa_delete(model)
     if where is not None:
         stmt = stmt.where(where)

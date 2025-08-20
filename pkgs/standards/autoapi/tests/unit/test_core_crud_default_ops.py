@@ -6,6 +6,7 @@ from autoapi.v3.core import crud
 from autoapi.v3.columns import acol as col
 from autoapi.v3.specs import acol as spec_acol, IO, S, F
 from autoapi.v3.types import Integer, String
+from autoapi.v3.schema import _build_list_params
 from sqlalchemy.orm.exc import NoResultFound
 
 Base = declarative_base()
@@ -28,7 +29,20 @@ class Widget(Base):
                 in_verbs=("create", "update", "replace"),
                 out_verbs=("read", "list"),
                 mutable_verbs=("create", "update", "replace"),
-                filter_ops=("eq",),
+                filter_ops=("eq", "like", "not_like"),
+                sortable=True,
+            ),
+        )
+    )
+    value = col(
+        spec=spec_acol(
+            storage=S(type_=Integer, nullable=True),
+            field=F(py_type=int),
+            io=IO(
+                in_verbs=("create", "update", "replace"),
+                out_verbs=("read", "list"),
+                mutable_verbs=("create", "update", "replace"),
+                filter_ops=("eq", "gt", "lt", "gte", "lte"),
                 sortable=True,
             ),
         )
@@ -94,8 +108,8 @@ async def test_delete_removes_row(session):
 
 @pytest.mark.asyncio
 async def test_list_applies_allowed_filters_only(session):
-    await crud.create(Widget, {"name": "a", "immutable": "x"}, session)
-    await crud.create(Widget, {"name": "b", "immutable": "y"}, session)
+    await crud.create(Widget, {"name": "a", "immutable": "x", "value": 1}, session)
+    await crud.create(Widget, {"name": "b", "immutable": "y", "value": 2}, session)
     rows = await crud.list(
         Widget,
         filters={"name": "a", "immutable": "nope"},
@@ -109,8 +123,8 @@ async def test_list_applies_allowed_filters_only(session):
 
 @pytest.mark.asyncio
 async def test_list_ignores_non_sortable_columns(session):
-    await crud.create(Widget, {"name": "b", "immutable": "x"}, session)
-    await crud.create(Widget, {"name": "a", "immutable": "y"}, session)
+    await crud.create(Widget, {"name": "b", "immutable": "x", "value": 2}, session)
+    await crud.create(Widget, {"name": "a", "immutable": "y", "value": 1}, session)
     ordered = await crud.list(
         Widget,
         filters=None,
@@ -129,3 +143,30 @@ async def test_list_ignores_non_sortable_columns(session):
         sort="immutable",
     )
     assert [r.name for r in unsorted] == ["b", "a"]
+
+
+@pytest.mark.asyncio
+async def test_list_supports_filter_ops_and_desc_sort(session):
+    await crud.create(Widget, {"name": "alpha", "immutable": "x", "value": 1}, session)
+    await crud.create(Widget, {"name": "bravo", "immutable": "y", "value": 5}, session)
+    await crud.create(
+        Widget, {"name": "charlie", "immutable": "z", "value": 10}, session
+    )
+
+    rows = await crud.list(
+        Widget,
+        filters={"value__gt": 1, "name__like": "b%"},
+        db=session,
+        skip=0,
+        limit=None,
+        sort="-value",
+    )
+    assert [r.name for r in rows] == ["bravo"]
+
+
+def test_build_list_params_includes_ops():
+    params = _build_list_params(Widget)
+    fields = set(params.model_fields.keys())
+    assert "sort" in fields
+    assert "value__gt" in fields
+    assert "name__like" in fields

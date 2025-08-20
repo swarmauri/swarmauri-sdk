@@ -396,6 +396,7 @@ def _build_list_params(model: type) -> Type[BaseModel]:
     base = dict(
         skip=(int | None, Field(None, ge=0)),
         limit=(int | None, Field(None, ge=10)),
+        sort=(str | list[str] | None, Field(None)),
     )
     _scalars = {str, int, float, bool, bytes, uuid.UUID}
     cols: dict[str, tuple[type, Field]] = {}
@@ -422,13 +423,51 @@ def _build_list_params(model: type) -> Type[BaseModel]:
     except Exception:
         pk_name = None
 
+    _canon = {
+        "eq": "eq",
+        "=": "eq",
+        "==": "eq",
+        "ne": "ne",
+        "!=": "ne",
+        "<>": "ne",
+        "lt": "lt",
+        "<": "lt",
+        "gt": "gt",
+        ">": "gt",
+        "lte": "lte",
+        "le": "lte",
+        "<=": "lte",
+        "gte": "gte",
+        "ge": "gte",
+        ">=": "gte",
+        "like": "like",
+        "not_like": "not_like",
+        "ilike": "ilike",
+        "not_ilike": "not_ilike",
+        "in": "in",
+        "not_in": "not_in",
+    }
+
     for c in table.columns:
         if pk_name and c.name == pk_name:
             continue
         py_t = getattr(c.type, "python_type", Any)
         if py_t in _scalars:
-            cols[c.name] = (py_t | None, Field(None))
-            logger.debug("schema: list filter add %s type=%r", c.name, py_t)
+            spec = getattr(model, "__autoapi_colspecs__", {}).get(c.name)
+            io = getattr(spec, "io", None)
+            ops_raw = set(getattr(io, "filter_ops", ()) or [])
+            ops = {_canon.get(op, op) for op in ops_raw}
+            if "eq" in ops:
+                cols[c.name] = (py_t | None, Field(None))
+                logger.debug("schema: list filter add %s type=%r", c.name, py_t)
+            for op in ops:
+                if op == "eq":
+                    continue
+                fname = f"{c.name}__{op}"
+                cols[fname] = (py_t | None, Field(None))
+                logger.debug(
+                    "schema: list filter add %s op=%s type=%r", c.name, op, py_t
+                )
 
     schema = create_model(
         f"{tab}ListParams",
