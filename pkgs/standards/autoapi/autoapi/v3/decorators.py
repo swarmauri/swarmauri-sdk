@@ -371,13 +371,9 @@ def _wrap_ctx_core(table: type, func: Callable[..., Any]) -> Callable[..., Any]:
     """
 
     async def core(p=None, *, db=None, request=None, ctx: Dict[str, Any] | None = None):
-        ctx = _Ctx.ensure(ctx)
+        ctx = _Ctx.ensure(request=request, db=db, seed=ctx)
         if p is not None:
             ctx["payload"] = p
-        if db is not None:
-            ctx["db"] = db
-        if request is not None:
-            ctx["request"] = request
         bound = func.__get__(table, table)
         res = await _maybe_await(bound(ctx))
         return res if res is not None else ctx.get("result")
@@ -396,11 +392,7 @@ def _wrap_ctx_hook(
     async def hook(
         value=None, *, db=None, request=None, ctx: Dict[str, Any] | None = None
     ):
-        ctx = _Ctx.ensure(ctx)
-        if db is not None:
-            ctx["db"] = db
-        if request is not None:
-            ctx["request"] = request
+        ctx = _Ctx.ensure(request=request, db=db, seed=ctx)
         if io_key is not None and value is not None:
             ctx[io_key] = value
         bound = func.__get__(table, table)
