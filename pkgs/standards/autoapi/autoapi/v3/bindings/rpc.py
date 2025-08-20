@@ -134,7 +134,12 @@ def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
         return result
 
     try:
-        if target == "list" and isinstance(result, (list, tuple)):
+        if target in {
+            "list",
+            "bulk_create",
+            "bulk_update",
+            "bulk_replace",
+        } and isinstance(result, (list, tuple)):
             return [
                 out_model.model_validate(x).model_dump(exclude_none=True, by_alias=True)
                 for x in result
@@ -183,10 +188,25 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
         # 1) normalize + validate input
         raw_payload = _coerce_payload(payload)
         norm_payload = _validate_input(model, alias, target, raw_payload)
+        merged_payload: Dict[str, Any] = dict(raw_payload)
+        for key, value in norm_payload.items():
+            if (
+                key == "rows"
+                and isinstance(value, list)
+                and isinstance(raw_payload.get("rows"), list)
+            ):
+                raw_rows = raw_payload.get("rows", [])
+                merged_rows = []
+                for idx, nv in enumerate(value):
+                    base = raw_rows[idx] if idx < len(raw_rows) else {}
+                    merged_rows.append({**base, **nv})
+                merged_payload["rows"] = merged_rows
+            else:
+                merged_payload[key] = value
 
         # 2) build executor context & phases
         base_ctx: Dict[str, Any] = dict(ctx or {})
-        base_ctx.setdefault("payload", norm_payload)
+        base_ctx.setdefault("payload", merged_payload)
         base_ctx.setdefault("db", db)
         if request is not None:
             base_ctx.setdefault("request", request)
@@ -194,7 +214,7 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
         base_ctx.setdefault(
             "env",
             SimpleNamespace(
-                method=alias, params=norm_payload, target=target, model=model
+                method=alias, params=merged_payload, target=target, model=model
             ),
         )
 
