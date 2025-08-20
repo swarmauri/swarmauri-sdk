@@ -195,21 +195,45 @@ class Key(Base):
                 }
             )
 
-    @hook_ctx(ops=("read", "list"), phase="POST_RESPONSE")
+    @hook_ctx(
+        ops=("create", "read", "list", "update", "replace"), phase="POST_RESPONSE"
+    )
     async def _scrub_version_material(cls, ctx):
         obj = ctx.get("result")
         if obj is None:
             return
 
         def scrub(o):
-            if isinstance(o, dict):
-                o.pop("versions", None)
+            from fastapi import Response as _FastAPIResponse
+
+            if isinstance(o, _FastAPIResponse):
                 return o
-            if hasattr(o, "__dict__") and not isinstance(o, type):
-                data = {k: v for k, v in o.__dict__.items() if not k.startswith("_")}
+            if isinstance(o, dict):
+                data = dict(o)
+            elif hasattr(o, "model_dump") and callable(getattr(o, "model_dump")):
+                data = o.model_dump()
+            elif hasattr(o, "dict") and callable(getattr(o, "dict")):
+                data = o.dict()  # type: ignore[call-arg]
+            elif hasattr(o, "__dict__") and not isinstance(o, type):
+                data = {k: v for k, v in vars(o).items() if not k.startswith("_")}
+            else:
+                try:
+                    data = dict(o)
+                except Exception:
+                    return o
+
+            if isinstance(data, dict):
                 data.pop("versions", None)
-                return data
-            return o
+                from fastapi.encoders import jsonable_encoder
+
+                cleaned: dict = {}
+                for k, v in data.items():
+                    try:
+                        cleaned[k] = jsonable_encoder(v, sqlalchemy_safe=True)
+                    except Exception:
+                        cleaned[k] = str(v)
+                return cleaned
+            return data
 
         if isinstance(obj, list):
             ctx["result"] = [scrub(i) for i in obj]
@@ -460,4 +484,7 @@ class Key(Base):
         )
         key_obj.primary_version = new_version
         db.add(kv)
-        return Response(status_code=201)
+
+    @hook_ctx(ops="rotate", phase="POST_RESPONSE")
+    async def _rotate_empty_body(cls, ctx):
+        ctx["result"] = Response(status_code=201)
