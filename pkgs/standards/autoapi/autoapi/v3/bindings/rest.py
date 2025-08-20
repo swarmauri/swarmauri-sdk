@@ -97,32 +97,22 @@ _Key = Tuple[str, str]  # (alias, target)
 
 
 def _ensure_jsonable(obj: Any) -> Any:
-    """Best-effort conversion of DB rows, row-mappings, or ORM models to plain dicts."""
+"""Best-effort conversion of DB rows, row-mappings, or ORM objects to dicts."""
     if isinstance(obj, (list, tuple)):
         return [_ensure_jsonable(x) for x in obj]
 
-    mapping = getattr(obj, "_mapping", None)
-    if isinstance(mapping, _Mapping):
+    if isinstance(mapping, Mapping):
         try:
-            data = dict(mapping)
-            if len(data) == 1:
-                # Unwrap single-key Row mappings like {"Model": <Model>}
-                _, val = next(iter(data.items()))
-                return _ensure_jsonable(val)
-            return {k: _ensure_jsonable(v) for k, v in data.items()}
+            return {k: _ensure_jsonable(v) for k, v in dict(mapping).items()}
         except Exception:  # pragma: no cover - fall back to original object
             pass
 
-    table = getattr(obj, "__table__", None)
-    if table is not None:
-        try:
-            cols = getattr(table, "columns", [])
-            return {c.name: _ensure_jsonable(getattr(obj, c.name)) for c in cols}
-        except Exception:  # pragma: no cover - fall back to original object
-            pass
+    try:
+        data = vars(obj)
+    except TypeError:
+        return obj
 
-    return obj
-
+    return {k: _ensure_jsonable(v) for k, v in data.items() if not k.startswith("_")}
 
 def _req_state_db(request: Request) -> Any:
     return getattr(request.state, "db", None)
