@@ -264,9 +264,25 @@ def _default_schemas_for_spec(
         result["out"] = read_schema
 
     elif target == "custom":
-        # No defaults for custom: leave raw unless explicitly overridden
-        result["in_"] = None
-        result["out"] = None
+        # Build schemas for custom operations based on verb-specific IO specs
+        alias = sp.alias
+        specs = getattr(model, "__autoapi_cols__", {})
+        in_fields = {
+            name
+            for name, spec in specs.items()
+            if alias in set(getattr(getattr(spec, "io", None), "in_verbs", []) or [])
+        }
+        out_fields = {
+            name
+            for name, spec in specs.items()
+            if alias in set(getattr(getattr(spec, "io", None), "out_verbs", []) or [])
+        }
+        result["in_"] = (
+            _build_schema(model, verb=alias, include=in_fields) if in_fields else None
+        )
+        result["out"] = (
+            _build_schema(model, verb=alias, include=out_fields) if out_fields else None
+        )
 
     else:
         # Defensive default: treat unknown like custom (raw)
