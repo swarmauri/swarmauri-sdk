@@ -97,6 +97,9 @@ def _colspecs(model: type) -> Mapping[str, Any]:
     specs = getattr(model, "__autoapi_colspecs__", None)
     if isinstance(specs, Mapping):
         return specs
+    specs = getattr(model, "__autoapi_cols__", None)
+    if isinstance(specs, Mapping):
+        return specs
     return {}
 
 
