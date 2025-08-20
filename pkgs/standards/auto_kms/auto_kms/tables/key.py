@@ -100,7 +100,7 @@ class Key(Base):
 
     # Virtual (wire-only)
     kid: str = vcol(
-        io=IO(out_verbs=("read", "list", "encrypt")),
+        io=IO(out_verbs=("encrypt")),
         read_producer=lambda obj, ctx: str(getattr(obj, "id", "")),
     )
 
