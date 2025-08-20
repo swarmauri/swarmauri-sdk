@@ -56,6 +56,7 @@ api.include_models([Key, KeyVersion], base_prefix="/kms")
 api.mount_jsonrpc(prefix="/kms/rpc")
 api.attach_diagnostics(prefix="/system")
 
+
 @app.on_event("startup")
 async def startup_event():
     await api.initialize_async()

@@ -193,6 +193,18 @@ class Key(Base):
                 }
             )
 
+    @hook_ctx(ops=("read", "list"), phase="POST_RESPONSE")
+    async def _scrub_version_material(cls, ctx):
+        obj = ctx.get("result")
+        if obj is None:
+            return
+        if isinstance(obj, dict):
+            obj.pop("versions", None)
+        else:
+            data = {k: v for k, v in vars(obj).items() if not k.startswith("_")}
+            data.pop("versions", None)
+            ctx["result"] = data
+
     # ---- Hook: ensure key exists & enabled ----
     @hook_ctx(ops=("encrypt", "decrypt", "rotate"), phase="PRE_HANDLER")
     async def _ensure_key_enabled(cls, ctx):
