@@ -365,10 +365,10 @@ def _classify_exception(
         return status.HTTP_404_NOT_FOUND, "Resource not found", None
 
     if _is_asyncpg_constraint_error(exc):
-        return status.HTTP_422_UNPROCESSABLE_ENTITY, _stringify_exc(exc), None
+        return status.HTTP_409_CONFLICT, _stringify_exc(exc), None
 
     if (IntegrityError is not None) and isinstance(exc, IntegrityError):
-        return status.HTTP_422_UNPROCESSABLE_ENTITY, _stringify_exc(exc), None
+        return status.HTTP_409_CONFLICT, _stringify_exc(exc), None
 
     if (OperationalError is not None) and isinstance(exc, OperationalError):
         return status.HTTP_503_SERVICE_UNAVAILABLE, _stringify_exc(exc), None
