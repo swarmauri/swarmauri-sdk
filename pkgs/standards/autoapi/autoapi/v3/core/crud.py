@@ -692,6 +692,7 @@ async def bulk_update(
     Returns the list of updated instances. Flush-only.
     """
     pk = _single_pk_name(model)
+    skip = _immutable_columns(model, "update")
     updated: List[Any] = []
     for r in rows or ():
         r = dict(r)
@@ -702,7 +703,7 @@ async def bulk_update(
         obj = await read(model, ident, db)
         # remove pk to avoid accidental overwrite
         data = {k: v for k, v in r.items() if k != pk}
-        _set_attrs(obj, data, allow_missing=True)
+        _set_attrs(obj, data, allow_missing=True, skip=skip)
         updated.append(obj)
     if updated:
         await _maybe_flush(db)
@@ -717,6 +718,7 @@ async def bulk_replace(
     Missing attributes are nulled (except PK). Flush-only.
     """
     pk = _single_pk_name(model)
+    skip = _immutable_columns(model, "replace")
     replaced: List[Any] = []
     for r in rows or ():
         r = dict(r)
@@ -726,7 +728,7 @@ async def bulk_replace(
             raise ValueError(f"bulk_replace requires '{pk}' in each row")
         obj = await read(model, ident, db)
         data = {k: v for k, v in r.items() if k != pk}
-        _set_attrs(obj, data, allow_missing=False)
+        _set_attrs(obj, data, allow_missing=False, skip=skip)
         replaced.append(obj)
     if replaced:
         await _maybe_flush(db)

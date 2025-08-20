@@ -348,4 +348,5 @@ async def test_clear_bulk_and_delete(session):
     assert replaced[0].value is None
     res = await crud.bulk_delete(Widget, [objs[0].id, objs[1].id], session)
     assert res == {"deleted": 2}
-    assert await crud.list(Widget, db=session) == []
+    remaining = await crud.list(Widget, db=session)
+    assert [r.name for r in remaining] == ["b"]
