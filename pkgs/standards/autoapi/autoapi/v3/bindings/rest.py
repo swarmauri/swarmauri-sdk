@@ -102,6 +102,19 @@ logger = logging.getLogger(__name__)
 _Key = Tuple[str, str]  # (alias, target)
 
 
+def _ensure_jsonable(obj: Any) -> Any:
+    """Best-effort conversion of DB rows or row-mappings to plain dicts."""
+    if isinstance(obj, (list, tuple)):
+        return [_ensure_jsonable(x) for x in obj]
+    mapping = getattr(obj, "_mapping", None)
+    if mapping is not None:
+        try:
+            return dict(mapping)
+        except Exception:  # pragma: no cover - fall back to original object
+            pass
+    return obj
+
+
 def _req_state_db(request: Request) -> Any:
     return getattr(request.state, "db", None)
 
@@ -189,17 +202,17 @@ def _serialize_output(
     """
     schemas_root = getattr(model, "schemas", None)
     if not schemas_root:
-        return result
+        return _ensure_jsonable(result)
     alias_ns = getattr(schemas_root, alias, None)
     if not alias_ns:
-        return result
+        return _ensure_jsonable(result)
     out_model = getattr(alias_ns, "out", None)
     if (
         not out_model
         or not inspect.isclass(out_model)
         or not issubclass(out_model, BaseModel)
     ):
-        return result
+        return _ensure_jsonable(result)
     try:
         if target == "list" and isinstance(result, (list, tuple)):
             return [
@@ -216,7 +229,7 @@ def _serialize_output(
             alias,
             exc_info=True,
         )
-        return result
+        return _ensure_jsonable(result)
 
 
 def _validate_body(
