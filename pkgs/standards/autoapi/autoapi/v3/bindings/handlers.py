@@ -424,7 +424,6 @@ def _wrap_custom(model: type, sp: OpSpec, user_handler: Callable[..., Any]) -> S
     Wrap a user-supplied handler so it can be executed as StepFn(ctx).
     We pass keyword args selectively (ctx, db, payload, request, model, op/spec/alias).
     """
-    wanted = _accepted_kw(user_handler)
 
     async def step(ctx: Any) -> Any:
         db = _ctx_db(ctx)
@@ -433,6 +432,7 @@ def _wrap_custom(model: type, sp: OpSpec, user_handler: Callable[..., Any]) -> S
 
         # Try to resolve a *bound* attribute from the class if available
         bound = getattr(model, getattr(user_handler, "__name__", ""), user_handler)
+        wanted = _accepted_kw(bound)
 
         kw = {}
         if "ctx" in wanted:
