@@ -21,26 +21,26 @@ class _Base(BaseModel):
 
 
 class _Create(_Base):
-    action: str = Field("create", Literal=True)
+    action: str = Field("create", json_schema_extra={"Literal": True})
     key_dir: Path | None = None
     passphrase: str | None = None
 
 
 class _Upload(_Base):
-    action: str = Field("upload", Literal=True)
+    action: str = Field("upload", json_schema_extra={"Literal": True})
     key_dir: Path | None = None
     passphrase: str | None = None
     gateway_url: str = DEFAULT_GATEWAY
 
 
 class _Remove(_Base):
-    action: str = Field("remove", Literal=True)
+    action: str = Field("remove", json_schema_extra={"Literal": True})
     fingerprint: str
     gateway_url: str = DEFAULT_GATEWAY
 
 
 class _Fetch(_Base):
-    action: str = Field("fetch-server", Literal=True)
+    action: str = Field("fetch-server", json_schema_extra={"Literal": True})
     gateway_url: str = DEFAULT_GATEWAY
 
 

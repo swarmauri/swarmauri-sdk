@@ -3,41 +3,49 @@ from types import SimpleNamespace
 
 from autoapi.v3.system.diagnostics import _build_planz_endpoint
 from autoapi.v3.opspec import OpSpec
+from autoapi.v3.runtime import plan as _plan
 
 
 @pytest.mark.asyncio
-async def test_planz_endpoint_sequence():
+async def test_planz_endpoint_sequence(monkeypatch: pytest.MonkeyPatch):
     class API:
         pass
 
     class Model:
         __name__ = "Model"
 
-    def start_tx(ctx):
-        pass
+    def handler(ctx):
+        return None
 
-    start_tx.__name__ = "start_tx"
-
-    def end_tx(ctx):
-        pass
-
-    end_tx.__name__ = "end_tx"
-
-    def mark_skip(ctx):
-        pass
-
-    mark_skip.__name__ = "mark_skip_persist"
-
-    Model.hooks = SimpleNamespace(
-        write=SimpleNamespace(START_TX=[start_tx], END_TX=[end_tx]),
-        read=SimpleNamespace(PRE_TX_BEGIN=[mark_skip]),
-    )
     Model.opspecs = SimpleNamespace(
         all=(
-            OpSpec(alias="write", target="create", table=Model, persist="default"),
-            OpSpec(alias="read", target="read", table=Model, persist="skip"),
+            OpSpec(
+                alias="write",
+                target="create",
+                table=Model,
+                persist="default",
+                handler=handler,
+            ),
+            OpSpec(
+                alias="read",
+                target="read",
+                table=Model,
+                persist="skip",
+                handler=handler,
+            ),
         )
     )
+
+    dummy_plan = object()
+    Model.runtime = SimpleNamespace(plan=dummy_plan)
+
+    def fake_flattened_order(plan, *, persist, include_system_steps, deps):
+        assert plan is dummy_plan
+        if persist:
+            return ["sys:txn:begin@START_TX"]
+        return []
+
+    monkeypatch.setattr(_plan, "flattened_order", fake_flattened_order)
 
     api = API()
     api.models = {"Model": Model}
@@ -47,6 +55,6 @@ async def test_planz_endpoint_sequence():
 
     assert "Model" in data
     assert "write" in data["Model"]
-    assert any("start_tx" in s for s in data["Model"]["write"])
+    assert any("sys:txn:begin@START_TX" in s for s in data["Model"]["write"])
     assert "read" in data["Model"]
-    assert not any("start_tx" in s for s in data["Model"]["read"])
+    assert not any("sys:txn:begin@START_TX" in s for s in data["Model"]["read"])

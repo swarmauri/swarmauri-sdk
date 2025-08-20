@@ -19,6 +19,9 @@ from autoapi.v3.decorators import hook_ctx
 # --- models --------------------------------------------------------------------
 
 
+Base.metadata.clear()
+
+
 class Gadget(Base, GUIDPk):
     __tablename__ = "gadgets_opspec"
     __allow_unmapped__ = True
