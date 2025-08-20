@@ -42,10 +42,10 @@ def _resource_name(model: type) -> str:
 
     Policy:
       - Prefer explicit `__resource__` when present (caller-controlled).
-      - Otherwise, use the model *class name* exactly as written.
+      - Otherwise, use the lowercase model class name.
       - DO NOT use `__tablename__` here (strictly DB-only per project policy).
     """
-    return getattr(model, "__resource__", model.__name__)
+    return getattr(model, "__resource__", model.__name__.lower())
 
 
 def _default_prefix(model: type) -> str:
