@@ -707,13 +707,18 @@ def _make_member_endpoint(
     # --- Body-based member endpoints: PATCH update / PUT replace (and custom member) ---
 
     body_model = _request_model_for(sp, model)
-    body_annotation = body_model if body_model is not None else Mapping[str, Any]
+    if body_model is None:
+        body_annotation = Optional[Mapping[str, Any]]
+        body_default = Body(None)
+    else:
+        body_annotation = body_model
+        body_default = Body(...)
 
     async def _endpoint(
         item_id: Any,
         request: Request,
         db: Any = Depends(db_dep),
-        body=Body(...),
+        body=body_default,
     ):
         payload = _validate_body(model, alias, target, body)
 
