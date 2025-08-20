@@ -313,13 +313,9 @@ def _normalize_deps(deps: Optional[Sequence[Any]]) -> list[Any]:
 
 
 def _status_for(target: str) -> int:
-    if target == "create":
-        # Creating resources should use HTTP 201 (Created).
-        # Earlier revisions defaulted to 200 for backward compatibility, but
-        # the integration tests rely on the standard 201 code.
-        return _status.HTTP_201_CREATED
     if target in ("delete", "clear"):
         return _status.HTTP_204_NO_CONTENT
+    # Default to HTTP 200 OK for create and all other operations.
     return _status.HTTP_200_OK
 
 
