@@ -114,6 +114,17 @@ def _default_end_tx() -> StepFn:
         rv = commit()
         if inspect.isawaitable(rv):
             await rv  # type: ignore[misc]
+        # Some SQLAlchemy Session configurations may implicitly begin a new
+        # transaction during commit (e.g., due to autoflush). Commit repeatedly
+        # until the session reports no active transaction.
+        if hasattr(db, "in_transaction") and callable(db.in_transaction):
+            try:
+                while db.in_transaction():  # type: ignore[call-arg]
+                    rv2 = commit()
+                    if inspect.isawaitable(rv2):
+                        await rv2  # type: ignore[misc]
+            except Exception:  # pragma: no cover - defensive
+                pass
 
     _step.__name__ = "end_tx"
     _step.__qualname__ = "end_tx"
