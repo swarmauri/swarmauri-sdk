@@ -16,13 +16,13 @@ from typing import (
 import builtins as _builtins
 
 try:
-    from sqlalchemy import select, delete, and_, asc, desc, Enum as SAEnum
+    from sqlalchemy import select, delete as sa_delete, and_, asc, desc, Enum as SAEnum
     from sqlalchemy.orm import Session
     from sqlalchemy.ext.asyncio import AsyncSession
     from sqlalchemy.orm.exc import NoResultFound  # type: ignore
 except Exception:  # pragma: no cover
     # Minimal shims so type-checkers don't explode if SQLAlchemy isn't present at import
-    select = delete = and_ = asc = desc = None  # type: ignore
+    select = sa_delete = and_ = asc = desc = None  # type: ignore
     SAEnum = None  # type: ignore
     Session = object  # type: ignore
     AsyncSession = object  # type: ignore
@@ -66,11 +66,27 @@ def _model_columns(model: type) -> Tuple[str, ...]:
     return tuple(c.name for c in table.columns)
 
 
-def _coerce_filters(model: type, filters: Optional[Mapping[str, Any]]) -> Dict[str, Any]:
-    """Keep only valid column names, drop paging keys."""
-    cols = set(_model_columns(model))
+def _colspecs(model: type) -> Mapping[str, Any]:
+    """Return the ColumnSpec mapping attached to the model."""
+    return getattr(model, "__autoapi_cols__", {}) or {}
+
+
+def _coerce_filters(
+    model: type, filters: Optional[Mapping[str, Any]]
+) -> Dict[str, Any]:
+    """Keep only valid, filterable columns based on ColumnSpec.io.filter_ops."""
+    specs = _colspecs(model)
     raw = dict(filters or {})
-    return {k: v for k, v in raw.items() if k in cols}
+    out: Dict[str, Any] = {}
+    for k, v in raw.items():
+        spec = specs.get(k)
+        io = getattr(spec, "io", None)
+        if io is None or "eq" not in getattr(
+            io, "filter_ops", ()
+        ):  # only allow equality filters
+            continue
+        out[k] = v
+    return out
 
 
 def _apply_equality_filters(model: type, filters: Mapping[str, Any]) -> Any:
@@ -117,6 +133,7 @@ def _apply_sort(model: type, sort: Any) -> Sequence[Any] | None:
     if not tokens:
         return None
 
+    specs = _colspecs(model)
     order_by_exprs: list[Any] = []
     for tok in tokens:
         direction = "asc"
@@ -135,6 +152,10 @@ def _apply_sort(model: type, sort: Any) -> Sequence[Any] | None:
         col = getattr(model, name, None)
         if col is None:
             continue  # ignore unknown column names
+        spec = specs.get(name)
+        io = getattr(spec, "io", None)
+        if io is not None and not getattr(io, "sortable", False):
+            continue
         if direction == "desc":
             order_by_exprs.append(desc(col))
         else:
@@ -196,6 +217,7 @@ def _set_attrs(
 # ───────────────────────────────────────────────────────────────────────────────
 # Enum validation on writes
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 def _validate_enum_values(model: type, values: Mapping[str, Any]) -> None:
     """
@@ -277,7 +299,9 @@ def _pop_bound_self(args: list[Any]) -> None:
         args.pop(0)
 
 
-def _extract_db(args: list[Any], kwargs: dict[str, Any]) -> Union[Session, AsyncSession]:
+def _extract_db(
+    args: list[Any], kwargs: dict[str, Any]
+) -> Union[Session, AsyncSession]:
     db = kwargs.pop("db", None)
     if db is not None:
         return db
@@ -299,7 +323,9 @@ def _as_pos_int(x: Any) -> Optional[int]:
         return None
 
 
-def _normalize_list_call(_args: tuple[Any, ...], _kwargs: dict[str, Any]) -> tuple[type, Dict[str, Any]]:
+def _normalize_list_call(
+    _args: tuple[Any, ...], _kwargs: dict[str, Any]
+) -> tuple[type, Dict[str, Any]]:
     """
     Accept:
       list(model, filters, *, db, skip, limit, sort)
@@ -311,7 +337,7 @@ def _normalize_list_call(_args: tuple[Any, ...], _kwargs: dict[str, Any]) -> tup
     """
     args = _builtins.list(_args)
     kwargs = dict(_kwargs)
-    print('here')
+    print("here")
 
     _pop_bound_self(args)
 
@@ -353,7 +379,13 @@ def _normalize_list_call(_args: tuple[Any, ...], _kwargs: dict[str, Any]) -> tup
         filters = {}
 
     # Ignore any other stray args/kwargs (request, ctx, etc.)
-    return model, {"filters": filters, "skip": skip, "limit": limit, "db": db, "sort": sort}
+    return model, {
+        "filters": filters,
+        "skip": skip,
+        "limit": limit,
+        "db": db,
+        "sort": sort,
+    }
 
 
 # ───────────────────────────────────────────────────────────────────────────────
@@ -381,13 +413,13 @@ async def read(model: type, ident: Any, db: Union[Session, AsyncSession]) -> Any
     """
     Load a single row by primary key. Raises NoResultFound if not found.
     """
-    print('read1')
+    print("read1")
     obj = await _maybe_get(db, model, ident)
-    print('read2')
+    print("read2")
     if obj is None:
-        print('read3')
+        print("read3")
         raise NoResultFound(f"{model.__name__}({ident!r}) not found")
-    print('read4')
+    print("read4")
     return obj
 
 
@@ -484,7 +516,8 @@ async def list(*_args: Any, **_kwargs: Any) -> List[Any]:  # noqa: A001  (shadow
 
 
 async def clear(
-    *args: Any, **kwargs: Any,
+    *args: Any,
+    **kwargs: Any,
 ) -> Dict[str, int]:
     """
     Delete many rows matching equality filters. Returns {"deleted": N}.
@@ -495,7 +528,7 @@ async def clear(
     raw_filters: Mapping[str, Any] = params["filters"]
     db: Union[Session, AsyncSession] = params["db"]
 
-    if delete is None:  # pragma: no cover
+    if sa_delete is None:  # pragma: no cover
         # Fallback path: manual iteration
         items = await list(model, raw_filters, db=db)
         n = 0
@@ -507,7 +540,7 @@ async def clear(
 
     filt = _coerce_filters(model, raw_filters)
     where = _apply_equality_filters(model, filt)
-    stmt = delete(model)
+    stmt = sa_delete(model)
     if where is not None:
         stmt = stmt.where(where)
 
@@ -607,9 +640,9 @@ async def bulk_delete(
         return {"deleted": 0}
 
     # Prefer DELETE ... WHERE pk IN (...)
-    if delete is not None:
+    if sa_delete is not None:
         col = getattr(model, pk_name)
-        stmt = delete(model).where(col.in_(id_seq))  # type: ignore[attr-defined]
+        stmt = sa_delete(model).where(col.in_(id_seq))  # type: ignore[attr-defined]
         res = await _maybe_execute(db, stmt)
         await _maybe_flush(db)
         n = int(getattr(res, "rowcount", 0) or 0)
