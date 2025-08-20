@@ -166,6 +166,25 @@ def _materialize_colspecs_to_sqla(cls) -> None:
 
 class Base(DeclarativeBase):
     def __init_subclass__(cls, **kw):
+        # Allow redefining tables during tests or re-imports without SQLAlchemy
+        # raising "Table ... is already defined".  Consumers can still override
+        # ``__table_args__``; we just ensure ``extend_existing`` defaults to
+        # ``True``.
+        if not getattr(cls, "__abstract__", False):
+            table_args = getattr(cls, "__table_args__", {})
+            if isinstance(table_args, dict):
+                table_args.setdefault("extend_existing", True)
+            elif isinstance(table_args, tuple):
+                if table_args and isinstance(table_args[-1], dict):
+                    opts = dict(table_args[-1])
+                    opts.setdefault("extend_existing", True)
+                    table_args = (*table_args[:-1], opts)
+                else:
+                    table_args = (*table_args, {"extend_existing": True})
+            else:
+                table_args = {"extend_existing": True}
+            setattr(cls, "__table_args__", table_args)
+
         # 1) BEFORE SQLAlchemy maps: turn ColumnSpecs into real mapped_column(...)
         _materialize_colspecs_to_sqla(cls)
         # 2) Let SQLAlchemy map the class (PK now exists)

@@ -830,8 +830,8 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
             description=label,
             response_model=response_model,
             status_code=status_code,
-            # IMPORTANT: only class name here; never table name
-            tags=list(sp.tags or (model.__name__,)),
+            # Default tag: use the resource name (__resource__ or class name)
+            tags=list(sp.tags or (resource,)),
             responses=_RESPONSES_META,
         )
 
