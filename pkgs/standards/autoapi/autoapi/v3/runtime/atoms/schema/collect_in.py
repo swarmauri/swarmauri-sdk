@@ -86,7 +86,9 @@ def run(obj: Optional[object], ctx: Any) -> None:
             for obj in (f, col, io):
                 allow = getattr(obj, "allow_null_in", ())
                 if allow and op in allow:
-                    nullable = True
+                    # Only relax nullability when the storage layer permits it
+                    if nullable is not False:
+                        nullable = True
                     break
         alias_in = _infer_in_alias(field, col)
         py_type = _py_type_str(f)

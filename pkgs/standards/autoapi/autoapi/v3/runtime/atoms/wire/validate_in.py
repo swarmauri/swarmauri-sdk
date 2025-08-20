@@ -6,6 +6,8 @@ import decimal as _dc
 import uuid as _uuid
 from typing import Any, Callable, Dict, Mapping, MutableMapping, Optional, Tuple
 
+from fastapi import HTTPException, status as _status
+
 from ... import events as _ev
 
 # PRE_HANDLER, runs after wire:build_in
@@ -34,7 +36,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
         ctx.temp["in_errors"] : list of {field, code, message}
         ctx.temp["in_invalid"] : bool
         ctx.temp["in_coerced"] : tuple of coerced field names (if any)
-    - Raises ValueError if any validation errors are found (mapped upstream to 422)
+    - Raises HTTPException(422) if any validation errors are found
     """
     temp = _ensure_temp(ctx)
     schema_in = _schema_in(ctx)
@@ -132,8 +134,9 @@ def run(obj: Optional[object], ctx: Any) -> None:
     if errors:
         temp["in_errors"] = errors
         temp["in_invalid"] = True
-        # Raise a compact error to stop execution early (executor maps to 422)
-        raise ValueError(f"wire.validate_in: {len(errors)} error(s)")
+        raise HTTPException(
+            status_code=_status.HTTP_422_UNPROCESSABLE_ENTITY, detail=errors
+        )
     else:
         temp["in_invalid"] = False
 
