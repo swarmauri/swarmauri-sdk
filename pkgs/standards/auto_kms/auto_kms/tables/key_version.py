@@ -102,4 +102,19 @@ class KeyVersion(Base, GUIDPk, Timestamped):
             material=material,
             export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
         )
-        payload["public_material"] = None
+        # Persist the generated key material on the version so that downstream
+        # crypto providers that require direct material access can operate.
+        # This mirrors the behavior during initial key creation where the
+        # material is stored with the primary version. Without this assignment
+        # the database row ends up with ``public_material`` as ``NULL``,
+        # triggering "Key material missing" errors during encrypt/decrypt
+        # operations when the provider expects the material to be present on the
+        # key version record.
+        payload["public_material"] = material
+
+    @hook_ctx(ops="create", phase="POST_HANDLER")
+    async def _scrub_material(cls, ctx):
+        """Remove raw key material from the response payload."""
+        obj = ctx.get("result")
+        if obj is not None:
+            obj.public_material = None

@@ -43,7 +43,9 @@ def client(tmp_path, monkeypatch):
 
 def test_encrypt_invalid_base64(client):
     key = _create_key(client)
-    kv_payload = {"key_id": key["id"], "version": 1, "status": "active"}
+    # The primary version (1) is seeded automatically during key creation.
+    # Create a new secondary version to exercise the key version endpoint.
+    kv_payload = {"key_id": key["id"], "version": 2, "status": "active"}
     res = client.post("/kms/key_version", json=kv_payload)
     assert res.status_code == 201
     payload = {
