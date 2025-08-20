@@ -22,8 +22,7 @@ def test_request_body_uses_schema_model():
     request_schema = spec["paths"]["/widgets_req_schema"]["post"]["requestBody"][
         "content"
     ]["application/json"]["schema"]
-    any_of = request_schema.get("anyOf")
-    assert any_of and any_of[0]["$ref"] == "#/components/schemas/WidgetCreate"
+    assert request_schema["$ref"] == "#/components/schemas/WidgetCreate"
 
     widget_schema = spec["components"]["schemas"]["WidgetCreate"]
     assert "name" in widget_schema.get("properties", {})

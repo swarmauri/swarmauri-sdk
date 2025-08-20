@@ -147,25 +147,16 @@ class Base(DeclarativeBase):
     def __init_subclass__(cls, **kw):
         # 1) BEFORE SQLAlchemy maps: turn ColumnSpecs into real mapped_column(...)
         _materialize_colspecs_to_sqla(cls)
+        # 2) Let SQLAlchemy map the class (PK now exists)
+        super().__init_subclass__(**kw)
 
-        # 2) Seed model namespaces / index specs (ops/hooks/etc.) – idempotent
+        # 3) Seed model namespaces / index specs (ops/hooks/etc.) – idempotent
         try:
             from autoapi.v3.bindings import model as _model_bind
+
             _model_bind.bind(cls)
         except Exception:
             pass
-
-        # 3) AUTO-BUILD CRUD schemas from ColumnSpecs so /docs has them
-        try:
-            from autoapi.v3.schema.build import build_for_model as _build_schemas
-            _build_schemas(cls)  # attaches request/response models to the model/registry
-        except Exception:
-            # Surface during development if needed:
-            # raise
-            pass
-
-        # 4) Let SQLAlchemy map the class (PK now exists)
-        super().__init_subclass__(**kw)
 
     metadata = MetaData(
         naming_convention={

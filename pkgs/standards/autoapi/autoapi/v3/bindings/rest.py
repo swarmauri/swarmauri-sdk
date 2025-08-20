@@ -98,6 +98,7 @@ def _req_state_db(request: Request) -> Any:
 # Helpers: resource names, primary keys, schemas, phases, IO shaping
 # ───────────────────────────────────────────────────────────────────────────────
 
+
 def _resource_name(model: type) -> str:
     """
     Resource segment for HTTP paths/tags.
@@ -154,8 +155,11 @@ def _get_phase_chains(
         try:
             return _kernel_build_phase_chains(model, alias)
         except Exception:
-            logger.exception("Kernel build_phase_chains failed for %s.%s; falling back to hooks",
-                             getattr(model, "__name__", model), alias)
+            logger.exception(
+                "Kernel build_phase_chains failed for %s.%s; falling back to hooks",
+                getattr(model, "__name__", model),
+                alias,
+            )
     hooks_root = getattr(model, "hooks", None) or SimpleNamespace()
     alias_ns = getattr(hooks_root, alias, None)
     out: Dict[str, Sequence[Callable[..., Awaitable[Any]]]] = {}
@@ -346,12 +350,14 @@ _DEFAULT_METHODS: Dict[str, Tuple[str, ...]] = {
     "custom": ("POST",),  # default for custom ops
 }
 
+
 def _default_path_suffix(sp: OpSpec) -> str | None:
     if sp.target.startswith("bulk_"):
         return "/bulk"
     if sp.target == "custom":
         return f"/{sp.alias}"
     return None
+
 
 def _path_for_spec(
     model: type, sp: OpSpec, *, resource: str, pk_param: str = "item_id"
@@ -367,6 +373,7 @@ def _path_for_spec(
     if sp.arity == "member" or sp.target in {"read", "update", "replace", "delete"}:
         return f"/{resource}/{{{pk_param}}}{suffix}", True
     return f"/{resource}{suffix}", False
+
 
 def _response_model_for(sp: OpSpec, model: type) -> Any | None:
     """
@@ -390,6 +397,7 @@ def _response_model_for(sp: OpSpec, model: type) -> Any | None:
             return None
     return out_model
 
+
 def _request_model_for(sp: OpSpec, model: type) -> Any | None:
     """Fetch the request model for docs and validation."""
     alias_ns = getattr(
@@ -397,9 +405,11 @@ def _request_model_for(sp: OpSpec, model: type) -> Any | None:
     )
     return getattr(alias_ns, "in_", None)
 
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Query param dependency (so OpenAPI shows list filters)
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 def _strip_optional(t: Any) -> Any:
     """If annotation is Optional[T] (i.e., Union[T, None]), return T; else return the input."""
@@ -408,6 +418,7 @@ def _strip_optional(t: Any) -> Any:
         args = tuple(a for a in _get_args(t) if a is not type(None))
         return args[0] if len(args) == 1 else Any
     return t
+
 
 def _make_list_query_dep(model: type, alias: str):
     """
@@ -477,9 +488,11 @@ def _make_list_query_dep(model: type, alias: str):
     _dep.__name__ = f"list_params_{model.__name__}_{alias}"
     return _dep
 
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Optionalize list.in_ model (hardening against bad defaults)
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 def _optionalize_list_in_model(in_model: type[BaseModel]) -> type[BaseModel]:
     """
@@ -512,9 +525,11 @@ def _optionalize_list_in_model(in_model: type[BaseModel]) -> type[BaseModel]:
     setattr(New, "__autoapi_optionalized__", True)
     return New
 
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Endpoint factories (split by body/no-body and member/collection)
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 def _make_collection_endpoint(
     model: type,
@@ -591,14 +606,12 @@ def _make_collection_endpoint(
     # --- Body-based collection endpoints: create / bulk_* ---
 
     body_model = _request_model_for(sp, model)
-    body_annotation = (
-        (body_model | None) if body_model is not None else (Mapping[str, Any] | None)
-    )
+    body_annotation = body_model if body_model is not None else Mapping[str, Any]
 
     async def _endpoint(
         request: Request,
         db: Any = Depends(db_dep),
-        body=Body(default=None),
+        body=Body(...),
     ):
         payload = _validate_body(model, alias, target, body)
         ctx: Dict[str, Any] = {
@@ -626,6 +639,7 @@ def _make_collection_endpoint(
     )
     _endpoint.__annotations__["body"] = body_annotation
     return _endpoint
+
 
 def _make_member_endpoint(
     model: type,
@@ -679,15 +693,13 @@ def _make_member_endpoint(
     # --- Body-based member endpoints: PATCH update / PUT replace (and custom member) ---
 
     body_model = _request_model_for(sp, model)
-    body_annotation = (
-        (body_model | None) if body_model is not None else (Mapping[str, Any] | None)
-    )
+    body_annotation = body_model if body_model is not None else Mapping[str, Any]
 
     async def _endpoint(
         item_id: Any,
         request: Request,
         db: Any = Depends(db_dep),
-        body=Body(default=None),
+        body=Body(...),
     ):
         payload = _validate_body(model, alias, target, body)
 
@@ -727,9 +739,11 @@ def _make_member_endpoint(
     _endpoint.__annotations__["body"] = body_annotation
     return _endpoint
 
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Router builder
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
     resource = _resource_name(model)
@@ -820,9 +834,11 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
 
     return router
 
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Public API
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 def build_router_and_attach(
     model: type, specs: Sequence[OpSpec], *, only_keys: Optional[Sequence[_Key]] = None
@@ -841,5 +857,6 @@ def build_router_and_attach(
         model.__name__,
         len(getattr(router, "routes", []) or []),
     )
+
 
 __all__ = ["build_router_and_attach"]
