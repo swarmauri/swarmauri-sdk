@@ -82,6 +82,12 @@ def run(obj: Optional[object], ctx: Any) -> None:
 
         is_virtual = storage is None
         nullable = getattr(storage, "nullable", None) if storage is not None else None
+        if op:
+            for obj in (f, col, io):
+                allow = getattr(obj, "allow_null_in", ())
+                if allow and op in allow:
+                    nullable = True
+                    break
         alias_in = _infer_in_alias(field, col)
         py_type = _py_type_str(f)
 

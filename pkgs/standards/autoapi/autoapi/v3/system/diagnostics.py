@@ -6,6 +6,7 @@ Exposes a small router with:
   - GET /healthz     → DB connectivity check (sync or async)
   - GET /methodz     → list RPC-visible methods derived from OpSpecs
   - GET /hookz       → per-op phase chains (sequential order)
+  - GET /planz       → runtime execution plan (flattened labels) per op
 
 Usage:
     from autoapi.v3.system.diagnostics import mount_diagnostics
@@ -53,7 +54,9 @@ except Exception:  # pragma: no cover
             super().__init__(content=content, status_code=status_code)
 
 
+from sqlalchemy import text
 from ..opspec.types import PHASES
+from ..runtime.kernel import build_phase_chains
 
 logger = logging.getLogger(__name__)
 
@@ -79,15 +82,15 @@ def _label_callable(fn: Any) -> str:
     return f"{m}.{n}" if m else n
 
 
-async def _maybe_execute(db: Any, stmt: Any):
+async def _maybe_execute(db: Any, stmt: str):
     try:
-        rv = db.execute(stmt)  # type: ignore[attr-defined]
+        rv = db.execute(text(stmt))  # type: ignore[attr-defined]
         if inspect.isawaitable(rv):
             return await rv
         return rv
-    except TypeError:
+    except Exception:
         # Some drivers prefer lowercase 'select 1'
-        rv = db.execute("select 1")  # type: ignore[attr-defined]
+        rv = db.execute(text("select 1"))  # type: ignore[attr-defined]
         if inspect.isawaitable(rv):
             return await rv
         return rv
@@ -134,28 +137,15 @@ def _build_healthz_endpoint(dep: Optional[Callable[..., Any]]):
 def _build_methodz_endpoint(api: Any):
     async def _methodz():
         """Ordered, canonical operation list."""
-        methods: List[Dict[str, Any]] = []
+        methods: List[str] = []
         for model in _model_iter(api):
             mname = getattr(model, "__name__", "Model")
             for sp in _opspecs(model):
                 if not getattr(sp, "expose_rpc", True):
                     continue
-                methods.append(
-                    {
-                        "method": f"{mname}.{sp.alias}",
-                        "model": mname,
-                        "alias": sp.alias,
-                        "target": sp.target,
-                        "arity": sp.arity,
-                        "persist": sp.persist,
-                        "returns": sp.returns,
-                        "routes": bool(getattr(sp, "expose_routes", True)),
-                        "rpc": bool(getattr(sp, "expose_rpc", True)),
-                        "tags": list(getattr(sp, "tags", ()) or (mname,)),
-                    }
-                )
-        methods.sort(key=lambda x: (x["model"], x["alias"]))
-        return {"methods": methods}
+                methods.append(f"{mname}.{sp.alias}")
+        methods.sort()
+        return methods
 
     return _methodz
 
@@ -197,6 +187,27 @@ def _build_hookz_endpoint(api: Any):
     return _hookz
 
 
+def _build_planz_endpoint(api: Any):
+    async def _planz():
+        """Expose the runtime step sequence for each operation."""
+        out: Dict[str, Dict[str, List[str]]] = {}
+        for model in _model_iter(api):
+            mname = getattr(model, "__name__", "Model")
+            model_map: Dict[str, List[str]] = {}
+            for sp in _opspecs(model):
+                chains = build_phase_chains(model, sp.alias)
+                seq: List[str] = []
+                for ph in PHASES:
+                    for step in chains.get(ph, []) or []:
+                        seq.append(_label_callable(step))
+                model_map[sp.alias] = seq
+            if model_map:
+                out[mname] = model_map
+        return out
+
+    return _planz
+
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Public factory
 # ───────────────────────────────────────────────────────────────────────────────
@@ -213,6 +224,7 @@ def mount_diagnostics(
       GET /healthz
       GET /methodz
       GET /hookz
+      GET /planz
     """
     router = APIRouter()
 
@@ -250,6 +262,15 @@ def mount_diagnostics(
             "Within each phase, hooks are listed in execution order: "
             "global (None) hooks, then method-specific hooks."
         ),
+    )
+    router.add_api_route(
+        "/planz",
+        _build_planz_endpoint(api),
+        methods=["GET"],
+        name="planz",
+        tags=["system"],
+        summary="Plan",
+        description="Flattened runtime execution plan per operation.",
     )
 
     return router
