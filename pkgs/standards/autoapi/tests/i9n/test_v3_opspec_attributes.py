@@ -166,8 +166,11 @@ async def test_rest_routes_bound():
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
-        res = await client.get("/Gadget")
-        assert res.status_code in {200, 404}
+        res = await client.post("/Gadget", json={"name": "rest"})
+        assert res.status_code == 200
+        list_res = await client.get("/Gadget")
+        assert list_res.status_code == 200
+        assert list_res.json()[0]["name"] == "rest"
 
 
 @pytest.mark.i9n
@@ -184,7 +187,10 @@ def test_rpc_method_bound():
         )
 
     bind(Gadget)
-    assert hasattr(Gadget.rpc, "create")
+    db = _fresh_session()
+    result = asyncio.run(Gadget.rpc.create({"name": "rpc"}, db=db))
+    assert result.name == "rpc"
+    assert db.query(Gadget).one().name == "rpc"
 
 
 @pytest.mark.i9n
@@ -225,7 +231,9 @@ def test_hook_execution():
             ctx["payload"] = payload
 
     bind(Hooked)
-    assert Hooked.hooks.create.PRE_HANDLER
+    db = _fresh_session()
+    obj = asyncio.run(_core.create(Hooked, db=db, data={}))
+    assert obj.name == "hooked"
 
 
 @pytest.mark.i9n
