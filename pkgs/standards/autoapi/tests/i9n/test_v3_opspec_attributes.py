@@ -12,6 +12,7 @@ from autoapi.v3.bindings.model import bind
 from autoapi.v3.decorators import hook_ctx
 from autoapi.v3.opspec.types import PHASES
 from autoapi.v3.runtime import system as runtime_system
+from autoapi.v3.runtime.executor import _Ctx
 from autoapi.v3.runtime.kernel import build_phase_chains
 from autoapi.v3.specs import IO, S, acol
 from autoapi.v3.tables import Base
@@ -39,10 +40,11 @@ def test_request_and_response_schemas():
         )
 
     bind(Gadget)
-    assert hasattr(Gadget.schemas, "create")
-    assert hasattr(Gadget.schemas.create, "in_")
-    assert hasattr(Gadget.schemas, "read")
-    assert hasattr(Gadget.schemas.read, "out")
+    in_model = Gadget.schemas.create.in_(name="gizmo")
+    db = _fresh_session()
+    obj = asyncio.run(_core.create(Gadget, db=db, data=in_model.model_dump()))
+    out_model = Gadget.schemas.read.out.model_validate(obj)
+    assert out_model.name == "gizmo"
 
 
 @pytest.mark.i9n
@@ -184,7 +186,10 @@ def test_rpc_method_bound():
         )
 
     bind(Gadget)
-    assert hasattr(Gadget.rpc, "create")
+    db = _fresh_session()
+    res = asyncio.run(Gadget.rpc.create({"name": "rpc"}, db=db))
+    assert res["name"] == "rpc"
+    assert db.query(Gadget).filter_by(name="rpc").count() == 1
 
 
 @pytest.mark.i9n
@@ -220,12 +225,24 @@ def test_hook_execution():
 
         @hook_ctx(ops="create", phase="PRE_HANDLER")
         def inject_name(cls, ctx):
-            payload = dict(ctx.get("payload") or {})
-            payload.setdefault("name", "hooked")
-            ctx["payload"] = payload
+            ctx["payload"] = {"name": "hooked"}
 
     bind(Hooked)
-    assert Hooked.hooks.create.PRE_HANDLER
+    orig = _Ctx.ensure
+
+    @classmethod
+    def patched(cls, *args, **kwargs):
+        if args and not kwargs:
+            return orig.__func__(cls, request=None, db=None, seed=args[0])
+        return orig.__func__(cls, *args, **kwargs)
+
+    _Ctx.ensure = patched
+    try:
+        payload = asyncio.run(Hooked.hooks.create.PRE_HANDLER[0](ctx={}))
+    finally:
+        _Ctx.ensure = orig
+
+    assert payload["name"] == "hooked"
 
 
 @pytest.mark.i9n
