@@ -135,6 +135,52 @@ class Key(Base):
     class DecryptOut(BaseModel):
         plaintext_b64: str
 
+    # ---- Hook: seed key material on create ----
+    @hook_ctx(ops="create", phase="POST_HANDLER")
+    async def _seed_primary_version(cls, ctx):
+        import secrets
+        from sqlalchemy import select
+        from swarmauri_core.crypto.types import (
+            ExportPolicy,
+            KeyType,
+            KeyUse,
+        )
+        from .key_version import KeyVersion
+
+        db = ctx.get("db")
+        key_obj = ctx.get("result")
+        secrets_drv = ctx.get("secrets")
+        if db is None or key_obj is None:
+            raise HTTPException(status_code=500, detail="DB session missing")
+        if secrets_drv is None:
+            raise HTTPException(status_code=500, detail="Secrets driver missing")
+
+        if key_obj.algorithm != KeyAlg.AES256_GCM:
+            return  # only symmetric keys supported for now
+
+        existing = await db.execute(
+            select(KeyVersion).where(
+                KeyVersion.key_id == key_obj.id,
+                KeyVersion.version == key_obj.primary_version,
+            )
+        )
+        if existing.scalars().first() is None:
+            material = secrets.token_bytes(32)
+            await secrets_drv.store_key(
+                key_type=KeyType.SYMMETRIC,
+                uses=(KeyUse.ENCRYPT, KeyUse.DECRYPT),
+                name=str(key_obj.id),
+                material=material,
+                export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
+            )
+            kv = KeyVersion(
+                key_id=key_obj.id,
+                version=key_obj.primary_version,
+                status="active",
+                public_material=material,
+            )
+            db.add(kv)
+
     # ---- Hook: ensure key exists & enabled ----
     @hook_ctx(ops=("encrypt", "decrypt"), phase="PRE_HANDLER")
     async def _ensure_key_enabled(cls, ctx):
@@ -188,13 +234,13 @@ class Key(Base):
         import binascii
 
         try:
-            aad = base64.b64decode(p["aad_b64"]) if p.get("aad_b64") else None
+            aad = b64d_optional(p.get("aad_b64"))
         except binascii.Error as exc:  # pragma: no cover - defensive
             raise HTTPException(
                 status_code=400, detail="Invalid base64 encoding for aad_b64"
             ) from exc
         try:
-            nonce = base64.b64decode(p["nonce_b64"]) if p.get("nonce_b64") else None
+            nonce = b64d_optional(p.get("nonce_b64"))
         except binascii.Error as exc:  # pragma: no cover - defensive
             raise HTTPException(
                 status_code=400, detail="Invalid base64 encoding for nonce_b64"
@@ -283,25 +329,25 @@ class Key(Base):
         import binascii
 
         try:
-            aad = base64.b64decode(p["aad_b64"]) if p.get("aad_b64") else None
+            aad = b64d_optional(p.get("aad_b64"))
         except binascii.Error as exc:  # pragma: no cover - defensive
             raise HTTPException(
                 status_code=400, detail="Invalid base64 encoding for aad_b64"
             ) from exc
         try:
-            nonce = base64.b64decode(p["nonce_b64"])
+            nonce = b64d(p["nonce_b64"])
         except binascii.Error as exc:  # pragma: no cover - defensive
             raise HTTPException(
                 status_code=400, detail="Invalid base64 encoding for nonce_b64"
             ) from exc
         try:
-            ct = base64.b64decode(p["ciphertext_b64"])
+            ct = b64d(p["ciphertext_b64"])
         except binascii.Error as exc:  # pragma: no cover - defensive
             raise HTTPException(
                 status_code=400, detail="Invalid base64 encoding for ciphertext_b64"
             ) from exc
         try:
-            tag = base64.b64decode(p["tag_b64"]) if p.get("tag_b64") else None
+            tag = b64d_optional(p.get("tag_b64"))
         except binascii.Error as exc:  # pragma: no cover - defensive
             raise HTTPException(
                 status_code=400, detail="Invalid base64 encoding for tag_b64"
