@@ -290,6 +290,16 @@ async def _invoke(
       • POST_RESPONSE is non-fatal; errors are logged and the prior result returned.
     """
     ctx = _Ctx.ensure(request=request, db=db, seed=ctx)
+    # Guard: previous operations may have left the session in a transaction.
+    # Ensure we start from a clean state before invoking the lifecycle.
+    if db is not None and _in_tx(db):
+        try:
+            if _is_async_db(db):
+                await db.commit()  # type: ignore[attr-defined]
+            else:
+                db.commit()  # type: ignore[attr-defined]
+        except Exception:  # pragma: no cover
+            pass
     skip_persist: bool = bool(ctx.get(CTX_SKIP_PERSIST_FLAG) or ctx.get("skip_persist"))
 
     # Track whether a transaction existed at entry. If none did, this run "owns" the TX lifecycle.
@@ -411,6 +421,16 @@ async def _invoke(
         in_tx=False,
         nonfatal=True,
     )
+    # Defensive: ensure the session is not left in a transactional state. Some
+    # backends may implicitly begin a new transaction during commit/flush cycles.
+    if db is not None and _in_tx(db):
+        try:
+            if _is_async_db(db):
+                await db.commit()  # type: ignore[attr-defined]
+            else:
+                db.commit()  # type: ignore[attr-defined]
+        except Exception:  # pragma: no cover - defensive safeguard
+            pass
     return ctx.response.result
 
 
