@@ -181,18 +181,51 @@ class Key(Base):
         nonce = base64.b64decode(p["nonce_b64"]) if p.get("nonce_b64") else None
         pt = base64.b64decode(p["plaintext_b64"])
         kid = str(ctx["key"].id)
+        alg = p.get("alg") or ctx["key"].algorithm
 
-        res = await crypto.encrypt(
-            kid=kid,
-            plaintext=pt,
-            alg=p.get("alg") or ctx["key"].algorithm,
-            aad=aad,
-            nonce=nonce,
+        import inspect
+        from swarmauri_core.crypto.types import (
+            ExportPolicy,
+            KeyRef,
+            KeyType,
+            KeyUse,
         )
+
+        try:
+            inspect.signature(crypto.encrypt).parameters["kid"]
+        except KeyError:
+            key_obj = ctx["key"]
+            version = next(
+                (v for v in key_obj.versions if v.version == key_obj.primary_version),
+                None,
+            )
+            if version is None or version.public_material is None:
+                raise HTTPException(status_code=500, detail="Key material missing")
+            key_ref = KeyRef(
+                kid=kid,
+                version=key_obj.primary_version,
+                type=KeyType.SYMMETRIC,
+                uses=(KeyUse.ENCRYPT, KeyUse.DECRYPT),
+                export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
+                material=version.public_material,
+            )
+            alg_str = "AES-256-GCM" if alg == KeyAlg.AES256_GCM else alg
+            res = await crypto.encrypt(
+                key_ref,
+                pt,
+                alg=alg_str,
+                aad=aad,
+                nonce=nonce,
+            )
+        else:
+            res = await crypto.encrypt(
+                kid=kid, plaintext=pt, alg=alg, aad=aad, nonce=nonce
+            )
+
         return {
             "kid": kid,
             "version": getattr(res, "version", ctx["key"].primary_version),
-            "alg": getattr(res, "alg", ctx["key"].algorithm),
+            "alg": getattr(res, "alg", alg),
             "nonce_b64": base64.b64encode(getattr(res, "nonce")).decode(),
             "ciphertext_b64": base64.b64encode(getattr(res, "ct")).decode(),
             "tag_b64": (
@@ -226,8 +259,49 @@ class Key(Base):
         ct = base64.b64decode(p["ciphertext_b64"])
         tag = base64.b64decode(p["tag_b64"]) if p.get("tag_b64") else None
         kid = str(ctx["key"].id)
+        alg = p.get("alg") or ctx["key"].algorithm
 
-        pt = await crypto.decrypt(
-            kid=kid, ciphertext=ct, nonce=nonce, tag=tag, aad=aad, alg=p.get("alg")
+        import inspect
+        from swarmauri_core.crypto.types import (
+            AEADCiphertext,
+            ExportPolicy,
+            KeyRef,
+            KeyType,
+            KeyUse,
         )
+
+        try:
+            inspect.signature(crypto.decrypt).parameters["kid"]
+        except KeyError:
+            key_obj = ctx["key"]
+            version = next(
+                (v for v in key_obj.versions if v.version == key_obj.primary_version),
+                None,
+            )
+            if version is None or version.public_material is None:
+                raise HTTPException(status_code=500, detail="Key material missing")
+            key_ref = KeyRef(
+                kid=kid,
+                version=key_obj.primary_version,
+                type=KeyType.SYMMETRIC,
+                uses=(KeyUse.DECRYPT, KeyUse.ENCRYPT),
+                export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
+                material=version.public_material,
+            )
+            alg_str = "AES-256-GCM" if alg == KeyAlg.AES256_GCM else alg
+            ct_obj = AEADCiphertext(
+                kid=kid,
+                version=key_obj.primary_version,
+                alg=alg_str,
+                nonce=nonce,
+                ct=ct,
+                tag=tag or b"",
+                aad=aad,
+            )
+            pt = await crypto.decrypt(key_ref, ct_obj, aad=aad)
+        else:
+            pt = await crypto.decrypt(
+                kid=kid, ciphertext=ct, nonce=nonce, tag=tag, aad=aad, alg=alg
+            )
+
         return {"plaintext_b64": base64.b64encode(pt).decode()}
