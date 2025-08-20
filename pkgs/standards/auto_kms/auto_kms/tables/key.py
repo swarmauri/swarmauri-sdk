@@ -226,6 +226,32 @@ class Key(Base):
                 nonce=nonce,
             )
         else:
+            secrets = getattr(
+                getattr(ctx.get("request"), "state", object()), "secrets", None
+            ) or ctx.get("secrets")
+            if secrets is not None:
+                loaded = await secrets.load_key(kid=kid, require_private=True)
+                if loaded.material is None:
+                    key_obj = ctx["key"]
+                    version = next(
+                        (
+                            v
+                            for v in key_obj.versions
+                            if v.version == key_obj.primary_version
+                        ),
+                        None,
+                    )
+                    if version is None or version.public_material is None:
+                        raise HTTPException(
+                            status_code=500, detail="Key material missing"
+                        )
+                    await secrets.store_key(
+                        key_type=KeyType.SYMMETRIC,
+                        uses=(KeyUse.ENCRYPT, KeyUse.DECRYPT),
+                        name=kid,
+                        material=bytes(version.public_material),
+                        export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
+                    )
             res = await crypto.encrypt(
                 kid=kid, plaintext=pt, alg=alg_str, aad=aad, nonce=nonce
             )
@@ -309,6 +335,32 @@ class Key(Base):
             )
             pt = await crypto.decrypt(key_ref, ct_obj, aad=aad)
         else:
+            secrets = getattr(
+                getattr(ctx.get("request"), "state", object()), "secrets", None
+            ) or ctx.get("secrets")
+            if secrets is not None:
+                loaded = await secrets.load_key(kid=kid, require_private=True)
+                if loaded.material is None:
+                    key_obj = ctx["key"]
+                    version = next(
+                        (
+                            v
+                            for v in key_obj.versions
+                            if v.version == key_obj.primary_version
+                        ),
+                        None,
+                    )
+                    if version is None or version.public_material is None:
+                        raise HTTPException(
+                            status_code=500, detail="Key material missing"
+                        )
+                    await secrets.store_key(
+                        key_type=KeyType.SYMMETRIC,
+                        uses=(KeyUse.ENCRYPT, KeyUse.DECRYPT),
+                        name=kid,
+                        material=bytes(version.public_material),
+                        export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
+                    )
             pt = await crypto.decrypt(
                 kid=kid, ciphertext=ct, nonce=nonce, tag=tag, aad=aad, alg=alg_str
             )

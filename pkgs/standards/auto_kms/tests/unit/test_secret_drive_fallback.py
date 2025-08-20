@@ -1,8 +1,6 @@
 import base64
 import importlib
 import asyncio
-import types
-import sys
 from uuid import UUID
 
 import pytest
@@ -18,29 +16,15 @@ def _create_key(client, name="k1"):
 
 
 @pytest.fixture
-def client_paramiko(tmp_path, monkeypatch):
-    mod1 = types.ModuleType("swarmauri_secret_autogpg")
+def client(tmp_path, monkeypatch):
+    from swarmauri_secret_autogpg import AutoGpgSecretDrive as _AutoGpgSecretDrive
 
-    from swarmauri_core.crypto.types import (
-        ExportPolicy,
-        KeyRef,
-        KeyType,
-        KeyUse,
-    )
+    class LocalSecret(_AutoGpgSecretDrive):
+        def __init__(self, *args, **kwargs):
+            kwargs.setdefault("key_dir", tmp_path / "keys")
+            super().__init__(*args, **kwargs)
 
-    class DummySecretDrive:
-        async def load_key(self, *, kid, require_private=False, **_):
-            return KeyRef(
-                kid=str(kid),
-                version=1,
-                type=KeyType.SYMMETRIC,
-                uses=(KeyUse.ENCRYPT, KeyUse.DECRYPT),
-                export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
-                material=b"\x11" * 32,
-            )
-
-    mod1.AutoGpgSecretDrive = DummySecretDrive
-    sys.modules["swarmauri_secret_autogpg"] = mod1
+    monkeypatch.setattr("swarmauri_secret_autogpg.AutoGpgSecretDrive", LocalSecret)
 
     db_path = tmp_path / "kms.db"
     monkeypatch.setenv("KMS_DATABASE_URL", f"sqlite+aiosqlite:///{db_path}")
@@ -52,14 +36,19 @@ def client_paramiko(tmp_path, monkeypatch):
 
     asyncio.run(init_db())
     with TestClient(app.app) as c:
-        yield c
+        yield c, app.AsyncSessionLocal
+
+    if hasattr(app, "SECRETS"):
+        delattr(app, "SECRETS")
+    if hasattr(app, "CRYPTO"):
+        delattr(app, "CRYPTO")
 
 
-def test_key_encrypt_decrypt_with_paramiko_crypto(client_paramiko):
-    from auto_kms.app import AsyncSessionLocal
+def test_encrypt_decrypt_stores_key_material(client):
+    client, AsyncSessionLocal = client
     from auto_kms.tables.key_version import KeyVersion
 
-    key = _create_key(client_paramiko)
+    key = _create_key(client)
 
     async def seed():
         async with AsyncSessionLocal() as s:
@@ -76,13 +65,13 @@ def test_key_encrypt_decrypt_with_paramiko_crypto(client_paramiko):
 
     pt = b"hello"
     payload = {"plaintext_b64": base64.b64encode(pt).decode()}
-    enc = client_paramiko.post(f"/kms/key/{key['id']}/encrypt", json=payload)
+    enc = client.post(f"/kms/key/{key['id']}/encrypt", json=payload)
     assert enc.status_code == 200
     dec_payload = {
         "ciphertext_b64": enc.json()["ciphertext_b64"],
         "nonce_b64": enc.json()["nonce_b64"],
         "tag_b64": enc.json()["tag_b64"],
     }
-    dec = client_paramiko.post(f"/kms/key/{key['id']}/decrypt", json=dec_payload)
+    dec = client.post(f"/kms/key/{key['id']}/decrypt", json=dec_payload)
     assert dec.status_code == 200
     assert base64.b64decode(dec.json()["plaintext_b64"]) == pt

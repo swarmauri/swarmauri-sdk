@@ -11,16 +11,31 @@ from autoapi.v3.tables import Base
 
 def _create_key(client, name="k1"):
     payload = {"name": name, "algorithm": "AES256_GCM"}
-    res = client.post("/kms/Key", json=payload)
-    assert res.status_code == 200
+    res = client.post("/kms/key", json=payload)
+    assert res.status_code == 201
     return res.json()
 
 
 @pytest.fixture
 def client_kid(tmp_path, monkeypatch):
     mod1 = types.ModuleType("swarmauri_secret_autogpg")
+    from swarmauri_core.crypto.types import (
+        ExportPolicy,
+        KeyRef,
+        KeyType,
+        KeyUse,
+    )
 
-    class DummySecretDrive: ...
+    class DummySecretDrive:
+        async def load_key(self, *, kid, require_private=False, **_):
+            return KeyRef(
+                kid=str(kid),
+                version=1,
+                type=KeyType.SYMMETRIC,
+                uses=(KeyUse.ENCRYPT, KeyUse.DECRYPT),
+                export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
+                material=b"k" * 32,
+            )
 
     mod1.AutoGpgSecretDrive = DummySecretDrive
     sys.modules["swarmauri_secret_autogpg"] = mod1
@@ -71,6 +86,6 @@ def client_kid(tmp_path, monkeypatch):
 def test_encrypt_passes_provider_algorithm_string(client_kid):
     key = _create_key(client_kid)
     payload = {"plaintext_b64": base64.b64encode(b"hello").decode()}
-    res = client_kid.post(f"/kms/Key/{key['id']}/encrypt", json=payload)
+    res = client_kid.post(f"/kms/key/{key['id']}/encrypt", json=payload)
     assert res.status_code == 200
     assert res.json()["alg"] == "AES256_GCM"

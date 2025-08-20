@@ -13,7 +13,7 @@ from autoapi.v3.tables import Base
 def _create_key(client, name="k1"):
     payload = {"name": name, "algorithm": "AES256_GCM"}
     res = client.post("/kms/key", json=payload)
-    assert res.status_code == 200
+    assert res.status_code == 201
     return res.json()
 
 
