@@ -10,6 +10,7 @@ from typing import Any, Callable, Mapping, Optional, Sequence, Tuple
 from ..opspec import OpSpec
 from ..opspec.types import StepFn
 from .. import core as _core
+from ..decorators import _unwrap
 
 # Optional SQLAlchemy type import — only used for safe checks (no hard dependency)
 try:  # pragma: no cover
@@ -424,7 +425,8 @@ def _wrap_custom(model: type, sp: OpSpec, user_handler: Callable[..., Any]) -> S
     Wrap a user-supplied handler so it can be executed as StepFn(ctx).
     We pass keyword args selectively (ctx, db, payload, request, model, op/spec/alias).
     """
-    wanted = _accepted_kw(user_handler)
+    fn = _unwrap(user_handler)
+    wanted = _accepted_kw(fn)
 
     async def step(ctx: Any) -> Any:
         db = _ctx_db(ctx)
@@ -432,7 +434,7 @@ def _wrap_custom(model: type, sp: OpSpec, user_handler: Callable[..., Any]) -> S
         request = _ctx_request(ctx)
 
         # Try to resolve a *bound* attribute from the class if available
-        bound = getattr(model, getattr(user_handler, "__name__", ""), user_handler)
+        bound = getattr(model, getattr(fn, "__name__", ""), user_handler)
 
         kw = {}
         if "ctx" in wanted:
@@ -457,9 +459,9 @@ def _wrap_custom(model: type, sp: OpSpec, user_handler: Callable[..., Any]) -> S
             return await rv
         return rv
 
-    step.__name__ = getattr(user_handler, "__name__", step.__name__)
-    step.__qualname__ = getattr(user_handler, "__qualname__", step.__name__)
-    step.__module__ = getattr(user_handler, "__module__", step.__module__)
+    step.__name__ = getattr(fn, "__name__", step.__name__)
+    step.__qualname__ = getattr(fn, "__qualname__", step.__name__)
+    step.__module__ = getattr(fn, "__module__", step.__module__)
     return step
 
 
