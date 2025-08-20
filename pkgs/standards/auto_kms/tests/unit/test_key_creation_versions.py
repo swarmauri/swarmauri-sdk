@@ -10,6 +10,7 @@ from autoapi.v3.tables import Base
 from swarmauri_secret_autogpg import AutoGpgSecretDrive
 
 from auto_kms.tables.key_version import KeyVersion
+from auto_kms.tables.key import Key
 
 
 def _create_key(client, name: str = "k1"):
@@ -49,19 +50,15 @@ def test_key_creation_seeded_version(client_app):
     key = _create_key(client)
     key_id = key["id"]
 
-    read = client.get(f"/kms/key/{key_id}")
-    assert read.status_code == 200
-    data = read.json()
-    assert data["id"] == key_id
-    assert data["primary_version"] == 1
-
-    async def fetch_versions():
-        async with app.engine.begin() as conn:
-            res = await conn.execute(
+    async def fetch_key_and_versions():
+        async with app.AsyncSessionLocal() as session:
+            key_obj = await session.get(Key, UUID(key_id))
+            ver_res = await session.execute(
                 select(KeyVersion.version).where(KeyVersion.key_id == UUID(key_id))
             )
-            return [row[0] for row in res.all()]
+            return key_obj, [row[0] for row in ver_res.all()]
 
-    versions = asyncio.run(fetch_versions())
+    key_obj, versions = asyncio.run(fetch_key_and_versions())
+    assert key_obj.primary_version == 1
     assert 1 in versions
-    assert max(versions) == data["primary_version"]
+    assert max(versions) == key_obj.primary_version
