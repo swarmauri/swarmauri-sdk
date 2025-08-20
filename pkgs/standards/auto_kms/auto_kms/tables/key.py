@@ -329,25 +329,25 @@ class Key(Base):
         import binascii
 
         try:
-            aad = base64.b64decode(p["aad_b64"]) if p.get("aad_b64") else None
+            aad = b64d_optional(p.get("aad_b64"))
         except binascii.Error as exc:  # pragma: no cover - defensive
             raise HTTPException(
                 status_code=400, detail="Invalid base64 encoding for aad_b64"
             ) from exc
         try:
-            nonce = base64.b64decode(p["nonce_b64"])
+            nonce = b64d(p["nonce_b64"])
         except binascii.Error as exc:  # pragma: no cover - defensive
             raise HTTPException(
                 status_code=400, detail="Invalid base64 encoding for nonce_b64"
             ) from exc
         try:
-            ct = base64.b64decode(p["ciphertext_b64"])
+            ct = b64d(p["ciphertext_b64"])
         except binascii.Error as exc:  # pragma: no cover - defensive
             raise HTTPException(
                 status_code=400, detail="Invalid base64 encoding for ciphertext_b64"
             ) from exc
         try:
-            tag = base64.b64decode(p["tag_b64"]) if p.get("tag_b64") else None
+            tag = b64d_optional(p.get("tag_b64"))
         except binascii.Error as exc:  # pragma: no cover - defensive
             raise HTTPException(
                 status_code=400, detail="Invalid base64 encoding for tag_b64"

@@ -1,7 +1,6 @@
 import base64
 import importlib
 import asyncio
-from uuid import UUID
 
 
 import pytest
@@ -20,13 +19,15 @@ def _create_key(client, name="k1"):
 
 @pytest.fixture
 def client_paramiko(tmp_path, monkeypatch):
-    monkeypatch.setattr(
-        "auto_kms.app.AutoGpgSecretDrive",
-        lambda: AutoGpgSecretDrive(path=tmp_path / "keys"),
-    )
+    secret_dir = tmp_path / "keys"
     db_path = tmp_path / "kms.db"
     monkeypatch.setenv("KMS_DATABASE_URL", f"sqlite+aiosqlite:///{db_path}")
     app = importlib.reload(importlib.import_module("auto_kms.app"))
+    monkeypatch.setattr(
+        app,
+        "AutoGpgSecretDrive",
+        lambda: AutoGpgSecretDrive(path=secret_dir),
+    )
 
     async def init_db():
         async with app.engine.begin() as conn:
@@ -35,7 +36,7 @@ def client_paramiko(tmp_path, monkeypatch):
     asyncio.run(init_db())
     try:
         with TestClient(app.app) as c:
-            yield c, app.AsyncSessionLocal
+            yield c, secret_dir
     finally:
         if hasattr(app, "SECRETS"):
             delattr(app, "SECRETS")
@@ -44,20 +45,12 @@ def client_paramiko(tmp_path, monkeypatch):
 
 
 def test_key_encrypt_decrypt_with_paramiko_crypto(client_paramiko):
-    client, AsyncSessionLocal = client_paramiko
-    from auto_kms.tables.key_version import KeyVersion
+    client, secret_dir = client_paramiko
 
     key = _create_key(client)
-
-    async def verify():
-        async with AsyncSessionLocal() as s:
-            res = await s.execute(
-                select(KeyVersion).where(KeyVersion.key_id == UUID(key["id"]))
-            )
-            kv = res.scalars().first()
-            assert kv is not None and kv.public_material is not None
-
-    asyncio.run(verify())
+    kv_payload = {"key_id": key["id"], "version": 1, "status": "active"}
+    res = client.post("/kms/key_version", json=kv_payload)
+    assert res.status_code == 201
 
     pt = b"hello"
     payload = {"plaintext_b64": base64.b64encode(pt).decode()}
@@ -74,8 +67,12 @@ def test_key_encrypt_decrypt_with_paramiko_crypto(client_paramiko):
 
 
 def test_encrypt_accepts_unpadded_base64(client_paramiko):
-    client, _ = client_paramiko
+    client, secret_dir = client_paramiko
+
     key = _create_key(client, name="k2")
+    kv_payload = {"key_id": key["id"], "version": 1, "status": "active"}
+    res = client.post("/kms/key_version", json=kv_payload)
+    assert res.status_code == 201
 
     pt = b"world"
     pt_b64 = base64.b64encode(pt).decode().rstrip("=")
@@ -92,18 +89,10 @@ def test_encrypt_accepts_unpadded_base64(client_paramiko):
     assert base64.b64decode(dec.json()["plaintext_b64"]) == pt
 
 
-def test_key_creation_persists_version(client_paramiko):
-    client, AsyncSessionLocal = client_paramiko
-    from auto_kms.tables.key_version import KeyVersion
-
+def test_key_version_creation_writes_secret_file(client_paramiko):
+    client, secret_dir = client_paramiko
     key = _create_key(client, name="k3")
-
-    async def verify():
-        async with AsyncSessionLocal() as s:
-            res = await s.execute(
-                select(KeyVersion).where(KeyVersion.key_id == UUID(key["id"]))
-            )
-            kv = res.scalars().first()
-            assert kv is not None and len(kv.public_material) == 32
-
-    asyncio.run(verify())
+    kv_payload = {"key_id": key["id"], "version": 1, "status": "active"}
+    res = client.post("/kms/key_version", json=kv_payload)
+    assert res.status_code == 201
+    assert (secret_dir / key["id"] / "private.asc").exists()
