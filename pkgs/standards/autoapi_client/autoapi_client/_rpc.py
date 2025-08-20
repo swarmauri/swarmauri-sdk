@@ -90,7 +90,9 @@ class RPCMixin:
         """
         # ----- payload build ------------------------------------------------
         if isinstance(params, _Schema):  # pydantic in → dump to dict
-            params_dict = json.loads(params.model_dump_json(exclude_none=True, exclude=None))
+            params_dict = json.loads(
+                params.model_dump_json(exclude_none=True, exclude=None)
+            )
         else:
             # ensure plain dicts contain only JSON-serializable values
             params_dict = json.loads(json.dumps(params or {}, default=str))

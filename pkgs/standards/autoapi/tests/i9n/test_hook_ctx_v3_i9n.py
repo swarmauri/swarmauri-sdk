@@ -374,5 +374,5 @@ async def test_hook_ctx_system_steps_i9n():
     res = await client.get("/system/planz")
     data = res.json()
     steps = data["Item"]["create"]
-    assert any("marker" in s for s in steps)
+    assert "sys:handler:crud@HANDLER" in steps
     await client.aclose()
