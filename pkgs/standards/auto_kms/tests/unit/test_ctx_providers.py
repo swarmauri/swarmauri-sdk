@@ -1,52 +1,40 @@
 import importlib
-import sys
-import types
 import asyncio
 
 import pytest
 
+from swarmauri_secret_autogpg import AutoGpgSecretDrive as _SecretDrive
+from swarmauri_crypto_paramiko import ParamikoCrypto
+
 
 @pytest.fixture
-def app_module():
-    mod1 = types.ModuleType("swarmauri_secret_autogpg")
-
-    class DummySecretDrive: ...
-
-    mod1.AutoGpgSecretDrive = DummySecretDrive
-    sys.modules["swarmauri_secret_autogpg"] = mod1
-
-    mod2 = types.ModuleType("swarmauri_crypto_paramiko")
-
-    class DummyCrypto: ...
-
-    mod2.ParamikoCrypto = DummyCrypto
-    sys.modules["swarmauri_crypto_paramiko"] = mod2
+def app_module(tmp_path, monkeypatch):
+    class TmpSecretDrive(_SecretDrive):
+        def __init__(self):
+            super().__init__(path=tmp_path / "keys")
 
     app = importlib.reload(importlib.import_module("auto_kms.app"))
+    monkeypatch.setattr(app, "AutoGpgSecretDrive", TmpSecretDrive)
     try:
-        yield app, DummySecretDrive, DummyCrypto
+        yield app, TmpSecretDrive, ParamikoCrypto
     finally:
         if hasattr(app, "SECRETS"):
             delattr(app, "SECRETS")
         if hasattr(app, "CRYPTO"):
             delattr(app, "CRYPTO")
-        sys.modules.pop("swarmauri_secret_autogpg", None)
-        sys.modules.pop("swarmauri_crypto_paramiko", None)
 
 
 def test_ctx_has_secrets_provider(app_module):
-    app, DummySecretDrive, _ = app_module
+    app, TmpSecretDrive, _ = app_module
     ctx: dict = {}
     asyncio.run(app._stash_ctx(ctx))
     assert "secrets" in ctx
-    assert isinstance(ctx["secrets"], DummySecretDrive)
+    assert isinstance(ctx["secrets"], TmpSecretDrive)
 
 
 def test_ctx_has_crypto_provider(app_module):
-    from auto_kms.crypto import ParamikoCryptoAdapter
-
-    app, _, DummyCrypto = app_module
+    app, _, CryptoCls = app_module
     ctx: dict = {}
     asyncio.run(app._stash_ctx(ctx))
     assert "crypto" in ctx
-    assert isinstance(ctx["crypto"], ParamikoCryptoAdapter)
+    assert isinstance(ctx["crypto"], CryptoCls)

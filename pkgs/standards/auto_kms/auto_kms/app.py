@@ -6,8 +6,6 @@ from autoapi.v3 import AutoAPI
 from .tables.key import Key
 from .tables.key_version import KeyVersion
 
-from .crypto import ParamikoCryptoAdapter
-
 from swarmauri_secret_autogpg import AutoGpgSecretDrive
 from swarmauri_crypto_paramiko import ParamikoCrypto
 
@@ -43,7 +41,7 @@ async def _stash_ctx(ctx):
         CRYPTO
     except NameError:
         SECRETS = AutoGpgSecretDrive()
-        CRYPTO = ParamikoCryptoAdapter(secrets=SECRETS, crypto=ParamikoCrypto())
+        CRYPTO = ParamikoCrypto()
     # expose shared services to downstream ops under generic names
     ctx["secrets"] = SECRETS
     ctx["crypto"] = CRYPTO

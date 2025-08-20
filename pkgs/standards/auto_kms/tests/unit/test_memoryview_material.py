@@ -1,71 +1,44 @@
 import base64
 import importlib
 import asyncio
-import types
-import sys
 from uuid import UUID
 
 import pytest
 from fastapi.testclient import TestClient
 from autoapi.v3.tables import Base
+from swarmauri_secret_autogpg import AutoGpgSecretDrive
 
 
 def _create_key(client, name="k1"):
     payload = {"name": name, "algorithm": "AES256_GCM"}
     res = client.post("/kms/key", json=payload)
-    assert res.status_code == 200
+    assert res.status_code == 201
     return res.json()
 
 
 @pytest.fixture
 def client_keyref(tmp_path, monkeypatch):
-    mod1 = types.ModuleType("swarmauri_secret_autogpg")
-
-    class DummySecretDrive:
-        pass
-
-    mod1.AutoGpgSecretDrive = DummySecretDrive
-    sys.modules["swarmauri_secret_autogpg"] = mod1
-
-    mod2 = types.ModuleType("swarmauri_crypto_paramiko")
-
-    class DummyParamiko:
-        pass
-
-    mod2.ParamikoCrypto = DummyParamiko
-    sys.modules["swarmauri_crypto_paramiko"] = mod2
-
+    monkeypatch.setattr(
+        "auto_kms.app.AutoGpgSecretDrive",
+        lambda: AutoGpgSecretDrive(path=tmp_path / "keys"),
+    )
     db_path = tmp_path / "kms.db"
     monkeypatch.setenv("KMS_DATABASE_URL", f"sqlite+aiosqlite:///{db_path}")
     app = importlib.reload(importlib.import_module("auto_kms.app"))
-
-    class DummyCrypto:
-        async def encrypt(self, key, pt, alg, aad=None, nonce=None):
-            assert isinstance(key.material, bytes)
-            return types.SimpleNamespace(nonce=b"0" * 12, ct=pt, tag=b"1" * 16)
-
-        async def decrypt(self, key, ct, *, aad=None):
-            assert isinstance(key.material, bytes)
-            return ct.ct
-
-    app.CRYPTO = DummyCrypto()
-    app.SECRETS = DummySecretDrive()
 
     async def init_db():
         async with app.engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
 
     asyncio.run(init_db())
-    with TestClient(app.app) as c:
-        yield c, app.AsyncSessionLocal
-
-    # cleanup globals and modules
-    if hasattr(app, "SECRETS"):
-        delattr(app, "SECRETS")
-    if hasattr(app, "CRYPTO"):
-        delattr(app, "CRYPTO")
-    sys.modules.pop("swarmauri_secret_autogpg", None)
-    sys.modules.pop("swarmauri_crypto_paramiko", None)
+    try:
+        with TestClient(app.app) as c:
+            yield c, app.AsyncSessionLocal
+    finally:
+        if hasattr(app, "SECRETS"):
+            delattr(app, "SECRETS")
+        if hasattr(app, "CRYPTO"):
+            delattr(app, "CRYPTO")
 
 
 def test_encrypt_decrypt_with_memoryview_material(client_keyref):
