@@ -319,7 +319,10 @@ def _status_for(target: str) -> int:
         # the integration tests rely on the standard 201 code.
         return _status.HTTP_201_CREATED
     if target in ("delete", "clear"):
-        return _status.HTTP_204_NO_CONTENT
+        # DELETE operations return a confirmation payload (e.g. number of
+        # deleted rows). Returning 204 would discard this body, so default to
+        # 200 to surface the response content to clients.
+        return _status.HTTP_200_OK
     return _status.HTTP_200_OK
 
 
