@@ -61,7 +61,7 @@ class Key(Base):
     )
 
     name: Mapped[str] = acol(
-        storage=S(type_=String, unique=True, index=True, nullable=False),
+        storage=S(type_=String(120), unique=True, index=True, nullable=False),
         field=F(constraints={"max_length": 120}, required_in=("create",)),
         io=IO(
             in_verbs=("create", "update", "replace"),
