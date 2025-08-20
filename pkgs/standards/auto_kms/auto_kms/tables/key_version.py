@@ -16,7 +16,7 @@ from autoapi.v3.mixins import GUIDPk, Timestamped
 
 class KeyVersion(Base, GUIDPk, Timestamped):
     __tablename__ = "key_versions"
-    __resource__ = "key_version"
+    __resource__ = "key_versions"
     __table_args__ = (UniqueConstraint("key_id", "version"),)
 
     key_id = Column(
@@ -26,7 +26,16 @@ class KeyVersion(Base, GUIDPk, Timestamped):
         index=True,
     )
     version = Column(Integer, nullable=False)
-    status = Column(SAEnum("active", name="VersionStatus",native_enum=True, validate_strings=True, create_constraint=True), nullable=False)
+    status = Column(
+        SAEnum(
+            "active",
+            name="VersionStatus",
+            native_enum=True,
+            validate_strings=True,
+            create_constraint=True,
+        ),
+        nullable=False,
+    )
     public_material = Column(
         LargeBinary,
         nullable=True,
