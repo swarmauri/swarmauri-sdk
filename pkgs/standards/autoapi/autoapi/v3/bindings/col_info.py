@@ -2,6 +2,8 @@
 """
 Compat shim: bindings-level access to Column.info["autoapi"] utilities.
 Prefer importing from `autoapi.v3.schema.col_info`, but this keeps older code working.
+
+This will be fully deprecated in place of ColumnSpecs.
 """
 from __future__ import annotations
 

@@ -158,6 +158,15 @@ class Base(DeclarativeBase):
         except Exception:
             pass
 
+        # 3) AUTO-BUILD CRUD schemas from ColumnSpecs so /docs has them
+        try:
+            from autoapi.v3.schema.build import build_for_model as _build_schemas
+            _build_schemas(cls)  # attaches request/response models to the model/registry
+        except Exception:
+            # Surface during development if needed:
+            # raise
+            pass
+
     metadata = MetaData(
         naming_convention={
             "pk": "pk_%(table_name)s",
