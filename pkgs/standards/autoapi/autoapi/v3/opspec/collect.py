@@ -122,8 +122,7 @@ def _collect_registry(model: type) -> List[OpSpec]:
 
 def _generate_canonical(model: type) -> List[OpSpec]:
     """
-    Provide a baseline set of canonical specs for CRUD, list, clear.
-    Bulk verbs can be added later by registry if supported.
+    Provide a baseline set of canonical specs for CRUD, list, clear, and bulk ops.
 
     NOTE: We do not wire any `returns` preference here. Serialization mode is
     inferred later from the presence/absence of a response schema during binding.
@@ -136,6 +135,10 @@ def _generate_canonical(model: type) -> List[OpSpec]:
         "delete",
         "list",
         "clear",
+        "bulk_create",
+        "bulk_update",
+        "bulk_replace",
+        "bulk_delete",
     )
     out: List[OpSpec] = []
     for target in canon_targets:
