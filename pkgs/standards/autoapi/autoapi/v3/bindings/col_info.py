@@ -8,6 +8,8 @@ This will be fully deprecated in place of ColumnSpecs.
 
 from __future__ import annotations
 
+import warnings
+
 from ..schema.col_info import (
     VALID_KEYS,
     VALID_VERBS,
@@ -16,6 +18,13 @@ from ..schema.col_info import (
     check,
     should_include_in_input,
     should_include_in_output,
+)
+
+warnings.warn(
+    "autoapi.v3.bindings.col_info is deprecated; Column.info['autoapi'] will be removed. "
+    "Use ColumnSpecs instead.",
+    DeprecationWarning,
+    stacklevel=2,
 )
 
 __all__ = [
