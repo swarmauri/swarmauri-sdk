@@ -6,6 +6,10 @@ from autoapi.v3.opspec import OpSpec
 from autoapi.v3.runtime import plan as _plan
 
 
+def handler(ctx):
+    return None
+
+
 @pytest.mark.asyncio
 async def test_planz_endpoint_sequence(monkeypatch: pytest.MonkeyPatch):
     class API:
@@ -13,9 +17,6 @@ async def test_planz_endpoint_sequence(monkeypatch: pytest.MonkeyPatch):
 
     class Model:
         __name__ = "Model"
-
-    def handler(ctx):
-        return None
 
     Model.opspecs = SimpleNamespace(
         all=(
@@ -58,3 +59,43 @@ async def test_planz_endpoint_sequence(monkeypatch: pytest.MonkeyPatch):
     assert any("sys:txn:begin@START_TX" in s for s in data["Model"]["write"])
     assert "read" in data["Model"]
     assert not any("sys:txn:begin@START_TX" in s for s in data["Model"]["read"])
+
+
+@pytest.mark.asyncio
+async def test_planz_endpoint_emits_atoms_after_plan_compilation():
+    class API:
+        pass
+
+    class Model:
+        __name__ = "Model"
+
+    Model.opspecs = SimpleNamespace(
+        all=(
+            OpSpec(
+                alias="write",
+                target="create",
+                table=Model,
+                persist="default",
+                handler=handler,
+            ),
+        )
+    )
+
+    api = API()
+    api.models = {"Model": Model}
+
+    planz = _build_planz_endpoint(api)
+
+    data = await planz()
+    steps = data["Model"]["write"]
+    assert any(step.startswith("sys:") for step in steps)
+    assert not any(step.startswith("atom:") for step in steps)
+
+    from autoapi.v3.runtime import plan as runtime_plan
+
+    runtime_plan.attach_atoms_for_model(Model, {})
+
+    data = await planz()
+    steps = data["Model"]["write"]
+    assert any(step.startswith("sys:") for step in steps)
+    assert any(step.startswith("atom:") for step in steps)
