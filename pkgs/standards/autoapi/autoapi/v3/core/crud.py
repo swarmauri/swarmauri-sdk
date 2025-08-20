@@ -718,6 +718,7 @@ async def bulk_replace(
     """
     pk = _single_pk_name(model)
     replaced: List[Any] = []
+    seen: set[Any] = set()
     for r in rows or ():
         r = dict(r)
         _validate_enum_values(model, r)
@@ -726,9 +727,27 @@ async def bulk_replace(
             raise ValueError(f"bulk_replace requires '{pk}' in each row")
         obj = await read(model, ident, db)
         data = {k: v for k, v in r.items() if k != pk}
-        _set_attrs(obj, data, allow_missing=False)
+        skip = _immutable_columns(model, "replace")
+        _set_attrs(obj, data, allow_missing=False, skip=skip)
         replaced.append(obj)
-    if replaced:
+        seen.add(ident)
+
+    deleted = False
+    if seen:
+        col = getattr(model, pk)
+        if sa_delete is not None:
+            stmt = sa_delete(model).where(~col.in_(seen))  # type: ignore[attr-defined]
+            await _maybe_execute(db, stmt)
+            deleted = True
+        else:  # pragma: no cover
+            # Fallback: delete rows one-by-one when SQL DELETE isn't available
+            existing = await list(model, db=db)
+            for obj in existing:
+                if getattr(obj, pk) not in seen:
+                    await _maybe_delete(db, obj)
+                    deleted = True
+
+    if replaced or deleted:
         await _maybe_flush(db)
     return replaced
 
