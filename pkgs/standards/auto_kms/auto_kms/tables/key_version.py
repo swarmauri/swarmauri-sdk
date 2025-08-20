@@ -26,7 +26,16 @@ class KeyVersion(Base, GUIDPk, Timestamped):
         index=True,
     )
     version = Column(Integer, nullable=False)
-    status = Column(SAEnum("active", name="VersionStatus",native_enum=True, validate_strings=True, create_constraint=True), nullable=False)
+    status = Column(
+        SAEnum(
+            "active",
+            name="VersionStatus",
+            native_enum=True,
+            validate_strings=True,
+            create_constraint=True,
+        ),
+        nullable=False,
+    )
     public_material = Column(
         LargeBinary,
         nullable=True,

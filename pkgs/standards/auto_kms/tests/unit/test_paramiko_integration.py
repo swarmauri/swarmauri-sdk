@@ -12,7 +12,7 @@ from autoapi.v3.tables import Base
 
 def _create_key(client, name="k1"):
     payload = {"name": name, "algorithm": "AES256_GCM"}
-    res = client.post("/kms/Key", json=payload)
+    res = client.post("/kms/key", json=payload)
     assert res.status_code == 200
     return res.json()
 
@@ -76,13 +76,46 @@ def test_key_encrypt_decrypt_with_paramiko_crypto(client_paramiko):
 
     pt = b"hello"
     payload = {"plaintext_b64": base64.b64encode(pt).decode()}
-    enc = client_paramiko.post(f"/kms/Key/{key['id']}/encrypt", json=payload)
+    enc = client_paramiko.post(f"/kms/key/{key['id']}/encrypt", json=payload)
     assert enc.status_code == 200
     dec_payload = {
         "ciphertext_b64": enc.json()["ciphertext_b64"],
         "nonce_b64": enc.json()["nonce_b64"],
         "tag_b64": enc.json()["tag_b64"],
     }
-    dec = client_paramiko.post(f"/kms/Key/{key['id']}/decrypt", json=dec_payload)
+    dec = client_paramiko.post(f"/kms/key/{key['id']}/decrypt", json=dec_payload)
+    assert dec.status_code == 200
+    assert base64.b64decode(dec.json()["plaintext_b64"]) == pt
+
+
+def test_key_encrypt_decrypt_without_public_material(client_paramiko):
+    from auto_kms.app import AsyncSessionLocal
+    from auto_kms.tables.key_version import KeyVersion
+
+    key = _create_key(client_paramiko, name="k2")
+
+    async def seed():
+        async with AsyncSessionLocal() as s:
+            kv = KeyVersion(
+                key_id=UUID(key["id"]),
+                version=1,
+                status="active",
+                public_material=None,
+            )
+            s.add(kv)
+            await s.commit()
+
+    asyncio.run(seed())
+
+    pt = b"world"
+    payload = {"plaintext_b64": base64.b64encode(pt).decode()}
+    enc = client_paramiko.post(f"/kms/key/{key['id']}/encrypt", json=payload)
+    assert enc.status_code == 200
+    dec_payload = {
+        "ciphertext_b64": enc.json()["ciphertext_b64"],
+        "nonce_b64": enc.json()["nonce_b64"],
+        "tag_b64": enc.json()["tag_b64"],
+    }
+    dec = client_paramiko.post(f"/kms/key/{key['id']}/decrypt", json=dec_payload)
     assert dec.status_code == 200
     assert base64.b64decode(dec.json()["plaintext_b64"]) == pt

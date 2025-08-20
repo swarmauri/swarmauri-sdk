@@ -64,7 +64,7 @@ def client(tmp_path, monkeypatch):
 
 def _create_key(client, name="k1"):
     payload = {"name": name, "algorithm": "AES256_GCM"}
-    res = client.post("/kms/Key", json=payload)
+    res = client.post("/kms/key", json=payload)
     assert res.status_code == 200
     return res.json()
 
@@ -77,14 +77,14 @@ def test_key_create(client):
 def test_key_list(client):
     _create_key(client, "k1")
     _create_key(client, "k2")
-    res = client.get("/kms/Key")
+    res = client.get("/kms/key")
     assert res.status_code == 200
     assert len(res.json()) == 2
 
 
 def test_key_read(client):
     key = _create_key(client)
-    res = client.get(f"/kms/Key/{key['id']}")
+    res = client.get(f"/kms/key/{key['id']}")
     assert res.status_code == 200
     assert res.json()["id"] == key["id"]
 
@@ -92,7 +92,7 @@ def test_key_read(client):
 def test_key_update(client):
     key = _create_key(client)
     res = client.patch(
-        f"/kms/Key/{key['id']}", json={"name": key["name"], "status": "disabled"}
+        f"/kms/key/{key['id']}", json={"name": key["name"], "status": "disabled"}
     )
     assert res.status_code == 200
     assert res.json()["status"] == "disabled"
@@ -101,23 +101,23 @@ def test_key_update(client):
 def test_key_replace(client):
     key = _create_key(client)
     payload = {"name": key["name"]}
-    res = client.put(f"/kms/Key/{key['id']}", json=payload)
+    res = client.put(f"/kms/key/{key['id']}", json=payload)
     assert res.status_code == 409
 
 
 def test_key_delete(client):
     key = _create_key(client)
-    res = client.delete(f"/kms/Key/{key['id']}")
+    res = client.delete(f"/kms/key/{key['id']}")
     assert res.status_code == 204
-    res = client.get(f"/kms/Key/{key['id']}")
+    res = client.get(f"/kms/key/{key['id']}")
     assert res.status_code == 404
 
 
 def test_key_clear(client):
     _create_key(client)
-    res = client.delete("/kms/Key")
+    res = client.delete("/kms/key")
     assert res.status_code == 204
-    res = client.get("/kms/Key")
+    res = client.get("/kms/key")
     assert res.json() == []
 
 
@@ -127,7 +127,7 @@ def test_key_encrypt_decrypt_with_paramiko_crypto_interface(client):
     _create_key_version(client, key["id"])
     pt = b"hello"
     payload = {"plaintext_b64": base64.b64encode(pt).decode()}
-    enc = client.post(f"/kms/Key/{key['id']}/encrypt", json=payload)
+    enc = client.post(f"/kms/key/{key['id']}/encrypt", json=payload)
     assert enc.status_code == 200
     ct = enc.json()["ciphertext_b64"]
     dec_payload = {
@@ -135,7 +135,7 @@ def test_key_encrypt_decrypt_with_paramiko_crypto_interface(client):
         "nonce_b64": enc.json()["nonce_b64"],
         "tag_b64": enc.json()["tag_b64"],
     }
-    dec = client.post(f"/kms/Key/{key['id']}/decrypt", json=dec_payload)
+    dec = client.post(f"/kms/key/{key['id']}/decrypt", json=dec_payload)
     assert dec.status_code == 200
     assert base64.b64decode(dec.json()["plaintext_b64"]) == pt
 

@@ -46,6 +46,7 @@ class KeyStatus(str, Enum):
 
 class Key(Base):
     __tablename__ = "keys"
+    __resource__ = "key"
     __allow_unmapped__ = True  # allow vcol attributes
 
     # Persisted columns (py_type inferred from annotation; SA dtype via StorageSpec.type_)
@@ -192,31 +193,17 @@ class Key(Base):
         alg_str = _alg_to_provider(alg_enum)
 
         import inspect
-        from swarmauri_core.crypto.types import (
-            ExportPolicy,
-            KeyRef,
-            KeyType,
-            KeyUse,
-        )
 
+        key_ref = None
         try:
             inspect.signature(crypto.encrypt).parameters["kid"]
         except KeyError:
-            key_obj = ctx["key"]
-            version = next(
-                (v for v in key_obj.versions if v.version == key_obj.primary_version),
-                None,
-            )
-            if version is None or version.public_material is None:
-                raise HTTPException(status_code=500, detail="Key material missing")
-            key_ref = KeyRef(
-                kid=kid,
-                version=key_obj.primary_version,
-                type=KeyType.SYMMETRIC,
-                uses=(KeyUse.ENCRYPT, KeyUse.DECRYPT),
-                export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
-                material=version.public_material,
-            )
+            secrets = getattr(
+                getattr(ctx.get("request"), "state", object()), "secrets", None
+            ) or ctx.get("secrets")
+            if secrets is None:
+                raise HTTPException(status_code=500, detail="Secrets provider missing")
+            key_ref = await secrets.load_key(kid=kid, require_private=True)
             res = await crypto.encrypt(
                 key_ref,
                 pt,
@@ -231,7 +218,9 @@ class Key(Base):
 
         return {
             "kid": kid,
-            "version": getattr(res, "version", ctx["key"].primary_version),
+            "version": getattr(
+                res, "version", getattr(key_ref, "version", ctx["key"].primary_version)
+            ),
             "alg": alg_enum,
             "nonce_b64": base64.b64encode(getattr(res, "nonce")).decode(),
             "ciphertext_b64": base64.b64encode(getattr(res, "ct")).decode(),
@@ -273,33 +262,20 @@ class Key(Base):
         import inspect
         from swarmauri_core.crypto.types import (
             AEADCiphertext,
-            ExportPolicy,
-            KeyRef,
-            KeyType,
-            KeyUse,
         )
 
         try:
             inspect.signature(crypto.decrypt).parameters["kid"]
         except KeyError:
-            key_obj = ctx["key"]
-            version = next(
-                (v for v in key_obj.versions if v.version == key_obj.primary_version),
-                None,
-            )
-            if version is None or version.public_material is None:
-                raise HTTPException(status_code=500, detail="Key material missing")
-            key_ref = KeyRef(
-                kid=kid,
-                version=key_obj.primary_version,
-                type=KeyType.SYMMETRIC,
-                uses=(KeyUse.DECRYPT, KeyUse.ENCRYPT),
-                export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
-                material=version.public_material,
-            )
+            secrets = getattr(
+                getattr(ctx.get("request"), "state", object()), "secrets", None
+            ) or ctx.get("secrets")
+            if secrets is None:
+                raise HTTPException(status_code=500, detail="Secrets provider missing")
+            key_ref = await secrets.load_key(kid=kid, require_private=True)
             ct_obj = AEADCiphertext(
                 kid=kid,
-                version=key_obj.primary_version,
+                version=key_ref.version,
                 alg=alg_str,
                 nonce=nonce,
                 ct=ct,
