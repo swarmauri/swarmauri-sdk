@@ -5,34 +5,67 @@ from autoapi.v3 import schema_ctx
 from autoapi.v3.bindings import build_schemas
 
 
-class AliasModel:
-    @schema_ctx(alias="Foo", kind="out")
-    class FooOut(BaseModel):
-        id: int
+def test_schema_ctx_records_alias() -> None:
+    class Model:
+        @schema_ctx(alias="Foo", kind="out")
+        class FooOut(BaseModel):
+            id: int
+
+    decl = Model.FooOut.__autoapi_schema_decl__
+    assert decl.alias == "Foo"
 
 
-def test_schema_ctx_registers_alias_namespace():
-    build_schemas(AliasModel, [])
-    assert hasattr(AliasModel.schemas, "Foo")
+def test_schema_ctx_registers_alias_namespace() -> None:
+    class Model:
+        @schema_ctx(alias="Foo", kind="out")
+        class FooOut(BaseModel):
+            id: int
+
+    build_schemas(Model, [])
+    assert hasattr(Model.schemas, "Foo")
 
 
-class KindModel:
-    @schema_ctx(alias="Bar", kind="in")
-    class BarIn(BaseModel):
-        id: int
+def test_schema_ctx_records_kind_in() -> None:
+    class Model:
+        @schema_ctx(alias="Bar", kind="in")
+        class BarIn(BaseModel):
+            id: int
 
-    @schema_ctx(alias="Bar", kind="out")
-    class BarOut(BaseModel):
-        id: int
-
-
-def test_schema_ctx_assigns_in_and_out_models():
-    build_schemas(KindModel, [])
-    assert KindModel.schemas.Bar.in_ is KindModel.BarIn
-    assert KindModel.schemas.Bar.out is KindModel.BarOut
+    decl = Model.BarIn.__autoapi_schema_decl__
+    assert decl.kind == "in"
 
 
-def test_schema_ctx_invalid_kind_raises_value_error():
+def test_schema_ctx_records_kind_out() -> None:
+    class Model:
+        @schema_ctx(alias="Bar", kind="out")
+        class BarOut(BaseModel):
+            id: int
+
+    decl = Model.BarOut.__autoapi_schema_decl__
+    assert decl.kind == "out"
+
+
+def test_schema_ctx_assigns_in_model() -> None:
+    class Model:
+        @schema_ctx(alias="Bar", kind="in")
+        class BarIn(BaseModel):
+            id: int
+
+    build_schemas(Model, [])
+    assert Model.schemas.Bar.in_ is Model.BarIn
+
+
+def test_schema_ctx_assigns_out_model() -> None:
+    class Model:
+        @schema_ctx(alias="Bar", kind="out")
+        class BarOut(BaseModel):
+            id: int
+
+    build_schemas(Model, [])
+    assert Model.schemas.Bar.out is Model.BarOut
+
+
+def test_schema_ctx_invalid_kind_raises_value_error() -> None:
     class Dummy:
         pass
 
@@ -43,15 +76,21 @@ def test_schema_ctx_invalid_kind_raises_value_error():
             pass
 
 
-class ForModel:
-    pass
+def test_schema_ctx_explicit_for_registration() -> None:
+    class Target:
+        pass
+
+    @schema_ctx(alias="Ext", kind="out", for_=Target)
+    class ExtSchema(BaseModel):
+        id: int
+
+    build_schemas(Target, [])
+    assert Target.schemas.Ext.out is ExtSchema
 
 
-@schema_ctx(alias="Ext", kind="out", for_=ForModel)
-class ExternalSchema(BaseModel):
-    id: int
+def test_schema_ctx_non_class_target_raises_type_error() -> None:
+    with pytest.raises(TypeError):
 
-
-def test_schema_ctx_for_explicit_target_registration():
-    build_schemas(ForModel, [])
-    assert ForModel.schemas.Ext.out is ExternalSchema
+        @schema_ctx(alias="Bad", kind="out")
+        def not_a_class():
+            pass
