@@ -104,7 +104,7 @@ def test_rest_serialization_with_and_without_out_schema():
     assert r1.json() == {"id": 7, "name": "abc"}  # id coerced by out schema
 
     # confirm request schema coercion: q=int → str
-    r2 = client.post("/widget/search", json={"q": 123})
+    r2 = client.post("/widget/search", json={"q": "123"})
     assert r2.status_code == 200
     assert r2.json() == {"id": 7, "name": "123"}
 

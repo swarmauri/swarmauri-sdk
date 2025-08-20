@@ -289,6 +289,19 @@ def include_model(
     # 4) Attach all namespaces onto api
     _attach_to_api(api, model)
 
+    # 5) Ensure underlying tables exist if a database handle is available
+    try:
+        get_db = getattr(api, "get_db", None)
+        if callable(get_db):
+            db = get_db()
+            bind = getattr(db, "bind", None)
+            if bind is None and hasattr(db, "get_bind"):
+                bind = db.get_bind()  # type: ignore[attr-defined]
+            if bind is not None:
+                model.metadata.create_all(bind)
+    except Exception:  # pragma: no cover - best effort table creation
+        logger.debug("bindings.api: auto create_all failed", exc_info=True)
+
     logger.debug("bindings.api: included %s at prefix %s", model.__name__, prefix)
     return model, router
 
