@@ -139,7 +139,6 @@ class Key(Base):
     @hook_ctx(ops="create", phase="POST_HANDLER")
     async def _seed_primary_version(cls, ctx):
         import secrets
-        from sqlalchemy import select
         from swarmauri_core.crypto.types import (
             ExportPolicy,
             KeyType,
@@ -158,13 +157,18 @@ class Key(Base):
         if key_obj.algorithm != KeyAlg.AES256_GCM:
             return  # only symmetric keys supported for now
 
-        existing = await db.execute(
-            select(KeyVersion).where(
-                KeyVersion.key_id == key_obj.id,
-                KeyVersion.version == key_obj.primary_version,
-            )
+        existing = await KeyVersion.handlers.list.core(
+            {
+                "db": db,
+                "payload": {
+                    "filters": {
+                        "key_id": key_obj.id,
+                        "version": key_obj.primary_version,
+                    }
+                },
+            }
         )
-        if existing.scalars().first() is None:
+        if not existing:
             material = secrets.token_bytes(32)
             await secrets_drv.store_key(
                 key_type=KeyType.SYMMETRIC,
@@ -173,13 +177,17 @@ class Key(Base):
                 material=material,
                 export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
             )
-            kv = KeyVersion(
-                key_id=key_obj.id,
-                version=key_obj.primary_version,
-                status="active",
-                public_material=material,
+            await KeyVersion.handlers.create.core(
+                {
+                    "db": db,
+                    "payload": {
+                        "key_id": key_obj.id,
+                        "version": key_obj.primary_version,
+                        "status": "active",
+                        "public_material": material,
+                    },
+                }
             )
-            db.add(kv)
 
     # ---- Hook: ensure key exists & enabled ----
     @hook_ctx(ops=("encrypt", "decrypt"), phase="PRE_HANDLER")
