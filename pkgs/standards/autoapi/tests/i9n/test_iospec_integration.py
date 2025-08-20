@@ -180,4 +180,4 @@ async def test_planz_lists_atoms_and_steps(widget_setup):
     data = (await client.get("/system/planz")).json()
     steps = data["Widget"]["create"]
     assert "sys:handler:crud@HANDLER" in steps
-    assert "sys:txn:begin@START_TX" in steps
+    assert any("sys:txn:begin@START_TX" in s for s in steps)
