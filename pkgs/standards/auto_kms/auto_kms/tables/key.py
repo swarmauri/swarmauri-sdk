@@ -176,6 +176,7 @@ class Key(Base):
     )
     async def encrypt(cls, ctx):
         import base64
+        from ..utils import b64d, b64d_optional
 
         p = ctx.get("payload") or {}
         crypto = getattr(
@@ -184,9 +185,9 @@ class Key(Base):
         if crypto is None:
             raise HTTPException(status_code=500, detail="Crypto provider missing")
 
-        aad = base64.b64decode(p["aad_b64"]) if p.get("aad_b64") else None
-        nonce = base64.b64decode(p["nonce_b64"]) if p.get("nonce_b64") else None
-        pt = base64.b64decode(p["plaintext_b64"])
+        aad = b64d_optional(p.get("aad_b64"))
+        nonce = b64d_optional(p.get("nonce_b64"))
+        pt = b64d(p["plaintext_b64"])
         kid = str(ctx["key"].id)
         alg_in = p.get("alg") or ctx["key"].algorithm
         alg_enum = alg_in if isinstance(alg_in, KeyAlg) else KeyAlg(alg_in)
@@ -254,6 +255,7 @@ class Key(Base):
     )
     async def decrypt(cls, ctx):
         import base64
+        from ..utils import b64d, b64d_optional
 
         p = ctx.get("payload") or {}
         crypto = getattr(
@@ -262,10 +264,10 @@ class Key(Base):
         if crypto is None:
             raise HTTPException(status_code=500, detail="Crypto provider missing")
 
-        aad = base64.b64decode(p["aad_b64"]) if p.get("aad_b64") else None
-        nonce = base64.b64decode(p["nonce_b64"])
-        ct = base64.b64decode(p["ciphertext_b64"])
-        tag = base64.b64decode(p["tag_b64"]) if p.get("tag_b64") else None
+        aad = b64d_optional(p.get("aad_b64"))
+        nonce = b64d(p["nonce_b64"])
+        ct = b64d(p["ciphertext_b64"])
+        tag = b64d_optional(p.get("tag_b64"))
         kid = str(ctx["key"].id)
         alg_in = p.get("alg") or ctx["key"].algorithm
         alg_enum = alg_in if isinstance(alg_in, KeyAlg) else KeyAlg(alg_in)
