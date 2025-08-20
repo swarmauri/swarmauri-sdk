@@ -103,15 +103,35 @@ _Key = Tuple[str, str]  # (alias, target)
 
 
 def _ensure_jsonable(obj: Any) -> Any:
-    """Best-effort conversion of DB rows or row-mappings to plain dicts."""
+    """Best-effort conversion of DB rows, ORM models or mappings to plain dicts."""
     if isinstance(obj, (list, tuple)):
         return [_ensure_jsonable(x) for x in obj]
+
     mapping = getattr(obj, "_mapping", None)
     if mapping is not None:
         try:
-            return dict(mapping)
+            return {k: _ensure_jsonable(v) for k, v in dict(mapping).items()}
         except Exception:  # pragma: no cover - fall back to original object
             pass
+
+    # Attempt to serialize SQLAlchemy ORM instances without requiring SQLAlchemy at import
+    try:  # pragma: no cover - introspection best-effort
+        from sqlalchemy.inspection import inspect as sa_inspect  # type: ignore
+
+        inst = sa_inspect(obj)
+        cols = {attr.key: getattr(obj, attr.key) for attr in inst.mapper.column_attrs}
+        return {k: _ensure_jsonable(v) for k, v in cols.items()}
+    except Exception:
+        if hasattr(obj, "__dict__"):
+            try:
+                return {
+                    k: _ensure_jsonable(v)
+                    for k, v in vars(obj).items()
+                    if not k.startswith("_")
+                }
+            except Exception:  # pragma: no cover - fall back to original object
+                pass
+
     return obj
 
 
