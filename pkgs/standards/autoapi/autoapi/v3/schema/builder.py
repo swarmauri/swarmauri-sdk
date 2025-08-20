@@ -375,6 +375,16 @@ def _build_schema(
         if exclude and attr_name in exclude:
             continue
 
+        io = getattr(spec, "io", None)
+        allowed_in = set(getattr(io, "in_verbs", []) or [])
+        allowed_out = set(getattr(io, "out_verbs", []) or [])
+        if (
+            (allowed_in or allowed_out)
+            and verb not in allowed_in
+            and verb not in allowed_out
+        ):
+            continue
+
         fs = getattr(spec, "field", None)
         py_t = getattr(fs, "py_type", Any) if fs is not None else Any
         required = bool(fs and verb in getattr(fs, "required_in", ()))
@@ -382,7 +392,7 @@ def _build_schema(
         field_kwargs: Dict[str, Any] = dict(getattr(fs, "constraints", {}) or {})
 
         default_factory = getattr(spec, "default_factory", None)
-        if default_factory and verb in set(getattr(spec.io, "in_verbs", []) or []):
+        if default_factory and verb in allowed_in:
             field_kwargs["default_factory"] = default_factory
             required = False
         else:
