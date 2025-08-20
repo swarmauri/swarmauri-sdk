@@ -9,10 +9,8 @@ from sqlalchemy.orm import Mapped, relationship
 
 from autoapi.v3.tables import Base
 from autoapi.v3.specs import acol, vcol, S, F, IO
-from autoapi.v3.decorators import schema_ctx, hook_ctx, op_ctx
-from autoapi.v3.opspec.types import SchemaRef
+from autoapi.v3.decorators import hook_ctx, op_ctx
 from fastapi import HTTPException
-from pydantic import BaseModel, Field
 
 if TYPE_CHECKING:
     from .key_version import KeyVersion
@@ -101,39 +99,44 @@ class Key(Base):
 
     # Virtual (wire-only)
     kid: str = vcol(
-        io=IO(out_verbs=("read", "list")),
+        io=IO(out_verbs=("read", "list", "encrypt")),
         read_producer=lambda obj, ctx: str(getattr(obj, "id", "")),
     )
 
-    # ---- Schemas (for ops) ----
-    @schema_ctx(alias="Encrypt", kind="in")
-    class EncryptIn(BaseModel):
-        plaintext_b64: str = Field(..., description="Base64 plaintext")
-        aad_b64: Optional[str] = None
-        nonce_b64: Optional[str] = None
-        alg: Optional[KeyAlg] = None
+    plaintext_b64: str = vcol(
+        field=F(required_in=("encrypt",)),
+        io=IO(in_verbs=("encrypt",), out_verbs=("decrypt",)),
+    )
 
-    @schema_ctx(alias="Encrypt", kind="out")
-    class EncryptOut(BaseModel):
-        kid: str
-        version: int
-        alg: KeyAlg
-        nonce_b64: str
-        ciphertext_b64: str
-        tag_b64: Optional[str] = None
-        aad_b64: Optional[str] = None
+    aad_b64: Optional[str] = vcol(
+        field=F(allow_null_in=("encrypt", "decrypt")),
+        io=IO(in_verbs=("encrypt", "decrypt"), out_verbs=("encrypt",)),
+    )
 
-    @schema_ctx(alias="Decrypt", kind="in")
-    class DecryptIn(BaseModel):
-        ciphertext_b64: str
-        nonce_b64: str
-        tag_b64: Optional[str] = None
-        aad_b64: Optional[str] = None
-        alg: Optional[KeyAlg] = None
+    nonce_b64: Optional[str] = vcol(
+        field=F(required_in=("decrypt",), allow_null_in=("encrypt",)),
+        io=IO(in_verbs=("encrypt", "decrypt"), out_verbs=("encrypt",)),
+    )
 
-    @schema_ctx(alias="Decrypt", kind="out")
-    class DecryptOut(BaseModel):
-        plaintext_b64: str
+    alg: Optional[KeyAlg] = vcol(
+        field=F(py_type=KeyAlg, allow_null_in=("encrypt", "decrypt")),
+        io=IO(in_verbs=("encrypt", "decrypt"), out_verbs=("encrypt",)),
+    )
+
+    ciphertext_b64: str = vcol(
+        field=F(required_in=("decrypt",)),
+        io=IO(in_verbs=("decrypt",), out_verbs=("encrypt",)),
+    )
+
+    tag_b64: Optional[str] = vcol(
+        field=F(allow_null_in=("encrypt", "decrypt")),
+        io=IO(in_verbs=("decrypt",), out_verbs=("encrypt",)),
+    )
+
+    version: int = vcol(
+        field=F(py_type=int),
+        io=IO(out_verbs=("encrypt",)),
+    )
 
     # ---- Hook: seed key material on create ----
     @hook_ctx(ops="create", phase="POST_HANDLER")
@@ -225,8 +228,6 @@ class Key(Base):
         target="custom",
         arity="member",  # /key/{item_id}/encrypt
         persist="skip",
-        request_schema=SchemaRef("Encrypt", "in"),
-        response_schema=SchemaRef("Encrypt", "out"),
     )
     async def encrypt(cls, ctx):
         import base64
@@ -321,8 +322,6 @@ class Key(Base):
         target="custom",
         arity="member",  # /key/{item_id}/decrypt
         persist="skip",
-        request_schema=SchemaRef("Decrypt", "in"),
-        response_schema=SchemaRef("Decrypt", "out"),
     )
     async def decrypt(cls, ctx):
         import base64
