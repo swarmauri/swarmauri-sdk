@@ -190,7 +190,7 @@ class Key(Base):
             )
 
     # ---- Hook: ensure key exists & enabled ----
-    @hook_ctx(ops=("encrypt", "decrypt"), phase="PRE_HANDLER")
+    @hook_ctx(ops=("encrypt", "decrypt", "rotate"), phase="PRE_HANDLER")
     async def _ensure_key_enabled(cls, ctx):
         pp = ctx.get("path_params") or {}
         ident = pp.get("id") or pp.get("item_id")
@@ -409,3 +409,33 @@ class Key(Base):
             )
 
         return {"plaintext_b64": base64.b64encode(pt).decode()}
+
+    @op_ctx(
+        alias="rotate",
+        target="custom",
+        arity="member",  # /key/{item_id}/rotate
+    )
+    async def rotate(cls, ctx):
+        import secrets
+        from .key_version import KeyVersion
+
+        db = ctx.get("db")
+        secrets_drv = ctx.get("secrets")
+        key_obj = ctx.get("key")
+        if db is None or secrets_drv is None or key_obj is None:
+            raise HTTPException(status_code=500, detail="Required context missing")
+        if key_obj.algorithm != KeyAlg.AES256_GCM:
+            raise HTTPException(status_code=400, detail="Unsupported algorithm")
+
+        new_version = key_obj.primary_version + 1
+        material = secrets.token_bytes(32)
+        await secrets_drv.rotate(kid=str(key_obj.id), material=material)
+        kv = KeyVersion(
+            key_id=key_obj.id,
+            version=new_version,
+            status="active",
+            public_material=material,
+        )
+        key_obj.primary_version = new_version
+        db.add(kv)
+        return {"id": str(key_obj.id), "primary_version": key_obj.primary_version}
