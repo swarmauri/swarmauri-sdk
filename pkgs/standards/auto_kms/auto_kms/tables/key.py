@@ -10,10 +10,8 @@ from sqlalchemy.orm import Mapped, relationship
 
 from autoapi.v3.tables import Base
 from autoapi.v3.specs import acol, vcol, S, F, IO
-from autoapi.v3.decorators import schema_ctx, hook_ctx, op_ctx
-from autoapi.v3.opspec.types import SchemaRef
+from autoapi.v3.decorators import hook_ctx, op_ctx
 from fastapi import HTTPException
-from pydantic import BaseModel, Field
 
 if TYPE_CHECKING:
     from .key_version import KeyVersion
@@ -102,46 +100,49 @@ class Key(Base):
 
     # Virtual (wire-only)
     kid: str = vcol(
-        io=IO(out_verbs=("read", "list")),
+        io=IO(out_verbs=("read", "list", "encrypt")),
         read_producer=lambda obj, ctx: str(getattr(obj, "id", "")),
     )
 
-    # ---- Schemas (for ops) ----
-    @schema_ctx(alias="Encrypt", kind="in")
-    class EncryptIn(BaseModel):
-        plaintext_b64: str = Field(..., description="Base64 plaintext")
-        aad_b64: Optional[str] = None
-        nonce_b64: Optional[str] = None
-        alg: Optional[KeyAlg] = None
+    plaintext_b64: str = vcol(
+        field=F(required_in=("encrypt",)),
+        io=IO(in_verbs=("encrypt",), out_verbs=("decrypt",)),
+    )
 
-    @schema_ctx(alias="Encrypt", kind="out")
-    class EncryptOut(BaseModel):
-        kid: str
-        version: int
-        alg: KeyAlg
-        nonce_b64: str
-        ciphertext_b64: str
-        tag_b64: Optional[str] = None
-        aad_b64: Optional[str] = None
+    aad_b64: Optional[str] = vcol(
+        field=F(allow_null_in=("encrypt", "decrypt")),
+        io=IO(in_verbs=("encrypt", "decrypt"), out_verbs=("encrypt",)),
+    )
 
-    @schema_ctx(alias="Decrypt", kind="in")
-    class DecryptIn(BaseModel):
-        ciphertext_b64: str
-        nonce_b64: str
-        tag_b64: Optional[str] = None
-        aad_b64: Optional[str] = None
-        alg: Optional[KeyAlg] = None
+    nonce_b64: Optional[str] = vcol(
+        field=F(required_in=("decrypt",), allow_null_in=("encrypt",)),
+        io=IO(in_verbs=("encrypt", "decrypt"), out_verbs=("encrypt",)),
+    )
 
-    @schema_ctx(alias="Decrypt", kind="out")
-    class DecryptOut(BaseModel):
-        plaintext_b64: str
+    alg: Optional[KeyAlg] = vcol(
+        field=F(py_type=KeyAlg, allow_null_in=("encrypt", "decrypt")),
+        io=IO(in_verbs=("encrypt", "decrypt"), out_verbs=("encrypt",)),
+    )
+
+    ciphertext_b64: str = vcol(
+        field=F(required_in=("decrypt",)),
+        io=IO(in_verbs=("decrypt",), out_verbs=("encrypt",)),
+    )
+
+    tag_b64: Optional[str] = vcol(
+        field=F(allow_null_in=("encrypt", "decrypt")),
+        io=IO(in_verbs=("decrypt",), out_verbs=("encrypt",)),
+    )
+
+    version: int = vcol(
+        field=F(py_type=int),
+        io=IO(out_verbs=("encrypt",)),
+    )
 
     # ---- Hook: seed key material on create ----
     @hook_ctx(ops="create", phase="POST_HANDLER")
     async def _seed_primary_version(cls, ctx):
         import secrets
-        import base64
-
         from sqlalchemy import select
         from swarmauri_core.crypto.types import (
             ExportPolicy,
@@ -161,13 +162,18 @@ class Key(Base):
         if key_obj.algorithm != KeyAlg.AES256_GCM:
             return  # only symmetric keys supported for now
 
-        existing = await db.execute(
-            select(KeyVersion).where(
-                KeyVersion.key_id == key_obj.id,
-                KeyVersion.version == key_obj.primary_version,
-            )
+        existing = await KeyVersion.handlers.list.core(
+            {
+                "db": db,
+                "payload": {
+                    "filters": {
+                        "key_id": key_obj.id,
+                        "version": key_obj.primary_version,
+                    }
+                },
+            }
         )
-        if existing.scalars().first() is None:
+        if not existing:
             material = secrets.token_bytes(32)
             await secrets_drv.store_key(
                 key_type=KeyType.SYMMETRIC,
@@ -176,17 +182,20 @@ class Key(Base):
                 material=material,
                 export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
             )
-            material_b64 = base64.b64encode(material).decode("utf-8")
-            kv = KeyVersion(
-                key_id=key_obj.id,
-                version=key_obj.primary_version,
-                status="active",
-                public_material=material_b64.encode("utf-8"),
+            await KeyVersion.handlers.create.core(
+                {
+                    "db": db,
+                    "payload": {
+                        "key_id": key_obj.id,
+                        "version": key_obj.primary_version,
+                        "status": "active",
+                        "public_material": material,
+                    },
+                }
             )
-            db.add(kv)
 
     # ---- Hook: ensure key exists & enabled ----
-    @hook_ctx(ops=("encrypt", "decrypt"), phase="PRE_HANDLER")
+    @hook_ctx(ops=("encrypt", "decrypt", "rotate"), phase="PRE_HANDLER")
     async def _ensure_key_enabled(cls, ctx):
         pp = ctx.get("path_params") or {}
         ident = pp.get("id") or pp.get("item_id")
@@ -221,8 +230,6 @@ class Key(Base):
         target="custom",
         arity="member",  # /key/{item_id}/encrypt
         persist="skip",
-        request_schema=SchemaRef("Encrypt", "in"),
-        response_schema=SchemaRef("Encrypt", "out"),
     )
     async def encrypt(cls, ctx):
         import base64
@@ -317,8 +324,6 @@ class Key(Base):
         target="custom",
         arity="member",  # /key/{item_id}/decrypt
         persist="skip",
-        request_schema=SchemaRef("Decrypt", "in"),
-        response_schema=SchemaRef("Decrypt", "out"),
     )
     async def decrypt(cls, ctx):
         import base64
@@ -405,3 +410,33 @@ class Key(Base):
             )
 
         return {"plaintext_b64": base64.b64encode(pt).decode()}
+
+    @op_ctx(
+        alias="rotate",
+        target="custom",
+        arity="member",  # /key/{item_id}/rotate
+    )
+    async def rotate(cls, ctx):
+        import secrets
+        from .key_version import KeyVersion
+
+        db = ctx.get("db")
+        secrets_drv = ctx.get("secrets")
+        key_obj = ctx.get("key")
+        if db is None or secrets_drv is None or key_obj is None:
+            raise HTTPException(status_code=500, detail="Required context missing")
+        if key_obj.algorithm != KeyAlg.AES256_GCM:
+            raise HTTPException(status_code=400, detail="Unsupported algorithm")
+
+        new_version = key_obj.primary_version + 1
+        material = secrets.token_bytes(32)
+        await secrets_drv.rotate(kid=str(key_obj.id), material=material)
+        kv = KeyVersion(
+            key_id=key_obj.id,
+            version=new_version,
+            status="active",
+            public_material=material,
+        )
+        key_obj.primary_version = new_version
+        db.add(kv)
+        return {"id": str(key_obj.id), "primary_version": key_obj.primary_version}

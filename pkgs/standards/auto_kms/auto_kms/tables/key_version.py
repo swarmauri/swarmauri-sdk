@@ -1,22 +1,29 @@
 from __future__ import annotations
 
+import secrets
+from uuid import UUID
+
+from fastapi import HTTPException
+from sqlalchemy.orm import Mapped
+
+from autoapi.v3.decorators import hook_ctx
+from autoapi.v3.mixins import GUIDPk, Timestamped
+from autoapi.v3.specs import IO, F, S, acol
+from autoapi.v3.specs.io_spec import Pair
+from autoapi.v3.specs.storage_spec import ForeignKeySpec
+from autoapi.v3.tables import Base
 from autoapi.v3.types import (
     Integer,
     LargeBinary,
+    PgUUID,
     SAEnum,
     UniqueConstraint,
     relationship,
-    PgUUID,
 )
-from sqlalchemy.orm import Mapped
-from uuid import UUID
-from autoapi.v3.tables import Base
-from autoapi.v3.mixins import GUIDPk, Timestamped
-from autoapi.v3.specs import acol, S, IO, F
-from autoapi.v3.specs.storage_spec import ForeignKeySpec
-from autoapi.v3.decorators import hook_ctx
+from swarmauri_core.crypto.types import ExportPolicy, KeyType, KeyUse
 
 from ..utils import b64d
+from .key import Key, KeyAlg
 
 
 class KeyVersion(Base, GUIDPk, Timestamped):
@@ -60,24 +67,26 @@ class KeyVersion(Base, GUIDPk, Timestamped):
         io=IO(in_verbs=("create",), out_verbs=("read", "list")),
     )
 
+    def _pair_material(ctx):
+        payload = ctx.get("payload") or {}
+        raw = payload.get("public_material_b64")
+        if raw is None:
+            return Pair(raw=None, stored=None)
+        return Pair(raw=raw, stored=b64d(raw))
+
     public_material: Mapped[bytes | memoryview | None] = acol(
         storage=S(type_=LargeBinary, nullable=True),
-        io=IO(alias_in="public_material_b64", in_verbs=("create", "update")),
+        io=IO().paired(
+            _pair_material, alias="public_material_b64", verbs=("create", "update")
+        ),
     )
-
-    @hook_ctx(ops=("create", "update"), phase="PRE_FLUSH")
-    def _decode_material(cls, ctx):
-        p = ctx.get("payload") or {}
-        raw = p.get("public_material_b64")
-        if raw is not None:
-            ctx["object"].public_material = b64d(raw)
 
     key = relationship("Key", back_populates="versions", lazy="joined")
 
-    @hook_ctx(ops="create", phase="PRE_HANDLER")
+    @hook_ctx(ops="create", phase="POST_HANDLER")
     async def _generate_material(cls, ctx):
-        payload = ctx.setdefault("payload", {})
-        if payload.get("public_material") is not None:
+        obj = ctx.get("result")
+        if obj is None or obj.public_material is not None:
             return
         secrets_drv = ctx.get("secrets")
         if secrets_drv is None:
@@ -85,7 +94,7 @@ class KeyVersion(Base, GUIDPk, Timestamped):
         db = ctx.get("db")
         if db is None:
             raise HTTPException(status_code=500, detail="DB session missing")
-        key_id = payload.get("key_id")
+        key_id = getattr(obj, "key_id", None)
         if key_id is None:
             raise HTTPException(status_code=400, detail="Missing key_id")
         key_obj = await db.get(Key, UUID(str(key_id)))
@@ -93,7 +102,7 @@ class KeyVersion(Base, GUIDPk, Timestamped):
             raise HTTPException(status_code=404, detail="Key not found")
         if key_obj.algorithm in (KeyAlg.AES256_GCM, KeyAlg.CHACHA20_POLY1305):
             material = secrets.token_bytes(32)
-        else:
+        else:  # pragma: no cover - defensive
             raise HTTPException(status_code=400, detail="Unsupported algorithm")
         await secrets_drv.store_key(
             key_type=KeyType.SYMMETRIC,
@@ -102,4 +111,15 @@ class KeyVersion(Base, GUIDPk, Timestamped):
             material=material,
             export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
         )
-        payload["public_material"] = None
+        obj.public_material = material
+
+    @hook_ctx(ops="create", phase="POST_RESPONSE")
+    async def _scrub_material(cls, ctx):
+        """Remove raw key material from the response payload."""
+        obj = ctx.get("result")
+        if obj is None:
+            return
+        if isinstance(obj, dict):
+            obj.pop("public_material", None)
+        else:
+            obj.public_material = None

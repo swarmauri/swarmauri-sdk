@@ -213,6 +213,15 @@ def _build_planz_endpoint(api: Any):
             compiled_plan = getattr(
                 getattr(model, "runtime", SimpleNamespace()), "plan", None
             )
+            if compiled_plan is None:
+                specs = getattr(model, "__autoapi_colspecs__", None) or getattr(
+                    model, "__autoapi_cols__", None
+                )
+                if specs is not None:
+                    try:
+                        compiled_plan = _plan.attach_atoms_for_model(model, specs)
+                    except Exception:
+                        compiled_plan = None
             for sp in _opspecs(model):
                 seq: List[str] = []
                 if compiled_plan is not None:
