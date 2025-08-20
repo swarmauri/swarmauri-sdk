@@ -176,6 +176,7 @@ class Key(Base):
     )
     async def encrypt(cls, ctx):
         import base64
+        import binascii
 
         p = ctx.get("payload") or {}
         crypto = getattr(
@@ -184,9 +185,30 @@ class Key(Base):
         if crypto is None:
             raise HTTPException(status_code=500, detail="Crypto provider missing")
 
-        aad = base64.b64decode(p["aad_b64"]) if p.get("aad_b64") else None
-        nonce = base64.b64decode(p["nonce_b64"]) if p.get("nonce_b64") else None
-        pt = base64.b64decode(p["plaintext_b64"])
+        try:
+            aad = (
+                base64.b64decode(p["aad_b64"], validate=True)
+                if p.get("aad_b64")
+                else None
+            )
+        except (binascii.Error, ValueError):
+            raise HTTPException(status_code=422, detail="Invalid base64 for aad_b64")
+
+        try:
+            nonce = (
+                base64.b64decode(p["nonce_b64"], validate=True)
+                if p.get("nonce_b64")
+                else None
+            )
+        except (binascii.Error, ValueError):
+            raise HTTPException(status_code=422, detail="Invalid base64 for nonce_b64")
+
+        try:
+            pt = base64.b64decode(p["plaintext_b64"], validate=True)
+        except (binascii.Error, ValueError):
+            raise HTTPException(
+                status_code=422, detail="Invalid base64 for plaintext_b64"
+            )
         kid = str(ctx["key"].id)
         alg_in = p.get("alg") or ctx["key"].algorithm
         alg_enum = alg_in if isinstance(alg_in, KeyAlg) else KeyAlg(alg_in)
@@ -254,6 +276,7 @@ class Key(Base):
     )
     async def decrypt(cls, ctx):
         import base64
+        import binascii
 
         p = ctx.get("payload") or {}
         crypto = getattr(
@@ -262,10 +285,35 @@ class Key(Base):
         if crypto is None:
             raise HTTPException(status_code=500, detail="Crypto provider missing")
 
-        aad = base64.b64decode(p["aad_b64"]) if p.get("aad_b64") else None
-        nonce = base64.b64decode(p["nonce_b64"])
-        ct = base64.b64decode(p["ciphertext_b64"])
-        tag = base64.b64decode(p["tag_b64"]) if p.get("tag_b64") else None
+        try:
+            aad = (
+                base64.b64decode(p["aad_b64"], validate=True)
+                if p.get("aad_b64")
+                else None
+            )
+        except (binascii.Error, ValueError):
+            raise HTTPException(status_code=422, detail="Invalid base64 for aad_b64")
+
+        try:
+            nonce = base64.b64decode(p["nonce_b64"], validate=True)
+        except (binascii.Error, ValueError):
+            raise HTTPException(status_code=422, detail="Invalid base64 for nonce_b64")
+
+        try:
+            ct = base64.b64decode(p["ciphertext_b64"], validate=True)
+        except (binascii.Error, ValueError):
+            raise HTTPException(
+                status_code=422, detail="Invalid base64 for ciphertext_b64"
+            )
+
+        try:
+            tag = (
+                base64.b64decode(p["tag_b64"], validate=True)
+                if p.get("tag_b64")
+                else None
+            )
+        except (binascii.Error, ValueError):
+            raise HTTPException(status_code=422, detail="Invalid base64 for tag_b64")
         kid = str(ctx["key"].id)
         alg_in = p.get("alg") or ctx["key"].algorithm
         alg_enum = alg_in if isinstance(alg_in, KeyAlg) else KeyAlg(alg_in)
