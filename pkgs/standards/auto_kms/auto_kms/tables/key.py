@@ -2,24 +2,30 @@
 from __future__ import annotations
 from enum import Enum
 from uuid import UUID, uuid4
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 
 from sqlalchemy import String, Integer, Enum as SAEnum
 from sqlalchemy.orm import Mapped, relationship
 
 from autoapi.v3.tables import Base
+from autoapi.v3.mixins import Timestamped
 from autoapi.v3.specs import acol, vcol, S, F, IO
 from autoapi.v3.decorators import schema_ctx, hook_ctx, op_ctx
 from autoapi.v3.opspec.types import SchemaRef
 from fastapi import HTTPException
 from pydantic import BaseModel, Field
 
+if TYPE_CHECKING:
+    from .key_version import KeyVersion
+
 # Prefer PG UUID type class; fall back to String class
 try:
     from sqlalchemy.dialects.postgresql import UUID as PGUUID
-    _UUID_TYPE = PGUUID          # type CLASS (binder instantiates)
+
+    _UUID_TYPE = PGUUID  # type CLASS (binder instantiates)
 except Exception:
-    _UUID_TYPE = String          # type CLASS
+    _UUID_TYPE = String  # type CLASS
+
 
 class KeyAlg(str, Enum):
     AES256_GCM = "AES256_GCM"
@@ -27,40 +33,55 @@ class KeyAlg(str, Enum):
     RSA2048 = "RSA2048"
     RSA3072 = "RSA3072"
 
+
 class KeyStatus(str, Enum):
     enabled = "enabled"
     disabled = "disabled"
 
-class Key(Base):
+
+class Key(Base, Timestamped):
     __tablename__ = "keys"
-    __allow_unmapped__ = True   # allow vcol attributes
+    __allow_unmapped__ = True  # allow vcol attributes
 
     # Persisted columns (py_type inferred from annotation; SA dtype via StorageSpec.type_)
     id: Mapped[UUID] = acol(
-        storage=S(type_=_UUID_TYPE, primary_key=True, index=True, nullable=False, default=uuid4),
+        storage=S(
+            type_=_UUID_TYPE,
+            primary_key=True,
+            index=True,
+            nullable=False,
+            default=uuid4,
+        ),
         io=IO(out_verbs=("read", "list"), sortable=True),
     )
 
     name: Mapped[str] = acol(
         storage=S(type_=String, unique=True, index=True, nullable=False),
         field=F(constraints={"max_length": 120}, required_in=("create",)),
-        io=IO(in_verbs=("create", "update", "replace"),
-              out_verbs=("read", "list"),
-              sortable=True, filter_ops=("eq", "ilike")),
+        io=IO(
+            in_verbs=("create", "update", "replace"),
+            out_verbs=("read", "list"),
+            sortable=True,
+            filter_ops=("eq", "ilike"),
+        ),
     )
 
     # in Key model, for enums:
     algorithm = acol(
         storage=S(type_=SAEnum, nullable=False),
-        field=F(py_type=KeyAlg, required_in=("create",)),   # <— explicit
-        io=IO(in_verbs=("create",), out_verbs=("read","list")),
+        field=F(py_type=KeyAlg, required_in=("create",)),  # <— explicit
+        io=IO(in_verbs=("create",), out_verbs=("read", "list")),
     )
     status = acol(
         storage=S(type_=SAEnum, nullable=False, default=KeyStatus.enabled),
-        field=F(py_type=KeyStatus),                         # <— explicit
-        io=IO(in_verbs=("update",), out_verbs=("read","list"), filter_ops=("eq",), sortable=True),
+        field=F(py_type=KeyStatus),  # <— explicit
+        io=IO(
+            in_verbs=("update",),
+            out_verbs=("read", "list"),
+            filter_ops=("eq",),
+            sortable=True,
+        ),
     )
-
 
     primary_version: Mapped[int] = acol(
         storage=S(type_=Integer, nullable=False, default=1),
@@ -77,16 +98,6 @@ class Key(Base):
         io=IO(out_verbs=("read", "list")),
         read_producer=lambda obj, ctx: str(getattr(obj, "id", "")),
     )
-
-    # IMPORTANT: expose a spec map so the binder always finds your specs
-    __autoapi_cols__ = {
-        "id": id,
-        "name": name,
-        "algorithm": algorithm,
-        "status": status,
-        "primary_version": primary_version,
-        "kid": kid,  # storage=None → virtual
-    }
 
     # ---- Schemas (for ops) ----
     @schema_ctx(alias="Encrypt", kind="in")
@@ -135,7 +146,13 @@ class Key(Base):
             raise HTTPException(status_code=500, detail="DB session missing")
         # works with sync or async session
         getter = getattr(db, "get", None)
-        obj = await getter(cls, ident) if callable(getter) and getattr(getter, "__code__", None) and getter.__code__.co_flags & 0x80 else db.get(cls, ident)
+        obj = (
+            await getter(cls, ident)
+            if callable(getter)
+            and getattr(getter, "__code__", None)
+            and getter.__code__.co_flags & 0x80
+            else db.get(cls, ident)
+        )
         if obj is None:
             raise HTTPException(status_code=404, detail="Key not found")
         if obj.status == KeyStatus.disabled:
@@ -153,25 +170,37 @@ class Key(Base):
     )
     async def encrypt(cls, ctx):
         import base64
+
         p = ctx.get("payload") or {}
-        crypto = getattr(getattr(ctx.get("request"), "state", object()), "crypto", None) or ctx.get("crypto")
+        crypto = getattr(
+            getattr(ctx.get("request"), "state", object()), "crypto", None
+        ) or ctx.get("crypto")
         if crypto is None:
             raise HTTPException(status_code=500, detail="Crypto provider missing")
 
-        aad   = base64.b64decode(p["aad_b64"])   if p.get("aad_b64")   else None
+        aad = base64.b64decode(p["aad_b64"]) if p.get("aad_b64") else None
         nonce = base64.b64decode(p["nonce_b64"]) if p.get("nonce_b64") else None
-        pt    = base64.b64decode(p["plaintext_b64"])
-        kid   = str(ctx["key"].id)
+        pt = base64.b64decode(p["plaintext_b64"])
+        kid = str(ctx["key"].id)
 
-        res = await crypto.encrypt(kid=kid, plaintext=pt, alg=p.get("alg") or ctx["key"].algorithm, aad=aad, nonce=nonce)
+        res = await crypto.encrypt(
+            kid=kid,
+            plaintext=pt,
+            alg=p.get("alg") or ctx["key"].algorithm,
+            aad=aad,
+            nonce=nonce,
+        )
         return {
             "kid": kid,
             "version": getattr(res, "version", ctx["key"].primary_version),
             "alg": getattr(res, "alg", ctx["key"].algorithm),
-            "nonce_b64":      base64.b64encode(getattr(res, "nonce")).decode(),
+            "nonce_b64": base64.b64encode(getattr(res, "nonce")).decode(),
             "ciphertext_b64": base64.b64encode(getattr(res, "ct")).decode(),
-            "tag_b64": (base64.b64encode(getattr(res, "tag")).decode()
-                        if getattr(res, "tag", None) else None),
+            "tag_b64": (
+                base64.b64encode(getattr(res, "tag")).decode()
+                if getattr(res, "tag", None)
+                else None
+            ),
             "aad_b64": p.get("aad_b64"),
         }
 
@@ -185,8 +214,11 @@ class Key(Base):
     )
     async def decrypt(cls, ctx):
         import base64
+
         p = ctx.get("payload") or {}
-        crypto = getattr(getattr(ctx.get("request"), "state", object()), "crypto", None) or ctx.get("crypto")
+        crypto = getattr(
+            getattr(ctx.get("request"), "state", object()), "crypto", None
+        ) or ctx.get("crypto")
         if crypto is None:
             raise HTTPException(status_code=500, detail="Crypto provider missing")
 
@@ -196,5 +228,7 @@ class Key(Base):
         tag = base64.b64decode(p["tag_b64"]) if p.get("tag_b64") else None
         kid = str(ctx["key"].id)
 
-        pt = await crypto.decrypt(kid=kid, ciphertext=ct, nonce=nonce, tag=tag, aad=aad, alg=p.get("alg"))
+        pt = await crypto.decrypt(
+            kid=kid, ciphertext=ct, nonce=nonce, tag=tag, aad=aad, alg=p.get("alg")
+        )
         return {"plaintext_b64": base64.b64encode(pt).decode()}
