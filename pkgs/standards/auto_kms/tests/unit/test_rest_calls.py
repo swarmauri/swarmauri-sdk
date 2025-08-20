@@ -38,11 +38,6 @@ def client(tmp_path, monkeypatch):
     monkeypatch.setenv("KMS_DATABASE_URL", f"sqlite+aiosqlite:///{db_path}")
     app = importlib.reload(importlib.import_module("auto_kms.app"))
 
-    @app.app.middleware("http")
-    async def _add_crypto(request, call_next):
-        request.state.crypto = DummyCrypto()
-        return await call_next(request)
-
     async def init_db():
         async with app.engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
@@ -111,7 +106,8 @@ def test_key_clear(client):
     assert res.json() == []
 
 
-def test_key_encrypt_decrypt(client):
+def test_key_encrypt_decrypt_with_ctx_crypto(client):
+    """Encryption should succeed without a request.state.crypto provider."""
     key = _create_key(client)
     pt = b"hello"
     payload = {"plaintext_b64": base64.b64encode(pt).decode()}

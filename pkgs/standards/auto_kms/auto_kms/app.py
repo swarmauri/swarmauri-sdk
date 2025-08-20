@@ -32,6 +32,7 @@ app = FastAPI(
     title="AutoKMS", version="0.1.0", openapi_url="/openapi.json", docs_url="/docs"
 )
 
+
 # API-level hooks (v3): stash shared services into ctx before any handler runs
 async def _stash_ctx(ctx):
     global SECRETS, CRYPTO
@@ -41,8 +42,9 @@ async def _stash_ctx(ctx):
     except NameError:
         SECRETS = AutoGpgSecretDrive()
         CRYPTO = ParamikoCrypto()
-    ctx["_kms_secrets"] = SECRETS
-    ctx["_kms_crypto"] = CRYPTO
+    # expose shared services to downstream ops under generic names
+    ctx["secrets"] = SECRETS
+    ctx["crypto"] = CRYPTO
 
 
 # Construct AutoAPI with api-level hooks; custom ops return raw dicts so no finalize hook needed
