@@ -104,10 +104,10 @@ def _resource_name(model: type) -> str:
     Resource segment for HTTP paths/tags.
 
     IMPORTANT: Never use table name here. Only allow an explicit __resource__
-    override or fall back to the model class name.
+    override or fall back to the model class name in lowercase.
     """
     override = getattr(model, "__resource__", None)
-    return override or model.__name__
+    return override or model.__name__.lower()
 
 
 def _pk_name(model: type) -> str:

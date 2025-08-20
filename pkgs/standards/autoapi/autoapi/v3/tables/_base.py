@@ -205,5 +205,9 @@ class Base(DeclarativeBase):
     def __tablename__(cls) -> str:  # noqa: N805
         return cls.__name__.lower()
 
+    def __getitem__(self, key: str) -> Any:
+        """Allow dict-style access to model attributes."""
+        return getattr(self, key)
+
 
 __all__ = ["Base"]
