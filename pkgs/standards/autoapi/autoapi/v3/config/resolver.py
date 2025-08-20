@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, is_dataclass
 from types import MappingProxyType
-from typing import Any, Dict, Iterable, Mapping, MutableMapping, Optional, Tuple
+from typing import Any, Dict, Iterable, Mapping, Optional
 
 # Optional defaults module (kept tolerant if not present yet)
 try:
@@ -18,10 +18,10 @@ except Exception:  # pragma: no cover
         # wire/in
         "reject_unknown_fields": False,
         # refresh
-        "refresh_policy": "auto",      # 'auto' | 'always' | 'never'
-        "refresh_after_write": None,   # Optional[bool] → normalized into refresh_policy
+        "refresh_policy": "auto",  # 'auto' | 'always' | 'never'
+        "refresh_after_write": None,  # Optional[bool] → normalized into refresh_policy
         # validation/docs
-        "required_policy": {},         # dict[op][field] = bool
+        "required_policy": {},  # dict[op][field] = bool
         # misc buckets developers may use
         "openapi": {},
         "docs": {},
@@ -44,6 +44,7 @@ class CfgView:
     Read-only attribute/dict view over a plain dict.
     Unknown attributes return None (to play nicely with getattr(cfg, 'x', None)).
     """
+
     __slots__ = ("_data",)
 
     def __init__(self, data: Mapping[str, Any]):
@@ -70,6 +71,7 @@ class CfgView:
 # ──────────────────────────────────────────────────────────────────────────────
 # Public API
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def resolve_cfg(
     *,
@@ -132,6 +134,7 @@ def resolve_cfg(
 # Internals
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def _coerce_map(obj: Any) -> Mapping[str, Any]:
     """Best-effort conversion of common config carriers to a plain mapping."""
     if obj is None:
@@ -160,6 +163,7 @@ def _coerce_map(obj: Any) -> Mapping[str, Any]:
         return cfg
     return {}
 
+
 def _extract_cfg(spec: Any) -> Mapping[str, Any]:
     """
     Pull a config mapping from a spec-like object.
@@ -174,6 +178,7 @@ def _extract_cfg(spec: Any) -> Mapping[str, Any]:
     # dataclass or namespace
     return _coerce_map(spec)
 
+
 def _collect_col_cfg(specs: Mapping[str, Any]) -> Mapping[str, Any]:
     """
     Merge .cfg from ColumnSpec and its sub-specs (io/field/storage) across all columns.
@@ -184,11 +189,17 @@ def _collect_col_cfg(specs: Mapping[str, Any]) -> Mapping[str, Any]:
     for field in sorted(specs.keys()):
         col = specs[field]
         # Collect potential cfg dictionaries from multiple places on ColumnSpec
-        for obj in (col, getattr(col, "io", None), getattr(col, "field", None), getattr(col, "storage", None)):
+        for obj in (
+            col,
+            getattr(col, "io", None),
+            getattr(col, "field", None),
+            getattr(col, "storage", None),
+        ):
             mapping = _extract_cfg(obj)
             if mapping:
                 acc = _merge_layers([acc, mapping])
     return acc
+
 
 def _merge_layers(layers: Iterable[Mapping[str, Any]]) -> Dict[str, Any]:
     """
@@ -210,6 +221,7 @@ def _merge_layers(layers: Iterable[Mapping[str, Any]]) -> Dict[str, Any]:
                 result[k] = v
     return result
 
+
 def _deep_merge_dicts(a: Mapping[str, Any], b: Mapping[str, Any]) -> Dict[str, Any]:
     """
     Deep merge two dicts; values in 'b' override 'a'. Only recurses on dicts.
@@ -223,6 +235,7 @@ def _deep_merge_dicts(a: Mapping[str, Any], b: Mapping[str, Any]) -> Dict[str, A
         else:
             out[k] = v
     return out
+
 
 def _normalize(cfg: Mapping[str, Any], *, op: Optional[str]) -> Dict[str, Any]:
     """
@@ -247,9 +260,13 @@ def _normalize(cfg: Mapping[str, Any], *, op: Optional[str]) -> Dict[str, Any]:
     if "omit_nulls" not in d and isinstance(d.get("exclude_none"), bool):
         d["omit_nulls"] = bool(d["exclude_none"])
 
-    if "response_extras_overwrite" not in d and isinstance(d.get("extras_overwrite"), bool):
+    if "response_extras_overwrite" not in d and isinstance(
+        d.get("extras_overwrite"), bool
+    ):
         d["response_extras_overwrite"] = bool(d["extras_overwrite"])
-    if "extras_overwrite" not in d and isinstance(d.get("response_extras_overwrite"), bool):
+    if "extras_overwrite" not in d and isinstance(
+        d.get("response_extras_overwrite"), bool
+    ):
         d["extras_overwrite"] = bool(d["response_extras_overwrite"])
 
     # 3) required_policy structure sanity: dict[op][field] = bool
@@ -262,7 +279,11 @@ def _normalize(cfg: Mapping[str, Any], *, op: Optional[str]) -> Dict[str, Any]:
         for op_name, per_field in rp.items():
             if not isinstance(per_field, Mapping):
                 continue
-            fixed[ str(op_name) ] = { str(f): bool(v) for f, v in per_field.items() if isinstance(v, (bool, int)) }
+            fixed[str(op_name)] = {
+                str(f): bool(v)
+                for f, v in per_field.items()
+                if isinstance(v, (bool, int))
+            }
         d["required_policy"] = fixed
 
     # 4) Optional op-specific view (pre-resolved convenience)

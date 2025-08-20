@@ -362,4 +362,3 @@ def test_system_phase_chain_includes_system_steps():
     chains = build_phase_chains(Thing, "create")
     assert "HANDLER" in chains
     assert any(chains[ph] for ph in chains)
-

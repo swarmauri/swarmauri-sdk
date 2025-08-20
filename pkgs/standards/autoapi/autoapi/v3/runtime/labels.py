@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 from typing import Dict, Optional, Tuple, Literal, Iterable, Set
+import re as _re
 
 from . import events as _ev
 
@@ -24,17 +25,26 @@ from . import events as _ev
 # ──────────────────────────────────────────────────────────────────────────────
 
 StepKind = Literal["secdep", "dep", "sys", "atom", "hook"]
-_ATOM_DOMAINS: Tuple[str, ...] = ("emit", "out", "refresh", "resolve", "schema", "storage", "wire")
+_ATOM_DOMAINS: Tuple[str, ...] = (
+    "emit",
+    "out",
+    "refresh",
+    "resolve",
+    "schema",
+    "storage",
+    "wire",
+)
 
 # minimal token rules (tight but readable)
 # - domain/subject: letters, digits, underscore, dash; subject may contain colon to support composite subjects like "txn:begin"
 # - field: letters, digits, underscore, dash, dot
-import re as _re
 
-_RE_NAME = _re.compile(r"^[A-Za-z0-9_.:-]+$")         # secdep/dep name (tolerant)
-_RE_DOMAIN = _re.compile(r"^[a-z][a-z0-9_-]*$")       # domain tokens
-_RE_SUBJECT = _re.compile(r"^[A-Za-z0-9_:-]+$")       # allow ":" inside subject (e.g., "txn:begin")
-_RE_FIELD = _re.compile(r"^[A-Za-z0-9_.-]+$")         # instance suffix
+_RE_NAME = _re.compile(r"^[A-Za-z0-9_.:-]+$")  # secdep/dep name (tolerant)
+_RE_DOMAIN = _re.compile(r"^[a-z][a-z0-9_-]*$")  # domain tokens
+_RE_SUBJECT = _re.compile(
+    r"^[A-Za-z0-9_:-]+$"
+)  # allow ":" inside subject (e.g., "txn:begin")
+_RE_FIELD = _re.compile(r"^[A-Za-z0-9_.-]+$")  # instance suffix
 
 
 @dataclass(frozen=True)
@@ -70,53 +80,76 @@ class Label:
 
     # ── predicates ────────────────────────────────────────────────────────────
     @property
-    def is_secdep(self) -> bool: return self.kind == "secdep"
+    def is_secdep(self) -> bool:
+        return self.kind == "secdep"
+
     @property
-    def is_dep(self) -> bool:    return self.kind == "dep"
+    def is_dep(self) -> bool:
+        return self.kind == "dep"
+
     @property
-    def is_sys(self) -> bool:    return self.kind == "sys"
+    def is_sys(self) -> bool:
+        return self.kind == "sys"
+
     @property
-    def is_atom(self) -> bool:   return self.kind == "atom"
+    def is_atom(self) -> bool:
+        return self.kind == "atom"
+
     @property
-    def is_hook(self) -> bool:   return self.kind == "hook"
+    def is_hook(self) -> bool:
+        return self.kind == "hook"
 
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Builders (typed helpers)
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def make_dep(name: str) -> Label:
     _require(_RE_NAME.match(name), f"Invalid dep name {name!r}")
     return Label(kind="dep", subject=name)
 
+
 def make_secdep(name: str) -> Label:
     _require(_RE_NAME.match(name), f"Invalid secdep name {name!r}")
     return Label(kind="secdep", subject=name)
+
 
 def make_sys(subject: str, phase: _ev.Phase) -> Label:
     _require(subject and _RE_SUBJECT.match(subject), f"Invalid sys subject {subject!r}")
     _require(phase in _ev.PHASES, f"Invalid sys phase {phase!r}")
     return Label(kind="sys", subject=subject, anchor=phase)
 
-def make_atom(domain: str, subject: str, anchor: str, field: Optional[str] = None) -> Label:
+
+def make_atom(
+    domain: str, subject: str, anchor: str, field: Optional[str] = None
+) -> Label:
     _validate_atom_domain(domain)
     _validate_subject(subject)
     _validate_anchor(anchor)
     _validate_field(field)
-    return Label(kind="atom", domain=domain, subject=subject, anchor=anchor, field=field)
+    return Label(
+        kind="atom", domain=domain, subject=subject, anchor=anchor, field=field
+    )
 
-def make_hook(domain: str, subject: str, anchor: str, field: Optional[str] = None) -> Label:
+
+def make_hook(
+    domain: str, subject: str, anchor: str, field: Optional[str] = None
+) -> Label:
     # Hook domain is freeform token (lowercase recommended)
     _require(domain and _RE_DOMAIN.match(domain), f"Invalid hook domain {domain!r}")
     _validate_subject(subject)
     _validate_anchor(anchor)
     _validate_field(field)
-    return Label(kind="hook", domain=domain, subject=subject, anchor=anchor, field=field)
+    return Label(
+        kind="hook", domain=domain, subject=subject, anchor=anchor, field=field
+    )
 
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Parse / validate
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def parse(s: str) -> Label:
     """
@@ -183,13 +216,22 @@ def validate(label: Label) -> None:
     """Raise ValueError if the label violates the grammar or constraints."""
     k = label.kind
     if k in ("secdep", "dep"):
-        _require(label.subject and _RE_NAME.match(label.subject), f"Invalid {k} name {label.subject!r}")
-        _require(label.domain is None and label.anchor is None, f"{k} cannot carry domain/anchor")
+        _require(
+            label.subject and _RE_NAME.match(label.subject),
+            f"Invalid {k} name {label.subject!r}",
+        )
+        _require(
+            label.domain is None and label.anchor is None,
+            f"{k} cannot carry domain/anchor",
+        )
         _validate_field(label.field)
         return
 
     if k == "sys":
-        _require(label.subject and _RE_SUBJECT.match(label.subject), f"Invalid sys subject {label.subject!r}")
+        _require(
+            label.subject and _RE_SUBJECT.match(label.subject),
+            f"Invalid sys subject {label.subject!r}",
+        )
         _require(label.anchor in _ev.PHASES, f"Invalid sys phase {label.anchor!r}")
         _require(label.domain is None, "sys cannot carry a domain")
         _validate_field(label.field)
@@ -203,7 +245,10 @@ def validate(label: Label) -> None:
         return
 
     if k == "hook":
-        _require(label.domain and _RE_DOMAIN.match(label.domain), f"Invalid hook domain {label.domain!r}")
+        _require(
+            label.domain and _RE_DOMAIN.match(label.domain),
+            f"Invalid hook domain {label.domain!r}",
+        )
         _validate_subject(label.subject)
         _validate_anchor(label.anchor)
         _validate_field(label.field)
@@ -216,6 +261,7 @@ def validate(label: Label) -> None:
 # Helpers / Legend
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def _split_anchor_field(s: str) -> Tuple[str, Optional[str]]:
     """Split 'anchor[#field]' into (anchor, field?)."""
     if "#" in s:
@@ -223,20 +269,30 @@ def _split_anchor_field(s: str) -> Tuple[str, Optional[str]]:
         return anchor, (field or None)
     return s, None
 
+
 def _validate_atom_domain(domain: Optional[str]) -> None:
-    _require(domain is not None and domain in _ATOM_DOMAINS,
-             f"Invalid atom domain {domain!r}; expected one of {list(_ATOM_DOMAINS)}")
+    _require(
+        domain is not None and domain in _ATOM_DOMAINS,
+        f"Invalid atom domain {domain!r}; expected one of {list(_ATOM_DOMAINS)}",
+    )
+
 
 def _validate_subject(subj: Optional[str]) -> None:
     _require(subj is not None and _RE_SUBJECT.match(subj), f"Invalid subject {subj!r}")
 
+
 def _validate_anchor(anchor: Optional[str]) -> None:
-    _require(anchor is not None and _ev.is_valid_event(anchor), f"Invalid or unknown anchor {anchor!r}")
+    _require(
+        anchor is not None and _ev.is_valid_event(anchor),
+        f"Invalid or unknown anchor {anchor!r}",
+    )
+
 
 def _validate_field(field: Optional[str]) -> None:
     if field is None:
         return
     _require(_RE_FIELD.match(field), f"Invalid field instance suffix {field!r}")
+
 
 def _require(cond: bool, msg: str) -> None:
     if not cond:
@@ -265,18 +321,23 @@ def legend() -> Dict[str, object]:
 # Bulk utilities (nice-to-haves for planner/trace)
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def ensure_all_valid(labels: Iterable[Label]) -> None:
     for lbl in labels:
         validate(lbl)
 
+
 def only_atoms(labels: Iterable[Label]) -> Tuple[Label, ...]:
-    return tuple(l for l in labels if l.kind == "atom")
+    return tuple(label for label in labels if label.kind == "atom")
+
 
 def only_hooks(labels: Iterable[Label]) -> Tuple[Label, ...]:
-    return tuple(l for l in labels if l.kind == "hook")
+    return tuple(label for label in labels if label.kind == "hook")
+
 
 def fields_used(labels: Iterable[Label]) -> Set[str]:
-    return {l.field for l in labels if l.field}
+    return {label.field for label in labels if label.field}
+
 
 __all__ = [
     "StepKind",

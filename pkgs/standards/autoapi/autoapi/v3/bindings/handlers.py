@@ -29,6 +29,7 @@ _Key = Tuple[str, str]  # (alias, target)
 # Helpers: model.hooks / model.handlers alias namespaces
 # ───────────────────────────────────────────────────────────────────────────────
 
+
 def _ensure_alias_hooks_ns(model: type, alias: str) -> SimpleNamespace:
     hooks_root = getattr(model, "hooks", None)
     if hooks_root is None:
@@ -64,9 +65,11 @@ def _append_handler_step(model: type, alias: str, step: StepFn) -> None:
     chain: list[StepFn] = getattr(ns, "HANDLER")
     chain.append(step)
 
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Payload/ctx helpers
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 def _ctx_get(ctx: Mapping[str, Any], key: str, default: Any = None) -> Any:
     try:
@@ -74,24 +77,30 @@ def _ctx_get(ctx: Mapping[str, Any], key: str, default: Any = None) -> Any:
     except Exception:
         return getattr(ctx, key, default)
 
+
 def _ctx_payload(ctx: Mapping[str, Any]) -> Mapping[str, Any]:
     v = _ctx_get(ctx, "payload", None)
     # Never let non-mapping (incl. SQLA ClauseElement) flow as payload
     return v if isinstance(v, Mapping) else {}
 
+
 def _ctx_db(ctx: Mapping[str, Any]) -> Any:
     return _ctx_get(ctx, "db")
 
+
 def _ctx_request(ctx: Mapping[str, Any]) -> Any:
     return _ctx_get(ctx, "request")
+
 
 def _ctx_path_params(ctx: Mapping[str, Any]) -> Mapping[str, Any]:
     v = _ctx_get(ctx, "path_params", None)
     return v if isinstance(v, Mapping) else {}
 
+
 # ───────────────────────────────────────────────────────────────────────────────
 # PK discovery & identifier coercion
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 def _pk_name(model: type) -> str:
     """
@@ -129,6 +138,7 @@ def _pk_name(model: type) -> str:
             pass
 
     return "id"
+
 
 def _pk_type_info(model: type) -> tuple[Optional[type], Optional[Any]]:
     """
@@ -172,6 +182,7 @@ def _pk_type_info(model: type) -> tuple[Optional[type], Optional[Any]]:
 
     return (py_t, coltype)
 
+
 def _looks_like_uuid_string(s: str) -> bool:
     if not isinstance(s, str):
         return False
@@ -180,6 +191,7 @@ def _looks_like_uuid_string(s: str) -> bool:
         return True
     except Exception:
         return False
+
 
 def _is_uuid_type(py_t: Optional[type], sa_type: Optional[Any]) -> bool:
     if py_t is uuid.UUID:
@@ -197,6 +209,7 @@ def _is_uuid_type(py_t: Optional[type], sa_type: Optional[Any]) -> bool:
     except Exception:
         pass
     return False
+
 
 def _coerce_ident_to_pk_type(model: type, value: Any) -> Any:
     """
@@ -240,8 +253,10 @@ def _coerce_ident_to_pk_type(model: type, value: Any) -> Any:
     # No known target type → leave as is
     return value
 
+
 def _is_clause(x: Any) -> bool:
     return SAClause is not None and isinstance(x, SAClause)  # type: ignore[truthy-bool]
+
 
 def _resolve_ident(model: type, ctx: Mapping[str, Any]) -> Any:
     """
@@ -272,10 +287,12 @@ def _resolve_ident(model: type, ctx: Mapping[str, Any]) -> Any:
         (payload, "item_id"),
     ]
     if pk != "id":
-        candidates_keys.extend([
-            (path, f"{pk}_id"),
-            (payload, f"{pk}_id"),
-        ])
+        candidates_keys.extend(
+            [
+                (path, f"{pk}_id"),
+                (payload, f"{pk}_id"),
+            ]
+        )
     candidates_keys.append((payload, "ident"))
 
     for source, key in candidates_keys:
@@ -297,9 +314,11 @@ def _resolve_ident(model: type, ctx: Mapping[str, Any]) -> Any:
 
     raise TypeError(f"Missing identifier '{pk}' in path or payload")
 
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Core → StepFn adapters
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 async def _call_list_core(
     fn: Callable[..., Any],
@@ -327,7 +346,9 @@ async def _call_list_core(
 
     candidates: list[tuple[tuple, dict]] = []
 
-    def add_candidate(use_pos_filters: bool, use_pos_db: bool, with_req: bool, with_pag: bool):
+    def add_candidate(
+        use_pos_filters: bool, use_pos_db: bool, with_req: bool, with_pag: bool
+    ):
         args: tuple = ()
         kwargs: dict = {}
         if use_pos_filters:
@@ -349,20 +370,20 @@ async def _call_list_core(
 
     # Richest → minimal, always passing db
     add_candidate(False, False, True, True)
-    add_candidate(True,  False, True, True)
-    add_candidate(True,  True,  True, True)
+    add_candidate(True, False, True, True)
+    add_candidate(True, True, True, True)
 
     add_candidate(False, False, False, True)
-    add_candidate(True,  False, False, True)
-    add_candidate(True,  True,  False, True)
+    add_candidate(True, False, False, True)
+    add_candidate(True, True, False, True)
 
     add_candidate(False, False, True, False)
-    add_candidate(True,  False, True, False)
-    add_candidate(True,  True,  True, False)
+    add_candidate(True, False, True, False)
+    add_candidate(True, True, True, False)
 
     add_candidate(False, False, False, False)
-    add_candidate(True,  False, False, False)
-    add_candidate(True,  True,  False, False)
+    add_candidate(True, False, False, False)
+    add_candidate(True, True, False, False)
 
     last_err: Optional[BaseException] = None
     for args, kwargs in candidates:
@@ -378,6 +399,7 @@ async def _call_list_core(
         raise last_err
     raise RuntimeError("list() call resolution failed unexpectedly")
 
+
 def _accepted_kw(handler: Callable[..., Any]) -> set[str]:
     try:
         sig = inspect.signature(handler)
@@ -391,6 +413,7 @@ def _accepted_kw(handler: Callable[..., Any]) -> set[str]:
             return {"ctx", "db", "payload", "request", "model", "op", "spec", "alias"}
         names.add(p.name)
     return names
+
 
 def _wrap_custom(model: type, sp: OpSpec, user_handler: Callable[..., Any]) -> StepFn:
     """
@@ -408,14 +431,22 @@ def _wrap_custom(model: type, sp: OpSpec, user_handler: Callable[..., Any]) -> S
         bound = getattr(model, getattr(user_handler, "__name__", ""), user_handler)
 
         kw = {}
-        if "ctx" in wanted:     kw["ctx"] = ctx
-        if "db" in wanted:      kw["db"] = db
-        if "payload" in wanted: kw["payload"] = payload
-        if "request" in wanted: kw["request"] = request
-        if "model" in wanted:   kw["model"] = model
-        if "op" in wanted:      kw["op"] = sp
-        if "spec" in wanted:    kw["spec"] = sp
-        if "alias" in wanted:   kw["alias"] = sp.alias
+        if "ctx" in wanted:
+            kw["ctx"] = ctx
+        if "db" in wanted:
+            kw["db"] = db
+        if "payload" in wanted:
+            kw["payload"] = payload
+        if "request" in wanted:
+            kw["request"] = request
+        if "model" in wanted:
+            kw["model"] = model
+        if "op" in wanted:
+            kw["op"] = sp
+        if "spec" in wanted:
+            kw["spec"] = sp
+        if "alias" in wanted:
+            kw["alias"] = sp.alias
 
         rv = bound(**kw)  # type: ignore[misc]
         if inspect.isawaitable(rv):
@@ -427,10 +458,12 @@ def _wrap_custom(model: type, sp: OpSpec, user_handler: Callable[..., Any]) -> S
     step.__module__ = getattr(user_handler, "__module__", step.__module__)
     return step
 
+
 def _wrap_core(model: type, target: str) -> StepFn:
     """
     Turn a canonical core function into a StepFn(ctx) → Any.
     """
+
     async def step(ctx: Any) -> Any:
         db = _ctx_db(ctx)
         payload = _ctx_payload(ctx)
@@ -500,15 +533,18 @@ def _wrap_core(model: type, target: str) -> StepFn:
     step.__module__ = getattr(fn, "__module__", step.__module__)
     return step
 
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Builder
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 def _build_raw_step(model: type, sp: OpSpec) -> StepFn:
     if sp.target == "custom" and sp.handler is not None:
         return _wrap_custom(model, sp, sp.handler)  # user function
     # Canonical/default core
     return _wrap_core(model, sp.target)
+
 
 def _attach_one(model: type, sp: OpSpec) -> None:
     alias = sp.alias
@@ -540,9 +576,11 @@ def _attach_one(model: type, sp: OpSpec) -> None:
         alias,
     )
 
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Public API
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 def build_and_attach(
     model: type, specs: Sequence[OpSpec], *, only_keys: Optional[Sequence[_Key]] = None
@@ -562,5 +600,6 @@ def build_and_attach(
         if wanted and key not in wanted:
             continue
         _attach_one(model, sp)
+
 
 __all__ = ["build_and_attach"]

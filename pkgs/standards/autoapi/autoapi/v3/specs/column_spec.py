@@ -6,6 +6,7 @@ from .storage_spec import StorageSpec as S
 from .field_spec import FieldSpec as F
 from .io_spec import IOSpec as IO
 
+
 @dataclass(frozen=True)
 class ColumnSpec:
     """
@@ -14,7 +15,8 @@ class ColumnSpec:
     - default_factory: server-side scalar default IF not using IO.paired (runs when ABSENT)
     - read_producer: for virtuals on read/list (compute from ORM obj/ctx)
     """
-    storage: Optional[S]          # None => virtual column (never persisted)
+
+    storage: Optional[S]  # None => virtual column (never persisted)
     field: F
     io: IO
 

@@ -87,7 +87,9 @@ def run(obj: Optional[object], ctx: Any) -> None:
         entry = {
             "name": field,
             "virtual": is_virtual,
-            "nullable": nullable if nullable is not None else (None if is_virtual else True),
+            "nullable": nullable
+            if nullable is not None
+            else (None if is_virtual else True),
             "py_type": py_type,
             "alias_out": alias_out,
             "sensitive": sensitive,
@@ -112,12 +114,14 @@ def run(obj: Optional[object], ctx: Any) -> None:
 # Internals (tolerant to spec shapes)
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
     tmp = getattr(ctx, "temp", None)
     if not isinstance(tmp, dict):
         tmp = {}
         setattr(ctx, "temp", tmp)
     return tmp
+
 
 def _bool_attr(obj: Any, *names: str, default: bool) -> bool:
     for n in names:
@@ -126,6 +130,7 @@ def _bool_attr(obj: Any, *names: str, default: bool) -> bool:
             if isinstance(v, bool):
                 return v
     return default
+
 
 def _py_type_str(field_spec: Any) -> Optional[str]:
     """
@@ -144,6 +149,7 @@ def _py_type_str(field_spec: Any) -> Optional[str]:
             return str(t)
     return None
 
+
 def _infer_out_alias(field: str, colspec: Any) -> Optional[str]:
     """
     Outbound alias inference (author-supplied). We look for common names.
@@ -156,6 +162,7 @@ def _infer_out_alias(field: str, colspec: Any) -> Optional[str]:
             if isinstance(val, str) and val:
                 return val
     return None
+
 
 def _sensitivity(colspec: Any) -> tuple[bool, Optional[int | bool]]:
     """
@@ -185,11 +192,17 @@ def _sensitivity(colspec: Any) -> tuple[bool, Optional[int | bool]]:
 
     return sensitive, redact_last
 
+
 def _max_len(colspec: Any) -> Optional[int]:
     """
     Detect a maximum length hint for outbound strings (ColumnSpec/FieldSpec/IOSpec/Storage).
     """
-    for obj in (colspec, getattr(colspec, "field", None), getattr(colspec, "io", None), getattr(colspec, "storage", None)):
+    for obj in (
+        colspec,
+        getattr(colspec, "field", None),
+        getattr(colspec, "io", None),
+        getattr(colspec, "storage", None),
+    ):
         if obj is None:
             continue
         for name in ("max_length", "max_len", "length", "size"):

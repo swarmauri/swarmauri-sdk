@@ -24,18 +24,25 @@ _MAX_SCALAR_LEN = 256
 class _TraceState:
     enabled: bool = True
     sampled: bool = True
-    started_at: _dt.datetime = field(default_factory=lambda: _dt.datetime.now(_dt.timezone.utc))
+    started_at: _dt.datetime = field(
+        default_factory=lambda: _dt.datetime.now(_dt.timezone.utc)
+    )
     t0: float = field(default_factory=time.perf_counter)
     seq: int = 0
-    steps: list[Dict[str, Any]] = field(default_factory=list)   # closed steps
+    steps: list[Dict[str, Any]] = field(default_factory=list)  # closed steps
     events: list[Dict[str, Any]] = field(default_factory=list)  # loose events
-    open: Dict[int, Tuple[str, float, Dict[str, Any]]] = field(default_factory=dict)  # seq -> (label, t_start, base_kv)
-    plan_labels: Tuple[str, ...] = ()  # optional: the full ordered plan (for diagnostics)
+    open: Dict[int, Tuple[str, float, Dict[str, Any]]] = field(
+        default_factory=dict
+    )  # seq -> (label, t_start, base_kv)
+    plan_labels: Tuple[
+        str, ...
+    ] = ()  # optional: the full ordered plan (for diagnostics)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Public API
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def init(ctx: Any, *, plan_labels: Optional[Sequence[str]] = None) -> None:
     """
@@ -63,12 +70,14 @@ def init(ctx: Any, *, plan_labels: Optional[Sequence[str]] = None) -> None:
     if plan_labels:
         st.plan_labels = tuple(str(x) for x in plan_labels[:_MAX_STEPS])
 
+
 def set_enabled(ctx: Any, enabled: bool) -> None:
     """Force tracing on/off for this context."""
     st = _get_state(ctx, create=True)
     st.enabled = bool(enabled)
     if not st.enabled:
         st.sampled = False
+
 
 def start(ctx: Any, label: str, **kv: Any) -> int | None:
     """
@@ -90,7 +99,10 @@ def start(ctx: Any, label: str, **kv: Any) -> int | None:
     st.open[seq] = (label, t_start, base)
     return seq
 
-def end(ctx: Any, seq: int | None, status: str = OK, **kv: Any) -> Optional[Dict[str, Any]]:
+
+def end(
+    ctx: Any, seq: int | None, status: str = OK, **kv: Any
+) -> Optional[Dict[str, Any]]:
     """
     End a previously started span by its seq id. Returns the finalized step dict.
     If seq is None or tracing is inactive, this is a no-op.
@@ -116,16 +128,20 @@ def end(ctx: Any, seq: int | None, status: str = OK, **kv: Any) -> Optional[Dict
         st.steps.append(entry)
     return entry
 
+
 def event(ctx: Any, name: str, **kv: Any) -> None:
     """Record an ad-hoc event (not tied to a plan label)."""
     st = _get_state(ctx)
     if not _active(st) or len(st.events) >= _MAX_EVENTS:
         return
-    st.events.append({
-        "ts": _iso_now(),
-        "name": str(name),
-        **_safe_kv(kv),
-    })
+    st.events.append(
+        {
+            "ts": _iso_now(),
+            "name": str(name),
+            **_safe_kv(kv),
+        }
+    )
+
 
 def attach_error(ctx: Any, seq: int | None, exc: BaseException) -> None:
     """
@@ -161,6 +177,7 @@ def attach_error(ctx: Any, seq: int | None, exc: BaseException) -> None:
     # Fallback: emit an event
     event(ctx, "error", **info)
 
+
 def snapshot(ctx: Any) -> Dict[str, Any]:
     """
     Return a structured snapshot of the trace suitable for diagnostics endpoints.
@@ -178,14 +195,16 @@ def snapshot(ctx: Any) -> Dict[str, Any]:
             "events": len(st.events),
         },
         "plan": st.plan_labels,
-        "steps": tuple(st.steps),   # immutable copy for consumers
+        "steps": tuple(st.steps),  # immutable copy for consumers
         "events": tuple(st.events),
     }
+
 
 def clear(ctx: Any) -> None:
     """Erase all trace data for this context."""
     tmp = _ensure_temp(ctx)
     tmp.pop("__trace__", None)
+
 
 @contextmanager
 def span(ctx: Any, label: str, **kv: Any):
@@ -207,12 +226,14 @@ def span(ctx: Any, label: str, **kv: Any):
 # Internals
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
     tmp = getattr(ctx, "temp", None)
     if not isinstance(tmp, dict):
         tmp = {}
         setattr(ctx, "temp", tmp)
     return tmp
+
 
 def _get_state(ctx: Any, *, create: bool = False) -> _TraceState:
     tmp = _ensure_temp(ctx)
@@ -228,11 +249,14 @@ def _get_state(ctx: Any, *, create: bool = False) -> _TraceState:
     tmp["__trace__"] = st
     return st
 
+
 def _active(st: _TraceState) -> bool:
     return bool(st.enabled and st.sampled)
 
+
 def _iso_now() -> str:
     return _dt.datetime.now(_dt.timezone.utc).isoformat()
+
 
 def _parse_label(label: str) -> Dict[str, Any]:
     """
@@ -255,10 +279,12 @@ def _parse_label(label: str) -> Dict[str, Any]:
     out["field"] = field or None
     return out
 
+
 def _base_entry(label: str) -> Dict[str, Any]:
     entry = _parse_label(label)
     entry["ts"] = _iso_now()
     return entry
+
 
 def _safe_kv(kv: Mapping[str, Any]) -> Dict[str, Any]:
     """
@@ -274,6 +300,7 @@ def _safe_kv(kv: Mapping[str, Any]) -> Dict[str, Any]:
         out[str(k)] = _safe_scalar(v)
     return out
 
+
 def _safe_scalar(v: Any) -> Any:
     if v is None:
         return None
@@ -288,6 +315,16 @@ def _safe_scalar(v: Any) -> Any:
 
 
 __all__ = [
-    "OK", "ERROR", "SKIPPED",
-    "init", "set_enabled", "start", "end", "event", "attach_error", "snapshot", "clear", "span",
+    "OK",
+    "ERROR",
+    "SKIPPED",
+    "init",
+    "set_enabled",
+    "start",
+    "end",
+    "event",
+    "attach_error",
+    "snapshot",
+    "clear",
+    "span",
 ]

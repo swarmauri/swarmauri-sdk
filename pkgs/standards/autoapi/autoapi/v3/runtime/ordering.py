@@ -1,7 +1,7 @@
 # autoapi/v3/runtime/ordering.py
 from __future__ import annotations
 
-from collections import defaultdict, deque
+from collections import defaultdict
 from dataclasses import dataclass
 from typing import Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
@@ -16,20 +16,23 @@ from .labels import Label
 
 # tokens: "domain:subject"
 _PREF: Dict[str, Tuple[str, ...]] = {
-    _ev.SCHEMA_COLLECT_IN:  ("schema:collect_in",),
-    _ev.IN_VALIDATE:        ("wire:build_in", "wire:validate_in"),
-    _ev.RESOLVE_VALUES:     ("resolve:assemble", "resolve:paired_gen"),
-    _ev.PRE_FLUSH:          ("storage:to_stored",),
-    _ev.EMIT_ALIASES_PRE:   ("emit:paired_pre",),
-    _ev.POST_FLUSH:         ("refresh:demand",),
-    _ev.EMIT_ALIASES_POST:  ("emit:paired_post",),
+    _ev.SCHEMA_COLLECT_IN: ("schema:collect_in",),
+    _ev.IN_VALIDATE: ("wire:build_in", "wire:validate_in"),
+    _ev.RESOLVE_VALUES: ("resolve:assemble", "resolve:paired_gen"),
+    _ev.PRE_FLUSH: ("storage:to_stored",),
+    _ev.EMIT_ALIASES_PRE: ("emit:paired_pre",),
+    _ev.POST_FLUSH: ("refresh:demand",),
+    _ev.EMIT_ALIASES_POST: ("emit:paired_post",),
     _ev.SCHEMA_COLLECT_OUT: ("schema:collect_out",),
-    _ev.OUT_BUILD:          ("wire:build_out",),
-    _ev.EMIT_ALIASES_READ:  ("emit:readtime_alias",),
-    _ev.OUT_DUMP:           ("wire:dump", "out:masking"),
+    _ev.OUT_BUILD: ("wire:build_out",),
+    _ev.EMIT_ALIASES_READ: ("emit:readtime_alias",),
+    _ev.OUT_DUMP: ("wire:dump", "out:masking"),
 }
 
-def _derive_edges(pref: Mapping[str, Sequence[str]]) -> Dict[str, Tuple[Tuple[str, str], ...]]:
+
+def _derive_edges(
+    pref: Mapping[str, Sequence[str]],
+) -> Dict[str, Tuple[Tuple[str, str], ...]]:
     out: Dict[str, Tuple[Tuple[str, str], ...]] = {}
     for anchor, seq in pref.items():
         edges: List[Tuple[str, str]] = []
@@ -38,12 +41,14 @@ def _derive_edges(pref: Mapping[str, Sequence[str]]) -> Dict[str, Tuple[Tuple[st
         out[anchor] = tuple(edges)
     return out
 
+
 _DEFAULT_EDGES: Dict[str, Tuple[Tuple[str, str], ...]] = _derive_edges(_PREF)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Public API
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 @dataclass(frozen=True)
 class AnchorPolicy:
@@ -52,6 +57,7 @@ class AnchorPolicy:
     - edges: (u, v) means "u before v" where u/v are "domain:subject" tokens.
     - prefer: stable tie-break priority list of tokens.
     """
+
     edges: Tuple[Tuple[str, str], ...] = ()
     prefer: Tuple[str, ...] = ()
 
@@ -97,8 +103,8 @@ def flatten(
             by_anchor[lbl.anchor].append(lbl)
 
     # Deterministic order for secdep/dep blocks
-    secdeps.sort(key=lambda l: (l.subject,))
-    deps.sort(key=lambda l: (l.subject,))
+    secdeps.sort(key=lambda label: (label.subject,))
+    deps.sort(key=lambda label: (label.subject,))
 
     # Anchor list honoring persist pruning + canonical order
     anchors_present = tuple(a for a in by_anchor.keys())
@@ -113,34 +119,60 @@ def flatten(
     out.extend(deps)
 
     # PRE_HANDLER anchors
-    _append_anchor_block(out, by_anchor, anchors, target_phase="PRE_HANDLER",
-                         anchor_policies=anchor_policies, persist=persist)
+    _append_anchor_block(
+        out,
+        by_anchor,
+        anchors,
+        target_phase="PRE_HANDLER",
+        anchor_policies=anchor_policies,
+        persist=persist,
+    )
 
     # START_TX sys (prune for non-persist)
     if persist:
         out.extend(_sorted_sys(sys_by_phase.get("START_TX", ())))
     # HANDLER anchors
-    _append_anchor_block(out, by_anchor, anchors, target_phase="HANDLER",
-                         anchor_policies=anchor_policies, persist=persist)
+    _append_anchor_block(
+        out,
+        by_anchor,
+        anchors,
+        target_phase="HANDLER",
+        anchor_policies=anchor_policies,
+        persist=persist,
+    )
 
     # HANDLER sys (prune for non-persist)
     if persist:
         out.extend(_sorted_sys(sys_by_phase.get("HANDLER", ())))
     # POST_HANDLER anchors
-    _append_anchor_block(out, by_anchor, anchors, target_phase="POST_HANDLER",
-                         anchor_policies=anchor_policies, persist=persist)
+    _append_anchor_block(
+        out,
+        by_anchor,
+        anchors,
+        target_phase="POST_HANDLER",
+        anchor_policies=anchor_policies,
+        persist=persist,
+    )
 
     # END_TX sys (prune for non-persist)
     if persist:
         out.extend(_sorted_sys(sys_by_phase.get("END_TX", ())))
     # POST_RESPONSE anchors
-    _append_anchor_block(out, by_anchor, anchors, target_phase="POST_RESPONSE",
-                         anchor_policies=anchor_policies, persist=persist)
+    _append_anchor_block(
+        out,
+        by_anchor,
+        anchors,
+        target_phase="POST_RESPONSE",
+        anchor_policies=anchor_policies,
+        persist=persist,
+    )
 
     # Any remaining sys in atypical phases (rare): append at the end of their phase window
     # PRE_HANDLER / POST_RESPONSE specifically
     if sys_by_phase.get("PRE_HANDLER"):
-        out = _insert_after(out, after_kinds=("dep",), addition=_sorted_sys(sys_by_phase["PRE_HANDLER"]))
+        out = _insert_after(
+            out, after_kinds=("dep",), addition=_sorted_sys(sys_by_phase["PRE_HANDLER"])
+        )
     if sys_by_phase.get("POST_RESPONSE"):
         out.extend(_sorted_sys(sys_by_phase["POST_RESPONSE"]))
 
@@ -150,6 +182,7 @@ def flatten(
 # ──────────────────────────────────────────────────────────────────────────────
 # Anchor block assembly
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def _append_anchor_block(
     out: List[Label],
@@ -178,6 +211,7 @@ def _append_anchor_block(
 # In-anchor ordering (topological, deterministic)
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def order_within_anchor(
     anchor: str,
     labels: Sequence[Label],
@@ -193,13 +227,13 @@ def order_within_anchor(
     # Build token index
     tokens: Dict[Label, str] = {}
     by_token: Dict[str, List[Label]] = defaultdict(list)
-    for l in labels:
-        if not l.domain:
+    for label in labels:
+        if not label.domain:
             # hooks always have domain; atoms must have domain by grammar
-            raise ValueError(f"In-anchor item missing domain: {l}")
-        t = f"{l.domain}:{l.subject}"
-        tokens[l] = t
-        by_token[t].append(l)
+            raise ValueError(f"In-anchor item missing domain: {label}")
+        t = f"{label.domain}:{label.subject}"
+        tokens[label] = t
+        by_token[t].append(label)
 
     # Collect edges: defaults + policy
     edges = list(_DEFAULT_EDGES.get(anchor, ()))
@@ -207,8 +241,8 @@ def order_within_anchor(
         edges.extend(policy.edges)
 
     # Build adjacency on label nodes (fan-out pairwise where tokens exist)
-    adj: Dict[Label, List[Label]] = {l: [] for l in labels}
-    indeg: Dict[Label, int] = {l: 0 for l in labels}
+    adj: Dict[Label, List[Label]] = {label: [] for label in labels}
+    indeg: Dict[Label, int] = {label: 0 for label in labels}
 
     def _present(tok: str) -> bool:
         return tok in by_token
@@ -229,12 +263,12 @@ def order_within_anchor(
     def_pref = _PREF.get(anchor, ())
     def_index: Dict[str, int] = {t: i for i, t in enumerate(def_pref)}
 
-    def _rank(l: Label) -> Tuple[int, int, int, str, str, str]:
-        t = tokens[l]
+    def _rank(label: Label) -> Tuple[int, int, int, str, str, str]:
+        t = tokens[label]
         p1 = pref_index.get(t, 10_000)
         p2 = def_index.get(t, 10_000)
-        k = 0 if l.kind == "atom" else 1  # atoms before hooks by default
-        return (p1, p2, k, l.domain or "", l.subject, l.field or "")
+        k = 0 if label.kind == "atom" else 1  # atoms before hooks by default
+        return (p1, p2, k, label.domain or "", label.subject, label.field or "")
 
     q: List[Label] = [n for n, d in indeg.items() if d == 0]
     q.sort(key=_rank)
@@ -262,9 +296,13 @@ def order_within_anchor(
 # Utilities
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def _sorted_sys(sys_labels: Sequence[Label]) -> List[Label]:
     """Deterministic ordering for system steps within the same phase."""
-    return sorted(sys_labels, key=lambda l: (l.subject or "", l.field or ""))
+    return sorted(
+        sys_labels, key=lambda label: (label.subject or "", label.field or "")
+    )
+
 
 def _insert_after(
     seq: List[Label],
@@ -274,8 +312,8 @@ def _insert_after(
 ) -> List[Label]:
     """Insert `addition` after the last occurrence of any label with kind in after_kinds."""
     idx = -1
-    for i, l in enumerate(seq):
-        if l.kind in after_kinds:
+    for i, label in enumerate(seq):
+        if label.kind in after_kinds:
             idx = i
     if idx == -1:
         return list(addition) + seq

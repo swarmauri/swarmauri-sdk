@@ -21,11 +21,17 @@ SysRunFn = Callable[[Optional[object], Any], None]
 # Pluggable runners (adapters install real implementations at app startup)
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 class _Installed:
-    begin: Optional[Callable[[Any], None]] = None                      # (ctx) -> None
-    handler: Optional[Callable[[Optional[object], Any], None]] = None  # (obj, ctx) -> None
-    commit: Optional[Callable[[Any], None]] = None                     # (ctx) -> None
-    rollback: Optional[Callable[[Any, BaseException | None], None]] = None  # (ctx, err) -> None
+    begin: Optional[Callable[[Any], None]] = None  # (ctx) -> None
+    handler: Optional[Callable[[Optional[object], Any], None]] = (
+        None  # (obj, ctx) -> None
+    )
+    commit: Optional[Callable[[Any], None]] = None  # (ctx) -> None
+    rollback: Optional[Callable[[Any, BaseException | None], None]] = (
+        None  # (ctx, err) -> None
+    )
+
 
 INSTALLED = _Installed()  # singleton container
 
@@ -62,6 +68,7 @@ def install(
 # ──────────────────────────────────────────────────────────────────────────────
 # Default implementations (safe no-ops except handler, which errs if missing)
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def _sys_tx_begin(_obj: Optional[object], ctx: Any) -> None:
     """
@@ -117,7 +124,9 @@ def _sys_handler_crud(obj: Optional[object], ctx: Any) -> None:
                 return r(obj, ctx)
 
         # No handler found
-        raise _err.SystemStepError("No handler is installed or discoverable for this operation.")
+        raise _err.SystemStepError(
+            "No handler is installed or discoverable for this operation."
+        )
 
     except _err.AutoAPIError:
         # Pass through typed errors intact
@@ -138,7 +147,11 @@ def _sys_tx_commit(_obj: Optional[object], ctx: Any) -> None:
             INSTALLED.commit(ctx)
             log.debug("system: commit_tx executed.")
         else:
-            log.debug("system: commit_tx no-op (open=%s, installed=%s).", open_flag, bool(INSTALLED.commit))
+            log.debug(
+                "system: commit_tx no-op (open=%s, installed=%s).",
+                open_flag,
+                bool(INSTALLED.commit),
+            )
     except Exception as e:
         raise _err.SystemStepError("Failed to commit transaction.", cause=e)
     finally:
@@ -170,10 +183,11 @@ def run_rollback(ctx: Any, err: BaseException | None = None) -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 
 REGISTRY: Dict[Tuple[str, str], Tuple[str, SysRunFn]] = {
-    ("txn", "begin"):   (START_TX, _sys_tx_begin),
+    ("txn", "begin"): (START_TX, _sys_tx_begin),
     ("handler", "crud"): (HANDLER, _sys_handler_crud),
-    ("txn", "commit"):  (END_TX, _sys_tx_commit),
+    ("txn", "commit"): (END_TX, _sys_tx_commit),
 }
+
 
 def get(domain: str, subject: str) -> Tuple[str, SysRunFn]:
     """
@@ -184,6 +198,7 @@ def get(domain: str, subject: str) -> Tuple[str, SysRunFn]:
         raise KeyError(f"Unknown system step: {domain}:{subject}")
     return REGISTRY[key]
 
+
 def subjects(domain: str | None = None) -> Tuple[Tuple[str, str], ...]:
     """
     Return the available (domain, subject) tuples, optionally filtered by domain.
@@ -192,6 +207,7 @@ def subjects(domain: str | None = None) -> Tuple[Tuple[str, str], ...]:
     if domain is None:
         return items
     return tuple(k for k in items if k[0] == domain)
+
 
 def all_items() -> Tuple[Tuple[Tuple[str, str], Tuple[str, SysRunFn]], ...]:
     """Return the registry items as a sorted tuple (deterministic iteration)."""
@@ -202,12 +218,14 @@ def all_items() -> Tuple[Tuple[Tuple[str, str], Tuple[str, SysRunFn]], ...]:
 # Internals
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
     tmp = getattr(ctx, "temp", None)
     if not isinstance(tmp, dict):
         tmp = {}
         setattr(ctx, "temp", tmp)
     return tmp
+
 
 def _get_temp(ctx: Any) -> Mapping[str, Any]:
     tmp = getattr(ctx, "temp", None)
@@ -216,11 +234,17 @@ def _get_temp(ctx: Any) -> Mapping[str, Any]:
 
 __all__ = [
     # anchors
-    "START_TX", "HANDLER", "END_TX",
+    "START_TX",
+    "HANDLER",
+    "END_TX",
     # install surface
-    "install", "INSTALLED",
+    "install",
+    "INSTALLED",
     # rollback
     "run_rollback",
     # registry facade
-    "REGISTRY", "get", "subjects", "all_items",
+    "REGISTRY",
+    "get",
+    "subjects",
+    "all_items",
 ]

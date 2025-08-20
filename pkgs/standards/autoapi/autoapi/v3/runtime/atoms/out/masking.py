@@ -62,12 +62,14 @@ def run(obj: Optional[object], ctx: Any) -> None:
 # Internals
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
     temp = getattr(ctx, "temp", None)
     if not isinstance(temp, dict):
         temp = {}
         setattr(ctx, "temp", temp)
     return temp
+
 
 def _ensure_emit_buf(temp: MutableMapping[str, Any]) -> Dict[str, list]:
     buf = temp.get("emit_aliases")
@@ -80,7 +82,10 @@ def _ensure_emit_buf(temp: MutableMapping[str, Any]) -> Dict[str, list]:
         buf.setdefault("read", [])
     return buf  # type: ignore[return-value]
 
-def _collect_emitted_aliases(emit_buf: Mapping[str, Sequence[Mapping[str, Any]]]) -> set[str]:
+
+def _collect_emitted_aliases(
+    emit_buf: Mapping[str, Sequence[Mapping[str, Any]]],
+) -> set[str]:
     aliases: set[str] = set()
     for bucket in ("post", "read"):
         for d in emit_buf.get(bucket, ()) or ():
@@ -89,7 +94,10 @@ def _collect_emitted_aliases(emit_buf: Mapping[str, Sequence[Mapping[str, Any]]]
                 aliases.add(a)
     return aliases
 
-def _mask_one(item: Dict[str, Any], specs: Mapping[str, Any], skip_aliases: set[str]) -> None:
+
+def _mask_one(
+    item: Dict[str, Any], specs: Mapping[str, Any], skip_aliases: set[str]
+) -> None:
     for field, colspec in specs.items():
         # Only touch top-level column keys; never touch known alias keys.
         if field not in item or field in skip_aliases:
@@ -101,6 +109,7 @@ def _mask_one(item: Dict[str, Any], specs: Mapping[str, Any], skip_aliases: set[
         if not sensitive:
             continue
         item[field] = _mask_value(val, keep_last)
+
 
 def _is_sensitive(colspec: Any) -> tuple[bool, Optional[int]]:
     """
@@ -128,6 +137,7 @@ def _is_sensitive(colspec: Any) -> tuple[bool, Optional[int]]:
     _probe(getattr(colspec, "field", None))
 
     return sensitive, keep_last
+
 
 def _mask_value(value: Any, keep_last: Optional[int]) -> str:
     """

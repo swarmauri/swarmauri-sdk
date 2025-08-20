@@ -1,7 +1,7 @@
 # autoapi/v3/runtime/atoms/wire/build_in.py
 from __future__ import annotations
 
-from typing import Any, Dict, Mapping, MutableMapping, Optional, Tuple
+from typing import Any, Dict, Mapping, MutableMapping, Optional
 
 from ... import events as _ev
 
@@ -85,12 +85,15 @@ def run(obj: Optional[object], ctx: Any) -> None:
         temp["in_unknown"] = tuple(sorted(unknown_keys.keys()))
         # optionally stash raw unknowns for tooling (avoid huge payloads)
         if len(unknown_keys) <= 16:  # small guard
-            temp["in_unknown_samples"] = {k: unknown_keys[k] for k in list(unknown_keys)[:16]}
+            temp["in_unknown_samples"] = {
+                k: unknown_keys[k] for k in list(unknown_keys)[:16]
+            }
 
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Internals
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
     tmp = getattr(ctx, "temp", None)
@@ -98,6 +101,7 @@ def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
         tmp = {}
         setattr(ctx, "temp", tmp)
     return tmp
+
 
 def _schema_in(ctx: Any) -> Mapping[str, Any]:
     tmp = getattr(ctx, "temp", {})
@@ -107,6 +111,7 @@ def _schema_in(ctx: Any) -> Mapping[str, Any]:
     # allow adapters to stuff schema_in directly on ctx
     sch2 = getattr(ctx, "schema_in", None)
     return sch2 if isinstance(sch2, Mapping) else {}
+
 
 def _coerce_payload(ctx: Any) -> Mapping[str, Any] | Any:
     """
@@ -136,12 +141,14 @@ def _coerce_payload(ctx: Any) -> Mapping[str, Any] | Any:
         # Dataclass?
         try:
             import dataclasses as _dc  # local import; safe if missing
+
             if _dc.is_dataclass(val):
                 return _dc.asdict(val)
         except Exception:
             pass
         return val  # give back as-is; validator can complain later
     return {}
+
 
 def _safe_str(v: Any) -> Optional[str]:
     return v if isinstance(v, str) and v else None

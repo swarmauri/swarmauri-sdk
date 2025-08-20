@@ -5,7 +5,7 @@ import importlib
 import logging
 import pkgutil
 from types import SimpleNamespace
-from typing import Any, Awaitable, Callable, Dict, Iterable, List, Mapping, Optional, Sequence
+from typing import Any, Callable, Dict, Iterable, List, Mapping, Optional, Sequence
 
 from .executor import _invoke, _Ctx
 from . import events as _ev
@@ -18,7 +18,8 @@ logger = logging.getLogger(__name__)
 # ───────────────────────────────────────────────────────────────────────────────
 
 _AtomRun = Callable[[Optional[object], Any], Any]  # def run(obj, ctx) -> Any
-_DiscoveredAtom = tuple[str, _AtomRun]             # (anchor, run)
+_DiscoveredAtom = tuple[str, _AtomRun]  # (anchor, run)
+
 
 def _discover_atoms() -> list[_DiscoveredAtom]:
     """
@@ -65,6 +66,7 @@ def _wrap_atom(run: _AtomRun) -> StepFn:
 # Phase-chain helpers
 # ───────────────────────────────────────────────────────────────────────────────
 
+
 def _hook_phase_chains(model: type, alias: str) -> Dict[str, List[StepFn]]:
     """
     Return a copy of {phase: [step, ...]} from model.hooks.<alias>,
@@ -96,7 +98,12 @@ def _is_persistent(chains: Mapping[str, Sequence[StepFn]]) -> bool:
     return False
 
 
-def _inject_atoms(chains: Dict[str, List[StepFn]], atoms: Iterable[_DiscoveredAtom], *, persistent: bool) -> None:
+def _inject_atoms(
+    chains: Dict[str, List[StepFn]],
+    atoms: Iterable[_DiscoveredAtom],
+    *,
+    persistent: bool,
+) -> None:
     """
     Append atom steps into the appropriate phase chains, preserving the global
     anchor order defined by runtime.events. START_TX/END_TX never get atoms.
@@ -124,6 +131,7 @@ def _inject_atoms(chains: Dict[str, List[StepFn]], atoms: Iterable[_DiscoveredAt
 # Kernel
 # ───────────────────────────────────────────────────────────────────────────────
 
+
 class Kernel:
     """
     Phase-chain builder and executor façade.
@@ -134,7 +142,9 @@ class Kernel:
 
     def __init__(self, atoms: Optional[Sequence[_DiscoveredAtom]] = None):
         # Use a distinct instance attribute name so it doesn't shadow the _atoms method.
-        self._atoms_cache: Optional[list[_DiscoveredAtom]] = list(atoms) if atoms is not None else None
+        self._atoms_cache: Optional[list[_DiscoveredAtom]] = (
+            list(atoms) if atoms is not None else None
+        )
 
     def _atoms(self) -> list[_DiscoveredAtom]:
         if self._atoms_cache is None:
@@ -149,7 +159,11 @@ class Kernel:
             _inject_atoms(chains, self._atoms() or (), persistent=persistent)
         except Exception:
             # Never let atom injection break the core pipeline
-            logger.exception("kernel: atom injection failed for %s.%s", getattr(model, "__name__", model), alias)
+            logger.exception(
+                "kernel: atom injection failed for %s.%s",
+                getattr(model, "__name__", model),
+                alias,
+            )
         # Ensure all phases exist
         for ph in PHASES:
             chains.setdefault(ph, [])
@@ -180,8 +194,10 @@ class Kernel:
 # module-level convenience
 _default_kernel = Kernel()
 
+
 def build_phase_chains(model: type, alias: str) -> Dict[str, List[StepFn]]:
     return _default_kernel.build(model, alias)
+
 
 async def run(
     model: type,
@@ -191,7 +207,9 @@ async def run(
     request: Any | None = None,
     ctx: Optional[Mapping[str, Any]] = None,
 ) -> Any:
-    return await _default_kernel.invoke(model=model, alias=alias, db=db, request=request, ctx=ctx)
+    return await _default_kernel.invoke(
+        model=model, alias=alias, db=db, request=request, ctx=ctx
+    )
 
 
 __all__ = ["Kernel", "build_phase_chains", "run"]

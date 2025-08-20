@@ -1,7 +1,7 @@
 # autoapi/v3/runtime/atoms/refresh/demand.py
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, Mapping, MutableMapping, Optional, Tuple
+from typing import Any, Iterable, Mapping, MutableMapping, Optional, Tuple
 
 from ... import events as _ev
 
@@ -42,7 +42,9 @@ def run(obj: Optional[object], ctx: Any) -> None:
     specs: Mapping[str, Any] = getattr(ctx, "specs", {}) or {}
 
     # If RETURNING already produced hydrated values, skip unless policy forces refresh.
-    returning_satisfied = bool(temp.get("used_returning")) or bool(temp.get("hydrated_values"))
+    returning_satisfied = bool(temp.get("used_returning")) or bool(
+        temp.get("hydrated_values")
+    )
 
     # Policy: cfg.refresh_after_write wins if explicitly set; otherwise "auto".
     policy = _get_refresh_policy(ctx)
@@ -54,7 +56,9 @@ def run(obj: Optional[object], ctx: Any) -> None:
     temp["refresh_fields"] = tuple(fields)
 
     if need_refresh:
-        temp["refresh_reason"] = _reason(policy, returning_satisfied, needs_by_specs, fields)
+        temp["refresh_reason"] = _reason(
+            policy, returning_satisfied, needs_by_specs, fields
+        )
     else:
         temp["refresh_reason"] = "skipped: returning_satisfied or policy=false"
 
@@ -65,12 +69,14 @@ def run(obj: Optional[object], ctx: Any) -> None:
 # Internals
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
     tmp = getattr(ctx, "temp", None)
     if not isinstance(tmp, dict):
         tmp = {}
         setattr(ctx, "temp", tmp)
     return tmp
+
 
 def _get_refresh_policy(ctx: Any) -> str:
     """
@@ -85,10 +91,13 @@ def _get_refresh_policy(ctx: Any) -> str:
         val = getattr(cfg, "refresh_after_write", None)
         if isinstance(val, bool):
             return "always" if val else "never"
-        pol = getattr(getattr(cfg, "refresh_policy", None), "value", None) or getattr(cfg, "refresh_policy", None)
+        pol = getattr(getattr(cfg, "refresh_policy", None), "value", None) or getattr(
+            cfg, "refresh_policy", None
+        )
         if isinstance(pol, str) and pol in {"always", "never", "auto"}:
             return pol
     return "auto"
+
 
 def _scan_specs_for_refresh(specs: Mapping[str, Any]) -> Tuple[bool, Tuple[str, ...]]:
     """
@@ -117,11 +126,14 @@ def _scan_specs_for_refresh(specs: Mapping[str, Any]) -> Tuple[bool, Tuple[str, 
         )
         pk = bool(getattr(s, "primary_key", False))
         # Consider PKs with autoincrement/identity as refresh candidates
-        if any(bool(f) for f in flags) or (pk and bool(getattr(s, "autoincrement", False))):
+        if any(bool(f) for f in flags) or (
+            pk and bool(getattr(s, "autoincrement", False))
+        ):
             need = True
             fields.append(fname)
 
     return need, tuple(sorted(set(fields)))
+
 
 def _decide(policy: str, returning_satisfied: bool, needs_by_specs: bool) -> bool:
     if policy == "always":
@@ -135,7 +147,10 @@ def _decide(policy: str, returning_satisfied: bool, needs_by_specs: bool) -> boo
     # No returning: default to refresh to honor "hydrate after flush" decision.
     return True
 
-def _reason(policy: str, returning_satisfied: bool, needs_by_specs: bool, fields: Iterable[str]) -> str:
+
+def _reason(
+    policy: str, returning_satisfied: bool, needs_by_specs: bool, fields: Iterable[str]
+) -> str:
     parts = [f"policy={policy}"]
     parts.append(f"returning_satisfied={bool(returning_satisfied)}")
     parts.append(f"specs_need={bool(needs_by_specs)}")

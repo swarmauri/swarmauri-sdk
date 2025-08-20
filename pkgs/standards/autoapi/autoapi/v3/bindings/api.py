@@ -33,6 +33,7 @@ ApiLike = Any
 # Helpers: resource/prefix, namespaces, router mounting
 # ───────────────────────────────────────────────────────────────────────────────
 
+
 def _resource_name(model: type) -> str:
     """
     Compute the API resource segment.
@@ -44,12 +45,15 @@ def _resource_name(model: type) -> str:
     """
     return getattr(model, "__resource__", model.__name__)
 
+
 def _default_prefix(model: type) -> str:
     # Router prefix will be '/<ModelClassName>' unless __resource__ overrides it.
     return f"/{_resource_name(model)}"
 
+
 def _has_include_router(obj: Any) -> bool:
     return hasattr(obj, "include_router") and callable(getattr(obj, "include_router"))
+
 
 def _mount_router(app_or_router: Any, router: Any, *, prefix: str) -> None:
     """
@@ -63,6 +67,7 @@ def _mount_router(app_or_router: Any, router: Any, *, prefix: str) -> None:
             app_or_router.include_router(router, prefix=prefix)  # FastAPI / APIRouter
     except Exception:
         logger.exception("Failed to mount router at %s", prefix)
+
 
 def _ensure_api_ns(api: ApiLike) -> None:
     """
@@ -83,9 +88,11 @@ def _ensure_api_ns(api: ApiLike) -> None:
         if not hasattr(api, attr):
             setattr(api, attr, default)
 
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Resource proxy: api.core.<ModelName>.<alias>(payload, *, db, request=None, ctx=None)
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 class _ResourceProxy:
     """
@@ -120,6 +127,7 @@ class _ResourceProxy:
         _call.__qualname__ = _call.__name__
         _call.__doc__ = f"Helper for RPC call {self._model.__name__}.{alias}"
         return _call
+
 
 # --- keep as helper, no behavior change to transports/kernel ---
 def _seed_security_and_deps(api: Any, model: type) -> None:
@@ -159,9 +167,11 @@ def _seed_security_and_deps(api: Any, model: type) -> None:
     if getattr(api, "rpc_dependencies", None):
         setattr(model, AUTOAPI_RPC_DEPENDENCIES_ATTR, list(api.rpc_dependencies))
 
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Inclusion logic
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 def _attach_to_api(api: ApiLike, model: type) -> None:
     """
@@ -199,6 +209,7 @@ def _attach_to_api(api: ApiLike, model: type) -> None:
 
     # Core helper proxy
     setattr(api.core, mname, _ResourceProxy(model))
+
 
 def include_model(
     api: ApiLike,
@@ -245,6 +256,7 @@ def include_model(
     logger.debug("bindings.api: included %s at prefix %s", model.__name__, prefix)
     return model, router
 
+
 def include_models(
     api: ApiLike,
     models: Sequence[type],
@@ -268,9 +280,11 @@ def include_models(
         results[mdl.__name__] = router
     return results
 
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Optional: generic RPC dispatcher on the api facade
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 async def rpc_call(
     api: ApiLike,
@@ -302,5 +316,6 @@ async def rpc_call(
         )
 
     return await fn(payload, db=db, request=request, ctx=ctx)
+
 
 __all__ = ["include_model", "include_models", "rpc_call"]

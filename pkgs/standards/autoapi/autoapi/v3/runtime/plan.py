@@ -10,7 +10,6 @@ from typing import (
     Iterable,
     List,
     Mapping,
-    MutableMapping,
     Optional,
     Sequence,
     Tuple,
@@ -25,13 +24,15 @@ from . import ordering as _ord
 # Public datatypes
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 @dataclass(frozen=True)
 class AtomNode:
     """
     A single executable atom instance bound to a (model, anchor[, field]).
     """
-    label: _lbl.Label            # atom:domain:subject@anchor[#field]
-    run: Callable[..., Any]      # (obj|None, ctx) -> None/Mutation
+
+    label: _lbl.Label  # atom:domain:subject@anchor[#field]
+    run: Callable[..., Any]  # (obj|None, ctx) -> None/Mutation
     domain: str
     subject: str
     anchor: str
@@ -45,6 +46,7 @@ class Plan:
     System steps (txn begin/commit/handler) are executor-owned; we only inject
     their labels at render/flatten time for diagnostics.
     """
+
     model_name: str
     atoms_by_anchor: Dict[str, Tuple[AtomNode, ...]]
     # Optional pre-phase deps/secdeps (router-level). Only labels are kept here.
@@ -62,6 +64,7 @@ class Plan:
 # ──────────────────────────────────────────────────────────────────────────────
 # Entry points
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def attach_atoms_for_model(
     model: Any,
@@ -118,8 +121,8 @@ def build_plan(
     per_field_subjects = {
         # wire (contract → wire)
         ("wire", "build_in"),
-        ("wire", "validate"),       # canonical subject (alias of validate_in)
-        ("wire", "validate_in"),    # accept old name if registrar exports it
+        ("wire", "validate"),  # canonical subject (alias of validate_in)
+        ("wire", "validate_in"),  # accept old name if registrar exports it
         ("wire", "build_out"),
         ("wire", "dump"),
         # storage / out
@@ -128,7 +131,9 @@ def build_plan(
     }
     # The rest of the registered atoms are treated as per-model.
 
-    atoms_by_anchor: Dict[str, List[AtomNode]] = {a: [] for a in _ev.all_events_ordered()}
+    atoms_by_anchor: Dict[str, List[AtomNode]] = {
+        a: [] for a in _ev.all_events_ordered()
+    }
 
     # 1) Per-model atoms (single instance)
     for (domain, subject), (anchor, runner) in _ATOM_REGISTRY.items():
@@ -196,16 +201,18 @@ def flattened_order(
 
     # 2) Optional deps/secdeps
     secdep_labels = [_ensure_label(x, kind="secdep") for x in secdeps]
-    dep_labels    = [_ensure_label(x, kind="dep") for x in deps]
+    dep_labels = [_ensure_label(x, kind="dep") for x in deps]
 
     # 3) Optional system steps (labels only; executor owns behavior)
     sys_labels: List[_lbl.Label] = []
     if include_system_steps and persist:
-        sys_labels.extend([
-            _lbl.make_sys("txn:begin", "START_TX"),
-            _lbl.make_sys("handler:crud", "HANDLER"),
-            _lbl.make_sys("txn:commit", "END_TX"),
-        ])
+        sys_labels.extend(
+            [
+                _lbl.make_sys("txn:begin", "START_TX"),
+                _lbl.make_sys("handler:crud", "HANDLER"),
+                _lbl.make_sys("txn:commit", "END_TX"),
+            ]
+        )
 
     # 4) Flatten using canonical ordering
     return _ord.flatten(
@@ -219,9 +226,25 @@ def flattened_order(
 # Internals
 # ──────────────────────────────────────────────────────────────────────────────
 
+
+def _should_instantiate(
+    domain: str, subject: str, anchor: str, field: str, col: Any
+) -> bool:
+    """Return True if a per-field atom should be instantiated.
+
+    This conservative placeholder always returns ``True`` and can be expanded
+    with domain-specific logic in the future.
+    """
+
+    return True
+
+
 def _ensure_known_anchor(anchor: str, domain: str, subject: str) -> None:
     if not _ev.is_valid_event(anchor):
-        raise ValueError(f"Atom ({domain}:{subject}) declares unknown anchor {anchor!r}")
+        raise ValueError(
+            f"Atom ({domain}:{subject}) declares unknown anchor {anchor!r}"
+        )
+
 
 def _ensure_label(x: str | _lbl.Label, *, kind: str) -> _lbl.Label:
     if isinstance(x, _lbl.Label):
@@ -230,4 +253,4 @@ def _ensure_label(x: str | _lbl.Label, *, kind: str) -> _lbl.Label:
         return _lbl.make_secdep(x)
     if kind == "dep":
         return _lbl.make_dep(x)
-    raise ValueError(f"Unsupporte
+    raise ValueError(f"Unsupported label kind: {kind}")

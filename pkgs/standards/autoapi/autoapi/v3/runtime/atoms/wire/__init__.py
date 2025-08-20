@@ -16,15 +16,17 @@ RunFn = Callable[[Optional[object], Any], None]
 #: Keys are (domain, subject); values are (anchor, runner).
 #: Canonical subjects mirror filenames; we keep "validate_in" (not "validate") to avoid duplicates.
 REGISTRY: Dict[Tuple[str, str], Tuple[str, RunFn]] = {
-    ("wire", "build_in"):    (_build_in.ANCHOR, _build_in.run),
+    ("wire", "build_in"): (_build_in.ANCHOR, _build_in.run),
     ("wire", "validate_in"): (_validate_in.ANCHOR, _validate_in.run),
-    ("wire", "build_out"):   (_build_out.ANCHOR, _build_out.run),
-    ("wire", "dump"):        (_dump.ANCHOR, _dump.run),
+    ("wire", "build_out"): (_build_out.ANCHOR, _build_out.run),
+    ("wire", "dump"): (_dump.ANCHOR, _dump.run),
 }
+
 
 def subjects() -> Tuple[str, ...]:
     """Return the subject names exported by this domain."""
     return tuple(s for (_, s) in REGISTRY.keys())
+
 
 def get(subject: str) -> Tuple[str, RunFn]:
     """Return (anchor, runner) for a subject in the 'wire' domain."""
@@ -32,5 +34,6 @@ def get(subject: str) -> Tuple[str, RunFn]:
     if key not in REGISTRY:
         raise KeyError(f"Unknown wire atom subject: {subject!r}")
     return REGISTRY[key]
+
 
 __all__ = ["REGISTRY", "RunFn", "subjects", "get"]

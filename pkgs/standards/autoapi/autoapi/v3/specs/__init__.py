@@ -1,7 +1,5 @@
 # autoapi/v3/specs/__init__.py
-from __future__ import annotations
-"""
-AutoAPI v3 – specs public API.
+"""AutoAPI v3 – specs public API.
 
 Unifies StorageSpec (DB-facing), FieldSpec (python/wire semantics), and IOSpec (in/out exposure)
 into a single ColumnSpec. Provides ergonomic constructors `acol` and `vcol`, and re-exports the
@@ -15,6 +13,8 @@ Public surface:
     exceptions: InferenceError, UnsupportedType
     helper: is_virtual(ColumnSpec) -> bool
 """
+
+from __future__ import annotations
 
 # Core spec types
 from .column_spec import ColumnSpec
