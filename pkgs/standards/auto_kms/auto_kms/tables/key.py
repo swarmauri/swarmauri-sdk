@@ -98,16 +98,6 @@ class Key(Base):
         read_producer=lambda obj, ctx: str(getattr(obj, "id", "")),
     )
 
-    # IMPORTANT: expose a spec map so the binder always finds your specs
-    __autoapi_cols__ = {
-        "id": id,
-        "name": name,
-        "algorithm": algorithm,
-        "status": status,
-        "primary_version": primary_version,
-        "kid": kid,  # storage=None → virtual
-    }
-
     # ---- Schemas (for ops) ----
     @schema_ctx(alias="Encrypt", kind="in")
     class EncryptIn(BaseModel):
