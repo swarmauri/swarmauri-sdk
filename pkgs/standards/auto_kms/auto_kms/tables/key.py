@@ -200,12 +200,21 @@ class Key(Base):
         obj = ctx.get("result")
         if obj is None:
             return
-        if isinstance(obj, dict):
-            obj.pop("versions", None)
+
+        def scrub(o):
+            if isinstance(o, dict):
+                o.pop("versions", None)
+                return o
+            if hasattr(o, "__dict__") and not isinstance(o, type):
+                data = {k: v for k, v in o.__dict__.items() if not k.startswith("_")}
+                data.pop("versions", None)
+                return data
+            return o
+
+        if isinstance(obj, list):
+            ctx["result"] = [scrub(i) for i in obj]
         else:
-            data = {k: v for k, v in vars(obj).items() if not k.startswith("_")}
-            data.pop("versions", None)
-            ctx["result"] = data
+            ctx["result"] = scrub(obj)
 
     # ---- Hook: ensure key exists & enabled ----
     @hook_ctx(ops=("encrypt", "decrypt", "rotate"), phase="PRE_HANDLER")
