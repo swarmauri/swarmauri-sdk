@@ -18,8 +18,9 @@ from autoapi.v3.decorators import hook_ctx
 
 # --- models --------------------------------------------------------------------
 
-
-Base.metadata.clear()
+# Previously this module cleared ``Base.metadata`` at import time. That wiped out
+# tables defined by other tests, causing downstream failures. The gadget/hooked
+# table names here are unique, so we avoid clearing global metadata.
 
 
 class Gadget(Base, GUIDPk):
@@ -53,7 +54,10 @@ class Hooked(Base, GUIDPk):
 
 def _fresh_session():
     engine = create_engine("sqlite:///:memory:")
-    Base.metadata.create_all(engine)
+    # ``Base.metadata`` may have been cleared by other tests; create tables
+    # explicitly from model definitions to ensure they exist.
+    Gadget.__table__.create(bind=engine)
+    Hooked.__table__.create(bind=engine)
     return sessionmaker(bind=engine)()
 
 

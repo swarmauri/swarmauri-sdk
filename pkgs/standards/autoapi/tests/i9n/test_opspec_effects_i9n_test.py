@@ -19,7 +19,15 @@ from autoapi.v3.mixins import GUIDPk
 # --- models --------------------------------------------------------------------
 
 
-Base.metadata.clear()
+# NOTE:
+# Historically this test called ``Base.metadata.clear()`` at import time to
+# ensure a pristine declarative registry.  When the test module is imported as
+# part of the full suite, clearing the global metadata wipes out tables defined
+# by earlier tests which still rely on the shared ``Base``.  Subsequent tests
+# would then fail with missing table/column errors (manifesting as HTTP 503
+# responses) because their models lost their metadata.  The table names used in
+# this module are unique, so we can simply avoid clearing the global metadata to
+# preserve isolation without impacting other tests.
 
 
 class Gadget(Base, GUIDPk):
@@ -53,7 +61,10 @@ class Hooked(Base, GUIDPk):
 
 def _fresh_session():
     engine = create_engine("sqlite:///:memory:")
-    Base.metadata.create_all(engine)
+    # ``Base.metadata`` may have been cleared by other tests; create tables
+    # explicitly from the model definitions to avoid missing table errors.
+    Gadget.__table__.create(bind=engine)
+    Hooked.__table__.create(bind=engine)
     return sessionmaker(bind=engine)()
 
 

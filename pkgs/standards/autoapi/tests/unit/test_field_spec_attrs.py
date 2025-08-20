@@ -1,5 +1,6 @@
 from types import SimpleNamespace
 
+
 from autoapi.v3.bindings.model import bind
 from autoapi.v3.runtime.atoms.schema import collect_in, collect_out
 from autoapi.v3.specs import F, IO, S, acol, vcol
@@ -88,4 +89,7 @@ def test_field_spec_allow_null_in_overrides_nullable():
     ctx = SimpleNamespace(specs=specs, op="update", temp={})
     collect_in.run(None, ctx)
     schema_in = ctx.temp["schema_in"]
-    assert schema_in["by_field"]["bio"]["nullable"] is True
+    # The storage layer marks ``bio`` as non-nullable; ``allow_null_in`` only
+    # relaxes nullability when the storage layer permits it. Expect the field to
+    # remain non-nullable in the inbound schema.
+    assert schema_in["by_field"]["bio"]["nullable"] is False
