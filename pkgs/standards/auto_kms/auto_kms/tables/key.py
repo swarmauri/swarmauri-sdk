@@ -224,7 +224,6 @@ class Key(Base):
         import base64
         from ..utils import b64d, b64d_optional
 
-
         p = ctx.get("payload") or {}
         crypto = getattr(
             getattr(ctx.get("request"), "state", object()), "crypto", None
