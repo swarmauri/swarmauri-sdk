@@ -15,7 +15,7 @@ from typing import (
 )
 
 from . import model as _binder  # bind(model) → builds/attaches namespaces
-from .rpc import _coerce_payload, _get_phase_chains, _validate_input
+from .rpc import _coerce_payload, _get_phase_chains, _validate_input, _serialize_output
 from ..config.constants import (
     AUTOAPI_AUTH_DEP_ATTR,
     AUTOAPI_AUTHORIZE_ATTR,
@@ -139,6 +139,10 @@ class _ResourceProxy:
                 SimpleNamespace(
                     method=alias, params=norm_payload, target=alias, model=self._model
                 ),
+            )
+            base_ctx.setdefault(
+                "response_serializer",
+                lambda r: _serialize_output(self._model, alias, alias, r),
             )
             phases = _get_phase_chains(self._model, alias)
             return await _executor._invoke(
