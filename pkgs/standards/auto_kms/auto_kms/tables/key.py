@@ -143,6 +143,8 @@ class Key(Base):
     @hook_ctx(ops="create", phase="POST_HANDLER")
     async def _seed_primary_version(cls, ctx):
         import secrets
+        import base64
+
         from swarmauri_core.crypto.types import (
             ExportPolicy,
             KeyType,
@@ -181,6 +183,7 @@ class Key(Base):
                 material=material,
                 export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
             )
+            material_b64 = base64.b64encode(material).decode("utf-8")
             await KeyVersion.handlers.create.core(
                 {
                     "db": db,
@@ -188,7 +191,7 @@ class Key(Base):
                         "key_id": key_obj.id,
                         "version": key_obj.primary_version,
                         "status": "active",
-                        "public_material": material,
+                        "public_material": material_b64.encode("utf-8"),
                     },
                 }
             )
