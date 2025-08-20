@@ -80,14 +80,20 @@ def _label_callable(fn: Any) -> str:
 
 
 async def _maybe_execute(db: Any, stmt: Any):
+    def _exec(sql: str):
+        runner = getattr(db, "exec_driver_sql", getattr(db, "execute", None))
+        if runner is None:  # pragma: no cover - defensive
+            raise AttributeError("db has neither 'execute' nor 'exec_driver_sql'")
+        return runner(sql)  # type: ignore[call-arg]
+
     try:
-        rv = db.execute(stmt)  # type: ignore[attr-defined]
+        rv = _exec(stmt)
         if inspect.isawaitable(rv):
             return await rv
         return rv
-    except TypeError:
+    except Exception:
         # Some drivers prefer lowercase 'select 1'
-        rv = db.execute("select 1")  # type: ignore[attr-defined]
+        rv = _exec("select 1")
         if inspect.isawaitable(rv):
             return await rv
         return rv
