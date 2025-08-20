@@ -82,7 +82,7 @@ _SchemaVerb = Union[
     Literal["list"],  # type: ignore[name-defined]
 ]
 
-_SchemaCache: Dict[Tuple[type, str, frozenset, frozenset], Type[BaseModel]] = {}
+_SchemaCache: Dict[Tuple[type, str, str, frozenset, frozenset], Type[BaseModel]] = {}
 
 
 # ───────────────────────────────────────────────────────────────────────────────
@@ -237,16 +237,34 @@ def _build_schema(
       • Hybrid opt-in via meta["hybrid"] on the hybrid itself (.info["autoapi"])
       • __autoapi_request_extras__ / __autoapi_response_extras__ on the ORM class
     """
-    cache_key = (orm_cls, verb, frozenset(include or ()), frozenset(exclude or ()))
+    direction = "out" if verb in {"read", "list"} else "in"
+    if verb.startswith("in:"):
+        direction, verb = "in", verb.split(":", 1)[1]
+    elif verb.startswith("out:"):
+        direction, verb = "out", verb.split(":", 1)[1]
+
+    cache_key = (
+        orm_cls,
+        direction,
+        verb,
+        frozenset(include or ()),
+        frozenset(exclude or ()),
+    )
     cached = _SchemaCache.get(cache_key)
     if cached is not None:
-        logger.debug("schema: cache hit %s verb=%s", orm_cls.__name__, verb)
+        logger.debug(
+            "schema: cache hit %s verb=%s dir=%s",
+            orm_cls.__name__,
+            verb,
+            direction,
+        )
         return cached
 
     logger.debug(
-        "schema: building %s verb=%s include=%s exclude=%s",
+        "schema: building %s verb=%s dir=%s include=%s exclude=%s",
         orm_cls.__name__,
         verb,
+        direction,
         include,
         exclude,
     )
@@ -267,21 +285,12 @@ def _build_schema(
 
         spec = specs.get(attr_name)
         io = getattr(spec, "io", None) if spec is not None else None
-        if verb in {"create", "update", "replace"}:
-            """Determine if the column participates in inbound verbs.
-
-            When a ColumnSpec is present it may explicitly restrict the verbs a
-            field accepts via ``io.in_verbs``.  Previous behaviour treated the
-            absence of this specification as "deny all", which caused models
-            without explicit ColumnSpec declarations to generate empty request
-            schemas.  Here we interpret a missing ``io`` or ``in_verbs`` as
-            allowing all verbs, only filtering when the spec explicitly lists
-            them.
-            """
-
+        if direction == "in":
             allowed_verbs = getattr(io, "in_verbs", None) if io is not None else None
-            if allowed_verbs is not None and verb not in set(allowed_verbs):
-                continue
+        else:
+            allowed_verbs = getattr(io, "out_verbs", None) if io is not None else None
+        if allowed_verbs is not None and verb not in set(allowed_verbs):
+            continue
 
         # Column.info["autoapi"]
         meta_src = getattr(col, "info", {}) or {}
@@ -301,8 +310,8 @@ def _build_schema(
         if verb in set(meta.get("disable_on", ()) or ()):
             continue
 
-        # write_only → hide from read schemas
-        if meta.get("write_only") and verb == "read":
+        # write_only → hide from response schemas
+        if meta.get("write_only") and direction == "out":
             continue
 
         # read_only policies
@@ -313,7 +322,7 @@ def _build_schema(
         elif isinstance(ro, (set, list, tuple)):
             if verb in ro:
                 continue
-        elif ro and verb != "read":
+        elif ro and direction != "out":
             continue
 
         # Determine type and requiredness
@@ -352,10 +361,7 @@ def _build_schema(
         # ``alias_out`` while still normalizing to the canonical attribute name
         # internally.
         if io is not None:
-            if verb in {"read", "list"}:
-                alias = getattr(io, "alias_out", None)
-            else:
-                alias = getattr(io, "alias_in", None)
+            alias = getattr(io, "alias_out" if direction == "out" else "alias_in", None)
             if alias:
                 fld.alias = alias
                 fld.serialization_alias = alias
@@ -366,7 +372,58 @@ def _build_schema(
             "schema: added field %s required=%s type=%r", attr_name, required, py_t
         )
 
-    # ── PASS 2: @hybrid_property (opt-in via meta["hybrid"])
+    # ── PASS 2: virtual columns (storage=None) ──
+    for attr_name, spec in specs.items():
+        if getattr(spec, "storage", None) is not None:
+            continue
+        if attr_name in fields:
+            continue
+        if include and attr_name not in include:
+            continue
+        if exclude and attr_name in exclude:
+            continue
+
+        io = getattr(spec, "io", None)
+        if direction == "in":
+            allowed_verbs = getattr(io, "in_verbs", None) if io is not None else None
+        else:
+            allowed_verbs = getattr(io, "out_verbs", None) if io is not None else None
+        if allowed_verbs is not None and verb not in set(allowed_verbs):
+            continue
+
+        field_kwargs: Dict[str, Any] = dict(
+            getattr(spec.field, "constraints", {}) or {}
+        )
+        alias_in = getattr(io, "alias_in", None) if io is not None else None
+        alias_out = getattr(io, "alias_out", None) if io is not None else None
+        if alias_in:
+            field_kwargs["validation_alias"] = AliasChoices(alias_in, attr_name)
+        if alias_out:
+            field_kwargs["serialization_alias"] = alias_out
+
+        required = direction == "in" and verb in set(
+            getattr(spec.field, "required_in", ())
+        )
+        field_kwargs["default"] = None if not required else ...
+
+        fld = Field(**field_kwargs)
+        alias = alias_out if direction == "out" else alias_in
+        if alias:
+            fld.alias = alias
+            fld.serialization_alias = alias
+            fld.validation_alias = AliasChoices(attr_name, alias)
+
+        py_t = getattr(spec.field, "py_type", Any)
+        if direction == "in" and verb in set(getattr(spec.field, "allow_null_in", ())):
+            if py_t is not Any:
+                py_t = Union[py_t, None]
+
+        _add_field(fields, name=attr_name, py_t=py_t, field=fld)
+        logger.debug(
+            "schema: added vcol %s required=%s type=%r", attr_name, required, py_t
+        )
+
+    # ── PASS 3: @hybrid_property (opt-in via meta["hybrid"])
     for attr_name, attr in list(getattr(orm_cls, "__dict__", {}).items()):
         if not isinstance(attr, hybrid_property):
             continue

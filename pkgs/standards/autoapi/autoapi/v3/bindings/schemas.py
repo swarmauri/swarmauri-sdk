@@ -264,9 +264,8 @@ def _default_schemas_for_spec(
         result["out"] = read_schema
 
     elif target == "custom":
-        # No defaults for custom: leave raw unless explicitly overridden
-        result["in_"] = None
-        result["out"] = None
+        result["in_"] = _build_schema(model, verb=f"in:{sp.alias}")
+        result["out"] = _build_schema(model, verb=f"out:{sp.alias}")
 
     else:
         # Defensive default: treat unknown like custom (raw)
