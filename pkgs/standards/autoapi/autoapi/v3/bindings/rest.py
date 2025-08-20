@@ -665,15 +665,17 @@ def _make_member_endpoint(
     real_pk = _pk_name(model)
     pk_names = _pk_names(model)
 
-    # --- No body on GET read / DELETE delete ---
-    if target in {"read", "delete"}:
+    body_model = _request_model_for(sp, model)
+
+    # --- No body on GET read / DELETE delete or when no request model ---
+    if target in {"read", "delete"} or body_model is None:
 
         async def _endpoint(
             item_id: Any,
             request: Request,
             db: Any = Depends(db_dep),
         ):
-            payload: Mapping[str, Any] = {}  # no body
+            payload: Mapping[str, Any] = {}
             ctx: Dict[str, Any] = {
                 "request": request,
                 "db": db,
@@ -706,7 +708,6 @@ def _make_member_endpoint(
 
     # --- Body-based member endpoints: PATCH update / PUT replace (and custom member) ---
 
-    body_model = _request_model_for(sp, model)
     body_annotation = body_model if body_model is not None else Mapping[str, Any]
 
     async def _endpoint(
