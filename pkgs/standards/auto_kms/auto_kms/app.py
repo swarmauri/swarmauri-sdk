@@ -8,6 +8,7 @@ from .tables.key_version import KeyVersion
 
 from swarmauri_secret_autogpg import AutoGpgSecretDrive
 from swarmauri_crypto_paramiko import ParamikoCrypto
+from .crypto import ParamikoCryptoAdapter
 
 import os
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
@@ -41,7 +42,7 @@ async def _stash_ctx(ctx):
         CRYPTO
     except NameError:
         SECRETS = AutoGpgSecretDrive()
-        CRYPTO = ParamikoCrypto()
+        CRYPTO = ParamikoCryptoAdapter(secrets=SECRETS, crypto=ParamikoCrypto())
     # expose shared services to downstream ops under generic names
     ctx["secrets"] = SECRETS
     ctx["crypto"] = CRYPTO
