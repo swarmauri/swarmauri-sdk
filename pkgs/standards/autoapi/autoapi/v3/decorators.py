@@ -401,6 +401,8 @@ def _wrap_ctx_hook(
             return None
         return ctx.get(io_key, value)
 
+    hook.__name__ = getattr(func, "__name__", "hook")
+    hook.__qualname__ = getattr(func, "__qualname__", hook.__name__)
     return hook
 
 
