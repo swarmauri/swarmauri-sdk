@@ -21,7 +21,7 @@ def test_member_arity_rest_path_includes_pk():
     spec = collect_decorated_ops(MemberModel)[0]
     router = _build_router(MemberModel, [spec])
     paths = {route.path for route in router.routes}
-    assert f"/{MemberModel.__name__}/{{item_id}}/do" in paths
+    assert f"/{MemberModel.__name__.lower()}/{{item_id}}/do" in paths
 
 
 def test_collection_arity_rest_path_excludes_pk():
@@ -38,7 +38,7 @@ def test_collection_arity_rest_path_excludes_pk():
     spec = collect_decorated_ops(CollectionModel)[0]
     router = _build_router(CollectionModel, [spec])
     paths = {route.path for route in router.routes}
-    assert f"/{CollectionModel.__name__}/do" in paths
+    assert f"/{CollectionModel.__name__.lower()}/do" in paths
 
 
 def test_member_arity_openapi_has_path_param():
@@ -56,9 +56,9 @@ def test_member_arity_openapi_has_path_param():
     router = _build_router(MemberModel, [spec])
     app = FastAPI()
     app.include_router(router)
-    params = app.openapi()["paths"][f"/{MemberModel.__name__}/{{item_id}}/do"]["post"][
-        "parameters"
-    ]
+    params = app.openapi()["paths"][f"/{MemberModel.__name__.lower()}/{{item_id}}/do"][
+        "post"
+    ]["parameters"]
     assert any(p["name"] == "item_id" for p in params)
 
 
@@ -77,5 +77,7 @@ def test_collection_arity_openapi_has_no_path_param():
     router = _build_router(CollectionModel, [spec])
     app = FastAPI()
     app.include_router(router)
-    operation = app.openapi()["paths"][f"/{CollectionModel.__name__}/do"]["post"]
+    operation = app.openapi()["paths"][f"/{CollectionModel.__name__.lower()}/do"][
+        "post"
+    ]
     assert "parameters" not in operation
