@@ -148,7 +148,9 @@ def _build_methodz_endpoint(api: Any):
                         "target": sp.target,
                         "arity": sp.arity,
                         "persist": sp.persist,
-                        "returns": sp.returns,
+                        "request_model": getattr(sp, "request_model", None) is not None,
+                        "response_model": getattr(sp, "response_model", None)
+                        is not None,
                         "routes": bool(getattr(sp, "expose_routes", True)),
                         "rpc": bool(getattr(sp, "expose_rpc", True)),
                         "tags": list(getattr(sp, "tags", ()) or (mname,)),

@@ -5,7 +5,7 @@ from typing import Any, Callable
 
 from ..bindings.api import include_model
 from ..bindings.model import bind as bind_model
-from ..opspec import OpSpec, get_registry
+from ..opspec import OpSpec, SchemaArg, get_registry
 from ..config.constants import AUTOAPI_TX_MODELS_ATTR
 
 
@@ -72,9 +72,10 @@ def transactional(  # noqa: D401 (compat docstring in v2)
     rest_path: str | None = None,
     rest_method: str = "POST",
     tags: tuple[str, ...] = ("txn",),
-    returns: str = "raw",  # v3: 'raw' or 'model'
     expose_rpc: bool = True,
     expose_routes: bool = True,
+    request_model: SchemaArg | None = None,
+    response_model: SchemaArg | None = None,
 ) -> Callable[..., Any]:
     """
     v3-compatible replacement for the v2 @api.transactional decorator.
@@ -109,8 +110,9 @@ def transactional(  # noqa: D401 (compat docstring in v2)
                 rest_path, name or user_fn.__name__, alias
             ),
             tags=tags,
-            returns=returns,  # 'raw' by default; set 'model' if you want schema-shaped responses
             persist="always",  # ensure START_TX/END_TX are injected
+            request_model=request_model,
+            response_model=response_model,
         )
 
         # Register on the model's registry and (re)bind the model
