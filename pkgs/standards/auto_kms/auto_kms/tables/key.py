@@ -184,9 +184,26 @@ class Key(Base):
         if crypto is None:
             raise HTTPException(status_code=500, detail="Crypto provider missing")
 
-        aad = base64.b64decode(p["aad_b64"]) if p.get("aad_b64") else None
-        nonce = base64.b64decode(p["nonce_b64"]) if p.get("nonce_b64") else None
-        pt = base64.b64decode(p["plaintext_b64"])
+        import binascii
+
+        try:
+            aad = base64.b64decode(p["aad_b64"]) if p.get("aad_b64") else None
+        except binascii.Error as exc:  # pragma: no cover - defensive
+            raise HTTPException(
+                status_code=400, detail="Invalid base64 encoding for aad_b64"
+            ) from exc
+        try:
+            nonce = base64.b64decode(p["nonce_b64"]) if p.get("nonce_b64") else None
+        except binascii.Error as exc:  # pragma: no cover - defensive
+            raise HTTPException(
+                status_code=400, detail="Invalid base64 encoding for nonce_b64"
+            ) from exc
+        try:
+            pt = base64.b64decode(p["plaintext_b64"])
+        except binascii.Error as exc:  # pragma: no cover - defensive
+            raise HTTPException(
+                status_code=400, detail="Invalid base64 encoding for plaintext_b64"
+            ) from exc
         kid = str(ctx["key"].id)
         alg_in = p.get("alg") or ctx["key"].algorithm
         alg_enum = alg_in if isinstance(alg_in, KeyAlg) else KeyAlg(alg_in)
@@ -262,10 +279,32 @@ class Key(Base):
         if crypto is None:
             raise HTTPException(status_code=500, detail="Crypto provider missing")
 
-        aad = base64.b64decode(p["aad_b64"]) if p.get("aad_b64") else None
-        nonce = base64.b64decode(p["nonce_b64"])
-        ct = base64.b64decode(p["ciphertext_b64"])
-        tag = base64.b64decode(p["tag_b64"]) if p.get("tag_b64") else None
+        import binascii
+
+        try:
+            aad = base64.b64decode(p["aad_b64"]) if p.get("aad_b64") else None
+        except binascii.Error as exc:  # pragma: no cover - defensive
+            raise HTTPException(
+                status_code=400, detail="Invalid base64 encoding for aad_b64"
+            ) from exc
+        try:
+            nonce = base64.b64decode(p["nonce_b64"])
+        except binascii.Error as exc:  # pragma: no cover - defensive
+            raise HTTPException(
+                status_code=400, detail="Invalid base64 encoding for nonce_b64"
+            ) from exc
+        try:
+            ct = base64.b64decode(p["ciphertext_b64"])
+        except binascii.Error as exc:  # pragma: no cover - defensive
+            raise HTTPException(
+                status_code=400, detail="Invalid base64 encoding for ciphertext_b64"
+            ) from exc
+        try:
+            tag = base64.b64decode(p["tag_b64"]) if p.get("tag_b64") else None
+        except binascii.Error as exc:  # pragma: no cover - defensive
+            raise HTTPException(
+                status_code=400, detail="Invalid base64 encoding for tag_b64"
+            ) from exc
         kid = str(ctx["key"].id)
         alg_in = p.get("alg") or ctx["key"].algorithm
         alg_enum = alg_in if isinstance(alg_in, KeyAlg) else KeyAlg(alg_in)
