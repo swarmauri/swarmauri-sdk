@@ -8,6 +8,7 @@ from sqlalchemy import select
 
 from autoapi.v3.tables import Base
 from swarmauri_secret_autogpg import AutoGpgSecretDrive
+from auto_kms.tables.key import Key
 from auto_kms.tables.key_version import KeyVersion
 
 
@@ -44,10 +45,18 @@ def test_key_rotate_creates_new_version(client_app):
     key = res.json()
     assert key["primary_version"] == 1
 
-    res = client.post(f"/kms/key/{key['id']}/rotate", json={})
-    assert res.status_code == 200
-    data = res.json()
-    assert data["primary_version"] == 2
+    res = client.post(f"/kms/key/{key['id']}/rotate")
+    assert res.status_code == 201
+    assert res.content == b""
+
+    async def fetch_primary_version():
+        async with app.AsyncSessionLocal() as session:
+            result = await session.execute(
+                select(Key.primary_version).where(Key.id == UUID(str(key["id"])))
+            )
+            return result.scalar_one()
+
+    assert asyncio.run(fetch_primary_version()) == 2
 
     async def fetch_versions():
         async with app.AsyncSessionLocal() as session:
