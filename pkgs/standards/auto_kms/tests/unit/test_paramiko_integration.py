@@ -41,24 +41,19 @@ def client_paramiko(tmp_path, monkeypatch):
             delattr(app, "CRYPTO")
 
 
+def _create_version(client, key_id):
+    payload = {"key_id": key_id, "version": 1, "status": "active"}
+    res = client.post("/kms/key_version", json=payload)
+    assert res.status_code == 201
+    return res.json()
+
+
 def test_key_encrypt_decrypt_with_paramiko_crypto(client_paramiko):
     client, AsyncSessionLocal = client_paramiko
     from auto_kms.tables.key_version import KeyVersion
 
     key = _create_key(client)
-
-    async def seed():
-        async with AsyncSessionLocal() as s:
-            kv = KeyVersion(
-                key_id=UUID(key["id"]),
-                version=1,
-                status="active",
-                public_material=b"\x11" * 32,
-            )
-            s.add(kv)
-            await s.commit()
-
-    asyncio.run(seed())
+    kv = _create_version(client, key["id"])
 
     pt = b"hello"
     payload = {"plaintext_b64": base64.b64encode(pt).decode()}
@@ -73,25 +68,19 @@ def test_key_encrypt_decrypt_with_paramiko_crypto(client_paramiko):
     assert dec.status_code == 200
     assert base64.b64decode(dec.json()["plaintext_b64"]) == pt
 
+    async def fetch_material():
+        async with AsyncSessionLocal() as s:
+            return (await s.get(KeyVersion, UUID(kv["id"]))).public_material
+
+    material = asyncio.run(fetch_material())
+    assert material is not None
+
 
 def test_encrypt_accepts_unpadded_base64(client_paramiko):
-    client, AsyncSessionLocal = client_paramiko
-    from auto_kms.tables.key_version import KeyVersion
+    client, _ = client_paramiko
 
     key = _create_key(client, name="k2")
-
-    async def seed():
-        async with AsyncSessionLocal() as s:
-            kv = KeyVersion(
-                key_id=UUID(key["id"]),
-                version=1,
-                status="active",
-                public_material=b"\x11" * 32,
-            )
-            s.add(kv)
-            await s.commit()
-
-    asyncio.run(seed())
+    _create_version(client, key["id"])
 
     pt = b"world"
     pt_b64 = base64.b64encode(pt).decode().rstrip("=")

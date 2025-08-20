@@ -176,7 +176,7 @@ class Key(Base):
     )
     async def encrypt(cls, ctx):
         import base64
-        from ..utils import b64d, b64d_optional
+        from ..utils import b64d
 
         p = ctx.get("payload") or {}
         crypto = getattr(
@@ -200,7 +200,7 @@ class Key(Base):
                 status_code=400, detail="Invalid base64 encoding for nonce_b64"
             ) from exc
         try:
-            pt = base64.b64decode(p["plaintext_b64"])
+            pt = b64d(p["plaintext_b64"])
         except binascii.Error as exc:  # pragma: no cover - defensive
             raise HTTPException(
                 status_code=400, detail="Invalid base64 encoding for plaintext_b64"
@@ -227,7 +227,35 @@ class Key(Base):
                 None,
             )
             if version is None or version.public_material is None:
-                raise HTTPException(status_code=500, detail="Key material missing")
+                db = ctx.get("db")
+                secrets = getattr(
+                    getattr(ctx.get("request"), "state", object()), "secrets", None
+                ) or ctx.get("secrets")
+                if db is None or secrets is None:
+                    raise HTTPException(status_code=500, detail="Key material missing")
+                import os
+                from .key_version import KeyVersion
+
+                material = os.urandom(32)
+                if version is None:
+                    version = KeyVersion(
+                        key_id=key_obj.id,
+                        version=key_obj.primary_version,
+                        status="active",
+                    )
+                    db.add(version)
+                if version.version == 1:
+                    await secrets.store_key(
+                        key_type=KeyType.SYMMETRIC,
+                        uses=(KeyUse.ENCRYPT, KeyUse.DECRYPT),
+                        name=kid,
+                        material=material,
+                        export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
+                    )
+                else:
+                    await secrets.rotate(kid=kid, material=material, make_primary=False)
+                version.public_material = material
+                await db.flush()
             key_ref = KeyRef(
                 kid=kid,
                 version=key_obj.primary_version,
@@ -272,7 +300,6 @@ class Key(Base):
     )
     async def decrypt(cls, ctx):
         import base64
-        from ..utils import b64d, b64d_optional
 
         p = ctx.get("payload") or {}
         crypto = getattr(
@@ -330,7 +357,35 @@ class Key(Base):
                 None,
             )
             if version is None or version.public_material is None:
-                raise HTTPException(status_code=500, detail="Key material missing")
+                db = ctx.get("db")
+                secrets = getattr(
+                    getattr(ctx.get("request"), "state", object()), "secrets", None
+                ) or ctx.get("secrets")
+                if db is None or secrets is None:
+                    raise HTTPException(status_code=500, detail="Key material missing")
+                import os
+                from .key_version import KeyVersion
+
+                material = os.urandom(32)
+                if version is None:
+                    version = KeyVersion(
+                        key_id=key_obj.id,
+                        version=key_obj.primary_version,
+                        status="active",
+                    )
+                    db.add(version)
+                if version.version == 1:
+                    await secrets.store_key(
+                        key_type=KeyType.SYMMETRIC,
+                        uses=(KeyUse.DECRYPT, KeyUse.ENCRYPT),
+                        name=kid,
+                        material=material,
+                        export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
+                    )
+                else:
+                    await secrets.rotate(kid=kid, material=material, make_primary=False)
+                version.public_material = material
+                await db.flush()
             key_ref = KeyRef(
                 kid=kid,
                 version=key_obj.primary_version,
