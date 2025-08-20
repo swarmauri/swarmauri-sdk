@@ -176,6 +176,17 @@ class Key(Base):
     )
     async def encrypt(cls, ctx):
         import base64
+        import binascii
+
+        def _b64decode(name, val):
+            if not val:
+                return None
+            try:
+                return base64.b64decode(val, validate=True)
+            except binascii.Error as e:  # pragma: no cover - defensive
+                raise HTTPException(
+                    status_code=400, detail=f"Invalid base64 encoding for {name}"
+                ) from e
 
         p = ctx.get("payload") or {}
         crypto = getattr(
@@ -184,9 +195,9 @@ class Key(Base):
         if crypto is None:
             raise HTTPException(status_code=500, detail="Crypto provider missing")
 
-        aad = base64.b64decode(p["aad_b64"]) if p.get("aad_b64") else None
-        nonce = base64.b64decode(p["nonce_b64"]) if p.get("nonce_b64") else None
-        pt = base64.b64decode(p["plaintext_b64"])
+        aad = _b64decode("aad_b64", p.get("aad_b64"))
+        nonce = _b64decode("nonce_b64", p.get("nonce_b64"))
+        pt = _b64decode("plaintext_b64", p.get("plaintext_b64"))
         kid = str(ctx["key"].id)
         alg_in = p.get("alg") or ctx["key"].algorithm
         alg_enum = alg_in if isinstance(alg_in, KeyAlg) else KeyAlg(alg_in)
@@ -254,6 +265,21 @@ class Key(Base):
     )
     async def decrypt(cls, ctx):
         import base64
+        import binascii
+
+        def _b64decode(name, val, *, allow_none=False):
+            if not val:
+                if allow_none:
+                    return None
+                raise HTTPException(
+                    status_code=400, detail=f"Missing required field {name}"
+                )
+            try:
+                return base64.b64decode(val, validate=True)
+            except binascii.Error as e:  # pragma: no cover - defensive
+                raise HTTPException(
+                    status_code=400, detail=f"Invalid base64 encoding for {name}"
+                ) from e
 
         p = ctx.get("payload") or {}
         crypto = getattr(
@@ -262,10 +288,10 @@ class Key(Base):
         if crypto is None:
             raise HTTPException(status_code=500, detail="Crypto provider missing")
 
-        aad = base64.b64decode(p["aad_b64"]) if p.get("aad_b64") else None
-        nonce = base64.b64decode(p["nonce_b64"])
-        ct = base64.b64decode(p["ciphertext_b64"])
-        tag = base64.b64decode(p["tag_b64"]) if p.get("tag_b64") else None
+        aad = _b64decode("aad_b64", p.get("aad_b64"), allow_none=True)
+        nonce = _b64decode("nonce_b64", p.get("nonce_b64"))
+        ct = _b64decode("ciphertext_b64", p.get("ciphertext_b64"))
+        tag = _b64decode("tag_b64", p.get("tag_b64"), allow_none=True)
         kid = str(ctx["key"].id)
         alg_in = p.get("alg") or ctx["key"].algorithm
         alg_enum = alg_in if isinstance(alg_in, KeyAlg) else KeyAlg(alg_in)

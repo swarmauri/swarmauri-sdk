@@ -72,3 +72,28 @@ def test_encrypt_decrypt_with_memoryview_material(client_keyref):
     dec = client.post(f"/kms/key/{key['id']}/decrypt", json=dec_payload)
     assert dec.status_code == 200
     assert base64.b64decode(dec.json()["plaintext_b64"]) == pt
+
+
+def test_encrypt_invalid_base64_returns_400(client_keyref):
+    client, AsyncSessionLocal = client_keyref
+    from auto_kms.tables.key_version import KeyVersion
+
+    key = _create_key(client, name="k2")
+
+    async def seed():
+        async with AsyncSessionLocal() as s:
+            kv = KeyVersion(
+                key_id=UUID(key["id"]),
+                version=1,
+                status="active",
+                public_material=memoryview(b"\x11" * 32),
+            )
+            s.add(kv)
+            await s.commit()
+
+    asyncio.run(seed())
+
+    payload = {"plaintext_b64": "not-base64"}
+    res = client.post(f"/kms/key/{key['id']}/encrypt", json=payload)
+    assert res.status_code == 400
+    assert "Invalid base64" in res.json()["detail"]
