@@ -17,7 +17,7 @@ class RPCRequest(BaseModel):
     jsonrpc: Literal["2.0"] = "2.0"
     method: str
     params: dict[str, Any] = Field(default_factory=dict)
-    id: UUID | None = Field(
+    id: UUID | str | int | None = Field(
         default_factory=uuid4,
         json_schema_extra=_uuid_examples,
     )
@@ -35,7 +35,7 @@ class RPCResponse(BaseModel):
     jsonrpc: Literal["2.0"] = "2.0"
     result: Any | None = None
     error: RPCError | None = None
-    id: UUID | None = Field(
+    id: UUID | str | int | None = Field(
         default=None,
         json_schema_extra=_uuid_examples,
     )
