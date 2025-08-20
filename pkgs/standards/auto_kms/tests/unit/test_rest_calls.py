@@ -124,6 +124,7 @@ def test_key_clear(client):
 def test_key_encrypt_decrypt_with_paramiko_crypto_interface(client):
     """Encryption should succeed using a Paramiko-style crypto provider."""
     key = _create_key(client)
+    _create_key_version(client, key["id"])
     pt = b"hello"
     payload = {"plaintext_b64": base64.b64encode(pt).decode()}
     enc = client.post(f"/kms/Key/{key['id']}/encrypt", json=payload)

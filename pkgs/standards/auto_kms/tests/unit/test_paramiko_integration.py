@@ -21,7 +21,23 @@ def _create_key(client, name="k1"):
 def client_paramiko(tmp_path, monkeypatch):
     mod1 = types.ModuleType("swarmauri_secret_autogpg")
 
-    class DummySecretDrive: ...
+    from swarmauri_core.crypto.types import (
+        ExportPolicy,
+        KeyRef,
+        KeyType,
+        KeyUse,
+    )
+
+    class DummySecretDrive:
+        async def load_key(self, *, kid, require_private=False, **_):
+            return KeyRef(
+                kid=str(kid),
+                version=1,
+                type=KeyType.SYMMETRIC,
+                uses=(KeyUse.ENCRYPT, KeyUse.DECRYPT),
+                export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
+                material=b"\x11" * 32,
+            )
 
     mod1.AutoGpgSecretDrive = DummySecretDrive
     sys.modules["swarmauri_secret_autogpg"] = mod1

@@ -43,8 +43,10 @@ def test_ctx_has_secrets_provider(app_module):
 
 
 def test_ctx_has_crypto_provider(app_module):
+    from auto_kms.crypto import ParamikoCryptoAdapter
+
     app, _, DummyCrypto = app_module
     ctx: dict = {}
     asyncio.run(app._stash_ctx(ctx))
     assert "crypto" in ctx
-    assert isinstance(ctx["crypto"], DummyCrypto)
+    assert isinstance(ctx["crypto"], ParamikoCryptoAdapter)
