@@ -66,8 +66,13 @@ def _flush_or_http(db: Session) -> None:
     except IntegrityError as exc:
         # Do NOT rollback here; let the outer transaction manager handle it.
         raw = str(exc.orig)
+        raw_lower = raw.lower()
         print(f"IntegrityError encountered during flush: {raw}")
-        if getattr(exc.orig, "pgcode", None) in ("23505",) or "already exists" in raw:
+        if (
+            getattr(exc.orig, "pgcode", None) in ("23505",)
+            or "already exists" in raw_lower
+            or "unique constraint failed" in raw_lower
+        ):
             m = _DUP_RE.search(raw)
             msg = (
                 f"Duplicate value '{m['val']}' for field '{m['col']}'."
@@ -78,7 +83,10 @@ def _flush_or_http(db: Session) -> None:
                 409, message=msg, rpc_code=-32099
             )
             raise http_exc from exc
-        if getattr(exc.orig, "pgcode", None) in ("23503",) or "foreign key" in raw:
+        if (
+            getattr(exc.orig, "pgcode", None) in ("23503",)
+            or "foreign key" in raw_lower
+        ):
             http_exc, _, _ = create_standardized_error(422, rpc_code=-32097)
             raise http_exc from exc
         http_exc, _, _ = create_standardized_error(422, message=raw, rpc_code=-32098)
