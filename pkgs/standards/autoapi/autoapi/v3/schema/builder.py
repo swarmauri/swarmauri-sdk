@@ -386,9 +386,12 @@ def _build_schema(
 
 
 def _build_list_params(model: type) -> Type[BaseModel]:
-    """
-    Create a list/filter schema for the given model (forbid extra keys).
-    Includes: skip>=0, limit>=10, plus nullable scalar filters for non-PK columns.
+    """Create a list/filter schema for *model*.
+
+    The schema forbids unknown keys and provides fields for ``skip`` (>=0),
+    ``limit`` (>=10), ``sort`` (string or list of strings) and nullable scalar
+    filters for each non-PK column. This mirrors AutoAPI v2 behaviour with the
+    added ability to request ascending/descending sorting via ``sort`` tokens.
     """
     tab = model.__name__
     logger.debug("schema: build_list_params for %s", tab)
@@ -396,6 +399,7 @@ def _build_list_params(model: type) -> Type[BaseModel]:
     base = dict(
         skip=(int | None, Field(None, ge=0)),
         limit=(int | None, Field(None, ge=10)),
+        sort=(str | list[str] | None, Field(None)),
     )
     _scalars = {str, int, float, bool, bytes, uuid.UUID}
     cols: dict[str, tuple[type, Field]] = {}

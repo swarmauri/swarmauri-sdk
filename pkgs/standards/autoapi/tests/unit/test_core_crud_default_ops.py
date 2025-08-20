@@ -129,3 +129,18 @@ async def test_list_ignores_non_sortable_columns(session):
         sort="immutable",
     )
     assert [r.name for r in unsorted] == ["b", "a"]
+
+
+@pytest.mark.asyncio
+async def test_list_supports_descending_sort(session):
+    await crud.create(Widget, {"name": "a", "immutable": "x"}, session)
+    await crud.create(Widget, {"name": "b", "immutable": "y"}, session)
+    rows = await crud.list(
+        Widget,
+        filters=None,
+        db=session,
+        skip=0,
+        limit=None,
+        sort="name:desc",
+    )
+    assert [r.name for r in rows] == ["b", "a"]
