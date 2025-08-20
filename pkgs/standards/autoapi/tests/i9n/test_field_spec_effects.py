@@ -104,7 +104,7 @@ async def test_field_spec_core_crud_create(fs_app):
     _, api, SessionLocal, FSItem = fs_app
     with SessionLocal() as session:
         obj = await api.core.FSItem.create({"name": "hi"}, db=session)
-        assert obj.name == "hi"
+        assert obj["name"] == "hi"
 
 
 @pytest.mark.i9n
