@@ -191,10 +191,12 @@ def _serialize_output(
     try:
         if target == "list" and isinstance(result, (list, tuple)):
             return [
-                out_model.model_validate(x).model_dump(exclude_none=True)
+                out_model.model_validate(x).model_dump(exclude_none=True, by_alias=True)
                 for x in result
             ]
-        return out_model.model_validate(result).model_dump(exclude_none=True)
+        return out_model.model_validate(result).model_dump(
+            exclude_none=True, by_alias=True
+        )
     except Exception:
         logger.debug(
             "rest output serialization failed for %s.%s",
@@ -314,10 +316,7 @@ def _normalize_deps(deps: Optional[Sequence[Any]]) -> list[Any]:
 
 def _status_for(target: str) -> int:
     if target == "create":
-        # Historically AutoAPI returned 200 for create operations.  The v3 router
-        # switched to 201 (Created), which broke backward-compat expectations and
-        # existing tests.  Align with legacy behaviour by defaulting to 200.
-        return _status.HTTP_200_OK
+        return _status.HTTP_201_CREATED
     if target in ("delete", "clear"):
         return _status.HTTP_204_NO_CONTENT
     return _status.HTTP_200_OK

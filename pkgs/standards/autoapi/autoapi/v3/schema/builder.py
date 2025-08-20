@@ -320,15 +320,29 @@ def _build_schema(
         py_t = _python_type(col)
         required = _is_required(col, verb)
 
-        # Field construction
+        # Field construction (capture defaults/alias/examples before creating Field)
+        field_kwargs: Dict[str, Any] = {}
         if "default_factory" in meta:
-            fld = Field(default_factory=meta["default_factory"])
+            field_kwargs["default_factory"] = meta["default_factory"]
             required = False
         else:
-            fld = Field(None if not required else ...)
+            field_kwargs["default"] = None if not required else ...
 
         if "examples" in meta:
-            fld = Field(fld.default, examples=meta["examples"])
+            field_kwargs["examples"] = meta["examples"]
+
+        # Apply inbound/outbound aliases when provided
+        alias_name: str | None = None
+        if verb == "read":
+            alias_name = getattr(io, "alias_out", None) if io is not None else None
+            if isinstance(alias_name, str) and alias_name:
+                field_kwargs["serialization_alias"] = alias_name
+        else:
+            alias_name = getattr(io, "alias_in", None) if io is not None else None
+            if isinstance(alias_name, str) and alias_name:
+                field_kwargs["validation_alias"] = alias_name
+
+        fld = Field(**field_kwargs)
 
         # Optional typing if nullable
         is_nullable = bool(getattr(col, "nullable", True))

@@ -88,6 +88,19 @@ def _validate_input(
     model: type, alias: str, target: str, payload: Mapping[str, Any]
 ) -> Mapping[str, Any]:
     """Choose the appropriate request schema (if any) and validate/normalize payload."""
+
+    # First, map any alias_in keys to their canonical field names so downstream
+    # validation works even when callers use aliases.
+    specs = getattr(model, "__autoapi_cols__", {}) or {}
+    alias_to_field: Dict[str, str] = {}
+    for fname, col in specs.items():
+        io = getattr(col, "io", None)
+        alias_in = getattr(io, "alias_in", None) if io is not None else None
+        if isinstance(alias_in, str) and alias_in:
+            alias_to_field[alias_in] = fname
+    if alias_to_field:
+        payload = {alias_to_field.get(k, k): v for k, v in payload.items()}
+
     schemas_root = getattr(model, "schemas", None)
     if not schemas_root:
         return payload
@@ -136,11 +149,13 @@ def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
     try:
         if target == "list" and isinstance(result, (list, tuple)):
             return [
-                out_model.model_validate(x).model_dump(exclude_none=True)
+                out_model.model_validate(x).model_dump(exclude_none=True, by_alias=True)
                 for x in result
             ]
         # Single object case
-        return out_model.model_validate(result).model_dump(exclude_none=True)
+        return out_model.model_validate(result).model_dump(
+            exclude_none=True, by_alias=True
+        )
     except Exception as e:
         # If serialization fails, let raw result through rather than failing the call
         logger.debug(
