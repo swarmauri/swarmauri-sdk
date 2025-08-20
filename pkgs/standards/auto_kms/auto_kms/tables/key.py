@@ -144,7 +144,6 @@ class Key(Base):
     async def _seed_primary_version(cls, ctx):
         import secrets
         import base64
-
         from swarmauri_core.crypto.types import (
             ExportPolicy,
             KeyType,
