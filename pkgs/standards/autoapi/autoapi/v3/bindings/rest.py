@@ -1,20 +1,14 @@
 # autoapi/v3/bindings/rest.py
 from __future__ import annotations
 
+import dataclasses
 import inspect
 import logging
 import typing as _typing
 from types import SimpleNamespace
-from typing import (
-    Any,
-    Awaitable,
-    Callable,
-    Dict,
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-)
+from typing import Any, Awaitable, Callable, Dict, Mapping, Optional, Sequence, Tuple
+
+from collections.abc import Mapping as _Mapping
 from typing import get_origin as _get_origin, get_args as _get_args
 
 try:
@@ -103,11 +97,10 @@ _Key = Tuple[str, str]  # (alias, target)
 
 
 def _ensure_jsonable(obj: Any) -> Any:
-    """Best-effort conversion of DB rows, row-mappings, or ORM objects to dicts."""
+"""Best-effort conversion of DB rows, row-mappings, or ORM objects to dicts."""
     if isinstance(obj, (list, tuple)):
         return [_ensure_jsonable(x) for x in obj]
 
-    mapping = getattr(obj, "_mapping", None)
     if isinstance(mapping, Mapping):
         try:
             return {k: _ensure_jsonable(v) for k, v in dict(mapping).items()}
@@ -120,7 +113,6 @@ def _ensure_jsonable(obj: Any) -> Any:
         return obj
 
     return {k: _ensure_jsonable(v) for k, v in data.items() if not k.startswith("_")}
-
 
 def _req_state_db(request: Request) -> Any:
     return getattr(request.state, "db", None)
@@ -205,21 +197,44 @@ def _serialize_output(
 ) -> Any:
     """
     If a response schema exists (model.schemas.<alias>.out), serialize to it.
-    Otherwise, return the raw result.
+    Otherwise, attempt a best-effort conversion to primitive types so FastAPI
+    can JSON-encode the response.
     """
+
+    def _fallback(obj: Any) -> Any:
+        if isinstance(obj, Mapping):
+            return dict(obj)
+        if dataclasses.is_dataclass(obj):
+            return dataclasses.asdict(obj)
+        table = getattr(model, "__table__", None)
+        if table is not None:
+            try:
+                return {c.name: getattr(obj, c.name, None) for c in table.columns}
+            except Exception:
+                pass
+        try:
+            return {k: v for k, v in vars(obj).items() if not k.startswith("_")}
+        except Exception:
+            return obj
+
+    def _final(val: Any) -> Any:
+        if target == "list" and isinstance(val, (list, tuple)):
+            return [_fallback(v) for v in val]
+        return _fallback(val)
+
     schemas_root = getattr(model, "schemas", None)
     if not schemas_root:
-        return _ensure_jsonable(result)
+        return _final(result)
     alias_ns = getattr(schemas_root, alias, None)
     if not alias_ns:
-        return _ensure_jsonable(result)
+        return _final(result)
     out_model = getattr(alias_ns, "out", None)
     if (
         not out_model
         or not inspect.isclass(out_model)
         or not issubclass(out_model, BaseModel)
     ):
-        return _ensure_jsonable(result)
+        return _final(result)
     try:
         if target == "list" and isinstance(result, (list, tuple)):
             return [
@@ -236,7 +251,7 @@ def _serialize_output(
             alias,
             exc_info=True,
         )
-        return _ensure_jsonable(result)
+        return _final(result)
 
 
 def _validate_body(
