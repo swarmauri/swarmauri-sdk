@@ -2,8 +2,10 @@ import base64
 import importlib
 import asyncio
 
+
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 from autoapi.v3.tables import Base
 from swarmauri_secret_autogpg import AutoGpgSecretDrive
 
