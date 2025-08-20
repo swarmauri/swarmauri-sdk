@@ -1,4 +1,5 @@
 from autoapi.v3.specs import IO
+from autoapi.v3.specs.io_spec import Pair
 
 
 def test_in_verbs_attribute() -> None:
@@ -54,3 +55,36 @@ def test_allow_in_attribute() -> None:
 def test_allow_out_attribute() -> None:
     io = IO(allow_out=False)
     assert io.allow_out is False
+
+
+def test_paired_method_sets_configuration() -> None:
+    def maker(ctx):
+        return Pair(raw="r", stored="s")
+
+    io = IO().paired(maker, alias="extra")
+    assert io._paired is not None
+    assert io._paired.alias == "extra"
+    assert io._paired.gen({}) == "r"
+    assert io._paired.store("r", {}) == "s"
+
+
+def test_assemble_method_sets_configuration() -> None:
+    def fn(payload, ctx):
+        return payload["a"] + ctx["b"]
+
+    io = IO().assemble(["a"], fn)
+    assert io._assemble is not None
+    assert io._assemble.sources == ("a",)
+    assert io._assemble.fn({"a": 1}, {"b": 2}) == 3
+
+
+def test_alias_readtime_method_adds_alias() -> None:
+    def fn(obj, ctx):
+        return obj["x"] + 1
+
+    io = IO().alias_readtime("x_plus_one", fn, verbs=("read",))
+    assert len(io._readtime_aliases) == 1
+    alias = io._readtime_aliases[0]
+    assert alias.name == "x_plus_one"
+    assert alias.fn({"x": 1}, {}) == 2
+    assert alias.verbs == ("read",)
