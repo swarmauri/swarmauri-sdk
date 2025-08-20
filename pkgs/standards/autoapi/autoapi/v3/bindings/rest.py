@@ -107,7 +107,7 @@ def _resource_name(model: type) -> str:
     override or fall back to the model class name.
     """
     override = getattr(model, "__resource__", None)
-    return override or model.__name__
+    return override or model.__name__.lower()
 
 
 def _pk_name(model: type) -> str:
