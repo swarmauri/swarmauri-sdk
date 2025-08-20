@@ -5,6 +5,9 @@ from autoapi.v3.mixins import GUIDPk
 from autoapi.v3.types import Column, String
 
 
+Base.metadata.clear()
+
+
 class Widget(Base, GUIDPk):
     __tablename__ = "widgets"
     name = Column(String, nullable=False)
