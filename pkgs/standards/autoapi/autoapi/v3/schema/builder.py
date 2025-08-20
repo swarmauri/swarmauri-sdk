@@ -366,6 +366,41 @@ def _build_schema(
             "schema: added field %s required=%s type=%r", attr_name, required, py_t
         )
 
+    # ── PASS 1b: virtual columns declared via ColumnSpec --------------------
+    for attr_name, spec in specs.items():
+        if getattr(spec, "storage", None) is not None:
+            continue  # real columns handled above
+        if include and attr_name not in include:
+            continue
+        if exclude and attr_name in exclude:
+            continue
+
+        fs = getattr(spec, "field", None)
+        py_t = getattr(fs, "py_type", Any) if fs is not None else Any
+        required = bool(fs and verb in getattr(fs, "required_in", ()))
+        allow_null = bool(fs and verb in getattr(fs, "allow_null_in", ()))
+        field_kwargs: Dict[str, Any] = dict(getattr(fs, "constraints", {}) or {})
+
+        default_factory = getattr(spec, "default_factory", None)
+        if default_factory and verb in set(getattr(spec.io, "in_verbs", []) or []):
+            field_kwargs["default_factory"] = default_factory
+            required = False
+        else:
+            field_kwargs["default"] = None if not required else ...
+
+        fld = Field(**field_kwargs)
+
+        if allow_null and py_t is not Any:
+            py_t = Union[py_t, None]
+
+        _add_field(fields, name=attr_name, py_t=py_t, field=fld)
+        logger.debug(
+            "schema: added virtual field %s required=%s type=%r",
+            attr_name,
+            required,
+            py_t,
+        )
+
     # ── PASS 2: @hybrid_property (opt-in via meta["hybrid"])
     for attr_name, attr in list(getattr(orm_cls, "__dict__", {}).items()):
         if not isinstance(attr, hybrid_property):

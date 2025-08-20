@@ -11,7 +11,7 @@ from sqlalchemy.orm import Mapped, relationship
 from autoapi.v3.tables import Base
 from autoapi.v3.specs import acol, vcol, S, F, IO
 from autoapi.v3.decorators import hook_ctx, op_ctx
-from fastapi import HTTPException
+from fastapi import HTTPException, Response
 
 if TYPE_CHECKING:
     from .key_version import KeyVersion
@@ -61,7 +61,7 @@ class Key(Base):
     )
 
     name: Mapped[str] = acol(
-        storage=S(type_=String, unique=True, index=True, nullable=False),
+        storage=S(type_=String(120), unique=True, index=True, nullable=False),
         field=F(constraints={"max_length": 120}, required_in=("create",)),
         io=IO(
             in_verbs=("create", "update", "replace"),
@@ -144,6 +144,7 @@ class Key(Base):
     async def _seed_primary_version(cls, ctx):
         import secrets
         import base64
+
         from swarmauri_core.crypto.types import (
             ExportPolicy,
             KeyType,
@@ -233,7 +234,6 @@ class Key(Base):
         persist="skip",
     )
     async def encrypt(cls, ctx):
-        import base64
         from ..utils import b64d, b64d_optional
 
         p = ctx.get("payload") or {}
@@ -327,7 +327,6 @@ class Key(Base):
         persist="skip",
     )
     async def decrypt(cls, ctx):
-        import base64
         from ..utils import b64d, b64d_optional
 
         p = ctx.get("payload") or {}
@@ -440,4 +439,4 @@ class Key(Base):
         )
         key_obj.primary_version = new_version
         db.add(kv)
-        return {"id": str(key_obj.id), "primary_version": key_obj.primary_version}
+        return Response(status_code=201)
