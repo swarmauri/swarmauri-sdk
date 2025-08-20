@@ -103,16 +103,23 @@ _Key = Tuple[str, str]  # (alias, target)
 
 
 def _ensure_jsonable(obj: Any) -> Any:
-    """Best-effort conversion of DB rows or row-mappings to plain dicts."""
+    """Best-effort conversion of DB rows, row-mappings, or ORM objects to dicts."""
     if isinstance(obj, (list, tuple)):
         return [_ensure_jsonable(x) for x in obj]
+
     mapping = getattr(obj, "_mapping", None)
-    if mapping is not None:
+    if isinstance(mapping, Mapping):
         try:
-            return dict(mapping)
+            return {k: _ensure_jsonable(v) for k, v in dict(mapping).items()}
         except Exception:  # pragma: no cover - fall back to original object
             pass
-    return obj
+
+    try:
+        data = vars(obj)
+    except TypeError:
+        return obj
+
+    return {k: _ensure_jsonable(v) for k, v in data.items() if not k.startswith("_")}
 
 
 def _req_state_db(request: Request) -> Any:
