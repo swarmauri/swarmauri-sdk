@@ -143,9 +143,24 @@ def _build_methodz_endpoint(api: Any):
             for sp in _opspecs(model):
                 if not getattr(sp, "expose_rpc", True):
                     continue
-                methods.append(f"{mname}.{sp.alias}")
-        methods.sort()
-        return methods
+                methods.append(
+                    {
+                        "method": f"{mname}.{sp.alias}",
+                        "model": mname,
+                        "alias": sp.alias,
+                        "target": sp.target,
+                        "arity": sp.arity,
+                        "persist": sp.persist,
+                        "request_model": getattr(sp, "request_model", None) is not None,
+                        "response_model": getattr(sp, "response_model", None)
+                        is not None,
+                        "routes": bool(getattr(sp, "expose_routes", True)),
+                        "rpc": bool(getattr(sp, "expose_rpc", True)),
+                        "tags": list(getattr(sp, "tags", ()) or (mname,)),
+                    }
+                )
+        methods.sort(key=lambda x: (x["model"], x["alias"]))
+        return {"methods": methods}
 
     return _methodz
 

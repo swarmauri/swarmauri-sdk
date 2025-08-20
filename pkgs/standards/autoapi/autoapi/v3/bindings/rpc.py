@@ -35,12 +35,14 @@ _Key = Tuple[str, str]  # (alias, target)
 # Helpers
 # ───────────────────────────────────────────────────────────────────────────────
 
+
 def _ns(obj: Any, name: str) -> Any:
     ns = getattr(obj, name, None)
     if ns is None:
         ns = SimpleNamespace()
         setattr(obj, name, ns)
     return ns
+
 
 def _get_phase_chains(
     model: type, alias: str
@@ -65,6 +67,7 @@ def _get_phase_chains(
         out[ph] = list(getattr(alias_ns, ph, []) or [])
     return out
 
+
 def _coerce_payload(payload: Any) -> Mapping[str, Any]:
     """
     Accept dict-like or Pydantic models; fallback to {} for None.
@@ -79,6 +82,7 @@ def _coerce_payload(payload: Any) -> Mapping[str, Any]:
     if isinstance(payload, Mapping):
         return dict(payload)
     return {}  # unexpected shapes → ignore
+
 
 def _validate_input(
     model: type, alias: str, target: str, payload: Mapping[str, Any]
@@ -108,16 +112,12 @@ def _validate_input(
             )
     return payload
 
-def _serialize_output(
-    model: type, alias: str, target: str, sp: OpSpec, result: Any
-) -> Any:
-    """
-    If the op returns 'model' and we have an OUT schema, serialize result(s).
-    For 'list', OUT schema represents the element shape.
-    """
-    if sp.returns != "model":
-        return result
 
+def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
+    """Serialize result(s) if an OUT schema is available for the op.
+
+    For 'list', the OUT schema represents the element shape.
+    """
     schemas_root = getattr(model, "schemas", None)
     if not schemas_root:
         return result
@@ -152,9 +152,11 @@ def _serialize_output(
         )
         return result
 
+
 # ───────────────────────────────────────────────────────────────────────────────
 # RPC wrapper builder
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]]:
     """
@@ -204,7 +206,7 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
             ctx=base_ctx,
         )
 
-        return _serialize_output(model, alias, target, sp, result)
+        return _serialize_output(model, alias, target, result)
 
     # Give the callable a nice name for introspection/logging
     _rpc_method.__name__ = f"rpc_{model.__name__}_{alias}"
@@ -213,15 +215,18 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
 
     return _rpc_method
 
+
 def _attach_one(model: type, sp: OpSpec) -> None:
     rpc_root = _ns(model, "rpc")
     fn = _build_rpc_callable(model, sp)
     setattr(rpc_root, sp.alias, fn)
     logger.debug("rpc: %s.%s registered", model.__name__, sp.alias)
 
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Public API
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 def register_and_attach(
     model: type, specs: Sequence[OpSpec], *, only_keys: Optional[Sequence[_Key]] = None
@@ -236,5 +241,6 @@ def register_and_attach(
         if wanted and key not in wanted:
             continue
         _attach_one(model, sp)
+
 
 __all__ = ["register_and_attach"]
