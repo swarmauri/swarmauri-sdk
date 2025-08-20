@@ -398,12 +398,20 @@ async def _invoke(
             owns_tx_for_phase=owns_tx_for_commit,
         )
 
-    await _run_phase("POST_COMMIT", allow_flush=False, allow_commit=False, in_tx=False)
-
-    # ─── POST_RESPONSE (non-fatal) ─────────────────────────────────────────────
     from types import SimpleNamespace as _NS
 
+    # Serialize the result before post-commit hooks so they can mutate the
+    # shaped output.
+    serializer = ctx.get("response_serializer")
+    if callable(serializer):
+        try:
+            ctx["result"] = serializer(ctx.get("result"))
+        except Exception:
+            logger.exception("response serialization failed", exc_info=True)
     ctx.response = _NS(result=ctx.get("result"))
+
+    await _run_phase("POST_COMMIT", allow_flush=True, allow_commit=False, in_tx=False)
+
     await _run_phase(
         "POST_RESPONSE",
         allow_flush=False,

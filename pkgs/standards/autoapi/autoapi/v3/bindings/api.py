@@ -47,8 +47,19 @@ def _resource_name(model: type) -> str:
 
 
 def _default_prefix(model: type) -> str:
-    # Router prefix will be '/<ModelClassName>' unless __resource__ overrides it.
-    return f"/{_resource_name(model)}"
+    """Default mount prefix for a model router.
+
+    The router paths produced by :mod:`bindings.rest` already include the
+    resource name (e.g. ``/Item``). Mounting again at ``/{resource}`` results in
+    duplicated segments such as ``/Item/Item`` and ultimately 404 responses for
+    requests like ``POST /Item``.  Returning an empty string ensures the router
+    is mounted at the API root unless the caller explicitly provides a prefix.
+    """
+
+    # Historically AutoAPI v3 mounted routers at ``/{ModelClassName}``.  The
+    # v3 router now emits fully-qualified paths, so the default mount prefix
+    # must be empty to avoid double prefixes.
+    return ""
 
 
 def _has_include_router(obj: Any) -> bool:

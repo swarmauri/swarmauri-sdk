@@ -314,7 +314,10 @@ def _normalize_deps(deps: Optional[Sequence[Any]]) -> list[Any]:
 
 def _status_for(target: str) -> int:
     if target == "create":
-        return _status.HTTP_201_CREATED
+        # Historically AutoAPI returned 200 for create operations.  The v3 router
+        # switched to 201 (Created), which broke backward-compat expectations and
+        # existing tests.  Align with legacy behaviour by defaulting to 200.
+        return _status.HTTP_200_OK
     if target in ("delete", "clear"):
         return _status.HTTP_204_NO_CONTENT
     return _status.HTTP_200_OK
@@ -623,6 +626,9 @@ def _make_collection_endpoint(
                 method=alias, params=payload, target=target, model=model
             ),
         }
+        ctx["response_serializer"] = lambda r: _serialize_output(
+            model, alias, target, sp, r
+        )
         phases = _get_phase_chains(model, alias)
         result = await _executor._invoke(
             request=request,
@@ -630,7 +636,7 @@ def _make_collection_endpoint(
             phases=phases,
             ctx=ctx,
         )
-        return _serialize_output(model, alias, target, sp, result)
+        return result
 
     _endpoint.__name__ = f"rest_{model.__name__}_{alias}_collection"
     _endpoint.__qualname__ = _endpoint.__name__
@@ -673,6 +679,9 @@ def _make_member_endpoint(
                     method=alias, params=payload, target=target, model=model
                 ),
             }
+            ctx["response_serializer"] = lambda r: _serialize_output(
+                model, alias, target, sp, r
+            )
             phases = _get_phase_chains(model, alias)
             result = await _executor._invoke(
                 request=request,
@@ -680,7 +689,7 @@ def _make_member_endpoint(
                 phases=phases,
                 ctx=ctx,
             )
-            return _serialize_output(model, alias, target, sp, result)
+            return result
 
         _endpoint.__name__ = f"rest_{model.__name__}_{alias}_member"
         _endpoint.__qualname__ = _endpoint.__name__
@@ -724,6 +733,9 @@ def _make_member_endpoint(
                 method=alias, params=payload, target=target, model=model
             ),
         }
+        ctx["response_serializer"] = lambda r: _serialize_output(
+            model, alias, target, sp, r
+        )
         phases = _get_phase_chains(model, alias)
         result = await _executor._invoke(
             request=request,
@@ -731,7 +743,7 @@ def _make_member_endpoint(
             phases=phases,
             ctx=ctx,
         )
-        return _serialize_output(model, alias, target, sp, result)
+        return result
 
     _endpoint.__name__ = f"rest_{model.__name__}_{alias}_member"
     _endpoint.__qualname__ = _endpoint.__name__
@@ -792,7 +804,7 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
 
         # HTTP methods
         methods = list(sp.http_methods or _DEFAULT_METHODS.get(sp.target, ("POST",)))
-        response_model = _response_model_for(sp, model)
+        response_model = None  # Allow hooks to mutate response freely
 
         # Build endpoint (split by body/no-body)
         if is_member:

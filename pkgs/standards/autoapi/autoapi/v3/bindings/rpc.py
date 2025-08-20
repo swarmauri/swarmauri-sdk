@@ -197,8 +197,10 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
         )
 
         phases = _get_phase_chains(model, alias)
-
-        # 3) run executor + shape output
+        base_ctx["response_serializer"] = lambda r: _serialize_output(
+            model, alias, target, r
+        )
+        # 3) run executor
         result = await _executor._invoke(
             request=request,
             db=db,
@@ -206,7 +208,7 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
             ctx=base_ctx,
         )
 
-        return _serialize_output(model, alias, target, result)
+        return result
 
     # Give the callable a nice name for introspection/logging
     _rpc_method.__name__ = f"rpc_{model.__name__}_{alias}"

@@ -167,7 +167,13 @@ def _wrap_hook(h: OpHook) -> StepFn:
                 res = True
             if not _as_bool(res):
                 return None
-        rv = fn(ctx)
+        # Pass the context explicitly as a keyword so wrapped hooks expecting a
+        # ``ctx`` parameter receive the correct seed.  Positional invocation
+        # treated the context as the first positional argument (often the
+        # ``value`` parameter), resulting in a new empty context being created
+        # inside the wrapper and missing executor-provided keys like
+        # ``response``.
+        rv = fn(ctx=ctx)
         if inspect.isawaitable(rv):
             return await rv
         return rv
@@ -179,7 +185,10 @@ def _wrap_hook(h: OpHook) -> StepFn:
 
 def _wrap_step_fn(fn: Callable[..., Any]) -> StepFn:
     async def _step(ctx: Any) -> Any:
-        rv = fn(ctx)
+        # Similar to :func:`_wrap_hook`, pass the context as a keyword argument to
+        # support wrappers produced by ``@hook_ctx`` which expect ``ctx`` as a
+        # kw-only parameter.
+        rv = fn(ctx=ctx)
         if inspect.isawaitable(rv):
             return await rv
         return rv

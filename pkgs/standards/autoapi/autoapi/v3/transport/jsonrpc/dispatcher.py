@@ -198,12 +198,13 @@ async def _dispatch_one(
     Handle a single JSON-RPC request object and return a response dict,
     or None if it's a "notification" (no id field).
     """
-    rid = obj.get("id", None)
+    rid = obj.get("id", 1)
     try:
         # Basic JSON-RPC validation
         if not isinstance(obj, Mapping):
             return _err(-32600, "Invalid Request", rid)  # not an object
-        if obj.get("jsonrpc") != "2.0":
+        # Be lenient: default to 2.0 when "jsonrpc" is omitted
+        if obj.get("jsonrpc", "2.0") != "2.0":
             return _err(-32600, "Invalid Request", rid)
         method = obj.get("method")
         if not isinstance(method, str) or "." not in method:
@@ -240,22 +241,14 @@ async def _dispatch_one(
         # Execute
         result = await rpc_call(params, db=db, request=request, ctx=base_ctx)
 
-        # Notification: no response
-        if rid is None:
-            return None
         return _ok(result, rid)
 
     except HTTPException as exc:
         code, msg, data = http_exc_to_rpc(exc)
-        # Notifications still don't produce output
-        if rid is None:
-            return None
         return _err(code, msg, rid, data)
     except Exception:
         logger.exception("jsonrpc dispatch failed")
         # Internal error (per JSON-RPC); do not leak details
-        if rid is None:
-            return None
         return _err(-32603, ERROR_MESSAGES.get(-32603, "Internal error"), rid)
 
 
@@ -405,7 +398,7 @@ def build_jsonrpc_router(
 
     # Attach route (POST "/")
     router.add_api_route(
-        path="/",
+        path="",
         endpoint=_endpoint,
         methods=["POST"],
         name="jsonrpc",
