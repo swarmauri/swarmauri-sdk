@@ -57,6 +57,7 @@ except Exception:  # pragma: no cover
 from sqlalchemy import text
 from ..opspec.types import PHASES
 from ..runtime.kernel import build_phase_chains
+from ..runtime import plan as _plan
 
 logger = logging.getLogger(__name__)
 
@@ -209,12 +210,39 @@ def _build_planz_endpoint(api: Any):
         for model in _model_iter(api):
             mname = getattr(model, "__name__", "Model")
             model_map: Dict[str, List[str]] = {}
+            compiled_plan = getattr(
+                getattr(model, "runtime", SimpleNamespace()), "plan", None
+            )
             for sp in _opspecs(model):
-                chains = build_phase_chains(model, sp.alias)
                 seq: List[str] = []
-                for ph in PHASES:
-                    for step in chains.get(ph, []) or []:
-                        seq.append(_label_callable(step))
+                if compiled_plan is not None:
+                    persist = getattr(sp, "persist", "default") != "skip"
+                    deps: List[str] = []
+                    handler = getattr(sp, "handler", None)
+                    if handler is not None:
+                        deps.append(_label_callable(handler))
+                    labels = _plan.flattened_order(
+                        compiled_plan,
+                        persist=persist,
+                        include_system_steps=True,
+                        deps=deps,
+                    )
+                    seq = [str(lbl) for lbl in labels]
+                else:
+                    chains = build_phase_chains(model, sp.alias)
+                    persist = getattr(sp, "persist", "default") != "skip"
+                    for ph in PHASES:
+                        if ph == "START_TX" and persist:
+                            seq.append("sys:txn:begin@START_TX")
+                        if ph == "HANDLER" and persist:
+                            seq.append(f"sys:handler:{sp.target}@HANDLER")
+                        for step in chains.get(ph, []) or []:
+                            name = getattr(step, "__name__", "")
+                            if name in {"start_tx", "end_tx"}:
+                                continue
+                            seq.append(_label_callable(step))
+                        if ph == "END_TX" and persist:
+                            seq.append("sys:txn:commit@END_TX")
                 model_map[sp.alias] = seq
             if model_map:
                 out[mname] = model_map
