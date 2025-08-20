@@ -67,7 +67,7 @@ async def client_and_model():
 @pytest.mark.asyncio
 async def test_rest_create(client_and_model):
     client, _ = client_and_model
-    resp = await client.post("/Gadget", json={"name": "A", "age": 1})
+    resp = await client.post("/gadget", json={"name": "A", "age": 1})
     assert resp.status_code == 201
     data = resp.json()
     assert data["name"] == "A"
@@ -78,9 +78,9 @@ async def test_rest_create(client_and_model):
 @pytest.mark.asyncio
 async def test_rest_read(client_and_model):
     client, _ = client_and_model
-    created = await client.post("/Gadget", json={"name": "A", "age": 1})
+    created = await client.post("/gadget", json={"name": "A", "age": 1})
     item_id = created.json()["id"]
-    resp = await client.get(f"/Gadget/{item_id}")
+    resp = await client.get(f"/gadget/{item_id}")
     assert resp.status_code == 200
     assert resp.json()["id"] == item_id
 
@@ -89,9 +89,9 @@ async def test_rest_read(client_and_model):
 @pytest.mark.asyncio
 async def test_rest_update(client_and_model):
     client, _ = client_and_model
-    created = await client.post("/Gadget", json={"name": "A", "age": 1})
+    created = await client.post("/gadget", json={"name": "A", "age": 1})
     item_id = created.json()["id"]
-    resp = await client.patch(f"/Gadget/{item_id}", json={"name": "B", "age": 2})
+    resp = await client.patch(f"/gadget/{item_id}", json={"name": "B", "age": 2})
     assert resp.status_code == 200
     data = resp.json()
     assert data["name"] == "B"
@@ -102,9 +102,9 @@ async def test_rest_update(client_and_model):
 @pytest.mark.asyncio
 async def test_rest_replace(client_and_model):
     client, _ = client_and_model
-    created = await client.post("/Gadget", json={"name": "A", "age": 1})
+    created = await client.post("/gadget", json={"name": "A", "age": 1})
     item_id = created.json()["id"]
-    resp = await client.put(f"/Gadget/{item_id}", json={"name": "C", "age": 5})
+    resp = await client.put(f"/gadget/{item_id}", json={"name": "C", "age": 5})
     assert resp.status_code == 200
     data = resp.json()
     assert data["name"] == "C"
@@ -115,12 +115,12 @@ async def test_rest_replace(client_and_model):
 @pytest.mark.asyncio
 async def test_rest_delete(client_and_model):
     client, _ = client_and_model
-    created = await client.post("/Gadget", json={"name": "A", "age": 1})
+    created = await client.post("/gadget", json={"name": "A", "age": 1})
     item_id = created.json()["id"]
-    resp = await client.delete(f"/Gadget/{item_id}")
+    resp = await client.delete(f"/gadget/{item_id}")
     assert resp.status_code == 200
     assert resp.json()["deleted"] == 1
-    follow = await client.get(f"/Gadget/{item_id}")
+    follow = await client.get(f"/gadget/{item_id}")
     assert follow.status_code == 404
 
 
@@ -128,9 +128,9 @@ async def test_rest_delete(client_and_model):
 @pytest.mark.asyncio
 async def test_rest_list(client_and_model):
     client, _ = client_and_model
-    await client.post("/Gadget", json={"name": "A", "age": 1})
-    await client.post("/Gadget", json={"name": "B", "age": 2})
-    resp = await client.get("/Gadget")
+    await client.post("/gadget", json={"name": "A", "age": 1})
+    await client.post("/gadget", json={"name": "B", "age": 2})
+    resp = await client.get("/gadget")
     assert resp.status_code == 200
     names = {item["name"] for item in resp.json()}
     assert names == {"A", "B"}
@@ -140,11 +140,11 @@ async def test_rest_list(client_and_model):
 @pytest.mark.asyncio
 async def test_rest_clear(client_and_model):
     client, _ = client_and_model
-    await client.post("/Gadget", json={"name": "A", "age": 1})
-    await client.post("/Gadget", json={"name": "B", "age": 2})
-    resp = await client.delete("/Gadget")
+    await client.post("/gadget", json={"name": "A", "age": 1})
+    await client.post("/gadget", json={"name": "B", "age": 2})
+    resp = await client.delete("/gadget")
     assert resp.status_code == 200
     assert resp.json()["deleted"] == 2
-    remaining = await client.get("/Gadget")
+    remaining = await client.get("/gadget")
     assert remaining.status_code == 200
     assert remaining.json() == []

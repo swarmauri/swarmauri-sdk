@@ -92,7 +92,7 @@ def test_openapi_includes_path():
     app = FastAPI()
     app.include_router(Gadget.rest.router)
     schema = app.openapi()
-    assert "/Gadget" in schema["paths"]
+    assert "/gadget" in schema["paths"]
 
 
 def test_storage_and_sqlalchemy_persist():
@@ -114,7 +114,7 @@ def test_rest_routes_bound():
     app = FastAPI()
     app.include_router(Gadget.rest.router)
     paths = {route.path for route in app.router.routes}
-    assert "/Gadget" in paths
+    assert "/gadget" in paths
 
 
 def test_rpc_method_bound():

@@ -119,7 +119,7 @@ async def test_openapi_reflects_io_spec(widget_setup):
 async def test_storage_persists_data(widget_setup):
     client, _, SessionLocal = widget_setup
     resp = await client.post(
-        "/widget/Widget", json={"name": "hi", "secret": "s", "created_at": "now"}
+        "/widget/widget", json={"name": "hi", "secret": "s", "created_at": "now"}
     )
     wid = uuid.UUID(resp.json()["id"])
     with SessionLocal() as session:
@@ -132,10 +132,10 @@ async def test_storage_persists_data(widget_setup):
 async def test_rest_calls_honor_io_spec(widget_setup):
     client, _, _ = widget_setup
     resp = await client.post(
-        "/widget/Widget", json={"name": "hi", "secret": "s", "created_at": "now"}
+        "/widget/widget", json={"name": "hi", "secret": "s", "created_at": "now"}
     )
     wid = resp.json()["id"]
-    data = (await client.get(f"/widget/Widget/{wid}")).json()
+    data = (await client.get(f"/widget/widget/{wid}")).json()
     assert data["secret"] == "s"
     assert data["name"] == "hi"
 

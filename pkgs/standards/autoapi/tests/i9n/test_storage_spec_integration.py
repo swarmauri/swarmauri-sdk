@@ -27,7 +27,7 @@ async def test_storage_spec_columns(api_client_v3):
 @pytest.mark.asyncio
 async def test_storage_spec_default_resolution(api_client_v3):
     client, _, _, _ = api_client_v3
-    resp = await client.post("/Widget", json={"name": "A", "secret": "s"})
+    resp = await client.post("/widget", json={"name": "A", "secret": "s"})
     assert resp.status_code == 201
     assert resp.json()["age"] == 5
 
@@ -54,7 +54,7 @@ async def test_storage_spec_openapi(api_client_v3):
 @pytest.mark.asyncio
 async def test_storage_spec_storage_sqlalchemy(api_client_v3):
     client, _, Widget, session_maker = api_client_v3
-    resp = await client.post("/Widget", json={"name": "B", "secret": "abc"})
+    resp = await client.post("/widget", json={"name": "B", "secret": "abc"})
     item_id = resp.json()["id"]
     async with session_maker() as session:
         await session.get(Widget, item_id)
@@ -65,9 +65,9 @@ async def test_storage_spec_storage_sqlalchemy(api_client_v3):
 @pytest.mark.asyncio
 async def test_storage_spec_rest_calls(api_client_v3):
     client, _, _, _ = api_client_v3
-    resp = await client.post("/Widget", json={"name": "C", "secret": "xyz"})
+    resp = await client.post("/widget", json={"name": "C", "secret": "xyz"})
     item_id = resp.json()["id"]
-    read = await client.get(f"/Widget/{item_id}")
+    read = await client.get(f"/widget/{item_id}")
     assert read.status_code == 200
     assert read.json()["id"] == item_id
 

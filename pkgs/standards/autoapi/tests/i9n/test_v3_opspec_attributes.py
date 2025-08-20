@@ -119,7 +119,7 @@ def test_openapi_includes_path():
     app = FastAPI()
     app.include_router(Gadget.rest.router)
     schema = app.openapi()
-    assert "/Gadget" in schema["paths"]
+    assert "/gadget" in schema["paths"]
 
 
 @pytest.mark.i9n
@@ -168,7 +168,7 @@ async def test_rest_routes_bound():
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
-        res = await client.get("/Gadget")
+        res = await client.get("/gadget")
         assert res.status_code in {200, 404}
 
 

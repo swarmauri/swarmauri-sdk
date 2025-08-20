@@ -42,10 +42,10 @@ def _resource_name(model: type) -> str:
 
     Policy:
       - Prefer explicit `__resource__` when present (caller-controlled).
-      - Otherwise, use the model *class name* exactly as written.
+      - Otherwise, use the model *class name* in lowercase.
       - DO NOT use `__tablename__` here (strictly DB-only per project policy).
     """
-    return getattr(model, "__resource__", model.__name__)
+    return getattr(model, "__resource__", model.__name__.lower())
 
 
 def _default_prefix(model: type) -> str:
@@ -209,6 +209,8 @@ def _attach_to_api(api: ApiLike, model: type) -> None:
     _ensure_api_ns(api)
 
     mname = model.__name__
+    rname = _resource_name(model)
+    rtitle = rname[:1].upper() + rname[1:]
 
     # Index model object
     api.models[mname] = model
@@ -217,7 +219,10 @@ def _attach_to_api(api: ApiLike, model: type) -> None:
     setattr(api.schemas, mname, getattr(model, "schemas", SimpleNamespace()))
     setattr(api.handlers, mname, getattr(model, "handlers", SimpleNamespace()))
     setattr(api.hooks, mname, getattr(model, "hooks", SimpleNamespace()))
-    setattr(api.rpc, mname, getattr(model, "rpc", SimpleNamespace()))
+    rpc_ns = getattr(model, "rpc", SimpleNamespace())
+    setattr(api.rpc, mname, rpc_ns)
+    if rtitle != mname:
+        setattr(api.rpc, rtitle, rpc_ns)
     # rest (router lives on model.rest.router)
     rest_ns = getattr(api, "rest")
     setattr(
@@ -237,7 +242,10 @@ def _attach_to_api(api: ApiLike, model: type) -> None:
     api.table_config[mname] = dict(getattr(model, "table_config", {}) or {})
 
     # Core helper proxy
-    setattr(api.core, mname, _ResourceProxy(model))
+    core_proxy = _ResourceProxy(model)
+    setattr(api.core, mname, core_proxy)
+    if rtitle != mname:
+        setattr(api.core, rtitle, core_proxy)
 
 
 def include_model(
