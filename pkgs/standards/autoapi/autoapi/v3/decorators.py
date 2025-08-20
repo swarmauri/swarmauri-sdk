@@ -292,6 +292,7 @@ class _OpDecl:
     request_schema: Optional[SchemaArg]  # lazy-capable schema override
     response_schema: Optional[SchemaArg]
     persist: Optional[PersistPolicy]  # TX policy override
+    status_code: Optional[int]
 
 
 def op_ctx(
@@ -303,6 +304,7 @@ def op_ctx(
     request_schema: Optional[SchemaArg] = None,
     response_schema: Optional[SchemaArg] = None,
     persist: Optional[PersistPolicy] = None,
+    status_code: Optional[int] = None,
 ):
     """
     Declare a ctx-only operation whose body is `(cls, ctx)`.
@@ -325,6 +327,7 @@ def op_ctx(
             request_schema=request_schema,
             response_schema=response_schema,
             persist=persist,
+            status_code=status_code,
         )
         return cm
 
@@ -485,6 +488,7 @@ def collect_decorated_ops(table: type) -> list[OpSpec]:
                 request_model=decl.request_schema,
                 response_model=decl.response_schema,
                 hooks=(),
+                status_code=decl.status_code,
                 **expose_kwargs,
             )
             out.append(spec)

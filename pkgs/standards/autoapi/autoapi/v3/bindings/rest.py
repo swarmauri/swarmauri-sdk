@@ -18,7 +18,15 @@ from typing import (
 from typing import get_origin as _get_origin, get_args as _get_args
 
 try:
-    from fastapi import APIRouter, Request, Body, Depends, HTTPException, Query
+    from fastapi import (
+        APIRouter,
+        Request,
+        Body,
+        Depends,
+        HTTPException,
+        Query,
+        Response,
+    )
     from fastapi import status as _status
 except Exception:  # pragma: no cover
     # Minimal shims so the module can be imported without FastAPI
@@ -51,6 +59,10 @@ except Exception:  # pragma: no cover
             super().__init__(detail)
             self.status_code = status_code
             self.detail = detail
+
+    class Response:  # type: ignore
+        def __init__(self, *a, **kw):
+            pass
 
     class _status:  # type: ignore
         HTTP_200_OK = 200
@@ -314,7 +326,10 @@ def _normalize_deps(deps: Optional[Sequence[Any]]) -> list[Any]:
     return out
 
 
-def _status_for(target: str) -> int:
+def _status_for(sp: OpSpec) -> int:
+    if sp.status_code is not None:
+        return sp.status_code
+    target = sp.target
     if target == "create":
         # Creating resources should use HTTP 201 (Created).
         # Earlier revisions defaulted to 200 for backward compatibility, but
@@ -704,9 +719,45 @@ def _make_member_endpoint(
         # NOTE: do NOT set body annotation for no-body endpoints
         return _endpoint
 
+    body_model = _request_model_for(sp, model)
+    if body_model is None and sp.request_model is None and target == "custom":
+
+        async def _endpoint(
+            item_id: Any,
+            request: Request,
+            db: Any = Depends(db_dep),
+        ):
+            payload: Mapping[str, Any] = {}  # no body
+            ctx: Dict[str, Any] = {
+                "request": request,
+                "db": db,
+                "payload": payload,
+                "path_params": {real_pk: item_id, pk_param: item_id},
+                "env": SimpleNamespace(
+                    method=alias, params=payload, target=target, model=model
+                ),
+            }
+            ctx["response_serializer"] = lambda r: _serialize_output(
+                model, alias, target, sp, r
+            )
+            phases = _get_phase_chains(model, alias)
+            result = await _executor._invoke(
+                request=request,
+                db=db,
+                phases=phases,
+                ctx=ctx,
+            )
+            return result
+
+        _endpoint.__name__ = f"rest_{model.__name__}_{alias}_member"
+        _endpoint.__qualname__ = _endpoint.__name__
+        _endpoint.__doc__ = (
+            f"REST member endpoint for {model.__name__}.{alias} ({target})"
+        )
+        return _endpoint
+
     # --- Body-based member endpoints: PATCH update / PUT replace (and custom member) ---
 
-    body_model = _request_model_for(sp, model)
     if body_model is None:
         body_annotation = Optional[Mapping[str, Any]]
         body_default = Body(None)
@@ -827,7 +878,7 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
             )
 
         # Status codes
-        status_code = _status_for(sp.target)
+        status_code = _status_for(sp)
 
         # Capture OUT schema for OpenAPI without enforcing runtime validation
         alias_ns = getattr(getattr(model, "schemas", None), sp.alias, None)
@@ -836,12 +887,16 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
         responses_meta = dict(_RESPONSES_META)
         if out_model is not None and status_code != _status.HTTP_204_NO_CONTENT:
             responses_meta[status_code] = {"model": out_model}
+            response_class = None
+        else:
+            responses_meta[status_code] = {"description": "Successful Response"}
+            response_class = Response
 
         # Attach route
         label = f"{model.__name__} - {sp.alias}"
-        router.add_api_route(
-            path,
-            endpoint,
+        route_kwargs = dict(
+            path=path,
+            endpoint=endpoint,
             methods=methods,
             name=f"{model.__name__}.{sp.alias}",
             summary=label,
@@ -852,6 +907,9 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
             tags=list(sp.tags or (model.__name__,)),
             responses=responses_meta,
         )
+        if response_class is not None:
+            route_kwargs["response_class"] = response_class
+        router.add_api_route(**route_kwargs)
 
         logger.debug(
             "rest: registered %s %s -> %s.%s (response_model=%s)",
