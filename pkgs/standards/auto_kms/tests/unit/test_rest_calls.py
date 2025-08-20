@@ -12,8 +12,23 @@ from autoapi.v3.tables import Base
 @pytest.fixture
 def client(tmp_path, monkeypatch):
     mod1 = types.ModuleType("swarmauri_secret_autogpg")
+    from swarmauri_core.crypto.types import (
+        ExportPolicy,
+        KeyRef,
+        KeyType,
+        KeyUse,
+    )
 
-    class DummySecretDrive: ...
+    class DummySecretDrive:
+        async def load_key(self, *, kid, require_private=False, **_):
+            return KeyRef(
+                kid=str(kid),
+                version=1,
+                type=KeyType.SYMMETRIC,
+                uses=(KeyUse.ENCRYPT,),
+                export_policy=ExportPolicy.PUBLIC_ONLY,
+                material=b"k" * 32,
+            )
 
     mod1.AutoGpgSecretDrive = DummySecretDrive
     sys.modules["swarmauri_secret_autogpg"] = mod1
@@ -21,15 +36,15 @@ def client(tmp_path, monkeypatch):
     mod2 = types.ModuleType("swarmauri_crypto_paramiko")
 
     class DummyCrypto:
-        async def encrypt(self, *, kid, plaintext, alg, aad=None, nonce=None):
+        async def encrypt(self, key, pt, *, alg=None, aad=None, nonce=None):
             from types import SimpleNamespace
 
-            return SimpleNamespace(nonce=b"n", ct=plaintext[::-1], tag=b"t")
+            return SimpleNamespace(
+                nonce=b"n", ct=pt[::-1], tag=b"t", version=1, alg=alg
+            )
 
-        async def decrypt(
-            self, *, kid, ciphertext, nonce, tag=None, aad=None, alg=None
-        ):
-            return ciphertext[::-1]
+        async def decrypt(self, key, ct, *, aad=None):
+            return ct.ct[::-1]
 
     mod2.ParamikoCrypto = DummyCrypto
     sys.modules["swarmauri_crypto_paramiko"] = mod2
@@ -87,7 +102,7 @@ def test_key_replace(client):
     key = _create_key(client)
     payload = {"name": key["name"]}
     res = client.put(f"/kms/Key/{key['id']}", json=payload)
-    assert res.status_code == 422
+    assert res.status_code == 409
 
 
 def test_key_delete(client):
@@ -106,8 +121,8 @@ def test_key_clear(client):
     assert res.json() == []
 
 
-def test_key_encrypt_decrypt_with_ctx_crypto(client):
-    """Encryption should succeed without a request.state.crypto provider."""
+def test_key_encrypt_decrypt_with_paramiko_crypto_interface(client):
+    """Encryption should succeed using a Paramiko-style crypto provider."""
     key = _create_key(client)
     pt = b"hello"
     payload = {"plaintext_b64": base64.b64encode(pt).decode()}
@@ -170,7 +185,7 @@ def test_key_version_replace(client):
     kv = _create_key_version(client, key["id"])
     payload = {"key_id": key["id"], "version": 1, "status": "active"}
     res = client.put(f"/kms/key_version/{kv['id']}", json=payload)
-    assert res.status_code == 422
+    assert res.status_code == 409
 
 
 def test_key_version_delete(client):
