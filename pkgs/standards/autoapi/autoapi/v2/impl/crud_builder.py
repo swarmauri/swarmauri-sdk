@@ -57,6 +57,9 @@ def _flush_or_http(db: Session) -> None:
     _DUP_RE = re.compile(
         r"Key \((?P<col>[^)]+)\)=\((?P<val>[^)]+)\) already exists", re.I
     )
+    _SQLITE_DUP_RE = re.compile(
+        r"UNIQUE constraint failed: (?P<table>[^.]+)\.(?P<col>[^,\s]+)", re.I
+    )
 
     print("_flush_or_http (flush-only) start")
     try:
@@ -67,12 +70,20 @@ def _flush_or_http(db: Session) -> None:
         # Do NOT rollback here; let the outer transaction manager handle it.
         raw = str(exc.orig)
         print(f"IntegrityError encountered during flush: {raw}")
-        if getattr(exc.orig, "pgcode", None) in ("23505",) or "already exists" in raw:
-            m = _DUP_RE.search(raw)
+        if (
+            getattr(exc.orig, "pgcode", None) in ("23505",)
+            or "already exists" in raw
+            or "UNIQUE constraint failed" in raw
+        ):
+            m = _DUP_RE.search(raw) or _SQLITE_DUP_RE.search(raw)
             msg = (
                 f"Duplicate value '{m['val']}' for field '{m['col']}'."
-                if m
-                else "Duplicate key value violates a unique constraint."
+                if m and "val" in m.groupdict()
+                else (
+                    f"Duplicate value for field '{m['col']}'."
+                    if m
+                    else "Duplicate key value violates a unique constraint."
+                )
             )
             http_exc, _, _ = create_standardized_error(
                 409, message=msg, rpc_code=-32099
