@@ -1,7 +1,7 @@
 # autoapi/v3/runtime/atoms/schema/collect_in.py
 from __future__ import annotations
 
-from typing import Any, Dict, Mapping, MutableMapping, Optional, Tuple
+from typing import Any, Dict, Mapping, MutableMapping, Optional
 
 from ... import events as _ev
 
@@ -69,6 +69,13 @@ def run(obj: Optional[object], ctx: Any) -> None:
         f = getattr(col, "field", None)
 
         in_enabled = _bool_attr(io, "in_", "allow_in", "expose_in", default=True)
+        if (
+            in_enabled
+            and storage is not None
+            and getattr(storage, "primary_key", False)
+        ):
+            if not getattr(io, "in_verbs", ()):  # implicit: no inbound verbs specified
+                in_enabled = False
         if not in_enabled:
             # Not accepted on input — skip entirely for inbound schema
             continue
@@ -86,7 +93,9 @@ def run(obj: Optional[object], ctx: Any) -> None:
             "name": field,
             "required": bool(required),
             "virtual": is_virtual,
-            "nullable": nullable if nullable is not None else (None if is_virtual else True),
+            "nullable": nullable
+            if nullable is not None
+            else (None if is_virtual else True),
             "py_type": py_type,
             "alias_in": alias_in,
             "max_length": max_len,
@@ -109,12 +118,14 @@ def run(obj: Optional[object], ctx: Any) -> None:
 # Internals (tolerant to spec shapes)
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
     tmp = getattr(ctx, "temp", None)
     if not isinstance(tmp, dict):
         tmp = {}
         setattr(ctx, "temp", tmp)
     return tmp
+
 
 def _bool_attr(obj: Any, *names: str, default: bool) -> bool:
     for n in names:
@@ -123,6 +134,7 @@ def _bool_attr(obj: Any, *names: str, default: bool) -> bool:
             if isinstance(v, bool):
                 return v
     return default
+
 
 def _py_type_str(field_spec: Any) -> Optional[str]:
     """
@@ -143,11 +155,17 @@ def _py_type_str(field_spec: Any) -> Optional[str]:
             return str(t)
     return None
 
+
 def _max_len(colspec: Any) -> Optional[int]:
     """
     Try to detect a maximum length for inbound strings (ColumnSpec/FieldSpec/IOSpec hints).
     """
-    for obj in (colspec, getattr(colspec, "field", None), getattr(colspec, "io", None), getattr(colspec, "storage", None)):
+    for obj in (
+        colspec,
+        getattr(colspec, "field", None),
+        getattr(colspec, "io", None),
+        getattr(colspec, "storage", None),
+    ):
         if obj is None:
             continue
         for name in ("max_length", "max_len", "length", "size"):
@@ -155,6 +173,7 @@ def _max_len(colspec: Any) -> Optional[int]:
             if isinstance(v, int) and v > 0:
                 return v
     return None
+
 
 def _infer_in_alias(field: str, colspec: Any) -> Optional[str]:
     """
@@ -169,6 +188,7 @@ def _infer_in_alias(field: str, colspec: Any) -> Optional[str]:
             if isinstance(val, str) and val:
                 return val
     return None
+
 
 def _required_for_inbound(
     op: Optional[str],
@@ -216,11 +236,21 @@ def _required_for_inbound(
         s = getattr(colspec, "storage", None)
         if s is not None:
             # nullable=False implies required unless a server-side value exists
-            non_nullable = (nullable is False)
-            has_server = any(bool(getattr(s, name, None)) for name in (
-                "server_default", "server_onupdate", "computed", "sa_computed", "onupdate",
-                "identity", "sequence", "autoincrement",
-            ))
+            non_nullable = nullable is False
+            has_server = any(
+                bool(getattr(s, name, None))
+                for name in (
+                    "default",
+                    "server_default",
+                    "server_onupdate",
+                    "computed",
+                    "sa_computed",
+                    "onupdate",
+                    "identity",
+                    "sequence",
+                    "autoincrement",
+                )
+            )
             has_factory = callable(getattr(colspec, "default_factory", None))
             if non_nullable and not has_server and not has_factory:
                 return True

@@ -255,6 +255,7 @@ def _build_schema(
     # ── PASS 1: table-backed columns only (avoid mapper relationships)
     table = getattr(orm_cls, "__table__", None)
     table_cols: Iterable[Any] = tuple(table.columns) if table is not None else ()
+    specs = getattr(orm_cls, "__autoapi_cols__", {})
 
     for col in table_cols:
         attr_name = col.key or col.name
@@ -263,6 +264,13 @@ def _build_schema(
             continue
         if exclude and attr_name in exclude:
             continue
+
+        spec = specs.get(attr_name)
+        io = getattr(spec, "io", None) if spec is not None else None
+        if verb in {"create", "update", "replace"}:
+            allowed_verbs = getattr(io, "in_verbs", ()) if io is not None else ()
+            if verb not in set(allowed_verbs):
+                continue
 
         # Column.info["autoapi"]
         meta_src = getattr(col, "info", {}) or {}
