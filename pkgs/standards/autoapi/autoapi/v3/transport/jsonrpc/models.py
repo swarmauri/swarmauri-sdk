@@ -6,6 +6,11 @@ from uuid import UUID, uuid4
 from pydantic import BaseModel, Field
 
 
+def _uuid_examples(schema: dict[str, Any]) -> None:
+    """Populate schema examples with a random UUID."""
+    schema["examples"] = [str(uuid4())]
+
+
 class RPCRequest(BaseModel):
     """JSON-RPC 2.0 request envelope."""
 
@@ -14,7 +19,7 @@ class RPCRequest(BaseModel):
     params: dict[str, Any] = Field(default_factory=dict)
     id: UUID | None = Field(
         default_factory=uuid4,
-        examples=[uuid4()],
+        json_schema_extra=_uuid_examples,
     )
 
 
@@ -32,5 +37,5 @@ class RPCResponse(BaseModel):
     error: RPCError | None = None
     id: UUID | None = Field(
         default=None,
-        examples=[uuid4()],
+        json_schema_extra=_uuid_examples,
     )
