@@ -1,22 +1,30 @@
 from __future__ import annotations
 
+import base64
+from uuid import UUID
+
+import secrets
+from fastapi import HTTPException
+from sqlalchemy.orm import Mapped
+
+from autoapi.v3.decorators import hook_ctx
+from autoapi.v3.mixins import GUIDPk, Timestamped
+from autoapi.v3.specs import IO, F, S, acol
+from autoapi.v3.specs.io_spec import Pair
+from autoapi.v3.specs.storage_spec import ForeignKeySpec
+from autoapi.v3.tables import Base
 from autoapi.v3.types import (
     Integer,
     LargeBinary,
+    PgUUID,
     SAEnum,
     UniqueConstraint,
     relationship,
-    PgUUID,
 )
-from sqlalchemy.orm import Mapped
-from uuid import UUID
-from autoapi.v3.tables import Base
-from autoapi.v3.mixins import GUIDPk, Timestamped
-from autoapi.v3.specs import acol, S, IO, F
-from autoapi.v3.specs.storage_spec import ForeignKeySpec
-from autoapi.v3.decorators import hook_ctx
+from swarmauri_core.crypto.types import ExportPolicy, KeyType, KeyUse
 
 from ..utils import b64d
+from .key import Key, KeyAlg
 
 
 class KeyVersion(Base, GUIDPk, Timestamped):
@@ -60,24 +68,29 @@ class KeyVersion(Base, GUIDPk, Timestamped):
         io=IO(in_verbs=("create",), out_verbs=("read", "list")),
     )
 
-    public_material: Mapped[bytes | memoryview | None] = acol(
-        storage=S(type_=LargeBinary, nullable=True),
-        io=IO(alias_in="public_material_b64", in_verbs=("create", "update")),
-    )
+    def _pm_make(ctx):
+        payload = ctx.get("payload") or {}
+        raw = payload.get("public_material_b64")
+        stored = b64d(raw) if raw is not None else None
+        return Pair(raw=raw, stored=stored)
 
-    @hook_ctx(ops=("create", "update"), phase="PRE_FLUSH")
-    def _decode_material(cls, ctx):
-        p = ctx.get("payload") or {}
-        raw = p.get("public_material_b64")
-        if raw is not None:
-            ctx["object"].public_material = b64d(raw)
+    public_material_spec = acol(
+        storage=S(type_=LargeBinary, nullable=True),
+        io=IO().paired(
+            _pm_make,
+            alias="public_material_b64",
+            verbs=("create", "update"),
+        ),
+    )
+    object.__setattr__(public_material_spec, "paired", True)
+    public_material: Mapped[bytes | memoryview | None] = public_material_spec
 
     key = relationship("Key", back_populates="versions", lazy="joined")
 
     @hook_ctx(ops="create", phase="PRE_HANDLER")
     async def _generate_material(cls, ctx):
         payload = ctx.setdefault("payload", {})
-        if payload.get("public_material") is not None:
+        if payload.get("public_material_b64") is not None:
             return
         secrets_drv = ctx.get("secrets")
         if secrets_drv is None:
@@ -102,19 +115,4 @@ class KeyVersion(Base, GUIDPk, Timestamped):
             material=material,
             export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
         )
-        # Persist the generated key material on the version so that downstream
-        # crypto providers that require direct material access can operate.
-        # This mirrors the behavior during initial key creation where the
-        # material is stored with the primary version. Without this assignment
-        # the database row ends up with ``public_material`` as ``NULL``,
-        # triggering "Key material missing" errors during encrypt/decrypt
-        # operations when the provider expects the material to be present on the
-        # key version record.
-        payload["public_material"] = material
-
-    @hook_ctx(ops="create", phase="POST_HANDLER")
-    async def _scrub_material(cls, ctx):
-        """Remove raw key material from the response payload."""
-        obj = ctx.get("result")
-        if obj is not None:
-            obj.public_material = None
+        payload["public_material_b64"] = base64.b64encode(material).decode()
