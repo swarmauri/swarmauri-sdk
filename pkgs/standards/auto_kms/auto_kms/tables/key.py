@@ -176,7 +176,7 @@ class Key(Base):
     )
     async def encrypt(cls, ctx):
         import base64
-        from ..utils import b64d, b64d_optional
+        from ..utils import b64d
 
         p = ctx.get("payload") or {}
         crypto = getattr(
@@ -200,7 +200,7 @@ class Key(Base):
                 status_code=400, detail="Invalid base64 encoding for nonce_b64"
             ) from exc
         try:
-            pt = base64.b64decode(p["plaintext_b64"])
+            pt = b64d(p["plaintext_b64"])
         except binascii.Error as exc:  # pragma: no cover - defensive
             raise HTTPException(
                 status_code=400, detail="Invalid base64 encoding for plaintext_b64"
@@ -272,7 +272,6 @@ class Key(Base):
     )
     async def decrypt(cls, ctx):
         import base64
-        from ..utils import b64d, b64d_optional
 
         p = ctx.get("payload") or {}
         crypto = getattr(
