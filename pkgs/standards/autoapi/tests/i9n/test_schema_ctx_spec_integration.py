@@ -204,7 +204,7 @@ async def test_schema_ctx_atomz(schema_ctx_client):
     client, _, _, _ = schema_ctx_client
     planz = (await client.get("/system/planz")).json()
     steps = planz["Widget"]["create"]
-    assert "autoapi.v3.core.crud.create" in steps
+    assert "sys:handler:crud@HANDLER" in steps
 
 
 @pytest.mark.i9n
