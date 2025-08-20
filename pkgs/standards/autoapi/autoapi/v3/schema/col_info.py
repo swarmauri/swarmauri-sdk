@@ -131,7 +131,7 @@ def _normalize_read_only(ro: Any, *, model: str, attr: str):
 def _normalize_disable_on(disable_on: Any, *, model: str, attr: str) -> frozenset[str]:
     if disable_on is None:
         return frozenset()
-    if not isinstance(disable_on, (set, list, tuple)):
+    if not isinstance(disable_on, (set, list, tuple, frozenset)):
         raise _err_ctx(
             model,
             attr,

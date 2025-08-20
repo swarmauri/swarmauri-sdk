@@ -3,7 +3,8 @@ from types import SimpleNamespace
 
 import pytest
 from sqlalchemy import Integer, String
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm.attributes import InstrumentedAttribute
+from autoapi.v3.tables import Base
 
 from autoapi.v3.bindings import (
     api as api_binding,
@@ -21,10 +22,9 @@ from autoapi.v3.runtime import executor as _executor
 from autoapi.v3.specs import shortcuts as sc
 
 
-Base = declarative_base()
-
-
 def _make_model():
+    Base.metadata.clear()
+
     class Item(Base):  # type: ignore[misc]
         __tablename__ = "items"
 
@@ -60,9 +60,7 @@ def test_columns_build_and_attach(model_cls):
     columns_binding.build_and_attach(model_cls)
     assert hasattr(model_cls, "__autoapi_cols__")
     assert "name" in model_cls.__autoapi_cols__
-    from sqlalchemy import Column
-
-    assert isinstance(model_cls.__dict__["name"], Column)
+    assert isinstance(model_cls.__dict__["name"], InstrumentedAttribute)
 
 
 @pytest.mark.i9n
