@@ -38,7 +38,7 @@ from .opspec import (
 )
 
 # ── Ctx-only decorators (new surface; replaces legacy opspec.decorators) ───────
-from .decorators import alias_ctx, op_ctx, hook_ctx, schema_ctx, alias
+from .decorators import alias_ctx, op_ctx, hook_ctx, schema_ctx, alias, op_alias
 
 # ── Bindings (model + API orchestration) ───────────────────────────────────────
 from .bindings import (
@@ -95,6 +95,7 @@ __all__ += [
     "hook_ctx",
     "schema_ctx",
     "alias",
+    "op_alias",
     # Bindings
     "bind",
     "rebind",

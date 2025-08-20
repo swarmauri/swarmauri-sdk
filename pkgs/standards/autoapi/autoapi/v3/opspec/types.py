@@ -175,6 +175,9 @@ class OpSpec:
     request_model: Optional[SchemaArg] = None
     response_model: Optional[SchemaArg] = None
 
+    # Return shaping: "raw" passthrough vs "model" serialization
+    returns: Literal["raw", "model"] = "raw"
+
     # Handler & hooks
     handler: Optional[StepFn] = None
     hooks: Tuple[OpHook, ...] = field(default_factory=tuple)

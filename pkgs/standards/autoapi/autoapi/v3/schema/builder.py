@@ -453,7 +453,10 @@ def _build_list_params(model: type) -> Type[BaseModel]:
             continue
         py_t = getattr(c.type, "python_type", Any)
         if py_t in _scalars:
-            spec = getattr(model, "__autoapi_colspecs__", {}).get(c.name)
+            spec_map = getattr(model, "__autoapi_colspecs__", None) or getattr(
+                model, "__autoapi_cols__", {}
+            )
+            spec = spec_map.get(c.name) if isinstance(spec_map, Mapping) else None
             io = getattr(spec, "io", None)
             ops_raw = set(getattr(io, "filter_ops", ()) or [])
             ops = {_canon.get(op, op) for op in ops_raw}
