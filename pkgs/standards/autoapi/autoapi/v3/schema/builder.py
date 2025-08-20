@@ -28,7 +28,7 @@ from typing import (
     get_type_hints,
 )
 
-from pydantic import BaseModel, ConfigDict, Field, create_model
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, create_model
 
 from .utils import namely_model
 
@@ -320,15 +320,26 @@ def _build_schema(
         py_t = _python_type(col)
         required = _is_required(col, verb)
 
-        # Field construction
+        # Field construction (collect kwargs then create Field once)
+        field_kwargs: Dict[str, Any] = {}
         if "default_factory" in meta:
-            fld = Field(default_factory=meta["default_factory"])
+            field_kwargs["default_factory"] = meta["default_factory"]
             required = False
         else:
-            fld = Field(None if not required else ...)
+            field_kwargs["default"] = None if not required else ...
 
         if "examples" in meta:
-            fld = Field(fld.default, examples=meta["examples"])
+            field_kwargs["examples"] = meta["examples"]
+
+        # IOSpec aliases → Pydantic validation/serialization aliases
+        alias_in = getattr(io, "alias_in", None) if io is not None else None
+        alias_out = getattr(io, "alias_out", None) if io is not None else None
+        if alias_in:
+            field_kwargs["validation_alias"] = AliasChoices(alias_in, attr_name)
+        if alias_out:
+            field_kwargs["serialization_alias"] = alias_out
+
+        fld = Field(**field_kwargs)
 
         # Optional typing if nullable
         is_nullable = bool(getattr(col, "nullable", True))

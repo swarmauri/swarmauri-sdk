@@ -429,6 +429,9 @@ async def _invoke(
         in_tx=False,
         nonfatal=True,
     )
+    # If POST_RESPONSE steps produced a new result, expose it.
+    if ctx.get("result") is not None:
+        ctx.response.result = ctx.get("result")
     # Defensive: ensure the session is not left in a transactional state. Some
     # backends may implicitly begin a new transaction during commit/flush cycles.
     if db is not None and _in_tx(db):
