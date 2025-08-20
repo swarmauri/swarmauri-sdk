@@ -13,6 +13,7 @@ from autoapi.v3.bindings import build_schemas, build_hooks, build_handlers, buil
 
 # REST test client
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
 
 
@@ -50,7 +51,7 @@ class Widget:
         response_schema="raw",  # explicit raw → no serialization
     )
     def ping(cls, ctx):
-        return {"id": "5", "name": "x"}
+        return JSONResponse({"id": "5", "name": "x"})
 
 
 def _build_all(model):

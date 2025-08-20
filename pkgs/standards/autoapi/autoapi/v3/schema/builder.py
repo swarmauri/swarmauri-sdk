@@ -375,6 +375,17 @@ def _build_schema(
         if exclude and attr_name in exclude:
             continue
 
+        io = getattr(spec, "io", None)
+        if include is None:
+            if verb in {"create", "update", "replace", "delete"}:
+                allowed = getattr(io, "in_verbs", None) if io is not None else None
+                if allowed is not None and verb not in set(allowed):
+                    continue
+            else:
+                allowed = getattr(io, "out_verbs", None) if io is not None else None
+                if allowed is not None and verb not in set(allowed):
+                    continue
+
         fs = getattr(spec, "field", None)
         py_t = getattr(fs, "py_type", Any) if fs is not None else Any
         required = bool(fs and verb in getattr(fs, "required_in", ()))

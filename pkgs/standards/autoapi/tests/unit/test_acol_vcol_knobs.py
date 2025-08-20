@@ -57,6 +57,9 @@ def test_acol_vcol_knobs_affect_bindings_and_schemas():
     assert schema_in["by_field"]["nickname"]["required"] is False
     assert schema_in["by_field"]["nickname"]["virtual"] is True
 
+    create_fields = set(Thing.schemas.create.in_.model_fields.keys())
+    assert "slug" not in create_fields
+
     # openapi response schema via collect_out
     ctx_out = SimpleNamespace(specs=specs, op="read", temp={})
     collect_out.run(None, ctx_out)
