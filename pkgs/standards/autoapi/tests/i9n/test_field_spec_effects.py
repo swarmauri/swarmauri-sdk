@@ -75,7 +75,7 @@ async def test_field_spec_column_length(fs_app):
 @pytest.mark.asyncio
 async def test_field_spec_rest_required(fs_app):
     client, _, _, _ = fs_app
-    resp = await client.post("/fsitem/fsitem", json={})
+    resp = await client.post("/fsitem", json={})
     assert resp.status_code == 422
 
 
@@ -83,9 +83,9 @@ async def test_field_spec_rest_required(fs_app):
 @pytest.mark.asyncio
 async def test_field_spec_allow_null_update(fs_app):
     client, _, SessionLocal, FSItem = fs_app
-    create = await client.post("/fsitem/fsitem", json={"name": "ok"})
+    create = await client.post("/fsitem", json={"name": "ok"})
     item_id = create.json()["id"]
-    upd = await client.patch(f"/fsitem/fsitem/{item_id}", json={"name": None})
+    upd = await client.patch(f"/fsitem/{item_id}", json={"name": None})
     assert upd.status_code == 422
 
 

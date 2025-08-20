@@ -612,9 +612,7 @@ def _make_collection_endpoint(
     # --- Body-based collection endpoints: create / bulk_* ---
 
     body_model = _request_model_for(sp, model)
-    body_annotation = (
-        body_model | Mapping[str, Any] if body_model is not None else Mapping[str, Any]
-    )
+    body_annotation = body_model if body_model is not None else Mapping[str, Any]
 
     async def _endpoint(
         request: Request,
@@ -707,9 +705,7 @@ def _make_member_endpoint(
     # --- Body-based member endpoints: PATCH update / PUT replace (and custom member) ---
 
     body_model = _request_model_for(sp, model)
-    body_annotation = (
-        body_model | Mapping[str, Any] if body_model is not None else Mapping[str, Any]
-    )
+    body_annotation = body_model if body_model is not None else Mapping[str, Any]
 
     async def _endpoint(
         item_id: Any,
