@@ -314,10 +314,10 @@ def _normalize_deps(deps: Optional[Sequence[Any]]) -> list[Any]:
 
 def _status_for(target: str) -> int:
     if target == "create":
-        # Historically AutoAPI returned 200 for create operations.  The v3 router
-        # switched to 201 (Created), which broke backward-compat expectations and
-        # existing tests.  Align with legacy behaviour by defaulting to 200.
-        return _status.HTTP_200_OK
+        # Creating resources should use HTTP 201 (Created).
+        # Earlier revisions defaulted to 200 for backward compatibility, but
+        # the integration tests rely on the standard 201 code.
+        return _status.HTTP_201_CREATED
     if target in ("delete", "clear"):
         return _status.HTTP_204_NO_CONTENT
     return _status.HTTP_200_OK
@@ -819,6 +819,14 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
         # Status codes
         status_code = _status_for(sp.target)
 
+        # Capture OUT schema for OpenAPI without enforcing runtime validation
+        alias_ns = getattr(getattr(model, "schemas", None), sp.alias, None)
+        out_model = getattr(alias_ns, "out", None) if alias_ns else None
+
+        responses_meta = dict(_RESPONSES_META)
+        if out_model is not None and status_code != _status.HTTP_204_NO_CONTENT:
+            responses_meta[status_code] = {"model": out_model}
+
         # Attach route
         label = f"{model.__name__} - {sp.alias}"
         router.add_api_route(
@@ -832,7 +840,7 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
             status_code=status_code,
             # IMPORTANT: only class name here; never table name
             tags=list(sp.tags or (model.__name__,)),
-            responses=_RESPONSES_META,
+            responses=responses_meta,
         )
 
         logger.debug(
