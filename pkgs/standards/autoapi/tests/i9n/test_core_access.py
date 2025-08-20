@@ -267,8 +267,8 @@ class TestApiCore:
                     api.core.CoreTestUser.create(duplicate_schema, db)
                     db.flush()
 
-        # SQLite returns 422 for constraint violations, PostgreSQL returns 409
-        assert exc_info.value.status_code in (409, 422)
+        # Constraint violations should surface as HTTP 409
+        assert exc_info.value.status_code == 409
 
     def test_sync_core_manual_transaction_rollback(self, sync_api):
         """Test manual transaction rollback with api.core and schema validation."""
@@ -556,8 +556,8 @@ class TestCoreRawEdgeCases:
                 )
                 db.commit()  # This should trigger the constraint violation
 
-        # SQLite returns 422 for constraint violations, PostgreSQL returns 409
-        assert exc_info.value.status_code in (409, 422)
+        # Constraint violations should surface as HTTP 409
+        assert exc_info.value.status_code == 409
 
 
 class TestCoreVsCoreRawComparison:
