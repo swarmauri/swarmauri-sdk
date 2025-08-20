@@ -16,13 +16,13 @@ from typing import (
 import builtins as _builtins
 
 try:
-    from sqlalchemy import select, delete, and_, asc, desc, Enum as SAEnum
+    from sqlalchemy import select, delete as sa_delete, and_, asc, desc, Enum as SAEnum
     from sqlalchemy.orm import Session
     from sqlalchemy.ext.asyncio import AsyncSession
     from sqlalchemy.orm.exc import NoResultFound  # type: ignore
 except Exception:  # pragma: no cover
     # Minimal shims so type-checkers don't explode if SQLAlchemy isn't present at import
-    select = delete = and_ = asc = desc = None  # type: ignore
+    select = sa_delete = and_ = asc = desc = None  # type: ignore
     SAEnum = None  # type: ignore
     Session = object  # type: ignore
     AsyncSession = object  # type: ignore
@@ -228,6 +228,15 @@ async def _maybe_flush(db: Union[Session, AsyncSession]) -> None:
         await db.flush()  # type: ignore[attr-defined]
     else:
         db.flush()  # type: ignore[attr-defined]
+
+
+async def _maybe_delete(db: Union[Session, AsyncSession], obj: Any) -> None:
+    if not hasattr(db, "delete"):
+        return
+    if _is_async_db(db):
+        await db.delete(obj)  # type: ignore[attr-defined]
+    else:
+        db.delete(obj)  # type: ignore[attr-defined]
 
 
 def _set_attrs(
@@ -510,8 +519,7 @@ async def delete(
     Flush-only.
     """
     obj = await read(model, ident, db)
-    if hasattr(db, "delete"):
-        db.delete(obj)  # type: ignore[attr-defined]
+    await _maybe_delete(db, obj)
     await _maybe_flush(db)
     return {"deleted": 1}
 
@@ -577,19 +585,19 @@ async def clear(
     raw_filters: Mapping[str, Any] = params["filters"]
     db: Union[Session, AsyncSession] = params["db"]
 
-    if delete is None:  # pragma: no cover
+    if sa_delete is None:  # pragma: no cover
         # Fallback path: manual iteration
         items = await list(model, raw_filters, db=db)
         n = 0
         for obj in items:
-            db.delete(obj)  # type: ignore[attr-defined]
+            await _maybe_delete(db, obj)
             n += 1
         await _maybe_flush(db)
         return {"deleted": n}
 
     filt = _coerce_filters(model, raw_filters)
     where = _apply_equality_filters(model, filt)
-    stmt = delete(model)
+    stmt = sa_delete(model)
     if where is not None:
         stmt = stmt.where(where)
 
@@ -689,9 +697,9 @@ async def bulk_delete(
         return {"deleted": 0}
 
     # Prefer DELETE ... WHERE pk IN (...)
-    if delete is not None:
+    if sa_delete is not None:
         col = getattr(model, pk_name)
-        stmt = delete(model).where(col.in_(id_seq))  # type: ignore[attr-defined]
+        stmt = sa_delete(model).where(col.in_(id_seq))  # type: ignore[attr-defined]
         res = await _maybe_execute(db, stmt)
         await _maybe_flush(db)
         n = int(getattr(res, "rowcount", 0) or 0)
@@ -701,7 +709,7 @@ async def bulk_delete(
     n = 0
     for ident in id_seq:
         obj = await read(model, ident, db)
-        db.delete(obj)  # type: ignore[attr-defined]
+        await _maybe_delete(db, obj)
         n += 1
     await _maybe_flush(db)
     return {"deleted": n}
