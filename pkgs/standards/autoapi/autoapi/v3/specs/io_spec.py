@@ -1,10 +1,10 @@
 # --- io_spec.py --------------------------------------------------------------
 from dataclasses import dataclass, replace
-from typing import Callable, Tuple
+from typing import Callable, Tuple, Literal
 from .field_spec import FieldSpec as F
-
+1
 @dataclass(frozen=True)
-class PairedCfg:
+class _PairedCfg:
     gen: Callable[[dict], object]                 # ctx -> raw
     store: Callable[[object, dict], object]       # (raw, ctx) -> stored
     alias: str
@@ -14,12 +14,12 @@ class PairedCfg:
     mask_last: int | None
 
 @dataclass(frozen=True)
-class AssembleCfg:
+class _AssembleCfg:
     sources: Tuple[str, ...]
     fn: Callable[[dict, dict], object]            # (payload, ctx) -> stored
 
 @dataclass(frozen=True)
-class ReadtimeAlias:
+class _ReadtimeAlias:
     name: str
     fn: Callable[[object, dict], object]          # (obj, ctx) -> alias value
     verbs: Tuple[str, ...]
@@ -52,8 +52,8 @@ class IOSpec:
 
     def assemble(self, sources, fn): ...
     def paired(self, make, *, alias, verbs=("create",), emit: EmitPoint="pre_flush",
-               alias_field: FieldSpec=FieldSpec(py_type=str), mask_last: int | None=None): ...
+               alias_field: F=F(py_type=str), mask_last: int | None=None): ...
     def alias_readtime(self, name, fn, *, verbs=("read","list"),
-                       alias_field: FieldSpec=FieldSpec(py_type=str), mask_last: int | None=None): ...
+                       alias_field: F=F(py_type=str), mask_last: int | None=None): ...
 
 

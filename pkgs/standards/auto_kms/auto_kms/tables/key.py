@@ -1,230 +1,200 @@
+# auto_kms/tables/key.py
 from __future__ import annotations
+from enum import Enum
+from uuid import UUID, uuid4
+from typing import List, Optional
 
-from typing import Any, Mapping
+from sqlalchemy import String, Integer, Enum as SAEnum
+from sqlalchemy.orm import Mapped, relationship
 
-from autoapi.v3.types import Column, String, SAEnum, Integer, relationship, HookProvider
-from autoapi.v3.decorators import op_ctx
-from autoapi.v3.opspec import SchemaRef
 from autoapi.v3.tables import Base
-from autoapi.v3.mixins import GUIDPk, Timestamped
-from swarmauri_core.crypto.types import AEADCiphertext, WrappedKey
+from autoapi.v3.specs import acol, vcol, S, F, IO
+from autoapi.v3.decorators import schema_ctx, hook_ctx, op_ctx
+from autoapi.v3.opspec.types import SchemaRef
+from fastapi import HTTPException
+from pydantic import BaseModel, Field
 
+# Prefer PG UUID type class; fall back to String class
+try:
+    from sqlalchemy.dialects.postgresql import UUID as PGUUID
+    _UUID_TYPE = PGUUID          # type CLASS (binder instantiates)
+except Exception:
+    _UUID_TYPE = String          # type CLASS
 
-class Key(Base, GUIDPk, Timestamped, HookProvider):
+class KeyAlg(str, Enum):
+    AES256_GCM = "AES256_GCM"
+    CHACHA20_POLY1305 = "CHACHA20_POLY1305"
+    RSA2048 = "RSA2048"
+    RSA3072 = "RSA3072"
+
+class KeyStatus(str, Enum):
+    enabled = "enabled"
+    disabled = "disabled"
+
+class Key(Base):
     __tablename__ = "keys"
-    __resource__ = "key"
+    __allow_unmapped__ = True   # allow vcol attributes
 
-    name = Column(String(120), nullable=False, index=True)
-    algorithm = Column(SAEnum("AES256_GCM", name="KeyAlg", native_enum=True, validate_strings=True, create_constraint=True), nullable=False)
+    # Persisted columns (py_type inferred from annotation; SA dtype via StorageSpec.type_)
+    id: Mapped[UUID] = acol(
+        storage=S(type_=_UUID_TYPE, primary_key=True, index=True, nullable=False, default=uuid4),
+        io=IO(out_verbs=("read", "list"), sortable=True),
+    )
 
-    status = Column(SAEnum("enabled", name="KeyStatus"), nullable=False)
-    primary_version = Column(Integer, default=1, nullable=False)
+    name: Mapped[str] = acol(
+        storage=S(type_=String, unique=True, index=True, nullable=False),
+        field=F(constraints={"max_length": 120}, required_in=("create",)),
+        io=IO(in_verbs=("create", "update", "replace"),
+              out_verbs=("read", "list"),
+              sortable=True, filter_ops=("eq", "ilike")),
+    )
 
-    versions = relationship("KeyVersion", back_populates="key", lazy="selectin")
+    # in Key model, for enums:
+    algorithm = acol(
+        storage=S(type_=SAEnum, nullable=False),
+        field=F(py_type=KeyAlg, required_in=("create",)),   # <— explicit
+        io=IO(in_verbs=("create",), out_verbs=("read","list")),
+    )
+    status = acol(
+        storage=S(type_=SAEnum, nullable=False, default=KeyStatus.enabled),
+        field=F(py_type=KeyStatus),                         # <— explicit
+        io=IO(in_verbs=("update",), out_verbs=("read","list"), filter_ops=("eq",), sortable=True),
+    )
 
-    @classmethod
-    def _params(cls, ctx) -> Mapping[str, Any]:
-        """Extract parameters from context."""
-        from ..utils import params
 
-        return params(ctx)
+    primary_version: Mapped[int] = acol(
+        storage=S(type_=Integer, nullable=False, default=1),
+        io=IO(out_verbs=("read", "list")),  # read-only exposure
+    )
 
-    # -------------------- Custom KMS operations (ctx-only v3 ops) --------------------
-    # Each op receives only (cls, ctx) and request_schema raw dicts. Persistence is
-    # explicit via `persist`: "write" for mutating ops, "none" for crypto ops.
+    # Relationship
+    versions: Mapped[List["KeyVersion"]] = relationship(
+        back_populates="key", lazy="selectin", cascade="all, delete-orphan"
+    )
 
-    @op_ctx(target="create", request_schema=SchemaRef("create","in"), alias="create", arity="collection", persist="write")
-    async def create_op(cls, ctx):
-        from ..utils import (
-            coerce_key_type_from_params,
-            coerce_uses_from_params,
-            coerce_export_policy,
-            asdict_desc,
-        )
+    # Virtual (wire-only)
+    kid: str = vcol(
+        io=IO(out_verbs=("read", "list")),
+        read_producer=lambda obj, ctx: str(getattr(obj, "id", "")),
+    )
 
-        p = cls._params(ctx)
-        sd = ctx["_kms_secrets"]
-        desc = await sd.store_key(
-            key_type=coerce_key_type_from_params(p),
-            uses=coerce_uses_from_params(p),
-            name=p.get("name"),
-            material=None,
-            export_policy=coerce_export_policy(p.get("export_policy")),
-            tags=p.get("tags"),
-        )
-        return asdict_desc(desc)
+    # IMPORTANT: expose a spec map so the binder always finds your specs
+    __autoapi_cols__ = {
+        "id": id,
+        "name": name,
+        "algorithm": algorithm,
+        "status": status,
+        "primary_version": primary_version,
+        "kid": kid,  # storage=None → virtual
+    }
 
-    @op_ctx(alias="rotate", arity="member", persist="write", request_schema="raw")
-    async def rotate(cls, ctx):
-        from ..utils import auth_tenant_from_ctx, asdict_desc
+    # ---- Schemas (for ops) ----
+    @schema_ctx(alias="Encrypt", kind="in")
+    class EncryptIn(BaseModel):
+        plaintext_b64: str = Field(..., description="Base64 plaintext")
+        aad_b64: Optional[str] = None
+        nonce_b64: Optional[str] = None
+        alg: Optional[KeyAlg] = None
 
-        p = cls._params(ctx)
-        sd = ctx["_kms_secrets"]
-        desc = await sd.rotate(
-            kid=p["kid"],
-            material=None,
-            make_primary=bool(p.get("make_primary", True)),
-            tags=p.get("tags"),
-            tenant=auth_tenant_from_ctx(ctx),
-        )
-        return asdict_desc(desc)
+    @schema_ctx(alias="Encrypt", kind="out")
+    class EncryptOut(BaseModel):
+        kid: str
+        version: int
+        alg: KeyAlg
+        nonce_b64: str
+        ciphertext_b64: str
+        tag_b64: Optional[str] = None
+        aad_b64: Optional[str] = None
 
-    @op_ctx(alias="disable", arity="member", persist="write", request_schema="raw")
-    async def disable(cls, ctx):
-        from ..utils import auth_tenant_from_ctx, asdict_desc
+    @schema_ctx(alias="Decrypt", kind="in")
+    class DecryptIn(BaseModel):
+        ciphertext_b64: str
+        nonce_b64: str
+        tag_b64: Optional[str] = None
+        aad_b64: Optional[str] = None
+        alg: Optional[KeyAlg] = None
 
-        p = cls._params(ctx)
-        sd = ctx["_kms_secrets"]
-        desc = await sd.set_state(
-            kid=p["kid"], state="disabled", tenant=auth_tenant_from_ctx(ctx)
-        )
-        return asdict_desc(desc)
+    @schema_ctx(alias="Decrypt", kind="out")
+    class DecryptOut(BaseModel):
+        plaintext_b64: str
 
-    @op_ctx(alias="encrypt", arity="member", persist="none", request_schema="raw")
+    # ---- Hook: ensure key exists & enabled ----
+    @hook_ctx(ops=("encrypt", "decrypt"), phase="PRE_HANDLER")
+    async def _ensure_key_enabled(cls, ctx):
+        pp = ctx.get("path_params") or {}
+        ident = pp.get("id") or pp.get("item_id")
+        if not ident:
+            raise HTTPException(status_code=400, detail="Missing key identifier")
+        try:
+            ident = ident if isinstance(ident, UUID) else UUID(str(ident))
+        except Exception:
+            raise HTTPException(status_code=422, detail="Invalid UUID for key id")
+
+        db = ctx.get("db")
+        if db is None:
+            raise HTTPException(status_code=500, detail="DB session missing")
+        # works with sync or async session
+        getter = getattr(db, "get", None)
+        obj = await getter(cls, ident) if callable(getter) and getattr(getter, "__code__", None) and getter.__code__.co_flags & 0x80 else db.get(cls, ident)
+        if obj is None:
+            raise HTTPException(status_code=404, detail="Key not found")
+        if obj.status == KeyStatus.disabled:
+            raise HTTPException(status_code=403, detail="Key is disabled")
+        ctx["key"] = obj
+
+    # ---- Ops: ctx-only crypto (no DB writes) ----
+    @op_ctx(
+        alias="encrypt",
+        target="custom",
+        arity="member",  # /key/{item_id}/encrypt
+        persist="skip",
+        request_schema=SchemaRef("Encrypt", "in"),
+        response_schema=SchemaRef("Encrypt", "out"),
+    )
     async def encrypt(cls, ctx):
-        from ..utils import b64e, b64d, b64d_optional, auth_tenant_from_ctx
+        import base64
+        p = ctx.get("payload") or {}
+        crypto = getattr(getattr(ctx.get("request"), "state", object()), "crypto", None) or ctx.get("crypto")
+        if crypto is None:
+            raise HTTPException(status_code=500, detail="Crypto provider missing")
 
-        p = cls._params(ctx)
-        sd = ctx["_kms_secrets"]
-        cp = ctx["_kms_crypto"]
-        key = await sd.load_key(
-            kid=p["kid"],
-            version=p.get("version"),
-            require_private=False,
-            tenant=auth_tenant_from_ctx(ctx),
-        )
-        ct = await cp.encrypt(
-            key,
-            b64d(p["plaintext_b64"]),
-            alg=p.get("alg"),
-            aad=b64d_optional(p.get("aad_b64")),
-            nonce=b64d_optional(p.get("nonce_b64")),
-        )
+        aad   = base64.b64decode(p["aad_b64"])   if p.get("aad_b64")   else None
+        nonce = base64.b64decode(p["nonce_b64"]) if p.get("nonce_b64") else None
+        pt    = base64.b64decode(p["plaintext_b64"])
+        kid   = str(ctx["key"].id)
+
+        res = await crypto.encrypt(kid=kid, plaintext=pt, alg=p.get("alg") or ctx["key"].algorithm, aad=aad, nonce=nonce)
         return {
-            "kid": ct.kid,
-            "version": ct.version,
-            "alg": ct.alg,
-            "nonce_b64": b64e(ct.nonce),
-            "ciphertext_b64": b64e(ct.ct),
-            "tag_b64": b64e(ct.tag),
-            **({"aad_b64": b64e(ct.aad)} if ct.aad else {}),
+            "kid": kid,
+            "version": getattr(res, "version", ctx["key"].primary_version),
+            "alg": getattr(res, "alg", ctx["key"].algorithm),
+            "nonce_b64":      base64.b64encode(getattr(res, "nonce")).decode(),
+            "ciphertext_b64": base64.b64encode(getattr(res, "ct")).decode(),
+            "tag_b64": (base64.b64encode(getattr(res, "tag")).decode()
+                        if getattr(res, "tag", None) else None),
+            "aad_b64": p.get("aad_b64"),
         }
 
-    @op_ctx(alias="decrypt", arity="member", persist="none", request_schema="raw")
+    @op_ctx(
+        alias="decrypt",
+        target="custom",
+        arity="member",  # /key/{item_id}/decrypt
+        persist="skip",
+        request_schema=SchemaRef("Decrypt", "in"),
+        response_schema=SchemaRef("Decrypt", "out"),
+    )
     async def decrypt(cls, ctx):
-        from ..utils import b64e, b64d, b64d_optional, auth_tenant_from_ctx
+        import base64
+        p = ctx.get("payload") or {}
+        crypto = getattr(getattr(ctx.get("request"), "state", object()), "crypto", None) or ctx.get("crypto")
+        if crypto is None:
+            raise HTTPException(status_code=500, detail="Crypto provider missing")
 
-        p = cls._params(ctx)
-        sd = ctx["_kms_secrets"]
-        cp = ctx["_kms_crypto"]
-        key = await sd.load_key(
-            kid=p["kid"],
-            version=p.get("version"),
-            require_private=True,
-            tenant=auth_tenant_from_ctx(ctx),
-        )
-        ct = AEADCiphertext(
-            kid=p["kid"],
-            version=p.get("version") or key.version,
-            alg=p.get("alg") or "",
-            nonce=b64d(p["nonce_b64"]),
-            ct=b64d(p["ciphertext_b64"]),
-            tag=b64d(p["tag_b64"]),
-            aad=b64d_optional(p.get("aad_b64")),
-        )
-        pt = await cp.decrypt(key, ct, aad=ct.aad)
-        return {"kid": key.kid, "version": key.version, "plaintext_b64": b64e(pt)}
+        aad = base64.b64decode(p["aad_b64"]) if p.get("aad_b64") else None
+        nonce = base64.b64decode(p["nonce_b64"])
+        ct = base64.b64decode(p["ciphertext_b64"])
+        tag = base64.b64decode(p["tag_b64"]) if p.get("tag_b64") else None
+        kid = str(ctx["key"].id)
 
-    @op_ctx(alias="wrap", arity="member", persist="none", request_schema="raw")
-    async def wrap(cls, ctx):
-        from ..utils import b64e, b64d_optional, auth_tenant_from_ctx
-
-        p = cls._params(ctx)
-        sd = ctx["_kms_secrets"]
-        cp = ctx["_kms_crypto"]
-        kek = await sd.load_key(
-            kid=p["kid"],
-            version=p.get("version"),
-            require_private=True,
-            tenant=auth_tenant_from_ctx(ctx),
-        )
-        wrapped = await cp.wrap(
-            kek,
-            dek=b64d_optional(p.get("dek_b64")),
-            wrap_alg=p.get("wrap_alg"),
-            nonce=b64d_optional(p.get("nonce_b64")),
-        )
-        return {
-            "kek_kid": wrapped.kek_kid,
-            "kek_version": wrapped.kek_version,
-            "wrap_alg": wrapped.wrap_alg,
-            "wrapped_b64": b64e(wrapped.wrapped),
-            **({"nonce_b64": b64e(wrapped.nonce)} if wrapped.nonce else {}),
-        }
-
-    @op_ctx(alias="unwrap", arity="member", persist="none", request_schema="raw")
-    async def unwrap(cls, ctx):
-        from ..utils import b64e, b64d, b64d_optional, auth_tenant_from_ctx
-
-        p = cls._params(ctx)
-        sd = ctx["_kms_secrets"]
-        cp = ctx["_kms_crypto"]
-        kek = await sd.load_key(
-            kid=p["kid"],
-            version=p.get("version"),
-            require_private=True,
-            tenant=auth_tenant_from_ctx(ctx),
-        )
-        wrapped = WrappedKey(
-            kek_kid=kek.kid,
-            kek_version=kek.version,
-            wrap_alg=p.get("wrap_alg") or "",
-            nonce=b64d_optional(p.get("nonce_b64")),
-            wrapped=b64d(p["wrapped_b64"]),
-        )
-        dek = await cp.unwrap(kek, wrapped)
-        return {"kek_kid": kek.kid, "kek_version": kek.version, "dek_b64": b64e(dek)}
-
-    @op_ctx(alias="encrypt_for_many", arity="member", persist="none", request_schema="raw")
-    async def encrypt_for_many(cls, ctx):
-        from ..utils import b64e, b64d, b64d_optional, auth_tenant_from_ctx
-
-        p = cls._params(ctx)
-        sd = ctx["_kms_secrets"]
-        cp = ctx["_kms_crypto"]
-        t = auth_tenant_from_ctx(ctx)
-        recs = []
-        for r in p.get("recipients", []):
-            recs.append(
-                await sd.load_key(
-                    kid=r["kid"],
-                    version=r.get("version"),
-                    require_private=False,
-                    tenant=t,
-                )
-            )
-        env = await cp.encrypt_for_many(
-            recs,
-            b64d(p["plaintext_b64"]),
-            enc_alg=p.get("enc_alg"),
-            recipient_wrap_alg=p.get("recipient_wrap_alg"),
-            aad=b64d_optional(p.get("aad_b64")),
-            nonce=b64d_optional(p.get("nonce_b64")),
-        )
-        return {
-            "enc_alg": env.enc_alg,
-            "nonce_b64": b64e(env.nonce),
-            "ciphertext_b64": b64e(env.ct),
-            "tag_b64": b64e(env.tag),
-            "recipients": [
-                {
-                    "kid": ri.kid,
-                    "version": ri.version,
-                    "wrap_alg": ri.wrap_alg,
-                    "wrapped_key_b64": b64e(ri.wrapped_key),
-                    **({"nonce_b64": b64e(ri.nonce)} if ri.nonce else {}),
-                }
-                for ri in env.recipients
-            ],
-            **({"aad_b64": b64e(env.aad)} if env.aad else {}),
-        }
+        pt = await crypto.decrypt(kid=kid, ciphertext=ct, nonce=nonce, tag=tag, aad=aad, alg=p.get("alg"))
+        return {"plaintext_b64": base64.b64encode(pt).decode()}

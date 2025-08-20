@@ -21,3 +21,5 @@ class FieldSpec:
     # Request policy (DB nullability lives in StorageSpec.nullable)
     required_in: Tuple[str, ...] = ()
     allow_null_in: Tuple[str, ...] = ()
+
+    

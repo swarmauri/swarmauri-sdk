@@ -2,12 +2,12 @@
 # storage_spec.py (S)
 # ---------------------------------------
 from dataclasses import dataclass
-from typing import Any, Literal
+from typing import Any, Literal, Union
 
 @dataclass(frozen=True)
 class StorageTransform:
-    to_stored: callable | None = None   # (python, ctx) -> python persisted (e.g., hash/encrypt/normalize)
-    from_stored: callable | None = None # (python, ctx) -> python exposed (rare; only if you ever expose stored)
+    to_stored: Union[callable, None] = None   # (python, ctx) -> python persisted (e.g., hash/encrypt/normalize)
+    from_stored: Union[callable, None] = None # (python, ctx) -> python exposed (rare; only if you ever expose stored)
 
 @dataclass(frozen=True)
 class ForeignKeySpec:

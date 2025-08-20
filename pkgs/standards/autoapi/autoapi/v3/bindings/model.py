@@ -24,7 +24,7 @@ from . import hooks as _hooks_binding       # normalize_and_attach(model, specs,
 from . import handlers as _handlers_binding # build_and_attach(model, specs, only_keys=None) -> None
 from . import rpc as _rpc_binding           # register_and_attach(model, specs, only_keys=None) -> None
 from . import rest as _rest_binding         # build_router_and_attach(model, specs, only_keys=None) -> None
-
+from . import columns as _columns_binding
 logger = logging.getLogger(__name__)
 
 # ───────────────────────────────────────────────────────────────────────────────
@@ -166,6 +166,9 @@ def bind(model: type, *, only_keys: Optional[Set[_Key]] = None) -> Tuple[OpSpec,
       tuple of OpSpec (the effective set).
     """
     _ensure_model_namespaces(model)
+    
+    # 0) Columns first
+    _columns_binding.build_and_attach(model)
 
     # 1) Resolve canonical specs (source of truth)
     base_specs: List[OpSpec] = list(resolve_opspecs(model))
