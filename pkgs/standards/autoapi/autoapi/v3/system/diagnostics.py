@@ -134,28 +134,15 @@ def _build_healthz_endpoint(dep: Optional[Callable[..., Any]]):
 def _build_methodz_endpoint(api: Any):
     async def _methodz():
         """Ordered, canonical operation list."""
-        methods: List[Dict[str, Any]] = []
+        methods: List[str] = []
         for model in _model_iter(api):
             mname = getattr(model, "__name__", "Model")
             for sp in _opspecs(model):
                 if not getattr(sp, "expose_rpc", True):
                     continue
-                methods.append(
-                    {
-                        "method": f"{mname}.{sp.alias}",
-                        "model": mname,
-                        "alias": sp.alias,
-                        "target": sp.target,
-                        "arity": sp.arity,
-                        "persist": sp.persist,
-                        "returns": sp.returns,
-                        "routes": bool(getattr(sp, "expose_routes", True)),
-                        "rpc": bool(getattr(sp, "expose_rpc", True)),
-                        "tags": list(getattr(sp, "tags", ()) or (mname,)),
-                    }
-                )
-        methods.sort(key=lambda x: (x["model"], x["alias"]))
-        return {"methods": methods}
+                methods.append(f"{mname}.{sp.alias}")
+        methods.sort()
+        return methods
 
     return _methodz
 
