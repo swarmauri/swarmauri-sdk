@@ -41,7 +41,13 @@ class Gizmo(Base, GUIDPk):
 
 def _make_db():
     engine = create_engine("sqlite:///:memory:")
-    Base.metadata.create_all(engine)
+    # The shared Declarative ``Base`` is cleared in various tests to maintain
+    # isolation.  If another test clears the metadata before this helper runs,
+    # ``Base.metadata.create_all`` would create no tables, leading to runtime
+    # failures.  Creating the tables directly from the model definitions keeps
+    # this helper resilient regardless of prior test side effects.
+    Widget.__table__.create(bind=engine)
+    Gizmo.__table__.create(bind=engine)
     Session = sessionmaker(bind=engine)
     return engine, Session()
 

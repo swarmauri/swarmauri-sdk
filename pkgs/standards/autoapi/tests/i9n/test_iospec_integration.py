@@ -48,7 +48,10 @@ async def widget_setup():
         with SessionLocal() as session:
             yield session
 
-    Base.metadata.create_all(engine)
+    # Other tests may clear ``Base.metadata``, leaving it empty. Creating the
+    # tables directly from the model definitions ensures this fixture remains
+    # functional regardless of prior global state.
+    Widget.__table__.create(bind=engine)
 
     app = FastAPI()
     api = AutoAPI(app=app, get_db=get_db)

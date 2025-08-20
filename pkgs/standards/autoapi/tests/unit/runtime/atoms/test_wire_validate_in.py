@@ -3,13 +3,15 @@ from types import SimpleNamespace
 import pytest
 
 from autoapi.v3.runtime.atoms.wire import validate_in
+from autoapi.v3.runtime.errors import HTTPException
 
 
 def test_validate_in_missing_required() -> None:
     schema_in = {"by_field": {}, "required": ("name",)}
     ctx = SimpleNamespace(temp={"schema_in": schema_in, "in_values": {}}, specs={})
-    with pytest.raises(ValueError):
+    with pytest.raises(HTTPException) as exc:
         validate_in.run(None, ctx)
+    assert exc.value.status_code == 422
     assert ctx.temp["in_invalid"] is True
 
 
