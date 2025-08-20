@@ -84,7 +84,7 @@ async def test_schema_ctx_columns(schema_ctx_client):
 @pytest.mark.asyncio
 async def test_schema_ctx_default_resolution(schema_ctx_client):
     client, _, _, _ = schema_ctx_client
-    resp = await client.post("/Widget", json={"name": "A"})
+    resp = await client.post("/widget", json={"name": "A"})
     assert resp.status_code == 201
     assert resp.json()["age"] == 5
 
@@ -111,7 +111,7 @@ async def test_schema_ctx_openapi(schema_ctx_client):
 @pytest.mark.asyncio
 async def test_schema_ctx_storage_sqlalchemy(schema_ctx_client):
     client, _, Widget, sessionmaker = schema_ctx_client
-    resp = await client.post("/Widget", json={"name": "B"})
+    resp = await client.post("/widget", json={"name": "B"})
     item_id = resp.json()["id"]
     async with sessionmaker() as session:
         obj = await session.get(Widget, item_id)
@@ -123,9 +123,9 @@ async def test_schema_ctx_storage_sqlalchemy(schema_ctx_client):
 @pytest.mark.asyncio
 async def test_schema_ctx_rest_calls(schema_ctx_client):
     client, _, _, _ = schema_ctx_client
-    resp = await client.post("/Widget", json={"name": "C"})
+    resp = await client.post("/widget", json={"name": "C"})
     item_id = resp.json()["id"]
-    read = await client.get(f"/Widget/{item_id}")
+    read = await client.get(f"/widget/{item_id}")
     assert read.status_code == 200
     assert read.json()["id"] == item_id
 

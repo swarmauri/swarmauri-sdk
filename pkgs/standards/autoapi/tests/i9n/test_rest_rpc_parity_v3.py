@@ -7,7 +7,7 @@ async def test_create_parity(api_client_v3):
     client, _, _, _ = api_client_v3
     payload = {"name": "gadget", "secret": "sec"}
 
-    rest_resp = await client.post("/Widget", json=payload)
+    rest_resp = await client.post("/widget", json=payload)
     rpc_resp = await client.post(
         "/rpc/",
         json={
@@ -31,10 +31,10 @@ async def test_create_parity(api_client_v3):
 async def test_read_parity(api_client_v3):
     client, _, _, _ = api_client_v3
     create_payload = {"name": "reader", "secret": "s1"}
-    created = await client.post("/Widget", json=create_payload)
+    created = await client.post("/widget", json=create_payload)
     wid = created.json()["id"]
 
-    rest_resp = await client.get(f"/Widget/{wid}")
+    rest_resp = await client.get(f"/widget/{wid}")
     rpc_resp = await client.post(
         "/rpc/",
         json={
@@ -52,10 +52,10 @@ async def test_read_parity(api_client_v3):
 @pytest.mark.asyncio
 async def test_delete_parity(api_client_v3):
     client, _, _, _ = api_client_v3
-    w1 = (await client.post("/Widget", json={"name": "a", "secret": "s"})).json()
-    w2 = (await client.post("/Widget", json={"name": "b", "secret": "s"})).json()
+    w1 = (await client.post("/widget", json={"name": "a", "secret": "s"})).json()
+    w2 = (await client.post("/widget", json={"name": "b", "secret": "s"})).json()
 
-    rest_del = await client.delete(f"/Widget/{w1['id']}")
+    rest_del = await client.delete(f"/widget/{w1['id']}")
     assert rest_del.status_code == 204
     rpc_read = await client.post(
         "/rpc/",
@@ -79,7 +79,7 @@ async def test_delete_parity(api_client_v3):
         },
     )
     assert rpc_del.json()["result"]["deleted"] == 1
-    rest_read = await client.get(f"/Widget/{w2['id']}")
+    rest_read = await client.get(f"/widget/{w2['id']}")
     assert rest_read.status_code == 404
 
 
@@ -87,10 +87,10 @@ async def test_delete_parity(api_client_v3):
 @pytest.mark.asyncio
 async def test_list_parity(api_client_v3):
     client, _, _, _ = api_client_v3
-    await client.post("/Widget", json={"name": "a", "secret": "s"})
-    await client.post("/Widget", json={"name": "b", "secret": "s"})
+    await client.post("/widget", json={"name": "a", "secret": "s"})
+    await client.post("/widget", json={"name": "b", "secret": "s"})
 
-    rest_resp = await client.get("/Widget")
+    rest_resp = await client.get("/widget")
     rpc_resp = await client.post(
         "/rpc/",
         json={
@@ -110,10 +110,10 @@ async def test_list_parity(api_client_v3):
 @pytest.mark.asyncio
 async def test_clear_parity(api_client_v3):
     client, _, _, _ = api_client_v3
-    await client.post("/Widget", json={"name": "a", "secret": "s"})
-    await client.post("/Widget", json={"name": "b", "secret": "s"})
+    await client.post("/widget", json={"name": "a", "secret": "s"})
+    await client.post("/widget", json={"name": "b", "secret": "s"})
 
-    rest_clear = await client.delete("/Widget")
+    rest_clear = await client.delete("/widget")
     assert rest_clear.status_code == 204
     rpc_list = await client.post(
         "/rpc/",
@@ -126,8 +126,8 @@ async def test_clear_parity(api_client_v3):
     )
     assert rpc_list.json()["result"] == []
 
-    await client.post("/Widget", json={"name": "c", "secret": "s"})
-    await client.post("/Widget", json={"name": "d", "secret": "s"})
+    await client.post("/widget", json={"name": "c", "secret": "s"})
+    await client.post("/widget", json={"name": "d", "secret": "s"})
 
     rpc_clear = await client.post(
         "/rpc/",
@@ -139,5 +139,5 @@ async def test_clear_parity(api_client_v3):
         },
     )
     assert rpc_clear.json()["result"]["deleted"] == 2
-    rest_list = await client.get("/Widget")
+    rest_list = await client.get("/widget")
     assert rest_list.json() == []

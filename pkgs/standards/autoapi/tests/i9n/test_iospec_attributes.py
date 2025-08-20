@@ -212,7 +212,7 @@ def test_rest_call_respects_aliases():
     Base.metadata.create_all(engine)
     client = TestClient(api.app)
 
-    resp = client.post("/Thing", json={"first_name": "Ada"})
+    resp = client.post("/thing", json={"first_name": "Ada"})
     data = resp.json()
     assert data["firstName"] == "Ada"
 

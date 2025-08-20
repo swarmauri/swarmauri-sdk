@@ -82,7 +82,7 @@ async def test_hook_ctx_request_response_schema_i9n():
             ctx["response"].result["hook"] = True
 
     client, _, _ = create_client(Item)
-    res = await client.post("/Item", json={"name": "a"})
+    res = await client.post("/item", json={"name": "a"})
     assert res.status_code == 200
     assert res.json()["hook"] is True
     await client.aclose()
@@ -111,7 +111,7 @@ async def test_hook_ctx_columns_i9n():
             ctx["response"].result["cols"] = ctx["cols"]
 
     client, _, _ = create_client(Item)
-    res = await client.post("/Item", json={"name": "x"})
+    res = await client.post("/item", json={"name": "x"})
     assert set(res.json()["cols"]) == {"id", "name"}
     await client.aclose()
 
@@ -136,7 +136,7 @@ async def test_hook_ctx_defaults_resolution_i9n():
             ctx["payload"].setdefault("name", "default")
 
     client, _, _ = create_client(Item)
-    res = await client.post("/Item", json={})
+    res = await client.post("/item", json={})
     assert res.status_code == 200
     assert res.json()["name"] == "default"
     await client.aclose()
@@ -165,7 +165,7 @@ async def test_hook_ctx_internal_model_i9n():
             ctx["response"].result["model"] = ctx["model_name"]
 
     client, _, _ = create_client(Item)
-    res = await client.post("/Item", json={"name": "a"})
+    res = await client.post("/item", json={"name": "a"})
     assert res.json()["model"] == "Item"
     await client.aclose()
 
@@ -190,7 +190,7 @@ async def test_hook_ctx_openapi_json_i9n():
 
     client, _, _ = create_client(Item)
     res = await client.get("/openapi.json")
-    assert "/Item" in res.json()["paths"]
+    assert "/item" in res.json()["paths"]
     await client.aclose()
 
 
@@ -218,7 +218,7 @@ async def test_hook_ctx_storage_sqlalchemy_i9n():
             ctx["response"].result["count"] = ctx["count"]
 
     client, _, _ = create_client(Item)
-    res = await client.post("/Item", json={"name": "a"})
+    res = await client.post("/item", json={"name": "a"})
     assert res.json()["count"] == 1
     await client.aclose()
 
@@ -242,7 +242,7 @@ async def test_hook_ctx_rest_call_i9n():
             ctx["response"].result["phase"] = "rest"
 
     client, _, _ = create_client(Item)
-    res = await client.post("/Item", json={"name": "a"})
+    res = await client.post("/item", json={"name": "a"})
     assert res.json()["phase"] == "rest"
     await client.aclose()
 
@@ -347,7 +347,7 @@ async def test_hook_ctx_atomz_i9n():
             ctx["response"].result["captured"] = ctx["captured"]
 
     client, _, _ = create_client(Item)
-    res = await client.post("/Item", json={"name": "alpha"})
+    res = await client.post("/item", json={"name": "alpha"})
     assert res.json()["captured"] == "alpha"
     await client.aclose()
 

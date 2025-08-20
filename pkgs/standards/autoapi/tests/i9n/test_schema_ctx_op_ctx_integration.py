@@ -69,7 +69,7 @@ async def test_schema_ctx_openapi(widget_client):
     client, _, _ = widget_client
     spec = (await client.get("/openapi.json")).json()
     paths = spec["paths"]
-    assert "/Widget/echo" in paths
+    assert "/widget/echo" in paths
     schemas = spec["components"]["schemas"]
     assert "EchoIn" in schemas
     assert "EchoOut" in schemas
@@ -79,7 +79,7 @@ async def test_schema_ctx_openapi(widget_client):
 @pytest.mark.asyncio
 async def test_schema_ctx_rest_and_rpc(widget_client):
     client, _, _ = widget_client
-    res = await client.post("/Widget/echo", json={"name": "foo"})
+    res = await client.post("/widget/echo", json={"name": "foo"})
     assert res.status_code == 200
     assert res.json() == {"name": "foo"}
 

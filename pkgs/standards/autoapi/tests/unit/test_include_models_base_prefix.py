@@ -22,7 +22,7 @@ def test_include_models_base_prefix_avoids_duplicate_segments():
 
     paths = {r.path for r in app.router.routes}
 
-    assert "/kms/Key" in paths
-    assert "/kms/key_versions" in paths
-    assert "/kms/Key/Key" not in paths
-    assert "/kms/key_versions/key_versions" not in paths
+    assert "/kms/key" in paths
+    assert "/kms/keyversion" in paths
+    assert "/kms/key/key" not in paths
+    assert "/kms/keyversion/keyversion" not in paths

@@ -66,8 +66,8 @@ def test_op_ctx_arity_collection_routing():
 
     specs = _build_all(Gadget)
     routes = {r.path: r.methods for r in Gadget.rest.router.routes}
-    assert "/Gadget/stats" in routes
-    assert "POST" in routes["/Gadget/stats"]
+    assert "/gadget/stats" in routes
+    assert "POST" in routes["/gadget/stats"]
     assert specs[0].arity == "collection"
 
 
@@ -79,7 +79,7 @@ def test_op_ctx_rest_false_hides_route():
 
     specs = _build_all(Gadget)
     routes = {r.path for r in Gadget.rest.router.routes}
-    assert "/Gadget/hidden" not in routes
+    assert "/gadget/hidden" not in routes
     assert specs[0].expose_routes is False
 
 
