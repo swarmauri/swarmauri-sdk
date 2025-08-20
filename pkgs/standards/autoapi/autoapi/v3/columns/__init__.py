@@ -1,12 +1,13 @@
 # autoapi/v3/columns/__init__.py
 from __future__ import annotations
-from dataclasses import replace
 from typing import Any
 from sqlalchemy.orm import MappedColumn
 from ..specs import ColumnSpec
 
+
 class SpecColumn(MappedColumn):
     """MappedColumn that carries AutoAPI specs as first-class attributes."""
+
     __slots__ = ("colspec", "io_spec", "field_spec", "storage_spec")
 
     def __init__(self, spec: ColumnSpec, **kw: Any) -> None:
@@ -15,8 +16,8 @@ class SpecColumn(MappedColumn):
             s.type_,
             primary_key=s.primary_key,
             nullable=s.nullable,
-            unique=s.unique,      # triggers named UniqueConstraint via naming_convention
-            index=s.index,        # auto Index
+            unique=s.unique,  # triggers named UniqueConstraint via naming_convention
+            index=s.index,  # auto Index
             server_default=s.server_default,
             onupdate=s.onupdate,
             comment=s.comment,
@@ -29,17 +30,17 @@ class SpecColumn(MappedColumn):
         self.storage_spec = s
 
     def __set_name__(self, owner, name: str) -> None:
-        # Let SQLAlchemy do its normal setup first
-        super().__set_name__(owner, name)
-        # Ensure the ColumnSpec has the actual attribute name
-        if self.colspec.name != name:
-            self.colspec = replace(self.colspec, name=name)
+        # Let SQLAlchemy do its normal setup first if available
+        parent = getattr(super(), "__set_name__", None)
+        if parent:
+            parent(owner, name)
         # Bind spec to the class for later discovery/export
         colspecs = getattr(owner, "__autoapi_colspecs__", None)
         if colspecs is None:
             colspecs = {}
             setattr(owner, "__autoapi_colspecs__", colspecs)
         colspecs[name] = self.colspec
+
 
 def acol(*, spec: ColumnSpec) -> SpecColumn:
     """Factory for class-body usage; returns a SpecColumn (descriptor)."""
