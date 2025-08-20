@@ -63,7 +63,9 @@ def run(obj: Optional[object], ctx: Any) -> None:
 
         # 1) Derive from paired raw when requested
         if field in pf_paired:
-            raw = _resolve_from_pointer(pf_paired[field].get("source"), paired_values, field)
+            raw = _resolve_from_pointer(
+                pf_paired[field].get("source"), paired_values, field
+            )
             if raw is None:
                 serr.append({"field": field, "error": "missing_paired_raw"})
                 raise ValueError(f"storage.to_stored: missing paired raw for {field!r}")
@@ -72,7 +74,9 @@ def run(obj: Optional[object], ctx: Any) -> None:
             try:
                 stored = deriver(raw, ctx)
             except Exception as e:
-                serr.append({"field": field, "error": f"deriver_failed:{type(e).__name__}"})
+                serr.append(
+                    {"field": field, "error": f"deriver_failed:{type(e).__name__}"}
+                )
                 raise
 
             assembled[field] = stored
@@ -89,13 +93,16 @@ def run(obj: Optional[object], ctx: Any) -> None:
                 assembled[field] = transform(assembled[field], ctx)
                 slog.append({"field": field, "action": "transformed"})
             except Exception as e:
-                serr.append({"field": field, "error": f"transform_failed:{type(e).__name__}"})
+                serr.append(
+                    {"field": field, "error": f"transform_failed:{type(e).__name__}"}
+                )
                 raise
 
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Internals (tolerant to spec shapes)
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
     tmp = getattr(ctx, "temp", None)
@@ -104,12 +111,14 @@ def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
         setattr(ctx, "temp", tmp)
     return tmp
 
+
 def _ensure_dict(temp: MutableMapping[str, Any], key: str) -> Dict[str, Any]:
     d = temp.get(key)
     if not isinstance(d, dict):
         d = {}
         temp[key] = d
     return d  # type: ignore[return-value]
+
 
 def _ensure_list(temp: MutableMapping[str, Any], key: str) -> list:
     lst = temp.get(key)
@@ -118,7 +127,10 @@ def _ensure_list(temp: MutableMapping[str, Any], key: str) -> list:
         temp[key] = lst
     return lst  # type: ignore[return-value]
 
-def _resolve_from_pointer(source: Any, pv: Mapping[str, Dict[str, Any]], field: str) -> Optional[Any]:
+
+def _resolve_from_pointer(
+    source: Any, pv: Mapping[str, Dict[str, Any]], field: str
+) -> Optional[Any]:
     """
     Resolve ('paired_values', field, 'raw') style pointer, with fallback to pv[field]['raw'].
     """
@@ -128,21 +140,33 @@ def _resolve_from_pointer(source: Any, pv: Mapping[str, Dict[str, Any]], field: 
             return pv.get(fld, {}).get("raw")
     return pv.get(field, {}).get("raw")
 
+
 # — transforms — #
+
 
 def _get_transform(colspec: Any) -> Optional[Callable[[Any, Any], Any]]:
     """
     Return a callable(value, ctx) that converts inbound → stored.
-    Checks common names on ColumnSpec then FieldSpec.
+    Checks common names on ColumnSpec, FieldSpec, then StorageSpec.
     """
-    for obj in (colspec, getattr(colspec, "field", None)):
+    for obj in (
+        colspec,
+        getattr(colspec, "field", None),
+        getattr(colspec, "storage", None),
+    ):
         if obj is None:
             continue
+        trans = getattr(obj, "transform", None)
+        if trans is not None:
+            fn = getattr(trans, "to_stored", None)
+            if callable(fn):
+                return fn
         for name in ("to_stored", "storage_transform", "transform_in", "pre_flush"):
             fn = getattr(obj, name, None)
             if callable(fn):
                 return fn
     return None
+
 
 def _get_deriver(colspec: Any) -> Callable[[Any, Any], Any]:
     """
@@ -158,6 +182,7 @@ def _get_deriver(colspec: Any) -> Callable[[Any, Any], Any]:
                 return fn
     # fallback: digest with pepper/salt if present
     pepper, salt = _pepper_salt(colspec)
+
     def _fallback(raw: Any, _ctx: Any) -> str:
         data = _coerce_bytes(raw)
         if pepper:
@@ -165,7 +190,9 @@ def _get_deriver(colspec: Any) -> Callable[[Any, Any], Any]:
         if salt:
             data = data + _coerce_bytes(salt)
         return hashlib.sha256(data).hexdigest()
+
     return _fallback
+
 
 def _pepper_salt(colspec: Any) -> tuple[Optional[str], Optional[str]]:
     """
@@ -174,7 +201,11 @@ def _pepper_salt(colspec: Any) -> tuple[Optional[str], Optional[str]]:
     """
     pepper = None
     salt = None
-    for obj in (colspec, getattr(colspec, "field", None), getattr(colspec, "storage", None)):
+    for obj in (
+        colspec,
+        getattr(colspec, "field", None),
+        getattr(colspec, "storage", None),
+    ):
         if obj is None:
             continue
         for name in ("hash_pepper", "pepper", "secret_pepper"):
@@ -186,6 +217,7 @@ def _pepper_salt(colspec: Any) -> tuple[Optional[str], Optional[str]]:
             if isinstance(val, str) and val:
                 salt = salt or val
     return pepper, salt
+
 
 def _coerce_bytes(val: Any) -> bytes:
     if isinstance(val, bytes):
