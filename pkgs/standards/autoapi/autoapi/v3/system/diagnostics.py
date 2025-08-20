@@ -6,6 +6,7 @@ Exposes a small router with:
   - GET /healthz     → DB connectivity check (sync or async)
   - GET /methodz     → list RPC-visible methods derived from OpSpecs
   - GET /hookz       → per-op phase chains (sequential order)
+  - GET /planz       → runtime execution plan (flattened labels) per op
 
 Usage:
     from autoapi.v3.system.diagnostics import mount_diagnostics
@@ -54,6 +55,7 @@ except Exception:  # pragma: no cover
 
 
 from ..opspec.types import PHASES
+from ..runtime.kernel import build_phase_chains
 
 logger = logging.getLogger(__name__)
 
@@ -197,6 +199,27 @@ def _build_hookz_endpoint(api: Any):
     return _hookz
 
 
+def _build_planz_endpoint(api: Any):
+    async def _planz():
+        """Expose the runtime step sequence for each operation."""
+        out: Dict[str, Dict[str, List[str]]] = {}
+        for model in _model_iter(api):
+            mname = getattr(model, "__name__", "Model")
+            model_map: Dict[str, List[str]] = {}
+            for sp in _opspecs(model):
+                chains = build_phase_chains(model, sp.alias)
+                seq: List[str] = []
+                for ph in PHASES:
+                    for step in chains.get(ph, []) or []:
+                        seq.append(_label_callable(step))
+                model_map[sp.alias] = seq
+            if model_map:
+                out[mname] = model_map
+        return out
+
+    return _planz
+
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Public factory
 # ───────────────────────────────────────────────────────────────────────────────
@@ -213,6 +236,7 @@ def mount_diagnostics(
       GET /healthz
       GET /methodz
       GET /hookz
+      GET /planz
     """
     router = APIRouter()
 
@@ -250,6 +274,15 @@ def mount_diagnostics(
             "Within each phase, hooks are listed in execution order: "
             "global (None) hooks, then method-specific hooks."
         ),
+    )
+    router.add_api_route(
+        "/planz",
+        _build_planz_endpoint(api),
+        methods=["GET"],
+        name="planz",
+        tags=["system"],
+        summary="Plan",
+        description="Flattened runtime execution plan per operation.",
     )
 
     return router
