@@ -53,6 +53,7 @@ except Exception:  # pragma: no cover
             super().__init__(content=content, status_code=status_code)
 
 
+from sqlalchemy import text
 from ..opspec.types import PHASES
 
 logger = logging.getLogger(__name__)
@@ -79,15 +80,15 @@ def _label_callable(fn: Any) -> str:
     return f"{m}.{n}" if m else n
 
 
-async def _maybe_execute(db: Any, stmt: Any):
+async def _maybe_execute(db: Any, stmt: str):
     try:
-        rv = db.execute(stmt)  # type: ignore[attr-defined]
+        rv = db.execute(text(stmt))  # type: ignore[attr-defined]
         if inspect.isawaitable(rv):
             return await rv
         return rv
-    except TypeError:
+    except Exception:
         # Some drivers prefer lowercase 'select 1'
-        rv = db.execute("select 1")  # type: ignore[attr-defined]
+        rv = db.execute(text("select 1"))  # type: ignore[attr-defined]
         if inspect.isawaitable(rv):
             return await rv
         return rv
