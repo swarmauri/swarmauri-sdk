@@ -134,14 +134,14 @@ def create_standardized_error(
 
 
 class _RPCReq(BaseModel):
-    jsonrpc: str = Field(default="2.0", Literal=True)
+    jsonrpc: str = Field(default="2.0", json_schema_extra={"Literal": True})
     method: str
     params: dict = {}
     id: str | int | None = str(uuid.uuid4())
 
 
 class _RPCRes(BaseModel):
-    jsonrpc: str = Field(default="2.0", Literal=True)
+    jsonrpc: str = Field(default="2.0", json_schema_extra={"Literal": True})
     result: Any | None = None
     error: dict | None = None
     id: str | int | None = None
