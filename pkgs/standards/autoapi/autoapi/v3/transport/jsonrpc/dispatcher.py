@@ -78,6 +78,7 @@ except Exception:  # pragma: no cover
 
 
 from ...runtime.errors import ERROR_MESSAGES, http_exc_to_rpc
+from .models import RPCRequest, RPCResponse
 
 logger = logging.getLogger(__name__)
 
@@ -292,7 +293,7 @@ def build_jsonrpc_router(
         # Inject both DB and user via Depends
         async def _endpoint(
             request: Request,
-            body: Any = Body(...),
+            body: RPCRequest | list[RPCRequest] = Body(...),
             db: Any = Depends(dep),
             user: Any = Depends(auth_dep),
         ):
@@ -307,13 +308,15 @@ def build_jsonrpc_router(
                 responses: List[Dict[str, Any]] = []
                 for item in body:
                     resp = await _dispatch_one(
-                        api=api, request=request, db=db, obj=item
+                        api=api, request=request, db=db, obj=item.model_dump()
                     )
                     if resp is not None:
                         responses.append(resp)
                 return responses
-            elif isinstance(body, Mapping):
-                resp = await _dispatch_one(api=api, request=request, db=db, obj=body)
+            elif isinstance(body, RPCRequest):
+                resp = await _dispatch_one(
+                    api=api, request=request, db=db, obj=body.model_dump()
+                )
                 if resp is None:
                     return Response(status_code=204)
                 return resp
@@ -324,20 +327,22 @@ def build_jsonrpc_router(
         # Only DB dependency
         async def _endpoint(
             request: Request,
-            body: Any = Body(...),
+            body: RPCRequest | list[RPCRequest] = Body(...),
             db: Any = Depends(dep),
         ):
             if isinstance(body, list):
                 responses: List[Dict[str, Any]] = []
                 for item in body:
                     resp = await _dispatch_one(
-                        api=api, request=request, db=db, obj=item
+                        api=api, request=request, db=db, obj=item.model_dump()
                     )
                     if resp is not None:
                         responses.append(resp)
                 return responses
-            elif isinstance(body, Mapping):
-                resp = await _dispatch_one(api=api, request=request, db=db, obj=body)
+            elif isinstance(body, RPCRequest):
+                resp = await _dispatch_one(
+                    api=api, request=request, db=db, obj=body.model_dump()
+                )
                 if resp is None:
                     return Response(status_code=204)
                 return resp
@@ -348,7 +353,7 @@ def build_jsonrpc_router(
         # Only auth dependency; DB will come from request.state.db
         async def _endpoint(
             request: Request,
-            body: Any = Body(...),
+            body: RPCRequest | list[RPCRequest] = Body(...),
             user: Any = Depends(auth_dep),
         ):
             try:
@@ -362,13 +367,15 @@ def build_jsonrpc_router(
                 responses: List[Dict[str, Any]] = []
                 for item in body:
                     resp = await _dispatch_one(
-                        api=api, request=request, db=db, obj=item
+                        api=api, request=request, db=db, obj=item.model_dump()
                     )
                     if resp is not None:
                         responses.append(resp)
                 return responses
-            elif isinstance(body, Mapping):
-                resp = await _dispatch_one(api=api, request=request, db=db, obj=body)
+            elif isinstance(body, RPCRequest):
+                resp = await _dispatch_one(
+                    api=api, request=request, db=db, obj=body.model_dump()
+                )
                 if resp is None:
                     return Response(status_code=204)
                 return resp
@@ -377,19 +384,23 @@ def build_jsonrpc_router(
 
     else:
         # No dependencies; attempt to read db (and user) from request.state
-        async def _endpoint(request: Request, body: Any = Body(...)):
+        async def _endpoint(
+            request: Request, body: RPCRequest | list[RPCRequest] = Body(...)
+        ):
             db = getattr(request.state, "db", None)
             if isinstance(body, list):
                 responses: List[Dict[str, Any]] = []
                 for item in body:
                     resp = await _dispatch_one(
-                        api=api, request=request, db=db, obj=item
+                        api=api, request=request, db=db, obj=item.model_dump()
                     )
                     if resp is not None:
                         responses.append(resp)
                 return responses
-            elif isinstance(body, Mapping):
-                resp = await _dispatch_one(api=api, request=request, db=db, obj=body)
+            elif isinstance(body, RPCRequest):
+                resp = await _dispatch_one(
+                    api=api, request=request, db=db, obj=body.model_dump()
+                )
                 if resp is None:
                     return Response(status_code=204)
                 return resp
@@ -405,6 +416,7 @@ def build_jsonrpc_router(
         tags=list(tags) if tags else None,
         summary="JSONRPC",
         description="JSON-RPC 2.0 endpoint.",
+        response_model=RPCResponse | list[RPCResponse],
         # extra router deps already applied via APIRouter(dependencies=...)
     )
     return router
