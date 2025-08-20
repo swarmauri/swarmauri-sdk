@@ -222,7 +222,8 @@ class Key(Base):
     )
     async def encrypt(cls, ctx):
         import base64
-        from ..utils import b64d
+        from ..utils import b64d, b64d_optional
+
 
         p = ctx.get("payload") or {}
         crypto = getattr(
