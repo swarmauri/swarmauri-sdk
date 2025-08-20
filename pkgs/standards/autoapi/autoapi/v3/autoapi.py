@@ -247,12 +247,19 @@ class AutoAPI:
                 tables.append(t)
         return tables
 
-    def _create_all_on_bind(self, bind, *, schemas=None, sqlite_attachments=None, tables=None):
+    def _create_all_on_bind(
+        self, bind, *, schemas=None, sqlite_attachments=None, tables=None
+    ):
         # 1) schemas / SQLite ATTACH
         engine = getattr(bind, "engine", bind)
         if sqlite_attachments:
             # also applies ensure_schemas; immediate listener warm-up
-            bootstrap_dbschema(engine, schemas=schemas, sqlite_attachments=sqlite_attachments, immediate=True)
+            bootstrap_dbschema(
+                engine,
+                schemas=schemas,
+                sqlite_attachments=sqlite_attachments,
+                immediate=True,
+            )
         else:
             ensure_schemas(engine, schemas)
 
@@ -265,10 +272,13 @@ class AutoAPI:
             md.create_all(bind=bind, checkfirst=True, tables=group)
 
         # 3) publish tables namespace
-        self.tables = SimpleNamespace(**{
-            name: getattr(m, "__table__", None)
-            for name, m in self.models.items() if hasattr(m, "__table__")
-        })
+        self.tables = SimpleNamespace(
+            **{
+                name: getattr(m, "__table__", None)
+                for name, m in self.models.items()
+                if hasattr(m, "__table__")
+            }
+        )
 
     def initialize_sync(self, *, schemas=None, sqlite_attachments=None, tables=None):
         if getattr(self, "_ddl_executed", False):
@@ -276,27 +286,38 @@ class AutoAPI:
         if not self.get_db:
             raise ValueError("AutoAPI.get_db is not configured")
         with next(self.get_db()) as db:
-            bind = db.get_bind()             # Connection or Engine
-            self._create_all_on_bind(bind, schemas=schemas, sqlite_attachments=sqlite_attachments, tables=tables)
+            bind = db.get_bind()  # Connection or Engine
+            self._create_all_on_bind(
+                bind,
+                schemas=schemas,
+                sqlite_attachments=sqlite_attachments,
+                tables=tables,
+            )
         self._ddl_executed = True
 
-    async def initialize_async(self, *, schemas=None, sqlite_attachments=None, tables=None):
+    async def initialize_async(
+        self, *, schemas=None, sqlite_attachments=None, tables=None
+    ):
         if getattr(self, "_ddl_executed", False):
             return
         if not self.get_async_db:
             raise ValueError("AutoAPI.get_async_db is not configured")
         async for adb in self.get_async_db():  # AsyncSession
+
             def _sync_bootstrap(arg):
                 bind = arg.get_bind() if hasattr(arg, "get_bind") else arg
-                self._create_all_on_bind(bind, schemas=schemas, sqlite_attachments=sqlite_attachments, tables=tables)
+                self._create_all_on_bind(
+                    bind,
+                    schemas=schemas,
+                    sqlite_attachments=sqlite_attachments,
+                    tables=tables,
+                )
+
             await adb.run_sync(_sync_bootstrap)
             break
         self._ddl_executed = True
-
 
     # ------------------------- repr -------------------------
 
     def __repr__(self) -> str:  # pragma: no cover
         return f"<AutoAPI models={list(self.models)} rpc={list(getattr(self.rpc, '__dict__', {}).keys())}>"
-
-

@@ -15,9 +15,11 @@ REGISTRY: Dict[Tuple[str, str], Tuple[str, RunFn]] = {
     ("storage", "to_stored"): (_to_stored.ANCHOR, _to_stored.run),
 }
 
+
 def subjects() -> Tuple[str, ...]:
     """Return the subject names exported by this domain."""
     return tuple(s for (_, s) in REGISTRY.keys())
+
 
 def get(subject: str) -> Tuple[str, RunFn]:
     """Return (anchor, runner) for a subject in the 'storage' domain."""
@@ -25,5 +27,6 @@ def get(subject: str) -> Tuple[str, RunFn]:
     if key not in REGISTRY:
         raise KeyError(f"Unknown storage atom subject: {subject!r}")
     return REGISTRY[key]
+
 
 __all__ = ["REGISTRY", "RunFn", "subjects", "get"]

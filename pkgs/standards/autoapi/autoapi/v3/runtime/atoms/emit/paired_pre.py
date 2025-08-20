@@ -77,6 +77,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
 # Internals
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
     temp = getattr(ctx, "temp", None)
     if not isinstance(temp, dict):

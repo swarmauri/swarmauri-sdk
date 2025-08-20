@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import secrets
-from typing import Any, Dict, Mapping, MutableMapping, Optional, Tuple
+from typing import Any, Dict, Mapping, MutableMapping, Optional
 
 from ... import events as _ev
 
@@ -109,6 +109,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
 # Internals
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
     tmp = getattr(ctx, "temp", None)
     if not isinstance(tmp, dict):
@@ -116,12 +117,14 @@ def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
         setattr(ctx, "temp", tmp)
     return tmp
 
+
 def _ensure_dict(temp: MutableMapping[str, Any], key: str) -> Dict[str, Any]:
     d = temp.get(key)
     if not isinstance(d, dict):
         d = {}
         temp[key] = d
     return d  # type: ignore[return-value]
+
 
 def _ctx_view(ctx: Any) -> Dict[str, Any]:
     """Small read-only view for generator callables."""
@@ -135,6 +138,7 @@ def _ctx_view(ctx: Any) -> Dict[str, Any]:
         "now": getattr(ctx, "now", None),
     }
 
+
 def _is_paired(colspec: Any) -> bool:
     """
     Heuristic: recognize secret-once/paired columns without hard-coding spec structure.
@@ -142,16 +146,19 @@ def _is_paired(colspec: Any) -> bool:
     for obj in (colspec, getattr(colspec, "field", None)):
         if obj is None:
             continue
-        if any(bool(getattr(obj, name, False)) for name in (
-            "secret_once", "paired", "paired_input", "generate_on_absent"
-        )):
+        if any(
+            bool(getattr(obj, name, False))
+            for name in ("secret_once", "paired", "paired_input", "generate_on_absent")
+        ):
             return True
         # Presence of a generator implies paired
-        if any(callable(getattr(obj, name, None)) for name in (
-            "generator", "paired_generator", "secret_generator"
-        )):
+        if any(
+            callable(getattr(obj, name, None))
+            for name in ("generator", "paired_generator", "secret_generator")
+        ):
             return True
     return False
+
 
 def _get_generator(colspec: Any):
     """Return the first available generator callable, if any."""
@@ -163,6 +170,7 @@ def _get_generator(colspec: Any):
             if callable(fn):
                 return fn
     return None
+
 
 def _infer_alias_from_spec(field: str, colspec: Any) -> Optional[str]:
     """
@@ -195,6 +203,7 @@ def _infer_alias_from_spec(field: str, colspec: Any) -> Optional[str]:
 
     return None
 
+
 def _alias_meta(colspec: Any) -> Dict[str, Any]:
     """Return small, non-sensitive meta about the alias (e.g., masking policy flags)."""
     meta: Dict[str, Any] = {}
@@ -210,12 +219,17 @@ def _alias_meta(colspec: Any) -> Dict[str, Any]:
         meta["max_length"] = mlen
     return meta
 
+
 def _max_len(colspec: Any) -> Optional[int]:
     """
     Try to detect a maximum length for the persisted column or its virtual alias.
     Used to bound generated tokens.
     """
-    for obj in (colspec, getattr(colspec, "field", None), getattr(colspec, "storage", None)):
+    for obj in (
+        colspec,
+        getattr(colspec, "field", None),
+        getattr(colspec, "storage", None),
+    ):
         if obj is None:
             continue
         for name in ("max_length", "max_len", "length", "size"):
@@ -223,6 +237,7 @@ def _max_len(colspec: Any) -> Optional[int]:
             if isinstance(v, int) and v > 0:
                 return v
     return None
+
 
 def _secure_token(max_len: int) -> str:
     """
@@ -233,7 +248,7 @@ def _secure_token(max_len: int) -> str:
     token = secrets.token_urlsafe(32)
     if max_len and max_len > 0 and len(token) > max_len:
         # Trim conservatively; if extremely small, ensure we still return something.
-        token = token[:max(8, max_len)]
+        token = token[: max(8, max_len)]
     return token
 
 

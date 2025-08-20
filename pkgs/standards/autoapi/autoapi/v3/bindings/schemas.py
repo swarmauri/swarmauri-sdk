@@ -8,7 +8,10 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple, Type
 from pydantic import BaseModel, Field, create_model
 
 from ..opspec import OpSpec
-from ..opspec.types import SchemaRef, SchemaArg  # lazy-capable schema args (runtime: we restrict forms)
+from ..opspec.types import (
+    SchemaRef,
+    SchemaArg,
+)  # lazy-capable schema args (runtime: we restrict forms)
 from ..schema import _build_schema, _build_list_params, namely_model
 from ..decorators import collect_decorated_schemas  # ← seed @schema_ctx declarations
 
@@ -20,8 +23,10 @@ _Key = Tuple[str, str]  # (alias, target)
 # Internal helpers
 # ───────────────────────────────────────────────────────────────────────────────
 
+
 def _camel(s: str) -> str:
     return "".join(p.capitalize() or "_" for p in s.split("_"))
+
 
 def _ensure_alias_namespace(model: type, alias: str) -> SimpleNamespace:
     ns = getattr(model.schemas, alias, None)
@@ -29,6 +34,7 @@ def _ensure_alias_namespace(model: type, alias: str) -> SimpleNamespace:
         ns = SimpleNamespace()
         setattr(model.schemas, alias, ns)
     return ns
+
 
 def _pk_info(model: type) -> Tuple[str, type | Any]:
     """
@@ -48,6 +54,7 @@ def _pk_info(model: type) -> Tuple[str, type | Any]:
     py_t = getattr(getattr(col, "type", None), "python_type", Any)
     return (getattr(col, "name", "id"), py_t or Any)
 
+
 def _make_bulk_rows_model(
     model: type, verb: str, item_schema: Type[BaseModel]
 ) -> Type[BaseModel]:
@@ -64,6 +71,7 @@ def _make_bulk_rows_model(
         name=name,
         doc=f"{verb} request schema for {model.__name__}",
     )
+
 
 def _make_bulk_ids_model(
     model: type, verb: str, pk_type: type | Any
@@ -82,6 +90,7 @@ def _make_bulk_ids_model(
         doc=f"{verb} request schema for {model.__name__}",
     )
 
+
 def _make_pk_model(
     model: type, verb: str, pk_name: str, pk_type: type | Any
 ) -> Type[BaseModel]:
@@ -97,18 +106,22 @@ def _make_pk_model(
         doc=f"{verb} request schema for {model.__name__}",
     )
 
+
 def _parse_str_ref(s: str) -> Tuple[str, str]:
     """
     Parse dotted schema ref "alias.in" | "alias.out".
     """
     s = s.strip()
     if "." not in s:
-        raise ValueError(f"Invalid schema path '{s}', expected 'alias.in' or 'alias.out'")
+        raise ValueError(
+            f"Invalid schema path '{s}', expected 'alias.in' or 'alias.out'"
+        )
     alias, kind = s.split(".", 1)
     kind = kind.strip()
     if kind not in {"in", "out"}:
         raise ValueError(f"Invalid schema kind '{kind}', expected 'in' or 'out'")
     return alias.strip(), kind
+
 
 def _resolve_schema_arg(model: type, arg: SchemaArg) -> Optional[Type[BaseModel]]:
     """
@@ -133,7 +146,9 @@ def _resolve_schema_arg(model: type, arg: SchemaArg) -> Optional[Type[BaseModel]
     # SchemaRef
     if isinstance(arg, SchemaRef):
         if arg.kind not in ("in", "out"):
-            raise ValueError(f"Unsupported SchemaRef kind '{arg.kind}'. Use 'in' or 'out'.")
+            raise ValueError(
+                f"Unsupported SchemaRef kind '{arg.kind}'. Use 'in' or 'out'."
+            )
         ns = getattr(model, "schemas", None)
         if ns is None or getattr(ns, arg.alias, None) is None:
             raise KeyError(f"Unknown schema alias '{arg.alias}' on {model.__name__}")
@@ -163,11 +178,15 @@ def _resolve_schema_arg(model: type, arg: SchemaArg) -> Optional[Type[BaseModel]
         "Use SchemaRef(...,'in'|'out'), 'alias.in'/'alias.out', 'raw', or None."
     )
 
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Core builder (defaults only; overrides are applied later)
 # ───────────────────────────────────────────────────────────────────────────────
 
-def _default_schemas_for_spec(model: type, sp: OpSpec) -> Dict[str, Optional[Type[BaseModel]]]:
+
+def _default_schemas_for_spec(
+    model: type, sp: OpSpec
+) -> Dict[str, Optional[Type[BaseModel]]]:
     """
     Decide default IN/OUT schemas for a given OpSpec (ignores sp.request_model/response_model).
 
@@ -233,7 +252,9 @@ def _default_schemas_for_spec(model: type, sp: OpSpec) -> Dict[str, Optional[Typ
 
     elif target == "bulk_upsert":
         # Prefer a dedicated 'upsert' item shape if available; otherwise fall back to 'replace'
-        item_in = _build_schema(model, verb="upsert") or _build_schema(model, verb="replace")
+        item_in = _build_schema(model, verb="upsert") or _build_schema(
+            model, verb="replace"
+        )
         result["in_"] = _make_bulk_rows_model(model, "bulk_upsert", item_in)
         result["out"] = read_schema
 
@@ -254,9 +275,11 @@ def _default_schemas_for_spec(model: type, sp: OpSpec) -> Dict[str, Optional[Typ
 
     return result
 
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Public API
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 def build_and_attach(
     model: type, specs: Sequence[OpSpec], *, only_keys: Optional[Sequence[_Key]] = None
@@ -322,11 +345,15 @@ def build_and_attach(
 
         if sp.request_model is not None:
             try:
-                resolved_in = _resolve_schema_arg(model, sp.request_model)  # Optional[Type[BaseModel]]
+                resolved_in = _resolve_schema_arg(
+                    model, sp.request_model
+                )  # Optional[Type[BaseModel]]
             except Exception as e:
                 logger.exception(
                     "Failed resolving request schema for %s.%s: %s",
-                    model.__name__, sp.alias, e
+                    model.__name__,
+                    sp.alias,
+                    e,
                 )
                 raise
             # Set to model or None (raw)
@@ -334,11 +361,15 @@ def build_and_attach(
 
         if sp.response_model is not None:
             try:
-                resolved_out = _resolve_schema_arg(model, sp.response_model)  # Optional[Type[BaseModel]]
+                resolved_out = _resolve_schema_arg(
+                    model, sp.response_model
+                )  # Optional[Type[BaseModel]]
             except Exception as e:
                 logger.exception(
                     "Failed resolving response schema for %s.%s: %s",
-                    model.__name__, sp.alias, e
+                    model.__name__,
+                    sp.alias,
+                    e,
                 )
                 raise
             # Set to model or None (raw)
@@ -351,5 +382,6 @@ def build_and_attach(
             getattr(ns, "in_", None).__name__ if getattr(ns, "in_", None) else None,
             getattr(ns, "out", None).__name__ if getattr(ns, "out", None) else None,
         )
+
 
 __all__ = ["build_and_attach"]

@@ -77,12 +77,14 @@ def run(obj: Optional[object], ctx: Any) -> None:
 # Internals (kept lenient to avoid hard coupling to specs structure)
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
     temp = getattr(ctx, "temp", None)
     if not isinstance(temp, dict):
         temp = {}
         setattr(ctx, "temp", temp)
     return temp
+
 
 def _ensure_emit_buf(temp: MutableMapping[str, Any]) -> Dict[str, list]:
     buf = temp.get("emit_aliases")
@@ -95,12 +97,14 @@ def _ensure_emit_buf(temp: MutableMapping[str, Any]) -> Dict[str, list]:
         buf.setdefault("read", [])
     return buf  # type: ignore[return-value]
 
+
 def _ensure_response_extras(temp: MutableMapping[str, Any]) -> Dict[str, Any]:
     extras = temp.get("response_extras")
     if not isinstance(extras, dict):
         extras = {}
         temp["response_extras"] = extras
     return extras  # type: ignore[return-value]
+
 
 def _infer_alias_from_spec(field: str, colspec: Any) -> Optional[str]:
     """
@@ -133,6 +137,7 @@ def _infer_alias_from_spec(field: str, colspec: Any) -> Optional[str]:
 
     return None
 
+
 def _alias_meta(colspec: Any) -> Dict[str, Any]:
     """Return small, non-sensitive meta about the alias (e.g., masking policy flags)."""
     meta: Dict[str, Any] = {}
@@ -143,6 +148,7 @@ def _alias_meta(colspec: Any) -> Dict[str, Any]:
         if v is not None:
             meta[attr] = bool(v) if isinstance(v, bool) else v
     return meta
+
 
 def _read_current_value(obj: Optional[object], ctx: Any, field: str) -> Optional[Any]:
     """
@@ -160,11 +166,14 @@ def _read_current_value(obj: Optional[object], ctx: Any, field: str) -> Optional
         if isinstance(src, Mapping) and field in src:
             return src.get(field)
 
-    hv = getattr(getattr(ctx, "temp", {}), "get", lambda *a, **k: None)("hydrated_values")  # type: ignore
+    hv = getattr(getattr(ctx, "temp", {}), "get", lambda *a, **k: None)(
+        "hydrated_values"
+    )  # type: ignore
     if isinstance(hv, Mapping):
         return hv.get(field)
 
     return None
+
 
 def _is_sensitive(colspec: Any) -> tuple[bool, Optional[int]]:
     """
@@ -194,6 +203,7 @@ def _is_sensitive(colspec: Any) -> tuple[bool, Optional[int]]:
 
     return sensitive, keep_last
 
+
 def _mask_value(value: Any, keep_last: Optional[int]) -> str:
     """
     Generic masking for strings/bytes; falls back to a fixed token when unknown.
@@ -206,6 +216,7 @@ def _mask_value(value: Any, keep_last: Optional[int]) -> str:
     n = keep_last if (isinstance(keep_last, int) and keep_last >= 0) else 4
     n = min(n, len(s))
     return "•" * (len(s) - n) + s[-n:]
+
 
 def _safe_readtime_value(value: Any, colspec: Any) -> Any:
     """

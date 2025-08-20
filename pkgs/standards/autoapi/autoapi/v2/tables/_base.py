@@ -6,8 +6,6 @@ Other model modules import `Base` from here.
 
 from sqlalchemy.orm import DeclarativeBase, declared_attr
 from sqlalchemy import MetaData
-from types import SimpleNamespace
-from ..impl.model_facets import init_model_facets  # NEW
 
 
 class Base(DeclarativeBase):

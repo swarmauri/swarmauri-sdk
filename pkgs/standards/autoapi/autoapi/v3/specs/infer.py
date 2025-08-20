@@ -20,8 +20,10 @@ from typing import (
 # Public markers (wire/adapters provide validation/normalization at runtime)
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 class Email:  # marker for Annotated[str, Email]
     """Marker indicating email string semantics."""
+
 
 class Phone:  # marker for Annotated[str, Phone]  (E.164)
     """Marker indicating E.164 phone string semantics."""
@@ -31,36 +33,40 @@ class Phone:  # marker for Annotated[str, Phone]  (E.164)
 # Portable data-kind (DB- and adapter-agnostic)
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 class DataKind(str, Enum):
-    STRING   = "string"
-    TEXT     = "text"
-    BYTES    = "bytes"
-    BOOL     = "bool"
-    INT      = "int"
-    BIGINT   = "bigint"
-    FLOAT    = "float"
-    DECIMAL  = "decimal"
-    DATE     = "date"
-    TIME     = "time"
+    STRING = "string"
+    TEXT = "text"
+    BYTES = "bytes"
+    BOOL = "bool"
+    INT = "int"
+    BIGINT = "bigint"
+    FLOAT = "float"
+    DECIMAL = "decimal"
+    DATE = "date"
+    TIME = "time"
     DATETIME = "datetime"
-    UUID     = "uuid"
-    JSON     = "json"
-    ENUM     = "enum"
-    ARRAY    = "array"
+    UUID = "uuid"
+    JSON = "json"
+    ENUM = "enum"
+    ARRAY = "array"
 
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Structured outputs
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 @dataclass(frozen=True)
 class PyTypeInfo:
     """Normalized info about the Python-side type annotation."""
+
     base: Any
     is_optional: bool = False
     enum_cls: Optional[Type[Enum]] = None
     array_item: Optional["PyTypeInfo"] = None
     annotated: Tuple[Any, ...] = ()  # Annotated metadata (Email/Phone/etc.)
+
 
 @dataclass(frozen=True)
 class SATypePlan:
@@ -68,23 +74,28 @@ class SATypePlan:
     A declarative plan for constructing an SA column type downstream.
     We avoid importing SQLAlchemy here; downstream creates the actual object.
     """
-    name: str                # e.g., "UUID", "String", "JSONB", "Enum", "ARRAY"
-    args: Tuple[Any, ...]    # positional args (e.g., (enum_cls,))
-    kwargs: Dict[str, Any]   # keyword args (e.g., {"as_uuid": True})
+
+    name: str  # e.g., "UUID", "String", "JSONB", "Enum", "ARRAY"
+    args: Tuple[Any, ...]  # positional args (e.g., (enum_cls,))
+    kwargs: Dict[str, Any]  # keyword args (e.g., {"as_uuid": True})
     dialect: Optional[str] = None  # e.g., "postgresql" for JSONB/UUID/ARRAY
+
 
 @dataclass(frozen=True)
 class JsonHint:
     """Minimal JSON Schema-ish hints for docs."""
+
     type: str
     format: Optional[str] = None
     maxLength: Optional[int] = None
     enum: Optional[List[str]] = None
     items: Optional["JsonHint"] = None
 
+
 @dataclass(frozen=True)
 class Inferred:
     """Primary product of inference."""
+
     kind: DataKind
     py: PyTypeInfo
     sa: SATypePlan
@@ -96,13 +107,17 @@ class Inferred:
 # Errors
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 class InferenceError(ValueError): ...
+
+
 class UnsupportedType(InferenceError): ...
 
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Utilities: unwrap Optional / Annotated, arrays, enums
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def _strip_optional(tp: Any) -> Tuple[Any, bool]:
     """Return (inner_type, is_optional) for Optional[T] / Union[T, None]."""
@@ -114,6 +129,7 @@ def _strip_optional(tp: Any) -> Tuple[Any, bool]:
             return inner, True
     return tp, False
 
+
 def _strip_annotated(tp: Any) -> Tuple[Any, Tuple[Any, ...]]:
     """Return (base, metadata) for Annotated[base, *meta]; otherwise (tp, ())."""
     origin = get_origin(tp)
@@ -123,6 +139,7 @@ def _strip_annotated(tp: Any) -> Tuple[Any, Tuple[Any, ...]]:
             base, meta = args[0], tuple(args[1:])
             return base, meta
     return tp, ()
+
 
 def _array_item(tp: Any) -> Optional[Any]:
     origin = get_origin(tp)
@@ -140,6 +157,7 @@ def _array_item(tp: Any) -> Optional[Any]:
         return Any
     return None
 
+
 def _is_enum(tp: Any) -> Optional[Type[Enum]]:
     try:
         if isinstance(tp, type) and issubclass(tp, Enum):
@@ -152,6 +170,7 @@ def _is_enum(tp: Any) -> Optional[Type[Enum]]:
 # ──────────────────────────────────────────────────────────────────────────────
 # Core inference
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def infer(
     annotation: Any,
@@ -217,7 +236,6 @@ def infer(
     import datetime as _dt
     import decimal as _dc
     import uuid as _uuid
-    import typing as _typing
 
     origin = get_origin(base)
     kind: DataKind
@@ -280,6 +298,7 @@ def infer(
 # SA type planning (strings, numerics, UUID/JSON/ARRAY/Enum)
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def _plan_sa_type(
     kind: DataKind,
     py: PyTypeInfo,
@@ -293,7 +312,9 @@ def _plan_sa_type(
 
     if kind is DataKind.STRING:
         if max_length and max_length > 0:
-            return SATypePlan(name="String", args=(max_length,), kwargs={}, dialect=None)
+            return SATypePlan(
+                name="String", args=(max_length,), kwargs={}, dialect=None
+            )
         return SATypePlan(name="String", args=(), kwargs={}, dialect=None)
 
     if kind is DataKind.TEXT:
@@ -329,12 +350,16 @@ def _plan_sa_type(
         return SATypePlan(name="Time", args=(), kwargs={"timezone": True}, dialect=None)
 
     if kind is DataKind.DATETIME:
-        return SATypePlan(name="DateTime", args=(), kwargs={"timezone": True}, dialect=None)
+        return SATypePlan(
+            name="DateTime", args=(), kwargs={"timezone": True}, dialect=None
+        )
 
     if kind is DataKind.UUID:
         # Prefer native PG UUID if available; otherwise fall back to CHAR(32)/String in adapters
         if d == "postgresql":
-            return SATypePlan(name="UUID", args=(), kwargs={"as_uuid": True}, dialect="postgresql")
+            return SATypePlan(
+                name="UUID", args=(), kwargs={"as_uuid": True}, dialect="postgresql"
+            )
         return SATypePlan(name="String", args=(36,), kwargs={}, dialect=None)
 
     if kind is DataKind.JSON:
@@ -347,7 +372,9 @@ def _plan_sa_type(
         if not py.enum_cls:
             raise InferenceError("ENUM kind requires enum_cls in PyTypeInfo")
         # Native DB enum; adapters can choose name/schema etc.
-        return SATypePlan(name="Enum", args=(py.enum_cls,), kwargs={"native_enum": True}, dialect=None)
+        return SATypePlan(
+            name="Enum", args=(py.enum_cls,), kwargs={"native_enum": True}, dialect=None
+        )
 
     if kind is DataKind.ARRAY:
         if not py.array_item:
@@ -366,7 +393,9 @@ def _plan_sa_type(
         if prefer_dialect == "postgresql":
             return SATypePlan(
                 name="ARRAY",
-                args=(elem_plan.name,),  # downstream adapter replaces with actual SA type object
+                args=(
+                    elem_plan.name,
+                ),  # downstream adapter replaces with actual SA type object
                 kwargs={},
                 dialect="postgresql",
             )
@@ -375,22 +404,36 @@ def _plan_sa_type(
 
     raise UnsupportedType(f"Cannot plan SA type for kind={kind!r}")
 
+
 def _nested_kind_from_py(nested_py: PyTypeInfo) -> DataKind:
     # Reasonable default mapping for element-kind re-planning
     if nested_py.enum_cls is not None:
         return DataKind.ENUM
     b = nested_py.base
-    import datetime as _dt, decimal as _dc, uuid as _uuid
-    if b is str: return DataKind.STRING
-    if b in (bytes, bytearray, memoryview): return DataKind.BYTES
-    if b is bool: return DataKind.BOOL
-    if b is int: return DataKind.INT
-    if b is float: return DataKind.FLOAT
-    if b is _dc.Decimal: return DataKind.DECIMAL
-    if b is _dt.datetime: return DataKind.DATETIME
-    if b is _dt.date: return DataKind.DATE
-    if b is _dt.time: return DataKind.TIME
-    if b is _uuid.UUID: return DataKind.UUID
+    import datetime as _dt
+    import decimal as _dc
+    import uuid as _uuid
+
+    if b is str:
+        return DataKind.STRING
+    if b in (bytes, bytearray, memoryview):
+        return DataKind.BYTES
+    if b is bool:
+        return DataKind.BOOL
+    if b is int:
+        return DataKind.INT
+    if b is float:
+        return DataKind.FLOAT
+    if b is _dc.Decimal:
+        return DataKind.DECIMAL
+    if b is _dt.datetime:
+        return DataKind.DATETIME
+    if b is _dt.date:
+        return DataKind.DATE
+    if b is _dt.time:
+        return DataKind.TIME
+    if b is _uuid.UUID:
+        return DataKind.UUID
     return DataKind.JSON
 
 
@@ -398,11 +441,16 @@ def _nested_kind_from_py(nested_py: PyTypeInfo) -> DataKind:
 # JSON-hint planning (for OpenAPI/docs shaping only)
 # ──────────────────────────────────────────────────────────────────────────────
 
-def _json_hint(kind: DataKind, py: PyTypeInfo, *, max_length: Optional[int]) -> JsonHint:
+
+def _json_hint(
+    kind: DataKind, py: PyTypeInfo, *, max_length: Optional[int]
+) -> JsonHint:
     if kind is DataKind.STRING:
         fmt = None
-        if Email in py.annotated: fmt = "email"
-        if Phone in py.annotated: fmt = "phone"
+        if Email in py.annotated:
+            fmt = "email"
+        if Phone in py.annotated:
+            fmt = "phone"
         return JsonHint(type="string", format=fmt, maxLength=max_length)
     if kind is DataKind.BYTES:
         return JsonHint(type="string", format="byte")
@@ -423,10 +471,14 @@ def _json_hint(kind: DataKind, py: PyTypeInfo, *, max_length: Optional[int]) -> 
     if kind is DataKind.JSON:
         return JsonHint(type="object")
     if kind is DataKind.ENUM and py.enum_cls:
-        return JsonHint(type="string", enum=[e.name for e in py.enum_cls])  # names for docs
+        return JsonHint(
+            type="string", enum=[e.name for e in py.enum_cls]
+        )  # names for docs
     if kind is DataKind.ARRAY and py.array_item:
         # Nest using best-effort element hint (default STRING for unknowns)
         elem_kind = _nested_kind_from_py(py.array_item)
-        return JsonHint(type="array", items=_json_hint(elem_kind, py.array_item, max_length=None))
+        return JsonHint(
+            type="array", items=_json_hint(elem_kind, py.array_item, max_length=None)
+        )
     # Fallback
     return JsonHint(type="string")

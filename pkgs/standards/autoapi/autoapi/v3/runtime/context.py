@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import datetime as _dt
 from dataclasses import dataclass, field
-from typing import Any, Dict, Mapping, MutableMapping, Optional, Sequence
+from typing import Any, Dict, Mapping, Optional, Sequence
 
 
 def _canon_op(op: Optional[str]) -> str:
@@ -30,6 +30,7 @@ class Context:
       - row/values/current_values: mapping fallbacks (for read paths)
       - in_data / payload / data / body: inbound payload staging (for build_in)
     """
+
     # core
     op: str
     persist: bool
@@ -122,7 +123,9 @@ class Context:
         """Flag that DB RETURNING already hydrated values."""
         self.temp["used_returning"] = bool(value)
 
-    def merge_hydrated_values(self, mapping: Mapping[str, Any], *, replace: bool = False) -> None:
+    def merge_hydrated_values(
+        self, mapping: Mapping[str, Any], *, replace: bool = False
+    ) -> None:
         """
         Save values hydrated from DB (RETURNING/refresh). If replace=False (default),
         performs a shallow merge into any existing 'hydrated_values'.
@@ -135,7 +138,9 @@ class Context:
         else:
             hv.update(mapping)
 
-    def add_response_extras(self, extras: Mapping[str, Any], *, overwrite: Optional[bool] = None) -> Sequence[str]:
+    def add_response_extras(
+        self, extras: Mapping[str, Any], *, overwrite: Optional[bool] = None
+    ) -> Sequence[str]:
         """
         Merge alias extras into temp['response_extras'].
         Returns a tuple of conflicting keys that were skipped when overwrite=False.
@@ -173,8 +178,10 @@ class Context:
 
 # ── tiny immutable mapping proxy (local; no external deps) ────────────────────
 
+
 class MappingProxy(Mapping[str, Any]):
     """A lightweight, read-only mapping wrapper."""
+
     __slots__ = ("_d",)
 
     def __init__(self, data: Mapping[str, Any]):

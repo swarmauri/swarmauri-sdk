@@ -49,7 +49,9 @@ def acol(
     """
     # Guard: read_producer only applies to virtuals
     if read_producer is not None and storage is not None:
-        raise ValueError("read_producer is only valid for virtual (storage=None) columns.")
+        raise ValueError(
+            "read_producer is only valid for virtual (storage=None) columns."
+        )
 
     return ColumnSpec(
         storage=storage,

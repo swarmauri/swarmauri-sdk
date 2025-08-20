@@ -97,6 +97,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
 # Internals
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
     tmp = getattr(ctx, "temp", None)
     if not isinstance(tmp, dict):
@@ -104,9 +105,11 @@ def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
         setattr(ctx, "temp", tmp)
     return tmp
 
+
 def _is_virtual(colspec: Any) -> bool:
     """Storage-less columns are virtual (wire-only)."""
     return getattr(colspec, "storage", None) is None
+
 
 def _bool_attr(obj: Any, *names: str, default: bool) -> bool:
     for n in names:
@@ -115,6 +118,7 @@ def _bool_attr(obj: Any, *names: str, default: bool) -> bool:
             if isinstance(v, bool):
                 return v
     return default
+
 
 def _coerce_inbound(candidate: Any, ctx: Any) -> Mapping[str, Any]:
     """
@@ -145,6 +149,7 @@ def _coerce_inbound(candidate: Any, ctx: Any) -> Mapping[str, Any]:
     # default empty
     return {}
 
+
 def _try_read_inbound(inbound: Mapping[str, Any], field: str) -> Tuple[bool, Any]:
     """
     Distinguish ABSENT vs present(None).
@@ -156,6 +161,7 @@ def _try_read_inbound(inbound: Mapping[str, Any], field: str) -> Tuple[bool, Any
         if alt in inbound:
             return True, inbound.get(alt)
     return False, None
+
 
 def _ctx_view(ctx: Any) -> Dict[str, Any]:
     """

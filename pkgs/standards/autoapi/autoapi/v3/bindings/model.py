@@ -19,12 +19,23 @@ from ..decorators import (
 )
 
 # Sub-binders (implemented elsewhere)
-from . import schemas as _schemas_binding   # build_and_attach(model, specs, only_keys=None) -> None
-from . import hooks as _hooks_binding       # normalize_and_attach(model, specs, only_keys=None) -> None
-from . import handlers as _handlers_binding # build_and_attach(model, specs, only_keys=None) -> None
-from . import rpc as _rpc_binding           # register_and_attach(model, specs, only_keys=None) -> None
-from . import rest as _rest_binding         # build_router_and_attach(model, specs, only_keys=None) -> None
+from . import (
+    schemas as _schemas_binding,
+)  # build_and_attach(model, specs, only_keys=None) -> None
+from . import (
+    hooks as _hooks_binding,
+)  # normalize_and_attach(model, specs, only_keys=None) -> None
+from . import (
+    handlers as _handlers_binding,
+)  # build_and_attach(model, specs, only_keys=None) -> None
+from . import (
+    rpc as _rpc_binding,
+)  # register_and_attach(model, specs, only_keys=None) -> None
+from . import (
+    rest as _rest_binding,
+)  # build_router_and_attach(model, specs, only_keys=None) -> None
 from . import columns as _columns_binding
+
 logger = logging.getLogger(__name__)
 
 # ───────────────────────────────────────────────────────────────────────────────
@@ -64,7 +75,9 @@ def _ensure_model_namespaces(model: type) -> None:
     if not hasattr(model, "columns"):
         table = getattr(model, "__table__", None)
         cols = tuple(getattr(table, "columns", ()) or ())
-        model.columns = tuple(getattr(c, "name", None) for c in cols if getattr(c, "name", None))
+        model.columns = tuple(
+            getattr(c, "name", None) for c in cols if getattr(c, "name", None)
+        )
     if not hasattr(model, "table_config"):
         table = getattr(model, "__table__", None)
         model.table_config = dict(getattr(table, "kwargs", {}) or {})
@@ -131,7 +144,9 @@ def _drop_old_entries(model: type, *, keys: Set[_Key] | None) -> None:
     # REST endpoints are refreshed wholesale by rest binding as needed
 
 
-def _filter_specs(specs: Sequence[OpSpec], only_keys: Optional[Set[_Key]]) -> List[OpSpec]:
+def _filter_specs(
+    specs: Sequence[OpSpec], only_keys: Optional[Set[_Key]]
+) -> List[OpSpec]:
     if not only_keys:
         return list(specs)
     ok = only_keys
@@ -141,6 +156,7 @@ def _filter_specs(specs: Sequence[OpSpec], only_keys: Optional[Set[_Key]]) -> Li
 # ───────────────────────────────────────────────────────────────────────────────
 # Public API
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 def bind(model: type, *, only_keys: Optional[Set[_Key]] = None) -> Tuple[OpSpec, ...]:
     """
@@ -166,7 +182,7 @@ def bind(model: type, *, only_keys: Optional[Set[_Key]] = None) -> Tuple[OpSpec,
       tuple of OpSpec (the effective set).
     """
     _ensure_model_namespaces(model)
-    
+
     # 0) Columns first
     _columns_binding.build_and_attach(model)
 
@@ -190,7 +206,9 @@ def bind(model: type, *, only_keys: Optional[Set[_Key]] = None) -> Tuple[OpSpec,
     specs: List[OpSpec] = _filter_specs(all_merged_specs, only_keys)
 
     # 4) Merge ctx-only hooks (alias-aware) BEFORE normalization/attachment
-    visible_aliases = {sp.alias for sp in specs} if specs else {sp.alias for sp in all_merged_specs}
+    visible_aliases = (
+        {sp.alias for sp in specs} if specs else {sp.alias for sp in all_merged_specs}
+    )
     ctx_hooks = collect_decorated_hooks(model, visible_aliases=visible_aliases)
     base_hooks = getattr(model, "__autoapi_hooks__", {}) or {}
     for alias, phases in ctx_hooks.items():
@@ -220,21 +238,29 @@ def bind(model: type, *, only_keys: Optional[Set[_Key]] = None) -> Tuple[OpSpec,
     # 7) Ensure we have a registry listener to refresh on changes
     _ensure_registry_listener(model)
 
-    logger.debug("autoapi.bindings.model.bind(%s): %d ops bound (visible=%d)",
-                 model.__name__, len(all_specs), len(specs))
+    logger.debug(
+        "autoapi.bindings.model.bind(%s): %d ops bound (visible=%d)",
+        model.__name__,
+        len(all_specs),
+        len(specs),
+    )
     return all_specs
 
 
-def rebind(model: type, *, changed_keys: Optional[Set[_Key]] = None) -> Tuple[OpSpec, ...]:
+def rebind(
+    model: type, *, changed_keys: Optional[Set[_Key]] = None
+) -> Tuple[OpSpec, ...]:
     """
     Public helper to trigger a rebind for the model. If `changed_keys` is provided,
     we attempt a targeted refresh; otherwise we rebuild everything.
     """
     return bind(model, only_keys=changed_keys)
 
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Registry integration
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 def _ensure_registry_listener(model: type) -> None:
     """
@@ -261,5 +287,6 @@ def _ensure_registry_listener(model: type) -> None:
     reg.subscribe(_on_registry_change)
     # Keep a reference to avoid GC of the closure and to prevent double-subscribe
     setattr(model, AUTOAPI_REGISTRY_LISTENER_ATTR, _on_registry_change)
+
 
 __all__ = ["bind", "rebind"]

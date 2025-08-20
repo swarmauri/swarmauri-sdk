@@ -21,10 +21,10 @@ Phase = Literal[
 
 PHASES: Tuple[Phase, ...] = (
     "PRE_HANDLER",
-    "START_TX",      # system-only
+    "START_TX",  # system-only
     "HANDLER",
     "POST_HANDLER",
-    "END_TX",        # system-only
+    "END_TX",  # system-only
     "POST_RESPONSE",
 )
 
@@ -34,23 +34,23 @@ PHASES: Tuple[Phase, ...] = (
 # ──────────────────────────────────────────────────────────────────────────────
 
 # PRE_HANDLER
-SCHEMA_COLLECT_IN   = "schema:collect_in"
-IN_VALIDATE         = "in:validate"
+SCHEMA_COLLECT_IN = "schema:collect_in"
+IN_VALIDATE = "in:validate"
 
 # HANDLER
-RESOLVE_VALUES      = "resolve:values"
-PRE_FLUSH           = "pre:flush"
-EMIT_ALIASES_PRE    = "emit:aliases:pre_flush"
+RESOLVE_VALUES = "resolve:values"
+PRE_FLUSH = "pre:flush"
+EMIT_ALIASES_PRE = "emit:aliases:pre_flush"
 
 # POST_HANDLER
-POST_FLUSH          = "post:flush"
-EMIT_ALIASES_POST   = "emit:aliases:post_refresh"
-SCHEMA_COLLECT_OUT  = "schema:collect_out"
-OUT_BUILD           = "out:build"
+POST_FLUSH = "post:flush"
+EMIT_ALIASES_POST = "emit:aliases:post_refresh"
+SCHEMA_COLLECT_OUT = "schema:collect_out"
+OUT_BUILD = "out:build"
 
 # POST_RESPONSE
-EMIT_ALIASES_READ   = "emit:aliases:readtime"
-OUT_DUMP            = "out:dump"
+EMIT_ALIASES_READ = "emit:aliases:readtime"
+OUT_DUMP = "out:dump"
 
 # Canonical order of event anchors within the request lifecycle.
 # This ordering is global and stable; use it to produce deterministic plans/traces.
@@ -72,6 +72,7 @@ _EVENT_ORDER: Tuple[str, ...] = (
     OUT_DUMP,
 )
 
+
 # Map each anchor to its phase and persistence tie.
 # "persist_tied=True" means the anchor is pruned for non-persisting ops
 # (e.g., read/list) and whenever an op is executed with persist=False.
@@ -82,30 +83,29 @@ class AnchorInfo:
     ordinal: int
     persist_tied: bool
 
+
 _ANCHORS: Dict[str, AnchorInfo] = {
     # PRE_HANDLER (not persist-tied)
     SCHEMA_COLLECT_IN: AnchorInfo(SCHEMA_COLLECT_IN, "PRE_HANDLER", 0, False),
-    IN_VALIDATE:       AnchorInfo(IN_VALIDATE,       "PRE_HANDLER", 1, False),
-
+    IN_VALIDATE: AnchorInfo(IN_VALIDATE, "PRE_HANDLER", 1, False),
     # HANDLER (persist-tied)
-    RESOLVE_VALUES:    AnchorInfo(RESOLVE_VALUES,    "HANDLER",     2, True),
-    PRE_FLUSH:         AnchorInfo(PRE_FLUSH,         "HANDLER",     3, True),
-    EMIT_ALIASES_PRE:  AnchorInfo(EMIT_ALIASES_PRE,  "HANDLER",     4, True),
-
+    RESOLVE_VALUES: AnchorInfo(RESOLVE_VALUES, "HANDLER", 2, True),
+    PRE_FLUSH: AnchorInfo(PRE_FLUSH, "HANDLER", 3, True),
+    EMIT_ALIASES_PRE: AnchorInfo(EMIT_ALIASES_PRE, "HANDLER", 4, True),
     # POST_HANDLER (mixed)
-    POST_FLUSH:         AnchorInfo(POST_FLUSH,         "POST_HANDLER", 5, True),
-    EMIT_ALIASES_POST:  AnchorInfo(EMIT_ALIASES_POST,  "POST_HANDLER", 6, True),
+    POST_FLUSH: AnchorInfo(POST_FLUSH, "POST_HANDLER", 5, True),
+    EMIT_ALIASES_POST: AnchorInfo(EMIT_ALIASES_POST, "POST_HANDLER", 6, True),
     SCHEMA_COLLECT_OUT: AnchorInfo(SCHEMA_COLLECT_OUT, "POST_HANDLER", 7, False),
-    OUT_BUILD:          AnchorInfo(OUT_BUILD,          "POST_HANDLER", 8, False),
-
+    OUT_BUILD: AnchorInfo(OUT_BUILD, "POST_HANDLER", 8, False),
     # POST_RESPONSE (not persist-tied)
-    EMIT_ALIASES_READ: AnchorInfo(EMIT_ALIASES_READ, "POST_RESPONSE", 9,  False),
-    OUT_DUMP:          AnchorInfo(OUT_DUMP,          "POST_RESPONSE", 10, False),
+    EMIT_ALIASES_READ: AnchorInfo(EMIT_ALIASES_READ, "POST_RESPONSE", 9, False),
+    OUT_DUMP: AnchorInfo(OUT_DUMP, "POST_RESPONSE", 10, False),
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Public helpers
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def is_valid_event(anchor: str) -> bool:
     """True if the given anchor is one of the canonical events."""

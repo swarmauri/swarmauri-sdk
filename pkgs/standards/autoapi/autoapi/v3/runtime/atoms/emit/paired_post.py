@@ -86,12 +86,14 @@ def run(obj: Optional[object], ctx: Any) -> None:
 # Internals
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
     temp = getattr(ctx, "temp", None)
     if not isinstance(temp, dict):
         temp = {}
         setattr(ctx, "temp", temp)
     return temp
+
 
 def _ensure_emit_buf(temp: MutableMapping[str, Any]) -> Dict[str, list]:
     buf = temp.get("emit_aliases")
@@ -104,6 +106,7 @@ def _ensure_emit_buf(temp: MutableMapping[str, Any]) -> Dict[str, list]:
         buf.setdefault("read", [])
     return buf  # type: ignore[return-value]
 
+
 def _ensure_response_extras(temp: MutableMapping[str, Any]) -> Dict[str, Any]:
     extras = temp.get("response_extras")
     if not isinstance(extras, dict):
@@ -111,11 +114,15 @@ def _ensure_response_extras(temp: MutableMapping[str, Any]) -> Dict[str, Any]:
         temp["response_extras"] = extras
     return extras  # type: ignore[return-value]
 
+
 def _get_paired_values(temp: Mapping[str, Any]) -> Dict[str, Dict[str, Any]]:
     pv = temp.get("paired_values")
     return pv if isinstance(pv, dict) else {}
 
-def _resolve_value_from_source(source: Any, pv: Mapping[str, Dict[str, Any]], field: str) -> Optional[Any]:
+
+def _resolve_value_from_source(
+    source: Any, pv: Mapping[str, Dict[str, Any]], field: str
+) -> Optional[Any]:
     """
     Resolve the value indicated by a ('paired_values', field, 'raw')-style pointer.
     Falls back to pv[field]['raw'] when source is missing/malformed.
@@ -126,6 +133,7 @@ def _resolve_value_from_source(source: Any, pv: Mapping[str, Dict[str, Any]], fi
             return pv.get(fld, {}).get("raw")
     # Fallback
     return pv.get(field, {}).get("raw")
+
 
 def _scrub_paired_raw(pv: MutableMapping[str, Dict[str, Any]], field: str) -> None:
     entry = pv.get(field)

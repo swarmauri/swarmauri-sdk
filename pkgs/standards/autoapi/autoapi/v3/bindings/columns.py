@@ -1,6 +1,7 @@
 # autoapi/v3/bindings/columns.py
-from sqlalchemy import Column, Enum as SAEnum
+from sqlalchemy import Column
 from ..specs import ColumnSpec, is_virtual
+
 
 def build_and_attach(model: type, specs=None, only_keys=None):
     cols = {}

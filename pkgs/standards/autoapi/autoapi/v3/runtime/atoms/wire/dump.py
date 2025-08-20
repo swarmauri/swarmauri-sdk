@@ -5,7 +5,7 @@ import base64
 import datetime as _dt
 import decimal as _dc
 import uuid as _uuid
-from typing import Any, Dict, Mapping, MutableMapping, Optional, Sequence
+from typing import Any, Dict, Mapping, MutableMapping, Optional
 
 from ... import events as _ev
 
@@ -44,7 +44,9 @@ def run(obj: Optional[object], ctx: Any) -> None:
         return  # nothing to dump
 
     schema_out = _schema_out(ctx)
-    aliases: Mapping[str, str] = schema_out.get("aliases", {}) if isinstance(schema_out, Mapping) else {}
+    aliases: Mapping[str, str] = (
+        schema_out.get("aliases", {}) if isinstance(schema_out, Mapping) else {}
+    )
 
     omit_nulls = _omit_nulls(ctx)
     allow_overwrite = _allow_extras_overwrite(ctx)
@@ -67,9 +69,12 @@ def run(obj: Optional[object], ctx: Any) -> None:
         return
 
     # List/tuple of objects (already expanded by executor)
-    if isinstance(out_values, (list, tuple)) and all(isinstance(x, Mapping) for x in out_values):
+    if isinstance(out_values, (list, tuple)) and all(
+        isinstance(x, Mapping) for x in out_values
+    ):
         temp["response_payload"] = [
-            _dump_one(item, aliases, omit_nulls) for item in out_values  # type: ignore[arg-type]
+            _dump_one(item, aliases, omit_nulls)
+            for item in out_values  # type: ignore[arg-type]
         ]
         return
 
@@ -81,12 +86,14 @@ def run(obj: Optional[object], ctx: Any) -> None:
 # Internals
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
     tmp = getattr(ctx, "temp", None)
     if not isinstance(tmp, dict):
         tmp = {}
         setattr(ctx, "temp", tmp)
     return tmp
+
 
 def _schema_out(ctx: Any) -> Mapping[str, Any]:
     tmp = getattr(ctx, "temp", {})
@@ -95,6 +102,7 @@ def _schema_out(ctx: Any) -> Mapping[str, Any]:
         return sch
     sch2 = getattr(ctx, "schema_out", None)
     return sch2 if isinstance(sch2, Mapping) else {}
+
 
 def _omit_nulls(ctx: Any) -> bool:
     """
@@ -110,6 +118,7 @@ def _omit_nulls(ctx: Any) -> bool:
             return val
     return False
 
+
 def _allow_extras_overwrite(ctx: Any) -> bool:
     """
     If True, extras can overwrite existing keys; default False.
@@ -122,7 +131,10 @@ def _allow_extras_overwrite(ctx: Any) -> bool:
             return val
     return False
 
-def _dump_one(values: Mapping[str, Any], aliases: Mapping[str, str], omit_nulls: bool) -> Dict[str, Any]:
+
+def _dump_one(
+    values: Mapping[str, Any], aliases: Mapping[str, str], omit_nulls: bool
+) -> Dict[str, Any]:
     """
     Convert a single out_values mapping to a wire payload dict with alias mapping and scalar dumps.
     """
@@ -144,6 +156,7 @@ def _dump_one(values: Mapping[str, Any], aliases: Mapping[str, str], omit_nulls:
         # note: this goes on the payload's temp, not user-visible
         pass
     return out
+
 
 def _dump_scalar(v: Any) -> Any:
     """

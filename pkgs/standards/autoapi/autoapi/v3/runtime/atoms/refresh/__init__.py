@@ -15,9 +15,11 @@ REGISTRY: Dict[Tuple[str, str], Tuple[str, RunFn]] = {
     ("refresh", "demand"): (_demand.ANCHOR, _demand.run),
 }
 
+
 def subjects() -> Tuple[str, ...]:
     """Return the subject names exported by this domain."""
     return tuple(s for (_, s) in REGISTRY.keys())
+
 
 def get(subject: str) -> Tuple[str, RunFn]:
     """Return (anchor, runner) for a subject in the 'refresh' domain."""
@@ -25,5 +27,6 @@ def get(subject: str) -> Tuple[str, RunFn]:
     if key not in REGISTRY:
         raise KeyError(f"Unknown refresh atom subject: {subject!r}")
     return REGISTRY[key]
+
 
 __all__ = ["REGISTRY", "RunFn", "subjects", "get"]

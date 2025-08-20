@@ -47,7 +47,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
         return
 
     by_field: Mapping[str, Mapping[str, Any]] = schema_in.get("by_field", {})  # type: ignore[assignment]
-    required: Tuple[str, ...] = tuple(schema_in.get("required", ()))           # type: ignore[assignment]
+    required: Tuple[str, ...] = tuple(schema_in.get("required", ()))  # type: ignore[assignment]
 
     errors: list[Dict[str, Any]] = []
     coerced: list[str] = []
@@ -55,7 +55,9 @@ def run(obj: Optional[object], ctx: Any) -> None:
     # 1) Required presence (ABSENT → error)
     for name in required:
         if name not in in_values:
-            errors.append(_err(name, "required", "Field is required but was not provided."))
+            errors.append(
+                _err(name, "required", "Field is required but was not provided.")
+            )
 
     # 2) Per-field validation
     for name, value in list(in_values.items()):
@@ -65,16 +67,26 @@ def run(obj: Optional[object], ctx: Any) -> None:
         # Nullability
         nullable = entry.get("nullable", None)
         if value is None and nullable is False:
-            errors.append(_err(name, "null_not_allowed", "Null is not allowed for this field."))
+            errors.append(
+                _err(name, "null_not_allowed", "Null is not allowed for this field.")
+            )
             continue  # skip further checks for this field
 
         # Type (optionally coerce)
         target_type = _target_type(col)
         if value is not None and target_type is not None:
-            allow_coerce = _bool_attr(_get_io(col), "coerce", "coerce_in", "autocoerce", default=True)
+            allow_coerce = _bool_attr(
+                _get_io(col), "coerce", "coerce_in", "autocoerce", default=True
+            )
             ok, new_val, msg = _coerce_if_needed(value, target_type, allow=allow_coerce)
             if not ok:
-                errors.append(_err(name, "type_mismatch", msg or f"Expected {_type_name(target_type)}."))
+                errors.append(
+                    _err(
+                        name,
+                        "type_mismatch",
+                        msg or f"Expected {_type_name(target_type)}.",
+                    )
+                )
                 continue
             if new_val is not value:
                 in_values[name] = new_val
@@ -82,9 +94,15 @@ def run(obj: Optional[object], ctx: Any) -> None:
 
         # Max length (strings)
         max_len = entry.get("max_length", None)
-        if isinstance(max_len, int) and max_len > 0 and isinstance(in_values.get(name), str):
+        if (
+            isinstance(max_len, int)
+            and max_len > 0
+            and isinstance(in_values.get(name), str)
+        ):
             if len(in_values[name]) > max_len:
-                errors.append(_err(name, "max_length", f"String exceeds max_length={max_len}."))
+                errors.append(
+                    _err(name, "max_length", f"String exceeds max_length={max_len}.")
+                )
                 continue
 
         # Author-supplied validator(s)
@@ -95,7 +113,9 @@ def run(obj: Optional[object], ctx: Any) -> None:
                 if out is not None:
                     in_values[name] = out
             except Exception as e:
-                errors.append(_err(name, "validator_failed", f"{type(e).__name__}: {e}"))
+                errors.append(
+                    _err(name, "validator_failed", f"{type(e).__name__}: {e}")
+                )
                 continue
 
     # 3) Unknown keys policy (handled after build_in captured samples)
@@ -122,6 +142,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
 # Internals
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
     tmp = getattr(ctx, "temp", None)
     if not isinstance(tmp, dict):
@@ -129,13 +150,16 @@ def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
         setattr(ctx, "temp", tmp)
     return tmp
 
+
 def _schema_in(ctx: Any) -> Mapping[str, Any]:
     tmp = getattr(ctx, "temp", {})
     sch = getattr(tmp, "get", lambda *_a, **_k: None)("schema_in")  # type: ignore
     return sch if isinstance(sch, Mapping) else {}
 
+
 def _get_io(colspec: Any) -> Any:
     return getattr(colspec, "io", None)
+
 
 def _target_type(colspec: Any) -> Optional[type]:
     """
@@ -150,6 +174,7 @@ def _target_type(colspec: Any) -> Optional[type]:
             return t
     return None
 
+
 def _get_validator(colspec: Any) -> Optional[Callable[[Any, Any], Any]]:
     """
     Return the first available author-supplied inbound validator callable.
@@ -163,6 +188,7 @@ def _get_validator(colspec: Any) -> Optional[Callable[[Any, Any], Any]]:
                 return fn
     return None
 
+
 def _bool_attr(obj: Any, *names: str, default: bool) -> bool:
     for n in names:
         if hasattr(obj, n):
@@ -170,6 +196,7 @@ def _bool_attr(obj: Any, *names: str, default: bool) -> bool:
             if isinstance(v, bool):
                 return v
     return default
+
 
 def _reject_unknown(ctx: Any) -> bool:
     """
@@ -179,15 +206,21 @@ def _reject_unknown(ctx: Any) -> bool:
     val = getattr(cfg, "reject_unknown_fields", None)
     return bool(val) if isinstance(val, bool) else False
 
+
 def _err(field: str, code: str, msg: str) -> Dict[str, Any]:
     return {"field": field, "code": code, "message": msg}
+
 
 def _type_name(t: type) -> str:
     return getattr(t, "__name__", str(t))
 
+
 # ── coercion helpers ──────────────────────────────────────────────────────────
 
-def _coerce_if_needed(value: Any, target: type, *, allow: bool) -> Tuple[bool, Any, Optional[str]]:
+
+def _coerce_if_needed(
+    value: Any, target: type, *, allow: bool
+) -> Tuple[bool, Any, Optional[str]]:
     """Return (ok, new_value, error_message). Only coerces when allow=True."""
     if isinstance(value, target):
         return True, value, None
@@ -196,8 +229,9 @@ def _coerce_if_needed(value: Any, target: type, *, allow: bool) -> Tuple[bool, A
     try:
         coerced = _coerce(value, target)
         return True, coerced, None
-    except Exception as e:
+    except Exception:
         return False, value, f"Could not convert to {_type_name(target)}."
+
 
 def _coerce(value: Any, target: type) -> Any:
     if target is str:

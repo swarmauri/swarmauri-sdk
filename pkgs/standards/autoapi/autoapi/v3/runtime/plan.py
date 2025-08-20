@@ -227,6 +227,18 @@ def flattened_order(
 # ──────────────────────────────────────────────────────────────────────────────
 
 
+def _should_instantiate(
+    domain: str, subject: str, anchor: str, field: str, col: Any
+) -> bool:
+    """Return True if a per-field atom should be instantiated.
+
+    This conservative placeholder always returns ``True`` and can be expanded
+    with domain-specific logic in the future.
+    """
+
+    return True
+  
+
 def _ensure_known_anchor(anchor: str, domain: str, subject: str) -> None:
     if not _ev.is_valid_event(anchor):
         raise ValueError(
@@ -241,15 +253,4 @@ def _ensure_label(x: str | _lbl.Label, *, kind: str) -> _lbl.Label:
         return _lbl.make_secdep(x)
     if kind == "dep":
         return _lbl.make_dep(x)
-    raise ValueError(f"Unsupported label kind {kind!r}")
-
-
-def _should_instantiate(
-    domain: str,
-    subject: str,
-    anchor: str,
-    field: str,
-    col: Any,
-) -> bool:
-    """Placeholder predicate for atom instantiation decisions."""
-    return True
+    raise ValueError(f"Unsupported label kind: {kind}")

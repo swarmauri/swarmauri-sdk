@@ -21,6 +21,7 @@ RunFn = Callable[[Optional[object], Any], None]
 #:   { (domain, subject): (anchor, runner) }
 REGISTRY: Dict[Tuple[str, str], Tuple[str, RunFn]] = {}
 
+
 def _add_bulk(source: Dict[Tuple[str, str], Tuple[str, RunFn]]) -> None:
     for key, val in source.items():
         if key in REGISTRY:
@@ -29,6 +30,7 @@ def _add_bulk(source: Dict[Tuple[str, str], Tuple[str, RunFn]]) -> None:
         if not _ev.is_valid_event(anchor):
             raise ValueError(f"Atom {key!r} declares unknown anchor {anchor!r}")
         REGISTRY[key] = (anchor, fn)
+
 
 # Aggregate all domains
 _add_bulk(_EMIT)
@@ -46,13 +48,16 @@ if ("wire", "validate_in") in REGISTRY and ("wire", "validate") not in REGISTRY:
 
 # ── Public helpers ────────────────────────────────────────────────────────────
 
+
 def domains() -> Tuple[str, ...]:
     """Return all domains present in the registry."""
     return tuple(sorted({d for (d, _) in REGISTRY.keys()}))
 
+
 def subjects(domain: str) -> Tuple[str, ...]:
     """Return subjects available for a given domain."""
     return tuple(sorted(s for (d, s) in REGISTRY.keys() if d == domain))
+
 
 def get(domain: str, subject: str) -> Tuple[str, RunFn]:
     """Return (anchor, runner) for a given (domain, subject)."""
@@ -61,9 +66,11 @@ def get(domain: str, subject: str) -> Tuple[str, RunFn]:
         raise KeyError(f"Unknown atom: {domain}:{subject}")
     return REGISTRY[key]
 
+
 def all_items() -> Tuple[Tuple[Tuple[str, str], Tuple[str, RunFn]], ...]:
     """Return the registry items as a sorted tuple for deterministic iteration."""
     return tuple(sorted(REGISTRY.items(), key=lambda kv: (kv[0][0], kv[0][1])))
+
 
 __all__ = [
     "RunFn",

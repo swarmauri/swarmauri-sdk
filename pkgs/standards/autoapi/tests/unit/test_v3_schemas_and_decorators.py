@@ -1,4 +1,3 @@
-import pytest
 from pydantic import BaseModel
 
 from autoapi.v3 import (
@@ -36,8 +35,8 @@ class Widget:
         alias="search",
         target="custom",
         arity="collection",
-        request_schema="Search.in",                 # dotted form
-        response_schema=SchemaRef("Search", "out"), # SchemaRef form
+        request_schema="Search.in",  # dotted form
+        response_schema=SchemaRef("Search", "out"),  # SchemaRef form
     )
     def search(cls, ctx):
         # return id as a string so we can verify serialization/coercion to int
@@ -60,7 +59,7 @@ def _build_all(model):
     for the tests. We only build handlers for ctx-only specs to avoid touching
     canonical CRUD cores during the test.
     """
-    canon = resolve(model)                 # canonical specs (alias_ctx applied)
+    canon = resolve(model)  # canonical specs (alias_ctx applied)
     custom = collect_decorated_ops(model)  # ctx-only specs
     specs = canon + custom
 

@@ -16,7 +16,6 @@ from typing import (
 )
 
 from .types import (
-    CANON,
     OpSpec,
     TargetOp,
 )
@@ -140,11 +139,13 @@ def _generate_canonical(model: type) -> List[OpSpec]:
     )
     out: List[OpSpec] = []
     for target in canon_targets:
-        alias = target  # canonical alias matches the target (may be remapped by alias_ctx)
+        alias = (
+            target  # canonical alias matches the target (may be remapped by alias_ctx)
+        )
         out.append(
             OpSpec(
                 alias=alias,
-                target=target,                 # ← canonical verb goes here
+                target=target,  # ← canonical verb goes here
                 table=model,
                 arity="member"
                 if target in {"read", "update", "replace", "delete"}
@@ -172,9 +173,7 @@ def _dedupe(
         existing[(sp.alias, sp.target)] = sp  # last wins
 
 
-def _apply_alias_ctx_to_canon(
-    specs: List[OpSpec], model: type
-) -> List[OpSpec]:
+def _apply_alias_ctx_to_canon(specs: List[OpSpec], model: type) -> List[OpSpec]:
     """
     Apply @alias_ctx to canonical specs:
 
@@ -228,13 +227,20 @@ def _apply_alias_ctx_to_canon(
                 if val in ("default", "skip", "override"):
                     repl_kwargs["persist"] = val
                 else:
-                    logger.warning("Invalid persist=%r for %s.%s", val, model.__name__, mutated.alias)
+                    logger.warning(
+                        "Invalid persist=%r for %s.%s",
+                        val,
+                        model.__name__,
+                        mutated.alias,
+                    )
             if ov.get("arity") is not None:
                 val = ov["arity"]
                 if val in ("member", "collection"):
                     repl_kwargs["arity"] = val
                 else:
-                    logger.warning("Invalid arity=%r for %s.%s", val, model.__name__, mutated.alias)
+                    logger.warning(
+                        "Invalid arity=%r for %s.%s", val, model.__name__, mutated.alias
+                    )
             if ov.get("rest") is not None:
                 repl_kwargs["expose_routes"] = bool(ov["rest"])
 

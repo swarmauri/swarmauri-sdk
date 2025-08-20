@@ -34,8 +34,8 @@ def run(obj: Optional[object], ctx: Any) -> None:
 
     temp = _ensure_temp(ctx)
     specs: Mapping[str, Any] = getattr(ctx, "specs", {}) or {}
-    by_field: Mapping[str, Mapping[str, Any]] = schema_out.get("by_field", {})  # type: ignore[assignment]
-    expose = tuple(schema_out.get("expose", ()))                                # type: ignore[assignment]
+    _by_field: Mapping[str, Mapping[str, Any]] = schema_out.get("by_field", {})  # type: ignore[assignment]
+    expose = tuple(schema_out.get("expose", ()))  # type: ignore[assignment]
 
     out_values: Dict[str, Any] = {}
     produced_virtuals: list[str] = []
@@ -80,12 +80,14 @@ def run(obj: Optional[object], ctx: Any) -> None:
 # Internals
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
     tmp = getattr(ctx, "temp", None)
     if not isinstance(tmp, dict):
         tmp = {}
         setattr(ctx, "temp", tmp)
     return tmp
+
 
 def _schema_out(ctx: Any) -> Mapping[str, Any]:
     tmp = getattr(ctx, "temp", {})
@@ -95,6 +97,7 @@ def _schema_out(ctx: Any) -> Mapping[str, Any]:
     # allow adapters to stuff schema_out directly on ctx
     sch2 = getattr(ctx, "schema_out", None)
     return sch2 if isinstance(sch2, Mapping) else {}
+
 
 def _get_virtual_producer(colspec: Any):
     """
@@ -109,6 +112,7 @@ def _get_virtual_producer(colspec: Any):
             if callable(fn):
                 return fn
     return None
+
 
 def _read_current_value(obj: Optional[object], ctx: Any, field: str) -> Optional[Any]:
     """
@@ -126,7 +130,9 @@ def _read_current_value(obj: Optional[object], ctx: Any, field: str) -> Optional
         if isinstance(src, Mapping) and field in src:
             return src.get(field)
 
-    hv = getattr(getattr(ctx, "temp", {}), "get", lambda *a, **k: None)("hydrated_values")  # type: ignore
+    hv = getattr(getattr(ctx, "temp", {}), "get", lambda *a, **k: None)(
+        "hydrated_values"
+    )  # type: ignore
     if isinstance(hv, Mapping):
         return hv.get(field)
 
