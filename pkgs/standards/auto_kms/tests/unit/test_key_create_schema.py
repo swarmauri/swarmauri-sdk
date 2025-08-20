@@ -8,3 +8,14 @@ def test_key_create_schema_excludes_id():
     assert "id" not in fields
     assert "name" in fields and "algorithm" in fields
     assert "status" not in fields
+    for vcol in (
+        "kid",
+        "plaintext_b64",
+        "aad_b64",
+        "nonce_b64",
+        "alg",
+        "ciphertext_b64",
+        "tag_b64",
+        "version",
+    ):
+        assert vcol not in fields
