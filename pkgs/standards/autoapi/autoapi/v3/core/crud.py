@@ -66,11 +66,73 @@ def _model_columns(model: type) -> Tuple[str, ...]:
     return tuple(c.name for c in table.columns)
 
 
-def _coerce_filters(model: type, filters: Optional[Mapping[str, Any]]) -> Dict[str, Any]:
-    """Keep only valid column names, drop paging keys."""
+def _colspecs(model: type) -> Mapping[str, Any]:
+    """Return mapping of column name to ColumnSpec if defined."""
+    specs = getattr(model, "__autoapi_colspecs__", None)
+    if isinstance(specs, Mapping):
+        return specs
+    return {}
+
+
+def _filter_in_values(
+    model: type, data: Mapping[str, Any], verb: str
+) -> Dict[str, Any]:
+    """Filter inbound values by ColumnSpec IO verbs."""
+    specs = _colspecs(model)
+    if not specs:
+        return dict(data)
+    out: Dict[str, Any] = {}
+    for k, v in data.items():
+        sp = specs.get(k)
+        if sp is None:
+            continue
+        io = getattr(sp, "io", None)
+        allowed = True
+        if io is not None:
+            in_verbs = getattr(io, "in_verbs", ())
+            mutable = getattr(io, "mutable_verbs", ())
+            if in_verbs and verb not in in_verbs:
+                allowed = False
+            if mutable and verb not in mutable:
+                allowed = False
+        if allowed:
+            out[k] = v
+    return out
+
+
+def _immutable_columns(model: type, verb: str) -> set[str]:
+    """Columns that should not be mutated for this verb."""
+    specs = _colspecs(model)
+    if not specs:
+        return set()
+    imm: set[str] = set()
+    for name, sp in specs.items():
+        io = getattr(sp, "io", None)
+        mutable = getattr(io, "mutable_verbs", ()) if io else ()
+        if mutable and verb not in mutable:
+            imm.add(name)
+    return imm
+
+
+def _coerce_filters(
+    model: type, filters: Optional[Mapping[str, Any]]
+) -> Dict[str, Any]:
+    """Keep only valid, filterable column names."""
     cols = set(_model_columns(model))
+    specs = _colspecs(model)
     raw = dict(filters or {})
-    return {k: v for k, v in raw.items() if k in cols}
+    out: Dict[str, Any] = {}
+    for k, v in raw.items():
+        if k not in cols:
+            continue
+        sp = specs.get(k)
+        if sp is not None:
+            io = getattr(sp, "io", None)
+            ops = getattr(io, "filter_ops", ()) if io else ()
+            if ops and not any(op in {"eq", "==", "="} for op in ops):
+                continue
+        out[k] = v
+    return out
 
 
 def _apply_equality_filters(model: type, filters: Mapping[str, Any]) -> Any:
@@ -117,6 +179,7 @@ def _apply_sort(model: type, sort: Any) -> Sequence[Any] | None:
     if not tokens:
         return None
 
+    specs = _colspecs(model)
     order_by_exprs: list[Any] = []
     for tok in tokens:
         direction = "asc"
@@ -135,6 +198,11 @@ def _apply_sort(model: type, sort: Any) -> Sequence[Any] | None:
         col = getattr(model, name, None)
         if col is None:
             continue  # ignore unknown column names
+        sp = specs.get(name)
+        if sp is not None:
+            io = getattr(sp, "io", None)
+            if io is not None and not getattr(io, "sortable", False):
+                continue
         if direction == "desc":
             order_by_exprs.append(desc(col))
         else:
@@ -196,6 +264,7 @@ def _set_attrs(
 # ───────────────────────────────────────────────────────────────────────────────
 # Enum validation on writes
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 def _validate_enum_values(model: type, values: Mapping[str, Any]) -> None:
     """
@@ -277,7 +346,9 @@ def _pop_bound_self(args: list[Any]) -> None:
         args.pop(0)
 
 
-def _extract_db(args: list[Any], kwargs: dict[str, Any]) -> Union[Session, AsyncSession]:
+def _extract_db(
+    args: list[Any], kwargs: dict[str, Any]
+) -> Union[Session, AsyncSession]:
     db = kwargs.pop("db", None)
     if db is not None:
         return db
@@ -299,7 +370,9 @@ def _as_pos_int(x: Any) -> Optional[int]:
         return None
 
 
-def _normalize_list_call(_args: tuple[Any, ...], _kwargs: dict[str, Any]) -> tuple[type, Dict[str, Any]]:
+def _normalize_list_call(
+    _args: tuple[Any, ...], _kwargs: dict[str, Any]
+) -> tuple[type, Dict[str, Any]]:
     """
     Accept:
       list(model, filters, *, db, skip, limit, sort)
@@ -311,7 +384,7 @@ def _normalize_list_call(_args: tuple[Any, ...], _kwargs: dict[str, Any]) -> tup
     """
     args = _builtins.list(_args)
     kwargs = dict(_kwargs)
-    print('here')
+    print("here")
 
     _pop_bound_self(args)
 
@@ -353,7 +426,13 @@ def _normalize_list_call(_args: tuple[Any, ...], _kwargs: dict[str, Any]) -> tup
         filters = {}
 
     # Ignore any other stray args/kwargs (request, ctx, etc.)
-    return model, {"filters": filters, "skip": skip, "limit": limit, "db": db, "sort": sort}
+    return model, {
+        "filters": filters,
+        "skip": skip,
+        "limit": limit,
+        "db": db,
+        "sort": sort,
+    }
 
 
 # ───────────────────────────────────────────────────────────────────────────────
@@ -368,7 +447,7 @@ async def create(
     Insert a single row. Returns the persisted model instance.
     Flush-only (commit happens later in END_TX).
     """
-    data = dict(data or {})
+    data = _filter_in_values(model, data or {}, "create")
     _validate_enum_values(model, data)
     obj = model(**data)
     if hasattr(db, "add"):
@@ -381,13 +460,13 @@ async def read(model: type, ident: Any, db: Union[Session, AsyncSession]) -> Any
     """
     Load a single row by primary key. Raises NoResultFound if not found.
     """
-    print('read1')
+    print("read1")
     obj = await _maybe_get(db, model, ident)
-    print('read2')
+    print("read2")
     if obj is None:
-        print('read3')
+        print("read3")
         raise NoResultFound(f"{model.__name__}({ident!r}) not found")
-    print('read4')
+    print("read4")
     return obj
 
 
@@ -398,10 +477,11 @@ async def update(
     Partial update by primary key. Missing keys are left unchanged.
     Returns the updated model instance. Flush-only.
     """
-    data = dict(data or {})
+    data = _filter_in_values(model, data or {}, "update")
     _validate_enum_values(model, data)
     obj = await read(model, ident, db)
-    _set_attrs(obj, data, allow_missing=True)
+    skip = _immutable_columns(model, "update")
+    _set_attrs(obj, data, allow_missing=True, skip=skip)
     await _maybe_flush(db)
     return obj
 
@@ -413,10 +493,11 @@ async def replace(
     Replace semantics: attributes not provided are nulled (except PK).
     Returns the updated model instance. Flush-only.
     """
-    data = dict(data or {})
+    data = _filter_in_values(model, data or {}, "replace")
     _validate_enum_values(model, data)
     obj = await read(model, ident, db)
-    _set_attrs(obj, data, allow_missing=False)
+    skip = _immutable_columns(model, "replace")
+    _set_attrs(obj, data, allow_missing=False, skip=skip)
     await _maybe_flush(db)
     return obj
 
@@ -484,7 +565,8 @@ async def list(*_args: Any, **_kwargs: Any) -> List[Any]:  # noqa: A001  (shadow
 
 
 async def clear(
-    *args: Any, **kwargs: Any,
+    *args: Any,
+    **kwargs: Any,
 ) -> Dict[str, int]:
     """
     Delete many rows matching equality filters. Returns {"deleted": N}.
