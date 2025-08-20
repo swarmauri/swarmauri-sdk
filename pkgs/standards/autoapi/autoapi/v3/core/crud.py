@@ -16,13 +16,13 @@ from typing import (
 import builtins as _builtins
 
 try:
-    from sqlalchemy import select, delete, and_, asc, desc, Enum as SAEnum
+    from sqlalchemy import select, delete as sa_delete, and_, asc, desc, Enum as SAEnum
     from sqlalchemy.orm import Session
     from sqlalchemy.ext.asyncio import AsyncSession
     from sqlalchemy.orm.exc import NoResultFound  # type: ignore
 except Exception:  # pragma: no cover
     # Minimal shims so type-checkers don't explode if SQLAlchemy isn't present at import
-    select = delete = and_ = asc = desc = None  # type: ignore
+    select = sa_delete = and_ = asc = desc = None  # type: ignore
     SAEnum = None  # type: ignore
     Session = object  # type: ignore
     AsyncSession = object  # type: ignore
@@ -66,11 +66,33 @@ def _model_columns(model: type) -> Tuple[str, ...]:
     return tuple(c.name for c in table.columns)
 
 
-def _coerce_filters(model: type, filters: Optional[Mapping[str, Any]]) -> Dict[str, Any]:
-    """Keep only valid column names, drop paging keys."""
-    cols = set(_model_columns(model))
+def _coerce_filters(
+    model: type,
+    filters: Optional[Mapping[str, Any]],
+    *,
+    verb: str = "list",
+) -> Dict[str, Any]:
+    """Keep only valid column names, honoring alias_in and filter_ops."""
     raw = dict(filters or {})
-    return {k: v for k, v in raw.items() if k in cols}
+    table_cols = set(_model_columns(model))
+    specs: Mapping[str, Any] = getattr(model, "__autoapi_cols__", {}) or {}
+    alias_map: Dict[str, str] = {}
+    for name, spec in specs.items():
+        alias = getattr(getattr(spec, "io", None), "alias_in", None)
+        if isinstance(alias, str) and alias:
+            alias_map[alias] = name
+    out: Dict[str, Any] = {}
+    for key, value in raw.items():
+        col = alias_map.get(key, key)
+        spec = specs.get(col)
+        allowed = True
+        if spec is not None:
+            ops = getattr(getattr(spec, "io", None), "filter_ops", ())
+            if ops and verb not in ops:
+                allowed = False
+        if allowed and col in table_cols:
+            out[col] = value
+    return out
 
 
 def _apply_equality_filters(model: type, filters: Mapping[str, Any]) -> Any:
@@ -197,6 +219,7 @@ def _set_attrs(
 # Enum validation on writes
 # ───────────────────────────────────────────────────────────────────────────────
 
+
 def _validate_enum_values(model: type, values: Mapping[str, Any]) -> None:
     """
     Reject any assignment to Enum-typed columns that isn't one of the allowed labels.
@@ -277,7 +300,9 @@ def _pop_bound_self(args: list[Any]) -> None:
         args.pop(0)
 
 
-def _extract_db(args: list[Any], kwargs: dict[str, Any]) -> Union[Session, AsyncSession]:
+def _extract_db(
+    args: list[Any], kwargs: dict[str, Any]
+) -> Union[Session, AsyncSession]:
     db = kwargs.pop("db", None)
     if db is not None:
         return db
@@ -299,7 +324,9 @@ def _as_pos_int(x: Any) -> Optional[int]:
         return None
 
 
-def _normalize_list_call(_args: tuple[Any, ...], _kwargs: dict[str, Any]) -> tuple[type, Dict[str, Any]]:
+def _normalize_list_call(
+    _args: tuple[Any, ...], _kwargs: dict[str, Any]
+) -> tuple[type, Dict[str, Any]]:
     """
     Accept:
       list(model, filters, *, db, skip, limit, sort)
@@ -311,7 +338,6 @@ def _normalize_list_call(_args: tuple[Any, ...], _kwargs: dict[str, Any]) -> tup
     """
     args = _builtins.list(_args)
     kwargs = dict(_kwargs)
-    print('here')
 
     _pop_bound_self(args)
 
@@ -353,7 +379,13 @@ def _normalize_list_call(_args: tuple[Any, ...], _kwargs: dict[str, Any]) -> tup
         filters = {}
 
     # Ignore any other stray args/kwargs (request, ctx, etc.)
-    return model, {"filters": filters, "skip": skip, "limit": limit, "db": db, "sort": sort}
+    return model, {
+        "filters": filters,
+        "skip": skip,
+        "limit": limit,
+        "db": db,
+        "sort": sort,
+    }
 
 
 # ───────────────────────────────────────────────────────────────────────────────
@@ -378,16 +410,10 @@ async def create(
 
 
 async def read(model: type, ident: Any, db: Union[Session, AsyncSession]) -> Any:
-    """
-    Load a single row by primary key. Raises NoResultFound if not found.
-    """
-    print('read1')
+    """Load a single row by primary key. Raises NoResultFound if not found."""
     obj = await _maybe_get(db, model, ident)
-    print('read2')
     if obj is None:
-        print('read3')
         raise NoResultFound(f"{model.__name__}({ident!r}) not found")
-    print('read4')
     return obj
 
 
@@ -423,16 +449,14 @@ async def replace(
 
 async def delete(
     model: type, ident: Any, db: Union[Session, AsyncSession]
-) -> Dict[str, int]:
-    """
-    Delete by primary key. Returns {"deleted": 1} if removed, else raises NoResultFound.
-    Flush-only.
-    """
+) -> Dict[str, Any]:
+    """Delete by primary key. Returns {<pk_name>: ident} if removed."""
     obj = await read(model, ident, db)
     if hasattr(db, "delete"):
         db.delete(obj)  # type: ignore[attr-defined]
     await _maybe_flush(db)
-    return {"deleted": 1}
+    pk_name = _single_pk_name(model)
+    return {pk_name: ident}
 
 
 # NOTE: tolerant signature: accepts positional/keyword and ignores stray args
@@ -447,7 +471,7 @@ async def list(*_args: Any, **_kwargs: Any) -> List[Any]:  # noqa: A001  (shadow
     """
     model, params = _normalize_list_call(_args, _kwargs)
 
-    filters: Mapping[str, Any] = _coerce_filters(model, params["filters"])
+    filters: Mapping[str, Any] = _coerce_filters(model, params["filters"], verb="list")
     skip: Optional[int] = params["skip"]
     limit: Optional[int] = params["limit"]
     db: Union[Session, AsyncSession] = params["db"]
@@ -484,7 +508,8 @@ async def list(*_args: Any, **_kwargs: Any) -> List[Any]:  # noqa: A001  (shadow
 
 
 async def clear(
-    *args: Any, **kwargs: Any,
+    *args: Any,
+    **kwargs: Any,
 ) -> Dict[str, int]:
     """
     Delete many rows matching equality filters. Returns {"deleted": N}.
@@ -495,7 +520,7 @@ async def clear(
     raw_filters: Mapping[str, Any] = params["filters"]
     db: Union[Session, AsyncSession] = params["db"]
 
-    if delete is None:  # pragma: no cover
+    if sa_delete is None:  # pragma: no cover
         # Fallback path: manual iteration
         items = await list(model, raw_filters, db=db)
         n = 0
@@ -505,9 +530,9 @@ async def clear(
         await _maybe_flush(db)
         return {"deleted": n}
 
-    filt = _coerce_filters(model, raw_filters)
+    filt = _coerce_filters(model, raw_filters, verb="clear")
     where = _apply_equality_filters(model, filt)
-    stmt = delete(model)
+    stmt = sa_delete(model)
     if where is not None:
         stmt = stmt.where(where)
 
@@ -607,9 +632,9 @@ async def bulk_delete(
         return {"deleted": 0}
 
     # Prefer DELETE ... WHERE pk IN (...)
-    if delete is not None:
+    if sa_delete is not None:
         col = getattr(model, pk_name)
-        stmt = delete(model).where(col.in_(id_seq))  # type: ignore[attr-defined]
+        stmt = sa_delete(model).where(col.in_(id_seq))  # type: ignore[attr-defined]
         res = await _maybe_execute(db, stmt)
         await _maybe_flush(db)
         n = int(getattr(res, "rowcount", 0) or 0)
