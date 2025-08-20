@@ -13,6 +13,7 @@ from uuid import UUID
 from autoapi.v3.tables import Base
 from autoapi.v3.mixins import GUIDPk, Timestamped
 from autoapi.v3.specs import acol, S, IO, F
+from autoapi.v3.specs.io_spec import Pair
 from autoapi.v3.specs.storage_spec import ForeignKeySpec
 from autoapi.v3.decorators import hook_ctx
 
@@ -60,22 +61,35 @@ class KeyVersion(Base, GUIDPk, Timestamped):
         io=IO(in_verbs=("create",), out_verbs=("read", "list")),
     )
 
+    def _public_material_pair(ctx):
+        payload = ctx.get("payload") or {}
+        raw = payload.get("public_material_b64")
+        if raw is None:
+            return Pair(raw=None, stored=payload.get("public_material"))
+        return Pair(raw=raw, stored=b64d(raw))
+
     public_material: Mapped[bytes | memoryview | None] = acol(
         storage=S(type_=LargeBinary, nullable=True),
-        io=IO(alias_in="public_material_b64", in_verbs=("create", "update")),
+        io=IO().paired(
+            _public_material_pair,
+            alias="public_material_b64",
+            verbs=("create", "update"),
+        ),
     )
-
-    @hook_ctx(ops=("create", "update"), phase="PRE_FLUSH")
-    def _decode_material(cls, ctx):
-        p = ctx.get("payload") or {}
-        raw = p.get("public_material_b64")
-        if raw is not None:
-            ctx["object"].public_material = b64d(raw)
 
     key = relationship("Key", back_populates="versions", lazy="joined")
 
     @hook_ctx(ops="create", phase="PRE_HANDLER")
     async def _generate_material(cls, ctx):
+        from fastapi import HTTPException
+        import secrets
+        from swarmauri_core.crypto.types import (
+            ExportPolicy,
+            KeyType,
+            KeyUse,
+        )
+        from .key import Key, KeyAlg
+
         payload = ctx.setdefault("payload", {})
         if payload.get("public_material") is not None:
             return
@@ -102,4 +116,4 @@ class KeyVersion(Base, GUIDPk, Timestamped):
             material=material,
             export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
         )
-        payload["public_material"] = None
+        payload["public_material"] = material

@@ -5,7 +5,6 @@ import asyncio
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import select
 from autoapi.v3.tables import Base
 from swarmauri_secret_autogpg import AutoGpgSecretDrive
 
@@ -48,9 +47,6 @@ def test_key_encrypt_decrypt_with_paramiko_crypto(client_paramiko):
     client, secret_dir = client_paramiko
 
     key = _create_key(client)
-    kv_payload = {"key_id": key["id"], "version": 1, "status": "active"}
-    res = client.post("/kms/key_version", json=kv_payload)
-    assert res.status_code == 201
 
     pt = b"hello"
     payload = {"plaintext_b64": base64.b64encode(pt).decode()}
@@ -70,9 +66,6 @@ def test_encrypt_accepts_unpadded_base64(client_paramiko):
     client, secret_dir = client_paramiko
 
     key = _create_key(client, name="k2")
-    kv_payload = {"key_id": key["id"], "version": 1, "status": "active"}
-    res = client.post("/kms/key_version", json=kv_payload)
-    assert res.status_code == 201
 
     pt = b"world"
     pt_b64 = base64.b64encode(pt).decode().rstrip("=")
@@ -92,7 +85,4 @@ def test_encrypt_accepts_unpadded_base64(client_paramiko):
 def test_key_version_creation_writes_secret_file(client_paramiko):
     client, secret_dir = client_paramiko
     key = _create_key(client, name="k3")
-    kv_payload = {"key_id": key["id"], "version": 1, "status": "active"}
-    res = client.post("/kms/key_version", json=kv_payload)
-    assert res.status_code == 201
     assert (secret_dir / key["id"] / "private.asc").exists()

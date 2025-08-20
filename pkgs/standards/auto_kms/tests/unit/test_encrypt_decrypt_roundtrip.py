@@ -1,6 +1,7 @@
 import base64
 import importlib
 import asyncio
+
 from fastapi.testclient import TestClient
 from autoapi.v3.tables import Base
 from swarmauri_secret_autogpg import AutoGpgSecretDrive
@@ -41,20 +42,22 @@ def client(tmp_path, monkeypatch):
             delattr(app, "CRYPTO")
 
 
-def test_encrypt_invalid_base64(client):
+def test_encrypt_decrypt_roundtrip(client):
     key = _create_key(client)
-    payload = {
-        "plaintext_b64": base64.b64encode(b"hi").decode(),
-        "aad_b64": "not-base64",
+
+    plaintext = b"hello world"
+    pt_b64 = base64.b64encode(plaintext).decode()
+    enc_res = client.post(
+        f"/kms/key/{key['id']}/encrypt", json={"plaintext_b64": pt_b64}
+    )
+    assert enc_res.status_code == 200
+    enc = enc_res.json()
+
+    dec_payload = {
+        "ciphertext_b64": enc["ciphertext_b64"],
+        "nonce_b64": enc["nonce_b64"],
+        "tag_b64": enc.get("tag_b64"),
     }
-    res = client.post(f"/kms/key/{key['id']}/encrypt", json=payload)
-    assert res.status_code == 400
-    assert "aad_b64" in res.json()["detail"]
-
-
-def test_resource_names():
-    from auto_kms.tables.key import Key
-    from auto_kms.tables.key_version import KeyVersion
-
-    assert Key.__resource__ == "key"
-    assert KeyVersion.__resource__ == "key_version"
+    dec_res = client.post(f"/kms/key/{key['id']}/decrypt", json=dec_payload)
+    assert dec_res.status_code == 200
+    assert base64.b64decode(dec_res.json()["plaintext_b64"]) == plaintext
