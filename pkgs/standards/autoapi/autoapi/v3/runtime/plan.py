@@ -237,7 +237,7 @@ def _should_instantiate(
     """
 
     return True
-
+  
 
 def _ensure_known_anchor(anchor: str, domain: str, subject: str) -> None:
     if not _ev.is_valid_event(anchor):
