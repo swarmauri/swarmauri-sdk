@@ -119,10 +119,15 @@ def _default_end_tx() -> StepFn:
         # until the session reports no active transaction.
         if hasattr(db, "in_transaction") and callable(db.in_transaction):
             try:
+                prev_state = db.in_transaction()  # type: ignore[call-arg]
                 while db.in_transaction():  # type: ignore[call-arg]
                     rv2 = commit()
                     if inspect.isawaitable(rv2):
                         await rv2  # type: ignore[misc]
+                    current_state = db.in_transaction()  # type: ignore[call-arg]
+                    if current_state == prev_state:
+                        break
+                    prev_state = current_state
             except Exception:  # pragma: no cover - defensive
                 pass
 
