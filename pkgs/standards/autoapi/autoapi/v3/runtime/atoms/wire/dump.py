@@ -66,20 +66,22 @@ def run(obj: Optional[object], ctx: Any) -> None:
             if conflicts:
                 temp["dump_conflicts"] = tuple(sorted(set(conflicts)))
         temp["response_payload"] = payload
-        return
+        return payload
 
     # List/tuple of objects (already expanded by executor)
     if isinstance(out_values, (list, tuple)) and all(
         isinstance(x, Mapping) for x in out_values
     ):
-        temp["response_payload"] = [
+        payload_list = [
             _dump_one(item, aliases, omit_nulls)
             for item in out_values  # type: ignore[arg-type]
         ]
-        return
+        temp["response_payload"] = payload_list
+        return payload_list
 
     # Unknown shape — stash as-is to avoid surprises (transport may serialize).
     temp["response_payload"] = out_values
+    return out_values
 
 
 # ──────────────────────────────────────────────────────────────────────────────

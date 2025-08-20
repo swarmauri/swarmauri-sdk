@@ -191,10 +191,12 @@ def _serialize_output(
     try:
         if target == "list" and isinstance(result, (list, tuple)):
             return [
-                out_model.model_validate(x).model_dump(exclude_none=True)
+                out_model.model_validate(x).model_dump(exclude_none=True, by_alias=True)
                 for x in result
             ]
-        return out_model.model_validate(result).model_dump(exclude_none=True)
+        return out_model.model_validate(result).model_dump(
+            exclude_none=True, by_alias=True
+        )
     except Exception:
         logger.debug(
             "rest output serialization failed for %s.%s",
