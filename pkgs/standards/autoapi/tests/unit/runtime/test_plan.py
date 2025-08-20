@@ -235,3 +235,9 @@ def test_ensure_label_returns_label() -> None:
 def test_ensure_label_raises_on_unknown_kind() -> None:
     with pytest.raises(ValueError):
         plan_mod._ensure_label("x", kind="unknown")
+
+
+def test_ensure_label_raises_on_invalid_dep_name() -> None:
+    bad = "autoapi.v3.decorators._wrap_ctx_core.<locals>.core"
+    with pytest.raises(ValueError, match="Invalid dep name"):
+        plan_mod._ensure_label(bad, kind="dep")

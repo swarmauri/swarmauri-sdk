@@ -211,3 +211,10 @@ def test_ensure_label_invalid_kind_raises():
     """_ensure_label errors on unsupported kinds."""
     with pytest.raises(ValueError):
         runtime_plan._ensure_label("x", kind="other")
+
+
+def test_ensure_label_invalid_dep_name_rejected():
+    """_ensure_label rejects dep names with invalid characters."""
+    bad = "autoapi.v3.decorators._wrap_ctx_core.<locals>.core"
+    with pytest.raises(ValueError, match="Invalid dep name"):
+        runtime_plan._ensure_label(bad, kind="dep")
