@@ -19,9 +19,18 @@ Typical usage in the schema builder:
 
 from __future__ import annotations
 
+import warnings
+
 from typing import Any, Mapping
 
 from ..opspec.types import CANON
+
+warnings.warn(
+    "autoapi.v3.schema.col_info is deprecated; Column.info['autoapi'] will be removed. "
+    "Use ColumnSpecs instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 # ───────────────────────────────────────────────────────────────────────────────
