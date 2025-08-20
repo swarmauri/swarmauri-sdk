@@ -23,7 +23,7 @@ async def client_and_model():
             storage=S(type_=Integer, primary_key=True, autoincrement=True)
         )
         name: Mapped[str] = acol(
-            storage=S(type_=String, nullable=False),
+            storage=S(type_=String, nullable=False, unique=True),
             field=F(required_in=("create",)),
             io=IO(
                 in_verbs=("create", "update", "replace"),
@@ -134,6 +134,16 @@ async def test_rest_list(client_and_model):
     assert resp.status_code == 200
     names = {item["name"] for item in resp.json()}
     assert names == {"A", "B"}
+
+
+@pytest.mark.i9n
+@pytest.mark.asyncio
+async def test_rest_create_duplicate_conflict(client_and_model):
+    """Creating a duplicate should return HTTP 409."""
+    client, _ = client_and_model
+    await client.post("/gadget", json={"name": "A", "age": 1})
+    dup = await client.post("/gadget", json={"name": "A", "age": 2})
+    assert dup.status_code == 409
 
 
 @pytest.mark.i9n

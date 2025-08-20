@@ -79,6 +79,35 @@ def _is_asyncpg_constraint_error(exc: BaseException) -> bool:
     )
 
 
+def _is_unique_constraint_error(exc: BaseException) -> bool:
+    """Detect unique/duplicate key constraint violations.
+
+    Works across common database backends without requiring optional
+    dependencies like asyncpg to be installed.
+    """
+    cls = type(exc)
+
+    # Direct asyncpg exception without SQLAlchemy wrapping
+    if (cls.__module__ or "").startswith(
+        "asyncpg"
+    ) and cls.__name__ == "UniqueViolationError":
+        return True
+
+    # SQLAlchemy wrapper or other DBAPI error – inspect nested ``orig``
+    orig = getattr(exc, "orig", None)
+    if orig is not None and _is_unique_constraint_error(orig):
+        return True
+
+    # SQLSTATE / error code for unique constraint violation
+    code = getattr(exc, "pgcode", None) or getattr(exc, "sqlstate", None)
+    if code == "23505":  # PostgreSQL unique violation
+        return True
+
+    # Fallback: check message for common phrases
+    msg = str(exc).lower()
+    return "unique" in msg and "constraint" in msg
+
+
 # ───────────────────── Typed AutoAPI errors (added) ───────────────────────────
 
 
@@ -363,6 +392,9 @@ def _classify_exception(
     # 4) ORM/DB mapping
     if (NoResultFound is not None) and isinstance(exc, NoResultFound):
         return status.HTTP_404_NOT_FOUND, "Resource not found", None
+
+    if _is_unique_constraint_error(exc):
+        return status.HTTP_409_CONFLICT, _stringify_exc(exc), None
 
     if _is_asyncpg_constraint_error(exc):
         return status.HTTP_422_UNPROCESSABLE_ENTITY, _stringify_exc(exc), None
