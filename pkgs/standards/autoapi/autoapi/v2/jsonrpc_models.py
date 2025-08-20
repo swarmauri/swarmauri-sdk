@@ -3,7 +3,7 @@ from typing import (
 )
 from fastapi import HTTPException
 from pydantic import BaseModel, Field
-import uuid
+from uuid import UUID, uuid4
 
 # ───────────────────── Centralized Error Mappings ────────────────────────────
 
@@ -137,14 +137,20 @@ class _RPCReq(BaseModel):
     jsonrpc: str = Field(default="2.0", json_schema_extra={"Literal": True})
     method: str
     params: dict = {}
-    id: str | int | None = str(uuid.uuid4())
+    id: UUID | None = Field(
+        default_factory=uuid4,
+        examples=[uuid4()],
+    )
 
 
 class _RPCRes(BaseModel):
     jsonrpc: str = Field(default="2.0", json_schema_extra={"Literal": True})
     result: Any | None = None
     error: dict | None = None
-    id: str | int | None = None
+    id: UUID | None = Field(
+        default=None,
+        examples=[uuid4()],
+    )
 
 
 def _ok(x: Any, q: _RPCReq) -> _RPCRes:
