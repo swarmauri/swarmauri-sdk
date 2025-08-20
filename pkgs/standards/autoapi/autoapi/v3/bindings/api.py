@@ -51,13 +51,12 @@ def _resource_name(model: type) -> str:
 def _default_prefix(model: type) -> str:
     """Default mount prefix for a model router.
 
-    By default we mount each router under ``/{resource}``, where ``resource`` is
-    the model's lowercased class name (or ``__resource__`` override).  This
-    mirrors the REST transport's own resource segment so legacy clients
-    continue to work with paths like ``/fsitem/fsitem``.
+    Historically routers were mounted under ``/{resource}``, resulting in
+    duplicated path segments such as ``/item/item``.  To expose REST endpoints
+    under ``/item`` we now mount routers at the application root by default.
     """
 
-    return f"/{_resource_name(model)}"
+    return ""
 
 
 def _has_include_router(obj: Any) -> bool:
