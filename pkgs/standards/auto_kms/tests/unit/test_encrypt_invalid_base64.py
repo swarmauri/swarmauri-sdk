@@ -16,13 +16,15 @@ def _create_key(client, name="k1"):
 
 @pytest.fixture
 def client(tmp_path, monkeypatch):
-    monkeypatch.setattr(
-        "auto_kms.app.AutoGpgSecretDrive",
-        lambda: AutoGpgSecretDrive(path=tmp_path / "keys"),
-    )
+    secret_dir = tmp_path / "keys"
     db_path = tmp_path / "kms.db"
     monkeypatch.setenv("KMS_DATABASE_URL", f"sqlite+aiosqlite:///{db_path}")
     app = importlib.reload(importlib.import_module("auto_kms.app"))
+    monkeypatch.setattr(
+        app,
+        "AutoGpgSecretDrive",
+        lambda: AutoGpgSecretDrive(path=secret_dir),
+    )
 
     async def init_db():
         async with app.engine.begin() as conn:
@@ -41,6 +43,9 @@ def client(tmp_path, monkeypatch):
 
 def test_encrypt_invalid_base64(client):
     key = _create_key(client)
+    kv_payload = {"key_id": key["id"], "version": 1, "status": "active"}
+    res = client.post("/kms/key_version", json=kv_payload)
+    assert res.status_code == 201
     payload = {
         "plaintext_b64": base64.b64encode(b"hi").decode(),
         "aad_b64": "not-base64",

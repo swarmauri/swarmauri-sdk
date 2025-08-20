@@ -4,7 +4,7 @@ import asyncio
 import pytest
 
 from swarmauri_secret_autogpg import AutoGpgSecretDrive as _SecretDrive
-from swarmauri_crypto_paramiko import ParamikoCrypto
+from auto_kms.crypto import ParamikoCryptoAdapter
 
 
 @pytest.fixture
@@ -16,7 +16,7 @@ def app_module(tmp_path, monkeypatch):
     app = importlib.reload(importlib.import_module("auto_kms.app"))
     monkeypatch.setattr(app, "AutoGpgSecretDrive", TmpSecretDrive)
     try:
-        yield app, TmpSecretDrive, ParamikoCrypto
+        yield app, TmpSecretDrive, ParamikoCryptoAdapter
     finally:
         if hasattr(app, "SECRETS"):
             delattr(app, "SECRETS")
