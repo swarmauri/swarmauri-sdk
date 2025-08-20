@@ -1,5 +1,6 @@
 # auto_kms/tables/key.py
 from __future__ import annotations
+import base64
 from enum import Enum
 from uuid import UUID, uuid4
 from typing import List, Optional, TYPE_CHECKING
@@ -142,6 +143,7 @@ class Key(Base):
     @hook_ctx(ops="create", phase="POST_HANDLER")
     async def _seed_primary_version(cls, ctx):
         import secrets
+        from sqlalchemy import select
         from swarmauri_core.crypto.types import (
             ExportPolicy,
             KeyType,
