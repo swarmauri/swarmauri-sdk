@@ -18,10 +18,10 @@ def test_request_body_uses_schema_model():
     app = FastAPI()
     app.include_router(router)
     spec = app.openapi()
-
-    request_schema = spec["paths"]["/widgets_req_schema"]["post"]["requestBody"][
-        "content"
-    ]["application/json"]["schema"]
+    path = f"/{Widget.__name__.lower()}"
+    request_schema = spec["paths"][path]["post"]["requestBody"]["content"][
+        "application/json"
+    ]["schema"]
     assert request_schema["$ref"] == "#/components/schemas/WidgetCreate"
 
     widget_schema = spec["components"]["schemas"]["WidgetCreate"]
