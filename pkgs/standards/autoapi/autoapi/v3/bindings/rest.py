@@ -103,6 +103,19 @@ logger = logging.getLogger(__name__)
 _Key = Tuple[str, str]  # (alias, target)
 
 
+def _ensure_jsonable(obj: Any) -> Any:
+    """Best-effort conversion of DB rows or row-mappings to plain dicts."""
+    if isinstance(obj, (list, tuple)):
+        return [_ensure_jsonable(x) for x in obj]
+    mapping = getattr(obj, "_mapping", None)
+    if mapping is not None:
+        try:
+            return dict(mapping)
+        except Exception:  # pragma: no cover - fall back to original object
+            pass
+    return obj
+
+
 def _req_state_db(request: Request) -> Any:
     return getattr(request.state, "db", None)
 
