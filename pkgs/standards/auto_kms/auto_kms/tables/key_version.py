@@ -16,7 +16,7 @@ from autoapi.v3.mixins import GUIDPk, Timestamped
 
 class KeyVersion(Base, GUIDPk, Timestamped):
     __tablename__ = "key_versions"
-    __resource__ = "key_versions"
+    __resource__ = "key_version"
     __table_args__ = (UniqueConstraint("key_id", "version"),)
 
     key_id = Column(
