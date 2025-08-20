@@ -97,7 +97,7 @@ _Key = Tuple[str, str]  # (alias, target)
 
 
 def _ensure_jsonable(obj: Any) -> Any:
-"""Best-effort conversion of DB rows, row-mappings, or ORM objects to dicts."""
+    """Best-effort conversion of DB rows, row-mappings, or ORM objects to dicts."""
     if isinstance(obj, (list, tuple)):
         return [_ensure_jsonable(x) for x in obj]
 
