@@ -136,11 +136,13 @@ def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
     try:
         if target == "list" and isinstance(result, (list, tuple)):
             return [
-                out_model.model_validate(x).model_dump(exclude_none=True)
+                out_model.model_validate(x).model_dump(exclude_none=True, by_alias=True)
                 for x in result
             ]
         # Single object case
-        return out_model.model_validate(result).model_dump(exclude_none=True)
+        return out_model.model_validate(result).model_dump(
+            exclude_none=True, by_alias=True
+        )
     except Exception as e:
         # If serialization fails, let raw result through rather than failing the call
         logger.debug(

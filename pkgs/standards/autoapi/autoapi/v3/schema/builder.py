@@ -28,7 +28,7 @@ from typing import (
     get_type_hints,
 )
 
-from pydantic import BaseModel, ConfigDict, Field, create_model
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, create_model
 
 from .utils import namely_model
 
@@ -334,6 +334,21 @@ def _build_schema(
         is_nullable = bool(getattr(col, "nullable", True))
         if is_nullable and py_t is not Any:
             py_t = Union[py_t, None]
+
+        # Apply alias mappings for IO specs so that generated Pydantic models
+        # accept both the canonical field name and any configured alias. This
+        # ensures request payloads can use ``alias_in`` and response models use
+        # ``alias_out`` while still normalizing to the canonical attribute name
+        # internally.
+        if io is not None:
+            if verb in {"read", "list"}:
+                alias = getattr(io, "alias_out", None)
+            else:
+                alias = getattr(io, "alias_in", None)
+            if alias:
+                fld.alias = alias
+                fld.serialization_alias = alias
+                fld.validation_alias = AliasChoices(attr_name, alias)
 
         _add_field(fields, name=attr_name, py_t=py_t, field=fld)
         logger.debug(
