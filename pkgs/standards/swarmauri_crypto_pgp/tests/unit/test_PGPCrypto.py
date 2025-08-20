@@ -1,4 +1,5 @@
 import pytest
+from enum import Enum
 
 from swarmauri_crypto_pgp import PGPCrypto
 from swarmauri_core.crypto.types import ExportPolicy, KeyRef, KeyType, KeyUse
@@ -39,6 +40,28 @@ async def test_aead_encrypt_decrypt_roundtrip(pgp_crypto):
 
     pt = b"hello world"
     ct = await pgp_crypto.encrypt(sym, pt)
+    rt = await pgp_crypto.decrypt(sym, ct)
+    assert rt == pt
+
+
+class DummyAlg(str, Enum):
+    AES256_GCM = "AES256_GCM"
+
+
+@pytest.mark.asyncio
+async def test_enum_algorithm_normalized(pgp_crypto):
+    sym = KeyRef(
+        kid="sym2",
+        version=1,
+        type=KeyType.SYMMETRIC,
+        uses=(KeyUse.ENCRYPT, KeyUse.DECRYPT),
+        export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
+        material=b"\x22" * 32,
+    )
+
+    pt = b"enum alg"
+    ct = await pgp_crypto.encrypt(sym, pt, alg=DummyAlg.AES256_GCM)
+    assert ct.alg == "AES-256-GCM"
     rt = await pgp_crypto.decrypt(sym, ct)
     assert rt == pt
 

@@ -13,7 +13,8 @@ Notes
 from __future__ import annotations
 
 import secrets
-from typing import Dict, Iterable, Literal, Optional
+from typing import Any, Dict, Iterable, Literal, Optional
+from enum import Enum
 
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
@@ -50,6 +51,14 @@ class ParamikoCrypto(CryptoBase):
 
     # ────────────────────────── symmetric AEAD ──────────────────────────
 
+    def _normalize_aead_alg(self, alg: Any) -> Alg:
+        if isinstance(alg, Enum):
+            alg = alg.value
+        alg = alg or "AES-256-GCM"
+        if alg == "AES256_GCM":
+            alg = "AES-256-GCM"
+        return alg
+
     async def encrypt(
         self,
         key: KeyRef,
@@ -59,7 +68,7 @@ class ParamikoCrypto(CryptoBase):
         aad: Optional[bytes] = None,
         nonce: Optional[bytes] = None,
     ) -> AEADCiphertext:
-        alg = alg or "AES-256-GCM"
+        alg = self._normalize_aead_alg(alg)
         if alg != "AES-256-GCM":
             raise UnsupportedAlgorithm(f"Unsupported AEAD algorithm: {alg}")
 
@@ -92,7 +101,7 @@ class ParamikoCrypto(CryptoBase):
         *,
         aad: Optional[bytes] = None,
     ) -> bytes:
-        if ct.alg != "AES-256-GCM":
+        if self._normalize_aead_alg(ct.alg) != "AES-256-GCM":
             raise UnsupportedAlgorithm(f"Unsupported AEAD algorithm: {ct.alg}")
         if key.material is None:
             raise ValueError(
@@ -115,7 +124,7 @@ class ParamikoCrypto(CryptoBase):
         aad: Optional[bytes] = None,
         nonce: Optional[bytes] = None,
     ) -> MultiRecipientEnvelope:
-        enc_alg = enc_alg or "AES-256-GCM"
+        enc_alg = self._normalize_aead_alg(enc_alg)
         if enc_alg != "AES-256-GCM":
             raise UnsupportedAlgorithm(f"Unsupported enc_alg: {enc_alg}")
         wrap_alg = recipient_wrap_alg or "RSA-OAEP-SHA256"
