@@ -57,6 +57,10 @@ def _ensure_alias_handlers_ns(model: type, alias: str) -> SimpleNamespace:
     if ns is None:
         ns = SimpleNamespace()
         setattr(handlers_root, alias, ns)
+    # Mirror the HANDLER phase chain from hooks namespace for back-compat
+    hooks_ns = _ensure_alias_hooks_ns(model, alias)
+    if not hasattr(ns, "HANDLER"):
+        setattr(ns, "HANDLER", getattr(hooks_ns, "HANDLER"))
     return ns
 
 
