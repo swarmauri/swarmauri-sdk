@@ -83,7 +83,7 @@ async def test_hook_ctx_request_response_schema_i9n():
 
     client, _, _ = create_client(Item)
     res = await client.post("/item", json={"name": "a"})
-    assert res.status_code == 200
+    assert res.status_code == 201
     assert res.json()["hook"] is True
     await client.aclose()
 
@@ -137,7 +137,7 @@ async def test_hook_ctx_defaults_resolution_i9n():
 
     client, _, _ = create_client(Item)
     res = await client.post("/item", json={})
-    assert res.status_code == 200
+    assert res.status_code == 201
     assert res.json()["name"] == "default"
     await client.aclose()
 
