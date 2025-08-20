@@ -4,13 +4,17 @@ import pytest
 import pytest_asyncio
 from autoapi.v2 import AutoAPI, Base
 from autoapi.v2.mixins import BulkCapable, GUIDPk
+from autoapi.v3.autoapi import AutoAPI as AutoAPIv3
+from autoapi.v3.tables import Base as Base3
+from autoapi.v3.specs import IO, S, F, acol
+from autoapi.v3.specs.storage_spec import StorageTransform
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import Column, ForeignKey, String, create_engine
+from sqlalchemy import Column, ForeignKey, Integer, String, create_engine
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import Mapped, Session, sessionmaker
 
 
 def pytest_addoption(parser):
@@ -200,3 +204,67 @@ def sample_item_data():
         return {"tenant_id": tenant_id, "name": "test-item"}
 
     return _create_item_data
+
+
+@pytest_asyncio.fixture()
+async def api_client_v3():
+    Base3.metadata.clear()
+
+    class Widget(Base3):
+        __tablename__ = "widgets"
+        __allow_unmapped__ = True
+
+        id: Mapped[int] = acol(
+            storage=S(type_=Integer, primary_key=True, autoincrement=True)
+        )
+        name: Mapped[str] = acol(
+            storage=S(type_=String, nullable=False, index=True),
+            field=F(required_in=("create",)),
+            io=IO(
+                in_verbs=("create", "update"),
+                out_verbs=("read", "list"),
+            ),
+        )
+        age: Mapped[int] = acol(
+            storage=S(type_=Integer, nullable=False, default=5),
+            io=IO(
+                in_verbs=("create", "update"),
+                out_verbs=("read", "list"),
+            ),
+        )
+        secret: Mapped[str] = acol(
+            storage=S(
+                type_=String,
+                nullable=False,
+                transform=StorageTransform(to_stored=lambda v, ctx: v.upper()),
+            ),
+            field=F(required_in=("create",)),
+            io=IO(in_verbs=("create",), out_verbs=("read",)),
+        )
+
+        __autoapi_cols__ = {
+            "id": id,
+            "name": name,
+            "age": age,
+            "secret": secret,
+        }
+
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base3.metadata.create_all)
+    AsyncSessionLocal = async_sessionmaker(
+        bind=engine, class_=AsyncSession, expire_on_commit=False
+    )
+
+    async def get_async_db():
+        async with AsyncSessionLocal() as session:
+            yield session
+
+    app = FastAPI()
+    api = AutoAPIv3(app=app, get_async_db=get_async_db)
+    api.include_model(Widget, prefix="")
+    api.mount_jsonrpc()
+    api.attach_diagnostics()
+    transport = ASGITransport(app=app)
+    client = AsyncClient(transport=transport, base_url="http://test")
+    return client, api, Widget, AsyncSessionLocal
