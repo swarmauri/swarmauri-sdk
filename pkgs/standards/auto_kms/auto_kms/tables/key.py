@@ -46,6 +46,7 @@ class KeyStatus(str, Enum):
 
 class Key(Base):
     __tablename__ = "keys"
+    __resource__ = "key"
     __allow_unmapped__ = True  # allow vcol attributes
 
     # Persisted columns (py_type inferred from annotation; SA dtype via StorageSpec.type_)
@@ -215,7 +216,7 @@ class Key(Base):
                 type=KeyType.SYMMETRIC,
                 uses=(KeyUse.ENCRYPT, KeyUse.DECRYPT),
                 export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
-                material=version.public_material,
+                material=bytes(version.public_material),
             )
             res = await crypto.encrypt(
                 key_ref,
@@ -295,7 +296,7 @@ class Key(Base):
                 type=KeyType.SYMMETRIC,
                 uses=(KeyUse.DECRYPT, KeyUse.ENCRYPT),
                 export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
-                material=version.public_material,
+                material=bytes(version.public_material),
             )
             ct_obj = AEADCiphertext(
                 kid=kid,
