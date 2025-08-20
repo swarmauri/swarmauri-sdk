@@ -426,6 +426,7 @@ class Key(Base):
         alias="rotate",
         target="custom",
         arity="member",  # /key/{item_id}/rotate
+        status_code=201,
     )
     async def rotate(cls, ctx):
         import secrets

@@ -69,3 +69,12 @@ def test_key_rotate_creates_new_version(client_app):
 
     versions = asyncio.run(fetch_versions())
     assert versions == [1, 2]
+
+
+def test_rotate_openapi_spec(client_app):
+    client, _ = client_app
+    spec = client.get("/openapi.json").json()
+    rotate_spec = spec["paths"]["/kms/key/{item_id}/rotate"]["post"]
+    assert "requestBody" not in rotate_spec
+    assert "201" in rotate_spec["responses"]
+    assert rotate_spec["responses"]["201"].get("content") is None

@@ -167,6 +167,7 @@ class OpSpec:
     http_methods: Optional[Tuple[str, ...]] = None
     path_suffix: Optional[str] = None
     tags: Tuple[str, ...] = field(default_factory=tuple)
+    status_code: Optional[int] = None
 
     # Persistence
     persist: PersistPolicy = "default"
