@@ -122,6 +122,7 @@ class InterfaceRegistry:
         "swarmauri.secrets": SecretDriveBase,
         "swarmauri.signings": SigningBase,
         "swarmauri.signings.EcdsaEnvelopeSigner": SigningBase,
+        "swarmauri.signings.RSAEnvelopeSigner": SigningBase,
         "swarmauri.logger_formatters": FormatterBase,
         "swarmauri.loggers": LoggerBase,
         "swarmauri.logger_handlers": HandlerBase,
