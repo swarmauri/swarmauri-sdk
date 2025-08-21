@@ -93,6 +93,7 @@ members = [
     "standards/swarmauri_secret_autogpg",
     "standards/swarmauri_signing_pgp",
     "standards/swarmauri_signing_rsa",
+    "standards/swarmauri_signing_ssh",
     "community/swarmauri_middleware_circuitbreaker",
     "community/swarmauri_middleware_ratepolicy",
     "community/swarmauri_vectorstore_redis",
@@ -227,7 +228,7 @@ swarmauri_signing_hmac = { workspace = true }
 swarmauri_signing_ecdsa = { workspace = true }
 swarmauri_signing_pgp = { workspace = true }
 swarmauri_signing_rsa = { workspace = true }
-
+swarmauri_signing_ssh = { workspace = true }
 swarmauri_vectorstore_redis = { workspace = true }
 swarmauri_vectorstore_qdrant = { workspace = true }
 swarmauri_vectorstore_pinecone = { workspace = true }
