@@ -18,3 +18,9 @@ asymmetric keys and exporting public material via JWK/JWKS.
 ```bash
 pip install swarmauri_keyproviders
 ```
+
+Optional extras are provided for specific key provider canons:
+
+```bash
+pip install swarmauri_keyproviders[pkcs11]  # enable PKCS#11 support
+```
