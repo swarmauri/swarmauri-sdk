@@ -64,6 +64,7 @@ members = [
     "standards/swarmauri_middleware_cors",
     "standards/swarmauri_middleware_exceptionhandling",
     "standards/swarmauri_middleware_gzipcompression",
+    "standards/swarmauri_middleware_jwksverifier",
     "standards/swarmauri_middleware_llamaguard",
     "standards/swarmauri_middleware_logging",
     "standards/swarmauri_middleware_ratelimit",
@@ -208,6 +209,7 @@ swarmauri_middleware_cachecontrol = { workspace = true }
 swarmauri_middleware_cors = { workspace = true }
 swarmauri_middleware_exceptionhadling = { workspace = true }
 swarmauri_middleware_gzipcompression = { workspace = true }
+swarmauri_middleware_jwksverifier = { workspace = true }
 swarmauri_middleware_llamaguard = { workspace = true }
 swarmauri_middleware_logging = { workspace = true }
 swarmauri_middleware_ratelimit = { workspace = true }
