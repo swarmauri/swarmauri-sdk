@@ -86,6 +86,7 @@ members = [
     "standards/swarmauri_keyprovider_file",
     "standards/swarmauri_keyproviders_mirrored",
     "standards/swarmauri_keyprovider_hierarchical",
+    "standards/swarmauri_certservice_pkcs11",
     "standards/swarmauri_crypto_paramiko",
     "standards/swarmauri_crypto_pgp",
     "standards/swarmauri_crypto_sodium",
@@ -104,6 +105,7 @@ members = [
     "standards/swarmauri_signing_ecdsa",
     "standards/swarmauri_signing_ca",
     "standards/swarmauri_signing_jws",
+    "standards/swarmauri_certservice_localca",
     "standards/swarmauri_tokens_jwt",
     "standards/swarmauri_tokens_sshsig",
     "standards/swarmauri_tokens_sshcert",
@@ -113,14 +115,21 @@ members = [
     "standards/swarmauri_signing_rsa",
     "standards/swarmauri_signing_ssh",
     "standards/swarmauri_certs_x509verify",
+
     "standards/swarmauri_tokens_introspection",
     "standards/swarmauri_tokens_paseto_v4",
     "standards/swarmauri_tokens_composite",
     "standards/swarmauri_tokens_remoteoidc",
     "standards/swarmauri_tokens_tlsboundjwt",
+    "standards/swarmauri_certs_remote_ca",
+    "community/swarmauri_cert_cfssl",
+    "standards/swarmauri_certs_x509",
     "community/swarmauri_middleware_circuitbreaker",
     "community/swarmauri_middleware_ratepolicy",
     "community/swarmauri_keyprovider_aws_kms",
+    "community/swarmauri_certservice_stepca",
+    "community/swarmauri_cert_acme",
+    "community/swarmauri_certservice_aws_kms",
     "community/swarmauri_vectorstore_redis",
     "community/swarmauri_vectorstore_qdrant",
     "community/swarmauri_vectorstore_pinecone",
@@ -183,6 +192,10 @@ members = [
     "community/swarmauri_parser_slate",
     "community/swarmauri_tool_searchword",
     "community/swarmauri_keyprovider_gcpkms",
+    "community/swarmauri_cert_ocspverify",
+    "community/swarmauri_certservice_scep",
+    "community/swarmauri_certservice_ms_adcs",
+    "community/swarmauri_certservice_gcpkms",
     "standards/swarmauri_tool_containernewsession",
     "standards/swarmauri_tool_containerfeedchars",
     "standards/swarmauri_tool_containermakepr",
@@ -254,18 +267,23 @@ swarmauri_mre_crypto_age = { workspace = true }
 swarmauri_mre_crypto_pgp = { workspace = true }
 swarmauri_mre_crypto_ecdh_es_kw = { workspace = true }
 swarmauri_signing_ed25519 = { workspace = true }
+swarmauri_cert_cfssl = { workspace = true }
 swarmauri_keyprovider_local = { workspace = true }
 swarmauri_keyprovider_pkcs11 = { workspace = true }
 swarmauri_keyprovider_remote_jwks = { workspace = true }
 swarmauri_keyprovider_ssh = { workspace = true }
 swarmauri_keyprovider_aws_kms = { workspace = true }
+swarmauri_certservice_stepca = { workspace = true }
+swarmauri_cert_acme = { workspace = true }
 swarmauri_keyprovider_file = { workspace = true }
 swarmauri_keyproviders_mirrored = { workspace = true }
 swarmauri_keyprovider_hierarchical = { workspace = true }
 swarmauri_signing_hmac = { workspace = true }
 swarmauri_signing_ecdsa = { workspace = true }
 swarmauri_signing_ca = { workspace = true }
+swarmauri_certs_remote_ca = { workspace = true }
 swarmauri_signing_jws = { workspace = true }
+swarmauri_certservice_localca = { workspace = true }
 swarmauri_tokens_dpopboundjwt = { workspace = true }
 swarmauri_tokens_jwt = { workspace = true }
 swarmauri_tokens_sshsig = { workspace = true }
@@ -274,12 +292,14 @@ swarmauri_signing_pgp = { workspace = true }
 swarmauri_signing_rsa = { workspace = true }
 swarmauri_signing_ssh = { workspace = true }
 swarmauri_certs_x509verify = { workspace = true }
+
 swarmauri_tokens_introspection = { workspace = true }
 swarmauri_tokens_paseto_v4 = { workspace = true }
 swarmauri_tokens_composite = { workspace = true }
 swarmauri_tokens_remoteoidc = { workspace = true }
 swarmauri_tokens_rotatingjwt = { workspace = true }
 swarmauri_tokens_tlsboundjwt = { workspace = true }
+swarmauri_certs_x509 = { workspace = true }
 swarmauri_vectorstore_redis = { workspace = true }
 swarmauri_vectorstore_qdrant = { workspace = true }
 swarmauri_vectorstore_pinecone = { workspace = true }
@@ -315,8 +335,10 @@ swarmauri_measurement_tokencountestimator = { workspace = true }
 swarmauri_ocr_pytesseract = { workspace = true }
 swarmauri_embedding_mlm = { workspace = true }
 swarmauri_tool_entityrecognition = { workspace = true }
+swarmauri_certservice_ms_adcs = { workspace = true }
 swarmauri_keyprovider_vaulttransit = { workspace = true }
 swarmauri_llm_leptonai = { workspace = true }
+swarmauri_standards = { workspace = true }
 swarmauri_vectorstore_annoy = { workspace = true }
 swarmauri_tool_jupyterwritenotebook = { workspace = true }
 swarmauri_tool_jupytervalidatenotebook = { workspace = true }
@@ -342,11 +364,13 @@ swarmauri_tool_jupytergetiopubmessage = { workspace = true }
 swarmauri_parser_slate = { workspace = true }
 swarmauri_tool_searchword = { workspace = true }
 swarmauri_keyprovider_gcpkms = { workspace = true }
+swarmauri_cert_ocspverify = { workspace = true }
 swarmauri_tool_containernewsession = { workspace = true }
 swarmauri_tool_containerfeedchars = { workspace = true }
 swarmauri_tool_containermakepr = { workspace = true }
 swarmauri_toolkit_containertoolkit = { workspace = true }
 swarmauri_workflow_statedriven = { workspace = true }
+swarmauri_certservice_gcpkms = { workspace = true }
 
 
 [tool.pytest.ini_options]
