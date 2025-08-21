@@ -58,6 +58,7 @@ class PluginCitizenshipRegistry:
         "swarmauri.signings.EcdsaEnvelopeSigner": "swarmauri_signing_ecdsa.EcdsaEnvelopeSigner",
         "swarmauri.signings.RSAEnvelopeSigner": "swarmauri_signing_rsa.RSAEnvelopeSigner",
         "swarmauri.signings.SshEnvelopeSigner": "swarmauri_signing_ssh.SshEnvelopeSigner",
+        "swarmauri.signings.JwsSignerVerifier": "swarmauri_signing_jws.JwsSignerVerifier",
         "swarmauri.agents.ExampleAgent": "swm_example_package.ExampleAgent",
         "swarmauri.agents.QAAgent": "swarmauri_standard.agents.QAAgent",
         "swarmauri.agents.RagAgent": "swarmauri_standard.agents.RagAgent",

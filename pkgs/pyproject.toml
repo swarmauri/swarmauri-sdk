@@ -86,11 +86,13 @@ members = [
     "standards/swarmauri_crypto_keyring",
     "standards/swarmauri_crypto_age_mre",
     "standards/swarmauri_crypto_ecdh_es_a128kw",
+    "standards/swarmauri_crypto_jwe",
     "standards/swarmauri_mre_crypto_pgp",
     "standards/swarmauri_signing_ed25519",
     "standards/swarmauri_signing_secp256k1",
     "standards/swarmauri_signing_hmac",
     "standards/swarmauri_signing_ecdsa",
+    "standards/swarmauri_signing_jws",
     "standards/swarmauri_secret_autogpg",
     "standards/swarmauri_signing_pgp",
     "standards/swarmauri_signing_rsa",
@@ -223,11 +225,13 @@ swarmauri_crypto_shamir = { workspace = true }
 swarmauri_crypto_keyring = { workspace = true }
 swarmauri_crypto_age_mre = { workspace = true }
 swarmauri_crypto_ecdh_es_a128kw = { workspace = true }
+swarmauri_crypto_jwe = { workspace = true }
 swarmauri_mre_crypto_pgp = { workspace = true }
 swarmauri_signing_ed25519 = { workspace = true }
 swarmauri_signing_secp256k1 = { workspace = true }
 swarmauri_signing_hmac = { workspace = true }
 swarmauri_signing_ecdsa = { workspace = true }
+swarmauri_signing_jws = { workspace = true }
 swarmauri_signing_pgp = { workspace = true }
 swarmauri_signing_rsa = { workspace = true }
 swarmauri_signing_ssh = { workspace = true }
