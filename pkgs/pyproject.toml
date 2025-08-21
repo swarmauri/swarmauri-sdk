@@ -79,7 +79,10 @@ members = [
     "standards/peagen",
     "standards/auto_authn",
     "standards/auto_kms",
-    "standards/swarmauri_keyproviders",
+    "standards/swarmauri_keyprovider_local",
+    "standards/swarmauri_keyprovider_pkcs11",
+    "standards/swarmauri_keyprovider_remote_jwks",
+    "standards/swarmauri_keyprovider_ssh",
     "standards/swarmauri_keyprovider_file",
     "standards/swarmauri_keyproviders_mirrored",
     "standards/swarmauri_keyprovider_hierarchical",
@@ -247,11 +250,14 @@ swarmauri_mre_crypto_age = { workspace = true }
 swarmauri_mre_crypto_pgp = { workspace = true }
 swarmauri_mre_crypto_ecdh_es_kw = { workspace = true }
 swarmauri_signing_ed25519 = { workspace = true }
-swarmauri_keyproviders = { workspace = true }
+swarmauri_keyprovider_local = { workspace = true }
+swarmauri_keyprovider_pkcs11 = { workspace = true }
+swarmauri_keyprovider_remote_jwks = { workspace = true }
+swarmauri_keyprovider_ssh = { workspace = true }
 swarmauri_keyprovider_aws_kms = { workspace = true }
 swarmauri_keyprovider_file = { workspace = true }
 swarmauri_keyproviders_mirrored = { workspace = true }
-swarmauri_keyprovider_hierarchical = { workspace = true }e = true }
+swarmauri_keyprovider_hierarchical = { workspace = true }
 swarmauri_signing_hmac = { workspace = true }
 swarmauri_signing_ecdsa = { workspace = true }
 swarmauri_signing_jws = { workspace = true }

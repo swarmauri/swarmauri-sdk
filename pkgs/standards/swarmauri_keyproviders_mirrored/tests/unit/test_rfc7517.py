@@ -1,7 +1,7 @@
 import pytest
 
 from swarmauri_core.keys.types import ExportPolicy, KeyAlg, KeyClass, KeySpec
-from swarmauri_keyproviders import LocalKeyProvider
+from swarmauri_keyprovider_local import LocalKeyProvider
 from swarmauri_keyproviders_mirrored import MirroredKeyProvider
 
 
