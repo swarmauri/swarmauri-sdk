@@ -1,6 +1,13 @@
-"""Key provider interfaces."""
+"""Key provider interfaces and types."""
 
 from .IKeyProvider import IKeyProvider
-from .types import KeyAlg, KeyRef
+from .types import KeySpec, KeyAlg, KeyClass, ExportPolicy, KeyUse
 
-__all__ = ["IKeyProvider", "KeyAlg", "KeyRef"]
+__all__ = [
+    "IKeyProvider",
+    "KeySpec",
+    "KeyAlg",
+    "KeyClass",
+    "ExportPolicy",
+    "KeyUse",
+]
