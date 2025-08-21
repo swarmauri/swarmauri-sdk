@@ -25,6 +25,11 @@ dependencies = [
 "swarmauri_typing"
 ]
 
+[project.optional-dependencies]
+cryptography = ["cryptography>=41.0.0"]
+pyopenssl = ["pyopenssl>=23.2.0"]
+
+
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
 swarmauri_typing = { workspace = true }
