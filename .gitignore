@@ -4,6 +4,7 @@
 build
 dist
 *.egg-info
+*.txt
 env
 .env
 .env.*

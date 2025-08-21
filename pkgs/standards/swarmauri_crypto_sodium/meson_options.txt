@@ -1,8 +1,0 @@
-option('use_system_libsodium', type: 'boolean', value: false,
-       description: 'Use system-installed libsodium instead of bundled version')
-
-option('static_link', type: 'boolean', value: true,
-       description: 'Statically link libsodium into the extension module')
-
-option('debug_build', type: 'boolean', value: false,
-       description: 'Enable debug symbols and disable optimizations')
