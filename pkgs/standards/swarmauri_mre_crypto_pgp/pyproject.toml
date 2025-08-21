@@ -20,6 +20,7 @@ classifiers = [
 dependencies = [
     "swarmauri_core",
     "swarmauri_base",
+    "pgpy>=0.6.0",
 ]
 
 [project.optional-dependencies]
