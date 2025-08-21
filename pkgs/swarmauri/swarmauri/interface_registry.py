@@ -120,7 +120,7 @@ class InterfaceRegistry:
         "swarmauri.mre_cryptos": MreCryptoBase,
         "swarmauri.crypto": CryptoBase,
         "swarmauri.secrets": SecretDriveBase,
-        "swarmauri.signings": SigningBase,
+        "swarmauri.signings": SigningBase,  # includes JwsSignerVerifier
         "swarmauri.logger_formatters": FormatterBase,
         "swarmauri.loggers": LoggerBase,
         "swarmauri.logger_handlers": HandlerBase,

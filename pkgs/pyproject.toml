@@ -81,6 +81,7 @@ members = [
     "standards/swarmauri_crypto_pgp",
     "standards/swarmauri_crypto_sodium",
     "standards/swarmauri_crypto_nacl_pkcs11",
+    "standards/swarmauri_crypto_jwe",
     "standards/swarmauri_crypto_composite",
     "standards/swarmauri_mre_crypto_shamir",
     "standards/swarmauri_mre_crypto_keyring",
@@ -91,6 +92,7 @@ members = [
     "standards/swarmauri_signing_secp256k1",
     "standards/swarmauri_signing_hmac",
     "standards/swarmauri_signing_ecdsa",
+    "standards/swarmauri_signing_jws",
     "standards/swarmauri_secret_autogpg",
     "standards/swarmauri_signing_pgp",
     "standards/swarmauri_signing_rsa",
@@ -219,6 +221,7 @@ swarmauri_crypto_paramiko = { workspace = true }
 swarmauri_crypto_pgp = { workspace = true }
 swarmauri_crypto_nacl_pkcs11 = { workspace = true }
 swarmauri_crypto_composite = { workspace = true }
+swarmauri_crypto_jwe = { workspace = true }
 swarmauri_mre_crypto_shamir = { workspace = true }
 swarmauri_mre_crypto_keyring = { workspace = true }
 swarmauri_mre_crypto_age = { workspace = true }
@@ -228,6 +231,7 @@ swarmauri_signing_ed25519 = { workspace = true }
 swarmauri_signing_secp256k1 = { workspace = true }
 swarmauri_signing_hmac = { workspace = true }
 swarmauri_signing_ecdsa = { workspace = true }
+swarmauri_signing_jws = { workspace = true }
 swarmauri_signing_pgp = { workspace = true }
 swarmauri_signing_rsa = { workspace = true }
 swarmauri_signing_ssh = { workspace = true }
