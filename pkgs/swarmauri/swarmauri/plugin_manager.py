@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 # 1. GLOBAL CACHE FOR ENTRY POINTS
 # --------------------------------------------------------------------------------------
 _cached_entry_points = None
+_metadata_cache: Dict[str, Optional[Dict[str, Any]]] = {}
 
 
 def _fetch_and_group_entry_points(group_prefix="swarmauri."):
@@ -27,22 +28,14 @@ def _fetch_and_group_entry_points(group_prefix="swarmauri."):
     Internal function that scans the environment for entry points and groups them
     by namespace (e.g., 'chunkers' for 'swarmauri.chunkers').
     """
-    grouped_entry_points = {}
+    grouped_entry_points: Dict[str, list[EntryPoint]] = {}
     try:
-        if PluginCitizenshipRegistry.known_groups():
-            logger.debug(
-                "Known groups already populated in registry; skipping entry point scan."
-            )
-            return grouped_entry_points
-
         all_entry_points = entry_points()
         logger.debug(f"Raw entry points from environment: {all_entry_points}")
-
         for ep in all_entry_points:
             if ep.group.startswith(group_prefix):
                 namespace = ep.group[len(group_prefix) :]
                 grouped_entry_points.setdefault(namespace, []).append(ep)
-
         logger.debug(f"Grouped entry points (fresh scan): {grouped_entry_points}")
     except Exception as e:
         logger.error(f"Failed to retrieve entry points: {e}")
@@ -168,51 +161,21 @@ def _load_plugin_metadata(entry_point: EntryPoint) -> Optional[Dict[str, Any]]:
     """
     Attempts to load metadata.json from the plugin's distribution without loading the module.
     """
+    cache_key = f"{entry_point.dist.name}:{entry_point.value}"
+    if cache_key in _metadata_cache:
+        return _metadata_cache[cache_key]
     try:
-        # Get the distribution that provides the entry point
         dist = importlib.metadata.distribution(entry_point.dist.name)
-
-        # Assume metadata.json is located in the same package as the module
-        # Extract the package name from module_path
-        module_path = entry_point.value  # e.g., 'swarmauri.agents.QAAgent'
-        package_name = module_path.rpartition(".")[0]  # 'swarmauri.agents'
-
-        # Convert package name to path (replace dots with slashes)
-        package_path = package_name.replace(".", "/")
-
-        # Construct the relative path to metadata.json
+        module_path = entry_point.value.rpartition(".")[0]
+        package_path = module_path.replace(".", "/")
         metadata_file = f"{package_path}/metadata.json"
-
-        # Access the files in the distribution
-        dist_files = dist.files or []
-
-        # Search for metadata.json in the specified package
-        metadata_path = None
-        for file in dist_files:
-            if file.as_posix() == metadata_file:
-                metadata_path = file
-                break
-
-        # If not found, attempt to find metadata.json at the root of the package
-        if not metadata_path:
-            for file in dist_files:
-                if (
-                    file.name == "metadata.json"
-                    and file.parent.as_posix() == package_path
-                ):
-                    metadata_path = file
-                    break
-
-        if metadata_path:
-            # Read the metadata.json file
-            with dist.locate_file(metadata_path).open("r", encoding="utf-8") as f:
-                metadata = json.load(f)
-                logger.debug(
-                    f"Loaded metadata for plugin '{entry_point.name}': {metadata}"
-                )
-                return metadata
-        else:
-            logger.debug(f"No metadata.json found for plugin '{entry_point.name}'.")
+        text = dist.read_text(metadata_file) or dist.read_text("metadata.json")
+        if text:
+            metadata = json.loads(text)
+            logger.debug(f"Loaded metadata for plugin '{entry_point.name}': {metadata}")
+            _metadata_cache[cache_key] = metadata
+            return metadata
+        logger.debug(f"No metadata.json found for plugin '{entry_point.name}'.")
     except importlib.metadata.PackageNotFoundError:
         logger.debug(f"Distribution not found for plugin '{entry_point.name}'.")
     except FileNotFoundError:
@@ -225,6 +188,7 @@ def _load_plugin_metadata(entry_point: EntryPoint) -> Optional[Dict[str, Any]]:
         logger.exception(
             f"Error loading metadata.json for plugin '{entry_point.name}': {e}"
         )
+    _metadata_cache[cache_key] = None
     return None
 
 
@@ -630,6 +594,21 @@ def _process_generic_plugin(
 # --------------------------------------------------------------------------------------
 # 4. HELPER FUNCTIONS
 # --------------------------------------------------------------------------------------
+
+
+def _safe_process_plugin(entry_point: EntryPoint) -> None:
+    """Wrapper for process_plugin used in threaded execution."""
+    try:
+        process_plugin(entry_point)
+    except PluginLoadError as e:
+        logger.error(f"Skipping plugin '{entry_point.name}' due to load error: {e}")
+    except PluginValidationError as e:
+        logger.error(
+            f"Skipping plugin '{entry_point.name}' due to validation error: {e}"
+        )
+
+
+# --------------------------------------------------------------------------------------
 def determine_plugin_citizenship(entry_point: EntryPoint) -> Optional[str]:
     """
     Determines the citizenship classification of a plugin based on its entry point.
@@ -727,16 +706,9 @@ def discover_and_register_plugins(group_prefix="swarmauri."):
     """
     try:
         grouped_entry_points = get_entry_points(group_prefix)
-        for namespace, eps in grouped_entry_points.items():
+        for eps in grouped_entry_points.values():
             for ep in eps:
-                try:
-                    process_plugin(ep)
-                except PluginLoadError as e:
-                    logger.error(f"Skipping plugin '{ep.name}' due to load error: {e}")
-                except PluginValidationError as e:
-                    logger.error(
-                        f"Skipping plugin '{ep.name}' due to validation error: {e}"
-                    )
+                _safe_process_plugin(ep)
     except Exception as e:
         logger.exception(f"Failed during plugin discovery and registration: {e}")
 

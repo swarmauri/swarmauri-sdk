@@ -473,7 +473,11 @@ class PluginCitizenshipRegistry:
     @classmethod
     def resource_exists(cls, resource_path: str) -> bool:
         """Check if a resource path is registered in any registry."""
-        return resource_path in cls.total_registry()
+        return (
+            resource_path in cls.FIRST_CLASS_REGISTRY
+            or resource_path in cls.SECOND_CLASS_REGISTRY
+            or resource_path in cls.THIRD_CLASS_REGISTRY
+        )
 
     @classmethod
     def known_groups(cls) -> set[str]:
