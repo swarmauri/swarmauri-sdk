@@ -117,6 +117,7 @@ members = [
     "standards/swarmauri_tokens_composite",
     "standards/swarmauri_tokens_remoteoidc",
     "standards/swarmauri_tokens_tlsboundjwt",
+    "community/swarmauri_cert_cfssl",
     "community/swarmauri_middleware_circuitbreaker",
     "community/swarmauri_middleware_ratepolicy",
     "community/swarmauri_keyprovider_aws_kms",
@@ -253,6 +254,7 @@ swarmauri_mre_crypto_age = { workspace = true }
 swarmauri_mre_crypto_pgp = { workspace = true }
 swarmauri_mre_crypto_ecdh_es_kw = { workspace = true }
 swarmauri_signing_ed25519 = { workspace = true }
+swarmauri_cert_cfssl = { workspace = true }
 swarmauri_keyprovider_local = { workspace = true }
 swarmauri_keyprovider_pkcs11 = { workspace = true }
 swarmauri_keyprovider_remote_jwks = { workspace = true }
