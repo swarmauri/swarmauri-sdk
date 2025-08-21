@@ -24,9 +24,14 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+local = []
+ssh = []
 pkcs11 = ["pkcs11"]
-
-[tool.uv.sources]
+remote_jwks = []
+unit = ["pytest>=8.0", "pytest-asyncio>=0.24.0"]
+functional = ["pytest>=8.0", "pytest-asyncio>=0.24.0"]
+perf = ["pytest-benchmark>=4.0.0"]
+rfc = ["pytest>=8.0", "pytest-asyncio>=0.24.0"]
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 
@@ -39,6 +44,7 @@ markers = [
     "r8n: Regression tests",
     "acceptance: Acceptance tests",
     "perf: Performance tests",
+    "func: Functional tests",
 ]
 timeout = 300
 log_cli = true
@@ -66,3 +72,4 @@ build-backend = "poetry.core.masonry.api"
 LocalKeyProvider = "swarmauri_keyproviders.LocalKeyProvider:LocalKeyProvider"
 SshKeyProvider = "swarmauri_keyproviders.SshKeyProvider:SshKeyProvider"
 Pkcs11KeyProvider = "swarmauri_keyproviders.Pkcs11KeyProvider:Pkcs11KeyProvider"
+RemoteJwksKeyProvider = "swarmauri_keyproviders.RemoteJwksKeyProvider:RemoteJwksKeyProvider"
