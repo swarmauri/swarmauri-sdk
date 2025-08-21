@@ -123,6 +123,7 @@ class InterfaceRegistry:
         "swarmauri.signings": SigningBase,
         "swarmauri.signings.EcdsaEnvelopeSigner": SigningBase,
         "swarmauri.signings.RSAEnvelopeSigner": SigningBase,
+        "swarmauri.signings.SshEnvelopeSigner": SigningBase,
         "swarmauri.logger_formatters": FormatterBase,
         "swarmauri.loggers": LoggerBase,
         "swarmauri.logger_handlers": HandlerBase,
