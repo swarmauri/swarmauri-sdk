@@ -187,7 +187,9 @@ members = [
     "community/swarmauri_parser_slate",
     "community/swarmauri_tool_searchword",
     "community/swarmauri_keyprovider_gcpkms",
+    "community/swarmauri_certservice_ms_adcs",
     "community/swarmauri_certservice_gcpkms",
+
 
     "standards/swarmauri_tool_containernewsession",
     "standards/swarmauri_tool_containerfeedchars",
@@ -323,6 +325,7 @@ swarmauri_measurement_tokencountestimator = { workspace = true }
 swarmauri_ocr_pytesseract = { workspace = true }
 swarmauri_embedding_mlm = { workspace = true }
 swarmauri_tool_entityrecognition = { workspace = true }
+swarmauri_certservice_ms_adcs = { workspace = true }
 swarmauri_keyprovider_vaulttransit = { workspace = true }
 swarmauri_llm_leptonai = { workspace = true }
 swarmauri_standards = { workspace = true }
