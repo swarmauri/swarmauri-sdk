@@ -17,23 +17,9 @@ from swarmauri_base.chunkers.ChunkerBase import ChunkerBase
 from swarmauri_base.control_panels.ControlPanelBase import ControlPanelBase
 from swarmauri_base.conversations.ConversationBase import ConversationBase
 from swarmauri_base.dataconnectors.DataConnectorBase import DataConnectorBase
-
-try:
-    from swarmauri_base.crypto.CryptoBase import CryptoBase
-except Exception:  # pragma: no cover
-
-    class CryptoBase:  # type: ignore[too-many-ancestors]
-        pass
-
-
-try:
-    from swarmauri_base.secrets.SecretDriveBase import SecretDriveBase
-except Exception:  # pragma: no cover
-
-    class SecretDriveBase:  # type: ignore[too-many-ancestors]
-        pass
-
-
+from swarmauri_base.crypto.CryptoBase import CryptoBase
+from swarmauri_base.secrets.SecretDriveBase import SecretDriveBase
+from swarmauri_base.signing.SigningBase import SigningBase
 from swarmauri_base.distances.DistanceBase import DistanceBase
 from swarmauri_base.documents.DocumentBase import DocumentBase
 from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase
