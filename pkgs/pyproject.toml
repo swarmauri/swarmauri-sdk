@@ -82,6 +82,7 @@ members = [
     "standards/swarmauri_crypto_sodium",
     "standards/swarmauri_crypto_nacl_pkcs11",
     "standards/swarmauri_crypto_composite",
+    "standards/swarmauri_crypto_shamir",
     "standards/swarmauri_crypto_keyring",
     "standards/swarmauri_crypto_age_mre",
     "standards/swarmauri_mre_crypto_pgp",
@@ -214,6 +215,7 @@ swarmauri_crypto_paramiko = { workspace = true }
 swarmauri_crypto_pgp = { workspace = true }
 swarmauri_crypto_nacl_pkcs11 = { workspace = true }
 swarmauri_crypto_composite = { workspace = true }
+swarmauri_crypto_shamir = { workspace = true }
 swarmauri_crypto_keyring = { workspace = true }
 swarmauri_crypto_age_mre = { workspace = true }
 swarmauri_mre_crypto_pgp = { workspace = true }
