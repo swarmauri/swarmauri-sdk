@@ -331,6 +331,7 @@ class SodiumCrypto(CryptoBase):
             kek_version=kek.version,
             wrap_alg=_WRAP_ALG,
             wrapped=bytes(c_buf),
+            nonce=None,  # X25519 sealed boxes don't use explicit nonces
         )
 
     async def unwrap(self, kek: KeyRef, wrapped: WrappedKey) -> bytes:
@@ -496,4 +497,30 @@ class SodiumCrypto(CryptoBase):
             tag=aead_ct.tag,
             recipients=tuple(infos),
             aad=aad,
+        )
+
+    # ---------------- signing / verification (not yet implemented) ----------------
+    async def sign(
+        self,
+        key: KeyRef,
+        message: bytes,
+        *,
+        alg: Optional[Alg] = None,
+    ) -> bytes:
+        """Sign a message (not yet implemented in this provider)."""
+        raise UnsupportedAlgorithm(
+            "Digital signatures not yet implemented in SodiumCrypto"
+        )
+
+    async def verify(
+        self,
+        key: KeyRef,
+        message: bytes,
+        signature: bytes,
+        *,
+        alg: Optional[Alg] = None,
+    ) -> bool:
+        """Verify a signature (not yet implemented in this provider)."""
+        raise UnsupportedAlgorithm(
+            "Digital signature verification not yet implemented in SodiumCrypto"
         )
