@@ -352,7 +352,7 @@ class PluginCitizenshipRegistry:
         :param class_type: Type of the plugin ('first', 'second', 'third').
         :param resource_path: The resource path (e.g., 'swarmauri.llms.OpenAIModel').
         :param module_path: The external module path it maps to (e.g., 'external_repo.OpenAIModel').
-        :raises ValueError: If class_type is invalid or resource_path already exists in the specified registry.
+        :raises ValueError: If class_type is invalid.
         """
         registry_map = {
             "first": cls.FIRST_CLASS_REGISTRY,
@@ -371,12 +371,10 @@ class PluginCitizenshipRegistry:
         registry = registry_map[class_type]
 
         if resource_path in registry:
-            logger.error(
-                f"Resource path '{resource_path}' already exists in the {class_type}-class registry."
+            logger.debug(
+                f"Resource path '{resource_path}' already exists in the {class_type}-class registry. Skipping registration."
             )
-            raise ValueError(
-                f"Resource path '{resource_path}' already exists in the {class_type}-class registry."
-            )
+            return
 
         # Add to the specific registry
         registry[resource_path] = module_path
@@ -471,6 +469,19 @@ class PluginCitizenshipRegistry:
                 f"Resource path '{resource_path}' not found in TOTAL registry."
             )
         return module_path
+
+    @classmethod
+    def resource_exists(cls, resource_path: str) -> bool:
+        """Check if a resource path is registered in any registry."""
+        return resource_path in cls.total_registry()
+
+    @classmethod
+    def known_groups(cls) -> set[str]:
+        """Return the set of entry point groups known to the registry."""
+        groups = set()
+        for resource_path in cls.total_registry().keys():
+            groups.add(".".join(resource_path.split(".")[:-1]))
+        return groups
 
     @classmethod
     def update_entry(

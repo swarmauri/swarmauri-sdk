@@ -29,12 +29,18 @@ def _fetch_and_group_entry_points(group_prefix="swarmauri."):
     """
     grouped_entry_points = {}
     try:
+        if PluginCitizenshipRegistry.known_groups():
+            logger.debug(
+                "Known groups already populated in registry; skipping entry point scan."
+            )
+            return grouped_entry_points
+
         all_entry_points = entry_points()
         logger.debug(f"Raw entry points from environment: {all_entry_points}")
 
         for ep in all_entry_points:
             if ep.group.startswith(group_prefix):
-                namespace = ep.group[len(group_prefix) :]  # e.g., 'chunkers'
+                namespace = ep.group[len(group_prefix) :]
                 grouped_entry_points.setdefault(namespace, []).append(ep)
 
         logger.debug(f"Grouped entry points (fresh scan): {grouped_entry_points}")
@@ -96,6 +102,19 @@ def process_plugin(entry_point: EntryPoint) -> bool:
         logger.debug(f"Processing plugin via entry_point: {entry_point}")
 
         # Load plugin metadata without triggering module load
+        # Determine resource_kind from the entry point group
+        resource_kind = entry_point.group.split(".")[
+            -1
+        ]  # e.g., 'agents' from 'swarmauri.agents'
+
+        # Preliminary resource path using entry point name
+        preliminary_path = f"swarmauri.{resource_kind}.{entry_point.name}"
+        if PluginCitizenshipRegistry.resource_exists(preliminary_path):
+            logger.debug(
+                f"Resource path '{preliminary_path}' already registered; skipping."
+            )
+            return True
+
         metadata = _load_plugin_metadata(entry_point)
         loading_strategy = (
             metadata.get("loading_strategy", "eager").lower() if metadata else "eager"
@@ -103,11 +122,6 @@ def process_plugin(entry_point: EntryPoint) -> bool:
         logger.debug(
             f"Plugin '{entry_point.name}' loading_strategy: {loading_strategy}"
         )
-
-        # Determine resource_kind from the entry point group
-        resource_kind = entry_point.group.split(".")[
-            -1
-        ]  # e.g., 'agents' from 'swarmauri.agents'
 
         # Construct resource_path based on entry point and metadata
         type_name = metadata["type_name"] if metadata else entry_point.name

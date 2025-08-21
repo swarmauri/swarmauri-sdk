@@ -35,14 +35,18 @@ def test_add_and_remove_entry():
 
 
 @pytest.mark.unit
-def test_add_duplicate_entry_raises():
+def test_add_duplicate_entry_noop():
     PluginCitizenshipRegistry.add_to_registry(
         "third", "swarmauri.plugins.sample", "math"
     )
-    with pytest.raises(ValueError):
-        PluginCitizenshipRegistry.add_to_registry(
-            "third", "swarmauri.plugins.sample", "math"
-        )
+    # Duplicate addition should be ignored without raising an error
+    PluginCitizenshipRegistry.add_to_registry(
+        "third", "swarmauri.plugins.sample", "math"
+    )
+    assert (
+        PluginCitizenshipRegistry.THIRD_CLASS_REGISTRY["swarmauri.plugins.sample"]
+        == "math"
+    )
 
 
 @pytest.mark.unit
