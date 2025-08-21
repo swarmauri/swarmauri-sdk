@@ -93,6 +93,7 @@ members = [
     "standards/swarmauri_secret_autogpg",
     "standards/swarmauri_signing_pgp",
     "standards/swarmauri_signing_rsa",
+    "standards/swarmauri_signing_jws",
     "standards/swarmauri_signing_ssh",
     "community/swarmauri_middleware_circuitbreaker",
     "community/swarmauri_middleware_ratepolicy",
