@@ -25,6 +25,7 @@ dependencies = [
 
 [project.optional-dependencies]
 pkcs11 = ["pkcs11"]
+remote_jwks = []
 
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
@@ -66,3 +67,4 @@ build-backend = "poetry.core.masonry.api"
 LocalKeyProvider = "swarmauri_keyproviders.LocalKeyProvider:LocalKeyProvider"
 SshKeyProvider = "swarmauri_keyproviders.SshKeyProvider:SshKeyProvider"
 Pkcs11KeyProvider = "swarmauri_keyproviders.Pkcs11KeyProvider:Pkcs11KeyProvider"
+RemoteJwksKeyProvider = "swarmauri_keyproviders.RemoteJwksKeyProvider:RemoteJwksKeyProvider"
