@@ -79,6 +79,7 @@ members = [
     "standards/peagen",
     "standards/auto_authn",
     "standards/auto_kms",
+    "standards/swarmauri_certs_composite",
     "standards/swarmauri_keyprovider_local",
     "standards/swarmauri_keyprovider_pkcs11",
     "standards/swarmauri_keyprovider_remote_jwks",
