@@ -78,6 +78,7 @@ members = [
     "standards/auto_authn",
     "standards/auto_kms",
     "standards/swarmauri_keyproviders",
+    "standards/swarmauri_keyprovider_hierarchical",
     "standards/swarmauri_crypto_paramiko",
     "standards/swarmauri_crypto_pgp",
     "standards/swarmauri_crypto_sodium",
@@ -230,6 +231,7 @@ swarmauri_mre_crypto_pgp = { workspace = true }
 swarmauri_mre_crypto_ecdh_es_kw = { workspace = true }
 swarmauri_signing_ed25519 = { workspace = true }
 swarmauri_keyproviders = { workspace = true }
+swarmauri_keyprovider_hierarchical = { workspace = true }
 swarmauri_signing_secp256k1 = { workspace = true }
 swarmauri_signing_hmac = { workspace = true }
 swarmauri_signing_ecdsa = { workspace = true }
