@@ -76,6 +76,7 @@ members = [
     "standards/peagen",
     "standards/auto_authn",
     "standards/auto_kms",
+    "standards/swarmauri_crypto_composite",
     "standards/swarmauri_crypto_paramiko",
     "standards/swarmauri_crypto_pgp",
     "standards/swarmauri_crypto_sodium",
@@ -201,6 +202,7 @@ peagen = { workspace = true }
 auto_kms = { workspace = true }
 
 swarmauri_secret_autogpg = { workspace = true }
+swarmauri_crypto_composite = { workspace = true }
 swarmauri_crypto_paramiko = { workspace = true }
 swarmauri_crypto_pgp = { workspace = true }
 swarmauri_crypto_nacl_pkcs11 = { workspace = true }
