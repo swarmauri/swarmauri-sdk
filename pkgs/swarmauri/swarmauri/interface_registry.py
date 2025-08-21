@@ -18,6 +18,7 @@ from swarmauri_base.control_panels.ControlPanelBase import ControlPanelBase
 from swarmauri_base.conversations.ConversationBase import ConversationBase
 from swarmauri_base.dataconnectors.DataConnectorBase import DataConnectorBase
 from swarmauri_base.crypto.CryptoBase import CryptoBase
+from swarmauri_base.mre_crypto.MreCryptoBase import MreCryptoBase
 from swarmauri_base.secrets.SecretDriveBase import SecretDriveBase
 from swarmauri_base.distances.DistanceBase import DistanceBase
 from swarmauri_base.documents.DocumentBase import DocumentBase
@@ -108,6 +109,7 @@ class InterfaceRegistry:
         "swarmauri.vector_stores": VectorStoreBase,
         "swarmauri.vectors": VectorBase,
         "swarmauri.crypto": CryptoBase,
+        "swarmauri.mre_crypto": MreCryptoBase,
         "swarmauri.secrets": SecretDriveBase,
         "swarmauri.logger_formatters": FormatterBase,
         "swarmauri.loggers": LoggerBase,

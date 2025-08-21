@@ -79,6 +79,7 @@ members = [
     "standards/auto_kms",
     "standards/swarmauri_crypto_paramiko",
     "standards/swarmauri_crypto_pgp",
+    "standards/swarmauri_mre_crypto_pgp",
     "standards/swarmauri_crypto_sodium",
     "standards/swarmauri_crypto_nacl_pkcs11",
     "standards/swarmauri_crypto_composite",
