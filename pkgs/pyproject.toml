@@ -161,6 +161,7 @@ members = [
     "community/swarmauri_tool_jupytergetiopubmessage",
     "community/swarmauri_parser_slate",
     "community/swarmauri_tool_searchword",
+    "community/swarmauri_keyprovider_gcpkms",
     "standards/swarmauri_tool_containernewsession",
     "standards/swarmauri_tool_containerfeedchars",
     "standards/swarmauri_tool_containermakepr",
@@ -299,6 +300,7 @@ swarmauri_toolkit_jupytertoolkit = { workspace = true }
 swarmauri_tool_jupytergetiopubmessage = { workspace = true }
 swarmauri_parser_slate = { workspace = true }
 swarmauri_tool_searchword = { workspace = true }
+swarmauri_keyprovider_gcpkms = { workspace = true }
 swarmauri_tool_containernewsession = { workspace = true }
 swarmauri_tool_containerfeedchars = { workspace = true }
 swarmauri_tool_containermakepr = { workspace = true }
