@@ -8,7 +8,7 @@ from pgpy.constants import (
     SymmetricKeyAlgorithm,
 )
 
-from swarmauri_mre_crypto_pgp import PGPSealMreCrypto
+from swarmauri_mre_crypto_pgp import PGPSealedCekMreCrypto
 
 
 def generate_key() -> PGPKey:
@@ -27,25 +27,18 @@ def generate_key() -> PGPKey:
 @pytest.fixture
 def pgp_keys():
     key = generate_key()
-    return {"kind": "pgpy_pub", "pub": key.pubkey}, {"kind": "pgpy_priv", "priv": key}
+    return {"kind": "pgpy_pub", "pub": key.pubkey}, {"kind": "pgpy_key", "key": key}
 
 
 @pytest.fixture
 def crypto():
-    return PGPSealMreCrypto()
+    return PGPSealedCekMreCrypto()
 
 
 @pytest.mark.unit
-def test_resource_and_type(crypto):
-    assert crypto.resource == "Crypto"
-    assert crypto.type == "PGPSealMreCrypto"
-
-
-@pytest.mark.unit
-def test_serialization(crypto):
-    assert (
-        crypto.id == PGPSealMreCrypto.model_validate_json(crypto.model_dump_json()).id
-    )
+def test_supports(crypto):
+    caps = crypto.supports()
+    assert "sealed_cek+aead" in caps["modes"]
 
 
 @pytest.mark.asyncio
