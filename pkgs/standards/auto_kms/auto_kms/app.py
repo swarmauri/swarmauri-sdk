@@ -57,6 +57,7 @@ api.mount_jsonrpc(prefix="/kms/rpc")
 api.attach_diagnostics(prefix="/system")
 
 
+# Initialize database tables on startup
 @app.on_event("startup")
 async def startup_event():
     await api.initialize_async()
