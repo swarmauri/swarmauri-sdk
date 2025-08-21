@@ -1,0 +1,69 @@
+[project]
+name = "swarmauri_tokens_dpopboundjwt"
+version = "0.1.0"
+description = "DPoP-bound JWT token service for Swarmauri"
+license = "Apache-2.0"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+authors = [{ name = "Swarmauri", email = "opensource@swarmauri.com" }]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Development Status :: 3 - Alpha",
+    "Topic :: Security :: Cryptography",
+    "Intended Audience :: Developers",
+]
+dependencies = [
+    "swarmauri_core",
+    "swarmauri_base",
+    "pyjwt[crypto]>=2.8.0",
+]
+
+[project.optional-dependencies]
+rsa = ["cryptography"]
+ec = ["cryptography"]
+okp = ["cryptography"]
+
+[tool.uv.sources]
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+
+[tool.pytest.ini_options]
+norecursedirs = ["combined", "scripts"]
+markers = [
+    "test: standard test",
+    "unit: Unit tests",
+    "i9n: Integration tests",
+    "r8n: Regression tests",
+    "acceptance: Acceptance tests",
+    "perf: Performance tests",
+]
+timeout = 300
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+asyncio_default_fixture_loop_scope = "function"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-xdist>=3.6.1",
+    "pytest-json-report>=1.5.0",
+    "pytest-timeout>=2.3.1",
+    "pytest-benchmark>=4.0.0",
+    "flake8>=7.0",
+    "ruff>=0.9.9",
+]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[project.entry-points.'swarmauri.tokens']
+DPoPBoundJWTTokenService = "swarmauri_tokens_dpopboundjwt:DPoPBoundJWTTokenService"
