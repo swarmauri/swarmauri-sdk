@@ -23,10 +23,7 @@ _cached_entry_points = None
 
 
 def _fetch_and_group_entry_points(group_prefix="swarmauri."):
-    """
-    Internal function that scans the environment for entry points and groups them
-    by namespace (e.g., 'chunkers' for 'swarmauri.chunkers').
-    """
+    """Scan environment for relevant entry points grouped by namespace."""
     grouped_entry_points = {}
     try:
         if PluginCitizenshipRegistry.known_groups():
@@ -34,15 +31,17 @@ def _fetch_and_group_entry_points(group_prefix="swarmauri."):
                 "Known groups already populated in registry; skipping entry point scan."
             )
             return grouped_entry_points
-
-        all_entry_points = entry_points()
-        logger.debug(f"Raw entry points from environment: {all_entry_points}")
-
-        for ep in all_entry_points:
-            if ep.group.startswith(group_prefix):
-                namespace = ep.group[len(group_prefix) :]
-                grouped_entry_points.setdefault(namespace, []).append(ep)
-
+        eps = entry_points()
+        target_groups = {
+            g
+            for g in InterfaceRegistry.list_registered_namespaces()
+            if g.startswith(group_prefix)
+        }
+        for group in target_groups:
+            selected = eps.select(group=group)
+            if selected:
+                namespace = group[len(group_prefix) :]
+                grouped_entry_points[namespace] = list(selected)
         logger.debug(f"Grouped entry points (fresh scan): {grouped_entry_points}")
     except Exception as e:
         logger.error(f"Failed to retrieve entry points: {e}")
@@ -727,7 +726,7 @@ def discover_and_register_plugins(group_prefix="swarmauri."):
     """
     try:
         grouped_entry_points = get_entry_points(group_prefix)
-        for namespace, eps in grouped_entry_points.items():
+        for eps in grouped_entry_points.values():
             for ep in eps:
                 try:
                     process_plugin(ep)
