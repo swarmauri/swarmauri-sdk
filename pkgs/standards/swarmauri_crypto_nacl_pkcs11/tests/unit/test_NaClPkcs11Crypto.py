@@ -1,5 +1,4 @@
 import pytest
-from nacl.signing import SigningKey
 from nacl.public import PrivateKey
 
 from swarmauri_crypto_nacl_pkcs11 import NaClPkcs11Crypto
@@ -31,31 +30,6 @@ async def test_aead_encrypt_decrypt_roundtrip(crypto):
     ct = await crypto.encrypt(key, pt)
     rt = await crypto.decrypt(key, ct)
     assert rt == pt
-
-
-@pytest.mark.asyncio
-async def test_sign_verify_roundtrip(crypto):
-    sk = SigningKey.generate()
-    vk = sk.verify_key
-    sign_ref = KeyRef(
-        kid="ed1",
-        version=1,
-        type=KeyType.ED25519,
-        uses=(KeyUse.SIGN,),
-        export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
-        material=sk.encode(),
-    )
-    verify_ref = KeyRef(
-        kid="ed1",
-        version=1,
-        type=KeyType.ED25519,
-        uses=(KeyUse.VERIFY,),
-        export_policy=ExportPolicy.PUBLIC_ONLY,
-        public=vk.encode(),
-    )
-    msg = b"sign me"
-    sig = await crypto.sign(sign_ref, msg)
-    assert await crypto.verify(verify_ref, msg, sig)
 
 
 @pytest.mark.asyncio

@@ -10,13 +10,8 @@ from typing import Dict, Iterable, Literal, Optional
 
 from pydantic import Field
 
-from swarmauri_core.crypto.ICrypto import (
-    ICrypto,
-    AEADCiphertext,
-    Alg,
-    KeyRef,
-    WrappedKey,
-)
+from swarmauri_core.crypto.ICrypto import ICrypto
+from swarmauri_core.crypto.types import AEADCiphertext, Alg, KeyRef, WrappedKey
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 

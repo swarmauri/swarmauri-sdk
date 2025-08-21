@@ -9,7 +9,6 @@ from dataclasses import dataclass
 from typing import Any, Dict, Iterable, Optional, Tuple, Literal
 
 from nacl.public import PublicKey, PrivateKey, SealedBox
-from nacl.signing import SigningKey, VerifyKey
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 import pkcs11
@@ -21,7 +20,6 @@ from swarmauri_core.crypto.types import (
     KeyRef,
     MultiRecipientEnvelope,
     RecipientInfo,
-    Signature,
     WrappedKey,
     UnsupportedAlgorithm,
 )
@@ -43,16 +41,6 @@ def _resolve_keyref_for_aead(key: KeyRef) -> _Resolved:
             raise ValueError("AES key must be 128/192/256 bits")
         return _Resolved(kind="aes", material=kb)
     raise ValueError("Unsupported KeyRef for AEAD")
-
-
-def _resolve_keyref_for_sign(key: KeyRef, for_verify: bool = False) -> _Resolved:
-    if for_verify:
-        if key.type == KeyType.ED25519 and key.public:
-            return _Resolved(kind="ed25519_verify", material=key.public)
-    else:
-        if key.type == KeyType.ED25519 and key.material:
-            return _Resolved(kind="ed25519_sign", material=key.material)
-    raise ValueError("Unsupported KeyRef for sign/verify")
 
 
 def _resolve_keyref_for_sealed_box(key: KeyRef, private: bool = False) -> _Resolved:
@@ -105,8 +93,6 @@ class NaClPkcs11Crypto(CryptoBase):
             "decrypt": (_AEAD_ALG,),
             "wrap": (_WRAP_ALG,),
             "unwrap": (_WRAP_ALG,),
-            "sign": ("ED25519",),
-            "verify": ("ED25519",),
             "seal": (_SEAL_ALG,),
             "unseal": (_SEAL_ALG,),
             "for_many": (_SEAL_ALG,),
@@ -155,35 +141,6 @@ class NaClPkcs11Crypto(CryptoBase):
         return aead.decrypt(ct.nonce, blob, aad or ct.aad)
 
     # ────────────────────────── Sign / Verify ──────────────────────────
-    async def sign(
-        self,
-        key: KeyRef,
-        msg: bytes,
-        *,
-        alg: Optional[Alg] = None,
-    ) -> Signature:
-        alg = alg or "ED25519"
-        if alg != "ED25519":
-            raise UnsupportedAlgorithm(f"Unsupported sign algorithm: {alg}")
-        r = _resolve_keyref_for_sign(key, for_verify=False)
-        sig = SigningKey(r.material).sign(msg).signature
-        return Signature(kid=key.kid, version=key.version, alg=alg, sig=sig)
-
-    async def verify(
-        self,
-        key: KeyRef,
-        msg: bytes,
-        sig: Signature,
-    ) -> bool:
-        if sig.alg != "ED25519":
-            return False
-        r = _resolve_keyref_for_sign(key, for_verify=True)
-        try:
-            VerifyKey(r.material).verify(msg, sig.sig)
-            return True
-        except Exception:
-            return False
-
     # ────────────────────────── Wrap / Unwrap ──────────────────────────
     async def wrap(
         self,

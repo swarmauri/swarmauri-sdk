@@ -57,8 +57,6 @@ class PGPCrypto(CryptoBase):
             "decrypt": (_AEAD_DEFAULT,),
             "wrap": (_WRAP_ALG,),
             "unwrap": (_WRAP_ALG,),
-            "sign": (),
-            "verify": (),
             # Sealed-mode convenience
             "seal": (_SEAL_ALG,),
             "unseal": (_SEAL_ALG,),
@@ -90,7 +88,9 @@ class PGPCrypto(CryptoBase):
             raise UnsupportedAlgorithm(f"Unsupported AEAD algorithm: {alg}")
 
         if key.material is None:
-            raise ValueError("KeyRef.material must contain symmetric key bytes for AEAD")
+            raise ValueError(
+                "KeyRef.material must contain symmetric key bytes for AEAD"
+            )
         if len(key.material) not in (16, 24, 32):
             raise ValueError("KeyRef.material must be 16/24/32 bytes for AES-GCM")
 
@@ -119,7 +119,9 @@ class PGPCrypto(CryptoBase):
         if self._normalize_aead_alg(ct.alg) != _AEAD_DEFAULT:
             raise UnsupportedAlgorithm(f"Unsupported AEAD algorithm: {ct.alg}")
         if key.material is None:
-            raise ValueError("KeyRef.material must contain symmetric key bytes for AEAD")
+            raise ValueError(
+                "KeyRef.material must contain symmetric key bytes for AEAD"
+            )
 
         aead = AESGCM(key.material)
         blob = ct.ct + ct.tag
@@ -138,12 +140,16 @@ class PGPCrypto(CryptoBase):
         if alg != _SEAL_ALG:
             raise UnsupportedAlgorithm(f"Unsupported seal alg: {alg}")
         if recipient.public is None:
-            raise ValueError("KeyRef.public must contain ASCII-armored OpenPGP public key")
+            raise ValueError(
+                "KeyRef.public must contain ASCII-armored OpenPGP public key"
+            )
 
         with tempfile.TemporaryDirectory() as gpg_home:
             gpg = gnupg.GPG(gnupghome=gpg_home)
             import_result = gpg.import_keys(
-                recipient.public.decode() if isinstance(recipient.public, bytes) else recipient.public
+                recipient.public.decode()
+                if isinstance(recipient.public, bytes)
+                else recipient.public
             )
             if not import_result.fingerprints:
                 raise RuntimeError("Failed to import recipient OpenPGP public key")
@@ -164,7 +170,9 @@ class PGPCrypto(CryptoBase):
         if alg != _SEAL_ALG:
             raise UnsupportedAlgorithm(f"Unsupported seal alg: {alg}")
         if recipient_priv.material is None:
-            raise ValueError("KeyRef.material must contain ASCII-armored OpenPGP private key")
+            raise ValueError(
+                "KeyRef.material must contain ASCII-armored OpenPGP private key"
+            )
 
         passphrase = None
         if recipient_priv.tags and "passphrase" in recipient_priv.tags:
@@ -204,17 +212,23 @@ class PGPCrypto(CryptoBase):
                 gpg = gnupg.GPG(gnupghome=gpg_home)
                 for r in recipients:
                     if r.public is None:
-                        raise ValueError("Recipient KeyRef.public must contain ASCII-armored OpenPGP public key")
+                        raise ValueError(
+                            "Recipient KeyRef.public must contain ASCII-armored OpenPGP public key"
+                        )
                     import_result = gpg.import_keys(
                         r.public.decode() if isinstance(r.public, bytes) else r.public
                     )
                     if not import_result.fingerprints:
-                        raise RuntimeError("Failed to import recipient OpenPGP public key")
+                        raise RuntimeError(
+                            "Failed to import recipient OpenPGP public key"
+                        )
                     fp = import_result.fingerprints[0]
 
                     enc = gpg.encrypt(pt, fp, armor=False, always_trust=True)
                     if not enc.ok:
-                        raise RuntimeError(f"GPG encrypt (seal-for-many) failed: {enc.status}")
+                        raise RuntimeError(
+                            f"GPG encrypt (seal-for-many) failed: {enc.status}"
+                        )
 
                     recip_infos.append(
                         RecipientInfo(
@@ -255,7 +269,9 @@ class PGPCrypto(CryptoBase):
             gpg = gnupg.GPG(gnupghome=gpg_home)
             for r in recipients:
                 if r.public is None:
-                    raise ValueError("Recipient KeyRef.public must contain ASCII-armored OpenPGP public key")
+                    raise ValueError(
+                        "Recipient KeyRef.public must contain ASCII-armored OpenPGP public key"
+                    )
                 import_result = gpg.import_keys(
                     r.public.decode() if isinstance(r.public, bytes) else r.public
                 )
@@ -300,7 +316,9 @@ class PGPCrypto(CryptoBase):
         if wrap_alg != _WRAP_ALG:
             raise UnsupportedAlgorithm(f"Unsupported wrap_alg: {wrap_alg}")
         if kek.public is None:
-            raise ValueError("KeyRef.public must contain ASCII-armored OpenPGP public key")
+            raise ValueError(
+                "KeyRef.public must contain ASCII-armored OpenPGP public key"
+            )
 
         with tempfile.TemporaryDirectory() as gpg_home:
             gpg = gnupg.GPG(gnupghome=gpg_home)
@@ -328,7 +346,9 @@ class PGPCrypto(CryptoBase):
         if wrapped.wrap_alg != _WRAP_ALG:
             raise UnsupportedAlgorithm(f"Unsupported wrap_alg: {wrapped.wrap_alg}")
         if kek.material is None:
-            raise ValueError("KeyRef.material must contain ASCII-armored OpenPGP private key")
+            raise ValueError(
+                "KeyRef.material must contain ASCII-armored OpenPGP private key"
+            )
 
         passphrase = None
         if kek.tags and "passphrase" in kek.tags:
@@ -337,7 +357,9 @@ class PGPCrypto(CryptoBase):
         with tempfile.TemporaryDirectory() as gpg_home:
             gpg = gnupg.GPG(gnupghome=gpg_home)
             import_result = gpg.import_keys(
-                kek.material.decode() if isinstance(kek.material, bytes) else kek.material
+                kek.material.decode()
+                if isinstance(kek.material, bytes)
+                else kek.material
             )
             if not import_result.fingerprints:
                 raise RuntimeError("Failed to import OpenPGP private key")
@@ -347,22 +369,3 @@ class PGPCrypto(CryptoBase):
                 raise RuntimeError(f"GPG decrypt failed: {dec.status}")
 
             return bytes(dec.data)
-
-    # ───────────────────────── signing (not supported) ──────────────────
-
-    async def sign(
-        self,
-        key: KeyRef,
-        msg: bytes,
-        *,
-        alg: Optional[Alg] = None,
-    ):
-        raise UnsupportedAlgorithm("sign not supported by PGPCrypto")
-
-    async def verify(
-        self,
-        key: KeyRef,
-        msg: bytes,
-        sig,
-    ) -> bool:
-        raise UnsupportedAlgorithm("verify not supported by PGPCrypto")
