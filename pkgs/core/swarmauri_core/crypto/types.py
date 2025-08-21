@@ -20,8 +20,10 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, Optional, Tuple
 
-from ..signing.types import Signature
-from ..mre_crypto.types import RecipientInfo, MultiRecipientEnvelope
+try:  # pragma: no cover - optional dependency
+    from ..signing.types import Signature
+except Exception:  # pragma: no cover - import guard
+    Signature = None
 
 # -----------------------------
 # Scalar aliases
@@ -31,6 +33,10 @@ KeyId = str
 KeyVersion = int
 Alg = str
 
+try:  # pragma: no cover - optional dependency
+    from ..mre_crypto.types import RecipientInfo, MultiRecipientEnvelope
+except Exception:  # pragma: no cover - import guard
+    RecipientInfo = MultiRecipientEnvelope = None
 
 # -----------------------------
 # Enums
