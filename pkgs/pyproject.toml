@@ -84,6 +84,7 @@ members = [
     "standards/swarmauri_crypto_composite",
     "standards/swarmauri_signing_ed25519",
     "standards/swarmauri_secret_autogpg",
+    "standards/swarmauri_signing_pgp",
     "community/swarmauri_middleware_circuitbreaker",
     "community/swarmauri_middleware_ratepolicy",
     "community/swarmauri_vectorstore_redis",
@@ -209,6 +210,7 @@ swarmauri_crypto_pgp = { workspace = true }
 swarmauri_crypto_nacl_pkcs11 = { workspace = true }
 swarmauri_crypto_composite = { workspace = true }
 swarmauri_signing_ed25519 = { workspace = true }
+swarmauri_signing_pgp = { workspace = true }
 
 swarmauri_vectorstore_redis = { workspace = true }
 swarmauri_vectorstore_qdrant = { workspace = true }

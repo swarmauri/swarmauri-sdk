@@ -2,7 +2,6 @@
 
 Implements the ICrypto contract using:
 - XChaCha20-Poly1305-IETF for symmetric AEAD
-- Ed25519 for sign/verify
 - X25519 sealed boxes for:
     • sealing/unsealing data (X25519-SEALEDBOX)
     • wrapping/unwrapping DEKs (X25519-SEAL-WRAP)
@@ -36,7 +35,6 @@ from swarmauri_core.crypto.types import (
     KeyRef,
     MultiRecipientEnvelope,
     RecipientInfo,
-    Signature,
     UnsupportedAlgorithm,
     WrappedKey,
 )
@@ -55,15 +53,9 @@ _XCHACHA_ABYTES = 16
 _CRYPTO_BOX_PUBLICKEYBYTES = 32
 _CRYPTO_BOX_SECRETKEYBYTES = 32
 _CRYPTO_BOX_SEALBYTES = 48  # 32 (pk) + 16 (mac)
-
-_CRYPTO_SIGN_PUBLICKEYBYTES = 32
-_CRYPTO_SIGN_SECRETKEYBYTES = 64
-_CRYPTO_SIGN_BYTES = 64
-
 _AEAD_DEFAULT = "XCHACHA20-POLY1305"
 _SEAL_ALG = "X25519-SEALEDBOX"
 _WRAP_ALG = "X25519-SEAL-WRAP"
-_SIGN_ALG = "ED25519"
 
 
 # ---------- libsodium loader ----------
@@ -144,30 +136,9 @@ def _sodium() -> CDLL:
         POINTER(c_ubyte),
     ]
 
-    # Ed25519 sign/verify
-    lib.crypto_sign_ed25519_detached.restype = c_int
-    lib.crypto_sign_ed25519_detached.argtypes = [
-        POINTER(c_ubyte),
-        POINTER(c_ulonglong),
-        POINTER(c_ubyte),
-        c_ulonglong,
-        POINTER(c_ubyte),
-    ]
-
-    lib.crypto_sign_ed25519_verify_detached.restype = c_int
-    lib.crypto_sign_ed25519_verify_detached.argtypes = [
-        POINTER(c_ubyte),
-        POINTER(c_ubyte),
-        c_ulonglong,
-        POINTER(c_ubyte),
-    ]
-
     # keypair generation helpers
     lib.crypto_box_keypair.restype = c_int
     lib.crypto_box_keypair.argtypes = [POINTER(c_ubyte), POINTER(c_ubyte)]
-
-    lib.crypto_sign_ed25519_keypair.restype = c_int
-    lib.crypto_sign_ed25519_keypair.argtypes = [POINTER(c_ubyte), POINTER(c_ubyte)]
 
     return lib
 
@@ -207,8 +178,6 @@ class SodiumCrypto(CryptoBase):
             "decrypt": (_AEAD_DEFAULT,),
             "wrap": (_WRAP_ALG,),
             "unwrap": (_WRAP_ALG,),
-            "sign": (_SIGN_ALG,),
-            "verify": (_SIGN_ALG,),
             "seal": (_SEAL_ALG,),
             "unseal": (_SEAL_ALG,),
         }
@@ -301,65 +270,6 @@ class SodiumCrypto(CryptoBase):
             raise IntegrityError("AEAD decrypt failed (auth?)")
 
         return bytes(m_buf)[: m_len_out.value]
-
-    # ---------------- sign / verify (Ed25519) ----------------
-    async def sign(
-        self,
-        key: KeyRef,
-        msg: bytes,
-        *,
-        alg: Optional[Alg] = None,
-    ) -> Signature:
-        alg = (alg or _SIGN_ALG).upper()
-        if alg != _SIGN_ALG:
-            raise UnsupportedAlgorithm(f"Unsupported sign alg: {alg}")
-        sk = _ensure_len(
-            "Ed25519 key.material",
-            key.material,
-            _CRYPTO_SIGN_SECRETKEYBYTES,
-        )
-
-        sig_buf = (c_ubyte * (_CRYPTO_SIGN_BYTES))()
-        sig_len = c_ulonglong(0)
-        rc = _sodium().crypto_sign_ed25519_detached(
-            sig_buf,
-            byref(sig_len),
-            _as_ubytes(msg),
-            c_ulonglong(len(msg)),
-            _as_ubytes(sk),
-        )
-        if rc != 0 or sig_len.value != _CRYPTO_SIGN_BYTES:
-            raise IntegrityError("sign failed")
-        return Signature(
-            kid=key.kid,
-            version=key.version,
-            alg=_SIGN_ALG,
-            sig=bytes(sig_buf)[: sig_len.value],
-        )
-
-    async def verify(
-        self,
-        key: KeyRef,
-        msg: bytes,
-        sig: Signature,
-    ) -> bool:
-        alg = (sig.alg or _SIGN_ALG).upper()
-        if alg != _SIGN_ALG:
-            raise UnsupportedAlgorithm(f"Unsupported verify alg: {alg}")
-        pk = _ensure_len(
-            "Ed25519 key.public",
-            key.public,
-            _CRYPTO_SIGN_PUBLICKEYBYTES,
-        )
-        rc = _sodium().crypto_sign_ed25519_verify_detached(
-            _as_ubytes(sig.sig),
-            _as_ubytes(msg),
-            c_ulonglong(len(msg)),
-            _as_ubytes(pk),
-        )
-        if rc != 0:
-            raise IntegrityError("signature verify failed")
-        return True
 
     # ---------------- wrap / unwrap using sealed box ----------------
     async def wrap(

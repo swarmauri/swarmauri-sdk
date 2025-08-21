@@ -55,6 +55,14 @@ from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
 from swarmauri_base.rate_limits.RateLimitBase import RateLimitBase
 from swarmauri_base.middlewares.MiddlewareBase import MiddlewareBase
 
+try:
+    from swarmauri_base.signing.SigningBase import SigningBase
+except Exception:  # pragma: no cover
+
+    class SigningBase:  # type: ignore[too-many-ancestors]
+        pass
+
+
 # Configure logging
 logger = logging.getLogger(__name__)
 

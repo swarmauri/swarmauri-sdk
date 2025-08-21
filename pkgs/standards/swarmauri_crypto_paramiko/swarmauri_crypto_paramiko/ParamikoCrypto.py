@@ -56,8 +56,6 @@ class ParamikoCrypto(CryptoBase):
             "decrypt": (_AEAD_DEFAULT,),
             "wrap": (_WRAP_ALG,),
             "unwrap": (_WRAP_ALG,),
-            "sign": (),
-            "verify": (),
             # NEW:
             "seal": (_SEAL_ALG,),
             "unseal": (_SEAL_ALG,),
@@ -111,7 +109,9 @@ class ParamikoCrypto(CryptoBase):
             raise UnsupportedAlgorithm(f"Unsupported AEAD algorithm: {alg}")
 
         if key.material is None:
-            raise ValueError("KeyRef.material must contain symmetric key bytes for AEAD")
+            raise ValueError(
+                "KeyRef.material must contain symmetric key bytes for AEAD"
+            )
         if len(key.material) not in (16, 24, 32):
             raise ValueError("KeyRef.material must be 16/24/32 bytes for AES-GCM")
 
@@ -139,7 +139,9 @@ class ParamikoCrypto(CryptoBase):
         if self._normalize_aead_alg(ct.alg) != _AEAD_DEFAULT:
             raise UnsupportedAlgorithm(f"Unsupported AEAD algorithm: {ct.alg}")
         if key.material is None:
-            raise ValueError("KeyRef.material must contain symmetric key bytes for AEAD")
+            raise ValueError(
+                "KeyRef.material must contain symmetric key bytes for AEAD"
+            )
 
         aead = AESGCM(key.material)
         blob = ct.ct + ct.tag
@@ -183,7 +185,9 @@ class ParamikoCrypto(CryptoBase):
         if alg != _SEAL_ALG:
             raise UnsupportedAlgorithm(f"Unsupported seal alg: {alg}")
         if recipient_priv.material is None:
-            raise ValueError("KeyRef.material must contain PEM-encoded RSA private key bytes")
+            raise ValueError(
+                "KeyRef.material must contain PEM-encoded RSA private key bytes"
+            )
 
         priv = self._load_rsa_priv_pem(recipient_priv.material)
         return priv.decrypt(
@@ -212,7 +216,9 @@ class ParamikoCrypto(CryptoBase):
             recip_infos: list[RecipientInfo] = []
             for r in recipients:
                 if r.public is None:
-                    raise ValueError("Recipient KeyRef.public must contain OpenSSH RSA public key bytes")
+                    raise ValueError(
+                        "Recipient KeyRef.public must contain OpenSSH RSA public key bytes"
+                    )
                 rsa_pub = self._load_rsa_pub_ssh(r.public)
                 self._seal_size_check(rsa_pub, len(pt))
                 sealed = rsa_pub.encrypt(
@@ -260,7 +266,9 @@ class ParamikoCrypto(CryptoBase):
         recip_infos: list[RecipientInfo] = []
         for r in recipients:
             if r.public is None:
-                raise ValueError("Recipient KeyRef.public must contain OpenSSH RSA public key bytes")
+                raise ValueError(
+                    "Recipient KeyRef.public must contain OpenSSH RSA public key bytes"
+                )
             rsa_pub = self._load_rsa_pub_ssh(r.public)
             enc_k = rsa_pub.encrypt(
                 k,
@@ -326,7 +334,9 @@ class ParamikoCrypto(CryptoBase):
         if wrapped.wrap_alg != _WRAP_ALG:
             raise UnsupportedAlgorithm(f"Unsupported wrap_alg: {wrapped.wrap_alg}")
         if kek.material is None:
-            raise ValueError("KeyRef.material must contain PEM-encoded RSA private key bytes")
+            raise ValueError(
+                "KeyRef.material must contain PEM-encoded RSA private key bytes"
+            )
 
         priv = self._load_rsa_priv_pem(kek.material)
         return priv.decrypt(
@@ -337,22 +347,3 @@ class ParamikoCrypto(CryptoBase):
                 label=None,
             ),
         )
-
-    # ───────────────────────── signing (not supported) ──────────────────
-
-    async def sign(
-        self,
-        key: KeyRef,
-        msg: bytes,
-        *,
-        alg: Optional[Alg] = None,
-    ):
-        raise UnsupportedAlgorithm("sign not supported by ParamikoCrypto")
-
-    async def verify(
-        self,
-        key: KeyRef,
-        msg: bytes,
-        sig,
-    ) -> bool:
-        raise UnsupportedAlgorithm("verify not supported by ParamikoCrypto")

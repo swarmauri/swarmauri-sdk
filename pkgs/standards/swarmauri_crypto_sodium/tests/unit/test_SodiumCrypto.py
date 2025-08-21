@@ -13,8 +13,6 @@ from swarmauri_crypto_sodium import SodiumCrypto
 from swarmauri_crypto_sodium.SodiumCrypto import (
     _CRYPTO_BOX_PUBLICKEYBYTES,
     _CRYPTO_BOX_SECRETKEYBYTES,
-    _CRYPTO_SIGN_PUBLICKEYBYTES,
-    _CRYPTO_SIGN_SECRETKEYBYTES,
     _sodium,
 )
 
@@ -22,15 +20,6 @@ from swarmauri_crypto_sodium.SodiumCrypto import (
 @pytest.fixture
 def sodium_crypto():
     return SodiumCrypto()
-
-
-@pytest.fixture
-def ed25519_keys():
-    pk = (ctypes.c_ubyte * _CRYPTO_SIGN_PUBLICKEYBYTES)()
-    sk = (ctypes.c_ubyte * _CRYPTO_SIGN_SECRETKEYBYTES)()
-    rc = _sodium().crypto_sign_ed25519_keypair(pk, sk)
-    assert rc == 0
-    return bytes(pk), bytes(sk)
 
 
 @pytest.fixture
@@ -74,30 +63,6 @@ async def test_aead_encrypt_decrypt_roundtrip(sodium_crypto):
     ct = await sodium_crypto.encrypt(sym, pt)
     rt = await sodium_crypto.decrypt(sym, ct)
     assert rt == pt
-
-
-@pytest.mark.asyncio
-async def test_sign_verify(sodium_crypto, ed25519_keys):
-    pk, sk = ed25519_keys
-    signer = KeyRef(
-        kid="sig1",
-        version=1,
-        type=KeyType.ED25519,
-        uses=(KeyUse.SIGN,),
-        export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
-        material=sk,
-    )
-    verifier = KeyRef(
-        kid="sig1",
-        version=1,
-        type=KeyType.ED25519,
-        uses=(KeyUse.VERIFY,),
-        export_policy=ExportPolicy.PUBLIC_ONLY,
-        public=pk,
-    )
-    msg = b"sign me"
-    sig = await sodium_crypto.sign(signer, msg)
-    assert await sodium_crypto.verify(verifier, msg, sig)
 
 
 @pytest.mark.asyncio
