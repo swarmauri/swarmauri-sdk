@@ -191,10 +191,9 @@ members = [
     "community/swarmauri_parser_slate",
     "community/swarmauri_tool_searchword",
     "community/swarmauri_keyprovider_gcpkms",
+    "community/swarmauri_certservice_scep",
     "community/swarmauri_certservice_ms_adcs",
     "community/swarmauri_certservice_gcpkms",
-
-
     "standards/swarmauri_tool_containernewsession",
     "standards/swarmauri_tool_containerfeedchars",
     "standards/swarmauri_tool_containermakepr",
