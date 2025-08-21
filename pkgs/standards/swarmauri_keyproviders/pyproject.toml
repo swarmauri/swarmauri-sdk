@@ -25,6 +25,10 @@ dependencies = [
 
 [project.optional-dependencies]
 pkcs11 = ["pkcs11"]
+unit = ["pytest>=8.0", "pytest-asyncio>=0.24.0"]
+functional = ["pytest>=8.0", "pytest-asyncio>=0.24.0"]
+perf = ["pytest-benchmark>=4.0.0"]
+rfc = ["pytest>=8.0", "pytest-asyncio>=0.24.0"]
 
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
