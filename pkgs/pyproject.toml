@@ -86,6 +86,7 @@ members = [
     "standards/swarmauri_keyprovider_file",
     "standards/swarmauri_keyproviders_mirrored",
     "standards/swarmauri_keyprovider_hierarchical",
+    "standards/swarmauri_certservice_pkcs11",
     "standards/swarmauri_crypto_paramiko",
     "standards/swarmauri_crypto_pgp",
     "standards/swarmauri_crypto_sodium",
