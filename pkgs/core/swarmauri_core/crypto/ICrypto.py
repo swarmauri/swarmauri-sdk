@@ -16,12 +16,20 @@ Intentionally out of scope
 
 Capability discovery
 --------------------
-Implementations advertise supported algorithms via supports(), e.g.:
+Implementations advertise supported algorithms via ``supports()``, using
+keys for any operation they handle.  Providers MAY separate advertise
+algorithms by direction (e.g., ``encrypt`` vs ``decrypt``) when they only
+support one side.
+
+Example capability map::
 
   {
-    "aead": ("AES-256-GCM", "XCHACHA20-POLY1305"),
+    "encrypt": ("AES-256-GCM", "XCHACHA20-POLY1305"),
+    "decrypt": ("AES-256-GCM",),
     "wrap": ("AES-KW", "RSA-OAEP-SHA256", "OpenPGP"),
-    "seal": ("OpenPGP-SEAL", "X25519-SEALEDBOX", "RSA-OAEP-SHA256-SEAL"),
+    "unwrap": ("AES-KW", "RSA-OAEP-SHA256", "OpenPGP"),
+    "seal": ("OpenPGP-SEAL", "X25519-SEALEDBOX"),
+    "unseal": ("OpenPGP-SEAL", "X25519-SEALEDBOX"),
   }
 
 Notes
@@ -50,15 +58,19 @@ class ICrypto(ABC):
         Return a capability map describing supported algorithms.
 
         Expected keys (all optional; omit if unsupported):
-          - "aead": iterable of AEAD algorithm identifiers
-          - "wrap": iterable of key-wrapping algorithm identifiers
-          - "seal": iterable of sealing algorithm identifiers
+          - "encrypt" / "decrypt": AEAD algorithms for each direction
+          - "wrap" / "unwrap": key-wrapping algorithms
+          - "seal" / "unseal": sealed-box style algorithms
 
-        Example:
+        Example::
+
             return {
-                "aead": ("AES-256-GCM", "XCHACHA20-POLY1305"),
+                "encrypt": ("AES-256-GCM", "XCHACHA20-POLY1305"),
+                "decrypt": ("AES-256-GCM",),
                 "wrap": ("AES-KW", "RSA-OAEP-SHA256"),
+                "unwrap": ("AES-KW", "RSA-OAEP-SHA256"),
                 "seal": ("X25519-SEALEDBOX",),
+                "unseal": ("X25519-SEALEDBOX",),
             }
         """
         ...
