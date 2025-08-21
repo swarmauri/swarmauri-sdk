@@ -17,10 +17,17 @@
 
 ## Swarmauri MRE Crypto PGP
 
-OpenPGP sealed-per-recipient multi-recipient encryption provider implementing the `IMreCrypto` contract.
+OpenPGP-based multi-recipient encryption providers implementing the
+`IMreCrypto` contract. This package exposes three providers:
 
-- Mode: `sealed_per_recipient`
-- Recipient protection: OpenPGP public key encryption (PGPy)
+* **PGPSealMreCrypto** – per-recipient sealed payloads
+  (`sealed_per_recipient` mode).
+* **PGPSealedCekMreCrypto** – shared AEAD payload with per-recipient sealed
+  CEK (`sealed_cek+aead` mode).
+* **PGPMreCrypto** – composite provider supporting both the
+  `enc_once+per_recipient_header` and `sealed_per_recipient` modes.
+
+All providers use OpenPGP public key encryption via PGPy.
 
 ### Installation
 
@@ -31,12 +38,13 @@ pip install swarmauri_mre_crypto_pgp
 ### Usage
 
 ```python
-from swarmauri_mre_crypto_pgp import PGPSealMreCrypto
+from swarmauri_mre_crypto_pgp import PGPMreCrypto
 
-mre = PGPSealMreCrypto()
+mre = PGPMreCrypto()
 ```
 
 ## Entry point
 
-The provider is registered under the `swarmauri.mre_cryptos` entry-point as `PGPSealMreCrypto`.
+Providers are registered under the `swarmauri.mre_cryptos` entry-point as
+`PGPSealMreCrypto`, `PGPSealedCekMreCrypto` and `PGPMreCrypto`.
 
