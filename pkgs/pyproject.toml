@@ -117,6 +117,7 @@ members = [
     "standards/swarmauri_tokens_composite",
     "standards/swarmauri_tokens_remoteoidc",
     "standards/swarmauri_tokens_tlsboundjwt",
+    "community/swarmauri_certs_csronly",
     "community/swarmauri_middleware_circuitbreaker",
     "community/swarmauri_middleware_ratepolicy",
     "community/swarmauri_keyprovider_aws_kms",
@@ -340,6 +341,7 @@ swarmauri_tool_jupytergetiopubmessage = { workspace = true }
 swarmauri_parser_slate = { workspace = true }
 swarmauri_tool_searchword = { workspace = true }
 swarmauri_keyprovider_gcpkms = { workspace = true }
+swarmauri_certs_csronly = { workspace = true }
 swarmauri_tool_containernewsession = { workspace = true }
 swarmauri_tool_containerfeedchars = { workspace = true }
 swarmauri_tool_containermakepr = { workspace = true }
