@@ -102,18 +102,18 @@ members = [
     "standards/swarmauri_signing_hmac",
     "standards/swarmauri_signing_ecdsa",
     "standards/swarmauri_signing_jws",
-    "standards/swarmauri_token_jwt",
-    "standards/swarmauri_token_sshsig",
-    "standards/swarmauri_token_sshcert",
+    "standards/swarmauri_tokens_jwt",
+    "standards/swarmauri_tokens_sshsig",
+    "standards/swarmauri_tokens_sshcert",
     "standards/swarmauri_secret_autogpg",
     "standards/swarmauri_tokens_dpopboundjwt",
     "standards/swarmauri_signing_pgp",
     "standards/swarmauri_signing_rsa",
     "standards/swarmauri_signing_ssh",
-    "standards/swarmauri_token_introspection",
-    "standards/swarmauri_token_paseto_v4",
-    "standards/swarmauri_token_composite",
-    "standards/swarmauri_token_remoteoidc",
+    "standards/swarmauri_tokens_introspection",
+    "standards/swarmauri_tokens_paseto_v4",
+    "standards/swarmauri_tokens_composite",
+    "standards/swarmauri_tokens_remoteoidc",
     "standards/swarmauri_tokens_tlsboundjwt",
     "community/swarmauri_middleware_circuitbreaker",
     "community/swarmauri_middleware_ratepolicy",
@@ -262,15 +262,16 @@ swarmauri_signing_hmac = { workspace = true }
 swarmauri_signing_ecdsa = { workspace = true }
 swarmauri_signing_jws = { workspace = true }
 swarmauri_tokens_dpopboundjwt = { workspace = true }
-swarmauri_token_jwt = { workspace = true }
-swarmauri_token_sshsig = { workspace = true }
-swarmauri_token_sshcert = { workspace = true }
+swarmauri_tokens_jwt = { workspace = true }
+swarmauri_tokens_sshsig = { workspace = true }
+swarmauri_tokens_sshcert = { workspace = true }
 swarmauri_signing_pgp = { workspace = true }
 swarmauri_signing_rsa = { workspace = true }
 swarmauri_signing_ssh = { workspace = true }
-swarmauri_token_introspection = { workspace = true }
-swarmauri_token_paseto_v4 = { workspace = true }
-swarmauri_token_composite = { workspace = true }
+swarmauri_tokens_introspection = { workspace = true }
+swarmauri_tokens_paseto_v4 = { workspace = true }
+swarmauri_tokens_composite = { workspace = true }
+swarmauri_tokens_remoteoidc = { workspace = true }
 swarmauri_tokens_rotatingjwt = { workspace = true }
 swarmauri_tokens_tlsboundjwt = { workspace = true }
 swarmauri_vectorstore_redis = { workspace = true }
