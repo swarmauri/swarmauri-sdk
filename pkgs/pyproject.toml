@@ -182,6 +182,7 @@ members = [
     "community/swarmauri_parser_slate",
     "community/swarmauri_tool_searchword",
     "community/swarmauri_keyprovider_gcpkms",
+    "community/swarmauri_certservice_gcpkms",
     "standards/swarmauri_tool_containernewsession",
     "standards/swarmauri_tool_containerfeedchars",
     "standards/swarmauri_tool_containermakepr",
@@ -345,6 +346,7 @@ swarmauri_tool_containerfeedchars = { workspace = true }
 swarmauri_tool_containermakepr = { workspace = true }
 swarmauri_toolkit_containertoolkit = { workspace = true }
 swarmauri_workflow_statedriven = { workspace = true }
+swarmauri_certservice_gcpkms = { workspace = true }
 
 
 [tool.pytest.ini_options]
