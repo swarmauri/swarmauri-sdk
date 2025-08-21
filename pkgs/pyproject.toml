@@ -156,6 +156,7 @@ members = [
     "community/swarmauri_embedding_mlm",
     "community/swarmauri_tool_entityrecognition",
     "community/swarmauri_llm_leptonai",
+    "community/swarmauri_cert_composite",
     "community/swarmauri_vectorstore_annoy",
     "community/swarmauri_tool_jupyterwritenotebook",
     "community/swarmauri_tool_jupytervalidatenotebook",
@@ -245,6 +246,7 @@ swarmauri_crypto_paramiko = { workspace = true }
 swarmauri_crypto_pgp = { workspace = true }
 swarmauri_crypto_nacl_pkcs11 = { workspace = true }
 swarmauri_crypto_composite = { workspace = true }
+swarmauri_cert_composite = { workspace = true }
 swarmauri_crypto_ecdh_es_a128kw = { workspace = true }
 swarmauri_crypto_jwe = { workspace = true }
 swarmauri_mre_crypto_shamir = { workspace = true }
