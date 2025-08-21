@@ -98,6 +98,7 @@ members = [
     "standards/swarmauri_signing_pgp",
     "standards/swarmauri_signing_rsa",
     "standards/swarmauri_signing_ssh",
+    "standards/swarmauri_tokens_tlsboundjwt",
     "community/swarmauri_middleware_circuitbreaker",
     "community/swarmauri_middleware_ratepolicy",
     "community/swarmauri_vectorstore_redis",
@@ -237,6 +238,7 @@ swarmauri_signing_jws = { workspace = true }
 swarmauri_signing_pgp = { workspace = true }
 swarmauri_signing_rsa = { workspace = true }
 swarmauri_signing_ssh = { workspace = true }
+swarmauri_tokens_tlsboundjwt = { workspace = true }
 swarmauri_vectorstore_redis = { workspace = true }
 swarmauri_vectorstore_qdrant = { workspace = true }
 swarmauri_vectorstore_pinecone = { workspace = true }
