@@ -18,9 +18,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple, Mapping, TYPE_CHECKING
 
-from ..signing.types import Signature
 from ..mre_crypto.types import RecipientInfo, MultiRecipientEnvelope
 
 # -----------------------------
@@ -30,6 +29,11 @@ from ..mre_crypto.types import RecipientInfo, MultiRecipientEnvelope
 KeyId = str
 KeyVersion = int
 Alg = str
+
+if TYPE_CHECKING:  # pragma: no cover - typing aid
+    from ..signing.types import Signature
+else:  # pragma: no cover - runtime placeholder
+    Signature = Mapping[str, object]
 
 
 # -----------------------------

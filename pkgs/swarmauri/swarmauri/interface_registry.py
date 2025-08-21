@@ -19,6 +19,7 @@ from swarmauri_base.conversations.ConversationBase import ConversationBase
 from swarmauri_base.dataconnectors.DataConnectorBase import DataConnectorBase
 from swarmauri_base.crypto.CryptoBase import CryptoBase
 from swarmauri_base.secrets.SecretDriveBase import SecretDriveBase
+from swarmauri_base.signing.SigningBase import SigningBase
 from swarmauri_base.distances.DistanceBase import DistanceBase
 from swarmauri_base.documents.DocumentBase import DocumentBase
 from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase
@@ -109,6 +110,7 @@ class InterfaceRegistry:
         "swarmauri.vectors": VectorBase,
         "swarmauri.crypto": CryptoBase,
         "swarmauri.secrets": SecretDriveBase,
+        "swarmauri.signings": SigningBase,
         "swarmauri.logger_formatters": FormatterBase,
         "swarmauri.loggers": LoggerBase,
         "swarmauri.logger_handlers": HandlerBase,

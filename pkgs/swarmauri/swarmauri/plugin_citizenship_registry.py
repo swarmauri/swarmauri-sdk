@@ -49,6 +49,7 @@ class PluginCitizenshipRegistry:
         "swarmauri.crypto.CryptoBase": "swarmauri_base.crypto.CryptoBase",
         "swarmauri.secrets.ISecretDrive": "swarmauri_core.secrets.ISecretDrive",
         "swarmauri.secrets.SecretDriveBase": "swarmauri_base.secrets.SecretDriveBase",
+        "swarmauri.signings.Ed25519EnvelopeSigner": "swarmauri_signing_ed25519.Ed25519EnvelopeSigner",
         "swarmauri.agents.ExampleAgent": "swm_example_package.ExampleAgent",
         "swarmauri.agents.QAAgent": "swarmauri_standard.agents.QAAgent",
         "swarmauri.agents.RagAgent": "swarmauri_standard.agents.RagAgent",
