@@ -22,7 +22,7 @@ pip install swarmauri_keyproviders_mirrored
 
 ```python
 from swarmauri_keyproviders_mirrored import MirroredKeyProvider
-from swarmauri_keyproviders import LocalKeyProvider
+from swarmauri_keyprovider_local import LocalKeyProvider
 
 primary = LocalKeyProvider()
 secondary = LocalKeyProvider()

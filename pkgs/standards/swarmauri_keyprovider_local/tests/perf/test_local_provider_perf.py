@@ -1,16 +1,13 @@
 import asyncio
+
 import pytest
 
-from swarmauri_keyprovider_hierarchical import HierarchicalKeyProvider
 from swarmauri_keyprovider_local import LocalKeyProvider
 from swarmauri_core.keys.types import KeySpec, KeyAlg, KeyClass, ExportPolicy, KeyUse
 
 
-@pytest.mark.test
 @pytest.mark.perf
 def test_create_performance(benchmark) -> None:
-    child = LocalKeyProvider()
-    provider = HierarchicalKeyProvider({"a": child})
     spec = KeySpec(
         klass=KeyClass.symmetric,
         alg=KeyAlg.AES256_GCM,
@@ -18,7 +15,7 @@ def test_create_performance(benchmark) -> None:
         export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
     )
 
-    def run() -> None:
-        asyncio.run(provider.create_key(spec))
+    async def _create() -> None:
+        await LocalKeyProvider().create_key(spec)
 
-    benchmark(run)
+    benchmark(lambda: asyncio.run(_create()))

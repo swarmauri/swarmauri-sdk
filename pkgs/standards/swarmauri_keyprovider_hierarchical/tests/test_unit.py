@@ -1,7 +1,7 @@
 import pytest
 
 from swarmauri_keyprovider_hierarchical import HierarchicalKeyProvider, CreateRule
-from swarmauri_keyproviders import LocalKeyProvider
+from swarmauri_keyprovider_local import LocalKeyProvider
 from swarmauri_core.keys.types import (
     KeySpec,
     KeyAlg,
