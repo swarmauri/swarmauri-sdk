@@ -1,7 +1,7 @@
 [project]
-name = "swarmauri_keyproviders"
+name = "swarmauri_keyproviders_mirrored"
 version = "0.1.0"
-description = "Key provider implementations for Swarmauri"
+description = "Mirrored key provider for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
@@ -20,18 +20,14 @@ classifiers = [
 dependencies = [
     "swarmauri_core",
     "swarmauri_base",
-    "cryptography",
+    "swarmauri_keyproviders",
 ]
 
 [project.optional-dependencies]
-local = []
-ssh = []
-pkcs11 = ["pkcs11"]
-remote_jwks = []
-unit = ["pytest>=8.0", "pytest-asyncio>=0.24.0"]
-functional = ["pytest>=8.0", "pytest-asyncio>=0.24.0"]
-perf = ["pytest-benchmark>=4.0.0"]
-rfc = ["pytest>=8.0", "pytest-asyncio>=0.24.0"]
+jsoncanon = ["canonicaljson"]
+cbor = ["cbor2"]
+
+[tool.uv.sources]
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 
@@ -44,7 +40,6 @@ markers = [
     "r8n: Regression tests",
     "acceptance: Acceptance tests",
     "perf: Performance tests",
-    "func: Functional tests",
 ]
 timeout = 300
 log_cli = true
@@ -69,7 +64,5 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [project.entry-points.'swarmauri.key_providers']
-LocalKeyProvider = "swarmauri_keyproviders.LocalKeyProvider:LocalKeyProvider"
-SshKeyProvider = "swarmauri_keyproviders.SshKeyProvider:SshKeyProvider"
-Pkcs11KeyProvider = "swarmauri_keyproviders.Pkcs11KeyProvider:Pkcs11KeyProvider"
-RemoteJwksKeyProvider = "swarmauri_keyproviders.RemoteJwksKeyProvider:RemoteJwksKeyProvider"
+MirroredKeyProvider = "swarmauri_keyproviders_mirrored.MirroredKeyProvider:MirroredKeyProvider"
+
