@@ -1,42 +1,33 @@
 [project]
-name = "swarmauri_keyproviders"
+name = "swarmauri_token_sshsig"
 version = "0.1.0"
-description = "Key provider implementations for Swarmauri"
+description = "SSH signature token service for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
 authors = [{ name = "Swarmauri", email = "opensource@swarmauri.com" }]
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
-    "Natural Language :: English",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Development Status :: 3 - Alpha",
-    "Topic :: Security :: Cryptography",
-    "Intended Audience :: Developers",
 ]
+
 dependencies = [
     "swarmauri_core",
     "swarmauri_base",
-    "cryptography",
+    "cryptography>=41.0.3",
 ]
 
 [project.optional-dependencies]
-local = []
-ssh = []
-pkcs11 = ["pkcs11"]
-remote_jwks = []
-unit = ["pytest>=8.0", "pytest-asyncio>=0.24.0"]
-functional = ["pytest>=8.0", "pytest-asyncio>=0.24.0"]
-perf = ["pytest-benchmark>=4.0.0"]
-rfc = ["pytest>=8.0", "pytest-asyncio>=0.24.0"]
+ed25519 = ["cryptography"]
+ecdsa = ["cryptography"]
+
+[tool.uv.sources]
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 
 [tool.pytest.ini_options]
-norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",
     "unit: Unit tests",
@@ -44,9 +35,8 @@ markers = [
     "r8n: Regression tests",
     "acceptance: Acceptance tests",
     "perf: Performance tests",
-    "func: Functional tests",
+    "functional: Functional tests",
 ]
-timeout = 300
 log_cli = true
 log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
@@ -61,6 +51,7 @@ dev = [
     "pytest-json-report>=1.5.0",
     "pytest-timeout>=2.3.1",
     "pytest-benchmark>=4.0.0",
+    "flake8>=7.0",
     "ruff>=0.9.9",
 ]
 
@@ -68,8 +59,8 @@ dev = [
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-[project.entry-points.'swarmauri.key_providers']
-LocalKeyProvider = "swarmauri_keyproviders.LocalKeyProvider:LocalKeyProvider"
-SshKeyProvider = "swarmauri_keyproviders.SshKeyProvider:SshKeyProvider"
-Pkcs11KeyProvider = "swarmauri_keyproviders.Pkcs11KeyProvider:Pkcs11KeyProvider"
-RemoteJwksKeyProvider = "swarmauri_keyproviders.RemoteJwksKeyProvider:RemoteJwksKeyProvider"
+[project.entry-points.'swarmauri.tokens']
+SshSigTokenService = "swarmauri_token_sshsig:SshSigTokenService"
+
+[project.entry-points.'peagen.plugins.tokens']
+sshsig = "swarmauri_token_sshsig:SshSigTokenService"
