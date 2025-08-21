@@ -98,6 +98,7 @@ members = [
     "standards/swarmauri_signing_pgp",
     "standards/swarmauri_signing_rsa",
     "standards/swarmauri_signing_ssh",
+    "standards/swarmauri_token_remoteoidc",
     "community/swarmauri_middleware_circuitbreaker",
     "community/swarmauri_middleware_ratepolicy",
     "community/swarmauri_vectorstore_redis",
