@@ -15,8 +15,6 @@ from swarmauri_core.crypto.ICrypto import (
     AEADCiphertext,
     Alg,
     KeyRef,
-    MultiRecipientEnvelope,
-    Signature,
     WrappedKey,
 )
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
@@ -52,24 +50,6 @@ class CryptoBase(ICrypto, ComponentBase):
     ) -> bytes:
         raise NotImplementedError("decrypt() must be implemented by subclass")
 
-    # ─────────────────────────── sign / verify ──────────────────────────
-    async def sign(
-        self,
-        key: KeyRef,
-        msg: bytes,
-        *,
-        alg: Optional[Alg] = None,
-    ) -> Signature:
-        raise NotImplementedError("sign() must be implemented by subclass")
-
-    async def verify(
-        self,
-        key: KeyRef,
-        msg: bytes,
-        sig: Signature,
-    ) -> bool:
-        raise NotImplementedError("verify() must be implemented by subclass")
-
     # ─────────────────────────── wrap / unwrap ──────────────────────────
     async def wrap(
         self,
@@ -83,19 +63,6 @@ class CryptoBase(ICrypto, ComponentBase):
 
     async def unwrap(self, kek: KeyRef, wrapped: WrappedKey) -> bytes:
         raise NotImplementedError("unwrap() must be implemented by subclass")
-
-    # ──────────────── hybrid encrypt-for-many (KEM/AEAD or sealed) ───────
-    async def encrypt_for_many(
-        self,
-        recipients: Iterable[KeyRef],
-        pt: bytes,
-        *,
-        enc_alg: Optional[Alg] = None,
-        recipient_wrap_alg: Optional[Alg] = None,
-        aad: Optional[bytes] = None,
-        nonce: Optional[bytes] = None,
-    ) -> MultiRecipientEnvelope:
-        raise NotImplementedError("encrypt_for_many() must be implemented by subclass")
 
     # ─────────────────────────── seal / unseal ──────────────────────────
     async def seal(

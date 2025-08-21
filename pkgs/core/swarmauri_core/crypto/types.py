@@ -5,8 +5,7 @@ Canonical crypto/secret shared types.
 This module aligns with the new ICrypto plugin interface:
 - Enums: KeyType, KeyUse, KeyState, ExportPolicy
 - Core records: KeySummary, KeyVersionInfo, KeyDescriptor, Page
-- Operation IO: KeyRef, AEADCiphertext, Signature, WrappedKey,
-                RecipientInfo, MultiRecipientEnvelope
+- Operation IO: KeyRef, AEADCiphertext, WrappedKey
 - Error taxonomy: KmsError and specific subclasses
 
 Notes:
@@ -19,7 +18,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, Optional, Tuple, Iterable
+from typing import Dict, Optional, Tuple
+
+from ..signing.types import Signature
+from ..mre_crypto.types import RecipientInfo, MultiRecipientEnvelope
 
 # -----------------------------
 # Scalar aliases
@@ -33,6 +35,7 @@ Alg = str
 # -----------------------------
 # Enums
 # -----------------------------
+
 
 class KeyType(str, Enum):
     SYMMETRIC = "symmetric"
@@ -67,6 +70,7 @@ class ExportPolicy(str, Enum):
 # -----------------------------
 # Key inventory & descriptors
 # -----------------------------
+
 
 @dataclass(frozen=True)
 class KeySummary:
@@ -110,6 +114,7 @@ class Page:
 # References & payload shapes
 # -----------------------------
 
+
 @dataclass(frozen=True)
 class KeyRef:
     """
@@ -118,6 +123,7 @@ class KeyRef:
     - For HSM/non-extractable, leave 'material' None and use 'uri' and 'tags'
       to locate handles (slot, label, object id, etc).
     """
+
     kid: KeyId
     version: KeyVersion
     type: KeyType
@@ -138,6 +144,7 @@ class AEADCiphertext:
     - tag: For some libs (cryptography.AESGCM) tag is appended to ct; we still
       carry a 'tag' field to standardize shape. Set to b"" when not distinct.
     """
+
     kid: KeyId
     version: KeyVersion
     alg: Alg
@@ -145,14 +152,6 @@ class AEADCiphertext:
     ct: bytes
     tag: bytes
     aad: Optional[bytes] = None
-
-
-@dataclass(frozen=True)
-class Signature:
-    kid: KeyId
-    version: KeyVersion
-    alg: Alg
-    sig: bytes
 
 
 @dataclass(frozen=True)
@@ -162,6 +161,7 @@ class WrappedKey:
     - wrap_alg: e.g., "AES-KW" / "AES-KWP" / "RSA-OAEP"
     - nonce: optional for schemes that use IVs (not AES-KW)
     """
+
     kek_kid: KeyId
     kek_version: KeyVersion
     wrap_alg: Alg
@@ -169,44 +169,10 @@ class WrappedKey:
     nonce: Optional[bytes] = None
 
 
-@dataclass(frozen=True)
-class RecipientInfo:
-    """
-    Per-recipient header for multi-recipient envelopes.
-    - wrap_alg: how the per-recipient material was produced (e.g., "X25519-SEALEDBOX",
-                "RSA-OAEP", "UMBRAL-PRE")
-    - wrapped_key: For sealed box, this MAY be the ciphertext directly if you
-                   encode per-recipient; for KEM+AEAD schemes it's the CEK wrap.
-    - nonce: optional per-recipient nonce (rare in sealed boxes)
-    """
-    kid: KeyId
-    version: KeyVersion
-    wrap_alg: Alg
-    wrapped_key: bytes
-    nonce: Optional[bytes] = None
-
-
-@dataclass(frozen=True)
-class MultiRecipientEnvelope:
-    """
-    A compact, transport-friendly container:
-      - enc_alg: content encryption algorithm (e.g., "X25519-SEALEDBOX" or "AES-GCM")
-      - (nonce, ct, tag): the common content ciphertext (or empty when the content
-        is distributed per-recipient and not shared)
-      - recipients: tuple of per-recipient infos
-      - aad: optional associated data bound to the envelope (if supported by enc_alg)
-    """
-    enc_alg: Alg
-    nonce: bytes
-    ct: bytes
-    tag: bytes
-    recipients: Tuple[RecipientInfo, ...]
-    aad: Optional[bytes] = None
-
-
 # -----------------------------
 # Errors
 # -----------------------------
+
 
 class KmsError(Exception):
     """Base class for KMS/crypto errors."""
@@ -240,9 +206,11 @@ class IntegrityError(KmsError):
 # Minimal validators/helpers
 # -----------------------------
 
+
 def validate_aes_gcm_nonce(nonce: bytes) -> None:
     if len(nonce) != 12:
         raise IntegrityError("AES-GCM nonce must be 12 bytes")
+
 
 def validate_nonempty(b: bytes, name: str) -> None:
     if not isinstance(b, (bytes, bytearray)) or len(b) == 0:
@@ -253,26 +221,46 @@ def validate_nonempty(b: bytes, name: str) -> None:
 # Back-compat aliases (soft)
 # -----------------------------
 # If older code imported these names, keep them pointing to the new classes.
-Ciphertext = AEADCiphertext              # old -> new
-WrapResult = WrappedKey                  # old -> new
+Ciphertext = AEADCiphertext  # old -> new
+WrapResult = WrappedKey  # old -> new
 MultiRecipient = MultiRecipientEnvelope  # old -> new
 
 
 __all__ = [
     # scalars
-    "KeyId", "KeyVersion", "Alg",
+    "KeyId",
+    "KeyVersion",
+    "Alg",
     # enums
-    "KeyType", "KeyUse", "KeyState", "ExportPolicy",
+    "KeyType",
+    "KeyUse",
+    "KeyState",
+    "ExportPolicy",
     # key inventory
-    "KeySummary", "KeyVersionInfo", "KeyDescriptor", "Page",
+    "KeySummary",
+    "KeyVersionInfo",
+    "KeyDescriptor",
+    "Page",
     # core refs & payloads
-    "KeyRef", "AEADCiphertext", "Signature", "WrappedKey",
-    "RecipientInfo", "MultiRecipientEnvelope",
+    "KeyRef",
+    "AEADCiphertext",
+    "Signature",
+    "WrappedKey",
+    "RecipientInfo",
+    "MultiRecipientEnvelope",
     # errors
-    "KmsError", "NotFound", "Disabled", "PermissionDenied",
-    "UnsupportedAlgorithm", "InvalidState", "IntegrityError",
+    "KmsError",
+    "NotFound",
+    "Disabled",
+    "PermissionDenied",
+    "UnsupportedAlgorithm",
+    "InvalidState",
+    "IntegrityError",
     # helpers
-    "validate_aes_gcm_nonce", "validate_nonempty",
+    "validate_aes_gcm_nonce",
+    "validate_nonempty",
     # back-compat
-    "Ciphertext", "WrapResult", "MultiRecipient",
+    "Ciphertext",
+    "WrapResult",
+    "MultiRecipient",
 ]
