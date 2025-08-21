@@ -26,6 +26,8 @@ dependencies = [
     "pyyaml>=6.0.2",
 ]
 
+
+
 [dependency-groups]
 dev = [
 "flake8>=7.0",
