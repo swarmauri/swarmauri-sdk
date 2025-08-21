@@ -126,6 +126,7 @@ members = [
     "community/swarmauri_middleware_circuitbreaker",
     "community/swarmauri_middleware_ratepolicy",
     "community/swarmauri_keyprovider_aws_kms",
+    "community/swarmauri_certservice_stepca",
     "community/swarmauri_cert_acme",
     "community/swarmauri_certservice_aws_kms",
     "community/swarmauri_vectorstore_redis",
@@ -271,6 +272,7 @@ swarmauri_keyprovider_pkcs11 = { workspace = true }
 swarmauri_keyprovider_remote_jwks = { workspace = true }
 swarmauri_keyprovider_ssh = { workspace = true }
 swarmauri_keyprovider_aws_kms = { workspace = true }
+swarmauri_certservice_stepca = { workspace = true }
 swarmauri_cert_acme = { workspace = true }
 swarmauri_keyprovider_file = { workspace = true }
 swarmauri_keyproviders_mirrored = { workspace = true }
