@@ -94,6 +94,7 @@ members = [
     "standards/swarmauri_signing_hmac",
     "standards/swarmauri_signing_ecdsa",
     "standards/swarmauri_signing_jws",
+    "standards/swarmauri_token_jwt",
     "standards/swarmauri_secret_autogpg",
     "standards/swarmauri_signing_pgp",
     "standards/swarmauri_signing_rsa",
@@ -234,6 +235,7 @@ swarmauri_signing_secp256k1 = { workspace = true }
 swarmauri_signing_hmac = { workspace = true }
 swarmauri_signing_ecdsa = { workspace = true }
 swarmauri_signing_jws = { workspace = true }
+swarmauri_token_jwt = { workspace = true }
 swarmauri_signing_pgp = { workspace = true }
 swarmauri_signing_rsa = { workspace = true }
 swarmauri_signing_ssh = { workspace = true }
