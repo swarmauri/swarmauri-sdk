@@ -78,6 +78,7 @@ members = [
     "standards/auto_kms",
     "standards/swarmauri_crypto_paramiko",
     "standards/swarmauri_crypto_pgp",
+    "standards/swarmauri_crypto_sodium",
     "standards/swarmauri_secret_autogpg",    
     "community/swarmauri_middleware_circuitbreaker",
     "community/swarmauri_middleware_ratepolicy",
@@ -201,6 +202,7 @@ auto_kms = { workspace = true }
 swarmauri_secret_autogpg = { workspace = true }
 swarmauri_crypto_paramiko = { workspace = true }
 swarmauri_crypto_pgp = { workspace = true }
+swarmauri_crypto_sodium = { workspace = true }
 
 swarmauri_vectorstore_redis = { workspace = true }
 swarmauri_vectorstore_qdrant = { workspace = true }
