@@ -299,6 +299,7 @@ class PluginCitizenshipRegistry:
         "swarmauri.rate_limits.TokenBucketRateLimit": "swarmauri_standard.rate_limits.TokenBucketRateLimit",
         "swarmauri.crypto.ParamikoCrypto": "swarmauri_crypto_paramiko.ParamikoCrypto",
         "swarmauri.crypto.PGPCrypto": "swarmauri_crypto_pgp.PGPCrypto",
+        "swarmauri.mre_crypto.KeyringMreCrypto": "swarmauri_crypto_keyring.KeyringMreCrypto",
         "swarmauri.mre_crypto.AgeMreCrypto": "swarmauri_crypto_age_mre.AgeMreCrypto",
         "swarmauri.mre_crypto.PGPSealMreCrypto": "swarmauri_mre_crypto_pgp.PGPSealMreCrypto",
         "swarmauri.secret.AutoGpgSecretDrive": "swarmauri_secret_autogpg.AutoGpgSecretDrive",

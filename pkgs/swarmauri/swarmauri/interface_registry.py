@@ -119,7 +119,7 @@ class InterfaceRegistry:
         "swarmauri.vector_stores": VectorStoreBase,
         "swarmauri.vectors": VectorBase,
         "swarmauri.crypto": CryptoBase,
-        "swarmauri.mre_crypto": MreCryptoBase,
+        "swarmauri.mre_cryptos": MreCryptoBase,
         "swarmauri.secrets": SecretDriveBase,
         "swarmauri.signings": SigningBase,
         "swarmauri.logger_formatters": FormatterBase,
