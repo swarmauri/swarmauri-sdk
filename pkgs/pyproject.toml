@@ -103,6 +103,7 @@ members = [
     "standards/swarmauri_signing_pgp",
     "standards/swarmauri_signing_rsa",
     "standards/swarmauri_signing_ssh",
+    "standards/swarmauri_token_remoteoidc",
     "standards/swarmauri_tokens_tlsboundjwt",
     "community/swarmauri_middleware_circuitbreaker",
     "community/swarmauri_middleware_ratepolicy",
