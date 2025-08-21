@@ -299,6 +299,7 @@ class PluginCitizenshipRegistry:
         "swarmauri.rate_limits.TokenBucketRateLimit": "swarmauri_standard.rate_limits.TokenBucketRateLimit",
         "swarmauri.crypto.ParamikoCrypto": "swarmauri_crypto_paramiko.ParamikoCrypto",
         "swarmauri.crypto.PGPCrypto": "swarmauri_crypto_pgp.PGPCrypto",
+        "swarmauri.mre_cryptos.ShamirMreCrypto": "swarmauri_crypto_shamir.ShamirMreCrypto",
         "swarmauri.secret.AutoGpgSecretDrive": "swarmauri_secret_autogpg.AutoGpgSecretDrive",
     }
     SECOND_CLASS_REGISTRY: Dict[str, str] = {}

@@ -82,6 +82,7 @@ members = [
     "standards/swarmauri_crypto_sodium",
     "standards/swarmauri_crypto_nacl_pkcs11",
     "standards/swarmauri_crypto_composite",
+    "standards/swarmauri_crypto_shamir",
     "standards/swarmauri_signing_ed25519",
     "standards/swarmauri_secret_autogpg",
     "standards/swarmauri_signing_pgp",
@@ -209,6 +210,7 @@ swarmauri_crypto_paramiko = { workspace = true }
 swarmauri_crypto_pgp = { workspace = true }
 swarmauri_crypto_nacl_pkcs11 = { workspace = true }
 swarmauri_crypto_composite = { workspace = true }
+swarmauri_crypto_shamir = { workspace = true }
 swarmauri_signing_ed25519 = { workspace = true }
 swarmauri_signing_pgp = { workspace = true }
 
