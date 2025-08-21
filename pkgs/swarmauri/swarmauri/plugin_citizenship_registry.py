@@ -53,6 +53,7 @@ class PluginCitizenshipRegistry:
         "swarmauri.signing.ISigning": "swarmauri_core.signing.ISigning",
         "swarmauri.signing.SigningBase": "swarmauri_base.signing.SigningBase",
         "swarmauri.signings.PgpEnvelopeSigner": "swarmauri_signing_pgp.PgpEnvelopeSigner",
+        "swarmauri.mre_cryptos.PGPSealMreCrypto": "swarmauri_mre_crypto_pgpseal.PGPSealMreCrypto",
         "swarmauri.agents.ExampleAgent": "swm_example_package.ExampleAgent",
         "swarmauri.agents.QAAgent": "swarmauri_standard.agents.QAAgent",
         "swarmauri.agents.RagAgent": "swarmauri_standard.agents.RagAgent",
