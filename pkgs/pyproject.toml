@@ -120,6 +120,7 @@ members = [
     "standards/swarmauri_tokens_composite",
     "standards/swarmauri_tokens_remoteoidc",
     "standards/swarmauri_tokens_tlsboundjwt",
+    "standards/swarmauri_certs_remote_ca",
     "community/swarmauri_cert_cfssl",
     "standards/swarmauri_certs_x509",
     "community/swarmauri_middleware_circuitbreaker",
@@ -275,6 +276,7 @@ swarmauri_keyprovider_hierarchical = { workspace = true }
 swarmauri_signing_hmac = { workspace = true }
 swarmauri_signing_ecdsa = { workspace = true }
 swarmauri_signing_ca = { workspace = true }
+swarmauri_certs_remote_ca = { workspace = true }
 swarmauri_signing_jws = { workspace = true }
 swarmauri_certservice_localca = { workspace = true }
 swarmauri_tokens_dpopboundjwt = { workspace = true }
