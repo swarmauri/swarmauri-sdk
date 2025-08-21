@@ -101,6 +101,7 @@ members = [
     "standards/swarmauri_signing_ssh",
     "community/swarmauri_middleware_circuitbreaker",
     "community/swarmauri_middleware_ratepolicy",
+    "community/swarmauri_keyprovider_vaulttransit",
     "community/swarmauri_vectorstore_redis",
     "community/swarmauri_vectorstore_qdrant",
     "community/swarmauri_vectorstore_pinecone",
@@ -231,6 +232,7 @@ swarmauri_mre_crypto_pgp = { workspace = true }
 swarmauri_mre_crypto_ecdh_es_kw = { workspace = true }
 swarmauri_signing_ed25519 = { workspace = true }
 swarmauri_keyproviders = { workspace = true }
+swarmauri_keyprovider_vaulttransit = { workspace = true }
 swarmauri_signing_secp256k1 = { workspace = true }
 swarmauri_signing_hmac = { workspace = true }
 swarmauri_signing_ecdsa = { workspace = true }
