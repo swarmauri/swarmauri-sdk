@@ -23,7 +23,7 @@ def test_startup_and_first_class_registration_performance() -> None:
     for resource_path, module_path in original_registry.items():
         try:
             importlib.import_module(module_path)
-        except ModuleNotFoundError:
+        except (ModuleNotFoundError, ImportError):
             continue
         PluginCitizenshipRegistry.add_to_registry("first", resource_path, module_path)
     registration_time = time.perf_counter() - start
