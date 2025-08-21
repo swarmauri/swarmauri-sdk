@@ -54,6 +54,7 @@ from swarmauri_base.loggers.LoggerBase import LoggerBase
 from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
 from swarmauri_base.rate_limits.RateLimitBase import RateLimitBase
 from swarmauri_base.middlewares.MiddlewareBase import MiddlewareBase
+from swarmauri_base.mre_crypto.MreCryptoBase import MreCryptoBase
 
 try:
     from swarmauri_base.signing.SigningBase import SigningBase
@@ -123,6 +124,7 @@ class InterfaceRegistry:
         "swarmauri.loggers": LoggerBase,
         "swarmauri.logger_handlers": HandlerBase,
         "swarmauri.rate_limits": RateLimitBase,
+        "swarmauri.mre_crypto": MreCryptoBase,
     }
 
     @classmethod
