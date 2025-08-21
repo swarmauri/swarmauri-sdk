@@ -44,6 +44,7 @@ members = [
     "standards/swarmauri_tool_containerfeedchars",
     "standards/swarmauri_tool_containernewsession",
     "standards/swarmauri_tool_containermakepr",
+    "standards/swarmauri_tokens_rotatingjwt",
     "standards/swarmauri_parser_keywordextractor",
     "standards/swarmauri_parser_beautifulsoupelement",
     "standards/swarmauri_evaluator_abstractmethods",
@@ -237,6 +238,7 @@ swarmauri_signing_jws = { workspace = true }
 swarmauri_signing_pgp = { workspace = true }
 swarmauri_signing_rsa = { workspace = true }
 swarmauri_signing_ssh = { workspace = true }
+swarmauri_tokens_rotatingjwt = { workspace = true }
 swarmauri_vectorstore_redis = { workspace = true }
 swarmauri_vectorstore_qdrant = { workspace = true }
 swarmauri_vectorstore_pinecone = { workspace = true }
