@@ -105,6 +105,7 @@ members = [
     "standards/swarmauri_signing_ecdsa",
     "standards/swarmauri_signing_ca",
     "standards/swarmauri_signing_jws",
+    "standards/swarmauri_certservice_localca",
     "standards/swarmauri_tokens_jwt",
     "standards/swarmauri_tokens_sshsig",
     "standards/swarmauri_tokens_sshcert",
@@ -271,6 +272,7 @@ swarmauri_signing_hmac = { workspace = true }
 swarmauri_signing_ecdsa = { workspace = true }
 swarmauri_signing_ca = { workspace = true }
 swarmauri_signing_jws = { workspace = true }
+swarmauri_certservice_localca = { workspace = true }
 swarmauri_tokens_dpopboundjwt = { workspace = true }
 swarmauri_tokens_jwt = { workspace = true }
 swarmauri_tokens_sshsig = { workspace = true }
