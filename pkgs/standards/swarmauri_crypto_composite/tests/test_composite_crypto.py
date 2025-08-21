@@ -32,12 +32,6 @@ class DummyCrypto(ICrypto):
     async def decrypt(self, key, ct, *, aad=None):  # pragma: no cover - unused
         raise NotImplementedError
 
-    async def sign(self, key, msg, *, alg=None):  # pragma: no cover - unused
-        raise NotImplementedError
-
-    async def verify(self, key, msg, sig):  # pragma: no cover - unused
-        raise NotImplementedError
-
     async def wrap(
         self, kek, *, dek=None, wrap_alg=None, nonce=None
     ):  # pragma: no cover - unused

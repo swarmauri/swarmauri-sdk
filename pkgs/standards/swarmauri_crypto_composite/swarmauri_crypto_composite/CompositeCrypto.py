@@ -8,7 +8,6 @@ from swarmauri_core.crypto.types import (
     Alg,
     KeyRef,
     MultiRecipientEnvelope,
-    Signature,
     WrappedKey,
     UnsupportedAlgorithm,
 )
@@ -48,7 +47,7 @@ class CompositeCrypto(ICrypto, ComponentBase):
     # -------- routing helpers --------
     def _pick(self, area: str, alg: Optional[Alg]) -> ICrypto:
         alg_n = _norm_alg(alg)
-        # If caller passed None for enc/sign alg, we let providers apply their own default;
+        # If caller passed None for the algorithm, we let providers apply their own default;
         # pick the first provider advertising *any* alg for that area.
         for p in self._providers:
             caps = p.supports()
@@ -85,24 +84,6 @@ class CompositeCrypto(ICrypto, ComponentBase):
         aad: Optional[bytes] = None,
     ) -> bytes:
         return await self._pick("decrypt", ct.alg).decrypt(key, ct, aad=aad)
-
-    # -------- sign / verify --------
-    async def sign(
-        self,
-        key: KeyRef,
-        msg: bytes,
-        *,
-        alg: Optional[Alg] = None,
-    ) -> Signature:
-        return await self._pick("sign", alg).sign(key, msg, alg=alg)
-
-    async def verify(
-        self,
-        key: KeyRef,
-        msg: bytes,
-        sig: Signature,
-    ) -> bool:
-        return await self._pick("verify", sig.alg).verify(key, msg, sig)
 
     # -------- wrap / unwrap --------
     async def wrap(

@@ -20,7 +20,6 @@
 Libsodium-backed crypto provider implementing the `ICrypto` contract via `CryptoBase`.
 
 - XChaCha20-Poly1305 symmetric encrypt/decrypt
-- Ed25519 sign/verify
 - X25519 sealed boxes for data sealing and key wrapping
 - Multi-recipient envelopes using XChaCha20-Poly1305 + X25519 sealed wrap
 

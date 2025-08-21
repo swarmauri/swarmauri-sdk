@@ -20,7 +20,6 @@
 Hybrid crypto provider using PyNaCl for Ed25519/X25519 operations and `python-pkcs11` for AES-KW key wrapping. Implements the `ICrypto` contract via `CryptoBase`.
 
 - AES-GCM symmetric encrypt/decrypt
-- Ed25519 sign/verify
 - AES-KW wrap/unwrap using PKCS#11
 - X25519 sealed boxes for single and multi-recipient encryption
 
