@@ -53,6 +53,8 @@ class PluginCitizenshipRegistry:
         "swarmauri.signing.ISigning": "swarmauri_core.signing.ISigning",
         "swarmauri.signing.SigningBase": "swarmauri_base.signing.SigningBase",
         "swarmauri.signings.PgpEnvelopeSigner": "swarmauri_signing_pgp.PgpEnvelopeSigner",
+        "swarmauri.signings.EcdsaEnvelopeSigner": "swarmauri_signing_ecdsa.EcdsaEnvelopeSigner",
+        "swarmauri.signings.RSAEnvelopeSigner": "swarmauri_signing_rsa.RSAEnvelopeSigner",
         "swarmauri.agents.ExampleAgent": "swm_example_package.ExampleAgent",
         "swarmauri.agents.QAAgent": "swarmauri_standard.agents.QAAgent",
         "swarmauri.agents.RagAgent": "swarmauri_standard.agents.RagAgent",
@@ -300,6 +302,9 @@ class PluginCitizenshipRegistry:
         "swarmauri.crypto.ParamikoCrypto": "swarmauri_crypto_paramiko.ParamikoCrypto",
         "swarmauri.crypto.PGPCrypto": "swarmauri_crypto_pgp.PGPCrypto",
         "swarmauri.mre_cryptos.ShamirMreCrypto": "swarmauri_crypto_shamir.ShamirMreCrypto",
+        "swarmauri.mre_crypto.KeyringMreCrypto": "swarmauri_crypto_keyring.KeyringMreCrypto",
+        "swarmauri.mre_crypto.AgeMreCrypto": "swarmauri_crypto_age_mre.AgeMreCrypto",
+        "swarmauri.mre_crypto.PGPSealMreCrypto": "swarmauri_mre_crypto_pgp.PGPSealMreCrypto",
         "swarmauri.secret.AutoGpgSecretDrive": "swarmauri_secret_autogpg.AutoGpgSecretDrive",
     }
     SECOND_CLASS_REGISTRY: Dict[str, str] = {}

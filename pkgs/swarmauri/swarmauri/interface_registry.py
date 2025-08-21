@@ -18,6 +18,7 @@ from swarmauri_base.control_panels.ControlPanelBase import ControlPanelBase
 from swarmauri_base.conversations.ConversationBase import ConversationBase
 from swarmauri_base.dataconnectors.DataConnectorBase import DataConnectorBase
 from swarmauri_base.crypto.CryptoBase import CryptoBase
+from swarmauri_base.mre_crypto.MreCryptoBase import MreCryptoBase
 from swarmauri_base.secrets.SecretDriveBase import SecretDriveBase
 from swarmauri_base.signing.SigningBase import SigningBase
 from swarmauri_base.mre_crypto.MreCryptoBase import MreCryptoBase
@@ -119,12 +120,16 @@ class InterfaceRegistry:
         "swarmauri.vectors": VectorBase,
         "swarmauri.mre_cryptos": MreCryptoBase,
         "swarmauri.crypto": CryptoBase,
+        "swarmauri.mre_cryptos": MreCryptoBase,
         "swarmauri.secrets": SecretDriveBase,
         "swarmauri.signings": SigningBase,
+        "swarmauri.signings.EcdsaEnvelopeSigner": SigningBase,
+        "swarmauri.signings.RSAEnvelopeSigner": SigningBase,
         "swarmauri.logger_formatters": FormatterBase,
         "swarmauri.loggers": LoggerBase,
         "swarmauri.logger_handlers": HandlerBase,
         "swarmauri.rate_limits": RateLimitBase,
+        "swarmauri.mre_crypto": MreCryptoBase,
     }
 
     @classmethod
