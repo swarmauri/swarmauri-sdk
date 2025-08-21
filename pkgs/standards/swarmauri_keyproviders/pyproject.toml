@@ -25,6 +25,9 @@ dependencies = [
 
 [project.optional-dependencies]
 pkcs11 = ["pkcs11"]
+perf = ["pytest-benchmark>=4.0.0"]
+functional = []
+rfc = []
 
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
@@ -38,7 +41,9 @@ markers = [
     "i9n: Integration tests",
     "r8n: Regression tests",
     "acceptance: Acceptance tests",
+    "func: Functional tests",
     "perf: Performance tests",
+    "rfc: RFC compliance tests",
 ]
 timeout = 300
 log_cli = true
