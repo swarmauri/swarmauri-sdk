@@ -21,7 +21,6 @@ from swarmauri_base.crypto.CryptoBase import CryptoBase
 from swarmauri_base.mre_crypto.MreCryptoBase import MreCryptoBase
 from swarmauri_base.secrets.SecretDriveBase import SecretDriveBase
 from swarmauri_base.signing.SigningBase import SigningBase
-from swarmauri_base.mre_crypto.MreCryptoBase import MreCryptoBase
 from swarmauri_base.distances.DistanceBase import DistanceBase
 from swarmauri_base.documents.DocumentBase import DocumentBase
 from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase
@@ -120,9 +119,8 @@ class InterfaceRegistry:
         "swarmauri.vectors": VectorBase,
         "swarmauri.mre_cryptos": MreCryptoBase,
         "swarmauri.crypto": CryptoBase,
-        "swarmauri.mre_cryptos": MreCryptoBase,
         "swarmauri.secrets": SecretDriveBase,
-        "swarmauri.signings": SigningBase,
+        "swarmauri.signings": SigningBase,  # includes JwsSignerVerifier
         "swarmauri.logger_formatters": FormatterBase,
         "swarmauri.loggers": LoggerBase,
         "swarmauri.logger_handlers": HandlerBase,
