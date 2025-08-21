@@ -32,4 +32,4 @@ ENV \
     MINIO_USER="" \
     MINIO_ROOT_PASSWORD=""
     
-CMD ["sh", "-c", "python -c 'import uvicorn; uvicorn.run(\"peagen.gateway:app\", host=\"0.0.0.0\", port=8000, log_level=\"info\", proxy_headers=True, forwarded_allow_ips=\"*\")'"]
+CMD ["python", "-m", "peagen.gateway"]
