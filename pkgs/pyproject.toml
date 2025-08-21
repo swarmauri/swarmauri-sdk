@@ -49,6 +49,7 @@ members = [
     "standards/swarmauri_evaluator_abstractmethods",
     "standards/swarmauri_evaluator_anyusage",
     "standards/swarmauri_evaluator_externalimports",
+    "standards/swarmauri_evaluator_constanttime",
     "standards/swarmauri_evaluator_subprocess",
     "standards/swarmauri_evaluatorpool_accessibility",
     "standards/swarmauri_publisher_rabbitmq",
