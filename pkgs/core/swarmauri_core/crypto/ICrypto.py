@@ -1,23 +1,33 @@
-"""Interface for cryptography plugins.
+# swarmauri_core/crypto/ICrypto.py
+"""
+ICrypto: Single-recipient cryptography provider interface.
 
-Adds explicit sealing support.
+Scope
+-----
+- Symmetric AEAD over arbitrary plaintext using a DEK (encrypt/decrypt).
+- Key wrap/unwrap of DEKs under KEKs (HSM/PKCS#11/OpenPGP/RSA-OAEP/etc).
+- Public-key sealing/unsealing (sealed-box/PGP message/RSA-OAEP-seal).
 
-Semantics
----------
-- encrypt/decrypt:
-    Symmetric AEAD over arbitrary plaintext using a DEK (e.g., AES-GCM).
-- wrap/unwrap:
-    Protects a DEK under a KEK (e.g., AES-KW, RSA-OAEP, OpenPGP).
-- encrypt_for_many:
-    Hybrid KEM+AEAD: one shared content ciphertext (nonce/ct/tag) plus
-    per-recipient headers (wrapped CEK). Implementations may also support a
-    sealed-style variant by setting an algorithm (e.g., "OpenPGP-SEAL" or
-    "X25519-SEALEDBOX") and returning empty shared fields with per-recipient
-    ciphertexts in RecipientInfo.wrapped_key.
-- seal/unseal (NEW):
-    Direct public-key encryption to a recipient's public key without caller-
-    managed DEKs (e.g., OpenPGP message encryption, NaCl sealed box, RSA-OAEP
-    of *plaintext*). No AAD is required or guaranteed by the primitive.
+Intentionally out of scope
+--------------------------
+- Multi-Recipient Encryption (MRE): use swarmauri_core.mre_crypto.IMreCrypto.
+- Signing/verification (single or multi-signer): use signing plugins
+  (e.g., swarmauri_core.signing.IEnvelopeSign).
+
+Capability discovery
+--------------------
+Implementations advertise supported algorithms via supports(), e.g.:
+
+  {
+    "aead": ("AES-256-GCM", "XCHACHA20-POLY1305"),
+    "wrap": ("AES-KW", "RSA-OAEP-SHA256", "OpenPGP"),
+    "seal": ("OpenPGP-SEAL", "X25519-SEALEDBOX", "RSA-OAEP-SHA256-SEAL"),
+  }
+
+Notes
+-----
+- AEAD nonces must obey each algorithm's requirements (e.g., 12 bytes for AES-GCM).
+- Providers MAY enforce ExportPolicy/KeyUse constraints carried in KeyRef.
 """
 
 from __future__ import annotations
@@ -29,8 +39,6 @@ from .types import (
     AEADCiphertext,
     Alg,
     KeyRef,
-    MultiRecipientEnvelope,
-    Signature,
     WrappedKey,
 )
 
@@ -39,23 +47,23 @@ class ICrypto(ABC):
     @abstractmethod
     def supports(self) -> Dict[str, Iterable[Alg]]:
         """
-        Returns capability map:
-          {
-            "encrypt": (algs...),
-            "decrypt": (algs...),
-            "wrap": (algs...),
-            "unwrap": (algs...),
-            "sign": (algs...),
-            "verify": (algs...),
-            "seal": (algs...),      # NEW (optional per provider)
-            "unseal": (algs...),    # NEW (optional per provider)
-            "for_many": (algs...),  # if you expose a distinct key (optional)
-          }
-        Implementations MAY omit keys they do not support.
+        Return a capability map describing supported algorithms.
+
+        Expected keys (all optional; omit if unsupported):
+          - "aead": iterable of AEAD algorithm identifiers
+          - "wrap": iterable of key-wrapping algorithm identifiers
+          - "seal": iterable of sealing algorithm identifiers
+
+        Example:
+            return {
+                "aead": ("AES-256-GCM", "XCHACHA20-POLY1305"),
+                "wrap": ("AES-KW", "RSA-OAEP-SHA256"),
+                "seal": ("X25519-SEALEDBOX",),
+            }
         """
         ...
 
-    # ────────────────────────── symmetric AEAD ──────────────────────────
+    # ────────────────────────── Symmetric AEAD ──────────────────────────
 
     @abstractmethod
     async def encrypt(
@@ -67,6 +75,19 @@ class ICrypto(ABC):
         aad: Optional[bytes] = None,
         nonce: Optional[bytes] = None,
     ) -> AEADCiphertext:
+        """
+        AEAD-encrypt 'pt' with the provided DEK 'key'.
+
+        Parameters:
+          key   : KeyRef for a data-encryption key (DEK) usable with 'alg'.
+          pt    : plaintext bytes.
+          alg   : AEAD algorithm identifier; if None, provider chooses a default.
+          aad   : optional additional authenticated data; not encrypted, but bound.
+          nonce : algorithm-specific nonce/IV; provider MAY generate if None.
+
+        Returns:
+          AEADCiphertext: (kid, version, alg, nonce, ct, tag[, aad])
+        """
         ...
 
     @abstractmethod
@@ -77,30 +98,15 @@ class ICrypto(ABC):
         *,
         aad: Optional[bytes] = None,
     ) -> bytes:
+        """
+        AEAD-decrypt 'ct' with the DEK 'key'. If 'aad' is provided, it must
+        match the value supplied during encryption.
+
+        Raises on authentication failure.
+        """
         ...
 
-    # ───────────────────────── signing / verify ─────────────────────────
-
-    @abstractmethod
-    async def sign(
-        self,
-        key: KeyRef,
-        msg: bytes,
-        *,
-        alg: Optional[Alg] = None,
-    ) -> Signature:
-        ...
-
-    @abstractmethod
-    async def verify(
-        self,
-        key: KeyRef,
-        msg: bytes,
-        sig: Signature,
-    ) -> bool:
-        ...
-
-    # ───────────────────────── wrap / unwrap keys ───────────────────────
+    # ─────────────────────────── Wrap / Unwrap ──────────────────────────
 
     @abstractmethod
     async def wrap(
@@ -111,41 +117,40 @@ class ICrypto(ABC):
         wrap_alg: Optional[Alg] = None,
         nonce: Optional[bytes] = None,
     ) -> WrappedKey:
+        """
+        Protect a DEK under a KEK.
+
+        Parameters:
+          kek      : KeyRef for the key-encryption key (KEK).
+          dek      : raw DEK bytes to wrap. If None, provider MAY generate a new DEK.
+          wrap_alg : wrapping algorithm identifier; provider MAY default if None.
+          nonce    : optional per-wrap nonce/IV (algorithm-specific).
+
+        Returns:
+          WrappedKey: opaque blob + metadata to later recover the DEK.
+
+        Notes:
+          - Providers SHOULD honor ExportPolicy/KeyUse from both KEK and DEK KeyRefs.
+          - Some HSM-backed providers may encode handles/labels rather than raw bytes.
+        """
         ...
 
     @abstractmethod
     async def unwrap(self, kek: KeyRef, wrapped: WrappedKey) -> bytes:
-        ...
-
-    # ───────────────── hybrid encrypt-for-many (KEM+AEAD or sealed) ─────
-
-    @abstractmethod
-    async def encrypt_for_many(
-        self,
-        recipients: Iterable[KeyRef],
-        pt: bytes,
-        *,
-        enc_alg: Optional[Alg] = None,
-        recipient_wrap_alg: Optional[Alg] = None,
-        aad: Optional[bytes] = None,
-        nonce: Optional[bytes] = None,
-    ) -> MultiRecipientEnvelope:
         """
-        KEM+AEAD mode:
-          - Encrypt 'pt' once with a fresh CEK → (nonce, ct, tag)
-          - For each recipient, wrap the CEK and emit RecipientInfo entries.
+        Recover a DEK from 'wrapped' using KEK 'kek'.
 
-        Sealed-style mode (optional, algorithm-specific, e.g., "OpenPGP-SEAL",
-        "X25519-SEALEDBOX"):
-          - Produce per-recipient ciphertexts directly in RecipientInfo.wrapped_key
-          - Return empty shared fields: nonce=b"", ct=b"", tag=b""
-          - 'aad' is ignored unless the implementation explicitly binds it via
-            an outer AEAD.
+        Returns:
+          bytes: the raw DEK.
+
+        Notes:
+          - HSM-backed providers may refuse export and instead return a handle;
+            such providers SHOULD document their behavior or expose a separate
+            decrypt() that accepts handles, not bytes.
         """
         ...
 
-    # ───────────────────────────── seal / unseal ────────────────────────
-    # NEW: explicit sealed-box style single-recipient APIs
+    # ─────────────────────────── Seal / Unseal ──────────────────────────
 
     @abstractmethod
     async def seal(
@@ -156,9 +161,15 @@ class ICrypto(ABC):
         alg: Optional[Alg] = None,
     ) -> bytes:
         """
-        Public-key encrypt 'pt' for 'recipient' using a sealing algorithm.
+        Public-key 'sealed' encryption to 'recipient' without caller-managed DEKs.
         Example algs: "OpenPGP-SEAL", "X25519-SEALEDBOX", "RSA-OAEP-SHA256-SEAL".
-        Returns the sealed ciphertext bytes.
+
+        Returns:
+          bytes: sealed ciphertext.
+
+        Notes:
+          - Sealed primitives typically do not bind external AAD. If you need
+            authenticated metadata, prefer AEAD or wrap a CEK with AEAD outside.
         """
         ...
 
@@ -171,8 +182,11 @@ class ICrypto(ABC):
         alg: Optional[Alg] = None,
     ) -> bytes:
         """
-        Decrypt a sealed ciphertext previously produced by 'seal'.
-        'recipient_priv' must carry the private key material required by 'alg'.
-        Returns the recovered plaintext bytes.
+        Decrypt 'sealed' bytes addressed to 'recipient_priv'.
+
+        Returns:
+          bytes: plaintext.
+
+        Raises on authentication/decryption failure.
         """
         ...
