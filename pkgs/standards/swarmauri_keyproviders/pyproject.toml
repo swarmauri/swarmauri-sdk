@@ -24,6 +24,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+local = []
+ssh = []
 pkcs11 = ["pkcs11"]
 
 [tool.uv.sources]
@@ -39,6 +41,7 @@ markers = [
     "r8n: Regression tests",
     "acceptance: Acceptance tests",
     "perf: Performance tests",
+    "func: Functional tests",
 ]
 timeout = 300
 log_cli = true
