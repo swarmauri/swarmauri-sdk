@@ -112,6 +112,7 @@ members = [
     "standards/swarmauri_signing_pgp",
     "standards/swarmauri_signing_rsa",
     "standards/swarmauri_signing_ssh",
+    "standards/swarmauri_standards",
     "standards/swarmauri_tokens_introspection",
     "standards/swarmauri_tokens_paseto_v4",
     "standards/swarmauri_tokens_composite",
@@ -273,6 +274,7 @@ swarmauri_tokens_sshcert = { workspace = true }
 swarmauri_signing_pgp = { workspace = true }
 swarmauri_signing_rsa = { workspace = true }
 swarmauri_signing_ssh = { workspace = true }
+swarmauri_standards = { workspace = true }
 swarmauri_tokens_introspection = { workspace = true }
 swarmauri_tokens_paseto_v4 = { workspace = true }
 swarmauri_tokens_composite = { workspace = true }
