@@ -6,7 +6,8 @@ import inspect
 import json
 import logging
 import sys
-from importlib.metadata import EntryPoint, entry_points
+from concurrent.futures import ThreadPoolExecutor
+from importlib.metadata import EntryPoint
 from typing import Any, Dict, Optional
 
 # from swarmauri_base.ComponentBase import ComponentBase
@@ -19,7 +20,7 @@ logger = logging.getLogger(__name__)
 # --------------------------------------------------------------------------------------
 # 1. GLOBAL CACHE FOR ENTRY POINTS
 # --------------------------------------------------------------------------------------
-_cached_entry_points = None
+_cached_entry_points: Dict[str, list[EntryPoint]] | None = None
 
 
 def _fetch_and_group_entry_points(group_prefix="swarmauri."):
@@ -46,7 +47,7 @@ def _fetch_and_group_entry_points(group_prefix="swarmauri."):
                 grouped_entry_points.setdefault(namespace, []).append(ep)
         logger.debug(f"Grouped entry points (fresh scan): {grouped_entry_points}")
     except Exception as e:
-        logger.error(f"Failed to retrieve entry points: {e}")
+        logger.error("Failed to retrieve entry points: %s", e)
         return {}
     return grouped_entry_points
 
@@ -728,16 +729,25 @@ def discover_and_register_plugins(group_prefix="swarmauri."):
     """
     try:
         grouped_entry_points = get_entry_points(group_prefix)
-        for eps in grouped_entry_points.values():
-            for ep in eps:
-                try:
-                    process_plugin(ep)
-                except PluginLoadError as e:
-                    logger.error(f"Skipping plugin '{ep.name}' due to load error: {e}")
-                except PluginValidationError as e:
-                    logger.error(
-                        f"Skipping plugin '{ep.name}' due to validation error: {e}"
-                    )
+
+        def _worker(ep: EntryPoint) -> None:
+            try:
+                process_plugin(ep)
+            except PluginLoadError as e:
+                logger.error(f"Skipping plugin '{ep.name}' due to load error: {e}")
+            except PluginValidationError as e:
+                logger.error(
+                    f"Skipping plugin '{ep.name}' due to validation error: {e}"
+                )
+
+        with ThreadPoolExecutor() as executor:
+            futures = [
+                executor.submit(_worker, ep)
+                for eps in grouped_entry_points.values()
+                for ep in eps
+            ]
+            for f in futures:
+                f.result()
     except Exception as e:
         logger.exception(f"Failed during plugin discovery and registration: {e}")
 
