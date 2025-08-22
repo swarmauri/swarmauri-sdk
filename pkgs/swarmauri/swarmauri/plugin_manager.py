@@ -6,7 +6,6 @@ import inspect
 import json
 import logging
 import sys
-from concurrent.futures import ThreadPoolExecutor
 from importlib.metadata import EntryPoint
 from typing import Any, Dict, Optional
 
@@ -50,8 +49,9 @@ def _fetch_and_group_entry_points(
                 if g.startswith(group_prefix)
             }
 
+        all_eps = importlib.metadata.entry_points()
         for group in target_groups:
-            selected = importlib.metadata.entry_points(group=group)
+            selected = all_eps.select(group=group)
             if selected:
                 namespace = group[len(group_prefix) :]
                 grouped_entry_points[namespace] = list(selected)
@@ -739,25 +739,16 @@ def discover_and_register_plugins(group_prefix="swarmauri."):
     """
     try:
         grouped_entry_points = get_entry_points(group_prefix)
-
-        def _worker(ep: EntryPoint) -> None:
-            try:
-                process_plugin(ep)
-            except PluginLoadError as e:
-                logger.error(f"Skipping plugin '{ep.name}' due to load error: {e}")
-            except PluginValidationError as e:
-                logger.error(
-                    f"Skipping plugin '{ep.name}' due to validation error: {e}"
-                )
-
-        with ThreadPoolExecutor() as executor:
-            futures = [
-                executor.submit(_worker, ep)
-                for eps in grouped_entry_points.values()
-                for ep in eps
-            ]
-            for f in futures:
-                f.result()
+        for eps in grouped_entry_points.values():
+            for ep in eps:
+                try:
+                    process_plugin(ep)
+                except PluginLoadError as e:
+                    logger.error(f"Skipping plugin '{ep.name}' due to load error: {e}")
+                except PluginValidationError as e:
+                    logger.error(
+                        f"Skipping plugin '{ep.name}' due to validation error: {e}"
+                    )
     except Exception as e:
         logger.exception(f"Failed during plugin discovery and registration: {e}")
 
