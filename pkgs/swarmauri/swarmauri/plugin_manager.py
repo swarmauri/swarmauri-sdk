@@ -6,7 +6,7 @@ import inspect
 import json
 import logging
 import sys
-from importlib.metadata import EntryPoint
+from importlib.metadata import Distribution, EntryPoint
 from typing import Any, Dict, Optional
 
 # from swarmauri_base.ComponentBase import ComponentBase
@@ -20,6 +20,8 @@ logger = logging.getLogger(__name__)
 # 1. GLOBAL CACHE FOR ENTRY POINTS
 # --------------------------------------------------------------------------------------
 _cached_entry_points: Dict[str, list[EntryPoint]] | None = None
+_distribution_cache: Dict[str, Distribution] = {}
+_metadata_cache: Dict[str, Optional[Dict[str, Any]]] = {}
 
 
 def _fetch_and_group_entry_points(
@@ -50,11 +52,11 @@ def _fetch_and_group_entry_points(
             }
 
         all_eps = importlib.metadata.entry_points()
-        for group in target_groups:
-            selected = all_eps.select(group=group)
-            if selected:
+        for ep in all_eps:
+            group = ep.group
+            if group in target_groups:
                 namespace = group[len(group_prefix) :]
-                grouped_entry_points[namespace] = list(selected)
+                grouped_entry_points.setdefault(namespace, []).append(ep)
         logger.debug("Grouped entry points (fresh scan): %s", grouped_entry_points)
     except Exception as e:
         logger.error("Failed to retrieve entry points: %s", e)
@@ -180,9 +182,19 @@ def _load_plugin_metadata(entry_point: EntryPoint) -> Optional[Dict[str, Any]]:
     """
     Attempts to load metadata.json from the plugin's distribution without loading the module.
     """
+    dist_name = getattr(entry_point.dist, "name", "")
+    cache_key = f"{dist_name}:{entry_point.name}"
+    if cache_key in _metadata_cache:
+        return _metadata_cache[cache_key]
+    if not dist_name:
+        _metadata_cache[cache_key] = None
+        return None
     try:
         # Get the distribution that provides the entry point
-        dist = importlib.metadata.distribution(entry_point.dist.name)
+        dist = _distribution_cache.get(dist_name)
+        if dist is None:
+            dist = importlib.metadata.distribution(dist_name)
+            _distribution_cache[dist_name] = dist
 
         # Assume metadata.json is located in the same package as the module
         # Extract the package name from module_path
@@ -222,6 +234,7 @@ def _load_plugin_metadata(entry_point: EntryPoint) -> Optional[Dict[str, Any]]:
                 logger.debug(
                     f"Loaded metadata for plugin '{entry_point.name}': {metadata}"
                 )
+                _metadata_cache[cache_key] = metadata
                 return metadata
         else:
             logger.debug(f"No metadata.json found for plugin '{entry_point.name}'.")
@@ -237,6 +250,7 @@ def _load_plugin_metadata(entry_point: EntryPoint) -> Optional[Dict[str, Any]]:
         logger.exception(
             f"Error loading metadata.json for plugin '{entry_point.name}': {e}"
         )
+    _metadata_cache[cache_key] = None
     return None
 
 
