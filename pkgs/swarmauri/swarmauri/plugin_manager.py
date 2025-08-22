@@ -20,6 +20,8 @@ logger = logging.getLogger(__name__)
 # 1. GLOBAL CACHE FOR ENTRY POINTS
 # --------------------------------------------------------------------------------------
 _cached_entry_points: Dict[str, list[EntryPoint]] | None = None
+# cache distribution lookups to avoid repeated filesystem scans
+_distribution_cache: Dict[str, importlib.metadata.Distribution] = {}
 
 
 def _fetch_and_group_entry_points(
@@ -27,38 +29,19 @@ def _fetch_and_group_entry_points(
 ) -> Dict[str, list[EntryPoint]]:
     """Scan environment for relevant entry points grouped by namespace.
 
-    The previous implementation skipped scanning once the
-    :class:`PluginCitizenshipRegistry` contained any groups which effectively
-    disabled discovery during development. This version always performs a
-    targeted scan for only the groups we care about, dramatically reducing the
-    overhead compared to scanning all entry points.
+    Performs a single pass over all entry points and groups only those matching
+    ``group_prefix`` to reduce overhead.
     """
 
     grouped_entry_points: Dict[str, list[EntryPoint]] = {}
     try:
-        if PluginCitizenshipRegistry.known_groups():
-            target_groups = [
-                g
-                for g in PluginCitizenshipRegistry.known_groups()
-                if g.startswith(group_prefix)
-            ]
-        else:
-            target_groups = [
-                g
-                for g in InterfaceRegistry.list_registered_namespaces()
-                if g.startswith(group_prefix)
-            ]
-
-        if not target_groups:
-            return {}
-
         all_entry_points = importlib.metadata.entry_points()
         prefix_len = len(group_prefix)
-        for group in target_groups:
-            selected = all_entry_points.select(group=group)
-            if selected:
-                namespace = group[prefix_len:]
-                grouped_entry_points[namespace] = list(selected)
+        for ep in all_entry_points:
+            grp = ep.group
+            if grp.startswith(group_prefix):
+                namespace = grp[prefix_len:]
+                grouped_entry_points.setdefault(namespace, []).append(ep)
         logger.debug("Grouped entry points (fresh scan): %s", grouped_entry_points)
     except Exception as e:
         logger.error("Failed to retrieve entry points: %s", e)
@@ -185,8 +168,12 @@ def _load_plugin_metadata(entry_point: EntryPoint) -> Optional[Dict[str, Any]]:
     Attempts to load metadata.json from the plugin's distribution without loading the module.
     """
     try:
-        # Get the distribution that provides the entry point
-        dist = importlib.metadata.distribution(entry_point.dist.name)
+        # Get the distribution that provides the entry point (cached)
+        dist_name = entry_point.dist.name
+        dist = _distribution_cache.get(dist_name)
+        if dist is None:
+            dist = importlib.metadata.distribution(dist_name)
+            _distribution_cache[dist_name] = dist
 
         # Assume metadata.json is located in the same package as the module
         # Extract the package name from module_path
