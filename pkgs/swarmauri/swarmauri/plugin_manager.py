@@ -20,19 +20,15 @@ logger = logging.getLogger(__name__)
 # 1. GLOBAL CACHE FOR ENTRY POINTS
 # --------------------------------------------------------------------------------------
 _cached_entry_points: Dict[str, list[EntryPoint]] | None = None
+# Tracks entry points that have already been processed so repeat discovery
+# runs can exit early without re-importing the same plugin modules.
+_processed_entry_points: set[tuple[str, str]] = set()
 
 
 def _fetch_and_group_entry_points(
     group_prefix: str = "swarmauri.",
 ) -> Dict[str, list[EntryPoint]]:
-    """Scan environment for relevant entry points grouped by namespace.
-
-    The previous implementation skipped scanning once the
-    :class:`PluginCitizenshipRegistry` contained any groups which effectively
-    disabled discovery during development. This version always performs a
-    targeted scan for only the groups we care about, dramatically reducing the
-    overhead compared to scanning all entry points.
-    """
+    """Scan environment for relevant entry points grouped by namespace."""
 
     grouped_entry_points: Dict[str, list[EntryPoint]] = {}
     try:
@@ -84,6 +80,7 @@ def invalidate_entry_point_cache():
     global _cached_entry_points
     logger.debug("Invalidating entry points cache...")
     _cached_entry_points = None
+    _processed_entry_points.clear()
 
 
 def get_entry_points(group_prefix="swarmauri."):
@@ -132,9 +129,12 @@ def process_plugin(entry_point: EntryPoint) -> bool:
             return True
 
         metadata = _load_plugin_metadata(entry_point)
-        loading_strategy = (
-            metadata.get("loading_strategy", "eager").lower() if metadata else "eager"
-        )
+        if metadata is None:
+            metadata = {
+                "type_name": entry_point.name,
+                "resource_kind": entry_point.group.split(".")[-1],
+            }
+        loading_strategy = metadata.get("loading_strategy", "lazy").lower()
         logger.debug(
             f"Plugin '{entry_point.name}' loading_strategy: {loading_strategy}"
         )
@@ -144,12 +144,10 @@ def process_plugin(entry_point: EntryPoint) -> bool:
         resource_path = f"swarmauri.{resource_kind}.{type_name}"
 
         if loading_strategy == "lazy":
-            # Register plugin based on classification (first, second)
             _register_lazy_plugin_from_metadata(entry_point, metadata)
             logger.info(f"Plugin '{entry_point.name}' registered for lazy loading.")
             return True
         else:
-            # Eager loading: load the plugin module
             plugin_object = entry_point.load()
             logger.debug(
                 f"Eagerly loaded plugin '{entry_point.name}' as {type(plugin_object)}"
@@ -163,6 +161,8 @@ def process_plugin(entry_point: EntryPoint) -> bool:
             else:
                 return _process_generic_plugin(entry_point, resource_path, metadata)
 
+    except PluginLoadError:
+        raise
     except (ImportError, ModuleNotFoundError) as e:
         msg = (
             f"Failed to import plugin '{entry_point.name}' from '{entry_point.value}'. "
@@ -181,67 +181,29 @@ def process_plugin(entry_point: EntryPoint) -> bool:
 
 
 def _load_plugin_metadata(entry_point: EntryPoint) -> Optional[Dict[str, Any]]:
+    """Attempt to read ``metadata.json`` for the given entry point.
+
+    The previous implementation walked the distribution's file list on every
+    call which incurred unnecessary overhead. This streamlined version leverages
+    :meth:`importlib.metadata.Distribution.read_text` which performs an efficient
+    lookup and returns ``None`` when the file is missing.
     """
-    Attempts to load metadata.json from the plugin's distribution without loading the module.
-    """
+
     try:
-        # Get the distribution that provides the entry point
-        dist = importlib.metadata.distribution(entry_point.dist.name)
-
-        # Assume metadata.json is located in the same package as the module
-        # Extract the package name from module_path
-        module_path = entry_point.value  # e.g., 'swarmauri.agents.QAAgent'
-        package_name = module_path.rpartition(".")[0]  # 'swarmauri.agents'
-
-        # Convert package name to path (replace dots with slashes)
+        dist = entry_point.dist
+        module_path = entry_point.value
+        package_name = module_path.rpartition(".")[0]
         package_path = package_name.replace(".", "/")
-
-        # Construct the relative path to metadata.json
         metadata_file = f"{package_path}/metadata.json"
-
-        # Access the files in the distribution
-        dist_files = dist.files or []
-
-        # Search for metadata.json in the specified package
-        metadata_path = None
-        for file in dist_files:
-            if file.as_posix() == metadata_file:
-                metadata_path = file
-                break
-
-        # If not found, attempt to find metadata.json at the root of the package
-        if not metadata_path:
-            for file in dist_files:
-                if (
-                    file.name == "metadata.json"
-                    and file.parent.as_posix() == package_path
-                ):
-                    metadata_path = file
-                    break
-
-        if metadata_path:
-            # Read the metadata.json file
-            with dist.locate_file(metadata_path).open("r", encoding="utf-8") as f:
-                metadata = json.load(f)
-                logger.debug(
-                    f"Loaded metadata for plugin '{entry_point.name}': {metadata}"
-                )
-                return metadata
-        else:
-            logger.debug(f"No metadata.json found for plugin '{entry_point.name}'.")
-    except importlib.metadata.PackageNotFoundError:
-        logger.debug(f"Distribution not found for plugin '{entry_point.name}'.")
-    except FileNotFoundError:
-        logger.debug(f"metadata.json not found for plugin '{entry_point.name}'.")
-    except json.JSONDecodeError as e:
-        logger.error(
-            f"Invalid JSON in metadata.json for plugin '{entry_point.name}': {e}"
-        )
-    except Exception as e:
-        logger.exception(
-            f"Error loading metadata.json for plugin '{entry_point.name}': {e}"
-        )
-    return None
+        raw = dist.read_text(metadata_file)
+        if raw is None:
+            return None
+        metadata = json.loads(raw)
+        logger.debug(f"Loaded metadata for plugin '{entry_point.name}': {metadata}")
+        return metadata
+    except Exception as e:  # pragma: no cover - best effort
+        logger.debug(f"No metadata loaded for plugin '{entry_point.name}': {e}")
+        return None
 
 
 def _register_lazy_plugin_from_metadata(
@@ -287,7 +249,6 @@ def _register_lazy_plugin_from_metadata(
             citizenship = "second"
             logger.debug(f"Plugin '{resource_path}' identified as second-class.")
 
-        # Register in PluginCitizenshipRegistry with 'lazy' loading strategy
         module_path = (
             entry_point.value.split(":")[0]
             if ":" in entry_point.value
@@ -300,14 +261,18 @@ def _register_lazy_plugin_from_metadata(
             f"Registered {citizenship}-class plugin '{type_name}' at '{resource_path}' [lazy]"
         )
 
-        # Import Spec
-        spec = importlib.util.find_spec(module_path)
-        spec.loader = importlib.util.LazyLoader(spec.loader)
+        try:
+            spec = importlib.util.find_spec(module_path)
+        except ModuleNotFoundError:
+            raise PluginLoadError(
+                f"Failed to register lazy plugin '{entry_point.name}' from metadata: No module named '{module_path}'"
+            )
         if spec is None:
-            raise ImportError(f"Cannot find module '{module_path}'")
+            raise PluginLoadError(
+                f"Failed to register lazy plugin '{entry_point.name}' from metadata: No module named '{module_path}'"
+            )
+        spec.loader = importlib.util.LazyLoader(spec.loader)
         plugin_class = importlib.util.module_from_spec(spec)
-
-        # Add LazyLoaded plugin
         sys.modules[spec.name] = plugin_class
 
         # type_name = resource_path.split(".")[-1]
@@ -323,6 +288,8 @@ def _register_lazy_plugin_from_metadata(
             f"Missing required metadata field: {e} in plugin '{entry_point.name}'"
         )
         raise PluginValidationError(f"Missing required metadata field: {e}") from e
+    except PluginLoadError:
+        raise
     except Exception as e:
         logger.exception(
             f"Failed to register lazy plugin '{entry_point.name}' from metadata: {e}"
@@ -744,16 +711,22 @@ def discover_and_register_plugins(group_prefix="swarmauri."):
     try:
         grouped_entry_points = get_entry_points(group_prefix)
         process = process_plugin
-        for eps in grouped_entry_points.values():
+        for namespace, eps in grouped_entry_points.items():
             for ep in eps:
+                key = (namespace, ep.name)
+                if key in _processed_entry_points:
+                    continue
                 try:
                     process(ep)
+                    _processed_entry_points.add(key)
                 except PluginLoadError as e:
                     logger.error(f"Skipping plugin '{ep.name}' due to load error: {e}")
+                    _processed_entry_points.add(key)
                 except PluginValidationError as e:
                     logger.error(
                         f"Skipping plugin '{ep.name}' due to validation error: {e}"
                     )
+                    _processed_entry_points.add(key)
     except Exception as e:
         logger.exception(f"Failed during plugin discovery and registration: {e}")
 
