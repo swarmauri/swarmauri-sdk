@@ -1,0 +1,7 @@
+[wrap-git]
+url = https://github.com/jedisct1/libsodium.git
+revision = 1.0.19
+depth = 1
+
+[provide]
+libsodium = libsodium_dep

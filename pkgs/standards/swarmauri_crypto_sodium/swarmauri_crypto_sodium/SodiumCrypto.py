@@ -60,10 +60,37 @@ _WRAP_ALG = "X25519-SEAL-WRAP"
 
 # ---------- libsodium loader ----------
 def _load_libsodium() -> CDLL:
+    # First try to use bundled extension module
+    try:
+        import _sodium_loader
+
+        # Initialize the bundled libsodium
+        _sodium_loader.init_sodium()
+
+        # Try to get the library path from the extension module
+        try:
+            lib_path = _sodium_loader.get_library_path()
+            return CDLL(lib_path)
+        except Exception:
+            # Fall back to loading from global namespace
+            return CDLL(None)
+
+    except ImportError:
+        pass  # Fall back to system libsodium loading
+    except Exception as e:
+        # If bundled loading fails, continue to system loading
+        import warnings
+
+        warnings.warn(
+            f"Failed to load bundled libsodium: {e}, falling back to system libsodium"
+        )
+
+    # Existing environment variable check
     env = os.environ.get("LIBSODIUM_PATH")
     if env and os.path.exists(env):
         return CDLL(env)
 
+    # Try system-installed libsodium
     names: list[str]
     if sys.platform.startswith("linux"):
         names = ["libsodium.so.23", "libsodium.so"]
@@ -79,7 +106,8 @@ def _load_libsodium() -> CDLL:
         except OSError:
             continue
     raise RuntimeError(
-        "Could not load libsodium. Set LIBSODIUM_PATH or install libsodium."
+        "Could not load libsodium. Install swarmauri_crypto_sodium with bundled libsodium, "
+        "set LIBSODIUM_PATH, or install libsodium system-wide."
     )
 
 
@@ -303,6 +331,7 @@ class SodiumCrypto(CryptoBase):
             kek_version=kek.version,
             wrap_alg=_WRAP_ALG,
             wrapped=bytes(c_buf),
+            nonce=None,  # X25519 sealed boxes don't use explicit nonces
         )
 
     async def unwrap(self, kek: KeyRef, wrapped: WrappedKey) -> bytes:
@@ -468,4 +497,30 @@ class SodiumCrypto(CryptoBase):
             tag=aead_ct.tag,
             recipients=tuple(infos),
             aad=aad,
+        )
+
+    # ---------------- signing / verification (not yet implemented) ----------------
+    async def sign(
+        self,
+        key: KeyRef,
+        message: bytes,
+        *,
+        alg: Optional[Alg] = None,
+    ) -> bytes:
+        """Sign a message (not yet implemented in this provider)."""
+        raise UnsupportedAlgorithm(
+            "Digital signatures not yet implemented in SodiumCrypto"
+        )
+
+    async def verify(
+        self,
+        key: KeyRef,
+        message: bytes,
+        signature: bytes,
+        *,
+        alg: Optional[Alg] = None,
+    ) -> bool:
+        """Verify a signature (not yet implemented in this provider)."""
+        raise UnsupportedAlgorithm(
+            "Digital signature verification not yet implemented in SodiumCrypto"
         )
