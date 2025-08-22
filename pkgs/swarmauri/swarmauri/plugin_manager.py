@@ -37,27 +37,28 @@ def _fetch_and_group_entry_points(
     grouped_entry_points: Dict[str, list[EntryPoint]] = {}
     try:
         if PluginCitizenshipRegistry.known_groups():
-            target_groups = [
+            target_groups = {
                 g
                 for g in PluginCitizenshipRegistry.known_groups()
                 if g.startswith(group_prefix)
-            ]
+            }
         else:
-            target_groups = [
+            target_groups = {
                 g
                 for g in InterfaceRegistry.list_registered_namespaces()
                 if g.startswith(group_prefix)
-            ]
+            }
 
         if not target_groups:
             return {}
 
         prefix_len = len(group_prefix)
-        for group in target_groups:
-            selected = importlib.metadata.entry_points(group=group)
-            if selected:
+        all_eps = importlib.metadata.entry_points()
+        for ep in all_eps:
+            group = ep.group
+            if group in target_groups:
                 namespace = group[prefix_len:]
-                grouped_entry_points[namespace] = list(selected)
+                grouped_entry_points.setdefault(namespace, []).append(ep)
         logger.debug("Grouped entry points (fresh scan): %s", grouped_entry_points)
     except Exception as e:
         logger.error("Failed to retrieve entry points: %s", e)
@@ -741,13 +742,17 @@ def _extract_resource_kind_from_group(group: str) -> Optional[str]:
     return parts[1] if len(parts) > 1 else None
 
 
-def discover_and_register_plugins(group_prefix="swarmauri."):
+def discover_and_register_plugins(group_prefix="swarmauri.", force: bool = False):
     """
     Discovers all plugins via entry points and processes them based on their classifications and loading strategies.
 
     :param group_prefix: The prefix to filter relevant entry point groups.
+    :param force: If True, discovery runs even when plugins are already registered.
     """
-    if PluginCitizenshipRegistry.total_registry():
+    if not force and (
+        PluginCitizenshipRegistry.SECOND_CLASS_REGISTRY
+        or PluginCitizenshipRegistry.THIRD_CLASS_REGISTRY
+    ):
         logger.debug("Plugins already registered; skipping discovery.")
         return
     try:

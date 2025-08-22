@@ -3,6 +3,7 @@ from swarmauri.plugin_manager import (
     invalidate_entry_point_cache,
     discover_and_register_plugins,
 )
+from swarmauri.plugin_citizenship_registry import PluginCitizenshipRegistry
 
 FIRST_CLASS_PLUGINS = [
     "swarmauri.agents.QAAgent",
@@ -13,7 +14,9 @@ FIRST_CLASS_PLUGINS = [
 
 def import_first_class_plugins():
     invalidate_entry_point_cache()
-    discover_and_register_plugins()
+    PluginCitizenshipRegistry.SECOND_CLASS_REGISTRY.clear()
+    PluginCitizenshipRegistry.THIRD_CLASS_REGISTRY.clear()
+    discover_and_register_plugins(force=True)
     for module in FIRST_CLASS_PLUGINS:
         importlib.import_module(module)
 
@@ -24,7 +27,9 @@ def test_first_class_plugin_imports(benchmark):
 
 def import_missing_plugin():
     invalidate_entry_point_cache()
-    discover_and_register_plugins()
+    PluginCitizenshipRegistry.SECOND_CLASS_REGISTRY.clear()
+    PluginCitizenshipRegistry.THIRD_CLASS_REGISTRY.clear()
+    discover_and_register_plugins(force=True)
     try:
         importlib.import_module("swarmauri.agents.DoesNotExist")
     except Exception:
