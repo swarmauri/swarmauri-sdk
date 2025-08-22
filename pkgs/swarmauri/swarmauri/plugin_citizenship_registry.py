@@ -321,6 +321,7 @@ class PluginCitizenshipRegistry:
         "swarmauri.mre_crypto.PGPSealMreCrypto": "swarmauri_mre_crypto_pgp.PGPSealMreCrypto",
         "swarmauri.secret.AutoGpgSecretDrive": "swarmauri_secret_autogpg.AutoGpgSecretDrive",
     }
+    _KNOWN_GROUPS_CACHE: set[str] | None = None
     SECOND_CLASS_REGISTRY: Dict[str, str] = {}
     THIRD_CLASS_REGISTRY: Dict[str, str] = {}
 
@@ -378,6 +379,7 @@ class PluginCitizenshipRegistry:
 
         # Add to the specific registry
         registry[resource_path] = module_path
+        cls._KNOWN_GROUPS_CACHE = None
         logger.info(
             f"Added to {class_type}-class registry: {resource_path} -> {module_path}"
         )
@@ -418,6 +420,7 @@ class PluginCitizenshipRegistry:
 
         # Remove from the specific registry
         del registry[resource_path]
+        cls._KNOWN_GROUPS_CACHE = None
         logger.info(f"Removed from {class_type}-class registry: {resource_path}")
 
     @classmethod
@@ -478,10 +481,17 @@ class PluginCitizenshipRegistry:
     @classmethod
     def known_groups(cls) -> set[str]:
         """Return the set of entry point groups known to the registry."""
-        groups = set()
-        for resource_path in cls.total_registry().keys():
-            groups.add(".".join(resource_path.split(".")[:-1]))
-        return groups
+        if cls._KNOWN_GROUPS_CACHE is None:
+            groups: set[str] = set()
+            for registry in (
+                cls.FIRST_CLASS_REGISTRY,
+                cls.SECOND_CLASS_REGISTRY,
+                cls.THIRD_CLASS_REGISTRY,
+            ):
+                for resource_path in registry.keys():
+                    groups.add(".".join(resource_path.split(".")[:-1]))
+            cls._KNOWN_GROUPS_CACHE = groups
+        return cls._KNOWN_GROUPS_CACHE
 
     @classmethod
     def update_entry(

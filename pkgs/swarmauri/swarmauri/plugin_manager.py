@@ -37,23 +37,27 @@ def _fetch_and_group_entry_points(
     grouped_entry_points: Dict[str, list[EntryPoint]] = {}
     try:
         if PluginCitizenshipRegistry.known_groups():
-            target_groups = {
+            target_groups = [
                 g
                 for g in PluginCitizenshipRegistry.known_groups()
                 if g.startswith(group_prefix)
-            }
+            ]
         else:
-            target_groups = {
+            target_groups = [
                 g
                 for g in InterfaceRegistry.list_registered_namespaces()
                 if g.startswith(group_prefix)
-            }
+            ]
 
-        all_eps = importlib.metadata.entry_points()
+        if not target_groups:
+            return {}
+
+        all_entry_points = importlib.metadata.entry_points()
+        prefix_len = len(group_prefix)
         for group in target_groups:
-            selected = all_eps.select(group=group)
+            selected = all_entry_points.select(group=group)
             if selected:
-                namespace = group[len(group_prefix) :]
+                namespace = group[prefix_len:]
                 grouped_entry_points[namespace] = list(selected)
         logger.debug("Grouped entry points (fresh scan): %s", grouped_entry_points)
     except Exception as e:
@@ -739,10 +743,11 @@ def discover_and_register_plugins(group_prefix="swarmauri."):
     """
     try:
         grouped_entry_points = get_entry_points(group_prefix)
+        process = process_plugin
         for eps in grouped_entry_points.values():
             for ep in eps:
                 try:
-                    process_plugin(ep)
+                    process(ep)
                 except PluginLoadError as e:
                     logger.error(f"Skipping plugin '{ep.name}' due to load error: {e}")
                 except PluginValidationError as e:
