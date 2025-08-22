@@ -6,7 +6,8 @@ import inspect
 import json
 import logging
 import sys
-from importlib.metadata import EntryPoint, entry_points
+from concurrent.futures import ThreadPoolExecutor
+from importlib.metadata import EntryPoint
 from typing import Any, Dict, Optional
 
 # from swarmauri_base.ComponentBase import ComponentBase
@@ -19,32 +20,44 @@ logger = logging.getLogger(__name__)
 # --------------------------------------------------------------------------------------
 # 1. GLOBAL CACHE FOR ENTRY POINTS
 # --------------------------------------------------------------------------------------
-_cached_entry_points = None
+_cached_entry_points: Dict[str, list[EntryPoint]] | None = None
 
 
-def _fetch_and_group_entry_points(group_prefix="swarmauri."):
-    """Scan environment for relevant entry points grouped by namespace."""
-    grouped_entry_points = {}
+def _fetch_and_group_entry_points(
+    group_prefix: str = "swarmauri.",
+) -> Dict[str, list[EntryPoint]]:
+    """Scan environment for relevant entry points grouped by namespace.
+
+    The previous implementation skipped scanning once the
+    :class:`PluginCitizenshipRegistry` contained any groups which effectively
+    disabled discovery during development. This version always performs a
+    targeted scan for only the groups we care about, dramatically reducing the
+    overhead compared to scanning all entry points.
+    """
+
+    grouped_entry_points: Dict[str, list[EntryPoint]] = {}
     try:
         if PluginCitizenshipRegistry.known_groups():
-            logger.debug(
-                "Known groups already populated in registry; skipping entry point scan."
-            )
-            return grouped_entry_points
-        eps = entry_points()
-        target_groups = {
-            g
-            for g in InterfaceRegistry.list_registered_namespaces()
-            if g.startswith(group_prefix)
-        }
+            target_groups = {
+                g
+                for g in PluginCitizenshipRegistry.known_groups()
+                if g.startswith(group_prefix)
+            }
+        else:
+            target_groups = {
+                g
+                for g in InterfaceRegistry.list_registered_namespaces()
+                if g.startswith(group_prefix)
+            }
+
         for group in target_groups:
-            selected = eps.select(group=group)
+            selected = importlib.metadata.entry_points(group=group)
             if selected:
                 namespace = group[len(group_prefix) :]
                 grouped_entry_points[namespace] = list(selected)
-        logger.debug(f"Grouped entry points (fresh scan): {grouped_entry_points}")
+        logger.debug("Grouped entry points (fresh scan): %s", grouped_entry_points)
     except Exception as e:
-        logger.error(f"Failed to retrieve entry points: {e}")
+        logger.error("Failed to retrieve entry points: %s", e)
         return {}
     return grouped_entry_points
 
@@ -726,16 +739,25 @@ def discover_and_register_plugins(group_prefix="swarmauri."):
     """
     try:
         grouped_entry_points = get_entry_points(group_prefix)
-        for eps in grouped_entry_points.values():
-            for ep in eps:
-                try:
-                    process_plugin(ep)
-                except PluginLoadError as e:
-                    logger.error(f"Skipping plugin '{ep.name}' due to load error: {e}")
-                except PluginValidationError as e:
-                    logger.error(
-                        f"Skipping plugin '{ep.name}' due to validation error: {e}"
-                    )
+
+        def _worker(ep: EntryPoint) -> None:
+            try:
+                process_plugin(ep)
+            except PluginLoadError as e:
+                logger.error(f"Skipping plugin '{ep.name}' due to load error: {e}")
+            except PluginValidationError as e:
+                logger.error(
+                    f"Skipping plugin '{ep.name}' due to validation error: {e}"
+                )
+
+        with ThreadPoolExecutor() as executor:
+            futures = [
+                executor.submit(_worker, ep)
+                for eps in grouped_entry_points.values()
+                for ep in eps
+            ]
+            for f in futures:
+                f.result()
     except Exception as e:
         logger.exception(f"Failed during plugin discovery and registration: {e}")
 
