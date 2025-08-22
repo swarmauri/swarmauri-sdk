@@ -52,10 +52,9 @@ def _fetch_and_group_entry_points(
         if not target_groups:
             return {}
 
-        all_entry_points = importlib.metadata.entry_points()
         prefix_len = len(group_prefix)
         for group in target_groups:
-            selected = all_entry_points.select(group=group)
+            selected = importlib.metadata.entry_points(group=group)
             if selected:
                 namespace = group[prefix_len:]
                 grouped_entry_points[namespace] = list(selected)
@@ -157,11 +156,17 @@ def process_plugin(entry_point: EntryPoint) -> bool:
 
             # Determine plugin type based on entry point's object reference
             if is_plugin_class(entry_point):
-                return _process_class_plugin(entry_point, resource_path, metadata)
+                return _process_class_plugin(
+                    entry_point, resource_path, plugin_object, metadata
+                )
             elif is_plugin_module(entry_point):
-                return _process_module_plugin(entry_point, resource_path, metadata)
+                return _process_module_plugin(
+                    entry_point, resource_path, plugin_object, metadata
+                )
             else:
-                return _process_generic_plugin(entry_point, resource_path, metadata)
+                return _process_generic_plugin(
+                    entry_point, resource_path, plugin_object, metadata
+                )
 
     except (ImportError, ModuleNotFoundError) as e:
         msg = (
@@ -371,6 +376,7 @@ def is_plugin_generic(entry_point: EntryPoint) -> bool:
 def _process_class_plugin(
     entry_point: EntryPoint,
     resource_path: str,
+    plugin_class: Any,
     metadata: Optional[Dict[str, Any]] = None,
 ) -> bool:
     """
@@ -389,8 +395,7 @@ def _process_class_plugin(
     :return: True if processing is successful; False otherwise.
     """
     try:
-        # Step 1: Load the plugin class
-        plugin_class = entry_point.load()
+        # Step 1: Plugin class already loaded
         logger.debug(
             f"Loaded plugin class '{plugin_class.__name__}' from '{entry_point.name}'"
         )
@@ -467,6 +472,7 @@ def _process_class_plugin(
 def _process_module_plugin(
     entry_point: EntryPoint,
     resource_path: str,
+    plugin_module: Any,
     metadata: Optional[Dict[str, Any]] = None,
 ) -> bool:
     """
@@ -478,8 +484,7 @@ def _process_module_plugin(
     :return: True if processing is successful; False otherwise.
     """
     try:
-        # Load the module
-        plugin_module = entry_point.load()
+        # Module already loaded
         logger.debug(
             f"Loaded plugin module '{plugin_module.__name__}' from '{entry_point.name}'"
         )
@@ -603,6 +608,7 @@ def _process_module_plugin(
 def _process_generic_plugin(
     entry_point: EntryPoint,
     resource_path: str,
+    _plugin_object: Any,
     metadata: Optional[Dict[str, Any]] = None,
 ) -> bool:
     """
@@ -741,6 +747,9 @@ def discover_and_register_plugins(group_prefix="swarmauri."):
 
     :param group_prefix: The prefix to filter relevant entry point groups.
     """
+    if PluginCitizenshipRegistry.total_registry():
+        logger.debug("Plugins already registered; skipping discovery.")
+        return
     try:
         grouped_entry_points = get_entry_points(group_prefix)
         process = process_plugin

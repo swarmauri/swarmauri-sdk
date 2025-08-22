@@ -11,6 +11,8 @@ def test_discovery_cache_performance_happy_vs_worst():
     """Verify caching speeds up discovery (>75%) from worst to happy path."""
     PluginCitizenshipRegistry.SECOND_CLASS_REGISTRY.clear()
     PluginCitizenshipRegistry.THIRD_CLASS_REGISTRY.clear()
+    original_first = PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY.copy()
+    PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY.clear()
     invalidate_entry_point_cache()
 
     start = time.perf_counter()
@@ -22,3 +24,5 @@ def test_discovery_cache_performance_happy_vs_worst():
     cached = time.perf_counter() - start
 
     assert cached <= uncached * 0.25
+
+    PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY = original_first
