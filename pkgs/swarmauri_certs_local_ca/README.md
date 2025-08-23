@@ -1,6 +1,6 @@
 ![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-# Swarmauri CertService LocalCA
+# Swarmauri Certs Local CA
 
 A local certificate authority implementing the `ICertService` interface for issuing and verifying X.509 certificates. Useful for development and testing environments.
 
@@ -14,13 +14,13 @@ Features:
 ## Installation
 
 ```bash
-pip install swarmauri_certservice_localca
+pip install swarmauri_certs_local_ca
 ```
 
 ## Usage
 
 ```python
-from swarmauri_certservice_localca import LocalCaCertService
+from swarmauri_certs_local_ca import LocalCaCertService
 
 svc = LocalCaCertService()
 # create a KeyRef for a private key; see swarmauri_core for details

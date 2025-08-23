@@ -1,13 +1,12 @@
-import asyncio
 import pytest
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
-from swarmauri_certservice_localca import LocalCaCertService
+from swarmauri_certs_local_ca import LocalCaCertService
 from swarmauri_core.crypto.types import ExportPolicy, KeyRef, KeyType, KeyUse
 
 
-def _keyref() -> KeyRef:
+def _make_keyref() -> KeyRef:
     sk = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     pem = sk.private_bytes(
         serialization.Encoding.PEM,
@@ -15,7 +14,7 @@ def _keyref() -> KeyRef:
         serialization.NoEncryption(),
     )
     return KeyRef(
-        kid="perf",
+        kid="test",
         version=1,
         type=KeyType.RSA,
         uses=(KeyUse.SIGN,),
@@ -24,12 +23,11 @@ def _keyref() -> KeyRef:
     )
 
 
-@pytest.mark.perf
-def test_self_signed_perf(benchmark) -> None:
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_self_signed_and_parse() -> None:
     svc = LocalCaCertService()
-    key = _keyref()
-
-    async def _run() -> None:
-        await svc.create_self_signed(key, {"CN": "perf"})
-
-    benchmark(lambda: asyncio.run(_run()))
+    key = _make_keyref()
+    cert = await svc.create_self_signed(key, {"CN": "unit"})
+    parsed = await svc.parse_cert(cert)
+    assert parsed["subject"].startswith("CN=unit")

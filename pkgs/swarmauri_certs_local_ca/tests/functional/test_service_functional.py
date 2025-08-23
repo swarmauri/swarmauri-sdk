@@ -1,15 +1,13 @@
-"""RFC 5280 certificate basic constraints tests."""
-
+import asyncio
 import pytest
-from cryptography import x509
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
-from swarmauri_certservice_localca import LocalCaCertService
+from swarmauri_certs_local_ca import LocalCaCertService
 from swarmauri_core.crypto.types import ExportPolicy, KeyRef, KeyType, KeyUse
 
 
-def _key() -> KeyRef:
+def _keyref(name: str) -> KeyRef:
     sk = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     pem = sk.private_bytes(
         serialization.Encoding.PEM,
@@ -17,7 +15,7 @@ def _key() -> KeyRef:
         serialization.NoEncryption(),
     )
     return KeyRef(
-        kid="ca",
+        kid=name,
         version=1,
         type=KeyType.RSA,
         uses=(KeyUse.SIGN,),
@@ -26,12 +24,16 @@ def _key() -> KeyRef:
     )
 
 
-@pytest.mark.unit
-@pytest.mark.asyncio
-async def test_basic_constraints_ca_true() -> None:
-    svc = LocalCaCertService()
-    key = _key()
-    cert_bytes = await svc.create_self_signed(key, {"CN": "root"})
-    cert = x509.load_pem_x509_certificate(cert_bytes)
-    bc = cert.extensions.get_extension_for_class(x509.BasicConstraints).value
-    assert bc.ca is True
+async def _run() -> bool:
+    ca_svc = LocalCaCertService()
+    ca_key = _keyref("ca")
+    leaf_key = _keyref("leaf")
+    csr = await ca_svc.create_csr(leaf_key, {"CN": "leaf"})
+    cert = await ca_svc.sign_cert(csr, ca_key, issuer={"CN": "ca"})
+    result = await ca_svc.verify_cert(cert)
+    return result["valid"] is True
+
+
+@pytest.mark.functional
+def test_end_to_end_flow() -> None:
+    assert asyncio.run(_run())
