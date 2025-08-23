@@ -196,6 +196,9 @@ class FileKeyProvider(KeyProviderBase):
                 public=public,
                 material=material,
                 tags={"label": spec.label, "alg": spec.alg.value, **(spec.tags or {})},
+                fingerprint=self._fingerprint(
+                    public=public, material=material, kid=kid
+                ),
             )
 
     async def import_key(
@@ -266,6 +269,9 @@ class FileKeyProvider(KeyProviderBase):
                     "imported": True,
                     **(spec.tags or {}),
                 },
+                fingerprint=self._fingerprint(
+                    public=pub_out, material=mat_out, kid=kid
+                ),
             )
 
     async def rotate_key(
@@ -338,6 +344,9 @@ class FileKeyProvider(KeyProviderBase):
                 public=public,
                 material=material,
                 tags={"label": label, "alg": alg.value, **tags},
+                fingerprint=self._fingerprint(
+                    public=public, material=material, kid=kid
+                ),
             )
 
     async def destroy_key(self, kid: str, version: Optional[int] = None) -> bool:
@@ -413,6 +422,9 @@ class FileKeyProvider(KeyProviderBase):
                     "alg": alg.value,
                     **(meta.get("tags") or {}),
                 },
+                fingerprint=self._fingerprint(
+                    public=public, material=material, kid=kid
+                ),
             )
 
     async def list_versions(self, kid: str) -> Tuple[int, ...]:

@@ -91,6 +91,7 @@ class LocalKeyProvider(KeyProviderBase):
             public=public,
             material=(material if spec.export_policy != ExportPolicy.NONE else None),
             tags={"label": spec.label, "alg": spec.alg.value, **(spec.tags or {})},
+            fingerprint=self._fingerprint(public=public, material=material, kid=kid),
         )
         self._store.setdefault(kid, {})[version] = ref
         return ref
@@ -117,6 +118,7 @@ class LocalKeyProvider(KeyProviderBase):
                 "imported": True,
                 **(spec.tags or {}),
             },
+            fingerprint=self._fingerprint(public=public, material=material, kid=kid),
         )
         self._store.setdefault(kid, {})[1] = ref
         return ref
