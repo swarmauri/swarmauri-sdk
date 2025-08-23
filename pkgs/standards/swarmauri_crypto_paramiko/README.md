@@ -31,13 +31,14 @@ pip install swarmauri_crypto_paramiko
 
 ## Usage
 
+### Symmetric AEAD Encryption
+
 ```python
 from swarmauri_crypto_paramiko import ParamikoCrypto
 from swarmauri_core.crypto.types import KeyRef, KeyType, KeyUse, ExportPolicy
 
 crypto = ParamikoCrypto()
 
-# Symmetric key for AEAD
 sym = KeyRef(
     kid="sym1",
     version=1,
@@ -49,6 +50,43 @@ sym = KeyRef(
 
 ct = await crypto.encrypt(sym, b"hello")
 pt = await crypto.decrypt(sym, ct)
+```
+
+### RSA Key Wrapping/Unwrapping
+
+```python
+import paramiko
+from cryptography.hazmat.primitives import serialization
+from swarmauri_core.crypto.types import KeyRef, KeyType, KeyUse, ExportPolicy
+
+crypto = ParamikoCrypto()
+
+key = paramiko.RSAKey.generate(2048)
+pub_line = f"{key.get_name()} {key.get_base64()}\n".encode()
+priv_pem = key.key.private_bytes(
+    encoding=serialization.Encoding.PEM,
+    format=serialization.PrivateFormat.PKCS8,
+    encryption_algorithm=serialization.NoEncryption(),
+)
+
+recipient = KeyRef(
+    kid="rsa1",
+    version=1,
+    type=KeyType.RSA,
+    uses=(KeyUse.WRAP, KeyUse.UNWRAP),
+    export_policy=ExportPolicy.PUBLIC_ONLY,
+    public=pub_line,
+    material=priv_pem,
+)
+
+wrapped = await crypto.wrap(recipient)
+unwrapped = await crypto.unwrap(recipient, wrapped)
+```
+
+### Hybrid Envelope for Multiple Recipients
+
+```python
+env = await crypto.encrypt_for_many([recipient], b"secret")
 ```
 
 ## Entry point
