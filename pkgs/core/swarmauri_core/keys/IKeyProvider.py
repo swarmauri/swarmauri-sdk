@@ -9,7 +9,13 @@ from .types import KeySpec
 
 
 class IKeyProvider(ABC):
-    """Stable, minimal surface for key lifecycle and randomness/KDF utilities."""
+    """Stable, minimal surface for key lifecycle and randomness/KDF utilities.
+
+    Implementations MUST populate the ``fingerprint`` attribute on returned
+    :class:`~swarmauri_core.crypto.types.KeyRef` instances. The fingerprint is a
+    provider-defined stable identifier derived from the key's material or public
+    representation.
+    """
 
     @abstractmethod
     def supports(self) -> Mapping[str, Iterable[str]]:

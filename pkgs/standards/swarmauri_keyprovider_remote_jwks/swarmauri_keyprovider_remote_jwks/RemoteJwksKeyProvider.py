@@ -169,6 +169,7 @@ class RemoteJwksKeyProvider(KeyProviderBase):
             public=public_bytes,
             material=None,
             tags={"kty": jwk.get("kty"), "alg": jwk.get("alg")},
+            fingerprint=self._fingerprint(public=public_bytes, kid=parsed_kid or kid),
         )
 
     async def list_versions(self, kid: str) -> Tuple[int, ...]:
