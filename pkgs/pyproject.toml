@@ -396,7 +396,7 @@ markers = [
     "xfail: Expected failures",
     "acceptance: Acceptance tests",
     "perf: Performance tests that measure execution time and resource usage",
-    "example: Example usage tests",
+    "example: Documentation examples verifying usage instructions",
 ]
 
 timeout = 300
