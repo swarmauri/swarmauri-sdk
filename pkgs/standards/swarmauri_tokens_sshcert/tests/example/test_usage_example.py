@@ -1,26 +1,9 @@
-# swarmauri_tokens_sshcert
-
-An OpenSSH certificate token service for the Swarmauri framework. This service
-mints and verifies OpenSSH user and host certificates and exposes no JWKS
-endpoints.
-
-## Usage
-
-`SshCertTokenService` uses the local `ssh-keygen` utility to mint and verify
-OpenSSH certificates. A key provider supplies the certificate authority (CA)
-key material used for signing. The typical workflow is:
-
-1. implement or configure an `IKeyProvider` that returns your CA key
-2. create the token service
-3. mint a certificate for a subject public key
-4. verify the certificate before trusting it
-
-```python
-import asyncio
 import os
 import subprocess
 import tempfile
 from typing import Iterable, Mapping
+
+import pytest
 
 from swarmauri_tokens_sshcert import SshCertTokenService
 from swarmauri_core.crypto.types import ExportPolicy, KeyRef, KeyType, KeyUse
@@ -67,8 +50,38 @@ class DummyKeyProvider(IKeyProvider):
     def supports(self) -> Mapping[str, Iterable[str]]:
         return {}
 
+    async def create_key(self, spec) -> KeyRef:  # type: ignore[override]
+        raise NotImplementedError
 
-async def main() -> None:
+    async def import_key(
+        self, spec, material: bytes, *, public: bytes | None = None
+    ) -> KeyRef:  # type: ignore[override]
+        raise NotImplementedError
+
+    async def rotate_key(
+        self, kid: str, *, spec_overrides: dict | None = None
+    ) -> KeyRef:  # type: ignore[override]
+        raise NotImplementedError
+
+    async def destroy_key(self, kid: str, version: int | None = None) -> bool:  # type: ignore[override]
+        raise NotImplementedError
+
+    async def list_versions(self, kid: str) -> tuple[int, ...]:  # type: ignore[override]
+        return (self.version,)
+
+    async def get_public_jwk(self, kid: str, version: int | None = None) -> dict:  # type: ignore[override]
+        return {}
+
+    async def random_bytes(self, n: int) -> bytes:  # type: ignore[override]
+        return os.urandom(n)
+
+    async def hkdf(self, ikm: bytes, *, salt: bytes, info: bytes, length: int) -> bytes:  # type: ignore[override]
+        return os.urandom(length)
+
+
+@pytest.mark.example
+@pytest.mark.asyncio
+async def test_readme_usage_example() -> None:
     svc = SshCertTokenService(DummyKeyProvider(), ca_kid="ca")
     _, subj_pub = _generate_keypair()
     cert = await svc.mint(
@@ -76,13 +89,4 @@ async def main() -> None:
         alg="ssh-ed25519",
     )
     info = await svc.verify(cert, audience="alice")
-    print(info["key_id"])
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
-```
-
-The example above mints a certificate for a generated key and verifies it for
-the principal `alice`. The service requires the `ssh-keygen` command to be
-available on the system path.
+    assert info["key_id"] == "demo"
