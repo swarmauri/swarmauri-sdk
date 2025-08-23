@@ -31,18 +31,35 @@ pip install swarmauri_mre_crypto_age
 
 ### Usage
 
+The provider exposes asynchronous helpers for encrypting data to many
+recipients and decrypting it for a specific private key.  The example below
+walks through a complete round trip.
+
+1. Create the crypto provider.
+2. Generate key pairs for two recipients.
+3. Encrypt a payload for both recipients.
+4. Decrypt the payload for one recipient.
+
 ```python
 from swarmauri_mre_crypto_age import AgeMreCrypto
 from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey
 
 crypto = AgeMreCrypto()
 
-sk = X25519PrivateKey.generate()
-pk = sk.public_key()
-recipient = {"kind": "cryptography_obj", "obj": pk}
+# generate key pairs for each participant
+sk1 = X25519PrivateKey.generate()
+pk1 = sk1.public_key()
+sk2 = X25519PrivateKey.generate()
+pk2 = sk2.public_key()
 
-env = await crypto.encrypt_for_many([recipient], b"secret")
-pt = await crypto.open_for({"kind": "cryptography_obj", "obj": sk}, env)
+recipients = [
+    {"kind": "cryptography_obj", "obj": pk1},
+    {"kind": "cryptography_obj", "obj": pk2},
+]
+
+env = await crypto.encrypt_for_many(recipients, b"secret")
+pt = await crypto.open_for({"kind": "cryptography_obj", "obj": sk1}, env)
+assert pt == b"secret"
 ```
 
 ## Entry point

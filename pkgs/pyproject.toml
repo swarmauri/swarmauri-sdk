@@ -87,7 +87,7 @@ members = [
     "standards/swarmauri_keyprovider_file",
     "standards/swarmauri_keyproviders_mirrored",
     "standards/swarmauri_keyprovider_hierarchical",
-    "standards/swarmauri_certservice_pkcs11",
+    "swarmauri_certs_pkcs11",
     "standards/swarmauri_crypto_paramiko",
     "standards/swarmauri_crypto_pgp",
     "standards/swarmauri_crypto_sodium",
@@ -106,7 +106,7 @@ members = [
     "standards/swarmauri_signing_ecdsa",
     "standards/swarmauri_signing_ca",
     "standards/swarmauri_signing_jws",
-    "standards/swarmauri_certservice_localca",
+    "swarmauri_certs_local_ca",
     "standards/swarmauri_tokens_jwt",
     "standards/swarmauri_tokens_sshsig",
     "standards/swarmauri_tokens_sshcert",
@@ -286,7 +286,8 @@ swarmauri_signing_ecdsa = { workspace = true }
 swarmauri_signing_ca = { workspace = true }
 swarmauri_certs_remote_ca = { workspace = true }
 swarmauri_signing_jws = { workspace = true }
-swarmauri_certservice_localca = { workspace = true }
+swarmauri_certs_pkcs11 = { workspace = true }
+swarmauri_certs_local_ca = { workspace = true }
 swarmauri_tokens_dpopboundjwt = { workspace = true }
 swarmauri_tokens_jwt = { workspace = true }
 swarmauri_tokens_sshsig = { workspace = true }
@@ -396,7 +397,7 @@ markers = [
     "xfail: Expected failures",
     "acceptance: Acceptance tests",
     "perf: Performance tests that measure execution time and resource usage",
-    "example: Examples used in documentation",
+    "example: Documentation examples verifying usage instructions",
 ]
 
 timeout = 300

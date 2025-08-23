@@ -3,3 +3,86 @@
 An OpenSSH certificate token service for the Swarmauri framework. This service
 mints and verifies OpenSSH user and host certificates and exposes no JWKS
 endpoints.
+
+## Usage
+
+`SshCertTokenService` uses the local `ssh-keygen` utility to mint and verify
+OpenSSH certificates. A key provider supplies the certificate authority (CA)
+key material used for signing. The typical workflow is:
+
+1. implement or configure an `IKeyProvider` that returns your CA key
+2. create the token service
+3. mint a certificate for a subject public key
+4. verify the certificate before trusting it
+
+```python
+import asyncio
+import os
+import subprocess
+import tempfile
+from typing import Iterable, Mapping
+
+from swarmauri_tokens_sshcert import SshCertTokenService
+from swarmauri_core.crypto.types import ExportPolicy, KeyRef, KeyType, KeyUse
+from swarmauri_core.keys import IKeyProvider
+
+
+def _generate_keypair() -> tuple[str, str]:
+    with tempfile.TemporaryDirectory() as d:
+        path = os.path.join(d, "id")
+        subprocess.run(
+            ["ssh-keygen", "-t", "ed25519", "-N", "", "-f", path],
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        priv = open(path, "r", encoding="utf-8").read()
+        pub = open(path + ".pub", "r", encoding="utf-8").read()
+    return priv, pub
+
+
+class DummyKeyProvider(IKeyProvider):
+    def __init__(self) -> None:
+        self.priv, self.pub = _generate_keypair()
+        self.kid = "ca"
+        self.version = 1
+
+    async def get_key(
+        self, kid: str, version: int | None = None, *, include_secret: bool = False
+    ) -> KeyRef:
+        material = self.priv if include_secret else None
+        return KeyRef(
+            kid=self.kid,
+            version=self.version,
+            type=KeyType.ED25519,
+            uses=(KeyUse.SIGN, KeyUse.VERIFY),
+            export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
+            material=material,
+            public=self.pub,
+        )
+
+    async def jwks(self, *, prefix_kids: str | None = None) -> dict:
+        return {"keys": []}
+
+    def supports(self) -> Mapping[str, Iterable[str]]:
+        return {}
+
+
+async def main() -> None:
+    svc = SshCertTokenService(DummyKeyProvider(), ca_kid="ca")
+    _, subj_pub = _generate_keypair()
+    cert = await svc.mint(
+        {"subject_pub": subj_pub, "principals": ["alice"], "key_id": "demo"},
+        alg="ssh-ed25519",
+    )
+    info = await svc.verify(cert, audience="alice")
+    print(info["key_id"])
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+The example above mints a certificate for a generated key and verifies it for
+the principal `alice`. The service requires the `ssh-keygen` command to be
+available on the system path.

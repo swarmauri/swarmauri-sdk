@@ -176,6 +176,7 @@ class GcpKmsKeyProvider(KeyProviderBase):
             public=None,
             material=None,
             tags={"kms": "gcp"},
+            fingerprint=self._fingerprint(kid=spec.name),
         )
 
     async def import_key(
@@ -234,6 +235,7 @@ class GcpKmsKeyProvider(KeyProviderBase):
             public=public_bytes,
             material=None,
             tags=tags,
+            fingerprint=self._fingerprint(public=public_bytes, kid=kid),
         )
 
     async def list_versions(self, kid: str) -> Tuple[int, ...]:

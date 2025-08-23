@@ -19,6 +19,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, Optional, Tuple, Mapping, TYPE_CHECKING
+import hashlib
 
 from ..mre_crypto.types import RecipientInfo, MultiRecipientEnvelope
 
@@ -137,6 +138,12 @@ class KeyRef:
     material: Optional[bytes] = None
     public: Optional[bytes] = None
     tags: Dict[str, str] | None = None
+    fingerprint: Optional[str] = None
+
+    def __post_init__(self) -> None:
+        if self.fingerprint is None:
+            data = self.public or self.material or self.kid.encode("utf-8")
+            object.__setattr__(self, "fingerprint", hashlib.sha256(data).hexdigest())
 
 
 @dataclass(frozen=True)

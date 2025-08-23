@@ -196,6 +196,7 @@ class VaultTransitKeyProvider(KeyProviderBase):
                 "vault_type": vtype,
                 "vault_purpose": purpose,
             },
+            fingerprint=self._fingerprint(public=public_pem, kid=name),
         )
 
     async def import_key(
@@ -230,6 +231,7 @@ class VaultTransitKeyProvider(KeyProviderBase):
                 "vault_mount": self._mount,
                 "vault_purpose": purpose,
             },
+            fingerprint=self._fingerprint(public=public_pem, kid=kid),
         )
 
     async def destroy_key(self, kid: str, version: Optional[int] = None) -> bool:
@@ -267,6 +269,7 @@ class VaultTransitKeyProvider(KeyProviderBase):
                 "vault_purpose": purpose_detected,
                 "latest_version": latest,
             },
+            fingerprint=self._fingerprint(public=public_pem, kid=kid),
         )
 
     async def list_versions(self, kid: str) -> Tuple[int, ...]:

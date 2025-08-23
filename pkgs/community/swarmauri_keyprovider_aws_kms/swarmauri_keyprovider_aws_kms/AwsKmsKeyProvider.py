@@ -206,6 +206,7 @@ class AwsKmsKeyProvider(KeyProviderBase):
                 "kms:region": self._region,
                 "label": tag_map.get("saur:label"),
             },
+            fingerprint=self._fingerprint(public=public, kid=kid),
         )
 
     async def create_key(self, spec: KeySpec) -> KeyRef:

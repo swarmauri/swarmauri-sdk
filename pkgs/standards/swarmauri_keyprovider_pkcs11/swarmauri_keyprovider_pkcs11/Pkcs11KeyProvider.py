@@ -149,6 +149,7 @@ class Pkcs11KeyProvider(KeyProviderBase):
                 public=None,
                 material=None,
                 tags={"label": spec.label, "alg": spec.alg.value, "provider": "pkcs11"},
+                fingerprint=self._fingerprint(kid=kid),
             )
 
         if spec.alg in (KeyAlg.RSA_OAEP_SHA256, KeyAlg.RSA_PSS_SHA256):
@@ -216,6 +217,7 @@ class Pkcs11KeyProvider(KeyProviderBase):
                 public=pub_pem,
                 material=None,
                 tags={"label": spec.label, "alg": spec.alg.value, "provider": "pkcs11"},
+                fingerprint=self._fingerprint(public=pub_pem, kid=kid),
             )
 
         if spec.alg == KeyAlg.ECDSA_P256_SHA256:
@@ -278,6 +280,7 @@ class Pkcs11KeyProvider(KeyProviderBase):
                 public=pub_pem,
                 material=None,
                 tags={"label": spec.label, "alg": spec.alg.value, "provider": "pkcs11"},
+                fingerprint=self._fingerprint(public=pub_pem, kid=kid),
             )
 
         raise ValueError(f"Unsupported algorithm: {spec.alg}")
@@ -322,6 +325,7 @@ class Pkcs11KeyProvider(KeyProviderBase):
             public=new_ref.public,
             material=None,
             tags=new_ref.tags,
+            fingerprint=self._fingerprint(public=new_ref.public, kid=kid),
         )
 
     async def destroy_key(self, kid: str, version: Optional[int] = None) -> bool:
@@ -399,6 +403,7 @@ class Pkcs11KeyProvider(KeyProviderBase):
                 "alg": ent.alg.value,
                 "provider": "pkcs11",
             },
+            fingerprint=self._fingerprint(public=public_pem, kid=ent.kid),
         )
 
     async def list_versions(self, kid: str) -> Tuple[int, ...]:

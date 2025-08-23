@@ -91,6 +91,7 @@ class SshKeyProvider(KeyProviderBase):
                 "alg": spec.alg.value,
                 "ssh_fingerprint": _fingerprint(ssh_pub),
             },
+            fingerprint=self._fingerprint(public=ssh_pub, kid=kid),
         )
         self._store.setdefault(kid, {})[version] = ref
         return ref
@@ -123,6 +124,7 @@ class SshKeyProvider(KeyProviderBase):
                 "imported": True,
                 "ssh_fingerprint": _fingerprint(ssh_pub),
             },
+            fingerprint=self._fingerprint(public=ssh_pub, kid=kid),
         )
         self._store.setdefault(kid, {})[1] = ref
         return ref

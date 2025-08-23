@@ -36,6 +36,7 @@ markers = [
     "acceptance: Acceptance tests",
     "perf: Performance tests",
     "functional: Functional tests",
+    "example: Example usage tests",
 ]
 log_cli = true
 log_cli_level = "INFO"
