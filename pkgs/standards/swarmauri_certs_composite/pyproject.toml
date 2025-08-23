@@ -40,6 +40,7 @@ markers = [
     "acceptance: Acceptance tests",
     "perf: Performance tests",
     "functional: Functional tests",
+    "example: Usage examples from documentation",
 ]
 timeout = 300
 log_cli = true

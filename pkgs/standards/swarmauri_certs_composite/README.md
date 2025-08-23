@@ -27,10 +27,88 @@ pip install swarmauri_certs_composite
 
 ## Usage
 
-```python
-from swarmauri_certs_composite import CompositeCertService
+Below is a minimal example demonstrating how the composite router delegates
+operations to the first provider that advertises a given feature.  Providers can
+also be selected explicitly via the `backend` option.
 
-svc = CompositeCertService([...])  # pass in other ICertService providers
+```python
+import asyncio
+from swarmauri_certs_composite import CompositeCertService
+from swarmauri_core.certs.ICertService import ICertService
+from swarmauri_core.crypto.types import (
+    KeyRef,
+    KeyType,
+    KeyUse,
+    ExportPolicy,
+)
+
+
+class CSRProvider(ICertService):
+    """Handles CSR creation and certificate signing."""
+
+    type = "CSR"
+
+    def supports(self):
+        return {"features": ("csr", "sign_from_csr")}
+
+    async def create_csr(self, key, subject, **kw):
+        return b"csr"
+
+    async def sign_cert(self, csr, ca_key, **kw):
+        return b"cert-from-csr"
+
+    async def create_self_signed(self, *args, **kwargs):
+        raise NotImplementedError
+
+    async def verify_cert(self, *args, **kwargs):
+        raise NotImplementedError
+
+    async def parse_cert(self, *args, **kwargs):
+        raise NotImplementedError
+
+
+class SelfSignedProvider(ICertService):
+    """Creates self-signed certificates and can sign CSRs."""
+
+    type = "SELF"
+
+    def supports(self):
+        return {"features": ("self_signed", "sign_from_csr")}
+
+    async def create_self_signed(self, key, subject, **kw):
+        return b"self-signed"
+
+    async def sign_cert(self, csr, ca_key, **kw):
+        return b"cert-signed"
+
+    async def create_csr(self, *args, **kwargs):
+        raise NotImplementedError
+
+    async def verify_cert(self, *args, **kwargs):
+        raise NotImplementedError
+
+    async def parse_cert(self, *args, **kwargs):
+        raise NotImplementedError
+
+
+async def main():
+    svc = CompositeCertService([CSRProvider(), SelfSignedProvider()])
+    key = KeyRef(
+        kid="k1",
+        version=1,
+        type=KeyType.RSA,
+        uses=(KeyUse.SIGN,),
+        export_policy=ExportPolicy.NONE,
+    )
+    subject = {"CN": "example.com"}
+
+    csr = await svc.create_csr(key, subject)
+    cert = await svc.sign_cert(csr, key, opts={"backend": "SELF"})
+    self_signed = await svc.create_self_signed(key, subject)
+    return csr, cert, self_signed
+
+
+asyncio.run(main())
 ```
 
 ## Entry point
