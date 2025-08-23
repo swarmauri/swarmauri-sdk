@@ -31,3 +31,6 @@ pkgs/standards/peagen/.pymon
 kms.db
 
 *.asc
+*.so
+
+target/
