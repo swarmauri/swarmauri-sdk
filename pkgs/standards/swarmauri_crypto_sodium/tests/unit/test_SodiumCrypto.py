@@ -131,6 +131,7 @@ async def test_encrypt_for_many_kem_aead(sodium_crypto, x25519_keys):
             kek_version=recipient.version,
             wrap_alg="X25519-SEAL-WRAP",
             wrapped=env.recipients[0].wrapped_key,
+            nonce=env.recipients[0].nonce,
         ),
     )
     sym = KeyRef(

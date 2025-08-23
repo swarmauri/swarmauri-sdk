@@ -2,7 +2,6 @@
 name = "swarmauri_crypto_sodium"
 version = "0.1.0"
 description = "Libsodium-backed crypto provider for Swarmauri"
-license = "Apache-2.0"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
 authors = [{ name = "Swarmauri", email = "opensource@swarmauri.com" }]
@@ -44,8 +43,8 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["meson-python>=0.15.0", "ninja"]
+build-backend = "mesonpy"
 
 [dependency-groups]
 dev = [
