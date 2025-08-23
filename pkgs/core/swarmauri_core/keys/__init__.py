@@ -1,7 +1,8 @@
 """Key provider interfaces and types."""
 
 from .IKeyProvider import IKeyProvider
-from .types import KeySpec, KeyAlg, KeyClass, ExportPolicy, KeyUse
+from .types import KeyAlg, KeyClass, KeySpec, ExportPolicy, KeyUse
+from ..crypto.types import KeyRef
 
 __all__ = [
     "IKeyProvider",
@@ -10,4 +11,5 @@ __all__ = [
     "KeyClass",
     "ExportPolicy",
     "KeyUse",
+    "KeyRef",
 ]
