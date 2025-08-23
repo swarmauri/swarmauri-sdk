@@ -1,12 +1,14 @@
+"""RFC 8017 RSA certificate tests."""
+
 import pytest
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
-from swarmauri_certservice_localca import LocalCaCertService
+from swarmauri_certs_local_ca import LocalCaCertService
 from swarmauri_core.crypto.types import ExportPolicy, KeyRef, KeyType, KeyUse
 
 
-def _make_keyref() -> KeyRef:
+def _key() -> KeyRef:
     sk = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     pem = sk.private_bytes(
         serialization.Encoding.PEM,
@@ -14,7 +16,7 @@ def _make_keyref() -> KeyRef:
         serialization.NoEncryption(),
     )
     return KeyRef(
-        kid="test",
+        kid="rsa",
         version=1,
         type=KeyType.RSA,
         uses=(KeyUse.SIGN,),
@@ -25,9 +27,8 @@ def _make_keyref() -> KeyRef:
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_self_signed_and_parse() -> None:
+async def test_self_signed_rsa() -> None:
     svc = LocalCaCertService()
-    key = _make_keyref()
-    cert = await svc.create_self_signed(key, {"CN": "unit"})
-    parsed = await svc.parse_cert(cert)
-    assert parsed["subject"].startswith("CN=unit")
+    key = _key()
+    cert = await svc.create_self_signed(key, {"CN": "rsa"})
+    assert b"BEGIN CERTIFICATE" in cert

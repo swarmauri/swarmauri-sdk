@@ -4,7 +4,7 @@ import pytest
 
 pytest.importorskip("pkcs11")
 
-from swarmauri_certservice_pkcs11 import Pkcs11CertService
+from swarmauri_certs_pkcs11 import Pkcs11CertService
 
 
 @pytest.mark.unit

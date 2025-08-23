@@ -1,5 +1,5 @@
 [project]
-name = "swarmauri_certservice_pkcs11"
+name = "swarmauri_certs_pkcs11"
 version = "0.1.0"
 description = "PKCS#11-backed certificate service for Swarmauri"
 license = "Apache-2.0"
@@ -63,7 +63,7 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [project.entry-points.'swarmauri.cert_services']
-Pkcs11CertService = "swarmauri_certservice_pkcs11:Pkcs11CertService"
+Pkcs11CertService = "swarmauri_certs_pkcs11:Pkcs11CertService"
 
 [project.entry-points.'peagen.plugins.cert_services']
-pkcs11 = "swarmauri_certservice_pkcs11:Pkcs11CertService"
+pkcs11 = "swarmauri_certs_pkcs11:Pkcs11CertService"

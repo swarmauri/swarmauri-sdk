@@ -1,5 +1,5 @@
 [project]
-name = "swarmauri_certservice_localca"
+name = "swarmauri_certs_local_ca"
 version = "0.1.0"
 description = "Local CA certificate service for Swarmauri"
 license = "Apache-2.0"
@@ -64,7 +64,7 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [project.entry-points.'swarmauri.cert_services']
-LocalCaCertService = "swarmauri_certservice_localca:LocalCaCertService"
+LocalCaCertService = "swarmauri_certs_local_ca:LocalCaCertService"
 
 [project.entry-points."peagen.plugins.cert_services"]
-localca = "swarmauri_certservice_localca:LocalCaCertService"
+localca = "swarmauri_certs_local_ca:LocalCaCertService"

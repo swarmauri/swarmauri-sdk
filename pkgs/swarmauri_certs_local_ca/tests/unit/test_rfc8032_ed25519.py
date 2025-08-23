@@ -1,24 +1,24 @@
-"""RFC 8017 RSA certificate tests."""
+"""RFC 8032 Ed25519 certificate tests."""
 
 import pytest
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.asymmetric import ed25519
 
-from swarmauri_certservice_localca import LocalCaCertService
+from swarmauri_certs_local_ca import LocalCaCertService
 from swarmauri_core.crypto.types import ExportPolicy, KeyRef, KeyType, KeyUse
 
 
 def _key() -> KeyRef:
-    sk = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    sk = ed25519.Ed25519PrivateKey.generate()
     pem = sk.private_bytes(
         serialization.Encoding.PEM,
         serialization.PrivateFormat.PKCS8,
         serialization.NoEncryption(),
     )
     return KeyRef(
-        kid="rsa",
+        kid="ed",
         version=1,
-        type=KeyType.RSA,
+        type=KeyType.ED25519,
         uses=(KeyUse.SIGN,),
         export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
         material=pem,
@@ -27,8 +27,8 @@ def _key() -> KeyRef:
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_self_signed_rsa() -> None:
+async def test_self_signed_ed25519() -> None:
     svc = LocalCaCertService()
     key = _key()
-    cert = await svc.create_self_signed(key, {"CN": "rsa"})
+    cert = await svc.create_self_signed(key, {"CN": "ed"})
     assert b"BEGIN CERTIFICATE" in cert
