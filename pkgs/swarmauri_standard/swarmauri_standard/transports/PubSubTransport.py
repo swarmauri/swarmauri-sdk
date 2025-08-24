@@ -3,7 +3,7 @@ import asyncio
 import uuid
 
 from pydantic import PrivateAttr
-from swarmauri_base.transports.TransportBase import TransportBase, TransportProtocol
+from swarmauri_base.transports.TransportBase import TransportBase
 from swarmauri_base.ComponentBase import ComponentBase
 
 
@@ -56,5 +56,6 @@ class PubSubTransport(TransportBase):
         for topic in topics:
             await self.publish(topic, message)
 
-    def send(self, message: Any, protocol: TransportProtocol) -> None:
+    def send(self, sender: str, recipient: str, message: Any) -> None:
+        """Send is not supported for PubSubTransport."""
         raise NotImplementedError("send method is not supported for PubSubTransport.")
