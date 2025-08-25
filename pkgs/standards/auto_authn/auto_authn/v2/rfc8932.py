@@ -22,6 +22,33 @@ from fastapi import APIRouter, HTTPException, status
 from .runtime_cfg import settings
 from .rfc8414 import ISSUER, JWKS_PATH
 
+# Supported encrypted DNS transports per RFC 8932 recommendations
+ALLOWED_ENCRYPTED_DNS = {"DoT", "DoH"}
+
+
+def enforce_encrypted_dns(protocol: str) -> str:
+    """Validate that the provided DNS transport uses encryption.
+
+    Args:
+        protocol: DNS transport identifier (e.g., "DoT" or "DoH").
+
+    Returns:
+        The validated protocol string.
+
+    Raises:
+        NotImplementedError: If RFC 8932 support is disabled.
+        ValueError: If an unencrypted transport is supplied.
+    """
+
+    if not settings.enable_rfc8932:
+        raise NotImplementedError("RFC 8932 support is disabled")
+
+    if protocol not in ALLOWED_ENCRYPTED_DNS:
+        raise ValueError("Protocol must be an encrypted DNS transport")
+
+    return protocol
+
+
 RFC8932_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8932"
 
 router = APIRouter()

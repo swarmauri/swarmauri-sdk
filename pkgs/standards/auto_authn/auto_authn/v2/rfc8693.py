@@ -12,7 +12,7 @@ from __future__ import annotations
 from typing import Dict, Any, Optional, Union, List
 from enum import Enum
 
-from fastapi import FastAPI
+from fastapi import APIRouter, FastAPI
 
 from .runtime_cfg import settings
 from .rfc7519 import decode_jwt
@@ -22,6 +22,22 @@ RFC8693_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8693"
 
 # Token Exchange Grant Type
 TOKEN_EXCHANGE_GRANT_TYPE = "urn:ietf:params:oauth:grant-type:token-exchange"
+
+
+# FastAPI router for RFC 8693 endpoints
+router = APIRouter()
+
+
+def include_rfc8693(app: FastAPI) -> None:
+    """Include RFC 8693 token exchange routes into a FastAPI app.
+
+    Routes are registered only when RFC 8693 support is enabled.
+    """
+
+    if not settings.enable_rfc8693:
+        return
+
+    app.include_router(router)
 
 
 # Standard Token Type URIs per RFC 8693 Section 3
@@ -224,8 +240,12 @@ def exchange_token(
         TokenExchangeResponse with the new token
 
     Raises:
+        RuntimeError: If RFC 8693 support is disabled
         ValueError: If token exchange fails
     """
+    if not settings.enable_rfc8693:
+        raise RuntimeError("RFC 8693 support disabled")
+
     # Validate subject token
     subject_claims = validate_subject_token(
         request.subject_token, request.subject_token_type
@@ -283,6 +303,9 @@ def create_impersonation_token(
     Returns:
         TokenExchangeResponse with impersonation token
     """
+    if not settings.enable_rfc8693:
+        raise RuntimeError("RFC 8693 support disabled")
+
     request = TokenExchangeRequest(
         grant_type=TOKEN_EXCHANGE_GRANT_TYPE,
         subject_token=subject_token,
@@ -313,6 +336,9 @@ def create_delegation_token(
     Returns:
         TokenExchangeResponse with delegation token
     """
+    if not settings.enable_rfc8693:
+        raise RuntimeError("RFC 8693 support disabled")
+
     request = TokenExchangeRequest(
         grant_type=TOKEN_EXCHANGE_GRANT_TYPE,
         subject_token=subject_token,
@@ -350,4 +376,6 @@ __all__ = [
     "include_rfc8693",
     "TOKEN_EXCHANGE_GRANT_TYPE",
     "RFC8693_SPEC_URL",
+    "include_rfc8693",
+    "router",
 ]
