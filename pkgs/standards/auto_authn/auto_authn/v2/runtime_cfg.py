@@ -102,6 +102,10 @@ class Settings(BaseSettings):
         description=(
             "Allow access_token in application/x-www-form-urlencoded bodies per RFC 6750 §2.2"
         ),
+    enable_rfc6749: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC6749", "true").lower()
+        in {"1", "true", "yes"},
+        description="Enforce core OAuth 2.0 error handling per RFC 6749",
     )
 
     model_config = SettingsConfigDict(env_file=None)
