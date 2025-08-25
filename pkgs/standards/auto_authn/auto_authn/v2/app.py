@@ -88,24 +88,33 @@ async def methodz():
 
 @app.get("/.well-known/openid-configuration", include_in_schema=False)
 async def oidc_config():
-    config = {
+    scopes = ["openid", "profile", "email", "address", "phone"]
+    claims = [
+        "sub",
+        "name",
+        "given_name",
+        "family_name",
+        "email",
+        "email_verified",
+        "address",
+        "phone_number",
+        "phone_number_verified",
+    ]
+    response_types = [
+        "code",
+        "token",
+        "id_token",
+        "code token",
+        "code id_token",
+        "token id_token",
+        "code token id_token",
+    ]
+    return {
         "issuer": ISSUER,
         "authorization_endpoint": f"{ISSUER}/authorize",
         "token_endpoint": f"{ISSUER}/token",
         "userinfo_endpoint": f"{ISSUER}/userinfo",
-        "scopes_supported": ["openid", "profile", "email", "address", "phone"],
-        "claims_supported": [
-            "sub",
-            "name",
-            "given_name",
-            "family_name",
-            "email",
-            "email_verified",
-            "address",
-            "phone_number",
-            "phone_number_verified",
-        ],
-        "response_types_supported": ["code", "id_token"],
+
         "jwks_uri": f"{ISSUER}{JWKS_PATH}",
         "subject_types_supported": ["public"],
         "id_token_signing_alg_values_supported": ["RS256"],

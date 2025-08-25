@@ -34,6 +34,7 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel, EmailStr, Field, ValidationError, constr
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from urllib.parse import urlencode
 
 from ..crypto import hash_pw
 from ..jwtoken import JWTCoder
@@ -185,16 +186,21 @@ async def authorize(
     redirect_uri: str,
     scope: str,
     state: Optional[str] = None,
+    nonce: Optional[str] = None,
     code_challenge: Optional[str] = None,
     code_challenge_method: Optional[str] = None,
     username: Optional[str] = None,
     password: Optional[str] = None,
     db: AsyncSession = Depends(get_async_db),
 ):
-    if response_type != "code":
+    rts = set(response_type.split())
+    allowed = {"code", "token", "id_token"}
+    if not rts or not rts.issubset(allowed):
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST, {"error": "unsupported_response_type"}
         )
+    if "id_token" in rts and not nonce:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
     client = await db.get(Client, client_id)
     if client is None or redirect_uri not in (client.redirect_uris or "").split():
         raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
@@ -206,18 +212,38 @@ async def authorize(
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, {"error": "access_denied"})
     if code_challenge_method and code_challenge_method != "S256":
         raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
-    code = secrets.token_urlsafe(32)
-    AUTH_CODES[code] = {
-        "sub": str(user.id),
-        "tid": str(user.tenant_id),
-        "client_id": client_id,
-        "redirect_uri": redirect_uri,
-        "code_challenge": code_challenge,
-        "expires_at": datetime.utcnow() + timedelta(minutes=10),
-    }
-    redirect_url = f"{redirect_uri}?code={code}"
+    params: list[tuple[str, str]] = []
+    if "code" in rts:
+        code = secrets.token_urlsafe(32)
+        AUTH_CODES[code] = {
+            "sub": str(user.id),
+            "tid": str(user.tenant_id),
+            "client_id": client_id,
+            "redirect_uri": redirect_uri,
+            "code_challenge": code_challenge,
+            "expires_at": datetime.utcnow() + timedelta(minutes=10),
+        }
+        params.append(("code", code))
+    if "token" in rts:
+        access = await _jwt.async_sign(sub=str(user.id), tid=str(user.tenant_id))
+        params.append(("access_token", access))
+        params.append(("token_type", "bearer"))
+    if "id_token" in rts:
+        from ..rfc8414 import ISSUER
+
+        id_token = await _jwt.async_sign(
+            sub=str(user.id),
+            tid=str(user.tenant_id),
+            typ="id",
+            issuer=ISSUER,
+            audience=client_id,
+            nonce=nonce,
+        )
+        params.append(("id_token", id_token))
     if state:
-        redirect_url += f"&state={state}"
+        params.append(("state", state))
+
+    redirect_url = f"{redirect_uri}?{urlencode(params)}" if params else redirect_uri
     return RedirectResponse(redirect_url)
 
 
