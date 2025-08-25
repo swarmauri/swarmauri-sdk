@@ -7,6 +7,7 @@ import time
 from unittest.mock import patch
 
 import pytest
+from jwt.exceptions import InvalidTokenError
 
 from auto_authn.v2 import encode_jwt
 from auto_authn.v2.rfc7521 import (
@@ -29,6 +30,8 @@ def test_validate_jwt_assertion_success() -> None:
     claims = validate_jwt_assertion(token)
     assert claims["iss"] == "issuer"
     assert claims["sub"] == "subject"
+    assert claims["aud"] == "audience"
+    assert claims["tid"] == "tenant"
     assert RFC7521_SPEC_URL.startswith("https://")
 
 
@@ -39,6 +42,20 @@ def test_validate_jwt_assertion_missing_claim() -> None:
         iss="issuer", sub="subject", tid="tenant", exp=int(time.time()) + 60
     )
     with pytest.raises(ValueError):
+        validate_jwt_assertion(token)
+
+
+@pytest.mark.unit
+def test_validate_jwt_assertion_expired() -> None:
+    """RFC 7521 §3: expired assertions are rejected."""
+    token = encode_jwt(
+        iss="issuer",
+        sub="subject",
+        tid="tenant",
+        aud="audience",
+        exp=int(time.time()) - 10,
+    )
+    with pytest.raises(InvalidTokenError):
         validate_jwt_assertion(token)
 
 
