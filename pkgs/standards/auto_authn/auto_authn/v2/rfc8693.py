@@ -9,13 +9,9 @@ See RFC 8693: https://www.rfc-editor.org/rfc/rfc8693
 
 from __future__ import annotations
 
-from typing import Dict, Any, Optional, Union, List
+from typing import Any, Dict, List, Optional, Union
 from enum import Enum
-from fastapi import APIRouter, FastAPI
-
 from fastapi import APIRouter, FastAPI, Form, HTTPException, status
-
-from fastapi import APIRouter, FastAPI
 
 from .runtime_cfg import settings
 from .rfc7519 import decode_jwt
@@ -25,35 +21,6 @@ RFC8693_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8693"
 
 # Token Exchange Grant Type
 TOKEN_EXCHANGE_GRANT_TYPE = "urn:ietf:params:oauth:grant-type:token-exchange"
-
-# Router placeholder for potential token exchange endpoints
-router = APIRouter()
-
-
-def include_rfc8693(app: FastAPI) -> None:
-    """Include RFC 8693 routes on a FastAPI app."""
-
-    if not settings.enable_rfc8693:
-        raise NotImplementedError("RFC 8693 support is disabled")
-
-    app.include_router(router)
-
-
-# FastAPI router for RFC 8693 endpoints
-router = APIRouter()
-
-
-def include_rfc8693(app: FastAPI) -> None:
-    """Include RFC 8693 token exchange routes into a FastAPI app.
-
-    Routes are registered only when RFC 8693 support is enabled.
-    """
-
-    if not settings.enable_rfc8693:
-        return
-
-    app.include_router(router)
-
 
 router = APIRouter()
 

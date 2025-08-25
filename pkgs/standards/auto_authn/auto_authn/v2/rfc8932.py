@@ -13,68 +13,26 @@ See related: RFC 8414 (OAuth 2.0 Authorization Server Metadata)
 from __future__ import annotations
 
 
-from typing import Dict, Any, List
+from typing import Any, Dict, List
 from fastapi import APIRouter, HTTPException, status
 
 from .runtime_cfg import settings
 from .rfc8414 import ISSUER, JWKS_PATH
 
-# Supported encrypted DNS transports per RFC 8932 recommendations
-ALLOWED_ENCRYPTED_DNS = {"DoT", "DoH"}
-
-
-def enforce_encrypted_dns(protocol: str) -> str:
-    """Validate that the provided DNS transport uses encryption.
-
-    Args:
-        protocol: DNS transport identifier (e.g., "DoT" or "DoH").
-
-    Returns:
-        The validated protocol string.
-
-    Raises:
-        NotImplementedError: If RFC 8932 support is disabled.
-        ValueError: If an unencrypted transport is supplied.
-    """
-
-    if not settings.enable_rfc8932:
-        raise NotImplementedError("RFC 8932 support is disabled")
-
-    if protocol not in ALLOWED_ENCRYPTED_DNS:
-        raise ValueError("Protocol must be an encrypted DNS transport")
-
-    return protocol
-
-
 RFC8932_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8932"
 
 router = APIRouter()
 
-# Supported encrypted DNS protocols
-ENCRYPTED_DNS_PROTOCOLS = {"DoT", "DoH"}
-
-
-def enforce_encrypted_dns(protocol: str) -> str:
-    """Validate that only encrypted DNS protocols are used."""
-
-    if not settings.enable_rfc8932:
-        raise NotImplementedError("DNS privacy enforcement is disabled")
-
-    if protocol not in ENCRYPTED_DNS_PROTOCOLS:
-        raise ValueError("Only encrypted DNS protocols are allowed")
-
-    return protocol
-
-
+# Supported encrypted DNS transports per RFC 8932 recommendations
 ENCRYPTED_DNS_TRANSPORTS = {"DoT", "DoH"}
 
 
 def enforce_encrypted_dns(transport: str) -> str:
     """Validate that DNS queries use encrypted transports.
 
-    RFC 8932 \u00a75.1.1 recommends that operators ensure DNS queries are
-    sent over encrypted transports such as DNS over TLS (DoT) or DNS over
-    HTTPS (DoH).
+    RFC 8932 \u00a75.1.1 recommends that operators ensure DNS queries are sent
+    over encrypted transports such as DNS over TLS (DoT) or DNS over HTTPS
+    (DoH).
 
     Args:
         transport: The DNS transport protocol to validate.
@@ -86,6 +44,7 @@ def enforce_encrypted_dns(transport: str) -> str:
         NotImplementedError: If RFC 8932 support is disabled.
         ValueError: If an unencrypted transport is provided.
     """
+
     if not settings.enable_rfc8932:
         raise NotImplementedError("RFC 8932 is disabled")
     if transport not in ENCRYPTED_DNS_TRANSPORTS:
