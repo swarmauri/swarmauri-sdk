@@ -70,6 +70,11 @@ class Settings(BaseSettings):
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8705", "false").lower()
         in {"1", "true", "yes"}
     )
+    enable_rfc7636: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7636", "true").lower()
+        in {"1", "true", "yes"},
+        description="Enable Proof Key for Code Exchange per RFC 7636",
+    )
     enforce_rfc8252: bool = Field(
         default=True,
         description="Validate redirect URIs according to RFC 8252",
