@@ -1,5 +1,5 @@
 import base64
-import jwt
+import json
 import pytest
 from swarmauri_tokens_jwt import JWTTokenService
 from swarmauri_core.crypto.types import (
@@ -78,5 +78,7 @@ class DummyKeyProvider(IKeyProvider):
 async def test_rfc7515_header_alg() -> None:
     svc = JWTTokenService(DummyKeyProvider())
     token = await svc.mint({}, alg=JWAAlg.HS256, kid="sym")
-    header = jwt.get_unverified_header(token)
+    b64_hdr = token.split(".")[0]
+    pad = "=" * ((4 - len(b64_hdr) % 4) % 4)
+    header = json.loads(base64.urlsafe_b64decode(b64_hdr + pad))
     assert header["alg"] == JWAAlg.HS256.value

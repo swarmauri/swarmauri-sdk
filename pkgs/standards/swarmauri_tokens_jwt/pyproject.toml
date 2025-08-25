@@ -16,7 +16,7 @@ classifiers = [
 dependencies = [
     "swarmauri_core",
     "swarmauri_base",
-    "pyjwt[crypto]>=2.9.0",
+    "swarmauri_signing_jws",
 ]
 
 [project.optional-dependencies]
