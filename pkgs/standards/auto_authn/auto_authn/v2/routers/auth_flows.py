@@ -202,6 +202,8 @@ async def authorize(
         )
     if "id_token" in rts and not nonce:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
+    if "openid" not in scope.split():
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_scope"})
     client = await db.get(Client, client_id)
     if client is None or redirect_uri not in (client.redirect_uris or "").split():
         raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
