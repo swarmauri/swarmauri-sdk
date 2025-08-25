@@ -3,23 +3,18 @@ from urllib.parse import parse_qs, urlparse
 
 import pytest
 from fastapi import status
-import nest_asyncio
 
 from auto_authn.v2.crypto import hash_pw
 from auto_authn.v2.orm.tables import Client, Tenant, User
-from auto_authn.v2.oidc_id_token import oidc_hash, verify_id_token
-from auto_authn.v2.rfc8414 import ISSUER
 from auto_authn.v2.routers.auth_flows import AUTH_CODES
-
-nest_asyncio.apply()
 
 
 @pytest.mark.usefixtures("temp_key_file")
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_authorize_includes_at_hash(async_client, db_session):
+async def test_authorize_requires_openid_scope(async_client, db_session):
     tenant_id = uuid.uuid4()
-    tenant = Tenant(id=tenant_id, name="T1", email="t1@example.com", slug="t1")
+    tenant = Tenant(id=tenant_id, name="T", email="t@example.com", slug="t")
     client_id = uuid.uuid4()
     client = Client(
         id=client_id,
@@ -38,27 +33,22 @@ async def test_authorize_includes_at_hash(async_client, db_session):
     await db_session.commit()
 
     params = {
-        "response_type": "token id_token",
+        "response_type": "code",
         "client_id": str(client_id),
         "redirect_uri": "https://client.example/cb",
-        "scope": "openid",
-        "nonce": "n",
+        "scope": "profile",
         "username": "alice",
         "password": "password",
     }
     resp = await async_client.get("/authorize", params=params, follow_redirects=False)
-    assert resp.status_code == status.HTTP_307_TEMPORARY_REDIRECT
-    query = parse_qs(urlparse(resp.headers["location"]).query)
-    access = query["access_token"][0]
-    id_token = query["id_token"][0]
-    claims = verify_id_token(id_token, issuer=ISSUER, audience=str(client_id))
-    assert claims["at_hash"] == oidc_hash(access)
+    assert resp.status_code == status.HTTP_400_BAD_REQUEST
+    assert resp.json()["detail"]["error"] == "invalid_scope"
 
 
 @pytest.mark.usefixtures("temp_key_file")
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_authorize_includes_c_hash(async_client, db_session):
+async def test_authorize_persists_nonce(async_client, db_session):
     tenant_id = uuid.uuid4()
     tenant = Tenant(id=tenant_id, name="T2", email="t2@example.com", slug="t2")
     client_id = uuid.uuid4()
@@ -79,11 +69,11 @@ async def test_authorize_includes_c_hash(async_client, db_session):
     await db_session.commit()
 
     params = {
-        "response_type": "code id_token",
+        "response_type": "code",
         "client_id": str(client_id),
         "redirect_uri": "https://client.example/cb",
         "scope": "openid",
-        "nonce": "n",
+        "nonce": "n-0S6_WzA2Mj",
         "username": "bob",
         "password": "password",
     }
@@ -91,7 +81,7 @@ async def test_authorize_includes_c_hash(async_client, db_session):
     assert resp.status_code == status.HTTP_307_TEMPORARY_REDIRECT
     query = parse_qs(urlparse(resp.headers["location"]).query)
     code = query["code"][0]
-    id_token = query["id_token"][0]
-    claims = verify_id_token(id_token, issuer=ISSUER, audience=str(client_id))
-    assert claims["c_hash"] == oidc_hash(code)
-    AUTH_CODES.clear()
+    try:
+        assert AUTH_CODES[code]["nonce"] == "n-0S6_WzA2Mj"
+    finally:
+        AUTH_CODES.clear()
