@@ -14,7 +14,7 @@ import base64
 import hashlib
 from typing import Any, Dict
 
-from jwt.exceptions import InvalidTokenError
+from .errors import InvalidTokenError
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
 

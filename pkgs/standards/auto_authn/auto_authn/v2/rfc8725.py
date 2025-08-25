@@ -12,13 +12,13 @@ from typing import Any, Dict
 import base64
 import json
 
-from jwt import InvalidTokenError as JWTInvalidTokenError
+from .errors import InvalidTokenError as BaseInvalidTokenError
 
 from .jwtoken import JWTCoder
 from .runtime_cfg import settings
 
 
-class InvalidTokenError(JWTInvalidTokenError):
+class InvalidTokenError(BaseInvalidTokenError):
     """Raised when a JWT violates RFC 8725 recommendations."""
 
 
