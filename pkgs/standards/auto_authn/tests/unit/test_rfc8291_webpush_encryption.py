@@ -8,7 +8,11 @@ import os
 
 import pytest
 
-from auto_authn.v2.rfc8291 import decrypt_push_message, encrypt_push_message
+from auto_authn.v2.rfc8291 import (
+    decrypt_push_message,
+    encrypt_push_message,
+    RFC8291_SPEC_URL,
+)
 
 
 @pytest.mark.unit
@@ -31,3 +35,9 @@ def test_disabled_returns_plain():
     ciphertext = encrypt_push_message(plaintext, key, nonce, enabled=False)
     assert ciphertext == plaintext
     assert decrypt_push_message(ciphertext, key, nonce, enabled=False) == ciphertext
+
+
+@pytest.mark.unit
+def test_spec_url_constant():
+    """Expose the RFC 8291 specification URL."""
+    assert RFC8291_SPEC_URL.endswith("rfc8291")

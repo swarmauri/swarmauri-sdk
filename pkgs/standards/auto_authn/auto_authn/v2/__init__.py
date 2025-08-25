@@ -33,9 +33,22 @@ from .rfc8705 import (
     validate_certificate_binding,
 )
 from .rfc8252 import is_native_redirect_uri, validate_native_redirect_uri
-from .rfc7638 import jwk_thumbprint, verify_jwk_thumbprint
-from .rfc7800 import add_cnf_claim, verify_proof_of_possession
-from .rfc8291 import encrypt_push_message, decrypt_push_message, RFC8291_SPEC_URL
+from .rfc7638 import (
+    jwk_thumbprint,
+    verify_jwk_thumbprint,
+    RFC7638_SPEC_URL,
+)
+from .rfc7800 import (
+    add_cnf_claim,
+    verify_proof_of_possession,
+    RFC7800_SPEC_URL,
+)
+from .rfc8291 import (
+    encrypt_push_message,
+    decrypt_push_message,
+    RFC8291_SPEC_URL,
+)
+from .rfc8812 import validate_ciba_request, RFC8812_SPEC_URL
 from .rfc9068 import add_rfc9068_claims, validate_rfc9068_claims
 from .rfc8037 import sign_eddsa, verify_eddsa, RFC8037_SPEC_URL
 from .rfc8176 import (
@@ -111,11 +124,15 @@ __all__ = [
     "RFC7592_SPEC_URL",
     "jwk_thumbprint",
     "verify_jwk_thumbprint",
+    "RFC7638_SPEC_URL",
     "add_cnf_claim",
     "verify_proof_of_possession",
+    "RFC7800_SPEC_URL",
     "encrypt_push_message",
     "decrypt_push_message",
     "RFC8291_SPEC_URL",
+    "validate_ciba_request",
+    "RFC8812_SPEC_URL",
     "validate_jwt_assertion",
     "RFC7521_SPEC_URL",
     "RFC7520_SPEC_URL",

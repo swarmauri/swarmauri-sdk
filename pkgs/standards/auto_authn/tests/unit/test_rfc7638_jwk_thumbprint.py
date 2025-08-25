@@ -12,7 +12,11 @@ import json
 
 import pytest
 
-from auto_authn.v2.rfc7638 import jwk_thumbprint, verify_jwk_thumbprint
+from auto_authn.v2.rfc7638 import (
+    jwk_thumbprint,
+    verify_jwk_thumbprint,
+    RFC7638_SPEC_URL,
+)
 
 EXAMPLE_JWK = {
     "kty": "RSA",
@@ -45,3 +49,9 @@ def test_verification_respects_feature_flag(monkeypatch):
     assert verify_jwk_thumbprint(EXAMPLE_JWK, thumb, enabled=True)
     assert verify_jwk_thumbprint(EXAMPLE_JWK, "bad", enabled=False)
     assert not verify_jwk_thumbprint(EXAMPLE_JWK, "bad", enabled=True)
+
+
+@pytest.mark.unit
+def test_spec_url_constant():
+    """Expose the RFC 7638 specification URL."""
+    assert RFC7638_SPEC_URL.endswith("rfc7638")
