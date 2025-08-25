@@ -1,5 +1,7 @@
 import asyncio
 
+
+from swarmauri_core.crypto.types import JWAAlg
 from swarmauri_tokens_tlsboundjwt import TlsBoundJWTTokenService, x5tS256_from_der
 
 
@@ -11,7 +13,7 @@ def test_x5t_calculation_unit():
 
 async def _mint_and_verify() -> bool:
     svc = TlsBoundJWTTokenService(None, client_cert_der_getter=lambda: b"unit-cert")
-    token = await svc.mint({"sub": "alice"}, alg="HS256")
+    token = await svc.mint({"sub": "alice"}, alg=JWAAlg.HS256)
     claims = await svc.verify(token)
     return claims["cnf"]["x5t#S256"] == x5tS256_from_der(b"unit-cert")
 

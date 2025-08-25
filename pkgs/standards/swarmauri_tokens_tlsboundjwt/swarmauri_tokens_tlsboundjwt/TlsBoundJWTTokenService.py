@@ -5,6 +5,7 @@ import hashlib
 from typing import Callable, Dict, Iterable, Mapping, Optional, Literal
 
 from swarmauri_providers.tokens import JWTTokenService
+from swarmauri_core.crypto.types import JWAAlg
 from swarmauri_core.keys import IKeyProvider
 
 
@@ -40,7 +41,7 @@ class TlsBoundJWTTokenService(JWTTokenService):
         self._get_der = client_cert_der_getter
         self._get_x5t = client_cert_x5tS256_getter
 
-    def supports(self) -> Mapping[str, Iterable[str]]:
+    def supports(self) -> Mapping[str, Iterable[JWAAlg]]:
         base = super().supports()
         return {"formats": (*base["formats"], "JWT"), "algs": base["algs"]}
 
@@ -60,7 +61,7 @@ class TlsBoundJWTTokenService(JWTTokenService):
         self,
         claims: Dict[str, object],
         *,
-        alg: str,
+        alg: JWAAlg,
         kid: str | None = None,
         key_version: int | None = None,
         headers: Optional[Dict[str, object]] = None,

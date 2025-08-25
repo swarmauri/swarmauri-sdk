@@ -19,10 +19,11 @@ pip install swarmauri_tokens_tlsboundjwt
 ## Usage
 
 ```python
+from swarmauri_core.crypto.types import JWAAlg
 from swarmauri_tokens_tlsboundjwt import TlsBoundJWTTokenService
 
 svc = TlsBoundJWTTokenService(key_provider, client_cert_der_getter=my_cert_getter)
-await svc.mint({"sub": "alice"}, alg="HS256")
+await svc.mint({"sub": "alice"}, alg=JWAAlg.HS256)
 ```
 
 ## Entry Point
