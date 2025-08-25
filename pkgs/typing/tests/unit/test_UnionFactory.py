@@ -152,6 +152,8 @@ def test_add_metadata_to_annotated_type():
     assert args[1].value == "first"
     assert isinstance(args[2], CustomMetadata)
     assert args[2].value == "second"
+    assert isinstance(args[3], CustomMetadata)
+    assert args[3].value == "third"
 
 
 @pytest.mark.perf
