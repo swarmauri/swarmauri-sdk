@@ -177,14 +177,20 @@ def temp_key_file():
     temp_kid = temp_dir / "jwt_ed25519.kid"
 
     import auto_authn.v2.crypto as crypto_module
+    import auto_authn.v2.oidc_id_token as oidc_module
 
     original_dir = crypto_module._DEFAULT_KEY_DIR
     original_path = crypto_module._DEFAULT_KEY_PATH
+    original_rsa_path = oidc_module._RSA_KEY_PATH
 
     crypto_module._DEFAULT_KEY_DIR = temp_dir
     crypto_module._DEFAULT_KEY_PATH = temp_kid
     crypto_module._provider.cache_clear()
     crypto_module._load_keypair.cache_clear()
+
+    oidc_module._RSA_KEY_PATH = temp_dir / "jwt_rs256.kid"
+    oidc_module._provider.cache_clear()
+    oidc_module._service.cache_clear()
 
     yield temp_kid
 
@@ -194,6 +200,9 @@ def temp_key_file():
     crypto_module._DEFAULT_KEY_PATH = original_path
     crypto_module._provider.cache_clear()
     crypto_module._load_keypair.cache_clear()
+    oidc_module._RSA_KEY_PATH = original_rsa_path
+    oidc_module._provider.cache_clear()
+    oidc_module._service.cache_clear()
 
 
 @pytest.fixture
