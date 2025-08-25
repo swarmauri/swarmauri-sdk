@@ -3,7 +3,7 @@
 See RFC 8693: https://www.rfc-editor.org/rfc/rfc8693
 """
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import pytest
 from fastapi import FastAPI
@@ -247,10 +247,8 @@ def test_exchange_token():
         scope="read",  # Narrower scope
     )
 
-    with patch("auto_authn.v2.rfc8693.JWTCoder") as mock_jwt_coder:
-        mock_instance = MagicMock()
-        mock_jwt_coder.default.return_value = mock_instance
-        mock_instance.sign.return_value = "new-access-token-xyz"
+    with patch("auto_authn.v2.rfc8693.encode_jwt") as mock_encode_jwt:
+        mock_encode_jwt.return_value = "new-access-token-xyz"
 
         response = exchange_token(request, issuer="https://token-exchange.example.com")
 
@@ -259,12 +257,12 @@ def test_exchange_token():
         assert response.scope == "read"
         assert response.expires_in == 3600
 
-        # Verify JWT coder was called correctly
-        mock_instance.sign.assert_called_once()
-        call_args = mock_instance.sign.call_args
-        assert call_args[1]["sub"] == "user123"
-        assert call_args[1]["tid"] == "tenant-1"
-        assert call_args[1]["scopes"] == ["read"]
+        # Verify JWT helper was called correctly
+        mock_encode_jwt.assert_called_once()
+        call_args = mock_encode_jwt.call_args[1]
+        assert call_args["sub"] == "user123"
+        assert call_args["tid"] == "tenant-1"
+        assert call_args["scopes"] == ["read"]
 
 
 @pytest.mark.unit
@@ -281,10 +279,8 @@ def test_exchange_token_with_actor():
         actor_token_type=TokenType.ACCESS_TOKEN.value,
     )
 
-    with patch("auto_authn.v2.rfc8693.JWTCoder") as mock_jwt_coder:
-        mock_instance = MagicMock()
-        mock_jwt_coder.default.return_value = mock_instance
-        mock_instance.sign.return_value = "impersonation-token"
+    with patch("auto_authn.v2.rfc8693.encode_jwt") as mock_encode_jwt:
+        mock_encode_jwt.return_value = "impersonation-token"
 
         response = exchange_token(request, issuer="https://auth.example.com")
 

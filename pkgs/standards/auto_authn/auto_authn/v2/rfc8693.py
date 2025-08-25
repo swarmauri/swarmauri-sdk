@@ -14,8 +14,7 @@ from enum import Enum
 from fastapi import APIRouter, FastAPI, Form, HTTPException, status
 
 from .runtime_cfg import settings
-from .rfc7519 import decode_jwt
-from .jwtoken import JWTCoder
+from .rfc7519 import decode_jwt, encode_jwt
 
 RFC8693_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8693"
 
@@ -249,9 +248,6 @@ def exchange_token(
     if request.actor_token and request.actor_token_type:
         validate_subject_token(request.actor_token, request.actor_token_type)
 
-    # Create new token based on request
-    jwt_coder = JWTCoder.default()
-
     # Extract subject from original token
     subject_id = subject_claims.get("sub", "unknown")
     tenant_id = subject_claims.get("tid", "default")
@@ -259,8 +255,8 @@ def exchange_token(
     # Determine scope - use requested scope or inherit from subject token
     scope = request.scope or subject_claims.get("scope", "")
 
-    # Create new access token
-    access_token = jwt_coder.sign(
+    # Create new access token using swarmauri JWT utilities
+    access_token = encode_jwt(
         sub=subject_id,
         tid=tenant_id,
         scopes=scope.split() if scope else [],
