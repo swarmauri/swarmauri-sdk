@@ -42,6 +42,8 @@ from ..runtime_cfg import settings
 from ..typing import StrUUID
 from ..rfc8707 import extract_resource
 from ..rfc7009 import revoke_token
+from ..rfc6749 import RFC6749Error, validate_grant_type, validate_password_grant
+from ..rfc9126 import store_par_request, DEFAULT_PAR_EXPIRY
 from ..rfc6749 import (
     RFC6749Error,
     enforce_grant_type,
@@ -328,6 +330,18 @@ async def refresh(body: RefreshIn):
     except Exception:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "invalid refresh token")
     return TokenPair(access_token=access, refresh_token=refresh)
+
+
+# --------------------------------------------------------------------------
+#  RFC 9126 pushed authorization requests
+# --------------------------------------------------------------------------
+@router.post("/par", status_code=status.HTTP_201_CREATED)
+async def pushed_authorization_request(request: Request):
+    if not settings.enable_rfc9126:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "PAR disabled")
+    form = await request.form()
+    request_uri = store_par_request(dict(form))
+    return {"request_uri": request_uri, "expires_in": DEFAULT_PAR_EXPIRY}
 
 
 # --------------------------------------------------------------------------
