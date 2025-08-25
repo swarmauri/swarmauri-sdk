@@ -15,9 +15,11 @@ class Client(Base, GUIDPk, Timestamped, TenantBound, ActiveToggle):
     # ---------------------------------------------------------------- columns --
     client_secret_hash: bytes = acol(
         storage=S(LargeBinary(60), nullable=False),
+        field=F(),
         io=IO(in_verbs=("create",)),
     )
     redirect_uris: str = acol(
         storage=S(String, nullable=False),
         field=F(constraints={"max_length": 1000}),
+        io=IO(),
     )

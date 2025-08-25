@@ -71,6 +71,7 @@ class StatusEnum(Base, Timestamped):
 
     id: int = acol(
         storage=S(Integer, primary_key=True, autoincrement=True),
+        field=F(),
         io=IO(out_verbs=("read", "list")),
     )
     code: Status = acol(
@@ -84,6 +85,7 @@ class StatusEnum(Base, Timestamped):
     )
     label: str = acol(
         storage=S(String, nullable=False),
+        field=F(),
         io=IO(out_verbs=("read", "list")),
     )
 
