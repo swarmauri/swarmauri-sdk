@@ -14,6 +14,10 @@ async def test_import_and_get() -> None:
         alg=KeyAlg.AES256_GCM,
         uses=(KeyUse.ENCRYPT, KeyUse.DECRYPT),
         export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
+        encoding="PEM",
+        private_format="PKCS8",
+        public_format="SubjectPublicKeyInfo",
+        encryption="NoEncryption",
     )
     material = b"s3cr3t"
     ref = await provider.import_key(spec, material)
