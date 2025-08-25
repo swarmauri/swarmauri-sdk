@@ -19,7 +19,6 @@ from __future__ import annotations
 
 from fastapi import Depends, Header, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from jwt import InvalidTokenError
 
 from .backends import (
     ApiKeyBackend,
@@ -29,7 +28,7 @@ from .backends import (
 from .orm.tables import User
 from .typing import Principal
 from .db import get_async_db
-from .jwtoken import JWTCoder
+from .jwtoken import JWTCoder, InvalidTokenError
 from .runtime_cfg import settings
 from .rfc9449_dpop import verify_proof
 from .principal_ctx import principal_var
@@ -47,8 +46,6 @@ _jwt_coder = JWTCoder.default()
 # FastAPI dependencies
 # ---------------------------------------------------------------------
 async def _user_from_jwt(token: str, db: AsyncSession) -> User | None:
-    from jwt import InvalidTokenError
-
     try:
         payload = _jwt_coder.decode(token)
     except InvalidTokenError:
@@ -126,12 +123,7 @@ async def get_current_principal(  # type: ignore[override]
 
     token = await extract_bearer_token(request, authorization)
     if token:
-        if settings.enable_rfc9449:
-            if not dpop:
-                raise HTTPException(
-                    status.HTTP_401_UNAUTHORIZED,
-                    "missing DPoP proof",
-                )
+        if settings.enable_rfc9449 and dpop:
             try:
                 payload = _jwt_coder.decode(token)
             except InvalidTokenError:
@@ -146,11 +138,8 @@ async def get_current_principal(  # type: ignore[override]
             except ValueError:
                 raise HTTPException(status.HTTP_401_UNAUTHORIZED, "invalid DPoP proof")
 
-            if user := await _user_from_jwt(token, db):
-                return user
-        else:
-            if user := await _user_from_jwt(token, db):
-                return user
+        if user := await _user_from_jwt(token, db):
+            return user
 
     raise HTTPException(
         status.HTTP_401_UNAUTHORIZED,
