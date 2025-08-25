@@ -45,7 +45,6 @@ _DEFAULT_KEY_DIR = pathlib.Path(os.getenv("JWT_ED25519_KEY_DIR", "runtime_secret
 # patch this path, so keep the name `_DEFAULT_KEY_PATH` for compatibility.
 _DEFAULT_KEY_PATH = _DEFAULT_KEY_DIR / "jwt_ed25519.kid"
 
-
 @lru_cache(maxsize=1)
 def _provider() -> FileKeyProvider:
     return FileKeyProvider(_DEFAULT_KEY_DIR)
