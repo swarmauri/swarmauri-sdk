@@ -104,6 +104,8 @@ from .rfc8932 import (
     get_capability_matrix,
 )
 
+from .oidc_id_token import mint_id_token, verify_id_token
+
 __all__ = [
     "create_code_verifier",
     "create_code_challenge",
@@ -202,4 +204,6 @@ __all__ = [
     "validate_metadata_consistency",
     "get_capability_matrix",
     "RFC8932_SPEC_URL",
+    "mint_id_token",
+    "verify_id_token",
 ]

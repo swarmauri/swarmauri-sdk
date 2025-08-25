@@ -133,7 +133,7 @@ class TestOIDCDiscoveryEndpoint:
         # Check signing algorithms
         signing_algs = discovery_doc["id_token_signing_alg_values_supported"]
         assert isinstance(signing_algs, list), "Signing algorithms should be a list"
-        assert "EdDSA" in signing_algs, "Must support EdDSA algorithm"
+        assert "RS256" in signing_algs, "Must support RS256 algorithm"
 
     @pytest.mark.asyncio
     async def test_discovery_with_custom_issuer(self, async_client):
@@ -203,29 +203,24 @@ class TestJWKSEndpoint:
                 continue
             assert field in key, f"JWK must contain '{field}' field"
 
-        # Key type should be appropriate for Ed25519
-        assert key["kty"] in ["OKP"], f"Unexpected key type: {key['kty']}"
+        # Key type should be RSA for ID tokens
+        assert key["kty"] in ["RSA"], f"Unexpected key type: {key['kty']}"
 
         # Should have a key ID for rotation
         assert key["kid"], "Key should have a non-empty key ID"
 
     @pytest.mark.asyncio
-    async def test_jwk_ed25519_specific_fields(self, async_client):
-        """Test Ed25519 specific JWK fields."""
+    async def test_jwk_rsa_specific_fields(self, async_client):
+        """Test RSA specific JWK fields."""
         response = await async_client.get("/.well-known/jwks.json")
         jwks_doc = response.json()
 
         key = jwks_doc["keys"][0]
 
-        # Ed25519 keys should have specific fields
-        if key["kty"] == "OKP":
-            assert "crv" in key, "OKP key must have 'crv' (curve) field"
-            assert key["crv"] == "Ed25519", (
-                f"Expected Ed25519 curve, got: {key.get('crv')}"
-            )
-            assert "x" in key, "Ed25519 key must have 'x' field (public key)"
-
-            # Should not have private key material in public JWKS
+        # RSA keys should have modulus and exponent
+        if key["kty"] == "RSA":
+            assert "n" in key and "e" in key, "RSA key must include 'n' and 'e'"
+            # Should not expose private parameters
             assert "d" not in key, "Public JWKS should not contain private key material"
 
     @pytest.mark.asyncio
@@ -274,8 +269,7 @@ class TestJWKSEndpoint:
             assert isinstance(kid, str), "Key ID should be a string"
             assert len(kid) > 0, "Key ID should not be empty"
 
-            # For Ed25519 keys, might follow a specific pattern
-            # This is implementation-specific but we can check it's reasonable
+            # Key ID format is implementation-specific; ensure it's non-trivial
             assert len(kid) >= 3, "Key ID should be at least 3 characters"
 
     @pytest.mark.asyncio
@@ -285,13 +279,10 @@ class TestJWKSEndpoint:
         response = await async_client.get("/.well-known/jwks.json")
         jwks_doc = response.json()
 
-        # Should have at least one key
+        # Should have at least one key and it should be RSA
         assert len(jwks_doc["keys"]) >= 1
-
-        # The key should be valid Ed25519 format
         key = jwks_doc["keys"][0]
-        assert key["kty"] == "OKP"
-        assert key["crv"] == "Ed25519"
+        assert key["kty"] == "RSA"
 
 
 @pytest.mark.integration
@@ -319,16 +310,9 @@ class TestOIDCEndpointIntegration:
         # Signing algorithms in discovery should match key types in JWKS
         signing_algs = discovery_doc["id_token_signing_alg_values_supported"]
 
-        if "EdDSA" in signing_algs:
-            # Should have Ed25519 keys in JWKS
-            ed25519_keys = [
-                key
-                for key in jwks_doc["keys"]
-                if key.get("kty") == "OKP" and key.get("crv") == "Ed25519"
-            ]
-            assert len(ed25519_keys) > 0, (
-                "Should have Ed25519 keys if EdDSA is supported"
-            )
+        if "RS256" in signing_algs:
+            rsa_keys = [key for key in jwks_doc["keys"] if key.get("kty") == "RSA"]
+            assert len(rsa_keys) > 0, "Should have RSA keys if RS256 is supported"
 
     @pytest.mark.asyncio
     async def test_oidc_endpoints_security_headers(self, async_client):
@@ -415,30 +399,19 @@ class TestOIDCCompliance:
             assert "kty" in key, "Each JWK must have 'kty' parameter"
 
     @pytest.mark.asyncio
-    async def test_ed25519_key_rfc8037_compliance(self, async_client):
-        """Test that Ed25519 keys comply with RFC 8037 (CFRG Elliptic Curve Keys)."""
+    async def test_rsa_key_structure(self, async_client):
+        """Ensure RSA keys expose required parameters."""
         response = await async_client.get("/.well-known/jwks.json")
         jwks_doc = response.json()
 
-        # Find Ed25519 keys
-        ed25519_keys = [
-            key
-            for key in jwks_doc["keys"]
-            if key.get("kty") == "OKP" and key.get("crv") == "Ed25519"
-        ]
+        rsa_keys = [key for key in jwks_doc["keys"] if key.get("kty") == "RSA"]
 
-        assert len(ed25519_keys) > 0, "Should have at least one Ed25519 key"
+        assert len(rsa_keys) > 0, "Should have at least one RSA key"
 
-        for key in ed25519_keys:
-            # RFC 8037 Section 2 - OKP Key Type
-            assert key["kty"] == "OKP", "Ed25519 keys must have kty=OKP"
-            assert key["crv"] == "Ed25519", "Must specify Ed25519 curve"
-            assert "x" in key, "Must have 'x' parameter (public key)"
-
-            # x parameter should be base64url-encoded
-            x_value = key["x"]
-            assert isinstance(x_value, str), "'x' parameter must be a string"
-            assert len(x_value) > 0, "'x' parameter must not be empty"
+        for key in rsa_keys:
+            assert "n" in key and "e" in key, (
+                "RSA keys must include modulus and exponent"
+            )
 
     @pytest.mark.asyncio
     async def test_content_type_compliance(self, async_client):
