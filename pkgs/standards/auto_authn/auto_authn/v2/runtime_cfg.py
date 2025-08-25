@@ -63,6 +63,10 @@ class Settings(BaseSettings):
     # ─────── Other global settings ───────
     jwt_secret: str = Field(os.environ.get("JWT_SECRET", "insecure-dev-secret"))
     log_level: str = Field(os.environ.get("LOG_LEVEL", "INFO"))
+    enforce_rfc8252: bool = Field(
+        default=True,
+        description="Validate redirect URIs according to RFC 8252",
+    )
 
     model_config = SettingsConfigDict(env_file=None)
 
