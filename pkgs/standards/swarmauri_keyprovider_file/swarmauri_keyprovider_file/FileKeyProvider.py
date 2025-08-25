@@ -29,19 +29,37 @@ def _hash_hex(b: bytes, nbytes: int = 16) -> str:
     return h.finalize().hex()[: 2 * nbytes]
 
 
-def _pem_pub(priv) -> bytes:
-    return priv.public_key().public_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo,
-    )
+def _serialize_keypair(priv, spec: KeySpec) -> tuple[bytes, Optional[bytes]]:
+    """Serialize private and public key material according to ``spec``."""
 
-
-def _pem_priv(priv) -> bytes:
-    return priv.private_bytes(
-        serialization.Encoding.PEM,
-        serialization.PrivateFormat.PKCS8,
-        serialization.NoEncryption(),
+    encoding = (
+        serialization.Encoding[spec.encoding]
+        if spec.encoding
+        else serialization.Encoding.PEM
     )
+    public_format = (
+        serialization.PublicFormat[spec.public_format]
+        if spec.public_format
+        else serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+    public = priv.public_key().public_bytes(encoding=encoding, format=public_format)
+
+    material: Optional[bytes] = None
+    if spec.export_policy != ExportPolicy.PUBLIC_ONLY:
+        private_format = (
+            serialization.PrivateFormat[spec.private_format]
+            if spec.private_format
+            else serialization.PrivateFormat.PKCS8
+        )
+        if spec.encryption and spec.encryption != "NoEncryption":
+            raise ValueError(f"Unsupported encryption: {spec.encryption}")
+        material = priv.private_bytes(
+            encoding,
+            private_format,
+            serialization.NoEncryption(),
+        )
+
+    return public, material
 
 
 def _ensure_dir(p: Path) -> None:
@@ -178,9 +196,7 @@ class FileKeyProvider(KeyProviderBase):
                 else:
                     raise ValueError(f"Unsupported asymmetric alg: {spec.alg}")
 
-                public = _pem_pub(sk)
-                if spec.export_policy != ExportPolicy.PUBLIC_ONLY:
-                    material = _pem_priv(sk)
+                public, material = _serialize_keypair(sk, spec)
                 (vdir / "public.pem").write_bytes(public)
                 if material is not None:
                     (vdir / "private.pem").write_bytes(material)
@@ -326,9 +342,13 @@ class FileKeyProvider(KeyProviderBase):
                 else:
                     raise ValueError(f"Unsupported alg during rotate: {alg}")
 
-                public = _pem_pub(sk)
-                if export_policy != ExportPolicy.PUBLIC_ONLY:
-                    material = _pem_priv(sk)
+                tmp_spec = KeySpec(
+                    klass=klass,
+                    alg=alg,
+                    uses=uses,
+                    export_policy=export_policy,
+                )
+                public, material = _serialize_keypair(sk, tmp_spec)
                 (vdir / "public.pem").write_bytes(public)
                 if material is not None:
                     (vdir / "private.pem").write_bytes(material)
