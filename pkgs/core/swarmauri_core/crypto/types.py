@@ -42,6 +42,24 @@ else:  # pragma: no cover - runtime placeholder
 # -----------------------------
 
 
+class JWAAlg(str, Enum):
+    """Registered JWA algorithm names from RFC 7518."""
+
+    HS256 = "HS256"
+    RS256 = "RS256"
+    PS256 = "PS256"
+    ES256 = "ES256"
+    ES384 = "ES384"
+    EDDSA = "EdDSA"
+    RSA_OAEP = "RSA-OAEP"
+    RSA_OAEP_256 = "RSA-OAEP-256"
+    ECDH_ES = "ECDH-ES"
+    DIR = "dir"
+    A128GCM = "A128GCM"
+    A192GCM = "A192GCM"
+    A256GCM = "A256GCM"
+
+
 class KeyType(str, Enum):
     SYMMETRIC = "symmetric"
     RSA = "rsa"
@@ -243,6 +261,7 @@ __all__ = [
     "KeyVersion",
     "Alg",
     # enums
+    "JWAAlg",
     "KeyType",
     "KeyUse",
     "KeyState",

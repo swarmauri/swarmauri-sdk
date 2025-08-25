@@ -4,6 +4,7 @@ import pytest
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
+from swarmauri_core.crypto.types import JWAAlg
 from swarmauri_crypto_jwe import JweCrypto
 
 
@@ -24,8 +25,8 @@ def test_rsa_encrypt_decrypt_functional() -> None:
     jwe = asyncio.run(
         crypto.encrypt_compact(
             payload=b"functional",
-            alg="RSA-OAEP-256",
-            enc="A256GCM",
+            alg=JWAAlg.RSA_OAEP_256,
+            enc=JWAAlg.A256GCM,
             key={"pub": pk_pem},
         )
     )

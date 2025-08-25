@@ -22,6 +22,7 @@ from abc import ABC
 
 from swarmauri_core.keys.IKeyProvider import IKeyProvider
 from swarmauri_core.keys.types import KeySpec, KeyAlg, KeyClass, ExportPolicy, KeyUse
+from swarmauri_core.crypto.types import JWAAlg
 
 
 __all__ = ["RotatingJWTTokenService"]
@@ -50,12 +51,18 @@ def _b64u_to_bytes(s: str) -> bytes:
     return base64.urlsafe_b64decode(s + pad)
 
 
-_SIGN_ALGS = {"RS256", "PS256", "ES256", "EdDSA", "HS256"}
+_SIGN_ALGS = {
+    JWAAlg.RS256,
+    JWAAlg.PS256,
+    JWAAlg.ES256,
+    JWAAlg.EDDSA,
+    JWAAlg.HS256,
+}
 
 
-def _default_spec_for_alg(alg: str, *, label: Optional[str] = None) -> KeySpec:
+def _default_spec_for_alg(alg: JWAAlg, *, label: Optional[str] = None) -> KeySpec:
     """Choose a sensible :class:`KeySpec` for creating the initial signing key."""
-    if alg == "HS256":
+    if alg == JWAAlg.HS256:
         return KeySpec(
             klass=KeyClass.symmetric,
             alg=KeyAlg.AES256_GCM,
@@ -64,7 +71,7 @@ def _default_spec_for_alg(alg: str, *, label: Optional[str] = None) -> KeySpec:
             export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
             uses=(KeyUse.SIGN, KeyUse.VERIFY),
         )
-    if alg in {"RS256", "PS256"}:
+    if alg in {JWAAlg.RS256, JWAAlg.PS256}:
         return KeySpec(
             klass=KeyClass.asymmetric,
             alg=KeyAlg.RSA_PSS_SHA256,
@@ -73,7 +80,7 @@ def _default_spec_for_alg(alg: str, *, label: Optional[str] = None) -> KeySpec:
             export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
             uses=(KeyUse.SIGN, KeyUse.VERIFY),
         )
-    if alg == "ES256":
+    if alg == JWAAlg.ES256:
         return KeySpec(
             klass=KeyClass.asymmetric,
             alg=KeyAlg.ECDSA_P256_SHA256,
@@ -82,7 +89,7 @@ def _default_spec_for_alg(alg: str, *, label: Optional[str] = None) -> KeySpec:
             export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
             uses=(KeyUse.SIGN, KeyUse.VERIFY),
         )
-    if alg == "EdDSA":
+    if alg == JWAAlg.EDDSA:
         return KeySpec(
             klass=KeyClass.asymmetric,
             alg=KeyAlg.ED25519,
@@ -91,7 +98,7 @@ def _default_spec_for_alg(alg: str, *, label: Optional[str] = None) -> KeySpec:
             export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
             uses=(KeyUse.SIGN, KeyUse.VERIFY),
         )
-    raise ValueError(f"Unsupported alg for default spec: {alg}")
+    raise ValueError(f"Unsupported alg for default spec: {alg.value}")
 
 
 class TokenServiceBase(ABC):
@@ -113,7 +120,7 @@ class RotatingJWTTokenService(TokenServiceBase):
         self,
         key_provider: IKeyProvider,
         *,
-        alg: str = "RS256",
+        alg: JWAAlg = JWAAlg.RS256,
         base_kid: Optional[str] = None,
         create_spec: Optional[KeySpec] = None,
         default_issuer: Optional[str] = None,
@@ -123,7 +130,7 @@ class RotatingJWTTokenService(TokenServiceBase):
     ) -> None:
         super().__init__()
         if alg not in _SIGN_ALGS:
-            raise ValueError(f"Unsupported alg: {alg}")
+            raise ValueError(f"Unsupported alg: {alg.value}")
 
         self._kp = key_provider
         self._alg = alg
@@ -143,14 +150,14 @@ class RotatingJWTTokenService(TokenServiceBase):
     # ------------------------------------------------------------------
     # ITokenService interface
     # ------------------------------------------------------------------
-    def supports(self) -> Dict[str, Iterable[str]]:
+    def supports(self) -> Dict[str, Iterable[JWAAlg]]:
         return {"formats": ("JWT", "JWS"), "algs": (self._alg,)}
 
     async def mint(
         self,
         claims: Dict[str, object],
         *,
-        alg: str,
+        alg: JWAAlg,
         kid: str | None = None,
         key_version: int | None = None,
         headers: Optional[Dict[str, object]] = None,
@@ -162,7 +169,7 @@ class RotatingJWTTokenService(TokenServiceBase):
     ) -> str:
         if alg != self._alg:
             raise ValueError(
-                f"This service is configured for alg={self._alg}, got {alg}"
+                f"This service is configured for alg={self._alg.value}, got {alg.value}"
             )
 
         await self._maybe_rotate()
@@ -183,11 +190,11 @@ class RotatingJWTTokenService(TokenServiceBase):
             payload.setdefault("scope", scope)
 
         hdr = dict(headers or {})
-        hdr["alg"] = self._alg
+        hdr["alg"] = self._alg.value
         hdr["kid"] = f"{self._kid}.{self._ver}"
 
         ref = await self._kp.get_key(self._kid, self._ver, include_secret=True)
-        if self._alg == "HS256":
+        if self._alg == JWAAlg.HS256:
             if ref.material is None:
                 raise RuntimeError("HMAC secret is not exportable under current policy")
             key = ref.material
@@ -196,7 +203,7 @@ class RotatingJWTTokenService(TokenServiceBase):
             if key is None:
                 raise RuntimeError("Signing key is not exportable under current policy")
 
-        token = jwt.encode(payload, key, algorithm=self._alg, headers=hdr)
+        token = jwt.encode(payload, key, algorithm=self._alg.value, headers=hdr)
         self._mint_count += 1
         return token
 
@@ -214,14 +221,20 @@ class RotatingJWTTokenService(TokenServiceBase):
             raise jwt.InvalidTokenError(f"Invalid JWS/JWT header: {exc}") from exc
 
         header_kid = header.get("kid")
-        alg = header.get("alg")
-        if not header_kid or alg not in _SIGN_ALGS:
+        alg_val = header.get("alg")
+        if not header_kid or alg_val is None:
+            raise jwt.InvalidTokenError("Missing or unsupported kid/alg in header")
+        try:
+            alg = JWAAlg(alg_val)
+        except ValueError as exc:
+            raise jwt.InvalidTokenError(f"Unsupported alg: {alg_val}") from exc
+        if alg not in _SIGN_ALGS:
             raise jwt.InvalidTokenError("Missing or unsupported kid/alg in header")
 
         kid, ver = _parse_kid_ver(header_kid)
 
         async def resolve_key() -> object | None:
-            if alg == "HS256":
+            if alg == JWAAlg.HS256:
                 ref = await self._kp.get_key(kid, ver, include_secret=True)
                 return ref.material
 
@@ -249,7 +262,7 @@ class RotatingJWTTokenService(TokenServiceBase):
         return jwt.decode(
             token,
             key=key_obj,
-            algorithms=[alg],
+            algorithms=[alg.value],
             audience=audience,
             issuer=issuer or self._iss,
             leeway=leeway_s,
@@ -331,7 +344,7 @@ class RotatingJWTTokenService(TokenServiceBase):
         return self._kid, self._ver
 
     @property
-    def current_signing_key(self) -> Tuple[str, int, str]:
+    def current_signing_key(self) -> Tuple[str, int, JWAAlg]:
         return self._kid, self._ver, self._alg
 
 
