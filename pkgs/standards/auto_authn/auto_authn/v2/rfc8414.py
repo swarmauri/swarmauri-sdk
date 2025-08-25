@@ -37,18 +37,8 @@ def _settings_signature() -> str:
 
 
 def _build_openid_config() -> dict[str, Any]:
-    scopes = ["openid", "profile", "email", "address", "phone"]
-    claims = [
-        "sub",
-        "name",
-        "given_name",
-        "family_name",
-        "email",
-        "email_verified",
-        "address",
-        "phone_number",
-        "phone_number_verified",
-    ]
+    scopes = ["openid", "profile", "email"]
+    claims = ["sub", "name", "email"]
     response_types = [
         "code",
         "token",
