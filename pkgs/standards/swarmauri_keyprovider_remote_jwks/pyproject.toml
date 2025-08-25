@@ -20,6 +20,7 @@ classifiers = [
 dependencies = [
     "swarmauri_core",
     "swarmauri_base",
+    "swarmauri_keyprovider_local",
     "cryptography",
     "pydantic",
 ]
@@ -27,6 +28,7 @@ dependencies = [
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
+swarmauri_keyprovider_local = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
