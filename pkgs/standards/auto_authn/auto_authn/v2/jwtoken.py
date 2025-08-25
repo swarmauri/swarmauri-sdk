@@ -7,6 +7,8 @@ from datetime import datetime, timedelta, timezone
 from functools import lru_cache
 from typing import Any, Dict, Iterable, Optional, Tuple
 
+from jwt.exceptions import InvalidTokenError
+
 from .deps import (
     ExportPolicy,
     FileKeyProvider,
@@ -209,7 +211,7 @@ class JWTCoder:
             if exp is not None and int(exp) < int(
                 datetime.now(timezone.utc).timestamp()
             ):
-                raise ValueError("token is expired")
+                raise InvalidTokenError("token is expired")
         if settings.enable_rfc8705:
             if cert_thumbprint is None:
                 raise ValueError(
