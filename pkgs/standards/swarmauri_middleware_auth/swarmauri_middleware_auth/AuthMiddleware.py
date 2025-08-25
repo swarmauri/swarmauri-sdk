@@ -2,15 +2,25 @@
 AuthMiddleware implementation for handling JWT authentication.
 """
 
+import asyncio
+import json
 import logging
+import time
 from typing import Any, Callable, Dict, Optional
 
-import jwt
 from fastapi import HTTPException, Request
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.middlewares.MiddlewareBase import MiddlewareBase
+from swarmauri_core.crypto.types import JWAAlg
+from swarmauri_signing_jws import JwsSignerVerifier
 
 logger = logging.getLogger(__name__)
+
+
+class InvalidTokenError(Exception):
+    """Raised when custom JWT validation fails."""
+
+    pass
 
 
 @ComponentBase.register_type(MiddlewareBase, "AuthMiddleware")
@@ -57,6 +67,7 @@ class AuthMiddleware(MiddlewareBase, ComponentBase):
         self.verify_aud = verify_aud
         self.audience = audience
         self.issuer = issuer
+        self._jws = JwsSignerVerifier()
 
     async def dispatch(
         self, request: Request, call_next: Callable[[Request], Any]
@@ -102,7 +113,7 @@ class AuthMiddleware(MiddlewareBase, ComponentBase):
 
             # Validate the JWT token
         try:
-            payload = self._validate_jwt_token(token)
+            payload = await self._validate_jwt_token(token)
 
             # Add the decoded payload to request state for use in downstream handlers
             request.state.user = payload
@@ -112,78 +123,42 @@ class AuthMiddleware(MiddlewareBase, ComponentBase):
             )
             return await call_next(request)
 
-        except jwt.ExpiredSignatureError:
-            logger.warning("JWT token has expired")
-            raise HTTPException(status_code=401, detail="Token has expired")
-
-        except jwt.InvalidSignatureError:
-            logger.warning("JWT token has invalid signature")
-            raise HTTPException(status_code=401, detail="Invalid token signature")
-
-        except jwt.InvalidAudienceError:
-            logger.warning("JWT token has invalid audience")
-            raise HTTPException(status_code=401, detail="Invalid token audience")
-
-        except jwt.InvalidIssuerError:
-            logger.warning("JWT token has invalid issuer")
-            raise HTTPException(status_code=401, detail="Invalid token issuer")
-
-        except jwt.InvalidTokenError as e:
-            logger.warning(f"Invalid JWT token: {str(e)}")
-            raise HTTPException(status_code=401, detail="Invalid token")
-
+        except HTTPException as exc:
+            logger.warning(exc.detail)
+            raise
         except Exception as e:
             logger.error(f"Unexpected error during JWT validation: {str(e)}")
             raise HTTPException(status_code=401, detail="Authentication failed")
 
-    def _validate_jwt_token(self, token: str) -> Dict[str, Any]:
-        """Validate a JWT token and return its payload.
+    async def _validate_jwt_token(self, token: str) -> Dict[str, Any]:
+        """Validate a JWT token and return its payload."""
 
-        Args:
-            token: The JWT token string to validate
+        try:
+            res = await self._jws.verify_compact(
+                token,
+                hmac_keys=[
+                    {"kind": "raw", "key": self.secret_key, "alg": self.algorithm}
+                ],
+                alg_allowlist=[JWAAlg(self.algorithm)],
+            )
+        except Exception as e:
+            logger.debug(f"JWT signature verification failed: {e}")
+            raise HTTPException(status_code=401, detail="Invalid token signature")
 
-        Returns:
-            Dict containing the decoded JWT payload
-
-        Raises:
-            jwt.InvalidTokenError: If the token is invalid
-            jwt.ExpiredSignatureError: If the token has expired
-            jwt.InvalidSignatureError: If the token signature is invalid
-            jwt.InvalidAudienceError: If the audience claim is invalid
-            jwt.InvalidIssuerError: If the issuer claim is invalid
-        """
-
-        # Prepare verification options
-        options = {
-            "verify_signature": True,
-            "verify_exp": self.verify_exp,
-            "verify_nbf": True,  # Verify "not before" claim
-            "verify_iat": True,  # Verify "issued at" claim
-            "verify_aud": self.verify_aud,
-            "verify_iss": self.issuer is not None,
-        }
-
-        # Prepare decode arguments
-        decode_kwargs = {
-            "key": self.secret_key,
-            "algorithms": [self.algorithm],
-            "options": options,
-        }
-
-        # Add audience if specified
+        payload = json.loads(res.payload.decode("utf-8"))
+        now = int(time.time())
+        if self.verify_exp:
+            exp = payload.get("exp")
+            if exp is None or now > int(exp):
+                raise HTTPException(status_code=401, detail="Token has expired")
         if self.verify_aud and self.audience:
-            decode_kwargs["audience"] = self.audience
-
-        # Add issuer if specified
-        if self.issuer:
-            decode_kwargs["issuer"] = self.issuer
-
-        # Decode and validate the token
-        payload = jwt.decode(token, **decode_kwargs)
+            if payload.get("aud") != self.audience:
+                raise HTTPException(status_code=401, detail="Invalid token audience")
+        if self.issuer and payload.get("iss") != self.issuer:
+            raise HTTPException(status_code=401, detail="Invalid token issuer")
 
         # Additional custom validations can be added here
         self._validate_custom_claims(payload)
-
         return payload
 
     def _validate_custom_claims(self, payload: Dict[str, Any]) -> None:
@@ -196,14 +171,14 @@ class AuthMiddleware(MiddlewareBase, ComponentBase):
             payload: The decoded JWT payload
 
         Raises:
-            jwt.InvalidTokenError: If custom validation fails
+            InvalidTokenError: If custom validation fails
         """
 
         # Example: Validate required claims
         required_claims = ["sub", "iat"]
         for claim in required_claims:
             if claim not in payload:
-                raise jwt.InvalidTokenError(f"Missing required claim: {claim}")
+                raise InvalidTokenError(f"Missing required claim: {claim}")
 
     def verify_token_manually(self, token: str) -> Optional[Dict[str, Any]]:
         """Manually verify a token without raising exceptions.
@@ -218,7 +193,7 @@ class AuthMiddleware(MiddlewareBase, ComponentBase):
             Dict containing the decoded payload if valid, None if invalid
         """
         try:
-            return self._validate_jwt_token(token)
+            return asyncio.run(self._validate_jwt_token(token))
         except Exception as e:
             logger.debug(f"Token verification failed: {str(e)}")
             return None
