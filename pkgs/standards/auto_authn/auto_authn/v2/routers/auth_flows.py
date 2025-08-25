@@ -42,7 +42,12 @@ from ..runtime_cfg import settings
 from ..typing import StrUUID
 from ..rfc8707 import extract_resource
 from ..rfc7009 import revoke_token
-from ..rfc6749 import RFC6749Error, validate_grant_type, validate_password_grant
+from ..rfc6749 import (
+    RFC6749Error,
+    enforce_grant_type,
+    enforce_password_grant,
+    is_enabled as rfc6749_enabled,
+)
 from autoapi.v2.error import IntegrityError
 
 router = APIRouter()
@@ -232,13 +237,12 @@ async def token(
     data.pop("resource", None)
     grant_type = data.get("grant_type")
     aud = None
-    if settings.enable_rfc6749:
-        try:
-            validate_grant_type(grant_type, _ALLOWED_GRANT_TYPES)
-        except RFC6749Error as exc:
-            return JSONResponse(
-                {"error": str(exc)}, status_code=status.HTTP_400_BAD_REQUEST
-            )
+    try:
+        enforce_grant_type(grant_type, _ALLOWED_GRANT_TYPES)
+    except RFC6749Error as exc:
+        return JSONResponse(
+            {"error": str(exc)}, status_code=status.HTTP_400_BAD_REQUEST
+        )
     if settings.rfc8707_enabled:
         try:
             aud = extract_resource(resources)
@@ -247,13 +251,12 @@ async def token(
                 {"error": "invalid_target"}, status_code=status.HTTP_400_BAD_REQUEST
             )
     if grant_type == "password":
-        if settings.enable_rfc6749:
-            try:
-                validate_password_grant(data)
-            except RFC6749Error as exc:
-                return JSONResponse(
-                    {"error": str(exc)}, status_code=status.HTTP_400_BAD_REQUEST
-                )
+        try:
+            enforce_password_grant(data)
+        except RFC6749Error as exc:
+            return JSONResponse(
+                {"error": str(exc)}, status_code=status.HTTP_400_BAD_REQUEST
+            )
         try:
             parsed = PasswordGrantForm(**data)
         except ValidationError as exc:
@@ -290,7 +293,7 @@ async def token(
         )
         _DEVICE_CODES.pop(parsed.device_code, None)
         return TokenPair(access_token=access, refresh_token=refresh)
-    if settings.enable_rfc6749:
+    if rfc6749_enabled():
         return JSONResponse(
             {"error": "unsupported_grant_type"},
             status_code=status.HTTP_400_BAD_REQUEST,
