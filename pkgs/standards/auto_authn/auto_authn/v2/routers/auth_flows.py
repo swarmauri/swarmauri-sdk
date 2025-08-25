@@ -39,6 +39,8 @@ from ..fastapi_deps import get_async_db
 from ..orm.tables import Tenant, User
 from ..runtime_cfg import settings
 from ..typing import StrUUID
+from ..runtime_cfg import settings
+from ..rfc8707 import extract_resource
 from autoapi.v2.error import IntegrityError
 
 router = APIRouter()
@@ -218,8 +220,18 @@ async def token(
     request: Request, db: AsyncSession = Depends(get_async_db)
 ) -> TokenPair:
     form = await request.form()
+    resources = form.getlist("resource")
     data = dict(form)
+    data.pop("resource", None)
     grant_type = data.get("grant_type")
+    aud = None
+    if settings.rfc8707_enabled:
+        try:
+            aud = extract_resource(resources)
+        except ValueError:
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST, {"error": "invalid_target"}
+            )
     if grant_type == "password":
         try:
             parsed = PasswordGrantForm(**data)
@@ -229,7 +241,10 @@ async def token(
             user = await _pwd_backend.authenticate(db, parsed.username, parsed.password)
         except AuthError:
             raise HTTPException(status.HTTP_404_NOT_FOUND, "invalid credentials")
-        access, refresh = _jwt.sign_pair(sub=str(user.id), tid=str(user.tenant_id))
+        jwt_kwargs = {"aud": aud} if aud else {}
+        access, refresh = _jwt.sign_pair(
+            sub=str(user.id), tid=str(user.tenant_id), **jwt_kwargs
+        )
         return TokenPair(access_token=access, refresh_token=refresh)
     if grant_type == "urn:ietf:params:oauth:grant-type:device_code":
         try:
@@ -246,9 +261,11 @@ async def token(
             raise HTTPException(
                 status.HTTP_400_BAD_REQUEST, {"error": "authorization_pending"}
             )
+        jwt_kwargs = {"aud": aud} if aud else {}
         access, refresh = _jwt.sign_pair(
             sub=record.get("sub", "device-user"),
             tid=record.get("tid", "device-tenant"),
+            **jwt_kwargs,
         )
         _DEVICE_CODES.pop(parsed.device_code, None)
         return TokenPair(access_token=access, refresh_token=refresh)
