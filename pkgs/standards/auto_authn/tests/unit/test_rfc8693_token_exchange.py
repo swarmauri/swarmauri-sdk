@@ -6,6 +6,7 @@ See RFC 8693: https://www.rfc-editor.org/rfc/rfc8693
 from unittest.mock import patch, MagicMock
 
 import pytest
+from fastapi import FastAPI
 
 from auto_authn.v2.rfc8693 import (
     RFC8693_SPEC_URL,
@@ -18,10 +19,13 @@ from auto_authn.v2.rfc8693 import (
     create_impersonation_token,
     create_delegation_token,
     TOKEN_EXCHANGE_GRANT_TYPE,
+    include_rfc8693,
 )
 from auto_authn.v2.runtime_cfg import settings
 from auto_authn.v2.rfc7519 import encode_jwt
 import time
+
+pytestmark = pytest.mark.usefixtures("enable_rfc8693")
 
 
 @pytest.mark.unit
@@ -168,6 +172,7 @@ def test_validate_subject_token_jwt():
     # Create a valid JWT
     jwt_token = encode_jwt(
         sub="user123",
+        tid="tenant-1",
         iss="https://auth.example.com",
         aud="https://api.example.com",
         exp=int(time.time()) + 3600,
@@ -185,6 +190,7 @@ def test_validate_subject_token_access_token():
     """RFC 8693: Validate access token (JWT format)."""
     jwt_token = encode_jwt(
         sub="user123",
+        tid="tenant-1",
         scope="read write",
         exp=int(time.time()) + 3600,
     )
@@ -288,8 +294,8 @@ def test_exchange_token_with_actor():
 @pytest.mark.unit
 def test_create_impersonation_token():
     """RFC 8693: Create impersonation token."""
-    subject_jwt = encode_jwt(sub="user123", exp=int(time.time()) + 3600)
-    actor_jwt = encode_jwt(sub="admin456", exp=int(time.time()) + 3600)
+    subject_jwt = encode_jwt(sub="user123", tid="tenant-1", exp=int(time.time()) + 3600)
+    actor_jwt = encode_jwt(sub="admin456", tid="tenant-1", exp=int(time.time()) + 3600)
 
     with patch("auto_authn.v2.rfc8693.exchange_token") as mock_exchange:
         mock_response = TokenExchangeResponse(access_token="impersonation-token")
@@ -317,7 +323,10 @@ def test_create_impersonation_token():
 def test_create_delegation_token():
     """RFC 8693: Create delegation token."""
     subject_jwt = encode_jwt(
-        sub="user123", scope="read write admin", exp=int(time.time()) + 3600
+        sub="user123",
+        tid="tenant-1",
+        scope="read write admin",
+        exp=int(time.time()) + 3600,
     )
 
     with patch("auto_authn.v2.rfc8693.exchange_token") as mock_exchange:
@@ -339,6 +348,45 @@ def test_create_delegation_token():
         call_args = mock_exchange.call_args[0][0]
         assert call_args.actor_token is None
         assert call_args.scope == "read"
+
+
+@pytest.mark.unit
+def test_exchange_token_disabled():
+    """RFC 8693: exchange_token should honor feature flag."""
+    subject_jwt = encode_jwt(sub="user123", tid="tenant-1", exp=int(time.time()) + 3600)
+    request = TokenExchangeRequest(
+        grant_type=TOKEN_EXCHANGE_GRANT_TYPE,
+        subject_token=subject_jwt,
+        subject_token_type=TokenType.ACCESS_TOKEN.value,
+    )
+
+    with patch.object(settings, "enable_rfc8693", False):
+        with pytest.raises(RuntimeError, match="RFC 8693 support disabled"):
+            exchange_token(request, issuer="https://auth.example.com")
+
+
+@pytest.mark.unit
+def test_create_impersonation_token_disabled():
+    """RFC 8693: create_impersonation_token should honor feature flag."""
+    subject_jwt = encode_jwt(sub="user123", tid="tenant-1", exp=int(time.time()) + 3600)
+    actor_jwt = encode_jwt(sub="admin456", tid="tenant-1", exp=int(time.time()) + 3600)
+
+    with patch.object(settings, "enable_rfc8693", False):
+        with pytest.raises(RuntimeError, match="RFC 8693 support disabled"):
+            create_impersonation_token(
+                subject_token=subject_jwt,
+                actor_token=actor_jwt,
+            )
+
+
+@pytest.mark.unit
+def test_create_delegation_token_disabled():
+    """RFC 8693: create_delegation_token should honor feature flag."""
+    subject_jwt = encode_jwt(sub="user123", tid="tenant-1", exp=int(time.time()) + 3600)
+
+    with patch.object(settings, "enable_rfc8693", False):
+        with pytest.raises(RuntimeError, match="RFC 8693 support disabled"):
+            create_delegation_token(subject_token=subject_jwt)
 
 
 @pytest.mark.unit
@@ -370,3 +418,19 @@ def test_rfc8693_spec_url():
     """RFC 8693: Spec URL should be valid."""
     assert RFC8693_SPEC_URL.startswith("https://")
     assert "8693" in RFC8693_SPEC_URL
+
+
+@pytest.mark.unit
+def test_include_rfc8693_router_toggle():
+    """RFC 8693: include_rfc8693 respects feature flag."""
+    app = FastAPI()
+
+    with patch.object(settings, "enable_rfc8693", True):
+        with patch.object(app, "include_router") as mock_include:
+            include_rfc8693(app)
+            mock_include.assert_called_once()
+
+    with patch.object(settings, "enable_rfc8693", False):
+        with patch.object(app, "include_router") as mock_include:
+            include_rfc8693(app)
+            mock_include.assert_not_called()
