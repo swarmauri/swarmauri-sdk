@@ -91,6 +91,11 @@ class Settings(BaseSettings):
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7009", "false").lower()
         in {"1", "true", "yes"}
     )
+    enable_rfc8414: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8414", "true").lower()
+        in {"1", "true", "yes"},
+        description="Enable OAuth 2.0 Authorization Server Metadata per RFC 8414",
+    )
 
     model_config = SettingsConfigDict(env_file=None)
 
