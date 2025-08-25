@@ -93,7 +93,7 @@ class VaultTransitKeyProvider(KeyProviderBase):
                 KeyAlg.ECDSA_P256_SHA256,
                 KeyAlg.ED25519,
             ),
-            "features": ("rotate", "jwks", "non_exportable"),
+            "features": ("create", "rotate", "jwks", "non_exportable"),
         }
 
     # ------------------------------------------------------------------
