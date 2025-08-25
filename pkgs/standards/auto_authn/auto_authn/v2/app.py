@@ -15,7 +15,6 @@ Features
 
 from __future__ import annotations
 
-import os
 import sys
 
 import fastapi
@@ -24,7 +23,7 @@ from autoapi.v2 import get_schema  # convenience helper for /methodz
 from .routers.auth_flows import router as flows_router
 from .routers.crud import crud_api as crud_api
 from .runtime_cfg import settings
-from .rfc8414 import include_rfc8414
+from .rfc8414 import JWKS_PATH, ISSUER, include_rfc8414
 from .rfc8628 import include_rfc8628
 from .rfc9126 import include_rfc9126
 from .rfc7009 import include_rfc7009
@@ -82,29 +81,27 @@ async def methodz():
 # --------------------------------------------------------------------
 # OIDC discovery + JWKS
 # --------------------------------------------------------------------
-JWKS_PATH = "/.well-known/jwks.json"
-ISSUER = os.getenv("AUTHN_ISSUER", "https://authn.example.com")  # adjust in prod
 
 
 @app.get("/.well-known/openid-configuration", include_in_schema=False)
 async def oidc_config():
     return {
         "issuer": ISSUER,
-        "jwks_uri": f"{ISSUER}{JWKS_PATH}",
+        "authorization_endpoint": f"{ISSUER}/authorize",
         "token_endpoint": f"{ISSUER}/token",
+        "userinfo_endpoint": f"{ISSUER}/userinfo",
         "registration_endpoint": f"{ISSUER}/register",
+        "jwks_uri": f"{ISSUER}{JWKS_PATH}",
         "scopes_supported": ["openid", "profile", "email"],
-        "response_types_supported": ["token"],
+        "response_types_supported": ["code", "id_token"],
         "subject_types_supported": ["public"],
-        "id_token_signing_alg_values_supported": ["EdDSA"],
+        "id_token_signing_alg_values_supported": ["RS256"],
     }
 
 
 @app.get(JWKS_PATH, include_in_schema=False)
 async def jwks():
-    """
-    Return Ed25519 public key in RFC 7517 JWK Set format.
-    """
+    """Return public key in RFC 7517 JWK Set format."""
     from .crypto import _provider, _ensure_key
 
     kid, _, _ = await _ensure_key()
