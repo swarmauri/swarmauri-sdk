@@ -1,21 +1,23 @@
 from __future__ import annotations
 
+import json
 import time
 from typing import Any, Dict, Iterable, Literal, Mapping, Optional
 
-import jwt
-from jwt import algorithms
+from cryptography.hazmat.primitives import serialization
 
 from swarmauri_base.tokens import TokenServiceBase
 from swarmauri_core.crypto.types import JWAAlg
-from swarmauri_core.keys import IKeyProvider, KeyAlg
+from swarmauri_core.keys import IKeyProvider
+from swarmauri_signing_jws import JwsSignerVerifier
 
-ALG_MAP_SIGN = {
-    JWAAlg.RS256: KeyAlg.RSA_PSS_SHA256,
-    JWAAlg.PS256: KeyAlg.RSA_PSS_SHA256,
-    JWAAlg.ES256: KeyAlg.ECDSA_P256_SHA256,
-    JWAAlg.EDDSA: KeyAlg.ED25519,
-    JWAAlg.HS256: KeyAlg.HMAC_SHA256,
+# Supported algorithms for signing/verifying.
+ALG_MAP_SIGN: Mapping[JWAAlg, str] = {
+    JWAAlg.RS256: "RSA",
+    JWAAlg.PS256: "RSA",
+    JWAAlg.ES256: "EC",
+    JWAAlg.EDDSA: "OKP",
+    JWAAlg.HS256: "oct",
 }
 
 
@@ -30,6 +32,7 @@ class JWTTokenService(TokenServiceBase):
         super().__init__()
         self._kp = key_provider
         self._iss = default_issuer
+        self._jws = JwsSignerVerifier()
 
     def supports(self) -> Mapping[str, Iterable[JWAAlg]]:
         return {"formats": ("JWT", "JWS"), "algs": tuple(ALG_MAP_SIGN.keys())}
@@ -65,26 +68,30 @@ class JWTTokenService(TokenServiceBase):
 
         headers = dict(headers or {})
 
+        if not kid:
+            raise ValueError("mint requires 'kid' of a signing key")
+
+        ref = await self._kp.get_key(kid, key_version, include_secret=True)
+        kid_header = headers.pop("kid", f"{ref.kid}.{ref.version}")
+
         if alg == JWAAlg.HS256:
-            if not kid:
-                raise ValueError("HS256 mint requires 'kid' of a symmetric key")
-            ref = await self._kp.get_key(kid, key_version, include_secret=True)
             if ref.material is None:
                 raise RuntimeError("HMAC secret is not exportable under current policy")
-            key = ref.material
-            headers.setdefault("kid", f"{ref.kid}.{ref.version}")
-            return jwt.encode(payload, key, algorithm=alg.value, headers=headers)
+            key_obj: Mapping[str, Any] = {"kind": "raw", "key": ref.material}
+        else:
+            if ref.material is None:
+                raise RuntimeError("Signing key is not exportable under current policy")
+            priv = serialization.load_pem_private_key(ref.material, password=None)
+            key_obj = {"kind": "cryptography_obj", "obj": priv}
 
-        if not kid:
-            raise ValueError("asymmetric mint requires 'kid' of a signing key")
-        ref = await self._kp.get_key(kid, key_version, include_secret=True)
-        headers.setdefault("kid", f"{ref.kid}.{ref.version}")
-
-        key = ref.material
-        if key is None:
-            raise RuntimeError("Signing key is not exportable under current policy")
-
-        return jwt.encode(payload, key, algorithm=alg.value, headers=headers)
+        token = await self._jws.sign_compact(
+            payload=payload,
+            alg=alg,
+            key=key_obj,
+            kid=kid_header,
+            header_extra=headers or None,
+        )
+        return token
 
     async def verify(
         self,
@@ -96,37 +103,47 @@ class JWTTokenService(TokenServiceBase):
     ) -> Dict[str, Any]:
         jwks = await self._kp.jwks()
 
-        def _key_resolver(hdr: dict[str, Any], payload: dict[str, Any]) -> Any:
-            kid = hdr.get("kid")
+        def _resolver(kid: str | None, alg: str) -> Optional[Mapping[str, Any]]:
             if not kid:
                 return None
             for jwk in jwks.get("keys", []):
-                if jwk.get("kid") != kid:
-                    continue
-                kty = jwk.get("kty")
-                if kty == "RSA":
-                    return algorithms.RSAAlgorithm.from_jwk(jwk)
-                if kty == "EC":
-                    return algorithms.ECAlgorithm.from_jwk(jwk)
-                if kty == "OKP":
-                    return algorithms.OKPAlgorithm.from_jwk(jwk)
-                if kty == "oct":
-                    return algorithms.HMACAlgorithm.from_jwk(jwk)
+                if jwk.get("kid") == kid:
+                    return jwk
             return None
 
-        hdr = jwt.get_unverified_header(token)
-        key = _key_resolver(hdr, {})
-
-        options = {"verify_aud": audience is not None}
-        return jwt.decode(
+        res = await self._jws.verify_compact(
             token,
-            key=key,
-            algorithms=[a.value for a in self.supports()["algs"]],
-            audience=audience,
-            issuer=issuer or self._iss,
-            leeway=leeway_s,
-            options=options,
+            jwks_resolver=_resolver,
+            alg_allowlist=self.supports()["algs"],
         )
+
+        payload: Dict[str, Any] = json.loads(res.payload)
+
+        now = int(time.time())
+        exp = payload.get("exp")
+        if exp is not None and now > int(exp) + leeway_s:
+            raise ValueError("token expired")
+        nbf = payload.get("nbf")
+        if nbf is not None and now + leeway_s < int(nbf):
+            raise ValueError("token not yet valid")
+
+        iss_expected = issuer or self._iss
+        if iss_expected and payload.get("iss") != iss_expected:
+            raise ValueError("issuer mismatch")
+
+        if audience is not None:
+            aud_claim = payload.get("aud")
+            if isinstance(aud_claim, str):
+                aud_list = [aud_claim]
+            elif isinstance(aud_claim, list):
+                aud_list = aud_claim
+            else:
+                raise ValueError("audience claim missing")
+            exp_aud = audience if isinstance(audience, list) else [audience]
+            if not any(a in aud_list for a in exp_aud):
+                raise ValueError("audience mismatch")
+
+        return payload
 
     async def jwks(self) -> dict:
         return await self._kp.jwks()
