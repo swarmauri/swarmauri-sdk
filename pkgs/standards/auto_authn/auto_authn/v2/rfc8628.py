@@ -18,7 +18,11 @@ from .runtime_cfg import settings
 
 # Character set for user_code per RFC 8628 §6.1 (uppercase letters and digits)
 _USER_CODE_CHARSET: Final = string.ascii_uppercase + string.digits
-_USER_CODE_RE: Final = re.compile(r"^[A-Z0-9]{8}$")
+# Accept codes of length 8 or greater to match RFC 8628 recommendations
+_USER_CODE_RE: Final = re.compile(r"^[A-Z0-9]{8,}$")
+
+# Public URL of the RFC for reference in logs or documentation
+RFC8628_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc8628"
 
 
 def generate_user_code(length: int = 8) -> str:
@@ -54,4 +58,9 @@ def generate_device_code() -> str:
     return secrets.token_urlsafe(32)
 
 
-__all__ = ["generate_user_code", "validate_user_code", "generate_device_code"]
+__all__ = [
+    "generate_user_code",
+    "validate_user_code",
+    "generate_device_code",
+    "RFC8628_SPEC_URL",
+]

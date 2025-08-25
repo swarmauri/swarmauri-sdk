@@ -9,7 +9,12 @@ digits.
 
 import pytest
 
-from auto_authn.v2 import generate_device_code, generate_user_code, validate_user_code
+from auto_authn.v2 import (
+    RFC8628_SPEC_URL,
+    generate_device_code,
+    generate_user_code,
+    validate_user_code,
+)
 import auto_authn.v2.rfc8628 as rfc8628_mod
 
 
@@ -20,6 +25,23 @@ def test_generate_user_code_matches_rfc8628_requirements():
     code = generate_user_code()
     assert len(code) == 8
     assert code.isupper() and code.isalnum()
+
+
+@pytest.mark.unit
+def test_generate_user_code_custom_length_and_charset():
+    """Custom length codes remain compliant with RFC 8628 §6.1."""
+
+    code = generate_user_code(10)
+    assert len(code) == 10
+    assert set(code).issubset(set("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"))
+
+
+@pytest.mark.unit
+def test_generate_user_code_invalid_length():
+    """Length <= 0 raises ValueError as per implementation guidance."""
+
+    with pytest.raises(ValueError):
+        generate_user_code(0)
 
 
 @pytest.mark.unit
@@ -39,6 +61,13 @@ def test_validate_user_code_rejects_invalid():
 
 
 @pytest.mark.unit
+def test_validate_user_code_accepts_longer_codes():
+    """Codes longer than 8 characters are accepted."""
+
+    assert validate_user_code("ABCD123456")
+
+
+@pytest.mark.unit
 def test_validation_skipped_when_disabled(monkeypatch):
     """When RFC 8628 is disabled validation always passes."""
 
@@ -54,3 +83,10 @@ def test_generate_device_code_characteristics():
     assert len(code) >= 43
     allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
     assert all(ch in allowed for ch in code)
+
+
+@pytest.mark.unit
+def test_rfc8628_spec_url_constant():
+    """The exported SPEC URL points to the official RFC."""
+
+    assert RFC8628_SPEC_URL.endswith("rfc8628")

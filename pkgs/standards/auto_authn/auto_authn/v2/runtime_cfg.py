@@ -92,10 +92,17 @@ class Settings(BaseSettings):
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC9396", "0").lower()
         in {"1", "true", "yes"},
         description=("Enable OAuth 2.0 Rich Authorization Requests per RFC 9396"),
+    enable_rfc9396: bool = Field(default=os.environ.get("ENABLE_RFC9396", "0") == "1")
+    enable_rfc9101: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC9101", "false").lower()
+        in {"1", "true", "yes"},
+        description="Enable JWT-Secured Authorization Request per RFC 9101",
+
     )
     enable_rfc7009: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7009", "false").lower()
-        in {"1", "true", "yes"}
+        in {"1", "true", "yes"},
+        description="Enable OAuth 2.0 Token Revocation per RFC 7009",
     )
     enable_rfc8414: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8414", "true").lower()
@@ -111,6 +118,11 @@ class Settings(BaseSettings):
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC9126", "false").lower()
         in {"1", "true", "yes"},
         description="Enable Pushed Authorization Requests per RFC 9126",
+    )
+    enable_rfc9068: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC9068", "false").lower()
+        in {"1", "true", "yes"},
+        description="Enable JWT Profile for OAuth 2.0 Access Tokens per RFC 9068",
     )
     enable_rfc6750: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC6750", "true").lower()
@@ -138,6 +150,36 @@ class Settings(BaseSettings):
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8628", "true").lower()
         in {"1", "true", "yes"},
         description="Enable Device Authorization Grant per RFC 8628",
+    )
+    enable_rfc7515: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7515", "true").lower()
+        in {"1", "true", "yes"},
+        description="Enable JSON Web Signature per RFC 7515",
+    )
+    enable_rfc7516: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7516", "true").lower()
+        in {"1", "true", "yes"},
+        description="Enable JSON Web Encryption per RFC 7516",
+    )
+    enable_rfc7517: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7517", "true").lower()
+        in {"1", "true", "yes"},
+        description="Enable JSON Web Key per RFC 7517",
+    )
+    enable_rfc7518: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7518", "true").lower()
+        in {"1", "true", "yes"},
+        description="Enable JSON Web Algorithms per RFC 7518",
+    )
+    enable_rfc7519: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7519", "true").lower()
+        in {"1", "true", "yes"},
+        description="Enable JSON Web Token per RFC 7519",
+    )
+    enable_rfc7520: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7520", "true").lower()
+        in {"1", "true", "yes"},
+        description="Enable JOSE examples per RFC 7520",
     )
 
     model_config = SettingsConfigDict(env_file=None)

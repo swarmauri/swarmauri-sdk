@@ -31,7 +31,7 @@ A refresh-token has a longer TTL and carries a distinct `"typ": "refresh"`.
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Tuple, Optional
+from typing import Any, Dict, Iterable, Optional, Tuple
 
 import jwt
 from jwt.exceptions import InvalidTokenError
@@ -79,6 +79,8 @@ class JWTCoder:
         tid: str,
         ttl: timedelta = _ACCESS_TTL,
         typ: str = "access",
+        issuer: Optional[str] = None,
+        audience: Optional[Iterable[str] | str] = None,
         cert_thumbprint: Optional[str] = None,
         **extra: Any,
     ) -> str:
@@ -111,6 +113,14 @@ class JWTCoder:
                     "cert_thumbprint required when RFC 8705 support is enabled"
                 )
             payload["cnf"] = {"x5t#S256": cert_thumbprint}
+        if settings.enable_rfc9068:
+            if issuer is None or audience is None:
+                raise ValueError(
+                    "issuer and audience required when RFC 9068 support is enabled"
+                )
+            from .rfc9068 import add_rfc9068_claims
+
+            payload = add_rfc9068_claims(payload, issuer=issuer, audience=audience)
         return jwt.encode(payload, self._priv, algorithm=_ALG)
 
     def sign_pair(
@@ -129,7 +139,12 @@ class JWTCoder:
         return access, refresh
 
     def decode(
-        self, token: str, verify_exp: bool = True, cert_thumbprint: Optional[str] = None
+        self,
+        token: str,
+        verify_exp: bool = True,
+        issuer: Optional[str] = None,
+        audience: Optional[Iterable[str] | str] = None,
+        cert_thumbprint: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Verify signature and (optionally) expiration, return payload dict.
@@ -152,6 +167,14 @@ class JWTCoder:
                     "certificate thumbprint required for mTLS per RFC 8705"
                 )
             validate_certificate_binding(payload, cert_thumbprint)
+        if settings.enable_rfc9068:
+            if issuer is None or audience is None:
+                raise InvalidTokenError(
+                    "issuer and audience required for JWT access tokens per RFC 9068"
+                )
+            from .rfc9068 import validate_rfc9068_claims
+
+            validate_rfc9068_claims(payload, issuer=issuer, audience=audience)
         return payload
 
     # -----------------------------------------------------------------
