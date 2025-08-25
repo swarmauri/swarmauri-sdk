@@ -44,7 +44,9 @@ async def authorization_server_metadata():
 
 def include_rfc8414(app: FastAPI) -> None:
     """Attach the RFC 8414 router to *app* if enabled."""
-    if settings.enable_rfc8414:
+    if settings.enable_rfc8414 and not any(
+        route.path == "/.well-known/oauth-authorization-server" for route in app.routes
+    ):
         app.include_router(router)
 
 
