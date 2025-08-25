@@ -67,7 +67,6 @@ def get_enhanced_authorization_server_metadata() -> Dict[str, Any]:
         "authorization_endpoint": f"{ISSUER}/authorize",
         "token_endpoint": f"{ISSUER}/token",
         "jwks_uri": f"{ISSUER}{JWKS_PATH}",
-        "registration_endpoint": f"{ISSUER}/register",
         "scopes_supported": [
             "openid",
             "profile",
@@ -124,6 +123,8 @@ def get_enhanced_authorization_server_metadata() -> Dict[str, Any]:
         ],
         "code_challenge_methods_supported": ["S256"],
     }
+    if settings.enable_rfc7591:
+        base_metadata["registration_endpoint"] = f"{ISSUER}/clients"
 
     # Enhanced metadata extensions
     enhanced_metadata = {}
