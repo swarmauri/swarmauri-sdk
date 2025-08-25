@@ -240,7 +240,12 @@ class TestGetCurrentPrincipal:
     """Test get_current_principal dependency functionality."""
 
     @pytest.mark.asyncio
-    async def test_get_current_principal_with_valid_api_key(self):
+    @pytest.fixture
+    def dummy_request(self) -> Request:
+        """Return a minimal ASGI request object for dependency tests."""
+        return Request({"type": "http", "headers": [], "method": "GET", "path": "/"})
+
+    async def test_get_current_principal_with_valid_api_key(self, dummy_request):
         """Test principal resolution with valid API key."""
         mock_user = MagicMock()
         mock_user.id = uuid.uuid4()
@@ -252,14 +257,14 @@ class TestGetCurrentPrincipal:
             "auto_authn.v2.fastapi_deps._user_from_api_key", return_value=mock_user
         ):
             principal = await get_current_principal(
-                authorization="", api_key=api_key, db=mock_db
+                dummy_request, authorization="", api_key=api_key, db=mock_db
             )
 
             assert principal is not None
             assert principal.id == mock_user.id
 
     @pytest.mark.asyncio
-    async def test_get_current_principal_with_valid_jwt(self):
+    async def test_get_current_principal_with_valid_jwt(self, dummy_request):
         """Test principal resolution with valid JWT token."""
         mock_user = MagicMock()
         mock_user.id = uuid.uuid4()
@@ -269,14 +274,14 @@ class TestGetCurrentPrincipal:
 
         with patch("auto_authn.v2.fastapi_deps._user_from_jwt", return_value=mock_user):
             principal = await get_current_principal(
-                authorization=authorization, api_key=None, db=mock_db
+                dummy_request, authorization=authorization, api_key=None, db=mock_db
             )
 
             assert principal is not None
             assert principal.id == mock_user.id
 
     @pytest.mark.asyncio
-    async def test_get_current_principal_api_key_takes_precedence(self):
+    async def test_get_current_principal_api_key_takes_precedence(self, dummy_request):
         """Test that API key takes precedence over JWT when both are provided."""
         mock_user = MagicMock()
         mock_user.id = uuid.uuid4()
@@ -292,7 +297,10 @@ class TestGetCurrentPrincipal:
                 "auto_authn.v2.fastapi_deps._user_from_jwt", return_value=mock_user
             ) as mock_jwt:
                 principal = await get_current_principal(
-                    authorization=authorization, api_key=api_key, db=mock_db
+                    dummy_request,
+                    authorization=authorization,
+                    api_key=api_key,
+                    db=mock_db,
                 )
 
                 assert principal is not None
@@ -304,7 +312,7 @@ class TestGetCurrentPrincipal:
                 mock_jwt.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_get_current_principal_falls_back_to_jwt(self):
+    async def test_get_current_principal_falls_back_to_jwt(self, dummy_request):
         """Test fallback to JWT when API key is invalid."""
         mock_user = MagicMock()
         mock_user.id = uuid.uuid4()
@@ -318,39 +326,46 @@ class TestGetCurrentPrincipal:
                 "auto_authn.v2.fastapi_deps._user_from_jwt", return_value=mock_user
             ):
                 principal = await get_current_principal(
-                    authorization=authorization, api_key=api_key, db=mock_db
+                    dummy_request,
+                    authorization=authorization,
+                    api_key=api_key,
+                    db=mock_db,
                 )
 
                 assert principal is not None
                 assert principal.id == mock_user.id
 
     @pytest.mark.asyncio
-    async def test_get_current_principal_with_no_credentials(self):
+    async def test_get_current_principal_with_no_credentials(self, dummy_request):
         """Test principal resolution with no credentials raises HTTP 401."""
         mock_db = AsyncMock(spec=AsyncSession)
 
         with pytest.raises(HTTPException) as exc_info:
-            await get_current_principal(authorization="", api_key=None, db=mock_db)
+            await get_current_principal(
+                dummy_request, authorization="", api_key=None, db=mock_db
+            )
 
         assert exc_info.value.status_code == 401
         assert "invalid or missing credentials" in exc_info.value.detail
         assert exc_info.value.headers == {"WWW-Authenticate": 'Bearer realm="authn"'}
 
     @pytest.mark.asyncio
-    async def test_get_current_principal_with_invalid_bearer_format(self):
+    async def test_get_current_principal_with_invalid_bearer_format(
+        self, dummy_request
+    ):
         """Test principal resolution with malformed Bearer token."""
         mock_db = AsyncMock(spec=AsyncSession)
         authorization = "InvalidFormat token"
 
         with pytest.raises(HTTPException) as exc_info:
             await get_current_principal(
-                authorization=authorization, api_key=None, db=mock_db
+                dummy_request, authorization=authorization, api_key=None, db=mock_db
             )
 
         assert exc_info.value.status_code == 401
 
     @pytest.mark.asyncio
-    async def test_get_current_principal_with_invalid_credentials(self):
+    async def test_get_current_principal_with_invalid_credentials(self, dummy_request):
         """Test principal resolution with invalid API key and JWT."""
         mock_db = AsyncMock(spec=AsyncSession)
         api_key = "invalid-api-key"
@@ -360,7 +375,10 @@ class TestGetCurrentPrincipal:
             with patch("auto_authn.v2.fastapi_deps._user_from_jwt", return_value=None):
                 with pytest.raises(HTTPException) as exc_info:
                     await get_current_principal(
-                        authorization=authorization, api_key=api_key, db=mock_db
+                        dummy_request,
+                        authorization=authorization,
+                        api_key=api_key,
+                        db=mock_db,
                     )
 
                 assert exc_info.value.status_code == 401

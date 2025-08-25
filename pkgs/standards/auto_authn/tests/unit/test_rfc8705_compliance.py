@@ -50,9 +50,9 @@ def test_thumbprint_and_binding_helpers():
     cert_pem = _generate_cert_pem()
     thumbprint = thumbprint_from_cert_pem(cert_pem)
     payload = {"cnf": {"x5t#S256": thumbprint}}
-    validate_certificate_binding(payload, thumbprint)  # should not raise
+    validate_certificate_binding(payload, thumbprint, enabled=True)  # should not raise
     with pytest.raises(InvalidTokenError):
-        validate_certificate_binding(payload, "mismatch")
+        validate_certificate_binding(payload, "mismatch", enabled=True)
 
 
 @pytest.mark.unit
