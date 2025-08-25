@@ -31,6 +31,10 @@ def encrypt_push_message(
         enabled = settings.enable_rfc8291
     if not enabled:
         return plaintext
+    if len(key) != 16:
+        raise ValueError("RFC 8291 requires a 16-byte key")
+    if len(nonce) != 12:
+        raise ValueError("RFC 8291 requires a 12-byte nonce")
     aesgcm = AESGCM(key)
     return aesgcm.encrypt(nonce, plaintext, associated_data=None)
 
@@ -47,6 +51,10 @@ def decrypt_push_message(
         enabled = settings.enable_rfc8291
     if not enabled:
         return ciphertext
+    if len(key) != 16:
+        raise ValueError("RFC 8291 requires a 16-byte key")
+    if len(nonce) != 12:
+        raise ValueError("RFC 8291 requires a 12-byte nonce")
     aesgcm = AESGCM(key)
     return aesgcm.decrypt(nonce, ciphertext, associated_data=None)
 
