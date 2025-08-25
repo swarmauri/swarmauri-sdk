@@ -14,7 +14,7 @@ import json
 
 from .deps import JWAAlg, JwsSignerVerifier
 
-from .runtime_cfg import settings
+from . import runtime_cfg
 
 RFC9101_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc9101"
 _signer = JwsSignerVerifier()
@@ -30,7 +30,7 @@ async def create_request_object(
     RuntimeError
         If RFC 9101 support is disabled via ``settings.enable_rfc9101``.
     """
-    if not settings.enable_rfc9101:
+    if not runtime_cfg.settings.enable_rfc9101:
         raise RuntimeError(f"RFC 9101 support disabled: {RFC9101_SPEC_URL}")
     alg = JWAAlg(algorithm)
     key = {"kind": "raw", "key": secret.encode()}
@@ -47,7 +47,7 @@ async def parse_request_object(
     RuntimeError
         If RFC 9101 support is disabled via ``settings.enable_rfc9101``.
     """
-    if not settings.enable_rfc9101:
+    if not runtime_cfg.settings.enable_rfc9101:
         raise RuntimeError(f"RFC 9101 support disabled: {RFC9101_SPEC_URL}")
 
     alg_allowlist = None

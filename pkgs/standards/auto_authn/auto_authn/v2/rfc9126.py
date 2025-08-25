@@ -16,7 +16,7 @@ from typing import Any, Dict, Final, Tuple
 
 from fastapi import APIRouter, FastAPI, HTTPException, Request, status
 
-from .runtime_cfg import settings
+from . import runtime_cfg
 
 # In-memory storage mapping request_uri -> (params, expiry)
 _PAR_STORE: Dict[str, Tuple[Dict[str, Any], datetime]] = {}
@@ -64,7 +64,7 @@ def reset_par_store() -> None:
 async def pushed_authorization_request(request: Request):
     """Endpoint for RFC 9126 pushed authorization requests."""
 
-    if not settings.enable_rfc9126:
+    if not runtime_cfg.settings.enable_rfc9126:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "PAR disabled")
     form = await request.form()
     request_uri = store_par_request(dict(form))
@@ -74,7 +74,7 @@ async def pushed_authorization_request(request: Request):
 def include_rfc9126(app: FastAPI) -> None:
     """Attach the RFC 9126 router to *app* if enabled."""
 
-    if settings.enable_rfc9126 and not any(
+    if runtime_cfg.settings.enable_rfc9126 and not any(
         route.path == "/par" for route in app.routes
     ):
         app.include_router(router)

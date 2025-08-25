@@ -269,4 +269,4 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=None)
 
 
-settings = Settings()
+settings = globals().get("settings", Settings())

@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import Final, FrozenSet
 
-from .runtime_cfg import settings
+from . import runtime_cfg
 
 RFC8812_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc8812"
 
@@ -45,7 +45,7 @@ def is_webauthn_algorithm(alg: object, *, enabled: bool | None = None) -> bool:
     """
 
     if enabled is None:
-        enabled = settings.enable_rfc8812
+        enabled = runtime_cfg.settings.enable_rfc8812
     if not enabled:
         return True
     if not isinstance(alg, str):

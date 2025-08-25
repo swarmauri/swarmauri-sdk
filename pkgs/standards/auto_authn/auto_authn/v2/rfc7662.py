@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, Final
 
-from .runtime_cfg import settings
+from . import runtime_cfg
 
 RFC7662_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc7662"
 
@@ -35,7 +35,7 @@ def introspect_token(token: str) -> Dict[str, Any]:
     RuntimeError
         If RFC 7662 support is disabled via settings.
     """
-    if not settings.enable_rfc7662:
+    if not runtime_cfg.settings.enable_rfc7662:
         raise RuntimeError(f"RFC 7662 support is disabled: {RFC7662_SPEC_URL}")
     return _ACTIVE_TOKENS.get(token, {"active": False})
 

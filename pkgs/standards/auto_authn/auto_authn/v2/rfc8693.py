@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Optional, Union
 from enum import Enum
 from fastapi import APIRouter, FastAPI, Form, HTTPException, status
 
-from .runtime_cfg import settings
+from . import runtime_cfg
 from .rfc7519 import decode_jwt
 from .jwtoken import JWTCoder
 
@@ -28,7 +28,7 @@ router = APIRouter()
 def include_rfc8693(app: FastAPI) -> None:
     """Attach the RFC 8693 router to *app* if enabled."""
 
-    if settings.enable_rfc8693 and not any(
+    if runtime_cfg.settings.enable_rfc8693 and not any(
         route.path == "/token/exchange" for route in app.routes
     ):
         app.include_router(router)
@@ -174,7 +174,7 @@ def validate_token_exchange_request(
         RuntimeError: If RFC 8693 support is disabled
         ValueError: If validation fails
     """
-    if not settings.enable_rfc8693:
+    if not runtime_cfg.settings.enable_rfc8693:
         raise RuntimeError("RFC 8693 support disabled")
 
     request = TokenExchangeRequest(
@@ -237,7 +237,7 @@ def exchange_token(
         RuntimeError: If RFC 8693 support is disabled
         ValueError: If token exchange fails
     """
-    if not settings.enable_rfc8693:
+    if not runtime_cfg.settings.enable_rfc8693:
         raise RuntimeError("RFC 8693 support disabled")
 
     # Validate subject token
@@ -291,7 +291,7 @@ async def token_exchange_endpoint(
 ):
     """RFC 8693 token exchange endpoint."""
 
-    if not settings.enable_rfc8693:
+    if not runtime_cfg.settings.enable_rfc8693:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "token exchange disabled")
 
     request = validate_token_exchange_request(
@@ -325,7 +325,7 @@ def create_impersonation_token(
     Returns:
         TokenExchangeResponse with impersonation token
     """
-    if not settings.enable_rfc8693:
+    if not runtime_cfg.settings.enable_rfc8693:
         raise RuntimeError("RFC 8693 support disabled")
 
     request = TokenExchangeRequest(
@@ -358,7 +358,7 @@ def create_delegation_token(
     Returns:
         TokenExchangeResponse with delegation token
     """
-    if not settings.enable_rfc8693:
+    if not runtime_cfg.settings.enable_rfc8693:
         raise RuntimeError("RFC 8693 support disabled")
 
     request = TokenExchangeRequest(
