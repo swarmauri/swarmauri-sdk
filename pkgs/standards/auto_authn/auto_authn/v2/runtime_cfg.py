@@ -96,6 +96,11 @@ class Settings(BaseSettings):
         in {"1", "true", "yes"},
         description="Enable OAuth 2.0 Authorization Server Metadata per RFC 8414",
     )
+    enable_rfc6750: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC6750", "true").lower()
+        in {"1", "true", "yes"},
+        description="Enable Bearer Token Usage per RFC 6750",
+    )
     enable_rfc6750_query: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC6750_QUERY", "false").lower()
         in {"1", "true", "yes"},
