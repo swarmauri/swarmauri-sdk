@@ -33,7 +33,7 @@ async def create_request_object(
     if not settings.enable_rfc9101:
         raise RuntimeError(f"RFC 9101 support disabled: {RFC9101_SPEC_URL}")
     alg = JWAAlg(algorithm)
-    key = {"kind": "raw", "key": secret}
+    key = {"kind": "raw", "key": secret.encode()}
     return await _signer.sign_compact(payload=params, alg=alg, key=key, typ="JWT")
 
 
@@ -55,7 +55,7 @@ async def parse_request_object(
         alg_allowlist = [JWAAlg(a) for a in algorithms]
     result = await _signer.verify_compact(
         token,
-        hmac_keys=[{"kind": "raw", "key": secret}],
+        hmac_keys=[{"kind": "raw", "key": secret.encode()}],
         alg_allowlist=alg_allowlist,
     )
     return json.loads(result.payload.decode())
