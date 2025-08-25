@@ -143,14 +143,14 @@ def get_enhanced_authorization_server_metadata() -> Dict[str, Any]:
         enhanced_metadata["device_authorization_endpoint"] = (
             f"{ISSUER}/device_authorization"
         )
-        enhanced_metadata["grant_types_supported"].append(
+        base_metadata["grant_types_supported"].append(
             "urn:ietf:params:oauth:grant-type:device_code"
         )
 
     # RFC 8693 - Token Exchange
     if settings.enable_rfc8693:
         enhanced_metadata["token_exchange_endpoint"] = f"{ISSUER}/token/exchange"
-        enhanced_metadata["grant_types_supported"].append(
+        base_metadata["grant_types_supported"].append(
             "urn:ietf:params:oauth:grant-type:token-exchange"
         )
         enhanced_metadata["token_types_supported"] = [
@@ -163,7 +163,7 @@ def get_enhanced_authorization_server_metadata() -> Dict[str, Any]:
     # RFC 8705 - OAuth 2.0 Mutual-TLS Client Authentication
     if settings.enable_rfc8705:
         enhanced_metadata["tls_client_certificate_bound_access_tokens"] = True
-        enhanced_metadata["token_endpoint_auth_methods_supported"].extend(
+        base_metadata["token_endpoint_auth_methods_supported"].extend(
             [
                 "tls_client_auth",
                 "self_signed_tls_client_auth",
