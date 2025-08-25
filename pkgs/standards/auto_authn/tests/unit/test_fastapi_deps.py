@@ -334,7 +334,9 @@ class TestGetCurrentPrincipal:
 
         assert exc_info.value.status_code == 401
         assert "invalid or missing credentials" in exc_info.value.detail
-        assert exc_info.value.headers == {"WWW-Authenticate": 'Bearer realm="authn"'}
+        assert exc_info.value.headers == {
+            "WWW-Authenticate": 'Bearer realm="authn", error="invalid_request"'
+        }
 
     @pytest.mark.asyncio
     async def test_get_current_principal_with_invalid_bearer_format(self):

@@ -33,7 +33,6 @@ async def test_www_authenticate_header_on_missing_token():
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-@pytest.mark.xfail(reason="planned support for case-insensitive Bearer scheme")
 async def test_lowercase_bearer_scheme():
     """RFC 6750 §2.1: Authorization scheme name is case-insensitive."""
     app = FastAPI()
@@ -59,7 +58,6 @@ async def test_lowercase_bearer_scheme():
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-@pytest.mark.xfail(reason="planned support for access_token query parameter")
 async def test_access_token_query_parameter():
     """RFC 6750 §2.3: Access token may be provided as URI query parameter."""
     app = FastAPI()
@@ -83,7 +81,6 @@ async def test_access_token_query_parameter():
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-@pytest.mark.xfail(reason="planned support for access_token in request body")
 async def test_access_token_form_body():
     """RFC 6750 §2.2: Access token may be provided in the request body."""
     app = FastAPI()
@@ -107,6 +104,63 @@ async def test_access_token_form_body():
                 headers={"Content-Type": "application/x-www-form-urlencoded"},
             )
     assert resp.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_invalid_token_error_header():
+    """RFC 6750 §3.1: invalid_token error must be returned for bad tokens."""
+    app = FastAPI()
+
+    @app.get("/protected")
+    async def protected(user=Depends(get_current_principal)):
+        return {"ok": True}
+
+    mock_db = AsyncMock()
+    app.dependency_overrides[get_async_db] = lambda: mock_db
+
+    with patch(
+        "auto_authn.v2.fastapi_deps._user_from_jwt", AsyncMock(return_value=None)
+    ):
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/protected", headers={"Authorization": "Bearer bad"}
+            )
+    assert resp.status_code == status.HTTP_401_UNAUTHORIZED
+    assert 'error="invalid_token"' in resp.headers["WWW-Authenticate"]
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_access_token_query_parameter_disabled():
+    """Feature toggle disables RFC 6750 query parameter support."""
+    app = FastAPI()
+
+    @app.get("/protected")
+    async def protected(user=Depends(get_current_principal)):
+        return {"ok": True}
+
+    mock_db = AsyncMock()
+    app.dependency_overrides[get_async_db] = lambda: mock_db
+
+    from auto_authn.v2.runtime_cfg import settings
+
+    settings.rfc6750_enabled = False
+    try:
+        with patch(
+            "auto_authn.v2.fastapi_deps._user_from_jwt",
+            AsyncMock(return_value=MagicMock()),
+        ) as mock_jwt:
+            transport = ASGITransport(app=app)
+            async with AsyncClient(
+                transport=transport, base_url="http://test"
+            ) as client:
+                resp = await client.get("/protected?access_token=token")
+        assert resp.status_code == status.HTTP_401_UNAUTHORIZED
+        mock_jwt.assert_not_called()
+    finally:
+        settings.rfc6750_enabled = True
 
 
 RFC6750_SPEC = r"""

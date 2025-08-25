@@ -31,6 +31,8 @@ from .db import get_async_db
 from .jwtoken import JWTCoder
 from .crypto import public_key, signing_key
 from .principal_ctx import principal_var
+from .rfc6750 import extract_bearer_token
+from .runtime_cfg import settings
 
 
 # ---------------------------------------------------------------------
@@ -81,7 +83,7 @@ async def get_principal(  # <-- AutoAPI calls this
     Raises HTTP 401 on failure.
     """
     user = await get_current_principal(  # reuse the existing logic
-        authorization=authorization, api_key=api_key, db=db
+        request=request, authorization=authorization, api_key=api_key, db=db
     )
     principal = {"sub": str(user.id), "tid": str(user.tenant_id)}
 
@@ -92,6 +94,7 @@ async def get_principal(  # <-- AutoAPI calls this
 
 
 async def get_current_principal(  # type: ignore[override]
+    request: Request | None = None,
     authorization: str = Header("", alias="Authorization"),
     api_key: str | None = Header(None, alias="x-api-key"),
     db: AsyncSession = Depends(get_async_db),
@@ -114,14 +117,25 @@ async def get_current_principal(  # type: ignore[override]
         if user := await _user_from_api_key(api_key, db):
             return user
 
-    if authorization.startswith("Bearer "):
-        if user := await _user_from_jwt(authorization.split()[1], db):
+    token = None
+    if settings.rfc6750_enabled:
+        token = await extract_bearer_token(request, authorization)
+    elif authorization.startswith("Bearer "):
+        token = authorization.split()[1]
+
+    if token:
+        if user := await _user_from_jwt(token, db):
             return user
+        raise HTTPException(
+            status.HTTP_401_UNAUTHORIZED,
+            "invalid token",
+            headers={"WWW-Authenticate": 'Bearer realm="authn", error="invalid_token"'},
+        )
 
     raise HTTPException(
         status.HTTP_401_UNAUTHORIZED,
         "invalid or missing credentials",
-        headers={"WWW-Authenticate": 'Bearer realm="authn"'},
+        headers={"WWW-Authenticate": 'Bearer realm="authn", error="invalid_request"'},
     )
 
 
