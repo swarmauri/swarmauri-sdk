@@ -103,7 +103,7 @@ class JWTCoder:
         self,
         *,
         sub: str,
-        tid: str,
+        tid: Optional[str] = None,
         ttl: timedelta = _ACCESS_TTL,
         typ: str = "access",
         issuer: Optional[str] = None,
@@ -114,12 +114,13 @@ class JWTCoder:
         now = datetime.now(timezone.utc)
         payload: Dict[str, Any] = {
             "sub": sub,
-            "tid": tid,
             "typ": typ,
             "iat": int(now.timestamp()),
             "exp": int((now + ttl).timestamp()),
             **extra,
         }
+        if tid is not None:
+            payload["tid"] = tid
         if settings.enable_rfc8705:
             if cert_thumbprint is None:
                 raise ValueError(
@@ -149,7 +150,7 @@ class JWTCoder:
         self,
         *,
         sub: str,
-        tid: str,
+        tid: Optional[str] = None,
         ttl: timedelta = _ACCESS_TTL,
         typ: str = "access",
         issuer: Optional[str] = None,

@@ -11,6 +11,9 @@ from __future__ import annotations
 
 from typing import Dict, Any, Optional, Union, List
 from enum import Enum
+from fastapi import APIRouter, FastAPI
+
+from fastapi import APIRouter, FastAPI, Form, HTTPException, status
 
 from fastapi import APIRouter, FastAPI
 
@@ -22,6 +25,34 @@ RFC8693_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8693"
 
 # Token Exchange Grant Type
 TOKEN_EXCHANGE_GRANT_TYPE = "urn:ietf:params:oauth:grant-type:token-exchange"
+
+# Router placeholder for potential token exchange endpoints
+router = APIRouter()
+
+
+def include_rfc8693(app: FastAPI) -> None:
+    """Include RFC 8693 routes on a FastAPI app."""
+
+    if not settings.enable_rfc8693:
+        raise NotImplementedError("RFC 8693 support is disabled")
+
+    app.include_router(router)
+
+
+# FastAPI router for RFC 8693 endpoints
+router = APIRouter()
+
+
+def include_rfc8693(app: FastAPI) -> None:
+    """Include RFC 8693 token exchange routes into a FastAPI app.
+
+    Routes are registered only when RFC 8693 support is enabled.
+    """
+
+    if not settings.enable_rfc8693:
+        return
+
+    app.include_router(router)
 
 
 router = APIRouter()
@@ -236,8 +267,12 @@ def exchange_token(
         TokenExchangeResponse with the new token
 
     Raises:
+        RuntimeError: If RFC 8693 support is disabled
         ValueError: If token exchange fails
     """
+    if not settings.enable_rfc8693:
+        raise RuntimeError("RFC 8693 support disabled")
+
     # Validate subject token
     subject_claims = validate_subject_token(
         request.subject_token, request.subject_token_type
@@ -277,6 +312,34 @@ def exchange_token(
     )
 
 
+@router.post("/token/exchange")
+async def token_exchange_endpoint(
+    grant_type: str = Form(...),
+    subject_token: str = Form(...),
+    subject_token_type: str = Form(...),
+    actor_token: str | None = Form(None),
+    actor_token_type: str | None = Form(None),
+    audience: str | None = Form(None),
+    scope: str | None = Form(None),
+):
+    """RFC 8693 token exchange endpoint."""
+
+    if not settings.enable_rfc8693:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "token exchange disabled")
+
+    request = validate_token_exchange_request(
+        grant_type=grant_type,
+        subject_token=subject_token,
+        subject_token_type=subject_token_type,
+        actor_token=actor_token,
+        actor_token_type=actor_token_type,
+        audience=audience,
+        scope=scope,
+    )
+    response = exchange_token(request, issuer="token-exchange")
+    return response.to_dict()
+
+
 def create_impersonation_token(
     subject_token: str,
     actor_token: str,
@@ -295,6 +358,9 @@ def create_impersonation_token(
     Returns:
         TokenExchangeResponse with impersonation token
     """
+    if not settings.enable_rfc8693:
+        raise RuntimeError("RFC 8693 support disabled")
+
     request = TokenExchangeRequest(
         grant_type=TOKEN_EXCHANGE_GRANT_TYPE,
         subject_token=subject_token,
@@ -325,6 +391,9 @@ def create_delegation_token(
     Returns:
         TokenExchangeResponse with delegation token
     """
+    if not settings.enable_rfc8693:
+        raise RuntimeError("RFC 8693 support disabled")
+
     request = TokenExchangeRequest(
         grant_type=TOKEN_EXCHANGE_GRANT_TYPE,
         subject_token=subject_token,

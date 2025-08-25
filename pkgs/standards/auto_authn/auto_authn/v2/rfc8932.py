@@ -19,9 +19,51 @@ from fastapi import APIRouter, HTTPException, status
 from .runtime_cfg import settings
 from .rfc8414 import ISSUER, JWKS_PATH
 
+# Supported encrypted DNS transports per RFC 8932 recommendations
+ALLOWED_ENCRYPTED_DNS = {"DoT", "DoH"}
+
+
+def enforce_encrypted_dns(protocol: str) -> str:
+    """Validate that the provided DNS transport uses encryption.
+
+    Args:
+        protocol: DNS transport identifier (e.g., "DoT" or "DoH").
+
+    Returns:
+        The validated protocol string.
+
+    Raises:
+        NotImplementedError: If RFC 8932 support is disabled.
+        ValueError: If an unencrypted transport is supplied.
+    """
+
+    if not settings.enable_rfc8932:
+        raise NotImplementedError("RFC 8932 support is disabled")
+
+    if protocol not in ALLOWED_ENCRYPTED_DNS:
+        raise ValueError("Protocol must be an encrypted DNS transport")
+
+    return protocol
+
+
 RFC8932_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8932"
 
 router = APIRouter()
+
+# Supported encrypted DNS protocols
+ENCRYPTED_DNS_PROTOCOLS = {"DoT", "DoH"}
+
+
+def enforce_encrypted_dns(protocol: str) -> str:
+    """Validate that only encrypted DNS protocols are used."""
+
+    if not settings.enable_rfc8932:
+        raise NotImplementedError("DNS privacy enforcement is disabled")
+
+    if protocol not in ENCRYPTED_DNS_PROTOCOLS:
+        raise ValueError("Only encrypted DNS protocols are allowed")
+
+    return protocol
 
 
 ENCRYPTED_DNS_TRANSPORTS = {"DoT", "DoH"}
@@ -143,14 +185,14 @@ def get_enhanced_authorization_server_metadata() -> Dict[str, Any]:
         enhanced_metadata["device_authorization_endpoint"] = (
             f"{ISSUER}/device_authorization"
         )
-        enhanced_metadata["grant_types_supported"].append(
+        base_metadata["grant_types_supported"].append(
             "urn:ietf:params:oauth:grant-type:device_code"
         )
 
     # RFC 8693 - Token Exchange
     if settings.enable_rfc8693:
         enhanced_metadata["token_exchange_endpoint"] = f"{ISSUER}/token/exchange"
-        enhanced_metadata["grant_types_supported"].append(
+        base_metadata["grant_types_supported"].append(
             "urn:ietf:params:oauth:grant-type:token-exchange"
         )
         enhanced_metadata["token_types_supported"] = [
@@ -163,7 +205,7 @@ def get_enhanced_authorization_server_metadata() -> Dict[str, Any]:
     # RFC 8705 - OAuth 2.0 Mutual-TLS Client Authentication
     if settings.enable_rfc8705:
         enhanced_metadata["tls_client_certificate_bound_access_tokens"] = True
-        enhanced_metadata["token_endpoint_auth_methods_supported"].extend(
+        base_metadata["token_endpoint_auth_methods_supported"].extend(
             [
                 "tls_client_auth",
                 "self_signed_tls_client_auth",
@@ -350,4 +392,5 @@ __all__ = [
     "get_capability_matrix",
     "router",
     "RFC8932_SPEC_URL",
+    "enforce_encrypted_dns",
 ]

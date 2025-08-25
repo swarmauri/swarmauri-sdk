@@ -96,12 +96,12 @@ from .rfc8693 import (
     create_delegation_token,
     TOKEN_EXCHANGE_GRANT_TYPE,
     RFC8693_SPEC_URL,
+    include_rfc8693,
 )
 from .rfc8932 import (
     get_enhanced_authorization_server_metadata,
     validate_metadata_consistency,
     get_capability_matrix,
-    RFC8932_SPEC_URL,
 )
 
 __all__ = [
@@ -197,6 +197,7 @@ __all__ = [
     "create_delegation_token",
     "TOKEN_EXCHANGE_GRANT_TYPE",
     "RFC8693_SPEC_URL",
+    "include_rfc8693",
     "get_enhanced_authorization_server_metadata",
     "validate_metadata_consistency",
     "get_capability_matrix",
