@@ -45,7 +45,6 @@ _KID_PATH = _DEFAULT_KEY_DIR / "jwt_ed25519.kid"
 # Backwards-compatible path constant expected by tests/fixtures
 _DEFAULT_KEY_PATH = _KID_PATH
 
-
 @lru_cache(maxsize=1)
 def _provider() -> FileKeyProvider:
     return FileKeyProvider(_DEFAULT_KEY_DIR)

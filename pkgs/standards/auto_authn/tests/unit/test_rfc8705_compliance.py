@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 import pytest
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import rsa, ed25519
+from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
 from jwt.exceptions import InvalidTokenError
 
@@ -50,29 +50,16 @@ def test_thumbprint_and_binding_helpers():
     cert_pem = _generate_cert_pem()
     thumbprint = thumbprint_from_cert_pem(cert_pem)
     payload = {"cnf": {"x5t#S256": thumbprint}}
-    validate_certificate_binding(payload, thumbprint)  # should not raise
+    validate_certificate_binding(payload, thumbprint, enabled=True)  # should not raise
     with pytest.raises(InvalidTokenError):
-        validate_certificate_binding(payload, "mismatch")
+        validate_certificate_binding(payload, "mismatch", enabled=True)
 
 
 @pytest.mark.unit
 def test_certificate_thumbprint_enforced(monkeypatch):
     """RFC 8705 §3.1 requires matching cnf.x5t#S256 when enabled."""
     monkeypatch.setattr(runtime_cfg.settings, "enable_rfc8705", True)
-    private_key_obj = ed25519.Ed25519PrivateKey.generate()
-    public_key_obj = private_key_obj.public_key()
-
-    private_pem = private_key_obj.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption(),
-    )
-    public_pem = public_key_obj.public_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo,
-    )
-
-    coder = JWTCoder(private_pem, public_pem)
+    coder = JWTCoder.default()
     token = coder.sign(sub="alice", tid="tenant", cert_thumbprint="thumb")
     payload = coder.decode(token, cert_thumbprint="thumb")
     assert payload["cnf"]["x5t#S256"] == "thumb"
@@ -84,20 +71,7 @@ def test_certificate_thumbprint_enforced(monkeypatch):
 def test_sign_requires_thumbprint_when_enabled(monkeypatch):
     """RFC 8705 demands certificate binding when feature flag is on."""
     monkeypatch.setattr(runtime_cfg.settings, "enable_rfc8705", True)
-    private_key_obj = ed25519.Ed25519PrivateKey.generate()
-    public_key_obj = private_key_obj.public_key()
-
-    private_pem = private_key_obj.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption(),
-    )
-    public_pem = public_key_obj.public_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo,
-    )
-
-    coder = JWTCoder(private_pem, public_pem)
+    coder = JWTCoder.default()
     with pytest.raises(ValueError):
         coder.sign(sub="carol", tid="tenant")
 
@@ -106,20 +80,7 @@ def test_sign_requires_thumbprint_when_enabled(monkeypatch):
 def test_feature_toggle_disabled(monkeypatch):
     """When disabled, tokens need not include the cnf claim."""
     monkeypatch.setattr(runtime_cfg.settings, "enable_rfc8705", False)
-    private_key_obj = ed25519.Ed25519PrivateKey.generate()
-    public_key_obj = private_key_obj.public_key()
-
-    private_pem = private_key_obj.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption(),
-    )
-    public_pem = public_key_obj.public_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo,
-    )
-
-    coder = JWTCoder(private_pem, public_pem)
+    coder = JWTCoder.default()
     token = coder.sign(sub="bob", tid="tenant")
     payload = coder.decode(token)
     assert "cnf" not in payload
@@ -129,20 +90,7 @@ def test_feature_toggle_disabled(monkeypatch):
 def test_decode_requires_cnf_claim_when_enabled(monkeypatch):
     """RFC 8705 §3.1 rejects tokens lacking cnf when feature flag is enabled."""
     monkeypatch.setattr(runtime_cfg.settings, "enable_rfc8705", False)
-    private_key_obj = ed25519.Ed25519PrivateKey.generate()
-    public_key_obj = private_key_obj.public_key()
-
-    private_pem = private_key_obj.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption(),
-    )
-    public_pem = public_key_obj.public_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo,
-    )
-
-    coder = JWTCoder(private_pem, public_pem)
+    coder = JWTCoder.default()
     token = coder.sign(sub="dave", tid="tenant")
     monkeypatch.setattr(runtime_cfg.settings, "enable_rfc8705", True)
     with pytest.raises(InvalidTokenError):
