@@ -10,7 +10,6 @@ See RFC 9101: https://www.rfc-editor.org/rfc/rfc9101
 from __future__ import annotations
 
 from typing import Any, Dict, Final, Iterable
-import asyncio
 import json
 
 from .deps import JWAAlg, JwsSignerVerifier
@@ -21,7 +20,7 @@ RFC9101_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc9101"
 _signer = JwsSignerVerifier()
 
 
-def create_request_object(
+async def create_request_object(
     params: Dict[str, Any], *, secret: str, algorithm: str = "HS256"
 ) -> str:
     """Return a JWT request object representing ``params``.
@@ -35,12 +34,10 @@ def create_request_object(
         raise RuntimeError(f"RFC 9101 support disabled: {RFC9101_SPEC_URL}")
     alg = JWAAlg(algorithm)
     key = {"kind": "raw", "key": secret}
-    return asyncio.run(
-        _signer.sign_compact(payload=params, alg=alg, key=key, typ="JWT")
-    )
+    return await _signer.sign_compact(payload=params, alg=alg, key=key, typ="JWT")
 
 
-def parse_request_object(
+async def parse_request_object(
     token: str, *, secret: str, algorithms: Iterable[str] | None = None
 ) -> Dict[str, Any]:
     """Decode ``token`` into authorization request parameters.
@@ -56,12 +53,10 @@ def parse_request_object(
     alg_allowlist = None
     if algorithms is not None:
         alg_allowlist = [JWAAlg(a) for a in algorithms]
-    result = asyncio.run(
-        _signer.verify_compact(
-            token,
-            hmac_keys=[{"kind": "raw", "key": secret}],
-            alg_allowlist=alg_allowlist,
-        )
+    result = await _signer.verify_compact(
+        token,
+        hmac_keys=[{"kind": "raw", "key": secret}],
+        alg_allowlist=alg_allowlist,
     )
     return json.loads(result.payload.decode())
 
