@@ -107,12 +107,11 @@ class Settings(BaseSettings):
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC9396", "0").lower()
         in {"1", "true", "yes"},
         description=("Enable OAuth 2.0 Rich Authorization Requests per RFC 9396"),
-    enable_rfc9396: bool = Field(default=os.environ.get("ENABLE_RFC9396", "0") == "1")
+    )
     enable_rfc9101: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC9101", "false").lower()
         in {"1", "true", "yes"},
         description="Enable JWT-Secured Authorization Request per RFC 9101",
-
     )
     enable_rfc7009: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7009", "false").lower()
@@ -200,6 +199,11 @@ class Settings(BaseSettings):
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7521", "true").lower()
         in {"1", "true", "yes"},
         description="Enable Assertion Framework for OAuth 2.0 per RFC 7521",
+    )
+    enable_rfc7523: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7523", "true").lower()
+        in {"1", "true", "yes"},
+        description="Enable JWT Profile for OAuth 2.0 per RFC 7523",
     )
 
     model_config = SettingsConfigDict(env_file=None)
