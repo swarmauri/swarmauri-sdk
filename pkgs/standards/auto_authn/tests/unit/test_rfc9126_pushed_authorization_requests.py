@@ -4,7 +4,11 @@ import pytest
 from fastapi import FastAPI, status
 from httpx import ASGITransport, AsyncClient
 
-from auto_authn.v2.rfc9126 import DEFAULT_PAR_EXPIRY, router
+from auto_authn.v2.rfc9126 import (
+    DEFAULT_PAR_EXPIRY,
+    include_rfc9126,
+    reset_par_store,
+)
 from auto_authn.v2.fastapi_deps import get_async_db
 
 # RFC 9126 specification excerpt for reference within tests
@@ -22,7 +26,7 @@ RFC 9126 - OAuth 2.0 Pushed Authorization Requests
 async def test_par_returns_request_uri_and_expires(enable_rfc9126, monkeypatch):
     """RFC 9126 §3.1: Response includes request_uri and expires_in."""
     app = FastAPI()
-    app.include_router(router)
+    include_rfc9126(app)
 
     async def override_db():
         yield None
@@ -47,15 +51,16 @@ async def test_par_disabled_returns_404(monkeypatch):
     from auto_authn.v2.runtime_cfg import settings
 
     app = FastAPI()
-    app.include_router(router)
 
     async def override_db():
         yield None
 
     app.dependency_overrides[get_async_db] = override_db
 
+    reset_par_store()
     original = settings.enable_rfc9126
     settings.enable_rfc9126 = False
+    include_rfc9126(app)
     try:
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
