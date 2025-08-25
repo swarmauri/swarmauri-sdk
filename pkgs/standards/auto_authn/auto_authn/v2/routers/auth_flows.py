@@ -35,6 +35,7 @@ from pydantic import BaseModel, EmailStr, Field, ValidationError, constr
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from urllib.parse import urlencode
+from uuid import UUID
 
 from ..crypto import hash_pw
 from ..jwtoken import JWTCoder
@@ -200,9 +201,16 @@ async def authorize(
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST, {"error": "unsupported_response_type"}
         )
+    scopes = set(scope.split())
+    if "openid" not in scopes:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_scope"})
     if "id_token" in rts and not nonce:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
-    client = await db.get(Client, client_id)
+    try:
+        client_uuid = UUID(client_id)
+    except ValueError:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
+    client = await db.get(Client, client_uuid)
     if client is None or redirect_uri not in (client.redirect_uris or "").split():
         raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
     if username is None or password is None:
@@ -224,6 +232,7 @@ async def authorize(
             "client_id": client_id,
             "redirect_uri": redirect_uri,
             "code_challenge": code_challenge,
+            "nonce": nonce,
             "expires_at": datetime.utcnow() + timedelta(minutes=10),
         }
         params.append(("code", code))
