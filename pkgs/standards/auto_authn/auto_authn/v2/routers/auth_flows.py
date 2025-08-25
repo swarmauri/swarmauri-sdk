@@ -42,8 +42,10 @@ from ..orm.tables import Tenant, User
 from ..runtime_cfg import settings
 from ..typing import StrUUID
 from ..rfc8707 import extract_resource
+from ..rfc7009 import revoke_token
+from ..rfc6749 import RFC6749Error
+from ..rfc9126 import store_par_request, DEFAULT_PAR_EXPIRY
 from ..rfc6749 import (
-    RFC6749Error,
     enforce_grant_type,
     enforce_password_grant,
     is_enabled as rfc6749_enabled,
@@ -148,7 +150,7 @@ async def register(body: RegisterIn, db: AsyncSession = Depends(get_async_db)):
             status.HTTP_500_INTERNAL_SERVER_ERROR, "database error"
         ) from exc
 
-    access, refresh = _jwt.sign_pair(sub=str(user.id), tid=str(tenant.id))
+    access, refresh = await _jwt.async_sign_pair(sub=str(user.id), tid=str(tenant.id))
     return TokenPair(access_token=access, refresh_token=refresh)
 
 
@@ -159,7 +161,9 @@ async def login(body: CredsIn, db: AsyncSession = Depends(get_async_db)):
     except AuthError:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "invalid credentials")
 
-    access, refresh = _jwt.sign_pair(sub=str(user.id), tid=str(user.tenant_id))
+    access, refresh = await _jwt.async_sign_pair(
+        sub=str(user.id), tid=str(user.tenant_id)
+    )
     return TokenPair(access_token=access, refresh_token=refresh)
 
 
@@ -202,7 +206,7 @@ async def token(
         except AuthError:
             raise HTTPException(status.HTTP_404_NOT_FOUND, "invalid credentials")
         jwt_kwargs = {"aud": aud} if aud else {}
-        access, refresh = _jwt.sign_pair(
+        access, refresh = await _jwt.async_sign_pair(
             sub=str(user.id), tid=str(user.tenant_id), **jwt_kwargs
         )
         return TokenPair(access_token=access, refresh_token=refresh)
@@ -222,7 +226,7 @@ async def token(
                 status.HTTP_400_BAD_REQUEST, {"error": "authorization_pending"}
             )
         jwt_kwargs = {"aud": aud} if aud else {}
-        access, refresh = _jwt.sign_pair(
+        access, refresh = await _jwt.async_sign_pair(
             sub=record.get("sub", "device-user"),
             tid=record.get("tid", "device-tenant"),
             **jwt_kwargs,

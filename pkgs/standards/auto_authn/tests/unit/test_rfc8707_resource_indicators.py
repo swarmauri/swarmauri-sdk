@@ -40,7 +40,7 @@ async def test_token_includes_aud_when_resource_provided(monkeypatch):
             },
         )
     assert resp.status_code == status.HTTP_200_OK
-    payload = _jwt.decode(resp.json()["access_token"])
+    payload = await _jwt.async_decode(resp.json()["access_token"])
     assert payload["aud"] == "https://rs.example"
 
 
@@ -92,7 +92,7 @@ async def test_multiple_resources_uses_first(monkeypatch):
             },
         )
     assert resp.status_code == status.HTTP_200_OK
-    payload = _jwt.decode(resp.json()["access_token"])
+    payload = await _jwt.async_decode(resp.json()["access_token"])
     assert payload["aud"] == "https://rs.example"
 
 
@@ -144,7 +144,7 @@ async def test_feature_flag_disables_resource(monkeypatch):
             },
         )
     assert resp.status_code == status.HTTP_200_OK
-    payload = _jwt.decode(resp.json()["access_token"])
+    payload = await _jwt.async_decode(resp.json()["access_token"])
     assert "aud" not in payload
 
 
