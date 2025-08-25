@@ -24,6 +24,12 @@ from .rfc8707 import extract_resource, RFC8707_SPEC_URL
 from .rfc8705 import thumbprint_from_cert_pem, validate_certificate_binding
 from .rfc9068 import add_rfc9068_claims, validate_rfc9068_claims
 from .rfc8252 import is_native_redirect_uri, validate_native_redirect_uri
+from .rfc7515 import sign_jws, verify_jws
+from .rfc7516 import encrypt_jwe, decrypt_jwe
+from .rfc7517 import load_signing_jwk, load_public_jwk
+from .rfc7518 import supported_algorithms
+from .rfc7519 import encode_jwt, decode_jwt
+from .rfc7520 import jws_then_jwe, jwe_then_jws
 
 __all__ = [
     "create_code_verifier",
@@ -52,4 +58,15 @@ __all__ = [
     "validate_rfc9068_claims",
     "is_native_redirect_uri",
     "validate_native_redirect_uri",
+    "sign_jws",
+    "verify_jws",
+    "encrypt_jwe",
+    "decrypt_jwe",
+    "load_signing_jwk",
+    "load_public_jwk",
+    "supported_algorithms",
+    "encode_jwt",
+    "decode_jwt",
+    "jws_then_jwe",
+    "jwe_then_jws",
 ]

@@ -141,6 +141,36 @@ class Settings(BaseSettings):
         in {"1", "true", "yes"},
         description="Enable Device Authorization Grant per RFC 8628",
     )
+    enable_rfc7515: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7515", "true").lower()
+        in {"1", "true", "yes"},
+        description="Enable JSON Web Signature per RFC 7515",
+    )
+    enable_rfc7516: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7516", "true").lower()
+        in {"1", "true", "yes"},
+        description="Enable JSON Web Encryption per RFC 7516",
+    )
+    enable_rfc7517: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7517", "true").lower()
+        in {"1", "true", "yes"},
+        description="Enable JSON Web Key per RFC 7517",
+    )
+    enable_rfc7518: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7518", "true").lower()
+        in {"1", "true", "yes"},
+        description="Enable JSON Web Algorithms per RFC 7518",
+    )
+    enable_rfc7519: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7519", "true").lower()
+        in {"1", "true", "yes"},
+        description="Enable JSON Web Token per RFC 7519",
+    )
+    enable_rfc7520: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7520", "true").lower()
+        in {"1", "true", "yes"},
+        description="Enable JOSE examples per RFC 7520",
+    )
 
     model_config = SettingsConfigDict(env_file=None)
 
