@@ -11,7 +11,15 @@ omitted from the response.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, FastAPI, Request, Response
+from fastapi import (
+    APIRouter,
+    Depends,
+    FastAPI,
+    HTTPException,
+    Request,
+    Response,
+    status,
+)
 
 from .fastapi_deps import get_current_principal
 from .jwtoken import JWTCoder, InvalidTokenError, _svc
@@ -37,13 +45,15 @@ async def userinfo(
     token = await extract_bearer_token(
         request, request.headers.get("Authorization", "")
     )
-    scopes: set[str] = set()
-    if token:
-        try:
-            payload = await JWTCoder.default().async_decode(token)
-            scopes = set(payload.get("scope", "").split())
-        except InvalidTokenError:
-            pass
+    if not token:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "missing access token")
+    try:
+        payload = await JWTCoder.default().async_decode(token)
+    except InvalidTokenError as exc:
+        raise HTTPException(
+            status.HTTP_401_UNAUTHORIZED, "invalid access token"
+        ) from exc
+    scopes: set[str] = set(payload.get("scope", "").split())
 
     claims: dict[str, str] = {"sub": str(user.id)}
     if "profile" in scopes:
