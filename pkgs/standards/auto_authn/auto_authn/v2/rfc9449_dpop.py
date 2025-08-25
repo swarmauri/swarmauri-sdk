@@ -63,16 +63,10 @@ def create_proof(
         enabled = settings.enable_rfc9449
     if not enabled:
         return ""
-    sk = Ed25519PrivateKey.from_private_bytes(
-        private_pem[:32] if len(private_pem) > 32 else private_pem
-    )
+    sk = serialization.load_pem_private_key(private_pem, password=None)
+    if not isinstance(sk, Ed25519PrivateKey):
+        raise TypeError("private key must be Ed25519")
     jwk = jwk_from_public_key(sk.public_key())
-    d = sk.private_bytes(
-        encoding=serialization.Encoding.Raw,
-        format=serialization.PrivateFormat.Raw,
-        encryption_algorithm=serialization.NoEncryption(),
-    )
-    key_jwk = {**jwk, "d": _b64url(d)}
     headers = {"typ": "dpop+jwt", "jwk": jwk}
     payload = {
         "htm": method.upper(),
@@ -84,7 +78,7 @@ def create_proof(
         _signer.sign_compact(
             payload=payload,
             alg=_ALG,
-            key=key_jwk,
+            key={"kind": "cryptography_obj", "obj": sk},
             header_extra=headers,
         )
     )
