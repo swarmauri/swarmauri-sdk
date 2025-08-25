@@ -1,0 +1,32 @@
+"""Tests for EdDSA helpers (RFC 8037).
+
+These tests exercise the minimal Ed25519 signing utilities and feature
+flag behaviour defined in :mod:`auto_authn.v2.rfc8037`.
+"""
+
+import pytest
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
+from auto_authn.v2.rfc8037 import sign_eddsa, verify_eddsa
+
+
+@pytest.mark.unit
+def test_sign_verify_round_trip():
+    """Signature generation and verification succeed when enabled."""
+    priv = Ed25519PrivateKey.generate()
+    pub = priv.public_key()
+    message = b"payload"
+    sig = sign_eddsa(message, priv, enabled=True)
+    assert sig != message
+    assert verify_eddsa(message, sig, pub, enabled=True)
+
+
+@pytest.mark.unit
+def test_sign_verify_disabled():
+    """When disabled, signing returns the message and verification passes."""
+    priv = Ed25519PrivateKey.generate()
+    pub = priv.public_key()
+    message = b"payload"
+    sig = sign_eddsa(message, priv, enabled=False)
+    assert sig == message
+    assert verify_eddsa(message, sig, pub, enabled=False)
