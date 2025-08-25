@@ -95,6 +95,7 @@ class Settings(BaseSettings):
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8414", "true").lower()
         in {"1", "true", "yes"},
         description="Enable OAuth 2.0 Authorization Server Metadata per RFC 8414",
+    )
     enable_rfc6750_query: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC6750_QUERY", "false").lower()
         in {"1", "true", "yes"},
@@ -106,10 +107,16 @@ class Settings(BaseSettings):
         description=(
             "Allow access_token in application/x-www-form-urlencoded bodies per RFC 6750 §2.2"
         ),
+    )
     enable_rfc6749: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC6749", "true").lower()
         in {"1", "true", "yes"},
         description="Enforce core OAuth 2.0 error handling per RFC 6749",
+    )
+    enable_rfc8628: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8628", "true").lower()
+        in {"1", "true", "yes"},
+        description="Enable Device Authorization Grant per RFC 8628",
     )
 
     model_config = SettingsConfigDict(env_file=None)
