@@ -2,7 +2,7 @@
 
 # Swarmauri Remote JWKS Key Provider
 
-Verification-only key provider backed by a remote JWKS endpoint.
+Key provider backed by a remote JWKS endpoint with local key management.
 
 ## Installation
 
@@ -12,9 +12,10 @@ pip install swarmauri_keyprovider_remote_jwks
 
 ## Usage
 
-The provider exposes read-only access to keys published at a remote JWKS URL or
-through an OpenID Connect (OIDC) issuer.  The example below fetches a JWK from a
-JWKS endpoint and prints its public fields:
+The provider fetches verification keys from a remote JWKS URL or through an
+OpenID Connect (OIDC) issuer.  It also embeds an in-memory key provider to
+create and manage local keys.  The example below fetches a JWK from a JWKS
+endpoint and prints its public fields:
 
 ```python
 import asyncio
@@ -41,4 +42,7 @@ the issuer's discovery document to find the JWKS URL:
 
 ```python
 RemoteJwksKeyProvider(issuer="https://issuer.example.com")
+
+Locally created keys are available via the standard key provider APIs and are
+included alongside remote keys when calling `jwks()`.
 ```

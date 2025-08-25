@@ -18,6 +18,7 @@ from pydantic import PrivateAttr
 from swarmauri_base.keys.KeyProviderBase import KeyProviderBase
 from swarmauri_core.keys.types import KeySpec, ExportPolicy, KeyUse
 from swarmauri_core.crypto.types import KeyRef  # canonical KeyRef from your core types
+from swarmauri_keyprovider_local import LocalKeyProvider
 
 
 def _now() -> float:
@@ -36,7 +37,7 @@ class _RemoteKeyRef(KeyRef):
 
 class RemoteJwksKeyProvider(KeyProviderBase):
     """
-    Verification-only key provider backed by a remote JWKS.
+    Key provider backed by a remote JWKS with local key management support.
 
     Features
     --------
@@ -44,7 +45,7 @@ class RemoteJwksKeyProvider(KeyProviderBase):
     - Resolves OIDC discovery: <issuer>/.well-known/openid-configuration → jwks_uri.
     - Caches the JWKS in-memory with TTL; thread-safe refresh with ETag/If-Modified-Since.
     - Exposes get_public_jwk() and jwks() to verifiers (e.g., JWTTokenService.verify()).
-    - No key creation/rotation/destroy: strictly read-only (raises on those calls).
+    - Supports local key creation/rotation/import/destroy via an in-memory provider.
     - Provides random_bytes() and hkdf() for convenience (local ops).
 
     Constructor
@@ -62,7 +63,7 @@ class RemoteJwksKeyProvider(KeyProviderBase):
     -----
     - If both `issuer` and `jwks_url` are provided, `jwks_url` wins.
     - KIDs may include version suffixes like "kid.version" to match your codebase.
-    - This provider returns KeyRefs with public-only info; `material` is always None.
+    - Remote keys remain verification-only; locally created keys are stored in-memory.
     """
 
     type: Literal["RemoteJwksKeyProvider"] = "RemoteJwksKeyProvider"
@@ -77,6 +78,7 @@ class RemoteJwksKeyProvider(KeyProviderBase):
     _cache_ttl_s: int = PrivateAttr(default=300)
     _request_timeout_s: int = PrivateAttr(default=5)
     _ua: str = PrivateAttr(default="RemoteJwksKeyProvider/1.0")
+    _local: LocalKeyProvider = PrivateAttr(default_factory=LocalKeyProvider)
 
     def __init__(
         self,
@@ -108,37 +110,28 @@ class RemoteJwksKeyProvider(KeyProviderBase):
 
     def supports(self) -> Mapping[str, Iterable[str]]:
         return {
-            "class": ("asym",),
+            "class": ("sym", "asym"),
             "algs": ("RSA", "EC", "OKP", "oct"),  # JWKS kty families we may encounter
-            "features": ("jwks", "verify_only", "refresh"),
+            "features": ("create", "import", "rotate", "destroy", "jwks", "refresh"),
         }
 
     # ───────────────────────── read/write lifecycle ─────────────────────────
-    # Read-only provider: all mutation APIs raise.
 
     async def create_key(self, spec: KeySpec) -> KeyRef:
-        raise NotImplementedError(
-            "RemoteJwksKeyProvider is verification-only (no create_key)"
-        )
+        return await self._local.create_key(spec)
 
     async def import_key(
         self, spec: KeySpec, material: bytes, *, public: Optional[bytes] = None
     ) -> KeyRef:
-        raise NotImplementedError(
-            "RemoteJwksKeyProvider is verification-only (no import_key)"
-        )
+        return await self._local.import_key(spec, material, public=public)
 
     async def rotate_key(
         self, kid: str, *, spec_overrides: Optional[dict] = None
     ) -> KeyRef:
-        raise NotImplementedError(
-            "RemoteJwksKeyProvider is verification-only (no rotate_key)"
-        )
+        return await self._local.rotate_key(kid, spec_overrides=spec_overrides)
 
     async def destroy_key(self, kid: str, version: Optional[int] = None) -> bool:
-        raise NotImplementedError(
-            "RemoteJwksKeyProvider is verification-only (no destroy_key)"
-        )
+        return await self._local.destroy_key(kid, version)
 
     # ───────────────────────── getters / jwks ─────────────────────────
 
@@ -149,6 +142,12 @@ class RemoteJwksKeyProvider(KeyProviderBase):
         Return a KeyRef for the given kid(.version) if present in JWKS.
         Secrets are never exported; material=None.
         """
+        try:
+            return await self._local.get_key(
+                kid, version, include_secret=include_secret
+            )
+        except KeyError:
+            pass
         jwk = await self._find_jwk(kid, version)
         if jwk is None:
             raise KeyError(f"Unknown key id: {kid!r} (version={version!r})")
@@ -177,6 +176,10 @@ class RemoteJwksKeyProvider(KeyProviderBase):
         Returns any discovered versions for the kid when keys are of the form 'kid.version'.
         If no version suffixes are found, returns (1,) when the base kid exists, else ().
         """
+        try:
+            return await self._local.list_versions(kid)
+        except KeyError:
+            pass
         keys = await self._get_jwks_keys()
         versions: set[int] = set()
         found_plain = False
@@ -193,15 +196,29 @@ class RemoteJwksKeyProvider(KeyProviderBase):
         return (1,) if found_plain else tuple()
 
     async def get_public_jwk(self, kid: str, version: Optional[int] = None) -> dict:
+        try:
+            return await self._local.get_public_jwk(kid, version)
+        except Exception:
+            pass
         jwk = await self._find_jwk(kid, version)
         if jwk is None:
             raise KeyError(f"Unknown key id: {kid!r} (version={version!r})")
         return jwk
 
     async def jwks(self, *, prefix_kids: Optional[str] = None) -> dict:
-        keys = await self._get_jwks_keys()
+        keys: list[dict] = []
+        try:
+            local = await self._local.jwks(prefix_kids=prefix_kids)
+            keys.extend(local.get("keys", []))
+        except Exception:
+            pass
+        remote = await self._get_jwks_keys()
         if prefix_kids:
-            keys = [k for k in keys if (k.get("kid") or "").startswith(prefix_kids)]
+            remote = [k for k in remote if (k.get("kid") or "").startswith(prefix_kids)]
+        existing = {k.get("kid") for k in keys}
+        for jwk in remote:
+            if jwk.get("kid") not in existing:
+                keys.append(jwk)
         return {"keys": keys}
 
     # ───────────────────────── material helpers ─────────────────────────
