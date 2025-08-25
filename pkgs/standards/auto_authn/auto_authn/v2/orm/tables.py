@@ -49,6 +49,7 @@ from autoapi.v2.mixins import (
     UserMixin,
 )
 from ..crypto import hash_pw  # bcrypt helper shared across package
+from ..rfc8252 import validate_native_redirect_uri
 
 
 # ────────────────────────────────────────────────────────────────────
@@ -94,6 +95,8 @@ class Client(ClientBase):  # Tenant FK via mix-in
     ):
         if not _CLIENT_ID_RE.fullmatch(client_id):
             raise ValueError("invalid client_id format")
+        for uri in redirects:
+            validate_native_redirect_uri(uri)
         secret_hash = hash_pw(client_secret)
         return cls(
             tenant_id=tenant_id,
