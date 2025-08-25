@@ -63,6 +63,9 @@ class Settings(BaseSettings):
     # ─────── Other global settings ───────
     jwt_secret: str = Field(os.environ.get("JWT_SECRET", "insecure-dev-secret"))
     log_level: str = Field(os.environ.get("LOG_LEVEL", "INFO"))
+    enable_dpop: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_DPOP", "0") in {"1", "true", "True"}
+    )
     enable_rfc9396: bool = Field(default=os.environ.get("ENABLE_RFC9396", "0") == "1")
 
     model_config = SettingsConfigDict(env_file=None)
