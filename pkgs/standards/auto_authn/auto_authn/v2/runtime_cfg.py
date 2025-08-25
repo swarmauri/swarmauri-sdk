@@ -76,10 +76,25 @@ class Settings(BaseSettings):
         in {"1", "true", "yes"},
         description="Enable Proof Key for Code Exchange per RFC 7636",
     )
+    enable_rfc7638: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7638", "true").lower()
+        in {"1", "true", "yes"},
+        description="Enable JWK Thumbprint per RFC 7638",
+    )
+    enable_rfc7800: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7800", "false").lower()
+        in {"1", "true", "yes"},
+        description="Enable Proof-of-Possession semantics per RFC 7800",
+    )
     enforce_rfc8252: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENFORCE_RFC8252", "true").lower()
         in {"1", "true", "yes"},
         description="Validate redirect URIs according to RFC 8252",
+    )
+    enable_rfc8291: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8291", "false").lower()
+        in {"1", "true", "yes"},
+        description="Enable Message Encryption for Web Push per RFC 8291",
     )
     enable_rfc7662: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7662", "false").lower()
