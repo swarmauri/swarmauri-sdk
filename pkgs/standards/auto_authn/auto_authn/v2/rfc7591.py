@@ -11,9 +11,10 @@ from __future__ import annotations
 
 import secrets
 from typing import Dict, Final
+from urllib.parse import urlparse
 
 from fastapi import APIRouter, FastAPI, HTTPException, status
-from pydantic import AnyHttpUrl, BaseModel, ConfigDict, Field
+from pydantic import AnyHttpUrl, BaseModel, ConfigDict, Field, field_validator
 
 from .runtime_cfg import settings
 
@@ -31,8 +32,24 @@ class ClientMetadata(BaseModel):
     """Subset of RFC 7591 client metadata required for registration."""
 
     redirect_uris: list[AnyHttpUrl] = Field(..., min_length=1)
+    grant_types: list[str] = Field(default_factory=lambda: ["authorization_code"])
+    response_types: list[str] = Field(default_factory=lambda: ["code"])
 
     model_config = ConfigDict(extra="allow")
+
+    @field_validator("redirect_uris")
+    @classmethod
+    def _validate_redirect_uris(cls, value: list[AnyHttpUrl]) -> list[AnyHttpUrl]:
+        """Ensure redirect URIs use HTTPS except for localhost."""
+        for uri in value:
+            parsed = urlparse(str(uri))
+            if parsed.scheme != "https" and parsed.hostname not in {
+                "localhost",
+                "127.0.0.1",
+                "::1",
+            }:
+                raise ValueError("redirect URIs must use https scheme")
+        return value
 
 
 def register_client(metadata: dict, *, enabled: bool | None = None) -> dict:
