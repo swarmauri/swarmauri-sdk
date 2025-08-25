@@ -31,12 +31,14 @@ A refresh-token has a longer TTL and carries a distinct `"typ": "refresh"`.
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Tuple, Optional
 
 import jwt
 from jwt.exceptions import InvalidTokenError
 
 from .crypto import public_key, signing_key
+from .runtime_cfg import settings
+from .rfc8705 import validate_certificate_binding
 
 _ALG = "EdDSA"
 _ACCESS_TTL = timedelta(minutes=60)
@@ -77,6 +79,7 @@ class JWTCoder:
         tid: str,
         ttl: timedelta = _ACCESS_TTL,
         typ: str = "access",
+        cert_thumbprint: Optional[str] = None,
         **extra: Any,
     ) -> str:
         """
@@ -100,21 +103,28 @@ class JWTCoder:
             "exp": now + ttl,
             **extra,
         }
+        if settings.enable_rfc8705 and cert_thumbprint:
+            payload["cnf"] = {"x5t#S256": cert_thumbprint}
         return jwt.encode(payload, self._priv, algorithm=_ALG)
 
-    def sign_pair(self, *, sub: str, tid: str, **extra: Any) -> Tuple[str, str]:
+    def sign_pair(
+        self, *, sub: str, tid: str, cert_thumbprint: Optional[str] = None, **extra: Any
+    ) -> Tuple[str, str]:
         """Return `(access_token, refresh_token)`."""
-        access = self.sign(sub=sub, tid=tid, **extra)
+        access = self.sign(sub=sub, tid=tid, cert_thumbprint=cert_thumbprint, **extra)
         refresh = self.sign(
             sub=sub,
             tid=tid,
             ttl=_REFRESH_TTL,
             typ="refresh",
+            cert_thumbprint=cert_thumbprint,
             **extra,
         )
         return access, refresh
 
-    def decode(self, token: str, verify_exp: bool = True) -> Dict[str, Any]:
+    def decode(
+        self, token: str, verify_exp: bool = True, cert_thumbprint: Optional[str] = None
+    ) -> Dict[str, Any]:
         """
         Verify signature and (optionally) expiration, return payload dict.
 
@@ -124,12 +134,19 @@ class JWTCoder:
             If signature is invalid, token is expired, or malformed.
         """
         options = {"verify_exp": verify_exp}
-        return jwt.decode(
+        payload = jwt.decode(
             token,
             self._pub,
             algorithms=[_ALG],
             options=options,
         )
+        if settings.enable_rfc8705:
+            if cert_thumbprint is None:
+                raise InvalidTokenError(
+                    "certificate thumbprint required for mTLS per RFC 8705"
+                )
+            validate_certificate_binding(payload, cert_thumbprint)
+        return payload
 
     # -----------------------------------------------------------------
     # Refresh flow helper (optional)
