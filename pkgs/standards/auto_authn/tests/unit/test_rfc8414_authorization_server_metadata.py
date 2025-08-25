@@ -34,6 +34,20 @@ async def test_metadata_endpoint_returns_expected_fields(enable_rfc8414):
 
 @pytest.mark.unit
 @pytest.mark.asyncio
+async def test_metadata_scopes_include_standard_scopes(enable_rfc8414):
+    """Discovery metadata includes OIDC standard scopes."""
+    app = FastAPI()
+    app.include_router(router)
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.get("/.well-known/oauth-authorization-server")
+    scopes = resp.json()["scopes_supported"]
+    for scope in ["openid", "profile", "email", "address", "phone"]:
+        assert scope in scopes
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
 async def test_metadata_endpoint_returns_404_when_disabled():
     """RFC 8414 §3: Endpoint may be disabled and should return 404."""
     app = FastAPI()
