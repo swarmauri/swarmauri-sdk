@@ -1,15 +1,19 @@
-"""RFC 7520 - Examples of Protecting Content Using JOSE.
+"""JOSE composition helpers for RFC 7520 compliance.
 
-Provides simple composition helpers that demonstrate signing followed by
-encryption and the reverse. Controlled via the
-``AUTO_AUTHN_ENABLE_RFC7520`` environment variable.
+This module demonstrates the JOSE patterns defined in :rfc:`7520`, providing
+helpers that sign payloads before encrypting them and vice‑versa.  Support can
+be toggled via the ``AUTO_AUTHN_ENABLE_RFC7520`` environment variable.
 """
+
+from typing import Final
 
 from jwcrypto import jwk
 
 from .runtime_cfg import settings
 from .rfc7515 import sign_jws, verify_jws
 from .rfc7516 import encrypt_jwe, decrypt_jwe
+
+RFC7520_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc7520"
 
 
 def jws_then_jwe(payload: str, key: jwk.JWK) -> str:
@@ -28,4 +32,4 @@ def jwe_then_jws(token: str, key: jwk.JWK) -> str:
     return verify_jws(jws_token, key)
 
 
-__all__ = ["jws_then_jwe", "jwe_then_jws"]
+__all__ = ["jws_then_jwe", "jwe_then_jws", "RFC7520_SPEC_URL"]

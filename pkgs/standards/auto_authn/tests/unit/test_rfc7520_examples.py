@@ -1,8 +1,20 @@
-"""Tests for RFC 7520: JOSE Examples."""
+"""RFC 7520 compliance tests for JOSE examples.
 
+These tests verify that the helper functions defined by :rfc:`7520` behave as
+expected and honor the ``AUTO_AUTHN_ENABLE_RFC7520`` flag.
+"""
+
+import importlib
+
+import pytest
 from jwcrypto import jwk
 
-from auto_authn.v2 import jws_then_jwe, jwe_then_jws
+import auto_authn.v2.rfc7520 as rfc7520
+from auto_authn.v2 import (
+    RFC7520_SPEC_URL,
+    jws_then_jwe,
+    jwe_then_jws,
+)
 
 
 def test_jws_then_jwe_roundtrip() -> None:
@@ -10,3 +22,18 @@ def test_jws_then_jwe_roundtrip() -> None:
     message = "hello"
     token = jws_then_jwe(message, key)
     assert jwe_then_jws(token, key) == message
+
+
+def test_rfc7520_disabled(monkeypatch) -> None:
+    monkeypatch.setenv("AUTO_AUTHN_ENABLE_RFC7520", "0")
+    import auto_authn.v2.runtime_cfg as runtime_cfg
+
+    importlib.reload(runtime_cfg)
+    importlib.reload(rfc7520)
+    key = jwk.JWK.generate(kty="oct", size=256)
+    with pytest.raises(RuntimeError):
+        rfc7520.jws_then_jwe("hi", key)
+
+
+def test_spec_url_constant() -> None:
+    assert RFC7520_SPEC_URL.endswith("rfc7520")
