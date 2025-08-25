@@ -248,6 +248,11 @@ async def authorize(
     code_challenge_method: Optional[str] = None,
     username: Optional[str] = None,
     password: Optional[str] = None,
+    response_mode: Optional[str] = None,
+    prompt: Optional[str] = None,
+    max_age: Optional[int] = None,
+    login_hint: Optional[str] = None,
+    claims: Optional[str] = None,
     db: AsyncSession = Depends(get_async_db),
 ):
     _require_tls(request)
@@ -282,6 +287,7 @@ async def authorize(
     params: list[tuple[str, str]] = []
     code: str | None = None
     access: str | None = None
+    session_id: str | None = None
     if "code" in rts:
         code = secrets.token_urlsafe(32)
         AUTH_CODES[code] = {
@@ -301,9 +307,12 @@ async def authorize(
     if "id_token" in rts:
         from ..rfc8414 import ISSUER
 
+        session_id = secrets.token_urlsafe(16)
+        SESSIONS[session_id] = {"sub": str(user.id), "tid": str(user.tenant_id)}
         extra_claims: dict[str, str] = {
             "tid": str(user.tenant_id),
             "typ": "id",
+            "sid": session_id,
         }
         if access:
             extra_claims["at_hash"] = oidc_hash(access)
@@ -321,7 +330,10 @@ async def authorize(
         params.append(("state", state))
 
     redirect_url = f"{redirect_uri}?{urlencode(params)}" if params else redirect_uri
-    return RedirectResponse(redirect_url)
+    response = RedirectResponse(redirect_url)
+    if session_id:
+        response.set_cookie("sid", session_id, httponly=True, samesite="lax")
+    return response
 
 
 @router.post("/token", response_model=TokenPair)
