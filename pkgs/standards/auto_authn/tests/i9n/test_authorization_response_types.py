@@ -31,7 +31,7 @@ async def _prepare(db: AsyncSession) -> None:
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_authorize_token_flow(
+async def test_authorize_token_flow_unsupported(
     async_client: AsyncClient, db_session: AsyncSession
 ):
     await _prepare(db_session)
@@ -44,12 +44,12 @@ async def test_authorize_token_flow(
         "username": "alice",
         "password": "Passw0rd!",
     }
-    resp = await async_client.get("/authorize", params=params, follow_redirects=False)
-    assert resp.status_code in {302, 307}
-    qs = parse_qs(urlparse(resp.headers["location"]).query)
-    assert "access_token" in qs
-    assert qs.get("token_type", [None])[0] == "bearer"
-    assert qs.get("state", [None])[0] == "xyz"
+    with pytest.warns(UserWarning):
+        resp = await async_client.get(
+            "/authorize", params=params, follow_redirects=False
+        )
+    assert resp.status_code == 400
+    assert resp.json()["error"] == "unsupported_response_type"
 
 
 @pytest.mark.integration

@@ -34,12 +34,8 @@ async def authorization_server_metadata():
         )
     response_types = [
         "code",
-        "token",
         "id_token",
-        "code token",
         "code id_token",
-        "token id_token",
-        "code token id_token",
     ]
     return {
         "issuer": ISSUER,

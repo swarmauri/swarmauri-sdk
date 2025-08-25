@@ -52,22 +52,23 @@ async def test_unsupported_grant_type_returns_error(enable_rfc6749):
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-@pytest.mark.parametrize(
-    "data",
-    [
-        {"grant_type": "password", "username": "user"},
-        {"grant_type": "password", "password": "pass"},
-    ],
-)
-async def test_password_grant_requires_username_and_password(data, enable_rfc6749):
-    """RFC 6749 §4.3: username and password parameters are required."""
+async def test_password_grant_is_unsupported(enable_rfc6749):
+    """Password grant is omitted in OAuth 2.1."""
     app = FastAPI()
     app.include_router(router)
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-        resp = await client.post("/token", data=data)
+        with pytest.warns(UserWarning):
+            resp = await client.post(
+                "/token",
+                data={
+                    "grant_type": "password",
+                    "username": "user",
+                    "password": "pass",
+                },
+            )
     assert resp.status_code == status.HTTP_400_BAD_REQUEST
-    assert resp.json()["error"] == "invalid_request"
+    assert resp.json()["error"] == "unsupported_grant_type"
 
 
 @pytest.mark.unit

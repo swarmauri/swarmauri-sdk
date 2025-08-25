@@ -5,14 +5,15 @@ The full RFC 8707 specification text is included below to ensure the tests
 validate the stated requirements.
 """
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
+from datetime import datetime, timedelta
 
 import pytest
 from fastapi import FastAPI, status
 from httpx import ASGITransport, AsyncClient
 
 from auto_authn.v2.runtime_cfg import settings
-from auto_authn.v2.routers.auth_flows import router, _jwt, get_async_db
+from auto_authn.v2.routers.auth_flows import AUTH_CODES, router, _jwt, get_async_db
 
 
 @pytest.mark.unit
@@ -21,27 +22,33 @@ async def test_token_includes_aud_when_resource_provided(monkeypatch):
     """RFC 8707 §2: resource parameter indicates the target resource."""
     app = FastAPI()
     app.include_router(router)
-    mock_user = MagicMock(id="user", tenant_id="tenant")
     monkeypatch.setattr(settings, "rfc8707_enabled", True)
-    monkeypatch.setattr(
-        "auto_authn.v2.routers.auth_flows._pwd_backend.authenticate",
-        AsyncMock(return_value=mock_user),
-    )
     app.dependency_overrides[get_async_db] = lambda: AsyncMock()
+    code = "abc"
+    AUTH_CODES[code] = {
+        "sub": "user",
+        "tid": "tenant",
+        "client_id": "c",
+        "redirect_uri": "https://c",
+        "code_challenge": None,
+        "expires_at": datetime.utcnow() + timedelta(minutes=5),
+    }
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post(
             "/token",
             data={
-                "grant_type": "password",
-                "username": "u",
-                "password": "p",
+                "grant_type": "authorization_code",
+                "code": code,
+                "redirect_uri": "https://c",
+                "client_id": "c",
                 "resource": "https://rs.example",
             },
         )
     assert resp.status_code == status.HTTP_200_OK
     payload = await _jwt.async_decode(resp.json()["access_token"])
     assert payload["aud"] == "https://rs.example"
+    AUTH_CODES.pop(code, None)
 
 
 @pytest.mark.unit
@@ -52,19 +59,30 @@ async def test_invalid_resource_returns_error(monkeypatch):
     app.include_router(router)
     monkeypatch.setattr(settings, "rfc8707_enabled", True)
     app.dependency_overrides[get_async_db] = lambda: AsyncMock()
+    code = "def"
+    AUTH_CODES[code] = {
+        "sub": "user",
+        "tid": "tenant",
+        "client_id": "c",
+        "redirect_uri": "https://c",
+        "code_challenge": None,
+        "expires_at": datetime.utcnow() + timedelta(minutes=5),
+    }
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post(
             "/token",
             data={
-                "grant_type": "password",
-                "username": "u",
-                "password": "p",
+                "grant_type": "authorization_code",
+                "code": code,
+                "redirect_uri": "https://c",
+                "client_id": "c",
                 "resource": "not-a-uri",
             },
         )
     assert resp.status_code == status.HTTP_400_BAD_REQUEST
     assert resp.json()["error"] == "invalid_target"
+    AUTH_CODES.pop(code, None)
 
 
 @pytest.mark.unit
@@ -73,27 +91,33 @@ async def test_multiple_resources_uses_first(monkeypatch):
     """RFC 8707 §2: first valid resource is used as audience."""
     app = FastAPI()
     app.include_router(router)
-    mock_user = MagicMock(id="user", tenant_id="tenant")
     monkeypatch.setattr(settings, "rfc8707_enabled", True)
-    monkeypatch.setattr(
-        "auto_authn.v2.routers.auth_flows._pwd_backend.authenticate",
-        AsyncMock(return_value=mock_user),
-    )
     app.dependency_overrides[get_async_db] = lambda: AsyncMock()
+    code = "ghi"
+    AUTH_CODES[code] = {
+        "sub": "user",
+        "tid": "tenant",
+        "client_id": "c",
+        "redirect_uri": "https://c",
+        "code_challenge": None,
+        "expires_at": datetime.utcnow() + timedelta(minutes=5),
+    }
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post(
             "/token",
             data={
-                "grant_type": "password",
-                "username": "u",
-                "password": "p",
+                "grant_type": "authorization_code",
+                "code": code,
+                "redirect_uri": "https://c",
+                "client_id": "c",
                 "resource": ["https://rs.example", "https://api.example"],
             },
         )
     assert resp.status_code == status.HTTP_200_OK
     payload = await _jwt.async_decode(resp.json()["access_token"])
     assert payload["aud"] == "https://rs.example"
+    AUTH_CODES.pop(code, None)
 
 
 @pytest.mark.unit
@@ -104,19 +128,30 @@ async def test_multiple_resources_with_invalid_returns_error(monkeypatch):
     app.include_router(router)
     monkeypatch.setattr(settings, "rfc8707_enabled", True)
     app.dependency_overrides[get_async_db] = lambda: AsyncMock()
+    code = "jkl"
+    AUTH_CODES[code] = {
+        "sub": "user",
+        "tid": "tenant",
+        "client_id": "c",
+        "redirect_uri": "https://c",
+        "code_challenge": None,
+        "expires_at": datetime.utcnow() + timedelta(minutes=5),
+    }
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post(
             "/token",
             data={
-                "grant_type": "password",
-                "username": "u",
-                "password": "p",
+                "grant_type": "authorization_code",
+                "code": code,
+                "redirect_uri": "https://c",
+                "client_id": "c",
                 "resource": ["https://rs.example", "not-a-uri"],
             },
         )
     assert resp.status_code == status.HTTP_400_BAD_REQUEST
     assert resp.json()["error"] == "invalid_target"
+    AUTH_CODES.pop(code, None)
 
 
 @pytest.mark.unit
@@ -125,27 +160,33 @@ async def test_feature_flag_disables_resource(monkeypatch):
     """When disabled, resource parameter is ignored."""
     app = FastAPI()
     app.include_router(router)
-    mock_user = MagicMock(id="user", tenant_id="tenant")
     monkeypatch.setattr(settings, "rfc8707_enabled", False)
-    monkeypatch.setattr(
-        "auto_authn.v2.routers.auth_flows._pwd_backend.authenticate",
-        AsyncMock(return_value=mock_user),
-    )
     app.dependency_overrides[get_async_db] = lambda: AsyncMock()
+    code = "mno"
+    AUTH_CODES[code] = {
+        "sub": "user",
+        "tid": "tenant",
+        "client_id": "c",
+        "redirect_uri": "https://c",
+        "code_challenge": None,
+        "expires_at": datetime.utcnow() + timedelta(minutes=5),
+    }
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post(
             "/token",
             data={
-                "grant_type": "password",
-                "username": "u",
-                "password": "p",
+                "grant_type": "authorization_code",
+                "code": code,
+                "redirect_uri": "https://c",
+                "client_id": "c",
                 "resource": "https://rs.example",
             },
         )
     assert resp.status_code == status.HTTP_200_OK
     payload = await _jwt.async_decode(resp.json()["access_token"])
     assert "aud" not in payload
+    AUTH_CODES.pop(code, None)
 
 
 # RFC 8707 full specification text appended for reference

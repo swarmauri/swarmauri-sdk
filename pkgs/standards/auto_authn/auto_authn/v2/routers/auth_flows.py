@@ -4,7 +4,7 @@ This router exposes the core credential flow endpoints:
 
 * ``POST /register``
 * ``POST /login``
-* ``POST /token`` (OAuth2 password grant)
+* ``POST /token``
 * ``POST /logout``
 * ``POST /token/refresh``
 * ``POST /introspect``
@@ -26,6 +26,7 @@ from __future__ import annotations
 
 
 import secrets
+import warnings
 from datetime import datetime, timedelta
 from typing import Literal, Optional
 
@@ -48,7 +49,6 @@ from ..rfc6749 import RFC6749Error
 from ..rfc6749 import (
     enforce_authorization_code_grant,
     enforce_grant_type,
-    enforce_password_grant,
     is_enabled as rfc6749_enabled,
 )
 from ..rfc7636_pkce import verify_code_challenge
@@ -61,7 +61,7 @@ _jwt = JWTCoder.default()
 _pwd_backend = PasswordBackend()
 _api_backend = ApiKeyBackend()
 
-_ALLOWED_GRANT_TYPES = {"password", "authorization_code"}
+_ALLOWED_GRANT_TYPES = {"authorization_code"}
 if settings.enable_rfc8628:
     _ALLOWED_GRANT_TYPES.add("urn:ietf:params:oauth:grant-type:device_code")
 
@@ -101,12 +101,6 @@ class IntrospectOut(BaseModel):
     sub: Optional[StrUUID] = None
     tid: Optional[StrUUID] = None
     kind: Optional[str] = None
-
-
-class PasswordGrantForm(BaseModel):
-    grant_type: Literal["password"]
-    username: str
-    password: str
 
 
 class AuthorizationCodeGrantForm(BaseModel):
@@ -194,7 +188,15 @@ async def authorize(
     db: AsyncSession = Depends(get_async_db),
 ):
     rts = set(response_type.split())
-    allowed = {"code", "token", "id_token"}
+    if "token" in rts:
+        warnings.warn(
+            "Implicit grant with response_type=token is not OAuth 2.1 compliant and is omitted",
+            UserWarning,
+        )
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, {"error": "unsupported_response_type"}
+        )
+    allowed = {"code", "id_token"}
     if not rts or not rts.issubset(allowed):
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST, {"error": "unsupported_response_type"}
@@ -257,6 +259,15 @@ async def token(
     data.pop("resource", None)
     grant_type = data.get("grant_type")
     aud = None
+    if grant_type == "password":
+        warnings.warn(
+            "Resource Owner Password Credentials grant is not OAuth 2.1 compliant and is omitted",
+            UserWarning,
+        )
+        return JSONResponse(
+            {"error": "unsupported_grant_type"},
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
     try:
         enforce_grant_type(grant_type, _ALLOWED_GRANT_TYPES)
     except RFC6749Error as exc:
@@ -270,26 +281,6 @@ async def token(
             return JSONResponse(
                 {"error": "invalid_target"}, status_code=status.HTTP_400_BAD_REQUEST
             )
-    if grant_type == "password":
-        try:
-            enforce_password_grant(data)
-        except RFC6749Error as exc:
-            return JSONResponse(
-                {"error": str(exc)}, status_code=status.HTTP_400_BAD_REQUEST
-            )
-        try:
-            parsed = PasswordGrantForm(**data)
-        except ValidationError as exc:
-            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, exc.errors())
-        try:
-            user = await _pwd_backend.authenticate(db, parsed.username, parsed.password)
-        except AuthError:
-            raise HTTPException(status.HTTP_404_NOT_FOUND, "invalid credentials")
-        jwt_kwargs = {"aud": aud} if aud else {}
-        access, refresh = await _jwt.async_sign_pair(
-            sub=str(user.id), tid=str(user.tenant_id), **jwt_kwargs
-        )
-        return TokenPair(access_token=access, refresh_token=refresh)
     if grant_type == "authorization_code":
         try:
             enforce_authorization_code_grant(data)
