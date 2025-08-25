@@ -66,6 +66,22 @@ class Settings(BaseSettings):
     rfc8707_enabled: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8707", "0") == "1"
     )
+    enable_rfc8705: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8705", "false").lower()
+        in {"1", "true", "yes"}
+    )
+    enforce_rfc8252: bool = Field(
+        default=True,
+        description="Validate redirect URIs according to RFC 8252",
+    )
+    enable_rfc7662: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7662", "false").lower()
+        in {"1", "true", "yes"}
+    )
+    enable_dpop: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_DPOP", "0") in {"1", "true", "True"}
+    )
+    enable_rfc9396: bool = Field(default=os.environ.get("ENABLE_RFC9396", "0") == "1")
 
     model_config = SettingsConfigDict(env_file=None)
 
