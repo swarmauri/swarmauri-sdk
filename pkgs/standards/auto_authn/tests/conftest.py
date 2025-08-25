@@ -162,10 +162,11 @@ def temp_key_file():
     import auto_authn.v2.crypto as crypto_module
 
     original_dir = crypto_module._DEFAULT_KEY_DIR
-    original_kid = crypto_module._KID_PATH
+    original_path = crypto_module._DEFAULT_KEY_PATH
 
     crypto_module._DEFAULT_KEY_DIR = temp_dir
-    crypto_module._KID_PATH = temp_kid
+    crypto_module._DEFAULT_KEY_PATH = temp_kid
+    crypto_module._provider.cache_clear()
     crypto_module._load_keypair.cache_clear()
 
     yield temp_kid
@@ -176,7 +177,8 @@ def temp_key_file():
         f.unlink()
     temp_dir.rmdir()
     crypto_module._DEFAULT_KEY_DIR = original_dir
-    crypto_module._KID_PATH = original_kid
+    crypto_module._DEFAULT_KEY_PATH = original_path
+    crypto_module._provider.cache_clear()
     crypto_module._load_keypair.cache_clear()
 
 
