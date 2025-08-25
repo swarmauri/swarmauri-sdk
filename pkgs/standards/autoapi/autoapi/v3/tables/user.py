@@ -9,7 +9,7 @@ from ..mixins import (
     AsyncCapable,
     ActiveToggle,
 )
-from ..specs import acol, F, S
+from ..specs import IO, acol, F, S
 from ..types import String
 
 
@@ -21,6 +21,7 @@ class User(
     username: str = acol(
         storage=S(String, nullable=False),
         field=F(constraints={"max_length": 80}),
+        io=IO(),
     )
 
 
