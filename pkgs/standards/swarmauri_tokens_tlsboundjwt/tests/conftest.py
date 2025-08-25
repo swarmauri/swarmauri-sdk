@@ -2,6 +2,8 @@ import json
 import sys
 import types
 
+from swarmauri_core.crypto.types import JWAAlg
+
 providers_mod = types.ModuleType("swarmauri_providers")
 tokens_mod = types.ModuleType("swarmauri_providers.tokens")
 
@@ -11,13 +13,13 @@ class JWTTokenService:
         self.key_provider = key_provider
 
     def supports(self) -> dict:
-        return {"formats": ("JWT",), "algs": ("HS256",)}
+        return {"formats": ("JWT",), "algs": (JWAAlg.HS256,)}
 
     async def mint(
         self,
         claims: dict,
         *,
-        alg: str,
+        alg: JWAAlg,
         kid: str | None = None,
         key_version: int | None = None,
         headers: dict | None = None,

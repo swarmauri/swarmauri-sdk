@@ -8,6 +8,7 @@ from unittest.mock import AsyncMock, Mock
 import jwt
 import pytest
 from fastapi import HTTPException, Request
+from swarmauri_core.crypto.types import JWAAlg
 from swarmauri_middleware_auth.AuthMiddleware import AuthMiddleware
 
 
@@ -22,7 +23,7 @@ def auth_middleware(secret_key):
     """Fixture providing an AuthMiddleware instance."""
     return AuthMiddleware(
         secret_key=secret_key,
-        algorithm="HS256",
+        algorithm=JWAAlg.HS256,
         verify_exp=True,
         verify_aud=False,
         audience=None,
@@ -35,7 +36,7 @@ def auth_middleware_with_audience(secret_key):
     """Fixture providing an AuthMiddleware instance with audience validation."""
     return AuthMiddleware(
         secret_key=secret_key,
-        algorithm="HS256",
+        algorithm=JWAAlg.HS256,
         verify_exp=True,
         verify_aud=True,
         audience="test-app",
@@ -53,7 +54,7 @@ def valid_token(secret_key):
         "name": "Test User",
         "role": "user",
     }
-    return jwt.encode(payload, secret_key, algorithm="HS256")
+    return jwt.encode(payload, secret_key, algorithm=JWAAlg.HS256.value)
 
 
 @pytest.fixture
@@ -66,7 +67,7 @@ def expired_token(secret_key):
         "name": "Test User",
         "role": "user",
     }
-    return jwt.encode(payload, secret_key, algorithm="HS256")
+    return jwt.encode(payload, secret_key, algorithm=JWAAlg.HS256.value)
 
 
 @pytest.fixture
@@ -80,7 +81,7 @@ def invalid_signature_token(secret_key):
         "role": "user",
     }
     # Use a different secret key to create invalid signature
-    return jwt.encode(payload, "wrong-secret-key", algorithm="HS256")
+    return jwt.encode(payload, "wrong-secret-key", algorithm=JWAAlg.HS256.value)
 
 
 @pytest.fixture
@@ -95,7 +96,7 @@ def token_with_audience(secret_key):
         "name": "Test User",
         "role": "user",
     }
-    return jwt.encode(payload, secret_key, algorithm="HS256")
+    return jwt.encode(payload, secret_key, algorithm=JWAAlg.HS256.value)
 
 
 @pytest.fixture
@@ -115,7 +116,7 @@ class TestAuthMiddleware:
         """Test AuthMiddleware initialization."""
         middleware = AuthMiddleware(
             secret_key=secret_key,
-            algorithm="RS256",
+            algorithm=JWAAlg.RS256,
             verify_exp=False,
             verify_aud=True,
             audience="my-app",
@@ -123,7 +124,7 @@ class TestAuthMiddleware:
         )
 
         assert middleware.secret_key == secret_key
-        assert middleware.algorithm == "RS256"
+        assert middleware.algorithm == JWAAlg.RS256
         assert middleware.verify_exp is False
         assert middleware.verify_aud is True
         assert middleware.audience == "my-app"
@@ -383,11 +384,11 @@ class TestAuthMiddleware:
 
     def test_algorithm_configuration(self, secret_key):
         """Test that different algorithms can be configured."""
-        middleware_hs256 = AuthMiddleware(secret_key=secret_key, algorithm="HS256")
-        middleware_hs512 = AuthMiddleware(secret_key=secret_key, algorithm="HS512")
+        middleware_hs256 = AuthMiddleware(secret_key=secret_key, algorithm=JWAAlg.HS256)
+        middleware_hs512 = AuthMiddleware(secret_key=secret_key, algorithm=JWAAlg.HS512)
 
-        assert middleware_hs256.algorithm == "HS256"
-        assert middleware_hs512.algorithm == "HS512"
+        assert middleware_hs256.algorithm == JWAAlg.HS256
+        assert middleware_hs512.algorithm == JWAAlg.HS512
 
     def test_verification_options_configuration(self, secret_key):
         """Test that verification options can be configured."""

@@ -9,6 +9,7 @@ import jwt
 from fastapi import HTTPException, Request
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.middlewares.MiddlewareBase import MiddlewareBase
+from swarmauri_core.crypto.types import JWAAlg
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +34,7 @@ class AuthMiddleware(MiddlewareBase, ComponentBase):
     def __init__(
         self,
         secret_key: str,
-        algorithm: str = "HS256",
+        algorithm: JWAAlg = JWAAlg.HS256,
         verify_exp: bool = True,
         verify_aud: bool = False,
         audience: Optional[str] = None,
@@ -166,7 +167,7 @@ class AuthMiddleware(MiddlewareBase, ComponentBase):
         # Prepare decode arguments
         decode_kwargs = {
             "key": self.secret_key,
-            "algorithms": [self.algorithm],
+            "algorithms": [self.algorithm.value],
             "options": options,
         }
 
