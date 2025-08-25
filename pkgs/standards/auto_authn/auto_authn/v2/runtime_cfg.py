@@ -68,7 +68,8 @@ class Settings(BaseSettings):
     )
     enable_rfc8705: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8705", "false").lower()
-        in {"1", "true", "yes"}
+        in {"1", "true", "yes"},
+        description=("Enable OAuth 2.0 Mutual-TLS client authentication per RFC 8705"),
     )
     enable_rfc7636: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7636", "true").lower()
