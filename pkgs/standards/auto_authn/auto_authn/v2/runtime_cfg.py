@@ -88,7 +88,11 @@ class Settings(BaseSettings):
     enable_dpop: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_DPOP", "0") in {"1", "true", "True"}
     )
-    enable_rfc9396: bool = Field(default=os.environ.get("ENABLE_RFC9396", "0") == "1")
+    enable_rfc9396: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC9396", "0").lower()
+        in {"1", "true", "yes"},
+        description=("Enable OAuth 2.0 Rich Authorization Requests per RFC 9396"),
+    )
     enable_rfc7009: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7009", "false").lower()
         in {"1", "true", "yes"}
@@ -102,10 +106,12 @@ class Settings(BaseSettings):
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC9207", "false").lower()
         in {"1", "true", "yes"},
         description="Enable Authorization Server Issuer Identification per RFC 9207",
+    )
     enable_rfc9126: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC9126", "false").lower()
         in {"1", "true", "yes"},
         description="Enable Pushed Authorization Requests per RFC 9126",
+    )
     enable_rfc6750: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC6750", "true").lower()
         in {"1", "true", "yes"},
