@@ -7,13 +7,16 @@ dynamically chosen port. Redirect URIs that fall outside of these
 patterns are considered non-compliant. Enforcement of these rules can be
 toggled via ``runtime_cfg.Settings.enforce_rfc8252`` which is controlled
 by the ``AUTO_AUTHN_ENFORCE_RFC8252`` environment variable.
+
+See RFC 8252: https://www.rfc-editor.org/rfc/rfc8252
 """
 
 from __future__ import annotations
 
 from urllib.parse import urlparse
+from typing import Final
 
-RFC_SPEC = "RFC 8252"  # OAuth 2.0 for Native Apps
+RFC8252_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc8252"
 
 # Hosts that resolve to the loopback interface as defined by RFC 8252 §7.3
 _LOOPBACK_HOSTS = {"127.0.0.1", "localhost", "::1"}
@@ -46,4 +49,9 @@ def validate_native_redirect_uri(uri: str) -> None:
     """
 
     if not is_native_redirect_uri(uri):
-        raise ValueError("redirect URI not permitted for native apps per RFC 8252")
+        raise ValueError(
+            f"redirect URI not permitted for native apps per RFC 8252: {RFC8252_SPEC_URL}"
+        )
+
+
+__all__ = ["is_native_redirect_uri", "validate_native_redirect_uri", "RFC8252_SPEC_URL"]

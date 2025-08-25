@@ -1,18 +1,21 @@
 """Web Push message encryption helpers for RFC 8291 compliance.
 
 This module offers minimal AES-128-GCM helpers inspired by
-:rfc:`8291`.  The encryption utilities can be disabled via the
+:rfc:`8291`. The encryption utilities can be disabled via the
 ``enable_rfc8291`` flag in :mod:`auto_authn.v2.runtime_cfg` to allow
 unencrypted operation in constrained environments.
+
+See RFC 8291: https://www.rfc-editor.org/rfc/rfc8291
 """
 
 from __future__ import annotations
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from typing import Final
 
 from .runtime_cfg import settings
 
-RFC8291_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8291"
+RFC8291_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc8291"
 
 
 def encrypt_push_message(

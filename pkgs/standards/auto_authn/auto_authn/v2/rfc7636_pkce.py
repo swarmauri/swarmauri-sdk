@@ -1,10 +1,12 @@
 """PKCE utilities for RFC 7636 compliance.
 
 This module implements the Proof Key for Code Exchange (PKCE)
-requirements defined in :rfc:`7636`.  It provides helpers for creating
+requirements defined in :rfc:`7636`. It provides helpers for creating
 ``code_verifier`` strings and deriving ``code_challenge`` values using the
-``S256`` transformation.  The functions may be disabled via runtime
-configuration to allow deployments to opt-out of RFC 7636 enforcement.
+``S256`` transformation. The functions may be disabled via runtime
+configuration to allow deployments to opt out of RFC 7636 enforcement.
+
+See RFC 7636: https://www.rfc-editor.org/rfc/rfc7636
 """
 
 from __future__ import annotations
@@ -16,6 +18,8 @@ import secrets
 from typing import Final
 
 from .runtime_cfg import settings
+
+RFC7636_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc7636"
 
 # Allowed characters for the code_verifier as defined by RFC 7636 §4.1
 _VERIFIER_CHARSET: Final = (
@@ -78,4 +82,5 @@ __all__ = [
     "create_code_verifier",
     "create_code_challenge",
     "verify_code_challenge",
+    "RFC7636_SPEC_URL",
 ]

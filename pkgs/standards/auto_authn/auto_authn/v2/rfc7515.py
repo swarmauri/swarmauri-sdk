@@ -3,17 +3,23 @@
 This module provides thin wrappers around :mod:`jwcrypto.jws` to create and
 verify JWS objects. Functionality can be toggled via the
 ``AUTO_AUTHN_ENABLE_RFC7515`` environment variable.
+
+See RFC 7515: https://www.rfc-editor.org/rfc/rfc7515
 """
+
+from typing import Final
 
 from jwcrypto import jws, jwk
 
 from .runtime_cfg import settings
 
+RFC7515_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc7515"
+
 
 def sign_jws(payload: str, key: jwk.JWK) -> str:
     """Return a JWS compact serialization of *payload* using *key*."""
     if not settings.enable_rfc7515:
-        raise RuntimeError("RFC 7515 support disabled")
+        raise RuntimeError(f"RFC 7515 support disabled: {RFC7515_SPEC_URL}")
     token = jws.JWS(payload.encode())
     alg = "HS256" if key.kty == "oct" else "EdDSA"
     token.add_signature(key, None, json_encode({"alg": alg}))
@@ -23,7 +29,7 @@ def sign_jws(payload: str, key: jwk.JWK) -> str:
 def verify_jws(token: str, key: jwk.JWK) -> str:
     """Verify *token* and return the decoded payload as a string."""
     if not settings.enable_rfc7515:
-        raise RuntimeError("RFC 7515 support disabled")
+        raise RuntimeError(f"RFC 7515 support disabled: {RFC7515_SPEC_URL}")
     obj = jws.JWS()
     obj.deserialize(token)
     obj.verify(key)
@@ -37,4 +43,4 @@ def json_encode(data: dict) -> str:
     return json.dumps(data)
 
 
-__all__ = ["sign_jws", "verify_jws"]
+__all__ = ["sign_jws", "verify_jws", "RFC7515_SPEC_URL"]

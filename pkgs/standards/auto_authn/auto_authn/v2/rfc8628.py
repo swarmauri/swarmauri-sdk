@@ -1,10 +1,12 @@
 """Device Authorization Grant helpers for RFC 8628 compliance.
 
 This module implements utility helpers for the OAuth 2.0 Device Authorization
-Grant as defined in :rfc:`8628`.  It provides functions for generating and
+Grant as defined in :rfc:`8628`. It provides functions for generating and
 validating ``user_code`` values as well as creating high-entropy
-``device_code`` strings.  The validation helpers may be disabled via runtime
-configuration allowing deployments to opt-out of RFC 8628 enforcement.
+``device_code`` strings. The validation helpers may be disabled via runtime
+configuration allowing deployments to opt out of RFC 8628 enforcement.
+
+See RFC 8628: https://www.rfc-editor.org/rfc/rfc8628
 """
 
 from __future__ import annotations

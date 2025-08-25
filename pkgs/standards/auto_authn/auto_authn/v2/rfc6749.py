@@ -6,13 +6,17 @@ to RFC 6749 Section 5.2. Validation can be toggled on or off via the
 
 The public ``enforce_*`` helpers automatically respect the runtime flag making
 RFC 6749 enforcement modular.
+
+See RFC 6749: https://www.rfc-editor.org/rfc/rfc6749
 """
 
 from __future__ import annotations
 
-from typing import Iterable, Mapping
+from typing import Final, Iterable, Mapping
 
 from .runtime_cfg import settings
+
+RFC6749_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc6749"
 
 __all__ = [
     "RFC6749Error",
@@ -21,6 +25,7 @@ __all__ = [
     "is_enabled",
     "enforce_grant_type",
     "enforce_password_grant",
+    "RFC6749_SPEC_URL",
 ]
 
 

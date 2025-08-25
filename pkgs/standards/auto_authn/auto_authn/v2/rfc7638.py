@@ -1,8 +1,10 @@
 """JWK Thumbprint utilities for RFC 7638 compliance.
 
 This module computes and verifies JSON Web Key (JWK) thumbprints as defined in
-:rfc:`7638`.  The helpers are feature flagged via ``enable_rfc7638`` in
+:rfc:`7638`. The helpers are feature flagged via ``enable_rfc7638`` in
 :mod:`auto_authn.v2.runtime_cfg` so deployments may opt out of enforcement.
+
+See RFC 7638: https://www.rfc-editor.org/rfc/rfc7638
 """
 
 from __future__ import annotations
@@ -10,9 +12,11 @@ from __future__ import annotations
 import base64
 import json
 from hashlib import sha256
-from typing import Any, Mapping
+from typing import Any, Final, Mapping
 
 from .runtime_cfg import settings
+
+RFC7638_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc7638"
 
 # Required members for each key type according to RFC 7638 §3.1
 _REQUIRED_MEMBERS = {
@@ -65,4 +69,4 @@ def verify_jwk_thumbprint(
     return expected == thumbprint
 
 
-__all__ = ["jwk_thumbprint", "verify_jwk_thumbprint"]
+__all__ = ["jwk_thumbprint", "verify_jwk_thumbprint", "RFC7638_SPEC_URL"]

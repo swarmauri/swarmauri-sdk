@@ -5,13 +5,18 @@ This module extracts bearer tokens from HTTP requests according to
 Optional mechanisms for supplying the token in the URI query parameter or the
 request body can also be toggled via settings to allow deployments to opt out
 of these potentially insecure features.
+
+See RFC 6750: https://www.rfc-editor.org/rfc/rfc6750
 """
 
 from __future__ import annotations
 
 from fastapi import Request
+from typing import Final
 
 from .runtime_cfg import settings
+
+RFC6750_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc6750"
 
 
 async def extract_bearer_token(request: Request, authorization: str) -> str | None:
@@ -53,4 +58,4 @@ async def extract_bearer_token(request: Request, authorization: str) -> str | No
     return None
 
 
-__all__ = ["extract_bearer_token"]
+__all__ = ["extract_bearer_token", "RFC6750_SPEC_URL"]
