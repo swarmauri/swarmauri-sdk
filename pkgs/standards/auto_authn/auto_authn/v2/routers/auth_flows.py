@@ -28,7 +28,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Literal, Optional
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, EmailStr, Field, ValidationError, constr
 from sqlalchemy import select
@@ -42,9 +42,7 @@ from ..orm.tables import Tenant, User
 from ..runtime_cfg import settings
 from ..typing import StrUUID
 from ..rfc8707 import extract_resource
-from ..rfc7009 import revoke_token
 from ..rfc6749 import RFC6749Error
-from ..rfc9126 import store_par_request, DEFAULT_PAR_EXPIRY
 from ..rfc6749 import (
     enforce_grant_type,
     enforce_password_grant,
@@ -274,9 +272,13 @@ async def refresh(body: RefreshIn):
 #  RFC 7662 token introspection
 # --------------------------------------------------------------------------
 @router.post("/introspect", response_model=IntrospectOut)
-async def introspect(token: str = Form(...), db: AsyncSession = Depends(get_async_db)):
+async def introspect(request: Request, db: AsyncSession = Depends(get_async_db)):
     if not settings.enable_rfc7662:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "introspection disabled")
+    form = await request.form()
+    token = form.get("token")
+    if not token:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "token parameter required")
     try:
         principal, kind = await _api_backend.authenticate(db, token)
     except AuthError:

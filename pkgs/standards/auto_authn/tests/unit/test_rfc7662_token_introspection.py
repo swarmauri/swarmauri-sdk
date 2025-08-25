@@ -71,7 +71,4 @@ async def test_introspection_requires_token_parameter(enable_rfc7662):
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post("/introspect", data={})
-    assert resp.status_code in {
-        status.HTTP_400_BAD_REQUEST,
-        status.HTTP_422_UNPROCESSABLE_ENTITY,
-    }
+    assert resp.status_code == status.HTTP_400_BAD_REQUEST
