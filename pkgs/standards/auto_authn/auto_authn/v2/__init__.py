@@ -21,6 +21,12 @@ from .rfc7662 import introspect_token, register_token, reset_tokens
 from .rfc9207 import RFC9207_SPEC_URL, extract_issuer
 from .rfc9126 import store_par_request, get_par_request, reset_par_store
 from .rfc8707 import extract_resource, RFC8707_SPEC_URL
+from .rfc8705 import (
+    RFC8705_SPEC_URL,
+    thumbprint_from_cert_pem,
+    validate_certificate_binding,
+)
+from .rfc8252 import is_native_redirect_uri, validate_native_redirect_uri
 from .rfc8705 import thumbprint_from_cert_pem, validate_certificate_binding
 from .rfc9068 import add_rfc9068_claims, validate_rfc9068_claims
 from .rfc8252 import is_native_redirect_uri, validate_native_redirect_uri
@@ -45,6 +51,7 @@ __all__ = [
     "extract_issuer",
     "extract_resource",
     "RFC8707_SPEC_URL",
+    "RFC8705_SPEC_URL",
     "RFC9207_SPEC_URL",
     "introspect_token",
     "register_token",
