@@ -76,6 +76,12 @@ refreshed = client.post(
 ).json()
 ```
 
+### RP-initiated logout
+
+```python
+client.post("/logout", json={"id_token_hint": tokens["id_token"]})
+```
+
 ### Token revocation (RFC 7009)
 
 ```python
