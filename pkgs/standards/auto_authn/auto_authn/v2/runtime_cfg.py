@@ -109,6 +109,12 @@ class Settings(BaseSettings):
         in {"1", "true", "yes"},
         description="Enable Pushed Authorization Requests per RFC 9126",
     )
+
+    enable_rfc9068: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC9068", "false").lower()
+        in {"1", "true", "yes"},
+        description="Enable JWT Profile for OAuth 2.0 Access Tokens per RFC 9068",
+    )
     enable_rfc6750: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC6750", "true").lower()
         in {"1", "true", "yes"},
