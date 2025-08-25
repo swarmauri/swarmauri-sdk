@@ -20,7 +20,7 @@ from swarmauri_core.keys import (
     KeyRef,
     KeyUse,
 )
-from swarmauri_core.crypto.types import KeyType
+from swarmauri_core.crypto.types import JWAAlg, KeyType
 
 
 class InMemoryKeyProvider(IKeyProvider):
@@ -74,7 +74,7 @@ class InMemoryKeyProvider(IKeyProvider):
 
 async def main() -> None:
     svc = JWTTokenService(InMemoryKeyProvider(), default_issuer="issuer")
-    token = await svc.mint({"sub": "alice"}, alg="HS256", kid="sym")
+    token = await svc.mint({"sub": "alice"}, alg=JWAAlg.HS256, kid="sym")
     claims = await svc.verify(token, issuer="issuer")
     assert claims["sub"] == "alice"
 
