@@ -8,14 +8,16 @@ from typing import Any, Mapping
 from uuid import UUID
 
 from ._RowBound import _RowBound
+from ..columns import acol as col
+from ..specs import IO, S, F, acol as spec_acol
+from ..specs.storage_spec import ForeignKeySpec
 from ..config.constants import (
     AUTOAPI_TENANT_POLICY_ATTR,
     CTX_AUTH_KEY,
     CTX_TENANT_ID_KEY,
 )
 from ..runtime.errors import create_standardized_error
-from ..schema.col_info import check as _info_check
-from ..types import Column, ForeignKey, PgUUID, declared_attr
+from ..types import PgUUID, declared_attr
 
 
 log = logging.getLogger(__name__)
@@ -75,19 +77,23 @@ class TenantBound(_RowBound):
         pol = getattr(cls, AUTOAPI_TENANT_POLICY_ATTR, TenantPolicy.CLIENT_SET)
         schema = _infer_schema(cls, default="public")
 
-        autoapi_meta: dict[str, object] = {}
-        if pol != TenantPolicy.CLIENT_SET:
-            autoapi_meta["disable_on"] = ["update", "replace"]
-            autoapi_meta["read_only"] = True
-        _info_check(autoapi_meta, "tenant_id", cls.__name__)
-
-        return Column(
-            PgUUID(as_uuid=True),
-            ForeignKey(f"{schema}.tenants.id"),
+        storage = S(
+            type_=PgUUID(as_uuid=True),
+            fk=ForeignKeySpec(target=f"{schema}.tenants.id"),
             nullable=False,
             index=True,
-            info={"autoapi": autoapi_meta} if autoapi_meta else {},
         )
+        field = F(py_type=UUID)
+        if pol == TenantPolicy.CLIENT_SET:
+            io = IO(
+                in_verbs=("create", "update", "replace"),
+                out_verbs=("read", "list"),
+                mutable_verbs=("create", "update", "replace"),
+            )
+        else:
+            io = IO(out_verbs=("read", "list"))
+
+        return col(spec=spec_acol(storage=storage, field=field, io=io))
 
     @declared_attr
     def __tablename__(cls):

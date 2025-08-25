@@ -8,7 +8,6 @@ import typing as _typing
 from types import SimpleNamespace
 from typing import Any, Awaitable, Callable, Dict, Mapping, Optional, Sequence, Tuple
 
-from collections.abc import Mapping as _Mapping
 from typing import get_origin as _get_origin, get_args as _get_args
 
 try:
@@ -101,9 +100,9 @@ def _ensure_jsonable(obj: Any) -> Any:
     if isinstance(obj, (list, tuple)):
         return [_ensure_jsonable(x) for x in obj]
 
-    if isinstance(mapping, Mapping):
+    if isinstance(obj, Mapping):
         try:
-            return {k: _ensure_jsonable(v) for k, v in dict(mapping).items()}
+            return {k: _ensure_jsonable(v) for k, v in dict(obj).items()}
         except Exception:  # pragma: no cover - fall back to original object
             pass
 
@@ -113,6 +112,7 @@ def _ensure_jsonable(obj: Any) -> Any:
         return obj
 
     return {k: _ensure_jsonable(v) for k, v in data.items() if not k.startswith("_")}
+
 
 def _req_state_db(request: Request) -> Any:
     return getattr(request.state, "db", None)
