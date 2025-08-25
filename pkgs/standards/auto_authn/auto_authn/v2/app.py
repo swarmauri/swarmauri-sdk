@@ -115,18 +115,15 @@ async def oidc_config():
         "token_endpoint": f"{ISSUER}/token",
         "userinfo_endpoint": f"{ISSUER}/userinfo",
         "jwks_uri": f"{ISSUER}{JWKS_PATH}",
-        "scopes_supported": scopes,
-        "claims_supported": claims,
-        "response_types_supported": response_types,
-        "grant_types_supported": ["authorization_code", "refresh_token"],
-        "token_endpoint_auth_methods_supported": [
-            "client_secret_basic",
-            "client_secret_post",
-        ],
-        "code_challenge_methods_supported": ["S256", "plain"],
         "subject_types_supported": ["public"],
         "id_token_signing_alg_values_supported": ["RS256"],
     }
+    config.update(
+        scopes_supported=scopes,
+        claims_supported=claims,
+        response_types_supported=response_types,
+        grant_types_supported=["authorization_code", "refresh_token"],
+    )
     if settings.enable_rfc7591:
         config["registration_endpoint"] = f"{ISSUER}/clients"
     return config
