@@ -1,9 +1,4 @@
-"""
-autoapi_authn.jwtoken
-=====================
-
-JWT minting and verification via swarmauri token plugins.
-"""
+"""JWT minting and verification via swarmauri token plugins."""
 
 from __future__ import annotations
 
@@ -22,7 +17,6 @@ from .deps import (
     KeySpec,
     KeyUse,
 )
-
 from .runtime_cfg import settings
 from .rfc8705 import validate_certificate_binding
 from .crypto import _DEFAULT_KEY_PATH, _provider
@@ -67,7 +61,7 @@ class JWTCoder:
         return cls(svc, kid)
 
     # -----------------------------------------------------------------
-    def sign(
+    async def async_sign(
         self,
         *,
         sub: str,
@@ -91,35 +85,60 @@ class JWTCoder:
         if settings.enable_rfc8705:
             if cert_thumbprint is None:
                 raise ValueError(
-                    "cert_thumbprint required when RFC 8705 support is enabled"
+                    "cert_thumbprint required when RFC 8705 support is enabled",
                 )
             payload["cnf"] = {"x5t#S256": cert_thumbprint}
         if settings.enable_rfc9068:
             if issuer is None or audience is None:
                 raise ValueError(
-                    "issuer and audience required when RFC 9068 support is enabled"
+                    "issuer and audience required when RFC 9068 support is enabled",
                 )
             from .rfc9068 import add_rfc9068_claims
 
             payload = add_rfc9068_claims(payload, issuer=issuer, audience=audience)
-        token = asyncio.run(
-            self._svc.mint(
-                payload,
-                alg=JWAAlg.EDDSA,
-                kid=self._kid,
-                lifetime_s=int(ttl.total_seconds()),
-                subject=sub,
-                issuer=issuer,
-                audience=audience,
-            )
+        token = await self._svc.mint(
+            payload,
+            alg=JWAAlg.EDDSA,
+            kid=self._kid,
+            lifetime_s=int(ttl.total_seconds()),
+            subject=sub,
+            issuer=issuer,
+            audience=audience,
         )
         return token
 
-    def sign_pair(
+    def sign(
+        self,
+        *,
+        sub: str,
+        tid: str,
+        ttl: timedelta = _ACCESS_TTL,
+        typ: str = "access",
+        issuer: Optional[str] = None,
+        audience: Optional[Iterable[str] | str] = None,
+        cert_thumbprint: Optional[str] = None,
+        **extra: Any,
+    ) -> str:
+        return asyncio.run(
+            self.async_sign(
+                sub=sub,
+                tid=tid,
+                ttl=ttl,
+                typ=typ,
+                issuer=issuer,
+                audience=audience,
+                cert_thumbprint=cert_thumbprint,
+                **extra,
+            ),
+        )
+
+    async def async_sign_pair(
         self, *, sub: str, tid: str, cert_thumbprint: Optional[str] = None, **extra: Any
     ) -> Tuple[str, str]:
-        access = self.sign(sub=sub, tid=tid, cert_thumbprint=cert_thumbprint, **extra)
-        refresh = self.sign(
+        access = await self.async_sign(
+            sub=sub, tid=tid, cert_thumbprint=cert_thumbprint, **extra
+        )
+        refresh = await self.async_sign(
             sub=sub,
             tid=tid,
             ttl=_REFRESH_TTL,
@@ -129,7 +148,19 @@ class JWTCoder:
         )
         return access, refresh
 
-    def decode(
+    def sign_pair(
+        self, *, sub: str, tid: str, cert_thumbprint: Optional[str] = None, **extra: Any
+    ) -> Tuple[str, str]:
+        return asyncio.run(
+            self.async_sign_pair(
+                sub=sub,
+                tid=tid,
+                cert_thumbprint=cert_thumbprint,
+                **extra,
+            ),
+        )
+
+    async def async_decode(
         self,
         token: str,
         verify_exp: bool = True,
@@ -137,7 +168,7 @@ class JWTCoder:
         audience: Optional[Iterable[str] | str] = None,
         cert_thumbprint: Optional[str] = None,
     ) -> Dict[str, Any]:
-        payload = asyncio.run(self._svc.verify(token, issuer=issuer, audience=audience))
+        payload = await self._svc.verify(token, issuer=issuer, audience=audience)
         if verify_exp:
             exp = payload.get("exp")
             if exp is not None and int(exp) < int(
@@ -147,18 +178,36 @@ class JWTCoder:
         if settings.enable_rfc8705:
             if cert_thumbprint is None:
                 raise ValueError(
-                    "certificate thumbprint required for mTLS per RFC 8705"
+                    "certificate thumbprint required for mTLS per RFC 8705",
                 )
             validate_certificate_binding(payload, cert_thumbprint)
         if settings.enable_rfc9068:
             if issuer is None or audience is None:
                 raise ValueError(
-                    "issuer and audience required for JWT access tokens per RFC 9068"
+                    "issuer and audience required for JWT access tokens per RFC 9068",
                 )
             from .rfc9068 import validate_rfc9068_claims
 
             validate_rfc9068_claims(payload, issuer=issuer, audience=audience)
         return payload
+
+    def decode(
+        self,
+        token: str,
+        verify_exp: bool = True,
+        issuer: Optional[str] = None,
+        audience: Optional[Iterable[str] | str] = None,
+        cert_thumbprint: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        return asyncio.run(
+            self.async_decode(
+                token,
+                verify_exp=verify_exp,
+                issuer=issuer,
+                audience=audience,
+                cert_thumbprint=cert_thumbprint,
+            ),
+        )
 
     def refresh(self, refresh_token: str) -> Tuple[str, str]:
         payload = self.decode(refresh_token)
