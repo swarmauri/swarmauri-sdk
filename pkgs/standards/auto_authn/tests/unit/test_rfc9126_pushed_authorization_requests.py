@@ -4,9 +4,8 @@ import pytest
 from fastapi import FastAPI, status
 from httpx import ASGITransport, AsyncClient
 
-from auto_authn.v2.routers.auth_flows import router
+from auto_authn.v2.rfc9126 import DEFAULT_PAR_EXPIRY, router
 from auto_authn.v2.fastapi_deps import get_async_db
-from auto_authn.v2.rfc9126 import DEFAULT_PAR_EXPIRY
 
 # RFC 9126 specification excerpt for reference within tests
 RFC9126_SPEC = """
