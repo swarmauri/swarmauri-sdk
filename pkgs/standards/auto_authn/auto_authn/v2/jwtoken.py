@@ -139,7 +139,7 @@ class JWTCoder:
         jwt.InvalidTokenError
             If signature is invalid, token is expired, or malformed.
         """
-        options = {"verify_exp": verify_exp}
+        options = {"verify_exp": verify_exp, "verify_aud": False}
         payload = jwt.decode(
             token,
             self._pub,
