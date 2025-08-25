@@ -13,6 +13,8 @@ from typing import Any, Dict, Mapping
 from .runtime_cfg import settings
 from .rfc7638 import jwk_thumbprint
 
+RFC7800_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc7800"
+
 
 def add_cnf_claim(payload: Mapping[str, Any], jwk: Mapping[str, Any]) -> Dict[str, Any]:
     """Return a copy of *payload* with a ``cnf`` claim referencing *jwk*.
@@ -50,4 +52,4 @@ def verify_proof_of_possession(
     return jkt == expected
 
 
-__all__ = ["add_cnf_claim", "verify_proof_of_possession"]
+__all__ = ["RFC7800_SPEC_URL", "add_cnf_claim", "verify_proof_of_possession"]

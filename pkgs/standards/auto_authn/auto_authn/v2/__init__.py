@@ -49,6 +49,7 @@ from .rfc7516 import encrypt_jwe, decrypt_jwe
 from .rfc7517 import load_signing_jwk, load_public_jwk
 from .rfc7518 import supported_algorithms
 from .rfc7519 import encode_jwt, decode_jwt
+
 from .rfc7520 import jws_then_jwe, jwe_then_jws, RFC7520_SPEC_URL
 from .rfc7591 import (
     register_client,
@@ -57,7 +58,9 @@ from .rfc7591 import (
     RFC7591_SPEC_URL,
 )
 from .rfc7592 import update_client, delete_client, RFC7592_SPEC_URL
+
 from .rfc7521 import validate_jwt_assertion, RFC7521_SPEC_URL
+from .rfc7523 import validate_client_jwt_bearer, RFC7523_SPEC_URL
 
 __all__ = [
     "create_code_verifier",
@@ -122,4 +125,6 @@ __all__ = [
     "validate_amr_claim",
     "AMR_VALUES",
     "RFC8176_SPEC_URL",
+    "validate_client_jwt_bearer",
+    "RFC7523_SPEC_URL",
 ]
