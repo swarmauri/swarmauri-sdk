@@ -78,7 +78,11 @@ def _build_openid_config() -> dict[str, Any]:
         "code_challenge_methods_supported": ["S256"],
     }
     if settings.enable_rfc7591:
-        config["registration_endpoint"] = f"{ISSUER}/clients"
+        config["registration_endpoint"] = f"{ISSUER}/register"
+    if settings.enable_rfc7009:
+        config["revocation_endpoint"] = f"{ISSUER}/revoke"
+    if settings.enable_rfc7662:
+        config["introspection_endpoint"] = f"{ISSUER}/introspect"
     return config
 
 

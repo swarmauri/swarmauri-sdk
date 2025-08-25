@@ -1,6 +1,8 @@
 import pytest
 from fastapi import status
 
+from auto_authn.v2.rfc8414 import JWKS_PATH, ISSUER, refresh_discovery_cache
+
 
 @pytest.mark.unit
 @pytest.mark.asyncio
@@ -8,7 +10,6 @@ async def test_openid_configuration_contains_required_fields(async_client) -> No
     resp = await async_client.get("/.well-known/openid-configuration")
     assert resp.status_code == status.HTTP_200_OK
     data = resp.json()
-    from auto_authn.v2.rfc8414 import JWKS_PATH, ISSUER
 
     assert data["issuer"] == ISSUER
     assert data["authorization_endpoint"].endswith("/authorize")
@@ -24,3 +25,16 @@ async def test_openid_configuration_contains_required_fields(async_client) -> No
     assert "client_secret_basic" in data["token_endpoint_auth_methods_supported"]
     assert "S256" in data["code_challenge_methods_supported"]
     assert "query" in data["response_modes_supported"]
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_openid_configuration_includes_management_endpoints(
+    async_client, enable_rfc7009, enable_rfc7662
+) -> None:
+    """Discovery advertises revocation and introspection endpoints when enabled."""
+    refresh_discovery_cache()
+    resp = await async_client.get("/.well-known/openid-configuration")
+    data = resp.json()
+    assert data["revocation_endpoint"].endswith("/revoke")
+    assert data["introspection_endpoint"].endswith("/introspect")
