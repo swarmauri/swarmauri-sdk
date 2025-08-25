@@ -18,7 +18,7 @@ from .errors import InvalidTokenError
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
 
-from .runtime_cfg import settings
+from . import runtime_cfg
 
 RFC8705_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8705"
 
@@ -56,7 +56,7 @@ def validate_certificate_binding(
     function returns without performing validation.
     """
     if enabled is None:
-        enabled = settings.enable_rfc8705
+        enabled = runtime_cfg.settings.enable_rfc8705
     if not enabled:
         return
     cnf = payload.get("cnf")
