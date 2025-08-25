@@ -4,7 +4,6 @@ This module provides functionality for OAuth 2.0 Token Exchange as defined
 in RFC 8693. Token exchange allows clients to exchange one type of token
 for another, enabling scenarios like impersonation, delegation, and
 token format conversion.
-
 See RFC 8693: https://www.rfc-editor.org/rfc/rfc8693
 """
 

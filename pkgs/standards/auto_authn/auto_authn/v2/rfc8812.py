@@ -10,27 +10,44 @@ See RFC 8812: https://www.rfc-editor.org/rfc/rfc8812
 
 from __future__ import annotations
 
-from typing import Final
+from typing import Final, FrozenSet
 
 from .runtime_cfg import settings
 
 RFC8812_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc8812"
 
-WEBAUTHN_ALGORITHMS: Final[set[str]] = {"RS256", "RS384", "RS512", "RS1", "ES256K"}
+# Algorithms registered for WebAuthn. Using ``frozenset`` prevents accidental
+# mutation of the registry at runtime.
+WEBAUTHN_ALGORITHMS: Final[FrozenSet[str]] = frozenset(
+    {
+        "RS256",
+        "RS384",
+        "RS512",
+        "RS1",
+        "PS256",
+        "PS384",
+        "PS512",
+        "ES256",
+        "ES384",
+        "ES512",
+        "ES256K",
+    }
+)
 
 
 def is_webauthn_algorithm(alg: str, *, enabled: bool | None = None) -> bool:
     """Return ``True`` if *alg* is registered for WebAuthn per :rfc:`8812`.
 
-    When the feature is disabled the check always returns ``True`` to allow
-    deployments to accept non-registered algorithms.
+    Algorithm identifiers are compared case-insensitively to better tolerate
+    input from external sources. When the feature is disabled the check always
+    returns ``True`` to allow deployments to accept non-registered algorithms.
     """
 
     if enabled is None:
         enabled = settings.enable_rfc8812
     if not enabled:
         return True
-    return alg in WEBAUTHN_ALGORITHMS
+    return alg.upper() in WEBAUTHN_ALGORITHMS
 
 
 __all__ = ["is_webauthn_algorithm", "WEBAUTHN_ALGORITHMS", "RFC8812_SPEC_URL"]

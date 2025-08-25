@@ -19,19 +19,37 @@ def _b64u(b: bytes) -> str:
     return base64.urlsafe_b64encode(b).rstrip(b"=").decode("ascii")
 
 
-def _pem_pub(priv) -> bytes:
-    return priv.public_key().public_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo,
-    )
+def _serialize_keypair(priv, spec: KeySpec) -> tuple[bytes, Optional[bytes]]:
+    """Serialize a private key and its public counterpart according to ``spec``."""
 
-
-def _pem_priv(priv) -> bytes:
-    return priv.private_bytes(
-        serialization.Encoding.PEM,
-        serialization.PrivateFormat.PKCS8,
-        serialization.NoEncryption(),
+    encoding = (
+        serialization.Encoding[spec.encoding]
+        if spec.encoding
+        else serialization.Encoding.PEM
     )
+    public_format = (
+        serialization.PublicFormat[spec.public_format]
+        if spec.public_format
+        else serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+    public = priv.public_key().public_bytes(encoding=encoding, format=public_format)
+
+    material: Optional[bytes] = None
+    if spec.export_policy != ExportPolicy.PUBLIC_ONLY:
+        private_format = (
+            serialization.PrivateFormat[spec.private_format]
+            if spec.private_format
+            else serialization.PrivateFormat.PKCS8
+        )
+        if spec.encryption and spec.encryption != "NoEncryption":
+            raise ValueError(f"Unsupported encryption: {spec.encryption}")
+        material = priv.private_bytes(
+            encoding,
+            private_format,
+            serialization.NoEncryption(),
+        )
+
+    return material, public
 
 
 class LocalKeyProvider(KeyProviderBase):
@@ -55,7 +73,7 @@ class LocalKeyProvider(KeyProviderBase):
         return {
             "class": ("sym", "asym"),
             "algs": algs,
-            "features": ("rotate", "import", "jwks", "hkdf", "random"),
+            "features": ("create", "rotate", "import", "jwks", "hkdf", "random"),
         }
 
     async def create_key(self, spec: KeySpec) -> KeyRef:
@@ -79,8 +97,7 @@ class LocalKeyProvider(KeyProviderBase):
                 sk = ec.generate_private_key(ec.SECP256R1())
             else:
                 raise ValueError(f"Unsupported asymmetric alg: {spec.alg}")
-            material = _pem_priv(sk)
-            public = _pem_pub(sk)
+            material, public = _serialize_keypair(sk, spec)
 
         ref = KeyRef(
             kid=kid,

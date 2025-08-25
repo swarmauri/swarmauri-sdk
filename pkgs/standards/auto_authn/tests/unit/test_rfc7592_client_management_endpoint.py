@@ -1,0 +1,19 @@
+"""Tests for missing OAuth2 Client Management endpoints (RFC 7592)."""
+
+import pytest
+from fastapi import FastAPI, status
+from httpx import ASGITransport, AsyncClient
+
+from auto_authn.v2.routers.auth_flows import router
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_rfc7592_client_management_not_implemented() -> None:
+    """Attempts to manage clients return 404 as the endpoints are absent."""
+    app = FastAPI()
+    app.include_router(router)
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.get("/register/some-client-id")
+    assert resp.status_code == status.HTTP_404_NOT_FOUND

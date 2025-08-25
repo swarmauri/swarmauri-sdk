@@ -1,21 +1,22 @@
-"""
-Unit tests for auto_authn.v2.jwtoken module.
+"""Unit tests for ``auto_authn.v2.jwtoken`` module."""
 
-Tests JWT token signing, decoding, validation, and refresh flows.
-"""
-
+import base64
+import json
 import time
 from datetime import datetime, timedelta, timezone
-from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
-import jwt
-from jwt.exceptions import InvalidTokenError
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
-from auto_authn.v2.jwtoken import JWTCoder, _ALG, _ACCESS_TTL, _REFRESH_TTL
+from auto_authn.v2.jwtoken import (
+    JWTCoder,
+    InvalidTokenError,
+    _ACCESS_TTL,
+    _ALG,
+    _REFRESH_TTL,
+)
 
 
 @pytest.mark.unit
@@ -44,25 +45,24 @@ class TestJWTCoder:
         return JWTCoder(self.test_private_key, self.test_public_key)
 
     def test_jwt_coder_initialization(self):
-        """Test JWTCoder initialization with private and public keys."""
+        """JWTCoder can sign and decode using provided keys."""
         coder = JWTCoder(self.test_private_key, self.test_public_key)
 
-        assert coder._priv == self.test_private_key
-        assert coder._pub == self.test_public_key
+        token = coder.sign(sub="a", tid="t")
+        payload = coder.decode(token)
 
-    @patch("auto_authn.v2.jwtoken.signing_key")
-    @patch("auto_authn.v2.jwtoken.public_key")
-    def test_default_factory_method(self, mock_public_key, mock_signing_key):
-        """Test JWTCoder.default() factory method."""
-        mock_signing_key.return_value = self.test_private_key
-        mock_public_key.return_value = self.test_public_key
+        assert payload["sub"] == "a"
+        assert payload["tid"] == "t"
 
+    def test_default_factory_method(self):
+        """JWTCoder.default() returns a working instance."""
         coder = JWTCoder.default()
 
-        assert coder._priv == self.test_private_key
-        assert coder._pub == self.test_public_key
-        mock_signing_key.assert_called_once()
-        mock_public_key.assert_called_once()
+        token = coder.sign(sub="a", tid="t")
+        payload = coder.decode(token)
+
+        assert payload["sub"] == "a"
+        assert payload["tid"] == "t"
 
     def test_sign_token_with_required_claims(self):
         """Test signing a token with required claims."""
@@ -341,7 +341,7 @@ class TestJWTCoder:
         access_token = coder.sign(sub=sub, tid=tid, typ="access")
 
         # Should raise error when trying to refresh with access token
-        with pytest.raises(InvalidTokenError, match="token is not a refresh token"):
+        with pytest.raises(ValueError, match="token is not a refresh token"):
             coder.refresh(access_token)
 
     def test_refresh_with_expired_token(self):
@@ -404,8 +404,9 @@ class TestJWTCoder:
         tid = str(uuid4())
         token = coder.sign(sub=sub, tid=tid)
 
-        # Decode header to check algorithm
-        header = jwt.get_unverified_header(token)
+        # Decode header to check algorithm without PyJWT
+        header_b64 = token.split(".")[0]
+        header = json.loads(base64.urlsafe_b64decode(header_b64 + "==").decode())
         assert header["alg"] == _ALG  # Should be "EdDSA"
 
     def test_multiple_coders_independence(self):

@@ -56,7 +56,7 @@ class SshKeyProvider(KeyProviderBase):
         return {
             "class": ("asym",),
             "algs": (KeyAlg.ED25519, KeyAlg.RSA_PSS_SHA256, KeyAlg.ECDSA_P256_SHA256),
-            "features": ("rotate", "import", "jwks", "hkdf", "random"),
+            "features": ("create", "rotate", "import", "jwks", "hkdf", "random"),
         }
 
     async def create_key(self, spec: KeySpec) -> KeyRef:

@@ -2,6 +2,13 @@
 
 from __future__ import annotations
 
+
+# Directly import implementations from their packages rather than relying on
+# plugin entry points that may not expose concrete modules. This avoids import
+# errors during test execution when the plugin registry has not been
+# initialized.
+
+
 from swarmauri_keyprovider_file import FileKeyProvider
 from swarmauri_keyprovider_local import LocalKeyProvider
 from swarmauri_tokens_jwt import JWTTokenService

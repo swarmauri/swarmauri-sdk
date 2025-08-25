@@ -12,6 +12,7 @@ See related: RFC 8414 (OAuth 2.0 Authorization Server Metadata)
 
 from __future__ import annotations
 
+
 from typing import Dict, Any, List
 from fastapi import APIRouter, HTTPException, status
 

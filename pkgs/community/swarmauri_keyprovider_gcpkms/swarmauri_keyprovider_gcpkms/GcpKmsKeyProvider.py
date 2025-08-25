@@ -144,6 +144,7 @@ class GcpKmsKeyProvider(KeyProviderBase):
             "class": ("kms", "asym", "sym"),
             "algs": ("AES", "RSA", "EC"),
             "features": (
+                "create",
                 "encrypt",
                 "decrypt",
                 "sign",

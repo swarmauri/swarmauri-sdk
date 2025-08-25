@@ -101,7 +101,14 @@ class Pkcs11KeyProvider(KeyProviderBase):
         return {
             "class": ("sym", "asym"),
             "algs": tuple(algs),
-            "features": ("rotate", "jwks", "non_exportable", "random", "hkdf"),
+            "features": (
+                "create",
+                "rotate",
+                "jwks",
+                "non_exportable",
+                "random",
+                "hkdf",
+            ),
         }
 
     async def create_key(self, spec: KeySpec) -> KeyRef:

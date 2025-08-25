@@ -7,14 +7,14 @@ The tests below verify that behavior is enforced when the feature flag is
 enabled and bypassed when disabled.
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
-from jwt.exceptions import InvalidTokenError
+from auto_authn.v2.errors import InvalidTokenError
 
 import auto_authn.v2.runtime_cfg as runtime_cfg
 from auto_authn.v2.jwtoken import JWTCoder
@@ -37,8 +37,8 @@ def _generate_cert_pem() -> bytes:
         .issuer_name(issuer)
         .public_key(key.public_key())
         .serial_number(x509.random_serial_number())
-        .not_valid_before(datetime.utcnow())
-        .not_valid_after(datetime.utcnow() + timedelta(days=1))
+        .not_valid_before(datetime.now(UTC))
+        .not_valid_after(datetime.now(UTC) + timedelta(days=1))
         .sign(key, hashes.SHA256())
     )
     return cert.public_bytes(serialization.Encoding.PEM)

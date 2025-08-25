@@ -24,6 +24,10 @@ from autoapi.v2 import get_schema  # convenience helper for /methodz
 from .routers.auth_flows import router as flows_router
 from .routers.crud import crud_api as crud_api
 from .rfc8414 import include_rfc8414
+from .rfc8628 import include_rfc8628
+from .rfc9126 import include_rfc9126
+from .rfc7009 import include_rfc7009
+from .rfc8693 import include_rfc8693
 
 
 # --------------------------------------------------------------------
@@ -39,6 +43,10 @@ app = fastapi.FastAPI(
 # Mount routers
 app.include_router(crud_api.router)  # /authn/<model> CRUD (AutoAPI)
 app.include_router(flows_router)  # /register, /login, etc.
+include_rfc8628(app)
+include_rfc9126(app)
+include_rfc7009(app)
+include_rfc8693(app)
 include_rfc8414(app)
 
 
@@ -91,9 +99,9 @@ async def jwks():
     """
     Return Ed25519 public key in RFC 7517 JWK Set format.
     """
-    from .crypto import _provider, _load_keypair
+    from .crypto import _provider, _ensure_key
 
-    kid, _, _ = _load_keypair()
+    kid, _, _ = await _ensure_key()
     kp = _provider()
     key_dict = await kp.get_public_jwk(kid)
     key_dict.setdefault("kid", f"{kid}.1")

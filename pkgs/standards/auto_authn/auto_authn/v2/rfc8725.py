@@ -12,12 +12,15 @@ from typing import Any, Dict
 import base64
 import json
 
+from .errors import InvalidTokenError as BaseInvalidTokenError
+
 from .jwtoken import JWTCoder
 from .runtime_cfg import settings
 
 
-class InvalidTokenError(Exception):
+class InvalidTokenError(BaseInvalidTokenError):
     """Raised when a JWT violates RFC 8725 recommendations."""
+
 
 RFC8725_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8725"
 

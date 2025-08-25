@@ -4,6 +4,7 @@ Shared test configuration and fixtures for auto_authn test suite.
 
 import asyncio
 import os
+import shutil
 import tempfile
 import uuid
 from datetime import datetime, timezone, timedelta
@@ -43,6 +44,7 @@ async def test_db_engine():
         poolclass=StaticPool,
         connect_args={"check_same_thread": False},
         echo=False,
+        execution_options={"schema_translate_map": {"authn": None}},
     )
 
     # Create all tables
@@ -108,11 +110,12 @@ def enable_rfc7662():
 def enable_rfc7009():
     """Enable RFC 7009 token revocation for tests."""
     from auto_authn.v2.runtime_cfg import settings
-    from auto_authn.v2.rfc7009 import reset_revocations
+    from auto_authn.v2.rfc7009 import reset_revocations, include_rfc7009
 
     original = settings.enable_rfc7009
     settings.enable_rfc7009 = True
     reset_revocations()
+    include_rfc7009(app)
     try:
         yield
     finally:
@@ -121,12 +124,29 @@ def enable_rfc7009():
 
 
 @pytest.fixture
+def enable_rfc8693():
+    """Enable RFC 8693 token exchange for tests."""
+    from auto_authn.v2.runtime_cfg import settings
+    from auto_authn.v2.rfc8693 import include_rfc8693
+
+    original = settings.enable_rfc8693
+    settings.enable_rfc8693 = True
+    include_rfc8693(app)
+    try:
+        yield
+    finally:
+        settings.enable_rfc8693 = original
+
+
+@pytest.fixture
 def enable_rfc8414():
     """Enable RFC 8414 authorization server metadata for tests."""
     from auto_authn.v2.runtime_cfg import settings
+    from auto_authn.v2.rfc8414 import include_rfc8414
 
     original = settings.enable_rfc8414
     settings.enable_rfc8414 = True
+    include_rfc8414(app)
     try:
         yield
     finally:
@@ -137,11 +157,12 @@ def enable_rfc8414():
 def enable_rfc9126():
     """Enable RFC 9126 pushed authorization requests for tests."""
     from auto_authn.v2.runtime_cfg import settings
-    from auto_authn.v2.rfc9126 import reset_par_store
+    from auto_authn.v2.rfc9126 import reset_par_store, include_rfc9126
 
     original = settings.enable_rfc9126
     settings.enable_rfc9126 = True
     reset_par_store()
+    include_rfc9126(app)
     try:
         yield
     finally:
@@ -158,21 +179,20 @@ def temp_key_file():
     import auto_authn.v2.crypto as crypto_module
 
     original_dir = crypto_module._DEFAULT_KEY_DIR
-    original_kid = crypto_module._KID_PATH
+    original_path = crypto_module._DEFAULT_KEY_PATH
 
     crypto_module._DEFAULT_KEY_DIR = temp_dir
-    crypto_module._KID_PATH = temp_kid
+    crypto_module._DEFAULT_KEY_PATH = temp_kid
+    crypto_module._provider.cache_clear()
     crypto_module._load_keypair.cache_clear()
 
     yield temp_kid
 
-    if temp_kid.exists():
-        temp_kid.unlink()
-    for f in temp_dir.glob("*"):
-        f.unlink()
-    temp_dir.rmdir()
+    if temp_dir.exists():
+        shutil.rmtree(temp_dir, ignore_errors=True)
     crypto_module._DEFAULT_KEY_DIR = original_dir
-    crypto_module._KID_PATH = original_kid
+    crypto_module._DEFAULT_KEY_PATH = original_path
+    crypto_module._provider.cache_clear()
     crypto_module._load_keypair.cache_clear()
 
 

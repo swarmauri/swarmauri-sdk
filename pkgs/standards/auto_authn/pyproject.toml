@@ -42,6 +42,7 @@ keywords = ["oidc", "oauth2", "fastapi", "identity-provider", "jwks", "jwt"]
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
+swarmauri_keyprovider_local = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
