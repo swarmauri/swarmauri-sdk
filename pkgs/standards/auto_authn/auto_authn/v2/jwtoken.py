@@ -24,8 +24,6 @@ from .runtime_cfg import settings
 from .rfc8705 import validate_certificate_binding
 from .crypto import _DEFAULT_KEY_PATH, _provider
 
-_ACCESS_TTL = timedelta(minutes=60)
-_REFRESH_TTL = timedelta(days=7)
 _ALG = JWAAlg.EDDSA.value
 
 
@@ -104,13 +102,14 @@ class JWTCoder:
         *,
         sub: str,
         tid: Optional[str] = None,
-        ttl: timedelta = _ACCESS_TTL,
+        ttl: Optional[timedelta] = None,
         typ: str = "access",
         issuer: Optional[str] = None,
         audience: Optional[Iterable[str] | str] = None,
         cert_thumbprint: Optional[str] = None,
         **extra: Any,
     ) -> str:
+        ttl = ttl or settings.access_token_ttl
         now = datetime.now(timezone.utc)
         payload: Dict[str, Any] = {
             "sub": sub,
@@ -151,7 +150,7 @@ class JWTCoder:
         *,
         sub: str,
         tid: Optional[str] = None,
-        ttl: timedelta = _ACCESS_TTL,
+        ttl: Optional[timedelta] = None,
         typ: str = "access",
         issuer: Optional[str] = None,
         audience: Optional[Iterable[str] | str] = None,
@@ -175,12 +174,16 @@ class JWTCoder:
         self, *, sub: str, tid: str, cert_thumbprint: Optional[str] = None, **extra: Any
     ) -> Tuple[str, str]:
         access = await self.async_sign(
-            sub=sub, tid=tid, cert_thumbprint=cert_thumbprint, **extra
+            sub=sub,
+            tid=tid,
+            ttl=settings.access_token_ttl,
+            cert_thumbprint=cert_thumbprint,
+            **extra,
         )
         refresh = await self.async_sign(
             sub=sub,
             tid=tid,
-            ttl=_REFRESH_TTL,
+            ttl=settings.refresh_token_ttl,
             typ="refresh",
             cert_thumbprint=cert_thumbprint,
             **extra,

@@ -1,6 +1,7 @@
 # settings.py
 
 import os
+from datetime import timedelta
 from dotenv import load_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field
@@ -63,6 +64,21 @@ class Settings(BaseSettings):
     # ─────── Other global settings ───────
     jwt_secret: str = Field(os.environ.get("JWT_SECRET", "insecure-dev-secret"))
     log_level: str = Field(os.environ.get("LOG_LEVEL", "INFO"))
+    password_min_length: int = Field(
+        default=int(os.environ.get("AUTO_AUTHN_PASSWORD_MIN_LENGTH", "8"))
+    )
+    password_regex: Optional[str] = Field(
+        default=os.environ.get("AUTO_AUTHN_PASSWORD_REGEX")
+    )
+    session_access_ttl_minutes: int = Field(
+        default=int(os.environ.get("AUTO_AUTHN_ACCESS_TTL_MINUTES", "60"))
+    )
+    session_refresh_ttl_minutes: int = Field(
+        default=int(os.environ.get("AUTO_AUTHN_REFRESH_TTL_MINUTES", str(7 * 24 * 60)))
+    )
+    invite_codes: Optional[str] = Field(
+        default=os.environ.get("AUTO_AUTHN_INVITE_CODES")
+    )
     rfc8707_enabled: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8707", "0") == "1"
     )
@@ -132,6 +148,23 @@ class Settings(BaseSettings):
     def enable_dpop(self) -> bool:
         """Alias for backward compatibility."""
         return self.enable_rfc9449
+
+    # ------------------------------------------------------------------
+    #  Custom policy helpers
+    # ------------------------------------------------------------------
+    @property
+    def access_token_ttl(self) -> timedelta:
+        return timedelta(minutes=self.session_access_ttl_minutes)
+
+    @property
+    def refresh_token_ttl(self) -> timedelta:
+        return timedelta(minutes=self.session_refresh_ttl_minutes)
+
+    @property
+    def invite_code_set(self) -> set[str]:
+        if self.invite_codes:
+            return {c.strip() for c in self.invite_codes.split(",") if c.strip()}
+        return set()
 
     enable_rfc9396: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC9396", "0").lower()

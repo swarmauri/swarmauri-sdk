@@ -32,6 +32,8 @@ It provides per-tenant isolation and is designed to scale for SaaS deployments.
 - FastAPI and SQLAlchemy 2.0 async stack.
 - OIDC discovery endpoints and JWKS generation.
 - Configurable PostgreSQL or SQLite storage with optional Redis support.
+- Custom registration with invite codes and arbitrary user attributes.
+- Configurable password complexity rules and session lifetimes.
 
 ## Installation
 
@@ -81,6 +83,10 @@ The service exposes an OpenID Connect discovery document at
 - `REDIS_HOST`, `REDIS_PORT`, `REDIS_DB`, and `REDIS_PASSWORD` for Redis session
   storage (optional).
 - `JWT_SECRET` for token signing and `LOG_LEVEL` to control logging verbosity.
+- `AUTO_AUTHN_PASSWORD_MIN_LENGTH` to set minimum password length (default 8).
+- `AUTO_AUTHN_PASSWORD_REGEX` to enforce additional password complexity.
+- `AUTO_AUTHN_INVITE_CODES` comma-separated invite codes required for signup.
+- `AUTO_AUTHN_ACCESS_TTL_MINUTES` and `AUTO_AUTHN_REFRESH_TTL_MINUTES` for token lifetimes.
 
 ## Docker
 

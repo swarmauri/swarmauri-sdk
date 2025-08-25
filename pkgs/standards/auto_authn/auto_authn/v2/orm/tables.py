@@ -26,6 +26,7 @@ from autoapi.v2 import Base
 from autoapi.v2.types import (
     String,
     LargeBinary,
+    JSON,
     relationship,
     mapped_column,
     Column,
@@ -120,6 +121,7 @@ class User(UserBase):
     __table_args__ = ({"extend_existing": True, "schema": "authn"},)
     email = Column(String(120), nullable=False, unique=True)
     password_hash = Column(LargeBinary(60))
+    attrs = Column(JSON, default=dict)
     api_keys = relationship(
         "auto_authn.v2.orm.tables.ApiKey",
         back_populates="user",

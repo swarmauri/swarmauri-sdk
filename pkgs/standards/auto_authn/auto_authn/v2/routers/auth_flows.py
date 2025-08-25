@@ -27,11 +27,18 @@ from __future__ import annotations
 
 import secrets
 from datetime import datetime, timedelta
-from typing import Literal, Optional
+from typing import Any, Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse, RedirectResponse
-from pydantic import BaseModel, EmailStr, Field, ValidationError, constr
+from pydantic import (
+    BaseModel,
+    EmailStr,
+    Field,
+    ValidationError,
+    constr,
+    field_validator,
+)
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from urllib.parse import urlencode
@@ -54,6 +61,7 @@ from ..rfc6749 import (
 from ..rfc7636_pkce import verify_code_challenge
 from ..rfc8628 import DEVICE_CODES, DeviceGrantForm
 from autoapi.v2.error import IntegrityError
+from ..policies import validate_invite_code, validate_password_strength
 
 router = APIRouter()
 
@@ -71,7 +79,7 @@ AUTH_CODES: dict[str, dict] = {}
 #  Helper Pydantic models
 # ============================================================================
 _username = constr(strip_whitespace=True, min_length=3, max_length=80)
-_password = constr(min_length=8, max_length=256)
+_password = constr(min_length=1, max_length=256)
 
 
 class RegisterIn(BaseModel):
@@ -79,11 +87,31 @@ class RegisterIn(BaseModel):
     username: _username
     email: EmailStr
     password: _password
+    invite_code: Optional[str] = None
+    attributes: dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("password")
+    @classmethod
+    def _validate_pw(cls, v: str) -> str:
+        validate_password_strength(v)
+        return v
+
+    @field_validator("invite_code")
+    @classmethod
+    def _validate_invite(cls, v: Optional[str]) -> Optional[str]:
+        validate_invite_code(v)
+        return v
 
 
 class CredsIn(BaseModel):
     identifier: constr(strip_whitespace=True, min_length=3, max_length=120)
     password: _password
+
+    @field_validator("password")
+    @classmethod
+    def _validate_pw(cls, v: str) -> str:
+        validate_password_strength(v)
+        return v
 
 
 class TokenPair(BaseModel):
@@ -107,6 +135,12 @@ class PasswordGrantForm(BaseModel):
     grant_type: Literal["password"]
     username: str
     password: str
+
+    @field_validator("password")
+    @classmethod
+    def _validate_pw(cls, v: str) -> str:
+        validate_password_strength(v)
+        return v
 
 
 class AuthorizationCodeGrantForm(BaseModel):
@@ -147,8 +181,11 @@ async def register(body: RegisterIn, db: AsyncSession = Depends(get_async_db)):
             username=body.username,
             email=body.email,
             password_hash=hash_pw(body.password),
+            attrs=body.attributes,
         )
         db.add(user)
+        tenant_id = tenant.id
+        user_id = user.id
         await db.commit()
     except IntegrityError as exc:
         await db.rollback()
@@ -162,7 +199,7 @@ async def register(body: RegisterIn, db: AsyncSession = Depends(get_async_db)):
             status.HTTP_500_INTERNAL_SERVER_ERROR, "database error"
         ) from exc
 
-    access, refresh = await _jwt.async_sign_pair(sub=str(user.id), tid=str(tenant.id))
+    access, refresh = await _jwt.async_sign_pair(sub=str(user_id), tid=str(tenant_id))
     return TokenPair(access_token=access, refresh_token=refresh)
 
 
@@ -207,8 +244,9 @@ async def authorize(
     if username is None or password is None:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, {"error": "access_denied"})
     try:
+        validate_password_strength(password)
         user = await _pwd_backend.authenticate(db, username, password)
-    except AuthError:
+    except (AuthError, ValueError):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, {"error": "access_denied"})
     if code_challenge_method and code_challenge_method != "S256":
         raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
