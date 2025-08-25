@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 from functools import lru_cache
 from typing import Any, Dict, Iterable, Optional, Tuple
 
-from jwt.exceptions import InvalidTokenError
+from jwt.exceptions import InvalidKeyError, InvalidTokenError
 
 from .deps import (
     ExportPolicy,
@@ -26,6 +26,7 @@ from .crypto import _DEFAULT_KEY_PATH, _provider
 
 _ACCESS_TTL = timedelta(minutes=60)
 _REFRESH_TTL = timedelta(days=7)
+_ALG = JWAAlg.EDDSA.value
 
 
 @lru_cache(maxsize=1)
@@ -205,7 +206,10 @@ class JWTCoder:
         audience: Optional[Iterable[str] | str] = None,
         cert_thumbprint: Optional[str] = None,
     ) -> Dict[str, Any]:
-        payload = await self._svc.verify(token, issuer=issuer, audience=audience)
+        try:
+            payload = await self._svc.verify(token, issuer=issuer, audience=audience)
+        except InvalidKeyError as exc:
+            raise InvalidTokenError("unable to resolve verification key") from exc
         if verify_exp:
             exp = payload.get("exp")
             if exp is not None and int(exp) < int(
