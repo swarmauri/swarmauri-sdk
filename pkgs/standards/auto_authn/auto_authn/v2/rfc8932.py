@@ -124,7 +124,7 @@ def get_enhanced_authorization_server_metadata() -> Dict[str, Any]:
         "code_challenge_methods_supported": ["S256"],
     }
     if settings.enable_rfc7591:
-        base_metadata["registration_endpoint"] = f"{ISSUER}/clients"
+        base_metadata["registration_endpoint"] = f"{ISSUER}/register"
 
     # Enhanced metadata extensions
     enhanced_metadata = {}
