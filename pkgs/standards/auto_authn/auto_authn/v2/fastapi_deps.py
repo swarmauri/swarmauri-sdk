@@ -19,6 +19,7 @@ from __future__ import annotations
 
 from fastapi import Depends, Header, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from jwt import InvalidTokenError
 
 from .backends import (
     ApiKeyBackend,
@@ -30,6 +31,8 @@ from .typing import Principal
 from .db import get_async_db
 from .jwtoken import JWTCoder
 from .crypto import public_key, signing_key
+from .runtime_cfg import settings
+from .rfc9449_dpop import verify_proof
 from .principal_ctx import principal_var
 
 
@@ -73,6 +76,7 @@ async def get_principal(  # <-- AutoAPI calls this
     request: Request,
     authorization: str = Header("", alias="Authorization"),
     api_key: str | None = Header(None, alias="x-api-key"),
+    dpop: str | None = Header(None, alias="DPoP"),
     db: AsyncSession = Depends(get_async_db),
 ) -> dict:
     """
@@ -81,7 +85,11 @@ async def get_principal(  # <-- AutoAPI calls this
     Raises HTTP 401 on failure.
     """
     user = await get_current_principal(  # reuse the existing logic
-        authorization=authorization, api_key=api_key, db=db
+        request,
+        authorization=authorization,
+        api_key=api_key,
+        dpop=dpop,
+        db=db,
     )
     principal = {"sub": str(user.id), "tid": str(user.tenant_id)}
 
@@ -92,8 +100,10 @@ async def get_principal(  # <-- AutoAPI calls this
 
 
 async def get_current_principal(  # type: ignore[override]
+    request: Request,
     authorization: str = Header("", alias="Authorization"),
     api_key: str | None = Header(None, alias="x-api-key"),
+    dpop: str | None = Header(None, alias="DPoP"),
     db: AsyncSession = Depends(get_async_db),
 ) -> Principal:
     """
@@ -115,8 +125,32 @@ async def get_current_principal(  # type: ignore[override]
             return user
 
     if authorization.startswith("Bearer "):
-        if user := await _user_from_jwt(authorization.split()[1], db):
-            return user
+        token = authorization.split()[1]
+        if settings.enable_dpop:
+            if not dpop:
+                raise HTTPException(
+                    status.HTTP_401_UNAUTHORIZED,
+                    "missing DPoP proof",
+                )
+            try:
+                payload = _jwt_coder.decode(token)
+            except InvalidTokenError:
+                raise HTTPException(status.HTTP_401_UNAUTHORIZED, "invalid token")
+
+            cnf = payload.get("cnf", {})
+            jkt = cnf.get("jkt")
+            if not jkt:
+                raise HTTPException(status.HTTP_401_UNAUTHORIZED, "token missing jkt")
+            try:
+                verify_proof(dpop, request.method, str(request.url), jkt=jkt)
+            except ValueError:
+                raise HTTPException(status.HTTP_401_UNAUTHORIZED, "invalid DPoP proof")
+
+            if user := await _user_from_jwt(token, db):
+                return user
+        else:
+            if user := await _user_from_jwt(token, db):
+                return user
 
     raise HTTPException(
         status.HTTP_401_UNAUTHORIZED,

@@ -92,6 +92,19 @@ async def async_client(override_get_db) -> AsyncGenerator[AsyncClient, None]:
 
 
 @pytest.fixture
+def enable_rfc7662():
+    """Enable RFC 7662 token introspection for tests."""
+    from auto_authn.v2.runtime_cfg import settings
+
+    original = settings.enable_rfc7662
+    settings.enable_rfc7662 = True
+    try:
+        yield
+    finally:
+        settings.enable_rfc7662 = original
+
+
+@pytest.fixture
 def temp_key_file():
     """Create a temporary JWT key file path for testing (file doesn't exist initially)."""
     # Create a temp file path but don't create the file
