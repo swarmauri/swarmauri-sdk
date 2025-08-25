@@ -24,8 +24,7 @@ from autoapi.v2 import get_schema  # convenience helper for /methodz
 from .crypto import public_key
 from .routers.auth_flows import router as flows_router
 from .routers.crud import crud_api as crud_api
-from .rfc8414 import router as rfc8414_router
-from .runtime_cfg import settings
+from .rfc8414 import include_rfc8414
 
 
 # --------------------------------------------------------------------
@@ -41,8 +40,7 @@ app = fastapi.FastAPI(
 # Mount routers
 app.include_router(crud_api.router)  # /authn/<model> CRUD (AutoAPI)
 app.include_router(flows_router)  # /register, /login, etc.
-if settings.enable_rfc8414:
-    app.include_router(rfc8414_router)
+include_rfc8414(app)
 
 
 # --------------------------------------------------------------------
