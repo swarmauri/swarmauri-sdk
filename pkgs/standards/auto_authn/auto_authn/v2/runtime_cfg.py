@@ -76,6 +76,11 @@ class Settings(BaseSettings):
         in {"1", "true", "yes"},
         description=("Enable JSON Web Token Best Current Practices per RFC 8725"),
     )
+    enable_rfc8693: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8693", "false").lower()
+        in {"1", "true", "yes"},
+        description="Enable OAuth 2.0 Token Exchange per RFC 8693",
+    )
     enable_rfc7636: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7636", "true").lower()
         in {"1", "true", "yes"},
