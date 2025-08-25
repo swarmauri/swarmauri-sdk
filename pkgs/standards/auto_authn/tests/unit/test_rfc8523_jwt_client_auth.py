@@ -7,7 +7,6 @@ import time
 from unittest.mock import patch
 
 import pytest
-from jwt.exceptions import InvalidTokenError
 
 from auto_authn.v2.rfc8523 import (
     RFC8523_SPEC_URL,

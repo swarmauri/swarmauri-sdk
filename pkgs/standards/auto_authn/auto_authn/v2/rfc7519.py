@@ -8,8 +8,11 @@ See RFC 7519: https://www.rfc-editor.org/rfc/rfc7519
 
 from typing import Final
 
+import asyncio
+
 from .jwtoken import JWTCoder
 from .runtime_cfg import settings
+from .deps import JWAAlg
 
 RFC7519_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc7519"
 
@@ -18,7 +21,16 @@ def encode_jwt(**claims) -> str:
     """Encode *claims* as a JWT string."""
     if not settings.enable_rfc7519:
         raise RuntimeError(f"RFC 7519 support disabled: {RFC7519_SPEC_URL}")
-    return JWTCoder.default().sign(**claims)
+    coder = JWTCoder.default()
+    return asyncio.run(
+        coder._svc.mint(
+            claims,
+            alg=JWAAlg.EDDSA,
+            kid=coder._kid,
+            lifetime_s=None,
+            include_defaults=False,
+        )
+    )
 
 
 def decode_jwt(token: str) -> dict:

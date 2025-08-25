@@ -47,21 +47,23 @@ class JWTTokenService(TokenServiceBase):
         subject: Optional[str] = None,
         audience: Optional[str | list[str]] = None,
         scope: Optional[str] = None,
+        include_defaults: bool = True,
     ) -> str:
         now = int(time.time())
         payload = dict(claims)
-        payload.setdefault("iat", now)
-        payload.setdefault("nbf", now)
-        if lifetime_s:
-            payload.setdefault("exp", now + int(lifetime_s))
-        if issuer or self._iss:
-            payload.setdefault("iss", issuer or self._iss)
-        if subject:
-            payload.setdefault("sub", subject)
-        if audience:
-            payload.setdefault("aud", audience)
-        if scope:
-            payload.setdefault("scope", scope)
+        if include_defaults:
+            payload.setdefault("iat", now)
+            payload.setdefault("nbf", now)
+            if lifetime_s:
+                payload.setdefault("exp", now + int(lifetime_s))
+            if issuer or self._iss:
+                payload.setdefault("iss", issuer or self._iss)
+            if subject:
+                payload.setdefault("sub", subject)
+            if audience:
+                payload.setdefault("aud", audience)
+            if scope:
+                payload.setdefault("scope", scope)
 
         headers = dict(headers or {})
 
@@ -117,7 +119,7 @@ class JWTTokenService(TokenServiceBase):
         hdr = jwt.get_unverified_header(token)
         key = _key_resolver(hdr, {})
 
-        options = {"verify_aud": audience is not None}
+        options = {"verify_aud": audience is not None, "verify_iat": False}
         return jwt.decode(
             token,
             key=key,
