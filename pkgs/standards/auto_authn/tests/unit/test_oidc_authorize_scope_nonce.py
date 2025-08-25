@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime, timedelta
 from urllib.parse import parse_qs, urlparse
 
 import pytest
@@ -6,7 +7,7 @@ from fastapi import status
 
 from auto_authn.v2.crypto import hash_pw
 from auto_authn.v2.orm.tables import Client, Tenant, User
-from auto_authn.v2.routers.auth_flows import AUTH_CODES
+from auto_authn.v2.routers.auth_flows import AUTH_CODES, SESSIONS
 
 
 @pytest.mark.usefixtures("temp_key_file")
@@ -32,13 +33,15 @@ async def test_authorize_requires_openid_scope(async_client, db_session):
     db_session.add_all([tenant, client, user])
     await db_session.commit()
 
+    await async_client.post(
+        "/login", json={"identifier": "alice", "password": "password"}
+    )
+
     params = {
         "response_type": "code",
         "client_id": str(client_id),
         "redirect_uri": "https://client.example/cb",
         "scope": "profile",
-        "username": "alice",
-        "password": "password",
     }
     resp = await async_client.get("/authorize", params=params, follow_redirects=False)
     assert resp.status_code == status.HTTP_400_BAD_REQUEST
@@ -68,14 +71,17 @@ async def test_authorize_persists_nonce(async_client, db_session):
     db_session.add_all([tenant, client, user])
     await db_session.commit()
 
+    await async_client.post(
+        "/login", json={"identifier": "bob", "password": "password"}
+    )
+
     params = {
         "response_type": "code",
         "client_id": str(client_id),
         "redirect_uri": "https://client.example/cb",
         "scope": "openid",
         "nonce": "n-0S6_WzA2Mj",
-        "username": "bob",
-        "password": "password",
+        "login_hint": "bob",
     }
     resp = await async_client.get("/authorize", params=params, follow_redirects=False)
     assert resp.status_code == status.HTTP_307_TEMPORARY_REDIRECT
@@ -85,3 +91,84 @@ async def test_authorize_persists_nonce(async_client, db_session):
         assert AUTH_CODES[code]["nonce"] == "n-0S6_WzA2Mj"
     finally:
         AUTH_CODES.clear()
+
+
+@pytest.mark.usefixtures("temp_key_file")
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_authorize_prompt_login_requires_reauth(async_client, db_session):
+    tenant_id = uuid.uuid4()
+    tenant = Tenant(id=tenant_id, name="T3", email="t3@example.com", slug="t3")
+    client_id = uuid.uuid4()
+    client = Client(
+        id=client_id,
+        tenant_id=tenant_id,
+        client_secret_hash=hash_pw("secret"),
+        redirect_uris="https://client.example/cb",
+    )
+    user = User(
+        id=uuid.uuid4(),
+        tenant_id=tenant_id,
+        username="carol",
+        email="carol@example.com",
+        password_hash=hash_pw("password"),
+    )
+    db_session.add_all([tenant, client, user])
+    await db_session.commit()
+
+    await async_client.post(
+        "/login", json={"identifier": "carol", "password": "password"}
+    )
+
+    params = {
+        "response_type": "code",
+        "client_id": str(client_id),
+        "redirect_uri": "https://client.example/cb",
+        "scope": "openid",
+        "prompt": "login",
+    }
+    resp = await async_client.get("/authorize", params=params, follow_redirects=False)
+    assert resp.status_code == status.HTTP_401_UNAUTHORIZED
+    assert resp.json()["detail"]["error"] == "login_required"
+
+
+@pytest.mark.usefixtures("temp_key_file")
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_authorize_max_age_requires_recent_login(async_client, db_session):
+    tenant_id = uuid.uuid4()
+    tenant = Tenant(id=tenant_id, name="T4", email="t4@example.com", slug="t4")
+    client_id = uuid.uuid4()
+    client = Client(
+        id=client_id,
+        tenant_id=tenant_id,
+        client_secret_hash=hash_pw("secret"),
+        redirect_uris="https://client.example/cb",
+    )
+    user = User(
+        id=uuid.uuid4(),
+        tenant_id=tenant_id,
+        username="dave",
+        email="dave@example.com",
+        password_hash=hash_pw("password"),
+    )
+    db_session.add_all([tenant, client, user])
+    await db_session.commit()
+
+    resp = await async_client.post(
+        "/login", json={"identifier": "dave", "password": "password"}
+    )
+    sid = resp.cookies.get("sid")
+    assert sid in SESSIONS
+    SESSIONS[sid]["auth_time"] = datetime.utcnow() - timedelta(seconds=31)
+
+    params = {
+        "response_type": "code",
+        "client_id": str(client_id),
+        "redirect_uri": "https://client.example/cb",
+        "scope": "openid",
+        "max_age": 30,
+    }
+    resp = await async_client.get("/authorize", params=params, follow_redirects=False)
+    assert resp.status_code == status.HTTP_401_UNAUTHORIZED
+    assert resp.json()["detail"]["error"] == "login_required"

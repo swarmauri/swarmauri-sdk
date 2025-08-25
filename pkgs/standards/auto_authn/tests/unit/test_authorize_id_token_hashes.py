@@ -37,14 +37,16 @@ async def test_authorize_includes_at_hash(async_client, db_session):
     db_session.add_all([tenant, client, user])
     await db_session.commit()
 
+    await async_client.post(
+        "/login", json={"identifier": "alice", "password": "password"}
+    )
+
     params = {
         "response_type": "token id_token",
         "client_id": str(client_id),
         "redirect_uri": "https://client.example/cb",
         "scope": "openid",
         "nonce": "n",
-        "username": "alice",
-        "password": "password",
     }
     resp = await async_client.get("/authorize", params=params, follow_redirects=False)
     assert resp.status_code == status.HTTP_307_TEMPORARY_REDIRECT
@@ -78,14 +80,16 @@ async def test_authorize_includes_c_hash(async_client, db_session):
     db_session.add_all([tenant, client, user])
     await db_session.commit()
 
+    await async_client.post(
+        "/login", json={"identifier": "bob", "password": "password"}
+    )
+
     params = {
         "response_type": "code id_token",
         "client_id": str(client_id),
         "redirect_uri": "https://client.example/cb",
         "scope": "openid",
         "nonce": "n",
-        "username": "bob",
-        "password": "password",
     }
     resp = await async_client.get("/authorize", params=params, follow_redirects=False)
     assert resp.status_code == status.HTTP_307_TEMPORARY_REDIRECT
