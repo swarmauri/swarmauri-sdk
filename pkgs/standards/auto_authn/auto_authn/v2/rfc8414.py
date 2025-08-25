@@ -32,13 +32,22 @@ async def authorization_server_metadata():
         raise HTTPException(
             status.HTTP_404_NOT_FOUND, f"RFC 8414 disabled: {RFC8414_SPEC_URL}"
         )
+    response_types = [
+        "code",
+        "token",
+        "id_token",
+        "code token",
+        "code id_token",
+        "token id_token",
+        "code token id_token",
+    ]
     return {
         "issuer": ISSUER,
         "authorization_endpoint": f"{ISSUER}/authorize",
         "token_endpoint": f"{ISSUER}/token",
         "jwks_uri": f"{ISSUER}{JWKS_PATH}",
         "scopes_supported": ["openid", "profile", "email", "address", "phone"],
-        "response_types_supported": ["code", "token"],
+        "response_types_supported": response_types,
     }
 
 
