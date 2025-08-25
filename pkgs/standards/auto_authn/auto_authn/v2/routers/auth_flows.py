@@ -39,8 +39,8 @@ from ..fastapi_deps import get_async_db
 from ..orm.tables import Tenant, User
 from ..runtime_cfg import settings
 from ..typing import StrUUID
-from ..runtime_cfg import settings
 from ..rfc8707 import extract_resource
+from ..rfc7009 import revoke_token
 from autoapi.v2.error import IntegrityError
 
 router = APIRouter()
@@ -318,3 +318,14 @@ async def introspect(token: str = Form(...), db: AsyncSession = Depends(get_asyn
         tid=str(principal.tenant_id),
         kind=kind,
     )
+
+
+# --------------------------------------------------------------------------
+#  RFC 7009 token revocation
+# --------------------------------------------------------------------------
+@router.post("/revoke")
+async def revoke(token: str = Form(...), token_type_hint: str | None = Form(None)):
+    if not settings.enable_rfc7009:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "revocation disabled")
+    revoke_token(token)
+    return {}
