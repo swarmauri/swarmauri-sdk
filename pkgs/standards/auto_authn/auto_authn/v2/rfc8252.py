@@ -1,0 +1,45 @@
+"""Utilities for OAuth 2.0 for Native Apps (RFC 8252).
+
+This module provides helpers to validate redirect URIs as required by
+RFC 8252. Native applications are restricted to using either private-use
+URI schemes or the loopback interface with an HTTP(S) scheme and a
+dynamically chosen port. Redirect URIs that fall outside of these
+patterns are considered non-compliant.
+"""
+
+from __future__ import annotations
+
+from urllib.parse import urlparse
+
+# Hosts that resolve to the loopback interface as defined by RFC 8252 §7.3
+_LOOPBACK_HOSTS = {"127.0.0.1", "localhost", "::1"}
+
+
+def is_native_redirect_uri(uri: str) -> bool:
+    """Return ``True`` if *uri* satisfies RFC 8252 redirect URI rules.
+
+    RFC 8252 section 7 defines two valid redirect URI patterns for native
+    applications:
+
+    * Private-use URI schemes (anything other than ``http`` or ``https``).
+    * Loopback interface redirects using ``http`` or ``https`` with hosts
+      ``127.0.0.1``, ``localhost`` or ``[::1]`` and any port.
+    """
+
+    parsed = urlparse(uri)
+    if parsed.scheme in {"http", "https"}:
+        host = parsed.hostname or ""
+        return host in _LOOPBACK_HOSTS
+    # Any non HTTP(S) scheme is considered a private-use scheme
+    return bool(parsed.scheme)
+
+
+def validate_native_redirect_uri(uri: str) -> None:
+    """Validate *uri* for RFC 8252 compliance.
+
+    Raises ``ValueError`` if the URI does not meet the requirements for
+    native applications.
+    """
+
+    if not is_native_redirect_uri(uri):
+        raise ValueError("redirect URI not permitted for native apps per RFC 8252")
