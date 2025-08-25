@@ -35,11 +35,11 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..crypto import hash_pw
-from ..jwtoken import JWTCoder
+from ..jwtoken import JWTCoder, InvalidTokenError
 from ..backends import PasswordBackend, ApiKeyBackend, AuthError
 from ..fastapi_deps import get_async_db
 from ..orm.tables import Tenant, User
-from ..runtime_cfg import settings
+from .. import runtime_cfg
 from ..typing import StrUUID
 from ..rfc8707 import extract_resource
 from ..rfc6749 import RFC6749Error
@@ -58,7 +58,7 @@ _pwd_backend = PasswordBackend()
 _api_backend = ApiKeyBackend()
 
 _ALLOWED_GRANT_TYPES = {"password"}
-if settings.enable_rfc8628:
+if runtime_cfg.settings.enable_rfc8628:
     _ALLOWED_GRANT_TYPES.add("urn:ietf:params:oauth:grant-type:device_code")
 
 # ============================================================================
@@ -181,7 +181,7 @@ async def token(
         return JSONResponse(
             {"error": str(exc)}, status_code=status.HTTP_400_BAD_REQUEST
         )
-    if settings.rfc8707_enabled:
+    if runtime_cfg.settings.rfc8707_enabled:
         try:
             aud = extract_resource(resources)
         except ValueError:
@@ -273,12 +273,28 @@ async def refresh(body: RefreshIn):
 # --------------------------------------------------------------------------
 @router.post("/introspect", response_model=IntrospectOut)
 async def introspect(request: Request, db: AsyncSession = Depends(get_async_db)):
-    if not settings.enable_rfc7662:
+    if not runtime_cfg.settings.enable_rfc7662:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "introspection disabled")
     form = await request.form()
     token = form.get("token")
     if not token:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "token parameter required")
+
+    # First attempt to verify the token as a JWT using our internal service.
+    try:
+        payload = await _jwt.async_decode(token)
+    except InvalidTokenError:
+        payload = None
+
+    if payload is not None:
+        return IntrospectOut(
+            active=True,
+            sub=payload.get("sub"),
+            tid=payload.get("tid"),
+            kind=payload.get("typ"),
+        )
+
+    # Fallback to API-key authentication if JWT verification fails.
     try:
         principal, kind = await _api_backend.authenticate(db, token)
     except AuthError:
