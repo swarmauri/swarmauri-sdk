@@ -23,6 +23,12 @@ def test_enforce_encrypted_dns_valid(monkeypatch):
 
 
 @pytest.mark.unit
+def test_enforce_encrypted_dns_valid_doh(monkeypatch):
+    monkeypatch.setattr(settings, "enable_rfc8932", True)
+    assert enforce_encrypted_dns("DoH") == "DoH"
+
+
+@pytest.mark.unit
 def test_enforce_encrypted_dns_invalid(monkeypatch):
     monkeypatch.setattr(settings, "enable_rfc8932", True)
     with pytest.raises(ValueError):

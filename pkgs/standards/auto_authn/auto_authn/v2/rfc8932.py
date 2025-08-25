@@ -1,11 +1,14 @@
-"""RFC 8932 - OAuth 2.0 Authorization Server Metadata Extensions.
+"""RFC 8932 utilities and extensions.
 
-This module provides extended authorization server metadata functionality
-beyond the basic RFC 8414 implementation. It includes additional metadata
-fields and capabilities for enhanced OAuth 2.0 server discovery.
+This module bundles helpers that relate to :rfc:`8932`.
 
-Note: RFC 8932 may refer to extensions or updates to authorization server
-metadata. This implementation provides enhanced metadata capabilities.
+* ``enforce_encrypted_dns`` ensures that DNS lookups use encrypted
+  transports such as DNS over TLS (DoT) or DNS over HTTPS (DoH)
+  as recommended in *RFC 8932 - Recommendations for DNS Privacy
+  Service Operators*.
+* ``get_enhanced_authorization_server_metadata`` exposes extended
+  OAuth 2.0 authorization server metadata.  Both features can be
+  toggled via ``settings.enable_rfc8932`` to keep support modular.
 
 See related: RFC 8414 (OAuth 2.0 Authorization Server Metadata)
 """
@@ -13,7 +16,7 @@ See related: RFC 8414 (OAuth 2.0 Authorization Server Metadata)
 from __future__ import annotations
 
 
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Set
 from fastapi import APIRouter, HTTPException, status
 
 from .runtime_cfg import settings
@@ -22,6 +25,32 @@ from .rfc8414 import ISSUER, JWKS_PATH
 RFC8932_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8932"
 
 router = APIRouter()
+
+# Encrypted DNS transports allowed per RFC 8932
+ALLOWED_ENCRYPTED_DNS_TRANSPORTS: Set[str] = {"DoT", "DoH"}
+
+
+def enforce_encrypted_dns(transport: str) -> str:
+    """Validate that DNS queries use encrypted transports.
+
+    Args:
+        transport: DNS transport identifier (e.g. ``"DoT"`` or ``"DoH"``).
+
+    Returns:
+        The validated transport string.
+
+    Raises:
+        NotImplementedError: If RFC 8932 support is disabled.
+        ValueError: If an unencrypted transport is supplied.
+    """
+
+    if not settings.enable_rfc8932:
+        raise NotImplementedError("RFC 8932 support is disabled")
+
+    if transport not in ALLOWED_ENCRYPTED_DNS_TRANSPORTS:
+        raise ValueError(f"{transport} is not an encrypted DNS transport per RFC 8932")
+
+    return transport
 
 
 def get_enhanced_authorization_server_metadata() -> Dict[str, Any]:
@@ -316,6 +345,7 @@ def get_capability_matrix() -> Dict[str, Dict[str, Any]]:
 
 
 __all__ = [
+    "enforce_encrypted_dns",
     "get_enhanced_authorization_server_metadata",
     "enhanced_authorization_server_metadata",
     "validate_metadata_consistency",

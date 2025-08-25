@@ -111,11 +111,6 @@ class Settings(BaseSettings):
         in {"1", "true", "yes"},
         description=("Enable WebAuthn algorithm registrations per RFC 8812",),
     )
-    enable_rfc8932: bool = Field(
-        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8932", "false").lower()
-        in {"1", "true", "yes"},
-        description="Enable DNS privacy recommendations per RFC 8932",
-    )
     enable_rfc8037: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8037", "true").lower()
         in {"1", "true", "yes"},
@@ -186,7 +181,10 @@ class Settings(BaseSettings):
     enable_rfc8932: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8932", "false").lower()
         in {"1", "true", "yes"},
-        description="Enable Enhanced Authorization Server Metadata per RFC 8932",
+        description=(
+            "Enable RFC 8932 features (encrypted DNS enforcement and enhanced "
+            "authorization server metadata)"
+        ),
     )
     enable_rfc9126: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC9126", "false").lower()

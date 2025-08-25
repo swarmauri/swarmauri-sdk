@@ -12,6 +12,8 @@ from __future__ import annotations
 from typing import Dict, Any, Optional, Union, List
 from enum import Enum
 
+from fastapi import FastAPI
+
 from .runtime_cfg import settings
 from .rfc7519 import decode_jwt
 from .jwtoken import JWTCoder
@@ -323,6 +325,19 @@ def create_delegation_token(
     return exchange_token(request, issuer="delegation-service")
 
 
+def include_rfc8693(app: FastAPI) -> None:
+    """Attach RFC 8693 token exchange routes to ``app`` when enabled.
+
+    This placeholder keeps the application modular and avoids import errors
+    in test environments. When ``settings.enable_rfc8693`` is ``True``, token
+    exchange endpoints would be registered here.
+    """
+
+    if settings.enable_rfc8693:
+        # Routes would be added here in a full implementation.
+        pass
+
+
 __all__ = [
     "TokenExchangeRequest",
     "TokenExchangeResponse",
@@ -332,6 +347,7 @@ __all__ = [
     "exchange_token",
     "create_impersonation_token",
     "create_delegation_token",
+    "include_rfc8693",
     "TOKEN_EXCHANGE_GRANT_TYPE",
     "RFC8693_SPEC_URL",
 ]

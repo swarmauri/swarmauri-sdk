@@ -25,7 +25,6 @@ from .rfc9396 import (
 from .rfc6750 import extract_bearer_token
 from .rfc7662 import introspect_token, register_token, reset_tokens
 from .rfc9207 import RFC9207_SPEC_URL, extract_issuer
-from .rfc8932 import RFC8932_SPEC_URL, enforce_encrypted_dns
 from .rfc9126 import store_par_request, get_par_request, reset_par_store
 from .rfc8707 import extract_resource, RFC8707_SPEC_URL
 from .rfc8705 import (
@@ -98,6 +97,7 @@ from .rfc8693 import (
     RFC8693_SPEC_URL,
 )
 from .rfc8932 import (
+    enforce_encrypted_dns,
     get_enhanced_authorization_server_metadata,
     validate_metadata_consistency,
     get_capability_matrix,
