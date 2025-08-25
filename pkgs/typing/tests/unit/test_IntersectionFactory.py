@@ -3,7 +3,10 @@ from typing import Annotated, Union, get_args, get_origin
 import time
 import pytest
 
-from swarmauri_typing.Intersection import Intersection, IntersectionMetadata
+from swarmauri_typing.IntersectionFactory import (
+    IntersectionFactory,
+    IntersectionFactoryMetadata,
+)
 
 
 # Test classes
@@ -23,9 +26,9 @@ class D(B, C):
     pass
 
 
-def test_intersection_single_class():
-    """Test Intersection with a single class"""
-    result = Intersection[A]
+def test_intersection_factory_single_class():
+    """Test IntersectionFactory with a single class"""
+    result = IntersectionFactory[A]
 
     # Check that result is an Annotated type
     assert get_origin(result) == Annotated
@@ -35,13 +38,13 @@ def test_intersection_single_class():
     assert args[0] == Union[A, object]
 
     # Verify metadata
-    assert isinstance(args[1], IntersectionMetadata)
+    assert isinstance(args[1], IntersectionFactoryMetadata)
     assert args[1].classes == (A,)
 
 
-def test_intersection_compatible_classes():
-    """Test Intersection with classes that have common ancestors"""
-    result = Intersection[B, D]
+def test_intersection_factory_compatible_classes():
+    """Test IntersectionFactory with classes that have common ancestors"""
+    result = IntersectionFactory[B, D]
 
     assert get_origin(result) == Annotated
 
@@ -50,13 +53,13 @@ def test_intersection_compatible_classes():
     assert args[0] == Union[B, A, object]
 
     # Verify metadata
-    assert isinstance(args[1], IntersectionMetadata)
+    assert isinstance(args[1], IntersectionFactoryMetadata)
     assert args[1].classes == (B, D)
 
 
-def test_intersection_disjoint_classes():
-    """Test Intersection with classes that only share object as ancestor"""
-    result = Intersection[A, C]
+def test_intersection_factory_disjoint_classes():
+    """Test IntersectionFactory with classes that only share object as ancestor"""
+    result = IntersectionFactory[A, C]
 
     assert get_origin(result) == Annotated
 
@@ -65,13 +68,13 @@ def test_intersection_disjoint_classes():
     assert args[0] == Union[object]
 
     # Verify metadata
-    assert isinstance(args[1], IntersectionMetadata)
+    assert isinstance(args[1], IntersectionFactoryMetadata)
     assert args[1].classes == (A, C)
 
 
-def test_intersection_multi_inheritance():
-    """Test with a class that has multiple inheritance"""
-    result = Intersection[B, C, D]
+def test_intersection_factory_multi_inheritance():
+    """Test with classes that have multiple inheritance"""
+    result = IntersectionFactory[B, C, D]
 
     assert get_origin(result) == Annotated
 
@@ -81,7 +84,7 @@ def test_intersection_multi_inheritance():
     assert args[0] == Union[object]
 
     # Verify metadata
-    assert isinstance(args[1], IntersectionMetadata)
+    assert isinstance(args[1], IntersectionFactoryMetadata)
     assert args[1].classes == (B, C, D)
 
 
@@ -90,7 +93,7 @@ def test_intersection_performance_happy_path():
     """Ensure happy path intersection performs efficiently"""
     start = time.perf_counter()
     for _ in range(1000):
-        Intersection[B, D]
+        IntersectionFactory[B, D]
     duration = time.perf_counter() - start
     assert duration < 0.05
 
@@ -100,6 +103,6 @@ def test_intersection_performance_worst_case():
     """Ensure worst-case intersection performs within bounds"""
     start = time.perf_counter()
     for _ in range(1000):
-        Intersection[A, C]
+        IntersectionFactory[A, C]
     duration = time.perf_counter() - start
     assert duration < 0.05

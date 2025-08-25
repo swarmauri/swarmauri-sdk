@@ -1439,11 +1439,11 @@ For each file listed below, add missing spaCy-style docstrings for the module, a
 - [ ] ./pkgs/swarmauri_standard/tests/xfail/llms/MistralModel_xfail_test.py
 - [ ] ./pkgs/swarmauri_standard/tests/xfail/llms/MistralToolModel_xfail_test.py
 - [ ] ./pkgs/swarmauri_standard/tests/xfail/llms/PerplexityModel_xfail_test.py
-- [ ] ./pkgs/typing/swarmauri_typing/Intersection.py
+- [ ] ./pkgs/typing/swarmauri_typing/IntersectionFactory.py
 - [ ] ./pkgs/typing/swarmauri_typing/UnionFactory.py
 - [ ] ./pkgs/typing/swarmauri_typing/__init__.py
 - [ ] ./pkgs/typing/tests/i9n/test_swarmauri_typing__init__.py
-- [ ] ./pkgs/typing/tests/unit/test_Intersection.py
+- [ ] ./pkgs/typing/tests/unit/test_IntersectionFactory.py
 - [ ] ./pkgs/typing/tests/unit/test_UnionFactory.py
 - [ ] ./scripts/add_perf_marker.py
 - [ ] ./scripts/bump_pyproject_version.py
