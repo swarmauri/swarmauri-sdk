@@ -75,7 +75,15 @@ class FileKeyProvider(KeyProviderBase):
                 KeyAlg.RSA_PSS_SHA256,
                 KeyAlg.ECDSA_P256_SHA256,
             ),
-            "features": ("rotate", "import", "jwks", "hkdf", "random", "persist"),
+            "features": (
+                "create",
+                "rotate",
+                "import",
+                "jwks",
+                "hkdf",
+                "random",
+                "persist",
+            ),
         }
 
     def _key_dir(self, kid: str) -> Path:

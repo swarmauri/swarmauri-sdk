@@ -20,7 +20,11 @@ class InMemoryKeyProvider(KeyProviderBase):
         self._store: Dict[str, Dict[int, KeyRef]] = {}
 
     def supports(self) -> Mapping[str, Iterable[str]]:
-        return {"class": ("sym", "asym"), "algs": (), "features": ("import", "rotate")}
+        return {
+            "class": ("sym", "asym"),
+            "algs": (),
+            "features": ("create", "import", "rotate"),
+        }
 
     async def create_key(self, spec: KeySpec) -> KeyRef:
         kid = secrets.token_hex(8)

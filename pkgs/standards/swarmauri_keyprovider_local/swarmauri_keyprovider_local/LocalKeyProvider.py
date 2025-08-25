@@ -55,7 +55,7 @@ class LocalKeyProvider(KeyProviderBase):
         return {
             "class": ("sym", "asym"),
             "algs": algs,
-            "features": ("rotate", "import", "jwks", "hkdf", "random"),
+            "features": ("create", "rotate", "import", "jwks", "hkdf", "random"),
         }
 
     async def create_key(self, spec: KeySpec) -> KeyRef:
