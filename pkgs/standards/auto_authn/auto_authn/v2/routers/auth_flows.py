@@ -28,6 +28,7 @@ from uuid import uuid4
 from typing import Any, Dict, Literal, Optional
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, EmailStr, Field, ValidationError, constr
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -41,6 +42,7 @@ from ..runtime_cfg import settings
 from ..typing import StrUUID
 from ..rfc8707 import extract_resource
 from ..rfc7009 import revoke_token
+from ..rfc6749 import RFC6749Error, validate_grant_type, validate_password_grant
 from autoapi.v2.error import IntegrityError
 
 router = APIRouter()
@@ -54,6 +56,11 @@ _DEVICE_CODES: Dict[str, Dict[str, Any]] = {}
 _DEVICE_VERIFICATION_URI = "https://example.com/device"
 _DEVICE_CODE_EXPIRES_IN = 600  # seconds
 _DEVICE_CODE_INTERVAL = 5  # seconds
+
+_ALLOWED_GRANT_TYPES = {
+    "password",
+    "urn:ietf:params:oauth:grant-type:device_code",
+}
 
 # ============================================================================
 #  Helper Pydantic models
@@ -225,14 +232,28 @@ async def token(
     data.pop("resource", None)
     grant_type = data.get("grant_type")
     aud = None
+    if settings.enable_rfc6749:
+        try:
+            validate_grant_type(grant_type, _ALLOWED_GRANT_TYPES)
+        except RFC6749Error as exc:
+            return JSONResponse(
+                {"error": str(exc)}, status_code=status.HTTP_400_BAD_REQUEST
+            )
     if settings.rfc8707_enabled:
         try:
             aud = extract_resource(resources)
         except ValueError:
-            raise HTTPException(
-                status.HTTP_400_BAD_REQUEST, {"error": "invalid_target"}
+            return JSONResponse(
+                {"error": "invalid_target"}, status_code=status.HTTP_400_BAD_REQUEST
             )
     if grant_type == "password":
+        if settings.enable_rfc6749:
+            try:
+                validate_password_grant(data)
+            except RFC6749Error as exc:
+                return JSONResponse(
+                    {"error": str(exc)}, status_code=status.HTTP_400_BAD_REQUEST
+                )
         try:
             parsed = PasswordGrantForm(**data)
         except ValidationError as exc:
@@ -269,6 +290,11 @@ async def token(
         )
         _DEVICE_CODES.pop(parsed.device_code, None)
         return TokenPair(access_token=access, refresh_token=refresh)
+    if settings.enable_rfc6749:
+        return JSONResponse(
+            {"error": "unsupported_grant_type"},
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
     raise HTTPException(
         status.HTTP_422_UNPROCESSABLE_ENTITY,
         [
