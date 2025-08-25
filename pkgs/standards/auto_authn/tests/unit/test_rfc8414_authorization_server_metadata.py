@@ -42,7 +42,7 @@ async def test_metadata_scopes_include_standard_scopes(enable_rfc8414):
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.get("/.well-known/oauth-authorization-server")
     scopes = resp.json()["scopes_supported"]
-    for scope in ["openid", "profile", "email"]:
+    for scope in ["openid", "profile", "email", "address", "phone"]:
         assert scope in scopes
 
 
