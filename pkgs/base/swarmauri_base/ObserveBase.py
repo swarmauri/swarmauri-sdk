@@ -15,7 +15,7 @@ from swarmauri_base.DynamicBase import DynamicBase
 T = TypeVar("T", bound="ObserveBase")
 
 
-@DynamicBase.register_type()
+@DynamicBase.register_model()
 class ObserveBase(YamlMixin, ServiceMixin, DynamicBase):
     """
     Base class for all components.

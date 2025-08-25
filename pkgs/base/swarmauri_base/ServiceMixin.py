@@ -13,7 +13,7 @@ def generate_id() -> str:
     return str(uuid4())
 
 
-@DynamicBase.register_model()
+@DynamicBase.register_model(mixin=True)
 class ServiceMixin(BaseModel):
     """Attach service-related metadata fields to a model."""
 
