@@ -2,13 +2,14 @@
 
 from ._base import Base
 from ..mixins import GUIDPk, Timestamped, TenantBound, Principal
-from ..types import Column, String
+from ..specs import acol, S
+from ..types import String
 
 
 class Org(Base, GUIDPk, Timestamped, TenantBound, Principal):
     __tablename__ = "orgs"
     __abstract__ = True
-    name = Column(String)
+    name: str = acol(storage=S(String))
 
 
 __all__ = ["Org"]

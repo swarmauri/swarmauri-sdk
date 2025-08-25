@@ -1,7 +1,7 @@
 # ---------------------------------------
 # storage_spec.py (S)
 # ---------------------------------------
-from dataclasses import dataclass
+from dataclasses import KW_ONLY, dataclass
 from typing import Any, Literal, Union
 
 
@@ -29,6 +29,7 @@ class ForeignKeySpec:
 class StorageSpec:
     # SQLAlchemy column shape (DDL/runtime)
     type_: Any | None = None
+    _: KW_ONLY
     nullable: bool | None = None
     unique: bool = False
     index: bool = False

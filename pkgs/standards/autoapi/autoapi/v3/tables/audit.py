@@ -1,19 +1,40 @@
 # autoapi/tables/audit.py
 import datetime as dt
+from uuid import UUID
 
 from . import Base
 from ..mixins import GUIDPk, Timestamped
-from ..types import Column, DateTime, Integer, String, PgUUID
+from ..specs import acol, IO, S
+from ..types import DateTime, Integer, String, PgUUID
 
 
 class Change(Base, GUIDPk, Timestamped):
     __tablename__ = "changes"
-    seq = Column(Integer, primary_key=True)
-    at = Column(DateTime, default=dt.datetime.utcnow)
-    actor_id = Column(PgUUID)
-    table_name = Column(String)
-    row_id = Column(PgUUID)
-    action = Column(String)
+
+    seq: int = acol(
+        storage=S(Integer, primary_key=True),
+        io=IO(out_verbs=("read", "list")),
+    )
+    at: dt.datetime = acol(
+        storage=S(DateTime, default=dt.datetime.utcnow),
+        io=IO(out_verbs=("read", "list")),
+    )
+    actor_id: UUID | None = acol(
+        storage=S(PgUUID, nullable=True),
+        io=IO(out_verbs=("read", "list")),
+    )
+    table_name: str = acol(
+        storage=S(String),
+        io=IO(out_verbs=("read", "list")),
+    )
+    row_id: UUID | None = acol(
+        storage=S(PgUUID, nullable=True),
+        io=IO(out_verbs=("read", "list")),
+    )
+    action: str = acol(
+        storage=S(String),
+        io=IO(out_verbs=("read", "list")),
+    )
 
 
 __all__ = ["Change"]
