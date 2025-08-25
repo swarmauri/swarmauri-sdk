@@ -24,6 +24,18 @@ def _ref_to_signing_key(ref: KeyRef, alg: JWAAlg) -> Mapping[str, Any]:
     if mat is None:
         raise RuntimeError("key material not available for signing")
     if alg == JWAAlg.EDDSA:
+        # File-based providers commonly store Ed25519 keys in PEM format. The
+        # Ed25519 signer expects raw 32/64-byte seed material, so convert when
+        # necessary.
+        if mat.startswith(b"-----BEGIN"):
+            from cryptography.hazmat.primitives import serialization
+
+            priv = serialization.load_pem_private_key(mat, password=None)
+            mat = priv.private_bytes(
+                serialization.Encoding.Raw,
+                serialization.PrivateFormat.Raw,
+                serialization.NoEncryption(),
+            )
         return {"kind": "raw_ed25519_sk", "bytes": mat}
     if alg == JWAAlg.HS256:
         return {"kind": "raw", "key": mat}

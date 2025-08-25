@@ -14,6 +14,7 @@ from typing import Dict, Iterable, Set, Union, Optional, Any
 
 from .runtime_cfg import settings
 from .rfc7523 import validate_client_jwt_bearer
+from .errors import InvalidTokenError
 
 RFC8523_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8523"
 REQUIRED_CLAIMS: Set[str] = {"iss", "sub", "aud", "exp", "iat", "jti"}
@@ -64,7 +65,7 @@ def validate_enhanced_jwt_bearer(
     current_time = int(time.time())
     iat = claims.get("iat")
     if not isinstance(iat, int):
-        raise ValueError("'iat' claim must be an integer timestamp")
+        raise InvalidTokenError("'iat' claim must be an integer timestamp")
 
     # Check if token is too old
     token_age = current_time - iat
@@ -73,7 +74,7 @@ def validate_enhanced_jwt_bearer(
 
     # Check if token is from the future (with clock skew tolerance)
     if iat > current_time + clock_skew_seconds:
-        raise ValueError("JWT 'iat' claim is in the future")
+        raise InvalidTokenError("JWT 'iat' claim is in the future")
 
     # Validate JWT ID for replay protection
     jti = claims.get("jti")

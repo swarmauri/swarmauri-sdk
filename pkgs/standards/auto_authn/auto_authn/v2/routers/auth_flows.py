@@ -273,8 +273,12 @@ async def refresh(body: RefreshIn):
 # --------------------------------------------------------------------------
 @router.post("/introspect", response_model=IntrospectOut)
 async def introspect(request: Request, db: AsyncSession = Depends(get_async_db)):
-    if not settings.enable_rfc7662:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "introspection disabled")
+    """OAuth 2.0 token introspection endpoint.
+
+    The endpoint remains available even when RFC 7662 support is disabled so
+    callers receive a well-formed response rather than a ``404``.  When the
+    feature flag is off an inactive token response is returned immediately.
+    """
     form = await request.form()
     token = form.get("token")
     if not token:
@@ -282,6 +286,8 @@ async def introspect(request: Request, db: AsyncSession = Depends(get_async_db))
     try:
         principal, kind = await _api_backend.authenticate(db, token)
     except AuthError:
+        return IntrospectOut(active=False)
+    if not settings.enable_rfc7662:
         return IntrospectOut(active=False)
     return IntrospectOut(
         active=True,

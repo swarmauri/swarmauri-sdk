@@ -17,20 +17,20 @@ from typing import Dict, Any, Optional, List, Union
 from .runtime_cfg import settings
 from .rfc7519 import encode_jwt
 from .jwtoken import JWTCoder
-import importlib
 
-_jwt_service_module = importlib.import_module("swarmauri_tokens_jwt.JWTTokenService")
+try:  # pragma: no cover - optional dependency
+    import jwt
 
+    def _allow_object_sub(
+        self, payload: Dict[str, Any], subject: Any | None = None
+    ) -> None:
+        """Allow non-string ``sub`` claims as permitted by RFC 7952."""
+        if subject is not None and payload.get("sub") != subject:
+            raise jwt.exceptions.InvalidSubjectError("Invalid subject")
 
-def _allow_object_sub(
-    self, payload: Dict[str, Any], subject: Any | None = None
-) -> None:
-    """Allow non-string ``sub`` claims as permitted by RFC 7952."""
-    if subject is not None and payload.get("sub") != subject:
-        raise _jwt_service_module.jwt.exceptions.InvalidSubjectError("Invalid subject")
-
-
-_jwt_service_module.jwt.api_jwt.PyJWT._validate_sub = _allow_object_sub
+    jwt.api_jwt.PyJWT._validate_sub = _allow_object_sub  # type: ignore[attr-defined]
+except (ModuleNotFoundError, AttributeError):
+    pass
 
 RFC7952_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc7952"
 
