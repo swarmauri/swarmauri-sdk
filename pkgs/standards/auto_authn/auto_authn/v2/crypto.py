@@ -41,7 +41,9 @@ def verify_pw(plain: str, hashed: bytes) -> bool:
 # JWT signing key helpers via swarmauri FileKeyProvider
 # ---------------------------------------------------------------------
 _DEFAULT_KEY_DIR = pathlib.Path(os.getenv("JWT_ED25519_KEY_DIR", "runtime_secrets"))
-_KID_PATH = _DEFAULT_KEY_DIR / "jwt_ed25519.kid"
+# Path to the file storing the key identifier for the JWT signing key.  Tests
+# patch this path, so keep the name `_DEFAULT_KEY_PATH` for compatibility.
+_DEFAULT_KEY_PATH = _DEFAULT_KEY_DIR / "jwt_ed25519.kid"
 
 
 @lru_cache(maxsize=1)
@@ -51,8 +53,8 @@ def _provider() -> FileKeyProvider:
 
 async def _ensure_key() -> Tuple[str, bytes, bytes]:
     kp = _provider()
-    if _KID_PATH.exists():
-        kid = _KID_PATH.read_text().strip()
+    if _DEFAULT_KEY_PATH.exists():
+        kid = _DEFAULT_KEY_PATH.read_text().strip()
         ref = await kp.get_key(kid, include_secret=True)
     else:
         spec = KeySpec(
@@ -63,8 +65,8 @@ async def _ensure_key() -> Tuple[str, bytes, bytes]:
             label="jwt_ed25519",
         )
         ref = await kp.create_key(spec)
-        _KID_PATH.parent.mkdir(parents=True, exist_ok=True)
-        _KID_PATH.write_text(ref.kid)
+        _DEFAULT_KEY_PATH.parent.mkdir(parents=True, exist_ok=True)
+        _DEFAULT_KEY_PATH.write_text(ref.kid)
     priv = ref.material or b""
     pub = ref.public or b""
     return ref.kid, priv, pub
