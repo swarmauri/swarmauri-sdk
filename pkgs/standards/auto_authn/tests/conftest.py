@@ -157,26 +157,26 @@ def enable_rfc9126():
 def temp_key_file():
     """Create a temporary key directory for testing."""
     temp_dir = Path(tempfile.mkdtemp())
-    temp_kid = temp_dir / "jwt_ed25519.kid"
+    kid_path = temp_dir / "jwt_ed25519.kid"
 
     import auto_authn.v2.crypto as crypto_module
 
     original_dir = crypto_module._DEFAULT_KEY_DIR
-    original_kid = crypto_module._KID_PATH
+    original_path = crypto_module._DEFAULT_KEY_PATH
 
     crypto_module._DEFAULT_KEY_DIR = temp_dir
-    crypto_module._KID_PATH = temp_kid
+    crypto_module._DEFAULT_KEY_PATH = kid_path
+    crypto_module._provider.cache_clear()
     crypto_module._load_keypair.cache_clear()
 
-    yield temp_kid
+    yield kid_path
 
-    if temp_kid.exists():
-        temp_kid.unlink()
-    for f in temp_dir.glob("*"):
-        f.unlink()
-    temp_dir.rmdir()
+    import shutil
+
+    shutil.rmtree(temp_dir, ignore_errors=True)
     crypto_module._DEFAULT_KEY_DIR = original_dir
-    crypto_module._KID_PATH = original_kid
+    crypto_module._DEFAULT_KEY_PATH = original_path
+    crypto_module._provider.cache_clear()
     crypto_module._load_keypair.cache_clear()
 
 
@@ -185,7 +185,7 @@ def mock_env_vars():
     """Mock environment variables for testing."""
     env_vars = {
         "AUTHN_ISSUER": "https://test.example.com",
-        "JWT_ED25519_PRIV_PATH": "test_keys/jwt_ed25519.pem",
+        "JWT_ED25519_KEY_DIR": "test_keys",
     }
 
     original_vars = {}

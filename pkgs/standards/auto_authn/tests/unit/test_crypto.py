@@ -4,20 +4,122 @@ Unit tests for auto_authn.v2.crypto module.
 Tests password hashing, JWT key management, and security functions.
 """
 
-from unittest.mock import patch
-
 import pytest
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from cryptography.hazmat.primitives import serialization
 
+import auto_authn.v2.crypto as crypto
 from auto_authn.v2.crypto import (
     hash_pw,
     verify_pw,
     signing_key,
     public_key,
-    _generate_keypair,
-    _load_keypair,
 )
+
+
+@pytest.mark.unit
+class TestJWTKeyCrypto:
+    """Test JWT key generation and management functions."""
+
+    def _setup_dir(self, tmp_path, monkeypatch):
+        key_dir = tmp_path
+        kid_path = key_dir / "jwt_ed25519.kid"
+        monkeypatch.setattr(crypto, "_DEFAULT_KEY_DIR", key_dir)
+        monkeypatch.setattr(crypto, "_DEFAULT_KEY_PATH", kid_path)
+        crypto._provider.cache_clear()
+        crypto._load_keypair.cache_clear()
+        return key_dir, kid_path
+
+    def test_load_keypair_creates_valid_ed25519_keys(self, tmp_path, monkeypatch):
+        key_dir, kid_path = self._setup_dir(tmp_path, monkeypatch)
+        kid, priv_pem, pub_pem = crypto._load_keypair()
+        assert kid_path.exists()
+        assert oct(kid_path.stat().st_mode)[-3:] == "600"
+        private_key = serialization.load_pem_private_key(priv_pem, password=None)
+        assert isinstance(private_key, Ed25519PrivateKey)
+        serialization.load_pem_public_key(pub_pem)
+
+    def test_load_keypair_from_existing_file(self, tmp_path, monkeypatch):
+        key_dir, kid_path = self._setup_dir(tmp_path, monkeypatch)
+        kid1, priv1, pub1 = crypto._load_keypair()
+        crypto._load_keypair.cache_clear()
+        kid2, priv2, pub2 = crypto._load_keypair()
+        assert kid1 == kid2
+        assert priv1 == priv2
+        assert pub1 == pub2
+
+    def test_keypair_caching_works(self, tmp_path, monkeypatch):
+        self._setup_dir(tmp_path, monkeypatch)
+        first = crypto._load_keypair()
+        second = crypto._load_keypair()
+        assert first is second
+
+    def test_signing_key_returns_private_key_bytes(self, temp_key_file):
+        crypto._provider.cache_clear()
+        crypto._load_keypair.cache_clear()
+        key_bytes = signing_key()
+        assert isinstance(key_bytes, bytes)
+        assert key_bytes.startswith(b"-----BEGIN PRIVATE KEY-----")
+        private_key = serialization.load_pem_private_key(key_bytes, password=None)
+        assert isinstance(private_key, Ed25519PrivateKey)
+
+    def test_public_key_returns_public_key_bytes(self, temp_key_file):
+        crypto._provider.cache_clear()
+        crypto._load_keypair.cache_clear()
+        key_bytes = public_key()
+        assert isinstance(key_bytes, bytes)
+        assert key_bytes.startswith(b"-----BEGIN PUBLIC KEY-----")
+        serialization.load_pem_public_key(key_bytes)
+
+    def test_private_key_file_permissions(self, tmp_path, monkeypatch):
+        key_dir, kid_path = self._setup_dir(tmp_path, monkeypatch)
+        kid, _, _ = crypto._load_keypair()
+        priv_path = key_dir / "keys" / kid / "v1" / "private.pem"
+        assert priv_path.exists()
+        assert oct(priv_path.stat().st_mode)[-3:] == "600"
+
+    def test_invalid_key_identifier_raises_error(self, tmp_path, monkeypatch):
+        key_dir, kid_path = self._setup_dir(tmp_path, monkeypatch)
+        kid_path.write_text("invalid")
+        crypto._load_keypair.cache_clear()
+        with pytest.raises(ValueError):
+            crypto._load_keypair()
+
+    def test_non_ed25519_key_raises_error(self, tmp_path, monkeypatch):
+        key_dir, kid_path = self._setup_dir(tmp_path, monkeypatch)
+        kid, _, _ = crypto._load_keypair()
+        from cryptography.hazmat.primitives.asymmetric import rsa
+
+        rsa_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+        rsa_pem = rsa_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption(),
+        )
+        priv_path = key_dir / "keys" / kid / "v1" / "private.pem"
+        priv_path.write_bytes(rsa_pem)
+        meta_path = key_dir / "keys" / kid / "meta.json"
+        import json
+
+        meta = json.loads(meta_path.read_text())
+        meta["alg"] = "RSA_PSS_SHA256"
+        meta_path.write_text(json.dumps(meta))
+        crypto._load_keypair.cache_clear()
+        with pytest.raises(RuntimeError, match="JWT signing key is not Ed25519"):
+            crypto._load_keypair()
+
+    def test_env_key_dir_override(self, monkeypatch, tmp_path):
+        import importlib
+
+        monkeypatch.setenv("JWT_ED25519_KEY_DIR", str(tmp_path))
+        module = importlib.reload(crypto)
+        module._provider.cache_clear()
+        module._load_keypair.cache_clear()
+        kid, priv, pub = module._load_keypair()
+        assert module._DEFAULT_KEY_DIR == tmp_path
+        assert module._DEFAULT_KEY_PATH == tmp_path / "jwt_ed25519.kid"
+        monkeypatch.delenv("JWT_ED25519_KEY_DIR", raising=False)
+        importlib.reload(module)
 
 
 @pytest.mark.unit
@@ -72,187 +174,6 @@ class TestPasswordCrypto:
 
         assert verify_pw(password, hashed) is True
         assert verify_pw("different", hashed) is False
-
-
-@pytest.mark.unit
-class TestJWTKeyCrypto:
-    """Test JWT key generation and management functions."""
-
-    def test_generate_keypair_creates_valid_ed25519_keys(self, tmp_path):
-        """Test that key generation creates valid Ed25519 key pair."""
-        key_path = tmp_path / "test_key.pem"
-
-        priv_pem, pub_pem = _generate_keypair(key_path)
-
-        # Verify file was created with correct permissions
-        assert key_path.exists()
-        assert oct(key_path.stat().st_mode)[-3:] == "600"
-
-        # Verify keys are valid Ed25519 format
-        private_key = serialization.load_pem_private_key(priv_pem, password=None)
-        assert isinstance(private_key, Ed25519PrivateKey)
-
-        # Verify public key can be loaded
-        serialization.load_pem_public_key(pub_pem)
-        assert pub_pem.startswith(b"-----BEGIN PUBLIC KEY-----")
-
-    def test_load_keypair_from_existing_file(self, tmp_path):
-        """Test loading key pair from existing file."""
-        key_path = tmp_path / "existing_key.pem"
-
-        # First generate a key
-        original_priv, original_pub = _generate_keypair(key_path)
-
-        # Mock the default path to use our test file
-        with patch("auto_authn.v2.crypto._DEFAULT_KEY_PATH", key_path):
-            # Clear the cache
-            _load_keypair.cache_clear()
-
-            # Load the key pair
-            loaded_priv, loaded_pub = _load_keypair()
-
-            assert loaded_priv == original_priv
-            assert loaded_pub == original_pub
-
-    def test_generate_keypair_when_file_missing(self, tmp_path):
-        """Test that keys are generated when file is missing."""
-        key_path = tmp_path / "missing_key.pem"
-
-        with patch("auto_authn.v2.crypto._DEFAULT_KEY_PATH", key_path):
-            # Clear the cache
-            _load_keypair.cache_clear()
-
-            # This should generate new keys
-            priv_pem, pub_pem = _load_keypair()
-
-            # Verify file was created
-            assert key_path.exists()
-
-            # Verify keys are valid
-            private_key = serialization.load_pem_private_key(priv_pem, password=None)
-            assert isinstance(private_key, Ed25519PrivateKey)
-
-    def test_keypair_caching_works(self, tmp_path):
-        """Test that key pair loading is cached."""
-        key_path = tmp_path / "cached_key.pem"
-
-        with patch("auto_authn.v2.crypto._DEFAULT_KEY_PATH", key_path):
-            # Clear the cache
-            _load_keypair.cache_clear()
-
-            # First call should generate/load keys
-            priv1, pub1 = _load_keypair()
-
-            # Second call should return cached results
-            priv2, pub2 = _load_keypair()
-
-            assert priv1 is priv2  # Same object reference (cached)
-            assert pub1 is pub2
-
-    def test_signing_key_returns_private_key_bytes(self, temp_key_file):
-        """Test that signing_key() returns private key bytes."""
-        # Clear cache to ensure fresh key generation
-        _load_keypair.cache_clear()
-
-        key_bytes = signing_key()
-
-        assert isinstance(key_bytes, bytes)
-        assert key_bytes.startswith(b"-----BEGIN PRIVATE KEY-----")
-
-        # Verify it's a valid Ed25519 private key
-        private_key = serialization.load_pem_private_key(key_bytes, password=None)
-        assert isinstance(private_key, Ed25519PrivateKey)
-
-    def test_public_key_returns_public_key_bytes(self, temp_key_file):
-        """Test that public_key() returns public key bytes."""
-        # Clear cache to ensure fresh key generation
-        _load_keypair.cache_clear()
-
-        key_bytes = public_key()
-
-        assert isinstance(key_bytes, bytes)
-        assert key_bytes.startswith(b"-----BEGIN PUBLIC KEY-----")
-
-        # Verify it's a valid public key
-        serialization.load_pem_public_key(key_bytes)
-        # Ed25519 public keys don't have a specific type check, but loading should work
-
-    def test_private_key_file_permissions(self, tmp_path):
-        """Test that private key files are created with secure permissions."""
-        key_path = tmp_path / "secure_key.pem"
-
-        _generate_keypair(key_path)
-
-        # Check file permissions are 0o600 (readable/writable by owner only)
-        file_mode = key_path.stat().st_mode
-        permissions = oct(file_mode)[-3:]
-        assert permissions == "600"
-
-    def test_invalid_key_format_raises_error(self, tmp_path):
-        """Test that invalid key format raises appropriate error."""
-        key_path = tmp_path / "invalid_key.pem"
-
-        # Write invalid key content
-        key_path.write_text(
-            "-----BEGIN PRIVATE KEY-----\nINVALID\n-----END PRIVATE KEY-----\n"
-        )
-
-        with patch("auto_authn.v2.crypto._DEFAULT_KEY_PATH", key_path):
-            # Clear the cache
-            _load_keypair.cache_clear()
-
-            with pytest.raises(ValueError):
-                _load_keypair()
-
-    def test_non_ed25519_key_raises_error(self, tmp_path):
-        """Test that non-Ed25519 keys raise appropriate error."""
-        from cryptography.hazmat.primitives.asymmetric import rsa
-
-        key_path = tmp_path / "rsa_key.pem"
-
-        # Generate RSA key instead of Ed25519
-        rsa_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-        rsa_pem = rsa_key.private_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.NoEncryption(),
-        )
-
-        key_path.write_bytes(rsa_pem)
-
-        with patch("auto_authn.v2.crypto._DEFAULT_KEY_PATH", key_path):
-            # Clear the cache
-            _load_keypair.cache_clear()
-
-            with pytest.raises(RuntimeError, match="JWT signing key is not Ed25519"):
-                _load_keypair()
-
-    def test_env_key_path_override(self, monkeypatch, tmp_path):
-        """Test that JWT_ED25519_PRIV_PATH overrides the default key path."""
-        # Generate a key and write to temporary path
-        private = Ed25519PrivateKey.generate()
-        pem_priv = private.private_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.NoEncryption(),
-        )
-        key_path = tmp_path / "override_key.pem"
-        key_path.write_bytes(pem_priv)
-
-        import auto_authn.v2.crypto as crypto
-        import importlib
-
-        monkeypatch.setenv("JWT_ED25519_PRIV_PATH", str(key_path))
-
-        try:
-            crypto = importlib.reload(crypto)
-            crypto._load_keypair.cache_clear()
-
-            assert crypto._DEFAULT_KEY_PATH == key_path
-            assert crypto.signing_key() == pem_priv
-        finally:
-            monkeypatch.delenv("JWT_ED25519_PRIV_PATH", raising=False)
-            importlib.reload(crypto)
 
 
 @pytest.mark.unit

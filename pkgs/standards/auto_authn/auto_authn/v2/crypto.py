@@ -45,6 +45,7 @@ _DEFAULT_KEY_DIR = pathlib.Path(os.getenv("JWT_ED25519_KEY_DIR", "runtime_secret
 # patch this path, so keep the name `_DEFAULT_KEY_PATH` for compatibility.
 _DEFAULT_KEY_PATH = _DEFAULT_KEY_DIR / "jwt_ed25519.kid"
 
+
 @lru_cache(maxsize=1)
 def _provider() -> FileKeyProvider:
     return FileKeyProvider(_DEFAULT_KEY_DIR)
@@ -54,7 +55,10 @@ async def _ensure_key() -> Tuple[str, bytes, bytes]:
     kp = _provider()
     if _DEFAULT_KEY_PATH.exists():
         kid = _DEFAULT_KEY_PATH.read_text().strip()
-        ref = await kp.get_key(kid, include_secret=True)
+        try:
+            ref = await kp.get_key(kid, include_secret=True)
+        except Exception as exc:  # pragma: no cover - defensive
+            raise ValueError("Invalid JWT signing key identifier") from exc
     else:
         spec = KeySpec(
             klass=KeyClass.asymmetric,
@@ -66,6 +70,15 @@ async def _ensure_key() -> Tuple[str, bytes, bytes]:
         ref = await kp.create_key(spec)
         _DEFAULT_KEY_PATH.parent.mkdir(parents=True, exist_ok=True)
         _DEFAULT_KEY_PATH.write_text(ref.kid)
+        os.chmod(_DEFAULT_KEY_PATH, 0o600)
+
+    priv_path = kp.root / "keys" / ref.kid / f"v{ref.version}" / "private.pem"
+    if priv_path.exists():
+        os.chmod(priv_path, 0o600)
+
+    if ref.tags.get("alg") != KeyAlg.ED25519.value:
+        raise RuntimeError("JWT signing key is not Ed25519")
+
     priv = ref.material or b""
     pub = ref.public or b""
     return ref.kid, priv, pub
