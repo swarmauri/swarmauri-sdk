@@ -3,15 +3,19 @@
 This module provides helpers to encode and decode authorization request
 parameters as JSON Web Tokens (JWT) per RFC 9101 \u00a72.1. The feature can be
 turned on or off using ``settings.enable_rfc9101``.
+
+See RFC 9101: https://www.rfc-editor.org/rfc/rfc9101
 """
 
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable
+from typing import Any, Dict, Final, Iterable
 
 import jwt
 
 from .runtime_cfg import settings
+
+RFC9101_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc9101"
 
 
 def create_request_object(
@@ -25,7 +29,7 @@ def create_request_object(
         If RFC 9101 support is disabled via ``settings.enable_rfc9101``.
     """
     if not settings.enable_rfc9101:
-        raise RuntimeError("RFC 9101 support disabled")
+        raise RuntimeError(f"RFC 9101 support disabled: {RFC9101_SPEC_URL}")
     return jwt.encode(params, secret, algorithm=algorithm)
 
 
@@ -40,9 +44,9 @@ def parse_request_object(
         If RFC 9101 support is disabled via ``settings.enable_rfc9101``.
     """
     if not settings.enable_rfc9101:
-        raise RuntimeError("RFC 9101 support disabled")
+        raise RuntimeError(f"RFC 9101 support disabled: {RFC9101_SPEC_URL}")
     algs = list(algorithms) if algorithms is not None else ["HS256"]
     return jwt.decode(token, secret, algorithms=algs)
 
 
-__all__ = ["create_request_object", "parse_request_object"]
+__all__ = ["create_request_object", "parse_request_object", "RFC9101_SPEC_URL"]

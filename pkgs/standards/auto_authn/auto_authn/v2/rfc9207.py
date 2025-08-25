@@ -3,6 +3,8 @@
 This module validates the ``iss`` parameter returned in the authorization
 response as described by RFC 9207. Support for this feature can be toggled via
 ``settings.enable_rfc9207``.
+
+See RFC 9207: https://www.rfc-editor.org/rfc/rfc9207
 """
 
 from __future__ import annotations
@@ -23,13 +25,15 @@ def extract_issuer(params: Mapping[str, str], expected_issuer: str) -> str:
     """
 
     if not settings.enable_rfc9207:
-        raise NotImplementedError("issuer identification not enabled")
+        raise NotImplementedError(
+            f"issuer identification not enabled: {RFC9207_SPEC_URL}"
+        )
 
     issuer = params.get("iss")
     if issuer is None:
-        raise ValueError("missing iss parameter")
+        raise ValueError(f"missing iss parameter: {RFC9207_SPEC_URL}")
     if issuer != expected_issuer:
-        raise ValueError("issuer mismatch")
+        raise ValueError(f"issuer mismatch: {RFC9207_SPEC_URL}")
     return issuer
 
 

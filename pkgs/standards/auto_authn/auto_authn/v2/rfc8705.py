@@ -4,6 +4,8 @@ This module implements helpers for certificate-bound access tokens as
 specified in RFC 8705 section 3.1. When mutual TLS is used, access tokens
 must contain a ``cnf`` claim with an ``x5t#S256`` member that matches the
 SHA-256 thumbprint of the client's certificate.
+
+See RFC 8705: https://www.rfc-editor.org/rfc/rfc8705
 """
 
 from __future__ import annotations
@@ -49,7 +51,9 @@ def validate_certificate_binding(
     """
     cnf = payload.get("cnf")
     if not isinstance(cnf, dict):
-        raise InvalidTokenError("cnf claim required by RFC 8705")
+        raise InvalidTokenError(f"cnf claim required by RFC 8705: {RFC8705_SPEC_URL}")
     bound = cnf.get("x5t#S256")
     if bound != presented_thumbprint:
-        raise InvalidTokenError("certificate thumbprint mismatch per RFC 8705")
+        raise InvalidTokenError(
+            f"certificate thumbprint mismatch per RFC 8705: {RFC8705_SPEC_URL}"
+        )

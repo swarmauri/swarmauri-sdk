@@ -2,6 +2,8 @@
 
 Helpers for updating and deleting clients registered via RFC 7591.
 Functionality can be toggled using ``runtime_cfg.Settings.enable_rfc7592``.
+
+See RFC 7592: https://www.rfc-editor.org/rfc/rfc7592
 """
 
 from __future__ import annotations
@@ -27,7 +29,7 @@ def update_client(
     if enabled is None:
         enabled = settings.enable_rfc7592
     if not enabled:
-        raise RuntimeError("RFC 7592 support is disabled")
+        raise RuntimeError(f"RFC 7592 support is disabled: {RFC7592_SPEC_URL}")
     client = rfc7591.get_client(client_id)
     if client is None:
         raise KeyError("unknown client")
@@ -41,7 +43,7 @@ def delete_client(client_id: str, *, enabled: bool | None = None) -> bool:
     if enabled is None:
         enabled = settings.enable_rfc7592
     if not enabled:
-        raise RuntimeError("RFC 7592 support is disabled")
+        raise RuntimeError(f"RFC 7592 support is disabled: {RFC7592_SPEC_URL}")
     return rfc7591._CLIENT_REGISTRY.pop(client_id, None) is not None
 
 

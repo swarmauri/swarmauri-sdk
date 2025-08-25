@@ -5,6 +5,8 @@ This module validates the ``resource`` parameter defined in RFC 8707.
 Values MUST be absolute URIs, MAY appear multiple times, and MUST NOT
 contain fragments. The helper returns the first valid resource or
 ``None`` if none were supplied.
+
+See RFC 8707: https://www.rfc-editor.org/rfc/rfc8707
 """
 
 from __future__ import annotations
@@ -27,7 +29,7 @@ def extract_resource(resources: Sequence[str]) -> Optional[str]:
     for value in resources:
         parsed = urlparse(value)
         if not parsed.scheme or not parsed.netloc or parsed.fragment:
-            raise ValueError("invalid resource indicator")
+            raise ValueError(f"invalid resource indicator: {RFC8707_SPEC_URL}")
     return resources[0]
 
 

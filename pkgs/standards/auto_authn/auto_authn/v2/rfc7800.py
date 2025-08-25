@@ -1,17 +1,21 @@
 """Proof-of-Possession helpers for RFC 7800 compliance.
 
 The functions in this module assist with creating and validating the ``cnf``
-(claims confirmation) structure defined in :rfc:`7800`.  Enforcement may be
+(claims confirmation) structure defined in :rfc:`7800`. Enforcement may be
 enabled or disabled via ``enable_rfc7800`` in
 :mod:`auto_authn.v2.runtime_cfg.Settings`.
+
+See RFC 7800: https://www.rfc-editor.org/rfc/rfc7800
 """
 
 from __future__ import annotations
 
-from typing import Any, Dict, Mapping
+from typing import Any, Dict, Final, Mapping
 
 from .runtime_cfg import settings
 from .rfc7638 import jwk_thumbprint
+
+RFC7800_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc7800"
 
 
 def add_cnf_claim(payload: Mapping[str, Any], jwk: Mapping[str, Any]) -> Dict[str, Any]:
@@ -50,4 +54,4 @@ def verify_proof_of_possession(
     return jkt == expected
 
 
-__all__ = ["add_cnf_claim", "verify_proof_of_possession"]
+__all__ = ["add_cnf_claim", "verify_proof_of_possession", "RFC7800_SPEC_URL"]

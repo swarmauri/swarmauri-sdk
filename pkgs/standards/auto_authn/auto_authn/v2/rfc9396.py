@@ -4,6 +4,8 @@ This module parses and validates the ``authorization_details`` request
 parameter as defined by RFC 9396 section 2. Support for this feature can be
 toggled via the ``AUTO_AUTHN_ENABLE_RFC9396`` environment variable
 (``settings.enable_rfc9396``).
+
+See RFC 9396: https://www.rfc-editor.org/rfc/rfc9396
 """
 
 from __future__ import annotations
@@ -48,22 +50,28 @@ def parse_authorization_details(raw: str) -> List[AuthorizationDetail]:
     """
 
     if not settings.enable_rfc9396:
-        raise NotImplementedError("authorization_details not enabled")
+        raise NotImplementedError(
+            f"authorization_details not enabled: {RFC9396_SPEC_URL}"
+        )
 
     try:
         data: Any = json.loads(raw)
     except json.JSONDecodeError as exc:  # pragma: no cover - invalid JSON
-        raise ValueError("authorization_details must be valid JSON") from exc
+        raise ValueError(
+            f"authorization_details must be valid JSON: {RFC9396_SPEC_URL}"
+        ) from exc
 
     if isinstance(data, dict):
         data = [data]
     if not isinstance(data, list):
-        raise ValueError("authorization_details must be an object or array")
+        raise ValueError(
+            f"authorization_details must be an object or array: {RFC9396_SPEC_URL}"
+        )
 
     try:
         return [AuthorizationDetail.model_validate(item) for item in data]
     except ValidationError as exc:
-        raise ValueError("invalid authorization_details") from exc
+        raise ValueError(f"invalid authorization_details: {RFC9396_SPEC_URL}") from exc
 
 
 __all__ = [

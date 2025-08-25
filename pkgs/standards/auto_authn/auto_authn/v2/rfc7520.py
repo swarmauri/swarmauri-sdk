@@ -1,8 +1,10 @@
 """JOSE composition helpers for RFC 7520 compliance.
 
 This module demonstrates the JOSE patterns defined in :rfc:`7520`, providing
-helpers that sign payloads before encrypting them and vice‑versa.  Support can
+helpers that sign payloads before encrypting them and vice‑versa. Support can
 be toggled via the ``AUTO_AUTHN_ENABLE_RFC7520`` environment variable.
+
+See RFC 7520: https://www.rfc-editor.org/rfc/rfc7520
 """
 
 from typing import Final
@@ -19,7 +21,7 @@ RFC7520_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc7520"
 def jws_then_jwe(payload: str, key: jwk.JWK) -> str:
     """Sign *payload* then encrypt the resulting JWS."""
     if not settings.enable_rfc7520:
-        raise RuntimeError("RFC 7520 support disabled")
+        raise RuntimeError(f"RFC 7520 support disabled: {RFC7520_SPEC_URL}")
     jws_token = sign_jws(payload, key)
     return encrypt_jwe(jws_token, key)
 
@@ -27,7 +29,7 @@ def jws_then_jwe(payload: str, key: jwk.JWK) -> str:
 def jwe_then_jws(token: str, key: jwk.JWK) -> str:
     """Decrypt a JWE then verify the contained JWS."""
     if not settings.enable_rfc7520:
-        raise RuntimeError("RFC 7520 support disabled")
+        raise RuntimeError(f"RFC 7520 support disabled: {RFC7520_SPEC_URL}")
     jws_token = decrypt_jwe(token, key)
     return verify_jws(jws_token, key)
 

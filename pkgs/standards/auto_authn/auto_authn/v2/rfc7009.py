@@ -3,13 +3,17 @@
 This module provides a simple in-memory registry for revoked tokens to
 illustrate compliance with RFC 7009. The registry can be toggled on or off
 via the ``enable_rfc7009`` setting in ``runtime_cfg.Settings``.
+
+See RFC 7009: https://www.rfc-editor.org/rfc/rfc7009
 """
 
 from __future__ import annotations
 
-from typing import Set
+from typing import Final, Set
 
 from .runtime_cfg import settings
+
+RFC7009_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc7009"
 
 # In-memory set storing revoked tokens for demonstration and testing purposes
 _REVOKED_TOKENS: Set[str] = set()
@@ -38,3 +42,6 @@ def is_revoked(token: str) -> bool:
 def reset_revocations() -> None:
     """Clear the revocation registry. Intended for test setup/teardown."""
     _REVOKED_TOKENS.clear()
+
+
+__all__ = ["revoke_token", "is_revoked", "reset_revocations", "RFC7009_SPEC_URL"]

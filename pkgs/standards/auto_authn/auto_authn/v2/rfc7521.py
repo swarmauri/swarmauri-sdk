@@ -3,6 +3,8 @@
 This module provides helpers for validating JWT assertions used for client
 authentication and authorization grants. Support can be toggled via the
 ``AUTO_AUTHN_ENABLE_RFC7521`` environment variable.
+
+See RFC 7521: https://www.rfc-editor.org/rfc/rfc7521
 """
 
 from __future__ import annotations
@@ -25,7 +27,7 @@ def validate_jwt_assertion(assertion: str) -> Dict[str, object]:
     """
 
     if not settings.enable_rfc7521:
-        raise RuntimeError("RFC 7521 support disabled")
+        raise RuntimeError(f"RFC 7521 support disabled: {RFC7521_SPEC_URL}")
     claims = decode_jwt(assertion)
     missing = REQUIRED_CLAIMS - claims.keys()
     if missing:

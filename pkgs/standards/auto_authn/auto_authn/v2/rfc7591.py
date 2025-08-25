@@ -4,6 +4,8 @@ This module provides a minimal in-memory client registry to illustrate
 compliance with RFC 7591. Functionality can be toggled via
 ``runtime_cfg.Settings.enable_rfc7591`` so deployments may opt in or out
 as needed.
+
+See RFC 7591: https://www.rfc-editor.org/rfc/rfc7591
 """
 
 from __future__ import annotations
@@ -44,7 +46,7 @@ def register_client(metadata: dict, *, enabled: bool | None = None) -> dict:
     if enabled is None:
         enabled = settings.enable_rfc7591
     if not enabled:
-        raise RuntimeError("RFC 7591 support is disabled")
+        raise RuntimeError(f"RFC 7591 support is disabled: {RFC7591_SPEC_URL}")
 
     client_id = secrets.token_urlsafe(16)
     client_secret = secrets.token_urlsafe(32)

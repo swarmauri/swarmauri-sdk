@@ -4,18 +4,22 @@ This module implements a minimal in-memory store for OAuth 2.0 Pushed
 Authorization Requests (PAR) as defined in RFC 9126. The feature can be
 enabled or disabled via ``settings.enable_rfc9126`` in
 ``runtime_cfg.Settings``.
+
+See RFC 9126: https://www.rfc-editor.org/rfc/rfc9126
 """
 
 from __future__ import annotations
 
 import uuid
 from datetime import datetime, timedelta
-from typing import Dict, Tuple, Any
+from typing import Any, Dict, Final, Tuple
 
 # In-memory storage mapping request_uri -> (params, expiry)
 _PAR_STORE: Dict[str, Tuple[Dict[str, Any], datetime]] = {}
 
 DEFAULT_PAR_EXPIRY = 90  # seconds
+
+RFC9126_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc9126"
 
 
 def store_par_request(
@@ -55,4 +59,5 @@ __all__ = [
     "get_par_request",
     "reset_par_store",
     "DEFAULT_PAR_EXPIRY",
+    "RFC9126_SPEC_URL",
 ]

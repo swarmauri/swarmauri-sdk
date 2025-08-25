@@ -3,6 +3,8 @@
 This module provides helpers to create and verify DPoP proofs as defined in
 RFC 9449. It currently supports Ed25519 keys and is intentionally lightweight
 so the feature can be enabled or disabled via runtime configuration.
+
+See RFC 9449: https://www.rfc-editor.org/rfc/rfc9449
 """
 
 from __future__ import annotations
@@ -12,7 +14,7 @@ import hashlib
 import json
 import time
 from datetime import datetime, timezone
-from typing import Dict
+from typing import Dict, Final
 from uuid import uuid4
 
 import jwt
@@ -24,6 +26,8 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import (
 
 _ALG = "EdDSA"
 _ALLOWED_SKEW = 300  # seconds
+
+RFC9449_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc9449"
 
 
 def _b64url(data: bytes) -> str:
@@ -85,13 +89,13 @@ def verify_proof(proof: str, method: str, url: str, *, jkt: str | None = None) -
     try:
         header = jwt.get_unverified_header(proof)
     except jwt.exceptions.DecodeError as exc:  # pragma: no cover - sanity
-        raise ValueError("malformed DPoP proof") from exc
+        raise ValueError(f"malformed DPoP proof: {RFC9449_SPEC_URL}") from exc
 
     jwk = header.get("jwk")
     if not jwk:
-        raise ValueError("missing jwk in DPoP header")
+        raise ValueError(f"missing jwk in DPoP header: {RFC9449_SPEC_URL}")
     if jwk.get("kty") != "OKP" or jwk.get("crv") != "Ed25519":
-        raise ValueError("unsupported jwk")
+        raise ValueError(f"unsupported jwk: {RFC9449_SPEC_URL}")
 
     public_key = Ed25519PublicKey.from_public_bytes(
         base64.urlsafe_b64decode(jwk["x"] + "==")
@@ -99,19 +103,25 @@ def verify_proof(proof: str, method: str, url: str, *, jkt: str | None = None) -
     payload = jwt.decode(proof, public_key, algorithms=[_ALG])
 
     if payload.get("htm") != method.upper():
-        raise ValueError("htm mismatch")
+        raise ValueError(f"htm mismatch: {RFC9449_SPEC_URL}")
     if payload.get("htu") != url:
-        raise ValueError("htu mismatch")
+        raise ValueError(f"htu mismatch: {RFC9449_SPEC_URL}")
 
     now = int(time.time())
     iat = int(payload.get("iat", 0))
     if abs(now - iat) > _ALLOWED_SKEW:
-        raise ValueError("iat out of range")
+        raise ValueError(f"iat out of range: {RFC9449_SPEC_URL}")
 
     thumb = jwk_thumbprint(jwk)
     if jkt and thumb != jkt:
-        raise ValueError("jkt mismatch")
+        raise ValueError(f"jkt mismatch: {RFC9449_SPEC_URL}")
     return thumb
 
 
-__all__ = ["create_proof", "verify_proof", "jwk_from_public_key", "jwk_thumbprint"]
+__all__ = [
+    "create_proof",
+    "verify_proof",
+    "jwk_from_public_key",
+    "jwk_thumbprint",
+    "RFC9449_SPEC_URL",
+]
