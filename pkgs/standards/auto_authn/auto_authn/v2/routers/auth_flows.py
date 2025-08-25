@@ -28,7 +28,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Literal, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, EmailStr, Field, ValidationError, constr
 from sqlalchemy import select
@@ -49,6 +49,9 @@ from ..rfc6749 import (
     is_enabled as rfc6749_enabled,
 )
 from ..rfc8628 import DEVICE_CODES, DeviceGrantForm
+from ..rfc7591 import register_client
+from ..rfc6750 import extract_bearer_token
+from ..errors import InvalidTokenError
 from autoapi.v2.error import IntegrityError
 
 router = APIRouter()
@@ -108,7 +111,6 @@ class PasswordGrantForm(BaseModel):
 # ============================================================================
 @router.post(
     "/register",
-    response_model=TokenPair,
     status_code=status.HTTP_201_CREATED,
     responses={
         400: {"description": "invalid params"},
@@ -117,7 +119,18 @@ class PasswordGrantForm(BaseModel):
         500: {"description": "database error"},
     },
 )
-async def register(body: RegisterIn, db: AsyncSession = Depends(get_async_db)):
+async def register(request: Request, db: AsyncSession = Depends(get_async_db)):
+    data = await request.json()
+    if "redirect_uris" in data:
+        if not settings.enable_rfc7591:
+            raise HTTPException(
+                status.HTTP_404_NOT_FOUND, "client registration disabled"
+            )
+        return register_client(data)
+    try:
+        body = RegisterIn(**data)
+    except ValidationError as exc:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, exc.errors())
     try:
         # 1. look up pre-existing tenant
         tenant = await db.scalar(
@@ -289,3 +302,15 @@ async def introspect(request: Request, db: AsyncSession = Depends(get_async_db))
         tid=str(principal.tenant_id),
         kind=kind,
     )
+
+
+@router.get("/userinfo")
+async def userinfo(request: Request, authorization: str = Header("")):
+    token = await extract_bearer_token(request, authorization)
+    if not token:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "missing token")
+    try:
+        payload = await _jwt.async_decode(token)
+    except InvalidTokenError:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "invalid token")
+    return {"sub": payload.get("sub")}

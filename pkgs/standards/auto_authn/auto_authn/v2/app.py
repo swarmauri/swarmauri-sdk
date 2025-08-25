@@ -29,6 +29,7 @@ from .rfc8628 import include_rfc8628
 from .rfc9126 import include_rfc9126
 from .rfc7009 import include_rfc7009
 from .rfc8693 import include_rfc8693
+from .rfc7517 import load_public_jwk
 
 
 # --------------------------------------------------------------------
@@ -92,25 +93,19 @@ async def oidc_config():
         "issuer": ISSUER,
         "jwks_uri": f"{ISSUER}{JWKS_PATH}",
         "token_endpoint": f"{ISSUER}/token",
+        "userinfo_endpoint": f"{ISSUER}/userinfo",
         "registration_endpoint": f"{ISSUER}/register",
         "scopes_supported": ["openid", "profile", "email"],
         "response_types_supported": ["token"],
         "subject_types_supported": ["public"],
-        "id_token_signing_alg_values_supported": ["EdDSA"],
+        "id_token_signing_alg_values_supported": ["RS256"],
     }
 
 
 @app.get(JWKS_PATH, include_in_schema=False)
 async def jwks():
-    """
-    Return Ed25519 public key in RFC 7517 JWK Set format.
-    """
-    from .crypto import _provider, _ensure_key
-
-    kid, _, _ = await _ensure_key()
-    kp = _provider()
-    key_dict = await kp.get_public_jwk(kid)
-    key_dict.setdefault("kid", f"{kid}.1")
+    """Return RSA public key in RFC 7517 JWK Set format."""
+    key_dict = load_public_jwk()
     return {"keys": [key_dict]}
 
 
