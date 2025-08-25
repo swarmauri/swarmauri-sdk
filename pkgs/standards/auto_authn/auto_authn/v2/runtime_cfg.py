@@ -63,6 +63,10 @@ class Settings(BaseSettings):
     # ─────── Other global settings ───────
     jwt_secret: str = Field(os.environ.get("JWT_SECRET", "insecure-dev-secret"))
     log_level: str = Field(os.environ.get("LOG_LEVEL", "INFO"))
+    enable_rfc7662: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7662", "false").lower()
+        in {"1", "true", "yes"}
+    )
 
     model_config = SettingsConfigDict(env_file=None)
 
