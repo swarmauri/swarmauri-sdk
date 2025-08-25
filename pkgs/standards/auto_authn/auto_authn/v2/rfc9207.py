@@ -11,6 +11,8 @@ from typing import Mapping
 
 from .runtime_cfg import settings
 
+RFC9207_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc9207"
+
 
 def extract_issuer(params: Mapping[str, str], expected_issuer: str) -> str:
     """Return the issuer identifier from ``params`` after validation.
@@ -31,4 +33,4 @@ def extract_issuer(params: Mapping[str, str], expected_issuer: str) -> str:
     return issuer
 
 
-__all__ = ["extract_issuer"]
+__all__ = ["extract_issuer", "RFC9207_SPEC_URL"]

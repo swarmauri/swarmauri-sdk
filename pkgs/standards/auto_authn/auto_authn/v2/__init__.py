@@ -13,11 +13,12 @@ from .rfc8628 import generate_device_code, generate_user_code, validate_user_cod
 from .rfc9396 import AuthorizationDetail, parse_authorization_details
 from .rfc6750 import extract_bearer_token
 from .rfc7662 import introspect_token, register_token, reset_tokens
-from .rfc9207 import extract_issuer
+from .rfc9207 import RFC9207_SPEC_URL, extract_issuer
 from .rfc9126 import store_par_request, get_par_request, reset_par_store
 from .rfc8707 import extract_resource, RFC8707_SPEC_URL
 from .rfc8705 import thumbprint_from_cert_pem, validate_certificate_binding
 from .rfc8252 import is_native_redirect_uri, validate_native_redirect_uri
+
 __all__ = [
     "create_code_verifier",
     "create_code_challenge",
@@ -31,6 +32,7 @@ __all__ = [
     "extract_issuer",
     "extract_resource",
     "RFC8707_SPEC_URL",
+    "RFC9207_SPEC_URL",
     "introspect_token",
     "register_token",
     "reset_tokens",
