@@ -12,6 +12,8 @@ from __future__ import annotations
 import asyncio
 import os
 import pathlib
+import base64
+from hashlib import sha256
 from datetime import timedelta
 from functools import lru_cache
 from typing import Any, Iterable, Mapping, Tuple
@@ -78,6 +80,14 @@ def _service() -> Tuple[JWTTokenService, str]:
 # ---------------------------------------------------------------------------
 
 
+def oidc_hash(value: str) -> str:
+    """Return the OIDC token hash for *value* per Core §3.3.2.11."""
+
+    digest = sha256(value.encode("ascii")).digest()
+    half = digest[: len(digest) // 2]
+    return base64.urlsafe_b64encode(half).decode("ascii").rstrip("=")
+
+
 def mint_id_token(
     *,
     sub: str,
@@ -121,4 +131,10 @@ def verify_id_token(token: str, *, issuer: str, audience: Iterable[str] | str) -
 rsa_key_provider = _provider
 ensure_rsa_jwt_key = _ensure_key
 
-__all__ = ["mint_id_token", "verify_id_token", "rsa_key_provider", "ensure_rsa_jwt_key"]
+__all__ = [
+    "mint_id_token",
+    "verify_id_token",
+    "oidc_hash",
+    "rsa_key_provider",
+    "ensure_rsa_jwt_key",
+]

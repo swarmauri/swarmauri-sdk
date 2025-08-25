@@ -54,6 +54,7 @@ from ..rfc6749 import (
 from ..rfc7636_pkce import verify_code_challenge
 from ..rfc8628 import DEVICE_CODES, DeviceGrantForm
 from autoapi.v2.error import IntegrityError
+from ..oidc_id_token import mint_id_token, oidc_hash
 
 router = APIRouter()
 
@@ -213,6 +214,8 @@ async def authorize(
     if code_challenge_method and code_challenge_method != "S256":
         raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
     params: list[tuple[str, str]] = []
+    code: str | None = None
+    access: str | None = None
     if "code" in rts:
         code = secrets.token_urlsafe(32)
         AUTH_CODES[code] = {
@@ -231,13 +234,20 @@ async def authorize(
     if "id_token" in rts:
         from ..rfc8414 import ISSUER
 
-        id_token = await _jwt.async_sign(
+        extra_claims: dict[str, str] = {
+            "tid": str(user.tenant_id),
+            "typ": "id",
+        }
+        if access:
+            extra_claims["at_hash"] = oidc_hash(access)
+        if code:
+            extra_claims["c_hash"] = oidc_hash(code)
+        id_token = mint_id_token(
             sub=str(user.id),
-            tid=str(user.tenant_id),
-            typ="id",
-            issuer=ISSUER,
-            audience=client_id,
+            aud=client_id,
             nonce=nonce,
+            issuer=ISSUER,
+            **extra_claims,
         )
         params.append(("id_token", id_token))
     if state:
