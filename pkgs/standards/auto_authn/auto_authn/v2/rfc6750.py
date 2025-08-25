@@ -1,0 +1,51 @@
+"""Helpers for OAuth 2.0 Bearer Token Usage (RFC 6750).
+
+This module extracts bearer tokens from HTTP requests according to
+:rfc:`6750`. Support for providing the token in the URI query parameter or the
+request body can be toggled via settings to allow deployments to opt out of
+these optional, and potentially insecure, mechanisms.
+"""
+
+from __future__ import annotations
+
+from fastapi import Request
+
+from .runtime_cfg import settings
+
+
+async def extract_bearer_token(request: Request, authorization: str) -> str | None:
+    """Return the bearer token present in *request* if any.
+
+    The function follows the extraction rules from RFC 6750:
+
+    - The ``Authorization`` header uses a case-insensitive ``Bearer`` scheme.
+    - If ``settings.enable_rfc6750_query`` is ``True`` an ``access_token``
+      parameter in the URI query is accepted.
+    - If ``settings.enable_rfc6750_form`` is ``True`` an ``access_token``
+      field in an ``application/x-www-form-urlencoded`` body is accepted.
+    """
+
+    parts = authorization.split()
+    if len(parts) == 2 and parts[0].lower() == "bearer":
+        return parts[1]
+
+    if settings.enable_rfc6750_query:
+        token = request.query_params.get("access_token")
+        if token:
+            return token
+
+    if (
+        settings.enable_rfc6750_form
+        and request.method in {"POST", "PUT", "PATCH"}
+        and "application/x-www-form-urlencoded"
+        in request.headers.get("Content-Type", "")
+    ):
+        form = await request.form()
+        token = form.get("access_token")
+        if token:
+            return token
+
+    return None
+
+
+__all__ = ["extract_bearer_token"]

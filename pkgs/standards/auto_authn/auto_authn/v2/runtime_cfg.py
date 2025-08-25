@@ -91,6 +91,17 @@ class Settings(BaseSettings):
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7009", "false").lower()
         in {"1", "true", "yes"}
     )
+    enable_rfc6750_query: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC6750_QUERY", "false").lower()
+        in {"1", "true", "yes"},
+        description="Allow access_token as URI query parameter per RFC 6750 §2.3",
+    )
+    enable_rfc6750_form: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC6750_FORM", "false").lower()
+        in {"1", "true", "yes"},
+        description=(
+            "Allow access_token in application/x-www-form-urlencoded bodies per RFC 6750 §2.2"
+        ),
     enable_rfc6749: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC6749", "true").lower()
         in {"1", "true", "yes"},
