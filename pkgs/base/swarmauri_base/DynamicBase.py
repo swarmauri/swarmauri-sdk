@@ -10,6 +10,7 @@ All classes and methods in this module use Spacy-style docstrings.
 """
 
 import functools
+import inspect
 from threading import Lock
 from typing import (
     Annotated,
@@ -559,16 +560,20 @@ class DynamicBase(BaseModel):
     ###############################################################
 
     @classmethod
-    def register_model(cls):
-        """
-        Decorator to register a base model in the unified registry.
+    def register_model(cls, *, mixin: bool = False):
+        """Register a base model or mixin in the unified registry.
+
+        Parameters:
+            mixin (bool): Set to ``True`` if the model is intended to be used as a
+                mixin. Subclasses of mixins will not be registered under the
+                mixin's namespace when ``register_type`` is invoked.
 
         Returns:
             Callable: A decorator function that registers the model class.
         """
 
         def decorator(model_cls: Type[BaseModel]):
-            """Register ``model_cls`` as a base model."""
+            """Register ``model_cls`` as a base model or mixin."""
             model_name = model_cls.__name__
             if model_name in cls._registry:
                 glogger.warning(
@@ -576,8 +581,17 @@ class DynamicBase(BaseModel):
                 )
                 return model_cls
 
-            cls._registry[model_name] = {"model_cls": model_cls, "subtypes": {}}
-            glogger.debug("Registered base model '%s'.", model_name)
+            cls._registry[model_name] = {
+                "model_cls": model_cls,
+                "subtypes": {},
+                "mixin": mixin,
+            }
+            setattr(model_cls, "_is_mixin", mixin)
+            glogger.debug(
+                "Registered base model '%s'%s.",
+                model_name,
+                " as mixin" if mixin else "",
+            )
             DynamicBase._recreate_models()
             return model_cls
 
@@ -594,8 +608,9 @@ class DynamicBase(BaseModel):
 
         Parameters:
             resource_type (Optional[Union[Type[T], List[Type[T]]]]):
-                The base model(s) under which to register the subtype. If None, all direct base classes (except DynamicBase)
-                are used.
+                The base model(s) under which to register the subtype. If ``None``, all
+                inherited non-mixin base classes (excluding ``DynamicBase`` itself) are
+                used.
             type_name (Optional[str]): An optional custom type name for the subtype.
 
         Returns:
@@ -605,9 +620,17 @@ class DynamicBase(BaseModel):
         def decorator(subclass: Type["DynamicBase"]):
             """Register ``subclass`` as a subtype."""
             if resource_type is None:
-                resource_types = [
-                    base for base in subclass.__bases__ if base is not cls
-                ]
+                mro_bases = inspect.getmro(subclass)[1:]
+                resource_types = []
+                for base in mro_bases:
+                    if base in (cls, object):
+                        continue
+                    entry = cls._registry.get(base.__name__)
+                    if not entry or entry.get("mixin"):
+                        continue
+                    model_cls = entry["model_cls"]
+                    if model_cls not in resource_types:
+                        resource_types.append(model_cls)
             elif not isinstance(resource_type, list):
                 resource_types = [resource_type]
             else:

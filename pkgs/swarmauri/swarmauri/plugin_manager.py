@@ -13,6 +13,7 @@ from typing import Any, Dict, Optional
 
 from .interface_registry import InterfaceRegistry
 from .plugin_citizenship_registry import PluginCitizenshipRegistry
+from swarmauri_base.DynamicBase import DynamicBase
 
 logger = logging.getLogger(__name__)
 
@@ -375,24 +376,20 @@ def is_plugin_generic(entry_point: EntryPoint) -> bool:
 
 def _process_class_plugin(
     entry_point: EntryPoint,
-    resource_path: str,
+    _resource_path: str,
     plugin_class: Any,
     metadata: Optional[Dict[str, Any]] = None,
 ) -> bool:
-    """
-    Processes and registers a class-based plugin.
+    """Process and register a class-based plugin.
 
-    Steps:
-        1. Load the plugin class.
-        2. Determine the citizenship classification.
-        3. If first or second-class, validate the plugin implements the required interface.
-        4. Register the plugin in PluginCitizenshipRegistry with the external module path.
-        5. Register the plugin class in ComponentBase.TYPE_REGISTRY.
+    The plugin may inherit from multiple base classes and mixins. All namespaces
+    corresponding to inherited base classes are registered, while mixin
+    namespaces are merely validated.
 
     :param entry_point: The entry point of the plugin.
-    :param resource_path: The resource path derived from the entry point.
-    :param metadata: The metadata dictionary if available.
-    :return: True if processing is successful; False otherwise.
+    :param _resource_path: The resource path derived from the entry point (unused).
+    :param metadata: Optional plugin metadata.
+    :return: ``True`` if processing is successful; ``False`` otherwise.
     """
     try:
         # Step 1: Plugin class already loaded
@@ -412,46 +409,49 @@ def _process_class_plugin(
             )
             return False
 
+        base_interfaces: list[tuple[str, Any]] = []
+        mixin_interfaces: list[tuple[str, Any]] = []
+
         # Step 3: If first or second-class, validate interface implementation
         if citizenship in ["first", "second"]:
-            # Extract resource kind (e.g., 'agents' from 'swarmauri.agents.ExampleAgent')
-            resource_kind = resource_path.split(".")[1]
-            interface_class = InterfaceRegistry.get_interface_for_resource(
-                f"swarmauri.{resource_kind}"
-            )
+            for namespace in InterfaceRegistry.list_registered_namespaces():
+                interface_class = InterfaceRegistry.get_interface_for_resource(
+                    namespace
+                )
+                if not interface_class or not issubclass(plugin_class, interface_class):
+                    continue
+                entry = DynamicBase._registry.get(interface_class.__name__, {})
+                if entry.get("mixin"):
+                    mixin_interfaces.append((namespace, interface_class))
+                else:
+                    base_interfaces.append((namespace, interface_class))
 
-            if not issubclass(plugin_class, interface_class):
-                msg = f"Plugin '{entry_point.name}' must subclass '{interface_class.__name__}'."
-                logger.error(msg)
-                raise PluginValidationError(msg)
+            for namespace, interface_class in base_interfaces + mixin_interfaces:
+                if not issubclass(plugin_class, interface_class):
+                    msg = (
+                        f"Plugin '{entry_point.name}' must subclass '{interface_class.__name__}'"
+                        f" for namespace '{namespace}'."
+                    )
+                    logger.error(msg)
+                    raise PluginValidationError(msg)
+                logger.info(
+                    f"Validated class-based plugin '{plugin_class.__name__}' against interface '{interface_class.__name__}'"
+                )
 
-            logger.info(
-                f"Validated class-based plugin '{plugin_class.__name__}' against interface '{interface_class.__name__}'"
-            )
-
-        # Step 4: Register the plugin in PluginCitizenshipRegistry
-        # Extract module_path from entry_point.value (assumes 'module:attribute' format)
+        # Step 4: Register the plugin in PluginCitizenshipRegistry for base interfaces
         module_path = (
             entry_point.value.split(":")[0]
             if ":" in entry_point.value
             else entry_point.value
         )
-        PluginCitizenshipRegistry.add_to_registry(
-            citizenship, resource_path, module_path
-        )
-        logger.info(
-            f"Registered {citizenship}-class plugin '{plugin_class.__name__}' at '{resource_path}' in PluginCitizenshipRegistry"
-        )
-
-        # Step 5: Register the plugin class in ComponentBase.TYPE_REGISTRY
-        # Extract type_name from resource_path (e.g., 'ExampleAgent' from 'swarmauri.agents.ExampleAgent')
-        # type_name = resource_path.split(".")[-1]
-        # ComponentBase.TYPE_REGISTRY.setdefault(interface_class, {})[type_name] = (
-        #     plugin_class
-        # )
-        # logger.info(
-        #     f"Registered class-based plugin '{plugin_class.__name__}' in ComponentBase.TYPE_REGISTRY under '{interface_class}'"
-        # )
+        for namespace, _ in base_interfaces:
+            resource_path = f"{namespace}.{plugin_class.__name__}"
+            PluginCitizenshipRegistry.add_to_registry(
+                citizenship, resource_path, module_path
+            )
+            logger.info(
+                f"Registered {citizenship}-class plugin '{plugin_class.__name__}' at '{resource_path}' in PluginCitizenshipRegistry"
+            )
 
         return True
 

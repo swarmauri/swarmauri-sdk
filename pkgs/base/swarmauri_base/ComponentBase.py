@@ -28,7 +28,7 @@ from swarmauri_base.YamlMixin import YamlMixin
 T = TypeVar("T", bound="ComponentBase")
 
 
-@DynamicBase.register_type()
+@DynamicBase.register_model()
 class ComponentBase(LoggerMixin, YamlMixin, ServiceMixin, DynamicBase):
     """
     Base class for all components.

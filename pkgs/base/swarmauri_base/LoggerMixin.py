@@ -8,7 +8,7 @@ from swarmauri_base.loggers.LoggerBase import LoggerBase
 from swarmauri_base.DynamicBase import DynamicBase
 
 
-@DynamicBase.register_model()
+@DynamicBase.register_model(mixin=True)
 class LoggerMixin(BaseModel):
     """Provide logger configuration fields to derived models."""
 
