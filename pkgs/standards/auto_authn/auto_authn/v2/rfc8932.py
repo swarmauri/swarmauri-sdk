@@ -23,6 +23,21 @@ RFC8932_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8932"
 
 router = APIRouter()
 
+# Supported encrypted DNS protocols
+ENCRYPTED_DNS_PROTOCOLS = {"DoT", "DoH"}
+
+
+def enforce_encrypted_dns(protocol: str) -> str:
+    """Validate that only encrypted DNS protocols are used."""
+
+    if not settings.enable_rfc8932:
+        raise NotImplementedError("DNS privacy enforcement is disabled")
+
+    if protocol not in ENCRYPTED_DNS_PROTOCOLS:
+        raise ValueError("Only encrypted DNS protocols are allowed")
+
+    return protocol
+
 
 def get_enhanced_authorization_server_metadata() -> Dict[str, Any]:
     """Generate enhanced OAuth 2.0 Authorization Server Metadata.
@@ -322,4 +337,5 @@ __all__ = [
     "get_capability_matrix",
     "router",
     "RFC8932_SPEC_URL",
+    "enforce_encrypted_dns",
 ]
