@@ -12,10 +12,11 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import (
     Ed25519PrivateKey,
     Ed25519PublicKey,
 )
+from typing import Final
 
 from .runtime_cfg import settings
 
-RFC8037_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8037"
+RFC8037_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc8037"
 
 
 def sign_eddsa(

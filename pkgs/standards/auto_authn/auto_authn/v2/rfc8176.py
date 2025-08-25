@@ -9,10 +9,11 @@ allow acceptance of non-standard values.
 from __future__ import annotations
 
 from collections.abc import Sequence
+from typing import Final
 
 from .runtime_cfg import settings
 
-RFC8176_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8176"
+RFC8176_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc8176"
 
 # Common Authentication Method Reference values from RFC 8176
 AMR_VALUES: set[str] = {
