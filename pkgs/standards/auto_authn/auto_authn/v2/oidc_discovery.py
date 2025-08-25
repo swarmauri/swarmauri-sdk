@@ -8,19 +8,15 @@ an `oidc_*` module rather than an `rfcXXXX` module.
 from __future__ import annotations
 
 import json
-import os
 from functools import lru_cache
 from typing import Any
 
 from fastapi import APIRouter, FastAPI
 
+from .rfc8414_metadata import ISSUER, JWKS_PATH
 from .runtime_cfg import settings
 
 router = APIRouter()
-
-# Default paths and issuer used for constructing metadata.
-JWKS_PATH = "/.well-known/jwks.json"
-ISSUER = os.getenv("AUTHN_ISSUER", "https://authn.example.com")
 
 
 # ---------------------------------------------------------------------------
