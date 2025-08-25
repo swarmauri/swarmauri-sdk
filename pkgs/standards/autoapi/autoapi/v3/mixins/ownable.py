@@ -6,18 +6,19 @@ from enum import Enum
 from typing import Any, Mapping
 from uuid import UUID
 
-from sqlalchemy import Column, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import declared_attr
 
-from ..runtime.errors import create_standardized_error
-from ..schema.col_info import check as _info_check
+from ..columns import acol
 from ..config.constants import (
     AUTOAPI_HOOKS_ATTR,
     AUTOAPI_OWNER_POLICY_ATTR,
     CTX_AUTH_KEY,
     CTX_USER_ID_KEY,
 )
+from ..runtime.errors import create_standardized_error
+from ..specs import ColumnSpec, F, IO, S
+from ..specs.storage_spec import ForeignKeySpec
 
 log = logging.getLogger(__name__)
 
@@ -129,21 +130,28 @@ class Ownable:
         pol = getattr(cls, AUTOAPI_OWNER_POLICY_ATTR, OwnerPolicy.CLIENT_SET)
         schema = _infer_schema(cls, default="public")
 
-        autoapi_meta: dict[str, Any] = {}
-        # non-client policy means the server controls the value → hide on write verbs
-        if pol != OwnerPolicy.CLIENT_SET:
-            autoapi_meta["disable_on"] = ["update", "replace"]
-            autoapi_meta["read_only"] = True
-
-        _info_check(autoapi_meta, "owner_id", cls.__name__)
-
-        return Column(
-            PgUUID(as_uuid=True),
-            ForeignKey(f"{schema}.users.id"),
-            nullable=False,
-            index=True,
-            info={"autoapi": autoapi_meta} if autoapi_meta else {},
+        in_verbs = (
+            ("create", "update", "replace")
+            if pol == OwnerPolicy.CLIENT_SET
+            else ("create",)
         )
+        io = IO(
+            in_verbs=in_verbs,
+            out_verbs=("read", "list"),
+            mutable_verbs=in_verbs,
+        )
+
+        spec = ColumnSpec(
+            storage=S(
+                type_=PgUUID(as_uuid=True),
+                fk=ForeignKeySpec(target=f"{schema}.users.id"),
+                nullable=False,
+                index=True,
+            ),
+            field=F(py_type=UUID),
+            io=io,
+        )
+        return acol(spec=spec)
 
     # ── hook installers --------------------------------------------------------
 
