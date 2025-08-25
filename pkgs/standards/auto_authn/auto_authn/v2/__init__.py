@@ -6,6 +6,7 @@ from .rfc7636_pkce import (
     verify_code_challenge,
 )
 from .rfc9396 import AuthorizationDetail, parse_authorization_details
+from .rfc6749 import RFC6749ComplianceError, validate_token_request
 
 __all__ = [
     "create_code_verifier",
@@ -13,4 +14,6 @@ __all__ = [
     "verify_code_challenge",
     "parse_authorization_details",
     "AuthorizationDetail",
+    "validate_token_request",
+    "RFC6749ComplianceError",
 ]

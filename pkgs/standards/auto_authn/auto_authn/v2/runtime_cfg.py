@@ -91,6 +91,11 @@ class Settings(BaseSettings):
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7009", "false").lower()
         in {"1", "true", "yes"}
     )
+    enable_rfc6749: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC6749", "false").lower()
+        in {"1", "true", "yes"},
+        description="Enable core OAuth 2.0 validation per RFC 6749",
+    )
 
     model_config = SettingsConfigDict(env_file=None)
 

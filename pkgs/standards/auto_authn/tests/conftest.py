@@ -121,6 +121,19 @@ def enable_rfc7009():
 
 
 @pytest.fixture
+def enable_rfc6749():
+    """Enable RFC 6749 core validation for tests."""
+    from auto_authn.v2.runtime_cfg import settings
+
+    original = settings.enable_rfc6749
+    settings.enable_rfc6749 = True
+    try:
+        yield
+    finally:
+        settings.enable_rfc6749 = original
+
+
+@pytest.fixture
 def temp_key_file():
     """Create a temporary JWT key file path for testing (file doesn't exist initially)."""
     # Create a temp file path but don't create the file
