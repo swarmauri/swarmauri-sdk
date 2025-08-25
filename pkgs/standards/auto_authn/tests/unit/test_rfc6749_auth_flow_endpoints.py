@@ -28,9 +28,9 @@ def test_rfc6749_core_endpoints_present() -> None:
 
 
 @pytest.mark.unit
-def test_rfc6749_authorization_endpoint_missing() -> None:
-    """The `/authorize` endpoint advertised by RFC 6749 is not implemented."""
+def test_rfc6749_authorization_endpoint_present() -> None:
+    """The `/authorize` endpoint is now implemented."""
     app = FastAPI()
     app.include_router(router)
     paths = _collect_paths(app)
-    assert "/authorize" not in paths
+    assert "/authorize" in paths

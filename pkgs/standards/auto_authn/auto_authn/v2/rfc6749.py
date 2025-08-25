@@ -22,9 +22,11 @@ __all__ = [
     "RFC6749Error",
     "validate_grant_type",
     "validate_password_grant",
+    "validate_authorization_code_grant",
     "is_enabled",
     "enforce_grant_type",
     "enforce_password_grant",
+    "enforce_authorization_code_grant",
     "RFC6749_SPEC_URL",
 ]
 
@@ -55,6 +57,19 @@ def validate_password_grant(form: Mapping[str, str]) -> None:
         raise RFC6749Error("invalid_request")
 
 
+def validate_authorization_code_grant(form: Mapping[str, str]) -> None:
+    """Ensure required parameters for the authorization code grant are present.
+
+    RFC 6749 §4.1.3 requires ``code``, ``redirect_uri`` and ``client_id``
+    parameters on the token endpoint when exchanging an authorization code.
+    Missing parameters result in ``invalid_request`` errors.
+    """
+
+    required = {"code", "redirect_uri", "client_id"}
+    if not required.issubset(form):
+        raise RFC6749Error("invalid_request")
+
+
 def is_enabled() -> bool:
     """Return ``True`` if RFC 6749 enforcement is active."""
 
@@ -75,3 +90,11 @@ def enforce_password_grant(form: Mapping[str, str]) -> None:
     if not is_enabled():
         return
     validate_password_grant(form)
+
+
+def enforce_authorization_code_grant(form: Mapping[str, str]) -> None:
+    """Validate authorization code grant requirements when enabled."""
+
+    if not is_enabled():
+        return
+    validate_authorization_code_grant(form)

@@ -25,11 +25,12 @@ Notes
 from __future__ import annotations
 
 
-from datetime import datetime
+import secrets
+from datetime import datetime, timedelta
 from typing import Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel, EmailStr, Field, ValidationError, constr
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -38,16 +39,18 @@ from ..crypto import hash_pw
 from ..jwtoken import JWTCoder
 from ..backends import PasswordBackend, ApiKeyBackend, AuthError
 from ..fastapi_deps import get_async_db
-from ..orm.tables import Tenant, User
+from ..orm.tables import Tenant, User, Client
 from ..runtime_cfg import settings
 from ..typing import StrUUID
 from ..rfc8707 import extract_resource
 from ..rfc6749 import RFC6749Error
 from ..rfc6749 import (
+    enforce_authorization_code_grant,
     enforce_grant_type,
     enforce_password_grant,
     is_enabled as rfc6749_enabled,
 )
+from ..rfc7636_pkce import verify_code_challenge
 from ..rfc8628 import DEVICE_CODES, DeviceGrantForm
 from autoapi.v2.error import IntegrityError
 
@@ -57,9 +60,11 @@ _jwt = JWTCoder.default()
 _pwd_backend = PasswordBackend()
 _api_backend = ApiKeyBackend()
 
-_ALLOWED_GRANT_TYPES = {"password"}
+_ALLOWED_GRANT_TYPES = {"password", "authorization_code"}
 if settings.enable_rfc8628:
     _ALLOWED_GRANT_TYPES.add("urn:ietf:params:oauth:grant-type:device_code")
+
+AUTH_CODES: dict[str, dict] = {}
 
 # ============================================================================
 #  Helper Pydantic models
@@ -101,6 +106,14 @@ class PasswordGrantForm(BaseModel):
     grant_type: Literal["password"]
     username: str
     password: str
+
+
+class AuthorizationCodeGrantForm(BaseModel):
+    grant_type: Literal["authorization_code"]
+    code: str
+    redirect_uri: str
+    client_id: str
+    code_verifier: Optional[str] = None
 
 
 # ============================================================================
@@ -165,6 +178,49 @@ async def login(body: CredsIn, db: AsyncSession = Depends(get_async_db)):
     return TokenPair(access_token=access, refresh_token=refresh)
 
 
+@router.get("/authorize")
+async def authorize(
+    response_type: str,
+    client_id: str,
+    redirect_uri: str,
+    scope: str,
+    state: Optional[str] = None,
+    code_challenge: Optional[str] = None,
+    code_challenge_method: Optional[str] = None,
+    username: Optional[str] = None,
+    password: Optional[str] = None,
+    db: AsyncSession = Depends(get_async_db),
+):
+    if response_type != "code":
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, {"error": "unsupported_response_type"}
+        )
+    client = await db.get(Client, client_id)
+    if client is None or redirect_uri not in (client.redirect_uris or "").split():
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
+    if username is None or password is None:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, {"error": "access_denied"})
+    try:
+        user = await _pwd_backend.authenticate(db, username, password)
+    except AuthError:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, {"error": "access_denied"})
+    if code_challenge_method and code_challenge_method != "S256":
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
+    code = secrets.token_urlsafe(32)
+    AUTH_CODES[code] = {
+        "sub": str(user.id),
+        "tid": str(user.tenant_id),
+        "client_id": client_id,
+        "redirect_uri": redirect_uri,
+        "code_challenge": code_challenge,
+        "expires_at": datetime.utcnow() + timedelta(minutes=10),
+    }
+    redirect_url = f"{redirect_uri}?code={code}"
+    if state:
+        redirect_url += f"&state={state}"
+    return RedirectResponse(redirect_url)
+
+
 @router.post("/token", response_model=TokenPair)
 async def token(
     request: Request, db: AsyncSession = Depends(get_async_db)
@@ -206,6 +262,39 @@ async def token(
         jwt_kwargs = {"aud": aud} if aud else {}
         access, refresh = await _jwt.async_sign_pair(
             sub=str(user.id), tid=str(user.tenant_id), **jwt_kwargs
+        )
+        return TokenPair(access_token=access, refresh_token=refresh)
+    if grant_type == "authorization_code":
+        try:
+            enforce_authorization_code_grant(data)
+        except RFC6749Error as exc:
+            return JSONResponse(
+                {"error": str(exc)}, status_code=status.HTTP_400_BAD_REQUEST
+            )
+        try:
+            parsed = AuthorizationCodeGrantForm(**data)
+        except ValidationError as exc:
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, exc.errors())
+        record = AUTH_CODES.pop(parsed.code, None)
+        if (
+            record is None
+            or record["client_id"] != parsed.client_id
+            or record["redirect_uri"] != parsed.redirect_uri
+            or datetime.utcnow() > record["expires_at"]
+        ):
+            return JSONResponse(
+                {"error": "invalid_grant"}, status_code=status.HTTP_400_BAD_REQUEST
+            )
+        if record.get("code_challenge"):
+            if not parsed.code_verifier or not verify_code_challenge(
+                parsed.code_verifier, record["code_challenge"]
+            ):
+                return JSONResponse(
+                    {"error": "invalid_grant"}, status_code=status.HTTP_400_BAD_REQUEST
+                )
+        jwt_kwargs = {"aud": aud} if aud else {}
+        access, refresh = await _jwt.async_sign_pair(
+            sub=record["sub"], tid=record["tid"], **jwt_kwargs
         )
         return TokenPair(access_token=access, refresh_token=refresh)
     if grant_type == "urn:ietf:params:oauth:grant-type:device_code":

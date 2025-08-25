@@ -6,6 +6,7 @@ from auto_authn.v2.rfc6749 import (
     RFC6749Error,
     enforce_grant_type,
     enforce_password_grant,
+    enforce_authorization_code_grant,
 )
 from auto_authn.v2.runtime_cfg import settings
 
@@ -39,6 +40,17 @@ def test_enforce_password_grant_requires_credentials(toggle_rfc6749):
 
 
 @pytest.mark.unit
+def test_enforce_authorization_code_grant_requires_params(toggle_rfc6749):
+    """Authorization code grant must include code, redirect_uri and client_id."""
+    with pytest.raises(RFC6749Error):
+        enforce_authorization_code_grant({"code": "abc"})
+    with pytest.raises(RFC6749Error):
+        enforce_authorization_code_grant({"redirect_uri": "https://c"})
+    with pytest.raises(RFC6749Error):
+        enforce_authorization_code_grant({"code": "abc", "redirect_uri": "https://c"})
+
+
+@pytest.mark.unit
 def test_enforcement_noop_when_disabled():
     """Validation helpers are skipped when RFC 6749 enforcement is disabled."""
     original = settings.enable_rfc6749
@@ -46,5 +58,6 @@ def test_enforcement_noop_when_disabled():
     try:
         enforce_grant_type(None, {"password"})
         enforce_password_grant({})
+        enforce_authorization_code_grant({})
     finally:
         settings.enable_rfc6749 = original
