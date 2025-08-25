@@ -47,6 +47,13 @@ from .rfc7517 import load_signing_jwk, load_public_jwk
 from .rfc7518 import supported_algorithms
 from .rfc7519 import encode_jwt, decode_jwt
 from .rfc7520 import jws_then_jwe, jwe_then_jws
+from .rfc7591 import (
+    register_client,
+    get_client,
+    reset_client_registry,
+    RFC7591_SPEC_URL,
+)
+from .rfc7592 import update_client, delete_client, RFC7592_SPEC_URL
 from .rfc7521 import validate_jwt_assertion, RFC7521_SPEC_URL
 
 __all__ = [
@@ -89,6 +96,13 @@ __all__ = [
     "decode_jwt",
     "jws_then_jwe",
     "jwe_then_jws",
+    "register_client",
+    "get_client",
+    "reset_client_registry",
+    "RFC7591_SPEC_URL",
+    "update_client",
+    "delete_client",
+    "RFC7592_SPEC_URL",
     "jwk_thumbprint",
     "verify_jwk_thumbprint",
     "add_cnf_claim",
