@@ -195,6 +195,16 @@ class Settings(BaseSettings):
         in {"1", "true", "yes"},
         description="Enable JOSE examples per RFC 7520",
     )
+    enable_rfc7591: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7591", "false").lower()
+        in {"1", "true", "yes"},
+        description="Enable OAuth 2.0 Dynamic Client Registration per RFC 7591",
+    )
+    enable_rfc7592: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7592", "false").lower()
+        in {"1", "true", "yes"},
+        description="Enable OAuth 2.0 Client Registration Management per RFC 7592",
+    )
     enable_rfc7521: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7521", "true").lower()
         in {"1", "true", "yes"},
