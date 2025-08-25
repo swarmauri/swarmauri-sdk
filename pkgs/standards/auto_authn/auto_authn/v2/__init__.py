@@ -35,6 +35,9 @@ from .rfc8705 import (
 )
 from .rfc8252 import is_native_redirect_uri, validate_native_redirect_uri
 from .rfc8705 import thumbprint_from_cert_pem, validate_certificate_binding
+from .rfc7638 import jwk_thumbprint, verify_jwk_thumbprint
+from .rfc7800 import add_cnf_claim, verify_proof_of_possession
+from .rfc8291 import encrypt_push_message, decrypt_push_message
 from .rfc9068 import add_rfc9068_claims, validate_rfc9068_claims
 from .rfc8252 import is_native_redirect_uri, validate_native_redirect_uri
 
@@ -86,6 +89,12 @@ __all__ = [
     "decode_jwt",
     "jws_then_jwe",
     "jwe_then_jws",
+    "jwk_thumbprint",
+    "verify_jwk_thumbprint",
+    "add_cnf_claim",
+    "verify_proof_of_possession",
+    "encrypt_push_message",
+    "decrypt_push_message",
     "validate_jwt_assertion",
     "RFC7521_SPEC_URL",
     "RFC7520_SPEC_URL",
