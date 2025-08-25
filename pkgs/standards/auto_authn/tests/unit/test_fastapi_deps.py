@@ -251,8 +251,12 @@ class TestGetCurrentPrincipal:
         with patch(
             "auto_authn.v2.fastapi_deps._user_from_api_key", return_value=mock_user
         ):
+            request = Request(scope={"type": "http"})
             principal = await get_current_principal(
-                authorization="", api_key=api_key, db=mock_db
+                request,
+                authorization="",
+                api_key=api_key,
+                db=mock_db,
             )
 
             assert principal is not None
@@ -268,8 +272,12 @@ class TestGetCurrentPrincipal:
         authorization = "Bearer valid.jwt.token"
 
         with patch("auto_authn.v2.fastapi_deps._user_from_jwt", return_value=mock_user):
+            request = Request(scope={"type": "http"})
             principal = await get_current_principal(
-                authorization=authorization, api_key=None, db=mock_db
+                request,
+                authorization=authorization,
+                api_key=None,
+                db=mock_db,
             )
 
             assert principal is not None
@@ -291,8 +299,12 @@ class TestGetCurrentPrincipal:
             with patch(
                 "auto_authn.v2.fastapi_deps._user_from_jwt", return_value=mock_user
             ) as mock_jwt:
+                request = Request(scope={"type": "http"})
                 principal = await get_current_principal(
-                    authorization=authorization, api_key=api_key, db=mock_db
+                    request,
+                    authorization=authorization,
+                    api_key=api_key,
+                    db=mock_db,
                 )
 
                 assert principal is not None
@@ -317,8 +329,12 @@ class TestGetCurrentPrincipal:
             with patch(
                 "auto_authn.v2.fastapi_deps._user_from_jwt", return_value=mock_user
             ):
+                request = Request(scope={"type": "http"})
                 principal = await get_current_principal(
-                    authorization=authorization, api_key=api_key, db=mock_db
+                    request,
+                    authorization=authorization,
+                    api_key=api_key,
+                    db=mock_db,
                 )
 
                 assert principal is not None
@@ -329,8 +345,11 @@ class TestGetCurrentPrincipal:
         """Test principal resolution with no credentials raises HTTP 401."""
         mock_db = AsyncMock(spec=AsyncSession)
 
+        request = Request(scope={"type": "http"})
         with pytest.raises(HTTPException) as exc_info:
-            await get_current_principal(authorization="", api_key=None, db=mock_db)
+            await get_current_principal(
+                request, authorization="", api_key=None, db=mock_db
+            )
 
         assert exc_info.value.status_code == 401
         assert "invalid or missing credentials" in exc_info.value.detail
@@ -342,9 +361,13 @@ class TestGetCurrentPrincipal:
         mock_db = AsyncMock(spec=AsyncSession)
         authorization = "InvalidFormat token"
 
+        request = Request(scope={"type": "http"})
         with pytest.raises(HTTPException) as exc_info:
             await get_current_principal(
-                authorization=authorization, api_key=None, db=mock_db
+                request,
+                authorization=authorization,
+                api_key=None,
+                db=mock_db,
             )
 
         assert exc_info.value.status_code == 401
@@ -358,9 +381,13 @@ class TestGetCurrentPrincipal:
 
         with patch("auto_authn.v2.fastapi_deps._user_from_api_key", return_value=None):
             with patch("auto_authn.v2.fastapi_deps._user_from_jwt", return_value=None):
+                request = Request(scope={"type": "http"})
                 with pytest.raises(HTTPException) as exc_info:
                     await get_current_principal(
-                        authorization=authorization, api_key=api_key, db=mock_db
+                        request,
+                        authorization=authorization,
+                        api_key=api_key,
+                        db=mock_db,
                     )
 
                 assert exc_info.value.status_code == 401

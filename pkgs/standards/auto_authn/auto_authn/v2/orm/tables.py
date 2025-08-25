@@ -102,7 +102,7 @@ class Client(ClientBase):  # Tenant FK via mix-in
         secret_hash = hash_pw(client_secret)
         return cls(
             tenant_id=tenant_id,
-            client_id=client_id,
+            id=client_id,
             client_secret_hash=secret_hash,
             redirect_uris=" ".join(redirects),
         )
