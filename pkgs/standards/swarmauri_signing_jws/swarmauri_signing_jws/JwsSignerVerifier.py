@@ -67,9 +67,9 @@ def _jwk_to_pub_for_signer(jwk: Mapping[str, Any]) -> Any:
 
 
 _RSA_RS = {
-    JWAAlg.RS256: "RSA-PKCS1v15-SHA256",
-    JWAAlg.RS384: "RSA-PKCS1v15-SHA384",
-    JWAAlg.RS512: "RSA-PKCS1v15-SHA512",
+    JWAAlg.RS256: "RS256",
+    JWAAlg.RS384: "RS384",
+    JWAAlg.RS512: "RS512",
 }
 _RSA_PS = {
     JWAAlg.PS256: "RSA-PSS-SHA256",

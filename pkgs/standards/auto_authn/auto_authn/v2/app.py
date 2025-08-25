@@ -28,6 +28,7 @@ from .rfc8628 import include_rfc8628
 from .rfc9126 import include_rfc9126
 from .rfc7009 import include_rfc7009
 from .rfc8693 import include_rfc8693
+from .rfc7591 import include_rfc7591
 
 
 # --------------------------------------------------------------------
@@ -51,6 +52,8 @@ if settings.enable_rfc7009:
     include_rfc7009(app)
 if settings.enable_rfc8693:
     include_rfc8693(app)
+if settings.enable_rfc7591:
+    include_rfc7591(app)
 if settings.enable_rfc8414:
     include_rfc8414(app)
 
@@ -111,23 +114,23 @@ async def oidc_config():
         "authorization_endpoint": f"{ISSUER}/authorize",
         "token_endpoint": f"{ISSUER}/token",
         "userinfo_endpoint": f"{ISSUER}/userinfo",
-        "registration_endpoint": f"{ISSUER}/register",
-        "scopes_supported": scopes,
-        "claims_supported": claims,
-        "response_types_supported": response_types,
+
         "jwks_uri": f"{ISSUER}{JWKS_PATH}",
         "subject_types_supported": ["public"],
         "id_token_signing_alg_values_supported": ["RS256"],
     }
+    if settings.enable_rfc7591:
+        config["registration_endpoint"] = f"{ISSUER}/clients"
+    return config
 
 
 @app.get(JWKS_PATH, include_in_schema=False)
 async def jwks():
     """Return public key in RFC 7517 JWK Set format."""
-    from .crypto import _provider, _ensure_key
+    from .oidc_id_token import ensure_rsa_jwt_key, rsa_key_provider
 
-    kid, _, _ = await _ensure_key()
-    kp = _provider()
+    kid, _, _ = await ensure_rsa_jwt_key()
+    kp = rsa_key_provider()
     key_dict = await kp.get_public_jwk(kid)
     key_dict.setdefault("kid", f"{kid}.1")
     return {"keys": [key_dict]}
