@@ -11,7 +11,7 @@ See RFC 9126: https://www.rfc-editor.org/rfc/rfc9126
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Final, Tuple
 
 # In-memory storage mapping request_uri -> (params, expiry)
@@ -32,7 +32,7 @@ def store_par_request(
     request_uri = f"urn:ietf:params:oauth:request_uri:{uuid.uuid4()}"
     _PAR_STORE[request_uri] = (
         params,
-        datetime.utcnow() + timedelta(seconds=expires_in),
+        datetime.now(tz=timezone.utc) + timedelta(seconds=expires_in),
     )
     return request_uri
 
@@ -43,7 +43,7 @@ def get_par_request(request_uri: str) -> Dict[str, Any] | None:
     if not record:
         return None
     params, expiry = record
-    if datetime.utcnow() > expiry:
+    if datetime.now(tz=timezone.utc) > expiry:
         del _PAR_STORE[request_uri]
         return None
     return params
