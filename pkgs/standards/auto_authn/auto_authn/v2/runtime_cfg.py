@@ -76,10 +76,25 @@ class Settings(BaseSettings):
         in {"1", "true", "yes"},
         description="Enable Proof Key for Code Exchange per RFC 7636",
     )
+    enable_rfc7638: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7638", "true").lower()
+        in {"1", "true", "yes"},
+        description="Enable JWK Thumbprint per RFC 7638",
+    )
+    enable_rfc7800: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7800", "false").lower()
+        in {"1", "true", "yes"},
+        description="Enable Proof-of-Possession semantics per RFC 7800",
+    )
     enforce_rfc8252: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENFORCE_RFC8252", "true").lower()
         in {"1", "true", "yes"},
         description="Validate redirect URIs according to RFC 8252",
+    )
+    enable_rfc8291: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8291", "false").lower()
+        in {"1", "true", "yes"},
+        description="Enable Message Encryption for Web Push per RFC 8291",
     )
     enable_rfc7662: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7662", "false").lower()
@@ -88,11 +103,16 @@ class Settings(BaseSettings):
     enable_dpop: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_DPOP", "0") in {"1", "true", "True"}
     )
+    enable_rfc9396: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC9396", "0").lower()
+        in {"1", "true", "yes"},
+        description=("Enable OAuth 2.0 Rich Authorization Requests per RFC 9396"),
     enable_rfc9396: bool = Field(default=os.environ.get("ENABLE_RFC9396", "0") == "1")
     enable_rfc9101: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC9101", "false").lower()
         in {"1", "true", "yes"},
         description="Enable JWT-Secured Authorization Request per RFC 9101",
+
     )
     enable_rfc7009: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7009", "false").lower()
@@ -185,6 +205,11 @@ class Settings(BaseSettings):
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7592", "false").lower()
         in {"1", "true", "yes"},
         description="Enable OAuth 2.0 Client Registration Management per RFC 7592",
+    )
+    enable_rfc7521: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7521", "true").lower()
+        in {"1", "true", "yes"},
+        description="Enable Assertion Framework for OAuth 2.0 per RFC 7521",
     )
 
     model_config = SettingsConfigDict(env_file=None)
