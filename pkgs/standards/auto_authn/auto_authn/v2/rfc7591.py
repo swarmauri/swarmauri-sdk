@@ -85,7 +85,7 @@ def register_client(metadata: dict, *, enabled: bool | None = None) -> dict:
     return data
 
 
-@router.post("/clients", status_code=status.HTTP_201_CREATED)
+@router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register_client_endpoint(body: ClientMetadata) -> dict:
     """HTTP endpoint implementing OAuth 2.0 Dynamic Client Registration."""
 
@@ -111,7 +111,7 @@ def include_rfc7591(app: FastAPI) -> None:
     """Attach the RFC 7591 router to *app* if enabled."""
 
     if settings.enable_rfc7591 and not any(
-        route.path == "/clients" for route in app.routes
+        route.path == "/register" for route in app.routes
     ):
         app.include_router(router)
 

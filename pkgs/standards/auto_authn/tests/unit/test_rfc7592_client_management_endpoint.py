@@ -17,5 +17,5 @@ async def test_rfc7592_client_management_not_implemented(monkeypatch) -> None:
     include_rfc7591(app)
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-        resp = await client.get("/clients/some-client-id")
+        resp = await client.get("/register/some-client-id")
     assert resp.status_code == status.HTTP_404_NOT_FOUND
