@@ -243,6 +243,26 @@ services:
     restart: unless-stopped
     networks: [app_net]
 
+  # ────────────────────────────────────────────────
+  # AutoKMS
+  # ────────────────────────────────────────────────
+  auto_kms:
+    build:
+      context: ../../
+      dockerfile: pkgs/standards/auto_kms/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      KMS_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${AUTO_KMS_DB}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks: [app_net]
+
 networks:
   app_net: { driver: bridge }
 
