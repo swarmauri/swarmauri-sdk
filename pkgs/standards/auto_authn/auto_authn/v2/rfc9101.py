@@ -30,7 +30,9 @@ from .runtime_cfg import settings
 RFC9101_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc9101"
 
 
-def _svc_for_secret(secret: str) -> Tuple[JWTTokenService, str]:
+def _svc_for_secret(secret: str, algorithm: str) -> Tuple[JWTTokenService, str]:
+    if algorithm != "HS256":
+        raise ValueError("Only HS256 is supported")
     kp = LocalKeyProvider()
     spec = KeySpec(
         klass=KeyClass.symmetric,
@@ -81,7 +83,7 @@ def create_request_object(
     """
     if not settings.enable_rfc9101:
         raise RuntimeError(f"RFC 9101 support disabled: {RFC9101_SPEC_URL}")
-    svc, kid = _svc_for_secret(secret)
+    svc, kid = _svc_for_secret(secret, algorithm)
     alg = JWAAlg(algorithm)
     return asyncio.run(svc.mint(params, alg=alg, kid=kid, lifetime_s=None))
 
@@ -99,12 +101,13 @@ def parse_request_object(
     if not settings.enable_rfc9101:
         raise RuntimeError(f"RFC 9101 support disabled: {RFC9101_SPEC_URL}")
 
-    if algorithms is not None:
-        alg = _token_alg(token)
-        if alg not in set(algorithms):
-            raise ValueError(f"Unsupported JWT algorithm: {alg}")
+    alg = _token_alg(token)
+    if alg is None:
+        raise ValueError("Could not determine JWT algorithm")
+    if algorithms is not None and alg not in set(algorithms):
+        raise ValueError(f"Unsupported JWT algorithm: {alg}")
 
-    svc, _kid = _svc_for_secret(secret)
+    svc, _kid = _svc_for_secret(secret, alg)
     claims = asyncio.run(svc.verify(token, audience=None, issuer=None, leeway_s=60))
     claims.pop("iat", None)
     claims.pop("nbf", None)
