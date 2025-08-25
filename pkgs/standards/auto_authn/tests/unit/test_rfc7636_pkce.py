@@ -1,13 +1,16 @@
 """Tests for Proof Key for Code Exchange (RFC 7636).
 
-RFC excerpt (RFC 7636 §4.1):
+RFC excerpt (RFC 7636 §§4.1–4.3):
 
 Native apps MUST use the Proof Key for Code Exchange (PKCE [RFC7636])
 extension to OAuth 2.0 when using the authorization code grant.
 
-The code_verifier MUST be a high-entropy cryptographic random string using the
-unreserved characters [A-Z] / [a-z] / [0-9] / "-" / "." / "_" / "~",
+The ``code_verifier`` MUST be a high-entropy cryptographic random string using
+the unreserved characters [A-Z] / [a-z] / [0-9] / "-" / "." / "_" / "~",
 with a minimum length of 43 characters and a maximum length of 128 characters.
+
+The server MUST support the ``plain`` and ``S256`` ``code_challenge_method``
+transformations.  Clients SHOULD use ``S256`` unless they cannot support it.
 """
 
 import pytest
@@ -69,3 +72,23 @@ def test_verification_skipped_when_disabled(monkeypatch):
 
     monkeypatch.setattr(pkce_mod.settings, "enable_rfc7636", False)
     assert pkce_mod.verify_code_challenge("short", "bad")
+
+
+@pytest.mark.unit
+def test_plain_code_challenge_method_round_trip():
+    """Plain method returns verifier verbatim and validates."""
+
+    verifier = create_code_verifier(50)
+    challenge = create_code_challenge(verifier, method="plain")
+    assert challenge == verifier
+    assert verify_code_challenge(verifier, challenge, method="plain")
+
+
+@pytest.mark.unit
+def test_unsupported_code_challenge_method_raises():
+    """Unknown ``code_challenge_method`` values raise ``ValueError``."""
+
+    verifier = create_code_verifier()
+    with pytest.raises(ValueError):
+        create_code_challenge(verifier, method="md5")
+    assert not verify_code_challenge(verifier, "challenge", method="md5")

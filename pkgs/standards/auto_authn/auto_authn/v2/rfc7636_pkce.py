@@ -3,8 +3,9 @@
 This module implements the Proof Key for Code Exchange (PKCE)
 requirements defined in :rfc:`7636`.  It provides helpers for creating
 ``code_verifier`` strings and deriving ``code_challenge`` values using the
-``S256`` transformation.  The functions may be disabled via runtime
-configuration to allow deployments to opt-out of RFC 7636 enforcement.
+``S256`` or ``plain`` transformations as described in RFC 7636 §§4.2 and 4.3.
+The verification helpers respect :class:`~auto_authn.v2.runtime_cfg.Settings`
+so deployments can enable or disable RFC 7636 enforcement at runtime.
 """
 
 from __future__ import annotations
@@ -39,23 +40,29 @@ def create_code_verifier(length: int = 43) -> str:
     return "".join(secrets.choice(_VERIFIER_CHARSET) for _ in range(length))
 
 
-def create_code_challenge(verifier: str) -> str:
-    """Derive an ``S256`` ``code_challenge`` from *verifier*.
+def create_code_challenge(verifier: str, method: str = "S256") -> str:
+    """Derive a ``code_challenge`` from *verifier*.
 
-    The verifier is first validated against the RFC 7636 §4.1 character and
-    length requirements and then hashed using SHA-256 with the result encoded
-    using base64url without padding, as required by RFC 7636 §4.2.
+    ``method`` may be ``"S256"`` (the default) or ``"plain"`` as defined in
+    RFC 7636 §4.2 and §4.3.  ``code_verifier`` values are validated per
+    RFC 7636 §4.1 before transformation.  ``ValueError`` is raised for
+    unsupported methods or invalid verifiers.
     """
 
     if not _VERIFIER_RE.fullmatch(verifier):
         raise ValueError("invalid code_verifier")
-    digest = hashlib.sha256(verifier.encode("ascii")).digest()
-    return base64.urlsafe_b64encode(digest).decode("ascii").rstrip("=")
+    if method == "plain":
+        return verifier
+    if method == "S256":
+        digest = hashlib.sha256(verifier.encode("ascii")).digest()
+        return base64.urlsafe_b64encode(digest).decode("ascii").rstrip("=")
+    raise ValueError(f"unsupported code_challenge_method: {method}")
 
 
-def verify_code_challenge(verifier: str, challenge: str) -> bool:
-    """Return ``True`` if *challenge* matches *verifier* using ``S256``.
+def verify_code_challenge(verifier: str, challenge: str, method: str = "S256") -> bool:
+    """Return ``True`` if *challenge* matches *verifier*.
 
+    Verification uses the specified ``method`` (``"S256"`` or ``"plain"``).
     When ``settings.enable_rfc7636`` is ``False`` the check is skipped and
     ``True`` is returned to allow clients that do not implement PKCE.
     """
@@ -63,7 +70,7 @@ def verify_code_challenge(verifier: str, challenge: str) -> bool:
     if not settings.enable_rfc7636:
         return True
     try:
-        expected = create_code_challenge(verifier)
+        expected = create_code_challenge(verifier, method)
     except ValueError:
         return False
     return secrets.compare_digest(expected, challenge)
