@@ -388,7 +388,7 @@ class TestApiKeyIntrospection:
     """Test API key introspection endpoint."""
 
     async def test_introspect_valid_api_key(
-        self, async_client: AsyncClient, db_session: AsyncSession
+        self, async_client: AsyncClient, db_session: AsyncSession, enable_rfc7662
     ):
         """Test API key introspection with valid key."""
         # Create test tenant and user
@@ -414,26 +414,30 @@ class TestApiKeyIntrospection:
         db_session.add(api_key)
         await db_session.commit()
 
-        introspect_data = {"api_key": raw_key}
-
-        response = await async_client.post("/apikeys/introspect", json=introspect_data)
+        response = await async_client.post("/introspect", data={"token": raw_key})
 
         assert response.status_code == status.HTTP_200_OK
 
         response_data = response.json()
+        assert response_data["active"] is True
         assert response_data["sub"] == str(user.id)
         assert response_data["tid"] == str(tenant.id)
 
-    async def test_introspect_invalid_api_key(self, async_client: AsyncClient):
+    async def test_introspect_invalid_api_key(
+        self, async_client: AsyncClient, enable_rfc7662
+    ):
         """Test API key introspection with invalid key."""
-        introspect_data = {"api_key": "invalid-api-key"}
 
-        response = await async_client.post("/apikeys/introspect", json=introspect_data)
+        response = await async_client.post(
+            "/introspect", data={"token": "invalid-api-key"}
+        )
 
-        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.status_code == status.HTTP_200_OK
+        response_data = response.json()
+        assert response_data["active"] is False
 
     async def test_introspect_expired_api_key(
-        self, async_client: AsyncClient, db_session: AsyncSession
+        self, async_client: AsyncClient, db_session: AsyncSession, enable_rfc7662
     ):
         """Test API key introspection with expired key."""
         from datetime import datetime, timezone, timedelta
@@ -459,18 +463,17 @@ class TestApiKeyIntrospection:
         api_key = ApiKey(
             user_id=user.id,
             label="Expired Key",
-            valid_to=datetime.now(timezone.utc)
-            - timedelta(days=1),  # Expired yesterday
+            valid_to=datetime.now(timezone.utc) - timedelta(days=1),
         )
         api_key.raw_key = raw_key
         db_session.add(api_key)
         await db_session.commit()
 
-        introspect_data = {"api_key": raw_key}
+        response = await async_client.post("/introspect", data={"token": raw_key})
 
-        response = await async_client.post("/apikeys/introspect", json=introspect_data)
-
-        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.status_code == status.HTTP_200_OK
+        response_data = response.json()
+        assert response_data["active"] is False
 
 
 # Test helper functions
