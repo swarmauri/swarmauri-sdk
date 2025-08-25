@@ -269,4 +269,11 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=None)
 
 
-settings = globals().get("settings", Settings())
+_existing = globals().get("settings")
+if _existing is None:
+    settings = Settings()
+else:
+    _new = Settings()
+    for field, value in _new.model_dump().items():
+        setattr(_existing, field, value)
+    settings = _existing
