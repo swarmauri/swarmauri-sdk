@@ -12,7 +12,7 @@ from urllib.parse import urlparse
 
 import pytest
 from httpx import AsyncClient
-from jwcrypto import jwk
+from swarmauri_signing_jws.JwsSignerVerifier import _jwk_to_pub_for_signer
 
 
 @pytest.mark.integration
@@ -230,23 +230,18 @@ class TestJWKSEndpoint:
 
     @pytest.mark.asyncio
     async def test_jwk_can_create_jwk_object(self, async_client):
-        """Test that the JWK can be used to create a valid jwcrypto JWK object."""
+        """Test that the JWK can be parsed using Swarmauri utilities."""
         response = await async_client.get("/.well-known/jwks.json")
         jwks_doc = response.json()
 
         key_dict = jwks_doc["keys"][0]
 
-        # Should be able to create a JWK object from the dict
+        # Should be able to convert the JWK to a public key representation
         try:
-            key_obj = jwk.JWK(**key_dict)
-            assert key_obj is not None
-
-            # Should be able to export it back
-            exported = key_obj.export(as_dict=True)
-            assert isinstance(exported, dict)
-            assert exported["kty"] == key_dict["kty"]
+            pub = _jwk_to_pub_for_signer(key_dict)
+            assert pub is not None
         except Exception as e:
-            pytest.fail(f"Failed to create JWK object from JWKS response: {e}")
+            pytest.fail(f"Failed to parse JWK from JWKS response: {e}")
 
     @pytest.mark.asyncio
     async def test_jwks_key_consistency(self, async_client):
