@@ -53,14 +53,19 @@ def create_code_challenge(verifier: str) -> str:
     return base64.urlsafe_b64encode(digest).decode("ascii").rstrip("=")
 
 
-def verify_code_challenge(verifier: str, challenge: str) -> bool:
+def verify_code_challenge(
+    verifier: str, challenge: str, *, enabled: bool | None = None
+) -> bool:
     """Return ``True`` if *challenge* matches *verifier* using ``S256``.
 
-    When ``settings.enable_rfc7636`` is ``False`` the check is skipped and
-    ``True`` is returned to allow clients that do not implement PKCE.
+    The check may be toggled by passing ``enabled`` or globally via the
+    ``AUTO_AUTHN_ENABLE_RFC7636`` environment variable. When disabled the
+    function returns ``True`` to allow non-PKCE clients.
     """
 
-    if not settings.enable_rfc7636:
+    if enabled is None:
+        enabled = settings.enable_rfc7636
+    if not enabled:
         return True
     try:
         expected = create_code_challenge(verifier)
