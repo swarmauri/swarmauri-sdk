@@ -4,12 +4,16 @@ This module provides helpers to validate redirect URIs as required by
 RFC 8252. Native applications are restricted to using either private-use
 URI schemes or the loopback interface with an HTTP(S) scheme and a
 dynamically chosen port. Redirect URIs that fall outside of these
-patterns are considered non-compliant.
+patterns are considered non-compliant. Enforcement of these rules can be
+toggled via ``runtime_cfg.Settings.enforce_rfc8252`` which is controlled
+by the ``AUTO_AUTHN_ENFORCE_RFC8252`` environment variable.
 """
 
 from __future__ import annotations
 
 from urllib.parse import urlparse
+
+RFC_SPEC = "RFC 8252"  # OAuth 2.0 for Native Apps
 
 # Hosts that resolve to the loopback interface as defined by RFC 8252 §7.3
 _LOOPBACK_HOSTS = {"127.0.0.1", "localhost", "::1"}
