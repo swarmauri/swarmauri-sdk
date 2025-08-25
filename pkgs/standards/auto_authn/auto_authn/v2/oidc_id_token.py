@@ -131,10 +131,35 @@ def verify_id_token(token: str, *, issuer: str, audience: Iterable[str] | str) -
 rsa_key_provider = _provider
 ensure_rsa_jwt_key = _ensure_key
 
+
+async def rotate_rsa_jwt_key() -> str:
+    """Create a new RSA signing key and update cached services."""
+    kp = _provider()
+    spec = KeySpec(
+        klass=KeyClass.asymmetric,
+        alg=KeyAlg.RSA_PSS_SHA256,
+        uses=(KeyUse.SIGN, KeyUse.VERIFY),
+        export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
+        label="jwt_rs256",
+    )
+    ref = await kp.create_key(spec)
+    _RSA_KEY_PATH.parent.mkdir(parents=True, exist_ok=True)
+    _RSA_KEY_PATH.write_text(ref.kid)
+    _service.cache_clear()
+    try:  # refresh discovery metadata if available
+        from .rfc8414 import refresh_discovery_cache
+
+        refresh_discovery_cache()
+    except Exception:  # pragma: no cover - best effort
+        pass
+    return ref.kid
+
+
 __all__ = [
     "mint_id_token",
     "verify_id_token",
     "oidc_hash",
     "rsa_key_provider",
     "ensure_rsa_jwt_key",
+    "rotate_rsa_jwt_key",
 ]
