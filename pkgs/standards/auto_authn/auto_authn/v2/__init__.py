@@ -17,7 +17,9 @@ from .rfc9207 import extract_issuer
 from .rfc9126 import store_par_request, get_par_request, reset_par_store
 from .rfc8707 import extract_resource, RFC8707_SPEC_URL
 from .rfc8705 import thumbprint_from_cert_pem, validate_certificate_binding
+from .rfc7515 import RFC7515_SPEC_URL, validate_jws_header
 from .rfc8252 import is_native_redirect_uri, validate_native_redirect_uri
+
 __all__ = [
     "create_code_verifier",
     "create_code_challenge",
@@ -31,6 +33,7 @@ __all__ = [
     "extract_issuer",
     "extract_resource",
     "RFC8707_SPEC_URL",
+    "RFC7515_SPEC_URL",
     "introspect_token",
     "register_token",
     "reset_tokens",
@@ -39,6 +42,7 @@ __all__ = [
     "reset_par_store",
     "thumbprint_from_cert_pem",
     "validate_certificate_binding",
+    "validate_jws_header",
     "is_native_redirect_uri",
     "validate_native_redirect_uri",
 ]

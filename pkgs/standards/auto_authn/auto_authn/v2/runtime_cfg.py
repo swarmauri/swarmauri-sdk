@@ -102,10 +102,12 @@ class Settings(BaseSettings):
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC9207", "false").lower()
         in {"1", "true", "yes"},
         description="Enable Authorization Server Issuer Identification per RFC 9207",
+    )
     enable_rfc9126: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC9126", "false").lower()
         in {"1", "true", "yes"},
         description="Enable Pushed Authorization Requests per RFC 9126",
+    )
     enable_rfc6750: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC6750", "true").lower()
         in {"1", "true", "yes"},
@@ -132,6 +134,11 @@ class Settings(BaseSettings):
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8628", "true").lower()
         in {"1", "true", "yes"},
         description="Enable Device Authorization Grant per RFC 8628",
+    )
+    enable_rfc7515: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7515", "true").lower()
+        in {"1", "true", "yes"},
+        description="Enable JSON Web Signature validation per RFC 7515",
     )
 
     model_config = SettingsConfigDict(env_file=None)

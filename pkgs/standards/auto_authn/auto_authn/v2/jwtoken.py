@@ -39,6 +39,7 @@ from jwt.exceptions import InvalidTokenError
 from .crypto import public_key, signing_key
 from .runtime_cfg import settings
 from .rfc8705 import validate_certificate_binding
+from .rfc7515 import validate_jws_header
 
 _ALG = "EdDSA"
 _ACCESS_TTL = timedelta(minutes=60)
@@ -140,6 +141,8 @@ class JWTCoder:
             If signature is invalid, token is expired, or malformed.
         """
         options = {"verify_exp": verify_exp, "verify_aud": False}
+        if settings.enable_rfc7515:
+            validate_jws_header(token)
         payload = jwt.decode(
             token,
             self._pub,
