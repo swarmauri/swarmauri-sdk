@@ -4,6 +4,7 @@ Shared test configuration and fixtures for auto_authn test suite.
 
 import asyncio
 import os
+import shutil
 import tempfile
 import uuid
 from datetime import datetime, timezone, timedelta
@@ -172,11 +173,8 @@ def temp_key_file():
 
     yield temp_kid
 
-    if temp_kid.exists():
-        temp_kid.unlink()
-    for f in temp_dir.glob("*"):
-        f.unlink()
-    temp_dir.rmdir()
+    if temp_dir.exists():
+        shutil.rmtree(temp_dir, ignore_errors=True)
     crypto_module._DEFAULT_KEY_DIR = original_dir
     crypto_module._DEFAULT_KEY_PATH = original_path
     crypto_module._provider.cache_clear()
