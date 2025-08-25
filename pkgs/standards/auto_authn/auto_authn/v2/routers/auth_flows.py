@@ -25,6 +25,7 @@ Notes
 from __future__ import annotations
 
 
+import base64
 import secrets
 from datetime import datetime, timedelta
 from typing import Literal, Optional
@@ -91,6 +92,7 @@ class TokenPair(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = Field(default="bearer")
+    id_token: Optional[str] = None
 
 
 class RefreshIn(BaseModel):
@@ -200,11 +202,15 @@ async def authorize(
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST, {"error": "unsupported_response_type"}
         )
-    if "id_token" in rts and not nonce:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
     client = await db.get(Client, client_id)
     if client is None or redirect_uri not in (client.redirect_uris or "").split():
         raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
+    scopes = set(scope.split())
+    if "openid" not in scopes:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_scope"})
+    if nonce is None:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
+    confidential = bool(getattr(client, "client_secret_hash", b""))
     if username is None or password is None:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, {"error": "access_denied"})
     try:
@@ -213,6 +219,11 @@ async def authorize(
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, {"error": "access_denied"})
     if code_challenge_method and code_challenge_method != "S256":
         raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
+    if "code" in rts and not confidential:
+        if not code_challenge:
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"}
+            )
     params: list[tuple[str, str]] = []
     code: str | None = None
     access: str | None = None
@@ -224,6 +235,8 @@ async def authorize(
             "client_id": client_id,
             "redirect_uri": redirect_uri,
             "code_challenge": code_challenge,
+            "nonce": nonce,
+            "scope": scope,
             "expires_at": datetime.utcnow() + timedelta(minutes=10),
         }
         params.append(("code", code))
@@ -265,6 +278,40 @@ async def token(
     resources = form.getlist("resource")
     data = dict(form)
     data.pop("resource", None)
+    auth_header = request.headers.get("Authorization")
+    cid = data.get("client_id")
+    secret: str | None = None
+    if auth_header and auth_header.startswith("Basic "):
+        try:
+            decoded = base64.b64decode(auth_header.split()[1]).decode()
+            cid_hdr, secret = decoded.split(":", 1)
+        except Exception:
+            return JSONResponse(
+                {"error": "invalid_client"}, status_code=status.HTTP_401_UNAUTHORIZED
+            )
+        if cid and cid != cid_hdr:
+            return JSONResponse(
+                {"error": "invalid_client"}, status_code=status.HTTP_401_UNAUTHORIZED
+            )
+        cid = cid_hdr
+    elif "client_secret" in data:
+        secret = data.get("client_secret")
+    if not cid:
+        return JSONResponse(
+            {"error": "invalid_client"}, status_code=status.HTTP_401_UNAUTHORIZED
+        )
+    client = await db.get(Client, cid)
+    if client is None:
+        return JSONResponse(
+            {"error": "invalid_client"}, status_code=status.HTTP_401_UNAUTHORIZED
+        )
+    confidential = bool(getattr(client, "client_secret_hash", b""))
+    if confidential:
+        if not secret or not client.verify_secret(secret):
+            return JSONResponse(
+                {"error": "invalid_client"}, status_code=status.HTTP_401_UNAUTHORIZED
+            )
+    data["client_id"] = cid
     grant_type = data.get("grant_type")
     aud = None
     try:
@@ -321,6 +368,10 @@ async def token(
             return JSONResponse(
                 {"error": "invalid_grant"}, status_code=status.HTTP_400_BAD_REQUEST
             )
+        if not record.get("code_challenge") and not confidential:
+            return JSONResponse(
+                {"error": "invalid_grant"}, status_code=status.HTTP_400_BAD_REQUEST
+            )
         if record.get("code_challenge"):
             if not parsed.code_verifier or not verify_code_challenge(
                 parsed.code_verifier, record["code_challenge"]
@@ -332,7 +383,20 @@ async def token(
         access, refresh = await _jwt.async_sign_pair(
             sub=record["sub"], tid=record["tid"], **jwt_kwargs
         )
-        return TokenPair(access_token=access, refresh_token=refresh)
+        id_token: str | None = None
+        scopes = set((record.get("scope") or "").split())
+        if "openid" in scopes:
+            from ..rfc8414 import ISSUER
+
+            extra = {"tid": record["tid"], "typ": "id", "at_hash": oidc_hash(access)}
+            id_token = mint_id_token(
+                sub=record["sub"],
+                aud=parsed.client_id,
+                nonce=record.get("nonce", ""),
+                issuer=ISSUER,
+                **extra,
+            )
+        return TokenPair(access_token=access, refresh_token=refresh, id_token=id_token)
     if grant_type == "urn:ietf:params:oauth:grant-type:device_code":
         try:
             parsed = DeviceGrantForm(**data)
