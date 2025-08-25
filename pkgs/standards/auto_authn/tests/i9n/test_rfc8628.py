@@ -1,7 +1,10 @@
-"""Tests for upcoming RFC 8628 (Device Authorization Grant) support.
+"""Tests for RFC 8628 (Device Authorization Grant).
 
-These tests describe the expected behaviour for RFC 8628 compliance and are
-marked as xfail until the feature is implemented.
+RFC 8628 §3.2 requires the device authorization response to include the
+fields ``device_code``, ``user_code``, ``verification_uri``,
+``verification_uri_complete``, ``expires_in`` and ``interval``.  Section 3.5
+specifies that the token endpoint returns ``authorization_pending`` while the
+user has not yet authorized the device.
 """
 
 import pytest
@@ -10,37 +13,46 @@ from httpx import AsyncClient
 
 
 @pytest.mark.integration
-@pytest.mark.xfail(reason="Device Authorization Grant (RFC 8628) support planned")
+@pytest.mark.asyncio
 async def test_device_authorization_endpoint(async_client: AsyncClient) -> None:
     """Server should implement the device authorization endpoint."""
     payload = {"client_id": "test-client", "scope": "openid"}
     response = await async_client.post("/device_authorization", data=payload)
-
-    # Expected behaviour once implemented
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
-    assert "device_code" in data
-    assert "user_code" in data
-    assert "verification_uri" in data
-    assert "verification_uri_complete" in data
-    assert "expires_in" in data
-    assert "interval" in data
+    for field in [
+        "device_code",
+        "user_code",
+        "verification_uri",
+        "verification_uri_complete",
+        "expires_in",
+        "interval",
+    ]:
+        assert field in data
 
 
 @pytest.mark.integration
-@pytest.mark.xfail(reason="Device Authorization Grant (RFC 8628) support planned")
-async def test_device_token_exchange(async_client: AsyncClient) -> None:
-    """Server should allow exchanging a device code for tokens."""
+@pytest.mark.asyncio
+async def test_device_token_polling(async_client: AsyncClient) -> None:
+    """Token endpoint should poll until the device code is approved."""
+    auth_resp = await async_client.post(
+        "/device_authorization", data={"client_id": "test-client"}
+    )
+    device_code = auth_resp.json()["device_code"]
     payload = {
         "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
-        "device_code": "dummy",
+        "device_code": device_code,
         "client_id": "test-client",
     }
-    response = await async_client.post("/token", data=payload)
+    pending = await async_client.post("/token", data=payload)
+    assert pending.status_code == status.HTTP_400_BAD_REQUEST
+    assert pending.json()["error"] == "authorization_pending"
 
-    # Expected behaviour once implemented
-    assert response.status_code == status.HTTP_200_OK
-    data = response.json()
+    from auto_authn.v2.routers.auth_flows import approve_device_code
+
+    approve_device_code(device_code, sub="user", tid="tenant")
+    success = await async_client.post("/token", data=payload)
+    assert success.status_code == status.HTTP_200_OK
+    data = success.json()
     assert "access_token" in data
-    assert "token_type" in data
     assert data["token_type"] == "bearer"

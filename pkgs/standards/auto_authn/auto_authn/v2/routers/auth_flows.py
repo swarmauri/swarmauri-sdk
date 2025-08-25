@@ -23,9 +23,12 @@ Notes
 from __future__ import annotations
 
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
-from pydantic import BaseModel, EmailStr, Field, constr
+from datetime import datetime, timedelta
+from uuid import uuid4
+from typing import Any, Dict, Literal
+
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from pydantic import BaseModel, EmailStr, Field, ValidationError, constr
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -42,6 +45,12 @@ router = APIRouter()
 _jwt = JWTCoder.default()
 _pwd_backend = PasswordBackend()
 _api_backend = ApiKeyBackend()
+
+# In-memory store for device authorization data as per RFC 8628
+_DEVICE_CODES: Dict[str, Dict[str, Any]] = {}
+_DEVICE_VERIFICATION_URI = "https://example.com/device"
+_DEVICE_CODE_EXPIRES_IN = 600  # seconds
+_DEVICE_CODE_INTERVAL = 5  # seconds
 
 # ============================================================================
 #  Helper Pydantic models
@@ -80,6 +89,36 @@ class IntrospectOut(BaseModel):
     sub: StrUUID
     tid: StrUUID
     kind: str
+
+
+class DeviceAuthIn(BaseModel):
+    """Request body for RFC 8628 device authorization."""
+
+    client_id: str
+    scope: str | None = None
+
+
+class DeviceAuthOut(BaseModel):
+    """Response body for RFC 8628 device authorization."""
+
+    device_code: str
+    user_code: str
+    verification_uri: str
+    verification_uri_complete: str
+    expires_in: int
+    interval: int
+
+
+class PasswordGrantForm(BaseModel):
+    grant_type: Literal["password"]
+    username: str
+    password: str
+
+
+class DeviceGrantForm(BaseModel):
+    grant_type: Literal["urn:ietf:params:oauth:grant-type:device_code"]
+    device_code: str
+    client_id: str
 
 
 # ============================================================================
@@ -142,20 +181,89 @@ async def login(body: CredsIn, db: AsyncSession = Depends(get_async_db)):
     return TokenPair(access_token=access, refresh_token=refresh)
 
 
+@router.post("/device_authorization", response_model=DeviceAuthOut)
+async def device_authorization(body: DeviceAuthIn) -> DeviceAuthOut:
+    device_code = uuid4().hex
+    user_code = uuid4().hex[:8]
+    verification_uri = _DEVICE_VERIFICATION_URI
+    verification_uri_complete = f"{verification_uri}?user_code={user_code}"
+    expires_at = datetime.utcnow() + timedelta(seconds=_DEVICE_CODE_EXPIRES_IN)
+    _DEVICE_CODES[device_code] = {
+        "user_code": user_code,
+        "client_id": body.client_id,
+        "expires_at": expires_at,
+        "interval": _DEVICE_CODE_INTERVAL,
+        "authorized": False,
+        "sub": None,
+        "tid": None,
+    }
+    return DeviceAuthOut(
+        device_code=device_code,
+        user_code=user_code,
+        verification_uri=verification_uri,
+        verification_uri_complete=verification_uri_complete,
+        expires_in=_DEVICE_CODE_EXPIRES_IN,
+        interval=_DEVICE_CODE_INTERVAL,
+    )
+
+
+def approve_device_code(device_code: str, sub: str, tid: str) -> None:
+    """Mark a device code as authorized for testing purposes."""
+    if device_code in _DEVICE_CODES:
+        _DEVICE_CODES[device_code]["authorized"] = True
+        _DEVICE_CODES[device_code]["sub"] = sub
+        _DEVICE_CODES[device_code]["tid"] = tid
+
+
 @router.post("/token", response_model=TokenPair)
 async def token(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    db: AsyncSession = Depends(get_async_db),
+    request: Request, db: AsyncSession = Depends(get_async_db)
 ) -> TokenPair:
-    try:
-        user = await _pwd_backend.authenticate(
-            db, form_data.username, form_data.password
+    form = await request.form()
+    data = dict(form)
+    grant_type = data.get("grant_type")
+    if grant_type == "password":
+        try:
+            parsed = PasswordGrantForm(**data)
+        except ValidationError as exc:
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, exc.errors())
+        try:
+            user = await _pwd_backend.authenticate(db, parsed.username, parsed.password)
+        except AuthError:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "invalid credentials")
+        access, refresh = _jwt.sign_pair(sub=str(user.id), tid=str(user.tenant_id))
+        return TokenPair(access_token=access, refresh_token=refresh)
+    if grant_type == "urn:ietf:params:oauth:grant-type:device_code":
+        try:
+            parsed = DeviceGrantForm(**data)
+        except ValidationError as exc:
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, exc.errors())
+        record = _DEVICE_CODES.get(parsed.device_code)
+        if not record or record["client_id"] != parsed.client_id:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_grant"})
+        if datetime.utcnow() > record["expires_at"]:
+            _DEVICE_CODES.pop(parsed.device_code, None)
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "expired_token"})
+        if not record.get("authorized"):
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST, {"error": "authorization_pending"}
+            )
+        access, refresh = _jwt.sign_pair(
+            sub=record.get("sub", "device-user"),
+            tid=record.get("tid", "device-tenant"),
         )
-    except AuthError:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "invalid credentials")
-
-    access, refresh = _jwt.sign_pair(sub=str(user.id), tid=str(user.tenant_id))
-    return TokenPair(access_token=access, refresh_token=refresh)
+        _DEVICE_CODES.pop(parsed.device_code, None)
+        return TokenPair(access_token=access, refresh_token=refresh)
+    raise HTTPException(
+        status.HTTP_422_UNPROCESSABLE_ENTITY,
+        [
+            {
+                "loc": ["body", "grant_type"],
+                "msg": "unsupported grant_type",
+                "type": "value_error",
+            }
+        ],
+    )
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
