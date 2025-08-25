@@ -1,10 +1,10 @@
-"""PKCE utilities for RFC 8252 compliance.
+"""PKCE utilities for RFC 7636 compliance.
 
-This module implements the Proof Key for Code Exchange (PKCE) helpers
-required by RFC 8252 for native applications.  It follows the rules laid
-out in RFC 7636 §4.1 for generating and validating ``code_verifier``
-strings and deriving ``code_challenge`` values using the ``S256``
-transformation.
+This module implements the Proof Key for Code Exchange (PKCE)
+requirements defined in :rfc:`7636`.  It provides helpers for creating
+``code_verifier`` strings and deriving ``code_challenge`` values using the
+``S256`` transformation.  The functions may be disabled via runtime
+configuration to allow deployments to opt-out of RFC 7636 enforcement.
 """
 
 from __future__ import annotations
@@ -14,6 +14,8 @@ import hashlib
 import re
 import secrets
 from typing import Final
+
+from .runtime_cfg import settings
 
 # Allowed characters for the code_verifier as defined by RFC 7636 §4.1
 _VERIFIER_CHARSET: Final = (
@@ -52,8 +54,14 @@ def create_code_challenge(verifier: str) -> str:
 
 
 def verify_code_challenge(verifier: str, challenge: str) -> bool:
-    """Return ``True`` if *challenge* matches *verifier* using ``S256``."""
+    """Return ``True`` if *challenge* matches *verifier* using ``S256``.
 
+    When ``settings.enable_rfc7636`` is ``False`` the check is skipped and
+    ``True`` is returned to allow clients that do not implement PKCE.
+    """
+
+    if not settings.enable_rfc7636:
+        return True
     try:
         expected = create_code_challenge(verifier)
     except ValueError:

@@ -1,6 +1,6 @@
 """auto_authn.v2 – OAuth utilities and helpers."""
 
-from .pkce import (
+from .rfc7636_pkce import (
     create_code_challenge,
     create_code_verifier,
     verify_code_challenge,

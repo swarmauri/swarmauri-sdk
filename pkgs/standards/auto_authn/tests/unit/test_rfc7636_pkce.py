@@ -1,6 +1,6 @@
-"""Tests for OAuth 2.0 for Native Apps (RFC 8252) PKCE requirements.
+"""Tests for Proof Key for Code Exchange (RFC 7636).
 
-RFC excerpt (RFC 8252 §7.3 and RFC 7636 §4.1):
+RFC excerpt (RFC 7636 §4.1):
 
 Native apps MUST use the Proof Key for Code Exchange (PKCE [RFC7636])
 extension to OAuth 2.0 when using the authorization code grant.
@@ -17,6 +17,7 @@ from auto_authn.v2 import (
     create_code_verifier,
     verify_code_challenge,
 )
+import auto_authn.v2.rfc7636_pkce as pkce_mod
 
 
 @pytest.mark.unit
@@ -53,3 +54,18 @@ def test_invalid_verifier_rejected():
 
     with pytest.raises(ValueError):
         create_code_challenge("short")
+
+
+@pytest.mark.unit
+def test_verify_code_challenge_rejects_invalid():
+    """verify_code_challenge returns False for invalid verifier."""
+
+    assert not verify_code_challenge("short", "bad")
+
+
+@pytest.mark.unit
+def test_verification_skipped_when_disabled(monkeypatch):
+    """When RFC 7636 is disabled, verification returns True regardless."""
+
+    monkeypatch.setattr(pkce_mod.settings, "enable_rfc7636", False)
+    assert pkce_mod.verify_code_challenge("short", "bad")
