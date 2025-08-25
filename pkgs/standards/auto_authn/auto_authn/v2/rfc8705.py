@@ -16,6 +16,14 @@ from jwt.exceptions import InvalidTokenError
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
 
+RFC8705_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8705"
+
+__all__ = [
+    "RFC8705_SPEC_URL",
+    "thumbprint_from_cert_pem",
+    "validate_certificate_binding",
+]
+
 
 def thumbprint_from_cert_pem(cert_pem: bytes) -> str:
     """Return the base64url-encoded SHA-256 thumbprint of *cert_pem*.

@@ -15,7 +15,8 @@ def sign_jws(payload: str, key: jwk.JWK) -> str:
     if not settings.enable_rfc7515:
         raise RuntimeError("RFC 7515 support disabled")
     token = jws.JWS(payload.encode())
-    token.add_signature(key, None, json_encode({"alg": "EdDSA"}))
+    alg = "HS256" if key.kty == "oct" else "EdDSA"
+    token.add_signature(key, None, json_encode({"alg": alg}))
     return token.serialize()
 
 

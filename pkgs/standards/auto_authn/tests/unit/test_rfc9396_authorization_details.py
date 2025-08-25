@@ -13,8 +13,11 @@ conditionally enabled or disabled via runtime configuration.
 
 import pytest
 
-from auto_authn.v2 import parse_authorization_details
-from auto_authn.v2 import AuthorizationDetail
+from auto_authn.v2 import (
+    AuthorizationDetail,
+    RFC9396_SPEC_URL,
+    parse_authorization_details,
+)
 from auto_authn.v2.runtime_cfg import settings
 
 
@@ -37,3 +40,26 @@ def test_parse_authorization_details_disabled(monkeypatch):
     monkeypatch.setattr(settings, "enable_rfc9396", False)
     with pytest.raises(NotImplementedError):
         parse_authorization_details('{"type": "payment_initiation"}')
+
+
+def test_parse_authorization_details_list(monkeypatch):
+    monkeypatch.setattr(settings, "enable_rfc9396", True)
+    raw = '[{"type": "a"}, {"type": "b"}]'
+    details = parse_authorization_details(raw)
+    assert [d.type for d in details] == ["a", "b"]
+
+
+def test_parse_authorization_details_invalid_json(monkeypatch):
+    monkeypatch.setattr(settings, "enable_rfc9396", True)
+    with pytest.raises(ValueError):
+        parse_authorization_details("not-json")
+
+
+def test_parse_authorization_details_wrong_type(monkeypatch):
+    monkeypatch.setattr(settings, "enable_rfc9396", True)
+    with pytest.raises(ValueError):
+        parse_authorization_details("123")
+
+
+def test_rfc9396_spec_url():
+    assert RFC9396_SPEC_URL.endswith("rfc9396")
