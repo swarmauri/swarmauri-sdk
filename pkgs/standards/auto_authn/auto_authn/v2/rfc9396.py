@@ -2,7 +2,7 @@
 
 This module parses and validates the ``authorization_details`` request
 parameter as defined by RFC 9396 section 2. Support for this feature can be
-toggled via the ``ENABLE_RFC9396`` environment variable
+toggled via the ``AUTO_AUTHN_ENABLE_RFC9396`` environment variable
 (``settings.enable_rfc9396``).
 """
 
@@ -14,6 +14,8 @@ import json
 from pydantic import BaseModel, ValidationError
 
 from .runtime_cfg import settings
+
+RFC9396_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc9396"
 
 
 class AuthorizationDetail(BaseModel):
@@ -62,3 +64,10 @@ def parse_authorization_details(raw: str) -> List[AuthorizationDetail]:
         return [AuthorizationDetail.model_validate(item) for item in data]
     except ValidationError as exc:
         raise ValueError("invalid authorization_details") from exc
+
+
+__all__ = [
+    "AuthorizationDetail",
+    "parse_authorization_details",
+    "RFC9396_SPEC_URL",
+]
