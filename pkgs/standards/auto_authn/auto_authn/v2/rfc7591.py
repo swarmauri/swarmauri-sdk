@@ -1,11 +1,10 @@
-"""Utilities for OAuth 2.0 Dynamic Client Registration (RFC 7591).
+"""Utilities and endpoint for OAuth 2.0 Dynamic Client Registration.
 
-This module provides a minimal in-memory client registry to illustrate
-compliance with RFC 7591. Functionality can be toggled via
-``runtime_cfg.Settings.enable_rfc7591`` so deployments may opt in or out
-as needed.
-
-See RFC 7591: https://www.rfc-editor.org/rfc/rfc7591
+This module exposes a minimal in-memory client registry together with a
+FastAPI router implementing the registration endpoint defined by
+`RFC 7591 <https://www.rfc-editor.org/rfc/rfc7591>`_.  The feature can be
+enabled or disabled via ``runtime_cfg.Settings.enable_rfc7591`` allowing
+deployments to opt in as needed.
 """
 
 from __future__ import annotations
@@ -13,13 +12,27 @@ from __future__ import annotations
 import secrets
 from typing import Dict, Final
 
+from fastapi import APIRouter, FastAPI, HTTPException, status
+from pydantic import AnyHttpUrl, BaseModel, ConfigDict, Field
+
 from .runtime_cfg import settings
 
 # In-memory registry of dynamically registered clients
 _CLIENT_REGISTRY: Dict[str, dict] = {}
 
+# FastAPI router for the registration endpoint
+router = APIRouter()
+
 # Public URL for the RFC specification
 RFC7591_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc7591"
+
+
+class ClientMetadata(BaseModel):
+    """Subset of RFC 7591 client metadata required for registration."""
+
+    redirect_uris: list[AnyHttpUrl] = Field(..., min_length=1)
+
+    model_config = ConfigDict(extra="allow")
 
 
 def register_client(metadata: dict, *, enabled: bool | None = None) -> dict:
@@ -55,6 +68,16 @@ def register_client(metadata: dict, *, enabled: bool | None = None) -> dict:
     return data
 
 
+@router.post("/clients", status_code=status.HTTP_201_CREATED)
+async def register_client_endpoint(body: ClientMetadata) -> dict:
+    """HTTP endpoint implementing OAuth 2.0 Dynamic Client Registration."""
+
+    if not settings.enable_rfc7591:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "client registration disabled")
+
+    return register_client(body.model_dump())
+
+
 def get_client(client_id: str) -> dict | None:
     """Return metadata for *client_id* or ``None`` if unknown."""
 
@@ -67,9 +90,20 @@ def reset_client_registry() -> None:
     _CLIENT_REGISTRY.clear()
 
 
+def include_rfc7591(app: FastAPI) -> None:
+    """Attach the RFC 7591 router to *app* if enabled."""
+
+    if settings.enable_rfc7591 and not any(
+        route.path == "/clients" for route in app.routes
+    ):
+        app.include_router(router)
+
+
 __all__ = [
     "register_client",
     "get_client",
     "reset_client_registry",
     "RFC7591_SPEC_URL",
+    "register_client_endpoint",
+    "include_rfc7591",
 ]
