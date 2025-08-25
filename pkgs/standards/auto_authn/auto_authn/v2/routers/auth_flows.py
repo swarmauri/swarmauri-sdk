@@ -443,7 +443,20 @@ async def token(
         access, refresh = await _jwt.async_sign_pair(
             sub=record["sub"], tid=record["tid"], **jwt_kwargs
         )
-        return TokenPair(access_token=access, refresh_token=refresh)
+        nonce = record.get("nonce") or secrets.token_urlsafe(8)
+        extra_claims = {
+            "tid": record["tid"],
+            "typ": "id",
+            "at_hash": oidc_hash(access),
+        }
+        id_token = mint_id_token(
+            sub=record["sub"],
+            aud=parsed.client_id,
+            nonce=nonce,
+            issuer=ISSUER,
+            **extra_claims,
+        )
+        return TokenPair(access_token=access, refresh_token=refresh, id_token=id_token)
     if grant_type == "urn:ietf:params:oauth:grant-type:device_code":
         try:
             parsed = DeviceGrantForm(**data)
