@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 from functools import lru_cache
 from typing import Any, Dict, Iterable, Optional, Tuple
 
-from jwt.exceptions import InvalidTokenError
+from .rfc8725 import InvalidTokenError
 
 from .deps import (
     ExportPolicy,
@@ -205,7 +205,10 @@ class JWTCoder:
         audience: Optional[Iterable[str] | str] = None,
         cert_thumbprint: Optional[str] = None,
     ) -> Dict[str, Any]:
-        payload = await self._svc.verify(token, issuer=issuer, audience=audience)
+        try:
+            payload = await self._svc.verify(token, issuer=issuer, audience=audience)
+        except Exception as exc:  # noqa: BLE001 - broad to map errors uniformly
+            raise InvalidTokenError(str(exc)) from exc
         if verify_exp:
             exp = payload.get("exp")
             if exp is not None and int(exp) < int(

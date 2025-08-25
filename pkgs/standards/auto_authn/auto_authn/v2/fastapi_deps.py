@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from fastapi import Depends, Header, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from jwt import InvalidTokenError
+from .rfc8725 import InvalidTokenError
 
 from .backends import (
     ApiKeyBackend,
@@ -47,8 +47,6 @@ _jwt_coder = JWTCoder.default()
 # FastAPI dependencies
 # ---------------------------------------------------------------------
 async def _user_from_jwt(token: str, db: AsyncSession) -> User | None:
-    from jwt import InvalidTokenError
-
     try:
         payload = _jwt_coder.decode(token)
     except InvalidTokenError:

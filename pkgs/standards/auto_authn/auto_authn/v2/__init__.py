@@ -41,6 +41,7 @@ from .rfc8812 import (
     WEBAUTHN_ALGORITHMS,
     RFC8812_SPEC_URL,
 )
+from .rfc8725 import InvalidTokenError
 from .rfc9068 import add_rfc9068_claims, validate_rfc9068_claims
 from .rfc8037 import sign_eddsa, verify_eddsa, RFC8037_SPEC_URL
 from .rfc8176 import (
@@ -135,4 +136,5 @@ __all__ = [
     "RFC8176_SPEC_URL",
     "validate_client_jwt_bearer",
     "RFC7523_SPEC_URL",
+    "InvalidTokenError",
 ]

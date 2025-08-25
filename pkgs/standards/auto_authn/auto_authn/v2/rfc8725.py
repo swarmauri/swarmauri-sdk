@@ -12,13 +12,10 @@ from typing import Any, Dict
 import base64
 import json
 
-from jwt import InvalidTokenError as JWTInvalidTokenError
-
-from .jwtoken import JWTCoder
 from .runtime_cfg import settings
 
 
-class InvalidTokenError(JWTInvalidTokenError):
+class InvalidTokenError(Exception):
     """Raised when a JWT violates RFC 8725 recommendations."""
 
 
@@ -38,6 +35,8 @@ def validate_jwt_best_practices(
         enabled = settings.enable_rfc8725
 
     # Always decode using the standard JWTCoder to verify signature and expiry
+    from .jwtoken import JWTCoder  # Local import to avoid circular dependency
+
     claims = JWTCoder.default().decode(token)
     if not enabled:
         return claims

@@ -14,11 +14,11 @@ import base64
 import hashlib
 from typing import Any, Dict
 
-from jwt.exceptions import InvalidTokenError
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
 
 from .runtime_cfg import settings
+from .rfc8725 import InvalidTokenError
 
 RFC8705_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8705"
 
