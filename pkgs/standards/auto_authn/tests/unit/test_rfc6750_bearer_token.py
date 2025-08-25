@@ -33,7 +33,6 @@ async def test_www_authenticate_header_on_missing_token():
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-@pytest.mark.xfail(reason="planned support for case-insensitive Bearer scheme")
 async def test_lowercase_bearer_scheme():
     """RFC 6750 §2.1: Authorization scheme name is case-insensitive."""
     app = FastAPI()
@@ -59,7 +58,6 @@ async def test_lowercase_bearer_scheme():
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-@pytest.mark.xfail(reason="planned support for access_token query parameter")
 async def test_access_token_query_parameter():
     """RFC 6750 §2.3: Access token may be provided as URI query parameter."""
     app = FastAPI()
@@ -83,7 +81,6 @@ async def test_access_token_query_parameter():
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-@pytest.mark.xfail(reason="planned support for access_token in request body")
 async def test_access_token_form_body():
     """RFC 6750 §2.2: Access token may be provided in the request body."""
     app = FastAPI()
@@ -107,6 +104,26 @@ async def test_access_token_form_body():
                 headers={"Content-Type": "application/x-www-form-urlencoded"},
             )
     assert resp.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_feature_flag_disables_query_parameter(monkeypatch):
+    """Feature flag off disables RFC 6750 extensions."""
+    monkeypatch.setattr("auto_authn.v2.rfc6750.settings.enable_rfc6750", False)
+    app = FastAPI()
+
+    @app.get("/protected")
+    async def protected(user=Depends(get_current_principal)):
+        return {"ok": True}
+
+    mock_db = AsyncMock()
+    app.dependency_overrides[get_async_db] = lambda: mock_db
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.get("/protected?access_token=token")
+    assert resp.status_code == status.HTTP_401_UNAUTHORIZED
 
 
 RFC6750_SPEC = r"""

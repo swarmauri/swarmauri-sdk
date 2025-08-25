@@ -31,6 +31,7 @@ from .db import get_async_db
 from .jwtoken import JWTCoder
 from .crypto import public_key, signing_key
 from .principal_ctx import principal_var
+from .rfc6750 import get_bearer_token
 
 
 # ---------------------------------------------------------------------
@@ -81,7 +82,7 @@ async def get_principal(  # <-- AutoAPI calls this
     Raises HTTP 401 on failure.
     """
     user = await get_current_principal(  # reuse the existing logic
-        authorization=authorization, api_key=api_key, db=db
+        request=request, authorization=authorization, api_key=api_key, db=db
     )
     principal = {"sub": str(user.id), "tid": str(user.tenant_id)}
 
@@ -92,6 +93,7 @@ async def get_principal(  # <-- AutoAPI calls this
 
 
 async def get_current_principal(  # type: ignore[override]
+    request: Request,
     authorization: str = Header("", alias="Authorization"),
     api_key: str | None = Header(None, alias="x-api-key"),
     db: AsyncSession = Depends(get_async_db),
@@ -114,9 +116,9 @@ async def get_current_principal(  # type: ignore[override]
         if user := await _user_from_api_key(api_key, db):
             return user
 
-    if authorization.startswith("Bearer "):
-        if user := await _user_from_jwt(authorization.split()[1], db):
-            return user
+    token = await get_bearer_token(request, authorization)
+    if token and (user := await _user_from_jwt(token, db)):
+        return user
 
     raise HTTPException(
         status.HTTP_401_UNAUTHORIZED,
