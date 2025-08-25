@@ -20,12 +20,16 @@ from auto_authn.v2.rfc9068 import add_rfc9068_claims, validate_rfc9068_claims
 def test_helpers_apply_and_validate():
     """RFC 9068 claim helpers add and validate ``iss`` and ``aud``."""
     payload = {"sub": "alice", "exp": 1}
-    augmented = add_rfc9068_claims(payload, issuer="issuer", audience=["api"])
+    augmented = add_rfc9068_claims(
+        payload, issuer="issuer", audience=["api"], enabled=True
+    )
     assert augmented["iss"] == "issuer"
     assert augmented["aud"] == ["api"]
-    validate_rfc9068_claims(augmented, issuer="issuer", audience=["api"])
+    validate_rfc9068_claims(augmented, issuer="issuer", audience=["api"], enabled=True)
     with pytest.raises(InvalidTokenError):
-        validate_rfc9068_claims(augmented, issuer="other", audience=["api"])
+        validate_rfc9068_claims(
+            augmented, issuer="other", audience=["api"], enabled=True
+        )
 
 
 @pytest.mark.unit

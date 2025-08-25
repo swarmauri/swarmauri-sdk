@@ -12,11 +12,21 @@ from typing import Any, Dict, Iterable, Set
 
 from jwt.exceptions import InvalidTokenError
 
+from .runtime_cfg import settings
+
 
 def add_rfc9068_claims(
-    payload: Dict[str, Any], *, issuer: str, audience: Iterable[str] | str
+    payload: Dict[str, Any],
+    *,
+    issuer: str,
+    audience: Iterable[str] | str,
+    enabled: bool | None = None,
 ) -> Dict[str, Any]:
     """Return a copy of ``payload`` with RFC 9068 required claims.
+
+    When the feature is disabled the payload is returned unchanged.  If
+    ``enabled`` is ``None`` the global ``settings.enable_rfc9068`` flag is
+    consulted.
 
     Parameters
     ----------
@@ -27,6 +37,10 @@ def add_rfc9068_claims(
     audience:
         Intended audience for the token. A string or iterable of strings.
     """
+    if enabled is None:
+        enabled = settings.enable_rfc9068
+    if not enabled:
+        return dict(payload)
     augmented = dict(payload)
     augmented["iss"] = issuer
     if isinstance(audience, str):
@@ -37,12 +51,21 @@ def add_rfc9068_claims(
 
 
 def validate_rfc9068_claims(
-    payload: Dict[str, Any], *, issuer: str, audience: Iterable[str] | str
+    payload: Dict[str, Any],
+    *,
+    issuer: str,
+    audience: Iterable[str] | str,
+    enabled: bool | None = None,
 ) -> None:
     """Validate RFC 9068 required claims in *payload*.
 
-    Raises ``InvalidTokenError`` if any requirement is not met.
+    When the feature is disabled the function performs no checks.  Raises
+    ``InvalidTokenError`` if any requirement is not met when enabled.
     """
+    if enabled is None:
+        enabled = settings.enable_rfc9068
+    if not enabled:
+        return
     if payload.get("iss") != issuer:
         raise InvalidTokenError("issuer mismatch per RFC 9068")
     token_aud = payload.get("aud")

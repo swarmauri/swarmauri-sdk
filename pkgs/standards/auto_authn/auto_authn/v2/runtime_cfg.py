@@ -96,6 +96,11 @@ class Settings(BaseSettings):
         in {"1", "true", "yes"},
         description="Enable Message Encryption for Web Push per RFC 8291",
     )
+    enable_rfc8812: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8812", "false").lower()
+        in {"1", "true", "yes"},
+        description="Enable WebAuthn algorithm registrations per RFC 8812",
+    )
     enable_rfc7662: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7662", "false").lower()
         in {"1", "true", "yes"}
@@ -106,13 +111,12 @@ class Settings(BaseSettings):
     enable_rfc9396: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC9396", "0").lower()
         in {"1", "true", "yes"},
-        description=("Enable OAuth 2.0 Rich Authorization Requests per RFC 9396"),
-    enable_rfc9396: bool = Field(default=os.environ.get("ENABLE_RFC9396", "0") == "1")
+        description="Enable OAuth 2.0 Rich Authorization Requests per RFC 9396",
+    )
     enable_rfc9101: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC9101", "false").lower()
         in {"1", "true", "yes"},
         description="Enable JWT-Secured Authorization Request per RFC 9101",
-
     )
     enable_rfc7009: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7009", "false").lower()
