@@ -26,8 +26,9 @@ from __future__ import annotations
 
 
 import secrets
+import json
 from datetime import datetime, timedelta
-from typing import Literal, Optional
+from typing import Literal, Optional, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
@@ -262,6 +263,7 @@ async def authorize(
     prompt: Optional[str] = None,
     max_age: Optional[int] = None,
     login_hint: Optional[str] = None,
+    claims: Optional[str] = None,
     db: AsyncSession = Depends(get_async_db),
 ):
     _require_tls(request)
@@ -286,9 +288,11 @@ async def authorize(
 
     prompts = set(prompt.split()) if prompt else set()
     sid = request.cookies.get("sid")
-    if "login" in prompts:
-        sid = None
     session = SESSIONS.get(sid) if sid else None
+    if login_hint and session and session.get("username") != login_hint:
+        session = None
+    if "login" in prompts:
+        session = None
     if session is None:
         if "none" in prompts:
             raise HTTPException(
@@ -319,6 +323,17 @@ async def authorize(
     code: str | None = None
     access: str | None = None
     scope_str = " ".join(sorted(scopes))
+    requested_claims: dict[str, Any] | None = None
+    if claims:
+        try:
+            parsed_claims = json.loads(claims)
+            if not isinstance(parsed_claims, dict):
+                raise ValueError
+            requested_claims = parsed_claims
+        except Exception:
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"}
+            )
     if "code" in rts:
         code = secrets.token_urlsafe(32)
         AUTH_CODES[code] = {
@@ -331,6 +346,8 @@ async def authorize(
             "scope": scope_str,
             "expires_at": datetime.utcnow() + timedelta(minutes=10),
         }
+        if requested_claims:
+            AUTH_CODES[code]["claims"] = requested_claims
         params.append(("code", code))
     if "token" in rts:
         access = await _jwt.async_sign(sub=user_sub, tid=tenant_id, scope=scope_str)
@@ -339,7 +356,14 @@ async def authorize(
     if "id_token" in rts:
         from ..oidc_discovery import ISSUER
 
-        extra_claims: dict[str, str] = {"tid": tenant_id, "typ": "id"}
+        extra_claims: dict[str, Any] = {"tid": tenant_id, "typ": "id"}
+        if requested_claims and "id_token" in requested_claims:
+            user_obj = await db.get(User, UUID(user_sub))
+            idc = requested_claims["id_token"]
+            if "email" in idc:
+                extra_claims["email"] = user_obj.email if user_obj else ""
+            if any(k in idc for k in ("name", "preferred_username")):
+                extra_claims["name"] = session.get("username")
         if access:
             extra_claims["at_hash"] = oidc_hash(access)
         if code:
@@ -495,11 +519,18 @@ async def token(
             sub=record["sub"], tid=record["tid"], **jwt_kwargs
         )
         nonce = record.get("nonce") or secrets.token_urlsafe(8)
-        extra_claims = {
+        extra_claims: dict[str, Any] = {
             "tid": record["tid"],
             "typ": "id",
             "at_hash": oidc_hash(access),
         }
+        if record.get("claims") and "id_token" in record["claims"]:
+            user_obj = await db.get(User, UUID(record["sub"]))
+            idc = record["claims"]["id_token"]
+            if "email" in idc:
+                extra_claims["email"] = user_obj.email if user_obj else ""
+            if any(k in idc for k in ("name", "preferred_username")):
+                extra_claims["name"] = user_obj.username if user_obj else ""
         id_token = mint_id_token(
             sub=record["sub"],
             aud=parsed.client_id,
