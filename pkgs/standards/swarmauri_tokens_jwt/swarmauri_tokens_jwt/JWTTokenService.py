@@ -24,6 +24,11 @@ def _ref_to_signing_key(ref: KeyRef, alg: JWAAlg) -> Mapping[str, Any]:
     if mat is None:
         raise RuntimeError("key material not available for signing")
     if alg == JWAAlg.EDDSA:
+        if isinstance(mat, (bytes, bytearray)) and mat.startswith(b"-----BEGIN"):
+            from cryptography.hazmat.primitives import serialization
+
+            key_obj = serialization.load_pem_private_key(mat, password=None)
+            return {"kind": "cryptography_obj", "obj": key_obj}
         return {"kind": "raw_ed25519_sk", "bytes": mat}
     if alg == JWAAlg.HS256:
         return {"kind": "raw", "key": mat}
