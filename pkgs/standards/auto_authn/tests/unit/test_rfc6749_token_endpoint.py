@@ -72,6 +72,24 @@ async def test_password_grant_requires_username_and_password(data, enable_rfc674
 
 @pytest.mark.unit
 @pytest.mark.asyncio
+async def test_authorization_code_grant_requires_code(enable_rfc6749):
+    """RFC 6749 §4.1.3: code and redirect_uri are required."""
+    app = FastAPI()
+    app.include_router(router)
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        data = {
+            "grant_type": "authorization_code",
+            "redirect_uri": "https://c",
+            "client_id": "abc",
+        }
+        resp = await client.post("/token", data=data)
+    assert resp.status_code == status.HTTP_400_BAD_REQUEST
+    assert resp.json()["error"] == "invalid_request"
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
 async def test_unsupported_grant_type_when_disabled():
     """Without RFC 6749 enforcement FastAPI validation is returned."""
     app = FastAPI()
