@@ -42,8 +42,8 @@ def verify_pw(plain: str, hashed: bytes) -> bool:
 # ---------------------------------------------------------------------
 _DEFAULT_KEY_DIR = pathlib.Path(os.getenv("JWT_ED25519_KEY_DIR", "runtime_secrets"))
 _KID_PATH = _DEFAULT_KEY_DIR / "jwt_ed25519.kid"
-_DEFAULT_KEY_PATH = _DEFAULT_KEY_DIR / "jwt_ed25519.pem"
-
+# Backwards-compatible path constant expected by tests/fixtures
+_DEFAULT_KEY_PATH = _KID_PATH
 
 @lru_cache(maxsize=1)
 def _provider() -> FileKeyProvider:
