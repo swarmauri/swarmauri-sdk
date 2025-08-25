@@ -1,3 +1,4 @@
+import json
 import uuid
 from datetime import datetime, timedelta
 from urllib.parse import parse_qs, urlparse
@@ -7,6 +8,8 @@ from fastapi import status
 
 from auto_authn.v2.crypto import hash_pw
 from auto_authn.v2.orm.tables import Client, Tenant, User
+from auto_authn.v2.oidc_discovery import ISSUER
+from auto_authn.v2.oidc_id_token import verify_id_token
 from auto_authn.v2.routers.auth_flows import AUTH_CODES, SESSIONS
 
 
@@ -130,6 +133,90 @@ async def test_authorize_prompt_login_requires_reauth(async_client, db_session):
     resp = await async_client.get("/authorize", params=params, follow_redirects=False)
     assert resp.status_code == status.HTTP_401_UNAUTHORIZED
     assert resp.json()["detail"]["error"] == "login_required"
+
+
+@pytest.mark.usefixtures("temp_key_file")
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_authorize_login_hint_mismatch_requires_reauth(async_client, db_session):
+    tenant_id = uuid.uuid4()
+    tenant = Tenant(id=tenant_id, name="T5", email="t5@example.com", slug="t5")
+    client_id = uuid.uuid4()
+    client = Client(
+        id=client_id,
+        tenant_id=tenant_id,
+        client_secret_hash=hash_pw("secret"),
+        redirect_uris="https://client.example/cb",
+    )
+    user = User(
+        id=uuid.uuid4(),
+        tenant_id=tenant_id,
+        username="erin",
+        email="erin@example.com",
+        password_hash=hash_pw("password"),
+    )
+    db_session.add_all([tenant, client, user])
+    await db_session.commit()
+
+    await async_client.post(
+        "/login", json={"identifier": "erin", "password": "password"}
+    )
+
+    params = {
+        "response_type": "code",
+        "client_id": str(client_id),
+        "redirect_uri": "https://client.example/cb",
+        "scope": "openid",
+        "login_hint": "not_erin",
+    }
+    resp = await async_client.get("/authorize", params=params, follow_redirects=False)
+    assert resp.status_code == status.HTTP_401_UNAUTHORIZED
+    assert resp.json()["detail"]["error"] == "login_required"
+
+
+@pytest.mark.usefixtures("temp_key_file")
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_authorize_claims_in_id_token(async_client, db_session):
+    tenant_id = uuid.uuid4()
+    tenant = Tenant(id=tenant_id, name="T6", email="t6@example.com", slug="t6")
+    client_id = uuid.uuid4()
+    client = Client(
+        id=client_id,
+        tenant_id=tenant_id,
+        client_secret_hash=hash_pw("secret"),
+        redirect_uris="https://client.example/cb",
+    )
+    user = User(
+        id=uuid.uuid4(),
+        tenant_id=tenant_id,
+        username="frank",
+        email="frank@example.com",
+        password_hash=hash_pw("password"),
+    )
+    db_session.add_all([tenant, client, user])
+    await db_session.commit()
+
+    await async_client.post(
+        "/login", json={"identifier": "frank", "password": "password"}
+    )
+
+    claims_req = json.dumps({"id_token": {"email": {"essential": True}}})
+    params = {
+        "response_type": "id_token",
+        "client_id": str(client_id),
+        "redirect_uri": "https://client.example/cb",
+        "scope": "openid email",
+        "nonce": "n-1",
+        "claims": claims_req,
+    }
+    resp = await async_client.get("/authorize", params=params, follow_redirects=False)
+    assert resp.status_code == status.HTTP_307_TEMPORARY_REDIRECT
+    frag = urlparse(resp.headers["location"]).fragment
+    qs = parse_qs(frag)
+    token = qs["id_token"][0]
+    claims = verify_id_token(token, issuer=ISSUER, audience=str(client_id))
+    assert claims["email"] == "frank@example.com"
 
 
 @pytest.mark.usefixtures("temp_key_file")
