@@ -38,6 +38,8 @@ from ..backends import PasswordBackend, ApiKeyBackend, AuthError
 from ..fastapi_deps import get_async_db
 from ..orm.tables import Tenant, User
 from ..typing import StrUUID
+from .. import runtime_cfg
+from ..rfc9396 import parse_authorization_details
 from autoapi.v2.error import IntegrityError
 
 router = APIRouter()
@@ -221,6 +223,18 @@ async def token(
 ) -> TokenPair:
     form = await request.form()
     data = dict(form)
+    authz = data.get("authorization_details")
+    if runtime_cfg.settings.enable_rfc9396 and authz is not None:
+        try:
+            parse_authorization_details(authz)
+        except ValueError as exc:
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST,
+                {
+                    "error": "invalid_authorization_details",
+                    "error_description": str(exc),
+                },
+            )
     grant_type = data.get("grant_type")
     if grant_type == "password":
         try:
