@@ -11,7 +11,8 @@ from __future__ import annotations
 
 from typing import Any, Dict, Final, Iterable, Tuple
 import asyncio
-from base64 import urlsafe_b64encode
+import json
+from base64 import urlsafe_b64decode, urlsafe_b64encode
 
 from .deps import (
     ExportPolicy,
@@ -57,6 +58,17 @@ def _svc_for_secret(secret: str) -> Tuple[JWTTokenService, str]:
     return JWTTokenService(kp), ref.kid
 
 
+def _token_alg(token: str) -> str | None:
+    """Return the ``alg`` value from a compact JWT without verification."""
+    try:
+        header_b64, _payload, _sig = token.split(".")
+        padded = header_b64 + "=" * (-len(header_b64) % 4)
+        header = json.loads(urlsafe_b64decode(padded))
+    except Exception:
+        return None
+    return header.get("alg")
+
+
 def create_request_object(
     params: Dict[str, Any], *, secret: str, algorithm: str = "HS256"
 ) -> str:
@@ -86,6 +98,12 @@ def parse_request_object(
     """
     if not settings.enable_rfc9101:
         raise RuntimeError(f"RFC 9101 support disabled: {RFC9101_SPEC_URL}")
+
+    if algorithms is not None:
+        alg = _token_alg(token)
+        if alg not in set(algorithms):
+            raise ValueError(f"Unsupported JWT algorithm: {alg}")
+
     svc, _kid = _svc_for_secret(secret)
     claims = asyncio.run(svc.verify(token, audience=None, issuer=None, leeway_s=60))
     claims.pop("iat", None)
