@@ -108,8 +108,8 @@ class JWTTokenService(TokenServiceBase):
                     return algorithms.RSAAlgorithm.from_jwk(jwk)
                 if kty == "EC":
                     return algorithms.ECAlgorithm.from_jwk(jwk)
-                if kty == "OKP" and jwk.get("crv") == "Ed25519":
-                    return algorithms.Ed25519Algorithm.from_jwk(jwk)
+                if kty == "OKP":
+                    return algorithms.OKPAlgorithm.from_jwk(jwk)
                 if kty == "oct":
                     return algorithms.HMACAlgorithm.from_jwk(jwk)
             return None
