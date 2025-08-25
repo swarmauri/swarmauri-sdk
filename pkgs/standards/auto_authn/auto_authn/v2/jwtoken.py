@@ -39,6 +39,7 @@ from jwt.exceptions import InvalidTokenError
 from .crypto import public_key, signing_key
 from .runtime_cfg import settings
 from .rfc8705 import validate_certificate_binding
+from .rfc9068 import validate_jwt_access_token
 
 _ALG = "EdDSA"
 _ACCESS_TTL = timedelta(minutes=60)
@@ -103,9 +104,18 @@ class JWTCoder:
             "exp": now + ttl,
             **extra,
         }
+        headers = {"typ": "JWT"}
+        if settings.enable_rfc9068:
+            payload.update(
+                {
+                    "iss": settings.jwt_issuer,
+                    "aud": settings.jwt_audience,
+                }
+            )
+            headers["typ"] = "at+jwt"
         if settings.enable_rfc8705 and cert_thumbprint:
             payload["cnf"] = {"x5t#S256": cert_thumbprint}
-        return jwt.encode(payload, self._priv, algorithm=_ALG)
+        return jwt.encode(payload, self._priv, algorithm=_ALG, headers=headers)
 
     def sign_pair(
         self, *, sub: str, tid: str, cert_thumbprint: Optional[str] = None, **extra: Any
@@ -134,12 +144,24 @@ class JWTCoder:
             If signature is invalid, token is expired, or malformed.
         """
         options = {"verify_exp": verify_exp}
+        kwargs = {}
+        if settings.enable_rfc9068:
+            kwargs.update(
+                {
+                    "audience": settings.jwt_audience,
+                    "issuer": settings.jwt_issuer,
+                }
+            )
         payload = jwt.decode(
             token,
             self._pub,
             algorithms=[_ALG],
             options=options,
+            **kwargs,
         )
+        if settings.enable_rfc9068:
+            header = jwt.get_unverified_header(token)
+            validate_jwt_access_token(header, payload)
         if settings.enable_rfc8705:
             if cert_thumbprint is None:
                 raise InvalidTokenError(
