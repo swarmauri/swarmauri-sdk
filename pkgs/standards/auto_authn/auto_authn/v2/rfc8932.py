@@ -66,6 +66,33 @@ def enforce_encrypted_dns(protocol: str) -> str:
     return protocol
 
 
+ENCRYPTED_DNS_TRANSPORTS = {"DoT", "DoH"}
+
+
+def enforce_encrypted_dns(transport: str) -> str:
+    """Validate that DNS queries use encrypted transports.
+
+    RFC 8932 \u00a75.1.1 recommends that operators ensure DNS queries are
+    sent over encrypted transports such as DNS over TLS (DoT) or DNS over
+    HTTPS (DoH).
+
+    Args:
+        transport: The DNS transport protocol to validate.
+
+    Returns:
+        The validated transport string.
+
+    Raises:
+        NotImplementedError: If RFC 8932 support is disabled.
+        ValueError: If an unencrypted transport is provided.
+    """
+    if not settings.enable_rfc8932:
+        raise NotImplementedError("RFC 8932 is disabled")
+    if transport not in ENCRYPTED_DNS_TRANSPORTS:
+        raise ValueError("unencrypted DNS transport")
+    return transport
+
+
 def get_enhanced_authorization_server_metadata() -> Dict[str, Any]:
     """Generate enhanced OAuth 2.0 Authorization Server Metadata.
 
