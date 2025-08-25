@@ -6,8 +6,10 @@ expected and honor the ``AUTO_AUTHN_ENABLE_RFC7520`` flag.
 
 import importlib
 
+import base64
+import secrets
+
 import pytest
-from jwcrypto import jwk
 
 import auto_authn.v2.rfc7520 as rfc7520
 from auto_authn.v2 import (
@@ -17,8 +19,15 @@ from auto_authn.v2 import (
 )
 
 
+def _generate_oct_key() -> dict:
+    """Return a minimal symmetric JWK suitable for HS256/A256GCM tests."""
+    secret = secrets.token_bytes(32)  # 256 bits
+    jwk_key = base64.urlsafe_b64encode(secret).rstrip(b"=").decode("ascii")
+    return {"kty": "oct", "k": jwk_key, "kind": "raw", "key": secret}
+
+
 def test_jws_then_jwe_roundtrip() -> None:
-    key = jwk.JWK.generate(kty="oct", size=256)
+    key = _generate_oct_key()
     message = "hello"
     token = jws_then_jwe(message, key)
     assert jwe_then_jws(token, key) == message
@@ -30,7 +39,7 @@ def test_rfc7520_disabled(monkeypatch) -> None:
 
     importlib.reload(runtime_cfg)
     importlib.reload(rfc7520)
-    key = jwk.JWK.generate(kty="oct", size=256)
+    key = _generate_oct_key()
     with pytest.raises(RuntimeError):
         rfc7520.jws_then_jwe("hi", key)
 
