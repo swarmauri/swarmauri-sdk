@@ -34,6 +34,7 @@ from .crypto import public_key, signing_key
 from .runtime_cfg import settings
 from .rfc9449_dpop import verify_proof
 from .principal_ctx import principal_var
+from .rfc6750 import extract_bearer_token
 
 
 # ---------------------------------------------------------------------
@@ -124,8 +125,8 @@ async def get_current_principal(  # type: ignore[override]
         if user := await _user_from_api_key(api_key, db):
             return user
 
-    if authorization.startswith("Bearer "):
-        token = authorization.split()[1]
+    token = await extract_bearer_token(request, authorization)
+    if token:
         if settings.enable_dpop:
             if not dpop:
                 raise HTTPException(
