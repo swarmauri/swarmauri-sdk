@@ -256,7 +256,7 @@ services:
     environment:
       KMS_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${AUTO_KMS_DB}
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8003/healthz"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
       interval: 10s
       timeout: 5s
       retries: 3

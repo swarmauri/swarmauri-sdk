@@ -20,7 +20,7 @@ COPY ./pkgs/ ./pkgs/
 RUN uv pip install --directory pkgs/standards/auto_kms --system .
 
 # ────────── runtime configuration  ────────
-EXPOSE 8003
+EXPOSE 8000
 ENV KMS_DATABASE_URL=""
 
 CMD ["python", "-m", "auto_kms"]
