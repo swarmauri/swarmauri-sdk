@@ -110,3 +110,16 @@ async def test_unsupported_grant_type_when_disabled():
     assert resp.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
     detail = resp.json()["detail"]
     assert detail[0]["loc"][-1] == "grant_type"
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_token_endpoint_requires_client_auth():
+    """The token endpoint must reject requests without client authentication."""
+    app = FastAPI()
+    app.include_router(router)
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.post("/token", data={"grant_type": "authorization_code"})
+    assert resp.status_code == status.HTTP_401_UNAUTHORIZED
+    assert resp.json()["error"] == "invalid_client"

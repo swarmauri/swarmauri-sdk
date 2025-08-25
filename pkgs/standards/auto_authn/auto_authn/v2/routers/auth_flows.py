@@ -265,6 +265,49 @@ async def token(
     resources = form.getlist("resource")
     data = dict(form)
     data.pop("resource", None)
+    # ------------------------------------------------------------------
+    # Client authentication (RFC 6749 §2.3)
+    # ------------------------------------------------------------------
+    auth = request.headers.get("Authorization")
+    client_id = None
+    client_secret = None
+    if auth and auth.startswith("Basic "):
+        import base64
+
+        try:
+            decoded = base64.b64decode(auth.split()[1]).decode()
+            client_id, client_secret = decoded.split(":", 1)
+        except Exception:
+            return JSONResponse(
+                {"error": "invalid_client"},
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                headers={"WWW-Authenticate": "Basic"},
+            )
+    else:
+        client_id = data.get("client_id")
+        client_secret = data.get("client_secret")
+    if not client_id or not client_secret:
+        return JSONResponse(
+            {"error": "invalid_client"},
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    client = await db.scalar(select(Client).where(Client.id == client_id))
+    if not client or not client.verify_secret(client_secret):
+        return JSONResponse(
+            {"error": "invalid_client"},
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    # Ensure form client_id matches authenticated client when provided
+    if data.get("client_id") and data["client_id"] != client_id:
+        return JSONResponse(
+            {"error": "invalid_client"},
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    data["client_id"] = client_id
+    data.pop("client_secret", None)
     grant_type = data.get("grant_type")
     aud = None
     try:
