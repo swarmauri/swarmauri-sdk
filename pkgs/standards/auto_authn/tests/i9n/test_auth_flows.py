@@ -373,14 +373,35 @@ class TestTokenRefresh:
 
 @pytest.mark.integration
 class TestLogoutEndpoint:
-    """Test logout endpoint."""
+    """Test logout endpoint and session handling."""
 
-    async def test_logout_returns_no_content(self, async_client: AsyncClient):
-        """Test that logout endpoint returns 204 No Content."""
-        response = await async_client.post("/logout")
+    async def test_logout_clears_session_cookie(
+        self, async_client: AsyncClient, db_session: AsyncSession
+    ):
+        """Logging out clears the session cookie and returns 204."""
+        tenant = Tenant(slug="logout-tenant", name="LT", email="lt@example.com")
+        db_session.add(tenant)
+        await db_session.commit()
+
+        user = User(
+            tenant_id=tenant.id,
+            username="logout-user",
+            email="logout@example.com",
+            password_hash=hash_pw("TestPassword123!"),
+        )
+        db_session.add(user)
+        await db_session.commit()
+
+        login_data = {"identifier": "logout-user", "password": "TestPassword123!"}
+        login_response = await async_client.post("/login", json=login_data)
+        assert login_response.status_code == status.HTTP_200_OK
+        id_token = login_response.json()["id_token"]
+        assert async_client.cookies.get("sid") is not None
+
+        response = await async_client.post("/logout", json={"id_token_hint": id_token})
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
-        assert response.content == b""
+        assert async_client.cookies.get("sid") is None
 
 
 @pytest.mark.integration

@@ -29,7 +29,7 @@ import secrets
 from datetime import datetime, timedelta
 from typing import Literal, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel, EmailStr, Field, ValidationError, constr
 from sqlalchemy import select
@@ -54,7 +54,8 @@ from ..rfc6749 import (
 from ..rfc7636_pkce import verify_code_challenge
 from ..rfc8628 import DEVICE_CODES, DeviceGrantForm
 from autoapi.v2.error import IntegrityError
-from ..oidc_id_token import mint_id_token, oidc_hash
+from ..oidc_id_token import mint_id_token, oidc_hash, verify_id_token
+from ..rfc8414 import ISSUER
 
 router = APIRouter()
 
@@ -67,6 +68,18 @@ if settings.enable_rfc8628:
     _ALLOWED_GRANT_TYPES.add("urn:ietf:params:oauth:grant-type:device_code")
 
 AUTH_CODES: dict[str, dict] = {}
+SESSIONS: dict[str, dict] = {}
+
+
+async def _front_channel_logout(session_id: str) -> None:
+    """Placeholder for front-channel logout notifications."""
+    return None
+
+
+async def _back_channel_logout(session_id: str) -> None:
+    """Placeholder for back-channel logout notifications."""
+    return None
+
 
 # ============================================================================
 #  Helper Pydantic models
@@ -91,10 +104,15 @@ class TokenPair(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = Field(default="bearer")
+    id_token: Optional[str] = None
 
 
 class RefreshIn(BaseModel):
     refresh_token: str
+
+
+class LogoutIn(BaseModel):
+    id_token_hint: str
 
 
 class IntrospectOut(BaseModel):
@@ -164,7 +182,19 @@ async def register(body: RegisterIn, db: AsyncSession = Depends(get_async_db)):
         ) from exc
 
     access, refresh = await _jwt.async_sign_pair(sub=str(user.id), tid=str(tenant.id))
-    return TokenPair(access_token=access, refresh_token=refresh)
+    session_id = secrets.token_urlsafe(16)
+    SESSIONS[session_id] = {"sub": str(user.id), "tid": str(tenant.id)}
+    id_token = mint_id_token(
+        sub=str(user.id),
+        aud=ISSUER,
+        nonce=secrets.token_urlsafe(8),
+        issuer=ISSUER,
+        sid=session_id,
+    )
+    pair = TokenPair(access_token=access, refresh_token=refresh, id_token=id_token)
+    response = JSONResponse(pair.model_dump())
+    response.set_cookie("sid", session_id, httponly=True, samesite="lax")
+    return response
 
 
 @router.post("/login", response_model=TokenPair)
@@ -177,7 +207,19 @@ async def login(body: CredsIn, db: AsyncSession = Depends(get_async_db)):
     access, refresh = await _jwt.async_sign_pair(
         sub=str(user.id), tid=str(user.tenant_id)
     )
-    return TokenPair(access_token=access, refresh_token=refresh)
+    session_id = secrets.token_urlsafe(16)
+    SESSIONS[session_id] = {"sub": str(user.id), "tid": str(user.tenant_id)}
+    id_token = mint_id_token(
+        sub=str(user.id),
+        aud=ISSUER,
+        nonce=secrets.token_urlsafe(8),
+        issuer=ISSUER,
+        sid=session_id,
+    )
+    pair = TokenPair(access_token=access, refresh_token=refresh, id_token=id_token)
+    response = JSONResponse(pair.model_dump())
+    response.set_cookie("sid", session_id, httponly=True, samesite="lax")
+    return response
 
 
 @router.get("/authorize")
@@ -417,14 +459,27 @@ async def token(
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
-async def logout():
-    """
-    Stub endpoint for client symmetry.
+async def logout(body: LogoutIn):
+    """RP-initiated logout endpoint.
 
-    *For a real implementation add token blacklist /
-    API-key deactivation logic here.*
+    Validates the ``id_token_hint`` and clears the session cookie. This is a
+    minimal reference implementation; integrate with your datastore or cache
+    for production use.
     """
-    ...
+    try:
+        claims = verify_id_token(body.id_token_hint, issuer=ISSUER, audience=ISSUER)
+    except Exception as exc:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, "invalid id_token_hint"
+        ) from exc
+    sid = claims.get("sid")
+    if sid:
+        SESSIONS.pop(sid, None)
+        await _front_channel_logout(sid)
+        await _back_channel_logout(sid)
+    response = Response(status_code=status.HTTP_204_NO_CONTENT)
+    response.delete_cookie("sid")
+    return response
 
 
 @router.post("/token/refresh", response_model=TokenPair)
