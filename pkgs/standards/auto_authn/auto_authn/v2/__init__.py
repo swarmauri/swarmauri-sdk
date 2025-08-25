@@ -5,9 +5,12 @@ from .pkce import (
     create_code_verifier,
     verify_code_challenge,
 )
+from .rfc9396 import AuthorizationDetail, parse_authorization_details
 
 __all__ = [
     "create_code_verifier",
     "create_code_challenge",
     "verify_code_challenge",
+    "parse_authorization_details",
+    "AuthorizationDetail",
 ]
