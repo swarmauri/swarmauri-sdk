@@ -22,6 +22,7 @@ from .rfc9207 import extract_issuer
 from .rfc9126 import store_par_request, get_par_request, reset_par_store
 from .rfc8707 import extract_resource, RFC8707_SPEC_URL
 from .rfc8705 import thumbprint_from_cert_pem, validate_certificate_binding
+from .rfc9068 import add_rfc9068_claims, validate_rfc9068_claims
 from .rfc8252 import is_native_redirect_uri, validate_native_redirect_uri
 
 __all__ = [
@@ -46,6 +47,8 @@ __all__ = [
     "reset_par_store",
     "thumbprint_from_cert_pem",
     "validate_certificate_binding",
+    "add_rfc9068_claims",
+    "validate_rfc9068_claims",
     "is_native_redirect_uri",
     "validate_native_redirect_uri",
 ]
