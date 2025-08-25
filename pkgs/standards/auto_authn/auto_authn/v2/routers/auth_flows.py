@@ -30,7 +30,7 @@ from datetime import datetime, timedelta
 from typing import Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from pydantic import BaseModel, EmailStr, Field, ValidationError, constr
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -242,6 +242,7 @@ async def authorize(
     redirect_uri: str,
     scope: str,
     request: Request,
+    response_mode: Optional[str] = None,
     state: Optional[str] = None,
     nonce: Optional[str] = None,
     code_challenge: Optional[str] = None,
@@ -279,6 +280,11 @@ async def authorize(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
     if code_challenge_method and code_challenge_method != "S256":
         raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
+    mode = response_mode or "query"
+    if mode not in {"query", "fragment", "form_post"}:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, {"error": "unsupported_response_mode"}
+        )
     params: list[tuple[str, str]] = []
     code: str | None = None
     access: str | None = None
@@ -319,7 +325,20 @@ async def authorize(
         params.append(("id_token", id_token))
     if state:
         params.append(("state", state))
-
+    if mode == "fragment":
+        redirect_url = f"{redirect_uri}#{urlencode(params)}" if params else redirect_uri
+        return RedirectResponse(redirect_url)
+    if mode == "form_post":
+        inputs = "".join(
+            f'<input type="hidden" name="{k}" value="{v}" />' for k, v in params
+        )
+        body = (
+            "<!DOCTYPE html><html><body>"
+            f'<form method="post" action="{redirect_uri}">{inputs}</form>'
+            "<script>document.forms[0].submit()</script>"
+            "</body></html>"
+        )
+        return HTMLResponse(content=body)
     redirect_url = f"{redirect_uri}?{urlencode(params)}" if params else redirect_uri
     return RedirectResponse(redirect_url)
 
