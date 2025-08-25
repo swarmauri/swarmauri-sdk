@@ -19,3 +19,4 @@ async def test_openid_configuration_contains_required_fields(async_client) -> No
     assert "authorization_code" in data["grant_types_supported"]
     assert "client_secret_basic" in data["token_endpoint_auth_methods_supported"]
     assert "S256" in data["code_challenge_methods_supported"]
+    assert "query" in data["response_modes_supported"]
