@@ -18,6 +18,7 @@ from *autoapi.v2.mixins* so they automatically gain:
 
 from __future__ import annotations
 
+import datetime as dt
 import re
 import uuid
 from typing import Annotated, Final
@@ -32,6 +33,10 @@ from autoapi.v2.types import (
     PgUUID,
     ForeignKey,
     UniqueConstraint,
+    JSON,
+    Boolean,
+    Integer,
+    TZDateTime,
 )
 from autoapi.v2.tables import (
     Tenant as TenantBase,
@@ -187,6 +192,103 @@ class ServiceKey(ApiKeyBase):
     )
 
 
+class AuthSession(Base, Timestamped):
+    __tablename__ = "sessions"
+    __table_args__ = ({"schema": "authn"},)
+
+    id = Column(String(64), primary_key=True)
+    user_id = Column(
+        PgUUID(as_uuid=True),
+        ForeignKey("authn.users.id"),
+        nullable=False,
+        index=True,
+    )
+    tenant_id = Column(
+        PgUUID(as_uuid=True),
+        ForeignKey("authn.tenants.id"),
+        nullable=False,
+        index=True,
+    )
+    username = Column(String(120), nullable=False)
+    auth_time = Column(
+        TZDateTime, default=lambda: dt.datetime.now(dt.timezone.utc), nullable=False
+    )
+
+
+class AuthCode(Base, Timestamped):
+    __tablename__ = "auth_codes"
+    __table_args__ = ({"schema": "authn"},)
+
+    code = Column(String(128), primary_key=True)
+    user_id = Column(
+        PgUUID(as_uuid=True),
+        ForeignKey("authn.users.id"),
+        nullable=False,
+        index=True,
+    )
+    tenant_id = Column(
+        PgUUID(as_uuid=True),
+        ForeignKey("authn.tenants.id"),
+        nullable=False,
+        index=True,
+    )
+    client_id = Column(
+        PgUUID(as_uuid=True),
+        ForeignKey("authn.clients.id"),
+        nullable=False,
+    )
+    redirect_uri = Column(String(1000), nullable=False)
+    code_challenge = Column(String, nullable=True)
+    nonce = Column(String, nullable=True)
+    scope = Column(String, nullable=True)
+    expires_at = Column(TZDateTime, nullable=False)
+    claims = Column(JSON, nullable=True)
+
+
+class DeviceCode(Base, Timestamped):
+    __tablename__ = "device_codes"
+    __table_args__ = ({"schema": "authn"},)
+
+    device_code = Column(String(128), primary_key=True)
+    user_code = Column(String(32), nullable=False, index=True)
+    client_id = Column(
+        PgUUID(as_uuid=True),
+        ForeignKey("authn.clients.id"),
+        nullable=False,
+    )
+    expires_at = Column(TZDateTime, nullable=False)
+    interval = Column(Integer, nullable=False)
+    authorized = Column(Boolean, default=False, nullable=False)
+    user_id = Column(
+        PgUUID(as_uuid=True),
+        ForeignKey("authn.users.id"),
+        nullable=True,
+        index=True,
+    )
+    tenant_id = Column(
+        PgUUID(as_uuid=True),
+        ForeignKey("authn.tenants.id"),
+        nullable=True,
+        index=True,
+    )
+
+
+class RevokedToken(Base, Timestamped):
+    __tablename__ = "revoked_tokens"
+    __table_args__ = ({"schema": "authn"},)
+
+    token = Column(String(512), primary_key=True)
+
+
+class PushedAuthorizationRequest(Base, Timestamped):
+    __tablename__ = "par_requests"
+    __table_args__ = ({"schema": "authn"},)
+
+    request_uri = Column(String(255), primary_key=True)
+    params = Column(JSON, nullable=False)
+    expires_at = Column(TZDateTime, nullable=False)
+
+
 __all__ = [
     "ApiKey",
     "ServiceKey",
@@ -194,4 +296,9 @@ __all__ = [
     "Service",
     "Tenant",
     "Client",
+    "AuthSession",
+    "AuthCode",
+    "DeviceCode",
+    "RevokedToken",
+    "PushedAuthorizationRequest",
 ]
