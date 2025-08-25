@@ -176,6 +176,21 @@ class Settings(BaseSettings):
         in {"1", "true", "yes"},
         description="Enable JOSE examples per RFC 7520",
     )
+    enable_rfc8037: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8037", "false").lower()
+        in {"1", "true", "yes"},
+        description="Enable OKP support for JOSE per RFC 8037",
+    )
+    enable_rfc8176: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8176", "false").lower()
+        in {"1", "true", "yes"},
+        description="Enable Authentication Method Reference values per RFC 8176",
+    )
+    enable_rfc8291: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8291", "false").lower()
+        in {"1", "true", "yes"},
+        description="Enable Message Encryption for Web Push per RFC 8291",
+    )
 
     model_config = SettingsConfigDict(env_file=None)
 

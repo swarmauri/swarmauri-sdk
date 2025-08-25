@@ -42,7 +42,6 @@ from ..runtime_cfg import settings
 from ..typing import StrUUID
 from ..rfc8707 import extract_resource
 from ..rfc7009 import revoke_token
-from ..rfc6749 import RFC6749Error, validate_grant_type, validate_password_grant
 from ..rfc9126 import store_par_request, DEFAULT_PAR_EXPIRY
 from ..rfc6749 import (
     RFC6749Error,

@@ -30,6 +30,13 @@ from .rfc7517 import load_signing_jwk, load_public_jwk
 from .rfc7518 import supported_algorithms
 from .rfc7519 import encode_jwt, decode_jwt
 from .rfc7520 import jws_then_jwe, jwe_then_jws
+from .rfc8037 import RFC8037_SPEC_URL, parse_okp_jwk
+from .rfc8176 import RFC8176_SPEC_URL, amr_description
+from .rfc8291 import (
+    RFC8291_SPEC_URL,
+    decrypt_push_message,
+    encrypt_push_message,
+)
 
 __all__ = [
     "create_code_verifier",
@@ -69,4 +76,11 @@ __all__ = [
     "decode_jwt",
     "jws_then_jwe",
     "jwe_then_jws",
+    "RFC8037_SPEC_URL",
+    "parse_okp_jwk",
+    "RFC8176_SPEC_URL",
+    "amr_description",
+    "RFC8291_SPEC_URL",
+    "encrypt_push_message",
+    "decrypt_push_message",
 ]
