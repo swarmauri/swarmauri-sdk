@@ -69,6 +69,12 @@ class PluginCitizenshipRegistry:
         "swarmauri.tokens.DPoPBoundJWTTokenService": "swarmauri_tokens_dpopboundjwt.DPoPBoundJWTTokenService",
         "swarmauri.tokens.RotatingJWTTokenService": "swarmauri_tokens_rotatingjwt.RotatingJWTTokenService",
         "swarmauri.tokens.TlsBoundJWTTokenService": "swarmauri_tokens_tlsboundjwt.TlsBoundJWTTokenService",
+        ###
+        # key providers
+        ###
+        "swarmauri.key_providers.IKeyProvider": "swarmauri_core.keys.IKeyProvider",
+        "swarmauri.key_providers.KeyProviderBase": "swarmauri_base.keys.KeyProviderBase",
+        "swarmauri.key_providers.InMemoryKeyProvider": "swarmauri_standard.key_providers.InMemoryKeyProvider",
         "swarmauri.agents.ExampleAgent": "swm_example_package.ExampleAgent",
         "swarmauri.agents.QAAgent": "swarmauri_standard.agents.QAAgent",
         "swarmauri.agents.RagAgent": "swarmauri_standard.agents.RagAgent",
