@@ -158,6 +158,26 @@ class Settings(BaseSettings):
         in {"1", "true", "yes"},
         description="Enable Authorization Server Issuer Identification per RFC 9207",
     )
+    enable_rfc8523: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8523", "false").lower()
+        in {"1", "true", "yes"},
+        description="Enable JWT Profile for OAuth 2.0 Client Authentication per RFC 8523",
+    )
+    enable_rfc7952: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7952", "false").lower()
+        in {"1", "true", "yes"},
+        description="Enable Security Event Token (SET) per RFC 7952",
+    )
+    enable_rfc8693: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8693", "false").lower()
+        in {"1", "true", "yes"},
+        description="Enable OAuth 2.0 Token Exchange per RFC 8693",
+    )
+    enable_rfc8932: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8932", "false").lower()
+        in {"1", "true", "yes"},
+        description="Enable Enhanced Authorization Server Metadata per RFC 8932",
+    )
     enable_rfc9126: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC9126", "false").lower()
         in {"1", "true", "yes"},

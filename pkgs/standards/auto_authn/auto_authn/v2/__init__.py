@@ -67,6 +67,42 @@ from .rfc7592 import update_client, delete_client, RFC7592_SPEC_URL
 from .rfc7521 import validate_jwt_assertion, RFC7521_SPEC_URL
 from .rfc7523 import validate_client_jwt_bearer, RFC7523_SPEC_URL
 
+# New RFC implementations
+from .rfc8523 import (
+    validate_enhanced_jwt_bearer,
+    create_client_assertion_jwt,
+    is_jwt_replay,
+    RFC8523_SPEC_URL,
+)
+from .rfc7952 import (
+    create_security_event_token,
+    validate_security_event_token,
+    extract_event_data,
+    get_set_subject_identifiers,
+    create_account_disabled_set,
+    create_session_revoked_set,
+    SET_EVENT_TYPES,
+    RFC7952_SPEC_URL,
+)
+from .rfc8693 import (
+    TokenExchangeRequest,
+    TokenExchangeResponse,
+    TokenType,
+    validate_token_exchange_request,
+    validate_subject_token,
+    exchange_token,
+    create_impersonation_token,
+    create_delegation_token,
+    TOKEN_EXCHANGE_GRANT_TYPE,
+    RFC8693_SPEC_URL,
+)
+from .rfc8932 import (
+    get_enhanced_authorization_server_metadata,
+    validate_metadata_consistency,
+    get_capability_matrix,
+    RFC8932_SPEC_URL,
+)
+
 __all__ = [
     "create_code_verifier",
     "create_code_challenge",
@@ -135,4 +171,31 @@ __all__ = [
     "RFC8176_SPEC_URL",
     "validate_client_jwt_bearer",
     "RFC7523_SPEC_URL",
+    # New RFC implementations
+    "validate_enhanced_jwt_bearer",
+    "create_client_assertion_jwt",
+    "is_jwt_replay",
+    "RFC8523_SPEC_URL",
+    "create_security_event_token",
+    "validate_security_event_token",
+    "extract_event_data",
+    "get_set_subject_identifiers",
+    "create_account_disabled_set",
+    "create_session_revoked_set",
+    "SET_EVENT_TYPES",
+    "RFC7952_SPEC_URL",
+    "TokenExchangeRequest",
+    "TokenExchangeResponse",
+    "TokenType",
+    "validate_token_exchange_request",
+    "validate_subject_token",
+    "exchange_token",
+    "create_impersonation_token",
+    "create_delegation_token",
+    "TOKEN_EXCHANGE_GRANT_TYPE",
+    "RFC8693_SPEC_URL",
+    "get_enhanced_authorization_server_metadata",
+    "validate_metadata_consistency",
+    "get_capability_matrix",
+    "RFC8932_SPEC_URL",
 ]
