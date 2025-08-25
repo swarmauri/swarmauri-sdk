@@ -134,6 +134,22 @@ def enable_rfc8414():
 
 
 @pytest.fixture
+def enable_rfc9126():
+    """Enable RFC 9126 pushed authorization requests for tests."""
+    from auto_authn.v2.runtime_cfg import settings
+    from auto_authn.v2.rfc9126 import reset_par_store
+
+    original = settings.enable_rfc9126
+    settings.enable_rfc9126 = True
+    reset_par_store()
+    try:
+        yield
+    finally:
+        settings.enable_rfc9126 = original
+        reset_par_store()
+
+
+@pytest.fixture
 def temp_key_file():
     """Create a temporary JWT key file path for testing (file doesn't exist initially)."""
     # Create a temp file path but don't create the file
