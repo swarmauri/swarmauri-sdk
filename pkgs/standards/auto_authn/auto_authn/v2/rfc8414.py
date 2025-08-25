@@ -67,6 +67,9 @@ def _build_openid_config() -> dict[str, Any]:
         "response_modes_supported": ["query", "fragment", "form_post"],
         "code_challenge_methods_supported": ["S256"],
     }
+    if settings.enable_id_token_encryption:
+        config["id_token_encryption_alg_values_supported"] = ["dir"]
+        config["id_token_encryption_enc_values_supported"] = ["A256GCM"]
     if settings.enable_rfc7591:
         config["registration_endpoint"] = f"{ISSUER}/register"
     if settings.enable_rfc7009:
@@ -123,7 +126,8 @@ async def jwks():
     await ensure_ed25519_key()
     rsa = await rsa_key_provider().jwks()
     ed = await ed25519_provider().jwks()
-    return {"keys": [*rsa.get("keys", []), *ed.get("keys", [])]}
+    combined = {k.get("kid"): k for k in [*rsa.get("keys", []), *ed.get("keys", [])]}
+    return {"keys": list(combined.values())}
 
 
 def include_rfc8414(app: FastAPI) -> None:

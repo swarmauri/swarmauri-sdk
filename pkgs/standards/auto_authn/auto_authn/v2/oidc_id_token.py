@@ -30,6 +30,8 @@ from .deps import (
     KeyUse,
 )
 from .errors import InvalidTokenError
+from .runtime_cfg import settings
+from .rfc7516 import encrypt_jwe, decrypt_jwe
 
 # ---------------------------------------------------------------------------
 # Signing key management
@@ -120,7 +122,7 @@ def mint_id_token(
     claims: dict[str, Any] = {"nonce": nonce}
     if extra:
         claims.update(extra)  # type: ignore[arg-type]
-    return asyncio.run(
+    token = asyncio.run(
         svc.mint(
             claims,
             alg=JWAAlg.RS256,
@@ -131,10 +133,17 @@ def mint_id_token(
             audience=aud,
         )
     )
+    if settings.enable_id_token_encryption:
+        key = {"kty": "oct", "k": settings.id_token_encryption_key.encode()}
+        token = encrypt_jwe(token, key)
+    return token
 
 
 def verify_id_token(token: str, *, issuer: str, audience: Iterable[str] | str) -> dict:
     """Verify *token* and return its claims if valid."""
+    if settings.enable_id_token_encryption:
+        key = {"kty": "oct", "k": settings.id_token_encryption_key.encode()}
+        token = decrypt_jwe(token, key)
     if _header_alg(token) in {"", "none"}:
         raise InvalidTokenError("unsigned JWTs are not accepted")
     svc, _ = _service()
