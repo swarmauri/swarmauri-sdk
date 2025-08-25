@@ -12,6 +12,7 @@ from fastapi import Depends, FastAPI, status
 from httpx import ASGITransport, AsyncClient
 
 from auto_authn.v2.fastapi_deps import get_current_principal, get_async_db
+from auto_authn.v2.runtime_cfg import settings
 
 
 @pytest.mark.unit
@@ -33,7 +34,6 @@ async def test_www_authenticate_header_on_missing_token():
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-@pytest.mark.xfail(reason="planned support for case-insensitive Bearer scheme")
 async def test_lowercase_bearer_scheme():
     """RFC 6750 §2.1: Authorization scheme name is case-insensitive."""
     app = FastAPI()
@@ -59,8 +59,7 @@ async def test_lowercase_bearer_scheme():
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-@pytest.mark.xfail(reason="planned support for access_token query parameter")
-async def test_access_token_query_parameter():
+async def test_access_token_query_parameter_enabled():
     """RFC 6750 §2.3: Access token may be provided as URI query parameter."""
     app = FastAPI()
 
@@ -72,19 +71,42 @@ async def test_access_token_query_parameter():
     app.dependency_overrides[get_async_db] = lambda: mock_db
 
     mock_user = MagicMock()
-    with patch(
-        "auto_authn.v2.fastapi_deps._user_from_jwt", AsyncMock(return_value=mock_user)
-    ):
-        transport = ASGITransport(app=app)
-        async with AsyncClient(transport=transport, base_url="http://test") as client:
-            resp = await client.get("/protected?access_token=token")
+    with patch.object(settings, "enable_rfc6750_query", True):
+        with patch(
+            "auto_authn.v2.fastapi_deps._user_from_jwt",
+            AsyncMock(return_value=mock_user),
+        ):
+            transport = ASGITransport(app=app)
+            async with AsyncClient(
+                transport=transport, base_url="http://test"
+            ) as client:
+                resp = await client.get("/protected?access_token=token")
     assert resp.status_code == status.HTTP_200_OK
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-@pytest.mark.xfail(reason="planned support for access_token in request body")
-async def test_access_token_form_body():
+async def test_access_token_query_parameter_disabled():
+    """RFC 6750 §2.3: Query parameter rejected when feature disabled."""
+    app = FastAPI()
+
+    @app.get("/protected")
+    async def protected(user=Depends(get_current_principal)):
+        return {"ok": True}
+
+    mock_db = AsyncMock()
+    app.dependency_overrides[get_async_db] = lambda: mock_db
+
+    with patch.object(settings, "enable_rfc6750_query", False):
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get("/protected?access_token=token")
+    assert resp.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_access_token_form_body_enabled():
     """RFC 6750 §2.2: Access token may be provided in the request body."""
     app = FastAPI()
 
@@ -96,9 +118,37 @@ async def test_access_token_form_body():
     app.dependency_overrides[get_async_db] = lambda: mock_db
 
     mock_user = MagicMock()
-    with patch(
-        "auto_authn.v2.fastapi_deps._user_from_jwt", AsyncMock(return_value=mock_user)
-    ):
+    with patch.object(settings, "enable_rfc6750_form", True):
+        with patch(
+            "auto_authn.v2.fastapi_deps._user_from_jwt",
+            AsyncMock(return_value=mock_user),
+        ):
+            transport = ASGITransport(app=app)
+            async with AsyncClient(
+                transport=transport, base_url="http://test"
+            ) as client:
+                resp = await client.post(
+                    "/protected",
+                    data={"access_token": "token"},
+                    headers={"Content-Type": "application/x-www-form-urlencoded"},
+                )
+    assert resp.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_access_token_form_body_disabled():
+    """RFC 6750 §2.2: Form body token rejected when feature disabled."""
+    app = FastAPI()
+
+    @app.post("/protected")
+    async def protected(user=Depends(get_current_principal)):
+        return {"ok": True}
+
+    mock_db = AsyncMock()
+    app.dependency_overrides[get_async_db] = lambda: mock_db
+
+    with patch.object(settings, "enable_rfc6750_form", False):
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             resp = await client.post(
@@ -106,7 +156,7 @@ async def test_access_token_form_body():
                 data={"access_token": "token"},
                 headers={"Content-Type": "application/x-www-form-urlencoded"},
             )
-    assert resp.status_code == status.HTTP_200_OK
+    assert resp.status_code == status.HTTP_401_UNAUTHORIZED
 
 
 RFC6750_SPEC = r"""

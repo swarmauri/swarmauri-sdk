@@ -6,6 +6,7 @@ from .rfc7636_pkce import (
     verify_code_challenge,
 )
 from .rfc9396 import AuthorizationDetail, parse_authorization_details
+from .rfc6750 import extract_bearer_token
 
 __all__ = [
     "create_code_verifier",
@@ -13,4 +14,5 @@ __all__ = [
     "verify_code_challenge",
     "parse_authorization_details",
     "AuthorizationDetail",
+    "extract_bearer_token",
 ]
