@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, Final, Iterable, Set
 
-from jwt.exceptions import InvalidTokenError
+from .errors import InvalidTokenError
 
 RFC9068_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc9068"
 
