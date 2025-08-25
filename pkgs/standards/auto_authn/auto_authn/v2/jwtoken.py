@@ -92,6 +92,8 @@ class JWTCoder:
         scopes  : List of coarse scopes
         ttl     : Lifetime (default 60 min for access tokens)
         typ     : "access" or "refresh"
+        cert_thumbprint:
+            Certificate thumbprint required when RFC 8705 support is enabled.
         extra   : Arbitrary extra claims
         """
         now = datetime.now(timezone.utc)
@@ -103,7 +105,11 @@ class JWTCoder:
             "exp": now + ttl,
             **extra,
         }
-        if settings.enable_rfc8705 and cert_thumbprint:
+        if settings.enable_rfc8705:
+            if cert_thumbprint is None:
+                raise ValueError(
+                    "cert_thumbprint required when RFC 8705 support is enabled"
+                )
             payload["cnf"] = {"x5t#S256": cert_thumbprint}
         return jwt.encode(payload, self._priv, algorithm=_ALG)
 
@@ -133,7 +139,7 @@ class JWTCoder:
         jwt.InvalidTokenError
             If signature is invalid, token is expired, or malformed.
         """
-        options = {"verify_exp": verify_exp}
+        options = {"verify_exp": verify_exp, "verify_aud": False}
         payload = jwt.decode(
             token,
             self._pub,

@@ -6,20 +6,58 @@ SHA-256 thumbprint. The tests below verify that behavior is enforced when the
 feature flag is enabled and bypassed when disabled.
 """
 
+from datetime import datetime, timedelta
+
 import pytest
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+from cryptography import x509
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import rsa, ed25519
+from cryptography.x509.oid import NameOID
 from jwt.exceptions import InvalidTokenError
 
 from auto_authn.v2 import runtime_cfg
 from auto_authn.v2.jwtoken import JWTCoder
+from auto_authn.v2.rfc8705 import (
+    thumbprint_from_cert_pem,
+    validate_certificate_binding,
+)
+
+
+def _generate_cert_pem() -> bytes:
+    """Return a minimal self-signed certificate in PEM format."""
+    key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    subject = issuer = x509.Name(
+        [x509.NameAttribute(NameOID.COMMON_NAME, "example.com")]
+    )
+    cert = (
+        x509.CertificateBuilder()
+        .subject_name(subject)
+        .issuer_name(issuer)
+        .public_key(key.public_key())
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(datetime.utcnow())
+        .not_valid_after(datetime.utcnow() + timedelta(days=1))
+        .sign(key, hashes.SHA256())
+    )
+    return cert.public_bytes(serialization.Encoding.PEM)
+
+
+@pytest.mark.unit
+def test_thumbprint_and_binding_helpers():
+    """RFC 8705 §3.1 thumbprint derivation and binding validation."""
+    cert_pem = _generate_cert_pem()
+    thumbprint = thumbprint_from_cert_pem(cert_pem)
+    payload = {"cnf": {"x5t#S256": thumbprint}}
+    validate_certificate_binding(payload, thumbprint)  # should not raise
+    with pytest.raises(InvalidTokenError):
+        validate_certificate_binding(payload, "mismatch")
 
 
 @pytest.mark.unit
 def test_certificate_thumbprint_enforced(monkeypatch):
     """RFC 8705 §3.1 requires matching cnf.x5t#S256 when enabled."""
     monkeypatch.setattr(runtime_cfg.settings, "enable_rfc8705", True)
-    private_key_obj = Ed25519PrivateKey.generate()
+    private_key_obj = ed25519.Ed25519PrivateKey.generate()
     public_key_obj = private_key_obj.public_key()
 
     private_pem = private_key_obj.private_bytes(
@@ -41,10 +79,32 @@ def test_certificate_thumbprint_enforced(monkeypatch):
 
 
 @pytest.mark.unit
+def test_sign_requires_thumbprint_when_enabled(monkeypatch):
+    """RFC 8705 demands certificate binding when feature flag is on."""
+    monkeypatch.setattr(runtime_cfg.settings, "enable_rfc8705", True)
+    private_key_obj = ed25519.Ed25519PrivateKey.generate()
+    public_key_obj = private_key_obj.public_key()
+
+    private_pem = private_key_obj.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+    public_pem = public_key_obj.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
+    )
+
+    coder = JWTCoder(private_pem, public_pem)
+    with pytest.raises(ValueError):
+        coder.sign(sub="carol", tid="tenant")
+
+
+@pytest.mark.unit
 def test_feature_toggle_disabled(monkeypatch):
     """When disabled, tokens need not include the cnf claim."""
     monkeypatch.setattr(runtime_cfg.settings, "enable_rfc8705", False)
-    private_key_obj = Ed25519PrivateKey.generate()
+    private_key_obj = ed25519.Ed25519PrivateKey.generate()
     public_key_obj = private_key_obj.public_key()
 
     private_pem = private_key_obj.private_bytes(
