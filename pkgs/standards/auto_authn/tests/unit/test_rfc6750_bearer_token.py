@@ -59,6 +59,28 @@ async def test_lowercase_bearer_scheme():
 
 @pytest.mark.unit
 @pytest.mark.asyncio
+async def test_rfc6750_disabled_rejects_header():
+    """RFC 6750: Bearer tokens are ignored when feature disabled."""
+    app = FastAPI()
+
+    @app.get("/protected")
+    async def protected(user=Depends(get_current_principal)):
+        return {"ok": True}
+
+    mock_db = AsyncMock()
+    app.dependency_overrides[get_async_db] = lambda: mock_db
+
+    with patch.object(settings, "enable_rfc6750", False):
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/protected", headers={"Authorization": "Bearer token"}
+            )
+    assert resp.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
 async def test_access_token_query_parameter_enabled():
     """RFC 6750 §2.3: Access token may be provided as URI query parameter."""
     app = FastAPI()

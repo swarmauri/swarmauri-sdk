@@ -1,9 +1,10 @@
 """Helpers for OAuth 2.0 Bearer Token Usage (RFC 6750).
 
 This module extracts bearer tokens from HTTP requests according to
-:rfc:`6750`. Support for providing the token in the URI query parameter or the
-request body can be toggled via settings to allow deployments to opt out of
-these optional, and potentially insecure, mechanisms.
+:rfc:`6750`. Support can be disabled entirely via ``settings.enable_rfc6750``.
+Optional mechanisms for supplying the token in the URI query parameter or the
+request body can also be toggled via settings to allow deployments to opt out
+of these potentially insecure features.
 """
 
 from __future__ import annotations
@@ -19,11 +20,15 @@ async def extract_bearer_token(request: Request, authorization: str) -> str | No
     The function follows the extraction rules from RFC 6750:
 
     - The ``Authorization`` header uses a case-insensitive ``Bearer`` scheme.
+    - Extraction occurs only when ``settings.enable_rfc6750`` is ``True``.
     - If ``settings.enable_rfc6750_query`` is ``True`` an ``access_token``
       parameter in the URI query is accepted.
     - If ``settings.enable_rfc6750_form`` is ``True`` an ``access_token``
       field in an ``application/x-www-form-urlencoded`` body is accepted.
     """
+
+    if not settings.enable_rfc6750:
+        return None
 
     parts = authorization.split()
     if len(parts) == 2 and parts[0].lower() == "bearer":
