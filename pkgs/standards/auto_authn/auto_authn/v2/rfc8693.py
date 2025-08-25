@@ -12,6 +12,8 @@ from __future__ import annotations
 from typing import Dict, Any, Optional, Union, List
 from enum import Enum
 
+from fastapi import APIRouter, FastAPI, Form, HTTPException, status
+
 from .runtime_cfg import settings
 from .rfc7519 import decode_jwt
 from .jwtoken import JWTCoder
@@ -20,6 +22,8 @@ RFC8693_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8693"
 
 # Token Exchange Grant Type
 TOKEN_EXCHANGE_GRANT_TYPE = "urn:ietf:params:oauth:grant-type:token-exchange"
+
+router = APIRouter()
 
 
 # Standard Token Type URIs per RFC 8693 Section 3
@@ -323,6 +327,50 @@ def create_delegation_token(
     return exchange_token(request, issuer="delegation-service")
 
 
+@router.post("/token/exchange")
+async def token_exchange_endpoint(
+    grant_type: str = Form(...),
+    subject_token: str = Form(...),
+    subject_token_type: str = Form(...),
+    actor_token: str | None = Form(None),
+    actor_token_type: str | None = Form(None),
+    resource: str | None = Form(None),
+    audience: str | None = Form(None),
+    scope: str | None = Form(None),
+    requested_token_type: str | None = Form(None),
+):
+    """RFC 8693 token exchange endpoint."""
+
+    if not settings.enable_rfc8693:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "token exchange disabled")
+
+    try:
+        request = validate_token_exchange_request(
+            grant_type=grant_type,
+            subject_token=subject_token,
+            subject_token_type=subject_token_type,
+            actor_token=actor_token,
+            actor_token_type=actor_token_type,
+            resource=resource,
+            audience=audience,
+            scope=scope,
+            requested_token_type=requested_token_type,
+        )
+        response = exchange_token(request, issuer="auto-authn")
+        return response.to_dict()
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
+
+
+def include_rfc8693(app: FastAPI) -> None:
+    """Attach the RFC 8693 router to *app* if enabled."""
+
+    if settings.enable_rfc8693 and not any(
+        route.path == "/token/exchange" for route in app.routes
+    ):
+        app.include_router(router)
+
+
 __all__ = [
     "TokenExchangeRequest",
     "TokenExchangeResponse",
@@ -334,4 +382,7 @@ __all__ = [
     "create_delegation_token",
     "TOKEN_EXCHANGE_GRANT_TYPE",
     "RFC8693_SPEC_URL",
+    "token_exchange_endpoint",
+    "include_rfc8693",
+    "router",
 ]
