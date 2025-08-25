@@ -37,6 +37,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..crypto import hash_pw
 from ..jwtoken import JWTCoder
 from ..backends import PasswordBackend, ApiKeyBackend, AuthError
+from ..errors import InvalidTokenError
 from ..fastapi_deps import get_async_db
 from ..orm.tables import Tenant, User
 from ..runtime_cfg import settings
@@ -280,12 +281,21 @@ async def introspect(request: Request, db: AsyncSession = Depends(get_async_db))
     if not token:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "token parameter required")
     try:
-        principal, kind = await _api_backend.authenticate(db, token)
-    except AuthError:
-        return IntrospectOut(active=False)
+        payload = await _jwt.async_decode(token)
+    except InvalidTokenError:
+        try:
+            principal, kind = await _api_backend.authenticate(db, token)
+        except AuthError:
+            return IntrospectOut(active=False)
+        return IntrospectOut(
+            active=True,
+            sub=str(principal.id),
+            tid=str(principal.tenant_id),
+            kind=kind,
+        )
     return IntrospectOut(
         active=True,
-        sub=str(principal.id),
-        tid=str(principal.tenant_id),
-        kind=kind,
+        sub=payload.get("sub"),
+        tid=payload.get("tid"),
+        kind=payload.get("typ"),
     )

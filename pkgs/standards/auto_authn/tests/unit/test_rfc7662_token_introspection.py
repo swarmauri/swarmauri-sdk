@@ -7,6 +7,7 @@ from uuid import uuid4
 
 from auto_authn.v2.routers.auth_flows import router
 from auto_authn.v2.fastapi_deps import get_async_db
+from auto_authn.v2.jwtoken import JWTCoder
 
 
 # RFC 7662 specification excerpt for reference within tests
@@ -72,3 +73,31 @@ async def test_introspection_requires_token_parameter(enable_rfc7662):
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post("/introspect", data={})
     assert resp.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_introspection_accepts_jwt_token(enable_rfc7662):
+    """Valid JWT access token should introspect as active."""
+    app = FastAPI()
+    app.include_router(router)
+
+    async def override_db():
+        yield None
+
+    app.dependency_overrides[get_async_db] = override_db
+
+    jwt_coder = JWTCoder.default()
+    sub = str(uuid4())
+    tid = str(uuid4())
+    token = await jwt_coder.async_sign(sub=sub, tid=tid)
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.post("/introspect", data={"token": token})
+    assert resp.status_code == status.HTTP_200_OK
+    body = resp.json()
+    assert body.get("active") is True
+    assert body.get("sub") == sub
+    assert body.get("tid") == tid
+    assert body.get("kind") == "access"
