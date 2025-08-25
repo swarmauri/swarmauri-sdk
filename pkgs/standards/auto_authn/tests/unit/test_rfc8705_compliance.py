@@ -14,7 +14,7 @@ from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
-from jwt.exceptions import InvalidTokenError
+from auto_authn.v2.errors import InvalidTokenError
 
 import auto_authn.v2.runtime_cfg as runtime_cfg
 from auto_authn.v2.jwtoken import JWTCoder
