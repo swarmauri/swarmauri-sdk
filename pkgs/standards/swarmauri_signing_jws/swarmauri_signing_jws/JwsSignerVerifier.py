@@ -9,6 +9,7 @@ from swarmauri_signing_hmac import HmacEnvelopeSigner
 from swarmauri_signing_rsa import RSAEnvelopeSigner
 from swarmauri_signing_ecdsa import EcdsaEnvelopeSigner
 from swarmauri_signing_ed25519 import Ed25519EnvelopeSigner
+from swarmauri_core.crypto.types import JWAAlg
 
 try:  # optional secp256k1
     from swarmauri_signing_secp256k1 import Secp256k1EnvelopeSigner
@@ -34,10 +35,10 @@ def _b64u_dec(s: str) -> bytes:
     return base64.urlsafe_b64decode(s + pad)
 
 
-_ECDSA_RAW_LEN = {"ES256": 64, "ES384": 96, "ES512": 132}
+_ECDSA_RAW_LEN = {JWAAlg.ES256: 64, JWAAlg.ES384: 96, JWAAlg.ES512: 132}
 
 
-def _ecdsa_der_to_raw(sig_der: bytes, alg: str) -> bytes:
+def _ecdsa_der_to_raw(sig_der: bytes, alg: JWAAlg) -> bytes:
     if not _CRYPTO_OK:
         raise RuntimeError("cryptography is required for ECDSA DER→raw conversion")
     r, s = decode_dss_signature(sig_der)
@@ -65,39 +66,51 @@ def _jwk_to_pub_for_signer(jwk: Mapping[str, Any]) -> Any:
 
 
 _RSA_RS = {
-    "RS256": "RSA-PKCS1v15-SHA256",
-    "RS384": "RSA-PKCS1v15-SHA384",
-    "RS512": "RSA-PKCS1v15-SHA512",
+    JWAAlg.RS256: "RSA-PKCS1v15-SHA256",
+    JWAAlg.RS384: "RSA-PKCS1v15-SHA384",
+    JWAAlg.RS512: "RSA-PKCS1v15-SHA512",
 }
 _RSA_PS = {
-    "PS256": "RSA-PSS-SHA256",
-    "PS384": "RSA-PSS-SHA384",
-    "PS512": "RSA-PSS-SHA512",
+    JWAAlg.PS256: "RSA-PSS-SHA256",
+    JWAAlg.PS384: "RSA-PSS-SHA384",
+    JWAAlg.PS512: "RSA-PSS-SHA512",
 }
-_EC_SET = {"ES256", "ES384", "ES512"}
+_EC_SET = {JWAAlg.ES256, JWAAlg.ES384, JWAAlg.ES512}
 _K1_SET = {"ES256K"}
-_HS_SET = {"HS256", "HS384", "HS512"}
-_EDDSA = "EdDSA"
+_HS_SET = {JWAAlg.HS256, JWAAlg.HS384, JWAAlg.HS512}
+_EDDSA = JWAAlg.EDDSA
 
 
-def _is_rsa(alg: str) -> bool:  # pragma: no cover - trivial
-    return alg in _RSA_RS or alg in _RSA_PS
+def _to_jwa(alg: str | JWAAlg) -> Optional[JWAAlg]:
+    try:
+        return alg if isinstance(alg, JWAAlg) else JWAAlg(alg)
+    except ValueError:
+        return None
 
 
-def _is_ec(alg: str) -> bool:  # pragma: no cover - trivial
-    return alg in _EC_SET
+def _is_rsa(alg: str | JWAAlg) -> bool:  # pragma: no cover - trivial
+    a = _to_jwa(alg)
+    return bool(a and (a in _RSA_RS or a in _RSA_PS))
 
 
-def _is_k1(alg: str) -> bool:  # pragma: no cover - trivial
-    return alg in _K1_SET
+def _is_ec(alg: str | JWAAlg) -> bool:  # pragma: no cover - trivial
+    a = _to_jwa(alg)
+    return bool(a and a in _EC_SET)
 
 
-def _is_hmac(alg: str) -> bool:  # pragma: no cover - trivial
-    return alg in _HS_SET
+def _is_k1(alg: str | JWAAlg) -> bool:  # pragma: no cover - trivial
+    alg_str = alg.value if isinstance(alg, JWAAlg) else alg
+    return alg_str in _K1_SET
 
 
-def _is_eddsa(alg: str) -> bool:  # pragma: no cover - trivial
-    return alg == _EDDSA
+def _is_hmac(alg: str | JWAAlg) -> bool:  # pragma: no cover - trivial
+    a = _to_jwa(alg)
+    return bool(a and a in _HS_SET)
+
+
+def _is_eddsa(alg: str | JWAAlg) -> bool:  # pragma: no cover - trivial
+    a = _to_jwa(alg)
+    return bool(a and a == _EDDSA)
 
 
 JWSCompact = str
@@ -188,61 +201,65 @@ class JwsSignerVerifier:
         kid = header.get("kid")
         if not isinstance(alg, str):
             raise ValueError("Missing/invalid 'alg' in JWS header.")
-        if alg_allowlist and alg not in set(alg_allowlist):
-            raise ValueError(f"Rejected alg '{alg}' (not in allowlist).")
+        alg_enum = _to_jwa(alg)
+        alg_str = alg_enum.value if alg_enum else alg
+        if alg_allowlist and alg_str not in set(alg_allowlist):
+            raise ValueError(f"Rejected alg '{alg_str}' (not in allowlist).")
 
         payload_b = _b64u_dec(b64_payload)
         sig = _b64u_dec(b64_sig)
         signing_input = f"{b64_header}.{b64_payload}".encode("ascii")
 
         if jwks_resolver:
-            jwk = jwks_resolver(kid, alg)
-            ok = await self._verify_one(signing_input, alg, sig, jwk=jwk)
+            jwk = jwks_resolver(kid, alg_str)
+            ok = await self._verify_one(
+                signing_input, alg_enum or alg_str, sig, jwk=jwk
+            )
             if not ok:
                 raise ValueError("Invalid JWS signature.")
             return JwsResult(header=header, payload=payload_b)
 
-        if _is_hmac(alg):
+        if _is_hmac(alg_enum or alg_str):
             keys = hmac_keys or []
             if not keys:
                 raise ValueError("No HMAC keys provided.")
             ok = await self.hmac.verify_bytes(
                 signing_input,
-                [{"alg": alg, "sig": sig}],
-                require={"min_signers": 1, "algs": [alg]},
+                [{"alg": alg_str, "sig": sig}],
+                require={"min_signers": 1, "algs": [alg_str]},
                 opts={"keys": list(keys)},
             )
             if not ok:
                 raise ValueError("Invalid JWS (HMAC) signature.")
             return JwsResult(header=header, payload=payload_b)
 
-        if _is_rsa(alg):
+        if _is_rsa(alg_enum or alg_str):
             if not rsa_pubkeys:
                 raise ValueError("No RSA public keys provided.")
             ok = await self.rsa.verify_bytes(
                 signing_input,
-                [{"alg": _map_rsa_alg(alg), "sig": sig}],
-                require={"min_signers": 1, "algs": [_map_rsa_alg(alg)]},
+                [{"alg": _map_rsa_alg(alg_enum or alg_str), "sig": sig}],
+                require={"min_signers": 1, "algs": [_map_rsa_alg(alg_enum or alg_str)]},
                 opts={"pubkeys": list(rsa_pubkeys)},
             )
             if not ok:
                 raise ValueError("Invalid JWS (RSA) signature.")
             return JwsResult(header=header, payload=payload_b)
 
-        if _is_ec(alg):
+        if _is_ec(alg_enum or alg_str):
             if not ec_pubkeys:
                 raise ValueError("No EC public keys provided.")
             ok = await self.ecdsa.verify_bytes(
                 signing_input,
-                [{"alg": alg, "sig": sig, "sigfmt": "raw"}],
-                require={"min_signers": 1, "algs": [alg]},
+                [{"alg": alg_str, "sig": sig, "sigfmt": "raw"}],
+                require={"min_signers": 1, "algs": [alg_str]},
                 opts={"pubkeys": list(ec_pubkeys)},
             )
             if not ok:
                 raise ValueError("Invalid JWS (ECDSA) signature.")
             return JwsResult(header=header, payload=payload_b)
 
-        if _is_k1(alg):
+        if _is_k1(alg_enum or alg_str):
             if not self.k1:
                 raise ValueError(
                     "ES256K requested but secp256k1 signer is not available"
@@ -259,7 +276,7 @@ class JwsSignerVerifier:
                 raise ValueError("Invalid JWS (ES256K) signature.")
             return JwsResult(header=header, payload=payload_b)
 
-        if _is_eddsa(alg):
+        if _is_eddsa(alg_enum or alg_str):
             pubs = []
             for x in ed_pubkeys or []:
                 if isinstance(x, dict) and x.get("kty") == "OKP":
@@ -285,7 +302,12 @@ class JwsSignerVerifier:
         *,
         payload: Union[bytes, str, Mapping[str, Any]],
         signatures: Sequence[
-            Tuple[str, Mapping[str, Any], Optional[str], Optional[Mapping[str, Any]]]
+            Tuple[
+                str | JWAAlg,
+                Mapping[str, Any],
+                Optional[str],
+                Optional[Mapping[str, Any]],
+            ]
         ],
     ) -> Dict[str, Any]:
         if isinstance(payload, str):
@@ -300,7 +322,8 @@ class JwsSignerVerifier:
         b64_payload = _b64u(payload_b)
         out_sigs = []
         for alg, key, kid, header_extra in signatures:
-            header = {"alg": alg}
+            alg_enum = alg if isinstance(alg, JWAAlg) else JWAAlg(alg)
+            header = {"alg": alg_enum.value}
             if kid:
                 header["kid"] = kid
             if header_extra:
@@ -311,7 +334,7 @@ class JwsSignerVerifier:
                 )
             )
             signing_input = f"{b64_hdr}.{b64_payload}".encode("ascii")
-            sig_bytes = await self._sign_for_alg(signing_input, alg, key)
+            sig_bytes = await self._sign_for_alg(signing_input, alg_enum, key)
             out_sigs.append({"protected": b64_hdr, "signature": _b64u(sig_bytes)})
         return {"payload": b64_payload, "signatures": out_sigs}
 
@@ -325,7 +348,7 @@ class JwsSignerVerifier:
         ed_pubkeys: Optional[Sequence[Any]] = None,
         k1_pubkeys: Optional[Sequence[Any]] = None,
         jwks_resolver: Optional[callable] = None,
-        require_any: Optional[Iterable[str]] = None,
+        require_any: Optional[Iterable[str | JWAAlg]] = None,
         min_signers: int = 1,
     ) -> Tuple[int, bytes]:
         b64_payload = jws_obj.get("payload")
@@ -337,7 +360,7 @@ class JwsSignerVerifier:
         payload_b = _b64u_dec(b64_payload)
 
         accepted = 0
-        allowed = set(require_any) if require_any else None
+        allowed = {a if isinstance(a, str) else a.value for a in (require_any or [])}
 
         for s in sigs:
             b64_hdr = s.get("protected")
@@ -352,18 +375,22 @@ class JwsSignerVerifier:
             kid = header.get("kid")
             if not isinstance(alg, str):
                 continue
-            if allowed and alg not in allowed:
+            alg_enum = _to_jwa(alg)
+            alg_str = alg_enum.value if alg_enum else alg
+            if allowed and alg_str not in allowed:
                 continue
             signing_input = f"{b64_hdr}.{b64_payload}".encode("ascii")
             sig = _b64u_dec(b64sig)
 
             if jwks_resolver:
-                jwk = jwks_resolver(kid, alg)
-                ok = await self._verify_one(signing_input, alg, sig, jwk=jwk)
+                jwk = jwks_resolver(kid, alg_str)
+                ok = await self._verify_one(
+                    signing_input, alg_enum or alg_str, sig, jwk=jwk
+                )
             else:
                 ok = await self._verify_one(
                     signing_input,
-                    alg,
+                    alg_enum or alg_str,
                     sig,
                     hmac_keys=hmac_keys,
                     rsa_pubkeys=rsa_pubkeys,
@@ -379,36 +406,38 @@ class JwsSignerVerifier:
         return accepted, payload_b
 
     async def _sign_for_alg(
-        self, signing_input: bytes, alg: str, key: Mapping[str, Any]
+        self, signing_input: bytes, alg: str | JWAAlg, key: Mapping[str, Any]
     ) -> bytes:
-        if _is_hmac(alg):
-            sig = await self.hmac.sign_bytes(key, signing_input, alg=alg)
+        alg_enum = _to_jwa(alg)
+        alg_str = alg_enum.value if alg_enum else str(alg)
+        if _is_hmac(alg_enum or alg_str):
+            sig = await self.hmac.sign_bytes(key, signing_input, alg=alg_str)
             return sig[0]["sig"]  # type: ignore[index]
-        if _is_rsa(alg):
-            mapped = _map_rsa_alg(alg)
+        if _is_rsa(alg_enum or alg_str):
+            mapped = _map_rsa_alg(alg_enum or alg_str)
             sig = await self.rsa.sign_bytes(key, signing_input, alg=mapped)
             return sig[0]["sig"]  # type: ignore[index]
-        if _is_ec(alg):
-            sig = await self.ecdsa.sign_bytes(key, signing_input, alg=alg)
+        if _is_ec(alg_enum or alg_str):
+            sig = await self.ecdsa.sign_bytes(key, signing_input, alg=alg_str)
             der = sig[0]["sig"]  # type: ignore[index]
-            return _ecdsa_der_to_raw(der, alg)
-        if _is_k1(alg):
+            return _ecdsa_der_to_raw(der, alg_enum or JWAAlg(alg_str))
+        if _is_k1(alg_enum or alg_str):
             if not self.k1:
                 raise ValueError(
                     "ES256K requested but secp256k1 signer is not available"
                 )
             sig = await self.k1.sign_bytes(key, signing_input, alg="ES256K")
             der = sig[0]["sig"]  # type: ignore[index]
-            return _ecdsa_der_to_raw(der, "ES256")
-        if _is_eddsa(alg):
+            return _ecdsa_der_to_raw(der, JWAAlg.ES256)
+        if _is_eddsa(alg_enum or alg_str):
             sig = await self.eddsa.sign_bytes(key, signing_input, alg="Ed25519")
             return sig[0]["sig"]  # type: ignore[index]
-        raise ValueError(f"Unsupported alg: {alg}")
+        raise ValueError(f"Unsupported alg: {alg_str}")
 
     async def _verify_one(
         self,
         signing_input: bytes,
-        alg: str,
+        alg: str | JWAAlg,
         sig: bytes,
         *,
         jwk: Optional[Mapping[str, Any]] = None,
@@ -418,31 +447,34 @@ class JwsSignerVerifier:
         ed_pubkeys: Optional[Sequence[Any]] = None,
         k1_pubkeys: Optional[Sequence[Any]] = None,
     ) -> bool:
+        alg_enum = _to_jwa(alg)
+        alg_str = alg_enum.value if alg_enum else str(alg)
         if jwk is not None:
-            if _is_hmac(alg):
+            if _is_hmac(alg_enum or alg_str):
                 return await self.hmac.verify_bytes(
                     signing_input,
-                    [{"alg": alg, "sig": sig}],
-                    require={"min_signers": 1, "algs": [alg]},
+                    [{"alg": alg_str, "sig": sig}],
+                    require={"min_signers": 1, "algs": [alg_str]},
                     opts={
                         "keys": [{"kind": "raw", "key": _jwk_to_pub_for_signer(jwk)}]
                     },
                 )
-            if _is_rsa(alg):
+            if _is_rsa(alg_enum or alg_str):
+                mapped = _map_rsa_alg(alg_enum or alg_str)
                 return await self.rsa.verify_bytes(
                     signing_input,
-                    [{"alg": _map_rsa_alg(alg), "sig": sig}],
-                    require={"min_signers": 1, "algs": [_map_rsa_alg(alg)]},
+                    [{"alg": mapped, "sig": sig}],
+                    require={"min_signers": 1, "algs": [mapped]},
                     opts={"pubkeys": [_jwk_to_pub_for_signer(jwk)]},
                 )
-            if _is_ec(alg):
+            if _is_ec(alg_enum or alg_str):
                 return await self.ecdsa.verify_bytes(
                     signing_input,
-                    [{"alg": alg, "sig": sig, "sigfmt": "raw"}],
-                    require={"min_signers": 1, "algs": [alg]},
+                    [{"alg": alg_str, "sig": sig, "sigfmt": "raw"}],
+                    require={"min_signers": 1, "algs": [alg_str]},
                     opts={"pubkeys": [_jwk_to_pub_for_signer(jwk)]},
                 )
-            if _is_k1(alg):
+            if _is_k1(alg_enum or alg_str):
                 if not self.k1:
                     return False
                 return await self.k1.verify_bytes(
@@ -451,7 +483,7 @@ class JwsSignerVerifier:
                     require={"min_signers": 1, "algs": ["ES256K"]},
                     opts={"pubkeys": [_jwk_to_pub_for_signer(jwk)]},
                 )
-            if _is_eddsa(alg):
+            if _is_eddsa(alg_enum or alg_str):
                 return await self.eddsa.verify_bytes(
                     signing_input,
                     [{"alg": "Ed25519", "sig": sig}],
@@ -460,35 +492,36 @@ class JwsSignerVerifier:
                 )
             return False
 
-        if _is_hmac(alg) and hmac_keys:
+        if _is_hmac(alg_enum or alg_str) and hmac_keys:
             return await self.hmac.verify_bytes(
                 signing_input,
-                [{"alg": alg, "sig": sig}],
-                require={"min_signers": 1, "algs": [alg]},
+                [{"alg": alg_str, "sig": sig}],
+                require={"min_signers": 1, "algs": [alg_str]},
                 opts={"keys": list(hmac_keys)},
             )
-        if _is_rsa(alg) and rsa_pubkeys:
+        if _is_rsa(alg_enum or alg_str) and rsa_pubkeys:
+            mapped = _map_rsa_alg(alg_enum or alg_str)
             return await self.rsa.verify_bytes(
                 signing_input,
-                [{"alg": _map_rsa_alg(alg), "sig": sig}],
-                require={"min_signers": 1, "algs": [_map_rsa_alg(alg)]},
+                [{"alg": mapped, "sig": sig}],
+                require={"min_signers": 1, "algs": [mapped]},
                 opts={"pubkeys": list(rsa_pubkeys)},
             )
-        if _is_ec(alg) and ec_pubkeys:
+        if _is_ec(alg_enum or alg_str) and ec_pubkeys:
             return await self.ecdsa.verify_bytes(
                 signing_input,
-                [{"alg": alg, "sig": sig, "sigfmt": "raw"}],
-                require={"min_signers": 1, "algs": [alg]},
+                [{"alg": alg_str, "sig": sig, "sigfmt": "raw"}],
+                require={"min_signers": 1, "algs": [alg_str]},
                 opts={"pubkeys": list(ec_pubkeys)},
             )
-        if _is_k1(alg) and self.k1 and k1_pubkeys:
+        if _is_k1(alg_enum or alg_str) and self.k1 and k1_pubkeys:
             return await self.k1.verify_bytes(
                 signing_input,
                 [{"alg": "ES256K", "sig": sig, "sigfmt": "raw"}],
                 require={"min_signers": 1, "algs": ["ES256K"]},
                 opts={"pubkeys": list(k1_pubkeys)},
             )
-        if _is_eddsa(alg) and ed_pubkeys:
+        if _is_eddsa(alg_enum or alg_str) and ed_pubkeys:
             pubs = []
             for x in ed_pubkeys:
                 if isinstance(x, dict) and x.get("kty") == "OKP":
@@ -504,9 +537,10 @@ class JwsSignerVerifier:
         return False
 
 
-def _map_rsa_alg(alg: str) -> str:
-    if alg in _RSA_RS:
-        return _RSA_RS[alg]
-    if alg in _RSA_PS:
-        return _RSA_PS[alg]
+def _map_rsa_alg(alg: str | JWAAlg) -> str:
+    a = _to_jwa(alg)
+    if a in _RSA_RS:
+        return _RSA_RS[a]
+    if a in _RSA_PS:
+        return _RSA_PS[a]
     raise ValueError(f"Unsupported RSA alg: {alg}")

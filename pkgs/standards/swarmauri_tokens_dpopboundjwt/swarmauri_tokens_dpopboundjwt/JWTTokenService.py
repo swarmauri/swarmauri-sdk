@@ -6,6 +6,7 @@ from typing import Iterable, Mapping, Optional
 import jwt
 
 from swarmauri_core.keys.IKeyProvider import IKeyProvider
+from swarmauri_core.crypto.types import JWAAlg
 
 
 class JWTTokenService:
@@ -22,14 +23,23 @@ class JWTTokenService:
     def supports(self) -> Mapping[str, Iterable[str]]:
         return {
             "formats": ("JWT",),
-            "algs": ("HS256", "RS256", "PS256", "ES256", "EdDSA"),
+            "algs": tuple(
+                a.value
+                for a in (
+                    JWAAlg.HS256,
+                    JWAAlg.RS256,
+                    JWAAlg.PS256,
+                    JWAAlg.ES256,
+                    JWAAlg.EDDSA,
+                )
+            ),
         }
 
     async def mint(
         self,
         claims: dict[str, object],
         *,
-        alg: str,
+        alg: str | JWAAlg,
         kid: str | None = None,
         key_version: int | None = None,
         headers: Optional[dict[str, object]] = None,
@@ -56,8 +66,12 @@ class JWTTokenService:
         kid = kid or "default"
         keyref = await self._keys.get_key(kid, version=key_version, include_secret=True)
         secret = keyref.material or b""
+        alg_enum = alg if isinstance(alg, JWAAlg) else JWAAlg(alg)
         return jwt.encode(
-            payload, secret, algorithm=alg, headers={"kid": kid, **(headers or {})}
+            payload,
+            secret,
+            algorithm=alg_enum.value,
+            headers={"kid": kid, **(headers or {})},
         )
 
     async def verify(
