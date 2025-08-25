@@ -77,9 +77,15 @@ class Settings(BaseSettings):
         description=("Enable OAuth 2.0 Mutual-TLS client authentication per RFC 8705"),
     )
     enable_rfc8725: bool = Field(
-        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8725", "false").lower()
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8725", "true").lower()
         in {"1", "true", "yes"},
         description=("Enable JSON Web Token Best Current Practices per RFC 8725"),
+    )
+    id_token_jwe_key: str | None = Field(
+        default=os.environ.get("AUTO_AUTHN_ID_TOKEN_JWE_KEY"),
+        description=(
+            "Base64URL-encoded symmetric key enabling JWE encryption of ID Tokens"
+        ),
     )
     enable_rfc7636: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7636", "true").lower()

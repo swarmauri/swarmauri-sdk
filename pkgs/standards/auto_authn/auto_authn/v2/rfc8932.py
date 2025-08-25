@@ -97,6 +97,9 @@ def get_enhanced_authorization_server_metadata() -> Dict[str, Any]:
     }
     if settings.enable_rfc7591:
         base_metadata["registration_endpoint"] = f"{ISSUER}/register"
+    if settings.id_token_jwe_key:
+        base_metadata["id_token_encryption_alg_values_supported"] = ["dir"]
+        base_metadata["id_token_encryption_enc_values_supported"] = ["A256GCM"]
 
     # Enhanced metadata extensions
     enhanced_metadata = {}

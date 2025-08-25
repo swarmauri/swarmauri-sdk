@@ -81,6 +81,8 @@ The service exposes an OpenID Connect discovery document at
 - `REDIS_HOST`, `REDIS_PORT`, `REDIS_DB`, and `REDIS_PASSWORD` for Redis session
   storage (optional).
 - `JWT_SECRET` for token signing and `LOG_LEVEL` to control logging verbosity.
+- `AUTO_AUTHN_ID_TOKEN_JWE_KEY` to enable JWE-encrypted ID Tokens using a
+  base64url-encoded symmetric key.
 
 ## Docker
 

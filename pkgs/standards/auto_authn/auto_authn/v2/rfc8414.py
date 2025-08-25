@@ -67,6 +67,9 @@ def _build_openid_config() -> dict[str, Any]:
         "response_modes_supported": ["query", "fragment", "form_post"],
         "code_challenge_methods_supported": ["S256"],
     }
+    if settings.id_token_jwe_key:
+        config["id_token_encryption_alg_values_supported"] = ["dir"]
+        config["id_token_encryption_enc_values_supported"] = ["A256GCM"]
     if settings.enable_rfc7591:
         config["registration_endpoint"] = f"{ISSUER}/register"
     if settings.enable_rfc7009:
