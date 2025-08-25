@@ -49,6 +49,15 @@ def test_verify_code_challenge_round_trip():
 
 
 @pytest.mark.unit
+def test_verify_code_challenge_mismatch_fails():
+    """Mismatched challenge fails when RFC 7636 is enabled."""
+
+    verifier = create_code_verifier()
+    other = create_code_challenge(create_code_verifier())
+    assert not verify_code_challenge(verifier, other)
+
+
+@pytest.mark.unit
 def test_invalid_verifier_rejected():
     """Invalid verifier raises ValueError."""
 
@@ -69,3 +78,11 @@ def test_verification_skipped_when_disabled(monkeypatch):
 
     monkeypatch.setattr(pkce_mod.settings, "enable_rfc7636", False)
     assert pkce_mod.verify_code_challenge("short", "bad")
+
+
+@pytest.mark.unit
+def test_verification_skipped_with_param(monkeypatch):
+    """Passing ``enabled=False`` bypasses verification."""
+
+    monkeypatch.setattr(pkce_mod.settings, "enable_rfc7636", True)
+    assert pkce_mod.verify_code_challenge("short", "bad", enabled=False)

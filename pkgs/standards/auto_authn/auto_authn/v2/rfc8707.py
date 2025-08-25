@@ -12,6 +12,8 @@ from __future__ import annotations
 from typing import Optional, Sequence
 from urllib.parse import urlparse
 
+RFC8707_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8707"
+
 
 def extract_resource(resources: Sequence[str]) -> Optional[str]:
     """Return the first valid resource indicator from ``resources``.
@@ -29,4 +31,4 @@ def extract_resource(resources: Sequence[str]) -> Optional[str]:
     return resources[0]
 
 
-__all__ = ["extract_resource"]
+__all__ = ["extract_resource", "RFC8707_SPEC_URL"]

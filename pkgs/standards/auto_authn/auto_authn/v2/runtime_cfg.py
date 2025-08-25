@@ -68,7 +68,8 @@ class Settings(BaseSettings):
     )
     enable_rfc8705: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8705", "false").lower()
-        in {"1", "true", "yes"}
+        in {"1", "true", "yes"},
+        description=("Enable OAuth 2.0 Mutual-TLS client authentication per RFC 8705"),
     )
     enable_rfc7636: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7636", "true").lower()
@@ -76,7 +77,8 @@ class Settings(BaseSettings):
         description="Enable Proof Key for Code Exchange per RFC 7636",
     )
     enforce_rfc8252: bool = Field(
-        default=True,
+        default=os.environ.get("AUTO_AUTHN_ENFORCE_RFC8252", "true").lower()
+        in {"1", "true", "yes"},
         description="Validate redirect URIs according to RFC 8252",
     )
     enable_rfc7662: bool = Field(
@@ -101,6 +103,11 @@ class Settings(BaseSettings):
         in {"1", "true", "yes"},
         description="Enable OAuth 2.0 Authorization Server Metadata per RFC 8414",
     )
+    enable_rfc6750: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC6750", "true").lower()
+        in {"1", "true", "yes"},
+        description="Enable Bearer Token Usage per RFC 6750",
+    )
     enable_rfc6750_query: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC6750_QUERY", "false").lower()
         in {"1", "true", "yes"},
@@ -117,6 +124,11 @@ class Settings(BaseSettings):
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC6749", "true").lower()
         in {"1", "true", "yes"},
         description="Enforce core OAuth 2.0 error handling per RFC 6749",
+    )
+    enable_rfc8628: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8628", "true").lower()
+        in {"1", "true", "yes"},
+        description="Enable Device Authorization Grant per RFC 8628",
     )
 
     model_config = SettingsConfigDict(env_file=None)

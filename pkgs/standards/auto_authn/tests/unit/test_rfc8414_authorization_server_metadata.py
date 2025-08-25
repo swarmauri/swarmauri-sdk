@@ -5,6 +5,7 @@ from fastapi import FastAPI, status
 from httpx import ASGITransport, AsyncClient
 
 from auto_authn.v2.rfc8414 import router
+from auto_authn.v2.runtime_cfg import settings
 
 # RFC 8414 specification excerpt for reference within tests
 RFC8414_SPEC = """
@@ -37,8 +38,6 @@ async def test_metadata_endpoint_returns_404_when_disabled():
     """RFC 8414 §3: Endpoint may be disabled and should return 404."""
     app = FastAPI()
     app.include_router(router)
-    from auto_authn.v2.runtime_cfg import settings
-
     original = settings.enable_rfc8414
     settings.enable_rfc8414 = False
     try:

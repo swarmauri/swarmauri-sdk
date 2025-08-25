@@ -69,6 +69,58 @@ async def test_invalid_resource_returns_error(monkeypatch):
 
 @pytest.mark.unit
 @pytest.mark.asyncio
+async def test_multiple_resources_uses_first(monkeypatch):
+    """RFC 8707 §2: first valid resource is used as audience."""
+    app = FastAPI()
+    app.include_router(router)
+    mock_user = MagicMock(id="user", tenant_id="tenant")
+    monkeypatch.setattr(settings, "rfc8707_enabled", True)
+    monkeypatch.setattr(
+        "auto_authn.v2.routers.auth_flows._pwd_backend.authenticate",
+        AsyncMock(return_value=mock_user),
+    )
+    app.dependency_overrides[get_async_db] = lambda: AsyncMock()
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.post(
+            "/token",
+            data={
+                "grant_type": "password",
+                "username": "u",
+                "password": "p",
+                "resource": ["https://rs.example", "https://api.example"],
+            },
+        )
+    assert resp.status_code == status.HTTP_200_OK
+    payload = _jwt.decode(resp.json()["access_token"])
+    assert payload["aud"] == "https://rs.example"
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_multiple_resources_with_invalid_returns_error(monkeypatch):
+    """RFC 8707 §2: any invalid resource causes 'invalid_target'."""
+    app = FastAPI()
+    app.include_router(router)
+    monkeypatch.setattr(settings, "rfc8707_enabled", True)
+    app.dependency_overrides[get_async_db] = lambda: AsyncMock()
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.post(
+            "/token",
+            data={
+                "grant_type": "password",
+                "username": "u",
+                "password": "p",
+                "resource": ["https://rs.example", "not-a-uri"],
+            },
+        )
+    assert resp.status_code == status.HTTP_400_BAD_REQUEST
+    assert resp.json()["error"] == "invalid_target"
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
 async def test_feature_flag_disables_resource(monkeypatch):
     """When disabled, resource parameter is ignored."""
     app = FastAPI()
