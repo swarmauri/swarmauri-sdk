@@ -50,7 +50,7 @@ class RemoteAuthNAdapter(AuthNProvider):
         client: httpx.AsyncClient | None = None,
     ) -> None:
         self.base_url = base_url.rstrip("/")
-        self._introspect = f"{self.base_url}/api_key/introspect"
+        self._introspect = f"{self.base_url}/introspect"
         self._client = client or httpx.AsyncClient(
             timeout=timeout,
             headers={"User-Agent": "autoauthn-remote-adapter"},
@@ -136,7 +136,7 @@ class RemoteAuthNAdapter(AuthNProvider):
     # ------------------------------------------------------------------ #
     async def _introspect_key(self, api_key: str) -> dict | None:
         try:
-            resp = await self._client.post(self._introspect, json={"api_key": api_key})
+            resp = await self._client.post(self._introspect, data={"token": api_key})
         except Exception:
             return None
 
@@ -144,12 +144,13 @@ class RemoteAuthNAdapter(AuthNProvider):
             return None
 
         try:
-            principal = resp.json()
-            if not isinstance(principal, dict):
-                return None
-            return principal
+            body = resp.json()
         except Exception:
             return None
+
+        if not isinstance(body, dict) or not body.get("active"):
+            return None
+        return body
 
     def _cache_get(self, key: str) -> dict | None:
         hit = self._cache.get(key)

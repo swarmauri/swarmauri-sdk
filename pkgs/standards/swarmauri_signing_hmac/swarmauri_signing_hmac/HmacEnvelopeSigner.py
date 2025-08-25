@@ -184,7 +184,7 @@ class HmacEnvelopeSigner(SigningBase):
             alg_for_key = prefer_alg or JWAAlg.HS256
             hash_ctor = _alg_to_hash(alg_for_key)
             secret, kid = _resolve_secret(entry, hash_ctor=hash_ctor)
-            keys.append((alg_for_key, kid, secret))
+            keys.append((kid, secret))
 
         accepted = 0
         for sig in signatures:
@@ -208,9 +208,9 @@ class HmacEnvelopeSigner(SigningBase):
             ok_one = False
             iter_keys = keys
             if isinstance(sig_kid, str):
-                iter_keys = [k for k in keys if k[1] == sig_kid] or keys
+                iter_keys = [k for k in keys if k[0] == sig_kid] or keys
 
-            for _, _, secret in iter_keys:
+            for _, secret in iter_keys:
                 calc = hmac.new(secret, payload, hash_ctor).digest()
                 if hmac.compare_digest(calc, bytes(sig_bytes)):
                     ok_one = True

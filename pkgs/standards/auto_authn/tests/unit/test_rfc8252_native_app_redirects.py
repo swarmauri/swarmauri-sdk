@@ -3,6 +3,13 @@
 RFC 8252 section 7 restricts redirect URIs for native applications to
 private-use URI schemes or loopback addresses with a dynamically chosen
 port. The tests below assert that auto_authn enforces these rules.
+
+Excerpt from RFC 8252 section 7:
+
+    Native applications MUST use a private-use URI scheme or the loopback
+    interface with an HTTP(s) scheme for redirect URIs.
+
+This text is embedded so tests clearly reference the specification.
 """
 
 import uuid
@@ -11,6 +18,13 @@ import pytest
 
 from auto_authn.v2.rfc8252 import is_native_redirect_uri
 from auto_authn.v2.orm.tables import Client
+from auto_authn.v2.runtime_cfg import settings
+
+RFC8252_SPEC = (
+    "Native applications MUST use a private-use URI scheme or the loopback "
+    "interface with an HTTP(s) scheme for redirect URIs."
+)
+assert RFC8252_SPEC  # include spec text for traceability
 
 
 @pytest.mark.unit
@@ -55,3 +69,17 @@ def test_client_new_accepts_loopback_redirect() -> None:
         ["http://localhost:8080/callback"],
     )
     assert client.redirect_uris == "http://localhost:8080/callback"
+
+
+@pytest.mark.unit
+def test_client_new_allows_public_redirect_when_disabled(monkeypatch) -> None:
+    """Non-compliant redirect URIs are allowed when RFC 8252 checks are off."""
+    monkeypatch.setattr(settings, "enforce_rfc8252", False)
+    tenant_id = uuid.uuid4()
+    client = Client.new(
+        tenant_id,
+        "client9999",
+        "secret",
+        ["http://example.com/callback"],
+    )
+    assert client.redirect_uris == "http://example.com/callback"

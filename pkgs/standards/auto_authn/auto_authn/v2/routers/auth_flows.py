@@ -9,7 +9,7 @@ Public-facing credential endpoints:
     • POST /token          (OAuth2 password grant)
     • POST /logout
     • POST /token/refresh
-    • POST /apikeys/introspect
+    • POST /introspect
 
 Notes
 -----
@@ -25,9 +25,9 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 from uuid import uuid4
-from typing import Any, Dict, Literal
+from typing import Any, Dict, Literal, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
 from pydantic import BaseModel, EmailStr, Field, ValidationError, constr
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -37,7 +37,10 @@ from ..jwtoken import JWTCoder
 from ..backends import PasswordBackend, ApiKeyBackend, AuthError
 from ..fastapi_deps import get_async_db
 from ..orm.tables import Tenant, User
+from ..runtime_cfg import settings
 from ..typing import StrUUID
+from ..runtime_cfg import settings
+from ..rfc8707 import extract_resource
 from autoapi.v2.error import IntegrityError
 
 router = APIRouter()
@@ -81,14 +84,11 @@ class RefreshIn(BaseModel):
     refresh_token: str
 
 
-class ApiKeyIn(BaseModel):
-    api_key: str
-
-
 class IntrospectOut(BaseModel):
-    sub: StrUUID
-    tid: StrUUID
-    kind: str
+    active: bool
+    sub: Optional[StrUUID] = None
+    tid: Optional[StrUUID] = None
+    kind: Optional[str] = None
 
 
 class DeviceAuthIn(BaseModel):
@@ -220,8 +220,18 @@ async def token(
     request: Request, db: AsyncSession = Depends(get_async_db)
 ) -> TokenPair:
     form = await request.form()
+    resources = form.getlist("resource")
     data = dict(form)
+    data.pop("resource", None)
     grant_type = data.get("grant_type")
+    aud = None
+    if settings.rfc8707_enabled:
+        try:
+            aud = extract_resource(resources)
+        except ValueError:
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST, {"error": "invalid_target"}
+            )
     if grant_type == "password":
         try:
             parsed = PasswordGrantForm(**data)
@@ -231,7 +241,10 @@ async def token(
             user = await _pwd_backend.authenticate(db, parsed.username, parsed.password)
         except AuthError:
             raise HTTPException(status.HTTP_404_NOT_FOUND, "invalid credentials")
-        access, refresh = _jwt.sign_pair(sub=str(user.id), tid=str(user.tenant_id))
+        jwt_kwargs = {"aud": aud} if aud else {}
+        access, refresh = _jwt.sign_pair(
+            sub=str(user.id), tid=str(user.tenant_id), **jwt_kwargs
+        )
         return TokenPair(access_token=access, refresh_token=refresh)
     if grant_type == "urn:ietf:params:oauth:grant-type:device_code":
         try:
@@ -248,9 +261,11 @@ async def token(
             raise HTTPException(
                 status.HTTP_400_BAD_REQUEST, {"error": "authorization_pending"}
             )
+        jwt_kwargs = {"aud": aud} if aud else {}
         access, refresh = _jwt.sign_pair(
             sub=record.get("sub", "device-user"),
             tid=record.get("tid", "device-tenant"),
+            **jwt_kwargs,
         )
         _DEVICE_CODES.pop(parsed.device_code, None)
         return TokenPair(access_token=access, refresh_token=refresh)
@@ -287,13 +302,19 @@ async def refresh(body: RefreshIn):
 
 
 # --------------------------------------------------------------------------
-#  API-key introspection – **does not** clash with /authn/api_keys CRUD
+#  RFC 7662 token introspection
 # --------------------------------------------------------------------------
-@router.post("/api_key/introspect", response_model=IntrospectOut)
-async def introspect_key(body: ApiKeyIn, db: AsyncSession = Depends(get_async_db)):
+@router.post("/introspect", response_model=IntrospectOut)
+async def introspect(token: str = Form(...), db: AsyncSession = Depends(get_async_db)):
+    if not settings.enable_rfc7662:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "introspection disabled")
     try:
-        principal, kind = await _api_backend.authenticate(db, body.api_key)
-    except AuthError as exc:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, exc.reason)
-
-    return IntrospectOut(sub=str(principal.id), tid=str(principal.tenant_id), kind=kind)
+        principal, kind = await _api_backend.authenticate(db, token)
+    except AuthError:
+        return IntrospectOut(active=False)
+    return IntrospectOut(
+        active=True,
+        sub=str(principal.id),
+        tid=str(principal.tenant_id),
+        kind=kind,
+    )
