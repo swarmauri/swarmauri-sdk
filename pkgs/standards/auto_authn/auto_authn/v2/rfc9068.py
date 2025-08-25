@@ -8,9 +8,12 @@ It is designed to be feature-flagged via ``enable_rfc9068`` in
 
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, Set
+from typing import Any, Dict, Final, Iterable, Set
 
 from jwt.exceptions import InvalidTokenError
+
+
+RFC9068_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc9068"
 
 
 def add_rfc9068_claims(

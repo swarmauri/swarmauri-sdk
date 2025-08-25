@@ -3,7 +3,8 @@
 RFC 9068 defines a profile for issuing OAuth 2.0 access tokens as JWTs.
 The tests verify that when the feature is enabled the mandatory ``iss`` and
 ``aud`` claims are required and validated, and that the behaviour is bypassed
-when the feature flag is disabled.
+when the feature flag is disabled. For the full specification see
+``RFC9068_SPEC_URL``.
 """
 
 import pytest
@@ -13,7 +14,17 @@ from jwt.exceptions import InvalidTokenError
 
 from auto_authn.v2 import runtime_cfg
 from auto_authn.v2.jwtoken import JWTCoder
-from auto_authn.v2.rfc9068 import add_rfc9068_claims, validate_rfc9068_claims
+from auto_authn.v2.rfc9068 import (
+    RFC9068_SPEC_URL,
+    add_rfc9068_claims,
+    validate_rfc9068_claims,
+)
+
+
+@pytest.mark.unit
+def test_spec_url_constant():
+    """The RFC 9068 spec URL is exposed for reference."""
+    assert RFC9068_SPEC_URL.endswith("rfc9068")
 
 
 @pytest.mark.unit
@@ -26,6 +37,18 @@ def test_helpers_apply_and_validate():
     validate_rfc9068_claims(augmented, issuer="issuer", audience=["api"])
     with pytest.raises(InvalidTokenError):
         validate_rfc9068_claims(augmented, issuer="other", audience=["api"])
+
+
+@pytest.mark.unit
+def test_validate_requires_mandatory_claims():
+    """Missing ``iss``, ``aud``, ``sub``, or ``exp`` triggers errors."""
+    base = {"sub": "alice", "exp": 1}
+    augmented = add_rfc9068_claims(base, issuer="issuer", audience="api")
+    for claim in ("iss", "aud", "sub", "exp"):
+        bad = dict(augmented)
+        bad.pop(claim)
+        with pytest.raises(InvalidTokenError):
+            validate_rfc9068_claims(bad, issuer="issuer", audience="api")
 
 
 @pytest.mark.unit

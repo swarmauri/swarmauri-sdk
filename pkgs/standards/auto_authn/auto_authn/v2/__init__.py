@@ -1,7 +1,8 @@
 """auto_authn.v2 – OAuth utilities and helpers.
 
 This package aggregates optional helpers for various OAuth 2.0 RFCs such as
-RFC 7636 (PKCE) and RFC 8705 (mutual-TLS client authentication).
+RFC 7636 (PKCE), RFC 8705 (mutual-TLS client authentication), and
+RFC 9068 (JWT profile for OAuth 2.0 access tokens).
 """
 
 from .rfc7636_pkce import (
@@ -22,7 +23,11 @@ from .rfc9207 import RFC9207_SPEC_URL, extract_issuer
 from .rfc9126 import store_par_request, get_par_request, reset_par_store
 from .rfc8707 import extract_resource, RFC8707_SPEC_URL
 from .rfc8705 import thumbprint_from_cert_pem, validate_certificate_binding
-from .rfc9068 import add_rfc9068_claims, validate_rfc9068_claims
+from .rfc9068 import (
+    RFC9068_SPEC_URL,
+    add_rfc9068_claims,
+    validate_rfc9068_claims,
+)
 from .rfc8252 import is_native_redirect_uri, validate_native_redirect_uri
 
 __all__ = [
@@ -40,6 +45,7 @@ __all__ = [
     "extract_resource",
     "RFC8707_SPEC_URL",
     "RFC9207_SPEC_URL",
+    "RFC9068_SPEC_URL",
     "introspect_token",
     "register_token",
     "reset_tokens",
