@@ -16,7 +16,23 @@ from .runtime_cfg import settings
 
 RFC8812_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc8812"
 
-WEBAUTHN_ALGORITHMS: Final[set[str]] = {"RS256", "RS384", "RS512", "RS1", "ES256K"}
+# Algorithms registered for WebAuthn. Using ``frozenset`` prevents accidental
+# mutation of the registry at runtime.
+WEBAUTHN_ALGORITHMS: Final[frozenset[str]] = frozenset(
+    {
+        "RS256",
+        "RS384",
+        "RS512",
+        "RS1",
+        "PS256",
+        "PS384",
+        "PS512",
+        "ES256",
+        "ES384",
+        "ES512",
+        "ES256K",
+    }
+)
 
 
 def is_webauthn_algorithm(alg: str, *, enabled: bool | None = None) -> bool:
