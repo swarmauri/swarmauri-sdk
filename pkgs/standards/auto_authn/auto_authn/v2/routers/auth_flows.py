@@ -1,31 +1,32 @@
-"""
-autoapi_authn.routers.auth_flows
-================================
+"""Credential and token flow endpoints.
 
-Public-facing credential endpoints:
+This router exposes the core credential flow endpoints:
 
-    • POST /register
-    • POST /login
-    • POST /token          (OAuth2 password grant)
-    • POST /logout
-    • POST /token/refresh
-    • POST /introspect
+* ``POST /register``
+* ``POST /login``
+* ``POST /token`` (OAuth2 password grant)
+* ``POST /logout``
+* ``POST /token/refresh``
+* ``POST /introspect``
+
+Additional OAuth 2.0 features such as device authorization, pushed
+authorization requests and token revocation are provided in dedicated modules
+and can be attached to the application conditionally.
 
 Notes
 -----
 * CRUD for tenants / clients / users / api_keys is already provided by
-  AutoAPI under `/authn/<resource>` and is **not** re-implemented here.
+  AutoAPI under ``/authn/<resource>`` and is **not** re-implemented here.
 * All endpoints are JSON; schemas are strict (Pydantic).
-* `logout` is implemented as a no-op stub — token revocation / key
+* ``logout`` is implemented as a no-op stub — token revocation / key
   deactivation should be wired to your datastore or cache later.
 """
 
 from __future__ import annotations
 
 
-from datetime import datetime, timedelta
-from uuid import uuid4
-from typing import Any, Dict, Literal, Optional
+from datetime import datetime
+from typing import Literal, Optional
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
 from fastapi.responses import JSONResponse
@@ -49,6 +50,7 @@ from ..rfc6749 import (
     enforce_password_grant,
     is_enabled as rfc6749_enabled,
 )
+from ..rfc8628 import DEVICE_CODES, DeviceGrantForm
 from autoapi.v2.error import IntegrityError
 
 router = APIRouter()
@@ -57,16 +59,9 @@ _jwt = JWTCoder.default()
 _pwd_backend = PasswordBackend()
 _api_backend = ApiKeyBackend()
 
-# In-memory store for device authorization data as per RFC 8628
-_DEVICE_CODES: Dict[str, Dict[str, Any]] = {}
-_DEVICE_VERIFICATION_URI = "https://example.com/device"
-_DEVICE_CODE_EXPIRES_IN = 600  # seconds
-_DEVICE_CODE_INTERVAL = 5  # seconds
-
-_ALLOWED_GRANT_TYPES = {
-    "password",
-    "urn:ietf:params:oauth:grant-type:device_code",
-}
+_ALLOWED_GRANT_TYPES = {"password"}
+if settings.enable_rfc8628:
+    _ALLOWED_GRANT_TYPES.add("urn:ietf:params:oauth:grant-type:device_code")
 
 # ============================================================================
 #  Helper Pydantic models
@@ -104,34 +99,10 @@ class IntrospectOut(BaseModel):
     kind: Optional[str] = None
 
 
-class DeviceAuthIn(BaseModel):
-    """Request body for RFC 8628 device authorization."""
-
-    client_id: str
-    scope: str | None = None
-
-
-class DeviceAuthOut(BaseModel):
-    """Response body for RFC 8628 device authorization."""
-
-    device_code: str
-    user_code: str
-    verification_uri: str
-    verification_uri_complete: str
-    expires_in: int
-    interval: int
-
-
 class PasswordGrantForm(BaseModel):
     grant_type: Literal["password"]
     username: str
     password: str
-
-
-class DeviceGrantForm(BaseModel):
-    grant_type: Literal["urn:ietf:params:oauth:grant-type:device_code"]
-    device_code: str
-    client_id: str
 
 
 # ============================================================================
@@ -196,40 +167,6 @@ async def login(body: CredsIn, db: AsyncSession = Depends(get_async_db)):
     return TokenPair(access_token=access, refresh_token=refresh)
 
 
-@router.post("/device_authorization", response_model=DeviceAuthOut)
-async def device_authorization(body: DeviceAuthIn) -> DeviceAuthOut:
-    device_code = uuid4().hex
-    user_code = uuid4().hex[:8]
-    verification_uri = _DEVICE_VERIFICATION_URI
-    verification_uri_complete = f"{verification_uri}?user_code={user_code}"
-    expires_at = datetime.utcnow() + timedelta(seconds=_DEVICE_CODE_EXPIRES_IN)
-    _DEVICE_CODES[device_code] = {
-        "user_code": user_code,
-        "client_id": body.client_id,
-        "expires_at": expires_at,
-        "interval": _DEVICE_CODE_INTERVAL,
-        "authorized": False,
-        "sub": None,
-        "tid": None,
-    }
-    return DeviceAuthOut(
-        device_code=device_code,
-        user_code=user_code,
-        verification_uri=verification_uri,
-        verification_uri_complete=verification_uri_complete,
-        expires_in=_DEVICE_CODE_EXPIRES_IN,
-        interval=_DEVICE_CODE_INTERVAL,
-    )
-
-
-def approve_device_code(device_code: str, sub: str, tid: str) -> None:
-    """Mark a device code as authorized for testing purposes."""
-    if device_code in _DEVICE_CODES:
-        _DEVICE_CODES[device_code]["authorized"] = True
-        _DEVICE_CODES[device_code]["sub"] = sub
-        _DEVICE_CODES[device_code]["tid"] = tid
-
-
 @router.post("/token", response_model=TokenPair)
 async def token(
     request: Request, db: AsyncSession = Depends(get_async_db)
@@ -278,11 +215,11 @@ async def token(
             parsed = DeviceGrantForm(**data)
         except ValidationError as exc:
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, exc.errors())
-        record = _DEVICE_CODES.get(parsed.device_code)
+        record = DEVICE_CODES.get(parsed.device_code)
         if not record or record["client_id"] != parsed.client_id:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_grant"})
         if datetime.utcnow() > record["expires_at"]:
-            _DEVICE_CODES.pop(parsed.device_code, None)
+            DEVICE_CODES.pop(parsed.device_code, None)
             raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "expired_token"})
         if not record.get("authorized"):
             raise HTTPException(
@@ -294,7 +231,7 @@ async def token(
             tid=record.get("tid", "device-tenant"),
             **jwt_kwargs,
         )
-        _DEVICE_CODES.pop(parsed.device_code, None)
+        DEVICE_CODES.pop(parsed.device_code, None)
         return TokenPair(access_token=access, refresh_token=refresh)
     if rfc6749_enabled():
         return JSONResponse(
@@ -334,18 +271,6 @@ async def refresh(body: RefreshIn):
 
 
 # --------------------------------------------------------------------------
-#  RFC 9126 pushed authorization requests
-# --------------------------------------------------------------------------
-@router.post("/par", status_code=status.HTTP_201_CREATED)
-async def pushed_authorization_request(request: Request):
-    if not settings.enable_rfc9126:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "PAR disabled")
-    form = await request.form()
-    request_uri = store_par_request(dict(form))
-    return {"request_uri": request_uri, "expires_in": DEFAULT_PAR_EXPIRY}
-
-
-# --------------------------------------------------------------------------
 #  RFC 7662 token introspection
 # --------------------------------------------------------------------------
 @router.post("/introspect", response_model=IntrospectOut)
@@ -362,14 +287,3 @@ async def introspect(token: str = Form(...), db: AsyncSession = Depends(get_asyn
         tid=str(principal.tenant_id),
         kind=kind,
     )
-
-
-# --------------------------------------------------------------------------
-#  RFC 7009 token revocation
-# --------------------------------------------------------------------------
-@router.post("/revoke")
-async def revoke(token: str = Form(...), token_type_hint: str | None = Form(None)):
-    if not settings.enable_rfc7009:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "revocation disabled")
-    revoke_token(token)
-    return {}

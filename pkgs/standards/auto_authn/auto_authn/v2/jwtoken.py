@@ -11,6 +11,7 @@ from .deps import (
     ExportPolicy,
     FileKeyProvider,
     JWTTokenService,
+    LocalKeyProvider,
     JWAAlg,
     KeyAlg,
     KeyClass,
@@ -47,13 +48,47 @@ def _svc() -> Tuple[JWTTokenService, str]:
 
 
 class JWTCoder:
-    """Stateless JWT helper backed by ``JWTTokenService``."""
+    """Stateless JWT helper backed by ``JWTTokenService``.
+
+    ``JWTCoder`` historically accepted a private/public key pair and
+    constructed its own :class:`JWTTokenService`.  Recent refactoring switched
+    the constructor to require an already configured service instance.  The
+    tests for RFC 9068 still rely on the original behaviour, so the
+    initializer now supports both invocation styles:
+
+    ``JWTCoder(service, kid)`` -- use the provided service directly.
+
+    ``JWTCoder(private_key_pem, public_key_pem)`` -- build an ephemeral
+    service from the PEM encoded Ed25519 key pair.
+    """
 
     __slots__ = ("_svc", "_kid")
 
-    def __init__(self, service: JWTTokenService, kid: str):
-        self._svc = service
-        self._kid = kid
+    def __init__(self, arg1: JWTTokenService | bytes, arg2: str | bytes):
+        if isinstance(arg1, JWTTokenService) and isinstance(arg2, str):
+            self._svc = arg1
+            self._kid = arg2
+            return
+
+        if isinstance(arg1, (bytes, bytearray)) and isinstance(
+            arg2, (bytes, bytearray)
+        ):
+            kp = LocalKeyProvider()
+            spec = KeySpec(
+                klass=KeyClass.asymmetric,
+                alg=KeyAlg.ED25519,
+                uses=(KeyUse.SIGN, KeyUse.VERIFY),
+                export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
+                label="jwt_ed25519",
+            )
+            ref = asyncio.run(kp.import_key(spec, arg1, public=arg2))
+            self._svc = JWTTokenService(kp)
+            self._kid = ref.kid
+            return
+
+        raise TypeError(
+            "JWTCoder requires (JWTTokenService, kid) or (private_pem, public_pem)"
+        )
 
     @classmethod
     def default(cls) -> "JWTCoder":

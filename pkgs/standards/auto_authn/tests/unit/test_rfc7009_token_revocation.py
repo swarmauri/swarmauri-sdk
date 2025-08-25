@@ -4,7 +4,7 @@ import pytest
 from fastapi import FastAPI, status
 from httpx import ASGITransport, AsyncClient
 
-from auto_authn.v2.routers.auth_flows import router
+from auto_authn.v2.rfc7009 import router
 from auto_authn.v2.fastapi_deps import get_async_db
 from auto_authn.v2.runtime_cfg import settings
 from auto_authn.v2.rfc7009 import is_revoked, reset_revocations

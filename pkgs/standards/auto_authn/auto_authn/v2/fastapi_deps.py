@@ -30,7 +30,6 @@ from .orm.tables import User
 from .typing import Principal
 from .db import get_async_db
 from .jwtoken import JWTCoder
-from .crypto import public_key, signing_key
 from .runtime_cfg import settings
 from .rfc9449_dpop import verify_proof
 from .principal_ctx import principal_var
@@ -41,7 +40,7 @@ from .rfc6750 import extract_bearer_token
 # Backends + Coder
 # ---------------------------------------------------------------------
 _api_key_backend = ApiKeyBackend()
-_jwt_coder = JWTCoder(public_key, signing_key)
+_jwt_coder = JWTCoder.default()
 
 
 # ---------------------------------------------------------------------
