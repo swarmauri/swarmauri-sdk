@@ -35,7 +35,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..crypto import hash_pw
-from ..jwtoken import JWTCoder
+from ..jwtoken import JWTCoder, InvalidTokenError
 from ..backends import PasswordBackend, ApiKeyBackend, AuthError
 from ..fastapi_deps import get_async_db
 from ..orm.tables import Tenant, User
@@ -279,6 +279,22 @@ async def introspect(request: Request, db: AsyncSession = Depends(get_async_db))
     token = form.get("token")
     if not token:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "token parameter required")
+
+    # First attempt to verify the token as a JWT using our internal service.
+    try:
+        payload = await _jwt.async_decode(token)
+    except InvalidTokenError:
+        payload = None
+
+    if payload is not None:
+        return IntrospectOut(
+            active=True,
+            sub=payload.get("sub"),
+            tid=payload.get("tid"),
+            kind=payload.get("typ"),
+        )
+
+    # Fallback to API-key authentication if JWT verification fails.
     try:
         principal, kind = await _api_backend.authenticate(db, token)
     except AuthError:
