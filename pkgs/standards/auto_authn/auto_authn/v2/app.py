@@ -29,6 +29,7 @@ from .rfc9126 import include_rfc9126
 from .rfc7009 import include_rfc7009
 from .rfc8693 import include_rfc8693
 from .rfc7591 import include_rfc7591
+from .oidc_userinfo import include_oidc_userinfo
 
 
 # --------------------------------------------------------------------
@@ -54,6 +55,7 @@ if settings.enable_rfc8693:
     include_rfc8693(app)
 if settings.enable_rfc7591:
     include_rfc7591(app)
+include_oidc_userinfo(app)
 if settings.enable_rfc8414:
     include_rfc8414(app)
 
