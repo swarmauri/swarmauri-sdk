@@ -98,6 +98,10 @@ class Settings(BaseSettings):
         in {"1", "true", "yes"},
         description="Enable OAuth 2.0 Authorization Server Metadata per RFC 8414",
     )
+    enable_rfc9207: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC9207", "false").lower()
+        in {"1", "true", "yes"},
+        description="Enable Authorization Server Issuer Identification per RFC 9207",
     enable_rfc9126: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC9126", "false").lower()
         in {"1", "true", "yes"},
