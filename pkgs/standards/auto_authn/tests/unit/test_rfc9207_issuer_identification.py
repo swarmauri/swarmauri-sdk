@@ -13,7 +13,7 @@ validate the stated requirements.
 
 import pytest
 
-from auto_authn.v2 import extract_issuer
+from auto_authn.v2 import RFC9207_SPEC_URL, extract_issuer
 from auto_authn.v2.runtime_cfg import settings
 
 
@@ -33,10 +33,22 @@ def test_extract_issuer_mismatch(monkeypatch):
 
 
 @pytest.mark.unit
+def test_extract_issuer_missing(monkeypatch):
+    monkeypatch.setattr(settings, "enable_rfc9207", True)
+    with pytest.raises(ValueError):
+        extract_issuer({}, "https://as.example.com")
+
+
+@pytest.mark.unit
 def test_extract_issuer_disabled(monkeypatch):
     monkeypatch.setattr(settings, "enable_rfc9207", False)
     with pytest.raises(NotImplementedError):
         extract_issuer({"iss": "https://as.example.com"}, "https://as.example.com")
+
+
+@pytest.mark.unit
+def test_spec_url_constant():
+    assert RFC9207_SPEC_URL == "https://www.rfc-editor.org/rfc/rfc9207"
 
 
 # RFC 9207 full specification text appended for reference
