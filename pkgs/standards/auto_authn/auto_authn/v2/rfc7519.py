@@ -18,7 +18,8 @@ def encode_jwt(**claims) -> str:
     """Encode *claims* as a JWT string."""
     if not settings.enable_rfc7519:
         raise RuntimeError(f"RFC 7519 support disabled: {RFC7519_SPEC_URL}")
-    return JWTCoder.default().sign(**claims)
+    sub = claims.pop("sub", "")
+    return JWTCoder.default().sign(sub=sub, **claims)
 
 
 def decode_jwt(token: str) -> dict:
