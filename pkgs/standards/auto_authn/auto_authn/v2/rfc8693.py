@@ -12,7 +12,7 @@ from __future__ import annotations
 from typing import Dict, Any, Optional, Union, List
 from enum import Enum
 
-from fastapi import APIRouter, FastAPI
+from fastapi import APIRouter, FastAPI, Form, HTTPException, status
 
 from .runtime_cfg import settings
 from .rfc7519 import decode_jwt
@@ -285,6 +285,34 @@ def exchange_token(
     )
 
 
+@router.post("/token/exchange")
+async def token_exchange_endpoint(
+    grant_type: str = Form(...),
+    subject_token: str = Form(...),
+    subject_token_type: str = Form(...),
+    actor_token: str | None = Form(None),
+    actor_token_type: str | None = Form(None),
+    audience: str | None = Form(None),
+    scope: str | None = Form(None),
+):
+    """RFC 8693 token exchange endpoint."""
+
+    if not settings.enable_rfc8693:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "token exchange disabled")
+
+    request = validate_token_exchange_request(
+        grant_type=grant_type,
+        subject_token=subject_token,
+        subject_token_type=subject_token_type,
+        actor_token=actor_token,
+        actor_token_type=actor_token_type,
+        audience=audience,
+        scope=scope,
+    )
+    response = exchange_token(request, issuer="token-exchange")
+    return response.to_dict()
+
+
 def create_impersonation_token(
     subject_token: str,
     actor_token: str,
@@ -362,6 +390,7 @@ __all__ = [
     "create_delegation_token",
     "TOKEN_EXCHANGE_GRANT_TYPE",
     "RFC8693_SPEC_URL",
+    "token_exchange_endpoint",
     "include_rfc8693",
     "router",
 ]
