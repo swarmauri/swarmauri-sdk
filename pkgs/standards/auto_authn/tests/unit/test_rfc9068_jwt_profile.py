@@ -9,7 +9,7 @@ when the feature flag is disabled.
 import pytest
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519
-from jwt.exceptions import InvalidTokenError
+from auto_authn.v2.exceptions import InvalidTokenError
 
 from auto_authn.v2 import runtime_cfg
 from auto_authn.v2.jwtoken import JWTCoder

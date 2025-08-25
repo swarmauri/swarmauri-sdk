@@ -7,7 +7,7 @@ import time
 from unittest.mock import patch
 
 import pytest
-from jwt.exceptions import InvalidTokenError
+from auto_authn.v2.exceptions import InvalidTokenError
 
 from auto_authn.v2 import encode_jwt
 from auto_authn.v2.rfc7523 import (

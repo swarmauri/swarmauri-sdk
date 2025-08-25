@@ -4,11 +4,12 @@ Spec URL: https://www.rfc-editor.org/rfc/rfc8725
 """
 
 from datetime import datetime, timedelta, timezone
+import base64
+import json
 
-import jwt
 import pytest
-from jwt import InvalidTokenError
 
+from auto_authn.v2.exceptions import InvalidTokenError
 from auto_authn.v2.jwtoken import JWTCoder
 from auto_authn.v2.rfc8725 import RFC8725_SPEC_URL, validate_jwt_best_practices
 from auto_authn.v2.runtime_cfg import settings
@@ -35,7 +36,14 @@ def test_rejects_none_algorithm(monkeypatch):
         "aud": "audience",
         "exp": datetime.now(timezone.utc) + timedelta(minutes=5),
     }
-    token = jwt.encode(payload, key="", algorithm="none")
+
+    def _b64(data: dict) -> str:
+        raw = json.dumps(data, separators=(",", ":")).encode()
+        return base64.urlsafe_b64encode(raw).rstrip(b"=").decode()
+
+    header = _b64({"alg": "none"})
+    body = _b64(payload)
+    token = f"{header}.{body}."
     with pytest.raises(InvalidTokenError):
         validate_jwt_best_practices(token)
 

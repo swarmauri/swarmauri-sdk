@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 from functools import lru_cache
 from typing import Any, Dict, Iterable, Optional, Tuple
 
-from jwt.exceptions import InvalidKeyError, InvalidTokenError
+from .exceptions import InvalidTokenError
 
 from .deps import (
     ExportPolicy,
@@ -208,7 +208,7 @@ class JWTCoder:
     ) -> Dict[str, Any]:
         try:
             payload = await self._svc.verify(token, issuer=issuer, audience=audience)
-        except InvalidKeyError as exc:
+        except Exception as exc:
             raise InvalidTokenError("unable to resolve verification key") from exc
         if verify_exp:
             exp = payload.get("exp")
