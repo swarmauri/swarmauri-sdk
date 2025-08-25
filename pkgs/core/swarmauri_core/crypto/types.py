@@ -46,6 +46,8 @@ class JWAAlg(str, Enum):
     """Registered JWA algorithm names from RFC 7518."""
 
     HS256 = "HS256"
+    HS384 = "HS384"
+    HS512 = "HS512"
     RS256 = "RS256"
     PS256 = "PS256"
     ES256 = "ES256"

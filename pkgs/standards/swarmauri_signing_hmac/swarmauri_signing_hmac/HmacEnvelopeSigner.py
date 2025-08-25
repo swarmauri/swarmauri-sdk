@@ -9,7 +9,7 @@ from typing import Any, Iterable, Mapping, Optional, Sequence
 
 from swarmauri_base.signing.SigningBase import SigningBase
 from swarmauri_core.signing.ISigning import Signature, Envelope, Canon
-from swarmauri_core.crypto.types import KeyRef, Alg
+from swarmauri_core.crypto.types import JWAAlg, KeyRef
 
 try:  # pragma: no cover - optional canonicalization
     import cbor2
@@ -36,15 +36,15 @@ def _canon_cbor(obj: Any) -> bytes:
     return cbor2.dumps(obj)
 
 
-def _alg_to_hash(alg: str):
+def _alg_to_hash(alg: JWAAlg):
     table = {
-        "HS256": hashlib.sha256,
-        "HS384": hashlib.sha384,
-        "HS512": hashlib.sha512,
+        JWAAlg.HS256: hashlib.sha256,
+        JWAAlg.HS384: hashlib.sha384,
+        JWAAlg.HS512: hashlib.sha512,
     }
     if alg not in table:
         raise ValueError(
-            f"Unsupported HMAC alg '{alg}'. Use one of: {', '.join(table)}"
+            f"Unsupported HMAC alg '{alg}'. Use one of: {', '.join(a.value for a in table)}"
         )
     return table[alg]
 
@@ -129,10 +129,10 @@ class _Sig:
 class HmacEnvelopeSigner(SigningBase):
     """Detached HMAC signatures over bytes and canonicalized envelopes."""
 
-    def supports(self) -> Mapping[str, Iterable[str]]:
+    def supports(self) -> Mapping[str, Iterable[JWAAlg]]:
         canons = ("json", "cbor") if _CBOR_OK else ("json",)
         return {
-            "algs": ("HS256", "HS384", "HS512"),
+            "algs": (JWAAlg.HS256, JWAAlg.HS384, JWAAlg.HS512),
             "canons": canons,
             "features": ("multi", "detached_only"),
         }
@@ -142,14 +142,14 @@ class HmacEnvelopeSigner(SigningBase):
         key: KeyRef,
         payload: bytes,
         *,
-        alg: Optional[Alg] = None,
+        alg: Optional[JWAAlg] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
-        alg_token = alg or "HS256"
+        alg_token = alg or JWAAlg.HS256
         hash_ctor = _alg_to_hash(alg_token)
         secret, kid = _resolve_secret(key, hash_ctor=hash_ctor)
         mac = hmac.new(secret, payload, hash_ctor).digest()
-        return [_Sig({"alg": alg_token, "kid": kid, "sig": mac})]
+        return [_Sig({"alg": alg_token.value, "kid": kid, "sig": mac})]
 
     async def verify_bytes(
         self,
@@ -160,21 +160,28 @@ class HmacEnvelopeSigner(SigningBase):
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
         req = require or {}
-        allowed_algs = set(req.get("algs") or ["HS256", "HS384", "HS512"])
+        allowed_algs = {
+            (a if isinstance(a, JWAAlg) else JWAAlg(a))
+            for a in (req.get("algs") or [JWAAlg.HS256, JWAAlg.HS384, JWAAlg.HS512])
+        }
         min_signers = int(req.get("min_signers", 1))
         required_kids = set(req.get("kids") or [])
 
-        keys: list[tuple[str, Any, bytes]] = []
+        keys: list[tuple[JWAAlg, str, bytes]] = []
         key_entries = (opts or {}).get("keys") or []
         if not isinstance(key_entries, (list, tuple)) or not key_entries:
             raise RuntimeError(
                 "HMAC verification requires opts['keys'] with one or more KeyRef entries."
             )
         for entry in key_entries:  # type: ignore[assignment]
-            prefer_alg = None
+            prefer_alg: Optional[JWAAlg] = None
             if isinstance(entry, dict) and "alg" in entry and entry["alg"] is not None:
-                prefer_alg = str(entry["alg"])
-            alg_for_key = prefer_alg or "HS256"
+                prefer_alg = (
+                    entry["alg"]
+                    if isinstance(entry["alg"], JWAAlg)
+                    else JWAAlg(entry["alg"])
+                )
+            alg_for_key = prefer_alg or JWAAlg.HS256
             hash_ctor = _alg_to_hash(alg_for_key)
             secret, kid = _resolve_secret(entry, hash_ctor=hash_ctor)
             keys.append((alg_for_key, kid, secret))
@@ -182,7 +189,11 @@ class HmacEnvelopeSigner(SigningBase):
         accepted = 0
         for sig in signatures:
             sig_alg = sig.get("alg")
-            if not isinstance(sig_alg, str) or sig_alg not in allowed_algs:
+            try:
+                sig_alg_enum = JWAAlg(sig_alg)
+            except Exception:
+                continue
+            if sig_alg_enum not in allowed_algs:
                 continue
             sig_bytes = sig.get("sig")
             if not isinstance(sig_bytes, (bytes, bytearray)):
@@ -193,7 +204,7 @@ class HmacEnvelopeSigner(SigningBase):
             ):
                 continue
 
-            hash_ctor = _alg_to_hash(sig_alg)
+            hash_ctor = _alg_to_hash(sig_alg_enum)
             ok_one = False
             iter_keys = keys
             if isinstance(sig_kid, str):
@@ -230,7 +241,7 @@ class HmacEnvelopeSigner(SigningBase):
         key: KeyRef,
         env: Envelope,
         *,
-        alg: Optional[Alg] = None,
+        alg: Optional[JWAAlg] = None,
         canon: Optional[Canon] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
