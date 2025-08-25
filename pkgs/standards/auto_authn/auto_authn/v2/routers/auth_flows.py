@@ -191,7 +191,9 @@ async def register(
             status.HTTP_500_INTERNAL_SERVER_ERROR, "database error"
         ) from exc
 
-    access, refresh = await _jwt.async_sign_pair(sub=str(user.id), tid=str(tenant.id))
+    access, refresh = await _jwt.async_sign_pair(
+        sub=str(user.id), tid=str(tenant.id), scope="openid profile email"
+    )
     session_id = secrets.token_urlsafe(16)
     SESSIONS[session_id] = {"sub": str(user.id), "tid": str(tenant.id)}
     id_token = mint_id_token(
@@ -218,7 +220,7 @@ async def login(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "invalid credentials")
 
     access, refresh = await _jwt.async_sign_pair(
-        sub=str(user.id), tid=str(user.tenant_id)
+        sub=str(user.id), tid=str(user.tenant_id), scope="openid profile email"
     )
     session_id = secrets.token_urlsafe(16)
     SESSIONS[session_id] = {"sub": str(user.id), "tid": str(user.tenant_id)}
@@ -282,6 +284,7 @@ async def authorize(
     params: list[tuple[str, str]] = []
     code: str | None = None
     access: str | None = None
+    scope_str = " ".join(sorted(scopes))
     if "code" in rts:
         code = secrets.token_urlsafe(32)
         AUTH_CODES[code] = {
@@ -291,11 +294,14 @@ async def authorize(
             "redirect_uri": redirect_uri,
             "code_challenge": code_challenge,
             "nonce": nonce,
+            "scope": scope_str,
             "expires_at": datetime.utcnow() + timedelta(minutes=10),
         }
         params.append(("code", code))
     if "token" in rts:
-        access = await _jwt.async_sign(sub=str(user.id), tid=str(user.tenant_id))
+        access = await _jwt.async_sign(
+            sub=str(user.id), tid=str(user.tenant_id), scope=scope_str
+        )
         params.append(("access_token", access))
         params.append(("token_type", "bearer"))
     if "id_token" in rts:
@@ -407,6 +413,7 @@ async def token(
         except AuthError:
             raise HTTPException(status.HTTP_404_NOT_FOUND, "invalid credentials")
         jwt_kwargs = {"aud": aud} if aud else {}
+        jwt_kwargs["scope"] = "openid profile email"
         access, refresh = await _jwt.async_sign_pair(
             sub=str(user.id), tid=str(user.tenant_id), **jwt_kwargs
         )
@@ -440,6 +447,8 @@ async def token(
                     {"error": "invalid_grant"}, status_code=status.HTTP_400_BAD_REQUEST
                 )
         jwt_kwargs = {"aud": aud} if aud else {}
+        if record.get("scope"):
+            jwt_kwargs["scope"] = record["scope"]
         access, refresh = await _jwt.async_sign_pair(
             sub=record["sub"], tid=record["tid"], **jwt_kwargs
         )

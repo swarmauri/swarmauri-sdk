@@ -4,36 +4,63 @@ This module implements the `/userinfo` endpoint as described in the
 OpenID Connect Core specification.  It is **not** tied to an RFC so it
 lives in the OIDC namespace instead of an `rfcXXXX` module.
 
-The endpoint returns a minimal set of claims about the authenticated
-user.  Currently the returned claims are a subset of those advertised in
-the discovery document.
+The endpoint returns a set of claims about the authenticated user based
+on the scopes granted to the access token.  Unrequested claim groups are
+omitted from the response.
 """
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
-from fastapi import FastAPI
+from fastapi import APIRouter, Depends, FastAPI, Request, Response
 
 from .fastapi_deps import get_current_principal
+from .jwtoken import JWTCoder, InvalidTokenError, _svc
 from .orm.tables import User
+from .rfc6750 import extract_bearer_token
+from .deps import JWAAlg
 
 router = APIRouter()
 
 
 @router.get("/userinfo")
-async def userinfo(user: User = Depends(get_current_principal)) -> dict[str, str]:
+async def userinfo(
+    request: Request, user: User = Depends(get_current_principal)
+) -> Response | dict[str, str]:
     """Return claims about the authenticated user.
 
-    The caller must present a valid access token in the `Authorization`
-    header.  For now, the response includes only a subset of standard
-    claims.
+    The caller must present a valid access token in the ``Authorization``
+    header.  Returned claims are filtered based on scopes granted in that
+    token.  If the request ``Accept`` header includes ``application/jwt`` the
+    response will be JWS signed.
     """
 
-    return {
-        "sub": str(user.id),
-        "name": user.username,
-        "email": user.email,
-    }
+    token = await extract_bearer_token(
+        request, request.headers.get("Authorization", "")
+    )
+    scopes: set[str] = set()
+    if token:
+        try:
+            payload = await JWTCoder.default().async_decode(token)
+            scopes = set(payload.get("scope", "").split())
+        except InvalidTokenError:
+            pass
+
+    claims: dict[str, str] = {"sub": str(user.id)}
+    if "profile" in scopes:
+        claims["name"] = user.username
+    if "email" in scopes:
+        claims["email"] = user.email
+    if "address" in scopes and getattr(user, "address", None):
+        claims["address"] = getattr(user, "address")
+    if "phone" in scopes and getattr(user, "phone", None):
+        claims["phone_number"] = getattr(user, "phone")
+
+    if "application/jwt" in request.headers.get("accept", ""):
+        svc, kid = _svc()
+        token = await svc.mint(claims, alg=JWAAlg.EDDSA, kid=kid)
+        return Response(content=token, media_type="application/jwt")
+
+    return claims
 
 
 # ---------------------------------------------------------------------------
