@@ -36,6 +36,11 @@ from .rfc8252 import is_native_redirect_uri, validate_native_redirect_uri
 from .rfc7638 import jwk_thumbprint, verify_jwk_thumbprint
 from .rfc7800 import add_cnf_claim, verify_proof_of_possession
 from .rfc8291 import encrypt_push_message, decrypt_push_message, RFC8291_SPEC_URL
+from .rfc8812 import (
+    is_webauthn_algorithm,
+    WEBAUTHN_ALGORITHMS,
+    RFC8812_SPEC_URL,
+)
 from .rfc9068 import add_rfc9068_claims, validate_rfc9068_claims
 from .rfc8037 import sign_eddsa, verify_eddsa, RFC8037_SPEC_URL
 from .rfc8176 import (
@@ -116,6 +121,9 @@ __all__ = [
     "encrypt_push_message",
     "decrypt_push_message",
     "RFC8291_SPEC_URL",
+    "is_webauthn_algorithm",
+    "WEBAUTHN_ALGORITHMS",
+    "RFC8812_SPEC_URL",
     "validate_jwt_assertion",
     "RFC7521_SPEC_URL",
     "RFC7520_SPEC_URL",
