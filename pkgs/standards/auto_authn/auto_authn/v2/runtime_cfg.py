@@ -101,6 +101,11 @@ class Settings(BaseSettings):
         in {"1", "true", "yes"},
         description="Enable Message Encryption for Web Push per RFC 8291",
     )
+    enable_rfc8812: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8812", "false").lower()
+        in {"1", "true", "yes"},
+        description=("Enable WebAuthn algorithm registrations per RFC 8812",),
+    )
     enable_rfc8037: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8037", "true").lower()
         in {"1", "true", "yes"},
