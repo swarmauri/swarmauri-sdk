@@ -23,8 +23,11 @@ Notes
 from __future__ import annotations
 
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
+from datetime import datetime, timedelta
+from secrets import token_urlsafe
+
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, EmailStr, Field, constr
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -82,9 +85,88 @@ class IntrospectOut(BaseModel):
     kind: str
 
 
+# ---------------------------------------------------------------------------
+# Device Authorization Grant (RFC 8628)
+# ---------------------------------------------------------------------------
+
+
+class DeviceAuthOut(BaseModel):
+    device_code: str
+    user_code: str
+    verification_uri: str
+    verification_uri_complete: str
+    expires_in: int
+    interval: int
+
+
+class AuthorizationPending(Exception):
+    """Raised when device authorization is not yet approved."""
+
+
+class ExpiredCode(Exception):
+    """Raised when a device code has expired."""
+
+
+class DeviceStore:
+    """Minimal in-memory storage for device authorization codes."""
+
+    def __init__(self) -> None:
+        self._codes: dict[str, dict] = {}
+
+    def create(self, client_id: str) -> DeviceAuthOut:
+        expires_in = 600
+        interval = 5
+        device_code = token_urlsafe(32)
+        user_code = token_urlsafe(8)[:8].upper()
+        expires_at = datetime.now() + timedelta(seconds=expires_in)
+        verification_uri = "https://example.com/activate"
+        self._codes[device_code] = {
+            "user_code": user_code,
+            "client_id": client_id,
+            "expires_at": expires_at,
+            "interval": interval,
+            "approved": False,
+        }
+        return DeviceAuthOut(
+            device_code=device_code,
+            user_code=user_code,
+            verification_uri=verification_uri,
+            verification_uri_complete=f"{verification_uri}?user_code={user_code}",
+            expires_in=expires_in,
+            interval=interval,
+        )
+
+    def approve(self, user_code: str) -> None:
+        for data in self._codes.values():
+            if data["user_code"] == user_code:
+                data["approved"] = True
+                return
+        raise KeyError("invalid user_code")
+
+    def poll(self, device_code: str) -> str:
+        data = self._codes.get(device_code)
+        if not data:
+            raise ExpiredCode
+        if datetime.now() > data["expires_at"]:
+            del self._codes[device_code]
+            raise ExpiredCode
+        if not data["approved"]:
+            raise AuthorizationPending
+        del self._codes[device_code]
+        return data["client_id"]
+
+
+device_store = DeviceStore()
+
+
 # ============================================================================
 #  Endpoint implementations
 # ============================================================================
+@router.post("/device/code", response_model=DeviceAuthOut)
+async def device_authorization(client_id: str = Form(...)) -> DeviceAuthOut:
+    return device_store.create(client_id)
+
+
 @router.post(
     "/register",
     response_model=TokenPair,
@@ -144,18 +226,72 @@ async def login(body: CredsIn, db: AsyncSession = Depends(get_async_db)):
 
 @router.post("/token", response_model=TokenPair)
 async def token(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    db: AsyncSession = Depends(get_async_db),
+    request: Request, db: AsyncSession = Depends(get_async_db)
 ) -> TokenPair:
-    try:
-        user = await _pwd_backend.authenticate(
-            db, form_data.username, form_data.password
+    form = await request.form()
+    grant_type = form.get("grant_type")
+    if grant_type == "password":
+        username = form.get("username")
+        password = form.get("password")
+        missing = []
+        if not username:
+            missing.append("username")
+        if not password:
+            missing.append("password")
+        if missing:
+            errors = [
+                {
+                    "loc": ("form", field),
+                    "msg": "field required",
+                    "type": "value_error.missing",
+                }
+                for field in missing
+            ]
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, detail=errors)
+        try:
+            user = await _pwd_backend.authenticate(db, username, password)
+        except AuthError:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "invalid credentials")
+        access, refresh = _jwt.sign_pair(sub=str(user.id), tid=str(user.tenant_id))
+        return TokenPair(access_token=access, refresh_token=refresh)
+    elif grant_type == "urn:ietf:params:oauth:grant-type:device_code":
+        device_code = form.get("device_code")
+        if not device_code:
+            raise HTTPException(
+                status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=[
+                    {
+                        "loc": ("form", "device_code"),
+                        "msg": "field required",
+                        "type": "value_error.missing",
+                    }
+                ],
+            )
+        try:
+            client_id = device_store.poll(device_code)
+        except AuthorizationPending:
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={"error": "authorization_pending"},
+            )
+        except ExpiredCode:
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={"error": "expired_token"},
+            )
+        access, refresh = _jwt.sign_pair(sub=client_id, tid=client_id)
+        return TokenPair(access_token=access, refresh_token=refresh)
+    else:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=[
+                {
+                    "loc": ("form", "grant_type"),
+                    "msg": "unsupported grant type",
+                    "type": "value_error",
+                }
+            ],
         )
-    except AuthError:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "invalid credentials")
-
-    access, refresh = _jwt.sign_pair(sub=str(user.id), tid=str(user.tenant_id))
-    return TokenPair(access_token=access, refresh_token=refresh)
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
