@@ -63,6 +63,11 @@ class Settings(BaseSettings):
     # ─────── Other global settings ───────
     jwt_secret: str = Field(os.environ.get("JWT_SECRET", "insecure-dev-secret"))
     log_level: str = Field(os.environ.get("LOG_LEVEL", "INFO"))
+    require_tls: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_REQUIRE_TLS", "true").lower()
+        in {"1", "true", "yes"},
+        description="Require HTTPS for all incoming requests",
+    )
     rfc8707_enabled: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8707", "0") == "1"
     )

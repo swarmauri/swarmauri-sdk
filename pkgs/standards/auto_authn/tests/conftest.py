@@ -24,6 +24,19 @@ from auto_authn.v2.orm.tables import Base, Tenant, User, Client, ApiKey
 from auto_authn.v2.crypto import hash_pw
 
 
+# Disable TLS enforcement for tests
+@pytest.fixture(autouse=True)
+def disable_tls_requirement():
+    from auto_authn.v2.runtime_cfg import settings
+
+    original = settings.require_tls
+    settings.require_tls = False
+    try:
+        yield
+    finally:
+        settings.require_tls = original
+
+
 # Test database configuration
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 

@@ -13,6 +13,7 @@ import asyncio
 import os
 import pathlib
 import base64
+import json
 from hashlib import sha256
 from datetime import timedelta
 from functools import lru_cache
@@ -28,6 +29,7 @@ from .deps import (
     KeySpec,
     KeyUse,
 )
+from .errors import InvalidTokenError
 
 # ---------------------------------------------------------------------------
 # Signing key management
@@ -80,6 +82,16 @@ def _service() -> Tuple[JWTTokenService, str]:
 # ---------------------------------------------------------------------------
 
 
+def _header_alg(token: str) -> str:
+    try:
+        header_segment = token.split(".")[0]
+        padded = header_segment + "=" * (-len(header_segment) % 4)
+        header = json.loads(base64.urlsafe_b64decode(padded).decode())
+        return str(header.get("alg", "")).lower()
+    except Exception:
+        return ""
+
+
 def oidc_hash(value: str) -> str:
     """Return the OIDC token hash for *value* per Core §3.3.2.11."""
 
@@ -123,6 +135,8 @@ def mint_id_token(
 
 def verify_id_token(token: str, *, issuer: str, audience: Iterable[str] | str) -> dict:
     """Verify *token* and return its claims if valid."""
+    if _header_alg(token) in {"", "none"}:
+        raise InvalidTokenError("unsigned JWTs are not accepted")
     svc, _ = _service()
     return asyncio.run(svc.verify(token, issuer=issuer, audience=audience))
 
