@@ -124,6 +124,21 @@ def enable_rfc7009():
 
 
 @pytest.fixture
+def enable_rfc8693():
+    """Enable RFC 8693 token exchange for tests."""
+    from auto_authn.v2.runtime_cfg import settings
+    from auto_authn.v2.rfc8693 import include_rfc8693
+
+    original = settings.enable_rfc8693
+    settings.enable_rfc8693 = True
+    include_rfc8693(app)
+    try:
+        yield
+    finally:
+        settings.enable_rfc8693 = original
+
+
+@pytest.fixture
 def enable_rfc8414():
     """Enable RFC 8414 authorization server metadata for tests."""
     from auto_authn.v2.runtime_cfg import settings

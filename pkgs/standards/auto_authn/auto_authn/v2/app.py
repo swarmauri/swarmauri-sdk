@@ -27,6 +27,7 @@ from .rfc8414 import include_rfc8414
 from .rfc8628 import include_rfc8628
 from .rfc9126 import include_rfc9126
 from .rfc7009 import include_rfc7009
+from .rfc8693 import include_rfc8693
 
 
 # --------------------------------------------------------------------
@@ -45,6 +46,7 @@ app.include_router(flows_router)  # /register, /login, etc.
 include_rfc8628(app)
 include_rfc9126(app)
 include_rfc7009(app)
+include_rfc8693(app)
 include_rfc8414(app)
 
 
