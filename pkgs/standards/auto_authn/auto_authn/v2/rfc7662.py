@@ -27,6 +27,11 @@ def register_token(token: str, claims: Dict[str, Any] | None = None) -> None:
     _ACTIVE_TOKENS[token] = data
 
 
+def unregister_token(token: str) -> None:
+    """Remove *token* from the active registry if present."""
+    _ACTIVE_TOKENS.pop(token, None)
+
+
 def introspect_token(token: str) -> Dict[str, Any]:
     """Return the RFC 7662 introspection response for *token*.
 
@@ -37,6 +42,10 @@ def introspect_token(token: str) -> Dict[str, Any]:
     """
     if not runtime_cfg.settings.enable_rfc7662:
         raise RuntimeError(f"RFC 7662 support is disabled: {RFC7662_SPEC_URL}")
+    from .rfc7009 import is_revoked  # avoid circular import at module load time
+
+    if is_revoked(token):
+        return {"active": False}
     return _ACTIVE_TOKENS.get(token, {"active": False})
 
 
@@ -45,4 +54,10 @@ def reset_tokens() -> None:
     _ACTIVE_TOKENS.clear()
 
 
-__all__ = ["register_token", "introspect_token", "reset_tokens", "RFC7662_SPEC_URL"]
+__all__ = [
+    "register_token",
+    "unregister_token",
+    "introspect_token",
+    "reset_tokens",
+    "RFC7662_SPEC_URL",
+]

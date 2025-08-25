@@ -27,10 +27,16 @@ def revoke_token(token: str) -> None:
     """Revoke *token* by adding it to the registry.
 
     No-op if ``settings.enable_rfc7009`` is ``False``.
+    Also removes the token from the RFC 7662 introspection registry
+    when enabled.
     """
     if not settings.enable_rfc7009:
         return
     _REVOKED_TOKENS.add(token)
+    if settings.enable_rfc7662:
+        from .rfc7662 import unregister_token
+
+        unregister_token(token)
 
 
 def is_revoked(token: str) -> bool:
