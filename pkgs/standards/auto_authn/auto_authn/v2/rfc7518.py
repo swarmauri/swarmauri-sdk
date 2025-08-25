@@ -8,6 +8,8 @@ See RFC 7518: https://www.rfc-editor.org/rfc/rfc7518
 
 from typing import Final
 
+from swarmauri_core.crypto.types import JWAAlg
+
 from .runtime_cfg import settings
 from .rfc8812 import WEBAUTHN_ALGORITHMS
 
@@ -18,10 +20,15 @@ def supported_algorithms() -> list[str]:
     """Return algorithms supported for JOSE operations."""
     if not settings.enable_rfc7518:
         raise RuntimeError(f"RFC 7518 support disabled: {RFC7518_SPEC_URL}")
-    algs = ["EdDSA"]
+
+    algs = {alg.value for alg in JWAAlg}
     if settings.enable_rfc8812:
-        algs.extend(sorted(WEBAUTHN_ALGORITHMS))
-    return algs
+        algs.update(WEBAUTHN_ALGORITHMS)
+    else:
+        # Ensure RS256 is always available even when WebAuthn algorithms are
+        # disabled. This is required for OpenID Connect ID Token compliance.
+        algs.add(JWAAlg.RS256.value)
+    return sorted(algs)
 
 
 __all__ = ["supported_algorithms", "RFC7518_SPEC_URL"]
