@@ -6,7 +6,8 @@ from httpx import ASGITransport, AsyncClient
 
 from auto_authn.v2.routers.auth_flows import router
 from auto_authn.v2.fastapi_deps import get_async_db
-from auto_authn.v2.rfc7009 import is_revoked
+from auto_authn.v2.runtime_cfg import settings
+from auto_authn.v2.rfc7009 import is_revoked, reset_revocations
 
 # RFC 7009 specification excerpt for reference within tests
 RFC7009_SPEC = """
@@ -53,3 +54,23 @@ async def test_revoke_returns_200_for_unknown_token(enable_rfc7009):
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post("/revoke", data={"token": "nonexistent"})
     assert resp.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_revoke_returns_404_when_disabled(monkeypatch):
+    """RFC 7009: Revocation endpoint is unavailable when support is disabled."""
+    app = FastAPI()
+    app.include_router(router)
+
+    async def override_db():
+        yield None
+
+    app.dependency_overrides[get_async_db] = override_db
+    monkeypatch.setattr(settings, "enable_rfc7009", False)
+    reset_revocations()
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.post("/revoke", data={"token": "abc"})
+    assert resp.status_code == status.HTTP_404_NOT_FOUND
+    assert not is_revoked("abc")
