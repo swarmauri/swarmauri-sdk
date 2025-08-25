@@ -97,9 +97,9 @@ async def jwks():
     """
     Return Ed25519 public key in RFC 7517 JWK Set format.
     """
-    from .crypto import _provider, _load_keypair
+    from .crypto import _provider, _ensure_key
 
-    kid, _, _ = _load_keypair()
+    kid, _, _ = await _ensure_key()
     kp = _provider()
     key_dict = await kp.get_public_jwk(kid)
     key_dict.setdefault("kid", f"{kid}.1")

@@ -12,7 +12,7 @@ import contextvars
 import pytest
 from fastapi import HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
-from jwt import InvalidTokenError
+from auto_authn.v2.jwtoken import InvalidTokenError
 
 from auto_authn.v2.fastapi_deps import (
     get_current_principal,
@@ -66,11 +66,13 @@ class TestJWTUserResolution:
 
         # Create a valid JWT payload
         with patch("auto_authn.v2.fastapi_deps._jwt_coder") as mock_coder:
-            mock_coder.decode.return_value = {
-                "sub": str(mock_user.id),
-                "iat": 1234567890,
-                "exp": 9999999999,
-            }
+            mock_coder.async_decode = AsyncMock(
+                return_value={
+                    "sub": str(mock_user.id),
+                    "iat": 1234567890,
+                    "exp": 9999999999,
+                }
+            )
 
             user = await _user_from_jwt("valid.jwt.token", mock_db)
 
@@ -85,7 +87,9 @@ class TestJWTUserResolution:
         mock_db = AsyncMock(spec=AsyncSession)
 
         with patch("auto_authn.v2.fastapi_deps._jwt_coder") as mock_coder:
-            mock_coder.decode.side_effect = InvalidTokenError("Invalid token")
+            mock_coder.async_decode = AsyncMock(
+                side_effect=InvalidTokenError("Invalid token")
+            )
 
             user = await _user_from_jwt("invalid.jwt.token", mock_db)
 
@@ -100,11 +104,13 @@ class TestJWTUserResolution:
         mock_db.scalar.return_value = None  # User not found
 
         with patch("auto_authn.v2.fastapi_deps._jwt_coder") as mock_coder:
-            mock_coder.decode.return_value = {
-                "sub": str(uuid.uuid4()),  # Random non-existent user ID
-                "iat": 1234567890,
-                "exp": 9999999999,
-            }
+            mock_coder.async_decode = AsyncMock(
+                return_value={
+                    "sub": str(uuid.uuid4()),  # Random non-existent user ID
+                    "iat": 1234567890,
+                    "exp": 9999999999,
+                }
+            )
 
             user = await _user_from_jwt("valid.jwt.token", mock_db)
 
@@ -118,11 +124,13 @@ class TestJWTUserResolution:
         mock_db.scalar.return_value = None  # Inactive user filtered out by query
 
         with patch("auto_authn.v2.fastapi_deps._jwt_coder") as mock_coder:
-            mock_coder.decode.return_value = {
-                "sub": str(uuid.uuid4()),
-                "iat": 1234567890,
-                "exp": 9999999999,
-            }
+            mock_coder.async_decode = AsyncMock(
+                return_value={
+                    "sub": str(uuid.uuid4()),
+                    "iat": 1234567890,
+                    "exp": 9999999999,
+                }
+            )
 
             user = await _user_from_jwt("valid.jwt.token", mock_db)
 
@@ -135,10 +143,12 @@ class TestJWTUserResolution:
         mock_db = AsyncMock(spec=AsyncSession)
 
         with patch("auto_authn.v2.fastapi_deps._jwt_coder") as mock_coder:
-            mock_coder.decode.return_value = {
-                "iat": 1234567890,
-                "exp": 9999999999,
-            }
+            mock_coder.async_decode = AsyncMock(
+                return_value={
+                    "iat": 1234567890,
+                    "exp": 9999999999,
+                }
+            )
 
             with pytest.raises(KeyError):
                 await _user_from_jwt("malformed.jwt.token", mock_db)
@@ -578,11 +588,13 @@ class TestFastAPIDepsIntegration:
         mock_db.scalar.side_effect = Exception("Database error")
 
         with patch("auto_authn.v2.fastapi_deps._jwt_coder") as mock_coder:
-            mock_coder.decode.return_value = {
-                "sub": str(uuid.uuid4()),
-                "iat": 1234567890,
-                "exp": 9999999999,
-            }
+            mock_coder.async_decode = AsyncMock(
+                return_value={
+                    "sub": str(uuid.uuid4()),
+                    "iat": 1234567890,
+                    "exp": 9999999999,
+                }
+            )
 
             # Should handle database errors gracefully
             with pytest.raises(Exception, match="Database error"):

@@ -43,6 +43,7 @@ async def test_db_engine():
         poolclass=StaticPool,
         connect_args={"check_same_thread": False},
         echo=False,
+        execution_options={"schema_translate_map": {"authn": None}},
     )
 
     # Create all tables
