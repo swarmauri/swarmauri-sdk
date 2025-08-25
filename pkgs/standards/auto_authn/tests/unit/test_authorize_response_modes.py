@@ -8,7 +8,7 @@ from auto_authn.v2.crypto import hash_pw
 from auto_authn.v2.orm.tables import Client, Tenant, User
 
 
-async def _setup(db_session):
+async def _setup(async_client, db_session):
     tenant_id = uuid.uuid4()
     tenant = Tenant(id=tenant_id, name="T", email="t@example.com", slug="t")
     client_id = uuid.uuid4()
@@ -27,6 +27,9 @@ async def _setup(db_session):
     )
     db_session.add_all([tenant, client, user])
     await db_session.commit()
+    await async_client.post(
+        "/login", json={"identifier": "alice", "password": "password"}
+    )
     return str(client_id)
 
 
@@ -34,16 +37,15 @@ async def _setup(db_session):
 @pytest.mark.unit
 @pytest.mark.asyncio
 async def test_authorize_response_mode_query(async_client, db_session):
-    client_id = await _setup(db_session)
+    client_id = await _setup(async_client, db_session)
     params = {
         "response_type": "code",
         "client_id": client_id,
         "redirect_uri": "https://client.example/cb",
         "scope": "openid",
-        "username": "alice",
-        "password": "password",
         "state": "xyz",
         "response_mode": "query",
+        "login_hint": "alice",
     }
     resp = await async_client.get("/authorize", params=params, follow_redirects=False)
     assert resp.status_code == status.HTTP_307_TEMPORARY_REDIRECT
@@ -56,14 +58,12 @@ async def test_authorize_response_mode_query(async_client, db_session):
 @pytest.mark.unit
 @pytest.mark.asyncio
 async def test_authorize_response_mode_fragment(async_client, db_session):
-    client_id = await _setup(db_session)
+    client_id = await _setup(async_client, db_session)
     params = {
         "response_type": "code",
         "client_id": client_id,
         "redirect_uri": "https://client.example/cb",
         "scope": "openid",
-        "username": "alice",
-        "password": "password",
         "state": "abc",
         "response_mode": "fragment",
     }
@@ -79,14 +79,12 @@ async def test_authorize_response_mode_fragment(async_client, db_session):
 @pytest.mark.unit
 @pytest.mark.asyncio
 async def test_authorize_response_mode_form_post(async_client, db_session):
-    client_id = await _setup(db_session)
+    client_id = await _setup(async_client, db_session)
     params = {
         "response_type": "code",
         "client_id": client_id,
         "redirect_uri": "https://client.example/cb",
         "scope": "openid",
-        "username": "alice",
-        "password": "password",
         "state": "form",
         "response_mode": "form_post",
     }

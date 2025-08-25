@@ -195,7 +195,12 @@ async def register(
         sub=str(user.id), tid=str(tenant.id), scope="openid profile email"
     )
     session_id = secrets.token_urlsafe(16)
-    SESSIONS[session_id] = {"sub": str(user.id), "tid": str(tenant.id)}
+    SESSIONS[session_id] = {
+        "sub": str(user.id),
+        "tid": str(tenant.id),
+        "username": user.username,
+        "auth_time": datetime.utcnow(),
+    }
     id_token = mint_id_token(
         sub=str(user.id),
         aud=ISSUER,
@@ -223,7 +228,12 @@ async def login(
         sub=str(user.id), tid=str(user.tenant_id), scope="openid profile email"
     )
     session_id = secrets.token_urlsafe(16)
-    SESSIONS[session_id] = {"sub": str(user.id), "tid": str(user.tenant_id)}
+    SESSIONS[session_id] = {
+        "sub": str(user.id),
+        "tid": str(user.tenant_id),
+        "username": user.username,
+        "auth_time": datetime.utcnow(),
+    }
     id_token = mint_id_token(
         sub=str(user.id),
         aud=ISSUER,
@@ -249,8 +259,9 @@ async def authorize(
     nonce: Optional[str] = None,
     code_challenge: Optional[str] = None,
     code_challenge_method: Optional[str] = None,
-    username: Optional[str] = None,
-    password: Optional[str] = None,
+    prompt: Optional[str] = None,
+    max_age: Optional[int] = None,
+    login_hint: Optional[str] = None,
     db: AsyncSession = Depends(get_async_db),
 ):
     _require_tls(request)
@@ -272,12 +283,29 @@ async def authorize(
     client = await db.get(Client, client_uuid)
     if client is None or redirect_uri not in (client.redirect_uris or "").split():
         raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
-    if username is None or password is None:
+
+    prompts = set(prompt.split()) if prompt else set()
+    sid = request.cookies.get("sid")
+    if "login" in prompts:
+        sid = None
+    session = SESSIONS.get(sid) if sid else None
+    if session is None:
+        if "none" in prompts:
+            raise HTTPException(
+                status.HTTP_401_UNAUTHORIZED, {"error": "login_required"}
+            )
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, {"error": "access_denied"})
-    try:
-        user = await _pwd_backend.authenticate(db, username, password)
-    except AuthError:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, {"error": "access_denied"})
+    if max_age is not None:
+        auth_time = session.get("auth_time")
+        if auth_time is None or datetime.utcnow() - auth_time > timedelta(
+            seconds=max_age
+        ):
+            raise HTTPException(
+                status.HTTP_401_UNAUTHORIZED, {"error": "login_required"}
+            )
+    user_sub = session["sub"]
+    tenant_id = session["tid"]
+
     if is_native_redirect_uri(redirect_uri) and not code_challenge:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
     if code_challenge_method and code_challenge_method != "S256":
@@ -294,8 +322,8 @@ async def authorize(
     if "code" in rts:
         code = secrets.token_urlsafe(32)
         AUTH_CODES[code] = {
-            "sub": str(user.id),
-            "tid": str(user.tenant_id),
+            "sub": user_sub,
+            "tid": tenant_id,
             "client_id": client_id,
             "redirect_uri": redirect_uri,
             "code_challenge": code_challenge,
@@ -305,24 +333,19 @@ async def authorize(
         }
         params.append(("code", code))
     if "token" in rts:
-        access = await _jwt.async_sign(
-            sub=str(user.id), tid=str(user.tenant_id), scope=scope_str
-        )
+        access = await _jwt.async_sign(sub=user_sub, tid=tenant_id, scope=scope_str)
         params.append(("access_token", access))
         params.append(("token_type", "bearer"))
     if "id_token" in rts:
         from ..oidc_discovery import ISSUER
 
-        extra_claims: dict[str, str] = {
-            "tid": str(user.tenant_id),
-            "typ": "id",
-        }
+        extra_claims: dict[str, str] = {"tid": tenant_id, "typ": "id"}
         if access:
             extra_claims["at_hash"] = oidc_hash(access)
         if code:
             extra_claims["c_hash"] = oidc_hash(code)
         id_token = mint_id_token(
-            sub=str(user.id),
+            sub=user_sub,
             aud=client_id,
             nonce=nonce,
             issuer=ISSUER,
