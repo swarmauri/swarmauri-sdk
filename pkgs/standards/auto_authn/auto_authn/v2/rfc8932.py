@@ -67,7 +67,7 @@ def get_enhanced_authorization_server_metadata() -> Dict[str, Any]:
         "authorization_endpoint": f"{ISSUER}/authorize",
         "token_endpoint": f"{ISSUER}/token",
         "jwks_uri": f"{ISSUER}{JWKS_PATH}",
-        "scopes_supported": ["openid", "profile", "email"],
+        "scopes_supported": ["openid", "profile", "email", "address", "phone"],
         "response_types_supported": [
             "code",
             "token",
@@ -92,7 +92,7 @@ def get_enhanced_authorization_server_metadata() -> Dict[str, Any]:
             "private_key_jwt",
             "client_secret_jwt",
         ],
-        "claims_supported": ["sub", "name", "email"],
+        "claims_supported": ["sub", "name", "email", "address", "phone_number"],
         "code_challenge_methods_supported": ["S256"],
     }
     if settings.enable_rfc7591:

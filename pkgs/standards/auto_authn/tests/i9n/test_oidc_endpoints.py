@@ -119,7 +119,7 @@ class TestOIDCDiscoveryEndpoint:
         # Check supported scopes include required OIDC scopes
         scopes_supported = discovery_doc["scopes_supported"]
         assert isinstance(scopes_supported, list), "Scopes should be a list"
-        for scope in ["openid", "profile", "email"]:
+        for scope in ["openid", "profile", "email", "address", "phone"]:
             assert scope in scopes_supported, f"Must support '{scope}' scope"
 
         # Check response types
@@ -139,7 +139,7 @@ class TestOIDCDiscoveryEndpoint:
 
         claims_supported = discovery_doc["claims_supported"]
         assert isinstance(claims_supported, list), "Claims should be a list"
-        for claim in ["sub", "name", "email"]:
+        for claim in ["sub", "name", "email", "address", "phone_number"]:
             assert claim in claims_supported, f"Missing claim: {claim}"
 
     @pytest.mark.asyncio
