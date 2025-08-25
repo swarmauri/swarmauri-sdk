@@ -35,18 +35,21 @@ WEBAUTHN_ALGORITHMS: Final[FrozenSet[str]] = frozenset(
 )
 
 
-def is_webauthn_algorithm(alg: str, *, enabled: bool | None = None) -> bool:
+def is_webauthn_algorithm(alg: object, *, enabled: bool | None = None) -> bool:
     """Return ``True`` if *alg* is registered for WebAuthn per :rfc:`8812`.
 
     Algorithm identifiers are compared case-insensitively to better tolerate
     input from external sources. When the feature is disabled the check always
     returns ``True`` to allow deployments to accept non-registered algorithms.
+    Non-string inputs are rejected to avoid attribute errors during validation.
     """
 
     if enabled is None:
         enabled = settings.enable_rfc8812
     if not enabled:
         return True
+    if not isinstance(alg, str):
+        return False
     return alg.upper() in WEBAUTHN_ALGORITHMS
 
 
