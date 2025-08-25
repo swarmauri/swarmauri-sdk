@@ -57,6 +57,7 @@ from ..rfc8628 import DEVICE_CODES, DeviceGrantForm
 from autoapi.v2.error import IntegrityError
 from ..oidc_id_token import mint_id_token, oidc_hash, verify_id_token
 from ..rfc8414 import ISSUER
+from ..rfc8252 import is_native_redirect_uri
 
 router = APIRouter()
 
@@ -70,6 +71,11 @@ if settings.enable_rfc8628:
 
 AUTH_CODES: dict[str, dict] = {}
 SESSIONS: dict[str, dict] = {}
+
+
+def _require_tls(request: Request) -> None:
+    if settings.require_tls and request.url.scheme != "https":
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "tls_required"})
 
 
 async def _front_channel_logout(session_id: str) -> None:
@@ -151,7 +157,10 @@ class AuthorizationCodeGrantForm(BaseModel):
         500: {"description": "database error"},
     },
 )
-async def register(body: RegisterIn, db: AsyncSession = Depends(get_async_db)):
+async def register(
+    body: RegisterIn, request: Request, db: AsyncSession = Depends(get_async_db)
+):
+    _require_tls(request)
     try:
         # 1. look up pre-existing tenant
         tenant = await db.scalar(
@@ -199,7 +208,10 @@ async def register(body: RegisterIn, db: AsyncSession = Depends(get_async_db)):
 
 
 @router.post("/login", response_model=TokenPair)
-async def login(body: CredsIn, db: AsyncSession = Depends(get_async_db)):
+async def login(
+    body: CredsIn, request: Request, db: AsyncSession = Depends(get_async_db)
+):
+    _require_tls(request)
     try:
         user = await _pwd_backend.authenticate(db, body.identifier, body.password)
     except AuthError:
@@ -229,6 +241,7 @@ async def authorize(
     client_id: str,
     redirect_uri: str,
     scope: str,
+    request: Request,
     state: Optional[str] = None,
     nonce: Optional[str] = None,
     code_challenge: Optional[str] = None,
@@ -237,6 +250,7 @@ async def authorize(
     password: Optional[str] = None,
     db: AsyncSession = Depends(get_async_db),
 ):
+    _require_tls(request)
     rts = set(response_type.split())
     allowed = {"code", "token", "id_token"}
     if not rts or not rts.issubset(allowed):
@@ -261,6 +275,8 @@ async def authorize(
         user = await _pwd_backend.authenticate(db, username, password)
     except AuthError:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, {"error": "access_denied"})
+    if is_native_redirect_uri(redirect_uri) and not code_challenge:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
     if code_challenge_method and code_challenge_method != "S256":
         raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
     params: list[tuple[str, str]] = []
@@ -312,6 +328,7 @@ async def authorize(
 async def token(
     request: Request, db: AsyncSession = Depends(get_async_db)
 ) -> TokenPair:
+    _require_tls(request)
     form = await request.form()
     resources = form.getlist("resource")
     data = dict(form)
@@ -468,7 +485,8 @@ async def token(
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
-async def logout(body: LogoutIn):
+async def logout(body: LogoutIn, request: Request):
+    _require_tls(request)
     """RP-initiated logout endpoint.
 
     Validates the ``id_token_hint`` and clears the session cookie. This is a
@@ -492,7 +510,8 @@ async def logout(body: LogoutIn):
 
 
 @router.post("/token/refresh", response_model=TokenPair)
-async def refresh(body: RefreshIn):
+async def refresh(body: RefreshIn, request: Request):
+    _require_tls(request)
     try:
         access, refresh = _jwt.refresh(body.refresh_token)
     except Exception:
@@ -505,6 +524,7 @@ async def refresh(body: RefreshIn):
 # --------------------------------------------------------------------------
 @router.post("/introspect", response_model=IntrospectOut)
 async def introspect(request: Request, db: AsyncSession = Depends(get_async_db)):
+    _require_tls(request)
     if not settings.enable_rfc7662:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "introspection disabled")
     form = await request.form()

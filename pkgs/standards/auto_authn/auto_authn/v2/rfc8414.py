@@ -115,10 +115,13 @@ async def openid_configuration():
 async def jwks():
     """Publish all public keys in RFC 7517 JWKS format."""
     from .oidc_id_token import ensure_rsa_jwt_key, rsa_key_provider
+    from .crypto import _ensure_key as ensure_ed25519_key, _provider as ed25519_provider
 
     await ensure_rsa_jwt_key()
-    kp = rsa_key_provider()
-    return await kp.jwks()
+    await ensure_ed25519_key()
+    rsa = await rsa_key_provider().jwks()
+    ed = await ed25519_provider().jwks()
+    return {"keys": [*rsa.get("keys", []), *ed.get("keys", [])]}
 
 
 def include_rfc8414(app: FastAPI) -> None:

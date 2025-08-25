@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+import base64
+import json
 from datetime import datetime, timedelta, timezone
 from functools import lru_cache
 from typing import Any, Dict, Iterable, Optional, Tuple
@@ -48,6 +50,16 @@ def _svc() -> Tuple[JWTTokenService, str]:
         _DEFAULT_KEY_PATH.write_text(kid)
     service = JWTTokenService(kp)
     return service, kid
+
+
+def _header_alg(token: str) -> str:
+    try:
+        header_segment = token.split(".")[0]
+        padded = header_segment + "=" * (-len(header_segment) % 4)
+        header = json.loads(base64.urlsafe_b64decode(padded).decode())
+        return str(header.get("alg", "")).lower()
+    except Exception:
+        return ""
 
 
 class JWTCoder:
@@ -207,6 +219,8 @@ class JWTCoder:
         audience: Optional[Iterable[str] | str] = None,
         cert_thumbprint: Optional[str] = None,
     ) -> Dict[str, Any]:
+        if _header_alg(token) in {"", "none"}:
+            raise InvalidTokenError("unsigned JWTs are not accepted")
         try:
             payload = await self._svc.verify(token, issuer=issuer, audience=audience)
         except Exception as exc:

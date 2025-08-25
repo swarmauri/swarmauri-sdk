@@ -112,3 +112,35 @@ def signing_key() -> bytes:
 def public_key() -> bytes:
     """PEM-encoded Ed25519 public key for JWKS publication."""
     return _load_keypair()[2]
+
+
+async def rotate_ed25519_jwt_key() -> str:
+    """Create a new Ed25519 signing key and refresh cached references."""
+    kp = _provider()
+    spec = KeySpec(
+        klass=KeyClass.asymmetric,
+        alg=KeyAlg.ED25519,
+        uses=(KeyUse.SIGN, KeyUse.VERIFY),
+        export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
+        label="jwt_ed25519",
+    )
+    ref = await kp.create_key(spec)
+    _DEFAULT_KEY_PATH.parent.mkdir(parents=True, exist_ok=True)
+    _DEFAULT_KEY_PATH.write_text(ref.kid)
+    _load_keypair.cache_clear()
+    try:  # refresh discovery metadata if available
+        from .rfc8414 import refresh_discovery_cache
+
+        refresh_discovery_cache()
+    except Exception:  # pragma: no cover - best effort
+        pass
+    return ref.kid
+
+
+__all__ = [
+    "hash_pw",
+    "verify_pw",
+    "signing_key",
+    "public_key",
+    "rotate_ed25519_jwt_key",
+]
