@@ -222,8 +222,12 @@ def exchange_token(
         TokenExchangeResponse with the new token
 
     Raises:
+        RuntimeError: If RFC 8693 support is disabled
         ValueError: If token exchange fails
     """
+    if not settings.enable_rfc8693:
+        raise RuntimeError("RFC 8693 support disabled")
+
     # Validate subject token
     subject_claims = validate_subject_token(
         request.subject_token, request.subject_token_type
@@ -281,6 +285,9 @@ def create_impersonation_token(
     Returns:
         TokenExchangeResponse with impersonation token
     """
+    if not settings.enable_rfc8693:
+        raise RuntimeError("RFC 8693 support disabled")
+
     request = TokenExchangeRequest(
         grant_type=TOKEN_EXCHANGE_GRANT_TYPE,
         subject_token=subject_token,
@@ -311,6 +318,9 @@ def create_delegation_token(
     Returns:
         TokenExchangeResponse with delegation token
     """
+    if not settings.enable_rfc8693:
+        raise RuntimeError("RFC 8693 support disabled")
+
     request = TokenExchangeRequest(
         grant_type=TOKEN_EXCHANGE_GRANT_TYPE,
         subject_token=subject_token,

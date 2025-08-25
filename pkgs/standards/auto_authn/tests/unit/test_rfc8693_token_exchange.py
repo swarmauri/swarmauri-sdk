@@ -342,6 +342,45 @@ def test_create_delegation_token():
 
 
 @pytest.mark.unit
+def test_exchange_token_disabled():
+    """RFC 8693: exchange_token should honor feature flag."""
+    subject_jwt = encode_jwt(sub="user123", exp=int(time.time()) + 3600)
+    request = TokenExchangeRequest(
+        grant_type=TOKEN_EXCHANGE_GRANT_TYPE,
+        subject_token=subject_jwt,
+        subject_token_type=TokenType.ACCESS_TOKEN.value,
+    )
+
+    with patch.object(settings, "enable_rfc8693", False):
+        with pytest.raises(RuntimeError, match="RFC 8693 support disabled"):
+            exchange_token(request, issuer="https://auth.example.com")
+
+
+@pytest.mark.unit
+def test_create_impersonation_token_disabled():
+    """RFC 8693: create_impersonation_token should honor feature flag."""
+    subject_jwt = encode_jwt(sub="user123", exp=int(time.time()) + 3600)
+    actor_jwt = encode_jwt(sub="admin456", exp=int(time.time()) + 3600)
+
+    with patch.object(settings, "enable_rfc8693", False):
+        with pytest.raises(RuntimeError, match="RFC 8693 support disabled"):
+            create_impersonation_token(
+                subject_token=subject_jwt,
+                actor_token=actor_jwt,
+            )
+
+
+@pytest.mark.unit
+def test_create_delegation_token_disabled():
+    """RFC 8693: create_delegation_token should honor feature flag."""
+    subject_jwt = encode_jwt(sub="user123", exp=int(time.time()) + 3600)
+
+    with patch.object(settings, "enable_rfc8693", False):
+        with pytest.raises(RuntimeError, match="RFC 8693 support disabled"):
+            create_delegation_token(subject_token=subject_jwt)
+
+
+@pytest.mark.unit
 def test_token_type_enum():
     """RFC 8693: Token type enum values."""
     assert (
