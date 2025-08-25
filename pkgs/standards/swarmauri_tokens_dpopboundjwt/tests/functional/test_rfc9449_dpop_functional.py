@@ -96,7 +96,9 @@ async def _run_flow() -> bool:
         "iat": now,
         "jti": str(uuid4()),
     }
-    proof = jwt.encode(proof_payload, sk, algorithm="EdDSA", headers={"jwk": jwk})
+    proof = jwt.encode(
+        proof_payload, sk, algorithm="EdDSA", headers={"jwk": jwk, "typ": "dpop+jwt"}
+    )
     ctx.update(
         {"proof": proof, "htm": "GET", "htu": "https://api.example.com/resource"}
     )
