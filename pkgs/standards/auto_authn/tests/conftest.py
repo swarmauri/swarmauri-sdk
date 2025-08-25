@@ -20,7 +20,7 @@ from sqlalchemy.pool import StaticPool
 from auto_authn.v2.app import app
 from auto_authn.v2.db import get_async_db
 from auto_authn.v2.orm.tables import Base, Tenant, User, Client, ApiKey
-from auto_authn.v2.crypto import _DEFAULT_KEY_PATH, hash_pw
+from auto_authn.v2.crypto import hash_pw
 
 
 # Test database configuration
@@ -151,27 +151,29 @@ def enable_rfc9126():
 
 @pytest.fixture
 def temp_key_file():
-    """Create a temporary JWT key file path for testing (file doesn't exist initially)."""
-    # Create a temp file path but don't create the file
+    """Create a temporary key directory for testing."""
     temp_dir = Path(tempfile.mkdtemp())
-    temp_path = temp_dir / "test_jwt_key.pem"
+    temp_kid = temp_dir / "jwt_ed25519.kid"
 
-    # Store original path
-    original_path = _DEFAULT_KEY_PATH
-
-    # Monkey patch the key path
     import auto_authn.v2.crypto as crypto_module
 
-    crypto_module._DEFAULT_KEY_PATH = temp_path
+    original_dir = crypto_module._DEFAULT_KEY_DIR
+    original_kid = crypto_module._KID_PATH
 
-    yield temp_path
+    crypto_module._DEFAULT_KEY_DIR = temp_dir
+    crypto_module._KID_PATH = temp_kid
+    crypto_module._load_keypair.cache_clear()
 
-    # Cleanup
-    if temp_path.exists():
-        temp_path.unlink()
-    if temp_dir.exists():
-        temp_dir.rmdir()
-    crypto_module._DEFAULT_KEY_PATH = original_path
+    yield temp_kid
+
+    if temp_kid.exists():
+        temp_kid.unlink()
+    for f in temp_dir.glob("*"):
+        f.unlink()
+    temp_dir.rmdir()
+    crypto_module._DEFAULT_KEY_DIR = original_dir
+    crypto_module._KID_PATH = original_kid
+    crypto_module._load_keypair.cache_clear()
 
 
 @pytest.fixture
