@@ -17,7 +17,9 @@ keeps working.
 from __future__ import annotations
 
 from enum import StrEnum
-from ..types import Column, String, SAEnum, Integer
+
+from ..specs import acol, F, IO, S
+from ..types import String, SAEnum, Integer
 
 from ._base import Base
 from ..mixins import Timestamped  # created_at / updated_at
@@ -67,9 +69,23 @@ class StatusEnum(Base, Timestamped):
 
     __tablename__ = "status_enums"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    code = Column(SAEnum(Status, name="status_code_enum"), unique=True, nullable=False)
-    label = Column(String, nullable=False)
+    id: int = acol(
+        storage=S(Integer, primary_key=True, autoincrement=True),
+        io=IO(out_verbs=("read", "list")),
+    )
+    code: Status = acol(
+        storage=S(
+            SAEnum(Status, name="status_code_enum"),
+            nullable=False,
+            unique=True,
+        ),
+        field=F(py_type=Status),
+        io=IO(out_verbs=("read", "list")),
+    )
+    label: str = acol(
+        storage=S(String, nullable=False),
+        io=IO(out_verbs=("read", "list")),
+    )
 
     def __repr__(self) -> str:  # noqa: D401
         return f"<StatusEnum {self.code}>"

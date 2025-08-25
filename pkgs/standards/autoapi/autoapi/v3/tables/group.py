@@ -2,12 +2,13 @@
 
 from ._base import Base
 from ..mixins import GUIDPk, Timestamped, TenantBound, Principal
-from ..types import Column, String
+from ..specs import acol, S
+from ..types import String
 
 
 class Group(Base, GUIDPk, Timestamped, TenantBound, Principal):
     __tablename__ = "groups"
-    name = Column(String)
+    name: str = acol(storage=S(String))
 
 
 __all__ = ["Group"]

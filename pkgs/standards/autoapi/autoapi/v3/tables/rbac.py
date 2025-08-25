@@ -1,4 +1,8 @@
-from ..types import Column, Integer, String, ForeignKey, PgUUID
+from uuid import UUID
+
+from ..specs import acol, S
+from ..specs.storage_spec import ForeignKeySpec
+from ..types import Integer, String, PgUUID
 
 from . import Base
 from ..mixins import (
@@ -13,21 +17,27 @@ from ..mixins import (
 # ───────── RBAC core ──────────────────────────────────────────────────
 class Role(Base, GUIDPk, Timestamped, TenantBound):
     __tablename__ = "roles"
-    slug = Column(String, unique=True)
-    global_mask = Column(Integer, default=0)
+    slug: str = acol(storage=S(String, unique=True))
+    global_mask: int = acol(
+        storage=S(Integer, default=0),
+    )
 
 
 class RolePerm(Base, GUIDPk, Timestamped, TenantBound, RelationEdge, MaskableEdge):
     __tablename__ = "role_perms"
-    role_id = Column(PgUUID(as_uuid=True), ForeignKey("roles.id"))
-    target_table = Column(String)
-    target_id = Column(String)  # row or sentinel
+    role_id: UUID = acol(
+        storage=S(PgUUID, fk=ForeignKeySpec("roles.id")),
+    )
+    target_table: str = acol(storage=S(String))
+    target_id: str = acol(storage=S(String))  # row or sentinel
 
 
 class RoleGrant(Base, GUIDPk, Timestamped, TenantBound, RelationEdge):
     __tablename__ = "role_grants"
-    principal_id = Column(PgUUID(as_uuid=True))  # FK to principal row
-    role_id = Column(PgUUID(as_uuid=True), ForeignKey("roles.id"))
+    principal_id: UUID = acol(storage=S(PgUUID))  # FK to principal row
+    role_id: UUID = acol(
+        storage=S(PgUUID, fk=ForeignKeySpec("roles.id")),
+    )
 
 
 __all__ = ["Role", "RolePerm", "RoleGrant"]
