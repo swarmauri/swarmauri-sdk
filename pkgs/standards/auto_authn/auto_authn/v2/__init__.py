@@ -21,6 +21,7 @@ from .rfc9396 import (
     parse_authorization_details,
     RFC9396_SPEC_URL,
 )
+
 from .rfc6750 import extract_bearer_token
 from .rfc7662 import introspect_token, register_token, reset_tokens
 from .rfc9207 import RFC9207_SPEC_URL, extract_issuer
@@ -34,8 +35,15 @@ from .rfc8705 import (
 from .rfc8252 import is_native_redirect_uri, validate_native_redirect_uri
 from .rfc7638 import jwk_thumbprint, verify_jwk_thumbprint
 from .rfc7800 import add_cnf_claim, verify_proof_of_possession
-from .rfc8291 import encrypt_push_message, decrypt_push_message
+from .rfc8291 import encrypt_push_message, decrypt_push_message, RFC8291_SPEC_URL
 from .rfc9068 import add_rfc9068_claims, validate_rfc9068_claims
+from .rfc8037 import sign_eddsa, verify_eddsa, RFC8037_SPEC_URL
+from .rfc8176 import (
+    validate_amr_claim,
+    AMR_VALUES,
+    RFC8176_SPEC_URL,
+)
+
 from .rfc7515 import sign_jws, verify_jws
 from .rfc7516 import encrypt_jwe, decrypt_jwe
 from .rfc7517 import load_signing_jwk, load_public_jwk
@@ -107,9 +115,16 @@ __all__ = [
     "verify_proof_of_possession",
     "encrypt_push_message",
     "decrypt_push_message",
+    "RFC8291_SPEC_URL",
     "validate_jwt_assertion",
     "RFC7521_SPEC_URL",
     "RFC7520_SPEC_URL",
+    "sign_eddsa",
+    "verify_eddsa",
+    "RFC8037_SPEC_URL",
+    "validate_amr_claim",
+    "AMR_VALUES",
+    "RFC8176_SPEC_URL",
     "validate_client_jwt_bearer",
     "RFC7523_SPEC_URL",
 ]

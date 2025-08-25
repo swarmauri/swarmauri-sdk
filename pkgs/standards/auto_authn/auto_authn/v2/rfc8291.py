@@ -12,6 +12,8 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 from .runtime_cfg import settings
 
+RFC8291_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8291"
+
 
 def encrypt_push_message(
     plaintext: bytes, key: bytes, nonce: bytes, *, enabled: bool | None = None
@@ -46,4 +48,4 @@ def decrypt_push_message(
     return aesgcm.decrypt(nonce, ciphertext, associated_data=None)
 
 
-__all__ = ["encrypt_push_message", "decrypt_push_message"]
+__all__ = ["encrypt_push_message", "decrypt_push_message", "RFC8291_SPEC_URL"]

@@ -101,6 +101,16 @@ class Settings(BaseSettings):
         in {"1", "true", "yes"},
         description="Enable Message Encryption for Web Push per RFC 8291",
     )
+    enable_rfc8037: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8037", "true").lower()
+        in {"1", "true", "yes"},
+        description="Enable CFRG EdDSA algorithms per RFC 8037",
+    )
+    enable_rfc8176: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8176", "true").lower()
+        in {"1", "true", "yes"},
+        description="Enable Authentication Method Reference validation per RFC 8176",
+    )
     enable_rfc7662: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7662", "false").lower()
         in {"1", "true", "yes"}
