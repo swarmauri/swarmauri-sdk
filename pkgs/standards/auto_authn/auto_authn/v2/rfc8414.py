@@ -1,7 +1,7 @@
 """Authorization Server Metadata support (RFC 8414).
 
 This module provides a minimal implementation of the OAuth 2.0 Authorization
-Server Metadata specification as defined in RFC 8414.  When enabled via
+Server Metadata specification as defined in RFC 8414. When enabled via
 ``settings.enable_rfc8414`` it exposes a discovery document at
 ``/.well-known/oauth-authorization-server``.
 """
@@ -9,7 +9,7 @@ Server Metadata specification as defined in RFC 8414.  When enabled via
 from __future__ import annotations
 
 import os
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, FastAPI, HTTPException, status
 
 from .runtime_cfg import settings
 
@@ -35,4 +35,10 @@ async def authorization_server_metadata():
     }
 
 
-__all__ = ["router", "JWKS_PATH", "ISSUER"]
+def include_rfc8414(app: FastAPI) -> None:
+    """Attach the RFC 8414 router to *app* if enabled."""
+    if settings.enable_rfc8414:
+        app.include_router(router)
+
+
+__all__ = ["router", "JWKS_PATH", "ISSUER", "include_rfc8414"]
