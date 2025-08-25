@@ -105,6 +105,22 @@ def enable_rfc7662():
 
 
 @pytest.fixture
+def enable_rfc7009():
+    """Enable RFC 7009 token revocation for tests."""
+    from auto_authn.v2.runtime_cfg import settings
+    from auto_authn.v2.rfc7009 import reset_revocations
+
+    original = settings.enable_rfc7009
+    settings.enable_rfc7009 = True
+    reset_revocations()
+    try:
+        yield
+    finally:
+        settings.enable_rfc7009 = original
+        reset_revocations()
+
+
+@pytest.fixture
 def temp_key_file():
     """Create a temporary JWT key file path for testing (file doesn't exist initially)."""
     # Create a temp file path but don't create the file
