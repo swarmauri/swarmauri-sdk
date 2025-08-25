@@ -54,3 +54,18 @@ def test_disabled_allows_any_alg(monkeypatch):
     monkeypatch.setattr(runtime_cfg.settings, "enable_rfc8812", False)
     assert is_webauthn_algorithm("HS256")
     assert is_webauthn_algorithm("unknown")
+
+
+@pytest.mark.unit
+def test_non_string_algorithm_rejected(monkeypatch):
+    """Non-string algorithm identifiers are rejected when enabled."""
+    monkeypatch.setattr(runtime_cfg.settings, "enable_rfc8812", True)
+    assert not is_webauthn_algorithm(None)  # type: ignore[arg-type]
+    assert not is_webauthn_algorithm(123)  # type: ignore[arg-type]
+
+
+@pytest.mark.unit
+def test_case_insensitive(monkeypatch):
+    """Algorithm comparison is case-insensitive."""
+    monkeypatch.setattr(runtime_cfg.settings, "enable_rfc8812", True)
+    assert is_webauthn_algorithm("es256")
