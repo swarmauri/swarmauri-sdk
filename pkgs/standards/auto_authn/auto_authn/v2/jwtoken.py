@@ -25,7 +25,7 @@ from .deps import (
 
 from .runtime_cfg import settings
 from .rfc8705 import validate_certificate_binding
-from .crypto import _KID_PATH, _provider
+from .crypto import _DEFAULT_KEY_PATH, _provider
 
 _ACCESS_TTL = timedelta(minutes=60)
 _REFRESH_TTL = timedelta(days=7)
@@ -34,8 +34,8 @@ _REFRESH_TTL = timedelta(days=7)
 @lru_cache(maxsize=1)
 def _svc() -> Tuple[JWTTokenService, str]:
     kp: FileKeyProvider = _provider()
-    if _KID_PATH.exists():
-        kid = _KID_PATH.read_text().strip()
+    if _DEFAULT_KEY_PATH.exists():
+        kid = _DEFAULT_KEY_PATH.read_text().strip()
     else:
         spec = KeySpec(
             klass=KeyClass.asymmetric,
@@ -46,8 +46,8 @@ def _svc() -> Tuple[JWTTokenService, str]:
         )
         ref = asyncio.run(kp.create_key(spec))
         kid = ref.kid
-        _KID_PATH.parent.mkdir(parents=True, exist_ok=True)
-        _KID_PATH.write_text(kid)
+        _DEFAULT_KEY_PATH.parent.mkdir(parents=True, exist_ok=True)
+        _DEFAULT_KEY_PATH.write_text(kid)
     service = JWTTokenService(kp)
     return service, kid
 

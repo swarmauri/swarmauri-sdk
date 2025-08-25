@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, Final, Iterable, Tuple
 import asyncio
+from base64 import urlsafe_b64encode
 
 from .deps import (
     ExportPolicy,
@@ -38,6 +39,21 @@ def _svc_for_secret(secret: str) -> Tuple[JWTTokenService, str]:
         label="request_obj",
     )
     ref = asyncio.run(kp.import_key(spec, secret.encode()))
+
+    async def jwks() -> dict:
+        k = urlsafe_b64encode(secret.encode()).rstrip(b"=").decode()
+        return {
+            "keys": [
+                {
+                    "kty": "oct",
+                    "alg": "HS256",
+                    "k": k,
+                    "kid": f"{ref.kid}.{ref.version}",
+                }
+            ]
+        }
+
+    kp.jwks = jwks  # type: ignore[assignment]
     return JWTTokenService(kp), ref.kid
 
 
@@ -71,7 +87,10 @@ def parse_request_object(
     if not settings.enable_rfc9101:
         raise RuntimeError(f"RFC 9101 support disabled: {RFC9101_SPEC_URL}")
     svc, _kid = _svc_for_secret(secret)
-    return asyncio.run(svc.verify(token, audience=None, issuer=None, leeway_s=60))
+    claims = asyncio.run(svc.verify(token, audience=None, issuer=None, leeway_s=60))
+    claims.pop("iat", None)
+    claims.pop("nbf", None)
+    return claims
 
 
 __all__ = ["create_request_object", "parse_request_object", "RFC9101_SPEC_URL"]
