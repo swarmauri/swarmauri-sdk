@@ -127,7 +127,7 @@ async def get_current_principal(  # type: ignore[override]
 
     token = await extract_bearer_token(request, authorization)
     if token:
-        if settings.enable_dpop:
+        if settings.enable_rfc9449:
             if not dpop:
                 raise HTTPException(
                     status.HTTP_401_UNAUTHORIZED,

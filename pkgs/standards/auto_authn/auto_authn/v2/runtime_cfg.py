@@ -100,9 +100,19 @@ class Settings(BaseSettings):
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7662", "false").lower()
         in {"1", "true", "yes"}
     )
-    enable_dpop: bool = Field(
-        default=os.environ.get("AUTO_AUTHN_ENABLE_DPOP", "0") in {"1", "true", "True"}
+    enable_rfc9449: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC9449", "false").lower()
+        in {"1", "true", "yes"},
+        description=(
+            "Enable OAuth 2.0 Demonstrating Proof of Possession (DPoP) per RFC 9449"
+        ),
     )
+
+    @property
+    def enable_dpop(self) -> bool:
+        """Alias for backward compatibility."""
+        return self.enable_rfc9449
+
     enable_rfc9396: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC9396", "0").lower()
         in {"1", "true", "yes"},
