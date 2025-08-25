@@ -63,6 +63,15 @@ class Settings(BaseSettings):
     # ─────── Other global settings ───────
     jwt_secret: str = Field(os.environ.get("JWT_SECRET", "insecure-dev-secret"))
     log_level: str = Field(os.environ.get("LOG_LEVEL", "INFO"))
+    id_token_encryption_key: str = Field(
+        default=os.environ.get("AUTO_AUTHN_ID_TOKEN_ENC_KEY", "0" * 32),
+        description="Symmetric key for ID Token encryption",
+    )
+    enable_id_token_encryption: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_ID_TOKEN_ENCRYPTION", "false").lower()
+        in {"1", "true", "yes"},
+        description="Encrypt ID Tokens using JWE when enabled",
+    )
     require_tls: bool = Field(
         default=os.environ.get("AUTO_AUTHN_REQUIRE_TLS", "true").lower()
         in {"1", "true", "yes"},
@@ -77,7 +86,7 @@ class Settings(BaseSettings):
         description=("Enable OAuth 2.0 Mutual-TLS client authentication per RFC 8705"),
     )
     enable_rfc8725: bool = Field(
-        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8725", "false").lower()
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8725", "true").lower()
         in {"1", "true", "yes"},
         description=("Enable JSON Web Token Best Current Practices per RFC 8725"),
     )
