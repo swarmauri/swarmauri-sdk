@@ -1,65 +1,48 @@
-"""EdDSA helpers for RFC 8037 compliance.
-
-This module exposes minimal Ed25519 signing and verification utilities
-inspired by :rfc:`8037`.  The feature can be disabled via the
-``enable_rfc8037`` flag in :mod:`auto_authn.v2.runtime_cfg` to permit
-deployments without CFRG algorithm support.
-"""
+"""Minimal Ed25519 signing utilities via swarmauri plugins (RFC 8037)."""
 
 from __future__ import annotations
 
-from cryptography.hazmat.primitives.asymmetric.ed25519 import (
-    Ed25519PrivateKey,
-    Ed25519PublicKey,
-)
-from typing import Final
+import asyncio
+
+from .deps import Ed25519EnvelopeSigner
 
 from .runtime_cfg import settings
 
-RFC8037_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc8037"
+RFC8037_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8037"
+_signer = Ed25519EnvelopeSigner()
 
 
-def sign_eddsa(
-    message: bytes, key: Ed25519PrivateKey | bytes, *, enabled: bool | None = None
-) -> bytes:
-    """Return an Ed25519 signature for *message* per :rfc:`8037`.
-
-    When ``enabled`` is ``False`` the message is returned unchanged to allow
-    systems to operate without EdDSA support.
-    """
-
+def sign_eddsa(message: bytes, key: bytes, *, enabled: bool | None = None) -> bytes:
+    """Return an Ed25519 signature for *message* per RFC 8037."""
     if enabled is None:
         enabled = settings.enable_rfc8037
     if not enabled:
         return message
-    if isinstance(key, bytes):
-        key = Ed25519PrivateKey.from_private_bytes(key)
-    return key.sign(message)
+    sigs = asyncio.run(
+        _signer.sign_bytes({"kind": "raw_ed25519_sk", "bytes": key}, message)
+    )
+    return sigs[0]["sig"]  # type: ignore[index]
 
 
 def verify_eddsa(
     message: bytes,
     signature: bytes,
-    key: Ed25519PublicKey | bytes,
+    key: bytes,
     *,
     enabled: bool | None = None,
 ) -> bool:
-    """Return ``True`` if *signature* is valid for *message* per :rfc:`8037`.
-
-    When ``enabled`` is ``False`` the function always returns ``True``.
-    """
-
+    """Return ``True`` if *signature* is valid for *message* per RFC 8037."""
     if enabled is None:
         enabled = settings.enable_rfc8037
     if not enabled:
         return True
-    if isinstance(key, bytes):
-        key = Ed25519PublicKey.from_public_bytes(key)
-    try:
-        key.verify(signature, message)
-    except Exception:
-        return False
-    return True
+    return asyncio.run(
+        _signer.verify_bytes(
+            message,
+            [{"alg": "Ed25519", "sig": signature}],
+            opts={"pubkeys": [key]},
+        )
+    )
 
 
 __all__ = ["sign_eddsa", "verify_eddsa", "RFC8037_SPEC_URL"]

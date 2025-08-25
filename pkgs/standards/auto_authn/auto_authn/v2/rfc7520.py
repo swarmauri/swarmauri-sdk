@@ -9,8 +9,6 @@ See RFC 7520: https://www.rfc-editor.org/rfc/rfc7520
 
 from typing import Final
 
-from jwcrypto import jwk
-
 from .runtime_cfg import settings
 from .rfc7515 import sign_jws, verify_jws
 from .rfc7516 import encrypt_jwe, decrypt_jwe
@@ -18,7 +16,7 @@ from .rfc7516 import encrypt_jwe, decrypt_jwe
 RFC7520_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc7520"
 
 
-def jws_then_jwe(payload: str, key: jwk.JWK) -> str:
+def jws_then_jwe(payload: str, key: dict) -> str:
     """Sign *payload* then encrypt the resulting JWS."""
     if not settings.enable_rfc7520:
         raise RuntimeError(f"RFC 7520 support disabled: {RFC7520_SPEC_URL}")
@@ -26,7 +24,7 @@ def jws_then_jwe(payload: str, key: jwk.JWK) -> str:
     return encrypt_jwe(jws_token, key)
 
 
-def jwe_then_jws(token: str, key: jwk.JWK) -> str:
+def jwe_then_jws(token: str, key: dict) -> str:
     """Decrypt a JWE then verify the contained JWS."""
     if not settings.enable_rfc7520:
         raise RuntimeError(f"RFC 7520 support disabled: {RFC7520_SPEC_URL}")

@@ -21,7 +21,6 @@ import sys
 import fastapi
 
 from autoapi.v2 import get_schema  # convenience helper for /methodz
-from .crypto import public_key
 from .routers.auth_flows import router as flows_router
 from .routers.crud import crud_api as crud_api
 from .rfc8414 import include_rfc8414
@@ -92,14 +91,12 @@ async def jwks():
     """
     Return Ed25519 public key in RFC 7517 JWK Set format.
     """
-    from jwcrypto import jwk
+    from .crypto import _provider, _load_keypair
 
-    pub_pem = public_key()
-    key = jwk.JWK.from_pem(pub_pem)
-    key_dict = key.export(as_dict=True)
-    # Provide a kid for key-rotation friendliness
-    key_dict["kid"] = key_dict.get("kid") or "ed25519-1"
-
+    kid, _, _ = _load_keypair()
+    kp = _provider()
+    key_dict = await kp.get_public_jwk(kid)
+    key_dict.setdefault("kid", f"{kid}.1")
     return {"keys": [key_dict]}
 
 
