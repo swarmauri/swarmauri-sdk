@@ -71,6 +71,11 @@ class Settings(BaseSettings):
         in {"1", "true", "yes"},
         description=("Enable OAuth 2.0 Mutual-TLS client authentication per RFC 8705"),
     )
+    enable_rfc8725: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8725", "false").lower()
+        in {"1", "true", "yes"},
+        description=("Enable JSON Web Token Best Current Practices per RFC 8725"),
+    )
     enable_rfc7636: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7636", "true").lower()
         in {"1", "true", "yes"},
@@ -107,12 +112,11 @@ class Settings(BaseSettings):
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC9396", "0").lower()
         in {"1", "true", "yes"},
         description=("Enable OAuth 2.0 Rich Authorization Requests per RFC 9396"),
-    enable_rfc9396: bool = Field(default=os.environ.get("ENABLE_RFC9396", "0") == "1")
+    )
     enable_rfc9101: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC9101", "false").lower()
         in {"1", "true", "yes"},
         description="Enable JWT-Secured Authorization Request per RFC 9101",
-
     )
     enable_rfc7009: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7009", "false").lower()
