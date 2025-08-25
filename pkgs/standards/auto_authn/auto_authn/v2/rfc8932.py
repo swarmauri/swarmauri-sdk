@@ -17,7 +17,7 @@ from typing import Any, Dict, List
 from fastapi import APIRouter, HTTPException, status
 
 from .runtime_cfg import settings
-from .oidc_discovery import ISSUER, JWKS_PATH
+from .rfc8414_metadata import ISSUER, JWKS_PATH
 
 RFC8932_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8932"
 

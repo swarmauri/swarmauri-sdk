@@ -8,7 +8,7 @@ import nest_asyncio
 from auto_authn.v2.crypto import hash_pw
 from auto_authn.v2.orm.tables import Client, Tenant, User
 from auto_authn.v2.oidc_id_token import oidc_hash, verify_id_token
-from auto_authn.v2.oidc_discovery import ISSUER
+from auto_authn.v2.rfc8414_metadata import ISSUER
 from auto_authn.v2.routers.auth_flows import AUTH_CODES
 
 nest_asyncio.apply()

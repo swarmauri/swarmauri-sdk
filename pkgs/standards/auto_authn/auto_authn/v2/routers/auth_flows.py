@@ -56,7 +56,7 @@ from ..rfc7636_pkce import verify_code_challenge
 from ..rfc8628 import DEVICE_CODES, DeviceGrantForm
 from autoapi.v2.error import IntegrityError
 from ..oidc_id_token import mint_id_token, oidc_hash, verify_id_token
-from ..oidc_discovery import ISSUER
+from ..rfc8414_metadata import ISSUER
 from ..rfc8252 import is_native_redirect_uri
 
 router = APIRouter()
@@ -311,7 +311,7 @@ async def authorize(
         params.append(("access_token", access))
         params.append(("token_type", "bearer"))
     if "id_token" in rts:
-        from ..oidc_discovery import ISSUER
+        from ..rfc8414_metadata import ISSUER
 
         extra_claims: dict[str, str] = {
             "tid": str(user.tenant_id),

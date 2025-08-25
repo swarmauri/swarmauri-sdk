@@ -8,7 +8,7 @@ async def test_openid_configuration_contains_required_fields(async_client) -> No
     resp = await async_client.get("/.well-known/openid-configuration")
     assert resp.status_code == status.HTTP_200_OK
     data = resp.json()
-    from auto_authn.v2.oidc_discovery import JWKS_PATH, ISSUER
+    from auto_authn.v2.rfc8414_metadata import JWKS_PATH, ISSUER
 
     assert data["issuer"] == ISSUER
     assert data["authorization_endpoint"].endswith("/authorize")
