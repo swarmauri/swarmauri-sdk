@@ -24,6 +24,10 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import (
     Ed25519PublicKey,
 )
 
+from .runtime_cfg import settings
+
+RFC9449_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc9449"
+
 _ALG = "EdDSA"
 _ALLOWED_SKEW = 300  # seconds
 
@@ -63,8 +67,18 @@ def jwk_thumbprint(jwk: Dict[str, str]) -> str:
 # ---------------------------------------------------------------------------
 
 
-def create_proof(private_pem: bytes, method: str, url: str) -> str:
-    """Return a DPoP proof for *method* and *url* signed by *private_pem*."""
+def create_proof(
+    private_pem: bytes, method: str, url: str, *, enabled: bool | None = None
+) -> str:
+    """Return a DPoP proof for *method* and *url* signed by *private_pem*.
+
+    When ``enabled`` is ``False`` an empty string is returned to allow callers
+    to bypass proof generation.
+    """
+    if enabled is None:
+        enabled = settings.enable_rfc9449
+    if not enabled:
+        return ""
     private = serialization.load_pem_private_key(private_pem, password=None)
     if not isinstance(private, Ed25519PrivateKey):  # pragma: no cover - sanity
         raise TypeError("Ed25519 key required")
@@ -79,12 +93,25 @@ def create_proof(private_pem: bytes, method: str, url: str) -> str:
     return jwt.encode(payload, private_pem, algorithm=_ALG, headers=headers)
 
 
-def verify_proof(proof: str, method: str, url: str, *, jkt: str | None = None) -> str:
+def verify_proof(
+    proof: str,
+    method: str,
+    url: str,
+    *,
+    jkt: str | None = None,
+    enabled: bool | None = None,
+) -> str:
     """Verify *proof* for *method*/*url* and optionally enforce *jkt* binding.
 
     Returns the computed JWK thumbprint if verification succeeds and raises
-    ``ValueError`` otherwise.
+    ``ValueError`` otherwise. When ``enabled`` is ``False`` an empty string is
+    returned without performing any verification.
     """
+
+    if enabled is None:
+        enabled = settings.enable_rfc9449
+    if not enabled:
+        return ""
 
     try:
         header = jwt.get_unverified_header(proof)
@@ -112,16 +139,17 @@ def verify_proof(proof: str, method: str, url: str, *, jkt: str | None = None) -
     if abs(now - iat) > _ALLOWED_SKEW:
         raise ValueError(f"iat out of range: {RFC9449_SPEC_URL}")
 
-    thumb = jwk_thumbprint(jwk)
+    thumb = jwk_thumbprint(jwk, enabled=True)
     if jkt and thumb != jkt:
         raise ValueError(f"jkt mismatch: {RFC9449_SPEC_URL}")
     return thumb
 
 
 __all__ = [
+    "RFC9449_SPEC_URL",
     "create_proof",
     "verify_proof",
     "jwk_from_public_key",
     "jwk_thumbprint",
-    "RFC9449_SPEC_URL",
+
 ]

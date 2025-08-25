@@ -16,9 +16,10 @@ from cryptography.hazmat.primitives.asymmetric import rsa, ed25519
 from cryptography.x509.oid import NameOID
 from jwt.exceptions import InvalidTokenError
 
-from auto_authn.v2 import RFC8705_SPEC_URL, runtime_cfg
+import auto_authn.v2.runtime_cfg as runtime_cfg
 from auto_authn.v2.jwtoken import JWTCoder
 from auto_authn.v2.rfc8705 import (
+    RFC8705_SPEC_URL,
     thumbprint_from_cert_pem,
     validate_certificate_binding,
 )
@@ -152,3 +153,10 @@ def test_decode_requires_cnf_claim_when_enabled(monkeypatch):
 def test_spec_url_constant():
     """Ensure the exported constant points to the RFC 8705 specification."""
     assert RFC8705_SPEC_URL.endswith("rfc8705")
+
+
+@pytest.mark.unit
+def test_validate_binding_respects_enabled_flag():
+    """``validate_certificate_binding`` bypasses checks when disabled."""
+    payload = {"cnf": {"x5t#S256": "thumb"}}
+    validate_certificate_binding(payload, "other", enabled=False)

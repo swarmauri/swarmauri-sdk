@@ -14,7 +14,6 @@ from typing import Any, Dict, Final, Mapping
 
 from .runtime_cfg import settings
 from .rfc7638 import jwk_thumbprint
-
 RFC7800_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc7800"
 
 
