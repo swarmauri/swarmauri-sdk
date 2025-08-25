@@ -76,7 +76,7 @@ async def oidc_config():
     return {
         "issuer": ISSUER,
         "jwks_uri": f"{ISSUER}{JWKS_PATH}",
-        "token_endpoint": f"{ISSUER}/login",
+        "token_endpoint": f"{ISSUER}/token",
         "registration_endpoint": f"{ISSUER}/register",
         "scopes_supported": ["openid", "profile", "email"],
         "response_types_supported": ["token"],

@@ -251,15 +251,15 @@ class TestLoginFlow:
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert "invalid credentials" in response.json()["detail"]
 
-    async def test_login_alias_endpoint(
+    async def test_token_endpoint_form_data(
         self, async_client: AsyncClient, db_session: AsyncSession
     ):
-        """Test that /token endpoint works as alias for /login."""
+        """Test that /token accepts form-encoded credentials."""
         tenant, user = await self.setup_test_user(db_session)
 
-        login_data = {"identifier": "testuser", "password": "TestPassword123!"}
+        form = {"username": "testuser", "password": "TestPassword123!"}
 
-        response = await async_client.post("/token", json=login_data)
+        response = await async_client.post("/token", data=form)
 
         assert response.status_code == status.HTTP_200_OK
 

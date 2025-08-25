@@ -5,7 +5,8 @@ autoapi_authn.routers.auth_flows
 Public-facing credential endpoints:
 
     • POST /register
-    • POST /login          (alias /token)
+    • POST /login
+    • POST /token          (OAuth2 password grant)
     • POST /logout
     • POST /token/refresh
     • POST /apikeys/introspect
@@ -23,6 +24,7 @@ from __future__ import annotations
 
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr, Field, constr
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -130,10 +132,25 @@ async def register(body: RegisterIn, db: AsyncSession = Depends(get_async_db)):
 
 
 @router.post("/login", response_model=TokenPair)
-@router.post("/token", include_in_schema=False)  # alias
 async def login(body: CredsIn, db: AsyncSession = Depends(get_async_db)):
     try:
         user = await _pwd_backend.authenticate(db, body.identifier, body.password)
+    except AuthError:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "invalid credentials")
+
+    access, refresh = _jwt.sign_pair(sub=str(user.id), tid=str(user.tenant_id))
+    return TokenPair(access_token=access, refresh_token=refresh)
+
+
+@router.post("/token", response_model=TokenPair)
+async def token(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: AsyncSession = Depends(get_async_db),
+) -> TokenPair:
+    try:
+        user = await _pwd_backend.authenticate(
+            db, form_data.username, form_data.password
+        )
     except AuthError:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "invalid credentials")
 
