@@ -73,3 +73,22 @@ async def test_authorize_id_token_requires_nonce(
     assert resp2.status_code in {302, 307}
     qs = parse_qs(urlparse(resp2.headers["location"]).query)
     assert "id_token" in qs
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_authorize_requires_openid_scope(
+    async_client: AsyncClient, db_session: AsyncSession
+):
+    await _prepare(db_session)
+    params = {
+        "response_type": "code",
+        "client_id": "client123",
+        "redirect_uri": "https://client.example.com/cb",
+        "scope": "profile",  # missing openid
+        "username": "alice",
+        "password": "Passw0rd!",
+    }
+    resp = await async_client.get("/authorize", params=params, follow_redirects=False)
+    assert resp.status_code == 400
+    assert resp.json()["error"] == "invalid_scope"
