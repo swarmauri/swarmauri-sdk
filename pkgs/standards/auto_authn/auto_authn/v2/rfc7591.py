@@ -16,6 +16,7 @@ from fastapi import APIRouter, FastAPI, HTTPException, status
 from pydantic import AnyHttpUrl, BaseModel, ConfigDict, Field
 
 from .runtime_cfg import settings
+from .rfc8252 import validate_native_redirect_uri
 
 # In-memory registry of dynamically registered clients
 _CLIENT_REGISTRY: Dict[str, dict] = {}
@@ -63,12 +64,16 @@ def register_client(metadata: dict, *, enabled: bool | None = None) -> dict:
 
     client_id = secrets.token_urlsafe(16)
     client_secret = secrets.token_urlsafe(32)
+    if settings.enforce_rfc8252:
+        for uri in metadata.get("redirect_uris", []):
+            validate_native_redirect_uri(str(uri))
+
     data = {"client_id": client_id, "client_secret": client_secret, **metadata}
     _CLIENT_REGISTRY[client_id] = data
     return data
 
 
-@router.post("/clients", status_code=status.HTTP_201_CREATED)
+@router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register_client_endpoint(body: ClientMetadata) -> dict:
     """HTTP endpoint implementing OAuth 2.0 Dynamic Client Registration."""
 
@@ -94,7 +99,7 @@ def include_rfc7591(app: FastAPI) -> None:
     """Attach the RFC 7591 router to *app* if enabled."""
 
     if settings.enable_rfc7591 and not any(
-        route.path == "/clients" for route in app.routes
+        route.path == "/register" for route in app.routes
     ):
         app.include_router(router)
 

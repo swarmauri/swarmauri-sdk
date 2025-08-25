@@ -16,11 +16,11 @@ def test_register_client_when_enabled() -> None:
 
     with patch.object(rfc7591.settings, "enable_rfc7591", True):
         rfc7591.reset_client_registry()
-        client = rfc7591.register_client({"redirect_uris": ["https://a.example/cb"]})
+        client = rfc7591.register_client({"redirect_uris": ["http://127.0.0.1/cb"]})
         assert "client_id" in client
         stored = rfc7591.get_client(client["client_id"])
         assert stored is not None
-        assert stored["redirect_uris"] == ["https://a.example/cb"]
+        assert stored["redirect_uris"] == ["http://127.0.0.1/cb"]
 
 
 def test_register_client_disabled_raises() -> None:

@@ -11,14 +11,14 @@ from auto_authn.v2.runtime_cfg import settings
 @pytest.mark.unit
 @pytest.mark.asyncio
 async def test_rfc7591_client_registration_endpoint(monkeypatch) -> None:
-    """Posting RFC 7591 client metadata to `/clients` registers the client."""
+    """Posting RFC 7591 client metadata to `/register` registers the client."""
     app = FastAPI()
     monkeypatch.setattr(settings, "enable_rfc7591", True)
     include_rfc7591(app)
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-        payload = {"redirect_uris": ["https://client.example/cb"]}
-        resp = await client.post("/clients", json=payload)
+        payload = {"redirect_uris": ["http://127.0.0.1/cb"]}
+        resp = await client.post("/register", json=payload)
     assert resp.status_code == status.HTTP_201_CREATED
     data = resp.json()
     assert data["redirect_uris"] == payload["redirect_uris"]
@@ -34,6 +34,6 @@ async def test_rfc7591_client_registration_disabled(monkeypatch) -> None:
     include_rfc7591(app)
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-        payload = {"redirect_uris": ["https://client.example/cb"]}
-        resp = await client.post("/clients", json=payload)
+        payload = {"redirect_uris": ["http://127.0.0.1/cb"]}
+        resp = await client.post("/register", json=payload)
     assert resp.status_code == status.HTTP_404_NOT_FOUND
