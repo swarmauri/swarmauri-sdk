@@ -129,7 +129,7 @@ async def rotate_ed25519_jwt_key() -> str:
     _DEFAULT_KEY_PATH.write_text(ref.kid)
     _load_keypair.cache_clear()
     try:  # refresh discovery metadata if available
-        from .rfc8414 import refresh_discovery_cache
+        from .oidc_discovery import refresh_discovery_cache
 
         refresh_discovery_cache()
     except Exception:  # pragma: no cover - best effort

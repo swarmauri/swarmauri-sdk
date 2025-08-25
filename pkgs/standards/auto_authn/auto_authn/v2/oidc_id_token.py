@@ -170,7 +170,7 @@ async def rotate_rsa_jwt_key() -> str:
     _RSA_KEY_PATH.write_text(ref.kid)
     _service.cache_clear()
     try:  # refresh discovery metadata if available
-        from .rfc8414 import refresh_discovery_cache
+        from .oidc_discovery import refresh_discovery_cache
 
         refresh_discovery_cache()
     except Exception:  # pragma: no cover - best effort
