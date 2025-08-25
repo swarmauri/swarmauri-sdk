@@ -156,10 +156,12 @@ def enable_rfc8414():
     """Enable RFC 8414 authorization server metadata for tests."""
     from auto_authn.v2.runtime_cfg import settings
     from auto_authn.v2.rfc8414 import include_rfc8414
+    from auto_authn.v2.oidc_discovery import include_oidc_discovery
 
     original = settings.enable_rfc8414
     settings.enable_rfc8414 = True
     include_rfc8414(app)
+    include_oidc_discovery(app)
     try:
         yield
     finally:

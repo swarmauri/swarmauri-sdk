@@ -22,7 +22,7 @@ from .deps import JWAAlg
 router = APIRouter()
 
 
-@router.get("/userinfo")
+@router.get("/userinfo", response_model=None)
 async def userinfo(
     request: Request, user: User = Depends(get_current_principal)
 ) -> Response | dict[str, str]:

@@ -24,6 +24,7 @@ from .routers.auth_flows import router as flows_router
 from .routers.crud import crud_api as crud_api
 from .runtime_cfg import settings
 from .rfc8414 import include_rfc8414
+from .oidc_discovery import include_oidc_discovery
 from .rfc8628 import include_rfc8628
 from .rfc9126 import include_rfc9126
 from .rfc7009 import include_rfc7009
@@ -58,6 +59,7 @@ if settings.enable_rfc7591:
 include_oidc_userinfo(app)
 if settings.enable_rfc8414:
     include_rfc8414(app)
+    include_oidc_discovery(app)
 
 
 # --------------------------------------------------------------------
