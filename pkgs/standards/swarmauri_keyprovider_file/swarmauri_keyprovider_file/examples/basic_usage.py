@@ -1,19 +1,3 @@
-![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
-
-# Swarmauri File Key Provider
-
-A file-backed key provider implementing the `KeyProviderBase` interface.
-It manages symmetric and asymmetric keys on disk and exports public material via JWK/JWKS.
-
-## Installation
-
-```bash
-pip install swarmauri_keyprovider_file
-```
-
-## Usage
-
-```python
 import asyncio
 from tempfile import TemporaryDirectory
 
@@ -28,6 +12,7 @@ from swarmauri_core.crypto.types import KeyUse
 
 
 async def run_example() -> str:
+    """Persist a symmetric key on disk using FileKeyProvider."""
     with TemporaryDirectory() as tmp:
         provider = FileKeyProvider(tmp)
         spec = KeySpec(
@@ -39,12 +24,9 @@ async def run_example() -> str:
         created = await provider.create_key(spec)
         provider2 = FileKeyProvider(tmp)
         loaded = await provider2.get_key(created.kid, include_secret=True)
-        print(f"Loaded key: {loaded.kid}")
+        assert loaded.material == created.material
+        return loaded.kid
 
 
-asyncio.run(run_example())
-```
-
-## Entry Point
-
-The provider registers under the `swarmauri.key_providers` entry point as `FileKeyProvider`.
+if __name__ == "__main__":
+    print(asyncio.run(run_example()))
