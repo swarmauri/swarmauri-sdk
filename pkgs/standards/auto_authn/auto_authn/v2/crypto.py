@@ -2,36 +2,19 @@
 autoapi_authn.crypto
 ====================
 
-* Password hashing & verification            – bcrypt (12 rounds by default)
-* JWT EdDSA (Ed25519) key-pair management    – PEM file on disk
-* Zero-cost caching of loaded keys in-process
-
-Environment variables
----------------------
-JWT_ED25519_PRIV_PATH   path to PEM-encoded Ed25519 *private* key
-                        (default: "runtime_secrets/jwt_ed25519.pem")
-
-Security notes
---------------
-• Ed25519 chosen for small key size & deterministic signatures.
-• Private key never leaves this module; callers get *bytes* to feed
-  into PyJWT (`jwt.encode(..., key=PRIVATE_KEY, algorithm="EdDSA")`).
-• If the PEM file is missing, a fresh key-pair is generated and written
-  with `0o600` permissions – suitable for container first-run.
+Password hashing and JWT signing key management backed by swarmauri plugins.
 """
 
 from __future__ import annotations
 
+import asyncio
 import os
 import pathlib
 from functools import lru_cache
 from typing import Tuple
 
 import bcrypt
-from cryptography.hazmat.primitives.asymmetric.ed25519 import (
-    Ed25519PrivateKey,
-)
-from cryptography.hazmat.primitives import serialization
+from .deps import FileKeyProvider, ExportPolicy, KeyAlg, KeyClass, KeySpec, KeyUse
 
 # ---------------------------------------------------------------------
 # Password hashing helpers
@@ -51,62 +34,52 @@ def verify_pw(plain: str, hashed: bytes) -> bool:
     try:
         return bcrypt.checkpw(plain.encode(), hashed)
     except (ValueError, TypeError):
-        # Occurs if *hashed* is invalid bcrypt format or wrong type
         return False
 
 
 # ---------------------------------------------------------------------
-# JWT signing key helpers
+# JWT signing key helpers via swarmauri FileKeyProvider
 # ---------------------------------------------------------------------
-_DEFAULT_KEY_PATH = pathlib.Path(
-    os.getenv("JWT_ED25519_PRIV_PATH", "runtime_secrets/jwt_ed25519.pem")
-)
-
-
-def _generate_keypair(path: pathlib.Path) -> Tuple[bytes, bytes]:
-    """Create a new Ed25519 key-pair on disk (600 perms) & return (priv, pub)."""
-    path.parent.mkdir(parents=True, exist_ok=True)
-
-    private = Ed25519PrivateKey.generate()
-    pem_priv = private.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption(),
-    )
-    pem_pub = private.public_key().public_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo,
-    )
-
-    path.write_bytes(pem_priv)
-    path.chmod(0o600)
-    return pem_priv, pem_pub
+_DEFAULT_KEY_DIR = pathlib.Path(os.getenv("JWT_ED25519_KEY_DIR", "runtime_secrets"))
+_KID_PATH = _DEFAULT_KEY_DIR / "jwt_ed25519.kid"
 
 
 @lru_cache(maxsize=1)
-def _load_keypair() -> Tuple[bytes, bytes]:
-    """Load (priv_pem, pub_pem) from disk or generate if absent."""
-    if not _DEFAULT_KEY_PATH.exists():
-        return _generate_keypair(_DEFAULT_KEY_PATH)
-
-    pem_priv = _DEFAULT_KEY_PATH.read_bytes()
-    private_key = serialization.load_pem_private_key(pem_priv, password=None)
-    if not isinstance(private_key, Ed25519PrivateKey):
-        raise RuntimeError("JWT signing key is not Ed25519")
-
-    pem_pub = private_key.public_key().public_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo,
-    )
-    return pem_priv, pem_pub
+def _provider() -> FileKeyProvider:
+    return FileKeyProvider(_DEFAULT_KEY_DIR)
 
 
-# public exports -------------------------------------------------------
+async def _ensure_key() -> Tuple[str, bytes, bytes]:
+    kp = _provider()
+    if _KID_PATH.exists():
+        kid = _KID_PATH.read_text().strip()
+        ref = await kp.get_key(kid, include_secret=True)
+    else:
+        spec = KeySpec(
+            klass=KeyClass.asymmetric,
+            alg=KeyAlg.ED25519,
+            uses=(KeyUse.SIGN, KeyUse.VERIFY),
+            export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
+            label="jwt_ed25519",
+        )
+        ref = await kp.create_key(spec)
+        _KID_PATH.parent.mkdir(parents=True, exist_ok=True)
+        _KID_PATH.write_text(ref.kid)
+    priv = ref.material or b""
+    pub = ref.public or b""
+    return ref.kid, priv, pub
+
+
+@lru_cache(maxsize=1)
+def _load_keypair() -> Tuple[str, bytes, bytes]:
+    return asyncio.run(_ensure_key())
+
+
 def signing_key() -> bytes:
-    """PEM-encoded Ed25519 private key for `jwt.encode(..., algorithm='EdDSA')`."""
-    return _load_keypair()[0]
+    """PEM-encoded Ed25519 private key for JWTTokenService."""
+    return _load_keypair()[1]
 
 
 def public_key() -> bytes:
-    """PEM-encoded Ed25519 public key (exposed via `/jwks.json`)."""
-    return _load_keypair()[1]
+    """PEM-encoded Ed25519 public key for JWKS publication."""
+    return _load_keypair()[2]

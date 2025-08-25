@@ -9,12 +9,15 @@ of enforcement.
 from __future__ import annotations
 
 from typing import Any, Dict
-
-import jwt
-from jwt.exceptions import InvalidTokenError
+import base64
+import json
 
 from .jwtoken import JWTCoder
 from .runtime_cfg import settings
+
+
+class InvalidTokenError(Exception):
+    """Raised when a JWT violates RFC 8725 recommendations."""
 
 RFC8725_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8725"
 
@@ -36,7 +39,9 @@ def validate_jwt_best_practices(
     if not enabled:
         return claims
 
-    header = jwt.get_unverified_header(token)
+    head_b64 = token.split(".")[0]
+    pad = "=" * ((4 - (len(head_b64) % 4)) % 4)
+    header = json.loads(base64.urlsafe_b64decode(head_b64 + pad))
     if header.get("alg", "").lower() == "none":
         raise InvalidTokenError("alg 'none' is prohibited by RFC 8725")
 

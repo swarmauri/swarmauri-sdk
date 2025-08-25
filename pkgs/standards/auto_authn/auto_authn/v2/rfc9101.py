@@ -9,13 +9,36 @@ See RFC 9101: https://www.rfc-editor.org/rfc/rfc9101
 
 from __future__ import annotations
 
-from typing import Any, Dict, Final, Iterable
+from typing import Any, Dict, Final, Iterable, Tuple
+import asyncio
 
-import jwt
+from .deps import (
+    ExportPolicy,
+    JWAAlg,
+    JWTTokenService,
+    KeyAlg,
+    KeyClass,
+    KeySpec,
+    KeyUse,
+    LocalKeyProvider,
+)
 
 from .runtime_cfg import settings
 
 RFC9101_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc9101"
+
+
+def _svc_for_secret(secret: str) -> Tuple[JWTTokenService, str]:
+    kp = LocalKeyProvider()
+    spec = KeySpec(
+        klass=KeyClass.symmetric,
+        alg=KeyAlg.HMAC_SHA256,
+        uses=(KeyUse.SIGN, KeyUse.VERIFY),
+        export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
+        label="request_obj",
+    )
+    ref = asyncio.run(kp.import_key(spec, secret.encode()))
+    return JWTTokenService(kp), ref.kid
 
 
 def create_request_object(
@@ -30,7 +53,9 @@ def create_request_object(
     """
     if not settings.enable_rfc9101:
         raise RuntimeError(f"RFC 9101 support disabled: {RFC9101_SPEC_URL}")
-    return jwt.encode(params, secret, algorithm=algorithm)
+    svc, kid = _svc_for_secret(secret)
+    alg = JWAAlg(algorithm)
+    return asyncio.run(svc.mint(params, alg=alg, kid=kid, lifetime_s=None))
 
 
 def parse_request_object(
@@ -45,8 +70,8 @@ def parse_request_object(
     """
     if not settings.enable_rfc9101:
         raise RuntimeError(f"RFC 9101 support disabled: {RFC9101_SPEC_URL}")
-    algs = list(algorithms) if algorithms is not None else ["HS256"]
-    return jwt.decode(token, secret, algorithms=algs)
+    svc, _kid = _svc_for_secret(secret)
+    return asyncio.run(svc.verify(token, audience=None, issuer=None, leeway_s=60))
 
 
 __all__ = ["create_request_object", "parse_request_object", "RFC9101_SPEC_URL"]

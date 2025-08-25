@@ -1,14 +1,8 @@
-"""Utilities for OAuth 2.0 Demonstrating Proof of Possession (DPoP).
-
-This module provides helpers to create and verify DPoP proofs as defined in
-RFC 9449. It currently supports Ed25519 keys and is intentionally lightweight
-so the feature can be enabled or disabled via runtime configuration.
-
-See RFC 9449: https://www.rfc-editor.org/rfc/rfc9449
-"""
+"""Utilities for OAuth 2.0 Demonstrating Proof of Possession (DPoP)."""
 
 from __future__ import annotations
 
+import asyncio
 import base64
 import hashlib
 import json
@@ -17,25 +11,22 @@ from datetime import datetime, timezone
 from typing import Dict, Final
 from uuid import uuid4
 
-import jwt
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import (
     Ed25519PrivateKey,
     Ed25519PublicKey,
 )
+from .deps import JWAAlg, JwsSignerVerifier
 
 from .runtime_cfg import settings
 
-RFC9449_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc9449"
-
-_ALG = "EdDSA"
-_ALLOWED_SKEW = 300  # seconds
-
 RFC9449_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc9449"
+_ALG = JWAAlg.EDDSA
+_ALLOWED_SKEW = 300  # seconds
+_signer = JwsSignerVerifier()
 
 
 def _b64url(data: bytes) -> str:
-    """Return base64url encoded string without padding."""
     return base64.urlsafe_b64encode(data).rstrip(b"=").decode()
 
 
@@ -45,7 +36,6 @@ def _b64url(data: bytes) -> str:
 
 
 def jwk_from_public_key(public_key: Ed25519PublicKey) -> Dict[str, str]:
-    """Return a public JWK for *public_key* (Ed25519 only)."""
     x = _b64url(
         public_key.public_bytes(
             encoding=serialization.Encoding.Raw,
@@ -56,7 +46,6 @@ def jwk_from_public_key(public_key: Ed25519PublicKey) -> Dict[str, str]:
 
 
 def jwk_thumbprint(jwk: Dict[str, str]) -> str:
-    """Compute the RFC 7638 SHA-256 thumbprint for *jwk*."""
     data = json.dumps({k: jwk[k] for k in sorted(jwk)}, separators=(",", ":")).encode()
     digest = hashlib.sha256(data).digest()
     return _b64url(digest)
@@ -70,27 +59,35 @@ def jwk_thumbprint(jwk: Dict[str, str]) -> str:
 def create_proof(
     private_pem: bytes, method: str, url: str, *, enabled: bool | None = None
 ) -> str:
-    """Return a DPoP proof for *method* and *url* signed by *private_pem*.
-
-    When ``enabled`` is ``False`` an empty string is returned to allow callers
-    to bypass proof generation.
-    """
     if enabled is None:
         enabled = settings.enable_rfc9449
     if not enabled:
         return ""
-    private = serialization.load_pem_private_key(private_pem, password=None)
-    if not isinstance(private, Ed25519PrivateKey):  # pragma: no cover - sanity
-        raise TypeError("Ed25519 key required")
-    jwk = jwk_from_public_key(private.public_key())
-    headers = {"typ": "dpop+jwt", "alg": _ALG, "jwk": jwk}
+    sk = Ed25519PrivateKey.from_private_bytes(
+        private_pem[:32] if len(private_pem) > 32 else private_pem
+    )
+    jwk = jwk_from_public_key(sk.public_key())
+    d = sk.private_bytes(
+        encoding=serialization.Encoding.Raw,
+        format=serialization.PrivateFormat.Raw,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+    key_jwk = {**jwk, "d": _b64url(d)}
+    headers = {"typ": "dpop+jwt", "jwk": jwk}
     payload = {
         "htm": method.upper(),
         "htu": url,
         "iat": int(datetime.now(timezone.utc).timestamp()),
         "jti": str(uuid4()),
     }
-    return jwt.encode(payload, private_pem, algorithm=_ALG, headers=headers)
+    return asyncio.run(
+        _signer.sign_compact(
+            payload=payload,
+            alg=_ALG,
+            key=key_jwk,
+            header_extra=headers,
+        )
+    )
 
 
 def verify_proof(
@@ -101,45 +98,29 @@ def verify_proof(
     jkt: str | None = None,
     enabled: bool | None = None,
 ) -> str:
-    """Verify *proof* for *method*/*url* and optionally enforce *jkt* binding.
-
-    Returns the computed JWK thumbprint if verification succeeds and raises
-    ``ValueError`` otherwise. When ``enabled`` is ``False`` an empty string is
-    returned without performing any verification.
-    """
-
     if enabled is None:
         enabled = settings.enable_rfc9449
     if not enabled:
         return ""
-
-    try:
-        header = jwt.get_unverified_header(proof)
-    except jwt.exceptions.DecodeError as exc:  # pragma: no cover - sanity
-        raise ValueError(f"malformed DPoP proof: {RFC9449_SPEC_URL}") from exc
-
+    parts = proof.split(".")
+    if len(parts) != 3:
+        raise ValueError(f"malformed DPoP proof: {RFC9449_SPEC_URL}")
+    header = json.loads(base64.urlsafe_b64decode(parts[0] + "=="))
     jwk = header.get("jwk")
     if not jwk:
         raise ValueError(f"missing jwk in DPoP header: {RFC9449_SPEC_URL}")
-    if jwk.get("kty") != "OKP" or jwk.get("crv") != "Ed25519":
-        raise ValueError(f"unsupported jwk: {RFC9449_SPEC_URL}")
-
-    public_key = Ed25519PublicKey.from_public_bytes(
-        base64.urlsafe_b64decode(jwk["x"] + "==")
-    )
-    payload = jwt.decode(proof, public_key, algorithms=[_ALG])
-
+    pub = base64.urlsafe_b64decode(jwk["x"] + "==")
+    result = asyncio.run(_signer.verify_compact(proof, ed_pubkeys=[pub]))
+    payload = json.loads(result.payload.decode())
     if payload.get("htm") != method.upper():
         raise ValueError(f"htm mismatch: {RFC9449_SPEC_URL}")
     if payload.get("htu") != url:
         raise ValueError(f"htu mismatch: {RFC9449_SPEC_URL}")
-
     now = int(time.time())
     iat = int(payload.get("iat", 0))
     if abs(now - iat) > _ALLOWED_SKEW:
         raise ValueError(f"iat out of range: {RFC9449_SPEC_URL}")
-
-    thumb = jwk_thumbprint(jwk, enabled=True)
+    thumb = jwk_thumbprint(jwk)
     if jkt and thumb != jkt:
         raise ValueError(f"jkt mismatch: {RFC9449_SPEC_URL}")
     return thumb
@@ -151,5 +132,4 @@ __all__ = [
     "verify_proof",
     "jwk_from_public_key",
     "jwk_thumbprint",
-
 ]
