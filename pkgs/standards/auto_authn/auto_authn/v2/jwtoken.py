@@ -25,6 +25,8 @@ from .deps import (
 from .runtime_cfg import settings
 from .rfc8705 import validate_certificate_binding
 from .crypto import _DEFAULT_KEY_PATH, _provider
+from .rfc7009 import is_revoked
+from .rfc7662 import register_token
 
 _ACCESS_TTL = timedelta(minutes=60)
 _REFRESH_TTL = timedelta(days=7)
@@ -156,6 +158,11 @@ class JWTCoder:
             issuer=issuer,
             audience=audience,
         )
+        if settings.enable_rfc7662:
+            claims = {"sub": sub, "kind": typ}
+            if tid is not None:
+                claims["tid"] = tid
+            register_token(token, claims)
         return token
 
     def sign(
@@ -219,6 +226,8 @@ class JWTCoder:
         audience: Optional[Iterable[str] | str] = None,
         cert_thumbprint: Optional[str] = None,
     ) -> Dict[str, Any]:
+        if is_revoked(token):
+            raise InvalidTokenError("token has been revoked")
         if _header_alg(token) in {"", "none"}:
             raise InvalidTokenError("unsigned JWTs are not accepted")
         try:

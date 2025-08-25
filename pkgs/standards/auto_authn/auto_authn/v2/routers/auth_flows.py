@@ -39,7 +39,7 @@ from uuid import UUID
 
 from ..crypto import hash_pw
 from ..jwtoken import JWTCoder
-from ..backends import PasswordBackend, ApiKeyBackend, AuthError
+from ..backends import PasswordBackend, AuthError
 from ..fastapi_deps import get_async_db
 from ..orm.tables import Tenant, User, Client
 from ..runtime_cfg import settings
@@ -58,12 +58,12 @@ from autoapi.v2.error import IntegrityError
 from ..oidc_id_token import mint_id_token, oidc_hash, verify_id_token
 from ..oidc_discovery import ISSUER
 from ..rfc8252 import is_native_redirect_uri
+from ..rfc7662 import introspect_token
 
 router = APIRouter()
 
 _jwt = JWTCoder.default()
 _pwd_backend = PasswordBackend()
-_api_backend = ApiKeyBackend()
 
 _ALLOWED_GRANT_TYPES = {"password", "authorization_code"}
 if settings.enable_rfc8628:
@@ -587,7 +587,7 @@ async def refresh(body: RefreshIn, request: Request):
 #  RFC 7662 token introspection
 # --------------------------------------------------------------------------
 @router.post("/introspect", response_model=IntrospectOut)
-async def introspect(request: Request, db: AsyncSession = Depends(get_async_db)):
+async def introspect(request: Request):
     _require_tls(request)
     if not settings.enable_rfc7662:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "introspection disabled")
@@ -595,13 +595,5 @@ async def introspect(request: Request, db: AsyncSession = Depends(get_async_db))
     token = form.get("token")
     if not token:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "token parameter required")
-    try:
-        principal, kind = await _api_backend.authenticate(db, token)
-    except AuthError:
-        return IntrospectOut(active=False)
-    return IntrospectOut(
-        active=True,
-        sub=str(principal.id),
-        tid=str(principal.tenant_id),
-        kind=kind,
-    )
+    data = introspect_token(token)
+    return IntrospectOut(**data)
