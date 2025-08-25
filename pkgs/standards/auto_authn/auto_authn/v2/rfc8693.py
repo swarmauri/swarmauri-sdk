@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from typing import Dict, Any, Optional, Union, List
 from enum import Enum
+from fastapi import APIRouter, FastAPI
 
 from fastapi import APIRouter, FastAPI, Form, HTTPException, status
 
@@ -22,6 +23,18 @@ RFC8693_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8693"
 
 # Token Exchange Grant Type
 TOKEN_EXCHANGE_GRANT_TYPE = "urn:ietf:params:oauth:grant-type:token-exchange"
+
+# Router placeholder for potential token exchange endpoints
+router = APIRouter()
+
+
+def include_rfc8693(app: FastAPI) -> None:
+    """Include RFC 8693 routes on a FastAPI app."""
+
+    if not settings.enable_rfc8693:
+        raise NotImplementedError("RFC 8693 support is disabled")
+
+    app.include_router(router)
 
 
 # FastAPI router for RFC 8693 endpoints
@@ -390,7 +403,5 @@ __all__ = [
     "create_delegation_token",
     "TOKEN_EXCHANGE_GRANT_TYPE",
     "RFC8693_SPEC_URL",
-    "token_exchange_endpoint",
     "include_rfc8693",
-    "router",
 ]
