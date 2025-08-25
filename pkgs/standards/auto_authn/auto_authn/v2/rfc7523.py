@@ -7,7 +7,7 @@ client authentication and authorization grants.  Support can be toggled via the
 
 from __future__ import annotations
 
-from typing import Dict, Set
+from typing import Dict, Iterable, Set, Union
 
 from .runtime_cfg import settings
 from .rfc7519 import decode_jwt
@@ -16,12 +16,16 @@ RFC7523_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc7523"
 REQUIRED_CLAIMS: Set[str] = {"iss", "sub", "aud", "exp"}
 
 
-def validate_client_jwt_bearer(assertion: str) -> Dict[str, object]:
+def validate_client_jwt_bearer(
+    assertion: str, *, audience: Union[str, Iterable[str], None] = None
+) -> Dict[str, object]:
     """Validate a JWT ``assertion`` per RFC 7523 client authentication profile.
 
     The JWT MUST contain the ``iss``, ``sub``, ``aud`` and ``exp`` claims and the
     ``iss`` and ``sub`` values MUST match as required by RFC 7523 §2.2. If
-    support for RFC 7523 is disabled, a ``RuntimeError`` is raised.
+    support for RFC 7523 is disabled, a ``RuntimeError`` is raised. When
+    ``audience`` is provided, the JWT's ``aud`` claim must match one of the
+    expected values per RFC 7523 §2.2.
     """
 
     if not settings.enable_rfc7523:
@@ -32,6 +36,12 @@ def validate_client_jwt_bearer(assertion: str) -> Dict[str, object]:
         raise ValueError(f"missing claims: {', '.join(sorted(missing))}")
     if claims["iss"] != claims["sub"]:
         raise ValueError("iss and sub must match for client authentication")
+    if audience is not None:
+        aud_claim = claims["aud"]
+        aud_values = {aud_claim} if isinstance(aud_claim, str) else set(aud_claim)
+        expected = {audience} if isinstance(audience, str) else set(audience)
+        if aud_values.isdisjoint(expected):
+            raise ValueError("invalid audience")
     return claims
 
 
