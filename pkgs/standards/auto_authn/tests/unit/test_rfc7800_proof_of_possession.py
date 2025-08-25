@@ -8,7 +8,11 @@ via ``runtime_cfg.Settings.enable_rfc7800``.
 import pytest
 
 from auto_authn.v2.rfc7638 import jwk_thumbprint
-from auto_authn.v2.rfc7800 import add_cnf_claim, verify_proof_of_possession
+from auto_authn.v2.rfc7800 import (
+    RFC7800_SPEC_URL,
+    add_cnf_claim,
+    verify_proof_of_possession,
+)
 
 JWK = {
     "kty": "oct",
@@ -32,3 +36,9 @@ def test_feature_toggle(monkeypatch):
     """When disabled, verification always passes."""
     payload = {"sub": "bob"}
     assert verify_proof_of_possession(payload, JWK, enabled=False) is True
+
+
+@pytest.mark.unit
+def test_spec_url_constant():
+    """Ensure the exported constant points to the RFC 7800 specification."""
+    assert RFC7800_SPEC_URL.endswith("rfc7800")
