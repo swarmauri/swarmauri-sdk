@@ -87,6 +87,11 @@ class Settings(BaseSettings):
         default=os.environ.get("AUTO_AUTHN_ENABLE_DPOP", "0") in {"1", "true", "True"}
     )
     enable_rfc9396: bool = Field(default=os.environ.get("ENABLE_RFC9396", "0") == "1")
+    enable_rfc9101: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC9101", "false").lower()
+        in {"1", "true", "yes"},
+        description="Enable JWT-Secured Authorization Request per RFC 9101",
+    )
     enable_rfc7009: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7009", "false").lower()
         in {"1", "true", "yes"}
@@ -95,6 +100,7 @@ class Settings(BaseSettings):
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC8414", "true").lower()
         in {"1", "true", "yes"},
         description="Enable OAuth 2.0 Authorization Server Metadata per RFC 8414",
+    )
     enable_rfc6750_query: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC6750_QUERY", "false").lower()
         in {"1", "true", "yes"},
@@ -106,6 +112,7 @@ class Settings(BaseSettings):
         description=(
             "Allow access_token in application/x-www-form-urlencoded bodies per RFC 6750 §2.2"
         ),
+    )
     enable_rfc6749: bool = Field(
         default=os.environ.get("AUTO_AUTHN_ENABLE_RFC6749", "true").lower()
         in {"1", "true", "yes"},
