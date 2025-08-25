@@ -80,17 +80,11 @@ def get_enhanced_authorization_server_metadata() -> Dict[str, Any]:
         ],
         "response_types_supported": [
             "code",
-            "token",
             "id_token",
-            "code token",
             "code id_token",
-            "token id_token",
-            "code token id_token",
         ],
         "grant_types_supported": [
             "authorization_code",
-            "implicit",
-            "password",
             "client_credentials",
             "refresh_token",
         ],

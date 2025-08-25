@@ -126,6 +126,7 @@ class TestOIDCDiscoveryEndpoint:
         response_types = discovery_doc["response_types_supported"]
         assert isinstance(response_types, list), "Response types should be a list"
         assert len(response_types) > 0, "Must support at least one response type"
+        assert all("token" not in rt.split() for rt in response_types)
 
         # Check subject types
         subject_types = discovery_doc["subject_types_supported"]

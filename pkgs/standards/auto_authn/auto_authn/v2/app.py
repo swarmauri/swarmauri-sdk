@@ -102,20 +102,18 @@ async def oidc_config():
     ]
     response_types = [
         "code",
-        "token",
         "id_token",
-        "code token",
         "code id_token",
-        "token id_token",
-        "code token id_token",
     ]
-    return {
+    config = {
         "issuer": ISSUER,
         "authorization_endpoint": f"{ISSUER}/authorize",
         "token_endpoint": f"{ISSUER}/token",
         "userinfo_endpoint": f"{ISSUER}/userinfo",
-
         "jwks_uri": f"{ISSUER}{JWKS_PATH}",
+        "scopes_supported": scopes,
+        "claims_supported": claims,
+        "response_types_supported": response_types,
         "subject_types_supported": ["public"],
         "id_token_signing_alg_values_supported": ["RS256"],
     }

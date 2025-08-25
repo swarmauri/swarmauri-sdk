@@ -251,21 +251,23 @@ class TestLoginFlow:
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert "invalid credentials" in response.json()["detail"]
 
-    async def test_token_endpoint_form_data(
+    async def test_token_endpoint_password_grant_unsupported(
         self, async_client: AsyncClient, db_session: AsyncSession
     ):
-        """Test that /token accepts form-encoded credentials."""
-        tenant, user = await self.setup_test_user(db_session)
+        """Password grant is omitted; /token returns unsupported_grant_type."""
+        await self.setup_test_user(db_session)
 
-        form = {"username": "testuser", "password": "TestPassword123!"}
+        form = {
+            "username": "testuser",
+            "password": "TestPassword123!",
+            "grant_type": "password",
+        }
 
-        response = await async_client.post("/token", data=form)
+        with pytest.warns(UserWarning):
+            response = await async_client.post("/token", data=form)
 
-        assert response.status_code == status.HTTP_200_OK
-
-        response_data = response.json()
-        assert "access_token" in response_data
-        assert "refresh_token" in response_data
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json()["error"] == "unsupported_grant_type"
 
     async def test_login_inactive_user(
         self, async_client: AsyncClient, db_session: AsyncSession
