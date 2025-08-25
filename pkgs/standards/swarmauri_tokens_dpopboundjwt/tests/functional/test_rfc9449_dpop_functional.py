@@ -7,7 +7,13 @@ from uuid import uuid4
 import jwt
 from cryptography.hazmat.primitives.asymmetric import ed25519
 from cryptography.hazmat.primitives import serialization
-from swarmauri_core.crypto.types import ExportPolicy, KeyRef, KeyType, KeyUse
+from swarmauri_core.crypto.types import (
+    ExportPolicy,
+    JWAAlg,
+    KeyRef,
+    KeyType,
+    KeyUse,
+)
 from swarmauri_core.keys.IKeyProvider import IKeyProvider
 
 from swarmauri_tokens_dpopboundjwt import (
@@ -25,7 +31,7 @@ class StaticKeyProvider(IKeyProvider):
         self._secret = secret
 
     def supports(self) -> Dict[str, list[str]]:
-        return {"algs": ["HS256"]}
+        return {"algs": [JWAAlg.HS256.value]}
 
     async def create_key(self, spec):
         raise NotImplementedError
@@ -80,7 +86,7 @@ async def _run_flow() -> bool:
     jwk = {"kty": "OKP", "crv": "Ed25519", "x": _b64u(pub)}
 
     ctx["jwk"] = jwk
-    token = await svc.mint({}, alg="HS256")
+    token = await svc.mint({}, alg=JWAAlg.HS256)
     del ctx["jwk"]
 
     now = int(time.time())

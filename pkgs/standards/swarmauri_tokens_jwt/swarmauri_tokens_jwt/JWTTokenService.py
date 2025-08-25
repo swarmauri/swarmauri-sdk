@@ -7,14 +7,15 @@ import jwt
 from jwt import algorithms
 
 from swarmauri_base.tokens import TokenServiceBase
+from swarmauri_core.crypto.types import JWAAlg
 from swarmauri_core.keys import IKeyProvider, KeyAlg
 
 ALG_MAP_SIGN = {
-    "RS256": KeyAlg.RSA_PSS_SHA256,
-    "PS256": KeyAlg.RSA_PSS_SHA256,
-    "ES256": KeyAlg.ECDSA_P256_SHA256,
-    "EdDSA": KeyAlg.ED25519,
-    "HS256": KeyAlg.HMAC_SHA256,
+    JWAAlg.RS256: KeyAlg.RSA_PSS_SHA256,
+    JWAAlg.PS256: KeyAlg.RSA_PSS_SHA256,
+    JWAAlg.ES256: KeyAlg.ECDSA_P256_SHA256,
+    JWAAlg.EDDSA: KeyAlg.ED25519,
+    JWAAlg.HS256: KeyAlg.HMAC_SHA256,
 }
 
 
@@ -30,14 +31,14 @@ class JWTTokenService(TokenServiceBase):
         self._kp = key_provider
         self._iss = default_issuer
 
-    def supports(self) -> Mapping[str, Iterable[str]]:
+    def supports(self) -> Mapping[str, Iterable[JWAAlg]]:
         return {"formats": ("JWT", "JWS"), "algs": tuple(ALG_MAP_SIGN.keys())}
 
     async def mint(
         self,
         claims: Dict[str, Any],
         *,
-        alg: str,
+        alg: JWAAlg,
         kid: str | None = None,
         key_version: int | None = None,
         headers: Optional[Dict[str, Any]] = None,
@@ -64,7 +65,7 @@ class JWTTokenService(TokenServiceBase):
 
         headers = dict(headers or {})
 
-        if alg == "HS256":
+        if alg == JWAAlg.HS256:
             if not kid:
                 raise ValueError("HS256 mint requires 'kid' of a symmetric key")
             ref = await self._kp.get_key(kid, key_version, include_secret=True)
@@ -72,7 +73,7 @@ class JWTTokenService(TokenServiceBase):
                 raise RuntimeError("HMAC secret is not exportable under current policy")
             key = ref.material
             headers.setdefault("kid", f"{ref.kid}.{ref.version}")
-            return jwt.encode(payload, key, algorithm="HS256", headers=headers)
+            return jwt.encode(payload, key, algorithm=alg.value, headers=headers)
 
         if not kid:
             raise ValueError("asymmetric mint requires 'kid' of a signing key")
@@ -83,7 +84,7 @@ class JWTTokenService(TokenServiceBase):
         if key is None:
             raise RuntimeError("Signing key is not exportable under current policy")
 
-        return jwt.encode(payload, key, algorithm=alg, headers=headers)
+        return jwt.encode(payload, key, algorithm=alg.value, headers=headers)
 
     async def verify(
         self,
@@ -120,7 +121,7 @@ class JWTTokenService(TokenServiceBase):
         return jwt.decode(
             token,
             key=key,
-            algorithms=list(self.supports()["algs"]),
+            algorithms=[a.value for a in self.supports()["algs"]],
             audience=audience,
             issuer=issuer or self._iss,
             leeway=leeway_s,

@@ -3,6 +3,7 @@ import base64
 import pytest
 
 from swarmauri_tokens_jwt import JWTTokenService
+from swarmauri_core.crypto.types import JWAAlg, KeyType
 from swarmauri_core.keys import (
     ExportPolicy,
     IKeyProvider,
@@ -10,7 +11,6 @@ from swarmauri_core.keys import (
     KeySpec,
     KeyUse,
 )
-from swarmauri_core.crypto.types import KeyType
 
 
 class InMemoryKeyProvider(IKeyProvider):
@@ -81,6 +81,6 @@ class InMemoryKeyProvider(IKeyProvider):
 @pytest.mark.asyncio
 async def test_usage_mint_and_verify() -> None:
     svc = JWTTokenService(InMemoryKeyProvider(), default_issuer="issuer")
-    token = await svc.mint({"sub": "alice"}, alg="HS256", kid="sym")
+    token = await svc.mint({"sub": "alice"}, alg=JWAAlg.HS256, kid="sym")
     claims = await svc.verify(token, issuer="issuer")
     assert claims["sub"] == "alice"

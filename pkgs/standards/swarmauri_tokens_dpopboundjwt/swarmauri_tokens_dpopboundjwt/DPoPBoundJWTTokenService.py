@@ -10,6 +10,7 @@ import jwt
 from jwt import algorithms
 
 from .JWTTokenService import JWTTokenService
+from swarmauri_core.crypto.types import JWAAlg
 from swarmauri_core.keys.IKeyProvider import IKeyProvider
 
 
@@ -68,7 +69,7 @@ class DPoPBoundJWTTokenService(JWTTokenService):
         # If None, replay protection is skipped.
         self._replay_check = replay_check
 
-    def supports(self) -> Mapping[str, Iterable[str]]:
+    def supports(self) -> Mapping[str, Iterable[JWAAlg]]:
         base = super().supports()
         return {"formats": (*base["formats"], "JWT"), "algs": base["algs"]}
 
@@ -76,7 +77,7 @@ class DPoPBoundJWTTokenService(JWTTokenService):
         self,
         claims: Dict[str, object],
         *,
-        alg: str,
+        alg: JWAAlg,
         kid: str | None = None,
         key_version: int | None = None,
         headers: Optional[Dict[str, object]] = None,
@@ -157,7 +158,10 @@ class DPoPBoundJWTTokenService(JWTTokenService):
         proof_claims = jwt.decode(
             proof_jwt,
             key=key,
-            algorithms=[alg for alg in ("RS256", "PS256", "ES256", "EdDSA")],
+            algorithms=[
+                alg.value
+                for alg in (JWAAlg.RS256, JWAAlg.PS256, JWAAlg.ES256, JWAAlg.EDDSA)
+            ],
             options={"verify_aud": False, "verify_iss": False},
         )
 
