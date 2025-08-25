@@ -6,6 +6,7 @@ helpers when the feature is enabled and that usage is rejected when the
 feature is disabled.
 """
 
+import asyncio
 import pytest
 
 from auto_authn.v2 import runtime_cfg, rfc9101
@@ -16,8 +17,8 @@ def test_jwt_request_round_trip(monkeypatch):
     """RFC 9101 \u00a72.1 round-trips parameters through a Request Object."""
     monkeypatch.setattr(runtime_cfg.settings, "enable_rfc9101", True)
     params = {"client_id": "abc", "scope": "read", "response_type": "code"}
-    token = rfc9101.create_request_object(params, secret="secret")
-    decoded = rfc9101.parse_request_object(token, secret="secret")
+    token = asyncio.run(rfc9101.create_request_object(params, secret="secret"))
+    decoded = asyncio.run(rfc9101.parse_request_object(token, secret="secret"))
     assert decoded == params
 
 
@@ -26,4 +27,6 @@ def test_feature_toggle_disabled(monkeypatch):
     """When disabled, helpers raise a runtime error."""
     monkeypatch.setattr(runtime_cfg.settings, "enable_rfc9101", False)
     with pytest.raises(RuntimeError):
-        rfc9101.create_request_object({"client_id": "abc"}, secret="secret")
+        asyncio.run(
+            rfc9101.create_request_object({"client_id": "abc"}, secret="secret")
+        )
