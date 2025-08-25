@@ -4,6 +4,7 @@ import pytest
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 
+from swarmauri_core.crypto.types import JWAAlg
 from swarmauri_crypto_jwe import JweCrypto
 
 
@@ -18,7 +19,7 @@ def test_rfc7518_ecdh_es() -> None:
     )
     jwe = asyncio.run(
         crypto.encrypt_compact(
-            payload=b"rfc", alg="ECDH-ES", enc="A256GCM", key={"pub": pk_pem}
+            payload=b"rfc", alg=JWAAlg.ECDH_ES, enc=JWAAlg.A256GCM, key={"pub": pk_pem}
         )
     )
     res = asyncio.run(crypto.decrypt_compact(jwe, ecdh_private_key=sk))

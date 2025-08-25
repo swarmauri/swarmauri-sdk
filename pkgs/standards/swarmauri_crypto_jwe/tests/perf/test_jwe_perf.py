@@ -2,6 +2,7 @@ import asyncio
 
 import pytest
 
+from swarmauri_core.crypto.types import JWAAlg
 from swarmauri_crypto_jwe import JweCrypto
 
 
@@ -14,7 +15,7 @@ def test_encrypt_perf(benchmark) -> None:  # type: ignore[no-untyped-def]
 
     async def _run() -> str:
         return await crypto.encrypt_compact(
-            payload=payload, alg="dir", enc="A256GCM", key=key
+            payload=payload, alg=JWAAlg.DIR, enc=JWAAlg.A256GCM, key=key
         )
 
     benchmark(lambda: asyncio.run(_run()))

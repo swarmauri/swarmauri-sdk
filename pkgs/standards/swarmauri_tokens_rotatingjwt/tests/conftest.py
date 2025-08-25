@@ -2,7 +2,7 @@ import base64
 import secrets
 import pytest
 
-from swarmauri_core.crypto.types import KeyRef, KeyType
+from swarmauri_core.crypto.types import JWAAlg, KeyRef, KeyType
 from swarmauri_core.keys.types import ExportPolicy, KeyUse, KeyAlg, KeySpec
 from swarmauri_tokens_rotatingjwt import RotatingJWTTokenService
 
@@ -63,9 +63,9 @@ def provider() -> DummyKeyProvider:
 
 @pytest.fixture
 def service(provider) -> RotatingJWTTokenService:
-    return RotatingJWTTokenService(provider, alg="HS256")
+    return RotatingJWTTokenService(provider, alg=JWAAlg.HS256)
 
 
 @pytest.fixture
 def rotating_service(provider) -> RotatingJWTTokenService:
-    return RotatingJWTTokenService(provider, alg="HS256", max_tokens_per_key=1)
+    return RotatingJWTTokenService(provider, alg=JWAAlg.HS256, max_tokens_per_key=1)
