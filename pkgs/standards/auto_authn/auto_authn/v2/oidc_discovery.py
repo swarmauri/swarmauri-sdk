@@ -28,8 +28,8 @@ def _settings_signature() -> str:
 
 
 def _build_openid_config() -> dict[str, Any]:
-    scopes = ["openid", "profile", "email"]
-    claims = ["sub", "name", "email"]
+    scopes = ["openid", "profile", "email", "address", "phone"]
+    claims = ["sub", "name", "email", "address", "phone_number"]
     response_types = [
         "code",
         "token",
