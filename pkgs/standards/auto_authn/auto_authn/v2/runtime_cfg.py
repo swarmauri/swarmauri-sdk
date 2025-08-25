@@ -121,7 +121,7 @@ class Settings(BaseSettings):
         in {"1", "true", "yes"}
     )
     enable_rfc9449: bool = Field(
-        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC9449", "false").lower()
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC9449", "true").lower()
         in {"1", "true", "yes"},
         description=(
             "Enable OAuth 2.0 Demonstrating Proof of Possession (DPoP) per RFC 9449"
