@@ -48,6 +48,7 @@ class TestOIDCDiscoveryEndpoint:
             "response_types_supported",
             "subject_types_supported",
             "id_token_signing_alg_values_supported",
+            "claims_supported",
         ]
 
         for field in required_fields:
@@ -118,7 +119,8 @@ class TestOIDCDiscoveryEndpoint:
         # Check supported scopes include required OIDC scopes
         scopes_supported = discovery_doc["scopes_supported"]
         assert isinstance(scopes_supported, list), "Scopes should be a list"
-        assert "openid" in scopes_supported, "Must support 'openid' scope"
+        for scope in ["openid", "profile", "email", "address", "phone"]:
+            assert scope in scopes_supported, f"Must support '{scope}' scope"
 
         # Check response types
         response_types = discovery_doc["response_types_supported"]
@@ -134,6 +136,17 @@ class TestOIDCDiscoveryEndpoint:
         signing_algs = discovery_doc["id_token_signing_alg_values_supported"]
         assert isinstance(signing_algs, list), "Signing algorithms should be a list"
         assert "EdDSA" in signing_algs, "Must support EdDSA algorithm"
+
+        claims_supported = discovery_doc["claims_supported"]
+        assert isinstance(claims_supported, list), "Claims should be a list"
+        for claim in [
+            "sub",
+            "email",
+            "address",
+            "phone_number",
+            "phone_number_verified",
+        ]:
+            assert claim in claims_supported, f"Missing claim: {claim}"
 
     @pytest.mark.asyncio
     async def test_discovery_with_custom_issuer(self, async_client):

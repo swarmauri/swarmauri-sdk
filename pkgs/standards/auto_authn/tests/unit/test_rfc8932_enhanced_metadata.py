@@ -35,6 +35,11 @@ def test_get_enhanced_authorization_server_metadata_basic():
 
     # Check some expected values
     assert "openid" in metadata["scopes_supported"]
+    assert "address" in metadata["scopes_supported"]
+    assert "phone" in metadata["scopes_supported"]
+    assert "address" in metadata["claims_supported"]
+    assert "phone_number" in metadata["claims_supported"]
+    assert "phone_number_verified" in metadata["claims_supported"]
     assert "authorization_code" in metadata["grant_types_supported"]
     assert "EdDSA" in metadata["id_token_signing_alg_values_supported"]
 

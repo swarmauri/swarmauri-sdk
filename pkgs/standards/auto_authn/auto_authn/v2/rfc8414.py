@@ -37,7 +37,7 @@ async def authorization_server_metadata():
         "authorization_endpoint": f"{ISSUER}/authorize",
         "token_endpoint": f"{ISSUER}/token",
         "jwks_uri": f"{ISSUER}{JWKS_PATH}",
-        "scopes_supported": ["openid", "profile", "email"],
+        "scopes_supported": ["openid", "profile", "email", "address", "phone"],
         "response_types_supported": ["code", "token"],
     }
 
