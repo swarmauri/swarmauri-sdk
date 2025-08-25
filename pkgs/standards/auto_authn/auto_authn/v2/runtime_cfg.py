@@ -176,6 +176,16 @@ class Settings(BaseSettings):
         in {"1", "true", "yes"},
         description="Enable JOSE examples per RFC 7520",
     )
+    enable_rfc7521: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7521", "true").lower()
+        in {"1", "true", "yes"},
+        description="Enable Assertion Framework for OAuth 2.0 per RFC 7521",
+    )
+    enable_rfc7523: bool = Field(
+        default=os.environ.get("AUTO_AUTHN_ENABLE_RFC7523", "true").lower()
+        in {"1", "true", "yes"},
+        description="Enable JWT Bearer Token Profile for OAuth 2.0 per RFC 7523",
+    )
 
     model_config = SettingsConfigDict(env_file=None)
 
