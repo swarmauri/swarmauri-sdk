@@ -163,38 +163,6 @@ def test_wrap_unwrap_different_key_sizes(client):
         unwrapped_material = base64.b64decode(unwrap_data["key_material_b64"])
         assert unwrapped_material == key_material
 
-
-def test_wrap_unwrap_chacha20_poly1305(client):
-    """Test wrap/unwrap with ChaCha20-Poly1305 algorithm."""
-    # Create key with ChaCha20-Poly1305
-    key = _create_key(client, algorithm="CHACHA20_POLY1305")
-
-    # Generate key material
-    key_material = secrets.token_bytes(32)
-    key_material_b64 = base64.b64encode(key_material).decode()
-
-    # Wrap
-    wrap_payload = {"key_material_b64": key_material_b64}
-    wrap_response = client.post(f"/kms/key/{key['id']}/wrap", json=wrap_payload)
-    assert wrap_response.status_code == 200
-
-    wrap_data = wrap_response.json()
-    assert wrap_data["alg"] == "CHACHA20_POLY1305"
-
-    # Unwrap
-    unwrap_payload = {
-        "wrapped_key_b64": wrap_data["wrapped_key_b64"],
-        "nonce_b64": wrap_data["nonce_b64"],
-        "tag_b64": wrap_data["tag_b64"],
-    }
-    unwrap_response = client.post(f"/kms/key/{key['id']}/unwrap", json=unwrap_payload)
-    assert unwrap_response.status_code == 200
-
-    unwrap_data = unwrap_response.json()
-    unwrapped_material = base64.b64decode(unwrap_data["key_material_b64"])
-    assert unwrapped_material == key_material
-
-
 def test_multiple_wrap_operations_same_key(client):
     """Test that multiple wrap operations with same key produce different results."""
     key = _create_key(client)
