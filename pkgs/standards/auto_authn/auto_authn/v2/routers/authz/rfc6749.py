@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import secrets
-from uuid import UUID
 
 from datetime import datetime
 from typing import Any
@@ -14,7 +13,7 @@ from pydantic import ValidationError
 
 from ...backends import AuthError
 from ...fastapi_deps import get_async_db
-from ...orm.tables import Client, User
+from ...orm.tables import AuthCode, Client, DeviceCode, User
 from ...rfc8707 import extract_resource
 from ...runtime_cfg import settings
 from ...rfc6749 import (
@@ -25,7 +24,7 @@ from ...rfc6749 import (
     is_enabled as rfc6749_enabled,
 )
 from ...rfc7636_pkce import verify_code_challenge
-from ...rfc8628 import DEVICE_CODES, DeviceGrantForm
+from ...rfc8628 import DeviceGrantForm
 from ...oidc_id_token import mint_id_token, oidc_hash
 from ...rfc8414_metadata import ISSUER
 
@@ -35,7 +34,7 @@ from ..schemas import (
     RefreshIn,
     TokenPair,
 )
-from ..shared import _require_tls, _jwt, _pwd_backend, _ALLOWED_GRANT_TYPES, AUTH_CODES
+from ..shared import _require_tls, _jwt, _pwd_backend, _ALLOWED_GRANT_TYPES
 from . import router
 
 
@@ -134,72 +133,75 @@ async def token(
             parsed = AuthorizationCodeGrantForm(**data)
         except ValidationError as exc:
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, exc.errors())
-        record = AUTH_CODES.pop(parsed.code, None)
+        auth_code = await AuthCode.handlers.read.core({"db": db, "obj_id": parsed.code})
         if (
-            record is None
-            or record["client_id"] != parsed.client_id
-            or record["redirect_uri"] != parsed.redirect_uri
-            or datetime.utcnow() > record["expires_at"]
+            auth_code is None
+            or str(auth_code.client_id) != parsed.client_id
+            or auth_code.redirect_uri != parsed.redirect_uri
+            or datetime.utcnow() > auth_code.expires_at
         ):
             return JSONResponse(
                 {"error": "invalid_grant"}, status_code=status.HTTP_400_BAD_REQUEST
             )
-        if record.get("code_challenge"):
+        if auth_code.code_challenge:
             if not parsed.code_verifier or not verify_code_challenge(
-                parsed.code_verifier, record["code_challenge"]
+                parsed.code_verifier, auth_code.code_challenge
             ):
                 return JSONResponse(
                     {"error": "invalid_grant"}, status_code=status.HTTP_400_BAD_REQUEST
                 )
         jwt_kwargs = {"aud": aud} if aud else {}
-        if record.get("scope"):
-            jwt_kwargs["scope"] = record["scope"]
+        if auth_code.scope:
+            jwt_kwargs["scope"] = auth_code.scope
         access, refresh = await _jwt.async_sign_pair(
-            sub=record["sub"], tid=record["tid"], **jwt_kwargs
+            sub=str(auth_code.user_id), tid=str(auth_code.tenant_id), **jwt_kwargs
         )
-        nonce = record.get("nonce") or secrets.token_urlsafe(8)
+        nonce = auth_code.nonce or secrets.token_urlsafe(8)
         extra_claims: dict[str, Any] = {
-            "tid": record["tid"],
+            "tid": str(auth_code.tenant_id),
             "typ": "id",
             "at_hash": oidc_hash(access),
         }
-        if record.get("claims") and "id_token" in record["claims"]:
-            user_obj = await db.get(User, UUID(record["sub"]))
-            idc = record["claims"]["id_token"]
+        if auth_code.claims and "id_token" in auth_code.claims:
+            user_obj = await db.get(User, auth_code.user_id)
+            idc = auth_code.claims["id_token"]
             if "email" in idc:
                 extra_claims["email"] = user_obj.email if user_obj else ""
             if any(k in idc for k in ("name", "preferred_username")):
                 extra_claims["name"] = user_obj.username if user_obj else ""
         id_token = mint_id_token(
-            sub=record["sub"],
+            sub=str(auth_code.user_id),
             aud=parsed.client_id,
             nonce=nonce,
             issuer=ISSUER,
             **extra_claims,
         )
+        await AuthCode.handlers.exchange.core({"db": db, "obj": auth_code})
         return TokenPair(access_token=access, refresh_token=refresh, id_token=id_token)
     if grant_type == "urn:ietf:params:oauth:grant-type:device_code":
         try:
             parsed = DeviceGrantForm(**data)
         except ValidationError as exc:
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, exc.errors())
-        record = DEVICE_CODES.get(parsed.device_code)
-        if not record or record["client_id"] != parsed.client_id:
+        device_obj = await DeviceCode.handlers.read.core(
+            {"db": db, "obj_id": parsed.device_code}
+        )
+        if not device_obj or str(device_obj.client_id) != parsed.client_id:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_grant"})
-        if datetime.utcnow() > record["expires_at"]:
-            DEVICE_CODES.pop(parsed.device_code, None)
+        if datetime.utcnow() > device_obj.expires_at:
+            await DeviceCode.handlers.delete.core({"db": db, "obj": device_obj})
             raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "expired_token"})
-        if not record.get("authorized"):
+        if not device_obj.authorized:
             raise HTTPException(
                 status.HTTP_400_BAD_REQUEST, {"error": "authorization_pending"}
             )
         jwt_kwargs = {"aud": aud} if aud else {}
         access, refresh = await _jwt.async_sign_pair(
-            sub=record.get("sub", "device-user"),
-            tid=record.get("tid", "device-tenant"),
+            sub=str(device_obj.user_id or "device-user"),
+            tid=str(device_obj.tenant_id or "device-tenant"),
             **jwt_kwargs,
         )
-        DEVICE_CODES.pop(parsed.device_code, None)
+        await DeviceCode.handlers.delete.core({"db": db, "obj": device_obj})
         return TokenPair(access_token=access, refresh_token=refresh)
     if rfc6749_enabled():
         return JSONResponse(

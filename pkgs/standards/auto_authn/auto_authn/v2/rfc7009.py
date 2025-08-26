@@ -11,9 +11,12 @@ from __future__ import annotations
 
 from typing import Final, Set
 
-from fastapi import APIRouter, FastAPI, Form, HTTPException, status
+from fastapi import APIRouter, Depends, FastAPI, Form, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from .runtime_cfg import settings
+from .fastapi_deps import get_async_db
+from .orm.tables import RevokedToken
 
 RFC7009_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc7009"
 
@@ -55,11 +58,16 @@ def reset_revocations() -> None:
 
 
 @router.post("/revoke")
-async def revoke(token: str = Form(...), token_type_hint: str | None = Form(None)):
+async def revoke(
+    token: str = Form(...),
+    token_type_hint: str | None = Form(None),
+    db: AsyncSession = Depends(get_async_db),
+):
     """RFC 7009 token revocation endpoint."""
 
     if not settings.enable_rfc7009:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "revocation disabled")
+    await RevokedToken.handlers.revoke.core({"db": db, "payload": {"token": token}})
     revoke_token(token)
     return {}
 
