@@ -15,7 +15,7 @@ from autoapi.v2.mixins import GUIDPk, Timestamped, UserMixin
 from peagen.orm.mixins import RepositoryRefMixin
 
 
-class PublicKey(Base, GUIDPk, UserMixin, Timestamped):
+class PublicKey(Base, GUIDPk, UserMixin, Timestamped, HookProvider):
     __tablename__ = "public_keys"
     __table_args__ = (
         UniqueConstraint("user_id", "public_key"),
@@ -25,14 +25,44 @@ class PublicKey(Base, GUIDPk, UserMixin, Timestamped):
     public_key = Column(String, nullable=False)
     read_only = Column(Boolean, default=True)
 
+    @classmethod
+    async def _pre_create(cls, ctx):
+        from peagen.gateway.kms import wrap_key_with_kms
 
-class GPGKey(Base, GUIDPk, UserMixin, Timestamped):
+        params = ctx["env"].params
+        params.public_key = await wrap_key_with_kms(params.public_key)
+
+    @classmethod
+    def __autoapi_register_hooks__(cls, api) -> None:
+        from autoapi.v2 import Phase
+
+        api.register_hook(Phase.PRE_TX_BEGIN, model="PublicKey", op="create")(
+            cls._pre_create
+        )
+
+
+class GPGKey(Base, GUIDPk, UserMixin, Timestamped, HookProvider):
     __tablename__ = "gpg_keys"
     __table_args__ = (
         UniqueConstraint("user_id", "gpg_key"),
         {"schema": "peagen"},
     )
     gpg_key = Column(String, nullable=False)
+
+    @classmethod
+    async def _pre_create(cls, ctx):
+        from peagen.gateway.kms import wrap_key_with_kms
+
+        params = ctx["env"].params
+        params.gpg_key = await wrap_key_with_kms(params.gpg_key)
+
+    @classmethod
+    def __autoapi_register_hooks__(cls, api) -> None:
+        from autoapi.v2 import Phase
+
+        api.register_hook(Phase.PRE_TX_BEGIN, model="GPGKey", op="create")(
+            cls._pre_create
+        )
 
 
 class DeployKey(Base, GUIDPk, RepositoryRefMixin, Timestamped, HookProvider):
@@ -50,21 +80,24 @@ class DeployKey(Base, GUIDPk, RepositoryRefMixin, Timestamped, HookProvider):
     @classmethod
     async def _pre_create(cls, ctx):
         from peagen.gateway import log
+        from peagen.gateway.kms import wrap_key_with_kms
         from pgpy import PGPKey
 
         log.info("entering pre_key_upload")
         params = ctx["env"].params
         pgp = PGPKey()
         pgp.parse(params.public_key)
+        wrapped = await wrap_key_with_kms(params.public_key)
         ctx["key_data"] = {
             "id": str(uuid.uuid4()),
             "user_id": None,
             "name": f"{pgp.fingerprint[:16]}-key",
-            "public_key": params.public_key,
+            "public_key": wrapped,
             "secret_id": None,
             "read_only": True,
         }
         ctx["fingerprint"] = pgp.fingerprint
+        params.public_key = wrapped
 
     @classmethod
     async def _post_create(cls, ctx):
