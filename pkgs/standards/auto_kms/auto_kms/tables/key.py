@@ -100,7 +100,7 @@ class Key(Base):
 
     # Virtual (wire-only)
     kid: str = vcol(
-        io=IO(out_verbs=("encrypt")),
+        io=IO(out_verbs=("encrypt", "wrap")),
         read_producer=lambda obj, ctx: str(getattr(obj, "id", "")),
     )
 
@@ -111,17 +111,23 @@ class Key(Base):
 
     aad_b64: Optional[str] = vcol(
         field=F(allow_null_in=("encrypt", "decrypt")),
-        io=IO(in_verbs=("encrypt", "decrypt"), out_verbs=("encrypt",)),
+        io=IO(
+            in_verbs=("encrypt", "decrypt", "wrap", "unwrap"),
+            out_verbs=("encrypt", "wrap", "unwrap"),
+        ),
     )
 
     nonce_b64: Optional[str] = vcol(
-        field=F(required_in=("decrypt",), allow_null_in=("encrypt",)),
-        io=IO(in_verbs=("encrypt", "decrypt"), out_verbs=("encrypt",)),
+        field=F(required_in=("decrypt", "unwrap"), allow_null_in=("encrypt", "wrap")),
+        io=IO(in_verbs=("encrypt", "decrypt", "unwrap"), out_verbs=("encrypt", "wrap")),
     )
 
     alg: Optional[KeyAlg] = vcol(
-        field=F(py_type=KeyAlg, allow_null_in=("encrypt", "decrypt")),
-        io=IO(in_verbs=("encrypt", "decrypt"), out_verbs=("encrypt",)),
+        field=F(py_type=KeyAlg, allow_null_in=("encrypt", "decrypt", "wrap", "unwrap")),
+        io=IO(
+            in_verbs=("encrypt", "decrypt", "wrap", "unwrap"),
+            out_verbs=("encrypt", "wrap"),
+        ),
     )
 
     ciphertext_b64: str = vcol(
@@ -130,13 +136,24 @@ class Key(Base):
     )
 
     tag_b64: Optional[str] = vcol(
-        field=F(allow_null_in=("encrypt", "decrypt")),
-        io=IO(in_verbs=("decrypt",), out_verbs=("encrypt",)),
+        field=F(allow_null_in=("encrypt", "decrypt", "wrap", "unwrap")),
+        io=IO(in_verbs=("decrypt", "unwrap"), out_verbs=("encrypt", "wrap")),
     )
 
     version: int = vcol(
         field=F(py_type=int),
-        io=IO(out_verbs=("encrypt",)),
+        io=IO(out_verbs=("encrypt", "wrap")),
+    )
+
+    # ---- Key Wrapping virtual columns ----
+    key_material_b64: str = vcol(
+        field=F(required_in=("wrap",)),
+        io=IO(in_verbs=("wrap",), out_verbs=("unwrap",)),
+    )
+
+    wrapped_key_b64: str = vcol(
+        field=F(required_in=("unwrap",)),
+        io=IO(in_verbs=("unwrap",), out_verbs=("wrap",)),
     )
 
     # ---- Hook: seed key material on create ----
@@ -196,7 +213,8 @@ class Key(Base):
             )
 
     @hook_ctx(
-        ops=("create", "read", "list", "update", "replace"), phase="POST_RESPONSE"
+        ops=("create", "read", "list", "update", "replace", "wrap", "unwrap"),
+        phase="POST_RESPONSE",
     )
     async def _scrub_version_material(cls, ctx):
         obj = ctx.get("result")
@@ -241,7 +259,9 @@ class Key(Base):
             ctx["result"] = scrub(obj)
 
     # ---- Hook: ensure key exists & enabled ----
-    @hook_ctx(ops=("encrypt", "decrypt", "rotate"), phase="PRE_HANDLER")
+    @hook_ctx(
+        ops=("encrypt", "decrypt", "wrap", "unwrap", "rotate"), phase="PRE_HANDLER"
+    )
     async def _ensure_key_enabled(cls, ctx):
         pp = ctx.get("path_params") or {}
         ident = pp.get("id") or pp.get("item_id")
@@ -454,6 +474,217 @@ class Key(Base):
             )
 
         return {"plaintext_b64": base64.b64encode(pt).decode()}
+
+    @op_ctx(
+        alias="wrap",
+        target="custom",
+        arity="member",  # /key/{item_id}/wrap
+        persist="skip",
+    )
+    async def wrap(cls, ctx):
+        """Wrap (encrypt) key material using this key."""
+        from ..utils import b64d, b64d_optional
+
+        p = ctx.get("payload") or {}
+        crypto = getattr(
+            getattr(ctx.get("request"), "state", object()), "crypto", None
+        ) or ctx.get("crypto")
+        if crypto is None:
+            raise HTTPException(status_code=500, detail="Crypto provider missing")
+
+        import binascii
+
+        # Validate and decode the key material to be wrapped
+        try:
+            key_material = b64d(p["key_material_b64"])
+        except binascii.Error as exc:
+            raise HTTPException(
+                status_code=400, detail="Invalid base64 encoding for key_material_b64"
+            ) from exc
+        except KeyError:
+            raise HTTPException(status_code=400, detail="key_material_b64 is required")
+
+        # Optional AAD for key wrapping context
+        try:
+            aad = b64d_optional(p.get("aad_b64"))
+        except binascii.Error as exc:
+            raise HTTPException(
+                status_code=400, detail="Invalid base64 encoding for aad_b64"
+            ) from exc
+
+        kid = str(ctx["key"].id)
+        key_obj = ctx["key"]
+
+        # Only support symmetric key wrapping for now
+        if key_obj.algorithm not in (KeyAlg.AES256_GCM, KeyAlg.CHACHA20_POLY1305):
+            raise HTTPException(
+                status_code=400,
+                detail="Key wrapping only supported for AES256_GCM and CHACHA20_POLY1305",
+            )
+
+        alg_str = _alg_to_provider(key_obj.algorithm)
+
+        import inspect
+        from swarmauri_core.crypto.types import (
+            ExportPolicy,
+            KeyRef,
+            KeyType,
+            KeyUse,
+        )
+
+        # Get the key version for wrapping
+        version = next(
+            (v for v in key_obj.versions if v.version == key_obj.primary_version),
+            None,
+        )
+        if version is None or version.public_material is None:
+            raise HTTPException(status_code=500, detail="Key material missing")
+
+        try:
+            inspect.signature(crypto.encrypt).parameters["kid"]
+        except KeyError:
+            # Use KeyRef approach
+            key_ref = KeyRef(
+                kid=kid,
+                version=key_obj.primary_version,
+                type=KeyType.SYMMETRIC,
+                uses=(KeyUse.ENCRYPT, KeyUse.DECRYPT),
+                export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
+                material=bytes(version.public_material),
+            )
+            res = await crypto.encrypt(
+                key_ref,
+                key_material,
+                alg=alg_str,
+                aad=aad,
+            )
+        else:
+            # Use direct approach
+            res = await crypto.encrypt(
+                kid=kid, plaintext=key_material, alg=alg_str, aad=aad
+            )
+
+        return {
+            "kid": kid,
+            "version": getattr(res, "version", key_obj.primary_version),
+            "alg": key_obj.algorithm,
+            "nonce_b64": base64.b64encode(getattr(res, "nonce")).decode(),
+            "wrapped_key_b64": base64.b64encode(getattr(res, "ct")).decode(),
+            "tag_b64": (
+                base64.b64encode(getattr(res, "tag")).decode()
+                if getattr(res, "tag", None)
+                else None
+            ),
+            "aad_b64": p.get("aad_b64"),
+        }
+
+    @op_ctx(
+        alias="unwrap",
+        target="custom",
+        arity="member",  # /key/{item_id}/unwrap
+        persist="skip",
+    )
+    async def unwrap(cls, ctx):
+        """Unwrap (decrypt) wrapped key material using this key."""
+        from ..utils import b64d, b64d_optional
+
+        p = ctx.get("payload") or {}
+        crypto = getattr(
+            getattr(ctx.get("request"), "state", object()), "crypto", None
+        ) or ctx.get("crypto")
+        if crypto is None:
+            raise HTTPException(status_code=500, detail="Crypto provider missing")
+
+        import binascii
+
+        # Validate and decode required fields
+        try:
+            wrapped_key = b64d(p["wrapped_key_b64"])
+        except binascii.Error as exc:
+            raise HTTPException(
+                status_code=400, detail="Invalid base64 encoding for wrapped_key_b64"
+            ) from exc
+        except KeyError:
+            raise HTTPException(status_code=400, detail="wrapped_key_b64 is required")
+
+        try:
+            nonce = b64d(p["nonce_b64"])
+        except binascii.Error as exc:
+            raise HTTPException(
+                status_code=400, detail="Invalid base64 encoding for nonce_b64"
+            ) from exc
+        except KeyError:
+            raise HTTPException(status_code=400, detail="nonce_b64 is required")
+
+        try:
+            tag = b64d_optional(p.get("tag_b64"))
+        except binascii.Error as exc:
+            raise HTTPException(
+                status_code=400, detail="Invalid base64 encoding for tag_b64"
+            ) from exc
+
+        try:
+            aad = b64d_optional(p.get("aad_b64"))
+        except binascii.Error as exc:
+            raise HTTPException(
+                status_code=400, detail="Invalid base64 encoding for aad_b64"
+            ) from exc
+
+        kid = str(ctx["key"].id)
+        key_obj = ctx["key"]
+        alg_str = _alg_to_provider(key_obj.algorithm)
+
+        import inspect
+        from swarmauri_core.crypto.types import (
+            AEADCiphertext,
+            ExportPolicy,
+            KeyRef,
+            KeyType,
+            KeyUse,
+        )
+
+        # Get the key version for unwrapping
+        version = next(
+            (v for v in key_obj.versions if v.version == key_obj.primary_version),
+            None,
+        )
+        if version is None or version.public_material is None:
+            raise HTTPException(status_code=500, detail="Key material missing")
+
+        try:
+            inspect.signature(crypto.decrypt).parameters["kid"]
+        except KeyError:
+            # Use KeyRef approach
+            key_ref = KeyRef(
+                kid=kid,
+                version=key_obj.primary_version,
+                type=KeyType.SYMMETRIC,
+                uses=(KeyUse.DECRYPT, KeyUse.ENCRYPT),
+                export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
+                material=bytes(version.public_material),
+            )
+            ct_obj = AEADCiphertext(
+                kid=kid,
+                version=key_obj.primary_version,
+                alg=alg_str,
+                nonce=nonce,
+                ct=wrapped_key,
+                tag=tag or b"",
+                aad=aad,
+            )
+            key_material = await crypto.decrypt(key_ref, ct_obj, aad=aad)
+        else:
+            # Use direct approach
+            key_material = await crypto.decrypt(
+                kid=kid,
+                ciphertext=wrapped_key,
+                nonce=nonce,
+                tag=tag,
+                aad=aad,
+                alg=alg_str,
+            )
+
+        return {"key_material_b64": base64.b64encode(key_material).decode()}
 
     @op_ctx(
         alias="rotate",
