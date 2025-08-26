@@ -199,18 +199,14 @@ class Key(Base):
                 material=material,
                 export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
             )
-            material_b64 = base64.b64encode(material).decode("utf-8")
-            await KeyVersion.handlers.create.core(
-                {
-                    "db": db,
-                    "payload": {
-                        "key_id": key_obj.id,
-                        "version": key_obj.primary_version,
-                        "status": "active",
-                        "public_material": material_b64.encode("utf-8"),
-                    },
-                }
+            # Create the initial version directly to avoid handler schema/alias mismatches
+            kv = KeyVersion(
+                key_id=key_obj.id,
+                version=key_obj.primary_version,
+                status="active",
+                public_material=material,
             )
+            db.add(kv)
 
     @hook_ctx(
         ops=("create", "read", "list", "update", "replace", "wrap", "unwrap"),
