@@ -2,18 +2,53 @@
 
 from __future__ import annotations
 
-from autoapi.v2 import Base
-from autoapi.v2.mixins import Timestamped
-from autoapi.v2.types import Column, JSON, String, TZDateTime
+import datetime as dt
+
+from autoapi.v3.tables import Base
+from autoapi.v3.mixins import Timestamped
+from autoapi.v3.specs import S, acol
+from autoapi.v3.types import JSON, String, TZDateTime
+from autoapi.v3 import op_ctx
+from fastapi import HTTPException, status
+
+from ..runtime_cfg import settings
+from ..rfc9126 import DEFAULT_PAR_EXPIRY
 
 
 class PushedAuthorizationRequest(Base, Timestamped):
     __tablename__ = "par_requests"
     __table_args__ = ({"schema": "authn"},)
 
-    request_uri = Column(String(255), primary_key=True)
-    params = Column(JSON, nullable=False)
-    expires_at = Column(TZDateTime, nullable=False)
+    request_uri: str = acol(storage=S(String(255), primary_key=True))
+    params: dict = acol(storage=S(JSON, nullable=False))
+    expires_at: dt.datetime = acol(storage=S(TZDateTime, nullable=False))
+
+    @op_ctx(alias="par", target="create", arity="collection")
+    async def par(cls, ctx):
+        from datetime import datetime, timedelta, timezone
+        import uuid
+
+        if not settings.enable_rfc9126:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "PAR disabled")
+        db = ctx.get("db")
+        request = ctx.get("request")
+        form = await request.form() if request else {}
+        params = dict(form)
+        request_uri = f"urn:ietf:params:oauth:request_uri:{uuid.uuid4()}"
+        expires_at = datetime.now(tz=timezone.utc) + timedelta(
+            seconds=DEFAULT_PAR_EXPIRY
+        )
+        await cls.handlers.create.core(
+            {
+                "db": db,
+                "payload": {
+                    "request_uri": request_uri,
+                    "params": params,
+                    "expires_at": expires_at,
+                },
+            }
+        )
+        return {"request_uri": request_uri, "expires_in": DEFAULT_PAR_EXPIRY}
 
 
 __all__ = ["PushedAuthorizationRequest"]

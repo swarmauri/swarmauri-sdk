@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from autoapi.v2 import Base
+from autoapi.v3.tables import Base
 
 from .api_key import ApiKey
 from .auth_code import AuthCode

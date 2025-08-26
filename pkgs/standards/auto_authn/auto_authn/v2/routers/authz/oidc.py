@@ -12,7 +12,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...fastapi_deps import get_async_db
-from ...orm.tables import Client, User
+from ...orm.tables import AuthCode, Client, User
 from ...oidc_id_token import mint_id_token, oidc_hash
 from ...rfc8414_metadata import ISSUER
 from ...rfc8252 import is_native_redirect_uri
@@ -108,10 +108,11 @@ async def authorize(
             )
     if "code" in rts:
         code = secrets.token_urlsafe(32)
-        AUTH_CODES[code] = {
-            "sub": user_sub,
-            "tid": tenant_id,
-            "client_id": client_id,
+        payload = {
+            "code": code,
+            "user_id": UUID(user_sub),
+            "tenant_id": UUID(tenant_id),
+            "client_id": UUID(client_id),
             "redirect_uri": redirect_uri,
             "code_challenge": code_challenge,
             "nonce": nonce,
@@ -119,7 +120,9 @@ async def authorize(
             "expires_at": datetime.utcnow() + timedelta(minutes=10),
         }
         if requested_claims:
-            AUTH_CODES[code]["claims"] = requested_claims
+            payload["claims"] = requested_claims
+        await AuthCode.handlers.create.core({"db": db, "payload": payload})
+        AUTH_CODES[code] = payload
         params.append(("code", code))
     if "token" in rts:
         from ..shared import _jwt

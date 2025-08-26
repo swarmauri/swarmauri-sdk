@@ -11,16 +11,12 @@ from __future__ import annotations
 
 from typing import Final, Set
 
-from fastapi import APIRouter, FastAPI, Form, HTTPException, status
-
 from .runtime_cfg import settings
 
 RFC7009_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc7009"
 
 # In-memory set storing revoked tokens for demonstration and testing purposes
 _REVOKED_TOKENS: Set[str] = set()
-
-router = APIRouter()
 
 
 def revoke_token(token: str) -> None:
@@ -54,30 +50,9 @@ def reset_revocations() -> None:
     _REVOKED_TOKENS.clear()
 
 
-@router.post("/revoke")
-async def revoke(token: str = Form(...), token_type_hint: str | None = Form(None)):
-    """RFC 7009 token revocation endpoint."""
-
-    if not settings.enable_rfc7009:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "revocation disabled")
-    revoke_token(token)
-    return {}
-
-
-def include_rfc7009(app: FastAPI) -> None:
-    """Attach the RFC 7009 router to *app* if enabled."""
-
-    if settings.enable_rfc7009 and not any(
-        route.path == "/revoke" for route in app.routes
-    ):
-        app.include_router(router)
-
-
 __all__ = [
     "revoke_token",
     "is_revoked",
     "reset_revocations",
-    "router",
-    "include_rfc7009",
     "RFC7009_SPEC_URL",
 ]

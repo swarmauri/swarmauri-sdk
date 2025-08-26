@@ -17,7 +17,9 @@ from httpx import AsyncClient
 async def test_device_authorization_endpoint(async_client: AsyncClient) -> None:
     """Server should implement the device authorization endpoint."""
     payload = {"client_id": "test-client", "scope": "openid"}
-    response = await async_client.post("/device_authorization", data=payload)
+    response = await async_client.post(
+        "/device_codes/device_authorization", data=payload
+    )
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
     for field in [
@@ -33,10 +35,10 @@ async def test_device_authorization_endpoint(async_client: AsyncClient) -> None:
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_device_token_polling(async_client: AsyncClient) -> None:
+async def test_device_token_polling(async_client: AsyncClient, db_session) -> None:
     """Token endpoint should poll until the device code is approved."""
     auth_resp = await async_client.post(
-        "/device_authorization", data={"client_id": "test-client"}
+        "/device_codes/device_authorization", data={"client_id": "test-client"}
     )
     device_code = auth_resp.json()["device_code"]
     payload = {
@@ -50,7 +52,7 @@ async def test_device_token_polling(async_client: AsyncClient) -> None:
 
     from auto_authn.v2.rfc8628 import approve_device_code
 
-    approve_device_code(device_code, sub="user", tid="tenant")
+    await approve_device_code(device_code, sub="user", tid="tenant", db=db_session)
     success = await async_client.post("/token", data=payload)
     assert success.status_code == status.HTTP_200_OK
     data = success.json()

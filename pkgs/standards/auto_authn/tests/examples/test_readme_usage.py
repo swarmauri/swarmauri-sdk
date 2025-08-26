@@ -79,5 +79,5 @@ def test_token_revocation_flow_in_readme():
 
     importlib.reload(app_module)
     client = TestClient(app_module.app)
-    resp = client.post("/revoke", data={"token": "deadbeef"})
+    resp = client.post("/revoked_tokens/revoke", data={"token": "deadbeef"})
     assert resp.status_code == 200 and resp.json() == {}
