@@ -204,7 +204,7 @@ class UserBound:  # membership rows
 # ────────── lifecycle --------------------------------------------------
 @declarative_mixin
 class Created:
-    created_at: dt.datetime = acol(
+    created_at: Mapped[dt.datetime] = acol(
         spec=ColumnSpec(
             storage=S(type_=TZDateTime, default=tzutcnow, nullable=False),
             field=F(py_type=dt.datetime),
@@ -215,7 +215,7 @@ class Created:
 
 @declarative_mixin
 class LastUsed:
-    last_used_at: dt.datetime | None = acol(
+    last_used_at: Mapped[dt.datetime | None] = acol(
         spec=ColumnSpec(
             storage=S(type_=TZDateTime, nullable=True, onupdate=tzutcnow),
             field=F(py_type=dt.datetime),
