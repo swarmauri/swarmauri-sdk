@@ -163,6 +163,7 @@ def test_wrap_unwrap_different_key_sizes(client):
         unwrapped_material = base64.b64decode(unwrap_data["key_material_b64"])
         assert unwrapped_material == key_material
 
+
 def test_multiple_wrap_operations_same_key(client):
     """Test that multiple wrap operations with same key produce different results."""
     key = _create_key(client)
