@@ -25,6 +25,7 @@ dependencies = [
     "sqlalchemy[asyncio]>=2.0.0",
     "swarmauri_secret_autogpg",
     "swarmauri_crypto_paramiko",
+    "peagen",
 ]
 
 [tool.uv.sources]
@@ -34,6 +35,7 @@ swarmauri_standard = { workspace = true }
 autoapi = { workspace = true }
 swarmauri_secret_autogpg = { workspace = true }
 swarmauri_crypto_paramiko = { workspace = true }
+peagen = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]

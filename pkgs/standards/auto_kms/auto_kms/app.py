@@ -7,8 +7,8 @@ from .tables.key import Key
 from .tables.key_version import KeyVersion
 
 from swarmauri_secret_autogpg import AutoGpgSecretDrive
-from swarmauri_crypto_paramiko import ParamikoCrypto
 from .crypto import ParamikoCryptoAdapter
+from peagen.plugins import PluginManager
 
 import os
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
@@ -41,8 +41,17 @@ async def _stash_ctx(ctx):
         SECRETS
         CRYPTO
     except NameError:
+        pm = PluginManager(
+            {
+                "plugins": {"mode": "fallback"},
+                "cryptos": {
+                    "default_crypto": "paramiko_sa",
+                    "adapters": {"paramiko_sa": {}},
+                },
+            }
+        )
         SECRETS = AutoGpgSecretDrive()
-        CRYPTO = ParamikoCryptoAdapter(secrets=SECRETS, crypto=ParamikoCrypto())
+        CRYPTO = ParamikoCryptoAdapter(secrets=SECRETS, crypto=pm.get("cryptos"))
     # expose shared services to downstream ops under generic names
     ctx["secrets"] = SECRETS
     ctx["crypto"] = CRYPTO
