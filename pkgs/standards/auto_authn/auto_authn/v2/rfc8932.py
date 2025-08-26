@@ -103,7 +103,7 @@ def get_enhanced_authorization_server_metadata() -> Dict[str, Any]:
 
     # RFC 7009 - Token Revocation
     if settings.enable_rfc7009:
-        enhanced_metadata["revocation_endpoint"] = f"{ISSUER}/revoke"
+        enhanced_metadata["revocation_endpoint"] = f"{ISSUER}/revoked_tokens/revoke"
         enhanced_metadata["revocation_endpoint_auth_methods_supported"] = [
             "client_secret_basic",
             "client_secret_post",
@@ -120,7 +120,7 @@ def get_enhanced_authorization_server_metadata() -> Dict[str, Any]:
     # RFC 8628 - Device Authorization Grant
     if settings.enable_rfc8628:
         enhanced_metadata["device_authorization_endpoint"] = (
-            f"{ISSUER}/device_authorization"
+            f"{ISSUER}/device_codes/device_authorization"
         )
         base_metadata["grant_types_supported"].append(
             "urn:ietf:params:oauth:grant-type:device_code"
@@ -276,7 +276,7 @@ def get_capability_matrix() -> Dict[str, Dict[str, Any]]:
         "rfc7009": {
             "name": "Token Revocation",
             "enabled": settings.enable_rfc7009,
-            "endpoints": ["/revoke"] if settings.enable_rfc7009 else [],
+            "endpoints": ["/revoked_tokens/revoke"] if settings.enable_rfc7009 else [],
         },
         "rfc7662": {
             "name": "Token Introspection",
@@ -291,7 +291,9 @@ def get_capability_matrix() -> Dict[str, Dict[str, Any]]:
         "rfc8628": {
             "name": "Device Authorization Grant",
             "enabled": settings.enable_rfc8628,
-            "endpoints": ["/device_authorization"] if settings.enable_rfc8628 else [],
+            "endpoints": ["/device_codes/device_authorization"]
+            if settings.enable_rfc8628
+            else [],
         },
         "rfc8693": {
             "name": "Token Exchange",

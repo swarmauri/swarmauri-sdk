@@ -64,7 +64,7 @@ def _build_openid_config() -> dict[str, Any]:
     if settings.enable_rfc7591:
         config["registration_endpoint"] = f"{ISSUER}/register"
     if settings.enable_rfc7009:
-        config["revocation_endpoint"] = f"{ISSUER}/revoke"
+        config["revocation_endpoint"] = f"{ISSUER}/revoked_tokens/revoke"
         config["revocation_endpoint_auth_methods_supported"] = [
             "client_secret_basic",
             "client_secret_post",

@@ -1,11 +1,9 @@
 """Tests for OAuth 2.0 Token Revocation compliance with RFC 7009."""
 
 import pytest
-from fastapi import FastAPI, status
-from httpx import ASGITransport, AsyncClient
+from fastapi import status
+from httpx import AsyncClient
 
-from auto_authn.v2.rfc7009 import router
-from auto_authn.v2.fastapi_deps import get_async_db
 from auto_authn.v2.runtime_cfg import settings
 from auto_authn.v2.rfc7009 import is_revoked, reset_revocations
 
@@ -21,56 +19,33 @@ RFC 7009 - OAuth 2.0 Token Revocation
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_revoke_returns_200_and_marks_token_revoked(enable_rfc7009, monkeypatch):
+async def test_revoke_returns_200_and_marks_token_revoked(
+    enable_rfc7009, async_client: AsyncClient
+):
     """RFC 7009 §2.2: Revocation returns HTTP 200 and token becomes invalid."""
-    app = FastAPI()
-    app.include_router(router)
-
-    async def override_db():
-        yield None
-
-    app.dependency_overrides[get_async_db] = override_db
-
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        resp = await client.post("/revoke", data={"token": "abc"})
+    resp = await async_client.post("/revoked_tokens/revoke", data={"token": "abc"})
     assert resp.status_code == status.HTTP_200_OK
     assert is_revoked("abc")
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_revoke_returns_200_for_unknown_token(enable_rfc7009):
+async def test_revoke_returns_200_for_unknown_token(
+    enable_rfc7009, async_client: AsyncClient
+):
     """RFC 7009 §2.2: Endpoint must return HTTP 200 even for unknown tokens."""
-    app = FastAPI()
-    app.include_router(router)
-
-    async def override_db():
-        yield None
-
-    app.dependency_overrides[get_async_db] = override_db
-
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        resp = await client.post("/revoke", data={"token": "nonexistent"})
+    resp = await async_client.post(
+        "/revoked_tokens/revoke", data={"token": "nonexistent"}
+    )
     assert resp.status_code == status.HTTP_200_OK
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_revoke_returns_404_when_disabled(monkeypatch):
+async def test_revoke_returns_404_when_disabled(monkeypatch, async_client: AsyncClient):
     """RFC 7009: Revocation endpoint is unavailable when support is disabled."""
-    app = FastAPI()
-    app.include_router(router)
-
-    async def override_db():
-        yield None
-
-    app.dependency_overrides[get_async_db] = override_db
     monkeypatch.setattr(settings, "enable_rfc7009", False)
     reset_revocations()
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        resp = await client.post("/revoke", data={"token": "abc"})
+    resp = await async_client.post("/revoked_tokens/revoke", data={"token": "abc"})
     assert resp.status_code == status.HTTP_404_NOT_FOUND
     assert not is_revoked("abc")

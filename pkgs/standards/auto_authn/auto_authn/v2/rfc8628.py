@@ -10,17 +10,16 @@ See RFC 8628: https://www.rfc-editor.org/rfc/rfc8628
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
-from uuid import uuid4
 import re
 import secrets
 import string
-from typing import Any, Dict, Final, Literal
+from typing import Final, Literal
 
-from fastapi import APIRouter, FastAPI, HTTPException, status
 from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from .runtime_cfg import settings
+from .orm.tables import DeviceCode
 
 # Character set for user_code per RFC 8628 §6.1 (uppercase letters and digits)
 _USER_CODE_CHARSET: Final = string.ascii_uppercase + string.digits
@@ -31,12 +30,6 @@ _USER_CODE_RE: Final = re.compile(r"^[A-Z0-9]{8,}$")
 RFC8628_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc8628"
 
 
-# ---------------------------------------------------------------------------
-#  In-memory device authorization store
-# ---------------------------------------------------------------------------
-router = APIRouter()
-
-DEVICE_CODES: Dict[str, Dict[str, Any]] = {}
 DEVICE_VERIFICATION_URI = "https://example.com/device"
 DEVICE_CODE_EXPIRES_IN = 600  # seconds
 DEVICE_CODE_INTERVAL = 5  # seconds
@@ -68,53 +61,20 @@ class DeviceGrantForm(BaseModel):
     client_id: str
 
 
-@router.post("/device_authorization", response_model=DeviceAuthOut)
-async def device_authorization(body: DeviceAuthIn) -> DeviceAuthOut:
-    """Issue a new device and user code pair."""
-
-    if not settings.enable_rfc8628:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "device authorization disabled")
-
-    device_code = uuid4().hex
-    user_code = uuid4().hex[:8]
-    verification_uri = DEVICE_VERIFICATION_URI
-    verification_uri_complete = f"{verification_uri}?user_code={user_code}"
-    expires_at = datetime.utcnow() + timedelta(seconds=DEVICE_CODE_EXPIRES_IN)
-    DEVICE_CODES[device_code] = {
-        "user_code": user_code,
-        "client_id": body.client_id,
-        "expires_at": expires_at,
-        "interval": DEVICE_CODE_INTERVAL,
-        "authorized": False,
-        "sub": None,
-        "tid": None,
-    }
-    return DeviceAuthOut(
-        device_code=device_code,
-        user_code=user_code,
-        verification_uri=verification_uri,
-        verification_uri_complete=verification_uri_complete,
-        expires_in=DEVICE_CODE_EXPIRES_IN,
-        interval=DEVICE_CODE_INTERVAL,
-    )
-
-
-def approve_device_code(device_code: str, sub: str, tid: str) -> None:
+async def approve_device_code(
+    device_code: str, sub: str, tid: str, db: AsyncSession
+) -> None:
     """Mark a device code as authorized (testing helper)."""
 
-    if device_code in DEVICE_CODES:
-        DEVICE_CODES[device_code]["authorized"] = True
-        DEVICE_CODES[device_code]["sub"] = sub
-        DEVICE_CODES[device_code]["tid"] = tid
-
-
-def include_rfc8628(app: FastAPI) -> None:
-    """Attach the RFC 8628 router to *app* if enabled."""
-
-    if settings.enable_rfc8628 and not any(
-        route.path == "/device_authorization" for route in app.routes
-    ):
-        app.include_router(router)
+    obj = await DeviceCode.handlers.read.core({"db": db, "obj_id": device_code})
+    if obj:
+        await DeviceCode.handlers.update.core(
+            {
+                "db": db,
+                "obj": obj,
+                "payload": {"authorized": True, "user_id": sub, "tenant_id": tid},
+            }
+        )
 
 
 def generate_user_code(length: int = 8) -> str:
@@ -157,9 +117,9 @@ __all__ = [
     "DeviceAuthIn",
     "DeviceAuthOut",
     "DeviceGrantForm",
-    "DEVICE_CODES",
     "approve_device_code",
-    "include_rfc8628",
-    "router",
     "RFC8628_SPEC_URL",
+    "DEVICE_VERIFICATION_URI",
+    "DEVICE_CODE_EXPIRES_IN",
+    "DEVICE_CODE_INTERVAL",
 ]

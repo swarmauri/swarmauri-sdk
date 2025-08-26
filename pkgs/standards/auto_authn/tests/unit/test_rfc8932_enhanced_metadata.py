@@ -58,7 +58,9 @@ def test_get_enhanced_authorization_server_metadata_with_extensions():
 
                 # RFC 7009 - Token Revocation
                 assert "revocation_endpoint" in metadata
-                assert metadata["revocation_endpoint"].endswith("/revoke")
+                assert metadata["revocation_endpoint"].endswith(
+                    "/revoked_tokens/revoke"
+                )
 
                 # RFC 7662 - Token Introspection
                 assert "introspection_endpoint" in metadata
@@ -229,7 +231,7 @@ def test_validate_metadata_consistency_device_inconsistency():
             "auto_authn.v2.rfc8932.get_enhanced_authorization_server_metadata"
         ) as mock_metadata:
             mock_metadata.return_value = {
-                "device_authorization_endpoint": "https://example.com/device_authorization",
+                "device_authorization_endpoint": "https://example.com/device_codes/device_authorization",
                 "grant_types_supported": [
                     "authorization_code",
                     "implicit",
@@ -303,7 +305,7 @@ def test_get_capability_matrix():
 
             # Check RFC 7009 (enabled in this test)
             assert matrix["rfc7009"]["enabled"] is True
-            assert "/revoke" in matrix["rfc7009"]["endpoints"]
+            assert "/revoked_tokens/revoke" in matrix["rfc7009"]["endpoints"]
 
             # Check RFC 7662 (disabled in this test)
             assert matrix["rfc7662"]["enabled"] is False

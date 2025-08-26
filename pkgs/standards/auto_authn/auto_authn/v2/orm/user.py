@@ -4,21 +4,115 @@ from __future__ import annotations
 
 import uuid
 
-from autoapi.v2.tables import User as UserBase
-from autoapi.v2.types import Column, LargeBinary, String, relationship
+from autoapi.v3.tables import User as UserBase
+from autoapi.v3 import op_ctx, hook_ctx
+from autoapi.v3.types import LargeBinary, String, relationship
+from autoapi.v3.specs import IO, S, acol, vcol
+from typing import TYPE_CHECKING
+
+from fastapi import HTTPException, status
+from fastapi.responses import JSONResponse
+from sqlalchemy import select
+
+if TYPE_CHECKING:  # pragma: no cover
+    from .api_key import ApiKey
 
 
 class User(UserBase):
     """Human principal with authentication credentials."""
 
     __table_args__ = ({"extend_existing": True, "schema": "authn"},)
-    email = Column(String(120), nullable=False, unique=True)
-    password_hash = Column(LargeBinary(60))
-    api_keys = relationship(
+    email: str = acol(storage=S(String(120), nullable=False, unique=True))
+    password_hash: bytes | None = acol(storage=S(LargeBinary(60)))
+    _api_keys = relationship(
         "auto_authn.v2.orm.tables.ApiKey",
-        back_populates="user",
+        back_populates="_user",
         cascade="all, delete-orphan",
     )
+    api_keys: list["ApiKey"] = vcol(
+        read_producer=lambda obj, _ctx: obj._api_keys,
+        io=IO(out_verbs=("read", "list")),
+    )
+
+    @hook_ctx(ops=("create", "update"), phase="PRE_HANDLER")
+    async def _hash_password(cls, ctx):
+        payload = ctx.get("payload") or {}
+        plain = payload.pop("password", None)
+        if plain:
+            from ..crypto import hash_pw
+
+            payload["password_hash"] = hash_pw(plain)
+
+    @op_ctx(alias="register", target="create", arity="collection")
+    async def register(cls, ctx):
+        import secrets
+        from ..rfc8414_metadata import ISSUER
+        from ..oidc_id_token import mint_id_token
+        from ..routers.shared import _jwt, _require_tls, SESSIONS
+        from .auth_session import AuthSession
+        from .tenant import Tenant
+        from autoapi.v2.error import IntegrityError
+
+        request = ctx.get("request")
+        _require_tls(request)
+        db = ctx.get("db")
+        payload = ctx.get("payload") or {}
+        plain_pw = payload.get("password")
+        try:
+            tenant_slug = payload.pop("tenant_slug")
+            tenant = await db.scalar(
+                select(Tenant).where(Tenant.slug == tenant_slug).limit(1)
+            )
+            if tenant is None:
+                raise HTTPException(status.HTTP_404_NOT_FOUND, "tenant not found")
+            payload["tenant_id"] = tenant.id
+            await cls.handlers.create.core({"db": db, "payload": payload})
+            session_id = secrets.token_urlsafe(16)
+            session = await AuthSession.handlers.login.core(
+                {
+                    "db": db,
+                    "payload": {
+                        "id": session_id,
+                        "username": payload["username"],
+                        "password": plain_pw,
+                    },
+                }
+            )
+        except HTTPException:
+            raise
+        except Exception as exc:  # pragma: no cover - passthrough
+            if isinstance(exc, IntegrityError):
+                raise HTTPException(status.HTTP_409_CONFLICT, "duplicate key") from exc
+            raise HTTPException(
+                status.HTTP_500_INTERNAL_SERVER_ERROR, "database error"
+            ) from exc
+
+        access, refresh = await _jwt.async_sign_pair(
+            sub=str(session.user_id),
+            tid=str(session.tenant_id),
+            scope="openid profile email",
+        )
+        SESSIONS[session.id] = {
+            "sub": str(session.user_id),
+            "tid": str(session.tenant_id),
+            "username": session.username,
+            "auth_time": session.auth_time,
+        }
+        id_token = mint_id_token(
+            sub=str(session.user_id),
+            aud=ISSUER,
+            nonce=secrets.token_urlsafe(8),
+            issuer=ISSUER,
+            sid=session.id,
+        )
+        pair = {
+            "access_token": access,
+            "refresh_token": refresh,
+            "id_token": id_token,
+        }
+        response = JSONResponse(pair)
+        response.set_cookie("sid", session.id, httponly=True, samesite="lax")
+        return response
 
     @classmethod
     def new(cls, tenant_id: uuid.UUID, username: str, email: str, password: str):
