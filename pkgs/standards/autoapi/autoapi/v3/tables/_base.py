@@ -165,6 +165,8 @@ def _materialize_colspecs_to_sqla(cls) -> None:
 
 
 class Base(DeclarativeBase):
+    __allow_unmapped__ = True
+
     def __init_subclass__(cls, **kw):
         # 1) BEFORE SQLAlchemy maps: turn ColumnSpecs into real mapped_column(...)
         _materialize_colspecs_to_sqla(cls)
