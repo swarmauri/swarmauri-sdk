@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from datetime import datetime
 import secrets
 
 from fastapi import Depends, HTTPException, Request, status
@@ -8,10 +7,9 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ...crypto import hash_pw
 from ...oidc_id_token import mint_id_token
 from ...rfc8414_metadata import ISSUER
-from ...orm.tables import Tenant, User
+from ...orm.tables import AuthSession, Tenant, User
 from ...fastapi_deps import get_async_db
 
 from ..schemas import RegisterIn, TokenPair
@@ -41,16 +39,29 @@ async def register(
         )
         if tenant is None:
             raise HTTPException(status.HTTP_404_NOT_FOUND, "tenant not found")
-        user = User(
-            tenant_id=tenant.id,
-            username=body.username,
-            email=body.email,
-            password_hash=hash_pw(body.password),
+        await User.handlers.register.core(
+            {
+                "db": db,
+                "payload": {
+                    "tenant_id": tenant.id,
+                    "username": body.username,
+                    "email": body.email,
+                    "password": body.password,
+                },
+            }
         )
-        db.add(user)
-        await db.commit()
+        session_id = secrets.token_urlsafe(16)
+        session = await AuthSession.handlers.login.core(
+            {
+                "db": db,
+                "payload": {
+                    "id": session_id,
+                    "username": body.username,
+                    "password": body.password,
+                },
+            }
+        )
     except Exception as exc:
-        await db.rollback()
         if isinstance(exc, HTTPException):
             raise
         from autoapi.v2.error import IntegrityError
@@ -62,23 +73,24 @@ async def register(
         ) from exc
 
     access, refresh = await _jwt.async_sign_pair(
-        sub=str(user.id), tid=str(tenant.id), scope="openid profile email"
+        sub=str(session.user_id),
+        tid=str(session.tenant_id),
+        scope="openid profile email",
     )
-    session_id = secrets.token_urlsafe(16)
-    SESSIONS[session_id] = {
-        "sub": str(user.id),
-        "tid": str(tenant.id),
-        "username": user.username,
-        "auth_time": datetime.utcnow(),
+    SESSIONS[session.id] = {
+        "sub": str(session.user_id),
+        "tid": str(session.tenant_id),
+        "username": session.username,
+        "auth_time": session.auth_time,
     }
     id_token = mint_id_token(
-        sub=str(user.id),
+        sub=str(session.user_id),
         aud=ISSUER,
         nonce=secrets.token_urlsafe(8),
         issuer=ISSUER,
-        sid=session_id,
+        sid=session.id,
     )
     pair = TokenPair(access_token=access, refresh_token=refresh, id_token=id_token)
     response = JSONResponse(pair.model_dump())
-    response.set_cookie("sid", session_id, httponly=True, samesite="lax")
+    response.set_cookie("sid", session.id, httponly=True, samesite="lax")
     return response

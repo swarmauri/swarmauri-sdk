@@ -12,14 +12,15 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Final, Tuple
+from typing import Any, Dict, Final
 
-from fastapi import APIRouter, FastAPI, HTTPException, Request, status
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request, status
+from sqlalchemy import delete
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from . import runtime_cfg
-
-# In-memory storage mapping request_uri -> (params, expiry)
-_PAR_STORE: Dict[str, Tuple[Dict[str, Any], datetime]] = {}
+from .fastapi_deps import get_async_db
+from .orm.tables import PushedAuthorizationRequest
 
 router = APIRouter()
 
@@ -28,46 +29,57 @@ DEFAULT_PAR_EXPIRY = 90  # seconds
 RFC9126_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc9126"
 
 
-def store_par_request(
-    params: Dict[str, Any], expires_in: int = DEFAULT_PAR_EXPIRY
+async def store_par_request(
+    params: Dict[str, Any],
+    db: AsyncSession,
+    expires_in: int = DEFAULT_PAR_EXPIRY,
 ) -> str:
-    """Store *params* and return a unique ``request_uri``.
+    """Store *params* and return a unique ``request_uri``."""
 
-    Parameters expire after *expires_in* seconds.
-    """
     request_uri = f"urn:ietf:params:oauth:request_uri:{uuid.uuid4()}"
-    _PAR_STORE[request_uri] = (
-        params,
-        datetime.now(tz=timezone.utc) + timedelta(seconds=expires_in),
+    expires_at = datetime.now(tz=timezone.utc) + timedelta(seconds=expires_in)
+    await PushedAuthorizationRequest.handlers.par.core(
+        {
+            "db": db,
+            "payload": {
+                "request_uri": request_uri,
+                "params": params,
+                "expires_at": expires_at,
+            },
+        }
     )
     return request_uri
 
 
-def get_par_request(request_uri: str) -> Dict[str, Any] | None:
+async def get_par_request(request_uri: str, db: AsyncSession) -> Dict[str, Any] | None:
     """Retrieve parameters for *request_uri* if present and not expired."""
-    record = _PAR_STORE.get(request_uri)
-    if not record:
+
+    obj = await db.get(PushedAuthorizationRequest, request_uri)
+    if not obj:
         return None
-    params, expiry = record
-    if datetime.now(tz=timezone.utc) > expiry:
-        del _PAR_STORE[request_uri]
+    if datetime.now(tz=timezone.utc) > obj.expires_at:
+        await PushedAuthorizationRequest.handlers.delete.core({"db": db, "obj": obj})
         return None
-    return params
+    return obj.params
 
 
-def reset_par_store() -> None:
+async def reset_par_store(db: AsyncSession) -> None:
     """Clear stored pushed authorization requests (test helper)."""
-    _PAR_STORE.clear()
+
+    await db.execute(delete(PushedAuthorizationRequest))
+    await db.commit()
 
 
 @router.post("/par", status_code=status.HTTP_201_CREATED)
-async def pushed_authorization_request(request: Request):
+async def pushed_authorization_request(
+    request: Request, db: AsyncSession = Depends(get_async_db)
+):
     """Endpoint for RFC 9126 pushed authorization requests."""
 
     if not runtime_cfg.settings.enable_rfc9126:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "PAR disabled")
     form = await request.form()
-    request_uri = store_par_request(dict(form))
+    request_uri = await store_par_request(dict(form), db)
     return {"request_uri": request_uri, "expires_in": DEFAULT_PAR_EXPIRY}
 
 

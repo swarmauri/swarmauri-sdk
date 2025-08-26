@@ -6,7 +6,8 @@ import re
 import uuid
 from typing import Final
 
-from autoapi.v2.tables import Client as ClientBase
+from autoapi.v3.tables import Client as ClientBase
+from autoapi.v3 import hook_ctx
 
 from ..crypto import hash_pw
 from ..rfc8252 import validate_native_redirect_uri
@@ -17,6 +18,13 @@ _CLIENT_ID_RE: Final[re.Pattern[str]] = re.compile(r"^[A-Za-z0-9\-_]{8,64}$")
 
 class Client(ClientBase):
     __table_args__ = ({"schema": "authn"},)
+
+    @hook_ctx(ops=("create", "update"), phase="PRE_HANDLER")
+    async def _hash_secret(cls, ctx):
+        payload = ctx.get("payload") or {}
+        secret = payload.pop("client_secret", None)
+        if secret:
+            payload["client_secret_hash"] = hash_pw(secret)
 
     @classmethod
     def new(

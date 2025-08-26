@@ -2,39 +2,39 @@
 
 from __future__ import annotations
 
-from autoapi.v2 import Base
-from autoapi.v2.mixins import Timestamped
-from autoapi.v2.types import Column, ForeignKey, JSON, PgUUID, String, TZDateTime
+import datetime as dt
+import uuid
+
+from autoapi.v3.tables import Base
+from autoapi.v3.mixins import TenantMixin, Timestamped, UserMixin
+from autoapi.v3.specs import S, acol
+from autoapi.v3.specs.storage_spec import ForeignKeySpec
+from autoapi.v3.types import JSON, PgUUID, String, TZDateTime
+from autoapi.v3 import op_ctx
 
 
-class AuthCode(Base, Timestamped):
+class AuthCode(Base, Timestamped, UserMixin, TenantMixin):
     __tablename__ = "auth_codes"
     __table_args__ = ({"schema": "authn"},)
 
-    code = Column(String(128), primary_key=True)
-    user_id = Column(
-        PgUUID(as_uuid=True),
-        ForeignKey("authn.users.id"),
-        nullable=False,
-        index=True,
+    code: str = acol(storage=S(String(128), primary_key=True))
+    client_id: uuid.UUID = acol(
+        storage=S(
+            PgUUID(as_uuid=True),
+            fk=ForeignKeySpec(target="authn.clients.id"),
+            nullable=False,
+        )
     )
-    tenant_id = Column(
-        PgUUID(as_uuid=True),
-        ForeignKey("authn.tenants.id"),
-        nullable=False,
-        index=True,
-    )
-    client_id = Column(
-        PgUUID(as_uuid=True),
-        ForeignKey("authn.clients.id"),
-        nullable=False,
-    )
-    redirect_uri = Column(String(1000), nullable=False)
-    code_challenge = Column(String, nullable=True)
-    nonce = Column(String, nullable=True)
-    scope = Column(String, nullable=True)
-    expires_at = Column(TZDateTime, nullable=False)
-    claims = Column(JSON, nullable=True)
+    redirect_uri: str = acol(storage=S(String(1000), nullable=False))
+    code_challenge: str | None = acol(storage=S(String, nullable=True))
+    nonce: str | None = acol(storage=S(String, nullable=True))
+    scope: str | None = acol(storage=S(String, nullable=True))
+    expires_at: dt.datetime = acol(storage=S(TZDateTime, nullable=False))
+    claims: dict | None = acol(storage=S(JSON, nullable=True))
+
+    @op_ctx(alias="exchange", target="delete", arity="member")
+    def exchange(cls, ctx, obj):
+        return obj
 
 
 __all__ = ["AuthCode"]
