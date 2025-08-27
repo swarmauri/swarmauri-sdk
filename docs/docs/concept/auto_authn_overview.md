@@ -1,4 +1,4 @@
-# auto_authn.v2 Overview
+# auto_authn Overview
 
 ## Router Endpoint Modules
 - `rfc7591.py` – client registration endpoint

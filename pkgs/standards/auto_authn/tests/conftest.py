@@ -18,16 +18,16 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.pool import StaticPool
 
-from auto_authn.v2.app import app
-from auto_authn.v2.db import get_async_db
-from auto_authn.v2.orm.tables import Base, Tenant, User, Client, ApiKey
-from auto_authn.v2.crypto import hash_pw
+from auto_authn.app import app
+from auto_authn.db import get_async_db
+from auto_authn.orm.tables import Base, Tenant, User, Client, ApiKey
+from auto_authn.crypto import hash_pw
 
 
 # Disable TLS enforcement for tests
 @pytest.fixture(autouse=True)
 def disable_tls_requirement():
-    from auto_authn.v2.runtime_cfg import settings
+    from auto_authn.runtime_cfg import settings
 
     original = settings.require_tls
     settings.require_tls = False
@@ -109,7 +109,7 @@ async def async_client(override_get_db) -> AsyncGenerator[AsyncClient, None]:
 @pytest.fixture
 def enable_rfc7662():
     """Enable RFC 7662 token introspection for tests."""
-    from auto_authn.v2.runtime_cfg import settings
+    from auto_authn.runtime_cfg import settings
 
     original = settings.enable_rfc7662
     settings.enable_rfc7662 = True
@@ -122,8 +122,8 @@ def enable_rfc7662():
 @pytest.fixture
 def enable_rfc7009():
     """Enable RFC 7009 token revocation for tests."""
-    from auto_authn.v2.runtime_cfg import settings
-    from auto_authn.v2.rfc7009 import reset_revocations
+    from auto_authn.runtime_cfg import settings
+    from auto_authn.rfc7009 import reset_revocations
 
     original = settings.enable_rfc7009
     settings.enable_rfc7009 = True
@@ -138,8 +138,8 @@ def enable_rfc7009():
 @pytest.fixture
 def enable_rfc8693():
     """Enable RFC 8693 token exchange for tests."""
-    from auto_authn.v2.runtime_cfg import settings
-    from auto_authn.v2.rfc8693 import include_rfc8693
+    from auto_authn.runtime_cfg import settings
+    from auto_authn.rfc8693 import include_rfc8693
 
     original = settings.enable_rfc8693
     settings.enable_rfc8693 = True
@@ -153,9 +153,9 @@ def enable_rfc8693():
 @pytest.fixture
 def enable_rfc8414():
     """Enable RFC 8414 authorization server metadata for tests."""
-    from auto_authn.v2.runtime_cfg import settings
-    from auto_authn.v2.rfc8414 import include_rfc8414
-    from auto_authn.v2.oidc_discovery import include_oidc_discovery
+    from auto_authn.runtime_cfg import settings
+    from auto_authn.rfc8414 import include_rfc8414
+    from auto_authn.oidc_discovery import include_oidc_discovery
 
     original = settings.enable_rfc8414
     settings.enable_rfc8414 = True
@@ -170,8 +170,8 @@ def enable_rfc8414():
 @pytest.fixture
 def enable_rfc9126(db_session):
     """Enable RFC 9126 pushed authorization requests for tests."""
-    from auto_authn.v2.runtime_cfg import settings
-    from auto_authn.v2.rfc9126 import reset_par_store
+    from auto_authn.runtime_cfg import settings
+    from auto_authn.rfc9126 import reset_par_store
 
     original = settings.enable_rfc9126
     settings.enable_rfc9126 = True
@@ -189,8 +189,8 @@ def temp_key_file():
     temp_dir = Path(tempfile.mkdtemp())
     temp_kid = temp_dir / "jwt_ed25519.kid"
 
-    import auto_authn.v2.crypto as crypto_module
-    import auto_authn.v2.oidc_id_token as oidc_module
+    import auto_authn.crypto as crypto_module
+    import auto_authn.oidc_id_token as oidc_module
 
     original_dir = crypto_module._DEFAULT_KEY_DIR
     original_path = crypto_module._DEFAULT_KEY_PATH

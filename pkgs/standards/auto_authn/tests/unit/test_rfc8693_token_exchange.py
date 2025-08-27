@@ -8,7 +8,7 @@ from unittest.mock import patch, MagicMock
 import pytest
 from fastapi import FastAPI
 
-from auto_authn.v2.rfc8693 import (
+from auto_authn.rfc8693 import (
     RFC8693_SPEC_URL,
     TokenType,
     TokenExchangeRequest,
@@ -21,8 +21,8 @@ from auto_authn.v2.rfc8693 import (
     TOKEN_EXCHANGE_GRANT_TYPE,
     include_rfc8693,
 )
-from auto_authn.v2.runtime_cfg import settings
-from auto_authn.v2.rfc7519 import encode_jwt
+from auto_authn.runtime_cfg import settings
+from auto_authn.rfc7519 import encode_jwt
 import time
 
 pytestmark = pytest.mark.usefixtures("enable_rfc8693")
@@ -247,7 +247,7 @@ def test_exchange_token():
         scope="read",  # Narrower scope
     )
 
-    with patch("auto_authn.v2.rfc8693.JWTCoder") as mock_jwt_coder:
+    with patch("auto_authn.rfc8693.JWTCoder") as mock_jwt_coder:
         mock_instance = MagicMock()
         mock_jwt_coder.default.return_value = mock_instance
         mock_instance.sign.return_value = "new-access-token-xyz"
@@ -281,7 +281,7 @@ def test_exchange_token_with_actor():
         actor_token_type=TokenType.ACCESS_TOKEN.value,
     )
 
-    with patch("auto_authn.v2.rfc8693.JWTCoder") as mock_jwt_coder:
+    with patch("auto_authn.rfc8693.JWTCoder") as mock_jwt_coder:
         mock_instance = MagicMock()
         mock_jwt_coder.default.return_value = mock_instance
         mock_instance.sign.return_value = "impersonation-token"
@@ -297,7 +297,7 @@ def test_create_impersonation_token():
     subject_jwt = encode_jwt(sub="user123", tid="tenant-1", exp=int(time.time()) + 3600)
     actor_jwt = encode_jwt(sub="admin456", tid="tenant-1", exp=int(time.time()) + 3600)
 
-    with patch("auto_authn.v2.rfc8693.exchange_token") as mock_exchange:
+    with patch("auto_authn.rfc8693.exchange_token") as mock_exchange:
         mock_response = TokenExchangeResponse(access_token="impersonation-token")
         mock_exchange.return_value = mock_response
 
@@ -329,7 +329,7 @@ def test_create_delegation_token():
         exp=int(time.time()) + 3600,
     )
 
-    with patch("auto_authn.v2.rfc8693.exchange_token") as mock_exchange:
+    with patch("auto_authn.rfc8693.exchange_token") as mock_exchange:
         mock_response = TokenExchangeResponse(
             access_token="delegation-token", scope="read"
         )

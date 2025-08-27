@@ -4,8 +4,8 @@ from urllib.parse import parse_qs, urlparse
 import pytest
 from fastapi import status
 
-from auto_authn.v2.crypto import hash_pw
-from auto_authn.v2.orm.tables import Client, Tenant, User
+from auto_authn.crypto import hash_pw
+from auto_authn.orm.tables import Client, Tenant, User
 
 
 async def _setup(async_client, db_session):

@@ -9,14 +9,14 @@ import pytest
 from fastapi import FastAPI, status
 from httpx import ASGITransport, AsyncClient
 
-from auto_authn.v2.rfc8932 import (
+from auto_authn.rfc8932 import (
     RFC8932_SPEC_URL,
     get_enhanced_authorization_server_metadata,
     validate_metadata_consistency,
     get_capability_matrix,
     router,
 )
-from auto_authn.v2.runtime_cfg import settings
+from auto_authn.runtime_cfg import settings
 
 
 @pytest.mark.unit
@@ -228,7 +228,7 @@ def test_validate_metadata_consistency_device_inconsistency():
     with patch.object(settings, "enable_rfc8628", True):
         # Mock metadata that has device endpoint but missing grant type
         with patch(
-            "auto_authn.v2.rfc8932.get_enhanced_authorization_server_metadata"
+            "auto_authn.rfc8932.get_enhanced_authorization_server_metadata"
         ) as mock_metadata:
             mock_metadata.return_value = {
                 "device_authorization_endpoint": "https://example.com/device_codes/device_authorization",
@@ -250,7 +250,7 @@ def test_validate_metadata_consistency_introspection_inconsistency():
     with patch.object(settings, "enable_rfc7662", False):
         # Mock metadata that has introspection endpoint but RFC disabled
         with patch(
-            "auto_authn.v2.rfc8932.get_enhanced_authorization_server_metadata"
+            "auto_authn.rfc8932.get_enhanced_authorization_server_metadata"
         ) as mock_metadata:
             mock_metadata.return_value = {
                 "introspection_endpoint": "https://example.com/introspect",
@@ -268,7 +268,7 @@ def test_validate_metadata_consistency_introspection_inconsistency():
 def test_validate_metadata_consistency_mtls_inconsistency():
     """RFC 8932: Detect mTLS configuration inconsistency."""
     with patch(
-        "auto_authn.v2.rfc8932.get_enhanced_authorization_server_metadata"
+        "auto_authn.rfc8932.get_enhanced_authorization_server_metadata"
     ) as mock_metadata:
         mock_metadata.return_value = {
             "tls_client_certificate_bound_access_tokens": True,

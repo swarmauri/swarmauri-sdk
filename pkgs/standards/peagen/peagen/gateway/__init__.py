@@ -20,7 +20,7 @@ import uuid
 
 # ─────────── Peagen internals ──────────────────────────────────────────
 from autoapi.v3 import AutoAPI, Phase, get_schema
-from auto_authn.v2.providers import RemoteAuthNAdapter
+from auto_authn.providers import RemoteAuthNAdapter
 from fastapi import FastAPI, Request
 
 from peagen._utils.config_loader import resolve_cfg

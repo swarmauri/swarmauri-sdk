@@ -8,15 +8,15 @@ from unittest.mock import patch
 
 import pytest
 
-from auto_authn.v2.errors import InvalidTokenError
-from auto_authn.v2.rfc8523 import (
+from auto_authn.errors import InvalidTokenError
+from auto_authn.rfc8523 import (
     RFC8523_SPEC_URL,
     validate_enhanced_jwt_bearer,
     create_client_assertion_jwt,
     is_jwt_replay,
 )
-from auto_authn.v2.runtime_cfg import settings
-from auto_authn.v2.rfc7519 import encode_jwt
+from auto_authn.runtime_cfg import settings
+from auto_authn.rfc7519 import encode_jwt
 
 
 @pytest.mark.unit
@@ -137,7 +137,7 @@ def test_create_client_assertion_jwt():
         )
 
         # Decode and verify the created token
-        from auto_authn.v2.rfc7519 import decode_jwt
+        from auto_authn.rfc7519 import decode_jwt
 
         claims = decode_jwt(jwt_token)
 
@@ -160,7 +160,7 @@ def test_create_client_assertion_jwt_with_additional_claims():
             additional_claims=additional,
         )
 
-        from auto_authn.v2.rfc7519 import decode_jwt
+        from auto_authn.rfc7519 import decode_jwt
 
         claims = decode_jwt(jwt_token)
 

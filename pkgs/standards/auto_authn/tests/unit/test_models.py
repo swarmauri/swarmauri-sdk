@@ -1,5 +1,5 @@
 """
-Unit tests for auto_authn.v2.orm.tables module.
+Unit tests for auto_authn.orm.tables module.
 
 Tests ORM model creation, validation, relationships, hybrid properties, and methods.
 """
@@ -8,8 +8,8 @@ import uuid
 
 import pytest
 
-from auto_authn.v2.orm.tables import Tenant, Client, User, Service, ApiKey, ServiceKey
-from auto_authn.v2.crypto import hash_pw
+from auto_authn.orm.tables import Tenant, Client, User, Service, ApiKey, ServiceKey
+from auto_authn.crypto import hash_pw
 
 
 @pytest.mark.unit
@@ -192,7 +192,7 @@ class TestModelIntegration:
 
     def test_client_id_regex_pattern(self):
         """Test the client ID regex pattern directly."""
-        from auto_authn.v2.orm.tables import _CLIENT_ID_RE
+        from auto_authn.orm.tables import _CLIENT_ID_RE
 
         valid_patterns = [
             "simple123",

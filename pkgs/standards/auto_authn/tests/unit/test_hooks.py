@@ -1,4 +1,4 @@
-"""Unit tests for auto_authn.v2.hooks module.
+"""Unit tests for auto_authn.hooks module.
 
 Ensure the registration helper wires the injection hook and populates
 principal fields in the context.
@@ -8,7 +8,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from auto_authn.v2.hooks import register_inject_hook
+from auto_authn.hooks import register_inject_hook
 from autoapi.v3.hooks import Phase
 
 

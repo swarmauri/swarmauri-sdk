@@ -1,8 +1,8 @@
 import pytest
 
-import auto_authn.v2.oidc_discovery as oidc_discovery
-from auto_authn.v2.oidc_id_token import mint_id_token, verify_id_token
-from auto_authn.v2.runtime_cfg import settings
+import auto_authn.oidc_discovery as oidc_discovery
+from auto_authn.oidc_id_token import mint_id_token, verify_id_token
+from auto_authn.runtime_cfg import settings
 
 
 @pytest.mark.unit

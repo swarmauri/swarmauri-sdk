@@ -8,12 +8,12 @@ import os
 
 import pytest
 
-from auto_authn.v2.rfc8291 import (
+from auto_authn.rfc8291 import (
     RFC8291_SPEC_URL,
     decrypt_push_message,
     encrypt_push_message,
 )
-from auto_authn.v2.runtime_cfg import settings
+from auto_authn.runtime_cfg import settings
 
 
 @pytest.mark.unit

@@ -7,8 +7,8 @@ import httpx
 import pytest
 from fastapi import HTTPException, Request, status
 
-import auto_authn.v2.providers.remote_adapter as remote_adapter
-from auto_authn.v2.providers.remote_adapter import RemoteAuthNAdapter
+import auto_authn.providers.remote_adapter as remote_adapter
+from auto_authn.providers.remote_adapter import RemoteAuthNAdapter
 
 
 @pytest.mark.unit

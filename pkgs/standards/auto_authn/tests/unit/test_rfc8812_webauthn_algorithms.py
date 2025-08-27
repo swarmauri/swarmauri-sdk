@@ -7,8 +7,8 @@ is disabled.
 
 import pytest
 
-from auto_authn.v2 import runtime_cfg, supported_algorithms
-from auto_authn.v2.rfc8812 import WEBAUTHN_ALGORITHMS, is_webauthn_algorithm
+from auto_authn import runtime_cfg, supported_algorithms
+from auto_authn.rfc8812 import WEBAUTHN_ALGORITHMS, is_webauthn_algorithm
 
 EXPECTED_ALGORITHMS = {
     "RS256",

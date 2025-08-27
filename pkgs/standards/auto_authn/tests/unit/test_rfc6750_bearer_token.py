@@ -11,8 +11,8 @@ import pytest
 from fastapi import Depends, FastAPI, status
 from httpx import ASGITransport, AsyncClient
 
-from auto_authn.v2.fastapi_deps import get_current_principal, get_async_db
-from auto_authn.v2.runtime_cfg import settings
+from auto_authn.fastapi_deps import get_current_principal, get_async_db
+from auto_authn.runtime_cfg import settings
 
 
 @pytest.mark.unit
@@ -47,7 +47,7 @@ async def test_lowercase_bearer_scheme():
 
     mock_user = MagicMock()
     with patch(
-        "auto_authn.v2.fastapi_deps._user_from_jwt", AsyncMock(return_value=mock_user)
+        "auto_authn.fastapi_deps._user_from_jwt", AsyncMock(return_value=mock_user)
     ):
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -95,7 +95,7 @@ async def test_access_token_query_parameter_enabled():
     mock_user = MagicMock()
     with patch.object(settings, "enable_rfc6750_query", True):
         with patch(
-            "auto_authn.v2.fastapi_deps._user_from_jwt",
+            "auto_authn.fastapi_deps._user_from_jwt",
             AsyncMock(return_value=mock_user),
         ):
             transport = ASGITransport(app=app)
@@ -142,7 +142,7 @@ async def test_access_token_form_body_enabled():
     mock_user = MagicMock()
     with patch.object(settings, "enable_rfc6750_form", True):
         with patch(
-            "auto_authn.v2.fastapi_deps._user_from_jwt",
+            "auto_authn.fastapi_deps._user_from_jwt",
             AsyncMock(return_value=mock_user),
         ):
             transport = ASGITransport(app=app)

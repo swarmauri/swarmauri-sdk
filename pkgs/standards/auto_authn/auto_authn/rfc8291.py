@@ -2,7 +2,7 @@
 
 This module offers minimal AES-128-GCM helpers inspired by
 :rfc:`8291`. The encryption utilities can be disabled via the
-``enable_rfc8291`` flag in :mod:`auto_authn.v2.runtime_cfg` to allow
+``enable_rfc8291`` flag in :mod:`auto_authn.runtime_cfg` to allow
 unencrypted operation in constrained environments.
 
 See RFC 8291: https://www.rfc-editor.org/rfc/rfc8291

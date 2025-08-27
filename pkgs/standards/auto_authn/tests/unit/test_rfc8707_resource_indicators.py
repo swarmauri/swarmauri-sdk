@@ -11,8 +11,8 @@ import pytest
 from fastapi import FastAPI, status
 from httpx import ASGITransport, AsyncClient
 
-from auto_authn.v2.runtime_cfg import settings
-from auto_authn.v2.routers.auth_flows import router, _jwt, get_async_db
+from auto_authn.runtime_cfg import settings
+from auto_authn.routers.auth_flows import router, _jwt, get_async_db
 
 
 @pytest.mark.unit
@@ -24,7 +24,7 @@ async def test_token_includes_aud_when_resource_provided(monkeypatch):
     mock_user = MagicMock(id="user", tenant_id="tenant")
     monkeypatch.setattr(settings, "rfc8707_enabled", True)
     monkeypatch.setattr(
-        "auto_authn.v2.routers.auth_flows._pwd_backend.authenticate",
+        "auto_authn.routers.auth_flows._pwd_backend.authenticate",
         AsyncMock(return_value=mock_user),
     )
     app.dependency_overrides[get_async_db] = lambda: AsyncMock()
@@ -76,7 +76,7 @@ async def test_multiple_resources_uses_first(monkeypatch):
     mock_user = MagicMock(id="user", tenant_id="tenant")
     monkeypatch.setattr(settings, "rfc8707_enabled", True)
     monkeypatch.setattr(
-        "auto_authn.v2.routers.auth_flows._pwd_backend.authenticate",
+        "auto_authn.routers.auth_flows._pwd_backend.authenticate",
         AsyncMock(return_value=mock_user),
     )
     app.dependency_overrides[get_async_db] = lambda: AsyncMock()
@@ -128,7 +128,7 @@ async def test_feature_flag_disables_resource(monkeypatch):
     mock_user = MagicMock(id="user", tenant_id="tenant")
     monkeypatch.setattr(settings, "rfc8707_enabled", False)
     monkeypatch.setattr(
-        "auto_authn.v2.routers.auth_flows._pwd_backend.authenticate",
+        "auto_authn.routers.auth_flows._pwd_backend.authenticate",
         AsyncMock(return_value=mock_user),
     )
     app.dependency_overrides[get_async_db] = lambda: AsyncMock()

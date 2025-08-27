@@ -4,8 +4,8 @@ import pytest
 from fastapi import FastAPI, status
 from httpx import ASGITransport, AsyncClient
 
-from auto_authn.v2.rfc7591 import include_rfc7591
-from auto_authn.v2.runtime_cfg import settings
+from auto_authn.rfc7591 import include_rfc7591
+from auto_authn.runtime_cfg import settings
 
 
 @pytest.mark.unit

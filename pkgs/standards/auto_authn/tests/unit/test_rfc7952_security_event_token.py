@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 import pytest
 
-from auto_authn.v2.rfc7952 import (
+from auto_authn.rfc7952 import (
     RFC7952_SPEC_URL,
     create_security_event_token,
     validate_security_event_token,
@@ -18,8 +18,8 @@ from auto_authn.v2.rfc7952 import (
     create_session_revoked_set,
     SET_EVENT_TYPES,
 )
-from auto_authn.v2.runtime_cfg import settings
-from auto_authn.v2.rfc7519 import decode_jwt
+from auto_authn.runtime_cfg import settings
+from auto_authn.rfc7519 import decode_jwt
 
 
 @pytest.mark.unit
@@ -321,7 +321,7 @@ def test_rfc7952_spec_url():
 def test_validate_security_event_token_empty_events():
     """RFC 7952: Empty events claim should raise ValueError."""
     with patch.object(settings, "enable_rfc7952", True):
-        from auto_authn.v2.rfc7519 import encode_jwt
+        from auto_authn.rfc7519 import encode_jwt
 
         # Create invalid SET with empty events
         invalid_set = encode_jwt(

@@ -3,7 +3,7 @@
 import pytest
 from fastapi import FastAPI
 
-from auto_authn.v2.routers.auth_flows import router
+from auto_authn.routers.auth_flows import router
 
 
 def _collect_paths(app: FastAPI) -> set[str]:

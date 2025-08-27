@@ -9,7 +9,7 @@ feature is disabled.
 import asyncio
 import pytest
 
-from auto_authn.v2 import runtime_cfg, rfc9101
+from auto_authn import runtime_cfg, rfc9101
 
 
 @pytest.mark.unit

@@ -13,8 +13,8 @@ validate the stated requirements.
 
 import pytest
 
-from auto_authn.v2 import RFC9207_SPEC_URL, extract_issuer
-from auto_authn.v2.runtime_cfg import settings
+from auto_authn import RFC9207_SPEC_URL, extract_issuer
+from auto_authn.runtime_cfg import settings
 
 
 @pytest.mark.unit

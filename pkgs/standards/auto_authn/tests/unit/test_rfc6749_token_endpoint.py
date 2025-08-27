@@ -4,8 +4,8 @@ import pytest
 from fastapi import FastAPI, status
 from httpx import ASGITransport, AsyncClient
 
-from auto_authn.v2.routers.auth_flows import router
-from auto_authn.v2.runtime_cfg import settings
+from auto_authn.routers.auth_flows import router
+from auto_authn.runtime_cfg import settings
 
 
 @pytest.fixture()

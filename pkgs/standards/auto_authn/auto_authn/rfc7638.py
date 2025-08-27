@@ -2,7 +2,7 @@
 
 This module computes and verifies JSON Web Key (JWK) thumbprints as defined in
 :rfc:`7638`. The helpers are feature flagged via ``enable_rfc7638`` in
-:mod:`auto_authn.v2.runtime_cfg` so deployments may opt out of enforcement.
+:mod:`auto_authn.runtime_cfg` so deployments may opt out of enforcement.
 
 See RFC 7638: https://www.rfc-editor.org/rfc/rfc7638
 """

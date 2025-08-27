@@ -2,8 +2,8 @@
 
 import pytest
 
-from auto_authn.v2 import rfc7662
-from auto_authn.v2.runtime_cfg import settings
+from auto_authn import rfc7662
+from auto_authn.runtime_cfg import settings
 
 RFC_7662 = "RFC 7662"
 

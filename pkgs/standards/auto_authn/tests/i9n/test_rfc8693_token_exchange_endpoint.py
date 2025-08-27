@@ -9,8 +9,8 @@ import pytest
 from fastapi import status
 from httpx import AsyncClient
 
-from auto_authn.v2 import encode_jwt
-from auto_authn.v2.rfc8693 import TOKEN_EXCHANGE_GRANT_TYPE, TokenType
+from auto_authn import encode_jwt
+from auto_authn.rfc8693 import TOKEN_EXCHANGE_GRANT_TYPE, TokenType
 
 
 @pytest.mark.integration

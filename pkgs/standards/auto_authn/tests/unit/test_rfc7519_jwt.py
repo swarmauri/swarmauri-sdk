@@ -1,6 +1,6 @@
 """Tests for RFC 7519: JSON Web Token (JWT)."""
 
-from auto_authn.v2 import encode_jwt, decode_jwt
+from auto_authn import encode_jwt, decode_jwt
 
 
 def test_encode_and_decode_jwt() -> None:

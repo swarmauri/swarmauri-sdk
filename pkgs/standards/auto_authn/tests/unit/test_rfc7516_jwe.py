@@ -2,7 +2,7 @@
 
 from secrets import token_bytes
 
-from auto_authn.v2 import decrypt_jwe, encrypt_jwe
+from auto_authn import decrypt_jwe, encrypt_jwe
 
 
 def test_encrypt_and_decrypt_jwe() -> None:

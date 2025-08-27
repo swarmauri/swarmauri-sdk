@@ -11,7 +11,7 @@ pytestmark = pytest.mark.skip("README examples require full system setup")
 
 @pytest.mark.example
 def test_health_endpoint_in_readme():
-    from auto_authn.v2.app import app
+    from auto_authn.app import app
 
     client = TestClient(app)
     assert client.get("/healthz").json() == {"status": "alive"}
@@ -19,7 +19,7 @@ def test_health_endpoint_in_readme():
 
 @pytest.mark.example
 def test_password_grant_flow_in_readme():
-    from auto_authn.v2.app import app
+    from auto_authn.app import app
 
     client = TestClient(app)
     slug = f"tenant-{uuid.uuid4().hex[:6]}"
@@ -49,7 +49,7 @@ def test_password_grant_flow_in_readme():
 
 @pytest.mark.example
 def test_refresh_token_flow_in_readme():
-    from auto_authn.v2.app import app
+    from auto_authn.app import app
 
     client = TestClient(app)
     slug = f"tenant-{uuid.uuid4().hex[:6]}"
@@ -75,7 +75,7 @@ def test_refresh_token_flow_in_readme():
 @pytest.mark.example
 def test_token_revocation_flow_in_readme():
     os.environ["AUTO_AUTHN_ENABLE_RFC7009"] = "1"
-    import auto_authn.v2.app as app_module
+    import auto_authn.app as app_module
 
     importlib.reload(app_module)
     client = TestClient(app_module.app)

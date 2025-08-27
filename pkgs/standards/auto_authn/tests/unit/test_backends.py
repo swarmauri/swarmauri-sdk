@@ -1,5 +1,5 @@
 """
-Unit tests for auto_authn.v2.backends module.
+Unit tests for auto_authn.backends module.
 
 Tests authentication backends for password and API key authentication.
 """
@@ -9,9 +9,9 @@ from uuid import uuid4
 
 import pytest
 
-from auto_authn.v2.backends import AuthError, PasswordBackend, ApiKeyBackend
-from auto_authn.v2.crypto import hash_pw
-from auto_authn.v2.orm.tables import User, ApiKey, ServiceKey, Service, Client
+from auto_authn.backends import AuthError, PasswordBackend, ApiKeyBackend
+from auto_authn.crypto import hash_pw
+from auto_authn.orm.tables import User, ApiKey, ServiceKey, Service, Client
 
 
 @pytest.mark.unit
@@ -496,7 +496,7 @@ class TestApiKeyBackend:
 
         assert exc_info.value.reason == "API key invalid, revoked, or expired"
 
-    @patch("auto_authn.v2.backends.ApiKey.digest_of")
+    @patch("auto_authn.backends.ApiKey.digest_of")
     @pytest.mark.asyncio
     async def test_digest_of_called_correctly(self, mock_digest_of):
         """Test that ApiKey.digest_of is called with the raw key."""

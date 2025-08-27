@@ -33,7 +33,7 @@ class ServiceKey(ApiKeyBase):
     )
 
     _service = relationship(
-        "auto_authn.v2.orm.tables.Service",
+        "auto_authn.orm.tables.Service",
         back_populates="_service_keys",
         lazy="joined",
     )

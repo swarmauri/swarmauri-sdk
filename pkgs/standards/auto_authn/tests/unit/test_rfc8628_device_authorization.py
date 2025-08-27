@@ -9,13 +9,13 @@ digits.
 
 import pytest
 
-from auto_authn.v2 import (
+from auto_authn import (
     RFC8628_SPEC_URL,
     generate_device_code,
     generate_user_code,
     validate_user_code,
 )
-import auto_authn.v2.rfc8628 as rfc8628_mod
+import auto_authn.rfc8628 as rfc8628_mod
 
 
 @pytest.mark.unit

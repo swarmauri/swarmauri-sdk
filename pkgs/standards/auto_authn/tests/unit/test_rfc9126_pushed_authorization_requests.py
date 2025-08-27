@@ -4,8 +4,8 @@ import pytest
 from fastapi import FastAPI, status
 from httpx import ASGITransport, AsyncClient
 
-from auto_authn.v2.rfc9126 import DEFAULT_PAR_EXPIRY, router
-from auto_authn.v2.fastapi_deps import get_async_db
+from auto_authn.rfc9126 import DEFAULT_PAR_EXPIRY, router
+from auto_authn.fastapi_deps import get_async_db
 
 # RFC 9126 specification excerpt for reference within tests
 RFC9126_SPEC = """
@@ -44,7 +44,7 @@ async def test_par_returns_request_uri_and_expires(enable_rfc9126, monkeypatch):
 @pytest.mark.asyncio
 async def test_par_disabled_returns_404(monkeypatch):
     """RFC 9126 §3.1: Endpoint returns 404 when PAR is disabled."""
-    from auto_authn.v2.runtime_cfg import settings
+    from auto_authn.runtime_cfg import settings
 
     app = FastAPI()
     app.include_router(router)

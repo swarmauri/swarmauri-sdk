@@ -11,8 +11,8 @@ import secrets
 
 import pytest
 
-import auto_authn.v2.rfc7520 as rfc7520
-from auto_authn.v2 import (
+import auto_authn.rfc7520 as rfc7520
+from auto_authn import (
     RFC7520_SPEC_URL,
     jws_then_jwe,
     jwe_then_jws,
@@ -35,7 +35,7 @@ def test_jws_then_jwe_roundtrip() -> None:
 
 def test_rfc7520_disabled(monkeypatch) -> None:
     monkeypatch.setenv("AUTO_AUTHN_ENABLE_RFC7520", "0")
-    import auto_authn.v2.runtime_cfg as runtime_cfg
+    import auto_authn.runtime_cfg as runtime_cfg
 
     importlib.reload(runtime_cfg)
     importlib.reload(rfc7520)

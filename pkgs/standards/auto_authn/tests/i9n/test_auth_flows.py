@@ -1,5 +1,5 @@
 """
-Integration tests for auto_authn.v2.routers.auth_flows module.
+Integration tests for auto_authn.routers.auth_flows module.
 
 Tests complete authentication flows including registration, login,
 logout, token refresh, and API key introspection.
@@ -11,9 +11,9 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from auto_authn.v2.orm.tables import Tenant, User, ApiKey
-from auto_authn.v2.crypto import hash_pw
-from auto_authn.v2.jwtoken import JWTCoder
+from auto_authn.orm.tables import Tenant, User, ApiKey
+from auto_authn.crypto import hash_pw
+from auto_authn.jwtoken import JWTCoder
 
 
 @pytest.mark.integration
@@ -501,7 +501,7 @@ class TestApiKeyIntrospection:
 @pytest.mark.integration
 async def test_authentication_helpers():
     """Test helper functions for authentication testing."""
-    from auto_authn.v2.crypto import hash_pw, verify_pw
+    from auto_authn.crypto import hash_pw, verify_pw
 
     password = "TestPassword123!"
     hashed = hash_pw(password)

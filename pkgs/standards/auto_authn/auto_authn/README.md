@@ -10,7 +10,7 @@ This server provides a FastAPI implementation of the Auto AuthN identity provide
    ```
 2. **Run** the application with Uvicorn:
    ```bash
-   uvicorn auto_authn.v2.app:app --reload
+   uvicorn auto_authn.app:app --reload
    ```
 3. **Configure** runtime settings via environment variables:
    - `DATABASE_URL` – database connection string (e.g. `sqlite+aiosqlite:///./authn.db`).
@@ -29,7 +29,7 @@ This server provides a FastAPI implementation of the Auto AuthN identity provide
 
 ```python
 from fastapi.testclient import TestClient
-from auto_authn.v2.app import app
+from auto_authn.app import app
 
 client = TestClient(app)
 assert client.get("/healthz").json() == {"status": "alive"}
@@ -40,7 +40,7 @@ assert client.get("/healthz").json() == {"status": "alive"}
 ```python
 import uuid
 from fastapi.testclient import TestClient
-from auto_authn.v2.app import app
+from auto_authn.app import app
 
 client = TestClient(app)
 
@@ -88,7 +88,7 @@ client.post("/logout", json={"id_token_hint": tokens["id_token"]})
 import os
 from importlib import reload
 from fastapi.testclient import TestClient
-import auto_authn.v2.app as app_module
+import auto_authn.app as app_module
 
 os.environ["AUTO_AUTHN_ENABLE_RFC7009"] = "1"
 reload(app_module)
