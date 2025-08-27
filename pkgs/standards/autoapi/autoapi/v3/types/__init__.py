@@ -20,6 +20,7 @@ from ..deps.sqlalchemy import (
     LargeBinary,
     UniqueConstraint,
     CheckConstraint,
+    create_engine,
     event,
     # PostgreSQL dialect
     ARRAY,
@@ -37,11 +38,13 @@ from ..deps.sqlalchemy import (
     remote,
     column_property,
     Session,
+    sessionmaker,
     InstrumentedAttribute,
     # Extensions
     MutableDict,
     MutableList,
     hybrid_property,
+    StaticPool,
 )
 
 from ..deps.pydantic import (
@@ -121,6 +124,7 @@ __all__: list[str] = [
     "LargeBinary",
     "UniqueConstraint",
     "CheckConstraint",
+    "create_engine",
     "event",
     # sqlalchemy.dialects.postgresql (from deps.sqlalchemy)
     "ARRAY",
@@ -139,10 +143,12 @@ __all__: list[str] = [
     "relationship",
     "remote",
     "Session",
+    "sessionmaker",
     "InstrumentedAttribute",
     # sqlalchemy.ext.mutable (from deps.sqlalchemy)
     "MutableDict",
     "MutableList",
+    "StaticPool",
     # pydantic schema support (from deps.pydantic)
     "BaseModel",
     "Field",

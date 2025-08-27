@@ -14,6 +14,7 @@ from sqlalchemy import (
     LargeBinary,
     UniqueConstraint,
     CheckConstraint,
+    create_engine,
     event,
 )
 
@@ -37,8 +38,11 @@ from sqlalchemy.orm import (
     remote,
     column_property,
     Session,
+    sessionmaker,
     InstrumentedAttribute,
 )
+
+from sqlalchemy.pool import StaticPool
 
 # ── SQLAlchemy Extensions ────────────────────────────────────────────────
 from sqlalchemy.ext.mutable import MutableDict, MutableList
@@ -74,6 +78,8 @@ __all__ = [
     "LargeBinary",
     "UniqueConstraint",
     "CheckConstraint",
+    "create_engine",
+    "StaticPool",
     "event",
     # PostgreSQL dialect
     "ARRAY",
@@ -91,6 +97,7 @@ __all__ = [
     "remote",
     "column_property",
     "Session",
+    "sessionmaker",
     "InstrumentedAttribute",
     # Extensions
     "MutableDict",
