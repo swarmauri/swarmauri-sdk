@@ -20,6 +20,7 @@ from swarmauri_base.DynamicBase import SubclassUnion as SubclassUnion
 from swarmauri_base.LoggerMixin import LoggerMixin
 from swarmauri_base.ServiceMixin import ServiceMixin
 from swarmauri_base.YamlMixin import YamlMixin
+from swarmauri_base.TomlMixin import TomlMixin
 
 ###########################################
 # ComponentBase
@@ -29,7 +30,7 @@ T = TypeVar("T", bound="ComponentBase")
 
 
 @DynamicBase.register_type()
-class ComponentBase(LoggerMixin, YamlMixin, ServiceMixin, DynamicBase):
+class ComponentBase(LoggerMixin, YamlMixin, TomlMixin, ServiceMixin, DynamicBase):
     """
     Base class for all components.
     """

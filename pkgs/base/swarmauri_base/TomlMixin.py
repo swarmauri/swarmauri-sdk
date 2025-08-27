@@ -1,29 +1,30 @@
-"""Mixin for YAML serialization and validation utilities."""
+"""Mixin for TOML serialization and validation utilities."""
 
 import json
-import yaml
+import tomllib
+import toml
 from pydantic import BaseModel, ValidationError
 
 
-class YamlMixin(BaseModel):
-    """Provide YAML-based validation and serialization helpers."""
+class TomlMixin(BaseModel):
+    """Provide TOML-based validation and serialization helpers."""
 
     @classmethod
-    def model_validate_yaml(cls, yaml_data: str):
-        """Validate a model from a YAML string."""
+    def model_validate_toml(cls, toml_data: str):
+        """Validate a model from a TOML string."""
         try:
-            # Parse YAML into a Python dictionary
-            yaml_content = yaml.safe_load(yaml_data)
+            # Parse TOML into a Python dictionary
+            toml_content = tomllib.loads(toml_data)
 
             # Convert the dictionary to JSON and validate using Pydantic
-            return cls.model_validate_json(json.dumps(yaml_content))
-        except yaml.YAMLError as e:
-            raise ValueError(f"Invalid YAML data: {e}")
+            return cls.model_validate_json(json.dumps(toml_content))
+        except tomllib.TOMLDecodeError as e:
+            raise ValueError(f"Invalid TOML data: {e}")
         except ValidationError as e:
             raise ValueError(f"Validation failed: {e}")
 
-    def model_dump_yaml(self, fields_to_exclude=None, api_key_placeholder=None):
-        """Return a YAML representation of the model."""
+    def model_dump_toml(self, fields_to_exclude=None, api_key_placeholder=None):
+        """Return a TOML representation of the model."""
         if fields_to_exclude is None:
             fields_to_exclude = []
 
@@ -51,5 +52,5 @@ class YamlMixin(BaseModel):
         # Filter the JSON data
         filtered_data = process_fields(json_data, fields_to_exclude)
 
-        # Convert the filtered data into YAML using safe mode
-        return yaml.safe_dump(filtered_data, default_flow_style=False)
+        # Convert the filtered data into TOML
+        return toml.dumps(filtered_data)
