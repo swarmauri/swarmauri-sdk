@@ -1,6 +1,5 @@
 import pytest
-from types import SimpleNamespace
-from autoapi.v3.types import App
+from autoapi.v3.types import App, SimpleNamespace
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Mapped, sessionmaker
@@ -138,9 +137,13 @@ def test_openapi_reflects_io_verbs():
     app.include_router(router)
     spec = app.openapi()
 
-    props = spec["components"]["schemas"]["WidgetCreate"]["properties"]
-    assert "name" in props
-    assert "id" in props
+    props_create = spec["components"]["schemas"]["WidgetCreate"]["properties"]
+    assert "name" in props_create
+    assert "id" not in props_create
+
+    props_read = spec["components"]["schemas"]["WidgetRead"]["properties"]
+    assert "name" in props_read
+    assert "id" in props_read
 
 
 @pytest.mark.i9n
