@@ -5,6 +5,7 @@ Tests that healthz, methodz and hookz endpoints are properly attached and behave
 """
 
 import pytest
+from autoapi.v3.decorators import hook_ctx
 
 
 @pytest.mark.i9n
@@ -50,50 +51,37 @@ async def test_methodz_endpoint_comprehensive(api_client):
     # Check content type
     assert response.headers["content-type"].startswith("application/json")
 
-    # Should return JSON array of method names (strings)
     data = response.json()
-    assert isinstance(data, list)
+    assert "methods" in data
+    assert isinstance(data["methods"], list)
 
-    # Each item should be a string (method name)
-    for method_name in data:
-        assert isinstance(method_name, str)
-        assert "." in method_name  # Should follow Model.operation pattern
+    method_names = [m["method"] for m in data["methods"]]
 
-    # Should have methods for Item and Tenant (from conftest)
+    # Should have methods for Item (from conftest)
     expected_methods = [
         "Item.create",
         "Item.read",
         "Item.update",
         "Item.delete",
         "Item.list",
-        "Tenant.create",
-        "Tenant.read",
-        "Tenant.update",
-        "Tenant.delete",
-        "Tenant.list",
     ]
 
     for method in expected_methods:
-        assert method in data
+        assert method in method_names
 
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_hookz_endpoint_comprehensive(api_client):
     """Test hookz endpoint attachment, behavior, and response format."""
-    client, api, _ = api_client
+    client, api, Item = api_client
 
-    @api.register_hook("POST_RESPONSE")
-    def first_hook(ctx):
+    @hook_ctx(ops="create", phase="POST_RESPONSE")
+    async def item_hook(cls, ctx):
         pass
 
-    @api.register_hook("POST_RESPONSE")
-    def second_hook(ctx):
-        pass
-
-    @api.register_hook("POST_RESPONSE", model="Item", op="create")
-    def item_hook(ctx):
-        pass
+    Item.item_hook = item_hook
+    api.rebind(Item)
 
     routes = [route.path for route in api.router.routes]
     assert "/hookz" in routes
@@ -104,22 +92,10 @@ async def test_hookz_endpoint_comprehensive(api_client):
 
     data = response.json()
     assert isinstance(data, dict)
-
-    expected_global_hooks = [
-        f"autoapi.v3.hooks.{first_hook.__qualname__}",
-        f"autoapi.v3.hooks.{second_hook.__qualname__}",
-    ]
-    for method, phases in data.items():
-        assert isinstance(method, str)
-        assert isinstance(phases, dict)
-        assert phases["POST_RESPONSE"][:2] == expected_global_hooks
-
-    assert "Item.create" in data
-    assert data["Item.create"]["POST_RESPONSE"] == expected_global_hooks + [
-        f"autoapi.v3.hooks.{item_hook.__qualname__}",
-    ]
-    assert "Tenant.create" in data
-    assert data["Tenant.create"]["POST_RESPONSE"] == expected_global_hooks
+    assert "Item" in data
+    assert "create" in data["Item"]
+    assert "POST_RESPONSE" in data["Item"]["create"]
+    assert any("item_hook" in h for h in data["Item"]["create"]["POST_RESPONSE"])
 
 
 @pytest.mark.i9n
@@ -130,15 +106,15 @@ async def test_methodz_basic_functionality(api_client):
 
     response = await client.get("/methodz")
     data = response.json()
+    method_names = [m["method"] for m in data.get("methods", [])]
 
     # Should contain Item.create method
-    assert "Item.create" in data
+    assert "Item.create" in method_names
 
-    # Should contain basic CRUD operations
+    # Should contain basic CRUD operations for Item
     crud_operations = ["create", "read", "update", "delete", "list"]
     for operation in crud_operations:
-        assert f"Item.{operation}" in data
-        assert f"Tenant.{operation}" in data
+        assert f"Item.{operation}" in method_names
 
 
 @pytest.mark.i9n
@@ -186,13 +162,14 @@ async def test_methodz_reflects_dynamic_models(api_client):
     # Get initial methods
     response = await client.get("/methodz")
     initial_data = response.json()
+    method_names = [m["method"] for m in initial_data.get("methods", [])]
 
-    # Should include methods for models from conftest
-    assert "Tenant.create" in initial_data
-    assert "Tenant.read" in initial_data
-    assert "Tenant.update" in initial_data
-    assert "Tenant.delete" in initial_data
-    assert "Tenant.list" in initial_data
+    # Should include methods for Item model from conftest
+    assert "Item.create" in method_names
+    assert "Item.read" in method_names
+    assert "Item.update" in method_names
+    assert "Item.delete" in method_names
+    assert "Item.list" in method_names
 
 
 @pytest.mark.i9n

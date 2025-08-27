@@ -178,6 +178,7 @@ async def api_client(db_mode):
         api.initialize_sync()
 
     fastapi_app = app()
+    api.attach_diagnostics(prefix="")
     fastapi_app.include_router(api.router)
     transport = ASGITransport(app=fastapi_app)
 
