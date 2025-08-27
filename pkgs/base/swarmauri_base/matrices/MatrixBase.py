@@ -22,10 +22,10 @@ class MatrixBase(IMatrix, ComponentBase):
     Attributes
     ----------
     resource : Optional[str]
-        The resource type of this component, defaults to MATRICE
+        The resource type of this component, defaults to MATRIX
     """
 
-    resource: Optional[str] = Field(default=ResourceTypes.MATRICE.value)
+    resource: Optional[str] = Field(default=ResourceTypes.MATRIX.value)
 
     def __getitem__(self, key: Index) -> Union["IMatrix", IVector, T]:
         """
