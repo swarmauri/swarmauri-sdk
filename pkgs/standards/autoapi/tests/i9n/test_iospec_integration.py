@@ -70,7 +70,7 @@ async def widget_setup():
 async def test_request_schema_reflects_io_spec(widget_setup):
     _, api, _ = widget_setup
     schema = api.schemas.Widget.create.in_.model_json_schema()
-    assert set(schema["properties"]) == {"name", "secret", "created_at"}
+    assert set(schema["properties"]) == {"id", "name", "secret", "created_at"}
 
 
 @pytest.mark.i9n
@@ -121,10 +121,15 @@ async def test_openapi_reflects_io_spec(widget_setup):
 @pytest.mark.asyncio
 async def test_storage_persists_data(widget_setup):
     client, _, SessionLocal = widget_setup
-    resp = await client.post(
-        "/widget/widget", json={"name": "hi", "secret": "s", "created_at": "now"}
-    )
+    payload = {
+        "id": str(uuid.uuid4()),
+        "name": "hi",
+        "secret": "s",
+        "created_at": "now",
+    }
+    resp = await client.post("/widget/widget", json=payload)
     wid = uuid.UUID(resp.json()["id"])
+    assert str(wid) == payload["id"]
     with SessionLocal() as session:
         obj = session.execute(select(Widget).where(Widget.id == wid)).scalar_one()
     assert obj.name == "hi"
@@ -134,10 +139,15 @@ async def test_storage_persists_data(widget_setup):
 @pytest.mark.asyncio
 async def test_rest_calls_honor_io_spec(widget_setup):
     client, _, _ = widget_setup
-    resp = await client.post(
-        "/widget/widget", json={"name": "hi", "secret": "s", "created_at": "now"}
-    )
+    payload = {
+        "id": str(uuid.uuid4()),
+        "name": "hi",
+        "secret": "s",
+        "created_at": "now",
+    }
+    resp = await client.post("/widget/widget", json=payload)
     wid = resp.json()["id"]
+    assert wid == payload["id"]
     data = (await client.get(f"/widget/widget/{wid}")).json()
     assert data["secret"] == "s"
     assert data["name"] == "hi"
@@ -150,7 +160,12 @@ async def test_rpc_methods_honor_io_spec(widget_setup):
     payload = {
         "jsonrpc": "2.0",
         "method": "Widget.create",
-        "params": {"name": "rpc", "secret": "x", "created_at": "now"},
+        "params": {
+            "id": str(uuid.uuid4()),
+            "name": "rpc",
+            "secret": "x",
+            "created_at": "now",
+        },
         "id": 1,
     }
     result = (await client.post("/rpc/", json=payload)).json()["result"]
