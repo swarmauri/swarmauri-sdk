@@ -6,9 +6,7 @@ from autoapi.v3 import AutoAPI
 from .tables.key import Key
 from .tables.key_version import KeyVersion
 
-from swarmauri_secret_autogpg import AutoGpgSecretDrive
-from .crypto import ParamikoCryptoAdapter
-from peagen.plugins import PluginManager
+from swarmauri_crypto_paramiko import ParamikoCrypto
 
 import os
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
@@ -36,24 +34,11 @@ app = FastAPI(
 
 # API-level hooks (v3): stash shared services into ctx before any handler runs
 async def _stash_ctx(ctx):
-    global SECRETS, CRYPTO
+    global CRYPTO
     try:
-        SECRETS
         CRYPTO
     except NameError:
-        pm = PluginManager(
-            {
-                "plugins": {"mode": "fallback"},
-                "cryptos": {
-                    "default_crypto": "paramiko_crypto",
-                    "adapters": {"paramiko_crypto": {}},
-                },
-            }
-        )
-        SECRETS = AutoGpgSecretDrive()
-        CRYPTO = ParamikoCryptoAdapter(secrets=SECRETS, crypto=pm.get("cryptos"))
-    # expose shared services to downstream ops under generic names
-    ctx["secrets"] = SECRETS
+        CRYPTO = ParamikoCrypto()
     ctx["crypto"] = CRYPTO
 
 

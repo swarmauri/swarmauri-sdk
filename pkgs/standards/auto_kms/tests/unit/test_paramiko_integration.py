@@ -6,7 +6,6 @@ import asyncio
 import pytest
 from fastapi.testclient import TestClient
 from autoapi.v3.tables import Base
-from swarmauri_secret_autogpg import AutoGpgSecretDrive
 
 
 def _create_key(client, name="k1"):
@@ -18,15 +17,9 @@ def _create_key(client, name="k1"):
 
 @pytest.fixture
 def client_paramiko(tmp_path, monkeypatch):
-    secret_dir = tmp_path / "keys"
     db_path = tmp_path / "kms.db"
     monkeypatch.setenv("KMS_DATABASE_URL", f"sqlite+aiosqlite:///{db_path}")
     app = importlib.reload(importlib.import_module("auto_kms.app"))
-    monkeypatch.setattr(
-        app,
-        "AutoGpgSecretDrive",
-        lambda: AutoGpgSecretDrive(path=secret_dir),
-    )
 
     async def init_db():
         async with app.engine.begin() as conn:
@@ -35,16 +28,14 @@ def client_paramiko(tmp_path, monkeypatch):
     asyncio.run(init_db())
     try:
         with TestClient(app.app) as c:
-            yield c, secret_dir
+            yield c
     finally:
-        if hasattr(app, "SECRETS"):
-            delattr(app, "SECRETS")
         if hasattr(app, "CRYPTO"):
             delattr(app, "CRYPTO")
 
 
 def test_key_encrypt_decrypt_with_paramiko_crypto(client_paramiko):
-    client, secret_dir = client_paramiko
+    client = client_paramiko
 
     key = _create_key(client)
     kv_payload = {"key_id": key["id"], "version": 2, "status": "active"}
@@ -66,7 +57,7 @@ def test_key_encrypt_decrypt_with_paramiko_crypto(client_paramiko):
 
 
 def test_encrypt_accepts_unpadded_base64(client_paramiko):
-    client, secret_dir = client_paramiko
+    client = client_paramiko
 
     key = _create_key(client, name="k2")
     kv_payload = {"key_id": key["id"], "version": 2, "status": "active"}
@@ -86,12 +77,3 @@ def test_encrypt_accepts_unpadded_base64(client_paramiko):
     dec = client.post(f"/kms/key/{key['id']}/decrypt", json=dec_payload)
     assert dec.status_code == 200
     assert base64.b64decode(dec.json()["plaintext_b64"]) == pt
-
-
-def test_key_version_creation_writes_secret_file(client_paramiko):
-    client, secret_dir = client_paramiko
-    key = _create_key(client, name="k3")
-    kv_payload = {"key_id": key["id"], "version": 2, "status": "active"}
-    res = client.post("/kms/key_version", json=kv_payload)
-    assert res.status_code == 201
-    assert (secret_dir / key["id"] / "private.asc").exists()

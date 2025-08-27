@@ -5,18 +5,13 @@ from uuid import uuid4
 import pytest
 from fastapi.testclient import TestClient
 from autoapi.v3.tables import Base
-from swarmauri_secret_autogpg import AutoGpgSecretDrive
 
 
 @pytest.fixture
 def client_app(tmp_path, monkeypatch):
-    secret_dir = tmp_path / "keys"
     db_path = tmp_path / "kms.db"
     monkeypatch.setenv("KMS_DATABASE_URL", f"sqlite+aiosqlite:///{db_path}")
     app = importlib.reload(importlib.import_module("auto_kms.app"))
-    monkeypatch.setattr(
-        app, "AutoGpgSecretDrive", lambda: AutoGpgSecretDrive(path=secret_dir)
-    )
 
     async def init_db():
         async with app.engine.begin() as conn:
@@ -27,8 +22,6 @@ def client_app(tmp_path, monkeypatch):
         with TestClient(app.app) as client:
             yield client
     finally:
-        if hasattr(app, "SECRETS"):
-            delattr(app, "SECRETS")
         if hasattr(app, "CRYPTO"):
             delattr(app, "CRYPTO")
 
