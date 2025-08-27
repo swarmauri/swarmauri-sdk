@@ -32,6 +32,8 @@ class ColumnSpec(MappedColumn):
                 nullable=s.nullable,
                 unique=s.unique,
                 index=s.index,
+                default=s.default,
+                autoincrement=s.autoincrement,
                 server_default=s.server_default,
                 onupdate=s.onupdate,
                 comment=s.comment,
