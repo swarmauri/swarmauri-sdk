@@ -122,7 +122,7 @@ class Key(Base):
     )
 
     nonce_b64: Optional[str] = vcol(
-        field=F(required_in=("decrypt",), allow_null_in=("encrypt", "wrap", "unwrap")),
+        field=F(required_in=("decrypt", "unwrap"), allow_null_in=("encrypt", "wrap")),
         io=IO(in_verbs=("encrypt", "decrypt", "unwrap"), out_verbs=("encrypt", "wrap")),
     )
 
