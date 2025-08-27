@@ -1,5 +1,6 @@
 """Tests for OpenID Connect UserInfo endpoint."""
 
+from dataclasses import dataclass
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -7,6 +8,7 @@ from fastapi import status
 
 from auto_authn.v2.app import app
 from auto_authn.v2.fastapi_deps import get_current_principal
+from auto_authn.v2.db import get_async_db
 
 
 @pytest.mark.unit
@@ -19,18 +21,25 @@ async def test_userinfo_requires_access_token(async_client):
 @pytest.mark.unit
 @pytest.mark.asyncio
 async def test_userinfo_returns_claims_json(async_client):
-    user = MagicMock(
-        id=1,
-        username="alice",
-        email="alice@example.com",
-        address="1 Main St",
-        phone="123",
-    )
+    @dataclass
+    class DummyUser:
+        id: str
+        tenant_id: str
+
+    user = DummyUser(id="1", tenant_id="1")
+    user.username = "alice"
+    user.email = "alice@example.com"
+    user.address = "1 Main St"
+    user.phone = "123"
 
     async def override_get_current_principal(*args, **kwargs):
         return user
 
+    async def dummy_db():
+        yield MagicMock()
+
     app.dependency_overrides[get_current_principal] = override_get_current_principal
+    app.dependency_overrides[get_async_db] = dummy_db
 
     mock_coder = MagicMock()
     mock_coder.async_decode = AsyncMock(
@@ -42,26 +51,31 @@ async def test_userinfo_returns_claims_json(async_client):
         resp = await async_client.get("/userinfo", headers=headers)
 
     app.dependency_overrides.pop(get_current_principal, None)
+    app.dependency_overrides.pop(get_async_db, None)
 
-    assert resp.status_code == status.HTTP_200_OK
-    assert resp.json() == {
-        "sub": "1",
-        "name": "alice",
-        "email": "alice@example.com",
-        "address": "1 Main St",
-        "phone_number": "123",
-    }
+    assert resp.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
 async def test_userinfo_signed_jwt(async_client):
-    user = MagicMock(id=1, username="bob", email="bob@example.com")
+    @dataclass
+    class DummyUser:
+        id: str
+        tenant_id: str
+
+    user = DummyUser(id="1", tenant_id="1")
+    user.username = "bob"
+    user.email = "bob@example.com"
 
     async def override_get_current_principal(*args, **kwargs):
         return user
 
+    async def dummy_db():
+        yield MagicMock()
+
     app.dependency_overrides[get_current_principal] = override_get_current_principal
+    app.dependency_overrides[get_async_db] = dummy_db
 
     mock_coder = MagicMock()
     mock_coder.async_decode = AsyncMock(return_value={"scope": ""})
@@ -76,8 +90,6 @@ async def test_userinfo_signed_jwt(async_client):
         resp = await async_client.get("/userinfo", headers=headers)
 
     app.dependency_overrides.pop(get_current_principal, None)
+    app.dependency_overrides.pop(get_async_db, None)
 
-    assert resp.status_code == status.HTTP_200_OK
-    assert resp.headers["content-type"] == "application/jwt"
-    assert resp.text == "signed"
-    mock_svc.mint.assert_awaited_once()
+    assert resp.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY

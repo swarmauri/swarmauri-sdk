@@ -23,16 +23,16 @@ from fastapi import (
 
 from .fastapi_deps import get_current_principal
 from .jwtoken import JWTCoder, InvalidTokenError, _svc
-from .orm.tables import User
 from .rfc6750 import extract_bearer_token
 from .deps import JWAAlg
+from .typing import Principal
 
 router = APIRouter()
 
 
 @router.get("/userinfo", response_model=None)
 async def userinfo(
-    request: Request, user: User = Depends(get_current_principal)
+    request: Request, user: Principal = Depends(get_current_principal)
 ) -> Response | dict[str, str]:
     """Return claims about the authenticated user.
 
