@@ -51,7 +51,8 @@ def _build_client():
         with SessionLocal() as session:
             yield session
 
-    api = AutoAPI(base=Base, include={Tenant, Item}, get_db=get_db, authn=DummyAuth())
+    api = AutoAPI(get_db=get_db, authn=DummyAuth())
+    api.include_models([Tenant, Item])
     app = FastAPI()
     app.include_router(api.router)
     api.initialize_sync()
@@ -83,7 +84,8 @@ def _build_client_attr():
         with SessionLocal() as session:
             yield session
 
-    api = AutoAPI(base=Base, include={Tenant, Item}, get_db=get_db, authn=DummyAuth())
+    api = AutoAPI(get_db=get_db, authn=DummyAuth())
+    api.include_models([Tenant, Item])
     app = FastAPI()
     app.include_router(api.router)
     api.initialize_sync()

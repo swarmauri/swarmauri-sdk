@@ -33,7 +33,6 @@ from peagen.errors import MigrationFailureError, NoWorkerAvailableError
 
 # peagen/gateway/__init__.py
 from peagen.orm import (
-    Base,
     DeployKey,
     PublicKey,
     GPGKey,
@@ -82,9 +81,9 @@ authn_adapter = RemoteAuthNAdapter(
     cache_size=settings.authn_cache_size,
 )
 
-api = AutoAPI(
-    base=Base,
-    include={
+api = AutoAPI(get_async_db=get_async_db)
+api.include_models(
+    [
         Tenant,
         User,
         Org,
@@ -102,10 +101,9 @@ api = AutoAPI(
         Task,
         Work,
         RawBlob,
-    },
-    get_async_db=get_async_db,
-    authn=authn_adapter,
+    ]
 )
+api.set_auth(authn=authn_adapter)
 
 
 @api.register_hook(Phase.PRE_TX_BEGIN)

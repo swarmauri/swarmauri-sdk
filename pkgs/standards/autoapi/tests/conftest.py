@@ -73,13 +73,10 @@ def create_test_api(sync_db_session):
     """Factory fixture to create AutoAPI instances for testing individual models."""
     engine, get_sync_db = sync_db_session
 
-    def _create_api(model_class, base=None):
+    def _create_api(model_class):
         """Create AutoAPI instance with a single model for testing."""
-        if base is None:
-            base = Base
-
         # Clear metadata to avoid conflicts
-        base.metadata.clear()
+        Base.metadata.clear()
 
         api = AutoAPI(get_db=get_sync_db)
         api.include_model(model_class)
@@ -94,13 +91,10 @@ async def create_test_api_async(async_db_session):
     """Factory fixture to create async AutoAPI instances for testing individual models."""
     engine, get_async_db = async_db_session
 
-    def _create_api_async(model_class, base=None):
+    def _create_api_async(model_class):
         """Create async AutoAPI instance with a single model for testing."""
-        if base is None:
-            base = Base
-
         # Clear metadata to avoid conflicts
-        base.metadata.clear()
+        Base.metadata.clear()
 
         api = AutoAPI(get_async_db=get_async_db)
         api.include_model(model_class)
@@ -162,7 +156,8 @@ async def api_client(db_mode):
             async with AsyncSessionLocal() as session:
                 yield session
 
-        api = AutoAPI(base=Base, include={Tenant, Item}, get_async_db=get_async_db)
+        api = AutoAPI(get_async_db=get_async_db)
+        api.include_models([Tenant, Item])
         await api.initialize_async()
 
     else:
@@ -178,7 +173,8 @@ async def api_client(db_mode):
             with SessionLocal() as session:
                 yield session
 
-        api = AutoAPI(base=Base, include={Tenant, Item}, get_db=get_sync_db)
+        api = AutoAPI(get_db=get_sync_db)
+        api.include_models([Tenant, Item])
         api.initialize_sync()
 
     fastapi_app = app()
