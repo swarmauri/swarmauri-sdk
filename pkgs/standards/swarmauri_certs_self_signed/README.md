@@ -1,13 +1,13 @@
 ![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
-# Swarmauri Self-Signed Certificate Utilities
+# Swarmauri Self-Signed Certificate Builder
 
-Utilities for issuing self-signed X.509 certificates using the `SelfSignedCertificate` builder.
+Standalone plugin providing utilities to issue self-signed X.509 certificates using the `SelfSignedCertificate` builder.
 
 ## Installation
 
 ```bash
-pip install swarmauri_standards
+pip install swarmauri_certs_self_signed
 ```
 
 ## Entry Point

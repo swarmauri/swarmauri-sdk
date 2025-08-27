@@ -3,7 +3,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519
 from cryptography import x509
 
-from swarmauri_standards import SelfSignedCertificate
+from swarmauri_certs_self_signed import SelfSignedCertificate
 from swarmauri_core.crypto.types import KeyRef, KeyType, KeyUse, ExportPolicy
 
 

@@ -107,6 +107,7 @@ members = [
     "standards/swarmauri_signing_ca",
     "standards/swarmauri_signing_jws",
     "swarmauri_certs_local_ca",
+    "standards/swarmauri_certs_self_signed",
     "standards/swarmauri_tokens_jwt",
     "standards/swarmauri_tokens_sshsig",
     "standards/swarmauri_tokens_sshcert",
@@ -288,6 +289,7 @@ swarmauri_certs_remote_ca = { workspace = true }
 swarmauri_signing_jws = { workspace = true }
 swarmauri_certs_pkcs11 = { workspace = true }
 swarmauri_certs_local_ca = { workspace = true }
+swarmauri_certs_self_signed = { workspace = true }
 swarmauri_tokens_dpopboundjwt = { workspace = true }
 swarmauri_tokens_jwt = { workspace = true }
 swarmauri_tokens_sshsig = { workspace = true }
@@ -342,7 +344,6 @@ swarmauri_tool_entityrecognition = { workspace = true }
 swarmauri_certservice_ms_adcs = { workspace = true }
 swarmauri_keyprovider_vaulttransit = { workspace = true }
 swarmauri_llm_leptonai = { workspace = true }
-swarmauri_standards = { workspace = true }
 swarmauri_vectorstore_annoy = { workspace = true }
 swarmauri_tool_jupyterwritenotebook = { workspace = true }
 swarmauri_tool_jupytervalidatenotebook = { workspace = true }

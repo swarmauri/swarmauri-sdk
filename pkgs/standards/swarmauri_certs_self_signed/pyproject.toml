@@ -1,7 +1,7 @@
 [project]
-name = "swarmauri_standards"
+name = "swarmauri_certs_self_signed"
 version = "0.1.0"
-description = "Self-signed certificate utilities for Swarmauri"
+description = "Self-signed certificate builder for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
@@ -61,4 +61,7 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [project.entry-points.'swarmauri.cert_services']
-SelfSignedCertificate = "swarmauri_standards.certs.SelfSignedCertificate:SelfSignedCertificate"
+SelfSignedCertificate = "swarmauri_certs_self_signed:SelfSignedCertificate"
+
+[project.entry-points."peagen.plugins.cert_services"]
+selfsigned = "swarmauri_certs_self_signed:SelfSignedCertificate"
