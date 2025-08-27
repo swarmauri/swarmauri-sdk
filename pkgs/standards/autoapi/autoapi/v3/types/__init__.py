@@ -37,6 +37,7 @@ from ..deps.sqlalchemy import (
     remote,
     column_property,
     Session,
+    InstrumentedAttribute,
     # Extensions
     MutableDict,
     MutableList,
@@ -138,6 +139,7 @@ __all__: list[str] = [
     "relationship",
     "remote",
     "Session",
+    "InstrumentedAttribute",
     # sqlalchemy.ext.mutable (from deps.sqlalchemy)
     "MutableDict",
     "MutableList",

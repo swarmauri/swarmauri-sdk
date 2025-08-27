@@ -1,9 +1,10 @@
 import pytest
 import pytest_asyncio
-from autoapi.v3.types import BaseModel, Column, Integer, String
-from fastapi import FastAPI
+
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+
+from autoapi.v3.types import App, BaseModel, Column, Integer, String
 
 from autoapi.v3 import AutoAPI, Base, schema_ctx
 from autoapi.v3.core import crud
@@ -40,7 +41,7 @@ async def schema_ctx_client():
         async with sessionmaker() as session:
             yield session
 
-    app = FastAPI()
+    app = App()
     api = AutoAPI(app=app, get_async_db=get_async_db)
     api.include_model(Widget, prefix="")
     api.mount_jsonrpc()

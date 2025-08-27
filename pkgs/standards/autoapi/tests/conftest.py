@@ -2,7 +2,8 @@ from typing import AsyncIterator, Iterator
 
 import pytest
 import pytest_asyncio
-from autoapi.v3 import AutoAPI, Base, App
+from autoapi.v3 import AutoAPI, Base
+from autoapi.v3.types import App
 from autoapi.v3.mixins import BulkCapable, GUIDPk
 from autoapi.v3.specs import F, IO, S, acol
 from autoapi.v3.specs.storage_spec import StorageTransform

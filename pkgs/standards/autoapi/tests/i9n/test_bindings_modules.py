@@ -1,10 +1,13 @@
 import inspect
-from types import SimpleNamespace
 
 import pytest
-from sqlalchemy import Integer, String
-from sqlalchemy.orm.attributes import InstrumentedAttribute
 from autoapi.v3.tables import Base
+from autoapi.v3.types import (
+    InstrumentedAttribute,
+    Integer,
+    SimpleNamespace,
+    String,
+)
 
 from autoapi.v3.bindings import (
     api as api_binding,

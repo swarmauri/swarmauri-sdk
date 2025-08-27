@@ -1,6 +1,6 @@
 import pytest
 from autoapi.v3.core import crud
-from sqlalchemy import String
+from autoapi.v3.types import String
 
 
 @pytest.mark.i9n
