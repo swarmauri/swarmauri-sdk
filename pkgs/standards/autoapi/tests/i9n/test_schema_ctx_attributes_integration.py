@@ -1,9 +1,8 @@
 import pytest
 import pytest_asyncio
-from pydantic import BaseModel
+from autoapi.v3.types import BaseModel, Column, Integer, String
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from autoapi.v3 import AutoAPI, Base, schema_ctx
