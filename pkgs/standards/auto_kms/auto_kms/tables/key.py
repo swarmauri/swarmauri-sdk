@@ -122,7 +122,7 @@ class Key(Base):
     )
 
     nonce_b64: Optional[str] = vcol(
-        field=F(required_in=("decrypt",), allow_null_in=("encrypt", "wrap", "unwrap")),
+        field=F(required_in=("decrypt", "unwrap"), allow_null_in=("encrypt", "wrap")),
         io=IO(in_verbs=("encrypt", "decrypt", "unwrap"), out_verbs=("encrypt", "wrap")),
     )
 
@@ -528,10 +528,10 @@ class Key(Base):
         )
 
         try:
-            res = await crypto.wrap(
+            ct = await crypto.encrypt(
                 key_ref,
-                dek=key_material,
-                wrap_alg=alg_str,
+                key_material,
+                alg=alg_str,
                 nonce=None,
                 aad=aad,
             )
@@ -540,11 +540,11 @@ class Key(Base):
 
         return {
             "kid": kid,
-            "version": res.kek_version,
+            "version": ct.version,
             "alg": key_obj.algorithm,
-            "nonce_b64": base64.b64encode(res.nonce).decode() if res.nonce else None,
-            "wrapped_key_b64": base64.b64encode(res.wrapped).decode(),
-            "tag_b64": base64.b64encode(res.tag).decode() if res.tag else None,
+            "nonce_b64": base64.b64encode(ct.nonce).decode(),
+            "wrapped_key_b64": base64.b64encode(ct.ct).decode(),
+            "tag_b64": base64.b64encode(ct.tag).decode(),
             "aad_b64": p.get("aad_b64"),
         }
 
@@ -575,14 +575,16 @@ class Key(Base):
                 status_code=400, detail="Invalid base64 encoding for wrapped_key_b64"
             ) from exc
         except KeyError:
-            raise HTTPException(status_code=400, detail="wrapped_key_b64 is required")
+            raise HTTPException(status_code=422, detail="wrapped_key_b64 is required")
 
         try:
-            nonce = b64d_optional(p.get("nonce_b64"))
+            nonce = b64d(p["nonce_b64"])
         except binascii.Error as exc:
             raise HTTPException(
                 status_code=400, detail="Invalid base64 encoding for nonce_b64"
             ) from exc
+        except KeyError:
+            raise HTTPException(status_code=422, detail="nonce_b64 is required")
 
         try:
             tag = b64d_optional(p.get("tag_b64"))
@@ -603,11 +605,11 @@ class Key(Base):
         alg_str = _alg_to_provider(key_obj.algorithm)
 
         from swarmauri_core.crypto.types import (
+            AEADCiphertext,
             ExportPolicy,
             KeyRef,
             KeyType,
             KeyUse,
-            WrappedKey,
         )
 
         version = next(
@@ -626,17 +628,21 @@ class Key(Base):
             material=bytes(version.public_material),
         )
 
-        wrapped = WrappedKey(
-            kek_kid=kid,
-            kek_version=key_obj.primary_version,
-            wrap_alg=alg_str or "",
-            wrapped=wrapped_key,
+        if tag is None:
+            raise HTTPException(status_code=422, detail="tag_b64 is required")
+
+        ct = AEADCiphertext(
+            kid=kid,
+            version=key_obj.primary_version,
+            alg=alg_str or "",
             nonce=nonce,
+            ct=wrapped_key,
             tag=tag,
+            aad=aad,
         )
 
         try:
-            key_material = await crypto.unwrap(key_ref, wrapped, aad=aad)
+            key_material = await crypto.decrypt(key_ref, ct, aad=aad)
         except Exception as exc:
             raise HTTPException(
                 status_code=500, detail="Key unwrapping failed"
