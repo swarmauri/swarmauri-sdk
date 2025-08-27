@@ -117,7 +117,7 @@ def transactional(  # noqa: D401 (compat docstring in v2)
 
         # Register on the model's registry and (re)bind the model
         reg = get_registry(model)
-        reg.set(alias, sp)  # idempotent replace per-alias
+        reg.add(sp)  # idempotent replace per-alias
         bind_model(model)  # builds schemas/hooks/handlers/rpc/rest
 
         # Ensure router is mounted under the API (prefix '' so our absolute path_suffix is used verbatim)
