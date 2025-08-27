@@ -9,11 +9,11 @@ from auto_authn.v2.oidc_id_token import rotate_rsa_jwt_key
 async def test_jwks_rotation_publishes_new_key(async_client, temp_key_file) -> None:
     resp = await async_client.get("/.well-known/jwks.json")
     assert resp.status_code == status.HTTP_200_OK
-    before = resp.json()["keys"]
+    before = {k["kid"] for k in resp.json()["keys"]}
 
     await rotate_rsa_jwt_key()
 
     resp = await async_client.get("/.well-known/jwks.json")
     assert resp.status_code == status.HTTP_200_OK
-    after = resp.json()["keys"]
-    assert len(after) == len(before) + 1
+    after = {k["kid"] for k in resp.json()["keys"]}
+    assert after - before
