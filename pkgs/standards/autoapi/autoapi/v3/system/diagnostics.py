@@ -30,7 +30,7 @@ from typing import (
 )
 
 try:
-    from ...types import Router, Request, Depends
+    from ..types import Router, Request, Depends
     from fastapi.responses import JSONResponse
 except Exception:  # pragma: no cover
     # Lightweight shims so the module is importable without FastAPI
