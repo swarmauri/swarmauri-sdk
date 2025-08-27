@@ -85,8 +85,10 @@ def test_client_new_allows_public_redirect_when_disabled(monkeypatch) -> None:
     monkeypatch.setenv("AUTO_AUTHN_ENFORCE_RFC8252", "0")
     importlib.reload(runtime_cfg)
     import auto_authn.v2.orm.tables as orm_tables
+    import auto_authn.v2.orm.client as orm_client
 
     monkeypatch.setattr(orm_tables, "settings", runtime_cfg.settings)
+    monkeypatch.setattr(orm_client, "settings", runtime_cfg.settings)
     tenant_id = uuid.uuid4()
     client = Client.new(
         tenant_id,
@@ -98,3 +100,4 @@ def test_client_new_allows_public_redirect_when_disabled(monkeypatch) -> None:
     monkeypatch.setenv("AUTO_AUTHN_ENFORCE_RFC8252", "1")
     importlib.reload(runtime_cfg)
     monkeypatch.setattr(orm_tables, "settings", runtime_cfg.settings)
+    monkeypatch.setattr(orm_client, "settings", runtime_cfg.settings)
