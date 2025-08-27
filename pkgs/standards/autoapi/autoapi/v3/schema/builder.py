@@ -4,7 +4,6 @@ Schema building for AutoAPI v3.
 
 Builds verb-specific Pydantic models from SQLAlchemy ORM classes, with:
 • Column.info["autoapi"] support (read_only, disable_on, no_update, write_only, default_factory, examples)
-• Hybrid @hybrid_property *opt-in* via meta["hybrid"]
 • Request-only virtual fields via __autoapi_request_extras__
 • Response-only virtual fields via __autoapi_response_extras__
 • A small cache keyed by (orm_cls, verb, include, exclude)
@@ -225,16 +224,15 @@ def _build_schema(
     """
     Build (and cache) a verb-specific Pydantic schema from *orm_cls*,
     ignoring relationships entirely. Columns come directly from __table__.columns
-    (ColumnProperty only). Hybrids are handled in a separate pass.
+    (ColumnProperty only).
 
-    Supported metadata on columns or hybrids:
+    Supported metadata on columns:
       • Column.info["autoapi"] with keys:
         - read_only   : bool | Iterable[str] | Mapping[str,bool]
         - write_only  : bool (hidden from read schemas)
         - disable_on  : Iterable[str] (verbs)
         - no_update   : legacy flag (treated like disable_on={"update","replace"})
         - default_factory, examples
-      • Hybrid opt-in via meta["hybrid"] on the hybrid itself (.info["autoapi"])
       • __autoapi_request_extras__ / __autoapi_response_extras__ on the ORM class
     """
     cache_key = (orm_cls, verb, frozenset(include or ()), frozenset(exclude or ()))
@@ -255,7 +253,9 @@ def _build_schema(
     # ── PASS 1: table-backed columns only (avoid mapper relationships)
     table = getattr(orm_cls, "__table__", None)
     table_cols: Iterable[Any] = tuple(table.columns) if table is not None else ()
-    specs = getattr(orm_cls, "__autoapi_cols__", {})
+    specs: Dict[str, Any] = {}
+    specs.update(getattr(orm_cls, "__autoapi_colspecs__", {}))
+    specs.update(getattr(orm_cls, "__autoapi_cols__", {}))
 
     for col in table_cols:
         attr_name = col.key or col.name
@@ -408,42 +408,18 @@ def _build_schema(
             py_t,
         )
 
-    # ── PASS 2: @hybrid_property (opt-in via meta["hybrid"])
+    # ── PASS 2: reject @hybrid_property usage
     for attr_name, attr in list(getattr(orm_cls, "__dict__", {}).items()):
         if not isinstance(attr, hybrid_property):
-            continue
-
-        if include and attr_name not in include:
-            continue
-        if exclude and attr_name in exclude:
             continue
 
         meta_src = getattr(attr, "info", {}) or {}
         meta = (meta_src.get("autoapi") if isinstance(meta_src, dict) else None) or {}
 
-        # hybrids must explicitly opt-in
-        if not meta.get("hybrid"):
-            continue
-
-        # Write-phase without setter is not usable
-        if getattr(attr, "fset", None) is None and verb in {
-            "create",
-            "update",
-            "replace",
-        }:
-            continue
-
-        py_t = getattr(attr, "python_type", meta.get("py_type", Any))
-        if "default_factory" in meta:
-            fld = Field(default_factory=meta["default_factory"])
-        else:
-            fld = Field(None)
-
-        if "examples" in meta:
-            fld = Field(fld.default, examples=meta["examples"])
-
-        _add_field(fields, name=attr_name, py_t=py_t, field=fld)
-        logger.debug("schema: added hybrid field %s type=%r", attr_name, py_t)
+        if meta.get("hybrid"):
+            raise ValueError(
+                f"{orm_cls.__name__}.{attr_name}: hybrid_property is not supported"
+            )
 
     # ── PASS 3: request/response extras
     _merge_request_extras(orm_cls, verb, fields, include=include, exclude=exclude)
