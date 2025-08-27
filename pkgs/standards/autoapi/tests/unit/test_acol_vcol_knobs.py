@@ -1,13 +1,18 @@
 from datetime import datetime
-from types import SimpleNamespace
-
 
 from autoapi.v3.bindings.model import bind
 from autoapi.v3.runtime.atoms.schema import collect_in, collect_out
 from autoapi.v3.specs import ColumnSpec, F, IO, S, acol, vcol
 from autoapi.v3.tables import Base
-from sqlalchemy import DateTime, Integer, String
-from sqlalchemy.orm import Mapped
+from autoapi.v3.types import (
+    Column,
+    DateTime,
+    InstrumentedAttribute,
+    Integer,
+    Mapped,
+    SimpleNamespace,
+    String,
+)
 
 
 class Thing(Base):
@@ -68,11 +73,11 @@ def test_acol_vcol_knobs_affect_bindings_and_schemas():
     # binding of schemas on model
     assert hasattr(Thing.schemas, "create") and hasattr(Thing.schemas, "read")
 
-    # binding of columns on model: persisted becomes SQLAlchemy Column, virtual remains ColumnSpec
-    from sqlalchemy import Column
-
+    # binding of columns on model: persisted becomes SQLAlchemy Column, virtual column
+    # attribute is instrumented while its ColumnSpec remains recorded
     assert isinstance(Thing.__table__.c.name, Column)
-    assert isinstance(Thing.__dict__["slug"], ColumnSpec)
+    assert isinstance(Thing.__dict__["slug"], InstrumentedAttribute)
+    assert isinstance(Thing.__autoapi_cols__["slug"], ColumnSpec)
     assert "name" in Thing.__autoapi_cols__ and "slug" in Thing.__autoapi_cols__
 
     # read_producer works on virtual column
