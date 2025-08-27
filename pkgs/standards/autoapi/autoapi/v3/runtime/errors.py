@@ -312,6 +312,11 @@ def rpc_error_to_http(
     return http_exc
 
 
+# Backwards compatibility aliases
+_http_exc_to_rpc = http_exc_to_rpc
+_rpc_error_to_http = rpc_error_to_http
+
+
 # ───────────────────── Exception → Standardized error ─────────────────────────
 
 
@@ -490,6 +495,8 @@ __all__ = [
     # conversions
     "http_exc_to_rpc",
     "rpc_error_to_http",
+    "_http_exc_to_rpc",
+    "_rpc_error_to_http",
     "create_standardized_error",
     "create_standardized_error_from_status",
     "to_rpc_error_payload",
