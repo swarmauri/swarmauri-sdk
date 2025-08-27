@@ -514,6 +514,9 @@ def _build_list_params(model: type) -> Type[BaseModel]:
             spec = spec_map.get(c.name) if isinstance(spec_map, Mapping) else None
             io = getattr(spec, "io", None)
             ops_raw = set(getattr(io, "filter_ops", ()) or [])
+            if not ops_raw:
+                # Allow basic equality filtering by default on scalar columns
+                ops_raw = {"eq"}
             ops = {_canon.get(op, op) for op in ops_raw}
             if "eq" in ops:
                 cols[c.name] = (py_t | None, Field(None))
