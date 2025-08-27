@@ -5,7 +5,6 @@ Tests that healthz, methodz and hookz endpoints are properly attached and behave
 """
 
 import pytest
-from autoapi.v2 import Phase
 
 
 @pytest.mark.i9n
@@ -84,15 +83,15 @@ async def test_hookz_endpoint_comprehensive(api_client):
     """Test hookz endpoint attachment, behavior, and response format."""
     client, api, _ = api_client
 
-    @api.register_hook(Phase.POST_RESPONSE)
+    @api.register_hook("POST_RESPONSE")
     def first_hook(ctx):
         pass
 
-    @api.register_hook(Phase.POST_RESPONSE)
+    @api.register_hook("POST_RESPONSE")
     def second_hook(ctx):
         pass
 
-    @api.register_hook(Phase.POST_RESPONSE, model="Item", op="create")
+    @api.register_hook("POST_RESPONSE", model="Item", op="create")
     def item_hook(ctx):
         pass
 
@@ -107,8 +106,8 @@ async def test_hookz_endpoint_comprehensive(api_client):
     assert isinstance(data, dict)
 
     expected_global_hooks = [
-        f"autoapi.v2.hooks.{first_hook.__qualname__}",
-        f"autoapi.v2.hooks.{second_hook.__qualname__}",
+        f"autoapi.v3.hooks.{first_hook.__qualname__}",
+        f"autoapi.v3.hooks.{second_hook.__qualname__}",
     ]
     for method, phases in data.items():
         assert isinstance(method, str)
@@ -117,7 +116,7 @@ async def test_hookz_endpoint_comprehensive(api_client):
 
     assert "Item.create" in data
     assert data["Item.create"]["POST_RESPONSE"] == expected_global_hooks + [
-        f"autoapi.v2.hooks.{item_hook.__qualname__}",
+        f"autoapi.v3.hooks.{item_hook.__qualname__}",
     ]
     assert "Tenant.create" in data
     assert data["Tenant.create"]["POST_RESPONSE"] == expected_global_hooks

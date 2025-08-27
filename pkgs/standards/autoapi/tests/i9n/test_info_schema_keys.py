@@ -7,11 +7,12 @@ Each key is tested individually using DummyModel instances.
 
 import pytest
 from datetime import datetime
-from sqlalchemy import Column, String, Integer, DateTime
+from sqlalchemy import Column, DateTime, Integer, String
 from sqlalchemy.ext.hybrid import hybrid_property
 
-from autoapi.v2.mixins import GUIDPk
-from autoapi.v2 import Base, get_schema
+from autoapi.v3 import Base
+from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.schema import _build_schema, check
 
 
 class DummyModelDisableOn(Base, GUIDPk):
@@ -107,9 +108,9 @@ async def test_disable_on_key(create_test_api):
     create_test_api(DummyModelDisableOn)
 
     # Get schemas for different verbs
-    create_schema = get_schema(DummyModelDisableOn, "create")
-    update_schema = get_schema(DummyModelDisableOn, "update")
-    read_schema = get_schema(DummyModelDisableOn, "read")
+    create_schema = _build_schema(DummyModelDisableOn, verb="create")
+    update_schema = _build_schema(DummyModelDisableOn, verb="update")
+    read_schema = _build_schema(DummyModelDisableOn, verb="read")
 
     # name should be in create and read schemas
     assert "name" in create_schema.model_fields
@@ -131,8 +132,8 @@ async def test_write_only_key(create_test_api):
     create_test_api(DummyModelWriteOnly)
 
     # Get schemas for different verbs
-    create_schema = get_schema(DummyModelWriteOnly, "create")
-    read_schema = get_schema(DummyModelWriteOnly, "read")
+    create_schema = _build_schema(DummyModelWriteOnly, verb="create")
+    read_schema = _build_schema(DummyModelWriteOnly, verb="read")
 
     # secret should be in create schema (write operation)
     assert "secret" in create_schema.model_fields
@@ -152,9 +153,9 @@ async def test_read_only_key(create_test_api):
     create_test_api(DummyModelReadOnly)
 
     # Get schemas for different verbs
-    create_schema = get_schema(DummyModelReadOnly, "create")
-    update_schema = get_schema(DummyModelReadOnly, "update")
-    read_schema = get_schema(DummyModelReadOnly, "read")
+    create_schema = _build_schema(DummyModelReadOnly, verb="create")
+    update_schema = _build_schema(DummyModelReadOnly, verb="update")
+    read_schema = _build_schema(DummyModelReadOnly, verb="read")
 
     # computed_field should be in read schema
     assert "computed_field" in read_schema.model_fields
@@ -176,7 +177,7 @@ async def test_default_factory_key(create_test_api):
     create_test_api(DummyModelDefaultFactory)
 
     # Get create schema
-    create_schema = get_schema(DummyModelDefaultFactory, "create")
+    create_schema = _build_schema(DummyModelDefaultFactory, verb="create")
 
     # timestamp field should be present
     assert "timestamp" in create_schema.model_fields
@@ -200,7 +201,7 @@ async def test_examples_key(create_test_api):
     create_test_api(DummyModelExamples)
 
     # Get create schema
-    create_schema = get_schema(DummyModelExamples, "create")
+    create_schema = _build_schema(DummyModelExamples, verb="create")
 
     # Check that fields have examples
     name_field = create_schema.model_fields["name"]
@@ -219,8 +220,8 @@ async def test_hybrid_key(create_test_api):
     create_test_api(DummyModelHybrid)
 
     # Get schemas for different verbs
-    create_schema = get_schema(DummyModelHybrid, "create")
-    read_schema = get_schema(DummyModelHybrid, "read")
+    create_schema = _build_schema(DummyModelHybrid, verb="create")
+    read_schema = _build_schema(DummyModelHybrid, verb="read")
 
     # full_name should be in schemas because hybrid=True
     assert "full_name" in create_schema.model_fields
@@ -238,7 +239,7 @@ async def test_py_type_key(create_test_api):
     create_test_api(DummyModelPyType)
 
     # Get read schema
-    read_schema = get_schema(DummyModelPyType, "read")
+    read_schema = _build_schema(DummyModelPyType, verb="read")
 
     # computed_value should be present due to hybrid=True
     assert "computed_value" in read_schema.model_fields
@@ -254,8 +255,6 @@ async def test_py_type_key(create_test_api):
 @pytest.mark.asyncio
 async def test_info_schema_validation():
     """Test that invalid info schema keys raise errors."""
-    from autoapi.v2.info_schema import check
-
     # Valid metadata should not raise error
     valid_meta = {"disable_on": ["update"], "write_only": True, "examples": ["test"]}
     check(valid_meta, "test_field", "TestModel")  # Should not raise
@@ -302,9 +301,9 @@ async def test_combined_info_schema_keys(create_test_api):
     create_test_api(DummyModelCombined)
 
     # Get schemas
-    create_schema = get_schema(DummyModelCombined, "create")
-    update_schema = get_schema(DummyModelCombined, "update")
-    read_schema = get_schema(DummyModelCombined, "read")
+    create_schema = _build_schema(DummyModelCombined, verb="create")
+    update_schema = _build_schema(DummyModelCombined, verb="update")
+    read_schema = _build_schema(DummyModelCombined, verb="read")
 
     # secret should be in create (write_only=True allows writes, disable_on excludes update)
     assert "secret" in create_schema.model_fields

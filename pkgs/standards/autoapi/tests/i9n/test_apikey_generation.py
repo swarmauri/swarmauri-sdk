@@ -2,8 +2,8 @@ import pytest
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 
-from autoapi.v2 import AutoAPI, Base
-from autoapi.v2.tables import ApiKey
+from autoapi.v3 import AutoAPI, Base
+from autoapi.v3.tables import ApiKey
 
 
 class ConcreteApiKey(ApiKey):

@@ -8,8 +8,9 @@ from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, DateTime, String
 
-from autoapi.v2 import Base, get_schema
-from autoapi.v2.mixins import GUIDPk
+from autoapi.v3 import Base
+from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.schema import _build_schema
 
 
 @pytest.mark.i9n
@@ -66,9 +67,9 @@ async def test_write_only_field_runtime_behavior(create_test_api):
             except StopIteration:
                 pass
 
-    create_schema = get_schema(WriteOnlyModel, "create")
-    read_schema = get_schema(WriteOnlyModel, "read")
-    update_schema = get_schema(WriteOnlyModel, "update")
+    create_schema = _build_schema(WriteOnlyModel, verb="create")
+    read_schema = _build_schema(WriteOnlyModel, verb="read")
+    update_schema = _build_schema(WriteOnlyModel, verb="update")
 
     assert "secret" in create_schema.model_fields
     assert "secret" in update_schema.model_fields
@@ -113,9 +114,9 @@ async def test_read_only_field_runtime_behavior(create_test_api):
         assert res.status_code == 200
         assert res.json()["code"] == ro_value
 
-    create_schema = get_schema(ReadOnlyModel, "create")
-    read_schema = get_schema(ReadOnlyModel, "read")
-    update_schema = get_schema(ReadOnlyModel, "update")
+    create_schema = _build_schema(ReadOnlyModel, verb="create")
+    read_schema = _build_schema(ReadOnlyModel, verb="read")
+    update_schema = _build_schema(ReadOnlyModel, verb="update")
 
     assert "code" not in create_schema.model_fields
     assert "code" in read_schema.model_fields
@@ -155,9 +156,9 @@ async def test_default_factory_field_runtime_behavior(create_test_api):
         assert res.status_code == 200
         assert res.json()["created_at"] == created
 
-    create_schema = get_schema(FactoryModel, "create")
+    create_schema = _build_schema(FactoryModel, verb="create")
     field = create_schema.model_fields["created_at"]
     assert field.default_factory is not None
     assert not field.is_required()
-    assert "created_at" in get_schema(FactoryModel, "read").model_fields
-    assert "created_at" in get_schema(FactoryModel, "update").model_fields
+    assert "created_at" in _build_schema(FactoryModel, verb="read").model_fields
+    assert "created_at" in _build_schema(FactoryModel, verb="update").model_fields

@@ -5,16 +5,16 @@ Tests error mappings between RPC and HTTP, and verifies parity between error res
 """
 
 import pytest
-from autoapi.v2.jsonrpc_models import (
-    _HTTP_TO_RPC,
-    _RPC_TO_HTTP,
+from fastapi import HTTPException
+from autoapi.v3.runtime.errors import (
     ERROR_MESSAGES,
     HTTP_ERROR_MESSAGES,
+    _HTTP_TO_RPC,
+    _RPC_TO_HTTP,
     _http_exc_to_rpc,
     _rpc_error_to_http,
     create_standardized_error,
 )
-from fastapi import HTTPException
 
 
 @pytest.mark.i9n

@@ -11,10 +11,11 @@ Tests cover:
 
 import pytest
 import pytest_asyncio
-from autoapi.v2 import AutoAPI, Base
-from autoapi.v2.mixins import GUIDPk
-from sqlalchemy import Column, String, Integer
 from fastapi import HTTPException
+from sqlalchemy import Column, Integer, String
+
+from autoapi.v3 import AutoAPI, Base
+from autoapi.v3.mixins import GUIDPk
 
 
 class CoreTestUser(Base, GUIDPk):
