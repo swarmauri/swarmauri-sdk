@@ -6,7 +6,7 @@ Tests all mixins and their expected behavior using individual DummyModel instanc
 
 import pytest
 from datetime import datetime, timedelta
-from sqlalchemy import Column, String
+from autoapi.v3.types import Column, String
 
 from autoapi.v3 import Base
 from autoapi.v3.mixins import (

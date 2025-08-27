@@ -1,14 +1,15 @@
 """
 Info Schema Keys Tests for AutoAPI v2
 
-Tests all 7 info-schema keys: disable_on, write_only, read_only, default_factory, examples, hybrid, py_type
+Tests supported info-schema keys: disable_on, write_only, read_only, default_factory,
+examples, py_type. Also verifies that hybrid properties are rejected.
 Each key is tested individually using DummyModel instances.
 """
 
 import pytest
 from datetime import datetime
-from sqlalchemy import Column, DateTime, Integer, String
-from sqlalchemy.ext.hybrid import hybrid_property
+from typing import get_args
+from autoapi.v3.types import Column, DateTime, Integer, JSON, String, hybrid_property
 
 from autoapi.v3 import Base
 from autoapi.v3.mixins import GUIDPk
@@ -64,41 +65,13 @@ class DummyModelExamples(Base, GUIDPk):
     count = Column(Integer, info=dict(autoapi={"examples": [1, 5, 10, 100]}))
 
 
-class DummyModelHybrid(Base, GUIDPk):
-    """Test model for hybrid key."""
-
-    __tablename__ = "dummy_hybrid"
-
-    first_name = Column(String)
-    last_name = Column(String)
-
-    @hybrid_property
-    def full_name(self):
-        return f"{self.first_name} {self.last_name}"
-
-    @full_name.setter
-    def full_name(self, value):
-        parts = value.split(" ", 1)
-        self.first_name = parts[0]
-        self.last_name = parts[1] if len(parts) > 1 else ""
-
-    # Enable hybrid property in schema
-    full_name.info = {"autoapi": {"hybrid": True}}
-
-
 class DummyModelPyType(Base, GUIDPk):
     """Test model for py_type key."""
 
     __tablename__ = "dummy_py_type"
 
     name = Column(String)
-
-    @hybrid_property
-    def computed_value(self):
-        return len(self.name) if self.name else 0
-
-    # Specify Python type for hybrid property
-    computed_value.info = {"autoapi": {"hybrid": True, "py_type": int}}
+    data = Column(JSON, info=dict(autoapi={"py_type": dict}))
 
 
 @pytest.mark.i9n
@@ -215,21 +188,23 @@ async def test_examples_key(create_test_api):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_hybrid_key(create_test_api):
-    """Test that hybrid key enables hybrid properties in schemas."""
-    create_test_api(DummyModelHybrid)
+async def test_hybrid_property_error(create_test_api):
+    """Test that using hybrid properties raises an error."""
 
-    # Get schemas for different verbs
-    create_schema = _build_schema(DummyModelHybrid, verb="create")
-    read_schema = _build_schema(DummyModelHybrid, verb="read")
+    class DummyModelHybrid(Base, GUIDPk):
+        __tablename__ = "dummy_hybrid"
 
-    # full_name should be in schemas because hybrid=True
-    assert "full_name" in create_schema.model_fields
-    assert "full_name" in read_schema.model_fields
+        first_name = Column(String)
+        last_name = Column(String)
 
-    # Regular fields should also be present
-    assert "first_name" in create_schema.model_fields
-    assert "last_name" in create_schema.model_fields
+        @hybrid_property
+        def full_name(self):  # pragma: no cover - simple property
+            return f"{self.first_name} {self.last_name}"
+
+        full_name.info = {"autoapi": {"hybrid": True}}
+
+    with pytest.raises(ValueError, match="hybrid_property"):
+        _build_schema(DummyModelHybrid, verb="read")
 
 
 @pytest.mark.i9n
@@ -241,14 +216,11 @@ async def test_py_type_key(create_test_api):
     # Get read schema
     read_schema = _build_schema(DummyModelPyType, verb="read")
 
-    # computed_value should be present due to hybrid=True
-    assert "computed_value" in read_schema.model_fields
+    # data should be present and have specified Python type
+    assert "data" in read_schema.model_fields
 
-    # The field should have the specified Python type
-    computed_value_field = read_schema.model_fields["computed_value"]
-
-    # Check that the annotation reflects the py_type
-    assert computed_value_field.annotation is int
+    data_field = read_schema.model_fields["data"]
+    assert dict in get_args(data_field.annotation)
 
 
 @pytest.mark.i9n
@@ -262,14 +234,19 @@ async def test_info_schema_validation():
     # Invalid key should raise error
     invalid_meta = {"invalid_key": True, "disable_on": ["update"]}
 
-    with pytest.raises(RuntimeError, match="bad autoapi keys"):
+    with pytest.raises(ValueError, match="unknown keys"):
         check(invalid_meta, "test_field", "TestModel")
 
     # Invalid verb should raise error
     invalid_verb_meta = {"disable_on": ["invalid_verb"]}
 
-    with pytest.raises(RuntimeError, match="invalid verb"):
+    with pytest.raises(ValueError, match="unknown verb"):
         check(invalid_verb_meta, "test_field", "TestModel")
+
+    # Hybrid key should also be rejected
+    invalid_hybrid_meta = {"hybrid": True}
+    with pytest.raises(ValueError, match="unknown keys"):
+        check(invalid_hybrid_meta, "test_field", "TestModel")
 
 
 @pytest.mark.i9n
@@ -291,12 +268,9 @@ async def test_combined_info_schema_keys(create_test_api):
                 }
             ),
         )
-
-        @hybrid_property
-        def computed(self):
-            return f"computed-{self.name}"
-
-        computed.info = {"autoapi": {"hybrid": True, "read_only": True, "py_type": str}}
+        computed = Column(
+            String, info=dict(autoapi={"read_only": True, "py_type": str})
+        )
 
     create_test_api(DummyModelCombined)
 
@@ -310,10 +284,11 @@ async def test_combined_info_schema_keys(create_test_api):
     assert "secret" not in update_schema.model_fields  # disabled on update
     assert "secret" not in read_schema.model_fields  # write_only=True
 
-    # computed should only be in read (read_only=True, hybrid=True)
+    # computed should only be in read (read_only=True)
     assert "computed" not in create_schema.model_fields
     assert "computed" not in update_schema.model_fields
     assert "computed" in read_schema.model_fields
+    assert str in get_args(read_schema.model_fields["computed"].annotation)
 
     # name should be in all schemas
     assert "name" in create_schema.model_fields

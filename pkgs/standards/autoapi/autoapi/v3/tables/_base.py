@@ -100,10 +100,17 @@ def _materialize_colspecs_to_sqla(cls) -> None:
     except Exception:
         return
 
-    # Prefer explicit registry if present; otherwise scan the class dict.
-    specs = getattr(cls, "__autoapi_cols__", None)
-    if not isinstance(specs, dict) or not specs:
-        specs = {k: v for k, v in cls.__dict__.items() if isinstance(v, ColumnSpec)}
+    # Prefer explicit registry if present; otherwise collect specs from the
+    # entire MRO so mixins contribute their ColumnSpec definitions.
+    specs: dict[str, ColumnSpec] = {}
+    for base in reversed(cls.__mro__):
+        base_specs = getattr(base, "__autoapi_cols__", None)
+        if isinstance(base_specs, dict) and base_specs:
+            specs.update(base_specs)
+            continue
+        for name, attr in getattr(base, "__dict__", {}).items():
+            if isinstance(attr, ColumnSpec):
+                specs.setdefault(name, attr)
 
     if not specs:
         return

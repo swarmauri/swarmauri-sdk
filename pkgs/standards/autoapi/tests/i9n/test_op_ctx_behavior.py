@@ -1,9 +1,6 @@
 import pytest
-from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
-from pydantic import BaseModel
-from sqlalchemy import Column, String
-from uuid import UUID
+from autoapi.v3.types import App, BaseModel, Column, String, UUID, uuid4
 
 from autoapi.v3 import AutoAPI, op_ctx, schema_ctx, hook_ctx
 from autoapi.v3.tables import Base
@@ -16,7 +13,7 @@ from autoapi.v3.runtime.kernel import build_phase_chains
 
 def setup_api(model_cls, get_db):
     Base.metadata.clear()
-    app = FastAPI()
+    app = App()
     api = AutoAPI(app=app, get_db=get_db)
     api.include_model(model_cls, prefix="")
     api.initialize_sync()
@@ -101,7 +98,7 @@ async def test_op_ctx_defaults_value_resolution(sync_db_session):
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
-        res = await client.post("/thing/make", json={"name": "a"})
+        res = await client.post("/thing", json={"id": str(uuid4()), "name": "a"})
     assert res.status_code == 201
     item_id = UUID(res.json()["id"])
     assert res.json()["status"] == "new"
@@ -135,7 +132,7 @@ async def test_op_ctx_internal_orm_models(sync_db_session):
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
-        res = await client.post("/item/seed", json={"name": "a"})
+        res = await client.post("/item", json={"id": str(uuid4()), "name": "a"})
     assert res.status_code == 201
     item_id = UUID(res.json()["id"])
 
@@ -187,7 +184,7 @@ async def test_op_ctx_storage_sqlalchemy(sync_db_session):
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
-        res = await client.post("/widget/make", json={"name": "w"})
+        res = await client.post("/widget", json={"id": str(uuid4()), "name": "w"})
     assert res.status_code == 201
     item_id = UUID(res.json()["id"])
 

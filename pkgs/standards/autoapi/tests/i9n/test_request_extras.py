@@ -4,12 +4,16 @@ from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 from pydantic import Field
 from sqlalchemy import Column, String, create_engine
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
+from uuid import uuid4
 
 from autoapi.v3 import AutoAPI, Base
-from autoapi.v3.mixins import GUIDPk
 from autoapi.v3.schema import _build_schema
 
 
@@ -17,8 +21,9 @@ from autoapi.v3.schema import _build_schema
 async def api_client_with_extras(db_mode):
     Base.metadata.clear()
 
-    class Widget(Base, GUIDPk):
+    class Widget(Base):
         __tablename__ = "widgets"
+        id = Column(String, primary_key=True, default=lambda: str(uuid4()))
         name = Column(String, nullable=False)
         __autoapi_request_extras__ = {
             "*": {"token": (str | None, Field(default=None, exclude=True))},
