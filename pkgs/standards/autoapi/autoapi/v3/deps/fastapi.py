@@ -13,7 +13,7 @@ from fastapi import (
 
 Router = APIRouter
 
-app = FastAPI
+App = FastAPI
 
 
 # ── Public Exports ───────────────────────────────────────────────────────
@@ -28,5 +28,5 @@ __all__ = [
     "Path",
     "Body",
     "HTTPException",
-    "app",
+    "App",
 ]
