@@ -5,14 +5,14 @@ Tests error mappings between RPC and HTTP, and verifies parity between error res
 """
 
 import pytest
-from fastapi import HTTPException
+from autoapi.v3.types import HTTPException
 from autoapi.v3.runtime.errors import (
     ERROR_MESSAGES,
     HTTP_ERROR_MESSAGES,
     _HTTP_TO_RPC,
     _RPC_TO_HTTP,
-    _http_exc_to_rpc,
-    _rpc_error_to_http,
+    http_exc_to_rpc,
+    rpc_error_to_http,
     create_standardized_error_from_status,
 )
 
@@ -94,7 +94,7 @@ async def test_http_exc_to_rpc_conversion():
     """Test conversion from HTTP exceptions to RPC errors."""
     # Test with standard HTTP exception
     http_exc = HTTPException(status_code=404, detail="Resource not found")
-    rpc_code, rpc_message, data = _http_exc_to_rpc(http_exc)
+    rpc_code, rpc_message, data = http_exc_to_rpc(http_exc)
 
     assert rpc_code == -32003  # Resource not found
     assert rpc_message == "Resource not found"
@@ -102,7 +102,7 @@ async def test_http_exc_to_rpc_conversion():
 
     # Test with HTTP exception that has custom message
     http_exc = HTTPException(status_code=400, detail="Custom bad request message")
-    rpc_code, rpc_message, data = _http_exc_to_rpc(http_exc)
+    rpc_code, rpc_message, data = http_exc_to_rpc(http_exc)
 
     assert rpc_code == -32602  # Invalid params
     assert rpc_message == "Custom bad request message"
@@ -110,7 +110,7 @@ async def test_http_exc_to_rpc_conversion():
 
     # Test with unmapped HTTP status code (should default to internal error)
     http_exc = HTTPException(status_code=418, detail="I'm a teapot")
-    rpc_code, rpc_message, data = _http_exc_to_rpc(http_exc)
+    rpc_code, rpc_message, data = http_exc_to_rpc(http_exc)
 
     assert rpc_code == -32603  # Internal error
     assert rpc_message == "I'm a teapot"
@@ -121,7 +121,7 @@ async def test_http_exc_to_rpc_conversion():
         status_code=422,
         detail=[{"loc": ["body", "name"], "msg": "Field required", "type": "missing"}],
     )
-    rpc_code, rpc_message, data = _http_exc_to_rpc(http_exc)
+    rpc_code, rpc_message, data = http_exc_to_rpc(http_exc)
     assert rpc_code == -32602
     assert isinstance(data, list)
     assert data[0]["loc"] == ["body", "name"]
@@ -132,19 +132,19 @@ async def test_http_exc_to_rpc_conversion():
 async def test_rpc_error_to_http_conversion():
     """Test conversion from RPC errors to HTTP exceptions."""
     # Test with standard RPC error
-    http_exc = _rpc_error_to_http(-32003, "Resource not found")
+    http_exc = rpc_error_to_http(-32003, "Resource not found")
 
     assert http_exc.status_code == 404
     assert http_exc.detail == "Resource not found"
 
     # Test with RPC error without custom message (should use default)
-    http_exc = _rpc_error_to_http(-32001)
+    http_exc = rpc_error_to_http(-32001)
 
     assert http_exc.status_code == 401
     assert http_exc.detail == HTTP_ERROR_MESSAGES[401]
 
     # Test with unmapped RPC error code (should default to 500)
-    http_exc = _rpc_error_to_http(-99999, "Unknown error")
+    http_exc = rpc_error_to_http(-99999, "Unknown error")
 
     assert http_exc.status_code == 500
     assert http_exc.detail == "Unknown error"
@@ -296,12 +296,12 @@ async def test_custom_error_messages_preserved():
 
     # Test HTTP to RPC conversion preserves message
     http_exc = HTTPException(status_code=404, detail=custom_message)
-    rpc_code, rpc_message, data = _http_exc_to_rpc(http_exc)
+    rpc_code, rpc_message, data = http_exc_to_rpc(http_exc)
     assert rpc_message == custom_message
     assert data is None
 
     # Test RPC to HTTP conversion preserves message
-    http_exc = _rpc_error_to_http(-32003, custom_message)
+    http_exc = rpc_error_to_http(-32003, custom_message)
     assert http_exc.detail == custom_message
 
     # Test standardized error creation preserves message
