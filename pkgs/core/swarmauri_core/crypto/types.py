@@ -197,6 +197,7 @@ class WrappedKey:
     Result of wrapping a DEK with a KEK.
     - wrap_alg: e.g., "AES-KW" / "AES-KWP" / "RSA-OAEP"
     - nonce: optional for schemes that use IVs (not AES-KW)
+    - tag: optional authentication tag for AEAD-based wrapping
     """
 
     kek_kid: KeyId
@@ -204,6 +205,7 @@ class WrappedKey:
     wrap_alg: Alg
     wrapped: bytes
     nonce: Optional[bytes] = None
+    tag: Optional[bytes] = None
 
 
 # -----------------------------
