@@ -134,7 +134,16 @@ async def api_client(db_mode):
 
     class Tenant(Base, GUIDPk):
         __tablename__ = "tenants"
-        name = Column(String, nullable=False)
+        name = acol(
+            storage=S(type_=String, nullable=False),
+            field=F(py_type=str),
+            io=IO(
+                in_verbs=("create", "update", "replace"),
+                out_verbs=("read", "list"),
+                mutable_verbs=("create", "update", "replace"),
+                filter_ops=("eq",),
+            ),
+        )
 
     class Item(Base, GUIDPk, BulkCapable):
         __tablename__ = "items"
