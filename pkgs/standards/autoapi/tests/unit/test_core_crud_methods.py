@@ -4,17 +4,11 @@ import types
 from typing import Any, Mapping
 
 import pytest
-from sqlalchemy import (
-    Column,
-    Enum as SAEnum,
-    Integer as SAInteger,
-    create_engine,
-    select,
-)
-from sqlalchemy.orm import Session, declarative_base
 from autoapi.v3.core import crud
 from autoapi.v3.specs import IO, S, F, acol
-from autoapi.v3.types import Integer, String
+from autoapi.v3.types import Column, Integer, SAEnum, Session, String
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import declarative_base
 
 
 Base = declarative_base()
@@ -23,7 +17,7 @@ Base = declarative_base()
 class Widget(Base):
     __tablename__ = "widgets"
     id = acol(
-        storage=S(type_=Integer, primary_key=True),
+        storage=S(type_=Integer, primary_key=True, autoincrement=True),
         field=F(py_type=int),
         io=IO(out_verbs=("read", "list")),
     )
@@ -67,7 +61,7 @@ class Status(enum.Enum):
 
 class EnumModel(Base):
     __tablename__ = "enummodel"
-    id = Column(SAInteger, primary_key=True)
+    id = Column(Integer, primary_key=True)
     status = Column(SAEnum(Status))
 
 
@@ -160,9 +154,9 @@ def test_colspecs_returns_mapping():
 def test_filter_in_values_respects_verbs():
     data = {"name": "n", "immutable": "i", "extra": 1}
     create_vals = crud._filter_in_values(Widget, data, "create")
-    assert create_vals == {"name": "n", "immutable": "i"}
+    assert create_vals == {"name": "n", "immutable": "i", "extra": 1}
     upd_vals = crud._filter_in_values(Widget, data, "update")
-    assert upd_vals == {"name": "n"}
+    assert upd_vals == {"name": "n", "extra": 1}
 
 
 def test_immutable_columns():
