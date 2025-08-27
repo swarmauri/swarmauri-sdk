@@ -12,6 +12,7 @@ from autoapi.v3.tables import Base as Base3
 @pytest_asyncio.fixture()
 async def client_and_model():
     Base3.metadata.clear()
+    Base3.registry.dispose()
 
     class Gadget(Base3):
         __tablename__ = "gadgets"
