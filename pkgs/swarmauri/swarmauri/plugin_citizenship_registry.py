@@ -47,8 +47,6 @@ class PluginCitizenshipRegistry:
     FIRST_CLASS_REGISTRY: Dict[str, str] = {
         "swarmauri.crypto.ICrypto": "swarmauri_core.crypto.ICrypto",
         "swarmauri.crypto.CryptoBase": "swarmauri_base.crypto.CryptoBase",
-        "swarmauri.secrets.ISecretDrive": "swarmauri_core.secrets.ISecretDrive",
-        "swarmauri.secrets.SecretDriveBase": "swarmauri_base.secrets.SecretDriveBase",
         "swarmauri.signings.Ed25519EnvelopeSigner": "swarmauri_signing_ed25519.Ed25519EnvelopeSigner",
         "swarmauri.signing.ISigning": "swarmauri_core.signing.ISigning",
         "swarmauri.signing.SigningBase": "swarmauri_base.signing.SigningBase",
