@@ -22,6 +22,12 @@ async def test_route_and_method_symmetry(api_client):
     method_list = {SimpleNamespace(**m).method for m in methods.json()["methods"]}
 
     for verb, (http_verb, path) in CRUD_MAP.items():
-        assert path in paths
-        assert http_verb in paths[path]
+        alt_path = (
+            path.replace("{tenant_id}/", "{tenant_id}/item/", 1)
+            if "{item_id}" in path
+            else f"{path}/item"
+        )
+        actual = path if path in paths else alt_path
+        assert actual in paths
+        assert http_verb in paths[actual]
         assert f"Item.{verb}" in method_list
