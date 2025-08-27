@@ -98,6 +98,8 @@ async def test_bulk_update_modifies_rows(session):
     ]
     updated = await crud.bulk_update(Widget, updates, session)
     assert [u.name for u in updated] == ["alpha", "beta"]
+    rows = await crud.list(Widget, db=session)
+    assert [r.name for r in rows] == ["alpha", "beta"]
 
 
 @pytest.mark.asyncio
