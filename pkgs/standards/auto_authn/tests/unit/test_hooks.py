@@ -9,7 +9,7 @@ from types import SimpleNamespace
 import pytest
 
 from auto_authn.v2.hooks import register_inject_hook
-from autoapi.v2.hooks import Phase
+from autoapi.v3.hooks import Phase
 
 
 class DummyAPI:

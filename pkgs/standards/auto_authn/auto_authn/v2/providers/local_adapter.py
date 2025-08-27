@@ -2,12 +2,12 @@
 auto_authn.providers.local_adapter
 ───────────────────
 Concrete implementation of the ``AuthNProvider`` ABC declared by
-``autoapi.v2.authn_abc``.  It merely **adapts** the public helpers that already
+``autoapi.v3.authn_abc``.  It merely **adapts** the public helpers that already
 exist in *auto_authn* so that AutoAPI can consume them automatically.
 
 Usage
 -----
->>> from autoapi.v2 import AutoAPI
+>>> from autoapi.v3 import AutoAPI
 >>> from auto_authn.provider import AuthNAdapter
 >>> api = AutoAPI(get_async_db=get_db, authn=AuthNAdapter())
 """
@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from fastapi import Request
 
-from autoapi.v2.types.authn_abc import AuthNProvider
+from autoapi.v3.types.authn_abc import AuthNProvider
 from ..hooks import register_inject_hook  # injects tenant_id / owner_id
 from ..fastapi_deps import get_principal
 from ..principal_ctx import principal_var  # noqa: F401  # ensure ContextVar is initialised
