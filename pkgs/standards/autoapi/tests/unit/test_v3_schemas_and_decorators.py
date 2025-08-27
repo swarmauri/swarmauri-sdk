@@ -12,7 +12,7 @@ from autoapi.v3.decorators import collect_decorated_ops
 from autoapi.v3.bindings import build_schemas, build_hooks, build_handlers, build_rest
 
 # REST test client
-from fastapi import FastAPI
+from autoapi.v3.types import App
 from fastapi.testclient import TestClient
 
 
@@ -92,7 +92,7 @@ def test_schema_ctx_seed_and_alias_ctx_override():
 def test_rest_serialization_with_and_without_out_schema():
     _build_all(Widget)
 
-    app = FastAPI()
+    app = App()
     # Router was attached by build_rest
     app.include_router(Widget.rest.router)
     client = TestClient(app)

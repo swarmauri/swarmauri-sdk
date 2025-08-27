@@ -1,6 +1,6 @@
 import pytest
 from types import SimpleNamespace
-from fastapi import FastAPI
+from autoapi.v3.types import App
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Mapped, sessionmaker
@@ -134,7 +134,7 @@ def test_openapi_reflects_io_verbs():
     sp_create = OpSpec(alias="create", target="create")
     sp_read = OpSpec(alias="read", target="read")
     router = _build_router(Widget, [sp_create, sp_read])
-    app = FastAPI()
+    app = App()
     app.include_router(router)
     spec = app.openapi()
 
@@ -205,7 +205,7 @@ def test_rest_call_respects_aliases():
             io=IO(in_verbs=("create",), out_verbs=("read",)),
         )
 
-    api = AutoAPI(app=FastAPI(), get_db=get_db)
+    api = AutoAPI(app=App(), get_db=get_db)
     api.include_model(Thing)
     Base.metadata.create_all(engine)
     client = TestClient(api.app)
@@ -275,7 +275,7 @@ async def test_core_crud_helpers_operate():
             io=IO(in_verbs=("create",), out_verbs=("read",)),
         )
 
-    api = AutoAPI(app=FastAPI(), get_db=get_db)
+    api = AutoAPI(app=App(), get_db=get_db)
     api.include_model(Thing)
     Base.metadata.create_all(engine)
 

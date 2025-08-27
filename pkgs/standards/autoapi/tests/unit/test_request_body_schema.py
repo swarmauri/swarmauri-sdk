@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from autoapi.v3.types import App
 
 from autoapi.v3.bindings.rest import _build_router
 from autoapi.v3.opspec import OpSpec
@@ -15,7 +15,7 @@ class Widget(Base, GUIDPk):
 def test_request_body_uses_schema_model():
     sp = OpSpec(alias="create", target="create")
     router = _build_router(Widget, [sp])
-    app = FastAPI()
+    app = App()
     app.include_router(router)
     spec = app.openapi()
     path = f"/{Widget.__name__.lower()}"
@@ -35,7 +35,7 @@ def test_replace_request_body_excludes_pk():
 
     sp = OpSpec(alias="replace", target="replace")
     router = _build_router(Gadget, [sp])
-    app = FastAPI()
+    app = App()
     app.include_router(router)
     spec = app.openapi()
 

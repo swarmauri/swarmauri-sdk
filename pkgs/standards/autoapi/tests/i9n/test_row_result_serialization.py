@@ -1,6 +1,6 @@
 import pytest
 import pytest_asyncio
-from fastapi import FastAPI
+from autoapi.v3.types import App
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Integer, String, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -55,7 +55,7 @@ async def client():
     crud.read = row_read  # type: ignore
     crud.list = row_list  # type: ignore
 
-    app = FastAPI()
+    app = App()
     api = AutoAPIv3(app=app, get_async_db=get_async_db)
     api.include_model(Widget, prefix="")
     transport = ASGITransport(app=app)

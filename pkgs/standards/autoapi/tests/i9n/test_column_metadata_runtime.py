@@ -3,7 +3,7 @@
 from datetime import datetime
 
 import pytest
-from fastapi import FastAPI
+from autoapi.v3.types import App
 from httpx import ASGITransport, AsyncClient
 
 from autoapi.v3 import Base
@@ -23,7 +23,7 @@ async def test_write_only_field_runtime_behavior(create_test_api):
         secret = Column(String, info={"autoapi": {"write_only": True}})
 
     api = create_test_api(WriteOnlyModel)
-    app = FastAPI()
+    app = App()
     app.include_router(api.router)
 
     async with AsyncClient(
@@ -64,7 +64,7 @@ async def test_read_only_field_runtime_behavior(create_test_api):
         code = Column(String, default="RO", info={"autoapi": {"read_only": True}})
 
     api = create_test_api(ReadOnlyModel)
-    app = FastAPI()
+    app = App()
     app.include_router(api.router)
 
     async with AsyncClient(
@@ -113,7 +113,7 @@ async def test_default_factory_field_runtime_behavior(create_test_api):
         )
 
     api = create_test_api(FactoryModel)
-    app = FastAPI()
+    app = App()
     app.include_router(api.router)
 
     async with AsyncClient(

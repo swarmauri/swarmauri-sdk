@@ -1,6 +1,6 @@
 import pytest
 from types import SimpleNamespace
-from fastapi import FastAPI
+from autoapi.v3.types import App
 from httpx import AsyncClient, ASGITransport
 
 from autoapi.v3.system.diagnostics import mount_diagnostics
@@ -26,7 +26,7 @@ async def test_healthz_endpoint_select_case_fallback():
         return db
 
     api = SimpleNamespace(models={})
-    app = FastAPI()
+    app = App()
     app.include_router(mount_diagnostics(api, get_db=get_db), prefix="/system")
 
     async with AsyncClient(

@@ -1,7 +1,7 @@
 import pytest
 import pytest_asyncio
 from typing import Iterator
-from fastapi import FastAPI
+from autoapi.v3.types import App
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -34,7 +34,7 @@ async def v3_client() -> Iterator[tuple[AsyncClient, type]]:
         with SessionLocal() as session:
             yield session
 
-    app = FastAPI()
+    app = App()
     api = AutoAPI(app=app, get_db=get_db)
     api.include_model(Widget)
 

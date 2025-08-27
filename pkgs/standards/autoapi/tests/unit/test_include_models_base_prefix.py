@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from autoapi.v3.types import App
 
 from autoapi.v3.autoapi import AutoAPI
 from autoapi.v3.tables import Base
@@ -7,7 +7,7 @@ from autoapi.v3.types import Column, String
 
 
 def test_include_models_base_prefix_avoids_duplicate_segments():
-    app = FastAPI()
+    app = App()
 
     class Key(Base, GUIDPk):
         __tablename__ = "Key"

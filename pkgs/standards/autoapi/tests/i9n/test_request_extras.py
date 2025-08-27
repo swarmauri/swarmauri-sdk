@@ -1,6 +1,6 @@
 import pytest
 import pytest_asyncio
-from fastapi import FastAPI
+from autoapi.v3.types import App
 from httpx import ASGITransport, AsyncClient
 from pydantic import Field
 from sqlalchemy import Column, String, create_engine
@@ -60,7 +60,7 @@ async def api_client_with_extras(db_mode):
         api.include_model(Widget)
         api.initialize_sync()
 
-    app = FastAPI()
+    app = App()
     app.include_router(api.router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
