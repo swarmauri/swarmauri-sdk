@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 import pytest
 
-from auto_authn.v2 import rfc7591, rfc7592
+from auto_authn import rfc7591, rfc7592
 
 
 def test_update_and_delete_client_when_enabled() -> None:

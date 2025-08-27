@@ -1,7 +1,7 @@
 import pytest
 from fastapi import status
 
-from auto_authn.v2.oidc_id_token import rotate_rsa_jwt_key
+from auto_authn.oidc_id_token import rotate_rsa_jwt_key
 
 
 @pytest.mark.unit

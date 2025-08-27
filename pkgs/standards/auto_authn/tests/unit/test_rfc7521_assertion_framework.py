@@ -8,13 +8,13 @@ from unittest.mock import patch
 
 import pytest
 
-from auto_authn.v2 import encode_jwt
-from auto_authn.v2.errors import InvalidTokenError
-from auto_authn.v2.rfc7521 import (
+from auto_authn import encode_jwt
+from auto_authn.errors import InvalidTokenError
+from auto_authn.rfc7521 import (
     RFC7521_SPEC_URL,
     validate_jwt_assertion,
 )
-from auto_authn.v2.runtime_cfg import settings
+from auto_authn.runtime_cfg import settings
 
 
 @pytest.mark.unit

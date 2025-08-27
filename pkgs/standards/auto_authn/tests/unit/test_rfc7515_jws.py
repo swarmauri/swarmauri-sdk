@@ -3,7 +3,7 @@
 import base64
 import secrets
 
-from auto_authn.v2 import sign_jws, verify_jws
+from auto_authn import sign_jws, verify_jws
 
 
 def test_sign_and_verify_jws() -> None:

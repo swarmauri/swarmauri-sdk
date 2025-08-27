@@ -4,8 +4,8 @@ import pytest
 from fastapi import FastAPI, status
 from httpx import ASGITransport, AsyncClient
 
-from auto_authn.v2.rfc8414 import router
-from auto_authn.v2.runtime_cfg import settings
+from auto_authn.rfc8414 import router
+from auto_authn.runtime_cfg import settings
 
 # RFC 8414 specification excerpt for reference within tests
 RFC8414_SPEC = """

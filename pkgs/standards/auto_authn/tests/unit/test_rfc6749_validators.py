@@ -2,13 +2,13 @@
 
 import pytest
 
-from auto_authn.v2.rfc6749 import (
+from auto_authn.rfc6749 import (
     RFC6749Error,
     enforce_grant_type,
     enforce_password_grant,
     enforce_authorization_code_grant,
 )
-from auto_authn.v2.runtime_cfg import settings
+from auto_authn.runtime_cfg import settings
 
 
 @pytest.fixture()

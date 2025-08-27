@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-from auto_authn.v2.oidc_id_token import mint_id_token, verify_id_token
+from auto_authn.oidc_id_token import mint_id_token, verify_id_token
 
 
 @pytest.mark.unit

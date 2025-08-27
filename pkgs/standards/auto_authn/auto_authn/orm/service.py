@@ -19,7 +19,7 @@ class Service(Base, GUIDPk, Timestamped, TenantBound, Principal, ActiveToggle):
     __table_args__ = ({"schema": "authn"},)
     name: str = acol(storage=S(String(120), unique=True, nullable=False))
     _service_keys = relationship(
-        "auto_authn.v2.orm.tables.ServiceKey",
+        "auto_authn.orm.tables.ServiceKey",
         back_populates="_service",
         cascade="all, delete-orphan",
     )

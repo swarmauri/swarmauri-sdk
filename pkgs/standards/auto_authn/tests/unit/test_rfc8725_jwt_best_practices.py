@@ -9,10 +9,10 @@ import json
 
 import pytest
 
-from auto_authn.v2.errors import InvalidTokenError
-from auto_authn.v2.jwtoken import JWTCoder
-from auto_authn.v2.rfc8725 import RFC8725_SPEC_URL, validate_jwt_best_practices
-from auto_authn.v2.runtime_cfg import settings
+from auto_authn.errors import InvalidTokenError
+from auto_authn.jwtoken import JWTCoder
+from auto_authn.rfc8725 import RFC8725_SPEC_URL, validate_jwt_best_practices
+from auto_authn.runtime_cfg import settings
 
 
 @pytest.mark.unit

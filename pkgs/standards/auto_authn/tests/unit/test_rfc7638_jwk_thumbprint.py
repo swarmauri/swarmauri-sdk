@@ -1,8 +1,8 @@
 """Tests for JSON Web Key Thumbprint (RFC 7638).
 
-The tests validate that :func:`auto_authn.v2.rfc7638.jwk_thumbprint`
+The tests validate that :func:`auto_authn.rfc7638.jwk_thumbprint`
 produces the expected base64url value from the RFC 7638 example and that
-:func:`auto_authn.v2.rfc7638.verify_jwk_thumbprint` respects the runtime
+:func:`auto_authn.rfc7638.verify_jwk_thumbprint` respects the runtime
 feature toggle.
 """
 
@@ -12,7 +12,7 @@ import json
 
 import pytest
 
-from auto_authn.v2.rfc7638 import jwk_thumbprint, verify_jwk_thumbprint
+from auto_authn.rfc7638 import jwk_thumbprint, verify_jwk_thumbprint
 
 EXAMPLE_JWK = {
     "kty": "RSA",

@@ -1,6 +1,6 @@
 """RFC 7519 - JSON Web Token (JWT).
 
-Convenience wrappers around :class:`auto_authn.v2.jwtoken.JWTCoder` that can be
+Convenience wrappers around :class:`auto_authn.jwtoken.JWTCoder` that can be
 enabled or disabled via ``AUTO_AUTHN_ENABLE_RFC7519``.
 
 See RFC 7519: https://www.rfc-editor.org/rfc/rfc7519

@@ -1,4 +1,4 @@
-"""Unit tests for ``auto_authn.v2.jwtoken`` module."""
+"""Unit tests for ``auto_authn.jwtoken`` module."""
 
 import base64
 import json
@@ -10,7 +10,7 @@ import pytest
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
-from auto_authn.v2.jwtoken import (
+from auto_authn.jwtoken import (
     JWTCoder,
     InvalidTokenError,
     _ACCESS_TTL,

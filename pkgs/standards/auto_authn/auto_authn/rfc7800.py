@@ -3,7 +3,7 @@
 The functions in this module assist with creating and validating the ``cnf``
 (claims confirmation) structure defined in :rfc:`7800`. Enforcement may be
 enabled or disabled via ``enable_rfc7800`` in
-:mod:`auto_authn.v2.runtime_cfg.Settings`.
+:mod:`auto_authn.runtime_cfg.Settings`.
 
 See RFC 7800: https://www.rfc-editor.org/rfc/rfc7800
 """

@@ -50,7 +50,7 @@ async def test_device_token_polling(async_client: AsyncClient, db_session) -> No
     assert pending.status_code == status.HTTP_400_BAD_REQUEST
     assert pending.json()["error"] == "authorization_pending"
 
-    from auto_authn.v2.rfc8628 import approve_device_code
+    from auto_authn.rfc8628 import approve_device_code
 
     await approve_device_code(device_code, sub="user", tid="tenant", db=db_session)
     success = await async_client.post("/token", data=payload)

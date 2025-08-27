@@ -2,7 +2,7 @@
 
 This module exposes the set of COSE/JOSE algorithm identifiers registered
 for use with Web Authentication (WebAuthn) by :rfc:`8812`. Validation is
-feature flagged via ``enable_rfc8812`` in :mod:`auto_authn.v2.runtime_cfg` so
+feature flagged via ``enable_rfc8812`` in :mod:`auto_authn.runtime_cfg` so
 systems may opt in or out of enforcement.
 
 See RFC 8812: https://www.rfc-editor.org/rfc/rfc8812

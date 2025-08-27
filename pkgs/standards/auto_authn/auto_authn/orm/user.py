@@ -25,7 +25,7 @@ class User(UserBase):
     email: str = acol(storage=S(String(120), nullable=False, unique=True))
     password_hash: bytes | None = acol(storage=S(LargeBinary(60)))
     _api_keys = relationship(
-        "auto_authn.v2.orm.tables.ApiKey",
+        "auto_authn.orm.tables.ApiKey",
         back_populates="_user",
         cascade="all, delete-orphan",
     )

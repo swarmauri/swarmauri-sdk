@@ -12,12 +12,12 @@ with a minimum length of 43 characters and a maximum length of 128 characters.
 
 import pytest
 
-from auto_authn.v2 import (
+from auto_authn import (
     create_code_challenge,
     create_code_verifier,
     verify_code_challenge,
 )
-import auto_authn.v2.rfc7636_pkce as pkce_mod
+import auto_authn.rfc7636_pkce as pkce_mod
 
 
 @pytest.mark.unit

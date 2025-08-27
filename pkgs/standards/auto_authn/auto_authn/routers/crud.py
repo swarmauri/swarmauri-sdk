@@ -26,7 +26,7 @@ Notes
 from __future__ import annotations
 
 from autoapi.v3 import AutoAPI
-from auto_authn.v2.orm.tables import (
+from auto_authn.orm.tables import (
     Tenant,
     User,
     Client,

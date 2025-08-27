@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 import pytest
 
-from auto_authn.v2 import rfc7591
+from auto_authn import rfc7591
 
 
 def test_register_client_when_enabled() -> None:

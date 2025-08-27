@@ -1,13 +1,13 @@
 """Tests for Authentication Method Reference validation (RFC 8176).
 
-The :func:`auto_authn.v2.rfc8176.validate_amr_claim` helper ensures that
+The :func:`auto_authn.rfc8176.validate_amr_claim` helper ensures that
 ``amr`` claim values adhere to the registry defined in :rfc:`8176`.
 """
 
 import pytest
 
-from auto_authn.v2.rfc8176 import RFC8176_SPEC_URL, validate_amr_claim
-from auto_authn.v2.runtime_cfg import settings
+from auto_authn.rfc8176 import RFC8176_SPEC_URL, validate_amr_claim
+from auto_authn.runtime_cfg import settings
 
 
 @pytest.mark.unit

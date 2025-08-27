@@ -4,8 +4,8 @@ import pytest
 from fastapi import status
 from httpx import AsyncClient
 
-from auto_authn.v2.runtime_cfg import settings
-from auto_authn.v2.rfc7009 import is_revoked, reset_revocations
+from auto_authn.runtime_cfg import settings
+from auto_authn.rfc7009 import is_revoked, reset_revocations
 
 # RFC 7009 specification excerpt for reference within tests
 RFC7009_SPEC = """

@@ -5,8 +5,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import status
 
-from auto_authn.v2.app import app
-from auto_authn.v2.fastapi_deps import get_current_principal
+from auto_authn.app import app
+from auto_authn.fastapi_deps import get_current_principal
 
 
 @pytest.mark.unit
@@ -38,7 +38,7 @@ async def test_userinfo_returns_claims_json(async_client):
     )
 
     headers = {"Authorization": "Bearer token"}
-    with patch("auto_authn.v2.oidc_userinfo.JWTCoder.default", return_value=mock_coder):
+    with patch("auto_authn.oidc_userinfo.JWTCoder.default", return_value=mock_coder):
         resp = await async_client.get("/userinfo", headers=headers)
 
     app.dependency_overrides.pop(get_current_principal, None)
@@ -70,8 +70,8 @@ async def test_userinfo_signed_jwt(async_client):
 
     headers = {"Authorization": "Bearer token", "Accept": "application/jwt"}
     with (
-        patch("auto_authn.v2.oidc_userinfo.JWTCoder.default", return_value=mock_coder),
-        patch("auto_authn.v2.oidc_userinfo._svc", return_value=(mock_svc, "kid1")),
+        patch("auto_authn.oidc_userinfo.JWTCoder.default", return_value=mock_coder),
+        patch("auto_authn.oidc_userinfo._svc", return_value=(mock_svc, "kid1")),
     ):
         resp = await async_client.get("/userinfo", headers=headers)
 

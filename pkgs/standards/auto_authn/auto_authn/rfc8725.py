@@ -2,7 +2,7 @@
 
 This module validates JSON Web Tokens according to :rfc:`8725`.  Validation
 may be toggled via ``enable_rfc8725`` in
-:mod:`auto_authn.v2.runtime_cfg.Settings` to allow deployments to opt in or out
+:mod:`auto_authn.runtime_cfg.Settings` to allow deployments to opt in or out
 of enforcement.
 """
 

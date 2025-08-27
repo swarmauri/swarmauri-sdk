@@ -13,12 +13,12 @@ conditionally enabled or disabled via runtime configuration.
 
 import pytest
 
-from auto_authn.v2 import (
+from auto_authn import (
     AuthorizationDetail,
     RFC9396_SPEC_URL,
     parse_authorization_details,
 )
-from auto_authn.v2.runtime_cfg import settings
+from auto_authn.runtime_cfg import settings
 
 
 def test_parse_authorization_details_enabled(monkeypatch):

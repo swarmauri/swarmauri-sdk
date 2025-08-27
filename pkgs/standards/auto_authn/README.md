@@ -65,7 +65,7 @@ Check the documentation for detailed setup and configuration.
 To run the API locally with Uvicorn:
 
 ```bash
-uvicorn auto_authn.v2.app:app --reload
+uvicorn auto_authn.app:app --reload
 ```
 
 The service exposes an OpenID Connect discovery document at

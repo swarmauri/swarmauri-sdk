@@ -2,7 +2,7 @@
 
 This module provides helpers for validating the ``amr`` (Authentication Method
 References) claim values as defined in :rfc:`8176`.  Validation can be
-disabled via the ``enable_rfc8176`` flag in :mod:`auto_authn.v2.runtime_cfg` to
+disabled via the ``enable_rfc8176`` flag in :mod:`auto_authn.runtime_cfg` to
 allow acceptance of non-standard values.
 """
 
