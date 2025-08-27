@@ -145,7 +145,7 @@ async def _op_bulk_update(api, db):
             {"id": rows[1]["id"], "name": "i2u"},
         ]
     }
-    result = await api.rpc.Widget.bulk_update(None, db=db, ctx={"payload": payload})
+    result = await api.rpc.Widget.bulk_update(payload, db=db)
     assert {r["name"] for r in result} == {"i1u", "i2u"}
 
 
@@ -160,7 +160,7 @@ async def _op_bulk_replace(api, db):
             {"id": rows[1]["id"], "name": "j2r"},
         ]
     }
-    result = await api.rpc.Widget.bulk_replace(None, db=db, ctx={"payload": payload})
+    result = await api.rpc.Widget.bulk_replace(payload, db=db)
     assert {r["name"] for r in result} == {"j1r", "j2r"}
 
 
