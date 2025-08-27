@@ -70,12 +70,13 @@ from .system.dbschema import ensure_schemas, register_sqlite_attach, bootstrap_d
 # ── Config constants (defaults used by REST) ───────────────────────────────────
 from .config.constants import DEFAULT_HTTP_METHODS
 from .autoapi import AutoAPI
+from .deps import app
 
 from .tables import Base
 
 __all__: list[str] = []
 
-__all__ += ["AutoAPI", "Base"]
+__all__ += ["AutoAPI", "Base", "app"]
 
 __all__ += [
     # OpSpec core
