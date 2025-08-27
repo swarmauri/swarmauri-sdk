@@ -1,18 +1,16 @@
 import pytest
 import pytest_asyncio
-from autoapi.v3.types import App
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 from types import SimpleNamespace
-import uuid
 
 from autoapi.v3.autoapi import AutoAPI
 from autoapi.v3.tables import Base
 from autoapi.v3.mixins import GUIDPk
 from autoapi.v3.specs import IO, S, acol
-from autoapi.v3.types import String
+from autoapi.v3.types import App, String, UUID
 from autoapi.v3.core import crud
 from autoapi.v3.runtime.atoms.resolve import assemble
 
@@ -70,7 +68,7 @@ async def widget_setup():
 async def test_request_schema_reflects_io_spec(widget_setup):
     _, api, _ = widget_setup
     schema = api.schemas.Widget.create.in_.model_json_schema()
-    assert set(schema["properties"]) == {"id", "name", "secret", "created_at"}
+    assert set(schema["properties"]) == {"name", "secret", "created_at"}
 
 
 @pytest.mark.i9n
@@ -122,17 +120,16 @@ async def test_openapi_reflects_io_spec(widget_setup):
 async def test_storage_persists_data(widget_setup):
     client, _, SessionLocal = widget_setup
     payload = {
-        "id": str(uuid.uuid4()),
         "name": "hi",
         "secret": "s",
         "created_at": "now",
     }
     resp = await client.post("/widget/widget", json=payload)
-    wid = uuid.UUID(resp.json()["id"])
-    assert str(wid) == payload["id"]
+    wid = UUID(resp.json()["id"])
     with SessionLocal() as session:
         obj = session.execute(select(Widget).where(Widget.id == wid)).scalar_one()
     assert obj.name == "hi"
+    assert obj.secret == "s"
 
 
 @pytest.mark.i9n
@@ -140,14 +137,12 @@ async def test_storage_persists_data(widget_setup):
 async def test_rest_calls_honor_io_spec(widget_setup):
     client, _, _ = widget_setup
     payload = {
-        "id": str(uuid.uuid4()),
         "name": "hi",
         "secret": "s",
         "created_at": "now",
     }
     resp = await client.post("/widget/widget", json=payload)
     wid = resp.json()["id"]
-    assert wid == payload["id"]
     data = (await client.get(f"/widget/widget/{wid}")).json()
     assert data["secret"] == "s"
     assert data["name"] == "hi"
@@ -161,7 +156,6 @@ async def test_rpc_methods_honor_io_spec(widget_setup):
         "jsonrpc": "2.0",
         "method": "Widget.create",
         "params": {
-            "id": str(uuid.uuid4()),
             "name": "rpc",
             "secret": "x",
             "created_at": "now",
