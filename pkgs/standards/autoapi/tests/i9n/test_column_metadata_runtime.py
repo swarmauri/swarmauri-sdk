@@ -3,13 +3,12 @@
 from datetime import datetime
 
 import pytest
-from autoapi.v3.types import App
 from httpx import ASGITransport, AsyncClient
 
 from autoapi.v3 import Base
 from autoapi.v3.mixins import GUIDPk
 from autoapi.v3.schema import _build_schema
-from autoapi.v3.types import Column, DateTime, String, uuid4
+from autoapi.v3.types import App, Column, DateTime, String, uuid4
 
 
 @pytest.mark.i9n
