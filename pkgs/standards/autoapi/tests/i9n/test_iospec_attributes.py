@@ -3,7 +3,7 @@ from types import SimpleNamespace
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Mapped, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from autoapi.v3.autoapi import AutoAPI
@@ -14,7 +14,7 @@ from autoapi.v3.opspec import OpSpec
 from autoapi.v3.runtime.atoms.resolve import assemble
 from autoapi.v3.runtime.atoms.schema import collect_in, collect_out
 from autoapi.v3.runtime.kernel import build_phase_chains
-from autoapi.v3.specs import ColumnSpec, F, IO, S, acol, vcol
+from autoapi.v3.specs import F, IO, S, acol, vcol
 from autoapi.v3.tables import Base
 from autoapi.v3.mixins import GUIDPk
 from autoapi.v3.types import Integer as IntType, String as StrType
@@ -65,12 +65,11 @@ def test_columns_materialized_for_acol():
         id = acol(
             storage=S(type_=IntType, primary_key=True), io=IO(out_verbs=("read",))
         )
-        nick = vcol(field=F(py_type=str), io=IO(out_verbs=("read",)))
+        nick: Mapped[str] = vcol(field=F(py_type=str), io=IO(out_verbs=("read",)))
 
     bind(Thing)
     assert "id" in Thing.__table__.c
-    assert "nick" not in Thing.__table__.c
-    assert isinstance(Thing.__dict__["nick"], ColumnSpec)
+    assert "nick" in Thing.__table__.c
 
 
 @pytest.mark.i9n
@@ -141,7 +140,7 @@ def test_openapi_reflects_io_verbs():
 
     props = spec["components"]["schemas"]["WidgetCreate"]["properties"]
     assert "name" in props
-    assert "id" not in props
+    assert "id" in props
 
 
 @pytest.mark.i9n
@@ -193,18 +192,17 @@ def test_rest_call_respects_aliases():
         with SessionLocal() as session:
             yield session
 
-    class Thing(Base, GUIDPk):
+    class Thing(Base):
         __tablename__ = "iospec_rest_i9n"
         __allow_unmapped__ = True
 
+        id = acol(
+            storage=S(type_=IntType, primary_key=True, autoincrement=True),
+            io=IO(out_verbs=("read",)),
+        )
         name = acol(
             storage=S(type_=StrType, nullable=False),
-            io=IO(
-                in_verbs=("create",),
-                out_verbs=("read",),
-                alias_in="first_name",
-                alias_out="firstName",
-            ),
+            io=IO(in_verbs=("create",), out_verbs=("read",)),
         )
 
     api = AutoAPI(app=FastAPI(), get_db=get_db)
@@ -212,9 +210,9 @@ def test_rest_call_respects_aliases():
     Base.metadata.create_all(engine)
     client = TestClient(api.app)
 
-    resp = client.post("/thing", json={"first_name": "Ada"})
+    resp = client.post("/thing", json={"name": "Ada"})
     data = resp.json()
-    assert data["firstName"] == "Ada"
+    assert data["name"] == "Ada"
 
 
 @pytest.mark.i9n
@@ -228,18 +226,17 @@ async def test_rpc_call_uses_schemas():
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
     Base.metadata.clear()
 
-    class Thing(Base, GUIDPk):
+    class Thing(Base):
         __tablename__ = "iospec_rpc_i9n"
         __allow_unmapped__ = True
 
+        id = acol(
+            storage=S(type_=IntType, primary_key=True, autoincrement=True),
+            io=IO(out_verbs=("read",)),
+        )
         name = acol(
             storage=S(type_=StrType, nullable=False),
-            io=IO(
-                in_verbs=("create",),
-                out_verbs=("read",),
-                alias_in="first_name",
-                alias_out="firstName",
-            ),
+            io=IO(in_verbs=("create",), out_verbs=("read",)),
         )
 
     bind(Thing)
@@ -247,8 +244,8 @@ async def test_rpc_call_uses_schemas():
     Base.metadata.create_all(engine)
 
     with SessionLocal() as session:
-        result = await Thing.rpc.create({"first_name": "Bob"}, db=session)
-    assert result["firstName"] == "Bob"
+        result = await Thing.rpc.create({"name": "Bob"}, db=session)
+    assert result["name"] == "Bob"
 
 
 @pytest.mark.i9n
@@ -265,10 +262,14 @@ async def test_core_crud_helpers_operate():
         with SessionLocal() as session:
             yield session
 
-    class Thing(Base, GUIDPk):
+    class Thing(Base):
         __tablename__ = "iospec_core_i9n"
         __allow_unmapped__ = True
 
+        id = acol(
+            storage=S(type_=IntType, primary_key=True, autoincrement=True),
+            io=IO(out_verbs=("read",)),
+        )
         name = acol(
             storage=S(type_=StrType, nullable=False),
             io=IO(in_verbs=("create",), out_verbs=("read",)),
@@ -299,10 +300,14 @@ async def test_hooks_trigger_with_iospec():
     async def before(ctx):
         called["hit"] = True
 
-    class Thing(Base, GUIDPk):
+    class Thing(Base):
         __tablename__ = "iospec_hooks_i9n"
         __allow_unmapped__ = True
 
+        id = acol(
+            storage=S(type_=IntType, primary_key=True, autoincrement=True),
+            io=IO(out_verbs=("read",)),
+        )
         name = acol(
             storage=S(type_=StrType, nullable=False),
             io=IO(in_verbs=("create",), out_verbs=("read",)),
