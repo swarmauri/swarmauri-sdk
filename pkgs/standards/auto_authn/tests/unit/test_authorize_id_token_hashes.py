@@ -3,15 +3,12 @@ from urllib.parse import parse_qs, urlparse
 
 import pytest
 from fastapi import status
-import nest_asyncio
 
 from auto_authn.v2.crypto import hash_pw
 from auto_authn.v2.orm.tables import Client, Tenant, User
 from auto_authn.v2.oidc_id_token import oidc_hash, verify_id_token
 from auto_authn.v2.rfc8414_metadata import ISSUER
 from auto_authn.v2.routers.auth_flows import AUTH_CODES
-
-nest_asyncio.apply()
 
 
 @pytest.mark.usefixtures("temp_key_file")
@@ -50,7 +47,8 @@ async def test_authorize_includes_at_hash(async_client, db_session):
     }
     resp = await async_client.get("/authorize", params=params, follow_redirects=False)
     assert resp.status_code == status.HTTP_307_TEMPORARY_REDIRECT
-    query = parse_qs(urlparse(resp.headers["location"]).query)
+    fragment = urlparse(resp.headers["location"]).fragment
+    query = parse_qs(fragment)
     access = query["access_token"][0]
     id_token = query["id_token"][0]
     claims = verify_id_token(id_token, issuer=ISSUER, audience=str(client_id))
@@ -93,7 +91,8 @@ async def test_authorize_includes_c_hash(async_client, db_session):
     }
     resp = await async_client.get("/authorize", params=params, follow_redirects=False)
     assert resp.status_code == status.HTTP_307_TEMPORARY_REDIRECT
-    query = parse_qs(urlparse(resp.headers["location"]).query)
+    fragment = urlparse(resp.headers["location"]).fragment
+    query = parse_qs(fragment)
     code = query["code"][0]
     id_token = query["id_token"][0]
     claims = verify_id_token(id_token, issuer=ISSUER, audience=str(client_id))
