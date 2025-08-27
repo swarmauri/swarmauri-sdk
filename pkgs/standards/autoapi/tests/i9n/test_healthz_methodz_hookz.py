@@ -5,6 +5,8 @@ Tests that healthz, methodz and hookz endpoints are properly attached and behave
 """
 
 import pytest
+from autoapi.v3 import hook_ctx
+from autoapi.v3.types import SimpleNamespace
 
 
 @pytest.mark.i9n
@@ -12,6 +14,7 @@ import pytest
 async def test_healthz_endpoint_comprehensive(api_client):
     """Test healthz endpoint attachment, behavior, and response format."""
     client, api, _ = api_client
+    api.attach_diagnostics(prefix="")
 
     # Check that healthz endpoint exists in routes
     routes = [route.path for route in api.router.routes]
@@ -25,12 +28,11 @@ async def test_healthz_endpoint_comprehensive(api_client):
     assert response.headers["content-type"].startswith("application/json")
 
     # Should return JSON with health status
-    data = response.json()
+    data = SimpleNamespace(**response.json())
 
     # The actual healthz endpoint returns {'ok': True}
-    assert "ok" in data
-    assert isinstance(data["ok"], bool)
-    assert data["ok"] is True
+    assert isinstance(data.ok, bool)
+    assert data.ok is True
 
 
 @pytest.mark.i9n
@@ -38,6 +40,7 @@ async def test_healthz_endpoint_comprehensive(api_client):
 async def test_methodz_endpoint_comprehensive(api_client):
     """Test methodz endpoint attachment, behavior, and response format."""
     client, api, _ = api_client
+    api.attach_diagnostics(prefix="")
 
     # Check that methodz endpoint exists in routes
     routes = [route.path for route in api.router.routes]
@@ -50,17 +53,13 @@ async def test_methodz_endpoint_comprehensive(api_client):
     # Check content type
     assert response.headers["content-type"].startswith("application/json")
 
-    # Should return JSON array of method names (strings)
-    data = response.json()
+    # Should return list of method info dicts
+    data = response.json()["methods"]
     assert isinstance(data, list)
 
-    # Each item should be a string (method name)
-    for method_name in data:
-        assert isinstance(method_name, str)
-        assert "." in method_name  # Should follow Model.operation pattern
+    names = {entry["method"] for entry in data}
 
-    # Should have methods for Item and Tenant (from conftest)
-    expected_methods = [
+    expected_methods = {
         "Item.create",
         "Item.read",
         "Item.update",
@@ -71,32 +70,34 @@ async def test_methodz_endpoint_comprehensive(api_client):
         "Tenant.update",
         "Tenant.delete",
         "Tenant.list",
-    ]
+    }
 
-    for method in expected_methods:
-        assert method in data
+    assert expected_methods.issubset(names)
 
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_hookz_endpoint_comprehensive(api_client):
     """Test hookz endpoint attachment, behavior, and response format."""
-    client, api, _ = api_client
+    client, api, Item = api_client
 
-    @api.register_hook("POST_RESPONSE")
-    def first_hook(ctx):
+    @hook_ctx(ops="*", phase="POST_RESPONSE")
+    def first_hook(cls, ctx):
         pass
 
-    @api.register_hook("POST_RESPONSE")
-    def second_hook(ctx):
+    @hook_ctx(ops="*", phase="POST_RESPONSE")
+    def second_hook(cls, ctx):
         pass
 
-    @api.register_hook("POST_RESPONSE", model="Item", op="create")
-    def item_hook(ctx):
+    @hook_ctx(ops="create", phase="POST_RESPONSE")
+    def item_hook(cls, ctx):
         pass
 
-    routes = [route.path for route in api.router.routes]
-    assert "/hookz" in routes
+    Item.first_hook = first_hook
+    Item.second_hook = second_hook
+    Item.item_hook = item_hook
+    api.rebind(Item)
+    api.attach_diagnostics(prefix="")
 
     response = await client.get("/hookz")
     assert response.status_code == 200
@@ -105,21 +106,13 @@ async def test_hookz_endpoint_comprehensive(api_client):
     data = response.json()
     assert isinstance(data, dict)
 
-    expected_global_hooks = [
-        f"autoapi.v3.hooks.{first_hook.__qualname__}",
-        f"autoapi.v3.hooks.{second_hook.__qualname__}",
-    ]
-    for method, phases in data.items():
-        assert isinstance(method, str)
-        assert isinstance(phases, dict)
-        assert phases["POST_RESPONSE"][:2] == expected_global_hooks
-
-    assert "Item.create" in data
-    assert data["Item.create"]["POST_RESPONSE"] == expected_global_hooks + [
-        f"autoapi.v3.hooks.{item_hook.__qualname__}",
-    ]
-    assert "Tenant.create" in data
-    assert data["Tenant.create"]["POST_RESPONSE"] == expected_global_hooks
+    base = "autoapi.v3.bindings.hooks"
+    expected_hooks = {
+        f"{base}.{first_hook.__qualname__}",
+        f"{base}.{second_hook.__qualname__}",
+        f"{base}.{item_hook.__qualname__}",
+    }
+    assert expected_hooks.issubset(set(data["Item"]["create"]["POST_RESPONSE"]))
 
 
 @pytest.mark.i9n
@@ -127,18 +120,19 @@ async def test_hookz_endpoint_comprehensive(api_client):
 async def test_methodz_basic_functionality(api_client):
     """Test that methodz endpoint provides basic method information."""
     client, api, _ = api_client
+    api.attach_diagnostics(prefix="")
 
     response = await client.get("/methodz")
-    data = response.json()
+    methods = {m["method"] for m in response.json()["methods"]}
 
     # Should contain Item.create method
-    assert "Item.create" in data
+    assert "Item.create" in methods
 
     # Should contain basic CRUD operations
     crud_operations = ["create", "read", "update", "delete", "list"]
     for operation in crud_operations:
-        assert f"Item.{operation}" in data
-        assert f"Tenant.{operation}" in data
+        assert f"Item.{operation}" in methods
+        assert f"Tenant.{operation}" in methods
 
 
 @pytest.mark.i9n
@@ -146,6 +140,7 @@ async def test_methodz_basic_functionality(api_client):
 async def test_healthz_methodz_hookz_in_openapi_schema(api_client):
     """Test that healthz, methodz and hookz endpoints are included in OpenAPI schema."""
     client, api, _ = api_client
+    api.attach_diagnostics(prefix="")
 
     # Get OpenAPI schema
     spec_response = await client.get("/openapi.json")
@@ -163,15 +158,15 @@ async def test_healthz_methodz_hookz_in_openapi_schema(api_client):
 async def test_healthz_database_error_handling(api_client):
     """Test healthz endpoint behavior when database has issues."""
     client, api, _ = api_client
+    api.attach_diagnostics(prefix="")
 
     # Note: In a real test, we'd mock database connectivity issues
     # For now, we just verify the endpoint responds and has the right structure
     response = await client.get("/healthz")
     assert response.status_code == 200
 
-    data = response.json()
-    assert "ok" in data
-    assert isinstance(data["ok"], bool)
+    data = SimpleNamespace(**response.json())
+    assert isinstance(data.ok, bool)
 
     # The actual values depend on database state
     # but structure should always be consistent
@@ -182,17 +177,15 @@ async def test_healthz_database_error_handling(api_client):
 async def test_methodz_reflects_dynamic_models(api_client):
     """Test that methodz reflects dynamically registered models."""
     client, api, _ = api_client
+    api.attach_diagnostics(prefix="")
 
     # Get initial methods
     response = await client.get("/methodz")
-    initial_data = response.json()
+    initial_names = {m["method"] for m in response.json()["methods"]}
 
     # Should include methods for models from conftest
-    assert "Tenant.create" in initial_data
-    assert "Tenant.read" in initial_data
-    assert "Tenant.update" in initial_data
-    assert "Tenant.delete" in initial_data
-    assert "Tenant.list" in initial_data
+    for op in ["create", "read", "update", "delete", "list"]:
+        assert f"Tenant.{op}" in initial_names
 
 
 @pytest.mark.i9n
@@ -200,6 +193,7 @@ async def test_methodz_reflects_dynamic_models(api_client):
 async def test_endpoints_are_synchronous(api_client):
     """Test that healthz, methodz and hookz endpoints work in sync mode."""
     client, api, _ = api_client
+    api.attach_diagnostics(prefix="")
 
     # These endpoints should work regardless of async/sync context
     healthz_response = await client.get("/healthz")
