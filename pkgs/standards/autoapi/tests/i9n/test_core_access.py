@@ -1,9 +1,8 @@
 import pytest
 import pytest_asyncio
-from fastapi import HTTPException
-from sqlalchemy import Column, Integer, String
 from typing import Any, Mapping
-from uuid import UUID, uuid4
+
+from autoapi.v3.types import HTTPException, UUID, Column, Integer, String, uuid4
 
 from autoapi.v3 import AutoAPI, Base
 from autoapi.v3.mixins import GUIDPk
@@ -60,17 +59,16 @@ async def test_core_and_core_raw_sync_operations(sync_api):
             model = proxy.CoreTestUser
             await model.clear({}, db=db)
 
-            uid = str(uuid4())
             created = await model.create(
                 {
-                    "id": uid,
                     "name": "John",
-                    "email": f"john_{uid}@example.com",
+                    "email": f"john_{uuid4()}@example.com",
                     "age": 30,
                 },
                 db=db,
             )
-            assert _get(created, "id") == uid
+            uid = _get(created, "id")
+            assert uid is not None
 
             fetched = await model.read({"id": uid}, db=db)
             assert _get(fetched, "id") == uid
@@ -90,51 +88,46 @@ async def test_core_and_core_raw_sync_operations(sync_api):
             listed = await model.list({}, db=db)
             assert any(_get(u, "id") == uid for u in listed)
 
-            cleared = await model.clear({}, db=db)
-            deleted = (
-                cleared["deleted"]
-                if isinstance(cleared, Mapping)
-                else _get(cleared, "deleted")
-            )
-            assert deleted >= 1
+            await model.clear({}, db=db)
+            assert not await model.list({}, db=db)
 
             rows = [
                 {
-                    "id": str(uuid4()),
                     "name": "A",
                     "email": f"a_{uid}@example.com",
                 },
                 {
-                    "id": str(uuid4()),
                     "name": "B",
                     "email": f"b_{uid}@example.com",
                 },
             ]
             created_rows = await model.bulk_create({"rows": rows}, db=db)
-            ids = [_get(r, "id") for r in created_rows]
+            ids = [r["id"] if isinstance(r, Mapping) else r.id for r in created_rows]
             assert len(ids) == 2
 
             upd_rows = [
                 {"id": ids[0], "age": 20},
                 {"id": ids[1], "age": 21},
             ]
-            updated_rows = await model.bulk_update({"rows": upd_rows}, db=db)
+            payload = {"rows": upd_rows}
+            updated_rows = await model.bulk_update(
+                None, db=db, ctx={"payload": payload}
+            )
             assert {_get(u, "age") for u in updated_rows} == {20, 21}
 
             rep_rows = [
                 {"id": ids[0], "name": "A1", "email": f"a1_{uid}@example.com"},
                 {"id": ids[1], "name": "B1", "email": f"b1_{uid}@example.com"},
             ]
-            replaced_rows = await model.bulk_replace({"rows": rep_rows}, db=db)
+            payload = {"rows": rep_rows}
+            replaced_rows = await model.bulk_replace(
+                None, db=db, ctx={"payload": payload}
+            )
             assert {_get(r, "name") for r in replaced_rows} == {"A1", "B1"}
 
-            del_res = await model.bulk_delete({"ids": ids}, db=db)
-            deleted = (
-                del_res["deleted"]
-                if isinstance(del_res, Mapping)
-                else _get(del_res, "deleted")
-            )
-            assert deleted == 2
+            del_payload = {"ids": ids}
+            await model.bulk_delete(None, db=db, ctx={"payload": del_payload})
+            assert not await model.list({}, db=db)
 
 
 @pytest.mark.asyncio
