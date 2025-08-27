@@ -9,6 +9,7 @@ from ..mixins import (
     AsyncCapable,
     ActiveToggle,
 )
+from sqlalchemy.orm import Mapped
 from ..specs import IO, acol, F, S
 from ..types import String
 
@@ -18,7 +19,7 @@ class User(
 ):
     __tablename__ = "users"
     __abstract__ = True
-    username: str = acol(
+    username: Mapped[str] = acol(
         storage=S(String, nullable=False),
         field=F(constraints={"max_length": 80}),
         io=IO(),

@@ -20,6 +20,7 @@ from enum import StrEnum
 
 from ..specs import acol, F, IO, S
 from ..types import String, SAEnum, Integer
+from sqlalchemy.orm import Mapped
 
 from ._base import Base
 from ..mixins import Timestamped  # created_at / updated_at
@@ -69,12 +70,12 @@ class StatusEnum(Base, Timestamped):
 
     __tablename__ = "status_enums"
 
-    id: int = acol(
+    id: Mapped[int] = acol(
         storage=S(Integer, primary_key=True, autoincrement=True),
         field=F(),
         io=IO(out_verbs=("read", "list")),
     )
-    code: Status = acol(
+    code: Mapped[Status] = acol(
         storage=S(
             SAEnum(Status, name="status_code_enum"),
             nullable=False,
@@ -83,7 +84,7 @@ class StatusEnum(Base, Timestamped):
         field=F(py_type=Status),
         io=IO(out_verbs=("read", "list")),
     )
-    label: str = acol(
+    label: Mapped[str] = acol(
         storage=S(String, nullable=False),
         field=F(),
         io=IO(out_verbs=("read", "list")),

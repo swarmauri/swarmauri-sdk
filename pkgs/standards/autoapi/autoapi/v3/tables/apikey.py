@@ -6,6 +6,7 @@ from hashlib import sha256
 from secrets import token_urlsafe
 
 from fastapi import HTTPException
+from sqlalchemy.orm import Mapped
 
 from ..specs import acol, F, IO, S
 from ..types import (
@@ -36,12 +37,12 @@ class ApiKey(
     __tablename__ = "api_keys"
     __abstract__ = True
 
-    label: str = acol(
+    label: Mapped[str] = acol(
         storage=S(String, nullable=False),
         field=F(constraints={"max_length": 120}),
     )
 
-    digest: str = acol(
+    digest: Mapped[str] = acol(
         storage=S(String, nullable=False, unique=True),
         field=F(constraints={"max_length": 64}),
         io=IO(out_verbs=("read", "list")),
