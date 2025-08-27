@@ -8,7 +8,7 @@ from uuid import UUID
 
 from ..types import PgUUID, Mapped, declared_attr
 
-from ..columns import acol
+from ..specs import acol
 from ..config.constants import (
     AUTOAPI_HOOKS_ATTR,
     AUTOAPI_OWNER_POLICY_ATTR,

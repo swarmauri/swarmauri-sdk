@@ -8,7 +8,7 @@ from typing import Any, Mapping
 from uuid import UUID
 
 from ._RowBound import _RowBound
-from ..columns import acol
+from ..specs import acol
 from ..config.constants import (
     AUTOAPI_TENANT_POLICY_ATTR,
     CTX_AUTH_KEY,

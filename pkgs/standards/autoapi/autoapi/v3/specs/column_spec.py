@@ -1,27 +1,56 @@
-# column_spec.py
 from __future__ import annotations
-from dataclasses import dataclass
-from typing import Callable, Optional
-from .storage_spec import StorageSpec as S
+
+from typing import Any, Callable, Optional
+
+from sqlalchemy.orm import MappedColumn
+
 from .field_spec import FieldSpec as F
 from .io_spec import IOSpec as IO
+from .storage_spec import StorageSpec as S
 
 
-@dataclass(frozen=True)
-class ColumnSpec:
-    """
-    - Persisted column: storage=S(...)
-    - Virtual (wire-only) column: storage=None
-    - default_factory: server-side scalar default IF not using IO.paired (runs when ABSENT)
-    - read_producer: for virtuals on read/list (compute from ORM obj/ctx)
-    """
+class ColumnSpec(MappedColumn):
+    """SQLAlchemy column carrying AutoAPI specs as attributes."""
 
-    storage: Optional[S]  # None => virtual column (never persisted)
-    field: F
-    io: IO
+    __slots__ = ("storage", "field", "io", "default_factory", "read_producer")
 
-    # Optional server default (non-paired). (ctx) -> value
-    default_factory: Optional[Callable[[dict], object]] = None
+    def __init__(
+        self,
+        *,
+        storage: S | None,
+        field: F | None = None,
+        io: IO | None = None,
+        default_factory: Optional[Callable[[dict], Any]] = None,
+        read_producer: Optional[Callable[[object, dict], Any]] = None,
+        **kw: Any,
+    ) -> None:
+        s = storage
+        if s is not None:
+            super().__init__(
+                s.type_,
+                primary_key=s.primary_key,
+                nullable=s.nullable,
+                unique=s.unique,
+                index=s.index,
+                server_default=s.server_default,
+                onupdate=s.onupdate,
+                comment=s.comment,
+                **kw,
+            )
+        else:  # virtual column, no storage
+            super().__init__(**kw)
+        self.storage = s
+        self.field = field if field is not None else F()
+        self.io = io if io is not None else IO()
+        self.default_factory = default_factory
+        self.read_producer = read_producer
 
-    # Virtuals only: (obj, ctx) -> value for read/list responses
-    read_producer: Optional[Callable[[object, dict], object]] = None
+    def __set_name__(self, owner, name: str) -> None:
+        parent = getattr(super(), "__set_name__", None)
+        if parent:
+            parent(owner, name)
+        colspecs = getattr(owner, "__autoapi_colspecs__", None)
+        if colspecs is None:
+            colspecs = {}
+            setattr(owner, "__autoapi_colspecs__", colspecs)
+        colspecs[name] = self

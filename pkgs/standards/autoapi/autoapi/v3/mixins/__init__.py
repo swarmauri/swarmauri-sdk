@@ -6,8 +6,7 @@ from .bootstrappable import Bootstrappable as Bootstrappable
 from .upsertable import Upsertable as Upsertable
 from .ownable import Ownable as Ownable, OwnerPolicy as OwnerPolicy
 from .tenant_bound import TenantBound as TenantBound, TenantPolicy as TenantPolicy
-from ..columns import acol
-from ..specs import ColumnSpec, F, IO, S
+from ..specs import ColumnSpec, F, IO, S, acol
 from ..specs.storage_spec import ForeignKeySpec
 from ..types import (
     TZDateTime,

@@ -4,9 +4,10 @@ from types import SimpleNamespace
 from sqlalchemy import String, create_engine
 from sqlalchemy.orm import sessionmaker
 
+from autoapi.v3.types import uuid4
 from autoapi.v3.tables import Base
 from autoapi.v3.mixins import GUIDPk
-from autoapi.v3.specs.shortcuts import IO, S, acol
+from autoapi.v3.specs import IO, S, acol
 from autoapi.v3.bindings import (
     bind,
     include_model,
@@ -78,7 +79,7 @@ def test_include_model_and_rpc_call():
     phases = build_phase_chains(Widget, "create")
     assert phases["HANDLER"], "phase lifecycle must contain handler step"
 
-    asyncio.run(rpc_call(api, Widget, "create", {"name": "w"}, db=db))
+    asyncio.run(rpc_call(api, Widget, "create", {"id": uuid4(), "name": "w"}, db=db))
     rows = asyncio.run(rpc_call(api, Widget, "list", {}, db=db))
     assert rows and rows[0]["name"] == "w"
 
