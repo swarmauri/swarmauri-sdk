@@ -267,7 +267,7 @@ async def test_bulk_capable_mixin(create_test_api):
     routes = [route.path for route in api.router.routes]
 
     # Should have bulk create and bulk delete routes
-    assert "/dummy_model_bulk_capable/bulk" in [
+    assert "/dummymodelbulkcapable/bulk" in [
         route for route in routes if "/bulk" in route
     ]
 
