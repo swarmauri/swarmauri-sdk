@@ -2,11 +2,10 @@ from typing import AsyncIterator, Iterator
 
 import pytest
 import pytest_asyncio
-from autoapi.v3 import AutoAPI, Base
+from autoapi.v3 import AutoAPI, Base, app
 from autoapi.v3.mixins import BulkCapable, GUIDPk
 from autoapi.v3.specs import F, IO, S, acol
 from autoapi.v3.specs.storage_spec import StorageTransform
-from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, ForeignKey, Integer, String, create_engine
 from sqlalchemy.pool import StaticPool
@@ -82,7 +81,8 @@ def create_test_api(sync_db_session):
         # Clear metadata to avoid conflicts
         base.metadata.clear()
 
-        api = AutoAPI(base=base, include={model_class}, get_db=get_sync_db)
+        api = AutoAPI(get_db=get_sync_db)
+        api.include_model(model_class)
         api.initialize_sync()
         return api
 
@@ -102,7 +102,8 @@ async def create_test_api_async(async_db_session):
         # Clear metadata to avoid conflicts
         base.metadata.clear()
 
-        api = AutoAPI(base=base, include={model_class}, get_async_db=get_async_db)
+        api = AutoAPI(get_async_db=get_async_db)
+        api.include_model(model_class)
         return api
 
     return _create_api_async
@@ -180,9 +181,9 @@ async def api_client(db_mode):
         api = AutoAPI(base=Base, include={Tenant, Item}, get_db=get_sync_db)
         api.initialize_sync()
 
-    app = FastAPI()
-    app.include_router(api.router)
-    transport = ASGITransport(app=app)
+    fastapi_app = app()
+    fastapi_app.include_router(api.router)
+    transport = ASGITransport(app=fastapi_app)
 
     client = AsyncClient(transport=transport, base_url="http://test")
     return client, api, Item
@@ -258,11 +259,11 @@ async def api_client_v3():
         async with AsyncSessionLocal() as session:
             yield session
 
-    app = FastAPI()
-    api = AutoAPI(app=app, get_async_db=get_async_db)
+    fastapi_app = app()
+    api = AutoAPI(app=fastapi_app, get_async_db=get_async_db)
     api.include_model(Widget, prefix="")
     api.mount_jsonrpc()
     api.attach_diagnostics()
-    transport = ASGITransport(app=app)
+    transport = ASGITransport(app=fastapi_app)
     client = AsyncClient(transport=transport, base_url="http://test")
     return client, api, Widget, AsyncSessionLocal
