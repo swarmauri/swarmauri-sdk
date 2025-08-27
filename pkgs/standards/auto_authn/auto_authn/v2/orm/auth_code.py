@@ -11,6 +11,7 @@ from autoapi.v3.specs import S, acol
 from autoapi.v3.specs.storage_spec import ForeignKeySpec
 from autoapi.v3.types import JSON, PgUUID, String, TZDateTime
 from autoapi.v3 import op_ctx
+from sqlalchemy.orm import Mapped
 from fastapi import HTTPException, status
 
 from ..rfc8414_metadata import ISSUER
@@ -24,20 +25,20 @@ class AuthCode(Base, Timestamped, UserMixin, TenantMixin):
     __tablename__ = "auth_codes"
     __table_args__ = ({"schema": "authn"},)
 
-    code: str = acol(storage=S(String(128), primary_key=True))
-    client_id: uuid.UUID = acol(
+    code: Mapped[str] = acol(storage=S(String(128), primary_key=True))
+    client_id: Mapped[uuid.UUID] = acol(
         storage=S(
             PgUUID(as_uuid=True),
             fk=ForeignKeySpec(target="authn.clients.id"),
             nullable=False,
         )
     )
-    redirect_uri: str = acol(storage=S(String(1000), nullable=False))
-    code_challenge: str | None = acol(storage=S(String, nullable=True))
-    nonce: str | None = acol(storage=S(String, nullable=True))
-    scope: str | None = acol(storage=S(String, nullable=True))
-    expires_at: dt.datetime = acol(storage=S(TZDateTime, nullable=False))
-    claims: dict | None = acol(storage=S(JSON, nullable=True))
+    redirect_uri: Mapped[str] = acol(storage=S(String(1000), nullable=False))
+    code_challenge: Mapped[str | None] = acol(storage=S(String, nullable=True))
+    nonce: Mapped[str | None] = acol(storage=S(String, nullable=True))
+    scope: Mapped[str | None] = acol(storage=S(String, nullable=True))
+    expires_at: Mapped[dt.datetime] = acol(storage=S(TZDateTime, nullable=False))
+    claims: Mapped[dict | None] = acol(storage=S(JSON, nullable=True))
 
     @op_ctx(alias="exchange", target="delete", arity="member")
     async def exchange(cls, ctx, obj):

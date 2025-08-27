@@ -12,12 +12,13 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Final
+from typing import TYPE_CHECKING, Any, Dict, Final
 
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .orm.tables import PushedAuthorizationRequest
+if TYPE_CHECKING:  # pragma: no cover
+    pass
 
 DEFAULT_PAR_EXPIRY = 90  # seconds
 
@@ -30,6 +31,8 @@ async def store_par_request(
     expires_in: int = DEFAULT_PAR_EXPIRY,
 ) -> str:
     """Store *params* and return a unique ``request_uri``."""
+
+    from .orm.tables import PushedAuthorizationRequest
 
     request_uri = f"urn:ietf:params:oauth:request_uri:{uuid.uuid4()}"
     expires_at = datetime.now(tz=timezone.utc) + timedelta(seconds=expires_in)
@@ -49,6 +52,8 @@ async def store_par_request(
 async def get_par_request(request_uri: str, db: AsyncSession) -> Dict[str, Any] | None:
     """Retrieve parameters for *request_uri* if present and not expired."""
 
+    from .orm.tables import PushedAuthorizationRequest
+
     obj = await db.get(PushedAuthorizationRequest, request_uri)
     if not obj:
         return None
@@ -60,6 +65,8 @@ async def get_par_request(request_uri: str, db: AsyncSession) -> Dict[str, Any] 
 
 async def reset_par_store(db: AsyncSession) -> None:
     """Clear stored pushed authorization requests (test helper)."""
+
+    from .orm.tables import PushedAuthorizationRequest
 
     await db.execute(delete(PushedAuthorizationRequest))
     await db.commit()

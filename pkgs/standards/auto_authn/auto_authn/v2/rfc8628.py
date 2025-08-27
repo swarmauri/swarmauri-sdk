@@ -13,13 +13,15 @@ from __future__ import annotations
 import re
 import secrets
 import string
-from typing import Final, Literal
+from typing import Final, Literal, TYPE_CHECKING
 
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .runtime_cfg import settings
-from .orm.tables import DeviceCode
+
+if TYPE_CHECKING:  # pragma: no cover
+    pass
 
 # Character set for user_code per RFC 8628 §6.1 (uppercase letters and digits)
 _USER_CODE_CHARSET: Final = string.ascii_uppercase + string.digits
@@ -65,6 +67,8 @@ async def approve_device_code(
     device_code: str, sub: str, tid: str, db: AsyncSession
 ) -> None:
     """Mark a device code as authorized (testing helper)."""
+
+    from .orm.tables import DeviceCode
 
     obj = await DeviceCode.handlers.read.core({"db": db, "obj_id": device_code})
     if obj:

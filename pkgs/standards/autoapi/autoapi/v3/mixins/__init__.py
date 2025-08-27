@@ -25,6 +25,7 @@ from ..types import (
     UUID,
     uuid4,
 )
+from sqlalchemy.orm import Mapped
 from ..config.constants import CTX_AUTH_KEY, CTX_USER_ID_KEY
 
 
@@ -66,7 +67,7 @@ RO_IO = IO(out_verbs=CRUD_OUT)
 class GUIDPk:
     """Universal surrogate primary key."""
 
-    id: UUID = acol(
+    id: Mapped[UUID] = acol(
         spec=ColumnSpec(
             storage=S(
                 type_=PgUUID(as_uuid=True),
@@ -203,7 +204,7 @@ class UserBound:  # membership rows
 # ────────── lifecycle --------------------------------------------------
 @declarative_mixin
 class Created:
-    created_at: dt.datetime = acol(
+    created_at: Mapped[dt.datetime] = acol(
         spec=ColumnSpec(
             storage=S(type_=TZDateTime, default=tzutcnow, nullable=False),
             field=F(py_type=dt.datetime),
@@ -214,7 +215,7 @@ class Created:
 
 @declarative_mixin
 class LastUsed:
-    last_used_at: dt.datetime | None = acol(
+    last_used_at: Mapped[dt.datetime | None] = acol(
         spec=ColumnSpec(
             storage=S(type_=TZDateTime, nullable=True, onupdate=tzutcnow),
             field=F(py_type=dt.datetime),
@@ -229,14 +230,14 @@ class LastUsed:
 
 @declarative_mixin
 class Timestamped:
-    created_at: dt.datetime = acol(
+    created_at: Mapped[dt.datetime] = acol(
         spec=ColumnSpec(
             storage=S(type_=TZDateTime, default=tzutcnow, nullable=False),
             field=F(py_type=dt.datetime),
             io=RO_IO,
         )
     )
-    updated_at: dt.datetime = acol(
+    updated_at: Mapped[dt.datetime] = acol(
         spec=ColumnSpec(
             storage=S(
                 type_=TZDateTime,
@@ -252,7 +253,7 @@ class Timestamped:
 
 @declarative_mixin
 class ActiveToggle:
-    is_active: bool = acol(
+    is_active: Mapped[bool] = acol(
         spec=ColumnSpec(
             storage=S(type_=Boolean, default=True, nullable=False),
             field=F(py_type=bool),
@@ -263,25 +264,25 @@ class ActiveToggle:
 
 @declarative_mixin
 class SoftDelete:
-    deleted_at: dt.datetime | None = acol(
+    deleted_at: Mapped[dt.datetime | None] = acol(
         spec=ColumnSpec(
             storage=S(type_=TZDateTime, nullable=True),
             field=F(py_type=dt.datetime),
             io=CRUD_IO,
         )
-    )  # NULL means “live”
+    )  # NULL means "live"
 
 
 @declarative_mixin
 class Versioned:
-    revision: int = acol(
+    revision: Mapped[int] = acol(
         spec=ColumnSpec(
             storage=S(type_=Integer, default=1, nullable=False),
             field=F(py_type=int),
             io=CRUD_IO,
         )
     )
-    prev_id: UUID | None = acol(
+    prev_id: Mapped[UUID | None] = acol(
         spec=ColumnSpec(
             storage=S(type_=PgUUID(as_uuid=True), nullable=True),
             field=F(py_type=UUID),
@@ -329,7 +330,7 @@ class TreeNode:
         )
         return acol(spec=spec)
 
-    path: str = acol(
+    path: Mapped[str] = acol(
         spec=ColumnSpec(
             storage=S(type_=String),
             field=F(py_type=str),
@@ -350,7 +351,7 @@ class RelationEdge:
 class MaskableEdge:
     """Edge row with bitmap of verbs/roles."""
 
-    mask: int = acol(
+    mask: Mapped[int] = acol(
         spec=ColumnSpec(
             storage=S(type_=Integer, nullable=False),
             field=F(py_type=int),
@@ -372,7 +373,7 @@ class Audited:  # marker only
 
 @declarative_mixin
 class BlobRef:
-    blob_id: UUID | None = acol(
+    blob_id: Mapped[UUID | None] = acol(
         spec=ColumnSpec(
             storage=S(type_=PgUUID(as_uuid=True)),
             field=F(py_type=UUID),
@@ -383,14 +384,14 @@ class BlobRef:
 
 @declarative_mixin
 class RowLock:
-    lock_token: UUID | None = acol(
+    lock_token: Mapped[UUID | None] = acol(
         spec=ColumnSpec(
             storage=S(type_=PgUUID(as_uuid=True), nullable=True),
             field=F(py_type=UUID),
             io=CRUD_IO,
         )
     )
-    locked_at: dt.datetime | None = acol(
+    locked_at: Mapped[dt.datetime | None] = acol(
         spec=ColumnSpec(
             storage=S(type_=TZDateTime, nullable=True),
             field=F(py_type=dt.datetime),
@@ -421,7 +422,7 @@ class Streamable:
 # Slugged ── human-readable identifier
 @declarative_mixin
 class Slugged:
-    slug: str = acol(
+    slug: Mapped[str] = acol(
         spec=ColumnSpec(
             storage=S(type_=String, unique=True, nullable=False),
             field=F(py_type=str, constraints={"max_length": 120}),
@@ -434,7 +435,7 @@ class Slugged:
 # StatusMixin ── finite workflow states
 @declarative_mixin
 class StatusMixin:
-    status: str = acol(
+    status: Mapped[str] = acol(
         spec=ColumnSpec(
             storage=S(
                 type_=SAEnum(
@@ -465,14 +466,14 @@ class StatusMixin:
 # ValidityWindow ── temporal availability
 @declarative_mixin
 class ValidityWindow:
-    valid_from: dt.datetime = acol(
+    valid_from: Mapped[dt.datetime] = acol(
         spec=ColumnSpec(
             storage=S(type_=TZDateTime, default=tzutcnow, nullable=False),
             field=F(py_type=dt.datetime),
             io=CRUD_IO,
         )
     )
-    valid_to: dt.datetime | None = acol(
+    valid_to: Mapped[dt.datetime | None] = acol(
         spec=ColumnSpec(
             storage=S(type_=TZDateTime, default=tzutcnow_plus_day),
             field=F(py_type=dt.datetime),
@@ -485,14 +486,14 @@ class ValidityWindow:
 # Monetary ── precise currency values (≥ 10^16, 2 decimals)
 @declarative_mixin
 class Monetary:
-    amount: Decimal = acol(
+    amount: Mapped[Decimal] = acol(
         spec=ColumnSpec(
             storage=S(type_=Numeric(18, 2), nullable=False),
             field=F(py_type=Decimal),
             io=CRUD_IO,
         )
     )
-    currency: str = acol(
+    currency: Mapped[str] = acol(
         spec=ColumnSpec(
             storage=S(type_=String, default="USD", nullable=False),
             field=F(py_type=str, constraints={"max_length": 3}),
@@ -505,14 +506,14 @@ class Monetary:
 # ExtRef ── link to an external provider object
 @declarative_mixin
 class ExtRef:
-    external_id: str = acol(
+    external_id: Mapped[str] = acol(
         spec=ColumnSpec(
             storage=S(type_=String),
             field=F(py_type=str),
             io=CRUD_IO,
         )
     )  # e.g. Stripe customer ID
-    provider: str = acol(
+    provider: Mapped[str] = acol(
         spec=ColumnSpec(
             storage=S(type_=String),
             field=F(py_type=str),
@@ -525,7 +526,7 @@ class ExtRef:
 # MetaJSON ── schemaless per-row extras
 @declarative_mixin
 class MetaJSON:
-    meta: dict = acol(
+    meta: Mapped[dict] = acol(
         spec=ColumnSpec(
             storage=S(type_=JSONB, default=dict),
             field=F(py_type=dict),
@@ -538,14 +539,14 @@ class MetaJSON:
 # SoftLock ── pessimistic edit lock
 @declarative_mixin
 class SoftLock:
-    locked_by: UUID | None = acol(
+    locked_by: Mapped[UUID | None] = acol(
         spec=ColumnSpec(
             storage=S(type_=PgUUID(as_uuid=True), fk=ForeignKeySpec(target="users.id")),
             field=F(py_type=UUID),
             io=CRUD_IO,
         )
     )
-    locked_at: dt.datetime | None = acol(
+    locked_at: Mapped[dt.datetime | None] = acol(
         spec=ColumnSpec(
             storage=S(type_=TZDateTime),
             field=F(py_type=dt.datetime),
@@ -558,7 +559,7 @@ class SoftLock:
 # TaggableEdge ── free-form tag on an edge row (inherits RelationEdge)
 @declarative_mixin
 class TaggableEdge:
-    tag: str = acol(
+    tag: Mapped[str] = acol(
         spec=ColumnSpec(
             storage=S(type_=String, nullable=False),
             field=F(py_type=str),
@@ -571,7 +572,7 @@ class TaggableEdge:
 # SearchVector ── PostgreSQL full-text search
 @declarative_mixin
 class SearchVector:
-    tsv: str = acol(
+    tsv: Mapped[str] = acol(
         spec=ColumnSpec(
             storage=S(type_=TSVECTOR),
             field=F(py_type=str),

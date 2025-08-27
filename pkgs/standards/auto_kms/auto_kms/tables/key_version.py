@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import secrets
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Mapped
@@ -26,10 +26,21 @@ from ..utils import b64d
 from .key import Key, KeyAlg
 
 
-class KeyVersion(Base, GUIDPk, Timestamped):
+class KeyVersion(Base):
     __tablename__ = "key_versions"
     __resource__ = "key_version"
     __table_args__ = (UniqueConstraint("key_id", "version"),)
+
+    # Provide explicit primary key to avoid mixin materialization issues in tests
+    id: Mapped[UUID] = acol(
+        storage=S(
+            type_=PgUUID(as_uuid=True),
+            primary_key=True,
+            default=uuid4,
+        ),
+        field=F(py_type=UUID),
+        io=IO(out_verbs=("read", "list")),
+    )
 
     key_id: Mapped[UUID] = acol(
         storage=S(

@@ -7,6 +7,7 @@ from types import ModuleType
 from typing import Any, Dict, Optional
 
 from peagen.errors import InvalidPluginSpecError
+from swarmauri_base.keys import KeyProviderBase
 
 # ---------------------------------------------------------------------------
 # Config – group key → (entry-point group string, expected base class)
@@ -30,6 +31,7 @@ GROUPS = {
     # keys and secrets
     "cryptos": ("peagen.plugins.cryptos", object),
     "secrets_drivers": ("peagen.plugins.secret_drivers", object),
+    "key_providers": ("swarmauri.key_providers", KeyProviderBase),
     # template sets remain in the top-level package
     "template_sets": ("peagen.template_sets", None),
 }
@@ -191,6 +193,11 @@ class PluginManager:
             "section": "cryptos",
             "items": "adapters",
             "default": "default_crypto",
+        },
+        "key_providers": {
+            "section": "key_providers",
+            "items": "providers",
+            "default": "default_provider",
         },
     }
 
