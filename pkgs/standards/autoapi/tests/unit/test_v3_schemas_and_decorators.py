@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+import json
 
 from autoapi.v3 import (
     alias_ctx,
@@ -12,7 +12,7 @@ from autoapi.v3.decorators import collect_decorated_ops
 from autoapi.v3.bindings import build_schemas, build_hooks, build_handlers, build_rest
 
 # REST test client
-from autoapi.v3.types import App
+from autoapi.v3.types import App, BaseModel
 from fastapi.testclient import TestClient
 
 
@@ -50,7 +50,7 @@ class Widget:
         response_schema="raw",  # explicit raw → no serialization
     )
     def ping(cls, ctx):
-        return {"id": "5", "name": "x"}
+        return json.dumps({"id": "5", "name": "x"})
 
 
 def _build_all(model):
