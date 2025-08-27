@@ -17,7 +17,7 @@ from ..config.constants import (
 from ..runtime.errors import create_standardized_error
 from ..specs import ColumnSpec, F, IO, S
 from ..specs.storage_spec import ForeignKeySpec
-from ..types import PgUUID, declared_attr
+from ..types import Mapped, PgUUID, declared_attr
 
 
 log = logging.getLogger(__name__)
@@ -73,7 +73,7 @@ class TenantBound(_RowBound):
     # tenant_id column (Schema-Aware; PgUUID(as_uuid=True))
     # -------------------------------------------------------------------
     @declared_attr
-    def tenant_id(cls):
+    def tenant_id(cls) -> Mapped[UUID]:
         pol = getattr(cls, AUTOAPI_TENANT_POLICY_ATTR, TenantPolicy.CLIENT_SET)
         schema = _infer_schema(cls, default="public")
 

@@ -7,7 +7,7 @@ from typing import Any, Mapping
 from uuid import UUID
 
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
-from sqlalchemy.orm import declared_attr
+from sqlalchemy.orm import Mapped, declared_attr
 
 from ..columns import acol
 from ..config.constants import (
@@ -126,7 +126,7 @@ class Ownable:
     __autoapi_owner_policy__: OwnerPolicy = OwnerPolicy.CLIENT_SET
 
     @declared_attr
-    def owner_id(cls):
+    def owner_id(cls) -> Mapped[UUID]:
         pol = getattr(cls, AUTOAPI_OWNER_POLICY_ATTR, OwnerPolicy.CLIENT_SET)
         schema = _infer_schema(cls, default="public")
 
