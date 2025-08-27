@@ -72,6 +72,7 @@ from .config.constants import DEFAULT_HTTP_METHODS
 from .autoapi import AutoAPI
 from .deps import App
 from .tables import Base
+from fastapi import FastAPI
 
 
 def app() -> FastAPI:  # pragma: no cover - thin wrapper

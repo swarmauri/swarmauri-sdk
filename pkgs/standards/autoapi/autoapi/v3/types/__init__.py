@@ -81,6 +81,8 @@ from .response_extras_provider import (
 from .op_verb_alias_provider import OpVerbAliasProvider, list_verb_alias_providers
 from .op_config_provider import OpConfigProvider
 
+from ..opspec.types import PHASES
+
 
 # ── Public Re-exports (Backwards Compatibility) ──────────────────────────
 __all__: list[str] = [
@@ -156,4 +158,5 @@ __all__: list[str] = [
     "Path",
     "Body",
     "HTTPException",
+    "PHASES",
 ]
