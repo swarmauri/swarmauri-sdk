@@ -16,7 +16,7 @@ from typing import Any, Optional
 import httpx
 
 from autoapi_client import AutoAPIClient  # ← new client
-from autoapi.v2 import get_schema  # ← schema helper
+from autoapi.v3 import get_schema  # ← schema helper
 from peagen.orm import PublicKey  # ORM resource
 
 from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_SUPER_USER_ID
