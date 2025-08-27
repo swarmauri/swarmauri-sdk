@@ -7,7 +7,7 @@ Each key is tested individually using DummyModel instances.
 """
 
 import pytest
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from functools import partial
 from typing import get_args
 from autoapi.v3.types import Column, DateTime, Integer, JSON, String, hybrid_property
@@ -52,7 +52,7 @@ class DummyModelDefaultFactory(Base, GUIDPk):
     name = Column(String)
     timestamp = Column(
         DateTime,
-        info=dict(autoapi={"default_factory": partial(datetime.now, UTC)}),
+        info=dict(autoapi={"default_factory": partial(datetime.now, timezone.utc)}),
     )
 
 
