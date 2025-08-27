@@ -75,11 +75,6 @@ from .tables import Base
 from .types import App
 
 
-def app() -> App:  # pragma: no cover - thin wrapper
-    """Return a new FastAPI application instance."""
-    return App()
-
-
 __all__: list[str] = []
 
 __all__ += ["AutoAPI", "Base", "App"]

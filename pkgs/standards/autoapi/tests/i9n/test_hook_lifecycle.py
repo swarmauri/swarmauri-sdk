@@ -5,7 +5,7 @@ Tests all hook phases and their behavior across CRUD, nested CRUD, and RPC opera
 """
 
 import pytest
-from autoapi.v3 import AutoAPI, Base, app
+from autoapi.v3 import App, AutoAPI, Base
 from autoapi.v3.decorators import hook_ctx
 from autoapi.v3.mixins import BulkCapable, GUIDPk
 from httpx import ASGITransport, AsyncClient
@@ -18,7 +18,7 @@ from sqlalchemy.pool import StaticPool
 
 async def setup_client(db_mode, Tenant, Item):
     """Create an AutoAPI client for the provided models."""
-    fastapi_app = app()
+    fastapi_app = App()
 
     if db_mode == "async":
         engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=False)
