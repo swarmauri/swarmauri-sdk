@@ -1,6 +1,9 @@
 from uuid import UUID
 
 
+
+from sqlalchemy.orm import Mapped
+
 from ..specs import IO, F, acol, S
 from ..specs.storage_spec import ForeignKeySpec
 from ..types import Integer, String, PgUUID
@@ -18,12 +21,12 @@ from ..mixins import (
 # ───────── RBAC core ──────────────────────────────────────────────────
 class Role(Base, GUIDPk, Timestamped, TenantBound):
     __tablename__ = "roles"
-    slug: str = acol(
+    slug: Mapped[str] = acol(
         storage=S(String, unique=True),
         field=F(),
         io=IO(),
     )
-    global_mask: int = acol(
+    global_mask: Mapped[int] = acol(
         storage=S(Integer, default=0),
         field=F(),
         io=IO(),
@@ -32,17 +35,17 @@ class Role(Base, GUIDPk, Timestamped, TenantBound):
 
 class RolePerm(Base, GUIDPk, Timestamped, TenantBound, RelationEdge, MaskableEdge):
     __tablename__ = "role_perms"
-    role_id: UUID = acol(
+    role_id: Mapped[UUID] = acol(
         storage=S(PgUUID, fk=ForeignKeySpec("roles.id")),
         field=F(),
         io=IO(),
     )
-    target_table: str = acol(
+    target_table: Mapped[str] = acol(
         storage=S(String),
         field=F(),
         io=IO(),
     )
-    target_id: str = acol(
+    target_id: Mapped[str] = acol(
         storage=S(String),
         field=F(),
         io=IO(),
@@ -51,12 +54,12 @@ class RolePerm(Base, GUIDPk, Timestamped, TenantBound, RelationEdge, MaskableEdg
 
 class RoleGrant(Base, GUIDPk, Timestamped, TenantBound, RelationEdge):
     __tablename__ = "role_grants"
-    principal_id: UUID = acol(
+    principal_id: Mapped[UUID] = acol(
         storage=S(PgUUID),
         field=F(),
         io=IO(),
     )  # FK to principal row
-    role_id: UUID = acol(
+    role_id: Mapped[UUID] = acol(
         storage=S(PgUUID, fk=ForeignKeySpec("roles.id")),
         field=F(),
         io=IO(),
