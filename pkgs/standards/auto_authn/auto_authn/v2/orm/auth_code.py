@@ -9,9 +9,8 @@ from autoapi.v3.tables import Base
 from autoapi.v3.mixins import TenantMixin, Timestamped, UserMixin
 from autoapi.v3.specs import S, acol
 from autoapi.v3.specs.storage_spec import ForeignKeySpec
-from autoapi.v3.types import JSON, PgUUID, String, TZDateTime
+from autoapi.v3.types import JSON, PgUUID, String, TZDateTime, Mapped
 from autoapi.v3 import op_ctx
-from sqlalchemy.orm import Mapped
 from fastapi import HTTPException, status
 
 from ..rfc8414_metadata import ISSUER

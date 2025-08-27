@@ -6,8 +6,7 @@ from enum import Enum
 from typing import Any, Mapping
 from uuid import UUID
 
-from sqlalchemy.dialects.postgresql import UUID as PgUUID
-from sqlalchemy.orm import Mapped, declared_attr
+from ..types import PgUUID, Mapped, declared_attr
 
 from ..columns import acol
 from ..config.constants import (

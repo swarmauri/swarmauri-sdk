@@ -24,8 +24,8 @@ from ..types import (
     Boolean,
     UUID,
     uuid4,
+    Mapped,
 )
-from sqlalchemy.orm import Mapped
 from ..config.constants import CTX_AUTH_KEY, CTX_USER_ID_KEY
 
 

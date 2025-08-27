@@ -4,7 +4,6 @@ import secrets
 from uuid import UUID, uuid4
 
 from fastapi import HTTPException
-from sqlalchemy.orm import Mapped
 
 from autoapi.v3.decorators import hook_ctx
 from autoapi.v3.specs import IO, F, S, acol
@@ -18,6 +17,7 @@ from autoapi.v3.types import (
     SAEnum,
     UniqueConstraint,
     relationship,
+    Mapped,
 )
 from swarmauri_core.crypto.types import ExportPolicy, KeyType, KeyUse
 

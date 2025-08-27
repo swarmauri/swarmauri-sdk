@@ -6,7 +6,6 @@ from hashlib import sha256
 from secrets import token_urlsafe
 
 from fastapi import HTTPException
-from sqlalchemy.orm import Mapped
 
 from ..specs import acol, F, IO, S
 from ..types import (
@@ -14,6 +13,7 @@ from ..types import (
     HookProvider,
     Field,
     ResponseExtrasProvider,
+    Mapped,
 )
 from ._base import Base
 from ..mixins import (

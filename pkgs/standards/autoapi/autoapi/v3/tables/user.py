@@ -9,9 +9,8 @@ from ..mixins import (
     AsyncCapable,
     ActiveToggle,
 )
-from sqlalchemy.orm import Mapped
 from ..specs import IO, acol, F, S
-from ..types import String
+from ..types import Mapped, String
 
 
 class User(
