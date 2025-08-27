@@ -1,38 +1,46 @@
 from __future__ import annotations
 
-from autoapi.v2.types import (
+from autoapi.v3.tables import Base
+from autoapi.v3.types import (
     JSON,
-    Column,
     PgUUID,
     Integer,
     ForeignKey,
     relationship,
     HookProvider,
+    Mapped,
 )
-from autoapi.v2.tables import Base
-from autoapi.v2.mixins import GUIDPk, Timestamped, StatusMixin
+from autoapi.v3.mixins import GUIDPk, Timestamped, StatusMixin
+from autoapi.v3.specs import S, acol
+from autoapi.v3 import hook_ctx
+from typing import TYPE_CHECKING
 
 from .tasks import Task
+
+if TYPE_CHECKING:  # pragma: no cover
+    from .eval_result import EvalResult
 
 
 class Work(Base, GUIDPk, Timestamped, StatusMixin, HookProvider):
     __tablename__ = "works"
     __table_args__ = ({"schema": "peagen"},)
-    task_id = Column(
-        PgUUID(as_uuid=True), ForeignKey("peagen.tasks.id"), nullable=False
+    task_id: Mapped[PgUUID] = acol(
+        storage=S(
+            PgUUID(as_uuid=True), fk=ForeignKey("peagen.tasks.id"), nullable=False
+        )
     )
-    result = Column(JSON, nullable=True)
-    duration_s = Column(Integer)
+    result: Mapped[dict | None] = acol(storage=S(JSON, nullable=True))
+    duration_s: Mapped[int | None] = acol(storage=S(Integer))
 
-    task = relationship(Task, back_populates="works")
-    eval_results = relationship(
+    task: Mapped[Task] = relationship(Task, back_populates="works")
+    eval_results: Mapped[list["EvalResult"]] = relationship(
         "EvalResult",
         back_populates="work",
         cascade="all, delete-orphan",
         lazy="selectin",
     )
 
-    @classmethod
+    @hook_ctx(ops="update", phase="POST_COMMIT")
     async def _post_update(cls, ctx):
         from peagen.gateway import log, queue
         from peagen.gateway._publish import _publish_task
@@ -44,7 +52,7 @@ class Work(Base, GUIDPk, Timestamped, StatusMixin, HookProvider):
         from peagen.orm import Status
 
         log.info("entering post_work_update")
-        wr = cls._SRead.model_validate(ctx["result"], from_attributes=True)
+        wr = cls.schemas.read.out.model_validate(ctx["result"], from_attributes=True)
         if not Status.is_terminal(wr.status):
             return
         task = await _load_task(queue, str(wr.task_id))
@@ -63,14 +71,7 @@ class Work(Base, GUIDPk, Timestamped, StatusMixin, HookProvider):
         await _finalize_parent_tasks(queue, str(wr.task_id))
         log.info("Task %s closed via Work %s → %s", wr.task_id, wr.id, wr.status)
 
-    @classmethod
-    def __autoapi_register_hooks__(cls, api) -> None:
-        from autoapi.v2 import Phase, get_schema
-
-        cls._SRead = get_schema(cls, "read")
-        api.register_hook(Phase.POST_COMMIT, model="Work", op="update")(
-            cls._post_update
-        )
+        # hooks registered via @hook_ctx
 
 
 __all__ = ["Work"]

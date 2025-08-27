@@ -2,17 +2,23 @@ from __future__ import annotations
 
 import uuid
 
-from autoapi.v2.types import (
+from autoapi.v3.tables import Base
+from autoapi.v3.types import (
     Boolean,
-    Column,
     String,
     UniqueConstraint,
     HookProvider,
+    Mapped,
+    relationship,
 )
-from autoapi.v2.types import relationship
-from autoapi.v2.tables import Base
-from autoapi.v2.mixins import GUIDPk, Timestamped, UserMixin
+from autoapi.v3.mixins import GUIDPk, Timestamped, UserMixin
+from autoapi.v3.specs import S, acol
+from autoapi.v3 import hook_ctx
+from typing import TYPE_CHECKING
 from peagen.orm.mixins import RepositoryRefMixin
+
+if TYPE_CHECKING:  # pragma: no cover
+    from .repositories import Repository
 
 
 class PublicKey(Base, GUIDPk, UserMixin, Timestamped, HookProvider):
@@ -21,24 +27,18 @@ class PublicKey(Base, GUIDPk, UserMixin, Timestamped, HookProvider):
         UniqueConstraint("user_id", "public_key"),
         {"schema": "peagen"},
     )
-    title = Column(String, nullable=False)
-    public_key = Column(String, nullable=False)
-    read_only = Column(Boolean, default=True)
+    title: Mapped[str] = acol(storage=S(String, nullable=False))
+    public_key: Mapped[str] = acol(storage=S(String, nullable=False))
+    read_only: Mapped[bool] = acol(storage=S(Boolean, default=True))
 
-    @classmethod
+    @hook_ctx(ops="create", phase="PRE_TX_BEGIN")
     async def _pre_create(cls, ctx):
         from peagen.gateway.kms import wrap_key_with_kms
 
         params = ctx["env"].params
         params.public_key = await wrap_key_with_kms(params.public_key)
 
-    @classmethod
-    def __autoapi_register_hooks__(cls, api) -> None:
-        from autoapi.v2 import Phase
-
-        api.register_hook(Phase.PRE_TX_BEGIN, model="PublicKey", op="create")(
-            cls._pre_create
-        )
+        # hooks registered via @hook_ctx
 
 
 class GPGKey(Base, GUIDPk, UserMixin, Timestamped, HookProvider):
@@ -47,22 +47,16 @@ class GPGKey(Base, GUIDPk, UserMixin, Timestamped, HookProvider):
         UniqueConstraint("user_id", "gpg_key"),
         {"schema": "peagen"},
     )
-    gpg_key = Column(String, nullable=False)
+    gpg_key: Mapped[str] = acol(storage=S(String, nullable=False))
 
-    @classmethod
+    @hook_ctx(ops="create", phase="PRE_TX_BEGIN")
     async def _pre_create(cls, ctx):
         from peagen.gateway.kms import wrap_key_with_kms
 
         params = ctx["env"].params
         params.gpg_key = await wrap_key_with_kms(params.gpg_key)
 
-    @classmethod
-    def __autoapi_register_hooks__(cls, api) -> None:
-        from autoapi.v2 import Phase
-
-        api.register_hook(Phase.PRE_TX_BEGIN, model="GPGKey", op="create")(
-            cls._pre_create
-        )
+        # hooks registered via @hook_ctx
 
 
 class DeployKey(Base, GUIDPk, RepositoryRefMixin, Timestamped, HookProvider):
@@ -71,13 +65,15 @@ class DeployKey(Base, GUIDPk, RepositoryRefMixin, Timestamped, HookProvider):
         UniqueConstraint("repository_id", "public_key"),
         {"schema": "peagen"},
     )
-    title = Column(String, nullable=False)
-    public_key = Column(String, nullable=False)
-    read_only = Column(Boolean, default=True)
+    title: Mapped[str] = acol(storage=S(String, nullable=False))
+    public_key: Mapped[str] = acol(storage=S(String, nullable=False))
+    read_only: Mapped[bool] = acol(storage=S(Boolean, default=True))
 
-    repository = relationship("Repository", back_populates="deploy_keys")
+    repository: Mapped["Repository"] = relationship(
+        "Repository", back_populates="deploy_keys"
+    )
 
-    @classmethod
+    @hook_ctx(ops="create", phase="PRE_TX_BEGIN")
     async def _pre_create(cls, ctx):
         from peagen.gateway import log
         from peagen.gateway.kms import wrap_key_with_kms
@@ -99,7 +95,7 @@ class DeployKey(Base, GUIDPk, RepositoryRefMixin, Timestamped, HookProvider):
         ctx["fingerprint"] = pgp.fingerprint
         params.public_key = wrapped
 
-    @classmethod
+    @hook_ctx(ops="create", phase="POST_COMMIT")
     async def _post_create(cls, ctx):
         from peagen.gateway import log
 
@@ -107,13 +103,13 @@ class DeployKey(Base, GUIDPk, RepositoryRefMixin, Timestamped, HookProvider):
         params = ctx["env"].params
         log.info("key persisted (fingerprint=%s)", params.fingerprint)
 
-    @classmethod
+    @hook_ctx(ops="read", phase="POST_HANDLER")
     async def _post_read(cls, ctx):
         from peagen.gateway import log
 
         log.info("entering POST_HANDLER")
 
-    @classmethod
+    @hook_ctx(ops="delete", phase="PRE_TX_BEGIN")
     async def _pre_delete(cls, ctx):
         from peagen.gateway import log
 
@@ -121,7 +117,7 @@ class DeployKey(Base, GUIDPk, RepositoryRefMixin, Timestamped, HookProvider):
         params = ctx["env"].params
         ctx["fingerprint"] = params.fingerprint
 
-    @classmethod
+    @hook_ctx(ops="delete", phase="POST_COMMIT")
     async def _post_delete(cls, ctx):
         from peagen.gateway import log
 
@@ -129,28 +125,7 @@ class DeployKey(Base, GUIDPk, RepositoryRefMixin, Timestamped, HookProvider):
         fp = ctx.get("fingerprint")
         log.info("key removed: %s", fp)
 
-    @classmethod
-    def __autoapi_register_hooks__(cls, api) -> None:
-        from autoapi.v2 import Phase, get_schema
-
-        cls._SCreate = get_schema(cls, "create")
-        cls._SRead = get_schema(cls, "read")
-        cls._SDelete = get_schema(cls, "delete")
-        api.register_hook(Phase.PRE_TX_BEGIN, model="DeployKey", op="create")(
-            cls._pre_create
-        )
-        api.register_hook(Phase.PRE_TX_BEGIN, model="DeployKey", op="delete")(
-            cls._pre_delete
-        )
-        api.register_hook(Phase.POST_COMMIT, model="DeployKey", op="create")(
-            cls._post_create
-        )
-        api.register_hook(Phase.POST_COMMIT, model="DeployKey", op="delete")(
-            cls._post_delete
-        )
-        api.register_hook(Phase.POST_HANDLER, model="DeployKey", op="read")(
-            cls._post_read
-        )
+        # hooks registered via @hook_ctx
 
 
 __all__ = ["PublicKey", "GPGKey", "DeployKey"]
