@@ -30,11 +30,11 @@ from typing import (
 )
 
 try:
-    from fastapi import APIRouter, Request, Depends
+    from ...types import Router, Request, Depends
     from fastapi.responses import JSONResponse
 except Exception:  # pragma: no cover
     # Lightweight shims so the module is importable without FastAPI
-    class APIRouter:  # type: ignore
+    class Router:  # type: ignore
         def __init__(self, *a, **kw):
             self.routes = []
 
@@ -270,15 +270,15 @@ def mount_diagnostics(
     *,
     get_db: Optional[Callable[..., Any]] = None,
     get_async_db: Optional[Callable[..., Awaitable[Any]]] = None,
-) -> APIRouter:
+) -> Router:
     """
-    Create & return an APIRouter that exposes:
+    Create & return a Router that exposes:
       GET /healthz
       GET /methodz
       GET /hookz
       GET /planz
     """
-    router = APIRouter()
+    router = Router()
 
     # Prefer async DB getter if provided
     dep = get_async_db or get_db

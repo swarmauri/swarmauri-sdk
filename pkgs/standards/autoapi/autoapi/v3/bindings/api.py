@@ -65,14 +65,14 @@ def _has_include_router(obj: Any) -> bool:
 
 def _mount_router(app_or_router: Any, router: Any, *, prefix: str) -> None:
     """
-    Best-effort mount onto a FastAPI app or APIRouter.
+    Best-effort mount onto a FastAPI app or Router.
     If not available, we still attach router under api.routers for later use.
     """
     if app_or_router is None:
         return
     try:
         if _has_include_router(app_or_router):
-            app_or_router.include_router(router, prefix=prefix)  # FastAPI / APIRouter
+            app_or_router.include_router(router, prefix=prefix)  # FastAPI / Router
     except Exception:
         logger.exception("Failed to mount router at %s", prefix)
 
@@ -261,14 +261,16 @@ def include_model(
     Args:
         api: An arbitrary facade object; we’ll attach containers onto it if missing.
         model: The SQLAlchemy model (table class).
-        app: Optional FastAPI app or APIRouter (anything with `include_router`).
-             If not provided, we attempt to use `api.app` or `api.router` if present.
+        app: Optional FastAPI app or Router (anything with `include_router`).
+             Routers are always mounted on `api.router`; if provided, we also
+             mount onto this `app` (or `api.app` when not given).
         prefix: Optional mount prefix. When None, defaults to `/{ModelClassName}` or
                 `/{__resource__}` if set on the model.
-        mount_router: If False, we won’t mount; we still attach the router under `api.rest`/`api.routers`.
+        mount_router: If False, we skip mounting onto the host app but still bind
+            the router under `api.router`/`api.rest`/`api.routers`.
 
     Returns:
-        (model, router) – the model class and its APIRouter (or None if not present).
+        (model, router) – the model class and its Router (or None if not present).
     """
     # 0) seed deps/security so binders can see them (transport-level only)
     _seed_security_and_deps(api, model)
@@ -281,8 +283,13 @@ def include_model(
     if prefix is None:
         prefix = _default_prefix(model)
 
-    # 3) Mount if requested and possible
-    target_app = app or getattr(api, "app", None) or getattr(api, "router", None)
+    # 3) Always bind model router to `api.router`
+    root_router = getattr(api, "router", None)
+    if router is not None:
+        _mount_router(root_router, router, prefix=prefix)
+
+    # Optionally mount onto a host app
+    target_app = app or getattr(api, "app", None)
     if mount_router and router is not None:
         _mount_router(target_app, router, prefix=prefix)
 

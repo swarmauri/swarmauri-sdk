@@ -11,12 +11,15 @@ from fastapi import (
     HTTPException,
 )
 
+Router = APIRouter
+
 app = FastAPI
 
 
 # ── Public Exports ───────────────────────────────────────────────────────
 __all__ = [
     "APIRouter",
+    "Router",
     "FastAPI",
     "Security",
     "Depends",

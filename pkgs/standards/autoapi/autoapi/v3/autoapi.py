@@ -26,6 +26,19 @@ from .transport import mount_jsonrpc as _mount_jsonrpc
 from .system import mount_diagnostics as _mount_diagnostics
 from .opspec import get_registry, OpSpec
 
+try:  # pragma: no cover - FastAPI optional
+    from .types import Router  # type: ignore
+except Exception:  # pragma: no cover
+
+    class Router:  # type: ignore
+        def __init__(self, *a, **kw):
+            self.routes = []
+            self.includes = []
+
+        def include_router(self, router, *, prefix: str = "", **opts):
+            self.includes.append((router, prefix, opts))
+
+
 # optional compat: legacy transactional decorator
 try:
     from .compat.transactional import transactional as _txn_decorator
@@ -62,8 +75,10 @@ class AutoAPI:
         | Mapping[str, Mapping[str, Iterable[Callable]]]
         | None = None,
     ) -> None:
-        # host app (FastAPI or APIRouter)
+        # host app (FastAPI or Router)
         self.app = app
+        # always expose an aggregate router for later mounting
+        self.router = Router()
         # DB dependencies for transports/diagnostics
         self.get_db = get_db
         self.get_async_db = get_async_db
@@ -170,23 +185,28 @@ class AutoAPI:
     # ------------------------- extras / mounting -------------------------
 
     def mount_jsonrpc(self, *, prefix: str | None = None) -> Any:
-        """Mount JSON-RPC router onto `self.app`."""
+        """Mount JSON-RPC router onto `.router` and the host app if present."""
         px = prefix if prefix is not None else self.jsonrpc_prefix
-        return _mount_jsonrpc(
+        router = _mount_jsonrpc(
             self,
-            self.app,
+            self.router,
             prefix=px,
             get_db=self.get_db,
             get_async_db=self.get_async_db,
         )
+        if self.app and hasattr(self.app, "include_router"):
+            self.app.include_router(router, prefix=px)
+        return router
 
     def attach_diagnostics(self, *, prefix: str | None = None) -> Any:
-        """Mount diagnostics router onto `self.app`."""
+        """Mount diagnostics router onto `.router` and the host app if present."""
         px = prefix if prefix is not None else self.system_prefix
         router = _mount_diagnostics(
             self, get_db=self.get_db, get_async_db=self.get_async_db
         )
-        if hasattr(self.app, "include_router") and callable(self.app.include_router):
+        if hasattr(self.router, "include_router"):
+            self.router.include_router(router, prefix=px)
+        if self.app and hasattr(self.app, "include_router"):
             self.app.include_router(router, prefix=px)
         return router
 

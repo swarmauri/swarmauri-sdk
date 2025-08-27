@@ -68,7 +68,7 @@ def _ensure_model_namespaces(model: type) -> None:
     # rpc: callables to be registered/mounted elsewhere as JSON-RPC methods
     if not hasattr(model, "rpc"):
         model.rpc = SimpleNamespace()
-    # rest: .router (FastAPI/APIRouter or compatible) – built in rest binding
+    # rest: .router (FastAPI Router or compatible) – built in rest binding
     if not hasattr(model, "rest"):
         model.rest = SimpleNamespace(router=None)
     # basic table metadata for convenience (introspective only; NEVER used for HTTP paths)

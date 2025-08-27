@@ -11,19 +11,12 @@ from typing import Any, Awaitable, Callable, Dict, Mapping, Optional, Sequence, 
 from typing import get_origin as _get_origin, get_args as _get_args
 
 try:
-    from fastapi import (
-        APIRouter,
-        Request,
-        Body,
-        Depends,
-        HTTPException,
-        Query,
-        Response,
-    )
+    from ..types import Router, Request, Body, Depends, HTTPException, Response
+    from fastapi import Query
     from fastapi import status as _status
 except Exception:  # pragma: no cover
     # Minimal shims so the module can be imported without FastAPI
-    class APIRouter:  # type: ignore
+    class Router:  # type: ignore
         def __init__(self, *a, **kw):
             self.routes = []
 
@@ -853,7 +846,7 @@ def _make_member_endpoint(
 # ───────────────────────────────────────────────────────────────────────────────
 
 
-def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
+def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
     resource = _resource_name(model)
 
     # Router-level deps: extra deps + auth dep (transport-only; never part of runtime plan)
@@ -864,7 +857,7 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
     if auth_dep:
         extra_router_deps += _normalize_deps([auth_dep])
 
-    router = APIRouter(dependencies=extra_router_deps or None)
+    router = Router(dependencies=extra_router_deps or None)
 
     pk_param = "item_id"
     db_dep = (
@@ -967,7 +960,7 @@ def build_router_and_attach(
     model: type, specs: Sequence[OpSpec], *, only_keys: Optional[Sequence[_Key]] = None
 ) -> None:
     """
-    Build an APIRouter for the model and attach it to `model.rest.router`.
+    Build a Router for the model and attach it to `model.rest.router`.
     For simplicity and correctness with FastAPI, we **rebuild the entire router**
     on each call (FastAPI does not support removing individual routes cleanly).
     """
