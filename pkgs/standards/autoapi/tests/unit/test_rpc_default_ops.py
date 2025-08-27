@@ -1,4 +1,5 @@
 import pytest
+from collections.abc import Iterator
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -7,7 +8,7 @@ from autoapi.v3.autoapi import AutoAPI
 from autoapi.v3.mixins import BulkCapable, GUIDPk
 from autoapi.v3.specs import IO, S, F, acol as spec_acol
 from autoapi.v3.tables import Base
-from autoapi.v3.types import String
+from autoapi.v3.types import Session, String
 
 
 class Widget(Base, GUIDPk, BulkCapable):
@@ -26,7 +27,7 @@ class Widget(Base, GUIDPk, BulkCapable):
 
 
 @pytest.fixture()
-def api_and_session():
+def api_and_session() -> tuple[AutoAPI, Session]:
     engine = create_engine(
         "sqlite:///:memory:",
         connect_args={"check_same_thread": False},
@@ -34,7 +35,7 @@ def api_and_session():
     )
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 
-    def get_db():
+    def get_db() -> Iterator[Session]:
         with SessionLocal() as session:
             yield session
 
@@ -42,7 +43,7 @@ def api_and_session():
     api.include_model(Widget, mount_router=False)
     api.initialize_sync()
 
-    session = SessionLocal()
+    session: Session = SessionLocal()
     try:
         yield api, session
     finally:
