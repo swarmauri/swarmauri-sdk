@@ -1,0 +1,32 @@
+[project]
+name = "jollof"
+version = "0.1.0"
+description = "Generic plugin management utilities"
+license = "Apache-2.0"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+authors = [{ name = "Swarmauri Team", email = "support@swarmauri.com" }]
+dependencies = [
+    "swarmauri_base",
+    "pydantic>=2.7",
+]
+
+[tool.uv.sources]
+swarmauri_base = { workspace = true }
+
+[tool.pytest.ini_options]
+markers = [
+    "unit: Unit tests",
+    "perf: Performance tests that measure execution time and resource usage",
+]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-benchmark>=4.0.0",
+    "ruff>=0.9.9",
+]
