@@ -145,6 +145,8 @@ async def api_client(db_mode):
         def __autoapi_nested_paths__(cls):
             return "/tenant/{tenant_id}"
 
+    fastapi_app = app()
+
     if db_mode == "async":
         engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=True)
 
@@ -156,7 +158,7 @@ async def api_client(db_mode):
             async with AsyncSessionLocal() as session:
                 yield session
 
-        api = AutoAPI(get_async_db=get_async_db)
+        api = AutoAPI(app=fastapi_app, get_async_db=get_async_db)
         api.include_models([Tenant, Item])
         await api.initialize_async()
 
@@ -173,11 +175,11 @@ async def api_client(db_mode):
             with SessionLocal() as session:
                 yield session
 
-        api = AutoAPI(get_db=get_sync_db)
+        api = AutoAPI(app=fastapi_app, get_db=get_sync_db)
         api.include_models([Tenant, Item])
         api.initialize_sync()
 
-    fastapi_app = app()
+    api.mount_jsonrpc()
     fastapi_app.include_router(api.router)
     transport = ASGITransport(app=fastapi_app)
 
