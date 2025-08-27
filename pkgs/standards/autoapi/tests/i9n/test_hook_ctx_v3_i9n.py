@@ -270,7 +270,12 @@ async def test_hook_ctx_rpc_method_i9n():
     client, _, _ = create_client(Item)
     res = await client.post(
         "/rpc",
-        json={"method": "Item.create", "params": {"id": str(uuid4()), "name": "a"}},
+        json={
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "Item.create",
+            "params": {"name": "a"},
+        },
     )
     assert res.json()["result"]["phase"] == "rpc"
     await client.aclose()
