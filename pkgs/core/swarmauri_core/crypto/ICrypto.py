@@ -128,6 +128,7 @@ class ICrypto(ABC):
         dek: Optional[bytes] = None,
         wrap_alg: Optional[Alg] = None,
         nonce: Optional[bytes] = None,
+        aad: Optional[bytes] = None,
     ) -> WrappedKey:
         """
         Protect a DEK under a KEK.
@@ -137,6 +138,7 @@ class ICrypto(ABC):
           dek      : raw DEK bytes to wrap. If None, provider MAY generate a new DEK.
           wrap_alg : wrapping algorithm identifier; provider MAY default if None.
           nonce    : optional per-wrap nonce/IV (algorithm-specific).
+          aad      : optional associated data to bind/authenticate.
 
         Returns:
           WrappedKey: opaque blob + metadata to later recover the DEK.

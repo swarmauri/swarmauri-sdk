@@ -93,9 +93,10 @@ class CompositeCrypto(ICrypto, ComponentBase):
         dek: Optional[bytes] = None,
         wrap_alg: Optional[Alg] = None,
         nonce: Optional[bytes] = None,
+        aad: Optional[bytes] = None,
     ) -> WrappedKey:
         return await self._pick("wrap", wrap_alg).wrap(
-            kek, dek=dek, wrap_alg=wrap_alg, nonce=nonce
+            kek, dek=dek, wrap_alg=wrap_alg, nonce=nonce, aad=aad
         )
 
     async def unwrap(self, kek: KeyRef, wrapped: WrappedKey) -> bytes:

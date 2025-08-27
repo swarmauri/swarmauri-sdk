@@ -149,6 +149,7 @@ class NaClPkcs11Crypto(CryptoBase):
         dek: Optional[bytes] = None,
         wrap_alg: Optional[Alg] = None,
         nonce: Optional[bytes] = None,
+        aad: Optional[bytes] = None,
     ) -> WrappedKey:
         alg = wrap_alg or _WRAP_ALG
         if alg != _WRAP_ALG:

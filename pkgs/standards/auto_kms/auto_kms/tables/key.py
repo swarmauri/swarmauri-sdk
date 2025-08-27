@@ -122,7 +122,7 @@ class Key(Base):
     )
 
     nonce_b64: Optional[str] = vcol(
-        field=F(required_in=("decrypt",), allow_null_in=("encrypt", "wrap", "unwrap")),
+        field=F(required_in=("decrypt", "unwrap"), allow_null_in=("encrypt", "wrap")),
         io=IO(in_verbs=("encrypt", "decrypt", "unwrap"), out_verbs=("encrypt", "wrap")),
     )
 
@@ -535,14 +535,11 @@ class Key(Base):
                     dek=key_material,
                     wrap_alg=alg_str,
                     nonce=None,
-                )
-            except Exception:
-                res = await crypto.encrypt(
-                    key_ref,
-                    key_material,
-                    alg=alg_str,
                     aad=aad,
-                    nonce=None,
+                )
+            except Exception as exc:
+                raise HTTPException(
+                    status_code=500, detail=f"Key wrapping failed: {exc}"
                 )
         else:
             try:
@@ -552,12 +549,9 @@ class Key(Base):
                     alg=alg_str,
                     aad=aad,
                 )
-            except Exception:
-                res = await crypto.encrypt(
-                    kid=kid,
-                    plaintext=key_material,
-                    alg=alg_str,
-                    aad=aad,
+            except Exception as exc:
+                raise HTTPException(
+                    status_code=500, detail=f"Key wrapping failed: {exc}"
                 )
 
         return {
@@ -636,7 +630,6 @@ class Key(Base):
 
         import inspect
         from swarmauri_core.crypto.types import (
-            AEADCiphertext,
             ExportPolicy,
             KeyRef,
             KeyType,
@@ -668,19 +661,14 @@ class Key(Base):
                     wrap_alg=alg_str or "",
                     wrapped=wrapped_key,
                     nonce=nonce,
-                )
-                key_material = await crypto.unwrap(key_ref, wrapped)
-            except Exception:
-                ct_obj = AEADCiphertext(
-                    kid=kid,
-                    version=key_obj.primary_version,
-                    alg=alg_str or "AES-256-GCM",
-                    nonce=nonce or b"",
-                    ct=wrapped_key,
-                    tag=tag or b"",
+                    tag=tag,
                     aad=aad,
                 )
-                key_material = await crypto.decrypt(key_ref, ct_obj, aad=aad)
+                key_material = await crypto.unwrap(key_ref, wrapped)
+            except Exception as exc:
+                raise HTTPException(
+                    status_code=500, detail=f"Key unwrapping failed: {exc}"
+                )
         else:
             try:
                 key_material = await crypto.unwrap(
@@ -691,14 +679,9 @@ class Key(Base):
                     aad=aad,
                     alg=alg_str,
                 )
-            except Exception:
-                key_material = await crypto.decrypt(
-                    kid=kid,
-                    ciphertext=wrapped_key,
-                    nonce=nonce or b"",
-                    tag=tag,
-                    aad=aad,
-                    alg=alg_str,
+            except Exception as exc:
+                raise HTTPException(
+                    status_code=500, detail=f"Key unwrapping failed: {exc}"
                 )
 
         return {"key_material_b64": base64.b64encode(key_material).decode()}

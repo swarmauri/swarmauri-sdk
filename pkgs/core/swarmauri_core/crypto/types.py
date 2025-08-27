@@ -195,8 +195,10 @@ class AEADCiphertext:
 class WrappedKey:
     """
     Result of wrapping a DEK with a KEK.
-    - wrap_alg: e.g., "AES-KW" / "AES-KWP" / "RSA-OAEP"
+    - wrap_alg: e.g., "AES-KW" / "AES-KWP" / "RSA-OAEP" / "AES-256-GCM"
     - nonce: optional for schemes that use IVs (not AES-KW)
+    - tag: authentication tag for AEAD-based wrap algorithms
+    - aad: optional associated data bound to the wrapped key
     """
 
     kek_kid: KeyId
@@ -204,6 +206,8 @@ class WrappedKey:
     wrap_alg: Alg
     wrapped: bytes
     nonce: Optional[bytes] = None
+    tag: Optional[bytes] = None
+    aad: Optional[bytes] = None
 
 
 # -----------------------------

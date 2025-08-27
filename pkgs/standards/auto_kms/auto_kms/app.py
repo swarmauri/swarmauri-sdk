@@ -7,6 +7,7 @@ from .tables.key import Key
 from .tables.key_version import KeyVersion
 
 from swarmauri_crypto_paramiko import ParamikoCrypto
+from swarmauri_secret_autogpg import AutoGpgSecretDrive
 
 import os
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
@@ -40,6 +41,12 @@ async def _stash_ctx(ctx):
     except NameError:
         CRYPTO = ParamikoCrypto()
     ctx["crypto"] = CRYPTO
+    global SECRETS
+    try:
+        SECRETS
+    except NameError:
+        SECRETS = AutoGpgSecretDrive()
+    ctx["secrets"] = SECRETS
 
 
 # Construct AutoAPI with api-level hooks; custom ops return raw dicts so no finalize hook needed

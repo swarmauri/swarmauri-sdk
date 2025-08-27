@@ -53,6 +53,7 @@ class CryptoBase(ICrypto, ComponentBase):
         dek: Optional[bytes] = None,
         wrap_alg: Optional[Alg] = None,
         nonce: Optional[bytes] = None,
+        aad: Optional[bytes] = None,
     ) -> WrappedKey:
         raise NotImplementedError("wrap() must be implemented by subclass")
 

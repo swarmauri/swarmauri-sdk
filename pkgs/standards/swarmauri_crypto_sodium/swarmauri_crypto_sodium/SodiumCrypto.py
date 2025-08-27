@@ -307,6 +307,7 @@ class SodiumCrypto(CryptoBase):
         dek: Optional[bytes] = None,
         wrap_alg: Optional[Alg] = None,
         nonce: Optional[bytes] = None,
+        aad: Optional[bytes] = None,
     ) -> WrappedKey:
         wrap_alg = (wrap_alg or _WRAP_ALG).upper()
         if wrap_alg != _WRAP_ALG:
