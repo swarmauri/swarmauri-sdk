@@ -22,7 +22,8 @@ dependencies = [
 "requests>=2.0",
 "pandas>=2.2",
 "swarmauri_core",
-"swarmauri_typing"
+"swarmauri_typing",
+"toml>=0.10.2"
 ]
 
 [project.optional-dependencies]
