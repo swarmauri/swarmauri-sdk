@@ -2,7 +2,9 @@ from typing import AsyncIterator, Iterator
 
 import pytest
 import pytest_asyncio
-from autoapi.v3 import AutoAPI, Base, app
+from autoapi.v3.autoapi import AutoAPI
+from autoapi.v3.tables import Base
+from autoapi.v3.deps import App
 from autoapi.v3.mixins import BulkCapable, GUIDPk
 from autoapi.v3.specs import F, IO, S, acol
 from autoapi.v3.specs.storage_spec import StorageTransform
@@ -154,7 +156,7 @@ async def api_client(db_mode):
         def __autoapi_nested_paths__(cls):
             return "/tenant/{tenant_id}"
 
-    fastapi_app = app()
+    fastapi_app = App()
 
     if db_mode == "async":
         engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=True)
@@ -189,6 +191,7 @@ async def api_client(db_mode):
         api.initialize_sync()
 
     api.mount_jsonrpc()
+    api.attach_diagnostics(prefix="")
     fastapi_app.include_router(api.router)
     transport = ASGITransport(app=fastapi_app)
 
@@ -266,7 +269,7 @@ async def api_client_v3():
         async with AsyncSessionLocal() as session:
             yield session
 
-    fastapi_app = app()
+    fastapi_app = App()
     api = AutoAPI(app=fastapi_app, get_async_db=get_async_db)
     api.include_model(Widget, prefix="")
     api.mount_jsonrpc()

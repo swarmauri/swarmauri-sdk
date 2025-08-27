@@ -4,6 +4,8 @@ Healthz, Methodz and Hookz Endpoints Tests for AutoAPI v2
 Tests that healthz, methodz and hookz endpoints are properly attached and behave as expected.
 """
 
+from types import SimpleNamespace
+
 import pytest
 
 
@@ -50,14 +52,17 @@ async def test_methodz_endpoint_comprehensive(api_client):
     # Check content type
     assert response.headers["content-type"].startswith("application/json")
 
-    # Should return JSON array of method names (strings)
+    # Should return JSON object with method details
     data = response.json()
-    assert isinstance(data, list)
+    assert isinstance(data, dict)
+    assert isinstance(data.get("methods"), list)
 
-    # Each item should be a string (method name)
-    for method_name in data:
-        assert isinstance(method_name, str)
-        assert "." in method_name  # Should follow Model.operation pattern
+    method_names = [entry["method"] for entry in data["methods"]]
+
+    # Each item should describe a method
+    for entry in data["methods"]:
+        assert isinstance(entry["method"], str)
+        assert "." in entry["method"]  # Should follow Model.operation pattern
 
     # Should have methods for Item and Tenant (from conftest)
     expected_methods = [
@@ -74,7 +79,7 @@ async def test_methodz_endpoint_comprehensive(api_client):
     ]
 
     for method in expected_methods:
-        assert method in data
+        assert method in method_names
 
 
 @pytest.mark.i9n
@@ -83,17 +88,23 @@ async def test_hookz_endpoint_comprehensive(api_client):
     """Test hookz endpoint attachment, behavior, and response format."""
     client, api, _ = api_client
 
-    @api.register_hook("POST_RESPONSE")
     def first_hook(ctx):
         pass
 
-    @api.register_hook("POST_RESPONSE")
     def second_hook(ctx):
         pass
 
-    @api.register_hook("POST_RESPONSE", model="Item", op="create")
     def item_hook(ctx):
         pass
+
+    # Manually attach hooks
+    for model in api.models.values():
+        create_ns = getattr(model.hooks, "create", SimpleNamespace())
+        create_ns.POST_RESPONSE = [first_hook, second_hook]
+        setattr(model.hooks, "create", create_ns)
+    # Append item-specific hook
+    item_ns = getattr(api.models["Item"].hooks, "create")
+    item_ns.POST_RESPONSE.append(item_hook)
 
     routes = [route.path for route in api.router.routes]
     assert "/hookz" in routes
@@ -106,20 +117,17 @@ async def test_hookz_endpoint_comprehensive(api_client):
     assert isinstance(data, dict)
 
     expected_global_hooks = [
-        f"autoapi.v3.hooks.{first_hook.__qualname__}",
-        f"autoapi.v3.hooks.{second_hook.__qualname__}",
+        f"{first_hook.__module__}.{first_hook.__qualname__}",
+        f"{second_hook.__module__}.{second_hook.__qualname__}",
     ]
-    for method, phases in data.items():
-        assert isinstance(method, str)
-        assert isinstance(phases, dict)
-        assert phases["POST_RESPONSE"][:2] == expected_global_hooks
 
-    assert "Item.create" in data
-    assert data["Item.create"]["POST_RESPONSE"] == expected_global_hooks + [
-        f"autoapi.v3.hooks.{item_hook.__qualname__}",
+    # Validate Item.create hooks include global and item-specific hooks
+    assert data["Item"]["create"]["POST_RESPONSE"] == expected_global_hooks + [
+        f"{item_hook.__module__}.{item_hook.__qualname__}",
     ]
-    assert "Tenant.create" in data
-    assert data["Tenant.create"]["POST_RESPONSE"] == expected_global_hooks
+
+    # Validate Tenant.create hooks include only global hooks
+    assert data["Tenant"]["create"]["POST_RESPONSE"] == expected_global_hooks
 
 
 @pytest.mark.i9n
@@ -131,14 +139,16 @@ async def test_methodz_basic_functionality(api_client):
     response = await client.get("/methodz")
     data = response.json()
 
+    method_names = [entry["method"] for entry in data["methods"]]
+
     # Should contain Item.create method
-    assert "Item.create" in data
+    assert "Item.create" in method_names
 
     # Should contain basic CRUD operations
     crud_operations = ["create", "read", "update", "delete", "list"]
     for operation in crud_operations:
-        assert f"Item.{operation}" in data
-        assert f"Tenant.{operation}" in data
+        assert f"Item.{operation}" in method_names
+        assert f"Tenant.{operation}" in method_names
 
 
 @pytest.mark.i9n
@@ -186,13 +196,14 @@ async def test_methodz_reflects_dynamic_models(api_client):
     # Get initial methods
     response = await client.get("/methodz")
     initial_data = response.json()
+    method_names = [entry["method"] for entry in initial_data["methods"]]
 
     # Should include methods for models from conftest
-    assert "Tenant.create" in initial_data
-    assert "Tenant.read" in initial_data
-    assert "Tenant.update" in initial_data
-    assert "Tenant.delete" in initial_data
-    assert "Tenant.list" in initial_data
+    assert "Tenant.create" in method_names
+    assert "Tenant.read" in method_names
+    assert "Tenant.update" in method_names
+    assert "Tenant.delete" in method_names
+    assert "Tenant.list" in method_names
 
 
 @pytest.mark.i9n
