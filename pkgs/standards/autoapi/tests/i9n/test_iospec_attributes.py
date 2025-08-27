@@ -1,10 +1,16 @@
 import pytest
-from types import SimpleNamespace
-from autoapi.v3.types import App
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
-from sqlalchemy.orm import Mapped, sessionmaker
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
+
+from autoapi.v3.types import (
+    App,
+    Integer as IntType,
+    Mapped,
+    SimpleNamespace,
+    String as StrType,
+)
 
 from autoapi.v3.autoapi import AutoAPI
 from autoapi.v3.bindings.model import bind
@@ -17,7 +23,6 @@ from autoapi.v3.runtime.kernel import build_phase_chains
 from autoapi.v3.specs import F, IO, S, acol, vcol
 from autoapi.v3.tables import Base
 from autoapi.v3.mixins import GUIDPk
-from autoapi.v3.types import Integer as IntType, String as StrType
 
 
 @pytest.mark.i9n
@@ -138,9 +143,13 @@ def test_openapi_reflects_io_verbs():
     app.include_router(router)
     spec = app.openapi()
 
-    props = spec["components"]["schemas"]["WidgetCreate"]["properties"]
-    assert "name" in props
-    assert "id" in props
+    create_props = spec["components"]["schemas"]["WidgetCreate"]["properties"]
+    assert "name" in create_props
+    assert "id" not in create_props
+
+    read_props = spec["components"]["schemas"]["WidgetRead"]["properties"]
+    assert "id" in read_props
+    assert "name" in read_props
 
 
 @pytest.mark.i9n
