@@ -9,8 +9,6 @@ from autoapi.v3.types import (
     String,
     UniqueConstraint,
     relationship,
-    HookProvider,
-    Field,
     Mapped,
 )
 from autoapi.v3.mixins import (
@@ -23,7 +21,7 @@ from autoapi.v3.mixins import (
     StatusMixin,
 )
 from autoapi.v3.runtime.errors import create_standardized_error
-from autoapi.v3.specs import S, acol
+from autoapi.v3.specs import F, IO, S, acol, vcol
 from autoapi.v3 import hook_ctx
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -32,21 +30,12 @@ if TYPE_CHECKING:  # pragma: no cover
     from .tasks import Task
 
 
-class Repository(
-    Base, GUIDPk, Timestamped, Ownable, TenantBound, StatusMixin, HookProvider
-):
+class Repository(Base, GUIDPk, Timestamped, Ownable, TenantBound, StatusMixin):
     __tablename__ = "repositories"
-    __table_args__ = (UniqueConstraint("url"), {"schema": "peagen"})
-
-    # Only request-extra we allow: caller's GitHub PAT (write-only)
-    __autoapi_request_extras__ = {
-        "*": {
-            "github_pat": (
-                str | None,
-                Field(default=None, description="GitHub PAT (write-only)"),
-            ),
-        }
-    }
+    __table_args__ = (
+        UniqueConstraint("url"),
+        {"schema": "peagen", "extend_existing": True},
+    )
 
     __autoapi_owner_policy__: OwnerPolicy = OwnerPolicy.STRICT_SERVER
     __autoapi_tenant_policy__: TenantPolicy = TenantPolicy.STRICT_SERVER
@@ -55,6 +44,17 @@ class Repository(
     url: Mapped[str] = acol(storage=S(String, unique=True, nullable=False))
     default_branch: Mapped[str] = acol(storage=S(String, default="main"))
     commit_sha: Mapped[str | None] = acol(storage=S(String(length=40), nullable=True))
+    github_pat: str | None = vcol(
+        field=F(
+            py_type=str | None,
+            constraints={
+                "description": "GitHub PAT (write-only)",
+                "exclude": True,
+            },
+            required_in=("create",),
+        ),
+        io=IO(in_verbs=("create", "update", "replace", "delete")),
+    )
 
     secrets: Mapped[list["RepoSecret"]] = relationship(
         "RepoSecret", back_populates="repository", cascade="all, delete-orphan"
