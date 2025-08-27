@@ -1,34 +1,27 @@
 import pytest
+from autoapi.v3.types import SimpleNamespace
 
 CRUD_MAP = {
-    "create": ("post", "/item"),
-    "list": ("get", "/item"),
-    "clear": ("delete", "/item"),
-    "read": ("get", "/item/{item_id}"),
-    "update": ("patch", "/item/{item_id}"),
-    "delete": ("delete", "/item/{item_id}"),
+    "create": ("post", "/tenant/{tenant_id}"),
+    "list": ("get", "/tenant/{tenant_id}"),
+    "clear": ("delete", "/tenant/{tenant_id}"),
+    "read": ("get", "/tenant/{tenant_id}/{item_id}"),
+    "update": ("patch", "/tenant/{tenant_id}/{item_id}"),
+    "delete": ("delete", "/tenant/{tenant_id}/{item_id}"),
 }
 
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_route_and_method_symmetry(api_client):
-    client, _, _ = api_client
+    client, api, _ = api_client
+    api.attach_diagnostics(prefix="")
     spec = (await client.get("/openapi.json")).json()
     paths = spec["paths"]
     methods = await client.get("/methodz")
-    method_list = methods.json()
+    method_list = {SimpleNamespace(**m).method for m in methods.json()["methods"]}
 
     for verb, (http_verb, path) in CRUD_MAP.items():
         assert path in paths
         assert http_verb in paths[path]
         assert f"Item.{verb}" in method_list
-
-    nested_base = "/tenant/{tenant_id}"
-    assert nested_base in paths
-    for verb in ("create", "list", "clear"):
-        assert CRUD_MAP[verb][0] in paths[nested_base]
-    nested_item = "/tenant/{tenant_id}/{item_id}"
-    assert nested_item in paths
-    for verb in ("read", "update", "delete"):
-        assert CRUD_MAP[verb][0] in paths[nested_item]
