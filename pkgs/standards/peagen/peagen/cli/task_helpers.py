@@ -5,7 +5,7 @@ import uuid
 from typing import Any, Dict, Optional
 
 from autoapi_client import AutoAPIClient
-from autoapi.v2 import get_schema
+from autoapi.v3 import get_schema
 from peagen.orm import Status, Task, Action, SpecKind
 
 

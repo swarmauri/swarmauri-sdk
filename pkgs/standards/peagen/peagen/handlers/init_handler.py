@@ -10,7 +10,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict
 
-from autoapi.v2 import get_schema
+from autoapi.v3 import get_schema
 from peagen.orm import Task
 from peagen.core import init_core
 

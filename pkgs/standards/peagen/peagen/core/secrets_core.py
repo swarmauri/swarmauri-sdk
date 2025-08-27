@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from autoapi_client import AutoAPIClient
-from autoapi.v2 import get_schema
+from autoapi.v3 import get_schema
 from peagen.orm import RepoSecret, Worker
 
 from peagen.plugins.secret_drivers import AutoGpgDriver

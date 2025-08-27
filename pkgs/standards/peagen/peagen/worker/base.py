@@ -15,7 +15,7 @@ from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_POOL_ID, DEFAULT_POOL_NAME
 
 # ─── AutoAPI & client ────────────────────────────────────────────────
 from autoapi_client import AutoAPIClient
-from autoapi.v2 import get_schema
+from autoapi.v3 import get_schema
 from peagen.orm import Worker, Work, Status  # Status enum for updates
 
 

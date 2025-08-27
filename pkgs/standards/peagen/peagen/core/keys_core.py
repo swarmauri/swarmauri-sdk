@@ -18,7 +18,7 @@ import os
 import anyio
 import httpx
 from autoapi_client import AutoAPIClient
-from autoapi.v2 import get_schema
+from autoapi.v3 import get_schema
 from peagen._utils.config_loader import (
     load_peagen_toml,
     resolve_cfg,

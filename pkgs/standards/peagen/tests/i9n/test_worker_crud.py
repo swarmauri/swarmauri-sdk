@@ -14,7 +14,7 @@ import pytest
 
 # ❶ ------------------------------------------------------------------------
 # Runtime wiring
-from autoapi.v2 import get_schema  # your AutoAutoAPI import
+from autoapi.v3 import get_schema  # your AutoAutoAPI import
 from peagen.orm import Worker  # ORM class
 from peagen.defaults import DEFAULT_POOL_ID
 from autoapi_client import AutoAPIClient  # JSON-RPC helper

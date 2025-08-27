@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
-from autoapi.v2 import get_schema
+from autoapi.v3 import get_schema
 from peagen.orm import Task
 
 from peagen._utils import maybe_clone_repo
