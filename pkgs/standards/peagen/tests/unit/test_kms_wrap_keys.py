@@ -21,11 +21,12 @@ async def test_public_key_wrap(monkeypatch):
     kms_mod.wrap_key_with_kms = fake_wrap
     sys.modules["peagen.gateway.kms"] = kms_mod
 
-    params = SimpleNamespace(public_key="pub")
+    params = SimpleNamespace(public_key="pub", private_key="priv")
     ctx = {"env": SimpleNamespace(params=params)}
     await PublicKey._pre_create(ctx)
-    assert called["key"] == "pub"
-    assert params.public_key == "wrapped"
+    assert called["key"] == "priv"
+    assert params.private_key == "wrapped"
+    assert params.public_key == "pub"
 
 
 @pytest.mark.asyncio
@@ -43,11 +44,12 @@ async def test_gpg_key_wrap(monkeypatch):
     kms_mod.wrap_key_with_kms = fake_wrap
     sys.modules["peagen.gateway.kms"] = kms_mod
 
-    params = SimpleNamespace(gpg_key="gpg")
+    params = SimpleNamespace(gpg_key="gpg", private_key="priv")
     ctx = {"env": SimpleNamespace(params=params)}
     await GPGKey._pre_create(ctx)
-    assert called["key"] == "gpg"
-    assert params.gpg_key == "wrapped"
+    assert called["key"] == "priv"
+    assert params.private_key == "wrapped"
+    assert params.gpg_key == "gpg"
 
 
 @pytest.mark.asyncio
@@ -73,9 +75,10 @@ async def test_deploy_key_wrap(monkeypatch):
     sys.modules["peagen.gateway.kms"] = kms_mod
     monkeypatch.setattr("pgpy.PGPKey", DummyPGPKey)
 
-    params = SimpleNamespace(public_key="pub")
+    params = SimpleNamespace(public_key="pub", private_key="priv")
     ctx = {"env": SimpleNamespace(params=params)}
     await DeployKey._pre_create(ctx)
-    assert called["key"] == "pub"
-    assert params.public_key == "wrapped"
+    assert called["key"] == "priv"
+    assert params.private_key == "wrapped"
+    assert params.public_key == "pub"
     assert ctx["fingerprint"] == "FP"
