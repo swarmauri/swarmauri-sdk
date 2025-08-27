@@ -33,9 +33,11 @@ class ServiceKey(ApiKeyBase):
     )
 
     _service = relationship(
-        "auto_authn.v2.orm.tables.Service",
+        "auto_authn.v2.orm.service.Service",
         back_populates="_service_keys",
         lazy="joined",
+        primaryjoin="ServiceKey.service_id == Service.id",
+        foreign_keys="ServiceKey.service_id",
     )
     service: "Service" = vcol(
         read_producer=lambda obj, _ctx: obj._service,

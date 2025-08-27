@@ -25,9 +25,11 @@ class User(UserBase):
     email: str = acol(storage=S(String(120), nullable=False, unique=True))
     password_hash: bytes | None = acol(storage=S(LargeBinary(60)))
     _api_keys = relationship(
-        "auto_authn.v2.orm.tables.ApiKey",
+        "auto_authn.v2.orm.api_key.ApiKey",
         back_populates="_user",
         cascade="all, delete-orphan",
+        primaryjoin="User.id == ApiKey.user_id",
+        foreign_keys="ApiKey.user_id",
     )
     api_keys: list["ApiKey"] = vcol(
         read_producer=lambda obj, _ctx: obj._api_keys,

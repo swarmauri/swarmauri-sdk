@@ -25,7 +25,8 @@ Notes
 
 from __future__ import annotations
 
-from autoapi.v3 import AutoAPI, Base
+from fastapi import APIRouter
+from autoapi.v3 import AutoAPI
 from auto_authn.v2.orm.tables import (
     Tenant,
     User,
@@ -40,10 +41,12 @@ from ..db import get_async_db  # same module as before
 # ----------------------------------------------------------------------
 # 3.  Build AutoAPI instance & router
 # ----------------------------------------------------------------------
-crud_api = AutoAPI(
-    base=Base,
-    include={Tenant, User, Client, ApiKey, Service, ServiceKey, AuthSession},
-    get_async_db=get_async_db,
+router = APIRouter()
+crud_api = AutoAPI(app=router, get_async_db=get_async_db)
+crud_api.include_models(
+    [Tenant, User, Client, ApiKey, Service, ServiceKey, AuthSession]
 )
+# Backwards compatibility: expose aggregated router as attribute
+crud_api.router = router  # type: ignore[attr-defined]
 
 __all__ = ["crud_api"]
