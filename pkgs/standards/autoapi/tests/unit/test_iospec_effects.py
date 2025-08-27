@@ -1,8 +1,7 @@
 from types import SimpleNamespace
 
-from autoapi.v3.types import App
-from sqlalchemy import Column
-from sqlalchemy.orm import DeclarativeBase, Mapped
+from autoapi.v3.types import App, Column, Integer, Mapped, String
+from sqlalchemy.orm import DeclarativeBase
 
 from autoapi.v3.bindings.model import bind
 from autoapi.v3.bindings.rest import _build_router
@@ -13,7 +12,6 @@ from autoapi.v3.schema import _build_list_params
 from autoapi.v3.specs import ColumnSpec, F, IO, S, acol, vcol
 from autoapi.v3.tables import Base
 from autoapi.v3.mixins import GUIDPk
-from autoapi.v3.types import Integer, String
 
 
 class _Base(DeclarativeBase):
@@ -163,5 +161,5 @@ def test_iospec_virtual_columns_not_materialized() -> None:
 
     bind(Thing)
     assert isinstance(Thing.__table__.c.id, Column)
-    assert "nickname" not in Thing.__table__.c
-    assert isinstance(Thing.__dict__["nickname"], ColumnSpec)
+    assert "nickname" in Thing.__table__.c
+    assert isinstance(Thing.__autoapi_cols__["nickname"], ColumnSpec)
