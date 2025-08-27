@@ -68,6 +68,7 @@ class Settings(BaseSettings):
     jwt_secret: str = Field(os.environ.get("JWT_SECRET", "insecure-dev-secret"))
     log_level: str = Field(os.environ.get("LOG_LEVEL", "INFO"))
     kms_wrap_url: Optional[str] = Field(default=os.environ.get("KMS_WRAP_URL"))
+    kms_unwrap_url: Optional[str] = Field(default=os.environ.get("KMS_UNWRAP_URL"))
 
     model_config = SettingsConfigDict(env_file=None)
 
