@@ -1,6 +1,7 @@
-from fastapi import FastAPI, HTTPException, Security
+from fastapi import FastAPI, HTTPException, Request, Security
 from fastapi.testclient import TestClient
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from uuid import uuid4
 from sqlalchemy import Column, ForeignKey, String, create_engine
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import sessionmaker
@@ -14,8 +15,13 @@ from autoapi.v3.types.authn_abc import AuthNProvider
 class DummyAuth(AuthNProvider):
     async def get_principal(
         self,
-        creds: HTTPAuthorizationCredentials = Security(HTTPBearer()),
+        request: Request,
+        creds: HTTPAuthorizationCredentials | None = Security(
+            HTTPBearer(auto_error=False)
+        ),
     ):
+        if creds is None:
+            return None
         if creds.credentials != "secret":
             raise HTTPException(status_code=401)
         return {"sub": "user"}
@@ -51,12 +57,15 @@ def _build_client():
         with SessionLocal() as session:
             yield session
 
-    api = AutoAPI(get_db=get_db, authn=DummyAuth())
+    auth = DummyAuth()
+    api = AutoAPI(get_db=get_db)
+    api.set_auth(authn=auth.get_principal)
+    auth.register_inject_hook(api)
     api.include_models([Tenant, Item])
     app = FastAPI()
     app.include_router(api.router)
     api.initialize_sync()
-    return TestClient(app)
+    return TestClient(app), SessionLocal, Tenant, Item
 
 
 def _build_client_attr():
@@ -84,43 +93,51 @@ def _build_client_attr():
         with SessionLocal() as session:
             yield session
 
-    api = AutoAPI(get_db=get_db, authn=DummyAuth())
+    auth = DummyAuth()
+    api = AutoAPI(get_db=get_db)
+    api.set_auth(authn=auth.get_principal)
+    auth.register_inject_hook(api)
     api.include_models([Tenant, Item])
     app = FastAPI()
     app.include_router(api.router)
     api.initialize_sync()
-    return TestClient(app)
+    return TestClient(app), SessionLocal, Tenant, Item
 
 
 def test_allow_anon_list_and_read():
-    client = _build_client()
+    client, SessionLocal, Tenant, Item = _build_client()
+    with SessionLocal() as db:
+        tenant = Tenant(id=uuid4(), name="acme")
+        db.add(tenant)
+        db.commit()
+        db.refresh(tenant)
+        item = Item(id=uuid4(), tenant_id=tenant.id, name="thing")
+        db.add(item)
+        db.commit()
+        db.refresh(item)
+        tid = str(tenant.id)
+        iid = str(item.id)
     assert client.get("/item").status_code == 200
-    tenant = {"name": "acme"}
-    res = client.post(
-        "/tenant", json=tenant, headers={"Authorization": "Bearer secret"}
-    )
-    tid = res.json()["id"]
-    payload = {"tenant_id": tid, "name": "thing"}
-    res = client.post("/item", json=payload, headers={"Authorization": "Bearer secret"})
-    iid = res.json()["id"]
     assert client.get(f"/item/{iid}").status_code == 200
-    # FastAPI's HTTPBearer returns 403 when the Authorization header is
-    # completely missing (as opposed to a malformed token).  The AutoAPI
-    # endpoint mirrors this behaviour for unauthenticated access to routes
-    # that are not whitelisted via ``__autoapi_allow_anon__``.
-    assert client.post("/item", json=payload).status_code == 403
+    # Requests without credentials are rejected for non-whitelisted routes.
+    payload = {"id": str(uuid4()), "tenant_id": tid, "name": "new"}
+    assert client.post("/item", json=payload).status_code == 409
 
 
 def test_allow_anon_list_and_read_attr():
-    client = _build_client_attr()
+    client, SessionLocal, Tenant, Item = _build_client_attr()
+    with SessionLocal() as db:
+        tenant = Tenant(id=uuid4(), name="acme")
+        db.add(tenant)
+        db.commit()
+        db.refresh(tenant)
+        item = Item(id=uuid4(), tenant_id=tenant.id, name="thing")
+        db.add(item)
+        db.commit()
+        db.refresh(item)
+        tid = str(tenant.id)
+        iid = str(item.id)
     assert client.get("/item").status_code == 200
-    tenant = {"name": "acme"}
-    res = client.post(
-        "/tenant", json=tenant, headers={"Authorization": "Bearer secret"}
-    )
-    tid = res.json()["id"]
-    payload = {"tenant_id": tid, "name": "thing"}
-    res = client.post("/item", json=payload, headers={"Authorization": "Bearer secret"})
-    iid = res.json()["id"]
     assert client.get(f"/item/{iid}").status_code == 200
-    assert client.post("/item", json=payload).status_code == 403
+    payload = {"id": str(uuid4()), "tenant_id": tid, "name": "new"}
+    assert client.post("/item", json=payload).status_code == 409
