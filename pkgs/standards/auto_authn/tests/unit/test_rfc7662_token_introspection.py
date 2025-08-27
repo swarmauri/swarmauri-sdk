@@ -3,10 +3,10 @@
 import pytest
 from fastapi import FastAPI, status
 from httpx import ASGITransport, AsyncClient
-from uuid import uuid4
 
 from auto_authn.v2.routers.auth_flows import router
 from auto_authn.v2.fastapi_deps import get_async_db
+from auto_authn.v2.rfc7662 import register_token, reset_tokens
 
 
 # RFC 7662 specification excerpt for reference within tests
@@ -27,7 +27,7 @@ RFC 7662 - OAuth 2.0 Token Introspection
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_introspection_endpoint_returns_active_field(enable_rfc7662, monkeypatch):
+async def test_introspection_endpoint_returns_active_field(enable_rfc7662):
     """RFC 7662 §2.2: Response must include an 'active' boolean."""
     app = FastAPI()
     app.include_router(router)
@@ -37,23 +37,18 @@ async def test_introspection_endpoint_returns_active_field(enable_rfc7662, monke
 
     app.dependency_overrides[get_async_db] = override_db
 
-    async def fake_auth(db, token):
-        class P:
-            id = uuid4()
-            tenant_id = uuid4()
-
-        return P(), "api_key"
-
-    monkeypatch.setattr(
-        "auto_authn.v2.routers.auth_flows._api_backend.authenticate", fake_auth
-    )
+    # Register a token in the introspection registry to mark it as active
+    register_token("dummy")
 
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        resp = await client.post("/introspect", data={"token": "dummy"})
-    assert resp.status_code == status.HTTP_200_OK
-    body = resp.json()
-    assert body.get("active") is True
+    try:
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.post("/introspect", data={"token": "dummy"})
+        assert resp.status_code == status.HTTP_200_OK
+        body = resp.json()
+        assert body.get("active") is True
+    finally:
+        reset_tokens()
 
 
 @pytest.mark.unit
