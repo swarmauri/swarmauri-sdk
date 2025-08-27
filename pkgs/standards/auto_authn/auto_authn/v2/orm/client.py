@@ -8,6 +8,7 @@ from typing import Final
 
 from autoapi.v3.tables import Client as ClientBase
 from autoapi.v3 import hook_ctx
+from autoapi.v3.mixins import tzutcnow
 
 from ..crypto import hash_pw
 from ..rfc8252 import validate_native_redirect_uri
@@ -45,6 +46,8 @@ class Client(ClientBase):
             id=client_id,
             client_secret_hash=secret_hash,
             redirect_uris=" ".join(redirects),
+            created_at=tzutcnow(),
+            updated_at=tzutcnow(),
         )
 
     def verify_secret(self, plain: str) -> bool:
