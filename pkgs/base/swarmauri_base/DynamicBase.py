@@ -586,16 +586,18 @@ class DynamicBase(BaseModel):
     @classmethod
     def register_type(
         cls,
-        resource_type: Optional[Union[Type[T], List[Type[T]]]] = None,
+        resource_type: Optional[
+            Union[Type[T], List[Type[T]], Tuple[Type[T], ...]]
+        ] = None,
         type_name: Optional[str] = None,
     ):
         """
         Decorator to register a subtype under one or more base models in the unified registry.
 
         Parameters:
-            resource_type (Optional[Union[Type[T], List[Type[T]]]]):
-                The base model(s) under which to register the subtype. If None, all direct base classes (except DynamicBase)
-                are used.
+            resource_type (Optional[Union[Type[T], List[Type[T]], Tuple[Type[T], ...]]]):
+                The base model(s) under which to register the subtype. If ``None``, all
+                direct base classes (except ``DynamicBase``) are used.
             type_name (Optional[str]): An optional custom type name for the subtype.
 
         Returns:
@@ -608,10 +610,10 @@ class DynamicBase(BaseModel):
                 resource_types = [
                     base for base in subclass.__bases__ if base is not cls
                 ]
-            elif not isinstance(resource_type, list):
-                resource_types = [resource_type]
+            elif isinstance(resource_type, (list, tuple)):
+                resource_types = list(resource_type)
             else:
-                resource_types = resource_type
+                resource_types = [resource_type]
 
             for rt in resource_types:
                 if not issubclass(subclass, rt):
