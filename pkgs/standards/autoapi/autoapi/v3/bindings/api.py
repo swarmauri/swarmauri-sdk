@@ -92,23 +92,22 @@ def _ensure_api_ns(api: ApiLike) -> None:
         ("columns", {}),
         ("table_config", {}),
         ("core", SimpleNamespace()),  # helper method proxies
+        ("core_raw", SimpleNamespace()),
     ):
         if not hasattr(api, attr):
             setattr(api, attr, default)
 
 
-# ───────────────────────────────────────────────────────────────────────────────
-# Resource proxy: api.core.<ModelName>.<alias>(payload, *, db, request=None, ctx=None)
-# ───────────────────────────────────────────────────────────────────────────────
-
-
 class _ResourceProxy:
-    """Dynamic proxy that executes core operations without output serialization."""
+    """Dynamic proxy that executes core operations."""
 
-    __slots__ = ("_model",)
+    __slots__ = ("_model", "_serialize")
 
-    def __init__(self, model: type) -> None:  # pragma: no cover - trivial
+    def __init__(
+        self, model: type, *, serialize: bool = True
+    ) -> None:  # pragma: no cover - trivial
         self._model = model
+        self._serialize = serialize
 
     def __repr__(self) -> str:  # pragma: no cover - debug helper
         return f"<ResourceProxy {self._model.__name__}>"
@@ -139,10 +138,13 @@ class _ResourceProxy:
                     method=alias, params=norm_payload, target=alias, model=self._model
                 ),
             )
-            base_ctx.setdefault(
-                "response_serializer",
-                lambda r: _serialize_output(self._model, alias, alias, r),
-            )
+            if self._serialize:
+                base_ctx.setdefault(
+                    "response_serializer",
+                    lambda r: _serialize_output(self._model, alias, alias, r),
+                )
+            else:
+                base_ctx.setdefault("response_serializer", lambda r: r)
             phases = _get_phase_chains(self._model, alias)
             return await _executor._invoke(
                 request=request,
@@ -240,11 +242,16 @@ def _attach_to_api(api: ApiLike, model: type) -> None:
     api.columns[mname] = tuple(getattr(model, "columns", ()))
     api.table_config[mname] = dict(getattr(model, "table_config", {}) or {})
 
-    # Core helper proxy
+    # Core helper proxies
     core_proxy = _ResourceProxy(model)
     setattr(api.core, mname, core_proxy)
     if rtitle != mname:
         setattr(api.core, rtitle, core_proxy)
+
+    core_raw_proxy = _ResourceProxy(model, serialize=False)
+    setattr(api.core_raw, mname, core_raw_proxy)
+    if rtitle != mname:
+        setattr(api.core_raw, rtitle, core_raw_proxy)
 
 
 def include_model(
