@@ -1,6 +1,6 @@
 import pytest
 import uuid
-from autoapi.v2.transactional import transactional
+from autoapi.v3.compat.transactional import transactional
 
 
 @pytest.mark.i9n

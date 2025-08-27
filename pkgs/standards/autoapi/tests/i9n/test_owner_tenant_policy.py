@@ -1,17 +1,16 @@
 from fastapi import FastAPI, HTTPException, Security
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.testclient import TestClient
+import uuid
 from sqlalchemy import Column, String, create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
-import uuid
 
-from autoapi.v2 import AutoAPI, Base
-from autoapi.v2.mixins import GUIDPk
-from autoapi.v2.mixins.ownable import Ownable, OwnerPolicy
-from autoapi.v2.mixins.tenant_bound import TenantBound, TenantPolicy
-from autoapi.v2.types import AuthNProvider
-from autoapi.v2.hooks import Phase
+from autoapi.v3 import AutoAPI, Base
+from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.mixins.ownable import Ownable, OwnerPolicy
+from autoapi.v3.mixins.tenant_bound import TenantBound, TenantPolicy
+from autoapi.v3.types.authn_abc import AuthNProvider
 
 
 class DummyAuth(AuthNProvider):
@@ -27,7 +26,7 @@ class DummyAuth(AuthNProvider):
         return {"user_id": self.user_id, "tenant_id": self.tenant_id}
 
     def register_inject_hook(self, api) -> None:
-        @api.register_hook(Phase.PRE_TX_BEGIN)
+        @api.register_hook("PRE_TX_BEGIN")
         async def _inject(ctx):
             p = getattr(ctx["request"].state, "principal", None)
             if not p:

@@ -2,11 +2,9 @@ from typing import AsyncIterator, Iterator
 
 import pytest
 import pytest_asyncio
-from autoapi.v2 import AutoAPI, Base
-from autoapi.v2.mixins import BulkCapable, GUIDPk
-from autoapi.v3.autoapi import AutoAPI as AutoAPIv3
-from autoapi.v3.tables import Base as Base3
-from autoapi.v3.specs import IO, S, F, acol
+from autoapi.v3 import AutoAPI, Base
+from autoapi.v3.mixins import BulkCapable, GUIDPk
+from autoapi.v3.specs import F, IO, S, acol
 from autoapi.v3.specs.storage_spec import StorageTransform
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
@@ -208,9 +206,9 @@ def sample_item_data():
 
 @pytest_asyncio.fixture()
 async def api_client_v3():
-    Base3.metadata.clear()
+    Base.metadata.clear()
 
-    class Widget(Base3):
+    class Widget(Base):
         __tablename__ = "widgets"
         __allow_unmapped__ = True
 
@@ -251,7 +249,7 @@ async def api_client_v3():
 
     engine = create_async_engine("sqlite+aiosqlite:///:memory:")
     async with engine.begin() as conn:
-        await conn.run_sync(Base3.metadata.create_all)
+        await conn.run_sync(Base.metadata.create_all)
     AsyncSessionLocal = async_sessionmaker(
         bind=engine, class_=AsyncSession, expire_on_commit=False
     )
@@ -261,7 +259,7 @@ async def api_client_v3():
             yield session
 
     app = FastAPI()
-    api = AutoAPIv3(app=app, get_async_db=get_async_db)
+    api = AutoAPI(app=app, get_async_db=get_async_db)
     api.include_model(Widget, prefix="")
     api.mount_jsonrpc()
     api.attach_diagnostics()

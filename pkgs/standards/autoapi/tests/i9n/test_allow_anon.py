@@ -1,14 +1,14 @@
 from fastapi import FastAPI, HTTPException, Security
 from fastapi.testclient import TestClient
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlalchemy import Column, String, ForeignKey, create_engine
-from sqlalchemy.pool import StaticPool
+from sqlalchemy import Column, ForeignKey, String, create_engine
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 
-from autoapi.v2 import AutoAPI, Base
-from autoapi.v2.mixins import GUIDPk
-from autoapi.v2.types import AuthNProvider
+from autoapi.v3 import AutoAPI, Base
+from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.types.authn_abc import AuthNProvider
 
 
 class DummyAuth(AuthNProvider):

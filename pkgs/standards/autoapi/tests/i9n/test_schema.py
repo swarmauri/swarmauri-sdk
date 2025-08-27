@@ -1,5 +1,5 @@
 import pytest
-from autoapi.v2 import get_schema
+from autoapi.v3.schema import _build_schema
 
 
 @pytest.mark.i9n
@@ -7,11 +7,11 @@ from autoapi.v2 import get_schema
 async def test_schema_generation(api_client):
     client, _, Item = api_client
 
-    create_model = get_schema(Item, "create")
-    read_model = get_schema(Item, "read")
-    update_model = get_schema(Item, "update")
-    delete_model = get_schema(Item, "delete")
-    list_model = get_schema(Item, "list")
+    create_model = _build_schema(Item, verb="create")
+    read_model = _build_schema(Item, verb="read")
+    update_model = _build_schema(Item, verb="update")
+    delete_model = _build_schema(Item, verb="delete")
+    list_model = _build_schema(Item, verb="list")
 
     assert create_model.__name__ == "ItemCreate"
     assert read_model.__name__ == "ItemRead"

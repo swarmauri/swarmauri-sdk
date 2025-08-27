@@ -1,14 +1,16 @@
 import pytest
 import pytest_asyncio
-from autoapi.v2 import AutoAPI, Base, get_schema
-from autoapi.v2.mixins import GUIDPk
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
+from pydantic import Field
 from sqlalchemy import Column, String, create_engine
-from sqlalchemy.pool import StaticPool
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import Session, sessionmaker
-from pydantic import Field
+from sqlalchemy.pool import StaticPool
+
+from autoapi.v3 import AutoAPI, Base
+from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.schema import _build_schema
 
 
 @pytest_asyncio.fixture()
@@ -62,8 +64,8 @@ async def api_client_with_extras(db_mode):
 @pytest.mark.asyncio
 async def test_request_extras_schema(api_client_with_extras):
     _, _, Widget = api_client_with_extras
-    create_schema = get_schema(Widget, "create")
-    update_schema = get_schema(Widget, "update")
+    create_schema = _build_schema(Widget, verb="create")
+    update_schema = _build_schema(Widget, verb="update")
     assert {"token", "create_note"} <= set(create_schema.model_fields)
     assert {"token", "update_flag"} <= set(update_schema.model_fields)
 

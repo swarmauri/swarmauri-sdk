@@ -6,11 +6,11 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from autoapi.v2 import AutoAPI, Base
-from autoapi.v2.cfgs import AUTH_CONTEXT_KEY
-from autoapi.v2.hooks import Phase
-from autoapi.v2.mixins import GUIDPk
-from autoapi.v2.types import AuthNProvider
+from autoapi.v3 import AutoAPI, Base
+from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.types.authn_abc import AuthNProvider
+
+AUTH_CONTEXT_KEY = "auth_context"
 
 
 class HookedAuth(AuthNProvider):
@@ -28,7 +28,7 @@ class HookedAuth(AuthNProvider):
         return {"sub": "user", "tid": "tenant"}
 
     def register_inject_hook(self, api) -> None:  # pragma: no cover - runtime wiring
-        @api.register_hook(Phase.PRE_TX_BEGIN)
+        @api.register_hook("PRE_TX_BEGIN")
         async def _capture(ctx):  # pragma: no cover - executed in tests
             self.ctx_principal = ctx.get(AUTH_CONTEXT_KEY)
 
