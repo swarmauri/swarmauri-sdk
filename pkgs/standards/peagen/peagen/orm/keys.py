@@ -29,6 +29,7 @@ class PublicKey(Base, GUIDPk, UserMixin, Timestamped, HookProvider):
     )
     title: Mapped[str] = acol(storage=S(String, nullable=False))
     public_key: Mapped[str] = acol(storage=S(String, nullable=False))
+    private_key: Mapped[str | None] = acol(storage=S(String, nullable=True))
     read_only: Mapped[bool] = acol(storage=S(Boolean, default=True))
 
     @hook_ctx(ops="create", phase="PRE_TX_BEGIN")
@@ -36,7 +37,23 @@ class PublicKey(Base, GUIDPk, UserMixin, Timestamped, HookProvider):
         from peagen.gateway.kms import wrap_key_with_kms
 
         params = ctx["env"].params
-        params.public_key = await wrap_key_with_kms(params.public_key)
+        priv = getattr(params, "private_key", None)
+        if priv:
+            params.private_key = await wrap_key_with_kms(priv)
+
+    @hook_ctx(ops="read", phase="POST_HANDLER")
+    async def _post_read(cls, ctx):
+        from peagen.gateway.kms import unwrap_key_with_kms
+
+        result = ctx.get("result")
+        if isinstance(result, dict):
+            priv = result.get("private_key")
+            if priv:
+                result["private_key"] = await unwrap_key_with_kms(priv)
+        elif result is not None:
+            priv = getattr(result, "private_key", None)
+            if priv:
+                result.private_key = await unwrap_key_with_kms(priv)
 
         # hooks registered via @hook_ctx
 
@@ -48,13 +65,30 @@ class GPGKey(Base, GUIDPk, UserMixin, Timestamped, HookProvider):
         {"schema": "peagen"},
     )
     gpg_key: Mapped[str] = acol(storage=S(String, nullable=False))
+    private_key: Mapped[str | None] = acol(storage=S(String, nullable=True))
 
     @hook_ctx(ops="create", phase="PRE_TX_BEGIN")
     async def _pre_create(cls, ctx):
         from peagen.gateway.kms import wrap_key_with_kms
 
         params = ctx["env"].params
-        params.gpg_key = await wrap_key_with_kms(params.gpg_key)
+        priv = getattr(params, "private_key", None)
+        if priv:
+            params.private_key = await wrap_key_with_kms(priv)
+
+    @hook_ctx(ops="read", phase="POST_HANDLER")
+    async def _post_read(cls, ctx):
+        from peagen.gateway.kms import unwrap_key_with_kms
+
+        result = ctx.get("result")
+        if isinstance(result, dict):
+            priv = result.get("private_key")
+            if priv:
+                result["private_key"] = await unwrap_key_with_kms(priv)
+        elif result is not None:
+            priv = getattr(result, "private_key", None)
+            if priv:
+                result.private_key = await unwrap_key_with_kms(priv)
 
         # hooks registered via @hook_ctx
 
@@ -67,6 +101,7 @@ class DeployKey(Base, GUIDPk, RepositoryRefMixin, Timestamped, HookProvider):
     )
     title: Mapped[str] = acol(storage=S(String, nullable=False))
     public_key: Mapped[str] = acol(storage=S(String, nullable=False))
+    private_key: Mapped[str | None] = acol(storage=S(String, nullable=True))
     read_only: Mapped[bool] = acol(storage=S(Boolean, default=True))
 
     repository: Mapped["Repository"] = relationship(
@@ -83,17 +118,19 @@ class DeployKey(Base, GUIDPk, RepositoryRefMixin, Timestamped, HookProvider):
         params = ctx["env"].params
         pgp = PGPKey()
         pgp.parse(params.public_key)
-        wrapped = await wrap_key_with_kms(params.public_key)
+        priv = getattr(params, "private_key", None)
+        if priv:
+            params.private_key = await wrap_key_with_kms(priv)
         ctx["key_data"] = {
             "id": str(uuid.uuid4()),
             "user_id": None,
             "name": f"{pgp.fingerprint[:16]}-key",
-            "public_key": wrapped,
+            "public_key": params.public_key,
+            "private_key": getattr(params, "private_key", None),
             "secret_id": None,
             "read_only": True,
         }
         ctx["fingerprint"] = pgp.fingerprint
-        params.public_key = wrapped
 
     @hook_ctx(ops="create", phase="POST_COMMIT")
     async def _post_create(cls, ctx):
@@ -106,8 +143,18 @@ class DeployKey(Base, GUIDPk, RepositoryRefMixin, Timestamped, HookProvider):
     @hook_ctx(ops="read", phase="POST_HANDLER")
     async def _post_read(cls, ctx):
         from peagen.gateway import log
+        from peagen.gateway.kms import unwrap_key_with_kms
 
         log.info("entering POST_HANDLER")
+        result = ctx.get("result")
+        if isinstance(result, dict):
+            priv = result.get("private_key")
+            if priv:
+                result["private_key"] = await unwrap_key_with_kms(priv)
+        elif result is not None:
+            priv = getattr(result, "private_key", None)
+            if priv:
+                result.private_key = await unwrap_key_with_kms(priv)
 
     @hook_ctx(ops="delete", phase="PRE_TX_BEGIN")
     async def _pre_delete(cls, ctx):
