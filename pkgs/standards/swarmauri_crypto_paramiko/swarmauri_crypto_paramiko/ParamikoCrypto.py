@@ -305,45 +305,101 @@ class ParamikoCrypto(CryptoBase):
         dek: Optional[bytes] = None,
         wrap_alg: Optional[Alg] = None,
         nonce: Optional[bytes] = None,
+        aad: Optional[bytes] = None,
     ) -> WrappedKey:
-        wrap_alg = wrap_alg or _WRAP_ALG
-        if wrap_alg != _WRAP_ALG:
-            raise UnsupportedAlgorithm(f"Unsupported wrap_alg: {wrap_alg}")
-        if kek.public is None:
-            raise ValueError("KeyRef.public must contain OpenSSH RSA public key bytes")
+        """Wrap a DEK with the given KEK.
 
-        rsa_pub = self._load_rsa_pub_ssh(kek.public)
-        dek = dek or secrets.token_bytes(32)
-        wrapped = rsa_pub.encrypt(
-            dek,
-            padding.OAEP(
-                mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                algorithm=hashes.SHA256(),
-                label=None,
-            ),
-        )
+        Supports two modes:
+        * RSA-OAEP when ``wrap_alg`` is ``_WRAP_ALG`` (the legacy behaviour)
+        * AES-GCM when ``wrap_alg`` matches the default AEAD algorithm. In
+          this mode ``kek.material`` must provide the symmetric key bytes and
+          a random nonce will be generated when one isn't supplied.
+        """
+
+        wrap_alg = wrap_alg or _WRAP_ALG
+        if wrap_alg == _WRAP_ALG:
+            if kek.public is None:
+                raise ValueError(
+                    "KeyRef.public must contain OpenSSH RSA public key bytes"
+                )
+            rsa_pub = self._load_rsa_pub_ssh(kek.public)
+            if dek is None:
+                dek = secrets.token_bytes(32)
+            wrapped = rsa_pub.encrypt(
+                dek,
+                padding.OAEP(
+                    mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                    algorithm=hashes.SHA256(),
+                    label=None,
+                ),
+            )
+            return WrappedKey(
+                kek_kid=kek.kid,
+                kek_version=kek.version,
+                wrap_alg=wrap_alg,
+                nonce=nonce,
+                wrapped=wrapped,
+            )
+
+        alg = self._normalize_aead_alg(wrap_alg)
+        if alg != _AEAD_DEFAULT:
+            raise UnsupportedAlgorithm(f"Unsupported wrap_alg: {wrap_alg}")
+        if kek.material is None:
+            raise ValueError(
+                "KeyRef.material must contain symmetric key bytes for AES-GCM wrap"
+            )
+        if len(kek.material) not in (16, 24, 32):
+            raise ValueError("KeyRef.material must be 16/24/32 bytes for AES-GCM")
+        if dek is None:
+            dek = secrets.token_bytes(32)
+        nonce = nonce or secrets.token_bytes(12)
+        aead = AESGCM(kek.material)
+        ct_with_tag = aead.encrypt(nonce, dek, aad)
+        ct, tag = ct_with_tag[:-16], ct_with_tag[-16:]
         return WrappedKey(
             kek_kid=kek.kid,
             kek_version=kek.version,
             wrap_alg=wrap_alg,
             nonce=nonce,
-            wrapped=wrapped,
+            wrapped=ct,
+            tag=tag,
         )
 
-    async def unwrap(self, kek: KeyRef, wrapped: WrappedKey) -> bytes:
-        if wrapped.wrap_alg != _WRAP_ALG:
+    async def unwrap(
+        self,
+        kek: KeyRef,
+        wrapped: WrappedKey,
+        *,
+        aad: Optional[bytes] = None,
+    ) -> bytes:
+        """Unwrap a previously wrapped key."""
+
+        if wrapped.wrap_alg == _WRAP_ALG:
+            if kek.material is None:
+                raise ValueError(
+                    "KeyRef.material must contain PEM-encoded RSA private key bytes"
+                )
+            priv = self._load_rsa_priv_pem(kek.material)
+            return priv.decrypt(
+                wrapped.wrapped,
+                padding.OAEP(
+                    mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                    algorithm=hashes.SHA256(),
+                    label=None,
+                ),
+            )
+
+        alg = self._normalize_aead_alg(wrapped.wrap_alg)
+        if alg != _AEAD_DEFAULT:
             raise UnsupportedAlgorithm(f"Unsupported wrap_alg: {wrapped.wrap_alg}")
         if kek.material is None:
             raise ValueError(
-                "KeyRef.material must contain PEM-encoded RSA private key bytes"
+                "KeyRef.material must contain symmetric key bytes for AES-GCM unwrap"
             )
-
-        priv = self._load_rsa_priv_pem(kek.material)
-        return priv.decrypt(
-            wrapped.wrapped,
-            padding.OAEP(
-                mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                algorithm=hashes.SHA256(),
-                label=None,
-            ),
-        )
+        if wrapped.nonce is None:
+            raise ValueError("WrappedKey.nonce required for AES-GCM unwrap")
+        if wrapped.tag is None:
+            raise ValueError("WrappedKey.tag required for AES-GCM unwrap")
+        aead = AESGCM(kek.material)
+        blob = wrapped.wrapped + wrapped.tag
+        return aead.decrypt(wrapped.nonce, blob, aad)
