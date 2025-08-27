@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request, Security
+from autoapi.v3.types import App, HTTPException, Request, Security
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.testclient import TestClient
 import pytest
@@ -100,7 +100,7 @@ def _client_for_owner(
     api.set_auth(authn=authn.get_principal)
     authn.register_inject_hook(api)
     api.include_models([User, Item])
-    app = FastAPI()
+    app = App()
     app.include_router(api.router)
     api.initialize_sync()
     return TestClient(app)
@@ -169,7 +169,7 @@ def _client_for_tenant(
     api.set_auth(authn=authn.get_principal)
     authn.register_inject_hook(api)
     api.include_models([Tenant, Item])
-    app = FastAPI()
+    app = App()
     app.include_router(api.router)
     api.initialize_sync()
     return TestClient(app)

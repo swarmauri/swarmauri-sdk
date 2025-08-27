@@ -1,7 +1,7 @@
 import pytest
 import pytest_asyncio
 from pydantic import BaseModel
-from fastapi import FastAPI
+from autoapi.v3.types import App
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, String
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -44,7 +44,7 @@ async def widget_client():
         async with sessionmaker() as session:
             yield session
 
-    app = FastAPI()
+    app = App()
     api = AutoAPI(app=app, get_async_db=get_async_db)
     api.include_model(Widget, prefix="")
     api.mount_jsonrpc()

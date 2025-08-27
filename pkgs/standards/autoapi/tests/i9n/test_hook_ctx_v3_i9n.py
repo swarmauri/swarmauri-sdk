@@ -1,5 +1,5 @@
 import pytest
-from fastapi import FastAPI
+from autoapi.v3.types import App
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import create_engine, func, select
 from sqlalchemy.pool import StaticPool
@@ -31,7 +31,7 @@ def create_client(model_cls):
         with SessionLocal() as session:
             yield session
 
-    app = FastAPI()
+    app = App()
     api = AutoAPI(app=app, get_db=get_db)
     api.include_model(model_cls)
     api.mount_jsonrpc()

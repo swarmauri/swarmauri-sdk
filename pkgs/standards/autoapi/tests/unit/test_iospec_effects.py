@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from fastapi import FastAPI
+from autoapi.v3.types import App
 from sqlalchemy import Column
 from sqlalchemy.orm import DeclarativeBase, Mapped
 
@@ -138,7 +138,7 @@ def test_iospec_in_verbs_reflected_in_openapi() -> None:
     sp_create = OpSpec(alias="create", target="create")
     sp_read = OpSpec(alias="read", target="read")
     router = _build_router(Widget, [sp_create, sp_read])
-    app = FastAPI()
+    app = App()
     app.include_router(router)
     spec = app.openapi()
 

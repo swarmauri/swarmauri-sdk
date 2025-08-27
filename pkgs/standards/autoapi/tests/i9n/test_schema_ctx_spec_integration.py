@@ -1,6 +1,6 @@
 import pytest
 import pytest_asyncio
-from fastapi import FastAPI
+from autoapi.v3.types import App
 from httpx import ASGITransport, AsyncClient
 from pydantic import BaseModel
 from sqlalchemy import Integer, String
@@ -75,7 +75,7 @@ async def schema_ctx_client():
         async with SessionLocal() as session:
             yield session
 
-    app = FastAPI()
+    app = App()
     api = AutoAPIv3(app=app, get_async_db=get_async_db)
     api.include_model(Widget, prefix="")
     api.mount_jsonrpc()

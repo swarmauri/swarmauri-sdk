@@ -1,5 +1,5 @@
 import pytest
-from fastapi import FastAPI
+from autoapi.v3.types import App
 from httpx import ASGITransport, AsyncClient
 
 from autoapi.v3 import AutoAPI, Base
@@ -20,7 +20,7 @@ async def test_api_key_creation_requires_valid_payload(sync_db_session):
     _, get_sync_db = sync_db_session
     Base.metadata.clear()
 
-    app = FastAPI()
+    app = App()
     api = AutoAPI(app=app, get_db=get_sync_db)
     api.include_models([ConcreteApiKey])
     api.initialize_sync()

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 
-from fastapi import FastAPI
+from autoapi.v3.types import App
 from sqlalchemy import String, create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -93,7 +93,7 @@ def test_internal_model_opspec_binding():
 
 def test_openapi_includes_path():
     bind(Gadget)
-    app = FastAPI()
+    app = App()
     app.include_router(Gadget.rest.router)
     schema = app.openapi()
     assert "/gadget" in schema["paths"]
@@ -115,7 +115,7 @@ def test_rest_routes_bound():
 
     Gadget.__autoapi_get_db__ = staticmethod(get_db)  # type: ignore[attr-defined]
     bind(Gadget)
-    app = FastAPI()
+    app = App()
     app.include_router(Gadget.rest.router)
     paths = {route.path for route in app.router.routes}
     assert "/gadget" in paths

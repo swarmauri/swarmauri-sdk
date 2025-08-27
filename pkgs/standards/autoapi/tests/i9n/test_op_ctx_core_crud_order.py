@@ -1,5 +1,5 @@
 import pytest
-from fastapi import FastAPI
+from autoapi.v3.types import App
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, String
 
@@ -11,7 +11,7 @@ from autoapi.v3.core import crud
 
 def setup_api(model_cls, get_db):
     Base.metadata.clear()
-    app = FastAPI()
+    app = App()
     api = AutoAPI(app=app, get_db=get_db)
     api.include_model(model_cls, prefix="")
     api.initialize_sync()

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request, Security
+from autoapi.v3.types import App, HTTPException, Request, Security
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -60,7 +60,7 @@ def _build_client_with_auth():
             yield session
 
     auth = HookedAuth()
-    app = FastAPI()
+    app = App()
     api = AutoAPI(app=app, get_db=get_db)
     api.set_auth(authn=auth.get_principal)
     auth.register_inject_hook(api)

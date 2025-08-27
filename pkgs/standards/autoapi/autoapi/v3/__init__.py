@@ -72,16 +72,17 @@ from .config.constants import DEFAULT_HTTP_METHODS
 from .autoapi import AutoAPI
 
 from .tables import Base
+from .types import App
 
 
-def app() -> FastAPI:  # pragma: no cover - thin wrapper
+def app() -> App:  # pragma: no cover - thin wrapper
     """Return a new FastAPI application instance."""
-    return FastAPI()
+    return App()
 
 
 __all__: list[str] = []
 
-__all__ += ["AutoAPI", "Base"]
+__all__ += ["AutoAPI", "Base", "App"]
 
 __all__ += [
     # OpSpec core

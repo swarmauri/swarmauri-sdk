@@ -1,6 +1,6 @@
 import pytest
 import pytest_asyncio
-from fastapi import FastAPI
+from autoapi.v3.types import App
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
@@ -53,7 +53,7 @@ async def widget_setup():
     # functional regardless of prior global state.
     Widget.__table__.create(bind=engine)
 
-    app = FastAPI()
+    app = App()
     api = AutoAPI(app=app, get_db=get_db)
     api.include_model(Widget, prefix="/widget")
     api.mount_jsonrpc(prefix="/rpc")

@@ -2,7 +2,7 @@ import pytest
 import pytest_asyncio
 from autoapi.v3 import AutoAPI, Base
 from autoapi.v3.mixins import GUIDPk
-from fastapi import FastAPI
+from autoapi.v3.types import App
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, ForeignKey, String
 
@@ -45,7 +45,7 @@ async def three_level_api_client(db_mode, sync_db_session, async_db_session):
         api.include_models([Company, Department, Employee])
         api.initialize_sync()
 
-    app = FastAPI()
+    app = App()
     app.include_router(api.router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")

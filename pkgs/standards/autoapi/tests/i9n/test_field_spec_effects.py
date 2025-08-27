@@ -2,7 +2,7 @@ from types import SimpleNamespace
 
 import pytest
 import pytest_asyncio
-from fastapi import FastAPI
+from autoapi.v3.types import App
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -43,7 +43,7 @@ async def fs_app():
         )
 
     Base.metadata.create_all(engine)
-    app = FastAPI()
+    app = App()
     api = AutoAPI(app=app, get_db=get_db)
     api.include_model(FSItem)
     transport = ASGITransport(app=app)
