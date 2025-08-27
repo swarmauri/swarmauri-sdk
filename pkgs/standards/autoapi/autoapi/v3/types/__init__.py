@@ -44,6 +44,7 @@ from ..deps.sqlalchemy import (
 )
 
 from ..deps.pydantic import (
+    BaseModel,
     Field,
     ValidationError,
 )
@@ -58,6 +59,7 @@ from ..deps.fastapi import (
     Path,
     Body,
     HTTPException,
+    App,
 )
 
 # ── Local Package ─────────────────────────────────────────────────────────
@@ -140,6 +142,7 @@ __all__: list[str] = [
     "MutableDict",
     "MutableList",
     # pydantic schema support (from deps.pydantic)
+    "BaseModel",
     "Field",
     "ValidationError",
     # fastapi support (from deps.fastapi)
@@ -147,6 +150,7 @@ __all__: list[str] = [
     "Response",
     "APIRouter",
     "Router",
+    "App",
     "Security",
     "Depends",
     "Path",
