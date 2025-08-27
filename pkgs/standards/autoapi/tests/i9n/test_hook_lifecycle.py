@@ -6,50 +6,58 @@ Tests all hook phases and their behavior across CRUD, nested CRUD, and RPC opera
 
 import logging
 import pytest
+from autoapi.v3.decorators import hook_ctx
 
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_hook_phases_execution_order(api_client):
     """Test that all hook phases execute in the correct order."""
-    client, api, _ = api_client
+    client, api, Item = api_client
     execution_order = []
 
-    # Register hooks for all phases
-    @api.register_hook("PRE_TX_BEGIN", model="Item", op="create")
-    async def pre_tx_begin(ctx):
+    @hook_ctx(ops="create", phase="PRE_TX_BEGIN")
+    async def pre_tx_begin(cls, ctx):
         execution_order.append("PRE_TX_BEGIN")
         ctx["test_data"] = {"started": True}
 
-    @api.register_hook("PRE_HANDLER", model="Item", op="create")
-    async def pre_handler(ctx):
+    @hook_ctx(ops="create", phase="PRE_HANDLER")
+    async def pre_handler(cls, ctx):
         execution_order.append("PRE_HANDLER")
         assert ctx["test_data"]["started"] is True
         ctx["test_data"]["pre_handler_done"] = True
 
-    @api.register_hook("POST_HANDLER", model="Item", op="create")
-    async def post_handler(ctx):
+    @hook_ctx(ops="create", phase="POST_HANDLER")
+    async def post_handler(cls, ctx):
         execution_order.append("POST_HANDLER")
         assert ctx["test_data"]["pre_handler_done"] is True
         ctx["test_data"]["handler_done"] = True
 
-    @api.register_hook("PRE_COMMIT", model="Item", op="create")
-    async def pre_commit(ctx):
+    @hook_ctx(ops="create", phase="PRE_COMMIT")
+    async def pre_commit(cls, ctx):
         execution_order.append("PRE_COMMIT")
         assert ctx["test_data"]["handler_done"] is True
         ctx["test_data"]["pre_commit_done"] = True
 
-    @api.register_hook("POST_COMMIT", model="Item", op="create")
-    async def post_commit(ctx):
+    @hook_ctx(ops="create", phase="POST_COMMIT")
+    async def post_commit(cls, ctx):
         execution_order.append("POST_COMMIT")
         assert ctx["test_data"]["pre_commit_done"] is True
         ctx["test_data"]["committed"] = True
 
-    @api.register_hook("POST_RESPONSE", model="Item", op="create")
-    async def post_response(ctx):
+    @hook_ctx(ops="create", phase="POST_RESPONSE")
+    async def post_response(cls, ctx):
         execution_order.append("POST_RESPONSE")
         assert ctx["test_data"]["committed"] is True
         ctx["response"].result["hook_completed"] = True
+
+    Item.pre_tx_begin = pre_tx_begin
+    Item.pre_handler = pre_handler
+    Item.post_handler = post_handler
+    Item.pre_commit = pre_commit
+    Item.post_commit = post_commit
+    Item.post_response = post_response
+    api.bind(Item)
 
     # Create a tenant first
     t = await client.post("/tenant", json={"name": "test-tenant"})
@@ -84,24 +92,28 @@ async def test_hook_phases_execution_order(api_client):
 @pytest.mark.asyncio
 async def test_hook_parity_crud_vs_rpc(api_client):
     """Test that hooks execute identically for REST CRUD and RPC calls."""
-    client, api, _ = api_client
+    client, api, Item = api_client
     crud_hooks = []
     rpc_hooks = []
 
-    @api.register_hook("PRE_TX_BEGIN", model="Item", op="create")
-    async def track_hooks(ctx):
+    @hook_ctx(ops="create", phase="PRE_TX_BEGIN")
+    async def track_hooks(cls, ctx):
         if hasattr(ctx.get("request"), "url") and "/rpc" in str(ctx["request"].url):
             rpc_hooks.append("PRE_TX_BEGIN")
         else:
             crud_hooks.append("PRE_TX_BEGIN")
 
-    @api.register_hook("POST_COMMIT", model="Item", op="create")
-    async def track_post_commit(ctx):
+    @hook_ctx(ops="create", phase="POST_COMMIT")
+    async def track_post_commit(cls, ctx):
         logging.info(f">>>>>>>>>>>>>>>>>POST_COMMIT {ctx}")
         if hasattr(ctx.get("request"), "url") and "/rpc" in str(ctx["request"].url):
             rpc_hooks.append("POST_COMMIT")
         else:
             crud_hooks.append("POST_COMMIT")
+
+    Item.track_hooks = track_hooks
+    Item.track_post_commit = track_post_commit
+    api.bind(Item)
 
     # Create tenant
     t = await client.post("/tenant", json={"name": "test-tenant"})
@@ -128,17 +140,21 @@ async def test_hook_parity_crud_vs_rpc(api_client):
 @pytest.mark.asyncio
 async def test_hook_error_handling(api_client):
     """Test hook behavior during error conditions."""
-    client, api, _ = api_client
+    client, api, Item = api_client
     error_hooks = []
 
-    @api.register_hook("ON_ERROR")
-    async def error_handler(ctx):
+    @hook_ctx(ops="*", phase="ON_ERROR")
+    async def error_handler(cls, ctx):
         error_hooks.append("ERROR_HANDLED")
         ctx["error_data"] = {"handled": True}
 
-    @api.register_hook("PRE_TX_BEGIN", model="Item", op="create")
-    async def failing_hook(ctx):
+    @hook_ctx(ops="create", phase="PRE_TX_BEGIN")
+    async def failing_hook(cls, ctx):
         raise ValueError("Intentional test error")
+
+    Item.error_handler = error_handler
+    Item.failing_hook = failing_hook
+    api.bind(Item)
 
     # Create tenant
     t = await client.post("/tenant", json={"name": "test-tenant"})
@@ -162,33 +178,41 @@ async def test_hook_error_handling(api_client):
 @pytest.mark.asyncio
 async def test_hook_early_termination_and_cleanup(api_client):
     """Test early termination when a hook raises and ensure cleanup."""
-    client, api, _ = api_client
+    client, api, Item = api_client
     execution_order: list[str] = []
 
-    @api.register_hook("PRE_TX_BEGIN", model="Item", op="create")
-    async def pre_tx_begin(ctx):
+    @hook_ctx(ops="create", phase="PRE_TX_BEGIN")
+    async def pre_tx_begin(cls, ctx):
         execution_order.append("PRE_TX_BEGIN")
 
-    @api.register_hook("PRE_HANDLER", model="Item", op="create")
-    async def pre_handler(ctx):
+    @hook_ctx(ops="create", phase="PRE_HANDLER")
+    async def pre_handler(cls, ctx):
         execution_order.append("PRE_HANDLER")
 
-    @api.register_hook("POST_HANDLER", model="Item", op="create")
-    async def post_handler(ctx):
+    @hook_ctx(ops="create", phase="POST_HANDLER")
+    async def post_handler(cls, ctx):
         execution_order.append("POST_HANDLER")
 
-    @api.register_hook("PRE_COMMIT", model="Item", op="create")
-    async def pre_commit(ctx):
+    @hook_ctx(ops="create", phase="PRE_COMMIT")
+    async def pre_commit(cls, ctx):
         execution_order.append("PRE_COMMIT")
         raise RuntimeError("boom")
 
-    @api.register_hook("POST_COMMIT", model="Item", op="create")
-    async def post_commit(ctx):
+    @hook_ctx(ops="create", phase="POST_COMMIT")
+    async def post_commit(cls, ctx):
         execution_order.append("POST_COMMIT")
 
-    @api.register_hook("POST_RESPONSE", model="Item", op="create")
-    async def post_response(ctx):
+    @hook_ctx(ops="create", phase="POST_RESPONSE")
+    async def post_response(cls, ctx):
         execution_order.append("POST_RESPONSE")
+
+    Item.pre_tx_begin = pre_tx_begin
+    Item.pre_handler = pre_handler
+    Item.post_handler = post_handler
+    Item.pre_commit = pre_commit
+    Item.post_commit = post_commit
+    Item.post_response = post_response
+    api.bind(Item)
 
     # Create tenant
     t = await client.post("/tenant", json={"name": "test-tenant"})
@@ -222,31 +246,36 @@ async def test_hook_early_termination_and_cleanup(api_client):
 @pytest.mark.asyncio
 async def test_hook_context_modification(api_client):
     """Test that hooks can modify context and affect subsequent hooks."""
-    client, api, _ = api_client
+    client, api, Item = api_client
 
     hook_executions = []
 
-    @api.register_hook("PRE_TX_BEGIN", model="Item", op="create")
-    async def modify_params(ctx):
+    @hook_ctx(ops="create", phase="PRE_TX_BEGIN")
+    async def modify_params(cls, ctx):
         # Track hook execution and add custom data
         hook_executions.append("PRE_TX_BEGIN")
         ctx["custom_data"] = {"modified": True}
 
-    @api.register_hook("POST_HANDLER", model="Item", op="create")
-    async def verify_modification(ctx):
+    @hook_ctx(ops="create", phase="POST_HANDLER")
+    async def verify_modification(cls, ctx):
         # Verify the modification was applied and add more data
         hook_executions.append("POST_HANDLER")
         assert ctx["custom_data"]["modified"] is True
         ctx["custom_data"]["verified"] = True
 
-    @api.register_hook("POST_RESPONSE", model="Item", op="create")
-    async def enrich_response(ctx):
+    @hook_ctx(ops="create", phase="POST_RESPONSE")
+    async def enrich_response(cls, ctx):
         # Add custom data to response
         hook_executions.append("POST_RESPONSE")
         assert ctx["custom_data"]["verified"] is True
         # Note: ctx["response"].result is a model instance, not a dict
         # We can't modify it directly, but we can verify it has the expected structure
         assert hasattr(ctx["response"].result, "name")
+
+    Item.modify_params = modify_params
+    Item.verify_modification = verify_modification
+    Item.enrich_response = enrich_response
+    api.bind(Item)
 
     # Create tenant
     t = await client.post("/tenant", json={"name": "test-tenant"})
@@ -268,22 +297,33 @@ async def test_hook_context_modification(api_client):
 async def test_catch_all_hooks(api_client):
     """Test that catch-all hooks (no model/op specified) work correctly."""
     client, api, _ = api_client
-    catch_all_executions = []
 
-    @api.register_hook("POST_COMMIT")  # Catch-all hook for most operations
-    async def catch_all_hook(ctx):
+    catch_all_executions = []
+    Tenant = api.models["Tenant"]
+    Item = api.models["Item"]
+
+    @hook_ctx(ops="*", phase="POST_COMMIT")
+    async def catch_all_hook(cls, ctx):
         method = getattr(ctx.get("env"), "method", "unknown")
+        if "." not in method:
+            method = f"{cls.__name__}.{method}"
         catch_all_executions.append(method)
 
-    @api.register_hook(
-        "POST_HANDLER"
-    )  # Fallback for operations that don't reach POST_COMMIT
-    async def post_handler_hook(ctx):
+    @hook_ctx(ops="*", phase="POST_HANDLER")
+    async def post_handler_hook(cls, ctx):
         method = getattr(ctx.get("env"), "method", "unknown")
+        if "." not in method:
+            method = f"{cls.__name__}.{method}"
         # Only count delete operations that don't make it to POST_COMMIT
         if method.endswith(".delete") and method not in catch_all_executions:
             catch_all_executions.append(method)
 
+    Tenant._catch_all_hook = catch_all_hook
+    Item._catch_all_hook = catch_all_hook
+    Tenant._post_handler_hook = post_handler_hook
+    Item._post_handler_hook = post_handler_hook
+    api.bind(Tenant)
+    api.bind(Item)
     # Create tenant
     t = await client.post("/tenant", json={"name": "test-tenant"})
     tid = t.json()["id"]
@@ -333,14 +373,19 @@ async def test_hook_model_object_reference(api_client):
     client, api, Item = api_client
     string_hooks = []
     object_hooks = []
+    Item_by_name = api.models["Item"]
 
-    @api.register_hook("POST_COMMIT", model="Item", op="create")
-    async def string_model_hook(ctx):
+    @hook_ctx(ops="create", phase="POST_COMMIT")
+    async def string_model_hook(cls, ctx):
         string_hooks.append("executed")
 
-    @api.register_hook("POST_COMMIT", model=Item, op="create")
-    async def object_model_hook(ctx):
+    @hook_ctx(ops="create", phase="POST_COMMIT")
+    async def object_model_hook(cls, ctx):
         object_hooks.append("executed")
+
+    Item_by_name.string_model_hook = string_model_hook
+    Item.object_model_hook = object_model_hook
+    api.bind(Item)
 
     # Create tenant
     t = await client.post("/tenant", json={"name": "test-tenant"})
@@ -357,20 +402,25 @@ async def test_hook_model_object_reference(api_client):
 @pytest.mark.asyncio
 async def test_multiple_hooks_same_phase(api_client):
     """Test that multiple hooks for the same phase execute correctly."""
-    client, api, _ = api_client
+    client, api, Item = api_client
     executions = []
 
-    @api.register_hook("POST_COMMIT", model="Item", op="create")
-    async def first_hook(ctx):
+    @hook_ctx(ops="create", phase="POST_COMMIT")
+    async def first_hook(cls, ctx):
         executions.append("first")
 
-    @api.register_hook("POST_COMMIT", model="Item", op="create")
-    async def second_hook(ctx):
+    @hook_ctx(ops="create", phase="POST_COMMIT")
+    async def second_hook(cls, ctx):
         executions.append("second")
 
-    @api.register_hook("POST_COMMIT", model="Item", op="create")
-    async def third_hook(ctx):
+    @hook_ctx(ops="create", phase="POST_COMMIT")
+    async def third_hook(cls, ctx):
         executions.append("third")
+
+    Item.first_hook = first_hook
+    Item.second_hook = second_hook
+    Item.third_hook = third_hook
+    api.bind(Item)
 
     # Create tenant
     t = await client.post("/tenant", json={"name": "test-tenant"})
