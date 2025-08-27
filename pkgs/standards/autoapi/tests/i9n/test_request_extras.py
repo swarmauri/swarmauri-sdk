@@ -36,7 +36,8 @@ async def api_client_with_extras(db_mode):
             async with AsyncSessionLocal() as session:
                 yield session
 
-        api = AutoAPI(base=Base, include={Widget}, get_async_db=get_async_db)
+        api = AutoAPI(get_async_db=get_async_db)
+        api.include_model(Widget)
         await api.initialize_async()
     else:
         engine = create_engine(
@@ -50,7 +51,8 @@ async def api_client_with_extras(db_mode):
             with SessionLocal() as session:
                 yield session
 
-        api = AutoAPI(base=Base, include={Widget}, get_db=get_sync_db)
+        api = AutoAPI(get_db=get_sync_db)
+        api.include_model(Widget)
         api.initialize_sync()
 
     app = FastAPI()

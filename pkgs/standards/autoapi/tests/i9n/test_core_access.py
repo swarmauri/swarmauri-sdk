@@ -30,8 +30,8 @@ def sync_api(sync_db_session):
     """Create sync AutoAPI instance with TestUser model."""
     engine, get_sync_db = sync_db_session
     Base.metadata.clear()
-
-    api = AutoAPI(base=Base, include={CoreTestUser}, get_db=get_sync_db)
+    api = AutoAPI(get_db=get_sync_db)
+    api.include_model(CoreTestUser)
     api.initialize_sync()
     return api, get_sync_db
 
@@ -41,8 +41,8 @@ async def async_api(async_db_session):
     """Create async AutoAPI instance with TestUser model."""
     engine, get_async_db = async_db_session
     Base.metadata.clear()
-
-    api = AutoAPI(base=Base, include={CoreTestUser}, get_async_db=get_async_db)
+    api = AutoAPI(get_async_db=get_async_db)
+    api.include_model(CoreTestUser)
     await api.initialize_async()
     return api, get_async_db
 
@@ -494,7 +494,8 @@ class TestCoreRawEdgeCases:
         Base.metadata.clear()
 
         # Create API with only async_db, no sync get_db
-        api = AutoAPI(base=Base, include={CoreTestUser}, get_async_db=get_async_db)
+        api = AutoAPI(get_async_db=get_async_db)
+        api.include_model(CoreTestUser)
         await api.initialize_async()
 
         user_data = {"name": "No GetDB", "email": "nogetdb@example.com"}

@@ -71,7 +71,8 @@ def _client_for_owner(
             yield session
 
     authn = DummyAuth(user_id, tenant_id)
-    api = AutoAPI(base=Base, include={User, Item}, get_db=get_db, authn=authn)
+    api = AutoAPI(get_db=get_db, authn=authn)
+    api.include_models([User, Item])
     authn.register_inject_hook(api)
     app = FastAPI()
     app.include_router(api.router)
@@ -131,7 +132,8 @@ def _client_for_tenant(
             yield session
 
     authn = DummyAuth(user_id, tenant_id)
-    api = AutoAPI(base=Base, include={Tenant, Item}, get_db=get_db, authn=authn)
+    api = AutoAPI(get_db=get_db, authn=authn)
+    api.include_models([Tenant, Item])
     authn.register_inject_hook(api)
     app = FastAPI()
     app.include_router(api.router)
