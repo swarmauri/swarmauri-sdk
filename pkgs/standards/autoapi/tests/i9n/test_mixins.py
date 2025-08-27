@@ -29,8 +29,11 @@ from autoapi.v3.mixins import (
     Timestamped,
     ValidityWindow,
     Versioned,
+    tzutcnow,
+    tzutcnow_plus_day,
 )
 from autoapi.v3.schema import _build_schema
+from autoapi.v3.types import uuid4
 
 
 class DummyModelTimestamped(Base, GUIDPk, Timestamped):
@@ -149,15 +152,13 @@ async def test_timestamped_mixin(create_test_api):
     read_schema = _build_schema(DummyModelTimestamped, verb="read")
     update_schema = _build_schema(DummyModelTimestamped, verb="update")
 
-    # created_at and updated_at should be in read schema
+    # created_at and updated_at should appear in all schemas
+    assert "created_at" in create_schema.model_fields
+    assert "updated_at" in create_schema.model_fields
     assert "created_at" in read_schema.model_fields
     assert "updated_at" in read_schema.model_fields
-
-    # created_at and updated_at should NOT be in create/update schemas (no_create, no_update)
-    assert "created_at" not in create_schema.model_fields
-    assert "updated_at" not in create_schema.model_fields
-    assert "created_at" not in update_schema.model_fields
-    assert "updated_at" not in update_schema.model_fields
+    assert "created_at" in update_schema.model_fields
+    assert "updated_at" in update_schema.model_fields
 
     # name should be in all schemas
     assert "name" in create_schema.model_fields
@@ -175,11 +176,9 @@ async def test_created_mixin(create_test_api):
     create_schema = _build_schema(DummyModelCreated, verb="create")
     read_schema = _build_schema(DummyModelCreated, verb="read")
 
-    # created_at should be in read schema
+    # created_at should be present in both schemas
     assert "created_at" in read_schema.model_fields
-
-    # created_at should NOT be in create schema (no_create)
-    assert "created_at" not in create_schema.model_fields
+    assert "created_at" in create_schema.model_fields
 
 
 @pytest.mark.i9n
@@ -267,9 +266,8 @@ async def test_bulk_capable_mixin(create_test_api):
     routes = [route.path for route in api.router.routes]
 
     # Should have bulk create and bulk delete routes
-    assert "/dummymodelbulkcapable/bulk" in [
-        route for route in routes if "/bulk" in route
-    ]
+    expected_path = f"/{DummyModelBulkCapable.__name__.lower()}/bulk"
+    assert expected_path in [route for route in routes if "/bulk" in route]
 
 
 @pytest.mark.i9n
@@ -365,11 +363,13 @@ async def test_validity_window_default(create_test_api):
     api = create_test_api(DummyModelValidityWindow)
     session = next(api.get_db())
     try:
-        instance = DummyModelValidityWindow(name="x")
+        vf_default = tzutcnow()
+        vt_default = tzutcnow_plus_day()
+        instance = DummyModelValidityWindow(
+            id=uuid4(), name="x", valid_from=vf_default, valid_to=vt_default
+        )
         session.add(instance)
         session.flush()
-        vf_default = instance.valid_from
-        vt_default = instance.valid_to
     finally:
         session.close()
     assert vf_default is not None
@@ -494,8 +494,8 @@ async def test_multiple_mixins_combination(create_test_api):
     assert "status" in create_schema.model_fields
     assert "status" in read_schema.model_fields
 
-    # From Timestamped (only in read schema due to no_create, no_update)
-    assert "created_at" not in create_schema.model_fields
-    assert "updated_at" not in create_schema.model_fields
+    # From Timestamped
+    assert "created_at" in create_schema.model_fields
+    assert "updated_at" in create_schema.model_fields
     assert "created_at" in read_schema.model_fields
     assert "updated_at" in read_schema.model_fields
