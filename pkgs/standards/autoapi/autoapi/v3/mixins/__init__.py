@@ -93,7 +93,7 @@ class TenantMixin:
     """
 
     @declared_attr
-    def tenant_id(cls):
+    def tenant_id(cls) -> Mapped[UUID]:
         schema = getattr(cls, "__tenant_table_schema__", None) or _infer_schema(cls)
         spec = ColumnSpec(
             storage=S(
@@ -120,7 +120,7 @@ class UserMixin:
     """
 
     @declared_attr
-    def user_id(cls):
+    def user_id(cls) -> Mapped[UUID]:
         schema = getattr(cls, "__user_table_schema__", None) or _infer_schema(cls)
         spec = ColumnSpec(
             storage=S(
@@ -144,7 +144,7 @@ class OrgMixin:
     """
 
     @declared_attr
-    def org_id(cls):
+    def org_id(cls) -> Mapped[UUID]:
         schema = getattr(cls, "__org_table_schema__", None) or _infer_schema(cls)
         spec = ColumnSpec(
             storage=S(
@@ -166,7 +166,7 @@ class Principal:  # concrete table marker
 
 # ────────── bounded scopes  ----------------------------------
 class OwnerBound:
-    owner_id: UUID = acol(
+    owner_id: Mapped[UUID] = acol(
         spec=ColumnSpec(
             storage=S(
                 type_=PgUUID(as_uuid=True),
@@ -184,7 +184,7 @@ class OwnerBound:
 
 
 class UserBound:  # membership rows
-    user_id: UUID = acol(
+    user_id: Mapped[UUID] = acol(
         spec=ColumnSpec(
             storage=S(
                 type_=PgUUID(as_uuid=True),
@@ -295,7 +295,7 @@ class Versioned:
 @declarative_mixin
 class Contained:
     @declared_attr
-    def parent_id(cls):
+    def parent_id(cls) -> Mapped[UUID]:
         if not hasattr(cls, "parent_table"):
             raise AttributeError("subclass must set parent_table")
         spec = ColumnSpec(
@@ -318,7 +318,7 @@ class TreeNode:
     """
 
     @declared_attr
-    def parent_id(cls):
+    def parent_id(cls) -> Mapped[UUID | None]:
         spec = ColumnSpec(
             storage=S(
                 type_=PgUUID(as_uuid=True),
