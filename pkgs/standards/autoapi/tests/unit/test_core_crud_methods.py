@@ -13,8 +13,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Session, declarative_base
 from autoapi.v3.core import crud
-from autoapi.v3.columns import acol as col
-from autoapi.v3.specs import acol as spec_acol, IO, S, F
+from autoapi.v3.specs import IO, S, F, acol
 from autoapi.v3.types import Integer, String
 
 
@@ -23,49 +22,41 @@ Base = declarative_base()
 
 class Widget(Base):
     __tablename__ = "widgets"
-    id = col(
-        spec=spec_acol(
-            storage=S(type_=Integer, primary_key=True),
-            field=F(py_type=int),
-            io=IO(out_verbs=("read", "list")),
-        )
+    id = acol(
+        storage=S(type_=Integer, primary_key=True),
+        field=F(py_type=int),
+        io=IO(out_verbs=("read", "list")),
     )
-    name = col(
-        spec=spec_acol(
-            storage=S(type_=String(50)),
-            field=F(py_type=str),
-            io=IO(
-                in_verbs=("create", "update", "replace"),
-                out_verbs=("read", "list"),
-                mutable_verbs=("create", "update", "replace"),
-                filter_ops=("eq", "like", "in", "not_in"),
-                sortable=True,
-            ),
-        )
+    name = acol(
+        storage=S(type_=String(50)),
+        field=F(py_type=str),
+        io=IO(
+            in_verbs=("create", "update", "replace"),
+            out_verbs=("read", "list"),
+            mutable_verbs=("create", "update", "replace"),
+            filter_ops=("eq", "like", "in", "not_in"),
+            sortable=True,
+        ),
     )
-    value = col(
-        spec=spec_acol(
-            storage=S(type_=Integer, nullable=True),
-            field=F(py_type=int),
-            io=IO(
-                in_verbs=("create", "update", "replace"),
-                out_verbs=("read", "list"),
-                mutable_verbs=("create", "update", "replace"),
-                filter_ops=("eq", "gt", "lt", "gte", "lte"),
-                sortable=True,
-            ),
-        )
+    value = acol(
+        storage=S(type_=Integer, nullable=True),
+        field=F(py_type=int),
+        io=IO(
+            in_verbs=("create", "update", "replace"),
+            out_verbs=("read", "list"),
+            mutable_verbs=("create", "update", "replace"),
+            filter_ops=("eq", "gt", "lt", "gte", "lte"),
+            sortable=True,
+        ),
     )
-    immutable = col(
-        spec=spec_acol(
-            storage=S(type_=String(50)),
-            field=F(py_type=str),
-            io=IO(
-                in_verbs=("create",),
-                out_verbs=("read", "list"),
-                mutable_verbs=("create",),
-            ),
-        )
+    immutable = acol(
+        storage=S(type_=String(50)),
+        field=F(py_type=str),
+        io=IO(
+            in_verbs=("create",),
+            out_verbs=("read", "list"),
+            mutable_verbs=("create",),
+        ),
     )
 
 
