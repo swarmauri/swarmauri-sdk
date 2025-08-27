@@ -1,5 +1,5 @@
 """
-Info Schema Keys Tests for AutoAPI v2
+Info Schema Keys Tests for AutoAPI v3
 
 Tests supported info-schema keys: disable_on, write_only, read_only, default_factory,
 examples, py_type. Also verifies that hybrid properties are rejected.
@@ -7,7 +7,8 @@ Each key is tested individually using DummyModel instances.
 """
 
 import pytest
-from datetime import datetime
+from datetime import UTC, datetime
+from functools import partial
 from typing import get_args
 from autoapi.v3.types import Column, DateTime, Integer, JSON, String, hybrid_property
 
@@ -50,7 +51,8 @@ class DummyModelDefaultFactory(Base, GUIDPk):
 
     name = Column(String)
     timestamp = Column(
-        DateTime, info=dict(autoapi={"default_factory": datetime.utcnow})
+        DateTime,
+        info=dict(autoapi={"default_factory": partial(datetime.now, UTC)}),
     )
 
 
