@@ -114,6 +114,7 @@ def _filter_in_values(
     for k, v in data.items():
         sp = specs.get(k)
         if sp is None:
+            out[k] = v
             continue
         io = getattr(sp, "io", None)
         allowed = True
