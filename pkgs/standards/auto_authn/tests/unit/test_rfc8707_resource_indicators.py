@@ -12,8 +12,8 @@ from fastapi import FastAPI, status
 from httpx import ASGITransport, AsyncClient
 
 from auto_authn.runtime_cfg import settings
-from auto_authn.routers.auth_flows import router, _jwt, get_async_db
-
+from auto_authn.routers.auth_flows import router, _jwt
+from auto_authn.fastapi_deps import get_async_db
 
 @pytest.mark.unit
 @pytest.mark.asyncio

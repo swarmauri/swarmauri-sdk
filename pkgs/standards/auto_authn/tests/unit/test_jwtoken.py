@@ -404,9 +404,12 @@ class TestJWTCoder:
         tid = str(uuid4())
         token = coder.sign(sub=sub, tid=tid)
 
-        # Decode header to check algorithm without PyJWT
+        # Decode header to check algorithm without PyJWT.  The JWT segment may
+        # omit padding so we add it back before decoding to avoid "incorrect
+        # padding" errors on tokens whose header length is not divisible by 4.
         header_b64 = token.split(".")[0]
-        header = json.loads(base64.urlsafe_b64decode(header_b64 + "==").decode())
+        padding = "=" * (-len(header_b64) % 4)
+        header = json.loads(base64.urlsafe_b64decode(header_b64 + padding).decode())
         assert header["alg"] == _ALG  # Should be "EdDSA"
 
     def test_multiple_coders_independence(self):

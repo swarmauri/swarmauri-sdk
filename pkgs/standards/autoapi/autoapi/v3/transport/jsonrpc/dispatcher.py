@@ -4,7 +4,7 @@ JSON-RPC 2.0 dispatcher for AutoAPI v3.
 
 This module exposes a single helper:
 
-    build_jsonrpc_router(api, *, get_db=None, get_async_db=None) -> APIRouter
+    build_jsonrpc_router(api, *, get_db=None, get_async_db=None) -> Router
 
 - It mounts a POST endpoint at "/" that accepts either a single JSON-RPC request
   object or a batch (array) of request objects.
@@ -36,11 +36,10 @@ from typing import (
 )
 
 try:
-    from fastapi import APIRouter, Request, Body, Depends, HTTPException
-    from fastapi.responses import Response
+    from ...types import Router, Request, Body, Depends, HTTPException, Response
 except Exception:  # pragma: no cover
     # Minimal shims to keep this importable without FastAPI (for typing/tools)
-    class APIRouter:  # type: ignore
+    class Router:  # type: ignore
         def __init__(self, *a, **kw):
             self.routes = []
             self.dependencies = kw.get("dependencies", [])  # for parity
@@ -264,9 +263,9 @@ def build_jsonrpc_router(
     get_db: Optional[Callable[..., Any]] = None,
     get_async_db: Optional[Callable[..., Awaitable[Any]]] = None,
     tags: Sequence[str] | None = ("rpc",),
-) -> APIRouter:
+) -> Router:
     """
-    Build and return an APIRouter that serves a single POST endpoint at "/".
+    Build and return a Router that serves a single POST endpoint at "/".
     Mount it at your preferred prefix (e.g., "/rpc").
 
     If `get_async_db` or `get_db` is provided, it will be used as a FastAPI
@@ -284,7 +283,7 @@ def build_jsonrpc_router(
     """
     # Extra router-level deps (e.g., tracing, IP allowlist)
     extra_router_deps = _normalize_deps(getattr(api, "rpc_dependencies", None))
-    router = APIRouter(dependencies=extra_router_deps or None)
+    router = Router(dependencies=extra_router_deps or None)
 
     dep = get_async_db or get_db  # Prefer async DB getter if present
     auth_dep = _select_auth_dep(api)
@@ -417,7 +416,7 @@ def build_jsonrpc_router(
         summary="JSONRPC",
         description="JSON-RPC 2.0 endpoint.",
         response_model=RPCResponse | list[RPCResponse],
-        # extra router deps already applied via APIRouter(dependencies=...)
+        # extra router deps already applied via Router(dependencies=...)
     )
 
     # Compatibility: serve same endpoint without trailing slash

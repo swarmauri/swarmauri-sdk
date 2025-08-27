@@ -50,6 +50,7 @@ from ..deps.pydantic import (
 
 from ..deps.fastapi import (
     APIRouter,
+    Router,
     Security,
     Depends,
     Request,
@@ -145,6 +146,7 @@ __all__: list[str] = [
     "Request",
     "Response",
     "APIRouter",
+    "Router",
     "Security",
     "Depends",
     "Path",

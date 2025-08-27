@@ -1,6 +1,6 @@
 # autoapi/v3/transport/rest/aggregator.py
 """
-Aggregates per-model REST routers into a single APIRouter.
+Aggregates per-model REST routers into a single Router.
 
 This does not build endpoints by itself — it simply collects the routers that
 `autoapi.v3.bindings.rest` attached to each model at `model.rest.router`.
@@ -26,10 +26,10 @@ from __future__ import annotations
 from typing import Any, Mapping, Optional, Sequence
 
 try:
-    from fastapi import APIRouter, Depends
+    from ...types import Router, Depends
 except Exception:  # pragma: no cover
     # Minimal shim to keep importable without FastAPI
-    class APIRouter:  # type: ignore
+    class Router:  # type: ignore
         def __init__(self, *a, dependencies: Optional[Sequence[Any]] = None, **kw):
             self.routes = []
             self.includes = []
@@ -38,7 +38,7 @@ except Exception:  # pragma: no cover
         def add_api_route(self, path: str, endpoint, methods: Sequence[str], **opts):
             self.routes.append((path, methods, endpoint, opts))
 
-        def include_router(self, router: "APIRouter", *, prefix: str = "", **opts):
+        def include_router(self, router: "Router", *, prefix: str = "", **opts):
             self.includes.append((router, prefix, opts))
 
     def Depends(fn):  # type: ignore
@@ -80,9 +80,9 @@ def build_rest_router(
     models: Optional[Sequence[type]] = None,
     base_prefix: str = "",
     dependencies: Optional[Sequence[Any]] = None,
-) -> APIRouter:
+) -> Router:
     """
-    Build a top-level APIRouter that includes each model's router under `base_prefix`.
+    Build a top-level Router that includes each model's router under `base_prefix`.
 
     Args:
         api: your AutoAPI facade (or any object with `.models` dict).
@@ -91,9 +91,9 @@ def build_rest_router(
         dependencies: additional router-level dependencies (Depends(...) or callables).
 
     Returns:
-        APIRouter ready to be mounted on your FastAPI app.
+        Router ready to be mounted on your FastAPI app.
     """
-    root = APIRouter(dependencies=_normalize_deps(dependencies))
+    root = Router(dependencies=_normalize_deps(dependencies))
     prefix = _norm_prefix(base_prefix)
 
     for model in _iter_models(api, models):
@@ -114,7 +114,7 @@ def mount_rest(
     models: Optional[Sequence[type]] = None,
     base_prefix: str = "",
     dependencies: Optional[Sequence[Any]] = None,
-) -> APIRouter:
+) -> Router:
     """
     Convenience helper: build the aggregated router and include it on `app`.
 

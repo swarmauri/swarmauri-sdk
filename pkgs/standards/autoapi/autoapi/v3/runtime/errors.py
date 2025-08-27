@@ -312,6 +312,19 @@ def rpc_error_to_http(
     return http_exc
 
 
+# Backward compatibility shims
+def _http_exc_to_rpc(exc: HTTPException) -> tuple[int, str, Any | None]:
+    """Alias for :func:`http_exc_to_rpc` to preserve older import paths."""
+    return http_exc_to_rpc(exc)
+
+
+def _rpc_error_to_http(
+    rpc_code: int, message: str | None = None, data: Any | None = None
+) -> HTTPException:
+    """Alias for :func:`rpc_error_to_http` to preserve older import paths."""
+    return rpc_error_to_http(rpc_code, message, data)
+
+
 # ───────────────────── Exception → Standardized error ─────────────────────────
 
 
@@ -490,6 +503,8 @@ __all__ = [
     # conversions
     "http_exc_to_rpc",
     "rpc_error_to_http",
+    "_http_exc_to_rpc",
+    "_rpc_error_to_http",
     "create_standardized_error",
     "create_standardized_error_from_status",
     "to_rpc_error_payload",
