@@ -37,6 +37,7 @@ from sqlalchemy.orm import (
     remote,
     column_property,
     Session,
+    InstrumentedAttribute,
 )
 
 # ── SQLAlchemy Extensions ────────────────────────────────────────────────
@@ -90,6 +91,7 @@ __all__ = [
     "remote",
     "column_property",
     "Session",
+    "InstrumentedAttribute",
     # Extensions
     "MutableDict",
     "MutableList",

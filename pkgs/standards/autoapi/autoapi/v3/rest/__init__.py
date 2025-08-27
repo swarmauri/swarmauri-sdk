@@ -9,7 +9,7 @@ from typing import Optional, Type
 from ..config.constants import AUTOAPI_NESTED_PATHS_ATTR
 
 
-def _nested_prefix(self, model: Type) -> Optional[str]:
+def _nested_prefix(model: Type) -> Optional[str]:
     """Return the user-supplied hierarchical prefix or *None*.
 
     • If the SQLAlchemy model defines `__autoapi_nested_paths__`

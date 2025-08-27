@@ -1,6 +1,6 @@
-from autoapi.v3 import app
+from autoapi.v3 import App
 from fastapi import FastAPI
 
 
 def test_app_reexport():
-    assert app is FastAPI
+    assert App is FastAPI
