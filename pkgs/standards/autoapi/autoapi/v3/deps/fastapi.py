@@ -1,6 +1,7 @@
 # ── FastAPI Imports ─────────────────────────────────────────────────────
 from fastapi import (
     APIRouter,
+    FastAPI,
     Security,
     Depends,
     Request,
@@ -10,10 +11,13 @@ from fastapi import (
     HTTPException,
 )
 
+app = FastAPI
+
 
 # ── Public Exports ───────────────────────────────────────────────────────
 __all__ = [
     "APIRouter",
+    "FastAPI",
     "Security",
     "Depends",
     "Request",
@@ -21,4 +25,5 @@ __all__ = [
     "Path",
     "Body",
     "HTTPException",
+    "app",
 ]
