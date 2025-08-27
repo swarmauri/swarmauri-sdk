@@ -1,10 +1,10 @@
 import pytest
 from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, declarative_base
+from sqlalchemy.orm import declarative_base
 
 from autoapi.v3.core import crud
 from autoapi.v3.specs import F, IO, S, acol
-from autoapi.v3.types import Integer, String
+from autoapi.v3.types import Integer, Session, String
 
 Base = declarative_base()
 
@@ -12,7 +12,7 @@ Base = declarative_base()
 class Widget(Base):
     __tablename__ = "widgets"
     id = acol(
-        storage=S(type_=Integer, primary_key=True),
+        storage=S(type_=Integer, primary_key=True, autoincrement=True),
         field=F(py_type=int),
         io=IO(out_verbs=("read", "list")),
     )
