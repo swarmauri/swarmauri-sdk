@@ -1,5 +1,6 @@
+import inspect
 import pytest
-import uuid
+from autoapi.v3.types import UUID
 from autoapi.v3.compat.transactional import transactional
 
 
@@ -8,18 +9,17 @@ from autoapi.v3.compat.transactional import transactional
 async def test_transaction_decorator(api_client):
     client, api, Item = api_client
 
-    def fail(params, db):
-        obj = Item(tenant_id=uuid.UUID(params["tenant_id"]), name=params["name"])
+    async def fail(payload, db):
+        obj = Item(tenant_id=UUID(payload["tenant_id"]), name=payload["name"])
         db.add(obj)
-        db.flush()
-        if params.get("fail"):
+        flush_result = db.flush()
+        if inspect.isawaitable(flush_result):
+            await flush_result
+        if payload.get("fail"):
             raise ValueError("boom")
         return {"id": obj.id}
 
     fail = transactional(api, fail)
-
-    api.rpc["Item.fail"] = fail
-    api._method_ids["Item.fail"] = None
 
     t = await client.post("/tenant", json={"name": "tx"})
     tid = t.json()["id"]
@@ -27,7 +27,7 @@ async def test_transaction_decorator(api_client):
     bad = await client.post(
         "/rpc",
         json={
-            "method": "Item.fail",
+            "method": "Txn.fail",
             "params": {"tenant_id": tid, "name": "a", "fail": True},
         },
     )
@@ -38,7 +38,7 @@ async def test_transaction_decorator(api_client):
 
     ok = await client.post(
         "/rpc",
-        json={"method": "Item.fail", "params": {"tenant_id": tid, "name": "b"}},
+        json={"method": "Txn.fail", "params": {"tenant_id": tid, "name": "b"}},
     )
     assert ok.json()["result"]["id"]
     lst2 = await client.get("/item")
