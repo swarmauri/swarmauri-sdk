@@ -504,7 +504,6 @@ class Key(Base):
             )
         alg_str = _alg_to_provider(key_obj.algorithm)
 
-        import inspect
         from swarmauri_core.crypto.types import (
             ExportPolicy,
             KeyRef,
@@ -512,71 +511,40 @@ class Key(Base):
             KeyUse,
         )
 
+        version = next(
+            (v for v in key_obj.versions if v.version == key_obj.primary_version),
+            None,
+        )
+        if version is None or version.public_material is None:
+            raise HTTPException(status_code=500, detail="Key material missing")
+
+        key_ref = KeyRef(
+            kid=kid,
+            version=key_obj.primary_version,
+            type=KeyType.SYMMETRIC,
+            uses=(KeyUse.WRAP, KeyUse.UNWRAP),
+            export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
+            material=bytes(version.public_material),
+        )
+
         try:
-            inspect.signature(crypto.wrap).parameters["kid"]
-        except KeyError:
-            version = next(
-                (v for v in key_obj.versions if v.version == key_obj.primary_version),
-                None,
+            res = await crypto.wrap(
+                key_ref,
+                dek=key_material,
+                wrap_alg=alg_str,
+                nonce=None,
+                aad=aad,
             )
-            if version is None or version.public_material is None:
-                raise HTTPException(status_code=500, detail="Key material missing")
-            key_ref = KeyRef(
-                kid=kid,
-                version=key_obj.primary_version,
-                type=KeyType.SYMMETRIC,
-                uses=(KeyUse.WRAP, KeyUse.UNWRAP),
-                export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
-                material=bytes(version.public_material),
-            )
-            try:
-                res = await crypto.wrap(
-                    key_ref,
-                    dek=key_material,
-                    wrap_alg=alg_str,
-                    nonce=None,
-                )
-            except Exception:
-                res = await crypto.encrypt(
-                    key_ref,
-                    key_material,
-                    alg=alg_str,
-                    aad=aad,
-                    nonce=None,
-                )
-        else:
-            try:
-                res = await crypto.wrap(
-                    kid=kid,
-                    key_material=key_material,
-                    alg=alg_str,
-                    aad=aad,
-                )
-            except Exception:
-                res = await crypto.encrypt(
-                    kid=kid,
-                    plaintext=key_material,
-                    alg=alg_str,
-                    aad=aad,
-                )
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail="Key wrapping failed") from exc
 
         return {
             "kid": kid,
-            "version": getattr(res, "version", key_obj.primary_version),
+            "version": res.kek_version,
             "alg": key_obj.algorithm,
-            "nonce_b64": (
-                base64.b64encode(getattr(res, "nonce")).decode()
-                if getattr(res, "nonce", None)
-                else None
-            ),
-            "wrapped_key_b64": base64.b64encode(
-                getattr(res, "ct", getattr(res, "wrapped"))
-            ).decode(),
-            "tag_b64": (
-                base64.b64encode(getattr(res, "tag")).decode()
-                if getattr(res, "tag", None)
-                else None
-            ),
+            "nonce_b64": base64.b64encode(res.nonce).decode() if res.nonce else None,
+            "wrapped_key_b64": base64.b64encode(res.wrapped).decode(),
+            "tag_b64": base64.b64encode(res.tag).decode() if res.tag else None,
             "aad_b64": p.get("aad_b64"),
         }
 
@@ -634,9 +602,7 @@ class Key(Base):
         key_obj = ctx["key"]
         alg_str = _alg_to_provider(key_obj.algorithm)
 
-        import inspect
         from swarmauri_core.crypto.types import (
-            AEADCiphertext,
             ExportPolicy,
             KeyRef,
             KeyType,
@@ -644,62 +610,37 @@ class Key(Base):
             WrappedKey,
         )
 
+        version = next(
+            (v for v in key_obj.versions if v.version == key_obj.primary_version),
+            None,
+        )
+        if version is None or version.public_material is None:
+            raise HTTPException(status_code=500, detail="Key material missing")
+
+        key_ref = KeyRef(
+            kid=kid,
+            version=key_obj.primary_version,
+            type=KeyType.SYMMETRIC,
+            uses=(KeyUse.UNWRAP, KeyUse.WRAP),
+            export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
+            material=bytes(version.public_material),
+        )
+
+        wrapped = WrappedKey(
+            kek_kid=kid,
+            kek_version=key_obj.primary_version,
+            wrap_alg=alg_str or "",
+            wrapped=wrapped_key,
+            nonce=nonce,
+            tag=tag,
+        )
+
         try:
-            inspect.signature(crypto.unwrap).parameters["kid"]
-        except KeyError:
-            version = next(
-                (v for v in key_obj.versions if v.version == key_obj.primary_version),
-                None,
-            )
-            if version is None or version.public_material is None:
-                raise HTTPException(status_code=500, detail="Key material missing")
-            key_ref = KeyRef(
-                kid=kid,
-                version=key_obj.primary_version,
-                type=KeyType.SYMMETRIC,
-                uses=(KeyUse.UNWRAP, KeyUse.WRAP),
-                export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
-                material=bytes(version.public_material),
-            )
-            try:
-                wrapped = WrappedKey(
-                    kek_kid=kid,
-                    kek_version=key_obj.primary_version,
-                    wrap_alg=alg_str or "",
-                    wrapped=wrapped_key,
-                    nonce=nonce,
-                )
-                key_material = await crypto.unwrap(key_ref, wrapped)
-            except Exception:
-                ct_obj = AEADCiphertext(
-                    kid=kid,
-                    version=key_obj.primary_version,
-                    alg=alg_str or "AES-256-GCM",
-                    nonce=nonce or b"",
-                    ct=wrapped_key,
-                    tag=tag or b"",
-                    aad=aad,
-                )
-                key_material = await crypto.decrypt(key_ref, ct_obj, aad=aad)
-        else:
-            try:
-                key_material = await crypto.unwrap(
-                    kid=kid,
-                    wrapped_key=wrapped_key,
-                    nonce=nonce,
-                    tag=tag,
-                    aad=aad,
-                    alg=alg_str,
-                )
-            except Exception:
-                key_material = await crypto.decrypt(
-                    kid=kid,
-                    ciphertext=wrapped_key,
-                    nonce=nonce or b"",
-                    tag=tag,
-                    aad=aad,
-                    alg=alg_str,
-                )
+            key_material = await crypto.unwrap(key_ref, wrapped, aad=aad)
+        except Exception as exc:
+            raise HTTPException(
+                status_code=500, detail="Key unwrapping failed"
+            ) from exc
 
         return {"key_material_b64": base64.b64encode(key_material).decode()}
 
