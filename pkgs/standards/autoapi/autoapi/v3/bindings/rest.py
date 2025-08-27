@@ -4,14 +4,25 @@ from __future__ import annotations
 import dataclasses
 import inspect
 import logging
+import re
 import typing as _typing
 from types import SimpleNamespace
-from typing import Any, Awaitable, Callable, Dict, Mapping, Optional, Sequence, Tuple
+from typing import (
+    Annotated,
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+)
 
 from typing import get_origin as _get_origin, get_args as _get_args
 
 try:
-    from ..types import Router, Request, Body, Depends, HTTPException, Response
+    from ..types import Router, Request, Body, Depends, HTTPException, Response, Path
     from fastapi import Query
     from fastapi import status as _status
 except Exception:  # pragma: no cover
@@ -82,6 +93,8 @@ from ..config.constants import (
     AUTOAPI_AUTH_DEP_ATTR,
     AUTOAPI_REST_DEPENDENCIES_ATTR,
 )
+from ..rest import _nested_prefix
+from ..schema.builder import _strip_parent_fields
 
 logger = logging.getLogger(__name__)
 
@@ -588,9 +601,11 @@ def _make_collection_endpoint(
     *,
     resource: str,
     db_dep: Callable[..., Any],
+    nested_vars: Sequence[str] | None = None,
 ) -> Callable[..., Awaitable[Any]]:
     alias = sp.alias
     target = sp.target
+    nested_vars = list(nested_vars or [])
 
     # --- No body on GET list / DELETE clear ---
     if target in {"list", "clear"}:
@@ -601,13 +616,17 @@ def _make_collection_endpoint(
                 request: Request,
                 q: Mapping[str, Any] = Depends(list_dep),
                 db: Any = Depends(db_dep),
+                **kw: Any,
             ):
-                payload = _validate_query(model, alias, target, dict(q))
+                parent_kw = {k: kw[k] for k in nested_vars if k in kw}
+                query = dict(q)
+                query.update(parent_kw)
+                payload = _validate_query(model, alias, target, query)
                 ctx: Dict[str, Any] = {
                     "request": request,
                     "db": db,
                     "payload": payload,
-                    "path_params": {},
+                    "path_params": parent_kw,
                     "env": SimpleNamespace(
                         method=alias, params=payload, target=target, model=model
                     ),
@@ -620,19 +639,49 @@ def _make_collection_endpoint(
                     ctx=ctx,
                 )
                 return _serialize_output(model, alias, target, sp, result)
+
+            params = [
+                inspect.Parameter(
+                    nv,
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Annotated[str, Path(...)],
+                )
+                for nv in nested_vars
+            ]
+            params.extend(
+                [
+                    inspect.Parameter(
+                        "request",
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=Request,
+                    ),
+                    inspect.Parameter(
+                        "q",
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=Annotated[Mapping[str, Any], Depends(list_dep)],
+                    ),
+                    inspect.Parameter(
+                        "db",
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=Annotated[Any, Depends(db_dep)],
+                    ),
+                ]
+            )
+            _endpoint.__signature__ = inspect.Signature(params)
         else:
 
             async def _endpoint(
                 request: Request,
                 db: Any = Depends(db_dep),
+                **kw: Any,
             ):
-                # clear: strict — ignore query/body entirely
-                payload: Mapping[str, Any] = {}
+                parent_kw = {k: kw[k] for k in nested_vars if k in kw}
+                payload: Mapping[str, Any] = dict(parent_kw)
                 ctx: Dict[str, Any] = {
                     "request": request,
                     "db": db,
                     "payload": payload,
-                    "path_params": {},
+                    "path_params": parent_kw,
                     "env": SimpleNamespace(
                         method=alias, params=payload, target=target, model=model
                     ),
@@ -645,6 +694,30 @@ def _make_collection_endpoint(
                     ctx=ctx,
                 )
                 return _serialize_output(model, alias, target, sp, result)
+
+            params = [
+                inspect.Parameter(
+                    nv,
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Annotated[str, Path(...)],
+                )
+                for nv in nested_vars
+            ]
+            params.extend(
+                [
+                    inspect.Parameter(
+                        "request",
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=Request,
+                    ),
+                    inspect.Parameter(
+                        "db",
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=Annotated[Any, Depends(db_dep)],
+                    ),
+                ]
+            )
+            _endpoint.__signature__ = inspect.Signature(params)
 
         _endpoint.__name__ = f"rest_{model.__name__}_{alias}_collection"
         _endpoint.__qualname__ = _endpoint.__name__
@@ -663,13 +736,21 @@ def _make_collection_endpoint(
         request: Request,
         db: Any = Depends(db_dep),
         body=Body(...),
+        **kw: Any,
     ):
+        parent_kw = {k: kw[k] for k in nested_vars if k in kw}
         payload = _validate_body(model, alias, target, body)
+        if parent_kw:
+            if isinstance(payload, Mapping):
+                payload = dict(payload)
+                payload.update(parent_kw)
+            else:
+                payload = parent_kw
         ctx: Dict[str, Any] = {
             "request": request,
             "db": db,
             "payload": payload,
-            "path_params": {},
+            "path_params": parent_kw,
             "env": SimpleNamespace(
                 method=alias, params=payload, target=target, model=model
             ),
@@ -685,6 +766,35 @@ def _make_collection_endpoint(
             ctx=ctx,
         )
         return result
+
+    params = [
+        inspect.Parameter(
+            nv,
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            annotation=Annotated[str, Path(...)],
+        )
+        for nv in nested_vars
+    ]
+    params.extend(
+        [
+            inspect.Parameter(
+                "request",
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                annotation=Request,
+            ),
+            inspect.Parameter(
+                "db",
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                annotation=Annotated[Any, Depends(db_dep)],
+            ),
+            inspect.Parameter(
+                "body",
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                annotation=Annotated[body_annotation, Body(...)],
+            ),
+        ]
+    )
+    _endpoint.__signature__ = inspect.Signature(params)
 
     _endpoint.__name__ = f"rest_{model.__name__}_{alias}_collection"
     _endpoint.__qualname__ = _endpoint.__name__
@@ -702,11 +812,13 @@ def _make_member_endpoint(
     resource: str,
     db_dep: Callable[..., Any],
     pk_param: str = "item_id",
+    nested_vars: Sequence[str] | None = None,
 ) -> Callable[..., Awaitable[Any]]:
     alias = sp.alias
     target = sp.target
     real_pk = _pk_name(model)
     pk_names = _pk_names(model)
+    nested_vars = list(nested_vars or [])
 
     # --- No body on GET read / DELETE delete ---
     if target in {"read", "delete"}:
@@ -715,14 +827,16 @@ def _make_member_endpoint(
             item_id: Any,
             request: Request,
             db: Any = Depends(db_dep),
+            **kw: Any,
         ):
-            payload: Mapping[str, Any] = {}  # no body
+            parent_kw = {k: kw[k] for k in nested_vars if k in kw}
+            payload: Mapping[str, Any] = dict(parent_kw)
+            path_params = {real_pk: item_id, pk_param: item_id, **parent_kw}
             ctx: Dict[str, Any] = {
                 "request": request,
                 "db": db,
                 "payload": payload,
-                # map generic item_id to real PK column name for handler resolution
-                "path_params": {real_pk: item_id, pk_param: item_id},
+                "path_params": path_params,
                 "env": SimpleNamespace(
                     method=alias, params=payload, target=target, model=model
                 ),
@@ -738,6 +852,35 @@ def _make_member_endpoint(
                 ctx=ctx,
             )
             return result
+
+        params = [
+            inspect.Parameter(
+                nv,
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                annotation=Annotated[str, Path(...)],
+            )
+            for nv in nested_vars
+        ]
+        params.extend(
+            [
+                inspect.Parameter(
+                    "item_id",
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Annotated[Any, Path(...)],
+                ),
+                inspect.Parameter(
+                    "request",
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Request,
+                ),
+                inspect.Parameter(
+                    "db",
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Annotated[Any, Depends(db_dep)],
+                ),
+            ]
+        )
+        _endpoint.__signature__ = inspect.Signature(params)
 
         _endpoint.__name__ = f"rest_{model.__name__}_{alias}_member"
         _endpoint.__qualname__ = _endpoint.__name__
@@ -754,13 +897,16 @@ def _make_member_endpoint(
             item_id: Any,
             request: Request,
             db: Any = Depends(db_dep),
+            **kw: Any,
         ):
-            payload: Mapping[str, Any] = {}  # no body
+            parent_kw = {k: kw[k] for k in nested_vars if k in kw}
+            payload: Mapping[str, Any] = dict(parent_kw)
+            path_params = {real_pk: item_id, pk_param: item_id, **parent_kw}
             ctx: Dict[str, Any] = {
                 "request": request,
                 "db": db,
                 "payload": payload,
-                "path_params": {real_pk: item_id, pk_param: item_id},
+                "path_params": path_params,
                 "env": SimpleNamespace(
                     method=alias, params=payload, target=target, model=model
                 ),
@@ -776,6 +922,35 @@ def _make_member_endpoint(
                 ctx=ctx,
             )
             return result
+
+        params = [
+            inspect.Parameter(
+                nv,
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                annotation=Annotated[str, Path(...)],
+            )
+            for nv in nested_vars
+        ]
+        params.extend(
+            [
+                inspect.Parameter(
+                    "item_id",
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Annotated[Any, Path(...)],
+                ),
+                inspect.Parameter(
+                    "request",
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Request,
+                ),
+                inspect.Parameter(
+                    "db",
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Annotated[Any, Depends(db_dep)],
+                ),
+            ]
+        )
+        _endpoint.__signature__ = inspect.Signature(params)
 
         _endpoint.__name__ = f"rest_{model.__name__}_{alias}_member"
         _endpoint.__qualname__ = _endpoint.__name__
@@ -798,7 +973,9 @@ def _make_member_endpoint(
         request: Request,
         db: Any = Depends(db_dep),
         body=body_default,
+        **kw: Any,
     ):
+        parent_kw = {k: kw[k] for k in nested_vars if k in kw}
         payload = _validate_body(model, alias, target, body)
 
         # Enforce path-PK canonicality. If body echoes PK: drop if equal, 409 if mismatch.
@@ -809,15 +986,18 @@ def _make_member_endpoint(
                         status_code=_status.HTTP_409_CONFLICT,
                         detail=f"Identifier mismatch for '{k}': path={item_id}, body={payload[k]}",
                     )
-                # Drop any echoed PK fields from body
                 payload.pop(k, None)
         payload.pop(pk_param, None)
+        if parent_kw:
+            payload.update(parent_kw)
+
+        path_params = {real_pk: item_id, pk_param: item_id, **parent_kw}
 
         ctx: Dict[str, Any] = {
             "request": request,
             "db": db,
             "payload": payload,
-            "path_params": {real_pk: item_id, pk_param: item_id},
+            "path_params": path_params,
             "env": SimpleNamespace(
                 method=alias, params=payload, target=target, model=model
             ),
@@ -833,6 +1013,40 @@ def _make_member_endpoint(
             ctx=ctx,
         )
         return result
+
+    params = [
+        inspect.Parameter(
+            nv,
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            annotation=Annotated[str, Path(...)],
+        )
+        for nv in nested_vars
+    ]
+    params.extend(
+        [
+            inspect.Parameter(
+                "item_id",
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                annotation=Annotated[Any, Path(...)],
+            ),
+            inspect.Parameter(
+                "request",
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                annotation=Request,
+            ),
+            inspect.Parameter(
+                "db",
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                annotation=Annotated[Any, Depends(db_dep)],
+            ),
+            inspect.Parameter(
+                "body",
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                annotation=Annotated[body_annotation, body_default],
+            ),
+        ]
+    )
+    _endpoint.__signature__ = inspect.Signature(params)
 
     _endpoint.__name__ = f"rest_{model.__name__}_{alias}_member"
     _endpoint.__qualname__ = _endpoint.__name__
@@ -866,14 +1080,50 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
         or _req_state_db
     )
 
+    raw_nested = _nested_prefix(model) or ""
+    nested_pref = re.sub(r"/{2,}", "/", raw_nested).rstrip("/") or ""
+    nested_vars = re.findall(r"{(\w+)}", raw_nested)
+
     for sp in specs:
         if not sp.expose_routes:
             continue
 
+        # Drop parent identifiers from request models when using nested paths
+        if nested_vars:
+            schemas_root = getattr(model, "schemas", None)
+            if schemas_root:
+                alias_ns = getattr(schemas_root, sp.alias, None)
+                if alias_ns:
+                    in_model = getattr(alias_ns, "in_", None)
+                    if (
+                        in_model
+                        and inspect.isclass(in_model)
+                        and issubclass(in_model, BaseModel)
+                    ):
+                        pruned = _strip_parent_fields(in_model, drop=set(nested_vars))
+                        setattr(alias_ns, "in_", pruned)
+
         # Determine path and membership
-        path, is_member = _path_for_spec(
-            model, sp, resource=resource, pk_param=pk_param
-        )
+        if nested_pref:
+            suffix = sp.path_suffix or _default_path_suffix(sp) or ""
+            if not suffix.startswith("/") and suffix:
+                suffix = "/" + suffix
+            base = nested_pref
+            if sp.arity == "member" or sp.target in {
+                "read",
+                "update",
+                "replace",
+                "delete",
+            }:
+                path = f"{base}/{{{pk_param}}}{suffix}"
+                is_member = True
+            else:
+                path = f"{base}{suffix}"
+                is_member = False
+        else:
+            path, is_member = _path_for_spec(
+                model, sp, resource=resource, pk_param=pk_param
+            )
 
         # HARDEN list.in_ at runtime to avoid bogus defaults blowing up empty GETs
         if sp.target == "list":
@@ -898,11 +1148,20 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
         # Build endpoint (split by body/no-body)
         if is_member:
             endpoint = _make_member_endpoint(
-                model, sp, resource=resource, db_dep=db_dep, pk_param=pk_param
+                model,
+                sp,
+                resource=resource,
+                db_dep=db_dep,
+                pk_param=pk_param,
+                nested_vars=nested_vars,
             )
         else:
             endpoint = _make_collection_endpoint(
-                model, sp, resource=resource, db_dep=db_dep
+                model,
+                sp,
+                resource=resource,
+                db_dep=db_dep,
+                nested_vars=nested_vars,
             )
 
         # Status codes

@@ -70,9 +70,14 @@ from .system.dbschema import ensure_schemas, register_sqlite_attach, bootstrap_d
 # ── Config constants (defaults used by REST) ───────────────────────────────────
 from .config.constants import DEFAULT_HTTP_METHODS
 from .autoapi import AutoAPI
-from .deps import app
-
+from fastapi import FastAPI
 from .tables import Base
+
+
+def app() -> FastAPI:  # pragma: no cover - thin wrapper
+    """Return a new FastAPI application instance."""
+    return FastAPI()
+
 
 __all__: list[str] = []
 
