@@ -14,7 +14,7 @@ Base = declarative_base()
 class Widget(Base):
     __tablename__ = "widgets"
     id = acol(
-        storage=S(type_=Integer, primary_key=True),
+        storage=S(type_=Integer, primary_key=True, autoincrement=True),
         field=F(py_type=int),
         io=IO(out_verbs=("read", "list")),
     )
