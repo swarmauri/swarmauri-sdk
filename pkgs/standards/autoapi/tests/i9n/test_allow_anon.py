@@ -1,15 +1,24 @@
-from fastapi import FastAPI, HTTPException, Request, Security
 from fastapi.testclient import TestClient
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from uuid import uuid4
-from sqlalchemy import Column, ForeignKey, String, create_engine
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from autoapi.v3 import AutoAPI, Base
+from autoapi.v3.autoapi import AutoAPI
 from autoapi.v3.mixins import GUIDPk
-from autoapi.v3.types.authn_abc import AuthNProvider
+from autoapi.v3.tables import Base
+from autoapi.v3.types import (
+    App,
+    AuthNProvider,
+    Column,
+    ForeignKey,
+    HTTPException,
+    PgUUID,
+    Request,
+    Security,
+    String,
+    uuid4,
+)
 
 
 class DummyAuth(AuthNProvider):
@@ -21,7 +30,9 @@ class DummyAuth(AuthNProvider):
         ),
     ):
         if creds is None:
-            return None
+            if request.method == "GET":
+                return None
+            raise HTTPException(status_code=409)
         if creds.credentials != "secret":
             raise HTTPException(status_code=401)
         return {"sub": "user"}
@@ -39,7 +50,9 @@ def _build_client():
 
     class Item(Base, GUIDPk):
         __tablename__ = "items"
-        tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
+        tenant_id = Column(
+            PgUUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
+        )
         name = Column(String, nullable=False)
 
         @classmethod
@@ -62,7 +75,7 @@ def _build_client():
     api.set_auth(authn=auth.get_principal)
     auth.register_inject_hook(api)
     api.include_models([Tenant, Item])
-    app = FastAPI()
+    app = App()
     app.include_router(api.router)
     api.initialize_sync()
     return TestClient(app), SessionLocal, Tenant, Item
@@ -77,7 +90,9 @@ def _build_client_attr():
 
     class Item(Base, GUIDPk):
         __tablename__ = "items"
-        tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
+        tenant_id = Column(
+            PgUUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
+        )
         name = Column(String, nullable=False)
 
         __autoapi_allow_anon__ = {"list", "read"}
@@ -98,7 +113,7 @@ def _build_client_attr():
     api.set_auth(authn=auth.get_principal)
     auth.register_inject_hook(api)
     api.include_models([Tenant, Item])
-    app = FastAPI()
+    app = App()
     app.include_router(api.router)
     api.initialize_sync()
     return TestClient(app), SessionLocal, Tenant, Item
