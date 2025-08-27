@@ -1,7 +1,7 @@
 import base64
 import importlib
 import asyncio
-
+import secrets
 
 import pytest
 from fastapi.testclient import TestClient
@@ -21,6 +21,25 @@ def client_paramiko(tmp_path, monkeypatch):
     monkeypatch.setenv("KMS_DATABASE_URL", f"sqlite+aiosqlite:///{db_path}")
     app = importlib.reload(importlib.import_module("auto_kms.app"))
 
+    class DummySecrets:
+        async def store_key(
+            self,
+            *,
+            key_type,
+            uses,
+            name=None,
+            material=None,
+            export_policy=None,
+            tags=None,
+            tenant=None,
+        ):
+            return None
+
+    async def stash_secrets(ctx):
+        ctx["secrets"] = DummySecrets()
+
+    app.api.hooks.KeyVersion.create.PRE_TX_BEGIN.append(stash_secrets)
+
     async def init_db():
         async with app.engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
@@ -38,7 +57,13 @@ def test_key_encrypt_decrypt_with_paramiko_crypto(client_paramiko):
     client = client_paramiko
 
     key = _create_key(client)
-    kv_payload = {"key_id": key["id"], "version": 2, "status": "active"}
+    material_b64 = base64.b64encode(secrets.token_bytes(32)).decode()
+    kv_payload = {
+        "key_id": key["id"],
+        "version": 2,
+        "status": "active",
+        "public_material_b64": material_b64,
+    }
     res = client.post("/kms/key_version", json=kv_payload)
     assert res.status_code == 201
 
@@ -60,7 +85,13 @@ def test_encrypt_accepts_unpadded_base64(client_paramiko):
     client = client_paramiko
 
     key = _create_key(client, name="k2")
-    kv_payload = {"key_id": key["id"], "version": 2, "status": "active"}
+    material_b64 = base64.b64encode(secrets.token_bytes(32)).decode()
+    kv_payload = {
+        "key_id": key["id"],
+        "version": 2,
+        "status": "active",
+        "public_material_b64": material_b64,
+    }
     res = client.post("/kms/key_version", json=kv_payload)
     assert res.status_code == 201
 
