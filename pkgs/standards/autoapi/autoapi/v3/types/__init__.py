@@ -80,6 +80,8 @@ from .response_extras_provider import (
 
 from .op_verb_alias_provider import OpVerbAliasProvider, list_verb_alias_providers
 from .op_config_provider import OpConfigProvider
+from ..tables import Base
+from ..mixins import GUIDPk
 
 
 # ── Public Re-exports (Backwards Compatibility) ──────────────────────────
@@ -99,6 +101,8 @@ __all__: list[str] = [
     "list_request_extras_providers",
     "list_response_extras_providers",
     "OpConfigProvider",
+    "Base",
+    "GUIDPk",
     # builtin types
     "MethodType",
     "SimpleNamespace",
