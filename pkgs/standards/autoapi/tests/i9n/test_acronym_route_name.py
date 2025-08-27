@@ -1,8 +1,7 @@
 import pytest
-from sqlalchemy import Column, String
-
 from autoapi.v3 import Base
 from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.types import Column, String
 
 
 @pytest.mark.i9n
