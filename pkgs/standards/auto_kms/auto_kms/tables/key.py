@@ -32,10 +32,14 @@ class KeyAlg(str, Enum):
     RSA3072 = "RSA3072"
 
 
-def _alg_to_provider(alg: KeyAlg | str) -> str:
+def _alg_to_provider(alg: KeyAlg | str) -> Optional[str]:
     """Translate a :class:`KeyAlg` into the algorithm string expected by crypto providers."""
     alg_val = alg.value if isinstance(alg, KeyAlg) else alg
-    return "AES-256-GCM" if alg_val == KeyAlg.AES256_GCM.value else alg_val
+    if alg_val == KeyAlg.AES256_GCM.value:
+        return "AES-256-GCM"
+    if alg_val in (KeyAlg.RSA2048.value, KeyAlg.RSA3072.value):
+        return None
+    return alg_val
 
 
 class KeyStatus(str, Enum):
@@ -118,7 +122,7 @@ class Key(Base):
     )
 
     nonce_b64: Optional[str] = vcol(
-        field=F(required_in=("decrypt", "unwrap"), allow_null_in=("encrypt", "wrap")),
+        field=F(required_in=("decrypt",), allow_null_in=("encrypt", "wrap", "unwrap")),
         io=IO(in_verbs=("encrypt", "decrypt", "unwrap"), out_verbs=("encrypt", "wrap")),
     )
 
@@ -160,20 +164,12 @@ class Key(Base):
     @hook_ctx(ops="create", phase="POST_HANDLER")
     async def _seed_primary_version(cls, ctx):
         import secrets
-        from swarmauri_core.crypto.types import (
-            ExportPolicy,
-            KeyType,
-            KeyUse,
-        )
         from .key_version import KeyVersion
 
         db = ctx.get("db")
         key_obj = ctx.get("result")
-        secrets_drv = ctx.get("secrets")
         if db is None or key_obj is None:
             raise HTTPException(status_code=500, detail="DB session missing")
-        if secrets_drv is None:
-            raise HTTPException(status_code=500, detail="Secrets driver missing")
 
         if key_obj.algorithm != KeyAlg.AES256_GCM:
             return  # only symmetric keys supported for now
@@ -191,14 +187,6 @@ class Key(Base):
         )
         if not existing:
             material = secrets.token_bytes(32)
-            await secrets_drv.store_key(
-                key_type=KeyType.SYMMETRIC,
-                uses=(KeyUse.ENCRYPT, KeyUse.DECRYPT),
-                name=str(key_obj.id),
-                material=material,
-                export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
-            )
-            # Create the initial version directly to avoid handler schema/alias mismatches
             kv = KeyVersion(
                 key_id=key_obj.id,
                 version=key_obj.primary_version,
@@ -509,14 +497,11 @@ class Key(Base):
 
         kid = str(ctx["key"].id)
         key_obj = ctx["key"]
-
-        # Only support symmetric key wrapping for now
         if key_obj.algorithm not in (KeyAlg.AES256_GCM, KeyAlg.CHACHA20_POLY1305):
             raise HTTPException(
                 status_code=400,
                 detail="Key wrapping only supported for AES256_GCM and CHACHA20_POLY1305",
             )
-
         alg_str = _alg_to_provider(key_obj.algorithm)
 
         import inspect
@@ -527,44 +512,66 @@ class Key(Base):
             KeyUse,
         )
 
-        # Get the key version for wrapping
-        version = next(
-            (v for v in key_obj.versions if v.version == key_obj.primary_version),
-            None,
-        )
-        if version is None or version.public_material is None:
-            raise HTTPException(status_code=500, detail="Key material missing")
-
         try:
-            inspect.signature(crypto.encrypt).parameters["kid"]
+            inspect.signature(crypto.wrap).parameters["kid"]
         except KeyError:
-            # Use KeyRef approach
+            version = next(
+                (v for v in key_obj.versions if v.version == key_obj.primary_version),
+                None,
+            )
+            if version is None or version.public_material is None:
+                raise HTTPException(status_code=500, detail="Key material missing")
             key_ref = KeyRef(
                 kid=kid,
                 version=key_obj.primary_version,
                 type=KeyType.SYMMETRIC,
-                uses=(KeyUse.ENCRYPT, KeyUse.DECRYPT),
+                uses=(KeyUse.WRAP, KeyUse.UNWRAP),
                 export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
                 material=bytes(version.public_material),
             )
-            res = await crypto.encrypt(
-                key_ref,
-                key_material,
-                alg=alg_str,
-                aad=aad,
-            )
+            try:
+                res = await crypto.wrap(
+                    key_ref,
+                    dek=key_material,
+                    wrap_alg=alg_str,
+                    nonce=None,
+                )
+            except Exception:
+                res = await crypto.encrypt(
+                    key_ref,
+                    key_material,
+                    alg=alg_str,
+                    aad=aad,
+                    nonce=None,
+                )
         else:
-            # Use direct approach
-            res = await crypto.encrypt(
-                kid=kid, plaintext=key_material, alg=alg_str, aad=aad
-            )
+            try:
+                res = await crypto.wrap(
+                    kid=kid,
+                    key_material=key_material,
+                    alg=alg_str,
+                    aad=aad,
+                )
+            except Exception:
+                res = await crypto.encrypt(
+                    kid=kid,
+                    plaintext=key_material,
+                    alg=alg_str,
+                    aad=aad,
+                )
 
         return {
             "kid": kid,
             "version": getattr(res, "version", key_obj.primary_version),
             "alg": key_obj.algorithm,
-            "nonce_b64": base64.b64encode(getattr(res, "nonce")).decode(),
-            "wrapped_key_b64": base64.b64encode(getattr(res, "ct")).decode(),
+            "nonce_b64": (
+                base64.b64encode(getattr(res, "nonce")).decode()
+                if getattr(res, "nonce", None)
+                else None
+            ),
+            "wrapped_key_b64": base64.b64encode(
+                getattr(res, "ct", getattr(res, "wrapped"))
+            ).decode(),
             "tag_b64": (
                 base64.b64encode(getattr(res, "tag")).decode()
                 if getattr(res, "tag", None)
@@ -603,13 +610,11 @@ class Key(Base):
             raise HTTPException(status_code=400, detail="wrapped_key_b64 is required")
 
         try:
-            nonce = b64d(p["nonce_b64"])
+            nonce = b64d_optional(p.get("nonce_b64"))
         except binascii.Error as exc:
             raise HTTPException(
                 status_code=400, detail="Invalid base64 encoding for nonce_b64"
             ) from exc
-        except KeyError:
-            raise HTTPException(status_code=400, detail="nonce_b64 is required")
 
         try:
             tag = b64d_optional(p.get("tag_b64"))
@@ -636,48 +641,65 @@ class Key(Base):
             KeyRef,
             KeyType,
             KeyUse,
+            WrappedKey,
         )
-
-        # Get the key version for unwrapping
-        version = next(
-            (v for v in key_obj.versions if v.version == key_obj.primary_version),
-            None,
-        )
-        if version is None or version.public_material is None:
-            raise HTTPException(status_code=500, detail="Key material missing")
 
         try:
-            inspect.signature(crypto.decrypt).parameters["kid"]
+            inspect.signature(crypto.unwrap).parameters["kid"]
         except KeyError:
-            # Use KeyRef approach
+            version = next(
+                (v for v in key_obj.versions if v.version == key_obj.primary_version),
+                None,
+            )
+            if version is None or version.public_material is None:
+                raise HTTPException(status_code=500, detail="Key material missing")
             key_ref = KeyRef(
                 kid=kid,
                 version=key_obj.primary_version,
                 type=KeyType.SYMMETRIC,
-                uses=(KeyUse.DECRYPT, KeyUse.ENCRYPT),
+                uses=(KeyUse.UNWRAP, KeyUse.WRAP),
                 export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
                 material=bytes(version.public_material),
             )
-            ct_obj = AEADCiphertext(
-                kid=kid,
-                version=key_obj.primary_version,
-                alg=alg_str,
-                nonce=nonce,
-                ct=wrapped_key,
-                tag=tag or b"",
-                aad=aad,
-            )
-            key_material = await crypto.decrypt(key_ref, ct_obj, aad=aad)
+            try:
+                wrapped = WrappedKey(
+                    kek_kid=kid,
+                    kek_version=key_obj.primary_version,
+                    wrap_alg=alg_str or "",
+                    wrapped=wrapped_key,
+                    nonce=nonce,
+                )
+                key_material = await crypto.unwrap(key_ref, wrapped)
+            except Exception:
+                ct_obj = AEADCiphertext(
+                    kid=kid,
+                    version=key_obj.primary_version,
+                    alg=alg_str or "AES-256-GCM",
+                    nonce=nonce or b"",
+                    ct=wrapped_key,
+                    tag=tag or b"",
+                    aad=aad,
+                )
+                key_material = await crypto.decrypt(key_ref, ct_obj, aad=aad)
         else:
-            # Use direct approach
-            key_material = await crypto.decrypt(
-                kid=kid,
-                ciphertext=wrapped_key,
-                nonce=nonce,
-                tag=tag,
-                aad=aad,
-                alg=alg_str,
-            )
+            try:
+                key_material = await crypto.unwrap(
+                    kid=kid,
+                    wrapped_key=wrapped_key,
+                    nonce=nonce,
+                    tag=tag,
+                    aad=aad,
+                    alg=alg_str,
+                )
+            except Exception:
+                key_material = await crypto.decrypt(
+                    kid=kid,
+                    ciphertext=wrapped_key,
+                    nonce=nonce or b"",
+                    tag=tag,
+                    aad=aad,
+                    alg=alg_str,
+                )
 
         return {"key_material_b64": base64.b64encode(key_material).decode()}
 
@@ -692,16 +714,14 @@ class Key(Base):
         from .key_version import KeyVersion
 
         db = ctx.get("db")
-        secrets_drv = ctx.get("secrets")
         key_obj = ctx.get("key")
-        if db is None or secrets_drv is None or key_obj is None:
+        if db is None or key_obj is None:
             raise HTTPException(status_code=500, detail="Required context missing")
         if key_obj.algorithm != KeyAlg.AES256_GCM:
             raise HTTPException(status_code=400, detail="Unsupported algorithm")
 
         new_version = key_obj.primary_version + 1
         material = secrets.token_bytes(32)
-        await secrets_drv.rotate(kid=str(key_obj.id), material=material)
         kv = KeyVersion(
             key_id=key_obj.id,
             version=new_version,
