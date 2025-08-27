@@ -1,12 +1,13 @@
 import pytest
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import Column, String, create_engine, func, select
+from sqlalchemy import create_engine, func, select
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.orm import sessionmaker
 from uuid import uuid4
 
 from autoapi.v3.autoapi import AutoAPI
+from autoapi.v3.types import Column, String
 from autoapi.v3.tables import Base
 from autoapi.v3.mixins import GUIDPk
 from autoapi.v3.decorators import hook_ctx
