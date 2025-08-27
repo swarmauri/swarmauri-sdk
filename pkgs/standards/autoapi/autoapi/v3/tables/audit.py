@@ -4,9 +4,8 @@ from uuid import UUID
 
 from . import Base
 from ..mixins import GUIDPk, Timestamped
-from sqlalchemy.orm import Mapped
 from ..specs import IO, F, acol, S
-from ..types import DateTime, Integer, String, PgUUID
+from ..types import DateTime, Integer, String, PgUUID, Mapped
 
 
 class Change(Base, GUIDPk, Timestamped):

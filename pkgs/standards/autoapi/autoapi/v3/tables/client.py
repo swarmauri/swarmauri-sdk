@@ -2,10 +2,8 @@
 from __future__ import annotations
 
 
-from sqlalchemy.orm import Mapped
-
 from ..specs import acol, IO, S, F
-from ..types import String, LargeBinary
+from ..types import LargeBinary, Mapped, String
 
 from ._base import Base
 from ..mixins import ActiveToggle, GUIDPk, Timestamped, TenantBound

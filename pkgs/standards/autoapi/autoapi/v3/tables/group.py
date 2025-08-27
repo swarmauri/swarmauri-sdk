@@ -2,9 +2,8 @@
 
 from ._base import Base
 from ..mixins import GUIDPk, Timestamped, TenantBound, Principal
-from sqlalchemy.orm import Mapped
 from ..specs import IO, F, acol, S
-from ..types import String
+from ..types import Mapped, String
 
 
 class Group(Base, GUIDPk, Timestamped, TenantBound, Principal):

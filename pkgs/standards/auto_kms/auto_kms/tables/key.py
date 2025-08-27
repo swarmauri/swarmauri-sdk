@@ -6,7 +6,7 @@ from uuid import UUID, uuid4
 from typing import List, Optional, TYPE_CHECKING
 
 from sqlalchemy import String, Integer, Enum as SAEnum
-from sqlalchemy.orm import Mapped, relationship
+from autoapi.v3.types import Mapped, relationship
 
 from autoapi.v3.tables import Base
 from autoapi.v3.specs import acol, vcol, S, F, IO
