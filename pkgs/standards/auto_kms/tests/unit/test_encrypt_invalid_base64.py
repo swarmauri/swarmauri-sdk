@@ -1,9 +1,10 @@
+import asyncio
 import base64
 import importlib
-import asyncio
-from fastapi.testclient import TestClient
-from autoapi.v3.tables import Base
+
 import pytest
+from autoapi.v3.tables import Base
+from fastapi.testclient import TestClient
 
 
 def _create_key(client, name="k1"):
@@ -34,11 +35,6 @@ def client(tmp_path, monkeypatch):
 
 def test_encrypt_invalid_base64(client):
     key = _create_key(client)
-    # The primary version (1) is seeded automatically during key creation.
-    # Create a new secondary version to exercise the key version endpoint.
-    kv_payload = {"key_id": key["id"], "version": 2, "status": "active"}
-    res = client.post("/kms/key_version", json=kv_payload)
-    assert res.status_code == 201
     payload = {
         "plaintext_b64": base64.b64encode(b"hi").decode(),
         "aad_b64": "not-base64",
