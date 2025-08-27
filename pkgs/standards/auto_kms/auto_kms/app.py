@@ -45,8 +45,8 @@ async def _stash_ctx(ctx):
             {
                 "plugins": {"mode": "fallback"},
                 "cryptos": {
-                    "default_crypto": "paramiko_sa",
-                    "adapters": {"paramiko_sa": {}},
+                    "default_crypto": "paramiko_crypto",
+                    "adapters": {"paramiko_crypto": {}},
                 },
             }
         )
