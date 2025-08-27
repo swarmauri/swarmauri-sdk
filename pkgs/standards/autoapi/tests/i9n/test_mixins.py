@@ -6,7 +6,7 @@ Tests all mixins and their expected behavior using individual DummyModel instanc
 
 import pytest
 from datetime import datetime, timedelta
-from autoapi.v3.types import Column, String
+from autoapi.v3.types import Column, String, uuid4
 
 from autoapi.v3 import Base
 from autoapi.v3.mixins import (
@@ -33,7 +33,6 @@ from autoapi.v3.mixins import (
     tzutcnow_plus_day,
 )
 from autoapi.v3.schema import _build_schema
-from autoapi.v3.types import uuid4
 
 
 class DummyModelTimestamped(Base, GUIDPk, Timestamped):
