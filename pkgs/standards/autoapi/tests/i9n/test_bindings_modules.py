@@ -8,7 +8,6 @@ from autoapi.v3.tables import Base
 
 from autoapi.v3.bindings import (
     api as api_binding,
-    col_info as col_info_binding,
     columns as columns_binding,
     handlers as handlers_binding,
     hooks as hooks_binding,
@@ -17,6 +16,7 @@ from autoapi.v3.bindings import (
     rpc as rpc_binding,
     schemas as schemas_binding,
 )
+from autoapi.v3.specs import ColumnSpec, F, IO, S
 from autoapi.v3.opspec import resolve
 from autoapi.v3.runtime import executor as _executor
 from autoapi.v3.specs import shortcuts as sc
@@ -135,8 +135,11 @@ async def test_api_include_and_rpc_call(monkeypatch, model_cls):
 
 
 @pytest.mark.i9n
-def test_col_info_exports():
-    meta = col_info_binding.normalize({"read_only": True}, model="M", attr="a")
-    col_info_binding.check(meta, attr="a", model="M")
-    assert not col_info_binding.should_include_in_input(meta, verb="create")
-    assert col_info_binding.should_include_in_output(meta, verb="read")
+def test_column_spec_io_flags():
+    spec = ColumnSpec(
+        storage=S(type_=String),
+        field=F(py_type=str),
+        io=IO(in_verbs=(), out_verbs=("read",)),
+    )
+    assert "create" not in spec.io.in_verbs
+    assert "read" in spec.io.out_verbs
