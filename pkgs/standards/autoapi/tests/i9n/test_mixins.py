@@ -152,13 +152,13 @@ async def test_timestamped_mixin(create_test_api):
     read_schema = _build_schema(DummyModelTimestamped, verb="read")
     update_schema = _build_schema(DummyModelTimestamped, verb="update")
 
-    # created_at and updated_at should appear in all schemas
-    assert "created_at" in create_schema.model_fields
-    assert "updated_at" in create_schema.model_fields
+    # created_at and updated_at are read-only and appear only in read schema
     assert "created_at" in read_schema.model_fields
     assert "updated_at" in read_schema.model_fields
-    assert "created_at" in update_schema.model_fields
-    assert "updated_at" in update_schema.model_fields
+    assert "created_at" not in create_schema.model_fields
+    assert "updated_at" not in create_schema.model_fields
+    assert "created_at" not in update_schema.model_fields
+    assert "updated_at" not in update_schema.model_fields
 
     # name should be in all schemas
     assert "name" in create_schema.model_fields
@@ -176,9 +176,9 @@ async def test_created_mixin(create_test_api):
     create_schema = _build_schema(DummyModelCreated, verb="create")
     read_schema = _build_schema(DummyModelCreated, verb="read")
 
-    # created_at should be present in both schemas
+    # created_at is read-only and only present in read schema
     assert "created_at" in read_schema.model_fields
-    assert "created_at" in create_schema.model_fields
+    assert "created_at" not in create_schema.model_fields
 
 
 @pytest.mark.i9n
@@ -494,8 +494,8 @@ async def test_multiple_mixins_combination(create_test_api):
     assert "status" in create_schema.model_fields
     assert "status" in read_schema.model_fields
 
-    # From Timestamped
-    assert "created_at" in create_schema.model_fields
-    assert "updated_at" in create_schema.model_fields
+    # From Timestamped - read-only fields should only appear in read schema
+    assert "created_at" not in create_schema.model_fields
+    assert "updated_at" not in create_schema.model_fields
     assert "created_at" in read_schema.model_fields
     assert "updated_at" in read_schema.model_fields
