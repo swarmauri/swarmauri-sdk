@@ -1,16 +1,15 @@
 """Runtime behavior tests for column metadata keys."""
 
 from datetime import datetime
-from uuid import uuid4
 
 import pytest
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import Column, DateTime, String
 
 from autoapi.v3 import Base
 from autoapi.v3.mixins import GUIDPk
 from autoapi.v3.schema import _build_schema
+from autoapi.v3.types import Column, DateTime, String, uuid4
 
 
 @pytest.mark.i9n
@@ -104,7 +103,7 @@ async def test_read_only_field_runtime_behavior(create_test_api):
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_default_factory_field_runtime_behavior(create_test_api):
-    """Ensure default_factory fields remain optional and stable across updates."""
+    """Ensure default_factory fields remain optional and refresh on updates."""
 
     class FactoryModel(Base, GUIDPk):
         __tablename__ = "factory_model"
@@ -128,14 +127,14 @@ async def test_default_factory_field_runtime_behavior(create_test_api):
 
         res = await client.get(f"/factorymodel/{item_id}")
         assert res.status_code == 200
-        assert "created_at" not in res.json()
+        created_at = res.json()["created_at"]
 
         res = await client.patch(f"/factorymodel/{item_id}", json={"name": "updated"})
         assert res.status_code == 200
 
         res = await client.get(f"/factorymodel/{item_id}")
         assert res.status_code == 200
-        assert "created_at" not in res.json()
+        assert res.json()["created_at"] != created_at
 
     create_schema = _build_schema(FactoryModel, verb="create")
     field = create_schema.model_fields["created_at"]
