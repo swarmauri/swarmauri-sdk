@@ -2,9 +2,9 @@ import pytest
 import pytest_asyncio
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import Integer, String
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import Mapped
+
+from autoapi.v3.types import Integer, Mapped, String
 
 from autoapi.v3.autoapi import AutoAPI as AutoAPIv3
 from autoapi.v3.specs import F, IO, S, acol
