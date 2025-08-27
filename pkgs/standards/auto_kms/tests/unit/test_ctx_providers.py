@@ -14,6 +14,8 @@ def app_module():
     finally:
         if hasattr(app, "CRYPTO"):
             delattr(app, "CRYPTO")
+        if hasattr(app, "KEY_PROVIDER"):
+            delattr(app, "KEY_PROVIDER")
 
 
 def test_ctx_has_crypto_provider(app_module):

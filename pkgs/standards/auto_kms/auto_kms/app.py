@@ -7,6 +7,7 @@ from .tables.key import Key
 from .tables.key_version import KeyVersion
 
 from swarmauri_crypto_paramiko import ParamikoCrypto
+from swarmauri_standard.key_providers import InMemoryKeyProvider
 
 import os
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
@@ -34,12 +35,17 @@ app = FastAPI(
 
 # API-level hooks (v3): stash shared services into ctx before any handler runs
 async def _stash_ctx(ctx):
-    global CRYPTO
+    global CRYPTO, KEY_PROVIDER
     try:
         CRYPTO
     except NameError:
         CRYPTO = ParamikoCrypto()
+    try:
+        KEY_PROVIDER
+    except NameError:
+        KEY_PROVIDER = InMemoryKeyProvider()
     ctx["crypto"] = CRYPTO
+    ctx["key_provider"] = KEY_PROVIDER
 
 
 # Construct AutoAPI with api-level hooks; custom ops return raw dicts so no finalize hook needed

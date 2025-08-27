@@ -32,6 +32,8 @@ def client_paramiko(tmp_path, monkeypatch):
     finally:
         if hasattr(app, "CRYPTO"):
             delattr(app, "CRYPTO")
+        if hasattr(app, "KEY_PROVIDER"):
+            delattr(app, "KEY_PROVIDER")
 
 
 def test_key_encrypt_decrypt_with_paramiko_crypto(client_paramiko):

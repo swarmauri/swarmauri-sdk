@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import secrets
 from uuid import UUID, uuid4
 
 from fastapi import HTTPException
@@ -19,7 +18,8 @@ from autoapi.v3.types import (
     relationship,
     Mapped,
 )
-from swarmauri_core.crypto.types import ExportPolicy, KeyType, KeyUse
+from swarmauri_core.crypto.types import ExportPolicy, KeyUse
+from swarmauri_core.keys.types import KeySpec, KeyClass, KeyAlg as ProviderKeyAlg
 
 from ..utils import b64d
 from .key import Key, KeyAlg
@@ -98,9 +98,9 @@ class KeyVersion(Base):
         obj = ctx.get("result")
         if obj is None or obj.public_material is not None:
             return
-        secrets_drv = ctx.get("secrets")
-        if secrets_drv is None:
-            raise HTTPException(status_code=500, detail="Secrets driver missing")
+        key_provider = ctx.get("key_provider")
+        if key_provider is None:
+            raise HTTPException(status_code=500, detail="Key provider missing")
         db = ctx.get("db")
         if db is None:
             raise HTTPException(status_code=500, detail="DB session missing")
@@ -111,15 +111,18 @@ class KeyVersion(Base):
         if key_obj is None:
             raise HTTPException(status_code=404, detail="Key not found")
         if key_obj.algorithm in (KeyAlg.AES256_GCM, KeyAlg.CHACHA20_POLY1305):
-            material = secrets.token_bytes(32)
+            material = await key_provider.random_bytes(32)
         else:  # pragma: no cover - defensive
             raise HTTPException(status_code=400, detail="Unsupported algorithm")
-        await secrets_drv.store_key(
-            key_type=KeyType.SYMMETRIC,
-            uses=(KeyUse.ENCRYPT, KeyUse.DECRYPT),
-            name=str(key_id),
-            material=material,
-            export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
+        await key_provider.import_key(
+            KeySpec(
+                klass=KeyClass.symmetric,
+                alg=ProviderKeyAlg.AES256_GCM,
+                uses=(KeyUse.ENCRYPT, KeyUse.DECRYPT),
+                export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
+                label=str(key_id),
+            ),
+            material,
         )
         obj.public_material = material
 
