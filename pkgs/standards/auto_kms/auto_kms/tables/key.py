@@ -146,12 +146,12 @@ class Key(Base):
     )
 
     # ---- Key Wrapping virtual columns ----
-    key_material_b64: str = vcol(
+    key_material_b64: Mapped[str] = vcol(
         field=F(required_in=("wrap",)),
         io=IO(in_verbs=("wrap",), out_verbs=("unwrap",)),
     )
 
-    wrapped_key_b64: str = vcol(
+    wrapped_key_b64: Mapped[str] = vcol(
         field=F(required_in=("unwrap",)),
         io=IO(in_verbs=("unwrap",), out_verbs=("wrap",)),
     )
@@ -160,7 +160,6 @@ class Key(Base):
     @hook_ctx(ops="create", phase="POST_HANDLER")
     async def _seed_primary_version(cls, ctx):
         import secrets
-        import base64
         from swarmauri_core.crypto.types import (
             ExportPolicy,
             KeyType,
