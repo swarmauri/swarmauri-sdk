@@ -9,7 +9,7 @@ import httpx
 from fastapi import HTTPException, Request, Security, status
 from fastapi.security import APIKeyHeader
 
-from autoapi.v2.types.authn_abc import AuthNProvider
+from autoapi.v3.types.authn_abc import AuthNProvider
 from ..principal_ctx import principal_var
 
 

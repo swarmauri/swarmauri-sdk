@@ -17,7 +17,7 @@ The resulting ``crud_api`` exposes resource operations under namespaces like
 Notes
 -----
 *   All mix-ins (GUIDPk, Timestamped, TenantBound, etc.) live in
-    *autoapi.v2.mixins* and are imported **only** by `tables.py`.
+    *autoapi.v3.mixins* and are imported **only** by `tables.py`.
 *   Importing this module has the side-effect of importing
     `autoapi_authn.orm.tables`, so every model class is registered with
     the declarative base **before** AutoAPI introspects the metadata.
@@ -25,7 +25,7 @@ Notes
 
 from __future__ import annotations
 
-from autoapi.v2 import AutoAPI, Base
+from autoapi.v3 import AutoAPI, Base
 from auto_authn.v2.orm.tables import (
     Tenant,
     User,

@@ -19,7 +19,7 @@ import sys
 
 import fastapi
 
-from autoapi.v2 import get_schema  # convenience helper for /methodz
+from autoapi.v3 import get_schema  # convenience helper for /methodz
 from .routers.auth_flows import router as flows_router
 from .routers.crud import crud_api as crud_api
 from .runtime_cfg import settings

@@ -51,7 +51,7 @@ class User(UserBase):
         from ..routers.shared import _jwt, _require_tls, SESSIONS
         from .auth_session import AuthSession
         from .tenant import Tenant
-        from autoapi.v2.error import IntegrityError
+        from autoapi.v3.error import IntegrityError
 
         request = ctx.get("request")
         _require_tls(request)

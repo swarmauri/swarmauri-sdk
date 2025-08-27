@@ -6,7 +6,7 @@ log = logging.getLogger(__name__)
 
 
 def register_inject_hook(api):
-    from autoapi.v2.hooks import Phase
+    from autoapi.v3.hooks import Phase
 
     @api.register_hook(Phase.PRE_TX_BEGIN)
     async def _authn_inject_principal(ctx):
