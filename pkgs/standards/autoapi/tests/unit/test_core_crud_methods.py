@@ -1,12 +1,11 @@
 import asyncio
 import enum
-import types
 from typing import Any, Mapping
 
 import pytest
 from autoapi.v3.core import crud
 from autoapi.v3.specs import IO, S, F, acol
-from autoapi.v3.types import Column, Integer, SAEnum, Session, String
+from autoapi.v3.types import Column, Integer, SAEnum, Session, SimpleNamespace, String
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import declarative_base
 
@@ -111,7 +110,7 @@ def test_pk_columns(session):
         crud._pk_columns(NoTable)
 
     class NoPk:
-        __table__ = types.SimpleNamespace(primary_key=types.SimpleNamespace(columns=[]))
+        __table__ = SimpleNamespace(primary_key=SimpleNamespace(columns=[]))
 
     with pytest.raises(ValueError):
         crud._pk_columns(NoPk)
@@ -119,13 +118,11 @@ def test_pk_columns(session):
 
 def test_single_pk_name():
     assert crud._single_pk_name(Widget) == "id"
-    col1 = types.SimpleNamespace(name="a")
-    col2 = types.SimpleNamespace(name="b")
+    col1 = SimpleNamespace(name="a")
+    col2 = SimpleNamespace(name="b")
 
     class TwoPk:
-        __table__ = types.SimpleNamespace(
-            primary_key=types.SimpleNamespace(columns=[col1, col2])
-        )
+        __table__ = SimpleNamespace(primary_key=SimpleNamespace(columns=[col1, col2]))
 
     with pytest.raises(NotImplementedError):
         crud._single_pk_name(TwoPk)
