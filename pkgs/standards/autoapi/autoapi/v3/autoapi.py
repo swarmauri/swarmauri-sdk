@@ -96,6 +96,7 @@ class AutoAPI:
         self.columns: Dict[str, Tuple[str, ...]] = {}
         self.table_config: Dict[str, Dict[str, Any]] = {}
         self.core = SimpleNamespace()
+        self.core_raw = SimpleNamespace()
 
         # API-level hooks map (merged into each model at include-time; precedence handled in bindings.hooks)
         self._api_hooks_map = copy.deepcopy(api_hooks) if api_hooks else None
