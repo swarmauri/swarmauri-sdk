@@ -35,7 +35,7 @@ async def login(
 ):
     """Authenticate a user and mint an authorization session."""
 
-    _require_tls(request)
+    #_require_tls(request)
     user = await _pwd_backend.authenticate(db, payload.identifier, payload.password)
     session_id = secrets.token_urlsafe(16)
     session = await AuthSession.handlers.create.core(
