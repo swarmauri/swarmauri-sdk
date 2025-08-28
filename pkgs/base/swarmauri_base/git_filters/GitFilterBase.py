@@ -28,7 +28,9 @@ class GitFilterBase(IGitFilter):
         oid = "sha256:" + hashlib.sha256(data).hexdigest()
         try:
             self.download(oid)
-        except FileNotFoundError:
+        except (FileNotFoundError, KeyError):
+            # Some storage backends may raise ``KeyError`` instead of ``FileNotFoundError``
+            # when an object is missing. Treat both cases as a cache miss and upload.
             self.upload(oid, io.BytesIO(data))
         return oid
 
