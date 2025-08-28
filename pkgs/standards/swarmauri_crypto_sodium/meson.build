@@ -9,10 +9,13 @@ project('swarmauri_crypto_sodium', 'c',
 # Python installation
 py = import('python').find_installation('python3')
 
-# Always build and bundle libsodium as a subproject so the Python package
-# ships with the latest available version.
-libsodium_proj = subproject('libsodium', default_options: ['default_library=static'])
-libsodium_dep = libsodium_proj.get_variable('libsodium_dep')
+# Always build and bundle libsodium via a dependency fallback so the Python
+# package ships with the latest available version.
+libsodium_dep = dependency('libsodium',
+    fallback: ['libsodium', 'libsodium_dep'],
+    default_options: ['default_library=static'],
+    required: true,
+)
 
 # Create a C extension module that provides libsodium bindings
 # This will be used by the Python code to load the bundled library
