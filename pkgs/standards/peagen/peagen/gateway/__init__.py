@@ -318,12 +318,9 @@ async def _startup() -> None:
     READY = True
     log.info(api.router)
     log.info(api.rpc)
-    log.info(api._registered_tables)
-    log.info(api._method_ids)
-    log.info(api._schemas)
-    log.info(api._allow_anon)
-    log.info(api.methods)
+    log.info(api.models)
     log.info(api.schemas)
+    log.info(api._allow_anon)
 
     log.info("gateway ready")
 
