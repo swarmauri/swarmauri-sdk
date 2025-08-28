@@ -299,11 +299,11 @@ async def _startup() -> None:
 
     # 1 – metadata validation / SQLite convenience mode
     await api.initialize_async()
-    # ensure our hook runs second after the AuthN injection hook
-    _pre = api._hook_registry.get("PRE_TX_BEGIN", {}).get(None, [])
+    # ensure our hook remains at the front of the PRE_TX_BEGIN chain
+    _pre = (getattr(api, "_api_hooks_map", {}) or {}).get("PRE_TX_BEGIN", [])
     for idx, fn in enumerate(_pre):
         if getattr(fn, "__name__", "") == "_shadow_principal":
-            _pre.insert(1, _pre.pop(idx))
+            _pre.insert(0, _pre.pop(idx))
             break
 
     # 2 – run Alembic first so the ORM never creates tables implicitly
