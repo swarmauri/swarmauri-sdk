@@ -80,6 +80,7 @@ dependencies = [
     # cryptos
     "python-gnupg",
     "swarmauri_crypto_paramiko",
+    "swarmauri_crypto_pgp",
 
 
     #core - repo lock
@@ -102,6 +103,7 @@ autoapi_client = { workspace = true }
 auto_authn = { workspace = true }
 swarmauri_keyprovider_ssh = { workspace = true }
 swarmauri_crypto_paramiko = { workspace = true }
+swarmauri_crypto_pgp = { workspace = true }
 swarmauri_storage_file = { workspace = true }
 swarmauri_gitfilter_file = { workspace = true }
 
@@ -173,7 +175,7 @@ git = "peagen.plugins.vcs.git_vcs:GitVCS"
 
 [project.entry-points."peagen.plugins.cryptos"]
 paramiko = "swarmauri_crypto_paramiko:ParamikoCrypto"
-pgp = "peagen.plugins.cryptos.pgp_crypto:PGPCrypto"
+pgp = "swarmauri_crypto_pgp:PGPCrypto"
 
 [project.entry-points."peagen.plugins.publishers"]
 redis   = "peagen.plugins.publishers.redis_publisher:RedisPublisher"

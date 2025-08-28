@@ -68,14 +68,14 @@ def _save(data: dict) -> None:
 def _get_crypto():
     """Return a cryptography plugin instance.
 
-    Falls back to ``PGPCrypto`` when no plugin is configured.
+    Falls back to ``swarmauri_crypto_pgp.PGPCrypto`` when no plugin is configured.
     """
     cfg = resolve_cfg()
     pm = PluginManager(cfg)
     try:
         return pm.get("cryptos")
     except KeyError:
-        from peagen.plugins.cryptos import PGPCrypto
+        from swarmauri_crypto_pgp import PGPCrypto
 
         return PGPCrypto()
 

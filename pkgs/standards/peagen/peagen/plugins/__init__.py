@@ -9,6 +9,7 @@ from typing import Any, Dict, Optional
 from peagen.errors import InvalidPluginSpecError
 from swarmauri_base.keys import KeyProviderBase
 from swarmauri_base.git_filters import GitFilterBase
+from swarmauri_base.crypto.CryptoBase import CryptoBase
 
 # ---------------------------------------------------------------------------
 # Config – group key → (entry-point group string, expected base class)
@@ -30,7 +31,7 @@ GROUPS = {
     "vcs": ("peagen.plugins.vcs", object),
     "selectors": ("peagen.plugins.selectors", object),
     # keys and secrets
-    "cryptos": ("peagen.plugins.cryptos", object),
+    "cryptos": ("peagen.plugins.cryptos", CryptoBase),
     "key_providers": ("swarmauri.key_providers", KeyProviderBase),
     # template sets remain in the top-level package
     "template_sets": ("peagen.template_sets", None),
