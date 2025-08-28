@@ -22,6 +22,8 @@ def test_plugin_discovery_cached(monkeypatch):
 
     def fake_entry_points(group: str):
         time.sleep(0.01)
+        if group not in {"swarmauri.key_providers", "peagen.plugins.git_filters"}:
+            return []
 
         class EP:
             name = "dummy"
@@ -32,13 +34,9 @@ def test_plugin_discovery_cached(monkeypatch):
 
                     class Dummy(KeyProviderBase):
                         pass
-                elif group == "peagen.plugins.git_filters":
+                else:  # group == "peagen.plugins.git_filters"
 
                     class Dummy(GitFilterBase):
-                        pass
-                else:
-
-                    class Dummy:
                         pass
 
                 return Dummy
