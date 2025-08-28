@@ -8,18 +8,11 @@ import io
 import os
 import shutil
 import tempfile
-import warnings
 from pathlib import Path
 from typing import BinaryIO, Optional
 
 from peagen._utils.config_loader import load_peagen_toml
 from github import Github, UnknownObjectException
-
-warnings.warn(
-    "GithubReleaseStorageAdapter is deprecated; use peagen.plugins.git_filters.gh_release_filter instead",
-    DeprecationWarning,
-    stacklevel=2,
-)
 
 
 class GithubReleaseStorageAdapter:
