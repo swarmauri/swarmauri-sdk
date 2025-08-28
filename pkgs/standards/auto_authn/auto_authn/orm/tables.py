@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from autoapi.v3.tables import Base
 
+from ..runtime_cfg import settings
 from .api_key import ApiKey
 from .auth_code import AuthCode
 from .auth_session import AuthSession
@@ -31,4 +32,5 @@ __all__ = [
     "RevokedToken",
     "PushedAuthorizationRequest",
     "_CLIENT_ID_RE",
+    "settings",
 ]
