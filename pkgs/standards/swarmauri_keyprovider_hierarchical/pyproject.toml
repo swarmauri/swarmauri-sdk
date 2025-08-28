@@ -66,3 +66,6 @@ build-backend = "poetry.core.masonry.api"
 
 [project.entry-points.'swarmauri.key_providers']
 HierarchicalKeyProvider = "swarmauri_keyprovider_hierarchical.HierarchicalKeyProvider:HierarchicalKeyProvider"
+
+[project.entry-points."peagen.plugins.key_providers"]
+hierarchical = "swarmauri_keyprovider_hierarchical.HierarchicalKeyProvider:HierarchicalKeyProvider"

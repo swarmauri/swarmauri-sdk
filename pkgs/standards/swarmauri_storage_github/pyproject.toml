@@ -30,6 +30,9 @@ swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 
+[project.entry-points.'swarmauri.storage_adapters']
+GithubStorageAdapter = "swarmauri_storage_github.github_storage_adapter:GithubStorageAdapter"
+
 [project.entry-points."peagen.plugins.storage_adapters"]
 github = "swarmauri_storage_github.github_storage_adapter:GithubStorageAdapter"
 

@@ -32,6 +32,9 @@ swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 swarmauri_storage_file = { workspace = true }
 
+[project.entry-points.'swarmauri.git_filters']
+FileFilter = "swarmauri_gitfilter_file.file_filter:FileFilter"
+
 [project.entry-points."peagen.plugins.git_filters"]
 file = "swarmauri_gitfilter_file.file_filter:FileFilter"
 

@@ -31,6 +31,9 @@ swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 
+[project.entry-points.'swarmauri.storage_adapters']
+GithubReleaseStorageAdapter = "swarmauri_storage_github_release.gh_release_storage_adapter:GithubReleaseStorageAdapter"
+
 [project.entry-points."peagen.plugins.storage_adapters"]
 gh_release = "swarmauri_storage_github_release.gh_release_storage_adapter:GithubReleaseStorageAdapter"
 

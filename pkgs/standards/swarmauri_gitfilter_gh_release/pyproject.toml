@@ -31,6 +31,9 @@ swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 
+[project.entry-points.'swarmauri.git_filters']
+GithubReleaseFilter = "swarmauri_gitfilter_gh_release.gh_release_filter:GithubReleaseFilter"
+
 [project.entry-points."peagen.plugins.git_filters"]
 gh_release = "swarmauri_gitfilter_gh_release.gh_release_filter:GithubReleaseFilter"
 

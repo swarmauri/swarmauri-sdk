@@ -61,3 +61,6 @@ build-backend = "poetry.core.masonry.api"
 
 [project.entry-points.'swarmauri.key_providers']
 LocalKeyProvider = "swarmauri_keyprovider_local.LocalKeyProvider:LocalKeyProvider"
+
+[project.entry-points."peagen.plugins.key_providers"]
+local = "swarmauri_keyprovider_local.LocalKeyProvider:LocalKeyProvider"

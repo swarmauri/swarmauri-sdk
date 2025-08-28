@@ -30,6 +30,9 @@ swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 
+[project.entry-points.'swarmauri.storage_adapters']
+FileStorageAdapter = "swarmauri_storage_file.file_storage_adapter:FileStorageAdapter"
+
 [project.entry-points."peagen.plugins.storage_adapters"]
 file = "swarmauri_storage_file.file_storage_adapter:FileStorageAdapter"
 
