@@ -65,7 +65,10 @@ def sync_db_session():
         with SessionLocal() as session:
             yield session
 
-    return engine, get_sync_db
+    try:
+        yield engine, get_sync_db
+    finally:
+        engine.dispose()
 
 
 @pytest_asyncio.fixture
@@ -80,7 +83,10 @@ async def async_db_session():
         async with AsyncSessionLocal() as session:
             yield session
 
-    return engine, get_async_db
+    try:
+        yield engine, get_async_db
+    finally:
+        await engine.dispose()
 
 
 @pytest.fixture
@@ -208,7 +214,14 @@ async def api_client(db_mode):
     transport = ASGITransport(app=fastapi_app)
 
     client = AsyncClient(transport=transport, base_url="http://test")
-    return client, api, Item
+    try:
+        yield client, api, Item
+    finally:
+        await client.aclose()
+        if db_mode == "async":
+            await engine.dispose()
+        else:
+            engine.dispose()
 
 
 @pytest.fixture
@@ -287,5 +300,6 @@ async def api_client_v3():
     api.mount_jsonrpc()
     api.attach_diagnostics()
     transport = ASGITransport(app=fastapi_app)
-    client = AsyncClient(transport=transport, base_url="http://test")
-    return client, api, Widget, AsyncSessionLocal
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        yield client, api, Widget, AsyncSessionLocal
+    await engine.dispose()
