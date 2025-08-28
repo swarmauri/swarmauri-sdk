@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Callable, Optional
 
+from sqlalchemy import ForeignKey
 from sqlalchemy.orm import MappedColumn
 
 from .field_spec import FieldSpec as F
@@ -26,8 +27,21 @@ class ColumnSpec(MappedColumn):
     ) -> None:
         s = storage
         if s is not None:
+            args: list[Any] = [s.type_]
+            fk = getattr(s, "fk", None)
+            if fk is not None:
+                args.append(
+                    ForeignKey(
+                        fk.target,
+                        ondelete=fk.on_delete,
+                        onupdate=fk.on_update,
+                        deferrable=fk.deferrable,
+                        initially="DEFERRED" if fk.initially_deferred else "IMMEDIATE",
+                        match=fk.match,
+                    )
+                )
             super().__init__(
-                s.type_,
+                *args,
                 primary_key=s.primary_key,
                 nullable=s.nullable,
                 unique=s.unique,
