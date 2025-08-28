@@ -21,6 +21,9 @@ class DummyClient:
 
 
 class DummyDB:
+    async def get(self, model, key):  # pragma: no cover - trivial
+        return DummyClient()
+
     async def scalar(self, stmt):  # pragma: no cover - trivial
         return DummyClient()
 

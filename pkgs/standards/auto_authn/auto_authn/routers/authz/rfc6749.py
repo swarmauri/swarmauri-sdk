@@ -7,7 +7,6 @@ from typing import Any
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import ValidationError
 
@@ -71,7 +70,7 @@ async def token(
             status_code=status.HTTP_401_UNAUTHORIZED,
             headers={"WWW-Authenticate": "Basic"},
         )
-    client = await db.scalar(select(Client).where(Client.id == client_id))
+    client = await db.get(Client, client_id)
     if not client or not client.verify_secret(client_secret):
         return JSONResponse(
             {"error": "invalid_client"},
