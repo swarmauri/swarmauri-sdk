@@ -6,6 +6,7 @@ import os
 import json
 import tempfile
 import time
+import hashlib
 import httpx
 from github import Github
 
@@ -217,8 +218,8 @@ class GitVCS:
         cipher = res.json()["result"]["secret"].encode()
 
         pm = PluginManager(resolve_cfg())
-        drv = pm.get("secrets_drivers")
-        token = drv.decrypt(cipher).decode().strip()
+        crypto = pm.get("cryptos")
+        token = crypto.decrypt_text(cipher).strip()
 
         # Use PyGithub to verify access and obtain the remote repository
         remote_url = self.repo.remotes[remote].url
@@ -359,10 +360,9 @@ class GitVCS:
         str
             The new commit SHA.
         """
-        from peagen.plugins.secret_drivers import SecretDriverBase
         from .constants import pea_ref
 
-        sha = SecretDriverBase.audit_hash(ciphertext)
+        sha = hashlib.sha256(ciphertext).hexdigest()
         data = {
             "user_fpr": user_fpr,
             "gateway_fp": gateway_fp,

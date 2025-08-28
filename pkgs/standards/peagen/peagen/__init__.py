@@ -23,7 +23,6 @@ from .errors import (
     MissingProjectsListError,
 )
 from .core.patch_core import apply_patch
-from .plugins.secret_drivers import AutoGpgDriver, SecretDriverBase
 
 __all__ = [
     "__package_name__",
@@ -37,6 +36,4 @@ __all__ = [
     "ProjectsPayloadFormatError",
     "MissingProjectsListError",
     "apply_patch",
-    "SecretDriverBase",
-    "AutoGpgDriver",
 ]

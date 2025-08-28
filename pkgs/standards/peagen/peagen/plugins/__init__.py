@@ -30,7 +30,6 @@ GROUPS = {
     "selectors": ("peagen.plugins.selectors", object),
     # keys and secrets
     "cryptos": ("peagen.plugins.cryptos", object),
-    "secrets_drivers": ("peagen.plugins.secret_drivers", object),
     "key_providers": ("swarmauri.key_providers", KeyProviderBase),
     # template sets remain in the top-level package
     "template_sets": ("peagen.template_sets", None),
@@ -180,11 +179,6 @@ class PluginManager:
             "items": "plugins",
             "default": "default_selector",
         },
-        # "secrets_drivers": {
-        #     "section": "secrets",
-        #     "items": "adapters",
-        #     "default": "default_secret",
-        # },
         "llms": {
             "section": "llm",
             "default": "default_provider",
