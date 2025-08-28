@@ -123,10 +123,11 @@ def enable_rfc7662():
 def enable_rfc7009():
     """Enable RFC 7009 token revocation for tests."""
     from auto_authn.runtime_cfg import settings
-    from auto_authn.rfc7009 import reset_revocations
+    from auto_authn.rfc7009 import include_rfc7009, reset_revocations
 
     original = settings.enable_rfc7009
     settings.enable_rfc7009 = True
+    include_rfc7009(app)
     reset_revocations()
     try:
         yield
