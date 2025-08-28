@@ -123,4 +123,5 @@ class ResourceTypes(Enum):
     TRACER = "Tracer"
     TENSOR = "Tensor"
     TOKEN_SERVICE = "TokenService"
+    STORAGE_ADAPTER = "StorageAdapter"
     SST = "SST"

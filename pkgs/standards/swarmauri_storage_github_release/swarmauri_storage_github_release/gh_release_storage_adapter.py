@@ -11,10 +11,13 @@ import tempfile
 from pathlib import Path
 from typing import BinaryIO, Optional
 
+from swarmauri_base.storage import StorageAdapterBase
+
 from peagen._utils.config_loader import load_peagen_toml
 from github import Github, UnknownObjectException
 
-class GithubReleaseStorageAdapter:
+
+class GithubReleaseStorageAdapter(StorageAdapterBase):
     """Storage adapter that uses GitHub Releases to store and retrieve assets."""
 
     def __init__(
@@ -133,7 +136,7 @@ class GithubReleaseStorageAdapter:
                     key = key[len(self._prefix.rstrip("/")) + 1 :]
                 yield key
 
-    def download_prefix(self, prefix: str, dest_dir: str | os.PathLike) -> None:
+    def download_dir(self, prefix: str, dest_dir: str | os.PathLike) -> None:
         """Download all assets under *prefix* into *dest_dir*."""
         dest = Path(dest_dir)
         for rel_key in self.iter_prefix(prefix):

@@ -12,9 +12,10 @@ import shutil
 from pathlib import Path
 from typing import BinaryIO
 
+from swarmauri_base.storage import StorageAdapterBase
 
 
-class FileStorageAdapter:
+class FileStorageAdapter(StorageAdapterBase):
     """Write and read artefacts on the local disk."""
 
     def __init__(self, output_dir: str | os.PathLike, *, prefix: str = ""):
@@ -81,8 +82,8 @@ class FileStorageAdapter:
                 rel = path.relative_to(self._root)
                 yield str(rel)
 
-    # ---------------------------------------------------------------- download_prefix
-    def download_prefix(self, prefix: str, dest_dir: str | os.PathLike) -> None:
+    # ---------------------------------------------------------------- download_dir
+    def download_dir(self, prefix: str, dest_dir: str | os.PathLike) -> None:
         """Copy all files under ``prefix`` into ``dest_dir``."""
         src_root = self._full_key(prefix)
         dest = Path(dest_dir)
