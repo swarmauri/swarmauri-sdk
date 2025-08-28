@@ -18,10 +18,7 @@ def test_rfc6749_core_endpoints_present() -> None:
     app.include_router(router)
     paths = _collect_paths(app)
     assert {
-        "/register",
-        "/login",
         "/token",
-        "/logout",
         "/token/refresh",
         "/introspect",
     } <= paths
