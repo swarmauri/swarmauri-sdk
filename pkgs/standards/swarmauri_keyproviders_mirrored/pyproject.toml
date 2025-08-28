@@ -67,3 +67,6 @@ build-backend = "poetry.core.masonry.api"
 [project.entry-points.'swarmauri.key_providers']
 MirroredKeyProvider = "swarmauri_keyproviders_mirrored.MirroredKeyProvider:MirroredKeyProvider"
 
+[project.entry-points."peagen.plugins.key_providers"]
+mirrored = "swarmauri_keyproviders_mirrored.MirroredKeyProvider:MirroredKeyProvider"
+

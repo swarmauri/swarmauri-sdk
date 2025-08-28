@@ -61,3 +61,6 @@ build-backend = "poetry.core.masonry.api"
 
 [project.entry-points.'swarmauri.key_providers']
 InMemoryKeyProvider = "swarmauri_keyprovider_inmemory.InMemoryKeyProvider:InMemoryKeyProvider"
+
+[project.entry-points."peagen.plugins.key_providers"]
+inmemory = "swarmauri_keyprovider_inmemory.InMemoryKeyProvider:InMemoryKeyProvider"

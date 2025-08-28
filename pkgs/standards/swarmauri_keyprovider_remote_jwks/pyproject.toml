@@ -65,3 +65,6 @@ build-backend = "poetry.core.masonry.api"
 
 [project.entry-points.'swarmauri.key_providers']
 RemoteJwksKeyProvider = "swarmauri_keyprovider_remote_jwks.RemoteJwksKeyProvider:RemoteJwksKeyProvider"
+
+[project.entry-points."peagen.plugins.key_providers"]
+remote_jwks = "swarmauri_keyprovider_remote_jwks.RemoteJwksKeyProvider:RemoteJwksKeyProvider"

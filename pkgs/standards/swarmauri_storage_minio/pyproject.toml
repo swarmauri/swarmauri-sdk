@@ -31,6 +31,9 @@ swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 
+[project.entry-points.'swarmauri.storage_adapters']
+MinioStorageAdapter = "swarmauri_storage_minio.minio_storage_adapter:MinioStorageAdapter"
+
 [project.entry-points."peagen.plugins.storage_adapters"]
 minio = "swarmauri_storage_minio.minio_storage_adapter:MinioStorageAdapter"
 

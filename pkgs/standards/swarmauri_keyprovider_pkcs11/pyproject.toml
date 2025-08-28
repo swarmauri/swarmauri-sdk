@@ -62,3 +62,6 @@ build-backend = "poetry.core.masonry.api"
 
 [project.entry-points.'swarmauri.key_providers']
 Pkcs11KeyProvider = "swarmauri_keyprovider_pkcs11.Pkcs11KeyProvider:Pkcs11KeyProvider"
+
+[project.entry-points."peagen.plugins.key_providers"]
+pkcs11 = "swarmauri_keyprovider_pkcs11.Pkcs11KeyProvider:Pkcs11KeyProvider"

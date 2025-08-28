@@ -62,3 +62,6 @@ build-backend = "poetry.core.masonry.api"
 
 [project.entry-points.'swarmauri.key_providers']
 SshKeyProvider = "swarmauri_keyprovider_ssh.SshKeyProvider:SshKeyProvider"
+
+[project.entry-points."peagen.plugins.key_providers"]
+ssh = "swarmauri_keyprovider_ssh.SshKeyProvider:SshKeyProvider"

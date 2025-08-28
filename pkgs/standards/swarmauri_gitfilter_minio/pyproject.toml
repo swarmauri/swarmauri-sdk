@@ -31,6 +31,9 @@ swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 
+[project.entry-points.'swarmauri.git_filters']
+MinioFilter = "swarmauri_gitfilter_minio.minio_filter:MinioFilter"
+
 [project.entry-points."peagen.plugins.git_filters"]
 minio = "swarmauri_gitfilter_minio.minio_filter:MinioFilter"
 

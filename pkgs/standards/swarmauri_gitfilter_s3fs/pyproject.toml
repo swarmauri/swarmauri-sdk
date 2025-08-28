@@ -31,6 +31,9 @@ swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 
+[project.entry-points.'swarmauri.git_filters']
+S3FSFilter = "swarmauri_gitfilter_s3fs.s3fs_filter:S3FSFilter"
+
 [project.entry-points."peagen.plugins.git_filters"]
 s3 = "swarmauri_gitfilter_s3fs.s3fs_filter:S3FSFilter"
 
