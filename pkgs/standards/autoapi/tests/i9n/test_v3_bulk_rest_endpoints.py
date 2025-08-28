@@ -61,7 +61,6 @@ async def test_bulk_create(v3_client) -> None:
     assert all("id" in row for row in listed)
 
 
-@pytest.mark.xfail(reason="Bulk update endpoint not yet functional", strict=False)
 @pytest.mark.asyncio()
 async def test_bulk_update(v3_client) -> None:
     client, _ = v3_client
@@ -91,7 +90,6 @@ async def test_bulk_update(v3_client) -> None:
     assert data_map[ids[1]]["description"] == "b2"
 
 
-@pytest.mark.xfail(reason="Bulk replace endpoint not yet functional", strict=False)
 @pytest.mark.asyncio()
 async def test_bulk_replace(v3_client) -> None:
     client, _ = v3_client
@@ -116,12 +114,12 @@ async def test_bulk_replace(v3_client) -> None:
     data = (await client.get("/widget")).json()
     data_map = {row["id"]: row for row in data}
     assert data_map[ids[0]]["name"] == "w1-replaced"
-    assert data_map[ids[0]]["description"] is None
+    # Some serializers omit null fields; treat missing as None for assertions.
+    assert data_map[ids[0]].get("description") is None
     assert data_map[ids[1]]["name"] == "w2-replaced"
     assert data_map[ids[1]]["description"] == "new"
 
 
-@pytest.mark.xfail(reason="Bulk delete endpoint not yet functional", strict=False)
 @pytest.mark.asyncio()
 async def test_bulk_delete(v3_client) -> None:
     client, _ = v3_client

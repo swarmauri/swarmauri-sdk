@@ -200,8 +200,16 @@ def _is_required(col: Any, verb: str) -> bool:
     - PK is required for update/replace/delete
     - otherwise, nullable or server/default determines optionality
     """
+    # Primary keys remain required for mutating verbs so the row can be
+    # identified. For ``update`` operations however, other fields should be
+    # optional to support partial updates. Previously non-nullable columns were
+    # always marked as required which caused validation errors for payloads that
+    # omitted untouched fields.
     if getattr(col, "primary_key", False) and verb in {"update", "replace", "delete"}:
         return True
+    if verb == "update":
+        # Allow partial updates by treating non-PK fields as optional.
+        return False
     is_nullable = bool(getattr(col, "nullable", True))
     has_default = (getattr(col, "default", None) is not None) or (
         getattr(col, "server_default", None) is not None
@@ -280,9 +288,21 @@ def _build_schema(
             them.
             """
 
-            allowed_verbs = getattr(io, "in_verbs", None) if io is not None else None
-            if allowed_verbs is not None and verb not in set(allowed_verbs):
-                continue
+            if getattr(col, "primary_key", False) and verb in {
+                "update",
+                "replace",
+                "delete",
+            }:
+                # Always expose the PK for mutating operations even when the
+                # ColumnSpec omits inbound verbs. The identifier is required so
+                # consumers can target the correct row.
+                pass
+            else:
+                allowed_verbs = (
+                    getattr(io, "in_verbs", None) if io is not None else None
+                )
+                if allowed_verbs is not None and verb not in set(allowed_verbs):
+                    continue
 
         # Column.info["autoapi"]
         meta_src = getattr(col, "info", {}) or {}

@@ -1084,6 +1084,13 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
     nested_pref = re.sub(r"/{2,}", "/", raw_nested).rstrip("/") or ""
     nested_vars = re.findall(r"{(\w+)}", raw_nested)
 
+    # Register collection-level bulk routes before member routes so static paths
+    # like "/resource/bulk" aren't captured by dynamic member routes such as
+    # "/resource/{item_id}". FastAPI matches routes in the order they are
+    # added, so sorting here prevents "bulk" from being treated as an
+    # identifier.
+    specs = sorted(specs, key=lambda sp: (0 if sp.target.startswith("bulk_") else 1))
+
     for sp in specs:
         if not sp.expose_routes:
             continue
