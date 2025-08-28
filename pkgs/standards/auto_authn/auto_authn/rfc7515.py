@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 from typing import Any, Final, Mapping
 
 from .deps import JWAAlg, JwsSignerVerifier
@@ -13,21 +12,19 @@ RFC7515_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc7515"
 _signer = JwsSignerVerifier()
 
 
-def sign_jws(payload: str, key: Mapping[str, Any]) -> str:
+async def sign_jws(payload: str, key: Mapping[str, Any]) -> str:
     """Return a JWS compact serialization of *payload* using *key*."""
     if not settings.enable_rfc7515:
         raise RuntimeError(f"RFC 7515 support disabled: {RFC7515_SPEC_URL}")
     alg = JWAAlg.HS256 if key.get("kty") == "oct" else JWAAlg.EDDSA
-    return asyncio.run(_signer.sign_compact(payload=payload, alg=alg, key=key))
+    return await _signer.sign_compact(payload=payload, alg=alg, key=key)
 
 
-def verify_jws(token: str, key: Mapping[str, Any]) -> str:
+async def verify_jws(token: str, key: Mapping[str, Any]) -> str:
     """Verify *token* and return the decoded payload as a string."""
     if not settings.enable_rfc7515:
         raise RuntimeError(f"RFC 7515 support disabled: {RFC7515_SPEC_URL}")
-    result = asyncio.run(
-        _signer.verify_compact(token, jwks_resolver=lambda _k, _a: key)
-    )
+    result = await _signer.verify_compact(token, jwks_resolver=lambda _k, _a: key)
     return result.payload.decode()
 
 

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import base64
 from typing import Any, Final, Mapping
 
@@ -28,27 +27,25 @@ def _normalize_oct_key(key: Mapping[str, Any]) -> Mapping[str, Any]:
     return key
 
 
-def encrypt_jwe(plaintext: str, key: Mapping[str, Any]) -> str:
+async def encrypt_jwe(plaintext: str, key: Mapping[str, Any]) -> str:
     """Encrypt *plaintext* for *key* and return the compact JWE string."""
     if not settings.enable_rfc7516:
         raise RuntimeError(f"RFC 7516 support disabled: {RFC7516_SPEC_URL}")
     norm_key = _normalize_oct_key(key)
-    return asyncio.run(
-        _crypto.encrypt_compact(
-            payload=plaintext,
-            alg=JWAAlg.DIR,
-            enc=JWAAlg.A256GCM,
-            key=norm_key,
-        )
+    return await _crypto.encrypt_compact(
+        payload=plaintext,
+        alg=JWAAlg.DIR,
+        enc=JWAAlg.A256GCM,
+        key=norm_key,
     )
 
 
-def decrypt_jwe(token: str, key: Mapping[str, Any]) -> str:
+async def decrypt_jwe(token: str, key: Mapping[str, Any]) -> str:
     """Decrypt *token* with *key* and return the plaintext string."""
     if not settings.enable_rfc7516:
         raise RuntimeError(f"RFC 7516 support disabled: {RFC7516_SPEC_URL}")
     norm_key = _normalize_oct_key(key)
-    res = asyncio.run(_crypto.decrypt_compact(token, dir_key=norm_key.get("k")))
+    res = await _crypto.decrypt_compact(token, dir_key=norm_key.get("k"))
     return res.plaintext.decode()
 
 
