@@ -22,7 +22,6 @@ def setup_api(model_cls, get_db):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-@pytest.mark.xfail(reason="request schema coercion pending")
 async def test_op_ctx_request_response_schemas(sync_db_session):
     _, get_sync_db = sync_db_session
 

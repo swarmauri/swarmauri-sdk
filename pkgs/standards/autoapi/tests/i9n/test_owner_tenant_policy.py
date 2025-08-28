@@ -66,7 +66,12 @@ class DummyAuth(AuthNProvider):
 def _client_for_owner(
     policy: OwnerPolicy, user_id: uuid.UUID, tenant_id: uuid.UUID
 ) -> TestClient:
+    from autoapi.v2.impl import schema as v2_schema
+    from autoapi.v3.schema import builder as v3_builder
+
     Base.metadata.clear()
+    v2_schema._SchemaCache.clear()
+    v3_builder._SchemaCache.clear()
 
     class User(Base, GUIDPk):
         __tablename__ = "users"
@@ -103,7 +108,11 @@ def _client_for_owner(
     app = App()
     app.include_router(api.router)
     api.initialize_sync()
-    return TestClient(app)
+    client = TestClient(app)
+    v2_schema._SchemaCache.clear()
+    v3_builder._SchemaCache.clear()
+    Base.metadata.clear()
+    return client
 
 
 @pytest.mark.i9n
@@ -135,7 +144,12 @@ def test_owner_policy_runtime_switch():
 def _client_for_tenant(
     policy: TenantPolicy, user_id: uuid.UUID, tenant_id: uuid.UUID
 ) -> TestClient:
+    from autoapi.v2.impl import schema as v2_schema
+    from autoapi.v3.schema import builder as v3_builder
+
     Base.metadata.clear()
+    v2_schema._SchemaCache.clear()
+    v3_builder._SchemaCache.clear()
 
     class Tenant(Base, GUIDPk):
         __tablename__ = "tenants"
@@ -172,7 +186,11 @@ def _client_for_tenant(
     app = App()
     app.include_router(api.router)
     api.initialize_sync()
-    return TestClient(app)
+    client = TestClient(app)
+    v2_schema._SchemaCache.clear()
+    v3_builder._SchemaCache.clear()
+    Base.metadata.clear()
+    return client
 
 
 @pytest.mark.i9n

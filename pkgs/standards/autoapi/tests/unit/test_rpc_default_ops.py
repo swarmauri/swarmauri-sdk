@@ -31,6 +31,13 @@ class Widget(Base, GUIDPk, BulkCapable):
 
 @pytest.fixture()
 def api_and_session() -> tuple[AutoAPI, Session]:
+    from autoapi.v2.impl import schema as v2_schema
+    from autoapi.v3.schema import builder as v3_builder
+
+    Base.metadata.clear()
+    v2_schema._SchemaCache.clear()
+    v3_builder._SchemaCache.clear()
+
     engine = create_engine(
         "sqlite:///:memory:",
         connect_args={"check_same_thread": False},
@@ -52,6 +59,9 @@ def api_and_session() -> tuple[AutoAPI, Session]:
     finally:
         session.close()
         engine.dispose()
+        Base.metadata.clear()
+        v2_schema._SchemaCache.clear()
+        v3_builder._SchemaCache.clear()
 
 
 @pytest.mark.asyncio

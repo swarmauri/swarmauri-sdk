@@ -48,6 +48,13 @@ class Widget(Base, GUIDPk, BulkCapable):
 
 @pytest.fixture()
 def api_and_session():
+    from autoapi.v2.impl import schema as v2_schema
+    from autoapi.v3.schema import builder as v3_builder
+
+    Base.metadata.clear()
+    v2_schema._SchemaCache.clear()
+    v3_builder._SchemaCache.clear()
+
     engine = create_engine(
         "sqlite:///:memory:",
         connect_args={"check_same_thread": False},
@@ -69,6 +76,9 @@ def api_and_session():
     finally:
         session.close()
         engine.dispose()
+        Base.metadata.clear()
+        v2_schema._SchemaCache.clear()
+        v3_builder._SchemaCache.clear()
 
 
 async def _op_create(api, db):
