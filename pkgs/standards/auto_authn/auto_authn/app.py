@@ -20,8 +20,7 @@ import sys
 import fastapi
 
 from autoapi.v3 import get_schema  # convenience helper for /methodz
-from .routers.auth_flows import router as flows_router
-from .routers.crud import crud_api as crud_api
+from .routers.surface import surface_api
 from .runtime_cfg import settings
 from .rfc8414 import include_rfc8414
 from .oidc_discovery import include_oidc_discovery
@@ -42,8 +41,7 @@ app = fastapi.FastAPI(
 )
 
 # Mount routers
-app.include_router(crud_api.router)  # /authn/<model> CRUD (AutoAPI)
-app.include_router(flows_router)  # /register, /login, etc.
+app.include_router(surface_api.router)  # /authn/<model> resources & flows
 if settings.enable_rfc8693:
     include_rfc8693(app)
 if settings.enable_rfc7591:
@@ -81,7 +79,7 @@ async def methodz():
 
 async def _startup() -> None:
     # 1 – metadata validation / SQLite convenience mode
-    await crud_api.initialize_async()
+    await surface_api.initialize_async()
 
 
 app.add_event_handler("startup", _startup)

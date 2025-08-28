@@ -94,7 +94,7 @@ class User(UserBase):
             "username": session.username,
             "auth_time": session.auth_time,
         }
-        id_token = mint_id_token(
+        id_token = await mint_id_token(
             sub=str(session.user_id),
             aud=ISSUER,
             nonce=secrets.token_urlsafe(8),

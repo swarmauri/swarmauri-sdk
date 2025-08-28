@@ -57,8 +57,8 @@ from auto_authn.app import create_app
 app = create_app()
 ```
 
-The embedded ``crud_api`` exposes resource operations for in-process usage via
-namespaces like ``crud_api.core.User.create``.
+The embedded ``surface_api`` exposes resource and flow operations for in-process usage via
+namespaces like ``surface_api.core.User.create``.
 
 Check the documentation for detailed setup and configuration.
 

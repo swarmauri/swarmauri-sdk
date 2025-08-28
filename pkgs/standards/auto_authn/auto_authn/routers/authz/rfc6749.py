@@ -169,7 +169,7 @@ async def token(
                 extra_claims["email"] = user_obj.email if user_obj else ""
             if any(k in idc for k in ("name", "preferred_username")):
                 extra_claims["name"] = user_obj.username if user_obj else ""
-        id_token = mint_id_token(
+        id_token = await mint_id_token(
             sub=str(auth_code.user_id),
             aud=parsed.client_id,
             nonce=nonce,
