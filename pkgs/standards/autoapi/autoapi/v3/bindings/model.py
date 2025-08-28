@@ -211,11 +211,21 @@ def bind(model: type, *, only_keys: Optional[Set[_Key]] = None) -> Tuple[OpSpec,
     )
     ctx_hooks = collect_decorated_hooks(model, visible_aliases=visible_aliases)
     base_hooks = getattr(model, "__autoapi_hooks__", {}) or {}
+
+    # Coerce any pre-existing phase sequences to mutable lists so we can extend
+    for phases in base_hooks.values():
+        for phase, fns in list(phases.items()):
+            if not isinstance(fns, list):
+                phases[phase] = list(fns)
+
     for alias, phases in ctx_hooks.items():
         per = base_hooks.setdefault(alias, {})
         for phase, fns in phases.items():
             if phase in PHASES:
-                per.setdefault(phase, []).extend(fns)
+                lst = per.setdefault(phase, [])
+                lst.extend(fns)
+                per[phase] = lst
+
     setattr(model, "__autoapi_hooks__", base_hooks)
 
     # 5) Attach schemas, hooks, handlers, rpc, router (sub-binders honor only_keys)

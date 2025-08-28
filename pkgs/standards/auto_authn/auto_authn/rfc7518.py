@@ -25,8 +25,9 @@ def supported_algorithms() -> list[str]:
     if settings.enable_rfc8812:
         algs.update(WEBAUTHN_ALGORITHMS)
     else:
-        # Ensure RS256 is always available even when WebAuthn algorithms are
-        # disabled. This is required for OpenID Connect ID Token compliance.
+        # Remove WebAuthn-specific algorithms when RFC 8812 is disabled while
+        # retaining RS256 for OpenID Connect compatibility.
+        algs.difference_update(WEBAUTHN_ALGORITHMS)
         algs.add(JWAAlg.RS256.value)
     return sorted(algs)
 

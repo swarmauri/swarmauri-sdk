@@ -15,6 +15,7 @@ from auto_authn.runtime_cfg import settings
 from auto_authn.routers.auth_flows import router, _jwt
 from auto_authn.fastapi_deps import get_async_db
 
+
 @pytest.mark.unit
 @pytest.mark.asyncio
 async def test_token_includes_aud_when_resource_provided(monkeypatch):
@@ -36,6 +37,8 @@ async def test_token_includes_aud_when_resource_provided(monkeypatch):
                 "grant_type": "password",
                 "username": "u",
                 "password": "p",
+                "client_id": "client",
+                "client_secret": "secret",
                 "resource": "https://rs.example",
             },
         )
@@ -60,6 +63,8 @@ async def test_invalid_resource_returns_error(monkeypatch):
                 "grant_type": "password",
                 "username": "u",
                 "password": "p",
+                "client_id": "client",
+                "client_secret": "secret",
                 "resource": "not-a-uri",
             },
         )
@@ -88,6 +93,8 @@ async def test_multiple_resources_uses_first(monkeypatch):
                 "grant_type": "password",
                 "username": "u",
                 "password": "p",
+                "client_id": "client",
+                "client_secret": "secret",
                 "resource": ["https://rs.example", "https://api.example"],
             },
         )
@@ -112,6 +119,8 @@ async def test_multiple_resources_with_invalid_returns_error(monkeypatch):
                 "grant_type": "password",
                 "username": "u",
                 "password": "p",
+                "client_id": "client",
+                "client_secret": "secret",
                 "resource": ["https://rs.example", "not-a-uri"],
             },
         )
@@ -140,6 +149,8 @@ async def test_feature_flag_disables_resource(monkeypatch):
                 "grant_type": "password",
                 "username": "u",
                 "password": "p",
+                "client_id": "client",
+                "client_secret": "secret",
                 "resource": "https://rs.example",
             },
         )

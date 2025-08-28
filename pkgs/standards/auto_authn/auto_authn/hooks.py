@@ -6,9 +6,11 @@ log = logging.getLogger(__name__)
 
 
 def register_inject_hook(api):
-    from autoapi.v3.hooks import Phase
+    from autoapi.v3 import PHASE
 
-    @api.register_hook(Phase.PRE_TX_BEGIN)
+    phase = PHASE.PRE_TX_BEGIN
+
+    @api.register_hook(phase)
     async def _authn_inject_principal(ctx):
         p = getattr(ctx["request"].state, "principal", None)
         log.info("anon authn hook principal")

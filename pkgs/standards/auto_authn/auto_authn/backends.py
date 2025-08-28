@@ -22,7 +22,9 @@ is handled in `fastapi_deps.py` or route handlers.
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Iterable, Optional, TYPE_CHECKING
+from typing import Iterable, Optional
+
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Select, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -30,8 +32,32 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .crypto import verify_pw
 from .typing import Principal
 
-if TYPE_CHECKING:  # pragma: no cover - imported for type checking only
+if TYPE_CHECKING:  # pragma: no cover - imported for typing only
     from .orm.tables import ApiKey, Client, ServiceKey, User
+
+
+def _ApiKey():  # pragma: no cover - thin import wrapper
+    from .orm.tables import ApiKey
+
+    return ApiKey
+
+
+def _ServiceKey():  # pragma: no cover - thin import wrapper
+    from .orm.tables import ServiceKey
+
+    return ServiceKey
+
+
+def _Client():  # pragma: no cover - thin import wrapper
+    from .orm.tables import Client
+
+    return Client
+
+
+def _User():  # pragma: no cover - thin import wrapper
+    from .orm.tables import User
+
+    return User
 
 
 class AuthError(Exception):
@@ -56,11 +82,10 @@ class PasswordBackend:
     """
 
     async def _get_user_stmt(self, identifier: str) -> Select[tuple["User"]]:
-        from .orm.tables import User
-
-        return select(User).where(
-            or_(User.username == identifier, User.email == identifier),
-            User.is_active.is_(True),
+        user = _User()
+        return select(user).where(
+            or_(user.username == identifier, user.email == identifier),
+            user.is_active.is_(True),
         )
 
     async def authenticate(
@@ -84,32 +109,30 @@ class ApiKeyBackend:
     """
 
     async def _get_key_stmt(self, digest: str) -> Select[tuple["ApiKey"]]:
-        from .orm.tables import ApiKey
-
         now = datetime.now(timezone.utc)
-        return select(ApiKey).where(
-            ApiKey.digest == digest,
-            or_(ApiKey.valid_to.is_(None), ApiKey.valid_to > now),
+        api_key = _ApiKey()
+        return select(api_key).where(
+            api_key.digest == digest,
+            or_(api_key.valid_to.is_(None), api_key.valid_to > now),
         )
 
     async def _get_service_key_stmt(self, digest: str) -> Select[tuple["ServiceKey"]]:
-        from .orm.tables import ServiceKey
-
         now = datetime.now(timezone.utc)
-        return select(ServiceKey).where(
-            ServiceKey.digest == digest,
-            or_(ServiceKey.valid_to.is_(None), ServiceKey.valid_to > now),
+        svc_key = _ServiceKey()
+        return select(svc_key).where(
+            svc_key.digest == digest,
+            or_(svc_key.valid_to.is_(None), svc_key.valid_to > now),
         )
 
     async def _get_client_stmt(self) -> Select[tuple["Client"]]:
-        from .orm.tables import Client
-
-        return select(Client).where(Client.is_active.is_(True))
+        client = _Client()
+        return select(client).where(client.is_active.is_(True))
 
     async def authenticate(
         self, db: AsyncSession, api_key: str
     ) -> tuple[Principal, str]:
-        digest = ApiKey.digest_of(api_key)
+        api_key_cls = _ApiKey()
+        digest = api_key_cls.digest_of(api_key)
 
         key_row: Optional["ApiKey"] = await db.scalar(await self._get_key_stmt(digest))
         if key_row and key_row.user:
