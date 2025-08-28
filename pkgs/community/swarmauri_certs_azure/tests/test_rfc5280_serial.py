@@ -1,6 +1,6 @@
 """Tests for serial number generation per RFC 5280."""
 
-from swarmauri_standards.certs.AzureKeyVaultCertService import _serial_or_random
+from swarmauri_certs_azure.certs.AzureKeyVaultCertService import _serial_or_random
 
 
 def test_serial_or_random_rfc5280() -> None:

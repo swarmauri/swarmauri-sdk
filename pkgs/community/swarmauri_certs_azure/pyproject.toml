@@ -1,7 +1,7 @@
 [project]
-name = "swarmauri_standards"
+name = "swarmauri_certs_azure"
 version = "0.1.0"
-description = "Community standards for Swarmauri including Azure Key Vault certificate utilities"
+description = "Azure Key Vault certificate utilities for the Swarmauri ecosystem"
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
