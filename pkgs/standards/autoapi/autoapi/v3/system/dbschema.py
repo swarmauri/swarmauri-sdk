@@ -26,6 +26,7 @@ All helpers are **framework-agnostic** and rely only on SQLAlchemy.
 
 from __future__ import annotations
 
+from pathlib import Path
 import re
 from typing import (
     Any,
@@ -50,6 +51,7 @@ __all__ = [
     "register_sqlite_attach",
     "ensure_schemas",
     "bootstrap_dbschema",
+    "sqlite_default_attach_map",
 ]
 
 
@@ -117,6 +119,21 @@ def _attach_sqlite_dbapi(dbapi_conn: Any, attachments: Mapping[str, str]) -> Non
             cur and cur.close()
         except Exception:
             pass
+
+
+def sqlite_default_attach_map(engine: Engine, schemas: Iterable[str]) -> Dict[str, str]:
+    """Return a deterministic SQLite ATTACH map for ``schemas``.
+
+    ``main.db`` → ``main__<schema>.db`` (same directory). ``:memory:`` stays
+    in-memory.
+    """
+    db = getattr(getattr(engine, "url", None), "database", None) or ":memory:"
+    if db == ":memory:" or str(db).startswith("file::memory:"):
+        return {s: ":memory:" for s in schemas}
+
+    p = Path(db)
+    suffix = p.suffix if p.suffix else ".db"
+    return {s: str(p.with_name(f"{p.stem}__{s}{suffix}")) for s in schemas}
 
 
 def register_sqlite_attach(engine: Engine, attachments: Mapping[str, str]) -> Any:
