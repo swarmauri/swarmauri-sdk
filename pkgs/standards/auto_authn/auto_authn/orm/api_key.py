@@ -8,12 +8,7 @@ import secrets
 from autoapi.v3.tables import ApiKey as ApiKeyBase
 from autoapi.v3.types import UniqueConstraint, relationship
 from autoapi.v3.mixins import UserMixin
-from autoapi.v3.specs import IO, vcol
 from autoapi.v3 import hook_ctx
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:  # pragma: no cover
-    from .user import User
 
 
 class ApiKey(ApiKeyBase, UserMixin):
@@ -26,11 +21,6 @@ class ApiKey(ApiKeyBase, UserMixin):
         "auto_authn.orm.tables.User",
         back_populates="_api_keys",
         lazy="joined",  # optional: eager load to avoid N+1
-    )
-
-    user: "User" = vcol(
-        read_producer=lambda obj, _ctx: obj._user,
-        io=IO(out_verbs=("read", "list")),
     )
 
     @hook_ctx(ops="create", phase="PRE_HANDLER")
