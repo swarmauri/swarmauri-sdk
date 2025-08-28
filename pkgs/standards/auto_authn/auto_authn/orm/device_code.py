@@ -9,7 +9,7 @@ from autoapi.v3.tables import Base
 from autoapi.v3.mixins import Timestamped
 from autoapi.v3.specs import S, acol
 from autoapi.v3.specs.storage_spec import ForeignKeySpec
-from autoapi.v3.types import Boolean, Integer, PgUUID, String, TZDateTime
+from autoapi.v3.types import Boolean, Integer, Mapped, PgUUID, String, TZDateTime
 from autoapi.v3 import op_ctx
 from fastapi import HTTPException, status
 
@@ -25,19 +25,19 @@ class DeviceCode(Base, Timestamped):
     __tablename__ = "device_codes"
     __table_args__ = ({"schema": "authn"},)
 
-    device_code: str = acol(storage=S(String(128), primary_key=True))
-    user_code: str = acol(storage=S(String(32), nullable=False, index=True))
-    client_id: uuid.UUID = acol(
+    device_code: Mapped[str] = acol(storage=S(String(128), primary_key=True))
+    user_code: Mapped[str] = acol(storage=S(String(32), nullable=False, index=True))
+    client_id: Mapped[uuid.UUID] = acol(
         storage=S(
             PgUUID(as_uuid=True),
             fk=ForeignKeySpec(target="authn.clients.id"),
             nullable=False,
         )
     )
-    expires_at: dt.datetime = acol(storage=S(TZDateTime, nullable=False))
-    interval: int = acol(storage=S(Integer, nullable=False))
-    authorized: bool = acol(storage=S(Boolean, nullable=False, default=False))
-    user_id: uuid.UUID | None = acol(
+    expires_at: Mapped[dt.datetime] = acol(storage=S(TZDateTime, nullable=False))
+    interval: Mapped[int] = acol(storage=S(Integer, nullable=False))
+    authorized: Mapped[bool] = acol(storage=S(Boolean, nullable=False, default=False))
+    user_id: Mapped[uuid.UUID | None] = acol(
         storage=S(
             PgUUID(as_uuid=True),
             fk=ForeignKeySpec(target="authn.users.id"),
@@ -45,7 +45,7 @@ class DeviceCode(Base, Timestamped):
             index=True,
         )
     )
-    tenant_id: uuid.UUID | None = acol(
+    tenant_id: Mapped[uuid.UUID | None] = acol(
         storage=S(
             PgUUID(as_uuid=True),
             fk=ForeignKeySpec(target="authn.tenants.id"),

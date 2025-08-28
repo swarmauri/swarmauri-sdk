@@ -5,8 +5,8 @@ from __future__ import annotations
 import uuid
 
 from autoapi.v3.tables import User as UserBase
-from autoapi.v3 import op_ctx, hook_ctx
-from autoapi.v3.types import LargeBinary, String, relationship
+from autoapi.v3 import hook_ctx, op_ctx
+from autoapi.v3.types import LargeBinary, Mapped, String, relationship
 from autoapi.v3.specs import S, acol
 from typing import TYPE_CHECKING
 
@@ -22,8 +22,8 @@ class User(UserBase):
     """Human principal with authentication credentials."""
 
     __table_args__ = ({"extend_existing": True, "schema": "authn"},)
-    email: str = acol(storage=S(String(120), nullable=False, unique=True))
-    password_hash: bytes | None = acol(storage=S(LargeBinary(60)))
+    email: Mapped[str] = acol(storage=S(String(120), nullable=False, unique=True))
+    password_hash: Mapped[bytes | None] = acol(storage=S(LargeBinary(60)))
     _api_keys = relationship(
         "auto_authn.orm.tables.ApiKey",
         back_populates="_user",
