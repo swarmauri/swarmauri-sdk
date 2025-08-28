@@ -5,7 +5,7 @@ Tests all mixins and their expected behavior using individual DummyModel instanc
 """
 
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from autoapi.v3.types import Column, String, uuid4
 
 from autoapi.v3 import Base
@@ -374,6 +374,26 @@ async def test_validity_window_default(create_test_api):
     assert vf_default is not None
     assert vt_default is not None
     assert abs((vt_default - vf_default) - timedelta(days=1)) < timedelta(seconds=1)
+
+
+@pytest.mark.i9n
+@pytest.mark.asyncio
+async def test_tzutcnow():
+    """tzutcnow returns an aware UTC datetime close to current time."""
+    now = tzutcnow()
+    assert now.tzinfo == timezone.utc
+    assert abs(now - datetime.now(timezone.utc)) < timedelta(seconds=1)
+
+
+@pytest.mark.i9n
+@pytest.mark.asyncio
+async def test_tzutcnow_plus_day():
+    """tzutcnow_plus_day returns an aware UTC datetime one day ahead."""
+    now = tzutcnow()
+    future = tzutcnow_plus_day()
+    assert future.tzinfo == timezone.utc
+    assert future > now
+    assert abs((future - now) - timedelta(days=1)) < timedelta(seconds=1)
 
 
 @pytest.mark.i9n
