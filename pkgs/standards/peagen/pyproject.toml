@@ -47,8 +47,9 @@ dependencies = [
     "swarmauri",
     "swarmauri_prompt_j2prompttemplate",
     "swarmauri_keyprovider_ssh",
+    "swarmauri_storage_file",
 
-    "pydantic-settings>=2.2", 
+    "pydantic-settings>=2.2",
     "pydantic[email]>=2.7", # why is this necessary?
 
     # plugins —————————————————————————————————————————————————————————————————————————
@@ -98,6 +99,7 @@ autoapi = { workspace = true }
 autoapi_client = { workspace = true }
 auto_authn = { workspace = true }
 swarmauri_keyprovider_ssh = { workspace = true }
+swarmauri_storage_file = { workspace = true }
 
 
 [tool.pytest.ini_options]
