@@ -109,3 +109,15 @@ def test_col_info_reexport():
 
     assert col_info.normalize is schema_col_info.normalize
     assert col_info.VALID_KEYS == schema_col_info.VALID_KEYS
+
+
+def teardown_module() -> None:
+    """Clear global SQLAlchemy metadata after tests run.
+
+    Binding models mutates ``Base.metadata`` which leaks tables into
+    subsequent tests.  Explicitly clearing the metadata here ensures each
+    test module starts from a clean slate and avoids cross-test
+    contamination.
+    """
+
+    Base.metadata.clear()
