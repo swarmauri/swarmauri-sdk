@@ -4,14 +4,7 @@ from pydantic import BaseModel, Field
 import importlib.util
 import sys
 from pathlib import Path
-
-spec = importlib.util.spec_from_file_location(
-    "peagen.cli.task_helpers",
-    Path(__file__).resolve().parents[2] / "peagen" / "cli" / "task_helpers.py",
-)
-task_helpers = importlib.util.module_from_spec(spec)
-sys.modules["peagen.cli.task_helpers"] = task_helpers
-spec.loader.exec_module(task_helpers)
+import autoapi.v3 as autoapi_v3
 
 
 class DummyTaskModel(BaseModel):
@@ -34,9 +27,27 @@ class DummyTaskModel(BaseModel):
         return {"action": self.action, "args": self.args or {}}
 
 
+_orig_get_schema = autoapi_v3.get_schema
+
+
+def _dummy_get_schema(orm_cls, op, *, kind="out"):
+    if orm_cls.__name__ == "Task":
+        return DummyTaskModel
+    return _orig_get_schema(orm_cls, op, kind=kind)
+
+
+autoapi_v3.get_schema = _dummy_get_schema
+
+spec = importlib.util.spec_from_file_location(
+    "peagen.cli.task_helpers",
+    Path(__file__).resolve().parents[2] / "peagen" / "cli" / "task_helpers.py",
+)
+task_helpers = importlib.util.module_from_spec(spec)
+sys.modules["peagen.cli.task_helpers"] = task_helpers
+spec.loader.exec_module(task_helpers)
+
+
 @pytest.fixture(autouse=True)
-def patch_build_task_schema(monkeypatch):
-    original = task_helpers.get_schema
-    monkeypatch.setattr(task_helpers, "get_schema", lambda *a, **k: DummyTaskModel)
+def restore_get_schema():
     yield
-    monkeypatch.setattr(task_helpers, "get_schema", original)
+    autoapi_v3.get_schema = _orig_get_schema
