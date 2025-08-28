@@ -174,6 +174,27 @@ def _pk_names(model: type) -> set[str]:
         return {"id"}
 
 
+def _coerce_parent_identifiers(
+    model: type, parent_kw: Dict[str, Any]
+) -> Dict[str, Any]:
+    """Coerce nested path identifiers to the model's column python types."""
+    table = getattr(model, "__table__", None)
+    if table is None:
+        return parent_kw
+    out: Dict[str, Any] = dict(parent_kw)
+    for key, val in list(parent_kw.items()):
+        col = getattr(getattr(table, "c", None), key, None)
+        if col is None:
+            continue
+        try:
+            py_t = getattr(col.type, "python_type", None)
+            if py_t is not None and not isinstance(val, py_t):
+                out[key] = py_t(val)
+        except Exception:
+            pass
+    return out
+
+
 def _get_phase_chains(
     model: type, alias: str
 ) -> Dict[str, Sequence[Callable[..., Awaitable[Any]]]]:
@@ -618,7 +639,9 @@ def _make_collection_endpoint(
                 db: Any = Depends(db_dep),
                 **kw: Any,
             ):
-                parent_kw = {k: kw[k] for k in nested_vars if k in kw}
+                parent_kw = _coerce_parent_identifiers(
+                    model, {k: kw[k] for k in nested_vars if k in kw}
+                )
                 query = dict(q)
                 query.update(parent_kw)
                 payload = _validate_query(model, alias, target, query)
@@ -675,7 +698,9 @@ def _make_collection_endpoint(
                 db: Any = Depends(db_dep),
                 **kw: Any,
             ):
-                parent_kw = {k: kw[k] for k in nested_vars if k in kw}
+                parent_kw = _coerce_parent_identifiers(
+                    model, {k: kw[k] for k in nested_vars if k in kw}
+                )
                 payload: Mapping[str, Any] = dict(parent_kw)
                 ctx: Dict[str, Any] = {
                     "request": request,
@@ -738,7 +763,9 @@ def _make_collection_endpoint(
         body=Body(...),
         **kw: Any,
     ):
-        parent_kw = {k: kw[k] for k in nested_vars if k in kw}
+        parent_kw = _coerce_parent_identifiers(
+            model, {k: kw[k] for k in nested_vars if k in kw}
+        )
         payload = _validate_body(model, alias, target, body)
         if parent_kw:
             if isinstance(payload, Mapping):
@@ -829,7 +856,9 @@ def _make_member_endpoint(
             db: Any = Depends(db_dep),
             **kw: Any,
         ):
-            parent_kw = {k: kw[k] for k in nested_vars if k in kw}
+            parent_kw = _coerce_parent_identifiers(
+                model, {k: kw[k] for k in nested_vars if k in kw}
+            )
             payload: Mapping[str, Any] = dict(parent_kw)
             path_params = {real_pk: item_id, pk_param: item_id, **parent_kw}
             ctx: Dict[str, Any] = {
@@ -899,7 +928,9 @@ def _make_member_endpoint(
             db: Any = Depends(db_dep),
             **kw: Any,
         ):
-            parent_kw = {k: kw[k] for k in nested_vars if k in kw}
+            parent_kw = _coerce_parent_identifiers(
+                model, {k: kw[k] for k in nested_vars if k in kw}
+            )
             payload: Mapping[str, Any] = dict(parent_kw)
             path_params = {real_pk: item_id, pk_param: item_id, **parent_kw}
             ctx: Dict[str, Any] = {
@@ -975,7 +1006,9 @@ def _make_member_endpoint(
         body=body_default,
         **kw: Any,
     ):
-        parent_kw = {k: kw[k] for k in nested_vars if k in kw}
+        parent_kw = _coerce_parent_identifiers(
+            model, {k: kw[k] for k in nested_vars if k in kw}
+        )
         payload = _validate_body(model, alias, target, body)
 
         # Enforce path-PK canonicality. If body echoes PK: drop if equal, 409 if mismatch.
@@ -1083,6 +1116,11 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
     raw_nested = _nested_prefix(model) or ""
     nested_pref = re.sub(r"/{2,}", "/", raw_nested).rstrip("/") or ""
     nested_vars = re.findall(r"{(\w+)}", raw_nested)
+    nested_base = (
+        re.sub(r"/{2,}", "/", f"{nested_pref}/{resource}").rstrip("/")
+        if nested_pref
+        else ""
+    )
 
     # Register collection-level bulk routes before member routes so static paths
     # like "/resource/bulk" aren't captured by dynamic member routes such as
@@ -1095,42 +1133,9 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
         if not sp.expose_routes:
             continue
 
-        # Drop parent identifiers from request models when using nested paths
-        if nested_vars:
-            schemas_root = getattr(model, "schemas", None)
-            if schemas_root:
-                alias_ns = getattr(schemas_root, sp.alias, None)
-                if alias_ns:
-                    in_model = getattr(alias_ns, "in_", None)
-                    if (
-                        in_model
-                        and inspect.isclass(in_model)
-                        and issubclass(in_model, BaseModel)
-                    ):
-                        pruned = _strip_parent_fields(in_model, drop=set(nested_vars))
-                        setattr(alias_ns, "in_", pruned)
-
-        # Determine path and membership
-        if nested_pref:
-            suffix = sp.path_suffix or _default_path_suffix(sp) or ""
-            if not suffix.startswith("/") and suffix:
-                suffix = "/" + suffix
-            base = nested_pref
-            if sp.arity == "member" or sp.target in {
-                "read",
-                "update",
-                "replace",
-                "delete",
-            }:
-                path = f"{base}/{{{pk_param}}}{suffix}"
-                is_member = True
-            else:
-                path = f"{base}{suffix}"
-                is_member = False
-        else:
-            path, is_member = _path_for_spec(
-                model, sp, resource=resource, pk_param=pk_param
-            )
+        base_path, base_is_member = _path_for_spec(
+            model, sp, resource=resource, pk_param=pk_param
+        )
 
         # HARDEN list.in_ at runtime to avoid bogus defaults blowing up empty GETs
         if sp.target == "list":
@@ -1148,33 +1153,28 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
                         safe = _optionalize_list_in_model(in_model)
                         setattr(alias_ns, "in_", safe)
 
-        # HTTP methods
         methods = list(sp.http_methods or _DEFAULT_METHODS.get(sp.target, ("POST",)))
         response_model = None  # Allow hooks to mutate response freely
 
-        # Build endpoint (split by body/no-body)
-        if is_member:
-            endpoint = _make_member_endpoint(
+        if base_is_member:
+            base_endpoint = _make_member_endpoint(
                 model,
                 sp,
                 resource=resource,
                 db_dep=db_dep,
                 pk_param=pk_param,
-                nested_vars=nested_vars,
+                nested_vars=[],
             )
         else:
-            endpoint = _make_collection_endpoint(
+            base_endpoint = _make_collection_endpoint(
                 model,
                 sp,
                 resource=resource,
                 db_dep=db_dep,
-                nested_vars=nested_vars,
+                nested_vars=[],
             )
 
-        # Status codes
         status_code = _status_for(sp)
-
-        # Capture OUT schema for OpenAPI without enforcing runtime validation
         alias_ns = getattr(getattr(model, "schemas", None), sp.alias, None)
         out_model = getattr(alias_ns, "out", None) if alias_ns else None
 
@@ -1186,18 +1186,16 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
             responses_meta[status_code] = {"description": "Successful Response"}
             response_class = Response
 
-        # Attach route
         label = f"{model.__name__} - {sp.alias}"
         route_kwargs = dict(
-            path=path,
-            endpoint=endpoint,
+            path=base_path,
+            endpoint=base_endpoint,
             methods=methods,
             name=f"{model.__name__}.{sp.alias}",
             summary=label,
             description=label,
             response_model=response_model,
             status_code=status_code,
-            # IMPORTANT: only class name here; never table name
             tags=list(sp.tags or (model.__name__,)),
             responses=responses_meta,
         )
@@ -1205,14 +1203,60 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
             route_kwargs["response_class"] = response_class
         router.add_api_route(**route_kwargs)
 
-        logger.debug(
-            "rest: registered %s %s -> %s.%s (response_model=%s)",
-            methods,
-            path,
-            model.__name__,
-            sp.alias,
-            getattr(response_model, "__name__", None) if response_model else None,
-        )
+        if nested_pref:
+            if nested_vars:
+                schemas_root = getattr(model, "schemas", None)
+                if schemas_root:
+                    alias_ns = getattr(schemas_root, sp.alias, None)
+                    if alias_ns:
+                        in_model = getattr(alias_ns, "in_", None)
+                        if (
+                            in_model
+                            and inspect.isclass(in_model)
+                            and issubclass(in_model, BaseModel)
+                        ):
+                            pruned = _strip_parent_fields(
+                                in_model, drop=set(nested_vars)
+                            )
+                            setattr(alias_ns, "in_", pruned)
+
+            suffix = sp.path_suffix or _default_path_suffix(sp) or ""
+            if not suffix.startswith("/") and suffix:
+                suffix = "/" + suffix
+            base = nested_base
+            if sp.arity == "member" or sp.target in {
+                "read",
+                "update",
+                "replace",
+                "delete",
+            }:
+                path = f"{base}/{{{pk_param}}}{suffix}"
+                is_member = True
+            else:
+                path = f"{base}{suffix}"
+                is_member = False
+
+            if is_member:
+                endpoint = _make_member_endpoint(
+                    model,
+                    sp,
+                    resource=resource,
+                    db_dep=db_dep,
+                    pk_param=pk_param,
+                    nested_vars=nested_vars,
+                )
+            else:
+                endpoint = _make_collection_endpoint(
+                    model,
+                    sp,
+                    resource=resource,
+                    db_dep=db_dep,
+                    nested_vars=nested_vars,
+                )
+
+            nested_kwargs = dict(route_kwargs)
+            nested_kwargs.update(path=path, endpoint=endpoint)
+            router.add_api_route(**nested_kwargs)
 
     return router
 
