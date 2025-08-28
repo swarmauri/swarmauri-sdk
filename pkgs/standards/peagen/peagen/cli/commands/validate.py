@@ -5,11 +5,22 @@ from typing import Any, Dict
 
 import typer
 
-from peagen.handlers.validate_handler import validate_handler
+import peagen.handlers.validate_handler as validate_handler_module
 from peagen.cli.task_helpers import build_task, submit_task
 
 local_validate_app = typer.Typer(help="Validate Peagen artifacts.")
 remote_validate_app = typer.Typer(help="Validate Peagen artifacts via JSON-RPC.")
+
+
+@local_validate_app.callback()
+def local_validate() -> None:
+    """Local validation commands."""
+
+
+@remote_validate_app.callback()
+def remote_validate() -> None:
+    """Remote validation commands."""
+
 
 # ────────────────────────────── local validate ────────────────────────────────────
 
@@ -36,13 +47,19 @@ def run_validate(
         "kind": kind,
         "path": path,
     }
-    if repo:
-        args.update({"repo": repo, "ref": ref})
-    task = build_task("validate", args, pool="default")
+    task = build_task(
+        action="validate",
+        args=args,
+        pool_id="default",
+        repo=repo,
+        ref=ref,
+    )
 
     # 2) Call validate_handler(task) via asyncio.run
     try:
-        result: Dict[str, Any] = asyncio.run(validate_handler(task))
+        result: Dict[str, Any] = asyncio.run(
+            validate_handler_module.validate_handler(task)
+        )
     except Exception as exc:
         typer.echo(f"[ERROR] Exception inside validate_handler: {exc}")
         raise typer.Exit(1)
@@ -78,9 +95,13 @@ def submit_validate(
         "kind": kind,
         "path": path,
     }
-    if repo:
-        args.update({"repo": repo, "ref": ref})
-    task = build_task("validate", args, pool=ctx.obj.get("pool", "default"))
+    task = build_task(
+        action="validate",
+        args=args,
+        pool_id=ctx.obj.get("pool", "default"),
+        repo=repo,
+        ref=ref,
+    )
 
     # 2) Build Task.submit envelope using Task fields
     try:
