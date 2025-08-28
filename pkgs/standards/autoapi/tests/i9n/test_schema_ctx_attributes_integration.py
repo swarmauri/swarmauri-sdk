@@ -48,11 +48,8 @@ async def schema_ctx_client():
     api.attach_diagnostics()
     await api.initialize_async()
 
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as client:
-        yield client, api, Widget, sessionmaker
-    await engine.dispose()
+    client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
+    return client, api, Widget, sessionmaker
 
 
 @pytest.mark.i9n

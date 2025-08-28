@@ -52,7 +52,6 @@ async def fs_app():
         yield client, api, SessionLocal, FSItem
     finally:
         await client.aclose()
-        engine.dispose()
 
 
 @pytest.mark.i9n

@@ -60,9 +60,7 @@ def hooked_model():
 def _fresh_session():
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(bind=engine)
-    SessionLocal = sessionmaker(bind=engine)
-    session = SessionLocal()
-    return session, engine
+    return sessionmaker(bind=engine)()
 
 
 # --- tests ---------------------------------------------------------------------
@@ -84,10 +82,9 @@ def test_columns_bound(gadget_model):
 
 def test_defaults_value_resolution(gadget_model):
     bind(gadget_model)
-    db, engine = _fresh_session()
+    db = _fresh_session()
     obj = asyncio.run(_core.create(gadget_model, db=db, data={}))
     assert obj.name == "anon"
-    engine.dispose()
 
 
 def test_internal_model_opspec_binding(gadget_model):
@@ -106,15 +103,14 @@ def test_openapi_includes_path(gadget_model):
 
 def test_storage_and_sqlalchemy_persist(gadget_model):
     bind(gadget_model)
-    db, engine = _fresh_session()
+    db = _fresh_session()
     asyncio.run(_core.create(gadget_model, db=db, data={"name": "stored"}))
     fetched = db.query(gadget_model).one()
     assert fetched.name == "stored"
-    engine.dispose()
 
 
 def test_rest_routes_bound(gadget_model):
-    session, engine = _fresh_session()
+    session = _fresh_session()
 
     def get_db():
         return session
@@ -125,7 +121,6 @@ def test_rest_routes_bound(gadget_model):
     app.include_router(gadget_model.rest.router)
     paths = {route.path for route in app.router.routes}
     assert "/gadget" in paths
-    engine.dispose()
 
 
 def test_rpc_method_bound(gadget_model):

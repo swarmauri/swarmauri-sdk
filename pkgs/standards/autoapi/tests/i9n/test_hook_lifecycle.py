@@ -53,7 +53,7 @@ async def setup_client(db_mode, Tenant, Item):
     fastapi_app.include_router(api.router)
     transport = ASGITransport(app=fastapi_app)
     client = AsyncClient(transport=transport, base_url="http://test")
-    return client, api, engine
+    return client, api
 
 
 @pytest.mark.i9n
@@ -115,7 +115,7 @@ async def test_hook_phases_execution_order(db_mode):
     Item.post_commit = post_commit
     Item.post_response = post_response
 
-    client, _, engine = await setup_client(db_mode, Tenant, Item)
+    client, _ = await setup_client(db_mode, Tenant, Item)
 
     t = await client.post("/tenant", json={"name": "test-tenant"})
     tid = t.json()["id"]
@@ -142,10 +142,6 @@ async def test_hook_phases_execution_order(db_mode):
     ]
     assert execution_order == expected_order
     await client.aclose()
-    if db_mode == "async":
-        await engine.dispose()
-    else:
-        engine.dispose()
 
 
 @pytest.mark.i9n
@@ -183,7 +179,7 @@ async def test_hook_parity_crud_vs_rpc(db_mode):
     Item.track_pre_tx = track_pre_tx
     Item.track_post_commit = track_post_commit
 
-    client, _, engine = await setup_client(db_mode, Tenant, Item)
+    client, _ = await setup_client(db_mode, Tenant, Item)
 
     t = await client.post("/tenant", json={"name": "test-tenant"})
     tid = t.json()["id"]
@@ -201,10 +197,6 @@ async def test_hook_parity_crud_vs_rpc(db_mode):
     assert crud_hooks == ["PRE_TX_BEGIN", "POST_COMMIT"]
     assert rpc_hooks == ["PRE_TX_BEGIN", "POST_COMMIT"]
     await client.aclose()
-    if db_mode == "async":
-        await engine.dispose()
-    else:
-        engine.dispose()
 
 
 @pytest.mark.i9n
@@ -236,7 +228,7 @@ async def test_hook_error_handling(db_mode):
     Item.error_handler = error_handler
     Item.failing_hook = failing_hook
 
-    client, _, engine = await setup_client(db_mode, Tenant, Item)
+    client, _ = await setup_client(db_mode, Tenant, Item)
 
     t = await client.post("/tenant", json={"name": "test-tenant"})
     tid = t.json()["id"]
@@ -252,10 +244,6 @@ async def test_hook_error_handling(db_mode):
 
     assert error_hooks == ["ERROR_HANDLED"]
     await client.aclose()
-    if db_mode == "async":
-        await engine.dispose()
-    else:
-        engine.dispose()
 
 
 @pytest.mark.i9n
@@ -307,7 +295,7 @@ async def test_hook_early_termination_and_cleanup(db_mode):
     Item.post_commit = post_commit
     Item.post_response = post_response
 
-    client, _, engine = await setup_client(db_mode, Tenant, Item)
+    client, _ = await setup_client(db_mode, Tenant, Item)
 
     t = await client.post("/tenant", json={"name": "test-tenant"})
     tid = t.json()["id"]
@@ -334,10 +322,6 @@ async def test_hook_early_termination_and_cleanup(db_mode):
         "PRE_COMMIT",
     ]
     await client.aclose()
-    if db_mode == "async":
-        await engine.dispose()
-    else:
-        engine.dispose()
 
 
 @pytest.mark.i9n
@@ -378,7 +362,7 @@ async def test_hook_context_modification(db_mode):
     Item.verify_modification = verify_modification
     Item.enrich_response = enrich_response
 
-    client, _, engine = await setup_client(db_mode, Tenant, Item)
+    client, _ = await setup_client(db_mode, Tenant, Item)
 
     t = await client.post("/tenant", json={"name": "test-tenant"})
     tid = t.json()["id"]
@@ -390,10 +374,6 @@ async def test_hook_context_modification(db_mode):
 
     assert hook_executions == ["PRE_TX_BEGIN", "POST_HANDLER", "POST_RESPONSE"]
     await client.aclose()
-    if db_mode == "async":
-        await engine.dispose()
-    else:
-        engine.dispose()
 
 
 @pytest.mark.i9n
@@ -425,7 +405,7 @@ async def test_catch_all_hooks(db_mode):
         tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
         name = Column(String, nullable=False)
 
-    client, _, engine = await setup_client(db_mode, Tenant, Item)
+    client, _ = await setup_client(db_mode, Tenant, Item)
 
     t = await client.post("/tenant", json={"name": "test-tenant"})
     tid = t.json()["id"]
@@ -458,10 +438,6 @@ async def test_catch_all_hooks(db_mode):
     unique_methods = list(dict.fromkeys(catch_all_executions))
     assert unique_methods == expected_methods
     await client.aclose()
-    if db_mode == "async":
-        await engine.dispose()
-    else:
-        engine.dispose()
 
 
 @pytest.mark.i9n
@@ -497,7 +473,7 @@ async def test_multiple_hooks_same_phase(db_mode):
     Item.second_hook = second_hook
     Item.third_hook = third_hook
 
-    client, _, engine = await setup_client(db_mode, Tenant, Item)
+    client, _ = await setup_client(db_mode, Tenant, Item)
 
     t = await client.post("/tenant", json={"name": "test-tenant"})
     tid = t.json()["id"]
@@ -509,7 +485,3 @@ async def test_multiple_hooks_same_phase(db_mode):
     assert "second" in executions
     assert "third" in executions
     await client.aclose()
-    if db_mode == "async":
-        await engine.dispose()
-    else:
-        engine.dispose()

@@ -39,7 +39,7 @@ def create_client(model_cls):
     Base.metadata.create_all(engine)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
-    return client, api, SessionLocal, engine
+    return client, api, SessionLocal
 
 
 # ---------------------------------------------------------------------------
@@ -60,10 +60,9 @@ async def test_hook_ctx_binding_i9n():
         async def flag(cls, ctx):
             ctx["flagged"] = True
 
-    client, api, _, engine = create_client(Item)
+    client, api, _ = create_client(Item)
     assert any(callable(h) for h in api.hooks.Item.create.PRE_HANDLER)
     await client.aclose()
-    engine.dispose()
 
 
 # ---------------------------------------------------------------------------
@@ -84,12 +83,11 @@ async def test_hook_ctx_request_response_schema_i9n():
         async def modify(cls, ctx):
             ctx["response"].result["hook"] = True
 
-    client, _, _, engine = create_client(Item)
+    client, _, _ = create_client(Item)
     res = await client.post("/item", json={"id": str(uuid4()), "name": "a"})
     assert res.status_code == 201
     assert res.json()["hook"] is True
     await client.aclose()
-    engine.dispose()
 
 
 # ---------------------------------------------------------------------------
@@ -114,11 +112,10 @@ async def test_hook_ctx_columns_i9n():
         async def expose(cls, ctx):
             ctx["response"].result["cols"] = ctx["cols"]
 
-    client, _, _, engine = create_client(Item)
+    client, _, _ = create_client(Item)
     res = await client.post("/item", json={"id": str(uuid4()), "name": "x"})
     assert set(res.json()["cols"]) == {"id", "name"}
     await client.aclose()
-    engine.dispose()
 
 
 # ---------------------------------------------------------------------------
@@ -140,12 +137,11 @@ async def test_hook_ctx_defaults_resolution_i9n():
             ctx.setdefault("payload", {})
             ctx["payload"].setdefault("name", "default")
 
-    client, _, _, engine = create_client(Item)
+    client, _, _ = create_client(Item)
     res = await client.post("/item", json={"id": str(uuid4())})
     assert res.status_code == 201
     assert res.json()["name"] == "default"
     await client.aclose()
-    engine.dispose()
 
 
 # ---------------------------------------------------------------------------
@@ -170,11 +166,10 @@ async def test_hook_ctx_internal_model_i9n():
         async def expose_model(cls, ctx):
             ctx["response"].result["model"] = ctx["model_name"]
 
-    client, _, _, engine = create_client(Item)
+    client, _, _ = create_client(Item)
     res = await client.post("/item", json={"id": str(uuid4()), "name": "a"})
     assert res.json()["model"] == "Item"
     await client.aclose()
-    engine.dispose()
 
 
 # ---------------------------------------------------------------------------
@@ -195,11 +190,10 @@ async def test_hook_ctx_openapi_json_i9n():
         async def noop(cls, ctx):
             pass
 
-    client, _, _, engine = create_client(Item)
+    client, _, _ = create_client(Item)
     res = await client.get("/openapi.json")
     assert "/item" in res.json()["paths"]
     await client.aclose()
-    engine.dispose()
 
 
 # ---------------------------------------------------------------------------
@@ -225,11 +219,10 @@ async def test_hook_ctx_storage_sqlalchemy_i9n():
         async def expose_count(cls, ctx):
             ctx["response"].result["count"] = ctx["count"]
 
-    client, _, _, engine = create_client(Item)
+    client, _, _ = create_client(Item)
     res = await client.post("/item", json={"id": str(uuid4()), "name": "a"})
     assert res.json()["count"] == 1
     await client.aclose()
-    engine.dispose()
 
 
 # ---------------------------------------------------------------------------
@@ -250,11 +243,10 @@ async def test_hook_ctx_rest_call_i9n():
         async def mark(cls, ctx):
             ctx["response"].result["phase"] = "rest"
 
-    client, _, _, engine = create_client(Item)
+    client, _, _ = create_client(Item)
     res = await client.post("/item", json={"id": str(uuid4()), "name": "a"})
     assert res.json()["phase"] == "rest"
     await client.aclose()
-    engine.dispose()
 
 
 # ---------------------------------------------------------------------------
@@ -275,7 +267,7 @@ async def test_hook_ctx_rpc_method_i9n():
         async def mark(cls, ctx):
             ctx["response"].result["phase"] = "rpc"
 
-    client, _, _, engine = create_client(Item)
+    client, _, _ = create_client(Item)
     res = await client.post(
         "/rpc",
         json={
@@ -287,7 +279,6 @@ async def test_hook_ctx_rpc_method_i9n():
     )
     assert res.json()["result"]["phase"] == "rpc"
     await client.aclose()
-    engine.dispose()
 
 
 # ---------------------------------------------------------------------------
@@ -308,14 +299,13 @@ async def test_hook_ctx_core_crud_i9n():
         async def mark(cls, ctx):
             ctx["response"].result["via"] = "core"
 
-    client, api, SessionLocal, engine = create_client(Item)
+    client, api, SessionLocal = create_client(Item)
     with SessionLocal() as session:
         result = await api.core.Item.create(
             {"id": str(uuid4()), "name": "x"}, db=session
         )
     assert result["via"] == "core"
     await client.aclose()
-    engine.dispose()
 
 
 # ---------------------------------------------------------------------------
@@ -336,13 +326,12 @@ async def test_hook_ctx_hookz_i9n():
         async def marker(cls, ctx):
             pass
 
-    client, _, _, engine = create_client(Item)
+    client, _, _ = create_client(Item)
     res = await client.get("/system/hookz")
     data = res.json()
     assert "Item" in data and "create" in data["Item"]
     assert any("marker" in s for s in data["Item"]["create"]["POST_COMMIT"])
     await client.aclose()
-    engine.dispose()
 
 
 # ---------------------------------------------------------------------------
@@ -367,11 +356,10 @@ async def test_hook_ctx_atomz_i9n():
         async def expose(cls, ctx):
             ctx["response"].result["captured"] = ctx["captured"]
 
-    client, _, _, engine = create_client(Item)
+    client, _, _ = create_client(Item)
     res = await client.post("/item", json={"id": str(uuid4()), "name": "alpha"})
     assert res.json()["captured"] == "alpha"
     await client.aclose()
-    engine.dispose()
 
 
 # ---------------------------------------------------------------------------
@@ -392,10 +380,9 @@ async def test_hook_ctx_system_steps_i9n():
         async def marker(cls, ctx):
             pass
 
-    client, _, _, engine = create_client(Item)
+    client, _, _ = create_client(Item)
     res = await client.get("/system/planz")
     data = res.json()
     steps = data["Item"]["create"]
     assert "sys:handler:crud@HANDLER" in steps
     await client.aclose()
-    engine.dispose()
