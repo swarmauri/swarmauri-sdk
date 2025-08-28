@@ -11,7 +11,7 @@ if settings.pg_dsn_env or (settings.pg_host and settings.pg_db and settings.pg_u
     dsn = settings.apg_dsn
 else:
     # Fallback to a local SQLite database when Postgres settings are missing
-    dsn = "sqlite+aiosqlite:///./gateway.db"
+    dsn = "sqlite+aiosqlite:///./authn.db"
 
 engine = create_async_engine(
     dsn,

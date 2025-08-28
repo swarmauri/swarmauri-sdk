@@ -34,3 +34,5 @@ kms.db
 *.so
 
 target/
+
+*.db
