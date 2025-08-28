@@ -15,6 +15,21 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from sqlalchemy.orm import Mapped, Session, sessionmaker
 
 
+@pytest.fixture(autouse=True)
+def clear_caches_and_metadata():
+    """Reset schema caches and SQLAlchemy metadata around each test."""
+    from autoapi.v2.impl import schema as v2_schema
+    from autoapi.v3.schema import builder as v3_builder
+
+    Base.metadata.clear()
+    v2_schema._SchemaCache.clear()
+    v3_builder._SchemaCache.clear()
+    yield
+    Base.metadata.clear()
+    v2_schema._SchemaCache.clear()
+    v3_builder._SchemaCache.clear()
+
+
 def pytest_addoption(parser):
     """Add command line options for database mode."""
     group = parser.getgroup("database")

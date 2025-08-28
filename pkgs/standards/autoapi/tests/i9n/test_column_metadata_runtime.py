@@ -1,6 +1,7 @@
 """Runtime behavior tests for column metadata keys."""
 
-from datetime import datetime
+from datetime import UTC, datetime
+from functools import partial
 
 import pytest
 from httpx import ASGITransport, AsyncClient
@@ -108,7 +109,8 @@ async def test_default_factory_field_runtime_behavior(create_test_api):
         __tablename__ = "factory_model"
         name = Column(String)
         created_at = Column(
-            DateTime, info={"autoapi": {"default_factory": datetime.utcnow}}
+            DateTime,
+            info={"autoapi": {"default_factory": partial(datetime.now, UTC)}},
         )
 
     api = create_test_api(FactoryModel)
@@ -126,14 +128,15 @@ async def test_default_factory_field_runtime_behavior(create_test_api):
 
         res = await client.get(f"/factorymodel/{item_id}")
         assert res.status_code == 200
-        created_at = res.json()["created_at"]
+        created_at = datetime.fromisoformat(res.json()["created_at"])
 
         res = await client.patch(f"/factorymodel/{item_id}", json={"name": "updated"})
         assert res.status_code == 200
 
         res = await client.get(f"/factorymodel/{item_id}")
         assert res.status_code == 200
-        assert res.json()["created_at"] != created_at
+        new_created_at = datetime.fromisoformat(res.json()["created_at"])
+        assert new_created_at > created_at
 
     create_schema = _build_schema(FactoryModel, verb="create")
     field = create_schema.model_fields["created_at"]
