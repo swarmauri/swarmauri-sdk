@@ -1,5 +1,6 @@
 from datetime import datetime
 
+
 from autoapi.v3.bindings.model import bind
 from autoapi.v3.runtime.atoms.schema import collect_in, collect_out
 from autoapi.v3.specs import ColumnSpec, F, IO, S, acol, vcol
@@ -15,41 +16,44 @@ from autoapi.v3.types import (
 )
 
 
-class Thing(Base):
-    __tablename__ = "things"
-    __allow_unmapped__ = True
-
-    id: Mapped[int] = acol(
-        storage=S(type_=Integer, primary_key=True, autoincrement=True),
-        io=IO(out_verbs=("read", "list")),
-    )
-
-    name: Mapped[str] = acol(
-        storage=S(type_=String, nullable=False),
-        field=F(constraints={"max_length": 50}, required_in=("create",)),
-        io=IO(in_verbs=("create", "update"), out_verbs=("read", "list")),
-    )
-
-    created_at: Mapped[datetime] = acol(
-        storage=S(type_=DateTime, nullable=False),
-        io=IO(out_verbs=("read",)),
-        default_factory=lambda ctx: datetime(2020, 1, 1),
-    )
-
-    nickname: str = vcol(
-        field=F(py_type=str),
-        io=IO(in_verbs=("create",), out_verbs=("read",)),
-        default_factory=lambda ctx: "anon",
-    )
-
-    slug: str = vcol(
-        field=F(py_type=str),
-        io=IO(out_verbs=("read",)),
-        read_producer=lambda obj, ctx: obj.name.lower(),
-    )
-
-
 def test_acol_vcol_knobs_affect_bindings_and_schemas():
+    """Ensure acol/vcol knobs influence bindings and schemas."""
+
+    Base.metadata.clear()
+
+    class Thing(Base):
+        __tablename__ = "things"
+        __allow_unmapped__ = True
+
+        id: Mapped[int] = acol(
+            storage=S(type_=Integer, primary_key=True, autoincrement=True),
+            io=IO(out_verbs=("read", "list")),
+        )
+
+        name: Mapped[str] = acol(
+            storage=S(type_=String, nullable=False),
+            field=F(constraints={"max_length": 50}, required_in=("create",)),
+            io=IO(in_verbs=("create", "update"), out_verbs=("read", "list")),
+        )
+
+        created_at: Mapped[datetime] = acol(
+            storage=S(type_=DateTime, nullable=False),
+            io=IO(out_verbs=("read",)),
+            default_factory=lambda ctx: datetime(2020, 1, 1),
+        )
+
+        nickname: str = vcol(
+            field=F(py_type=str),
+            io=IO(in_verbs=("create",), out_verbs=("read",)),
+            default_factory=lambda ctx: "anon",
+        )
+
+        slug: str = vcol(
+            field=F(py_type=str),
+            io=IO(out_verbs=("read",)),
+            read_producer=lambda obj, ctx: obj.name.lower(),
+        )
+
     bind(Thing)
 
     specs = Thing.__autoapi_cols__
