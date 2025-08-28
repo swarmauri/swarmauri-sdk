@@ -1,8 +1,6 @@
-"""Storage adapter backed by GitHub Releases."""
+"""Git filter backed by GitHub Releases."""
 
 from __future__ import annotations
-
-from pydantic import SecretStr
 
 import io
 import os
@@ -11,11 +9,14 @@ import tempfile
 from pathlib import Path
 from typing import BinaryIO, Optional
 
-from peagen._utils.config_loader import load_peagen_toml
 from github import Github, UnknownObjectException
+from pydantic import SecretStr
+
+from peagen._utils.config_loader import load_peagen_toml
+from swarmauri_base import GitFilterBase
 
 
-class GithubReleaseFilter:
+class GithubReleaseFilter(GitFilterBase):
     """Git filter that uses GitHub Releases to store and retrieve assets."""
 
     def __init__(
@@ -44,7 +45,6 @@ class GithubReleaseFilter:
         )
 
     # ----------------------------------------------------------------- helpers
-
     def _full_key(self, key: str) -> str:
         key = key.lstrip("/")
         if self._prefix:
@@ -79,7 +79,7 @@ class GithubReleaseFilter:
 
     # ------------------------------------------------------------------- public
     def upload(self, key: str, data: BinaryIO) -> str:
-        """Upload ``data`` under ``key`` as a release asset and return the artifact URI."""
+        """Upload data under key as a release asset and return the artifact URI."""
         key = self._full_key(key)
 
         data.seek(0)
@@ -98,7 +98,7 @@ class GithubReleaseFilter:
         return f"{self.root_uri}{key.lstrip('/')}"
 
     def download(self, key: str) -> BinaryIO:
-        """Return the bytes of asset ``key`` as a BytesIO object."""
+        """Return the bytes of asset key as a BytesIO object."""
         key = self._full_key(key)
 
         for asset in self._release.get_assets():
@@ -115,7 +115,7 @@ class GithubReleaseFilter:
 
     # --------------------------------------------------------------- convenience
     def upload_dir(self, src: str | os.PathLike, *, prefix: str = "") -> None:
-        """Upload all files under *src* using an optional *prefix*."""
+        """Upload all files under *src* using an optional prefix."""
         base = Path(src)
         for path in base.rglob("*"):
             if path.is_file():
@@ -125,7 +125,7 @@ class GithubReleaseFilter:
                     self.upload(key, fh)
 
     def iter_prefix(self, prefix: str):
-        """Yield asset keys under *prefix*."""
+        """Yield asset keys under prefix."""
         full = self._full_key(prefix)
         for asset in self._release.get_assets():
             name = asset.name
@@ -136,7 +136,7 @@ class GithubReleaseFilter:
                 yield key
 
     def download_prefix(self, prefix: str, dest_dir: str | os.PathLike) -> None:
-        """Download all assets under *prefix* into *dest_dir*."""
+        """Download all assets under prefix into dest_dir."""
         dest = Path(dest_dir)
         for rel_key in self.iter_prefix(prefix):
             target = dest / rel_key
@@ -167,22 +167,6 @@ class GithubReleaseFilter:
             tag=tag,
             prefix=prefix,
         )
-
-    # ---------------------------------------------------------------- oid helpers
-    def clean(self, data: bytes) -> str:
-        import hashlib
-        import io
-
-        oid = "sha256:" + hashlib.sha256(data).hexdigest()
-        try:
-            self.download(oid)
-        except FileNotFoundError:
-            self.upload(oid, io.BytesIO(data))
-        return oid
-
-    def smudge(self, oid: str) -> bytes:
-        with self.download(oid) as fh:
-            return fh.read()
 
 
 __all__ = ["GithubReleaseFilter"]

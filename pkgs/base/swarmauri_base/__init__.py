@@ -6,5 +6,12 @@ from swarmauri_base.DynamicBase import (
     register_model,
     register_type,
 )
+from swarmauri_base.GitFilterBase import GitFilterBase
 
-__all__ = ["SubclassUnion", "FullUnion", "register_model", "register_type"]
+__all__ = [
+    "SubclassUnion",
+    "FullUnion",
+    "register_model",
+    "register_type",
+    "GitFilterBase",
+]

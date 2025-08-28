@@ -1,6 +1,7 @@
+"""Git filter that stores artifacts in S3 via s3fs."""
+
 from __future__ import annotations
 
-import io
 import os
 import shutil
 from pathlib import Path
@@ -10,9 +11,10 @@ import s3fs
 from pydantic import SecretStr
 
 from peagen._utils.config_loader import load_peagen_toml
+from swarmauri_base import GitFilterBase
 
 
-class S3FSFilter:
+class S3FSFilter(GitFilterBase):
     """Git filter that stores artifacts in S3 via :mod:`s3fs`."""
 
     def __init__(
@@ -53,7 +55,7 @@ class S3FSFilter:
 
     @property
     def root_uri(self) -> str:
-        """Return the base ``s3://`` URI for this filter."""
+        """Return the base s3:// URI for this filter."""
         base = f"s3://{self._bucket}"
         uri = f"{base}/{self._prefix.rstrip('/')}" if self._prefix else base
         return uri.rstrip("/") + "/"
@@ -95,6 +97,7 @@ class S3FSFilter:
             with target.open("wb") as fh:
                 shutil.copyfileobj(data, fh)
 
+    # --------------------------------------------------------------------- class
     @classmethod
     def from_uri(cls, uri: str) -> "S3FSFilter":
         from urllib.parse import urlparse
@@ -122,21 +125,6 @@ class S3FSFilter:
             endpoint_url=endpoint_url,
             region_name=region,
         )
-
-    # ---------------------------------------------------------------- oid helpers
-    def clean(self, data: bytes) -> str:
-        import hashlib
-
-        oid = "sha256:" + hashlib.sha256(data).hexdigest()
-        try:
-            self.download(oid)
-        except FileNotFoundError:
-            self.upload(oid, io.BytesIO(data))
-        return oid
-
-    def smudge(self, oid: str) -> bytes:
-        with self.download(oid) as fh:
-            return fh.read()
 
 
 __all__ = ["S3FSFilter"]

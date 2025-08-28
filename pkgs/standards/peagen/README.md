@@ -459,7 +459,7 @@ filters and publishers can be supplied programmatically:
 
 ```python
 from peagen.core import Peagen
-from peagen.plugins.git_filters.minio_filter import MinioFilter
+from swarmauri_gitfilter_minio import MinioFilter
 from peagen.plugins.publishers.webhook_publisher import WebhookPublisher
 
 store = MinioFilter.from_uri("s3://localhost:9000/peagen")
