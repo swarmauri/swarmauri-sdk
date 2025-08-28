@@ -161,14 +161,16 @@ class KeyRef:
     uses: Tuple[KeyUse, ...]
     export_policy: ExportPolicy
     uri: Optional[str] = None
-    material: Optional[bytes] = None
-    public: Optional[bytes] = None
+    material: Optional[bytes | str] = None
+    public: Optional[bytes | str] = None
     tags: Dict[str, str] | None = None
     fingerprint: Optional[str] = None
 
     def __post_init__(self) -> None:
         if self.fingerprint is None:
             data = self.public or self.material or self.kid.encode("utf-8")
+            if isinstance(data, str):
+                data = data.encode("utf-8")
             object.__setattr__(self, "fingerprint", hashlib.sha256(data).hexdigest())
 
 
