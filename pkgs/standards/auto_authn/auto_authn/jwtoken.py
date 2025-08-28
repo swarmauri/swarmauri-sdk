@@ -7,6 +7,7 @@ import base64
 import json
 from datetime import datetime, timedelta, timezone
 from functools import lru_cache
+from threading import Thread
 from typing import Any, Dict, Iterable, Optional, Tuple
 
 from .errors import InvalidTokenError
@@ -33,6 +34,24 @@ _REFRESH_TTL = timedelta(days=7)
 _ALG = JWAAlg.EDDSA.value
 
 
+def _run(coro):
+    """Execute *coro* regardless of the current event loop state."""
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(coro)
+    result = None
+
+    def runner():
+        nonlocal result
+        result = asyncio.run(coro)
+
+    t = Thread(target=runner)
+    t.start()
+    t.join()
+    return result
+
+
 @lru_cache(maxsize=1)
 def _svc() -> Tuple[JWTTokenService, str]:
     kp: FileKeyProvider = _provider()
@@ -46,7 +65,7 @@ def _svc() -> Tuple[JWTTokenService, str]:
             export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
             label="jwt_ed25519",
         )
-        ref = asyncio.run(kp.create_key(spec))
+        ref = _run(kp.create_key(spec))
         kid = ref.kid
         _DEFAULT_KEY_PATH.parent.mkdir(parents=True, exist_ok=True)
         _DEFAULT_KEY_PATH.write_text(kid)
@@ -98,7 +117,7 @@ class JWTCoder:
                 export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
                 label="jwt_ed25519",
             )
-            ref = asyncio.run(kp.import_key(spec, arg1, public=arg2))
+            ref = _run(kp.import_key(spec, arg1, public=arg2))
             self._svc = JWTTokenService(kp)
             self._kid = ref.kid
             return
@@ -177,7 +196,7 @@ class JWTCoder:
         cert_thumbprint: Optional[str] = None,
         **extra: Any,
     ) -> str:
-        return asyncio.run(
+        return _run(
             self.async_sign(
                 sub=sub,
                 tid=tid,
@@ -209,7 +228,7 @@ class JWTCoder:
     def sign_pair(
         self, *, sub: str, tid: str, cert_thumbprint: Optional[str] = None, **extra: Any
     ) -> Tuple[str, str]:
-        return asyncio.run(
+        return _run(
             self.async_sign_pair(
                 sub=sub,
                 tid=tid,
@@ -265,7 +284,7 @@ class JWTCoder:
         audience: Optional[Iterable[str] | str] = None,
         cert_thumbprint: Optional[str] = None,
     ) -> Dict[str, Any]:
-        return asyncio.run(
+        return _run(
             self.async_decode(
                 token,
                 verify_exp=verify_exp,
