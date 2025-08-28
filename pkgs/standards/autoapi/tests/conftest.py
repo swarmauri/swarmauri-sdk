@@ -21,12 +21,10 @@ def clear_caches_and_metadata():
     from autoapi.v2.impl import schema as v2_schema
     from autoapi.v3.schema import builder as v3_builder
 
-    Base.registry.dispose()
     Base.metadata.clear()
     v2_schema._SchemaCache.clear()
     v3_builder._SchemaCache.clear()
     yield
-    Base.registry.dispose()
     Base.metadata.clear()
     v2_schema._SchemaCache.clear()
     v3_builder._SchemaCache.clear()
