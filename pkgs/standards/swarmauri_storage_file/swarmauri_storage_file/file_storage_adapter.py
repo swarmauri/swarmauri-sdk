@@ -9,15 +9,9 @@ from __future__ import annotations
 import io
 import os
 import shutil
-import warnings
 from pathlib import Path
 from typing import BinaryIO
 
-warnings.warn(
-    "FileStorageAdapter is deprecated; use swarmauri_gitfilter_file instead",
-    DeprecationWarning,
-    stacklevel=2,
-)
 
 
 class FileStorageAdapter:
