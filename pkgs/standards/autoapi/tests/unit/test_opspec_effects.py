@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 
+import pytest
 from autoapi.v3.types import App
 from sqlalchemy import String, create_engine
 from sqlalchemy.orm import sessionmaker
@@ -16,55 +17,61 @@ from autoapi.v3.mixins import GUIDPk
 from autoapi.v3 import core as _core
 from autoapi.v3.decorators import hook_ctx
 
-# --- models --------------------------------------------------------------------
 
-# Previously this module cleared ``Base.metadata`` at import time. That wiped out
-# tables defined by other tests, causing downstream failures. The gadget/hooked
-# table names here are unique, so we avoid clearing global metadata.
+@pytest.fixture
+def Gadget():
+    class Gadget(Base, GUIDPk):
+        __tablename__ = "gadgets_opspec"
+        __allow_unmapped__ = True
+
+        name = acol(
+            storage=S(type_=String, nullable=False, default="anon"),
+            io=IO(in_verbs=("create",), out_verbs=("read",)),
+        )
+
+    yield Gadget
+    if hasattr(Gadget, "__table__"):
+        Base.metadata.remove(Gadget.__table__)
 
 
-class Gadget(Base, GUIDPk):
-    __tablename__ = "gadgets_opspec"
-    __allow_unmapped__ = True
+@pytest.fixture
+def Hooked():
+    class Hooked(Base, GUIDPk):
+        __tablename__ = "hooked_opspec"
+        __allow_unmapped__ = True
 
-    name = acol(
-        storage=S(type_=String, nullable=False, default="anon"),
-        io=IO(in_verbs=("create",), out_verbs=("read",)),
-    )
+        name = acol(
+            storage=S(type_=String, nullable=False),
+            io=IO(in_verbs=("create",), out_verbs=("read",)),
+        )
 
+        @hook_ctx(ops="create", phase="PRE_HANDLER")
+        def inject_name(cls, ctx):
+            payload = dict(ctx.get("payload") or {})
+            payload.setdefault("name", "hooked")
+            ctx["payload"] = payload
 
-class Hooked(Base, GUIDPk):
-    __tablename__ = "hooked_opspec"
-    __allow_unmapped__ = True
-
-    name = acol(
-        storage=S(type_=String, nullable=False),
-        io=IO(in_verbs=("create",), out_verbs=("read",)),
-    )
-
-    @hook_ctx(ops="create", phase="PRE_HANDLER")
-    def inject_name(cls, ctx):
-        payload = dict(ctx.get("payload") or {})
-        payload.setdefault("name", "hooked")
-        ctx["payload"] = payload
+    yield Hooked
+    if hasattr(Hooked, "__table__"):
+        Base.metadata.remove(Hooked.__table__)
 
 
 # --- helpers -------------------------------------------------------------------
 
 
-def _fresh_session():
+def _fresh_session(*models):
     engine = create_engine("sqlite:///:memory:")
     # ``Base.metadata`` may have been cleared by other tests; create tables
     # explicitly from model definitions to ensure they exist.
-    Gadget.__table__.create(bind=engine)
-    Hooked.__table__.create(bind=engine)
+    for model in models:
+        model.__table__.create(bind=engine)
     return sessionmaker(bind=engine)()
 
 
 # --- tests ---------------------------------------------------------------------
 
 
-def test_request_and_response_schemas():
+def test_request_and_response_schemas(Gadget):
     bind(Gadget)
     assert hasattr(Gadget.schemas, "create")
     assert hasattr(Gadget.schemas.create, "in_")
@@ -72,26 +79,26 @@ def test_request_and_response_schemas():
     assert hasattr(Gadget.schemas.read, "out")
 
 
-def test_columns_bound():
+def test_columns_bound(Gadget):
     bind(Gadget)
     assert "name" in Gadget.__table__.c
     assert "name" in Gadget.__autoapi_cols__
 
 
-def test_defaults_value_resolution():
+def test_defaults_value_resolution(Gadget):
     bind(Gadget)
-    db = _fresh_session()
+    db = _fresh_session(Gadget)
     obj = asyncio.run(_core.create(Gadget, db=db, data={}))
     assert obj.name == "anon"
 
 
-def test_internal_model_opspec_binding():
+def test_internal_model_opspec_binding(Gadget):
     bind(Gadget)
     sp = Gadget.opspecs.by_alias["create"][0]
     assert sp.table is Gadget
 
 
-def test_openapi_includes_path():
+def test_openapi_includes_path(Gadget):
     bind(Gadget)
     app = App()
     app.include_router(Gadget.rest.router)
@@ -99,16 +106,16 @@ def test_openapi_includes_path():
     assert "/gadget" in schema["paths"]
 
 
-def test_storage_and_sqlalchemy_persist():
+def test_storage_and_sqlalchemy_persist(Gadget):
     bind(Gadget)
-    db = _fresh_session()
+    db = _fresh_session(Gadget)
     asyncio.run(_core.create(Gadget, db=db, data={"name": "stored"}))
     fetched = db.query(Gadget).one()
     assert fetched.name == "stored"
 
 
-def test_rest_routes_bound():
-    session = _fresh_session()
+def test_rest_routes_bound(Gadget):
+    session = _fresh_session(Gadget)
 
     def get_db():
         return session
@@ -121,23 +128,23 @@ def test_rest_routes_bound():
     assert "/gadget" in paths
 
 
-def test_rpc_method_bound():
+def test_rpc_method_bound(Gadget):
     bind(Gadget)
     assert hasattr(Gadget.rpc, "create")
 
 
-def test_core_crud_handler_used():
+def test_core_crud_handler_used(Gadget):
     bind(Gadget)
     step = Gadget.hooks.create.HANDLER[0]
     assert step.__qualname__ == _core.create.__qualname__
 
 
-def test_hook_execution():
+def test_hook_execution(Hooked):
     bind(Hooked)
     assert Hooked.hooks.create.PRE_HANDLER
 
 
-def test_atom_injection():
+def test_atom_injection(Gadget):
     bind(Gadget)
     chains = build_phase_chains(Gadget, "create")
     non_handler = [ph for ph in PHASES if ph != "HANDLER" and chains.get(ph)]
