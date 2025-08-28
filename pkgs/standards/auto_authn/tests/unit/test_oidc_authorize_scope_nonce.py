@@ -215,7 +215,12 @@ async def test_authorize_claims_in_id_token(async_client, db_session):
     frag = urlparse(resp.headers["location"]).fragment
     qs = parse_qs(frag)
     token = qs["id_token"][0]
-    claims = verify_id_token(token, issuer=ISSUER, audience=str(client_id))
+    import anyio
+    from functools import partial
+
+    claims = await anyio.to_thread.run_sync(
+        partial(verify_id_token, token, issuer=ISSUER, audience=str(client_id))
+    )
     assert claims["email"] == "frank@example.com"
 
 

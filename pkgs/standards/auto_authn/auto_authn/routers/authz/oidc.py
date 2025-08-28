@@ -3,10 +3,12 @@ from __future__ import annotations
 import json
 import secrets
 from datetime import datetime, timedelta
+from functools import partial
 from typing import Any, Optional
 from uuid import UUID
 from urllib.parse import urlencode
 
+import anyio
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -61,12 +63,15 @@ async def authorize(
     prompts = set(prompt.split()) if prompt else set()
     sid = request.cookies.get("sid")
     session = SESSIONS.get(sid) if sid else None
+    needs_login = False
     if login_hint and session and session.get("username") != login_hint:
         session = None
+        needs_login = True
     if "login" in prompts:
         session = None
+        needs_login = True
     if session is None:
-        if "none" in prompts:
+        if "none" in prompts or needs_login:
             raise HTTPException(
                 status.HTTP_401_UNAUTHORIZED, {"error": "login_required"}
             )
@@ -86,7 +91,7 @@ async def authorize(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
     if code_challenge_method and code_challenge_method != "S256":
         raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
-    mode = response_mode or "query"
+    mode = response_mode or ("fragment" if {"token", "id_token"} & rts else "query")
     if mode not in {"query", "fragment", "form_post"}:
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST, {"error": "unsupported_response_mode"}
@@ -143,12 +148,15 @@ async def authorize(
             extra_claims["at_hash"] = oidc_hash(access)
         if code:
             extra_claims["c_hash"] = oidc_hash(code)
-        id_token = mint_id_token(
-            sub=user_sub,
-            aud=client_id,
-            nonce=nonce,
-            issuer=ISSUER,
-            **extra_claims,
+        id_token = await anyio.to_thread.run_sync(
+            partial(
+                mint_id_token,
+                sub=user_sub,
+                aud=client_id,
+                nonce=nonce,
+                issuer=ISSUER,
+                **extra_claims,
+            )
         )
         params.append(("id_token", id_token))
     if state:
