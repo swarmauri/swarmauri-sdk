@@ -15,7 +15,11 @@ from typing import (
     Tuple,
 )
 
-from .system.dbschema import ensure_schemas, bootstrap_dbschema
+from .system.dbschema import (
+    ensure_schemas,
+    bootstrap_dbschema,
+    sqlite_default_attach_map,
+)
 from .bindings.api import (
     include_model as _include_model,
     include_models as _include_models,
@@ -271,21 +275,32 @@ class AutoAPI:
     def _create_all_on_bind(
         self, bind, *, schemas=None, sqlite_attachments=None, tables=None
     ):
-        # 1) schemas / SQLite ATTACH
+        # 1) collect tables + schemas / SQLite ATTACH
         engine = getattr(bind, "engine", bind)
-        if sqlite_attachments:
+        tables = tables or self._collect_tables()
+
+        schema_names = set(schemas or [])
+        for t in tables:
+            if getattr(t, "schema", None):
+                schema_names.add(t.schema)
+
+        attachments = sqlite_attachments
+        if attachments is None and getattr(engine.dialect, "name", "") == "sqlite":
+            if schema_names:
+                attachments = sqlite_default_attach_map(engine, schema_names)
+
+        if attachments:
             # also applies ensure_schemas; immediate listener warm-up
             bootstrap_dbschema(
                 engine,
-                schemas=schemas,
-                sqlite_attachments=sqlite_attachments,
+                schemas=schema_names,
+                sqlite_attachments=attachments,
                 immediate=True,
             )
         else:
-            ensure_schemas(engine, schemas)
+            ensure_schemas(engine, schema_names)
 
         # 2) create tables (group by metadata to support multiple bases)
-        tables = tables or self._collect_tables()
         by_meta = {}
         for t in tables:
             by_meta.setdefault(t.metadata, []).append(t)
