@@ -7,12 +7,12 @@ from autoapi.v3.types import (
     Text,
     UniqueConstraint,
     PgUUID,
-    ForeignKey,
     Mapped,
     relationship,
 )
 from autoapi.v3.mixins import GUIDPk, Timestamped, TenantBound, Ownable
 from autoapi.v3.specs import S, acol
+from autoapi.v3.specs.storage_spec import ForeignKeySpec
 from typing import TYPE_CHECKING
 
 from .users import User
@@ -32,7 +32,7 @@ class ProjectPayload(Base, GUIDPk, Timestamped, TenantBound, Ownable):
     doe_spec_id: Mapped[PgUUID | None] = acol(
         storage=S(
             PgUUID(as_uuid=True),
-            fk=ForeignKey("peagen.doe_specs.id", ondelete="SET NULL"),
+            fk=ForeignKeySpec("peagen.doe_specs.id", on_delete="SET NULL"),
             nullable=True,
         )
     )
@@ -44,7 +44,7 @@ class ProjectPayload(Base, GUIDPk, Timestamped, TenantBound, Ownable):
     payload: Mapped[dict] = acol(storage=S(JSON, nullable=False))
 
     owner: Mapped[User] = relationship(User, lazy="selectin")
-    doe_spec: Mapped["DoeSpec" | None] = relationship(
+    doe_spec: Mapped["DoeSpec | None"] = relationship(
         "DoeSpec", back_populates="project_payloads", lazy="selectin"
     )
 

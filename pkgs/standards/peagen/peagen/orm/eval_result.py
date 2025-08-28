@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from autoapi.v3.tables import Base
-from autoapi.v3.types import JSON, PgUUID, String, ForeignKey, Mapped, relationship
+from autoapi.v3.types import JSON, PgUUID, String, Mapped, relationship
 from autoapi.v3.mixins import GUIDPk, Timestamped, Ownable, TenantBound
 from autoapi.v3.specs import S, acol
+from autoapi.v3.specs.storage_spec import ForeignKeySpec
 from typing import TYPE_CHECKING
 
 from .users import User
@@ -19,13 +20,13 @@ class EvalResult(Base, GUIDPk, Timestamped, TenantBound, Ownable):
     work_id: Mapped[PgUUID | None] = acol(
         storage=S(
             PgUUID(as_uuid=True),
-            fk=ForeignKey("peagen.works.id", ondelete="CASCADE"),
+            fk=ForeignKeySpec("peagen.works.id", on_delete="CASCADE"),
         )
     )
     label: Mapped[str | None] = acol(storage=S(String))
     metrics: Mapped[dict] = acol(storage=S(JSON, nullable=False))
     owner: Mapped[User] = relationship(User, lazy="selectin")
-    work: Mapped["Work" | None] = relationship(
+    work: Mapped["Work | None"] = relationship(
         "Work", back_populates="eval_results", lazy="selectin"
     )
     analyses: Mapped[list["AnalysisResult"]] = relationship(

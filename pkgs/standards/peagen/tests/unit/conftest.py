@@ -1,7 +1,17 @@
 import uuid
 import pytest
 from pydantic import BaseModel, Field
-from peagen.cli import task_helpers
+import importlib.util
+import sys
+from pathlib import Path
+
+spec = importlib.util.spec_from_file_location(
+    "peagen.cli.task_helpers",
+    Path(__file__).resolve().parents[2] / "peagen" / "cli" / "task_helpers.py",
+)
+task_helpers = importlib.util.module_from_spec(spec)
+sys.modules["peagen.cli.task_helpers"] = task_helpers
+spec.loader.exec_module(task_helpers)
 
 
 class DummyTaskModel(BaseModel):

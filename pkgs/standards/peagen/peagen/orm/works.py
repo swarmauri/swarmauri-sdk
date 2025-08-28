@@ -5,13 +5,13 @@ from autoapi.v3.types import (
     JSON,
     PgUUID,
     Integer,
-    ForeignKey,
     relationship,
     HookProvider,
     Mapped,
 )
 from autoapi.v3.mixins import GUIDPk, Timestamped, StatusMixin
 from autoapi.v3.specs import S, acol
+from autoapi.v3.specs.storage_spec import ForeignKeySpec
 from autoapi.v3 import hook_ctx
 from typing import TYPE_CHECKING
 
@@ -26,7 +26,7 @@ class Work(Base, GUIDPk, Timestamped, StatusMixin, HookProvider):
     __table_args__ = ({"schema": "peagen"},)
     task_id: Mapped[PgUUID] = acol(
         storage=S(
-            PgUUID(as_uuid=True), fk=ForeignKey("peagen.tasks.id"), nullable=False
+            PgUUID(as_uuid=True), fk=ForeignKeySpec("peagen.tasks.id"), nullable=False
         )
     )
     result: Mapped[dict | None] = acol(storage=S(JSON, nullable=True))
