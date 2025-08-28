@@ -11,6 +11,8 @@ import shutil
 from pathlib import Path
 from typing import BinaryIO, Optional
 
+from swarmauri_base.storage import StorageAdapterBase
+
 from minio import Minio
 from minio.error import S3Error
 from pydantic import SecretStr
@@ -18,7 +20,7 @@ from pydantic import SecretStr
 from peagen._utils.config_loader import load_peagen_toml
 
 
-class MinioStorageAdapter:
+class MinioStorageAdapter(StorageAdapterBase):
     """Simple wrapper around the MinIO client for use with Peagen."""
 
     def __init__(
@@ -119,7 +121,7 @@ class MinioStorageAdapter:
             yield key
 
     # ------------------------------------------------------------------
-    def download_prefix(self, prefix: str, dest_dir: str | os.PathLike) -> None:
+    def download_dir(self, prefix: str, dest_dir: str | os.PathLike) -> None:
         """Download everything under ``prefix`` into ``dest_dir``."""
         dest = Path(dest_dir)
         for rel_key in self.iter_prefix(prefix):
