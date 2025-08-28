@@ -25,7 +25,7 @@ dependencies = [
 
 [project.optional-dependencies]
 aws = ["boto3"]
-pkcs11 = ["pkcs11"]
+pkcs11 = ["python-pkcs11>=0.7.0"]
 
 [tool.uv.sources]
 swarmauri_core = { workspace = true }

@@ -58,7 +58,9 @@ class Pkcs11KeyProvider(KeyProviderBase):
     ) -> None:
         super().__init__()
         if not _PKCS11_OK:
-            raise ImportError("pkcs11 is required. Install with: pip install pkcs11")
+            raise ImportError(
+                "pkcs11 is required. Install with: pip install python-pkcs11"
+            )
 
         self._lib = pkcs11.lib(module_path)
         if token_label:

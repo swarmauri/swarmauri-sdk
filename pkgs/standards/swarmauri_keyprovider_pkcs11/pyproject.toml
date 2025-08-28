@@ -21,7 +21,7 @@ dependencies = [
     "swarmauri_core",
     "swarmauri_base",
     "cryptography",
-    "pkcs11",
+    "python-pkcs11>=0.7.0",
 ]
 
 [tool.uv.sources]
