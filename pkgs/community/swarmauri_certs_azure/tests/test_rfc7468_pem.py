@@ -7,7 +7,7 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
 
-from swarmauri_standards.certs.AzureKeyVaultCertService import _pem_cert
+from swarmauri_certs_azure.certs.AzureKeyVaultCertService import _pem_cert
 
 
 def _make_der_cert() -> bytes:
