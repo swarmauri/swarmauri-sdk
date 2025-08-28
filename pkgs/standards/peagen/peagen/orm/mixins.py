@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from autoapi.v3.types import (
-    ForeignKey,
     PgUUID,
     String,
     Mapped,
@@ -10,6 +9,7 @@ from autoapi.v3.types import (
     relationship,
 )
 from autoapi.v3.specs import S, acol
+from autoapi.v3.specs.storage_spec import ForeignKeySpec
 
 
 @declarative_mixin
@@ -19,7 +19,7 @@ class RepositoryMixin:
     repository_id: Mapped[PgUUID] = acol(
         storage=S(
             PgUUID(as_uuid=True),
-            fk=ForeignKey("peagen.repositories.id"),
+            fk=ForeignKeySpec("peagen.repositories.id"),
             nullable=False,
         )
     )
@@ -32,7 +32,7 @@ class RepositoryRefMixin:
     repository_id: Mapped[PgUUID | None] = acol(
         storage=S(
             PgUUID(as_uuid=True),
-            fk=ForeignKey("peagen.repositories.id", ondelete="CASCADE"),
+            fk=ForeignKeySpec("peagen.repositories.id", on_delete="CASCADE"),
             nullable=True,
         )
     )

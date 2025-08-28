@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from autoapi.v3.tables import Base
-from autoapi.v3.types import JSON, PgUUID, Text, ForeignKey, Mapped, relationship
+from autoapi.v3.types import JSON, PgUUID, Text, Mapped, relationship
 from autoapi.v3.mixins import GUIDPk, Timestamped, Ownable, TenantBound
 from autoapi.v3.specs import S, acol
+from autoapi.v3.specs.storage_spec import ForeignKeySpec
 from typing import TYPE_CHECKING
 
 from .users import User
@@ -18,7 +19,7 @@ class AnalysisResult(Base, GUIDPk, Timestamped, TenantBound, Ownable):
     eval_result_id: Mapped[PgUUID] = acol(
         storage=S(
             PgUUID(as_uuid=True),
-            fk=ForeignKey("peagen.eval_results.id", ondelete="CASCADE"),
+            fk=ForeignKeySpec("peagen.eval_results.id", on_delete="CASCADE"),
         )
     )
     summary: Mapped[str | None] = acol(storage=S(Text))
