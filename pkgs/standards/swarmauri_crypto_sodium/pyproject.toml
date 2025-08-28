@@ -19,6 +19,7 @@ classifiers = [
 dependencies = [
     "swarmauri_core",
     "swarmauri_base",
+    "ninja",
 ]
 
 [tool.uv.sources]
