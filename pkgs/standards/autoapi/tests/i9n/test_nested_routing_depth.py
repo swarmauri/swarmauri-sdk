@@ -48,8 +48,8 @@ async def three_level_api_client(db_mode, sync_db_session, async_db_session):
     app = App()
     app.include_router(api.router)
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        yield client
+    client = AsyncClient(transport=transport, base_url="http://test")
+    return client
 
 
 @pytest.mark.i9n

@@ -43,7 +43,6 @@ async def v3_client() -> Iterator[tuple[AsyncClient, type]]:
         yield client, Widget
     finally:
         await client.aclose()
-        engine.dispose()
 
 
 @pytest.mark.asyncio()

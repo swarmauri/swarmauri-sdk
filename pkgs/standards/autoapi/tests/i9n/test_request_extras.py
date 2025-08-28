@@ -64,14 +64,7 @@ async def api_client_with_extras(db_mode):
     app.include_router(api.router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
-    try:
-        yield client, api, Widget
-    finally:
-        await client.aclose()
-        if db_mode == "async":
-            await engine.dispose()
-        else:
-            engine.dispose()
+    return client, api, Widget
 
 
 @pytest.mark.i9n
