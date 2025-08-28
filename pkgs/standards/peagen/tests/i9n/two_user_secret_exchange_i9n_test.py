@@ -1,4 +1,3 @@
-import json
 import os
 import subprocess
 import pathlib
@@ -26,6 +25,7 @@ def _gateway_available(url: str) -> bool:
 
 
 @pytest.mark.i9n
+@pytest.mark.skip(reason="remote secrets workflow deprecated")
 def test_two_user_secret_exchange(tmp_path: pathlib.Path) -> None:
     if not _gateway_available(GATEWAY):
         pytest.skip("gateway not reachable")
@@ -42,10 +42,13 @@ def test_two_user_secret_exchange(tmp_path: pathlib.Path) -> None:
     subprocess.run(
         [
             "peagen",
-            "keys",
+            "local",
+            "deploykey",
             "create",
             "--key-dir",
             str(user1_key_dir),
+            "--passphrase",
+            "",
         ],
         check=True,
         timeout=60,
@@ -55,10 +58,13 @@ def test_two_user_secret_exchange(tmp_path: pathlib.Path) -> None:
     subprocess.run(
         [
             "peagen",
-            "keys",
+            "local",
+            "deploykey",
             "create",
             "--key-dir",
             str(user2_key_dir),
+            "--passphrase",
+            "",
         ],
         check=True,
         timeout=60,
@@ -70,65 +76,7 @@ def test_two_user_secret_exchange(tmp_path: pathlib.Path) -> None:
     env2 = os.environ.copy()
     env2["HOME"] = str(user2_home)
 
-    subprocess.run(
-        [
-            "peagen",
-            "login",
-            "--gateway-url",
-            GATEWAY,
-            "--key-dir",
-            str(user1_key_dir),
-        ],
-        env=env1,
-        check=True,
-        timeout=60,
-    )
-    subprocess.run(
-        [
-            "peagen",
-            "login",
-            "--gateway-url",
-            GATEWAY,
-            "--key-dir",
-            str(user2_key_dir),
-        ],
-        env=env2,
-        check=True,
-        timeout=60,
-    )
-
-    result = subprocess.run(
-        [
-            "peagen",
-            "keys",
-            "list",
-            "--key-dir",
-            str(user1_key_dir),
-        ],
-        capture_output=True,
-        text=True,
-        check=True,
-        timeout=60,
-    )
-    data = json.loads(result.stdout)
-    fingerprint = next(iter(data))
-
-    result = subprocess.run(
-        [
-            "peagen",
-            "keys",
-            "show",
-            fingerprint,
-            "--key-dir",
-            str(user1_key_dir),
-        ],
-        capture_output=True,
-        text=True,
-        check=True,
-        timeout=60,
-    )
-    pub_path = tmp_path / "user1_pub.asc"
-    pub_path.write_text(result.stdout)
+    pub_path = user1_key_dir / "ssh-public"
 
     subprocess.run(
         [
