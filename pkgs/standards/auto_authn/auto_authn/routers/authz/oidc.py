@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import secrets
 from datetime import datetime, timedelta
@@ -66,11 +67,7 @@ async def authorize(
     if "login" in prompts:
         session = None
     if session is None:
-        if "none" in prompts:
-            raise HTTPException(
-                status.HTTP_401_UNAUTHORIZED, {"error": "login_required"}
-            )
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, {"error": "access_denied"})
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, {"error": "login_required"})
     if max_age is not None:
         auth_time = session.get("auth_time")
         if auth_time is None or datetime.utcnow() - auth_time > timedelta(
@@ -86,7 +83,7 @@ async def authorize(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
     if code_challenge_method and code_challenge_method != "S256":
         raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
-    mode = response_mode or "query"
+    mode = response_mode or ("fragment" if rts & {"token", "id_token"} else "query")
     if mode not in {"query", "fragment", "form_post"}:
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST, {"error": "unsupported_response_mode"}
@@ -143,7 +140,8 @@ async def authorize(
             extra_claims["at_hash"] = oidc_hash(access)
         if code:
             extra_claims["c_hash"] = oidc_hash(code)
-        id_token = mint_id_token(
+        id_token = await asyncio.to_thread(
+            mint_id_token,
             sub=user_sub,
             aud=client_id,
             nonce=nonce,

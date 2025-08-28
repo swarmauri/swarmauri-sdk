@@ -14,6 +14,7 @@ import os
 import pathlib
 import base64
 import json
+import threading
 from hashlib import sha256
 from datetime import timedelta
 from functools import lru_cache
@@ -147,7 +148,20 @@ def verify_id_token(token: str, *, issuer: str, audience: Iterable[str] | str) -
     if _header_alg(token) in {"", "none"}:
         raise InvalidTokenError("unsigned JWTs are not accepted")
     svc, _ = _service()
-    return asyncio.run(svc.verify(token, issuer=issuer, audience=audience))
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(svc.verify(token, issuer=issuer, audience=audience))
+    result: dict | None = None
+
+    def _worker() -> None:
+        nonlocal result
+        result = asyncio.run(svc.verify(token, issuer=issuer, audience=audience))
+
+    thread = threading.Thread(target=_worker)
+    thread.start()
+    thread.join()
+    return result or {}
 
 
 # Exported helpers for JWKS publication
