@@ -27,7 +27,7 @@ async def test_userinfo_returns_claims_json(async_client):
         phone="123",
     )
 
-    async def override_get_current_principal(*args, **kwargs):
+    async def override_get_current_principal():
         return user
 
     app.dependency_overrides[get_current_principal] = override_get_current_principal
@@ -58,7 +58,7 @@ async def test_userinfo_returns_claims_json(async_client):
 async def test_userinfo_signed_jwt(async_client):
     user = MagicMock(id=1, username="bob", email="bob@example.com")
 
-    async def override_get_current_principal(*args, **kwargs):
+    async def override_get_current_principal():
         return user
 
     app.dependency_overrides[get_current_principal] = override_get_current_principal
