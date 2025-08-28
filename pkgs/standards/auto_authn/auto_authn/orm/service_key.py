@@ -6,7 +6,7 @@ import hashlib
 import secrets
 
 from autoapi.v3.tables import ApiKey as ApiKeyBase
-from autoapi.v3.types import PgUUID, UniqueConstraint, relationship
+from autoapi.v3.types import Mapped, PgUUID, UniqueConstraint, relationship
 from autoapi.v3.specs import S, acol
 from autoapi.v3.specs.storage_spec import ForeignKeySpec
 from autoapi.v3 import hook_ctx
@@ -23,7 +23,7 @@ class ServiceKey(ApiKeyBase):
         UniqueConstraint("digest"),
         {"extend_existing": True, "schema": "authn"},
     )
-    service_id: UUID = acol(
+    service_id: Mapped[UUID] = acol(
         storage=S(
             PgUUID(as_uuid=True),
             fk=ForeignKeySpec(target="authn.services.id"),

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from autoapi.v3.tables import Base
 from autoapi.v3.mixins import GUIDPk, Timestamped, TenantBound, Principal, ActiveToggle
-from autoapi.v3.types import String, relationship
+from autoapi.v3.types import Mapped, String, relationship
 from autoapi.v3.specs import S, acol
 from typing import TYPE_CHECKING
 
@@ -17,7 +17,7 @@ class Service(Base, GUIDPk, Timestamped, TenantBound, Principal, ActiveToggle):
 
     __tablename__ = "services"
     __table_args__ = ({"schema": "authn"},)
-    name: str = acol(storage=S(String(120), unique=True, nullable=False))
+    name: Mapped[str] = acol(storage=S(String(120), unique=True, nullable=False))
     _service_keys = relationship(
         "auto_authn.orm.tables.ServiceKey",
         back_populates="_service",
