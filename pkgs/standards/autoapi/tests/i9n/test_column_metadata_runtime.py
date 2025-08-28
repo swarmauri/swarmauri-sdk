@@ -7,6 +7,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from autoapi.v3 import Base
+from autoapi.v3.bindings.model import bind
 from autoapi.v3.mixins import GUIDPk
 from autoapi.v3.schema import _build_schema
 from autoapi.v3.types import App, Column, DateTime, String, uuid4
@@ -21,6 +22,11 @@ async def test_write_only_field_runtime_behavior(create_test_api):
         __tablename__ = "write_only_model"
         name = Column(String)
         secret = Column(String, info={"autoapi": {"write_only": True}})
+
+    bind(WriteOnlyModel)
+    create_schema = _build_schema(WriteOnlyModel, verb="create")
+    read_schema = _build_schema(WriteOnlyModel, verb="read")
+    update_schema = _build_schema(WriteOnlyModel, verb="update")
 
     api = create_test_api(WriteOnlyModel)
     app = App()
@@ -43,10 +49,6 @@ async def test_write_only_field_runtime_behavior(create_test_api):
         )
         assert res.status_code == 200
         assert "secret" not in res.json()
-
-    create_schema = _build_schema(WriteOnlyModel, verb="create")
-    read_schema = _build_schema(WriteOnlyModel, verb="read")
-    update_schema = _build_schema(WriteOnlyModel, verb="update")
 
     assert "secret" in create_schema.model_fields
     assert "secret" in update_schema.model_fields
@@ -113,6 +115,9 @@ async def test_default_factory_field_runtime_behavior(create_test_api):
             info={"autoapi": {"default_factory": partial(datetime.now, UTC)}},
         )
 
+    bind(FactoryModel)
+    create_schema = _build_schema(FactoryModel, verb="create")
+
     api = create_test_api(FactoryModel)
     app = App()
     app.include_router(api.router)
@@ -138,7 +143,6 @@ async def test_default_factory_field_runtime_behavior(create_test_api):
         new_created_at = datetime.fromisoformat(res.json()["created_at"])
         assert new_created_at > created_at
 
-    create_schema = _build_schema(FactoryModel, verb="create")
     field = create_schema.model_fields["created_at"]
     assert field.default_factory is not None
     assert not field.is_required()
