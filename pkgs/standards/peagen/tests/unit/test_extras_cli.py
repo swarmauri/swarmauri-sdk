@@ -27,7 +27,6 @@ def test_extras_cli_generates_schemas(monkeypatch, tmp_path):
     result = runner.invoke(
         local_extras_app,
         [
-            "extras",
             "--repo",
             "repo",
             "--ref",
@@ -66,7 +65,7 @@ def test_extras_cli_handles_error(monkeypatch):
     runner = CliRunner()
     result = runner.invoke(
         local_extras_app,
-        ["extras", "--repo", "repo"],
+        ["--repo", "repo"],
         obj={"pool": "default"},
     )
 
