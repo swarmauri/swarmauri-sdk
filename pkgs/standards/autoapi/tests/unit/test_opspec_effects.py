@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import pytest
 
 from autoapi.v3.types import App
 from sqlalchemy import String, create_engine
@@ -18,35 +19,39 @@ from autoapi.v3.decorators import hook_ctx
 
 # --- models --------------------------------------------------------------------
 
-# Previously this module cleared ``Base.metadata`` at import time. That wiped out
-# tables defined by other tests, causing downstream failures. The gadget/hooked
-# table names here are unique, so we avoid clearing global metadata.
+
+@pytest.fixture
+def gadget_model():
+    class Gadget(Base, GUIDPk):
+        __tablename__ = "gadgets_opspec"
+        __allow_unmapped__ = True
+
+        name = acol(
+            storage=S(type_=String, nullable=False, default="anon"),
+            io=IO(in_verbs=("create",), out_verbs=("read",)),
+        )
+
+    return Gadget
 
 
-class Gadget(Base, GUIDPk):
-    __tablename__ = "gadgets_opspec"
-    __allow_unmapped__ = True
+@pytest.fixture
+def hooked_model():
+    class Hooked(Base, GUIDPk):
+        __tablename__ = "hooked_opspec"
+        __allow_unmapped__ = True
 
-    name = acol(
-        storage=S(type_=String, nullable=False, default="anon"),
-        io=IO(in_verbs=("create",), out_verbs=("read",)),
-    )
+        name = acol(
+            storage=S(type_=String, nullable=False),
+            io=IO(in_verbs=("create",), out_verbs=("read",)),
+        )
 
+        @hook_ctx(ops="create", phase="PRE_HANDLER")
+        def inject_name(cls, ctx):
+            payload = dict(ctx.get("payload") or {})
+            payload.setdefault("name", "hooked")
+            ctx["payload"] = payload
 
-class Hooked(Base, GUIDPk):
-    __tablename__ = "hooked_opspec"
-    __allow_unmapped__ = True
-
-    name = acol(
-        storage=S(type_=String, nullable=False),
-        io=IO(in_verbs=("create",), out_verbs=("read",)),
-    )
-
-    @hook_ctx(ops="create", phase="PRE_HANDLER")
-    def inject_name(cls, ctx):
-        payload = dict(ctx.get("payload") or {})
-        payload.setdefault("name", "hooked")
-        ctx["payload"] = payload
+    return Hooked
 
 
 # --- helpers -------------------------------------------------------------------
@@ -54,92 +59,89 @@ class Hooked(Base, GUIDPk):
 
 def _fresh_session():
     engine = create_engine("sqlite:///:memory:")
-    # ``Base.metadata`` may have been cleared by other tests; create tables
-    # explicitly from model definitions to ensure they exist.
-    Gadget.__table__.create(bind=engine)
-    Hooked.__table__.create(bind=engine)
+    Base.metadata.create_all(bind=engine)
     return sessionmaker(bind=engine)()
 
 
 # --- tests ---------------------------------------------------------------------
 
 
-def test_request_and_response_schemas():
-    bind(Gadget)
-    assert hasattr(Gadget.schemas, "create")
-    assert hasattr(Gadget.schemas.create, "in_")
-    assert hasattr(Gadget.schemas, "read")
-    assert hasattr(Gadget.schemas.read, "out")
+def test_request_and_response_schemas(gadget_model):
+    bind(gadget_model)
+    assert hasattr(gadget_model.schemas, "create")
+    assert hasattr(gadget_model.schemas.create, "in_")
+    assert hasattr(gadget_model.schemas, "read")
+    assert hasattr(gadget_model.schemas.read, "out")
 
 
-def test_columns_bound():
-    bind(Gadget)
-    assert "name" in Gadget.__table__.c
-    assert "name" in Gadget.__autoapi_cols__
+def test_columns_bound(gadget_model):
+    bind(gadget_model)
+    assert "name" in gadget_model.__table__.c
+    assert "name" in gadget_model.__autoapi_cols__
 
 
-def test_defaults_value_resolution():
-    bind(Gadget)
+def test_defaults_value_resolution(gadget_model):
+    bind(gadget_model)
     db = _fresh_session()
-    obj = asyncio.run(_core.create(Gadget, db=db, data={}))
+    obj = asyncio.run(_core.create(gadget_model, db=db, data={}))
     assert obj.name == "anon"
 
 
-def test_internal_model_opspec_binding():
-    bind(Gadget)
-    sp = Gadget.opspecs.by_alias["create"][0]
-    assert sp.table is Gadget
+def test_internal_model_opspec_binding(gadget_model):
+    bind(gadget_model)
+    sp = gadget_model.opspecs.by_alias["create"][0]
+    assert sp.table is gadget_model
 
 
-def test_openapi_includes_path():
-    bind(Gadget)
+def test_openapi_includes_path(gadget_model):
+    bind(gadget_model)
     app = App()
-    app.include_router(Gadget.rest.router)
+    app.include_router(gadget_model.rest.router)
     schema = app.openapi()
     assert "/gadget" in schema["paths"]
 
 
-def test_storage_and_sqlalchemy_persist():
-    bind(Gadget)
+def test_storage_and_sqlalchemy_persist(gadget_model):
+    bind(gadget_model)
     db = _fresh_session()
-    asyncio.run(_core.create(Gadget, db=db, data={"name": "stored"}))
-    fetched = db.query(Gadget).one()
+    asyncio.run(_core.create(gadget_model, db=db, data={"name": "stored"}))
+    fetched = db.query(gadget_model).one()
     assert fetched.name == "stored"
 
 
-def test_rest_routes_bound():
+def test_rest_routes_bound(gadget_model):
     session = _fresh_session()
 
     def get_db():
         return session
 
-    Gadget.__autoapi_get_db__ = staticmethod(get_db)  # type: ignore[attr-defined]
-    bind(Gadget)
+    gadget_model.__autoapi_get_db__ = staticmethod(get_db)  # type: ignore[attr-defined]
+    bind(gadget_model)
     app = App()
-    app.include_router(Gadget.rest.router)
+    app.include_router(gadget_model.rest.router)
     paths = {route.path for route in app.router.routes}
     assert "/gadget" in paths
 
 
-def test_rpc_method_bound():
-    bind(Gadget)
-    assert hasattr(Gadget.rpc, "create")
+def test_rpc_method_bound(gadget_model):
+    bind(gadget_model)
+    assert hasattr(gadget_model.rpc, "create")
 
 
-def test_core_crud_handler_used():
-    bind(Gadget)
-    step = Gadget.hooks.create.HANDLER[0]
+def test_core_crud_handler_used(gadget_model):
+    bind(gadget_model)
+    step = gadget_model.hooks.create.HANDLER[0]
     assert step.__qualname__ == _core.create.__qualname__
 
 
-def test_hook_execution():
-    bind(Hooked)
-    assert Hooked.hooks.create.PRE_HANDLER
+def test_hook_execution(hooked_model):
+    bind(hooked_model)
+    assert hooked_model.hooks.create.PRE_HANDLER
 
 
-def test_atom_injection():
-    bind(Gadget)
-    chains = build_phase_chains(Gadget, "create")
+def test_atom_injection(gadget_model):
+    bind(gadget_model)
+    chains = build_phase_chains(gadget_model, "create")
     non_handler = [ph for ph in PHASES if ph != "HANDLER" and chains.get(ph)]
     assert non_handler  # atoms or hooks provide extra steps
 

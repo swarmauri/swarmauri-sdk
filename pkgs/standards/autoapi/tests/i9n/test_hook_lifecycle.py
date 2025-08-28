@@ -108,10 +108,6 @@ async def test_hook_phases_execution_order(db_mode):
         tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
         name = Column(String, nullable=False)
 
-        @classmethod
-        def __autoapi_nested_paths__(cls):
-            return "/tenant/{tenant_id}"
-
     Item.pre_tx_begin = pre_tx_begin
     Item.pre_handler = pre_handler
     Item.post_handler = post_handler
@@ -180,10 +176,6 @@ async def test_hook_parity_crud_vs_rpc(db_mode):
         tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
         name = Column(String, nullable=False)
 
-        @classmethod
-        def __autoapi_nested_paths__(cls):
-            return "/tenant/{tenant_id}"
-
     Item.track_pre_tx = track_pre_tx
     Item.track_post_commit = track_post_commit
 
@@ -232,10 +224,6 @@ async def test_hook_error_handling(db_mode):
         __tablename__ = "items"
         tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
         name = Column(String, nullable=False)
-
-        @classmethod
-        def __autoapi_nested_paths__(cls):
-            return "/tenant/{tenant_id}"
 
     Item.error_handler = error_handler
     Item.failing_hook = failing_hook
@@ -299,10 +287,6 @@ async def test_hook_early_termination_and_cleanup(db_mode):
         __tablename__ = "items"
         tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
         name = Column(String, nullable=False)
-
-        @classmethod
-        def __autoapi_nested_paths__(cls):
-            return "/tenant/{tenant_id}"
 
     Item.pre_tx_begin = pre_tx_begin
     Item.pre_handler = pre_handler
@@ -374,10 +358,6 @@ async def test_hook_context_modification(db_mode):
         tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
         name = Column(String, nullable=False)
 
-        @classmethod
-        def __autoapi_nested_paths__(cls):
-            return "/tenant/{tenant_id}"
-
     Item.modify_params = modify_params
     Item.verify_modification = verify_modification
     Item.enrich_response = enrich_response
@@ -424,10 +404,6 @@ async def test_catch_all_hooks(db_mode):
         __tablename__ = "items"
         tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
         name = Column(String, nullable=False)
-
-        @classmethod
-        def __autoapi_nested_paths__(cls):
-            return "/tenant/{tenant_id}"
 
     client, _ = await setup_client(db_mode, Tenant, Item)
 
@@ -492,10 +468,6 @@ async def test_multiple_hooks_same_phase(db_mode):
         __tablename__ = "items"
         tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
         name = Column(String, nullable=False)
-
-        @classmethod
-        def __autoapi_nested_paths__(cls):
-            return "/tenant/{tenant_id}"
 
     Item.first_hook = first_hook
     Item.second_hook = second_hook
