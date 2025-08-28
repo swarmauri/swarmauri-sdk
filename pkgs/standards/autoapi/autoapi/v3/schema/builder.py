@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import logging
 import uuid
+import warnings
 from typing import (
     Any,
     Dict,
@@ -285,6 +286,12 @@ def _build_schema(
 
         # Column.info["autoapi"]
         meta_src = getattr(col, "info", {}) or {}
+        if isinstance(meta_src, Mapping) and "autoapi" in meta_src:
+            warnings.warn(
+                "col.info['autoapi'] is deprecated and support will be removed; behavior is no longer guaranteed for col.info['autoapi'] based column configuration.",
+                DeprecationWarning,
+                stacklevel=5,
+            )
         meta = (meta_src.get("autoapi") if isinstance(meta_src, dict) else None) or {}
         _info_check(meta, attr_name, orm_cls.__name__)
         logger.debug("schema: processing column %s (verb=%s)", attr_name, verb)
@@ -414,6 +421,12 @@ def _build_schema(
             continue
 
         meta_src = getattr(attr, "info", {}) or {}
+        if isinstance(meta_src, Mapping) and "autoapi" in meta_src:
+            warnings.warn(
+                "col.info['autoapi'] is deprecated and support will be removed; behavior is no longer guaranteed for col.info['autoapi'] based column configuration.",
+                DeprecationWarning,
+                stacklevel=5,
+            )
         meta = (meta_src.get("autoapi") if isinstance(meta_src, dict) else None) or {}
 
         if meta.get("hybrid"):
