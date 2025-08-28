@@ -19,7 +19,7 @@ import uuid
 
 
 # ─────────── Peagen internals ──────────────────────────────────────────
-from autoapi.v3 import AutoAPI, Phase, get_schema
+from autoapi.v3 import AutoAPI, get_schema
 from auto_authn.providers import RemoteAuthNAdapter
 from fastapi import FastAPI, Request
 
@@ -70,7 +70,6 @@ sched_log = Logger(
 logging.getLogger("httpx").setLevel("WARNING")
 logging.getLogger("uvicorn.error").setLevel("INFO")
 
-# ─────────── FastAPI & AutoAPI initialisation ─────────────────────────
 READY: bool = False
 app = FastAPI(title="Peagen Pool-Manager Gateway")
 
@@ -81,32 +80,7 @@ authn_adapter = RemoteAuthNAdapter(
     cache_size=settings.authn_cache_size,
 )
 
-api = AutoAPI(get_async_db=get_async_db)
-api.include_models(
-    [
-        Tenant,
-        User,
-        Org,
-        # Role,
-        # RoleGrant,
-        # RolePerm,
-        Repository,
-        UserRepository,
-        RepoSecret,
-        DeployKey,
-        PublicKey,
-        GPGKey,
-        Pool,
-        Worker,
-        Task,
-        Work,
-        RawBlob,
-    ]
-)
-api.set_auth(authn=authn_adapter)
 
-
-@api.register_hook(Phase.PRE_TX_BEGIN)
 async def _shadow_principal(ctx):
     import logging
     from fastapi import HTTPException
@@ -197,13 +171,31 @@ async def _shadow_principal(ctx):
         log.info("shadow_principal: upsert failed uid=%s err=%s", uid, exc)
 
 
-# ensure our hook runs second after the AuthN injection hook
-_pre = api._hook_registry[Phase.PRE_TX_BEGIN][None]
-for idx, fn in enumerate(_pre):
-    if getattr(fn, "__name__", "") == "_shadow_principal":
-        _pre.insert(1, _pre.pop(idx))
-        break
-
+api = AutoAPI(
+    get_async_db=get_async_db, api_hooks={"PRE_TX_BEGIN": [_shadow_principal]}
+)
+api.include_models(
+    [
+        Tenant,
+        User,
+        Org,
+        # Role,
+        # RoleGrant,
+        # RolePerm,
+        Repository,
+        UserRepository,
+        RepoSecret,
+        DeployKey,
+        PublicKey,
+        GPGKey,
+        Pool,
+        Worker,
+        Task,
+        Work,
+        RawBlob,
+    ]
+)
+api.set_auth(authn=authn_adapter)
 
 app.include_router(api.router)
 app.include_router(ws_router)
