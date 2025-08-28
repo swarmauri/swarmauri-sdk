@@ -7,8 +7,9 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from autoapi.v3 import Base
+from autoapi.v3.bindings.model import bind
 from autoapi.v3.mixins import GUIDPk
-from autoapi.v3.schema import _build_schema
+from autoapi.v3.schema import _build_schema, builder as v3_builder
 from autoapi.v3.types import App, Column, DateTime, String, uuid4
 
 
@@ -44,6 +45,8 @@ async def test_write_only_field_runtime_behavior(create_test_api):
         assert res.status_code == 200
         assert "secret" not in res.json()
 
+    v3_builder._SchemaCache.clear()
+    bind(WriteOnlyModel)
     create_schema = _build_schema(WriteOnlyModel, verb="create")
     read_schema = _build_schema(WriteOnlyModel, verb="read")
     update_schema = _build_schema(WriteOnlyModel, verb="update")
@@ -91,6 +94,8 @@ async def test_read_only_field_runtime_behavior(create_test_api):
         assert res.status_code == 200
         assert res.json()["code"] == ro_value
 
+    v3_builder._SchemaCache.clear()
+    bind(ReadOnlyModel)
     create_schema = _build_schema(ReadOnlyModel, verb="create")
     read_schema = _build_schema(ReadOnlyModel, verb="read")
     update_schema = _build_schema(ReadOnlyModel, verb="update")
@@ -138,6 +143,8 @@ async def test_default_factory_field_runtime_behavior(create_test_api):
         new_created_at = datetime.fromisoformat(res.json()["created_at"])
         assert new_created_at > created_at
 
+    v3_builder._SchemaCache.clear()
+    bind(FactoryModel)
     create_schema = _build_schema(FactoryModel, verb="create")
     field = create_schema.model_fields["created_at"]
     assert field.default_factory is not None
