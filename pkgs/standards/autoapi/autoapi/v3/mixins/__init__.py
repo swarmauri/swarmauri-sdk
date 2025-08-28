@@ -24,6 +24,8 @@ from ..types import (
     UUID,
     uuid4,
     Mapped,
+    ForeignKey,
+    mapped_column,
 )
 from ..config.constants import CTX_AUTH_KEY, CTX_USER_ID_KEY
 
@@ -104,7 +106,15 @@ class TenantMixin:
             field=F(py_type=UUID, constraints={"examples": [uuid_example]}),
             io=CRUD_IO,
         )
-        return acol(spec=spec)
+        colspec = acol(spec=spec)
+        colspec.__set_name__(cls, "tenant_id")
+        return mapped_column(
+            PgUUID(as_uuid=True),
+            ForeignKey(f"{schema}.tenants.id"),
+            nullable=False,
+            index=True,
+            info={"autoapi": {"spec": spec}},
+        )
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -131,7 +141,15 @@ class UserMixin:
             field=F(py_type=UUID, constraints={"examples": [uuid_example]}),
             io=CRUD_IO,
         )
-        return acol(spec=spec)
+        colspec = acol(spec=spec)
+        colspec.__set_name__(cls, "user_id")
+        return mapped_column(
+            PgUUID(as_uuid=True),
+            ForeignKey(f"{schema}.users.id"),
+            nullable=False,
+            index=True,
+            info={"autoapi": {"spec": spec}},
+        )
 
 
 @declarative_mixin
@@ -155,7 +173,15 @@ class OrgMixin:
             field=F(py_type=UUID, constraints={"examples": [uuid_example]}),
             io=CRUD_IO,
         )
-        return acol(spec=spec)
+        colspec = acol(spec=spec)
+        colspec.__set_name__(cls, "org_id")
+        return mapped_column(
+            PgUUID(as_uuid=True),
+            ForeignKey(f"{schema}.orgs.id"),
+            nullable=False,
+            index=True,
+            info={"autoapi": {"spec": spec}},
+        )
 
 
 @declarative_mixin

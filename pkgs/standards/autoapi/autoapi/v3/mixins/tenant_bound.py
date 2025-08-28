@@ -17,7 +17,7 @@ from ..config.constants import (
 from ..runtime.errors import create_standardized_error
 from ..specs import ColumnSpec, F, IO, S
 from ..specs.storage_spec import ForeignKeySpec
-from ..types import Mapped, PgUUID, declared_attr
+from ..types import Mapped, PgUUID, declared_attr, ForeignKey, mapped_column
 
 
 log = logging.getLogger(__name__)
@@ -98,7 +98,15 @@ class TenantBound(_RowBound):
             field=F(py_type=UUID),
             io=io,
         )
-        return acol(spec=spec)
+        colspec = acol(spec=spec)
+        colspec.__set_name__(cls, "tenant_id")
+        return mapped_column(
+            PgUUID(as_uuid=True),
+            ForeignKey(f"{schema}.tenants.id"),
+            nullable=False,
+            index=True,
+            info={"autoapi": {"spec": spec}},
+        )
 
     @declared_attr
     def __tablename__(cls):

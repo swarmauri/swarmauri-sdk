@@ -18,7 +18,7 @@ class ApiKey(ApiKeyBase, UserMixin):
     )
 
     _user = relationship(
-        "auto_authn.orm.tables.User",
+        "auto_authn.orm.user.User",
         back_populates="_api_keys",
         lazy="joined",  # optional: eager load to avoid N+1
     )

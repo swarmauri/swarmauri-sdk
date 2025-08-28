@@ -6,9 +6,14 @@ import hashlib
 import secrets
 
 from autoapi.v3.tables import ApiKey as ApiKeyBase
-from autoapi.v3.types import PgUUID, UniqueConstraint, relationship
-from autoapi.v3.specs import S, acol
-from autoapi.v3.specs.storage_spec import ForeignKeySpec
+from autoapi.v3.types import (
+    PgUUID,
+    UniqueConstraint,
+    relationship,
+    mapped_column,
+    ForeignKey,
+)
+
 from autoapi.v3 import hook_ctx
 from uuid import UUID
 from typing import TYPE_CHECKING
@@ -23,17 +28,15 @@ class ServiceKey(ApiKeyBase):
         UniqueConstraint("digest"),
         {"extend_existing": True, "schema": "authn"},
     )
-    service_id: UUID = acol(
-        storage=S(
-            PgUUID(as_uuid=True),
-            fk=ForeignKeySpec(target="authn.services.id"),
-            index=True,
-            nullable=False,
-        )
+    service_id: UUID = mapped_column(
+        PgUUID(as_uuid=True),
+        ForeignKey("authn.services.id"),
+        index=True,
+        nullable=False,
     )
 
     _service = relationship(
-        "auto_authn.orm.tables.Service",
+        "auto_authn.orm.service.Service",
         back_populates="_service_keys",
         lazy="joined",
     )
