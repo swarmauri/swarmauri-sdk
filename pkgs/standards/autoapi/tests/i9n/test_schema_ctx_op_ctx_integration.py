@@ -50,8 +50,11 @@ async def widget_client():
     api.mount_jsonrpc()
     await api.initialize_async()
 
-    client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
-    return client, api, Widget
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        yield client, api, Widget
+    await engine.dispose()
 
 
 @pytest.mark.i9n

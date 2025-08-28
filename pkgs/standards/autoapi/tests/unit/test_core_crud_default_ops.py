@@ -55,8 +55,11 @@ class Widget(Base):
 def session():
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(engine)
-    with Session(engine) as s:
-        yield s
+    try:
+        with Session(engine) as s:
+            yield s
+    finally:
+        engine.dispose()
 
 
 @pytest.mark.asyncio
