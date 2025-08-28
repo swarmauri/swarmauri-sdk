@@ -2,10 +2,6 @@
 
 from urllib.parse import urlparse
 
-from .minio_filter import MinioFilter
-from .gh_release_filter import GithubReleaseFilter
-from .s3fs_filter import S3FSFilter
-from .file_filter import FileFilter
 from peagen.plugins import PluginManager
 from peagen._utils.config_loader import resolve_cfg
 
@@ -23,10 +19,4 @@ def make_filter_for_uri(uri: str):
     return cls.from_uri(uri)
 
 
-__all__ = [
-    "FileFilter",
-    "MinioFilter",
-    "GithubReleaseFilter",
-    "S3FSFilter",
-    "make_filter_for_uri",
-]
+__all__ = ["make_filter_for_uri"]

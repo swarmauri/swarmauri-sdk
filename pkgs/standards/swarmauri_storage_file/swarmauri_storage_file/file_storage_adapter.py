@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import BinaryIO
 
 
+
 class FileStorageAdapter:
     """Write and read artefacts on the local disk."""
 

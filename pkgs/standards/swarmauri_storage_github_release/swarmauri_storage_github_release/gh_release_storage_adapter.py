@@ -14,7 +14,6 @@ from typing import BinaryIO, Optional
 from peagen._utils.config_loader import load_peagen_toml
 from github import Github, UnknownObjectException
 
-
 class GithubReleaseStorageAdapter:
     """Storage adapter that uses GitHub Releases to store and retrieve assets."""
 

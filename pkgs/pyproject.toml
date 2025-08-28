@@ -81,6 +81,10 @@ members = [
     "standards/swarmauri_storage_github",
     "standards/swarmauri_storage_github_release",
     "standards/swarmauri_storage_minio",
+    "standards/swarmauri_gitfilter_file",
+    "standards/swarmauri_gitfilter_s3fs",
+    "standards/swarmauri_gitfilter_minio",
+    "standards/swarmauri_gitfilter_gh_release",
     "standards/auto_authn",
     "standards/auto_kms",
     "standards/swarmauri_certs_composite",
@@ -265,6 +269,10 @@ swarmauri_storage_file = { workspace = true }
 swarmauri_storage_github = { workspace = true }
 swarmauri_storage_github_release = { workspace = true }
 swarmauri_storage_minio = { workspace = true }
+swarmauri_gitfilter_file = { workspace = true }
+swarmauri_gitfilter_s3fs = { workspace = true }
+swarmauri_gitfilter_minio = { workspace = true }
+swarmauri_gitfilter_gh_release = { workspace = true }
 auto_kms = { workspace = true }
 
 swarmauri_secret_autogpg = { workspace = true }
