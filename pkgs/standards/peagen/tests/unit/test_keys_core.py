@@ -1,66 +1,62 @@
-import tempfile
-from pathlib import Path
+"""Tests for :mod:`peagen.core.keys_core`.
 
+These exercises the plugin resolution path used by ``create_keypair``.
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
 
 from peagen.core import keys_core
 
 
+class DummyRef:
+    """Simple container mimicking a key reference returned by a provider."""
+
+    material = b"priv"
+    public = b"pub"
+    tags = {"ssh_fingerprint": "FP"}
+
+
 class DummyDriver:
-    def __init__(self, key_dir: Path, passphrase: str | None = None) -> None:
+    """Minimal key provider used for testing."""
+
+    def __init__(self, key_dir: Path) -> None:
         self.key_dir = key_dir
-        self.passphrase = passphrase
-        self.priv_path = key_dir / "private.asc"
-        self.pub_path = key_dir / "public.asc"
-        self.priv_path.write_text("priv")
-        self.pub_path.write_text("pub")
+        self.create_called = False
 
-    def _ensure_keys(self) -> None:
-        pass
+    async def create_key(self, spec):  # pragma: no cover - spec unused
+        self.create_called = True
+        return DummyRef()
 
-    def list_keys(self) -> dict[str, str]:
-        return {"FP": str(self.pub_path)}
-
-    def export_public_key(self, fingerprint: str, fmt: str = "armor") -> str:
-        assert fingerprint == "FP"
-        return "KEY"
-
-    def add_key(
-        self,
-        public_key: Path,
-        *,
-        private_key: Path | None = None,
-        name: str | None = None,
-    ) -> dict:
-        return {"fingerprint": "FP", "path": str(self.key_dir)}
+    async def import_key(self, spec, material, public):  # pragma: no cover
+        return DummyRef()
 
 
 class DummyPM:
-    def __init__(self, _cfg: dict) -> None:
+    """Stand-in plugin manager returning our dummy driver."""
+
+    def __init__(self, key_dir: Path) -> None:
+        self.key_dir = key_dir
         self.called = False
 
     def get(self, group: str, name: str | None = None):
-        assert group == "secrets_drivers"
+        assert group == "key_providers"
         self.called = True
-        return DummyDriver(Path(tempfile.mkdtemp()))
+        return DummyDriver(self.key_dir)
 
 
-def test_create_keypair_uses_plugin_manager(monkeypatch):
-    monkeypatch.setattr(keys_core, "load_peagen_toml", lambda *a, **k: {})
-    pm = DummyPM({})
+def test_create_keypair_uses_plugin_manager(monkeypatch, tmp_path: Path) -> None:
+    """``create_keypair`` should resolve providers via ``PluginManager``."""
+
+    monkeypatch.setattr(keys_core, "resolve_cfg", lambda: {})
+    pm = DummyPM(tmp_path)
     monkeypatch.setattr(keys_core, "PluginManager", lambda cfg: pm)
-    out = keys_core.create_keypair()
+
+    out = keys_core.create_keypair(key_dir=tmp_path)
+
     assert pm.called
-    assert out["private"].endswith("private.asc")
-    assert out["public"].endswith("public.asc")
-
-
-def test_export_public_key_delegates(monkeypatch, tmp_path):
-    monkeypatch.setattr(keys_core, "load_peagen_toml", lambda *a, **k: {})
-
-    class PM(DummyPM):
-        def get(self, group: str, name: str | None = None):
-            return DummyDriver(tmp_path)
-
-    monkeypatch.setattr(keys_core, "PluginManager", PM)
-    text = keys_core.export_public_key("FP", key_dir=tmp_path)
-    assert text == "KEY"
+    assert out["fingerprint"] == "FP"
+    assert out["public_key"] == "pub"
+    assert (tmp_path / "ssh-private").read_text() == "priv"
+    assert (tmp_path / "ssh-public").read_text() == "pub"
