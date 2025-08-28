@@ -9,6 +9,8 @@ from autoapi.v3.specs import IO, S, F, acol as spec_acol
 from autoapi.v3.tables import Base
 from autoapi.v3.types import String
 from autoapi.v3.opspec import OpSpec
+from autoapi.v3.schema import builder as v3_builder
+from autoapi.v3.runtime import kernel as runtime_kernel
 
 
 class Widget(Base, GUIDPk, BulkCapable):
@@ -44,6 +46,18 @@ class Widget(Base, GUIDPk, BulkCapable):
             ),
         ),
     )
+
+
+@pytest.fixture(autouse=True)
+def _reset_state():
+    """Ensure clean metadata and caches around each test."""
+    Base.metadata.clear()
+    v3_builder._SchemaCache.clear()
+    runtime_kernel._default_kernel = runtime_kernel.Kernel()
+    yield
+    Base.metadata.clear()
+    v3_builder._SchemaCache.clear()
+    runtime_kernel._default_kernel = runtime_kernel.Kernel()
 
 
 @pytest.fixture()
