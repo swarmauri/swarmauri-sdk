@@ -22,7 +22,6 @@ def setup_api(model_cls, get_db):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-@pytest.mark.xfail(reason="request schema coercion pending")
 async def test_op_ctx_request_response_schemas(sync_db_session):
     _, get_sync_db = sync_db_session
 
@@ -225,7 +224,6 @@ async def test_op_ctx_rest_call(sync_db_session):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-@pytest.mark.xfail(reason="rpc dispatch error")
 async def test_op_ctx_rpc_method(sync_db_session):
     _, get_sync_db = sync_db_session
 
