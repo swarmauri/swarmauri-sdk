@@ -12,13 +12,16 @@ import shutil
 from pathlib import Path
 from typing import BinaryIO
 
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.storage import StorageAdapterBase
 
 
+@ComponentBase.register_type(StorageAdapterBase, "FileStorageAdapter")
 class FileStorageAdapter(StorageAdapterBase):
     """Write and read artefacts on the local disk."""
 
-    def __init__(self, output_dir: str | os.PathLike, *, prefix: str = ""):
+    def __init__(self, output_dir: str | os.PathLike, *, prefix: str = "", **kwargs):
+        super().__init__(**kwargs)
         self._root = Path(output_dir).expanduser().resolve()
         self._root.mkdir(parents=True, exist_ok=True)
         self._prefix = prefix.lstrip("/")

@@ -1,4 +1,7 @@
-from swarmauri_gitfilter_gh_release import GithubReleaseFilter
+import io
+
+
+from swarmauri_storage_github_release import GithubReleaseStorageAdapter
 
 
 class DummyAsset:
@@ -61,24 +64,28 @@ class DummyGithub:
         return DummyOrg(self._release)
 
 
-def create_filter(monkeypatch):
+def create_adapter(monkeypatch):
     monkeypatch.setattr(
-        "swarmauri_gitfilter_gh_release.gh_release_filter.Github",
+        "swarmauri_storage_github_release.gh_release_storage_adapter.Github",
         DummyGithub,
     )
-    return GithubReleaseFilter.from_uri("ghrel://org/repo/tag")
+    return GithubReleaseStorageAdapter.from_uri("ghrel://org/repo/tag")
 
 
 def test_resource_type_serialization(monkeypatch):
-    filt = create_filter(monkeypatch)
-    assert filt.resource == "StorageAdapter"
-    assert filt.type == "GithubReleaseFilter"
-    data = filt.model_dump()
-    restored = GithubReleaseFilter(token="", org="org", repo="repo", tag="tag", **data)
-    assert restored.type == filt.type
+    adapter = create_adapter(monkeypatch)
+    assert adapter.resource == "StorageAdapter"
+    assert adapter.type == "GithubReleaseStorageAdapter"
+    data = adapter.model_dump()
+    restored = GithubReleaseStorageAdapter(
+        token="", org="org", repo="repo", tag="tag", **data
+    )
+    assert restored.type == adapter.type
 
 
-def test_clean_smudge(monkeypatch):
-    filt = create_filter(monkeypatch)
-    oid = filt.clean(b"hello")
-    assert filt.smudge(oid) == b"hello"
+def test_upload_download(monkeypatch):
+    adapter = create_adapter(monkeypatch)
+    uri = adapter.upload("foo.txt", io.BytesIO(b"hi"))
+    assert uri.endswith("foo.txt")
+    data = adapter.download("foo.txt").read()
+    assert data == b"hi"

@@ -11,15 +11,18 @@ from github import Github, UnknownObjectException
 from pydantic import SecretStr
 
 from peagen._utils.config_loader import load_peagen_toml
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.storage import StorageAdapterBase
 from swarmauri_base.git_filters import GitFilterBase
 
 
-class GithubReleaseFilter(GitFilterBase):
+@ComponentBase.register_type(StorageAdapterBase, "GithubReleaseFilter")
+class GithubReleaseFilter(StorageAdapterBase, GitFilterBase):
     """Git filter that uses GitHub Releases to store and retrieve assets."""
 
     def __init__(
         self,
-        token: SecretStr,
+        token: SecretStr | str,
         org: str,
         repo: str,
         tag: str,
@@ -29,8 +32,11 @@ class GithubReleaseFilter(GitFilterBase):
         draft: bool = False,
         prerelease: bool = False,
         prefix: str = "",
+        **kwargs,
     ) -> None:
-        self._client = Github(token.get_secret_value())
+        super().__init__(**kwargs)
+        token_val = token.get_secret_value() if isinstance(token, SecretStr) else token
+        self._client = Github(token_val)
         self._repo = self._client.get_organization(org).get_repo(repo)
         self._tag = tag
         self._prefix = prefix.lstrip("/")
