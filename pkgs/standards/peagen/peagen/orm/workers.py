@@ -7,7 +7,6 @@ from autoapi.v3.types import (
     UUID,
     String,
     MutableDict,
-    ForeignKey,
     relationship,
     HookProvider,
     AllowAnonProvider,
@@ -15,6 +14,7 @@ from autoapi.v3.types import (
 )
 from autoapi.v3.mixins import GUIDPk, Timestamped
 from autoapi.v3.specs import S, acol
+from autoapi.v3.specs.storage_spec import ForeignKeySpec
 from autoapi.v3 import hook_ctx
 from peagen.defaults import DEFAULT_POOL_ID, WORKER_KEY, WORKER_TTL
 
@@ -30,7 +30,7 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
     pool_id: Mapped[PgUUID] = acol(
         storage=S(
             PgUUID(as_uuid=True),
-            fk=ForeignKey("peagen.pools.id"),
+            fk=ForeignKeySpec("peagen.pools.id"),
             nullable=False,
             default=DEFAULT_POOL_ID,
         )

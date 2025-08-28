@@ -34,7 +34,8 @@ class _RowBound:
             return
 
         hook = cls._make_row_visibility_hook()
-        hooks = {**getattr(cls, "__autoapi_hooks__", {})}
+        hooks_attr = getattr(cls, "__autoapi_hooks__", {})
+        hooks = {**hooks_attr} if isinstance(hooks_attr, dict) else {}
 
         def _append(alias: str, phase: str, fn) -> None:
             phase_map = hooks.get(alias) or {}

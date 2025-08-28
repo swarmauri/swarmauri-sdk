@@ -10,7 +10,6 @@ from autoapi.v3.types import (
     PgEnum,
     PgUUID,
     Integer,
-    ForeignKey,
     relationship,
     HookProvider,
     Mapped,
@@ -23,6 +22,7 @@ from autoapi.v3.mixins import (
     StatusMixin,
 )
 from autoapi.v3.specs import S, acol
+from autoapi.v3.specs.storage_spec import ForeignKeySpec
 from autoapi.v3 import hook_ctx
 from typing import TYPE_CHECKING
 from peagen.orm.mixins import RepositoryRefMixin
@@ -64,7 +64,9 @@ class Task(
     )
     pool_id: Mapped[PgUUID] = acol(
         storage=S(
-            PgUUID(as_uuid=True), fk=ForeignKey("peagen.pools.id"), nullable=False
+            PgUUID(as_uuid=True),
+            fk=ForeignKeySpec("peagen.pools.id"),
+            nullable=False,
         )
     )
     config_toml: Mapped[str | None] = acol(storage=S(String))
