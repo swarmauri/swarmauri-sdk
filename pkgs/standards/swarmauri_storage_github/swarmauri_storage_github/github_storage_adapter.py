@@ -1,7 +1,7 @@
 import warnings
 
 warnings.warn(
-    "GithubStorageAdapter is deprecated; use peagen.plugins.git_filters.github_filter instead",
+    "GithubStorageAdapter is deprecated; use swarmauri_gitfilter_gh_release instead",
     DeprecationWarning,
     stacklevel=2,
 )

@@ -1,8 +1,4 @@
-"""Storage adapter backed by GitHub Releases."""
-
 from __future__ import annotations
-
-from pydantic import SecretStr
 
 import io
 import os
@@ -11,11 +7,14 @@ import tempfile
 from pathlib import Path
 from typing import BinaryIO, Optional
 
-from peagen._utils.config_loader import load_peagen_toml
 from github import Github, UnknownObjectException
+from pydantic import SecretStr
+
+from peagen._utils.config_loader import load_peagen_toml
+from swarmauri_base.git_filters import GitFilterBase
 
 
-class GithubReleaseFilter:
+class GithubReleaseFilter(GitFilterBase):
     """Git filter that uses GitHub Releases to store and retrieve assets."""
 
     def __init__(
@@ -43,8 +42,6 @@ class GithubReleaseFilter:
             prerelease=prerelease,
         )
 
-    # ----------------------------------------------------------------- helpers
-
     def _full_key(self, key: str) -> str:
         key = key.lstrip("/")
         if self._prefix:
@@ -53,7 +50,6 @@ class GithubReleaseFilter:
 
     @property
     def root_uri(self) -> str:
-        """Return the base ghrel:// URI for this adapter."""
         base = f"ghrel://{self._repo.full_name}/{self._tag}"
         uri = f"{base}/{self._prefix.rstrip('/')}" if self._prefix else base
         return uri.rstrip("/") + "/"
@@ -77,11 +73,8 @@ class GithubReleaseFilter:
                 prerelease=prerelease,
             )
 
-    # ------------------------------------------------------------------- public
     def upload(self, key: str, data: BinaryIO) -> str:
-        """Upload ``data`` under ``key`` as a release asset and return the artifact URI."""
         key = self._full_key(key)
-
         data.seek(0)
         content = data.read()
 
@@ -98,9 +91,7 @@ class GithubReleaseFilter:
         return f"{self.root_uri}{key.lstrip('/')}"
 
     def download(self, key: str) -> BinaryIO:
-        """Return the bytes of asset ``key`` as a BytesIO object."""
         key = self._full_key(key)
-
         for asset in self._release.get_assets():
             if asset.name == key:
                 _, raw = self._client._Github__requester.requestBytes(
@@ -113,9 +104,7 @@ class GithubReleaseFilter:
                 return buf
         raise FileNotFoundError(f"Asset '{key}' not found in release '{self._tag}'")
 
-    # --------------------------------------------------------------- convenience
     def upload_dir(self, src: str | os.PathLike, *, prefix: str = "") -> None:
-        """Upload all files under *src* using an optional *prefix*."""
         base = Path(src)
         for path in base.rglob("*"):
             if path.is_file():
@@ -125,7 +114,6 @@ class GithubReleaseFilter:
                     self.upload(key, fh)
 
     def iter_prefix(self, prefix: str):
-        """Yield asset keys under *prefix*."""
         full = self._full_key(prefix)
         for asset in self._release.get_assets():
             name = asset.name
@@ -136,7 +124,6 @@ class GithubReleaseFilter:
                 yield key
 
     def download_prefix(self, prefix: str, dest_dir: str | os.PathLike) -> None:
-        """Download all assets under *prefix* into *dest_dir*."""
         dest = Path(dest_dir)
         for rel_key in self.iter_prefix(prefix):
             target = dest / rel_key
@@ -145,7 +132,6 @@ class GithubReleaseFilter:
             with target.open("wb") as fh:
                 shutil.copyfileobj(data, fh)
 
-    # --------------------------------------------------------------------- class
     @classmethod
     def from_uri(cls, uri: str) -> "GithubReleaseFilter":
         from urllib.parse import urlparse
@@ -167,22 +153,6 @@ class GithubReleaseFilter:
             tag=tag,
             prefix=prefix,
         )
-
-    # ---------------------------------------------------------------- oid helpers
-    def clean(self, data: bytes) -> str:
-        import hashlib
-        import io
-
-        oid = "sha256:" + hashlib.sha256(data).hexdigest()
-        try:
-            self.download(oid)
-        except FileNotFoundError:
-            self.upload(oid, io.BytesIO(data))
-        return oid
-
-    def smudge(self, oid: str) -> bytes:
-        with self.download(oid) as fh:
-            return fh.read()
 
 
 __all__ = ["GithubReleaseFilter"]

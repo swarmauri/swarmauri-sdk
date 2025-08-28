@@ -8,6 +8,7 @@ from typing import Any, Dict, Optional
 
 from peagen.errors import InvalidPluginSpecError
 from swarmauri_base.keys import KeyProviderBase
+from swarmauri_base.git_filters import GitFilterBase
 
 # ---------------------------------------------------------------------------
 # Config – group key → (entry-point group string, expected base class)
@@ -25,7 +26,7 @@ GROUPS = {
     # "result_backends": ("peagen.plugins.result_backends", object),
     # deprecated: storage adapters are now git filters
     "storage_adapters": ("peagen.plugins.storage_adapters", object),
-    "git_filters": ("peagen.plugins.git_filters", object),
+    "git_filters": ("peagen.plugins.git_filters", GitFilterBase),
     "vcs": ("peagen.plugins.vcs", object),
     "selectors": ("peagen.plugins.selectors", object),
     # keys and secrets

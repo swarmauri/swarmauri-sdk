@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import BinaryIO
 
 warnings.warn(
-    "FileStorageAdapter is deprecated; use peagen.plugins.git_filters.file_filter instead",
+    "FileStorageAdapter is deprecated; use swarmauri_gitfilter_file instead",
     DeprecationWarning,
     stacklevel=2,
 )

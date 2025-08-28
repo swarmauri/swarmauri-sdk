@@ -1,8 +1,3 @@
-"""Storage adapter for MinIO/S3-compatible object stores.
-
-Requires the ``minio`` Python package.
-"""
-
 from __future__ import annotations
 
 import io
@@ -16,9 +11,10 @@ from minio.error import S3Error
 from pydantic import SecretStr
 
 from peagen._utils.config_loader import load_peagen_toml
+from swarmauri_base.git_filters import GitFilterBase
 
 
-class MinioFilter:
+class MinioFilter(GitFilterBase):
     """Simple wrapper around the MinIO client for use with Peagen."""
 
     def __init__(
@@ -45,26 +41,20 @@ class MinioFilter:
         if not self._client.bucket_exists(bucket):
             self._client.make_bucket(bucket)
 
-    # ------------------------------------------------------------------
     def _full_key(self, key: str) -> str:
-        """Return ``prefix/key`` if a prefix is configured."""
         key = key.lstrip("/")
         if self._prefix:
             return f"{self._prefix.rstrip('/')}/{key}"
         return key
 
-    # ------------------------------------------------------------------
     @property
     def root_uri(self) -> str:
-        """Return the base URI as ``minio[s]://endpoint/bucket/prefix/``."""
         scheme = "minios" if self._secure else "minio"
         base = f"{scheme}://{self._endpoint}/{self._bucket}"
         uri = f"{base}/{self._prefix.rstrip('/')}" if self._prefix else base
         return uri.rstrip("/") + "/"
 
-    # ------------------------------------------------------------------
     def upload(self, key: str, data: BinaryIO) -> str:
-        """Upload *data* to ``bucket/prefix/key`` and return the artifact URI."""
         size: Optional[int] = None
         try:
             size = os.fstat(data.fileno()).st_size  # type: ignore[attr-defined]
@@ -83,9 +73,7 @@ class MinioFilter:
 
         return f"{self.root_uri}{key.lstrip('/')}"
 
-    # ------------------------------------------------------------------
     def download(self, key: str) -> BinaryIO:
-        """Return a ``BytesIO`` for the object ``prefix/key``."""
         try:
             resp = self._client.get_object(self._bucket, self._full_key(key))
             buffer = io.BytesIO(resp.read())
@@ -96,9 +84,7 @@ class MinioFilter:
         except S3Error as exc:
             raise FileNotFoundError(f"{self._bucket}/{key}: {exc}") from exc
 
-    # ------------------------------------------------------------------
     def upload_dir(self, src: str | os.PathLike, *, prefix: str = "") -> None:
-        """Recursively upload a directory under ``prefix``."""
         base = Path(src)
         for path in base.rglob("*"):
             if path.is_file():
@@ -107,9 +93,7 @@ class MinioFilter:
                 with path.open("rb") as fh:
                     self.upload(key, fh)
 
-    # ------------------------------------------------------------------
     def iter_prefix(self, prefix: str):
-        """Yield keys under ``prefix`` relative to the run root."""
         for obj in self._client.list_objects(
             self._bucket, prefix=prefix, recursive=True
         ):
@@ -118,9 +102,7 @@ class MinioFilter:
                 key = key[len(self._prefix.rstrip("/")) + 1 :]
             yield key
 
-    # ------------------------------------------------------------------
     def download_prefix(self, prefix: str, dest_dir: str | os.PathLike) -> None:
-        """Download everything under ``prefix`` into ``dest_dir``."""
         dest = Path(dest_dir)
         for rel_key in self.iter_prefix(prefix):
             target = dest / rel_key
@@ -129,10 +111,8 @@ class MinioFilter:
             with target.open("wb") as fh:
                 shutil.copyfileobj(data, fh)
 
-    # ------------------------------------------------------------------
     @classmethod
     def from_uri(cls, uri: str) -> "MinioFilter":
-        """Create an adapter from a ``minio[s]://`` URI and env/TOML creds."""
         from urllib.parse import urlparse
 
         p = urlparse(uri)
@@ -156,19 +136,5 @@ class MinioFilter:
             prefix=prefix,
         )
 
-    # ---------------------------------------------------------------- oid helpers
-    def clean(self, data: bytes) -> str:
-        """Store *data* under its SHA256 and return the OID."""
-        import hashlib
 
-        oid = "sha256:" + hashlib.sha256(data).hexdigest()
-        try:
-            self.download(oid)
-        except FileNotFoundError:
-            self.upload(oid, io.BytesIO(data))
-        return oid
-
-    def smudge(self, oid: str) -> bytes:
-        """Retrieve bytes for *oid*."""
-        with self.download(oid) as fh:
-            return fh.read()
+__all__ = ["MinioFilter"]
