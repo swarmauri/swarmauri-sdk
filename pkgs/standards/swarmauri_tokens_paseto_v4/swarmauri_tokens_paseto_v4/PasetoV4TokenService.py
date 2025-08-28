@@ -269,3 +269,7 @@ class PasetoV4TokenService(TokenServiceBase):
                 raise ValueError("Audience (aud) mismatch")
 
         return payload_obj
+
+    async def jwks(self) -> dict:
+        """Return provider's JWKS."""
+        return await self._kp.jwks()
