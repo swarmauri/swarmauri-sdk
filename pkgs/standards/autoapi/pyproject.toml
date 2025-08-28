@@ -25,6 +25,9 @@ dependencies = [
     "greenlet>=3.2.3",
 ]
 
+[project.optional-dependencies]
+postgres = ["asyncpg>=0.30.0", "psycopg2-binary>=2.9"]
+
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
