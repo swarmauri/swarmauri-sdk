@@ -5,6 +5,7 @@ import pytest
 
 import peagen.plugins as plugins
 from peagen.plugins import PluginManager
+from swarmauri_base.keys import KeyProviderBase
 
 
 def _reset_plugins(monkeypatch):
@@ -26,7 +27,16 @@ def test_plugin_discovery_cached(monkeypatch):
             module = "peagen.dummy"
 
             def load(self):
-                return object
+                if group == "swarmauri.key_providers":
+
+                    class Dummy(KeyProviderBase):
+                        pass
+                else:
+
+                    class Dummy:
+                        pass
+
+                return Dummy
 
         return [EP()]
 
