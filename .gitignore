@@ -36,3 +36,5 @@ kms.db
 target/
 
 *.db
+
+pkgs/standards/swarmauri_crypto_sodium/subprojects/
