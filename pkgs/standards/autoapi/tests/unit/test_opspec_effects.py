@@ -2,9 +2,7 @@ from __future__ import annotations
 
 import asyncio
 
-from autoapi.v3.types import App
-from sqlalchemy import String, create_engine
-from sqlalchemy.orm import sessionmaker
+from autoapi.v3.types import App, String, create_engine, sessionmaker
 
 from autoapi.v3.bindings.model import bind
 from autoapi.v3.opspec.types import PHASES
