@@ -25,12 +25,15 @@ elif pg_host and pg_db and pg_user:
 else:
     dsn = "sqlite+aiosqlite:///./gateway.db"
 
-engine = create_async_engine(
-    dsn,
-    pool_size=10,
-    max_overflow=20,
-    echo=False,
-)
+engine_kwargs = {
+    "pool_size": 10,
+    "max_overflow": 20,
+    "echo": False,
+}
+if dsn.startswith("sqlite"):
+    engine_kwargs["execution_options"] = {"schema_translate_map": {"peagen": None}}
+
+engine = create_async_engine(dsn, **engine_kwargs)
 
 config = context.config
 if config.config_file_name is not None:
