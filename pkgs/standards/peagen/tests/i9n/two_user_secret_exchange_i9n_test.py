@@ -65,6 +65,11 @@ def test_two_user_secret_exchange(tmp_path: pathlib.Path) -> None:
     )
     shutil.copytree(user2_key_dir, user2_home / ".peagen" / "keys")
 
+    env1 = os.environ.copy()
+    env1["HOME"] = str(user1_home)
+    env2 = os.environ.copy()
+    env2["HOME"] = str(user2_home)
+
     subprocess.run(
         [
             "peagen",
@@ -74,6 +79,7 @@ def test_two_user_secret_exchange(tmp_path: pathlib.Path) -> None:
             "--key-dir",
             str(user1_key_dir),
         ],
+        env=env1,
         check=True,
         timeout=60,
     )
@@ -86,6 +92,7 @@ def test_two_user_secret_exchange(tmp_path: pathlib.Path) -> None:
             "--key-dir",
             str(user2_key_dir),
         ],
+        env=env2,
         check=True,
         timeout=60,
     )
@@ -123,8 +130,6 @@ def test_two_user_secret_exchange(tmp_path: pathlib.Path) -> None:
     pub_path = tmp_path / "user1_pub.asc"
     pub_path.write_text(result.stdout)
 
-    env2 = os.environ.copy()
-    env2["HOME"] = str(user2_home)
     subprocess.run(
         [
             "peagen",
@@ -161,8 +166,6 @@ def test_two_user_secret_exchange(tmp_path: pathlib.Path) -> None:
     )
     assert "the_secret" in res2.stdout
 
-    env1 = os.environ.copy()
-    env1["HOME"] = str(user1_home)
     res1 = subprocess.run(
         [
             "peagen",
@@ -191,6 +194,7 @@ def test_two_user_secret_exchange(tmp_path: pathlib.Path) -> None:
             "remove",
             "shared-secret",
         ],
+        env=env2,
         check=True,
         timeout=60,
     )
