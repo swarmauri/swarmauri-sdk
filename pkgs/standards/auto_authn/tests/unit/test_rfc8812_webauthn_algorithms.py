@@ -45,7 +45,8 @@ def test_supported_algorithms_extends_when_enabled(monkeypatch):
     assert "PS256" in algs
     monkeypatch.setattr(runtime_cfg.settings, "enable_rfc8812", False)
     algs = supported_algorithms()
-    assert not any(alg in algs for alg in WEBAUTHN_ALGORITHMS)
+    assert "RS256" in algs
+    assert not any(alg in algs for alg in WEBAUTHN_ALGORITHMS - {"RS256"})
 
 
 @pytest.mark.unit
