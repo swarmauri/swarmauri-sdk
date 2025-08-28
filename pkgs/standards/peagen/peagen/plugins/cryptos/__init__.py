@@ -1,4 +1,4 @@
-from .paramiko_crypto import ParamikoCrypto
+from swarmauri_crypto_paramiko import ParamikoCrypto
 from .pgp_crypto import PGPCrypto
 from .crypto_base import CryptoBase
 
