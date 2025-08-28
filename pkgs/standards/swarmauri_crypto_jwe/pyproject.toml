@@ -64,9 +64,3 @@ dev = [
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
-
-[project.entry-points.'swarmauri.cryptos']
-JweCrypto = "swarmauri_crypto_jwe:JweCrypto"
-
-[project.entry-points."peagen.plugins.cryptos"]
-jwe = "swarmauri_crypto_jwe:JweCrypto"
