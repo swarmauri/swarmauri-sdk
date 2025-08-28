@@ -161,12 +161,6 @@ init-template-set                     = "peagen.template_scaffold.template_set"
 init-doe-spec                         = "peagen.template_scaffold.doe_spec"
 init-ci                               = "peagen.template_scaffold.ci"
 
-[project.entry-points."peagen.plugins.storage_adapters"]
-minio   = "peagen.plugins.storage_adapters.minio_storage_adapter:MinioStorageAdapter"
-file    = "peagen.plugins.storage_adapters.file_storage_adapter:FileStorageAdapter"
-github    = "peagen.plugins.storage_adapters.github_storage_adapter:GithubStorageAdapter"
-gh_release    = "peagen.plugins.storage_adapters.gh_release_storage_adapter:GithubReleaseStorageAdapter"
-
 [project.entry-points."peagen.plugins.git_filters"]
 minio   = "peagen.plugins.git_filters.minio_filter:MinioFilter"
 gh_release    = "peagen.plugins.git_filters.gh_release_filter:GithubReleaseFilter"

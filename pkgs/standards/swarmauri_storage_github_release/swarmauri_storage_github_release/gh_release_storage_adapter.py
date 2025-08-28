@@ -16,7 +16,7 @@ from peagen._utils.config_loader import load_peagen_toml
 from github import Github, UnknownObjectException
 
 warnings.warn(
-    "peagen.plugins.storage_adapters.gh_release_storage_adapter is deprecated; use peagen.plugins.git_filters.gh_release_filter instead",
+    "GithubReleaseStorageAdapter is deprecated; use peagen.plugins.git_filters.gh_release_filter instead",
     DeprecationWarning,
     stacklevel=2,
 )
