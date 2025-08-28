@@ -9,15 +9,8 @@ from __future__ import annotations
 import io
 import os
 import shutil
-import warnings
 from pathlib import Path
 from typing import BinaryIO
-
-warnings.warn(
-    "FileStorageAdapter is deprecated; use peagen.plugins.git_filters.file_filter instead",
-    DeprecationWarning,
-    stacklevel=2,
-)
 
 
 class FileStorageAdapter:
