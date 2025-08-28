@@ -99,8 +99,3 @@ jobs:
           echo "::group::worker logs"
           sudo -E docker compose -f infra/peagen/docker-compose.yml logs worker || true
           echo "::endgroup::"
-
-      - name: Tear down services
-        if: always()
-        run: |
-          sudo -E docker compose -f infra/peagen/docker-compose.yml down auto_authn auto_kms gateway worker || true
