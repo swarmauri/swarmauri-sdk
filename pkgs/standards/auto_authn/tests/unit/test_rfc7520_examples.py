@@ -8,6 +8,7 @@ import importlib
 
 import base64
 import secrets
+import asyncio
 
 import pytest
 
@@ -29,8 +30,8 @@ def _generate_oct_key() -> dict:
 def test_jws_then_jwe_roundtrip() -> None:
     key = _generate_oct_key()
     message = "hello"
-    token = jws_then_jwe(message, key)
-    assert jwe_then_jws(token, key) == message
+    token = asyncio.run(jws_then_jwe(message, key))
+    assert asyncio.run(jwe_then_jws(token, key)) == message
 
 
 def test_rfc7520_disabled(monkeypatch) -> None:
@@ -41,7 +42,7 @@ def test_rfc7520_disabled(monkeypatch) -> None:
     importlib.reload(rfc7520)
     key = _generate_oct_key()
     with pytest.raises(RuntimeError):
-        rfc7520.jws_then_jwe("hi", key)
+        asyncio.run(rfc7520.jws_then_jwe("hi", key))
 
 
 def test_spec_url_constant() -> None:

@@ -16,20 +16,20 @@ from .rfc7516 import encrypt_jwe, decrypt_jwe
 RFC7520_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc7520"
 
 
-def jws_then_jwe(payload: str, key: dict) -> str:
+async def jws_then_jwe(payload: str, key: dict) -> str:
     """Sign *payload* then encrypt the resulting JWS."""
     if not settings.enable_rfc7520:
         raise RuntimeError(f"RFC 7520 support disabled: {RFC7520_SPEC_URL}")
-    jws_token = sign_jws(payload, key)
-    return encrypt_jwe(jws_token, key)
+    jws_token = await sign_jws(payload, key)
+    return await encrypt_jwe(jws_token, key)
 
 
-def jwe_then_jws(token: str, key: dict) -> str:
+async def jwe_then_jws(token: str, key: dict) -> str:
     """Decrypt a JWE then verify the contained JWS."""
     if not settings.enable_rfc7520:
         raise RuntimeError(f"RFC 7520 support disabled: {RFC7520_SPEC_URL}")
-    jws_token = decrypt_jwe(token, key)
-    return verify_jws(jws_token, key)
+    jws_token = await decrypt_jwe(token, key)
+    return await verify_jws(jws_token, key)
 
 
 __all__ = ["jws_then_jwe", "jwe_then_jws", "RFC7520_SPEC_URL"]

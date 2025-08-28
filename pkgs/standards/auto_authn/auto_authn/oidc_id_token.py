@@ -131,7 +131,7 @@ async def mint_id_token(
     )
     if settings.enable_id_token_encryption:
         key = {"kty": "oct", "k": settings.id_token_encryption_key.encode()}
-        token = encrypt_jwe(token, key)
+        token = await encrypt_jwe(token, key)
     return token
 
 
@@ -141,7 +141,7 @@ async def verify_id_token(
     """Verify *token* and return its claims if valid."""
     if settings.enable_id_token_encryption:
         key = {"kty": "oct", "k": settings.id_token_encryption_key.encode()}
-        token = decrypt_jwe(token, key)
+        token = await decrypt_jwe(token, key)
     if _header_alg(token) in {"", "none"}:
         raise InvalidTokenError("unsigned JWTs are not accepted")
     svc, _ = await _service()
