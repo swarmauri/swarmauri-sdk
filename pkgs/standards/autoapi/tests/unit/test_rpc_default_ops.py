@@ -16,13 +16,6 @@ from autoapi.v3.types import (
 
 @pytest.fixture()
 def api_and_session() -> Iterator[tuple[AutoAPI, Session, type[Base]]]:
-    from autoapi.v2.impl import schema as v2_schema
-    from autoapi.v3.schema import builder as v3_builder
-
-    Base.metadata.clear()
-    v2_schema._SchemaCache.clear()
-    v3_builder._SchemaCache.clear()
-
     class Widget(Base, GUIDPk, BulkCapable):
         __tablename__ = "widgets_rpc_ops"
         __allow_unmapped__ = True
@@ -58,9 +51,6 @@ def api_and_session() -> Iterator[tuple[AutoAPI, Session, type[Base]]]:
     finally:
         session.close()
         engine.dispose()
-        Base.metadata.clear()
-        v2_schema._SchemaCache.clear()
-        v3_builder._SchemaCache.clear()
 
 
 @pytest.mark.asyncio
