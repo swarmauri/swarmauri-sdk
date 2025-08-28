@@ -153,7 +153,11 @@ class TenantBound(_RowBound):
                     params["tenant_id"] = _normalize_uuid(provided)
 
             if "env" in ctx and ctx["env"] is not None:
-                ctx["env"].params = params
+                env = ctx["env"]
+                if isinstance(env, dict):
+                    env["params"] = params
+                else:
+                    env.params = params
             ctx["payload"] = params
 
         def _before_update(ctx: dict[str, Any]) -> None:
@@ -167,7 +171,11 @@ class TenantBound(_RowBound):
             if _is_missing(params.get("tenant_id")):
                 params.pop("tenant_id", None)
                 if "env" in ctx and ctx["env"] is not None:
-                    ctx["env"].params = params
+                    env = ctx["env"]
+                    if isinstance(env, dict):
+                        env["params"] = params
+                    else:
+                        env.params = params
                 ctx["payload"] = params
                 return
 
@@ -183,7 +191,11 @@ class TenantBound(_RowBound):
 
             params["tenant_id"] = new_val
             if "env" in ctx and ctx["env"] is not None:
-                ctx["env"].params = params
+                env = ctx["env"]
+                if isinstance(env, dict):
+                    env["params"] = params
+                else:
+                    env.params = params
             ctx["payload"] = params
 
         hooks = {**getattr(cls, "__autoapi_hooks__", {})}

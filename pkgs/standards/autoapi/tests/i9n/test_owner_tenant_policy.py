@@ -107,7 +107,6 @@ def _client_for_owner(
 
 
 @pytest.mark.i9n
-@pytest.mark.xfail(reason="Owner/Tenant policy integration currently unstable")
 def test_owner_policy_runtime_switch():
     user_id = uuid.uuid4()
     tenant_id = uuid.uuid4()
@@ -176,7 +175,6 @@ def _client_for_tenant(
 
 
 @pytest.mark.i9n
-@pytest.mark.xfail(reason="Owner/Tenant policy integration currently unstable")
 def test_tenant_policy_runtime_switch():
     user_id = uuid.uuid4()
     tenant_id = uuid.uuid4()
