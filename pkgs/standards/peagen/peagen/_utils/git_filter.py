@@ -33,7 +33,7 @@ def add_filter(
 ) -> None:
     """Add a git filter entry to ``config``.
 
-    If *uri* is omitted, ``s3://peagen`` is used with :class:`S3FSFilter`.
+    If *uri* is omitted, ``s3://peagen`` is used.
     """
     uri = uri or DEFAULT_FILTER_URI
     cfg: dict = {}

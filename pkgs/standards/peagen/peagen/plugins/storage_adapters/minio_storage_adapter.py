@@ -19,7 +19,7 @@ from pydantic import SecretStr
 from peagen._utils.config_loader import load_peagen_toml
 
 warnings.warn(
-    "peagen.plugins.storage_adapters.minio_storage_adapter is deprecated; use peagen.plugins.git_filters.minio_filter instead",
+    "peagen.plugins.storage_adapters.minio_storage_adapter is deprecated; use swarmauri_gitfilter_minio instead",
     DeprecationWarning,
     stacklevel=2,
 )

@@ -433,7 +433,7 @@ ORM models under `peagen.orm`.
 
 ### Git Filters & Publishers
 
-Peagen's artifact output and event publishing are pluggable. Use the `git_filter` argument to control where files are saved and optionally provide a publisher for notifications. Built‑ins live under the `peagen.plugins` namespace. Available filters include `S3FSFilter` and `MinioFilter`, while publisher options cover `RedisPublisher`, `RabbitMQPublisher`, and `WebhookPublisher`. See [docs/storage_adapters_and_publishers.md](docs/storage_adapters_and_publishers.md) for details.
+Peagen's artifact output and event publishing are pluggable. Use the `git_filter` argument to control where files are saved and optionally provide a publisher for notifications. Filters are distributed as separate packages under the `swarmauri-gitfilter-*` namespace, such as `swarmauri-gitfilter-s3fs` and `swarmauri-gitfilter-minio`. Publisher options cover `RedisPublisher`, `RabbitMQPublisher`, and `WebhookPublisher`. See [docs/storage_adapters_and_publishers.md](docs/storage_adapters_and_publishers.md) for details.
 
 
 For the event schema and routing key conventions, see [docs/eda_protocol.md](docs/eda_protocol.md). Events can also be emitted directly from the CLI using `--notify`:
@@ -453,13 +453,13 @@ renders files concurrently while still honoring dependency order. Leaving the
 flag unset or `0` processes files sequentially.
 
 Artifact locations are resolved via the `--artifacts` flag. Targets may be a
-local directory (`file:///./peagen_artifacts`) using `S3FSFilter` or an
+local directory (`file:///./peagen_artifacts`) using `FileFilter` or an
 S3/MinIO endpoint (`s3://host:9000`) handled by `MinioFilter`. Custom
 filters and publishers can be supplied programmatically:
 
 ```python
 from peagen.core import Peagen
-from peagen.plugins.git_filters.minio_filter import MinioFilter
+from swarmauri_gitfilter_minio import MinioFilter
 from peagen.plugins.publishers.webhook_publisher import WebhookPublisher
 
 store = MinioFilter.from_uri("s3://localhost:9000/peagen")

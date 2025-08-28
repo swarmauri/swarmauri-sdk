@@ -43,8 +43,8 @@ You can also use the shorthand ``gh://owner/repo[@ref]`` which resolves to
 
 Git filters store artifacts outside the repository. Run ``peagen init filter``
 to write ``clean`` and ``smudge`` helpers. Pass ``--add-config`` to also store
-the filter URI in ``.peagen.toml``. Built‑in filters include ``s3://`` via
-``S3FSFilter`` and ``MinioFilter`` for MinIO endpoints.
+the filter URI in ``.peagen.toml``. Filters such as ``swarmauri-gitfilter-s3fs``
+and ``swarmauri-gitfilter-minio`` can be installed for S3 or MinIO endpoints.
 
 Additional helpers let tasks create branches (``fan_out``), move refs
 (``promote``), apply tags, or reset a working tree with ``clean_reset``.
@@ -53,7 +53,7 @@ Example::
 
     peagen init filter s3://mybucket
 
-If no URI is provided the command defaults to ``s3://peagen`` using ``S3FSFilter``.
+If no URI is provided the command defaults to ``s3://peagen`` and requires a compatible filter plugin.
 To enable the filter manually in an existing repository use the
 following snippet::
 

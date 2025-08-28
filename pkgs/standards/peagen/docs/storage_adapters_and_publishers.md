@@ -1,6 +1,6 @@
 # Git Filters and Publisher Plugins
 
-Peagen writes artifacts through pluggable **git filters** and can publish events during processing. These systems are extensible so you can integrate your own infrastructure. The SDK bundles several implementations under ``peagen.plugins`` for convenience.
+Peagen writes artifacts through pluggable **git filters** and can publish events during processing. These systems are extensible so you can integrate your own infrastructure. Filter implementations are provided as standalone packages under ``swarmauri-gitfilter-*``.
 
 ``storage_adapters`` have been deprecated. Use ``peagen init filter`` to set up a git filter instead and reference it via ``[storage.filters]`` in ``.peagen.toml``.
 
@@ -9,13 +9,7 @@ Workspaces themselves may be managed in a Git repository using the
 
 ## Git Filters
 
-``Peagen`` now accepts a ``git_filter`` implementing ``upload()`` and ``download()`` methods. Built-in filters include:
-
-- ``MinioFilter`` – targets S3 compatible object stores.
-- ``GithubReleaseFilter`` – uploads artifacts as release assets and exposes a ``root_uri`` like ``ghrel://org/repo/tag/`` for retrieval.
-- ``S3FSFilter`` – uses the ``s3fs`` library for S3 storage and exposes a
-  ``root_uri`` like ``s3://bucket/prefix/``. Credentials may be provided under
-  ``[storage.filters.s3fs]`` in ``.peagen.toml``.
+``Peagen`` now accepts a ``git_filter`` implementing ``upload()`` and ``download()`` methods. Install the appropriate package—such as ``swarmauri-gitfilter-minio``, ``swarmauri-gitfilter-gh-release``, or ``swarmauri-gitfilter-s3fs``—to enable a filter. Credentials may be provided under the corresponding ``[storage.filters.<name>]`` tables in ``.peagen.toml``.
 
 Enable any of these via `.peagen.toml` using the `[storage.filters.<name>]`
 tables. For example:
