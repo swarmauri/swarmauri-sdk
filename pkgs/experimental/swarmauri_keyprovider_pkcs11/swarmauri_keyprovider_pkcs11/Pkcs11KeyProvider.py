@@ -62,7 +62,10 @@ class Pkcs11KeyProvider(KeyProviderBase):
                 "python-pkcs11 is required. Install with: pip install python-pkcs11"
             )
 
-        self._lib = pkcs11.lib(module_path)
+        try:
+            self._lib = pkcs11.lib(module_path)
+        except pkcs11.PKCS11Error as exc:  # pragma: no cover - init sanity
+            raise ImportError(f"failed to load PKCS#11 module: {module_path}") from exc
         if token_label:
             self._slot = next(
                 (

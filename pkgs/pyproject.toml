@@ -89,6 +89,7 @@ members = [
     "standards/auto_kms",
     "standards/swarmauri_certs_composite",
     "standards/swarmauri_keyprovider_local",
+    "experimental/swarmauri_keyprovider_pkcs11",
     "standards/swarmauri_keyprovider_remote_jwks",
     "standards/swarmauri_keyprovider_ssh",
     "standards/swarmauri_keyprovider_file",
@@ -99,6 +100,7 @@ members = [
     "experimental/swarmauri_keyprovider_pkcs11",
     "standards/swarmauri_crypto_paramiko",
     "standards/swarmauri_crypto_pgp",
+    "standards/swarmauri_crypto_rust",
     "standards/swarmauri_crypto_sodium",
     "standards/swarmauri_crypto_nacl_pkcs11",
     "standards/swarmauri_crypto_jwe",
@@ -133,6 +135,7 @@ members = [
     "standards/swarmauri_tokens_remoteoidc",
     "standards/swarmauri_tokens_tlsboundjwt",
     "community/swarmauri_certs_csronly",
+    "community/swarmauri_certs_azure",
     "standards/swarmauri_certs_remote_ca",
     "community/swarmauri_cert_cfssl",
     "standards/swarmauri_certs_x509",
@@ -278,6 +281,7 @@ auto_kms = { workspace = true }
 swarmauri_secret_autogpg = { workspace = true }
 swarmauri_crypto_paramiko = { workspace = true }
 swarmauri_crypto_pgp = { workspace = true }
+swarmauri_crypto_rust = { workspace = true }
 swarmauri_crypto_nacl_pkcs11 = { workspace = true }
 swarmauri_crypto_composite = { workspace = true }
 swarmauri_crypto_ecdh_es_a128kw = { workspace = true }
@@ -388,6 +392,7 @@ swarmauri_parser_slate = { workspace = true }
 swarmauri_tool_searchword = { workspace = true }
 swarmauri_keyprovider_gcpkms = { workspace = true }
 swarmauri_certs_csronly = { workspace = true }
+swarmauri_certs_azure = { workspace = true }
 swarmauri_cert_ocspverify = { workspace = true }
 swarmauri_tool_containernewsession = { workspace = true }
 swarmauri_tool_containerfeedchars = { workspace = true }
