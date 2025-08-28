@@ -99,5 +99,5 @@ def test_client_new_allows_public_redirect_when_disabled(monkeypatch) -> None:
     assert client.redirect_uris == "http://example.com/callback"
     monkeypatch.setenv("AUTO_AUTHN_ENFORCE_RFC8252", "1")
     importlib.reload(runtime_cfg)
-    monkeypatch.setattr(orm_tables, "settings", runtime_cfg.settings)
-    monkeypatch.setattr(orm_client, "settings", runtime_cfg.settings)
+    orm_tables.settings = runtime_cfg.settings
+    orm_client.settings = runtime_cfg.settings
