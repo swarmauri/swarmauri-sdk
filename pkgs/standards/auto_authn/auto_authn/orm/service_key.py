@@ -7,9 +7,9 @@ import secrets
 
 from autoapi.v3.tables import ApiKey as ApiKeyBase
 from autoapi.v3.types import PgUUID, UniqueConstraint, relationship
-from autoapi.v3.specs import S, acol
-from autoapi.v3.specs.storage_spec import ForeignKeySpec
 from autoapi.v3 import hook_ctx
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column
 from uuid import UUID
 from typing import TYPE_CHECKING
 
@@ -23,17 +23,16 @@ class ServiceKey(ApiKeyBase):
         UniqueConstraint("digest"),
         {"extend_existing": True, "schema": "authn"},
     )
-    service_id: UUID = acol(
-        storage=S(
-            PgUUID(as_uuid=True),
-            fk=ForeignKeySpec(target="authn.services.id"),
-            index=True,
-            nullable=False,
-        )
+
+    service_id: Mapped[UUID] = mapped_column(
+        PgUUID(as_uuid=True),
+        ForeignKey("authn.services.id"),
+        index=True,
+        nullable=False,
     )
 
     _service = relationship(
-        "auto_authn.orm.tables.Service",
+        "Service",
         back_populates="_service_keys",
         lazy="joined",
     )

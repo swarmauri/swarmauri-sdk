@@ -4,21 +4,30 @@ from __future__ import annotations
 
 import hashlib
 import secrets
+from uuid import UUID
 
 from autoapi.v3.tables import ApiKey as ApiKeyBase
-from autoapi.v3.types import UniqueConstraint, relationship
-from autoapi.v3.mixins import UserMixin
+from autoapi.v3.types import PgUUID, UniqueConstraint, relationship
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column
 from autoapi.v3 import hook_ctx
 
 
-class ApiKey(ApiKeyBase, UserMixin):
+class ApiKey(ApiKeyBase):
     __table_args__ = (
         UniqueConstraint("digest"),
         {"extend_existing": True, "schema": "authn"},
     )
 
+    user_id: Mapped[UUID] = mapped_column(
+        PgUUID(as_uuid=True),
+        ForeignKey("authn.users.id"),
+        nullable=False,
+        index=True,
+    )
+
     _user = relationship(
-        "auto_authn.orm.tables.User",
+        "User",
         back_populates="_api_keys",
         lazy="joined",  # optional: eager load to avoid N+1
     )
