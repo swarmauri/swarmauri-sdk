@@ -30,9 +30,14 @@ def build_task(
     Return a TaskCreate Pydantic instance that matches AutoAPI's
     current schema (no 'payload' column any more).
     """
-    SCreate = get_schema(Task, "create")
+    SCreate = get_schema(Task, "read")
 
-    return SCreate(
+    if not isinstance(action, Action):
+        action = Action[action.upper()]
+    if spec_kind is not None and not isinstance(spec_kind, SpecKind):
+        spec_kind = SpecKind(spec_kind)
+
+    return SCreate.model_construct(
         id=uuid.uuid4(),
         pool_id=pool_id,
         action=action,
