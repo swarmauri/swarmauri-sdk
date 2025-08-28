@@ -14,6 +14,9 @@ from autoapi.v3.tables import Base as Base3
 @pytest_asyncio.fixture()
 async def client():
     Base3.metadata.clear()
+    from autoapi.v3.schema.builder import _SchemaCache as _SchemaCache_v3
+
+    _SchemaCache_v3.clear()
 
     class Widget(Base3):
         __tablename__ = "widgets"
@@ -43,6 +46,9 @@ async def client():
     # Monkeypatch crud functions to return raw Row objects
     from autoapi.v3.core import crud
 
+    original_read = crud.read
+    original_list = crud.list
+
     async def row_read(model, ident, db):
         stmt = select(model).where(getattr(model, "id") == ident)
         result = await db.execute(stmt)
@@ -65,6 +71,10 @@ async def client():
     finally:
         await client.aclose()
         await engine.dispose()
+        crud.read = original_read  # type: ignore
+        crud.list = original_list  # type: ignore
+        Base3.metadata.clear()
+        _SchemaCache_v3.clear()
 
 
 @pytest.mark.i9n
