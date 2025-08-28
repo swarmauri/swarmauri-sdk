@@ -7,6 +7,8 @@ from autoapi.v3.types import App
 from autoapi.v3.mixins import BulkCapable, GUIDPk
 from autoapi.v3.specs import F, IO, S, acol
 from autoapi.v3.specs.storage_spec import StorageTransform
+from autoapi.v3.schema import builder as v3_builder
+from autoapi.v3.runtime import kernel as runtime_kernel
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, ForeignKey, Integer, String, create_engine
 from sqlalchemy.pool import StaticPool
@@ -16,18 +18,15 @@ from sqlalchemy.orm import Mapped, Session, sessionmaker
 
 
 @pytest.fixture(autouse=True)
-def clear_caches_and_metadata():
-    """Reset schema caches and SQLAlchemy metadata around each test."""
-    from autoapi.v2.impl import schema as v2_schema
-    from autoapi.v3.schema import builder as v3_builder
-
+def _reset_state():
+    """Ensure clean metadata and caches around each test."""
     Base.metadata.clear()
-    v2_schema._SchemaCache.clear()
     v3_builder._SchemaCache.clear()
+    runtime_kernel._default_kernel = runtime_kernel.Kernel()
     yield
     Base.metadata.clear()
-    v2_schema._SchemaCache.clear()
     v3_builder._SchemaCache.clear()
+    runtime_kernel._default_kernel = runtime_kernel.Kernel()
 
 
 def pytest_addoption(parser):
