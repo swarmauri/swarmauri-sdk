@@ -8,8 +8,6 @@ Core specification are handled here.
 """
 
 from __future__ import annotations
-
-import asyncio
 import os
 import pathlib
 import base64
@@ -71,12 +69,17 @@ async def _ensure_key() -> Tuple[str, bytes, bytes]:
     return ref.kid, priv, pub
 
 
-@lru_cache(maxsize=1)
-def _service() -> Tuple[JWTTokenService, str]:
+_service_cache: Tuple[JWTTokenService, str] | None = None
+
+
+async def _service() -> Tuple[JWTTokenService, str]:
     """Return a ``JWTTokenService`` bound to the RSA signing key."""
-    kid, _, _ = asyncio.run(_ensure_key())
-    svc = JWTTokenService(_provider())
-    return svc, kid
+    global _service_cache
+    if _service_cache is None:
+        kid, _, _ = await _ensure_key()
+        svc = JWTTokenService(_provider())
+        _service_cache = (svc, kid)
+    return _service_cache
 
 
 # ---------------------------------------------------------------------------
@@ -102,7 +105,7 @@ def oidc_hash(value: str) -> str:
     return base64.urlsafe_b64encode(half).decode("ascii").rstrip("=")
 
 
-def mint_id_token(
+async def mint_id_token(
     *,
     sub: str,
     aud: Iterable[str] | str,
@@ -111,27 +114,20 @@ def mint_id_token(
     ttl: timedelta = timedelta(minutes=5),
     **extra: Mapping[str, Any] | Any,
 ) -> str:
-    """Mint an ID Token for *sub* and *aud* with the given *nonce*.
+    """Mint an ID Token for *sub* and *aud* with the given *nonce*."""
 
-    The token is signed with RS256 and includes the standard claims required by
-    OIDC: ``iss``, ``sub``, ``aud``, ``exp``, ``iat``, and ``nonce``.
-    Additional claims may be supplied via ``extra``.
-    """
-
-    svc, kid = _service()
+    svc, kid = await _service()
     claims: dict[str, Any] = {"nonce": nonce}
     if extra:
         claims.update(extra)  # type: ignore[arg-type]
-    token = asyncio.run(
-        svc.mint(
-            claims,
-            alg=JWAAlg.RS256,
-            kid=kid,
-            lifetime_s=int(ttl.total_seconds()),
-            issuer=issuer,
-            subject=sub,
-            audience=aud,
-        )
+    token = await svc.mint(
+        claims,
+        alg=JWAAlg.RS256,
+        kid=kid,
+        lifetime_s=int(ttl.total_seconds()),
+        issuer=issuer,
+        subject=sub,
+        audience=aud,
     )
     if settings.enable_id_token_encryption:
         key = {"kty": "oct", "k": settings.id_token_encryption_key.encode()}
@@ -139,15 +135,17 @@ def mint_id_token(
     return token
 
 
-def verify_id_token(token: str, *, issuer: str, audience: Iterable[str] | str) -> dict:
+async def verify_id_token(
+    token: str, *, issuer: str, audience: Iterable[str] | str
+) -> dict:
     """Verify *token* and return its claims if valid."""
     if settings.enable_id_token_encryption:
         key = {"kty": "oct", "k": settings.id_token_encryption_key.encode()}
         token = decrypt_jwe(token, key)
     if _header_alg(token) in {"", "none"}:
         raise InvalidTokenError("unsigned JWTs are not accepted")
-    svc, _ = _service()
-    return asyncio.run(svc.verify(token, issuer=issuer, audience=audience))
+    svc, _ = await _service()
+    return await svc.verify(token, issuer=issuer, audience=audience)
 
 
 # Exported helpers for JWKS publication
@@ -168,7 +166,8 @@ async def rotate_rsa_jwt_key() -> str:
     ref = await kp.create_key(spec)
     _RSA_KEY_PATH.parent.mkdir(parents=True, exist_ok=True)
     _RSA_KEY_PATH.write_text(ref.kid)
-    _service.cache_clear()
+    global _service_cache
+    _service_cache = None
     try:  # refresh discovery metadata if available
         from .oidc_discovery import refresh_discovery_cache
 

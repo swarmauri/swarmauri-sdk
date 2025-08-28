@@ -51,7 +51,7 @@ async def test_authorize_includes_at_hash(async_client, db_session):
     query = parse_qs(fragment)
     access = query["access_token"][0]
     id_token = query["id_token"][0]
-    claims = verify_id_token(id_token, issuer=ISSUER, audience=str(client_id))
+    claims = await verify_id_token(id_token, issuer=ISSUER, audience=str(client_id))
     assert claims["at_hash"] == oidc_hash(access)
 
 
@@ -95,6 +95,6 @@ async def test_authorize_includes_c_hash(async_client, db_session):
     query = parse_qs(fragment)
     code = query["code"][0]
     id_token = query["id_token"][0]
-    claims = verify_id_token(id_token, issuer=ISSUER, audience=str(client_id))
+    claims = await verify_id_token(id_token, issuer=ISSUER, audience=str(client_id))
     assert claims["c_hash"] == oidc_hash(code)
     AUTH_CODES.clear()

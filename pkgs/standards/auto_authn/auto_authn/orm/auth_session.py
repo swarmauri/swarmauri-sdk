@@ -77,7 +77,7 @@ class AuthSession(Base, Timestamped, UserMixin, TenantMixin):
             "username": session.username,
             "auth_time": session.auth_time,
         }
-        id_token = mint_id_token(
+        id_token = await mint_id_token(
             sub=str(session.user_id),
             aud=ISSUER,
             nonce=secrets.token_urlsafe(8),
@@ -110,7 +110,7 @@ class AuthSession(Base, Timestamped, UserMixin, TenantMixin):
         payload = ctx.get("payload") or {}
         id_hint = payload.get("id_token_hint")
         try:
-            claims = verify_id_token(id_hint, issuer=ISSUER, audience=ISSUER)
+            claims = await verify_id_token(id_hint, issuer=ISSUER, audience=ISSUER)
         except Exception as exc:  # pragma: no cover - passthrough
             raise HTTPException(
                 status.HTTP_400_BAD_REQUEST, "invalid id_token_hint"

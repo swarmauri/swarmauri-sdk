@@ -204,7 +204,7 @@ def temp_key_file():
 
     oidc_module._RSA_KEY_PATH = temp_dir / "jwt_rs256.kid"
     oidc_module._provider.cache_clear()
-    oidc_module._service.cache_clear()
+    oidc_module._service_cache = None
 
     yield temp_kid
 
@@ -216,7 +216,7 @@ def temp_key_file():
     crypto_module._load_keypair.cache_clear()
     oidc_module._RSA_KEY_PATH = original_rsa_path
     oidc_module._provider.cache_clear()
-    oidc_module._service.cache_clear()
+    oidc_module._service_cache = None
 
 
 @pytest.fixture
