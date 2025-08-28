@@ -214,7 +214,11 @@ class Ownable:
 
             # write back into both env.params and payload so downstream sees the same view
             if "env" in ctx and ctx["env"] is not None:
-                ctx["env"].params = params
+                env = ctx["env"]
+                if isinstance(env, dict):
+                    env["params"] = params
+                else:
+                    env.params = params
             ctx["payload"] = params
 
         def _before_update(ctx: dict[str, Any]) -> None:
@@ -230,7 +234,11 @@ class Ownable:
                 # treat None/"" as not provided → drop it
                 params.pop("owner_id", None)
                 if "env" in ctx and ctx["env"] is not None:
-                    ctx["env"].params = params
+                    env = ctx["env"]
+                    if isinstance(env, dict):
+                        env["params"] = params
+                    else:
+                        env.params = params
                 ctx["payload"] = params
                 return
 
@@ -255,7 +263,11 @@ class Ownable:
             # normalize stored value
             params["owner_id"] = new_val
             if "env" in ctx and ctx["env"] is not None:
-                ctx["env"].params = params
+                env = ctx["env"]
+                if isinstance(env, dict):
+                    env["params"] = params
+                else:
+                    env.params = params
             ctx["payload"] = params
 
         # Attach (merge) into __autoapi_hooks__ without clobbering existing mappings
