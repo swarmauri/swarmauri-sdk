@@ -8,7 +8,9 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
 
 from swarmauri_core.crypto.types import ExportPolicy, KeyRef, KeyType, KeyUse
-from swarmauri_standards.certs.AzureKeyVaultCertService import AzureKeyVaultCertService
+from swarmauri_certs_azure.certs.AzureKeyVaultCertService import (
+    AzureKeyVaultCertService,
+)
 
 
 def _make_keyref() -> KeyRef:
