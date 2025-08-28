@@ -103,12 +103,12 @@ class Key(Base):
     )
 
     # Virtual (wire-only)
-    kid: str = vcol(
+    kid: Optional[str] = vcol(
         io=IO(out_verbs=("encrypt", "wrap")),
         read_producer=lambda obj, ctx: str(getattr(obj, "id", "")),
     )
 
-    plaintext_b64: str = vcol(
+    plaintext_b64: Optional[str] = vcol(
         field=F(required_in=("encrypt",)),
         io=IO(in_verbs=("encrypt",), out_verbs=("decrypt",)),
     )
@@ -134,7 +134,7 @@ class Key(Base):
         ),
     )
 
-    ciphertext_b64: str = vcol(
+    ciphertext_b64: Optional[str] = vcol(
         field=F(required_in=("decrypt",)),
         io=IO(in_verbs=("decrypt",), out_verbs=("encrypt",)),
     )
@@ -144,18 +144,18 @@ class Key(Base):
         io=IO(in_verbs=("decrypt", "unwrap"), out_verbs=("encrypt", "wrap")),
     )
 
-    version: int = vcol(
+    version: Optional[int] = vcol(
         field=F(py_type=int),
         io=IO(out_verbs=("encrypt", "wrap")),
     )
 
     # ---- Key Wrapping virtual columns ----
-    key_material_b64: Mapped[str] = vcol(
+    key_material_b64: Mapped[Optional[str]] = vcol(
         field=F(required_in=("wrap",)),
         io=IO(in_verbs=("wrap",), out_verbs=("unwrap",)),
     )
 
-    wrapped_key_b64: Mapped[str] = vcol(
+    wrapped_key_b64: Mapped[Optional[str]] = vcol(
         field=F(required_in=("unwrap",)),
         io=IO(in_verbs=("unwrap",), out_verbs=("wrap",)),
     )
