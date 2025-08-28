@@ -89,6 +89,7 @@ members = [
     "standards/auto_kms",
     "standards/swarmauri_certs_composite",
     "standards/swarmauri_keyprovider_local",
+    "experimental/swarmauri_keyprovider_pkcs11",
     "standards/swarmauri_keyprovider_remote_jwks",
     "standards/swarmauri_keyprovider_ssh",
     "standards/swarmauri_keyprovider_file",
