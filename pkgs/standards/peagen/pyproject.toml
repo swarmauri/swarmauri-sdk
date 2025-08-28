@@ -196,9 +196,6 @@ echo_mutator = "peagen.plugins.mutators.echo_mutator:EchoMutator"
 llm_prompt = "peagen.plugins.mutators.llm_prompt:LlmRewrite"
 llm_prog_rewrite = "peagen.plugins.mutators.llm_prog_rewrite:LlmProgRewrite"
 
-# [project.entry-points."peagen.plugins.secret_drivers"]
-# env = "peagen.plugins.secret_drivers.env_secret:EnvSecret"
-# autogpg = "peagen.plugins.secret_drivers.autogpg_secretdriver:AutoGpgDriver"
 
 [project.entry-points."peagen.plugins.evaluators"]
 psutil_io = "peagen.plugins.evaluators.psutil_io:PsutilIOEvaluator"
