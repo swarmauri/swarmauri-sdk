@@ -17,6 +17,8 @@ def test_init_repo_configures_and_pushes(
     repo = Repo.init(repo_dir)
     (repo_dir / "README.md").write_text("hi")
     repo.git.add(all=True)
+    repo.git.config("user.email", "test@example.com")
+    repo.git.config("user.name", "Test User")
     repo.git.commit("-m", "init")
 
     gh = GithubMock.return_value
