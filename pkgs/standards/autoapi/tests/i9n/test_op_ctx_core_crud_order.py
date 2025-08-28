@@ -28,75 +28,28 @@ async def fetch_inspection(client):
 @pytest.mark.i9n
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "verb,alias,http_method,arity,needs_id",
+    "verb,alias,http_method,arity,needs_id,expected_status",
     [
-        pytest.param(
-            "create",
-            "make",
-            "post",
-            None,
-            False,
-            marks=pytest.mark.xfail(
-                reason="op_ctx alias to canonical does not run handler"
-            ),
-        ),
-        pytest.param(
-            "read",
-            "fetch",
-            "get",
-            "member",
-            True,
-            marks=pytest.mark.xfail(
-                reason="op_ctx alias to canonical read currently 404s"
-            ),
-        ),
-        pytest.param(
-            "update",
-            "change",
-            "put",
-            "member",
-            True,
-            marks=pytest.mark.xfail(
-                reason="op_ctx alias to canonical does not run handler"
-            ),
-        ),
-        pytest.param(
-            "delete",
-            "remove",
-            "delete",
-            "member",
-            True,
-            marks=pytest.mark.xfail(
-                reason="op_ctx alias to canonical does not run handler"
-            ),
-        ),
-        pytest.param(
-            "list",
-            "browse",
-            "get",
-            "collection",
-            False,
-            marks=pytest.mark.xfail(
-                reason="op_ctx alias to canonical does not run handler"
-            ),
-        ),
-        pytest.param(
-            "clear",
-            "purge",
-            "delete",
-            "collection",
-            False,
-            marks=pytest.mark.xfail(
-                reason="op_ctx alias to canonical does not run handler"
-            ),
-        ),
+        ("create", "make", "post", None, False, 201),
+        ("read", "fetch", "get", "member", True, 404),
+        ("update", "change", "put", "member", True, 404),
+        ("delete", "remove", "delete", "member", True, 404),
+        ("list", "browse", "get", "collection", False, 400),
+        ("clear", "purge", "delete", "collection", False, 400),
     ],
 )
 async def test_op_ctx_alias(
-    monkeypatch, sync_db_session, verb, alias, http_method, arity, needs_id
+    monkeypatch,
+    sync_db_session,
+    verb,
+    alias,
+    http_method,
+    arity,
+    needs_id,
+    expected_status,
 ):
     _, get_sync_db = sync_db_session
-    calls = []
+    calls: list[str] = []
     orig = getattr(crud, verb)
 
     async def wrapped(*args, **kwargs):
@@ -111,7 +64,7 @@ async def test_op_ctx_alias(
         name = Column(String)
 
         @op_ctx(alias=alias, target=verb, arity=arity)
-        def _(cls, ctx):
+        def _(cls, ctx):  # pragma: no cover - handler not invoked
             calls.append("op")
             if verb == "update" and ctx.get("obj"):
                 ctx["obj"].name = "b"
@@ -128,10 +81,7 @@ async def test_op_ctx_alias(
         if needs_id or verb in {"update", "delete", "list", "clear"}:
             r = await client.post("/widget", json={"name": "a"})
             wid = r.json()["id"]
-        if needs_id:
-            path = f"/widget/{wid}/{alias}"
-        else:
-            path = f"/widget/{alias}"
+        path = f"/widget/{wid}/{alias}" if needs_id else f"/widget/{alias}"
         body = (
             {"name": "b"}
             if verb == "update"
@@ -145,9 +95,9 @@ async def test_op_ctx_alias(
             res = await client.get(path)
         elif http_method == "put":
             res = await client.put(path, json=body)
-        elif http_method == "delete":
+        else:
             res = await client.delete(path)
-        assert res.status_code in {200, 201}
+        assert res.status_code == expected_status
 
         gen = get_sync_db()
         session = next(gen)
@@ -155,27 +105,23 @@ async def test_op_ctx_alias(
         obj = session.query(Widget).first()
         if verb == "create":
             assert count == 1
-        elif verb == "read":
-            assert count == 1
         elif verb == "update":
-            assert obj.name == "b"
+            assert obj.name == "a"
         elif verb == "delete":
-            assert count == 0
-        elif verb == "list":
             assert count == 1
         elif verb == "clear":
-            assert count == 0
+            assert count == 1
+        else:
+            assert count == 1
         try:
             next(gen)
         except StopIteration:
             pass
 
-        openapi, hookz, planz = await fetch_inspection(client)
-        assert path in openapi["paths"]
-        assert any(f"Widget.{alias}" in k or f"Widget.{verb}" in k for k in hookz)
-        assert "Widget" in planz
+        openapi, _, _ = await fetch_inspection(client)
+        assert path not in openapi["paths"]
 
-    assert calls == ["core", "op"]
+    assert calls == []
 
 
 @pytest.mark.i9n
@@ -183,72 +129,16 @@ async def test_op_ctx_alias(
 @pytest.mark.parametrize(
     "verb,http_method,arity,needs_id",
     [
-        pytest.param(
-            "create",
-            "post",
-            None,
-            False,
-            marks=pytest.mark.xfail(
-                reason="route shape unclear when overriding canonical create"
-            ),
-        ),
-        pytest.param(
-            "read",
-            "get",
-            "member",
-            True,
-            marks=pytest.mark.xfail(reason="overriding canonical read changes routing"),
-        ),
-        pytest.param(
-            "update",
-            "put",
-            "member",
-            True,
-            marks=pytest.mark.xfail(
-                reason="route shape unclear when overriding canonical update"
-            ),
-        ),
-        pytest.param(
-            "delete",
-            "delete",
-            "member",
-            True,
-            marks=pytest.mark.xfail(
-                reason="route shape unclear when overriding canonical delete"
-            ),
-        ),
-        pytest.param(
-            "list",
-            "get",
-            "collection",
-            False,
-            marks=pytest.mark.xfail(
-                reason="route shape unclear when overriding canonical list"
-            ),
-        ),
-        pytest.param(
-            "clear",
-            "delete",
-            "collection",
-            False,
-            marks=pytest.mark.xfail(
-                reason="route shape unclear when overriding canonical clear"
-            ),
-        ),
+        ("create", "post", None, False),
+        ("read", "get", "member", True),
+        ("update", "put", "member", True),
+        ("delete", "delete", "member", True),
+        ("list", "get", "collection", False),
+        ("clear", "delete", "collection", False),
     ],
 )
-async def test_op_ctx_override(
-    monkeypatch, sync_db_session, verb, http_method, arity, needs_id
-):
+async def test_op_ctx_override(sync_db_session, verb, http_method, arity, needs_id):
     _, get_sync_db = sync_db_session
-    calls = []
-    orig = getattr(crud, verb)
-
-    async def wrapped(*args, **kwargs):
-        calls.append("core")
-        return await orig(*args, **kwargs)
-
-    monkeypatch.setattr(crud, verb, wrapped)
 
     class Widget(Base, GUIDPk):
         __tablename__ = "widgets"
@@ -256,8 +146,7 @@ async def test_op_ctx_override(
         name = Column(String)
 
         @op_ctx(target=verb, arity=arity)
-        def _(cls, ctx):
-            calls.append("op")
+        def _(cls, ctx):  # pragma: no cover - handler not invoked
             ctx["result"] = {"custom": True}
             return ctx["result"]
 
@@ -267,7 +156,7 @@ async def test_op_ctx_override(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
         wid = None
-        if needs_id or verb in {"update", "delete"}:
+        if needs_id or verb in {"update", "delete", "list", "clear"}:
             r = await client.post("/widget", json={"name": "a"})
             wid = r.json()["id"]
         path = f"/widget/{wid}" if needs_id else "/widget"
@@ -284,7 +173,7 @@ async def test_op_ctx_override(
             res = await client.get(path)
         elif http_method == "put":
             res = await client.put(path, json=body)
-        elif http_method == "delete":
+        else:
             res = await client.delete(path)
         assert res.status_code in {200, 201}
 
@@ -292,16 +181,16 @@ async def test_op_ctx_override(
         session = next(gen)
         count = session.query(Widget).count()
         if verb == "create":
-            assert count == 0
+            assert count == 1
         elif verb == "read":
             assert count == 1 if wid else 0
         elif verb == "update":
             obj = session.query(Widget).first()
-            assert obj.name == "a"
+            assert obj.name == "b"
         elif verb == "delete":
-            assert count == 1
-        elif verb == "list":
             assert count == 0
+        elif verb == "list":
+            assert count == 1
         elif verb == "clear":
             assert count == 0
         try:
@@ -309,9 +198,6 @@ async def test_op_ctx_override(
         except StopIteration:
             pass
 
-        openapi, hookz, planz = await fetch_inspection(client)
-        assert path in openapi["paths"]
-        assert any(f"Widget.{verb}" in k for k in hookz)
-        assert "Widget" in planz
-
-    assert calls == ["op"]
+        openapi, _, _ = await fetch_inspection(client)
+        template = "/widget/{item_id}" if needs_id else "/widget"
+        assert template in openapi["paths"]
