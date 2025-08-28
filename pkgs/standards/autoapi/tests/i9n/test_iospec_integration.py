@@ -35,6 +35,7 @@ class Widget(Base, GUIDPk):
 
 @pytest_asyncio.fixture
 async def widget_setup():
+    Base.metadata.clear()
     engine = create_engine(
         "sqlite:///:memory:",
         connect_args={"check_same_thread": False},
@@ -61,6 +62,7 @@ async def widget_setup():
     client = AsyncClient(transport=transport, base_url="http://test")
     yield client, api, SessionLocal
     await client.aclose()
+    Base.metadata.clear()
 
 
 @pytest.mark.i9n
