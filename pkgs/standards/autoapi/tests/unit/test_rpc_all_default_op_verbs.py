@@ -1,4 +1,5 @@
 import pytest
+from collections.abc import Iterator
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -7,47 +8,59 @@ from autoapi.v3.autoapi import AutoAPI
 from autoapi.v3.mixins import BulkCapable, GUIDPk
 from autoapi.v3.specs import IO, S, F, acol as spec_acol
 from autoapi.v3.tables import Base
-from autoapi.v3.types import String
+from autoapi.v3.types import Session, String
 from autoapi.v3.opspec import OpSpec
 
 
-class Widget(Base, GUIDPk, BulkCapable):
-    __tablename__ = "widgets_rpc_all_ops"
-    __allow_unmapped__ = True
-    __autoapi_ops__ = (
-        OpSpec(alias="bulk_create", target="bulk_create"),
-        OpSpec(alias="bulk_update", target="bulk_update"),
-        OpSpec(alias="bulk_replace", target="bulk_replace"),
-        OpSpec(alias="bulk_delete", target="bulk_delete"),
-    )
-
-    name = spec_acol(
-        storage=S(type_=String(50), nullable=False),
-        field=F(py_type=str),
-        io=IO(
-            in_verbs=(
-                "create",
-                "update",
-                "replace",
-                "bulk_create",
-                "bulk_update",
-                "bulk_replace",
-            ),
-            out_verbs=("read", "list", "bulk_create", "bulk_update", "bulk_replace"),
-            mutable_verbs=(
-                "create",
-                "update",
-                "replace",
-                "bulk_create",
-                "bulk_update",
-                "bulk_replace",
-            ),
-        ),
-    )
-
-
 @pytest.fixture()
-def api_and_session():
+def api_and_session() -> Iterator[tuple[AutoAPI, Session]]:
+    from autoapi.v2.impl import schema as v2_schema
+    from autoapi.v3.schema import builder as v3_builder
+
+    Base.metadata.clear()
+    v2_schema._SchemaCache.clear()
+    v3_builder._SchemaCache.clear()
+
+    class Widget(Base, GUIDPk, BulkCapable):
+        __tablename__ = "widgets_rpc_all_ops"
+        __allow_unmapped__ = True
+        __autoapi_ops__ = (
+            OpSpec(alias="bulk_create", target="bulk_create"),
+            OpSpec(alias="bulk_update", target="bulk_update"),
+            OpSpec(alias="bulk_replace", target="bulk_replace"),
+            OpSpec(alias="bulk_delete", target="bulk_delete"),
+        )
+
+        name = spec_acol(
+            storage=S(type_=String(50), nullable=False),
+            field=F(py_type=str),
+            io=IO(
+                in_verbs=(
+                    "create",
+                    "update",
+                    "replace",
+                    "bulk_create",
+                    "bulk_update",
+                    "bulk_replace",
+                ),
+                out_verbs=(
+                    "read",
+                    "list",
+                    "bulk_create",
+                    "bulk_update",
+                    "bulk_replace",
+                ),
+                mutable_verbs=(
+                    "create",
+                    "update",
+                    "replace",
+                    "bulk_create",
+                    "bulk_update",
+                    "bulk_replace",
+                ),
+            ),
+        )
+
     engine = create_engine(
         "sqlite:///:memory:",
         connect_args={"check_same_thread": False},
@@ -55,7 +68,7 @@ def api_and_session():
     )
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 
-    def get_db():
+    def get_db() -> Iterator[Session]:
         with SessionLocal() as session:
             yield session
 
@@ -63,12 +76,15 @@ def api_and_session():
     api.include_model(Widget, mount_router=False)
     api.initialize_sync()
 
-    session = SessionLocal()
+    session: Session = SessionLocal()
     try:
         yield api, session
     finally:
         session.close()
         engine.dispose()
+        Base.metadata.clear()
+        v2_schema._SchemaCache.clear()
+        v3_builder._SchemaCache.clear()
 
 
 async def _op_create(api, db):
