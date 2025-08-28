@@ -6,15 +6,16 @@ examples, py_type. Also verifies that hybrid properties are rejected.
 Each key is tested individually using DummyModel instances.
 """
 
-import pytest
 from datetime import datetime, timezone
 from functools import partial
 from typing import get_args
-from autoapi.v3.types import Column, DateTime, Integer, JSON, String, hybrid_property
+
+import pytest
 
 from autoapi.v3 import Base
 from autoapi.v3.mixins import GUIDPk
 from autoapi.v3.schema import _build_schema, check
+from autoapi.v3.types import Column, DateTime, Integer, JSON, String, hybrid_property
 
 
 class DummyModelDisableOn(Base, GUIDPk):
