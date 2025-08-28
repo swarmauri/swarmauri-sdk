@@ -71,13 +71,15 @@ dependencies = [
     "GitPython",
     "s3fs",
     "pytest-monitor>=1.6.6",
+    "swarmauri_storage_file",
+    "swarmauri_gitfilter_file",
 
     #async
     "anyio",
 
     # cryptos
     "python-gnupg",
-    "paramiko",
+    "swarmauri_crypto_paramiko",
 
 
     #core - repo lock
@@ -99,7 +101,9 @@ autoapi = { workspace = true }
 autoapi_client = { workspace = true }
 auto_authn = { workspace = true }
 swarmauri_keyprovider_ssh = { workspace = true }
+swarmauri_crypto_paramiko = { workspace = true }
 swarmauri_storage_file = { workspace = true }
+swarmauri_gitfilter_file = { workspace = true }
 
 
 [tool.pytest.ini_options]
@@ -168,7 +172,7 @@ init-ci                               = "peagen.template_scaffold.ci"
 git = "peagen.plugins.vcs.git_vcs:GitVCS"
 
 [project.entry-points."peagen.plugins.cryptos"]
-paramiko = "peagen.plugins.cryptos.paramiko_crypto:ParamikoCrypto"
+paramiko = "swarmauri_crypto_paramiko:ParamikoCrypto"
 pgp = "peagen.plugins.cryptos.pgp_crypto:PGPCrypto"
 
 [project.entry-points."peagen.plugins.publishers"]
