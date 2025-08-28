@@ -29,11 +29,16 @@ except Exception:  # pragma: no cover
     Session = Any  # type: ignore
     AsyncSession = Any  # type: ignore
 
+# Optional tracing: executor works fine without it
+try:
+    from . import trace as _trace  # type: ignore
+except Exception:  # pragma: no cover
+    _trace = None  # type: ignore
+
 from .errors import create_standardized_error
 from ..config.constants import CTX_SKIP_PERSIST_FLAG
 
 logger = logging.getLogger(__name__)
-
 
 # ───────────────────────────────────────────────────────────────────────────────
 # Types
@@ -46,9 +51,7 @@ class _Step(Protocol):
 
 
 HandlerStep = Union[_Step, Callable[["_Ctx"], Any], Callable[["_Ctx"], Awaitable[Any]]]
-PhaseChains = Mapping[
-    str, Sequence[HandlerStep]
-]  # {"HANDLER": [...], "COMMIT": [...], ...}
+PhaseChains = Mapping[str, Sequence[HandlerStep]]  # {"HANDLER": [...], ...}
 
 
 class _Ctx(dict):
@@ -60,6 +63,7 @@ class _Ctx(dict):
       • result: last non-None step result
       • error: last exception caught (on failure paths)
       • response: SimpleNamespace(result=...) for POST_RESPONSE shaping
+      • temp: scratch dict used by atoms/hook steps
     """
 
     __slots__ = ()
@@ -85,6 +89,9 @@ class _Ctx(dict):
                     pass
         if db is not None:
             ctx.db = db
+        # Ensure temp scratch exists for atoms/system steps/hooks
+        if "temp" not in ctx or not isinstance(ctx.get("temp"), dict):
+            ctx.temp = {}
         return ctx
 
 
@@ -94,11 +101,10 @@ class _Ctx(dict):
 
 
 def _is_async_db(db: Any) -> bool:
-    """Detect DB interfaces that require ``await`` for transactional methods."""
-
+    """Detect DB interfaces that require `await` for transactional methods."""
     if isinstance(db, AsyncSession) or hasattr(db, "run_sync"):
         return True
-    for attr in ("commit", "begin"):
+    for attr in ("commit", "begin", "rollback", "flush"):
         if inspect.iscoroutinefunction(getattr(db, attr, None)):
             return True
     return False
@@ -123,19 +129,31 @@ def _in_tx(db: Any) -> bool:
 
 
 async def _maybe_await(v: Any) -> Any:
-    if hasattr(v, "__await__"):
+    if inspect.isawaitable(v):
         return await v  # type: ignore[func-returns-value]
     return v
 
 
-async def _run_chain(ctx: _Ctx, chain: Optional[Iterable[HandlerStep]]) -> None:
+async def _run_chain(
+    ctx: _Ctx, chain: Optional[Iterable[HandlerStep]], *, phase: str
+) -> None:
     if not chain:
         return
+    # Optional phase-level tracing
+    if _trace is not None:
+        with _trace.span(ctx, f"phase:{phase}"):
+            for step in chain:
+                rv = step(ctx)
+                rv = await _maybe_await(rv)
+                if rv is not None:
+                    ctx.result = rv
+        return
+    # No tracing
     for step in chain:
         rv = step(ctx)
         rv = await _maybe_await(rv)
         if rv is not None:
-            ctx.result = rv  # last non-None wins
+            ctx.result = rv
 
 
 def _g(phases: Optional[PhaseChains], key: str) -> Sequence[HandlerStep]:
@@ -159,13 +177,13 @@ class _GuardHandle:
         if self.orig_commit is not None:
             try:
                 setattr(self.db, "commit", self.orig_commit)
-            except Exception:  # pragma: no cover
-                pass
+            except Exception:
+                pass  # pragma: no cover
         if self.orig_flush is not None:
             try:
                 setattr(self.db, "flush", self.orig_flush)
-            except Exception:  # pragma: no cover
-                pass
+            except Exception:
+                pass  # pragma: no cover
 
 
 def _install_db_guards(
@@ -174,8 +192,8 @@ def _install_db_guards(
     phase: str,
     allow_flush: bool,
     allow_commit: bool,
-    require_started_tx_for_commit: bool,
-    started_tx: bool,
+    require_owned_tx_for_commit: bool,
+    owns_tx: bool,
 ) -> _GuardHandle:
     """
     Monkey-patch db.commit/db.flush during a phase to enforce policy.
@@ -190,7 +208,7 @@ def _install_db_guards(
         raise RuntimeError(f"db.{op}() is not allowed during {phase} phase")
 
     # commit wrapper
-    if not allow_commit:
+    if not allow_commit or (require_owned_tx_for_commit and not owns_tx):
         if _is_async_db(db):
 
             async def _blocked_commit() -> None:  # type: ignore[func-returns-value]
@@ -201,19 +219,6 @@ def _install_db_guards(
                 _raise("commit")
 
         setattr(db, "commit", _blocked_commit)  # type: ignore[assignment]
-    else:
-        # allow commit, but optionally require that *this* run started the txn
-        if require_started_tx_for_commit and not started_tx:
-            if _is_async_db(db):
-
-                async def _blocked_commit_started() -> None:  # type: ignore[func-returns-value]
-                    _raise("commit")
-            else:
-
-                def _blocked_commit_started() -> None:  # type: ignore[func-returns-value]
-                    _raise("commit")
-
-            setattr(db, "commit", _blocked_commit_started)  # type: ignore[assignment]
 
     # flush wrapper
     if not allow_flush:
@@ -231,14 +236,14 @@ def _install_db_guards(
     return _GuardHandle(db, orig_commit, orig_flush)
 
 
-async def _rollback_if_started(
-    db: Union[Session, AsyncSession],
-    started_tx: bool,
+async def _rollback_if_owned(
+    db: Union[Session, AsyncSession, None],
+    owns_tx: bool,
     *,
     phases: Optional[PhaseChains],
     ctx: _Ctx,
 ) -> None:
-    if not started_tx:
+    if not owns_tx or db is None:
         return
     try:
         if _is_async_db(db):
@@ -249,7 +254,7 @@ async def _rollback_if_started(
         logger.exception("Rollback failed: %s", rb_exc)
     # best-effort rollback hooks
     try:
-        await _run_chain(ctx, _g(phases, "ON_ROLLBACK"))
+        await _run_chain(ctx, _g(phases, "ON_ROLLBACK"), phase="ON_ROLLBACK")
     except Exception:  # pragma: no cover
         pass
 
@@ -262,32 +267,43 @@ async def _rollback_if_started(
 async def _invoke(
     *,
     request: Optional[Request],
-    db: Union[Session, AsyncSession],
+    db: Union[Session, AsyncSession, None],
     phases: Optional[PhaseChains],  # must include at least "HANDLER"
     ctx: Optional[MutableMapping[str, Any]] = None,
 ) -> Any:
     """
     Execute an operation through explicit phases with strict write policies.
 
-    Required (typical) phases:
-      PRE_TX_BEGIN? → TX_BEGIN → PRE_HANDLER → HANDLER → POST_HANDLER → PRE_COMMIT → COMMIT → POST_COMMIT → POST_RESPONSE
+    Typical phases:
+      PRE_TX_BEGIN? → START_TX → PRE_HANDLER → HANDLER → POST_HANDLER → END_TX → POST_RESPONSE
+    (PRE_COMMIT / POST_COMMIT remain supported if present in the chains)
 
     Guard policies:
       • PRE_HANDLER, HANDLER, POST_HANDLER: flush-only (commit forbidden)
-      • PRE_COMMIT, POST_COMMIT: no writes (flush & commit forbidden)
-      • COMMIT: commit allowed (and usually executed by a default hook)
-      • If `skip_persist` is true: no writes anywhere and TX_BEGIN/COMMIT are skipped.
+      • END_TX: commit allowed (and usually executed by a default hook)
+      • PRE_COMMIT, POST_COMMIT: no writes (flush & commit forbidden) — optional legacy hooks
+      • If `skip_persist`: no writes anywhere; START_TX/END_TX skipped.
 
     Error handling:
       • Each phase maps to ON_<PHASE>_ERROR (if present) else ON_ERROR.
-      • Phases inside the txn trigger rollback if this run opened the txn, then ON_ROLLBACK.
-      • POST_RESPONSE remains non-fatal; errors are reported but the prior result is returned.
+      • Phases inside an owned txn trigger rollback, then ON_ROLLBACK.
+      • POST_RESPONSE is non-fatal; errors are logged and the prior result returned.
     """
     ctx = _Ctx.ensure(request=request, db=db, seed=ctx)
+    # Guard: previous operations may have left the session in a transaction.
+    # Ensure we start from a clean state before invoking the lifecycle.
+    if db is not None and _in_tx(db):
+        try:
+            if _is_async_db(db):
+                await db.commit()  # type: ignore[attr-defined]
+            else:
+                db.commit()  # type: ignore[attr-defined]
+        except Exception:  # pragma: no cover
+            pass
     skip_persist: bool = bool(ctx.get(CTX_SKIP_PERSIST_FLAG) or ctx.get("skip_persist"))
 
-    existed_tx_before = _in_tx(db)
-    started_tx = False  # computed after TX_BEGIN
+    # Track whether a transaction existed at entry. If none did, this run "owns" the TX lifecycle.
+    existed_tx_before = _in_tx(db) if db is not None else False
 
     # Helper to run a guarded phase
     async def _run_phase(
@@ -296,8 +312,9 @@ async def _invoke(
         allow_flush: bool,
         allow_commit: bool,
         in_tx: bool,
-        require_started_for_commit: bool = True,
+        require_owned_for_commit: bool = True,
         nonfatal: bool = False,
+        owns_tx_for_phase: Optional[bool] = None,
     ) -> None:
         chain = _g(phases, name)
         if not chain:
@@ -307,30 +324,37 @@ async def _invoke(
         eff_allow_flush = allow_flush and (not skip_persist)
         eff_allow_commit = allow_commit and (not skip_persist)
 
+        # Determine "ownership" for this phase (commit allowed only if we own it)
+        owns_tx_now = bool(owns_tx_for_phase)
+        if owns_tx_for_phase is None:
+            # Default: we own the TX iff there was no TX on entry
+            owns_tx_now = not existed_tx_before
+
         guard = _install_db_guards(
             db,
             phase=name,
             allow_flush=eff_allow_flush,
             allow_commit=eff_allow_commit,
-            require_started_tx_for_commit=require_started_for_commit,
-            started_tx=started_tx,
+            require_owned_tx_for_commit=require_owned_for_commit,
+            owns_tx=owns_tx_now,
         )
 
         try:
-            await _run_chain(ctx, chain)
+            await _run_chain(ctx, chain, phase=name)
         except Exception as exc:
             ctx.error = exc
-            # rollback only for phases that run inside a txn
+            # rollback only for phases that run inside a txn AND we own it
             if in_tx:
-                await _rollback_if_started(db, started_tx, phases=phases, ctx=ctx)
+                await _rollback_if_owned(db, owns_tx_now, phases=phases, ctx=ctx)
             # run phase-specific error hooks (or ON_ERROR)
             err_name = f"ON_{name}_ERROR"
             try:
-                await _run_chain(ctx, _g(phases, err_name) or _g(phases, "ON_ERROR"))
+                await _run_chain(
+                    ctx, _g(phases, err_name) or _g(phases, "ON_ERROR"), phase=err_name
+                )
             except Exception:  # pragma: no cover
                 pass
             if nonfatal:
-                # report and continue (POST_RESPONSE)
                 logger.exception("%s failed (nonfatal): %s", name, exc)
                 return
             raise create_standardized_error(exc)
@@ -340,17 +364,15 @@ async def _invoke(
     # ─── PRE_TX_BEGIN (outside txn) ────────────────────────────────────────────
     await _run_phase("PRE_TX_BEGIN", allow_flush=False, allow_commit=False, in_tx=False)
 
-    # ─── TX_BEGIN (begin txn via hooks; skip when skip_persist) ────────────────
+    # ─── START_TX (begin txn via hooks; skip when skip_persist) ────────────────
     if not skip_persist:
         await _run_phase(
             "START_TX",
             allow_flush=False,
             allow_commit=False,
             in_tx=False,
-            require_started_for_commit=True,
+            require_owned_for_commit=True,
         )
-    # compute if *this* run started the transaction
-    started_tx = (not existed_tx_before) and _in_tx(db)
 
     # ─── PRE_HANDLER (flush-only) ──────────────────────────────────────────────
     await _run_phase(
@@ -367,28 +389,39 @@ async def _invoke(
         "POST_HANDLER", allow_flush=True, allow_commit=False, in_tx=not skip_persist
     )
 
-    # ─── PRE_COMMIT (no writes) ────────────────────────────────────────────────
+    # Legacy optional phases (supported if provided)
     await _run_phase(
         "PRE_COMMIT", allow_flush=False, allow_commit=False, in_tx=not skip_persist
     )
 
-    # ─── COMMIT (commit-only hooks; skip when skip_persist) ────────────────────
+    # ─── END_TX (commit) ───────────────────────────────────────────────────────
     if not skip_persist:
+        # Recompute ownership right before commit to handle SQLAlchemy 2.x autobegin:
+        # We own the TX if none existed at entry AND a TX exists now.
+        owns_tx_for_commit = (not existed_tx_before) and (db is not None and _in_tx(db))
         await _run_phase(
             "END_TX",
-            allow_flush=True,  # a final flush right before commit is OK
+            allow_flush=True,  # final flush before commit is OK
             allow_commit=True,  # commit allowed
             in_tx=True,
-            require_started_for_commit=True,
+            require_owned_for_commit=True,
+            owns_tx_for_phase=owns_tx_for_commit,
         )
 
-    # ─── POST_COMMIT (no writes) ───────────────────────────────────────────────
-    await _run_phase("POST_COMMIT", allow_flush=False, allow_commit=False, in_tx=False)
-
-    # ─── POST_RESPONSE (non-fatal) ─────────────────────────────────────────────
     from types import SimpleNamespace as _NS
 
+    # Serialize the result before post-commit hooks so they can mutate the
+    # shaped output.
+    serializer = ctx.get("response_serializer")
+    if callable(serializer):
+        try:
+            ctx["result"] = serializer(ctx.get("result"))
+        except Exception:
+            logger.exception("response serialization failed", exc_info=True)
     ctx.response = _NS(result=ctx.get("result"))
+
+    await _run_phase("POST_COMMIT", allow_flush=True, allow_commit=False, in_tx=False)
+
     await _run_phase(
         "POST_RESPONSE",
         allow_flush=False,
@@ -396,6 +429,19 @@ async def _invoke(
         in_tx=False,
         nonfatal=True,
     )
+    # If POST_RESPONSE steps produced a new result, expose it.
+    if ctx.get("result") is not None:
+        ctx.response.result = ctx.get("result")
+    # Defensive: ensure the session is not left in a transactional state. Some
+    # backends may implicitly begin a new transaction during commit/flush cycles.
+    if db is not None and _in_tx(db):
+        try:
+            if _is_async_db(db):
+                await db.commit()  # type: ignore[attr-defined]
+            else:
+                db.commit()  # type: ignore[attr-defined]
+        except Exception:  # pragma: no cover - defensive safeguard
+            pass
     return ctx.response.result
 
 

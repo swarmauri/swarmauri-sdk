@@ -2,11 +2,15 @@
 from __future__ import annotations
 import inspect
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, Iterable, Optional, Union
+from typing import Any, Callable, Dict, Iterable, Optional, Union, Sequence
 
 # Core types
 from autoapi.v3.opspec.types import (
-    OpSpec, Arity, TargetOp, PersistPolicy, SchemaArg,
+    OpSpec,
+    Arity,
+    TargetOp,
+    PersistPolicy,
+    SchemaArg,
 )
 from autoapi.v3.runtime.executor import _Ctx  # pipeline ctx normalizer
 
@@ -14,6 +18,7 @@ from autoapi.v3.runtime.executor import _Ctx  # pipeline ctx normalizer
 try:  # pragma: no cover
     from pydantic import BaseModel  # type: ignore
 except Exception:  # pragma: no cover
+
     class BaseModel:  # minimal stub for typing only
         pass
 
@@ -22,11 +27,13 @@ except Exception:  # pragma: no cover
 # Utilities
 # ──────────────────────────────────────────────────────────────────────
 
+
 def _unwrap(obj: Any) -> Callable[..., Any]:
     """Get underlying function for (class|static)method; else return obj."""
     if isinstance(obj, (classmethod, staticmethod)):
         return obj.__func__  # type: ignore[attr-defined]
     return obj
+
 
 def _ensure_cm(func: Any) -> Any:
     """Ensure method is a classmethod so it receives (cls, ctx)."""
@@ -34,19 +41,27 @@ def _ensure_cm(func: Any) -> Any:
         return func
     return classmethod(func)
 
+
 def _maybe_await(v):
     if inspect.isawaitable(v):
         return v
+
     async def _done():
         return v
+
     return _done()
+
 
 def _phase_io_key(phase: str) -> Optional[str]:
     p = str(phase)
-    if p.startswith("PRE_"): return "payload"
-    if p.startswith("POST_"): return "result"
-    if p.startswith("ON_"): return "error"
+    if p.startswith("PRE_"):
+        return "payload"
+    if p.startswith("POST_"):
+        return "result"
+    if p.startswith("ON_"):
+        return "error"
     return None
+
 
 def _merge_mro_dict(cls: type, attr: str) -> Dict[str, Any]:
     merged: Dict[str, Any] = {}
@@ -59,6 +74,7 @@ def _merge_mro_dict(cls: type, attr: str) -> Dict[str, Any]:
 # alias_ctx with optional rich overrides
 # ──────────────────────────────────────────────────────────────────────
 
+
 @dataclass(frozen=True)
 class AliasDecl:
     alias: str
@@ -69,9 +85,11 @@ class AliasDecl:
     arity: Optional[Arity] = None
     rest: Optional[bool] = None
 
+
 def alias(name: str, **kw) -> AliasDecl:
     """Convenience helper: alias('get', response_schema=..., rest=False)."""
     return AliasDecl(alias=name, **kw)
+
 
 def alias_ctx(**verb_to_alias_or_decl: Union[str, AliasDecl]):
     """
@@ -85,6 +103,7 @@ def alias_ctx(**verb_to_alias_or_decl: Union[str, AliasDecl]):
                                 arity="collection",
                                 rest=True))
     """
+
     def deco(cls: type):
         # plain alias map (verb -> alias)
         amap = dict(getattr(cls, "__autoapi_aliases__", {}) or {})
@@ -111,6 +130,51 @@ def alias_ctx(**verb_to_alias_or_decl: Union[str, AliasDecl]):
         setattr(cls, "__autoapi_aliases__", amap)
         setattr(cls, "__autoapi_alias_overrides__", overrides)
         return cls
+
+    return deco
+
+
+# ──────────────────────────────────────────────────────────────────────
+# op_alias (class decorator): attach an OpSpec alias to the model
+# ──────────────────────────────────────────────────────────────────────
+
+
+def op_alias(
+    *,
+    alias: str,
+    target: TargetOp,
+    arity: Arity | None = None,
+    persist: PersistPolicy = "default",
+    request_model: SchemaArg | None = None,
+    response_model: SchemaArg | None = None,
+    http_methods: Sequence[str] | None = None,
+    tags: Sequence[str] | None = None,
+    rbac_guard_op: TargetOp | None = None,
+):
+    """Class decorator to declare an alias for an operation.
+
+    Mirrors the v2 ``op_alias`` helper and attaches an :class:`OpSpec` to
+    ``__autoapi_ops__`` on the target model.
+    """
+
+    def deco(table_cls: type):
+        ops = list(getattr(table_cls, "__autoapi_ops__", ()))
+        spec = OpSpec(
+            alias=alias,
+            target=target,
+            table=table_cls,
+            arity=arity or _infer_arity(target),
+            persist=_normalize_persist(persist),
+            request_model=request_model,
+            response_model=response_model,
+            http_methods=tuple(http_methods) if http_methods else None,
+            tags=tuple(tags or ()),
+            rbac_guard_op=rbac_guard_op,
+        )
+        ops.append(spec)
+        table_cls.__autoapi_ops__ = tuple(ops)
+        return table_cls
+
     return deco
 
 
@@ -118,23 +182,30 @@ def alias_ctx(**verb_to_alias_or_decl: Union[str, AliasDecl]):
 # schema_ctx (class decorator): register extra model-wide schemas
 # ──────────────────────────────────────────────────────────────────────
 
+
 @dataclass(frozen=True)
 class _SchemaDecl:
-    alias: str                 # name under model.schemas.<alias>
-    kind: str                  # "in" | "out"
+    alias: str  # name under model.schemas.<alias>
+    kind: str  # "in" | "out"
 
-def _register_schema_decl(target_model: type, alias: str, kind: str, schema_cls: type) -> None:
+
+def _register_schema_decl(
+    target_model: type, alias: str, kind: str, schema_cls: type
+) -> None:
     """
     Store declarations directly on the model so we can attach them later during schema binding.
     Shape: model.__autoapi_schema_decls__ = { alias: {"in": cls, "out": cls, ...}, ... }
     """
     if kind not in ("in", "out"):
         raise ValueError("schema_ctx(kind=...) must be 'in' or 'out'")
-    mapping: Dict[str, Dict[str, type]] = getattr(target_model, "__autoapi_schema_decls__", None) or {}
+    mapping: Dict[str, Dict[str, type]] = (
+        getattr(target_model, "__autoapi_schema_decls__", None) or {}
+    )
     bucket = dict(mapping.get(alias, {}))
     bucket[kind] = schema_cls
     mapping[alias] = bucket
     setattr(target_model, "__autoapi_schema_decls__", mapping)
+
 
 def schema_ctx(*, alias: str, kind: str = "out", for_: Optional[type] = None):
     """
@@ -156,6 +227,7 @@ def schema_ctx(*, alias: str, kind: str = "out", for_: Optional[type] = None):
         SchemaRef("Search", "in")   →  model.schemas.Search.in_
         SchemaRef("Search", "out")  →  model.schemas.Search.out
     """
+
     def deco(schema_cls: type):
         if not isinstance(schema_cls, type):
             raise TypeError("@schema_ctx must decorate a class")
@@ -165,9 +237,13 @@ def schema_ctx(*, alias: str, kind: str = "out", for_: Optional[type] = None):
             _register_schema_decl(for_, alias, kind, schema_cls)
 
         # Always mark the schema class so we can pick it up if it's nested in the model
-        setattr(schema_cls, "__autoapi_schema_decl__", _SchemaDecl(alias=alias, kind=kind))
+        setattr(
+            schema_cls, "__autoapi_schema_decl__", _SchemaDecl(alias=alias, kind=kind)
+        )
         return schema_cls
+
     return deco
+
 
 def collect_decorated_schemas(model: type) -> Dict[str, Dict[str, type]]:
     """
@@ -180,7 +256,9 @@ def collect_decorated_schemas(model: type) -> Dict[str, Dict[str, type]]:
 
     # 1) Explicit registrations (MRO-merged)
     for base in reversed(model.__mro__):
-        mapping: Dict[str, Dict[str, type]] = getattr(base, "__autoapi_schema_decls__", {}) or {}
+        mapping: Dict[str, Dict[str, type]] = (
+            getattr(base, "__autoapi_schema_decls__", {}) or {}
+        )
         for alias, kinds in mapping.items():
             bucket = out.setdefault(alias, {})
             bucket.update(kinds or {})
@@ -204,25 +282,29 @@ def collect_decorated_schemas(model: type) -> Dict[str, Dict[str, type]]:
 # op_ctx (single path: target + arity) with schema overrides
 # ──────────────────────────────────────────────────────────────────────
 
+
 @dataclass
 class _OpDecl:
     alias: Optional[str]
-    target: Optional[TargetOp]            # canonical semantics (defaults to "custom")
-    arity: Optional[Arity]                # "member" | "collection"
-    rest: Optional[bool]                  # toggle REST exposure
-    request_schema: Optional[SchemaArg]   # lazy-capable schema override
+    target: Optional[TargetOp]  # canonical semantics (defaults to "custom")
+    arity: Optional[Arity]  # "member" | "collection"
+    rest: Optional[bool]  # toggle REST exposure
+    request_schema: Optional[SchemaArg]  # lazy-capable schema override
     response_schema: Optional[SchemaArg]
-    persist: Optional[PersistPolicy]      # TX policy override
+    persist: Optional[PersistPolicy]  # TX policy override
+    status_code: Optional[int]
+
 
 def op_ctx(
     *,
     alias: Optional[str] = None,
-    target: Optional[TargetOp] = None,             # "create" | "read" | ... | "custom"
-    arity: Optional[Arity] = None,                 # "member" | "collection"
+    target: Optional[TargetOp] = None,  # "create" | "read" | ... | "custom"
+    arity: Optional[Arity] = None,  # "member" | "collection"
     rest: Optional[bool] = None,
     request_schema: Optional[SchemaArg] = None,
     response_schema: Optional[SchemaArg] = None,
     persist: Optional[PersistPolicy] = None,
+    status_code: Optional[int] = None,
 ):
     """
     Declare a ctx-only operation whose body is `(cls, ctx)`.
@@ -232,6 +314,7 @@ def op_ctx(
     • `request_schema` / `response_schema` can reference existing schemas (via SchemaRef or dotted).
     • If no response schema is resolved at bind time, the op is treated as returning raw.
     """
+
     def deco(fn):
         cm = _ensure_cm(fn)
         f = _unwrap(cm)
@@ -244,8 +327,10 @@ def op_ctx(
             request_schema=request_schema,
             response_schema=response_schema,
             persist=persist,
+            status_code=status_code,
         )
         return cm
+
     return deco
 
 
@@ -253,16 +338,19 @@ def op_ctx(
 # hook_ctx
 # ──────────────────────────────────────────────────────────────────────
 
+
 @dataclass
 class _HookDecl:
     ops: Union[str, Iterable[str]]  # alias names, canonical verbs, or "*"
-    phase: str                      # e.g., "PRE_HANDLER", "POST_COMMIT", "ON_HANDLER_ERROR"
+    phase: str  # e.g., "PRE_HANDLER", "POST_COMMIT", "ON_HANDLER_ERROR"
+
 
 def hook_ctx(ops: Union[str, Iterable[str]], *, phase: str):
     """
     Declare a ctx-only hook for one/many ops at a given phase. Method is `(cls, ctx)`.
     `ops` can be {"create", "update"} or {"my_alias"} or "*" for all visible ops.
     """
+
     def deco(fn):
         cm = _ensure_cm(fn)
         f = _unwrap(cm)
@@ -271,6 +359,7 @@ def hook_ctx(ops: Union[str, Iterable[str]], *, phase: str):
         lst.append(_HookDecl(ops, phase))
         f.__autoapi_hook_decls__ = lst
         return cm
+
     return deco
 
 
@@ -278,29 +367,35 @@ def hook_ctx(ops: Union[str, Iterable[str]], *, phase: str):
 # Adapters: ctx-only → pipeline signatures
 # ──────────────────────────────────────────────────────────────────────
 
+
 def _wrap_ctx_core(table: type, func: Callable[..., Any]) -> Callable[..., Any]:
     """
     Adapt `(cls, ctx)` op to `(p, *, db, request, ctx)` handler signature.
     """
+
     async def core(p=None, *, db=None, request=None, ctx: Dict[str, Any] | None = None):
-        ctx = _Ctx.ensure(ctx)
-        if p is not None: ctx["payload"] = p
-        if db is not None: ctx["db"] = db
-        if request is not None: ctx["request"] = request
+        ctx = _Ctx.ensure(request=request, db=db, seed=ctx)
+        if p is not None:
+            ctx["payload"] = p
         bound = func.__get__(table, table)
         res = await _maybe_await(bound(ctx))
         return res if res is not None else ctx.get("result")
+
     return core
 
-def _wrap_ctx_hook(table: type, func: Callable[..., Any], phase: str) -> Callable[..., Any]:
+
+def _wrap_ctx_hook(
+    table: type, func: Callable[..., Any], phase: str
+) -> Callable[..., Any]:
     """
     Adapt `(cls, ctx)` hook to `(value?, *, db, request, ctx)` hook signature.
     """
     io_key = _phase_io_key(phase)
-    async def hook(value=None, *, db=None, request=None, ctx: Dict[str, Any] | None = None):
-        ctx = _Ctx.ensure(ctx)
-        if db is not None: ctx["db"] = db
-        if request is not None: ctx["request"] = request
+
+    async def hook(
+        value=None, *, db=None, request=None, ctx: Dict[str, Any] | None = None
+    ):
+        ctx = _Ctx.ensure(request=request, db=db, seed=ctx)
         if io_key is not None and value is not None:
             ctx[io_key] = value
         bound = func.__get__(table, table)
@@ -308,6 +403,9 @@ def _wrap_ctx_hook(table: type, func: Callable[..., Any], phase: str) -> Callabl
         if io_key is None:
             return None
         return ctx.get(io_key, value)
+
+    hook.__name__ = getattr(func, "__name__", "hook")
+    hook.__qualname__ = getattr(func, "__qualname__", hook.__name__)
     return hook
 
 
@@ -316,11 +414,18 @@ def _wrap_ctx_hook(table: type, func: Callable[..., Any], phase: str) -> Callabl
 # ──────────────────────────────────────────────────────────────────────
 
 _COLLECTION_VERBS = {
-    "list", "bulk_create", "bulk_update", "bulk_replace", "bulk_delete", "clear"
+    "list",
+    "bulk_create",
+    "bulk_update",
+    "bulk_replace",
+    "bulk_delete",
+    "clear",
 }
+
 
 def _infer_arity(target: str) -> str:
     return "collection" if target in _COLLECTION_VERBS else "member"
+
 
 def _normalize_persist(p) -> str:
     if p is None:
@@ -334,9 +439,11 @@ def _normalize_persist(p) -> str:
         return "override"
     return "default"
 
+
 def alias_map_for(table: type) -> Dict[str, str]:
     """Merge aliases across MRO; subclass wins."""
     return _merge_mro_dict(table, "__autoapi_aliases__")
+
 
 def apply_alias(verb: str, alias_map: Dict[str, str]) -> str:
     """Resolve canonical verb → alias (falls back to verb)."""
@@ -374,13 +481,14 @@ def collect_decorated_ops(table: type) -> list[OpSpec]:
             spec = OpSpec(
                 table=table,
                 alias=alias,
-                target=target,                 # canonical verb
+                target=target,  # canonical verb
                 arity=arity,
                 persist=persist,
                 handler=_wrap_ctx_core(table, func),
                 request_model=decl.request_schema,
                 response_model=decl.response_schema,
                 hooks=(),
+                status_code=decl.status_code,
                 **expose_kwargs,
             )
             out.append(spec)
@@ -414,7 +522,9 @@ def collect_decorated_hooks(
         for name in dir(base):
             attr = getattr(base, name, None)
             func = _unwrap(attr)
-            decls: list[_HookDecl] | None = getattr(func, "__autoapi_hook_decls__", None)
+            decls: list[_HookDecl] | None = getattr(
+                func, "__autoapi_hook_decls__", None
+            )
             if not decls:
                 continue
             for d in decls:

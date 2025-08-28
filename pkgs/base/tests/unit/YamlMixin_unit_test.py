@@ -112,3 +112,11 @@ def test_model_dump_yaml_with_nested_data():
     assert output_data["name"] == "Charlie"
     assert output_data["details"]["api_key"] == "REDACTED"
     assert output_data["details"]["info"] == "some_info"
+
+
+@pytest.mark.unit
+def test_model_dump_yaml_safe_dump():
+    """Ensure output YAML uses safe dumping without Python tags."""
+    model = DummyModel(name="Alice", age=25, api_key="secret_key")
+    yaml_output = model.model_dump_yaml()
+    assert "!!python" not in yaml_output

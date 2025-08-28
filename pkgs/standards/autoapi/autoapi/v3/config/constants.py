@@ -103,9 +103,6 @@ AUTOAPI_NESTED_PATHS_ATTR = (
 )
 AUTOAPI_API_HOOKS_ATTR = "__autoapi_api_hooks__"  # API-level hooks map
 AUTOAPI_HOOKS_ATTR = "__autoapi_hooks__"  # model-level hooks map
-AUTOAPI_IMPERATIVE_HOOKS_ATTR = (
-    "__autoapi_imperative_hooks__"  # imperative/runtime hooks
-)
 AUTOAPI_REGISTRY_LISTENER_ATTR = (
     "__autoapi_registry_listener__"  # ops registry listener
 )
@@ -133,7 +130,6 @@ MODEL_LEVEL_CFGS: frozenset[str] = frozenset(
         AUTOAPI_NESTED_PATHS_ATTR,
         AUTOAPI_API_HOOKS_ATTR,
         AUTOAPI_HOOKS_ATTR,
-        AUTOAPI_IMPERATIVE_HOOKS_ATTR,
         AUTOAPI_REGISTRY_LISTENER_ATTR,
         AUTOAPI_GET_DB_ATTR,
         AUTOAPI_GET_ASYNC_DB_ATTR,
@@ -191,7 +187,6 @@ __all__ = [
     "AUTOAPI_NESTED_PATHS_ATTR",
     "AUTOAPI_API_HOOKS_ATTR",
     "AUTOAPI_HOOKS_ATTR",
-    "AUTOAPI_IMPERATIVE_HOOKS_ATTR",
     "AUTOAPI_REGISTRY_LISTENER_ATTR",
     "AUTOAPI_GET_DB_ATTR",
     "AUTOAPI_GET_ASYNC_DB_ATTR",

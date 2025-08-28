@@ -6,6 +6,7 @@ Exposes a small router with:
   - GET /healthz     → DB connectivity check (sync or async)
   - GET /methodz     → list RPC-visible methods derived from OpSpecs
   - GET /hookz       → per-op phase chains (sequential order)
+  - GET /planz       → runtime execution plan (flattened labels) per op
 
 Usage:
     from autoapi.v3.system.diagnostics import mount_diagnostics
@@ -29,11 +30,11 @@ from typing import (
 )
 
 try:
-    from fastapi import APIRouter, Request, Depends
+    from ..types import Router, Request, Depends
     from fastapi.responses import JSONResponse
 except Exception:  # pragma: no cover
     # Lightweight shims so the module is importable without FastAPI
-    class APIRouter:  # type: ignore
+    class Router:  # type: ignore
         def __init__(self, *a, **kw):
             self.routes = []
 
@@ -53,7 +54,10 @@ except Exception:  # pragma: no cover
             super().__init__(content=content, status_code=status_code)
 
 
+from sqlalchemy import text
 from ..opspec.types import PHASES
+from ..runtime.kernel import build_phase_chains
+from ..runtime import plan as _plan
 
 logger = logging.getLogger(__name__)
 
@@ -79,15 +83,15 @@ def _label_callable(fn: Any) -> str:
     return f"{m}.{n}" if m else n
 
 
-async def _maybe_execute(db: Any, stmt: Any):
+async def _maybe_execute(db: Any, stmt: str):
     try:
-        rv = db.execute(stmt)  # type: ignore[attr-defined]
+        rv = db.execute(text(stmt))  # type: ignore[attr-defined]
         if inspect.isawaitable(rv):
             return await rv
         return rv
-    except TypeError:
+    except Exception:
         # Some drivers prefer lowercase 'select 1'
-        rv = db.execute("select 1")  # type: ignore[attr-defined]
+        rv = db.execute(text("select 1"))  # type: ignore[attr-defined]
         if inspect.isawaitable(rv):
             return await rv
         return rv
@@ -134,7 +138,7 @@ def _build_healthz_endpoint(dep: Optional[Callable[..., Any]]):
 def _build_methodz_endpoint(api: Any):
     async def _methodz():
         """Ordered, canonical operation list."""
-        methods: List[Dict[str, Any]] = []
+        methods: List[str] = []
         for model in _model_iter(api):
             mname = getattr(model, "__name__", "Model")
             for sp in _opspecs(model):
@@ -148,7 +152,9 @@ def _build_methodz_endpoint(api: Any):
                         "target": sp.target,
                         "arity": sp.arity,
                         "persist": sp.persist,
-                        "returns": sp.returns,
+                        "request_model": getattr(sp, "request_model", None) is not None,
+                        "response_model": getattr(sp, "response_model", None)
+                        is not None,
                         "routes": bool(getattr(sp, "expose_routes", True)),
                         "rpc": bool(getattr(sp, "expose_rpc", True)),
                         "tags": list(getattr(sp, "tags", ()) or (mname,)),
@@ -197,6 +203,63 @@ def _build_hookz_endpoint(api: Any):
     return _hookz
 
 
+def _build_planz_endpoint(api: Any):
+    async def _planz():
+        """Expose the runtime step sequence for each operation."""
+        out: Dict[str, Dict[str, List[str]]] = {}
+        for model in _model_iter(api):
+            mname = getattr(model, "__name__", "Model")
+            model_map: Dict[str, List[str]] = {}
+            compiled_plan = getattr(
+                getattr(model, "runtime", SimpleNamespace()), "plan", None
+            )
+            if compiled_plan is None:
+                specs = getattr(model, "__autoapi_colspecs__", None) or getattr(
+                    model, "__autoapi_cols__", None
+                )
+                if specs is not None:
+                    try:
+                        compiled_plan = _plan.attach_atoms_for_model(model, specs)
+                    except Exception:
+                        compiled_plan = None
+            for sp in _opspecs(model):
+                seq: List[str] = []
+                if compiled_plan is not None:
+                    persist = getattr(sp, "persist", "default") != "skip"
+                    deps: List[str] = []
+                    handler = getattr(sp, "handler", None)
+                    if handler is not None:
+                        deps.append(_label_callable(handler))
+                    labels = _plan.flattened_order(
+                        compiled_plan,
+                        persist=persist,
+                        include_system_steps=True,
+                        deps=deps,
+                    )
+                    seq = [str(lbl) for lbl in labels]
+                else:
+                    chains = build_phase_chains(model, sp.alias)
+                    persist = getattr(sp, "persist", "default") != "skip"
+                    for ph in PHASES:
+                        if ph == "START_TX" and persist:
+                            seq.append("sys:txn:begin@START_TX")
+                        if ph == "HANDLER" and persist:
+                            seq.append(f"sys:handler:{sp.target}@HANDLER")
+                        for step in chains.get(ph, []) or []:
+                            name = getattr(step, "__name__", "")
+                            if name in {"start_tx", "end_tx"}:
+                                continue
+                            seq.append(_label_callable(step))
+                        if ph == "END_TX" and persist:
+                            seq.append("sys:txn:commit@END_TX")
+                model_map[sp.alias] = seq
+            if model_map:
+                out[mname] = model_map
+        return out
+
+    return _planz
+
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Public factory
 # ───────────────────────────────────────────────────────────────────────────────
@@ -207,14 +270,15 @@ def mount_diagnostics(
     *,
     get_db: Optional[Callable[..., Any]] = None,
     get_async_db: Optional[Callable[..., Awaitable[Any]]] = None,
-) -> APIRouter:
+) -> Router:
     """
-    Create & return an APIRouter that exposes:
+    Create & return a Router that exposes:
       GET /healthz
       GET /methodz
       GET /hookz
+      GET /planz
     """
-    router = APIRouter()
+    router = Router()
 
     # Prefer async DB getter if provided
     dep = get_async_db or get_db
@@ -250,6 +314,15 @@ def mount_diagnostics(
             "Within each phase, hooks are listed in execution order: "
             "global (None) hooks, then method-specific hooks."
         ),
+    )
+    router.add_api_route(
+        "/planz",
+        _build_planz_endpoint(api),
+        methods=["GET"],
+        name="planz",
+        tags=["system"],
+        summary="Plan",
+        description="Flattened runtime execution plan per operation.",
     )
 
     return router

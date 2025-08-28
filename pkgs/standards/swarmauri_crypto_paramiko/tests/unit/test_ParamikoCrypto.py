@@ -4,6 +4,7 @@ from cryptography.hazmat.primitives import serialization
 
 from swarmauri_crypto_paramiko import ParamikoCrypto
 from swarmauri_core.crypto.types import ExportPolicy, KeyRef, KeyType, KeyUse
+from enum import Enum
 
 
 @pytest.fixture
@@ -42,6 +43,28 @@ async def test_aead_encrypt_decrypt_roundtrip(paramiko_crypto):
 
     pt = b"hello world"
     ct = await paramiko_crypto.encrypt(sym, pt)
+    rt = await paramiko_crypto.decrypt(sym, ct)
+    assert rt == pt
+
+
+class DummyAlg(str, Enum):
+    AES256_GCM = "AES256_GCM"
+
+
+@pytest.mark.asyncio
+async def test_enum_algorithm_normalized(paramiko_crypto):
+    sym = KeyRef(
+        kid="sym2",
+        version=1,
+        type=KeyType.SYMMETRIC,
+        uses=(KeyUse.ENCRYPT, KeyUse.DECRYPT),
+        export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
+        material=b"\x22" * 32,
+    )
+
+    pt = b"enum alg"
+    ct = await paramiko_crypto.encrypt(sym, pt, alg=DummyAlg.AES256_GCM)
+    assert ct.alg == "AES-256-GCM"
     rt = await paramiko_crypto.decrypt(sym, ct)
     assert rt == pt
 

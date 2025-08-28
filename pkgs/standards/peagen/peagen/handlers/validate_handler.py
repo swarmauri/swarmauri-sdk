@@ -24,7 +24,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Dict, Any
 
-from autoapi.v2 import get_schema
+from autoapi.v3 import get_schema
 from peagen.orm import Task
 from peagen.core.validate_core import validate_artifact
 

@@ -21,10 +21,15 @@ from ..opspec import OpSpec
 from ..opspec.types import PHASES
 from ..runtime import executor as _executor  # expects _invoke(request, db, phases, ctx)
 
+# Prefer Kernel phase-chains if available (atoms + system steps + hooks)
+try:
+    from ..runtime.kernel import build_phase_chains as _kernel_build_phase_chains  # type: ignore
+except Exception:  # pragma: no cover
+    _kernel_build_phase_chains = None  # type: ignore
+
 logger = logging.getLogger(__name__)
 
 _Key = Tuple[str, str]  # (alias, target)
-
 
 # ───────────────────────────────────────────────────────────────────────────────
 # Helpers
@@ -43,14 +48,20 @@ def _get_phase_chains(
     model: type, alias: str
 ) -> Dict[str, Sequence[Callable[..., Awaitable[Any]]]]:
     """
-    Build the mapping { phase_name: [step, ...], ... } expected by the executor.
-    Missing phases become empty lists.
+    Prefer building via runtime Kernel (atoms + system steps + hooks in one lifecycle).
+    Fallback: read the pre-built model.hooks.<alias> chains directly.
     """
+    if _kernel_build_phase_chains is not None:
+        try:
+            return _kernel_build_phase_chains(model, alias)
+        except Exception:
+            logger.exception(
+                "Kernel build_phase_chains failed for %s.%s; falling back to hooks",
+                getattr(model, "__name__", model),
+                alias,
+            )
     hooks_root = _ns(model, "hooks")
     alias_ns = getattr(hooks_root, alias, None)
-    if alias_ns is None:
-        return {ph: [] for ph in PHASES}
-
     out: Dict[str, Sequence[Callable[..., Awaitable[Any]]]] = {}
     for ph in PHASES:
         out[ph] = list(getattr(alias_ns, ph, []) or [])
@@ -102,16 +113,11 @@ def _validate_input(
     return payload
 
 
-def _serialize_output(
-    model: type, alias: str, target: str, sp: OpSpec, result: Any
-) -> Any:
-    """
-    If the op returns 'model' and we have an OUT schema, serialize result(s).
-    For 'list', OUT schema represents the element shape.
-    """
-    if sp.returns != "model":
-        return result
+def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
+    """Serialize result(s) if an OUT schema is available for the op.
 
+    For 'list', the OUT schema represents the element shape.
+    """
     schemas_root = getattr(model, "schemas", None)
     if not schemas_root:
         return result
@@ -128,13 +134,20 @@ def _serialize_output(
         return result
 
     try:
-        if target == "list" and isinstance(result, (list, tuple)):
+        if target in {
+            "list",
+            "bulk_create",
+            "bulk_update",
+            "bulk_replace",
+        } and isinstance(result, (list, tuple)):
             return [
-                out_model.model_validate(x).model_dump(exclude_none=True)
+                out_model.model_validate(x).model_dump(exclude_none=True, by_alias=True)
                 for x in result
             ]
         # Single object case
-        return out_model.model_validate(result).model_dump(exclude_none=True)
+        return out_model.model_validate(result).model_dump(
+            exclude_none=True, by_alias=True
+        )
     except Exception as e:
         # If serialization fails, let raw result through rather than failing the call
         logger.debug(
@@ -156,8 +169,9 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
     """
     Create an async callable that:
       1) validates payload (if schema present),
-      2) runs the executor with the model's phase chains,
+      2) runs the executor with the model's phase chains (Kernel-preferred),
       3) serializes the result to the expected return form.
+
     Signature:
         async def rpc_method(payload: Mapping | BaseModel | None = None, *, db, request=None, ctx=None) -> Any
     """
@@ -174,10 +188,25 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
         # 1) normalize + validate input
         raw_payload = _coerce_payload(payload)
         norm_payload = _validate_input(model, alias, target, raw_payload)
+        merged_payload: Dict[str, Any] = dict(raw_payload)
+        for key, value in norm_payload.items():
+            if (
+                key == "rows"
+                and isinstance(value, list)
+                and isinstance(raw_payload.get("rows"), list)
+            ):
+                raw_rows = raw_payload.get("rows", [])
+                merged_rows = []
+                for idx, nv in enumerate(value):
+                    base = raw_rows[idx] if idx < len(raw_rows) else {}
+                    merged_rows.append({**base, **nv})
+                merged_payload["rows"] = merged_rows
+            else:
+                merged_payload[key] = value
 
         # 2) build executor context & phases
         base_ctx: Dict[str, Any] = dict(ctx or {})
-        base_ctx.setdefault("payload", norm_payload)
+        base_ctx.setdefault("payload", merged_payload)
         base_ctx.setdefault("db", db)
         if request is not None:
             base_ctx.setdefault("request", request)
@@ -185,13 +214,15 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
         base_ctx.setdefault(
             "env",
             SimpleNamespace(
-                method=alias, params=norm_payload, target=target, model=model
+                method=alias, params=merged_payload, target=target, model=model
             ),
         )
 
         phases = _get_phase_chains(model, alias)
-
-        # 3) run executor + shape output
+        base_ctx["response_serializer"] = lambda r: _serialize_output(
+            model, alias, target, r
+        )
+        # 3) run executor
         result = await _executor._invoke(
             request=request,
             db=db,
@@ -199,7 +230,7 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
             ctx=base_ctx,
         )
 
-        return _serialize_output(model, alias, target, sp, result)
+        return result
 
     # Give the callable a nice name for introspection/logging
     _rpc_method.__name__ = f"rpc_{model.__name__}_{alias}"

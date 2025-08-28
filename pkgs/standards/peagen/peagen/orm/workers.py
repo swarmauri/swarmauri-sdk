@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-
-from autoapi.v2.types import (
+from autoapi.v3.tables import Base
+from autoapi.v3.types import (
     JSON,
-    Column,
-    ForeignKey,
     PgUUID,
     UUID,
     String,
@@ -12,10 +10,12 @@ from autoapi.v2.types import (
     relationship,
     HookProvider,
     AllowAnonProvider,
+    Mapped,
 )
-from autoapi.v2.tables import Base
-
-from autoapi.v2.mixins import GUIDPk, Timestamped
+from autoapi.v3.mixins import GUIDPk, Timestamped
+from autoapi.v3.specs import S, acol
+from autoapi.v3.specs.storage_spec import ForeignKeySpec
+from autoapi.v3 import hook_ctx
 from peagen.defaults import DEFAULT_POOL_ID, WORKER_KEY, WORKER_TTL
 
 from .pools import Pool
@@ -27,27 +27,31 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
 
     __autoapi_allow_anon__ = {"create"}
 
-    pool_id = Column(
-        PgUUID(as_uuid=True),
-        ForeignKey("peagen.pools.id"),
-        nullable=False,
-        default=DEFAULT_POOL_ID,
+    pool_id: Mapped[PgUUID] = acol(
+        storage=S(
+            PgUUID(as_uuid=True),
+            fk=ForeignKeySpec("peagen.pools.id"),
+            nullable=False,
+            default=DEFAULT_POOL_ID,
+        )
     )
-    url = Column(String, nullable=False, info=dict(no_update=True))
-    advertises = Column(
-        MutableDict.as_mutable(JSON),  # or JSON
-        default=lambda: {},  # ✔ correct for SQLAlchemy
-        nullable=True,
-        info=dict(no_update=True),
+    url: Mapped[str] = acol(storage=S(String, nullable=False))
+    advertises: Mapped[dict | None] = acol(
+        storage=S(
+            MutableDict.as_mutable(JSON),
+            default=lambda: {},
+            nullable=True,
+        )
     )
-    handlers = Column(
-        MutableDict.as_mutable(JSON),  # or JSON
-        default=lambda: {},  # ✔ correct for SQLAlchemy
-        nullable=True,
-        info=dict(no_update=True),
+    handlers: Mapped[dict | None] = acol(
+        storage=S(
+            MutableDict.as_mutable(JSON),
+            default=lambda: {},
+            nullable=True,
+        )
     )
 
-    pool = relationship(Pool, backref="workers")
+    pool: Mapped[Pool] = relationship(Pool, backref="workers")
 
     # ─── internal helpers -------------------------------------------------
     @staticmethod
@@ -87,7 +91,7 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
             raise RPCException(code=-32602, message="pool at capacity")
 
     # ─── AutoAPI hook callbacks ------------------------------------------
-    @classmethod
+    @hook_ctx(ops="create", phase="PRE_TX_BEGIN")
     async def _pre_create_policy_gate(cls, ctx):
         from peagen.gateway import log
 
@@ -106,22 +110,26 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
         policy, count = await ctx["db"].run_sync(_get_policy_and_count)
         cls._check_pool_policy(policy or {}, ip, count)
 
-    @classmethod
+    @hook_ctx(ops="create", phase="POST_RESPONSE")
     async def _post_create_cache_pool(cls, ctx):
         from peagen.gateway import log, queue
 
-        created = cls._SRead.model_validate(ctx["result"], from_attributes=True)
+        created = cls.schemas.read.out.model_validate(
+            ctx["result"], from_attributes=True
+        )
         log.info("worker %s joined pool_id %s", created.id, created.pool_id)
         try:
             await queue.sadd(f"pool_id:{created.pool_id}:members", str(created.id))
         except Exception as exc:  # noqa: BLE001
             log.error("failure to add member to pool queue. err: %s", exc)
 
-    @classmethod
+    @hook_ctx(ops="create", phase="POST_RESPONSE")
     async def _post_create_cache_worker(cls, ctx):
         from peagen.gateway import log, queue
 
-        created = cls._SRead.model_validate(ctx["result"], from_attributes=True)
+        created = cls.schemas.read.out.model_validate(
+            ctx["result"], from_attributes=True
+        )
         try:
             key = WORKER_KEY.format(str(created.id))
             await queue.hset(key, cls._as_redis_hash(created))
@@ -136,11 +144,13 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
         except Exception as exc:  # noqa: BLE001
             log.error("failure to _publish_event for: `Worker.create` err: %s", exc)
 
-    @classmethod
+    @hook_ctx(ops="create", phase="POST_COMMIT")
     async def _post_create_auto_register(cls, ctx):
         from peagen.gateway import authn_adapter, log
 
-        created = cls._SRead.model_validate(ctx["result"], from_attributes=True)
+        created = cls.schemas.read.out.model_validate(
+            ctx["result"], from_attributes=True
+        )
         try:
             base = authn_adapter.base_url
 
@@ -170,7 +180,7 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
             log.error("auto-registration failed: %s", exc)
             ctx["raw_worker_key"] = None
 
-    @classmethod
+    @hook_ctx(ops="create", phase="POST_RESPONSE")
     async def _post_create_inject_key(cls, ctx):
         from peagen.gateway import log
 
@@ -189,9 +199,9 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
         elif hasattr(res, "model_dump"):  # Pydantic model
             out = res.model_dump(mode="json")
         else:  # ORM instance
-            out = cls._SRead.model_validate(res, from_attributes=True).model_dump(
-                mode="json"
-            )
+            out = cls.schemas.read.out.model_validate(
+                res, from_attributes=True
+            ).model_dump(mode="json")
 
         # Inject the key into the response payload only (not persisted)
         out["api_key"] = raw
@@ -201,7 +211,7 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
         if resp is not None:
             resp.result = out
 
-    @classmethod
+    @hook_ctx(ops="update", phase="PRE_TX_BEGIN")
     async def _pre_update_policy_gate(cls, ctx):
         from peagen.gateway import log
 
@@ -226,7 +236,7 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
         policy, count = await ctx["db"].run_sync(_get_policy_and_count)
         cls._check_pool_policy(policy or {}, ip, count)
 
-    @classmethod
+    @hook_ctx(ops="update", phase="PRE_TX_BEGIN")
     async def _pre_update(cls, ctx):
         from peagen.gateway import log, queue
         from peagen.transport.jsonrpc import RPCException
@@ -239,13 +249,15 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
             raise RPCException(code=-32602, message="unknown worker; pool_id required")
         ctx["worker_id"] = worker_id
 
-    @classmethod
+    @hook_ctx(ops="update", phase="POST_RESPONSE")
     async def _post_update_cache_pool(cls, ctx):
         from peagen.gateway import log, queue
 
         worker_id = ctx["worker_id"]
         try:
-            updated = cls._SRead.model_validate(ctx["result"], from_attributes=True)
+            updated = cls.schemas.read.out.model_validate(
+                ctx["result"], from_attributes=True
+            )
             if updated.pool_id:
                 await queue.sadd(f"pool_id:{updated.pool_id}:members", worker_id)
             log.info("cached member `%s` in `%s`", worker_id, updated.pool_id)
@@ -257,14 +269,16 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
                 exc,
             )
 
-    @classmethod
+    @hook_ctx(ops="update", phase="POST_RESPONSE")
     async def _post_update_cache_worker(cls, ctx):
         from peagen.gateway import log, queue
         from peagen.gateway._publish import _publish_event
 
         worker_id = ctx["worker_id"]
         try:
-            updated = cls._SRead.model_validate(ctx["result"], from_attributes=True)
+            updated = cls.schemas.read.out.model_validate(
+                ctx["result"], from_attributes=True
+            )
             key = WORKER_KEY.format(worker_id)
             await queue.hset(key, {"updated_at": str(updated.updated_at)})
             await queue.expire(key, WORKER_TTL)
@@ -276,13 +290,13 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
         except Exception as exc:  # noqa: BLE001
             log.error("failure to _publish_event for: `Worker.update` err: %s", exc)
 
-    @classmethod
+    @hook_ctx(ops="list", phase="POST_HANDLER")
     async def _post_list(cls, ctx):
         from peagen.gateway import log
 
         log.info("entering post_workers_list")
 
-    @classmethod
+    @hook_ctx(ops="delete", phase="POST_HANDLER")
     async def _post_delete(cls, ctx):
         from peagen.gateway import log, queue
         from peagen.gateway._publish import _publish_event
@@ -299,42 +313,7 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
         except Exception as exc:  # noqa: BLE001
             log.info("failure to _publish_event for: `Worker.delete` err: %s", exc)
 
-    @classmethod
-    def __autoapi_register_hooks__(cls, api) -> None:
-        from autoapi.v2 import Phase, get_schema
-
-        cls._SRead = get_schema(cls, "read")
-        api.register_hook(Phase.PRE_TX_BEGIN, model="Worker", op="create")(
-            cls._pre_create_policy_gate
-        )
-        api.register_hook(Phase.POST_RESPONSE, model="Worker", op="create")(
-            cls._post_create_cache_pool
-        )
-        api.register_hook(Phase.POST_RESPONSE, model="Worker", op="create")(
-            cls._post_create_cache_worker
-        )
-        api.register_hook(Phase.POST_COMMIT, model="Worker", op="create")(
-            cls._post_create_auto_register
-        )
-        api.register_hook(Phase.POST_RESPONSE, model="Worker", op="create")(
-            cls._post_create_inject_key
-        )
-        api.register_hook(Phase.PRE_TX_BEGIN, model="Worker", op="update")(
-            cls._pre_update_policy_gate
-        )
-        api.register_hook(Phase.PRE_TX_BEGIN, model="Worker", op="update")(
-            cls._pre_update
-        )
-        api.register_hook(Phase.POST_RESPONSE, model="Worker", op="update")(
-            cls._post_update_cache_pool
-        )
-        api.register_hook(Phase.POST_RESPONSE, model="Worker", op="update")(
-            cls._post_update_cache_worker
-        )
-        api.register_hook(Phase.POST_HANDLER, model="Worker", op="list")(cls._post_list)
-        api.register_hook(Phase.POST_HANDLER, model="Worker", op="delete")(
-            cls._post_delete
-        )
+        # hooks registered via @hook_ctx
 
 
 __all__ = ["Worker"]

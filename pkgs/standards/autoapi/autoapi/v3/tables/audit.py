@@ -1,19 +1,46 @@
 # autoapi/tables/audit.py
 import datetime as dt
+from uuid import UUID
 
 from . import Base
 from ..mixins import GUIDPk, Timestamped
-from ..types import Column, DateTime, Integer, String, PgUUID
+from ..specs import IO, F, acol, S
+from ..types import DateTime, Integer, String, PgUUID, Mapped
 
 
 class Change(Base, GUIDPk, Timestamped):
     __tablename__ = "changes"
-    seq = Column(Integer, primary_key=True)
-    at = Column(DateTime, default=dt.datetime.utcnow)
-    actor_id = Column(PgUUID)
-    table_name = Column(String)
-    row_id = Column(PgUUID)
-    action = Column(String)
+
+    seq: Mapped[int] = acol(
+        storage=S(Integer, primary_key=True),
+        field=F(),
+        io=IO(out_verbs=("read", "list")),
+    )
+    at: Mapped[dt.datetime] = acol(
+        storage=S(DateTime, default=dt.datetime.utcnow),
+        field=F(),
+        io=IO(out_verbs=("read", "list")),
+    )
+    actor_id: Mapped[UUID | None] = acol(
+        storage=S(PgUUID, nullable=True),
+        field=F(),
+        io=IO(out_verbs=("read", "list")),
+    )
+    table_name: Mapped[str] = acol(
+        storage=S(String),
+        field=F(),
+        io=IO(out_verbs=("read", "list")),
+    )
+    row_id: Mapped[UUID | None] = acol(
+        storage=S(PgUUID, nullable=True),
+        field=F(),
+        io=IO(out_verbs=("read", "list")),
+    )
+    action: Mapped[str] = acol(
+        storage=S(String),
+        field=F(),
+        io=IO(out_verbs=("read", "list")),
+    )
 
 
 __all__ = ["Change"]

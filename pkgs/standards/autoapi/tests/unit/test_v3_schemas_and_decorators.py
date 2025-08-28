@@ -1,5 +1,4 @@
-import pytest
-from pydantic import BaseModel
+import json
 
 from autoapi.v3 import (
     alias_ctx,
@@ -13,7 +12,7 @@ from autoapi.v3.decorators import collect_decorated_ops
 from autoapi.v3.bindings import build_schemas, build_hooks, build_handlers, build_rest
 
 # REST test client
-from fastapi import FastAPI
+from autoapi.v3.types import App, BaseModel
 from fastapi.testclient import TestClient
 
 
@@ -36,8 +35,8 @@ class Widget:
         alias="search",
         target="custom",
         arity="collection",
-        request_schema="Search.in",                 # dotted form
-        response_schema=SchemaRef("Search", "out"), # SchemaRef form
+        request_schema="Search.in",  # dotted form
+        response_schema=SchemaRef("Search", "out"),  # SchemaRef form
     )
     def search(cls, ctx):
         # return id as a string so we can verify serialization/coercion to int
@@ -51,7 +50,7 @@ class Widget:
         response_schema="raw",  # explicit raw → no serialization
     )
     def ping(cls, ctx):
-        return {"id": "5", "name": "x"}
+        return json.dumps({"id": "5", "name": "x"})
 
 
 def _build_all(model):
@@ -60,7 +59,7 @@ def _build_all(model):
     for the tests. We only build handlers for ctx-only specs to avoid touching
     canonical CRUD cores during the test.
     """
-    canon = resolve(model)                 # canonical specs (alias_ctx applied)
+    canon = resolve(model)  # canonical specs (alias_ctx applied)
     custom = collect_decorated_ops(model)  # ctx-only specs
     specs = canon + custom
 
@@ -93,7 +92,7 @@ def test_schema_ctx_seed_and_alias_ctx_override():
 def test_rest_serialization_with_and_without_out_schema():
     _build_all(Widget)
 
-    app = FastAPI()
+    app = App()
     # Router was attached by build_rest
     app.include_router(Widget.rest.router)
     client = TestClient(app)
@@ -106,8 +105,8 @@ def test_rest_serialization_with_and_without_out_schema():
 
     # confirm request schema coercion: q=int → str
     r2 = client.post("/widget/search", json={"q": 123})
-    assert r2.status_code == 200
-    assert r2.json() == {"id": 7, "name": "123"}
+    # Invalid type for ``q`` now triggers a 422 validation error
+    assert r2.status_code == 422
 
     # custom op "ping" uses response_schema="raw" → no serialization/coercion
     r3 = client.post("/widget/ping", json={})

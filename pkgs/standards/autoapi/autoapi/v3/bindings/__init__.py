@@ -3,8 +3,13 @@
 AutoAPI v3 – Bindings package.
 
 This package wires OpSpec-derived artifacts onto models and an API facade.
+Concerns are kept strictly separated:
+  • Security deps & extra deps → transport/router only (REST/RPC)
+  • System steps → injected by runtime lifecycle (Kernel), not by bindings
+  • Atoms → discovered/injected by runtime, not by bindings
+  • Hooks → bindable at API / model / op levels (no imperative hooks)
 
-Public surface (re-exports):
+Public surface (re-exports)
 
 Model binding:
   - bind(model, *, only_keys=None)           → builds/refreshes model namespaces
@@ -15,10 +20,13 @@ Per-concern builders:
       • Seeds schemas declared via @schema_ctx before computing defaults.
       • Supports overrides via SchemaRef("alias","in|out"), "alias.in"/"alias.out", or "raw".
   - build_hooks(model, specs, *, only_keys=None)
+      • Merges API → MODEL → OP for pre-like phases; OP → MODEL → API for post/error.
+      • No imperative hook source.
   - build_handlers(model, specs, *, only_keys=None)
+      • Inserts the core/raw step into the HANDLER phase (other phases handled by runtime).
   - register_rpc(model, specs, *, only_keys=None)
   - build_rest(model, specs, *, only_keys=None)
-      • Serializes responses only when a response schema exists; otherwise returns raw.
+      • Router-level only; serializes responses iff a response schema exists.
 
 API integration:
   - include_model(api, model, *, app=None, prefix=None, mount_router=True)

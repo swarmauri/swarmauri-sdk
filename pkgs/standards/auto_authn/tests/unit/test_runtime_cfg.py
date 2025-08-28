@@ -4,7 +4,7 @@ from importlib import reload
 
 import pytest
 
-from auto_authn.v2 import runtime_cfg
+from auto_authn import runtime_cfg
 
 
 @pytest.mark.unit

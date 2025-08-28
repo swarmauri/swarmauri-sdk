@@ -1,5 +1,5 @@
 """
-Unit tests for auto_authn.v2.fastapi_deps module.
+Unit tests for auto_authn.fastapi_deps module.
 
 Tests FastAPI dependency functions including database sessions,
 authentication, principal resolution, and error handling.
@@ -12,16 +12,16 @@ import contextvars
 import pytest
 from fastapi import HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
-from jwt import InvalidTokenError
+from auto_authn.jwtoken import InvalidTokenError
 
-from auto_authn.v2.fastapi_deps import (
+from auto_authn.fastapi_deps import (
     get_current_principal,
     get_principal,
     _user_from_jwt,
     _user_from_api_key,
     principal_var,
 )
-from auto_authn.v2.backends import AuthError
+from auto_authn.backends import AuthError
 
 
 @pytest.mark.unit
@@ -30,8 +30,8 @@ class TestDatabaseDependency:
 
     def test_database_dependency_import(self):
         """Test that database dependency can be imported correctly."""
-        from auto_authn.v2.fastapi_deps import get_async_db
-        from auto_authn.v2.db import get_async_db as db_get_async_db
+        from auto_authn.fastapi_deps import get_async_db
+        from auto_authn.db import get_async_db as db_get_async_db
 
         # Verify they're the same function
         assert get_async_db is db_get_async_db
@@ -65,12 +65,14 @@ class TestJWTUserResolution:
         mock_db.scalar.return_value = mock_user
 
         # Create a valid JWT payload
-        with patch("auto_authn.v2.fastapi_deps._jwt_coder") as mock_coder:
-            mock_coder.decode.return_value = {
-                "sub": str(mock_user.id),
-                "iat": 1234567890,
-                "exp": 9999999999,
-            }
+        with patch("auto_authn.fastapi_deps._jwt_coder") as mock_coder:
+            mock_coder.async_decode = AsyncMock(
+                return_value={
+                    "sub": str(mock_user.id),
+                    "iat": 1234567890,
+                    "exp": 9999999999,
+                }
+            )
 
             user = await _user_from_jwt("valid.jwt.token", mock_db)
 
@@ -84,8 +86,10 @@ class TestJWTUserResolution:
         """Test user resolution with invalid JWT token."""
         mock_db = AsyncMock(spec=AsyncSession)
 
-        with patch("auto_authn.v2.fastapi_deps._jwt_coder") as mock_coder:
-            mock_coder.decode.side_effect = InvalidTokenError("Invalid token")
+        with patch("auto_authn.fastapi_deps._jwt_coder") as mock_coder:
+            mock_coder.async_decode = AsyncMock(
+                side_effect=InvalidTokenError("Invalid token")
+            )
 
             user = await _user_from_jwt("invalid.jwt.token", mock_db)
 
@@ -99,12 +103,14 @@ class TestJWTUserResolution:
         mock_db = AsyncMock(spec=AsyncSession)
         mock_db.scalar.return_value = None  # User not found
 
-        with patch("auto_authn.v2.fastapi_deps._jwt_coder") as mock_coder:
-            mock_coder.decode.return_value = {
-                "sub": str(uuid.uuid4()),  # Random non-existent user ID
-                "iat": 1234567890,
-                "exp": 9999999999,
-            }
+        with patch("auto_authn.fastapi_deps._jwt_coder") as mock_coder:
+            mock_coder.async_decode = AsyncMock(
+                return_value={
+                    "sub": str(uuid.uuid4()),  # Random non-existent user ID
+                    "iat": 1234567890,
+                    "exp": 9999999999,
+                }
+            )
 
             user = await _user_from_jwt("valid.jwt.token", mock_db)
 
@@ -117,12 +123,14 @@ class TestJWTUserResolution:
         mock_db = AsyncMock(spec=AsyncSession)
         mock_db.scalar.return_value = None  # Inactive user filtered out by query
 
-        with patch("auto_authn.v2.fastapi_deps._jwt_coder") as mock_coder:
-            mock_coder.decode.return_value = {
-                "sub": str(uuid.uuid4()),
-                "iat": 1234567890,
-                "exp": 9999999999,
-            }
+        with patch("auto_authn.fastapi_deps._jwt_coder") as mock_coder:
+            mock_coder.async_decode = AsyncMock(
+                return_value={
+                    "sub": str(uuid.uuid4()),
+                    "iat": 1234567890,
+                    "exp": 9999999999,
+                }
+            )
 
             user = await _user_from_jwt("valid.jwt.token", mock_db)
 
@@ -134,11 +142,13 @@ class TestJWTUserResolution:
         """Test JWT payload missing required 'sub' claim raises KeyError."""
         mock_db = AsyncMock(spec=AsyncSession)
 
-        with patch("auto_authn.v2.fastapi_deps._jwt_coder") as mock_coder:
-            mock_coder.decode.return_value = {
-                "iat": 1234567890,
-                "exp": 9999999999,
-            }
+        with patch("auto_authn.fastapi_deps._jwt_coder") as mock_coder:
+            mock_coder.async_decode = AsyncMock(
+                return_value={
+                    "iat": 1234567890,
+                    "exp": 9999999999,
+                }
+            )
 
             with pytest.raises(KeyError):
                 await _user_from_jwt("malformed.jwt.token", mock_db)
@@ -158,7 +168,7 @@ class TestAPIKeyUserResolution:
         mock_db = AsyncMock(spec=AsyncSession)
         raw_key = "valid-api-key-12345"
 
-        with patch("auto_authn.v2.fastapi_deps._api_key_backend") as mock_backend:
+        with patch("auto_authn.fastapi_deps._api_key_backend") as mock_backend:
             mock_backend.authenticate = AsyncMock(return_value=(mock_user, "user"))
 
             user = await _user_from_api_key(raw_key, mock_db)
@@ -173,7 +183,7 @@ class TestAPIKeyUserResolution:
         mock_db = AsyncMock(spec=AsyncSession)
         raw_key = "invalid-api-key"
 
-        with patch("auto_authn.v2.fastapi_deps._api_key_backend") as mock_backend:
+        with patch("auto_authn.fastapi_deps._api_key_backend") as mock_backend:
             mock_backend.authenticate = AsyncMock(
                 side_effect=AuthError("Invalid API key")
             )
@@ -189,7 +199,7 @@ class TestAPIKeyUserResolution:
         mock_db = AsyncMock(spec=AsyncSession)
         raw_key = "expired-api-key"
 
-        with patch("auto_authn.v2.fastapi_deps._api_key_backend") as mock_backend:
+        with patch("auto_authn.fastapi_deps._api_key_backend") as mock_backend:
             mock_backend.authenticate = AsyncMock(
                 side_effect=AuthError("API key expired")
             )
@@ -207,7 +217,7 @@ class TestAPIKeyUserResolution:
         mock_db = AsyncMock(spec=AsyncSession)
         raw_key = "service-api-key"
 
-        with patch("auto_authn.v2.fastapi_deps._api_key_backend") as mock_backend:
+        with patch("auto_authn.fastapi_deps._api_key_backend") as mock_backend:
             mock_backend.authenticate = AsyncMock(
                 return_value=(mock_service, "service")
             )
@@ -226,7 +236,7 @@ class TestAPIKeyUserResolution:
         mock_db = AsyncMock(spec=AsyncSession)
         raw_key = "client-api-key"
 
-        with patch("auto_authn.v2.fastapi_deps._api_key_backend") as mock_backend:
+        with patch("auto_authn.fastapi_deps._api_key_backend") as mock_backend:
             mock_backend.authenticate = AsyncMock(return_value=(mock_client, "client"))
 
             principal = await _user_from_api_key(raw_key, mock_db)
@@ -249,10 +259,14 @@ class TestGetCurrentPrincipal:
         api_key = "valid-api-key-12345"
 
         with patch(
-            "auto_authn.v2.fastapi_deps._user_from_api_key", return_value=mock_user
+            "auto_authn.fastapi_deps._user_from_api_key", return_value=mock_user
         ):
+            request = Request(scope={"type": "http"})
             principal = await get_current_principal(
-                authorization="", api_key=api_key, db=mock_db
+                request,
+                authorization="",
+                api_key=api_key,
+                db=mock_db,
             )
 
             assert principal is not None
@@ -267,9 +281,13 @@ class TestGetCurrentPrincipal:
         mock_db = AsyncMock(spec=AsyncSession)
         authorization = "Bearer valid.jwt.token"
 
-        with patch("auto_authn.v2.fastapi_deps._user_from_jwt", return_value=mock_user):
+        with patch("auto_authn.fastapi_deps._user_from_jwt", return_value=mock_user):
+            request = Request(scope={"type": "http"})
             principal = await get_current_principal(
-                authorization=authorization, api_key=None, db=mock_db
+                request,
+                authorization=authorization,
+                api_key=None,
+                db=mock_db,
             )
 
             assert principal is not None
@@ -286,13 +304,17 @@ class TestGetCurrentPrincipal:
         authorization = "Bearer valid.jwt.token"
 
         with patch(
-            "auto_authn.v2.fastapi_deps._user_from_api_key", return_value=mock_user
+            "auto_authn.fastapi_deps._user_from_api_key", return_value=mock_user
         ) as mock_api:
             with patch(
-                "auto_authn.v2.fastapi_deps._user_from_jwt", return_value=mock_user
+                "auto_authn.fastapi_deps._user_from_jwt", return_value=mock_user
             ) as mock_jwt:
+                request = Request(scope={"type": "http"})
                 principal = await get_current_principal(
-                    authorization=authorization, api_key=api_key, db=mock_db
+                    request,
+                    authorization=authorization,
+                    api_key=api_key,
+                    db=mock_db,
                 )
 
                 assert principal is not None
@@ -313,12 +335,16 @@ class TestGetCurrentPrincipal:
         api_key = "invalid-api-key"
         authorization = "Bearer valid.jwt.token"
 
-        with patch("auto_authn.v2.fastapi_deps._user_from_api_key", return_value=None):
+        with patch("auto_authn.fastapi_deps._user_from_api_key", return_value=None):
             with patch(
-                "auto_authn.v2.fastapi_deps._user_from_jwt", return_value=mock_user
+                "auto_authn.fastapi_deps._user_from_jwt", return_value=mock_user
             ):
+                request = Request(scope={"type": "http"})
                 principal = await get_current_principal(
-                    authorization=authorization, api_key=api_key, db=mock_db
+                    request,
+                    authorization=authorization,
+                    api_key=api_key,
+                    db=mock_db,
                 )
 
                 assert principal is not None
@@ -329,8 +355,11 @@ class TestGetCurrentPrincipal:
         """Test principal resolution with no credentials raises HTTP 401."""
         mock_db = AsyncMock(spec=AsyncSession)
 
+        request = Request(scope={"type": "http"})
         with pytest.raises(HTTPException) as exc_info:
-            await get_current_principal(authorization="", api_key=None, db=mock_db)
+            await get_current_principal(
+                request, authorization="", api_key=None, db=mock_db
+            )
 
         assert exc_info.value.status_code == 401
         assert "invalid or missing credentials" in exc_info.value.detail
@@ -342,9 +371,13 @@ class TestGetCurrentPrincipal:
         mock_db = AsyncMock(spec=AsyncSession)
         authorization = "InvalidFormat token"
 
+        request = Request(scope={"type": "http"})
         with pytest.raises(HTTPException) as exc_info:
             await get_current_principal(
-                authorization=authorization, api_key=None, db=mock_db
+                request,
+                authorization=authorization,
+                api_key=None,
+                db=mock_db,
             )
 
         assert exc_info.value.status_code == 401
@@ -356,11 +389,15 @@ class TestGetCurrentPrincipal:
         api_key = "invalid-api-key"
         authorization = "Bearer invalid.jwt.token"
 
-        with patch("auto_authn.v2.fastapi_deps._user_from_api_key", return_value=None):
-            with patch("auto_authn.v2.fastapi_deps._user_from_jwt", return_value=None):
+        with patch("auto_authn.fastapi_deps._user_from_api_key", return_value=None):
+            with patch("auto_authn.fastapi_deps._user_from_jwt", return_value=None):
+                request = Request(scope={"type": "http"})
                 with pytest.raises(HTTPException) as exc_info:
                     await get_current_principal(
-                        authorization=authorization, api_key=api_key, db=mock_db
+                        request,
+                        authorization=authorization,
+                        api_key=api_key,
+                        db=mock_db,
                     )
 
                 assert exc_info.value.status_code == 401
@@ -386,7 +423,7 @@ class TestGetPrincipal:
         api_key = "valid-api-key-12345"
 
         with patch(
-            "auto_authn.v2.fastapi_deps.get_current_principal", return_value=mock_user
+            "auto_authn.fastapi_deps.get_current_principal", return_value=mock_user
         ):
             principal = await get_principal(
                 request=mock_request, authorization="", api_key=api_key, db=mock_db
@@ -407,7 +444,7 @@ class TestGetPrincipal:
         mock_db = AsyncMock(spec=AsyncSession)
 
         with patch(
-            "auto_authn.v2.fastapi_deps.get_current_principal", return_value=mock_user
+            "auto_authn.fastapi_deps.get_current_principal", return_value=mock_user
         ):
             await get_principal(
                 request=mock_request,
@@ -436,7 +473,7 @@ class TestGetPrincipal:
         principal_var.set(None)
 
         with patch(
-            "auto_authn.v2.fastapi_deps.get_current_principal", return_value=mock_user
+            "auto_authn.fastapi_deps.get_current_principal", return_value=mock_user
         ):
             await get_principal(
                 request=mock_request,
@@ -456,9 +493,7 @@ class TestGetPrincipal:
         mock_request.state = MagicMock()
         mock_db = AsyncMock(spec=AsyncSession)
 
-        with patch(
-            "auto_authn.v2.fastapi_deps.get_current_principal"
-        ) as mock_get_current:
+        with patch("auto_authn.fastapi_deps.get_current_principal") as mock_get_current:
             mock_get_current.side_effect = HTTPException(
                 status_code=401, detail="invalid credentials"
             )
@@ -521,7 +556,7 @@ class TestFastAPIDepsIntegration:
 
     def test_all_exports_are_available(self):
         """Test that all expected exports are available from the module."""
-        from auto_authn.v2.fastapi_deps import (
+        from auto_authn.fastapi_deps import (
             get_current_principal,
             get_principal,
             principal_var,
@@ -538,7 +573,7 @@ class TestFastAPIDepsIntegration:
 
     def test_backend_instances_are_created(self):
         """Test that backend instances are properly initialized."""
-        from auto_authn.v2.fastapi_deps import _api_key_backend, _jwt_coder
+        from auto_authn.fastapi_deps import _api_key_backend, _jwt_coder
 
         # Verify backend instances exist
         assert _api_key_backend is not None
@@ -550,12 +585,14 @@ class TestFastAPIDepsIntegration:
         mock_db = AsyncMock(spec=AsyncSession)
         mock_db.scalar.side_effect = Exception("Database error")
 
-        with patch("auto_authn.v2.fastapi_deps._jwt_coder") as mock_coder:
-            mock_coder.decode.return_value = {
-                "sub": str(uuid.uuid4()),
-                "iat": 1234567890,
-                "exp": 9999999999,
-            }
+        with patch("auto_authn.fastapi_deps._jwt_coder") as mock_coder:
+            mock_coder.async_decode = AsyncMock(
+                return_value={
+                    "sub": str(uuid.uuid4()),
+                    "iat": 1234567890,
+                    "exp": 9999999999,
+                }
+            )
 
             # Should handle database errors gracefully
             with pytest.raises(Exception, match="Database error"):

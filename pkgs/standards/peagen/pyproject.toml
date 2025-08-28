@@ -46,8 +46,10 @@ dependencies = [
     "swarmauri_standard",
     "swarmauri",
     "swarmauri_prompt_j2prompttemplate",
+    "swarmauri_keyprovider_ssh",
+    "swarmauri_storage_file",
 
-    "pydantic-settings>=2.2", 
+    "pydantic-settings>=2.2",
     "pydantic[email]>=2.7", # why is this necessary?
 
     # plugins —————————————————————————————————————————————————————————————————————————
@@ -69,13 +71,16 @@ dependencies = [
     "GitPython",
     "s3fs",
     "pytest-monitor>=1.6.6",
+    "swarmauri_storage_file",
+    "swarmauri_gitfilter_file",
 
     #async
     "anyio",
 
     # cryptos
     "python-gnupg",
-    "paramiko",
+    "swarmauri_crypto_paramiko",
+    "swarmauri_crypto_pgp",
 
 
     #core - repo lock
@@ -96,6 +101,11 @@ swarmauri_standard = { workspace = true }
 autoapi = { workspace = true }
 autoapi_client = { workspace = true }
 auto_authn = { workspace = true }
+swarmauri_keyprovider_ssh = { workspace = true }
+swarmauri_crypto_paramiko = { workspace = true }
+swarmauri_crypto_pgp = { workspace = true }
+swarmauri_storage_file = { workspace = true }
+swarmauri_gitfilter_file = { workspace = true }
 
 
 [tool.pytest.ini_options]
@@ -159,24 +169,13 @@ init-template-set                     = "peagen.template_scaffold.template_set"
 init-doe-spec                         = "peagen.template_scaffold.doe_spec"
 init-ci                               = "peagen.template_scaffold.ci"
 
-[project.entry-points."peagen.plugins.storage_adapters"]
-minio   = "peagen.plugins.storage_adapters.minio_storage_adapter:MinioStorageAdapter"
-file    = "peagen.plugins.storage_adapters.file_storage_adapter:FileStorageAdapter"
-github    = "peagen.plugins.storage_adapters.github_storage_adapter:GithubStorageAdapter"
-gh_release    = "peagen.plugins.storage_adapters.gh_release_storage_adapter:GithubReleaseStorageAdapter"
-
-[project.entry-points."peagen.plugins.git_filters"]
-minio   = "peagen.plugins.git_filters.minio_filter:MinioFilter"
-gh_release    = "peagen.plugins.git_filters.gh_release_filter:GithubReleaseFilter"
-s3fs    = "peagen.plugins.git_filters.s3fs_filter:S3FSFilter"
-file    = "peagen.plugins.git_filters.file_filter:FileFilter"
 
 [project.entry-points."peagen.plugins.vcs"]
 git = "peagen.plugins.vcs.git_vcs:GitVCS"
 
 [project.entry-points."peagen.plugins.cryptos"]
-paramiko = "peagen.plugins.cryptos.paramiko_crypto:ParamikoCrypto"
-pgp = "peagen.plugins.cryptos.pgp_crypto:PGPCrypto"
+paramiko = "swarmauri_crypto_paramiko:ParamikoCrypto"
+pgp = "swarmauri_crypto_pgp:PGPCrypto"
 
 [project.entry-points."peagen.plugins.publishers"]
 redis   = "peagen.plugins.publishers.redis_publisher:RedisPublisher"
@@ -203,9 +202,6 @@ echo_mutator = "peagen.plugins.mutators.echo_mutator:EchoMutator"
 llm_prompt = "peagen.plugins.mutators.llm_prompt:LlmRewrite"
 llm_prog_rewrite = "peagen.plugins.mutators.llm_prog_rewrite:LlmProgRewrite"
 
-# [project.entry-points."peagen.plugins.secret_drivers"]
-# env = "peagen.plugins.secret_drivers.env_secret:EnvSecret"
-# autogpg = "peagen.plugins.secret_drivers.autogpg_secretdriver:AutoGpgDriver"
 
 [project.entry-points."peagen.plugins.evaluators"]
 psutil_io = "peagen.plugins.evaluators.psutil_io:PsutilIOEvaluator"

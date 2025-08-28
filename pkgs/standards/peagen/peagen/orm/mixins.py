@@ -1,24 +1,27 @@
 from __future__ import annotations
 
-from autoapi.v2.types import (
-    Column,
-    ForeignKey,
+from autoapi.v3.types import (
     PgUUID,
     String,
+    Mapped,
     declarative_mixin,
     declared_attr,
     relationship,
 )
+from autoapi.v3.specs import S, acol
+from autoapi.v3.specs.storage_spec import ForeignKeySpec
 
 
 @declarative_mixin
 class RepositoryMixin:
     """Mixin providing a required ``repository_id`` foreign key."""
 
-    repository_id = Column(
-        PgUUID(as_uuid=True),
-        ForeignKey("peagen.repositories.id"),
-        nullable=False,
+    repository_id: Mapped[PgUUID] = acol(
+        storage=S(
+            PgUUID(as_uuid=True),
+            fk=ForeignKeySpec("peagen.repositories.id"),
+            nullable=False,
+        )
     )
 
 
@@ -26,13 +29,19 @@ class RepositoryMixin:
 class RepositoryRefMixin:
     """Mixin holding an optional reference to a repository and ref."""
 
-    repository_id = Column(
-        PgUUID(as_uuid=True),
-        ForeignKey("peagen.repositories.id", ondelete="CASCADE"),
-        nullable=True,
+    repository_id: Mapped[PgUUID | None] = acol(
+        storage=S(
+            PgUUID(as_uuid=True),
+            fk=ForeignKeySpec("peagen.repositories.id", on_delete="CASCADE"),
+            nullable=True,
+        )
     )
-    repo = Column(String, nullable=False)  # e.g. "github.com/acme/app"
-    ref = Column(String, nullable=False)  # e.g. "main" / SHA / tag
+    repo: Mapped[str] = acol(
+        storage=S(String, nullable=False)
+    )  # e.g. "github.com/acme/app"
+    ref: Mapped[str] = acol(
+        storage=S(String, nullable=False)
+    )  # e.g. "main" / SHA / tag
 
     @declared_attr
     def repository(cls):

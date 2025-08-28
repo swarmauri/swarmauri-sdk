@@ -1,7 +1,7 @@
 import pytest
-from autoapi.v2 import Base
-from autoapi.v2.mixins import GUIDPk
-from sqlalchemy import Column, String
+from autoapi.v3 import Base
+from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.types import Column, String
 
 
 @pytest.mark.i9n
@@ -12,5 +12,5 @@ def test_acronym_model_route(create_test_api):
 
     api = create_test_api(GPGKey)
     paths = {route.path for route in api.router.routes}
-    assert "/gpg_key" in paths
+    assert "/gpgkey" in paths
     assert all("g_p_g_key" not in p for p in paths)

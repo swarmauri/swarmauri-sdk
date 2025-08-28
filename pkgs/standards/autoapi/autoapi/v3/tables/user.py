@@ -9,7 +9,8 @@ from ..mixins import (
     AsyncCapable,
     ActiveToggle,
 )
-from ..types import Column, String
+from ..specs import IO, acol, F, S
+from ..types import Mapped, String
 
 
 class User(
@@ -17,7 +18,11 @@ class User(
 ):
     __tablename__ = "users"
     __abstract__ = True
-    username = Column(String(80), nullable=False)
+    username: Mapped[str] = acol(
+        storage=S(String, nullable=False),
+        field=F(constraints={"max_length": 80}),
+        io=IO(),
+    )
 
 
 __all__ = ["User"]

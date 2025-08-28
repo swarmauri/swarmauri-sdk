@@ -8,14 +8,16 @@ from typing import Any, Mapping
 from uuid import UUID
 
 from ._RowBound import _RowBound
+from ..specs import acol
 from ..config.constants import (
     AUTOAPI_TENANT_POLICY_ATTR,
     CTX_AUTH_KEY,
     CTX_TENANT_ID_KEY,
 )
 from ..runtime.errors import create_standardized_error
-from ..schema.col_info import check as _info_check
-from ..types import Column, ForeignKey, PgUUID, declared_attr
+from ..specs import ColumnSpec, F, IO, S
+from ..specs.storage_spec import ForeignKeySpec
+from ..types import Mapped, PgUUID, declared_attr
 
 
 log = logging.getLogger(__name__)
@@ -71,23 +73,32 @@ class TenantBound(_RowBound):
     # tenant_id column (Schema-Aware; PgUUID(as_uuid=True))
     # -------------------------------------------------------------------
     @declared_attr
-    def tenant_id(cls):
+    def tenant_id(cls) -> Mapped[UUID]:
         pol = getattr(cls, AUTOAPI_TENANT_POLICY_ATTR, TenantPolicy.CLIENT_SET)
         schema = _infer_schema(cls, default="public")
 
-        autoapi_meta: dict[str, object] = {}
-        if pol != TenantPolicy.CLIENT_SET:
-            autoapi_meta["disable_on"] = ["update", "replace"]
-            autoapi_meta["read_only"] = True
-        _info_check(autoapi_meta, "tenant_id", cls.__name__)
-
-        return Column(
-            PgUUID(as_uuid=True),
-            ForeignKey(f"{schema}.tenants.id"),
-            nullable=False,
-            index=True,
-            info={"autoapi": autoapi_meta} if autoapi_meta else {},
+        in_verbs = (
+            ("create", "update", "replace")
+            if pol == TenantPolicy.CLIENT_SET
+            else ("create",)
         )
+        io = IO(
+            in_verbs=in_verbs,
+            out_verbs=("read", "list"),
+            mutable_verbs=in_verbs,
+        )
+
+        spec = ColumnSpec(
+            storage=S(
+                type_=PgUUID(as_uuid=True),
+                fk=ForeignKeySpec(target=f"{schema}.tenants.id"),
+                nullable=False,
+                index=True,
+            ),
+            field=F(py_type=UUID),
+            io=io,
+        )
+        return acol(spec=spec)
 
     @declared_attr
     def __tablename__(cls):
@@ -142,7 +153,11 @@ class TenantBound(_RowBound):
                     params["tenant_id"] = _normalize_uuid(provided)
 
             if "env" in ctx and ctx["env"] is not None:
-                ctx["env"].params = params
+                env = ctx["env"]
+                if isinstance(env, dict):
+                    env["params"] = params
+                else:
+                    env.params = params
             ctx["payload"] = params
 
         def _before_update(ctx: dict[str, Any]) -> None:
@@ -156,7 +171,11 @@ class TenantBound(_RowBound):
             if _is_missing(params.get("tenant_id")):
                 params.pop("tenant_id", None)
                 if "env" in ctx and ctx["env"] is not None:
-                    ctx["env"].params = params
+                    env = ctx["env"]
+                    if isinstance(env, dict):
+                        env["params"] = params
+                    else:
+                        env.params = params
                 ctx["payload"] = params
                 return
 
@@ -172,7 +191,11 @@ class TenantBound(_RowBound):
 
             params["tenant_id"] = new_val
             if "env" in ctx and ctx["env"] is not None:
-                ctx["env"].params = params
+                env = ctx["env"]
+                if isinstance(env, dict):
+                    env["params"] = params
+                else:
+                    env.params = params
             ctx["payload"] = params
 
         hooks = {**getattr(cls, "__autoapi_hooks__", {})}

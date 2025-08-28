@@ -33,4 +33,4 @@ ENV \
     REDIS_HOST="" \
     REDIS_PASSWORD=""
     
-CMD ["sh", "-c", "python -c 'import uvicorn; uvicorn.run(\"auto_authn.v2.app:app\", host=\"0.0.0.0\", port=8000, log_level=\"info\", proxy_headers=True, forwarded_allow_ips=\"*\")'"]
+CMD ["sh", "-c", "python -c 'import uvicorn; uvicorn.run(\"auto_authn.app:app\", host=\"0.0.0.0\", port=8000, log_level=\"info\", proxy_headers=True, forwarded_allow_ips=\"*\")'"]

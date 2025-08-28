@@ -15,7 +15,11 @@ from typing import (
     Tuple,
 )
 
-from .system.dbschema import ensure_schemas, bootstrap_dbschema
+from .system.dbschema import (
+    ensure_schemas,
+    bootstrap_dbschema,
+    sqlite_default_attach_map,
+)
 from .bindings.api import (
     include_model as _include_model,
     include_models as _include_models,
@@ -25,6 +29,19 @@ from .bindings.model import rebind as _rebind, bind as _bind
 from .transport import mount_jsonrpc as _mount_jsonrpc
 from .system import mount_diagnostics as _mount_diagnostics
 from .opspec import get_registry, OpSpec
+
+try:  # pragma: no cover - FastAPI optional
+    from .types import Router  # type: ignore
+except Exception:  # pragma: no cover
+
+    class Router:  # type: ignore
+        def __init__(self, *a, **kw):
+            self.routes = []
+            self.includes = []
+
+        def include_router(self, router, *, prefix: str = "", **opts):
+            self.includes.append((router, prefix, opts))
+
 
 # optional compat: legacy transactional decorator
 try:
@@ -62,8 +79,10 @@ class AutoAPI:
         | Mapping[str, Mapping[str, Iterable[Callable]]]
         | None = None,
     ) -> None:
-        # host app (FastAPI or APIRouter)
+        # host app (FastAPI or Router)
         self.app = app
+        # always expose an aggregate router for later mounting
+        self.router = Router()
         # DB dependencies for transports/diagnostics
         self.get_db = get_db
         self.get_async_db = get_async_db
@@ -81,6 +100,7 @@ class AutoAPI:
         self.columns: Dict[str, Tuple[str, ...]] = {}
         self.table_config: Dict[str, Dict[str, Any]] = {}
         self.core = SimpleNamespace()
+        self.core_raw = SimpleNamespace()
 
         # API-level hooks map (merged into each model at include-time; precedence handled in bindings.hooks)
         self._api_hooks_map = copy.deepcopy(api_hooks) if api_hooks else None
@@ -170,23 +190,28 @@ class AutoAPI:
     # ------------------------- extras / mounting -------------------------
 
     def mount_jsonrpc(self, *, prefix: str | None = None) -> Any:
-        """Mount JSON-RPC router onto `self.app`."""
+        """Mount JSON-RPC router onto `.router` and the host app if present."""
         px = prefix if prefix is not None else self.jsonrpc_prefix
-        return _mount_jsonrpc(
+        router = _mount_jsonrpc(
             self,
-            self.app,
+            self.router,
             prefix=px,
             get_db=self.get_db,
             get_async_db=self.get_async_db,
         )
+        if self.app and hasattr(self.app, "include_router"):
+            self.app.include_router(router, prefix=px)
+        return router
 
     def attach_diagnostics(self, *, prefix: str | None = None) -> Any:
-        """Mount diagnostics router onto `self.app`."""
+        """Mount diagnostics router onto `.router` and the host app if present."""
         px = prefix if prefix is not None else self.system_prefix
         router = _mount_diagnostics(
             self, get_db=self.get_db, get_async_db=self.get_async_db
         )
-        if hasattr(self.app, "include_router") and callable(self.app.include_router):
+        if hasattr(self.router, "include_router"):
+            self.router.include_router(router, prefix=px)
+        if self.app and hasattr(self.app, "include_router"):
             self.app.include_router(router, prefix=px)
         return router
 
@@ -247,17 +272,35 @@ class AutoAPI:
                 tables.append(t)
         return tables
 
-    def _create_all_on_bind(self, bind, *, schemas=None, sqlite_attachments=None, tables=None):
-        # 1) schemas / SQLite ATTACH
+    def _create_all_on_bind(
+        self, bind, *, schemas=None, sqlite_attachments=None, tables=None
+    ):
+        # 1) collect tables + schemas / SQLite ATTACH
         engine = getattr(bind, "engine", bind)
-        if sqlite_attachments:
+        tables = tables or self._collect_tables()
+
+        schema_names = set(schemas or [])
+        for t in tables:
+            if getattr(t, "schema", None):
+                schema_names.add(t.schema)
+
+        attachments = sqlite_attachments
+        if attachments is None and getattr(engine.dialect, "name", "") == "sqlite":
+            if schema_names:
+                attachments = sqlite_default_attach_map(engine, schema_names)
+
+        if attachments:
             # also applies ensure_schemas; immediate listener warm-up
-            bootstrap_dbschema(engine, schemas=schemas, sqlite_attachments=sqlite_attachments, immediate=True)
+            bootstrap_dbschema(
+                engine,
+                schemas=schema_names,
+                sqlite_attachments=attachments,
+                immediate=True,
+            )
         else:
-            ensure_schemas(engine, schemas)
+            ensure_schemas(engine, schema_names)
 
         # 2) create tables (group by metadata to support multiple bases)
-        tables = tables or self._collect_tables()
         by_meta = {}
         for t in tables:
             by_meta.setdefault(t.metadata, []).append(t)
@@ -265,10 +308,13 @@ class AutoAPI:
             md.create_all(bind=bind, checkfirst=True, tables=group)
 
         # 3) publish tables namespace
-        self.tables = SimpleNamespace(**{
-            name: getattr(m, "__table__", None)
-            for name, m in self.models.items() if hasattr(m, "__table__")
-        })
+        self.tables = SimpleNamespace(
+            **{
+                name: getattr(m, "__table__", None)
+                for name, m in self.models.items()
+                if hasattr(m, "__table__")
+            }
+        )
 
     def initialize_sync(self, *, schemas=None, sqlite_attachments=None, tables=None):
         if getattr(self, "_ddl_executed", False):
@@ -276,27 +322,38 @@ class AutoAPI:
         if not self.get_db:
             raise ValueError("AutoAPI.get_db is not configured")
         with next(self.get_db()) as db:
-            bind = db.get_bind()             # Connection or Engine
-            self._create_all_on_bind(bind, schemas=schemas, sqlite_attachments=sqlite_attachments, tables=tables)
+            bind = db.get_bind()  # Connection or Engine
+            self._create_all_on_bind(
+                bind,
+                schemas=schemas,
+                sqlite_attachments=sqlite_attachments,
+                tables=tables,
+            )
         self._ddl_executed = True
 
-    async def initialize_async(self, *, schemas=None, sqlite_attachments=None, tables=None):
+    async def initialize_async(
+        self, *, schemas=None, sqlite_attachments=None, tables=None
+    ):
         if getattr(self, "_ddl_executed", False):
             return
         if not self.get_async_db:
             raise ValueError("AutoAPI.get_async_db is not configured")
         async for adb in self.get_async_db():  # AsyncSession
+
             def _sync_bootstrap(arg):
                 bind = arg.get_bind() if hasattr(arg, "get_bind") else arg
-                self._create_all_on_bind(bind, schemas=schemas, sqlite_attachments=sqlite_attachments, tables=tables)
+                self._create_all_on_bind(
+                    bind,
+                    schemas=schemas,
+                    sqlite_attachments=sqlite_attachments,
+                    tables=tables,
+                )
+
             await adb.run_sync(_sync_bootstrap)
             break
         self._ddl_executed = True
-
 
     # ------------------------- repr -------------------------
 
     def __repr__(self) -> str:  # pragma: no cover
         return f"<AutoAPI models={list(self.models)} rpc={list(getattr(self.rpc, '__dict__', {}).keys())}>"
-
-

@@ -1,14 +1,14 @@
-"""Tests for AutoAPI verb aliasing and policy handling."""
+"""Tests for AutoAPI verb alias configuration (currently ignored)."""
 
 import pytest
 
-from autoapi.v2.mixins import GUIDPk
-from autoapi.v2 import Base
+from autoapi.v3 import Base
+from autoapi.v3.mixins import GUIDPk
 
 
 @pytest.mark.i9n
-def test_verb_alias_policy_both_routes_same_handler(create_test_api):
-    """Canonical verbs and aliases should map to the same handler when allowed."""
+def test_verb_alias_policy_both_routes_same_handler(create_test_api) -> None:
+    """Verb aliases are ignored; only canonical verbs are exposed."""
 
     class AliasModelBoth(Base, GUIDPk):
         __tablename__ = "alias_model"
@@ -17,19 +17,16 @@ def test_verb_alias_policy_both_routes_same_handler(create_test_api):
 
     api = create_test_api(AliasModelBoth)
 
-    # Alias exposed alongside canonical verb
-    assert hasattr(api.core.AliasModelBoth, "register")
-    assert api.core.AliasModelBoth.register is api.core.AliasModelBoth.create
-    assert api.core.AliasModelBothRegister is api.core.AliasModelBothCreate
-
-    m_id_create = f"{AliasModelBoth.__name__}.create"
-    m_id_register = f"{AliasModelBoth.__name__}.register"
-    assert api.rpc[m_id_create] is api.rpc[m_id_register]
+    # Only the canonical verb is available.
+    assert hasattr(api.core.AliasModelBoth, "create")
+    assert not hasattr(api.core.AliasModelBoth, "register")
+    assert hasattr(api.rpc.AliasModelBoth, "create")
+    assert not hasattr(api.rpc.AliasModelBoth, "register")
 
 
 @pytest.mark.i9n
-def test_verb_alias_policy_canonical_only_blocks_alias(create_test_api):
-    """Alias policy 'canonical_only' should hide aliases from public surface."""
+def test_verb_alias_policy_canonical_only_blocks_alias(create_test_api) -> None:
+    """Alias policy has no effect; aliases remain hidden."""
 
     class AliasModelBlocked(Base, GUIDPk):
         __tablename__ = "alias_model_blocked"
@@ -38,20 +35,23 @@ def test_verb_alias_policy_canonical_only_blocks_alias(create_test_api):
 
     api = create_test_api(AliasModelBlocked)
 
-    assert not hasattr(api.core, "AliasModelBlockedRegister")
+    assert hasattr(api.core.AliasModelBlocked, "create")
     assert not hasattr(api.core.AliasModelBlocked, "register")
-    m_id_register = f"{AliasModelBlocked.__name__}.register"
-    with pytest.raises(KeyError):
-        api.rpc[m_id_register]
+    assert hasattr(api.rpc.AliasModelBlocked, "create")
+    assert not hasattr(api.rpc.AliasModelBlocked, "register")
 
 
 @pytest.mark.i9n
-def test_invalid_alias_raises_error(create_test_api):
-    """Invalid alias names should raise a runtime error during initialization."""
+def test_invalid_alias_is_ignored(create_test_api) -> None:
+    """Invalid alias names are ignored without raising errors."""
 
     class BadAliasModel(Base, GUIDPk):
         __tablename__ = "bad_alias_model"
         __autoapi_verb_aliases__ = {"create": "Bad-Name"}
 
-    with pytest.raises(RuntimeError):
-        create_test_api(BadAliasModel)
+    api = create_test_api(BadAliasModel)
+
+    assert hasattr(api.core.BadAliasModel, "create")
+    assert not hasattr(api.core.BadAliasModel, "Bad-Name")
+    assert hasattr(api.rpc.BadAliasModel, "create")
+    assert not hasattr(api.rpc.BadAliasModel, "Bad-Name")

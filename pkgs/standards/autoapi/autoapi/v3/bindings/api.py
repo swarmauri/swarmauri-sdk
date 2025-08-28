@@ -15,6 +15,7 @@ from typing import (
 )
 
 from . import model as _binder  # bind(model) → builds/attaches namespaces
+from .rpc import _coerce_payload, _get_phase_chains, _validate_input, _serialize_output
 from ..config.constants import (
     AUTOAPI_AUTH_DEP_ATTR,
     AUTOAPI_AUTHORIZE_ATTR,
@@ -23,37 +24,39 @@ from ..config.constants import (
     AUTOAPI_REST_DEPENDENCIES_ATTR,
     AUTOAPI_RPC_DEPENDENCIES_ATTR,
 )
+from ..runtime import executor as _executor
 
 logger = logging.getLogger(__name__)
 
 # Public type for the API facade object users pass to include_model(...)
 ApiLike = Any
 
-
 # ───────────────────────────────────────────────────────────────────────────────
 # Helpers: resource/prefix, namespaces, router mounting
 # ───────────────────────────────────────────────────────────────────────────────
 
 
-def _snake(name: str) -> str:
-    out = []
-    for i, ch in enumerate(name):
-        if ch.isupper() and i and (not name[i - 1].isupper()):
-            out.append("_")
-        out.append(ch.lower())
-    return "".join(out)
-
-
 def _resource_name(model: type) -> str:
-    return (
-        getattr(model, "__resource__", None)
-        or getattr(model, "__tablename__", None)
-        or _snake(model.__name__)
-    )
+    """
+    Compute the API resource segment.
+
+    Policy:
+      - Prefer explicit `__resource__` when present (caller-controlled).
+      - Otherwise, use the model *class name* in lowercase.
+      - DO NOT use `__tablename__` here (strictly DB-only per project policy).
+    """
+    return getattr(model, "__resource__", model.__name__.lower())
 
 
 def _default_prefix(model: type) -> str:
-    return f"/{_resource_name(model)}"
+    """Default mount prefix for a model router.
+
+    Historically routers were mounted under ``/{resource}``, resulting in
+    duplicated path segments such as ``/item/item``.  To expose REST endpoints
+    under ``/item`` we now mount routers at the application root by default.
+    """
+
+    return ""
 
 
 def _has_include_router(obj: Any) -> bool:
@@ -62,14 +65,14 @@ def _has_include_router(obj: Any) -> bool:
 
 def _mount_router(app_or_router: Any, router: Any, *, prefix: str) -> None:
     """
-    Best-effort mount onto a FastAPI app or APIRouter.
+    Best-effort mount onto a FastAPI app or Router.
     If not available, we still attach router under api.routers for later use.
     """
     if app_or_router is None:
         return
     try:
         if _has_include_router(app_or_router):
-            app_or_router.include_router(router, prefix=prefix)  # FastAPI / APIRouter
+            app_or_router.include_router(router, prefix=prefix)  # FastAPI / Router
     except Exception:
         logger.exception("Failed to mount router at %s", prefix)
 
@@ -89,35 +92,31 @@ def _ensure_api_ns(api: ApiLike) -> None:
         ("columns", {}),
         ("table_config", {}),
         ("core", SimpleNamespace()),  # helper method proxies
+        ("core_raw", SimpleNamespace()),
     ):
         if not hasattr(api, attr):
             setattr(api, attr, default)
 
 
-# ───────────────────────────────────────────────────────────────────────────────
-# Resource proxy: api.core.<ModelName>.<alias>(payload, *, db, request=None, ctx=None)
-# ───────────────────────────────────────────────────────────────────────────────
-
-
 class _ResourceProxy:
-    """
-    Lightweight dynamic proxy that forwards calls to model.rpc.<alias>.
-    We resolve methods lazily so new/changed ops after rebinds are visible.
-    """
+    """Dynamic proxy that executes core operations."""
 
-    __slots__ = ("_model",)
+    __slots__ = ("_model", "_serialize")
 
-    def __init__(self, model: type) -> None:
+    def __init__(
+        self, model: type, *, serialize: bool = True
+    ) -> None:  # pragma: no cover - trivial
         self._model = model
+        self._serialize = serialize
 
-    def __repr__(self) -> str:
+    def __repr__(self) -> str:  # pragma: no cover - debug helper
         return f"<ResourceProxy {self._model.__name__}>"
 
     def __getattr__(self, alias: str) -> Callable[..., Awaitable[Any]]:
-        rpc_ns = getattr(self._model, "rpc", None)
-        target = getattr(rpc_ns, alias, None)
-        if target is None:
-            raise AttributeError(f"{self._model.__name__} has no RPC method '{alias}'")
+        handlers_root = getattr(self._model, "handlers", None)
+        h_alias = getattr(handlers_root, alias, None) if handlers_root else None
+        if h_alias is None or not hasattr(h_alias, "core"):
+            raise AttributeError(f"{self._model.__name__} has no core method '{alias}'")
 
         async def _call(
             payload: Any = None,
@@ -126,15 +125,41 @@ class _ResourceProxy:
             request: Any = None,
             ctx: Optional[Dict[str, Any]] = None,
         ) -> Any:
-            return await target(payload, db=db, request=request, ctx=ctx)
+            raw_payload = _coerce_payload(payload)
+            norm_payload = _validate_input(self._model, alias, alias, raw_payload)
+            base_ctx: Dict[str, Any] = dict(ctx or {})
+            base_ctx.setdefault("payload", norm_payload)
+            base_ctx.setdefault("db", db)
+            if request is not None:
+                base_ctx.setdefault("request", request)
+            base_ctx.setdefault(
+                "env",
+                SimpleNamespace(
+                    method=alias, params=norm_payload, target=alias, model=self._model
+                ),
+            )
+            if self._serialize:
+                base_ctx.setdefault(
+                    "response_serializer",
+                    lambda r: _serialize_output(self._model, alias, alias, r),
+                )
+            else:
+                base_ctx.setdefault("response_serializer", lambda r: r)
+            phases = _get_phase_chains(self._model, alias)
+            return await _executor._invoke(
+                request=request,
+                db=db,
+                phases=phases,
+                ctx=base_ctx,
+            )
 
         _call.__name__ = f"{self._model.__name__}.{alias}"
         _call.__qualname__ = _call.__name__
-        _call.__doc__ = f"Helper for RPC call {self._model.__name__}.{alias}"
+        _call.__doc__ = f"Helper for core call {self._model.__name__}.{alias}"
         return _call
 
 
-# --- add near top of file ---
+# --- keep as helper, no behavior change to transports/kernel ---
 def _seed_security_and_deps(api: Any, model: type) -> None:
     """
     Copy API-level dependency hooks onto the model so downstream binders can use them.
@@ -151,7 +176,7 @@ def _seed_security_and_deps(api: Any, model: type) -> None:
     if getattr(api, "get_async_db", None):
         setattr(model, AUTOAPI_GET_ASYNC_DB_ATTR, api.get_async_db)
 
-    # Authn: prefer required auth if allow_anon is False, else optional if provided
+    # Authn (prefer required if allow_anon is False)
     auth_dep = None
     if getattr(api, "_allow_anon", True) is False and getattr(api, "_authn", None):
         auth_dep = api._authn
@@ -166,7 +191,7 @@ def _seed_security_and_deps(api: Any, model: type) -> None:
     if getattr(api, "_authorize", None):
         setattr(model, AUTOAPI_AUTHORIZE_ATTR, api._authorize)
 
-    # Extra deps (router-level)
+    # Extra deps (router-level only; never part of runtime plan)
     if getattr(api, "rest_dependencies", None):
         setattr(model, AUTOAPI_REST_DEPENDENCIES_ATTR, list(api.rest_dependencies))
     if getattr(api, "rpc_dependencies", None):
@@ -185,6 +210,8 @@ def _attach_to_api(api: ApiLike, model: type) -> None:
     _ensure_api_ns(api)
 
     mname = model.__name__
+    rname = _resource_name(model)
+    rtitle = rname[:1].upper() + rname[1:]
 
     # Index model object
     api.models[mname] = model
@@ -193,7 +220,10 @@ def _attach_to_api(api: ApiLike, model: type) -> None:
     setattr(api.schemas, mname, getattr(model, "schemas", SimpleNamespace()))
     setattr(api.handlers, mname, getattr(model, "handlers", SimpleNamespace()))
     setattr(api.hooks, mname, getattr(model, "hooks", SimpleNamespace()))
-    setattr(api.rpc, mname, getattr(model, "rpc", SimpleNamespace()))
+    rpc_ns = getattr(model, "rpc", SimpleNamespace())
+    setattr(api.rpc, mname, rpc_ns)
+    if rtitle != mname:
+        setattr(api.rpc, rtitle, rpc_ns)
     # rest (router lives on model.rest.router)
     rest_ns = getattr(api, "rest")
     setattr(
@@ -208,12 +238,20 @@ def _attach_to_api(api: ApiLike, model: type) -> None:
         getattr(model, "rest", SimpleNamespace()), "router", None
     )
 
-    # Table metadata
+    # Table metadata (introspection only)
     api.columns[mname] = tuple(getattr(model, "columns", ()))
     api.table_config[mname] = dict(getattr(model, "table_config", {}) or {})
 
-    # Core helper proxy
-    setattr(api.core, mname, _ResourceProxy(model))
+    # Core helper proxies
+    core_proxy = _ResourceProxy(model)
+    setattr(api.core, mname, core_proxy)
+    if rtitle != mname:
+        setattr(api.core, rtitle, core_proxy)
+
+    core_raw_proxy = _ResourceProxy(model, serialize=False)
+    setattr(api.core_raw, mname, core_raw_proxy)
+    if rtitle != mname:
+        setattr(api.core_raw, rtitle, core_raw_proxy)
 
 
 def include_model(
@@ -230,15 +268,18 @@ def include_model(
     Args:
         api: An arbitrary facade object; we’ll attach containers onto it if missing.
         model: The SQLAlchemy model (table class).
-        app: Optional FastAPI app or APIRouter (anything with `include_router`).
-             If not provided, we attempt to use `api.app` or `api.router` if present.
-        prefix: Optional mount prefix; defaults to `/{resource}`.
-        mount_router: If False, we won’t mount; we still attach the router under `api.rest`/`api.routers`.
+        app: Optional FastAPI app or Router (anything with `include_router`).
+             Routers are always mounted on `api.router`; if provided, we also
+             mount onto this `app` (or `api.app` when not given).
+        prefix: Optional mount prefix. When None, defaults to `/{ModelClassName}` or
+                `/{__resource__}` if set on the model.
+        mount_router: If False, we skip mounting onto the host app but still bind
+            the router under `api.router`/`api.rest`/`api.routers`.
 
     Returns:
-        (model, router) – the model class and its APIRouter (or None if not present).
+        (model, router) – the model class and its Router (or None if not present).
     """
-    # 0) seed deps/security so binders can see them
+    # 0) seed deps/security so binders can see them (transport-level only)
     _seed_security_and_deps(api, model)
 
     # 1) Build/bind model namespaces (idempotent)
@@ -249,8 +290,13 @@ def include_model(
     if prefix is None:
         prefix = _default_prefix(model)
 
-    # 3) Mount if requested and possible
-    target_app = app or getattr(api, "app", None) or getattr(api, "router", None)
+    # 3) Always bind model router to `api.router`
+    root_router = getattr(api, "router", None)
+    if router is not None:
+        _mount_router(root_router, router, prefix=prefix)
+
+    # Optionally mount onto a host app
+    target_app = app or getattr(api, "app", None)
     if mount_router and router is not None:
         _mount_router(target_app, router, prefix=prefix)
 
@@ -273,8 +319,7 @@ def include_models(
     Convenience helper to include multiple models.
 
     If ``base_prefix`` is provided, each model's router is mounted under that
-    prefix.  The router already includes its own ``/{resource}`` segment, so we
-    avoid appending it again here.
+    prefix. The model router itself already has its own `/{resource}` prefix.
     """
     results: Dict[str, Any] = {}
     for mdl in models:

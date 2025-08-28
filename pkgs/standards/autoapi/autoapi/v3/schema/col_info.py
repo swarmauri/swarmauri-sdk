@@ -8,7 +8,7 @@ This module centralizes:
   • Small helpers to decide input/output exposure per verb
 
 It does **not** import SQLAlchemy – callers pass plain dicts extracted from
-`Column.info` (or hybrid_property `.info`) so this remains framework-agnostic.
+`Column.info` so this remains framework-agnostic.
 
 Typical usage in the schema builder:
     meta_src = getattr(col, "info", {}) or {}
@@ -19,9 +19,18 @@ Typical usage in the schema builder:
 
 from __future__ import annotations
 
+import warnings
+
 from typing import Any, Mapping
 
 from ..opspec.types import CANON
+
+warnings.warn(
+    "autoapi.v3.schema.col_info is deprecated; Column.info['autoapi'] will be removed. "
+    "Use ColumnSpecs instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 # ───────────────────────────────────────────────────────────────────────────────
@@ -45,8 +54,7 @@ VALID_KEYS: frozenset[str] = frozenset(
         "read_only",  # (bool | Iterable[str] | Mapping[str,bool])
         "default_factory",  # (callable) → Field(default_factory=…)
         "examples",  # (Any)    → Field(..., examples=…)
-        "hybrid",  # (bool)   opt-in for @hybrid_property
-        "py_type",  # (type)   explicit Python type for hybrids/unknowns
+        "py_type",  # (type)   explicit Python type for unknowns
     }
 )
 
@@ -131,7 +139,7 @@ def _normalize_read_only(ro: Any, *, model: str, attr: str):
 def _normalize_disable_on(disable_on: Any, *, model: str, attr: str) -> frozenset[str]:
     if disable_on is None:
         return frozenset()
-    if not isinstance(disable_on, (set, list, tuple)):
+    if not isinstance(disable_on, (set, list, tuple, frozenset)):
         raise _err_ctx(
             model,
             attr,
@@ -163,7 +171,6 @@ def normalize(
       - read_only  → bool | frozenset[str] | dict[str,bool]
       - write_only → bool
       - default_factory → callable | None
-      - hybrid → bool
       - py_type → type | None
       - examples → as-is
       - no_create/no_update → bool (legacy)
@@ -211,11 +218,6 @@ def normalize(
     out["default_factory"] = df
 
     out["examples"] = meta.get("examples", None)
-
-    hy = meta.get("hybrid", False)
-    if not isinstance(hy, bool):
-        raise _err_ctx(model, attr, f"hybrid must be bool, got {type(hy)!r}")
-    out["hybrid"] = hy
 
     py_t = meta.get("py_type", None)
     if py_t is not None and not isinstance(py_t, type):

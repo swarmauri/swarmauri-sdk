@@ -16,13 +16,13 @@ from typing import (
 import builtins as _builtins
 
 try:
-    from sqlalchemy import select, delete, and_, asc, desc, Enum as SAEnum
+    from sqlalchemy import select, delete as sa_delete, and_, asc, desc, Enum as SAEnum
     from sqlalchemy.orm import Session
     from sqlalchemy.ext.asyncio import AsyncSession
     from sqlalchemy.orm.exc import NoResultFound  # type: ignore
 except Exception:  # pragma: no cover
     # Minimal shims so type-checkers don't explode if SQLAlchemy isn't present at import
-    select = delete = and_ = asc = desc = None  # type: ignore
+    select = sa_delete = and_ = asc = desc = None  # type: ignore
     SAEnum = None  # type: ignore
     Session = object  # type: ignore
     AsyncSession = object  # type: ignore
@@ -31,6 +31,32 @@ except Exception:  # pragma: no cover
         pass
 
 
+# Normalized filter operation names
+_CANON_OPS = {
+    "eq": "eq",
+    "=": "eq",
+    "==": "eq",
+    "ne": "ne",
+    "!=": "ne",
+    "<>": "ne",
+    "lt": "lt",
+    "<": "lt",
+    "gt": "gt",
+    ">": "gt",
+    "lte": "lte",
+    "le": "lte",
+    "<=": "lte",
+    "gte": "gte",
+    "ge": "gte",
+    ">=": "gte",
+    "like": "like",
+    "not_like": "not_like",
+    "ilike": "ilike",
+    "not_ilike": "not_ilike",
+    "in": "in",
+    "not_in": "not_in",
+    "nin": "not_in",
+}
 # ───────────────────────────────────────────────────────────────────────────────
 # Internal helpers
 # ───────────────────────────────────────────────────────────────────────────────
@@ -66,29 +92,123 @@ def _model_columns(model: type) -> Tuple[str, ...]:
     return tuple(c.name for c in table.columns)
 
 
-def _coerce_filters(model: type, filters: Optional[Mapping[str, Any]]) -> Dict[str, Any]:
-    """Keep only valid column names, drop paging keys."""
+def _colspecs(model: type) -> Mapping[str, Any]:
+    """Return mapping of column name to ColumnSpec if defined."""
+    specs = getattr(model, "__autoapi_colspecs__", None)
+    if isinstance(specs, Mapping):
+        return specs
+    specs = getattr(model, "__autoapi_cols__", None)
+    if isinstance(specs, Mapping):
+        return specs
+    return {}
+
+
+def _filter_in_values(
+    model: type, data: Mapping[str, Any], verb: str
+) -> Dict[str, Any]:
+    """Filter inbound values by ColumnSpec IO verbs."""
+    specs = _colspecs(model)
+    if not specs:
+        return dict(data)
+    out: Dict[str, Any] = {}
+    for k, v in data.items():
+        sp = specs.get(k)
+        if sp is None:
+            out[k] = v
+            continue
+        io = getattr(sp, "io", None)
+        allowed = True
+        if io is not None:
+            in_verbs = getattr(io, "in_verbs", ())
+            mutable = getattr(io, "mutable_verbs", ())
+            if in_verbs and verb not in in_verbs:
+                allowed = False
+            if mutable and verb not in mutable:
+                allowed = False
+        if allowed:
+            out[k] = v
+    return out
+
+
+def _immutable_columns(model: type, verb: str) -> set[str]:
+    """Columns that should not be mutated for this verb."""
+    specs = _colspecs(model)
+    if not specs:
+        return set()
+    imm: set[str] = set()
+    for name, sp in specs.items():
+        io = getattr(sp, "io", None)
+        mutable = getattr(io, "mutable_verbs", ()) if io else ()
+        if mutable and verb not in mutable:
+            imm.add(name)
+    return imm
+
+
+def _coerce_filters(
+    model: type, filters: Optional[Mapping[str, Any]]
+) -> Dict[str, Any]:
+    """Keep only valid, filterable column names/ops."""
     cols = set(_model_columns(model))
+    specs = _colspecs(model)
     raw = dict(filters or {})
-    return {k: v for k, v in raw.items() if k in cols}
+    out: Dict[str, Any] = {}
+    for k, v in raw.items():
+        name, op = k.split("__", 1) if "__" in k else (k, "eq")
+        if name not in cols:
+            continue
+        canon = _CANON_OPS.get(op, op)
+        sp = specs.get(name)
+        if sp is not None:
+            io = getattr(sp, "io", None)
+            ops = set(getattr(io, "filter_ops", ()) or [])
+            ops = {_CANON_OPS.get(o, o) for o in ops}
+            if not ops or canon not in ops:
+                continue
+            key = name if canon == "eq" else f"{name}__{canon}"
+            out[key] = v
+    return out
 
 
-def _apply_equality_filters(model: type, filters: Mapping[str, Any]) -> Any:
-    """
-    Convert simple equality filters into a SQLAlchemy WHERE clause.
-    """
+def _apply_filters(model: type, filters: Mapping[str, Any]) -> Any:
+    """Convert filters with optional operators into a WHERE clause."""
     if select is None:  # pragma: no cover
         return None
     clauses = []
     for k, v in filters.items():
-        col = getattr(model, k, None)
-        if col is not None:
+        name, op = k.split("__", 1) if "__" in k else (k, "eq")
+        canon = _CANON_OPS.get(op, op)
+        col = getattr(model, name, None)
+        if col is None:
+            continue
+        if canon == "eq":
             clauses.append(col == v)
+        elif canon == "ne":
+            clauses.append(col != v)
+        elif canon == "lt":
+            clauses.append(col < v)
+        elif canon == "gt":
+            clauses.append(col > v)
+        elif canon == "lte":
+            clauses.append(col <= v)
+        elif canon == "gte":
+            clauses.append(col >= v)
+        elif canon == "like":
+            clauses.append(col.like(v))
+        elif canon == "not_like":
+            clauses.append(~col.like(v))
+        elif canon == "ilike":
+            clauses.append(col.ilike(v))
+        elif canon == "not_ilike":
+            clauses.append(~col.ilike(v))
+        elif canon == "in":
+            seq = list(v) if isinstance(v, (list, tuple, set)) else [v]
+            clauses.append(col.in_(seq))
+        elif canon == "not_in":
+            seq = list(v) if isinstance(v, (list, tuple, set)) else [v]
+            clauses.append(~col.in_(seq))
     if not clauses:
         return None
-    if len(clauses) == 1:
-        return clauses[0]
-    return and_(*clauses)
+    return clauses[0] if len(clauses) == 1 else and_(*clauses)
 
 
 def _apply_sort(model: type, sort: Any) -> Sequence[Any] | None:
@@ -117,6 +237,7 @@ def _apply_sort(model: type, sort: Any) -> Sequence[Any] | None:
     if not tokens:
         return None
 
+    specs = _colspecs(model)
     order_by_exprs: list[Any] = []
     for tok in tokens:
         direction = "asc"
@@ -135,6 +256,11 @@ def _apply_sort(model: type, sort: Any) -> Sequence[Any] | None:
         col = getattr(model, name, None)
         if col is None:
             continue  # ignore unknown column names
+        sp = specs.get(name)
+        if sp is not None:
+            io = getattr(sp, "io", None)
+            if io is not None and not getattr(io, "sortable", False):
+                continue
         if direction == "desc":
             order_by_exprs.append(desc(col))
         else:
@@ -160,6 +286,15 @@ async def _maybe_flush(db: Union[Session, AsyncSession]) -> None:
         await db.flush()  # type: ignore[attr-defined]
     else:
         db.flush()  # type: ignore[attr-defined]
+
+
+async def _maybe_delete(db: Union[Session, AsyncSession], obj: Any) -> None:
+    if not hasattr(db, "delete"):
+        return
+    if _is_async_db(db):
+        await db.delete(obj)  # type: ignore[attr-defined]
+    else:
+        db.delete(obj)  # type: ignore[attr-defined]
 
 
 def _set_attrs(
@@ -196,6 +331,7 @@ def _set_attrs(
 # ───────────────────────────────────────────────────────────────────────────────
 # Enum validation on writes
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 def _validate_enum_values(model: type, values: Mapping[str, Any]) -> None:
     """
@@ -277,7 +413,9 @@ def _pop_bound_self(args: list[Any]) -> None:
         args.pop(0)
 
 
-def _extract_db(args: list[Any], kwargs: dict[str, Any]) -> Union[Session, AsyncSession]:
+def _extract_db(
+    args: list[Any], kwargs: dict[str, Any]
+) -> Union[Session, AsyncSession]:
     db = kwargs.pop("db", None)
     if db is not None:
         return db
@@ -299,7 +437,9 @@ def _as_pos_int(x: Any) -> Optional[int]:
         return None
 
 
-def _normalize_list_call(_args: tuple[Any, ...], _kwargs: dict[str, Any]) -> tuple[type, Dict[str, Any]]:
+def _normalize_list_call(
+    _args: tuple[Any, ...], _kwargs: dict[str, Any]
+) -> tuple[type, Dict[str, Any]]:
     """
     Accept:
       list(model, filters, *, db, skip, limit, sort)
@@ -311,7 +451,6 @@ def _normalize_list_call(_args: tuple[Any, ...], _kwargs: dict[str, Any]) -> tup
     """
     args = _builtins.list(_args)
     kwargs = dict(_kwargs)
-    print('here')
 
     _pop_bound_self(args)
 
@@ -353,7 +492,13 @@ def _normalize_list_call(_args: tuple[Any, ...], _kwargs: dict[str, Any]) -> tup
         filters = {}
 
     # Ignore any other stray args/kwargs (request, ctx, etc.)
-    return model, {"filters": filters, "skip": skip, "limit": limit, "db": db, "sort": sort}
+    return model, {
+        "filters": filters,
+        "skip": skip,
+        "limit": limit,
+        "db": db,
+        "sort": sort,
+    }
 
 
 # ───────────────────────────────────────────────────────────────────────────────
@@ -368,7 +513,7 @@ async def create(
     Insert a single row. Returns the persisted model instance.
     Flush-only (commit happens later in END_TX).
     """
-    data = dict(data or {})
+    data = _filter_in_values(model, data or {}, "create")
     _validate_enum_values(model, data)
     obj = model(**data)
     if hasattr(db, "add"):
@@ -394,10 +539,11 @@ async def update(
     Partial update by primary key. Missing keys are left unchanged.
     Returns the updated model instance. Flush-only.
     """
-    data = dict(data or {})
+    data = _filter_in_values(model, data or {}, "update")
     _validate_enum_values(model, data)
     obj = await read(model, ident, db)
-    _set_attrs(obj, data, allow_missing=True)
+    skip = _immutable_columns(model, "update")
+    _set_attrs(obj, data, allow_missing=True, skip=skip)
     await _maybe_flush(db)
     return obj
 
@@ -409,10 +555,11 @@ async def replace(
     Replace semantics: attributes not provided are nulled (except PK).
     Returns the updated model instance. Flush-only.
     """
-    data = dict(data or {})
+    data = _filter_in_values(model, data or {}, "replace")
     _validate_enum_values(model, data)
     obj = await read(model, ident, db)
-    _set_attrs(obj, data, allow_missing=False)
+    skip = _immutable_columns(model, "replace")
+    _set_attrs(obj, data, allow_missing=False, skip=skip)
     await _maybe_flush(db)
     return obj
 
@@ -425,8 +572,7 @@ async def delete(
     Flush-only.
     """
     obj = await read(model, ident, db)
-    if hasattr(db, "delete"):
-        db.delete(obj)  # type: ignore[attr-defined]
+    await _maybe_delete(db, obj)
     await _maybe_flush(db)
     return {"deleted": 1}
 
@@ -460,7 +606,7 @@ async def list(*_args: Any, **_kwargs: Any) -> List[Any]:  # noqa: A001  (shadow
             q = q.limit(max(limit, 0))  # type: ignore[attr-defined]
         return _builtins.list(q.all())  # type: ignore[attr-defined]
 
-    where = _apply_equality_filters(model, filters)
+    where = _apply_filters(model, filters)
     stmt = select(model)
     if where is not None:
         stmt = stmt.where(where)
@@ -480,7 +626,8 @@ async def list(*_args: Any, **_kwargs: Any) -> List[Any]:  # noqa: A001  (shadow
 
 
 async def clear(
-    *args: Any, **kwargs: Any,
+    *args: Any,
+    **kwargs: Any,
 ) -> Dict[str, int]:
     """
     Delete many rows matching equality filters. Returns {"deleted": N}.
@@ -491,19 +638,19 @@ async def clear(
     raw_filters: Mapping[str, Any] = params["filters"]
     db: Union[Session, AsyncSession] = params["db"]
 
-    if delete is None:  # pragma: no cover
+    if sa_delete is None:  # pragma: no cover
         # Fallback path: manual iteration
         items = await list(model, raw_filters, db=db)
         n = 0
         for obj in items:
-            db.delete(obj)  # type: ignore[attr-defined]
+            await _maybe_delete(db, obj)
             n += 1
         await _maybe_flush(db)
         return {"deleted": n}
 
     filt = _coerce_filters(model, raw_filters)
-    where = _apply_equality_filters(model, filt)
-    stmt = delete(model)
+    where = _apply_filters(model, filt)
+    stmt = sa_delete(model)
     if where is not None:
         stmt = stmt.where(where)
 
@@ -549,6 +696,7 @@ async def bulk_update(
     Returns the list of updated instances. Flush-only.
     """
     pk = _single_pk_name(model)
+    skip = _immutable_columns(model, "update")
     updated: List[Any] = []
     for r in rows or ():
         r = dict(r)
@@ -559,7 +707,7 @@ async def bulk_update(
         obj = await read(model, ident, db)
         # remove pk to avoid accidental overwrite
         data = {k: v for k, v in r.items() if k != pk}
-        _set_attrs(obj, data, allow_missing=True)
+        _set_attrs(obj, data, allow_missing=True, skip=skip)
         updated.append(obj)
     if updated:
         await _maybe_flush(db)
@@ -574,6 +722,7 @@ async def bulk_replace(
     Missing attributes are nulled (except PK). Flush-only.
     """
     pk = _single_pk_name(model)
+    skip = _immutable_columns(model, "replace")
     replaced: List[Any] = []
     for r in rows or ():
         r = dict(r)
@@ -583,7 +732,7 @@ async def bulk_replace(
             raise ValueError(f"bulk_replace requires '{pk}' in each row")
         obj = await read(model, ident, db)
         data = {k: v for k, v in r.items() if k != pk}
-        _set_attrs(obj, data, allow_missing=False)
+        _set_attrs(obj, data, allow_missing=False, skip=skip)
         replaced.append(obj)
     if replaced:
         await _maybe_flush(db)
@@ -603,9 +752,9 @@ async def bulk_delete(
         return {"deleted": 0}
 
     # Prefer DELETE ... WHERE pk IN (...)
-    if delete is not None:
+    if sa_delete is not None:
         col = getattr(model, pk_name)
-        stmt = delete(model).where(col.in_(id_seq))  # type: ignore[attr-defined]
+        stmt = sa_delete(model).where(col.in_(id_seq))  # type: ignore[attr-defined]
         res = await _maybe_execute(db, stmt)
         await _maybe_flush(db)
         n = int(getattr(res, "rowcount", 0) or 0)
@@ -615,7 +764,7 @@ async def bulk_delete(
     n = 0
     for ident in id_seq:
         obj = await read(model, ident, db)
-        db.delete(obj)  # type: ignore[attr-defined]
+        await _maybe_delete(db, obj)
         n += 1
     await _maybe_flush(db)
     return {"deleted": n}

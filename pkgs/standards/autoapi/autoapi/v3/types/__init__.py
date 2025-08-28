@@ -1,11 +1,15 @@
-# ── third-party ───────────────────────────────────────────────────────────
+# ── Standard Library ─────────────────────────────────────────────────────
 from types import MethodType, SimpleNamespace
 from uuid import uuid4, UUID
-from sqlalchemy import (
+
+# ── Third-party Dependencies (via deps module) ───────────────────────────
+from ..deps.sqlalchemy import (
+    # Core SQLAlchemy
     Boolean,
     Column,
-    DateTime as _DateTime,
-    Enum as SAEnum,
+    DateTime,
+    TZDateTime,
+    SAEnum,
     Text,
     ForeignKey,
     Index,
@@ -16,16 +20,15 @@ from sqlalchemy import (
     LargeBinary,
     UniqueConstraint,
     CheckConstraint,
+    create_engine,
     event,
-)
-from sqlalchemy.dialects.postgresql import (
+    # PostgreSQL dialect
     ARRAY,
-    ENUM as PgEnum,
+    PgEnum,
     JSONB,
-    UUID as _PgUUID,
+    PgUUID,
     TSVECTOR,
-)
-from sqlalchemy.orm import (
+    # ORM
     Mapped,
     declarative_mixin,
     declared_attr,
@@ -35,16 +38,24 @@ from sqlalchemy.orm import (
     remote,
     column_property,
     Session,
+    sessionmaker,
+    InstrumentedAttribute,
+    # Extensions
+    MutableDict,
+    MutableList,
+    hybrid_property,
+    StaticPool,
 )
 
-from sqlalchemy.ext.mutable import MutableDict, MutableList
-from sqlalchemy.ext.hybrid import hybrid_property
+from ..deps.pydantic import (
+    BaseModel,
+    Field,
+    ValidationError,
+)
 
-
-from pydantic import Field, ValidationError
-
-from fastapi import (
+from ..deps.fastapi import (
     APIRouter,
+    Router,
     Security,
     Depends,
     Request,
@@ -52,9 +63,10 @@ from fastapi import (
     Path,
     Body,
     HTTPException,
+    App,
 )
 
-# ── local package ─────────────────────────────────────────────────────────
+# ── Local Package ─────────────────────────────────────────────────────────
 from .op import _Op, _SchemaVerb
 from .authn_abc import AuthNProvider
 from .table_config_provider import TableConfigProvider
@@ -74,18 +86,7 @@ from .op_verb_alias_provider import OpVerbAliasProvider, list_verb_alias_provide
 from .op_config_provider import OpConfigProvider
 
 
-# ── Generics / Extensions ─────────────────────────────────────────────────
-DateTime = _DateTime(timezone=False)
-TZDateTime = _DateTime(timezone=True)
-
-
-class PgUUID(_PgUUID):
-    @property
-    def hex(self):
-        return self.as_uuid.hex
-
-
-# ── public re-exports ─────────────────────────────────────────────────────
+# ── Public Re-exports (Backwards Compatibility) ──────────────────────────
 __all__: list[str] = [
     # local
     "_Op",
@@ -97,10 +98,17 @@ __all__: list[str] = [
     "AllowAnonProvider",
     "RequestExtrasProvider",
     "ResponseExtrasProvider",
+    "OpVerbAliasProvider",
+    "list_verb_alias_providers",
+    "list_request_extras_providers",
+    "list_response_extras_providers",
+    "OpConfigProvider",
     # builtin types
     "MethodType",
     "SimpleNamespace",
-    # sqlalchemy core
+    "uuid4",
+    "UUID",
+    # sqlalchemy core (from deps.sqlalchemy)
     "Boolean",
     "Column",
     "DateTime",
@@ -116,14 +124,15 @@ __all__: list[str] = [
     "LargeBinary",
     "UniqueConstraint",
     "CheckConstraint",
+    "create_engine",
     "event",
-    # sqlalchemy.dialects.postgresql
+    # sqlalchemy.dialects.postgresql (from deps.sqlalchemy)
     "ARRAY",
     "PgEnum",
     "JSONB",
     "PgUUID",
     "TSVECTOR",
-    # sqlalchemy.orm
+    # sqlalchemy.orm (from deps.sqlalchemy)
     "Mapped",
     "declarative_mixin",
     "declared_attr",
@@ -134,32 +143,25 @@ __all__: list[str] = [
     "relationship",
     "remote",
     "Session",
-    # sqlalchemy.ext.mutable
+    "sessionmaker",
+    "InstrumentedAttribute",
+    # sqlalchemy.ext.mutable (from deps.sqlalchemy)
     "MutableDict",
     "MutableList",
-    # uuid convenience
-    "uuid4",
-    "UUID",
-    # pydantic schema support
+    "StaticPool",
+    # pydantic schema support (from deps.pydantic)
+    "BaseModel",
     "Field",
     "ValidationError",
-    # fastapi support
+    # fastapi support (from deps.fastapi)
     "Request",
     "Response",
     "APIRouter",
+    "Router",
+    "App",
     "Security",
     "Depends",
     "Path",
     "Body",
     "HTTPException",
 ]
-
-__all__ += [
-    "OpVerbAliasProvider",
-    "list_verb_alias_providers",
-    "list_request_extras_providers",
-    "list_response_extras_providers",
-]
-
-
-__all__ += ["OpConfigProvider"]

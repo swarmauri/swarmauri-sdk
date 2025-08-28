@@ -7,12 +7,13 @@ from secrets import token_urlsafe
 
 from fastapi import HTTPException
 
+from ..specs import acol, F, IO, S
 from ..types import (
-    Column,
     String,
     HookProvider,
     Field,
     ResponseExtrasProvider,
+    Mapped,
 )
 from ._base import Base
 from ..mixins import (
@@ -36,20 +37,15 @@ class ApiKey(
     __tablename__ = "api_keys"
     __abstract__ = True
 
-    label = Column(String(120), nullable=False)
+    label: Mapped[str] = acol(
+        storage=S(String, nullable=False),
+        field=F(constraints={"max_length": 120}),
+    )
 
-    digest = Column(
-        String(64),
-        nullable=False,
-        unique=True,
-        info={
-            "autoapi": {
-                # hide from Update / Replace verbs
-                "disable_on": ["update", "replace"],
-                # show in READ / LIST responses only
-                "read_only": True,
-            }
-        },
+    digest: Mapped[str] = acol(
+        storage=S(String, nullable=False, unique=True),
+        field=F(constraints={"max_length": 64}),
+        io=IO(out_verbs=("read", "list")),
     )
 
     __autoapi_response_extras__ = {"*": {"api_key": (str | None, Field(None))}}

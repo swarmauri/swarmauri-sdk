@@ -1,22 +1,29 @@
 import pytest
 import pytest_asyncio
-from autoapi.v2 import AutoAPI, Base, get_schema
-from autoapi.v2.mixins import GUIDPk
-from fastapi import FastAPI
+from autoapi.v3.types import App
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import Column, String, create_engine
-from sqlalchemy.pool import StaticPool
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import Session, sessionmaker
 from pydantic import Field
+from sqlalchemy import Column, String, create_engine
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import StaticPool
+from uuid import uuid4
+
+from autoapi.v3 import AutoAPI, Base
+from autoapi.v3.schema import _build_schema
 
 
 @pytest_asyncio.fixture()
 async def api_client_with_extras(db_mode):
     Base.metadata.clear()
 
-    class Widget(Base, GUIDPk):
+    class Widget(Base):
         __tablename__ = "widgets"
+        id = Column(String, primary_key=True, default=lambda: str(uuid4()))
         name = Column(String, nullable=False)
         __autoapi_request_extras__ = {
             "*": {"token": (str | None, Field(default=None, exclude=True))},
@@ -34,7 +41,8 @@ async def api_client_with_extras(db_mode):
             async with AsyncSessionLocal() as session:
                 yield session
 
-        api = AutoAPI(base=Base, include={Widget}, get_async_db=get_async_db)
+        api = AutoAPI(get_async_db=get_async_db)
+        api.include_model(Widget)
         await api.initialize_async()
     else:
         engine = create_engine(
@@ -48,10 +56,11 @@ async def api_client_with_extras(db_mode):
             with SessionLocal() as session:
                 yield session
 
-        api = AutoAPI(base=Base, include={Widget}, get_db=get_sync_db)
+        api = AutoAPI(get_db=get_sync_db)
+        api.include_model(Widget)
         api.initialize_sync()
 
-    app = FastAPI()
+    app = App()
     app.include_router(api.router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
@@ -62,8 +71,8 @@ async def api_client_with_extras(db_mode):
 @pytest.mark.asyncio
 async def test_request_extras_schema(api_client_with_extras):
     _, _, Widget = api_client_with_extras
-    create_schema = get_schema(Widget, "create")
-    update_schema = get_schema(Widget, "update")
+    create_schema = _build_schema(Widget, verb="create")
+    update_schema = _build_schema(Widget, verb="update")
     assert {"token", "create_note"} <= set(create_schema.model_fields)
     assert {"token", "update_flag"} <= set(update_schema.model_fields)
 

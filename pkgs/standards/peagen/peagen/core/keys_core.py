@@ -14,9 +14,11 @@ from __future__ import annotations
 from contextlib import contextmanager
 from pathlib import Path
 
+import os
+import anyio
 import httpx
 from autoapi_client import AutoAPIClient
-from autoapi.v2 import get_schema
+from autoapi.v3 import get_schema
 from peagen._utils.config_loader import (
     load_peagen_toml,
     resolve_cfg,
@@ -25,28 +27,23 @@ from peagen.defaults import DEFAULT_GATEWAY
 from peagen.orm import DeployKey
 from peagen.plugins import PluginManager
 
-# ───────────────────────── cryptography layer ───────────────────────────
-from peagen.plugins.cryptos import ParamikoCrypto, CryptoBase
+from swarmauri_core.keys.types import KeyAlg, KeyClass, KeySpec, ExportPolicy
+from swarmauri_core.crypto.types import KeyUse
 
 
-# -----------------------------------------------------------------------#
-# Internal helpers
-# -----------------------------------------------------------------------#
-def _get_crypto(
-    key_dir: str | Path | None = None,
-    passphrase: str | None = None,
-) -> CryptoBase:
+def _get_key_provider():
+    """Return a key provider plugin instance.
+
+    Falls back to ``SshKeyProvider`` when no plugin is configured.
     """
-    Resolve a `CryptoBase` provider through the plugin manager.
-    Fallback ➜ `ParamikoCrypto` when no plugin is configured.
-    """
-    cfg = resolve_cfg()  # helper loads ~/.peagen.toml
+    cfg = resolve_cfg()
     pm = PluginManager(cfg)
     try:
-        crypto_cls = pm.get("cryptos")  # user-supplied plugin
+        return pm.get("key_providers")
     except KeyError:
-        crypto_cls = ParamikoCrypto  # built-in default
-    return crypto_cls(key_dir=key_dir, passphrase=passphrase)
+        from swarmauri_keyprovider_ssh import SshKeyProvider
+
+        return SshKeyProvider()
 
 
 @contextmanager
@@ -74,8 +71,36 @@ def create_keypair(
     -------
     dict  { "fingerprint": str, "public_key": str }
     """
-    drv = _get_crypto(key_dir, passphrase)
-    return {"fingerprint": drv.fingerprint(), "public_key": drv.public_key_str()}
+    key_dir = Path(key_dir or Path.home() / ".peagen" / "keys")
+    kp = _get_key_provider()
+
+    priv_path = key_dir / "ssh-private"
+    pub_path = key_dir / "ssh-public"
+    key_dir.mkdir(parents=True, exist_ok=True)
+
+    spec = KeySpec(
+        klass=KeyClass.asymmetric,
+        alg=KeyAlg.ED25519,
+        uses=(KeyUse.SIGN,),
+        export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
+        label="peagen",
+    )
+
+    if priv_path.exists() and pub_path.exists():
+        material = priv_path.read_bytes()
+        public = pub_path.read_bytes()
+        ref = anyio.run(kp.import_key, spec, material, public=public)
+    else:
+        ref = anyio.run(kp.create_key, spec)
+        if ref.material:
+            priv_path.write_bytes(ref.material)
+            os.chmod(priv_path, 0o600)
+        if ref.public:
+            pub_path.write_bytes(ref.public)
+
+    fingerprint = ref.tags.get("ssh_fingerprint", getattr(ref, "fingerprint", ""))
+    public_key = (ref.public or b"").decode().strip()
+    return {"fingerprint": fingerprint, "public_key": public_key}
 
 
 def upload_public_key(
@@ -83,14 +108,14 @@ def upload_public_key(
     passphrase: str | None = None,
     gateway_url: str = DEFAULT_GATEWAY,
 ) -> dict:
-    drv = _get_crypto(key_dir, passphrase)
+    info = create_keypair(key_dir, passphrase)
     SCreateIn = _schema("create")
     SRead = _schema("read")
 
     with _rpc(gateway_url) as rpc:
         res = rpc.call(
             "DeployKeys.create",
-            params=SCreateIn(key=drv.public_key_str()),
+            params=SCreateIn(key=info["public_key"]),
             out_schema=SRead,
         )
     return res.model_dump()

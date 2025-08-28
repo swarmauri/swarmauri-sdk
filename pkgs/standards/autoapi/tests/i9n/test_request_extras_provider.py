@@ -1,10 +1,10 @@
 import pytest
 
-from autoapi.v2 import Base
-from autoapi.v2.types import Column, String, Field, RequestExtrasProvider
-from autoapi.v2.mixins import GUIDPk
-from autoapi.v2.impl.schema import _schema
-from autoapi.v2.types.request_extras_provider import list_request_extras_providers
+from autoapi.v3 import Base
+from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.schema import _build_schema
+from autoapi.v3.types import Column, Field, RequestExtrasProvider, String
+from autoapi.v3.types.request_extras_provider import list_request_extras_providers
 
 
 @pytest.mark.i9n
@@ -19,8 +19,8 @@ async def test_request_extras_provider_in_schema():
             "create": {"extra": (int | None, Field(None, exclude=True))}
         }
 
-    SCreate = _schema(Widget, verb="create")
-    SRead = _schema(Widget, verb="read")
+    SCreate = _build_schema(Widget, verb="create")
+    SRead = _build_schema(Widget, verb="read")
 
     assert "extra" in SCreate.model_fields
     assert "extra" not in SRead.model_fields

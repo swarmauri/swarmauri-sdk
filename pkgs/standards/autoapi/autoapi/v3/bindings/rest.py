@@ -1,11 +1,14 @@
 # autoapi/v3/bindings/rest.py
 from __future__ import annotations
 
+import dataclasses
 import inspect
 import logging
+import re
 import typing as _typing
 from types import SimpleNamespace
 from typing import (
+    Annotated,
     Any,
     Awaitable,
     Callable,
@@ -15,14 +18,16 @@ from typing import (
     Sequence,
     Tuple,
 )
+
 from typing import get_origin as _get_origin, get_args as _get_args
 
 try:
-    from fastapi import APIRouter, Request, Body, Depends, HTTPException, Query
+    from ..types import Router, Request, Body, Depends, HTTPException, Response, Path
+    from fastapi import Query
     from fastapi import status as _status
 except Exception:  # pragma: no cover
     # Minimal shims so the module can be imported without FastAPI
-    class APIRouter:  # type: ignore
+    class Router:  # type: ignore
         def __init__(self, *a, **kw):
             self.routes = []
 
@@ -52,6 +57,10 @@ except Exception:  # pragma: no cover
             self.status_code = status_code
             self.detail = detail
 
+    class Response:  # type: ignore
+        def __init__(self, *a, **kw):
+            pass
+
     class _status:  # type: ignore
         HTTP_200_OK = 200
         HTTP_201_CREATED = 201
@@ -71,16 +80,44 @@ from pydantic import BaseModel, Field, create_model
 from ..opspec import OpSpec
 from ..opspec.types import PHASES
 from ..runtime import executor as _executor  # expects _invoke(request, db, phases, ctx)
+
+# Prefer Kernel phase-chains if available
+try:
+    from ..runtime.kernel import build_phase_chains as _kernel_build_phase_chains  # type: ignore
+except Exception:  # pragma: no cover
+    _kernel_build_phase_chains = None  # type: ignore
+
 from ..config.constants import (
     AUTOAPI_GET_ASYNC_DB_ATTR,
     AUTOAPI_GET_DB_ATTR,
     AUTOAPI_AUTH_DEP_ATTR,
     AUTOAPI_REST_DEPENDENCIES_ATTR,
 )
+from ..rest import _nested_prefix
+from ..schema.builder import _strip_parent_fields
 
 logger = logging.getLogger(__name__)
 
 _Key = Tuple[str, str]  # (alias, target)
+
+
+def _ensure_jsonable(obj: Any) -> Any:
+    """Best-effort conversion of DB rows, row-mappings, or ORM objects to dicts."""
+    if isinstance(obj, (list, tuple)):
+        return [_ensure_jsonable(x) for x in obj]
+
+    if isinstance(obj, Mapping):
+        try:
+            return {k: _ensure_jsonable(v) for k, v in dict(obj).items()}
+        except Exception:  # pragma: no cover - fall back to original object
+            pass
+
+    try:
+        data = vars(obj)
+    except TypeError:
+        return obj
+
+    return {k: _ensure_jsonable(v) for k, v in data.items() if not k.startswith("_")}
 
 
 def _req_state_db(request: Request) -> Any:
@@ -97,10 +134,10 @@ def _resource_name(model: type) -> str:
     Resource segment for HTTP paths/tags.
 
     IMPORTANT: Never use table name here. Only allow an explicit __resource__
-    override or fall back to the model class name.
+    override or fall back to the model class name in lowercase.
     """
     override = getattr(model, "__resource__", None)
-    return override or model.__name__
+    return override or model.__name__.lower()
 
 
 def _pk_name(model: type) -> str:
@@ -140,6 +177,19 @@ def _pk_names(model: type) -> set[str]:
 def _get_phase_chains(
     model: type, alias: str
 ) -> Dict[str, Sequence[Callable[..., Awaitable[Any]]]]:
+    """
+    Prefer building via runtime Kernel (atoms + system steps + hooks in one lifecycle).
+    Fallback: read the pre-built model.hooks.<alias> chains directly.
+    """
+    if _kernel_build_phase_chains is not None:
+        try:
+            return _kernel_build_phase_chains(model, alias)
+        except Exception:
+            logger.exception(
+                "Kernel build_phase_chains failed for %s.%s; falling back to hooks",
+                getattr(model, "__name__", model),
+                alias,
+            )
     hooks_root = getattr(model, "hooks", None) or SimpleNamespace()
     alias_ns = getattr(hooks_root, alias, None)
     out: Dict[str, Sequence[Callable[..., Awaitable[Any]]]] = {}
@@ -153,28 +203,53 @@ def _serialize_output(
 ) -> Any:
     """
     If a response schema exists (model.schemas.<alias>.out), serialize to it.
-    Otherwise, return the raw result.
+    Otherwise, attempt a best-effort conversion to primitive types so FastAPI
+    can JSON-encode the response.
     """
+
+    def _fallback(obj: Any) -> Any:
+        if isinstance(obj, Mapping):
+            return dict(obj)
+        if dataclasses.is_dataclass(obj):
+            return dataclasses.asdict(obj)
+        table = getattr(model, "__table__", None)
+        if table is not None:
+            try:
+                return {c.name: getattr(obj, c.name, None) for c in table.columns}
+            except Exception:
+                pass
+        try:
+            return {k: v for k, v in vars(obj).items() if not k.startswith("_")}
+        except Exception:
+            return obj
+
+    def _final(val: Any) -> Any:
+        if target == "list" and isinstance(val, (list, tuple)):
+            return [_fallback(v) for v in val]
+        return _fallback(val)
+
     schemas_root = getattr(model, "schemas", None)
     if not schemas_root:
-        return result
+        return _final(result)
     alias_ns = getattr(schemas_root, alias, None)
     if not alias_ns:
-        return result
+        return _final(result)
     out_model = getattr(alias_ns, "out", None)
     if (
         not out_model
         or not inspect.isclass(out_model)
         or not issubclass(out_model, BaseModel)
     ):
-        return result
+        return _final(result)
     try:
         if target == "list" and isinstance(result, (list, tuple)):
             return [
-                out_model.model_validate(x).model_dump(exclude_none=True)
+                out_model.model_validate(x).model_dump(exclude_none=True, by_alias=True)
                 for x in result
             ]
-        return out_model.model_validate(result).model_dump(exclude_none=True)
+        return out_model.model_validate(result).model_dump(
+            exclude_none=True, by_alias=True
+        )
     except Exception:
         logger.debug(
             "rest output serialization failed for %s.%s",
@@ -182,7 +257,7 @@ def _serialize_output(
             alias,
             exc_info=True,
         )
-        return result
+        return _final(result)
 
 
 def _validate_body(
@@ -292,11 +367,20 @@ def _normalize_deps(deps: Optional[Sequence[Any]]) -> list[Any]:
     return out
 
 
-def _status_for(target: str) -> int:
+def _status_for(sp: OpSpec) -> int:
+    if sp.status_code is not None:
+        return sp.status_code
+    target = sp.target
     if target == "create":
+        # Creating resources should use HTTP 201 (Created).
+        # Earlier revisions defaulted to 200 for backward compatibility, but
+        # the integration tests rely on the standard 201 code.
         return _status.HTTP_201_CREATED
     if target in ("delete", "clear"):
-        return _status.HTTP_204_NO_CONTENT
+        # DELETE operations return a confirmation payload (e.g. number of
+        # deleted rows). Returning 204 would discard this body, so default to
+        # 200 to surface the response content to clients.
+        return _status.HTTP_200_OK
     return _status.HTTP_200_OK
 
 
@@ -310,7 +394,6 @@ _RESPONSES_META = {
     429: {"description": "Too Many Requests"},
     500: {"description": "Internal Server Error"},
 }
-
 
 # ───────────────────────────────────────────────────────────────────────────────
 # Routing strategy
@@ -518,9 +601,11 @@ def _make_collection_endpoint(
     *,
     resource: str,
     db_dep: Callable[..., Any],
+    nested_vars: Sequence[str] | None = None,
 ) -> Callable[..., Awaitable[Any]]:
     alias = sp.alias
     target = sp.target
+    nested_vars = list(nested_vars or [])
 
     # --- No body on GET list / DELETE clear ---
     if target in {"list", "clear"}:
@@ -531,13 +616,17 @@ def _make_collection_endpoint(
                 request: Request,
                 q: Mapping[str, Any] = Depends(list_dep),
                 db: Any = Depends(db_dep),
+                **kw: Any,
             ):
-                payload = _validate_query(model, alias, target, dict(q))
+                parent_kw = {k: kw[k] for k in nested_vars if k in kw}
+                query = dict(q)
+                query.update(parent_kw)
+                payload = _validate_query(model, alias, target, query)
                 ctx: Dict[str, Any] = {
                     "request": request,
                     "db": db,
                     "payload": payload,
-                    "path_params": {},
+                    "path_params": parent_kw,
                     "env": SimpleNamespace(
                         method=alias, params=payload, target=target, model=model
                     ),
@@ -550,19 +639,49 @@ def _make_collection_endpoint(
                     ctx=ctx,
                 )
                 return _serialize_output(model, alias, target, sp, result)
+
+            params = [
+                inspect.Parameter(
+                    nv,
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Annotated[str, Path(...)],
+                )
+                for nv in nested_vars
+            ]
+            params.extend(
+                [
+                    inspect.Parameter(
+                        "request",
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=Request,
+                    ),
+                    inspect.Parameter(
+                        "q",
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=Annotated[Mapping[str, Any], Depends(list_dep)],
+                    ),
+                    inspect.Parameter(
+                        "db",
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=Annotated[Any, Depends(db_dep)],
+                    ),
+                ]
+            )
+            _endpoint.__signature__ = inspect.Signature(params)
         else:
 
             async def _endpoint(
                 request: Request,
                 db: Any = Depends(db_dep),
+                **kw: Any,
             ):
-                # clear: strict — ignore query/body entirely
-                payload: Mapping[str, Any] = {}
+                parent_kw = {k: kw[k] for k in nested_vars if k in kw}
+                payload: Mapping[str, Any] = dict(parent_kw)
                 ctx: Dict[str, Any] = {
                     "request": request,
                     "db": db,
                     "payload": payload,
-                    "path_params": {},
+                    "path_params": parent_kw,
                     "env": SimpleNamespace(
                         method=alias, params=payload, target=target, model=model
                     ),
@@ -575,6 +694,30 @@ def _make_collection_endpoint(
                     ctx=ctx,
                 )
                 return _serialize_output(model, alias, target, sp, result)
+
+            params = [
+                inspect.Parameter(
+                    nv,
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Annotated[str, Path(...)],
+                )
+                for nv in nested_vars
+            ]
+            params.extend(
+                [
+                    inspect.Parameter(
+                        "request",
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=Request,
+                    ),
+                    inspect.Parameter(
+                        "db",
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=Annotated[Any, Depends(db_dep)],
+                    ),
+                ]
+            )
+            _endpoint.__signature__ = inspect.Signature(params)
 
         _endpoint.__name__ = f"rest_{model.__name__}_{alias}_collection"
         _endpoint.__qualname__ = _endpoint.__name__
@@ -587,25 +730,34 @@ def _make_collection_endpoint(
     # --- Body-based collection endpoints: create / bulk_* ---
 
     body_model = _request_model_for(sp, model)
-    body_annotation = (
-        (body_model | None) if body_model is not None else (Mapping[str, Any] | None)
-    )
+    body_annotation = body_model if body_model is not None else Mapping[str, Any]
 
     async def _endpoint(
         request: Request,
         db: Any = Depends(db_dep),
-        body=Body(default=None),
+        body=Body(...),
+        **kw: Any,
     ):
+        parent_kw = {k: kw[k] for k in nested_vars if k in kw}
         payload = _validate_body(model, alias, target, body)
+        if parent_kw:
+            if isinstance(payload, Mapping):
+                payload = dict(payload)
+                payload.update(parent_kw)
+            else:
+                payload = parent_kw
         ctx: Dict[str, Any] = {
             "request": request,
             "db": db,
             "payload": payload,
-            "path_params": {},
+            "path_params": parent_kw,
             "env": SimpleNamespace(
                 method=alias, params=payload, target=target, model=model
             ),
         }
+        ctx["response_serializer"] = lambda r: _serialize_output(
+            model, alias, target, sp, r
+        )
         phases = _get_phase_chains(model, alias)
         result = await _executor._invoke(
             request=request,
@@ -613,7 +765,36 @@ def _make_collection_endpoint(
             phases=phases,
             ctx=ctx,
         )
-        return _serialize_output(model, alias, target, sp, result)
+        return result
+
+    params = [
+        inspect.Parameter(
+            nv,
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            annotation=Annotated[str, Path(...)],
+        )
+        for nv in nested_vars
+    ]
+    params.extend(
+        [
+            inspect.Parameter(
+                "request",
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                annotation=Request,
+            ),
+            inspect.Parameter(
+                "db",
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                annotation=Annotated[Any, Depends(db_dep)],
+            ),
+            inspect.Parameter(
+                "body",
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                annotation=Annotated[body_annotation, Body(...)],
+            ),
+        ]
+    )
+    _endpoint.__signature__ = inspect.Signature(params)
 
     _endpoint.__name__ = f"rest_{model.__name__}_{alias}_collection"
     _endpoint.__qualname__ = _endpoint.__name__
@@ -631,11 +812,13 @@ def _make_member_endpoint(
     resource: str,
     db_dep: Callable[..., Any],
     pk_param: str = "item_id",
+    nested_vars: Sequence[str] | None = None,
 ) -> Callable[..., Awaitable[Any]]:
     alias = sp.alias
     target = sp.target
     real_pk = _pk_name(model)
     pk_names = _pk_names(model)
+    nested_vars = list(nested_vars or [])
 
     # --- No body on GET read / DELETE delete ---
     if target in {"read", "delete"}:
@@ -644,18 +827,23 @@ def _make_member_endpoint(
             item_id: Any,
             request: Request,
             db: Any = Depends(db_dep),
+            **kw: Any,
         ):
-            payload: Mapping[str, Any] = {}  # no body
+            parent_kw = {k: kw[k] for k in nested_vars if k in kw}
+            payload: Mapping[str, Any] = dict(parent_kw)
+            path_params = {real_pk: item_id, pk_param: item_id, **parent_kw}
             ctx: Dict[str, Any] = {
                 "request": request,
                 "db": db,
                 "payload": payload,
-                # map generic item_id to real PK column name for handler resolution
-                "path_params": {real_pk: item_id, pk_param: item_id},
+                "path_params": path_params,
                 "env": SimpleNamespace(
                     method=alias, params=payload, target=target, model=model
                 ),
             }
+            ctx["response_serializer"] = lambda r: _serialize_output(
+                model, alias, target, sp, r
+            )
             phases = _get_phase_chains(model, alias)
             result = await _executor._invoke(
                 request=request,
@@ -663,7 +851,36 @@ def _make_member_endpoint(
                 phases=phases,
                 ctx=ctx,
             )
-            return _serialize_output(model, alias, target, sp, result)
+            return result
+
+        params = [
+            inspect.Parameter(
+                nv,
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                annotation=Annotated[str, Path(...)],
+            )
+            for nv in nested_vars
+        ]
+        params.extend(
+            [
+                inspect.Parameter(
+                    "item_id",
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Annotated[Any, Path(...)],
+                ),
+                inspect.Parameter(
+                    "request",
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Request,
+                ),
+                inspect.Parameter(
+                    "db",
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Annotated[Any, Depends(db_dep)],
+                ),
+            ]
+        )
+        _endpoint.__signature__ = inspect.Signature(params)
 
         _endpoint.__name__ = f"rest_{model.__name__}_{alias}_member"
         _endpoint.__qualname__ = _endpoint.__name__
@@ -673,19 +890,92 @@ def _make_member_endpoint(
         # NOTE: do NOT set body annotation for no-body endpoints
         return _endpoint
 
+    body_model = _request_model_for(sp, model)
+    if body_model is None and sp.request_model is None and target == "custom":
+
+        async def _endpoint(
+            item_id: Any,
+            request: Request,
+            db: Any = Depends(db_dep),
+            **kw: Any,
+        ):
+            parent_kw = {k: kw[k] for k in nested_vars if k in kw}
+            payload: Mapping[str, Any] = dict(parent_kw)
+            path_params = {real_pk: item_id, pk_param: item_id, **parent_kw}
+            ctx: Dict[str, Any] = {
+                "request": request,
+                "db": db,
+                "payload": payload,
+                "path_params": path_params,
+                "env": SimpleNamespace(
+                    method=alias, params=payload, target=target, model=model
+                ),
+            }
+            ctx["response_serializer"] = lambda r: _serialize_output(
+                model, alias, target, sp, r
+            )
+            phases = _get_phase_chains(model, alias)
+            result = await _executor._invoke(
+                request=request,
+                db=db,
+                phases=phases,
+                ctx=ctx,
+            )
+            return result
+
+        params = [
+            inspect.Parameter(
+                nv,
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                annotation=Annotated[str, Path(...)],
+            )
+            for nv in nested_vars
+        ]
+        params.extend(
+            [
+                inspect.Parameter(
+                    "item_id",
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Annotated[Any, Path(...)],
+                ),
+                inspect.Parameter(
+                    "request",
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Request,
+                ),
+                inspect.Parameter(
+                    "db",
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Annotated[Any, Depends(db_dep)],
+                ),
+            ]
+        )
+        _endpoint.__signature__ = inspect.Signature(params)
+
+        _endpoint.__name__ = f"rest_{model.__name__}_{alias}_member"
+        _endpoint.__qualname__ = _endpoint.__name__
+        _endpoint.__doc__ = (
+            f"REST member endpoint for {model.__name__}.{alias} ({target})"
+        )
+        return _endpoint
+
     # --- Body-based member endpoints: PATCH update / PUT replace (and custom member) ---
 
-    body_model = _request_model_for(sp, model)
-    body_annotation = (
-        (body_model | None) if body_model is not None else (Mapping[str, Any] | None)
-    )
+    if body_model is None:
+        body_annotation = Optional[Mapping[str, Any]]
+        body_default = Body(None)
+    else:
+        body_annotation = body_model
+        body_default = Body(...)
 
     async def _endpoint(
         item_id: Any,
         request: Request,
         db: Any = Depends(db_dep),
-        body=Body(default=None),
+        body=body_default,
+        **kw: Any,
     ):
+        parent_kw = {k: kw[k] for k in nested_vars if k in kw}
         payload = _validate_body(model, alias, target, body)
 
         # Enforce path-PK canonicality. If body echoes PK: drop if equal, 409 if mismatch.
@@ -696,19 +986,25 @@ def _make_member_endpoint(
                         status_code=_status.HTTP_409_CONFLICT,
                         detail=f"Identifier mismatch for '{k}': path={item_id}, body={payload[k]}",
                     )
-                # Drop any echoed PK fields from body
                 payload.pop(k, None)
         payload.pop(pk_param, None)
+        if parent_kw:
+            payload.update(parent_kw)
+
+        path_params = {real_pk: item_id, pk_param: item_id, **parent_kw}
 
         ctx: Dict[str, Any] = {
             "request": request,
             "db": db,
             "payload": payload,
-            "path_params": {real_pk: item_id, pk_param: item_id},
+            "path_params": path_params,
             "env": SimpleNamespace(
                 method=alias, params=payload, target=target, model=model
             ),
         }
+        ctx["response_serializer"] = lambda r: _serialize_output(
+            model, alias, target, sp, r
+        )
         phases = _get_phase_chains(model, alias)
         result = await _executor._invoke(
             request=request,
@@ -716,7 +1012,41 @@ def _make_member_endpoint(
             phases=phases,
             ctx=ctx,
         )
-        return _serialize_output(model, alias, target, sp, result)
+        return result
+
+    params = [
+        inspect.Parameter(
+            nv,
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            annotation=Annotated[str, Path(...)],
+        )
+        for nv in nested_vars
+    ]
+    params.extend(
+        [
+            inspect.Parameter(
+                "item_id",
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                annotation=Annotated[Any, Path(...)],
+            ),
+            inspect.Parameter(
+                "request",
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                annotation=Request,
+            ),
+            inspect.Parameter(
+                "db",
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                annotation=Annotated[Any, Depends(db_dep)],
+            ),
+            inspect.Parameter(
+                "body",
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                annotation=Annotated[body_annotation, body_default],
+            ),
+        ]
+    )
+    _endpoint.__signature__ = inspect.Signature(params)
 
     _endpoint.__name__ = f"rest_{model.__name__}_{alias}_member"
     _endpoint.__qualname__ = _endpoint.__name__
@@ -730,10 +1060,10 @@ def _make_member_endpoint(
 # ───────────────────────────────────────────────────────────────────────────────
 
 
-def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
+def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
     resource = _resource_name(model)
 
-    # Router-level deps: extra deps + auth dep (parity with RPC)
+    # Router-level deps: extra deps + auth dep (transport-only; never part of runtime plan)
     extra_router_deps = _normalize_deps(
         getattr(model, AUTOAPI_REST_DEPENDENCIES_ATTR, None)
     )
@@ -741,7 +1071,7 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
     if auth_dep:
         extra_router_deps += _normalize_deps([auth_dep])
 
-    router = APIRouter(dependencies=extra_router_deps or None)
+    router = Router(dependencies=extra_router_deps or None)
 
     pk_param = "item_id"
     db_dep = (
@@ -750,14 +1080,57 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
         or _req_state_db
     )
 
+    raw_nested = _nested_prefix(model) or ""
+    nested_pref = re.sub(r"/{2,}", "/", raw_nested).rstrip("/") or ""
+    nested_vars = re.findall(r"{(\w+)}", raw_nested)
+
+    # Register collection-level bulk routes before member routes so static paths
+    # like "/resource/bulk" aren't captured by dynamic member routes such as
+    # "/resource/{item_id}". FastAPI matches routes in the order they are
+    # added, so sorting here prevents "bulk" from being treated as an
+    # identifier.
+    specs = sorted(specs, key=lambda sp: (0 if sp.target.startswith("bulk_") else 1))
+
     for sp in specs:
         if not sp.expose_routes:
             continue
 
+        # Drop parent identifiers from request models when using nested paths
+        if nested_vars:
+            schemas_root = getattr(model, "schemas", None)
+            if schemas_root:
+                alias_ns = getattr(schemas_root, sp.alias, None)
+                if alias_ns:
+                    in_model = getattr(alias_ns, "in_", None)
+                    if (
+                        in_model
+                        and inspect.isclass(in_model)
+                        and issubclass(in_model, BaseModel)
+                    ):
+                        pruned = _strip_parent_fields(in_model, drop=set(nested_vars))
+                        setattr(alias_ns, "in_", pruned)
+
         # Determine path and membership
-        path, is_member = _path_for_spec(
-            model, sp, resource=resource, pk_param=pk_param
-        )
+        if nested_pref:
+            suffix = sp.path_suffix or _default_path_suffix(sp) or ""
+            if not suffix.startswith("/") and suffix:
+                suffix = "/" + suffix
+            base = nested_pref
+            if sp.arity == "member" or sp.target in {
+                "read",
+                "update",
+                "replace",
+                "delete",
+            }:
+                path = f"{base}/{{{pk_param}}}{suffix}"
+                is_member = True
+            else:
+                path = f"{base}{suffix}"
+                is_member = False
+        else:
+            path, is_member = _path_for_spec(
+                model, sp, resource=resource, pk_param=pk_param
+            )
 
         # HARDEN list.in_ at runtime to avoid bogus defaults blowing up empty GETs
         if sp.target == "list":
@@ -777,26 +1150,47 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
 
         # HTTP methods
         methods = list(sp.http_methods or _DEFAULT_METHODS.get(sp.target, ("POST",)))
-        response_model = _response_model_for(sp, model)
+        response_model = None  # Allow hooks to mutate response freely
 
         # Build endpoint (split by body/no-body)
         if is_member:
             endpoint = _make_member_endpoint(
-                model, sp, resource=resource, db_dep=db_dep, pk_param=pk_param
+                model,
+                sp,
+                resource=resource,
+                db_dep=db_dep,
+                pk_param=pk_param,
+                nested_vars=nested_vars,
             )
         else:
             endpoint = _make_collection_endpoint(
-                model, sp, resource=resource, db_dep=db_dep
+                model,
+                sp,
+                resource=resource,
+                db_dep=db_dep,
+                nested_vars=nested_vars,
             )
 
         # Status codes
-        status_code = _status_for(sp.target)
+        status_code = _status_for(sp)
+
+        # Capture OUT schema for OpenAPI without enforcing runtime validation
+        alias_ns = getattr(getattr(model, "schemas", None), sp.alias, None)
+        out_model = getattr(alias_ns, "out", None) if alias_ns else None
+
+        responses_meta = dict(_RESPONSES_META)
+        if out_model is not None and status_code != _status.HTTP_204_NO_CONTENT:
+            responses_meta[status_code] = {"model": out_model}
+            response_class = None
+        else:
+            responses_meta[status_code] = {"description": "Successful Response"}
+            response_class = Response
 
         # Attach route
         label = f"{model.__name__} - {sp.alias}"
-        router.add_api_route(
-            path,
-            endpoint,
+        route_kwargs = dict(
+            path=path,
+            endpoint=endpoint,
             methods=methods,
             name=f"{model.__name__}.{sp.alias}",
             summary=label,
@@ -805,8 +1199,11 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> APIRouter:
             status_code=status_code,
             # IMPORTANT: only class name here; never table name
             tags=list(sp.tags or (model.__name__,)),
-            responses=_RESPONSES_META,
+            responses=responses_meta,
         )
+        if response_class is not None:
+            route_kwargs["response_class"] = response_class
+        router.add_api_route(**route_kwargs)
 
         logger.debug(
             "rest: registered %s %s -> %s.%s (response_model=%s)",
@@ -829,7 +1226,7 @@ def build_router_and_attach(
     model: type, specs: Sequence[OpSpec], *, only_keys: Optional[Sequence[_Key]] = None
 ) -> None:
     """
-    Build an APIRouter for the model and attach it to `model.rest.router`.
+    Build a Router for the model and attach it to `model.rest.router`.
     For simplicity and correctness with FastAPI, we **rebuild the entire router**
     on each call (FastAPI does not support removing individual routes cleanly).
     """

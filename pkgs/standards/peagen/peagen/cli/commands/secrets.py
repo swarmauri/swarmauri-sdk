@@ -17,7 +17,7 @@ from typing import List, Optional
 
 import typer
 from autoapi_client import AutoAPIClient
-from autoapi.v2 import get_schema
+from autoapi.v3 import get_schema
 from peagen.orm import RepoSecret
 from peagen.core import secrets_core
 

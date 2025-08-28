@@ -1,10 +1,10 @@
 import pytest
 
-from autoapi.v2 import Base
-from autoapi.v2.types import Column, String, Field, ResponseExtrasProvider
-from autoapi.v2.mixins import GUIDPk
-from autoapi.v2.impl.schema import _schema
-from autoapi.v2.types.response_extras_provider import list_response_extras_providers
+from autoapi.v3 import Base
+from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.schema import _build_schema
+from autoapi.v3.types import Column, Field, ResponseExtrasProvider, String
+from autoapi.v3.types.response_extras_provider import list_response_extras_providers
 
 
 @pytest.mark.i9n
@@ -17,6 +17,6 @@ async def test_response_extras_provider_in_schema():
         name = Column(String, nullable=False)
         __autoapi_response_extras__ = {"read": {"extra": (int | None, Field(None))}}
 
-    SRead = _schema(Widget, verb="read")
+    SRead = _build_schema(Widget, verb="read")
     assert "extra" in SRead.model_fields
     assert Widget in list_response_extras_providers()

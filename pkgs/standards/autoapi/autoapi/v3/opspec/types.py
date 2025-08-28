@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import (
     Any,
     Awaitable,
@@ -18,13 +19,21 @@ from typing import (
 # Core aliases & enums
 # ───────────────────────────────────────────────────────────────────────────────
 
-PersistPolicy = Literal["default", "skip", "override"]          # TX policy
-Arity = Literal["collection", "member"]                          # HTTP path shape
+PersistPolicy = Literal["default", "skip", "override"]  # TX policy
+Arity = Literal["collection", "member"]  # HTTP path shape
 
 TargetOp = Literal[
-    "create", "read", "update", "replace", "delete",
-    "list", "clear",
-    "bulk_create", "bulk_update", "bulk_replace", "bulk_delete",
+    "create",
+    "read",
+    "update",
+    "replace",
+    "delete",
+    "list",
+    "clear",
+    "bulk_create",
+    "bulk_update",
+    "bulk_replace",
+    "bulk_delete",
     "custom",
 ]
 
@@ -34,23 +43,54 @@ VerbAliasPolicy = Literal["both", "alias_only", "canonical_only"]  # legacy expo
 # Runtime phases (align with runtime/executor.py)
 # ───────────────────────────────────────────────────────────────────────────────
 
+
+class PHASE(str, Enum):
+    PRE_TX_BEGIN = "PRE_TX_BEGIN"
+    START_TX = "START_TX"
+    PRE_HANDLER = "PRE_HANDLER"
+    HANDLER = "HANDLER"
+    POST_HANDLER = "POST_HANDLER"
+    PRE_COMMIT = "PRE_COMMIT"
+    END_TX = "END_TX"
+    POST_COMMIT = "POST_COMMIT"
+    POST_RESPONSE = "POST_RESPONSE"
+    ON_ERROR = "ON_ERROR"
+    ON_PRE_TX_BEGIN_ERROR = "ON_PRE_TX_BEGIN_ERROR"
+    ON_START_TX_ERROR = "ON_START_TX_ERROR"
+    ON_PRE_HANDLER_ERROR = "ON_PRE_HANDLER_ERROR"
+    ON_HANDLER_ERROR = "ON_HANDLER_ERROR"
+    ON_POST_HANDLER_ERROR = "ON_POST_HANDLER_ERROR"
+    ON_PRE_COMMIT_ERROR = "ON_PRE_COMMIT_ERROR"
+    ON_END_TX_ERROR = "ON_END_TX_ERROR"
+    ON_POST_COMMIT_ERROR = "ON_POST_COMMIT_ERROR"
+    ON_POST_RESPONSE_ERROR = "ON_POST_RESPONSE_ERROR"
+    ON_ROLLBACK = "ON_ROLLBACK"
+
+
 HookPhase = Literal[
-    "PRE_TX_BEGIN", "START_TX", "PRE_HANDLER", "HANDLER", "POST_HANDLER",
-    "PRE_COMMIT", "END_TX", "POST_COMMIT", "POST_RESPONSE",
-    "ON_ERROR", "ON_PRE_TX_BEGIN_ERROR", "ON_START_TX_ERROR",
-    "ON_PRE_HANDLER_ERROR", "ON_HANDLER_ERROR", "ON_POST_HANDLER_ERROR",
-    "ON_PRE_COMMIT_ERROR", "ON_END_TX_ERROR", "ON_POST_COMMIT_ERROR",
-    "ON_POST_RESPONSE_ERROR", "ON_ROLLBACK",
+    "PRE_TX_BEGIN",
+    "START_TX",
+    "PRE_HANDLER",
+    "HANDLER",
+    "POST_HANDLER",
+    "PRE_COMMIT",
+    "END_TX",
+    "POST_COMMIT",
+    "POST_RESPONSE",
+    "ON_ERROR",
+    "ON_PRE_TX_BEGIN_ERROR",
+    "ON_START_TX_ERROR",
+    "ON_PRE_HANDLER_ERROR",
+    "ON_HANDLER_ERROR",
+    "ON_POST_HANDLER_ERROR",
+    "ON_PRE_COMMIT_ERROR",
+    "ON_END_TX_ERROR",
+    "ON_POST_COMMIT_ERROR",
+    "ON_POST_RESPONSE_ERROR",
+    "ON_ROLLBACK",
 ]
 
-PHASES: Tuple[HookPhase, ...] = (
-    "PRE_TX_BEGIN", "START_TX", "PRE_HANDLER", "HANDLER", "POST_HANDLER",
-    "PRE_COMMIT", "END_TX", "POST_COMMIT", "POST_RESPONSE",
-    "ON_ERROR", "ON_PRE_TX_BEGIN_ERROR", "ON_START_TX_ERROR",
-    "ON_PRE_HANDLER_ERROR", "ON_HANDLER_ERROR", "ON_POST_HANDLER_ERROR",
-    "ON_PRE_COMMIT_ERROR", "ON_END_TX_ERROR", "ON_POST_COMMIT_ERROR",
-    "ON_POST_RESPONSE_ERROR", "ON_ROLLBACK",
-)
+PHASES: Tuple[HookPhase, ...] = tuple(p.value for p in PHASE)
 
 # ───────────────────────────────────────────────────────────────────────────────
 # Hook/handler function types
@@ -67,27 +107,33 @@ HookPredicate = Callable[[Any], bool]
 try:  # pragma: no cover
     from pydantic import BaseModel  # type: ignore
 except Exception:  # pragma: no cover
+
     class BaseModel:  # minimal stub for typing only
         pass
 
+
 SchemaKind = Literal["in", "out"]
+
 
 @dataclass(frozen=True, slots=True)
 class SchemaRef:
     """Lazy reference to `model.schemas.<alias>.(in_|out)`."""
+
     alias: str
     kind: SchemaKind = "in"
 
+
 SchemaArg = Union[
-    Type[BaseModel],                  # direct Pydantic model
-    SchemaRef,                        # cross-op reference
-    str,                              # "alias.in" | "alias.out"
-    Callable[[type], Type[BaseModel]] # lambda cls: cls.schemas.create.in_
+    Type[BaseModel],  # direct Pydantic model
+    SchemaRef,  # cross-op reference
+    str,  # "alias.in" | "alias.out"
+    Callable[[type], Type[BaseModel]],  # lambda cls: cls.schemas.create.in_
 ]
 
 # ───────────────────────────────────────────────────────────────────────────────
 # Hook & Spec dataclasses
 # ───────────────────────────────────────────────────────────────────────────────
+
 
 @dataclass(frozen=True, slots=True)
 class OpHook:
@@ -97,6 +143,7 @@ class OpHook:
     when: Optional[HookPredicate] = None
     name: Optional[str] = None
     description: Optional[str] = None
+
 
 @dataclass(frozen=True, slots=True)
 class OpSpec:
@@ -110,6 +157,7 @@ class OpSpec:
       - if model.schemas.<alias>.out exists → serialize
       - otherwise → raw pass-through
     """
+
     # Identity & exposure
     alias: str
     target: TargetOp
@@ -123,6 +171,7 @@ class OpSpec:
     http_methods: Optional[Tuple[str, ...]] = None
     path_suffix: Optional[str] = None
     tags: Tuple[str, ...] = field(default_factory=tuple)
+    status_code: Optional[int] = None
 
     # Persistence
     persist: PersistPolicy = "default"
@@ -130,6 +179,9 @@ class OpSpec:
     # Schema overrides (resolved later by binder)
     request_model: Optional[SchemaArg] = None
     response_model: Optional[SchemaArg] = None
+
+    # Return shaping: "raw" passthrough vs "model" serialization
+    returns: Literal["raw", "model"] = "raw"
 
     # Handler & hooks
     handler: Optional[StepFn] = None
@@ -141,11 +193,20 @@ class OpSpec:
     core_raw: Optional[StepFn] = None
     extra: Mapping[str, Any] = field(default_factory=dict)
 
+
 # Canonical verb set
 CANON: Tuple[TargetOp, ...] = (
-    "create", "read", "update", "replace", "delete",
-    "list", "clear",
-    "bulk_create", "bulk_update", "bulk_replace", "bulk_delete",
+    "create",
+    "read",
+    "update",
+    "replace",
+    "delete",
+    "list",
+    "clear",
+    "bulk_create",
+    "bulk_update",
+    "bulk_replace",
+    "bulk_delete",
     "custom",
 )
 
@@ -154,6 +215,7 @@ __all__ = [
     "Arity",
     "TargetOp",
     "VerbAliasPolicy",
+    "PHASE",
     "HookPhase",
     "PHASES",
     "Ctx",

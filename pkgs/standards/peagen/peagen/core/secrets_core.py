@@ -8,10 +8,11 @@ from pathlib import Path
 from typing import List, Optional
 
 from autoapi_client import AutoAPIClient
-from autoapi.v2 import get_schema
+from autoapi.v3 import get_schema
 from peagen.orm import RepoSecret, Worker
 
-from peagen.plugins.secret_drivers import AutoGpgDriver
+from peagen.plugins import PluginManager
+from peagen._utils.config_loader import resolve_cfg
 from peagen.defaults import DEFAULT_GATEWAY
 
 STORE_FILE = Path.home() / ".peagen" / "secret_store.json"
@@ -64,24 +65,40 @@ def _save(data: dict) -> None:
     STORE_FILE.write_text(json.dumps(data, indent=2))
 
 
+def _get_crypto():
+    """Return a cryptography plugin instance.
+
+    Falls back to ``swarmauri_crypto_pgp.PGPCrypto`` when no plugin is configured.
+    """
+    cfg = resolve_cfg()
+    pm = PluginManager(cfg)
+    try:
+        return pm.get("cryptos")
+    except KeyError:
+        from swarmauri_crypto_pgp import PGPCrypto
+
+        return PGPCrypto()
+
+
 # ─────────────────────── local-only secrets ***************************
 def add_local_secret(
     name: str, value: str, recipients: List[Path] | None = None
 ) -> None:
-    drv = AutoGpgDriver()
-    pubkeys = [p.read_text() for p in recipients or []] + [drv.pub_path.read_text()]
-    cipher = drv.encrypt(value.encode(), list(set(pubkeys))).decode()
+    crypto = _get_crypto()
+    pubkeys = [p.read_text() for p in recipients or []]
+    pubkeys.append(crypto.public_key_str())
+    cipher = crypto.encrypt_for_text(list(set(pubkeys)), value).decode()
     data = _load()
     data[name] = cipher
     _save(data)
 
 
 def get_local_secret(name: str) -> str:
-    drv = AutoGpgDriver()
+    crypto = _get_crypto()
     val = _load().get(name)
     if val is None:
         raise KeyError(f"Secret '{name}' not found in local store.")
-    return drv.decrypt(val.encode()).decode()
+    return crypto.decrypt_text(val.encode())
 
 
 def remove_local_secret(name: str) -> None:
@@ -100,12 +117,12 @@ def add_remote_secret(
     recipients: List[Path] | None = None,
     pool: str = "default",
 ) -> dict:
-    drv = AutoGpgDriver()
+    crypto = _get_crypto()
     pubs = [p.read_text() for p in recipients or []]
-    pubs.append(drv.pub_path.read_text())
+    pubs.append(crypto.public_key_str())
     pubs.extend(_pool_worker_pubs(pool, gateway_url))
 
-    cipher = drv.encrypt(value.encode(), list(set(pubs))).decode()
+    cipher = crypto.encrypt_for_text(list(set(pubs)), value).decode()
     SCreate = _schema(RepoSecret, "create")
     SRead = _schema(RepoSecret, "read")
 
@@ -120,7 +137,7 @@ def get_remote_secret(
     secret_id: str,
     gateway_url: str = DEFAULT_GATEWAY,
 ) -> str:
-    drv = AutoGpgDriver()
+    crypto = _get_crypto()
     SDel = _schema(RepoSecret, "delete")  # only primary key (name)
     SRead = _schema(RepoSecret, "read")
 
@@ -130,7 +147,7 @@ def get_remote_secret(
     if not res.cipher:
         raise ValueError("RepoSecret not found or is empty.")
 
-    return drv.decrypt(res.cipher.encode()).decode()
+    return crypto.decrypt_text(res.cipher.encode())
 
 
 def remove_remote_secret(

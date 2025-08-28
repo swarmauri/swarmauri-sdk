@@ -5,31 +5,34 @@ Tests all mixins and their expected behavior using individual DummyModel instanc
 """
 
 import pytest
-from datetime import datetime, timedelta
-from sqlalchemy import Column, String
+from datetime import datetime, timedelta, timezone
+from autoapi.v3.types import Column, String, uuid4
 
-from autoapi.v2.mixins import GUIDPk
-from autoapi.v2.mixins import (
-    Timestamped,
-    Created,
-    LastUsed,
+from autoapi.v3 import Base
+from autoapi.v3.mixins import (
     ActiveToggle,
-    SoftDelete,
-    Versioned,
-    BulkCapable,
-    Replaceable,
     AsyncCapable,
     Audited,
-    Streamable,
-    Slugged,
-    StatusMixin,
-    ValidityWindow,
-    Monetary,
+    BulkCapable,
+    Created,
     ExtRef,
+    GUIDPk,
+    LastUsed,
     MetaJSON,
+    Monetary,
     RelationEdge,
+    Replaceable,
+    Slugged,
+    SoftDelete,
+    StatusMixin,
+    Streamable,
+    Timestamped,
+    ValidityWindow,
+    Versioned,
+    tzutcnow,
+    tzutcnow_plus_day,
 )
-from autoapi.v2 import Base, get_schema
+from autoapi.v3.schema import _build_schema
 
 
 class DummyModelTimestamped(Base, GUIDPk, Timestamped):
@@ -144,15 +147,13 @@ async def test_timestamped_mixin(create_test_api):
     create_test_api(DummyModelTimestamped)
 
     # Get schemas
-    create_schema = get_schema(DummyModelTimestamped, "create")
-    read_schema = get_schema(DummyModelTimestamped, "read")
-    update_schema = get_schema(DummyModelTimestamped, "update")
+    create_schema = _build_schema(DummyModelTimestamped, verb="create")
+    read_schema = _build_schema(DummyModelTimestamped, verb="read")
+    update_schema = _build_schema(DummyModelTimestamped, verb="update")
 
-    # created_at and updated_at should be in read schema
+    # created_at and updated_at are read-only and appear only in read schema
     assert "created_at" in read_schema.model_fields
     assert "updated_at" in read_schema.model_fields
-
-    # created_at and updated_at should NOT be in create/update schemas (no_create, no_update)
     assert "created_at" not in create_schema.model_fields
     assert "updated_at" not in create_schema.model_fields
     assert "created_at" not in update_schema.model_fields
@@ -171,13 +172,11 @@ async def test_created_mixin(create_test_api):
     create_test_api(DummyModelCreated)
 
     # Get schemas
-    create_schema = get_schema(DummyModelCreated, "create")
-    read_schema = get_schema(DummyModelCreated, "read")
+    create_schema = _build_schema(DummyModelCreated, verb="create")
+    read_schema = _build_schema(DummyModelCreated, verb="read")
 
-    # created_at should be in read schema
+    # created_at is read-only and only present in read schema
     assert "created_at" in read_schema.model_fields
-
-    # created_at should NOT be in create schema (no_create)
     assert "created_at" not in create_schema.model_fields
 
 
@@ -188,7 +187,7 @@ async def test_last_used_mixin(create_test_api):
     create_test_api(DummyModelLastUsed)
 
     # Get schemas
-    read_schema = get_schema(DummyModelLastUsed, "read")
+    read_schema = _build_schema(DummyModelLastUsed, verb="read")
 
     # last_used_at should be in read schema
     assert "last_used_at" in read_schema.model_fields
@@ -212,8 +211,8 @@ async def test_active_toggle_mixin(create_test_api):
     create_test_api(DummyModelActiveToggle)
 
     # Get schemas
-    create_schema = get_schema(DummyModelActiveToggle, "create")
-    read_schema = get_schema(DummyModelActiveToggle, "read")
+    create_schema = _build_schema(DummyModelActiveToggle, verb="create")
+    read_schema = _build_schema(DummyModelActiveToggle, verb="read")
 
     # is_active should be in schemas
     assert "is_active" in create_schema.model_fields
@@ -231,7 +230,7 @@ async def test_soft_delete_mixin(create_test_api):
     create_test_api(DummyModelSoftDelete)
 
     # Get schemas
-    read_schema = get_schema(DummyModelSoftDelete, "read")
+    read_schema = _build_schema(DummyModelSoftDelete, verb="read")
 
     # deleted_at should be in read schema
     assert "deleted_at" in read_schema.model_fields
@@ -244,8 +243,8 @@ async def test_versioned_mixin(create_test_api):
     create_test_api(DummyModelVersioned)
 
     # Get schemas
-    create_schema = get_schema(DummyModelVersioned, "create")
-    read_schema = get_schema(DummyModelVersioned, "read")
+    create_schema = _build_schema(DummyModelVersioned, verb="create")
+    read_schema = _build_schema(DummyModelVersioned, verb="read")
 
     # revision and prev_id should be in schemas
     assert "revision" in read_schema.model_fields
@@ -266,9 +265,8 @@ async def test_bulk_capable_mixin(create_test_api):
     routes = [route.path for route in api.router.routes]
 
     # Should have bulk create and bulk delete routes
-    assert "/dummy_model_bulk_capable/bulk" in [
-        route for route in routes if "/bulk" in route
-    ]
+    expected_path = f"/{DummyModelBulkCapable.__name__.lower()}/bulk"
+    assert expected_path in [route for route in routes if "/bulk" in route]
 
 
 @pytest.mark.i9n
@@ -278,8 +276,8 @@ async def test_replaceable_mixin(create_test_api):
     create_test_api(DummyModelReplaceable)
 
     # Get schemas
-    create_schema = get_schema(DummyModelReplaceable, "create")
-    read_schema = get_schema(DummyModelReplaceable, "read")
+    create_schema = _build_schema(DummyModelReplaceable, verb="create")
+    read_schema = _build_schema(DummyModelReplaceable, verb="read")
 
     # Should have basic fields
     assert "name" in create_schema.model_fields
@@ -299,7 +297,7 @@ async def test_async_capable_mixin(create_test_api):
     create_test_api(DummyModelAsyncCapable)
 
     # Get schemas
-    read_schema = get_schema(DummyModelAsyncCapable, "read")
+    read_schema = _build_schema(DummyModelAsyncCapable, verb="read")
 
     # AsyncCapable is a marker mixin - doesn't add fields
     expected_fields = {"id", "name"}
@@ -314,8 +312,8 @@ async def test_slugged_mixin(create_test_api):
     create_test_api(DummyModelSlugged)
 
     # Get schemas
-    create_schema = get_schema(DummyModelSlugged, "create")
-    read_schema = get_schema(DummyModelSlugged, "read")
+    create_schema = _build_schema(DummyModelSlugged, verb="create")
+    read_schema = _build_schema(DummyModelSlugged, verb="read")
 
     # slug should be in schemas
     assert "slug" in create_schema.model_fields
@@ -329,8 +327,8 @@ async def test_status_mixin(create_test_api):
     create_test_api(DummyModelStatusMixin)
 
     # Get schemas
-    create_schema = get_schema(DummyModelStatusMixin, "create")
-    read_schema = get_schema(DummyModelStatusMixin, "read")
+    create_schema = _build_schema(DummyModelStatusMixin, verb="create")
+    read_schema = _build_schema(DummyModelStatusMixin, verb="read")
 
     # status should be in schemas
     assert "status" in create_schema.model_fields
@@ -348,8 +346,8 @@ async def test_validity_window_mixin(create_test_api):
     create_test_api(DummyModelValidityWindow)
 
     # Get schemas
-    create_schema = get_schema(DummyModelValidityWindow, "create")
-    read_schema = get_schema(DummyModelValidityWindow, "read")
+    create_schema = _build_schema(DummyModelValidityWindow, verb="create")
+    read_schema = _build_schema(DummyModelValidityWindow, verb="read")
 
     # validity fields should be in schemas
     assert "valid_from" in create_schema.model_fields
@@ -364,11 +362,13 @@ async def test_validity_window_default(create_test_api):
     api = create_test_api(DummyModelValidityWindow)
     session = next(api.get_db())
     try:
-        instance = DummyModelValidityWindow(name="x")
+        vf_default = tzutcnow()
+        vt_default = tzutcnow_plus_day()
+        instance = DummyModelValidityWindow(
+            id=uuid4(), name="x", valid_from=vf_default, valid_to=vt_default
+        )
         session.add(instance)
         session.flush()
-        vf_default = instance.valid_from
-        vt_default = instance.valid_to
     finally:
         session.close()
     assert vf_default is not None
@@ -378,13 +378,33 @@ async def test_validity_window_default(create_test_api):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
+async def test_tzutcnow():
+    """tzutcnow returns an aware UTC datetime close to current time."""
+    now = tzutcnow()
+    assert now.tzinfo == timezone.utc
+    assert abs(now - datetime.now(timezone.utc)) < timedelta(seconds=1)
+
+
+@pytest.mark.i9n
+@pytest.mark.asyncio
+async def test_tzutcnow_plus_day():
+    """tzutcnow_plus_day returns an aware UTC datetime one day ahead."""
+    now = tzutcnow()
+    future = tzutcnow_plus_day()
+    assert future.tzinfo == timezone.utc
+    assert future > now
+    assert abs((future - now) - timedelta(days=1)) < timedelta(seconds=1)
+
+
+@pytest.mark.i9n
+@pytest.mark.asyncio
 async def test_monetary_mixin(create_test_api):
     """Test that Monetary mixin adds currency and amount fields."""
     create_test_api(DummyModelMonetary)
 
     # Get schemas
-    create_schema = get_schema(DummyModelMonetary, "create")
-    read_schema = get_schema(DummyModelMonetary, "read")
+    create_schema = _build_schema(DummyModelMonetary, verb="create")
+    read_schema = _build_schema(DummyModelMonetary, verb="read")
 
     # monetary fields should be in schemas
     assert "currency" in create_schema.model_fields
@@ -404,8 +424,8 @@ async def test_ext_ref_mixin(create_test_api):
     create_test_api(DummyModelExtRef)
 
     # Get schemas
-    create_schema = get_schema(DummyModelExtRef, "create")
-    read_schema = get_schema(DummyModelExtRef, "read")
+    create_schema = _build_schema(DummyModelExtRef, verb="create")
+    read_schema = _build_schema(DummyModelExtRef, verb="read")
 
     # external_id should be in schemas
     assert "external_id" in create_schema.model_fields
@@ -420,8 +440,8 @@ async def test_meta_json_mixin(create_test_api):
     create_test_api(DummyModelMetaJSON)
 
     # Get schemas
-    create_schema = get_schema(DummyModelMetaJSON, "create")
-    read_schema = get_schema(DummyModelMetaJSON, "read")
+    create_schema = _build_schema(DummyModelMetaJSON, verb="create")
+    read_schema = _build_schema(DummyModelMetaJSON, verb="read")
 
     # meta should be in schemas
     assert "meta" in create_schema.model_fields
@@ -455,7 +475,7 @@ async def test_marker_mixins(create_test_api):
     for model in marker_models:
         create_test_api(model)
 
-        read_schema = get_schema(model, "read")
+        read_schema = _build_schema(model, verb="read")
 
         # Should only have id and name fields (no extra fields from marker mixins)
         expected_fields = {"id", "name"}
@@ -477,8 +497,8 @@ async def test_multiple_mixins_combination(create_test_api):
     create_test_api(DummyMultipleMixins)
 
     # Get schemas
-    create_schema = get_schema(DummyMultipleMixins, "create")
-    read_schema = get_schema(DummyMultipleMixins, "read")
+    create_schema = _build_schema(DummyMultipleMixins, verb="create")
+    read_schema = _build_schema(DummyMultipleMixins, verb="read")
 
     # Should have fields from all mixins
     # From ActiveToggle
@@ -493,7 +513,7 @@ async def test_multiple_mixins_combination(create_test_api):
     assert "status" in create_schema.model_fields
     assert "status" in read_schema.model_fields
 
-    # From Timestamped (only in read schema due to no_create, no_update)
+    # From Timestamped - read-only fields should only appear in read schema
     assert "created_at" not in create_schema.model_fields
     assert "updated_at" not in create_schema.model_fields
     assert "created_at" in read_schema.model_fields

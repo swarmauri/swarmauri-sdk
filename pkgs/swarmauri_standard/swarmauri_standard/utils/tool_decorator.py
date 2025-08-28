@@ -1,5 +1,5 @@
 import inspect
-from typing import get_type_hints, List, Any
+from typing import Annotated, Any, List, get_origin, get_type_hints
 from pydantic import Field
 
 from swarmauri_standard.tools.Parameter import Parameter
@@ -22,13 +22,18 @@ def tool(func):
 
     # Inspect the function signature for parameter names, defaults, etc.
     signature = inspect.signature(func)
-    type_hints = get_type_hints(func)
+    type_hints = get_type_hints(func, include_extras=True)
 
     # Build the list of Parameter objects from the function signature
     parameters_list: List[Parameter] = []
     for param_name, param in signature.parameters.items():
         # If the parameter has a type annotation, grab it; otherwise use "string" as default
         annotated_type = type_hints.get(param_name, str)
+        origin = get_origin(annotated_type)
+        if origin is Annotated:
+            input_type = "Annotated"
+        else:
+            input_type = getattr(annotated_type, "__name__", str(annotated_type))
 
         # Derive a required flag by checking if the parameter has a default
         required = param.default == inspect.Parameter.empty
@@ -37,7 +42,7 @@ def tool(func):
         parameters_list.append(
             Parameter(
                 name=param_name,
-                input_type=annotated_type.__name__,  # Convert to lowercase
+                input_type=input_type,
                 description=f"Parameter for {param_name}",
                 required=required,
             )

@@ -37,6 +37,7 @@ markers = [
     "r8n: Regression tests",
     "acceptance: Acceptance tests",
     "perf: Performance tests",
+    "example: Example usage tests",
 ]
 timeout = 300
 log_cli = true
@@ -64,7 +65,7 @@ dev = [
 ParamikoCrypto = "swarmauri_crypto_paramiko:ParamikoCrypto"
 
 [project.entry-points."peagen.plugins.cryptos"]
-paramiko = "swarmauri_crypto_paramiko:ParamikoCrypto"
+paramiko_crypto = "swarmauri_crypto_paramiko:ParamikoCrypto"
 
 
 

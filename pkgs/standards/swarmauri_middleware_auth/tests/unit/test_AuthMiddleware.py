@@ -5,10 +5,12 @@ Unit tests for AuthMiddleware with JWT authentication.
 import time
 from unittest.mock import AsyncMock, Mock
 
-import jwt
+import asyncio
 import pytest
 from fastapi import HTTPException, Request
-from swarmauri_middleware_auth.AuthMiddleware import AuthMiddleware
+from swarmauri_core.crypto.types import JWAAlg
+from swarmauri_signing_jws import JwsSignerVerifier
+from swarmauri_middleware_auth.AuthMiddleware import AuthMiddleware, InvalidTokenError
 
 
 @pytest.fixture
@@ -43,6 +45,20 @@ def auth_middleware_with_audience(secret_key):
     )
 
 
+_signer = JwsSignerVerifier()
+
+
+def _make_token(payload: dict, secret: str) -> str:
+    return asyncio.run(
+        _signer.sign_compact(
+            payload=payload,
+            alg=JWAAlg.HS256,
+            key={"kind": "raw", "key": secret, "alg": "HS256"},
+            typ="JWT",
+        )
+    )
+
+
 @pytest.fixture
 def valid_token(secret_key):
     """Fixture providing a valid JWT token."""
@@ -53,7 +69,7 @@ def valid_token(secret_key):
         "name": "Test User",
         "role": "user",
     }
-    return jwt.encode(payload, secret_key, algorithm="HS256")
+    return _make_token(payload, secret_key)
 
 
 @pytest.fixture
@@ -66,7 +82,7 @@ def expired_token(secret_key):
         "name": "Test User",
         "role": "user",
     }
-    return jwt.encode(payload, secret_key, algorithm="HS256")
+    return _make_token(payload, secret_key)
 
 
 @pytest.fixture
@@ -80,7 +96,7 @@ def invalid_signature_token(secret_key):
         "role": "user",
     }
     # Use a different secret key to create invalid signature
-    return jwt.encode(payload, "wrong-secret-key", algorithm="HS256")
+    return _make_token(payload, "wrong-secret-key")
 
 
 @pytest.fixture
@@ -95,7 +111,7 @@ def token_with_audience(secret_key):
         "name": "Test User",
         "role": "user",
     }
-    return jwt.encode(payload, secret_key, algorithm="HS256")
+    return _make_token(payload, secret_key)
 
 
 @pytest.fixture
@@ -292,7 +308,7 @@ class TestAuthMiddleware:
 
     def test_validate_jwt_token_valid(self, auth_middleware, valid_token):
         """Test _validate_jwt_token with valid token."""
-        payload = auth_middleware._validate_jwt_token(valid_token)
+        payload = asyncio.run(auth_middleware._validate_jwt_token(valid_token))
 
         assert payload["sub"] == "user123"
         assert payload["name"] == "Test User"
@@ -302,15 +318,17 @@ class TestAuthMiddleware:
 
     def test_validate_jwt_token_expired(self, auth_middleware, expired_token):
         """Test _validate_jwt_token with expired token."""
-        with pytest.raises(jwt.ExpiredSignatureError):
-            auth_middleware._validate_jwt_token(expired_token)
+        with pytest.raises(HTTPException) as exc_info:
+            asyncio.run(auth_middleware._validate_jwt_token(expired_token))
+        assert "Token has expired" in exc_info.value.detail
 
     def test_validate_jwt_token_invalid_signature(
         self, auth_middleware, invalid_signature_token
     ):
         """Test _validate_jwt_token with invalid signature."""
-        with pytest.raises(jwt.InvalidSignatureError):
-            auth_middleware._validate_jwt_token(invalid_signature_token)
+        with pytest.raises(HTTPException) as exc_info:
+            asyncio.run(auth_middleware._validate_jwt_token(invalid_signature_token))
+        assert "Invalid token signature" in exc_info.value.detail
 
     def test_validate_custom_claims_valid(self, auth_middleware, secret_key):
         """Test _validate_custom_claims with valid payload."""
@@ -332,7 +350,7 @@ class TestAuthMiddleware:
             "name": "Test User",
         }
 
-        with pytest.raises(jwt.InvalidTokenError, match="Missing required claim: sub"):
+        with pytest.raises(InvalidTokenError, match="Missing required claim: sub"):
             auth_middleware._validate_custom_claims(payload)
 
     def test_validate_custom_claims_missing_iat(self, auth_middleware):
@@ -343,7 +361,7 @@ class TestAuthMiddleware:
             "name": "Test User",
         }
 
-        with pytest.raises(jwt.InvalidTokenError, match="Missing required claim: iat"):
+        with pytest.raises(InvalidTokenError, match="Missing required claim: iat"):
             auth_middleware._validate_custom_claims(payload)
 
     def test_verify_token_manually_valid(self, auth_middleware, valid_token):

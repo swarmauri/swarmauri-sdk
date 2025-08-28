@@ -8,7 +8,7 @@ from typing import Optional
 import typer
 from httpx import HTTPError
 
-from peagen.plugins.cryptos import ParamikoCrypto
+from peagen.core import keys_core
 from peagen.core.publickey_core import login as core_login
 from peagen.defaults import DEFAULT_GATEWAY
 
@@ -40,7 +40,7 @@ def create(
 ) -> None:
     """Ensure a key-pair exists locally."""
     try:
-        ParamikoCrypto(key_dir=key_dir, passphrase=passphrase)
+        keys_core.create_keypair(key_dir, passphrase)
         typer.echo(f"✅  Created key-pair in {key_dir}")
     except Exception as exc:  # noqa: BLE001
         typer.echo(f"❌  {exc}", err=True)
@@ -74,8 +74,6 @@ def upload(
     gateway_url = gateway_url.rstrip("/")
     if not gateway_url.endswith("/rpc"):
         gateway_url += "/rpc"
-
-    ParamikoCrypto(key_dir=key_dir, passphrase=passphrase)
 
     try:
         reply = core_login(

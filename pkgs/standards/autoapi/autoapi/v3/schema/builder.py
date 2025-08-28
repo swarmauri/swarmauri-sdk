@@ -4,7 +4,6 @@ Schema building for AutoAPI v3.
 
 Builds verb-specific Pydantic models from SQLAlchemy ORM classes, with:
 • Column.info["autoapi"] support (read_only, disable_on, no_update, write_only, default_factory, examples)
-• Hybrid @hybrid_property *opt-in* via meta["hybrid"]
 • Request-only virtual fields via __autoapi_request_extras__
 • Response-only virtual fields via __autoapi_response_extras__
 • A small cache keyed by (orm_cls, verb, include, exclude)
@@ -15,6 +14,7 @@ from __future__ import annotations
 
 import logging
 import uuid
+import warnings
 from typing import (
     Any,
     Dict,
@@ -28,7 +28,7 @@ from typing import (
     get_type_hints,
 )
 
-from pydantic import BaseModel, ConfigDict, Field, create_model
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, create_model
 
 from .utils import namely_model
 
@@ -200,8 +200,16 @@ def _is_required(col: Any, verb: str) -> bool:
     - PK is required for update/replace/delete
     - otherwise, nullable or server/default determines optionality
     """
+    # Primary keys remain required for mutating verbs so the row can be
+    # identified. For ``update`` operations however, other fields should be
+    # optional to support partial updates. Previously non-nullable columns were
+    # always marked as required which caused validation errors for payloads that
+    # omitted untouched fields.
     if getattr(col, "primary_key", False) and verb in {"update", "replace", "delete"}:
         return True
+    if verb == "update":
+        # Allow partial updates by treating non-PK fields as optional.
+        return False
     is_nullable = bool(getattr(col, "nullable", True))
     has_default = (getattr(col, "default", None) is not None) or (
         getattr(col, "server_default", None) is not None
@@ -225,16 +233,15 @@ def _build_schema(
     """
     Build (and cache) a verb-specific Pydantic schema from *orm_cls*,
     ignoring relationships entirely. Columns come directly from __table__.columns
-    (ColumnProperty only). Hybrids are handled in a separate pass.
+    (ColumnProperty only).
 
-    Supported metadata on columns or hybrids:
+    Supported metadata on columns:
       • Column.info["autoapi"] with keys:
         - read_only   : bool | Iterable[str] | Mapping[str,bool]
         - write_only  : bool (hidden from read schemas)
         - disable_on  : Iterable[str] (verbs)
         - no_update   : legacy flag (treated like disable_on={"update","replace"})
         - default_factory, examples
-      • Hybrid opt-in via meta["hybrid"] on the hybrid itself (.info["autoapi"])
       • __autoapi_request_extras__ / __autoapi_response_extras__ on the ORM class
     """
     cache_key = (orm_cls, verb, frozenset(include or ()), frozenset(exclude or ()))
@@ -255,6 +262,9 @@ def _build_schema(
     # ── PASS 1: table-backed columns only (avoid mapper relationships)
     table = getattr(orm_cls, "__table__", None)
     table_cols: Iterable[Any] = tuple(table.columns) if table is not None else ()
+    specs: Dict[str, Any] = {}
+    specs.update(getattr(orm_cls, "__autoapi_colspecs__", {}))
+    specs.update(getattr(orm_cls, "__autoapi_cols__", {}))
 
     for col in table_cols:
         attr_name = col.key or col.name
@@ -264,8 +274,44 @@ def _build_schema(
         if exclude and attr_name in exclude:
             continue
 
+        spec = specs.get(attr_name)
+        io = getattr(spec, "io", None) if spec is not None else None
+        if verb in {"create", "update", "replace"}:
+            """Determine if the column participates in inbound verbs.
+
+            When a ColumnSpec is present it may explicitly restrict the verbs a
+            field accepts via ``io.in_verbs``.  Previous behaviour treated the
+            absence of this specification as "deny all", which caused models
+            without explicit ColumnSpec declarations to generate empty request
+            schemas.  Here we interpret a missing ``io`` or ``in_verbs`` as
+            allowing all verbs, only filtering when the spec explicitly lists
+            them.
+            """
+
+            if getattr(col, "primary_key", False) and verb in {
+                "update",
+                "replace",
+                "delete",
+            }:
+                # Always expose the PK for mutating operations even when the
+                # ColumnSpec omits inbound verbs. The identifier is required so
+                # consumers can target the correct row.
+                pass
+            else:
+                allowed_verbs = (
+                    getattr(io, "in_verbs", None) if io is not None else None
+                )
+                if allowed_verbs is not None and verb not in set(allowed_verbs):
+                    continue
+
         # Column.info["autoapi"]
         meta_src = getattr(col, "info", {}) or {}
+        if isinstance(meta_src, Mapping) and "autoapi" in meta_src:
+            warnings.warn(
+                "col.info['autoapi'] is deprecated and support will be removed; behavior is no longer guaranteed for col.info['autoapi'] based column configuration.",
+                DeprecationWarning,
+                stacklevel=5,
+            )
         meta = (meta_src.get("autoapi") if isinstance(meta_src, dict) else None) or {}
         _info_check(meta, attr_name, orm_cls.__name__)
         logger.debug("schema: processing column %s (verb=%s)", attr_name, verb)
@@ -301,62 +347,112 @@ def _build_schema(
         py_t = _python_type(col)
         required = _is_required(col, verb)
 
-        # Field construction
+        # Field construction (collect kwargs then create Field once)
+        field_kwargs: Dict[str, Any] = {}
         if "default_factory" in meta:
-            fld = Field(default_factory=meta["default_factory"])
+            field_kwargs["default_factory"] = meta["default_factory"]
             required = False
         else:
-            fld = Field(None if not required else ...)
+            field_kwargs["default"] = None if not required else ...
 
         if "examples" in meta:
-            fld = Field(fld.default, examples=meta["examples"])
+            field_kwargs["examples"] = meta["examples"]
+
+        # IOSpec aliases → Pydantic validation/serialization aliases
+        alias_in = getattr(io, "alias_in", None) if io is not None else None
+        alias_out = getattr(io, "alias_out", None) if io is not None else None
+        if alias_in:
+            field_kwargs["validation_alias"] = AliasChoices(alias_in, attr_name)
+        if alias_out:
+            field_kwargs["serialization_alias"] = alias_out
+
+        fld = Field(**field_kwargs)
 
         # Optional typing if nullable
         is_nullable = bool(getattr(col, "nullable", True))
         if is_nullable and py_t is not Any:
             py_t = Union[py_t, None]
 
+        # Apply alias mappings for IO specs so that generated Pydantic models
+        # accept both the canonical field name and any configured alias. This
+        # ensures request payloads can use ``alias_in`` and response models use
+        # ``alias_out`` while still normalizing to the canonical attribute name
+        # internally.
+        if io is not None:
+            if verb in {"read", "list"}:
+                alias = getattr(io, "alias_out", None)
+            else:
+                alias = getattr(io, "alias_in", None)
+            if alias:
+                fld.alias = alias
+                fld.serialization_alias = alias
+                fld.validation_alias = AliasChoices(attr_name, alias)
+
         _add_field(fields, name=attr_name, py_t=py_t, field=fld)
         logger.debug(
             "schema: added field %s required=%s type=%r", attr_name, required, py_t
         )
 
-    # ── PASS 2: @hybrid_property (opt-in via meta["hybrid"])
-    for attr_name, attr in list(getattr(orm_cls, "__dict__", {}).items()):
-        if not isinstance(attr, hybrid_property):
-            continue
-
+    # ── PASS 1b: virtual columns declared via ColumnSpec --------------------
+    for attr_name, spec in specs.items():
+        if getattr(spec, "storage", None) is not None:
+            continue  # real columns handled above
         if include and attr_name not in include:
             continue
         if exclude and attr_name in exclude:
             continue
 
-        meta_src = getattr(attr, "info", {}) or {}
-        meta = (meta_src.get("autoapi") if isinstance(meta_src, dict) else None) or {}
-
-        # hybrids must explicitly opt-in
-        if not meta.get("hybrid"):
+        io = getattr(spec, "io", None)
+        allowed_verbs = set(getattr(io, "in_verbs", ()) or ()) | set(
+            getattr(io, "out_verbs", ()) or ()
+        )
+        if allowed_verbs and verb not in allowed_verbs:
             continue
 
-        # Write-phase without setter is not usable
-        if getattr(attr, "fset", None) is None and verb in {
-            "create",
-            "update",
-            "replace",
-        }:
-            continue
+        fs = getattr(spec, "field", None)
+        py_t = getattr(fs, "py_type", Any) if fs is not None else Any
+        required = bool(fs and verb in getattr(fs, "required_in", ()))
+        allow_null = bool(fs and verb in getattr(fs, "allow_null_in", ()))
+        field_kwargs: Dict[str, Any] = dict(getattr(fs, "constraints", {}) or {})
 
-        py_t = getattr(attr, "python_type", meta.get("py_type", Any))
-        if "default_factory" in meta:
-            fld = Field(default_factory=meta["default_factory"])
+        default_factory = getattr(spec, "default_factory", None)
+        if default_factory and verb in set(getattr(spec.io, "in_verbs", []) or []):
+            field_kwargs["default_factory"] = default_factory
+            required = False
         else:
-            fld = Field(None)
+            field_kwargs["default"] = None if not required else ...
 
-        if "examples" in meta:
-            fld = Field(fld.default, examples=meta["examples"])
+        fld = Field(**field_kwargs)
+
+        if allow_null and py_t is not Any:
+            py_t = Union[py_t, None]
 
         _add_field(fields, name=attr_name, py_t=py_t, field=fld)
-        logger.debug("schema: added hybrid field %s type=%r", attr_name, py_t)
+        logger.debug(
+            "schema: added virtual field %s required=%s type=%r",
+            attr_name,
+            required,
+            py_t,
+        )
+
+    # ── PASS 2: reject @hybrid_property usage
+    for attr_name, attr in list(getattr(orm_cls, "__dict__", {}).items()):
+        if not isinstance(attr, hybrid_property):
+            continue
+
+        meta_src = getattr(attr, "info", {}) or {}
+        if isinstance(meta_src, Mapping) and "autoapi" in meta_src:
+            warnings.warn(
+                "col.info['autoapi'] is deprecated and support will be removed; behavior is no longer guaranteed for col.info['autoapi'] based column configuration.",
+                DeprecationWarning,
+                stacklevel=5,
+            )
+        meta = (meta_src.get("autoapi") if isinstance(meta_src, dict) else None) or {}
+
+        if meta.get("hybrid"):
+            raise ValueError(
+                f"{orm_cls.__name__}.{attr_name}: hybrid_property is not supported"
+            )
 
     # ── PASS 3: request/response extras
     _merge_request_extras(orm_cls, verb, fields, include=include, exclude=exclude)
@@ -388,6 +484,7 @@ def _build_list_params(model: type) -> Type[BaseModel]:
     base = dict(
         skip=(int | None, Field(None, ge=0)),
         limit=(int | None, Field(None, ge=10)),
+        sort=(str | list[str] | None, Field(None)),
     )
     _scalars = {str, int, float, bool, bytes, uuid.UUID}
     cols: dict[str, tuple[type, Field]] = {}
@@ -414,13 +511,57 @@ def _build_list_params(model: type) -> Type[BaseModel]:
     except Exception:
         pk_name = None
 
+    _canon = {
+        "eq": "eq",
+        "=": "eq",
+        "==": "eq",
+        "ne": "ne",
+        "!=": "ne",
+        "<>": "ne",
+        "lt": "lt",
+        "<": "lt",
+        "gt": "gt",
+        ">": "gt",
+        "lte": "lte",
+        "le": "lte",
+        "<=": "lte",
+        "gte": "gte",
+        "ge": "gte",
+        ">=": "gte",
+        "like": "like",
+        "not_like": "not_like",
+        "ilike": "ilike",
+        "not_ilike": "not_ilike",
+        "in": "in",
+        "not_in": "not_in",
+    }
+
     for c in table.columns:
         if pk_name and c.name == pk_name:
             continue
         py_t = getattr(c.type, "python_type", Any)
         if py_t in _scalars:
-            cols[c.name] = (py_t | None, Field(None))
-            logger.debug("schema: list filter add %s type=%r", c.name, py_t)
+            spec_map = getattr(model, "__autoapi_colspecs__", None) or getattr(
+                model, "__autoapi_cols__", {}
+            )
+            spec = spec_map.get(c.name) if isinstance(spec_map, Mapping) else None
+            io = getattr(spec, "io", None)
+            ops_raw = set(getattr(io, "filter_ops", ()) or [])
+            if not ops_raw:
+                # Allow basic equality filtering by default on scalar columns
+                ops_raw = {"eq"}
+            ops = {_canon.get(op, op) for op in ops_raw}
+            if "eq" in ops:
+                cols[c.name] = (py_t | None, Field(None))
+                logger.debug("schema: list filter add %s type=%r", c.name, py_t)
+            for op in ops:
+                if op == "eq":
+                    continue
+                fname = f"{c.name}__{op}"
+                cols[fname] = (py_t | None, Field(None))
+                logger.debug(
+                    "schema: list filter add %s op=%s type=%r", c.name, op, py_t
+                )
 
     schema = create_model(
         f"{tab}ListParams",

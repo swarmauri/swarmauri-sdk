@@ -24,7 +24,7 @@ dependencies = [
     "swarmauri_base",
     "swarmauri_standard",
     "fastapi",
-    "PyJWT",
+    "swarmauri_signing_jws",
 ]
 
 [tool.uv.sources]

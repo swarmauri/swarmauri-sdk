@@ -31,6 +31,7 @@ from .opspec import (
     TargetOp,
     Arity,
     PersistPolicy,
+    PHASE,
     HookPhase,
     PHASES,
     SchemaRef,
@@ -38,7 +39,7 @@ from .opspec import (
 )
 
 # ── Ctx-only decorators (new surface; replaces legacy opspec.decorators) ───────
-from .decorators import alias_ctx, op_ctx, hook_ctx, schema_ctx, alias
+from .decorators import alias_ctx, op_ctx, hook_ctx, schema_ctx, alias, op_alias
 
 # ── Bindings (model + API orchestration) ───────────────────────────────────────
 from .bindings import (
@@ -58,7 +59,7 @@ from .bindings import (
 from .runtime.executor import _invoke
 
 # ── Schemas ────────────────────────────────────────────────────────────────────
-from .schema import _build_schema, _build_list_params
+from .schema import _build_schema, _build_list_params, get_schema
 
 # ── Transport & Diagnostics (optional) ─────────────────────────────────────────
 from .transport.jsonrpc import build_jsonrpc_router
@@ -72,10 +73,12 @@ from .config.constants import DEFAULT_HTTP_METHODS
 from .autoapi import AutoAPI
 
 from .tables import Base
+from .types import App
+
 
 __all__: list[str] = []
 
-__all__ += ["AutoAPI", "Base"]
+__all__ += ["AutoAPI", "Base", "App"]
 
 __all__ += [
     # OpSpec core
@@ -85,6 +88,7 @@ __all__ += [
     "TargetOp",
     "Arity",
     "PersistPolicy",
+    "PHASE",
     "PHASES",
     "HookPhase",
     "SchemaRef",
@@ -95,6 +99,7 @@ __all__ += [
     "hook_ctx",
     "schema_ctx",
     "alias",
+    "op_alias",
     # Bindings
     "bind",
     "rebind",
@@ -111,6 +116,7 @@ __all__ += [
     # Schemas
     "_build_schema",
     "_build_list_params",
+    "get_schema",
     # Transport / Diagnostics
     "build_jsonrpc_router",
     "mount_diagnostics",

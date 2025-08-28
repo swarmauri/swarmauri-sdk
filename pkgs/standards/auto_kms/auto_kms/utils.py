@@ -12,12 +12,17 @@ def b64e(data: bytes) -> str:
     return base64.b64encode(data).decode()
 
 
+def _add_padding(data_b64: str) -> str:
+    """Pad ``data_b64`` so its length is a multiple of four."""
+    return data_b64 + "=" * (-len(data_b64) % 4)
+
+
 def b64d(data_b64: str) -> bytes:
-    return base64.b64decode(data_b64)
+    return base64.b64decode(_add_padding(data_b64))
 
 
 def b64d_optional(data_b64: Optional[str]) -> Optional[bytes]:
-    return base64.b64decode(data_b64) if data_b64 else None
+    return base64.b64decode(_add_padding(data_b64)) if data_b64 else None
 
 
 def params(ctx) -> Mapping[str, Any]:

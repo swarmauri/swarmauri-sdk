@@ -50,7 +50,10 @@ def test_alembic_upgrade_and_current(tmp_path):
     from peagen.orm import Base
 
     async def init_db() -> None:
-        engine = create_async_engine(f"sqlite+aiosqlite:///{db_path}")
+        engine = create_async_engine(
+            f"sqlite+aiosqlite:///{db_path}",
+            execution_options={"schema_translate_map": {"peagen": None}},
+        )
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
         await engine.dispose()

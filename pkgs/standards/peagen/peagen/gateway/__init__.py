@@ -19,8 +19,8 @@ import uuid
 
 
 # ─────────── Peagen internals ──────────────────────────────────────────
-from autoapi.v2 import AutoAPI, Phase, get_schema
-from auto_authn.v2.providers import RemoteAuthNAdapter
+from autoapi.v3 import AutoAPI, get_schema
+from auto_authn.providers import RemoteAuthNAdapter
 from fastapi import FastAPI, Request
 
 from peagen._utils.config_loader import resolve_cfg
@@ -33,7 +33,6 @@ from peagen.errors import MigrationFailureError, NoWorkerAvailableError
 
 # peagen/gateway/__init__.py
 from peagen.orm import (
-    Base,
     DeployKey,
     PublicKey,
     GPGKey,
@@ -50,7 +49,6 @@ from peagen.orm import (
     User,
     UserRepository,
     Work,
-    Worker,
 )
 from peagen.orm import Status as StatusEnum  # noqa: F401
 from peagen.plugins import PluginManager
@@ -62,53 +60,8 @@ from .db import engine, get_async_db  # same module as before
 from .ws_server import router as ws_router
 from sqlalchemy.exc import IntegrityError
 
-# ─────────── logging setup ─────────────────────────────────────────────
-LOG_LEVEL = os.getenv("PEAGEN_LOG_LEVEL", "INFO").upper()
-log = Logger(name="gw", default_level=getattr(logging, LOG_LEVEL, logging.INFO))
-sched_log = Logger(
-    name="scheduler", default_level=getattr(logging, LOG_LEVEL, logging.INFO)
-)
-logging.getLogger("httpx").setLevel("WARNING")
-logging.getLogger("uvicorn.error").setLevel("INFO")
 
-# ─────────── FastAPI & AutoAPI initialisation ─────────────────────────
-READY: bool = False
-app = FastAPI(title="Peagen Pool-Manager Gateway")
-
-authn_adapter = RemoteAuthNAdapter(
-    base_url=settings.authn_base_url,
-    timeout=settings.authn_timeout,
-    cache_ttl=settings.authn_cache_ttl,
-    cache_size=settings.authn_cache_size,
-)
-
-api = AutoAPI(
-    base=Base,
-    include={
-        Tenant,
-        User,
-        Org,
-        # Role,
-        # RoleGrant,
-        # RolePerm,
-        Repository,
-        UserRepository,
-        RepoSecret,
-        DeployKey,
-        PublicKey,
-        GPGKey,
-        Pool,
-        Worker,
-        Task,
-        Work,
-        RawBlob,
-    },
-    get_async_db=get_async_db,
-    authn=authn_adapter,
-)
-
-
-@api.register_hook(Phase.PRE_TX_BEGIN)
+# ─────────── shadow principal hook ─────────────────────────────────────
 async def _shadow_principal(ctx):
     import logging
     from fastapi import HTTPException
@@ -137,13 +90,11 @@ async def _shadow_principal(ctx):
     username = p.get("username") or str(uid)
     db = ctx["db"]
 
-    # Strict typed schemas
-    UReadIn = get_schema(User, op="delete")  # id-only
-    UUpdateIn = get_schema(User, op="update")  # includes id in our setup
+    UReadIn = get_schema(User, op="delete")
+    UUpdateIn = get_schema(User, op="update")
     UCreateIn = get_schema(User, op="create")
 
     def _is_duplicate(exc: Exception) -> bool:
-        # Catch both raw DB conflicts and standardized HTTP 409 from _commit_or_http
         if isinstance(exc, IntegrityError):
             return True
         if isinstance(exc, HTTPException) and getattr(exc, "status_code", None) == 409:
@@ -154,25 +105,21 @@ async def _shadow_principal(ctx):
     def _upsert_sync(s):
         log.info("shadow_principal: upsert start uid=%s tid=%s", uid, tid)
 
-        # 1) Existence check by PK
         exists = False
         try:
             api.methods.User.read(UReadIn(id=uid), db=s)
             exists = True
             log.info("shadow_principal: user exists uid=%s", uid)
         except Exception as exc:
-            # Not found (or error); reset sync session if needed
             if s.in_transaction():
                 s.rollback()
             log.info("shadow_principal: User.read miss uid=%s (%s)", uid, exc)
 
         if exists:
-            # 2) Update in place (typed)
             upd = UUpdateIn(id=uid, tenant_id=tid, username=username, is_active=True)
             log.info("shadow_principal: updating uid=%s", uid)
             return api.methods.User.update(upd, db=s)
 
-        # 3) Create, but treat duplicate as “already created” and retry update
         try:
             cre = UCreateIn(id=uid, tenant_id=tid, username=username, is_active=True)
             log.info("shadow_principal: creating uid=%s", uid)
@@ -186,25 +133,61 @@ async def _shadow_principal(ctx):
                     id=uid, tenant_id=tid, username=username, is_active=True
                 )
                 return api.methods.User.update(upd, db=s)
-            # unexpected error – re-raise to let outer handler log it
             raise
 
     try:
-        if hasattr(db, "run_sync"):  # AsyncSession
+        if hasattr(db, "run_sync"):
             await db.run_sync(_upsert_sync)
-        else:  # plain Session
+        else:
             _upsert_sync(db)
     except Exception as exc:
-        # Soft-fail – don’t break the main RPC; just log what happened
         log.info("shadow_principal: upsert failed uid=%s err=%s", uid, exc)
 
 
-# ensure our hook runs second after the AuthN injection hook
-_pre = api._hook_registry[Phase.PRE_TX_BEGIN][None]
-for idx, fn in enumerate(_pre):
-    if getattr(fn, "__name__", "") == "_shadow_principal":
-        _pre.insert(1, _pre.pop(idx))
-        break
+# ─────────── logging setup ─────────────────────────────────────────────
+LOG_LEVEL = os.getenv("PEAGEN_LOG_LEVEL", "INFO").upper()
+log = Logger(name="gw", default_level=getattr(logging, LOG_LEVEL, logging.INFO))
+sched_log = Logger(
+    name="scheduler", default_level=getattr(logging, LOG_LEVEL, logging.INFO)
+)
+logging.getLogger("httpx").setLevel("WARNING")
+logging.getLogger("uvicorn.error").setLevel("INFO")
+
+# ─────────── FastAPI & AutoAPI initialisation ─────────────────────────
+READY: bool = False
+app = FastAPI(title="Peagen Pool-Manager Gateway")
+
+authn_adapter = RemoteAuthNAdapter(
+    base_url=settings.authn_base_url,
+    timeout=settings.authn_timeout,
+    cache_ttl=settings.authn_cache_ttl,
+    cache_size=settings.authn_cache_size,
+)
+
+api = AutoAPI(
+    get_async_db=get_async_db, api_hooks={"PRE_TX_BEGIN": [_shadow_principal]}
+)
+api.include_models(
+    [
+        Tenant,
+        User,
+        Org,
+        # Role,
+        # RoleGrant,
+        # RolePerm,
+        Repository,
+        UserRepository,
+        RepoSecret,
+        DeployKey,
+        PublicKey,
+        GPGKey,
+        Pool,
+        Task,
+        Work,
+        RawBlob,
+    ]
+)
+api.set_auth(authn=authn_adapter)
 
 
 app.include_router(api.router)
@@ -316,6 +299,12 @@ async def _startup() -> None:
 
     # 1 – metadata validation / SQLite convenience mode
     await api.initialize_async()
+    # ensure our hook runs second after the AuthN injection hook
+    _pre = api._hook_registry.get("PRE_TX_BEGIN", {}).get(None, [])
+    for idx, fn in enumerate(_pre):
+        if getattr(fn, "__name__", "") == "_shadow_principal":
+            _pre.insert(1, _pre.pop(idx))
+            break
 
     # 2 – run Alembic first so the ORM never creates tables implicitly
     if engine.url.get_backend_name() != "sqlite":

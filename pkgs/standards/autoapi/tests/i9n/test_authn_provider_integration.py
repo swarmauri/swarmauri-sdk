@@ -1,16 +1,16 @@
-from fastapi import FastAPI, HTTPException, Security
+from autoapi.v3.types import App, HTTPException, Request, Security
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.testclient import TestClient
-from sqlalchemy import Column, ForeignKey, String, create_engine
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
+from uuid import uuid4
 
-from autoapi.v2 import AutoAPI, Base
-from autoapi.v2.cfgs import AUTH_CONTEXT_KEY
-from autoapi.v2.hooks import Phase
-from autoapi.v2.mixins import GUIDPk
-from autoapi.v2.types import AuthNProvider
+from autoapi.v3 import AutoAPI, Base
+from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.types.authn_abc import AuthNProvider
+
+AUTH_CONTEXT_KEY = "auth_context"
 
 
 class HookedAuth(AuthNProvider):
@@ -21,16 +21,25 @@ class HookedAuth(AuthNProvider):
 
     async def get_principal(
         self,
+        request: Request,
         creds: HTTPAuthorizationCredentials = Security(HTTPBearer()),
     ) -> dict:
         if creds.credentials != "secret":
             raise HTTPException(status_code=401)
-        return {"sub": "user", "tid": "tenant"}
+        principal = {"sub": "user", "tid": "tenant"}
+        request.state.auth_context = principal
+        return principal
 
     def register_inject_hook(self, api) -> None:  # pragma: no cover - runtime wiring
-        @api.register_hook(Phase.PRE_TX_BEGIN)
         async def _capture(ctx):  # pragma: no cover - executed in tests
+            ctx[AUTH_CONTEXT_KEY] = getattr(
+                ctx.get("request").state, AUTH_CONTEXT_KEY, None
+            )
             self.ctx_principal = ctx.get(AUTH_CONTEXT_KEY)
+
+        hooks = getattr(api, "_api_hooks_map", {}) or {}
+        hooks.setdefault("PRE_HANDLER", []).append(_capture)
+        api._api_hooks_map = hooks
 
 
 def _build_client_with_auth():
@@ -38,12 +47,6 @@ def _build_client_with_auth():
 
     class Tenant(Base, GUIDPk):
         __tablename__ = "tenants"
-        name = Column(String, nullable=False)
-
-    class Item(Base, GUIDPk):
-        __tablename__ = "items"
-        tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
-        name = Column(String, nullable=False)
 
     engine = create_engine(
         "sqlite:///:memory:",
@@ -57,10 +60,11 @@ def _build_client_with_auth():
             yield session
 
     auth = HookedAuth()
-    api = AutoAPI(base=Base, include={Tenant, Item}, get_db=get_db, authn=auth)
+    app = App()
+    api = AutoAPI(app=app, get_db=get_db)
+    api.set_auth(authn=auth.get_principal)
     auth.register_inject_hook(api)
-    app = FastAPI()
-    app.include_router(api.router)
+    api.include_model(Tenant)
     api.initialize_sync()
     return TestClient(app), auth
 
@@ -68,15 +72,10 @@ def _build_client_with_auth():
 def test_authn_hooks_and_context_injection():
     client, auth = _build_client_with_auth()
 
-    tenant = {"name": "acme"}
+    payload = {"id": str(uuid4())}
     res = client.post(
-        "/tenant", json=tenant, headers={"Authorization": "Bearer secret"}
+        "/tenant", json=payload, headers={"Authorization": "Bearer secret"}
     )
-    tid = res.json()["id"]
-
-    auth.ctx_principal = None
-    payload = {"tenant_id": tid, "name": "widget"}
-    res = client.post("/item", json=payload, headers={"Authorization": "Bearer secret"})
     assert res.status_code == 201
     assert auth.ctx_principal == {"sub": "user", "tid": "tenant"}
 
@@ -84,8 +83,8 @@ def test_authn_hooks_and_context_injection():
 def test_authn_unauthorized_errors():
     client, _ = _build_client_with_auth()
 
-    assert client.get("/item").status_code == 403
+    assert client.get("/tenant").status_code == 403
     assert (
-        client.get("/item", headers={"Authorization": "Bearer wrong"}).status_code
+        client.get("/tenant", headers={"Authorization": "Bearer wrong"}).status_code
         == 401
     )

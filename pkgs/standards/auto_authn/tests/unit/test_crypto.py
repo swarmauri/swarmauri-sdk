@@ -1,22 +1,29 @@
 """
-Unit tests for auto_authn.v2.crypto module.
+Unit tests for auto_authn.crypto module.
 
 Tests password hashing, JWT key management, and security functions.
 """
 
+import asyncio
 from unittest.mock import patch
 
 import pytest
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from cryptography.hazmat.primitives import serialization
 
-from auto_authn.v2.crypto import (
+from auto_authn.crypto import (
     hash_pw,
     verify_pw,
     signing_key,
     public_key,
     _generate_keypair,
     _load_keypair,
+    _provider,
+    KeySpec,
+    KeyClass,
+    KeyAlg,
+    KeyUse,
+    ExportPolicy,
 )
 
 
@@ -82,11 +89,12 @@ class TestJWTKeyCrypto:
         """Test that key generation creates valid Ed25519 key pair."""
         key_path = tmp_path / "test_key.pem"
 
-        priv_pem, pub_pem = _generate_keypair(key_path)
+        kid, priv_pem, pub_pem = _generate_keypair(key_path)
 
         # Verify file was created with correct permissions
         assert key_path.exists()
         assert oct(key_path.stat().st_mode)[-3:] == "600"
+        assert key_path.read_text().strip() == kid
 
         # Verify keys are valid Ed25519 format
         private_key = serialization.load_pem_private_key(priv_pem, password=None)
@@ -101,16 +109,17 @@ class TestJWTKeyCrypto:
         key_path = tmp_path / "existing_key.pem"
 
         # First generate a key
-        original_priv, original_pub = _generate_keypair(key_path)
+        kid, original_priv, original_pub = _generate_keypair(key_path)
 
         # Mock the default path to use our test file
-        with patch("auto_authn.v2.crypto._DEFAULT_KEY_PATH", key_path):
+        with patch("auto_authn.crypto._DEFAULT_KEY_PATH", key_path):
             # Clear the cache
             _load_keypair.cache_clear()
 
             # Load the key pair
-            loaded_priv, loaded_pub = _load_keypair()
+            loaded_kid, loaded_priv, loaded_pub = _load_keypair()
 
+            assert loaded_kid == kid
             assert loaded_priv == original_priv
             assert loaded_pub == original_pub
 
@@ -118,15 +127,16 @@ class TestJWTKeyCrypto:
         """Test that keys are generated when file is missing."""
         key_path = tmp_path / "missing_key.pem"
 
-        with patch("auto_authn.v2.crypto._DEFAULT_KEY_PATH", key_path):
+        with patch("auto_authn.crypto._DEFAULT_KEY_PATH", key_path):
             # Clear the cache
             _load_keypair.cache_clear()
 
             # This should generate new keys
-            priv_pem, pub_pem = _load_keypair()
+            kid, priv_pem, pub_pem = _load_keypair()
 
             # Verify file was created
             assert key_path.exists()
+            assert key_path.read_text().strip() == kid
 
             # Verify keys are valid
             private_key = serialization.load_pem_private_key(priv_pem, password=None)
@@ -136,16 +146,17 @@ class TestJWTKeyCrypto:
         """Test that key pair loading is cached."""
         key_path = tmp_path / "cached_key.pem"
 
-        with patch("auto_authn.v2.crypto._DEFAULT_KEY_PATH", key_path):
+        with patch("auto_authn.crypto._DEFAULT_KEY_PATH", key_path):
             # Clear the cache
             _load_keypair.cache_clear()
 
             # First call should generate/load keys
-            priv1, pub1 = _load_keypair()
+            kid1, priv1, pub1 = _load_keypair()
 
             # Second call should return cached results
-            priv2, pub2 = _load_keypair()
+            kid2, priv2, pub2 = _load_keypair()
 
+            assert kid1 == kid2
             assert priv1 is priv2  # Same object reference (cached)
             assert pub1 is pub2
 
@@ -197,7 +208,7 @@ class TestJWTKeyCrypto:
             "-----BEGIN PRIVATE KEY-----\nINVALID\n-----END PRIVATE KEY-----\n"
         )
 
-        with patch("auto_authn.v2.crypto._DEFAULT_KEY_PATH", key_path):
+        with patch("auto_authn.crypto._DEFAULT_KEY_PATH", key_path):
             # Clear the cache
             _load_keypair.cache_clear()
 
@@ -206,52 +217,45 @@ class TestJWTKeyCrypto:
 
     def test_non_ed25519_key_raises_error(self, tmp_path):
         """Test that non-Ed25519 keys raise appropriate error."""
-        from cryptography.hazmat.primitives.asymmetric import rsa
+        key_path = tmp_path / "rsa_key.kid"
 
-        key_path = tmp_path / "rsa_key.pem"
+        async def _create_rsa() -> str:
+            kp = _provider()
+            spec = KeySpec(
+                klass=KeyClass.asymmetric,
+                alg=KeyAlg.RSA_PSS_SHA256,
+                uses=(KeyUse.SIGN, KeyUse.VERIFY),
+                export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
+                label="rsa_key",
+            )
+            ref = await kp.create_key(spec)
+            return ref.kid
 
-        # Generate RSA key instead of Ed25519
-        rsa_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-        rsa_pem = rsa_key.private_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.NoEncryption(),
-        )
+        kid = asyncio.run(_create_rsa())
+        key_path.write_text(kid)
 
-        key_path.write_bytes(rsa_pem)
-
-        with patch("auto_authn.v2.crypto._DEFAULT_KEY_PATH", key_path):
-            # Clear the cache
+        with patch("auto_authn.crypto._DEFAULT_KEY_PATH", key_path):
             _load_keypair.cache_clear()
 
             with pytest.raises(RuntimeError, match="JWT signing key is not Ed25519"):
                 _load_keypair()
 
-    def test_env_key_path_override(self, monkeypatch, tmp_path):
-        """Test that JWT_ED25519_PRIV_PATH overrides the default key path."""
-        # Generate a key and write to temporary path
-        private = Ed25519PrivateKey.generate()
-        pem_priv = private.private_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.NoEncryption(),
-        )
-        key_path = tmp_path / "override_key.pem"
-        key_path.write_bytes(pem_priv)
-
-        import auto_authn.v2.crypto as crypto
+    def test_env_key_dir_override(self, monkeypatch, tmp_path):
+        """Test that JWT_ED25519_KEY_DIR overrides the default key directory."""
+        import auto_authn.crypto as crypto
         import importlib
 
-        monkeypatch.setenv("JWT_ED25519_PRIV_PATH", str(key_path))
+        monkeypatch.setenv("JWT_ED25519_KEY_DIR", str(tmp_path))
 
         try:
             crypto = importlib.reload(crypto)
             crypto._load_keypair.cache_clear()
 
-            assert crypto._DEFAULT_KEY_PATH == key_path
-            assert crypto.signing_key() == pem_priv
+            kid, priv, _ = crypto._load_keypair()
+            assert crypto._DEFAULT_KEY_PATH == tmp_path / "jwt_ed25519.kid"
+            assert crypto.signing_key() == priv
         finally:
-            monkeypatch.delenv("JWT_ED25519_PRIV_PATH", raising=False)
+            monkeypatch.delenv("JWT_ED25519_KEY_DIR", raising=False)
             importlib.reload(crypto)
 
 

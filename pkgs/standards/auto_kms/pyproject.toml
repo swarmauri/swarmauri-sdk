@@ -24,7 +24,7 @@ dependencies = [
     "uvicorn[standard]>=0.29",
     "sqlalchemy[asyncio]>=2.0.0",
     "swarmauri_secret_autogpg",
-    "swarmauri_crypto_paramiko",
+    "swarmauri_crypto_paramiko"
 ]
 
 [tool.uv.sources]

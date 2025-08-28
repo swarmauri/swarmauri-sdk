@@ -1,28 +1,29 @@
 # mixins_generic.py ───── all mix-ins live here
 import datetime as dt
+from decimal import Decimal
+
 from .bootstrappable import Bootstrappable as Bootstrappable
 from .upsertable import Upsertable as Upsertable
 from .ownable import Ownable as Ownable, OwnerPolicy as OwnerPolicy
 from .tenant_bound import TenantBound as TenantBound, TenantPolicy as TenantPolicy
+from ..specs import ColumnSpec, F, IO, S, acol
+from ..specs.storage_spec import ForeignKeySpec
 from ..types import (
-    Column,
     TZDateTime,
     Integer,
     String,
-    ForeignKey,
     declarative_mixin,
     declared_attr,
     PgUUID,
     SAEnum,
     Numeric,
     Index,
-    Mapped,
-    mapped_column,
     JSONB,
     TSVECTOR,
     Boolean,
     UUID,
     uuid4,
+    Mapped,
 )
 from ..config.constants import CTX_AUTH_KEY, CTX_USER_ID_KEY
 
@@ -55,22 +56,27 @@ def _infer_schema(cls, default: str = "public") -> str:
 
 uuid_example = UUID("00000000-dead-beef-cafe-000000000000")
 
+CRUD_IN = ("create", "update", "replace")
+CRUD_OUT = ("read", "list")
+CRUD_IO = IO(in_verbs=CRUD_IN, out_verbs=CRUD_OUT, mutable_verbs=CRUD_IN)
+RO_IO = IO(out_verbs=CRUD_OUT)
+
 
 @declarative_mixin
 class GUIDPk:
     """Universal surrogate primary key."""
 
-    id = Column(
-        PgUUID(as_uuid=True),
-        primary_key=True,
-        default=uuid4,
-        info=dict(
-            autoapi={
-                "default_factory": uuid4,
-                "read_only": {"create": True},
-                "examples": [uuid_example],
-            }
-        ),
+    id: Mapped[UUID] = acol(
+        spec=ColumnSpec(
+            storage=S(
+                type_=PgUUID(as_uuid=True),
+                primary_key=True,
+                default=uuid4,
+            ),
+            field=F(py_type=UUID, constraints={"examples": [uuid_example]}),
+            io=RO_IO,
+            default_factory=lambda _ctx: uuid4(),
+        )
     )
 
 
@@ -86,15 +92,19 @@ class TenantMixin:
     """
 
     @declared_attr
-    def tenant_id(cls) -> Mapped[PgUUID]:
+    def tenant_id(cls) -> Mapped[UUID]:
         schema = getattr(cls, "__tenant_table_schema__", None) or _infer_schema(cls)
-        return mapped_column(
-            PgUUID(as_uuid=True),
-            ForeignKey(f"{schema}.tenants.id"),
-            nullable=False,
-            index=True,
-            info=dict(autoapi={"examples": [uuid_example]}),
+        spec = ColumnSpec(
+            storage=S(
+                type_=PgUUID(as_uuid=True),
+                fk=ForeignKeySpec(target=f"{schema}.tenants.id"),
+                nullable=False,
+                index=True,
+            ),
+            field=F(py_type=UUID, constraints={"examples": [uuid_example]}),
+            io=CRUD_IO,
         )
+        return acol(spec=spec)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -109,15 +119,19 @@ class UserMixin:
     """
 
     @declared_attr
-    def user_id(cls) -> Mapped[PgUUID]:
+    def user_id(cls) -> Mapped[UUID]:
         schema = getattr(cls, "__user_table_schema__", None) or _infer_schema(cls)
-        return mapped_column(
-            PgUUID(as_uuid=True),
-            ForeignKey(f"{schema}.users.id"),
-            nullable=False,
-            index=True,
-            info=dict(autoapi={"examples": [uuid_example]}),
+        spec = ColumnSpec(
+            storage=S(
+                type_=PgUUID(as_uuid=True),
+                fk=ForeignKeySpec(target=f"{schema}.users.id"),
+                nullable=False,
+                index=True,
+            ),
+            field=F(py_type=UUID, constraints={"examples": [uuid_example]}),
+            io=CRUD_IO,
         )
+        return acol(spec=spec)
 
 
 @declarative_mixin
@@ -129,15 +143,19 @@ class OrgMixin:
     """
 
     @declared_attr
-    def org_id(cls) -> Mapped[PgUUID]:
+    def org_id(cls) -> Mapped[UUID]:
         schema = getattr(cls, "__org_table_schema__", None) or _infer_schema(cls)
-        return mapped_column(
-            PgUUID(as_uuid=True),
-            ForeignKey(f"{schema}.orgs.id"),
-            nullable=False,
-            index=True,
-            info=dict(autoapi={"examples": [uuid_example]}),
+        spec = ColumnSpec(
+            storage=S(
+                type_=PgUUID(as_uuid=True),
+                fk=ForeignKeySpec(target=f"{schema}.orgs.id"),
+                nullable=False,
+                index=True,
+            ),
+            field=F(py_type=UUID, constraints={"examples": [uuid_example]}),
+            io=CRUD_IO,
         )
+        return acol(spec=spec)
 
 
 @declarative_mixin
@@ -147,10 +165,15 @@ class Principal:  # concrete table marker
 
 # ────────── bounded scopes  ----------------------------------
 class OwnerBound:
-    owner_id: Mapped[PgUUID] = mapped_column(
-        PgUUID,
-        ForeignKey("users.id"),
-        info=dict(autoapi={"examples": [uuid_example]}),
+    owner_id: Mapped[UUID] = acol(
+        spec=ColumnSpec(
+            storage=S(
+                type_=PgUUID(as_uuid=True),
+                fk=ForeignKeySpec(target="users.id"),
+            ),
+            field=F(py_type=UUID, constraints={"examples": [uuid_example]}),
+            io=CRUD_IO,
+        )
     )
 
     @classmethod
@@ -160,10 +183,15 @@ class OwnerBound:
 
 
 class UserBound:  # membership rows
-    user_id: Mapped[PgUUID] = mapped_column(
-        PgUUID,
-        ForeignKey("users.id"),
-        info=dict(autoapi={"examples": [uuid_example]}),
+    user_id: Mapped[UUID] = acol(
+        spec=ColumnSpec(
+            storage=S(
+                type_=PgUUID(as_uuid=True),
+                fk=ForeignKeySpec(target="users.id"),
+            ),
+            field=F(py_type=UUID, constraints={"examples": [uuid_example]}),
+            io=CRUD_IO,
+        )
     )
 
     @classmethod
@@ -175,21 +203,23 @@ class UserBound:  # membership rows
 # ────────── lifecycle --------------------------------------------------
 @declarative_mixin
 class Created:
-    created_at = Column(
-        TZDateTime,
-        default=tzutcnow,
-        nullable=False,
-        info=dict(no_create=True, no_update=True),
+    created_at: Mapped[dt.datetime] = acol(
+        spec=ColumnSpec(
+            storage=S(type_=TZDateTime, default=tzutcnow, nullable=False),
+            field=F(py_type=dt.datetime),
+            io=RO_IO,
+        )
     )
 
 
 @declarative_mixin
 class LastUsed:
-    last_used_at = Column(
-        TZDateTime,
-        nullable=True,
-        onupdate=tzutcnow,
-        info=dict(no_create=True, no_update=True),
+    last_used_at: Mapped[dt.datetime | None] = acol(
+        spec=ColumnSpec(
+            storage=S(type_=TZDateTime, nullable=True, onupdate=tzutcnow),
+            field=F(py_type=dt.datetime),
+            io=RO_IO,
+        )
     )
 
     def touch(self) -> None:
@@ -199,47 +229,84 @@ class LastUsed:
 
 @declarative_mixin
 class Timestamped:
-    created_at = Column(
-        TZDateTime,
-        default=tzutcnow,
-        nullable=False,
-        info=dict(no_create=True, no_update=True),
+    created_at: Mapped[dt.datetime] = acol(
+        spec=ColumnSpec(
+            storage=S(type_=TZDateTime, default=tzutcnow, nullable=False),
+            field=F(py_type=dt.datetime),
+            io=RO_IO,
+        )
     )
-    updated_at = Column(
-        TZDateTime,
-        default=tzutcnow,
-        onupdate=tzutcnow,
-        nullable=False,
-        info=dict(no_create=True, no_update=True),
+    updated_at: Mapped[dt.datetime] = acol(
+        spec=ColumnSpec(
+            storage=S(
+                type_=TZDateTime,
+                default=tzutcnow,
+                onupdate=tzutcnow,
+                nullable=False,
+            ),
+            field=F(py_type=dt.datetime),
+            io=RO_IO,
+        )
     )
 
 
 @declarative_mixin
 class ActiveToggle:
-    is_active = Column(Boolean, default=True, nullable=False)
+    is_active: Mapped[bool] = acol(
+        spec=ColumnSpec(
+            storage=S(type_=Boolean, default=True, nullable=False),
+            field=F(py_type=bool),
+            io=CRUD_IO,
+        )
+    )
 
 
 @declarative_mixin
 class SoftDelete:
-    deleted_at = Column(TZDateTime, nullable=True)  # NULL means “live”
+    deleted_at: Mapped[dt.datetime | None] = acol(
+        spec=ColumnSpec(
+            storage=S(type_=TZDateTime, nullable=True),
+            field=F(py_type=dt.datetime),
+            io=CRUD_IO,
+        )
+    )  # NULL means "live"
 
 
 @declarative_mixin
 class Versioned:
-    revision = Column(Integer, default=1, nullable=False)
-    prev_id = Column(PgUUID(as_uuid=True), nullable=True)  # FK self optional
+    revision: Mapped[int] = acol(
+        spec=ColumnSpec(
+            storage=S(type_=Integer, default=1, nullable=False),
+            field=F(py_type=int),
+            io=CRUD_IO,
+        )
+    )
+    prev_id: Mapped[UUID | None] = acol(
+        spec=ColumnSpec(
+            storage=S(type_=PgUUID(as_uuid=True), nullable=True),
+            field=F(py_type=UUID),
+            io=CRUD_IO,
+        )
+    )  # FK self optional
 
 
 # ────────── containment & hierarchy -----------------------------------
 @declarative_mixin
 class Contained:
     @declared_attr
-    def parent_id(cls):
+    def parent_id(cls) -> Mapped[UUID]:
         if not hasattr(cls, "parent_table"):
             raise AttributeError("subclass must set parent_table")
-        return Column(
-            PgUUID(as_uuid=True), ForeignKey(f"{cls.parent_table}.id"), nullable=False
+        spec = ColumnSpec(
+            storage=S(
+                type_=PgUUID(as_uuid=True),
+                fk=ForeignKeySpec(target=f"{cls.parent_table}.id"),
+                nullable=False,
+            ),
+            field=F(py_type=UUID),
+            io=CRUD_IO,
         )
+        return acol(spec=spec)
 
 
 @declarative_mixin
@@ -250,14 +317,25 @@ class TreeNode:
     """
 
     @declared_attr
-    def parent_id(cls):
-        return Column(
-            PgUUID(as_uuid=True),
-            ForeignKey(f"{cls.__tablename__}.id"),  # << string, not lambda
-            nullable=True,
+    def parent_id(cls) -> Mapped[UUID | None]:
+        spec = ColumnSpec(
+            storage=S(
+                type_=PgUUID(as_uuid=True),
+                fk=ForeignKeySpec(target=f"{cls.__tablename__}.id"),
+                nullable=True,
+            ),
+            field=F(py_type=UUID),
+            io=CRUD_IO,
         )
+        return acol(spec=spec)
 
-    path = Column(String)  # materialised path / ltree / etc.
+    path: Mapped[str] = acol(
+        spec=ColumnSpec(
+            storage=S(type_=String),
+            field=F(py_type=str),
+            io=CRUD_IO,
+        )
+    )  # materialised path / ltree / etc.
 
 
 # ────────── edge / link patterns --------------------------------------
@@ -272,7 +350,13 @@ class RelationEdge:
 class MaskableEdge:
     """Edge row with bitmap of verbs/roles."""
 
-    mask = Column(Integer, nullable=False)
+    mask: Mapped[int] = acol(
+        spec=ColumnSpec(
+            storage=S(type_=Integer, nullable=False),
+            field=F(py_type=int),
+            io=CRUD_IO,
+        )
+    )
 
 
 # ────────── execution / storage hints ---------------------------------
@@ -288,13 +372,31 @@ class Audited:  # marker only
 
 @declarative_mixin
 class BlobRef:
-    blob_id = Column(PgUUID(as_uuid=True))  # points to S3 / GCS
+    blob_id: Mapped[UUID | None] = acol(
+        spec=ColumnSpec(
+            storage=S(type_=PgUUID(as_uuid=True)),
+            field=F(py_type=UUID),
+            io=CRUD_IO,
+        )
+    )  # points to S3 / GCS
 
 
 @declarative_mixin
 class RowLock:
-    lock_token = Column(PgUUID(as_uuid=True), nullable=True)
-    locked_at = Column(TZDateTime, nullable=True)
+    lock_token: Mapped[UUID | None] = acol(
+        spec=ColumnSpec(
+            storage=S(type_=PgUUID(as_uuid=True), nullable=True),
+            field=F(py_type=UUID),
+            io=CRUD_IO,
+        )
+    )
+    locked_at: Mapped[dt.datetime | None] = acol(
+        spec=ColumnSpec(
+            storage=S(type_=TZDateTime, nullable=True),
+            field=F(py_type=dt.datetime),
+            io=CRUD_IO,
+        )
+    )
 
 
 # ────────── Bulk Operations ---------------------------------------------
@@ -319,31 +421,43 @@ class Streamable:
 # Slugged ── human-readable identifier
 @declarative_mixin
 class Slugged:
-    slug = Column(String(120), unique=True, nullable=False)
+    slug: Mapped[str] = acol(
+        spec=ColumnSpec(
+            storage=S(type_=String, unique=True, nullable=False),
+            field=F(py_type=str, constraints={"max_length": 120}),
+            io=CRUD_IO,
+        )
+    )
 
 
 # ----------------------------------------------------------------------
 # StatusMixin ── finite workflow states
 @declarative_mixin
 class StatusMixin:
-    status = Column(
-        SAEnum(
-            "queued",
-            "waiting",
-            "input_required",
-            "auth_required",
-            "approved",
-            "rejected",
-            "dispatched",
-            "running",
-            "paused",
-            "success",
-            "failed",
-            "cancelled",
-            name="status_enum",
-        ),
-        default="waiting",
-        nullable=False,
+    status: Mapped[str] = acol(
+        spec=ColumnSpec(
+            storage=S(
+                type_=SAEnum(
+                    "queued",
+                    "waiting",
+                    "input_required",
+                    "auth_required",
+                    "approved",
+                    "rejected",
+                    "dispatched",
+                    "running",
+                    "paused",
+                    "success",
+                    "failed",
+                    "cancelled",
+                    name="status_enum",
+                ),
+                default="waiting",
+                nullable=False,
+            ),
+            field=F(py_type=str),
+            io=CRUD_IO,
+        )
     )
 
 
@@ -351,53 +465,119 @@ class StatusMixin:
 # ValidityWindow ── temporal availability
 @declarative_mixin
 class ValidityWindow:
-    valid_from = Column(TZDateTime, default=tzutcnow, nullable=False)
-    valid_to = Column(TZDateTime, default=tzutcnow_plus_day)
+    valid_from: Mapped[dt.datetime] = acol(
+        spec=ColumnSpec(
+            storage=S(type_=TZDateTime, default=tzutcnow, nullable=False),
+            field=F(py_type=dt.datetime),
+            io=CRUD_IO,
+        )
+    )
+    valid_to: Mapped[dt.datetime | None] = acol(
+        spec=ColumnSpec(
+            storage=S(type_=TZDateTime, default=tzutcnow_plus_day),
+            field=F(py_type=dt.datetime),
+            io=CRUD_IO,
+        )
+    )
 
 
 # ----------------------------------------------------------------------
 # Monetary ── precise currency values (≥ 10^16, 2 decimals)
 @declarative_mixin
 class Monetary:
-    amount = Column(Numeric(18, 2), nullable=False)
-    currency = Column(String(3), default="USD", nullable=False)
+    amount: Mapped[Decimal] = acol(
+        spec=ColumnSpec(
+            storage=S(type_=Numeric(18, 2), nullable=False),
+            field=F(py_type=Decimal),
+            io=CRUD_IO,
+        )
+    )
+    currency: Mapped[str] = acol(
+        spec=ColumnSpec(
+            storage=S(type_=String, default="USD", nullable=False),
+            field=F(py_type=str, constraints={"max_length": 3}),
+            io=CRUD_IO,
+        )
+    )
 
 
 # ----------------------------------------------------------------------
 # ExtRef ── link to an external provider object
 @declarative_mixin
 class ExtRef:
-    external_id = Column(String)  # e.g. Stripe customer ID
-    provider = Column(String)  # 'stripe', 'hubspot', …
+    external_id: Mapped[str] = acol(
+        spec=ColumnSpec(
+            storage=S(type_=String),
+            field=F(py_type=str),
+            io=CRUD_IO,
+        )
+    )  # e.g. Stripe customer ID
+    provider: Mapped[str] = acol(
+        spec=ColumnSpec(
+            storage=S(type_=String),
+            field=F(py_type=str),
+            io=CRUD_IO,
+        )
+    )  # 'stripe', 'hubspot', …
 
 
 # ----------------------------------------------------------------------
 # MetaJSON ── schemaless per-row extras
 @declarative_mixin
 class MetaJSON:
-    meta = Column(JSONB, default=dict)
+    meta: Mapped[dict] = acol(
+        spec=ColumnSpec(
+            storage=S(type_=JSONB, default=dict),
+            field=F(py_type=dict),
+            io=CRUD_IO,
+        )
+    )
 
 
 # ----------------------------------------------------------------------
 # SoftLock ── pessimistic edit lock
 @declarative_mixin
 class SoftLock:
-    locked_by = Column(PgUUID(as_uuid=True), ForeignKey("users.id"))
-    locked_at = Column(TZDateTime)
+    locked_by: Mapped[UUID | None] = acol(
+        spec=ColumnSpec(
+            storage=S(type_=PgUUID(as_uuid=True), fk=ForeignKeySpec(target="users.id")),
+            field=F(py_type=UUID),
+            io=CRUD_IO,
+        )
+    )
+    locked_at: Mapped[dt.datetime | None] = acol(
+        spec=ColumnSpec(
+            storage=S(type_=TZDateTime),
+            field=F(py_type=dt.datetime),
+            io=CRUD_IO,
+        )
+    )
 
 
 # ----------------------------------------------------------------------
 # TaggableEdge ── free-form tag on an edge row (inherits RelationEdge)
 @declarative_mixin
 class TaggableEdge:
-    tag = Column(String, nullable=False)
+    tag: Mapped[str] = acol(
+        spec=ColumnSpec(
+            storage=S(type_=String, nullable=False),
+            field=F(py_type=str),
+            io=CRUD_IO,
+        )
+    )
 
 
 # ----------------------------------------------------------------------
 # SearchVector ── PostgreSQL full-text search
 @declarative_mixin
 class SearchVector:
-    tsv = Column(TSVECTOR)
+    tsv: Mapped[str] = acol(
+        spec=ColumnSpec(
+            storage=S(type_=TSVECTOR),
+            field=F(py_type=str),
+            io=IO(),
+        )
+    )
 
     @declared_attr
     def __table_args__(cls):

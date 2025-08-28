@@ -1,5 +1,5 @@
 """
-Unit tests for auto_authn.v2.backends module.
+Unit tests for auto_authn.backends module.
 
 Tests authentication backends for password and API key authentication.
 """
@@ -9,9 +9,9 @@ from uuid import uuid4
 
 import pytest
 
-from auto_authn.v2.backends import AuthError, PasswordBackend, ApiKeyBackend
-from auto_authn.v2.crypto import hash_pw
-from auto_authn.v2.orm.tables import User, ApiKey, ServiceKey, Service, Client
+from auto_authn.backends import AuthError, PasswordBackend, ApiKeyBackend
+from auto_authn.crypto import hash_pw
+from auto_authn.orm.tables import User, ApiKey, ServiceKey, Service
 
 
 @pytest.mark.unit
@@ -150,17 +150,17 @@ class TestPasswordBackend:
         """Test that _get_user_stmt creates correct query structure."""
         stmt = await self.backend._get_user_stmt("testuser")
 
-        # Verify it's a Select statement
-        assert hasattr(stmt, "compile")
+        # Verify the statement has expected WHERE criteria without compiling
+        clauses = list(stmt._where_criteria)
+        assert len(clauses) == 2
 
-        # The statement should filter by username OR email and active status
-        # This is more of a smoke test since we can't easily inspect SQLAlchemy internals
-        compiled = stmt.compile(compile_kwargs={"literal_binds": True})
-        compiled_str = str(compiled)
+        # First clause should match username or email
+        or_clause = clauses[0]
+        sub_keys = {c.left.key for c in or_clause.clauses}
+        assert {"username", "email"} <= sub_keys
 
-        # Check that the query includes the expected conditions
-        assert "testuser" in compiled_str
-        assert "is_active" in compiled_str or "true" in compiled_str.lower()
+        # Second clause should ensure the user is active
+        assert clauses[1].left.key == "is_active"
 
     @pytest.mark.asyncio
     async def test_authenticate_with_empty_identifier(self):
@@ -252,13 +252,11 @@ class TestApiKeyBackend:
     def create_mock_client(self, mock_data_factory, **overrides):
         """Create a Client instance with hashed secret."""
         client_data = mock_data_factory.create_client_data(**overrides)
-        client = Client(
-            tenant_id=uuid4(),
-            client_secret_hash=hash_pw(client_data["client_secret"]),
-            redirect_uris=" ".join(client_data["redirect_uris"]),
-        )
+        client_secret = client_data["client_secret"]
+        client = MagicMock()
         client.is_active = client_data["is_active"]
-        return client, client_data["client_secret"]
+        client.verify_secret = MagicMock(side_effect=lambda s: s == client_secret)
+        return client, client_secret
 
     @pytest.mark.asyncio
     async def test_authenticate_with_valid_api_key(self, mock_data_factory):
@@ -404,9 +402,15 @@ class TestApiKeyBackend:
         client, raw_secret = self.create_mock_client(mock_data_factory)
         self.mock_db.scalar.side_effect = [None, None]
         self.mock_db.scalars = AsyncMock(return_value=[client])
+        self.backend._get_key_stmt = AsyncMock()
+        self.backend._get_service_key_stmt = AsyncMock()
         client.verify_secret = MagicMock(wraps=client.verify_secret)
 
-        principal, key_type = await self.backend.authenticate(self.mock_db, raw_secret)
+        with patch("auto_authn.backends._ApiKey") as mock_api_key:
+            mock_api_key.return_value.digest_of.return_value = "mock-digest"
+            principal, key_type = await self.backend.authenticate(
+                self.mock_db, raw_secret
+            )
 
         assert principal == client
         assert key_type == "client"
@@ -419,10 +423,14 @@ class TestApiKeyBackend:
         client, raw_secret = self.create_mock_client(mock_data_factory)
         self.mock_db.scalar.side_effect = [None, None]
         self.mock_db.scalars = AsyncMock(return_value=[client])
+        self.backend._get_key_stmt = AsyncMock()
+        self.backend._get_service_key_stmt = AsyncMock()
         client.verify_secret = MagicMock(wraps=client.verify_secret)
 
-        with pytest.raises(AuthError) as exc_info:
-            await self.backend.authenticate(self.mock_db, "wrong-secret")
+        with patch("auto_authn.backends._ApiKey") as mock_api_key:
+            mock_api_key.return_value.digest_of.return_value = "mock-digest"
+            with pytest.raises(AuthError) as exc_info:
+                await self.backend.authenticate(self.mock_db, "wrong-secret")
 
         assert exc_info.value.reason == "API key invalid, revoked, or expired"
         client.verify_secret.assert_called_once_with("wrong-secret")
@@ -433,9 +441,13 @@ class TestApiKeyBackend:
         client, raw_secret = self.create_mock_client(mock_data_factory, is_active=False)
         self.mock_db.scalar.side_effect = [None, None]
         self.mock_db.scalars = AsyncMock(return_value=[])
+        self.backend._get_key_stmt = AsyncMock()
+        self.backend._get_service_key_stmt = AsyncMock()
 
-        with pytest.raises(AuthError) as exc_info:
-            await self.backend.authenticate(self.mock_db, raw_secret)
+        with patch("auto_authn.backends._ApiKey") as mock_api_key:
+            mock_api_key.return_value.digest_of.return_value = "mock-digest"
+            with pytest.raises(AuthError) as exc_info:
+                await self.backend.authenticate(self.mock_db, raw_secret)
 
         assert exc_info.value.reason == "API key invalid, revoked, or expired"
         self.mock_db.scalars.assert_called_once()
@@ -444,47 +456,32 @@ class TestApiKeyBackend:
     async def test_get_client_stmt_filters_inactive_clients(self):
         """_get_client_stmt should select only active clients."""
         stmt = await self.backend._get_client_stmt()
-        compiled = stmt.compile(compile_kwargs={"literal_binds": True})
-        compiled_str = str(compiled)
-        assert "is_active" in compiled_str
+        clause = list(stmt._where_criteria)[0]
+        assert clause.left.key == "is_active"
 
     @pytest.mark.asyncio
     async def test_get_key_stmt_filters_expired_keys(self):
         """Test that _get_key_stmt properly filters expired keys."""
         test_digest = "test-digest"
 
-        # Create the statement
         stmt = await self.backend._get_key_stmt(test_digest)
 
-        # Verify it's a Select statement
-        assert hasattr(stmt, "compile")
-
-        # Compile and check structure
-        compiled = stmt.compile(compile_kwargs={"literal_binds": True})
-        compiled_str = str(compiled)
-
-        # Should filter by digest and expiration
-        assert test_digest in compiled_str
-        assert "valid_to" in compiled_str
+        clauses = list(stmt._where_criteria)
+        assert clauses[0].left.key == "digest"
+        sub_keys = {c.left.key for c in clauses[1].clauses}
+        assert "valid_to" in sub_keys
 
     @pytest.mark.asyncio
     async def test_get_service_key_stmt_filters_expired_keys(self):
         """Test that _get_service_key_stmt properly filters expired keys."""
         test_digest = "test-digest"
 
-        # Create the statement
         stmt = await self.backend._get_service_key_stmt(test_digest)
 
-        # Verify it's a Select statement
-        assert hasattr(stmt, "compile")
-
-        # Compile and check structure
-        compiled = stmt.compile(compile_kwargs={"literal_binds": True})
-        compiled_str = str(compiled)
-
-        # Should filter by digest and expiration
-        assert test_digest in compiled_str
-        assert "valid_to" in compiled_str
+        clauses = list(stmt._where_criteria)
+        assert clauses[0].left.key == "digest"
+        sub_keys = {c.left.key for c in clauses[1].clauses}
+        assert "valid_to" in sub_keys
 
     @pytest.mark.asyncio
     async def test_authenticate_with_empty_api_key(self):
@@ -496,20 +493,22 @@ class TestApiKeyBackend:
 
         assert exc_info.value.reason == "API key invalid, revoked, or expired"
 
-    @patch("auto_authn.v2.backends.ApiKey.digest_of")
+    @patch("auto_authn.backends._ApiKey")
     @pytest.mark.asyncio
-    async def test_digest_of_called_correctly(self, mock_digest_of):
+    async def test_digest_of_called_correctly(self, mock_api_key):
         """Test that ApiKey.digest_of is called with the raw key."""
         raw_key = "test-api-key-12345"
-        mock_digest_of.return_value = "mocked-digest"
+        mock_api_key.return_value.digest_of.return_value = "mocked-digest"
         self.mock_db.scalar.side_effect = [None, None]
+        self.backend._get_key_stmt = AsyncMock()
+        self.backend._get_service_key_stmt = AsyncMock()
 
         try:
             await self.backend.authenticate(self.mock_db, raw_key)
         except AuthError:
             pass  # Expected
 
-        mock_digest_of.assert_called_once_with(raw_key)
+        mock_api_key.return_value.digest_of.assert_called_once_with(raw_key)
 
 
 @pytest.mark.unit

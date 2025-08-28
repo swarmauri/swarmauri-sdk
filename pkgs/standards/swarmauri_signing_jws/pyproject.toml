@@ -1,0 +1,79 @@
+[project]
+name = "swarmauri_signing_jws"
+version = "0.1.0"
+description = "Composite JWS signer/verifier for Swarmauri"
+license = "Apache-2.0"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+authors = [{ name = "Swarmauri", email = "opensource@swarmauri.com" }]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Development Status :: 3 - Alpha",
+    "Topic :: Security :: Cryptography",
+    "Intended Audience :: Developers",
+]
+dependencies = [
+    "swarmauri_core",
+    "swarmauri_base",
+    "swarmauri_signing_hmac",
+    "swarmauri_signing_rsa",
+    "swarmauri_signing_ecdsa",
+    "swarmauri_signing_ed25519",
+]
+
+[project.optional-dependencies]
+cbor = ["cbor2"]
+secp256k1 = ["swarmauri_signing_secp256k1"]
+
+[tool.uv.sources]
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+swarmauri_signing_hmac = { workspace = true }
+swarmauri_signing_rsa = { workspace = true }
+swarmauri_signing_ecdsa = { workspace = true }
+swarmauri_signing_ed25519 = { workspace = true }
+swarmauri_signing_secp256k1 = { workspace = true }
+
+[tool.pytest.ini_options]
+norecursedirs = ["combined", "scripts"]
+markers = [
+    "test: standard test",
+    "unit: Unit tests",
+    "i9n: Integration tests",
+    "r8n: Regression tests",
+    "acceptance: Acceptance tests",
+    "perf: Performance tests",
+]
+timeout = 300
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+asyncio_default_fixture_loop_scope = "function"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-xdist>=3.6.1",
+    "pytest-json-report>=1.5.0",
+    "pytest-timeout>=2.3.1",
+    "pytest-benchmark>=4.0.0",
+    "flake8>=7.0",
+    "ruff>=0.9.9",
+]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[project.entry-points.'swarmauri.signings']
+JwsSignerVerifier = "swarmauri_signing_jws:JwsSignerVerifier"
+
+[project.entry-points."peagen.plugins.signings"]
+jws = "swarmauri_signing_jws:JwsSignerVerifier"

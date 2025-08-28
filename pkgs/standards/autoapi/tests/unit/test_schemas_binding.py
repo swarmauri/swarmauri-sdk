@@ -5,7 +5,7 @@ from autoapi.v3.types import Column, String
 
 
 class Gadget(Base, GUIDPk):
-    __tablename__ = "gadgets"
+    __tablename__ = "gadgets_schemas_binding"
     name = Column(String, nullable=False)
 
 

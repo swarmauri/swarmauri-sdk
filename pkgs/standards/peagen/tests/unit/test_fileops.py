@@ -1,7 +1,7 @@
 import io
 import pytest
 
-from peagen.plugins.storage_adapters.file_storage_adapter import FileStorageAdapter
+from swarmauri_storage_file import FileStorageAdapter
 from peagen.tui.fileops import download_remote, upload_remote
 
 

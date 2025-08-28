@@ -1,5 +1,5 @@
 """
-Integration tests for auto_authn.v2.routers.auth_flows module.
+Integration tests for auto_authn.routers.auth_flows module.
 
 Tests complete authentication flows including registration, login,
 logout, token refresh, and API key introspection.
@@ -11,9 +11,9 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from auto_authn.v2.orm.tables import Tenant, User, ApiKey
-from auto_authn.v2.crypto import hash_pw
-from auto_authn.v2.jwtoken import JWTCoder
+from auto_authn.orm.tables import Tenant, User, ApiKey
+from auto_authn.crypto import hash_pw
+from auto_authn.jwtoken import JWTCoder
 
 
 @pytest.mark.integration
@@ -251,15 +251,15 @@ class TestLoginFlow:
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert "invalid credentials" in response.json()["detail"]
 
-    async def test_login_alias_endpoint(
+    async def test_token_endpoint_form_data(
         self, async_client: AsyncClient, db_session: AsyncSession
     ):
-        """Test that /token endpoint works as alias for /login."""
+        """Test that /token accepts form-encoded credentials."""
         tenant, user = await self.setup_test_user(db_session)
 
-        login_data = {"identifier": "testuser", "password": "TestPassword123!"}
+        form = {"username": "testuser", "password": "TestPassword123!"}
 
-        response = await async_client.post("/token", json=login_data)
+        response = await async_client.post("/token", data=form)
 
         assert response.status_code == status.HTTP_200_OK
 
@@ -373,14 +373,35 @@ class TestTokenRefresh:
 
 @pytest.mark.integration
 class TestLogoutEndpoint:
-    """Test logout endpoint."""
+    """Test logout endpoint and session handling."""
 
-    async def test_logout_returns_no_content(self, async_client: AsyncClient):
-        """Test that logout endpoint returns 204 No Content."""
-        response = await async_client.post("/logout")
+    async def test_logout_clears_session_cookie(
+        self, async_client: AsyncClient, db_session: AsyncSession
+    ):
+        """Logging out clears the session cookie and returns 204."""
+        tenant = Tenant(slug="logout-tenant", name="LT", email="lt@example.com")
+        db_session.add(tenant)
+        await db_session.commit()
+
+        user = User(
+            tenant_id=tenant.id,
+            username="logout-user",
+            email="logout@example.com",
+            password_hash=hash_pw("TestPassword123!"),
+        )
+        db_session.add(user)
+        await db_session.commit()
+
+        login_data = {"identifier": "logout-user", "password": "TestPassword123!"}
+        login_response = await async_client.post("/login", json=login_data)
+        assert login_response.status_code == status.HTTP_200_OK
+        id_token = login_response.json()["id_token"]
+        assert async_client.cookies.get("sid") is not None
+
+        response = await async_client.post("/logout", json={"id_token_hint": id_token})
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
-        assert response.content == b""
+        assert async_client.cookies.get("sid") is None
 
 
 @pytest.mark.integration
@@ -388,7 +409,7 @@ class TestApiKeyIntrospection:
     """Test API key introspection endpoint."""
 
     async def test_introspect_valid_api_key(
-        self, async_client: AsyncClient, db_session: AsyncSession
+        self, async_client: AsyncClient, db_session: AsyncSession, enable_rfc7662
     ):
         """Test API key introspection with valid key."""
         # Create test tenant and user
@@ -414,26 +435,30 @@ class TestApiKeyIntrospection:
         db_session.add(api_key)
         await db_session.commit()
 
-        introspect_data = {"api_key": raw_key}
-
-        response = await async_client.post("/apikeys/introspect", json=introspect_data)
+        response = await async_client.post("/introspect", data={"token": raw_key})
 
         assert response.status_code == status.HTTP_200_OK
 
         response_data = response.json()
+        assert response_data["active"] is True
         assert response_data["sub"] == str(user.id)
         assert response_data["tid"] == str(tenant.id)
 
-    async def test_introspect_invalid_api_key(self, async_client: AsyncClient):
+    async def test_introspect_invalid_api_key(
+        self, async_client: AsyncClient, enable_rfc7662
+    ):
         """Test API key introspection with invalid key."""
-        introspect_data = {"api_key": "invalid-api-key"}
 
-        response = await async_client.post("/apikeys/introspect", json=introspect_data)
+        response = await async_client.post(
+            "/introspect", data={"token": "invalid-api-key"}
+        )
 
-        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.status_code == status.HTTP_200_OK
+        response_data = response.json()
+        assert response_data["active"] is False
 
     async def test_introspect_expired_api_key(
-        self, async_client: AsyncClient, db_session: AsyncSession
+        self, async_client: AsyncClient, db_session: AsyncSession, enable_rfc7662
     ):
         """Test API key introspection with expired key."""
         from datetime import datetime, timezone, timedelta
@@ -459,25 +484,24 @@ class TestApiKeyIntrospection:
         api_key = ApiKey(
             user_id=user.id,
             label="Expired Key",
-            valid_to=datetime.now(timezone.utc)
-            - timedelta(days=1),  # Expired yesterday
+            valid_to=datetime.now(timezone.utc) - timedelta(days=1),
         )
         api_key.raw_key = raw_key
         db_session.add(api_key)
         await db_session.commit()
 
-        introspect_data = {"api_key": raw_key}
+        response = await async_client.post("/introspect", data={"token": raw_key})
 
-        response = await async_client.post("/apikeys/introspect", json=introspect_data)
-
-        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.status_code == status.HTTP_200_OK
+        response_data = response.json()
+        assert response_data["active"] is False
 
 
 # Test helper functions
 @pytest.mark.integration
 async def test_authentication_helpers():
     """Test helper functions for authentication testing."""
-    from auto_authn.v2.crypto import hash_pw, verify_pw
+    from auto_authn.crypto import hash_pw, verify_pw
 
     password = "TestPassword123!"
     hashed = hash_pw(password)

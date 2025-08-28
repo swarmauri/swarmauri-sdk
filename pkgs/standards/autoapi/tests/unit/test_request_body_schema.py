@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from autoapi.v3.types import App
 
 from autoapi.v3.bindings.rest import _build_router
 from autoapi.v3.opspec import OpSpec
@@ -15,15 +15,14 @@ class Widget(Base, GUIDPk):
 def test_request_body_uses_schema_model():
     sp = OpSpec(alias="create", target="create")
     router = _build_router(Widget, [sp])
-    app = FastAPI()
+    app = App()
     app.include_router(router)
     spec = app.openapi()
-
-    request_schema = spec["paths"]["/widgets_req_schema"]["post"]["requestBody"][
-        "content"
-    ]["application/json"]["schema"]
-    any_of = request_schema.get("anyOf")
-    assert any_of and any_of[0]["$ref"] == "#/components/schemas/WidgetCreate"
+    path = f"/{Widget.__name__.lower()}"
+    request_schema = spec["paths"][path]["post"]["requestBody"]["content"][
+        "application/json"
+    ]["schema"]
+    assert request_schema["$ref"] == "#/components/schemas/WidgetCreate"
 
     widget_schema = spec["components"]["schemas"]["WidgetCreate"]
     assert "name" in widget_schema.get("properties", {})
@@ -36,7 +35,7 @@ def test_replace_request_body_excludes_pk():
 
     sp = OpSpec(alias="replace", target="replace")
     router = _build_router(Gadget, [sp])
-    app = FastAPI()
+    app = App()
     app.include_router(router)
     spec = app.openapi()
 

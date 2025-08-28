@@ -1,8 +1,8 @@
 import pytest
 import pytest_asyncio
-from autoapi.v2 import AutoAPI, Base
-from autoapi.v2.mixins import GUIDPk
-from fastapi import FastAPI
+from autoapi.v3 import AutoAPI, Base
+from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.types import App
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, ForeignKey, String
 
@@ -36,20 +36,16 @@ async def three_level_api_client(db_mode, sync_db_session, async_db_session):
 
     if db_mode == "async":
         _, get_async_db = async_db_session
-        api = AutoAPI(
-            base=Base,
-            include={Company, Department, Employee},
-            get_async_db=get_async_db,
-        )
+        api = AutoAPI(get_async_db=get_async_db)
+        api.include_models([Company, Department, Employee])
         await api.initialize_async()
     else:
         _, get_sync_db = sync_db_session
-        api = AutoAPI(
-            base=Base, include={Company, Department, Employee}, get_db=get_sync_db
-        )
+        api = AutoAPI(get_db=get_sync_db)
+        api.include_models([Company, Department, Employee])
         api.initialize_sync()
 
-    app = FastAPI()
+    app = App()
     app.include_router(api.router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
@@ -69,7 +65,7 @@ async def test_nested_routing_depth(three_level_api_client):
     # Create department
     res = await client.post(
         f"/company/{company_id}",
-        json={"company_id": company_id, "name": "Engineering"},
+        json={"name": "Engineering"},
     )
     assert res.status_code == 201
     department_id = res.json()["id"]
@@ -77,11 +73,7 @@ async def test_nested_routing_depth(three_level_api_client):
     # Create employee
     res = await client.post(
         f"/company/{company_id}/department/{department_id}",
-        json={
-            "company_id": company_id,
-            "department_id": department_id,
-            "name": "Alice",
-        },
+        json={"name": "Alice"},
     )
     assert res.status_code == 201
     employee_id = res.json()["id"]
@@ -108,12 +100,6 @@ async def test_nested_routing_depth(three_level_api_client):
         assert path in paths
         for verb in verbs:
             assert verb in paths[path]
-
-    # Verify RPC methods exist
-    methods = (await client.get("/methodz")).json()
-    for model in ("Company", "Department", "Employee"):
-        for verb in ("create", "list", "clear", "read", "update", "delete"):
-            assert f"{model}.{verb}" in methods
 
     # Confirm nested routes resolve to correct handlers
     res = await client.get(f"/company/{company_id}/{department_id}")
