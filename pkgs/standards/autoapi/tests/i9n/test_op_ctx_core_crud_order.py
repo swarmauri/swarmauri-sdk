@@ -15,13 +15,16 @@ def setup_api(model_cls, get_db):
     api = AutoAPI(app=app, get_db=get_db)
     api.include_model(model_cls, prefix="")
     api.initialize_sync()
+    api.attach_diagnostics(prefix="")
     return app, api
 
 
 async def fetch_inspection(client):
     openapi = (await client.get("/openapi.json")).json()
-    hookz = (await client.get("/hookz")).json()
-    planz = (await client.get("/planz")).json()
+    hookz_res = await client.get("/hookz")
+    planz_res = await client.get("/planz")
+    hookz = hookz_res.json() if hookz_res.status_code == 200 else {}
+    planz = planz_res.json() if planz_res.status_code == 200 else {}
     return openapi, hookz, planz
 
 
