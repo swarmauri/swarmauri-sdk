@@ -4,7 +4,7 @@ import io
 import hashlib
 from pathlib import Path
 
-from peagen.plugins.storage_adapters.file_storage_adapter import FileStorageAdapter
+from swarmauri_storage_file import FileStorageAdapter
 
 
 class FileFilter(FileStorageAdapter):

@@ -77,6 +77,10 @@ members = [
     "standards/autoapi",
     "standards/autoapi_client",
     "standards/peagen",
+    "standards/swarmauri_storage_file",
+    "standards/swarmauri_storage_github",
+    "standards/swarmauri_storage_github_release",
+    "standards/swarmauri_storage_minio",
     "standards/auto_authn",
     "standards/auto_kms",
     "standards/swarmauri_certs_composite",
@@ -257,6 +261,10 @@ autoapi = { workspace = true }
 autoapi_client = { workspace = true }
 auto_authn = { workspace = true }
 peagen = { workspace = true }
+swarmauri_storage_file = { workspace = true }
+swarmauri_storage_github = { workspace = true }
+swarmauri_storage_github_release = { workspace = true }
+swarmauri_storage_minio = { workspace = true }
 auto_kms = { workspace = true }
 
 swarmauri_secret_autogpg = { workspace = true }
