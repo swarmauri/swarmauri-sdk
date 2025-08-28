@@ -182,7 +182,7 @@ services:
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
       PEAGEN_GIT_SHADOW_PAT: ${PEAGEN_GIT_SHADOW_PAT}
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/system/healthz"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -211,7 +211,7 @@ services:
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/healthz"]
+      test: ["CMD", "curl", "-f", "http://localhost:8001/system/healthz"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -236,7 +236,7 @@ services:
       PG_PASS: ${POSTGRES_PASSWORD}
       PG_DSN: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${AUTO_AUTHN_DB}
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8002/healthz"]
+      test: ["CMD", "curl", "-f", "http://localhost:8002/system/healthz"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -256,7 +256,7 @@ services:
     environment:
       KMS_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${AUTO_KMS_DB}
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/system/healthz"]
       interval: 10s
       timeout: 5s
       retries: 3
