@@ -11,10 +11,13 @@ from minio.error import S3Error
 from pydantic import SecretStr
 
 from peagen._utils.config_loader import load_peagen_toml
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.storage import StorageAdapterBase
 from swarmauri_base.git_filters import GitFilterBase
 
 
-class MinioFilter(GitFilterBase):
+@ComponentBase.register_type(StorageAdapterBase, "MinioFilter")
+class MinioFilter(StorageAdapterBase, GitFilterBase):
     """Simple wrapper around the MinIO client for use with Peagen."""
 
     def __init__(
@@ -26,7 +29,9 @@ class MinioFilter(GitFilterBase):
         *,
         secure: bool = True,
         prefix: str = "",
+        **kwargs,
     ) -> None:
+        super().__init__(**kwargs)
         self._client = Minio(
             endpoint,
             access_key=access_key,

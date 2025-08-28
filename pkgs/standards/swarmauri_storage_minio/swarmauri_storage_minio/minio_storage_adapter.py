@@ -11,6 +11,7 @@ import shutil
 from pathlib import Path
 from typing import BinaryIO, Optional
 
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.storage import StorageAdapterBase
 
 from minio import Minio
@@ -20,6 +21,7 @@ from pydantic import SecretStr
 from peagen._utils.config_loader import load_peagen_toml
 
 
+@ComponentBase.register_type(StorageAdapterBase, "MinioStorageAdapter")
 class MinioStorageAdapter(StorageAdapterBase):
     """Simple wrapper around the MinIO client for use with Peagen."""
 
@@ -32,7 +34,9 @@ class MinioStorageAdapter(StorageAdapterBase):
         *,
         secure: bool = True,
         prefix: str = "",
+        **kwargs,
     ) -> None:
+        super().__init__(**kwargs)
         self._client = Minio(
             endpoint,
             access_key=access_key,

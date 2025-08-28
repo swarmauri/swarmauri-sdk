@@ -3,11 +3,14 @@ from __future__ import annotations
 import os
 from typing import BinaryIO
 
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.storage import StorageAdapterBase
 
 
+@ComponentBase.register_type(StorageAdapterBase, "GithubStorageAdapter")
 class GithubStorageAdapter(StorageAdapterBase):
     def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
         self.kwargs = kwargs
 
     def upload(self, key: str, data: BinaryIO) -> str:  # pragma: no cover - stub

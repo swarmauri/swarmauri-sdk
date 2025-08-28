@@ -9,10 +9,13 @@ import s3fs
 from pydantic import SecretStr
 
 from peagen._utils.config_loader import load_peagen_toml
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.storage import StorageAdapterBase
 from swarmauri_base.git_filters import GitFilterBase
 
 
-class S3FSFilter(GitFilterBase):
+@ComponentBase.register_type(StorageAdapterBase, "S3FSFilter")
+class S3FSFilter(StorageAdapterBase, GitFilterBase):
     """Git filter that stores artifacts in S3 via :mod:`s3fs`."""
 
     def __init__(
@@ -26,6 +29,7 @@ class S3FSFilter(GitFilterBase):
         prefix: str = "",
         **kwargs,
     ) -> None:
+        super().__init__(**kwargs)
         self._bucket = bucket
         self._prefix = prefix.lstrip("/")
 
