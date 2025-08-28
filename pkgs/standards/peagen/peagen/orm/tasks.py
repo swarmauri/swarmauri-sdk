@@ -24,6 +24,7 @@ from autoapi.v3.mixins import (
 from autoapi.v3.specs import S, acol
 from autoapi.v3.specs.storage_spec import ForeignKeySpec
 from autoapi.v3 import hook_ctx
+from autoapi.v3.bindings import build_schemas as _build_schemas
 from typing import TYPE_CHECKING
 from peagen.orm.mixins import RepositoryRefMixin
 
@@ -206,3 +207,11 @@ class Task(
 
 
 __all__ = ["Action", "SpecKind", "Task"]
+
+# Ensure the default "read" schemas are available for Task so that
+# consumers referencing ``Task.schemas.read`` do not fail during import.
+# ``Base`` normally builds CRUD schemas automatically, but some execution
+# paths may omit the "read" op which then triggers a KeyError. Rebuilding
+# the schema here guarantees the operation is registered.
+if not hasattr(Task, "schemas") or not hasattr(Task.schemas, "read"):
+    _build_schemas(Task, [], only_keys={"read"})
