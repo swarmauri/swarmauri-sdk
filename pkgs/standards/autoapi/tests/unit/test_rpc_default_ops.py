@@ -14,23 +14,29 @@ from autoapi.v3.types import (
 )
 
 
-class Widget(Base, GUIDPk, BulkCapable):
-    __tablename__ = "widgets_rpc_ops"
-    __allow_unmapped__ = True
-
-    name = spec_acol(
-        storage=S(type_=String(50), nullable=False),
-        field=F(py_type=str),
-        io=IO(
-            in_verbs=("create", "update", "replace"),
-            out_verbs=("read", "list"),
-            mutable_verbs=("create", "update", "replace"),
-        ),
-    )
-
-
 @pytest.fixture()
-def api_and_session() -> tuple[AutoAPI, Session]:
+def api_and_session() -> Iterator[tuple[AutoAPI, Session, type[Base]]]:
+    from autoapi.v2.impl import schema as v2_schema
+    from autoapi.v3.schema import builder as v3_builder
+
+    Base.metadata.clear()
+    v2_schema._SchemaCache.clear()
+    v3_builder._SchemaCache.clear()
+
+    class Widget(Base, GUIDPk, BulkCapable):
+        __tablename__ = "widgets_rpc_ops"
+        __allow_unmapped__ = True
+
+        name = spec_acol(
+            storage=S(type_=String(50), nullable=False),
+            field=F(py_type=str),
+            io=IO(
+                in_verbs=("create", "update", "replace"),
+                out_verbs=("read", "list"),
+                mutable_verbs=("create", "update", "replace"),
+            ),
+        )
+
     engine = create_engine(
         "sqlite:///:memory:",
         connect_args={"check_same_thread": False},
@@ -48,22 +54,25 @@ def api_and_session() -> tuple[AutoAPI, Session]:
 
     session: Session = SessionLocal()
     try:
-        yield api, session
+        yield api, session, Widget
     finally:
         session.close()
         engine.dispose()
+        Base.metadata.clear()
+        v2_schema._SchemaCache.clear()
+        v3_builder._SchemaCache.clear()
 
 
 @pytest.mark.asyncio
 async def test_rpc_create(api_and_session):
-    api, db = api_and_session
+    api, db, Widget = api_and_session
     result = await api.rpc_call(Widget, "create", {"name": "a"}, db=db)
     assert result["name"] == "a"
 
 
 @pytest.mark.asyncio
 async def test_rpc_read(api_and_session):
-    api, db = api_and_session
+    api, db, Widget = api_and_session
     created = await api.rpc_call(Widget, "create", {"name": "b"}, db=db)
     fetched = await api.rpc_call(Widget, "read", {"id": created["id"]}, db=db)
     assert fetched["id"] == created["id"]
@@ -71,7 +80,7 @@ async def test_rpc_read(api_and_session):
 
 @pytest.mark.asyncio
 async def test_rpc_update(api_and_session):
-    api, db = api_and_session
+    api, db, Widget = api_and_session
     created = await api.rpc_call(Widget, "create", {"name": "c"}, db=db)
     updated = await api.rpc_call(
         Widget,
@@ -85,7 +94,7 @@ async def test_rpc_update(api_and_session):
 
 @pytest.mark.asyncio
 async def test_rpc_replace(api_and_session):
-    api, db = api_and_session
+    api, db, Widget = api_and_session
     created = await api.rpc_call(Widget, "create", {"name": "d"}, db=db)
     replaced = await api.rpc_call(
         Widget,
@@ -99,7 +108,7 @@ async def test_rpc_replace(api_and_session):
 
 @pytest.mark.asyncio
 async def test_rpc_delete(api_and_session):
-    api, db = api_and_session
+    api, db, Widget = api_and_session
     created = await api.rpc_call(Widget, "create", {"name": "e"}, db=db)
     deleted = await api.rpc_call(
         Widget,
@@ -113,7 +122,7 @@ async def test_rpc_delete(api_and_session):
 
 @pytest.mark.asyncio
 async def test_rpc_list(api_and_session):
-    api, db = api_and_session
+    api, db, Widget = api_and_session
     await api.rpc_call(Widget, "create", {"name": "f1"}, db=db)
     await api.rpc_call(Widget, "create", {"name": "f2"}, db=db)
     rows = await api.rpc_call(Widget, "list", {}, db=db)
@@ -122,7 +131,7 @@ async def test_rpc_list(api_and_session):
 
 @pytest.mark.asyncio
 async def test_rpc_clear(api_and_session):
-    api, db = api_and_session
+    api, db, Widget = api_and_session
     await api.rpc_call(Widget, "create", {"name": "g1"}, db=db)
     await api.rpc_call(Widget, "create", {"name": "g2"}, db=db)
     result = await api.rpc_call(Widget, "clear", {"filters": {}}, db=db)
