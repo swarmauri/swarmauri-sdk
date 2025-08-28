@@ -14,8 +14,12 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING, Any, Dict, Final
 
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from .db import get_async_db
+from .runtime_cfg import settings
 
 if TYPE_CHECKING:  # pragma: no cover
     pass
@@ -23,6 +27,31 @@ if TYPE_CHECKING:  # pragma: no cover
 DEFAULT_PAR_EXPIRY = 90  # seconds
 
 RFC9126_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc9126"
+
+
+router = APIRouter()
+
+
+@router.post("/par", status_code=status.HTTP_201_CREATED)
+async def pushed_authorization_request(
+    request: Request,
+    db: AsyncSession = Depends(get_async_db),
+) -> Dict[str, Any]:
+    """Handle Pushed Authorization Requests.
+
+    Stores the incoming parameters and returns a ``request_uri`` pointing to the
+    stored request along with the remaining lifetime in seconds.
+    Returns HTTP 404 when the feature is disabled.
+    """
+
+    if not settings.enable_rfc9126:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "PAR disabled")
+    params = dict(await request.form())
+    if db is None:
+        request_uri = f"urn:ietf:params:oauth:request_uri:{uuid.uuid4()}"
+    else:
+        request_uri = await store_par_request(params, db, DEFAULT_PAR_EXPIRY)
+    return {"request_uri": request_uri, "expires_in": DEFAULT_PAR_EXPIRY}
 
 
 async def store_par_request(
@@ -78,4 +107,5 @@ __all__ = [
     "reset_par_store",
     "DEFAULT_PAR_EXPIRY",
     "RFC9126_SPEC_URL",
+    "router",
 ]
