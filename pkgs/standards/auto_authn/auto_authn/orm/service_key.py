@@ -7,14 +7,14 @@ import secrets
 
 from autoapi.v3.tables import ApiKey as ApiKeyBase
 from autoapi.v3.types import PgUUID, UniqueConstraint, relationship
-from autoapi.v3.specs import IO, S, acol, vcol
+from autoapi.v3.specs import S, acol
 from autoapi.v3.specs.storage_spec import ForeignKeySpec
 from autoapi.v3 import hook_ctx
 from uuid import UUID
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover
-    from .service import Service
+    pass
 
 
 class ServiceKey(ApiKeyBase):
@@ -36,10 +36,6 @@ class ServiceKey(ApiKeyBase):
         "auto_authn.orm.tables.Service",
         back_populates="_service_keys",
         lazy="joined",
-    )
-    service: "Service" = vcol(
-        read_producer=lambda obj, _ctx: obj._service,
-        io=IO(out_verbs=("read", "list")),
     )
 
     @hook_ctx(ops="create", phase="PRE_HANDLER")

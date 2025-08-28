@@ -7,7 +7,7 @@ import uuid
 from autoapi.v3.tables import User as UserBase
 from autoapi.v3 import op_ctx, hook_ctx
 from autoapi.v3.types import LargeBinary, String, relationship
-from autoapi.v3.specs import IO, S, acol, vcol
+from autoapi.v3.specs import S, acol
 from typing import TYPE_CHECKING
 
 from fastapi import HTTPException, status
@@ -15,7 +15,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import select
 
 if TYPE_CHECKING:  # pragma: no cover
-    from .api_key import ApiKey
+    pass
 
 
 class User(UserBase):
@@ -28,10 +28,6 @@ class User(UserBase):
         "auto_authn.orm.tables.ApiKey",
         back_populates="_user",
         cascade="all, delete-orphan",
-    )
-    api_keys: list["ApiKey"] = vcol(
-        read_producer=lambda obj, _ctx: obj._api_keys,
-        io=IO(out_verbs=("read", "list")),
     )
 
     @hook_ctx(ops=("create", "update"), phase="PRE_HANDLER")
