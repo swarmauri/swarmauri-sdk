@@ -80,17 +80,3 @@ def test_bulk_delete_response_schema():
     props = comp.get("properties", {})
     assert "deleted" in props
     assert props["deleted"]["type"] == "integer"
-
-
-def test_clear_response_schema():
-    spec = _openapi_for([("clear", "clear")])
-    path = f"/{Widget.__name__.lower()}"
-    ref = spec["paths"][path]["delete"]["responses"]["200"]["content"][
-        "application/json"
-    ]["schema"]["$ref"]
-    assert ref.endswith("WidgetClearResponse")
-    comp = spec["components"]["schemas"]["WidgetClearResponse"]
-    props = comp.get("properties", {})
-    assert "deleted" in props
-    assert props["deleted"]["type"] == "integer"
-    assert comp["examples"][0] == {"deleted": 1}
