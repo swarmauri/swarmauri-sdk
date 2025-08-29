@@ -473,6 +473,11 @@ def _wrap_core(model: type, target: str) -> StepFn:
         payload = _ctx_payload(ctx)
 
         if target == "create":
+            rows = None
+            if isinstance(payload, Mapping):
+                rows = payload.get("rows")
+            if rows is not None:
+                return await _core.bulk_create(model, rows or [], db=db)
             return await _core.create(model, payload, db=db)
 
         if target == "read":
@@ -495,7 +500,6 @@ def _wrap_core(model: type, target: str) -> StepFn:
             return await _call_list_core(_core.list, model, payload, ctx)
 
         if target == "clear":
-            # No request body for clear; align with REST semantics.
             return await _core.clear(model, {}, db=db)
 
         if target == "bulk_create":
@@ -524,9 +528,9 @@ def _wrap_core(model: type, target: str) -> StepFn:
 
         if target == "bulk_delete":
             ids = payload.get("ids") if isinstance(payload, Mapping) else None
-            if ids is None:
-                ids = []
-            return await _core.bulk_delete(model, ids, db=db)
+            if ids:
+                return await _core.bulk_delete(model, ids, db=db)
+            return await _core.clear(model, {}, db=db)
 
         # Unknown canonical target – return payload to avoid hard failure
         return payload

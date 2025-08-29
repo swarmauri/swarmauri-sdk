@@ -29,11 +29,9 @@ def key_routes(tmp_path, monkeypatch):
         ("replace", "/kms/key/{item_id}", {"PUT"}),
         ("delete", "/kms/key/{item_id}", {"DELETE"}),
         ("list", "/kms/key", {"GET"}),
-        ("clear", "/kms/key", {"DELETE"}),
-        ("bulk_create", "/kms/key/bulk", {"POST"}),
-        ("bulk_update", "/kms/key/bulk", {"PATCH"}),
-        ("bulk_replace", "/kms/key/bulk", {"PUT"}),
-        ("bulk_delete", "/kms/key/bulk", {"DELETE"}),
+        ("bulk_update", "/kms/key", {"PATCH"}),
+        ("bulk_replace", "/kms/key", {"PUT"}),
+        ("bulk_delete", "/kms/key", {"DELETE"}),
     ],
 )
 def test_key_default_op_verbs(key_routes, alias, path, methods):

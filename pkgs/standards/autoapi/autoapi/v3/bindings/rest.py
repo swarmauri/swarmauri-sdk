@@ -416,8 +416,6 @@ _DEFAULT_METHODS: Dict[str, Tuple[str, ...]] = {
 
 
 def _default_path_suffix(sp: OpSpec) -> str | None:
-    if sp.target.startswith("bulk_"):
-        return "/bulk"
     if sp.target == "custom":
         return f"/{sp.alias}"
     return None
@@ -1084,11 +1082,9 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
     nested_pref = re.sub(r"/{2,}", "/", raw_nested).rstrip("/") or ""
     nested_vars = re.findall(r"{(\w+)}", raw_nested)
 
-    # Register collection-level bulk routes before member routes so static paths
-    # like "/resource/bulk" aren't captured by dynamic member routes such as
-    # "/resource/{item_id}". FastAPI matches routes in the order they are
-    # added, so sorting here prevents "bulk" from being treated as an
-    # identifier.
+    # Register collection-level routes before member routes to keep ordering
+    # deterministic. This mirrors previous behaviour where bulk routes used a
+    # "/bulk" suffix.
     specs = sorted(specs, key=lambda sp: (0 if sp.target.startswith("bulk_") else 1))
 
     for sp in specs:

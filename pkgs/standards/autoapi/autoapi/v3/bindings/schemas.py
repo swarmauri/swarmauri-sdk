@@ -5,7 +5,7 @@ import logging
 from types import SimpleNamespace
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Type
 
-from pydantic import BaseModel, Field, create_model
+from pydantic import BaseModel, Field, RootModel, create_model
 
 from ..opspec import OpSpec
 from ..opspec.types import (
@@ -202,7 +202,15 @@ def _default_schemas_for_spec(
 
     # Canonical targets
     if target == "create":
-        result["in_"] = _build_schema(model, verb="create")
+        item_in = _build_schema(model, verb="create")
+        bulk_model = _make_bulk_rows_model(model, "bulk_create", item_in)
+        union_type = item_in | bulk_model
+        union_model = type(
+            f"{model.__name__}CreateRequest",
+            (RootModel[union_type],),
+            {},
+        )
+        result["in_"] = union_model
         result["out"] = read_schema
 
     elif target == "read":

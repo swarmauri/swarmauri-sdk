@@ -148,12 +148,12 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         )
     if issubclass(model, BulkCapable):
         print("Model is BulkCapable; adding bulk specs")
-        # keep REST path style aligned with current codebase ("/bulk")
+        # bulk operations now share the collection path
         spec += [
             (
                 "bulk_create",
                 "POST",
-                "/bulk",
+                "/",
                 201,
                 List[SCreate],
                 List[SReadOut],
@@ -162,7 +162,7 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             (
                 "bulk_update",
                 "PATCH",
-                "/bulk",
+                "/",
                 200,
                 List[SUpdate],
                 List[SReadOut],
@@ -171,13 +171,13 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
             (
                 "bulk_replace",
                 "PUT",
-                "/bulk",
+                "/",
                 200,
                 List[SCreate],
                 List[SReadOut],
                 functools.partial(_update, full=True),
             ),
-            ("bulk_delete", "DELETE", "/bulk", 204, List[SDeleteIn], None, _delete),
+            ("bulk_delete", "DELETE", "/", 204, List[SDeleteIn], None, _delete),
         ]
 
     # ─── table-level policy: include/exclude canonical verbs ─────────

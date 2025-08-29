@@ -265,8 +265,8 @@ async def test_bulk_capable_mixin(create_test_api):
     routes = [route.path for route in api.router.routes]
 
     # Should have bulk create and bulk delete routes
-    expected_path = f"/{DummyModelBulkCapable.__name__.lower()}/bulk"
-    assert expected_path in [route for route in routes if "/bulk" in route]
+    expected_path = f"/{DummyModelBulkCapable.__name__.lower()}"
+    assert expected_path in [route for route in routes]
 
 
 @pytest.mark.i9n

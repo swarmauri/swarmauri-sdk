@@ -42,7 +42,7 @@ def test_rest_rpc_symmetry_for_default_verbs():
     assert rpc_aliases == expected_verbs
 
     rest_aliases = _rest_aliases(Thing)
-    assert rest_aliases == expected_verbs
+    assert rest_aliases == expected_verbs - {"bulk_create", "clear"}
 
     for alias in expected_verbs:
         params = _rpc_param_names(getattr(Thing.rpc, alias))
@@ -55,8 +55,6 @@ def test_rest_rpc_symmetry_for_default_verbs():
         "replace": {"item_id", "request", "db", "body"},
         "delete": {"item_id", "request", "db"},
         "list": {"request", "q", "db"},
-        "clear": {"request", "db"},
-        "bulk_create": {"request", "db", "body"},
         "bulk_update": {"request", "db", "body"},
         "bulk_replace": {"request", "db", "body"},
         "bulk_delete": {"request", "db", "body"},

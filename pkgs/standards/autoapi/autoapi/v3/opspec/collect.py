@@ -145,6 +145,7 @@ def _generate_canonical(model: type) -> List[OpSpec]:
         alias = (
             target  # canonical alias matches the target (may be remapped by alias_ctx)
         )
+        expose_routes = target not in {"bulk_create", "clear"}
         out.append(
             OpSpec(
                 alias=alias,
@@ -156,6 +157,7 @@ def _generate_canonical(model: type) -> List[OpSpec]:
                 # persistent by default; binder will auto START_TX/END_TX where appropriate
                 persist="default",
                 # Do not set `returns` here.
+                expose_routes=expose_routes,
             )
         )
     return out
