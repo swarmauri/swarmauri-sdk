@@ -71,10 +71,10 @@ def _get_phase_chains(
 def _coerce_payload(payload: Any) -> Any:
     """Normalize common payload shapes.
 
-    ``dict``-like and Pydantic models become plain ``dict``\ s. ``None`` becomes an
-    empty ``dict``.  Sequence payloads (used by bulk operations) pass through as
-    lists of ``dict``\ s when possible; otherwise the original sequence is
-    returned.  Any other type yields an empty ``dict``.
+    ``dict``-like and Pydantic models become plain ``dict``s. ``None`` becomes an
+    empty ``dict``. Sequence payloads (used by bulk operations) pass through as
+    lists of ``dict``s when possible; otherwise the original sequence is
+    returned. Any other type yields an empty ``dict``.
     """
     if payload is None:
         return {}
