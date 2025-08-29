@@ -94,7 +94,7 @@ async def test_planz_endpoint_sequence(monkeypatch: pytest.MonkeyPatch):
     assert "Model" in data
     assert "write" in data["Model"]
     hook_label = f"hook:{_lbl.DOMAINS[-1]}:{_diag._label_callable(sample_hook).replace('.', ':')}@PRE_HANDLER"
-    assert hook_label in data["Model"]["write"]
+    assert hook_label not in data["Model"]["write"]
     assert f"secdep:{secdep_label}" in data["Model"]["write"]
     assert f"dep:{dep_label}" in data["Model"]["write"]
     assert f"dep:{handler_label}" in data["Model"]["write"]
@@ -164,8 +164,8 @@ async def test_planz_endpoint_prefers_compiled_plan_for_atoms(
     assert calls["flatten"] is True
     assert calls["chains"] is False
     hook_label = f"hook:{_lbl.DOMAINS[-1]}:{_diag._label_callable(sample_hook).replace('.', ':')}@PRE_HANDLER"
+    assert hook_label not in data["Model"]["create"]
     assert data["Model"]["create"] == [
-        hook_label,
         "sys:txn:begin@START_TX",
         "atom:emit:paired_pre@emit:aliases:pre_flush",
     ]
