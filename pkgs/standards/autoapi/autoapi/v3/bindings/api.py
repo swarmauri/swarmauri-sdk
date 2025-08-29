@@ -8,11 +8,13 @@ from typing import (
     Awaitable,
     Callable,
     Dict,
+    Mapping,
     Optional,
     Sequence,
     Tuple,
     Union,
 )
+from uuid import UUID
 
 from . import model as _binder  # bind(model) → builds/attaches namespaces
 from .rpc import _coerce_payload, _get_phase_chains, _validate_input, _serialize_output
@@ -127,9 +129,33 @@ class _ResourceProxy:
             ctx: Optional[Dict[str, Any]] = None,
         ) -> Any:
             raw_payload = _coerce_payload(payload)
-            norm_payload = _validate_input(self._model, alias, alias, raw_payload)
             base_ctx: Dict[str, Any] = dict(ctx or {})
-            base_ctx.setdefault("payload", norm_payload)
+            if alias.startswith("bulk_") and isinstance(raw_payload, Sequence):
+                if alias == "bulk_delete" and not any(
+                    isinstance(item, Mapping) for item in raw_payload
+                ):
+                    ids = [UUID(x) if isinstance(x, str) else x for x in raw_payload]
+                    norm_payload = {"ids": ids}
+                    base_ctx.setdefault("payload", norm_payload)
+                else:
+                    merged_payload: list[Any] = []
+                    for item in raw_payload:
+                        if isinstance(item, Mapping):
+                            data = dict(item)
+                            if "id" in data and isinstance(data["id"], str):
+                                try:
+                                    data["id"] = UUID(data["id"])
+                                except Exception:  # pragma: no cover - best effort
+                                    pass
+                            norm = _validate_input(self._model, alias, alias, data)
+                            merged_payload.append({**data, **norm})
+                        else:
+                            merged_payload.append(item)
+                    norm_payload = merged_payload
+                    base_ctx.setdefault("payload", merged_payload)
+            else:
+                norm_payload = _validate_input(self._model, alias, alias, raw_payload)
+                base_ctx.setdefault("payload", norm_payload)
             base_ctx.setdefault("db", db)
             if request is not None:
                 base_ctx.setdefault("request", request)
@@ -140,10 +166,13 @@ class _ResourceProxy:
                 ),
             )
             if self._serialize:
-                base_ctx.setdefault(
-                    "response_serializer",
-                    lambda r: _serialize_output(self._model, alias, alias, r),
-                )
+                if alias in {"bulk_update", "bulk_replace"}:
+                    base_ctx.setdefault("response_serializer", lambda r: r)
+                else:
+                    base_ctx.setdefault(
+                        "response_serializer",
+                        lambda r: _serialize_output(self._model, alias, alias, r),
+                    )
             else:
                 base_ctx.setdefault("response_serializer", lambda r: r)
             phases = _get_phase_chains(self._model, alias)
