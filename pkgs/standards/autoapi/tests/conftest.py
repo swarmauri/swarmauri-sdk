@@ -167,7 +167,7 @@ async def api_client(db_mode):
 
         @classmethod
         def __autoapi_nested_paths__(cls):
-            return "/tenant/{tenant_id}"
+            return "/tenant/{tenant_id}/item"
 
     fastapi_app = App()
 

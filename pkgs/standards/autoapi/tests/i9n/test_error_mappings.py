@@ -190,8 +190,12 @@ async def test_error_parity_crud_vs_rpc(api_client):
     client, api, _ = api_client
 
     # Test 404 error parity
+    t = await client.post("/tenant", json={"name": "ghost"})
+    tid = t.json()["id"]
     # Try to read non-existent item via REST
-    rest_response = await client.get("/item/00000000-0000-0000-0000-000000000000")
+    rest_response = await client.get(
+        f"/tenant/{tid}/item/00000000-0000-0000-0000-000000000000"
+    )
     assert rest_response.status_code == 404
     rest_error = rest_response.json()
 
@@ -200,7 +204,10 @@ async def test_error_parity_crud_vs_rpc(api_client):
         "/rpc",
         json={
             "method": "Item.read",
-            "params": {"id": "00000000-0000-0000-0000-000000000000"},
+            "params": {
+                "tenant_id": tid,
+                "id": "00000000-0000-0000-0000-000000000000",
+            },
         },
     )
     assert rpc_response.status_code == 200

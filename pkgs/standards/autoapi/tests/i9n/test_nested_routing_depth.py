@@ -22,7 +22,7 @@ async def three_level_api_client(db_mode, sync_db_session, async_db_session):
 
         @classmethod
         def __autoapi_nested_paths__(cls):
-            return "/company/{company_id}"
+            return "/company/{company_id}/department"
 
     class Employee(Base, GUIDPk):
         __tablename__ = "employees"
@@ -32,7 +32,7 @@ async def three_level_api_client(db_mode, sync_db_session, async_db_session):
 
         @classmethod
         def __autoapi_nested_paths__(cls):
-            return "/company/{company_id}/department/{department_id}"
+            return "/company/{company_id}/department/{department_id}/employee"
 
     if db_mode == "async":
         _, get_async_db = async_db_session
@@ -64,7 +64,7 @@ async def test_nested_routing_depth(three_level_api_client):
 
     # Create department
     res = await client.post(
-        f"/company/{company_id}",
+        f"/company/{company_id}/department",
         json={"name": "Engineering"},
     )
     assert res.status_code == 201
@@ -72,7 +72,7 @@ async def test_nested_routing_depth(three_level_api_client):
 
     # Create employee
     res = await client.post(
-        f"/company/{company_id}/department/{department_id}",
+        f"/company/{company_id}/department/{department_id}/employee",
         json={"name": "Alice"},
     )
     assert res.status_code == 201
@@ -83,14 +83,14 @@ async def test_nested_routing_depth(three_level_api_client):
     expected = {
         "/company": {"post", "get", "delete"},
         "/company/{item_id}": {"get", "patch", "delete"},
-        "/company/{company_id}": {"post", "get", "delete"},
-        "/company/{company_id}/{item_id}": {"get", "patch", "delete"},
-        "/company/{company_id}/department/{department_id}": {
+        "/company/{company_id}/department": {"post", "get", "delete"},
+        "/company/{company_id}/department/{item_id}": {"get", "patch", "delete"},
+        "/company/{company_id}/department/{department_id}/employee": {
             "post",
             "get",
             "delete",
         },
-        "/company/{company_id}/department/{department_id}/{item_id}": {
+        "/company/{company_id}/department/{department_id}/employee/{item_id}": {
             "get",
             "patch",
             "delete",
@@ -102,12 +102,12 @@ async def test_nested_routing_depth(three_level_api_client):
             assert verb in paths[path]
 
     # Confirm nested routes resolve to correct handlers
-    res = await client.get(f"/company/{company_id}/{department_id}")
+    res = await client.get(f"/company/{company_id}/department/{department_id}")
     assert res.status_code == 200
     assert res.json()["id"] == department_id
 
     res = await client.get(
-        f"/company/{company_id}/department/{department_id}/{employee_id}"
+        f"/company/{company_id}/department/{department_id}/employee/{employee_id}"
     )
     assert res.status_code == 200
     assert res.json()["id"] == employee_id
