@@ -510,19 +510,39 @@ def _wrap_core(model: type, target: str) -> StepFn:
             return await _core.clear(model, {}, db=db)
 
         if target == "bulk_create":
-            rows = payload if isinstance(payload, list) else []
+            if payload is None:
+                rows = []
+            elif isinstance(payload, list):
+                rows = payload
+            else:
+                raise TypeError("bulk_create expects a list payload")
             return await _core.bulk_create(model, rows, db=db)
 
         if target == "bulk_update":
-            rows = payload if isinstance(payload, list) else []
+            if payload is None:
+                rows = []
+            elif isinstance(payload, list):
+                rows = payload
+            else:
+                raise TypeError("bulk_update expects a list payload")
             return await _core.bulk_update(model, rows, db=db)
 
         if target == "bulk_replace":
-            rows = payload if isinstance(payload, list) else []
+            if payload is None:
+                rows = []
+            elif isinstance(payload, list):
+                rows = payload
+            else:
+                raise TypeError("bulk_replace expects a list payload")
             return await _core.bulk_replace(model, rows, db=db)
 
         if target == "bulk_upsert":
-            rows = payload if isinstance(payload, list) else []
+            if payload is None:
+                rows = []
+            elif isinstance(payload, list):
+                rows = payload
+            else:
+                raise TypeError("bulk_upsert expects a list payload")
             return await _core.bulk_upsert(model, rows, db=db)
 
         if target == "bulk_delete":
