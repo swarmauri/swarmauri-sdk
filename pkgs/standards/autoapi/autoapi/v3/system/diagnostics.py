@@ -281,23 +281,12 @@ def _build_planz_endpoint(api: Any):
                             else _ev.phase_for_event(lbl.anchor)
                         )
                         phase_labels[phase].append(str(lbl))
-                    hooks_root = getattr(model, "hooks", SimpleNamespace())
-                    alias_ns = getattr(hooks_root, sp.alias, SimpleNamespace())
-                    hook_labels: Dict[str, List[str]] = {
-                        ph: [
-                            _label_hook(fn, ph)
-                            for fn in getattr(alias_ns, ph, []) or []
-                        ]
-                        for ph in PHASES
-                    }
                     seq.extend(pre_labels)
                     for ph in PHASES:
                         if ph == "START_TX":
                             # PRE_HANDLER hooks run before starting the TX
-                            seq.extend(hook_labels.get("PRE_HANDLER", []))
                             seq.extend(phase_labels.get("PRE_HANDLER", []))
                             seq.extend(phase_labels.get(ph, []))
-                            seq.extend(hook_labels.get(ph, []))
                         elif ph == "PRE_HANDLER":
                             # handled in START_TX branch
                             continue
@@ -308,13 +297,10 @@ def _build_planz_endpoint(api: Any):
                                 atoms = phase_list[1:]
                             else:
                                 atoms = phase_list
-                            seq.extend(hook_labels.get(ph, []))
                             seq.extend(atoms)
                         elif ph == "END_TX":
-                            seq.extend(hook_labels.get(ph, []))
                             seq.extend(phase_labels.get(ph, []))
                         else:
-                            seq.extend(hook_labels.get(ph, []))
                             seq.extend(phase_labels.get(ph, []))
                 else:
                     deps: List[str] = [
@@ -343,7 +329,15 @@ def _build_planz_endpoint(api: Any):
                             seq.append(_label_hook(step, ph))
                         if ph == "END_TX" and persist:
                             seq.append("sys:txn:commit@END_TX")
-                model_map[sp.alias] = seq
+                seen_wire = set()
+                dedup_seq: List[str] = []
+                for lbl in seq:
+                    if lbl.startswith("hook:wire:"):
+                        if lbl in seen_wire:
+                            continue
+                        seen_wire.add(lbl)
+                    dedup_seq.append(lbl)
+                model_map[sp.alias] = dedup_seq
             if model_map:
                 out[mname] = model_map
         cache = out
