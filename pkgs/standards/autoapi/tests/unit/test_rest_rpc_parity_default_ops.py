@@ -34,7 +34,6 @@ def _route_map(router) -> dict[str, tuple[str, set[str]]]:
         ("delete", "delete", "/item/{item_id}", {"DELETE"}),
         ("list", "list", "/item", {"GET"}),
         ("clear", "clear", "/item", {"DELETE"}),
-        ("bulk_create", "bulk_create", "/item", {"POST"}),
         ("bulk_update", "bulk_update", "/item", {"PATCH"}),
         ("bulk_replace", "bulk_replace", "/item", {"PUT"}),
         ("bulk_delete", "bulk_delete", "/item", {"DELETE"}),
@@ -61,3 +60,25 @@ def test_rest_rpc_parity_for_default_verbs(alias, target, path, methods):
     assert got_methods == methods
 
     assert hasattr(api.rpc.Item, alias)
+
+
+def test_bulk_create_rest_route_hidden_when_create_present():
+    Base.metadata.clear()
+
+    class Item(Base, GUIDPk, BulkCapable):
+        __tablename__ = "items_hidden_bulk"
+        name = Column(String, nullable=False)
+
+    Item.__autoapi_ops__ = {
+        verb: {"target": verb} for verb in CANON if verb != "custom"
+    }
+
+    api = AutoAPI()
+    api.include_model(Item, mount_router=False)
+
+    routes = _route_map(Item.rest.router)
+    # The single-record create route should be exposed, bulk_create hidden
+    assert "create" in routes
+    assert "bulk_create" not in routes
+    # RPC bulk_create remains available
+    assert hasattr(api.rpc.Item, "bulk_create")

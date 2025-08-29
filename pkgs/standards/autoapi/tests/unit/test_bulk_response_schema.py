@@ -54,6 +54,18 @@ def test_bulk_create_request_schema_has_item_ref():
     assert items_ref.endswith("WidgetCreate")
 
 
+def test_create_preferred_over_bulk_create_docs():
+    spec = _openapi_for([("create", "create"), ("bulk_create", "bulk_create")])
+    path = f"/{Widget.__name__.lower()}"
+    schema = spec["paths"][path]["post"]["requestBody"]["content"]["application/json"][
+        "schema"
+    ]
+    if "$ref" in schema:
+        ref = schema["$ref"].split("/")[-1]
+        schema = spec["components"]["schemas"][ref]
+    assert schema.get("type") == "object"
+
+
 def test_create_and_bulk_create_handlers_and_schemas_bound():
     _ = _openapi_for(
         [
