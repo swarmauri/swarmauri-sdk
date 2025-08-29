@@ -31,6 +31,16 @@ logger = logging.getLogger(__name__)
 
 _Key = Tuple[str, str]  # (alias, target)
 
+
+# Mapping with attribute-style access
+class AttrDict(dict):
+    def __getattr__(self, item: str) -> Any:  # pragma: no cover - trivial
+        try:
+            return self[item]
+        except KeyError as e:  # pragma: no cover - debug helper
+            raise AttributeError(item) from e
+
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Helpers
 # ───────────────────────────────────────────────────────────────────────────────
@@ -102,14 +112,16 @@ def _ensure_jsonable(obj: Any) -> Any:
         return [_ensure_jsonable(x) for x in obj]
     if isinstance(obj, Mapping):
         try:
-            return {k: _ensure_jsonable(v) for k, v in dict(obj).items()}
+            return AttrDict({k: _ensure_jsonable(v) for k, v in dict(obj).items()})
         except Exception:
             pass
     try:
         data = vars(obj)
     except TypeError:
         return obj
-    return {k: _ensure_jsonable(v) for k, v in data.items() if not k.startswith("_")}
+    return AttrDict(
+        {k: _ensure_jsonable(v) for k, v in data.items() if not k.startswith("_")}
+    )
 
 
 def _validate_input(
@@ -217,6 +229,8 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
     ) -> Any:
         # 1) normalize + validate input
         raw_payload = _coerce_payload(payload)
+        if target == "bulk_delete" and not isinstance(raw_payload, Mapping):
+            raw_payload = {"ids": raw_payload}
         if target.startswith("bulk_") and isinstance(raw_payload, Sequence):
             merged_payload = []
             for item in raw_payload:

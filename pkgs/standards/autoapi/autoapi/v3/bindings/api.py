@@ -8,6 +8,7 @@ from typing import (
     Awaitable,
     Callable,
     Dict,
+    Mapping,
     Optional,
     Sequence,
     Tuple,
@@ -127,6 +128,8 @@ class _ResourceProxy:
             ctx: Optional[Dict[str, Any]] = None,
         ) -> Any:
             raw_payload = _coerce_payload(payload)
+            if alias == "bulk_delete" and not isinstance(raw_payload, Mapping):
+                raw_payload = {"ids": raw_payload}
             norm_payload = _validate_input(self._model, alias, alias, raw_payload)
             base_ctx: Dict[str, Any] = dict(ctx or {})
             base_ctx.setdefault("payload", norm_payload)
