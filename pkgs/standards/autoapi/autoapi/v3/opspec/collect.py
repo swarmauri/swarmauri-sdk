@@ -23,7 +23,7 @@ from ..config.constants import (
     AUTOAPI_OPS_ATTR,
 )
 from ..decorators import alias_map_for  # canonical→alias mapping source
-from ..types.op_config_provider import should_wire_canonical
+from .canonical import should_wire_canonical
 
 try:
     # Per-model registry (observable, triggers rebind elsewhere)

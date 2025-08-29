@@ -5,10 +5,10 @@ from typing import Any, Mapping
 from autoapi.v3.types import HTTPException, UUID, Column, Integer, String, uuid4
 
 from autoapi.v3 import AutoAPI, Base
-from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.mixins import GUIDPk, BulkCapable, Replaceable
 
 
-class CoreTestUser(Base, GUIDPk):
+class CoreTestUser(Base, GUIDPk, BulkCapable, Replaceable):
     __tablename__ = "test_users"
     name = Column(String(100), nullable=True)
     email = Column(String(255), unique=True, nullable=True)
@@ -47,7 +47,18 @@ def test_api_exposes_core_proxies(sync_api):
     assert hasattr(api.core, "CoreTestUser")
     assert hasattr(api.core_raw, "CoreTestUser")
     schema_ns = api.schemas.CoreTestUser
-    for name in ["create", "read", "update", "delete", "list", "clear"]:
+    for name in [
+        "create",
+        "read",
+        "update",
+        "delete",
+        "list",
+        "clear",
+        "bulk_create",
+        "bulk_update",
+        "bulk_replace",
+        "bulk_delete",
+    ]:
         assert hasattr(schema_ns, name)
 
 
@@ -88,45 +99,50 @@ async def test_core_and_core_raw_sync_operations(sync_api):
             listed = await model.list({}, db=db)
             assert any(_get(u, "id") == uid for u in listed)
 
+            bulk_rows = [
+                {
+                    "name": "B1",
+                    "email": f"b1_{uuid4()}@example.com",
+                    "age": 20,
+                },
+                {
+                    "name": "B2",
+                    "email": f"b2_{uuid4()}@example.com",
+                    "age": 21,
+                },
+            ]
+            bulk_created = await model.bulk_create(bulk_rows, db=db)
+            ids = [_get(u, "id") for u in bulk_created]
+            bulk_updated = await model.bulk_update(
+                [
+                    {"id": ids[0], "age": 22},
+                    {"id": ids[1], "age": 23},
+                ],
+                db=db,
+            )
+            assert all(u.age in {22, 23} for u in bulk_updated)
+            bulk_replaced = await model.bulk_replace(
+                [
+                    {
+                        "id": ids[0],
+                        "name": "R1",
+                        "email": f"r1_{uuid4()}@example.com",
+                        "age": 24,
+                    },
+                    {
+                        "id": ids[1],
+                        "name": "R2",
+                        "email": f"r2_{uuid4()}@example.com",
+                        "age": 25,
+                    },
+                ],
+                db=db,
+            )
+            assert {u.name for u in bulk_replaced} == {"R1", "R2"}
+            deleted = await model.bulk_delete(ids, db=db)
+            assert deleted["deleted"] == 2
+
             await model.clear({}, db=db)
-            assert not await model.list({}, db=db)
-
-            rows = [
-                {
-                    "name": "A",
-                    "email": f"a_{uid}@example.com",
-                },
-                {
-                    "name": "B",
-                    "email": f"b_{uid}@example.com",
-                },
-            ]
-            created_rows = await model.bulk_create(rows, db=db)
-            ids = [r["id"] if isinstance(r, Mapping) else r.id for r in created_rows]
-            assert len(ids) == 2
-
-            upd_rows = [
-                {"id": ids[0], "age": 20},
-                {"id": ids[1], "age": 21},
-            ]
-            payload = upd_rows
-            updated_rows = await model.bulk_update(
-                None, db=db, ctx={"payload": payload}
-            )
-            assert {_get(u, "age") for u in updated_rows} == {20, 21}
-
-            rep_rows = [
-                {"id": ids[0], "name": "A1", "email": f"a1_{uid}@example.com"},
-                {"id": ids[1], "name": "B1", "email": f"b1_{uid}@example.com"},
-            ]
-            payload = rep_rows
-            replaced_rows = await model.bulk_replace(
-                None, db=db, ctx={"payload": payload}
-            )
-            assert {_get(r, "name") for r in replaced_rows} == {"A1", "B1"}
-
-            del_payload = {"ids": ids}
-            await model.bulk_delete(None, db=db, ctx={"payload": del_payload})
             assert not await model.list({}, db=db)
 
 
