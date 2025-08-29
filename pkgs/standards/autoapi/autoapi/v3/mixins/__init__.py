@@ -25,7 +25,7 @@ from ..types import (
     uuid4,
     Mapped,
 )
-from ..config.constants import CTX_AUTH_KEY, CTX_USER_ID_KEY
+from ..config.constants import CTX_AUTH_KEY, CTX_USER_ID_KEY, BULK_VERBS
 
 
 def tzutcnow() -> dt.datetime:  # default/on‑update factory
@@ -403,13 +403,31 @@ class RowLock:
 # ────────── Bulk Operations ---------------------------------------------
 @declarative_mixin
 class BulkCapable:
-    pass
+    __autoapi_defaults_mode__: str = "all"
+    __autoapi_defaults_include__: set[str] = set(
+        v for v in BULK_VERBS if v != "bulk_replace"
+    )
+    __autoapi_defaults_exclude__: set[str] = set()
+
+    def __init_subclass__(cls, **kw):
+        super().__init_subclass__(**kw)
+        inc = set(getattr(cls, "__autoapi_defaults_include__", set()))
+        inc.update(BulkCapable.__autoapi_defaults_include__)
+        cls.__autoapi_defaults_include__ = inc
 
 
 # ────────── Enable PUT METHOD ------------------------------------------
 @declarative_mixin
 class Replaceable:
-    pass  # described earlier
+    __autoapi_defaults_mode__: str = "all"
+    __autoapi_defaults_include__: set[str] = {"replace", "bulk_replace"}
+    __autoapi_defaults_exclude__: set[str] = set()
+
+    def __init_subclass__(cls, **kw):
+        super().__init_subclass__(**kw)
+        inc = set(getattr(cls, "__autoapi_defaults_include__", set()))
+        inc.update(Replaceable.__autoapi_defaults_include__)
+        cls.__autoapi_defaults_include__ = inc
 
 
 # ────────── WSS --------------------------------------------------------
