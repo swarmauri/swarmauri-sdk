@@ -83,8 +83,10 @@ _SchemaVerb = Union[
     Literal["read"],  # type: ignore[name-defined]
     Literal["update"],  # type: ignore[name-defined]
     Literal["replace"],  # type: ignore[name-defined]
+    Literal["upsert"],  # type: ignore[name-defined]
     Literal["delete"],  # type: ignore[name-defined]
     Literal["list"],  # type: ignore[name-defined]
+    Literal["clear"],  # type: ignore[name-defined]
 ]
 
 _SchemaCache: Dict[Tuple[type, str, frozenset, frozenset], Type[BaseModel]] = {}

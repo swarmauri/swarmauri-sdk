@@ -567,34 +567,16 @@ async def replace(
 async def upsert(
     model: type, data: Mapping[str, Any], db: Union[Session, AsyncSession]
 ) -> Any:
-    """
-    Hybrid upsert by primary key.
-
-    If the primary key is present and a row exists, perform a partial update.
-    Otherwise create a new row. Returns the persisted instance. Flush-only.
-    """
-    data = dict(data or {})
-    _validate_enum_values(model, data)
+    """Create or update a row depending on primary key presence."""
     pk = _single_pk_name(model)
+    data = dict(data or {})
     ident = data.get(pk)
-    obj = None
     if ident is not None:
-        obj = await _maybe_get(db, model, ident)
-    if obj is None:
-        filtered = _filter_in_values(model, data, "create")
-        obj = model(**filtered)
-        if hasattr(db, "add"):
-            db.add(obj)
-        await _maybe_flush(db)
-        return obj
-
-    filtered = _filter_in_values(model, data, "update")
-    skip = _immutable_columns(model, "update")
-    payload = {k: v for k, v in filtered.items() if k != pk}
-    _set_attrs(obj, payload, allow_missing=True, skip=skip)
-    await _maybe_flush(db)
-    return obj
-
+        existing = await _maybe_get(db, model, ident)
+        if existing is not None:
+            payload = {k: v for k, v in data.items() if k != pk}
+            return await update(model, ident, payload, db=db)
+    return await create(model, data, db=db)
 
 async def delete(
     model: type, ident: Any, db: Union[Session, AsyncSession]
@@ -774,36 +756,25 @@ async def bulk_replace(
 async def bulk_upsert(
     model: type, rows: Iterable[Mapping[str, Any]], db: Union[Session, AsyncSession]
 ) -> List[Any]:
-    """
-    Upsert many rows by PK. Each row updates when the PK exists, otherwise
-    creates a new instance. Returns the list of persisted instances. Flush-only.
-    """
+    """Upsert many rows by primary key."""
     pk = _single_pk_name(model)
-    skip = _immutable_columns(model, "update")
-    out: List[Any] = []
+    results: List[Any] = []
+    to_create: List[Mapping[str, Any]] = []
     for r in rows or ():
         r = dict(r)
-        _validate_enum_values(model, r)
         ident = r.get(pk)
-        obj = None
         if ident is not None:
-            obj = await _maybe_get(db, model, ident)
-        if obj is None:
-            data = _filter_in_values(model, r, "create")
-            obj = model(**data)
-            if hasattr(db, "add"):
-                db.add(obj)
-        else:
-            data = {
-                k: v
-                for k, v in _filter_in_values(model, r, "update").items()
-                if k != pk
-            }
-            _set_attrs(obj, data, allow_missing=True, skip=skip)
-        out.append(obj)
-    if out:
-        await _maybe_flush(db)
-    return out
+            existing = await _maybe_get(db, model, ident)
+            if existing is not None:
+                data = {k: v for k, v in r.items() if k != pk}
+                updated = await update(model, ident, data, db=db)
+                results.append(updated)
+                continue
+        to_create.append(r)
+    if to_create:
+        created = await bulk_create(model, to_create, db)
+        results.extend(created)
+    return results
 
 
 async def bulk_delete(

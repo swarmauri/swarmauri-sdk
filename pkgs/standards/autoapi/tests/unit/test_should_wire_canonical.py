@@ -6,6 +6,7 @@ NON_BULK_VERBS = {
     "read",
     "update",
     "replace",
+    "upsert",
     "delete",
     "list",
     "clear",
@@ -15,6 +16,7 @@ BULK_VERBS = {
     "bulk_create",
     "bulk_update",
     "bulk_replace",
+    "bulk_upsert",
     "bulk_delete",
 }
 
@@ -33,7 +35,12 @@ def test_should_wire_canonical_bulkcapable():
     class Bulk(BulkCapable):
         pass
 
-    for verb in NON_BULK_VERBS | {"bulk_create", "bulk_update", "bulk_delete"}:
+    for verb in NON_BULK_VERBS | {
+        "bulk_create",
+        "bulk_update",
+        "bulk_delete",
+        "bulk_upsert",
+    }:
         assert should_wire_canonical(Bulk, verb)
     assert not should_wire_canonical(Bulk, "bulk_replace")
 
