@@ -590,6 +590,19 @@ def _optionalize_list_in_model(in_model: type[BaseModel]) -> type[BaseModel]:
     return New
 
 
+def _coerce_path_vals(model: type, data: Mapping[str, Any]) -> Dict[str, Any]:
+    """Coerce path parameters to SQLAlchemy column python types."""
+    coerced: Dict[str, Any] = {}
+    for name, value in data.items():
+        try:
+            col = getattr(getattr(model, name), "property").columns[0]  # type: ignore[attr-defined]
+            py_type = getattr(col.type, "python_type", None)
+            coerced[name] = py_type(value) if py_type else value
+        except Exception:  # pragma: no cover - best effort
+            coerced[name] = value
+    return coerced
+
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Endpoint factories (split by body/no-body and member/collection)
 # ───────────────────────────────────────────────────────────────────────────────
@@ -618,7 +631,9 @@ def _make_collection_endpoint(
                 db: Any = Depends(db_dep),
                 **kw: Any,
             ):
-                parent_kw = {k: kw[k] for k in nested_vars if k in kw}
+                parent_kw = _coerce_path_vals(
+                    model, {k: kw[k] for k in nested_vars if k in kw}
+                )
                 query = dict(q)
                 query.update(parent_kw)
                 payload = _validate_query(model, alias, target, query)
@@ -675,7 +690,9 @@ def _make_collection_endpoint(
                 db: Any = Depends(db_dep),
                 **kw: Any,
             ):
-                parent_kw = {k: kw[k] for k in nested_vars if k in kw}
+                parent_kw = _coerce_path_vals(
+                    model, {k: kw[k] for k in nested_vars if k in kw}
+                )
                 payload: Mapping[str, Any] = dict(parent_kw)
                 ctx: Dict[str, Any] = {
                     "request": request,
@@ -739,6 +756,7 @@ def _make_collection_endpoint(
         **kw: Any,
     ):
         parent_kw = {k: kw[k] for k in nested_vars if k in kw}
+        parent_kw = _coerce_path_vals(model, parent_kw)
         payload = _validate_body(model, alias, target, body)
         if parent_kw:
             if isinstance(payload, Mapping):
@@ -829,7 +847,9 @@ def _make_member_endpoint(
             db: Any = Depends(db_dep),
             **kw: Any,
         ):
-            parent_kw = {k: kw[k] for k in nested_vars if k in kw}
+            parent_kw = _coerce_path_vals(
+                model, {k: kw[k] for k in nested_vars if k in kw}
+            )
             payload: Mapping[str, Any] = dict(parent_kw)
             path_params = {real_pk: item_id, pk_param: item_id, **parent_kw}
             ctx: Dict[str, Any] = {
@@ -899,7 +919,9 @@ def _make_member_endpoint(
             db: Any = Depends(db_dep),
             **kw: Any,
         ):
-            parent_kw = {k: kw[k] for k in nested_vars if k in kw}
+            parent_kw = _coerce_path_vals(
+                model, {k: kw[k] for k in nested_vars if k in kw}
+            )
             payload: Mapping[str, Any] = dict(parent_kw)
             path_params = {real_pk: item_id, pk_param: item_id, **parent_kw}
             ctx: Dict[str, Any] = {
@@ -975,7 +997,7 @@ def _make_member_endpoint(
         body=body_default,
         **kw: Any,
     ):
-        parent_kw = {k: kw[k] for k in nested_vars if k in kw}
+        parent_kw = _coerce_path_vals(model, {k: kw[k] for k in nested_vars if k in kw})
         payload = _validate_body(model, alias, target, body)
 
         # Enforce path-PK canonicality. If body echoes PK: drop if equal, 409 if mismatch.
@@ -1122,10 +1144,10 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
                 "replace",
                 "delete",
             }:
-                path = f"{base}/{{{pk_param}}}{suffix}"
+                path = f"{base}/{resource}/{{{pk_param}}}{suffix}"
                 is_member = True
             else:
-                path = f"{base}{suffix}"
+                path = f"{base}/{resource}{suffix}"
                 is_member = False
         else:
             path, is_member = _path_for_spec(
