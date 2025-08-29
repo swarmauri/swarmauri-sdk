@@ -140,6 +140,16 @@ def test_allow_anon_list_and_read():
     assert client.post("/item", json=payload).status_code == 409
 
 
+def test_openapi_marks_anon_and_protected_routes():
+    client, SessionLocal, Tenant, Item = _build_client()
+    spec = client.get("/openapi.json").json()
+    anon_op = spec["paths"]["/item"]["get"].get("security")
+    protected_op = spec["paths"]["/item"]["post"].get("security")
+    assert anon_op in (None, [])
+    assert protected_op == [{"HTTPBearer": []}]
+    assert "HTTPBearer" in spec["components"]["securitySchemes"]
+
+
 def _build_client_create_noauth():
     Base.metadata.clear()
 

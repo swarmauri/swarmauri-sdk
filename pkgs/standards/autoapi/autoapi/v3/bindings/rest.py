@@ -103,6 +103,7 @@ from ..config.constants import (
     AUTOAPI_GET_ASYNC_DB_ATTR,
     AUTOAPI_GET_DB_ATTR,
     AUTOAPI_AUTH_DEP_ATTR,
+    AUTOAPI_ALLOW_ANON_ATTR,
     AUTOAPI_REST_DEPENDENCIES_ATTR,
     AUTOAPI_ALLOW_ANON_ATTR,
 )
@@ -1140,13 +1141,17 @@ def _make_member_endpoint(
 def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
     resource = _resource_name(model)
 
-    # Router-level deps: extra deps only (auth handled per-route)
+    # Router-level deps: extra deps only (transport-level; never part of runtime plan)
     extra_router_deps = _normalize_deps(
         getattr(model, AUTOAPI_REST_DEPENDENCIES_ATTR, None)
     )
     auth_dep = getattr(model, AUTOAPI_AUTH_DEP_ATTR, None)
-    allow_attr = getattr(model, AUTOAPI_ALLOW_ANON_ATTR, None)
-    allow_anon_ops = set(allow_attr() if callable(allow_attr) else allow_attr or [])
+
+    # Verbs explicitly allowed without auth
+    allow_anon_attr = getattr(model, AUTOAPI_ALLOW_ANON_ATTR, None)
+    allow_anon = set(
+        allow_anon_attr() if callable(allow_anon_attr) else allow_anon_attr or []
+    )
 
     router = Router(dependencies=extra_router_deps or None)
 
@@ -1298,6 +1303,10 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
 
         # Attach route
         label = f"{model.__name__} - {sp.alias}"
+        route_deps = None
+        if auth_dep and sp.alias not in allow_anon and sp.target not in allow_anon:
+            route_deps = _normalize_deps([auth_dep])
+
         route_kwargs = dict(
             path=path,
             endpoint=endpoint,
@@ -1311,6 +1320,8 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
             tags=list(sp.tags or (model.__name__,)),
             responses=responses_meta,
         )
+        if route_deps:
+            route_kwargs["dependencies"] = route_deps
         if response_class is not None:
             route_kwargs["response_class"] = response_class
 
