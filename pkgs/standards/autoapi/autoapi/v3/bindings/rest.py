@@ -1180,11 +1180,11 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
             if sp.target == "clear"
             else 0
             if sp.target
-            in {"bulk_update", "bulk_replace", "bulk_upsert", "bulk_delete"}
+            in {"bulk_update", "bulk_replace", "bulk_delete", "bulk_upsert"}
             else 1
-            if sp.target == "create"
+            if sp.target in {"create", "upsert"}
             else 2
-            if sp.target == "bulk_create"
+            if sp.target in {"bulk_create"}
             else 3
         ),
     )

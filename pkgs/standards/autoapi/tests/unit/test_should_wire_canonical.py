@@ -34,7 +34,6 @@ def test_should_wire_canonical_defaults():
 def test_should_wire_canonical_bulkcapable():
     class Bulk(BulkCapable):
         pass
-
     for verb in (NON_BULK_VERBS - {"upsert"}) | {
         "bulk_create",
         "bulk_update",

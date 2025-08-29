@@ -22,6 +22,8 @@ def api_and_session() -> Iterator[tuple[AutoAPI, Session]]:
             OpSpec(alias="bulk_update", target="bulk_update"),
             OpSpec(alias="bulk_replace", target="bulk_replace"),
             OpSpec(alias="bulk_delete", target="bulk_delete"),
+            OpSpec(alias="upsert", target="upsert"),
+            OpSpec(alias="bulk_upsert", target="bulk_upsert"),
         )
 
         name = spec_acol(
@@ -32,24 +34,30 @@ def api_and_session() -> Iterator[tuple[AutoAPI, Session]]:
                     "create",
                     "update",
                     "replace",
+                    "upsert",
                     "bulk_create",
                     "bulk_update",
                     "bulk_replace",
+                    "bulk_upsert",
                 ),
                 out_verbs=(
                     "read",
                     "list",
+                    "upsert",
                     "bulk_create",
                     "bulk_update",
                     "bulk_replace",
+                    "bulk_upsert",
                 ),
                 mutable_verbs=(
                     "create",
                     "update",
                     "replace",
+                    "upsert",
                     "bulk_create",
                     "bulk_update",
                     "bulk_replace",
+                    "bulk_upsert",
                 ),
             ),
         )
@@ -178,6 +186,24 @@ async def _op_bulk_delete(api, db):
     assert len(remaining) == 1 and remaining[0]["id"] == ids[1]
 
 
+async def _op_upsert(api, db):
+    created = await api.rpc.Widget.upsert({"name": "u1"}, db=db)
+    assert created["name"] == "u1"
+    updated = await api.rpc.Widget.upsert({"id": created["id"], "name": "u1u"}, db=db)
+    assert updated["name"] == "u1u"
+
+
+async def _op_bulk_upsert(api, db):
+    rows = await api.rpc.Widget.bulk_upsert([{"name": "b1"}, {"name": "b2"}], db=db)
+    ids = [r["id"] for r in rows]
+    payload = [
+        {"id": ids[0], "name": "b1u"},
+        {"name": "b3"},
+    ]
+    result = await api.rpc.Widget.bulk_upsert(None, db=db, ctx={"payload": payload})
+    assert {r["name"] for r in result} == {"b1u", "b3"}
+
+
 OPS = [
     _op_create,
     _op_read,
@@ -190,6 +216,8 @@ OPS = [
     _op_bulk_update,
     _op_bulk_replace,
     _op_bulk_delete,
+    _op_upsert,
+    _op_bulk_upsert,
 ]
 
 
