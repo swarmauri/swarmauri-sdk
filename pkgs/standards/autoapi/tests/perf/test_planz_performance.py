@@ -33,8 +33,31 @@ async def test_planz_performance(monkeypatch, count):
     dummy_plan = object()
     Model.runtime = SimpleNamespace(plan=dummy_plan)
 
-    def fake_flattened_order(plan, *, persist, include_system_steps, deps):
-        return [f"step_{i}" for i in range(10)]
+    events = [
+        "schema:collect_in",
+        "in:validate",
+        "resolve:values",
+        "pre:flush",
+        "emit:aliases:pre_flush",
+        "post:flush",
+        "emit:aliases:post_refresh",
+        "schema:collect_out",
+        "out:build",
+        "emit:aliases:readtime",
+    ]
+
+    class Label:
+        def __init__(self, anchor: str):
+            self.anchor = anchor
+            self.kind = "atom"
+
+        def __str__(self) -> str:
+            return self.anchor
+
+    def fake_flattened_order(
+        plan, *, persist, include_system_steps, deps, secdeps=None
+    ):
+        return [Label(events[i % len(events)]) for i in range(10)]
 
     monkeypatch.setattr(_plan, "flattened_order", fake_flattened_order)
 
