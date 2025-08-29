@@ -65,8 +65,9 @@ class ColumnSpec(MappedColumn):
         parent = getattr(super(), "__set_name__", None)
         if parent:
             parent(owner, name)
-        colspecs = getattr(owner, "__autoapi_colspecs__", None)
+        colspecs = owner.__dict__.get("__autoapi_colspecs__")
         if colspecs is None:
-            colspecs = {}
+            base_specs = getattr(owner, "__autoapi_colspecs__", {})
+            colspecs = dict(base_specs)
             setattr(owner, "__autoapi_colspecs__", colspecs)
         colspecs[name] = self
