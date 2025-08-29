@@ -23,6 +23,7 @@ from ..config.constants import (
     AUTOAPI_OPS_ATTR,
 )
 from ..decorators import alias_map_for  # canonical→alias mapping source
+from ..mixins import BulkCapable
 
 try:
     # Per-model registry (observable, triggers rebind elsewhere)
@@ -121,12 +122,17 @@ def _collect_registry(model: type) -> List[OpSpec]:
 
 
 def _generate_canonical(model: type) -> List[OpSpec]:
-    """
-    Provide a baseline set of canonical specs for CRUD, list, clear, and bulk ops.
+    """Return canonical ``OpSpec`` definitions for a model.
 
-    NOTE: We do not wire any `returns` preference here. Serialization mode is
-    inferred later from the presence/absence of a response schema during binding.
+    Bulk operations are only exposed when the model inherits
+    :class:`~autoapi.v3.mixins.BulkCapable`.  We still generate the
+    corresponding specs so schemas and handlers remain available, but the
+    single-record ``create`` op is hidden from REST/RPC in that case.  This
+    mirrors the behaviour of AutoAPI v2 and avoids any union payload logic.
     """
+
+    bulk = issubclass(model, BulkCapable)
+
     canon_targets: Tuple[TargetOp, ...] = (
         "create",
         "read",
@@ -140,24 +146,41 @@ def _generate_canonical(model: type) -> List[OpSpec]:
         "bulk_replace",
         "bulk_delete",
     )
+
     out: List[OpSpec] = []
     for target in canon_targets:
-        alias = (
-            target  # canonical alias matches the target (may be remapped by alias_ctx)
-        )
+        alias = target  # canonical alias matches the target
+
+        # REST exposure: prefer bulk verbs for bulk-capable models
+        if target == "create":
+            expose_routes = not bulk
+        elif target.startswith("bulk_"):
+            expose_routes = bulk
+        else:
+            expose_routes = True
+
+        # RPC exposure: always expose create; bulk verbs only when model is bulk-capable
+        if target == "create":
+            expose_rpc = True
+        elif target.startswith("bulk_"):
+            expose_rpc = bulk
+        else:
+            expose_rpc = True
+
         out.append(
             OpSpec(
                 alias=alias,
-                target=target,  # ← canonical verb goes here
+                target=target,
                 table=model,
                 arity="member"
                 if target in {"read", "update", "replace", "delete"}
                 else "collection",
-                # persistent by default; binder will auto START_TX/END_TX where appropriate
                 persist="default",
-                # Do not set `returns` here.
+                expose_routes=expose_routes,
+                expose_rpc=expose_rpc,
             )
         )
+
     return out
 
 

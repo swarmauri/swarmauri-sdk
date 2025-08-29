@@ -14,6 +14,7 @@ from ..opspec.types import (
 )  # lazy-capable schema args (runtime: we restrict forms)
 from ..schema import _build_schema, _build_list_params, namely_model
 from ..decorators import collect_decorated_schemas  # ← seed @schema_ctx declarations
+from ..mixins import BulkCapable
 
 logger = logging.getLogger(__name__)
 
@@ -293,6 +294,8 @@ def _default_schemas_for_spec(
         result["out"] = read_schema
 
     elif target == "bulk_create":
+        if not issubclass(model, BulkCapable):
+            return result
         item_in = _build_schema(model, verb="create")
         result["in_"] = _make_bulk_rows_model(model, "bulk_create", item_in)
         result["out"] = (
@@ -302,6 +305,8 @@ def _default_schemas_for_spec(
         )
 
     elif target == "bulk_update":
+        if not issubclass(model, BulkCapable):
+            return result
         item_in = _build_schema(model, verb="update")
         result["in_"] = _make_bulk_rows_model(model, "bulk_update", item_in)
         result["out"] = (
@@ -311,6 +316,8 @@ def _default_schemas_for_spec(
         )
 
     elif target == "bulk_replace":
+        if not issubclass(model, BulkCapable):
+            return result
         item_in = _build_schema(model, verb="replace")
         result["in_"] = _make_bulk_rows_model(model, "bulk_replace", item_in)
         result["out"] = (
@@ -320,6 +327,8 @@ def _default_schemas_for_spec(
         )
 
     elif target == "bulk_upsert":
+        if not issubclass(model, BulkCapable):
+            return result
         # Prefer a dedicated 'upsert' item shape if available; otherwise fall back to 'replace'
         item_in = _build_schema(model, verb="upsert") or _build_schema(
             model, verb="replace"
@@ -332,6 +341,8 @@ def _default_schemas_for_spec(
         )
 
     elif target == "bulk_delete":
+        if not issubclass(model, BulkCapable):
+            return result
         pk_name, pk_type = _pk_info(model)
         result["in_"] = _make_bulk_ids_model(model, "bulk_delete", pk_type)
         result["out"] = _make_bulk_deleted_response_model(model, "bulk_delete")

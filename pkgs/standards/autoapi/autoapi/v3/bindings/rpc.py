@@ -274,6 +274,8 @@ def register_and_attach(
         key = (sp.alias, sp.target)
         if wanted and key not in wanted:
             continue
+        if not sp.expose_rpc:
+            continue
         _attach_one(model, sp)
 
 
