@@ -23,6 +23,7 @@ from ..config.constants import (
     AUTOAPI_OPS_ATTR,
 )
 from ..decorators import alias_map_for  # canonical→alias mapping source
+from ..types.op_config_provider import should_wire_canonical
 
 try:
     # Per-model registry (observable, triggers rebind elsewhere)
@@ -142,6 +143,8 @@ def _generate_canonical(model: type) -> List[OpSpec]:
     )
     out: List[OpSpec] = []
     for target in canon_targets:
+        if not should_wire_canonical(model, target):
+            continue
         alias = (
             target  # canonical alias matches the target (may be remapped by alias_ctx)
         )
