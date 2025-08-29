@@ -90,16 +90,22 @@ def _make_bulk_rows_response_model(
 
 
 def _make_single_or_bulk_model(
-    model: type, verb: str, item_schema: Type[BaseModel]
+    model: type,
+    verb: str,
+    item_schema: Type[BaseModel],
+    *,
+    examples: List[Any] | None = None,
 ) -> Type[BaseModel]:
     """Build a root model accepting a single item or a list of items."""
     name = f"{model.__name__}{_camel(verb)}Request"
-    schema = create_model(  # type: ignore[call-arg]
-        name,
-        __base__=RootModel[Union[item_schema, List[item_schema]]],  # type: ignore[valid-type]
-    )
+    union_type = Union[item_schema, List[item_schema]]  # type: ignore[valid-type]
+
+    class _UnionModel(RootModel[union_type]):  # type: ignore[misc]
+        if examples:
+            model_config = ConfigDict(json_schema_extra={"examples": examples})
+
     return namely_model(
-        schema,
+        _UnionModel,
         name=name,
         doc=f"{verb} request schema for {model.__name__}",
     )
@@ -291,17 +297,15 @@ def _default_schemas_for_spec(
             result["in_"] = item_in
             result["out"] = None
         else:
-            bulk_in = _make_bulk_rows_model(model, "bulk_create", item_in)
             bulk_out = _make_bulk_rows_model(model, "bulk_create", read_schema)
             in_example = _extract_example(item_in)
             out_example = _extract_example(read_schema)
             in_examples = [in_example, [in_example] if in_example else []]
             out_examples = [out_example, [out_example] if out_example else []]
-            result["in_"] = _one_of_union_model(
-                f"{model.__name__}CreateRequest",
+            result["in_"] = _make_single_or_bulk_model(
+                model,
+                "create",
                 item_in,
-                bulk_in,
-                doc=f"create request schema for {model.__name__}",
                 examples=in_examples,
             )
             result["out"] = _one_of_union_model(
