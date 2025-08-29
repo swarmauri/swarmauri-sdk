@@ -22,7 +22,16 @@ from typing import (
 from typing import get_origin as _get_origin, get_args as _get_args
 
 try:
-    from ..types import Router, Request, Body, Depends, HTTPException, Response, Path
+    from ..types import (
+        Router,
+        Request,
+        Body,
+        Depends,
+        HTTPException,
+        Response,
+        Path,
+        Security,
+    )
     from fastapi import Query
     from fastapi import status as _status
 except Exception:  # pragma: no cover
@@ -46,6 +55,9 @@ except Exception:  # pragma: no cover
         return default
 
     def Depends(fn):  # type: ignore
+        return fn
+
+    def Security(fn):  # type: ignore
         return fn
 
     def Query(default=None, **kw):  # type: ignore
@@ -92,6 +104,7 @@ from ..config.constants import (
     AUTOAPI_GET_DB_ATTR,
     AUTOAPI_AUTH_DEP_ATTR,
     AUTOAPI_REST_DEPENDENCIES_ATTR,
+    AUTOAPI_ALLOW_ANON_ATTR,
 )
 from ..rest import _nested_prefix
 from ..schema.builder import _strip_parent_fields
@@ -388,6 +401,17 @@ def _normalize_deps(deps: Optional[Sequence[Any]]) -> list[Any]:
     for d in deps:
         is_dep_obj = getattr(d, "dependency", None) is not None
         out.append(d if is_dep_obj else Depends(d))
+    return out
+
+
+def _normalize_secdeps(secdeps: Optional[Sequence[Any]]) -> list[Any]:
+    """Turn callables into Security(...) unless already a dependency object."""
+    if not secdeps:
+        return []
+    out: list[Any] = []
+    for d in secdeps:
+        is_dep_obj = getattr(d, "dependency", None) is not None
+        out.append(d if is_dep_obj else Security(d))
     return out
 
 
@@ -1116,13 +1140,13 @@ def _make_member_endpoint(
 def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
     resource = _resource_name(model)
 
-    # Router-level deps: extra deps + auth dep (transport-only; never part of runtime plan)
+    # Router-level deps: extra deps only (auth handled per-route)
     extra_router_deps = _normalize_deps(
         getattr(model, AUTOAPI_REST_DEPENDENCIES_ATTR, None)
     )
     auth_dep = getattr(model, AUTOAPI_AUTH_DEP_ATTR, None)
-    if auth_dep:
-        extra_router_deps += _normalize_deps([auth_dep])
+    allow_attr = getattr(model, AUTOAPI_ALLOW_ANON_ATTR, None)
+    allow_anon_ops = set(allow_attr() if callable(allow_attr) else allow_attr or [])
 
     router = Router(dependencies=extra_router_deps or None)
 
@@ -1289,6 +1313,15 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
         )
         if response_class is not None:
             route_kwargs["response_class"] = response_class
+
+        secdeps: list[Any] = []
+        if auth_dep and sp.alias not in allow_anon_ops:
+            secdeps.append(auth_dep)
+        secdeps.extend(getattr(sp, "secdeps", ()))
+        route_secdeps = _normalize_secdeps(secdeps)
+        if route_secdeps:
+            route_kwargs["dependencies"] = route_secdeps
+
         router.add_api_route(**route_kwargs)
 
         logger.debug(
