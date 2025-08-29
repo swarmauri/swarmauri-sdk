@@ -51,7 +51,7 @@ def test_bulk_create_request_schema_has_item_ref():
     assert ref.endswith("WidgetBulkCreateRequest")
     comp = spec["components"]["schemas"]["WidgetBulkCreateRequest"]
     items_ref = comp["items"]["$ref"]
-    assert items_ref.endswith("WidgetCreate")
+    assert items_ref.endswith("WidgetBulkCreateItem")
 
 
 def test_create_and_bulk_create_handlers_and_schemas_bound():
@@ -91,7 +91,7 @@ def test_bulk_update_request_and_response_schemas():
     ]["schema"]["$ref"]
     assert req_ref.endswith("WidgetBulkUpdateRequest")
     req_comp = spec["components"]["schemas"]["WidgetBulkUpdateRequest"]
-    assert req_comp["items"]["$ref"].endswith("WidgetUpdate")
+    assert req_comp["items"]["$ref"].endswith("WidgetBulkUpdateItem")
     # response schema
     resp_ref = spec["paths"][path]["patch"]["responses"]["200"]["content"][
         "application/json"
@@ -110,7 +110,7 @@ def test_bulk_replace_request_and_response_schemas():
     ]["$ref"]
     assert req_ref.endswith("WidgetBulkReplaceRequest")
     req_comp = spec["components"]["schemas"]["WidgetBulkReplaceRequest"]
-    assert req_comp["items"]["$ref"].endswith("WidgetReplace")
+    assert req_comp["items"]["$ref"].endswith("WidgetBulkReplaceItem")
     # response schema
     resp_ref = spec["paths"][path]["put"]["responses"]["200"]["content"][
         "application/json"
@@ -118,3 +118,38 @@ def test_bulk_replace_request_and_response_schemas():
     assert resp_ref.endswith("WidgetBulkReplaceResponse")
     resp_comp = spec["components"]["schemas"]["WidgetBulkReplaceResponse"]
     assert resp_comp["items"]["$ref"].endswith("WidgetRead")
+
+
+def test_bulk_upsert_request_and_response_schemas():
+    spec = _openapi_for([("bulk_upsert", "bulk_upsert")])
+    path = f"/{Widget.__name__.lower()}"
+    # request schema
+    req_ref = spec["paths"][path]["put"]["requestBody"]["content"]["application/json"][
+        "schema"
+    ]["$ref"]
+    assert req_ref.endswith("WidgetBulkUpsertRequest")
+    req_comp = spec["components"]["schemas"]["WidgetBulkUpsertRequest"]
+    assert req_comp["items"]["$ref"].endswith("WidgetBulkUpsertItem")
+    # response schema
+    resp_ref = spec["paths"][path]["put"]["responses"]["200"]["content"][
+        "application/json"
+    ]["schema"]["$ref"]
+    assert resp_ref.endswith("WidgetBulkUpsertResponse")
+    resp_comp = spec["components"]["schemas"]["WidgetBulkUpsertResponse"]
+    assert resp_comp["items"]["$ref"].endswith("WidgetRead")
+
+
+def test_update_and_bulk_update_schema_names_do_not_collide():
+    spec = _openapi_for([("update", "update"), ("bulk_update", "bulk_update")])
+    base = f"/{Widget.__name__.lower()}"
+    update_path = f"{base}/{{item_id}}"
+    # single update schema
+    upd_ref = spec["paths"][update_path]["patch"]["requestBody"]["content"][
+        "application/json"
+    ]["schema"]["$ref"]
+    assert upd_ref.endswith("WidgetUpdate")
+    # bulk update schema
+    bulk_ref = spec["paths"][base]["patch"]["requestBody"]["content"][
+        "application/json"
+    ]["schema"]["$ref"]
+    assert bulk_ref.endswith("WidgetBulkUpdateRequest")

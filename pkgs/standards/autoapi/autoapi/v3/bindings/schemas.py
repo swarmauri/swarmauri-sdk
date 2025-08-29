@@ -306,7 +306,11 @@ def _default_schemas_for_spec(
         result["out"] = _make_deleted_response_model(model, "clear")
 
     elif target == "bulk_create":
-        item_in = _build_schema(model, verb="create")
+        item_in = _build_schema(
+            model,
+            verb="create",
+            name=f"{model.__name__}BulkCreateItem",
+        )
         result["in_"] = _make_bulk_rows_model(model, "bulk_create", item_in)
         result["in_item"] = item_in
         result["out"] = (
@@ -317,7 +321,11 @@ def _default_schemas_for_spec(
         result["out_item"] = read_schema
 
     elif target == "bulk_update":
-        item_in = _build_schema(model, verb="update")
+        item_in = _build_schema(
+            model,
+            verb="update",
+            name=f"{model.__name__}BulkUpdateItem",
+        )
         result["in_"] = _make_bulk_rows_model(model, "bulk_update", item_in)
         result["in_item"] = item_in
         result["out"] = (
@@ -328,7 +336,11 @@ def _default_schemas_for_spec(
         result["out_item"] = read_schema
 
     elif target == "bulk_replace":
-        item_in = _build_schema(model, verb="replace")
+        item_in = _build_schema(
+            model,
+            verb="replace",
+            name=f"{model.__name__}BulkReplaceItem",
+        )
         result["in_"] = _make_bulk_rows_model(model, "bulk_replace", item_in)
         result["in_item"] = item_in
         result["out"] = (
@@ -340,8 +352,14 @@ def _default_schemas_for_spec(
 
     elif target == "bulk_upsert":
         # Prefer a dedicated 'upsert' item shape if available; otherwise fall back to 'replace'
-        item_in = _build_schema(model, verb="upsert") or _build_schema(
-            model, verb="replace"
+        item_in = _build_schema(
+            model,
+            verb="upsert",
+            name=f"{model.__name__}BulkUpsertItem",
+        ) or _build_schema(
+            model,
+            verb="replace",
+            name=f"{model.__name__}BulkUpsertItem",
         )
         result["in_"] = _make_bulk_rows_model(model, "bulk_upsert", item_in)
         result["in_item"] = item_in
