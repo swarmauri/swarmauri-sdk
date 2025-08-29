@@ -4,6 +4,7 @@ from autoapi.v3.runtime import atoms as runtime_atoms
 from autoapi.v3.runtime import events as _ev
 from autoapi.v3.runtime import labels as _lbl
 from autoapi.v3.runtime import plan as runtime_plan
+from autoapi.v3 import decorators as _deco
 
 
 def test_plan_labels_collects_all_atom_labels():
@@ -215,6 +216,22 @@ def test_ensure_label_invalid_kind_raises():
 
 def test_ensure_label_invalid_dep_name_rejected():
     """_ensure_label rejects dep names with invalid characters."""
-    bad = "autoapi.v3.decorators._wrap_ctx_core.<locals>.core"
+    bad = "bad<dep>name"
     with pytest.raises(ValueError, match="Invalid dep name"):
         runtime_plan._ensure_label(bad, kind="dep")
+
+
+def test_wrap_ctx_core_generates_valid_dep_name():
+    """_wrap_ctx_core returns a function with a valid dep name."""
+
+    class T:
+        pass
+
+    async def op(cls, ctx):
+        return None
+
+    op.__qualname__ = "T.op"
+
+    wrapped = _deco._wrap_ctx_core(T, op)
+    dep_name = f"{wrapped.__module__}.{wrapped.__qualname__}"
+    assert runtime_plan._ensure_label(dep_name, kind="dep") == _lbl.make_dep(dep_name)

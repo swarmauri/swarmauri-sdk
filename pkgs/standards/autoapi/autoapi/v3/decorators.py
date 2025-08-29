@@ -381,6 +381,8 @@ def _wrap_ctx_core(table: type, func: Callable[..., Any]) -> Callable[..., Any]:
         res = await _maybe_await(bound(ctx))
         return res if res is not None else ctx.get("result")
 
+    core.__name__ = getattr(func, "__name__", "core")
+    core.__qualname__ = getattr(func, "__qualname__", core.__name__)
     return core
 
 
