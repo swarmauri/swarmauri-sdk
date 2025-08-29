@@ -7,6 +7,7 @@ from typing import List, Optional, TYPE_CHECKING
 
 from sqlalchemy import String, Integer, Enum as SAEnum
 from autoapi.v3.types import Mapped, relationship
+from autoapi.v3.mixins import BulkCapable, Replaceable
 
 from autoapi.v3.tables import Base
 from autoapi.v3.specs import acol, vcol, S, F, IO
@@ -47,7 +48,7 @@ class KeyStatus(str, Enum):
     disabled = "disabled"
 
 
-class Key(Base):
+class Key(Base, BulkCapable, Replaceable):
     __tablename__ = "keys"
     __resource__ = "key"
     __allow_unmapped__ = True  # allow vcol attributes
