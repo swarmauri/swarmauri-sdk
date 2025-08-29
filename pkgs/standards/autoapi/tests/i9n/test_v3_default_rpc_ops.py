@@ -68,7 +68,7 @@ async def client_and_model():
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "verb",
-    ["create", "read", "update", "replace", "delete", "list", "clear"],
+    ["create", "read", "update", "replace", "upsert", "delete", "list", "clear"],
 )
 async def test_rpc_methods(verb, client_and_model):
     client, _ = client_and_model
@@ -109,6 +109,17 @@ async def test_rpc_methods(verb, client_and_model):
         assert data["name"] == "C"
         assert data["age"] == 5
 
+    elif verb == "upsert":
+        resp = await rpc("Gadget.upsert", {"name": "A", "age": 1})
+        assert resp.status_code == 200
+        gid = resp.json()["result"]["id"]
+        resp = await rpc("Gadget.upsert", {"id": gid, "age": 2}, id_=2)
+        assert resp.status_code == 200
+        data = resp.json()["result"]
+        assert data["id"] == gid
+        assert data["name"] == "A"
+        assert data["age"] == 2
+
     elif verb == "delete":
         created = await rpc("Gadget.create", {"name": "A", "age": 1})
         gid = created.json()["result"]["id"]
@@ -140,7 +151,13 @@ async def test_rpc_methods(verb, client_and_model):
 @pytest.mark.asyncio
 async def test_bulk_methods_absent(client_and_model):
     _, Gadget = client_and_model
-    for name in ("bulk_create", "bulk_update", "bulk_replace", "bulk_delete"):
+    for name in (
+        "bulk_create",
+        "bulk_update",
+        "bulk_replace",
+        "bulk_upsert",
+        "bulk_delete",
+    ):
         assert not hasattr(Gadget.rpc, name)
 
 
@@ -230,7 +247,20 @@ async def test_rpc_bulk_ops(bulk_client_and_model):
         id_=3,
     )
     assert resp.status_code == 200
-
-    resp = await rpc("Gadget.bulk_delete", ids, id_=4)
+    resp = await rpc(
+        "Gadget.bulk_upsert",
+        [
+            {"id": ids[0], "name": "E", "age": 7},
+            {"name": "F", "age": 8},
+        ],
+        id_=4,
+    )
     assert resp.status_code == 200
-    assert resp.json()["result"]["deleted"] == 2
+    upserted = resp.json()["result"]
+    assert upserted[0]["id"] == ids[0]
+    assert upserted[0]["name"] == "E"
+    ids.append(upserted[1]["id"])
+
+    resp = await rpc("Gadget.bulk_delete", ids, id_=5)
+    assert resp.status_code == 200
+    assert resp.json()["result"]["deleted"] == 3

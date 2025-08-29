@@ -53,6 +53,7 @@ def test_rest_rpc_symmetry_for_default_verbs():
         "read": {"item_id", "request", "db"},
         "update": {"item_id", "request", "db", "body"},
         "replace": {"item_id", "request", "db", "body"},
+        "upsert": {"request", "db", "body"},
         "delete": {"item_id", "request", "db"},
         "list": {"request", "q", "db"},
         "clear": {"request", "db"},

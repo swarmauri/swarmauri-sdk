@@ -270,7 +270,7 @@ def _validate_body(
     if isinstance(body, BaseModel):
         return body.model_dump(exclude_none=True)
 
-    # Bulk mutations expect a list payload (bulk_create/bulk_update/bulk_replace).
+    # Bulk mutations expect a list payload (bulk_create/bulk_update/bulk_replace/bulk_upsert).
     if target in {"bulk_create", "bulk_update", "bulk_replace", "bulk_upsert"}:
         items: Sequence[Any] = body or []
         if not isinstance(items, Sequence) or isinstance(items, (str, bytes)):
@@ -452,14 +452,14 @@ _DEFAULT_METHODS: Dict[str, Tuple[str, ...]] = {
     "read": ("GET",),
     "update": ("PATCH",),
     "replace": ("PUT",),
-    "upsert": ("PATCH",),
+    "upsert": ("PUT",),
     "delete": ("DELETE",),
     "list": ("GET",),
     "clear": ("DELETE",),
     "bulk_create": ("POST",),
     "bulk_update": ("PATCH",),
     "bulk_replace": ("PUT",),
-    "bulk_upsert": ("PATCH",),
+    "bulk_upsert": ("PUT",),
     "bulk_delete": ("DELETE",),
     "custom": ("POST",),  # default for custom ops
 }
@@ -1166,6 +1166,10 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
     raw_nested = _nested_prefix(model) or ""
     nested_pref = re.sub(r"/{2,}", "/", raw_nested).rstrip("/") or ""
     nested_vars = re.findall(r"{(\w+)}", raw_nested)
+
+    # If bulk_delete is present, drop clear to avoid route conflicts
+    if any(sp.target == "bulk_delete" for sp in specs):
+        specs = [sp for sp in specs if sp.target != "clear"]
 
     # Register collection-level bulk routes before member routes so static paths
     # like "/resource/bulk" aren't captured by dynamic member routes such as

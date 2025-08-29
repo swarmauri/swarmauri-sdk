@@ -1,11 +1,11 @@
 from autoapi.v3.bindings.rest import _build_router
 from autoapi.v3.opspec import OpSpec
 from autoapi.v3.tables import Base
-from autoapi.v3.mixins import GUIDPk, BulkCapable
+from autoapi.v3.mixins import GUIDPk, BulkCapable, Replaceable
 from autoapi.v3.types import Column, String, App
 
 
-class Widget(Base, GUIDPk, BulkCapable):
+class Widget(Base, GUIDPk, BulkCapable, Replaceable):
     __tablename__ = "widgets_bulk_schema"
     name = Column(String, nullable=False)
 
@@ -80,3 +80,41 @@ def test_bulk_delete_response_schema():
     props = comp.get("properties", {})
     assert "deleted" in props
     assert props["deleted"]["type"] == "integer"
+
+
+def test_bulk_update_request_and_response_schemas():
+    spec = _openapi_for([("bulk_update", "bulk_update")])
+    path = f"/{Widget.__name__.lower()}"
+    # request schema
+    req_ref = spec["paths"][path]["patch"]["requestBody"]["content"][
+        "application/json"
+    ]["schema"]["$ref"]
+    assert req_ref.endswith("WidgetBulkUpdateRequest")
+    req_comp = spec["components"]["schemas"]["WidgetBulkUpdateRequest"]
+    assert req_comp["items"]["$ref"].endswith("WidgetUpdate")
+    # response schema
+    resp_ref = spec["paths"][path]["patch"]["responses"]["200"]["content"][
+        "application/json"
+    ]["schema"]["$ref"]
+    assert resp_ref.endswith("WidgetBulkUpdateResponse")
+    resp_comp = spec["components"]["schemas"]["WidgetBulkUpdateResponse"]
+    assert resp_comp["items"]["$ref"].endswith("WidgetRead")
+
+
+def test_bulk_replace_request_and_response_schemas():
+    spec = _openapi_for([("bulk_replace", "bulk_replace")])
+    path = f"/{Widget.__name__.lower()}"
+    # request schema
+    req_ref = spec["paths"][path]["put"]["requestBody"]["content"]["application/json"][
+        "schema"
+    ]["$ref"]
+    assert req_ref.endswith("WidgetBulkReplaceRequest")
+    req_comp = spec["components"]["schemas"]["WidgetBulkReplaceRequest"]
+    assert req_comp["items"]["$ref"].endswith("WidgetReplace")
+    # response schema
+    resp_ref = spec["paths"][path]["put"]["responses"]["200"]["content"][
+        "application/json"
+    ]["schema"]["$ref"]
+    assert resp_ref.endswith("WidgetBulkReplaceResponse")
+    resp_comp = spec["components"]["schemas"]["WidgetBulkReplaceResponse"]
+    assert resp_comp["items"]["$ref"].endswith("WidgetRead")

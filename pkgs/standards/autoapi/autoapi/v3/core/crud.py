@@ -578,7 +578,6 @@ async def upsert(
             return await update(model, ident, payload, db=db)
     return await create(model, data, db=db)
 
-
 async def delete(
     model: type, ident: Any, db: Union[Session, AsyncSession]
 ) -> Dict[str, int]:
@@ -814,11 +813,13 @@ __all__ = [
     "read",
     "update",
     "replace",
+    "upsert",
     "delete",
     "list",
     "clear",
     "bulk_create",
     "bulk_update",
     "bulk_replace",
+    "bulk_upsert",
     "bulk_delete",
 ]
