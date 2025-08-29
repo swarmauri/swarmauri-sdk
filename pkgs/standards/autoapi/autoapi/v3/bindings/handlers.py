@@ -476,6 +476,19 @@ def _wrap_core(model: type, target: str) -> StepFn:
     """
     Turn a canonical core function into a StepFn(ctx) → Any.
     """
+    # Bind core functions up front so later monkeypatches don't affect execution
+    create_fn = _core.create
+    read_fn = _core.read
+    update_fn = _core.update
+    replace_fn = _core.replace
+    delete_fn = _core.delete
+    list_fn = _core.list
+    clear_fn = _core.clear
+    bulk_create_fn = _core.bulk_create
+    bulk_update_fn = _core.bulk_update
+    bulk_replace_fn = _core.bulk_replace
+    bulk_upsert_fn = getattr(_core, "bulk_upsert", None)
+    bulk_delete_fn = _core.bulk_delete
 
     async def step(ctx: Any) -> Any:
         db = _ctx_db(ctx)
@@ -483,57 +496,59 @@ def _wrap_core(model: type, target: str) -> StepFn:
 
         if target == "create":
             if isinstance(payload, list):
-                return await _core.bulk_create(model, payload, db=db)
-            return await _core.create(model, payload, db=db)
+                return await bulk_create_fn(model, payload, db=db)
+            return await create_fn(model, payload, db=db)
 
         if target == "read":
             ident = _resolve_ident(model, ctx)
-            return await _core.read(model, ident, db=db)
+            return await read_fn(model, ident, db=db)
 
         if target == "update":
             ident = _resolve_ident(model, ctx)
-            return await _core.update(model, ident, payload, db=db)
+            return await update_fn(model, ident, payload, db=db)
 
         if target == "replace":
             ident = _resolve_ident(model, ctx)
-            return await _core.replace(model, ident, payload, db=db)
+            return await replace_fn(model, ident, payload, db=db)
 
         if target == "delete":
             ident = _resolve_ident(model, ctx)
-            return await _core.delete(model, ident, db=db)
+            return await delete_fn(model, ident, db=db)
 
         if target == "list":
-            return await _call_list_core(_core.list, model, payload, ctx)
+            return await _call_list_core(list_fn, model, payload, ctx)
 
         if target == "clear":
             # No request body for clear; align with REST semantics.
-            return await _core.clear(model, {}, db=db)
+            return await clear_fn(model, {}, db=db)
 
         if target == "bulk_create":
             if not isinstance(payload, list):
                 raise TypeError("bulk_create expects a list payload")
-            return await _core.bulk_create(model, payload, db=db)
+            return await bulk_create_fn(model, payload, db=db)
 
         if target == "bulk_update":
             if not isinstance(payload, list):
                 raise TypeError("bulk_update expects a list payload")
-            return await _core.bulk_update(model, payload, db=db)
+            return await bulk_update_fn(model, payload, db=db)
 
         if target == "bulk_replace":
             if not isinstance(payload, list):
                 raise TypeError("bulk_replace expects a list payload")
-            return await _core.bulk_replace(model, payload, db=db)
+            return await bulk_replace_fn(model, payload, db=db)
 
         if target == "bulk_upsert":
             if not isinstance(payload, list):
                 raise TypeError("bulk_upsert expects a list payload")
-            return await _core.bulk_upsert(model, payload, db=db)
+            if bulk_upsert_fn is None:
+                raise NotImplementedError("bulk_upsert not available")
+            return await bulk_upsert_fn(model, payload, db=db)
 
         if target == "bulk_delete":
             ids = payload.get("ids") if isinstance(payload, Mapping) else None
             if ids is None:
                 ids = []
-            return await _core.bulk_delete(model, ids, db=db)
+            return await bulk_delete_fn(model, ids, db=db)
 
         # Unknown canonical target – return payload to avoid hard failure
         return payload
