@@ -32,7 +32,7 @@ async def fetch_inspection(client):
     [
         ("create", "make", "post", None, False, 201),
         ("read", "fetch", "get", "member", True, 404),
-        ("update", "change", "put", "member", True, 404),
+        ("update", "change", "patch", "member", True, 404),
         ("delete", "remove", "delete", "member", True, 404),
         ("list", "browse", "get", "collection", False, 400),
         ("clear", "purge", "delete", "collection", False, 400),
@@ -93,6 +93,8 @@ async def test_op_ctx_alias(
             res = await client.post(path, json=body)
         elif http_method == "get":
             res = await client.get(path)
+        elif http_method == "patch":
+            res = await client.patch(path, json=body)
         elif http_method == "put":
             res = await client.put(path, json=body)
         else:
@@ -131,7 +133,7 @@ async def test_op_ctx_alias(
     [
         ("create", "post", None, False),
         ("read", "get", "member", True),
-        ("update", "put", "member", True),
+        ("update", "patch", "member", True),
         ("delete", "delete", "member", True),
         ("list", "get", "collection", False),
         ("clear", "delete", "collection", False),
@@ -171,6 +173,8 @@ async def test_op_ctx_override(sync_db_session, verb, http_method, arity, needs_
             res = await client.post(path, json=body)
         elif http_method == "get":
             res = await client.get(path)
+        elif http_method == "patch":
+            res = await client.patch(path, json=body)
         elif http_method == "put":
             res = await client.put(path, json=body)
         else:
