@@ -192,6 +192,8 @@ class OpSpec:
     core: Optional[StepFn] = None
     core_raw: Optional[StepFn] = None
     extra: Mapping[str, Any] = field(default_factory=dict)
+    deps: Tuple[StepFn | str, ...] = field(default_factory=tuple)
+    secdeps: Tuple[StepFn | str, ...] = field(default_factory=tuple)
 
 
 # Canonical verb set
