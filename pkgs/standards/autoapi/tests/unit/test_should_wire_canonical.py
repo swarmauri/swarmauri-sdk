@@ -34,8 +34,7 @@ def test_should_wire_canonical_defaults():
 def test_should_wire_canonical_bulkcapable():
     class Bulk(BulkCapable):
         pass
-
-    for verb in NON_BULK_VERBS | {
+    for verb in (NON_BULK_VERBS - {"upsert"}) | {
         "bulk_create",
         "bulk_update",
         "bulk_delete",
@@ -43,6 +42,7 @@ def test_should_wire_canonical_bulkcapable():
     }:
         assert should_wire_canonical(Bulk, verb)
     assert not should_wire_canonical(Bulk, "bulk_replace")
+    assert not should_wire_canonical(Bulk, "upsert")
 
 
 def test_should_wire_canonical_replaceable():
@@ -52,7 +52,7 @@ def test_should_wire_canonical_replaceable():
     for verb in NON_BULK_VERBS:
         assert should_wire_canonical(Rep, verb)
     assert should_wire_canonical(Rep, "bulk_replace")
-    for verb in {"bulk_create", "bulk_update", "bulk_delete"}:
+    for verb in {"bulk_create", "bulk_update", "bulk_upsert", "bulk_delete"}:
         assert not should_wire_canonical(Rep, verb)
 
 
@@ -60,5 +60,6 @@ def test_should_wire_canonical_bulk_and_replace():
     class Both(BulkCapable, Replaceable):
         pass
 
-    for verb in NON_BULK_VERBS | BULK_VERBS:
+    for verb in (NON_BULK_VERBS | BULK_VERBS) - {"upsert"}:
         assert should_wire_canonical(Both, verb)
+    assert not should_wire_canonical(Both, "upsert")
