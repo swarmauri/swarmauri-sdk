@@ -332,7 +332,7 @@ class Config(MutableMapping):
     dump = staticmethod(lambda obj, fp: fp.write(Config.dumps(obj)))  # type: ignore
 
     # ───────────────────────────────────────────────────────── resolution
-    def resolve(self) -> Dict[str, Any]:
+    def resolve(self, strip_quotes: bool = True) -> Dict[str, Any]:
         logger.debug("\n\n\n\n⮕ [resolve] entered...")
         from ._eval import safe_eval
         from ._fstring import _eval_fstrings
@@ -464,7 +464,7 @@ class Config(MutableMapping):
                 final[k] = v
             else:
                 final[k] = _expand(v, collapsed)
-        return _strip_quotes(final)
+        return _strip_quotes(final) if strip_quotes else final
 
     def render(self, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
