@@ -252,7 +252,12 @@ def _default_schemas_for_spec(
       • Custom target     → no defaults (raw) unless explicitly overridden.
     """
     target = sp.target
-    result: Dict[str, Optional[Type[BaseModel]]] = {"in_": None, "out": None}
+    result: Dict[str, Optional[Type[BaseModel]]] = {
+        "in_": None,
+        "out": None,
+        "in_item": None,
+        "out_item": None,
+    }
 
     # Element schema for many OUT shapes
     read_schema: Optional[Type[BaseModel]] = _build_schema(model, verb="read")
@@ -296,29 +301,35 @@ def _default_schemas_for_spec(
     elif target == "bulk_create":
         item_in = _build_schema(model, verb="create")
         result["in_"] = _make_bulk_rows_model(model, "bulk_create", item_in)
+        result["in_item"] = item_in
         result["out"] = (
             _make_bulk_rows_response_model(model, "bulk_create", read_schema)
             if read_schema
             else None
         )
+        result["out_item"] = read_schema
 
     elif target == "bulk_update":
         item_in = _build_schema(model, verb="update")
         result["in_"] = _make_bulk_rows_model(model, "bulk_update", item_in)
+        result["in_item"] = item_in
         result["out"] = (
             _make_bulk_rows_response_model(model, "bulk_update", read_schema)
             if read_schema
             else None
         )
+        result["out_item"] = read_schema
 
     elif target == "bulk_replace":
         item_in = _build_schema(model, verb="replace")
         result["in_"] = _make_bulk_rows_model(model, "bulk_replace", item_in)
+        result["in_item"] = item_in
         result["out"] = (
             _make_bulk_rows_response_model(model, "bulk_replace", read_schema)
             if read_schema
             else None
         )
+        result["out_item"] = read_schema
 
     elif target == "bulk_upsert":
         # Prefer a dedicated 'upsert' item shape if available; otherwise fall back to 'replace'
@@ -326,11 +337,13 @@ def _default_schemas_for_spec(
             model, verb="replace"
         )
         result["in_"] = _make_bulk_rows_model(model, "bulk_upsert", item_in)
+        result["in_item"] = item_in
         result["out"] = (
             _make_bulk_rows_response_model(model, "bulk_upsert", read_schema)
             if read_schema
             else None
         )
+        result["out_item"] = read_schema
 
     elif target == "bulk_delete":
         pk_name, pk_type = _pk_info(model)
@@ -419,10 +432,24 @@ def build_and_attach(
             if existing_in is None or not getattr(existing_in, "model_fields", None):
                 setattr(ns, "in_", shapes["in_"])
 
+        if shapes.get("in_item") is not None:
+            existing_in_item = getattr(ns, "in_item", None)
+            if existing_in_item is None or not getattr(
+                existing_in_item, "model_fields", None
+            ):
+                setattr(ns, "in_item", shapes["in_item"])
+
         if shapes.get("out") is not None:
             existing_out = getattr(ns, "out", None)
             if existing_out is None or not getattr(existing_out, "model_fields", None):
                 setattr(ns, "out", shapes["out"])
+
+        if shapes.get("out_item") is not None:
+            existing_out_item = getattr(ns, "out_item", None)
+            if existing_out_item is None or not getattr(
+                existing_out_item, "model_fields", None
+            ):
+                setattr(ns, "out_item", shapes["out_item"])
 
         logger.debug(
             "schemas(default): %s.%s -> in=%s out=%s",
