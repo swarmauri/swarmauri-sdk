@@ -17,7 +17,7 @@ def _openapi_for(ops):
     return app.openapi()
 
 
-def test_create_request_schema_is_array():
+def test_create_request_schema_allows_single_or_list():
     spec = _openapi_for([("create", "create")])
     path = f"/{Widget.__name__.lower()}"
     schema = spec["paths"][path]["post"]["requestBody"]["content"]["application/json"][
@@ -26,7 +26,10 @@ def test_create_request_schema_is_array():
     if "$ref" in schema:
         ref = schema["$ref"].split("/")[-1]
         schema = spec["components"]["schemas"][ref]
-    assert schema.get("type") == "array"
+    union = schema.get("anyOf") or schema.get("oneOf")
+    assert union is not None
+    types = {item.get("type") or "object" for item in union}
+    assert types == {"object", "array"}
 
 
 def test_bulk_create_response_schema():
