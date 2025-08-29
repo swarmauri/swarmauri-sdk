@@ -6,7 +6,7 @@ import uuid
 
 from autoapi.v3.tables import Tenant as TenantBase
 from autoapi.v3.mixins import Bootstrappable
-from autoapi.v3.specs import acol, S
+from autoapi.v3.specs import F, IO, S, acol, ColumnSpec
 from autoapi.v3.types import Mapped, String
 
 
@@ -17,8 +17,30 @@ class Tenant(TenantBase, Bootstrappable):
             "schema": "authn",
         },
     )
-    name: Mapped[str] = acol(storage=S(String, nullable=False, unique=True))
-    email: Mapped[str] = acol(storage=S(String, nullable=False, unique=True))
+    name: Mapped[str] = acol(
+        spec=ColumnSpec(
+            storage=S(String, nullable=False, unique=True),
+            field=F(constraints={"max_length": 120}, required_in=("create",)),
+            io=IO(
+                in_verbs=("create", "update", "replace"),
+                out_verbs=("read", "list"),
+                filter_ops=("eq", "ilike"),
+                sortable=True,
+            ),
+        )
+    )
+    email: Mapped[str] = acol(
+        spec=ColumnSpec(
+            storage=S(String, nullable=False, unique=True),
+            field=F(constraints={"max_length": 120}, required_in=("create",)),
+            io=IO(
+                in_verbs=("create", "update", "replace"),
+                out_verbs=("read", "list"),
+                filter_ops=("eq", "ilike"),
+                sortable=True,
+            ),
+        )
+    )
     DEFAULT_ROWS = [
         {
             "id": uuid.UUID("FFFFFFFF-0000-0000-0000-000000000000"),

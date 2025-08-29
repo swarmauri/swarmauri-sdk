@@ -7,7 +7,7 @@ import uuid
 from autoapi.v3.tables import User as UserBase
 from autoapi.v3 import hook_ctx, op_ctx
 from autoapi.v3.types import LargeBinary, Mapped, String, relationship
-from autoapi.v3.specs import S, acol
+from autoapi.v3.specs import F, IO, S, acol, ColumnSpec
 from typing import TYPE_CHECKING
 
 from fastapi import HTTPException, status
@@ -22,8 +22,36 @@ class User(UserBase):
     """Human principal with authentication credentials."""
 
     __table_args__ = ({"extend_existing": True, "schema": "authn"},)
-    email: Mapped[str] = acol(storage=S(String(120), nullable=False, unique=True))
-    password_hash: Mapped[bytes | None] = acol(storage=S(LargeBinary(60)))
+    username: Mapped[str] = acol(
+        spec=ColumnSpec(
+            storage=S(String(32), nullable=False),
+            field=F(constraints={"max_length": 32}, required_in=("create",)),
+            io=IO(
+                in_verbs=("create", "update", "replace"),
+                out_verbs=("read", "list"),
+                filter_ops=("eq", "ilike"),
+                sortable=True,
+            ),
+        )
+    )
+    email: Mapped[str] = acol(
+        spec=ColumnSpec(
+            storage=S(String(120), nullable=False, unique=True),
+            field=F(constraints={"max_length": 120}, required_in=("create",)),
+            io=IO(
+                in_verbs=("create", "update", "replace"),
+                out_verbs=("read", "list"),
+                filter_ops=("eq", "ilike"),
+                sortable=True,
+            ),
+        )
+    )
+    password_hash: Mapped[bytes | None] = acol(
+        spec=ColumnSpec(
+            storage=S(LargeBinary(60)),
+            io=IO(in_verbs=("create", "update", "replace")),
+        )
+    )
     _api_keys = relationship(
         "ApiKey",
         back_populates="_user",
