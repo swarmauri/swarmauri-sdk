@@ -6,6 +6,7 @@ from fastapi import HTTPException
 
 from autoapi.v3.decorators import hook_ctx
 from autoapi.v3.specs import IO, F, S, acol
+from autoapi.v3.mixins import BulkCapable, Replaceable
 from autoapi.v3.specs.io_spec import Pair
 from autoapi.v3.specs.storage_spec import ForeignKeySpec
 from autoapi.v3.tables import Base
@@ -25,7 +26,7 @@ from ..utils import b64d
 from .key import Key, KeyAlg
 
 
-class KeyVersion(Base):
+class KeyVersion(Base, BulkCapable, Replaceable):
     __tablename__ = "key_versions"
     __resource__ = "key_version"
     __table_args__ = (UniqueConstraint("key_id", "version"),)
