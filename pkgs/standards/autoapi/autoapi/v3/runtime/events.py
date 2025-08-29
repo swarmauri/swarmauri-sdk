@@ -128,6 +128,14 @@ def is_persist_tied(anchor: str) -> bool:
         raise ValueError(f"Unknown event anchor: {anchor!r}") from e
 
 
+def get_anchor_info(anchor: str) -> AnchorInfo:
+    """Return the full :class:`AnchorInfo` for a canonical event."""
+    try:
+        return _ANCHORS[anchor]
+    except KeyError as e:
+        raise ValueError(f"Unknown event anchor: {anchor!r}") from e
+
+
 def all_events_ordered() -> List[str]:
     """Return all canonical events in deterministic, lifecycle order."""
     return list(_EVENT_ORDER)
@@ -191,6 +199,7 @@ __all__ = [
     "is_valid_event",
     "phase_for_event",
     "is_persist_tied",
+    "get_anchor_info",
     "all_events_ordered",
     "events_for_phase",
     "prune_events_for_persist",
