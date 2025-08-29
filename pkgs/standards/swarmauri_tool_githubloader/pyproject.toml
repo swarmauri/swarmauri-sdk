@@ -1,7 +1,7 @@
 [project]
-name = "swarmauri_prompt_j2prompttemplate"
-version = "0.7.4.dev5"
-description = "Jinja2 Prompt Template for Swarmauri."
+name = "swarmauri_tool_githubloader"
+version = "0.7.6.dev3"
+description = "Load YAML-defined components directly from GitHub repositories."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -14,16 +14,16 @@ classifiers = [
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
-    "inflect>=7.0.0",
-    "jinja2>=3.1.6",
-    "pydantic>=1.8.2",
+    "requests>=2.32.3",
     "swarmauri_core",
     "swarmauri_base",
+    "swarmauri_standard",
 ]
 
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
+swarmauri_standard = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
@@ -45,8 +45,8 @@ log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
-[project.entry-points.'swarmauri.prompts']
-J2PromptTemplate = "swarmauri_prompt_j2prompttemplate:J2PromptTemplate"
+[project.entry-points.'swarmauri.tools']
+GithubLoadedTool = "swarmauri_tool_githubloader:GithubLoadedTool"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

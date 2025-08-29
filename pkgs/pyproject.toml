@@ -44,6 +44,7 @@ members = [
     "standards/swarmauri_tool_containerfeedchars",
     "standards/swarmauri_tool_containernewsession",
     "standards/swarmauri_tool_containermakepr",
+    "standards/swarmauri_tool_httploaded",
     "standards/swarmauri_tokens_rotatingjwt",
     "standards/swarmauri_parser_keywordextractor",
     "standards/swarmauri_parser_beautifulsoupelement",
@@ -64,11 +65,13 @@ members = [
     "standards/swarmauri_middleware_cors",
     "standards/swarmauri_middleware_exceptionhandling",
     "standards/swarmauri_middleware_gzipcompression",
+    "standards/swarmauri_middleware_jwt",
     "standards/swarmauri_middleware_jwksverifier",
     "standards/swarmauri_middleware_llamaguard",
     "standards/swarmauri_middleware_logging",
     "standards/swarmauri_middleware_ratelimit",
     "standards/swarmauri_middleware_securityheaders",
+    "standards/swarmauri_middleware_httpsig",
     "standards/swarmauri_middleware_session",
     "standards/swarmauri_middleware_time",
     "standards/swarmauri_middleware_stdio",
@@ -215,6 +218,7 @@ members = [
     "standards/swarmauri_tool_containernewsession",
     "standards/swarmauri_tool_containerfeedchars",
     "standards/swarmauri_tool_containermakepr",
+    "standards/swarmauri_tool_githubloader",
     "standards/swarmauri_toolkit_containertoolkit",
     "experimental/swarmauri_workflow_statedriven"
 
@@ -253,10 +257,12 @@ swarmauri_middleware_cors = { workspace = true }
 swarmauri_middleware_exceptionhadling = { workspace = true }
 swarmauri_middleware_gzipcompression = { workspace = true }
 swarmauri_middleware_jwksverifier = { workspace = true }
+swarmauri_middleware_jwt = { workspace = true } # ❓
 swarmauri_middleware_llamaguard = { workspace = true }
 swarmauri_middleware_logging = { workspace = true }
 swarmauri_middleware_ratelimit = { workspace = true }
 swarmauri_middleware_sercurityheaders = { workspace = true }
+swarmauri_middleware_httpsig = { workspace = true }
 swarmauri_middleware_session = { workspace = true }
 swarmauri_middleware_time = { workspace = true }
 swarmauri_middleware_stdio = { workspace = true }
@@ -397,6 +403,8 @@ swarmauri_cert_ocspverify = { workspace = true }
 swarmauri_tool_containernewsession = { workspace = true }
 swarmauri_tool_containerfeedchars = { workspace = true }
 swarmauri_tool_containermakepr = { workspace = true }
+swarmauri_tool_httploaded = { workspace = true }
+swarmauri_tool_githubloader = { workspace = true }
 swarmauri_toolkit_containertoolkit = { workspace = true }
 swarmauri_workflow_statedriven = { workspace = true }
 swarmauri_certservice_gcpkms = { workspace = true }

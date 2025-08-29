@@ -1,29 +1,32 @@
 [project]
-name = "swarmauri_prompt_j2prompttemplate"
-version = "0.7.4.dev5"
-description = "Jinja2 Prompt Template for Swarmauri."
+name = "swarmauri_middleware_jwt"
+version = "0.6.2.dev3"
+description = "JWT validation middleware for Swarmauri applications."
 license = "Apache-2.0"
 readme = "README.md"
-repository = "http://github.com/swarmauri/swarmauri-sdk"
 requires-python = ">=3.10,<3.13"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Development Status :: 3 - Alpha",
 ]
-authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
-    "inflect>=7.0.0",
-    "jinja2>=3.1.6",
-    "pydantic>=1.8.2",
+    "fastapi",
     "swarmauri_core",
     "swarmauri_base",
+    "swarmauri_standard",
+    "PyJWT",
 ]
 
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
+swarmauri_standard = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
@@ -45,9 +48,6 @@ log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
-[project.entry-points.'swarmauri.prompts']
-J2PromptTemplate = "swarmauri_prompt_j2prompttemplate:J2PromptTemplate"
-
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
@@ -58,10 +58,11 @@ dev = [
     "pytest-asyncio>=0.24.0",
     "pytest-xdist>=3.6.1",
     "pytest-json-report>=1.5.0",
-    "python-dotenv",
-    "requests>=2.32.3",
     "flake8>=7.0",
-    "pytest-timeout>=2.3.1",
     "ruff>=0.9.9",
+    "pytest-timeout>=2.3.1",
     "pytest-benchmark>=4.0.0",
 ]
+
+[project.entry-points.'swarmauri.middlewares']
+JWTMiddleware = "swarmauri_middleware_jwt:JWTMiddleware"

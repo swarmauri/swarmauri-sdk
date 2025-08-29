@@ -34,7 +34,19 @@ To suggest improvements to existing features:
    - The proposed improvements and how they enhance the project.
 
 ### Style Guide
-_This section is currently under development and will provide coding style conventions for the project soon._
+Please follow the [SDK Style Guide](STYLE_GUIDE.md) and the
+[Contribution & Extension Guidelines](pkgs/standards/peagen/docs/feature_evolve/15\ \ Contribution\ \&\ Extension\ Guidelines.md).
+
+Code must satisfy the automated checks used in CI:
+
+| Tool           | Command               | Purpose                          |
+| -------------- | -------------------- | -------------------------------- |
+| **Formatting** | `ruff format`        | Apply consistent formatting      |
+| **Linting**    | `ruff check`         | Enforce project rules            |
+| **Typing**     | `mypy --strict`      | Ensure all public functions typed |
+| **Security**   | `bandit -r src`      | Detect common vulnerabilities     |
+
+Pull requests that fail any of the above will not be merged.
 
 ### How to Contribute
 
@@ -212,6 +224,15 @@ from swarmauri_vectorstore_myvectorstore import MyVectorStore
 my_store = MyVectorStore()
 ```
 
+Plugins must declare their licence (Apache-2.0 or MIT preferred) and register
+entry points under `[project.entry-points]`. Entry-point names should remain
+stable to preserve backwards compatibility. See the
+[Contribution & Extension Guidelines](pkgs/standards/peagen/docs/feature_evolve/15\ \ Contribution\ \&\ Extension\ Guidelines.md)
+for the complete checklist including tests, metrics and documentation.
+Refer to the
+[Dependency Matrix & Licences](pkgs/standards/peagen/docs/feature_evolve/16\ \ Dependency\ Matrix\ \&\ Licences.md)
+document for a list of approved dependencies and licences.
+
 ### Development Setup
 
 1. **Run Tests with GitHub Actions:**
@@ -225,5 +246,10 @@ my_store = MyVectorStore()
      - Under "**Actions**" in the left sidebar, ensure Actions are enabled. If not, enable them.
 
 ### Licensing
-This project is licensed under the [Project License](https://github.com/swarmauri/swarmauri-sdk/blob/master/LICENSE).  
+This project is licensed under the [Project License](https://github.com/swarmauri/swarmauri-sdk/blob/master/LICENSE).
 Please ensure that your contributions comply with the terms of the license.
+
+Before submitting a pull request run `scripts/license_scan.py` to
+generate the dependency licence report. The script fails if any GPL or
+AGPL licensed packages are detected and optionally emits an SPDX SBOM
+if `trivy` is installed.
