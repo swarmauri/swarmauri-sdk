@@ -10,6 +10,9 @@ def namely_model(model: Type[BaseModel], *, name: str, doc: str) -> Type[BaseMod
     model.__name__ = name
     model.__qualname__ = name
     model.__doc__ = doc
+
+    # Rebuild the model so Pydantic updates internal references (e.g., for OpenAPI titles).
+
     model.model_rebuild(force=True)
     return model
 
