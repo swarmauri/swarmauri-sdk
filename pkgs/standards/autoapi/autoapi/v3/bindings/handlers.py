@@ -510,20 +510,24 @@ def _wrap_core(model: type, target: str) -> StepFn:
             return await _core.clear(model, {}, db=db)
 
         if target == "bulk_create":
-            rows = payload if isinstance(payload, list) else []
-            return await _core.bulk_create(model, rows, db=db)
+            if not isinstance(payload, list):
+                raise TypeError("bulk_create expects a list payload")
+            return await _core.bulk_create(model, payload, db=db)
 
         if target == "bulk_update":
-            rows = payload if isinstance(payload, list) else []
-            return await _core.bulk_update(model, rows, db=db)
+            if not isinstance(payload, list):
+                raise TypeError("bulk_update expects a list payload")
+            return await _core.bulk_update(model, payload, db=db)
 
         if target == "bulk_replace":
-            rows = payload if isinstance(payload, list) else []
-            return await _core.bulk_replace(model, rows, db=db)
+            if not isinstance(payload, list):
+                raise TypeError("bulk_replace expects a list payload")
+            return await _core.bulk_replace(model, payload, db=db)
 
         if target == "bulk_upsert":
-            rows = payload if isinstance(payload, list) else []
-            return await _core.bulk_upsert(model, rows, db=db)
+            if not isinstance(payload, list):
+                raise TypeError("bulk_upsert expects a list payload")
+            return await _core.bulk_upsert(model, payload, db=db)
 
         if target == "bulk_delete":
             ids = payload.get("ids") if isinstance(payload, Mapping) else None
