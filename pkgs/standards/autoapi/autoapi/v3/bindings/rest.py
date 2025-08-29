@@ -493,7 +493,23 @@ def _request_model_for(sp: OpSpec, model: type) -> Any | None:
     alias_ns = getattr(
         getattr(model, "schemas", None) or SimpleNamespace(), sp.alias, None
     )
-    return getattr(alias_ns, "in_", None)
+    schema = getattr(alias_ns, "in_", None)
+    if schema is None:
+        return None
+    # Bulk operations wrap their item schema in a RootModel[List[T]]. FastAPI's
+    # request handling expects the inner ``List[T]`` annotation so payloads can
+    # be submitted as a raw JSON array. Returning the RootModel causes FastAPI
+    # to require a top-level ``{"root": [...]}`` key, yielding 422 errors when
+    # clients post a bare list. Unwrap the root type when present.
+    if sp.target in {"bulk_create", "bulk_update", "bulk_replace"}:
+        root_field = getattr(
+            getattr(schema, "model_fields", {}), "get", lambda *_: None
+        )("root")
+        if root_field is not None:
+            inner = getattr(root_field, "annotation", None)
+            if inner is not None:
+                return inner
+    return schema
 
 
 # ───────────────────────────────────────────────────────────────────────────────
@@ -776,6 +792,12 @@ def _make_collection_endpoint(
                 body_annotation = List[Mapping[str, Any]]  # type: ignore[name-defined]
         else:
             body_annotation = base_annotation
+            if target == "bulk_create":
+                try:
+                    item_type = _get_args(base_annotation)[0]
+                    body_annotation = base_annotation | item_type  # type: ignore[valid-type]
+                except Exception:  # pragma: no cover - best effort
+                    pass
     else:
         body_annotation = base_annotation
 
@@ -787,9 +809,13 @@ def _make_collection_endpoint(
     ):
         parent_kw = {k: kw[k] for k in nested_vars if k in kw}
         _coerce_parent_kw(model, parent_kw)
-        payload = _validate_body(model, alias, target, body)
         exec_alias = alias
-        exec_target = target
+        if target == "bulk_create" and isinstance(body, Mapping):
+            payload = _validate_body(model, alias, "create", body)
+            exec_target = "create"
+        else:
+            payload = _validate_body(model, alias, target, body)
+            exec_target = target
         if parent_kw:
             if isinstance(payload, Mapping):
                 payload = dict(payload)
@@ -1141,8 +1167,9 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
     # like "/resource/bulk" aren't captured by dynamic member routes such as
     # "/resource/{item_id}". FastAPI matches routes in the order they are
     # added, so sorting here prevents "bulk" from being treated as an
-    # identifier. Ensure the single-record ``create`` route is registered
-    # before ``bulk_create`` so regular POSTs continue to behave as expected.
+    # identifier. We register ``bulk_create`` before the single-record ``create``
+    # handler so bulk POST requests are handled correctly while still exposing
+    # a dedicated create route for single objects.
     specs = sorted(
         specs,
         key=lambda sp: (
@@ -1151,9 +1178,9 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
             else 0
             if sp.target in {"bulk_update", "bulk_replace", "bulk_delete"}
             else 1
-            if sp.target == "create"
-            else 2
             if sp.target == "bulk_create"
+            else 2
+            if sp.target == "create"
             else 3
         ),
     )
