@@ -57,7 +57,7 @@ except Exception:  # pragma: no cover
 from sqlalchemy import text
 from ..opspec.types import PHASES
 from ..runtime.kernel import build_phase_chains
-from ..runtime import events as _ev, plan as _plan
+from ..runtime import events as _ev, plan as _plan, labels as _lbl
 
 logger = logging.getLogger(__name__)
 
@@ -81,6 +81,11 @@ def _label_callable(fn: Any) -> str:
     n = getattr(fn, "__qualname__", getattr(fn, "__name__", repr(fn)))
     m = getattr(fn, "__module__", None)
     return f"{m}.{n}" if m else n
+
+
+def _label_hook(fn: Any, phase: str) -> str:
+    subj = _label_callable(fn).replace(".", ":")
+    return f"hook:{_lbl.DOMAINS[-1]}:{subj}@{phase}"
 
 
 async def _maybe_execute(db: Any, stmt: str):
@@ -226,7 +231,14 @@ def _build_planz_endpoint(api: Any):
                 seq: List[str] = []
                 persist = getattr(sp, "persist", "default") != "skip"
                 if compiled_plan is not None:
-                    deps: List[str] = []
+                    deps: List[str] = [
+                        _label_callable(d) if callable(d) else str(d)
+                        for d in getattr(sp, "deps", []) or []
+                    ]
+                    secdeps: List[str] = [
+                        _label_callable(d) if callable(d) else str(d)
+                        for d in getattr(sp, "secdeps", []) or []
+                    ]
                     handler = getattr(sp, "handler", None)
                     if handler is not None:
                         deps.append(_label_callable(handler))
@@ -235,10 +247,15 @@ def _build_planz_endpoint(api: Any):
                         persist=persist,
                         include_system_steps=True,
                         deps=deps,
+                        secdeps=secdeps,
                     )
+                    pre_labels: List[str] = []
                     phase_labels: Dict[str, List[str]] = {ph: [] for ph in PHASES}
                     for lbl in labels:
                         kind = getattr(lbl, "kind", None)
+                        if kind in {"secdep", "dep"}:
+                            pre_labels.append(str(lbl))
+                            continue
                         phase = (
                             lbl.anchor
                             if kind == "sys"
@@ -249,11 +266,12 @@ def _build_planz_endpoint(api: Any):
                     alias_ns = getattr(hooks_root, sp.alias, SimpleNamespace())
                     hook_labels: Dict[str, List[str]] = {
                         ph: [
-                            _label_callable(fn)
+                            _label_hook(fn, ph)
                             for fn in getattr(alias_ns, ph, []) or []
                         ]
                         for ph in PHASES
                     }
+                    seq.extend(pre_labels)
                     for ph in PHASES:
                         if ph == "START_TX":
                             # PRE_HANDLER hooks run before starting the TX
@@ -280,7 +298,20 @@ def _build_planz_endpoint(api: Any):
                             seq.extend(hook_labels.get(ph, []))
                             seq.extend(phase_labels.get(ph, []))
                 else:
+                    deps: List[str] = [
+                        _label_callable(d) if callable(d) else str(d)
+                        for d in getattr(sp, "deps", []) or []
+                    ]
+                    secdeps: List[str] = [
+                        _label_callable(d) if callable(d) else str(d)
+                        for d in getattr(sp, "secdeps", []) or []
+                    ]
+                    handler = getattr(sp, "handler", None)
+                    if handler is not None:
+                        deps.append(_label_callable(handler))
                     chains = build_phase_chains(model, sp.alias)
+                    seq.extend(f"secdep:{s}" for s in secdeps)
+                    seq.extend(f"dep:{d}" for d in deps)
                     for ph in PHASES:
                         if ph == "START_TX" and persist:
                             seq.append("sys:txn:begin@START_TX")
@@ -290,7 +321,7 @@ def _build_planz_endpoint(api: Any):
                             name = getattr(step, "__name__", "")
                             if name in {"start_tx", "end_tx"}:
                                 continue
-                            seq.append(_label_callable(step))
+                            seq.append(_label_hook(step, ph))
                         if ph == "END_TX" and persist:
                             seq.append("sys:txn:commit@END_TX")
                 model_map[sp.alias] = seq

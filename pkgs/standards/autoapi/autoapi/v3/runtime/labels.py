@@ -18,14 +18,14 @@ from . import events as _ev
 #
 #   Notes:
 #   - step_kind ∈ {secdep, dep, sys, atom, hook}
-#   - atom domains are restricted to: {emit, out, refresh, resolve, schema, storage, wire}
-#   - hook domains are freeform tokens (e.g., "user", "model", "tenant") to allow app-defined taxonomies.
+#   - domains are restricted to: {emit, out, refresh, resolve, schema, storage, wire}
 #   - anchors for atom/hook MUST be canonical events from runtime/events.py
 #   - sys anchors MUST be one of PHASES (typically START_TX, HANDLER, END_TX)
 # ──────────────────────────────────────────────────────────────────────────────
 
+STEP_KINDS: Tuple[str, ...] = ("secdep", "dep", "sys", "atom", "hook")
 StepKind = Literal["secdep", "dep", "sys", "atom", "hook"]
-_ATOM_DOMAINS: Tuple[str, ...] = (
+DOMAINS: Tuple[str, ...] = (
     "emit",
     "out",
     "refresh",
@@ -40,7 +40,6 @@ _ATOM_DOMAINS: Tuple[str, ...] = (
 # - field: letters, digits, underscore, dash, dot
 
 _RE_NAME = _re.compile(r"^[A-Za-z0-9_.:-]+$")  # secdep/dep name (tolerant)
-_RE_DOMAIN = _re.compile(r"^[a-z][a-z0-9_-]*$")  # domain tokens
 _RE_SUBJECT = _re.compile(
     r"^[A-Za-z0-9_:-]+$"
 )  # allow ":" inside subject (e.g., "txn:begin")
@@ -124,7 +123,7 @@ def make_sys(subject: str, phase: _ev.Phase) -> Label:
 def make_atom(
     domain: str, subject: str, anchor: str, field: Optional[str] = None
 ) -> Label:
-    _validate_atom_domain(domain)
+    _validate_domain(domain)
     _validate_subject(subject)
     _validate_anchor(anchor)
     _validate_field(field)
@@ -136,8 +135,7 @@ def make_atom(
 def make_hook(
     domain: str, subject: str, anchor: str, field: Optional[str] = None
 ) -> Label:
-    # Hook domain is freeform token (lowercase recommended)
-    _require(domain and _RE_DOMAIN.match(domain), f"Invalid hook domain {domain!r}")
+    _validate_domain(domain)
     _validate_subject(subject)
     _validate_anchor(anchor)
     _validate_field(field)
@@ -198,10 +196,7 @@ def parse(s: str) -> Label:
 
         anchor, field = _split_anchor_field(rest3)
 
-        if kind == "atom":
-            _validate_atom_domain(dom)
-        else:
-            _require(_RE_DOMAIN.match(dom), f"Invalid hook domain {dom!r}")
+        _validate_domain(dom)
 
         _validate_subject(subj)
         _validate_anchor(anchor)
@@ -238,17 +233,14 @@ def validate(label: Label) -> None:
         return
 
     if k == "atom":
-        _validate_atom_domain(label.domain)
+        _validate_domain(label.domain)
         _validate_subject(label.subject)
         _validate_anchor(label.anchor)
         _validate_field(label.field)
         return
 
     if k == "hook":
-        _require(
-            label.domain and _RE_DOMAIN.match(label.domain),
-            f"Invalid hook domain {label.domain!r}",
-        )
+        _validate_domain(label.domain)
         _validate_subject(label.subject)
         _validate_anchor(label.anchor)
         _validate_field(label.field)
@@ -270,10 +262,10 @@ def _split_anchor_field(s: str) -> Tuple[str, Optional[str]]:
     return s, None
 
 
-def _validate_atom_domain(domain: Optional[str]) -> None:
+def _validate_domain(domain: Optional[str]) -> None:
     _require(
-        domain is not None and domain in _ATOM_DOMAINS,
-        f"Invalid atom domain {domain!r}; expected one of {list(_ATOM_DOMAINS)}",
+        domain is not None and domain in DOMAINS,
+        f"Invalid domain {domain!r}; expected one of {list(DOMAINS)}",
     )
 
 
@@ -305,8 +297,8 @@ def legend() -> Dict[str, object]:
     Includes step kinds, atom domains, sys phases, and ordered anchors.
     """
     return {
-        "step_kinds": ("secdep", "dep", "sys", "atom", "hook"),
-        "atom_domains": _ATOM_DOMAINS,
+        "step_kinds": STEP_KINDS,
+        "atom_domains": DOMAINS,
         "sys_phases": _ev.PHASES,
         "anchors": _ev.all_events_ordered(),
         "notes": {
@@ -340,7 +332,9 @@ def fields_used(labels: Iterable[Label]) -> Set[str]:
 
 
 __all__ = [
+    "STEP_KINDS",
     "StepKind",
+    "DOMAINS",
     "Label",
     "make_dep",
     "make_secdep",
