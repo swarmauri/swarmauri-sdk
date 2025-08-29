@@ -78,8 +78,9 @@ def test_schemas_build_and_attach(model_cls, specs):
 def test_hooks_normalize_and_attach(model_cls, specs):
     columns_binding.build_and_attach(model_cls)
     hooks_binding.normalize_and_attach(model_cls, specs)
-    assert model_cls.hooks.create.START_TX  # default transactional step
-    assert model_cls.hooks.create.END_TX
+    # default transactional steps are no longer injected
+    assert not model_cls.hooks.create.START_TX
+    assert not model_cls.hooks.create.END_TX
 
 
 @pytest.mark.i9n
