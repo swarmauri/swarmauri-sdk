@@ -95,6 +95,7 @@ from ..config.constants import (
 )
 from ..rest import _nested_prefix
 from ..schema.builder import _strip_parent_fields
+from .schemas import _make_bulk_rows_model
 
 logger = logging.getLogger(__name__)
 
@@ -1174,7 +1175,6 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
                         and inspect.isclass(in_model)
                         and issubclass(in_model, BaseModel)
                     ):
-                        target = in_model
                         root_field = getattr(in_model, "model_fields", {}).get("root")
                         if root_field is not None:
                             ann = root_field.annotation
@@ -1190,8 +1190,19 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
                                     inner = t
                                     break
                             if inner is not None:
-                                target = inner
-                        pruned = _strip_parent_fields(target, drop=set(nested_vars))
+                                pruned_inner = _strip_parent_fields(
+                                    inner, drop=set(nested_vars)
+                                )
+                                origin = _get_origin(ann)
+                                if origin in {list, _typing.List}:
+                                    rebuilt = _make_bulk_rows_model(
+                                        model, sp.alias, pruned_inner
+                                    )
+                                else:
+                                    rebuilt = pruned_inner
+                                setattr(alias_ns, "in_", rebuilt)
+                                continue
+                        pruned = _strip_parent_fields(in_model, drop=set(nested_vars))
                         setattr(alias_ns, "in_", pruned)
 
         # Determine path and membership
