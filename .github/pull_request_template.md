@@ -1,11 +1,11 @@
 ## Summary
-- provide a short summary of the changes
+<!-- Provide a short description of your changes -->
 
 ## Checklist
-- [ ] `ruff check`
-- [ ] `pytest`
-- [ ] Deploy gateway and worker for **remote** with Redis queue, Redis pubsub, MinIO storage and Postgres backend
-- [ ] Deploy gateway and worker for **local** with in-memory queue, no pubsub, local FS storage and results backend
-- [ ] Submit a task in each mode using `peagen -q` and wait for completion
-- [ ] Show `task get` output for each mode proving success
-
+- [ ] I ran `ruff format` and `ruff check`.
+- [ ] I ran `mypy --strict` and `bandit -r src`.
+- [ ] New plugins are registered under `[project.entry-points]`.
+- [ ] `scripts/license_scan.py` reports no disallowed licences.
+- [ ] Updated or added docstrings for all public APIs.
+- [ ] Documented new plugins in `docs/plugins.md` and capability tags.
+- [ ] Added a line to `CHANGELOG.md` if applicable.
