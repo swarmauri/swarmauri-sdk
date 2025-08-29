@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 from types import SimpleNamespace
-from typing import Any, Dict, List, Optional, Sequence, Tuple, Type, Union
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Type
 
 from pydantic import BaseModel, Field, RootModel, ConfigDict, create_model
 
@@ -94,25 +94,6 @@ def _make_bulk_rows_response_model(
     )
 
 
-def _make_single_or_bulk_model(
-    model: type, verb: str, item_schema: Type[BaseModel]
-) -> Type[BaseModel]:
-    """Build a root model accepting a single item or a list of items."""
-    name = f"{model.__name__}{_camel(verb)}Request"
-    example = _extract_example(item_schema)
-    examples = [example, [example] if example else []]
-    union_type = Union[item_schema, List[item_schema]]  # type: ignore[valid-type]
-
-    class _UnionModel(RootModel[union_type]):  # type: ignore[misc]
-        model_config = ConfigDict(json_schema_extra={"examples": examples})
-
-    return namely_model(
-        _UnionModel,
-        name=name,
-        doc=f"{verb} request schema for {model.__name__}",
-    )
-
-
 def _make_bulk_ids_model(
     model: type, verb: str, pk_type: type | Any
 ) -> Type[BaseModel]:
@@ -173,30 +154,6 @@ def _extract_example(schema: Type[BaseModel]) -> Dict[str, Any]:
         if examples:
             out[name] = examples[0]
     return out
-
-
-def _one_of_union_model(
-    name: str,
-    single: Type[BaseModel],
-    bulk: Type[BaseModel],
-    *,
-    doc: str,
-    examples: List[Any],
-) -> Type[BaseModel]:
-    """Create a RootModel union with `oneOf` semantics and examples."""
-    union_type = Union[single, bulk]  # type: ignore[valid-type]
-
-    class _UnionModel(RootModel[union_type]):  # type: ignore[misc]
-        model_config = ConfigDict(json_schema_extra={"examples": examples})
-
-        @classmethod
-        def __get_pydantic_json_schema__(cls, core_schema, handler):  # type: ignore[override]
-            schema = handler(core_schema)
-            if "anyOf" in schema:
-                schema["oneOf"] = schema.pop("anyOf")
-            return schema
-
-    return namely_model(_UnionModel, name=name, doc=doc)
 
 
 def _parse_str_ref(s: str) -> Tuple[str, str]:
@@ -295,28 +252,17 @@ def _default_schemas_for_spec(
     # Canonical targets
     if target == "create":
         item_in = _build_schema(model, verb="create")
-        if read_schema is None:
-            if issubclass(model, BulkCapable):
-                result["in_"] = _make_single_or_bulk_model(model, "create", item_in)
+        if issubclass(model, BulkCapable):
+            result["in_"] = _make_bulk_rows_model(model, "create", item_in)
+            if read_schema is None:
+                result["out"] = None
             else:
-                result["in_"] = item_in
-            result["out"] = None
-        else:
-            if issubclass(model, BulkCapable):
-                result["in_"] = _make_single_or_bulk_model(model, "create", item_in)
-                bulk_out = _make_bulk_rows_model(model, "bulk_create", read_schema)
-                out_example = _extract_example(read_schema)
-                out_examples = [out_example, [out_example] if out_example else []]
-                result["out"] = _one_of_union_model(
-                    f"{model.__name__}CreateResponse",
-                    read_schema,
-                    bulk_out,
-                    doc=f"create response schema for {model.__name__}",
-                    examples=out_examples,
+                result["out"] = _make_bulk_rows_response_model(
+                    model, "create", read_schema
                 )
-            else:
-                result["in_"] = item_in
-                result["out"] = read_schema
+        else:
+            result["in_"] = item_in
+            result["out"] = read_schema
 
     elif target == "read":
         pk_name, pk_type = _pk_info(model)
