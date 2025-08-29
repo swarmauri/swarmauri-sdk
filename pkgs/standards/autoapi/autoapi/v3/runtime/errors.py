@@ -381,7 +381,11 @@ def _classify_exception(
         return status.HTTP_409_CONFLICT, _stringify_exc(exc), None
 
     if (IntegrityError is not None) and isinstance(exc, IntegrityError):
-        return status.HTTP_409_CONFLICT, _stringify_exc(exc), None
+        msg = _stringify_exc(exc)
+        lower_msg = msg.lower()
+        if "not null constraint" in lower_msg or "check constraint" in lower_msg:
+            return status.HTTP_422_UNPROCESSABLE_ENTITY, msg, None
+        return status.HTTP_409_CONFLICT, msg, None
 
     if (OperationalError is not None) and isinstance(exc, OperationalError):
         return status.HTTP_503_SERVICE_UNAVAILABLE, _stringify_exc(exc), None
