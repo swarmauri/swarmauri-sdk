@@ -417,7 +417,9 @@ _DEFAULT_METHODS: Dict[str, Tuple[str, ...]] = {
 
 def _default_path_suffix(sp: OpSpec) -> str | None:
     if sp.target.startswith("bulk_"):
-        return "/bulk"
+        # Bulk operations now share the same collection path as their
+        # single-record counterparts.
+        return None
     if sp.target == "custom":
         return f"/{sp.alias}"
     return None

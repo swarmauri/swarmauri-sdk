@@ -503,27 +503,19 @@ def _wrap_core(model: type, target: str) -> StepFn:
             return await _core.clear(model, {}, db=db)
 
         if target == "bulk_create":
-            rows = payload.get("rows") if isinstance(payload, Mapping) else None
-            if rows is None:
-                rows = []
+            rows = payload if isinstance(payload, list) else []
             return await _core.bulk_create(model, rows, db=db)
 
         if target == "bulk_update":
-            rows = payload.get("rows") if isinstance(payload, Mapping) else None
-            if rows is None:
-                rows = []
+            rows = payload if isinstance(payload, list) else []
             return await _core.bulk_update(model, rows, db=db)
 
         if target == "bulk_replace":
-            rows = payload.get("rows") if isinstance(payload, Mapping) else None
-            if rows is None:
-                rows = []
+            rows = payload if isinstance(payload, list) else []
             return await _core.bulk_replace(model, rows, db=db)
 
         if target == "bulk_upsert":
-            rows = payload.get("rows") if isinstance(payload, Mapping) else None
-            if rows is None:
-                rows = []
+            rows = payload if isinstance(payload, list) else []
             return await _core.bulk_upsert(model, rows, db=db)
 
         if target == "bulk_delete":

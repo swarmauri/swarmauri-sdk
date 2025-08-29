@@ -30,10 +30,10 @@ def key_version_routes(tmp_path, monkeypatch):
         ("delete", "/kms/key_version/{item_id}", {"DELETE"}),
         ("list", "/kms/key_version", {"GET"}),
         ("clear", "/kms/key_version", {"DELETE"}),
-        ("bulk_create", "/kms/key_version/bulk", {"POST"}),
-        ("bulk_update", "/kms/key_version/bulk", {"PATCH"}),
-        ("bulk_replace", "/kms/key_version/bulk", {"PUT"}),
-        ("bulk_delete", "/kms/key_version/bulk", {"DELETE"}),
+        ("bulk_create", "/kms/key_version", {"POST"}),
+        ("bulk_update", "/kms/key_version", {"PATCH"}),
+        ("bulk_replace", "/kms/key_version", {"PUT"}),
+        ("bulk_delete", "/kms/key_version", {"DELETE"}),
     ],
 )
 def test_key_version_default_op_verbs(key_version_routes, alias, path, methods):

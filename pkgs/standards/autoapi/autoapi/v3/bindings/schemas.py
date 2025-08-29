@@ -5,7 +5,7 @@ import logging
 from types import SimpleNamespace
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Type
 
-from pydantic import BaseModel, Field, create_model
+from pydantic import BaseModel, Field, RootModel, create_model
 
 from ..opspec import OpSpec
 from ..opspec.types import (
@@ -59,12 +59,12 @@ def _make_bulk_rows_model(
     model: type, verb: str, item_schema: Type[BaseModel]
 ) -> Type[BaseModel]:
     """
-    Build a wrapper schema with a `rows: List[item_schema]` field.
+    Build a root model representing `List[item_schema]`.
     """
     name = f"{model.__name__}{_camel(verb)}Request"
     schema = create_model(  # type: ignore[call-arg]
         name,
-        rows=(List[item_schema], Field(...)),  # type: ignore[name-defined]
+        __base__=RootModel[List[item_schema]],
     )
     return namely_model(
         schema,

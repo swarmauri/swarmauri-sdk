@@ -32,12 +32,12 @@ def _route_map(router) -> dict[str, tuple[str, set[str]]]:
         ("update", "update", "/item/{item_id}", {"PATCH"}),
         ("replace", "replace", "/item/{item_id}", {"PUT"}),
         ("delete", "delete", "/item/{item_id}", {"DELETE"}),
-        ("list", "list", "/item", {"GET"}),
-        ("clear", "clear", "/item", {"DELETE"}),
-        ("bulk_create", "bulk_create", "/item/bulk", {"POST"}),
-        ("bulk_update", "bulk_update", "/item/bulk", {"PATCH"}),
-        ("bulk_replace", "bulk_replace", "/item/bulk", {"PUT"}),
-        ("bulk_delete", "bulk_delete", "/item/bulk", {"DELETE"}),
+        ("list", "list", "/item {"GET"}),
+        ("clear", "clear", "/Item", {"DELETE"}),
+        ("bulk_create", "bulk_create", "/item", {"POST"}),
+        ("bulk_update", "bulk_update", "/item", {"PATCH"}),
+        ("bulk_replace", "bulk_replace", "/item", {"PUT"}),
+        ("bulk_delete", "bulk_delete", "/item", {"DELETE"}),
     ],
 )
 def test_rest_rpc_parity_for_default_verbs(alias, target, path, methods):
