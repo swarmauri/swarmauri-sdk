@@ -362,7 +362,7 @@ class MaskableEdge:
 # ────────── execution / storage hints ---------------------------------
 @declarative_mixin
 class AsyncCapable:  # marker only
-    # Is this required anymore or do we natively support this behavior?
+    # ❓ Is this required anymore or do we natively support this behavior?
     pass
 
 
