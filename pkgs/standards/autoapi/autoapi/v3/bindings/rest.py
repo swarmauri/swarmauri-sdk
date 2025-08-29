@@ -469,9 +469,9 @@ def _response_model_for(sp: OpSpec, model: type) -> Any | None:
     """
     Determine the FastAPI response_model based on presence of an out schema.
     If there is no out schema, return None (raw pass-through).
-    Suppress response_model for 204 routes (delete/clear).
+    Suppress response_model for 204 routes (delete).
     """
-    if sp.target in {"delete", "clear"}:
+    if sp.target == "delete":
         return None
     alias_ns = getattr(
         getattr(model, "schemas", None) or SimpleNamespace(), sp.alias, None
