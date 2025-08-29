@@ -1,6 +1,7 @@
 # autoapi/v3/bindings/rpc.py
 from __future__ import annotations
 
+import dataclasses
 import inspect
 import logging
 from types import SimpleNamespace
@@ -128,14 +129,43 @@ def _validate_input(
 def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
     """Serialize result(s) if an OUT schema is available for the op.
 
-    For 'list', the OUT schema represents the element shape.
+    For 'list', the OUT schema represents the element shape. If no schema is
+    defined, attempt a best-effort conversion to primitive types so the result
+    can be JSON encoded.
     """
+
+    def _fallback(obj: Any) -> Any:
+        if isinstance(obj, Mapping):
+            return dict(obj)
+        if dataclasses.is_dataclass(obj):
+            return dataclasses.asdict(obj)
+        table = getattr(model, "__table__", None)
+        if table is not None:
+            try:
+                return {c.name: getattr(obj, c.name, None) for c in table.columns}
+            except Exception:
+                pass
+        try:
+            return {k: v for k, v in vars(obj).items() if not k.startswith("_")}
+        except Exception:
+            return obj
+
+    def _final(val: Any) -> Any:
+        if target in {
+            "list",
+            "bulk_create",
+            "bulk_update",
+            "bulk_replace",
+        } and isinstance(val, (list, tuple)):
+            return [_fallback(v) for v in val]
+        return _fallback(val)
+
     schemas_root = getattr(model, "schemas", None)
     if not schemas_root:
-        return result
+        return _final(result)
     alias_ns = getattr(schemas_root, alias, None)
     if not alias_ns:
-        return result
+        return _final(result)
 
     out_model = getattr(alias_ns, "out", None)
     if (
@@ -143,7 +173,7 @@ def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
         or not inspect.isclass(out_model)
         or not issubclass(out_model, BaseModel)
     ):
-        return result
+        return _final(result)
 
     try:
         if target in {
@@ -169,7 +199,7 @@ def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
             e,
             exc_info=True,
         )
-        return result
+        return _final(result)
 
 
 # ───────────────────────────────────────────────────────────────────────────────
