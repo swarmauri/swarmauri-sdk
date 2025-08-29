@@ -76,6 +76,8 @@ except Exception:  # pragma: no cover
 
 from pydantic import BaseModel, Field, create_model
 
+from ..mixins import BulkCapable
+
 from ..opspec import OpSpec
 from ..opspec.types import PHASES
 from ..runtime import executor as _executor  # expects _invoke(request, db, phases, ctx)
@@ -256,12 +258,21 @@ def _validate_body(
     if isinstance(body, BaseModel):
         return body.model_dump(exclude_none=True)
 
+    bulk_enabled = bool(
+        issubclass(model, BulkCapable)
+        and getattr(getattr(model, "schemas", None), "bulk_create", None)
+    )
+
     # Bulk operations expect a list of payloads. The "create" endpoint shares its
-    # route with "bulk_create" and must detect list bodies at runtime.
-    if target.startswith("bulk_") or (
-        target == "create"
-        and isinstance(body, Sequence)
-        and not isinstance(body, (Mapping, str, bytes))
+    # route with "bulk_create" and must detect list bodies at runtime when bulk
+    # creation is enabled.
+    if bulk_enabled and (
+        target.startswith("bulk_")
+        or (
+            target == "create"
+            and isinstance(body, Sequence)
+            and not isinstance(body, (Mapping, str, bytes))
+        )
     ):
         items: Sequence[Any] = body or []
         if not isinstance(items, Sequence) or isinstance(items, (str, bytes)):
@@ -296,6 +307,16 @@ def _validate_body(
                 data = dict(item) if isinstance(item, Mapping) else {}
             out.append(data)
         return out
+
+    if (
+        target == "create"
+        and isinstance(body, Sequence)
+        and not isinstance(body, (Mapping, str, bytes))
+    ):
+        raise HTTPException(
+            status_code=_status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Input should be a valid dictionary",
+        )
 
     body = body or {}
     if not isinstance(body, Mapping):
@@ -1161,8 +1182,21 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
         ),
     )
 
+    has_create = any(sp.target == "create" for sp in specs)
+    has_bulk_create = any(sp.target == "bulk_create" for sp in specs)
+
     for sp in specs:
         if not sp.expose_routes:
+            continue
+
+        if (
+            issubclass(model, BulkCapable)
+            and has_create
+            and has_bulk_create
+            and sp.target == "bulk_create"
+        ):
+            # The "create" route will consume bulk payloads when bulk_create is enabled,
+            # so skip registering a duplicate bulk_create route.
             continue
 
         # Drop parent identifiers from request models when using nested paths

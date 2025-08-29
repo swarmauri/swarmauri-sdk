@@ -60,6 +60,53 @@ async def test_bulk_create(v3_client) -> None:
 
 
 @pytest.mark.asyncio()
+async def test_bulk_create_requires_array(v3_client) -> None:
+    client, _ = v3_client
+    res = await client.post("/widget", json={"name": "only"})
+    assert res.status_code == 422
+
+
+@pytest_asyncio.fixture()
+async def v3_client_single() -> Iterator[tuple[AsyncClient, type]]:
+    Base.metadata.clear()
+
+    class Widget(Base, GUIDPk):
+        __tablename__ = "widgets"
+        name = Column(String, nullable=False)
+
+    engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    Base.metadata.create_all(engine)
+    SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
+
+    def get_db() -> Iterator[Session]:
+        with SessionLocal() as session:
+            yield session
+
+    app = App()
+    api = AutoAPI(app=app, get_db=get_db)
+    api.include_model(Widget)
+
+    client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
+    try:
+        yield client, Widget
+    finally:
+        await client.aclose()
+
+
+@pytest.mark.asyncio()
+async def test_single_create_rejects_array(v3_client_single) -> None:
+    client, _ = v3_client_single
+    res = await client.post("/widget", json=[{"name": "w1"}])
+    assert res.status_code == 422
+    res2 = await client.post("/widget", json={"name": "w1"})
+    assert res2.status_code in {200, 201}
+
+
+@pytest.mark.asyncio()
 async def test_bulk_update(v3_client) -> None:
     client, _ = v3_client
     create_payload = [

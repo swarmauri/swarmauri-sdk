@@ -480,6 +480,19 @@ def build_and_attach(
             getattr(ns, "out", None).__name__ if getattr(ns, "out", None) else None,
         )
 
+    # If both create and bulk_create specs are present, favor the bulk
+    # request/response models for the create alias. This makes POST /
+    # unambiguously bulk-oriented when bulk_create is enabled.
+    has_create = any(sp.target == "create" for sp in specs)
+    has_bulk_create = any(sp.target == "bulk_create" for sp in specs)
+    if issubclass(model, BulkCapable) and has_create and has_bulk_create:
+        bulk_ns = _ensure_alias_namespace(model, "bulk_create")
+        create_ns = _ensure_alias_namespace(model, "create")
+        if getattr(bulk_ns, "in_", None) is not None:
+            setattr(create_ns, "in_", getattr(bulk_ns, "in_", None))
+        if getattr(bulk_ns, "out", None) is not None:
+            setattr(create_ns, "out", getattr(bulk_ns, "out", None))
+
     # Pass 2: apply per-spec overrides (respect only_keys if provided)
     for sp in specs:
         key = (sp.alias, sp.target)
