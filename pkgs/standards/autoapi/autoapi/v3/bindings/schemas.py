@@ -405,16 +405,23 @@ def build_and_attach(
     for sp in specs:
         _ = _ensure_alias_namespace(model, sp.alias)
 
-    # Pass 1: attach defaults for all specs (do not clobber existing values)
+    # Pass 1: attach defaults for all specs.
+    # Existing schemas that lack fields are treated as missing so they are
+    # replaced with freshly built defaults.  This protects against earlier
+    # auto-binding passes that may have produced placeholder models.
     for sp in specs:
         ns = _ensure_alias_namespace(model, sp.alias)
         shapes = _default_schemas_for_spec(model, sp)
 
-        # Only set if missing to avoid overwriting any previous values
-        if getattr(ns, "in_", None) is None and shapes.get("in_") is not None:
-            setattr(ns, "in_", shapes["in_"])
-        if getattr(ns, "out", None) is None and shapes.get("out") is not None:
-            setattr(ns, "out", shapes["out"])
+        if shapes.get("in_") is not None:
+            existing_in = getattr(ns, "in_", None)
+            if existing_in is None or not getattr(existing_in, "model_fields", None):
+                setattr(ns, "in_", shapes["in_"])
+
+        if shapes.get("out") is not None:
+            existing_out = getattr(ns, "out", None)
+            if existing_out is None or not getattr(existing_out, "model_fields", None):
+                setattr(ns, "out", shapes["out"])
 
         logger.debug(
             "schemas(default): %s.%s -> in=%s out=%s",
