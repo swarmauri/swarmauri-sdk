@@ -1141,8 +1141,8 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
     # like "/resource/bulk" aren't captured by dynamic member routes such as
     # "/resource/{item_id}". FastAPI matches routes in the order they are
     # added, so sorting here prevents "bulk" from being treated as an
-    # identifier. Ensure the single-record ``create`` route is registered
-    # before ``bulk_create`` so regular POSTs continue to behave as expected.
+    # identifier. Register ``bulk_create`` ahead of ``create`` so list payloads
+    # are routed to the bulk handler.
     specs = sorted(
         specs,
         key=lambda sp: (
@@ -1151,9 +1151,9 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
             else 0
             if sp.target in {"bulk_update", "bulk_replace", "bulk_delete"}
             else 1
-            if sp.target == "create"
-            else 2
             if sp.target == "bulk_create"
+            else 2
+            if sp.target == "create"
             else 3
         ),
     )
