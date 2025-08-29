@@ -278,6 +278,13 @@ def _default_schemas_for_spec(
         result["in_"] = _build_schema(model, verb="replace", exclude={pk_name})
         result["out"] = read_schema
 
+    elif target == "upsert":
+        item_in = _build_schema(model, verb="upsert") or _build_schema(
+            model, verb="replace"
+        )
+        result["in_"] = item_in
+        result["out"] = read_schema
+
     elif target == "delete":
         # For RPC delete, a body with PK is allowed; REST delete ignores body.
         result["in_"] = _build_schema(model, verb="delete")

@@ -496,6 +496,9 @@ def _wrap_core(model: type, target: str) -> StepFn:
             ident = _resolve_ident(model, ctx)
             return await _core.replace(model, ident, payload, db=db)
 
+        if target == "upsert":
+            return await _core.upsert(model, payload, db=db)
+
         if target == "delete":
             ident = _resolve_ident(model, ctx)
             return await _core.delete(model, ident, db=db)
