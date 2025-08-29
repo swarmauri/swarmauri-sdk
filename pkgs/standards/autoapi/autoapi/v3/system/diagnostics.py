@@ -136,8 +136,14 @@ def _build_healthz_endpoint(dep: Optional[Callable[..., Any]]):
 
 
 def _build_methodz_endpoint(api: Any):
+    cache: Optional[Dict[str, Any]] = None
+
     async def _methodz():
         """Ordered, canonical operation list."""
+        nonlocal cache
+        if cache is not None:
+            return cache
+
         methods: List[str] = []
         for model in _model_iter(api):
             mname = getattr(model, "__name__", "Model")
@@ -161,12 +167,15 @@ def _build_methodz_endpoint(api: Any):
                     }
                 )
         methods.sort(key=lambda x: (x["model"], x["alias"]))
-        return {"methods": methods}
+        cache = {"methods": methods}
+        return cache
 
     return _methodz
 
 
 def _build_hookz_endpoint(api: Any):
+    cache: Optional[Dict[str, Dict[str, Dict[str, List[str]]]]] = None
+
     async def _hookz():
         """
         Expose hook execution order for each method.
@@ -175,6 +184,10 @@ def _build_hookz_endpoint(api: Any):
         Within each phase, hooks are listed in execution order: global (None) hooks,
         then method-specific hooks.
         """
+        nonlocal cache
+        if cache is not None:
+            return cache
+
         out: Dict[str, Dict[str, Dict[str, List[str]]]] = {}
         for model in _model_iter(api):
             mname = getattr(model, "__name__", "Model")
@@ -198,14 +211,21 @@ def _build_hookz_endpoint(api: Any):
                     model_map[alias] = phase_map
             if model_map:
                 out[mname] = model_map
-        return out
+        cache = out
+        return cache
 
     return _hookz
 
 
 def _build_planz_endpoint(api: Any):
+    cache: Optional[Dict[str, Dict[str, List[str]]]] = None
+
     async def _planz():
         """Expose the runtime step sequence for each operation."""
+        nonlocal cache
+        if cache is not None:
+            return cache
+
         out: Dict[str, Dict[str, List[str]]] = {}
         for model in _model_iter(api):
             mname = getattr(model, "__name__", "Model")
@@ -255,7 +275,8 @@ def _build_planz_endpoint(api: Any):
                 model_map[sp.alias] = seq
             if model_map:
                 out[mname] = model_map
-        return out
+        cache = out
+        return cache
 
     return _planz
 
