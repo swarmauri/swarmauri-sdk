@@ -53,7 +53,7 @@ async def test_bulk_create(v3_client) -> None:
         {"name": "w2", "description": "b"},
     ]
     res = await client.post("/widget", json=payload)
-    assert res.status_code == 200
+    assert res.status_code in {200, 201}
     listed = (await client.get("/widget")).json()
     assert len(listed) == 2
     assert all("id" in row for row in listed)

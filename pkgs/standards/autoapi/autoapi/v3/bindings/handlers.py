@@ -83,10 +83,15 @@ def _ctx_get(ctx: Mapping[str, Any], key: str, default: Any = None) -> Any:
         return getattr(ctx, key, default)
 
 
-def _ctx_payload(ctx: Mapping[str, Any]) -> Mapping[str, Any]:
+def _ctx_payload(ctx: Mapping[str, Any]) -> Any:
     v = _ctx_get(ctx, "payload", None)
-    # Never let non-mapping (incl. SQLA ClauseElement) flow as payload
-    return v if isinstance(v, Mapping) else {}
+    # Allow mappings or sequences of mappings (bulk) but block other types like
+    # SQLA ClauseElement.
+    if isinstance(v, Mapping):
+        return v
+    if isinstance(v, Sequence) and not isinstance(v, (str, bytes)):
+        return v
+    return {}
 
 
 def _ctx_db(ctx: Mapping[str, Any]) -> Any:
