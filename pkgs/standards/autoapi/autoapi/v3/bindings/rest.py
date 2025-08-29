@@ -288,14 +288,17 @@ def _validate_body(
         try:
             inst = in_model.model_validate(body)  # type: ignore[arg-type]
             return inst.model_dump(exclude_none=True)
-        except Exception:
+        except Exception as e:
             logger.debug(
                 "rest input body validation failed for %s.%s",
                 model.__name__,
                 alias,
                 exc_info=True,
             )
-            return dict(body)
+            raise HTTPException(
+                status_code=_status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=str(e),
+            )
     return dict(body)
 
 
