@@ -10,6 +10,7 @@ from sqlalchemy import Column, ForeignKey, String
 @pytest_asyncio.fixture
 async def three_level_api_client(db_mode, sync_db_session, async_db_session):
     Base.metadata.clear()
+    Base.registry.dispose()
 
     class Company(Base, GUIDPk):
         __tablename__ = "companies"
