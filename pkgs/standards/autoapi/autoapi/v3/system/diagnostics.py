@@ -57,7 +57,7 @@ except Exception:  # pragma: no cover
 from sqlalchemy import text
 from ..opspec.types import PHASES
 from ..runtime.kernel import build_phase_chains
-from ..runtime import events as _ev, plan as _plan
+from ..runtime import events as _ev, plan as _plan, labels as _lbl
 
 logger = logging.getLogger(__name__)
 
@@ -77,10 +77,17 @@ def _opspecs(model: type):
 
 
 def _label_callable(fn: Any) -> str:
-    """Return a module-qualified label for *fn* suitable for hook listings."""
+    """Return a module-qualified label for arbitrary callables."""
     n = getattr(fn, "__qualname__", getattr(fn, "__name__", repr(fn)))
     m = getattr(fn, "__module__", None)
     return f"{m}.{n}" if m else n
+
+
+def _label_hook(fn: Any, anchor: str) -> str:
+    """Return a canonical hook label using runtime.label grammar."""
+    domain = getattr(fn, "__autoapi_domain__", "user")
+    subject = getattr(fn, "__qualname__", getattr(fn, "__name__", "hook"))
+    return str(_lbl.make_hook(domain, subject, anchor))
 
 
 async def _maybe_execute(db: Any, stmt: str):
@@ -249,7 +256,7 @@ def _build_planz_endpoint(api: Any):
                     alias_ns = getattr(hooks_root, sp.alias, SimpleNamespace())
                     hook_labels: Dict[str, List[str]] = {
                         ph: [
-                            _label_callable(fn)
+                            _label_hook(fn, ph)
                             for fn in getattr(alias_ns, ph, []) or []
                         ]
                         for ph in PHASES

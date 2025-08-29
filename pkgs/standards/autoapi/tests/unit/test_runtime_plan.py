@@ -89,13 +89,13 @@ def test_flattened_order_includes_deps_and_system_steps():
     plan = runtime_plan.Plan(
         model_name="M",
         atoms_by_anchor={_ev.SCHEMA_COLLECT_IN: (node,)},
+        secdeps=("a",),
+        deps=("b",),
     )
     labels = runtime_plan.flattened_order(
         plan,
         persist=True,
         include_system_steps=True,
-        secdeps=("a",),
-        deps=("b",),
     )
     rendered = [lbl.render() for lbl in labels]
     assert rendered[:2] == ["secdep:a", "dep:b"]
@@ -105,6 +105,21 @@ def test_flattened_order_includes_deps_and_system_steps():
         "sys:handler:crud@HANDLER",
         "sys:txn:commit@END_TX",
     ]
+
+
+def test_runtime_exposes_step_kinds_and_domains():
+    from autoapi.v3 import runtime
+
+    assert runtime.STEP_KINDS == ("secdep", "dep", "sys", "atom", "hook")
+    assert runtime.DOMAINS == (
+        "emit",
+        "out",
+        "refresh",
+        "resolve",
+        "schema",
+        "storage",
+        "wire",
+    )
 
 
 def test_flattened_order_omits_system_steps_when_not_persist():

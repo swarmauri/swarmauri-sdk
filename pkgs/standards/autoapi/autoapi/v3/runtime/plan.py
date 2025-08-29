@@ -199,9 +199,11 @@ def flattened_order(
     for nodes in plan.atoms_by_anchor.values():
         atom_labels.extend(n.label for n in nodes)
 
-    # 2) Optional deps/secdeps
-    secdep_labels = [_ensure_label(x, kind="secdep") for x in secdeps]
-    dep_labels = [_ensure_label(x, kind="dep") for x in deps]
+    # 2) Optional deps/secdeps (include any attached to the plan)
+    plan_secdeps = getattr(plan, "secdeps", ())
+    plan_deps = getattr(plan, "deps", ())
+    secdep_labels = [_ensure_label(x, kind="secdep") for x in (*plan_secdeps, *secdeps)]
+    dep_labels = [_ensure_label(x, kind="dep") for x in (*plan_deps, *deps)]
 
     # 3) Optional system steps (labels only; executor owns behavior)
     sys_labels: List[_lbl.Label] = []

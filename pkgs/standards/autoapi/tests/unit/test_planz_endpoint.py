@@ -21,6 +21,9 @@ def sample_hook(ctx):
     return None
 
 
+sample_hook.__autoapi_domain__ = "emit"
+
+
 @pytest.mark.asyncio
 async def test_planz_endpoint_sequence(monkeypatch: pytest.MonkeyPatch):
     class API:
@@ -59,7 +62,11 @@ async def test_planz_endpoint_sequence(monkeypatch: pytest.MonkeyPatch):
     def fake_flattened_order(plan, *, persist, include_system_steps, deps):
         assert plan is dummy_plan
         if persist:
-            return [DummyLabel("sys:txn:begin@START_TX", "START_TX", kind="sys")]
+            return [
+                DummyLabel("secdep:prep", "PREP", kind="secdep"),
+                DummyLabel("dep:handler", "HANDLER", kind="dep"),
+                DummyLabel("sys:txn:begin@START_TX", "START_TX", kind="sys"),
+            ]
         return []
 
     monkeypatch.setattr(_plan, "flattened_order", fake_flattened_order)
@@ -72,8 +79,10 @@ async def test_planz_endpoint_sequence(monkeypatch: pytest.MonkeyPatch):
 
     assert "Model" in data
     assert "write" in data["Model"]
-    hook_label = f"{sample_hook.__module__}.{sample_hook.__qualname__}"
+    hook_label = "hook:emit:sample_hook@PRE_HANDLER"
     assert hook_label in data["Model"]["write"]
+    assert "secdep:prep" in data["Model"]["write"]
+    assert "dep:handler" in data["Model"]["write"]
     assert "sys:txn:begin@START_TX" in data["Model"]["write"]
     assert "read" in data["Model"]
     assert not any("sys:txn:begin@START_TX" in s for s in data["Model"]["read"])
@@ -139,7 +148,7 @@ async def test_planz_endpoint_prefers_compiled_plan_for_atoms(
 
     assert calls["flatten"] is True
     assert calls["chains"] is False
-    hook_label = f"{sample_hook.__module__}.{sample_hook.__qualname__}"
+    hook_label = "hook:emit:sample_hook@PRE_HANDLER"
     assert data["Model"]["create"] == [
         hook_label,
         "sys:txn:begin@START_TX",
