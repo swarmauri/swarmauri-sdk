@@ -590,6 +590,15 @@ def _optionalize_list_in_model(in_model: type[BaseModel]) -> type[BaseModel]:
     return New
 
 
+def _coerce_parent_kw(model: type, parent_kw: Dict[str, Any]) -> None:
+    for name, val in list(parent_kw.items()):
+        col = getattr(model, name, None)
+        try:
+            parent_kw[name] = col.type.python_type(val)  # type: ignore[attr-defined]
+        except Exception:
+            pass
+
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Endpoint factories (split by body/no-body and member/collection)
 # ───────────────────────────────────────────────────────────────────────────────
@@ -619,6 +628,7 @@ def _make_collection_endpoint(
                 **kw: Any,
             ):
                 parent_kw = {k: kw[k] for k in nested_vars if k in kw}
+                _coerce_parent_kw(model, parent_kw)
                 query = dict(q)
                 query.update(parent_kw)
                 payload = _validate_query(model, alias, target, query)
@@ -676,6 +686,7 @@ def _make_collection_endpoint(
                 **kw: Any,
             ):
                 parent_kw = {k: kw[k] for k in nested_vars if k in kw}
+                _coerce_parent_kw(model, parent_kw)
                 payload: Mapping[str, Any] = dict(parent_kw)
                 ctx: Dict[str, Any] = {
                     "request": request,
@@ -739,6 +750,7 @@ def _make_collection_endpoint(
         **kw: Any,
     ):
         parent_kw = {k: kw[k] for k in nested_vars if k in kw}
+        _coerce_parent_kw(model, parent_kw)
         payload = _validate_body(model, alias, target, body)
         if parent_kw:
             if isinstance(payload, Mapping):
@@ -830,6 +842,7 @@ def _make_member_endpoint(
             **kw: Any,
         ):
             parent_kw = {k: kw[k] for k in nested_vars if k in kw}
+            _coerce_parent_kw(model, parent_kw)
             payload: Mapping[str, Any] = dict(parent_kw)
             path_params = {real_pk: item_id, pk_param: item_id, **parent_kw}
             ctx: Dict[str, Any] = {
@@ -900,6 +913,7 @@ def _make_member_endpoint(
             **kw: Any,
         ):
             parent_kw = {k: kw[k] for k in nested_vars if k in kw}
+            _coerce_parent_kw(model, parent_kw)
             payload: Mapping[str, Any] = dict(parent_kw)
             path_params = {real_pk: item_id, pk_param: item_id, **parent_kw}
             ctx: Dict[str, Any] = {
@@ -976,6 +990,7 @@ def _make_member_endpoint(
         **kw: Any,
     ):
         parent_kw = {k: kw[k] for k in nested_vars if k in kw}
+        _coerce_parent_kw(model, parent_kw)
         payload = _validate_body(model, alias, target, body)
 
         # Enforce path-PK canonicality. If body echoes PK: drop if equal, 409 if mismatch.
@@ -1115,7 +1130,7 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
             suffix = sp.path_suffix or _default_path_suffix(sp) or ""
             if not suffix.startswith("/") and suffix:
                 suffix = "/" + suffix
-            base = nested_pref
+            base = f"{nested_pref.rstrip('/')}/{resource}"
             if sp.arity == "member" or sp.target in {
                 "read",
                 "update",
