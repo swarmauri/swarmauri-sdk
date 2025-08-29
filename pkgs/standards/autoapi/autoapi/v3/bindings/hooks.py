@@ -82,58 +82,8 @@ def _ctx_payload(ctx: Mapping[str, Any]) -> Mapping[str, Any]:
 
 
 # ───────────────────────────────────────────────────────────────────────────────
-# System steps (conceptually distinct; injected for lifecycle completeness)
+# System step helpers
 # ───────────────────────────────────────────────────────────────────────────────
-
-
-def _default_start_tx() -> StepFn:
-    async def _step(ctx: Any) -> None:
-        db = _ctx_db(ctx)
-        if db is None:
-            return
-        begin = getattr(db, "begin", None)
-        if begin is None:
-            return
-        rv = begin()
-        if inspect.isawaitable(rv):
-            await rv  # type: ignore[misc]
-
-    _step.__name__ = "start_tx"
-    _step.__qualname__ = "start_tx"
-    return _step
-
-
-def _default_end_tx() -> StepFn:
-    async def _step(ctx: Any) -> None:
-        db = _ctx_db(ctx)
-        if db is None:
-            return
-        commit = getattr(db, "commit", None)
-        if commit is None:
-            return
-        rv = commit()
-        if inspect.isawaitable(rv):
-            await rv  # type: ignore[misc]
-        # Some SQLAlchemy Session configurations may implicitly begin a new
-        # transaction during commit (e.g., due to autoflush). Commit repeatedly
-        # until the session reports no active transaction.
-        if hasattr(db, "in_transaction") and callable(db.in_transaction):
-            try:
-                prev_state = db.in_transaction()  # type: ignore[call-arg]
-                while db.in_transaction():  # type: ignore[call-arg]
-                    rv2 = commit()
-                    if inspect.isawaitable(rv2):
-                        await rv2  # type: ignore[misc]
-                    current_state = db.in_transaction()  # type: ignore[call-arg]
-                    if current_state == prev_state:
-                        break
-                    prev_state = current_state
-            except Exception:  # pragma: no cover - defensive
-                pass
-
-    _step.__name__ = "end_tx"
-    _step.__qualname__ = "end_tx"
-    return _step
 
 
 def _mark_skip_persist() -> StepFn:
@@ -330,16 +280,9 @@ def _attach_one(model: type, sp: OpSpec) -> None:
             ph, api_map=api_map, model_map=model_map, op_map=op_map
         )
 
-        # Inject default transactional steps (system steps; distinct concept)
-        if sp.persist != "skip":
-            if ph == "START_TX":
-                merged = [_default_start_tx()] + merged  # begin must be first
-            if ph == "END_TX":
-                merged = merged + [_default_end_tx()]  # commit must be last
-        else:
-            # Ephemeral: mark skip in PRE_TX_BEGIN; no START/END
-            if ph == "PRE_TX_BEGIN":
-                merged = [_mark_skip_persist()] + merged
+        # Ephemeral operations: mark skip in PRE_TX_BEGIN
+        if sp.persist == "skip" and ph == "PRE_TX_BEGIN":
+            merged = [_mark_skip_persist()] + merged
 
         setattr(ns, ph, merged)
 
