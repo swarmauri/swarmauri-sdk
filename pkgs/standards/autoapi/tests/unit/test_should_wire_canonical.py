@@ -1,7 +1,7 @@
-from autoapi.v3.types.op_config_provider import should_wire_canonical
 from autoapi.v3.mixins import BulkCapable, Replaceable
+from autoapi.v3.opspec.canonical import should_wire_canonical
 
-DEFAULT_VERBS = {
+NON_BULK_VERBS = {
     "create",
     "read",
     "update",
@@ -9,6 +9,9 @@ DEFAULT_VERBS = {
     "delete",
     "list",
     "clear",
+}
+
+BULK_VERBS = {
     "bulk_create",
     "bulk_update",
     "bulk_replace",
@@ -20,29 +23,35 @@ def test_should_wire_canonical_defaults():
     class Plain:
         pass
 
-    for verb in DEFAULT_VERBS:
+    for verb in NON_BULK_VERBS:
         assert should_wire_canonical(Plain, verb)
+    for verb in BULK_VERBS:
+        assert not should_wire_canonical(Plain, verb)
 
 
 def test_should_wire_canonical_bulkcapable():
     class Bulk(BulkCapable):
         pass
 
-    for verb in DEFAULT_VERBS:
+    for verb in NON_BULK_VERBS | {"bulk_create", "bulk_update", "bulk_delete"}:
         assert should_wire_canonical(Bulk, verb)
+    assert not should_wire_canonical(Bulk, "bulk_replace")
 
 
 def test_should_wire_canonical_replaceable():
     class Rep(Replaceable):
         pass
 
-    for verb in DEFAULT_VERBS:
+    for verb in NON_BULK_VERBS:
         assert should_wire_canonical(Rep, verb)
+    assert should_wire_canonical(Rep, "bulk_replace")
+    for verb in {"bulk_create", "bulk_update", "bulk_delete"}:
+        assert not should_wire_canonical(Rep, verb)
 
 
 def test_should_wire_canonical_bulk_and_replace():
     class Both(BulkCapable, Replaceable):
         pass
 
-    for verb in DEFAULT_VERBS:
+    for verb in NON_BULK_VERBS | BULK_VERBS:
         assert should_wire_canonical(Both, verb)
