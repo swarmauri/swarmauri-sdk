@@ -2,12 +2,12 @@ import pytest
 from autoapi.v3.types import SimpleNamespace
 
 CRUD_MAP = {
-    "create": ("post", "/tenant/{tenant_id}"),
-    "list": ("get", "/tenant/{tenant_id}"),
-    "clear": ("delete", "/tenant/{tenant_id}"),
-    "read": ("get", "/tenant/{tenant_id}/{item_id}"),
-    "update": ("patch", "/tenant/{tenant_id}/{item_id}"),
-    "delete": ("delete", "/tenant/{tenant_id}/{item_id}"),
+    "create": ("post", "/tenant/{tenant_id}/item"),
+    "list": ("get", "/tenant/{tenant_id}/item"),
+    "clear": ("delete", "/tenant/{tenant_id}/item"),
+    "read": ("get", "/tenant/{tenant_id}/item/{item_id}"),
+    "update": ("patch", "/tenant/{tenant_id}/item/{item_id}"),
+    "delete": ("delete", "/tenant/{tenant_id}/item/{item_id}"),
 }
 
 

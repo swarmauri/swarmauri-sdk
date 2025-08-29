@@ -1115,7 +1115,7 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
             suffix = sp.path_suffix or _default_path_suffix(sp) or ""
             if not suffix.startswith("/") and suffix:
                 suffix = "/" + suffix
-            base = nested_pref
+            base = f"{nested_pref}/{resource}" if resource else nested_pref
             if sp.arity == "member" or sp.target in {
                 "read",
                 "update",

@@ -12,7 +12,6 @@ from autoapi.v3.runtime import kernel as runtime_kernel
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, ForeignKey, Integer, String, create_engine
 from sqlalchemy.pool import StaticPool
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import Mapped, Session, sessionmaker
 
@@ -162,8 +161,17 @@ async def api_client(db_mode):
 
     class Item(Base, GUIDPk, BulkCapable):
         __tablename__ = "items"
-        tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
-        name = Column(String, nullable=False)
+        tenant_id = Column(String, ForeignKey("tenants.id"), nullable=False)
+        name = acol(
+            storage=S(type_=String, nullable=False),
+            field=F(py_type=str),
+            io=IO(
+                in_verbs=("create", "update", "replace"),
+                out_verbs=("read", "list"),
+                mutable_verbs=("create", "update", "replace"),
+            ),
+        )
+        __autoapi_cols__ = {"tenant_id": tenant_id, "name": name}
 
         @classmethod
         def __autoapi_nested_paths__(cls):
