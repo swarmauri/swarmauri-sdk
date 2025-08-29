@@ -54,6 +54,8 @@ def run(obj: Optional[object], ctx: Any) -> None:
         return
 
     temp = _ensure_temp(ctx)
+    if "schema_in" in temp:
+        return
     op = (getattr(ctx, "op", None) or "").lower() or None
 
     fields_sorted = sorted(specs.keys())
