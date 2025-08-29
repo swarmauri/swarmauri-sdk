@@ -57,7 +57,7 @@ except Exception:  # pragma: no cover
 from sqlalchemy import text
 from ..opspec.types import PHASES
 from ..runtime.kernel import build_phase_chains
-from ..runtime import plan as _plan
+from ..runtime import events as _ev, plan as _plan
 
 logger = logging.getLogger(__name__)
 
@@ -224,8 +224,8 @@ def _build_planz_endpoint(api: Any):
                         compiled_plan = None
             for sp in _opspecs(model):
                 seq: List[str] = []
+                persist = getattr(sp, "persist", "default") != "skip"
                 if compiled_plan is not None:
-                    persist = getattr(sp, "persist", "default") != "skip"
                     deps: List[str] = []
                     handler = getattr(sp, "handler", None)
                     if handler is not None:
@@ -236,10 +236,45 @@ def _build_planz_endpoint(api: Any):
                         include_system_steps=True,
                         deps=deps,
                     )
-                    seq = [str(lbl) for lbl in labels]
+                    phase_labels: Dict[str, List[str]] = {ph: [] for ph in PHASES}
+                    for lbl in labels:
+                        kind = getattr(lbl, "kind", None)
+                        phase = (
+                            lbl.anchor
+                            if kind == "sys"
+                            else _ev.phase_for_event(lbl.anchor)
+                        )
+                        phase_labels[phase].append(str(lbl))
+                    hooks_root = getattr(model, "hooks", SimpleNamespace())
+                    alias_ns = getattr(hooks_root, sp.alias, SimpleNamespace())
+                    hook_labels: Dict[str, List[str]] = {
+                        ph: [
+                            _label_callable(fn)
+                            for fn in getattr(alias_ns, ph, []) or []
+                        ]
+                        for ph in PHASES
+                    }
+                    for ph in PHASES:
+                        if ph == "START_TX":
+                            seq.extend(phase_labels.get(ph, []))
+                            seq.extend(hook_labels.get(ph, []))
+                        elif ph == "HANDLER":
+                            phase_list = phase_labels.get(ph, [])
+                            if phase_list and phase_list[0].startswith("sys:"):
+                                seq.append(phase_list[0])
+                                atoms = phase_list[1:]
+                            else:
+                                atoms = phase_list
+                            seq.extend(hook_labels.get(ph, []))
+                            seq.extend(atoms)
+                        elif ph == "END_TX":
+                            seq.extend(hook_labels.get(ph, []))
+                            seq.extend(phase_labels.get(ph, []))
+                        else:
+                            seq.extend(hook_labels.get(ph, []))
+                            seq.extend(phase_labels.get(ph, []))
                 else:
                     chains = build_phase_chains(model, sp.alias)
-                    persist = getattr(sp, "persist", "default") != "skip"
                     for ph in PHASES:
                         if ph == "START_TX" and persist:
                             seq.append("sys:txn:begin@START_TX")
