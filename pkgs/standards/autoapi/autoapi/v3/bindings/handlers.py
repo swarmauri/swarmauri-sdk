@@ -10,6 +10,7 @@ from typing import Any, Callable, Mapping, Optional, Sequence, Tuple
 from ..opspec import OpSpec
 from ..opspec.types import StepFn
 from .. import core as _core
+from ..runtime.executor import _Ctx
 
 # Optional SQLAlchemy type import — only used for safe checks (no hard dependency)
 try:  # pragma: no cover
@@ -430,13 +431,16 @@ def _wrap_custom(model: type, sp: OpSpec, user_handler: Callable[..., Any]) -> S
         payload = _ctx_payload(ctx)
         request = _ctx_request(ctx)
 
+        # Normalize ctx into an isolated _Ctx so user handlers can't mutate caller state
+        isolated = _Ctx.ensure(request=request, db=db, seed=ctx)
+
         # Try to resolve a *bound* attribute from the class if available
         bound = getattr(model, getattr(user_handler, "__name__", ""), user_handler)
         wanted = _accepted_kw(bound)
 
         kw = {}
         if "ctx" in wanted:
-            kw["ctx"] = ctx
+            kw["ctx"] = isolated
         if "db" in wanted:
             kw["db"] = db
         if "payload" in wanted:
