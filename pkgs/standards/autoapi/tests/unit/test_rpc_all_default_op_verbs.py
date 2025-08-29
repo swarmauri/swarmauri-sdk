@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from autoapi.v3.autoapi import AutoAPI
-from autoapi.v3.mixins import BulkCapable, GUIDPk
+from autoapi.v3.mixins import BulkCapable, GUIDPk, Replaceable
 from autoapi.v3.specs import IO, S, F, acol as spec_acol
 from autoapi.v3.tables import Base
 from autoapi.v3.types import Session, String
@@ -14,7 +14,7 @@ from autoapi.v3.opspec import OpSpec
 
 @pytest.fixture()
 def api_and_session() -> Iterator[tuple[AutoAPI, Session]]:
-    class Widget(Base, GUIDPk, BulkCapable):
+    class Widget(Base, GUIDPk, BulkCapable, Replaceable):
         __tablename__ = "widgets_rpc_all_ops"
         __allow_unmapped__ = True
         __autoapi_ops__ = (
