@@ -301,7 +301,7 @@ def _build_schema(
                 allowed_verbs = (
                     getattr(io, "in_verbs", None) if io is not None else None
                 )
-                if allowed_verbs is not None and verb not in set(allowed_verbs):
+                if allowed_verbs and verb not in set(allowed_verbs):
                     continue
 
         # Column.info["autoapi"]

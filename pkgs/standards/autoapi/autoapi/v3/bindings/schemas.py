@@ -93,16 +93,16 @@ def _make_bulk_rows_response_model(
 def _make_single_or_bulk_model(
     model: type, verb: str, item_schema: Type[BaseModel]
 ) -> Type[BaseModel]:
-    """Build a root model accepting a single item or a list of items."""
-    name = f"{model.__name__}{_camel(verb)}Request"
-    schema = create_model(  # type: ignore[call-arg]
-        name,
-        __base__=RootModel[Union[item_schema, List[item_schema]]],  # type: ignore[valid-type]
-    )
-    return namely_model(
-        schema,
-        name=name,
+    """Build a union model accepting a single item or a list of items."""
+    bulk_schema = _make_bulk_rows_model(model, f"bulk_{verb}", item_schema)
+    example = _extract_example(item_schema)
+    examples = [[example] if example else [], example]
+    return _one_of_union_model(
+        f"{model.__name__}{_camel(verb)}Request",
+        item_schema,
+        bulk_schema,
         doc=f"{verb} request schema for {model.__name__}",
+        examples=examples,
     )
 
 
@@ -299,7 +299,7 @@ def _default_schemas_for_spec(
                 result["in_"] = _make_single_or_bulk_model(model, "create", item_in)
                 bulk_out = _make_bulk_rows_model(model, "bulk_create", read_schema)
                 out_example = _extract_example(read_schema)
-                out_examples = [out_example, [out_example] if out_example else []]
+                out_examples = [[out_example] if out_example else [], out_example]
                 result["out"] = _one_of_union_model(
                     f"{model.__name__}CreateResponse",
                     read_schema,

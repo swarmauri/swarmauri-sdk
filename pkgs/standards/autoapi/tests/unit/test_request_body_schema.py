@@ -3,8 +3,9 @@ from autoapi.v3.types import App
 from autoapi.v3.bindings.rest import _build_router
 from autoapi.v3.opspec import OpSpec
 from autoapi.v3.tables import Base
-from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.mixins import GUIDPk, BulkCapable
 from autoapi.v3.types import Column, String
+from autoapi.v3.specs.shortcuts import acol, IO, F, S
 
 
 class Widget(Base, GUIDPk):
@@ -26,6 +27,22 @@ def test_request_body_uses_schema_model():
 
     widget_schema = spec["components"]["schemas"]["WidgetCreate"]
     assert "name" in widget_schema.get("properties", {})
+
+
+def test_request_body_with_io_defaults_includes_field():
+    class Gadget(Base, GUIDPk, BulkCapable):
+        __tablename__ = "gadget_req_schema_io"
+        name = acol(
+            storage=S(type_=String, nullable=False), field=F(py_type=str), io=IO()
+        )
+
+    sp = OpSpec(alias="create", target="create")
+    router = _build_router(Gadget, [sp])
+    app = App()
+    app.include_router(router)
+    spec = app.openapi()
+    gadget_schema = spec["components"]["schemas"]["GadgetCreate"]
+    assert "name" in gadget_schema.get("properties", {})
 
 
 def test_replace_request_body_excludes_pk():

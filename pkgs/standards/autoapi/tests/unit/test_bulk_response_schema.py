@@ -45,6 +45,24 @@ def test_bulk_create_response_schema():
     assert items_ref.endswith("WidgetRead")
 
 
+def test_create_examples_prefer_bulk_list():
+    spec = _openapi_for([("create", "create")])
+    path = f"/{Widget.__name__.lower()}"
+    req_ref = spec["paths"][path]["post"]["requestBody"]["content"]["application/json"][
+        "schema"
+    ]["$ref"].split("/")[-1]
+    req_schema = spec["components"]["schemas"][req_ref]
+    req_examples = req_schema.get("examples")
+    assert req_examples and isinstance(req_examples[0], list)
+
+    resp_ref = spec["paths"][path]["post"]["responses"]["201"]["content"][
+        "application/json"
+    ]["schema"]["$ref"].split("/")[-1]
+    resp_schema = spec["components"]["schemas"][resp_ref]
+    resp_examples = resp_schema.get("examples")
+    assert resp_examples and isinstance(resp_examples[0], list)
+
+
 def test_bulk_delete_response_schema():
     spec = _openapi_for([("bulk_delete", "bulk_delete")])
     path = f"/{Widget.__name__.lower()}"
