@@ -209,8 +209,13 @@ def _build_hookz_endpoint(api: Any):
 
 
 def _build_planz_endpoint(api: Any):
+    cache: Optional[Dict[str, Dict[str, List[str]]]] = None
+
     async def _planz():
+        nonlocal cache
         """Expose the runtime step sequence for each operation."""
+        if cache is not None:
+            return cache
         out: Dict[str, Dict[str, List[str]]] = {}
         for model in _model_iter(api):
             mname = getattr(model, "__name__", "Model")
@@ -327,7 +332,8 @@ def _build_planz_endpoint(api: Any):
                 model_map[sp.alias] = seq
             if model_map:
                 out[mname] = model_map
-        return out
+        cache = out
+        return cache
 
     return _planz
 

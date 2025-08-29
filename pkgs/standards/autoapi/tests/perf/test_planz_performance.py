@@ -1,6 +1,6 @@
 import pytest
 from types import SimpleNamespace
-from time import perf_counter
+from time import perf_counter, sleep
 
 from autoapi.v3.system.diagnostics import _build_planz_endpoint
 from autoapi.v3.opspec import OpSpec
@@ -73,3 +73,56 @@ async def test_planz_performance(monkeypatch, count):
     total_steps = sum(len(v) for v in data["Model"].values())
     assert total_steps == count * 10
     print(f"/system/planz with {count} operations took {duration:.6f}s")
+
+
+@pytest.mark.asyncio
+async def test_planz_cached_call_faster(monkeypatch) -> None:
+    """Second call should bypass heavy computation via cache."""
+
+    class Model:
+        __name__ = "Model"
+
+    def handler(ctx):
+        return None
+
+    Model.opspecs = SimpleNamespace(
+        all=(
+            OpSpec(
+                alias="create",
+                target="create",
+                table=Model,
+                persist="default",
+                handler=handler,
+            ),
+        )
+    )
+    dummy_plan = object()
+    Model.runtime = SimpleNamespace(plan=dummy_plan)
+
+    calls = {"flatten": 0}
+
+    def fake_flattened_order(
+        plan, *, persist, include_system_steps, deps, secdeps=None
+    ):
+        calls["flatten"] += 1
+        sleep(0.01)
+        return []
+
+    monkeypatch.setattr(_plan, "flattened_order", fake_flattened_order)
+
+    class API:
+        models = {"Model": Model}
+
+    planz = _build_planz_endpoint(API)
+
+    start = perf_counter()
+    await planz()
+    first = perf_counter() - start
+
+    start = perf_counter()
+    await planz()
+    second = perf_counter() - start
+
+    assert calls["flatten"] == 1
+    assert second < first
+    print(f"first={first:.6f}s second={second:.6f}s")
