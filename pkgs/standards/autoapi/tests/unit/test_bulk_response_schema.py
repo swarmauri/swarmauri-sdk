@@ -42,6 +42,18 @@ def test_bulk_create_response_schema():
     assert items_ref.endswith("WidgetRead")
 
 
+def test_bulk_create_request_schema_has_item_ref():
+    spec = _openapi_for([("bulk_create", "bulk_create")])
+    path = f"/{Widget.__name__.lower()}"
+    ref = spec["paths"][path]["post"]["requestBody"]["content"]["application/json"][
+        "schema"
+    ]["$ref"]
+    assert ref.endswith("WidgetBulkCreateRequest")
+    comp = spec["components"]["schemas"]["WidgetBulkCreateRequest"]
+    items_ref = comp["items"]["$ref"]
+    assert items_ref.endswith("WidgetCreate")
+
+
 def test_bulk_delete_response_schema():
     spec = _openapi_for([("bulk_delete", "bulk_delete")])
     path = f"/{Widget.__name__.lower()}"
