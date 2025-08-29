@@ -25,7 +25,7 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
     __tablename__ = "workers"
     __table_args__ = ({"schema": "peagen"},)
 
-    __autoapi_allow_anon__ = {"create"}
+    __autoapi_allow_anon__ = {"create"}  # allow unauthenticated worker registration
 
     pool_id: Mapped[PgUUID] = acol(
         storage=S(
