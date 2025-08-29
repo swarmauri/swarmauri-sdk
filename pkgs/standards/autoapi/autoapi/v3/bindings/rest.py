@@ -262,15 +262,57 @@ def _serialize_output(
 
 def _validate_body(
     model: type, alias: str, target: str, body: Any | None
-) -> Mapping[str, Any]:
+) -> Mapping[str, Any] | Sequence[Mapping[str, Any]]:
     """Normalize and validate the incoming request body.
 
-    Accepts dict-like payloads or Pydantic models. If the AutoAPI schemas
-    define a request model, use it for validation; otherwise return the
-    payload as-is (coerced to a dict when possible).
+    Accepts dict-like payloads or sequences of dict-like payloads for bulk
+    operations. If the AutoAPI schemas define a request model, use it for
+    validation; otherwise return the payload as-is (coerced to a
+    ``dict``/``list`` when possible).
     """
     if isinstance(body, BaseModel):
         return body.model_dump(exclude_none=True)
+
+    # Bulk operations expect a list of payloads. The "create" endpoint shares its
+    # route with "bulk_create" and must detect list bodies at runtime.
+    if target.startswith("bulk_") or (
+        target == "create"
+        and isinstance(body, Sequence)
+        and not isinstance(body, (Mapping, str, bytes))
+    ):
+        items: Sequence[Any] = body or []
+        if not isinstance(items, Sequence) or isinstance(items, (str, bytes)):
+            items = []
+
+        schemas_root = getattr(model, "schemas", None)
+        alias_ns = getattr(schemas_root, alias, None) if schemas_root else None
+        in_model = getattr(alias_ns, "in_", None) if alias_ns else None
+
+        out: list[Mapping[str, Any]] = []
+        for item in items:
+            if isinstance(item, BaseModel):
+                out.append(item.model_dump(exclude_none=True))
+                continue
+            data: Mapping[str, Any] | None = None
+            if (
+                in_model
+                and inspect.isclass(in_model)
+                and issubclass(in_model, BaseModel)
+            ):
+                try:
+                    inst = in_model.model_validate(item)  # type: ignore[arg-type]
+                    data = inst.model_dump(exclude_none=True)
+                except Exception:
+                    logger.debug(
+                        "rest input body validation failed for %s.%s",
+                        model.__name__,
+                        alias,
+                        exc_info=True,
+                    )
+            if data is None:
+                data = dict(item) if isinstance(item, Mapping) else {}
+            out.append(data)
+        return out
 
     body = body or {}
     if not isinstance(body, Mapping):
@@ -754,6 +796,10 @@ def _make_collection_endpoint(
         parent_kw = {k: kw[k] for k in nested_vars if k in kw}
         _coerce_parent_kw(model, parent_kw)
         payload = _validate_body(model, alias, target, body)
+        exec_alias = alias
+        exec_target = target
+        if target == "create" and isinstance(payload, Sequence):
+            exec_alias = exec_target = "bulk_create"
         if parent_kw:
             if isinstance(payload, Mapping):
                 payload = dict(payload)
@@ -766,13 +812,13 @@ def _make_collection_endpoint(
             "payload": payload,
             "path_params": parent_kw,
             "env": SimpleNamespace(
-                method=alias, params=payload, target=target, model=model
+                method=exec_alias, params=payload, target=exec_target, model=model
             ),
         }
         ctx["response_serializer"] = lambda r: _serialize_output(
-            model, alias, target, sp, r
+            model, exec_alias, exec_target, sp, r
         )
-        phases = _get_phase_chains(model, alias)
+        phases = _get_phase_chains(model, exec_alias)
         result = await _executor._invoke(
             request=request,
             db=db,
