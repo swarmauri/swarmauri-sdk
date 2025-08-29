@@ -155,6 +155,14 @@ async def test_list_supports_filter_ops_and_desc_sort(session):
     assert [r.name for r in rows] == ["bravo"]
 
 
+@pytest.mark.asyncio
+async def test_upsert_creates_and_updates(session):
+    created = await crud.upsert(Widget, {"name": "z", "immutable": "lock"}, session)
+    assert created.name == "z"
+    updated = await crud.upsert(Widget, {"id": created.id, "name": "zz"}, session)
+    assert updated.name == "zz"
+
+
 def test_build_list_params_includes_ops():
     params = _build_list_params(Widget)
     fields = set(params.model_fields.keys())

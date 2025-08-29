@@ -179,9 +179,12 @@ def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
                 out_model.model_validate(x).model_dump(exclude_none=True, by_alias=True)
                 for x in result
             ]
-        if target in {"bulk_create", "bulk_update", "bulk_replace"} and isinstance(
-            result, (list, tuple)
-        ):
+        if target in {
+            "bulk_create",
+            "bulk_update",
+            "bulk_replace",
+            "bulk_upsert",
+        } and isinstance(result, (list, tuple)):
             return [
                 out_model.model_validate(x).model_dump(exclude_none=True, by_alias=True)
                 for x in result

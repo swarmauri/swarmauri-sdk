@@ -293,6 +293,13 @@ def _default_schemas_for_spec(
         result["in_"] = params
         result["out"] = _make_deleted_response_model(model, "clear")
 
+    elif target == "upsert":
+        item_in = _build_schema(model, verb="upsert") or _build_schema(
+            model, verb="replace"
+        )
+        result["in_"] = item_in
+        result["out"] = read_schema
+
     elif target == "bulk_create":
         item_in = _build_schema(model, verb="create")
         result["in_"] = _make_bulk_rows_model(model, "bulk_create", item_in)

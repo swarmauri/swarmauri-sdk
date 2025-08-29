@@ -564,6 +564,21 @@ async def replace(
     return obj
 
 
+async def upsert(
+    model: type, data: Mapping[str, Any], db: Union[Session, AsyncSession]
+) -> Any:
+    """Create or update a row depending on primary key presence."""
+    pk = _single_pk_name(model)
+    data = dict(data or {})
+    ident = data.get(pk)
+    if ident is not None:
+        existing = await _maybe_get(db, model, ident)
+        if existing is not None:
+            payload = {k: v for k, v in data.items() if k != pk}
+            return await update(model, ident, payload, db=db)
+    return await create(model, data, db=db)
+
+
 async def delete(
     model: type, ident: Any, db: Union[Session, AsyncSession]
 ) -> Dict[str, int]:
@@ -737,6 +752,30 @@ async def bulk_replace(
     if replaced:
         await _maybe_flush(db)
     return replaced
+
+
+async def bulk_upsert(
+    model: type, rows: Iterable[Mapping[str, Any]], db: Union[Session, AsyncSession]
+) -> List[Any]:
+    """Upsert many rows by primary key."""
+    pk = _single_pk_name(model)
+    results: List[Any] = []
+    to_create: List[Mapping[str, Any]] = []
+    for r in rows or ():
+        r = dict(r)
+        ident = r.get(pk)
+        if ident is not None:
+            existing = await _maybe_get(db, model, ident)
+            if existing is not None:
+                data = {k: v for k, v in r.items() if k != pk}
+                updated = await update(model, ident, data, db=db)
+                results.append(updated)
+                continue
+        to_create.append(r)
+    if to_create:
+        created = await bulk_create(model, to_create, db)
+        results.extend(created)
+    return results
 
 
 async def bulk_delete(
