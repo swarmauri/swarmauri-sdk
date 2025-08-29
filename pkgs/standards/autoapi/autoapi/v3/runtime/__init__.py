@@ -2,6 +2,7 @@
 from .executor import _invoke, _Ctx
 from .kernel import Kernel, build_phase_chains, run
 from . import events, errors, context
+from .labels import STEP_KINDS, DOMAINS
 
 __all__ = [
     "_invoke",
@@ -12,4 +13,6 @@ __all__ = [
     "events",
     "errors",
     "context",
+    "STEP_KINDS",
+    "DOMAINS",
 ]
