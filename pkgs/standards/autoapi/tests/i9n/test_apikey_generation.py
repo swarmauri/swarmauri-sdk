@@ -17,7 +17,7 @@ class ConcreteApiKey(ApiKey):
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_api_key_creation_requires_valid_payload(sync_db_session):
-    """Posting without required fields yields a conflict response."""
+    """Posting without required fields yields an unprocessable entity response."""
     _, get_sync_db = sync_db_session
 
     app = App()
@@ -29,4 +29,4 @@ async def test_api_key_creation_requires_valid_payload(sync_db_session):
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         res = await client.post("/apikey", json={})
 
-    assert res.status_code == 409
+    assert res.status_code == 422
