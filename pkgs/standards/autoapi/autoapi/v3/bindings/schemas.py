@@ -62,6 +62,7 @@ def _make_bulk_rows_model(
     """
     Build a root model representing `List[item_schema]`.
     """
+    item_schema.model_rebuild(force=True)
     name = f"{model.__name__}{_camel(verb)}Request"
     example = _extract_example(item_schema)
     examples = [[example]] if example else []
@@ -80,6 +81,7 @@ def _make_bulk_rows_response_model(
     model: type, verb: str, item_schema: Type[BaseModel]
 ) -> Type[BaseModel]:
     """Build a root model representing ``List[item_schema]`` for responses."""
+    item_schema.model_rebuild(force=True)
     name = f"{model.__name__}{_camel(verb)}Response"
     example = _extract_example(item_schema)
     examples = [[example]] if example else []

@@ -60,6 +60,36 @@ async def test_openapi_client_bulk_create_response_schema() -> None:
 
 
 @pytest.mark.asyncio()
+async def test_openapi_client_bulk_create_items_refs() -> None:
+    Base.metadata.clear()
+
+    class Widget(Base, GUIDPk, BulkCapable):
+        __tablename__ = "widgets_client_bulk_create_items"
+        name = Column(String, nullable=False)
+
+    router = _build_router(Widget, [OpSpec(alias="bulk_create", target="bulk_create")])
+    app = App()
+    app.include_router(router)
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        spec = (await client.get("/openapi.json")).json()
+
+    path = f"/{Widget.__name__.lower()}"
+    req_ref = spec["paths"][path]["post"]["requestBody"]["content"]["application/json"][
+        "schema"
+    ]["$ref"]
+    req_comp = spec["components"]["schemas"][req_ref.split("/")[-1]]
+    assert req_comp["items"]["$ref"].endswith("WidgetCreate")
+
+    resp_ref = spec["paths"][path]["post"]["responses"]["200"]["content"][
+        "application/json"
+    ]["schema"]["$ref"]
+    resp_comp = spec["components"]["schemas"][resp_ref.split("/")[-1]]
+    assert resp_comp["items"]["$ref"].endswith("WidgetRead")
+
+
+@pytest.mark.asyncio()
 async def test_openapi_client_bulk_delete_response_schema() -> None:
     Base.metadata.clear()
 
