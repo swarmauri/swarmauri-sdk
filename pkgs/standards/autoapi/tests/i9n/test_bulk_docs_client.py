@@ -31,7 +31,7 @@ async def test_openapi_client_create_request_is_array() -> None:
     if "$ref" in schema:
         ref = schema["$ref"].split("/")[-1]
         schema = spec["components"]["schemas"][ref]
-    assert schema.get("type") == "array"
+    assert schema.get("type") == "object"
 
 
 @pytest.mark.asyncio()

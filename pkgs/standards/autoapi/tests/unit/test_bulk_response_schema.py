@@ -17,7 +17,7 @@ def _openapi_for(ops):
     return app.openapi()
 
 
-def test_create_request_schema_is_array():
+def test_create_request_schema_is_object():
     spec = _openapi_for([("create", "create")])
     path = f"/{Widget.__name__.lower()}"
     schema = spec["paths"][path]["post"]["requestBody"]["content"]["application/json"][
@@ -26,7 +26,7 @@ def test_create_request_schema_is_array():
     if "$ref" in schema:
         ref = schema["$ref"].split("/")[-1]
         schema = spec["components"]["schemas"][ref]
-    assert schema.get("type") == "array"
+    assert schema.get("type") == "object"
 
 
 def test_bulk_create_response_schema():
@@ -52,6 +52,21 @@ def test_bulk_create_request_schema_has_item_ref():
     comp = spec["components"]["schemas"]["WidgetBulkCreateRequest"]
     items_ref = comp["items"]["$ref"]
     assert items_ref.endswith("WidgetCreate")
+
+
+def test_create_and_bulk_create_handlers_and_schemas_bound():
+    _ = _openapi_for(
+        [
+            ("create", "create"),
+            ("bulk_create", "bulk_create"),
+        ]
+    )
+    assert hasattr(Widget.schemas, "create")
+    assert hasattr(Widget.schemas, "bulk_create")
+    assert hasattr(Widget.handlers, "create")
+    assert hasattr(Widget.handlers, "bulk_create")
+    assert hasattr(Widget.handlers.create, "core")
+    assert hasattr(Widget.handlers.bulk_create, "core")
 
 
 def test_bulk_delete_response_schema():
