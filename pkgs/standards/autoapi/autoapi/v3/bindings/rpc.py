@@ -96,6 +96,22 @@ def _coerce_payload(payload: Any) -> Any:
     return {}
 
 
+def _ensure_jsonable(obj: Any) -> Any:
+    """Best-effort conversion of DB rows or ORM objects to primitives."""
+    if isinstance(obj, (list, tuple)):
+        return [_ensure_jsonable(x) for x in obj]
+    if isinstance(obj, Mapping):
+        try:
+            return {k: _ensure_jsonable(v) for k, v in dict(obj).items()}
+        except Exception:
+            pass
+    try:
+        data = vars(obj)
+    except TypeError:
+        return obj
+    return {k: _ensure_jsonable(v) for k, v in data.items() if not k.startswith("_")}
+
+
 def _validate_input(
     model: type, alias: str, target: str, payload: Mapping[str, Any]
 ) -> Mapping[str, Any]:
@@ -132,10 +148,10 @@ def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
     """
     schemas_root = getattr(model, "schemas", None)
     if not schemas_root:
-        return result
+        return _ensure_jsonable(result)
     alias_ns = getattr(schemas_root, alias, None)
     if not alias_ns:
-        return result
+        return _ensure_jsonable(result)
 
     out_model = getattr(alias_ns, "out", None)
     if (
@@ -143,7 +159,7 @@ def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
         or not inspect.isclass(out_model)
         or not issubclass(out_model, BaseModel)
     ):
-        return result
+        return _ensure_jsonable(result)
 
     try:
         if target == "list" and isinstance(result, (list, tuple)):
@@ -154,9 +170,10 @@ def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
         if target in {"bulk_create", "bulk_update", "bulk_replace"} and isinstance(
             result, (list, tuple)
         ):
-            return out_model.model_validate(result).model_dump(
-                exclude_none=True, by_alias=True
-            )
+            return [
+                out_model.model_validate(x).model_dump(exclude_none=True, by_alias=True)
+                for x in result
+            ]
         # Single object case
         return out_model.model_validate(result).model_dump(
             exclude_none=True, by_alias=True
@@ -170,7 +187,7 @@ def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
             e,
             exc_info=True,
         )
-        return result
+        return _ensure_jsonable(result)
 
 
 # ───────────────────────────────────────────────────────────────────────────────

@@ -18,7 +18,19 @@ class OpConfigProvider(TableConfigProvider):
     __autoapi_defaults_exclude__: set[str] = set()
 
 
-DEFAULT_CANON_VERBS = {"create", "read", "update", "delete", "list", "clear"}
+DEFAULT_CANON_VERBS = {
+    "create",
+    "read",
+    "update",
+    "replace",
+    "delete",
+    "list",
+    "clear",
+    "bulk_create",
+    "bulk_update",
+    "bulk_replace",
+    "bulk_delete",
+}
 
 
 def should_wire_canonical(table: Type, op: str) -> bool:
