@@ -1,10 +1,10 @@
 from autoapi.v3.bindings.model import bind
 from autoapi.v3.tables import Base
-from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.mixins import GUIDPk, Replaceable
 from autoapi.v3.types import Column, String
 
 
-class Gadget(Base, GUIDPk):
+class Gadget(Base, GUIDPk, Replaceable):
     __tablename__ = "gadgets_schemas_binding"
     name = Column(String, nullable=False)
 
