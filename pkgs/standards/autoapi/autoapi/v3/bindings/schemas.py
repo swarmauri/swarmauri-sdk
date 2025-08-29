@@ -14,6 +14,7 @@ from ..opspec.types import (
 )  # lazy-capable schema args (runtime: we restrict forms)
 from ..schema import _build_schema, _build_list_params, namely_model
 from ..decorators import collect_decorated_schemas  # ← seed @schema_ctx declarations
+from ..mixins import BulkCapable
 
 logger = logging.getLogger(__name__)
 
@@ -288,29 +289,27 @@ def _default_schemas_for_spec(
     if target == "create":
         item_in = _build_schema(model, verb="create")
         if read_schema is None:
-            result["in_"] = item_in
+            if issubclass(model, BulkCapable):
+                result["in_"] = _make_single_or_bulk_model(model, "create", item_in)
+            else:
+                result["in_"] = item_in
             result["out"] = None
         else:
-            bulk_in = _make_bulk_rows_model(model, "bulk_create", item_in)
-            bulk_out = _make_bulk_rows_model(model, "bulk_create", read_schema)
-            in_example = _extract_example(item_in)
-            out_example = _extract_example(read_schema)
-            in_examples = [in_example, [in_example] if in_example else []]
-            out_examples = [out_example, [out_example] if out_example else []]
-            result["in_"] = _one_of_union_model(
-                f"{model.__name__}CreateRequest",
-                item_in,
-                bulk_in,
-                doc=f"create request schema for {model.__name__}",
-                examples=in_examples,
-            )
-            result["out"] = _one_of_union_model(
-                f"{model.__name__}CreateResponse",
-                read_schema,
-                bulk_out,
-                doc=f"create response schema for {model.__name__}",
-                examples=out_examples,
-            )
+            if issubclass(model, BulkCapable):
+                result["in_"] = _make_single_or_bulk_model(model, "create", item_in)
+                bulk_out = _make_bulk_rows_model(model, "bulk_create", read_schema)
+                out_example = _extract_example(read_schema)
+                out_examples = [out_example, [out_example] if out_example else []]
+                result["out"] = _one_of_union_model(
+                    f"{model.__name__}CreateResponse",
+                    read_schema,
+                    bulk_out,
+                    doc=f"create response schema for {model.__name__}",
+                    examples=out_examples,
+                )
+            else:
+                result["in_"] = item_in
+                result["out"] = read_schema
 
     elif target == "read":
         pk_name, pk_type = _pk_info(model)
