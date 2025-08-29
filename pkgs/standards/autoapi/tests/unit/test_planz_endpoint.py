@@ -7,6 +7,20 @@ from autoapi.v3.opspec import OpSpec
 from autoapi.v3.runtime import plan as _plan
 
 
+class DummyLabel:
+    def __init__(self, text: str, anchor: str, kind: str = "atom") -> None:
+        self.text = text
+        self.anchor = anchor
+        self.kind = kind
+
+    def __str__(self) -> str:  # pragma: no cover - trivial
+        return self.text
+
+
+def sample_hook(ctx):
+    return None
+
+
 @pytest.mark.asyncio
 async def test_planz_endpoint_sequence(monkeypatch: pytest.MonkeyPatch):
     class API:
@@ -37,13 +51,15 @@ async def test_planz_endpoint_sequence(monkeypatch: pytest.MonkeyPatch):
         )
     )
 
+    Model.hooks = SimpleNamespace(write=SimpleNamespace(PRE_HANDLER=[sample_hook]))
+
     dummy_plan = object()
     Model.runtime = SimpleNamespace(plan=dummy_plan)
 
     def fake_flattened_order(plan, *, persist, include_system_steps, deps):
         assert plan is dummy_plan
         if persist:
-            return ["sys:txn:begin@START_TX"]
+            return [DummyLabel("sys:txn:begin@START_TX", "START_TX", kind="sys")]
         return []
 
     monkeypatch.setattr(_plan, "flattened_order", fake_flattened_order)
@@ -56,7 +72,9 @@ async def test_planz_endpoint_sequence(monkeypatch: pytest.MonkeyPatch):
 
     assert "Model" in data
     assert "write" in data["Model"]
-    assert any("sys:txn:begin@START_TX" in s for s in data["Model"]["write"])
+    hook_label = f"{sample_hook.__module__}.{sample_hook.__qualname__}"
+    assert hook_label in data["Model"]["write"]
+    assert "sys:txn:begin@START_TX" in data["Model"]["write"]
     assert "read" in data["Model"]
     assert not any("sys:txn:begin@START_TX" in s for s in data["Model"]["read"])
 
@@ -88,6 +106,8 @@ async def test_planz_endpoint_prefers_compiled_plan_for_atoms(
         )
     )
 
+    Model.hooks = SimpleNamespace(create=SimpleNamespace(PRE_HANDLER=[sample_hook]))
+
     dummy_plan = object()
     Model.runtime = SimpleNamespace(plan=dummy_plan)
 
@@ -96,8 +116,12 @@ async def test_planz_endpoint_prefers_compiled_plan_for_atoms(
     def fake_flattened_order(plan, *, persist, include_system_steps, deps):
         calls["flatten"] = True
         return [
-            "atom:emit:paired_pre@emit:aliases:pre_flush",
-            "sys:txn:begin@START_TX",
+            DummyLabel("sys:txn:begin@START_TX", "START_TX", kind="sys"),
+            DummyLabel(
+                "atom:emit:paired_pre@emit:aliases:pre_flush",
+                "emit:aliases:pre_flush",
+                kind="atom",
+            ),
         ]
 
     def fake_build_phase_chains(model, alias):
@@ -115,7 +139,9 @@ async def test_planz_endpoint_prefers_compiled_plan_for_atoms(
 
     assert calls["flatten"] is True
     assert calls["chains"] is False
+    hook_label = f"{sample_hook.__module__}.{sample_hook.__qualname__}"
     assert data["Model"]["create"] == [
-        "atom:emit:paired_pre@emit:aliases:pre_flush",
+        hook_label,
         "sys:txn:begin@START_TX",
+        "atom:emit:paired_pre@emit:aliases:pre_flush",
     ]
