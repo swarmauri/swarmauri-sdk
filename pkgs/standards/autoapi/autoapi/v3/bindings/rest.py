@@ -771,7 +771,14 @@ def _make_collection_endpoint(
     # --- Body-based collection endpoints: create / bulk_* ---
 
     body_model = _request_model_for(sp, model)
-    body_annotation = body_model if body_model is not None else Mapping[str, Any]
+    base_annotation = body_model if body_model is not None else Mapping[str, Any]
+    if target == "create":
+        try:
+            body_annotation = base_annotation | list[base_annotation]
+        except Exception:  # pragma: no cover - best effort
+            body_annotation = base_annotation
+    else:
+        body_annotation = base_annotation
 
     async def _endpoint(
         request: Request,

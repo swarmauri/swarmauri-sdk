@@ -22,7 +22,13 @@ def test_request_body_uses_schema_model():
     request_schema = spec["paths"][path]["post"]["requestBody"]["content"][
         "application/json"
     ]["schema"]
-    assert request_schema["$ref"] == "#/components/schemas/WidgetCreate"
+    if "$ref" in request_schema:
+        ref = request_schema["$ref"].split("/")[-1]
+        request_schema = spec["components"]["schemas"][ref]
+    union = request_schema.get("anyOf") or request_schema.get("oneOf")
+    assert union is not None
+    types = {item.get("type") or "object" for item in union}
+    assert types == {"object", "array"}
 
     widget_schema = spec["components"]["schemas"]["WidgetCreate"]
     assert "name" in widget_schema.get("properties", {})
