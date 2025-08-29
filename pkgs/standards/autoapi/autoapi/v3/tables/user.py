@@ -19,8 +19,8 @@ class User(
     __tablename__ = "users"
     __abstract__ = True
     username: Mapped[str] = acol(
-        storage=S(String, nullable=False),
-        field=F(constraints={"max_length": 80}),
+        storage=S(String(32), nullable=False),
+        field=F(constraints={"max_length": 32}),
         io=IO(),
     )
 
