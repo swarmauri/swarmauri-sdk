@@ -80,6 +80,7 @@ from pydantic import BaseModel, Field, create_model
 from ..opspec import OpSpec
 from ..opspec.types import PHASES
 from ..runtime import executor as _executor  # expects _invoke(request, db, phases, ctx)
+from ..core import crud as _core
 
 # Prefer Kernel phase-chains if available
 try:
@@ -262,15 +263,44 @@ def _serialize_output(
 
 def _validate_body(
     model: type, alias: str, target: str, body: Any | None
-) -> Mapping[str, Any]:
+) -> Mapping[str, Any] | Sequence[Mapping[str, Any]]:
     """Normalize and validate the incoming request body.
 
-    Accepts dict-like payloads or Pydantic models. If the AutoAPI schemas
-    define a request model, use it for validation; otherwise return the
-    payload as-is (coerced to a dict when possible).
+    Accepts dict- or list-like payloads or Pydantic models. If the AutoAPI
+    schemas define a request model, use it for validation; otherwise return the
+    payload as-is (coerced to a ``dict`` or ``list[dict]`` when possible).
     """
     if isinstance(body, BaseModel):
         return body.model_dump(exclude_none=True)
+
+    # Handle bulk payloads: lists of row dictionaries
+    if isinstance(body, list):
+        schemas_root = getattr(model, "schemas", None)
+        alias_ns = getattr(schemas_root, alias, None) if schemas_root else None
+        in_model = getattr(alias_ns, "in_", None)
+        rows: list[Mapping[str, Any]] = []
+        for item in body:
+            if (
+                in_model
+                and inspect.isclass(in_model)
+                and issubclass(in_model, BaseModel)
+            ):
+                try:
+                    inst = in_model.model_validate(item)  # type: ignore[arg-type]
+                    rows.append(inst.model_dump(exclude_none=True))
+                    continue
+                except Exception:
+                    logger.debug(
+                        "rest input body validation failed for %s.%s",
+                        model.__name__,
+                        alias,
+                        exc_info=True,
+                    )
+            if isinstance(item, Mapping):
+                rows.append(dict(item))
+            else:
+                rows.append({})
+        return rows
 
     body = body or {}
     if not isinstance(body, Mapping):
@@ -747,6 +777,7 @@ def _make_collection_endpoint(
 
     async def _endpoint(
         request: Request,
+        response: Response,
         db: Any = Depends(db_dep),
         body=Body(...),
         **kw: Any,
@@ -760,6 +791,32 @@ def _make_collection_endpoint(
                 payload.update(parent_kw)
             else:
                 payload = parent_kw
+        if target == "create" and isinstance(payload, list):
+            result = await _core.bulk_create(model, payload, db=db)
+            commit = getattr(db, "commit", None)
+            if callable(commit):
+                res = commit()
+                if inspect.isawaitable(res):
+                    await res
+            response.status_code = _status.HTTP_200_OK
+            return _serialize_output(model, alias, "bulk_create", sp, result)
+        if target == "bulk_update" and isinstance(payload, list):
+            result = await _core.bulk_update(model, payload, db=db)
+            commit = getattr(db, "commit", None)
+            if callable(commit):
+                res = commit()
+                if inspect.isawaitable(res):
+                    await res
+            return _serialize_output(model, alias, target, sp, result)
+        if target == "bulk_replace" and isinstance(payload, list):
+            result = await _core.bulk_replace(model, payload, db=db)
+            commit = getattr(db, "commit", None)
+            if callable(commit):
+                res = commit()
+                if inspect.isawaitable(res):
+                    await res
+            return _serialize_output(model, alias, target, sp, result)
+
         ctx: Dict[str, Any] = {
             "request": request,
             "db": db,
@@ -795,6 +852,11 @@ def _make_collection_endpoint(
                 "request",
                 inspect.Parameter.POSITIONAL_OR_KEYWORD,
                 annotation=Request,
+            ),
+            inspect.Parameter(
+                "response",
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                annotation=Response,
             ),
             inspect.Parameter(
                 "db",
