@@ -21,21 +21,21 @@ The Swarmauri Typing Library provides advanced type utilities for Python, enabli
 
 ## Features
 
-- **Intersection Types**: Create intersection types that combine multiple classes.
+- **Intersection Factory**: Create intersection types that combine multiple classes.
 
 ```python
 from typing import Type, TypeVar, Union, Any, Annotated, Tuple
 
 T = TypeVar("T")
 
-class IntersectionMetadata:
+class IntersectionFactoryMetadata:
     def __init__(self, classes: Tuple[Type[T]]):
         self.classes = classes
 
     def __repr__(self):
-        return f"IntersectionMetadata(classes={self.classes!r})"
+        return f"IntersectionFactoryMetadata(classes={self.classes!r})"
 
-class Intersection(type):
+class IntersectionFactory:
     def __class_getitem__(cls, classes: Union[Type, Tuple[Type, ...]]) -> type:
         if not isinstance(classes, tuple):
             classes = (classes,)
@@ -47,10 +47,10 @@ class Intersection(type):
         ordered_common = [c for c in classes[0].__mro__ if c in common]
 
         if not ordered_common:
-            return Annotated[Any, IntersectionMetadata(classes=(classes))]
+            return Annotated[Any, IntersectionFactoryMetadata(classes=(classes))]
         else:
             union_type = Union[tuple(ordered_common)]
-            return Annotated[union_type, IntersectionMetadata(classes=(classes))]
+            return Annotated[union_type, IntersectionFactoryMetadata(classes=(classes))]
 ```
 
 - **Union Factory**: Dynamically create union types based on a provided function.
@@ -116,13 +116,13 @@ pip install swarmauri-typing
 ### Usage Example
 
 ```python
-from swarmauri_typing import Intersection, UnionFactory
+from swarmauri_typing import IntersectionFactory, UnionFactory
 
-# Example of using Intersection
+# Example of using IntersectionFactory
 class A: pass
 class B: pass
 
-IntersectionType = Intersection[A, B]
+IntersectionType = IntersectionFactory[A, B]
 
 # Example of using UnionFactory
 def my_types_getter(name: str):
