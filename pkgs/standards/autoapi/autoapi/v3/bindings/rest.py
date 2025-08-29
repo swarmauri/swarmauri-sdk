@@ -12,11 +12,11 @@ from typing import (
     Awaitable,
     Callable,
     Dict,
+    List,
     Mapping,
     Optional,
     Sequence,
     Tuple,
-    Union,
 )
 
 from typing import get_origin as _get_origin, get_args as _get_args
@@ -257,13 +257,8 @@ def _validate_body(
     if isinstance(body, BaseModel):
         return body.model_dump(exclude_none=True)
 
-    # Bulk operations expect a list of payloads. The "create" endpoint shares its
-    # route with "bulk_create" and must detect list bodies at runtime.
-    if target.startswith("bulk_") or (
-        target == "create"
-        and isinstance(body, Sequence)
-        and not isinstance(body, (Mapping, str, bytes))
-    ):
+    # Bulk mutations expect a list payload (bulk_create/bulk_update/bulk_replace).
+    if target in {"bulk_create", "bulk_update", "bulk_replace"}:
         items: Sequence[Any] = body or []
         if not isinstance(items, Sequence) or isinstance(items, (str, bytes)):
             items = []
@@ -773,10 +768,13 @@ def _make_collection_endpoint(
 
     body_model = _request_model_for(sp, model)
     base_annotation = body_model if body_model is not None else Mapping[str, Any]
-    if target == "create":
-        try:
-            body_annotation = Union[base_annotation, list[base_annotation]]  # type: ignore[valid-type]
-        except Exception:  # pragma: no cover - best effort
+    if target in {"bulk_create", "bulk_update", "bulk_replace"}:
+        if body_model is None:
+            try:
+                body_annotation = list[Mapping[str, Any]]  # type: ignore[valid-type]
+            except Exception:  # pragma: no cover - best effort
+                body_annotation = List[Mapping[str, Any]]  # type: ignore[name-defined]
+        else:
             body_annotation = base_annotation
     else:
         body_annotation = base_annotation
@@ -792,8 +790,6 @@ def _make_collection_endpoint(
         payload = _validate_body(model, alias, target, body)
         exec_alias = alias
         exec_target = target
-        if target == "create" and isinstance(payload, Sequence):
-            exec_alias = exec_target = "bulk_create"
         if parent_kw:
             if isinstance(payload, Mapping):
                 payload = dict(payload)
