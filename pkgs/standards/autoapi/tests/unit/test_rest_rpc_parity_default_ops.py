@@ -27,17 +27,17 @@ def _route_map(router) -> dict[str, tuple[str, set[str]]]:
 @pytest.mark.parametrize(
     "alias,target,path,methods",
     [
-        ("create", "create", "/Item", {"POST"}),
-        ("read", "read", "/Item/{item_id}", {"GET"}),
-        ("update", "update", "/Item/{item_id}", {"PATCH"}),
-        ("replace", "replace", "/Item/{item_id}", {"PUT"}),
-        ("delete", "delete", "/Item/{item_id}", {"DELETE"}),
-        ("list", "list", "/Item", {"GET"}),
-        ("clear", "clear", "/Item", {"DELETE"}),
-        ("bulk_create", "bulk_create", "/Item/bulk", {"POST"}),
-        ("bulk_update", "bulk_update", "/Item/bulk", {"PATCH"}),
-        ("bulk_replace", "bulk_replace", "/Item/bulk", {"PUT"}),
-        ("bulk_delete", "bulk_delete", "/Item/bulk", {"DELETE"}),
+        ("create", "create", "/item", {"POST"}),
+        ("read", "read", "/item/{item_id}", {"GET"}),
+        ("update", "update", "/item/{item_id}", {"PATCH"}),
+        ("replace", "replace", "/item/{item_id}", {"PUT"}),
+        ("delete", "delete", "/item/{item_id}", {"DELETE"}),
+        ("list", "list", "/item", {"GET"}),
+        ("clear", "clear", "/item", {"DELETE"}),
+        ("bulk_create", "bulk_create", "/item/bulk", {"POST"}),
+        ("bulk_update", "bulk_update", "/item/bulk", {"PATCH"}),
+        ("bulk_replace", "bulk_replace", "/item/bulk", {"PUT"}),
+        ("bulk_delete", "bulk_delete", "/item/bulk", {"DELETE"}),
     ],
 )
 def test_rest_rpc_parity_for_default_verbs(alias, target, path, methods):
