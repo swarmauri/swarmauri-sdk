@@ -9,7 +9,7 @@ from autoapi.v3.types import App, Column, String
 
 
 @pytest.mark.asyncio()
-async def test_openapi_client_create_request_is_array() -> None:
+async def test_openapi_client_create_request_allows_single_or_list() -> None:
     Base.metadata.clear()
 
     class Widget(Base, GUIDPk, BulkCapable):
@@ -31,7 +31,10 @@ async def test_openapi_client_create_request_is_array() -> None:
     if "$ref" in schema:
         ref = schema["$ref"].split("/")[-1]
         schema = spec["components"]["schemas"][ref]
-    assert schema.get("type") == "array"
+    union = schema.get("anyOf") or schema.get("oneOf")
+    assert union is not None
+    types = {item.get("type") or "object" for item in union}
+    assert types == {"object", "array"}
 
 
 @pytest.mark.asyncio()
