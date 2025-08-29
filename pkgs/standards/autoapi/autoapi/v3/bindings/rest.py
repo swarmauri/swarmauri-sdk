@@ -1185,7 +1185,24 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
                         and inspect.isclass(in_model)
                         and issubclass(in_model, BaseModel)
                     ):
-                        pruned = _strip_parent_fields(in_model, drop=set(nested_vars))
+                        target = in_model
+                        root_field = getattr(in_model, "model_fields", {}).get("root")
+                        if root_field is not None:
+                            ann = root_field.annotation
+                            inner = None
+                            for t in _get_args(ann) or (ann,):
+                                origin = _get_origin(t)
+                                if origin in {list, _typing.List}:
+                                    t_args = _get_args(t)
+                                    if t_args:
+                                        t = t_args[0]
+                                        origin = _get_origin(t)
+                                if inspect.isclass(t) and issubclass(t, BaseModel):
+                                    inner = t
+                                    break
+                            if inner is not None:
+                                target = inner
+                        pruned = _strip_parent_fields(target, drop=set(nested_vars))
                         setattr(alias_ns, "in_", pruned)
 
         # Determine path and membership
