@@ -23,9 +23,12 @@ def test_create_request_schema_allows_single_or_list():
     schema = spec["paths"][path]["post"]["requestBody"]["content"]["application/json"][
         "schema"
     ]
+    if "$ref" in schema:
+        ref = schema["$ref"].split("/")[-1]
+        schema = spec["components"]["schemas"][ref]
     union = schema.get("anyOf") or schema.get("oneOf")
     assert union is not None
-    types = {item.get("type") for item in union}
+    types = {item.get("type") or "object" for item in union}
     assert types == {"object", "array"}
 
 
