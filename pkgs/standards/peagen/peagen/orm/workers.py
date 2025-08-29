@@ -13,7 +13,7 @@ from autoapi.v3.types import (
     Mapped,
 )
 from autoapi.v3.mixins import GUIDPk, Timestamped
-from autoapi.v3.specs import S, acol
+from autoapi.v3.specs import IO, S, acol
 from autoapi.v3.specs.storage_spec import ForeignKeySpec
 from autoapi.v3 import hook_ctx
 from peagen.defaults import DEFAULT_POOL_ID, WORKER_KEY, WORKER_TTL
@@ -43,12 +43,13 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
             nullable=True,
         )
     )
-    handlers: Mapped[dict | None] = acol(
+    handler_map: Mapped[dict | None] = acol(
         storage=S(
             MutableDict.as_mutable(JSON),
             default=lambda: {},
             nullable=True,
-        )
+        ),
+        io=IO(alias_in="handlers", alias_out="handlers"),
     )
 
     pool: Mapped[Pool] = relationship(Pool, backref="workers")
