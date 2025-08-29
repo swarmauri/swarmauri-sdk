@@ -167,6 +167,27 @@ def test_build_plan_respects_only_keys(monkeypatch):
     assert fields == ["f1"]
 
 
+def test_build_plan_treats_collect_out_per_field(monkeypatch):
+    """schema:collect_out should instantiate once per field."""
+    fake_registry = {
+        ("schema", "collect_out"): (_ev.SCHEMA_COLLECT_OUT, lambda *_: None)
+    }
+    monkeypatch.setattr(runtime_atoms, "REGISTRY", fake_registry, raising=False)
+    monkeypatch.setattr(
+        runtime_plan, "_should_instantiate", lambda *a, **k: True, raising=False
+    )
+
+    specs = {"f1": object(), "f2": object()}
+
+    class Model:
+        pass
+
+    plan = runtime_plan.build_plan(Model, specs)
+    nodes = plan.atoms_by_anchor[_ev.SCHEMA_COLLECT_OUT]
+    assert len(nodes) == 2
+    assert {n.field for n in nodes} == {"f1", "f2"}
+
+
 @pytest.mark.parametrize(
     "domain,subject,anchor,field,col",
     [

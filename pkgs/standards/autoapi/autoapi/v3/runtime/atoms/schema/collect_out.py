@@ -55,6 +55,8 @@ def run(obj: Optional[object], ctx: Any) -> None:
         return
 
     temp = _ensure_temp(ctx)
+    if "schema_out" in temp:
+        return
 
     fields_sorted = sorted(specs.keys())
     entries: list[Dict[str, Any]] = []

@@ -121,6 +121,7 @@ def build_plan(
     per_field_subjects = {
         # schema
         ("schema", "collect_in"),
+        ("schema", "collect_out"),
         # wire (contract → wire)
         ("wire", "build_in"),
         ("wire", "validate"),  # canonical subject (alias of validate_in)
