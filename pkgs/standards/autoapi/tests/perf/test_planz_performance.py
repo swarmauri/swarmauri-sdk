@@ -7,6 +7,16 @@ from autoapi.v3.opspec import OpSpec
 from autoapi.v3.runtime import plan as _plan
 
 
+class DummyLabel:
+    def __init__(self, text: str, anchor: str, kind: str = "sys") -> None:
+        self.text = text
+        self.anchor = anchor
+        self.kind = kind
+
+    def __str__(self) -> str:  # pragma: no cover - trivial
+        return self.text
+
+
 @pytest.mark.asyncio
 @pytest.mark.parametrize("count", [1, 5, 100])
 async def test_planz_performance(monkeypatch, count):
@@ -34,7 +44,7 @@ async def test_planz_performance(monkeypatch, count):
     Model.runtime = SimpleNamespace(plan=dummy_plan)
 
     def fake_flattened_order(plan, *, persist, include_system_steps, deps):
-        return [f"step_{i}" for i in range(10)]
+        return [DummyLabel(f"step_{i}", "START_TX") for i in range(10)]
 
     monkeypatch.setattr(_plan, "flattened_order", fake_flattened_order)
 
