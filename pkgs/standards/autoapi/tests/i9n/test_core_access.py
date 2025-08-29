@@ -101,7 +101,7 @@ async def test_core_and_core_raw_sync_operations(sync_api):
                     "email": f"b_{uid}@example.com",
                 },
             ]
-            created_rows = await model.bulk_create(None, db=db, ctx={"payload": rows})
+            created_rows = await model.bulk_create({"rows": rows}, db=db)
             ids = [r["id"] if isinstance(r, Mapping) else r.id for r in created_rows]
             assert len(ids) == 2
 
@@ -109,8 +109,9 @@ async def test_core_and_core_raw_sync_operations(sync_api):
                 {"id": ids[0], "age": 20},
                 {"id": ids[1], "age": 21},
             ]
+            payload = {"rows": upd_rows}
             updated_rows = await model.bulk_update(
-                None, db=db, ctx={"payload": upd_rows}
+                None, db=db, ctx={"payload": payload}
             )
             assert {_get(u, "age") for u in updated_rows} == {20, 21}
 
@@ -118,13 +119,14 @@ async def test_core_and_core_raw_sync_operations(sync_api):
                 {"id": ids[0], "name": "A1", "email": f"a1_{uid}@example.com"},
                 {"id": ids[1], "name": "B1", "email": f"b1_{uid}@example.com"},
             ]
+            payload = {"rows": rep_rows}
             replaced_rows = await model.bulk_replace(
-                None, db=db, ctx={"payload": rep_rows}
+                None, db=db, ctx={"payload": payload}
             )
             assert {_get(r, "name") for r in replaced_rows} == {"A1", "B1"}
 
             del_payload = {"ids": ids}
-            await model.bulk_delete(del_payload, db=db)
+            await model.bulk_delete(None, db=db, ctx={"payload": del_payload})
             assert not await model.list({}, db=db)
 
 
