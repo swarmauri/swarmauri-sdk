@@ -99,6 +99,7 @@ def test_bulk_update_request_and_response_schemas():
     assert resp_ref.endswith("WidgetBulkUpdateResponse")
     resp_comp = spec["components"]["schemas"]["WidgetBulkUpdateResponse"]
     assert resp_comp["items"]["$ref"].endswith("WidgetRead")
+    assert "WidgetRead" in spec["components"]["schemas"]
 
 
 def test_bulk_replace_request_and_response_schemas():
@@ -120,6 +121,7 @@ def test_bulk_replace_request_and_response_schemas():
     assert resp_comp["items"]["$ref"].endswith("WidgetRead")
 
 
+
 def test_bulk_upsert_request_and_response_schemas():
     spec = _openapi_for([("bulk_upsert", "bulk_upsert")])
     path = f"/{Widget.__name__.lower()}"
@@ -137,8 +139,6 @@ def test_bulk_upsert_request_and_response_schemas():
     assert resp_ref.endswith("WidgetBulkUpsertResponse")
     resp_comp = spec["components"]["schemas"]["WidgetBulkUpsertResponse"]
     assert resp_comp["items"]["$ref"].endswith("WidgetRead")
-
-
 def test_update_and_bulk_update_schema_names_do_not_collide():
     spec = _openapi_for([("update", "update"), ("bulk_update", "bulk_update")])
     base = f"/{Widget.__name__.lower()}"

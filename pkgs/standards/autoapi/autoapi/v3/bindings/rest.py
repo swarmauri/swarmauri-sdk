@@ -278,7 +278,7 @@ def _validate_body(
 
         schemas_root = getattr(model, "schemas", None)
         alias_ns = getattr(schemas_root, alias, None) if schemas_root else None
-        in_model = getattr(alias_ns, "in_", None) if alias_ns else None
+        in_item = getattr(alias_ns, "in_item", None) if alias_ns else None
 
         out: list[Mapping[str, Any]] = []
         for item in items:
@@ -286,13 +286,9 @@ def _validate_body(
                 out.append(item.model_dump(exclude_none=True))
                 continue
             data: Mapping[str, Any] | None = None
-            if (
-                in_model
-                and inspect.isclass(in_model)
-                and issubclass(in_model, BaseModel)
-            ):
+            if in_item and inspect.isclass(in_item) and issubclass(in_item, BaseModel):
                 try:
-                    inst = in_model.model_validate(item)  # type: ignore[arg-type]
+                    inst = in_item.model_validate(item)  # type: ignore[arg-type]
                     data = inst.model_dump(exclude_none=True)
                 except Exception:
                     logger.debug(
@@ -1184,11 +1180,11 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
             if sp.target == "clear"
             else 0
             if sp.target
-            in {"bulk_update", "bulk_replace", "bulk_upsert", "bulk_delete"}
+            in {"bulk_update", "bulk_replace", "bulk_delete", "bulk_upsert"}
             else 1
-            if sp.target == "create"
+            if sp.target in {"create", "upsert"}
             else 2
-            if sp.target == "bulk_create"
+            if sp.target in {"bulk_create"}
             else 3
         ),
     )

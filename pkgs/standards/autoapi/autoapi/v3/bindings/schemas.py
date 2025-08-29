@@ -65,12 +65,8 @@ def _make_bulk_rows_model(
     example = _extract_example(item_schema)
     examples = [[example]] if example else []
 
-    item_ref = {"$ref": f"#/components/schemas/{item_schema.__name__}"}
-
     class _BulkModel(RootModel[List[item_schema]]):  # type: ignore[misc]
-        model_config = ConfigDict(
-            json_schema_extra={"examples": examples, "items": item_ref}
-        )
+        model_config = ConfigDict(json_schema_extra={"examples": examples})
 
     return namely_model(
         _BulkModel,
@@ -87,12 +83,8 @@ def _make_bulk_rows_response_model(
     example = _extract_example(item_schema)
     examples = [[example]] if example else []
 
-    item_ref = {"$ref": f"#/components/schemas/{item_schema.__name__}"}
-
     class _BulkModel(RootModel[List[item_schema]]):  # type: ignore[misc]
-        model_config = ConfigDict(
-            json_schema_extra={"examples": examples, "items": item_ref}
-        )
+        model_config = ConfigDict(json_schema_extra={"examples": examples})
 
     return namely_model(
         _BulkModel,
@@ -304,6 +296,13 @@ def _default_schemas_for_spec(
         params = _build_list_params(model)
         result["in_"] = params
         result["out"] = _make_deleted_response_model(model, "clear")
+
+    elif target == "upsert":
+        item_in = _build_schema(model, verb="upsert") or _build_schema(
+            model, verb="replace"
+        )
+        result["in_"] = item_in
+        result["out"] = read_schema
 
     elif target == "bulk_create":
         item_in = _build_schema(

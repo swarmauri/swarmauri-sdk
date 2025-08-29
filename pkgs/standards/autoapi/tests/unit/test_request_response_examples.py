@@ -68,3 +68,64 @@ def test_bulk_response_model_examples():
     schema = _resolve_schema(spec, schema)
     example = schema["examples"][0][0]
     assert example == {"name": "foo"}
+
+
+def test_upsert_request_model_examples():
+    spec = _openapi_for(Widget, [("upsert", "upsert")])
+    path = f"/{Widget.__name__.lower()}"
+    schema = spec["paths"][path]["put"]["requestBody"]["content"]["application/json"][
+        "schema"
+    ]
+    schema = _resolve_schema(spec, schema)
+    assert schema["properties"]["name"]["examples"][0] == "foo"
+
+
+def test_upsert_response_model_examples():
+    spec = _openapi_for(Widget, [("upsert", "upsert")])
+    path = f"/{Widget.__name__.lower()}"
+    schema = spec["paths"][path]["put"]["responses"]["200"]["content"][
+        "application/json"
+    ]["schema"]
+    schema = _resolve_schema(spec, schema)
+    assert schema["properties"]["name"]["examples"][0] == "foo"
+
+
+def test_replace_request_model_examples():
+    spec = _openapi_for(Widget, [("replace", "replace")])
+    path = f"/{Widget.__name__.lower()}/{{item_id}}"
+    schema = spec["paths"][path]["put"]["requestBody"]["content"]["application/json"][
+        "schema"
+    ]
+    schema = _resolve_schema(spec, schema)
+    assert schema["properties"]["name"]["examples"][0] == "foo"
+
+
+def test_replace_response_model_examples():
+    spec = _openapi_for(Widget, [("replace", "replace")])
+    path = f"/{Widget.__name__.lower()}/{{item_id}}"
+    schema = spec["paths"][path]["put"]["responses"]["200"]["content"][
+        "application/json"
+    ]["schema"]
+    schema = _resolve_schema(spec, schema)
+    assert schema["properties"]["name"]["examples"][0] == "foo"
+
+
+def test_bulk_update_request_model_examples():
+    spec = _openapi_for(BulkWidget, [("bulk_update", "bulk_update")])
+    path = f"/{BulkWidget.__name__.lower()}"
+    schema = spec["paths"][path]["patch"]["requestBody"]["content"]["application/json"][
+        "schema"
+    ]
+    schema = _resolve_schema(spec, schema)
+    assert schema["examples"][0] == [{"name": "foo"}]
+
+
+def test_bulk_update_response_model_examples():
+    spec = _openapi_for(BulkWidget, [("bulk_update", "bulk_update")])
+    path = f"/{BulkWidget.__name__.lower()}"
+    schema = spec["paths"][path]["patch"]["responses"]["200"]["content"][
+        "application/json"
+    ]["schema"]
+    schema = _resolve_schema(spec, schema)
+    example = schema["examples"][0][0]
+    assert example == {"name": "foo"}
