@@ -66,6 +66,7 @@ class AutoAPI:
     _allow_anon: bool = True
     _authorize: Any = None
     _optional_authn_dep: Any = None
+    _allow_anon_ops: set[str] = set()
 
     def __init__(
         self,
