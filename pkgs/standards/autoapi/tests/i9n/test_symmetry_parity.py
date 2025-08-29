@@ -1,5 +1,4 @@
 import pytest
-from autoapi.v3.types import SimpleNamespace
 
 CRUD_MAP = {
     "create": ("post", "/tenant/{tenant_id}/item"),
@@ -19,7 +18,7 @@ async def test_route_and_method_symmetry(api_client):
     spec = (await client.get("/openapi.json")).json()
     paths = spec["paths"]
     methods = await client.get("/methodz")
-    method_list = {SimpleNamespace(**m).method for m in methods.json()["methods"]}
+    method_list = {m["method"] for m in methods.json()["methods"]}
 
     for verb, (http_verb, path) in CRUD_MAP.items():
         assert path in paths
