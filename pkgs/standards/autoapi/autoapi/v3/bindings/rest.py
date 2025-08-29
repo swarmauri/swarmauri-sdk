@@ -259,13 +259,39 @@ def _validate_body(
 
     # Bulk mutations expect a list payload (bulk_create/bulk_update/bulk_replace).
     if target in {"bulk_create", "bulk_update", "bulk_replace"}:
-        items: Sequence[Any] = body or []
-        if not isinstance(items, Sequence) or isinstance(items, (str, bytes)):
+        raw_items = body or []
+        if isinstance(raw_items, Mapping):
+            items: Sequence[Any] = [raw_items]
+        elif not isinstance(raw_items, Sequence) or isinstance(raw_items, (str, bytes)):
             items = []
+        else:
+            items = list(raw_items)
 
         schemas_root = getattr(model, "schemas", None)
         alias_ns = getattr(schemas_root, alias, None) if schemas_root else None
         in_model = getattr(alias_ns, "in_", None) if alias_ns else None
+
+        item_model: type[BaseModel] | None = None
+        if in_model and inspect.isclass(in_model) and issubclass(in_model, BaseModel):
+            if getattr(in_model, "__pydantic_root_model__", False):
+                try:
+                    inst = in_model.model_validate(items)  # type: ignore[arg-type]
+                    items = getattr(inst, "root", items)
+                except Exception:
+                    logger.debug(
+                        "rest input body validation failed for %s.%s",
+                        model.__name__,
+                        alias,
+                        exc_info=True,
+                    )
+                try:
+                    from typing import get_args
+
+                    item_model = get_args(in_model.model_fields["root"].annotation)[0]
+                except Exception:  # pragma: no cover - best effort
+                    item_model = None
+            else:
+                item_model = in_model
 
         out: list[Mapping[str, Any]] = []
         for item in items:
@@ -274,12 +300,12 @@ def _validate_body(
                 continue
             data: Mapping[str, Any] | None = None
             if (
-                in_model
-                and inspect.isclass(in_model)
-                and issubclass(in_model, BaseModel)
+                item_model
+                and inspect.isclass(item_model)
+                and issubclass(item_model, BaseModel)
             ):
                 try:
-                    inst = in_model.model_validate(item)  # type: ignore[arg-type]
+                    inst = item_model.model_validate(item)  # type: ignore[arg-type]
                     data = inst.model_dump(exclude_none=True)
                 except Exception:
                     logger.debug(
