@@ -103,7 +103,6 @@ from ..config.constants import (
     AUTOAPI_GET_ASYNC_DB_ATTR,
     AUTOAPI_GET_DB_ATTR,
     AUTOAPI_AUTH_DEP_ATTR,
-    AUTOAPI_ALLOW_ANON_ATTR,
     AUTOAPI_REST_DEPENDENCIES_ATTR,
     AUTOAPI_ALLOW_ANON_ATTR,
 )
@@ -1326,7 +1325,7 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
             route_kwargs["response_class"] = response_class
 
         secdeps: list[Any] = []
-        if auth_dep and sp.alias not in allow_anon_ops:
+        if auth_dep and sp.alias not in allow_anon and sp.target not in allow_anon:
             secdeps.append(auth_dep)
         secdeps.extend(getattr(sp, "secdeps", ()))
         route_secdeps = _normalize_secdeps(secdeps)
