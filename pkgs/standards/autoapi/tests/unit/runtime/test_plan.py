@@ -94,8 +94,8 @@ def test_build_plan_instantiates_model_and_field_atoms(
         return None
 
     registry = {
+        ("resolve", "values"): (_ev.RESOLVE_VALUES, runner),
         ("schema", "collect_in"): (_ev.SCHEMA_COLLECT_IN, runner),
-        ("wire", "build_in"): (_ev.IN_VALIDATE, runner),
     }
     import autoapi.v3.runtime.atoms as atoms_mod
 
@@ -105,9 +105,9 @@ def test_build_plan_instantiates_model_and_field_atoms(
     plan = plan_mod.build_plan(DummyModel, specs)
 
     assert plan.model_name == "DummyModel"
-    per_model = plan.atoms_by_anchor[_ev.SCHEMA_COLLECT_IN]
+    per_model = plan.atoms_by_anchor[_ev.RESOLVE_VALUES]
     assert len(per_model) == 1 and per_model[0].field is None
-    per_field = plan.atoms_by_anchor[_ev.IN_VALIDATE]
+    per_field = plan.atoms_by_anchor[_ev.SCHEMA_COLLECT_IN]
     assert {n.field for n in per_field} == {"a", "b"}
 
 
