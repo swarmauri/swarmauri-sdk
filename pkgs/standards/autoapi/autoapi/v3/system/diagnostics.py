@@ -15,6 +15,7 @@ Usage:
 
 from __future__ import annotations
 
+import asyncio
 import inspect
 import logging
 from types import SimpleNamespace
@@ -136,126 +137,149 @@ def _build_healthz_endpoint(dep: Optional[Callable[..., Any]]):
 
 
 def _build_methodz_endpoint(api: Any):
+    cache: Optional[Dict[str, Any]] = None
+    lock = asyncio.Lock()
+
     async def _methodz():
         """Ordered, canonical operation list."""
-        methods: List[str] = []
-        for model in _model_iter(api):
-            mname = getattr(model, "__name__", "Model")
-            for sp in _opspecs(model):
-                if not getattr(sp, "expose_rpc", True):
-                    continue
-                methods.append(
-                    {
-                        "method": f"{mname}.{sp.alias}",
-                        "model": mname,
-                        "alias": sp.alias,
-                        "target": sp.target,
-                        "arity": sp.arity,
-                        "persist": sp.persist,
-                        "request_model": getattr(sp, "request_model", None) is not None,
-                        "response_model": getattr(sp, "response_model", None)
-                        is not None,
-                        "routes": bool(getattr(sp, "expose_routes", True)),
-                        "rpc": bool(getattr(sp, "expose_rpc", True)),
-                        "tags": list(getattr(sp, "tags", ()) or (mname,)),
-                    }
-                )
-        methods.sort(key=lambda x: (x["model"], x["alias"]))
-        return {"methods": methods}
+        nonlocal cache
+        if cache is not None:
+            return cache
+        async with lock:
+            if cache is None:
+                methods: List[str] = []
+                for model in _model_iter(api):
+                    mname = getattr(model, "__name__", "Model")
+                    for sp in _opspecs(model):
+                        if not getattr(sp, "expose_rpc", True):
+                            continue
+                        methods.append(
+                            {
+                                "method": f"{mname}.{sp.alias}",
+                                "model": mname,
+                                "alias": sp.alias,
+                                "target": sp.target,
+                                "arity": sp.arity,
+                                "persist": sp.persist,
+                                "request_model": getattr(sp, "request_model", None)
+                                is not None,
+                                "response_model": getattr(sp, "response_model", None)
+                                is not None,
+                                "routes": bool(getattr(sp, "expose_routes", True)),
+                                "rpc": bool(getattr(sp, "expose_rpc", True)),
+                                "tags": list(getattr(sp, "tags", ()) or (mname,)),
+                            }
+                        )
+                methods.sort(key=lambda x: (x["model"], x["alias"]))
+                cache = {"methods": methods}
+        return cache
 
     return _methodz
 
 
 def _build_hookz_endpoint(api: Any):
+    cache: Optional[Dict[str, Dict[str, Dict[str, List[str]]]]] = None
+    lock = asyncio.Lock()
+
     async def _hookz():
-        """
-        Expose hook execution order for each method.
+        """Expose hook execution order for each method."""
+        nonlocal cache
+        if cache is not None:
+            return cache
+        async with lock:
+            if cache is None:
+                out: Dict[str, Dict[str, Dict[str, List[str]]]] = {}
+                for model in _model_iter(api):
+                    mname = getattr(model, "__name__", "Model")
+                    hooks_root = getattr(model, "hooks", SimpleNamespace())
+                    alias_sources = set()
+                    rpc_ns = getattr(model, "rpc", SimpleNamespace())
+                    alias_sources.update(getattr(rpc_ns, "__dict__", {}).keys())
+                    for sp in _opspecs(model):
+                        alias_sources.add(sp.alias)
 
-        Phases appear in runner order; error phases trail.
-        Within each phase, hooks are listed in execution order: global (None) hooks,
-        then method-specific hooks.
-        """
-        out: Dict[str, Dict[str, Dict[str, List[str]]]] = {}
-        for model in _model_iter(api):
-            mname = getattr(model, "__name__", "Model")
-            hooks_root = getattr(model, "hooks", SimpleNamespace())
-            # Build list of aliases from RPC ns or opspecs
-            alias_sources = set()
-            rpc_ns = getattr(model, "rpc", SimpleNamespace())
-            alias_sources.update(getattr(rpc_ns, "__dict__", {}).keys())
-            for sp in _opspecs(model):
-                alias_sources.add(sp.alias)
-
-            model_map: Dict[str, Dict[str, List[str]]] = {}
-            for alias in sorted(alias_sources):
-                alias_ns = getattr(hooks_root, alias, None) or SimpleNamespace()
-                phase_map: Dict[str, List[str]] = {}
-                for ph in PHASES:
-                    steps = list(getattr(alias_ns, ph, []) or [])
-                    if steps:
-                        phase_map[ph] = [_label_callable(fn) for fn in steps]
-                if phase_map:
-                    model_map[alias] = phase_map
-            if model_map:
-                out[mname] = model_map
-        return out
+                    model_map: Dict[str, Dict[str, List[str]]] = {}
+                    for alias in sorted(alias_sources):
+                        alias_ns = getattr(hooks_root, alias, None) or SimpleNamespace()
+                        phase_map: Dict[str, List[str]] = {}
+                        for ph in PHASES:
+                            steps = list(getattr(alias_ns, ph, []) or [])
+                            if steps:
+                                phase_map[ph] = [_label_callable(fn) for fn in steps]
+                        if phase_map:
+                            model_map[alias] = phase_map
+                    if model_map:
+                        out[mname] = model_map
+                cache = out
+        return cache
 
     return _hookz
 
 
 def _build_planz_endpoint(api: Any):
+    cache: Optional[Dict[str, Dict[str, List[str]]]] = None
+    lock = asyncio.Lock()
+
     async def _planz():
         """Expose the runtime step sequence for each operation."""
-        out: Dict[str, Dict[str, List[str]]] = {}
-        for model in _model_iter(api):
-            mname = getattr(model, "__name__", "Model")
-            model_map: Dict[str, List[str]] = {}
-            compiled_plan = getattr(
-                getattr(model, "runtime", SimpleNamespace()), "plan", None
-            )
-            if compiled_plan is None:
-                specs = getattr(model, "__autoapi_colspecs__", None) or getattr(
-                    model, "__autoapi_cols__", None
-                )
-                if specs is not None:
-                    try:
-                        compiled_plan = _plan.attach_atoms_for_model(model, specs)
-                    except Exception:
-                        compiled_plan = None
-            for sp in _opspecs(model):
-                seq: List[str] = []
-                if compiled_plan is not None:
-                    persist = getattr(sp, "persist", "default") != "skip"
-                    deps: List[str] = []
-                    handler = getattr(sp, "handler", None)
-                    if handler is not None:
-                        deps.append(_label_callable(handler))
-                    labels = _plan.flattened_order(
-                        compiled_plan,
-                        persist=persist,
-                        include_system_steps=True,
-                        deps=deps,
+        nonlocal cache
+        if cache is not None:
+            return cache
+        async with lock:
+            if cache is None:
+                out: Dict[str, Dict[str, List[str]]] = {}
+                for model in _model_iter(api):
+                    mname = getattr(model, "__name__", "Model")
+                    model_map: Dict[str, List[str]] = {}
+                    compiled_plan = getattr(
+                        getattr(model, "runtime", SimpleNamespace()), "plan", None
                     )
-                    seq = [str(lbl) for lbl in labels]
-                else:
-                    chains = build_phase_chains(model, sp.alias)
-                    persist = getattr(sp, "persist", "default") != "skip"
-                    for ph in PHASES:
-                        if ph == "START_TX" and persist:
-                            seq.append("sys:txn:begin@START_TX")
-                        if ph == "HANDLER" and persist:
-                            seq.append(f"sys:handler:{sp.target}@HANDLER")
-                        for step in chains.get(ph, []) or []:
-                            name = getattr(step, "__name__", "")
-                            if name in {"start_tx", "end_tx"}:
-                                continue
-                            seq.append(_label_callable(step))
-                        if ph == "END_TX" and persist:
-                            seq.append("sys:txn:commit@END_TX")
-                model_map[sp.alias] = seq
-            if model_map:
-                out[mname] = model_map
-        return out
+                    if compiled_plan is None:
+                        specs = getattr(model, "__autoapi_colspecs__", None) or getattr(
+                            model, "__autoapi_cols__", None
+                        )
+                        if specs is not None:
+                            try:
+                                compiled_plan = _plan.attach_atoms_for_model(
+                                    model, specs
+                                )
+                            except Exception:
+                                compiled_plan = None
+                    for sp in _opspecs(model):
+                        seq: List[str] = []
+                        if compiled_plan is not None:
+                            persist = getattr(sp, "persist", "default") != "skip"
+                            deps: List[str] = []
+                            handler = getattr(sp, "handler", None)
+                            if handler is not None:
+                                deps.append(_label_callable(handler))
+                            labels = _plan.flattened_order(
+                                compiled_plan,
+                                persist=persist,
+                                include_system_steps=True,
+                                deps=deps,
+                            )
+                            seq = [str(lbl) for lbl in labels]
+                        else:
+                            chains = build_phase_chains(model, sp.alias)
+                            persist = getattr(sp, "persist", "default") != "skip"
+                            for ph in PHASES:
+                                if ph == "START_TX" and persist:
+                                    seq.append("sys:txn:begin@START_TX")
+                                if ph == "HANDLER" and persist:
+                                    seq.append(f"sys:handler:{sp.target}@HANDLER")
+                                for step in chains.get(ph, []) or []:
+                                    name = getattr(step, "__name__", "")
+                                    if name in {"start_tx", "end_tx"}:
+                                        continue
+                                    seq.append(_label_callable(step))
+                                if ph == "END_TX" and persist:
+                                    seq.append("sys:txn:commit@END_TX")
+                        model_map[sp.alias] = seq
+                    if model_map:
+                        out[mname] = model_map
+                cache = out
+        return cache
 
     return _planz
 
