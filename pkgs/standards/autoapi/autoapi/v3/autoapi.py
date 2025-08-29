@@ -24,8 +24,12 @@ from .bindings.api import (
     include_model as _include_model,
     include_models as _include_models,
     rpc_call as _rpc_call,
+    _seed_security_and_deps,
+    _mount_router,
+    _default_prefix,
 )
 from .bindings.model import rebind as _rebind, bind as _bind
+from .bindings.rest import build_router_and_attach as _build_router_and_attach
 from .transport import mount_jsonrpc as _mount_jsonrpc
 from .system import mount_diagnostics as _mount_diagnostics
 from .opspec import get_registry, OpSpec
@@ -261,6 +265,34 @@ class AutoAPI:
             self._authorize = authorize
         if optional_authn_dep is not None:
             self._optional_authn_dep = optional_authn_dep
+
+        # Refresh already-included models so routers pick up new auth settings
+        if self.models:
+            self._refresh_security()
+
+    def _refresh_security(self) -> None:
+        """Re-seed auth deps on models and rebuild routers."""
+        # Reset aggregate router and allow_anon ops cache
+        self.router = Router()
+        self._allow_anon_ops = set()
+        for model in self.models.values():
+            _seed_security_and_deps(self, model)
+            specs = getattr(getattr(model, "opspecs", SimpleNamespace()), "all", ())
+            if specs:
+                _build_router_and_attach(model, list(specs))
+            router = getattr(getattr(model, "rest", SimpleNamespace()), "router", None)
+            if router is None:
+                continue
+            # update api-level references
+            mname = model.__name__
+            rest_ns = getattr(self.rest, mname, SimpleNamespace())
+            rest_ns.router = router
+            setattr(self.rest, mname, rest_ns)
+            self.routers[mname] = router
+            prefix = _default_prefix(model)
+            _mount_router(self.router, router, prefix=prefix)
+            if self.app is not None:
+                _mount_router(self.app, router, prefix=prefix)
 
     def _collect_tables(self):
         # dedupe; handle multiple DeclarativeBases (multiple metadatas)

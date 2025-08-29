@@ -1,4 +1,5 @@
 from autoapi.v3.opspec import OpSpec
+from autoapi.v3.autoapi import AutoAPI
 from autoapi.v3.tables import Base
 from autoapi.v3.mixins import GUIDPk
 from autoapi.v3.bindings.rest import _build_router
@@ -26,3 +27,17 @@ def test_security_applied_per_route():
     assert not list_sec
     assert read_sec == [{"HTTPBearer": []}]
     assert "HTTPBearer" in schema["components"]["securitySchemes"]
+
+
+def test_set_auth_after_include_model_applies_security():
+    class Gadget(Base, GUIDPk):
+        __tablename__ = "gadgets_security"
+
+    api = AutoAPI()
+    api.include_model(Gadget)
+    api.set_auth(authn=lambda cred=Security(HTTPBearer()): cred, allow_anon=False)
+    app = FastAPI()
+    app.include_router(api.router)
+    spec = app.openapi()
+    post_sec = spec["paths"]["/gadget"]["post"].get("security")
+    assert post_sec == [{"HTTPBearer": []}]
