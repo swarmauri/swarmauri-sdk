@@ -73,6 +73,22 @@ def _make_bulk_rows_model(
     )
 
 
+def _make_bulk_rows_response_model(
+    model: type, verb: str, item_schema: Type[BaseModel]
+) -> Type[BaseModel]:
+    """Build a root model representing ``List[item_schema]`` for responses."""
+    name = f"{model.__name__}{_camel(verb)}Response"
+    schema = create_model(  # type: ignore[call-arg]
+        name,
+        __base__=RootModel[List[item_schema]],
+    )
+    return namely_model(
+        schema,
+        name=name,
+        doc=f"{verb} response schema for {model.__name__}",
+    )
+
+
 def _make_bulk_ids_model(
     model: type, verb: str, pk_type: type | Any
 ) -> Type[BaseModel]:
@@ -88,6 +104,20 @@ def _make_bulk_ids_model(
         schema,
         name=name,
         doc=f"{verb} request schema for {model.__name__}",
+    )
+
+
+def _make_bulk_deleted_response_model(model: type, verb: str) -> Type[BaseModel]:
+    """Build a response schema with a ``deleted`` count."""
+    name = f"{model.__name__}{_camel(verb)}Response"
+    schema = create_model(  # type: ignore[call-arg]
+        name,
+        deleted=(int, Field(...)),
+    )
+    return namely_model(
+        schema,
+        name=name,
+        doc=f"{verb} response schema for {model.__name__}",
     )
 
 
@@ -238,17 +268,29 @@ def _default_schemas_for_spec(
     elif target == "bulk_create":
         item_in = _build_schema(model, verb="create")
         result["in_"] = _make_bulk_rows_model(model, "bulk_create", item_in)
-        result["out"] = read_schema
+        result["out"] = (
+            _make_bulk_rows_response_model(model, "bulk_create", read_schema)
+            if read_schema
+            else None
+        )
 
     elif target == "bulk_update":
         item_in = _build_schema(model, verb="update")
         result["in_"] = _make_bulk_rows_model(model, "bulk_update", item_in)
-        result["out"] = read_schema
+        result["out"] = (
+            _make_bulk_rows_response_model(model, "bulk_update", read_schema)
+            if read_schema
+            else None
+        )
 
     elif target == "bulk_replace":
         item_in = _build_schema(model, verb="replace")
         result["in_"] = _make_bulk_rows_model(model, "bulk_replace", item_in)
-        result["out"] = read_schema
+        result["out"] = (
+            _make_bulk_rows_response_model(model, "bulk_replace", read_schema)
+            if read_schema
+            else None
+        )
 
     elif target == "bulk_upsert":
         # Prefer a dedicated 'upsert' item shape if available; otherwise fall back to 'replace'
@@ -256,12 +298,16 @@ def _default_schemas_for_spec(
             model, verb="replace"
         )
         result["in_"] = _make_bulk_rows_model(model, "bulk_upsert", item_in)
-        result["out"] = read_schema
+        result["out"] = (
+            _make_bulk_rows_response_model(model, "bulk_upsert", read_schema)
+            if read_schema
+            else None
+        )
 
     elif target == "bulk_delete":
         pk_name, pk_type = _pk_info(model)
         result["in_"] = _make_bulk_ids_model(model, "bulk_delete", pk_type)
-        result["out"] = read_schema
+        result["out"] = _make_bulk_deleted_response_model(model, "bulk_delete")
 
     elif target == "custom":
         # Build schemas for custom operations based on verb-specific IO specs
