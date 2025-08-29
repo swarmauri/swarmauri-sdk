@@ -205,6 +205,12 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
         else (flat_router, APIRouter(prefix=nested_pref, tags=[f"nested-{resource}"]))
     )
 
+    sec_dep_cb = getattr(model, "__autoapi_security_deps__", None)
+    if callable(sec_dep_cb):
+        _security_deps = list(sec_dep_cb())
+    else:
+        _security_deps = list(sec_dep_cb or [])
+
     # ---------- RBAC guard -------------------------------------------
     def _guard(scope: str):
         async def inner(request: Request):
@@ -444,7 +450,8 @@ def _register_routes_and_rpcs(  # noqa: N802 – bound as method
 
         # mount on routers
         for rtr in routers:
-            deps = [_guard(m_id_canon)]
+            deps = list(_security_deps)
+            deps.append(_guard(m_id_canon))
             if m_id_canon not in self._allow_anon:
                 deps.insert(0, self._authn_dep)
             print(f"Mounting route {path} for verb {verb} on router {rtr}")
