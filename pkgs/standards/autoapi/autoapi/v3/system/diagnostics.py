@@ -256,8 +256,14 @@ def _build_planz_endpoint(api: Any):
                     }
                     for ph in PHASES:
                         if ph == "START_TX":
+                            # PRE_HANDLER hooks run before starting the TX
+                            seq.extend(hook_labels.get("PRE_HANDLER", []))
+                            seq.extend(phase_labels.get("PRE_HANDLER", []))
                             seq.extend(phase_labels.get(ph, []))
                             seq.extend(hook_labels.get(ph, []))
+                        elif ph == "PRE_HANDLER":
+                            # handled in START_TX branch
+                            continue
                         elif ph == "HANDLER":
                             phase_list = phase_labels.get(ph, [])
                             if phase_list and phase_list[0].startswith("sys:"):
