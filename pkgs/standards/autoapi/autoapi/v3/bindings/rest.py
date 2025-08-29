@@ -25,6 +25,7 @@ try:
     from ..types import Router, Request, Body, Depends, HTTPException, Response, Path
     from fastapi import Query
     from fastapi import status as _status
+    from ..mixins import BulkCapable
 except Exception:  # pragma: no cover
     # Minimal shims so the module can be imported without FastAPI
     class Router:  # type: ignore
@@ -768,7 +769,13 @@ def _make_collection_endpoint(
 
     body_model = _request_model_for(sp, model)
     base_annotation = body_model if body_model is not None else Mapping[str, Any]
-    if target in {"bulk_create", "bulk_update", "bulk_replace"}:
+    if target == "create" and issubclass(model, BulkCapable):
+        try:
+            bulk_ann = list[base_annotation]  # type: ignore[valid-type]
+        except Exception:  # pragma: no cover - best effort
+            bulk_ann = List[base_annotation]  # type: ignore[name-defined]
+        body_annotation = base_annotation | bulk_ann  # type: ignore[operator]
+    elif target in {"bulk_create", "bulk_update", "bulk_replace"}:
         if body_model is None:
             try:
                 body_annotation = list[Mapping[str, Any]]  # type: ignore[valid-type]
@@ -787,9 +794,16 @@ def _make_collection_endpoint(
     ):
         parent_kw = {k: kw[k] for k in nested_vars if k in kw}
         _coerce_parent_kw(model, parent_kw)
-        payload = _validate_body(model, alias, target, body)
         exec_alias = alias
         exec_target = target
+        if (
+            target == "create"
+            and issubclass(model, BulkCapable)
+            and isinstance(body, Sequence)
+            and not isinstance(body, (str, bytes, Mapping))
+        ):
+            exec_alias = exec_target = "bulk_create"
+        payload = _validate_body(model, exec_alias, exec_target, body)
         if parent_kw:
             if isinstance(payload, Mapping):
                 payload = dict(payload)
@@ -1136,6 +1150,10 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
     raw_nested = _nested_prefix(model) or ""
     nested_pref = re.sub(r"/{2,}", "/", raw_nested).rstrip("/") or ""
     nested_vars = re.findall(r"{(\w+)}", raw_nested)
+
+    specs = list(specs)
+    if issubclass(model, BulkCapable):
+        specs = [sp for sp in specs if sp.target != "bulk_create"]
 
     # Register collection-level bulk routes before member routes so static paths
     # like "/resource/bulk" aren't captured by dynamic member routes such as
