@@ -39,7 +39,7 @@ class ApiKey(
 
     label: Mapped[str] = acol(
         storage=S(String, nullable=False),
-        field=F(constraints={"max_length": 120}),
+        field=F(required_in=("create",), constraints={"max_length": 120}),
     )
 
     digest: Mapped[str] = acol(
@@ -80,6 +80,8 @@ class ApiKey(
             params = dict(params)
         if params.get("digest"):
             raise HTTPException(status_code=422, detail="digest is server generated")
+        if not params.get("label"):
+            raise HTTPException(status_code=422, detail="label is required")
         params["digest"] = digest
         params["last_used_at"] = now
         ctx["env"].params = params
@@ -101,12 +103,11 @@ class ApiKey(
         result["api_key"] = raw
         ctx["response"].result = result
 
-    @classmethod
-    def __autoapi_register_hooks__(cls, api) -> None:
-        model = cls.__name__
-        api.register_hook("PRE_TX_BEGIN", model=model, op="create")(
-            cls._pre_create_generate
-        )
-        api.register_hook("POST_RESPONSE", model=model, op="create")(
-            cls._post_response_inject
-        )
+    def __init_subclass__(cls, **kw):
+        super().__init_subclass__(**kw)
+        cls.__autoapi_hooks__ = {
+            "create": {
+                "PRE_TX_BEGIN": (cls._pre_create_generate,),
+                "POST_RESPONSE": (cls._post_response_inject,),
+            }
+        }
