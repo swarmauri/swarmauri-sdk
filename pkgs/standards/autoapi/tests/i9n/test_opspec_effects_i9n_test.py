@@ -61,10 +61,9 @@ class Hooked(Base, GUIDPk):
 
 def _fresh_session():
     engine = create_engine("sqlite:///:memory:")
-    # ``Base.metadata`` may have been cleared by other tests; create tables
-    # explicitly from the model definitions to avoid missing table errors.
-    Gadget.__table__.create(bind=engine)
-    Hooked.__table__.create(bind=engine)
+    # ``Base.metadata`` may have been cleared by other tests; ensure the
+    # required tables exist for this module's models.
+    Base.metadata.create_all(bind=engine, tables=[Gadget.__table__, Hooked.__table__])
     return sessionmaker(bind=engine)()
 
 
