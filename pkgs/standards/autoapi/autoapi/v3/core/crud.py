@@ -564,6 +564,38 @@ async def replace(
     return obj
 
 
+async def upsert(
+    model: type, data: Mapping[str, Any], db: Union[Session, AsyncSession]
+) -> Any:
+    """
+    Hybrid upsert by primary key.
+
+    If the primary key is present and a row exists, perform a partial update.
+    Otherwise create a new row. Returns the persisted instance. Flush-only.
+    """
+    data = dict(data or {})
+    _validate_enum_values(model, data)
+    pk = _single_pk_name(model)
+    ident = data.get(pk)
+    obj = None
+    if ident is not None:
+        obj = await _maybe_get(db, model, ident)
+    if obj is None:
+        filtered = _filter_in_values(model, data, "create")
+        obj = model(**filtered)
+        if hasattr(db, "add"):
+            db.add(obj)
+        await _maybe_flush(db)
+        return obj
+
+    filtered = _filter_in_values(model, data, "update")
+    skip = _immutable_columns(model, "update")
+    payload = {k: v for k, v in filtered.items() if k != pk}
+    _set_attrs(obj, payload, allow_missing=True, skip=skip)
+    await _maybe_flush(db)
+    return obj
+
+
 async def delete(
     model: type, ident: Any, db: Union[Session, AsyncSession]
 ) -> Dict[str, int]:
@@ -739,6 +771,41 @@ async def bulk_replace(
     return replaced
 
 
+async def bulk_upsert(
+    model: type, rows: Iterable[Mapping[str, Any]], db: Union[Session, AsyncSession]
+) -> List[Any]:
+    """
+    Upsert many rows by PK. Each row updates when the PK exists, otherwise
+    creates a new instance. Returns the list of persisted instances. Flush-only.
+    """
+    pk = _single_pk_name(model)
+    skip = _immutable_columns(model, "update")
+    out: List[Any] = []
+    for r in rows or ():
+        r = dict(r)
+        _validate_enum_values(model, r)
+        ident = r.get(pk)
+        obj = None
+        if ident is not None:
+            obj = await _maybe_get(db, model, ident)
+        if obj is None:
+            data = _filter_in_values(model, r, "create")
+            obj = model(**data)
+            if hasattr(db, "add"):
+                db.add(obj)
+        else:
+            data = {
+                k: v
+                for k, v in _filter_in_values(model, r, "update").items()
+                if k != pk
+            }
+            _set_attrs(obj, data, allow_missing=True, skip=skip)
+        out.append(obj)
+    if out:
+        await _maybe_flush(db)
+    return out
+
+
 async def bulk_delete(
     model: type, idents: Iterable[Any], db: Union[Session, AsyncSession]
 ) -> Dict[str, int]:
@@ -775,11 +842,13 @@ __all__ = [
     "read",
     "update",
     "replace",
+    "upsert",
     "delete",
     "list",
     "clear",
     "bulk_create",
     "bulk_update",
     "bulk_replace",
+    "bulk_upsert",
     "bulk_delete",
 ]
