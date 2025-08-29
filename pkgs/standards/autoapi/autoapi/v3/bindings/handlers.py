@@ -436,7 +436,24 @@ def _wrap_custom(model: type, sp: OpSpec, user_handler: Callable[..., Any]) -> S
 
         kw = {}
         if "ctx" in wanted:
-            kw["ctx"] = ctx
+            canonical = {
+                "create",
+                "read",
+                "update",
+                "replace",
+                "delete",
+                "list",
+                "bulk_create",
+                "bulk_update",
+                "bulk_replace",
+                "bulk_delete",
+                "clear",
+            }
+            # If the user is overriding a canonical op (alias matches a known
+            # verb and no explicit target was provided), operate on a copy of
+            # the context so any mutations are isolated from the caller.
+            should_copy = sp.alias in canonical and sp.target in (None, "custom")
+            kw["ctx"] = ctx.__class__(ctx) if should_copy else ctx
         if "db" in wanted:
             kw["db"] = db
         if "payload" in wanted:
