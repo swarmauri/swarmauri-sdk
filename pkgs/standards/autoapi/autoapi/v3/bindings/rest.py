@@ -16,6 +16,7 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
+    Union,
 )
 
 from typing import get_origin as _get_origin, get_args as _get_args
@@ -772,9 +773,9 @@ def _make_collection_endpoint(
 
     body_model = _request_model_for(sp, model)
     base_annotation = body_model if body_model is not None else Mapping[str, Any]
-    if target == "create" and body_model is None:
+    if target == "create":
         try:
-            body_annotation = base_annotation | list[base_annotation]
+            body_annotation = Union[base_annotation, list[base_annotation]]  # type: ignore[valid-type]
         except Exception:  # pragma: no cover - best effort
             body_annotation = base_annotation
     else:
