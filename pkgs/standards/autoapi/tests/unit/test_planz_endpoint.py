@@ -56,10 +56,14 @@ async def test_planz_endpoint_sequence(monkeypatch: pytest.MonkeyPatch):
     dummy_plan = object()
     Model.runtime = SimpleNamespace(plan=dummy_plan)
 
-    def fake_flattened_order(plan, *, persist, include_system_steps, deps):
+    def fake_flattened_order(plan, *, persist, include_system_steps, secdeps, deps):
         assert plan is dummy_plan
         if persist:
-            return [DummyLabel("sys:txn:begin@START_TX", "START_TX", kind="sys")]
+            return [
+                DummyLabel("secdep:a", None, kind="secdep"),
+                DummyLabel("dep:b", None, kind="dep"),
+                DummyLabel("sys:txn:begin@START_TX", "START_TX", kind="sys"),
+            ]
         return []
 
     monkeypatch.setattr(_plan, "flattened_order", fake_flattened_order)
@@ -72,7 +76,9 @@ async def test_planz_endpoint_sequence(monkeypatch: pytest.MonkeyPatch):
 
     assert "Model" in data
     assert "write" in data["Model"]
-    hook_label = f"{sample_hook.__module__}.{sample_hook.__qualname__}"
+    assert data["Model"]["write"][:2] == ["secdep:a", "dep:b"]
+    domain = sample_hook.__module__.replace(".", "_").lower()
+    hook_label = f"hook:{domain}:sample_hook@PRE_HANDLER"
     assert hook_label in data["Model"]["write"]
     assert "sys:txn:begin@START_TX" in data["Model"]["write"]
     assert "read" in data["Model"]
@@ -113,7 +119,7 @@ async def test_planz_endpoint_prefers_compiled_plan_for_atoms(
 
     calls = {"flatten": False, "chains": False}
 
-    def fake_flattened_order(plan, *, persist, include_system_steps, deps):
+    def fake_flattened_order(plan, *, persist, include_system_steps, secdeps, deps):
         calls["flatten"] = True
         return [
             DummyLabel("sys:txn:begin@START_TX", "START_TX", kind="sys"),
@@ -139,7 +145,8 @@ async def test_planz_endpoint_prefers_compiled_plan_for_atoms(
 
     assert calls["flatten"] is True
     assert calls["chains"] is False
-    hook_label = f"{sample_hook.__module__}.{sample_hook.__qualname__}"
+    domain = sample_hook.__module__.replace(".", "_").lower()
+    hook_label = f"hook:{domain}:sample_hook@PRE_HANDLER"
     assert data["Model"]["create"] == [
         hook_label,
         "sys:txn:begin@START_TX",

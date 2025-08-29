@@ -25,7 +25,8 @@ from . import events as _ev
 # ──────────────────────────────────────────────────────────────────────────────
 
 StepKind = Literal["secdep", "dep", "sys", "atom", "hook"]
-_ATOM_DOMAINS: Tuple[str, ...] = (
+STEP_KINDS: Tuple[str, ...] = ("secdep", "dep", "sys", "atom", "hook")
+DOMAINS: Tuple[str, ...] = (
     "emit",
     "out",
     "refresh",
@@ -272,8 +273,8 @@ def _split_anchor_field(s: str) -> Tuple[str, Optional[str]]:
 
 def _validate_atom_domain(domain: Optional[str]) -> None:
     _require(
-        domain is not None and domain in _ATOM_DOMAINS,
-        f"Invalid atom domain {domain!r}; expected one of {list(_ATOM_DOMAINS)}",
+        domain is not None and domain in DOMAINS,
+        f"Invalid atom domain {domain!r}; expected one of {list(DOMAINS)}",
     )
 
 
@@ -305,8 +306,8 @@ def legend() -> Dict[str, object]:
     Includes step kinds, atom domains, sys phases, and ordered anchors.
     """
     return {
-        "step_kinds": ("secdep", "dep", "sys", "atom", "hook"),
-        "atom_domains": _ATOM_DOMAINS,
+        "step_kinds": STEP_KINDS,
+        "atom_domains": DOMAINS,
         "sys_phases": _ev.PHASES,
         "anchors": _ev.all_events_ordered(),
         "notes": {
@@ -341,6 +342,8 @@ def fields_used(labels: Iterable[Label]) -> Set[str]:
 
 __all__ = [
     "StepKind",
+    "STEP_KINDS",
+    "DOMAINS",
     "Label",
     "make_dep",
     "make_secdep",

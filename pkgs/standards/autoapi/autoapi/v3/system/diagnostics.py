@@ -57,7 +57,7 @@ except Exception:  # pragma: no cover
 from sqlalchemy import text
 from ..opspec.types import PHASES
 from ..runtime.kernel import build_phase_chains
-from ..runtime import events as _ev, plan as _plan
+from ..runtime import events as _ev, plan as _plan, labels as _lbl
 
 logger = logging.getLogger(__name__)
 
@@ -81,6 +81,16 @@ def _label_callable(fn: Any) -> str:
     n = getattr(fn, "__qualname__", getattr(fn, "__name__", repr(fn)))
     m = getattr(fn, "__module__", None)
     return f"{m}.{n}" if m else n
+
+
+def _label_hook(fn: Any, phase: str) -> str:
+    """Return a canonical hook label using runtime label grammar."""
+    mod = getattr(fn, "__module__", "") or ""
+    domain = mod.replace(".", "_").lower() or "user"
+    qual = getattr(fn, "__qualname__", getattr(fn, "__name__", repr(fn)))
+    subject = qual.replace(".", "_")
+    lbl = _lbl.Label(kind="hook", domain=domain, subject=subject, anchor=phase)
+    return str(lbl)
 
 
 async def _maybe_execute(db: Any, stmt: str):
@@ -234,11 +244,16 @@ def _build_planz_endpoint(api: Any):
                         compiled_plan,
                         persist=persist,
                         include_system_steps=True,
-                        deps=deps,
+                        secdeps=compiled_plan.secdeps,
+                        deps=tuple(deps) + compiled_plan.deps,
                     )
+                    pre_labels: List[str] = []
                     phase_labels: Dict[str, List[str]] = {ph: [] for ph in PHASES}
                     for lbl in labels:
                         kind = getattr(lbl, "kind", None)
+                        if kind in {"secdep", "dep"}:
+                            pre_labels.append(str(lbl))
+                            continue
                         phase = (
                             lbl.anchor
                             if kind == "sys"
@@ -249,11 +264,12 @@ def _build_planz_endpoint(api: Any):
                     alias_ns = getattr(hooks_root, sp.alias, SimpleNamespace())
                     hook_labels: Dict[str, List[str]] = {
                         ph: [
-                            _label_callable(fn)
+                            _label_hook(fn, ph)
                             for fn in getattr(alias_ns, ph, []) or []
                         ]
                         for ph in PHASES
                     }
+                    seq.extend(pre_labels)
                     for ph in PHASES:
                         if ph == "START_TX":
                             seq.extend(phase_labels.get(ph, []))
