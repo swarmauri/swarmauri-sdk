@@ -104,13 +104,16 @@ def _err(code: int, msg: str, id_: Any, data: Any | None = None) -> Dict[str, An
     return e
 
 
-def _normalize_params(params: Any) -> Mapping[str, Any]:
+def _normalize_params(params: Any) -> Any:
     if params is None:
         return {}
     if isinstance(params, Mapping):
         return dict(params)
-    # Positional params are not supported in AutoAPI adapters
-    raise HTTPException(status_code=400, detail="Invalid params: expected object")
+    if isinstance(params, Sequence) and not isinstance(params, (str, bytes)):
+        return list(params)
+    raise HTTPException(
+        status_code=400, detail="Invalid params: expected object or array"
+    )
 
 
 def _model_for(api: Any, name: str) -> Optional[type]:

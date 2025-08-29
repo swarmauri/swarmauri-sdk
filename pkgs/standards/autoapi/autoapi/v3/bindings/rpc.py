@@ -146,16 +146,17 @@ def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
         return result
 
     try:
-        if target in {
-            "list",
-            "bulk_create",
-            "bulk_update",
-            "bulk_replace",
-        } and isinstance(result, (list, tuple)):
+        if target == "list" and isinstance(result, (list, tuple)):
             return [
                 out_model.model_validate(x).model_dump(exclude_none=True, by_alias=True)
                 for x in result
             ]
+        if target in {"bulk_create", "bulk_update", "bulk_replace"} and isinstance(
+            result, (list, tuple)
+        ):
+            return out_model.model_validate(result).model_dump(
+                exclude_none=True, by_alias=True
+            )
         # Single object case
         return out_model.model_validate(result).model_dump(
             exclude_none=True, by_alias=True
