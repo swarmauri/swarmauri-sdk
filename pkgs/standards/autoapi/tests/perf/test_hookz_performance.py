@@ -1,8 +1,9 @@
 import pytest
 from types import SimpleNamespace
-from time import perf_counter
+from time import perf_counter, sleep
 
 from autoapi.v3.system.diagnostics import _build_hookz_endpoint
+from autoapi.v3.system import diagnostics as _diag
 from autoapi.v3 import hook_ctx
 
 
@@ -40,3 +41,49 @@ async def test_hookz_performance(count):
 
     assert len(data["Model"]["create"]["POST_RESPONSE"]) == count
     print(f"/system/hookz with {count} hooks took {duration:.6f}s")
+
+
+@pytest.mark.asyncio
+async def test_hookz_cached_call_faster(monkeypatch) -> None:
+    """Second call should reuse cached data and skip expensive work."""
+
+    class Model:
+        __name__ = "Model"
+        hooks = SimpleNamespace()
+        rpc = SimpleNamespace(create=None)
+        opspecs = SimpleNamespace(all=())
+
+    # Create a single hook to keep output small
+    @hook_ctx(ops="*", phase="POST_RESPONSE")
+    def _hook(cls, ctx):
+        return None
+
+    Model.hooks.create = SimpleNamespace(POST_RESPONSE=[_hook])
+
+    class API:
+        models = {"Model": Model}
+
+    calls = {"iter": 0}
+
+    orig_model_iter = _diag._model_iter
+
+    def slow_model_iter(api):
+        calls["iter"] += 1
+        sleep(0.01)
+        return orig_model_iter(api)
+
+    monkeypatch.setattr(_diag, "_model_iter", slow_model_iter)
+
+    hookz = _build_hookz_endpoint(API)
+
+    start = perf_counter()
+    await hookz()
+    first = perf_counter() - start
+
+    start = perf_counter()
+    await hookz()
+    second = perf_counter() - start
+
+    assert calls["iter"] == 1
+    assert second < first * 0.05
+    print(f"first={first:.6f}s second={second:.6f}s")
