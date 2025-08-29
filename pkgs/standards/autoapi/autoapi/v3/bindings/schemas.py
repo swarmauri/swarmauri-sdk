@@ -168,8 +168,12 @@ def _extract_example(schema: Type[BaseModel]) -> Dict[str, Any]:
     except Exception:
         return {}
     out: Dict[str, Any] = {}
+    defs = js.get("$defs", {})
     for name, prop in (js.get("properties") or {}).items():
         examples = prop.get("examples")
+        if examples is None and "$ref" in prop:
+            ref = prop["$ref"].split("/")[-1]
+            examples = (defs.get(ref) or {}).get("examples")
         if examples:
             out[name] = examples[0]
     return out
