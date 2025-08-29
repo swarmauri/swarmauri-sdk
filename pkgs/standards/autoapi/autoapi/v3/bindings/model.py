@@ -204,10 +204,22 @@ def bind(model: type, *, only_keys: Optional[Set[_Key]] = None) -> Tuple[OpSpec,
     # 3) Targeted rebuild support: drop old entries and restrict working set if requested
     _drop_old_entries(model, keys=only_keys)
     specs: List[OpSpec] = _filter_specs(all_merged_specs, only_keys)
+    bulk_active = any(sp.target == "bulk_create" for sp in specs)
+    schema_specs = list(specs)
+    runtime_specs = [
+        sp
+        for sp in specs
+        if not (
+            (bulk_active and sp.target == "create")
+            or (not bulk_active and sp.target == "bulk_create")
+        )
+    ]
 
     # 4) Merge ctx-only hooks (alias-aware) BEFORE normalization/attachment
     visible_aliases = (
-        {sp.alias for sp in specs} if specs else {sp.alias for sp in all_merged_specs}
+        {sp.alias for sp in runtime_specs}
+        if runtime_specs
+        else {sp.alias for sp in all_merged_specs}
     )
     ctx_hooks = collect_decorated_hooks(model, visible_aliases=visible_aliases)
     base_hooks = getattr(model, "__autoapi_hooks__", {}) or {}
@@ -229,11 +241,11 @@ def bind(model: type, *, only_keys: Optional[Set[_Key]] = None) -> Tuple[OpSpec,
     setattr(model, "__autoapi_hooks__", base_hooks)
 
     # 5) Attach schemas, hooks, handlers, rpc, router (sub-binders honor only_keys)
-    _schemas_binding.build_and_attach(model, specs, only_keys=only_keys)
-    _hooks_binding.normalize_and_attach(model, specs, only_keys=only_keys)
-    _handlers_binding.build_and_attach(model, specs, only_keys=only_keys)
-    _rpc_binding.register_and_attach(model, specs, only_keys=only_keys)
-    _rest_binding.build_router_and_attach(model, specs, only_keys=only_keys)
+    _schemas_binding.build_and_attach(model, schema_specs, only_keys=only_keys)
+    _hooks_binding.normalize_and_attach(model, runtime_specs, only_keys=only_keys)
+    _handlers_binding.build_and_attach(model, runtime_specs, only_keys=only_keys)
+    _rpc_binding.register_and_attach(model, runtime_specs, only_keys=only_keys)
+    _rest_binding.build_router_and_attach(model, runtime_specs, only_keys=only_keys)
 
     # 6) Index on the model (always overwrite with fresh views)
     all_specs, by_key, by_alias = _index_specs(all_merged_specs)
@@ -252,7 +264,7 @@ def bind(model: type, *, only_keys: Optional[Set[_Key]] = None) -> Tuple[OpSpec,
         "autoapi.bindings.model.bind(%s): %d ops bound (visible=%d)",
         model.__name__,
         len(all_specs),
-        len(specs),
+        len(runtime_specs),
     )
     return all_specs
 

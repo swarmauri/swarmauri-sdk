@@ -1,11 +1,11 @@
 from autoapi.v3.bindings.rest import _build_router
 from autoapi.v3.opspec import OpSpec
 from autoapi.v3.tables import Base
-from autoapi.v3.mixins import GUIDPk, BulkCapable
+from autoapi.v3.mixins import GUIDPk
 from autoapi.v3.types import Column, String, App
 
 
-class Widget(Base, GUIDPk, BulkCapable):
+class Widget(Base, GUIDPk):
     __tablename__ = "widgets_bulk_schema"
     name = Column(String, nullable=False)
 
@@ -17,7 +17,7 @@ def _openapi_for(ops):
     return app.openapi()
 
 
-def test_create_request_schema_is_array():
+def test_create_request_schema_is_object():
     spec = _openapi_for([("create", "create")])
     path = f"/{Widget.__name__.lower()}"
     schema = spec["paths"][path]["post"]["requestBody"]["content"]["application/json"][
@@ -26,7 +26,7 @@ def test_create_request_schema_is_array():
     if "$ref" in schema:
         ref = schema["$ref"].split("/")[-1]
         schema = spec["components"]["schemas"][ref]
-    assert schema.get("type") == "array"
+    assert schema.get("type") == "object"
 
 
 def test_bulk_create_response_schema():

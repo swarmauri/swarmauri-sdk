@@ -14,7 +14,6 @@ from ..opspec.types import (
 )  # lazy-capable schema args (runtime: we restrict forms)
 from ..schema import _build_schema, _build_list_params, namely_model
 from ..decorators import collect_decorated_schemas  # ← seed @schema_ctx declarations
-from ..mixins import BulkCapable
 
 logger = logging.getLogger(__name__)
 
@@ -260,17 +259,8 @@ def _default_schemas_for_spec(
     # Canonical targets
     if target == "create":
         item_in = _build_schema(model, verb="create")
-        if issubclass(model, BulkCapable):
-            result["in_"] = _make_bulk_rows_model(model, "create", item_in)
-            if read_schema is None:
-                result["out"] = None
-            else:
-                result["out"] = _make_bulk_rows_response_model(
-                    model, "create", read_schema
-                )
-        else:
-            result["in_"] = item_in
-            result["out"] = read_schema
+        result["in_"] = item_in
+        result["out"] = read_schema
 
     elif target == "read":
         pk_name, pk_type = _pk_info(model)
