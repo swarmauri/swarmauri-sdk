@@ -1,7 +1,6 @@
 # autoapi/v3/bindings/rest.py
 from __future__ import annotations
 
-import dataclasses
 import inspect
 import logging
 import re
@@ -207,26 +206,10 @@ def _serialize_output(
     can JSON-encode the response.
     """
 
-    def _fallback(obj: Any) -> Any:
-        if isinstance(obj, Mapping):
-            return dict(obj)
-        if dataclasses.is_dataclass(obj):
-            return dataclasses.asdict(obj)
-        table = getattr(model, "__table__", None)
-        if table is not None:
-            try:
-                return {c.name: getattr(obj, c.name, None) for c in table.columns}
-            except Exception:
-                pass
-        try:
-            return {k: v for k, v in vars(obj).items() if not k.startswith("_")}
-        except Exception:
-            return obj
-
     def _final(val: Any) -> Any:
         if target == "list" and isinstance(val, (list, tuple)):
-            return [_fallback(v) for v in val]
-        return _fallback(val)
+            return [_ensure_jsonable(v) for v in val]
+        return _ensure_jsonable(val)
 
     schemas_root = getattr(model, "schemas", None)
     if not schemas_root:
