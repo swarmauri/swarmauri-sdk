@@ -63,16 +63,14 @@ def _make_bulk_rows_model(
     """
     name = f"{model.__name__}{_camel(verb)}Request"
     example = _extract_example(item_schema)
-    example_val = [example] if example else None
+    examples = [[example]] if example else []
 
     item_ref = {"$ref": f"#/components/schemas/{item_schema.__name__}"}
 
-    extra = {"items": item_ref}
-    if example_val is not None:
-        extra["example"] = example_val
-
     class _BulkModel(RootModel[List[item_schema]]):  # type: ignore[misc]
-        model_config = ConfigDict(json_schema_extra=extra)
+        model_config = ConfigDict(
+            json_schema_extra={"examples": examples, "items": item_ref}
+        )
 
     return namely_model(
         _BulkModel,
@@ -87,16 +85,14 @@ def _make_bulk_rows_response_model(
     """Build a root model representing ``List[item_schema]`` for responses."""
     name = f"{model.__name__}{_camel(verb)}Response"
     example = _extract_example(item_schema)
-    example_val = [example] if example else None
+    examples = [[example]] if example else []
 
     item_ref = {"$ref": f"#/components/schemas/{item_schema.__name__}"}
 
-    extra = {"items": item_ref}
-    if example_val is not None:
-        extra["example"] = example_val
-
     class _BulkModel(RootModel[List[item_schema]]):  # type: ignore[misc]
-        model_config = ConfigDict(json_schema_extra=extra)
+        model_config = ConfigDict(
+            json_schema_extra={"examples": examples, "items": item_ref}
+        )
 
     return namely_model(
         _BulkModel,
