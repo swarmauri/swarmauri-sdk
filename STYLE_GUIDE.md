@@ -199,7 +199,7 @@ Plugins are exposed through `[project.entry-points]` groups. Example:
 
 ```toml
 [project.entry-points."peagen.publishers"]
-rabbitmq = "peagen.publishers.rabbitmq_publisher:RabbitMQPublisher"
+rabbitmq = "peagen.plugins.publishers.rabbitmq_publisher:RabbitMQPublisher"
 ```
 
 ### Monorepo Workspace

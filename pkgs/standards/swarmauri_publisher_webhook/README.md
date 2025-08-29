@@ -5,8 +5,7 @@ A Swarmauri component for publishing messages to an HTTP webhook endpoint.
 ## Installation
 
 ```bash
-# TODO: Add installation instructions once packaged
-pip install swarmauri-publisher-webhook
+pip install swarmauri_publisher_webhook
 ```
 
 ## Usage

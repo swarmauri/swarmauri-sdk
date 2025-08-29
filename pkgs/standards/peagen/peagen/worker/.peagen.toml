@@ -1,0 +1,91 @@
+# .worker.peagen.toml
+schemaVersion = "1.0.3"
+
+[workspace]
+org          = "swarmauri"
+workers      = 4
+
+# ─────────────────────────── LLM  ───────────────────────────────────────
+[llm]
+default_provider    = "groq"
+default_model_name  = "deepseek-r1-distill-llama-70b"
+default_temperature = 0.7
+default_max_tokens  = 4096
+
+[llm.groq]
+API_KEY   = "${GROQ_API_KEY}"
+
+[secrets]
+default_secret = "env"
+
+[secrets.adapters.env]
+prefix = ""
+
+# ─────────────────────────── Source Packages ───────────────────────────
+[[source_packages]]
+name            = "swarmauri_sdk"
+type            = "git"                # git | local | bundle | uri
+uri             = "https://github.com/swarmauri/swarmauri-sdk.git"
+ref             = "mono/dev"           # replaces previous --swarmauri-dev flag
+dest            = "swarmauri_sdk"
+expose_to_jinja = true
+
+# ────────────────────────── Storage Adapters ───────────────────────────
+[storage]
+default_storage_adapter = "minio"
+
+[storage.adapters.file]
+output_dir = "./peagen_artifacts"
+
+[storage.adapters.minio]
+endpoint   = "${MINIO_ENDPOINT}"
+bucket     = "test"
+access_key = "${MINIO_ACCESS_KEY}"
+secret_key = "${MINIO_SECRET_KEY}"
+secure     = false
+
+# ───────────────────────────── Publishers ──────────────────────────────
+[publishers]
+default_publisher = "redis"
+
+[publishers.adapters.redis]
+host     = ""
+port     = ""
+db       = 0
+password = ""                   # leave blank if no auth
+
+[publishers.adapters.webhook]
+url = ""
+
+
+# ────────────────────────────── Evaluation ───────────────────────────────
+[evaluation]
+pool = "swarmauri_evaluatorpool_accessibility:AccessibilityEvaluatorPool"
+max_workers = 4
+async = false
+strict = true
+
+[evaluation.evaluators]
+default_evaluator = "ColemanLiauIndexEvaluator"
+
+[evaluation.evaluators.AutomatedReadabilityIndexEvaluator]
+
+[evaluation.evaluators.ColemanLiauIndexEvaluator]
+target_grade_level = 12
+
+# --- VCS ------------------------------------------------------------
+[vcs]
+
+default_vcs = "git"
+
+
+[vcs.adapters.git]
+mirror_git_url = "${MIRROR_GIT_URL}"
+mirror_git_token = "${MIRROR_GIT_TOKEN}"
+owner = "${OWNER}"
+
+
+[vcs.adapters.git.remotes]
+origin = "${GITEA_REMOTE}"
+upstream = "${GITHUB_REMOTE}"
+

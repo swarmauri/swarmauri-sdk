@@ -1,36 +1,42 @@
-# Storage Adapters and Publisher Plugins
+# Git Filters and Publisher Plugins
 
-Peagen writes artifacts to a pluggable storage backend and can publish events during processing. Both systems are extensible so you can integrate your own infrastructure.
+Peagen writes artifacts through pluggable **git filters** and can publish events during processing. These systems are extensible so you can integrate your own infrastructure. The SDK bundles several implementations under ``peagen.plugins`` for convenience.
 
-## Storage Adapters
+``storage_adapters`` have been deprecated. Use ``peagen init filter`` to set up a git filter instead and reference it via ``[storage.filters]`` in ``.peagen.toml``.
 
-`Peagen` accepts a `storage_adapter` implementing simple `upload()` and `download()` methods. Four adapters ship with the SDK:
+Workspaces themselves may be managed in a Git repository using the
+``vcs`` plugin group. See :doc:`git_vcs` for details.
 
-- `FileStorageAdapter` – stores artifacts on the local filesystem.
-- `MinioStorageAdapter` – targets S3 compatible object stores.
-- `GithubStorageAdapter` – saves files into a GitHub repository.
-- `GithubReleaseStorageAdapter` – uploads artifacts as release assets.
+## Git Filters
 
-Enable any of these via `.peagen.toml` using the `[storage.adapters.<name>]`
+``Peagen`` now accepts a ``git_filter`` implementing ``upload()`` and ``download()`` methods. Built-in filters include:
+
+- ``MinioFilter`` – targets S3 compatible object stores.
+- ``GithubReleaseFilter`` – uploads artifacts as release assets and exposes a ``root_uri`` like ``ghrel://org/repo/tag/`` for retrieval.
+- ``S3FSFilter`` – uses the ``s3fs`` library for S3 storage and exposes a
+  ``root_uri`` like ``s3://bucket/prefix/``. Credentials may be provided under
+  ``[storage.filters.s3fs]`` in ``.peagen.toml``.
+
+Enable any of these via `.peagen.toml` using the `[storage.filters.<name>]`
 tables. For example:
 
 ```toml
 [storage]
-default_storage_adapter = "file"
+default_filter = "file"
 
-[storage.adapters.file]
+[storage.filters.file]
 output_dir = "./peagen_artifacts"
 
-[storage.adapters.minio]
+[storage.filters.minio]
 endpoint = "localhost:9000"
 bucket = "peagen"
 
-[storage.adapters.github]
+[storage.filters.github]
 token = "ghp_..."
 org = "my-org"
 repo = "my-repo"
 
-[storage.adapters.gh_release]
+[storage.filters.gh_release]
 token = "ghp_..."
 org = "my-org"
 repo = "my-repo"
@@ -41,15 +47,18 @@ To use a different solution, subclass one of these classes or implement the same
 
 ```python
 from peagen.core import Peagen
-from peagen.storage_adapters.file_storage_adapter import FileStorageAdapter
+from peagen.plugins import PluginManager
+
+pm = PluginManager({})
+MinioFilter = pm.get("git_filters", "minio")
 
 pea = Peagen(
     projects_payload_path="projects.yaml",
-    storage_adapter=FileStorageAdapter("./artifacts"),
+    git_filter=MinioFilter.from_uri("s3://localhost:9000/peagen"),
 )
 ```
 
-Any class providing `upload()` and `download()` can serve as the adapter, enabling integrations with cloud services or databases.
+Any class providing `upload()` and `download()` can serve as the adapter, enabling integrations with cloud services or databases. The `upload()` method should return the artifact URI so Peagen can reference it in Git commits and task payloads.
 
 ## Publisher Plugins
 
@@ -57,14 +66,17 @@ The CLI can emit JSON events such as `process.started` and `process.done`. The r
 
 
 ```python
-from peagen.publishers.redis_publisher import RedisPublisher
+from peagen.plugins import PluginManager
+
+pm = PluginManager({})
+RedisPublisher = pm.get("publishers", "redis")
 
 bus = RedisPublisher("redis://localhost:6379/0")
 bus.publish("peagen.events", {"type": "process.started"})
 ```
 
 ```python
-from peagen.publishers.webhook_publisher import WebhookPublisher
+WebhookPublisher = pm.get("publishers", "webhook")
 
 bus = WebhookPublisher("https://example.com/peagen")
 bus.publish("peagen.events", {"type": "process.started"})
@@ -73,7 +85,7 @@ bus.publish("peagen.events", {"type": "process.started"})
 You can also publish events to RabbitMQ using `RabbitMQPublisher`:
 
 ```python
-from peagen.publishers.rabbitmq_publisher import RabbitMQPublisher
+RabbitMQPublisher = pm.get("publishers", "rabbitmq")
 
 bus = RabbitMQPublisher(host="localhost", port=5672, exchange="", routing_key="peagen.events")
 bus.publish("peagen.events", {"type": "process.started"})

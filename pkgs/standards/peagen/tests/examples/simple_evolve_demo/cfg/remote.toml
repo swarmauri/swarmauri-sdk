@@ -1,0 +1,48 @@
+[queues]
+default_queue = "redis"
+
+[queues.adapters.redis]
+uri = "${REDIS_URL}"
+
+[result_backends]
+default_backend = "postgres"
+[result_backends.adapters.postgres]
+dsn = "${PG_DSN}"
+
+[storage]
+default_storage_adapter = "minio"
+
+[storage.adapters.minio]
+endpoint = "${MINIO_ENDPOINT}"
+bucket = "test"
+access_key = "${MINIO_ACCESS_KEY}"
+secret_key = "${MINIO_SECRET_KEY}"
+secure = false
+
+[evaluation]
+pool = "default"
+max_workers = 1
+async = false
+strict = true
+
+[vcs]
+
+default_vcs = "git"
+
+
+[vcs.adapters.git]
+mirror_git_url = "${MIRROR_GIT_URL}"
+mirror_git_token = "${MIRROR_GIT_TOKEN}"
+owner = "${OWNER}"
+
+
+[vcs.adapters.git.remotes]
+origin = "${GITEA_REMOTE}"
+upstream = "${GITHUB_REMOTE}"
+
+[evaluation.evaluators]
+default_evaluator = "simple_time"
+
+[evaluation.evaluators.performance]
+import_path = "sort_alg"
+entry_fn = "bad_sort"

@@ -1,7 +1,7 @@
 PROJECTS:
   - NAME: "SearchWordTool"
     ROOT: "pkgs/community"
-    TEMPLATE_SET: "componentv1"
+  TEMPLATE_SET: "swarmauri_standard_standalone"
     EXTRAS:
       REQUIREMENTS:
         - "Implement a tool to search for a phrase or a word within a file and return its occurances."
@@ -12,7 +12,7 @@ PROJECTS:
       # 1) swarmauri_tool_searchword
       #-----------------------------------------------------
       - NAME: "swarmauri_tool_searchword"
-        TEMPLATE_SET_OVERRIDE: "componentv1"
+        TEMPLATE_SET_OVERRIDE: "swarmauri_standard_standalone"
         EXTRAS:
           AUTHORS:
             - "Vijay Vignesh Prasad Rao"

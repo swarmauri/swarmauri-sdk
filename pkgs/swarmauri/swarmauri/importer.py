@@ -2,14 +2,14 @@
 
 import sys
 import importlib
-from .logging_utils import get_logger
+import logging
 from importlib.machinery import ModuleSpec
 from types import ModuleType
 
 from .plugin_citizenship_registry import PluginCitizenshipRegistry
 from .interface_registry import InterfaceRegistry
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class SwarmauriImporter:
@@ -104,7 +104,7 @@ class SwarmauriImporter:
 
 # Register the custom importer
 if not any(isinstance(imp, SwarmauriImporter) for imp in sys.meta_path):
-    logger.swarmauri("Registering SwarmauriImporter in sys.meta_path.")
+    logger.info("Registering SwarmauriImporter in sys.meta_path.")
     sys.meta_path.insert(0, SwarmauriImporter())
 else:
-    logger.swarmauri("SwarmauriImporter is already registered.")
+    logger.info("SwarmauriImporter is already registered.")

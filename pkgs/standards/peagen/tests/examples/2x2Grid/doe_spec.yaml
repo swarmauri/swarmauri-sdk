@@ -1,0 +1,30 @@
+version: v2
+meta:
+  name: 2x2-grid-demo
+factors:
+  - name: first
+    levels:
+      - id: A
+        patchRef: patches/factor1_A.yaml
+        output_path: template_project.yaml
+        patchKind: json-merge
+      - id: B
+        patchRef: patches/factor1_B.yaml
+        output_path: template_project.yaml
+        patchKind: json-merge
+  - name: second
+    levels:
+      - id: C
+        patchRef: patches/factor2_C.yaml
+        output_path: template_project.yaml
+        patchKind: json-merge
+      - id: D
+        patchRef: patches/factor2_D.yaml
+        output_path: template_project.yaml
+        patchKind: json-merge
+factorSets:
+  - name: grid
+    cartesianProduct:
+      first: ["A", "B"]
+      second: ["C", "D"]
+    uriTemplate: "{first}{second}"

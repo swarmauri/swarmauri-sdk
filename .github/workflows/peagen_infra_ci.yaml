@@ -1,0 +1,65 @@
+# .github/workflows/peagen_infra_ci.yaml
+# Redeploys all peagen infra
+name: PeaInfr CI Deploy In
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: peagenx
+    env:
+      # --- non-secret values ---
+      DATA_ROOT:  /mnt/data
+      CONFIG_ROOT: /mnt/config
+      MINIO_ROOT_USER: minioadmin
+      POSTGRES_USER:  npm
+      POSTGRES_DB:    postgres
+      NPM_DB:         npm
+      PEAGEN_DB:      peagen
+      GIT_DB:         gitea
+      AUTO_AUTHN_DB:  auto_authn
+      # --- secrets ---
+      MINIO_ROOT_PASSWORD:      ${{ secrets.PEAGEN_MINIO_ROOT_PASSWORD }}
+      MINIO_ACCESS_KEY:         ${{ secrets.PEAGEN_MINIO_ACCESS_KEY }}
+      MINIO_SECRET_KEY:         ${{ secrets.PEAGEN_MINIO_SECRET_KEY }}
+      GROQ_API_KEY:             ${{ secrets.GROQ_API_KEY }}
+      REDIS_PASSWORD:           ${{ secrets.PEAGEN_REDIS_PASSWORD }}
+      POSTGRES_PASSWORD:        ${{ secrets.PEAGEN_POSTGRES_PASSWORD }}
+      PGADMIN_DEFAULT_PASSWORD: ${{ secrets.PEAGEN_PGADMIN_PASSWORD }}
+      PGADMIN_DEFAULT_EMAIL:    ${{ secrets.PEAGEN_PGADMIN_DEFAULT_EMAIL }}
+      PEAGEN_GIT_SHADOW_PAT:    ${{ secrets.PEAGEN_GIT_SHADOW_PAT }}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Deploy with Docker Compose
+      id: deploy
+      run: |
+        # sudo -E docker compose -f infra/peagen/docker-compose.yml pull   # optional
+        sudo docker system prune -f
+        sudo -E docker compose -f infra/peagen/docker-compose.yml down --remove-orphans
+
+        
+        sudo -E docker compose -f infra/peagen/docker-compose.yml up -d --force-recreate --build 
+
+
+    # Collect logs only when *any* previous step failed (deploy or later)
+    - name: Get container logs on failure
+      if: failure()          # <- overrides the implicit success() check
+      run: |
+        echo "::group::croutondb logs"
+        sudo -E docker compose -f infra/peagen/docker-compose.yml logs auto_authn || true
+        echo "::endgroup::"
+
+        echo "::group::gateway logs"
+        sudo -E docker compose -f infra/peagen/docker-compose.yml logs gateway || true
+        echo "::endgroup::"
+
+        echo "::group::worker logs"
+        sudo -E docker compose -f infra/peagen/docker-compose.yml logs worker || true
+        echo "::endgroup::"

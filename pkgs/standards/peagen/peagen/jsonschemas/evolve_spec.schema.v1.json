@@ -1,0 +1,223 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schema/evolve_spec.schema.json",
+  "title": "EVOLVE_SPEC (v1)",
+
+  "type": "object",
+  "required": ["version", "meta", "population", "operators"],
+  "additionalProperties": false,
+
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^v[0-9]+$"
+    },
+
+    "meta": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name":        { "type": "string" },
+        "description": { "type": "string" },
+        "seed":        { "type": "integer", "minimum": 0 }
+      }
+    },
+
+    "population": {
+      "$comment": "Population size, generation horizon and initialisation pools.",
+      "type": "object",
+      "required": ["size", "generations", "init"],
+      "additionalProperties": false,
+      "properties": {
+        "size":        { "type": "integer", "minimum": 1 },
+        "generations": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Epochs each genome is evolved."
+        },
+
+        "init": {
+          "type": "object",
+          "required": ["baseArtifacts"],
+          "additionalProperties": false,
+          "properties": {
+            "baseArtifacts": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "type": "string", "format": "uri-reference" }
+            },
+            "factorSets": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/factorSet" }
+            },
+            "perturbations": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/perturbation" }
+            }
+          }
+        }
+      }
+    },
+
+    "operators": {
+      "$comment": "All evolutionary operators; free-form buckets allowed.",
+      "type": "object",
+      "required": ["selection", "mutation", "fitness"],
+      "additionalProperties": true,
+
+      "properties": {
+        "selection": {
+          "allOf": [
+            { "$ref": "#/$defs/operatorCore" },
+            { "additionalProperties": true }
+          ],
+          "description": "Parent-selection operator."
+        },
+
+        "crossover": {
+          "allOf": [
+            { "$ref": "#/$defs/operatorCore" },
+            { "additionalProperties": true }
+          ],
+          "description": "Optional crossover operator; parameters are plug-in specific."
+        },
+
+        "mutation": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "allOf": [
+              { "$ref": "#/$defs/mutatorBase" },
+              { "$ref": "#/$defs/patchSelector" }
+            ]
+          }
+        },
+
+        "selectors": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "allOf": [
+              { "$ref": "#/$defs/operatorCore" },
+              { "additionalProperties": true }
+            ]
+          },
+          "description": "Candidate selection operators"
+        },
+
+        "fitness": {
+          "allOf": [
+            { "$ref": "#/$defs/operatorCore" },
+            { "additionalProperties": true }
+          ],
+          "description": "Evaluation operator (container, entrypoint, metrics, …)."
+        }
+      }
+    },
+
+    "guardRails": {
+      "$comment": "Run-time abort / stop conditions.",
+      "type": "array",
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/operatorCore" },
+          {
+            "required": ["kind", "description"],
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+
+    "checkpointing": {
+      "$comment": "Periodic snapshots of the evolving population.",
+      "type": "object",
+      "required": ["everyN", "retainBestN"],
+      "additionalProperties": true,
+      "properties": {
+        "everyN":      { "type": "integer", "minimum": 1 },
+        "retainBestN": { "type": "integer", "minimum": 1 },
+        "store":       { "type": "string", "format": "uri-reference" },
+        "format":      { "type": "string" }
+      }
+    }
+  },
+
+  "$defs": {
+    "operatorCore": {
+      "type": "object",
+      "required": ["kind"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "pattern": "^[A-Za-z][A-Za-z0-9_\\-]*$"
+        },
+        "description": { "type": "string" }
+      }
+    },
+
+    "factorSet": {
+      "type": "object",
+      "required": ["name", "cartesianProduct"],
+      "additionalProperties": false,
+
+      "oneOf": [
+        { "required": ["uriTemplate"], "not": { "required": ["factorFileTemplate"] } },
+        { "required": ["factorFileTemplate"], "not": { "required": ["uriTemplate"] } }
+      ],
+
+      "properties": {
+        "name":  { "type": "string" },
+        "lock":  { "type": "boolean", "default": false },
+
+        "cartesianProduct": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": { "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$" }
+        },
+
+        "uriTemplate":        { "type": "string" },
+        "factorFileTemplate": { "type": "string" }
+      }
+    },
+
+    "perturbation": {
+      "type": "object",
+      "required": ["patchRef", "repeats"],
+      "additionalProperties": false,
+      "properties": {
+        "patchRef":  { "type": "string", "format": "uri-reference" },
+        "repeats":   { "type": "integer", "minimum": 1 },
+        "patchKind": { "type": "string" },
+        "rngParams": { "type": "object" }
+      }
+    },
+
+    "mutatorBase": {
+      "type": "object",
+      "required": ["kind", "probability"],
+      "properties": {
+        "kind": { "type": "string" },
+        "probability": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        }
+      },
+      "description": "Other mutator-specific parameters may be supplied.",
+      "additionalProperties": true
+    },
+
+    "patchSelector": {
+      "type": "object",
+      "required": ["uri"],
+      "additionalProperties": false,
+      "properties": {
+        "uri":     { "type": "string", "format": "uri-reference" },
+        "branch":  { "type": "string" },
+        "filters": { "type": "object" }
+      }
+    }
+  }
+}

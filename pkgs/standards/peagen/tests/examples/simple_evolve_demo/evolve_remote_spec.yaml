@@ -1,0 +1,31 @@
+version: "2.0.0"
+meta:
+  name: simple-evolve-demo
+population:
+  size: 1
+  generations: 1
+  init:
+    baseArtifacts:
+      - workspace
+factors:
+  - name: suffix
+    levels:
+      - id: "001"
+        patchRef: patches/suffix_001.yaml
+        output_path: template_project.yaml
+        patchKind: json-merge
+JOBS:
+  - workspace_uri: workspace
+    target_file: sort_alg.py
+    import_path: sort_alg
+    entry_fn: bad_sort
+    config: cfg/remote.toml
+operators:
+  selection:
+    kind: default_selector
+  mutation:
+    - kind: echo_mutator
+      probability: 1
+      uri: patches/suffix_001.yaml
+  fitness:
+    kind: PerformanceEvaluator

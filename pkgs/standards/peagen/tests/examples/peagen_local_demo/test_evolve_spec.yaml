@@ -1,0 +1,23 @@
+version: "2.0.0"
+meta:
+  name: local-demo
+population:
+  size: 1
+  generations: 1
+  init:
+    baseArtifacts:
+      - test_workspace
+JOBS:
+  - workspace_uri: test_workspace
+    target_file: main.py
+    import_path: main
+    entry_fn: main
+operators:
+  selection:
+    kind: default_selector
+  mutation:
+    - kind: echo_mutator
+      probability: 1
+      uri: patches/demo.patch
+  fitness:
+    kind: PerformanceEvaluator

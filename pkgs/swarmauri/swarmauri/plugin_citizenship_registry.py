@@ -7,12 +7,12 @@ Defines the PluginCitizenshipRegistry class responsible for managing plugin regi
 first, second, and third-class citizens within the swarmauri framework.
 """
 
-from .logging_utils import get_logger
+import logging
 from importlib.metadata import EntryPoint
 from typing import Dict, Optional
 
 # Configure logger
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class PluginCitizenshipRegistry:
@@ -45,6 +45,34 @@ class PluginCitizenshipRegistry:
 
     # Class variables for registries
     FIRST_CLASS_REGISTRY: Dict[str, str] = {
+        "swarmauri.crypto.ICrypto": "swarmauri_core.crypto.ICrypto",
+        "swarmauri.crypto.CryptoBase": "swarmauri_base.crypto.CryptoBase",
+        "swarmauri.signings.Ed25519EnvelopeSigner": "swarmauri_signing_ed25519.Ed25519EnvelopeSigner",
+        "swarmauri.signing.ISigning": "swarmauri_core.signing.ISigning",
+        "swarmauri.signing.SigningBase": "swarmauri_base.signing.SigningBase",
+        "swarmauri.signings.PgpEnvelopeSigner": "swarmauri_signing_pgp.PgpEnvelopeSigner",
+        "swarmauri.signings.Secp256k1EnvelopeSigner": "swarmauri_signing_secp256k1.Secp256k1EnvelopeSigner",
+        "swarmauri.signings.HmacEnvelopeSigner": "swarmauri_signing_hmac.HmacEnvelopeSigner",
+        "swarmauri.signings.EcdsaEnvelopeSigner": "swarmauri_signing_ecdsa.EcdsaEnvelopeSigner",
+        "swarmauri.signings.RSAEnvelopeSigner": "swarmauri_signing_rsa.RSAEnvelopeSigner",
+        "swarmauri.signings.SshEnvelopeSigner": "swarmauri_signing_ssh.SshEnvelopeSigner",
+        "swarmauri.signings.JwsSignerVerifier": "swarmauri_signing_jws.JwsSignerVerifier",
+        "swarmauri.tokens.JWTTokenService": "swarmauri_tokens_jwt.JWTTokenService",
+        "swarmauri.tokens.SshSigTokenService": "swarmauri_tokens_sshsig.SshSigTokenService",
+        "swarmauri.tokens.SshCertTokenService": "swarmauri_tokens_sshcert.SshCertTokenService",
+        "swarmauri.tokens.IntrospectionTokenService": "swarmauri_tokens_introspection.IntrospectionTokenService",
+        "swarmauri.tokens.PasetoV4TokenService": "swarmauri_tokens_paseto_v4.PasetoV4TokenService",
+        "swarmauri.tokens.CompositeTokenService": "swarmauri_tokens_composite.CompositeTokenService",
+        "swarmauri.tokens.RemoteOIDCTokenService": "swarmauri_tokens_remoteoidc.RemoteOIDCTokenService",
+        "swarmauri.tokens.DPoPBoundJWTTokenService": "swarmauri_tokens_dpopboundjwt.DPoPBoundJWTTokenService",
+        "swarmauri.tokens.RotatingJWTTokenService": "swarmauri_tokens_rotatingjwt.RotatingJWTTokenService",
+        "swarmauri.tokens.TlsBoundJWTTokenService": "swarmauri_tokens_tlsboundjwt.TlsBoundJWTTokenService",
+        ###
+        # key providers
+        ###
+        "swarmauri.key_providers.IKeyProvider": "swarmauri_core.keys.IKeyProvider",
+        "swarmauri.key_providers.KeyProviderBase": "swarmauri_base.keys.KeyProviderBase",
+        "swarmauri.key_providers.InMemoryKeyProvider": "swarmauri_standard.key_providers.InMemoryKeyProvider",
         "swarmauri.agents.ExampleAgent": "swm_example_package.ExampleAgent",
         "swarmauri.agents.QAAgent": "swarmauri_standard.agents.QAAgent",
         "swarmauri.agents.RagAgent": "swarmauri_standard.agents.RagAgent",
@@ -289,7 +317,15 @@ class PluginCitizenshipRegistry:
         "swarmauri.middlewares.SessionMiddleware": "swarmauri_middleware_session.SessionMiddleware",
         "swarmauri.middlewares.TimerMiddleware": "swarmauri_middleware_time.TimerMiddleware",
         "swarmauri.rate_limits.TokenBucketRateLimit": "swarmauri_standard.rate_limits.TokenBucketRateLimit",
+        "swarmauri.crypto.ParamikoCrypto": "swarmauri_crypto_paramiko.ParamikoCrypto",
+        "swarmauri.crypto.PGPCrypto": "swarmauri_crypto_pgp.PGPCrypto",
+        "swarmauri.mre_cryptos.ShamirMreCrypto": "swarmauri_mre_crypto_shamir.ShamirMreCrypto",
+        "swarmauri.mre_crypto.KeyringMreCrypto": "swarmauri_mre_crypto_keyring.KeyringMreCrypto",
+        "swarmauri.mre_crypto.AgeMreCrypto": "swarmauri_mre_crypto_age.AgeMreCrypto",
+        "swarmauri.mre_crypto.PGPSealMreCrypto": "swarmauri_mre_crypto_pgp.PGPSealMreCrypto",
+        "swarmauri.secret.AutoGpgSecretDrive": "swarmauri_secret_autogpg.AutoGpgSecretDrive",
     }
+    _KNOWN_GROUPS_CACHE: set[str] | None = None
     SECOND_CLASS_REGISTRY: Dict[str, str] = {}
     THIRD_CLASS_REGISTRY: Dict[str, str] = {}
 
@@ -321,7 +357,7 @@ class PluginCitizenshipRegistry:
         :param class_type: Type of the plugin ('first', 'second', 'third').
         :param resource_path: The resource path (e.g., 'swarmauri.llms.OpenAIModel').
         :param module_path: The external module path it maps to (e.g., 'external_repo.OpenAIModel').
-        :raises ValueError: If class_type is invalid or resource_path already exists in the specified registry.
+        :raises ValueError: If class_type is invalid.
         """
         registry_map = {
             "first": cls.FIRST_CLASS_REGISTRY,
@@ -340,16 +376,15 @@ class PluginCitizenshipRegistry:
         registry = registry_map[class_type]
 
         if resource_path in registry:
-            logger.error(
-                f"Resource path '{resource_path}' already exists in the {class_type}-class registry."
+            logger.debug(
+                f"Resource path '{resource_path}' already exists in the {class_type}-class registry. Skipping registration."
             )
-            raise ValueError(
-                f"Resource path '{resource_path}' already exists in the {class_type}-class registry."
-            )
+            return
 
         # Add to the specific registry
         registry[resource_path] = module_path
-        logger.swarmauri(
+        cls._KNOWN_GROUPS_CACHE = None
+        logger.info(
             f"Added to {class_type}-class registry: {resource_path} -> {module_path}"
         )
 
@@ -389,9 +424,8 @@ class PluginCitizenshipRegistry:
 
         # Remove from the specific registry
         del registry[resource_path]
-        logger.swarmauri(
-            f"Removed from {class_type}-class registry: {resource_path}"
-        )
+        cls._KNOWN_GROUPS_CACHE = None
+        logger.info(f"Removed from {class_type}-class registry: {resource_path}")
 
     @classmethod
     def list_registry(cls, class_type: Optional[str] = None) -> Dict[str, str]:
@@ -444,6 +478,26 @@ class PluginCitizenshipRegistry:
         return module_path
 
     @classmethod
+    def resource_exists(cls, resource_path: str) -> bool:
+        """Check if a resource path is registered in any registry."""
+        return resource_path in cls.total_registry()
+
+    @classmethod
+    def known_groups(cls) -> set[str]:
+        """Return the set of entry point groups known to the registry."""
+        if cls._KNOWN_GROUPS_CACHE is None:
+            groups: set[str] = set()
+            for registry in (
+                cls.FIRST_CLASS_REGISTRY,
+                cls.SECOND_CLASS_REGISTRY,
+                cls.THIRD_CLASS_REGISTRY,
+            ):
+                for resource_path in registry.keys():
+                    groups.add(".".join(resource_path.split(".")[:-1]))
+            cls._KNOWN_GROUPS_CACHE = groups
+        return cls._KNOWN_GROUPS_CACHE
+
+    @classmethod
     def update_entry(
         cls, class_type: str, resource_path: str, new_module_path: str
     ) -> None:
@@ -482,7 +536,7 @@ class PluginCitizenshipRegistry:
 
         old_module_path = registry[resource_path]
         registry[resource_path] = new_module_path
-        logger.swarmauri(
+        logger.info(
             f"Updated {class_type}-class registry entry: {resource_path} -> {new_module_path} (was: {old_module_path})"
         )
 
@@ -553,9 +607,7 @@ class PluginCitizenshipRegistry:
         """
         resource_path = f"{entry_point.group}.{entry_point.name}"
         cls.FIRST_CLASS_REGISTRY[resource_path] = module_path
-        logger.swarmauri(
-            f"Registered first-class plugin: {resource_path} -> {module_path}"
-        )
+        logger.info(f"Registered first-class plugin: {resource_path} -> {module_path}")
 
     @classmethod
     def register_second_class_plugin(cls, entry_point: EntryPoint, module_path: str):
@@ -567,9 +619,7 @@ class PluginCitizenshipRegistry:
         """
         resource_path = f"{entry_point.group}.{entry_point.name}"
         cls.SECOND_CLASS_REGISTRY[resource_path] = module_path
-        logger.swarmauri(
-            f"Registered second-class plugin: {resource_path} -> {module_path}"
-        )
+        logger.info(f"Registered second-class plugin: {resource_path} -> {module_path}")
 
     @classmethod
     def register_third_class_plugin(cls, entry_point: EntryPoint, module_path: str):
@@ -581,6 +631,4 @@ class PluginCitizenshipRegistry:
         """
         resource_path = f"{entry_point.group}.{entry_point.name}"
         cls.THIRD_CLASS_REGISTRY[resource_path] = module_path
-        logger.swarmauri(
-            f"Registered third-class plugin: {resource_path} -> {module_path}"
-        )
+        logger.info(f"Registered third-class plugin: {resource_path} -> {module_path}")

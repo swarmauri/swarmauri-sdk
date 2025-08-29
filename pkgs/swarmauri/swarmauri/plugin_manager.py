@@ -4,9 +4,9 @@ import importlib.metadata
 import importlib.util
 import inspect
 import json
-from .logging_utils import get_logger
+import logging
 import sys
-from importlib.metadata import EntryPoint, entry_points
+from importlib.metadata import EntryPoint
 from typing import Any, Dict, Optional
 
 # from swarmauri_base.ComponentBase import ComponentBase
@@ -14,32 +14,53 @@ from typing import Any, Dict, Optional
 from .interface_registry import InterfaceRegistry
 from .plugin_citizenship_registry import PluginCitizenshipRegistry
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 # --------------------------------------------------------------------------------------
 # 1. GLOBAL CACHE FOR ENTRY POINTS
 # --------------------------------------------------------------------------------------
-_cached_entry_points = None
+_cached_entry_points: Dict[str, list[EntryPoint]] | None = None
 
 
-def _fetch_and_group_entry_points(group_prefix="swarmauri."):
+def _fetch_and_group_entry_points(
+    group_prefix: str = "swarmauri.",
+) -> Dict[str, list[EntryPoint]]:
+    """Scan environment for relevant entry points grouped by namespace.
+
+    The previous implementation skipped scanning once the
+    :class:`PluginCitizenshipRegistry` contained any groups which effectively
+    disabled discovery during development. This version always performs a
+    targeted scan for only the groups we care about, dramatically reducing the
+    overhead compared to scanning all entry points.
     """
-    Internal function that scans the environment for entry points and groups them
-    by namespace (e.g., 'chunkers' for 'swarmauri.chunkers').
-    """
-    grouped_entry_points = {}
+
+    grouped_entry_points: Dict[str, list[EntryPoint]] = {}
     try:
-        all_entry_points = entry_points()
-        logger.debug(f"Raw entry points from environment: {all_entry_points}")
+        if PluginCitizenshipRegistry.known_groups():
+            target_groups = [
+                g
+                for g in PluginCitizenshipRegistry.known_groups()
+                if g.startswith(group_prefix)
+            ]
+        else:
+            target_groups = [
+                g
+                for g in InterfaceRegistry.list_registered_namespaces()
+                if g.startswith(group_prefix)
+            ]
 
-        for ep in all_entry_points:
-            if ep.group.startswith(group_prefix):
-                namespace = ep.group[len(group_prefix) :]  # e.g., 'chunkers'
-                grouped_entry_points.setdefault(namespace, []).append(ep)
+        if not target_groups:
+            return {}
 
-        logger.debug(f"Grouped entry points (fresh scan): {grouped_entry_points}")
+        prefix_len = len(group_prefix)
+        for group in target_groups:
+            selected = importlib.metadata.entry_points(group=group)
+            if selected:
+                namespace = group[prefix_len:]
+                grouped_entry_points[namespace] = list(selected)
+        logger.debug("Grouped entry points (fresh scan): %s", grouped_entry_points)
     except Exception as e:
-        logger.error(f"Failed to retrieve entry points: {e}")
+        logger.error("Failed to retrieve entry points: %s", e)
         return {}
     return grouped_entry_points
 
@@ -96,6 +117,19 @@ def process_plugin(entry_point: EntryPoint) -> bool:
         logger.debug(f"Processing plugin via entry_point: {entry_point}")
 
         # Load plugin metadata without triggering module load
+        # Determine resource_kind from the entry point group
+        resource_kind = entry_point.group.split(".")[
+            -1
+        ]  # e.g., 'agents' from 'swarmauri.agents'
+
+        # Preliminary resource path using entry point name
+        preliminary_path = f"swarmauri.{resource_kind}.{entry_point.name}"
+        if PluginCitizenshipRegistry.resource_exists(preliminary_path):
+            logger.debug(
+                f"Resource path '{preliminary_path}' already registered; skipping."
+            )
+            return True
+
         metadata = _load_plugin_metadata(entry_point)
         loading_strategy = (
             metadata.get("loading_strategy", "eager").lower() if metadata else "eager"
@@ -104,11 +138,6 @@ def process_plugin(entry_point: EntryPoint) -> bool:
             f"Plugin '{entry_point.name}' loading_strategy: {loading_strategy}"
         )
 
-        # Determine resource_kind from the entry point group
-        resource_kind = entry_point.group.split(".")[
-            -1
-        ]  # e.g., 'agents' from 'swarmauri.agents'
-
         # Construct resource_path based on entry point and metadata
         type_name = metadata["type_name"] if metadata else entry_point.name
         resource_path = f"swarmauri.{resource_kind}.{type_name}"
@@ -116,9 +145,7 @@ def process_plugin(entry_point: EntryPoint) -> bool:
         if loading_strategy == "lazy":
             # Register plugin based on classification (first, second)
             _register_lazy_plugin_from_metadata(entry_point, metadata)
-            logger.swarmauri(
-                f"Plugin '{entry_point.name}' registered for lazy loading."
-            )
+            logger.info(f"Plugin '{entry_point.name}' registered for lazy loading.")
             return True
         else:
             # Eager loading: load the plugin module
@@ -129,11 +156,17 @@ def process_plugin(entry_point: EntryPoint) -> bool:
 
             # Determine plugin type based on entry point's object reference
             if is_plugin_class(entry_point):
-                return _process_class_plugin(entry_point, resource_path, metadata)
+                return _process_class_plugin(
+                    entry_point, resource_path, plugin_object, metadata
+                )
             elif is_plugin_module(entry_point):
-                return _process_module_plugin(entry_point, resource_path, metadata)
+                return _process_module_plugin(
+                    entry_point, resource_path, plugin_object, metadata
+                )
             else:
-                return _process_generic_plugin(entry_point, resource_path, metadata)
+                return _process_generic_plugin(
+                    entry_point, resource_path, plugin_object, metadata
+                )
 
     except (ImportError, ModuleNotFoundError) as e:
         msg = (
@@ -268,7 +301,7 @@ def _register_lazy_plugin_from_metadata(
         PluginCitizenshipRegistry.add_to_registry(
             citizenship, resource_path, module_path
         )
-        logger.swarmauri(
+        logger.info(
             f"Registered {citizenship}-class plugin '{type_name}' at '{resource_path}' [lazy]"
         )
 
@@ -343,6 +376,7 @@ def is_plugin_generic(entry_point: EntryPoint) -> bool:
 def _process_class_plugin(
     entry_point: EntryPoint,
     resource_path: str,
+    plugin_class: Any,
     metadata: Optional[Dict[str, Any]] = None,
 ) -> bool:
     """
@@ -361,8 +395,7 @@ def _process_class_plugin(
     :return: True if processing is successful; False otherwise.
     """
     try:
-        # Step 1: Load the plugin class
-        plugin_class = entry_point.load()
+        # Step 1: Plugin class already loaded
         logger.debug(
             f"Loaded plugin class '{plugin_class.__name__}' from '{entry_point.name}'"
         )
@@ -370,7 +403,7 @@ def _process_class_plugin(
         # Step 2: Determine citizenship classification
         citizenship = determine_plugin_citizenship(entry_point)
         if citizenship:
-            logger.swarmauri(
+            logger.info(
                 f"Plugin '{entry_point.name}' is classified as {citizenship}-class."
             )
         else:
@@ -392,7 +425,7 @@ def _process_class_plugin(
                 logger.error(msg)
                 raise PluginValidationError(msg)
 
-            logger.swarmauri(
+            logger.info(
                 f"Validated class-based plugin '{plugin_class.__name__}' against interface '{interface_class.__name__}'"
             )
 
@@ -406,7 +439,7 @@ def _process_class_plugin(
         PluginCitizenshipRegistry.add_to_registry(
             citizenship, resource_path, module_path
         )
-        logger.swarmauri(
+        logger.info(
             f"Registered {citizenship}-class plugin '{plugin_class.__name__}' at '{resource_path}' in PluginCitizenshipRegistry"
         )
 
@@ -439,6 +472,7 @@ def _process_class_plugin(
 def _process_module_plugin(
     entry_point: EntryPoint,
     resource_path: str,
+    plugin_module: Any,
     metadata: Optional[Dict[str, Any]] = None,
 ) -> bool:
     """
@@ -450,8 +484,7 @@ def _process_module_plugin(
     :return: True if processing is successful; False otherwise.
     """
     try:
-        # Load the module
-        plugin_module = entry_point.load()
+        # Module already loaded
         logger.debug(
             f"Loaded plugin module '{plugin_module.__name__}' from '{entry_point.name}'"
         )
@@ -499,7 +532,7 @@ def _process_module_plugin(
                         PluginCitizenshipRegistry.add_to_registry(
                             citizenship, class_resource_path, plugin_module.__name__
                         )
-                        logger.swarmauri(
+                        logger.info(
                             f"Registered {citizenship}-class plugin '{attr_name}' at '{class_resource_path}'"
                         )
 
@@ -542,7 +575,7 @@ def _process_module_plugin(
                         PluginCitizenshipRegistry.add_to_registry(
                             "third", generic_resource_path, plugin_module.__name__
                         )
-                        logger.swarmauri(
+                        logger.info(
                             f"Registered third-class generic plugin '{attr_name}' at '{generic_resource_path}'"
                         )
                     else:
@@ -575,6 +608,7 @@ def _process_module_plugin(
 def _process_generic_plugin(
     entry_point: EntryPoint,
     resource_path: str,
+    _plugin_object: Any,
     metadata: Optional[Dict[str, Any]] = None,
 ) -> bool:
     """
@@ -598,10 +632,13 @@ def _process_generic_plugin(
         PluginCitizenshipRegistry.add_to_registry(
             "third", resource_path, entry_point.value.split(":")[0]
         )
-        logger.swarmauri(
+        logger.info(
             f"Registered generic plugin '{entry_point.name}' under '{resource_path}' for lazy loading."
         )
 
+        # Register in TYPE_REGISTRY
+        # 🚧ComponentBase.TYPE_REGISTRY.setdefault("plugins", {})[entry_point.name] = entry_point.load()
+        # 🚧logger.info(f"Registered generic plugin '{entry_point.name}' in TYPE_REGISTRY under 'plugins'")
 
         return True
 
@@ -710,12 +747,16 @@ def discover_and_register_plugins(group_prefix="swarmauri."):
 
     :param group_prefix: The prefix to filter relevant entry point groups.
     """
+    if PluginCitizenshipRegistry.total_registry():
+        logger.debug("Plugins already registered; skipping discovery.")
+        return
     try:
         grouped_entry_points = get_entry_points(group_prefix)
-        for namespace, eps in grouped_entry_points.items():
+        process = process_plugin
+        for eps in grouped_entry_points.values():
             for ep in eps:
                 try:
-                    process_plugin(ep)
+                    process(ep)
                 except PluginLoadError as e:
                     logger.error(f"Skipping plugin '{ep.name}' due to load error: {e}")
                 except PluginValidationError as e:

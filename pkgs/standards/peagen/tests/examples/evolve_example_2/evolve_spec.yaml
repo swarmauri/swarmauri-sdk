@@ -1,0 +1,26 @@
+version: "2.0.0"
+meta:
+  name: evolve-example-2
+population:
+  size: 1
+  generations: 1
+  init:
+    baseArtifacts:
+      - workspace
+JOBS:
+  - repo: testproject
+    ref: HEAD
+    workspace_uri: workspace
+    target_file: main.py
+    import_path: workspace.main
+    entry_fn: add
+    config: cfg/remote.toml
+operators:
+  selection:
+    kind: default_selector
+  mutation:
+    - kind: echo_mutator
+      probability: 1
+      uri: patches/echo.patch
+  fitness:
+    kind: PerformanceEvaluator

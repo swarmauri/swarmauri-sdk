@@ -18,6 +18,11 @@
 
 # Peagen: a Template‑Driven Workflow
 
+## Terminology
+
+- **Tenant** – a namespace used to group related resources, such as repositories.
+- **Principal** – an owner of resources (for example, an individual user or an organization).
+
 ## Why Use the Peagen CLI?
 
 #### Reduced Variance in LLM‑Driven Generation  
@@ -101,7 +106,7 @@ cd pkgs/standards/peagen
 pip install .
 
 peagen --help
-````
+```
 
 ### Executing `peagen --help`
 
@@ -133,14 +138,31 @@ default_model_name = "gpt-4"
 openai = "sk-..."
 
 [storage]
-default_adapter = "file"
+default_filter = "file"
 
-[storage.adapters.file]
+[storage.filters.file]
 output_dir = "./peagen_artifacts"
+
+[vcs]
+
+default_vcs = "git"
+
+
+[vcs.adapters.git]
+mirror_git_url = "${MIRROR_GIT_URL}"
+mirror_git_token = "${MIRROR_GIT_TOKEN}"
+owner = "${OWNER}"
+
+
+[vcs.adapters.git.remotes]
+origin = "${GITEA_REMOTE}"
+upstream = "${GITHUB_REMOTE}"
 ```
 
 With these values in place you can omit `--provider`, `--model-name`, and other
 flags when running the CLI.
+If `--provider` is omitted and no `default_provider` is configured (or the
+`PROVIDER` environment variable is unset), Peagen will raise an error.
 
 ### Project YAML Schema Overview
 
@@ -228,6 +250,35 @@ For reference implementations, see the sample specs under
 [`tests/examples/doe_specs`](tests/examples/doe_specs) which demonstrate basic, composite,
 and evaluator-pool variations.
 
+
+### `peagen db upgrade`
+
+Apply Alembic migrations to the latest version. Run this command before
+starting the gateway to ensure the database schema is current.
+
+```bash
+peagen db upgrade
+```
+
+Run migrations on a gateway instance:
+
+```bash
+peagen remote --gateway-url http://localhost:8000/rpc db upgrade
+```
+
+### Remote Processing with Multi-Tenancy
+
+```bash
+peagen remote --gateway-url http://localhost:8000/rpc \
+  --pool acme-lab process projects.yaml
+```
+
+Pass `--pool` to target a specific tenant or workspace when submitting
+tasks to the gateway.
+
+All handlers now accept `--repo` and `--ref` parameters so workflows can
+operate on any GitHub repository and reference. This enables consistent
+multi-tenant processing across the CLI.
 
 ---
 
@@ -320,7 +371,6 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           peagen process projects.yaml \
-            --template-base-dir ./templates \
             --provider openai \
             --model-name gpt-4 \
             --transitive \
@@ -349,7 +399,6 @@ agent_env = {
 }
 pea = Peagen(
     projects_payload_path="projects.yaml",
-    additional_package_dirs=[],
     agent_env=agent_env,
 )
 
@@ -357,9 +406,34 @@ projects = pea.load_projects()
 result, idx = pea.process_single_project(projects[0], start_idx=0)
 ```
 
-### Storage Adapters & Publishers
+### Transport Models
 
-Peagen's artifact output and event publishing are pluggable. Use the `storage_adapter` argument to control where files are saved and optionally provide a publisher for notifications. Built-in options include `FileStorageAdapter`, `MinioStorageAdapter`, `RedisPublisher`, `RabbitMQPublisher`, and `WebhookPublisher`. See [docs/storage_adapters_and_publishers.md](docs/storage_adapters_and_publishers.md) for details.
+Runtime RPC payloads should be validated using the Pydantic schemas generated
+in `peagen.orm.schemas`. For example, use
+`TaskRead.model_validate_json()` when decoding a task received over the network:
+
+```python
+from peagen.orm.schemas import TaskRead
+
+task = TaskRead.model_validate_json(raw_json)
+```
+
+The gateway and worker components rely on these schema classes rather than the
+ORM models under `peagen.orm`.
+
+> **Important**
+> JSON-RPC methods such as `Task.submit` **only** accept `TaskCreate`,
+> `TaskUpdate`, or `TaskRead` instances. Passing dictionaries or nested `dto`
+> mappings is unsupported and will trigger a `TypeError`.
+
+> **Note**
+> Earlier versions exposed these models under ``peagen.models`` and the
+> transport schemas under ``peagen.models.schemas``. Update any imports to use
+> ``peagen.orm`` and ``peagen.orm.schemas`` going forward.
+
+### Git Filters & Publishers
+
+Peagen's artifact output and event publishing are pluggable. Use the `git_filter` argument to control where files are saved and optionally provide a publisher for notifications. Built‑ins live under the `peagen.plugins` namespace. Available filters include `S3FSFilter` and `MinioFilter`, while publisher options cover `RedisPublisher`, `RabbitMQPublisher`, and `WebhookPublisher`. See [docs/storage_adapters_and_publishers.md](docs/storage_adapters_and_publishers.md) for details.
 
 
 For the event schema and routing key conventions, see [docs/eda_protocol.md](docs/eda_protocol.md). Events can also be emitted directly from the CLI using `--notify`:
@@ -367,6 +441,9 @@ For the event schema and routing key conventions, see [docs/eda_protocol.md](doc
 ```bash
 peagen process projects.yaml --notify redis://localhost:6379/0/custom.events
 ```
+
+For a walkthrough of encrypted secrets and key management, see
+[docs/secure_secrets_tutorial.md](docs/secure_secrets_tutorial.md).
 
 ### Parallel Processing & Artifact Storage Options
 
@@ -376,32 +453,32 @@ renders files concurrently while still honoring dependency order. Leaving the
 flag unset or `0` processes files sequentially.
 
 Artifact locations are resolved via the `--artifacts` flag. Targets may be a
-local directory (`dir://./peagen_artifacts`) using `FileStorageAdapter` or an
-S3/MinIO endpoint (`s3://host:9000`) handled by `MinioStorageAdapter`. Custom
-adapters and publishers can be supplied programmatically:
+local directory (`file:///./peagen_artifacts`) using `S3FSFilter` or an
+S3/MinIO endpoint (`s3://host:9000`) handled by `MinioFilter`. Custom
+filters and publishers can be supplied programmatically:
 
 ```python
 from peagen.core import Peagen
-from peagen.storage_adapters.minio_storage_adapter import MinioStorageAdapter
-from peagen.publishers.webhook_publisher import WebhookPublisher
+from swarmauri_gitfilter_minio import MinioFilter
+from peagen.plugins.publishers.webhook_publisher import WebhookPublisher
 
-store = MinioStorageAdapter.from_uri("s3://localhost:9000", bucket="peagen")
+store = MinioFilter.from_uri("s3://localhost:9000/peagen")
 bus = WebhookPublisher("https://example.com/peagen")
 ```
 
 Another Example:
 
 ```
-from peagen.publishers.redis_publisher import RedisPublisher
-from peagen.publishers.rabbitmq_publisher import RabbitMQPublisher
+from peagen.plugins.publishers.redis_publisher import RedisPublisher
+from peagen.plugins.publishers.rabbitmq_publisher import RabbitMQPublisher
 
-store = MinioStorageAdapter.from_uri("s3://localhost:9000", bucket="peagen")
+store = MinioFilter.from_uri("s3://localhost:9000/peagen")
 bus = RedisPublisher("redis://localhost:6379/0")
 # bus = RabbitMQPublisher(host="localhost", port=5672, routing_key="peagen.events")
 
 pea = Peagen(
     projects_payload_path="projects.yaml",
-    storage_adapter=store,
+    git_filter=store,
     agent_env={"provider": "openai", "model_name": "gpt-4"},
 )
 
@@ -415,37 +492,26 @@ pea.process_all_projects()
 * **Adding New Commands:** Define a new subcommand in `cli.py`, wire it into the parser, instantiate `Peagen`, and call core methods.
 * **Submitting Pull Requests:** Fork the repo, add/update templates under `peagen/templates/`, update docs/README, and open a PR tagging maintainers.
 
-### Task & Result Dataclasses
+### Textual TUI
 
-Peagen exposes the canonical queue messages via `peagen.task_model.Task` and
-`peagen.task_model.Result` (TaskResult). Draft-07 JSON Schemas for these
-structures live in `peagen/schemas/` for validation and integration with other
-tools.
+Run `peagen tui` to launch an experimental dashboard that
+subscribes to the gateway's `/ws/tasks` WebSocket. The gateway now emits
+`task.update`, `worker.update` and `queue.update` events. Use the tab keys to
+switch between task lists, logs and opened files. The footer shows system
+metrics and current time. Remote artifact paths are downloaded via their git
+filter and re-uploaded when saving.
 
-## Task Handlers
+### Streaming Events with wscat
 
-Peagen ships with several built-in handlers registered under the
-`peagen.task_handlers` entry-point group:
+Use the [`wscat`](https://github.com/websockets/wscat) CLI to inspect the
+gateway's WebSocket events directly from the terminal:
 
-| Handler | KIND | Provides | Responsibilities |
-| ------- | ---- | -------- | ---------------- |
-| `RenderHandler` | `RENDER` | `{"cpu"}` | Render Jinja templates to disk |
-| `PatchMutatorHandler` | `MUTATE` | `{"llm","cpu"}` | Build mutate prompt, call LLMEnsemble, apply diff |
-| `ExecuteDockerHandler` | `EXECUTE` | `{"docker","cpu"}` | Run candidate in Docker and collect speed/memory |
-| `ExecuteGPUHandler` | `EXECUTE` | `{"docker","gpu","cuda11"}` | GPU variant of execute handler |
-| `EvaluateHandler` | `EVALUATE` | `{"cpu"}` | Score a workspace via EvaluatorPool |
-
-When creating new handlers:
-
-1. Declare `KIND` and full `PROVIDES` set.
-2. Keep side effects outside of `handle()` until success.
-3. Use `ComponentBase.logger` for debug lines.
-4. Unit-test `handle()` with a sample `Task`.
-5. Document new capability tags.
-
-Example plugin registration:
-
-```toml
-[project.entry-points."peagen.task_handlers"]
-cpp_exec = "my_pkg.cpp_exec:ExecuteCppHandler"
+```bash
+npx wscat -c https://gw.peagen.com/ws/tasks
 ```
+
+Incoming JSON messages mirror those displayed in the TUI, providing a quick way
+to monitor `task.update`, `worker.update`, and `queue.update` events.
+
+## Results Backends
+Peagen supports pluggable results backends. Built-in options include `local_fs`, `postgres`, and `in_memory`.

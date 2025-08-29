@@ -1,0 +1,101 @@
+# .github/workflows/peagen_ci.yaml
+name: Peagen CI Deploy
+
+on:
+  push:
+    branches: [ "master", "mono/dev", "coby/peagenv2" ]
+    paths:
+      - "pkgs/standards/peagen/**"
+      - "infra/peagen/**"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: peagenx
+    env:
+      # --- non-secret values ---
+      DATA_ROOT:  /mnt/data
+      CONFIG_ROOT: /mnt/config
+      MINIO_ROOT_USER: minioadmin
+      POSTGRES_USER:  npm
+      POSTGRES_DB:    postgres
+      NPM_DB:         npm
+      PEAGEN_DB:      peagen
+      GIT_DB:         gitea
+      AUTO_AUTHN_DB: auto_authn
+      AUTO_KMS_DB:   auto_kms
+
+      # --- secrets ---
+      MINIO_ROOT_PASSWORD:      ${{ secrets.PEAGEN_MINIO_ROOT_PASSWORD }}
+      MINIO_ACCESS_KEY:         ${{ secrets.PEAGEN_MINIO_ACCESS_KEY }}
+      MINIO_SECRET_KEY:         ${{ secrets.PEAGEN_MINIO_SECRET_KEY }}
+      GROQ_API_KEY:             ${{ secrets.GROQ_API_KEY }}
+      REDIS_PASSWORD:           ${{ secrets.PEAGEN_REDIS_PASSWORD }}
+      POSTGRES_PASSWORD:        ${{ secrets.PEAGEN_POSTGRES_PASSWORD }}
+      PGADMIN_DEFAULT_PASSWORD: ${{ secrets.PEAGEN_PGADMIN_PASSWORD }}
+      PGADMIN_DEFAULT_EMAIL:    ${{ secrets.PEAGEN_PGADMIN_DEFAULT_EMAIL }}
+      PEAGEN_GIT_SHADOW_PAT:    ${{ secrets.PEAGEN_GIT_SHADOW_PAT }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy with Docker Compose
+        id: deploy
+        run: |
+          # pre build prune always
+          sudo docker system prune -f
+
+          sudo -E docker compose \
+            -f infra/peagen/docker-compose.yml \
+            down auto_authn auto_kms gateway worker || true
+
+          sudo -E docker compose \
+            -f infra/peagen/docker-compose.yml \
+            up -d --build --force-recreate --no-deps auto_authn auto_kms gateway worker
+
+      - name: Verify services
+        run: |
+          services="auto_authn auto_kms gateway worker"
+          failed=0
+          for svc in $services; do
+            cid=$(sudo -E docker compose -f infra/peagen/docker-compose.yml ps -q $svc)
+            status=$(sudo docker inspect -f '{{.State.Status}}' "$cid" 2>/dev/null)
+            if [ "$status" != "running" ]; then
+              log=$(sudo -E docker compose -f infra/peagen/docker-compose.yml logs --tail 10 $svc)
+              log="${log//'%'/'%25'}"
+              log="${log//$'\n'/'%0A'}"
+              log="${log//$'\r'/'%0D'}"
+              echo "::error title=$svc failed::$log"
+              failed=1
+            fi
+          done
+          if [ $failed -eq 0 ]; then
+            echo "::notice title=Services started::All containers are running"
+          else
+            exit 1
+          fi
+
+
+      # Collect logs only when *any* previous step failed (deploy or later)
+      - name: Get container logs on failure
+        if: failure()          # <- overrides the implicit success() check
+        run: |
+          echo "::group::auto_authn logs"
+          sudo -E docker compose -f infra/peagen/docker-compose.yml logs auto_authn || true
+          echo "::endgroup::"
+
+          echo "::group::auto_kms logs"
+          sudo -E docker compose -f infra/peagen/docker-compose.yml logs auto_kms || true
+          echo "::endgroup::"
+
+          echo "::group::gateway logs"
+          sudo -E docker compose -f infra/peagen/docker-compose.yml logs gateway || true
+          echo "::endgroup::"
+
+          echo "::group::worker logs"
+          sudo -E docker compose -f infra/peagen/docker-compose.yml logs worker || true
+          echo "::endgroup::"

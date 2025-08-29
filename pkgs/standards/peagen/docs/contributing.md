@@ -2,6 +2,9 @@
 
 This guide explains how to extend Peagen and how to propose major changes via Peagen Improvement Proposals (PEA-IPs).
 
+All plugin implementations must be accessed via ``PluginManager``. Do not import
+modules from ``peagen.plugins`` directly in production code.
+
 ## Template-Sets
 
 - Place new template files under `peagen/templates/<set_name>`.
@@ -11,20 +14,22 @@ This guide explains how to extend Peagen and how to propose major changes via Pe
   my_templates = "my_package.templates"
   ```
 
-## Storage Adapters
+## Git Filters
 
 - Implement a class exposing `upload()` and `download()`.
-- Register it via the **`peagen.storage_adapters`** entry point group.
+  The `upload()` method must return the artifact URI so Peagen can store
+  references in Git commits and task payloads.
+- Register it via the **`peagen.plugins.git_filters`** entry point group.
 
 ## Publishers
 
 - Publishers broadcast events produced by the CLI.
-- Create a class with a `publish()` method and add it under the **`peagen.publishers`** group.
+- Create a class with a `publish()` method and add it under the **`peagen.plugins.publishers`** group.
 
 ## Evaluation Pools
 
 - Evaluation pools manage collections of `EvaluatorBase` instances.
-- Add your pool to the **`peagen.evaluator_pools`** entry point group so `peagen eval` can discover it.
+- Add your pool to the **`peagen.plugins.evaluator_pools`** entry point group so `peagen eval` can discover it.
 
 ## Peagen Improvement Proposals (PEA-IPs)
 

@@ -1,5 +1,8 @@
 from typing import Annotated, Union, get_args, get_origin
 
+import time
+import pytest
+
 from swarmauri_typing.Intersection import Intersection, IntersectionMetadata
 
 
@@ -80,3 +83,23 @@ def test_intersection_multi_inheritance():
     # Verify metadata
     assert isinstance(args[1], IntersectionMetadata)
     assert args[1].classes == (B, C, D)
+
+
+@pytest.mark.perf
+def test_intersection_performance_happy_path():
+    """Ensure happy path intersection performs efficiently"""
+    start = time.perf_counter()
+    for _ in range(1000):
+        Intersection[B, D]
+    duration = time.perf_counter() - start
+    assert duration < 0.05
+
+
+@pytest.mark.perf
+def test_intersection_performance_worst_case():
+    """Ensure worst-case intersection performs within bounds"""
+    start = time.perf_counter()
+    for _ in range(1000):
+        Intersection[A, C]
+    duration = time.perf_counter() - start
+    assert duration < 0.05

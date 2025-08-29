@@ -1,7 +1,0 @@
-[spawner]
-queue_url   = "redis://broker:6379/0"
-caps        = ["cpu", "docker"]
-warm_pool   = 2
-max_parallel = 50
-poll_ms     = 1000
-worker_image= "ghcr.io/swarmauri/peagen-worker:latest"
