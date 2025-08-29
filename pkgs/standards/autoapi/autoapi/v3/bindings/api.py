@@ -23,6 +23,7 @@ from ..config.constants import (
     AUTOAPI_GET_DB_ATTR,
     AUTOAPI_REST_DEPENDENCIES_ATTR,
     AUTOAPI_RPC_DEPENDENCIES_ATTR,
+    AUTOAPI_ALLOW_ANON_ATTR,
 )
 from ..runtime import executor as _executor
 
@@ -176,16 +177,23 @@ def _seed_security_and_deps(api: Any, model: type) -> None:
     if getattr(api, "get_async_db", None):
         setattr(model, AUTOAPI_GET_ASYNC_DB_ATTR, api.get_async_db)
 
-    # Authn (prefer required if allow_anon is False)
+    # Authn (prefer optional dep when available)
     auth_dep = None
-    if getattr(api, "_allow_anon", True) is False and getattr(api, "_authn", None):
-        auth_dep = api._authn
-    elif getattr(api, "_optional_authn_dep", None):
+    if getattr(api, "_optional_authn_dep", None):
         auth_dep = api._optional_authn_dep
+    elif getattr(api, "_allow_anon", True) is False and getattr(api, "_authn", None):
+        auth_dep = api._authn
     elif getattr(api, "_authn", None):
         auth_dep = api._authn
     if auth_dep is not None:
         setattr(model, AUTOAPI_AUTH_DEP_ATTR, auth_dep)
+
+    # Allow anonymous verbs
+    allow_attr = getattr(model, AUTOAPI_ALLOW_ANON_ATTR, None)
+    if allow_attr:
+        verbs = allow_attr() if callable(allow_attr) else allow_attr
+        for v in verbs:
+            api._allow_anon_ops.add(f"{model.__name__}.{v}")
 
     # Authz
     if getattr(api, "_authorize", None):

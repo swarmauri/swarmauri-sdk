@@ -137,15 +137,15 @@ def _select_auth_dep(api: Any):
     """
     Choose the appropriate auth dependency based on API flags.
     Order:
-      1) required when allow_anon == False and _authn exists,
-      2) optional if provided,
+      1) optional if provided,
+      2) required when allow_anon == False and _authn exists,
       3) otherwise _authn if present,
       4) else None.
     """
-    if getattr(api, "_allow_anon", True) is False and getattr(api, "_authn", None):
-        return api._authn
     if getattr(api, "_optional_authn_dep", None):
         return api._optional_authn_dep
+    if getattr(api, "_allow_anon", True) is False and getattr(api, "_authn", None):
+        return api._authn
     if getattr(api, "_authn", None):
         return api._authn
     return None
@@ -230,6 +230,14 @@ async def _dispatch_one(
         except HTTPException as exc:
             code, msg, data = http_exc_to_rpc(exc)
             return _err(code, msg, rid, data)
+
+        # Enforce auth when required
+        if getattr(api, "_authn", None):
+            method_id = f"{model.__name__}.{alias}"
+            allow = getattr(api, "_allow_anon_ops", set())
+            user = _user_from_request(request)
+            if method_id not in allow and user is None:
+                raise HTTPException(status_code=401, detail="Unauthorized")
 
         # Compose a context; allow middlewares to seed request.state.ctx
         base_ctx: Dict[str, Any] = {}
