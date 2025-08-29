@@ -56,7 +56,7 @@ def test_bulk_request_model_examples():
         "schema"
     ]
     schema = _resolve_schema(spec, schema)
-    assert schema["examples"][0] == [{"name": "foo"}]
+    assert schema["example"] == [{"name": "foo"}]
 
 
 def test_bulk_response_model_examples():
@@ -66,5 +66,5 @@ def test_bulk_response_model_examples():
         "application/json"
     ]["schema"]
     schema = _resolve_schema(spec, schema)
-    example = schema["examples"][0][0]
+    example = schema["example"][0]
     assert example == {"name": "foo"}
