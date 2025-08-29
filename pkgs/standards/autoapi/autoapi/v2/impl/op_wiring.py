@@ -163,7 +163,8 @@ def _http_methods(spec: OpSpec) -> list[str]:
 def _rest_path(table: Type, spec: OpSpec) -> str:
     # Return path *relative* to the router prefix (e.g., "/{tab}")
     if spec.target in {"bulk_create", "bulk_update", "bulk_replace", "bulk_delete"}:
-        return "/bulk"
+        # Bulk operations now share the base collection path
+        return ""
     if spec.target == "clear":
         return ""
     if spec.target == "custom":

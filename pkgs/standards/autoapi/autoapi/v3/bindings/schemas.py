@@ -59,12 +59,12 @@ def _make_bulk_rows_model(
     model: type, verb: str, item_schema: Type[BaseModel]
 ) -> Type[BaseModel]:
     """
-    Build a wrapper schema with a `rows: List[item_schema]` field.
+    Build a root model representing `List[item_schema]`.
     """
     name = f"{model.__name__}{_camel(verb)}Request"
     schema = create_model(  # type: ignore[call-arg]
         name,
-        rows=(List[item_schema], Field(...)),  # type: ignore[name-defined]
+        __root__=(List[item_schema], Field(...)),  # type: ignore[name-defined]
     )
     return namely_model(
         schema,

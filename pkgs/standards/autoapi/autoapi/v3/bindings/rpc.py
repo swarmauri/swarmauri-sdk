@@ -190,19 +190,7 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
         norm_payload = _validate_input(model, alias, target, raw_payload)
         merged_payload: Dict[str, Any] = dict(raw_payload)
         for key, value in norm_payload.items():
-            if (
-                key == "rows"
-                and isinstance(value, list)
-                and isinstance(raw_payload.get("rows"), list)
-            ):
-                raw_rows = raw_payload.get("rows", [])
-                merged_rows = []
-                for idx, nv in enumerate(value):
-                    base = raw_rows[idx] if idx < len(raw_rows) else {}
-                    merged_rows.append({**base, **nv})
-                merged_payload["rows"] = merged_rows
-            else:
-                merged_payload[key] = value
+            merged_payload[key] = value
 
         # 2) build executor context & phases
         base_ctx: Dict[str, Any] = dict(ctx or {})

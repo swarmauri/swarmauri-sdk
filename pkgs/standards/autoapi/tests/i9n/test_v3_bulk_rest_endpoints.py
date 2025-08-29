@@ -48,13 +48,11 @@ async def v3_client() -> Iterator[tuple[AsyncClient, type]]:
 @pytest.mark.asyncio()
 async def test_bulk_create(v3_client) -> None:
     client, _ = v3_client
-    payload = {
-        "rows": [
-            {"name": "w1", "description": "a"},
-            {"name": "w2", "description": "b"},
-        ]
-    }
-    res = await client.post("/widget/bulk", json=payload)
+    payload = [
+        {"name": "w1", "description": "a"},
+        {"name": "w2", "description": "b"},
+    ]
+    res = await client.post("/widget", json=payload)
     assert res.status_code == 200
     listed = (await client.get("/widget")).json()
     assert len(listed) == 2
@@ -64,23 +62,19 @@ async def test_bulk_create(v3_client) -> None:
 @pytest.mark.asyncio()
 async def test_bulk_update(v3_client) -> None:
     client, _ = v3_client
-    create_payload = {
-        "rows": [
-            {"name": "w1", "description": "a"},
-            {"name": "w2", "description": "b"},
-        ]
-    }
-    await client.post("/widget/bulk", json=create_payload)
+    create_payload = [
+        {"name": "w1", "description": "a"},
+        {"name": "w2", "description": "b"},
+    ]
+    await client.post("/widget", json=create_payload)
     listed = (await client.get("/widget")).json()
     ids = [row["id"] for row in listed]
 
-    update_payload = {
-        "rows": [
-            {"id": ids[0], "name": "w1-updated"},
-            {"id": ids[1], "description": "b2"},
-        ]
-    }
-    res = await client.patch("/widget/bulk", json=update_payload)
+    update_payload = [
+        {"id": ids[0], "name": "w1-updated"},
+        {"id": ids[1], "description": "b2"},
+    ]
+    res = await client.patch("/widget", json=update_payload)
     assert res.status_code == 200
     data = (await client.get("/widget")).json()
     data_map = {row["id"]: row for row in data}
@@ -93,23 +87,19 @@ async def test_bulk_update(v3_client) -> None:
 @pytest.mark.asyncio()
 async def test_bulk_replace(v3_client) -> None:
     client, _ = v3_client
-    create_payload = {
-        "rows": [
-            {"name": "w1", "description": "a"},
-            {"name": "w2", "description": "b"},
-        ]
-    }
-    await client.post("/widget/bulk", json=create_payload)
+    create_payload = [
+        {"name": "w1", "description": "a"},
+        {"name": "w2", "description": "b"},
+    ]
+    await client.post("/widget", json=create_payload)
     listed = (await client.get("/widget")).json()
     ids = [row["id"] for row in listed]
 
-    replace_payload = {
-        "rows": [
-            {"id": ids[0], "name": "w1-replaced"},
-            {"id": ids[1], "name": "w2-replaced", "description": "new"},
-        ]
-    }
-    res = await client.put("/widget/bulk", json=replace_payload)
+    replace_payload = [
+        {"id": ids[0], "name": "w1-replaced"},
+        {"id": ids[1], "name": "w2-replaced", "description": "new"},
+    ]
+    res = await client.put("/widget", json=replace_payload)
     assert res.status_code == 200
     data = (await client.get("/widget")).json()
     data_map = {row["id"]: row for row in data}
@@ -123,17 +113,15 @@ async def test_bulk_replace(v3_client) -> None:
 @pytest.mark.asyncio()
 async def test_bulk_delete(v3_client) -> None:
     client, _ = v3_client
-    create_payload = {
-        "rows": [
-            {"name": "w1", "description": "a"},
-            {"name": "w2", "description": "b"},
-        ]
-    }
-    await client.post("/widget/bulk", json=create_payload)
+    create_payload = [
+        {"name": "w1", "description": "a"},
+        {"name": "w2", "description": "b"},
+    ]
+    await client.post("/widget", json=create_payload)
     listed = (await client.get("/widget")).json()
     ids = [row["id"] for row in listed]
 
-    res = await client.request("DELETE", "/widget/bulk", json={"ids": ids})
+    res = await client.request("DELETE", "/widget", json={"ids": ids})
     assert res.status_code == 200
     assert res.json() == {"deleted": 2}
 
