@@ -1159,7 +1159,9 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
     specs = sorted(
         specs,
         key=lambda sp: (
-            0
+            -1
+            if sp.target == "clear"
+            else 0
             if sp.target in {"bulk_update", "bulk_replace", "bulk_delete"}
             else 1
             if sp.target == "create"
