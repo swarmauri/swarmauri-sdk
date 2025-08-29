@@ -90,6 +90,7 @@ members = [
     "standards/swarmauri_gitfilter_gh_release",
     "standards/auto_authn",
     "standards/auto_kms",
+    "standards/jollof",
     "standards/swarmauri_certs_composite",
     "standards/swarmauri_keyprovider_local",
     "experimental/swarmauri_keyprovider_pkcs11",
@@ -233,6 +234,8 @@ typing = { workspace = true }
 cayaml = { workspace = true }
 catoml = { workspace = true }
 jaml = { workspace = true }
+
+jollof = { workspace = true }
 
 
 swarmauri_vectorstore_doc2vec = { workspace = true }
