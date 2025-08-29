@@ -134,46 +134,46 @@ async def _op_clear(api, db):
 
 async def _op_bulk_create(api, db):
     result = await api.rpc.Widget.bulk_create(
-        None,
+        {"rows": [{"name": "h1"}, {"name": "h2"}]},
         db=db,
-        ctx={"payload": [{"name": "h1"}, {"name": "h2"}]},
     )
     assert {r["name"] for r in result} == {"h1", "h2"}
 
 
 async def _op_bulk_update(api, db):
     rows = await api.rpc.Widget.bulk_create(
-        None,
+        {"rows": [{"name": "i1"}, {"name": "i2"}]},
         db=db,
-        ctx={"payload": [{"name": "i1"}, {"name": "i2"}]},
     )
-    payload = [
-        {"id": rows[0]["id"], "name": "i1u"},
-        {"id": rows[1]["id"], "name": "i2u"},
-    ]
+    payload = {
+        "rows": [
+            {"id": rows[0]["id"], "name": "i1u"},
+            {"id": rows[1]["id"], "name": "i2u"},
+        ]
+    }
     result = await api.rpc.Widget.bulk_update(None, db=db, ctx={"payload": payload})
     assert {r["name"] for r in result} == {"i1u", "i2u"}
 
 
 async def _op_bulk_replace(api, db):
     rows = await api.rpc.Widget.bulk_create(
-        None,
+        {"rows": [{"name": "j1"}, {"name": "j2"}]},
         db=db,
-        ctx={"payload": [{"name": "j1"}, {"name": "j2"}]},
     )
-    payload = [
-        {"id": rows[0]["id"], "name": "j1r"},
-        {"id": rows[1]["id"], "name": "j2r"},
-    ]
+    payload = {
+        "rows": [
+            {"id": rows[0]["id"], "name": "j1r"},
+            {"id": rows[1]["id"], "name": "j2r"},
+        ]
+    }
     result = await api.rpc.Widget.bulk_replace(None, db=db, ctx={"payload": payload})
     assert {r["name"] for r in result} == {"j1r", "j2r"}
 
 
 async def _op_bulk_delete(api, db):
     rows = await api.rpc.Widget.bulk_create(
-        None,
+        {"rows": [{"name": "k1"}, {"name": "k2"}]},
         db=db,
-        ctx={"payload": [{"name": "k1"}, {"name": "k2"}]},
     )
     ids = [r["id"] for r in rows]
     result = await api.rpc.Widget.bulk_delete({"ids": ids}, db=db)

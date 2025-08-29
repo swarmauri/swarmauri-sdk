@@ -149,7 +149,7 @@ async def test_rpc_methods(verb, client_and_model):
     elif verb == "bulk_create":
         resp = await rpc(
             "Gadget.bulk_create",
-            {"payload": [{"name": "A", "age": 1}, {"name": "B", "age": 2}]},
+            {"rows": [{"name": "A", "age": 1}, {"name": "B", "age": 2}]},
         )
         assert resp.status_code == 200
         result = resp.json()["result"]
@@ -158,14 +158,16 @@ async def test_rpc_methods(verb, client_and_model):
     elif verb == "bulk_update":
         created = await rpc(
             "Gadget.bulk_create",
-            {"payload": [{"name": "A", "age": 1}, {"name": "B", "age": 2}]},
+            {"rows": [{"name": "A", "age": 1}, {"name": "B", "age": 2}]},
         )
         r = created.json()["result"]
-        payload = [
-            {"id": r[0]["id"], "name": "A2", "age": 10},
-            {"id": r[1]["id"], "name": "B2", "age": 20},
-        ]
-        resp = await rpc("Gadget.bulk_update", {"payload": payload}, id_=2)
+        payload = {
+            "rows": [
+                {"id": r[0]["id"], "name": "A2", "age": 10},
+                {"id": r[1]["id"], "name": "B2", "age": 20},
+            ]
+        }
+        resp = await rpc("Gadget.bulk_update", payload, id_=2)
         assert resp.status_code == 200
         result = resp.json()["result"]
         assert {r["name"] for r in result} == {"A2", "B2"}
@@ -173,14 +175,16 @@ async def test_rpc_methods(verb, client_and_model):
     elif verb == "bulk_replace":
         created = await rpc(
             "Gadget.bulk_create",
-            {"payload": [{"name": "A", "age": 1}, {"name": "B", "age": 2}]},
+            {"rows": [{"name": "A", "age": 1}, {"name": "B", "age": 2}]},
         )
         r = created.json()["result"]
-        payload = [
-            {"id": r[0]["id"], "name": "A3", "age": 11},
-            {"id": r[1]["id"], "name": "B3", "age": 22},
-        ]
-        resp = await rpc("Gadget.bulk_replace", {"payload": payload}, id_=2)
+        payload = {
+            "rows": [
+                {"id": r[0]["id"], "name": "A3", "age": 11},
+                {"id": r[1]["id"], "name": "B3", "age": 22},
+            ]
+        }
+        resp = await rpc("Gadget.bulk_replace", payload, id_=2)
         assert resp.status_code == 200
         result = resp.json()["result"]
         assert {r["name"] for r in result} == {"A3", "B3"}
@@ -188,7 +192,7 @@ async def test_rpc_methods(verb, client_and_model):
     elif verb == "bulk_delete":
         created = await rpc(
             "Gadget.bulk_create",
-            {"payload": [{"name": "A", "age": 1}, {"name": "B", "age": 2}]},
+            {"rows": [{"name": "A", "age": 1}, {"name": "B", "age": 2}]},
         )
         r = created.json()["result"]
         ids = [r[0]["id"], r[1]["id"]]
