@@ -477,6 +477,8 @@ def _wrap_core(model: type, target: str) -> StepFn:
         payload = _ctx_payload(ctx)
 
         if target == "create":
+            if isinstance(payload, list):
+                return await _core.bulk_create(model, payload, db=db)
             return await _core.create(model, payload, db=db)
 
         if target == "read":

@@ -5,7 +5,7 @@ import logging
 from types import SimpleNamespace
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Type, Union
 
-from pydantic import BaseModel, Field, RootModel, create_model
+from pydantic import BaseModel, Field, RootModel, ConfigDict, create_model
 
 from ..opspec import OpSpec
 from ..opspec.types import (
@@ -153,6 +153,44 @@ def _make_pk_model(
     )
 
 
+def _extract_example(schema: Type[BaseModel]) -> Dict[str, Any]:
+    """Build a simple example object from field examples if available."""
+    try:
+        js = schema.model_json_schema()
+    except Exception:
+        return {}
+    out: Dict[str, Any] = {}
+    for name, prop in (js.get("properties") or {}).items():
+        examples = prop.get("examples")
+        if examples:
+            out[name] = examples[0]
+    return out
+
+
+def _one_of_union_model(
+    name: str,
+    single: Type[BaseModel],
+    bulk: Type[BaseModel],
+    *,
+    doc: str,
+    examples: List[Any],
+) -> Type[BaseModel]:
+    """Create a RootModel union with `oneOf` semantics and examples."""
+    union_type = Union[single, bulk]  # type: ignore[valid-type]
+
+    class _UnionModel(RootModel[union_type]):  # type: ignore[misc]
+        model_config = ConfigDict(json_schema_extra={"examples": examples})
+
+        @classmethod
+        def __get_pydantic_json_schema__(cls, core_schema, handler):  # type: ignore[override]
+            schema = handler(core_schema)
+            if "anyOf" in schema:
+                schema["oneOf"] = schema.pop("anyOf")
+            return schema
+
+    return namely_model(_UnionModel, name=name, doc=doc)
+
+
 def _parse_str_ref(s: str) -> Tuple[str, str]:
     """
     Parse dotted schema ref "alias.in" | "alias.out".
@@ -249,8 +287,30 @@ def _default_schemas_for_spec(
     # Canonical targets
     if target == "create":
         item_in = _build_schema(model, verb="create")
-        result["in_"] = _make_single_or_bulk_model(model, "create", item_in)
-        result["out"] = read_schema
+        if read_schema is None:
+            result["in_"] = item_in
+            result["out"] = None
+        else:
+            bulk_in = _make_bulk_rows_model(model, "bulk_create", item_in)
+            bulk_out = _make_bulk_rows_model(model, "bulk_create", read_schema)
+            in_example = _extract_example(item_in)
+            out_example = _extract_example(read_schema)
+            in_examples = [in_example, [in_example] if in_example else []]
+            out_examples = [out_example, [out_example] if out_example else []]
+            result["in_"] = _one_of_union_model(
+                f"{model.__name__}CreateRequest",
+                item_in,
+                bulk_in,
+                doc=f"create request schema for {model.__name__}",
+                examples=in_examples,
+            )
+            result["out"] = _one_of_union_model(
+                f"{model.__name__}CreateResponse",
+                read_schema,
+                bulk_out,
+                doc=f"create response schema for {model.__name__}",
+                examples=out_examples,
+            )
 
     elif target == "read":
         pk_name, pk_type = _pk_info(model)
