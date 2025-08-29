@@ -63,8 +63,8 @@ def _fresh_session():
     engine = create_engine("sqlite:///:memory:")
     # ``Base.metadata`` may have been cleared by other tests; create tables
     # explicitly from the model definitions to avoid missing table errors.
-    Gadget.__table__.create(bind=engine)
-    Hooked.__table__.create(bind=engine)
+    for model in (Gadget, Hooked):
+        model.__table__.create(bind=engine, checkfirst=True)
     return sessionmaker(bind=engine)()
 
 
