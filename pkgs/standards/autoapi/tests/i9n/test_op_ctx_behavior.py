@@ -353,5 +353,6 @@ def test_op_ctx_system_steps(sync_db_session):
 
     _, api = setup_api(Widget, get_sync_db)
     chains = build_phase_chains(Widget, "ping")
-    assert any(fn.__name__ == "start_tx" for fn in chains["START_TX"])
-    assert any(fn.__name__ == "end_tx" for fn in chains["END_TX"])
+    # transactional system steps are managed by runtime and not bound by default
+    assert not chains["START_TX"]
+    assert not chains["END_TX"]
