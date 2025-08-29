@@ -39,7 +39,7 @@ class ApiKey(
 
     label: Mapped[str] = acol(
         storage=S(String, nullable=False),
-        field=F(constraints={"max_length": 120}),
+        field=F(constraints={"max_length": 120}, required_in=("create",)),
     )
 
     digest: Mapped[str] = acol(

@@ -83,10 +83,10 @@ def _ctx_get(ctx: Mapping[str, Any], key: str, default: Any = None) -> Any:
         return getattr(ctx, key, default)
 
 
-def _ctx_payload(ctx: Mapping[str, Any]) -> Mapping[str, Any]:
+def _ctx_payload(ctx: Mapping[str, Any]) -> Any:
     v = _ctx_get(ctx, "payload", None)
-    # Never let non-mapping (incl. SQLA ClauseElement) flow as payload
-    return v if isinstance(v, Mapping) else {}
+    # Accept dict or list payloads; anything else → empty mapping
+    return v if isinstance(v, (Mapping, Sequence)) else {}
 
 
 def _ctx_db(ctx: Mapping[str, Any]) -> Any:
@@ -505,19 +505,39 @@ def _wrap_core(model: type, target: str) -> StepFn:
             return await _core.clear(model, {}, db=db)
 
         if target == "bulk_create":
-            rows = payload if isinstance(payload, list) else []
+            if isinstance(payload, list):
+                rows = payload
+            elif isinstance(payload, Mapping):
+                rows = [payload]
+            else:
+                rows = []
             return await _core.bulk_create(model, rows, db=db)
 
         if target == "bulk_update":
-            rows = payload if isinstance(payload, list) else []
+            if isinstance(payload, list):
+                rows = payload
+            elif isinstance(payload, Mapping):
+                rows = [payload]
+            else:
+                rows = []
             return await _core.bulk_update(model, rows, db=db)
 
         if target == "bulk_replace":
-            rows = payload if isinstance(payload, list) else []
+            if isinstance(payload, list):
+                rows = payload
+            elif isinstance(payload, Mapping):
+                rows = [payload]
+            else:
+                rows = []
             return await _core.bulk_replace(model, rows, db=db)
 
         if target == "bulk_upsert":
-            rows = payload if isinstance(payload, list) else []
+            if isinstance(payload, list):
+                rows = payload
+            elif isinstance(payload, Mapping):
+                rows = [payload]
+            else:
+                rows = []
             return await _core.bulk_upsert(model, rows, db=db)
 
         if target == "bulk_delete":

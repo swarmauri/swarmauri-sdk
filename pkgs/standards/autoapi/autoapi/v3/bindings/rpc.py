@@ -68,10 +68,8 @@ def _get_phase_chains(
     return out
 
 
-def _coerce_payload(payload: Any) -> Mapping[str, Any]:
-    """
-    Accept dict-like or Pydantic models; fallback to {} for None.
-    """
+def _coerce_payload(payload: Any) -> Any:
+    """Return a plain representation of payload preserving lists and dicts."""
     if payload is None:
         return {}
     if isinstance(payload, BaseModel):
@@ -81,7 +79,11 @@ def _coerce_payload(payload: Any) -> Mapping[str, Any]:
             return dict(payload.__dict__)
     if isinstance(payload, Mapping):
         return dict(payload)
-    return {}  # unexpected shapes → ignore
+    if isinstance(payload, Sequence) and not isinstance(
+        payload, (str, bytes, bytearray)
+    ):
+        return list(payload)
+    return payload
 
 
 def _validate_input(
@@ -100,7 +102,10 @@ def _validate_input(
     if in_model and inspect.isclass(in_model) and issubclass(in_model, BaseModel):
         try:
             inst = in_model.model_validate(payload)  # type: ignore[arg-type]
-            return inst.model_dump(exclude_none=True)
+            data = inst.model_dump(exclude_none=True)
+            if getattr(inst, "root", None) is not None:
+                return inst.root
+            return data
         except Exception as e:
             # Let the executor/runtime error mappers standardize later; pass original payload
             logger.debug(
