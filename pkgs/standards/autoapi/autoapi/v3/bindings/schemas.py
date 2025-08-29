@@ -119,12 +119,13 @@ def _make_bulk_ids_model(
     )
 
 
-def _make_bulk_deleted_response_model(model: type, verb: str) -> Type[BaseModel]:
+def _make_deleted_response_model(model: type, verb: str) -> Type[BaseModel]:
     """Build a response schema with a ``deleted`` count."""
     name = f"{model.__name__}{_camel(verb)}Response"
     schema = create_model(  # type: ignore[call-arg]
         name,
-        deleted=(int, Field(...)),
+        deleted=(int, Field(..., examples=[0])),
+        __config__=ConfigDict(json_schema_extra={"examples": [{"deleted": 0}]}),
     )
     return namely_model(
         schema,
@@ -290,7 +291,7 @@ def _default_schemas_for_spec(
     elif target == "clear":
         params = _build_list_params(model)
         result["in_"] = params
-        result["out"] = read_schema
+        result["out"] = _make_deleted_response_model(model, "clear")
 
     elif target == "bulk_create":
         item_in = _build_schema(model, verb="create")
@@ -334,7 +335,7 @@ def _default_schemas_for_spec(
     elif target == "bulk_delete":
         pk_name, pk_type = _pk_info(model)
         result["in_"] = _make_bulk_ids_model(model, "bulk_delete", pk_type)
-        result["out"] = _make_bulk_deleted_response_model(model, "bulk_delete")
+        result["out"] = _make_deleted_response_model(model, "bulk_delete")
 
     elif target == "custom":
         # Build schemas for custom operations based on verb-specific IO specs
