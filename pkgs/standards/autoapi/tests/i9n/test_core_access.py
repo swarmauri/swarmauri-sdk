@@ -101,7 +101,7 @@ async def test_core_and_core_raw_sync_operations(sync_api):
                     "email": f"b_{uid}@example.com",
                 },
             ]
-            created_rows = await model.bulk_create({"rows": rows}, db=db)
+            created_rows = await model.bulk_create(rows, db=db)
             ids = [r["id"] if isinstance(r, Mapping) else r.id for r in created_rows]
             assert len(ids) == 2
 
@@ -109,7 +109,7 @@ async def test_core_and_core_raw_sync_operations(sync_api):
                 {"id": ids[0], "age": 20},
                 {"id": ids[1], "age": 21},
             ]
-            payload = {"rows": upd_rows}
+            payload = upd_rows
             updated_rows = await model.bulk_update(
                 None, db=db, ctx={"payload": payload}
             )
@@ -119,7 +119,7 @@ async def test_core_and_core_raw_sync_operations(sync_api):
                 {"id": ids[0], "name": "A1", "email": f"a1_{uid}@example.com"},
                 {"id": ids[1], "name": "B1", "email": f"b1_{uid}@example.com"},
             ]
-            payload = {"rows": rep_rows}
+            payload = rep_rows
             replaced_rows = await model.bulk_replace(
                 None, db=db, ctx={"payload": payload}
             )
