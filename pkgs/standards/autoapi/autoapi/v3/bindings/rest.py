@@ -95,6 +95,7 @@ from ..config.constants import (
 )
 from ..rest import _nested_prefix
 from ..schema.builder import _strip_parent_fields
+from ..mixins import BulkCapable
 
 logger = logging.getLogger(__name__)
 
@@ -773,7 +774,7 @@ def _make_collection_endpoint(
 
     body_model = _request_model_for(sp, model)
     base_annotation = body_model if body_model is not None else Mapping[str, Any]
-    if target == "create":
+    if target == "create" and not issubclass(model, BulkCapable):
         try:
             body_annotation = Union[base_annotation, list[base_annotation]]  # type: ignore[valid-type]
         except Exception:  # pragma: no cover - best effort
