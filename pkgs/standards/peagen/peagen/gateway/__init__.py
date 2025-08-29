@@ -187,7 +187,7 @@ api.include_models(
         RawBlob,
     ]
 )
-api.set_auth(authn=authn_adapter)
+api.set_auth(authn=authn_adapter.get_principal)
 
 api.mount_jsonrpc(prefix="/rpc")
 api.attach_diagnostics(prefix="/system")
