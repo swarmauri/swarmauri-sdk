@@ -63,12 +63,14 @@ def _make_bulk_rows_model(
     Build a root model representing `List[item_schema]`.
     """
     name = f"{model.__name__}{_camel(verb)}Request"
-    schema = create_model(  # type: ignore[call-arg]
-        name,
-        __base__=RootModel[List[item_schema]],
-    )
+    example = _extract_example(item_schema)
+    examples = [[example]] if example else []
+
+    class _BulkModel(RootModel[List[item_schema]]):  # type: ignore[misc]
+        model_config = ConfigDict(json_schema_extra={"examples": examples})
+
     return namely_model(
-        schema,
+        _BulkModel,
         name=name,
         doc=f"{verb} request schema for {model.__name__}",
     )
@@ -79,12 +81,14 @@ def _make_bulk_rows_response_model(
 ) -> Type[BaseModel]:
     """Build a root model representing ``List[item_schema]`` for responses."""
     name = f"{model.__name__}{_camel(verb)}Response"
-    schema = create_model(  # type: ignore[call-arg]
-        name,
-        __base__=RootModel[List[item_schema]],
-    )
+    example = _extract_example(item_schema)
+    examples = [[example]] if example else []
+
+    class _BulkModel(RootModel[List[item_schema]]):  # type: ignore[misc]
+        model_config = ConfigDict(json_schema_extra={"examples": examples})
+
     return namely_model(
-        schema,
+        _BulkModel,
         name=name,
         doc=f"{verb} response schema for {model.__name__}",
     )
@@ -95,12 +99,15 @@ def _make_single_or_bulk_model(
 ) -> Type[BaseModel]:
     """Build a root model accepting a single item or a list of items."""
     name = f"{model.__name__}{_camel(verb)}Request"
-    schema = create_model(  # type: ignore[call-arg]
-        name,
-        __base__=RootModel[Union[item_schema, List[item_schema]]],  # type: ignore[valid-type]
-    )
+    example = _extract_example(item_schema)
+    examples = [example, [example] if example else []]
+    union_type = Union[item_schema, List[item_schema]]  # type: ignore[valid-type]
+
+    class _UnionModel(RootModel[union_type]):  # type: ignore[misc]
+        model_config = ConfigDict(json_schema_extra={"examples": examples})
+
     return namely_model(
-        schema,
+        _UnionModel,
         name=name,
         doc=f"{verb} request schema for {model.__name__}",
     )
