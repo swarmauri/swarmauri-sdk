@@ -768,6 +768,7 @@ def _make_collection_endpoint(
 
     body_model = _request_model_for(sp, model)
     base_annotation = body_model if body_model is not None else Mapping[str, Any]
+    body_required = True
     if target in {"bulk_create", "bulk_update", "bulk_replace"}:
         if body_model is None:
             try:
@@ -776,20 +777,34 @@ def _make_collection_endpoint(
                 body_annotation = List[Mapping[str, Any]]  # type: ignore[name-defined]
         else:
             body_annotation = base_annotation
+    elif target in {"create", "clear"}:
+        body_annotation = Any
+        if target == "clear":
+            body_required = False
     else:
         body_annotation = base_annotation
+
+    body_param = Body(... if body_required else None)
 
     async def _endpoint(
         request: Request,
         db: Any = Depends(db_dep),
-        body=Body(...),
+        body=body_param,
         **kw: Any,
     ):
         parent_kw = {k: kw[k] for k in nested_vars if k in kw}
         _coerce_parent_kw(model, parent_kw)
-        payload = _validate_body(model, alias, target, body)
         exec_alias = alias
         exec_target = target
+        if (
+            target == "create"
+            and isinstance(body, Sequence)
+            and not isinstance(body, (str, bytes, Mapping))
+        ):
+            exec_alias = exec_target = "bulk_create"
+        elif target == "clear" and isinstance(body, Mapping) and "ids" in body:
+            exec_alias = exec_target = "bulk_delete"
+        payload = _validate_body(model, exec_alias, exec_target, body)
         if parent_kw:
             if isinstance(payload, Mapping):
                 payload = dict(payload)
@@ -840,7 +855,7 @@ def _make_collection_endpoint(
             inspect.Parameter(
                 "body",
                 inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                annotation=Annotated[body_annotation, Body(...)],
+                annotation=Annotated[body_annotation, body_param],
             ),
         ]
     )
