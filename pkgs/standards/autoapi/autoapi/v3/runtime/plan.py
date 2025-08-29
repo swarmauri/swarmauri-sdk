@@ -119,6 +119,8 @@ def build_plan(
 
     # Partition atoms into per-model vs per-field subjects
     per_field_subjects = {
+        # schema
+        ("schema", "collect_in"),
         # wire (contract → wire)
         ("wire", "build_in"),
         ("wire", "validate"),  # canonical subject (alias of validate_in)
