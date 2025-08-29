@@ -4,7 +4,29 @@ from types import SimpleNamespace
 from autoapi.v3.system import diagnostics as _diag
 from autoapi.v3.system.diagnostics import _build_planz_endpoint
 from autoapi.v3.opspec import OpSpec
-from autoapi.v3.runtime import plan as _plan
+from autoapi.v3.runtime import plan as _plan, labels as _lbl
+
+
+class DummyLabel:
+    def __init__(self, text: str, anchor: str, kind: str = "atom") -> None:
+        self.text = text
+        self.anchor = anchor
+        self.kind = kind
+
+    def __str__(self) -> str:  # pragma: no cover - trivial
+        return self.text
+
+
+def sample_hook(ctx):
+    return None
+
+
+def dep_fn(ctx):
+    return None
+
+
+def secdep_fn(ctx):
+    return None
 
 
 @pytest.mark.asyncio
@@ -26,6 +48,8 @@ async def test_planz_endpoint_sequence(monkeypatch: pytest.MonkeyPatch):
                 table=Model,
                 persist="default",
                 handler=handler,
+                deps=(dep_fn,),
+                secdeps=(secdep_fn,),
             ),
             OpSpec(
                 alias="read",
@@ -37,13 +61,26 @@ async def test_planz_endpoint_sequence(monkeypatch: pytest.MonkeyPatch):
         )
     )
 
+    Model.hooks = SimpleNamespace(write=SimpleNamespace(PRE_HANDLER=[sample_hook]))
+
     dummy_plan = object()
     Model.runtime = SimpleNamespace(plan=dummy_plan)
 
-    def fake_flattened_order(plan, *, persist, include_system_steps, deps):
+    dep_label = _diag._label_callable(dep_fn)
+    secdep_label = _diag._label_callable(secdep_fn)
+    handler_label = _diag._label_callable(handler)
+
+    def fake_flattened_order(plan, *, persist, include_system_steps, deps, secdeps):
         assert plan is dummy_plan
         if persist:
-            return ["sys:txn:begin@START_TX"]
+            assert set(deps) == {dep_label, handler_label}
+            assert secdeps == [secdep_label]
+            return [
+                DummyLabel(f"secdep:{secdep_label}", "", kind="secdep"),
+                DummyLabel(f"dep:{dep_label}", "", kind="dep"),
+                DummyLabel(f"dep:{handler_label}", "", kind="dep"),
+                DummyLabel("sys:txn:begin@START_TX", "START_TX", kind="sys"),
+            ]
         return []
 
     monkeypatch.setattr(_plan, "flattened_order", fake_flattened_order)
@@ -56,7 +93,12 @@ async def test_planz_endpoint_sequence(monkeypatch: pytest.MonkeyPatch):
 
     assert "Model" in data
     assert "write" in data["Model"]
-    assert any("sys:txn:begin@START_TX" in s for s in data["Model"]["write"])
+    hook_label = f"hook:{_lbl.DOMAINS[-1]}:{_diag._label_callable(sample_hook).replace('.', ':')}@PRE_HANDLER"
+    assert hook_label in data["Model"]["write"]
+    assert f"secdep:{secdep_label}" in data["Model"]["write"]
+    assert f"dep:{dep_label}" in data["Model"]["write"]
+    assert f"dep:{handler_label}" in data["Model"]["write"]
+    assert "sys:txn:begin@START_TX" in data["Model"]["write"]
     assert "read" in data["Model"]
     assert not any("sys:txn:begin@START_TX" in s for s in data["Model"]["read"])
 
@@ -88,16 +130,22 @@ async def test_planz_endpoint_prefers_compiled_plan_for_atoms(
         )
     )
 
+    Model.hooks = SimpleNamespace(create=SimpleNamespace(PRE_HANDLER=[sample_hook]))
+
     dummy_plan = object()
     Model.runtime = SimpleNamespace(plan=dummy_plan)
 
     calls = {"flatten": False, "chains": False}
 
-    def fake_flattened_order(plan, *, persist, include_system_steps, deps):
+    def fake_flattened_order(plan, *, persist, include_system_steps, deps, secdeps):
         calls["flatten"] = True
         return [
-            "atom:emit:paired_pre@emit:aliases:pre_flush",
-            "sys:txn:begin@START_TX",
+            DummyLabel("sys:txn:begin@START_TX", "START_TX", kind="sys"),
+            DummyLabel(
+                "atom:emit:paired_pre@emit:aliases:pre_flush",
+                "emit:aliases:pre_flush",
+                kind="atom",
+            ),
         ]
 
     def fake_build_phase_chains(model, alias):
@@ -115,7 +163,9 @@ async def test_planz_endpoint_prefers_compiled_plan_for_atoms(
 
     assert calls["flatten"] is True
     assert calls["chains"] is False
+    hook_label = f"hook:{_lbl.DOMAINS[-1]}:{_diag._label_callable(sample_hook).replace('.', ':')}@PRE_HANDLER"
     assert data["Model"]["create"] == [
-        "atom:emit:paired_pre@emit:aliases:pre_flush",
+        hook_label,
         "sys:txn:begin@START_TX",
+        "atom:emit:paired_pre@emit:aliases:pre_flush",
     ]

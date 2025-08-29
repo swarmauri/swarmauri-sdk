@@ -239,14 +239,14 @@ class TestCRUDOperationalEndpoints:
     @pytest.mark.asyncio
     async def test_methodz_endpoint(self, async_client: AsyncClient):
         """Test that the methodz endpoint is available."""
-        response = await async_client.get("/methodz")
+        response = await async_client.get("/system/methodz")
         assert response.status_code == 200
         assert response.headers["content-type"].startswith("application/json")
 
     @pytest.mark.asyncio
     async def test_healthz_endpoint(self, async_client: AsyncClient):
         """Test that the healthz endpoint is available."""
-        response = await async_client.get("/healthz")
+        response = await async_client.get("/system/healthz")
         assert response.status_code == 200
         data = response.json()
         # The response might have either "status" or "ok" field

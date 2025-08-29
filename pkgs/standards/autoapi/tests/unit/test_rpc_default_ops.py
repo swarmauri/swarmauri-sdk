@@ -75,9 +75,8 @@ async def test_rpc_update(api_and_session):
     updated = await api.rpc_call(
         Widget,
         "update",
-        {"name": "c2"},
+        {"id": created["id"], "name": "c2"},
         db=db,
-        ctx={"path_params": {"id": created["id"]}},
     )
     assert updated["name"] == "c2"
 
@@ -89,9 +88,8 @@ async def test_rpc_replace(api_and_session):
     replaced = await api.rpc_call(
         Widget,
         "replace",
-        {"name": "d2"},
+        {"id": created["id"], "name": "d2"},
         db=db,
-        ctx={"path_params": {"id": created["id"]}},
     )
     assert replaced["name"] == "d2"
 
@@ -103,9 +101,8 @@ async def test_rpc_delete(api_and_session):
     deleted = await api.rpc_call(
         Widget,
         "delete",
-        {},
+        {"id": created["id"]},
         db=db,
-        ctx={"path_params": {"id": created["id"]}},
     )
     assert deleted["deleted"] == 1
 

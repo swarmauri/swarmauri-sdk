@@ -16,7 +16,7 @@ class RPCRequest(BaseModel):
 
     jsonrpc: Literal["2.0"] = "2.0"
     method: str
-    params: dict[str, Any] = Field(default_factory=dict)
+    params: dict[str, Any] | list[Any] = Field(default_factory=dict)
     id: UUID | str | int | None = Field(
         default_factory=uuid4,
         json_schema_extra=_uuid_examples,

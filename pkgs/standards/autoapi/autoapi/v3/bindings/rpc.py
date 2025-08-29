@@ -68,9 +68,13 @@ def _get_phase_chains(
     return out
 
 
-def _coerce_payload(payload: Any) -> Mapping[str, Any]:
-    """
-    Accept dict-like or Pydantic models; fallback to {} for None.
+def _coerce_payload(payload: Any) -> Any:
+    """Normalize common payload shapes.
+
+    ``dict``-like and Pydantic models become plain ``dict``s. ``None`` becomes an
+    empty ``dict``. Sequence payloads (used by bulk operations) pass through as
+    lists of ``dict``s when possible; otherwise the original sequence is
+    returned. Any other type yields an empty ``dict``.
     """
     if payload is None:
         return {}
@@ -81,7 +85,15 @@ def _coerce_payload(payload: Any) -> Mapping[str, Any]:
             return dict(payload.__dict__)
     if isinstance(payload, Mapping):
         return dict(payload)
-    return {}  # unexpected shapes → ignore
+    if isinstance(payload, Sequence) and not isinstance(payload, (str, bytes)):
+        out: list[Any] = []
+        for item in payload:
+            if isinstance(item, Mapping):
+                out.append(dict(item))
+            else:
+                out.append(item)
+        return out
+    return {}
 
 
 def _validate_input(
@@ -134,16 +146,17 @@ def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
         return result
 
     try:
-        if target in {
-            "list",
-            "bulk_create",
-            "bulk_update",
-            "bulk_replace",
-        } and isinstance(result, (list, tuple)):
+        if target == "list" and isinstance(result, (list, tuple)):
             return [
                 out_model.model_validate(x).model_dump(exclude_none=True, by_alias=True)
                 for x in result
             ]
+        if target in {"bulk_create", "bulk_update", "bulk_replace"} and isinstance(
+            result, (list, tuple)
+        ):
+            return out_model.model_validate(result).model_dump(
+                exclude_none=True, by_alias=True
+            )
         # Single object case
         return out_model.model_validate(result).model_dump(
             exclude_none=True, by_alias=True
@@ -187,10 +200,19 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
     ) -> Any:
         # 1) normalize + validate input
         raw_payload = _coerce_payload(payload)
-        norm_payload = _validate_input(model, alias, target, raw_payload)
-        merged_payload: Dict[str, Any] = dict(raw_payload)
-        for key, value in norm_payload.items():
-            merged_payload[key] = value
+        if target.startswith("bulk_") and isinstance(raw_payload, Sequence):
+            merged_payload = []
+            for item in raw_payload:
+                if isinstance(item, Mapping):
+                    norm = _validate_input(model, alias, target, dict(item))
+                    merged_payload.append({**dict(item), **norm})
+                else:
+                    merged_payload.append(item)
+        else:
+            norm_payload = _validate_input(model, alias, target, raw_payload)
+            merged_payload = dict(raw_payload)
+            for key, value in norm_payload.items():
+                merged_payload[key] = value
 
         # 2) build executor context & phases
         base_ctx: Dict[str, Any] = dict(ctx or {})

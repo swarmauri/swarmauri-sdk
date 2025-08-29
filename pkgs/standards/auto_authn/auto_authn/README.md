@@ -18,8 +18,8 @@ This server provides a FastAPI implementation of the Auto AuthN identity provide
 
 ## Administration
 
-- `GET /healthz` returns service liveness status.
-- `GET /methodz` exposes build metadata for operational checks.
+- `GET /system/healthz` returns service liveness status.
+- `GET /system/methodz` exposes build metadata for operational checks.
 - `GET /.well-known/openid-configuration` publishes OIDC discovery data.
 - `GET /.well-known/jwks.json` exposes the JSON Web Key Set for token verification.
 
@@ -32,7 +32,7 @@ from fastapi.testclient import TestClient
 from auto_authn.app import app
 
 client = TestClient(app)
-assert client.get("/healthz").json() == {"status": "alive"}
+assert client.get("/system/healthz").json() == {"status": "alive"}
 ```
 
 ### Password grant (RFC 6749)

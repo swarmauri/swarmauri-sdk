@@ -10,16 +10,13 @@ Features
 * Auto-generated CRUD router for Tenant / Client / User / ApiKey
 * Public credential routes  (/register, /login, /logout, …)
 * OIDC discovery (`/.well-known/openid-configuration`) + `jwks.json`
-* Health & methodz endpoints for ops
+* System diagnostics endpoints (healthz, methodz, hookz, planz)
 """
 
 from __future__ import annotations
 
-import sys
-
 import fastapi
 
-from autoapi.v3 import get_schema  # convenience helper for /methodz
 from .routers.surface import surface_api
 from .runtime_cfg import settings
 from .rfc8414 import include_rfc8414
@@ -41,6 +38,8 @@ app = fastapi.FastAPI(
 )
 
 # Mount routers
+surface_api.mount_jsonrpc(prefix="/rpc")
+surface_api.attach_diagnostics(prefix="/system")
 app.include_router(surface_api.router)  # /authn/<model> resources & flows
 if settings.enable_rfc8693:
     include_rfc8693(app)
@@ -52,29 +51,6 @@ if settings.enable_rfc7009:
 if settings.enable_rfc8414:
     include_rfc8414(app)
     include_oidc_discovery(app)
-
-
-# --------------------------------------------------------------------
-# Operational endpoints
-# --------------------------------------------------------------------
-@app.get("/healthz", include_in_schema=False)
-async def health_check():
-    return {"status": "alive"}
-
-
-@app.get("/methodz", include_in_schema=False)
-async def methodz():
-    """
-    Basic service metadata; returns OpenAPI schema size & build info.
-    """
-    schema = get_schema.get_autoapi_schema(app)
-    return {
-        "service": app.title,
-        "version": app.version,
-        "routes": len(app.routes),
-        "openapi_bytes": len(schema.json().encode()),
-        "python": sys.version.split()[0],
-    }
 
 
 async def _startup() -> None:

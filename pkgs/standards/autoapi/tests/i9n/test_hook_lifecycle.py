@@ -7,7 +7,7 @@ Tests all hook phases and their behavior across CRUD, nested CRUD, and RPC opera
 import pytest
 from autoapi.v3 import App, AutoAPI, Base
 from autoapi.v3.decorators import hook_ctx
-from autoapi.v3.mixins import BulkCapable, GUIDPk
+from autoapi.v3.mixins import GUIDPk
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, ForeignKey, String, create_engine
 from sqlalchemy.dialects.postgresql import UUID
@@ -103,7 +103,7 @@ async def test_hook_phases_execution_order(db_mode):
         assert ctx["test_data"]["committed"] is True
         ctx["response"].result["hook_completed"] = True
 
-    class Item(Base, GUIDPk, BulkCapable):
+    class Item(Base, GUIDPk):
         __tablename__ = "items"
         tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
         name = Column(String, nullable=False)
@@ -171,7 +171,7 @@ async def test_hook_parity_crud_vs_rpc(db_mode):
         else:
             crud_hooks.append("POST_COMMIT")
 
-    class Item(Base, GUIDPk, BulkCapable):
+    class Item(Base, GUIDPk):
         __tablename__ = "items"
         tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
         name = Column(String, nullable=False)
@@ -220,7 +220,7 @@ async def test_hook_error_handling(db_mode):
     async def failing_hook(cls, ctx):
         raise ValueError("Intentional test error")
 
-    class Item(Base, GUIDPk, BulkCapable):
+    class Item(Base, GUIDPk):
         __tablename__ = "items"
         tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
         name = Column(String, nullable=False)
@@ -283,7 +283,7 @@ async def test_hook_early_termination_and_cleanup(db_mode):
     async def post_response(cls, ctx):
         execution_order.append("POST_RESPONSE")
 
-    class Item(Base, GUIDPk, BulkCapable):
+    class Item(Base, GUIDPk):
         __tablename__ = "items"
         tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
         name = Column(String, nullable=False)
@@ -353,7 +353,7 @@ async def test_hook_context_modification(db_mode):
         assert ctx["custom_data"]["verified"] is True
         assert hasattr(ctx["response"].result, "name")
 
-    class Item(Base, GUIDPk, BulkCapable):
+    class Item(Base, GUIDPk):
         __tablename__ = "items"
         tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
         name = Column(String, nullable=False)
@@ -400,7 +400,7 @@ async def test_catch_all_hooks(db_mode):
         __tablename__ = "tenants"
         name = Column(String, nullable=False)
 
-    class Item(CatchAllMixin, Base, GUIDPk, BulkCapable):
+    class Item(CatchAllMixin, Base, GUIDPk):
         __tablename__ = "items"
         tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
         name = Column(String, nullable=False)
@@ -464,7 +464,7 @@ async def test_multiple_hooks_same_phase(db_mode):
     async def third_hook(cls, ctx):
         executions.append("third")
 
-    class Item(Base, GUIDPk, BulkCapable):
+    class Item(Base, GUIDPk):
         __tablename__ = "items"
         tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
         name = Column(String, nullable=False)

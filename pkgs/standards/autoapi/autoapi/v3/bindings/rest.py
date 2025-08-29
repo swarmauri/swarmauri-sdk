@@ -1,7 +1,6 @@
 # autoapi/v3/bindings/rest.py
 from __future__ import annotations
 
-import dataclasses
 import inspect
 import logging
 import re
@@ -13,6 +12,7 @@ from typing import (
     Awaitable,
     Callable,
     Dict,
+    List,
     Mapping,
     Optional,
     Sequence,
@@ -207,26 +207,10 @@ def _serialize_output(
     can JSON-encode the response.
     """
 
-    def _fallback(obj: Any) -> Any:
-        if isinstance(obj, Mapping):
-            return dict(obj)
-        if dataclasses.is_dataclass(obj):
-            return dataclasses.asdict(obj)
-        table = getattr(model, "__table__", None)
-        if table is not None:
-            try:
-                return {c.name: getattr(obj, c.name, None) for c in table.columns}
-            except Exception:
-                pass
-        try:
-            return {k: v for k, v in vars(obj).items() if not k.startswith("_")}
-        except Exception:
-            return obj
-
     def _final(val: Any) -> Any:
         if target == "list" and isinstance(val, (list, tuple)):
-            return [_fallback(v) for v in val]
-        return _fallback(val)
+            return [_ensure_jsonable(v) for v in val]
+        return _ensure_jsonable(val)
 
     schemas_root = getattr(model, "schemas", None)
     if not schemas_root:
@@ -262,15 +246,52 @@ def _serialize_output(
 
 def _validate_body(
     model: type, alias: str, target: str, body: Any | None
-) -> Mapping[str, Any]:
+) -> Mapping[str, Any] | Sequence[Mapping[str, Any]]:
     """Normalize and validate the incoming request body.
 
-    Accepts dict-like payloads or Pydantic models. If the AutoAPI schemas
-    define a request model, use it for validation; otherwise return the
-    payload as-is (coerced to a dict when possible).
+    Accepts dict-like payloads or sequences of dict-like payloads for bulk
+    operations. If the AutoAPI schemas define a request model, use it for
+    validation; otherwise return the payload as-is (coerced to a
+    ``dict``/``list`` when possible).
     """
     if isinstance(body, BaseModel):
         return body.model_dump(exclude_none=True)
+
+    # Bulk mutations expect a list payload (bulk_create/bulk_update/bulk_replace).
+    if target in {"bulk_create", "bulk_update", "bulk_replace"}:
+        items: Sequence[Any] = body or []
+        if not isinstance(items, Sequence) or isinstance(items, (str, bytes)):
+            items = []
+
+        schemas_root = getattr(model, "schemas", None)
+        alias_ns = getattr(schemas_root, alias, None) if schemas_root else None
+        in_model = getattr(alias_ns, "in_", None) if alias_ns else None
+
+        out: list[Mapping[str, Any]] = []
+        for item in items:
+            if isinstance(item, BaseModel):
+                out.append(item.model_dump(exclude_none=True))
+                continue
+            data: Mapping[str, Any] | None = None
+            if (
+                in_model
+                and inspect.isclass(in_model)
+                and issubclass(in_model, BaseModel)
+            ):
+                try:
+                    inst = in_model.model_validate(item)  # type: ignore[arg-type]
+                    data = inst.model_dump(exclude_none=True)
+                except Exception:
+                    logger.debug(
+                        "rest input body validation failed for %s.%s",
+                        model.__name__,
+                        alias,
+                        exc_info=True,
+                    )
+            if data is None:
+                data = dict(item) if isinstance(item, Mapping) else {}
+            out.append(data)
+        return out
 
     body = body or {}
     if not isinstance(body, Mapping):
@@ -288,14 +309,17 @@ def _validate_body(
         try:
             inst = in_model.model_validate(body)  # type: ignore[arg-type]
             return inst.model_dump(exclude_none=True)
-        except Exception:
+        except Exception as e:
             logger.debug(
                 "rest input body validation failed for %s.%s",
                 model.__name__,
                 alias,
                 exc_info=True,
             )
-            return dict(body)
+            raise HTTPException(
+                status_code=_status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=str(e),
+            )
     return dict(body)
 
 
@@ -743,7 +767,17 @@ def _make_collection_endpoint(
     # --- Body-based collection endpoints: create / bulk_* ---
 
     body_model = _request_model_for(sp, model)
-    body_annotation = body_model if body_model is not None else Mapping[str, Any]
+    base_annotation = body_model if body_model is not None else Mapping[str, Any]
+    if target in {"bulk_create", "bulk_update", "bulk_replace"}:
+        if body_model is None:
+            try:
+                body_annotation = list[Mapping[str, Any]]  # type: ignore[valid-type]
+            except Exception:  # pragma: no cover - best effort
+                body_annotation = List[Mapping[str, Any]]  # type: ignore[name-defined]
+        else:
+            body_annotation = base_annotation
+    else:
+        body_annotation = base_annotation
 
     async def _endpoint(
         request: Request,
@@ -754,6 +788,8 @@ def _make_collection_endpoint(
         parent_kw = {k: kw[k] for k in nested_vars if k in kw}
         _coerce_parent_kw(model, parent_kw)
         payload = _validate_body(model, alias, target, body)
+        exec_alias = alias
+        exec_target = target
         if parent_kw:
             if isinstance(payload, Mapping):
                 payload = dict(payload)
@@ -766,13 +802,13 @@ def _make_collection_endpoint(
             "payload": payload,
             "path_params": parent_kw,
             "env": SimpleNamespace(
-                method=alias, params=payload, target=target, model=model
+                method=exec_alias, params=payload, target=exec_target, model=model
             ),
         }
         ctx["response_serializer"] = lambda r: _serialize_output(
-            model, alias, target, sp, r
+            model, exec_alias, exec_target, sp, r
         )
-        phases = _get_phase_chains(model, alias)
+        phases = _get_phase_chains(model, exec_alias)
         result = await _executor._invoke(
             request=request,
             db=db,
@@ -1105,8 +1141,22 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
     # like "/resource/bulk" aren't captured by dynamic member routes such as
     # "/resource/{item_id}". FastAPI matches routes in the order they are
     # added, so sorting here prevents "bulk" from being treated as an
-    # identifier.
-    specs = sorted(specs, key=lambda sp: (0 if sp.target.startswith("bulk_") else 1))
+    # identifier. Ensure the single-record ``create`` route is registered
+    # before ``bulk_create`` so regular POSTs continue to behave as expected.
+    specs = sorted(
+        specs,
+        key=lambda sp: (
+            -1
+            if sp.target == "clear"
+            else 0
+            if sp.target in {"bulk_update", "bulk_replace", "bulk_delete"}
+            else 1
+            if sp.target == "create"
+            else 2
+            if sp.target == "bulk_create"
+            else 3
+        ),
+    )
 
     for sp in specs:
         if not sp.expose_routes:
@@ -1124,7 +1174,24 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
                         and inspect.isclass(in_model)
                         and issubclass(in_model, BaseModel)
                     ):
-                        pruned = _strip_parent_fields(in_model, drop=set(nested_vars))
+                        target = in_model
+                        root_field = getattr(in_model, "model_fields", {}).get("root")
+                        if root_field is not None:
+                            ann = root_field.annotation
+                            inner = None
+                            for t in _get_args(ann) or (ann,):
+                                origin = _get_origin(t)
+                                if origin in {list, _typing.List}:
+                                    t_args = _get_args(t)
+                                    if t_args:
+                                        t = t_args[0]
+                                        origin = _get_origin(t)
+                                if inspect.isclass(t) and issubclass(t, BaseModel):
+                                    inner = t
+                                    break
+                            if inner is not None:
+                                target = inner
+                        pruned = _strip_parent_fields(target, drop=set(nested_vars))
                         setattr(alias_ns, "in_", pruned)
 
         # Determine path and membership
@@ -1132,7 +1199,9 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
             suffix = sp.path_suffix or _default_path_suffix(sp) or ""
             if not suffix.startswith("/") and suffix:
                 suffix = "/" + suffix
-            base = f"{nested_pref.rstrip('/')}/{resource}"
+            base = nested_pref.rstrip("/")
+            if not base.endswith(f"/{resource}"):
+                base = f"{base}/{resource}"
             if sp.arity == "member" or sp.target in {
                 "read",
                 "update",
