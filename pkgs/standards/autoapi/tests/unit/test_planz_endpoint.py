@@ -169,3 +169,49 @@ async def test_planz_endpoint_prefers_compiled_plan_for_atoms(
         "sys:txn:begin@START_TX",
         "atom:emit:paired_pre@emit:aliases:pre_flush",
     ]
+
+
+@pytest.mark.asyncio
+async def test_planz_endpoint_uses_cache(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Subsequent calls should reuse cached plan data."""
+
+    class API:
+        pass
+
+    class Model:
+        __name__ = "Model"
+
+    def handler(ctx):
+        return None
+
+    Model.opspecs = SimpleNamespace(
+        all=(
+            OpSpec(
+                alias="create",
+                target="create",
+                table=Model,
+                persist="default",
+                handler=handler,
+            ),
+        )
+    )
+    dummy_plan = object()
+    Model.runtime = SimpleNamespace(plan=dummy_plan)
+
+    calls = {"flatten": 0}
+
+    def fake_flattened_order(plan, *, persist, include_system_steps, deps, secdeps):
+        calls["flatten"] += 1
+        return []
+
+    monkeypatch.setattr(_plan, "flattened_order", fake_flattened_order)
+
+    api = API()
+    api.models = {"Model": Model}
+
+    planz = _build_planz_endpoint(api)
+
+    await planz()
+    await planz()
+
+    assert calls["flatten"] == 1
