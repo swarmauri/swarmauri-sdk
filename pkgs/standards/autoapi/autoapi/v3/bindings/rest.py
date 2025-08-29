@@ -772,7 +772,7 @@ def _make_collection_endpoint(
 
     body_model = _request_model_for(sp, model)
     base_annotation = body_model if body_model is not None else Mapping[str, Any]
-    if target == "create":
+    if target == "create" and body_model is None:
         try:
             body_annotation = base_annotation | list[base_annotation]
         except Exception:  # pragma: no cover - best effort
