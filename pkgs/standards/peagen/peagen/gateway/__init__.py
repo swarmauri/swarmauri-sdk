@@ -189,6 +189,8 @@ api.include_models(
 )
 api.set_auth(authn=authn_adapter)
 
+api.mount_jsonrpc(prefix="/rpc")
+api.attach_diagnostics(prefix="/system")
 
 app.include_router(api.router)
 app.include_router(ws_router)
