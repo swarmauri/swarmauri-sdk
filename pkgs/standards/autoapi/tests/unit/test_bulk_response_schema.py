@@ -92,6 +92,7 @@ def test_bulk_update_request_and_response_schemas():
     assert req_ref.endswith("WidgetBulkUpdateRequest")
     req_comp = spec["components"]["schemas"]["WidgetBulkUpdateRequest"]
     assert req_comp["items"]["$ref"].endswith("WidgetUpdate")
+    assert "WidgetUpdate" in spec["components"]["schemas"]
     # response schema
     resp_ref = spec["paths"][path]["patch"]["responses"]["200"]["content"][
         "application/json"
@@ -99,6 +100,7 @@ def test_bulk_update_request_and_response_schemas():
     assert resp_ref.endswith("WidgetBulkUpdateResponse")
     resp_comp = spec["components"]["schemas"]["WidgetBulkUpdateResponse"]
     assert resp_comp["items"]["$ref"].endswith("WidgetRead")
+    assert "WidgetRead" in spec["components"]["schemas"]
 
 
 def test_bulk_replace_request_and_response_schemas():
@@ -111,6 +113,7 @@ def test_bulk_replace_request_and_response_schemas():
     assert req_ref.endswith("WidgetBulkReplaceRequest")
     req_comp = spec["components"]["schemas"]["WidgetBulkReplaceRequest"]
     assert req_comp["items"]["$ref"].endswith("WidgetReplace")
+    assert "WidgetReplace" in spec["components"]["schemas"]
     # response schema
     resp_ref = spec["paths"][path]["put"]["responses"]["200"]["content"][
         "application/json"
@@ -118,3 +121,25 @@ def test_bulk_replace_request_and_response_schemas():
     assert resp_ref.endswith("WidgetBulkReplaceResponse")
     resp_comp = spec["components"]["schemas"]["WidgetBulkReplaceResponse"]
     assert resp_comp["items"]["$ref"].endswith("WidgetRead")
+    assert "WidgetRead" in spec["components"]["schemas"]
+
+
+def test_bulk_upsert_request_and_response_schemas():
+    spec = _openapi_for([("bulk_upsert", "bulk_upsert")])
+    path = f"/{Widget.__name__.lower()}"
+    # request schema
+    req_ref = spec["paths"][path]["put"]["requestBody"]["content"]["application/json"][
+        "schema"
+    ]["$ref"]
+    assert req_ref.endswith("WidgetBulkUpsertRequest")
+    req_comp = spec["components"]["schemas"]["WidgetBulkUpsertRequest"]
+    assert req_comp["items"]["$ref"].endswith("WidgetUpsert")
+    assert "WidgetUpsert" in spec["components"]["schemas"]
+    # response schema
+    resp_ref = spec["paths"][path]["put"]["responses"]["200"]["content"][
+        "application/json"
+    ]["schema"]["$ref"]
+    assert resp_ref.endswith("WidgetBulkUpsertResponse")
+    resp_comp = spec["components"]["schemas"]["WidgetBulkUpsertResponse"]
+    assert resp_comp["items"]["$ref"].endswith("WidgetRead")
+    assert "WidgetRead" in spec["components"]["schemas"]

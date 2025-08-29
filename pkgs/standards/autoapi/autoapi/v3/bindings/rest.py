@@ -278,7 +278,7 @@ def _validate_body(
 
         schemas_root = getattr(model, "schemas", None)
         alias_ns = getattr(schemas_root, alias, None) if schemas_root else None
-        in_model = getattr(alias_ns, "in_", None) if alias_ns else None
+        in_item = getattr(alias_ns, "in_item", None) if alias_ns else None
 
         out: list[Mapping[str, Any]] = []
         for item in items:
@@ -286,13 +286,9 @@ def _validate_body(
                 out.append(item.model_dump(exclude_none=True))
                 continue
             data: Mapping[str, Any] | None = None
-            if (
-                in_model
-                and inspect.isclass(in_model)
-                and issubclass(in_model, BaseModel)
-            ):
+            if in_item and inspect.isclass(in_item) and issubclass(in_item, BaseModel):
                 try:
-                    inst = in_model.model_validate(item)  # type: ignore[arg-type]
+                    inst = in_item.model_validate(item)  # type: ignore[arg-type]
                     data = inst.model_dump(exclude_none=True)
                 except Exception:
                     logger.debug(

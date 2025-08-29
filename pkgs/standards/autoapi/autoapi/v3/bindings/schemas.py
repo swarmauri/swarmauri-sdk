@@ -65,12 +65,8 @@ def _make_bulk_rows_model(
     example = _extract_example(item_schema)
     examples = [[example]] if example else []
 
-    item_ref = {"$ref": f"#/components/schemas/{item_schema.__name__}"}
-
     class _BulkModel(RootModel[List[item_schema]]):  # type: ignore[misc]
-        model_config = ConfigDict(
-            json_schema_extra={"examples": examples, "items": item_ref}
-        )
+        model_config = ConfigDict(json_schema_extra={"examples": examples})
 
     return namely_model(
         _BulkModel,
@@ -87,12 +83,8 @@ def _make_bulk_rows_response_model(
     example = _extract_example(item_schema)
     examples = [[example]] if example else []
 
-    item_ref = {"$ref": f"#/components/schemas/{item_schema.__name__}"}
-
     class _BulkModel(RootModel[List[item_schema]]):  # type: ignore[misc]
-        model_config = ConfigDict(
-            json_schema_extra={"examples": examples, "items": item_ref}
-        )
+        model_config = ConfigDict(json_schema_extra={"examples": examples})
 
     return namely_model(
         _BulkModel,

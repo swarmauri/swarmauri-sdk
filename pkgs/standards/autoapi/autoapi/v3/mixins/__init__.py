@@ -407,13 +407,17 @@ class BulkCapable:
     __autoapi_defaults_include__: set[str] = set(
         v for v in BULK_VERBS if v != "bulk_replace"
     )
-    __autoapi_defaults_exclude__: set[str] = set()
+    __autoapi_defaults_exclude__: set[str] = {"upsert"}
 
     def __init_subclass__(cls, **kw):
         super().__init_subclass__(**kw)
         inc = set(getattr(cls, "__autoapi_defaults_include__", set()))
         inc.update(BulkCapable.__autoapi_defaults_include__)
         cls.__autoapi_defaults_include__ = inc
+
+        exc = set(getattr(cls, "__autoapi_defaults_exclude__", set()))
+        exc.update(BulkCapable.__autoapi_defaults_exclude__)
+        cls.__autoapi_defaults_exclude__ = exc
 
 
 # ────────── Enable PUT METHOD ------------------------------------------
