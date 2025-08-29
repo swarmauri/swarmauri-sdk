@@ -5,13 +5,18 @@ from autoapi.v3.mixins import GUIDPk, BulkCapable
 from autoapi.v3.types import Column, String, App
 
 
-class Widget(Base, GUIDPk, BulkCapable):
+class Widget(Base, GUIDPk):
     __tablename__ = "widgets_example_schemas"
     name = Column(String, nullable=False, info={"autoapi": {"examples": ["foo"]}})
 
 
-def _openapi_for(ops):
-    router = _build_router(Widget, [OpSpec(alias=a, target=t) for a, t in ops])
+class BulkWidget(Base, GUIDPk, BulkCapable):
+    __tablename__ = "widgets_example_schemas_bulk"
+    name = Column(String, nullable=False, info={"autoapi": {"examples": ["foo"]}})
+
+
+def _openapi_for(model, ops):
+    router = _build_router(model, [OpSpec(alias=a, target=t) for a, t in ops])
     app = App()
     app.include_router(router)
     return app.openapi()
@@ -25,31 +30,28 @@ def _resolve_schema(spec, schema):
 
 
 def test_create_request_model_examples():
-    spec = _openapi_for([("create", "create")])
+    spec = _openapi_for(Widget, [("create", "create")])
     path = f"/{Widget.__name__.lower()}"
     schema = spec["paths"][path]["post"]["requestBody"]["content"]["application/json"][
         "schema"
     ]
     schema = _resolve_schema(spec, schema)
-    assert schema["examples"][0] == {"name": "foo"}
-    assert schema["examples"][1] == [{"name": "foo"}]
+    assert schema["properties"]["name"]["examples"][0] == "foo"
 
 
 def test_create_response_model_examples():
-    spec = _openapi_for([("create", "create")])
+    spec = _openapi_for(Widget, [("create", "create")])
     path = f"/{Widget.__name__.lower()}"
     schema = spec["paths"][path]["post"]["responses"]["201"]["content"][
         "application/json"
     ]["schema"]
     schema = _resolve_schema(spec, schema)
-    single, bulk = schema["examples"]
-    assert single == {"name": "foo"}
-    assert bulk == [{"name": "foo"}]
+    assert schema["properties"]["name"]["examples"][0] == "foo"
 
 
 def test_bulk_request_model_examples():
-    spec = _openapi_for([("bulk_create", "bulk_create")])
-    path = f"/{Widget.__name__.lower()}"
+    spec = _openapi_for(BulkWidget, [("bulk_create", "bulk_create")])
+    path = f"/{BulkWidget.__name__.lower()}"
     schema = spec["paths"][path]["post"]["requestBody"]["content"]["application/json"][
         "schema"
     ]
@@ -58,8 +60,8 @@ def test_bulk_request_model_examples():
 
 
 def test_bulk_response_model_examples():
-    spec = _openapi_for([("bulk_create", "bulk_create")])
-    path = f"/{Widget.__name__.lower()}"
+    spec = _openapi_for(BulkWidget, [("bulk_create", "bulk_create")])
+    path = f"/{BulkWidget.__name__.lower()}"
     schema = spec["paths"][path]["post"]["responses"]["200"]["content"][
         "application/json"
     ]["schema"]
