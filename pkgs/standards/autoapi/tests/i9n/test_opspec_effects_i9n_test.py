@@ -26,12 +26,13 @@ from autoapi.v3.mixins import GUIDPk
 # by earlier tests which still rely on the shared ``Base``.  Subsequent tests
 # would then fail with missing table/column errors (manifesting as HTTP 503
 # responses) because their models lost their metadata.  The table names used in
-# this module are unique, so we can simply avoid clearing the global metadata to
-# preserve isolation without impacting other tests.
+# this module carry an ``_i9n`` suffix to keep them unique, so we can avoid
+# clearing the global metadata to preserve isolation without impacting other
+# tests.
 
 
 class Gadget(Base, GUIDPk):
-    __tablename__ = "gadgets_opspec"
+    __tablename__ = "gadgets_opspec_i9n"
     __allow_unmapped__ = True
 
     name = acol(
@@ -41,7 +42,7 @@ class Gadget(Base, GUIDPk):
 
 
 class Hooked(Base, GUIDPk):
-    __tablename__ = "hooked_opspec"
+    __tablename__ = "hooked_opspec_i9n"
     __allow_unmapped__ = True
 
     name = acol(
