@@ -58,11 +58,23 @@ class Hooked(Base, GUIDPk):
 
 # --- helpers -------------------------------------------------------------------
 
+GADGET_TABLE = Gadget.__table__
+HOOKED_TABLE = Hooked.__table__
+
+
+def _ensure_tables():
+    for model, table in ((Gadget, GADGET_TABLE), (Hooked, HOOKED_TABLE)):
+        if not hasattr(model, "__table__"):
+            model.__table__ = table  # type: ignore[attr-defined]
+        if table.key not in Base.metadata.tables:
+            Base.metadata._add_table(table.name, table.schema, table)
+        if not hasattr(model, "__mapper__"):
+            Base.registry.map_imperatively(model, table)
+
 
 def _fresh_session():
     engine = create_engine("sqlite:///:memory:")
-    # ``Base.metadata`` may have been cleared by other tests; ensure the
-    # required tables exist for this module's models.
+    _ensure_tables()
     Base.metadata.create_all(bind=engine, tables=[Gadget.__table__, Hooked.__table__])
     return sessionmaker(bind=engine)()
 
@@ -72,6 +84,7 @@ def _fresh_session():
 
 @pytest.mark.i9n
 def test_request_and_response_schemas():
+    _ensure_tables()
     bind(Gadget)
     assert hasattr(Gadget.schemas, "create")
     assert hasattr(Gadget.schemas.create, "in_")
@@ -81,6 +94,7 @@ def test_request_and_response_schemas():
 
 @pytest.mark.i9n
 def test_columns_bound():
+    _ensure_tables()
     bind(Gadget)
     assert "name" in Gadget.__table__.c
     assert "name" in Gadget.__autoapi_cols__
@@ -88,6 +102,7 @@ def test_columns_bound():
 
 @pytest.mark.i9n
 def test_defaults_value_resolution():
+    _ensure_tables()
     bind(Gadget)
     db = _fresh_session()
     obj = asyncio.run(_core.create(Gadget, db=db, data={}))
@@ -96,6 +111,7 @@ def test_defaults_value_resolution():
 
 @pytest.mark.i9n
 def test_internal_model_opspec_binding():
+    _ensure_tables()
     bind(Gadget)
     sp = Gadget.opspecs.by_alias["create"][0]
     assert sp.table is Gadget
@@ -103,6 +119,7 @@ def test_internal_model_opspec_binding():
 
 @pytest.mark.i9n
 def test_openapi_includes_path():
+    _ensure_tables()
     bind(Gadget)
     app = App()
     app.include_router(Gadget.rest.router)
@@ -112,6 +129,7 @@ def test_openapi_includes_path():
 
 @pytest.mark.i9n
 def test_storage_and_sqlalchemy_persist():
+    _ensure_tables()
     bind(Gadget)
     db = _fresh_session()
     asyncio.run(_core.create(Gadget, db=db, data={"name": "stored"}))
@@ -121,6 +139,7 @@ def test_storage_and_sqlalchemy_persist():
 
 @pytest.mark.i9n
 def test_rest_routes_bound():
+    _ensure_tables()
     session = _fresh_session()
 
     def get_db():
@@ -136,12 +155,14 @@ def test_rest_routes_bound():
 
 @pytest.mark.i9n
 def test_rpc_method_bound():
+    _ensure_tables()
     bind(Gadget)
     assert hasattr(Gadget.rpc, "create")
 
 
 @pytest.mark.i9n
 def test_core_crud_handler_used():
+    _ensure_tables()
     bind(Gadget)
     step = Gadget.hooks.create.HANDLER[0]
     assert step.__qualname__ == _core.create.__qualname__
@@ -149,12 +170,14 @@ def test_core_crud_handler_used():
 
 @pytest.mark.i9n
 def test_hook_execution():
+    _ensure_tables()
     bind(Hooked)
     assert Hooked.hooks.create.PRE_HANDLER
 
 
 @pytest.mark.i9n
 def test_atom_injection():
+    _ensure_tables()
     bind(Gadget)
     chains = build_phase_chains(Gadget, "create")
     non_handler = [ph for ph in PHASES if ph != "HANDLER" and chains.get(ph)]
