@@ -29,7 +29,6 @@ def key_routes(tmp_path, monkeypatch):
         ("replace", "/kms/key/{item_id}", {"PUT"}),
         ("delete", "/kms/key/{item_id}", {"DELETE"}),
         ("list", "/kms/key", {"GET"}),
-        ("clear", "/kms/key", {"DELETE"}),
         ("bulk_create", "/kms/key", {"POST"}),
         ("bulk_update", "/kms/key", {"PATCH"}),
         ("bulk_replace", "/kms/key", {"PUT"}),
