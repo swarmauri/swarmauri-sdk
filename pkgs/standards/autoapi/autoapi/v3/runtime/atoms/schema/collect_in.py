@@ -25,7 +25,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
     Inputs (conventions)
     --------------------
     - ctx.specs : Mapping[str, ColumnSpec]
-    - ctx.op    : Optional[str]  → e.g. "create" | "update" | "replace" | "upsert" | "delete"
+    - ctx.op    : Optional[str]  → e.g. "create" | "update" | "replace" | "merge" | "delete"
     - ctx.cfg   : Optional[...]  → may contain policy overrides (see _required_for_inbound)
     - ctx.persist : bool         → non-persist ops still expose in-model for filters, but usually tiny
 
@@ -242,7 +242,7 @@ def _required_for_inbound(
             pass
 
     # 3) Storage heuristics (writes)
-    if op in {"create", "replace", "upsert"} and not is_virtual:
+    if op in {"create", "replace", "merge"} and not is_virtual:
         s = getattr(colspec, "storage", None)
         if s is not None:
             # nullable=False implies required unless a server-side value exists

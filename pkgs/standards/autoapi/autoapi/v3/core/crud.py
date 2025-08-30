@@ -552,31 +552,41 @@ async def replace(
     model: type, ident: Any, data: Mapping[str, Any], db: Union[Session, AsyncSession]
 ) -> Any:
     """
-    Replace semantics: attributes not provided are nulled (except PK).
-    Returns the updated model instance. Flush-only.
+    PUT semantics with upsert behaviour.
+
+    If the row exists it is replaced entirely (missing attributes are nulled).
+    If the row does not exist it is created with the provided identifier.
+    Flush-only.
     """
     data = _filter_in_values(model, data or {}, "replace")
     _validate_enum_values(model, data)
-    obj = await read(model, ident, db)
+    pk = _single_pk_name(model)
+    obj = await _maybe_get(db, model, ident)
+    if obj is None:
+        payload = {pk: ident, **data}
+        return await create(model, payload, db=db)
     skip = _immutable_columns(model, "replace")
     _set_attrs(obj, data, allow_missing=False, skip=skip)
     await _maybe_flush(db)
     return obj
 
 
-async def upsert(
-    model: type, data: Mapping[str, Any], db: Union[Session, AsyncSession]
+async def merge(
+    model: type, ident: Any, data: Mapping[str, Any], db: Union[Session, AsyncSession]
 ) -> Any:
-    """Create or update a row depending on primary key presence."""
+    """PATCH semantics with upsert behaviour."""
+    data = _filter_in_values(model, data or {}, "update")
+    _validate_enum_values(model, data)
     pk = _single_pk_name(model)
-    data = dict(data or {})
-    ident = data.get(pk)
-    if ident is not None:
-        existing = await _maybe_get(db, model, ident)
-        if existing is not None:
-            payload = {k: v for k, v in data.items() if k != pk}
-            return await update(model, ident, payload, db=db)
-    return await create(model, data, db=db)
+    obj = await _maybe_get(db, model, ident)
+    if obj is None:
+        payload = {pk: ident, **data}
+        return await create(model, payload, db=db)
+    skip = _immutable_columns(model, "update")
+    _set_attrs(obj, data, allow_missing=True, skip=skip)
+    await _maybe_flush(db)
+    return obj
+
 
 async def delete(
     model: type, ident: Any, db: Union[Session, AsyncSession]
@@ -753,10 +763,10 @@ async def bulk_replace(
     return replaced
 
 
-async def bulk_upsert(
+async def bulk_merge(
     model: type, rows: Iterable[Mapping[str, Any]], db: Union[Session, AsyncSession]
 ) -> List[Any]:
-    """Upsert many rows by primary key."""
+    """Merge many rows by primary key with upsert semantics."""
     pk = _single_pk_name(model)
     results: List[Any] = []
     to_create: List[Mapping[str, Any]] = []
@@ -767,8 +777,8 @@ async def bulk_upsert(
             existing = await _maybe_get(db, model, ident)
             if existing is not None:
                 data = {k: v for k, v in r.items() if k != pk}
-                updated = await update(model, ident, data, db=db)
-                results.append(updated)
+                merged = await merge(model, ident, data, db=db)
+                results.append(merged)
                 continue
         to_create.append(r)
     if to_create:
@@ -813,13 +823,13 @@ __all__ = [
     "read",
     "update",
     "replace",
-    "upsert",
+    "merge",
     "delete",
     "list",
     "clear",
     "bulk_create",
     "bulk_update",
     "bulk_replace",
-    "bulk_upsert",
+    "bulk_merge",
     "bulk_delete",
 ]

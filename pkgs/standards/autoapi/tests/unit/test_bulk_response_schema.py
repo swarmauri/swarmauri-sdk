@@ -121,24 +121,25 @@ def test_bulk_replace_request_and_response_schemas():
     assert resp_comp["items"]["$ref"].endswith("WidgetRead")
 
 
-
-def test_bulk_upsert_request_and_response_schemas():
-    spec = _openapi_for([("bulk_upsert", "bulk_upsert")])
+def test_bulk_merge_request_and_response_schemas():
+    spec = _openapi_for([("bulk_merge", "bulk_merge")])
     path = f"/{Widget.__name__.lower()}"
     # request schema
-    req_ref = spec["paths"][path]["put"]["requestBody"]["content"]["application/json"][
-        "schema"
-    ]["$ref"]
-    assert req_ref.endswith("WidgetBulkUpsertRequest")
-    req_comp = spec["components"]["schemas"]["WidgetBulkUpsertRequest"]
-    assert req_comp["items"]["$ref"].endswith("WidgetBulkUpsertItem")
-    # response schema
-    resp_ref = spec["paths"][path]["put"]["responses"]["200"]["content"][
+    req_ref = spec["paths"][path]["patch"]["requestBody"]["content"][
         "application/json"
     ]["schema"]["$ref"]
-    assert resp_ref.endswith("WidgetBulkUpsertResponse")
-    resp_comp = spec["components"]["schemas"]["WidgetBulkUpsertResponse"]
+    assert req_ref.endswith("WidgetBulkMergeRequest")
+    req_comp = spec["components"]["schemas"]["WidgetBulkMergeRequest"]
+    assert req_comp["items"]["$ref"].endswith("WidgetBulkMergeItem")
+    # response schema
+    resp_ref = spec["paths"][path]["patch"]["responses"]["200"]["content"][
+        "application/json"
+    ]["schema"]["$ref"]
+    assert resp_ref.endswith("WidgetBulkMergeResponse")
+    resp_comp = spec["components"]["schemas"]["WidgetBulkMergeResponse"]
     assert resp_comp["items"]["$ref"].endswith("WidgetRead")
+
+
 def test_update_and_bulk_update_schema_names_do_not_collide():
     spec = _openapi_for([("update", "update"), ("bulk_update", "bulk_update")])
     base = f"/{Widget.__name__.lower()}"
@@ -147,7 +148,7 @@ def test_update_and_bulk_update_schema_names_do_not_collide():
     upd_ref = spec["paths"][update_path]["patch"]["requestBody"]["content"][
         "application/json"
     ]["schema"]["$ref"]
-    assert upd_ref.endswith("WidgetUpdate")
+    assert upd_ref.endswith("WidgetUpdateRequest")
     # bulk update schema
     bulk_ref = spec["paths"][base]["patch"]["requestBody"]["content"][
         "application/json"

@@ -156,10 +156,13 @@ async def test_list_supports_filter_ops_and_desc_sort(session):
 
 
 @pytest.mark.asyncio
-async def test_upsert_creates_and_updates(session):
-    created = await crud.upsert(Widget, {"name": "z", "immutable": "lock"}, session)
+async def test_merge_creates_and_updates(session):
+    ident = 1
+    created = await crud.merge(
+        Widget, ident, {"name": "z", "immutable": "lock"}, session
+    )
     assert created.name == "z"
-    updated = await crud.upsert(Widget, {"id": created.id, "name": "zz"}, session)
+    updated = await crud.merge(Widget, ident, {"name": "zz"}, session)
     assert updated.name == "zz"
 
 

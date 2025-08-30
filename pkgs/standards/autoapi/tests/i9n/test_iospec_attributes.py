@@ -137,11 +137,11 @@ def test_openapi_reflects_io_verbs():
     app.include_router(router)
     spec = app.openapi()
 
-    props_create = spec["components"]["schemas"]["WidgetCreate"]["properties"]
+    props_create = spec["components"]["schemas"]["WidgetCreateRequest"]["properties"]
     assert "name" in props_create
     assert "id" not in props_create
 
-    props_read = spec["components"]["schemas"]["WidgetRead"]["properties"]
+    props_read = spec["components"]["schemas"]["WidgetReadResponse"]["properties"]
     assert "name" in props_read
     assert "id" in props_read
 

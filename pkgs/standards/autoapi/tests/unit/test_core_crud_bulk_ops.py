@@ -115,7 +115,7 @@ async def test_bulk_replace_nulls_missing_fields(session):
 
 
 @pytest.mark.asyncio
-async def test_bulk_upsert_creates_and_updates(session):
+async def test_bulk_merge_creates_and_updates(session):
     [item] = await crud.bulk_create(
         Widget, [{"name": "a", "immutable": "x", "value": 1}], session
     )
@@ -123,7 +123,7 @@ async def test_bulk_upsert_creates_and_updates(session):
         {"id": item.id, "name": "alpha"},
         {"name": "b", "immutable": "y", "value": 2},
     ]
-    result = await crud.bulk_upsert(Widget, rows, session)
+    result = await crud.bulk_merge(Widget, rows, session)
     assert {r.name for r in result} == {"alpha", "b"}
     remaining = await crud.list(Widget, db=session)
     assert {r.name for r in remaining} == {"alpha", "b"}

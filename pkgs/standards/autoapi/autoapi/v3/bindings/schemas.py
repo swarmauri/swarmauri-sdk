@@ -5,7 +5,7 @@ import logging
 from types import SimpleNamespace
 from typing import Any, Dict, Optional, Sequence, Tuple, Type
 
-from pydantic import BaseModel
+from pydantic import BaseModel, create_model
 
 from ..opspec import OpSpec
 from ..opspec.types import (
@@ -20,12 +20,35 @@ from ..schema import (
     _make_bulk_ids_model,
     _make_deleted_response_model,
     _make_pk_model,
+    namely_model,
 )
 from ..decorators import collect_decorated_schemas  # ← seed @schema_ctx declarations
 
 logger = logging.getLogger(__name__)
 
 _Key = Tuple[str, str]  # (alias, target)
+
+
+def _camel(s: str) -> str:
+    return "".join(p.capitalize() or "_" for p in s.split("_"))
+
+
+def _alias_schema(
+    schema: Type[BaseModel], *, model: type, alias: str, kind: str
+) -> Type[BaseModel]:
+    name = f"{model.__name__}{_camel(alias)}{kind}"
+    if getattr(schema, "__name__", None) == name:
+        return schema
+    try:
+        clone = create_model(name, __base__=schema)  # type: ignore[arg-type]
+    except Exception:  # pragma: no cover - best effort
+        return schema
+    return namely_model(
+        clone,
+        name=name,
+        doc=f"{alias} {kind.lower()} schema for {model.__name__}",
+    )
+
 
 # ───────────────────────────────────────────────────────────────────────────────
 # Internal helpers
@@ -178,11 +201,9 @@ def _default_schemas_for_spec(
         result["in_"] = _build_schema(model, verb="replace", exclude={pk_name})
         result["out"] = read_schema
 
-    elif target == "upsert":
-        item_in = _build_schema(model, verb="upsert") or _build_schema(
-            model, verb="replace"
-        )
-        result["in_"] = item_in
+    elif target == "merge":
+        pk_name, _ = _pk_info(model)
+        result["in_"] = _build_schema(model, verb="update", exclude={pk_name})
         result["out"] = read_schema
 
     elif target == "delete":
@@ -199,13 +220,6 @@ def _default_schemas_for_spec(
         params = _build_list_params(model)
         result["in_"] = params
         result["out"] = _make_deleted_response_model(model, "clear")
-
-    elif target == "upsert":
-        item_in = _build_schema(model, verb="upsert") or _build_schema(
-            model, verb="replace"
-        )
-        result["in_"] = item_in
-        result["out"] = read_schema
 
     elif target == "bulk_create":
         item_in = _build_schema(
@@ -252,21 +266,16 @@ def _default_schemas_for_spec(
         )
         result["out_item"] = read_schema
 
-    elif target == "bulk_upsert":
-        # Prefer a dedicated 'upsert' item shape if available; otherwise fall back to 'replace'
+    elif target == "bulk_merge":
         item_in = _build_schema(
             model,
-            verb="upsert",
-            name=f"{model.__name__}BulkUpsertItem",
-        ) or _build_schema(
-            model,
-            verb="replace",
-            name=f"{model.__name__}BulkUpsertItem",
+            verb="update",
+            name=f"{model.__name__}BulkMergeItem",
         )
-        result["in_"] = _make_bulk_rows_model(model, "bulk_upsert", item_in)
+        result["in_"] = _make_bulk_rows_model(model, "bulk_merge", item_in)
         result["in_item"] = item_in
         result["out"] = (
-            _make_bulk_rows_response_model(model, "bulk_upsert", read_schema)
+            _make_bulk_rows_response_model(model, "bulk_merge", read_schema)
             if read_schema
             else None
         )
@@ -433,6 +442,24 @@ def build_and_attach(
             getattr(ns, "in_", None).__name__ if getattr(ns, "in_", None) else None,
             getattr(ns, "out", None).__name__ if getattr(ns, "out", None) else None,
         )
+
+    # Pass 3: ensure alias-specific request/response schema names
+    for sp in specs:
+        ns = _ensure_alias_namespace(model, sp.alias)
+        in_model = getattr(ns, "in_", None)
+        if isinstance(in_model, type) and issubclass(in_model, BaseModel):
+            setattr(
+                ns,
+                "in_",
+                _alias_schema(in_model, model=model, alias=sp.alias, kind="Request"),
+            )
+        out_model = getattr(ns, "out", None)
+        if isinstance(out_model, type) and issubclass(out_model, BaseModel):
+            setattr(
+                ns,
+                "out",
+                _alias_schema(out_model, model=model, alias=sp.alias, kind="Response"),
+            )
 
 
 __all__ = ["build_and_attach"]

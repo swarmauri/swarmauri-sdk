@@ -10,7 +10,7 @@ _SchemaVerb: TypeAlias = Literal[
     "read",
     "update",
     "replace",
-    "upsert",
+    "merge",
     "delete",
     "list",
     "clear",

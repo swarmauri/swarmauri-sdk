@@ -16,14 +16,14 @@ from .crud import (
     read,
     update,
     replace,
-    upsert,
+    merge,
     delete,
     list as _list,  # avoid shadowing built-in, then re-export as `list`
     clear,
     bulk_create,
     bulk_update,
     bulk_replace,
-    bulk_upsert,
+    bulk_merge,
     bulk_delete,
 )
 
@@ -35,13 +35,13 @@ __all__ = [
     "read",
     "update",
     "replace",
-    "upsert",
+    "merge",
     "delete",
     "list",
     "clear",
     "bulk_create",
     "bulk_update",
     "bulk_replace",
-    "bulk_upsert",
+    "bulk_merge",
     "bulk_delete",
 ]
