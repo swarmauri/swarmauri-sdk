@@ -447,14 +447,22 @@ def build_and_attach(
     for sp in specs:
         ns = _ensure_alias_namespace(model, sp.alias)
         in_model = getattr(ns, "in_", None)
-        if isinstance(in_model, type) and issubclass(in_model, BaseModel):
+        if (
+            isinstance(in_model, type)
+            and issubclass(in_model, BaseModel)
+            and getattr(in_model, "__autoapi_schema_decl__", None) is None
+        ):
             setattr(
                 ns,
                 "in_",
                 _alias_schema(in_model, model=model, alias=sp.alias, kind="Request"),
             )
         out_model = getattr(ns, "out", None)
-        if isinstance(out_model, type) and issubclass(out_model, BaseModel):
+        if (
+            isinstance(out_model, type)
+            and issubclass(out_model, BaseModel)
+            and getattr(out_model, "__autoapi_schema_decl__", None) is None
+        ):
             setattr(
                 ns,
                 "out",
