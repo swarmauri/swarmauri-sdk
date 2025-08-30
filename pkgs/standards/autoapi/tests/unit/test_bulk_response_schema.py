@@ -121,7 +121,6 @@ def test_bulk_replace_request_and_response_schemas():
     assert resp_comp["items"]["$ref"].endswith("WidgetRead")
 
 
-
 def test_bulk_upsert_request_and_response_schemas():
     spec = _openapi_for([("bulk_upsert", "bulk_upsert")])
     path = f"/{Widget.__name__.lower()}"
@@ -139,6 +138,8 @@ def test_bulk_upsert_request_and_response_schemas():
     assert resp_ref.endswith("WidgetBulkUpsertResponse")
     resp_comp = spec["components"]["schemas"]["WidgetBulkUpsertResponse"]
     assert resp_comp["items"]["$ref"].endswith("WidgetRead")
+
+
 def test_update_and_bulk_update_schema_names_do_not_collide():
     spec = _openapi_for([("update", "update"), ("bulk_update", "bulk_update")])
     base = f"/{Widget.__name__.lower()}"
@@ -147,7 +148,7 @@ def test_update_and_bulk_update_schema_names_do_not_collide():
     upd_ref = spec["paths"][update_path]["patch"]["requestBody"]["content"][
         "application/json"
     ]["schema"]["$ref"]
-    assert upd_ref.endswith("WidgetUpdate")
+    assert upd_ref.endswith("WidgetUpdateRequest")
     # bulk update schema
     bulk_ref = spec["paths"][base]["patch"]["requestBody"]["content"][
         "application/json"

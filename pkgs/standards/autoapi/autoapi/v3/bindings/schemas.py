@@ -5,7 +5,7 @@ import logging
 from types import SimpleNamespace
 from typing import Any, Dict, Optional, Sequence, Tuple, Type
 
-from pydantic import BaseModel
+from pydantic import BaseModel, create_model
 
 from ..opspec import OpSpec
 from ..opspec.types import (
@@ -20,12 +20,35 @@ from ..schema import (
     _make_bulk_ids_model,
     _make_deleted_response_model,
     _make_pk_model,
+    namely_model,
 )
 from ..decorators import collect_decorated_schemas  # ← seed @schema_ctx declarations
 
 logger = logging.getLogger(__name__)
 
 _Key = Tuple[str, str]  # (alias, target)
+
+
+def _camel(s: str) -> str:
+    return "".join(p.capitalize() or "_" for p in s.split("_"))
+
+
+def _alias_schema(
+    schema: Type[BaseModel], *, model: type, alias: str, kind: str
+) -> Type[BaseModel]:
+    name = f"{model.__name__}{_camel(alias)}{kind}"
+    if getattr(schema, "__name__", None) == name:
+        return schema
+    try:
+        clone = create_model(name, __base__=schema)  # type: ignore[arg-type]
+    except Exception:  # pragma: no cover - best effort
+        return schema
+    return namely_model(
+        clone,
+        name=name,
+        doc=f"{alias} {kind.lower()} schema for {model.__name__}",
+    )
+
 
 # ───────────────────────────────────────────────────────────────────────────────
 # Internal helpers
@@ -433,6 +456,24 @@ def build_and_attach(
             getattr(ns, "in_", None).__name__ if getattr(ns, "in_", None) else None,
             getattr(ns, "out", None).__name__ if getattr(ns, "out", None) else None,
         )
+
+    # Pass 3: ensure alias-specific request/response schema names
+    for sp in specs:
+        ns = _ensure_alias_namespace(model, sp.alias)
+        in_model = getattr(ns, "in_", None)
+        if isinstance(in_model, type) and issubclass(in_model, BaseModel):
+            setattr(
+                ns,
+                "in_",
+                _alias_schema(in_model, model=model, alias=sp.alias, kind="Request"),
+            )
+        out_model = getattr(ns, "out", None)
+        if isinstance(out_model, type) and issubclass(out_model, BaseModel):
+            setattr(
+                ns,
+                "out",
+                _alias_schema(out_model, model=model, alias=sp.alias, kind="Response"),
+            )
 
 
 __all__ = ["build_and_attach"]
