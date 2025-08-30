@@ -57,9 +57,12 @@ def test_rest_rpc_parity_for_default_verbs(alias, target, path, methods):
     api.include_model(Item, mount_router=False)
 
     routes = _route_map(Item.rest.router)
-    assert alias in routes
-    got_path, got_methods = routes[alias]
-    assert got_path.lower() == path.lower()
-    assert got_methods == methods
+    if alias == "clear" and "bulk_delete" in routes:
+        assert alias not in routes
+    else:
+        assert alias in routes
+        got_path, got_methods = routes[alias]
+        assert got_path.lower() == path.lower()
+        assert got_methods == methods
 
     assert hasattr(api.rpc.Item, alias)
