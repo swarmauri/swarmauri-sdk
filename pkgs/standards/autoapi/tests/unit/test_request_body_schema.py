@@ -25,6 +25,13 @@ def test_request_body_uses_schema_model():
     if "$ref" in request_schema:
         ref = request_schema["$ref"].split("/")[-1]
         request_schema = spec["components"]["schemas"][ref]
+    elif "anyOf" in request_schema:
+        ref = next(
+            (s["$ref"].split("/")[-1] for s in request_schema["anyOf"] if "$ref" in s),
+            None,
+        )
+        if ref is not None:
+            request_schema = spec["components"]["schemas"][ref]
     assert request_schema.get("type") == "object"
 
     widget_schema = spec["components"]["schemas"]["WidgetCreateRequest"]
