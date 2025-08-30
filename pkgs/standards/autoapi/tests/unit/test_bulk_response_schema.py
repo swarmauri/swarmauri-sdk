@@ -148,7 +148,7 @@ def test_update_and_bulk_update_schema_names_do_not_collide():
     upd_ref = spec["paths"][update_path]["patch"]["requestBody"]["content"][
         "application/json"
     ]["schema"]["$ref"]
-    assert upd_ref.endswith("WidgetUpdate")
+    assert upd_ref.endswith("WidgetUpdateRequest")
     # bulk update schema
     bulk_ref = spec["paths"][base]["patch"]["requestBody"]["content"][
         "application/json"

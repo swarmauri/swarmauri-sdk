@@ -27,7 +27,7 @@ def test_request_body_uses_schema_model():
         request_schema = spec["components"]["schemas"][ref]
     assert request_schema.get("type") == "object"
 
-    widget_schema = spec["components"]["schemas"]["WidgetCreate"]
+    widget_schema = spec["components"]["schemas"]["WidgetCreateRequest"]
     assert "name" in widget_schema.get("properties", {})
 
 
@@ -42,6 +42,6 @@ def test_replace_request_body_excludes_pk():
     app.include_router(router)
     spec = app.openapi()
 
-    gadget_schema = spec["components"]["schemas"]["GadgetReplace"]
+    gadget_schema = spec["components"]["schemas"]["GadgetReplaceRequest"]
     assert "id" not in gadget_schema.get("properties", {})
     assert "id" not in gadget_schema.get("required", [])
