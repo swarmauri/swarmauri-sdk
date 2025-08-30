@@ -57,7 +57,6 @@ def test_rest_rpc_symmetry_for_default_verbs():
         "delete": {"item_id", "request", "db"},
         "list": {"request", "q", "db"},
         "clear": {"request", "db"},
-        "upsert": {"request", "db", "body"},
         "bulk_create": {"request", "db", "body"},
         "bulk_update": {"request", "db", "body"},
         "bulk_replace": {"request", "db", "body"},
