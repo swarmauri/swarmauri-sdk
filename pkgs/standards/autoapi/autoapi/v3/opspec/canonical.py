@@ -13,7 +13,6 @@ DEFAULT_CANON_VERBS = {
     "read",
     "update",
     "replace",
-    "upsert",
     "delete",
     "list",
     "clear",

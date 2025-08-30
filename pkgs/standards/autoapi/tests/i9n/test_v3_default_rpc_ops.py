@@ -1,7 +1,7 @@
 import pytest
 import pytest_asyncio
-from autoapi.v3.mixins import BulkCapable, Replaceable
-from autoapi.v3.types import App, Integer, Mapped, String
+from autoapi.v3.mixins import BulkCapable, Replaceable, Mergeable
+from autoapi.v3.types import App, Integer, Mapped, String, uuid4
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
@@ -68,7 +68,7 @@ async def client_and_model():
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "verb",
-    ["create", "read", "update", "replace", "upsert", "delete", "list", "clear"],
+    ["create", "read", "update", "replace", "delete", "list", "clear"],
 )
 async def test_rpc_methods(verb, client_and_model):
     client, _ = client_and_model
@@ -109,17 +109,6 @@ async def test_rpc_methods(verb, client_and_model):
         assert data["name"] == "C"
         assert data["age"] == 5
 
-    elif verb == "upsert":
-        resp = await rpc("Gadget.upsert", {"name": "A", "age": 1})
-        assert resp.status_code == 200
-        gid = resp.json()["result"]["id"]
-        resp = await rpc("Gadget.upsert", {"id": gid, "age": 2}, id_=2)
-        assert resp.status_code == 200
-        data = resp.json()["result"]
-        assert data["id"] == gid
-        assert data["name"] == "A"
-        assert data["age"] == 2
-
     elif verb == "delete":
         created = await rpc("Gadget.create", {"name": "A", "age": 1})
         gid = created.json()["result"]["id"]
@@ -155,7 +144,7 @@ async def test_bulk_methods_absent(client_and_model):
         "bulk_create",
         "bulk_update",
         "bulk_replace",
-        "bulk_upsert",
+        "bulk_merge",
         "bulk_delete",
     ):
         assert not hasattr(Gadget.rpc, name)
@@ -166,7 +155,7 @@ async def bulk_client_and_model():
     Base3.metadata.clear()
     Base3.registry.dispose()
 
-    class Gadget(Base3, BulkCapable, Replaceable):
+    class Gadget(Base3, BulkCapable, Replaceable, Mergeable):
         __tablename__ = "gadgets"
         __allow_unmapped__ = True
 
@@ -177,14 +166,14 @@ async def bulk_client_and_model():
             storage=S(type_=String, nullable=False),
             field=F(required_in=("create",)),
             io=IO(
-                in_verbs=("create", "update", "replace"),
+                in_verbs=("create", "update", "replace", "merge"),
                 out_verbs=("read", "list"),
             ),
         )
         age: Mapped[int] = acol(
             storage=S(type_=Integer, nullable=False, default=0),
             io=IO(
-                in_verbs=("create", "update", "replace"),
+                in_verbs=("create", "update", "replace", "merge"),
                 out_verbs=("read", "list"),
             ),
         )
@@ -248,19 +237,18 @@ async def test_rpc_bulk_ops(bulk_client_and_model):
     )
     assert resp.status_code == 200
     resp = await rpc(
-        "Gadget.bulk_upsert",
+        "Gadget.bulk_merge",
         [
             {"id": ids[0], "name": "E", "age": 7},
-            {"name": "F", "age": 8},
+            {"id": ids[1], "age": 8},
         ],
         id_=4,
     )
     assert resp.status_code == 200
-    upserted = resp.json()["result"]
-    assert upserted[0]["id"] == ids[0]
-    assert upserted[0]["name"] == "E"
-    ids.append(upserted[1]["id"])
+    merged = resp.json()["result"]
+    assert merged[0]["id"] == ids[0]
+    assert merged[0]["name"] == "E"
 
-    resp = await rpc("Gadget.bulk_delete", ids, id_=5)
+    resp = await rpc("Gadget.bulk_delete", ids + [str(uuid4())], id_=5)
     assert resp.status_code == 200
     assert resp.json()["result"]["deleted"] == 3

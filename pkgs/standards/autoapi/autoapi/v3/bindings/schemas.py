@@ -201,11 +201,9 @@ def _default_schemas_for_spec(
         result["in_"] = _build_schema(model, verb="replace", exclude={pk_name})
         result["out"] = read_schema
 
-    elif target == "upsert":
-        item_in = _build_schema(model, verb="upsert") or _build_schema(
-            model, verb="replace"
-        )
-        result["in_"] = item_in
+    elif target == "merge":
+        pk_name, _ = _pk_info(model)
+        result["in_"] = _build_schema(model, verb="update", exclude={pk_name})
         result["out"] = read_schema
 
     elif target == "delete":
@@ -222,13 +220,6 @@ def _default_schemas_for_spec(
         params = _build_list_params(model)
         result["in_"] = params
         result["out"] = _make_deleted_response_model(model, "clear")
-
-    elif target == "upsert":
-        item_in = _build_schema(model, verb="upsert") or _build_schema(
-            model, verb="replace"
-        )
-        result["in_"] = item_in
-        result["out"] = read_schema
 
     elif target == "bulk_create":
         item_in = _build_schema(
@@ -275,21 +266,16 @@ def _default_schemas_for_spec(
         )
         result["out_item"] = read_schema
 
-    elif target == "bulk_upsert":
-        # Prefer a dedicated 'upsert' item shape if available; otherwise fall back to 'replace'
+    elif target == "bulk_merge":
         item_in = _build_schema(
             model,
-            verb="upsert",
-            name=f"{model.__name__}BulkUpsertItem",
-        ) or _build_schema(
-            model,
-            verb="replace",
-            name=f"{model.__name__}BulkUpsertItem",
+            verb="update",
+            name=f"{model.__name__}BulkMergeItem",
         )
-        result["in_"] = _make_bulk_rows_model(model, "bulk_upsert", item_in)
+        result["in_"] = _make_bulk_rows_model(model, "bulk_merge", item_in)
         result["in_item"] = item_in
         result["out"] = (
-            _make_bulk_rows_response_model(model, "bulk_upsert", read_schema)
+            _make_bulk_rows_response_model(model, "bulk_merge", read_schema)
             if read_schema
             else None
         )

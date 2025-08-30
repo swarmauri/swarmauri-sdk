@@ -165,7 +165,7 @@ def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
     if not alias_ns:
         return _ensure_jsonable(result)
 
-    if target in {"bulk_create", "bulk_update", "bulk_replace", "bulk_upsert"}:
+    if target in {"bulk_create", "bulk_update", "bulk_replace", "bulk_merge"}:
         out_model = getattr(alias_ns, "out_item", None)
     else:
         out_model = getattr(alias_ns, "out", None)
@@ -187,7 +187,7 @@ def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
             "bulk_create",
             "bulk_update",
             "bulk_replace",
-            "bulk_upsert",
+            "bulk_merge",
         } and isinstance(result, (list, tuple)):
             return [
                 out_model.model_validate(x).model_dump(exclude_none=True, by_alias=True)
