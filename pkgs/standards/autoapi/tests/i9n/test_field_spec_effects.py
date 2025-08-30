@@ -59,7 +59,7 @@ async def fs_app():
 async def test_field_spec_openapi(fs_app):
     client, _, _, _ = fs_app
     spec = (await client.get("/openapi.json")).json()
-    schema = spec["components"]["schemas"]["FSItemCreate"]
+    schema = spec["components"]["schemas"]["FSItemCreateRequest"]
     assert "name" in schema["required"]
     assert schema["properties"]["name"]["type"] == "string"
 
