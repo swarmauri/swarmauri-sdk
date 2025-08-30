@@ -85,6 +85,23 @@ def _single_pk_name(model: type) -> str:
     return pks[0].name
 
 
+def _coerce_pk_value(model: type, value: Any) -> Any:
+    """Coerce a provided primary key value to the model's python type."""
+    if value is None:
+        return None
+    try:
+        col = _pk_columns(model)[0]
+        py_type = col.type.python_type  # type: ignore[attr-defined]
+    except Exception:  # pragma: no cover - best effort
+        return value
+    if isinstance(value, py_type):
+        return value
+    try:
+        return py_type(value)
+    except Exception:  # pragma: no cover - fallback to original
+        return value
+
+
 def _model_columns(model: type) -> Tuple[str, ...]:
     table = getattr(model, "__table__", None)
     if table is None:
@@ -578,12 +595,14 @@ async def merge(
     data = _filter_in_values(model, data or {}, "update")
     _validate_enum_values(model, data)
     pk = _single_pk_name(model)
+    ident = _coerce_pk_value(model, ident)
     obj = await _maybe_get(db, model, ident)
+    data_no_pk = {k: v for k, v in data.items() if k != pk}
     if obj is None:
-        payload = {pk: ident, **data}
+        payload = {pk: ident, **data_no_pk}
         return await create(model, payload, db=db)
     skip = _immutable_columns(model, "update")
-    _set_attrs(obj, data, allow_missing=True, skip=skip)
+    _set_attrs(obj, data_no_pk, allow_missing=True, skip=skip)
     await _maybe_flush(db)
     return obj
 
@@ -772,7 +791,7 @@ async def bulk_merge(
     to_create: List[Mapping[str, Any]] = []
     for r in rows or ():
         r = dict(r)
-        ident = r.get(pk)
+        ident = _coerce_pk_value(model, r.get(pk))
         if ident is not None:
             existing = await _maybe_get(db, model, ident)
             if existing is not None:
@@ -780,6 +799,7 @@ async def bulk_merge(
                 merged = await merge(model, ident, data, db=db)
                 results.append(merged)
                 continue
+            r[pk] = ident
         to_create.append(r)
     if to_create:
         created = await bulk_create(model, to_create, db)
