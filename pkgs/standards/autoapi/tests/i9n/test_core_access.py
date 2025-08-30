@@ -120,7 +120,7 @@ async def test_core_and_core_raw_sync_operations(sync_api):
                 ],
                 db=db,
             )
-            assert all(u.age in {22, 23} for u in bulk_updated)
+            assert all(_get(u, "age") in {22, 23} for u in bulk_updated)
             bulk_replaced = await model.bulk_replace(
                 [
                     {
@@ -138,7 +138,7 @@ async def test_core_and_core_raw_sync_operations(sync_api):
                 ],
                 db=db,
             )
-            assert {u.name for u in bulk_replaced} == {"R1", "R2"}
+            assert {_get(u, "name") for u in bulk_replaced} == {"R1", "R2"}
             deleted = await model.bulk_delete(ids, db=db)
             assert deleted["deleted"] == 2
 
