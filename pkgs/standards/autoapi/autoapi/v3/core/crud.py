@@ -575,10 +575,11 @@ async def merge(
     model: type, ident: Any, data: Mapping[str, Any], db: Union[Session, AsyncSession]
 ) -> Any:
     """PATCH semantics with upsert behaviour."""
-    data = _filter_in_values(model, data or {}, "update")
-    _validate_enum_values(model, data)
     pk = _single_pk_name(model)
     obj = await _maybe_get(db, model, ident)
+    verb = "update" if obj is not None else "create"
+    data = _filter_in_values(model, data or {}, verb)
+    _validate_enum_values(model, data)
     if obj is None:
         payload = {pk: ident, **data}
         return await create(model, payload, db=db)
