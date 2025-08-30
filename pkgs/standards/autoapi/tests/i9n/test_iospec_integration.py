@@ -111,7 +111,7 @@ async def test_orm_model_carries_io_spec(widget_setup):
 async def test_openapi_reflects_io_spec(widget_setup):
     client, _, _ = widget_setup
     spec = (await client.get("/openapi.json")).json()
-    props = spec["components"]["schemas"]["WidgetRead"]["properties"]
+    props = spec["components"]["schemas"]["WidgetReadResponse"]["properties"]
     assert "secret" in props
 
 
