@@ -592,11 +592,14 @@ async def merge(
     model: type, ident: Any, data: Mapping[str, Any], db: Union[Session, AsyncSession]
 ) -> Any:
     """PATCH semantics with upsert behaviour."""
-    data = _filter_in_values(model, data or {}, "update")
-    _validate_enum_values(model, data)
     pk = _single_pk_name(model)
     ident = _coerce_pk_value(model, ident)
     obj = await _maybe_get(db, model, ident)
+
+    # Respect create-only fields when upserting a new row
+    verb = "update" if obj is not None else "create"
+    data = _filter_in_values(model, data or {}, verb)
+    _validate_enum_values(model, data)
     data_no_pk = {k: v for k, v in data.items() if k != pk}
     if obj is None:
         payload = {pk: ident, **data_no_pk}
