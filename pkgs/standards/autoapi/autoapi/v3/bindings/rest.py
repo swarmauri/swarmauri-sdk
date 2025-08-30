@@ -516,7 +516,13 @@ def _path_for_spec(
     if not suffix.startswith("/") and suffix:
         suffix = "/" + suffix
 
-    if sp.arity == "member" or sp.target in {"read", "update", "replace", "delete"}:
+    if sp.arity == "member" or sp.target in {
+        "read",
+        "update",
+        "replace",
+        "merge",
+        "delete",
+    }:
         return f"/{resource}/{{{pk_param}}}{suffix}", True
     return f"/{resource}{suffix}", False
 
@@ -1192,7 +1198,8 @@ def _make_member_endpoint(
             inspect.Parameter(
                 "body",
                 inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                annotation=Annotated[body_annotation, body_default],
+                annotation=body_annotation,
+                default=body_default,
             ),
         ]
     )
@@ -1311,6 +1318,7 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
                 "read",
                 "update",
                 "replace",
+                "merge",
                 "delete",
             }:
                 path = f"{base}/{{{pk_param}}}{suffix}"
