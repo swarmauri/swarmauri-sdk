@@ -251,4 +251,5 @@ async def test_rpc_bulk_ops(bulk_client_and_model):
 
     resp = await rpc("Gadget.bulk_delete", ids + [str(uuid4())], id_=5)
     assert resp.status_code == 200
-    assert resp.json()["result"]["deleted"] == 3
+    # Only the existing rows are counted in the deleted total.
+    assert resp.json()["result"]["deleted"] == 2
