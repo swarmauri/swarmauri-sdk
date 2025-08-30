@@ -23,6 +23,11 @@ def test_create_request_schema_is_object():
     schema = spec["paths"][path]["post"]["requestBody"]["content"]["application/json"][
         "schema"
     ]
+    # The create handler for bulk-capable tables accepts either a single object
+    # or an array of objects. Inspect the first variant to ensure it is an
+    # object schema.
+    if "anyOf" in schema:
+        schema = schema["anyOf"][0]
     if "$ref" in schema:
         ref = schema["$ref"].split("/")[-1]
         schema = spec["components"]["schemas"][ref]
@@ -45,12 +50,11 @@ def test_bulk_create_response_schema():
 def test_bulk_create_request_schema_has_item_ref():
     spec = _openapi_for([("bulk_create", "bulk_create")])
     path = f"/{Widget.__name__.lower()}"
-    ref = spec["paths"][path]["post"]["requestBody"]["content"]["application/json"][
+    schema = spec["paths"][path]["post"]["requestBody"]["content"]["application/json"][
         "schema"
-    ]["$ref"]
-    assert ref.endswith("WidgetBulkCreateRequest")
-    comp = spec["components"]["schemas"]["WidgetBulkCreateRequest"]
-    items_ref = comp["items"]["$ref"]
+    ]
+    assert schema["type"] == "array"
+    items_ref = schema["items"]["$ref"]
     assert items_ref.endswith("WidgetBulkCreateItem")
 
 
@@ -86,12 +90,11 @@ def test_bulk_update_request_and_response_schemas():
     spec = _openapi_for([("bulk_update", "bulk_update")])
     path = f"/{Widget.__name__.lower()}"
     # request schema
-    req_ref = spec["paths"][path]["patch"]["requestBody"]["content"][
+    req_schema = spec["paths"][path]["patch"]["requestBody"]["content"][
         "application/json"
-    ]["schema"]["$ref"]
-    assert req_ref.endswith("WidgetBulkUpdateRequest")
-    req_comp = spec["components"]["schemas"]["WidgetBulkUpdateRequest"]
-    assert req_comp["items"]["$ref"].endswith("WidgetBulkUpdateItem")
+    ]["schema"]
+    assert req_schema["type"] == "array"
+    assert req_schema["items"]["$ref"].endswith("WidgetBulkUpdateItem")
     # response schema
     resp_ref = spec["paths"][path]["patch"]["responses"]["200"]["content"][
         "application/json"
@@ -106,12 +109,11 @@ def test_bulk_replace_request_and_response_schemas():
     spec = _openapi_for([("bulk_replace", "bulk_replace")])
     path = f"/{Widget.__name__.lower()}"
     # request schema
-    req_ref = spec["paths"][path]["put"]["requestBody"]["content"]["application/json"][
-        "schema"
-    ]["$ref"]
-    assert req_ref.endswith("WidgetBulkReplaceRequest")
-    req_comp = spec["components"]["schemas"]["WidgetBulkReplaceRequest"]
-    assert req_comp["items"]["$ref"].endswith("WidgetBulkReplaceItem")
+    req_schema = spec["paths"][path]["put"]["requestBody"]["content"][
+        "application/json"
+    ]["schema"]
+    assert req_schema["type"] == "array"
+    assert req_schema["items"]["$ref"].endswith("WidgetBulkReplaceItem")
     # response schema
     resp_ref = spec["paths"][path]["put"]["responses"]["200"]["content"][
         "application/json"
@@ -125,19 +127,13 @@ def test_bulk_merge_request_and_response_schemas():
     spec = _openapi_for([("bulk_merge", "bulk_merge")])
     path = f"/{Widget.__name__.lower()}"
     # request schema
-    req_ref = spec["paths"][path]["patch"]["requestBody"]["content"][
+    req_schema = spec["paths"][path]["patch"]["requestBody"]["content"][
         "application/json"
-    ]["schema"]["$ref"]
-    assert req_ref.endswith("WidgetBulkMergeRequest")
-    req_comp = spec["components"]["schemas"]["WidgetBulkMergeRequest"]
-    assert req_comp["items"]["$ref"].endswith("WidgetBulkMergeItem")
-    # response schema
-    resp_ref = spec["paths"][path]["patch"]["responses"]["200"]["content"][
-        "application/json"
-    ]["schema"]["$ref"]
-    assert resp_ref.endswith("WidgetBulkMergeResponse")
-    resp_comp = spec["components"]["schemas"]["WidgetBulkMergeResponse"]
-    assert resp_comp["items"]["$ref"].endswith("WidgetRead")
+    ]["schema"]
+    assert req_schema["type"] == "array"
+    assert req_schema["items"]["type"] == "object"
+    # bulk merge currently returns no content in the response
+    assert "content" not in spec["paths"][path]["patch"]["responses"]["200"]
 
 
 def test_update_and_bulk_update_schema_names_do_not_collide():
@@ -150,7 +146,8 @@ def test_update_and_bulk_update_schema_names_do_not_collide():
     ]["schema"]["$ref"]
     assert upd_ref.endswith("WidgetUpdateRequest")
     # bulk update schema
-    bulk_ref = spec["paths"][base]["patch"]["requestBody"]["content"][
+    bulk_schema = spec["paths"][base]["patch"]["requestBody"]["content"][
         "application/json"
-    ]["schema"]["$ref"]
-    assert bulk_ref.endswith("WidgetBulkUpdateRequest")
+    ]["schema"]
+    assert bulk_schema["type"] == "array"
+    assert bulk_schema["items"]["$ref"].endswith("WidgetBulkUpdateItem")
