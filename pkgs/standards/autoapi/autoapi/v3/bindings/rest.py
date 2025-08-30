@@ -791,7 +791,20 @@ def _make_collection_endpoint(
     body_model = _request_model_for(sp, model)
     base_annotation = body_model if body_model is not None else Mapping[str, Any]
     if target in {"bulk_create", "bulk_update", "bulk_replace", "bulk_upsert"}:
-        if body_model is None:
+        alias_ns = getattr(
+            getattr(model, "schemas", None) or SimpleNamespace(), alias, None
+        )
+        item_model = getattr(alias_ns, "in_item", None) if alias_ns else None
+        if (
+            item_model
+            and inspect.isclass(item_model)
+            and issubclass(item_model, BaseModel)
+        ):
+            try:
+                body_annotation = list[item_model]  # type: ignore[valid-type]
+            except Exception:  # pragma: no cover - best effort
+                body_annotation = List[item_model]  # type: ignore[name-defined]
+        elif body_model is None:
             try:
                 body_annotation = list[Mapping[str, Any]]  # type: ignore[valid-type]
             except Exception:  # pragma: no cover - best effort
