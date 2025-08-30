@@ -5,7 +5,7 @@ from autoapi.v3.mixins import GUIDPk, BulkCapable, Mergeable
 from autoapi.v3.types import Column, String, App
 
 
-class Widget(Base, GUIDPk):
+class Widget(Base, GUIDPk, Mergeable):
     __tablename__ = "widgets_example_schemas"
     name = Column(String, nullable=False, info={"autoapi": {"examples": ["foo"]}})
 
@@ -16,7 +16,12 @@ class BulkWidget(Base, GUIDPk, BulkCapable, Mergeable):
 
 
 def _openapi_for(model, ops):
-    router = _build_router(model, [OpSpec(alias=a, target=t) for a, t in ops])
+    member_ops = {"read", "update", "replace", "merge", "delete"}
+    specs = []
+    for a, t in ops:
+        arity = "member" if t in member_ops else "collection"
+        specs.append(OpSpec(alias=a, target=t, arity=arity))
+    router = _build_router(model, specs)
     app = App()
     app.include_router(router)
     return app.openapi()
@@ -26,6 +31,13 @@ def _resolve_schema(spec, schema):
     if "$ref" in schema:
         ref = schema["$ref"].split("/")[-1]
         return spec["components"]["schemas"][ref]
+    if "anyOf" in schema:
+        return _resolve_schema(spec, schema["anyOf"][0])
+    if "items" in schema:
+        item = _resolve_schema(spec, schema["items"])
+        schema["items"] = item
+        if "examples" not in schema and "examples" in item:
+            schema["examples"] = [item["examples"][0]]
     return schema
 
 
@@ -56,7 +68,7 @@ def test_bulk_request_model_examples():
         "schema"
     ]
     schema = _resolve_schema(spec, schema)
-    assert schema["examples"][0] == [{"name": "foo"}]
+    assert schema["items"]["properties"]["name"]["examples"][0] == "foo"
 
 
 def test_bulk_response_model_examples():
@@ -117,7 +129,7 @@ def test_bulk_update_request_model_examples():
         "schema"
     ]
     schema = _resolve_schema(spec, schema)
-    assert schema["examples"][0] == [{"name": "foo"}]
+    assert schema["items"]["properties"]["name"]["examples"][0] == "foo"
 
 
 def test_bulk_update_response_model_examples():
@@ -138,7 +150,7 @@ def test_bulk_merge_request_model_examples():
         "schema"
     ]
     schema = _resolve_schema(spec, schema)
-    assert schema["examples"][0] == [{"name": "foo"}]
+    assert schema["items"]["properties"]["name"]["examples"][0] == "foo"
 
 
 def test_bulk_merge_response_model_examples():
