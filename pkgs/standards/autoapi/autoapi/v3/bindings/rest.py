@@ -302,6 +302,40 @@ def _validate_body(
             out.append(data)
         return out
 
+    if (
+        target in {"create", "update", "replace", "merge"}
+        and isinstance(body, Sequence)
+        and not isinstance(body, (str, bytes, Mapping))
+    ):
+        # Treat sequence payloads as bulk mutations using the corresponding bulk schema
+        bulk_target = f"bulk_{target}"
+        items: Sequence[Any] = body
+        schemas_root = getattr(model, "schemas", None)
+        alias_ns = getattr(schemas_root, bulk_target, None) if schemas_root else None
+        in_item = getattr(alias_ns, "in_item", None) if alias_ns else None
+
+        out: list[Mapping[str, Any]] = []
+        for item in items:
+            if isinstance(item, BaseModel):
+                out.append(item.model_dump(exclude_none=True))
+                continue
+            data: Mapping[str, Any] | None = None
+            if in_item and inspect.isclass(in_item) and issubclass(in_item, BaseModel):
+                try:
+                    inst = in_item.model_validate(item)  # type: ignore[arg-type]
+                    data = inst.model_dump(exclude_none=True)
+                except Exception:
+                    logger.debug(
+                        "rest input body validation failed for %s.%s",
+                        model.__name__,
+                        bulk_target,
+                        exc_info=True,
+                    )
+            if data is None:
+                data = dict(item) if isinstance(item, Mapping) else {}
+            out.append(data)
+        return out
+
     body = body or {}
     if not isinstance(body, Mapping):
         body = {}
@@ -813,7 +847,27 @@ def _make_collection_endpoint(
         else:
             body_annotation = base_annotation
     else:
-        body_annotation = base_annotation
+        if target in {"create", "update", "replace", "merge"}:
+            try:
+                list_ann = list[Mapping[str, Any]]  # type: ignore[valid-type]
+            except Exception:  # pragma: no cover - best effort
+                list_ann = List[Mapping[str, Any]]  # type: ignore[name-defined]
+            if body_model is not None:
+                try:
+                    body_annotation = body_model | list_ann  # type: ignore[operator]
+                except Exception:  # pragma: no cover - best effort
+                    from typing import Union as _Union
+
+                    body_annotation = _Union[body_model, list_ann]
+            else:
+                try:
+                    body_annotation = Mapping[str, Any] | list_ann  # type: ignore[operator]
+                except Exception:  # pragma: no cover - best effort
+                    from typing import Union as _Union
+
+                    body_annotation = _Union[Mapping[str, Any], list_ann]
+        else:
+            body_annotation = base_annotation
 
     async def _endpoint(
         request: Request,
@@ -826,6 +880,13 @@ def _make_collection_endpoint(
         payload = _validate_body(model, alias, target, body)
         exec_alias = alias
         exec_target = target
+        if (
+            target in {"create", "update", "replace", "merge"}
+            and isinstance(payload, Sequence)
+            and not isinstance(payload, Mapping)
+        ):
+            exec_alias = f"bulk_{target}"
+            exec_target = f"bulk_{target}"
         if parent_kw:
             if isinstance(payload, Mapping):
                 payload = dict(payload)
