@@ -1,4 +1,4 @@
-from autoapi.v3.mixins import BulkCapable, Replaceable
+from autoapi.v3.mixins import BulkCapable, Mergeable, Replaceable
 from autoapi.v3.opspec.canonical import should_wire_canonical
 
 NON_BULK_VERBS = {
@@ -15,6 +15,7 @@ BULK_VERBS = {
     "bulk_create",
     "bulk_update",
     "bulk_replace",
+    "bulk_merge",
     "bulk_delete",
 }
 
@@ -25,7 +26,7 @@ def test_should_wire_canonical_defaults():
 
     for verb in NON_BULK_VERBS:
         assert should_wire_canonical(Plain, verb)
-    for verb in BULK_VERBS:
+    for verb in BULK_VERBS | {"merge"}:
         assert not should_wire_canonical(Plain, verb)
 
 
@@ -35,7 +36,8 @@ def test_should_wire_canonical_bulkcapable():
 
     for verb in NON_BULK_VERBS | {"bulk_create", "bulk_update", "bulk_delete"}:
         assert should_wire_canonical(Bulk, verb)
-    assert not should_wire_canonical(Bulk, "bulk_replace")
+    for verb in {"bulk_replace", "merge", "bulk_merge"}:
+        assert not should_wire_canonical(Bulk, verb)
 
 
 def test_should_wire_canonical_replaceable():
@@ -45,13 +47,16 @@ def test_should_wire_canonical_replaceable():
     for verb in NON_BULK_VERBS:
         assert should_wire_canonical(Rep, verb)
     assert should_wire_canonical(Rep, "bulk_replace")
-    for verb in {"bulk_create", "bulk_update", "bulk_delete"}:
+    for verb in {"bulk_create", "bulk_update", "bulk_merge", "bulk_delete", "merge"}:
         assert not should_wire_canonical(Rep, verb)
 
 
-def test_should_wire_canonical_bulk_and_replace():
-    class Both(BulkCapable, Replaceable):
+def test_should_wire_canonical_mergeable():
+    class Merge(Mergeable):
         pass
 
-    for verb in NON_BULK_VERBS | BULK_VERBS:
-        assert should_wire_canonical(Both, verb)
+    for verb in NON_BULK_VERBS | {"merge"}:
+        assert should_wire_canonical(Merge, verb)
+    assert should_wire_canonical(Merge, "bulk_merge")
+    for verb in {"bulk_create", "bulk_update", "bulk_replace", "bulk_delete"}:
+        assert not should_wire_canonical(Merge, verb)

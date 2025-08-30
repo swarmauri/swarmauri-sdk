@@ -133,12 +133,14 @@ def _generate_canonical(model: type) -> List[OpSpec]:
         "read",
         "update",
         "replace",
+        "merge",
         "delete",
         "list",
         "clear",
         "bulk_create",
         "bulk_update",
         "bulk_replace",
+        "bulk_merge",
         "bulk_delete",
     )
     out: List[OpSpec] = []
@@ -154,7 +156,7 @@ def _generate_canonical(model: type) -> List[OpSpec]:
                 target=target,  # ← canonical verb goes here
                 table=model,
                 arity="member"
-                if target in {"read", "update", "replace", "delete"}
+                if target in {"read", "update", "replace", "merge", "delete"}
                 else "collection",
                 # persistent by default; binder will auto START_TX/END_TX where appropriate
                 persist="default",

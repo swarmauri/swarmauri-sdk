@@ -1,7 +1,7 @@
 import pytest
 
 from autoapi.v3.autoapi import AutoAPI
-from autoapi.v3.mixins import GUIDPk, BulkCapable
+from autoapi.v3.mixins import GUIDPk, BulkCapable, Mergeable
 from autoapi.v3.opspec.types import CANON
 from autoapi.v3.tables import Base
 from autoapi.v3.types import Column, String
@@ -34,16 +34,18 @@ def _route_map(router) -> dict[str, tuple[str, set[str]]]:
         ("delete", "delete", "/item/{item_id}", {"DELETE"}),
         ("list", "list", "/item", {"GET"}),
         ("clear", "clear", "/item", {"DELETE"}),
+        ("merge", "merge", "/item/{item_id}", {"PATCH"}),
         ("bulk_create", "bulk_create", "/item", {"POST"}),
         ("bulk_update", "bulk_update", "/item", {"PATCH"}),
         ("bulk_replace", "bulk_replace", "/item", {"PUT"}),
+        ("bulk_merge", "bulk_merge", "/item", {"PATCH"}),
         ("bulk_delete", "bulk_delete", "/item", {"DELETE"}),
     ],
 )
 def test_rest_rpc_parity_for_default_verbs(alias, target, path, methods):
     Base.metadata.clear()
 
-    class Item(Base, GUIDPk, BulkCapable):
+    class Item(Base, GUIDPk, BulkCapable, Mergeable):
         __tablename__ = "items"
         name = Column(String, nullable=False)
 
@@ -55,9 +57,12 @@ def test_rest_rpc_parity_for_default_verbs(alias, target, path, methods):
     api.include_model(Item, mount_router=False)
 
     routes = _route_map(Item.rest.router)
-    assert alias in routes
-    got_path, got_methods = routes[alias]
-    assert got_path.lower() == path.lower()
-    assert got_methods == methods
+    if alias == "clear" and "bulk_delete" in routes:
+        assert alias not in routes
+    else:
+        assert alias in routes
+        got_path, got_methods = routes[alias]
+        assert got_path.lower() == path.lower()
+        assert got_methods == methods
 
     assert hasattr(api.rpc.Item, alias)

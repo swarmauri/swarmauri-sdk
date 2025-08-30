@@ -270,15 +270,15 @@ def _validate_body(
     if isinstance(body, BaseModel):
         return body.model_dump(exclude_none=True)
 
-    # Bulk mutations expect a list payload (bulk_create/bulk_update/bulk_replace).
-    if target in {"bulk_create", "bulk_update", "bulk_replace"}:
+    # Bulk mutations expect a list payload (bulk_create/bulk_update/bulk_replace/bulk_merge).
+    if target in {"bulk_create", "bulk_update", "bulk_replace", "bulk_merge"}:
         items: Sequence[Any] = body or []
         if not isinstance(items, Sequence) or isinstance(items, (str, bytes)):
             items = []
 
         schemas_root = getattr(model, "schemas", None)
         alias_ns = getattr(schemas_root, alias, None) if schemas_root else None
-        in_model = getattr(alias_ns, "in_", None) if alias_ns else None
+        in_item = getattr(alias_ns, "in_item", None) if alias_ns else None
 
         out: list[Mapping[str, Any]] = []
         for item in items:
@@ -286,19 +286,49 @@ def _validate_body(
                 out.append(item.model_dump(exclude_none=True))
                 continue
             data: Mapping[str, Any] | None = None
-            if (
-                in_model
-                and inspect.isclass(in_model)
-                and issubclass(in_model, BaseModel)
-            ):
+            if in_item and inspect.isclass(in_item) and issubclass(in_item, BaseModel):
                 try:
-                    inst = in_model.model_validate(item)  # type: ignore[arg-type]
+                    inst = in_item.model_validate(item)  # type: ignore[arg-type]
                     data = inst.model_dump(exclude_none=True)
                 except Exception:
                     logger.debug(
                         "rest input body validation failed for %s.%s",
                         model.__name__,
                         alias,
+                        exc_info=True,
+                    )
+            if data is None:
+                data = dict(item) if isinstance(item, Mapping) else {}
+            out.append(data)
+        return out
+
+    if (
+        target in {"create", "update", "replace", "merge"}
+        and isinstance(body, Sequence)
+        and not isinstance(body, (str, bytes, Mapping))
+    ):
+        # Treat sequence payloads as bulk mutations using the corresponding bulk schema
+        bulk_target = f"bulk_{target}"
+        items: Sequence[Any] = body
+        schemas_root = getattr(model, "schemas", None)
+        alias_ns = getattr(schemas_root, bulk_target, None) if schemas_root else None
+        in_item = getattr(alias_ns, "in_item", None) if alias_ns else None
+
+        out: list[Mapping[str, Any]] = []
+        for item in items:
+            if isinstance(item, BaseModel):
+                out.append(item.model_dump(exclude_none=True))
+                continue
+            data: Mapping[str, Any] | None = None
+            if in_item and inspect.isclass(in_item) and issubclass(in_item, BaseModel):
+                try:
+                    inst = in_item.model_validate(item)  # type: ignore[arg-type]
+                    data = inst.model_dump(exclude_none=True)
+                except Exception:
+                    logger.debug(
+                        "rest input body validation failed for %s.%s",
+                        model.__name__,
+                        bulk_target,
                         exc_info=True,
                     )
             if data is None:
@@ -452,12 +482,14 @@ _DEFAULT_METHODS: Dict[str, Tuple[str, ...]] = {
     "read": ("GET",),
     "update": ("PATCH",),
     "replace": ("PUT",),
+    "merge": ("PATCH",),
     "delete": ("DELETE",),
     "list": ("GET",),
     "clear": ("DELETE",),
     "bulk_create": ("POST",),
     "bulk_update": ("PATCH",),
     "bulk_replace": ("PUT",),
+    "bulk_merge": ("PATCH",),
     "bulk_delete": ("DELETE",),
     "custom": ("POST",),  # default for custom ops
 }
@@ -484,7 +516,13 @@ def _path_for_spec(
     if not suffix.startswith("/") and suffix:
         suffix = "/" + suffix
 
-    if sp.arity == "member" or sp.target in {"read", "update", "replace", "delete"}:
+    if sp.arity == "member" or sp.target in {
+        "read",
+        "update",
+        "replace",
+        "merge",
+        "delete",
+    }:
         return f"/{resource}/{{{pk_param}}}{suffix}", True
     return f"/{resource}{suffix}", False
 
@@ -792,8 +830,22 @@ def _make_collection_endpoint(
 
     body_model = _request_model_for(sp, model)
     base_annotation = body_model if body_model is not None else Mapping[str, Any]
-    if target in {"bulk_create", "bulk_update", "bulk_replace"}:
-        if body_model is None:
+
+    if target in {"bulk_create", "bulk_update", "bulk_replace", "bulk_merge"}:
+        alias_ns = getattr(
+            getattr(model, "schemas", None) or SimpleNamespace(), alias, None
+        )
+        item_model = getattr(alias_ns, "in_item", None) if alias_ns else None
+        if (
+            item_model
+            and inspect.isclass(item_model)
+            and issubclass(item_model, BaseModel)
+        ):
+            try:
+                body_annotation = list[item_model]  # type: ignore[valid-type]
+            except Exception:  # pragma: no cover - best effort
+                body_annotation = List[item_model]  # type: ignore[name-defined]
+        elif body_model is None:
             try:
                 body_annotation = list[Mapping[str, Any]]  # type: ignore[valid-type]
             except Exception:  # pragma: no cover - best effort
@@ -801,7 +853,27 @@ def _make_collection_endpoint(
         else:
             body_annotation = base_annotation
     else:
-        body_annotation = base_annotation
+        if target in {"create", "update", "replace", "merge"}:
+            try:
+                list_ann = list[Mapping[str, Any]]  # type: ignore[valid-type]
+            except Exception:  # pragma: no cover - best effort
+                list_ann = List[Mapping[str, Any]]  # type: ignore[name-defined]
+            if body_model is not None:
+                try:
+                    body_annotation = body_model | list_ann  # type: ignore[operator]
+                except Exception:  # pragma: no cover - best effort
+                    from typing import Union as _Union
+
+                    body_annotation = _Union[body_model, list_ann]
+            else:
+                try:
+                    body_annotation = Mapping[str, Any] | list_ann  # type: ignore[operator]
+                except Exception:  # pragma: no cover - best effort
+                    from typing import Union as _Union
+
+                    body_annotation = _Union[Mapping[str, Any], list_ann]
+        else:
+            body_annotation = base_annotation
 
     async def _endpoint(
         request: Request,
@@ -814,6 +886,13 @@ def _make_collection_endpoint(
         payload = _validate_body(model, alias, target, body)
         exec_alias = alias
         exec_target = target
+        if (
+            target in {"create", "update", "replace", "merge"}
+            and isinstance(payload, Sequence)
+            and not isinstance(payload, Mapping)
+        ):
+            exec_alias = f"bulk_{target}"
+            exec_target = f"bulk_{target}"
         if parent_kw:
             if isinstance(payload, Mapping):
                 payload = dict(payload)
@@ -1119,7 +1198,8 @@ def _make_member_endpoint(
             inspect.Parameter(
                 "body",
                 inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                annotation=Annotated[body_annotation, body_default],
+                annotation=body_annotation,
+                default=body_default,
             ),
         ]
     )
@@ -1165,6 +1245,10 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
     nested_pref = re.sub(r"/{2,}", "/", raw_nested).rstrip("/") or ""
     nested_vars = re.findall(r"{(\w+)}", raw_nested)
 
+    # If bulk_delete is present, drop clear to avoid route conflicts
+    if any(sp.target == "bulk_delete" for sp in specs):
+        specs = [sp for sp in specs if sp.target != "clear"]
+
     # Register collection-level bulk routes before member routes so static paths
     # like "/resource/bulk" aren't captured by dynamic member routes such as
     # "/resource/{item_id}". FastAPI matches routes in the order they are
@@ -1177,11 +1261,11 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
             -1
             if sp.target == "clear"
             else 0
-            if sp.target in {"bulk_update", "bulk_replace", "bulk_delete"}
+            if sp.target in {"bulk_update", "bulk_replace", "bulk_delete", "bulk_merge"}
             else 1
-            if sp.target == "create"
+            if sp.target in {"create", "merge"}
             else 2
-            if sp.target == "bulk_create"
+            if sp.target in {"bulk_create"}
             else 3
         ),
     )
@@ -1234,6 +1318,7 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
                 "read",
                 "update",
                 "replace",
+                "merge",
                 "delete",
             }:
                 path = f"{base}/{{{pk_param}}}{suffix}"

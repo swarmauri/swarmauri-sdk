@@ -3,29 +3,56 @@ from __future__ import annotations
 
 import logging
 from types import SimpleNamespace
-from typing import Any, Dict, List, Optional, Sequence, Tuple, Type
+from typing import Any, Dict, Optional, Sequence, Tuple, Type
 
-from pydantic import BaseModel, Field, RootModel, ConfigDict, create_model
+from pydantic import BaseModel, create_model
 
 from ..opspec import OpSpec
 from ..opspec.types import (
     SchemaRef,
     SchemaArg,
 )  # lazy-capable schema args (runtime: we restrict forms)
-from ..schema import _build_schema, _build_list_params, namely_model
+from ..schema import (
+    _build_schema,
+    _build_list_params,
+    _make_bulk_rows_model,
+    _make_bulk_rows_response_model,
+    _make_bulk_ids_model,
+    _make_deleted_response_model,
+    _make_pk_model,
+    namely_model,
+)
 from ..decorators import collect_decorated_schemas  # ← seed @schema_ctx declarations
 
 logger = logging.getLogger(__name__)
 
 _Key = Tuple[str, str]  # (alias, target)
 
-# ───────────────────────────────────────────────────────────────────────────────
-# Internal helpers
-# ───────────────────────────────────────────────────────────────────────────────
-
 
 def _camel(s: str) -> str:
     return "".join(p.capitalize() or "_" for p in s.split("_"))
+
+
+def _alias_schema(
+    schema: Type[BaseModel], *, model: type, alias: str, kind: str
+) -> Type[BaseModel]:
+    name = f"{model.__name__}{_camel(alias)}{kind}"
+    if getattr(schema, "__name__", None) == name:
+        return schema
+    try:
+        clone = create_model(name, __base__=schema)  # type: ignore[arg-type]
+    except Exception:  # pragma: no cover - best effort
+        return schema
+    return namely_model(
+        clone,
+        name=name,
+        doc=f"{alias} {kind.lower()} schema for {model.__name__}",
+    )
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# Internal helpers
+# ───────────────────────────────────────────────────────────────────────────────
 
 
 def _ensure_alias_namespace(model: type, alias: str) -> SimpleNamespace:
@@ -53,115 +80,6 @@ def _pk_info(model: type) -> Tuple[str, type | Any]:
     col = cols[0]
     py_t = getattr(getattr(col, "type", None), "python_type", Any)
     return (getattr(col, "name", "id"), py_t or Any)
-
-
-def _make_bulk_rows_model(
-    model: type, verb: str, item_schema: Type[BaseModel]
-) -> Type[BaseModel]:
-    """
-    Build a root model representing `List[item_schema]`.
-    """
-    name = f"{model.__name__}{_camel(verb)}Request"
-    example = _extract_example(item_schema)
-    examples = [[example]] if example else []
-
-    item_ref = {"$ref": f"#/components/schemas/{item_schema.__name__}"}
-
-    class _BulkModel(RootModel[List[item_schema]]):  # type: ignore[misc]
-        model_config = ConfigDict(
-            json_schema_extra={"examples": examples, "items": item_ref}
-        )
-
-    return namely_model(
-        _BulkModel,
-        name=name,
-        doc=f"{verb} request schema for {model.__name__}",
-    )
-
-
-def _make_bulk_rows_response_model(
-    model: type, verb: str, item_schema: Type[BaseModel]
-) -> Type[BaseModel]:
-    """Build a root model representing ``List[item_schema]`` for responses."""
-    name = f"{model.__name__}{_camel(verb)}Response"
-    example = _extract_example(item_schema)
-    examples = [[example]] if example else []
-
-    item_ref = {"$ref": f"#/components/schemas/{item_schema.__name__}"}
-
-    class _BulkModel(RootModel[List[item_schema]]):  # type: ignore[misc]
-        model_config = ConfigDict(
-            json_schema_extra={"examples": examples, "items": item_ref}
-        )
-
-    return namely_model(
-        _BulkModel,
-        name=name,
-        doc=f"{verb} response schema for {model.__name__}",
-    )
-
-
-def _make_bulk_ids_model(
-    model: type, verb: str, pk_type: type | Any
-) -> Type[BaseModel]:
-    """
-    Build a wrapper schema with an `ids: List[pk_type]` field.
-    """
-    name = f"{model.__name__}{_camel(verb)}Request"
-    schema = create_model(  # type: ignore[call-arg]
-        name,
-        ids=(List[pk_type], Field(...)),  # type: ignore[name-defined]
-    )
-    return namely_model(
-        schema,
-        name=name,
-        doc=f"{verb} request schema for {model.__name__}",
-    )
-
-
-def _make_deleted_response_model(model: type, verb: str) -> Type[BaseModel]:
-    """Build a response schema with a ``deleted`` count."""
-    name = f"{model.__name__}{_camel(verb)}Response"
-    schema = create_model(  # type: ignore[call-arg]
-        name,
-        deleted=(int, Field(..., examples=[0])),
-        __config__=ConfigDict(json_schema_extra={"examples": [{"deleted": 0}]}),
-    )
-    return namely_model(
-        schema,
-        name=name,
-        doc=f"{verb} response schema for {model.__name__}",
-    )
-
-
-def _make_pk_model(
-    model: type, verb: str, pk_name: str, pk_type: type | Any
-) -> Type[BaseModel]:
-    """Build a wrapper schema with a single primary-key field."""
-    name = f"{model.__name__}{_camel(verb)}Request"
-    schema = create_model(  # type: ignore[call-arg]
-        name,
-        **{pk_name: (pk_type, Field(...))},  # type: ignore[name-defined]
-    )
-    return namely_model(
-        schema,
-        name=name,
-        doc=f"{verb} request schema for {model.__name__}",
-    )
-
-
-def _extract_example(schema: Type[BaseModel]) -> Dict[str, Any]:
-    """Build a simple example object from field examples if available."""
-    try:
-        js = schema.model_json_schema()
-    except Exception:
-        return {}
-    out: Dict[str, Any] = {}
-    for name, prop in (js.get("properties") or {}).items():
-        examples = prop.get("examples")
-        if examples:
-            out[name] = examples[0]
-    return out
 
 
 def _parse_str_ref(s: str) -> Tuple[str, str]:
@@ -252,7 +170,12 @@ def _default_schemas_for_spec(
       • Custom target     → no defaults (raw) unless explicitly overridden.
     """
     target = sp.target
-    result: Dict[str, Optional[Type[BaseModel]]] = {"in_": None, "out": None}
+    result: Dict[str, Optional[Type[BaseModel]]] = {
+        "in_": None,
+        "out": None,
+        "in_item": None,
+        "out_item": None,
+    }
 
     # Element schema for many OUT shapes
     read_schema: Optional[Type[BaseModel]] = _build_schema(model, verb="read")
@@ -278,6 +201,11 @@ def _default_schemas_for_spec(
         result["in_"] = _build_schema(model, verb="replace", exclude={pk_name})
         result["out"] = read_schema
 
+    elif target == "merge":
+        pk_name, _ = _pk_info(model)
+        result["in_"] = _build_schema(model, verb="update", exclude={pk_name})
+        result["out"] = read_schema
+
     elif target == "delete":
         # For RPC delete, a body with PK is allowed; REST delete ignores body.
         result["in_"] = _build_schema(model, verb="delete")
@@ -294,43 +222,64 @@ def _default_schemas_for_spec(
         result["out"] = _make_deleted_response_model(model, "clear")
 
     elif target == "bulk_create":
-        item_in = _build_schema(model, verb="create")
+        item_in = _build_schema(
+            model,
+            verb="create",
+            name=f"{model.__name__}BulkCreateItem",
+        )
         result["in_"] = _make_bulk_rows_model(model, "bulk_create", item_in)
+        result["in_item"] = item_in
         result["out"] = (
             _make_bulk_rows_response_model(model, "bulk_create", read_schema)
             if read_schema
             else None
         )
+        result["out_item"] = read_schema
 
     elif target == "bulk_update":
-        item_in = _build_schema(model, verb="update")
+        item_in = _build_schema(
+            model,
+            verb="update",
+            name=f"{model.__name__}BulkUpdateItem",
+        )
         result["in_"] = _make_bulk_rows_model(model, "bulk_update", item_in)
+        result["in_item"] = item_in
         result["out"] = (
             _make_bulk_rows_response_model(model, "bulk_update", read_schema)
             if read_schema
             else None
         )
+        result["out_item"] = read_schema
 
     elif target == "bulk_replace":
-        item_in = _build_schema(model, verb="replace")
+        item_in = _build_schema(
+            model,
+            verb="replace",
+            name=f"{model.__name__}BulkReplaceItem",
+        )
         result["in_"] = _make_bulk_rows_model(model, "bulk_replace", item_in)
+        result["in_item"] = item_in
         result["out"] = (
             _make_bulk_rows_response_model(model, "bulk_replace", read_schema)
             if read_schema
             else None
         )
+        result["out_item"] = read_schema
 
-    elif target == "bulk_upsert":
-        # Prefer a dedicated 'upsert' item shape if available; otherwise fall back to 'replace'
-        item_in = _build_schema(model, verb="upsert") or _build_schema(
-            model, verb="replace"
+    elif target == "bulk_merge":
+        item_in = _build_schema(
+            model,
+            verb="update",
+            name=f"{model.__name__}BulkMergeItem",
         )
-        result["in_"] = _make_bulk_rows_model(model, "bulk_upsert", item_in)
+        result["in_"] = _make_bulk_rows_model(model, "bulk_merge", item_in)
+        result["in_item"] = item_in
         result["out"] = (
-            _make_bulk_rows_response_model(model, "bulk_upsert", read_schema)
+            _make_bulk_rows_response_model(model, "bulk_merge", read_schema)
             if read_schema
             else None
         )
+        result["out_item"] = read_schema
 
     elif target == "bulk_delete":
         pk_name, pk_type = _pk_info(model)
@@ -419,10 +368,24 @@ def build_and_attach(
             if existing_in is None or not getattr(existing_in, "model_fields", None):
                 setattr(ns, "in_", shapes["in_"])
 
+        if shapes.get("in_item") is not None:
+            existing_in_item = getattr(ns, "in_item", None)
+            if existing_in_item is None or not getattr(
+                existing_in_item, "model_fields", None
+            ):
+                setattr(ns, "in_item", shapes["in_item"])
+
         if shapes.get("out") is not None:
             existing_out = getattr(ns, "out", None)
             if existing_out is None or not getattr(existing_out, "model_fields", None):
                 setattr(ns, "out", shapes["out"])
+
+        if shapes.get("out_item") is not None:
+            existing_out_item = getattr(ns, "out_item", None)
+            if existing_out_item is None or not getattr(
+                existing_out_item, "model_fields", None
+            ):
+                setattr(ns, "out_item", shapes["out_item"])
 
         logger.debug(
             "schemas(default): %s.%s -> in=%s out=%s",
@@ -479,6 +442,32 @@ def build_and_attach(
             getattr(ns, "in_", None).__name__ if getattr(ns, "in_", None) else None,
             getattr(ns, "out", None).__name__ if getattr(ns, "out", None) else None,
         )
+
+    # Pass 3: ensure alias-specific request/response schema names
+    for sp in specs:
+        ns = _ensure_alias_namespace(model, sp.alias)
+        in_model = getattr(ns, "in_", None)
+        if (
+            isinstance(in_model, type)
+            and issubclass(in_model, BaseModel)
+            and getattr(in_model, "__autoapi_schema_decl__", None) is None
+        ):
+            setattr(
+                ns,
+                "in_",
+                _alias_schema(in_model, model=model, alias=sp.alias, kind="Request"),
+            )
+        out_model = getattr(ns, "out", None)
+        if (
+            isinstance(out_model, type)
+            and issubclass(out_model, BaseModel)
+            and getattr(out_model, "__autoapi_schema_decl__", None) is None
+        ):
+            setattr(
+                ns,
+                "out",
+                _alias_schema(out_model, model=model, alias=sp.alias, kind="Response"),
+            )
 
 
 __all__ = ["build_and_attach"]

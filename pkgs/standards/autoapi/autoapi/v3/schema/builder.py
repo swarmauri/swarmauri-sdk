@@ -83,11 +83,15 @@ _SchemaVerb = Union[
     Literal["read"],  # type: ignore[name-defined]
     Literal["update"],  # type: ignore[name-defined]
     Literal["replace"],  # type: ignore[name-defined]
+    Literal["merge"],  # type: ignore[name-defined]
     Literal["delete"],  # type: ignore[name-defined]
     Literal["list"],  # type: ignore[name-defined]
+    Literal["clear"],  # type: ignore[name-defined]
 ]
 
-_SchemaCache: Dict[Tuple[type, str, frozenset, frozenset], Type[BaseModel]] = {}
+_SchemaCache: Dict[
+    Tuple[type, str, frozenset, frozenset, str | None], Type[BaseModel]
+] = {}
 
 
 # ───────────────────────────────────────────────────────────────────────────────
@@ -249,7 +253,13 @@ def _build_schema(
         - default_factory, examples
       • __autoapi_request_extras__ / __autoapi_response_extras__ on the ORM class
     """
-    cache_key = (orm_cls, verb, frozenset(include or ()), frozenset(exclude or ()))
+    cache_key = (
+        orm_cls,
+        verb,
+        frozenset(include or ()),
+        frozenset(exclude or ()),
+        name,
+    )
     cached = _SchemaCache.get(cache_key)
     if cached is not None:
         logger.debug("schema: cache hit %s verb=%s", orm_cls.__name__, verb)

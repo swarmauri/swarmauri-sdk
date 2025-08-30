@@ -146,7 +146,7 @@ def test_iospec_in_verbs_reflected_in_openapi() -> None:
     app.include_router(router)
     spec = app.openapi()
 
-    create_props = spec["components"]["schemas"]["WidgetCreate"]["properties"]
+    create_props = spec["components"]["schemas"]["WidgetCreateRequest"]["properties"]
     assert "name" in create_props
     assert "id" not in create_props
 

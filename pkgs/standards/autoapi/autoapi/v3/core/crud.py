@@ -85,6 +85,23 @@ def _single_pk_name(model: type) -> str:
     return pks[0].name
 
 
+def _coerce_pk_value(model: type, value: Any) -> Any:
+    """Coerce a provided primary key value to the model's python type."""
+    if value is None:
+        return None
+    try:
+        col = _pk_columns(model)[0]
+        py_type = col.type.python_type  # type: ignore[attr-defined]
+    except Exception:  # pragma: no cover - best effort
+        return value
+    if isinstance(value, py_type):
+        return value
+    try:
+        return py_type(value)
+    except Exception:  # pragma: no cover - fallback to original
+        return value
+
+
 def _model_columns(model: type) -> Tuple[str, ...]:
     table = getattr(model, "__table__", None)
     if table is None:
@@ -552,14 +569,43 @@ async def replace(
     model: type, ident: Any, data: Mapping[str, Any], db: Union[Session, AsyncSession]
 ) -> Any:
     """
-    Replace semantics: attributes not provided are nulled (except PK).
-    Returns the updated model instance. Flush-only.
+    PUT semantics with upsert behaviour.
+
+    If the row exists it is replaced entirely (missing attributes are nulled).
+    If the row does not exist it is created with the provided identifier.
+    Flush-only.
     """
     data = _filter_in_values(model, data or {}, "replace")
     _validate_enum_values(model, data)
-    obj = await read(model, ident, db)
+    pk = _single_pk_name(model)
+    obj = await _maybe_get(db, model, ident)
+    if obj is None:
+        payload = {pk: ident, **data}
+        return await create(model, payload, db=db)
     skip = _immutable_columns(model, "replace")
     _set_attrs(obj, data, allow_missing=False, skip=skip)
+    await _maybe_flush(db)
+    return obj
+
+
+async def merge(
+    model: type, ident: Any, data: Mapping[str, Any], db: Union[Session, AsyncSession]
+) -> Any:
+    """PATCH semantics with upsert behaviour."""
+    pk = _single_pk_name(model)
+    ident = _coerce_pk_value(model, ident)
+    obj = await _maybe_get(db, model, ident)
+
+    # Respect create-only fields when upserting a new row
+    verb = "update" if obj is not None else "create"
+    data = _filter_in_values(model, data or {}, verb)
+    _validate_enum_values(model, data)
+    data_no_pk = {k: v for k, v in data.items() if k != pk}
+    if obj is None:
+        payload = {pk: ident, **data_no_pk}
+        return await create(model, payload, db=db)
+    skip = _immutable_columns(model, "update")
+    _set_attrs(obj, data_no_pk, allow_missing=True, skip=skip)
     await _maybe_flush(db)
     return obj
 
@@ -739,6 +785,31 @@ async def bulk_replace(
     return replaced
 
 
+async def bulk_merge(
+    model: type, rows: Iterable[Mapping[str, Any]], db: Union[Session, AsyncSession]
+) -> List[Any]:
+    """Merge many rows by primary key with upsert semantics."""
+    pk = _single_pk_name(model)
+    results: List[Any] = []
+    to_create: List[Mapping[str, Any]] = []
+    for r in rows or ():
+        r = dict(r)
+        ident = _coerce_pk_value(model, r.get(pk))
+        if ident is not None:
+            existing = await _maybe_get(db, model, ident)
+            if existing is not None:
+                data = {k: v for k, v in r.items() if k != pk}
+                merged = await merge(model, ident, data, db=db)
+                results.append(merged)
+                continue
+            r[pk] = ident
+        to_create.append(r)
+    if to_create:
+        created = await bulk_create(model, to_create, db)
+        results.extend(created)
+    return results
+
+
 async def bulk_delete(
     model: type, idents: Iterable[Any], db: Union[Session, AsyncSession]
 ) -> Dict[str, int]:
@@ -775,11 +846,13 @@ __all__ = [
     "read",
     "update",
     "replace",
+    "merge",
     "delete",
     "list",
     "clear",
     "bulk_create",
     "bulk_update",
     "bulk_replace",
+    "bulk_merge",
     "bulk_delete",
 ]

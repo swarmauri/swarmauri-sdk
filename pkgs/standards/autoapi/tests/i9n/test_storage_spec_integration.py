@@ -45,7 +45,7 @@ async def test_storage_spec_internal_orm(api_client_v3):
 async def test_storage_spec_openapi(api_client_v3):
     client, _, _, _ = api_client_v3
     spec = (await client.get("/openapi.json")).json()
-    schema = spec["components"]["schemas"]["WidgetCreate"]
+    schema = spec["components"]["schemas"]["WidgetCreateRequest"]
     assert "name" in schema["required"]
     assert "age" not in schema["required"]
 

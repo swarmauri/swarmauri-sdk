@@ -420,8 +420,10 @@ _COLLECTION_VERBS = {
     "bulk_create",
     "bulk_update",
     "bulk_replace",
+    "bulk_merge",
     "bulk_delete",
     "clear",
+    "merge",
 }
 
 
