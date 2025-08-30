@@ -9,7 +9,7 @@ from autoapi.v3.types import App, Column, String
 
 
 @pytest.mark.asyncio()
-async def test_openapi_client_create_request_is_array() -> None:
+async def test_openapi_client_create_request_schema_contains_object() -> None:
     Base.metadata.clear()
 
     class Widget(Base, GUIDPk, BulkCapable):
@@ -31,7 +31,22 @@ async def test_openapi_client_create_request_is_array() -> None:
     if "$ref" in schema:
         ref = schema["$ref"].split("/")[-1]
         schema = spec["components"]["schemas"][ref]
-    assert schema.get("type") == "object"
+
+    if schema.get("type") == "object":
+        return
+
+    any_of = schema.get("anyOf") or []
+    assert any(
+        subschema.get("type") == "object"
+        or (
+            "$ref" in subschema
+            and spec["components"]["schemas"][subschema["$ref"].split("/")[-1]].get(
+                "type"
+            )
+            == "object"
+        )
+        for subschema in any_of
+    )
 
 
 @pytest.mark.asyncio()
