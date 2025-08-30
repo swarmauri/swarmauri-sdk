@@ -405,9 +405,9 @@ class RowLock:
 class BulkCapable:
     __autoapi_defaults_mode__: str = "all"
     __autoapi_defaults_include__: set[str] = set(
-        v for v in BULK_VERBS if v != "bulk_replace"
+        v for v in BULK_VERBS if v not in {"bulk_replace", "bulk_merge"}
     )
-    __autoapi_defaults_exclude__: set[str] = {"upsert"}
+    __autoapi_defaults_exclude__: set[str] = set()
 
     def __init_subclass__(cls, **kw):
         super().__init_subclass__(**kw)
@@ -431,6 +431,20 @@ class Replaceable:
         super().__init_subclass__(**kw)
         inc = set(getattr(cls, "__autoapi_defaults_include__", set()))
         inc.update(Replaceable.__autoapi_defaults_include__)
+        cls.__autoapi_defaults_include__ = inc
+
+
+# ────────── Enable PATCH MERGE ---------------------------------------
+@declarative_mixin
+class Mergeable:
+    __autoapi_defaults_mode__: str = "all"
+    __autoapi_defaults_include__: set[str] = {"merge", "bulk_merge"}
+    __autoapi_defaults_exclude__: set[str] = set()
+
+    def __init_subclass__(cls, **kw):
+        super().__init_subclass__(**kw)
+        inc = set(getattr(cls, "__autoapi_defaults_include__", set()))
+        inc.update(Mergeable.__autoapi_defaults_include__)
         cls.__autoapi_defaults_include__ = inc
 
 

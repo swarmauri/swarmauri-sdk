@@ -133,14 +133,14 @@ def _generate_canonical(model: type) -> List[OpSpec]:
         "read",
         "update",
         "replace",
-        "upsert",
+        "merge",
         "delete",
         "list",
         "clear",
         "bulk_create",
         "bulk_update",
         "bulk_replace",
-        "bulk_upsert",
+        "bulk_merge",
         "bulk_delete",
     )
     out: List[OpSpec] = []

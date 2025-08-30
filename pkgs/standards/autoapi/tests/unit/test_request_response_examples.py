@@ -1,7 +1,7 @@
 from autoapi.v3.bindings.rest import _build_router
 from autoapi.v3.opspec import OpSpec
 from autoapi.v3.tables import Base
-from autoapi.v3.mixins import GUIDPk, BulkCapable
+from autoapi.v3.mixins import GUIDPk, BulkCapable, Mergeable
 from autoapi.v3.types import Column, String, App
 
 
@@ -10,7 +10,7 @@ class Widget(Base, GUIDPk):
     name = Column(String, nullable=False, info={"autoapi": {"examples": ["foo"]}})
 
 
-class BulkWidget(Base, GUIDPk, BulkCapable):
+class BulkWidget(Base, GUIDPk, BulkCapable, Mergeable):
     __tablename__ = "widgets_example_schemas_bulk"
     name = Column(String, nullable=False, info={"autoapi": {"examples": ["foo"]}})
 
@@ -70,20 +70,20 @@ def test_bulk_response_model_examples():
     assert example == {"name": "foo"}
 
 
-def test_upsert_request_model_examples():
-    spec = _openapi_for(Widget, [("upsert", "upsert")])
-    path = f"/{Widget.__name__.lower()}"
-    schema = spec["paths"][path]["put"]["requestBody"]["content"]["application/json"][
+def test_merge_request_model_examples():
+    spec = _openapi_for(Widget, [("merge", "merge")])
+    path = f"/{Widget.__name__.lower()}/{{item_id}}"
+    schema = spec["paths"][path]["patch"]["requestBody"]["content"]["application/json"][
         "schema"
     ]
     schema = _resolve_schema(spec, schema)
     assert schema["properties"]["name"]["examples"][0] == "foo"
 
 
-def test_upsert_response_model_examples():
-    spec = _openapi_for(Widget, [("upsert", "upsert")])
-    path = f"/{Widget.__name__.lower()}"
-    schema = spec["paths"][path]["put"]["responses"]["200"]["content"][
+def test_merge_response_model_examples():
+    spec = _openapi_for(Widget, [("merge", "merge")])
+    path = f"/{Widget.__name__.lower()}/{{item_id}}"
+    schema = spec["paths"][path]["patch"]["responses"]["200"]["content"][
         "application/json"
     ]["schema"]
     schema = _resolve_schema(spec, schema)
@@ -122,6 +122,27 @@ def test_bulk_update_request_model_examples():
 
 def test_bulk_update_response_model_examples():
     spec = _openapi_for(BulkWidget, [("bulk_update", "bulk_update")])
+    path = f"/{BulkWidget.__name__.lower()}"
+    schema = spec["paths"][path]["patch"]["responses"]["200"]["content"][
+        "application/json"
+    ]["schema"]
+    schema = _resolve_schema(spec, schema)
+    example = schema["examples"][0][0]
+    assert example == {"name": "foo"}
+
+
+def test_bulk_merge_request_model_examples():
+    spec = _openapi_for(BulkWidget, [("bulk_merge", "bulk_merge")])
+    path = f"/{BulkWidget.__name__.lower()}"
+    schema = spec["paths"][path]["patch"]["requestBody"]["content"]["application/json"][
+        "schema"
+    ]
+    schema = _resolve_schema(spec, schema)
+    assert schema["examples"][0] == [{"name": "foo"}]
+
+
+def test_bulk_merge_response_model_examples():
+    spec = _openapi_for(BulkWidget, [("bulk_merge", "bulk_merge")])
     path = f"/{BulkWidget.__name__.lower()}"
     schema = spec["paths"][path]["patch"]["responses"]["200"]["content"][
         "application/json"

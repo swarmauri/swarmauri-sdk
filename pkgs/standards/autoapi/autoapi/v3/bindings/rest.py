@@ -270,8 +270,8 @@ def _validate_body(
     if isinstance(body, BaseModel):
         return body.model_dump(exclude_none=True)
 
-    # Bulk mutations expect a list payload (bulk_create/bulk_update/bulk_replace/bulk_upsert).
-    if target in {"bulk_create", "bulk_update", "bulk_replace", "bulk_upsert"}:
+    # Bulk mutations expect a list payload (bulk_create/bulk_update/bulk_replace/bulk_merge).
+    if target in {"bulk_create", "bulk_update", "bulk_replace", "bulk_merge"}:
         items: Sequence[Any] = body or []
         if not isinstance(items, Sequence) or isinstance(items, (str, bytes)):
             items = []
@@ -448,14 +448,14 @@ _DEFAULT_METHODS: Dict[str, Tuple[str, ...]] = {
     "read": ("GET",),
     "update": ("PATCH",),
     "replace": ("PUT",),
-    "upsert": ("PUT",),
+    "merge": ("PATCH",),
     "delete": ("DELETE",),
     "list": ("GET",),
     "clear": ("DELETE",),
     "bulk_create": ("POST",),
     "bulk_update": ("PATCH",),
     "bulk_replace": ("PUT",),
-    "bulk_upsert": ("PUT",),
+    "bulk_merge": ("PATCH",),
     "bulk_delete": ("DELETE",),
     "custom": ("POST",),  # default for custom ops
 }
@@ -790,7 +790,7 @@ def _make_collection_endpoint(
 
     body_model = _request_model_for(sp, model)
     base_annotation = body_model if body_model is not None else Mapping[str, Any]
-    if target in {"bulk_create", "bulk_update", "bulk_replace", "bulk_upsert"}:
+    if target in {"bulk_create", "bulk_update", "bulk_replace", "bulk_merge"}:
         if body_model is None:
             try:
                 body_annotation = list[Mapping[str, Any]]  # type: ignore[valid-type]
@@ -1179,10 +1179,9 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
             -1
             if sp.target == "clear"
             else 0
-            if sp.target
-            in {"bulk_update", "bulk_replace", "bulk_delete", "bulk_upsert"}
+            if sp.target in {"bulk_update", "bulk_replace", "bulk_delete", "bulk_merge"}
             else 1
-            if sp.target in {"create", "upsert"}
+            if sp.target in {"create", "merge"}
             else 2
             if sp.target in {"bulk_create"}
             else 3
