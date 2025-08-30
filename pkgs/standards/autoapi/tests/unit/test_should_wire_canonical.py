@@ -38,11 +38,11 @@ def test_should_wire_canonical_bulkcapable():
         "bulk_create",
         "bulk_update",
         "bulk_delete",
-        "bulk_merge",
     }:
         assert should_wire_canonical(Bulk, verb)
     assert not should_wire_canonical(Bulk, "bulk_replace")
     assert not should_wire_canonical(Bulk, "merge")
+    assert not should_wire_canonical(Bulk, "bulk_merge")
 
 
 def test_should_wire_canonical_replaceable():
