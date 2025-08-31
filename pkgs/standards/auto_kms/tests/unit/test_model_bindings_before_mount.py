@@ -22,7 +22,7 @@ async def test_bindings_before_mount(monkeypatch):
 
     monkeypatch.setattr(_executor, "_invoke", fake_invoke)
 
-    from auto_kms.tables.key import Key
+    from auto_kms.orm import Key
 
     api = AutoAPI()
     api.bind(Key)

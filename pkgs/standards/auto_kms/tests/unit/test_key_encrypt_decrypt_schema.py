@@ -1,5 +1,5 @@
 from autoapi.v3.bindings import bind
-from auto_kms.tables.key import Key
+from auto_kms.orm import Key
 
 
 def test_key_encrypt_decrypt_schemas():

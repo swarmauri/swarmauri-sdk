@@ -8,7 +8,7 @@ from sqlalchemy import select
 
 from autoapi.v3.tables import Base
 
-from auto_kms.tables.key_version import KeyVersion
+from auto_kms.orm import KeyVersion
 
 
 def _create_key(client, name: str = "k1"):

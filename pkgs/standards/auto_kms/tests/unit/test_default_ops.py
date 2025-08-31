@@ -1,6 +1,6 @@
 import auto_kms.app  # noqa: F401 ensures models are bound
-from auto_kms.tables.key import Key
-from auto_kms.tables.key_version import KeyVersion
+from auto_kms.orm import Key
+from auto_kms.orm import KeyVersion
 import pytest
 
 DEFAULT_OPS = {
