@@ -1,6 +1,8 @@
 # autoapi/autoapi/v3/engines/resolver.py
 from __future__ import annotations
 
+import asyncio
+import inspect
 import threading
 from typing import Any, Dict, Optional, Tuple
 
@@ -26,6 +28,7 @@ def _coerce(ctx: Optional[EngineCtx]) -> Optional[Provider]:
 
 
 # ---- registration -----------------------------------------------------------
+
 
 def set_default(ctx: EngineCtx | None) -> None:
     """
@@ -71,6 +74,7 @@ def register_op(model: Any, alias: str, ctx: EngineCtx | None) -> None:
 
 
 # ---- resolution -------------------------------------------------------------
+
 
 def resolve_provider(
     *,
@@ -126,7 +130,15 @@ def acquire(
         close = getattr(db, "close", None)
         if callable(close):
             try:
-                close()
+                rv = close()
+                if inspect.isawaitable(rv):
+                    try:
+                        loop = asyncio.get_running_loop()
+                    except RuntimeError:
+                        asyncio.run(rv)
+                    else:
+                        loop.create_task(rv)
+                # If close is sync, it has already executed
             except Exception:
                 # best-effort close; swallow to avoid masking handler errors
                 pass
