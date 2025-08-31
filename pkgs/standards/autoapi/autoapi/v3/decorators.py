@@ -13,6 +13,7 @@ from autoapi.v3.opspec.types import (
     SchemaArg,
 )
 from autoapi.v3.runtime.executor import _Ctx  # pipeline ctx normalizer
+from autoapi.v3.engines.decorators import engine_ctx
 
 # Try-pydantic (optional; schemas may be any class but we keep this for hints/debug)
 try:  # pragma: no cover
@@ -540,3 +541,14 @@ def collect_decorated_hooks(
                         _wrap_ctx_hook(table, func, ph)
                     )
     return mapping
+
+
+__all__ = [
+    "alias",
+    "alias_ctx",
+    "op_alias",
+    "schema_ctx",
+    "hook_ctx",
+    "engine_ctx",
+    "op_ctx",
+]
