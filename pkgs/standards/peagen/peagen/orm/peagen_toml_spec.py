@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from autoapi.v3.tables import Base
+from autoapi.v3.orm.tables import Base
 from autoapi.v3.types import JSON, String, Text, UniqueConstraint, Mapped, relationship
-from autoapi.v3.mixins import GUIDPk, Timestamped, TenantBound, Ownable
+from autoapi.v3.orm.mixins import GUIDPk, Timestamped, TenantBound, Ownable
 from autoapi.v3.specs import S, acol
 
 from .users import User

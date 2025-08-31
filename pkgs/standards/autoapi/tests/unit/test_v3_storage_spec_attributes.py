@@ -3,7 +3,7 @@ from types import SimpleNamespace
 from autoapi.v3.runtime.atoms.storage import to_stored
 from autoapi.v3.specs import S, acol
 from autoapi.v3.specs.storage_spec import ForeignKeySpec, StorageTransform
-from autoapi.v3.tables import Base
+from autoapi.v3.orm.tables import Base
 from sqlalchemy import Integer, String, text
 from sqlalchemy.orm import Mapped
 

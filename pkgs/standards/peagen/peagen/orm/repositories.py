@@ -4,14 +4,14 @@ from __future__ import annotations
 from urllib.parse import urlparse
 from typing import Any, Mapping, Optional, TYPE_CHECKING
 
-from autoapi.v3.tables import Base
+from autoapi.v3.orm.tables import Base
 from autoapi.v3.types import (
     String,
     UniqueConstraint,
     relationship,
     Mapped,
 )
-from autoapi.v3.mixins import (
+from autoapi.v3.orm.mixins import (
     GUIDPk,
     Timestamped,
     TenantBound,

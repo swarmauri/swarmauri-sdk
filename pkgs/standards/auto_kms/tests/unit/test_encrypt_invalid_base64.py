@@ -3,7 +3,7 @@ import base64
 import importlib
 
 import pytest
-from autoapi.v3.tables import Base
+from autoapi.v3.orm.tables import Base
 from fastapi.testclient import TestClient
 
 

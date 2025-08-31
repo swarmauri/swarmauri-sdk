@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from autoapi.v3.tables import Base
+from autoapi.v3.orm.tables import Base
 from autoapi.v3.types import (
     JSON,
     PgUUID,
@@ -9,7 +9,7 @@ from autoapi.v3.types import (
     HookProvider,
     Mapped,
 )
-from autoapi.v3.mixins import GUIDPk, Timestamped, StatusMixin
+from autoapi.v3.orm.mixins import GUIDPk, Timestamped, StatusMixin
 from autoapi.v3.specs import S, acol
 from autoapi.v3.specs.storage_spec import ForeignKeySpec
 from autoapi.v3 import hook_ctx

@@ -18,7 +18,7 @@ import time
 from typing import Any, Dict, List, Optional, Protocol
 
 from autoapi.v3 import get_schema
-from autoapi.v3.tables.status import Status
+from autoapi.v3.orm.tables.status import Status
 from autoapi_client import AutoAPIClient
 
 from peagen.defaults import READY_QUEUE, TASK_KEY, TASK_TTL, WORKER_KEY, WORKER_TTL

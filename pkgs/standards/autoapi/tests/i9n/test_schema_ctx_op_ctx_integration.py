@@ -7,7 +7,7 @@ from sqlalchemy import Column, String
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from autoapi.v3 import AutoAPI, Base, op_ctx, schema_ctx
-from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.orm.mixins import GUIDPk
 
 
 @pytest_asyncio.fixture

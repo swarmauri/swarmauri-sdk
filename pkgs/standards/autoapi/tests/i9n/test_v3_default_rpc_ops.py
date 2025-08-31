@@ -1,13 +1,13 @@
 import pytest
 import pytest_asyncio
-from autoapi.v3.mixins import BulkCapable, Replaceable, Mergeable
+from autoapi.v3.orm.mixins import BulkCapable, Replaceable, Mergeable
 from autoapi.v3.types import App, Integer, Mapped, String, uuid4
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from autoapi.v3.autoapi import AutoAPI as AutoAPIv3
 from autoapi.v3.specs import F, IO, S, acol
-from autoapi.v3.tables import Base as Base3
+from autoapi.v3.orm.tables import Base as Base3
 
 
 @pytest_asyncio.fixture()

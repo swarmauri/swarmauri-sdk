@@ -5,7 +5,7 @@ from typing import Any, Mapping
 from autoapi.v3.types import HTTPException, UUID, Column, Integer, String, uuid4
 
 from autoapi.v3 import AutoAPI, Base
-from autoapi.v3.mixins import GUIDPk, BulkCapable, Replaceable
+from autoapi.v3.orm.mixins import GUIDPk, BulkCapable, Replaceable
 
 
 class CoreTestUser(Base, GUIDPk, BulkCapable, Replaceable):

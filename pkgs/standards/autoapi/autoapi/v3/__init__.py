@@ -80,7 +80,7 @@ from .system.dbschema import ensure_schemas, register_sqlite_attach, bootstrap_d
 from .config.constants import DEFAULT_HTTP_METHODS
 from .autoapi import AutoAPI
 
-from .tables import Base
+from .orm.tables import Base
 from .types import App
 
 

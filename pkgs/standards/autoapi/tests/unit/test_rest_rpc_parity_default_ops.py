@@ -1,9 +1,9 @@
 import pytest
 
 from autoapi.v3.autoapi import AutoAPI
-from autoapi.v3.mixins import GUIDPk, BulkCapable, Mergeable
+from autoapi.v3.orm.mixins import GUIDPk, BulkCapable, Mergeable
 from autoapi.v3.opspec.types import CANON
-from autoapi.v3.tables import Base
+from autoapi.v3.orm.tables import Base
 from autoapi.v3.types import Column, String
 
 
