@@ -4,7 +4,7 @@ from autoapi.v3.specs import ColumnSpec, F, IO, S, acol
 from autoapi.v3.runtime.atoms.schema import collect_in, collect_out
 from autoapi.v3.runtime.atoms.out import masking
 from autoapi.v3.core import crud
-from autoapi.v3.tables import Base
+from autoapi.v3.orm.tables import Base
 from sqlalchemy import Integer
 from sqlalchemy.orm import Mapped
 

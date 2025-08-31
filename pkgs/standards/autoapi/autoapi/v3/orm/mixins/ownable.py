@@ -6,18 +6,18 @@ from enum import Enum
 from typing import Any, Mapping
 from uuid import UUID
 
-from ..types import PgUUID, Mapped, declared_attr
+from ...types import PgUUID, Mapped, declared_attr
 
-from ..specs import acol
-from ..config.constants import (
+from ...specs import acol
+from ...config.constants import (
     AUTOAPI_HOOKS_ATTR,
     AUTOAPI_OWNER_POLICY_ATTR,
     CTX_AUTH_KEY,
     CTX_USER_ID_KEY,
 )
-from ..runtime.errors import create_standardized_error
-from ..specs import ColumnSpec, F, IO, S
-from ..specs.storage_spec import ForeignKeySpec
+from ...runtime.errors import create_standardized_error
+from ...specs import ColumnSpec, F, IO, S
+from ...specs.storage_spec import ForeignKeySpec
 
 log = logging.getLogger(__name__)
 

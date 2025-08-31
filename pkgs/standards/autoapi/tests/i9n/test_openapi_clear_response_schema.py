@@ -2,8 +2,8 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from autoapi.v3.autoapi import AutoAPI
-from autoapi.v3.mixins import GUIDPk
-from autoapi.v3.tables import Base
+from autoapi.v3.orm.mixins import GUIDPk
+from autoapi.v3.orm.tables import Base
 from autoapi.v3.types import App, Column, String
 
 

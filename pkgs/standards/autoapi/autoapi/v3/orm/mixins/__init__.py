@@ -6,9 +6,9 @@ from .bootstrappable import Bootstrappable as Bootstrappable
 from .upsertable import Upsertable as Upsertable
 from .ownable import Ownable as Ownable, OwnerPolicy as OwnerPolicy
 from .tenant_bound import TenantBound as TenantBound, TenantPolicy as TenantPolicy
-from ..specs import ColumnSpec, F, IO, S, acol
-from ..specs.storage_spec import ForeignKeySpec
-from ..types import (
+from ...specs import ColumnSpec, F, IO, S, acol
+from ...specs.storage_spec import ForeignKeySpec
+from ...types import (
     TZDateTime,
     Integer,
     String,
@@ -25,7 +25,7 @@ from ..types import (
     uuid4,
     Mapped,
 )
-from ..config.constants import CTX_AUTH_KEY, CTX_USER_ID_KEY, BULK_VERBS
+from ...config.constants import CTX_AUTH_KEY, CTX_USER_ID_KEY, BULK_VERBS
 
 
 def tzutcnow() -> dt.datetime:  # default/on‑update factory

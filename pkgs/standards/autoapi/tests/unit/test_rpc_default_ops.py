@@ -2,9 +2,9 @@ import pytest
 from collections.abc import Iterator
 
 from autoapi.v3.autoapi import AutoAPI
-from autoapi.v3.mixins import BulkCapable, GUIDPk
+from autoapi.v3.orm.mixins import BulkCapable, GUIDPk
 from autoapi.v3.specs import IO, S, F, acol as spec_acol
-from autoapi.v3.tables import Base
+from autoapi.v3.orm.tables import Base
 from autoapi.v3.types import (
     Session,
     String,

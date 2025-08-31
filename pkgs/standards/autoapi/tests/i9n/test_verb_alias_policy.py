@@ -3,7 +3,7 @@
 import pytest
 
 from autoapi.v3 import Base
-from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.orm.mixins import GUIDPk
 
 
 @pytest.mark.i9n

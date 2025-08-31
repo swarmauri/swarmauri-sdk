@@ -37,7 +37,7 @@ def _infer_py_type(cls, name: str, spec: Any) -> Optional[type]:
 
     # Mapped[T] → T (then unwrap Optional)
     try:
-        from ..types import Mapped
+        from ...types import Mapped
 
         if get_origin(ann) is Mapped:
             inner = get_args(ann)[0]

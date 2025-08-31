@@ -8,9 +8,9 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from autoapi.v3 import AutoAPI, Base
-from autoapi.v3.mixins import GUIDPk
-from autoapi.v3.mixins.ownable import Ownable, OwnerPolicy
-from autoapi.v3.mixins.tenant_bound import TenantBound, TenantPolicy
+from autoapi.v3.orm.mixins import GUIDPk
+from autoapi.v3.orm.mixins.ownable import Ownable, OwnerPolicy
+from autoapi.v3.orm.mixins.tenant_bound import TenantBound, TenantPolicy
 from autoapi.v3.types.authn_abc import AuthNProvider
 
 

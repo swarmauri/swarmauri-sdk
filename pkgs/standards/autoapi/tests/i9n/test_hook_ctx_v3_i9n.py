@@ -8,8 +8,8 @@ from uuid import uuid4
 
 from autoapi.v3.autoapi import AutoAPI
 from autoapi.v3.types import Column, String
-from autoapi.v3.tables import Base
-from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.orm.tables import Base
+from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.decorators import hook_ctx
 
 

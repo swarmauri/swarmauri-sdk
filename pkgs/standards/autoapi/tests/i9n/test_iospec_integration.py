@@ -7,8 +7,8 @@ from sqlalchemy.pool import StaticPool
 from types import SimpleNamespace
 
 from autoapi.v3.autoapi import AutoAPI
-from autoapi.v3.tables import Base
-from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.orm.tables import Base
+from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.specs import IO, S, acol
 from autoapi.v3.types import App, String, UUID
 from autoapi.v3.core import crud

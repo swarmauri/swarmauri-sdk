@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from enum import Enum, auto
 
-from autoapi.v3.tables import Base
+from autoapi.v3.orm.tables import Base
 from autoapi.v3.types import (
     JSON,
     String,
@@ -14,7 +14,7 @@ from autoapi.v3.types import (
     HookProvider,
     Mapped,
 )
-from autoapi.v3.mixins import (
+from autoapi.v3.orm.mixins import (
     GUIDPk,
     Timestamped,
     TenantBound,

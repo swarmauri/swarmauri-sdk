@@ -14,7 +14,7 @@ namespaces like ``surface_api.core.User.create`` and
 Notes
 -----
 *   All mix-ins (GUIDPk, Timestamped, TenantBound, etc.) live in
-    *autoapi.v3.mixins* and are imported by the ORM models.
+    *autoapi.v3.orm.mixins* and are imported by the ORM models.
 *   Importing this module has the side-effect of importing
     ``auto_authn.orm``, so every model class is registered with the
     declarative base **before** AutoAPI introspects the metadata.

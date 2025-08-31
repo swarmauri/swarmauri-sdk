@@ -12,8 +12,8 @@ from autoapi.v3.opspec.types import PHASES
 from autoapi.v3.runtime import system as runtime_system
 from autoapi.v3.runtime.kernel import build_phase_chains
 from autoapi.v3.specs import IO, S, acol
-from autoapi.v3.tables import Base
-from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.orm.tables import Base
+from autoapi.v3.orm.mixins import GUIDPk
 
 
 # --- models --------------------------------------------------------------------

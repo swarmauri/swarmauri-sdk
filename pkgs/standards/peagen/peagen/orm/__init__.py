@@ -6,8 +6,8 @@ from __future__ import annotations
 
 from typing import FrozenSet
 
-# from autoapi.v3.tables import Role, RoleGrant, RolePerm
-from autoapi.v3.tables import Status, Base
+# from autoapi.v3.orm.tables import Role, RoleGrant, RolePerm
+from autoapi.v3.orm.tables import Status, Base
 
 # Import table classes. Ensure Tenant is imported before Pool so bootstrapping
 # default rows inserts the default tenant prior to default pools.

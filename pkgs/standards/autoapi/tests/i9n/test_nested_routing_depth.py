@@ -1,7 +1,7 @@
 import pytest
 import pytest_asyncio
 from autoapi.v3 import AutoAPI, Base
-from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.types import App
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, ForeignKey, String

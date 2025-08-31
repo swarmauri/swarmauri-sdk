@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 
-from autoapi.v3.tables import Base
+from autoapi.v3.orm.tables import Base
 from autoapi.v3.types import (
     Boolean,
     String,
@@ -11,7 +11,7 @@ from autoapi.v3.types import (
     Mapped,
     relationship,
 )
-from autoapi.v3.mixins import GUIDPk, Timestamped, UserMixin
+from autoapi.v3.orm.mixins import GUIDPk, Timestamped, UserMixin
 from autoapi.v3.specs import S, acol
 from autoapi.v3 import hook_ctx
 from typing import TYPE_CHECKING

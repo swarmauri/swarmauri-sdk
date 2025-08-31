@@ -7,7 +7,7 @@ from sqlalchemy.pool import StaticPool
 from uuid import uuid4
 
 from autoapi.v3 import AutoAPI, Base
-from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.types.authn_abc import AuthNProvider
 
 AUTH_CONTEXT_KEY = "auth_context"

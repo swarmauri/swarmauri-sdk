@@ -9,7 +9,7 @@ from datetime import datetime, timedelta, timezone
 from autoapi.v3.types import Column, String, uuid4
 
 from autoapi.v3 import Base
-from autoapi.v3.mixins import (
+from autoapi.v3.orm.mixins import (
     ActiveToggle,
     AsyncCapable,
     Audited,

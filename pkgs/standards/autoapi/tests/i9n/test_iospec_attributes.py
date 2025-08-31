@@ -14,8 +14,8 @@ from autoapi.v3.runtime.atoms.resolve import assemble
 from autoapi.v3.runtime.atoms.schema import collect_in, collect_out
 from autoapi.v3.runtime.kernel import build_phase_chains
 from autoapi.v3.specs import F, IO, S, acol, vcol
-from autoapi.v3.tables import Base
-from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.orm.tables import Base
+from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.types import Integer as IntType, String as StrType
 
 

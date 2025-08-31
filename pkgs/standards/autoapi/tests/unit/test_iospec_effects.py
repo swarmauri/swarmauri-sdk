@@ -16,15 +16,15 @@ from autoapi.v3.runtime.atoms.resolve import assemble
 from autoapi.v3.runtime.atoms.schema import collect_in, collect_out
 from autoapi.v3.schema import _build_list_params
 from autoapi.v3.specs import ColumnSpec, F, IO, S, acol, vcol
-from autoapi.v3.tables import Base
-from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.orm.tables import Base
+from autoapi.v3.orm.mixins import GUIDPk
 
 
 class _Base(DeclarativeBase):
     """Local base that materializes ColumnSpecs to SQLAlchemy Columns."""
 
     def __init_subclass__(cls, **kw):
-        from autoapi.v3.tables._base import _materialize_colspecs_to_sqla
+        from autoapi.v3.orm.tables._base import _materialize_colspecs_to_sqla
 
         _materialize_colspecs_to_sqla(cls)
         super().__init_subclass__(**kw)

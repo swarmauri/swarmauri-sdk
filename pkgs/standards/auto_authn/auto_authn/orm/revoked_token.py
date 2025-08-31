@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from autoapi.v3.tables import Base
-from autoapi.v3.mixins import Timestamped
+from autoapi.v3.orm.tables import Base
+from autoapi.v3.orm.mixins import Timestamped
 from autoapi.v3.specs import S, acol
 from autoapi.v3.types import Mapped, String
 from autoapi.v3 import op_ctx

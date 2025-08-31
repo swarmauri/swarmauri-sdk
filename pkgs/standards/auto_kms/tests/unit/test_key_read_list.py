@@ -4,7 +4,7 @@ from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
-from autoapi.v3.tables import Base
+from autoapi.v3.orm.tables import Base
 
 
 @pytest.fixture

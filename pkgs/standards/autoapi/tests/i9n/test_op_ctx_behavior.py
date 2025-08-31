@@ -3,8 +3,8 @@ from httpx import ASGITransport, AsyncClient
 from autoapi.v3.types import App, BaseModel, Column, String, UUID, uuid4
 
 from autoapi.v3 import AutoAPI, op_ctx, schema_ctx, hook_ctx
-from autoapi.v3.tables import Base
-from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.orm.tables import Base
+from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.runtime.kernel import build_phase_chains
 
 

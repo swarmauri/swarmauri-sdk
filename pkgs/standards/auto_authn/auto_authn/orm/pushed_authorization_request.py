@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import datetime as dt
 
-from autoapi.v3.tables import Base
-from autoapi.v3.mixins import Timestamped
+from autoapi.v3.orm.tables import Base
+from autoapi.v3.orm.mixins import Timestamped
 from autoapi.v3.specs import S, acol
 from autoapi.v3.types import JSON, Mapped, String, TZDateTime
 from autoapi.v3 import op_ctx

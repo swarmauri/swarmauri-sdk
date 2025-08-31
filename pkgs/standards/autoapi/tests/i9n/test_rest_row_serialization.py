@@ -8,7 +8,7 @@ from sqlalchemy.orm import Mapped
 
 from autoapi.v3.autoapi import AutoAPI as AutoAPIv3
 from autoapi.v3.specs import F, IO, S, acol
-from autoapi.v3.tables import Base as Base3
+from autoapi.v3.orm.tables import Base as Base3
 from autoapi.v3.core import crud
 
 

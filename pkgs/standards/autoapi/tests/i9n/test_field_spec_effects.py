@@ -9,8 +9,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from autoapi.v3.autoapi import AutoAPI
-from autoapi.v3.tables import Base
-from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.orm.tables import Base
+from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.specs import acol, F, IO, S
 from autoapi.v3.types import String
 from autoapi.v3.runtime.atoms.schema import collect_in
