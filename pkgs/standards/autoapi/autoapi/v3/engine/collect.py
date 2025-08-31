@@ -1,10 +1,10 @@
-# autoapi/autoapi/v3/engines/autowire_collect.py
+"""Functions for inspecting objects for engine configuration."""
+
 from __future__ import annotations
 
 from types import SimpleNamespace
 from typing import Any, Dict, Iterable, Mapping, Tuple
 
-from .resolver import set_default, register_api, register_table, register_op
 
 def _read_db_attr(obj: Any):
     for k in ("db", "database", "db_provider"):
@@ -15,6 +15,7 @@ def _read_db_attr(obj: Any):
         if callable(fn):
             return fn()
     return None
+
 
 def _iter_op_decorators(model: Any) -> Dict[Tuple[Any, str], Mapping[str, Any]]:
     out: Dict[Tuple[Any, str], Mapping[str, Any]] = {}
@@ -38,20 +39,18 @@ def _iter_op_decorators(model: Any) -> Dict[Tuple[Any, str], Mapping[str, Any]]:
             out[(model, alias)] = {"db": getattr(fn, "__autoapi_db__")}
     return out
 
-def install_from_objects(*, app: Any | None = None, api: Any | None = None, models: Iterable[Any] = ()) -> None:
-    # app default
+
+def collect_from_objects(
+    *, app: Any | None = None, api: Any | None = None, models: Iterable[Any] = ()
+) -> Dict[str, Any]:
+    """Collect database configuration from objects without binding them."""
     app_db = _read_db_attr(app) if app is not None else None
-    if app_db is not None:
-        set_default(app_db)
-
-    # api
     api_db = _read_db_attr(api) if api is not None else None
-    if api_db is not None:
-        register_api(api, api_db)
 
-    # tables and ops
+    tables: Dict[Any, Any] = {}
+    ops: Dict[Tuple[Any, str], Any] = {}
+
     for m in models:
-        # table-level
         cfg = getattr(m, "table_config", None)
         tdb = None
         if isinstance(cfg, Mapping):
@@ -62,8 +61,16 @@ def install_from_objects(*, app: Any | None = None, api: Any | None = None, mode
         if tdb is None:
             tdb = _read_db_attr(m)
         if tdb is not None:
-            register_table(m, tdb)
+            tables[m] = tdb
 
-        # op-level
         for (model, alias), ocfg in _iter_op_decorators(m).items():
-            register_op(model, alias, ocfg.get("db"))
+            ops[(model, alias)] = ocfg.get("db")
+
+    api_map = {api: api_db} if api_db is not None and api is not None else {}
+
+    return {
+        "default": app_db,
+        "api": api_map,
+        "tables": tables,
+        "ops": ops,
+    }
