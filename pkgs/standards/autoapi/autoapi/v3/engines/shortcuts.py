@@ -1,6 +1,3 @@
-Here’s a complete drop-in replacement for `autoapi/v3/engines/shortcuts.py`, with `ctxS` fully collapsed into `engS`. `engS` now accepts either an existing EngineCtx (DSN string or mapping) **or** keyword fields (kind/async\_/…); no double wrapping. Back-compat helpers (`mem`, `sqlitef`, `sqliteS`, `pgS`, `pg`, `pga`, `pgs`) remain and construct mappings inline.&#x20;
-
-```python
 # autoapi/autoapi/v3/engines/shortcuts.py
 from __future__ import annotations
 
@@ -184,4 +181,3 @@ __all__ = [
     # direct providers
     "provider_sqlite_memory", "provider_sqlite_file", "provider_postgres",
 ]
-```
