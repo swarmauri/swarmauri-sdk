@@ -18,6 +18,12 @@ from .col_info import (
     should_include_in_input,
     should_include_in_output,
 )
+from .decorators import schema_ctx
+from .collect import collect_decorated_schemas
+from ._schema import Schema
+from .schema_spec import SchemaSpec
+from .shortcuts import schema, schema_spec
+from .types import SchemaRef, SchemaArg, SchemaKind
 
 __all__ = [
     "_build_schema",
@@ -36,4 +42,13 @@ __all__ = [
     "check",
     "should_include_in_input",
     "should_include_in_output",
+    "schema_ctx",
+    "collect_decorated_schemas",
+    "Schema",
+    "SchemaSpec",
+    "schema",
+    "schema_spec",
+    "SchemaRef",
+    "SchemaArg",
+    "SchemaKind",
 ]

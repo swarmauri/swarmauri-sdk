@@ -5,7 +5,8 @@ from typing import Any, Callable
 
 from ..bindings.api import include_model
 from ..bindings.model import bind as bind_model
-from ..opspec import OpSpec, SchemaArg, get_registry
+from ..opspec import OpSpec, get_registry
+from ..schema.types import SchemaArg
 from ..config.constants import AUTOAPI_TX_MODELS_ATTR
 
 

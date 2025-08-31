@@ -8,10 +8,7 @@ from typing import Any, Dict, Optional, Sequence, Tuple, Type
 from pydantic import BaseModel, create_model
 
 from ..opspec import OpSpec
-from ..opspec.types import (
-    SchemaRef,
-    SchemaArg,
-)  # lazy-capable schema args (runtime: we restrict forms)
+from ..schema.types import SchemaRef, SchemaArg  # lazy-capable schema args
 from ..schema import (
     _build_schema,
     _build_list_params,
@@ -21,8 +18,9 @@ from ..schema import (
     _make_deleted_response_model,
     _make_pk_model,
     namely_model,
+    collect_decorated_schemas,
 )
-from ..decorators import collect_decorated_schemas  # ← seed @schema_ctx declarations
+# ← seed @schema_ctx declarations
 
 logger = logging.getLogger(__name__)
 
