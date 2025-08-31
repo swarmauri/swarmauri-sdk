@@ -3,8 +3,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from autoapi.v3 import AutoAPI
 
-from .tables.key import Key
-from .tables.key_version import KeyVersion
+from .orm import Key, KeyVersion
 
 from swarmauri_crypto_paramiko import ParamikoCrypto
 from swarmauri_standard.key_providers import InMemoryKeyProvider

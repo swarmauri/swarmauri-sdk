@@ -45,8 +45,8 @@ def test_encrypt_invalid_base64(client):
 
 
 def test_resource_names():
-    from auto_kms.tables.key import Key
-    from auto_kms.tables.key_version import KeyVersion
+    from auto_kms.orm import Key
+    from auto_kms.orm import KeyVersion
 
     assert Key.__resource__ == "key"
     assert KeyVersion.__resource__ == "key_version"
