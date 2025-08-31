@@ -34,20 +34,19 @@ from .opspec import (
     PHASE,
     HookPhase,
     PHASES,
-    SchemaRef,
-    SchemaArg,
 )
+from .schema.types import SchemaRef, SchemaArg
 
 # ── Ctx-only decorators (new surface; replaces legacy opspec.decorators) ───────
 from .decorators import (
     alias_ctx,
     op_ctx,
     hook_ctx,
-    schema_ctx,
     alias,
     op_alias,
     engine_ctx,
 )
+from .schema.decorators import schema_ctx
 
 # ── Bindings (model + API orchestration) ───────────────────────────────────────
 from .bindings import (

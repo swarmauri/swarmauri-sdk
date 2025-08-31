@@ -11,9 +11,12 @@ from typing import (
     Mapping,
     Optional,
     Tuple,
-    Type,
     Union,
 )
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:  # pragma: no cover
+    from ..schema.types import SchemaArg
 
 # ───────────────────────────────────────────────────────────────────────────────
 # Core aliases & enums
@@ -106,32 +109,6 @@ HookPredicate = Callable[[Any], bool]
 # Lazy-capable schema argument types
 # ───────────────────────────────────────────────────────────────────────────────
 
-try:  # pragma: no cover
-    from pydantic import BaseModel  # type: ignore
-except Exception:  # pragma: no cover
-
-    class BaseModel:  # minimal stub for typing only
-        pass
-
-
-SchemaKind = Literal["in", "out"]
-
-
-@dataclass(frozen=True, slots=True)
-class SchemaRef:
-    """Lazy reference to `model.schemas.<alias>.(in_|out)`."""
-
-    alias: str
-    kind: SchemaKind = "in"
-
-
-SchemaArg = Union[
-    Type[BaseModel],  # direct Pydantic model
-    SchemaRef,  # cross-op reference
-    str,  # "alias.in" | "alias.out"
-    Callable[[type], Type[BaseModel]],  # lambda cls: cls.schemas.create.in_
-]
-
 
 # ───────────────────────────────────────────────────────────────────────────────
 # Engine binding (optional, used by resolver precedence: op > table > api > app)
@@ -185,7 +162,6 @@ class OpSpec:
 
     # Optional per-op engine binding (DSN string or mapping spec)
     db: Optional[DBSpec] = None
-
 
     # HTTP behavior
     arity: Arity = "collection"
@@ -246,9 +222,6 @@ __all__ = [
     "Ctx",
     "StepFn",
     "HookPredicate",
-    "SchemaKind",
-    "SchemaRef",
-    "SchemaArg",
     "DBSpec",
     "OpHook",
     "OpSpec",
