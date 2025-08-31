@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Any, Sequence, Type
 
 from .api_spec import APISpecMixin
-from ._api import API
+from ._api import Api
 
 
 def apiS(
@@ -13,10 +13,8 @@ def apiS(
     name: str = "api",
     prefix: str = "",
     tags: Sequence[str] = (),
-
     # engine
     db: Any = None,
-
     # composition
     ops: Sequence[Any] = (),
     schemas: Sequence[Any] = (),
@@ -39,7 +37,6 @@ def apiS(
         PREFIX=prefix,
         TAGS=tuple(tags or ()),
         DB=db,
-
         OPS=tuple(ops or ()),
         SCHEMAS=tuple(schemas or ()),
         HOOKS=tuple(hooks or ()),
@@ -50,7 +47,7 @@ def apiS(
     return type("APISpec", (APISpecMixin,), attrs)
 
 
-def api(**kw: Any) -> Type[API]:
+def api(**kw: Any) -> Type[Api]:
     """
     Produce a concrete API subclass that *inherits* the spec mixin.
     Example:
@@ -60,7 +57,7 @@ def api(**kw: Any) -> Type[API]:
         tenant_a = TenantA()
     """
     Spec = apiS(**kw)
-    return type("APIWithSpec", (Spec, API), {})
+    return type("APIWithSpec", (Spec, Api), {})
 
 
 __all__ = ["apiS", "api"]

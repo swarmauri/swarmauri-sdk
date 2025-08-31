@@ -1,9 +1,9 @@
-# autoapi/autoapi/v3/engines/_engine.py
+# autoapi/autoapi/v3/engine/_engine.py
 from __future__ import annotations
 
 from contextlib import contextmanager, asynccontextmanager
-from dataclasses import dataclass
-from typing import Any, Callable, Optional, Tuple, Union, Protocol
+from dataclasses import dataclass, field
+from typing import Any, Callable, Optional, Tuple, Union, Protocol, TYPE_CHECKING
 
 try:
     from sqlalchemy.orm import Session
@@ -19,21 +19,25 @@ class SessionFactory(Protocol):
 
 Builder = Callable[[], Tuple[Any, SessionFactory]]  # returns (engine, sessionmaker)
 
+if TYPE_CHECKING:  # pragma: no cover - for type checkers only
+    from .engine_spec import EngineSpec
+
 
 @dataclass(frozen=True)
 class Provider:
-    """
-    Lazily builds an engine + sessionmaker; returns fresh sessions on demand.
-    kind: "sync" | "async" (informational)
-    """
-    kind: str
-    builder: Builder
+    """Lazily builds an engine + sessionmaker from an :class:`EngineSpec`."""
+
+    spec: "EngineSpec"
     _engine: Any = None
     _maker: Optional[SessionFactory] = None
 
+    @property
+    def kind(self) -> str:
+        return "async" if self.spec.async_ else "sync"
+
     def ensure(self) -> Tuple[Any, SessionFactory]:
         if self._maker is None:
-            eng, mk = self.builder()
+            eng, mk = self.spec.build()
             object.__setattr__(self, "_engine", eng)
             object.__setattr__(self, "_maker", mk)
         return self._engine, self._maker  # type: ignore[return-value]
@@ -45,10 +49,13 @@ class Provider:
 
 @dataclass
 class Engine:
-    """
-    Thin façade over a Provider with convenient (a)context managers.
-    """
-    provider: Provider
+    """Thin façade over an :class:`EngineSpec` with convenient (a)context managers."""
+
+    spec: "EngineSpec"
+    provider: Provider = field(init=False)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "provider", Provider(self.spec))
 
     @property
     def is_async(self) -> bool:

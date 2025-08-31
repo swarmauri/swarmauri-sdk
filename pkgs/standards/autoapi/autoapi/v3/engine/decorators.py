@@ -1,4 +1,4 @@
-# autoapi/autoapi/v3/engines/decorators.py
+# autoapi/autoapi/v3/engine/decorators.py
 from __future__ import annotations
 
 import inspect

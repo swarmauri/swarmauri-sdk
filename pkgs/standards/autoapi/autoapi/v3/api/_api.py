@@ -6,23 +6,26 @@ from typing import (
     Generator,
 )
 
-from ..engines import resolver as _resolver
+from ..deps.fastapi import APIRouter as ApiRouter
+from ..engine.engine_spec import EngineCtx
+from ..engine import resolver as _resolver
 from ..engine import install_from_objects
 from .api_spec import APISpec
 
 
-class API(APISpec):
-    def __init__(self, **fastapi_kwargs: Any) -> None:
-        super().__init__(
-            title=self.TITLE,
-            version=self.VERSION,
-            lifespan=self.LIFESPAN,
-            **fastapi_kwargs,
+class Api(APISpec, ApiRouter):
+    def __init__(self, *, db: EngineCtx | None = None, **router_kwargs: Any) -> None:
+        ApiRouter.__init__(
+            self,
+            prefix=self.PREFIX,
+            tags=list(getattr(self, "TAGS", [])),
+            dependencies=list(getattr(self, "SECURITY_DEPS", []))
+            + list(getattr(self, "DEPS", [])),
+            **router_kwargs,
         )
-        if self.DB is not None:
-            _resolver.set_default(self.DB)
-        for mw in self.MIDDLEWARES:
-            self.add_middleware(mw.__class__, **getattr(mw, "kwargs", {}))
+        ctx = db if db is not None else getattr(self, "DB", None)
+        if ctx is not None:
+            _resolver.register_api(self, ctx)
 
     def get_db(self) -> Generator[Any, None, None]:
         db, release = _resolver.acquire()

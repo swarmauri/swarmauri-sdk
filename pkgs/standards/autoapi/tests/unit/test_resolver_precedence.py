@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 
-from autoapi.v3.engines.shortcuts import mem, sqlitef, pga, pgs, prov
-from autoapi.v3.engines import resolver
+from autoapi.v3.engine.shortcuts import mem, pga, pgs, prov, sqlitef
+from autoapi.v3.engine import resolver
 
 
 def test_precedence_op_over_model_over_api_over_app(tmp_path):

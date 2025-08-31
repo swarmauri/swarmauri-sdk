@@ -54,6 +54,89 @@ A high-leverage meta-framework that turns plain SQLAlchemy models into a fully-f
 - Pydantic for schema generation.
 - FastAPI for routing and dependency injection.
 
+### Engine & Provider examples
+
+```python
+from autoapi.v3.engine.shortcuts import engS, prov
+from autoapi.v3.engine._engine import Engine, Provider
+
+# Build an EngineSpec from a DSN string
+spec = engS("sqlite://:memory:")
+
+# Or from keyword arguments
+spec_pg = engS(kind="postgres", async_=True, host="db", name="app_db")
+
+# Lazy Provider from the spec
+provider = prov(spec)            # same as Provider(spec)
+with provider.session() as session:
+    session.execute("SELECT 1")
+
+# Engine façade wrapping a Provider
+eng = Engine(spec_pg)
+async with eng.asession() as session:
+    await session.execute("SELECT 1")
+
+# Direct Provider construction is also supported
+provider_pg = Provider(spec_pg)
+```
+
+### Attaching engine contexts
+
+`engine_ctx` binds database configuration to different layers. It accepts a
+DSN string, a mapping, an `EngineSpec`, a `Provider`, or an `Engine`. The
+resolver chooses the most specific binding in the order
+`op > table > api > app`.
+
+#### Declarative bindings
+
+```python
+from types import SimpleNamespace
+from autoapi.v3.engine.shortcuts import prov, engine
+
+app = SimpleNamespace(db=prov(kind="sqlite", mode="memory"))
+alt = SimpleNamespace(db=engine(kind="sqlite", mode="memory"))
+
+class API:
+    db = {"kind": "sqlite", "memory": True}
+
+class Item:
+    __tablename__ = "items"
+    table_config = {"db": {"kind": "sqlite", "memory": True}}
+
+async def create(payload, *, db=None):
+    ...
+
+create.__autoapi_engine_ctx__ = {
+    "kind": "postgres",
+    "async": True,
+    "host": "db",
+    "name": "op_db",
+}
+```
+
+#### Decorative bindings
+
+```python
+from autoapi.v3.engine.decorators import engine_ctx
+from autoapi.v3.engine.shortcuts import prov, engine
+
+@engine_ctx(prov(kind="sqlite", mode="memory"))
+class App:
+    pass
+
+@engine_ctx(engine(kind="sqlite", mode="memory"))
+class DecoratedAPI:
+    pass
+
+@engine_ctx(kind="sqlite", mode="memory")
+class DecoratedItem:
+    __tablename__ = "items"
+
+@engine_ctx(kind="postgres", async_=True, host="db", name="op_db")
+async def decorated_create(payload, *, db=None):
+    ...
+```
+
 ### Column-level configurations
 
 The following `col.info["autoapi"]` keys are recognized by AutoAPI and related packages:

@@ -1,14 +1,14 @@
 # tests/test_engine_spec_and_shortcuts.py
 import pytest
 
-from autoapi.v3.engines.shortcuts import (
+from autoapi.v3.engine.shortcuts import (
     engS,
-    prov,
     engine,
     mem,
+    prov,
     sqlitef,
 )  # :contentReference[oaicite:2]{index=2}
-from autoapi.v3.engines.engine_spec import (
+from autoapi.v3.engine.engine_spec import (
     EngineSpec,
 )  # :contentReference[oaicite:3]{index=3}
 

@@ -3,7 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional, Sequence
 
-from ..engines.engine_spec import DBSpec
+from ..engine.engine_spec import EngineCtx
+
 
 @dataclass
 class TableSpec:
@@ -11,12 +12,13 @@ class TableSpec:
     Declarative enrichments for an ORM class (model == table).
     This does not construct an instance; it decorates/produces a class.
     """
-    model: Any                                # ORM class
-    db: Optional[DBSpec] = None
+
+    model: Any  # ORM class
+    db: Optional[EngineCtx] = None
 
     # NEW
-    ops: Sequence[Any] = field(default_factory=tuple)          # OpSpec or shorthands
-    columns: Sequence[Any] = field(default_factory=tuple)      # ColumnSpec or shorthands
+    ops: Sequence[Any] = field(default_factory=tuple)  # OpSpec or shorthands
+    columns: Sequence[Any] = field(default_factory=tuple)  # ColumnSpec or shorthands
     schemas: Sequence[Any] = field(default_factory=tuple)
     hooks: Sequence[Callable[..., Any]] = field(default_factory=tuple)
     security_deps: Sequence[Callable[..., Any]] = field(default_factory=tuple)

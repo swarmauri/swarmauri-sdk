@@ -1,16 +1,10 @@
-# autoapi/autoapi/v3/engines/shortcuts.py
+# autoapi/autoapi/v3/engine/shortcuts.py
 from __future__ import annotations
 
 from typing import Any, Mapping, Optional, Union
 
 from .engine_spec import EngineSpec
 from ._engine import Provider, Engine
-from . import (
-    blocking_sqlite_engine,
-    blocking_postgres_engine,
-    async_sqlite_engine,
-    async_postgres_engine,
-)
 
 EngineCtx = Union[str, Mapping[str, object]]  # DSN string or structured mapping
 
@@ -19,7 +13,10 @@ EngineCtx = Union[str, Mapping[str, object]]  # DSN string or structured mapping
 # EngineSpec / Provider / Engine helpers  (ctx builder collapsed into engS)
 # ---------------------------------------------------------------------------
 
-def engS(spec: Union[EngineCtx, Mapping[str, Any], str, None] = None, **kw: Any) -> EngineSpec:
+
+def engS(
+    spec: Union[EngineCtx, Mapping[str, Any], str, None] = None, **kw: Any
+) -> EngineSpec:
     """
     Build an EngineSpec from:
       • spec: DSN string or mapping (EngineCtx), or
@@ -37,7 +34,9 @@ def engS(spec: Union[EngineCtx, Mapping[str, Any], str, None] = None, **kw: Any)
         else:
             kind = kw.get("kind")
             if not kind:
-                raise ValueError("Provide spec=<DSN|mapping> or kind=('sqlite'|'postgres') with appropriate fields")
+                raise ValueError(
+                    "Provide spec=<DSN|mapping> or kind=('sqlite'|'postgres') with appropriate fields"
+                )
             async_ = bool(kw.get("async_", kw.get("async", False)))
 
             if kind == "sqlite":
@@ -45,7 +44,11 @@ def engS(spec: Union[EngineCtx, Mapping[str, Any], str, None] = None, **kw: Any)
                 mode = kw.get("mode")
                 memory = kw.get("memory")
                 # memory if: explicit mode="memory" OR memory=True OR no path
-                if (mode == "memory") or (memory is True) or (not path and mode != "file"):
+                if (
+                    (mode == "memory")
+                    or (memory is True)
+                    or (not path and mode != "file")
+                ):
                     spec = {"kind": "sqlite", "async": async_, "mode": "memory"}
                 else:
                     if not path:
@@ -70,7 +73,9 @@ def engS(spec: Union[EngineCtx, Mapping[str, Any], str, None] = None, **kw: Any)
     return EngineSpec.from_any(spec)
 
 
-def prov(spec: Union[EngineSpec, EngineCtx, Mapping[str, Any], str, None] = None, **kw: Any) -> Provider:
+def prov(
+    spec: Union[EngineSpec, EngineCtx, Mapping[str, Any], str, None] = None, **kw: Any
+) -> Provider:
     """
     Get a lazy Provider (engine+sessionmaker).
     Accepts EngineSpec, EngineCtx (mapping/DSN), or kw fields (collapsed former ctxS).
@@ -80,49 +85,74 @@ def prov(spec: Union[EngineSpec, EngineCtx, Mapping[str, Any], str, None] = None
     return engS(spec, **kw).to_provider()
 
 
-def engine(spec: Union[EngineSpec, EngineCtx, Mapping[str, Any], str, None] = None, **kw: Any) -> Engine:
-    """
-    Return an Engine façade (wraps a Provider) for convenience in ad-hoc flows:
-        e = engine(kind="sqlite", mode="memory", async_=True)
-        async with e.asession() as s: ...
-    """
-    return Engine(prov(spec, **kw))
+def engine(
+    spec: Union[EngineSpec, EngineCtx, Mapping[str, Any], str, None] = None, **kw: Any
+) -> Engine:
+    """Return an Engine façade for convenience in ad-hoc flows."""
+    if isinstance(spec, EngineSpec):
+        return Engine(spec)
+    return Engine(engS(spec, **kw))
 
 
 # ---------------------------------------------------------------------------
 # Convenience helpers (construct EngineCtx mappings directly; no ctxS needed)
 # ---------------------------------------------------------------------------
 
-def sqliteS(path: Optional[str] = None, *, async_: bool = False, memory: Optional[bool] = None) -> EngineCtx:
-    return {"kind": "sqlite", "async": async_, "mode": "memory"} if (memory or path is None) \
-           else {"kind": "sqlite", "async": async_, "path": path}
+
+def sqliteS(
+    path: Optional[str] = None, *, async_: bool = False, memory: Optional[bool] = None
+) -> EngineCtx:
+    return (
+        {"kind": "sqlite", "async": async_, "mode": "memory"}
+        if (memory or path is None)
+        else {"kind": "sqlite", "async": async_, "path": path}
+    )
+
 
 def pgS(
-    *, async_: bool = False, user: str = "app", pwd: str = "secret",
-    host: str = "localhost", port: int = 5432, name: str = "app_db",
-    pool_size: int = 10, max: int = 20
+    *,
+    async_: bool = False,
+    user: str = "app",
+    pwd: str = "secret",
+    host: str = "localhost",
+    port: int = 5432,
+    name: str = "app_db",
+    pool_size: int = 10,
+    max: int = 20,
 ) -> EngineCtx:
     return {
-        "kind": "postgres", "async": async_, "user": user, "pwd": pwd,
-        "host": host, "port": port, "db": name, "pool_size": pool_size, "max": max,
+        "kind": "postgres",
+        "async": async_,
+        "user": user,
+        "pwd": pwd,
+        "host": host,
+        "port": port,
+        "db": name,
+        "pool_size": pool_size,
+        "max": max,
     }
+
 
 def mem(async_: bool = False) -> EngineCtx:
     """SQLite in-memory (StaticPool) EngineCtx mapping."""
     return {"kind": "sqlite", "async": async_, "mode": "memory"}
 
+
 def sqlitef(path: str, *, async_: bool = False) -> EngineCtx:
     """SQLite file EngineCtx mapping."""
     return {"kind": "sqlite", "async": async_, "path": path}
+
 
 def pg(**kw: Any) -> EngineCtx:
     """Postgres EngineCtx; set async_=True for asyncpg."""
     return pgS(**kw)
 
+
 def pga(**kw: Any) -> EngineCtx:
     """Async Postgres EngineCtx (asyncpg)."""
     kw.setdefault("async_", True)
     return pgS(**kw)
+
 
 def pgs(**kw: Any) -> EngineCtx:
     """Sync Postgres EngineCtx (psycopg/pg8000 depending on your builders)."""
@@ -131,53 +161,57 @@ def pgs(**kw: Any) -> EngineCtx:
 
 
 # ---------------------------------------------------------------------------
-# Provider one-liners (direct builder access, unchanged)
+# Provider one-liners
 # ---------------------------------------------------------------------------
 
+
 def provider_sqlite_memory(async_: bool = False) -> Provider:
-    if async_:
-        def build():
-            eng, mk = async_sqlite_engine(path=None); return eng, mk
-        return Provider("async", build)
-    else:
-        def build():
-            eng, mk = blocking_sqlite_engine(path=None); return eng, mk
-        return Provider("sync", build)
+    return engS(kind="sqlite", mode="memory", async_=async_).to_provider()
+
 
 def provider_sqlite_file(path: str, async_: bool = False) -> Provider:
-    if async_:
-        def build():
-            eng, mk = async_sqlite_engine(path=path); return eng, mk
-        return Provider("async", build)
-    else:
-        def build():
-            eng, mk = blocking_sqlite_engine(path=path); return eng, mk
-        return Provider("sync", build)
+    return engS(kind="sqlite", path=path, async_=async_).to_provider()
+
 
 def provider_postgres(
-    *, async_: bool = False, user: str = "app", pwd: str = "secret",
-    host: str = "localhost", port: int = 5432, name: str = "app_db",
-    pool_size: int = 10, max: int = 20
+    *,
+    async_: bool = False,
+    user: str = "app",
+    pwd: str = "secret",
+    host: str = "localhost",
+    port: int = 5432,
+    name: str = "app_db",
+    pool_size: int = 10,
+    max: int = 20,
 ) -> Provider:
-    if async_:
-        def build():
-            eng, mk = async_postgres_engine(user=user, pwd=pwd, host=host, port=port, db=name,
-                                            pool_size=pool_size, max_size=max)
-            return eng, mk
-        return Provider("async", build)
-    else:
-        def build():
-            eng, mk = blocking_postgres_engine(user=user, pwd=pwd, host=host, port=port, db=name,
-                                               pool_size=pool_size, max_overflow=max)
-            return eng, mk
-        return Provider("sync", build)
+    return engS(
+        kind="postgres",
+        async_=async_,
+        user=user,
+        pwd=pwd,
+        host=host,
+        port=port,
+        name=name,
+        pool_size=pool_size,
+        max=max,
+    ).to_provider()
 
 
 __all__ = [
     # EngineSpec / Provider / Engine helpers
-    "engS", "prov", "engine",
+    "engS",
+    "prov",
+    "engine",
     # convenience EngineCtx helpers
-    "sqliteS", "pgS", "mem", "sqlitef", "pg", "pga", "pgs",
+    "sqliteS",
+    "pgS",
+    "mem",
+    "sqlitef",
+    "pg",
+    "pga",
+    "pgs",
     # direct providers
-    "provider_sqlite_memory", "provider_sqlite_file", "provider_postgres",
+    "provider_sqlite_memory",
+    "provider_sqlite_file",
+    "provider_postgres",
 ]

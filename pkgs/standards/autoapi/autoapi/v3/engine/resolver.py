@@ -1,28 +1,34 @@
-# autoapi/autoapi/v3/engines/resolver.py
+# autoapi/autoapi/v3/engine/resolver.py
 from __future__ import annotations
 
 import asyncio
 import inspect
 import threading
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Callable, Optional
 
-from ._engine import Provider
+from ._engine import AsyncSession, Engine, Provider, Session
 from .engine_spec import EngineSpec, EngineCtx
 
 # Registry with strict precedence: op > model > api > app
 _LOCK = threading.RLock()
 _DEFAULT: Optional[Provider] = None
-_API: Dict[int, Provider] = {}
-_TAB: Dict[Any, Provider] = {}
-_OP: Dict[Tuple[Any, str], Provider] = {}
+_API: dict[int, Provider] = {}
+_TAB: dict[Any, Provider] = {}
+_OP: dict[tuple[Any, str], Provider] = {}
 
 
 def _coerce(ctx: Optional[EngineCtx]) -> Optional[Provider]:
     """
-    Promote an @engine_ctx value (DSN string or mapping) to a lazy Provider.
+    Promote an @engine_ctx value to a lazy Provider.
     """
     if ctx is None:
         return None
+    if isinstance(ctx, Provider):
+        return ctx
+    if isinstance(ctx, Engine):
+        return ctx.provider
+    if isinstance(ctx, EngineSpec):
+        return ctx.to_provider()
     spec = EngineSpec.from_any(ctx)
     return spec.to_provider() if spec else None
 
@@ -102,12 +108,15 @@ def resolve_provider(
         return _DEFAULT
 
 
+SessionT = Session | AsyncSession
+
+
 def acquire(
     *,
     api: Any = None,
     model: Any = None,
     op_alias: str | None = None,
-):
+) -> tuple[SessionT, Callable[[], None]]:
     """
     Acquire a DB session from the resolved Provider.
 
@@ -124,9 +133,9 @@ def acquire(
             f"model={getattr(model, '__name__', model)} "
             f"api={type(api).__name__ if api else None} and no default"
         )
-    db = p.session()
+    db: SessionT = p.session()
 
-    def _release():
+    def _release() -> None:
         close = getattr(db, "close", None)
         if callable(close):
             try:
