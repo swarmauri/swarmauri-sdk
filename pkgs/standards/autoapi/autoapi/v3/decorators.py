@@ -13,6 +13,7 @@ from autoapi.v3.opspec.types import (
     SchemaArg,
 )
 from autoapi.v3.runtime.executor import _Ctx  # pipeline ctx normalizer
+from .hook import HOOK_DECLS_ATTR, Hook, hook_ctx  # noqa: F401
 
 # Try-pydantic (optional; schemas may be any class but we keep this for hints/debug)
 try:  # pragma: no cover
@@ -335,34 +336,6 @@ def op_ctx(
 
 
 # ──────────────────────────────────────────────────────────────────────
-# hook_ctx
-# ──────────────────────────────────────────────────────────────────────
-
-
-@dataclass
-class _HookDecl:
-    ops: Union[str, Iterable[str]]  # alias names, canonical verbs, or "*"
-    phase: str  # e.g., "PRE_HANDLER", "POST_COMMIT", "ON_HANDLER_ERROR"
-
-
-def hook_ctx(ops: Union[str, Iterable[str]], *, phase: str):
-    """
-    Declare a ctx-only hook for one/many ops at a given phase. Method is `(cls, ctx)`.
-    `ops` can be {"create", "update"} or {"my_alias"} or "*" for all visible ops.
-    """
-
-    def deco(fn):
-        cm = _ensure_cm(fn)
-        f = _unwrap(cm)
-        f.__autoapi_ctx_only__ = True
-        lst = getattr(f, "__autoapi_hook_decls__", [])
-        lst.append(_HookDecl(ops, phase))
-        f.__autoapi_hook_decls__ = lst
-        return cm
-
-    return deco
-
-
 # ──────────────────────────────────────────────────────────────────────
 # Adapters: ctx-only → pipeline signatures
 # ──────────────────────────────────────────────────────────────────────
@@ -526,9 +499,7 @@ def collect_decorated_hooks(
         for name in dir(base):
             attr = getattr(base, name, None)
             func = _unwrap(attr)
-            decls: list[_HookDecl] | None = getattr(
-                func, "__autoapi_hook_decls__", None
-            )
+            decls: list[Hook] | None = getattr(func, HOOK_DECLS_ATTR, None)
             if not decls:
                 continue
             for d in decls:
@@ -537,6 +508,6 @@ def collect_decorated_hooks(
                         continue
                     ph = d.phase
                     mapping.setdefault(op, {}).setdefault(ph, []).append(
-                        _wrap_ctx_hook(table, func, ph)
+                        _wrap_ctx_hook(table, d.fn, ph)
                     )
     return mapping

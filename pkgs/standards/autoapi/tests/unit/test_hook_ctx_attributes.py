@@ -1,4 +1,4 @@
-from autoapi.v3.decorators import hook_ctx, _HookDecl
+from autoapi.v3.decorators import HOOK_DECLS_ATTR, Hook, hook_ctx
 
 
 def test_hook_ctx_marks_ctx_only():
@@ -16,8 +16,8 @@ def test_hook_ctx_records_ops():
         def hook(cls, ctx):
             pass
 
-    decls = getattr(Table.hook.__func__, "__autoapi_hook_decls__")
-    assert isinstance(decls[0], _HookDecl)
+    decls = getattr(Table.hook.__func__, HOOK_DECLS_ATTR)
+    assert isinstance(decls[0], Hook)
     assert decls[0].ops == ("create", "delete")
 
 
@@ -27,6 +27,7 @@ def test_hook_ctx_records_phase():
         def hook(cls, ctx):
             pass
 
-    decls = getattr(Table.hook.__func__, "__autoapi_hook_decls__")
-    assert isinstance(decls[0], _HookDecl)
+    decls = getattr(Table.hook.__func__, HOOK_DECLS_ATTR)
+    assert isinstance(decls[0], Hook)
     assert decls[0].phase == "POST_COMMIT"
+    assert decls[0].fn is Table.hook.__func__
