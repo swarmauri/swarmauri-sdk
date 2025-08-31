@@ -173,6 +173,9 @@ CTX_USER_ID_KEY = "user_id"
 CTX_TENANT_ID_KEY = "tenant_id"
 CTX_AUTH_KEY = "auth"
 
+# Attribute on `request.state` where auth adapters may stash context
+__autoapi_auth_context__ = "__autoapi_auth_context__"
+
 
 __all__ = [
     "ALL_VERBS",
@@ -214,4 +217,5 @@ __all__ = [
     "CTX_USER_ID_KEY",
     "CTX_TENANT_ID_KEY",
     "CTX_AUTH_KEY",
+    "__autoapi_auth_context__",
 ]

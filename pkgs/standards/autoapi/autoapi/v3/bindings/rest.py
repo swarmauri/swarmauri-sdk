@@ -14,6 +14,7 @@ from typing import (
     Dict,
     List,
     Mapping,
+    MutableMapping,
     Optional,
     Sequence,
     Tuple,
@@ -92,6 +93,17 @@ from pydantic import BaseModel, Field, create_model
 from ..opspec import OpSpec
 from ..opspec.types import PHASES
 from ..runtime import executor as _executor  # expects _invoke(request, db, phases, ctx)
+from ..config import __autoapi_auth_context__
+from ..config.constants import (
+    AUTOAPI_GET_ASYNC_DB_ATTR,
+    AUTOAPI_GET_DB_ATTR,
+    AUTOAPI_AUTH_DEP_ATTR,
+    AUTOAPI_REST_DEPENDENCIES_ATTR,
+    AUTOAPI_ALLOW_ANON_ATTR,
+    CTX_AUTH_KEY,
+    CTX_USER_ID_KEY,
+    CTX_TENANT_ID_KEY,
+)
 
 # Prefer Kernel phase-chains if available
 try:
@@ -99,13 +111,6 @@ try:
 except Exception:  # pragma: no cover
     _kernel_build_phase_chains = None  # type: ignore
 
-from ..config.constants import (
-    AUTOAPI_GET_ASYNC_DB_ATTR,
-    AUTOAPI_GET_DB_ATTR,
-    AUTOAPI_AUTH_DEP_ATTR,
-    AUTOAPI_REST_DEPENDENCIES_ATTR,
-    AUTOAPI_ALLOW_ANON_ATTR,
-)
 from ..rest import _nested_prefix
 from ..schema.builder import _strip_parent_fields
 
@@ -135,6 +140,24 @@ def _ensure_jsonable(obj: Any) -> Any:
 
 def _req_state_db(request: Request) -> Any:
     return getattr(request.state, "db", None)
+
+
+def _merge_auth_ctx(
+    ctx: Dict[str, Any],
+    request: Request,
+    params: Optional[MutableMapping[str, Any]] = None,
+) -> None:
+    ac = getattr(request.state, __autoapi_auth_context__, None)
+    if isinstance(ac, Mapping):
+        ctx[CTX_AUTH_KEY] = ac
+        uid = ac.get("user_id") or ac.get("sub")
+        tid = ac.get("tenant_id") or ac.get("tid")
+        if uid:
+            ctx[CTX_USER_ID_KEY] = uid
+        if tid:
+            ctx[CTX_TENANT_ID_KEY] = tid
+        if params is not None and isinstance(params, MutableMapping):
+            params.update(ac)
 
 
 # ───────────────────────────────────────────────────────────────────────────────
@@ -729,6 +752,7 @@ def _make_collection_endpoint(
                         method=alias, params=payload, target=target, model=model
                     ),
                 }
+                _merge_auth_ctx(ctx, request, payload)
                 phases = _get_phase_chains(model, alias)
                 result = await _executor._invoke(
                     request=request,
@@ -785,6 +809,7 @@ def _make_collection_endpoint(
                         method=alias, params=payload, target=target, model=model
                     ),
                 }
+                _merge_auth_ctx(ctx, request, payload)
                 phases = _get_phase_chains(model, alias)
                 result = await _executor._invoke(
                     request=request,
@@ -908,6 +933,7 @@ def _make_collection_endpoint(
                 method=exec_alias, params=payload, target=exec_target, model=model
             ),
         }
+        _merge_auth_ctx(ctx, request, payload)
         ctx["response_serializer"] = lambda r: _serialize_output(
             model, exec_alias, exec_target, sp, r
         )
@@ -995,6 +1021,7 @@ def _make_member_endpoint(
                     method=alias, params=payload, target=target, model=model
                 ),
             }
+            _merge_auth_ctx(ctx, request, payload)
             ctx["response_serializer"] = lambda r: _serialize_output(
                 model, alias, target, sp, r
             )
@@ -1066,6 +1093,7 @@ def _make_member_endpoint(
                     method=alias, params=payload, target=target, model=model
                 ),
             }
+            _merge_auth_ctx(ctx, request, payload)
             ctx["response_serializer"] = lambda r: _serialize_output(
                 model, alias, target, sp, r
             )
@@ -1158,6 +1186,7 @@ def _make_member_endpoint(
                 method=alias, params=payload, target=target, model=model
             ),
         }
+        _merge_auth_ctx(ctx, request, payload)
         ctx["response_serializer"] = lambda r: _serialize_output(
             model, alias, target, sp, r
         )

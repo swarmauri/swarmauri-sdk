@@ -31,6 +31,7 @@ from typing import (
     Dict,
     List,
     Mapping,
+    MutableMapping,
     Optional,
     Sequence,
 )
@@ -78,6 +79,12 @@ except Exception:  # pragma: no cover
 
 from ...runtime.errors import ERROR_MESSAGES, http_exc_to_rpc
 from .models import RPCRequest, RPCResponse
+from ...config import __autoapi_auth_context__
+from ...config.constants import (
+    CTX_AUTH_KEY,
+    CTX_USER_ID_KEY,
+    CTX_TENANT_ID_KEY,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -131,6 +138,22 @@ def _model_for(api: Any, name: str) -> Optional[type]:
 
 def _user_from_request(request: Request) -> Any | None:
     return getattr(request.state, "user", None)
+
+
+def _merge_auth_ctx(
+    ctx: Dict[str, Any], params: Optional[MutableMapping[str, Any]], request: Request
+) -> None:
+    ac = getattr(request.state, __autoapi_auth_context__, None)
+    if isinstance(ac, Mapping):
+        ctx[CTX_AUTH_KEY] = ac
+        uid = ac.get("user_id") or ac.get("sub")
+        tid = ac.get("tenant_id") or ac.get("tid")
+        if uid:
+            ctx[CTX_USER_ID_KEY] = uid
+        if tid:
+            ctx[CTX_TENANT_ID_KEY] = tid
+        if params is not None and isinstance(params, MutableMapping):
+            params.update(ac)
 
 
 def _select_auth_dep(api: Any):
@@ -245,6 +268,9 @@ async def _dispatch_one(
         if isinstance(extra_ctx, Mapping):
             base_ctx.update(extra_ctx)
         base_ctx.setdefault("rpc_id", rid)
+        _merge_auth_ctx(
+            base_ctx, params if isinstance(params, MutableMapping) else None, request
+        )
 
         # Authorize (auth dep may already have raised; user may be on request.state)
         _authorize(api, request, model, alias, params, _user_from_request(request))

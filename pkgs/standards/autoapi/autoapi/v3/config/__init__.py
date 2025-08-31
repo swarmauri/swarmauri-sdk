@@ -11,9 +11,11 @@ from __future__ import annotations
 
 from .defaults import DEFAULTS
 from .resolver import CfgView, resolve_cfg
+from .constants import __autoapi_auth_context__
 
 __all__ = [
     "DEFAULTS",
     "CfgView",
     "resolve_cfg",
+    "__autoapi_auth_context__",
 ]

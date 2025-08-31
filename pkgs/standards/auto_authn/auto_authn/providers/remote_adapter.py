@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import time
-import warnings
 from typing import Final
 
 import httpx
@@ -10,6 +9,7 @@ from fastapi import HTTPException, Request, Security, status
 from fastapi.security import APIKeyHeader
 
 from autoapi.v3.types.authn_abc import AuthNProvider
+from autoapi.v3.config import __autoapi_auth_context__
 from ..principal_ctx import principal_var
 
 
@@ -83,6 +83,11 @@ class RemoteAuthNAdapter(AuthNProvider):
             self._cache_put(api_key, principal)
 
         request.state.principal = principal
+        auth_ctx = {
+            "tenant_id": principal.get("tid") or principal.get("tenant_id"),
+            "user_id": principal.get("sub") or principal.get("user_id"),
+        }
+        setattr(request.state, __autoapi_auth_context__, auth_ctx)
         principal_var.set(principal)
         return principal
 
@@ -99,6 +104,7 @@ class RemoteAuthNAdapter(AuthNProvider):
         """
         if not api_key:
             request.state.principal = None
+            setattr(request.state, __autoapi_auth_context__, None)
             principal_var.set(None)
             return None
 
@@ -113,23 +119,13 @@ class RemoteAuthNAdapter(AuthNProvider):
             self._cache_put(api_key, principal)
 
         request.state.principal = principal
+        auth_ctx = {
+            "tenant_id": principal.get("tid") or principal.get("tenant_id"),
+            "user_id": principal.get("sub") or principal.get("user_id"),
+        }
+        setattr(request.state, __autoapi_auth_context__, auth_ctx)
         principal_var.set(principal)
         return principal
-
-    # ------------------------------------------------------------------ #
-    # Deprecated PRE_TX injection hook (no-op)                            #
-    # ------------------------------------------------------------------ #
-    def register_inject_hook(self, api) -> None:  # noqa: D401
-        """
-        Deprecated: PRE_TX principal injection is no longer used.
-        Security dependencies now inject principal and OpenAPI scheme.
-        """
-        warnings.warn(
-            "RemoteAuthNAdapter.register_inject_hook is deprecated and a no-op. "
-            "Use the Security-based dependencies instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
 
     # ------------------------------------------------------------------ #
     # internal helpers                                                    #
