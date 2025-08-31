@@ -11,7 +11,7 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from auto_authn.orm.tables import Tenant, User, ApiKey
+from auto_authn.orm import Tenant, User, ApiKey
 from auto_authn.crypto import hash_pw
 from auto_authn.jwtoken import JWTCoder
 

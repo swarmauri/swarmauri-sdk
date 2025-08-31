@@ -61,7 +61,7 @@ async def store_par_request(
 ) -> str:
     """Store *params* and return a unique ``request_uri``."""
 
-    from .orm.tables import PushedAuthorizationRequest
+    from .orm import PushedAuthorizationRequest
 
     request_uri = f"urn:ietf:params:oauth:request_uri:{uuid.uuid4()}"
     expires_at = datetime.now(tz=timezone.utc) + timedelta(seconds=expires_in)
@@ -81,7 +81,7 @@ async def store_par_request(
 async def get_par_request(request_uri: str, db: AsyncSession) -> Dict[str, Any] | None:
     """Retrieve parameters for *request_uri* if present and not expired."""
 
-    from .orm.tables import PushedAuthorizationRequest
+    from .orm import PushedAuthorizationRequest
 
     obj = await db.get(PushedAuthorizationRequest, request_uri)
     if not obj:
@@ -95,7 +95,7 @@ async def get_par_request(request_uri: str, db: AsyncSession) -> Dict[str, Any] 
 async def reset_par_store(db: AsyncSession) -> None:
     """Clear stored pushed authorization requests (test helper)."""
 
-    from .orm.tables import PushedAuthorizationRequest
+    from .orm import PushedAuthorizationRequest
 
     await db.execute(delete(PushedAuthorizationRequest))
     await db.commit()

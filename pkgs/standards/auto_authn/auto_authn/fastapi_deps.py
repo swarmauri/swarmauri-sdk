@@ -27,7 +27,7 @@ from .backends import (
 )  # PasswordBackend not used here, but re-exported for completeness
 from .db import get_async_db
 from .jwtoken import JWTCoder, InvalidTokenError
-from .orm.tables import User
+from .orm import User
 from .principal_ctx import principal_var
 from .rfc6750 import extract_bearer_token
 from .rfc9449_dpop import verify_proof

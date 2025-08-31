@@ -68,7 +68,7 @@ async def approve_device_code(
 ) -> None:
     """Mark a device code as authorized (testing helper)."""
 
-    from .orm.tables import DeviceCode
+    from .orm import DeviceCode
 
     obj = await DeviceCode.handlers.read.core({"db": db, "obj_id": device_code})
     if obj:

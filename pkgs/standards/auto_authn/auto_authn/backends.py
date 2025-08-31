@@ -33,29 +33,29 @@ from .crypto import verify_pw
 from .typing import Principal
 
 if TYPE_CHECKING:  # pragma: no cover - imported for typing only
-    from .orm.tables import ApiKey, Client, ServiceKey, User
+    from .orm import ApiKey, Client, ServiceKey, User
 
 
 def _ApiKey():  # pragma: no cover - thin import wrapper
-    from .orm.tables import ApiKey
+    from .orm import ApiKey
 
     return ApiKey
 
 
 def _ServiceKey():  # pragma: no cover - thin import wrapper
-    from .orm.tables import ServiceKey
+    from .orm import ServiceKey
 
     return ServiceKey
 
 
 def _Client():  # pragma: no cover - thin import wrapper
-    from .orm.tables import Client
+    from .orm import Client
 
     return Client
 
 
 def _User():  # pragma: no cover - thin import wrapper
-    from .orm.tables import User
+    from .orm import User
 
     return User
 

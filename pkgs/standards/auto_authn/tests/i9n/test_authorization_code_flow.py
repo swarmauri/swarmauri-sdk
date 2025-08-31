@@ -3,7 +3,7 @@ from httpx import AsyncClient
 from urllib.parse import urlparse, parse_qs
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from auto_authn.orm.tables import Tenant, User, Client
+from auto_authn.orm import Tenant, User, Client
 from auto_authn.crypto import hash_pw
 from auto_authn.rfc7636_pkce import create_code_verifier, create_code_challenge
 

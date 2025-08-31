@@ -14,16 +14,16 @@ namespaces like ``surface_api.core.User.create`` and
 Notes
 -----
 *   All mix-ins (GUIDPk, Timestamped, TenantBound, etc.) live in
-    *autoapi.v3.mixins* and are imported **only** by ``tables.py``.
+    *autoapi.v3.mixins* and are imported by the ORM models.
 *   Importing this module has the side-effect of importing
-    ``autoapi_authn.orm.tables``, so every model class is registered with
-    the declarative base **before** AutoAPI introspects the metadata.
+    ``auto_authn.orm``, so every model class is registered with the
+    declarative base **before** AutoAPI introspects the metadata.
 """
 
 from __future__ import annotations
 
 from autoapi.v3 import AutoAPI
-from auto_authn.orm.tables import (
+from auto_authn.orm import (
     Tenant,
     User,
     Client,
