@@ -18,8 +18,8 @@ from __future__ import annotations
 
 from enum import StrEnum
 
-from ..specs import acol, F, IO, S
-from ..types import Integer, Mapped, SAEnum, String
+from ...specs import acol, F, IO, S
+from ...types import Integer, Mapped, SAEnum, String
 
 from ._base import Base
 from ..mixins import Timestamped  # created_at / updated_at

@@ -2,8 +2,14 @@
 
 from __future__ import annotations
 
-from autoapi.v3.tables import Base
-from autoapi.v3.mixins import GUIDPk, Timestamped, TenantBound, Principal, ActiveToggle
+from autoapi.v3.orm.tables import Base
+from autoapi.v3.orm.mixins import (
+    GUIDPk,
+    Timestamped,
+    TenantBound,
+    Principal,
+    ActiveToggle,
+)
 from autoapi.v3.types import Mapped, String, relationship
 from autoapi.v3.specs import S, acol
 from typing import TYPE_CHECKING

@@ -42,6 +42,7 @@ from .opspec import (
 from .decorators import alias_ctx, op_ctx, schema_ctx, alias, op_alias
 from .hook.decorators import hook_ctx
 
+
 # ── Bindings (model + API orchestration) ───────────────────────────────────────
 from .bindings import (
     bind,
@@ -73,7 +74,7 @@ from .system.dbschema import ensure_schemas, register_sqlite_attach, bootstrap_d
 from .config.constants import DEFAULT_HTTP_METHODS
 from .autoapi import AutoAPI
 
-from .tables import Base
+from .orm.tables import Base
 from .types import App
 
 
@@ -101,6 +102,7 @@ __all__ += [
     "schema_ctx",
     "alias",
     "op_alias",
+    "engine_ctx",
     # Bindings
     "bind",
     "rebind",

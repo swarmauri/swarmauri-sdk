@@ -1,6 +1,6 @@
 from autoapi.v3 import AutoAPI
-from autoapi.v3.tables import Base
-from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.orm.tables import Base
+from autoapi.v3.orm.mixins import GUIDPk
 from fastapi import FastAPI, Security
 from fastapi.security import HTTPBearer
 

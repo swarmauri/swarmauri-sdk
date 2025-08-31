@@ -7,9 +7,9 @@ from typing import List, Optional, TYPE_CHECKING
 
 from sqlalchemy import String, Integer, Enum as SAEnum
 from autoapi.v3.types import Mapped, relationship
-from autoapi.v3.mixins import BulkCapable, Replaceable
+from autoapi.v3.orm.mixins import BulkCapable, Replaceable
 
-from autoapi.v3.tables import Base
+from autoapi.v3.orm.tables import Base
 from autoapi.v3.specs import acol, vcol, S, F, IO
 from autoapi.v3.decorators import hook_ctx, op_ctx
 from fastapi import HTTPException, Response

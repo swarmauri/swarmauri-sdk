@@ -1,8 +1,8 @@
 import inspect
 
 from autoapi.v3 import AutoAPI
-from autoapi.v3.tables import Base
-from autoapi.v3.mixins import (
+from autoapi.v3.orm.tables import Base
+from autoapi.v3.orm.mixins import (
     GUIDPk,
     BulkCapable,
     Replaceable,

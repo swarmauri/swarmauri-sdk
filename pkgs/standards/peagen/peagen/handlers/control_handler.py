@@ -17,7 +17,7 @@ from __future__ import annotations
 from typing import Iterable
 
 from autoapi.v3 import get_schema
-from autoapi.v3.tables.task import Task  # SQLAlchemy model row
+from autoapi.v3.orm.tables.task import Task  # SQLAlchemy model row
 
 from peagen.core import control_core
 from peagen.plugins.queues import QueueBase

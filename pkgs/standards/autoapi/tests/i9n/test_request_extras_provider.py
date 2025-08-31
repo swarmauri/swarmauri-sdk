@@ -1,7 +1,7 @@
 import pytest
 
 from autoapi.v3 import Base
-from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.schema import _build_schema
 from autoapi.v3.types import Column, Field, RequestExtrasProvider, String
 from autoapi.v3.types.request_extras_provider import list_request_extras_providers

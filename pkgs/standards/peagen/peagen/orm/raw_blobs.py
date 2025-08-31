@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from autoapi.v3.tables import Base
+from autoapi.v3.orm.tables import Base
 from autoapi.v3.types import Integer, String, Mapped
-from autoapi.v3.mixins import GUIDPk, Timestamped, BlobRef
+from autoapi.v3.orm.mixins import GUIDPk, Timestamped, BlobRef
 from autoapi.v3.specs import S, acol
 
 

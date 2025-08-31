@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Sequence
 
-from ..runtime.errors import HTTP_ERROR_MESSAGES, create_standardized_error
+from ...runtime.errors import HTTP_ERROR_MESSAGES, create_standardized_error
 
 
 class _RowBound:

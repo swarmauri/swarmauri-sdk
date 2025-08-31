@@ -7,7 +7,7 @@ Tests all hook phases and their behavior across CRUD, nested CRUD, and RPC opera
 import pytest
 from autoapi.v3 import App, AutoAPI, Base
 from autoapi.v3.decorators import hook_ctx
-from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.orm.mixins import GUIDPk
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, ForeignKey, String, create_engine
 from sqlalchemy.dialects.postgresql import UUID

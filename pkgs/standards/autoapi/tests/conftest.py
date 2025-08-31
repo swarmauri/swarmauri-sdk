@@ -4,7 +4,7 @@ import pytest
 import pytest_asyncio
 from autoapi.v3 import AutoAPI, Base
 from autoapi.v3.types import App
-from autoapi.v3.mixins import BulkCapable, GUIDPk
+from autoapi.v3.orm.mixins import BulkCapable, GUIDPk
 from autoapi.v3.specs import F, IO, S, acol
 from autoapi.v3.specs.storage_spec import StorageTransform
 from autoapi.v3.schema import builder as v3_builder
@@ -16,7 +16,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import Mapped, Session, sessionmaker
 import asyncio
-import pytest
+
 
 @pytest.fixture(scope="session")
 def event_loop():

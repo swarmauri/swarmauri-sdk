@@ -6,7 +6,7 @@ import sqlalchemy as sa
 from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.exc import IntegrityError
 
-from ..types import Session, event
+from ...types import Session, event
 
 log = logging.getLogger(__name__)
 

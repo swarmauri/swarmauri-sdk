@@ -8,16 +8,16 @@ from typing import Any, Mapping
 from uuid import UUID
 
 from ._RowBound import _RowBound
-from ..specs import acol
-from ..config.constants import (
+from ...specs import acol
+from ...config.constants import (
     AUTOAPI_TENANT_POLICY_ATTR,
     CTX_AUTH_KEY,
     CTX_TENANT_ID_KEY,
 )
-from ..runtime.errors import create_standardized_error
-from ..specs import ColumnSpec, F, IO, S
-from ..specs.storage_spec import ForeignKeySpec
-from ..types import Mapped, PgUUID, declared_attr
+from ...runtime.errors import create_standardized_error
+from ...specs import ColumnSpec, F, IO, S
+from ...specs.storage_spec import ForeignKeySpec
+from ...types import Mapped, PgUUID, declared_attr
 
 
 log = logging.getLogger(__name__)

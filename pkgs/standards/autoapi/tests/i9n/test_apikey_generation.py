@@ -3,7 +3,7 @@ from autoapi.v3.types import App
 from httpx import ASGITransport, AsyncClient
 
 from autoapi.v3 import AutoAPI
-from autoapi.v3.tables import ApiKey
+from autoapi.v3.orm.tables import ApiKey
 
 
 class ConcreteApiKey(ApiKey):

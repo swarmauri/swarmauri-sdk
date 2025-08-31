@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 
-from autoapi.v3.tables import User as UserBase
+from autoapi.v3.orm.tables import User as UserBase
 from autoapi.v3 import hook_ctx, op_ctx
 from autoapi.v3.types import LargeBinary, Mapped, String, relationship
 from autoapi.v3.specs import F, IO, S, acol, ColumnSpec

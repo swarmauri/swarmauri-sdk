@@ -2,8 +2,8 @@
 
 from ._base import Base
 from ..mixins import GUIDPk, Timestamped, TenantBound, Principal
-from ..specs import IO, F, acol, S
-from ..types import Mapped, String
+from ...specs import IO, F, acol, S
+from ...types import Mapped, String
 
 
 class Org(Base, GUIDPk, Timestamped, TenantBound, Principal):

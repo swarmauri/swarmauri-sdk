@@ -4,8 +4,8 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, String
 
 from autoapi.v3 import AutoAPI, op_ctx
-from autoapi.v3.tables import Base
-from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.orm.tables import Base
+from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.core import crud
 
 

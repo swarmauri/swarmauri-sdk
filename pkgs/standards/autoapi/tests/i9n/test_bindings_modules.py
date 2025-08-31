@@ -1,7 +1,7 @@
 import inspect
 
 import pytest
-from autoapi.v3.tables import Base
+from autoapi.v3.orm.tables import Base
 from autoapi.v3.types import (
     InstrumentedAttribute,
     Integer,

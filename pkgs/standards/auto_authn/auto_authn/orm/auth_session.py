@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import datetime as dt
 
-from autoapi.v3.tables import Base
-from autoapi.v3.mixins import TenantMixin, Timestamped, UserMixin
+from autoapi.v3.orm.tables import Base
+from autoapi.v3.orm.mixins import TenantMixin, Timestamped, UserMixin
 from autoapi.v3.specs import S, acol
 from autoapi.v3.types import Mapped, String, TZDateTime
 from autoapi.v3 import hook_ctx, op_ctx

@@ -5,8 +5,8 @@ from sqlalchemy import String, create_engine
 from sqlalchemy.orm import sessionmaker
 
 from autoapi.v3.types import uuid4
-from autoapi.v3.tables import Base
-from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.orm.tables import Base
+from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.specs import IO, S, acol
 from autoapi.v3.bindings import (
     bind,
