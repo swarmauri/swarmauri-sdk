@@ -18,8 +18,20 @@ def register_inject_hook(api):
             return  # nothing to inject
 
         injected = ctx.setdefault("__autoapi_injected_fields__", {})
-        tid = p.get("tid") or p.get("tenant_id")
-        sub = p.get("sub") or p.get("user_id")
+
+        def _lookup(obj, *names):
+            for name in names:
+                if hasattr(obj, "get"):
+                    val = obj.get(name)
+                    if val is not None:
+                        return val
+                val = getattr(obj, name, None)
+                if val is not None:
+                    return val
+            return None
+
+        tid = _lookup(p, "tid", "tenant_id")
+        sub = _lookup(p, "sub", "user_id")
         if tid is not None:
             injected["tenant_id"] = tid
         if sub is not None:
