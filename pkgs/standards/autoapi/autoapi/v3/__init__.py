@@ -38,6 +38,9 @@ from .opspec import (
 from .schema.types import SchemaRef, SchemaArg
 
 # ── Ctx-only decorators (new surface; replaces legacy opspec.decorators) ───────
+
+from .decorators import alias_ctx, op_ctx, schema_ctx, alias, op_alias
+from .hook.decorators import hook_ctx
 from .decorators import (
     alias_ctx,
     op_ctx,

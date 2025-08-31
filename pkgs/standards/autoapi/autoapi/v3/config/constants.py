@@ -19,7 +19,27 @@ from __future__ import annotations
 
 from typing import Mapping, Tuple
 
-from ..opspec.types import CANON  # canonical op registry (dict-like of targets)
+# NOTE: importing CANON from ``opspec.types`` introduces a circular dependency
+# because that module transitively imports this one via ``hook``. To keep the
+# constant values in sync without triggering the circular import at import time,
+# we inline the canonical verb tuple here. This tuple **must** match
+# ``autoapi.v3.opspec.types.CANON``.
+CANON: Tuple[str, ...] = (
+    "create",
+    "read",
+    "update",
+    "replace",
+    "merge",
+    "delete",
+    "list",
+    "clear",
+    "bulk_create",
+    "bulk_update",
+    "bulk_replace",
+    "bulk_merge",
+    "bulk_delete",
+    "custom",
+)
 
 
 # ───────────────────────────────────────────────────────────────────────────────
@@ -156,6 +176,7 @@ MODEL_LEVEL_CFGS: frozenset[str] = frozenset(
 
 # Other internal attribute names
 AUTOAPI_CUSTOM_OP_ATTR = "__autoapi_custom_op__"  # marker for custom opspec
+HOOK_DECLS_ATTR = "__autoapi_hook_decls__"  # per-function hook declarations
 
 # ───────────────────────────────────────────────────────────────────────────────
 # ‼ Everything is natively transactional now
@@ -215,6 +236,7 @@ __all__ = [
     "AUTOAPI_DEFAULTS_EXCLUDE_ATTR",
     "AUTOAPI_SCHEMA_DECLS_ATTR",
     "AUTOAPI_CUSTOM_OP_ATTR",
+    "HOOK_DECLS_ATTR",
     "AUTOAPI_TX_MODELS_ATTR",
     "CTX_REQUEST_KEY",
     "CTX_DB_KEY",
