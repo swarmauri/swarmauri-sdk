@@ -36,7 +36,7 @@ except Exception:  # pragma: no cover
     _trace = None  # type: ignore
 
 from .errors import create_standardized_error
-from ..config.constants import CTX_SKIP_PERSIST_FLAG
+from ..config.constants import CTX_SKIP_PERSIST_FLAG, AUTOAPI_AUTH_CONTEXT_ATTR
 
 logger = logging.getLogger(__name__)
 
@@ -82,11 +82,18 @@ class _Ctx(dict):
         if request is not None:
             ctx.request = request
             state = getattr(request, "state", None)
-            if state is not None and getattr(state, "ctx", None) is None:
-                try:
-                    state.ctx = ctx  # make ctx available to deps
-                except Exception:  # pragma: no cover
-                    pass
+            if state is not None:
+                if getattr(state, "ctx", None) is None:
+                    try:
+                        state.ctx = ctx  # make ctx available to deps
+                    except Exception:  # pragma: no cover
+                        pass
+                ac = getattr(state, AUTOAPI_AUTH_CONTEXT_ATTR, None)
+                if ac is not None:
+                    try:
+                        ctx["auth_context"] = ac
+                    except Exception:
+                        setattr(ctx, "auth_context", ac)
         if db is not None:
             ctx.db = db
         # Ensure temp scratch exists for atoms/system steps/hooks

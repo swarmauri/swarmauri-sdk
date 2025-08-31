@@ -17,7 +17,6 @@ from __future__ import annotations
 from fastapi import Request
 
 from autoapi.v3.types.authn_abc import AuthNProvider
-from ..hooks import register_inject_hook  # injects tenant_id / owner_id
 from ..fastapi_deps import get_principal
 from ..principal_ctx import principal_var  # noqa: F401  # ensure ContextVar is initialised
 
@@ -42,18 +41,6 @@ class LocalAuthNAdapter(AuthNProvider):
             If the API‑key / bearer token is invalid or expired.
         """
         return await get_principal(request)  # type: ignore[arg-type]
-
-    # ------------------------------------------------------------------ #
-    # Hook registration (mandatory)                                      #
-    # ------------------------------------------------------------------ #
-    def register_inject_hook(self, api) -> None:  # noqa: D401
-        """
-        Forward to ``auto_authn.hooks.register_inject_hook`` so that
-        tenant / owner fields are injected during *Phase.PRE_TX_BEGIN*.
-
-        The helper is idempotent; calling it twice is safe.
-        """
-        register_inject_hook(api)
 
 
 __all__ = ["LocalAuthNAdapter"]

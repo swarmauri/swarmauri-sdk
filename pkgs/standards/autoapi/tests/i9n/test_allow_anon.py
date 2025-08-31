@@ -20,6 +20,7 @@ from autoapi.v3.types import (
     String,
     uuid4,
 )
+from autoapi.v3.config.constants import AUTOAPI_AUTH_CONTEXT_ATTR
 
 
 class DummyAuth(AuthNProvider):
@@ -36,10 +37,9 @@ class DummyAuth(AuthNProvider):
             raise HTTPException(status_code=409)
         if creds.credentials != "secret":
             raise HTTPException(status_code=401)
-        return {"sub": "user"}
-
-    def register_inject_hook(self, api) -> None:
-        return None
+        principal = {"sub": "user"}
+        setattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, principal)
+        return principal
 
 
 def _build_client():
@@ -74,7 +74,6 @@ def _build_client():
     auth = DummyAuth()
     api = AutoAPI(get_db=get_db)
     api.set_auth(authn=auth.get_principal)
-    auth.register_inject_hook(api)
     api.include_models([Tenant, Item])
     app = App()
     app.include_router(api.router)
@@ -112,7 +111,6 @@ def _build_client_attr():
     auth = DummyAuth()
     api = AutoAPI(get_db=get_db)
     api.set_auth(authn=auth.get_principal)
-    auth.register_inject_hook(api)
     api.include_models([Tenant, Item])
     app = App()
     app.include_router(api.router)

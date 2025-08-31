@@ -172,6 +172,7 @@ CTX_SKIP_PERSIST_FLAG = "__autoapi_skip_persist__"  # set by ephemeral ops
 CTX_USER_ID_KEY = "user_id"
 CTX_TENANT_ID_KEY = "tenant_id"
 CTX_AUTH_KEY = "auth"
+AUTOAPI_AUTH_CONTEXT_ATTR = "__autoapi_auth_context__"
 
 
 __all__ = [
@@ -214,4 +215,5 @@ __all__ = [
     "CTX_USER_ID_KEY",
     "CTX_TENANT_ID_KEY",
     "CTX_AUTH_KEY",
+    "AUTOAPI_AUTH_CONTEXT_ATTR",
 ]

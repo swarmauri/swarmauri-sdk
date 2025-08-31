@@ -18,6 +18,7 @@ Both helpers are **framework-thin**: they translate `AuthError` raised by
 from __future__ import annotations
 
 from fastapi import Depends, Header, HTTPException, Request, status
+from autoapi.v3.config.constants import AUTOAPI_AUTH_CONTEXT_ATTR
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .backends import (
@@ -92,6 +93,7 @@ async def get_principal(  # <-- AutoAPI calls this
 
     # cache in both request.state and ContextVar
     request.state.principal = principal
+    setattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, principal)
     principal_var.set(principal)
     return principal
 
