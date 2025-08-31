@@ -1,4 +1,4 @@
-"""Unit tests for AuthN provider adapters.
+"""Unit tests for AuthN adapters.
 
 Verify adapter delegation and hook registration behavior."""
 
@@ -6,10 +6,10 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-import auto_authn.providers.local_adapter as local_adapter_mod
-import auto_authn.providers.remote_adapter as remote_adapter_mod
-from auto_authn.providers.local_adapter import LocalAuthNAdapter
-from auto_authn.providers.remote_adapter import RemoteAuthNAdapter
+import auto_authn.adapters.local_adapter as local_adapter_mod
+import auto_authn.adapters.remote_adapter as remote_adapter_mod
+from auto_authn.adapters.local_adapter import LocalAuthNAdapter
+from auto_authn.adapters.remote_adapter import RemoteAuthNAdapter
 
 
 @pytest.mark.unit

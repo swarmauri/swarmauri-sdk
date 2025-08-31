@@ -1,4 +1,4 @@
-# auto_authn/v2/providers/remote_adapter.py
+# auto_authn/v2/adapters/remote_adapter.py
 from __future__ import annotations
 
 import time

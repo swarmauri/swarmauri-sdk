@@ -1,6 +1,6 @@
 """
-auto_authn.providers.local_adapter
-───────────────────
+auto_authn.adapters.local_adapter
+──────────────────
 Concrete implementation of the ``AuthNProvider`` ABC declared by
 ``autoapi.v3.authn_abc``.  It merely **adapts** the public helpers that already
 exist in *auto_authn* so that AutoAPI can consume them automatically.
@@ -8,8 +8,8 @@ exist in *auto_authn* so that AutoAPI can consume them automatically.
 Usage
 -----
 >>> from autoapi.v3 import AutoAPI
->>> from auto_authn.provider import AuthNAdapter
->>> api = AutoAPI(get_async_db=get_db, authn=AuthNAdapter())
+>>> from auto_authn.adapters import LocalAuthNAdapter
+>>> api = AutoAPI(get_async_db=get_db, authn=LocalAuthNAdapter())
 """
 
 from __future__ import annotations

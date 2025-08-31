@@ -1,4 +1,4 @@
-# auto_authn/v2/providers/__init__.py
+# auto_authn/v2/adapters/__init__.py
 def __getattr__(name):
     if name == "RemoteAuthNAdapter":
         from .remote_adapter import RemoteAuthNAdapter
