@@ -44,3 +44,21 @@ async def test_register_inject_hook_injects_principal():
     await api.hooks[phase](ctx)
 
     assert ctx["__autoapi_injected_fields__"] == {"tenant_id": "t1", "user_id": "u1"}
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_register_inject_hook_accepts_object_principal():
+    """Hook handles principals implementing attribute access."""
+    api = DummyAPI()
+    register_inject_hook(api)
+
+    phase = PHASE.PRE_TX_BEGIN
+    request = SimpleNamespace(
+        state=SimpleNamespace(principal=SimpleNamespace(tenant_id="t1", user_id="u1"))
+    )
+    ctx = {"request": request}
+
+    await api.hooks[phase](ctx)
+
+    assert ctx["__autoapi_injected_fields__"] == {"tenant_id": "t1", "user_id": "u1"}
