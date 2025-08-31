@@ -2,8 +2,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Callable, Literal, Mapping, Optional, Tuple, Type, Union
+from typing import Any, Callable, Literal, Mapping, Optional, Tuple, Type, Union, cast
 
+from ..config.constants import CANON as CANONICAL_VERB_TUPLE
 from ..hook.types import PHASE, HookPhase, PHASES, Ctx, StepFn, HookPredicate
 from ..hook_spec import HookSpec as OpHook
 
@@ -133,22 +134,7 @@ class OpSpec:
 
 
 # Canonical verb set
-CANON: Tuple[TargetOp, ...] = (
-    "create",
-    "read",
-    "update",
-    "replace",
-    "merge",
-    "delete",
-    "list",
-    "clear",
-    "bulk_create",
-    "bulk_update",
-    "bulk_replace",
-    "bulk_merge",
-    "bulk_delete",
-    "custom",
-)
+CANON: Tuple[TargetOp, ...] = cast(Tuple[TargetOp, ...], CANONICAL_VERB_TUPLE)
 
 __all__ = [
     "PersistPolicy",
