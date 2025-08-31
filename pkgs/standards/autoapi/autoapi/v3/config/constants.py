@@ -63,8 +63,11 @@ DEFAULT_HTTP_METHODS: Mapping[str, Tuple[str, ...]] = {
 
 
 # ───────────────────────────────────────────────────────────────────────────────
+# ‼ Column.info["autoapi"] is deprecated and will be removed. 
+# ‼ Support is not guaranteed.
 # Column-level configuration keys (Column.info["autoapi"])
 #   See: v3 schema builder & v3 schema.info check(meta, attr, model)
+# 
 # ───────────────────────────────────────────────────────────────────────────────
 
 COL_LEVEL_CFGS: frozenset[str] = frozenset(
@@ -151,6 +154,12 @@ MODEL_LEVEL_CFGS: frozenset[str] = frozenset(
 
 # Other internal attribute names
 AUTOAPI_CUSTOM_OP_ATTR = "__autoapi_custom_op__"  # marker for custom opspec
+
+# ───────────────────────────────────────────────────────────────────────────────
+# ‼ Everything is natively transactional now
+# ‼ We will not support transactionals as a custom type or obj moving forward.
+# ‼ Support is not guaranteed.
+# ───────────────────────────────────────────────────────────────────────────────
 AUTOAPI_TX_MODELS_ATTR = "__autoapi_tx_models__"  # transactional model cache
 
 

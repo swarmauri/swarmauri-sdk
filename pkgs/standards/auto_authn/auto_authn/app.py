@@ -57,7 +57,9 @@ async def _startup() -> None:
     # 1 – metadata validation / SQLite convenience mode
     # When running on SQLite, attach the same file under the "authn" alias
     # so schema-qualified tables like "authn.tenants" work.
-    await surface_api.initialize_async(sqlite_attachments={"authn": "./authn.db"})
+    # this should work without sqlite_attachments, if sqlite_attachments are required use:
+    # > await surface_api.initialize_async(sqlite_attachments={"authn": "./authn.db"})
+    await surface_api.initialize_async()
 
 
 app.add_event_handler("startup", _startup)
