@@ -9,7 +9,6 @@ Types:
   - TargetOp, Arity, PersistPolicy
   - HookPhase, PHASES
   - VerbAliasPolicy
-  - SchemaRef, SchemaArg
 
 Collection & Registry:
   - resolve(model)                        → list[OpSpec]
@@ -43,8 +42,6 @@ from .types import (
     HookPhase,
     PHASES,
     VerbAliasPolicy,
-    SchemaRef,
-    SchemaArg,
 )
 
 # Collector
@@ -71,8 +68,6 @@ __all__ = [
     "HookPhase",
     "PHASES",
     "VerbAliasPolicy",
-    "SchemaRef",
-    "SchemaArg",
     # collection
     "resolve",
     # registry

@@ -10,8 +10,9 @@ from autoapi.v3.opspec.types import (
     Arity,
     TargetOp,
     PersistPolicy,
-    SchemaArg,
 )
+from autoapi.v3.schema.types import SchemaArg
+from autoapi.v3.schema.decorators import schema_ctx
 from autoapi.v3.runtime.executor import _Ctx  # pipeline ctx normalizer
 from .hook import HOOK_DECLS_ATTR, Hook, hook_ctx  # noqa: F401
 from autoapi.v3.engines.decorators import engine_ctx
@@ -178,106 +179,6 @@ def op_alias(
         return table_cls
 
     return deco
-
-
-# ──────────────────────────────────────────────────────────────────────
-# schema_ctx (class decorator): register extra model-wide schemas
-# ──────────────────────────────────────────────────────────────────────
-
-
-@dataclass(frozen=True)
-class _SchemaDecl:
-    alias: str  # name under model.schemas.<alias>
-    kind: str  # "in" | "out"
-
-
-def _register_schema_decl(
-    target_model: type, alias: str, kind: str, schema_cls: type
-) -> None:
-    """
-    Store declarations directly on the model so we can attach them later during schema binding.
-    Shape: model.__autoapi_schema_decls__ = { alias: {"in": cls, "out": cls, ...}, ... }
-    """
-    if kind not in ("in", "out"):
-        raise ValueError("schema_ctx(kind=...) must be 'in' or 'out'")
-    mapping: Dict[str, Dict[str, type]] = (
-        getattr(target_model, "__autoapi_schema_decls__", None) or {}
-    )
-    bucket = dict(mapping.get(alias, {}))
-    bucket[kind] = schema_cls
-    mapping[alias] = bucket
-    setattr(target_model, "__autoapi_schema_decls__", mapping)
-
-
-def schema_ctx(*, alias: str, kind: str = "out", for_: Optional[type] = None):
-    """
-    Decorate a (Pydantic) class to register it as a named schema for a target model.
-
-    Usage 1 (nested inside the model class):
-        class Widget:
-            @schema_ctx(alias="Search", kind="in")
-            class SearchParams(BaseModel): ...
-
-            @schema_ctx(alias="Search", kind="out")
-            class SearchResult(BaseModel): ...
-
-    Usage 2 (external class, explicit target):
-        @schema_ctx(alias="Export", kind="out", for_=Widget)
-        class ExportRow(BaseModel): ...
-
-    The schema becomes addressable as:
-        SchemaRef("Search", "in")   →  model.schemas.Search.in_
-        SchemaRef("Search", "out")  →  model.schemas.Search.out
-    """
-
-    def deco(schema_cls: type):
-        if not isinstance(schema_cls, type):
-            raise TypeError("@schema_ctx must decorate a class")
-
-        # If explicit model provided, register immediately on that model
-        if for_ is not None:
-            _register_schema_decl(for_, alias, kind, schema_cls)
-
-        # Always mark the schema class so we can pick it up if it's nested in the model
-        setattr(
-            schema_cls, "__autoapi_schema_decl__", _SchemaDecl(alias=alias, kind=kind)
-        )
-        return schema_cls
-
-    return deco
-
-
-def collect_decorated_schemas(model: type) -> Dict[str, Dict[str, type]]:
-    """
-    Gather all schema declarations for a model, merging:
-      • Explicit registrations via schema_ctx(..., for_=Model)
-      • Nested class declarations inside the model (and its bases)
-    Subclass declarations override base-class ones for the same (alias, kind).
-    """
-    out: Dict[str, Dict[str, type]] = {}
-
-    # 1) Explicit registrations (MRO-merged)
-    for base in reversed(model.__mro__):
-        mapping: Dict[str, Dict[str, type]] = (
-            getattr(base, "__autoapi_schema_decls__", {}) or {}
-        )
-        for alias, kinds in mapping.items():
-            bucket = out.setdefault(alias, {})
-            bucket.update(kinds or {})
-
-    # 2) Nested classes with __autoapi_schema_decl__
-    for base in reversed(model.__mro__):
-        for name in dir(base):
-            obj = getattr(base, name, None)
-            if not inspect.isclass(obj):
-                continue
-            decl: _SchemaDecl | None = getattr(obj, "__autoapi_schema_decl__", None)
-            if not decl:
-                continue
-            bucket = out.setdefault(decl.alias, {})
-            bucket[decl.kind] = obj
-
-    return out
 
 
 # ──────────────────────────────────────────────────────────────────────

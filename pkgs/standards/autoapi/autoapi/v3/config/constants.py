@@ -143,6 +143,7 @@ AUTOAPI_ALLOW_ANON_ATTR = "__autoapi_allow_anon__"  # verbs callable without aut
 AUTOAPI_DEFAULTS_MODE_ATTR = "__autoapi_defaults_mode__"  # canonical verb wiring policy
 AUTOAPI_DEFAULTS_INCLUDE_ATTR = "__autoapi_defaults_include__"  # verbs to force include
 AUTOAPI_DEFAULTS_EXCLUDE_ATTR = "__autoapi_defaults_exclude__"  # verbs to force exclude
+AUTOAPI_SCHEMA_DECLS_ATTR = "__autoapi_schema_decls__"  # declared schemas map
 
 # Aggregate of recognized model-level config attributes
 MODEL_LEVEL_CFGS: frozenset[str] = frozenset(
@@ -168,6 +169,7 @@ MODEL_LEVEL_CFGS: frozenset[str] = frozenset(
         AUTOAPI_DEFAULTS_MODE_ATTR,
         AUTOAPI_DEFAULTS_INCLUDE_ATTR,
         AUTOAPI_DEFAULTS_EXCLUDE_ATTR,
+        AUTOAPI_SCHEMA_DECLS_ATTR,
         "__resource__",  # resource name override for REST
     }
 )
@@ -232,6 +234,7 @@ __all__ = [
     "AUTOAPI_DEFAULTS_MODE_ATTR",
     "AUTOAPI_DEFAULTS_INCLUDE_ATTR",
     "AUTOAPI_DEFAULTS_EXCLUDE_ATTR",
+    "AUTOAPI_SCHEMA_DECLS_ATTR",
     "AUTOAPI_CUSTOM_OP_ATTR",
     "HOOK_DECLS_ATTR",
     "AUTOAPI_TX_MODELS_ATTR",

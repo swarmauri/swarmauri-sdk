@@ -4,7 +4,7 @@ from types import SimpleNamespace
 from autoapi.v3.engines.decorators import (
     engine_ctx,
 )  # :contentReference[oaicite:17]{index=17}
-from autoapi.v3.engines.autowire_collect import install_from_objects
+from autoapi.v3.engine import install_from_objects
 from autoapi.v3.engines import (
     resolver,
 )  # precedence registry  :contentReference[oaicite:18]{index=18}

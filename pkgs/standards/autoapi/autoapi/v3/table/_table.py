@@ -1,11 +1,12 @@
 # autoapi/autoapi/v3/table/_table.py
 from __future__ import annotations
 
-from typing import Any, ClassVar, Mapping, Optional
+from typing import Any
 
 from ..engines import resolver as _resolver
-from ..engines.autowire_collect import install_from_objects  # reuse the collector
+from ..engine import install_from_objects  # reuse the collector
 from .table_spec import TableSpec
+
 
 class Table(TableSpec):
     def __init_subclass__(cls, **kw: Any) -> None:

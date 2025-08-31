@@ -2,12 +2,27 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+
 from typing import Any, Callable, Literal, Mapping, Optional, Tuple, Type, Union, cast
 
 from ..config.constants import CANON as CANONICAL_VERB_TUPLE
 from ..hook.types import PHASE, HookPhase, PHASES, Ctx, StepFn, HookPredicate
 from ..hook_spec import HookSpec as OpHook
+from enum import Enum
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Literal,
+    Mapping,
+    Optional,
+    Tuple,
+    Union,
+)
+from typing import TYPE_CHECKING
 
+if TYPE_CHECKING:  # pragma: no cover
+    from ..schema.types import SchemaArg
 # ───────────────────────────────────────────────────────────────────────────────
 # Core aliases & enums
 # ───────────────────────────────────────────────────────────────────────────────
@@ -37,32 +52,6 @@ VerbAliasPolicy = Literal["both", "alias_only", "canonical_only"]  # legacy expo
 # ───────────────────────────────────────────────────────────────────────────────
 # Lazy-capable schema argument types
 # ───────────────────────────────────────────────────────────────────────────────
-
-try:  # pragma: no cover
-    from pydantic import BaseModel  # type: ignore
-except Exception:  # pragma: no cover
-
-    class BaseModel:  # minimal stub for typing only
-        pass
-
-
-SchemaKind = Literal["in", "out"]
-
-
-@dataclass(frozen=True, slots=True)
-class SchemaRef:
-    """Lazy reference to `model.schemas.<alias>.(in_|out)`."""
-
-    alias: str
-    kind: SchemaKind = "in"
-
-
-SchemaArg = Union[
-    Type[BaseModel],  # direct Pydantic model
-    SchemaRef,  # cross-op reference
-    str,  # "alias.in" | "alias.out"
-    Callable[[type], Type[BaseModel]],  # lambda cls: cls.schemas.create.in_
-]
 
 
 # ───────────────────────────────────────────────────────────────────────────────
@@ -147,9 +136,6 @@ __all__ = [
     "Ctx",
     "StepFn",
     "HookPredicate",
-    "SchemaKind",
-    "SchemaRef",
-    "SchemaArg",
     "DBSpec",
     "OpHook",
     "OpSpec",
