@@ -20,7 +20,7 @@ from sqlalchemy.pool import StaticPool
 
 from auto_authn.app import app
 from auto_authn.db import get_async_db
-from auto_authn.orm.tables import Base, Tenant, User, Client, ApiKey
+from auto_authn.orm import Base, Tenant, User, Client, ApiKey
 from auto_authn.crypto import hash_pw
 
 

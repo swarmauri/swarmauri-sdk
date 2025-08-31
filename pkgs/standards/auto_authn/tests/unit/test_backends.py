@@ -11,7 +11,7 @@ import pytest
 
 from auto_authn.backends import AuthError, PasswordBackend, ApiKeyBackend
 from auto_authn.crypto import hash_pw
-from auto_authn.orm.tables import User, ApiKey, ServiceKey, Service
+from auto_authn.orm import User, ApiKey, ServiceKey, Service
 
 
 @pytest.mark.unit

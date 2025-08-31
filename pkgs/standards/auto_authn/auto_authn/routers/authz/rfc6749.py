@@ -13,7 +13,7 @@ from pydantic import ValidationError
 
 from ...backends import AuthError
 from ...fastapi_deps import get_async_db
-from ...orm.tables import AuthCode, Client, DeviceCode, User
+from ...orm import AuthCode, Client, DeviceCode, User
 from ...rfc8707 import extract_resource
 from ...runtime_cfg import settings
 from ...rfc6749 import (
