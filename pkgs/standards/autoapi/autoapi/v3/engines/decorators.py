@@ -2,11 +2,11 @@
 from __future__ import annotations
 
 import inspect
-from typing import Any, Mapping, Optional
+from typing import Any, Optional
 
 # EngineSpec provides the canonical parsing; EngineCtx is the accepted input type
 # (DSN string or mapping) attached by @engine_ctx.
-from .engine_spec import EngineSpec, EngineCtx
+from .engine_spec import EngineCtx
 
 
 def _normalize(ctx: Optional[EngineCtx] = None, **kw: Any) -> EngineCtx:
@@ -31,7 +31,10 @@ def _normalize(ctx: Optional[EngineCtx] = None, **kw: Any) -> EngineCtx:
             )
         return str(dsn)
 
-    m: dict[str, Any] = {"kind": kind, "async": bool(kw.get("async_", kw.get("async", False)))}
+    m: dict[str, Any] = {
+        "kind": kind,
+        "async": bool(kw.get("async_", kw.get("async", False))),
+    }
 
     if kind == "sqlite":
         # memory modes: mode="memory" OR memory=True OR no path supplied
@@ -64,8 +67,8 @@ def engine_ctx(ctx: Optional[EngineCtx] = None, **kw: Any):
       • For App/API classes or instances: sets attribute .db = EngineCtx.
 
     Downstream:
-      • engines.autowire_collect.install_from_objects(...) discovers these and
-        registers Providers with resolver precedence: op > table(model) > api > app.
+      • engine.install_from_objects(...) discovers these and registers
+        Providers with resolver precedence: op > table(model) > api > app.
     """
     spec = _normalize(ctx, **kw)
 
