@@ -19,7 +19,27 @@ from __future__ import annotations
 
 from typing import Mapping, Tuple
 
-from ..opspec.types import CANON  # canonical op registry (dict-like of targets)
+# NOTE: importing CANON from ``opspec.types`` introduces a circular dependency
+# because that module transitively imports this one via ``hook``. To keep the
+# constant values in sync without triggering the circular import at import time,
+# we inline the canonical verb tuple here. This tuple **must** match
+# ``autoapi.v3.opspec.types.CANON``.
+CANON: Tuple[str, ...] = (
+    "create",
+    "read",
+    "update",
+    "replace",
+    "merge",
+    "delete",
+    "list",
+    "clear",
+    "bulk_create",
+    "bulk_update",
+    "bulk_replace",
+    "bulk_merge",
+    "bulk_delete",
+    "custom",
+)
 
 
 # ───────────────────────────────────────────────────────────────────────────────
