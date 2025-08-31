@@ -1,7 +1,6 @@
 """
 autoapi/v3/types/_op.py
-Pure structural helpers (no FastAPI / DB imports).
-"""
+Pure structural helpers"""
 
 from typing import Any, Callable, NamedTuple, Type, Literal, TypeAlias
 

@@ -132,6 +132,17 @@ SchemaArg = Union[
     Callable[[type], Type[BaseModel]],  # lambda cls: cls.schemas.create.in_
 ]
 
+
+# ───────────────────────────────────────────────────────────────────────────────
+# Engine binding (optional, used by resolver precedence: op > table > api > app)
+# ───────────────────────────────────────────────────────────────────────────────
+
+# DSN string (e.g., "sqlite+memory://", "sqlite:///path.db",
+# "postgresql://user:pwd@host:5432/db", "postgresql+asyncpg://…")
+# or a structured mapping as used elsewhere in v3 ({"kind":"sqlite"/"postgres", ...}).
+DBSpec = Union[str, Mapping[str, Any]]
+
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Hook & Spec dataclasses
 # ───────────────────────────────────────────────────────────────────────────────
@@ -158,6 +169,10 @@ class OpSpec:
     Serialization mode is inferred **only** from schema presence:
       - if model.schemas.<alias>.out exists → serialize
       - otherwise → raw pass-through
+
+    Optional engine binding:
+      - `db` allows per-op DB routing (string DSN or structured mapping).
+        When present, it participates in resolver precedence (op > table > api > app).
     """
 
     # Identity & exposure
@@ -167,6 +182,10 @@ class OpSpec:
     expose_routes: bool = True
     expose_rpc: bool = True
     expose_method: bool = True
+
+    # Optional per-op engine binding (DSN string or mapping spec)
+    db: Optional[DBSpec] = None
+
 
     # HTTP behavior
     arity: Arity = "collection"
@@ -230,6 +249,7 @@ __all__ = [
     "SchemaKind",
     "SchemaRef",
     "SchemaArg",
+    "DBSpec",
     "OpHook",
     "OpSpec",
     "CANON",

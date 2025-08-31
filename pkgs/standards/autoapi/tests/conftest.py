@@ -15,6 +15,15 @@ from sqlalchemy.pool import StaticPool
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import Mapped, Session, sessionmaker
+import asyncio
+import pytest
+
+@pytest.fixture(scope="session")
+def event_loop():
+    # pytest-asyncio < 0.21 compatibility pattern; adjust if you use the newer plugin configs
+    loop = asyncio.new_event_loop()
+    yield loop
+    loop.close()
 
 
 @pytest.fixture(autouse=True)
