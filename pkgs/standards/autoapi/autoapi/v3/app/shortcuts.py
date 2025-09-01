@@ -7,7 +7,7 @@ from .app_spec import AppSpecMixin
 from ._app import App
 
 
-def appSpec(
+def defineAppSpec(
     *,
     title: str = "AutoAPI",
     version: str = "0.1.0",
@@ -32,10 +32,10 @@ def appSpec(
     Build an App-spec *mixin* class with class attributes only (no instances).
     Use it directly in your class MRO:
 
-        class MyApp(appSpec(title="Svc", db=...)):
+        class MyApp(defineAppSpec(title="Svc", db=...)):
             pass
 
-    or pass it to `appSub(...)` to get a concrete App subclass.
+    or pass it to `deriveApp(...)` to get a concrete App subclass.
     """
     attrs = dict(
         TITLE=title,
@@ -56,10 +56,10 @@ def appSpec(
     return type("AppSpec", (AppSpecMixin,), attrs)
 
 
-def appSub(**kw: Any) -> Type[App]:
+def deriveApp(**kw: Any) -> Type[App]:
     """Produce a concrete :class:`App` subclass that inherits the spec mixin."""
-    Spec = appSpec(**kw)
+    Spec = defineAppSpec(**kw)
     return type("AppWithSpec", (Spec, App), {})
 
 
-__all__ = ["appSpec", "appSub"]
+__all__ = ["defineAppSpec", "deriveApp"]

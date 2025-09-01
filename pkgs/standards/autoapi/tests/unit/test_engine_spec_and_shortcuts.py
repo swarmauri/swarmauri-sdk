@@ -2,7 +2,7 @@
 import pytest
 
 from autoapi.v3.engine.shortcuts import (
-    engineSpec,
+    engine_spec,
     engine,
     mem,
     prov,
@@ -13,8 +13,8 @@ from autoapi.v3.engine.engine_spec import (
 )  # :contentReference[oaicite:3]{index=3}
 
 
-def test_engineSpec_builds_from_kwargs_sqlite_memory_async():
-    spec = engineSpec(
+def test_engine_spec_builds_from_kwargs_sqlite_memory_async():
+    spec = engine_spec(
         kind="sqlite", mode="memory", async_=True
     )  # collapsed ctx builder
     assert isinstance(spec, EngineSpec)  # normalized
@@ -23,8 +23,8 @@ def test_engineSpec_builds_from_kwargs_sqlite_memory_async():
     )  # :contentReference[oaicite:4]{index=4}
 
 
-def test_engineSpec_builds_from_mapping_postgres_sync():
-    spec = engineSpec(
+def test_engine_spec_builds_from_mapping_postgres_sync():
+    spec = engine_spec(
         {"kind": "postgres", "async": False, "host": "db", "db": "foo"}
     )  # mapping path
     assert (

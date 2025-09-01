@@ -7,7 +7,7 @@ from .api_spec import APISpecMixin
 from ._api import Api
 
 
-def apiSpec(
+def defineApiSpec(
     *,
     # identity
     name: str = "api",
@@ -27,10 +27,10 @@ def apiSpec(
     Build an API-spec *mixin* class with class attributes only (no instances).
     Use it directly in your class MRO:
 
-        class TenantA(apiSpec(name="tenantA", db=...)):
+        class TenantA(defineApiSpec(name="tenantA", db=...)):
             pass
 
-    or pass it to `apiSub(...)` to get a concrete API subclass.
+    or pass it to `deriveApi(...)` to get a concrete API subclass.
     """
     attrs = dict(
         NAME=name,
@@ -47,10 +47,10 @@ def apiSpec(
     return type("APISpec", (APISpecMixin,), attrs)
 
 
-def apiSub(**kw: Any) -> Type[Api]:
+def deriveApi(**kw: Any) -> Type[Api]:
     """Produce a concrete :class:`Api` subclass that inherits the spec mixin."""
-    Spec = apiSpec(**kw)
+    Spec = defineApiSpec(**kw)
     return type("APIWithSpec", (Spec, Api), {})
 
 
-__all__ = ["apiSpec", "apiSub"]
+__all__ = ["defineApiSpec", "deriveApi"]

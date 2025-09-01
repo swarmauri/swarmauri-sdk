@@ -7,7 +7,7 @@ from .table_spec import TableSpecMixin
 from ._table import Table
 
 
-def tableSpec(
+def defineTableSpec(
     *,
     # engine binding
     db: Any = None,
@@ -24,10 +24,10 @@ def tableSpec(
     Build a Table-spec *mixin* class with class attributes only (no instances).
     Use directly in your ORM class MRO:
 
-        class User(tableSpec(db=..., ops=(...)), Base, Table):
+        class User(defineTableSpec(db=..., ops=(...)), Base, Table):
             __tablename__ = "users"
 
-    or pass it to `tableSub(Model, ...)` to get a configured subclass.
+    or pass it to `deriveTable(Model, ...)` to get a configured subclass.
     """
     attrs = {
         # top-level mirrors read by collectors
@@ -47,11 +47,11 @@ def tableSpec(
     return type("TableSpec", (TableSpecMixin,), attrs)
 
 
-def tableSub(model: Type[Table], **kw: Any) -> Type[Table]:
+def deriveTable(model: Type[Table], **kw: Any) -> Type[Table]:
     """Produce a concrete ORM subclass that inherits the spec mixin."""
-    Spec = tableSpec(**kw)
+    Spec = defineTableSpec(**kw)
     name = f"{model.__name__}WithSpec"
     return type(name, (Spec, model), {})
 
 
-__all__ = ["tableSpec", "tableSub"]
+__all__ = ["defineTableSpec", "deriveTable"]
