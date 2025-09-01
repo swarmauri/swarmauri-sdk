@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any, Sequence, Type
 
-from .api_spec import APISpecMixin
+from .api_spec import APISpec
 from ._api import Api
 
 
@@ -22,9 +22,9 @@ def defineApiSpec(
     security_deps: Sequence[Any] = (),
     deps: Sequence[Any] = (),
     models: Sequence[Any] = (),
-) -> Type[APISpecMixin]:
+) -> Type[APISpec]:
     """
-    Build an API-spec *mixin* class with class attributes only (no instances).
+    Build an API-spec class with class attributes only (no instances).
     Use it directly in your class MRO:
 
         class TenantA(defineApiSpec(name="tenantA", db=...)):
@@ -44,11 +44,11 @@ def defineApiSpec(
         DEPS=tuple(deps or ()),
         MODELS=tuple(models or ()),
     )
-    return type("APISpec", (APISpecMixin,), attrs)
+    return type("APISpec", (APISpec,), attrs)
 
 
 def deriveApi(**kw: Any) -> Type[Api]:
-    """Produce a concrete :class:`Api` subclass that inherits the spec mixin."""
+    """Produce a concrete :class:`Api` subclass that inherits the spec."""
     Spec = defineApiSpec(**kw)
     return type("APIWithSpec", (Spec, Api), {})
 
