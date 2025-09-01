@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any, Sequence, Type
 
-from .table_spec import TableSpecMixin
+from .table_spec import TableSpec
 from ._table import Table
 
 
@@ -19,9 +19,9 @@ def defineTableSpec(
     # dependency stacks
     security_deps: Sequence[Any] = (),
     deps: Sequence[Any] = (),
-) -> Type[TableSpecMixin]:
+) -> Type[TableSpec]:
     """
-    Build a Table-spec *mixin* class with class attributes only (no instances).
+    Build a Table-spec class with class attributes only (no instances).
     Use directly in your ORM class MRO:
 
         class User(defineTableSpec(db=..., ops=(...)), Base, Table):
@@ -44,11 +44,11 @@ def defineTableSpec(
     if db is not None:
         attrs["table_config"] = {"db": db}
 
-    return type("TableSpec", (TableSpecMixin,), attrs)
+    return type("TableSpec", (TableSpec,), attrs)
 
 
 def deriveTable(model: Type[Table], **kw: Any) -> Type[Table]:
-    """Produce a concrete ORM subclass that inherits the spec mixin."""
+    """Produce a concrete ORM subclass that inherits the spec."""
     Spec = defineTableSpec(**kw)
     name = f"{model.__name__}WithSpec"
     return type(name, (Spec, model), {})
