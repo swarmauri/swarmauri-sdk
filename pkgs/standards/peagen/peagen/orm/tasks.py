@@ -19,7 +19,7 @@ from autoapi.v3.orm.mixins import (
     Timestamped,
     TenantBound,
     Ownable,
-    StatusMixin,
+    StatusColumn,
 )
 from autoapi.v3.specs import S, acol
 from autoapi.v3.specs.storage_spec import ForeignKeySpec
@@ -55,7 +55,7 @@ class Task(
     TenantBound,
     Ownable,
     RepositoryRefMixin,
-    StatusMixin,
+    StatusColumn,
     HookProvider,
 ):
     __tablename__ = "tasks"
