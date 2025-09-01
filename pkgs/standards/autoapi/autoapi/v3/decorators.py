@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Any, Callable, Dict, Iterable, Optional, Union, Sequence
 
 # Core types
-from autoapi.v3.opspec.types import (
+from autoapi.v3.ops.types import (
     OpSpec,
     Arity,
     TargetOp,

@@ -9,7 +9,7 @@ from autoapi.v3.autoapi import AutoAPI
 from autoapi.v3.bindings.model import bind
 from autoapi.v3.bindings.rest import _build_router
 from autoapi.v3.bindings.rpc import register_and_attach
-from autoapi.v3.opspec import OpSpec
+from autoapi.v3.ops import OpSpec
 from autoapi.v3.runtime.atoms.resolve import assemble
 from autoapi.v3.runtime.atoms.schema import collect_in, collect_out
 from autoapi.v3.runtime.kernel import build_phase_chains

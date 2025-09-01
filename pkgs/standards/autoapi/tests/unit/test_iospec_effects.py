@@ -11,7 +11,7 @@ from sqlalchemy.orm import DeclarativeBase
 
 from autoapi.v3.bindings.model import bind
 from autoapi.v3.bindings.rest import _build_router
-from autoapi.v3.opspec import OpSpec
+from autoapi.v3.ops import OpSpec
 from autoapi.v3.runtime.atoms.resolve import assemble
 from autoapi.v3.runtime.atoms.schema import collect_in, collect_out
 from autoapi.v3.schema import _build_list_params

@@ -3,7 +3,7 @@ from types import SimpleNamespace
 from time import perf_counter, sleep
 
 from autoapi.v3.system.diagnostics import _build_planz_endpoint
-from autoapi.v3.opspec import OpSpec
+from autoapi.v3.ops import OpSpec
 from autoapi.v3.runtime import plan as _plan
 
 

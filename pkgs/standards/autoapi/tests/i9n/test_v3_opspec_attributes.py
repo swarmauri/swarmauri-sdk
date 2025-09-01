@@ -10,7 +10,7 @@ from sqlalchemy.orm import sessionmaker
 
 from autoapi.v3.bindings.model import bind
 from autoapi.v3.decorators import hook_ctx
-from autoapi.v3.opspec.types import PHASES
+from autoapi.v3.ops.types import PHASES
 from autoapi.v3.runtime import system as runtime_system
 from autoapi.v3.runtime.executor import _Ctx
 from autoapi.v3.runtime.kernel import build_phase_chains

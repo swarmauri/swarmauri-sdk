@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional, Sequence, Tuple, Type
 
 from pydantic import BaseModel, create_model
 
-from ..opspec import OpSpec
+from ..ops import OpSpec
 from ..schema.types import SchemaRef, SchemaArg  # lazy-capable schema args
 from ..schema import (
     _build_schema,

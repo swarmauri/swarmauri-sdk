@@ -7,8 +7,8 @@ import uuid
 from types import SimpleNamespace
 from typing import Any, Callable, Mapping, Optional, Sequence, Tuple
 
-from ..opspec import OpSpec
-from ..opspec.types import StepFn
+from ..ops import OpSpec
+from ..ops.types import StepFn
 from .. import core as _core
 from ..runtime.executor import _Ctx
 

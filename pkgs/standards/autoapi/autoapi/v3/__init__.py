@@ -24,10 +24,10 @@ Quick start:
 from __future__ import annotations
 
 # ── OpSpec (source of truth) ───────────────────────────────────────────────────
-from .opspec import (
+from .ops import (
     OpSpec,
     get_registry,
-    # types and helpers re-exported from opspec
+    # types and helpers re-exported from ops
     TargetOp,
     Arity,
     PersistPolicy,
@@ -37,7 +37,7 @@ from .opspec import (
 )
 from .schema.types import SchemaRef, SchemaArg
 
-# ── Ctx-only decorators (new surface; replaces legacy opspec.decorators) ───────
+# ── Ctx-only decorators (new surface; replaces legacy ops.decorators) ─────────
 
 from .decorators import alias_ctx, op_ctx, alias, op_alias, engine_ctx
 from .hook.decorators import hook_ctx

@@ -5,10 +5,10 @@ import logging
 from types import SimpleNamespace
 from typing import Dict, List, Optional, Sequence, Set, Tuple
 
-from ..opspec import OpSpec
-from ..opspec import resolve as resolve_opspecs
-from ..opspec import get_registry, OpspecRegistry
-from ..opspec.types import PHASES  # phase allowlist for hook merges
+from ..ops import OpSpec
+from ..ops import resolve as resolve_opspecs
+from ..ops import get_registry, OpspecRegistry
+from ..ops.types import PHASES  # phase allowlist for hook merges
 from ..config.constants import AUTOAPI_REGISTRY_LISTENER_ATTR
 
 # Ctx-only decorators integration

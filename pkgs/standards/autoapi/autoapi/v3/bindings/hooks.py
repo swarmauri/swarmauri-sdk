@@ -16,7 +16,7 @@ from typing import (
     Tuple,
 )
 
-from ..opspec import OpSpec
+from ..ops import OpSpec
 from ..hook_spec import HookSpec
 from ..hook.types import PHASES, StepFn
 from ..config.constants import (
