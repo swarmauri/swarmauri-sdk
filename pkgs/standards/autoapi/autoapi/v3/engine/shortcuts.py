@@ -11,11 +11,11 @@ EngineCfg = Union[str, Mapping[str, object]]  # DSN string or structured mapping
 
 # ---------------------------------------------------------------------------
 # EngineSpec / Provider / Engine helpers  (ctx builder collapsed into
-# engineSpec)
+# engine_spec)
 # ---------------------------------------------------------------------------
 
 
-def engineSpec(
+def engine_spec(
     spec: Union[EngineCfg, Mapping[str, Any], str, None] = None, **kw: Any
 ) -> EngineSpec:
     """Build an :class:`EngineSpec` from a DSN string, mapping, or keyword fields."""
@@ -75,7 +75,7 @@ def prov(
     """
     if isinstance(spec, EngineSpec):
         return spec.to_provider()
-    return engineSpec(spec, **kw).to_provider()
+    return engine_spec(spec, **kw).to_provider()
 
 
 def engine(
@@ -84,7 +84,7 @@ def engine(
     """Return an Engine façade for convenience in ad-hoc flows."""
     if isinstance(spec, EngineSpec):
         return Engine(spec)
-    return Engine(engineSpec(spec, **kw))
+    return Engine(engine_spec(spec, **kw))
 
 
 # ---------------------------------------------------------------------------
@@ -159,11 +159,11 @@ def pgs(**kw: Any) -> EngineCfg:
 
 
 def provider_sqlite_memory(async_: bool = False) -> Provider:
-    return engineSpec(kind="sqlite", mode="memory", async_=async_).to_provider()
+    return engine_spec(kind="sqlite", mode="memory", async_=async_).to_provider()
 
 
 def provider_sqlite_file(path: str, async_: bool = False) -> Provider:
-    return engineSpec(kind="sqlite", path=path, async_=async_).to_provider()
+    return engine_spec(kind="sqlite", path=path, async_=async_).to_provider()
 
 
 def provider_postgres(
@@ -177,7 +177,7 @@ def provider_postgres(
     pool_size: int = 10,
     max: int = 20,
 ) -> Provider:
-    return engineSpec(
+    return engine_spec(
         kind="postgres",
         async_=async_,
         user=user,
@@ -192,7 +192,7 @@ def provider_postgres(
 
 __all__ = [
     # EngineSpec / Provider / Engine helpers
-    "engineSpec",
+    "engine_spec",
     "prov",
     "engine",
     # convenience EngineCfg helpers
