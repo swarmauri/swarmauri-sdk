@@ -15,6 +15,8 @@ from typing import (
     Tuple,
 )
 
+from .app._app import App as _App
+from .engine.engine_spec import EngineCfg
 from .system.dbschema import (
     ensure_schemas,
     bootstrap_dbschema,
@@ -54,7 +56,7 @@ except Exception:  # pragma: no cover
     _txn_decorator = None
 
 
-class AutoAPI:
+class AutoAPI(_App):
     """
     Monolithic facade that owns:
       • containers (models, schemas, handlers, hooks, rpc, rest, routers, columns, table_config, core proxies)
@@ -64,6 +66,13 @@ class AutoAPI:
 
     It composes v3 primitives; you can still use the functions directly if you prefer.
     """
+
+    TITLE = "AutoAPI"
+    VERSION = "0.1.0"
+    LIFESPAN = None
+    MIDDLEWARES: Sequence[Any] = ()
+    APIS: Sequence[Any] = ()
+    MODELS: Sequence[Any] = ()
 
     # --- optional auth knobs recognized by some middlewares/dispatchers (kept for back-compat) ---
     _authn: Any = None
@@ -76,6 +85,7 @@ class AutoAPI:
         self,
         app: Any | None = None,
         *,
+        db: EngineCfg | None = None,
         get_db: Optional[Callable[..., Any]] = None,
         get_async_db: Optional[Callable[..., Awaitable[Any]]] = None,
         jsonrpc_prefix: str = "/rpc",
@@ -83,14 +93,22 @@ class AutoAPI:
         api_hooks: Mapping[str, Iterable[Callable]]
         | Mapping[str, Mapping[str, Iterable[Callable]]]
         | None = None,
+        **fastapi_kwargs: Any,
     ) -> None:
+        super().__init__(db=db, **fastapi_kwargs)
         # host app (FastAPI or Router)
-        self.app = app
+        self.app = app or self
         # always expose an aggregate router for later mounting
         self.router = Router()
         # DB dependencies for transports/diagnostics
-        self.get_db = get_db
-        self.get_async_db = get_async_db
+        if get_db is not None:
+            self.get_db = get_db
+        elif db is None:
+            self.get_db = None
+        if get_async_db is not None:
+            self.get_async_db = get_async_db
+        elif db is None:
+            self.get_async_db = None
         self.jsonrpc_prefix = jsonrpc_prefix
         self.system_prefix = system_prefix
 
