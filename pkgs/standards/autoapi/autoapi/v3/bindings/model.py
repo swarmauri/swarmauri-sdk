@@ -6,7 +6,7 @@ from types import SimpleNamespace
 from typing import Dict, List, Optional, Sequence, Set, Tuple
 
 from ..ops import OpSpec
-from ..ops import resolve as resolve_opspecs
+from ..ops import resolve as resolve_ops
 from ..ops import get_registry, OpspecRegistry
 from ..ops.types import PHASES  # phase allowlist for hook merges
 from ..config.constants import AUTOAPI_REGISTRY_LISTENER_ATTR
@@ -53,9 +53,11 @@ def _ensure_model_namespaces(model: type) -> None:
     """
     Create top-level namespaces on the model class if missing.
     """
-    # opspec indexes & metadata
+    # ops indexes & metadata
+    if not hasattr(model, "ops"):
+        model.ops = SimpleNamespace(all=(), by_key={}, by_alias={})
     if not hasattr(model, "opspecs"):
-        model.opspecs = SimpleNamespace(all=(), by_key={}, by_alias={})
+        model.opspecs = model.ops
     # pydantic schemas: .<alias>.in_ / .<alias>.out
     if not hasattr(model, "schemas"):
         model.schemas = SimpleNamespace()
@@ -175,7 +177,7 @@ def bind(model: type, *, only_keys: Optional[Set[_Key]] = None) -> Tuple[OpSpec,
          • handlers (raw & handler entrypoint for HANDLER)
          • rpc (model.rpc.<alias>)
          • rest (model.rest.router)
-      6) Index opspecs under model.opspecs.{all, by_key, by_alias}
+      6) Index ops under model.ops.{all, by_key, by_alias}
       7) Install a registry listener (once) so imperative updates rebind automatically.
 
     Returns:
@@ -187,7 +189,7 @@ def bind(model: type, *, only_keys: Optional[Set[_Key]] = None) -> Tuple[OpSpec,
     _columns_binding.build_and_attach(model)
 
     # 1) Resolve canonical specs (source of truth)
-    base_specs: List[OpSpec] = list(resolve_opspecs(model))
+    base_specs: List[OpSpec] = list(resolve_ops(model))
 
     # 2) Add ctx-only ops discovered via decorators (tables + mixins)
     ctx_specs: List[OpSpec] = list(collect_decorated_ops(model))
@@ -237,7 +239,9 @@ def bind(model: type, *, only_keys: Optional[Set[_Key]] = None) -> Tuple[OpSpec,
 
     # 6) Index on the model (always overwrite with fresh views)
     all_specs, by_key, by_alias = _index_specs(all_merged_specs)
-    model.opspecs = SimpleNamespace(all=all_specs, by_key=by_key, by_alias=by_alias)
+    model.ops = SimpleNamespace(all=all_specs, by_key=by_key, by_alias=by_alias)
+    # Maintain `.opspecs` alias for backward compatibility
+    model.opspecs = model.ops
 
     # (Optional) expose resolved alias map for diagnostics
     try:
