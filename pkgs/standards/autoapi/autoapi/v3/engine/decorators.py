@@ -4,12 +4,12 @@ from __future__ import annotations
 import inspect
 from typing import Any, Optional
 
-# EngineSpec provides the canonical parsing; EngineCtx is the accepted input type
+# EngineSpec provides the canonical parsing; EngineCfg is the accepted input type
 # (DSN string or mapping) attached by @engine_ctx.
-from .engine_spec import EngineCtx
+from .engine_spec import EngineCfg
 
 
-def _normalize(ctx: Optional[EngineCtx] = None, **kw: Any) -> EngineCtx:
+def _normalize(ctx: Optional[EngineCfg] = None, **kw: Any) -> EngineCfg:
     """
     Accept either:
       • ctx: a DSN string (e.g., "sqlite:///file.db", "postgresql+asyncpg://…")
@@ -17,7 +17,7 @@ def _normalize(ctx: Optional[EngineCtx] = None, **kw: Any) -> EngineCtx:
              {"kind":"postgres","async":True,"host":"db","db":"app_db",...}
       • **kw: keyword form that will be converted to the mapping shape
 
-    Returns an EngineCtx (string or mapping) suitable for EngineSpec.from_any(...).
+    Returns an EngineCfg (string or mapping) suitable for EngineSpec.from_any(...).
     """
     if ctx is not None:
         return ctx
@@ -53,7 +53,7 @@ def _normalize(ctx: Optional[EngineCtx] = None, **kw: Any) -> EngineCtx:
     return m
 
 
-def engine_ctx(ctx: Optional[EngineCtx] = None, **kw: Any):
+def engine_ctx(ctx: Optional[EngineCfg] = None, **kw: Any):
     """
     Object-agnostic decorator to attach engine configuration to:
       - App classes/instances     (app-level default)
@@ -64,7 +64,7 @@ def engine_ctx(ctx: Optional[EngineCtx] = None, **kw: Any):
     What it stores:
       • For ops (functions/methods): sets __autoapi_engine_ctx__ (and legacy __autoapi_db__).
       • For ORM table classes: injects mapping under model.table_config["db"].
-      • For App/API classes or instances: sets attribute .db = EngineCtx.
+      • For App/API classes or instances: sets attribute .db = EngineCfg.
 
     Downstream:
       • engine.install_from_objects(...) discovers these and registers

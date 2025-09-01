@@ -14,7 +14,7 @@ from .builders import (
 
 # The value stored by @engine_ctx on App/API/Table/Op.
 # Accept either a DSN string, structured mapping, or pre-built objects.
-EngineCtx = Union[str, Mapping[str, object], "EngineSpec", Provider, Engine]
+EngineCfg = Union[str, Mapping[str, object], "EngineSpec", Provider, Engine]
 
 
 @dataclass
@@ -70,7 +70,7 @@ class EngineSpec:
     # ---------- parsing / normalization ----------
 
     @staticmethod
-    def from_any(x: EngineCtx | None) -> Optional["EngineSpec"]:
+    def from_any(x: EngineCfg | None) -> Optional["EngineSpec"]:
         """
         Parse a DSN or mapping (as attached by @engine_ctx) into an EngineSpec.
         """

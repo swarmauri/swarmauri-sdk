@@ -57,14 +57,14 @@ A high-leverage meta-framework that turns plain SQLAlchemy models into a fully-f
 ### Engine & Provider examples
 
 ```python
-from autoapi.v3.engine.shortcuts import engS, prov
+from autoapi.v3.engine.shortcuts import engine_spec, prov
 from autoapi.v3.engine._engine import Engine, Provider
 
 # Build an EngineSpec from a DSN string
-spec = engS("sqlite://:memory:")
+spec = engine_spec("sqlite://:memory:")
 
 # Or from keyword arguments
-spec_pg = engS(kind="postgres", async_=True, host="db", name="app_db")
+spec_pg = engine_spec(kind="postgres", async_=True, host="db", name="app_db")
 
 # Lazy Provider from the spec
 provider = prov(spec)            # same as Provider(spec)

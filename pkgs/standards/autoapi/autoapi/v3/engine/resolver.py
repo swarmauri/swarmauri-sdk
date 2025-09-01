@@ -7,7 +7,7 @@ import threading
 from typing import Any, Callable, Optional
 
 from ._engine import AsyncSession, Engine, Provider, Session
-from .engine_spec import EngineSpec, EngineCtx
+from .engine_spec import EngineSpec, EngineCfg
 
 # Registry with strict precedence: op > model > api > app
 _LOCK = threading.RLock()
@@ -17,7 +17,7 @@ _TAB: dict[Any, Provider] = {}
 _OP: dict[tuple[Any, str], Provider] = {}
 
 
-def _coerce(ctx: Optional[EngineCtx]) -> Optional[Provider]:
+def _coerce(ctx: Optional[EngineCfg]) -> Optional[Provider]:
     """
     Promote an @engine_ctx value to a lazy Provider.
     """
@@ -36,7 +36,7 @@ def _coerce(ctx: Optional[EngineCtx]) -> Optional[Provider]:
 # ---- registration -----------------------------------------------------------
 
 
-def set_default(ctx: EngineCtx | None) -> None:
+def set_default(ctx: EngineCfg | None) -> None:
     """
     Register the app-level default Provider used when no API/table/op binds.
     """
@@ -46,7 +46,7 @@ def set_default(ctx: EngineCtx | None) -> None:
         _DEFAULT = prov
 
 
-def register_api(api: Any, ctx: EngineCtx | None) -> None:
+def register_api(api: Any, ctx: EngineCfg | None) -> None:
     """
     Register an API-level Provider.
     """
@@ -57,7 +57,7 @@ def register_api(api: Any, ctx: EngineCtx | None) -> None:
         _API[id(api)] = prov
 
 
-def register_table(model: Any, ctx: EngineCtx | None) -> None:
+def register_table(model: Any, ctx: EngineCfg | None) -> None:
     """
     Register a table/model-level Provider.
     """
@@ -68,7 +68,7 @@ def register_table(model: Any, ctx: EngineCtx | None) -> None:
         _TAB[model] = prov
 
 
-def register_op(model: Any, alias: str, ctx: EngineCtx | None) -> None:
+def register_op(model: Any, alias: str, ctx: EngineCfg | None) -> None:
     """
     Register an op-level Provider for (model, alias).
     """

@@ -21,7 +21,7 @@ def hook(
     return Hook(phase=phase, fn=fn, ops=ops, name=name, description=description)
 
 
-def hookS(
+def hook_spec(
     phase: HookPhase,
     fn: StepFn,
     *,
@@ -41,4 +41,4 @@ def hookS(
     )
 
 
-__all__ = ["hook", "hookS"]
+__all__ = ["hook", "hook_spec"]

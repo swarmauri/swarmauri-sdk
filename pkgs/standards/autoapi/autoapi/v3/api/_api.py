@@ -7,14 +7,14 @@ from typing import (
 )
 
 from ..deps.fastapi import APIRouter as ApiRouter
-from ..engine.engine_spec import EngineCtx
+from ..engine.engine_spec import EngineCfg
 from ..engine import resolver as _resolver
 from ..engine import install_from_objects
 from .api_spec import APISpec
 
 
 class Api(APISpec, ApiRouter):
-    def __init__(self, *, db: EngineCtx | None = None, **router_kwargs: Any) -> None:
+    def __init__(self, *, db: EngineCfg | None = None, **router_kwargs: Any) -> None:
         ApiRouter.__init__(
             self,
             prefix=self.PREFIX,
