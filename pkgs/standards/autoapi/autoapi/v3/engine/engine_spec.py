@@ -1,20 +1,21 @@
-# autoapi/v3/engines/engine_spec.py
+# autoapi/v3/engine/engine_spec.py
 from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Optional, Mapping, Union, Any, Tuple
 
-from ._engine import Provider
-from . import (  # from your existing engines/__init__.py (sqlite/postgres builders)
-    blocking_sqlite_engine,
-    blocking_postgres_engine,
-    async_sqlite_engine,
+from ._engine import Engine, Provider, SessionFactory
+from .builders import (
     async_postgres_engine,
+    async_sqlite_engine,
+    blocking_postgres_engine,
+    blocking_sqlite_engine,
 )
 
 # The value stored by @engine_ctx on App/API/Table/Op.
-# Accept either a DSN string or a structured mapping.
-EngineCtx = Union[str, Mapping[str, object]]
+# Accept either a DSN string, structured mapping, or pre-built objects.
+EngineCfg = Union[str, Mapping[str, object], "EngineSpec", Provider, Engine]
+
 
 @dataclass
 class EngineSpec:
@@ -46,11 +47,11 @@ class EngineSpec:
     """
 
     # normalized fields
-    kind: Optional[str] = None           # "sqlite" | "postgres"
+    kind: Optional[str] = None  # "sqlite" | "postgres"
     async_: bool = False
 
     # sqlite
-    path: Optional[str] = None           # file path (None when memory=True)
+    path: Optional[str] = None  # file path (None when memory=True)
     memory: bool = False
 
     # postgres
@@ -60,7 +61,7 @@ class EngineSpec:
     port: int = 5432
     name: str = "app_db"
     pool_size: int = 10
-    max: int = 20                         # max_overflow (sync) or max_size (async)
+    max: int = 20  # max_overflow (sync) or max_size (async)
 
     # raw passthroughs (for diagnostics)
     dsn: Optional[str] = None
@@ -69,25 +70,43 @@ class EngineSpec:
     # ---------- parsing / normalization ----------
 
     @staticmethod
-    def from_any(x: EngineCtx | None) -> Optional["EngineSpec"]:
+    def from_any(x: EngineCfg | None) -> Optional["EngineSpec"]:
         """
         Parse a DSN or mapping (as attached by @engine_ctx) into an EngineSpec.
         """
         if x is None:
             return None
 
+        if isinstance(x, EngineSpec):
+            return x
+
+        if isinstance(x, Provider):
+            return x.spec
+
+        if isinstance(x, Engine):
+            return x.spec
+
         # String DSN
         if isinstance(x, str):
             s = x.strip()
             # sqlite memory
             if s == "sqlite://:memory:" or s.startswith("sqlite+memory://"):
-                return EngineSpec(kind="sqlite", async_=s.startswith("sqlite+aiosqlite://"), memory=True, dsn=s)
+                return EngineSpec(
+                    kind="sqlite",
+                    async_=s.startswith("sqlite+aiosqlite://"),
+                    memory=True,
+                    dsn=s,
+                )
             # sqlite async file
             if s.startswith("sqlite+aiosqlite:///"):
-                return EngineSpec(kind="sqlite", async_=True, path=s.split(":///")[1], dsn=s)
+                return EngineSpec(
+                    kind="sqlite", async_=True, path=s.split(":///")[1], dsn=s
+                )
             # sqlite sync file
             if s.startswith("sqlite:///"):
-                return EngineSpec(kind="sqlite", async_=False, path=s.split(":///")[1], dsn=s)
+                return EngineSpec(
+                    kind="sqlite", async_=False, path=s.split(":///")[1], dsn=s
+                )
             # postgres async
             if s.startswith("postgresql+asyncpg://"):
                 return EngineSpec(kind="postgres", async_=True, dsn=s)
@@ -98,6 +117,7 @@ class EngineSpec:
 
         # Mapping
         m = x  # type: ignore[assignment]
+
         # allow a few common aliases for ergonomics
         def _get_bool(key: str, *aliases: str, default: bool = False) -> bool:
             for k in (key, *aliases):
@@ -105,7 +125,9 @@ class EngineSpec:
                     return bool(m[k])  # type: ignore[index]
             return default
 
-        def _get_str(key: str, *aliases: str, default: Optional[str] = None) -> Optional[str]:
+        def _get_str(
+            key: str, *aliases: str, default: Optional[str] = None
+        ) -> Optional[str]:
             for k in (key, *aliases):
                 if k in m and m[k] is not None:
                     return str(m[k])  # type: ignore[index]
@@ -120,18 +142,26 @@ class EngineSpec:
         k = str(m.get("kind", m.get("engine", ""))).lower()  # type: ignore[index]
         if k == "sqlite":
             async_ = _get_bool("async", "async_", default=False)
-            path   = _get_str("path")
+            path = _get_str("path")
             # support either {"mode": "memory"} or {"memory": True} or no path
-            memory = _get_bool("memory", default=False) or (str(m.get("mode", "")).lower() == "memory") or (path is None)
+            memory = (
+                _get_bool("memory", default=False)
+                or (str(m.get("mode", "")).lower() == "memory")
+                or (path is None)
+            )
             return EngineSpec(
-                kind="sqlite", async_=async_, path=None if memory else path,
-                memory=memory, mapping=m
+                kind="sqlite",
+                async_=async_,
+                path=None if memory else path,
+                memory=memory,
+                mapping=m,
             )
 
         if k == "postgres":
             async_ = _get_bool("async", "async_", default=False)
             return EngineSpec(
-                kind="postgres", async_=async_,
+                kind="postgres",
+                async_=async_,
                 user=_get_str("user", default="app") or "app",
                 pwd=_get_str("pwd", "password", default="secret") or "secret",
                 host=_get_str("host", default="localhost") or "localhost",
@@ -146,48 +176,42 @@ class EngineSpec:
 
     # ---------- realization ----------
 
-    def to_provider(self) -> Provider:
-        """
-        Materialize a lazy Provider for this spec.
-        """
+    def build(self) -> Tuple[Any, SessionFactory]:
+        """Construct the engine and sessionmaker for this spec."""
         if self.kind == "sqlite":
-            # memory
             if self.memory:
                 if self.async_:
-                    def build():
-                        eng, mk = async_sqlite_engine(path=None); return eng, mk
-                    return Provider("async", build)
-                else:
-                    def build():
-                        eng, mk = blocking_sqlite_engine(path=None); return eng, mk
-                    return Provider("sync", build)
-
-            # file-backed
+                    return async_sqlite_engine(path=None)
+                return blocking_sqlite_engine(path=None)
             if not self.path:
                 raise ValueError("sqlite file requires 'path'")
             if self.async_:
-                def build():
-                    eng, mk = async_sqlite_engine(path=self.path); return eng, mk
-                return Provider("async", build)
-            else:
-                def build():
-                    eng, mk = blocking_sqlite_engine(path=self.path); return eng, mk
-                return Provider("sync", build)
+                return async_sqlite_engine(path=self.path)
+            return blocking_sqlite_engine(path=self.path)
 
         if self.kind == "postgres":
             if self.async_:
-                def build():
-                    eng, mk = async_postgres_engine(
-                        user=self.user, pwd=self.pwd, host=self.host, port=self.port, db=self.name,
-                        pool_size=self.pool_size, max_size=self.max
-                    ); return eng, mk
-                return Provider("async", build)
-            else:
-                def build():
-                    eng, mk = blocking_postgres_engine(
-                        user=self.user, pwd=self.pwd, host=self.host, port=self.port, db=self.name,
-                        pool_size=self.pool_size, max_overflow=self.max
-                    ); return eng, mk
-                return Provider("sync", build)
+                return async_postgres_engine(
+                    user=self.user,
+                    pwd=self.pwd,
+                    host=self.host,
+                    port=self.port,
+                    db=self.name,
+                    pool_size=self.pool_size,
+                    max_size=self.max,
+                )
+            return blocking_postgres_engine(
+                user=self.user,
+                pwd=self.pwd,
+                host=self.host,
+                port=self.port,
+                db=self.name,
+                pool_size=self.pool_size,
+                max_overflow=self.max,
+            )
 
         raise ValueError("EngineSpec has no kind")
+
+    def to_provider(self) -> Provider:
+        """Materialize a lazy :class:`Provider` for this spec."""
+        return Provider(self)

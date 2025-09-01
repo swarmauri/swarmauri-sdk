@@ -15,7 +15,7 @@ from autoapi.v3.schema.types import SchemaArg
 from autoapi.v3.schema.decorators import schema_ctx
 from autoapi.v3.runtime.executor import _Ctx  # pipeline ctx normalizer
 from .hook import HOOK_DECLS_ATTR, Hook, hook_ctx  # noqa: F401
-from autoapi.v3.engines.decorators import engine_ctx
+from autoapi.v3.engine.decorators import engine_ctx
 
 # Try-pydantic (optional; schemas may be any class but we keep this for hints/debug)
 try:  # pragma: no cover

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, Iterable
 
-from ..engines.resolver import register_api, register_op, register_table, set_default
+from .resolver import register_api, register_op, register_table, set_default
 
 
 def bind(collected: Dict[str, Any]) -> None:

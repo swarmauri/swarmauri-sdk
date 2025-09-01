@@ -6,23 +6,26 @@ from typing import (
     Generator,
 )
 
-from autoapi.v3.deps.fastapi import FastAPI
-from ..engines import resolver as _resolver
+from ..deps.fastapi import FastAPI
+from ..engine.engine_spec import EngineCfg
+from ..engine import resolver as _resolver
 from ..engine import install_from_objects
 from .app_spec import AppSpec
 
 
 class App(AppSpec, FastAPI):
-    def __init__(self, **fastapi_kwargs: Any) -> None:
-        super().__init__(
+    def __init__(self, *, db: EngineCfg | None = None, **fastapi_kwargs: Any) -> None:
+        FastAPI.__init__(
+            self,
             title=self.TITLE,
             version=self.VERSION,
             lifespan=self.LIFESPAN,
             **fastapi_kwargs,
         )
-        if self.DB is not None:
-            _resolver.set_default(self.DB)
-        for mw in self.MIDDLEWARES:
+        ctx = db if db is not None else getattr(self, "DB", None)
+        if ctx is not None:
+            _resolver.set_default(ctx)
+        for mw in getattr(self, "MIDDLEWARES", []):
             self.add_middleware(mw.__class__, **getattr(mw, "kwargs", {}))
 
     def get_db(self) -> Generator[Any, None, None]:

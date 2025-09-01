@@ -1,26 +1,28 @@
 # autoapi/autoapi/v3/app/app_spec.py
 from __future__ import annotations
 from dataclasses import dataclass, field
-from typing import Any, Callable, Iterable, Mapping, Optional, Sequence, Type
+from typing import Any, Callable, Optional, Sequence
 
-from ..engines.engine_spec import DBSpec
+from ..engine.engine_spec import EngineCfg
+
 
 @dataclass
 class AppSpec:
     """
     Used to *produce an App subclass* via App.from_spec().
     """
+
     title: str = "AutoAPI"
     version: str = "0.1.0"
-    db: Optional[DBSpec] = None
+    db: Optional[EngineCfg] = None
 
     # NEW: multi-API composition (store API classes or instances)
     apis: Sequence[Any] = field(default_factory=tuple)
 
     # NEW: orchestration/topology knobs
-    ops: Sequence[Any] = field(default_factory=tuple)          # op descriptors or specs
-    models: Sequence[Any] = field(default_factory=tuple)       # ORM classes
-    schemas: Sequence[Any] = field(default_factory=tuple)      # schema classes/defs
+    ops: Sequence[Any] = field(default_factory=tuple)  # op descriptors or specs
+    models: Sequence[Any] = field(default_factory=tuple)  # ORM classes
+    schemas: Sequence[Any] = field(default_factory=tuple)  # schema classes/defs
     hooks: Sequence[Callable[..., Any]] = field(default_factory=tuple)
 
     # security/dep stacks (FastAPI dependencies or callables)

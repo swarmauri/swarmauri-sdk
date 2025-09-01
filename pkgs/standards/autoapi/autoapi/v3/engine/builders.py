@@ -1,9 +1,11 @@
+"""SQLAlchemy engine and sessionmaker builders."""
+
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.pool import StaticPool  # only for SQLite
 from sqlalchemy.orm import sessionmaker
 
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 
 # ---------------------------------------------------------------------

@@ -2,16 +2,18 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional, Sequence
-from ..engines.engine_spec import DBSpec
+from ..engine.engine_spec import EngineCfg
+
 
 @dataclass
 class APISpec:
     """
     Used to *produce an API subclass* via API.from_spec().
     """
+
     name: str = "api"
     prefix: str = ""
-    db: Optional[DBSpec] = None
+    db: Optional[EngineCfg] = None
     tags: Sequence[str] = field(default_factory=tuple)
 
     # NEW

@@ -29,7 +29,7 @@ from ..config.constants import (
 from ..runtime import executor as _executor
 
 # NEW: engine resolver (strict precedence: op > model > api > app)
-from ..engines import resolver as _resolver  # acquire(api=?, model=?, op_alias=?)
+from ..engine import resolver as _resolver  # acquire(api=?, model=?, op_alias=?)
 
 logger = logging.getLogger(__name__)
 
@@ -182,7 +182,10 @@ class _ResourceProxy:
                     try:
                         _release_db()
                     except Exception:
-                        logger.debug("Non-fatal: error releasing acquired DB session", exc_info=True)
+                        logger.debug(
+                            "Non-fatal: error releasing acquired DB session",
+                            exc_info=True,
+                        )
 
         _call.__name__ = f"{self._model.__name__}.{alias}"
         _call.__qualname__ = _call.__name__
@@ -423,7 +426,10 @@ async def rpc_call(
             try:
                 _release_db()
             except Exception:
-                logger.debug("Non-fatal: error releasing acquired DB session (rpc_call)", exc_info=True)
+                logger.debug(
+                    "Non-fatal: error releasing acquired DB session (rpc_call)",
+                    exc_info=True,
+                )
 
 
 __all__ = ["include_model", "include_models", "rpc_call"]

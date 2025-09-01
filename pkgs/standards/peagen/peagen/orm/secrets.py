@@ -9,7 +9,7 @@ from autoapi.v3.types import (
     relationship,
     Mapped,
 )
-from autoapi.v3.orm.mixins import GUIDPk, OrgMixin, Timestamped, UserMixin
+from autoapi.v3.orm.mixins import GUIDPk, OrgColumn, Timestamped, UserColumn
 from autoapi.v3.specs import S, acol
 from autoapi.v3 import hook_ctx
 from typing import TYPE_CHECKING
@@ -29,7 +29,7 @@ class _SecretCoreMixin:
     )
 
 
-class UserSecret(Base, GUIDPk, _SecretCoreMixin, UserMixin, Timestamped):
+class UserSecret(Base, GUIDPk, _SecretCoreMixin, UserColumn, Timestamped):
     __tablename__ = "user_secrets"
     __table_args__ = (
         UniqueConstraint("user_id", "name"),
@@ -37,7 +37,7 @@ class UserSecret(Base, GUIDPk, _SecretCoreMixin, UserMixin, Timestamped):
     )
 
 
-class OrgSecret(Base, GUIDPk, _SecretCoreMixin, OrgMixin, Timestamped):
+class OrgSecret(Base, GUIDPk, _SecretCoreMixin, OrgColumn, Timestamped):
     __tablename__ = "org_secrets"
     __table_args__ = (
         UniqueConstraint("org_id", "name"),

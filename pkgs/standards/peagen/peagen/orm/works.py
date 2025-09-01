@@ -9,7 +9,7 @@ from autoapi.v3.types import (
     HookProvider,
     Mapped,
 )
-from autoapi.v3.orm.mixins import GUIDPk, Timestamped, StatusMixin
+from autoapi.v3.orm.mixins import GUIDPk, Timestamped, StatusColumn
 from autoapi.v3.specs import S, acol
 from autoapi.v3.specs.storage_spec import ForeignKeySpec
 from autoapi.v3 import hook_ctx
@@ -21,7 +21,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from .eval_result import EvalResult
 
 
-class Work(Base, GUIDPk, Timestamped, StatusMixin, HookProvider):
+class Work(Base, GUIDPk, Timestamped, StatusColumn, HookProvider):
     __tablename__ = "works"
     __table_args__ = ({"schema": "peagen"},)
     task_id: Mapped[PgUUID] = acol(

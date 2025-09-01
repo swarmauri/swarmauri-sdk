@@ -18,7 +18,7 @@ from autoapi.v3.orm.mixins import (
     TenantPolicy,
     Ownable,
     OwnerPolicy,
-    StatusMixin,
+    StatusColumn,
 )
 from autoapi.v3.runtime.errors import create_standardized_error
 from autoapi.v3.specs import F, IO, S, acol, vcol
@@ -30,7 +30,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from .tasks import Task
 
 
-class Repository(Base, GUIDPk, Timestamped, Ownable, TenantBound, StatusMixin):
+class Repository(Base, GUIDPk, Timestamped, Ownable, TenantBound, StatusColumn):
     __tablename__ = "repositories"
     __table_args__ = (
         UniqueConstraint("url"),

@@ -1,11 +1,11 @@
 # tests/test_decorator_and_collect.py
 from types import SimpleNamespace
 
-from autoapi.v3.engines.decorators import (
+from autoapi.v3.engine.decorators import (
     engine_ctx,
 )  # :contentReference[oaicite:17]{index=17}
 from autoapi.v3.engine import install_from_objects
-from autoapi.v3.engines import (
+from autoapi.v3.engine import (
     resolver,
 )  # precedence registry  :contentReference[oaicite:18]{index=18}
 

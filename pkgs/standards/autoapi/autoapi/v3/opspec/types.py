@@ -3,22 +3,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from typing import Any, Callable, Literal, Mapping, Optional, Tuple, Type, Union, cast
+from typing import Any, Literal, Mapping, Optional, Tuple, Union, cast
 
 from ..config.constants import CANON as CANONICAL_VERB_TUPLE
 from ..hook.types import PHASE, HookPhase, PHASES, Ctx, StepFn, HookPredicate
 from ..hook_spec import HookSpec as OpHook
-from enum import Enum
-from typing import (
-    Any,
-    Awaitable,
-    Callable,
-    Literal,
-    Mapping,
-    Optional,
-    Tuple,
-    Union,
-)
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover
