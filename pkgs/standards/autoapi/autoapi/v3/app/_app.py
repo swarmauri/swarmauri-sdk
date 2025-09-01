@@ -7,14 +7,14 @@ from typing import (
 )
 
 from ..deps.fastapi import FastAPI
-from ..engine.engine_spec import EngineCtx
+from ..engine.engine_spec import EngineCfg
 from ..engine import resolver as _resolver
 from ..engine import install_from_objects
 from .app_spec import AppSpec
 
 
 class App(AppSpec, FastAPI):
-    def __init__(self, *, db: EngineCtx | None = None, **fastapi_kwargs: Any) -> None:
+    def __init__(self, *, db: EngineCfg | None = None, **fastapi_kwargs: Any) -> None:
         FastAPI.__init__(
             self,
             title=self.TITLE,

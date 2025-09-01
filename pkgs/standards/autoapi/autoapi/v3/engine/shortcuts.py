@@ -6,28 +6,21 @@ from typing import Any, Mapping, Optional, Union
 from .engine_spec import EngineSpec
 from ._engine import Provider, Engine
 
-EngineCtx = Union[str, Mapping[str, object]]  # DSN string or structured mapping
+EngineCfg = Union[str, Mapping[str, object]]  # DSN string or structured mapping
 
 
 # ---------------------------------------------------------------------------
-# EngineSpec / Provider / Engine helpers  (ctx builder collapsed into engS)
+# EngineSpec / Provider / Engine helpers  (ctx builder collapsed into
+# engineSpec)
 # ---------------------------------------------------------------------------
 
 
-def engS(
-    spec: Union[EngineCtx, Mapping[str, Any], str, None] = None, **kw: Any
+def engineSpec(
+    spec: Union[EngineCfg, Mapping[str, Any], str, None] = None, **kw: Any
 ) -> EngineSpec:
-    """
-    Build an EngineSpec from:
-      • spec: DSN string or mapping (EngineCtx), or
-      • **kw: keyword fields (collapsed former ctxS), e.g.:
-            engS(kind="sqlite", mode="memory", async_=True)
-            engS(kind="sqlite", path="./x.sqlite")
-            engS(kind="postgres", async_=True, host="db", name="app_db")
-            engS(dsn="postgresql+asyncpg://app:secret@db:5432/app_db")
-    """
+    """Build an :class:`EngineSpec` from a DSN string, mapping, or keyword fields."""
     if spec is None and kw:
-        # Inline the former ctxS(...) behavior (no double wrap)
+        # Inline the former ctx builder behavior (no double wrap)
         dsn: Optional[str] = kw.get("dsn")
         if dsn:
             spec = dsn
@@ -74,34 +67,34 @@ def engS(
 
 
 def prov(
-    spec: Union[EngineSpec, EngineCtx, Mapping[str, Any], str, None] = None, **kw: Any
+    spec: Union[EngineSpec, EngineCfg, Mapping[str, Any], str, None] = None, **kw: Any
 ) -> Provider:
     """
     Get a lazy Provider (engine+sessionmaker).
-    Accepts EngineSpec, EngineCtx (mapping/DSN), or kw fields (collapsed former ctxS).
+    Accepts EngineSpec, EngineCfg (mapping/DSN), or kw fields (collapsed former ctxS).
     """
     if isinstance(spec, EngineSpec):
         return spec.to_provider()
-    return engS(spec, **kw).to_provider()
+    return engineSpec(spec, **kw).to_provider()
 
 
 def engine(
-    spec: Union[EngineSpec, EngineCtx, Mapping[str, Any], str, None] = None, **kw: Any
+    spec: Union[EngineSpec, EngineCfg, Mapping[str, Any], str, None] = None, **kw: Any
 ) -> Engine:
     """Return an Engine façade for convenience in ad-hoc flows."""
     if isinstance(spec, EngineSpec):
         return Engine(spec)
-    return Engine(engS(spec, **kw))
+    return Engine(engineSpec(spec, **kw))
 
 
 # ---------------------------------------------------------------------------
-# Convenience helpers (construct EngineCtx mappings directly; no ctxS needed)
+# Convenience helpers (construct EngineCfg mappings directly; no ctxS needed)
 # ---------------------------------------------------------------------------
 
 
-def sqliteS(
+def sqlite_cfg(
     path: Optional[str] = None, *, async_: bool = False, memory: Optional[bool] = None
-) -> EngineCtx:
+) -> EngineCfg:
     return (
         {"kind": "sqlite", "async": async_, "mode": "memory"}
         if (memory or path is None)
@@ -109,7 +102,7 @@ def sqliteS(
     )
 
 
-def pgS(
+def pg_cfg(
     *,
     async_: bool = False,
     user: str = "app",
@@ -119,7 +112,7 @@ def pgS(
     name: str = "app_db",
     pool_size: int = 10,
     max: int = 20,
-) -> EngineCtx:
+) -> EngineCfg:
     return {
         "kind": "postgres",
         "async": async_,
@@ -133,31 +126,31 @@ def pgS(
     }
 
 
-def mem(async_: bool = False) -> EngineCtx:
-    """SQLite in-memory (StaticPool) EngineCtx mapping."""
+def mem(async_: bool = False) -> EngineCfg:
+    """SQLite in-memory (StaticPool) EngineCfg mapping."""
     return {"kind": "sqlite", "async": async_, "mode": "memory"}
 
 
-def sqlitef(path: str, *, async_: bool = False) -> EngineCtx:
-    """SQLite file EngineCtx mapping."""
+def sqlitef(path: str, *, async_: bool = False) -> EngineCfg:
+    """SQLite file EngineCfg mapping."""
     return {"kind": "sqlite", "async": async_, "path": path}
 
 
-def pg(**kw: Any) -> EngineCtx:
-    """Postgres EngineCtx; set async_=True for asyncpg."""
-    return pgS(**kw)
+def pg(**kw: Any) -> EngineCfg:
+    """Postgres EngineCfg; set async_=True for asyncpg."""
+    return pg_cfg(**kw)
 
 
-def pga(**kw: Any) -> EngineCtx:
-    """Async Postgres EngineCtx (asyncpg)."""
+def pga(**kw: Any) -> EngineCfg:
+    """Async Postgres EngineCfg (asyncpg)."""
     kw.setdefault("async_", True)
-    return pgS(**kw)
+    return pg_cfg(**kw)
 
 
-def pgs(**kw: Any) -> EngineCtx:
-    """Sync Postgres EngineCtx (psycopg/pg8000 depending on your builders)."""
+def pgs(**kw: Any) -> EngineCfg:
+    """Sync Postgres EngineCfg (psycopg/pg8000 depending on your builders)."""
     kw.setdefault("async_", False)
-    return pgS(**kw)
+    return pg_cfg(**kw)
 
 
 # ---------------------------------------------------------------------------
@@ -166,11 +159,11 @@ def pgs(**kw: Any) -> EngineCtx:
 
 
 def provider_sqlite_memory(async_: bool = False) -> Provider:
-    return engS(kind="sqlite", mode="memory", async_=async_).to_provider()
+    return engineSpec(kind="sqlite", mode="memory", async_=async_).to_provider()
 
 
 def provider_sqlite_file(path: str, async_: bool = False) -> Provider:
-    return engS(kind="sqlite", path=path, async_=async_).to_provider()
+    return engineSpec(kind="sqlite", path=path, async_=async_).to_provider()
 
 
 def provider_postgres(
@@ -184,7 +177,7 @@ def provider_postgres(
     pool_size: int = 10,
     max: int = 20,
 ) -> Provider:
-    return engS(
+    return engineSpec(
         kind="postgres",
         async_=async_,
         user=user,
@@ -199,12 +192,12 @@ def provider_postgres(
 
 __all__ = [
     # EngineSpec / Provider / Engine helpers
-    "engS",
+    "engineSpec",
     "prov",
     "engine",
-    # convenience EngineCtx helpers
-    "sqliteS",
-    "pgS",
+    # convenience EngineCfg helpers
+    "sqlite_cfg",
+    "pg_cfg",
     "mem",
     "sqlitef",
     "pg",

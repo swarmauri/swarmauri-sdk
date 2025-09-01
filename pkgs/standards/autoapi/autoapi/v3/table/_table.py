@@ -4,14 +4,14 @@ from __future__ import annotations
 from typing import Any, Callable
 
 from ..engine._engine import AsyncSession, Session
-from ..engine.engine_spec import EngineCtx
+from ..engine.engine_spec import EngineCfg
 from ..engine import resolver as _resolver
 from ..engine import install_from_objects  # reuse the collector
 from .table_spec import TableSpec
 
 
 class Table(TableSpec):
-    def __init__(self, model: Any, *, db: EngineCtx | None = None, **kw: Any) -> None:
+    def __init__(self, model: Any, *, db: EngineCfg | None = None, **kw: Any) -> None:
         super().__init__(model=model, db=db, **kw)
         ctx = db if db is not None else getattr(self, "db", None)
         if ctx is not None:

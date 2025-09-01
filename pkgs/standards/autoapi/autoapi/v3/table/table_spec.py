@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional, Sequence
 
-from ..engine.engine_spec import EngineCtx
+from ..engine.engine_spec import EngineCfg
 
 
 @dataclass
@@ -14,7 +14,7 @@ class TableSpec:
     """
 
     model: Any  # ORM class
-    db: Optional[EngineCtx] = None
+    db: Optional[EngineCfg] = None
 
     # NEW
     ops: Sequence[Any] = field(default_factory=tuple)  # OpSpec or shorthands
