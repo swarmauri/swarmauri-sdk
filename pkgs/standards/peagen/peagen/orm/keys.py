@@ -11,7 +11,7 @@ from autoapi.v3.types import (
     Mapped,
     relationship,
 )
-from autoapi.v3.orm.mixins import GUIDPk, Timestamped, UserMixin
+from autoapi.v3.orm.mixins import GUIDPk, Timestamped, UserColumn
 from autoapi.v3.specs import S, acol
 from autoapi.v3 import hook_ctx
 from typing import TYPE_CHECKING
@@ -21,7 +21,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from .repositories import Repository
 
 
-class PublicKey(Base, GUIDPk, UserMixin, Timestamped, HookProvider):
+class PublicKey(Base, GUIDPk, UserColumn, Timestamped, HookProvider):
     __tablename__ = "public_keys"
     __table_args__ = (
         UniqueConstraint("user_id", "public_key"),
@@ -58,7 +58,7 @@ class PublicKey(Base, GUIDPk, UserMixin, Timestamped, HookProvider):
         # hooks registered via @hook_ctx
 
 
-class GPGKey(Base, GUIDPk, UserMixin, Timestamped, HookProvider):
+class GPGKey(Base, GUIDPk, UserColumn, Timestamped, HookProvider):
     __tablename__ = "gpg_keys"
     __table_args__ = (
         UniqueConstraint("user_id", "gpg_key"),

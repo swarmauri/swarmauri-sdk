@@ -84,7 +84,7 @@ class GUIDPk:
 
 
 @declarative_mixin
-class TenantMixin:
+class TenantColumn:
     """
     Adds tenant_id with a schema-qualified FK to <schema>.tenants.id.
     Schema is inferred from the mapped subclass's __table_args__ unless
@@ -108,10 +108,10 @@ class TenantMixin:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# User FK mixin
+# User FK column
 # ──────────────────────────────────────────────────────────────────────────────
 @declarative_mixin
-class UserMixin:
+class UserColumn:
     """
     Adds user_id with a schema-qualified FK to <schema>.users.id.
     Schema is inferred from the mapped subclass's __table_args__ unless
@@ -135,7 +135,7 @@ class UserMixin:
 
 
 @declarative_mixin
-class OrgMixin:
+class OrgColumn:
     """
     Adds user_id with a schema-qualified FK to <schema>.users.id.
     Schema is inferred from the mapped subclass's __table_args__ unless
@@ -468,9 +468,9 @@ class Slugged:
 
 
 # ----------------------------------------------------------------------
-# StatusMixin ── finite workflow states
+# StatusColumn ── finite workflow states
 @declarative_mixin
-class StatusMixin:
+class StatusColumn:
     status: Mapped[str] = acol(
         spec=ColumnSpec(
             storage=S(
