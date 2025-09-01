@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any, Sequence, Type
 
-from .app_spec import AppSpecMixin
+from .app_spec import AppSpec
 from ._app import App
 
 
@@ -27,15 +27,15 @@ def defineAppSpec(
     # framework bits
     middlewares: Sequence[Any] = (),
     lifespan: Any = None,
-) -> Type[AppSpecMixin]:
+) -> Type[AppSpec]:
     """
-    Build an App-spec *mixin* class with class attributes only (no instances).
+    Build an App spec class with class attributes only (no instances).
     Use it directly in your class MRO:
 
         class MyApp(defineAppSpec(title="Svc", db=...)):
             pass
 
-    or pass it to `deriveApp(...)` to get a concrete App subclass.
+    or pass it to ``deriveApp(...)`` to get a concrete :class:`App` subclass.
     """
     attrs = dict(
         TITLE=title,
@@ -53,11 +53,11 @@ def defineAppSpec(
         MIDDLEWARES=tuple(middlewares or ()),
         LIFESPAN=lifespan,
     )
-    return type("AppSpec", (AppSpecMixin,), attrs)
+    return type("AppSpec", (AppSpec,), attrs)
 
 
 def deriveApp(**kw: Any) -> Type[App]:
-    """Produce a concrete :class:`App` subclass that inherits the spec mixin."""
+    """Produce a concrete :class:`App` subclass that inherits the spec."""
     Spec = defineAppSpec(**kw)
     return type("AppWithSpec", (Spec, App), {})
 
