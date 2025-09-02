@@ -4,7 +4,6 @@ from autoapi.v3.types import App
 from httpx import ASGITransport, AsyncClient
 from pydantic import BaseModel
 from sqlalchemy import Integer, String
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import Mapped
 
 from autoapi.v3.autoapp import AutoApp as AutoAPIv3
@@ -13,6 +12,7 @@ from autoapi.v3.specs import F, IO, S, acol
 from autoapi.v3.column.storage_spec import StorageTransform
 from autoapi.v3.decorators import schema_ctx
 from autoapi.v3.core import crud
+from autoapi.v3.engine import resolver as _resolver
 
 
 @pytest_asyncio.fixture
@@ -64,24 +64,15 @@ async def schema_ctx_client():
             "secret": secret,
         }
 
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base3.metadata.create_all)
-    SessionLocal = async_sessionmaker(
-        bind=engine, class_=AsyncSession, expire_on_commit=False
-    )
-
-    async def get_db():
-        async with SessionLocal() as session:
-            yield session
-
     app = App()
-    api = AutoAPIv3(get_db=get_db)
+    api = AutoAPIv3(engine={"kind": "sqlite", "async": True, "memory": True})
     api.include_model(Widget, prefix="")
     api.mount_jsonrpc()
     api.attach_diagnostics()
     await api.initialize_async()
     app.include_router(api.router)
+    prov = _resolver.resolve_provider(api=api)
+    _, SessionLocal = prov.ensure()
     client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
     return client, api, Widget, SessionLocal
 

@@ -1,6 +1,7 @@
 # autoapi/v3/autoapp.py
 from __future__ import annotations
 
+import asyncio
 import copy
 from types import SimpleNamespace
 from typing import (
@@ -13,7 +14,6 @@ from typing import (
     Sequence,
     Tuple,
 )
-import inspect
 
 from .app._app import App as _App
 from .engine.engine_spec import EngineCfg
@@ -346,10 +346,26 @@ class AutoApp(_App):
         prov = _resolver.resolve_provider()
         if prov is None:
             raise ValueError("Engine provider is not configured")
-        with next(prov.get_db()) as db:
-            bind = db.get_bind()  # Connection or Engine
+
+        engine, _ = prov.ensure()
+
+        if prov.kind == "async":
+
+            async def _bootstrap() -> None:
+                async with engine.begin() as conn:
+                    await conn.run_sync(
+                        lambda sync_conn: self._create_all_on_bind(
+                            sync_conn,
+                            schemas=schemas,
+                            sqlite_attachments=sqlite_attachments,
+                            tables=tables,
+                        )
+                    )
+
+            asyncio.run(_bootstrap())
+        else:
             self._create_all_on_bind(
-                bind,
+                engine,
                 schemas=schemas,
                 sqlite_attachments=sqlite_attachments,
                 tables=tables,
@@ -365,41 +381,26 @@ class AutoApp(_App):
         if prov is None:
             raise ValueError("Engine provider is not configured")
 
-        if inspect.isasyncgenfunction(prov.get_db):
-            async for adb in prov.get_db():  # AsyncSession
+        engine, _ = prov.ensure()
 
-                def _sync_bootstrap(arg):
-                    bind = arg.get_bind() if hasattr(arg, "get_bind") else arg
-                    self._create_all_on_bind(
-                        bind,
+        if prov.kind == "async":
+            async with engine.begin() as conn:
+                await conn.run_sync(
+                    lambda sync_conn: self._create_all_on_bind(
+                        sync_conn,
                         schemas=schemas,
                         sqlite_attachments=sqlite_attachments,
                         tables=tables,
                     )
-
-                await adb.run_sync(_sync_bootstrap)
-                break
+                )
         else:
-            gen = prov.get_db()
-            adb = next(gen)
-
-            try:
-
-                def _sync_bootstrap(arg):
-                    bind = arg.get_bind() if hasattr(arg, "get_bind") else arg
-                    self._create_all_on_bind(
-                        bind,
-                        schemas=schemas,
-                        sqlite_attachments=sqlite_attachments,
-                        tables=tables,
-                    )
-
-                await adb.run_sync(_sync_bootstrap)
-            finally:
-                try:
-                    next(gen)
-                except StopIteration:
-                    pass
+            await asyncio.to_thread(
+                self._create_all_on_bind,
+                engine,
+                schemas=schemas,
+                sqlite_attachments=sqlite_attachments,
+                tables=tables,
+            )
         self._ddl_executed = True
 
     # ------------------------- repr -------------------------
