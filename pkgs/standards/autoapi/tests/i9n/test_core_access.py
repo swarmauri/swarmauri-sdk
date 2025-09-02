@@ -5,6 +5,7 @@ from typing import Any, Mapping
 from autoapi.v3.types import HTTPException, UUID, Column, Integer, String, uuid4
 
 from autoapi.v3 import AutoApp, Base
+from autoapi.v3.engine.shortcuts import mem
 from autoapi.v3.orm.mixins import GUIDPk, BulkCapable, Replaceable
 
 
@@ -21,25 +22,23 @@ def _get(obj: Any, attr: str) -> Any:
 
 
 @pytest.fixture
-def sync_api(sync_db_session):
+def sync_api():
     """Create a sync AutoAPI instance with CoreTestUser."""
-    _, get_sync_db = sync_db_session
     Base.metadata.clear()
-    api = AutoApp(get_db=get_sync_db)
+    api = AutoApp(engine=mem(async_=False))
     api.include_model(CoreTestUser)
     api.initialize_sync()
-    return api, get_sync_db
+    return api, api.get_db
 
 
 @pytest_asyncio.fixture
-async def async_api(async_db_session):
+async def async_api():
     """Create an async AutoAPI instance with CoreTestUser."""
-    _, get_db = async_db_session
     Base.metadata.clear()
-    api = AutoApp(get_db=get_db)
+    api = AutoApp(engine=mem())
     api.include_model(CoreTestUser)
     await api.initialize_async()
-    return api, get_db
+    return api, api.get_db
 
 
 def test_api_exposes_core_proxies(sync_api):
