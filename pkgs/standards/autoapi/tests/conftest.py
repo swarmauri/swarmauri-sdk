@@ -14,7 +14,12 @@ from autoapi.v3.column.storage_spec import StorageTransform
 from autoapi.v3.schema import builder as v3_builder
 from autoapi.v3.runtime import kernel as runtime_kernel
 from autoapi.v3.engine.shortcuts import mem
-from autoapi.v3.engine import resolver as engine_resolver
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import Mapped
+import asyncio
 
 
 @pytest.fixture(scope="session")
@@ -174,8 +179,12 @@ async def api_client(db_mode):
     api = AutoApp(engine=engine_cfg)
     api.include_models([Tenant, Item])
     if db_mode == "async":
+        api = AutoApp(engine=mem())
+        api.include_models([Tenant, Item])
         await api.initialize_async()
     else:
+        api = AutoApp(engine=mem(async_=False))
+        api.include_models([Tenant, Item])
         api.initialize_sync()
 
     api.mount_jsonrpc()
