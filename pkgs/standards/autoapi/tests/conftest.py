@@ -1,3 +1,6 @@
+import asyncio
+from typing import AsyncIterator, Iterator
+
 import pytest
 import pytest_asyncio
 from autoapi.v3 import AutoApp, Base
@@ -13,8 +16,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import Mapped
-import asyncio
+from sqlalchemy.orm import Mapped, Session
 
 
 @pytest.fixture(scope="session")
