@@ -2,10 +2,11 @@ from __future__ import annotations
 import pytest
 from autoapi.v3 import alias_ctx
 from autoapi.v3.response import response_ctx
+from autoapi.v3.engine.shortcuts import engine as build_engine, mem
 from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.orm.tables import Base
 from autoapi.v3.specs import IO, S, F, acol as spec_acol
-from autoapi.v3.types import Session, String, StaticPool, create_engine, sessionmaker
+from autoapi.v3.types import String
 from autoapi.v3.autoapi import AutoAPI
 
 
@@ -23,26 +24,17 @@ async def test_response_ctx_alias_table_rpc():
             io=IO(in_verbs=("create",), out_verbs=("read",)),
         )
 
-    engine = create_engine(
-        "sqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
-
-    def get_db() -> Session:
-        with SessionLocal() as session:
-            yield session
-
-    api = AutoAPI(get_db=get_db)
+    eng = build_engine(mem(async_=False))
+    api = AutoAPI(engine=eng)
     api.include_model(Widget, mount_router=False)
     api.initialize_sync()
-
-    session: Session = SessionLocal()
+    raw_eng, _ = eng.raw()
     try:
-        created = await api.rpc_call(Widget, "create", {"name": "a"}, db=session)
-        fetched = await api.rpc_call(Widget, "fetch", {"id": created["id"]}, db=session)
-        assert fetched["id"] == created["id"]
+        with eng.session() as session:
+            created = await api.rpc_call(Widget, "create", {"name": "a"}, db=session)
+            fetched = await api.rpc_call(
+                Widget, "fetch", {"id": created["id"]}, db=session
+            )
+            assert fetched["id"] == created["id"]
     finally:
-        session.close()
-        engine.dispose()
+        raw_eng.dispose()
