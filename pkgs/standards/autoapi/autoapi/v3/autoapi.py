@@ -74,8 +74,6 @@ class AutoAPI(_Api):
         **router_kwargs: Any,
     ) -> None:
         _Api.__init__(self, db=db, **router_kwargs)
-        # self acts as the aggregate router
-        self.router = self
         # DB dependencies for transports/diagnostics
         if get_db is not None:
             self.get_db = get_db
@@ -190,7 +188,7 @@ class AutoAPI(_Api):
     # ------------------------- extras / mounting -------------------------
 
     def mount_jsonrpc(self, *, prefix: str | None = None) -> Any:
-        """Mount JSON-RPC router onto `.router` and the host app if present."""
+        """Mount a JSON-RPC router onto this AutoAPI instance."""
         px = prefix if prefix is not None else self.jsonrpc_prefix
         router = _mount_jsonrpc(
             self,
@@ -202,7 +200,7 @@ class AutoAPI(_Api):
         return router
 
     def attach_diagnostics(self, *, prefix: str | None = None) -> Any:
-        """Mount diagnostics router onto `.router` and the host app if present."""
+        """Mount a diagnostics router onto this AutoAPI instance."""
         px = prefix if prefix is not None else self.system_prefix
         router = _mount_diagnostics(
             self, get_db=self.get_db, get_async_db=self.get_async_db
