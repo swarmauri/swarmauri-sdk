@@ -1,8 +1,8 @@
 from fastapi.testclient import TestClient
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlalchemy import create_engine
+from autoapi.v3.engine import resolver as _resolver
+from autoapi.v3.engine.shortcuts import mem
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 
 from autoapi.v3.autoapp import AutoApp
 from autoapi.v3.orm.mixins import GUIDPk
@@ -60,26 +60,20 @@ def _build_client():
         def __autoapi_allow_anon__(cls):
             return {"list", "read"}
 
-    engine = create_engine(
-        "sqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
-
-    def get_db():
-        with SessionLocal() as session:
-            yield session
-
+    cfg = mem(async_=False)
     auth = DummyAuth()
-    api = AutoApp(get_db=get_db)
+    api = AutoApp(engine=cfg)
     api.set_auth(authn=auth.get_principal)
     auth.register_inject_hook(api)
     api.include_models([Tenant, Item])
+    api.initialize_sync()
     app = App()
     app.include_router(api.router)
-    api.initialize_sync()
-    return TestClient(app), SessionLocal, Tenant, Item
+    prov = _resolver.resolve_provider()
+    engine, maker = prov.ensure()
+    SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
+    client = TestClient(app)
+    return client, SessionLocal, Tenant, Item
 
 
 def _build_client_attr():
@@ -98,26 +92,20 @@ def _build_client_attr():
 
         __autoapi_allow_anon__ = {"list", "read"}
 
-    engine = create_engine(
-        "sqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
-
-    def get_db():
-        with SessionLocal() as session:
-            yield session
-
+    cfg = mem(async_=False)
     auth = DummyAuth()
-    api = AutoApp(get_db=get_db)
+    api = AutoApp(engine=cfg)
     api.set_auth(authn=auth.get_principal)
     auth.register_inject_hook(api)
     api.include_models([Tenant, Item])
+    api.initialize_sync()
     app = App()
     app.include_router(api.router)
-    api.initialize_sync()
-    return TestClient(app), SessionLocal, Tenant, Item
+    prov = _resolver.resolve_provider()
+    engine, maker = prov.ensure()
+    SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
+    client = TestClient(app)
+    return client, SessionLocal, Tenant, Item
 
 
 def test_allow_anon_list_and_read():
@@ -168,23 +156,17 @@ def _build_client_create_noauth():
         def __autoapi_allow_anon__(cls):
             return {"create"}
 
-    engine = create_engine(
-        "sqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
-
-    def get_db():
-        with SessionLocal() as session:
-            yield session
-
-    api = AutoApp(get_db=get_db)
+    cfg = mem(async_=False)
+    api = AutoApp(engine=cfg)
     api.include_models([Tenant, Item])
+    api.initialize_sync()
     app = App()
     app.include_router(api.router)
-    api.initialize_sync()
-    return TestClient(app), SessionLocal, Tenant, Item
+    prov = _resolver.resolve_provider()
+    engine, maker = prov.ensure()
+    SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
+    client = TestClient(app)
+    return client, SessionLocal, Tenant, Item
 
 
 def _build_client_create_attr_noauth():
@@ -203,23 +185,17 @@ def _build_client_create_attr_noauth():
 
         __autoapi_allow_anon__ = {"create"}
 
-    engine = create_engine(
-        "sqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
-
-    def get_db():
-        with SessionLocal() as session:
-            yield session
-
-    api = AutoApp(get_db=get_db)
+    cfg = mem(async_=False)
+    api = AutoApp(engine=cfg)
     api.include_models([Tenant, Item])
+    api.initialize_sync()
     app = App()
     app.include_router(api.router)
-    api.initialize_sync()
-    return TestClient(app), SessionLocal, Tenant, Item
+    prov = _resolver.resolve_provider()
+    engine, maker = prov.ensure()
+    SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
+    client = TestClient(app)
+    return client, SessionLocal, Tenant, Item
 
 
 def test_allow_anon_create_method():
