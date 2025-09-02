@@ -318,14 +318,41 @@ class AutoAPI(_Api):
         prov = _resolver.resolve_provider(api=self)
         if prov is None:
             raise ValueError("Engine provider is not configured")
-        with next(prov.get_db()) as db:
-            bind = db.get_bind()  # Connection or Engine
-            self._create_all_on_bind(
-                bind,
-                schemas=schemas,
-                sqlite_attachments=sqlite_attachments,
-                tables=tables,
-            )
+
+        if inspect.isasyncgenfunction(prov.get_db):
+
+            async def _run_async() -> None:
+                async for adb in prov.get_db():  # AsyncSession
+
+                    def _sync_bootstrap(arg):
+                        bind = arg.get_bind() if hasattr(arg, "get_bind") else arg
+                        self._create_all_on_bind(
+                            bind,
+                            schemas=schemas,
+                            sqlite_attachments=sqlite_attachments,
+                            tables=tables,
+                        )
+
+                    await adb.run_sync(_sync_bootstrap)
+                    break
+
+            asyncio.run(_run_async())
+        else:
+            gen = prov.get_db()
+            db = next(gen)
+            try:
+                bind = db.get_bind()  # Connection or Engine
+                self._create_all_on_bind(
+                    bind,
+                    schemas=schemas,
+                    sqlite_attachments=sqlite_attachments,
+                    tables=tables,
+                )
+            finally:
+                try:
+                    next(gen)
+                except StopIteration:
+                    pass
         self._ddl_executed = True
 
     async def initialize_async(

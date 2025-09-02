@@ -61,17 +61,12 @@ def pytest_generate_tests(metafunc):
 
 @pytest.fixture
 def sync_db_session():
-    """Provide a synchronous in-memory SQLite engine and DB session factory."""
+    """Provide a synchronous in-memory SQLite engine and provider."""
     provider = provider_sqlite_memory(async_=False)
     _resolver.set_default(provider)
-    engine, maker = provider.ensure()
-
-    def get_db() -> Iterator[Session]:
-        with maker() as session:
-            yield session
-
+    engine, _ = provider.ensure()
     try:
-        yield engine, get_db
+        yield engine, provider
     finally:
         engine.dispose()
         _resolver.set_default(None)
@@ -79,17 +74,12 @@ def sync_db_session():
 
 @pytest_asyncio.fixture
 async def async_db_session():
-    """Provide an asynchronous in-memory SQLite engine and DB session factory."""
+    """Provide an asynchronous in-memory SQLite engine and provider."""
     provider = provider_sqlite_memory(async_=True)
     _resolver.set_default(provider)
-    engine, maker = provider.ensure()
-
-    async def get_db() -> AsyncIterator[AsyncSession]:
-        async with maker() as session:
-            yield session
-
+    engine, _ = provider.ensure()
     try:
-        yield engine, get_db
+        yield engine, provider
     finally:
         await engine.dispose()
         _resolver.set_default(None)
