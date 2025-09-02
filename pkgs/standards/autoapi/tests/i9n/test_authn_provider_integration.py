@@ -1,9 +1,7 @@
-from autoapi.v3.types import App, HTTPException, Request, Security
+from autoapi.v3.types import HTTPException, Request, Security
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
+from autoapi.v3.engine.shortcuts import mem
 from uuid import uuid4
 
 from autoapi.v3 import AutoApp, Base
@@ -48,26 +46,13 @@ def _build_client_with_auth():
     class Tenant(Base, GUIDPk):
         __tablename__ = "tenants"
 
-    engine = create_engine(
-        "sqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
-
-    def get_db():
-        with SessionLocal() as session:
-            yield session
-
     auth = HookedAuth()
-    app = App()
-    api = AutoApp(get_db=get_db)
+    api = AutoApp(engine=mem(async_=False))
     api.set_auth(authn=auth.get_principal)
     auth.register_inject_hook(api)
     api.include_model(Tenant)
     api.initialize_sync()
-    app.include_router(api.router)
-    return TestClient(app), auth
+    return TestClient(api), auth
 
 
 def test_authn_hooks_and_context_injection():

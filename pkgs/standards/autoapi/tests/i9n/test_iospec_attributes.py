@@ -8,6 +8,7 @@ from sqlalchemy.pool import StaticPool
 from autoapi.v3.engine.shortcuts import engine as build_engine, mem
 
 from autoapi.v3.autoapp import AutoApp
+from autoapi.v3.engine.shortcuts import engine as engine_factory, mem
 from autoapi.v3.bindings.model import bind
 from autoapi.v3.bindings.rest import _build_router
 from autoapi.v3.bindings.rpc import register_and_attach
@@ -186,6 +187,9 @@ def test_storage_and_sqlalchemy_integration():
 
 @pytest.mark.i9n
 def test_rest_call_respects_aliases():
+    eng = engine_factory(mem(async_=False))
+
+
     class Thing(Base):
         __tablename__ = "iospec_rest_i9n"
         __allow_unmapped__ = True
@@ -200,6 +204,7 @@ def test_rest_call_respects_aliases():
         )
 
     eng = build_engine(mem(async_=False))
+
     api = AutoApp(engine=eng)
     api.include_model(Thing)
     Base.metadata.create_all(eng.raw()[0])
@@ -246,6 +251,8 @@ async def test_rpc_call_uses_schemas():
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_core_crud_helpers_operate():
+
+    eng = engine_factory(mem(async_=False))
     class Thing(Base):
         __tablename__ = "iospec_core_i9n"
         __allow_unmapped__ = True
