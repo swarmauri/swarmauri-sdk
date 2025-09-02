@@ -4,7 +4,11 @@ import pytest
 
 from autoapi.v3.bindings import rpc_call
 
-from .response_utils import build_ping_model
+from .response_utils import (
+    RESPONSE_KINDS,
+    build_model_for_response,
+    build_ping_model,
+)
 
 
 @pytest.mark.asyncio
@@ -13,3 +17,30 @@ async def test_response_rpc_call():
     api = SimpleNamespace(models={"Widget": Widget})
     result = await rpc_call(api, Widget, "ping", {}, db=SimpleNamespace())
     assert result == {"pong": True}
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("kind", RESPONSE_KINDS)
+async def test_response_rpc_alias_table(kind, tmp_path):
+    Widget, file_path = build_model_for_response(kind, tmp_path)
+    api = SimpleNamespace(models={"Widget": Widget})
+    result = await rpc_call(api, Widget, "download", {}, db=SimpleNamespace())
+    if kind == "auto":
+        assert result == {"data": {"pong": True}, "ok": True}
+    elif kind == "json":
+        assert result == {"pong": True}
+    elif kind == "html":
+        assert result.body == b"<h1>pong</h1>"
+    elif kind == "text":
+        assert result.body == b"pong"
+    elif kind == "file":
+        assert result.path == str(file_path)
+    elif kind == "stream":
+        content = b"".join([chunk async for chunk in result.body_iterator])
+        assert content == b"pong"
+    elif kind == "redirect":
+        assert result.status_code == 307
+        assert result.headers["location"] == "/redirected"
+        return
+    if kind not in {"auto", "json"}:
+        assert result.status_code == 200
