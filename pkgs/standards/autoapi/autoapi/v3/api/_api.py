@@ -8,12 +8,17 @@ from typing import (
 
 from ..deps.fastapi import APIRouter as ApiRouter
 from ..engine.engine_spec import EngineCfg
-from ..engine import resolver as _resolver
 from ..engine import install_from_objects
+from ..engine import resolver as _resolver
 from .api_spec import APISpec
 
 
 class Api(APISpec, ApiRouter):
+    """API router with model and table registries."""
+
+    MODELS: tuple[Any, ...] = ()
+    TABLES: tuple[Any, ...] = ()
+
     def __init__(self, *, db: EngineCfg | None = None, **router_kwargs: Any) -> None:
         ApiRouter.__init__(
             self,
@@ -23,6 +28,11 @@ class Api(APISpec, ApiRouter):
             + list(getattr(self, "DEPS", [])),
             **router_kwargs,
         )
+
+        # namespace containers
+        self.models: dict[str, type] = {}
+        self.tables: dict[str, Any] = {}
+
         ctx = db if db is not None else getattr(self, "DB", None)
         if ctx is not None:
             _resolver.register_api(self, ctx)

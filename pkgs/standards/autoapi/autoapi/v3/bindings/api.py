@@ -87,6 +87,7 @@ def _ensure_api_ns(api: ApiLike) -> None:
     """
     for attr, default in (
         ("models", {}),
+        ("tables", {}),
         ("schemas", SimpleNamespace()),
         ("handlers", SimpleNamespace()),
         ("hooks", SimpleNamespace()),
@@ -256,6 +257,7 @@ def _attach_to_api(api: ApiLike, model: type) -> None:
 
     # Index model object
     api.models[mname] = model
+    api.tables[mname] = getattr(model, "__table__", None)
 
     # Direct references to model namespaces
     setattr(api.schemas, mname, getattr(model, "schemas", SimpleNamespace()))

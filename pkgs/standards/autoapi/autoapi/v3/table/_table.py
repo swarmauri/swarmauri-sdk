@@ -1,28 +1,42 @@
 # autoapi/autoapi/v3/table/_table.py
 from __future__ import annotations
 
+from types import SimpleNamespace
 from typing import Any, Callable
 
 from ..engine._engine import AsyncSession, Session
-from ..engine.engine_spec import EngineCfg
-from ..engine import resolver as _resolver
 from ..engine import install_from_objects  # reuse the collector
+from ..engine import resolver as _resolver
+from ._base import Base
 from .table_spec import TableSpec
 
 
-class Table(TableSpec):
-    def __init__(self, model: Any, *, db: EngineCfg | None = None, **kw: Any) -> None:
-        super().__init__(model=model, db=db, **kw)
-        ctx = db if db is not None else getattr(self, "db", None)
-        if ctx is not None:
-            _resolver.register_table(model, ctx)
+class Table(Base, TableSpec):
+    """Declarative ORM table base.
 
-    def __init_subclass__(cls, **kw: Any) -> None:
+    This class now integrates :class:`Base` so ORM models and tables share
+    the same type.  Column specifications are exposed via ``columns`` for
+    convenience.
+    """
+
+    __abstract__ = True
+    columns: SimpleNamespace = SimpleNamespace()
+
+    def __init__(self, **kw: Any) -> None:  # pragma: no cover - SQLA sets attrs
+        for k, v in kw.items():
+            setattr(self, k, v)
+
+    def __init_subclass__(cls, **kw: Any) -> None:  # noqa: D401
         super().__init_subclass__(**kw)
+
+        # expose ColumnSpecs under `columns` namespace
+        specs = getattr(cls, "__autoapi_cols__", {})
+        cls.columns = SimpleNamespace(**specs)
+
         # auto-register table-level bindings if declared
         try:
             install_from_objects(models=[cls])
-        except Exception:
+        except Exception:  # pragma: no cover - best effort
             pass
 
     @classmethod
