@@ -14,7 +14,7 @@ def defineApiSpec(
     prefix: str = "",
     tags: Sequence[str] = (),
     # engine
-    db: Any = None,
+    engine: Any = None,
     # composition
     ops: Sequence[Any] = (),
     schemas: Sequence[Any] = (),
@@ -27,7 +27,7 @@ def defineApiSpec(
     Build an API-spec class with class attributes only (no instances).
     Use it directly in your class MRO:
 
-        class TenantA(defineApiSpec(name="tenantA", db=...)):
+        class TenantA(defineApiSpec(name="tenantA", engine=...)):
             pass
 
     or pass it to `deriveApi(...)` to get a concrete API subclass.
@@ -36,7 +36,7 @@ def defineApiSpec(
         NAME=name,
         PREFIX=prefix,
         TAGS=tuple(tags or ()),
-        DB=db,
+        ENGINE=engine,
         OPS=tuple(ops or ()),
         SCHEMAS=tuple(schemas or ()),
         HOOKS=tuple(hooks or ()),

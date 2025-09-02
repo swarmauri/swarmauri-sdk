@@ -11,7 +11,7 @@ def defineAppSpec(
     *,
     title: str = "AutoAPI",
     version: str = "0.1.0",
-    db: Any = None,
+    engine: Any = None,
     # composition
     apis: Sequence[Any] = (),
     ops: Sequence[Any] = (),
@@ -32,7 +32,7 @@ def defineAppSpec(
     Build an App-spec class with class attributes only (no instances).
     Use it directly in your class MRO:
 
-        class MyApp(defineAppSpec(title="Svc", db=...)):
+        class MyApp(defineAppSpec(title="Svc", engine=...)):
             pass
 
     or pass it to `deriveApp(...)` to get a concrete App subclass.
@@ -40,7 +40,7 @@ def defineAppSpec(
     attrs = dict(
         TITLE=title,
         VERSION=version,
-        DB=db,
+        ENGINE=engine,
         APIS=tuple(apis or ()),
         OPS=tuple(ops or ()),
         MODELS=tuple(models or ()),

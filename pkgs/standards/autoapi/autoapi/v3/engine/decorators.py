@@ -63,8 +63,8 @@ def engine_ctx(ctx: Optional[EngineCfg] = None, **kw: Any):
 
     What it stores:
       • For ops (functions/methods): sets __autoapi_engine_ctx__ (and legacy __autoapi_db__).
-      • For ORM table classes: injects mapping under model.table_config["db"].
-      • For App/API classes or instances: sets attribute .db = EngineCfg.
+      • For ORM table classes: injects mapping under model.table_config["engine"] (and legacy "db").
+      • For App/API classes or instances: sets attribute .engine = EngineCfg (and legacy .db).
 
     Downstream:
       • engine.install_from_objects(...) discovers these and registers
@@ -84,12 +84,14 @@ def engine_ctx(ctx: Optional[EngineCfg] = None, **kw: Any):
         # ORM model class?
         if inspect.isclass(obj) and hasattr(obj, "__tablename__"):
             cfg = dict(getattr(obj, "table_config", {}) or {})
-            cfg["db"] = spec  # keep using "db" key to align with existing collectors
+            cfg["engine"] = spec
+            cfg["db"] = spec  # legacy key for backward compatibility
             setattr(obj, "table_config", cfg)
             return obj
 
         # API/App classes or instances: keep a simple attribute
-        setattr(obj, "db", spec)
+        setattr(obj, "engine", spec)
+        setattr(obj, "db", spec)  # legacy attribute
         return obj
 
     return _decorate

@@ -32,15 +32,13 @@ from auto_authn.orm import (
     ServiceKey,
     AuthSession,
 )
-from ..db import get_async_db  # same module as before
+from ..db import dsn
 from .auth_flows import router as flows_router
 
 # ----------------------------------------------------------------------
 # 3.  Build AutoAPI instance & router
 # ----------------------------------------------------------------------
-surface_api = AutoAPI(
-    get_async_db=get_async_db,
-)
+surface_api = AutoAPI(engine=dsn)
 
 surface_api.include_models(
     [Tenant, User, Client, ApiKey, Service, ServiceKey, AuthSession]
