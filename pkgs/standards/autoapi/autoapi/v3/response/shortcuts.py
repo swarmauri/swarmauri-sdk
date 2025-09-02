@@ -50,12 +50,19 @@ def as_json(
     dumps=_dumps,
 ) -> Response:
     payload = _maybe_envelope(data) if envelope else data
-    return JSONResponse(
-        payload,
-        status_code=status,
-        headers=dict(headers or {}),
-        dumps=lambda o: dumps(o).decode(),
-    )
+    try:
+        return JSONResponse(
+            payload,
+            status_code=status,
+            headers=dict(headers or {}),
+            dumps=lambda o: dumps(o).decode(),
+        )
+    except TypeError:  # pragma: no cover - starlette >= 0.44
+        return JSONResponse(
+            payload,
+            status_code=status,
+            headers=dict(headers or {}),
+        )
 
 
 def as_html(

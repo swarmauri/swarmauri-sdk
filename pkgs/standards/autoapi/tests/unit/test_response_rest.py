@@ -7,6 +7,7 @@ from .response_utils import (
     RESPONSE_KINDS,
     build_model_for_response,
     build_ping_model,
+    build_model_for_jinja_response,
 )
 
 
@@ -26,7 +27,10 @@ def test_response_rest_alias_table(kind, tmp_path):
     app = App()
     app.include_router(Widget.rest.router)
     client = TestClient(app)
-    r = client.post("/widget/download", json={})
+    kwargs = {"json": {}}
+    if kind == "redirect":
+        kwargs["follow_redirects"] = False
+    r = client.post("/widget/download", **kwargs)
     if kind == "auto":
         assert r.json() == {"data": {"pong": True}, "ok": True}
     elif kind == "json":
@@ -44,3 +48,14 @@ def test_response_rest_alias_table(kind, tmp_path):
         assert r.headers["location"] == "/redirected"
         return
     assert r.status_code == 200
+
+
+def test_response_rest_alias_table_jinja(tmp_path):
+    pytest.importorskip("jinja2")
+    Widget = build_model_for_jinja_response(tmp_path)
+    app = App()
+    app.include_router(Widget.rest.router)
+    client = TestClient(app)
+    r = client.post("/widget/download", json={})
+    assert r.status_code == 200
+    assert r.text == "<h1>World</h1>"
