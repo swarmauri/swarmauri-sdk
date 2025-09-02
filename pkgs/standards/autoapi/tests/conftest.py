@@ -7,7 +7,8 @@ from autoapi.v3.specs import F, IO, S, acol
 from autoapi.v3.column.storage_spec import StorageTransform
 from autoapi.v3.schema import builder as v3_builder
 from autoapi.v3.runtime import kernel as runtime_kernel
-from autoapi.v3.engine.shortcuts import mem
+from autoapi.v3.engine.shortcuts import mem, provider_sqlite_memory
+from autoapi.v3.engine import resolver as _resolver
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
@@ -56,6 +57,42 @@ def pytest_generate_tests(metafunc):
         else:
             # Run both modes by default
             metafunc.parametrize("db_mode", ["sync", "async"])
+
+
+@pytest.fixture
+def sync_db_session():
+    """Provide a synchronous in-memory SQLite engine and DB session factory."""
+    provider = provider_sqlite_memory(async_=False)
+    _resolver.set_default(provider)
+    engine, maker = provider.ensure()
+
+    def get_db() -> Iterator[Session]:
+        with maker() as session:
+            yield session
+
+    try:
+        yield engine, get_db
+    finally:
+        engine.dispose()
+        _resolver.set_default(None)
+
+
+@pytest_asyncio.fixture
+async def async_db_session():
+    """Provide an asynchronous in-memory SQLite engine and DB session factory."""
+    provider = provider_sqlite_memory(async_=True)
+    _resolver.set_default(provider)
+    engine, maker = provider.ensure()
+
+    async def get_db() -> AsyncIterator[AsyncSession]:
+        async with maker() as session:
+            yield session
+
+    try:
+        yield engine, get_db
+    finally:
+        await engine.dispose()
+        _resolver.set_default(None)
 
 
 @pytest.fixture
