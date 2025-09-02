@@ -39,7 +39,7 @@ async def client():
         session.add(Widget(name="A"))
         await session.commit()
 
-    async def get_async_db():
+    async def get_db():
         async with session_maker() as session:
             yield session
 
@@ -62,7 +62,7 @@ async def client():
     crud.list = row_list  # type: ignore
 
     app = App()
-    api = AutoAPIv3(get_async_db=get_async_db)
+    api = AutoAPIv3(get_db=get_db)
     api.include_model(Widget, prefix="")
     app.include_router(api.router)
     transport = ASGITransport(app=app)

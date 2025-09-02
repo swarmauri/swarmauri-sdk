@@ -2,7 +2,6 @@
 from __future__ import annotations
 from typing import (
     Any,
-    AsyncGenerator,
     Generator,
 )
 
@@ -31,13 +30,6 @@ class App(AppSpec, FastAPI):
             self.add_middleware(mw.__class__, **getattr(mw, "kwargs", {}))
 
     def get_db(self) -> Generator[Any, None, None]:
-        db, release = _resolver.acquire()
-        try:
-            yield db
-        finally:
-            release()
-
-    async def get_async_db(self) -> AsyncGenerator[Any, None]:
         db, release = _resolver.acquire()
         try:
             yield db

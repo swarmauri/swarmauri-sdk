@@ -101,11 +101,7 @@ def test_file_response_api(tmp_path):
     async def fake_db():
         yield None
 
-    def fake_sync_db():
-        yield None
-
-    api.get_async_db = fake_db  # type: ignore[assignment]
-    api.get_db = fake_sync_db  # type: ignore[assignment]
+    api.get_db = fake_db  # type: ignore[assignment]
     include_model(api, Widget)
 
     resp = asyncio.run(Widget.handlers.download.handler({}))
@@ -133,11 +129,7 @@ def test_file_response_app(tmp_path):
     async def fake_db():
         yield None
 
-    def fake_sync_db():
-        yield None
-
-    api.get_async_db = fake_db  # type: ignore[assignment]
-    api.get_db = fake_sync_db  # type: ignore[assignment]
+    api.get_db = fake_db  # type: ignore[assignment]
     include_model(api, Widget)
 
     class FilesApp(AutoApp):

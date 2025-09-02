@@ -34,12 +34,12 @@ def sync_api(sync_db_session):
 @pytest_asyncio.fixture
 async def async_api(async_db_session):
     """Create an async AutoAPI instance with CoreTestUser."""
-    _, get_async_db = async_db_session
+    _, get_db = async_db_session
     Base.metadata.clear()
-    api = AutoApp(get_async_db=get_async_db)
+    api = AutoApp(get_db=get_db)
     api.include_model(CoreTestUser)
     await api.initialize_async()
-    return api, get_async_db
+    return api, get_db
 
 
 def test_api_exposes_core_proxies(sync_api):
@@ -157,8 +157,8 @@ async def test_core_read_not_found(sync_api):
 
 @pytest.mark.asyncio
 async def test_async_core_and_core_raw_create(async_api):
-    api, get_async_db = async_api
-    async for db in get_async_db():
+    api, get_db = async_api
+    async for db in get_db():
         for proxy in (api.core, api.core_raw):
             user = await proxy.CoreTestUser.create(
                 {

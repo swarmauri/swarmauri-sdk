@@ -10,7 +10,7 @@ Exposes a small router with:
 
 Usage:
     from autoapi.v3.system.diagnostics import mount_diagnostics
-    app.include_router(mount_diagnostics(api, get_async_db=get_async_db), prefix="/system")
+    app.include_router(mount_diagnostics(api, get_db=get_db), prefix="/system")
 """
 
 from __future__ import annotations
@@ -20,7 +20,6 @@ import logging
 from types import SimpleNamespace
 from typing import (
     Any,
-    Awaitable,
     Callable,
     Dict,
     Iterable,
@@ -355,7 +354,6 @@ def mount_diagnostics(
     api: Any,
     *,
     get_db: Optional[Callable[..., Any]] = None,
-    get_async_db: Optional[Callable[..., Awaitable[Any]]] = None,
 ) -> Router:
     """
     Create & return a Router that exposes:
@@ -366,8 +364,7 @@ def mount_diagnostics(
     """
     router = Router()
 
-    # Prefer async DB getter if provided
-    dep = get_async_db or get_db
+    dep = get_db
 
     router.add_api_route(
         "/healthz",

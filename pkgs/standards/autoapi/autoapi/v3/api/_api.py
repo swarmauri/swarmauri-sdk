@@ -2,7 +2,6 @@
 from __future__ import annotations
 from typing import (
     Any,
-    AsyncGenerator,
     Generator,
 )
 
@@ -40,13 +39,6 @@ class Api(APISpec, ApiRouter):
             _resolver.register_api(self, ctx)
 
     def get_db(self) -> Generator[Any, None, None]:
-        db, release = _resolver.acquire()
-        try:
-            yield db
-        finally:
-            release()
-
-    async def get_async_db(self) -> AsyncGenerator[Any, None]:
         db, release = _resolver.acquire()
         try:
             yield db

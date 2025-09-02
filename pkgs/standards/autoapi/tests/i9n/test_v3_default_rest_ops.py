@@ -46,12 +46,12 @@ async def client_and_model():
         bind=engine, class_=AsyncSession, expire_on_commit=False
     )
 
-    async def get_async_db():
+    async def get_db():
         async with session_maker() as session:
             yield session
 
     app = App()
-    api = AutoAPIv3(get_async_db=get_async_db)
+    api = AutoAPIv3(get_db=get_db)
     api.include_model(Gadget, prefix="")
     app.include_router(api.router)
     transport = ASGITransport(app=app)

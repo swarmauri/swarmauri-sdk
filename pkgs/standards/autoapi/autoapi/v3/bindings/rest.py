@@ -101,7 +101,6 @@ except Exception:  # pragma: no cover
     _kernel_build_phase_chains = None  # type: ignore
 
 from ..config.constants import (
-    AUTOAPI_GET_ASYNC_DB_ATTR,
     AUTOAPI_GET_DB_ATTR,
     AUTOAPI_AUTH_DEP_ATTR,
     AUTOAPI_REST_DEPENDENCIES_ATTR,
@@ -1241,11 +1240,7 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
     router = Router(dependencies=extra_router_deps or None)
 
     pk_param = "item_id"
-    db_dep = (
-        getattr(model, AUTOAPI_GET_ASYNC_DB_ATTR, None)
-        or getattr(model, AUTOAPI_GET_DB_ATTR, None)
-        or _req_state_db
-    )
+    db_dep = getattr(model, AUTOAPI_GET_DB_ATTR, None) or _req_state_db
 
     raw_nested = _nested_prefix(model) or ""
     nested_pref = re.sub(r"/{2,}", "/", raw_nested).rstrip("/") or ""

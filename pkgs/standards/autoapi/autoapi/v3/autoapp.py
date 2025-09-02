@@ -5,7 +5,6 @@ import copy
 from types import SimpleNamespace
 from typing import (
     Any,
-    Awaitable,
     Callable,
     Dict,
     Iterable,
@@ -14,6 +13,7 @@ from typing import (
     Sequence,
     Tuple,
 )
+import inspect
 
 from .app._app import App as _App
 from .engine.engine_spec import EngineCfg
@@ -74,7 +74,6 @@ class AutoApp(_App):
         *,
         engine: EngineCfg | None = None,
         get_db: Optional[Callable[..., Any]] = None,
-        get_async_db: Optional[Callable[..., Awaitable[Any]]] = None,
         jsonrpc_prefix: str = "/rpc",
         system_prefix: str = "/system",
         api_hooks: Mapping[str, Iterable[Callable]]
@@ -94,15 +93,11 @@ class AutoApp(_App):
         super().__init__(engine=engine, **fastapi_kwargs)
         # capture initial routes so refreshes retain FastAPI defaults
         self._base_routes = list(self.router.routes)
-        # DB dependencies for transports/diagnostics
+        # DB dependency for transports/diagnostics
         if get_db is not None:
             self.get_db = get_db
         elif engine is None:
             self.get_db = None
-        if get_async_db is not None:
-            self.get_async_db = get_async_db
-        elif engine is None:
-            self.get_async_db = None
         self.jsonrpc_prefix = jsonrpc_prefix
         self.system_prefix = system_prefix
 
@@ -214,7 +209,6 @@ class AutoApp(_App):
             self,
             prefix=px,
             get_db=self.get_db,
-            get_async_db=self.get_async_db,
         )
         self._base_routes = list(self.router.routes)
         return router
@@ -222,9 +216,7 @@ class AutoApp(_App):
     def attach_diagnostics(self, *, prefix: str | None = None) -> Any:
         """Mount diagnostics router onto this app."""
         px = prefix if prefix is not None else self.system_prefix
-        router = _mount_diagnostics(
-            self, get_db=self.get_db, get_async_db=self.get_async_db
-        )
+        router = _mount_diagnostics(self, get_db=self.get_db)
         if hasattr(self, "include_router"):
             self.include_router(router, prefix=px)
         self._base_routes = list(self.router.routes)
@@ -377,21 +369,44 @@ class AutoApp(_App):
     ):
         if getattr(self, "_ddl_executed", False):
             return
-        if not self.get_async_db:
-            raise ValueError("AutoApp.get_async_db is not configured")
-        async for adb in self.get_async_db():  # AsyncSession
+        if not self.get_db:
+            raise ValueError("AutoApp.get_db is not configured")
 
-            def _sync_bootstrap(arg):
-                bind = arg.get_bind() if hasattr(arg, "get_bind") else arg
-                self._create_all_on_bind(
-                    bind,
-                    schemas=schemas,
-                    sqlite_attachments=sqlite_attachments,
-                    tables=tables,
-                )
+        if inspect.isasyncgenfunction(self.get_db):
+            async for adb in self.get_db():  # AsyncSession
 
-            await adb.run_sync(_sync_bootstrap)
-            break
+                def _sync_bootstrap(arg):
+                    bind = arg.get_bind() if hasattr(arg, "get_bind") else arg
+                    self._create_all_on_bind(
+                        bind,
+                        schemas=schemas,
+                        sqlite_attachments=sqlite_attachments,
+                        tables=tables,
+                    )
+
+                await adb.run_sync(_sync_bootstrap)
+                break
+        else:
+            gen = self.get_db()
+            adb = next(gen)
+
+            try:
+
+                def _sync_bootstrap(arg):
+                    bind = arg.get_bind() if hasattr(arg, "get_bind") else arg
+                    self._create_all_on_bind(
+                        bind,
+                        schemas=schemas,
+                        sqlite_attachments=sqlite_attachments,
+                        tables=tables,
+                    )
+
+                await adb.run_sync(_sync_bootstrap)
+            finally:
+                try:
+                    next(gen)
+                except StopIteration:
+                    pass
         self._ddl_executed = True
 
     # ------------------------- repr -------------------------
