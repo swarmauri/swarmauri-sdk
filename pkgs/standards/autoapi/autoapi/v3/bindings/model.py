@@ -53,11 +53,14 @@ def _ensure_model_namespaces(model: type) -> None:
     """
     Create top-level namespaces on the model class if missing.
     """
-    # ops indexes & metadata
+    # op indexes & metadata
     if not hasattr(model, "ops"):
-        model.ops = SimpleNamespace(all=(), by_key={}, by_alias={})
-    if not hasattr(model, "opspecs"):
-        model.opspecs = model.ops
+        if hasattr(model, "opspecs"):
+            model.ops = model.opspecs
+        else:
+            model.ops = SimpleNamespace(all=(), by_key={}, by_alias={})
+    # Backwards compatibility: older code may still expect `model.opspecs`
+    model.opspecs = model.ops
     # pydantic schemas: .<alias>.in_ / .<alias>.out
     if not hasattr(model, "schemas"):
         model.schemas = SimpleNamespace()
