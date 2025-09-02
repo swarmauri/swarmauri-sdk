@@ -160,9 +160,7 @@ class AutoApp(_App):
         """
         # inject API-level hooks so the binder merges them
         self._merge_api_hooks_into_model(model, self._api_hooks_map)
-        return _include_model(
-            self, model, app=self, prefix=prefix, mount_router=mount_router
-        )
+        return _include_model(self, model, prefix=prefix, mount_router=mount_router)
 
     def include_models(
         self,
@@ -176,7 +174,6 @@ class AutoApp(_App):
         return _include_models(
             self,
             models,
-            app=self,
             base_prefix=base_prefix,
             mount_router=mount_router,
         )
