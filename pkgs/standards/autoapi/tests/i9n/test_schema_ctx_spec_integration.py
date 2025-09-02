@@ -66,11 +66,11 @@ async def schema_ctx_client():
         }
 
     app = App()
-    api = AutoAPIv3(engine=mem())
+    api = AutoAPIv3(engine=mem(async_=False))
     api.include_model(Widget, prefix="")
     api.mount_jsonrpc()
     api.attach_diagnostics()
-    await api.initialize_async()
+    api.initialize_sync()
     prov = _resolver.resolve_provider()
     _, SessionLocal = prov.ensure()
     app.include_router(api.router)
@@ -138,8 +138,8 @@ async def test_schema_ctx_storage_sqlalchemy(schema_ctx_client):
     client, _, Widget, SessionLocal = schema_ctx_client
     resp = await client.post("/widget", json={"name": "B", "secret": "abc"})
     item_id = resp.json()["id"]
-    async with SessionLocal() as session:
-        obj = await session.get(Widget, item_id)
+    with SessionLocal() as session:
+        obj = session.get(Widget, item_id)
         assert obj is not None
         assert isinstance(Widget.__table__.c.name.type, String)
 
@@ -176,9 +176,9 @@ async def test_schema_ctx_rpc_methods(schema_ctx_client):
 @pytest.mark.asyncio
 async def test_schema_ctx_core_crud(schema_ctx_client):
     _, api, Widget, SessionLocal = schema_ctx_client
-    async with SessionLocal() as session:
+    with SessionLocal() as session:
         obj = await crud.create(Widget, {"name": "core", "secret": "def"}, db=session)
-        await session.commit()
+        session.commit()
     assert obj.age == 5
 
 
