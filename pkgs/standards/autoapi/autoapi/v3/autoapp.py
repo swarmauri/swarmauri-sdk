@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import copy
+import asyncio
+import inspect
 from types import SimpleNamespace
 from typing import (
     Any,
@@ -13,7 +15,6 @@ from typing import (
     Sequence,
     Tuple,
 )
-import inspect
 
 from .app._app import App as _App
 from .engine.engine_spec import EngineCfg
@@ -381,20 +382,30 @@ class AutoApp(_App):
                 break
         else:
             gen = prov.get_db()
-            adb = next(gen)
+            db = next(gen)
 
             try:
+                if hasattr(db, "run_sync"):
 
-                def _sync_bootstrap(arg):
-                    bind = arg.get_bind() if hasattr(arg, "get_bind") else arg
-                    self._create_all_on_bind(
+                    def _sync_bootstrap(arg):
+                        bind = arg.get_bind() if hasattr(arg, "get_bind") else arg
+                        self._create_all_on_bind(
+                            bind,
+                            schemas=schemas,
+                            sqlite_attachments=sqlite_attachments,
+                            tables=tables,
+                        )
+
+                    await db.run_sync(_sync_bootstrap)
+                else:
+                    bind = db.get_bind()
+                    await asyncio.to_thread(
+                        self._create_all_on_bind,
                         bind,
                         schemas=schemas,
                         sqlite_attachments=sqlite_attachments,
                         tables=tables,
                     )
-
-                await adb.run_sync(_sync_bootstrap)
             finally:
                 try:
                     next(gen)
