@@ -14,8 +14,6 @@ def _read_engine_attr(obj: Any):
         "autoapi_engine",
         "autoapi_db",
         "get_engine",
-        "get_db",
-        "get_database",
     ):
         fn = getattr(obj, k, None)
         if callable(fn):

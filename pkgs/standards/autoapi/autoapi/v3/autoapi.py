@@ -64,7 +64,6 @@ class AutoAPI(_Api):
         self,
         *,
         engine: EngineCfg | None = None,
-        get_db: Optional[Callable[..., Any]] = None,
         jsonrpc_prefix: str = "/rpc",
         system_prefix: str = "/system",
         api_hooks: Mapping[str, Iterable[Callable]]
@@ -73,10 +72,7 @@ class AutoAPI(_Api):
         **router_kwargs: Any,
     ) -> None:
         _Api.__init__(self, engine=engine, **router_kwargs)
-        # DB dependency for transports/diagnostics
-        if get_db is not None:
-            self.get_db = get_db
-        elif engine is None:
+        if engine is None:
             self.get_db = None
         self.jsonrpc_prefix = jsonrpc_prefix
         self.system_prefix = system_prefix
