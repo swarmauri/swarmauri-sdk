@@ -37,20 +37,13 @@ from .system import mount_diagnostics as _mount_diagnostics
 from .ops import get_registry, OpSpec
 
 
-# optional compat: legacy transactional decorator
-try:
-    from .compat.transactional import transactional as _txn_decorator
-except Exception:  # pragma: no cover
-    _txn_decorator = None
-
-
 class AutoAPI(_Api):
     """
     Canonical router-focused facade that owns:
       • containers (models, schemas, handlers, hooks, rpc, rest, routers, columns, table_config, core proxies)
       • model inclusion (REST + RPC wiring)
       • JSON-RPC / diagnostics mounting
-      • (optional) legacy-friendly helpers (transactional decorator, auth flags)
+      • (optional) auth knobs recognized by some middlewares/dispatchers
 
     It composes v3 primitives; you can still use the functions directly if you prefer.
     """
@@ -103,6 +96,7 @@ class AutoAPI(_Api):
         self.rpc = SimpleNamespace()
         self.rest = SimpleNamespace()
         self.routers: Dict[str, Any] = {}
+        self.tables: Dict[str, Any] = {}
         self.columns: Dict[str, Tuple[str, ...]] = {}
         self.table_config: Dict[str, Dict[str, Any]] = {}
         self.core = SimpleNamespace()
@@ -234,17 +228,6 @@ class AutoAPI(_Api):
         """Targeted rebuild of a bound model."""
         return _rebind(model, changed_keys=changed_keys)
 
-    # ------------------------- legacy helpers -------------------------
-
-    def transactional(self, *dargs, **dkw):
-        """
-        Legacy-friendly decorator: @api.transactional(...)
-        Wraps a function as a v3 custom op with START_TX/END_TX.
-        """
-        if _txn_decorator is None:
-            raise RuntimeError("transactional decorator not available")
-        return _txn_decorator(self, *dargs, **dkw)
-
     # Optional: let callers set auth knobs used by some middlewares/dispatchers
     def set_auth(
         self,
@@ -336,8 +319,8 @@ class AutoAPI(_Api):
             md.create_all(bind=bind, checkfirst=True, tables=group)
 
         # 3) publish tables namespace
-        self.tables = SimpleNamespace(
-            **{
+        self.tables.update(
+            {
                 name: getattr(m, "__table__", None)
                 for name, m in self.models.items()
                 if hasattr(m, "__table__")

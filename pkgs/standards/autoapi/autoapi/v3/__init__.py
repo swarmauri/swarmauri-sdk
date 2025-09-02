@@ -75,7 +75,7 @@ from .config.constants import DEFAULT_HTTP_METHODS
 from .autoapp import AutoApp
 from .autoapi import AutoAPI
 
-from .orm.tables import Base
+from .table import Base
 from .types import App
 
 
