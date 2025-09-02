@@ -23,4 +23,4 @@ async def test_initialize_async_with_sync_engine():
     api = AutoApp(engine=mem(async_=False))
     api.include_model(Widget)
     await api.initialize_async()
-    assert api.tables.Widget.name == "widgets"
+    assert getattr(api.tables, "Widget").name == "widgets"

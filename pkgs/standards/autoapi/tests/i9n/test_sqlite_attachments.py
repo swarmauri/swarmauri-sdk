@@ -28,6 +28,5 @@ async def test_initialize_async_with_sqlite_attachments(tmp_path):
     await api.initialize_async(sqlite_attachments={"logs": str(attach_db)})
     sql_eng, _ = eng.raw()
     async with sql_eng.connect() as conn:
-        result = await conn.exec_driver_sql("PRAGMA database_list")
-        names = {row[1] for row in result.fetchall()}
+        names = await conn.run_sync(_db_names)
     assert "logs" in names
