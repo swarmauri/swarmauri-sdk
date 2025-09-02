@@ -10,7 +10,7 @@ from ._table import Table
 def defineTableSpec(
     *,
     # engine binding
-    db: Any = None,
+    engine: Any = None,
     # composition
     ops: Sequence[Any] = (),
     columns: Sequence[Any] = (),
@@ -24,7 +24,7 @@ def defineTableSpec(
     Build a Table-spec class with class attributes only (no instances).
     Use directly in your ORM class MRO:
 
-        class User(defineTableSpec(db=..., ops=(...)), Base, Table):
+        class User(defineTableSpec(engine=..., ops=(...)), Base, Table):
             __tablename__ = "users"
 
     or pass it to `deriveTable(Model, ...)` to get a configured subclass.
@@ -39,10 +39,10 @@ def defineTableSpec(
         "DEPS": tuple(deps or ()),
     }
 
-    # Engine binding is conventionally stored under table_config["db"]
-    # so existing collectors/autowiring can find it consistently.
-    if db is not None:
-        attrs["table_config"] = {"db": db}
+    # Engine binding is conventionally stored under table_config["engine"]
+    # (and legacy "db" for backward compatibility) so collectors can find it.
+    if engine is not None:
+        attrs["table_config"] = {"engine": engine, "db": engine}
 
     return type("TableSpec", (TableSpec,), attrs)
 

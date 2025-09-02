@@ -14,7 +14,7 @@ class APISpec:
 
     name: str = "api"
     prefix: str = ""
-    db: Optional[EngineCfg] = None
+    engine: Optional[EngineCfg] = None
     tags: Sequence[str] = field(default_factory=tuple)
 
     # NEW

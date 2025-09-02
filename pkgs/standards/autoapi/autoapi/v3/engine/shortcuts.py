@@ -30,18 +30,23 @@ def engine_spec(
                 raise ValueError(
                     "Provide spec=<DSN|mapping> or kind=('sqlite'|'postgres') with appropriate fields"
                 )
-            async_ = bool(kw.get("async_", kw.get("async", False)))
+
+            async_kw = kw.get("async_")
+            if async_kw is None:
+                async_kw = kw.get("async")
 
             if kind == "sqlite":
                 path = kw.get("path")
                 mode = kw.get("mode")
-                memory = kw.get("memory")
-                # memory if: explicit mode="memory" OR memory=True OR no path
-                if (
+                memory_flag = kw.get("memory")
+                memory = (
                     (mode == "memory")
-                    or (memory is True)
+                    or (memory_flag is True)
                     or (not path and mode != "file")
-                ):
+                )
+                async_default = True if async_kw is None and memory else False
+                async_ = bool(async_kw) if async_kw is not None else async_default
+                if memory:
                     spec = {"kind": "sqlite", "async": async_, "mode": "memory"}
                 else:
                     if not path:
@@ -49,6 +54,7 @@ def engine_spec(
                     spec = {"kind": "sqlite", "async": async_, "path": path}
 
             elif kind == "postgres":
+                async_ = bool(async_kw) if async_kw is not None else False
                 spec = {
                     "kind": "postgres",
                     "async": async_,
@@ -93,7 +99,7 @@ def engine(
 
 
 def sqlite_cfg(
-    path: Optional[str] = None, *, async_: bool = False, memory: Optional[bool] = None
+    path: Optional[str] = None, *, async_: bool = True, memory: Optional[bool] = None
 ) -> EngineCfg:
     return (
         {"kind": "sqlite", "async": async_, "mode": "memory"}
@@ -126,7 +132,7 @@ def pg_cfg(
     }
 
 
-def mem(async_: bool = False) -> EngineCfg:
+def mem(async_: bool = True) -> EngineCfg:
     """SQLite in-memory (StaticPool) EngineCfg mapping."""
     return {"kind": "sqlite", "async": async_, "mode": "memory"}
 
@@ -158,7 +164,7 @@ def pgs(**kw: Any) -> EngineCfg:
 # ---------------------------------------------------------------------------
 
 
-def provider_sqlite_memory(async_: bool = False) -> Provider:
+def provider_sqlite_memory(async_: bool = True) -> Provider:
     return engine_spec(kind="sqlite", mode="memory", async_=async_).to_provider()
 
 

@@ -31,19 +31,27 @@ def _normalize(ctx: Optional[EngineCfg] = None, **kw: Any) -> EngineCfg:
             )
         return str(dsn)
 
-    m: dict[str, Any] = {
-        "kind": kind,
-        "async": bool(kw.get("async_", kw.get("async", False))),
-    }
+    async_kw = kw.get("async_")
+    if async_kw is None:
+        async_kw = kw.get("async")
+
+    m: dict[str, Any] = {"kind": kind}
 
     if kind == "sqlite":
+        path = kw.get("path")
+        mode = kw.get("mode")
+        memory_flag = kw.get("memory")
         # memory modes: mode="memory" OR memory=True OR no path supplied
-        if kw.get("mode") == "memory" or kw.get("memory") or not kw.get("path"):
+        memory = (mode == "memory") or memory_flag or not path
+        async_default = True if async_kw is None and memory else False
+        m["async"] = bool(async_kw) if async_kw is not None else async_default
+        if memory:
             m["mode"] = "memory"
         else:
-            m["path"] = kw.get("path")
+            m["path"] = path
 
     elif kind == "postgres":
+        m["async"] = bool(async_kw) if async_kw is not None else False
         for k in ("user", "pwd", "host", "port", "db", "pool_size", "max"):
             if k in kw:
                 m[k] = kw[k]
@@ -63,8 +71,8 @@ def engine_ctx(ctx: Optional[EngineCfg] = None, **kw: Any):
 
     What it stores:
       • For ops (functions/methods): sets __autoapi_engine_ctx__ (and legacy __autoapi_db__).
-      • For ORM table classes: injects mapping under model.table_config["db"].
-      • For App/API classes or instances: sets attribute .db = EngineCfg.
+      • For ORM table classes: injects mapping under model.table_config["engine"] (and legacy "db").
+      • For App/API classes or instances: sets attribute .engine = EngineCfg (and legacy .db).
 
     Downstream:
       • engine.install_from_objects(...) discovers these and registers
@@ -84,12 +92,14 @@ def engine_ctx(ctx: Optional[EngineCfg] = None, **kw: Any):
         # ORM model class?
         if inspect.isclass(obj) and hasattr(obj, "__tablename__"):
             cfg = dict(getattr(obj, "table_config", {}) or {})
-            cfg["db"] = spec  # keep using "db" key to align with existing collectors
+            cfg["engine"] = spec
+            cfg["db"] = spec  # legacy key for backward compatibility
             setattr(obj, "table_config", cfg)
             return obj
 
         # API/App classes or instances: keep a simple attribute
-        setattr(obj, "db", spec)
+        setattr(obj, "engine", spec)
+        setattr(obj, "db", spec)  # legacy attribute
         return obj
 
     return _decorate

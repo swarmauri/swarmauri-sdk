@@ -15,7 +15,7 @@ class AppSpec:
 
     title: str = "AutoAPI"
     version: str = "0.1.0"
-    db: Optional[EngineCfg] = None
+    engine: Optional[EngineCfg] = None
 
     # NEW: multi-API composition (store API classes or instances)
     apis: Sequence[Any] = field(default_factory=tuple)
