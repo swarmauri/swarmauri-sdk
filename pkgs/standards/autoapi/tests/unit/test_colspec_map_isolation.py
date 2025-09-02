@@ -1,16 +1,16 @@
-from autoapi.v3.specs import ColumnSpec
+from autoapi.v3.column import makeVirtualColumn
 
 
 class Base:
-    base = ColumnSpec(storage=None)
+    base = makeVirtualColumn()
 
 
 class One(Base):
-    one = ColumnSpec(storage=None)
+    one = makeVirtualColumn()
 
 
 class Two(Base):
-    two = ColumnSpec(storage=None)
+    two = makeVirtualColumn()
 
 
 def test_colspec_maps_are_isolated() -> None:
