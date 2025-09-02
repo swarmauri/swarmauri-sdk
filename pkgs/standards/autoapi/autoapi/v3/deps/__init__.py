@@ -15,5 +15,5 @@ from .pydantic import *  # noqa: F403, F401
 # Re-export all FastAPI dependencies
 from .fastapi import *  # noqa: F403, F401
 
-# Note: starlette.py is reserved for future Starlette-specific imports
-# if we need to import directly from Starlette rather than through FastAPI
+# Re-export all Starlette dependencies
+from .starlette import *  # noqa: F403, F401
