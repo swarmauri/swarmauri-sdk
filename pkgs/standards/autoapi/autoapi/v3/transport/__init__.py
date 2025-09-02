@@ -12,8 +12,8 @@ Quick usage:
 
     # JSON-RPC
     app.include_router(build_jsonrpc_router(api), prefix="/rpc")
-    # or:
-    mount_jsonrpc(api, app, prefix="/rpc", get_db=get_session_dep)
+    # or supply a DB dependency from an Engine or Provider:
+    mount_jsonrpc(api, app, prefix="/rpc", get_db=my_engine.get_db)
 
     # REST (aggregate all model routers under one prefix)
     # after you include models with mount_router=False
