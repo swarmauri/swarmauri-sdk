@@ -6,6 +6,7 @@ import logging
 import re
 import typing as _typing
 from types import SimpleNamespace
+from uuid import uuid4
 from typing import (
     Annotated,
     Any,
@@ -1396,11 +1397,13 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
         if auth_dep and sp.alias not in allow_anon and sp.target not in allow_anon:
             route_deps = _normalize_deps([auth_dep])
 
+        unique_id = f"{endpoint.__name__}_{uuid4().hex}"
         route_kwargs = dict(
             path=path,
             endpoint=endpoint,
             methods=methods,
             name=f"{model.__name__}.{sp.alias}",
+            operation_id=unique_id,
             summary=label,
             description=label,
             response_model=response_model,
