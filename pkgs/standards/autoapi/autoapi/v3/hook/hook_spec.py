@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
 
-from .hook.types import HookPhase, StepFn, HookPredicate
+from .types import HookPhase, StepFn, HookPredicate
 
 
 @dataclass(frozen=True, slots=True)
