@@ -13,6 +13,7 @@ from .resolve import REGISTRY as _RESOLVE
 from .schema import REGISTRY as _SCHEMA
 from .storage import REGISTRY as _STORAGE
 from .wire import REGISTRY as _WIRE
+from .response import REGISTRY as _RESPONSE
 
 # Runner signature: (obj|None, ctx) -> None
 RunFn = Callable[[Optional[object], Any], None]
@@ -40,6 +41,7 @@ _add_bulk(_RESOLVE)
 _add_bulk(_SCHEMA)
 _add_bulk(_STORAGE)
 _add_bulk(_WIRE)
+_add_bulk(_RESPONSE)
 
 # ── Back-compat subject aliases (optional) ────────────────────────────────────
 # Allow "wire:validate" as an alias of "wire:validate_in".
