@@ -8,7 +8,7 @@ import secrets
 from autoapi.v3.orm.tables import ApiKey as ApiKeyBase
 from autoapi.v3.types import Mapped, PgUUID, UniqueConstraint, relationship
 from autoapi.v3.specs import S, acol
-from autoapi.v3.specs.storage_spec import ForeignKeySpec
+from autoapi.v3.column.storage_spec import ForeignKeySpec
 from autoapi.v3 import hook_ctx
 from uuid import UUID
 from typing import TYPE_CHECKING

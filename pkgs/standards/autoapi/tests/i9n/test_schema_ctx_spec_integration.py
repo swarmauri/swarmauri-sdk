@@ -10,7 +10,7 @@ from sqlalchemy.orm import Mapped
 from autoapi.v3.autoapp import AutoApp as AutoAPIv3
 from autoapi.v3.orm.tables import Base as Base3
 from autoapi.v3.specs import F, IO, S, acol
-from autoapi.v3.specs.storage_spec import StorageTransform
+from autoapi.v3.column.storage_spec import StorageTransform
 from autoapi.v3.decorators import schema_ctx
 from autoapi.v3.core import crud
 

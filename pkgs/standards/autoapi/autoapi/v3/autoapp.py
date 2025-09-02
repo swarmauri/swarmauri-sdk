@@ -36,18 +36,6 @@ from .transport import mount_jsonrpc as _mount_jsonrpc
 from .system import mount_diagnostics as _mount_diagnostics
 from .ops import get_registry, OpSpec
 
-try:  # pragma: no cover - FastAPI optional
-    from .types import Router  # type: ignore
-except Exception:  # pragma: no cover
-
-    class Router:  # type: ignore
-        def __init__(self, *a, **kw):
-            self.routes = []
-            self.includes = []
-
-        def include_router(self, router, *, prefix: str = "", **opts):
-            self.includes.append((router, prefix, opts))
-
 
 # optional compat: legacy transactional decorator
 try:
@@ -104,8 +92,8 @@ class AutoApp(_App):
         if lifespan is not None:
             self.LIFESPAN = lifespan
         super().__init__(db=db, **fastapi_kwargs)
-        # always expose an aggregate router for later mounting
-        self.router = Router()
+        # capture initial routes so refreshes retain FastAPI defaults
+        self._base_routes = list(self.router.routes)
         # DB dependencies for transports/diagnostics
         if get_db is not None:
             self.get_db = get_db
@@ -219,29 +207,27 @@ class AutoApp(_App):
     # ------------------------- extras / mounting -------------------------
 
     def mount_jsonrpc(self, *, prefix: str | None = None) -> Any:
-        """Mount JSON-RPC router onto `.router` and the host app if present."""
+        """Mount JSON-RPC router onto this app."""
         px = prefix if prefix is not None else self.jsonrpc_prefix
         router = _mount_jsonrpc(
             self,
-            self.router,
+            self,
             prefix=px,
             get_db=self.get_db,
             get_async_db=self.get_async_db,
         )
-        if hasattr(self, "include_router"):
-            self.include_router(router, prefix=px)
+        self._base_routes = list(self.router.routes)
         return router
 
     def attach_diagnostics(self, *, prefix: str | None = None) -> Any:
-        """Mount diagnostics router onto `.router` and the host app if present."""
+        """Mount diagnostics router onto this app."""
         px = prefix if prefix is not None else self.system_prefix
         router = _mount_diagnostics(
             self, get_db=self.get_db, get_async_db=self.get_async_db
         )
-        if hasattr(self.router, "include_router"):
-            self.router.include_router(router, prefix=px)
         if hasattr(self, "include_router"):
             self.include_router(router, prefix=px)
+        self._base_routes = list(self.router.routes)
         return router
 
     # ------------------------- registry passthroughs -------------------------
@@ -296,8 +282,8 @@ class AutoApp(_App):
 
     def _refresh_security(self) -> None:
         """Re-seed auth deps on models and rebuild routers."""
-        # Reset aggregate router and allow_anon ops cache
-        self.router = Router()
+        # Reset router to baseline and allow_anon ops cache
+        self.router.routes = list(self._base_routes)
         self._allow_anon_ops = set()
         for model in self.models.values():
             _seed_security_and_deps(self, model)
@@ -314,7 +300,6 @@ class AutoApp(_App):
             setattr(self.rest, mname, rest_ns)
             self.routers[mname] = router
             prefix = _default_prefix(model)
-            _mount_router(self.router, router, prefix=prefix)
             _mount_router(self, router, prefix=prefix)
 
     def _collect_tables(self):
