@@ -77,20 +77,20 @@ class HybridSession(AsyncSession):
     def add(self, *a, **k):
         return self.sync_session.add(*a, **k)
 
-    def get(self, *a, **k):
-        return self.sync_session.get(*a, **k)
+    async def get(self, *a, **k):
+        return await super().get(*a, **k)
 
-    def flush(self, *a, **k):
-        return self.sync_session.flush(*a, **k)
+    async def flush(self, *a, **k):
+        return await super().flush(*a, **k)
 
-    def commit(self, *a, **k):
-        return self.sync_session.commit(*a, **k)
+    async def commit(self, *a, **k):
+        return await super().commit(*a, **k)
 
-    def refresh(self, *a, **k):
-        return self.sync_session.refresh(*a, **k)
+    async def refresh(self, *a, **k):
+        return await super().refresh(*a, **k)
 
-    def delete(self, *a, **k):
-        return self.sync_session.delete(*a, **k)
+    async def delete(self, *a, **k):
+        return await super().delete(*a, **k)
 
     # ---- DDL helper used at AutoAPI bootstrap --------------------------
     async def run_sync(self, fn, *a, **kw):
