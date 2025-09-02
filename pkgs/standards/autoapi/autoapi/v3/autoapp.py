@@ -72,7 +72,7 @@ class AutoApp(_App):
     def __init__(
         self,
         *,
-        db: EngineCfg | None = None,
+        engine: EngineCfg | None = None,
         get_db: Optional[Callable[..., Any]] = None,
         get_async_db: Optional[Callable[..., Awaitable[Any]]] = None,
         jsonrpc_prefix: str = "/rpc",
@@ -91,17 +91,17 @@ class AutoApp(_App):
         lifespan = fastapi_kwargs.pop("lifespan", None)
         if lifespan is not None:
             self.LIFESPAN = lifespan
-        super().__init__(db=db, **fastapi_kwargs)
+        super().__init__(engine=engine, **fastapi_kwargs)
         # capture initial routes so refreshes retain FastAPI defaults
         self._base_routes = list(self.router.routes)
         # DB dependencies for transports/diagnostics
         if get_db is not None:
             self.get_db = get_db
-        elif db is None:
+        elif engine is None:
             self.get_db = None
         if get_async_db is not None:
             self.get_async_db = get_async_db
-        elif db is None:
+        elif engine is None:
             self.get_async_db = None
         self.jsonrpc_prefix = jsonrpc_prefix
         self.system_prefix = system_prefix

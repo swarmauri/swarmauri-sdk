@@ -3,12 +3,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from typing import Any, Literal, Mapping, Optional, Tuple, Union, cast
+from typing import Any, Literal, Mapping, Optional, Tuple, cast
 
 from ..config.constants import CANON as CANONICAL_VERB_TUPLE
 from ..hook.types import PHASE, HookPhase, PHASES, Ctx, StepFn, HookPredicate
 from ..hook import HookSpec as OpHook
 from ..response.types import ResponseSpec
+from ..engine.engine_spec import EngineCfg
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -48,11 +49,6 @@ VerbAliasPolicy = Literal["both", "alias_only", "canonical_only"]  # legacy expo
 # Engine binding (optional, used by resolver precedence: op > table > api > app)
 # ───────────────────────────────────────────────────────────────────────────────
 
-# DSN string (e.g., "sqlite+memory://", "sqlite:///path.db",
-# "postgresql://user:pwd@host:5432/db", "postgresql+asyncpg://…")
-# or a structured mapping as used elsewhere in v3 ({"kind":"sqlite"/"postgres", ...}).
-DBSpec = Union[str, Mapping[str, Any]]
-
 
 @dataclass(frozen=True, slots=True)
 class OpSpec:
@@ -67,7 +63,7 @@ class OpSpec:
       - otherwise → raw pass-through
 
     Optional engine binding:
-      - `db` allows per-op DB routing (string DSN or structured mapping).
+      - `engine` allows per-op routing (DSN string or structured mapping).
         When present, it participates in resolver precedence (op > table > api > app).
     """
 
@@ -80,7 +76,7 @@ class OpSpec:
     expose_method: bool = True
 
     # Optional per-op engine binding (DSN string or mapping spec)
-    db: Optional[DBSpec] = None
+    engine: Optional[EngineCfg] = None
 
     # HTTP behavior
     arity: Arity = "collection"
@@ -127,7 +123,7 @@ __all__ = [
     "Ctx",
     "StepFn",
     "HookPredicate",
-    "DBSpec",
+    "EngineCfg",
     "OpHook",
     "OpSpec",
     "CANON",

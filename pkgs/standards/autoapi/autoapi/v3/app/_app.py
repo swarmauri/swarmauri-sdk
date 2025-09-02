@@ -14,7 +14,9 @@ from .app_spec import AppSpec
 
 
 class App(AppSpec, FastAPI):
-    def __init__(self, *, db: EngineCfg | None = None, **fastapi_kwargs: Any) -> None:
+    def __init__(
+        self, *, engine: EngineCfg | None = None, **fastapi_kwargs: Any
+    ) -> None:
         FastAPI.__init__(
             self,
             title=self.TITLE,
@@ -22,7 +24,7 @@ class App(AppSpec, FastAPI):
             lifespan=self.LIFESPAN,
             **fastapi_kwargs,
         )
-        ctx = db if db is not None else getattr(self, "DB", None)
+        ctx = engine if engine is not None else getattr(self, "ENGINE", None)
         if ctx is not None:
             _resolver.set_default(ctx)
         for mw in getattr(self, "MIDDLEWARES", []):

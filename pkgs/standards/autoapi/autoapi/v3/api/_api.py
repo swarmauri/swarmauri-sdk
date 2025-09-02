@@ -19,7 +19,9 @@ class Api(APISpec, ApiRouter):
     MODELS: tuple[Any, ...] = ()
     TABLES: tuple[Any, ...] = ()
 
-    def __init__(self, *, db: EngineCfg | None = None, **router_kwargs: Any) -> None:
+    def __init__(
+        self, *, engine: EngineCfg | None = None, **router_kwargs: Any
+    ) -> None:
         ApiRouter.__init__(
             self,
             prefix=self.PREFIX,
@@ -33,7 +35,7 @@ class Api(APISpec, ApiRouter):
         self.models: dict[str, type] = {}
         self.tables: dict[str, Any] = {}
 
-        ctx = db if db is not None else getattr(self, "DB", None)
+        ctx = engine if engine is not None else getattr(self, "ENGINE", None)
         if ctx is not None:
             _resolver.register_api(self, ctx)
 
