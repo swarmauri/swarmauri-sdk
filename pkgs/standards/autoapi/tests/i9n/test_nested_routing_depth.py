@@ -36,8 +36,8 @@ async def three_level_api_client(db_mode, sync_db_session, async_db_session):
             return "/company/{company_id}/department/{department_id}/employee"
 
     if db_mode == "async":
-        _, get_async_db = async_db_session
-        api = AutoApp(get_async_db=get_async_db)
+        _, get_db = async_db_session
+        api = AutoApp(get_db=get_db)
         api.include_models([Company, Department, Employee])
         await api.initialize_async()
     else:

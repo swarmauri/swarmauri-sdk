@@ -26,11 +26,11 @@ async def setup_client(db_mode, Tenant, Item):
             bind=engine, class_=AsyncSession, expire_on_commit=False
         )
 
-        async def get_async_db() -> AsyncSession:
+        async def get_db() -> AsyncSession:
             async with AsyncSessionLocal() as session:
                 yield session
 
-        api = AutoApp(get_async_db=get_async_db)
+        api = AutoApp(get_db=get_db)
         api.include_models([Tenant, Item])
         await api.initialize_async()
     else:

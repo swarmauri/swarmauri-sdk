@@ -131,8 +131,7 @@ AUTOAPI_HOOKS_ATTR = "__autoapi_hooks__"  # model-level hooks map
 AUTOAPI_REGISTRY_LISTENER_ATTR = (
     "__autoapi_registry_listener__"  # ops registry listener
 )
-AUTOAPI_GET_DB_ATTR = "__autoapi_get_db__"  # sync DB dependency
-AUTOAPI_GET_ASYNC_DB_ATTR = "__autoapi_get_async_db__"  # async DB dependency
+AUTOAPI_GET_DB_ATTR = "__autoapi_get_db__"  # DB dependency
 AUTOAPI_AUTH_DEP_ATTR = "__autoapi_auth_dep__"  # auth dependency
 AUTOAPI_AUTHORIZE_ATTR = "__autoapi_authorize__"  # authorization callable
 AUTOAPI_REST_DEPENDENCIES_ATTR = "__autoapi_rest_dependencies__"  # extra REST deps
@@ -158,7 +157,6 @@ MODEL_LEVEL_CFGS: frozenset[str] = frozenset(
         AUTOAPI_HOOKS_ATTR,
         AUTOAPI_REGISTRY_LISTENER_ATTR,
         AUTOAPI_GET_DB_ATTR,
-        AUTOAPI_GET_ASYNC_DB_ATTR,
         AUTOAPI_AUTH_DEP_ATTR,
         AUTOAPI_AUTHORIZE_ATTR,
         AUTOAPI_REST_DEPENDENCIES_ATTR,
@@ -223,7 +221,6 @@ __all__ = [
     "AUTOAPI_HOOKS_ATTR",
     "AUTOAPI_REGISTRY_LISTENER_ATTR",
     "AUTOAPI_GET_DB_ATTR",
-    "AUTOAPI_GET_ASYNC_DB_ATTR",
     "AUTOAPI_AUTH_DEP_ATTR",
     "AUTOAPI_AUTHORIZE_ATTR",
     "AUTOAPI_REST_DEPENDENCIES_ATTR",

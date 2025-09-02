@@ -4,7 +4,7 @@ JSON-RPC 2.0 dispatcher for AutoAPI v3.
 
 This module exposes a single helper:
 
-    build_jsonrpc_router(api, *, get_db=None, get_async_db=None) -> Router
+    build_jsonrpc_router(api, *, get_db=None) -> Router
 
 - It mounts a POST endpoint at "/" that accepts either a single JSON-RPC request
   object or a batch (array) of request objects.
@@ -26,7 +26,6 @@ from __future__ import annotations
 import logging
 from typing import (
     Any,
-    Awaitable,
     Callable,
     Dict,
     List,
@@ -272,15 +271,14 @@ def build_jsonrpc_router(
     api: Any,
     *,
     get_db: Optional[Callable[..., Any]] = None,
-    get_async_db: Optional[Callable[..., Awaitable[Any]]] = None,
     tags: Sequence[str] | None = ("rpc",),
 ) -> Router:
     """
     Build and return a Router that serves a single POST endpoint at "/".
     Mount it at your preferred prefix (e.g., "/rpc").
 
-    If `get_async_db` or `get_db` is provided, it will be used as a FastAPI
-    dependency for obtaining a DB session/connection. If neither is provided,
+    If `get_db` is provided, it will be used as a FastAPI
+    dependency for obtaining a DB session/connection. If not provided,
     the dispatcher will try to use `request.state.db` (or pass `db=None`).
 
     Security:
@@ -296,7 +294,7 @@ def build_jsonrpc_router(
     extra_router_deps = _normalize_deps(getattr(api, "rpc_dependencies", None))
     router = Router(dependencies=extra_router_deps or None)
 
-    dep = get_async_db or get_db  # Prefer async DB getter if present
+    dep = get_db
     auth_dep = _select_auth_dep(api)
 
     if dep is not None and auth_dep is not None:

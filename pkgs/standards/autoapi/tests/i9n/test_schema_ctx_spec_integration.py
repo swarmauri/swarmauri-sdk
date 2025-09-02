@@ -71,12 +71,12 @@ async def schema_ctx_client():
         bind=engine, class_=AsyncSession, expire_on_commit=False
     )
 
-    async def get_async_db():
+    async def get_db():
         async with SessionLocal() as session:
             yield session
 
     app = App()
-    api = AutoAPIv3(get_async_db=get_async_db)
+    api = AutoAPIv3(get_db=get_db)
     api.include_model(Widget, prefix="")
     api.mount_jsonrpc()
     api.attach_diagnostics()

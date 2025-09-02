@@ -20,7 +20,6 @@ from .rpc import _coerce_payload, _get_phase_chains, _validate_input, _serialize
 from ..config.constants import (
     AUTOAPI_AUTH_DEP_ATTR,
     AUTOAPI_AUTHORIZE_ATTR,
-    AUTOAPI_GET_ASYNC_DB_ATTR,
     AUTOAPI_GET_DB_ATTR,
     AUTOAPI_REST_DEPENDENCIES_ATTR,
     AUTOAPI_RPC_DEPENDENCIES_ATTR,
@@ -198,8 +197,7 @@ class _ResourceProxy:
 def _seed_security_and_deps(api: Any, model: type) -> None:
     """
     Copy API-level dependency hooks onto the model so downstream binders can use them.
-    - __autoapi_get_db__             : sync DB dep (FastAPI Depends-compatible)
-    - __autoapi_get_async_db__       : async DB dep
+    - __autoapi_get_db__             : DB dep (FastAPI Depends-compatible)
     - __autoapi_auth_dep__           : auth dependency (returns user or raises 401)
     - __autoapi_authorize__          : callable(request, model, alias, payload, user)→None/raise 403
     - __autoapi_rest_dependencies__  : list of extra dependencies for REST (e.g., rate-limits)
@@ -208,8 +206,6 @@ def _seed_security_and_deps(api: Any, model: type) -> None:
     # DB deps
     if getattr(api, "get_db", None):
         setattr(model, AUTOAPI_GET_DB_ATTR, api.get_db)
-    if getattr(api, "get_async_db", None):
-        setattr(model, AUTOAPI_GET_ASYNC_DB_ATTR, api.get_async_db)
 
     # Authn (prefer optional dep when available)
     auth_dep = None

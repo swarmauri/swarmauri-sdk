@@ -85,11 +85,11 @@ async def async_db_session():
         bind=engine, class_=AsyncSession, expire_on_commit=False
     )
 
-    async def get_async_db() -> AsyncIterator[AsyncSession]:
+    async def get_db() -> AsyncIterator[AsyncSession]:
         async with AsyncSessionLocal() as session:
             yield session
 
-    return engine, get_async_db
+    return engine, get_db
 
 
 @pytest.fixture
@@ -113,14 +113,14 @@ def create_test_api(sync_db_session):
 @pytest_asyncio.fixture
 async def create_test_api_async(async_db_session):
     """Factory fixture to create async AutoAPI instances for testing individual models."""
-    engine, get_async_db = async_db_session
+    engine, get_db = async_db_session
 
     def _create_api_async(model_class):
         """Create async AutoAPI instance with a single model for testing."""
         # Clear metadata to avoid conflicts
         Base.metadata.clear()
 
-        api = AutoApp(get_async_db=get_async_db)
+        api = AutoApp(get_db=get_db)
         api.include_model(model_class)
         return api
 
@@ -187,11 +187,11 @@ async def api_client(db_mode):
             bind=engine, class_=AsyncSession, expire_on_commit=False
         )
 
-        async def get_async_db() -> AsyncIterator[AsyncSession]:
+        async def get_db() -> AsyncIterator[AsyncSession]:
             async with AsyncSessionLocal() as session:
                 yield session
 
-        api = AutoApp(get_async_db=get_async_db)
+        api = AutoApp(get_db=get_db)
         api.include_models([Tenant, Item])
         await api.initialize_async()
 
@@ -286,12 +286,12 @@ async def api_client_v3():
         bind=engine, class_=AsyncSession, expire_on_commit=False
     )
 
-    async def get_async_db():
+    async def get_db():
         async with AsyncSessionLocal() as session:
             yield session
 
     fastapi_app = App()
-    api = AutoApp(get_async_db=get_async_db)
+    api = AutoApp(get_db=get_db)
     api.include_model(Widget, prefix="")
     api.mount_jsonrpc()
     api.attach_diagnostics()
