@@ -312,12 +312,12 @@ def include_model(
         api: An arbitrary facade object; we’ll attach containers onto it if missing.
         model: The SQLAlchemy model (table class).
         app: Optional FastAPI app or Router (anything with `include_router`).
-             Routers are always mounted on `api.router`; if provided, we also
+             Routers are always mounted on `api` when possible; if provided, we also
              mount onto this `app` (or `api.app` when not given).
         prefix: Optional mount prefix. When None, defaults to `/{ModelClassName}` or
                 `/{__resource__}` if set on the model.
         mount_router: If False, we skip mounting onto the host app but still bind
-            the router under `api.router`/`api.rest`/`api.routers`.
+            the router under `api.rest`/`api.routers`.
 
     Returns:
         (model, router) – the model class and its Router (or None if not present).
@@ -333,8 +333,10 @@ def include_model(
     if prefix is None:
         prefix = _default_prefix(model)
 
-    # 3) Always bind model router to `api.router`
+    # 3) Always bind model router to `api` when possible
     root_router = getattr(api, "router", None)
+    if root_router is None and _has_include_router(api):
+        root_router = api
     if router is not None:
         _mount_router(root_router, router, prefix=prefix)
 
