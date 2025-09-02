@@ -57,7 +57,7 @@ from peagen.plugins.queues import QueueBase
 from swarmauri_standard.loggers.Logger import Logger
 
 from . import _publish, schedule_helpers
-from .db import engine, get_async_db  # same module as before
+from .db import dsn, engine
 from .ws_server import router as ws_router
 from sqlalchemy.exc import IntegrityError
 
@@ -158,7 +158,7 @@ logging.getLogger("uvicorn.error").setLevel("INFO")
 READY: bool = False
 app = AutoApp(
     title="Peagen Pool-Manager Gateway",
-    get_async_db=get_async_db,
+    engine=dsn,
     api_hooks={"PRE_TX_BEGIN": [_shadow_principal]},
 )
 api = app

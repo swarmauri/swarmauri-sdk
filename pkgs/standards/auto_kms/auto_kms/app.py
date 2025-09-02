@@ -10,7 +10,6 @@ import os
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 
 DB_URL = os.getenv("KMS_DATABASE_URL", "sqlite+aiosqlite:///./kms.db")
-
 engine = create_async_engine(DB_URL, future=True, echo=False)
 AsyncSessionLocal = async_sessionmaker(
     engine, expire_on_commit=False, class_=AsyncSession
@@ -45,6 +44,7 @@ app = AutoApp(
     version="0.1.0",
     openapi_url="/openapi.json",
     docs_url="/docs",
+    engine=DB_URL,
     get_async_db=get_async_db,
     api_hooks={"*": {"PRE_TX_BEGIN": [_stash_ctx]}},
 )

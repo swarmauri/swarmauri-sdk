@@ -15,7 +15,7 @@ class TableSpec:
     """
 
     model: Any  # ORM class
-    db: Optional[EngineCfg] = None
+    engine: Optional[EngineCfg] = None
 
     # NEW
     ops: Sequence[Any] = field(default_factory=tuple)  # OpSpec or shorthands

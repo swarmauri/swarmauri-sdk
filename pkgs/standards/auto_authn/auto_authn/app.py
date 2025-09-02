@@ -18,6 +18,7 @@ from __future__ import annotations
 from autoapi.v3 import AutoApp
 
 from .routers.surface import surface_api
+from .db import dsn
 from .runtime_cfg import settings
 from .rfc8414 import include_rfc8414
 from .oidc_discovery import include_oidc_discovery
@@ -35,6 +36,7 @@ app = AutoApp(
     version="0.1.0",
     openapi_url="/openapi.json",
     docs_url="/docs",
+    engine=dsn,
 )
 
 # Mount routers

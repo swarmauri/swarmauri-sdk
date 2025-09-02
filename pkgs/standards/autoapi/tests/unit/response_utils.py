@@ -85,6 +85,42 @@ def build_model_for_response(kind: str, tmp_path) -> tuple[type, str | None]:
     return Widget, (file_path if kind == "file" else None)
 
 
+def build_model_for_response_non_alias(kind: str, tmp_path) -> tuple[type, str | None]:
+    file_path = tmp_path / "pong.txt"
+    if kind == "file":
+        file_path.write_text("pong")
+
+    @response_ctx(headers={"X-Table": "table"})
+    class Widget:
+        @op_ctx(alias="download", target="custom", arity="collection", persist="none")
+        @response_ctx(kind=kind)
+        def download(cls, ctx):
+            if kind == "auto":
+                return as_json({"pong": True})
+            if kind == "json":
+                return as_json({"pong": True}, envelope=False)
+            if kind == "html":
+                return as_html("<h1>pong</h1>")
+            if kind == "text":
+                return as_text("pong")
+            if kind == "file":
+                return as_file(file_path)
+            if kind == "stream":
+                return as_stream([b"p", b"o", b"n", b"g"])
+            if kind == "redirect":
+                return as_redirect("/redirected")
+            return {"pong": True}
+
+    specs = list(collect_decorated_ops(Widget))
+    build_schemas(Widget, specs)
+    build_hooks(Widget, specs)
+    build_handlers(Widget, specs)
+    runtime_plan.attach_atoms_for_model(Widget, {})
+    build_rest(Widget, specs)
+    register_rpc(Widget, specs)
+    return Widget, (file_path if kind == "file" else None)
+
+
 def build_model_for_jinja_response(tmp_path) -> type:
     tpl = tmp_path / "hello.html"
     tpl.write_text("<h1>{{ name }}</h1>")

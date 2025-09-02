@@ -192,7 +192,7 @@ def _apply_alias_ctx_to_canon(specs: List[OpSpec], model: type) -> List[OpSpec]:
           - persist           → OpSpec.persist
           - arity             → OpSpec.arity
           - rest (bool)       → OpSpec.expose_routes
-          - db                → OpSpec.db                  (NEW)
+          - engine            → OpSpec.engine             (NEW)
 
     We do NOT support any `returns` override. If no response schema is set,
     binders should treat the op as returning raw.
@@ -231,9 +231,9 @@ def _apply_alias_ctx_to_canon(specs: List[OpSpec], model: type) -> List[OpSpec]:
                 repl_kwargs["request_model"] = ov["request_schema"]
             if ov.get("response_schema") is not None:
                 repl_kwargs["response_model"] = ov["response_schema"]
-            # allow per-verb engine binding via overrides["db"]
-            if ov.get("db") is not None:
-                repl_kwargs["db"] = ov["db"]
+            # allow per-verb engine binding via overrides["engine"]
+            if ov.get("engine") is not None:
+                repl_kwargs["engine"] = ov["engine"]
             if ov.get("persist") is not None:
                 val = ov["persist"]
                 if val in ("default", "skip", "override"):
