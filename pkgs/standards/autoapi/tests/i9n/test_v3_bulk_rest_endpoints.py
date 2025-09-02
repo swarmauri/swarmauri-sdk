@@ -7,7 +7,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from autoapi.v3.autoapi import AutoAPI
+from autoapi.v3.autoapp import AutoApp
 from autoapi.v3.orm.tables import Base
 from autoapi.v3.orm.mixins import GUIDPk, BulkCapable, Replaceable
 from autoapi.v3.types import Column, Session, String
@@ -37,8 +37,9 @@ async def v3_client() -> Iterator[tuple[AsyncClient, type]]:
             yield session
 
     app = App()
-    api = AutoAPI(app=app, get_db=get_db)
+    api = AutoApp(get_db=get_db)
     api.include_model(Widget)
+    app.include_router(api.router)
 
     client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
     try:

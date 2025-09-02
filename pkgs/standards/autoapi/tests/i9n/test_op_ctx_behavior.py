@@ -2,7 +2,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 from autoapi.v3.types import App, BaseModel, Column, String, UUID, uuid4
 
-from autoapi.v3 import AutoAPI, op_ctx, schema_ctx, hook_ctx
+from autoapi.v3 import AutoApp, op_ctx, schema_ctx, hook_ctx
 from autoapi.v3.orm.tables import Base
 from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.runtime.kernel import build_phase_chains
@@ -14,9 +14,10 @@ from autoapi.v3.runtime.kernel import build_phase_chains
 def setup_api(model_cls, get_db):
     Base.metadata.clear()
     app = App()
-    api = AutoAPI(app=app, get_db=get_db)
+    api = AutoApp(get_db=get_db)
     api.include_model(model_cls, prefix="")
     api.initialize_sync()
+    app.include_router(api.router)
     return app, api
 
 
@@ -246,6 +247,7 @@ async def test_op_ctx_rpc_method(sync_db_session):
 
     app, api = setup_api(Widget, get_sync_db)
     api.mount_jsonrpc(prefix="/rpc")
+    app.include_router(api.router)
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"

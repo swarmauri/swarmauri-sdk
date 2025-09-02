@@ -15,7 +15,7 @@ Features
 
 from __future__ import annotations
 
-import fastapi
+from autoapi.v3 import AutoApp
 
 from .routers.surface import surface_api
 from .runtime_cfg import settings
@@ -28,9 +28,9 @@ from .rfc7009 import include_rfc7009
 
 
 # --------------------------------------------------------------------
-# FastAPI application
+# AutoApp application
 # --------------------------------------------------------------------
-app = fastapi.FastAPI(
+app = AutoApp(
     title="AutoAPI-AuthN",
     version="0.1.0",
     openapi_url="/openapi.json",
@@ -40,7 +40,7 @@ app = fastapi.FastAPI(
 # Mount routers
 surface_api.mount_jsonrpc(prefix="/rpc")
 surface_api.attach_diagnostics(prefix="/system")
-app.include_router(surface_api.router)  # /authn/<model> resources & flows
+app.include_router(surface_api)  # /authn/<model> resources & flows
 if settings.enable_rfc8693:
     include_rfc8693(app)
 if settings.enable_rfc7591:

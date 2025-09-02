@@ -7,7 +7,7 @@ from sqlalchemy import Column, String, create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from autoapi.v3 import AutoAPI, Base
+from autoapi.v3 import AutoApp, Base
 from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.orm.mixins.ownable import Ownable, OwnerPolicy
 from autoapi.v3.orm.mixins.tenant_bound import TenantBound, TenantPolicy
@@ -96,7 +96,7 @@ def _client_for_owner(
             yield session
 
     authn = DummyAuth(user_id, tenant_id)
-    api = AutoAPI(get_db=get_db)
+    api = AutoApp(get_db=get_db)
     api.set_auth(authn=authn.get_principal)
     authn.register_inject_hook(api)
     api.include_models([User, Item])
@@ -164,7 +164,7 @@ def _client_for_tenant(
             yield session
 
     authn = DummyAuth(user_id, tenant_id)
-    api = AutoAPI(get_db=get_db)
+    api = AutoApp(get_db=get_db)
     api.set_auth(authn=authn.get_principal)
     authn.register_inject_hook(api)
     api.include_models([Tenant, Item])

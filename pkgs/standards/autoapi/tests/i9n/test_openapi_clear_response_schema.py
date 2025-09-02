@@ -1,7 +1,7 @@
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from autoapi.v3.autoapi import AutoAPI
+from autoapi.v3.autoapp import AutoApp
 from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.orm.tables import Base
 from autoapi.v3.types import App, Column, String
@@ -16,8 +16,9 @@ async def test_openapi_clear_response_schema() -> None:
         name = Column(String, nullable=False)
 
     app = App()
-    api = AutoAPI(app=app)
+    api = AutoApp()
     api.include_model(Widget)
+    app.include_router(api.router)
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"

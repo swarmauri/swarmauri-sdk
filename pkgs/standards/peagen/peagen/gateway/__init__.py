@@ -19,9 +19,9 @@ import uuid
 
 
 # ─────────── Peagen internals ──────────────────────────────────────────
-from autoapi.v3 import AutoAPI, get_schema
+from autoapi.v3 import AutoApp, get_schema
 from auto_authn.adapters import RemoteAuthNAdapter
-from fastapi import FastAPI, Request
+from fastapi import Request
 
 from peagen._utils.config_loader import resolve_cfg
 from peagen.core import migrate_core
@@ -154,9 +154,14 @@ sched_log = Logger(
 logging.getLogger("httpx").setLevel("WARNING")
 logging.getLogger("uvicorn.error").setLevel("INFO")
 
-# ─────────── FastAPI & AutoAPI initialisation ─────────────────────────
+# ─────────── AutoApp initialisation ─────────────────────────
 READY: bool = False
-app = FastAPI(title="Peagen Pool-Manager Gateway")
+app = AutoApp(
+    title="Peagen Pool-Manager Gateway",
+    get_async_db=get_async_db,
+    api_hooks={"PRE_TX_BEGIN": [_shadow_principal]},
+)
+api = app
 
 authn_adapter = RemoteAuthNAdapter(
     base_url=settings.authn_base_url,
@@ -165,9 +170,6 @@ authn_adapter = RemoteAuthNAdapter(
     cache_size=settings.authn_cache_size,
 )
 
-api = AutoAPI(
-    get_async_db=get_async_db, api_hooks={"PRE_TX_BEGIN": [_shadow_principal]}
-)
 api.set_auth(
     authn=authn_adapter.get_principal,
     optional_authn_dep=authn_adapter.get_principal_optional,
@@ -198,7 +200,6 @@ api.include_models(
 api.mount_jsonrpc(prefix="/rpc")
 api.attach_diagnostics(prefix="/system")
 
-app.include_router(api.router)
 app.include_router(ws_router)
 
 # ─────────── Plugin-driven queue / result backend ─────────────────────

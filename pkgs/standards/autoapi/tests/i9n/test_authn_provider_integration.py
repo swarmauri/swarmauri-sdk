@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 from uuid import uuid4
 
-from autoapi.v3 import AutoAPI, Base
+from autoapi.v3 import AutoApp, Base
 from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.types.authn_abc import AuthNProvider
 
@@ -61,11 +61,12 @@ def _build_client_with_auth():
 
     auth = HookedAuth()
     app = App()
-    api = AutoAPI(app=app, get_db=get_db)
+    api = AutoApp(get_db=get_db)
     api.set_auth(authn=auth.get_principal)
     auth.register_inject_hook(api)
     api.include_model(Tenant)
     api.initialize_sync()
+    app.include_router(api.router)
     return TestClient(app), auth
 
 
