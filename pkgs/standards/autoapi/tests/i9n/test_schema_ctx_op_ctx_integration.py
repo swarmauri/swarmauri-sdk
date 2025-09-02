@@ -4,9 +4,9 @@ from pydantic import BaseModel
 from autoapi.v3.types import App
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, String
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from autoapi.v3 import AutoApp, Base, op_ctx, schema_ctx
+from autoapi.v3.engine.shortcuts import mem
 from autoapi.v3.orm.mixins import GUIDPk
 
 
@@ -35,17 +35,8 @@ async def widget_client():
         async def echo(cls, ctx):
             return ctx["payload"]
 
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    sessionmaker = async_sessionmaker(
-        bind=engine, class_=AsyncSession, expire_on_commit=False
-    )
-
-    async def get_db():
-        async with sessionmaker() as session:
-            yield session
-
     app = App()
-    api = AutoApp(get_db=get_db)
+    api = AutoApp(engine=mem())
     api.include_model(Widget, prefix="")
     api.mount_jsonrpc()
     await api.initialize_async()

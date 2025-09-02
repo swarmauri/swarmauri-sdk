@@ -1,11 +1,11 @@
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from autoapi.v3.types import App, Integer, Mapped, String
 
 from autoapi.v3.autoapp import AutoApp as AutoAPIv3
+from autoapi.v3.engine.shortcuts import mem
 from autoapi.v3.specs import F, IO, S, acol
 from autoapi.v3.orm.tables import Base as Base3
 
@@ -39,20 +39,10 @@ async def client_and_model():
 
         __autoapi_cols__ = {"id": id, "name": name, "age": age}
 
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base3.metadata.create_all)
-    session_maker = async_sessionmaker(
-        bind=engine, class_=AsyncSession, expire_on_commit=False
-    )
-
-    async def get_db():
-        async with session_maker() as session:
-            yield session
-
     app = App()
-    api = AutoAPIv3(get_db=get_db)
+    api = AutoAPIv3(engine=mem())
     api.include_model(Gadget, prefix="")
+    await api.initialize_async()
     app.include_router(api.router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
@@ -60,7 +50,6 @@ async def client_and_model():
         yield client, Gadget
     finally:
         await client.aclose()
-        await engine.dispose()
 
 
 @pytest.mark.i9n

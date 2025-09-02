@@ -7,13 +7,14 @@ from autoapi.v3.specs import F, IO, S, acol
 from autoapi.v3.column.storage_spec import StorageTransform
 from autoapi.v3.schema import builder as v3_builder
 from autoapi.v3.runtime import kernel as runtime_kernel
-from autoapi.v3.engine.shortcuts import mem, provider_sqlite_memory
+from autoapi.v3.engine.shortcuts import mem
 from autoapi.v3.engine import resolver as _resolver
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import Mapped
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Mapped, Session
+from typing import AsyncIterator, Iterator
 import asyncio
 
 
@@ -62,9 +63,10 @@ def pytest_generate_tests(metafunc):
 @pytest.fixture
 def sync_db_session():
     """Provide a synchronous in-memory SQLite engine and DB session factory."""
-    provider = provider_sqlite_memory(async_=False)
-    _resolver.set_default(provider)
-    engine, maker = provider.ensure()
+    cfg = mem(async_=False)
+    _resolver.set_default(cfg)
+    prov = _resolver.resolve_provider()
+    engine, maker = prov.ensure()
 
     def get_db() -> Iterator[Session]:
         with maker() as session:
@@ -80,9 +82,10 @@ def sync_db_session():
 @pytest_asyncio.fixture
 async def async_db_session():
     """Provide an asynchronous in-memory SQLite engine and DB session factory."""
-    provider = provider_sqlite_memory(async_=True)
-    _resolver.set_default(provider)
-    engine, maker = provider.ensure()
+    cfg = mem()
+    _resolver.set_default(cfg)
+    prov = _resolver.resolve_provider()
+    engine, maker = prov.ensure()
 
     async def get_db() -> AsyncIterator[AsyncSession]:
         async with maker() as session:
@@ -253,23 +256,16 @@ async def api_client_v3():
             "secret": secret,
         }
 
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    AsyncSessionLocal = async_sessionmaker(
-        bind=engine, class_=AsyncSession, expire_on_commit=False
-    )
-
-    async def get_db():
-        async with AsyncSessionLocal() as session:
-            yield session
-
+    cfg = mem()
     fastapi_app = App()
-    api = AutoApp(get_db=get_db)
+    api = AutoApp(engine=cfg)
     api.include_model(Widget, prefix="")
     api.mount_jsonrpc()
     api.attach_diagnostics()
+    await api.initialize_async()
+    prov = _resolver.resolve_provider()
+    _, session_maker = prov.ensure()
     fastapi_app.include_router(api.router)
     transport = ASGITransport(app=fastapi_app)
     client = AsyncClient(transport=transport, base_url="http://test")
-    return client, api, Widget, AsyncSessionLocal
+    return client, api, Widget, session_maker

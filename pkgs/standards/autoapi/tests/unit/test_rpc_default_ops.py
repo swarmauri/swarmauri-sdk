@@ -5,13 +5,9 @@ from autoapi.v3.autoapp import AutoApp
 from autoapi.v3.orm.mixins import BulkCapable, GUIDPk
 from autoapi.v3.specs import IO, S, F, acol as spec_acol
 from autoapi.v3.orm.tables import Base
-from autoapi.v3.types import (
-    Session,
-    String,
-    StaticPool,
-    create_engine,
-    sessionmaker,
-)
+from autoapi.v3.types import Session, String
+from autoapi.v3.engine.shortcuts import mem
+from autoapi.v3.engine import resolver as _resolver
 
 
 @pytest.fixture()
@@ -30,27 +26,17 @@ def api_and_session() -> Iterator[tuple[AutoApp, Session, type[Base]]]:
             ),
         )
 
-    engine = create_engine(
-        "sqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
-
-    def get_db() -> Iterator[Session]:
-        with SessionLocal() as session:
-            yield session
-
-    api = AutoApp(get_db=get_db)
+    api = AutoApp(engine=mem(async_=False))
     api.include_model(Widget, mount_router=False)
     api.initialize_sync()
+    prov = _resolver.resolve_provider()
+    _, SessionLocal = prov.ensure()
 
     session: Session = SessionLocal()
     try:
         yield api, session, Widget
     finally:
         session.close()
-        engine.dispose()
 
 
 @pytest.mark.asyncio
