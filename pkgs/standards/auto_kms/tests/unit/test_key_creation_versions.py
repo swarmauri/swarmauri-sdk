@@ -6,8 +6,6 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
-from autoapi.v3.orm.tables import Base
-
 from auto_kms.orm import KeyVersion
 
 
@@ -23,18 +21,14 @@ def client_app(tmp_path, monkeypatch):
     db_path = tmp_path / "kms.db"
     monkeypatch.setenv("KMS_DATABASE_URL", f"sqlite+aiosqlite:///{db_path}")
     app = importlib.reload(importlib.import_module("auto_kms.app"))
-
-    async def init_db():
-        async with app.engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-
-    asyncio.run(init_db())
     try:
         with TestClient(app.app) as c:
             yield c, app
     finally:
         if hasattr(app, "CRYPTO"):
             delattr(app, "CRYPTO")
+        if hasattr(app, "KEY_PROVIDER"):
+            delattr(app, "KEY_PROVIDER")
 
 
 def test_key_creation_seeded_version(client_app):
@@ -49,11 +43,11 @@ def test_key_creation_seeded_version(client_app):
     assert data["primary_version"] == 1
 
     async def fetch_versions():
-        async with app.engine.begin() as conn:
-            res = await conn.execute(
+        async with app.engine.asession() as session:
+            res = await session.execute(
                 select(KeyVersion.version).where(KeyVersion.key_id == UUID(key_id))
             )
-            return [row[0] for row in res.all()]
+            return list(res.scalars().all())
 
     versions = asyncio.run(fetch_versions())
     assert 1 in versions

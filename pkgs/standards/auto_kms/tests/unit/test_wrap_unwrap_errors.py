@@ -2,12 +2,10 @@
 
 import base64
 import importlib
-import asyncio
 import secrets
 
 import pytest
 from fastapi.testclient import TestClient
-from autoapi.v3.orm.tables import Base
 
 
 def _create_key(client, name: str = None, algorithm: str = "AES256_GCM"):
@@ -28,18 +26,14 @@ def client(tmp_path, monkeypatch):
     db_path = tmp_path / "kms.db"
     monkeypatch.setenv("KMS_DATABASE_URL", f"sqlite+aiosqlite:///{db_path}")
     app = importlib.reload(importlib.import_module("auto_kms.app"))
-
-    async def init_db():
-        async with app.engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-
-    asyncio.run(init_db())
     try:
         with TestClient(app.app) as c:
             yield c
     finally:
         if hasattr(app, "CRYPTO"):
             delattr(app, "CRYPTO")
+        if hasattr(app, "KEY_PROVIDER"):
+            delattr(app, "KEY_PROVIDER")
 
 
 def test_wrap_missing_key_material(client):
