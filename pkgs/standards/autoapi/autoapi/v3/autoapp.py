@@ -17,6 +17,7 @@ import inspect
 
 from .app._app import App as _App
 from .engine.engine_spec import EngineCfg
+from .engine import resolver as _resolver
 from .system.dbschema import (
     ensure_schemas,
     bootstrap_dbschema,
@@ -92,8 +93,6 @@ class AutoApp(_App):
         super().__init__(engine=engine, **fastapi_kwargs)
         # capture initial routes so refreshes retain FastAPI defaults
         self._base_routes = list(self.router.routes)
-        if engine is None:
-            self.get_db = None
         self.jsonrpc_prefix = jsonrpc_prefix
         self.system_prefix = system_prefix
 
@@ -201,7 +200,6 @@ class AutoApp(_App):
             self,
             self,
             prefix=px,
-            get_db=self.get_db,
         )
         self._base_routes = list(self.router.routes)
         return router
@@ -209,7 +207,7 @@ class AutoApp(_App):
     def attach_diagnostics(self, *, prefix: str | None = None) -> Any:
         """Mount diagnostics router onto this app."""
         px = prefix if prefix is not None else self.system_prefix
-        router = _mount_diagnostics(self, get_db=self.get_db)
+        router = _mount_diagnostics(self)
         if hasattr(self, "include_router"):
             self.include_router(router, prefix=px)
         self._base_routes = list(self.router.routes)
@@ -345,9 +343,10 @@ class AutoApp(_App):
     def initialize_sync(self, *, schemas=None, sqlite_attachments=None, tables=None):
         if getattr(self, "_ddl_executed", False):
             return
-        if not self.get_db:
-            raise ValueError("AutoApp.get_db is not configured")
-        with next(self.get_db()) as db:
+        prov = _resolver.resolve_provider()
+        if prov is None:
+            raise ValueError("Engine provider is not configured")
+        with next(prov.get_db()) as db:
             bind = db.get_bind()  # Connection or Engine
             self._create_all_on_bind(
                 bind,
@@ -362,11 +361,12 @@ class AutoApp(_App):
     ):
         if getattr(self, "_ddl_executed", False):
             return
-        if not self.get_db:
-            raise ValueError("AutoApp.get_db is not configured")
+        prov = _resolver.resolve_provider()
+        if prov is None:
+            raise ValueError("Engine provider is not configured")
 
-        if inspect.isasyncgenfunction(self.get_db):
-            async for adb in self.get_db():  # AsyncSession
+        if inspect.isasyncgenfunction(prov.get_db):
+            async for adb in prov.get_db():  # AsyncSession
 
                 def _sync_bootstrap(arg):
                     bind = arg.get_bind() if hasattr(arg, "get_bind") else arg
@@ -380,7 +380,7 @@ class AutoApp(_App):
                 await adb.run_sync(_sync_bootstrap)
                 break
         else:
-            gen = self.get_db()
+            gen = prov.get_db()
             adb = next(gen)
 
             try:

@@ -7,16 +7,21 @@ from autoapi.v3 import AutoApp, op_ctx
 from autoapi.v3.orm.tables import Base
 from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.core import crud
+from autoapi.v3.engine.shortcuts import mem
+from autoapi.v3.engine.engine_spec import EngineSpec
+from autoapi.v3.engine._engine import Engine
 
 
-def setup_api(model_cls, get_db):
+def setup_api(model_cls):
     Base.metadata.clear()
-    app = App()
-    api = AutoApp(get_db=get_db)
+    spec = EngineSpec.from_any(mem(async_=False))
+    engine = Engine(spec)
+    app = App(engine=engine)
+    api = AutoApp(engine=engine)
     api.include_model(model_cls, prefix="")
     api.initialize_sync()
     app.include_router(api.router)
-    return app, api
+    return app, engine
 
 
 async def fetch_inspection(client):
@@ -41,7 +46,6 @@ async def fetch_inspection(client):
 )
 async def test_op_ctx_alias(
     monkeypatch,
-    sync_db_session,
     verb,
     alias,
     http_method,
@@ -49,7 +53,6 @@ async def test_op_ctx_alias(
     needs_id,
     expected_status,
 ):
-    _, get_sync_db = sync_db_session
     calls: list[str] = []
     orig = getattr(crud, verb)
 
@@ -73,7 +76,8 @@ async def test_op_ctx_alias(
                 ctx["result"] = {"cleared": True}
             return ctx.get("obj") or ctx.get("result")
 
-    app, _ = setup_api(Widget, get_sync_db)
+    app, engine = setup_api(Widget)
+    get_sync_db = engine.get_db
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
@@ -140,9 +144,7 @@ async def test_op_ctx_alias(
         ("clear", "delete", "collection", False),
     ],
 )
-async def test_op_ctx_override(sync_db_session, verb, http_method, arity, needs_id):
-    _, get_sync_db = sync_db_session
-
+async def test_op_ctx_override(verb, http_method, arity, needs_id):
     class Widget(Base, GUIDPk):
         __tablename__ = "widgets"
         __resource__ = "widget"
@@ -153,7 +155,8 @@ async def test_op_ctx_override(sync_db_session, verb, http_method, arity, needs_
             ctx["result"] = {"custom": True}
             return ctx["result"]
 
-    app, _ = setup_api(Widget, get_sync_db)
+    app, engine = setup_api(Widget)
+    get_sync_db = engine.get_db
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
