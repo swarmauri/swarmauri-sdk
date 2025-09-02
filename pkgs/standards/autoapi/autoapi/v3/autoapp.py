@@ -197,10 +197,13 @@ class AutoApp(_App):
     def mount_jsonrpc(self, *, prefix: str | None = None) -> Any:
         """Mount JSON-RPC router onto this app."""
         px = prefix if prefix is not None else self.jsonrpc_prefix
+        prov = _resolver.resolve_provider()
+        get_db = prov.get_db if prov is not None else None
         router = _mount_jsonrpc(
             self,
             self,
             prefix=px,
+            get_db=get_db,
         )
         self._base_routes = list(self.router.routes)
         return router
