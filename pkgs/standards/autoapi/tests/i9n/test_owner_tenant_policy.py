@@ -3,9 +3,11 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.testclient import TestClient
 import pytest
 import uuid
-from sqlalchemy import Column, String, create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
+from sqlalchemy import Column, String
+
+from autoapi.v3.engine.shortcuts import mem
+from autoapi.v3.engine.engine_spec import EngineSpec
+from autoapi.v3.engine._engine import Engine as EngineFacade
 
 from autoapi.v3 import AutoApp, Base
 from autoapi.v3.orm.mixins import GUIDPk
@@ -79,24 +81,16 @@ def _client_for_owner(
         name = Column(String, nullable=False)
         __autoapi_owner_policy__ = policy
 
-    engine = create_engine(
-        "sqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
-    Base.metadata.create_all(bind=engine)
+    eng_facade = EngineFacade(EngineSpec.from_any(mem(async_=False)))
+    sa_engine, maker = eng_facade.raw()
+    Base.metadata.create_all(bind=sa_engine)
 
-    with SessionLocal() as session:
+    with maker() as session:
         session.execute(User.__table__.insert().values(id=user_id, name="owner"))
         session.commit()
 
-    def get_db():
-        with SessionLocal() as session:
-            yield session
-
     authn = DummyAuth(user_id, tenant_id)
-    api = AutoApp(get_db=get_db)
+    api = AutoApp(engine=eng_facade)
     api.set_auth(authn=authn.get_principal)
     authn.register_inject_hook(api)
     api.include_models([User, Item])
@@ -147,24 +141,16 @@ def _client_for_tenant(
         name = Column(String, nullable=False)
         __autoapi_tenant_policy__ = policy
 
-    engine = create_engine(
-        "sqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
-    Base.metadata.create_all(bind=engine)
+    eng_facade = EngineFacade(EngineSpec.from_any(mem(async_=False)))
+    sa_engine, maker = eng_facade.raw()
+    Base.metadata.create_all(bind=sa_engine)
 
-    with SessionLocal() as session:
+    with maker() as session:
         session.execute(Tenant.__table__.insert().values(id=tenant_id, name="acme"))
         session.commit()
 
-    def get_db():
-        with SessionLocal() as session:
-            yield session
-
     authn = DummyAuth(user_id, tenant_id)
-    api = AutoApp(get_db=get_db)
+    api = AutoApp(engine=eng_facade)
     api.set_auth(authn=authn.get_principal)
     authn.register_inject_hook(api)
     api.include_models([Tenant, Item])

@@ -1,8 +1,8 @@
 import pytest
 from collections.abc import Iterator
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
+from autoapi.v3.engine.shortcuts import mem
+from autoapi.v3.engine.engine_spec import EngineSpec
+from autoapi.v3.engine._engine import Engine as EngineFacade
 
 from autoapi.v3.autoapp import AutoApp
 from autoapi.v3.orm.mixins import BulkCapable, GUIDPk, Replaceable
@@ -62,27 +62,20 @@ def api_and_session() -> Iterator[tuple[AutoApp, Session]]:
             ),
         )
 
-    engine = create_engine(
-        "sqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
-
-    def get_db() -> Iterator[Session]:
-        with SessionLocal() as session:
-            yield session
-
-    api = AutoApp(get_db=get_db)
+    engine_facade = EngineFacade(EngineSpec.from_any(mem(async_=False)))
+    api = AutoApp(engine=engine_facade)
     api.include_model(Widget, mount_router=False)
     api.initialize_sync()
 
-    session: Session = SessionLocal()
+    gen = engine_facade.get_db()
+    session: Session = next(gen)
     try:
         yield api, session
     finally:
-        session.close()
-        engine.dispose()
+        try:
+            next(gen)
+        except StopIteration:
+            pass
 
 
 async def _op_create(api, db):

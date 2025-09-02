@@ -18,10 +18,10 @@ class ConcreteApiKey(ApiKey):
 @pytest.mark.asyncio
 async def test_api_key_creation_requires_valid_payload(sync_db_session):
     """Posting without required fields yields an unprocessable entity response."""
-    _, get_sync_db = sync_db_session
+    _, eng = sync_db_session
 
     app = App()
-    api = AutoApp(get_db=get_sync_db)
+    api = AutoApp(engine=eng)
     api.include_models([ConcreteApiKey])
     api.initialize_sync()
     app.include_router(api.router)
