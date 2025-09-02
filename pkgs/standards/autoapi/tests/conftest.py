@@ -198,6 +198,36 @@ def sample_item_data():
     return _create_item_data
 
 
+@pytest.fixture
+def sync_db_session():
+    from autoapi.v3.engine.shortcuts import provider_sqlite_memory
+    from autoapi.v3.engine import resolver as _resolver
+
+    prev = _resolver.resolve_provider()
+    prov = provider_sqlite_memory(async_=False)
+    _resolver.set_default(prov)
+    engine, _ = prov.ensure()
+    try:
+        yield engine, prov.get_db
+    finally:
+        _resolver.set_default(prev)
+
+
+@pytest.fixture
+def async_db_session():
+    from autoapi.v3.engine.shortcuts import provider_sqlite_memory
+    from autoapi.v3.engine import resolver as _resolver
+
+    prev = _resolver.resolve_provider()
+    prov = provider_sqlite_memory(async_=True)
+    _resolver.set_default(prov)
+    engine, _ = prov.ensure()
+    try:
+        yield engine, prov.get_db
+    finally:
+        _resolver.set_default(prev)
+
+
 @pytest_asyncio.fixture()
 async def api_client_v3():
     Base.metadata.clear()
