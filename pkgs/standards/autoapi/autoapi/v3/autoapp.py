@@ -19,6 +19,7 @@ from typing import (
 from .app._app import App as _App
 from .engine.engine_spec import EngineCfg
 from .engine import resolver as _resolver
+from .engine.shortcuts import mem
 from .system.dbschema import (
     ensure_schemas,
     bootstrap_dbschema,
@@ -37,6 +38,16 @@ from .bindings.rest import build_router_and_attach as _build_router_and_attach
 from .transport import mount_jsonrpc as _mount_jsonrpc
 from .system import mount_diagnostics as _mount_diagnostics
 from .ops import get_registry, OpSpec
+
+
+class _CallableProvider:
+    """Minimal provider wrapper for ``get_db`` callables."""
+
+    def __init__(self, get_db: Callable[..., Any]) -> None:
+        self.get_db = get_db
+
+    def session(self) -> Any:
+        return next(self.get_db())
 
 
 # optional compat: legacy transactional decorator
@@ -75,6 +86,7 @@ class AutoApp(_App):
         self,
         *,
         engine: EngineCfg | None = None,
+        get_db: Callable[..., Any] | None = None,
         jsonrpc_prefix: str = "/rpc",
         system_prefix: str = "/system",
         api_hooks: Mapping[str, Iterable[Callable]]
@@ -91,11 +103,20 @@ class AutoApp(_App):
         lifespan = fastapi_kwargs.pop("lifespan", None)
         if lifespan is not None:
             self.LIFESPAN = lifespan
+        if engine is None and get_db is None:
+            engine = mem(async_=False)
         super().__init__(engine=engine, **fastapi_kwargs)
         # capture initial routes so refreshes retain FastAPI defaults
         self._base_routes = list(self.router.routes)
         self.jsonrpc_prefix = jsonrpc_prefix
         self.system_prefix = system_prefix
+
+        prov = _resolver.resolve_provider(api=self)
+        if prov is not None:
+            self.get_db = prov.get_db
+        if get_db is not None:
+            self.get_db = get_db
+            _resolver._API[id(self)] = _CallableProvider(get_db)
 
         # public containers (mirrors used by bindings.api)
         self.models: Dict[str, type] = {}
@@ -344,7 +365,7 @@ class AutoApp(_App):
     def initialize_sync(self, *, schemas=None, sqlite_attachments=None, tables=None):
         if getattr(self, "_ddl_executed", False):
             return
-        prov = _resolver.resolve_provider()
+        prov = _resolver.resolve_provider(api=self)
         if prov is None:
             raise ValueError("Engine provider is not configured")
         with next(prov.get_db()) as db:
@@ -362,7 +383,7 @@ class AutoApp(_App):
     ):
         if getattr(self, "_ddl_executed", False):
             return
-        prov = _resolver.resolve_provider()
+        prov = _resolver.resolve_provider(api=self)
         if prov is None:
             raise ValueError("Engine provider is not configured")
 
