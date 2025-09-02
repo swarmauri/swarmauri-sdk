@@ -49,20 +49,13 @@ except Exception:  # pragma: no cover
             self.includes.append((router, prefix, opts))
 
 
-# optional compat: legacy transactional decorator
-try:
-    from .compat.transactional import transactional as _txn_decorator
-except Exception:  # pragma: no cover
-    _txn_decorator = None
-
-
 class AutoAPI(_App):
     """
     Monolithic facade that owns:
       • containers (models, schemas, handlers, hooks, rpc, rest, routers, columns, table_config, core proxies)
       • model inclusion (REST + RPC wiring)
       • JSON-RPC / diagnostics mounting
-      • (optional) legacy-friendly helpers (transactional decorator, auth flags)
+      • (optional) auth knobs recognized by some middlewares/dispatchers
 
     It composes v3 primitives; you can still use the functions directly if you prefer.
     """
@@ -254,17 +247,6 @@ class AutoAPI(_App):
     ) -> Tuple[OpSpec, ...]:
         """Targeted rebuild of a bound model."""
         return _rebind(model, changed_keys=changed_keys)
-
-    # ------------------------- legacy helpers -------------------------
-
-    def transactional(self, *dargs, **dkw):
-        """
-        Legacy-friendly decorator: @api.transactional(...)
-        Wraps a function as a v3 custom op with START_TX/END_TX.
-        """
-        if _txn_decorator is None:
-            raise RuntimeError("transactional decorator not available")
-        return _txn_decorator(self, *dargs, **dkw)
 
     # Optional: let callers set auth knobs used by some middlewares/dispatchers
     def set_auth(
