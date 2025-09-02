@@ -1,18 +1,16 @@
 import pytest
-import pytest_asyncio
-from autoapi.v3.types import App
-from httpx import ASGITransport, AsyncClient
+from fastapi.testclient import TestClient
 from sqlalchemy import Integer, String
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import Mapped
 
 from autoapi.v3.autoapp import AutoApp as AutoAPIv3
+from autoapi.v3.engine.shortcuts import mem
 from autoapi.v3.specs import F, IO, S, acol
 from autoapi.v3.orm.tables import Base as Base3
 
 
-@pytest_asyncio.fixture()
-async def client_and_model():
+@pytest.fixture()
+def client_and_model():
     Base3.metadata.clear()
 
     class Gadget(Base3):
@@ -40,46 +38,31 @@ async def client_and_model():
 
         __autoapi_cols__ = {"id": id, "name": name, "age": age}
 
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base3.metadata.create_all)
-    session_maker = async_sessionmaker(
-        bind=engine, class_=AsyncSession, expire_on_commit=False
-    )
-
-    async def get_db():
-        async with session_maker() as session:
-            yield session
-
-    app = App()
-    api = AutoAPIv3(get_db=get_db)
+    api = AutoAPIv3(engine=mem(async_=False))
     api.include_model(Gadget, prefix="")
+    api.initialize_sync()
 
     # Remove generated out schemas to exercise jsonable fallback
     Gadget.schemas.read.out = None  # type: ignore[attr-defined]
     Gadget.schemas.list.out = None  # type: ignore[attr-defined]
 
-    app.include_router(api.router)
-    transport = ASGITransport(app=app)
-    client = AsyncClient(transport=transport, base_url="http://test")
+    client = TestClient(api)
     try:
         yield client, Gadget
     finally:
-        await client.aclose()
-        await engine.dispose()
+        client.close()
 
 
-@pytest.mark.asyncio
-async def test_rest_read_and_list_without_schema(client_and_model):
+def test_rest_read_and_list_without_schema(client_and_model):
     client, _ = client_and_model
-    created = await client.post("/gadget", json={"name": "A", "age": 1})
+    created = client.post("/gadget", json={"name": "A", "age": 1})
     item_id = created.json()["id"]
 
-    resp = await client.get(f"/gadget/{item_id}")
+    resp = client.get(f"/gadget/{item_id}")
     assert resp.status_code == 200
     assert resp.json()["id"] == item_id
 
-    resp_list = await client.get("/gadget")
+    resp_list = client.get("/gadget")
     assert resp_list.status_code == 200
     ids = {item["id"] for item in resp_list.json()}
     assert item_id in ids

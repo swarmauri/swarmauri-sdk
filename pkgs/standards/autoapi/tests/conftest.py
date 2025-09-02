@@ -1,5 +1,3 @@
-from typing import AsyncIterator, Iterator
-
 import pytest
 import pytest_asyncio
 from autoapi.v3 import AutoApp, Base
@@ -9,12 +7,14 @@ from autoapi.v3.specs import F, IO, S, acol
 from autoapi.v3.column.storage_spec import StorageTransform
 from autoapi.v3.schema import builder as v3_builder
 from autoapi.v3.runtime import kernel as runtime_kernel
+from autoapi.v3.engine.shortcuts import mem
+from autoapi.v3.engine import resolver as _resolver
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import Column, ForeignKey, Integer, String, create_engine
-from sqlalchemy.pool import StaticPool
+from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import Mapped, Session, sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Mapped, Session
+from typing import AsyncIterator, Iterator
 import asyncio
 
 
@@ -62,47 +62,50 @@ def pytest_generate_tests(metafunc):
 
 @pytest.fixture
 def sync_db_session():
-    """Create a sync database session for testing."""
-    engine = create_engine(
-        "sqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
+    """Provide a synchronous in-memory SQLite engine and DB session factory."""
+    cfg = mem(async_=False)
+    _resolver.set_default(cfg)
+    prov = _resolver.resolve_provider()
+    engine, maker = prov.ensure()
 
-    def get_sync_db() -> Iterator[Session]:
-        with SessionLocal() as session:
+    def get_db() -> Iterator[Session]:
+        with maker() as session:
             yield session
 
-    return engine, get_sync_db
+    try:
+        yield engine, get_db
+    finally:
+        engine.dispose()
+        _resolver.set_default(None)
 
 
 @pytest_asyncio.fixture
 async def async_db_session():
-    """Create an async database session for testing."""
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=False)
-    AsyncSessionLocal = async_sessionmaker(
-        bind=engine, class_=AsyncSession, expire_on_commit=False
-    )
+    """Provide an asynchronous in-memory SQLite engine and DB session factory."""
+    cfg = mem()
+    _resolver.set_default(cfg)
+    prov = _resolver.resolve_provider()
+    engine, maker = prov.ensure()
 
     async def get_db() -> AsyncIterator[AsyncSession]:
-        async with AsyncSessionLocal() as session:
+        async with maker() as session:
             yield session
 
-    return engine, get_db
+    try:
+        yield engine, get_db
+    finally:
+        await engine.dispose()
+        _resolver.set_default(None)
 
 
 @pytest.fixture
-def create_test_api(sync_db_session):
+def create_test_api():
     """Factory fixture to create AutoAPI instances for testing individual models."""
-    engine, get_sync_db = sync_db_session
 
     def _create_api(model_class):
         """Create AutoAPI instance with a single model for testing."""
-        # Clear metadata to avoid conflicts
         Base.metadata.clear()
-
-        api = AutoApp(get_db=get_sync_db)
+        api = AutoApp(engine=mem(async_=False))
         api.include_model(model_class)
         api.initialize_sync()
         return api
@@ -111,16 +114,12 @@ def create_test_api(sync_db_session):
 
 
 @pytest_asyncio.fixture
-async def create_test_api_async(async_db_session):
+async def create_test_api_async():
     """Factory fixture to create async AutoAPI instances for testing individual models."""
-    engine, get_db = async_db_session
 
     def _create_api_async(model_class):
-        """Create async AutoAPI instance with a single model for testing."""
-        # Clear metadata to avoid conflicts
         Base.metadata.clear()
-
-        api = AutoApp(get_db=get_db)
+        api = AutoApp(engine=mem())
         api.include_model(model_class)
         return api
 
@@ -181,34 +180,12 @@ async def api_client(db_mode):
     fastapi_app = App()
 
     if db_mode == "async":
-        engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=True)
-
-        AsyncSessionLocal = async_sessionmaker(
-            bind=engine, class_=AsyncSession, expire_on_commit=False
-        )
-
-        async def get_db() -> AsyncIterator[AsyncSession]:
-            async with AsyncSessionLocal() as session:
-                yield session
-
-        api = AutoApp(get_db=get_db)
+        api = AutoApp(engine=mem())
         api.include_models([Tenant, Item])
         await api.initialize_async()
 
     else:
-        engine = create_engine(
-            "sqlite:///:memory:",
-            connect_args={"check_same_thread": False},
-            poolclass=StaticPool,
-        )
-
-        SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
-
-        def get_sync_db() -> Iterator[Session]:
-            with SessionLocal() as session:
-                yield session
-
-        api = AutoApp(get_db=get_sync_db)
+        api = AutoApp(engine=mem(async_=False))
         api.include_models([Tenant, Item])
         api.initialize_sync()
 
@@ -279,23 +256,16 @@ async def api_client_v3():
             "secret": secret,
         }
 
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    AsyncSessionLocal = async_sessionmaker(
-        bind=engine, class_=AsyncSession, expire_on_commit=False
-    )
-
-    async def get_db():
-        async with AsyncSessionLocal() as session:
-            yield session
-
+    cfg = mem()
     fastapi_app = App()
-    api = AutoApp(get_db=get_db)
+    api = AutoApp(engine=cfg)
     api.include_model(Widget, prefix="")
     api.mount_jsonrpc()
     api.attach_diagnostics()
+    await api.initialize_async()
+    prov = _resolver.resolve_provider()
+    _, session_maker = prov.ensure()
     fastapi_app.include_router(api.router)
     transport = ASGITransport(app=fastapi_app)
     client = AsyncClient(transport=transport, base_url="http://test")
-    return client, api, Widget, AsyncSessionLocal
+    return client, api, Widget, session_maker

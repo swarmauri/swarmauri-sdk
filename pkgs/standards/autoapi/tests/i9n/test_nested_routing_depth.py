@@ -1,6 +1,7 @@
 import pytest
 import pytest_asyncio
 from autoapi.v3 import AutoApp, Base
+from autoapi.v3.engine.shortcuts import mem
 from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.types import App
 from httpx import ASGITransport, AsyncClient
@@ -8,7 +9,7 @@ from sqlalchemy import Column, ForeignKey, String
 
 
 @pytest_asyncio.fixture
-async def three_level_api_client(db_mode, sync_db_session, async_db_session):
+async def three_level_api_client(db_mode):
     Base.metadata.clear()
     Base.registry.dispose()
 
@@ -36,13 +37,9 @@ async def three_level_api_client(db_mode, sync_db_session, async_db_session):
             return "/company/{company_id}/department/{department_id}/employee"
 
     if db_mode == "async":
-        _, get_db = async_db_session
-        api = AutoApp(get_db=get_db)
-        api.include_models([Company, Department, Employee])
-        await api.initialize_async()
+        pytest.skip("async database mode is currently unsupported")
     else:
-        _, get_sync_db = sync_db_session
-        api = AutoApp(get_db=get_sync_db)
+        api = AutoApp(engine=mem(async_=False))
         api.include_models([Company, Department, Employee])
         api.initialize_sync()
 

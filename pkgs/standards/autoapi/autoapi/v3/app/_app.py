@@ -1,9 +1,6 @@
 # autoapi/autoapi/v3/app/_app.py
 from __future__ import annotations
-from typing import (
-    Any,
-    Generator,
-)
+from typing import Any
 
 from ..deps.fastapi import FastAPI
 from ..engine.engine_spec import EngineCfg
@@ -23,18 +20,12 @@ class App(AppSpec, FastAPI):
             lifespan=self.LIFESPAN,
             **fastapi_kwargs,
         )
-        ctx = engine if engine is not None else getattr(self, "ENGINE", None)
-        if ctx is not None:
-            _resolver.set_default(ctx)
+        _engine_ctx = engine if engine is not None else getattr(self, "ENGINE", None)
+        if _engine_ctx is not None:
+            _resolver.set_default(_engine_ctx)
+            _resolver.resolve_provider()
         for mw in getattr(self, "MIDDLEWARES", []):
             self.add_middleware(mw.__class__, **getattr(mw, "kwargs", {}))
-
-    def get_db(self) -> Generator[Any, None, None]:
-        db, release = _resolver.acquire()
-        try:
-            yield db
-        finally:
-            release()
 
     def install_engines(
         self, *, api: Any = None, models: tuple[Any, ...] | None = None

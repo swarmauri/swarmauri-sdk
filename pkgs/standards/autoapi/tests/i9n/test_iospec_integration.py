@@ -1,12 +1,12 @@
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import create_engine, select
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
+from sqlalchemy import select
 from types import SimpleNamespace
 
 from autoapi.v3.autoapp import AutoApp
+from autoapi.v3.engine import resolver as _resolver
+from autoapi.v3.engine.shortcuts import mem
 from autoapi.v3.orm.tables import Base
 from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.specs import IO, S, acol
@@ -35,28 +35,16 @@ class Widget(Base, GUIDPk):
 
 @pytest_asyncio.fixture
 async def widget_setup():
-    engine = create_engine(
-        "sqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
-
-    def get_db():
-        with SessionLocal() as session:
-            yield session
-
-    # Other tests may clear ``Base.metadata``, leaving it empty. Creating the
-    # tables directly from the model definitions ensures this fixture remains
-    # functional regardless of prior global state.
-    Widget.__table__.create(bind=engine)
-
     app = App()
-    api = AutoApp(get_db=get_db)
+    api = AutoApp(engine=mem(async_=False))
     api.include_model(Widget, prefix="/widget")
     api.mount_jsonrpc(prefix="/rpc")
     api.attach_diagnostics(prefix="/system")
+    api.initialize_sync()
     app.include_router(api.router)
+
+    prov = _resolver.resolve_provider()
+    SessionLocal = prov.session
 
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")

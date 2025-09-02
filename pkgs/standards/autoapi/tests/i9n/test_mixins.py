@@ -33,6 +33,7 @@ from autoapi.v3.orm.mixins import (
     tzutcnow_plus_day,
 )
 from autoapi.v3.schema import _build_schema
+from autoapi.v3.engine import resolver as _resolver
 
 
 class DummyModelTimestamped(Base, GUIDPk, Timestamped):
@@ -360,7 +361,7 @@ async def test_validity_window_mixin(create_test_api):
 @pytest.mark.asyncio
 async def test_validity_window_default(create_test_api):
     api = create_test_api(DummyModelValidityWindow)
-    session = next(api.get_db())
+    session, release = _resolver.acquire(api=api)
     try:
         vf_default = tzutcnow()
         vt_default = tzutcnow_plus_day()
@@ -370,7 +371,7 @@ async def test_validity_window_default(create_test_api):
         session.add(instance)
         session.flush()
     finally:
-        session.close()
+        release()
     assert vf_default is not None
     assert vt_default is not None
     assert abs((vt_default - vf_default) - timedelta(days=1)) < timedelta(seconds=1)

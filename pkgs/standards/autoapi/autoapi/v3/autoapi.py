@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import copy
+import asyncio
+import inspect
 from types import SimpleNamespace
 from typing import (
     Any,
@@ -13,10 +15,10 @@ from typing import (
     Sequence,
     Tuple,
 )
-import inspect
 
 from .api._api import Api as _Api
 from .engine.engine_spec import EngineCfg
+from .engine import resolver as _resolver
 from .system.dbschema import (
     ensure_schemas,
     bootstrap_dbschema,
@@ -64,7 +66,6 @@ class AutoAPI(_Api):
         self,
         *,
         engine: EngineCfg | None = None,
-        get_db: Optional[Callable[..., Any]] = None,
         jsonrpc_prefix: str = "/rpc",
         system_prefix: str = "/system",
         api_hooks: Mapping[str, Iterable[Callable]]
@@ -73,11 +74,6 @@ class AutoAPI(_Api):
         **router_kwargs: Any,
     ) -> None:
         _Api.__init__(self, engine=engine, **router_kwargs)
-        # DB dependency for transports/diagnostics
-        if get_db is not None:
-            self.get_db = get_db
-        elif engine is None:
-            self.get_db = None
         self.jsonrpc_prefix = jsonrpc_prefix
         self.system_prefix = system_prefix
 
@@ -185,18 +181,22 @@ class AutoAPI(_Api):
     def mount_jsonrpc(self, *, prefix: str | None = None) -> Any:
         """Mount a JSON-RPC router onto this AutoAPI instance."""
         px = prefix if prefix is not None else self.jsonrpc_prefix
+        prov = _resolver.resolve_provider(api=self)
+        get_db = prov.get_db if prov else None
         router = _mount_jsonrpc(
             self,
             self,
             prefix=px,
-            get_db=self.get_db,
+            get_db=get_db,
         )
         return router
 
     def attach_diagnostics(self, *, prefix: str | None = None) -> Any:
         """Mount a diagnostics router onto this AutoAPI instance."""
         px = prefix if prefix is not None else self.system_prefix
-        router = _mount_diagnostics(self, get_db=self.get_db)
+        prov = _resolver.resolve_provider(api=self)
+        get_db = prov.get_db if prov else None
+        router = _mount_diagnostics(self, get_db=get_db)
         if hasattr(self, "include_router"):
             self.include_router(router, prefix=px)
         return router
@@ -320,9 +320,10 @@ class AutoAPI(_Api):
     def initialize_sync(self, *, schemas=None, sqlite_attachments=None, tables=None):
         if getattr(self, "_ddl_executed", False):
             return
-        if not self.get_db:
-            raise ValueError("AutoAPI.get_db is not configured")
-        with next(self.get_db()) as db:
+        prov = _resolver.resolve_provider(api=self)
+        if prov is None:
+            raise ValueError("Engine provider is not configured")
+        with next(prov.get_db()) as db:
             bind = db.get_bind()  # Connection or Engine
             self._create_all_on_bind(
                 bind,
@@ -337,11 +338,12 @@ class AutoAPI(_Api):
     ):
         if getattr(self, "_ddl_executed", False):
             return
-        if not self.get_db:
-            raise ValueError("AutoAPI.get_db is not configured")
+        prov = _resolver.resolve_provider(api=self)
+        if prov is None:
+            raise ValueError("Engine provider is not configured")
 
-        if inspect.isasyncgenfunction(self.get_db):
-            async for adb in self.get_db():  # AsyncSession
+        if inspect.isasyncgenfunction(prov.get_db):
+            async for adb in prov.get_db():  # AsyncSession
 
                 def _sync_bootstrap(arg):
                     bind = arg.get_bind() if hasattr(arg, "get_bind") else arg
@@ -355,21 +357,31 @@ class AutoAPI(_Api):
                 await adb.run_sync(_sync_bootstrap)
                 break
         else:
-            gen = self.get_db()
-            adb = next(gen)
+            gen = prov.get_db()
+            db = next(gen)
 
             try:
+                if hasattr(db, "run_sync"):
 
-                def _sync_bootstrap(arg):
-                    bind = arg.get_bind() if hasattr(arg, "get_bind") else arg
-                    self._create_all_on_bind(
+                    def _sync_bootstrap(arg):
+                        bind = arg.get_bind() if hasattr(arg, "get_bind") else arg
+                        self._create_all_on_bind(
+                            bind,
+                            schemas=schemas,
+                            sqlite_attachments=sqlite_attachments,
+                            tables=tables,
+                        )
+
+                    await db.run_sync(_sync_bootstrap)
+                else:
+                    bind = db.get_bind()
+                    await asyncio.to_thread(
+                        self._create_all_on_bind,
                         bind,
                         schemas=schemas,
                         sqlite_attachments=sqlite_attachments,
                         tables=tables,
                     )
-
-                await adb.run_sync(_sync_bootstrap)
             finally:
                 try:
                     next(gen)
