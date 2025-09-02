@@ -9,7 +9,7 @@ from autoapi.v3.types import (
     relationship,
 )
 from autoapi.v3.specs import S, acol
-from autoapi.v3.specs.storage_spec import ForeignKeySpec
+from autoapi.v3.column.storage_spec import ForeignKeySpec
 
 
 @declarative_mixin

@@ -7,8 +7,8 @@ from fastapi import HTTPException
 from autoapi.v3.decorators import hook_ctx
 from autoapi.v3.specs import IO, F, S, acol
 from autoapi.v3.orm.mixins import BulkCapable, Replaceable
-from autoapi.v3.specs.io_spec import Pair
-from autoapi.v3.specs.storage_spec import ForeignKeySpec
+from autoapi.v3.column.io_spec import Pair
+from autoapi.v3.column.storage_spec import ForeignKeySpec
 from autoapi.v3.orm.tables import Base
 from autoapi.v3.types import (
     Integer,

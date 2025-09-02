@@ -1,5 +1,5 @@
 from autoapi.v3.specs import IO
-from autoapi.v3.specs.io_spec import Pair
+from autoapi.v3.column.io_spec import Pair
 
 
 def test_in_verbs_attribute() -> None:

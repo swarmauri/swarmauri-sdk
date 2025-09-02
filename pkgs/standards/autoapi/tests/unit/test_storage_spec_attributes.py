@@ -1,5 +1,5 @@
 from autoapi.v3.specs import S
-from autoapi.v3.specs.storage_spec import StorageTransform, ForeignKeySpec
+from autoapi.v3.column.storage_spec import StorageTransform, ForeignKeySpec
 from sqlalchemy import Integer, text
 
 

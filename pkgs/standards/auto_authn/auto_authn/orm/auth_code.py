@@ -8,7 +8,7 @@ import uuid
 from autoapi.v3.orm.tables import Base
 from autoapi.v3.orm.mixins import TenantColumn, Timestamped, UserColumn
 from autoapi.v3.specs import S, acol
-from autoapi.v3.specs.storage_spec import ForeignKeySpec
+from autoapi.v3.column.storage_spec import ForeignKeySpec
 from autoapi.v3.types import JSON, PgUUID, String, TZDateTime, Mapped
 from autoapi.v3 import op_ctx
 from fastapi import HTTPException, status

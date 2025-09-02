@@ -14,7 +14,7 @@ from autoapi.v3.types import (
 )
 from autoapi.v3.orm.mixins import GUIDPk, Timestamped
 from autoapi.v3.specs import IO, S, acol
-from autoapi.v3.specs.storage_spec import ForeignKeySpec
+from autoapi.v3.column.storage_spec import ForeignKeySpec
 from autoapi.v3 import hook_ctx
 from peagen.defaults import DEFAULT_POOL_ID, WORKER_KEY, WORKER_TTL
 
