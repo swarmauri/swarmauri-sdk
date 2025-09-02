@@ -40,7 +40,12 @@ async def client_and_model():
         __autoapi_cols__ = {"id": id, "name": name, "age": age}
 
     app = App()
-    api = AutoAPIv3(engine=mem())
+    # AutoApp/AutoAPI dropped the ``get_db`` attribute in favor of using the
+    # engine facade. Using an async SQLite engine in this test triggers a
+    # ``MissingGreenlet`` error when SQLAlchemy performs I/O. Configure a
+    # synchronous in-memory engine instead so the REST operations run without
+    # requiring greenlet magic.
+    api = AutoAPIv3(engine=mem(async_=False))
     api.include_model(Gadget, prefix="")
     await api.initialize_async()
     app.include_router(api.router)
