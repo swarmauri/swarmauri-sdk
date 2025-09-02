@@ -113,6 +113,7 @@ class AutoAPI(_App):
         self.rpc = SimpleNamespace()
         self.rest = SimpleNamespace()
         self.routers: Dict[str, Any] = {}
+        self.tables: Dict[str, Any] = {}
         self.columns: Dict[str, Tuple[str, ...]] = {}
         self.table_config: Dict[str, Dict[str, Any]] = {}
         self.core = SimpleNamespace()
@@ -341,8 +342,8 @@ class AutoAPI(_App):
             md.create_all(bind=bind, checkfirst=True, tables=group)
 
         # 3) publish tables namespace
-        self.tables = SimpleNamespace(
-            **{
+        self.tables.update(
+            {
                 name: getattr(m, "__table__", None)
                 for name, m in self.models.items()
                 if hasattr(m, "__table__")
