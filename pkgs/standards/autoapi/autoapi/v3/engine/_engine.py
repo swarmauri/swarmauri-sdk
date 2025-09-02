@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from contextlib import contextmanager, asynccontextmanager
 from dataclasses import dataclass, field
+import asyncio
+import inspect
 from typing import Any, Callable, Optional, Tuple, Union, Protocol, TYPE_CHECKING
 
 try:
@@ -30,6 +32,7 @@ class Provider:
     spec: "EngineSpec"
     _engine: Any = None
     _maker: Optional[SessionFactory] = None
+    get_db: Callable[..., Any] = field(init=False)
 
     @property
     def kind(self) -> str:
@@ -45,6 +48,41 @@ class Provider:
     def session(self) -> Union[Session, AsyncSession]:
         _, mk = self.ensure()
         return mk()  # type: ignore[misc]
+
+    def __post_init__(self) -> None:
+        if self.spec.async_:
+
+            async def _get_db() -> Any:
+                db = self.session()
+                try:
+                    yield db  # type: ignore[misc]
+                finally:
+                    close = getattr(db, "close", None)
+                    if callable(close):
+                        rv = close()
+                        if inspect.isawaitable(rv):
+                            await rv
+
+            object.__setattr__(self, "get_db", _get_db)
+        else:
+
+            def _get_db() -> Any:
+                db = self.session()
+                try:
+                    yield db  # type: ignore[misc]
+                finally:
+                    close = getattr(db, "close", None)
+                    if callable(close):
+                        rv = close()
+                        if inspect.isawaitable(rv):
+                            try:
+                                loop = asyncio.get_running_loop()
+                            except RuntimeError:
+                                asyncio.run(rv)
+                            else:
+                                loop.create_task(rv)
+
+            object.__setattr__(self, "get_db", _get_db)
 
 
 @dataclass
@@ -63,6 +101,10 @@ class Engine:
 
     def raw(self) -> Tuple[Any, SessionFactory]:
         return self.provider.ensure()
+
+    @property
+    def get_db(self) -> Callable[..., Any]:
+        return self.provider.get_db
 
     @contextmanager
     def session(self) -> Session:

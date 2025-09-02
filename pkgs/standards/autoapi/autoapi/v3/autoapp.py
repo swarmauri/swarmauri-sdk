@@ -208,7 +208,6 @@ class AutoApp(_App):
             self,
             self,
             prefix=px,
-            get_db=self.get_db,
         )
         self._base_routes = list(self.router.routes)
         return router

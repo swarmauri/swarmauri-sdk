@@ -189,7 +189,6 @@ class AutoAPI(_Api):
             self,
             self,
             prefix=px,
-            get_db=self.get_db,
         )
         return router
 
