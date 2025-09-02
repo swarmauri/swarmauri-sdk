@@ -13,7 +13,8 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import Mapped, Session
+from collections.abc import AsyncIterator, Iterator
 import asyncio
 
 

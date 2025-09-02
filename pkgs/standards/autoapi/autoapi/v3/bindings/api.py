@@ -207,6 +207,8 @@ def _seed_security_and_deps(api: Any, model: type) -> None:
     prov = _resolver.resolve_provider(api=api)
     if prov is not None:
         setattr(model, AUTOAPI_GET_DB_ATTR, prov.get_db)
+    elif hasattr(api, "get_db"):
+        setattr(model, AUTOAPI_GET_DB_ATTR, api.get_db)
 
     # Authn (prefer optional dep when available)
     auth_dep = None
