@@ -9,6 +9,7 @@ from autoapi.v3.specs import F, IO, S, acol
 from autoapi.v3.column.storage_spec import StorageTransform
 from autoapi.v3.schema import builder as v3_builder
 from autoapi.v3.runtime import kernel as runtime_kernel
+from autoapi.v3.engine.shortcuts import mem
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, ForeignKey, Integer, String, create_engine
 from sqlalchemy.pool import StaticPool
@@ -61,48 +62,13 @@ def pytest_generate_tests(metafunc):
 
 
 @pytest.fixture
-def sync_db_session():
-    """Create a sync database session for testing."""
-    engine = create_engine(
-        "sqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
-
-    def get_sync_db() -> Iterator[Session]:
-        with SessionLocal() as session:
-            yield session
-
-    return engine, get_sync_db
-
-
-@pytest_asyncio.fixture
-async def async_db_session():
-    """Create an async database session for testing."""
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=False)
-    AsyncSessionLocal = async_sessionmaker(
-        bind=engine, class_=AsyncSession, expire_on_commit=False
-    )
-
-    async def get_db() -> AsyncIterator[AsyncSession]:
-        async with AsyncSessionLocal() as session:
-            yield session
-
-    return engine, get_db
-
-
-@pytest.fixture
-def create_test_api(sync_db_session):
+def create_test_api():
     """Factory fixture to create AutoAPI instances for testing individual models."""
-    engine, get_sync_db = sync_db_session
 
     def _create_api(model_class):
         """Create AutoAPI instance with a single model for testing."""
-        # Clear metadata to avoid conflicts
         Base.metadata.clear()
-
-        api = AutoApp(get_db=get_sync_db)
+        api = AutoApp(engine=mem(async_=False))
         api.include_model(model_class)
         api.initialize_sync()
         return api
@@ -111,16 +77,12 @@ def create_test_api(sync_db_session):
 
 
 @pytest_asyncio.fixture
-async def create_test_api_async(async_db_session):
+async def create_test_api_async():
     """Factory fixture to create async AutoAPI instances for testing individual models."""
-    engine, get_db = async_db_session
 
     def _create_api_async(model_class):
-        """Create async AutoAPI instance with a single model for testing."""
-        # Clear metadata to avoid conflicts
         Base.metadata.clear()
-
-        api = AutoApp(get_db=get_db)
+        api = AutoApp(engine=mem())
         api.include_model(model_class)
         return api
 
