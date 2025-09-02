@@ -31,12 +31,10 @@ class Api(APISpec, ApiRouter):
         self.models: dict[str, type] = {}
         self.tables: dict[str, Any] = {}
 
-        ctx = engine if engine is not None else getattr(self, "ENGINE", None)
-        if ctx is not None:
-            _resolver.register_api(self, ctx)
-            prov = _resolver.resolve_provider(api=self)
-            if prov is not None:
-                self.get_db = prov.get_db  # type: ignore[attr-defined]
+        _engine_ctx = engine if engine is not None else getattr(self, "ENGINE", None)
+        if _engine_ctx is not None:
+            _resolver.register_api(self, _engine_ctx)
+            _resolver.resolve_provider(api=self)
 
     def install_engines(
         self, *, api: Any = None, models: tuple[Any, ...] | None = None

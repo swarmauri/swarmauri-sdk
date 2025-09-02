@@ -20,12 +20,10 @@ class App(AppSpec, FastAPI):
             lifespan=self.LIFESPAN,
             **fastapi_kwargs,
         )
-        ctx = engine if engine is not None else getattr(self, "ENGINE", None)
-        if ctx is not None:
-            _resolver.set_default(ctx)
-            prov = _resolver.resolve_provider()
-            if prov is not None:
-                self.get_db = prov.get_db  # type: ignore[attr-defined]
+        _engine_ctx = engine if engine is not None else getattr(self, "ENGINE", None)
+        if _engine_ctx is not None:
+            _resolver.set_default(_engine_ctx)
+            _resolver.resolve_provider()
         for mw in getattr(self, "MIDDLEWARES", []):
             self.add_middleware(mw.__class__, **getattr(mw, "kwargs", {}))
 
