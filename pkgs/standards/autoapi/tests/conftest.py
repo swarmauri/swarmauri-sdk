@@ -60,6 +60,36 @@ def pytest_generate_tests(metafunc):
 
 
 @pytest.fixture
+def sync_db_session():
+    """Provide a provider and sync session factory."""
+    from autoapi.v3.engine.shortcuts import prov
+
+    provider = prov(mem(async_=False))
+    _, session_factory = provider.ensure()
+
+    def get_sync_db():
+        with session_factory() as session:
+            yield session
+
+    return provider, get_sync_db
+
+
+@pytest_asyncio.fixture
+async def async_db_session():
+    """Provide a provider and async session factory."""
+    from autoapi.v3.engine.shortcuts import prov
+
+    provider = prov(mem())
+    _, session_factory = provider.ensure()
+
+    async def get_db():
+        async with session_factory() as session:
+            yield session
+
+    return provider, get_db
+
+
+@pytest.fixture
 def create_test_api():
     """Factory fixture to create AutoAPI instances for testing individual models."""
 
