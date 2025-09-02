@@ -8,7 +8,7 @@ from autoapi.v3.bindings import (
     register_rpc,
 )
 from autoapi.v3.decorators import collect_decorated_ops
-from autoapi.v3.response import response_ctx
+from autoapi.v3.response import response_ctx, render_template
 from autoapi.v3.response.shortcuts import (
     as_file,
     as_html,
@@ -59,8 +59,10 @@ def build_model_for_response(kind: str, tmp_path) -> tuple[type, str | None]:
         @op_ctx(alias="download", target="custom", arity="collection", persist="none")
         @response_ctx(kind=kind)
         def download(cls, ctx):
-            if kind == "json":
+            if kind == "auto":
                 return as_json({"pong": True})
+            if kind == "json":
+                return as_json({"pong": True}, envelope=False)
             if kind == "html":
                 return as_html("<h1>pong</h1>")
             if kind == "text":
@@ -81,3 +83,29 @@ def build_model_for_response(kind: str, tmp_path) -> tuple[type, str | None]:
     build_rest(Widget, specs)
     register_rpc(Widget, specs)
     return Widget, (file_path if kind == "file" else None)
+
+
+def build_model_for_jinja_response(tmp_path) -> type:
+    tpl = tmp_path / "hello.html"
+    tpl.write_text("<h1>{{ name }}</h1>")
+
+    @alias_ctx(read="download")
+    @response_ctx(headers={"X-Table": "table"})
+    class Widget:
+        @op_ctx(alias="download", target="custom", arity="collection", persist="none")
+        async def download(cls, ctx):
+            html = await render_template(
+                name="hello.html",
+                context={"name": "World"},
+                search_paths=[str(tmp_path)],
+            )
+            return as_html(html)
+
+    specs = list(collect_decorated_ops(Widget))
+    build_schemas(Widget, specs)
+    build_hooks(Widget, specs)
+    build_handlers(Widget, specs)
+    runtime_plan.attach_atoms_for_model(Widget, {})
+    build_rest(Widget, specs)
+    register_rpc(Widget, specs)
+    return Widget
