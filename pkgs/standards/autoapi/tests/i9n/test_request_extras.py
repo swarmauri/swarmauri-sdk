@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 from uuid import uuid4
 
-from autoapi.v3 import AutoAPI, Base
+from autoapi.v3 import AutoApp, Base
 from autoapi.v3.schema import _build_schema
 
 
@@ -41,7 +41,7 @@ async def api_client_with_extras(db_mode):
             async with AsyncSessionLocal() as session:
                 yield session
 
-        api = AutoAPI(get_async_db=get_async_db)
+        api = AutoApp(get_async_db=get_async_db)
         api.include_model(Widget)
         await api.initialize_async()
     else:
@@ -56,7 +56,7 @@ async def api_client_with_extras(db_mode):
             with SessionLocal() as session:
                 yield session
 
-        api = AutoAPI(get_db=get_sync_db)
+        api = AutoApp(get_db=get_sync_db)
         api.include_model(Widget)
         api.initialize_sync()
 

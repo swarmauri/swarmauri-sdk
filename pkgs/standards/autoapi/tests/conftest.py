@@ -2,7 +2,7 @@ from typing import AsyncIterator, Iterator
 
 import pytest
 import pytest_asyncio
-from autoapi.v3 import AutoAPI, Base
+from autoapi.v3 import AutoApp, Base
 from autoapi.v3.types import App
 from autoapi.v3.orm.mixins import BulkCapable, GUIDPk
 from autoapi.v3.specs import F, IO, S, acol
@@ -102,7 +102,7 @@ def create_test_api(sync_db_session):
         # Clear metadata to avoid conflicts
         Base.metadata.clear()
 
-        api = AutoAPI(get_db=get_sync_db)
+        api = AutoApp(get_db=get_sync_db)
         api.include_model(model_class)
         api.initialize_sync()
         return api
@@ -120,7 +120,7 @@ async def create_test_api_async(async_db_session):
         # Clear metadata to avoid conflicts
         Base.metadata.clear()
 
-        api = AutoAPI(get_async_db=get_async_db)
+        api = AutoApp(get_async_db=get_async_db)
         api.include_model(model_class)
         return api
 
@@ -191,7 +191,7 @@ async def api_client(db_mode):
             async with AsyncSessionLocal() as session:
                 yield session
 
-        api = AutoAPI(app=fastapi_app, get_async_db=get_async_db)
+        api = AutoApp(get_async_db=get_async_db)
         api.include_models([Tenant, Item])
         await api.initialize_async()
 
@@ -208,7 +208,7 @@ async def api_client(db_mode):
             with SessionLocal() as session:
                 yield session
 
-        api = AutoAPI(app=fastapi_app, get_db=get_sync_db)
+        api = AutoApp(get_db=get_sync_db)
         api.include_models([Tenant, Item])
         api.initialize_sync()
 
@@ -291,10 +291,11 @@ async def api_client_v3():
             yield session
 
     fastapi_app = App()
-    api = AutoAPI(app=fastapi_app, get_async_db=get_async_db)
+    api = AutoApp(get_async_db=get_async_db)
     api.include_model(Widget, prefix="")
     api.mount_jsonrpc()
     api.attach_diagnostics()
+    fastapi_app.include_router(api.router)
     transport = ASGITransport(app=fastapi_app)
     client = AsyncClient(transport=transport, base_url="http://test")
     return client, api, Widget, AsyncSessionLocal

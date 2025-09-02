@@ -1,7 +1,7 @@
 import pytest
 from collections.abc import Iterator
 
-from autoapi.v3.autoapi import AutoAPI
+from autoapi.v3.autoapp import AutoApp
 from autoapi.v3.orm.mixins import BulkCapable, GUIDPk
 from autoapi.v3.specs import IO, S, F, acol as spec_acol
 from autoapi.v3.orm.tables import Base
@@ -15,7 +15,7 @@ from autoapi.v3.types import (
 
 
 @pytest.fixture()
-def api_and_session() -> Iterator[tuple[AutoAPI, Session, type[Base]]]:
+def api_and_session() -> Iterator[tuple[AutoApp, Session, type[Base]]]:
     class Widget(Base, GUIDPk, BulkCapable):
         __tablename__ = "widgets_rpc_ops"
         __allow_unmapped__ = True
@@ -41,7 +41,7 @@ def api_and_session() -> Iterator[tuple[AutoAPI, Session, type[Base]]]:
         with SessionLocal() as session:
             yield session
 
-    api = AutoAPI(get_db=get_db)
+    api = AutoApp(get_db=get_db)
     api.include_model(Widget, mount_router=False)
     api.initialize_sync()
 

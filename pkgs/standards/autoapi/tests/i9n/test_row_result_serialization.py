@@ -6,7 +6,7 @@ from sqlalchemy import Integer, String, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import Mapped
 
-from autoapi.v3.autoapi import AutoAPI as AutoAPIv3
+from autoapi.v3.autoapp import AutoApp as AutoAPIv3
 from autoapi.v3.specs import S, acol
 from autoapi.v3.orm.tables import Base as Base3
 
@@ -62,8 +62,9 @@ async def client():
     crud.list = row_list  # type: ignore
 
     app = App()
-    api = AutoAPIv3(app=app, get_async_db=get_async_db)
+    api = AutoAPIv3(get_async_db=get_async_db)
     api.include_model(Widget, prefix="")
+    app.include_router(api.router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     try:

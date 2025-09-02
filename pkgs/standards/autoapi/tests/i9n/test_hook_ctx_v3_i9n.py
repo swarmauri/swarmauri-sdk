@@ -6,7 +6,7 @@ from sqlalchemy.pool import StaticPool
 from sqlalchemy.orm import sessionmaker
 from uuid import uuid4
 
-from autoapi.v3.autoapi import AutoAPI
+from autoapi.v3.autoapp import AutoApp
 from autoapi.v3.types import Column, String
 from autoapi.v3.orm.tables import Base
 from autoapi.v3.orm.mixins import GUIDPk
@@ -32,11 +32,12 @@ def create_client(model_cls):
             yield session
 
     app = App()
-    api = AutoAPI(app=app, get_db=get_db)
+    api = AutoApp(get_db=get_db)
     api.include_model(model_cls)
     api.mount_jsonrpc()
     api.attach_diagnostics()
     Base.metadata.create_all(engine)
+    app.include_router(api.router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     return client, api, SessionLocal

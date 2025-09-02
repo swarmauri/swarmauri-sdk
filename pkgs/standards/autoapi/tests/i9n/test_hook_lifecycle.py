@@ -5,7 +5,7 @@ Tests all hook phases and their behavior across CRUD, nested CRUD, and RPC opera
 """
 
 import pytest
-from autoapi.v3 import App, AutoAPI, Base
+from autoapi.v3 import App, AutoApp, Base
 from autoapi.v3.decorators import hook_ctx
 from autoapi.v3.orm.mixins import GUIDPk
 from httpx import ASGITransport, AsyncClient
@@ -30,7 +30,7 @@ async def setup_client(db_mode, Tenant, Item):
             async with AsyncSessionLocal() as session:
                 yield session
 
-        api = AutoAPI(app=fastapi_app, get_async_db=get_async_db)
+        api = AutoApp(get_async_db=get_async_db)
         api.include_models([Tenant, Item])
         await api.initialize_async()
     else:
@@ -45,7 +45,7 @@ async def setup_client(db_mode, Tenant, Item):
             with SessionLocal() as session:
                 yield session
 
-        api = AutoAPI(app=fastapi_app, get_db=get_sync_db)
+        api = AutoApp(get_db=get_sync_db)
         api.include_models([Tenant, Item])
         api.initialize_sync()
 

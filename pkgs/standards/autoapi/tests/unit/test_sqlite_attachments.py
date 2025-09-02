@@ -1,5 +1,5 @@
 import pytest
-from autoapi.v3.autoapi import AutoAPI
+from autoapi.v3.autoapp import AutoApp
 
 
 def _db_names(conn):
@@ -9,7 +9,7 @@ def _db_names(conn):
 
 def test_initialize_sync_without_sqlite_attachments(sync_db_session):
     engine, get_db = sync_db_session
-    api = AutoAPI(get_db=get_db)
+    api = AutoApp(get_db=get_db)
     api.initialize_sync()
     with engine.connect() as conn:
         assert _db_names(conn) == {"main"}
@@ -19,7 +19,7 @@ def test_initialize_sync_with_sqlite_attachments(sync_db_session, tmp_path):
     engine, get_db = sync_db_session
     attach_db = tmp_path / "logs.sqlite"
     attach_db.touch()
-    api = AutoAPI(get_db=get_db)
+    api = AutoApp(get_db=get_db)
     api.initialize_sync(sqlite_attachments={"logs": str(attach_db)})
     with engine.connect() as conn:
         assert "logs" in _db_names(conn)
@@ -28,7 +28,7 @@ def test_initialize_sync_with_sqlite_attachments(sync_db_session, tmp_path):
 @pytest.mark.asyncio
 async def test_initialize_async_without_sqlite_attachments(async_db_session):
     engine, get_async_db = async_db_session
-    api = AutoAPI(get_async_db=get_async_db)
+    api = AutoApp(get_async_db=get_async_db)
     await api.initialize_async()
     async with engine.connect() as conn:
         result = await conn.exec_driver_sql("PRAGMA database_list")
@@ -41,7 +41,7 @@ async def test_initialize_async_with_sqlite_attachments(async_db_session, tmp_pa
     engine, get_async_db = async_db_session
     attach_db = tmp_path / "logs.sqlite"
     attach_db.touch()
-    api = AutoAPI(get_async_db=get_async_db)
+    api = AutoApp(get_async_db=get_async_db)
     await api.initialize_async(sqlite_attachments={"logs": str(attach_db)})
     async with engine.connect() as conn:
         result = await conn.exec_driver_sql("PRAGMA database_list")

@@ -72,6 +72,7 @@ from .system.dbschema import ensure_schemas, register_sqlite_attach, bootstrap_d
 
 # ── Config constants (defaults used by REST) ───────────────────────────────────
 from .config.constants import DEFAULT_HTTP_METHODS
+from .autoapp import AutoApp
 from .autoapi import AutoAPI
 
 from .table import Base
@@ -80,7 +81,7 @@ from .types import App
 
 __all__: list[str] = []
 
-__all__ += ["AutoAPI", "Base", "App"]
+__all__ += ["AutoApp", "AutoAPI", "Base", "App"]
 
 __all__ += [
     # OpSpec core

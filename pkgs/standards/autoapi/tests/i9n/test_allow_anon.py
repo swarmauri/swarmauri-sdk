@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from autoapi.v3.autoapi import AutoAPI
+from autoapi.v3.autoapp import AutoApp
 from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.orm.tables import Base
 from autoapi.v3.types import (
@@ -72,7 +72,7 @@ def _build_client():
             yield session
 
     auth = DummyAuth()
-    api = AutoAPI(get_db=get_db)
+    api = AutoApp(get_db=get_db)
     api.set_auth(authn=auth.get_principal)
     auth.register_inject_hook(api)
     api.include_models([Tenant, Item])
@@ -110,7 +110,7 @@ def _build_client_attr():
             yield session
 
     auth = DummyAuth()
-    api = AutoAPI(get_db=get_db)
+    api = AutoApp(get_db=get_db)
     api.set_auth(authn=auth.get_principal)
     auth.register_inject_hook(api)
     api.include_models([Tenant, Item])
@@ -179,7 +179,7 @@ def _build_client_create_noauth():
         with SessionLocal() as session:
             yield session
 
-    api = AutoAPI(get_db=get_db)
+    api = AutoApp(get_db=get_db)
     api.include_models([Tenant, Item])
     app = App()
     app.include_router(api.router)
@@ -214,7 +214,7 @@ def _build_client_create_attr_noauth():
         with SessionLocal() as session:
             yield session
 
-    api = AutoAPI(get_db=get_db)
+    api = AutoApp(get_db=get_db)
     api.include_models([Tenant, Item])
     app = App()
     app.include_router(api.router)

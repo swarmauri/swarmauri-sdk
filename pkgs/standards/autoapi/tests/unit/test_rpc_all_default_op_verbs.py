@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from autoapi.v3.autoapi import AutoAPI
+from autoapi.v3.autoapp import AutoApp
 from autoapi.v3.orm.mixins import BulkCapable, GUIDPk, Replaceable
 from autoapi.v3.specs import IO, S, F, acol as spec_acol
 from autoapi.v3.orm.tables import Base
@@ -13,7 +13,7 @@ from autoapi.v3.ops import OpSpec
 
 
 @pytest.fixture()
-def api_and_session() -> Iterator[tuple[AutoAPI, Session]]:
+def api_and_session() -> Iterator[tuple[AutoApp, Session]]:
     class Widget(Base, GUIDPk, BulkCapable, Replaceable):
         __tablename__ = "widgets_rpc_all_ops"
         __allow_unmapped__ = True
@@ -73,7 +73,7 @@ def api_and_session() -> Iterator[tuple[AutoAPI, Session]]:
         with SessionLocal() as session:
             yield session
 
-    api = AutoAPI(get_db=get_db)
+    api = AutoApp(get_db=get_db)
     api.include_model(Widget, mount_router=False)
     api.initialize_sync()
 

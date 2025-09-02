@@ -15,6 +15,7 @@ CRUD_MAP = {
 async def test_route_and_method_symmetry(api_client):
     client, api, _ = api_client
     api.attach_diagnostics(prefix="")
+    client._transport.app.include_router(api.router)
     spec = (await client.get("/openapi.json")).json()
     paths = spec["paths"]
     methods = await client.get("/methodz")

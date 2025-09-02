@@ -6,7 +6,7 @@ from sqlalchemy import Integer, String
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import Mapped
 
-from autoapi.v3.autoapi import AutoAPI as AutoAPIv3
+from autoapi.v3.autoapp import AutoApp as AutoAPIv3
 from autoapi.v3.specs import F, IO, S, acol
 from autoapi.v3.orm.tables import Base as Base3
 
@@ -52,13 +52,14 @@ async def client_and_model():
             yield session
 
     app = App()
-    api = AutoAPIv3(app=app, get_async_db=get_async_db)
+    api = AutoAPIv3(get_async_db=get_async_db)
     api.include_model(Gadget, prefix="")
 
     # Remove generated out schemas to exercise jsonable fallback
     Gadget.schemas.read.out = None  # type: ignore[attr-defined]
     Gadget.schemas.list.out = None  # type: ignore[attr-defined]
 
+    app.include_router(api.router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     try:

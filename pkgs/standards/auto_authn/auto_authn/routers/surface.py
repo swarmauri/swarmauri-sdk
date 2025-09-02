@@ -32,7 +32,6 @@ from auto_authn.orm import (
     ServiceKey,
     AuthSession,
 )
-from fastapi import APIRouter
 from ..db import get_async_db  # same module as before
 from .auth_flows import router as flows_router
 
@@ -47,10 +46,6 @@ surface_api.include_models(
     [Tenant, User, Client, ApiKey, Service, ServiceKey, AuthSession]
 )
 
-router = APIRouter()
-for r in surface_api.routers.values():
-    router.include_router(r)
-router.include_router(flows_router)
-surface_api.router = router
+surface_api.include_router(flows_router)
 
 __all__ = ["surface_api"]

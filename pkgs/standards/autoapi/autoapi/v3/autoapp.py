@@ -1,4 +1,4 @@
-# autoapi/v3/autoapi.py
+# autoapi/v3/autoapp.py
 from __future__ import annotations
 
 import copy
@@ -15,7 +15,7 @@ from typing import (
     Tuple,
 )
 
-from .api._api import Api as _Api
+from .app._app import App as _App
 from .engine.engine_spec import EngineCfg
 from .system.dbschema import (
     ensure_schemas,
@@ -36,20 +36,41 @@ from .transport import mount_jsonrpc as _mount_jsonrpc
 from .system import mount_diagnostics as _mount_diagnostics
 from .ops import get_registry, OpSpec
 
+try:  # pragma: no cover - FastAPI optional
+    from .types import Router  # type: ignore
+except Exception:  # pragma: no cover
 
-class AutoAPI(_Api):
+    class Router:  # type: ignore
+        def __init__(self, *a, **kw):
+            self.routes = []
+            self.includes = []
+
+        def include_router(self, router, *, prefix: str = "", **opts):
+            self.includes.append((router, prefix, opts))
+
+
+# optional compat: legacy transactional decorator
+try:
+    from .compat.transactional import transactional as _txn_decorator
+except Exception:  # pragma: no cover
+    _txn_decorator = None
+
+
+class AutoApp(_App):
     """
-    Canonical router-focused facade that owns:
+    Monolithic facade that owns:
       • containers (models, schemas, handlers, hooks, rpc, rest, routers, columns, table_config, core proxies)
       • model inclusion (REST + RPC wiring)
       • JSON-RPC / diagnostics mounting
-      • (optional) auth knobs recognized by some middlewares/dispatchers
+      • (optional) legacy-friendly helpers (transactional decorator, auth flags)
 
     It composes v3 primitives; you can still use the functions directly if you prefer.
     """
 
-    PREFIX = ""
-    TAGS: Sequence[Any] = ()
+    TITLE = "AutoApp"
+    VERSION = "0.1.0"
+    LIFESPAN = None
+    MIDDLEWARES: Sequence[Any] = ()
     APIS: Sequence[Any] = ()
     MODELS: Sequence[Any] = ()
 
@@ -71,11 +92,20 @@ class AutoAPI(_Api):
         api_hooks: Mapping[str, Iterable[Callable]]
         | Mapping[str, Mapping[str, Iterable[Callable]]]
         | None = None,
-        **router_kwargs: Any,
+        **fastapi_kwargs: Any,
     ) -> None:
-        _Api.__init__(self, db=db, **router_kwargs)
-        # self acts as the aggregate router
-        self.router = self
+        title = fastapi_kwargs.pop("title", None)
+        if title is not None:
+            self.TITLE = title
+        version = fastapi_kwargs.pop("version", None)
+        if version is not None:
+            self.VERSION = version
+        lifespan = fastapi_kwargs.pop("lifespan", None)
+        if lifespan is not None:
+            self.LIFESPAN = lifespan
+        super().__init__(db=db, **fastapi_kwargs)
+        # always expose an aggregate router for later mounting
+        self.router = Router()
         # DB dependencies for transports/diagnostics
         if get_db is not None:
             self.get_db = get_db
@@ -96,7 +126,6 @@ class AutoAPI(_Api):
         self.rpc = SimpleNamespace()
         self.rest = SimpleNamespace()
         self.routers: Dict[str, Any] = {}
-        self.tables: Dict[str, Any] = {}
         self.columns: Dict[str, Tuple[str, ...]] = {}
         self.table_config: Dict[str, Dict[str, Any]] = {}
         self.core = SimpleNamespace()
@@ -153,7 +182,7 @@ class AutoAPI(_Api):
         # inject API-level hooks so the binder merges them
         self._merge_api_hooks_into_model(model, self._api_hooks_map)
         return _include_model(
-            self, model, app=None, prefix=prefix, mount_router=mount_router
+            self, model, app=self, prefix=prefix, mount_router=mount_router
         )
 
     def include_models(
@@ -168,7 +197,7 @@ class AutoAPI(_Api):
         return _include_models(
             self,
             models,
-            app=None,
+            app=self,
             base_prefix=base_prefix,
             mount_router=mount_router,
         )
@@ -194,11 +223,13 @@ class AutoAPI(_Api):
         px = prefix if prefix is not None else self.jsonrpc_prefix
         router = _mount_jsonrpc(
             self,
-            self,
+            self.router,
             prefix=px,
             get_db=self.get_db,
             get_async_db=self.get_async_db,
         )
+        if hasattr(self, "include_router"):
+            self.include_router(router, prefix=px)
         return router
 
     def attach_diagnostics(self, *, prefix: str | None = None) -> Any:
@@ -207,6 +238,8 @@ class AutoAPI(_Api):
         router = _mount_diagnostics(
             self, get_db=self.get_db, get_async_db=self.get_async_db
         )
+        if hasattr(self.router, "include_router"):
+            self.router.include_router(router, prefix=px)
         if hasattr(self, "include_router"):
             self.include_router(router, prefix=px)
         return router
@@ -227,6 +260,17 @@ class AutoAPI(_Api):
     ) -> Tuple[OpSpec, ...]:
         """Targeted rebuild of a bound model."""
         return _rebind(model, changed_keys=changed_keys)
+
+    # ------------------------- legacy helpers -------------------------
+
+    def transactional(self, *dargs, **dkw):
+        """
+        Legacy-friendly decorator: @api.transactional(...)
+        Wraps a function as a v3 custom op with START_TX/END_TX.
+        """
+        if _txn_decorator is None:
+            raise RuntimeError("transactional decorator not available")
+        return _txn_decorator(self, *dargs, **dkw)
 
     # Optional: let callers set auth knobs used by some middlewares/dispatchers
     def set_auth(
@@ -252,8 +296,8 @@ class AutoAPI(_Api):
 
     def _refresh_security(self) -> None:
         """Re-seed auth deps on models and rebuild routers."""
-        # Reset routes and allow_anon ops cache
-        self.routes = []
+        # Reset aggregate router and allow_anon ops cache
+        self.router = Router()
         self._allow_anon_ops = set()
         for model in self.models.values():
             _seed_security_and_deps(self, model)
@@ -270,6 +314,7 @@ class AutoAPI(_Api):
             setattr(self.rest, mname, rest_ns)
             self.routers[mname] = router
             prefix = _default_prefix(model)
+            _mount_router(self.router, router, prefix=prefix)
             _mount_router(self, router, prefix=prefix)
 
     def _collect_tables(self):
@@ -319,8 +364,8 @@ class AutoAPI(_Api):
             md.create_all(bind=bind, checkfirst=True, tables=group)
 
         # 3) publish tables namespace
-        self.tables.update(
-            {
+        self.tables = SimpleNamespace(
+            **{
                 name: getattr(m, "__table__", None)
                 for name, m in self.models.items()
                 if hasattr(m, "__table__")
@@ -331,7 +376,7 @@ class AutoAPI(_Api):
         if getattr(self, "_ddl_executed", False):
             return
         if not self.get_db:
-            raise ValueError("AutoAPI.get_db is not configured")
+            raise ValueError("AutoApp.get_db is not configured")
         with next(self.get_db()) as db:
             bind = db.get_bind()  # Connection or Engine
             self._create_all_on_bind(
@@ -348,7 +393,7 @@ class AutoAPI(_Api):
         if getattr(self, "_ddl_executed", False):
             return
         if not self.get_async_db:
-            raise ValueError("AutoAPI.get_async_db is not configured")
+            raise ValueError("AutoApp.get_async_db is not configured")
         async for adb in self.get_async_db():  # AsyncSession
 
             def _sync_bootstrap(arg):
@@ -367,4 +412,4 @@ class AutoAPI(_Api):
     # ------------------------- repr -------------------------
 
     def __repr__(self) -> str:  # pragma: no cover
-        return f"<AutoAPI models={list(self.models)} rpc={list(getattr(self.rpc, '__dict__', {}).keys())}>"
+        return f"<AutoApp models={list(self.models)} rpc={list(getattr(self.rpc, '__dict__', {}).keys())}>"
