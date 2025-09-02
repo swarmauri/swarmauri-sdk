@@ -36,7 +36,7 @@ def sync_api():
 async def async_api():
     """Create an async AutoAPI instance with CoreTestUser."""
     Base.metadata.clear()
-    eng = build_engine(mem())
+    eng = build_engine(mem(async_=True))
     api = AutoApp(engine=eng)
     api.include_model(CoreTestUser)
     await api.initialize_async()
