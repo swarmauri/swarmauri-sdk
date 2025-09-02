@@ -6,7 +6,7 @@ from sqlalchemy import Integer, String, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import Mapped
 
-from autoapi.v3.autoapi import AutoAPI as AutoAPIv3
+from autoapi.v3.autoapp import AutoApp as AutoAPIv3
 from autoapi.v3.specs import F, IO, S, acol
 from autoapi.v3.orm.tables import Base as Base3
 from autoapi.v3.core import crud
@@ -43,12 +43,13 @@ async def client_and_model():
             yield session
 
     app = App()
-    api = AutoAPIv3(app=app, get_async_db=get_async_db)
+    api = AutoAPIv3(get_async_db=get_async_db)
     api.include_model(Widget, prefix="")
     # Remove output schemas to trigger fallback serialization
     Widget.schemas.read.out = None
     Widget.schemas.list.out = None
 
+    app.include_router(api.router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     try:

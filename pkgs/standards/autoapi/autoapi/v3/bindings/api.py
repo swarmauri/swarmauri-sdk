@@ -87,6 +87,7 @@ def _ensure_api_ns(api: ApiLike) -> None:
     """
     for attr, default in (
         ("models", {}),
+        ("tables", {}),
         ("schemas", SimpleNamespace()),
         ("handlers", SimpleNamespace()),
         ("hooks", SimpleNamespace()),
@@ -256,6 +257,7 @@ def _attach_to_api(api: ApiLike, model: type) -> None:
 
     # Index model object
     api.models[mname] = model
+    api.tables[mname] = getattr(model, "__table__", None)
 
     # Direct references to model namespaces
     setattr(api.schemas, mname, getattr(model, "schemas", SimpleNamespace()))
@@ -331,8 +333,8 @@ def include_model(
     if prefix is None:
         prefix = _default_prefix(model)
 
-    # 3) Always bind model router to `api.router`
-    root_router = getattr(api, "router", None)
+    # 3) Always bind model router to the API object when possible
+    root_router = api if _has_include_router(api) else getattr(api, "router", None)
     if router is not None:
         _mount_router(root_router, router, prefix=prefix)
 

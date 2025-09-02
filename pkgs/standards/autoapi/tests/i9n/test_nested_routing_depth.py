@@ -1,6 +1,6 @@
 import pytest
 import pytest_asyncio
-from autoapi.v3 import AutoAPI, Base
+from autoapi.v3 import AutoApp, Base
 from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.types import App
 from httpx import ASGITransport, AsyncClient
@@ -37,12 +37,12 @@ async def three_level_api_client(db_mode, sync_db_session, async_db_session):
 
     if db_mode == "async":
         _, get_async_db = async_db_session
-        api = AutoAPI(get_async_db=get_async_db)
+        api = AutoApp(get_async_db=get_async_db)
         api.include_models([Company, Department, Employee])
         await api.initialize_async()
     else:
         _, get_sync_db = sync_db_session
-        api = AutoAPI(get_db=get_sync_db)
+        api = AutoApp(get_db=get_sync_db)
         api.include_models([Company, Department, Employee])
         api.initialize_sync()
 

@@ -6,7 +6,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, String
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from autoapi.v3 import AutoAPI, Base, op_ctx, schema_ctx
+from autoapi.v3 import AutoApp, Base, op_ctx, schema_ctx
 from autoapi.v3.orm.mixins import GUIDPk
 
 
@@ -45,10 +45,11 @@ async def widget_client():
             yield session
 
     app = App()
-    api = AutoAPI(app=app, get_async_db=get_async_db)
+    api = AutoApp(get_async_db=get_async_db)
     api.include_model(Widget, prefix="")
     api.mount_jsonrpc()
     await api.initialize_async()
+    app.include_router(api.router)
 
     client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
     return client, api, Widget

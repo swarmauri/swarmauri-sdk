@@ -7,7 +7,7 @@ from sqlalchemy import Integer, String
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import Mapped
 
-from autoapi.v3.autoapi import AutoAPI as AutoAPIv3
+from autoapi.v3.autoapp import AutoApp as AutoAPIv3
 from autoapi.v3.orm.tables import Base as Base3
 from autoapi.v3.specs import F, IO, S, acol
 from autoapi.v3.specs.storage_spec import StorageTransform
@@ -76,11 +76,12 @@ async def schema_ctx_client():
             yield session
 
     app = App()
-    api = AutoAPIv3(app=app, get_async_db=get_async_db)
+    api = AutoAPIv3(get_async_db=get_async_db)
     api.include_model(Widget, prefix="")
     api.mount_jsonrpc()
     api.attach_diagnostics()
     await api.initialize_async()
+    app.include_router(api.router)
     client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
     return client, api, Widget, SessionLocal
 

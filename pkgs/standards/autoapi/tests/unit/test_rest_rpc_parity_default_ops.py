@@ -1,6 +1,6 @@
 import pytest
 
-from autoapi.v3.autoapi import AutoAPI
+from autoapi.v3.autoapp import AutoApp
 from autoapi.v3.orm.mixins import GUIDPk, BulkCapable, Mergeable
 from autoapi.v3.ops.types import CANON
 from autoapi.v3.orm.tables import Base
@@ -53,7 +53,7 @@ def test_rest_rpc_parity_for_default_verbs(alias, target, path, methods):
         verb: {"target": verb} for verb in CANON if verb != "custom"
     }
 
-    api = AutoAPI()
+    api = AutoApp()
     api.include_model(Item, mount_router=False)
 
     routes = _route_map(Item.rest.router)

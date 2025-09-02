@@ -15,6 +15,8 @@ async def test_healthz_endpoint_comprehensive(api_client):
     """Test healthz endpoint attachment, behavior, and response format."""
     client, api, _ = api_client
     api.attach_diagnostics(prefix="")
+    client._transport.app.include_router(api.router)
+    client._transport.app.include_router(api.router)
 
     # Check that healthz endpoint exists in routes
     routes = [route.path for route in api.router.routes]
@@ -41,6 +43,7 @@ async def test_methodz_endpoint_comprehensive(api_client):
     """Test methodz endpoint attachment, behavior, and response format."""
     client, api, _ = api_client
     api.attach_diagnostics(prefix="")
+    client._transport.app.include_router(api.router)
 
     # Check that methodz endpoint exists in routes
     routes = [route.path for route in api.router.routes]
@@ -98,6 +101,7 @@ async def test_hookz_endpoint_comprehensive(api_client):
     Item.item_hook = item_hook
     api.rebind(Item)
     api.attach_diagnostics(prefix="")
+    client._transport.app.include_router(api.router)
 
     response = await client.get("/hookz")
     assert response.status_code == 200
@@ -121,6 +125,7 @@ async def test_methodz_basic_functionality(api_client):
     """Test that methodz endpoint provides basic method information."""
     client, api, _ = api_client
     api.attach_diagnostics(prefix="")
+    client._transport.app.include_router(api.router)
 
     response = await client.get("/methodz")
     methods = {m["method"] for m in response.json()["methods"]}
@@ -141,6 +146,7 @@ async def test_healthz_methodz_hookz_in_openapi_schema(api_client):
     """Test that healthz, methodz and hookz endpoints are included in OpenAPI schema."""
     client, api, _ = api_client
     api.attach_diagnostics(prefix="")
+    client._transport.app.include_router(api.router)
 
     # Get OpenAPI schema
     spec_response = await client.get("/openapi.json")
@@ -159,6 +165,7 @@ async def test_healthz_database_error_handling(api_client):
     """Test healthz endpoint behavior when database has issues."""
     client, api, _ = api_client
     api.attach_diagnostics(prefix="")
+    client._transport.app.include_router(api.router)
 
     # Note: In a real test, we'd mock database connectivity issues
     # For now, we just verify the endpoint responds and has the right structure
@@ -178,6 +185,7 @@ async def test_methodz_reflects_dynamic_models(api_client):
     """Test that methodz reflects dynamically registered models."""
     client, api, _ = api_client
     api.attach_diagnostics(prefix="")
+    client._transport.app.include_router(api.router)
 
     # Get initial methods
     response = await client.get("/methodz")
@@ -194,6 +202,7 @@ async def test_endpoints_are_synchronous(api_client):
     """Test that healthz, methodz and hookz endpoints work in sync mode."""
     client, api, _ = api_client
     api.attach_diagnostics(prefix="")
+    client._transport.app.include_router(api.router)
 
     # These endpoints should work regardless of async/sync context
     healthz_response = await client.get("/healthz")

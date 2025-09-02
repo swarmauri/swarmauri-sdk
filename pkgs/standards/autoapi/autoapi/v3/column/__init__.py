@@ -2,12 +2,13 @@
 """AutoAPI v3 – column specs public API.
 
 Unifies StorageSpec (DB-facing), FieldSpec (python/wire semantics), and IOSpec (in/out exposure)
-into a single ColumnSpec. Provides ergonomic constructors `acol` and `vcol`, and re-exports the
+into a :class:`ColumnSpec` with a :class:`Column` descriptor. Provides ergonomic constructors
+``makeColumn`` and ``makeVirtualColumn`` (with ``acol``/``vcol`` convenience aliases) and re-exports the
 bind-time type inference utilities and markers.
 
 Public surface:
-    ColumnSpec, FieldSpec as F, StorageSpec as S, IOSpec as IO
-    acol, vcol
+    Column, ColumnSpec, FieldSpec as F, StorageSpec as S, IOSpec as IO
+    makeColumn, makeVirtualColumn, acol, vcol
     infer, Inferred, DataKind, SATypePlan, JsonHint
     markers: Email, Phone
     exceptions: InferenceError, UnsupportedType
@@ -18,12 +19,13 @@ from __future__ import annotations
 
 # Core spec types
 from .column_spec import ColumnSpec
+from ._column import Column
 from .field_spec import FieldSpec as F
 from .storage_spec import StorageSpec as S
 from .io_spec import IOSpec as IO
 
 # Ergonomic constructors
-from .shortcuts import acol, vcol
+from .shortcuts import makeColumn, makeVirtualColumn, acol, vcol
 
 # Bind-time inference (DB/vendor-agnostic)
 from .infer import (
@@ -40,9 +42,12 @@ from .infer import (
 
 __all__ = [
     "ColumnSpec",
+    "Column",
     "F",
     "S",
     "IO",
+    "makeColumn",
+    "makeVirtualColumn",
     "acol",
     "vcol",
     "infer",

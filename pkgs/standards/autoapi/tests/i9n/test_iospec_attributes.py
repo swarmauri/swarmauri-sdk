@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Mapped, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from autoapi.v3.autoapi import AutoAPI
+from autoapi.v3.autoapp import AutoApp
 from autoapi.v3.bindings.model import bind
 from autoapi.v3.bindings.rest import _build_router
 from autoapi.v3.bindings.rpc import register_and_attach
@@ -112,7 +112,7 @@ def test_binding_attaches_internal_model_namespaces():
             io=IO(in_verbs=("create",), out_verbs=("read",)),
         )
 
-    api = AutoAPI()
+    api = AutoApp()
     api.include_model(Thing, mount_router=False)
     assert "Thing" in api.models
     assert hasattr(api.schemas, "Thing")
@@ -208,10 +208,10 @@ def test_rest_call_respects_aliases():
             io=IO(in_verbs=("create",), out_verbs=("read",)),
         )
 
-    api = AutoAPI(app=App(), get_db=get_db)
+    api = AutoApp(get_db=get_db)
     api.include_model(Thing)
     Base.metadata.create_all(engine)
-    client = TestClient(api.app)
+    client = TestClient(api)
 
     resp = client.post("/thing", json={"name": "Ada"})
     data = resp.json()
@@ -278,7 +278,7 @@ async def test_core_crud_helpers_operate():
             io=IO(in_verbs=("create",), out_verbs=("read",)),
         )
 
-    api = AutoAPI(app=App(), get_db=get_db)
+    api = AutoApp(get_db=get_db)
     api.include_model(Thing)
     Base.metadata.create_all(engine)
 

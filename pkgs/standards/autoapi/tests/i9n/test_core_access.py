@@ -4,7 +4,7 @@ from typing import Any, Mapping
 
 from autoapi.v3.types import HTTPException, UUID, Column, Integer, String, uuid4
 
-from autoapi.v3 import AutoAPI, Base
+from autoapi.v3 import AutoApp, Base
 from autoapi.v3.orm.mixins import GUIDPk, BulkCapable, Replaceable
 
 
@@ -25,7 +25,7 @@ def sync_api(sync_db_session):
     """Create a sync AutoAPI instance with CoreTestUser."""
     _, get_sync_db = sync_db_session
     Base.metadata.clear()
-    api = AutoAPI(get_db=get_sync_db)
+    api = AutoApp(get_db=get_sync_db)
     api.include_model(CoreTestUser)
     api.initialize_sync()
     return api, get_sync_db
@@ -36,7 +36,7 @@ async def async_api(async_db_session):
     """Create an async AutoAPI instance with CoreTestUser."""
     _, get_async_db = async_db_session
     Base.metadata.clear()
-    api = AutoAPI(get_async_db=get_async_db)
+    api = AutoApp(get_async_db=get_async_db)
     api.include_model(CoreTestUser)
     await api.initialize_async()
     return api, get_async_db

@@ -3,7 +3,7 @@ from autoapi.v3.types import App
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, String
 
-from autoapi.v3 import AutoAPI, op_ctx
+from autoapi.v3 import AutoApp, op_ctx
 from autoapi.v3.orm.tables import Base
 from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.core import crud
@@ -12,9 +12,10 @@ from autoapi.v3.core import crud
 def setup_api(model_cls, get_db):
     Base.metadata.clear()
     app = App()
-    api = AutoAPI(app=app, get_db=get_db)
+    api = AutoApp(get_db=get_db)
     api.include_model(model_cls, prefix="")
     api.initialize_sync()
+    app.include_router(api.router)
     return app, api
 
 
