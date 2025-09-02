@@ -1,7 +1,6 @@
+import asyncio
 import base64
 import importlib
-import asyncio
-
 
 import pytest
 from fastapi.testclient import TestClient
@@ -19,21 +18,23 @@ def _create_key(client, name="k1"):
 def client_paramiko(tmp_path, monkeypatch):
     db_path = tmp_path / "kms.db"
     monkeypatch.setenv("KMS_DATABASE_URL", f"sqlite+aiosqlite:///{db_path}")
-    app = importlib.reload(importlib.import_module("auto_kms.app"))
+    mod = importlib.reload(importlib.import_module("auto_kms.app"))
 
     async def init_db():
-        async with app.engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
+        async for session in mod.app.get_async_db():
+            async with session.bind.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+            break
 
     asyncio.run(init_db())
     try:
-        with TestClient(app.app) as c:
+        with TestClient(mod.app) as c:
             yield c
     finally:
-        if hasattr(app, "CRYPTO"):
-            delattr(app, "CRYPTO")
-        if hasattr(app, "KEY_PROVIDER"):
-            delattr(app, "KEY_PROVIDER")
+        if hasattr(mod, "CRYPTO"):
+            delattr(mod, "CRYPTO")
+        if hasattr(mod, "KEY_PROVIDER"):
+            delattr(mod, "KEY_PROVIDER")
 
 
 def test_key_encrypt_decrypt_with_paramiko_crypto(client_paramiko):

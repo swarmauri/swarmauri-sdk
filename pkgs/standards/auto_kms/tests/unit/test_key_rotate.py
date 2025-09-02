@@ -7,27 +7,28 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 
 from autoapi.v3.orm.tables import Base
-from auto_kms.orm import Key
-from auto_kms.orm import KeyVersion
+from auto_kms.orm import Key, KeyVersion
 
 
 @pytest.fixture
 def client_app(tmp_path, monkeypatch):
     db_path = tmp_path / "kms.db"
     monkeypatch.setenv("KMS_DATABASE_URL", f"sqlite+aiosqlite:///{db_path}")
-    app = importlib.reload(importlib.import_module("auto_kms.app"))
+    mod = importlib.reload(importlib.import_module("auto_kms.app"))
 
     async def init_db():
-        async with app.engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
+        async for session in mod.app.get_async_db():
+            async with session.bind.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+            break
 
     asyncio.run(init_db())
     try:
-        with TestClient(app.app) as client:
-            yield client, app
+        with TestClient(mod.app) as client:
+            yield client, mod.app
     finally:
-        if hasattr(app, "CRYPTO"):
-            delattr(app, "CRYPTO")
+        if hasattr(mod, "CRYPTO"):
+            delattr(mod, "CRYPTO")
 
 
 def test_key_rotate_creates_new_version(client_app):
@@ -43,7 +44,7 @@ def test_key_rotate_creates_new_version(client_app):
     assert res.content == b""
 
     async def fetch_primary_version():
-        async with app.AsyncSessionLocal() as session:
+        async for session in app.get_async_db():
             result = await session.execute(
                 select(Key.primary_version).where(Key.id == UUID(str(key["id"])))
             )
@@ -52,7 +53,7 @@ def test_key_rotate_creates_new_version(client_app):
     assert asyncio.run(fetch_primary_version()) == 2
 
     async def fetch_versions():
-        async with app.AsyncSessionLocal() as session:
+        async for session in app.get_async_db():
             result = await session.execute(
                 select(KeyVersion.version).where(
                     KeyVersion.key_id == UUID(str(key["id"]))

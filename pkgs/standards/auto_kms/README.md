@@ -26,13 +26,14 @@ Initialize the SQLite database:
 
 ```bash
 uv run --package auto_kms --directory pkgs/standards/auto_kms -- python - <<'PY'
-from auto_kms.app import engine
+from auto_kms.app import app
 from autoapi.v3.orm.tables import Base
 import asyncio
 
 async def init():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    async for session in app.get_async_db():
+        await session.run_sync(Base.metadata.create_all)
+        break
 
 asyncio.run(init())
 PY

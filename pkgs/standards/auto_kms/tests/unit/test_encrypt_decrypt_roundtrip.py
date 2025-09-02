@@ -1,10 +1,9 @@
 import base64
 import importlib
-import asyncio
-
 import pytest
 from fastapi.testclient import TestClient
 from autoapi.v3.orm.tables import Base
+import asyncio
 
 
 def _create_key(client, name: str = "k1"):
@@ -18,19 +17,21 @@ def _create_key(client, name: str = "k1"):
 def client(tmp_path, monkeypatch):
     db_path = tmp_path / "kms.db"
     monkeypatch.setenv("KMS_DATABASE_URL", f"sqlite+aiosqlite:///{db_path}")
-    app = importlib.reload(importlib.import_module("auto_kms.app"))
+    mod = importlib.reload(importlib.import_module("auto_kms.app"))
 
     async def init_db():
-        async with app.engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
+        async for session in mod.app.get_async_db():
+            async with session.bind.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+            break
 
     asyncio.run(init_db())
     try:
-        with TestClient(app.app) as c:
+        with TestClient(mod.app) as c:
             yield c
     finally:
-        if hasattr(app, "CRYPTO"):
-            delattr(app, "CRYPTO")
+        if hasattr(mod, "CRYPTO"):
+            delattr(mod, "CRYPTO")
 
 
 def test_key_creation_encrypt_decrypt(client):

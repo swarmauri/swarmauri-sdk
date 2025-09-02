@@ -7,7 +7,6 @@ from .builders import (
     async_sqlite_engine,
     blocking_postgres_engine,
     blocking_sqlite_engine,
-    HybridSession,
 )
 
 __all__ = [
@@ -18,5 +17,4 @@ __all__ = [
     "blocking_postgres_engine",
     "async_sqlite_engine",
     "async_postgres_engine",
-    "HybridSession",
 ]

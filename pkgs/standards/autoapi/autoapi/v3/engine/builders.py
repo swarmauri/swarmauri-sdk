@@ -59,45 +59,6 @@ def blocking_postgres_engine(
     return eng, sessionmaker(bind=eng, expire_on_commit=False)
 
 
-# ───────────────────────────────────────────────────────────────────────
-# HybridSession: async under the hood, classic Session façade on top
-# ───────────────────────────────────────────────────────────────────────
-class HybridSession(AsyncSession):
-    """
-    An AsyncSession that ALSO behaves like a synchronous Session for the
-    handful of blocking helpers AutoAPI’s CRUD cores expect (`query`,
-    `commit`, `flush`, `refresh`, `get`, `delete`).
-    """
-
-    # ---- synchronous wrappers (delegate to the sync mirror) ------------
-    # NOTE: self.sync_session is provided by SQLAlchemy ≥1.4
-    def query(self, *e, **k):
-        return self.sync_session.query(*e, **k)
-
-    def add(self, *a, **k):
-        return self.sync_session.add(*a, **k)
-
-    def get(self, *a, **k):
-        return self.sync_session.get(*a, **k)
-
-    def flush(self, *a, **k):
-        return self.sync_session.flush(*a, **k)
-
-    def commit(self, *a, **k):
-        return self.sync_session.commit(*a, **k)
-
-    def refresh(self, *a, **k):
-        return self.sync_session.refresh(*a, **k)
-
-    def delete(self, *a, **k):
-        return self.sync_session.delete(*a, **k)
-
-    # ---- DDL helper used at AutoAPI bootstrap --------------------------
-    async def run_sync(self, fn, *a, **kw):
-        async with self.bind.begin() as conn:
-            return await conn.run_sync(fn, *a, **kw)
-
-
 # ----------------------------------------------------------------------
 # 2. ASYNC  •  SQLite  (aiosqlite driver)
 # ----------------------------------------------------------------------
@@ -112,7 +73,7 @@ def async_sqlite_engine(path: str | None = None):
     return eng, async_sessionmaker(
         eng,
         expire_on_commit=False,
-        class_=HybridSession,  # CHANGED ←
+        class_=AsyncSession,
     )
 
 
@@ -139,5 +100,5 @@ def async_postgres_engine(
     return eng, async_sessionmaker(
         eng,
         expire_on_commit=False,
-        class_=HybridSession,  # CHANGED ←
+        class_=AsyncSession,
     )

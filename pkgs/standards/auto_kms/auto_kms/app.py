@@ -7,21 +7,8 @@ from swarmauri_crypto_paramiko import ParamikoCrypto
 from swarmauri_standard.key_providers import InMemoryKeyProvider
 
 import os
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 
 DB_URL = os.getenv("KMS_DATABASE_URL", "sqlite+aiosqlite:///./kms.db")
-engine = create_async_engine(DB_URL, future=True, echo=False)
-AsyncSessionLocal = async_sessionmaker(
-    engine, expire_on_commit=False, class_=AsyncSession
-)
-
-
-async def get_async_db():
-    async with AsyncSessionLocal() as s:
-        try:
-            yield s
-        finally:
-            await s.close()
 
 
 # API-level hooks (v3): stash shared services into ctx before any handler runs
@@ -45,7 +32,6 @@ app = AutoApp(
     openapi_url="/openapi.json",
     docs_url="/docs",
     engine=DB_URL,
-    get_async_db=get_async_db,
     api_hooks={"*": {"PRE_TX_BEGIN": [_stash_ctx]}},
 )
 
