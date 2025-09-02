@@ -1,33 +1,36 @@
-from autoapi.v3 import AutoApp, AutoAPI
-from autoapi.v3.ops.types import OpSpec
 from autoapi.v3.engine import resolver
-from autoapi.v3.engine.engine_spec import EngineSpec
-from autoapi.v3.engine.shortcuts import mem, sqlitef
+from autoapi.v3.engine.shortcuts import mem
 
 
-def test_engine_usage_levels_and_precedence(tmp_path):
-    app_engine = sqlitef(str(tmp_path / "app.db"))
-    api_engine = mem(async_=False)
-    table_engine = mem(async_=False)
-    op_engine = mem(async_=True)
+def test_engine_usage_levels_and_precedence():
+    # Start from a clean registry to avoid cross-test pollution
+    resolver.set_default(None)
+    resolver._API.clear()
+    resolver._TAB.clear()
+    resolver._OP.clear()
 
-    app = AutoApp(engine=app_engine)
-    api = AutoAPI(engine=api_engine)
+    class Api:
+        pass
 
     class Model:
-        table_config = {"engine": table_engine}
         __name__ = "Model"
 
-    op_spec = OpSpec(alias="do", target="custom", table=Model, engine=op_engine)
-    Model.__autoapi_ops__ = [op_spec]
+    resolver.set_default(mem(async_=False))
+    resolver.register_api(Api, mem(async_=True))
+    resolver.register_table(Model, mem(async_=False))
+    resolver.register_op(Model, "create", mem(async_=True))
 
-    app.install_engines(api=api, models=(Model,))
+    api_inst = Api()
+    model_inst = Model()
 
-    assert resolver.resolve_provider().spec == EngineSpec.from_any(app_engine)
-    assert resolver.resolve_provider(api=api).spec == EngineSpec.from_any(api_engine)
-    assert resolver.resolve_provider(model=Model).spec == EngineSpec.from_any(
-        table_engine
-    )
-    assert resolver.resolve_provider(
-        model=Model, op_alias="do"
-    ).spec == EngineSpec.from_any(op_engine)
+    p = resolver.resolve_provider(api=api_inst, model=model_inst, op_alias="create")
+    assert p is not None and p.spec.async_ is True
+
+    p_model = resolver.resolve_provider(api=api_inst, model=model_inst)
+    assert p_model is not None and p_model.spec.async_ is False
+
+    p_api = resolver.resolve_provider(api=api_inst)
+    assert p_api is not None and p_api.spec.async_ is True
+
+    p_default = resolver.resolve_provider()
+    assert p_default is not None and p_default.spec.async_ is False

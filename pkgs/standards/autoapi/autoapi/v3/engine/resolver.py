@@ -17,6 +17,15 @@ _TAB: dict[Any, Provider] = {}
 _OP: dict[tuple[Any, str], Provider] = {}
 
 
+def _with_class(obj: Any) -> list[Any]:
+    """Return ``obj`` and its class when ``obj`` is an instance.
+
+    This allows resolution to honor providers registered on classes even when
+    an instance is supplied at lookup time.
+    """
+    return [obj] if isinstance(obj, type) else [obj, type(obj)]
+
+
 def _coerce(ctx: Optional[EngineCfg]) -> Optional[Provider]:
     """
     Promote an @engine_ctx value to a lazy Provider.
@@ -94,17 +103,21 @@ def resolve_provider(
     """
     with _LOCK:
         if model is not None and op_alias is not None:
-            p = _OP.get((model, op_alias))
-            if p:
-                return p
+            for m in _with_class(model):
+                p = _OP.get((m, op_alias))
+                if p:
+                    return p
         if model is not None:
-            p = _TAB.get(model)
-            if p:
-                return p
+            for m in _with_class(model):
+                p = _TAB.get(m)
+                if p:
+                    return p
         if api is not None:
-            p = _API.get(id(api))
-            if p:
-                return p
+            for a in _with_class(api):
+                # APIs are keyed by ``id`` to avoid relying on ``__hash__``
+                p = _API.get(id(a))
+                if p:
+                    return p
         return _DEFAULT
 
 
