@@ -13,6 +13,7 @@ class App(AppSpec, FastAPI):
     def __init__(
         self, *, engine: EngineCfg | None = None, **fastapi_kwargs: Any
     ) -> None:
+        get_db = fastapi_kwargs.pop("get_db", None)
         FastAPI.__init__(
             self,
             title=self.TITLE,
@@ -23,7 +24,11 @@ class App(AppSpec, FastAPI):
         _engine_ctx = engine if engine is not None else getattr(self, "ENGINE", None)
         if _engine_ctx is not None:
             _resolver.set_default(_engine_ctx)
-            _resolver.resolve_provider()
+            prov = _resolver.resolve_provider()
+            if prov is not None and get_db is None:
+                get_db = prov.get_db
+        if get_db is not None:
+            self.get_db = get_db
         for mw in getattr(self, "MIDDLEWARES", []):
             self.add_middleware(mw.__class__, **getattr(mw, "kwargs", {}))
 

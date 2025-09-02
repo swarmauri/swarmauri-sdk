@@ -66,6 +66,7 @@ def _build_client():
         poolclass=StaticPool,
     )
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
+    Base.metadata.create_all(bind=engine)
 
     def get_db():
         with SessionLocal() as session:
@@ -104,6 +105,7 @@ def _build_client_attr():
         poolclass=StaticPool,
     )
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
+    Base.metadata.create_all(bind=engine)
 
     def get_db():
         with SessionLocal() as session:
@@ -174,6 +176,7 @@ def _build_client_create_noauth():
         poolclass=StaticPool,
     )
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
+    Base.metadata.create_all(bind=engine)
 
     def get_db():
         with SessionLocal() as session:
@@ -209,6 +212,7 @@ def _build_client_create_attr_noauth():
         poolclass=StaticPool,
     )
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
+    Base.metadata.create_all(bind=engine)
 
     def get_db():
         with SessionLocal() as session:

@@ -18,6 +18,7 @@ class Api(APISpec, ApiRouter):
     def __init__(
         self, *, engine: EngineCfg | None = None, **router_kwargs: Any
     ) -> None:
+        get_db = router_kwargs.pop("get_db", None)
         ApiRouter.__init__(
             self,
             prefix=self.PREFIX,
@@ -34,7 +35,12 @@ class Api(APISpec, ApiRouter):
         _engine_ctx = engine if engine is not None else getattr(self, "ENGINE", None)
         if _engine_ctx is not None:
             _resolver.register_api(self, _engine_ctx)
-            _resolver.resolve_provider(api=self)
+            prov = _resolver.resolve_provider(api=self)
+            if prov is not None and get_db is None:
+                get_db = prov.get_db
+
+        if get_db is not None:
+            self.get_db = get_db
 
     def install_engines(
         self, *, api: Any = None, models: tuple[Any, ...] | None = None

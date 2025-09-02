@@ -345,9 +345,15 @@ class AutoApp(_App):
         if getattr(self, "_ddl_executed", False):
             return
         prov = _resolver.resolve_provider()
+        prov_get_db = None
         if prov is None:
-            raise ValueError("Engine provider is not configured")
-        with next(prov.get_db()) as db:
+            prov_get_db = getattr(self, "get_db", None)
+            if prov_get_db is None:
+                raise ValueError("Engine provider is not configured")
+        else:
+            prov_get_db = prov.get_db
+
+        with next(prov_get_db()) as db:
             bind = db.get_bind()  # Connection or Engine
             self._create_all_on_bind(
                 bind,
@@ -363,11 +369,16 @@ class AutoApp(_App):
         if getattr(self, "_ddl_executed", False):
             return
         prov = _resolver.resolve_provider()
+        prov_get_db = None
         if prov is None:
-            raise ValueError("Engine provider is not configured")
+            prov_get_db = getattr(self, "get_db", None)
+            if prov_get_db is None:
+                raise ValueError("Engine provider is not configured")
+        else:
+            prov_get_db = prov.get_db
 
-        if inspect.isasyncgenfunction(prov.get_db):
-            async for adb in prov.get_db():  # AsyncSession
+        if inspect.isasyncgenfunction(prov_get_db):
+            async for adb in prov_get_db():  # AsyncSession
 
                 def _sync_bootstrap(arg):
                     bind = arg.get_bind() if hasattr(arg, "get_bind") else arg
@@ -381,7 +392,7 @@ class AutoApp(_App):
                 await adb.run_sync(_sync_bootstrap)
                 break
         else:
-            gen = prov.get_db()
+            gen = prov_get_db()
             db = next(gen)
 
             try:
