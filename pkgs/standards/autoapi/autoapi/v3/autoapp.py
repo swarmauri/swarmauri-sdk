@@ -315,6 +315,8 @@ class AutoApp(_App):
                 attachments = sqlite_default_attach_map(engine, schema_names)
 
         if attachments:
+            # accept PathLike values for attachment targets
+            attachments = {k: str(v) for k, v in attachments.items()}
             # also applies ensure_schemas; immediate listener warm-up
             bootstrap_dbschema(
                 engine,

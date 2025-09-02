@@ -13,7 +13,7 @@ def test_initialize_sync_with_sqlite_attachments(tmp_path):
     attach_db = tmp_path / "logs.sqlite"
     attach_db.touch()
     api = AutoApp(engine=eng)
-    api.initialize_sync(sqlite_attachments={"logs": str(attach_db)})
+    api.initialize_sync(sqlite_attachments={"logs": attach_db})
     sql_eng, _ = eng.raw()
     with sql_eng.connect() as conn:
         assert "logs" in _db_names(conn)
@@ -25,7 +25,7 @@ async def test_initialize_async_with_sqlite_attachments(tmp_path):
     attach_db = tmp_path / "logs.sqlite"
     attach_db.touch()
     api = AutoApp(engine=eng)
-    await api.initialize_async(sqlite_attachments={"logs": str(attach_db)})
+    await api.initialize_async(sqlite_attachments={"logs": attach_db})
     sql_eng, _ = eng.raw()
     async with sql_eng.connect() as conn:
         result = await conn.exec_driver_sql("PRAGMA database_list")
