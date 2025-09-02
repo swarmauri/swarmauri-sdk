@@ -1,9 +1,6 @@
 # autoapi/autoapi/v3/api/_api.py
 from __future__ import annotations
-from typing import (
-    Any,
-    Generator,
-)
+from typing import Any
 
 from ..deps.fastapi import APIRouter as ApiRouter
 from ..engine.engine_spec import EngineCfg
@@ -37,13 +34,9 @@ class Api(APISpec, ApiRouter):
         ctx = engine if engine is not None else getattr(self, "ENGINE", None)
         if ctx is not None:
             _resolver.register_api(self, ctx)
-
-    def get_db(self) -> Generator[Any, None, None]:
-        db, release = _resolver.acquire()
-        try:
-            yield db
-        finally:
-            release()
+            prov = _resolver.resolve_provider(api=self)
+            if prov is not None:
+                self.get_db = prov.get_db  # type: ignore[attr-defined]
 
     def install_engines(
         self, *, api: Any = None, models: tuple[Any, ...] | None = None
