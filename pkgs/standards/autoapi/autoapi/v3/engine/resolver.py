@@ -94,17 +94,35 @@ def resolve_provider(
     """
     with _LOCK:
         if model is not None and op_alias is not None:
-            p = _OP.get((model, op_alias))
-            if p:
-                return p
+            # Providers are stored keyed by model classes. When resolution uses
+            # an instance, also check its type so callers can pass either.
+            models = [model]
+            if not isinstance(model, type):
+                models.append(type(model))
+            for m in models:
+                p = _OP.get((m, op_alias))
+                if p:
+                    return p
         if model is not None:
-            p = _TAB.get(model)
-            if p:
-                return p
+            # Like above, support resolving with a model instance by also
+            # looking up the provider registered on its class.
+            models = [model]
+            if not isinstance(model, type):
+                models.append(type(model))
+            for m in models:
+                p = _TAB.get(m)
+                if p:
+                    return p
         if api is not None:
-            p = _API.get(id(api))
-            if p:
-                return p
+            # API providers are registered on classes; allow instance-based
+            # resolution by considering the instance and its type.
+            apis = [api]
+            if not isinstance(api, type):
+                apis.append(type(api))
+            for a in apis:
+                p = _API.get(id(a))
+                if p:
+                    return p
         return _DEFAULT
 
 
