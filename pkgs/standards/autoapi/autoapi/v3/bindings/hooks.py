@@ -17,7 +17,7 @@ from typing import (
 )
 
 from ..ops import OpSpec
-from ..hook_spec import HookSpec
+from ..hook import HookSpec
 from ..hook.types import PHASES, StepFn
 from ..config.constants import (
     AUTOAPI_API_HOOKS_ATTR,

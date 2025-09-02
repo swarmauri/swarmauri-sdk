@@ -96,7 +96,7 @@ def _materialize_colspecs_to_sqla(cls) -> None:
     Keep the original specs in __autoapi_cols__ for downstream builders.
     """
     try:
-        from autoapi.v3.specs.column_spec import ColumnSpec
+        from autoapi.v3.column.column_spec import ColumnSpec
     except Exception:
         return
 

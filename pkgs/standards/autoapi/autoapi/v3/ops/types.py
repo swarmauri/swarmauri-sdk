@@ -7,7 +7,7 @@ from typing import Any, Literal, Mapping, Optional, Tuple, Union, cast
 
 from ..config.constants import CANON as CANONICAL_VERB_TUPLE
 from ..hook.types import PHASE, HookPhase, PHASES, Ctx, StepFn, HookPredicate
-from ..hook_spec import HookSpec as OpHook
+from ..hook import HookSpec as OpHook
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover

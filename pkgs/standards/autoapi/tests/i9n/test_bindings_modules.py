@@ -22,7 +22,7 @@ from autoapi.v3.bindings import (
 from autoapi.v3.specs import ColumnSpec, F, IO, S
 from autoapi.v3.ops import resolve
 from autoapi.v3.runtime import executor as _executor
-from autoapi.v3.specs import shortcuts as sc
+from autoapi.v3.column import shortcuts as sc
 
 
 def _make_model():

@@ -22,7 +22,7 @@ from autoapi.v3.orm.mixins import (
     StatusColumn,
 )
 from autoapi.v3.specs import S, acol
-from autoapi.v3.specs.storage_spec import ForeignKeySpec
+from autoapi.v3.column.storage_spec import ForeignKeySpec
 from autoapi.v3 import hook_ctx
 from autoapi.v3.bindings import build_schemas as _build_schemas
 from typing import TYPE_CHECKING

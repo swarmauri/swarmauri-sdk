@@ -6,7 +6,7 @@ from autoapi.v3 import AutoApp, Base
 from autoapi.v3.types import App
 from autoapi.v3.orm.mixins import BulkCapable, GUIDPk
 from autoapi.v3.specs import F, IO, S, acol
-from autoapi.v3.specs.storage_spec import StorageTransform
+from autoapi.v3.column.storage_spec import StorageTransform
 from autoapi.v3.schema import builder as v3_builder
 from autoapi.v3.runtime import kernel as runtime_kernel
 from httpx import ASGITransport, AsyncClient

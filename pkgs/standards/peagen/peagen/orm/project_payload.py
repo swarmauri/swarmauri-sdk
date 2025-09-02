@@ -12,7 +12,7 @@ from autoapi.v3.types import (
 )
 from autoapi.v3.orm.mixins import GUIDPk, Timestamped, TenantBound, Ownable
 from autoapi.v3.specs import S, acol
-from autoapi.v3.specs.storage_spec import ForeignKeySpec
+from autoapi.v3.column.storage_spec import ForeignKeySpec
 from typing import TYPE_CHECKING
 
 from .users import User
