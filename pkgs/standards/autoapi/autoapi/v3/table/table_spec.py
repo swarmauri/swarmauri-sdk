@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Optional, Sequence
 
 from ..engine.engine_spec import EngineCfg
+from ..response.types import ResponseSpec
 
 
 @dataclass
@@ -23,3 +24,5 @@ class TableSpec:
     hooks: Sequence[Callable[..., Any]] = field(default_factory=tuple)
     security_deps: Sequence[Callable[..., Any]] = field(default_factory=tuple)
     deps: Sequence[Callable[..., Any]] = field(default_factory=tuple)
+
+    response: Optional[ResponseSpec] = None
