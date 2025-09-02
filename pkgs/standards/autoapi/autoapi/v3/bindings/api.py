@@ -333,8 +333,8 @@ def include_model(
     if prefix is None:
         prefix = _default_prefix(model)
 
-    # 3) Always bind model router to `api.router`
-    root_router = getattr(api, "router", None)
+    # 3) Always bind model router to the API object when possible
+    root_router = api if _has_include_router(api) else getattr(api, "router", None)
     if router is not None:
         _mount_router(root_router, router, prefix=prefix)
 
