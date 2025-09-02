@@ -70,3 +70,30 @@ def test_op_ctx_persist_policy_override():
 
     spec = collect_decorated_ops(Model)[0]
     assert spec.persist == "skip"
+
+
+def test_op_ctx_core_crud_order():
+    class Model:
+        @op_ctx(target="create")
+        def create(cls, ctx):
+            return None
+
+        @op_ctx(target="read")
+        def read(cls, ctx, obj):
+            return obj
+
+        @op_ctx(target="update")
+        def update(cls, ctx, obj):
+            return None
+
+        @op_ctx(target="delete")
+        def delete(cls, ctx, obj):
+            return None
+
+    specs = collect_decorated_ops(Model)
+    assert [sp.target for sp in specs] == [
+        "create",
+        "read",
+        "update",
+        "delete",
+    ]

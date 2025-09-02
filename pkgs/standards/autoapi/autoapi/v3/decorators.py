@@ -341,8 +341,7 @@ def collect_decorated_ops(table: type) -> list[OpSpec]:
     out: list[OpSpec] = []
 
     for base in reversed(table.__mro__):
-        for name in dir(base):
-            attr = getattr(base, name, None)
+        for name, attr in base.__dict__.items():
             func = _unwrap(attr)
             decl: _OpDecl | None = getattr(func, "__autoapi_op_decl__", None)
             if not decl:
