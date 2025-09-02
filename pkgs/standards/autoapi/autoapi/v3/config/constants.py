@@ -19,11 +19,11 @@ from __future__ import annotations
 
 from typing import Mapping, Tuple
 
-# NOTE: importing CANON from ``opspec.types`` introduces a circular dependency
+# NOTE: importing CANON from ``ops.types`` introduces a circular dependency
 # because that module transitively imports this one via ``hook``. To keep the
 # constant values in sync without triggering the circular import at import time,
 # we inline the canonical verb tuple here. This tuple **must** match
-# ``autoapi.v3.opspec.types.CANON``.
+# ``autoapi.v3.ops.types.CANON``.
 CANON: Tuple[str, ...] = (
     "create",
     "read",
@@ -175,7 +175,7 @@ MODEL_LEVEL_CFGS: frozenset[str] = frozenset(
 )
 
 # Other internal attribute names
-AUTOAPI_CUSTOM_OP_ATTR = "__autoapi_custom_op__"  # marker for custom opspec
+AUTOAPI_CUSTOM_OP_ATTR = "__autoapi_custom_op__"  # marker for custom op
 HOOK_DECLS_ATTR = "__autoapi_hook_decls__"  # per-function hook declarations
 
 # ───────────────────────────────────────────────────────────────────────────────

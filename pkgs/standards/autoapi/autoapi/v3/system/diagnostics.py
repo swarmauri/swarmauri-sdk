@@ -55,7 +55,7 @@ except Exception:  # pragma: no cover
 
 
 from sqlalchemy import text
-from ..opspec.types import PHASES
+from ..ops.types import PHASES
 from ..runtime.kernel import build_phase_chains
 from ..runtime import events as _ev, plan as _plan, labels as _lbl
 

@@ -89,8 +89,8 @@ except Exception:  # pragma: no cover
 
 from pydantic import BaseModel, Field, create_model
 
-from ..opspec import OpSpec
-from ..opspec.types import PHASES
+from ..ops import OpSpec
+from ..ops.types import PHASES
 from ..runtime import executor as _executor  # expects _invoke(request, db, phases, ctx)
 
 # Prefer Kernel phase-chains if available

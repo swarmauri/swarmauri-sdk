@@ -1,4 +1,4 @@
-# autoapi/v3/opspec/collect.py
+# autoapi/v3/ops/collect.py
 from __future__ import annotations
 
 from dataclasses import replace
@@ -305,7 +305,7 @@ def resolve(model: type) -> List[OpSpec]:
     # Ensure all specs have table set to the model (defensive)
     specs = [_ensure_spec_table(sp, model) for sp in specs]
 
-    logger.debug("opspec.collect.resolve(%s): %d specs", model.__name__, len(specs))
+    logger.debug("ops.collect.resolve(%s): %d specs", model.__name__, len(specs))
     return specs
 
 

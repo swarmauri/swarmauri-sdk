@@ -1,5 +1,5 @@
 from autoapi.v3.orm.mixins import BulkCapable, Mergeable, Replaceable
-from autoapi.v3.opspec.canonical import should_wire_canonical
+from autoapi.v3.ops.canonical import should_wire_canonical
 
 NON_BULK_VERBS = {
     "create",

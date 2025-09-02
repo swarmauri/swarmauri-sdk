@@ -9,7 +9,7 @@ from autoapi.v3.orm.mixins import BulkCapable, GUIDPk, Replaceable
 from autoapi.v3.specs import IO, S, F, acol as spec_acol
 from autoapi.v3.orm.tables import Base
 from autoapi.v3.types import Session, String, uuid4
-from autoapi.v3.opspec import OpSpec
+from autoapi.v3.ops import OpSpec
 
 
 @pytest.fixture()

@@ -23,6 +23,6 @@ RESOURCES = [("key", Key), ("key_version", KeyVersion)]
 @pytest.mark.parametrize("resource, model", RESOURCES)
 @pytest.mark.parametrize("verb", sorted(DEFAULT_OPS))
 def test_default_op_registered(resource, model, verb):
-    specs = model.opspecs.by_alias.get(verb) or []
+    specs = model.ops.by_alias.get(verb) or []
     assert specs, f"{verb} not registered for {resource}"
     assert any(sp.target == verb for sp in specs)

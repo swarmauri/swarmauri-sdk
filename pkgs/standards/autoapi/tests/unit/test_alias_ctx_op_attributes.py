@@ -1,5 +1,5 @@
 from autoapi.v3 import alias_ctx, alias
-from autoapi.v3.opspec import resolve
+from autoapi.v3.ops import resolve
 
 
 def _spec_for(model: type, target: str):

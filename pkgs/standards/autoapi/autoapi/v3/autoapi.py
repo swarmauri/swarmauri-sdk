@@ -32,7 +32,7 @@ from .bindings.model import rebind as _rebind, bind as _bind
 from .bindings.rest import build_router_and_attach as _build_router_and_attach
 from .transport import mount_jsonrpc as _mount_jsonrpc
 from .system import mount_diagnostics as _mount_diagnostics
-from .opspec import get_registry, OpSpec
+from .ops import get_registry, OpSpec
 
 try:  # pragma: no cover - FastAPI optional
     from .types import Router  # type: ignore

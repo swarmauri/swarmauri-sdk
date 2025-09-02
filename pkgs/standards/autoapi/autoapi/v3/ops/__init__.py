@@ -1,6 +1,6 @@
-# autoapi/v3/opspec/__init__.py
+# autoapi/v3/ops/__init__.py
 """
-AutoAPI v3 – OpSpec package.
+AutoAPI v3 – Ops package.
 
 Public surface (re-exports):
 
@@ -18,7 +18,7 @@ Collection & Registry:
   - clear_registry(model)                 → None
 
 Decorators (moved):
-  The legacy decorators under `autoapi.v3.opspec.decorators` are no longer supported.
+  The legacy decorators under `autoapi.v3.ops.decorators` are no longer supported.
   Use the ctx-only decorators in `autoapi.v3.decorators` instead:
     • alias_ctx(...)
     • op_ctx(...)
