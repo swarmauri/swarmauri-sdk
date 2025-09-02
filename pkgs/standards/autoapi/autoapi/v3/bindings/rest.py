@@ -220,6 +220,11 @@ def _serialize_output(
     can JSON-encode the response.
     """
 
+    from ..types import Response as _Response  # local import to avoid cycles
+
+    if isinstance(result, _Response):
+        return result
+
     def _final(val: Any) -> Any:
         if target == "list" and isinstance(val, (list, tuple)):
             return [_ensure_jsonable(v) for v in val]

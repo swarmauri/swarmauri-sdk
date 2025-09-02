@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Optional, Sequence
 
 from ..engine.engine_spec import EngineCfg
+from ..response.types import ResponseSpec
 
 
 @dataclass
@@ -28,6 +29,9 @@ class AppSpec:
     # security/dep stacks (FastAPI dependencies or callables)
     security_deps: Sequence[Callable[..., Any]] = field(default_factory=tuple)
     deps: Sequence[Callable[..., Any]] = field(default_factory=tuple)
+
+    # response defaults
+    response: Optional[ResponseSpec] = None
 
     # system routing prefixes (REST/JSON-RPC namespaces)
     jsonrpc_prefix: str = "/rpc"

@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional, Sequence
 from ..engine.engine_spec import EngineCfg
+from ..response.types import ResponseSpec
 
 
 @dataclass
@@ -22,6 +23,8 @@ class APISpec:
     hooks: Sequence[Callable[..., Any]] = field(default_factory=tuple)
     security_deps: Sequence[Callable[..., Any]] = field(default_factory=tuple)
     deps: Sequence[Callable[..., Any]] = field(default_factory=tuple)
+
+    response: Optional[ResponseSpec] = None
 
     # optional: models this API exposes (auto-install)
     models: Sequence[Any] = field(default_factory=tuple)
