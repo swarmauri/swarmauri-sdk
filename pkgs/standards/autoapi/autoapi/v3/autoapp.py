@@ -37,6 +37,7 @@ from .bindings.rest import build_router_and_attach as _build_router_and_attach
 from .transport import mount_jsonrpc as _mount_jsonrpc
 from .system import mount_diagnostics as _mount_diagnostics
 from .ops import get_registry, OpSpec
+from .config.constants import AUTOAPI_GET_DB_ATTR
 
 
 # optional compat: legacy transactional decorator
@@ -75,6 +76,7 @@ class AutoApp(_App):
         self,
         *,
         engine: EngineCfg | None = None,
+        get_db: Callable[..., Any] | None = None,
         jsonrpc_prefix: str = "/rpc",
         system_prefix: str = "/system",
         api_hooks: Mapping[str, Iterable[Callable]]
@@ -92,6 +94,8 @@ class AutoApp(_App):
         if lifespan is not None:
             self.LIFESPAN = lifespan
         super().__init__(engine=engine, **fastapi_kwargs)
+        if get_db is not None:
+            setattr(self, AUTOAPI_GET_DB_ATTR, get_db)
         # capture initial routes so refreshes retain FastAPI defaults
         self._base_routes = list(self.router.routes)
         self.jsonrpc_prefix = jsonrpc_prefix
