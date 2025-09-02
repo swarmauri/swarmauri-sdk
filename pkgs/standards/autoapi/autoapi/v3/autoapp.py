@@ -197,10 +197,13 @@ class AutoApp(_App):
     def mount_jsonrpc(self, *, prefix: str | None = None) -> Any:
         """Mount JSON-RPC router onto this app."""
         px = prefix if prefix is not None else self.jsonrpc_prefix
+        prov = _resolver.resolve_provider(api=self)
+        get_db = prov.get_db if prov else None
         router = _mount_jsonrpc(
             self,
             self,
             prefix=px,
+            get_db=get_db,
         )
         self._base_routes = list(self.router.routes)
         return router
@@ -208,7 +211,9 @@ class AutoApp(_App):
     def attach_diagnostics(self, *, prefix: str | None = None) -> Any:
         """Mount diagnostics router onto this app."""
         px = prefix if prefix is not None else self.system_prefix
-        router = _mount_diagnostics(self)
+        prov = _resolver.resolve_provider(api=self)
+        get_db = prov.get_db if prov else None
+        router = _mount_diagnostics(self, get_db=get_db)
         if hasattr(self, "include_router"):
             self.include_router(router, prefix=px)
         self._base_routes = list(self.router.routes)
