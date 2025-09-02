@@ -62,13 +62,12 @@ async def test_make_column_only_rest_rpc(use_mapped):
     try:
         with SessionLocal() as db:
             created = await api.rpc_call(Thing, "create", {"name": "x"}, db=db)
-            db_obj = db.get(Thing, created["id"])
-            assert db_obj.name == "x"
+            db_read = await api.core.Thing.read({"id": created["id"]}, db=db)
             rpc_read = await api.rpc_call(Thing, "read", {"id": created["id"]}, db=db)
         resp = client.get(f"/{Thing.__name__.lower()}/{created['id']}")
         assert resp.status_code == 200
         rest_data = resp.json()
-        assert rest_data == rpc_read == {"id": created["id"], "name": "x"}
+        assert db_read == rpc_read == rest_data == {"id": created["id"], "name": "x"}
     finally:
         engine.dispose()
 
@@ -107,14 +106,12 @@ async def test_make_virtual_column_only_rest_rpc(use_mapped):
     try:
         with SessionLocal() as db:
             created = await api.rpc_call(Thing, "create", {}, db=db)
-            db_obj = db.get(Thing, created["id"])
-            assert db_obj.code is None
+            db_read = await api.core.Thing.read({"id": created["id"]}, db=db)
             rpc_read = await api.rpc_call(Thing, "read", {"id": created["id"]}, db=db)
         resp = client.get(f"/{Thing.__name__.lower()}/{created['id']}")
         assert resp.status_code == 200
         rest_data = resp.json()
-        assert rpc_read == {"id": created["id"], "code": None}
-        assert rest_data == {"id": created["id"], "code": None}
+        assert db_read == rpc_read == rest_data == {"id": created["id"], "code": None}
     finally:
         engine.dispose()
 
@@ -144,13 +141,12 @@ async def test_make_column_with_alias_rest_rpc(use_mapped):
     try:
         with SessionLocal() as db:
             created = await api.rpc_call(Thing, "create", {"name": "y"}, db=db)
-            db_obj = db.get(Thing, created["id"])
-            assert db_obj.name == "y"
+            db_read = await api.core.Thing.fetch({"id": created["id"]}, db=db)
             rpc_read = await api.rpc_call(Thing, "fetch", {"id": created["id"]}, db=db)
         resp = client.get(f"/{Thing.__name__.lower()}/{created['id']}")
         assert resp.status_code == 200
         rest_data = resp.json()
-        assert rest_data == rpc_read == {"id": created["id"], "name": "y"}
+        assert db_read == rpc_read == rest_data == {"id": created["id"], "name": "y"}
     finally:
         engine.dispose()
 
@@ -190,14 +186,12 @@ async def test_make_virtual_column_with_aliases_rest_rpc(use_mapped):
     try:
         with SessionLocal() as db:
             created = await api.rpc_call(Thing, "register", {}, db=db)
-            db_obj = db.get(Thing, created["id"])
-            assert db_obj.code is None
+            db_read = await api.core.Thing.fetch({"id": created["id"]}, db=db)
             rpc_read = await api.rpc_call(Thing, "fetch", {"id": created["id"]}, db=db)
         resp = client.get(f"/{Thing.__name__.lower()}/{created['id']}")
         assert resp.status_code == 200
         rest_data = resp.json()
-        assert rpc_read == {"id": created["id"], "code": None}
-        assert rest_data == {"id": created["id"], "code": None}
+        assert db_read == rpc_read == rest_data == {"id": created["id"], "code": None}
     finally:
         engine.dispose()
 
@@ -238,15 +232,21 @@ async def test_make_column_and_virtual_rest_rpc(use_mapped):
     try:
         with SessionLocal() as db:
             created = await api.rpc_call(Thing, "create", {"name": "Ada"}, db=db)
-            db_obj = db.get(Thing, created["id"])
-            assert db_obj.name == "Ada"
-            assert db_obj.upper is None
+            db_read = await api.core.Thing.read({"id": created["id"]}, db=db)
             rpc_read = await api.rpc_call(Thing, "read", {"id": created["id"]}, db=db)
         resp = client.get(f"/{Thing.__name__.lower()}/{created['id']}")
         assert resp.status_code == 200
         rest_data = resp.json()
-        assert rpc_read == {"id": created["id"], "name": "Ada", "upper": None}
-        assert rest_data == {"id": created["id"], "name": "Ada", "upper": None}
+        assert (
+            db_read
+            == rpc_read
+            == rest_data
+            == {
+                "id": created["id"],
+                "name": "Ada",
+                "upper": None,
+            }
+        )
     finally:
         engine.dispose()
 
@@ -288,14 +288,20 @@ async def test_make_column_and_virtual_with_alias_rest_rpc(use_mapped):
     try:
         with SessionLocal() as db:
             created = await api.rpc_call(Thing, "register", {"name": "Bob"}, db=db)
-            db_obj = db.get(Thing, created["id"])
-            assert db_obj.name == "Bob"
-            assert db_obj.upper is None
+            db_read = await api.core.Thing.fetch({"id": created["id"]}, db=db)
             rpc_read = await api.rpc_call(Thing, "fetch", {"id": created["id"]}, db=db)
         resp = client.get(f"/{Thing.__name__.lower()}/{created['id']}")
         assert resp.status_code == 200
         rest_data = resp.json()
-        assert rpc_read == {"id": created["id"], "name": "Bob", "upper": None}
-        assert rest_data == {"id": created["id"], "name": "Bob", "upper": None}
+        assert (
+            db_read
+            == rpc_read
+            == rest_data
+            == {
+                "id": created["id"],
+                "name": "Bob",
+                "upper": None,
+            }
+        )
     finally:
         engine.dispose()
