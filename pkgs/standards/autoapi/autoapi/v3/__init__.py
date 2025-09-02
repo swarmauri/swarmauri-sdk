@@ -42,6 +42,8 @@ from .schema.types import SchemaRef, SchemaArg
 from .decorators import alias_ctx, op_ctx, alias, op_alias, engine_ctx
 from .hook.decorators import hook_ctx
 from .schema.decorators import schema_ctx
+from .response.decorators import response_ctx
+from .response.types import ResponseSpec
 
 # ── Bindings (model + API orchestration) ───────────────────────────────────────
 from .bindings import (
@@ -101,9 +103,11 @@ __all__ += [
     "op_ctx",
     "hook_ctx",
     "schema_ctx",
+    "response_ctx",
     "alias",
     "op_alias",
     "engine_ctx",
+    "ResponseSpec",
     # Bindings
     "bind",
     "rebind",
