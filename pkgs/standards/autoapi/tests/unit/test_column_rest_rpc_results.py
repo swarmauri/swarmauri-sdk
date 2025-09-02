@@ -4,40 +4,23 @@ from fastapi.testclient import TestClient
 from autoapi.v3 import AutoAPI, alias_ctx
 from autoapi.v3.column import F, IO, S, makeColumn, makeVirtualColumn
 from autoapi.v3.orm.tables import Base
-from autoapi.v3.types import (
-    App,
-    Integer,
-    Mapped,
-    StaticPool,
-    String,
-    create_engine,
-    sessionmaker,
-)
+from autoapi.v3.types import App, Integer, Mapped, String
+from autoapi.v3.engine.shortcuts import mem
 
 
 # Helper to bootstrap API and test client for a model
 
 
 def _setup_api(model):
-    engine = create_engine(
-        "sqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
-
-    def get_db():
-        with SessionLocal() as session:
-            yield session
-
-    api = AutoAPI(get_db=get_db)
+    api = AutoAPI(engine=mem(async_=False))
     api.include_model(model)
     api.initialize_sync()
 
+    _, SessionLocal = api.engine.raw()
     app = App()
     app.include_router(api)
     client = TestClient(app)
-    return api, client, SessionLocal, engine
+    return api, client, SessionLocal
 
 
 @pytest.mark.parametrize("use_mapped", [True, False])
@@ -60,18 +43,15 @@ async def test_make_column_only_rest_rpc(use_mapped):
             )
             name = makeColumn(storage=S(type_=String, nullable=False))
 
-    api, client, SessionLocal, engine = _setup_api(Thing)
-    try:
-        with SessionLocal() as db:
-            created = await api.rpc_call(Thing, "create", {"name": "x"}, db=db)
-            db_read = await api.core.Thing.read({"id": created["id"]}, db=db)
-            rpc_read = await api.rpc_call(Thing, "read", {"id": created["id"]}, db=db)
-        resp = client.get(f"/{Thing.__name__.lower()}/{created['id']}")
-        assert resp.status_code == 200
-        rest_data = resp.json()
-        assert db_read == rpc_read == rest_data == {"id": created["id"], "name": "x"}
-    finally:
-        engine.dispose()
+    api, client, SessionLocal = _setup_api(Thing)
+    with SessionLocal() as db:
+        created = await api.rpc_call(Thing, "create", {"name": "x"}, db=db)
+        db_read = await api.core.Thing.read({"id": created["id"]}, db=db)
+        rpc_read = await api.rpc_call(Thing, "read", {"id": created["id"]}, db=db)
+    resp = client.get(f"/{Thing.__name__.lower()}/{created['id']}")
+    assert resp.status_code == 200
+    rest_data = resp.json()
+    assert db_read == rpc_read == rest_data == {"id": created["id"], "name": "x"}
 
 
 @pytest.mark.parametrize("use_mapped", [True, False])
@@ -104,18 +84,15 @@ async def test_make_virtual_column_only_rest_rpc(use_mapped):
                 nullable=True,
             )
 
-    api, client, SessionLocal, engine = _setup_api(Thing)
-    try:
-        with SessionLocal() as db:
-            created = await api.rpc_call(Thing, "create", {}, db=db)
-            db_read = await api.core.Thing.read({"id": created["id"]}, db=db)
-            rpc_read = await api.rpc_call(Thing, "read", {"id": created["id"]}, db=db)
-        resp = client.get(f"/{Thing.__name__.lower()}/{created['id']}")
-        assert resp.status_code == 200
-        rest_data = resp.json()
-        assert db_read == rpc_read == rest_data == {"id": created["id"], "code": None}
-    finally:
-        engine.dispose()
+    api, client, SessionLocal = _setup_api(Thing)
+    with SessionLocal() as db:
+        created = await api.rpc_call(Thing, "create", {}, db=db)
+        db_read = await api.core.Thing.read({"id": created["id"]}, db=db)
+        rpc_read = await api.rpc_call(Thing, "read", {"id": created["id"]}, db=db)
+    resp = client.get(f"/{Thing.__name__.lower()}/{created['id']}")
+    assert resp.status_code == 200
+    rest_data = resp.json()
+    assert db_read == rpc_read == rest_data == {"id": created["id"], "code": None}
 
 
 @pytest.mark.parametrize("use_mapped", [True, False])

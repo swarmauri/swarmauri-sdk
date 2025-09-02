@@ -4,31 +4,19 @@ import pytest
 import pytest_asyncio
 from autoapi.v3.types import App
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
-
 from autoapi.v3.autoapp import AutoApp
 from autoapi.v3.orm.tables import Base
 from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.specs import acol, F, IO, S
 from autoapi.v3.types import String
 from autoapi.v3.runtime.atoms.schema import collect_in
+from autoapi.v3.engine.shortcuts import mem
 
 
 @pytest_asyncio.fixture
 async def fs_app():
     Base.metadata.clear()
-    engine = create_engine(
-        "sqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
-
-    def get_db():
-        with SessionLocal() as session:
-            yield session
+    api = AutoApp(engine=mem(async_=False))
 
     class FSItem(Base, GUIDPk):
         __tablename__ = "fs_items"
@@ -42,13 +30,13 @@ async def fs_app():
             io=IO(in_verbs=("create", "update"), out_verbs=("read",)),
         )
 
-    Base.metadata.create_all(engine)
-    app = App()
-    api = AutoApp(get_db=get_db)
     api.include_model(FSItem)
+    api.initialize_sync()
+    app = App()
     app.include_router(api.router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
+    _, SessionLocal = api.engine.raw()
     try:
         yield client, api, SessionLocal, FSItem
     finally:

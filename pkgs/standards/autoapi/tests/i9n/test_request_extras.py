@@ -3,18 +3,12 @@ import pytest_asyncio
 from autoapi.v3.types import App
 from httpx import ASGITransport, AsyncClient
 from pydantic import Field
-from sqlalchemy import Column, String, create_engine
-from sqlalchemy.ext.asyncio import (
-    AsyncSession,
-    async_sessionmaker,
-    create_async_engine,
-)
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
+from sqlalchemy import Column, String
 from uuid import uuid4
 
 from autoapi.v3 import AutoApp, Base
 from autoapi.v3.schema import _build_schema
+from autoapi.v3.engine.shortcuts import mem
 
 
 @pytest_asyncio.fixture()
@@ -32,31 +26,11 @@ async def api_client_with_extras(db_mode):
         }
 
     if db_mode == "async":
-        engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=False)
-        AsyncSessionLocal = async_sessionmaker(
-            bind=engine, class_=AsyncSession, expire_on_commit=False
-        )
-
-        async def get_db() -> AsyncSession:
-            async with AsyncSessionLocal() as session:
-                yield session
-
-        api = AutoApp(get_db=get_db)
+        api = AutoApp(engine=mem())
         api.include_model(Widget)
         await api.initialize_async()
     else:
-        engine = create_engine(
-            "sqlite:///:memory:",
-            connect_args={"check_same_thread": False},
-            poolclass=StaticPool,
-        )
-        SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
-
-        def get_sync_db() -> Session:
-            with SessionLocal() as session:
-                yield session
-
-        api = AutoApp(get_db=get_sync_db)
+        api = AutoApp(engine=mem(async_=False))
         api.include_model(Widget)
         api.initialize_sync()
 

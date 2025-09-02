@@ -10,7 +10,9 @@ Exposes a small router with:
 
 Usage:
     from autoapi.v3.system.diagnostics import mount_diagnostics
-    app.include_router(mount_diagnostics(api, get_db=get_db), prefix="/system")
+    app.include_router(
+        mount_diagnostics(api, get_db=engine.get_db), prefix="/system"
+    )
 """
 
 from __future__ import annotations

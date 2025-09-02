@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import copy
 from types import SimpleNamespace
+import asyncio
 from typing import (
     Any,
     Callable,
@@ -13,7 +14,6 @@ from typing import (
     Sequence,
     Tuple,
 )
-import inspect
 
 from .app._app import App as _App
 from .engine.engine_spec import EngineCfg
@@ -207,7 +207,7 @@ class AutoApp(_App):
     def attach_diagnostics(self, *, prefix: str | None = None) -> Any:
         """Mount diagnostics router onto this app."""
         px = prefix if prefix is not None else self.system_prefix
-        router = _mount_diagnostics(self)
+        router = _mount_diagnostics(self, get_db=self.engine.get_db)
         if hasattr(self, "include_router"):
             self.include_router(router, prefix=px)
         self._base_routes = list(self.router.routes)
@@ -346,10 +346,11 @@ class AutoApp(_App):
         prov = _resolver.resolve_provider()
         if prov is None:
             raise ValueError("Engine provider is not configured")
-        with next(prov.get_db()) as db:
-            bind = db.get_bind()  # Connection or Engine
+
+        engine, _ = prov.ensure()
+        with engine.begin() as conn:
             self._create_all_on_bind(
-                bind,
+                conn,
                 schemas=schemas,
                 sqlite_attachments=sqlite_attachments,
                 tables=tables,
@@ -365,41 +366,29 @@ class AutoApp(_App):
         if prov is None:
             raise ValueError("Engine provider is not configured")
 
-        if inspect.isasyncgenfunction(prov.get_db):
-            async for adb in prov.get_db():  # AsyncSession
-
-                def _sync_bootstrap(arg):
-                    bind = arg.get_bind() if hasattr(arg, "get_bind") else arg
-                    self._create_all_on_bind(
-                        bind,
+        engine, _ = prov.ensure()
+        if prov.kind == "async":
+            async with engine.begin() as conn:
+                await conn.run_sync(
+                    lambda sync_conn: self._create_all_on_bind(
+                        sync_conn,
                         schemas=schemas,
                         sqlite_attachments=sqlite_attachments,
                         tables=tables,
                     )
-
-                await adb.run_sync(_sync_bootstrap)
-                break
+                )
         else:
-            gen = prov.get_db()
-            adb = next(gen)
 
-            try:
-
-                def _sync_bootstrap(arg):
-                    bind = arg.get_bind() if hasattr(arg, "get_bind") else arg
+            def _sync_run():
+                with engine.begin() as conn:
                     self._create_all_on_bind(
-                        bind,
+                        conn,
                         schemas=schemas,
                         sqlite_attachments=sqlite_attachments,
                         tables=tables,
                     )
 
-                await adb.run_sync(_sync_bootstrap)
-            finally:
-                try:
-                    next(gen)
-                except StopIteration:
-                    pass
+            await asyncio.to_thread(_sync_run)
         self._ddl_executed = True
 
     # ------------------------- repr -------------------------

@@ -3,14 +3,12 @@ import pytest_asyncio
 from typing import Iterator
 from autoapi.v3.types import App
 from httpx import AsyncClient, ASGITransport
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 
 from autoapi.v3.autoapp import AutoApp
 from autoapi.v3.orm.tables import Base
 from autoapi.v3.orm.mixins import GUIDPk, BulkCapable, Replaceable
-from autoapi.v3.types import Column, Session, String
+from autoapi.v3.types import Column, String
+from autoapi.v3.engine.shortcuts import mem
 
 pytestmark = pytest.mark.skip("bulk rest endpoints require revision")
 
@@ -24,21 +22,10 @@ async def v3_client() -> Iterator[tuple[AsyncClient, type]]:
         name = Column(String, nullable=False)
         description = Column(String, nullable=True)
 
-    engine = create_engine(
-        "sqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    Base.metadata.create_all(engine)
-    SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
-
-    def get_db() -> Iterator[Session]:
-        with SessionLocal() as session:
-            yield session
-
     app = App()
-    api = AutoApp(get_db=get_db)
+    api = AutoApp(engine=mem(async_=False))
     api.include_model(Widget)
+    api.initialize_sync()
     app.include_router(api.router)
 
     client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")

@@ -6,15 +6,16 @@ from autoapi.v3 import AutoApp, op_ctx, schema_ctx, hook_ctx
 from autoapi.v3.orm.tables import Base
 from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.runtime.kernel import build_phase_chains
+from autoapi.v3.engine.shortcuts import mem
 
 
-# helper to set up AutoAPI with sync DB from fixture
+# helper to set up AutoAPI with sync DB
 
 
-def setup_api(model_cls, get_db):
+def setup_api(model_cls, get_db=None):
     Base.metadata.clear()
     app = App()
-    api = AutoApp(get_db=get_db)
+    api = AutoApp(engine=mem(async_=False))
     api.include_model(model_cls, prefix="")
     api.initialize_sync()
     app.include_router(api.router)

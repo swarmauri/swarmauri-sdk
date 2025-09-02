@@ -360,7 +360,7 @@ async def test_validity_window_mixin(create_test_api):
 @pytest.mark.asyncio
 async def test_validity_window_default(create_test_api):
     api = create_test_api(DummyModelValidityWindow)
-    session = next(api.get_db())
+    session = api.engine.provider.session()
     try:
         vf_default = tzutcnow()
         vt_default = tzutcnow_plus_day()

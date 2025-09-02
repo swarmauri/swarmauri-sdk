@@ -1,9 +1,7 @@
 import pytest
 from autoapi.v3.types import App
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import create_engine, func, select
-from sqlalchemy.pool import StaticPool
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import func, select
 from uuid import uuid4
 
 from autoapi.v3.autoapp import AutoApp
@@ -11,6 +9,7 @@ from autoapi.v3.types import Column, String
 from autoapi.v3.orm.tables import Base
 from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.decorators import hook_ctx
+from autoapi.v3.engine.shortcuts import mem
 
 
 # ---------------------------------------------------------------------------
@@ -20,26 +19,16 @@ from autoapi.v3.decorators import hook_ctx
 
 def create_client(model_cls):
     """Build a FastAPI app with AutoAPI v3 and return an AsyncClient."""
-    engine = create_engine(
-        "sqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
-
-    def get_db():
-        with SessionLocal() as session:
-            yield session
-
     app = App()
-    api = AutoApp(get_db=get_db)
+    api = AutoApp(engine=mem(async_=False))
     api.include_model(model_cls)
     api.mount_jsonrpc()
     api.attach_diagnostics()
-    Base.metadata.create_all(engine)
+    api.initialize_sync()
     app.include_router(api.router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
+    _, SessionLocal = api.engine.raw()
     return client, api, SessionLocal
 
 

@@ -28,7 +28,7 @@ def sync_api():
     api = AutoApp(engine=mem(async_=False))
     api.include_model(CoreTestUser)
     api.initialize_sync()
-    return api, api.get_db
+    return api, api.engine.get_db
 
 
 @pytest_asyncio.fixture
@@ -38,7 +38,7 @@ async def async_api():
     api = AutoApp(engine=mem())
     api.include_model(CoreTestUser)
     await api.initialize_async()
-    return api, api.get_db
+    return api, api.engine.get_db
 
 
 def test_api_exposes_core_proxies(sync_api):
