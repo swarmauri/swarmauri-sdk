@@ -30,11 +30,13 @@ def _setup_api(model):
         with SessionLocal() as session:
             yield session
 
-    api = AutoAPI(app=App(), get_db=get_db)
+    api = AutoAPI(get_db=get_db)
     api.include_model(model)
     api.initialize_sync()
 
-    client = TestClient(api.app)
+    app = App()
+    app.include_router(api)
+    client = TestClient(app)
     return api, client, SessionLocal, engine
 
 
