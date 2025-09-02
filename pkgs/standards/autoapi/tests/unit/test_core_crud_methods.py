@@ -4,9 +4,10 @@ from typing import Any, Mapping
 
 import pytest
 from autoapi.v3.core import crud
+from autoapi.v3.engine.shortcuts import engine, mem
 from autoapi.v3.specs import IO, S, F, acol
-from autoapi.v3.types import Column, Integer, SAEnum, Session, SimpleNamespace, String
-from sqlalchemy import create_engine, select
+from autoapi.v3.types import Column, Integer, SAEnum, SimpleNamespace, String
+from sqlalchemy import select
 from sqlalchemy.orm import declarative_base
 
 
@@ -66,9 +67,10 @@ class EnumModel(Base):
 
 @pytest.fixture()
 def session():
-    engine = create_engine("sqlite:///:memory:")
-    Base.metadata.create_all(engine)
-    with Session(engine) as s:
+    eng = engine(mem(async_=False))
+    raw_engine, maker = eng.raw()
+    Base.metadata.create_all(raw_engine)
+    with maker() as s:
         yield s
 
 

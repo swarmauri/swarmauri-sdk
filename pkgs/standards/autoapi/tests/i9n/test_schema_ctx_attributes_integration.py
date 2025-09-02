@@ -2,12 +2,13 @@ import pytest
 import pytest_asyncio
 
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from autoapi.v3.types import App, BaseModel, Column, Integer, String
 
 from autoapi.v3 import AutoApp, Base, schema_ctx
 from autoapi.v3.core import crud
+from autoapi.v3.engine.shortcuts import mem
+from autoapi.v3.engine import resolver as _resolver
 
 
 @pytest_asyncio.fixture
@@ -30,23 +31,15 @@ async def schema_ctx_client():
             name: str
             age: int
 
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    sessionmaker = async_sessionmaker(
-        bind=engine, class_=AsyncSession, expire_on_commit=False
-    )
-
-    async def get_db():
-        async with sessionmaker() as session:
-            yield session
-
+    cfg = mem()
     app = App()
-    api = AutoApp(get_db=get_db)
+    api = AutoApp(engine=cfg)
     api.include_model(Widget, prefix="")
     api.mount_jsonrpc()
     api.attach_diagnostics()
     await api.initialize_async()
+    prov = _resolver.resolve_provider()
+    _, sessionmaker = prov.ensure()
     app.include_router(api.router)
 
     client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")

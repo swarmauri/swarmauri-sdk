@@ -1,7 +1,6 @@
 import pytest
 import pytest_asyncio
 from autoapi.v3 import AutoApp, Base
-from autoapi.v3.engine import resolver as _resolver
 from autoapi.v3.engine.shortcuts import mem
 from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.types import App
@@ -40,8 +39,7 @@ async def three_level_api_client(db_mode):
     if db_mode == "async":
         pytest.skip("async database mode is currently unsupported")
     else:
-        _resolver.set_default(mem(async_=False))
-        api = AutoApp()
+        api = AutoApp(engine=mem(async_=False))
         api.include_models([Company, Department, Employee])
         api.initialize_sync()
 
