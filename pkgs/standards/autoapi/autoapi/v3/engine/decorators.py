@@ -31,19 +31,27 @@ def _normalize(ctx: Optional[EngineCfg] = None, **kw: Any) -> EngineCfg:
             )
         return str(dsn)
 
-    m: dict[str, Any] = {
-        "kind": kind,
-        "async": bool(kw.get("async_", kw.get("async", False))),
-    }
+    async_kw = kw.get("async_")
+    if async_kw is None:
+        async_kw = kw.get("async")
+
+    m: dict[str, Any] = {"kind": kind}
 
     if kind == "sqlite":
+        path = kw.get("path")
+        mode = kw.get("mode")
+        memory_flag = kw.get("memory")
         # memory modes: mode="memory" OR memory=True OR no path supplied
-        if kw.get("mode") == "memory" or kw.get("memory") or not kw.get("path"):
+        memory = (mode == "memory") or memory_flag or not path
+        async_default = True if async_kw is None and memory else False
+        m["async"] = bool(async_kw) if async_kw is not None else async_default
+        if memory:
             m["mode"] = "memory"
         else:
-            m["path"] = kw.get("path")
+            m["path"] = path
 
     elif kind == "postgres":
+        m["async"] = bool(async_kw) if async_kw is not None else False
         for k in ("user", "pwd", "host", "port", "db", "pool_size", "max"):
             if k in kw:
                 m[k] = kw[k]
