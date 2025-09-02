@@ -2,7 +2,7 @@
 """
 AutoAPI v3 – System/Diagnostics helpers.
 
-- mount_diagnostics(api, *, get_db=None) -> Router
+- mount_diagnostics(api, *, engine=None, prov=None) -> Router
 """
 
 from __future__ import annotations

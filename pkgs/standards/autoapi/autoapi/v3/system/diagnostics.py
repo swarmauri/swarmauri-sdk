@@ -10,7 +10,7 @@ Exposes a small router with:
 
 Usage:
     from autoapi.v3.system.diagnostics import mount_diagnostics
-    app.include_router(mount_diagnostics(api, get_db=get_db), prefix="/system")
+    app.include_router(mount_diagnostics(api, engine=my_engine), prefix="/system")
 """
 
 from __future__ import annotations
@@ -353,7 +353,8 @@ def _build_planz_endpoint(api: Any):
 def mount_diagnostics(
     api: Any,
     *,
-    get_db: Optional[Callable[..., Any]] = None,
+    engine: Any | None = None,
+    prov: Any | None = None,
 ) -> Router:
     """
     Create & return a Router that exposes:
@@ -364,7 +365,7 @@ def mount_diagnostics(
     """
     router = Router()
 
-    dep = get_db
+    dep = getattr(prov or engine, "get_db", None)
 
     router.add_api_route(
         "/healthz",

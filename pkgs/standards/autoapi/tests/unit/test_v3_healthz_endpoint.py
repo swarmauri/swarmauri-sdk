@@ -22,12 +22,11 @@ class DummyDB:
 async def test_healthz_endpoint_select_case_fallback():
     db = DummyDB()
 
-    def get_db():
-        return db
+    prov = SimpleNamespace(get_db=lambda: db)
 
     api = SimpleNamespace(models={})
     app = App()
-    app.include_router(mount_diagnostics(api, get_db=get_db), prefix="/system")
+    app.include_router(mount_diagnostics(api, prov=prov), prefix="/system")
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"

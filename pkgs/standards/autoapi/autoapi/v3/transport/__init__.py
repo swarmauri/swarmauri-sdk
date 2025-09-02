@@ -12,8 +12,8 @@ Quick usage:
 
     # JSON-RPC
     app.include_router(build_jsonrpc_router(api), prefix="/rpc")
-    # or supply a DB dependency from an Engine or Provider:
-    mount_jsonrpc(api, app, prefix="/rpc", get_db=my_engine.get_db)
+    # or supply an Engine or Provider for DB access:
+    mount_jsonrpc(api, app, prefix="/rpc", engine=my_engine)
 
     # REST (aggregate all model routers under one prefix)
     # after you include models with mount_router=False
@@ -24,7 +24,7 @@ Quick usage:
 
 from __future__ import annotations
 
-from typing import Any, Callable, Optional, Sequence
+from typing import Any, Sequence
 
 # JSON-RPC transport
 from .jsonrpc import build_jsonrpc_router
@@ -38,7 +38,8 @@ def mount_jsonrpc(
     app: Any,
     *,
     prefix: str = "/rpc",
-    get_db: Optional[Callable[..., Any]] = None,
+    engine: Any | None = None,
+    prov: Any | None = None,
     tags: Sequence[str] | None = ("rpc",),
 ):
     """
@@ -55,7 +56,8 @@ def mount_jsonrpc(
     """
     router = build_jsonrpc_router(
         api,
-        get_db=get_db,
+        engine=engine,
+        prov=prov,
         tags=tags,
     )
     include_router = getattr(app, "include_router", None)
