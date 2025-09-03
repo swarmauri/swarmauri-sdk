@@ -43,7 +43,7 @@ def test_key_rotate_creates_new_version(client_app):
     assert res.content == b""
 
     async def fetch_primary_version():
-        async with app.AsyncSessionLocal() as session:
+        async with app.SessionLocal() as session:
             result = await session.execute(
                 select(Key.primary_version).where(Key.id == UUID(str(key["id"])))
             )
@@ -52,7 +52,7 @@ def test_key_rotate_creates_new_version(client_app):
     assert asyncio.run(fetch_primary_version()) == 2
 
     async def fetch_versions():
-        async with app.AsyncSessionLocal() as session:
+        async with app.SessionLocal() as session:
             result = await session.execute(
                 select(KeyVersion.version).where(
                     KeyVersion.key_id == UUID(str(key["id"]))
