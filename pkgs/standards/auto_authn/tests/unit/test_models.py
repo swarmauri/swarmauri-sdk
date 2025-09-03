@@ -175,6 +175,18 @@ class TestServiceKeyModel:
         expected_digest = ServiceKey.digest_of(raw_key)
         assert service_key.digest == expected_digest
 
+    def test_service_key_schema_uses_service_id(self):
+        """Ensure ServiceKey API schema uses service_id and not user_id."""
+        from auto_authn.routers.surface import surface_api
+
+        create_fields = surface_api.schemas.ServiceKey.create.in_.model_fields
+        read_fields = surface_api.schemas.ServiceKey.read.out.model_fields
+
+        assert "service_id" in create_fields
+        assert "user_id" not in create_fields
+        assert "service_id" in read_fields
+        assert "user_id" not in read_fields
+
 
 @pytest.mark.unit
 class TestModelIntegration:
