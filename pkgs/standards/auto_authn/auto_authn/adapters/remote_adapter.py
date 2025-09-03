@@ -2,13 +2,15 @@
 from __future__ import annotations
 
 import time
-import warnings
+
 from typing import Final
 
 import httpx
 from fastapi import HTTPException, Request, Security, status
 from fastapi.security import APIKeyHeader
 
+from autoapi.v3.config import __autoapi_auth_context__
+from autoapi.v3.config.constants import CTX_TENANT_ID_KEY, CTX_USER_ID_KEY
 from autoapi.v3.types.authn_abc import AuthNProvider
 from ..principal_ctx import principal_var
 
@@ -84,6 +86,16 @@ class RemoteAuthNAdapter(AuthNProvider):
 
         request.state.principal = principal
         principal_var.set(principal)
+
+        auth_ctx = dict(principal)
+        tid = principal.get("tid")
+        sub = principal.get("sub")
+        if tid is not None:
+            auth_ctx.setdefault(CTX_TENANT_ID_KEY, tid)
+        if sub is not None:
+            auth_ctx.setdefault(CTX_USER_ID_KEY, sub)
+        setattr(request.state, __autoapi_auth_context__, auth_ctx)
+
         return principal
 
     async def get_principal_optional(  # optional: header may be absent
@@ -99,6 +111,7 @@ class RemoteAuthNAdapter(AuthNProvider):
         """
         if not api_key:
             request.state.principal = None
+            setattr(request.state, __autoapi_auth_context__, None)
             principal_var.set(None)
             return None
 
@@ -108,28 +121,24 @@ class RemoteAuthNAdapter(AuthNProvider):
             if principal is None:
                 # For optional auth we do not raise; return None to allow anon flows.
                 request.state.principal = None
+                setattr(request.state, __autoapi_auth_context__, None)
                 principal_var.set(None)
                 return None
             self._cache_put(api_key, principal)
 
         request.state.principal = principal
         principal_var.set(principal)
-        return principal
 
-    # ------------------------------------------------------------------ #
-    # Deprecated PRE_TX injection hook (no-op)                            #
-    # ------------------------------------------------------------------ #
-    def register_inject_hook(self, api) -> None:  # noqa: D401
-        """
-        Deprecated: PRE_TX principal injection is no longer used.
-        Security dependencies now inject principal and OpenAPI scheme.
-        """
-        warnings.warn(
-            "RemoteAuthNAdapter.register_inject_hook is deprecated and a no-op. "
-            "Use the Security-based dependencies instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
+        auth_ctx = dict(principal)
+        tid = principal.get("tid")
+        sub = principal.get("sub")
+        if tid is not None:
+            auth_ctx.setdefault(CTX_TENANT_ID_KEY, tid)
+        if sub is not None:
+            auth_ctx.setdefault(CTX_USER_ID_KEY, sub)
+        setattr(request.state, __autoapi_auth_context__, auth_ctx)
+
+        return principal
 
     # ------------------------------------------------------------------ #
     # internal helpers                                                    #

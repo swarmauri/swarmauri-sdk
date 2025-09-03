@@ -36,7 +36,13 @@ except Exception:  # pragma: no cover
     _trace = None  # type: ignore
 
 from .errors import create_standardized_error
-from ..config.constants import CTX_SKIP_PERSIST_FLAG
+from ..config.constants import (
+    CTX_AUTH_KEY,
+    CTX_SKIP_PERSIST_FLAG,
+    CTX_TENANT_ID_KEY,
+    CTX_USER_ID_KEY,
+)
+from ..config import __autoapi_auth_context__
 
 logger = logging.getLogger(__name__)
 
@@ -82,11 +88,28 @@ class _Ctx(dict):
         if request is not None:
             ctx.request = request
             state = getattr(request, "state", None)
-            if state is not None and getattr(state, "ctx", None) is None:
-                try:
-                    state.ctx = ctx  # make ctx available to deps
-                except Exception:  # pragma: no cover
-                    pass
+            if state is not None:
+                if getattr(state, "ctx", None) is None:
+                    try:
+                        state.ctx = ctx  # make ctx available to deps
+                    except Exception:  # pragma: no cover
+                        pass
+
+                auth_ctx = getattr(state, __autoapi_auth_context__, None)
+                if auth_ctx is not None:
+                    if isinstance(auth_ctx, Mapping):
+                        auth_ctx = dict(auth_ctx)
+                        uid = auth_ctx.get(CTX_USER_ID_KEY) or auth_ctx.get("sub")
+                        tid = auth_ctx.get(CTX_TENANT_ID_KEY) or auth_ctx.get("tid")
+                        if uid is not None:
+                            auth_ctx.setdefault(CTX_USER_ID_KEY, uid)
+                            if CTX_USER_ID_KEY not in ctx:
+                                ctx[CTX_USER_ID_KEY] = uid
+                        if tid is not None:
+                            auth_ctx.setdefault(CTX_TENANT_ID_KEY, tid)
+                            if CTX_TENANT_ID_KEY not in ctx:
+                                ctx[CTX_TENANT_ID_KEY] = tid
+                    ctx[CTX_AUTH_KEY] = auth_ctx
         if db is not None:
             ctx.db = db
         # Ensure temp scratch exists for atoms/system steps/hooks

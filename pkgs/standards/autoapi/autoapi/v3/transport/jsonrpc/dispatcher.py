@@ -75,6 +75,7 @@ except Exception:  # pragma: no cover
             self.detail = detail
 
 
+from autoapi.v3.config import __autoapi_auth_context__
 from ...runtime.errors import ERROR_MESSAGES, http_exc_to_rpc
 from .models import RPCRequest, RPCResponse
 
@@ -129,7 +130,14 @@ def _model_for(api: Any, name: str) -> Optional[type]:
 
 
 def _user_from_request(request: Request) -> Any | None:
-    return getattr(request.state, "user", None)
+    state = getattr(request, "state", None)
+    if state is None:
+        return None
+    return (
+        getattr(state, "user", None)
+        or getattr(state, __autoapi_auth_context__, None)
+        or getattr(state, "principal", None)
+    )
 
 
 def _select_auth_dep(api: Any):

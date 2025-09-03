@@ -178,7 +178,11 @@ class OwnerBound:
 
     @classmethod
     def filter_for_ctx(cls, q, ctx):
-        auto_fields = ctx.get(CTX_AUTH_KEY, {})
+        auto_fields = (
+            ctx.get(CTX_AUTH_KEY, {})
+            if isinstance(ctx, dict)
+            else getattr(ctx, CTX_AUTH_KEY, {})
+        )
         return q.filter(cls.owner_id == auto_fields.get(CTX_USER_ID_KEY))
 
 
@@ -196,7 +200,11 @@ class UserBound:  # membership rows
 
     @classmethod
     def filter_for_ctx(cls, q, ctx):
-        auto_fields = ctx.get(CTX_AUTH_KEY, {})
+        auto_fields = (
+            ctx.get(CTX_AUTH_KEY, {})
+            if isinstance(ctx, dict)
+            else getattr(ctx, CTX_AUTH_KEY, {})
+        )
         return q.filter(cls.user_id == auto_fields.get(CTX_USER_ID_KEY))
 
 

@@ -1,4 +1,4 @@
-from autoapi.v3.types import HTTPException, Request, Security
+from fastapi import HTTPException, Request, Security
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.testclient import TestClient
 from autoapi.v3.engine.shortcuts import mem
@@ -6,13 +6,12 @@ from uuid import uuid4
 
 from autoapi.v3 import AutoApp, Base
 from autoapi.v3.orm.mixins import GUIDPk
+from autoapi.v3.config import __autoapi_auth_context__
 from autoapi.v3.types.authn_abc import AuthNProvider
-
-AUTH_CONTEXT_KEY = "auth_context"
 
 
 class HookedAuth(AuthNProvider):
-    """Simple AuthN provider that records context via a hook."""
+    """Simple AuthN provider that records context via API hooks."""
 
     def __init__(self) -> None:
         self.ctx_principal: dict | None = None
@@ -25,19 +24,8 @@ class HookedAuth(AuthNProvider):
         if creds.credentials != "secret":
             raise HTTPException(status_code=401)
         principal = {"sub": "user", "tid": "tenant"}
-        request.state.auth_context = principal
+        setattr(request.state, __autoapi_auth_context__, principal)
         return principal
-
-    def register_inject_hook(self, api) -> None:  # pragma: no cover - runtime wiring
-        async def _capture(ctx):  # pragma: no cover - executed in tests
-            ctx[AUTH_CONTEXT_KEY] = getattr(
-                ctx.get("request").state, AUTH_CONTEXT_KEY, None
-            )
-            self.ctx_principal = ctx.get(AUTH_CONTEXT_KEY)
-
-        hooks = getattr(api, "_api_hooks_map", {}) or {}
-        hooks.setdefault("PRE_HANDLER", []).append(_capture)
-        api._api_hooks_map = hooks
 
 
 def _build_client_with_auth():
@@ -47,9 +35,12 @@ def _build_client_with_auth():
         __tablename__ = "tenants"
 
     auth = HookedAuth()
-    api = AutoApp(engine=mem(async_=False))
+
+    async def _capture(ctx):
+        auth.ctx_principal = ctx.get("auth")
+
+    api = AutoApp(engine=mem(async_=False), api_hooks={"PRE_HANDLER": [_capture]})
     api.set_auth(authn=auth.get_principal)
-    auth.register_inject_hook(api)
     api.include_model(Tenant)
     api.initialize()
     return TestClient(api), auth
@@ -63,7 +54,12 @@ def test_authn_hooks_and_context_injection():
         "/tenant", json=payload, headers={"Authorization": "Bearer secret"}
     )
     assert res.status_code == 201
-    assert auth.ctx_principal == {"sub": "user", "tid": "tenant"}
+    assert auth.ctx_principal == {
+        "sub": "user",
+        "tid": "tenant",
+        "user_id": "user",
+        "tenant_id": "tenant",
+    }
 
 
 def test_authn_unauthorized_errors():

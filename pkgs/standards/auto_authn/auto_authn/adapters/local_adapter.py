@@ -16,8 +16,9 @@ from __future__ import annotations
 
 from fastapi import Request
 
+from autoapi.v3.config import __autoapi_auth_context__
+from autoapi.v3.config.constants import CTX_TENANT_ID_KEY, CTX_USER_ID_KEY
 from autoapi.v3.types.authn_abc import AuthNProvider
-from ..hooks import register_inject_hook  # injects tenant_id / owner_id
 from ..fastapi_deps import get_principal
 from ..principal_ctx import principal_var  # noqa: F401  # ensure ContextVar is initialised
 
@@ -34,26 +35,27 @@ class LocalAuthNAdapter(AuthNProvider):
     async def get_principal(self, request: Request) -> dict:  # noqa: D401
         """
         Delegate to ``auto_authn.fastapi_deps.get_principal`` and forward
-        whatever dict it returns.
+        whatever dict it returns while storing an auth context on
+        ``request.state`` for AutoAPI.
 
         Raises
         ------
         fastapi.HTTPException(401)
             If the API‑key / bearer token is invalid or expired.
         """
-        return await get_principal(request)  # type: ignore[arg-type]
+        principal: dict = await get_principal(request)  # type: ignore[arg-type]
 
-    # ------------------------------------------------------------------ #
-    # Hook registration (mandatory)                                      #
-    # ------------------------------------------------------------------ #
-    def register_inject_hook(self, api) -> None:  # noqa: D401
-        """
-        Forward to ``auto_authn.hooks.register_inject_hook`` so that
-        tenant / owner fields are injected during *Phase.PRE_TX_BEGIN*.
+        # Normalise and expose an auth context for AutoAPI
+        auth_ctx = dict(principal)
+        tid = principal.get("tid")
+        sub = principal.get("sub")
+        if tid is not None:
+            auth_ctx.setdefault(CTX_TENANT_ID_KEY, tid)
+        if sub is not None:
+            auth_ctx.setdefault(CTX_USER_ID_KEY, sub)
+        setattr(request.state, __autoapi_auth_context__, auth_ctx)
 
-        The helper is idempotent; calling it twice is safe.
-        """
-        register_inject_hook(api)
+        return principal
 
 
 __all__ = ["LocalAuthNAdapter"]
