@@ -55,6 +55,16 @@ def _iter_op_decorators(model: Any) -> Dict[Tuple[Any, str], Mapping[str, Any]]:
     return out
 
 
+def _iter_declared_ops(model: Any) -> Dict[Tuple[Any, str], Mapping[str, Any]]:
+    out: Dict[Tuple[Any, str], Mapping[str, Any]] = {}
+    for spec in getattr(model, "__autoapi_ops__", ()) or ():
+        eng = getattr(spec, "engine", None)
+        alias = getattr(spec, "alias", None)
+        if eng is not None and alias:
+            out[(model, alias)] = {"engine": eng}
+    return out
+
+
 def collect_from_objects(
     *, app: Any | None = None, api: Any | None = None, models: Iterable[Any] = ()
 ) -> Dict[str, Any]:
@@ -79,6 +89,8 @@ def collect_from_objects(
             tables[m] = t_engine
 
         for (model, alias), ocfg in _iter_op_decorators(m).items():
+            ops[(model, alias)] = ocfg.get("engine")
+        for (model, alias), ocfg in _iter_declared_ops(m).items():
             ops[(model, alias)] = ocfg.get("engine")
 
     api_map = {api: api_engine} if api_engine is not None and api is not None else {}

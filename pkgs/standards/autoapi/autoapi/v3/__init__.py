@@ -78,12 +78,13 @@ from .autoapp import AutoApp
 from .autoapi import AutoAPI
 
 from .table import Base
+from .op import Op
 from .types import App
 
 
 __all__: list[str] = []
 
-__all__ += ["AutoApp", "AutoAPI", "Base", "App"]
+__all__ += ["AutoApp", "AutoAPI", "Base", "App", "Op"]
 
 __all__ += [
     # OpSpec core
