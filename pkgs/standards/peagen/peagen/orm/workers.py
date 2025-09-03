@@ -18,6 +18,8 @@ from autoapi.v3.column.storage_spec import ForeignKeySpec
 from autoapi.v3 import hook_ctx
 from peagen.defaults import DEFAULT_POOL_ID, WORKER_KEY, WORKER_TTL
 
+from sqlalchemy import select, func
+
 from .pools import Pool
 
 
@@ -104,9 +106,11 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
         ip = cls._client_ip(ctx["request"])
 
         def _get_policy_and_count(session):
-            pool = session.get(Pool, pool_id)
-            count = session.query(cls).filter(cls.pool_id == pool_id).count()
-            return (pool.policy if pool else {}, count)
+            pool_policy = session.scalar(select(Pool.policy).where(Pool.id == pool_id))
+            count = session.scalar(
+                select(func.count()).select_from(cls).where(cls.pool_id == pool_id)
+            )
+            return pool_policy, count
 
         policy, count = await ctx["db"].run_sync(_get_policy_and_count)
         cls._check_pool_policy(policy or {}, ip, count)
@@ -230,9 +234,11 @@ class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
         ip = cls._client_ip(ctx["request"])
 
         def _get_policy_and_count(session):
-            pool = session.get(Pool, pool_id)
-            count = session.query(cls).filter(cls.pool_id == pool_id).count()
-            return (pool.policy if pool else {}, count)
+            pool_policy = session.scalar(select(Pool.policy).where(Pool.id == pool_id))
+            count = session.scalar(
+                select(func.count()).select_from(cls).where(cls.pool_id == pool_id)
+            )
+            return pool_policy, count
 
         policy, count = await ctx["db"].run_sync(_get_policy_and_count)
         cls._check_pool_policy(policy or {}, ip, count)

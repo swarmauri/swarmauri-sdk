@@ -105,8 +105,7 @@ class HybridSession(AsyncSession):
     # ---- DDL helper used at AutoAPI bootstrap --------------------------
     async def run_sync(self, fn, *a, **kw):
         try:
-            async with self.bind.begin() as conn:
-                return await conn.run_sync(fn, *a, **kw)
+            return await super().run_sync(fn, *a, **kw)
         except (OSError, SQLAlchemyError) as exc:
             url = getattr(self.bind, "url", "unknown")
             await self.bind.dispose()
