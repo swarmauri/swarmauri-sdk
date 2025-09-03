@@ -1,4 +1,6 @@
 # mixins_generic.py ───── all mix-ins live here
+from __future__ import annotations
+
 import datetime as dt
 from decimal import Decimal
 
