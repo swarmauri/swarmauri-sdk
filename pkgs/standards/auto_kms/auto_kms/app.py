@@ -9,8 +9,13 @@ from swarmauri_standard.key_providers import InMemoryKeyProvider
 
 import os
 
-DB_URL = os.getenv("KMS_DATABASE_URL", "sqlite+aiosqlite:///./kms.db")
-ENGINE = build_engine(DB_URL)
+DB_URL = os.getenv("KMS_DATABASE_URL")
+if DB_URL:
+    CFG = DB_URL
+else:
+    CFG = "sqlite+aiosqlite:///./kms.db"
+
+ENGINE = build_engine(CFG)
 
 
 # API-level hooks (v3): stash shared services into ctx before any handler runs

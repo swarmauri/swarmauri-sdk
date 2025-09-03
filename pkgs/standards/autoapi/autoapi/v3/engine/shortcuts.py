@@ -55,17 +55,21 @@ def engine_spec(
 
             elif kind == "postgres":
                 async_ = bool(async_kw) if async_kw is not None else False
-                spec = {
-                    "kind": "postgres",
-                    "async": async_,
-                    "user": kw.get("user", "app"),
-                    "pwd": kw.get("pwd", "secret"),
-                    "host": kw.get("host", "localhost"),
-                    "port": kw.get("port", 5432),
-                    "db": kw.get("name", kw.get("db", "app_db")),
-                    "pool_size": kw.get("pool_size", 10),
-                    "max": kw.get("max", 20),
-                }
+                spec = {"kind": "postgres", "async": async_}
+                if "user" in kw:
+                    spec["user"] = kw["user"]
+                if "pwd" in kw:
+                    spec["pwd"] = kw["pwd"]
+                if "host" in kw:
+                    spec["host"] = kw["host"]
+                if "port" in kw:
+                    spec["port"] = kw["port"]
+                if "name" in kw or "db" in kw:
+                    spec["db"] = kw.get("name", kw.get("db"))
+                if "pool_size" in kw:
+                    spec["pool_size"] = kw["pool_size"]
+                if "max" in kw:
+                    spec["max"] = kw["max"]
             else:
                 raise ValueError("kind must be 'sqlite' or 'postgres'")
 

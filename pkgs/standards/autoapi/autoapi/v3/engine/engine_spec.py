@@ -4,6 +4,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional, Mapping, Union, Any, Tuple
 
+from sqlalchemy.engine.url import make_url
+
 from ._engine import Engine, Provider, SessionFactory
 from .builders import (
     async_postgres_engine,
@@ -55,11 +57,11 @@ class EngineSpec:
     memory: bool = False
 
     # postgres
-    user: str = "app"
-    pwd: str = "secret"
-    host: str = "localhost"
-    port: int = 5432
-    name: str = "app_db"
+    user: Optional[str] = None
+    pwd: Optional[str] = None
+    host: Optional[str] = None
+    port: Optional[int] = None
+    name: Optional[str] = None
     pool_size: int = 10
     max: int = 20  # max_overflow (sync) or max_size (async)
 
@@ -107,12 +109,20 @@ class EngineSpec:
                 return EngineSpec(
                     kind="sqlite", async_=False, path=s.split(":///")[1], dsn=s
                 )
-            # postgres async
-            if s.startswith("postgresql+asyncpg://"):
-                return EngineSpec(kind="postgres", async_=True, dsn=s)
-            # postgres sync
-            if s.startswith("postgresql://"):
-                return EngineSpec(kind="postgres", async_=False, dsn=s)
+            # postgres async/sync
+            if s.startswith("postgresql+asyncpg://") or s.startswith("postgresql://"):
+                async_ = s.startswith("postgresql+asyncpg://")
+                url = make_url(s)
+                return EngineSpec(
+                    kind="postgres",
+                    async_=async_,
+                    user=url.username,
+                    pwd=url.password,
+                    host=url.host,
+                    port=url.port,
+                    name=url.database,
+                    dsn=s,
+                )
             raise ValueError(f"Unsupported DSN: {s}")
 
         # Mapping
@@ -133,7 +143,9 @@ class EngineSpec:
                     return str(m[k])  # type: ignore[index]
             return default
 
-        def _get_int(key: str, *aliases: str, default: int) -> int:
+        def _get_int(
+            key: str, *aliases: str, default: Optional[int] = None
+        ) -> Optional[int]:
             for k in (key, *aliases):
                 if k in m and m[k] is not None:
                     return int(m[k])  # type: ignore[index]
@@ -162,13 +174,13 @@ class EngineSpec:
             return EngineSpec(
                 kind="postgres",
                 async_=async_,
-                user=_get_str("user", default="app") or "app",
-                pwd=_get_str("pwd", "password", default="secret") or "secret",
-                host=_get_str("host", default="localhost") or "localhost",
-                port=_get_int("port", default=5432),
-                name=_get_str("db", "name", default="app_db") or "app_db",
-                pool_size=_get_int("pool_size", default=10),
-                max=_get_int("max", "max_overflow", "max_size", default=20),
+                user=_get_str("user"),
+                pwd=_get_str("pwd", "password"),
+                host=_get_str("host"),
+                port=_get_int("port"),
+                name=_get_str("db", "name"),
+                pool_size=_get_int("pool_size", default=10) or 10,
+                max=_get_int("max", "max_overflow", "max_size", default=20) or 20,
                 mapping=m,
             )
 
@@ -190,22 +202,27 @@ class EngineSpec:
             return blocking_sqlite_engine(path=self.path)
 
         if self.kind == "postgres":
+            user = self.user or "app"
+            pwd = self.pwd or "secret"
+            host = self.host or "localhost"
+            port = self.port or 5432
+            name = self.name or "app_db"
             if self.async_:
                 return async_postgres_engine(
-                    user=self.user,
-                    pwd=self.pwd,
-                    host=self.host,
-                    port=self.port,
-                    db=self.name,
+                    user=user,
+                    pwd=pwd,
+                    host=host,
+                    port=port,
+                    db=name,
                     pool_size=self.pool_size,
                     max_size=self.max,
                 )
             return blocking_postgres_engine(
-                user=self.user,
-                pwd=self.pwd,
-                host=self.host,
-                port=self.port,
-                db=self.name,
+                user=user,
+                pwd=pwd,
+                host=host,
+                port=port,
+                db=name,
                 pool_size=self.pool_size,
                 max_overflow=self.max,
             )
