@@ -18,14 +18,14 @@ Both helpers are **framework-thin**: they translate `AuthError` raised by
 from __future__ import annotations
 
 from fastapi import Depends, Header, HTTPException, Request, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from autoapi.v3.engine import HybridSession as AsyncSession
 
 from .backends import (
     ApiKeyBackend,
     AuthError,
     PasswordBackend,
 )  # PasswordBackend not used here, but re-exported for completeness
-from .db import get_async_db
+from .db import get_db
 from .jwtoken import JWTCoder, InvalidTokenError
 from .orm import User
 from .principal_ctx import principal_var
@@ -74,7 +74,7 @@ async def get_principal(  # <-- AutoAPI calls this
     authorization: str = Header("", alias="Authorization"),
     api_key: str | None = Header(None, alias="x-api-key"),
     dpop: str | None = Header(None, alias="DPoP"),
-    db: AsyncSession = Depends(get_async_db),
+    db: AsyncSession = Depends(get_db),
 ) -> dict:
     """
     Return a lightweight principal dict that AutoAPI understands:
@@ -101,7 +101,7 @@ async def get_current_principal(  # type: ignore[override]
     authorization: str = Header("", alias="Authorization"),
     api_key: str | None = Header(None, alias="x-api-key"),
     dpop: str | None = Header(None, alias="DPoP"),
-    db: AsyncSession = Depends(get_async_db),
+    db: AsyncSession = Depends(get_db),
 ) -> Principal:
     """
     Resolve the request principal via **exactly one** of:

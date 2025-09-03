@@ -11,7 +11,7 @@ import pytest
 from fastapi import Depends, FastAPI, status
 from httpx import ASGITransport, AsyncClient
 
-from auto_authn.fastapi_deps import get_current_principal, get_async_db
+from auto_authn.fastapi_deps import get_current_principal, get_db
 from auto_authn.runtime_cfg import settings
 
 
@@ -43,7 +43,7 @@ async def test_lowercase_bearer_scheme():
         return {"ok": True}
 
     mock_db = AsyncMock()
-    app.dependency_overrides[get_async_db] = lambda: mock_db
+    app.dependency_overrides[get_db] = lambda: mock_db
 
     mock_user = MagicMock()
     with patch(
@@ -68,7 +68,7 @@ async def test_rfc6750_disabled_rejects_header():
         return {"ok": True}
 
     mock_db = AsyncMock()
-    app.dependency_overrides[get_async_db] = lambda: mock_db
+    app.dependency_overrides[get_db] = lambda: mock_db
 
     with patch.object(settings, "enable_rfc6750", False):
         transport = ASGITransport(app=app)
@@ -90,7 +90,7 @@ async def test_access_token_query_parameter_enabled():
         return {"ok": True}
 
     mock_db = AsyncMock()
-    app.dependency_overrides[get_async_db] = lambda: mock_db
+    app.dependency_overrides[get_db] = lambda: mock_db
 
     mock_user = MagicMock()
     with patch.object(settings, "enable_rfc6750_query", True):
@@ -117,7 +117,7 @@ async def test_access_token_query_parameter_disabled():
         return {"ok": True}
 
     mock_db = AsyncMock()
-    app.dependency_overrides[get_async_db] = lambda: mock_db
+    app.dependency_overrides[get_db] = lambda: mock_db
 
     with patch.object(settings, "enable_rfc6750_query", False):
         transport = ASGITransport(app=app)
@@ -137,7 +137,7 @@ async def test_access_token_form_body_enabled():
         return {"ok": True}
 
     mock_db = AsyncMock()
-    app.dependency_overrides[get_async_db] = lambda: mock_db
+    app.dependency_overrides[get_db] = lambda: mock_db
 
     mock_user = MagicMock()
     with patch.object(settings, "enable_rfc6750_form", True):
@@ -168,7 +168,7 @@ async def test_access_token_form_body_disabled():
         return {"ok": True}
 
     mock_db = AsyncMock()
-    app.dependency_overrides[get_async_db] = lambda: mock_db
+    app.dependency_overrides[get_db] = lambda: mock_db
 
     with patch.object(settings, "enable_rfc6750_form", False):
         transport = ASGITransport(app=app)

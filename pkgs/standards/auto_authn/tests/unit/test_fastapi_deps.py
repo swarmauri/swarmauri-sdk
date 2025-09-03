@@ -30,11 +30,11 @@ class TestDatabaseDependency:
 
     def test_database_dependency_import(self):
         """Test that database dependency can be imported correctly."""
-        from auto_authn.fastapi_deps import get_async_db
-        from auto_authn.db import get_async_db as db_get_async_db
+        from auto_authn.fastapi_deps import get_db
+        from auto_authn.db import get_db as db_get_db
 
         # Verify they're the same function
-        assert get_async_db is db_get_async_db
+        assert get_db is db_get_db
 
     def test_database_session_mock_behavior(self):
         """Test that we can mock database session behavior for testing."""
