@@ -10,11 +10,11 @@ from fastapi import HTTPException
 from ...specs import acol, F, IO, S
 from ...types import (
     String,
-    HookProvider,
     Field,
     ResponseExtrasProvider,
     Mapped,
 )
+from ... import hook_ctx
 from ._base import Base
 from ..mixins import (
     GUIDPk,
@@ -31,7 +31,6 @@ class ApiKey(
     Created,
     LastUsed,
     ValidityWindow,
-    HookProvider,
     ResponseExtrasProvider,
 ):
     __tablename__ = "api_keys"
@@ -68,7 +67,7 @@ class ApiKey(
     # ------------------------------------------------------------------
     # Hooks
     # ------------------------------------------------------------------
-    @classmethod
+    @hook_ctx(ops="create", phase="PRE_TX_BEGIN")
     async def _pre_create_generate(cls, ctx):
         params = ctx["env"].params
         raw = token_urlsafe(32)
@@ -85,7 +84,7 @@ class ApiKey(
         ctx["env"].params = params
         ctx["raw_api_key"] = raw
 
-    @classmethod
+    @hook_ctx(ops="create", phase="POST_RESPONSE")
     async def _post_response_inject(cls, ctx):
         raw = ctx.pop("raw_api_key", None)
         if not raw:
@@ -100,13 +99,3 @@ class ApiKey(
         result = {k: v for k, v in result.items() if v is not None}
         result["api_key"] = raw
         ctx["response"].result = result
-
-    @classmethod
-    def __autoapi_register_hooks__(cls, api) -> None:
-        model = cls.__name__
-        api.register_hook("PRE_TX_BEGIN", model=model, op="create")(
-            cls._pre_create_generate
-        )
-        api.register_hook("POST_RESPONSE", model=model, op="create")(
-            cls._post_response_inject
-        )

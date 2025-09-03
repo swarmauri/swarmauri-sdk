@@ -11,7 +11,6 @@ from autoapi.v3.types import (
     PgUUID,
     Integer,
     relationship,
-    HookProvider,
     Mapped,
 )
 from autoapi.v3.orm.mixins import (
@@ -56,7 +55,6 @@ class Task(
     Ownable,
     RepositoryRefMixin,
     StatusColumn,
-    HookProvider,
 ):
     __tablename__ = "tasks"
     __table_args__ = ({"schema": "peagen"},)

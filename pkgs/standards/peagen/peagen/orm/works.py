@@ -6,7 +6,6 @@ from autoapi.v3.types import (
     PgUUID,
     Integer,
     relationship,
-    HookProvider,
     Mapped,
 )
 from autoapi.v3.orm.mixins import GUIDPk, Timestamped, StatusColumn
@@ -21,7 +20,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from .eval_result import EvalResult
 
 
-class Work(Base, GUIDPk, Timestamped, StatusColumn, HookProvider):
+class Work(Base, GUIDPk, Timestamped, StatusColumn):
     __tablename__ = "works"
     __table_args__ = ({"schema": "peagen"},)
     task_id: Mapped[PgUUID] = acol(
