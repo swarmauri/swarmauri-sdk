@@ -55,11 +55,11 @@ class EngineSpec:
     memory: bool = False
 
     # postgres
-    user: str = "app"
-    pwd: str = "secret"
-    host: str = "localhost"
-    port: int = 5432
-    name: str = "app_db"
+    user: Optional[str] = None
+    pwd: Optional[str] = None
+    host: Optional[str] = None
+    port: Optional[int] = None
+    name: Optional[str] = None
     pool_size: int = 10
     max: int = 20  # max_overflow (sync) or max_size (async)
 
@@ -133,7 +133,9 @@ class EngineSpec:
                     return str(m[k])  # type: ignore[index]
             return default
 
-        def _get_int(key: str, *aliases: str, default: int) -> int:
+        def _get_int(
+            key: str, *aliases: str, default: Optional[int] = None
+        ) -> Optional[int]:
             for k in (key, *aliases):
                 if k in m and m[k] is not None:
                     return int(m[k])  # type: ignore[index]
@@ -162,13 +164,13 @@ class EngineSpec:
             return EngineSpec(
                 kind="postgres",
                 async_=async_,
-                user=_get_str("user", default="app") or "app",
-                pwd=_get_str("pwd", "password", default="secret") or "secret",
-                host=_get_str("host", default="localhost") or "localhost",
-                port=_get_int("port", default=5432),
-                name=_get_str("db", "name", default="app_db") or "app_db",
-                pool_size=_get_int("pool_size", default=10),
-                max=_get_int("max", "max_overflow", "max_size", default=20),
+                user=_get_str("user"),
+                pwd=_get_str("pwd", "password"),
+                host=_get_str("host"),
+                port=_get_int("port"),
+                name=_get_str("db", "name"),
+                pool_size=_get_int("pool_size", default=10) or 10,
+                max=_get_int("max", "max_overflow", "max_size", default=20) or 20,
                 mapping=m,
             )
 
@@ -190,25 +192,39 @@ class EngineSpec:
             return blocking_sqlite_engine(path=self.path)
 
         if self.kind == "postgres":
-            if self.async_:
-                return async_postgres_engine(
-                    user=self.user,
-                    pwd=self.pwd,
-                    host=self.host,
-                    port=self.port,
-                    db=self.name,
+            if self.dsn:
+                if self.async_:
+                    return async_postgres_engine(
+                        dsn=self.dsn,
+                        pool_size=self.pool_size,
+                        max_size=self.max,
+                    )
+                return blocking_postgres_engine(
+                    dsn=self.dsn,
                     pool_size=self.pool_size,
-                    max_size=self.max,
+                    max_overflow=self.max,
                 )
-            return blocking_postgres_engine(
-                user=self.user,
-                pwd=self.pwd,
-                host=self.host,
-                port=self.port,
-                db=self.name,
-                pool_size=self.pool_size,
-                max_overflow=self.max,
-            )
+
+            kwargs = {
+                "pool_size": self.pool_size,
+            }
+            if self.async_:
+                kwargs["max_size"] = self.max
+            else:
+                kwargs["max_overflow"] = self.max
+            if self.user is not None:
+                kwargs["user"] = self.user
+            if self.pwd is not None:
+                kwargs["pwd"] = self.pwd
+            if self.host is not None:
+                kwargs["host"] = self.host
+            if self.port is not None:
+                kwargs["port"] = self.port
+            if self.name is not None:
+                kwargs["db"] = self.name
+            if self.async_:
+                return async_postgres_engine(**kwargs)
+            return blocking_postgres_engine(**kwargs)
 
         raise ValueError("EngineSpec has no kind")
 

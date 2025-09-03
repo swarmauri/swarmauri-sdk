@@ -40,6 +40,7 @@ def blocking_sqlite_engine(path: str | None = None):
 # 3. BLOCKING  •  PostgreSQL  (psycopg2)
 # ---------------------------------------------------------------------
 def blocking_postgres_engine(
+    dsn: str | None = None,
     user: str = "app",
     pwd: str | None = None,
     host: str = "localhost",
@@ -48,12 +49,15 @@ def blocking_postgres_engine(
     pool_size: int = 10,
     max_overflow: int = 20,
 ):
-    user = os.getenv("PGUSER", user)
-    pwd = os.getenv("PGPASSWORD", pwd or "secret")
-    host = os.getenv("PGHOST", host)
-    port = int(os.getenv("PGPORT", port))
-    db = os.getenv("PGDATABASE", db)
-    url = f"postgresql+psycopg2://{user}:{pwd}@{host}:{port}/{db}"
+    if dsn:
+        url = dsn
+    else:
+        user = os.getenv("PGUSER", user)
+        pwd = os.getenv("PGPASSWORD", pwd or "secret")
+        host = os.getenv("PGHOST", host)
+        port = int(os.getenv("PGPORT", port))
+        db = os.getenv("PGDATABASE", db)
+        url = f"postgresql+psycopg2://{user}:{pwd}@{host}:{port}/{db}"
     eng = create_engine(
         url,
         pool_size=pool_size,
@@ -134,6 +138,7 @@ def async_sqlite_engine(path: str | None = None):
 # 4. ASYNC  •  PostgreSQL  (asyncpg)
 # ----------------------------------------------------------------------
 def async_postgres_engine(
+    dsn: str | None = None,
     user: str = "app",
     pwd: str | None = None,
     host: str = "localhost",
@@ -142,12 +147,15 @@ def async_postgres_engine(
     pool_size: int = 10,
     max_size: int = 20,
 ):
-    user = os.getenv("PGUSER", user)
-    pwd = os.getenv("PGPASSWORD", pwd or "secret")
-    host = os.getenv("PGHOST", host)
-    port = int(os.getenv("PGPORT", port))
-    db = os.getenv("PGDATABASE", db)
-    url = f"postgresql+asyncpg://{user}:{pwd}@{host}:{port}/{db}"
+    if dsn:
+        url = dsn
+    else:
+        user = os.getenv("PGUSER", user)
+        pwd = os.getenv("PGPASSWORD", pwd or "secret")
+        host = os.getenv("PGHOST", host)
+        port = int(os.getenv("PGPORT", port))
+        db = os.getenv("PGDATABASE", db)
+        url = f"postgresql+asyncpg://{user}:{pwd}@{host}:{port}/{db}"
     eng = create_async_engine(
         url,
         pool_size=pool_size,
