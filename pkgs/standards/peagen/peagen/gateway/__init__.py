@@ -108,7 +108,7 @@ async def _shadow_principal(ctx):
 
         exists = False
         try:
-            api.methods.User.read(UReadIn(id=uid), db=s)
+            app.methods.User.read(UReadIn(id=uid), db=s)
             exists = True
             log.info("shadow_principal: user exists uid=%s", uid)
         except Exception as exc:
@@ -119,12 +119,12 @@ async def _shadow_principal(ctx):
         if exists:
             upd = UUpdateIn(id=uid, tenant_id=tid, username=username, is_active=True)
             log.info("shadow_principal: updating uid=%s", uid)
-            return api.methods.User.update(upd, db=s)
+            return app.methods.User.update(upd, db=s)
 
         try:
             cre = UCreateIn(id=uid, tenant_id=tid, username=username, is_active=True)
             log.info("shadow_principal: creating uid=%s", uid)
-            return api.methods.User.create(cre, db=s)
+            return app.methods.User.create(cre, db=s)
         except Exception as exc:
             if _is_duplicate(exc):
                 if s.in_transaction():
@@ -133,7 +133,7 @@ async def _shadow_principal(ctx):
                 upd = UUpdateIn(
                     id=uid, tenant_id=tid, username=username, is_active=True
                 )
-                return api.methods.User.update(upd, db=s)
+                return app.methods.User.update(upd, db=s)
             raise
 
     try:
@@ -161,8 +161,6 @@ app = AutoApp(
     engine=ENGINE,
     api_hooks={"PRE_TX_BEGIN": [_shadow_principal]},
 )
-api = app
-
 authn_adapter = RemoteAuthNAdapter(
     base_url=settings.authn_base_url,
     timeout=settings.authn_timeout,
@@ -170,12 +168,12 @@ authn_adapter = RemoteAuthNAdapter(
     cache_size=settings.authn_cache_size,
 )
 
-api.set_auth(
+app.set_auth(
     authn=authn_adapter.get_principal,
     optional_authn_dep=authn_adapter.get_principal_optional,
     allow_anon=False,
 )
-api.include_models(
+app.include_models(
     [
         Tenant,
         User,
@@ -197,8 +195,8 @@ api.include_models(
     ]
 )
 
-api.mount_jsonrpc(prefix="/rpc")
-api.attach_diagnostics(prefix="/system")
+app.mount_jsonrpc(prefix="/rpc")
+app.attach_diagnostics(prefix="/system")
 
 app.include_router(ws_router)
 
@@ -307,7 +305,7 @@ async def _startup() -> None:
     log.info("gateway startup …")
 
     # 1 – metadata validation / SQLite convenience mode
-    await api.initialize()
+    await app.initialize()
 
     # 2 – run Alembic first so the ORM never creates tables implicitly
     eng, _ = ENGINE.raw()
@@ -326,11 +324,11 @@ async def _startup() -> None:
     asyncio.create_task(_backlog_scanner())
     global READY
     READY = True
-    log.info(api.router)
-    log.info(api.rpc)
-    log.info(api.models)
-    log.info(api.schemas)
-    log.info(api._allow_anon)
+    log.info(app.router)
+    log.info(app.rpc)
+    log.info(app.models)
+    log.info(app.schemas)
+    log.info(app._allow_anon)
 
     log.info("gateway ready")
 
