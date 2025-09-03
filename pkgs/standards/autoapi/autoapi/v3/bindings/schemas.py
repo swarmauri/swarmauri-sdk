@@ -116,6 +116,10 @@ def _resolve_schema_arg(model: type, arg: SchemaArg) -> Optional[Type[BaseModel]
     if isinstance(arg, str) and arg.strip().lower() == "raw":
         return None
 
+    # direct Pydantic model
+    if isinstance(arg, type) and issubclass(arg, BaseModel):
+        return arg
+
     # SchemaRef
     if isinstance(arg, SchemaRef):
         if arg.kind not in ("in", "out"):
