@@ -2,6 +2,7 @@
 
 import os
 from sqlalchemy import create_engine
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.pool import StaticPool  # only for SQLite
 from sqlalchemy.orm import sessionmaker
 
@@ -40,13 +41,18 @@ def blocking_sqlite_engine(path: str | None = None):
 # ---------------------------------------------------------------------
 def blocking_postgres_engine(
     user: str = "app",
-    pwd: str = os.getenv("PGPASSWORD", "secret"),
+    pwd: str | None = None,
     host: str = "localhost",
     port: int = 5432,
     db: str = "app_db",
     pool_size: int = 10,
     max_overflow: int = 20,
 ):
+    user = os.getenv("PGUSER", user)
+    pwd = os.getenv("PGPASSWORD", pwd or "secret")
+    host = os.getenv("PGHOST", host)
+    port = int(os.getenv("PGPORT", port))
+    db = os.getenv("PGDATABASE", db)
     url = f"postgresql+psycopg2://{user}:{pwd}@{host}:{port}/{db}"
     eng = create_engine(
         url,
@@ -94,8 +100,16 @@ class HybridSession(AsyncSession):
 
     # ---- DDL helper used at AutoAPI bootstrap --------------------------
     async def run_sync(self, fn, *a, **kw):
-        async with self.bind.begin() as conn:
-            return await conn.run_sync(fn, *a, **kw)
+        try:
+            async with self.bind.begin() as conn:
+                return await conn.run_sync(fn, *a, **kw)
+        except (OSError, SQLAlchemyError) as exc:
+            url = getattr(self.bind, "url", "unknown")
+            await self.bind.dispose()
+            raise RuntimeError(
+                f"Failed to connect to database at '{url}'. "
+                "Ensure the database is reachable and credentials are correct."
+            ) from exc
 
 
 # ----------------------------------------------------------------------
@@ -121,13 +135,18 @@ def async_sqlite_engine(path: str | None = None):
 # ----------------------------------------------------------------------
 def async_postgres_engine(
     user: str = "app",
-    pwd: str = os.getenv("PGPASSWORD", "secret"),
+    pwd: str | None = None,
     host: str = "localhost",
     port: int = 5432,
     db: str = "app_db",
     pool_size: int = 10,
     max_size: int = 20,
 ):
+    user = os.getenv("PGUSER", user)
+    pwd = os.getenv("PGPASSWORD", pwd or "secret")
+    host = os.getenv("PGHOST", host)
+    port = int(os.getenv("PGPORT", port))
+    db = os.getenv("PGDATABASE", db)
     url = f"postgresql+asyncpg://{user}:{pwd}@{host}:{port}/{db}"
     eng = create_async_engine(
         url,
