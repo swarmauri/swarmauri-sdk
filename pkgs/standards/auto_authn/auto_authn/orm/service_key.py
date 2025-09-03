@@ -2,19 +2,33 @@
 
 from __future__ import annotations
 
-from autoapi.v3.orm.tables import ApiKey as ApiKeyBase
-from autoapi.v3.specs import F, IO, S, acol
-from autoapi.v3.types import Mapped, PgUUID, relationship
-from autoapi.v3.column.storage_spec import ForeignKeySpec
 from uuid import UUID
 
+from autoapi.v3.column.storage_spec import ForeignKeySpec
+from autoapi.v3.orm.mixins import (
+    Created,
+    GUIDPk,
+    KeyDigest,
+    LastUsed,
+    ValidityWindow,
+)
+from autoapi.v3.orm.tables._base import Base
+from autoapi.v3.specs import F, IO, S, acol
+from autoapi.v3.types import Mapped, PgUUID, String, relationship
 
-class ServiceKey(ApiKeyBase):
+
+class ServiceKey(Base, GUIDPk, Created, LastUsed, ValidityWindow, KeyDigest):
     __tablename__ = "service_keys"
     __table_args__ = {
         "extend_existing": True,
         "schema": "authn",
     }
+
+    label: Mapped[str] = acol(
+        storage=S(String, nullable=False),
+        field=F(constraints={"max_length": 120}),
+    )
+
     service_id: Mapped[UUID] = acol(
         storage=S(
             PgUUID(as_uuid=True),
