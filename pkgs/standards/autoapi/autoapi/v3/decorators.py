@@ -200,6 +200,7 @@ class _OpDecl:
 
 def op_ctx(
     *,
+    bind: Any | Iterable[Any] | None = None,
     alias: Optional[str] = None,
     target: Optional[TargetOp] = None,  # "create" | "read" | ... | "custom"
     arity: Optional[Arity] = None,  # "member" | "collection"
@@ -232,6 +233,16 @@ def op_ctx(
             persist=persist,
             status_code=status_code,
         )
+
+        if bind is not None:
+            targets = (
+                bind
+                if isinstance(bind, Iterable) and not isinstance(bind, (str, bytes))
+                else [bind]
+            )
+            for obj in targets:
+                setattr(obj, f.__name__, cm)
+
         return cm
 
     return deco
@@ -341,7 +352,12 @@ def collect_decorated_ops(table: type) -> list[OpSpec]:
     out: list[OpSpec] = []
 
     for base in reversed(table.__mro__):
-        for name, attr in base.__dict__.items():
+        names = list(getattr(base, "__dict__", {}).keys())
+        for name in dir(base):
+            if name not in names:
+                names.append(name)
+        for name in names:
+            attr = getattr(base, name, None)
             func = _unwrap(attr)
             decl: _OpDecl | None = getattr(func, "__autoapi_op_decl__", None)
             if not decl:
