@@ -32,6 +32,22 @@ def test_engine_spec_builds_from_mapping_postgres_sync():
     )  # :contentReference[oaicite:5]{index=5}
 
 
+def test_engine_spec_builds_from_dsn_postgres():
+    dsn = "postgresql://user:pwd@localhost:5432/db"
+    spec = engine_spec(dsn)
+    assert spec.kind == "postgres" and spec.dsn == dsn
+    assert spec.host is None and spec.user is None
+
+
+def test_engine_builds_from_dsn_postgres():
+    dsn = "postgresql://user:pwd@localhost:5432/db"
+    spec = EngineSpec.from_any(dsn)
+    eng, _ = spec.build()
+    assert eng.url.database == "db"
+    assert eng.url.host == "localhost"
+    eng.dispose()
+
+
 def test_prov_lazily_constructs_and_sessions_are_fresh_sync(tmp_path):
     p = prov(
         sqlitef(str(tmp_path / "x.sqlite"))
