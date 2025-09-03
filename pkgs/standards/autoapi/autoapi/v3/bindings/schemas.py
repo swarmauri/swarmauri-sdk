@@ -357,13 +357,16 @@ def build_and_attach(
     for sp in specs:
         _ = _ensure_alias_namespace(model, sp.alias)
 
-    # Pass 1: attach defaults for all specs.
+    # Pass 1: attach defaults for all specs and capture them so canonical
+    # defaults can be restored later if needed.
     # Existing schemas that lack fields are treated as missing so they are
     # replaced with freshly built defaults.  This protects against earlier
     # auto-binding passes that may have produced placeholder models.
+    defaults: Dict[_Key, Dict[str, Optional[Type[BaseModel]]]] = {}
     for sp in specs:
         ns = _ensure_alias_namespace(model, sp.alias)
         shapes = _default_schemas_for_spec(model, sp)
+        defaults[(sp.alias, sp.target)] = shapes
 
         if shapes.get("in_") is not None:
             existing_in = getattr(ns, "in_", None)
@@ -444,6 +447,21 @@ def build_and_attach(
             getattr(ns, "in_", None).__name__ if getattr(ns, "in_", None) else None,
             getattr(ns, "out", None).__name__ if getattr(ns, "out", None) else None,
         )
+
+    # Pass 2b: restore canonical defaults if overrides cleared them
+    for sp in specs:
+        if sp.target == "custom":
+            continue
+        ns = _ensure_alias_namespace(model, sp.alias)
+        shapes = defaults.get((sp.alias, sp.target)) or {}
+        if getattr(ns, "in_", None) is None and shapes.get("in_") is not None:
+            setattr(ns, "in_", shapes["in_"])
+        if getattr(ns, "in_item", None) is None and shapes.get("in_item") is not None:
+            setattr(ns, "in_item", shapes["in_item"])
+        if getattr(ns, "out", None) is None and shapes.get("out") is not None:
+            setattr(ns, "out", shapes["out"])
+        if getattr(ns, "out_item", None) is None and shapes.get("out_item") is not None:
+            setattr(ns, "out_item", shapes["out_item"])
 
     # Pass 3: ensure alias-specific request/response schema names
     for sp in specs:
