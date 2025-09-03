@@ -160,12 +160,23 @@ class Worker(Base, GUIDPk, Timestamped, AllowAnonProvider):
 
             tenant_id = await ctx["db"].run_sync(_tenant_id)
 
+            name = f"worker-{created.id}"
             svc_resp = await authn_adapter._client.post(
                 f"{base}/service",
-                json={"name": f"worker-{created.id}", "tenant_id": tenant_id},
+                json={"name": name, "tenant_id": tenant_id},
             )
-            svc_resp.raise_for_status()
-            service_id = svc_resp.json()["id"]
+            if svc_resp.status_code == 409:
+                lookup_resp = await authn_adapter._client.get(
+                    f"{base}/service",
+                    params={"name": name},
+                )
+                lookup_resp.raise_for_status()
+                body = lookup_resp.json()
+                items = body.get("items") if isinstance(body, dict) else body
+                service_id = items[0]["id"]
+            else:
+                svc_resp.raise_for_status()
+                service_id = svc_resp.json()["id"]
             key_resp = await authn_adapter._client.post(
                 f"{base}/service_key",
                 json={
