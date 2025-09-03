@@ -188,6 +188,7 @@ def flattened_order(
     include_system_steps: bool = True,
     secdeps: Iterable[str] | Iterable[_lbl.Label] = (),
     deps: Iterable[str] | Iterable[_lbl.Label] = (),
+    hooks: Optional[Mapping[str, Iterable[str | _lbl.Label]]] = None,
     anchor_policies: Optional[Mapping[str, _ord.AnchorPolicy]] = None,
 ) -> List[_lbl.Label]:
     """
@@ -218,11 +219,59 @@ def flattened_order(
         )
 
     # 4) Flatten using canonical ordering
-    return _ord.flatten(
+    flattened = _ord.flatten(
         tuple(secdep_labels + dep_labels + sys_labels + atom_labels),
         persist=persist,
         anchor_policies=anchor_policies,
     )
+
+    # 5) Inject hooks (per phase) ahead of atoms while preserving system steps
+    if not hooks:
+        return flattened
+
+    phase_hooks: Dict[str, List[_lbl.Label]] = {
+        ph: [_ensure_hook_label(lbl) for lbl in hooks.get(ph, [])] for ph in _ev.PHASES
+    }
+
+    pre_labels: List[_lbl.Label] = []
+    phase_labels: Dict[str, List[_lbl.Label]] = {ph: [] for ph in _ev.PHASES}
+
+    for lbl in flattened:
+        kind = getattr(lbl, "kind", None)
+        if kind in {"secdep", "dep"}:
+            pre_labels.append(lbl)
+            continue
+        phase = lbl.anchor if kind == "sys" else _ev.phase_for_event(lbl.anchor)
+        phase_labels[phase].append(lbl)
+
+    for ph, hook_list in phase_hooks.items():
+        if not hook_list:
+            continue
+        existing = phase_labels.get(ph, [])
+        if existing and existing[0].kind == "sys":
+            phase_labels[ph] = [existing[0]] + hook_list + existing[1:]
+        else:
+            phase_labels[ph] = hook_list + existing
+
+    seq: List[_lbl.Label] = []
+    seq.extend(pre_labels)
+    for ph in _ev.PHASES:
+        if ph == "START_TX":
+            seq.extend(phase_labels.get("PRE_HANDLER", []))
+            seq.extend(phase_labels.get(ph, []))
+        elif ph == "PRE_HANDLER":
+            continue
+        elif ph == "HANDLER":
+            phase_list = phase_labels.get(ph, [])
+            if phase_list and phase_list[0].kind == "sys":
+                seq.append(phase_list[0])
+                seq.extend(phase_list[1:])
+            else:
+                seq.extend(phase_list)
+        else:
+            seq.extend(phase_labels.get(ph, []))
+
+    return seq
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -257,3 +306,18 @@ def _ensure_label(x: str | _lbl.Label, *, kind: str) -> _lbl.Label:
     if kind == "dep":
         return _lbl.make_dep(x)
     raise ValueError(f"Unsupported label kind: {kind}")
+
+
+def _ensure_hook_label(x: str | _lbl.Label) -> _lbl.Label:
+    """Normalize a hook label from string or Label without strict anchor validation."""
+    if isinstance(x, _lbl.Label):
+        return x
+    if not isinstance(x, str) or not x.startswith("hook:"):
+        raise ValueError(f"Expected hook label string, got {x!r}")
+    body = x[len("hook:") :]
+    try:
+        dom, rest = body.split(":", 1)
+        subj, anchor = rest.split("@", 1)
+    except ValueError as e:  # pragma: no cover - defensive
+        raise ValueError(f"Malformed hook label: {x!r}") from e
+    return _lbl.Label(kind="hook", domain=dom, subject=subj, anchor=anchor)
