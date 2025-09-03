@@ -25,7 +25,8 @@ def client_app(tmp_path, monkeypatch):
     app = importlib.reload(importlib.import_module("auto_kms.app"))
 
     async def init_db():
-        async with app.engine.begin() as conn:
+        sqla_engine, _ = app.engine.raw()
+        async with sqla_engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
 
     asyncio.run(init_db())
@@ -49,7 +50,8 @@ def test_key_creation_seeded_version(client_app):
     assert data["primary_version"] == 1
 
     async def fetch_versions():
-        async with app.engine.begin() as conn:
+        sqla_engine, _ = app.engine.raw()
+        async with sqla_engine.begin() as conn:
             res = await conn.execute(
                 select(KeyVersion.version).where(KeyVersion.key_id == UUID(key_id))
             )

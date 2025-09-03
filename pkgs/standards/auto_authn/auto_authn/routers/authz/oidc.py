@@ -11,7 +11,7 @@ from fastapi import Depends, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ...fastapi_deps import get_async_db
+from ...db import engine
 from ...orm import AuthCode, Client, User
 from ...oidc_id_token import mint_id_token, oidc_hash
 from ...rfc8414_metadata import ISSUER
@@ -36,7 +36,7 @@ async def authorize(
     max_age: Optional[int] = None,
     login_hint: Optional[str] = None,
     claims: Optional[str] = None,
-    db: AsyncSession = Depends(get_async_db),
+    db: AsyncSession = Depends(engine.get_db),
 ):
     _require_tls(request)
     rts = set(response_type.split())

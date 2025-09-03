@@ -57,9 +57,11 @@ from peagen.plugins.queues import QueueBase
 from swarmauri_standard.loggers.Logger import Logger
 
 from . import _publish, schedule_helpers
-from .db import dsn, engine
+from .db import engine
 from .ws_server import router as ws_router
 from sqlalchemy.exc import IntegrityError
+
+sqla_engine, _ = engine.raw()
 
 
 # ─────────── shadow principal hook ─────────────────────────────────────
@@ -158,7 +160,7 @@ logging.getLogger("uvicorn.error").setLevel("INFO")
 READY: bool = False
 app = AutoApp(
     title="Peagen Pool-Manager Gateway",
-    engine=dsn,
+    engine=engine,
     api_hooks={"PRE_TX_BEGIN": [_shadow_principal]},
 )
 api = app
@@ -310,10 +312,10 @@ async def _startup() -> None:
     await api.initialize_async()
 
     # 2 – run Alembic first so the ORM never creates tables implicitly
-    if engine.url.get_backend_name() != "sqlite":
+    if sqla_engine.url.get_backend_name() != "sqlite":
         mig = migrate_core.alembic_upgrade(
             # keep the exact credentials that were used to build the engine
-            db_url=engine.url.render_as_string(hide_password=False)
+            db_url=sqla_engine.url.render_as_string(hide_password=False)
         )
         if not mig.get("ok"):
             # expose full stderr in logs for easier debugging
@@ -337,7 +339,7 @@ async def _startup() -> None:
 async def _shutdown() -> None:
     log.info("gateway shutdown …")
     await _flush_state()
-    await engine.dispose()
+    await sqla_engine.dispose()
 
 
 app.add_event_handler("startup", _startup)

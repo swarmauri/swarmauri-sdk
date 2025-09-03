@@ -9,7 +9,7 @@ Usage
 -----
 >>> from autoapi.v3 import AutoAPI
 >>> from auto_authn.adapters import LocalAuthNAdapter
->>> api = AutoAPI(get_async_db=get_db, authn=LocalAuthNAdapter())
+>>> api = AutoAPI(engine="sqlite+aiosqlite:///./authn.db", authn=LocalAuthNAdapter())
 """
 
 from __future__ import annotations

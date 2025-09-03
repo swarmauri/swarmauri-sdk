@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..backends import AuthError
-from ..fastapi_deps import get_async_db
+from ..db import engine
 from ..oidc_id_token import mint_id_token
 from ..orm.auth_session import AuthSession
 from ..routers.schemas import CredsIn, TokenPair
@@ -20,7 +20,7 @@ from .shared import _jwt, _pwd_backend, AUTH_CODES, SESSIONS
 async def login(
     creds: CredsIn,
     request: Request,
-    db: AsyncSession = Depends(get_async_db),
+    db: AsyncSession = Depends(engine.get_db),
 ):
     try:
         user = await _pwd_backend.authenticate(db, creds.identifier, creds.password)

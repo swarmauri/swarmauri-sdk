@@ -31,7 +31,8 @@ from autoapi.v3.orm.tables import Base
 import asyncio
 
 async def init():
-    async with engine.begin() as conn:
+    sqla_engine, _ = engine.raw()
+    async with sqla_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
 asyncio.run(init())

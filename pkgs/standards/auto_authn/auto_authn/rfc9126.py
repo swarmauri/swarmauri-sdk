@@ -18,7 +18,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .db import get_async_db
+from .db import engine
 from .runtime_cfg import settings
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -35,7 +35,7 @@ router = APIRouter()
 @router.post("/par", status_code=status.HTTP_201_CREATED)
 async def pushed_authorization_request(
     request: Request,
-    db: AsyncSession = Depends(get_async_db),
+    db: AsyncSession = Depends(engine.get_db),
 ) -> Dict[str, Any]:
     """Handle Pushed Authorization Requests.
 
