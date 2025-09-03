@@ -40,13 +40,18 @@ def blocking_sqlite_engine(path: str | None = None):
 # ---------------------------------------------------------------------
 def blocking_postgres_engine(
     user: str = "app",
-    pwd: str = os.getenv("PGPASSWORD", "secret"),
+    pwd: str | None = None,
     host: str = "localhost",
     port: int = 5432,
     db: str = "app_db",
     pool_size: int = 10,
     max_overflow: int = 20,
 ):
+    user = os.getenv("PGUSER", user)
+    pwd = os.getenv("PGPASSWORD", pwd or "secret")
+    host = os.getenv("PGHOST", host)
+    port = int(os.getenv("PGPORT", port))
+    db = os.getenv("PGDATABASE", db)
     url = f"postgresql+psycopg2://{user}:{pwd}@{host}:{port}/{db}"
     eng = create_engine(
         url,
@@ -121,13 +126,18 @@ def async_sqlite_engine(path: str | None = None):
 # ----------------------------------------------------------------------
 def async_postgres_engine(
     user: str = "app",
-    pwd: str = os.getenv("PGPASSWORD", "secret"),
+    pwd: str | None = None,
     host: str = "localhost",
     port: int = 5432,
     db: str = "app_db",
     pool_size: int = 10,
     max_size: int = 20,
 ):
+    user = os.getenv("PGUSER", user)
+    pwd = os.getenv("PGPASSWORD", pwd or "secret")
+    host = os.getenv("PGHOST", host)
+    port = int(os.getenv("PGPORT", port))
+    db = os.getenv("PGDATABASE", db)
     url = f"postgresql+asyncpg://{user}:{pwd}@{host}:{port}/{db}"
     eng = create_async_engine(
         url,
