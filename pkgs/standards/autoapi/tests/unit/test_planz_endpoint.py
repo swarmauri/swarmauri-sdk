@@ -70,15 +70,26 @@ async def test_planz_endpoint_sequence(monkeypatch: pytest.MonkeyPatch):
     secdep_label = _diag._label_callable(secdep_fn)
     handler_label = _diag._label_callable(handler)
 
-    def fake_flattened_order(plan, *, persist, include_system_steps, deps, secdeps):
+    def fake_flattened_order(
+        plan,
+        *,
+        persist,
+        include_system_steps,
+        deps,
+        secdeps,
+        hooks,
+    ):
         assert plan is dummy_plan
         if persist:
+            hook_label = _diag._label_hook(sample_hook, "PRE_HANDLER")
+            assert hooks == {"PRE_HANDLER": [hook_label]}
             assert set(deps) == {dep_label, handler_label}
             assert secdeps == [secdep_label]
             return [
                 DummyLabel(f"secdep:{secdep_label}", "", kind="secdep"),
                 DummyLabel(f"dep:{dep_label}", "", kind="dep"),
                 DummyLabel(f"dep:{handler_label}", "", kind="dep"),
+                DummyLabel(hook_label, "PRE_HANDLER", kind="hook"),
                 DummyLabel("sys:txn:begin@START_TX", "START_TX", kind="sys"),
             ]
         return []
@@ -139,9 +150,20 @@ async def test_planz_endpoint_prefers_compiled_plan_for_atoms(
 
     calls = {"flatten": False, "chains": False}
 
-    def fake_flattened_order(plan, *, persist, include_system_steps, deps, secdeps):
+    def fake_flattened_order(
+        plan,
+        *,
+        persist,
+        include_system_steps,
+        deps,
+        secdeps,
+        hooks,
+    ):
         calls["flatten"] = True
+        hook_label = _diag._label_hook(sample_hook, "PRE_HANDLER")
+        assert hooks == {"PRE_HANDLER": [hook_label]}
         return [
+            DummyLabel(hook_label, "PRE_HANDLER", kind="hook"),
             DummyLabel("sys:txn:begin@START_TX", "START_TX", kind="sys"),
             DummyLabel(
                 "atom:emit:paired_pre@emit:aliases:pre_flush",
@@ -202,7 +224,15 @@ async def test_planz_endpoint_uses_cache(monkeypatch: pytest.MonkeyPatch) -> Non
 
     calls = {"flatten": 0}
 
-    def fake_flattened_order(plan, *, persist, include_system_steps, deps, secdeps):
+    def fake_flattened_order(
+        plan,
+        *,
+        persist,
+        include_system_steps,
+        deps,
+        secdeps,
+        hooks,
+    ):
         calls["flatten"] += 1
         return []
 

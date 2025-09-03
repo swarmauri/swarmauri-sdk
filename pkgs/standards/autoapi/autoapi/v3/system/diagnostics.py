@@ -56,7 +56,7 @@ except Exception:  # pragma: no cover
 from sqlalchemy import text
 from ..ops.types import PHASES
 from ..runtime.kernel import build_phase_chains
-from ..runtime import events as _ev, plan as _plan, labels as _lbl
+from ..runtime import plan as _plan, labels as _lbl
 
 logger = logging.getLogger(__name__)
 
@@ -260,66 +260,23 @@ def _build_planz_endpoint(api: Any):
                     handler = getattr(sp, "handler", None)
                     if handler is not None:
                         deps.append(_label_callable(handler))
+                    hooks_root = getattr(model, "hooks", SimpleNamespace())
+                    alias_ns = getattr(hooks_root, sp.alias, None)
+                    hook_map: Dict[str, List[str]] = {}
+                    if alias_ns is not None:
+                        for ph in PHASES:
+                            steps = getattr(alias_ns, ph, []) or []
+                            if steps:
+                                hook_map[ph] = [_label_hook(fn, ph) for fn in steps]
                     labels = _plan.flattened_order(
                         compiled_plan,
                         persist=persist,
                         include_system_steps=True,
                         deps=deps,
                         secdeps=secdeps,
+                        hooks=hook_map,
                     )
-                    pre_labels: List[str] = []
-                    phase_labels: Dict[str, List[str]] = {ph: [] for ph in PHASES}
-                    for lbl in labels:
-                        kind = getattr(lbl, "kind", None)
-                        if kind in {"secdep", "dep"}:
-                            pre_labels.append(str(lbl))
-                            continue
-                        phase = (
-                            lbl.anchor
-                            if kind == "sys"
-                            else _ev.phase_for_event(lbl.anchor)
-                        )
-                        phase_labels[phase].append(str(lbl))
-
-                    # Inject declared hooks before atoms within each phase while
-                    # preserving system step ordering.
-                    hooks_root = getattr(model, "hooks", SimpleNamespace())
-                    alias_ns = getattr(hooks_root, sp.alias, None)
-                    if alias_ns is not None:
-                        for ph in PHASES:
-                            steps = getattr(alias_ns, ph, []) or []
-                            if not steps:
-                                continue
-                            hook_labels = [_label_hook(fn, ph) for fn in steps]
-                            existing = phase_labels.get(ph, [])
-                            if existing and existing[0].startswith("sys:"):
-                                phase_labels[ph] = (
-                                    [existing[0]] + hook_labels + existing[1:]
-                                )
-                            else:
-                                phase_labels[ph] = hook_labels + existing
-
-                    seq.extend(pre_labels)
-                    for ph in PHASES:
-                        if ph == "START_TX":
-                            # PRE_HANDLER hooks run before starting the TX
-                            seq.extend(phase_labels.get("PRE_HANDLER", []))
-                            seq.extend(phase_labels.get(ph, []))
-                        elif ph == "PRE_HANDLER":
-                            # handled in START_TX branch
-                            continue
-                        elif ph == "HANDLER":
-                            phase_list = phase_labels.get(ph, [])
-                            if phase_list and phase_list[0].startswith("sys:"):
-                                seq.append(phase_list[0])
-                                atoms = phase_list[1:]
-                            else:
-                                atoms = phase_list
-                            seq.extend(atoms)
-                        elif ph == "END_TX":
-                            seq.extend(phase_labels.get(ph, []))
-                        else:
-                            seq.extend(phase_labels.get(ph, []))
+                    seq = [str(lbl) for lbl in labels]
                 else:
                     deps: List[str] = [
                         _label_callable(d) if callable(d) else str(d)
