@@ -58,6 +58,19 @@ class User(UserBase):
         cascade="all, delete-orphan",
     )
 
+    @hook_ctx(ops=("create",), phase="PRE_VALIDATE")
+    async def _resolve_tenant_slug(cls, ctx):
+        payload = ctx.get("payload") or {}
+        slug = payload.pop("tenant_slug", None)
+        if slug:
+            from .tenant import Tenant
+
+            db = ctx.get("db")
+            tenant = await db.scalar(select(Tenant).where(Tenant.slug == slug).limit(1))
+            if tenant is None:
+                raise HTTPException(status.HTTP_404_NOT_FOUND, "tenant not found")
+            payload["tenant_id"] = tenant.id
+
     @hook_ctx(ops=("create", "update"), phase="PRE_HANDLER")
     async def _hash_password(cls, ctx):
         payload = ctx.get("payload") or {}
