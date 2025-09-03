@@ -21,6 +21,7 @@ from sqlalchemy.pool import StaticPool
 from auto_authn.app import app
 from auto_authn.db import get_async_db
 from auto_authn.routers.surface import surface_api
+from autoapi.v3.engine import resolver as _resolver
 from auto_authn.orm import Base, Tenant, User, Client, ApiKey
 from auto_authn.crypto import hash_pw
 
@@ -87,7 +88,9 @@ def override_get_db(db_session):
         yield db_session
 
     app.dependency_overrides[get_async_db] = _get_test_db
-    app.dependency_overrides[surface_api.get_async_db] = _get_test_db
+    prov = _resolver.resolve_provider(api=surface_api)
+    if prov:
+        app.dependency_overrides[prov.get_db] = _get_test_db
     yield
     app.dependency_overrides.clear()
 
