@@ -73,10 +73,10 @@ async def test_public_key_unwrap(monkeypatch):
 
     gw_pkg = ModuleType("peagen.gateway")
     gw_pkg.__path__ = []
-    sys.modules["peagen.gateway"] = gw_pkg
+    monkeypatch.setitem(sys.modules, "peagen.gateway", gw_pkg)
     kms_mod = ModuleType("peagen.gateway.kms")
     kms_mod.unwrap_key_with_kms = fake_unwrap
-    sys.modules["peagen.gateway.kms"] = kms_mod
+    monkeypatch.setitem(sys.modules, "peagen.gateway.kms", kms_mod)
 
     ctx = {"result": {"public_key": "pub", "private_key": "wrapped"}}
     await PublicKey._post_read(ctx)
@@ -95,10 +95,10 @@ async def test_gpg_key_unwrap(monkeypatch):
 
     gw_pkg = ModuleType("peagen.gateway")
     gw_pkg.__path__ = []
-    sys.modules["peagen.gateway"] = gw_pkg
+    monkeypatch.setitem(sys.modules, "peagen.gateway", gw_pkg)
     kms_mod = ModuleType("peagen.gateway.kms")
     kms_mod.unwrap_key_with_kms = fake_unwrap
-    sys.modules["peagen.gateway.kms"] = kms_mod
+    monkeypatch.setitem(sys.modules, "peagen.gateway.kms", kms_mod)
 
     ctx = {"result": {"gpg_key": "gpg", "private_key": "wrapped"}}
     await GPGKey._post_read(ctx)
@@ -118,10 +118,10 @@ async def test_deploy_key_unwrap(monkeypatch):
     gw_pkg = ModuleType("peagen.gateway")
     gw_pkg.__path__ = []
     gw_pkg.log = SimpleNamespace(info=lambda *a, **k: None)
-    sys.modules["peagen.gateway"] = gw_pkg
+    monkeypatch.setitem(sys.modules, "peagen.gateway", gw_pkg)
     kms_mod = ModuleType("peagen.gateway.kms")
     kms_mod.unwrap_key_with_kms = fake_unwrap
-    sys.modules["peagen.gateway.kms"] = kms_mod
+    monkeypatch.setitem(sys.modules, "peagen.gateway.kms", kms_mod)
 
     ctx = {"result": {"public_key": "pub", "private_key": "wrapped"}}
     await DeployKey._post_read(ctx)
