@@ -506,7 +506,7 @@ def _default_path_suffix(sp: OpSpec) -> str | None:
         # Bulk operations now share the same collection path as their
         # single-record counterparts.
         return None
-    if sp.target == "custom":
+    if sp.alias != sp.target:
         return f"/{sp.alias}"
     return None
 

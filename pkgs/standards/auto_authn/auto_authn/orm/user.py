@@ -6,6 +6,7 @@ import uuid
 
 from autoapi.v3.orm.tables import User as UserBase
 from autoapi.v3 import hook_ctx, op_ctx
+from ..routers.schemas import RegisterIn, TokenPair
 from autoapi.v3.types import LargeBinary, Mapped, String, relationship
 from autoapi.v3.specs import F, IO, S, acol, ColumnSpec
 from typing import TYPE_CHECKING
@@ -58,6 +59,19 @@ class User(UserBase):
         cascade="all, delete-orphan",
     )
 
+    @hook_ctx(ops=("create",), phase="PRE_VALIDATE")
+    async def _resolve_tenant_slug(cls, ctx):
+        payload = ctx.get("payload") or {}
+        slug = payload.pop("tenant_slug", None)
+        if slug:
+            from .tenant import Tenant
+
+            db = ctx.get("db")
+            tenant = await db.scalar(select(Tenant).where(Tenant.slug == slug).limit(1))
+            if tenant is None:
+                raise HTTPException(status.HTTP_404_NOT_FOUND, "tenant not found")
+            payload["tenant_id"] = tenant.id
+
     @hook_ctx(ops=("create", "update"), phase="PRE_HANDLER")
     async def _hash_password(cls, ctx):
         payload = ctx.get("payload") or {}
@@ -67,7 +81,13 @@ class User(UserBase):
 
             payload["password_hash"] = hash_pw(plain)
 
-    @op_ctx(alias="register", target="create", arity="collection")
+    @op_ctx(
+        alias="register",
+        target="create",
+        arity="collection",
+        request_schema=RegisterIn,
+        response_schema=TokenPair,
+    )
     async def register(cls, ctx):
         import secrets
         from ..rfc8414_metadata import ISSUER
