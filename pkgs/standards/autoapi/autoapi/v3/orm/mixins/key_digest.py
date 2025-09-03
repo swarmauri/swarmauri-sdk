@@ -1,31 +1,16 @@
 from __future__ import annotations
 
-
 from hashlib import sha256
 from secrets import token_urlsafe
 
 from ...column.io_spec import Pair
-from ...specs import acol, F, IO, S
-from ...types import Mapped, String
-from ._base import Base
-from ..mixins import GUIDPk, Created, LastUsed, ValidityWindow
+from ...specs import F, IO, S, acol
+from ...types import Mapped, String, declarative_mixin
 
 
-# ------------------------------------------------------------------ model
-class ApiKey(
-    Base,
-    GUIDPk,
-    Created,
-    LastUsed,
-    ValidityWindow,
-):
-    __tablename__ = "api_keys"
-    __abstract__ = True
-
-    label: Mapped[str] = acol(
-        storage=S(String, nullable=False),
-        field=F(constraints={"max_length": 120}),
-    )
+@declarative_mixin
+class KeyDigest:
+    """Provides hashed API key storage with helpers."""
 
     def _pair_api_key(ctx):
         raw = token_urlsafe(32)
@@ -39,9 +24,6 @@ class ApiKey(
         ),
     )
 
-    # ------------------------------------------------------------------
-    # Digest helpers
-    # ------------------------------------------------------------------
     @staticmethod
     def digest_of(value: str) -> str:
         return sha256(value.encode()).hexdigest()

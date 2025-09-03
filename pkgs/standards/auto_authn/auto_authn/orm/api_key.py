@@ -2,16 +2,30 @@
 
 from __future__ import annotations
 
-from autoapi.v3.orm.tables import ApiKey as ApiKeyBase
-from autoapi.v3.orm.mixins import UserColumn
-from autoapi.v3.types import relationship
+from autoapi.v3.orm.mixins import (
+    Created,
+    GUIDPk,
+    KeyDigest,
+    LastUsed,
+    UserColumn,
+    ValidityWindow,
+)
+from autoapi.v3.orm.tables._base import Base
+from autoapi.v3.specs import F, S, acol
+from autoapi.v3.types import Mapped, String, relationship
 
 
-class ApiKey(ApiKeyBase, UserColumn):
+class ApiKey(Base, GUIDPk, Created, LastUsed, ValidityWindow, UserColumn, KeyDigest):
+    __tablename__ = "api_keys"
     __table_args__ = {
         "extend_existing": True,
         "schema": "authn",
     }
+
+    label: Mapped[str] = acol(
+        storage=S(String, nullable=False),
+        field=F(constraints={"max_length": 120}),
+    )
 
     _user = relationship(
         "User",

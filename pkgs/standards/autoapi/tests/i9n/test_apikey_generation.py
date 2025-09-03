@@ -1,17 +1,30 @@
 import pytest
-from autoapi.v3.types import App
+from autoapi.v3.types import App, Mapped, String
 from httpx import ASGITransport, AsyncClient
 
 from autoapi.v3 import AutoApp
-from autoapi.v3.orm.tables import ApiKey
+from autoapi.v3.orm.mixins import (
+    Created,
+    GUIDPk,
+    KeyDigest,
+    LastUsed,
+    ValidityWindow,
+)
+from autoapi.v3.orm.tables._base import Base
+from autoapi.v3.specs import F, S, acol
 
 
-class ConcreteApiKey(ApiKey):
+class ConcreteApiKey(Base, GUIDPk, Created, LastUsed, ValidityWindow, KeyDigest):
     """Concrete table for testing API key generation."""
 
     __abstract__ = False
     __resource__ = "apikey"
     __tablename__ = "apikeys_generation"
+
+    label: Mapped[str] = acol(
+        storage=S(String, nullable=False),
+        field=F(constraints={"max_length": 120}),
+    )
 
 
 @pytest.mark.i9n
