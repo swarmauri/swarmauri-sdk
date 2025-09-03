@@ -5,7 +5,6 @@ from autoapi.v3.types import (
     String,
     UniqueConstraint,
     CheckConstraint,
-    HookProvider,
     relationship,
     Mapped,
 )
@@ -45,9 +44,7 @@ class OrgSecret(Base, GUIDPk, _SecretCoreMixin, OrgColumn, Timestamped):
     )
 
 
-class RepoSecret(
-    Base, GUIDPk, _SecretCoreMixin, RepositoryMixin, Timestamped, HookProvider
-):
+class RepoSecret(Base, GUIDPk, _SecretCoreMixin, RepositoryMixin, Timestamped):
     __tablename__ = "repo_secrets"
     repository: Mapped["Repository"] = relationship(
         "Repository", back_populates="secrets"

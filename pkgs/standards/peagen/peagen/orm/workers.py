@@ -8,7 +8,6 @@ from autoapi.v3.types import (
     String,
     MutableDict,
     relationship,
-    HookProvider,
     AllowAnonProvider,
     Mapped,
 )
@@ -21,7 +20,7 @@ from peagen.defaults import DEFAULT_POOL_ID, WORKER_KEY, WORKER_TTL
 from .pools import Pool
 
 
-class Worker(Base, GUIDPk, Timestamped, HookProvider, AllowAnonProvider):
+class Worker(Base, GUIDPk, Timestamped, AllowAnonProvider):
     __tablename__ = "workers"
     __table_args__ = ({"schema": "peagen"},)
 

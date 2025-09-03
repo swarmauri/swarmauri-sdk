@@ -7,7 +7,6 @@ from autoapi.v3.types import (
     Boolean,
     String,
     UniqueConstraint,
-    HookProvider,
     Mapped,
     relationship,
 )
@@ -21,7 +20,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from .repositories import Repository
 
 
-class PublicKey(Base, GUIDPk, UserColumn, Timestamped, HookProvider):
+class PublicKey(Base, GUIDPk, UserColumn, Timestamped):
     __tablename__ = "public_keys"
     __table_args__ = (
         UniqueConstraint("user_id", "public_key"),
@@ -58,7 +57,7 @@ class PublicKey(Base, GUIDPk, UserColumn, Timestamped, HookProvider):
         # hooks registered via @hook_ctx
 
 
-class GPGKey(Base, GUIDPk, UserColumn, Timestamped, HookProvider):
+class GPGKey(Base, GUIDPk, UserColumn, Timestamped):
     __tablename__ = "gpg_keys"
     __table_args__ = (
         UniqueConstraint("user_id", "gpg_key"),
@@ -93,7 +92,7 @@ class GPGKey(Base, GUIDPk, UserColumn, Timestamped, HookProvider):
         # hooks registered via @hook_ctx
 
 
-class DeployKey(Base, GUIDPk, RepositoryRefMixin, Timestamped, HookProvider):
+class DeployKey(Base, GUIDPk, RepositoryRefMixin, Timestamped):
     __tablename__ = "deploy_keys"
     __table_args__ = (
         UniqueConstraint("repository_id", "public_key"),
