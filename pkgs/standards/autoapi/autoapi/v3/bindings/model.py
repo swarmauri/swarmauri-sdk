@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 from types import SimpleNamespace
-from typing import Dict, List, Optional, Sequence, Set, Tuple
+from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Tuple
 
 from ..ops import OpSpec
 from ..ops import resolve as resolve_ops
@@ -218,17 +218,26 @@ def bind(model: type, *, only_keys: Optional[Set[_Key]] = None) -> Tuple[OpSpec,
     base_hooks = getattr(model, "__autoapi_hooks__", {}) or {}
 
     # Coerce any pre-existing phase sequences to mutable lists so we can extend
+    # and deduplicate by function name
     for phases in base_hooks.values():
         for phase, fns in list(phases.items()):
-            if not isinstance(fns, list):
-                phases[phase] = list(fns)
+            seq = list(fns) if not isinstance(fns, list) else fns
+            uniq: dict[str, Callable[..., Any]] = {}
+            for fn in seq:
+                uniq[getattr(fn, "__qualname__", str(fn))] = fn
+            phases[phase] = list(uniq.values())
 
     for alias, phases in ctx_hooks.items():
         per = base_hooks.setdefault(alias, {})
         for phase, fns in phases.items():
             if phase in PHASES:
                 lst = per.setdefault(phase, [])
-                lst.extend(fns)
+                seen = {getattr(fn, "__qualname__", str(fn)) for fn in lst}
+                for fn in fns:
+                    name = getattr(fn, "__qualname__", str(fn))
+                    if name not in seen:
+                        lst.append(fn)
+                        seen.add(name)
                 per[phase] = lst
 
     setattr(model, "__autoapi_hooks__", base_hooks)
