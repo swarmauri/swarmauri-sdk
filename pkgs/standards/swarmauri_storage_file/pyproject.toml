@@ -35,6 +35,7 @@ FileStorageAdapter = "swarmauri_storage_file.file_storage_adapter:FileStorageAda
 
 [project.entry-points."peagen.plugins.storage_adapters"]
 file = "swarmauri_storage_file.file_storage_adapter:FileStorageAdapter"
+file_storage_adapter = "swarmauri_storage_file.file_storage_adapter:FileStorageAdapter"
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
