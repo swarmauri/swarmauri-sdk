@@ -117,6 +117,25 @@ def test_op_ctx_response_schema_coercion():
     assert parsed.x == 5
 
 
+def test_op_ctx_direct_model_schemas():
+    class Gadget:
+        class Payload(BaseModel):
+            x: int
+
+        class Result(BaseModel):
+            x: int
+
+        @op_ctx(alias="check", request_schema=Payload, response_schema=Result)
+        def check(cls, ctx):
+            return {"x": ctx["payload"]["x"]}
+
+    _build_all(Gadget)
+    in_model = Gadget.schemas.check.in_
+    out_model = Gadget.schemas.check.out
+    assert in_model(x="5").x == 5
+    assert out_model(x="5").x == 5
+
+
 def test_op_ctx_persist_attribute():
     class Gadget:
         @op_ctx(persist="skip")
