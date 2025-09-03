@@ -21,6 +21,7 @@ from typing import (
 )
 
 from typing import get_origin as _get_origin, get_args as _get_args
+from ..ops.types import CANON
 
 try:
     from ..types import (
@@ -506,7 +507,9 @@ def _default_path_suffix(sp: OpSpec) -> str | None:
         # Bulk operations now share the same collection path as their
         # single-record counterparts.
         return None
-    if sp.alias != sp.target:
+    if sp.alias != sp.target and (
+        sp.target in {"create", "custom"} or sp.target not in CANON
+    ):
         return f"/{sp.alias}"
     return None
 
@@ -518,8 +521,11 @@ def _path_for_spec(
     Return (path, is_member). We use a generic {item_id} placeholder for all member ops
     and remap it to the model's real PK name inside ``ctx.path_params``.
     """
-    suffix = sp.path_suffix or _default_path_suffix(sp) or ""
-    if not suffix.startswith("/") and suffix:
+    if sp.path_suffix is None:
+        suffix = _default_path_suffix(sp) or ""
+    else:
+        suffix = sp.path_suffix or ""
+    if suffix and not suffix.startswith("/"):
         suffix = "/" + suffix
 
     if sp.arity == "member" or sp.target in {
@@ -1328,8 +1334,11 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
 
         # Determine path and membership
         if nested_pref:
-            suffix = sp.path_suffix or _default_path_suffix(sp) or ""
-            if not suffix.startswith("/") and suffix:
+            if sp.path_suffix is None:
+                suffix = _default_path_suffix(sp) or ""
+            else:
+                suffix = sp.path_suffix or ""
+            if suffix and not suffix.startswith("/"):
                 suffix = "/" + suffix
             base = nested_pref.rstrip("/")
             if not base.endswith(f"/{resource}"):
@@ -1442,6 +1451,13 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
         route_secdeps = _normalize_secdeps(secdeps)
         if route_secdeps:
             route_kwargs["dependencies"] = route_secdeps
+
+        if (
+            sp.alias != sp.target
+            and sp.target in CANON
+            and sp.alias != getattr(sp.handler, "__name__", sp.alias)
+        ):
+            route_kwargs["include_in_schema"] = False
 
         router.add_api_route(**route_kwargs)
 

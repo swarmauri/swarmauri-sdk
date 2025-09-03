@@ -221,7 +221,7 @@ def _apply_alias_ctx_to_canon(specs: List[OpSpec], model: type) -> List[OpSpec]:
                     sp.alias,
                 )
             else:
-                mutated = replace(mutated, alias=new_alias)
+                mutated = replace(mutated, alias=new_alias, path_suffix="")
 
         # 2) apply per-verb overrides (no returns handling)
         ov = overrides.get(canon)  # type: ignore[index]
