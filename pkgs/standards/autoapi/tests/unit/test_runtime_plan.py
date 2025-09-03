@@ -107,6 +107,41 @@ def test_flattened_order_includes_deps_and_system_steps():
     ]
 
 
+def test_flattened_order_includes_hooks_in_order():
+    """flattened_order injects hooks before atoms in their phase."""
+
+    node = runtime_plan.AtomNode(
+        label=_lbl.make_atom("schema", "collect_in", _ev.SCHEMA_COLLECT_IN),
+        run=lambda *_: None,
+        domain="schema",
+        subject="collect_in",
+        anchor=_ev.SCHEMA_COLLECT_IN,
+    )
+    plan = runtime_plan.Plan(
+        model_name="M",
+        atoms_by_anchor={_ev.SCHEMA_COLLECT_IN: (node,)},
+    )
+    hook_lbl = f"hook:wire:sample@{_ev.SCHEMA_COLLECT_IN}"
+    labels = runtime_plan.flattened_order(
+        plan,
+        persist=True,
+        include_system_steps=True,
+        secdeps=("a",),
+        deps=("b",),
+        hooks={"PRE_HANDLER": [hook_lbl]},
+    )
+    rendered = [lbl.render() for lbl in labels]
+    assert rendered == [
+        "secdep:a",
+        "dep:b",
+        hook_lbl,
+        node.label.render(),
+        "sys:txn:begin@START_TX",
+        "sys:handler:crud@HANDLER",
+        "sys:txn:commit@END_TX",
+    ]
+
+
 def test_flattened_order_omits_system_steps_when_not_persist():
     """System step labels are skipped when persist is False."""
     node = runtime_plan.AtomNode(

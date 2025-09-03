@@ -188,14 +188,18 @@ def flattened_order(
     include_system_steps: bool = True,
     secdeps: Iterable[str] | Iterable[_lbl.Label] = (),
     deps: Iterable[str] | Iterable[_lbl.Label] = (),
+    hooks: Mapping[str, Iterable[str | _lbl.Label]] | None = None,
     anchor_policies: Optional[Mapping[str, _ord.AnchorPolicy]] = None,
 ) -> List[_lbl.Label]:
     """
     Compute a flattened list of labels for diagnostics/execution preview.
 
     - Injects optional secdep/dep labels (strings auto-wrapped).
-    - Injects system step labels (txn begin/handler/commit) when requested and persist=True.
-    - Applies persist pruning and deterministic ordering via runtime.ordering.flatten().
+    - Injects optional hooks (mapping {phase: [labels...]}) before atoms.
+    - Injects system step labels (txn begin/handler/commit) when requested and
+      ``persist=True``.
+    - Applies persist pruning and deterministic ordering via
+      :func:`runtime.ordering.flatten`.
     """
     # 1) Base atom labels
     atom_labels: List[_lbl.Label] = []
@@ -218,11 +222,55 @@ def flattened_order(
         )
 
     # 4) Flatten using canonical ordering
-    return _ord.flatten(
+    base = _ord.flatten(
         tuple(secdep_labels + dep_labels + sys_labels + atom_labels),
         persist=persist,
         anchor_policies=anchor_policies,
     )
+
+    # 5) Inject hooks (if any) while preserving phase order
+    if not hooks:
+        return base
+
+    phase_map: Dict[str, List[_lbl.Label]] = {ph: [] for ph in _ev.PHASES}
+    pre: List[_lbl.Label] = []
+    for lbl in base:
+        if lbl.kind in {"secdep", "dep"}:
+            pre.append(lbl)
+            continue
+        phase = lbl.anchor if lbl.kind == "sys" else _ev.phase_for_event(lbl.anchor)
+        phase_map.setdefault(phase, []).append(lbl)
+
+    for phase, items in hooks.items():
+        hook_labels = [_ensure_label(h, kind="hook") for h in items]
+        existing = phase_map.get(phase, [])
+        if existing and existing[0].kind == "sys":
+            phase_map[phase] = [existing[0], *hook_labels, *existing[1:]]
+        else:
+            phase_map[phase] = hook_labels + existing
+
+    seq: List[_lbl.Label] = []
+    seq.extend(pre)
+    for ph in _ev.PHASES:
+        if ph == "START_TX":
+            seq.extend(phase_map.get("PRE_HANDLER", []))
+            seq.extend(phase_map.get(ph, []))
+        elif ph == "PRE_HANDLER":
+            continue
+        else:
+            seq.extend(phase_map.get(ph, []))
+
+    seen_wire: set[str] = set()
+    dedup: List[_lbl.Label] = []
+    for lbl in seq:
+        if lbl.kind == "hook" and lbl.domain == "wire":
+            k = lbl.render()
+            if k in seen_wire:
+                continue
+            seen_wire.add(k)
+        dedup.append(lbl)
+
+    return dedup
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -256,4 +304,19 @@ def _ensure_label(x: str | _lbl.Label, *, kind: str) -> _lbl.Label:
         return _lbl.make_secdep(x)
     if kind == "dep":
         return _lbl.make_dep(x)
+    if kind == "hook":
+        if isinstance(x, _lbl.Label):
+            return x
+        try:
+            return _lbl.parse(x)
+        except Exception:
+            if not isinstance(x, str) or not x.startswith("hook:"):
+                raise
+            try:
+                rest = x[len("hook:") :]
+                dom, rest2 = rest.split(":", 1)
+                subj, anchor = rest2.split("@", 1)
+            except Exception as e:  # pragma: no cover - malformed
+                raise ValueError(f"Invalid hook label {x!r}") from e
+            return _lbl.Label(kind="hook", domain=dom, subject=subj, anchor=anchor)
     raise ValueError(f"Unsupported label kind: {kind}")

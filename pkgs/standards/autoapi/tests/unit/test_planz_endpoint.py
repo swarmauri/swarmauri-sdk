@@ -29,6 +29,10 @@ def secdep_fn(ctx):
     return None
 
 
+def handler_fn(ctx):
+    return None
+
+
 @pytest.mark.asyncio
 async def test_planz_endpoint_sequence(monkeypatch: pytest.MonkeyPatch):
     class API:
@@ -103,6 +107,58 @@ async def test_planz_endpoint_sequence(monkeypatch: pytest.MonkeyPatch):
     ]
     assert "read" in data["Model"]
     assert not any("sys:txn:begin@START_TX" in s for s in data["Model"]["read"])
+
+
+@pytest.mark.asyncio
+async def test_planz_endpoint_lists_secdeps_deps_hooks() -> None:
+    class API:
+        pass
+
+    class Model:
+        __name__ = "Model"
+
+    Model.opspecs = SimpleNamespace(
+        all=(
+            OpSpec(
+                alias="write",
+                target="create",
+                table=Model,
+                persist="default",
+                handler=handler_fn,
+                deps=(dep_fn,),
+                secdeps=(secdep_fn,),
+            ),
+        )
+    )
+
+    Model.hooks = SimpleNamespace(write=SimpleNamespace(PRE_HANDLER=[sample_hook]))
+    Model.runtime = SimpleNamespace(
+        plan=_plan.Plan(model_name="Model", atoms_by_anchor={})
+    )
+
+    api = API()
+    api.models = {"Model": Model}
+
+    planz = _build_planz_endpoint(api)
+    data = await planz()
+
+    secdep_label = _diag._label_callable(secdep_fn)
+    dep_label = _diag._label_callable(dep_fn)
+    handler_label = _diag._label_callable(handler_fn)
+    hook_label = (
+        f"hook:{_lbl.DOMAINS[-1]}:"
+        f"{_diag._label_callable(sample_hook).replace('.', ':')}@PRE_HANDLER"
+    )
+
+    assert data["Model"]["write"] == [
+        f"secdep:{secdep_label}",
+        f"dep:{dep_label}",
+        f"dep:{handler_label}",
+        hook_label,
+        "sys:txn:begin@START_TX",
+        "sys:handler:crud@HANDLER",
+        "sys:txn:commit@END_TX",
+    ]
 
 
 @pytest.mark.asyncio
