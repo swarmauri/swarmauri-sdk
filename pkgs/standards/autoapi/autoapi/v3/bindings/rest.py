@@ -1412,6 +1412,9 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
             route_deps = _normalize_deps([auth_dep])
 
         unique_id = f"{endpoint.__name__}_{uuid4().hex}"
+        include_in_schema = bool(
+            getattr(sp, "extra", {}).get("include_in_schema", True)
+        )
         route_kwargs = dict(
             path=path,
             endpoint=endpoint,
@@ -1425,6 +1428,7 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
             # IMPORTANT: only class name here; never table name
             tags=list(sp.tags or (model.__name__,)),
             responses=responses_meta,
+            include_in_schema=include_in_schema,
         )
         if route_deps:
             route_kwargs["dependencies"] = route_deps
