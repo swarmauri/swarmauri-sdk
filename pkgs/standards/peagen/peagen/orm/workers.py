@@ -20,6 +20,9 @@ from peagen.defaults import DEFAULT_POOL_ID, WORKER_KEY, WORKER_TTL
 from .pools import Pool
 
 
+_RW_IO = {"in_verbs": ("create", "replace", "update"), "out_verbs": ("read", "list")}
+
+
 class Worker(Base, GUIDPk, Timestamped, AllowAnonProvider):
     __tablename__ = "workers"
     __table_args__ = ({"schema": "peagen"},)
@@ -32,15 +35,20 @@ class Worker(Base, GUIDPk, Timestamped, AllowAnonProvider):
             fk=ForeignKeySpec("peagen.pools.id"),
             nullable=False,
             default=DEFAULT_POOL_ID,
-        )
+        ),
+        io=IO(**_RW_IO),
     )
-    url: Mapped[str] = acol(storage=S(String, nullable=False))
+    url: Mapped[str] = acol(
+        storage=S(String, nullable=False),
+        io=IO(**_RW_IO),
+    )
     advertises: Mapped[dict | None] = acol(
         storage=S(
             MutableDict.as_mutable(JSON),
             default=lambda: {},
             nullable=True,
-        )
+        ),
+        io=IO(**_RW_IO),
     )
     handler_map: Mapped[dict | None] = acol(
         storage=S(
@@ -48,7 +56,7 @@ class Worker(Base, GUIDPk, Timestamped, AllowAnonProvider):
             default=lambda: {},
             nullable=True,
         ),
-        io=IO(alias_in="handlers", alias_out="handlers"),
+        io=IO(alias_in="handlers", alias_out="handlers", **_RW_IO),
     )
 
     pool: Mapped[Pool] = relationship(Pool, backref="workers")
