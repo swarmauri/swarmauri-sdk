@@ -254,6 +254,8 @@ def bind(model: type, *, only_keys: Optional[Set[_Key]] = None) -> Tuple[OpSpec,
 
     # 7) Ensure we have a registry listener to refresh on changes
     _ensure_registry_listener(model)
+    _ensure_op_ctx_attach_hook(model)
+    setattr(model, "__autoapi_op_ctx_watch__", True)
 
     logger.debug(
         "autoapi.bindings.model.bind(%s): %d ops bound (visible=%d)",
@@ -304,6 +306,28 @@ def _ensure_registry_listener(model: type) -> None:
     reg.subscribe(_on_registry_change)
     # Keep a reference to avoid GC of the closure and to prevent double-subscribe
     setattr(model, AUTOAPI_REGISTRY_LISTENER_ATTR, _on_registry_change)
+
+
+def _ensure_op_ctx_attach_hook(model: type) -> None:
+    """Patch the model's metaclass to auto-rebind on ctx-only op attachment."""
+
+    meta = type(model)
+    if getattr(meta, "__autoapi_op_ctx_meta_patch__", False):
+        return
+
+    orig_meta_setattr = meta.__setattr__
+
+    def _meta_setattr(cls, name, value):
+        orig_meta_setattr(cls, name, value)
+        fn = getattr(value, "__func__", value)
+        decl = getattr(fn, "__autoapi_op_decl__", None)
+        if decl and getattr(cls, "__autoapi_op_ctx_watch__", False):
+            alias = decl.alias or name
+            target = decl.target or "custom"
+            rebind(cls, changed_keys={(alias, target)})
+
+    meta.__setattr__ = _meta_setattr  # type: ignore[attr-defined]
+    setattr(meta, "__autoapi_op_ctx_meta_patch__", True)
 
 
 __all__ = ["bind", "rebind"]
