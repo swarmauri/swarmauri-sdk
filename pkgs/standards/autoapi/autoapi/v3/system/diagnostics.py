@@ -280,6 +280,25 @@ def _build_planz_endpoint(api: Any):
                             else _ev.phase_for_event(lbl.anchor)
                         )
                         phase_labels[phase].append(str(lbl))
+
+                    # Inject declared hooks before atoms within each phase while
+                    # preserving system step ordering.
+                    hooks_root = getattr(model, "hooks", SimpleNamespace())
+                    alias_ns = getattr(hooks_root, sp.alias, None)
+                    if alias_ns is not None:
+                        for ph in PHASES:
+                            steps = getattr(alias_ns, ph, []) or []
+                            if not steps:
+                                continue
+                            hook_labels = [_label_hook(fn, ph) for fn in steps]
+                            existing = phase_labels.get(ph, [])
+                            if existing and existing[0].startswith("sys:"):
+                                phase_labels[ph] = (
+                                    [existing[0]] + hook_labels + existing[1:]
+                                )
+                            else:
+                                phase_labels[ph] = hook_labels + existing
+
                     seq.extend(pre_labels)
                     for ph in PHASES:
                         if ph == "START_TX":
