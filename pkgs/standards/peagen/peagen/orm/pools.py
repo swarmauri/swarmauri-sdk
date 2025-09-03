@@ -6,7 +6,6 @@ from autoapi.v3.types import (
     String,
     UniqueConstraint,
     MutableDict,
-    HookProvider,
     Mapped,
 )
 from autoapi.v3.orm.mixins import GUIDPk, Bootstrappable, Timestamped, TenantBound
@@ -15,7 +14,7 @@ from autoapi.v3 import hook_ctx
 from peagen.defaults import DEFAULT_POOL_NAME, DEFAULT_POOL_ID, DEFAULT_TENANT_ID
 
 
-class Pool(Base, GUIDPk, Bootstrappable, Timestamped, TenantBound, HookProvider):
+class Pool(Base, GUIDPk, Bootstrappable, Timestamped, TenantBound):
     __tablename__ = "pools"
     __table_args__ = (
         UniqueConstraint("tenant_id", "name"),
