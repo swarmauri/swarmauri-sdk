@@ -16,10 +16,10 @@ async def test_public_key_wrap(monkeypatch):
 
     gw_pkg = ModuleType("peagen.gateway")
     gw_pkg.__path__ = []  # mark as package
-    sys.modules["peagen.gateway"] = gw_pkg
+    monkeypatch.setitem(sys.modules, "peagen.gateway", gw_pkg)
     kms_mod = ModuleType("peagen.gateway.kms")
     kms_mod.wrap_key_with_kms = fake_wrap
-    sys.modules["peagen.gateway.kms"] = kms_mod
+    monkeypatch.setitem(sys.modules, "peagen.gateway.kms", kms_mod)
 
     params = SimpleNamespace(public_key="pub", private_key="priv")
     ctx = {"env": SimpleNamespace(params=params)}
@@ -39,10 +39,10 @@ async def test_gpg_key_wrap(monkeypatch):
 
     gw_pkg = ModuleType("peagen.gateway")
     gw_pkg.__path__ = []
-    sys.modules["peagen.gateway"] = gw_pkg
+    monkeypatch.setitem(sys.modules, "peagen.gateway", gw_pkg)
     kms_mod = ModuleType("peagen.gateway.kms")
     kms_mod.wrap_key_with_kms = fake_wrap
-    sys.modules["peagen.gateway.kms"] = kms_mod
+    monkeypatch.setitem(sys.modules, "peagen.gateway.kms", kms_mod)
 
     params = SimpleNamespace(gpg_key="gpg", private_key="priv")
     ctx = {"env": SimpleNamespace(params=params)}
@@ -69,10 +69,10 @@ async def test_deploy_key_wrap(monkeypatch):
     gw_pkg = ModuleType("peagen.gateway")
     gw_pkg.__path__ = []
     gw_pkg.log = SimpleNamespace(info=lambda *args, **kwargs: None)
-    sys.modules["peagen.gateway"] = gw_pkg
+    monkeypatch.setitem(sys.modules, "peagen.gateway", gw_pkg)
     kms_mod = ModuleType("peagen.gateway.kms")
     kms_mod.wrap_key_with_kms = fake_wrap
-    sys.modules["peagen.gateway.kms"] = kms_mod
+    monkeypatch.setitem(sys.modules, "peagen.gateway.kms", kms_mod)
     monkeypatch.setattr("pgpy.PGPKey", DummyPGPKey)
 
     params = SimpleNamespace(public_key="pub", private_key="priv")
