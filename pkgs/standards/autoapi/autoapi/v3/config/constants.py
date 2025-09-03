@@ -204,6 +204,9 @@ CTX_USER_ID_KEY = "user_id"
 CTX_TENANT_ID_KEY = "tenant_id"
 CTX_AUTH_KEY = "auth"
 
+# Request.state attribute that carries auth context (tenant/user ids)
+AUTOAPI_AUTH_CONTEXT_ATTR = "__autoapi_auth_context__"
+
 
 # Regex for safe SQL identifiers
 __SAFE_IDENT__ = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
@@ -249,5 +252,6 @@ __all__ = [
     "CTX_USER_ID_KEY",
     "CTX_TENANT_ID_KEY",
     "CTX_AUTH_KEY",
+    "AUTOAPI_AUTH_CONTEXT_ATTR",
     "__SAFE_IDENT__",
 ]

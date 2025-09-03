@@ -105,6 +105,7 @@ from ..config.constants import (
     AUTOAPI_AUTH_DEP_ATTR,
     AUTOAPI_REST_DEPENDENCIES_ATTR,
     AUTOAPI_ALLOW_ANON_ATTR,
+    AUTOAPI_AUTH_CONTEXT_ATTR,
 )
 from ..rest import _nested_prefix
 from ..schema.builder import _strip_parent_fields
@@ -734,6 +735,9 @@ def _make_collection_endpoint(
                         method=alias, params=payload, target=target, model=model
                     ),
                 }
+                ac = getattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, None)
+                if ac is not None:
+                    ctx["auth_context"] = ac
                 phases = _get_phase_chains(model, alias)
                 result = await _executor._invoke(
                     request=request,
@@ -790,6 +794,9 @@ def _make_collection_endpoint(
                         method=alias, params=payload, target=target, model=model
                     ),
                 }
+                ac = getattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, None)
+                if ac is not None:
+                    ctx["auth_context"] = ac
                 phases = _get_phase_chains(model, alias)
                 result = await _executor._invoke(
                     request=request,
@@ -913,6 +920,9 @@ def _make_collection_endpoint(
                 method=exec_alias, params=payload, target=exec_target, model=model
             ),
         }
+        ac = getattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, None)
+        if ac is not None:
+            ctx["auth_context"] = ac
         ctx["response_serializer"] = lambda r: _serialize_output(
             model, exec_alias, exec_target, sp, r
         )
@@ -1000,6 +1010,9 @@ def _make_member_endpoint(
                     method=alias, params=payload, target=target, model=model
                 ),
             }
+            ac = getattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, None)
+            if ac is not None:
+                ctx["auth_context"] = ac
             ctx["response_serializer"] = lambda r: _serialize_output(
                 model, alias, target, sp, r
             )
@@ -1071,6 +1084,9 @@ def _make_member_endpoint(
                     method=alias, params=payload, target=target, model=model
                 ),
             }
+            ac = getattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, None)
+            if ac is not None:
+                ctx["auth_context"] = ac
             ctx["response_serializer"] = lambda r: _serialize_output(
                 model, alias, target, sp, r
             )
@@ -1163,6 +1179,9 @@ def _make_member_endpoint(
                 method=alias, params=payload, target=target, model=model
             ),
         }
+        ac = getattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, None)
+        if ac is not None:
+            ctx["auth_context"] = ac
         ctx["response_serializer"] = lambda r: _serialize_output(
             model, alias, target, sp, r
         )

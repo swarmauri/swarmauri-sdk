@@ -178,7 +178,22 @@ class Ownable:
             raise http_exc
 
         def _before_create(ctx: dict[str, Any]) -> None:
-            params = (ctx.get("env") or {}).get("params") or ctx.get("payload") or {}
+            env = (
+                ctx.get("env") if isinstance(ctx, dict) else getattr(ctx, "env", None)
+            ) or {}
+            params = (
+                (
+                    env.get("params")
+                    if isinstance(env, dict)
+                    else getattr(env, "params", None)
+                )
+                or (
+                    ctx.get("payload")
+                    if isinstance(ctx, dict)
+                    else getattr(ctx, "payload", None)
+                )
+                or {}
+            )
             if hasattr(params, "model_dump"):
                 params = params.model_dump()
 
@@ -197,10 +212,10 @@ class Ownable:
             if pol == OwnerPolicy.STRICT_SERVER:
                 if user_id is None:
                     _err(400, "owner_id is required.")
-                if not missing and _normalize_uuid(provided) != _normalize_uuid(
-                    user_id
-                ):
-                    _err(400, "owner_id mismatch.")
+                if not missing:
+                    if _normalize_uuid(provided) != _normalize_uuid(user_id):
+                        _err(400, "owner_id mismatch.")
+                    _err(400, "owner_id is server-assigned.")
                 params["owner_id"] = user_id  # always enforce server value
             elif pol == OwnerPolicy.DEFAULT_TO_USER:
                 if missing and user_id is not None:
@@ -213,16 +228,36 @@ class Ownable:
                 # if missing, leave as-is (schema/DB may enforce NOT NULL)
 
             # write back into both env.params and payload so downstream sees the same view
-            if "env" in ctx and ctx["env"] is not None:
-                env = ctx["env"]
-                if isinstance(env, dict):
-                    env["params"] = params
+            env_attr = (
+                ctx.get("env") if isinstance(ctx, dict) else getattr(ctx, "env", None)
+            )
+            if env_attr is not None:
+                if isinstance(env_attr, dict):
+                    env_attr["params"] = params
                 else:
-                    env.params = params
-            ctx["payload"] = params
+                    env_attr.params = params
+            if isinstance(ctx, dict):
+                ctx["payload"] = params
+            else:
+                setattr(ctx, "payload", params)
 
         def _before_update(ctx: dict[str, Any]) -> None:
-            params = (ctx.get("env") or {}).get("params") or ctx.get("payload") or {}
+            env = (
+                ctx.get("env") if isinstance(ctx, dict) else getattr(ctx, "env", None)
+            ) or {}
+            params = (
+                (
+                    env.get("params")
+                    if isinstance(env, dict)
+                    else getattr(env, "params", None)
+                )
+                or (
+                    ctx.get("payload")
+                    if isinstance(ctx, dict)
+                    else getattr(ctx, "payload", None)
+                )
+                or {}
+            )
             if hasattr(params, "model_dump"):
                 params = params.model_dump()
 
@@ -233,13 +268,20 @@ class Ownable:
             if _is_missing(params.get("owner_id")):
                 # treat None/"" as not provided → drop it
                 params.pop("owner_id", None)
-                if "env" in ctx and ctx["env"] is not None:
-                    env = ctx["env"]
-                    if isinstance(env, dict):
-                        env["params"] = params
+                env_attr = (
+                    ctx.get("env")
+                    if isinstance(ctx, dict)
+                    else getattr(ctx, "env", None)
+                )
+                if env_attr is not None:
+                    if isinstance(env_attr, dict):
+                        env_attr["params"] = params
                     else:
-                        env.params = params
-                ctx["payload"] = params
+                        env_attr.params = params
+                if isinstance(ctx, dict):
+                    ctx["payload"] = params
+                else:
+                    setattr(ctx, "payload", params)
                 return
 
             if pol != OwnerPolicy.CLIENT_SET:
@@ -262,13 +304,18 @@ class Ownable:
 
             # normalize stored value
             params["owner_id"] = new_val
-            if "env" in ctx and ctx["env"] is not None:
-                env = ctx["env"]
-                if isinstance(env, dict):
-                    env["params"] = params
+            env_attr = (
+                ctx.get("env") if isinstance(ctx, dict) else getattr(ctx, "env", None)
+            )
+            if env_attr is not None:
+                if isinstance(env_attr, dict):
+                    env_attr["params"] = params
                 else:
-                    env.params = params
-            ctx["payload"] = params
+                    env_attr.params = params
+            if isinstance(ctx, dict):
+                ctx["payload"] = params
+            else:
+                setattr(ctx, "payload", params)
 
         # Attach (merge) into __autoapi_hooks__ without clobbering existing mappings
         hooks = getattr(cls, AUTOAPI_HOOKS_ATTR, None) or {}

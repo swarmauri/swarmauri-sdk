@@ -7,6 +7,7 @@ from sqlalchemy.orm import sessionmaker
 from autoapi.v3.autoapp import AutoApp
 from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.orm.tables import Base
+from autoapi.v3.config.constants import AUTOAPI_AUTH_CONTEXT_ATTR
 from autoapi.v3.types import (
     AllowAnonProvider,
     App,
@@ -36,10 +37,9 @@ class DummyAuth(AuthNProvider):
             raise HTTPException(status_code=409)
         if creds.credentials != "secret":
             raise HTTPException(status_code=401)
-        return {"sub": "user"}
-
-    def register_inject_hook(self, api) -> None:
-        return None
+        principal = {"sub": "user"}
+        setattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, principal)
+        return principal
 
 
 def _build_client():
@@ -64,7 +64,6 @@ def _build_client():
     auth = DummyAuth()
     api = AutoApp(engine=cfg)
     api.set_auth(authn=auth.get_principal)
-    auth.register_inject_hook(api)
     api.include_models([Tenant, Item])
     api.initialize()
     app = App()
@@ -96,7 +95,6 @@ def _build_client_attr():
     auth = DummyAuth()
     api = AutoApp(engine=cfg)
     api.set_auth(authn=auth.get_principal)
-    auth.register_inject_hook(api)
     api.include_models([Tenant, Item])
     api.initialize()
     app = App()

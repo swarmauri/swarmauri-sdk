@@ -127,7 +127,22 @@ class TenantBound(_RowBound):
             raise http_exc
 
         def _before_create(ctx: dict[str, Any]) -> None:
-            params = (ctx.get("env") or {}).get("params") or ctx.get("payload") or {}
+            env = (
+                ctx.get("env") if isinstance(ctx, dict) else getattr(ctx, "env", None)
+            ) or {}
+            params = (
+                (
+                    env.get("params")
+                    if isinstance(env, dict)
+                    else getattr(env, "params", None)
+                )
+                or (
+                    ctx.get("payload")
+                    if isinstance(ctx, dict)
+                    else getattr(ctx, "payload", None)
+                )
+                or {}
+            )
             if hasattr(params, "model_dump"):
                 params = params.model_dump()
 
@@ -138,10 +153,10 @@ class TenantBound(_RowBound):
             if pol == TenantPolicy.STRICT_SERVER:
                 if tenant_id is None:
                     _err(400, "tenant_id is required.")
-                if not missing and _normalize_uuid(provided) != _normalize_uuid(
-                    tenant_id
-                ):
-                    _err(400, "tenant_id mismatch.")
+                if not missing:
+                    if _normalize_uuid(provided) != _normalize_uuid(tenant_id):
+                        _err(400, "tenant_id mismatch.")
+                    _err(400, "tenant_id is server-assigned.")
                 params["tenant_id"] = tenant_id
             elif pol == TenantPolicy.DEFAULT_TO_CTX:
                 if missing and tenant_id is not None:
@@ -152,16 +167,36 @@ class TenantBound(_RowBound):
                 if not missing:
                     params["tenant_id"] = _normalize_uuid(provided)
 
-            if "env" in ctx and ctx["env"] is not None:
-                env = ctx["env"]
-                if isinstance(env, dict):
-                    env["params"] = params
+            env_attr = (
+                ctx.get("env") if isinstance(ctx, dict) else getattr(ctx, "env", None)
+            )
+            if env_attr is not None:
+                if isinstance(env_attr, dict):
+                    env_attr["params"] = params
                 else:
-                    env.params = params
-            ctx["payload"] = params
+                    env_attr.params = params
+            if isinstance(ctx, dict):
+                ctx["payload"] = params
+            else:
+                setattr(ctx, "payload", params)
 
         def _before_update(ctx: dict[str, Any]) -> None:
-            params = (ctx.get("env") or {}).get("params") or ctx.get("payload") or {}
+            env = (
+                ctx.get("env") if isinstance(ctx, dict) else getattr(ctx, "env", None)
+            ) or {}
+            params = (
+                (
+                    env.get("params")
+                    if isinstance(env, dict)
+                    else getattr(env, "params", None)
+                )
+                or (
+                    ctx.get("payload")
+                    if isinstance(ctx, dict)
+                    else getattr(ctx, "payload", None)
+                )
+                or {}
+            )
             if hasattr(params, "model_dump"):
                 params = params.model_dump()
 
@@ -170,13 +205,20 @@ class TenantBound(_RowBound):
 
             if _is_missing(params.get("tenant_id")):
                 params.pop("tenant_id", None)
-                if "env" in ctx and ctx["env"] is not None:
-                    env = ctx["env"]
-                    if isinstance(env, dict):
-                        env["params"] = params
+                env_attr = (
+                    ctx.get("env")
+                    if isinstance(ctx, dict)
+                    else getattr(ctx, "env", None)
+                )
+                if env_attr is not None:
+                    if isinstance(env_attr, dict):
+                        env_attr["params"] = params
                     else:
-                        env.params = params
-                ctx["payload"] = params
+                        env_attr.params = params
+                if isinstance(ctx, dict):
+                    ctx["payload"] = params
+                else:
+                    setattr(ctx, "payload", params)
                 return
 
             if pol != TenantPolicy.CLIENT_SET:
@@ -190,13 +232,18 @@ class TenantBound(_RowBound):
                 _err(403, "Cannot switch tenant context.")
 
             params["tenant_id"] = new_val
-            if "env" in ctx and ctx["env"] is not None:
-                env = ctx["env"]
-                if isinstance(env, dict):
-                    env["params"] = params
+            env_attr = (
+                ctx.get("env") if isinstance(ctx, dict) else getattr(ctx, "env", None)
+            )
+            if env_attr is not None:
+                if isinstance(env_attr, dict):
+                    env_attr["params"] = params
                 else:
-                    env.params = params
-            ctx["payload"] = params
+                    env_attr.params = params
+            if isinstance(ctx, dict):
+                ctx["payload"] = params
+            else:
+                setattr(ctx, "payload", params)
 
         hooks = {**getattr(cls, "__autoapi_hooks__", {})}
 
