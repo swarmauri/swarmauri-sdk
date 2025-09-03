@@ -5,9 +5,9 @@ import pytest_asyncio
 from fastapi import FastAPI, status
 from httpx import ASGITransport, AsyncClient, BasicAuth
 
-from auto_authn.fastapi_deps import get_async_db
 from auto_authn.routers.auth_flows import router
 from auto_authn.runtime_cfg import settings
+from auto_authn.db import engine as db_engine
 
 
 AUTH = BasicAuth("abc", "secret")
@@ -33,7 +33,7 @@ async def _override_db():
 async def client():
     app = FastAPI()
     app.include_router(router)
-    app.dependency_overrides[get_async_db] = _override_db
+    app.dependency_overrides[db_engine.get_db] = _override_db
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as c:
         yield c

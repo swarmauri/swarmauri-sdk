@@ -13,7 +13,7 @@ from httpx import ASGITransport, AsyncClient
 
 from auto_authn.runtime_cfg import settings
 from auto_authn.routers.auth_flows import router, _jwt
-from auto_authn.fastapi_deps import get_async_db
+from auto_authn.db import engine as db_engine
 
 
 @pytest.mark.unit
@@ -28,7 +28,7 @@ async def test_token_includes_aud_when_resource_provided(monkeypatch):
         "auto_authn.routers.auth_flows._pwd_backend.authenticate",
         AsyncMock(return_value=mock_user),
     )
-    app.dependency_overrides[get_async_db] = lambda: AsyncMock()
+    app.dependency_overrides[db_engine.get_db] = lambda: AsyncMock()
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post(
@@ -54,7 +54,7 @@ async def test_invalid_resource_returns_error(monkeypatch):
     app = FastAPI()
     app.include_router(router)
     monkeypatch.setattr(settings, "rfc8707_enabled", True)
-    app.dependency_overrides[get_async_db] = lambda: AsyncMock()
+    app.dependency_overrides[db_engine.get_db] = lambda: AsyncMock()
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post(
@@ -84,7 +84,7 @@ async def test_multiple_resources_uses_first(monkeypatch):
         "auto_authn.routers.auth_flows._pwd_backend.authenticate",
         AsyncMock(return_value=mock_user),
     )
-    app.dependency_overrides[get_async_db] = lambda: AsyncMock()
+    app.dependency_overrides[db_engine.get_db] = lambda: AsyncMock()
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post(
@@ -110,7 +110,7 @@ async def test_multiple_resources_with_invalid_returns_error(monkeypatch):
     app = FastAPI()
     app.include_router(router)
     monkeypatch.setattr(settings, "rfc8707_enabled", True)
-    app.dependency_overrides[get_async_db] = lambda: AsyncMock()
+    app.dependency_overrides[db_engine.get_db] = lambda: AsyncMock()
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post(
@@ -140,7 +140,7 @@ async def test_feature_flag_disables_resource(monkeypatch):
         "auto_authn.routers.auth_flows._pwd_backend.authenticate",
         AsyncMock(return_value=mock_user),
     )
-    app.dependency_overrides[get_async_db] = lambda: AsyncMock()
+    app.dependency_overrides[db_engine.get_db] = lambda: AsyncMock()
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post(
