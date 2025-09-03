@@ -1,3 +1,12 @@
+import os
+import asyncio
+import contextlib
+import socket
+import subprocess
+import tempfile
+import time
+import shutil
+import pwd
 import pytest
 import pytest_asyncio
 from autoapi.v3 import AutoApp, Base
@@ -7,15 +16,59 @@ from autoapi.v3.specs import F, IO, S, acol
 from autoapi.v3.column.storage_spec import StorageTransform
 from autoapi.v3.schema import builder as v3_builder
 from autoapi.v3.runtime import kernel as runtime_kernel
-from autoapi.v3.engine.shortcuts import mem
+from autoapi.v3.engine.shortcuts import mem, pga, pgs
 from autoapi.v3.engine import resolver as _resolver
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, Session
-from typing import AsyncIterator, Iterator
-import asyncio
+from typing import Any, AsyncIterator, Iterator
+
+os.environ["PATH"] = "/usr/lib/postgresql/16/bin:" + os.environ.get("PATH", "")
+
+
+def _find_free_port() -> int:
+    with contextlib.closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
+        s.bind(("", 0))
+        return s.getsockname()[1]
+
+
+@pytest.fixture(scope="session")
+def pg_server() -> dict[str, Any]:
+    """Spin up a temporary PostgreSQL server for tests."""
+    data_dir = tempfile.mkdtemp()
+    uid = pwd.getpwnam("postgres").pw_uid
+    gid = pwd.getpwnam("postgres").pw_gid
+    os.chown(data_dir, uid, gid)
+    port = _find_free_port()
+    initdb_cmd = (
+        f"/usr/lib/postgresql/16/bin/pg_ctl initdb -D {data_dir} -o '--auth=trust'"
+    )
+    subprocess.check_call(["su", "postgres", "-c", initdb_cmd])
+    start_cmd = f"/usr/lib/postgresql/16/bin/postgres -D {data_dir} -F -p {port}"
+    proc = subprocess.Popen(
+        ["su", "postgres", "-c", start_cmd],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    for _ in range(50):
+        try:
+            with socket.create_connection(("localhost", port), timeout=1):
+                break
+        except OSError:
+            time.sleep(0.1)
+    else:
+        proc.terminate()
+        proc.wait()
+        shutil.rmtree(data_dir)
+        raise RuntimeError("PostgreSQL failed to start")
+    try:
+        yield {"host": "localhost", "port": port, "user": "postgres", "db": "postgres"}
+    finally:
+        proc.terminate()
+        proc.wait()
+        shutil.rmtree(data_dir)
 
 
 @pytest.fixture(scope="session")
@@ -87,6 +140,58 @@ async def async_db_session():
     prov = _resolver.resolve_provider()
     engine, maker = prov.ensure()
 
+    async def get_db() -> AsyncIterator[AsyncSession]:
+        async with maker() as session:
+            yield session
+
+    try:
+        yield engine, get_db
+    finally:
+        await engine.dispose()
+        _resolver.set_default(None)
+
+
+@pytest.fixture
+def pg_db_session(pg_server: dict[str, Any]):
+    """Provide a synchronous PostgreSQL engine and DB session factory."""
+    cfg = pgs(
+        host=pg_server["host"],
+        port=pg_server["port"],
+        user=pg_server["user"],
+        pwd="",
+        name=pg_server["db"],
+    )
+    _resolver.set_default(cfg)
+    prov = _resolver.resolve_provider()
+    engine, maker = prov.ensure()
+
+    @contextlib.contextmanager
+    def get_db() -> Iterator[Session]:
+        with maker() as session:
+            yield session
+
+    try:
+        yield engine, get_db
+    finally:
+        engine.dispose()
+        _resolver.set_default(None)
+
+
+@pytest_asyncio.fixture
+async def async_pg_db_session(pg_server: dict[str, Any]):
+    """Provide an asynchronous PostgreSQL engine and DB session factory."""
+    cfg = pga(
+        host=pg_server["host"],
+        port=pg_server["port"],
+        user=pg_server["user"],
+        pwd="",
+        name=pg_server["db"],
+    )
+    _resolver.set_default(cfg)
+    prov = _resolver.resolve_provider()
+    engine, maker = prov.ensure()
+
+    @contextlib.asynccontextmanager
     async def get_db() -> AsyncIterator[AsyncSession]:
         async with maker() as session:
             yield session
