@@ -61,6 +61,7 @@ from .db import engine
 from .ws_server import router as ws_router
 from sqlalchemy.exc import IntegrityError
 
+# Access the underlying SQLAlchemy engine for migrations and shutdown disposal
 sqla_engine, _ = engine.raw()
 
 
