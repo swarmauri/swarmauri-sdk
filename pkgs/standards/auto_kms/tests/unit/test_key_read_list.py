@@ -14,7 +14,8 @@ def client_app(tmp_path, monkeypatch):
     app = importlib.reload(importlib.import_module("auto_kms.app"))
 
     async def init_db():
-        async with app.engine.begin() as conn:
+        eng, _ = app.ENGINE.raw()
+        async with eng.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
 
     asyncio.run(init_db())

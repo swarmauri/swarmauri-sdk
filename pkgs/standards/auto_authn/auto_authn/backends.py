@@ -27,7 +27,7 @@ from typing import Iterable, Optional
 from typing import TYPE_CHECKING
 
 from sqlalchemy import Select, or_, select
-from sqlalchemy.ext.asyncio import AsyncSession
+from autoapi.v3.engine import HybridSession as AsyncSession
 
 from .crypto import verify_pw
 from .typing import Principal

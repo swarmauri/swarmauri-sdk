@@ -18,7 +18,8 @@ def client_app(tmp_path, monkeypatch):
     app = importlib.reload(importlib.import_module("auto_kms.app"))
 
     async def init_db():
-        async with app.engine.begin() as conn:
+        eng, _ = app.ENGINE.raw()
+        async with eng.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
 
     asyncio.run(init_db())
@@ -43,7 +44,7 @@ def test_key_rotate_creates_new_version(client_app):
     assert res.content == b""
 
     async def fetch_primary_version():
-        async with app.AsyncSessionLocal() as session:
+        async with app.ENGINE.asession() as session:
             result = await session.execute(
                 select(Key.primary_version).where(Key.id == UUID(str(key["id"])))
             )
@@ -52,7 +53,7 @@ def test_key_rotate_creates_new_version(client_app):
     assert asyncio.run(fetch_primary_version()) == 2
 
     async def fetch_versions():
-        async with app.AsyncSessionLocal() as session:
+        async with app.ENGINE.asession() as session:
             result = await session.execute(
                 select(KeyVersion.version).where(
                     KeyVersion.key_id == UUID(str(key["id"]))
