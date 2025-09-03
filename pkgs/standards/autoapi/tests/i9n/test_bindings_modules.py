@@ -1,7 +1,7 @@
 import inspect
 
 import pytest
-from autoapi.v3.tables import Base
+from autoapi.v3.orm.tables import Base
 from autoapi.v3.types import (
     InstrumentedAttribute,
     Integer,
@@ -20,9 +20,9 @@ from autoapi.v3.bindings import (
     schemas as schemas_binding,
 )
 from autoapi.v3.specs import ColumnSpec, F, IO, S
-from autoapi.v3.opspec import resolve
+from autoapi.v3.ops import resolve
 from autoapi.v3.runtime import executor as _executor
-from autoapi.v3.specs import shortcuts as sc
+from autoapi.v3.column import shortcuts as sc
 
 
 def _make_model():

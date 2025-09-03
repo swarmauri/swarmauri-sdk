@@ -20,13 +20,15 @@ from .rpc import _coerce_payload, _get_phase_chains, _validate_input, _serialize
 from ..config.constants import (
     AUTOAPI_AUTH_DEP_ATTR,
     AUTOAPI_AUTHORIZE_ATTR,
-    AUTOAPI_GET_ASYNC_DB_ATTR,
     AUTOAPI_GET_DB_ATTR,
     AUTOAPI_REST_DEPENDENCIES_ATTR,
     AUTOAPI_RPC_DEPENDENCIES_ATTR,
     AUTOAPI_ALLOW_ANON_ATTR,
 )
 from ..runtime import executor as _executor
+
+# NEW: engine resolver (strict precedence: op > model > api > app)
+from ..engine import resolver as _resolver  # acquire(api=?, model=?, op_alias=?)
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +59,6 @@ def _default_prefix(model: type) -> str:
     duplicated path segments such as ``/item/item``.  To expose REST endpoints
     under ``/item`` we now mount routers at the application root by default.
     """
-
     return ""
 
 
@@ -85,6 +86,7 @@ def _ensure_api_ns(api: ApiLike) -> None:
     """
     for attr, default in (
         ("models", {}),
+        ("tables", {}),
         ("schemas", SimpleNamespace()),
         ("handlers", SimpleNamespace()),
         ("hooks", SimpleNamespace()),
@@ -103,13 +105,14 @@ def _ensure_api_ns(api: ApiLike) -> None:
 class _ResourceProxy:
     """Dynamic proxy that executes core operations."""
 
-    __slots__ = ("_model", "_serialize")
+    __slots__ = ("_model", "_serialize", "_api")
 
     def __init__(
-        self, model: type, *, serialize: bool = True
+        self, model: type, *, serialize: bool = True, api: Any = None
     ) -> None:  # pragma: no cover - trivial
         self._model = model
         self._serialize = serialize
+        self._api = api
 
     def __repr__(self) -> str:  # pragma: no cover - debug helper
         return f"<ResourceProxy {self._model.__name__}>"
@@ -123,7 +126,7 @@ class _ResourceProxy:
         async def _call(
             payload: Any = None,
             *,
-            db: Any,
+            db: Any | None = None,
             request: Any = None,
             ctx: Optional[Dict[str, Any]] = None,
         ) -> Any:
@@ -131,9 +134,9 @@ class _ResourceProxy:
             if alias == "bulk_delete" and not isinstance(raw_payload, Mapping):
                 raw_payload = {"ids": raw_payload}
             norm_payload = _validate_input(self._model, alias, alias, raw_payload)
+
             base_ctx: Dict[str, Any] = dict(ctx or {})
             base_ctx.setdefault("payload", norm_payload)
-            base_ctx.setdefault("db", db)
             if request is not None:
                 base_ctx.setdefault("request", request)
             base_ctx.setdefault(
@@ -149,13 +152,40 @@ class _ResourceProxy:
                 )
             else:
                 base_ctx.setdefault("response_serializer", lambda r: r)
+
+            # Acquire DB if one was not explicitly provided (op > model > api > app)
+            _release_db = None
+            if db is None:
+                try:
+                    db, _release_db = _resolver.acquire(
+                        api=self._api, model=self._model, op_alias=alias
+                    )
+                except Exception:
+                    logger.exception(
+                        "DB acquire failed for %s.%s; no default configured?",
+                        self._model.__name__,
+                        alias,
+                    )
+                    raise
+
+            base_ctx.setdefault("db", db)
             phases = _get_phase_chains(self._model, alias)
-            return await _executor._invoke(
-                request=request,
-                db=db,
-                phases=phases,
-                ctx=base_ctx,
-            )
+            try:
+                return await _executor._invoke(
+                    request=request,
+                    db=db,
+                    phases=phases,
+                    ctx=base_ctx,
+                )
+            finally:
+                if _release_db is not None:
+                    try:
+                        _release_db()
+                    except Exception:
+                        logger.debug(
+                            "Non-fatal: error releasing acquired DB session",
+                            exc_info=True,
+                        )
 
         _call.__name__ = f"{self._model.__name__}.{alias}"
         _call.__qualname__ = _call.__name__
@@ -167,18 +197,16 @@ class _ResourceProxy:
 def _seed_security_and_deps(api: Any, model: type) -> None:
     """
     Copy API-level dependency hooks onto the model so downstream binders can use them.
-    - __autoapi_get_db__             : sync DB dep (FastAPI Depends-compatible)
-    - __autoapi_get_async_db__       : async DB dep
+    - __autoapi_get_db__             : DB dep (FastAPI Depends-compatible)
     - __autoapi_auth_dep__           : auth dependency (returns user or raises 401)
     - __autoapi_authorize__          : callable(request, model, alias, payload, user)→None/raise 403
     - __autoapi_rest_dependencies__  : list of extra dependencies for REST (e.g., rate-limits)
     - __autoapi_rpc_dependencies__   : list of extra dependencies for JSON-RPC router
     """
     # DB deps
-    if getattr(api, "get_db", None):
-        setattr(model, AUTOAPI_GET_DB_ATTR, api.get_db)
-    if getattr(api, "get_async_db", None):
-        setattr(model, AUTOAPI_GET_ASYNC_DB_ATTR, api.get_async_db)
+    prov = _resolver.resolve_provider(api=api)
+    if prov is not None:
+        setattr(model, AUTOAPI_GET_DB_ATTR, prov.get_db)
 
     # Authn (prefer optional dep when available)
     auth_dep = None
@@ -226,6 +254,7 @@ def _attach_to_api(api: ApiLike, model: type) -> None:
 
     # Index model object
     api.models[mname] = model
+    api.tables[mname] = getattr(model, "__table__", None)
 
     # Direct references to model namespaces
     setattr(api.schemas, mname, getattr(model, "schemas", SimpleNamespace()))
@@ -253,13 +282,13 @@ def _attach_to_api(api: ApiLike, model: type) -> None:
     api.columns[mname] = tuple(getattr(model, "columns", ()))
     api.table_config[mname] = dict(getattr(model, "table_config", {}) or {})
 
-    # Core helper proxies
-    core_proxy = _ResourceProxy(model)
+    # Core helper proxies (now aware of API for DB resolution precedence)
+    core_proxy = _ResourceProxy(model, api=api)
     setattr(api.core, mname, core_proxy)
     if rtitle != mname:
         setattr(api.core, rtitle, core_proxy)
 
-    core_raw_proxy = _ResourceProxy(model, serialize=False)
+    core_raw_proxy = _ResourceProxy(model, serialize=False, api=api)
     setattr(api.core_raw, mname, core_raw_proxy)
     if rtitle != mname:
         setattr(api.core_raw, rtitle, core_raw_proxy)
@@ -301,8 +330,8 @@ def include_model(
     if prefix is None:
         prefix = _default_prefix(model)
 
-    # 3) Always bind model router to `api.router`
-    root_router = getattr(api, "router", None)
+    # 3) Always bind model router to the API object when possible
+    root_router = api if _has_include_router(api) else getattr(api, "router", None)
     if router is not None:
         _mount_router(root_router, router, prefix=prefix)
 
@@ -353,7 +382,7 @@ async def rpc_call(
     method: str,
     payload: Any = None,
     *,
-    db: Any,
+    db: Any | None = None,
     request: Any = None,
     ctx: Optional[Dict[str, Any]] = None,
 ) -> Any:
@@ -376,7 +405,30 @@ async def rpc_call(
             f"{getattr(mdl, '__name__', mdl)} has no RPC method '{method}'"
         )
 
-    return await fn(payload, db=db, request=request, ctx=ctx)
+    # Acquire DB if not explicitly provided (op > model > api > app)
+    _release_db = None
+    if db is None:
+        try:
+            db, _release_db = _resolver.acquire(api=api, model=mdl, op_alias=method)
+        except Exception:
+            logger.exception(
+                "DB acquire failed for rpc_call %s.%s; no default configured?",
+                getattr(mdl, "__name__", mdl),
+                method,
+            )
+            raise
+
+    try:
+        return await fn(payload, db=db, request=request, ctx=ctx)
+    finally:
+        if _release_db is not None:
+            try:
+                _release_db()
+            except Exception:
+                logger.debug(
+                    "Non-fatal: error releasing acquired DB session (rpc_call)",
+                    exc_info=True,
+                )
 
 
 __all__ = ["include_model", "include_models", "rpc_call"]

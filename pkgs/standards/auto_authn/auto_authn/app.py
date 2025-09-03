@@ -15,9 +15,10 @@ Features
 
 from __future__ import annotations
 
-import fastapi
+from autoapi.v3 import AutoApp
 
 from .routers.surface import surface_api
+from .db import dsn
 from .runtime_cfg import settings
 from .rfc8414 import include_rfc8414
 from .oidc_discovery import include_oidc_discovery
@@ -28,19 +29,20 @@ from .rfc7009 import include_rfc7009
 
 
 # --------------------------------------------------------------------
-# FastAPI application
+# AutoApp application
 # --------------------------------------------------------------------
-app = fastapi.FastAPI(
+app = AutoApp(
     title="AutoAPI-AuthN",
     version="0.1.0",
     openapi_url="/openapi.json",
     docs_url="/docs",
+    engine=dsn,
 )
 
 # Mount routers
 surface_api.mount_jsonrpc(prefix="/rpc")
 surface_api.attach_diagnostics(prefix="/system")
-app.include_router(surface_api.router)  # /authn/<model> resources & flows
+app.include_router(surface_api)  # /authn/<model> resources & flows
 if settings.enable_rfc8693:
     include_rfc8693(app)
 if settings.enable_rfc7591:
@@ -57,7 +59,9 @@ async def _startup() -> None:
     # 1 – metadata validation / SQLite convenience mode
     # When running on SQLite, attach the same file under the "authn" alias
     # so schema-qualified tables like "authn.tenants" work.
-    await surface_api.initialize_async(sqlite_attachments={"authn": "./authn.db"})
+    # this should work without sqlite_attachments, if sqlite_attachments are required use:
+    # > await surface_api.initialize_async(sqlite_attachments={"authn": "./authn.db"})
+    await surface_api.initialize_async()
 
 
 app.add_event_handler("startup", _startup)

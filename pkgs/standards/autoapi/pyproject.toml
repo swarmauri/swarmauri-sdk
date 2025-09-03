@@ -30,6 +30,9 @@ postgres = [
     "asyncpg>=0.30.0",
     "psycopg2-binary>=2.9.9",
 ]
+templates = [
+    "jinja2>=3.1.4",
+]
 
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
@@ -72,4 +75,6 @@ dev = [
     "pytest-timeout>=2.3.1",
     "ruff>=0.9.9",
     "pytest-benchmark>=4.0.0",
+    "asyncpg>=0.30.0",
+    "psycopg2-binary>=2.9.9",
 ]

@@ -6,6 +6,7 @@ import logging
 import re
 import typing as _typing
 from types import SimpleNamespace
+from uuid import uuid4
 from typing import (
     Annotated,
     Any,
@@ -89,8 +90,8 @@ except Exception:  # pragma: no cover
 
 from pydantic import BaseModel, Field, create_model
 
-from ..opspec import OpSpec
-from ..opspec.types import PHASES
+from ..ops import OpSpec
+from ..ops.types import PHASES
 from ..runtime import executor as _executor  # expects _invoke(request, db, phases, ctx)
 
 # Prefer Kernel phase-chains if available
@@ -100,7 +101,6 @@ except Exception:  # pragma: no cover
     _kernel_build_phase_chains = None  # type: ignore
 
 from ..config.constants import (
-    AUTOAPI_GET_ASYNC_DB_ATTR,
     AUTOAPI_GET_DB_ATTR,
     AUTOAPI_AUTH_DEP_ATTR,
     AUTOAPI_REST_DEPENDENCIES_ATTR,
@@ -219,6 +219,11 @@ def _serialize_output(
     Otherwise, attempt a best-effort conversion to primitive types so FastAPI
     can JSON-encode the response.
     """
+
+    from ..types import Response as _Response  # local import to avoid cycles
+
+    if isinstance(result, _Response):
+        return result
 
     def _final(val: Any) -> Any:
         if target == "list" and isinstance(val, (list, tuple)):
@@ -1235,11 +1240,7 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
     router = Router(dependencies=extra_router_deps or None)
 
     pk_param = "item_id"
-    db_dep = (
-        getattr(model, AUTOAPI_GET_ASYNC_DB_ATTR, None)
-        or getattr(model, AUTOAPI_GET_DB_ATTR, None)
-        or _req_state_db
-    )
+    db_dep = getattr(model, AUTOAPI_GET_DB_ATTR, None) or _req_state_db
 
     raw_nested = _nested_prefix(model) or ""
     nested_pref = re.sub(r"/{2,}", "/", raw_nested).rstrip("/") or ""
@@ -1391,11 +1392,13 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
         if auth_dep and sp.alias not in allow_anon and sp.target not in allow_anon:
             route_deps = _normalize_deps([auth_dep])
 
+        unique_id = f"{endpoint.__name__}_{uuid4().hex}"
         route_kwargs = dict(
             path=path,
             endpoint=endpoint,
             methods=methods,
             name=f"{model.__name__}.{sp.alias}",
+            operation_id=unique_id,
             summary=label,
             description=label,
             response_model=response_model,

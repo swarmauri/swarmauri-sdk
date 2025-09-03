@@ -1,13 +1,13 @@
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from autoapi.v3.types import App, Integer, Mapped, String
 
-from autoapi.v3.autoapi import AutoAPI as AutoAPIv3
+from autoapi.v3.autoapp import AutoApp as AutoAPIv3
+from autoapi.v3.engine.shortcuts import mem
 from autoapi.v3.specs import F, IO, S, acol
-from autoapi.v3.tables import Base as Base3
+from autoapi.v3.orm.tables import Base as Base3
 
 
 @pytest_asyncio.fixture()
@@ -39,27 +39,22 @@ async def client_and_model():
 
         __autoapi_cols__ = {"id": id, "name": name, "age": age}
 
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base3.metadata.create_all)
-    session_maker = async_sessionmaker(
-        bind=engine, class_=AsyncSession, expire_on_commit=False
-    )
-
-    async def get_async_db():
-        async with session_maker() as session:
-            yield session
-
     app = App()
-    api = AutoAPIv3(app=app, get_async_db=get_async_db)
+    # AutoApp/AutoAPI dropped the ``get_db`` attribute in favor of using the
+    # engine facade. Using an async SQLite engine in this test triggers a
+    # ``MissingGreenlet`` error when SQLAlchemy performs I/O. Configure a
+    # synchronous in-memory engine instead so the REST operations run without
+    # requiring greenlet magic.
+    api = AutoAPIv3(engine=mem(async_=False))
     api.include_model(Gadget, prefix="")
+    await api.initialize_async()
+    app.include_router(api.router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     try:
         yield client, Gadget
     finally:
         await client.aclose()
-        await engine.dispose()
 
 
 @pytest.mark.i9n

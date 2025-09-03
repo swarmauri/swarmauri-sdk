@@ -1,8 +1,8 @@
 import pytest
 from autoapi.v3.bindings.rest import build_router_and_attach
-from autoapi.v3.mixins import GUIDPk
-from autoapi.v3.opspec import OpSpec
-from autoapi.v3.tables import Base
+from autoapi.v3.orm.mixins import GUIDPk
+from autoapi.v3.ops import OpSpec
+from autoapi.v3.orm.tables import Base
 from autoapi.v3.types import Column, String
 
 

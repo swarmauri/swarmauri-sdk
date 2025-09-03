@@ -1,6 +1,6 @@
-from autoapi.v3 import AutoAPI
-from autoapi.v3.tables import Base
-from autoapi.v3.mixins import GUIDPk
+from autoapi.v3 import AutoApp
+from autoapi.v3.orm.tables import Base
+from autoapi.v3.orm.mixins import GUIDPk
 from fastapi import FastAPI, Security
 from fastapi.security import HTTPBearer
 
@@ -12,9 +12,10 @@ class Widget(Base, GUIDPk):
 
 def test_api_level_auth_dep_applied_per_route():
     app = FastAPI()
-    api = AutoAPI(app=app)
+    api = AutoApp()
     api.set_auth(authn=lambda cred=Security(HTTPBearer()): cred, allow_anon=False)
     api.include_models([Widget])
+    app.include_router(api.router)
     schema = app.openapi()
     paths = {route.name: route.path for route in api.routers["Widget"].routes}
     list_sec = schema["paths"][paths["Widget.list"]]["get"].get("security")

@@ -14,16 +14,16 @@ namespaces like ``surface_api.core.User.create`` and
 Notes
 -----
 *   All mix-ins (GUIDPk, Timestamped, TenantBound, etc.) live in
-    *autoapi.v3.mixins* and are imported **only** by ``tables.py``.
+    *autoapi.v3.orm.mixins* and are imported by the ORM models.
 *   Importing this module has the side-effect of importing
-    ``autoapi_authn.orm.tables``, so every model class is registered with
-    the declarative base **before** AutoAPI introspects the metadata.
+    ``auto_authn.orm``, so every model class is registered with the
+    declarative base **before** AutoAPI introspects the metadata.
 """
 
 from __future__ import annotations
 
 from autoapi.v3 import AutoAPI
-from auto_authn.orm.tables import (
+from auto_authn.orm import (
     Tenant,
     User,
     Client,
@@ -32,25 +32,18 @@ from auto_authn.orm.tables import (
     ServiceKey,
     AuthSession,
 )
-from fastapi import APIRouter
-from ..db import get_async_db  # same module as before
+from ..db import dsn
 from .auth_flows import router as flows_router
 
 # ----------------------------------------------------------------------
 # 3.  Build AutoAPI instance & router
 # ----------------------------------------------------------------------
-surface_api = AutoAPI(
-    get_async_db=get_async_db,
-)
+surface_api = AutoAPI(engine=dsn)
 
 surface_api.include_models(
     [Tenant, User, Client, ApiKey, Service, ServiceKey, AuthSession]
 )
 
-router = APIRouter()
-for r in surface_api.routers.values():
-    router.include_router(r)
-router.include_router(flows_router)
-surface_api.router = router
+surface_api.include_router(flows_router)
 
 __all__ = ["surface_api"]

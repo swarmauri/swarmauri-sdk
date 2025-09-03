@@ -1,7 +1,7 @@
 from autoapi.v3.bindings.rest import _build_router
-from autoapi.v3.opspec import OpSpec
-from autoapi.v3.tables import Base
-from autoapi.v3.mixins import GUIDPk, BulkCapable, Replaceable
+from autoapi.v3.ops import OpSpec
+from autoapi.v3.orm.tables import Base
+from autoapi.v3.orm.mixins import GUIDPk, BulkCapable, Replaceable
 from autoapi.v3.types import Column, String, App
 
 

@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from autoapi.v3.tables import Base
+from autoapi.v3.orm.tables import Base
 from autoapi.v3.types import JSON, PgUUID, Text, Mapped, relationship
-from autoapi.v3.mixins import GUIDPk, Timestamped, Ownable, TenantBound
+from autoapi.v3.orm.mixins import GUIDPk, Timestamped, Ownable, TenantBound
 from autoapi.v3.specs import S, acol
-from autoapi.v3.specs.storage_spec import ForeignKeySpec
+from autoapi.v3.column.storage_spec import ForeignKeySpec
 from typing import TYPE_CHECKING
 
 from .users import User

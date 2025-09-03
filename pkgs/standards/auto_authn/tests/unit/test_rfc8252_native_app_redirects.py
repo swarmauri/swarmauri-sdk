@@ -19,7 +19,7 @@ import pytest
 
 from auto_authn import runtime_cfg
 from auto_authn.rfc8252 import is_native_redirect_uri, validate_native_redirect_uri
-from auto_authn.orm.tables import Client
+from auto_authn.orm import Client
 
 RFC8252_SPEC = (
     "Native applications MUST use a private-use URI scheme or the loopback "
@@ -84,7 +84,7 @@ def test_client_new_allows_public_redirect_when_disabled(monkeypatch) -> None:
     """Non-compliant redirect URIs are allowed when RFC 8252 checks are off."""
     monkeypatch.setenv("AUTO_AUTHN_ENFORCE_RFC8252", "0")
     importlib.reload(runtime_cfg)
-    import auto_authn.orm.tables as orm_tables
+    import auto_authn.orm as orm_tables
     import auto_authn.orm.client as orm_client
 
     monkeypatch.setattr(orm_tables, "settings", runtime_cfg.settings)

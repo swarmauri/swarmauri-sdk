@@ -9,7 +9,7 @@ from datetime import datetime, timedelta, timezone
 from autoapi.v3.types import Column, String, uuid4
 
 from autoapi.v3 import Base
-from autoapi.v3.mixins import (
+from autoapi.v3.orm.mixins import (
     ActiveToggle,
     AsyncCapable,
     Audited,
@@ -24,7 +24,7 @@ from autoapi.v3.mixins import (
     Replaceable,
     Slugged,
     SoftDelete,
-    StatusMixin,
+    StatusColumn,
     Streamable,
     Timestamped,
     ValidityWindow,
@@ -33,6 +33,7 @@ from autoapi.v3.mixins import (
     tzutcnow_plus_day,
 )
 from autoapi.v3.schema import _build_schema
+from autoapi.v3.engine import resolver as _resolver
 
 
 class DummyModelTimestamped(Base, GUIDPk, Timestamped):
@@ -105,10 +106,10 @@ class DummyModelSlugged(Base, GUIDPk, Slugged):
     name = Column(String)
 
 
-class DummyModelStatusMixin(Base, GUIDPk, StatusMixin):
-    """Test model for StatusMixin."""
+class DummyModelStatusColumn(Base, GUIDPk, StatusColumn):
+    """Test model for StatusColumn."""
 
-    __tablename__ = "dummy_status_mixin"
+    __tablename__ = "dummy_status_column"
     name = Column(String)
 
 
@@ -322,13 +323,13 @@ async def test_slugged_mixin(create_test_api):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_status_mixin(create_test_api):
-    """Test that StatusMixin adds status field."""
-    create_test_api(DummyModelStatusMixin)
+async def test_status_column(create_test_api):
+    """Test that StatusColumn adds status field."""
+    create_test_api(DummyModelStatusColumn)
 
     # Get schemas
-    create_schema = _build_schema(DummyModelStatusMixin, verb="create")
-    read_schema = _build_schema(DummyModelStatusMixin, verb="read")
+    create_schema = _build_schema(DummyModelStatusColumn, verb="create")
+    read_schema = _build_schema(DummyModelStatusColumn, verb="read")
 
     # status should be in schemas
     assert "status" in create_schema.model_fields
@@ -360,7 +361,7 @@ async def test_validity_window_mixin(create_test_api):
 @pytest.mark.asyncio
 async def test_validity_window_default(create_test_api):
     api = create_test_api(DummyModelValidityWindow)
-    session = next(api.get_db())
+    session, release = _resolver.acquire(api=api)
     try:
         vf_default = tzutcnow()
         vt_default = tzutcnow_plus_day()
@@ -370,7 +371,7 @@ async def test_validity_window_default(create_test_api):
         session.add(instance)
         session.flush()
     finally:
-        session.close()
+        release()
     assert vf_default is not None
     assert vt_default is not None
     assert abs((vt_default - vf_default) - timedelta(days=1)) < timedelta(seconds=1)
@@ -489,7 +490,7 @@ async def test_multiple_mixins_combination(create_test_api):
     """Test that multiple mixins can be combined correctly."""
 
     class DummyMultipleMixins(
-        Base, GUIDPk, Timestamped, ActiveToggle, Slugged, StatusMixin
+        Base, GUIDPk, Timestamped, ActiveToggle, Slugged, StatusColumn
     ):
         __tablename__ = "dummy_multiple_mixins"
         name = Column(String)
@@ -509,7 +510,7 @@ async def test_multiple_mixins_combination(create_test_api):
     assert "slug" in create_schema.model_fields
     assert "slug" in read_schema.model_fields
 
-    # From StatusMixin
+    # From StatusColumn
     assert "status" in create_schema.model_fields
     assert "status" in read_schema.model_fields
 

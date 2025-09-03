@@ -6,9 +6,9 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
-from autoapi.v3.tables import Base
+from autoapi.v3.orm.tables import Base
 
-from auto_kms.tables.key_version import KeyVersion
+from auto_kms.orm import KeyVersion
 
 
 def _create_key(client, name: str = "k1"):

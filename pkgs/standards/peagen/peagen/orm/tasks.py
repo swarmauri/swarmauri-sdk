@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from enum import Enum, auto
 
-from autoapi.v3.tables import Base
+from autoapi.v3.orm.tables import Base
 from autoapi.v3.types import (
     JSON,
     String,
@@ -14,15 +14,15 @@ from autoapi.v3.types import (
     HookProvider,
     Mapped,
 )
-from autoapi.v3.mixins import (
+from autoapi.v3.orm.mixins import (
     GUIDPk,
     Timestamped,
     TenantBound,
     Ownable,
-    StatusMixin,
+    StatusColumn,
 )
 from autoapi.v3.specs import S, acol
-from autoapi.v3.specs.storage_spec import ForeignKeySpec
+from autoapi.v3.column.storage_spec import ForeignKeySpec
 from autoapi.v3 import hook_ctx
 from autoapi.v3.bindings import build_schemas as _build_schemas
 from typing import TYPE_CHECKING
@@ -55,7 +55,7 @@ class Task(
     TenantBound,
     Ownable,
     RepositoryRefMixin,
-    StatusMixin,
+    StatusColumn,
     HookProvider,
 ):
     __tablename__ = "tasks"

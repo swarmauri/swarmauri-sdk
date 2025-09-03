@@ -15,13 +15,17 @@ import pytest
 import pytest_asyncio
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 
 from auto_authn.app import app
 from auto_authn.db import get_async_db
-from auto_authn.orm.tables import Base, Tenant, User, Client, ApiKey
+from auto_authn.routers.surface import surface_api
+from auto_authn.orm import Base, Tenant, User, Client, ApiKey
 from auto_authn.crypto import hash_pw
+from autoapi.v3.engine import resolver as engine_resolver
+from autoapi.v3.engine.engine_spec import EngineSpec
+from autoapi.v3.engine._engine import Provider
 
 
 # Disable TLS enforcement for tests
@@ -79,15 +83,30 @@ async def db_session(test_db_engine) -> AsyncGenerator[AsyncSession, None]:
 
 
 @pytest.fixture
-def override_get_db(db_session):
-    """Override the database dependency for testing."""
+def override_get_db(db_session, test_db_engine):
+    """Override database dependencies and AutoAPI engine for tests."""
 
     async def _get_test_db():
         yield db_session
 
     app.dependency_overrides[get_async_db] = _get_test_db
-    yield
-    app.dependency_overrides.clear()
+
+    original_provider = engine_resolver.resolve_provider(api=surface_api)
+    spec = EngineSpec.from_any(TEST_DATABASE_URL)
+    provider = Provider(spec)
+    object.__setattr__(provider, "_engine", test_db_engine)
+    maker = async_sessionmaker(
+        test_db_engine, expire_on_commit=False, class_=AsyncSession
+    )
+    object.__setattr__(provider, "_maker", maker)
+    engine_resolver.register_api(surface_api, provider)
+    engine_resolver.resolve_provider(api=surface_api)
+    try:
+        yield
+    finally:
+        app.dependency_overrides.clear()
+        engine_resolver.register_api(surface_api, original_provider)
+        engine_resolver.resolve_provider(api=surface_api)
 
 
 @pytest.fixture

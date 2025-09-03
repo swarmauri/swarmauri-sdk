@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from autoapi.v3.tables import Base
+from autoapi.v3.orm.tables import Base
 from autoapi.v3.types import (
     JSON,
     String,
@@ -9,7 +9,7 @@ from autoapi.v3.types import (
     HookProvider,
     Mapped,
 )
-from autoapi.v3.mixins import GUIDPk, Bootstrappable, Timestamped, TenantBound
+from autoapi.v3.orm.mixins import GUIDPk, Bootstrappable, Timestamped, TenantBound
 from autoapi.v3.specs import S, acol
 from autoapi.v3 import hook_ctx
 from peagen.defaults import DEFAULT_POOL_NAME, DEFAULT_POOL_ID, DEFAULT_TENANT_ID

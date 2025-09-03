@@ -8,12 +8,12 @@ from sqlalchemy import String, create_engine
 from sqlalchemy.orm import sessionmaker
 
 from autoapi.v3.bindings.model import bind
-from autoapi.v3.opspec.types import PHASES
+from autoapi.v3.ops.types import PHASES
 from autoapi.v3.runtime.kernel import build_phase_chains
 from autoapi.v3.runtime import system as runtime_system
 from autoapi.v3.specs import IO, S, acol
-from autoapi.v3.tables import Base
-from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.orm.tables import Base
+from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3 import core as _core
 from autoapi.v3.decorators import hook_ctx
 

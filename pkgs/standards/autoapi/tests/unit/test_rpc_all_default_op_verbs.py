@@ -1,19 +1,18 @@
 import pytest
 from collections.abc import Iterator
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 
-from autoapi.v3.autoapi import AutoAPI
-from autoapi.v3.mixins import BulkCapable, GUIDPk, Replaceable
+from autoapi.v3.autoapp import AutoApp
+from autoapi.v3.engine import resolver as _resolver
+from autoapi.v3.engine.shortcuts import mem
+from autoapi.v3.ops import OpSpec
+from autoapi.v3.orm.mixins import BulkCapable, GUIDPk, Replaceable
+from autoapi.v3.orm.tables import Base
 from autoapi.v3.specs import IO, S, F, acol as spec_acol
-from autoapi.v3.tables import Base
 from autoapi.v3.types import Session, String, uuid4
-from autoapi.v3.opspec import OpSpec
 
 
 @pytest.fixture()
-def api_and_session() -> Iterator[tuple[AutoAPI, Session]]:
+def api_and_session() -> Iterator[tuple[AutoApp, Session]]:
     class Widget(Base, GUIDPk, BulkCapable, Replaceable):
         __tablename__ = "widgets_rpc_all_ops"
         __allow_unmapped__ = True
@@ -62,27 +61,20 @@ def api_and_session() -> Iterator[tuple[AutoAPI, Session]]:
             ),
         )
 
-    engine = create_engine(
-        "sqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
-
-    def get_db() -> Iterator[Session]:
-        with SessionLocal() as session:
-            yield session
-
-    api = AutoAPI(get_db=get_db)
+    cfg = mem(async_=False)
+    api = AutoApp(engine=cfg)
     api.include_model(Widget, mount_router=False)
     api.initialize_sync()
 
-    session: Session = SessionLocal()
+    prov = _resolver.resolve_provider()
+    engine, maker = prov.ensure()
+    session: Session = maker()
     try:
         yield api, session
     finally:
         session.close()
         engine.dispose()
+        _resolver.set_default(None)
 
 
 async def _op_create(api, db):

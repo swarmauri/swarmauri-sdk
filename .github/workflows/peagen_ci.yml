@@ -3,7 +3,7 @@ name: Peagen CI Deploy
 
 on:
   push:
-    branches: [ "master", "mono/dev", "coby/peagenv2" ]
+    branches: [ "master", "mono/dev", "coby/peagen_v0.3" ]
     paths:
       - "pkgs/standards/peagen/**"
       - "infra/peagen/**"

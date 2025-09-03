@@ -19,7 +19,27 @@ from __future__ import annotations
 
 from typing import Mapping, Tuple
 
-from ..opspec.types import CANON  # canonical op registry (dict-like of targets)
+# NOTE: importing CANON from ``ops.types`` introduces a circular dependency
+# because that module transitively imports this one via ``hook``. To keep the
+# constant values in sync without triggering the circular import at import time,
+# we inline the canonical verb tuple here. This tuple **must** match
+# ``autoapi.v3.ops.types.CANON``.
+CANON: Tuple[str, ...] = (
+    "create",
+    "read",
+    "update",
+    "replace",
+    "merge",
+    "delete",
+    "list",
+    "clear",
+    "bulk_create",
+    "bulk_update",
+    "bulk_replace",
+    "bulk_merge",
+    "bulk_delete",
+    "custom",
+)
 
 
 # ───────────────────────────────────────────────────────────────────────────────
@@ -63,8 +83,11 @@ DEFAULT_HTTP_METHODS: Mapping[str, Tuple[str, ...]] = {
 
 
 # ───────────────────────────────────────────────────────────────────────────────
+# ‼ Column.info["autoapi"] is deprecated and will be removed.
+# ‼ Support is not guaranteed.
 # Column-level configuration keys (Column.info["autoapi"])
 #   See: v3 schema builder & v3 schema.info check(meta, attr, model)
+#
 # ───────────────────────────────────────────────────────────────────────────────
 
 COL_LEVEL_CFGS: frozenset[str] = frozenset(
@@ -108,8 +131,7 @@ AUTOAPI_HOOKS_ATTR = "__autoapi_hooks__"  # model-level hooks map
 AUTOAPI_REGISTRY_LISTENER_ATTR = (
     "__autoapi_registry_listener__"  # ops registry listener
 )
-AUTOAPI_GET_DB_ATTR = "__autoapi_get_db__"  # sync DB dependency
-AUTOAPI_GET_ASYNC_DB_ATTR = "__autoapi_get_async_db__"  # async DB dependency
+AUTOAPI_GET_DB_ATTR = "__autoapi_get_db__"  # DB dependency
 AUTOAPI_AUTH_DEP_ATTR = "__autoapi_auth_dep__"  # auth dependency
 AUTOAPI_AUTHORIZE_ATTR = "__autoapi_authorize__"  # authorization callable
 AUTOAPI_REST_DEPENDENCIES_ATTR = "__autoapi_rest_dependencies__"  # extra REST deps
@@ -120,6 +142,7 @@ AUTOAPI_ALLOW_ANON_ATTR = "__autoapi_allow_anon__"  # verbs callable without aut
 AUTOAPI_DEFAULTS_MODE_ATTR = "__autoapi_defaults_mode__"  # canonical verb wiring policy
 AUTOAPI_DEFAULTS_INCLUDE_ATTR = "__autoapi_defaults_include__"  # verbs to force include
 AUTOAPI_DEFAULTS_EXCLUDE_ATTR = "__autoapi_defaults_exclude__"  # verbs to force exclude
+AUTOAPI_SCHEMA_DECLS_ATTR = "__autoapi_schema_decls__"  # declared schemas map
 
 # Aggregate of recognized model-level config attributes
 MODEL_LEVEL_CFGS: frozenset[str] = frozenset(
@@ -134,7 +157,6 @@ MODEL_LEVEL_CFGS: frozenset[str] = frozenset(
         AUTOAPI_HOOKS_ATTR,
         AUTOAPI_REGISTRY_LISTENER_ATTR,
         AUTOAPI_GET_DB_ATTR,
-        AUTOAPI_GET_ASYNC_DB_ATTR,
         AUTOAPI_AUTH_DEP_ATTR,
         AUTOAPI_AUTHORIZE_ATTR,
         AUTOAPI_REST_DEPENDENCIES_ATTR,
@@ -145,12 +167,20 @@ MODEL_LEVEL_CFGS: frozenset[str] = frozenset(
         AUTOAPI_DEFAULTS_MODE_ATTR,
         AUTOAPI_DEFAULTS_INCLUDE_ATTR,
         AUTOAPI_DEFAULTS_EXCLUDE_ATTR,
+        AUTOAPI_SCHEMA_DECLS_ATTR,
         "__resource__",  # resource name override for REST
     }
 )
 
 # Other internal attribute names
-AUTOAPI_CUSTOM_OP_ATTR = "__autoapi_custom_op__"  # marker for custom opspec
+AUTOAPI_CUSTOM_OP_ATTR = "__autoapi_custom_op__"  # marker for custom op
+HOOK_DECLS_ATTR = "__autoapi_hook_decls__"  # per-function hook declarations
+
+# ───────────────────────────────────────────────────────────────────────────────
+# ‼ Everything is natively transactional now
+# ‼ We will not support transactionals as a custom type or obj moving forward.
+# ‼ Support is not guaranteed.
+# ───────────────────────────────────────────────────────────────────────────────
 AUTOAPI_TX_MODELS_ATTR = "__autoapi_tx_models__"  # transactional model cache
 
 
@@ -191,7 +221,6 @@ __all__ = [
     "AUTOAPI_HOOKS_ATTR",
     "AUTOAPI_REGISTRY_LISTENER_ATTR",
     "AUTOAPI_GET_DB_ATTR",
-    "AUTOAPI_GET_ASYNC_DB_ATTR",
     "AUTOAPI_AUTH_DEP_ATTR",
     "AUTOAPI_AUTHORIZE_ATTR",
     "AUTOAPI_REST_DEPENDENCIES_ATTR",
@@ -202,7 +231,9 @@ __all__ = [
     "AUTOAPI_DEFAULTS_MODE_ATTR",
     "AUTOAPI_DEFAULTS_INCLUDE_ATTR",
     "AUTOAPI_DEFAULTS_EXCLUDE_ATTR",
+    "AUTOAPI_SCHEMA_DECLS_ATTR",
     "AUTOAPI_CUSTOM_OP_ATTR",
+    "HOOK_DECLS_ATTR",
     "AUTOAPI_TX_MODELS_ATTR",
     "CTX_REQUEST_KEY",
     "CTX_DB_KEY",

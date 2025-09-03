@@ -3,7 +3,7 @@ import pytest
 
 @pytest.mark.asyncio
 async def test_bindings_before_mount(monkeypatch):
-    from autoapi.v3.autoapi import AutoAPI
+    from autoapi.v3.autoapp import AutoApp
     from autoapi.v3.bindings import rest as rest_binding
 
     monkeypatch.setattr(
@@ -22,9 +22,9 @@ async def test_bindings_before_mount(monkeypatch):
 
     monkeypatch.setattr(_executor, "_invoke", fake_invoke)
 
-    from auto_kms.tables.key import Key
+    from auto_kms.orm import Key
 
-    api = AutoAPI()
+    api = AutoApp()
     api.bind(Key)
 
     result = await Key.rpc.create(

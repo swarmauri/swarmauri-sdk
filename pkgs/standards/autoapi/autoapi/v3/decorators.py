@@ -5,14 +5,17 @@ from dataclasses import dataclass
 from typing import Any, Callable, Dict, Iterable, Optional, Union, Sequence
 
 # Core types
-from autoapi.v3.opspec.types import (
+from autoapi.v3.ops.types import (
     OpSpec,
     Arity,
     TargetOp,
     PersistPolicy,
-    SchemaArg,
 )
+from autoapi.v3.schema.types import SchemaArg
+from autoapi.v3.schema.decorators import schema_ctx
 from autoapi.v3.runtime.executor import _Ctx  # pipeline ctx normalizer
+from .hook import HOOK_DECLS_ATTR, Hook, hook_ctx  # noqa: F401
+from autoapi.v3.engine.decorators import engine_ctx
 
 # Try-pydantic (optional; schemas may be any class but we keep this for hints/debug)
 try:  # pragma: no cover
@@ -179,106 +182,6 @@ def op_alias(
 
 
 # ──────────────────────────────────────────────────────────────────────
-# schema_ctx (class decorator): register extra model-wide schemas
-# ──────────────────────────────────────────────────────────────────────
-
-
-@dataclass(frozen=True)
-class _SchemaDecl:
-    alias: str  # name under model.schemas.<alias>
-    kind: str  # "in" | "out"
-
-
-def _register_schema_decl(
-    target_model: type, alias: str, kind: str, schema_cls: type
-) -> None:
-    """
-    Store declarations directly on the model so we can attach them later during schema binding.
-    Shape: model.__autoapi_schema_decls__ = { alias: {"in": cls, "out": cls, ...}, ... }
-    """
-    if kind not in ("in", "out"):
-        raise ValueError("schema_ctx(kind=...) must be 'in' or 'out'")
-    mapping: Dict[str, Dict[str, type]] = (
-        getattr(target_model, "__autoapi_schema_decls__", None) or {}
-    )
-    bucket = dict(mapping.get(alias, {}))
-    bucket[kind] = schema_cls
-    mapping[alias] = bucket
-    setattr(target_model, "__autoapi_schema_decls__", mapping)
-
-
-def schema_ctx(*, alias: str, kind: str = "out", for_: Optional[type] = None):
-    """
-    Decorate a (Pydantic) class to register it as a named schema for a target model.
-
-    Usage 1 (nested inside the model class):
-        class Widget:
-            @schema_ctx(alias="Search", kind="in")
-            class SearchParams(BaseModel): ...
-
-            @schema_ctx(alias="Search", kind="out")
-            class SearchResult(BaseModel): ...
-
-    Usage 2 (external class, explicit target):
-        @schema_ctx(alias="Export", kind="out", for_=Widget)
-        class ExportRow(BaseModel): ...
-
-    The schema becomes addressable as:
-        SchemaRef("Search", "in")   →  model.schemas.Search.in_
-        SchemaRef("Search", "out")  →  model.schemas.Search.out
-    """
-
-    def deco(schema_cls: type):
-        if not isinstance(schema_cls, type):
-            raise TypeError("@schema_ctx must decorate a class")
-
-        # If explicit model provided, register immediately on that model
-        if for_ is not None:
-            _register_schema_decl(for_, alias, kind, schema_cls)
-
-        # Always mark the schema class so we can pick it up if it's nested in the model
-        setattr(
-            schema_cls, "__autoapi_schema_decl__", _SchemaDecl(alias=alias, kind=kind)
-        )
-        return schema_cls
-
-    return deco
-
-
-def collect_decorated_schemas(model: type) -> Dict[str, Dict[str, type]]:
-    """
-    Gather all schema declarations for a model, merging:
-      • Explicit registrations via schema_ctx(..., for_=Model)
-      • Nested class declarations inside the model (and its bases)
-    Subclass declarations override base-class ones for the same (alias, kind).
-    """
-    out: Dict[str, Dict[str, type]] = {}
-
-    # 1) Explicit registrations (MRO-merged)
-    for base in reversed(model.__mro__):
-        mapping: Dict[str, Dict[str, type]] = (
-            getattr(base, "__autoapi_schema_decls__", {}) or {}
-        )
-        for alias, kinds in mapping.items():
-            bucket = out.setdefault(alias, {})
-            bucket.update(kinds or {})
-
-    # 2) Nested classes with __autoapi_schema_decl__
-    for base in reversed(model.__mro__):
-        for name in dir(base):
-            obj = getattr(base, name, None)
-            if not inspect.isclass(obj):
-                continue
-            decl: _SchemaDecl | None = getattr(obj, "__autoapi_schema_decl__", None)
-            if not decl:
-                continue
-            bucket = out.setdefault(decl.alias, {})
-            bucket[decl.kind] = obj
-
-    return out
-
-
-# ──────────────────────────────────────────────────────────────────────
 # op_ctx (single path: target + arity) with schema overrides
 # ──────────────────────────────────────────────────────────────────────
 
@@ -335,34 +238,6 @@ def op_ctx(
 
 
 # ──────────────────────────────────────────────────────────────────────
-# hook_ctx
-# ──────────────────────────────────────────────────────────────────────
-
-
-@dataclass
-class _HookDecl:
-    ops: Union[str, Iterable[str]]  # alias names, canonical verbs, or "*"
-    phase: str  # e.g., "PRE_HANDLER", "POST_COMMIT", "ON_HANDLER_ERROR"
-
-
-def hook_ctx(ops: Union[str, Iterable[str]], *, phase: str):
-    """
-    Declare a ctx-only hook for one/many ops at a given phase. Method is `(cls, ctx)`.
-    `ops` can be {"create", "update"} or {"my_alias"} or "*" for all visible ops.
-    """
-
-    def deco(fn):
-        cm = _ensure_cm(fn)
-        f = _unwrap(cm)
-        f.__autoapi_ctx_only__ = True
-        lst = getattr(f, "__autoapi_hook_decls__", [])
-        lst.append(_HookDecl(ops, phase))
-        f.__autoapi_hook_decls__ = lst
-        return cm
-
-    return deco
-
-
 # ──────────────────────────────────────────────────────────────────────
 # Adapters: ctx-only → pipeline signatures
 # ──────────────────────────────────────────────────────────────────────
@@ -466,8 +341,7 @@ def collect_decorated_ops(table: type) -> list[OpSpec]:
     out: list[OpSpec] = []
 
     for base in reversed(table.__mro__):
-        for name in dir(base):
-            attr = getattr(base, name, None)
+        for name, attr in base.__dict__.items():
             func = _unwrap(attr)
             decl: _OpDecl | None = getattr(func, "__autoapi_op_decl__", None)
             if not decl:
@@ -526,9 +400,7 @@ def collect_decorated_hooks(
         for name in dir(base):
             attr = getattr(base, name, None)
             func = _unwrap(attr)
-            decls: list[_HookDecl] | None = getattr(
-                func, "__autoapi_hook_decls__", None
-            )
+            decls: list[Hook] | None = getattr(func, HOOK_DECLS_ATTR, None)
             if not decls:
                 continue
             for d in decls:
@@ -537,6 +409,17 @@ def collect_decorated_hooks(
                         continue
                     ph = d.phase
                     mapping.setdefault(op, {}).setdefault(ph, []).append(
-                        _wrap_ctx_hook(table, func, ph)
+                        _wrap_ctx_hook(table, d.fn, ph)
                     )
     return mapping
+
+
+__all__ = [
+    "alias",
+    "alias_ctx",
+    "op_alias",
+    "schema_ctx",
+    "hook_ctx",
+    "engine_ctx",
+    "op_ctx",
+]

@@ -12,7 +12,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...fastapi_deps import get_async_db
-from ...orm.tables import AuthCode, Client, User
+from ...orm import AuthCode, Client, User
 from ...oidc_id_token import mint_id_token, oidc_hash
 from ...rfc8414_metadata import ISSUER
 from ...rfc8252 import is_native_redirect_uri

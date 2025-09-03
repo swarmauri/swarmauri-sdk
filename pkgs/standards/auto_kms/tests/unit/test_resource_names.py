@@ -1,5 +1,5 @@
-from auto_kms.tables.key import Key
-from auto_kms.tables.key_version import KeyVersion
+from auto_kms.orm import Key
+from auto_kms.orm import KeyVersion
 
 
 def test_resource_names():

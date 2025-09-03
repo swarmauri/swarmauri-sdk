@@ -1,8 +1,8 @@
 from autoapi.v3.types import App
 
-from autoapi.v3.autoapi import AutoAPI
-from autoapi.v3.tables import Base
-from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.autoapp import AutoApp
+from autoapi.v3.orm.tables import Base
+from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.types import Column, String
 
 
@@ -17,8 +17,9 @@ def test_include_models_base_prefix_avoids_duplicate_segments():
         __tablename__ = "key_versions"
         name = Column(String, nullable=False)
 
-    api = AutoAPI(app=app)
+    api = AutoApp()
     api.include_models([Key, KeyVersion], base_prefix="/kms")
+    app.include_router(api.router)
 
     paths = {r.path for r in app.router.routes}
 

@@ -4,13 +4,13 @@ import pytest
 import pytest_asyncio
 from autoapi.v3.types import App
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import create_engine
+from autoapi.v3.engine import resolver as _resolver
+from autoapi.v3.engine.shortcuts import mem
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 
-from autoapi.v3.autoapi import AutoAPI
-from autoapi.v3.tables import Base
-from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.autoapp import AutoApp
+from autoapi.v3.orm.tables import Base
+from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.specs import acol, F, IO, S
 from autoapi.v3.types import String
 from autoapi.v3.runtime.atoms.schema import collect_in
@@ -19,16 +19,11 @@ from autoapi.v3.runtime.atoms.schema import collect_in
 @pytest_asyncio.fixture
 async def fs_app():
     Base.metadata.clear()
-    engine = create_engine(
-        "sqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
+    cfg = mem(async_=False)
+    _resolver.set_default(cfg)
+    prov = _resolver.resolve_provider()
+    engine, maker = prov.ensure()
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
-
-    def get_db():
-        with SessionLocal() as session:
-            yield session
 
     class FSItem(Base, GUIDPk):
         __tablename__ = "fs_items"
@@ -44,14 +39,18 @@ async def fs_app():
 
     Base.metadata.create_all(engine)
     app = App()
-    api = AutoAPI(app=app, get_db=get_db)
+    api = AutoApp(engine=cfg)
     api.include_model(FSItem)
+    api.initialize_sync()
+    app.include_router(api.router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
     try:
         yield client, api, SessionLocal, FSItem
     finally:
         await client.aclose()
+        engine.dispose()
+        _resolver.set_default(None)
 
 
 @pytest.mark.i9n

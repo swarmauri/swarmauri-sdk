@@ -5,13 +5,13 @@ from __future__ import annotations
 import hashlib
 import secrets
 
-from autoapi.v3.tables import ApiKey as ApiKeyBase
+from autoapi.v3.orm.tables import ApiKey as ApiKeyBase
 from autoapi.v3.types import UniqueConstraint, relationship
-from autoapi.v3.mixins import UserMixin
+from autoapi.v3.orm.mixins import UserColumn
 from autoapi.v3 import hook_ctx
 
 
-class ApiKey(ApiKeyBase, UserMixin):
+class ApiKey(ApiKeyBase, UserColumn):
     __table_args__ = (
         UniqueConstraint("digest"),
         {"extend_existing": True, "schema": "authn"},

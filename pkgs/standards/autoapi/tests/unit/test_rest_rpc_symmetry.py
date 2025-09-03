@@ -1,8 +1,8 @@
 import inspect
 
-from autoapi.v3 import AutoAPI
-from autoapi.v3.tables import Base
-from autoapi.v3.mixins import (
+from autoapi.v3 import AutoApp
+from autoapi.v3.orm.tables import Base
+from autoapi.v3.orm.mixins import (
     GUIDPk,
     BulkCapable,
     Replaceable,
@@ -24,7 +24,7 @@ def _rest_param_names(route):
 
 
 def _assert_symmetry(model, verbs, rest_params):
-    api = AutoAPI()
+    api = AutoApp()
     api.include_model(model, mount_router=False)
 
     expected_verbs = set(verbs)

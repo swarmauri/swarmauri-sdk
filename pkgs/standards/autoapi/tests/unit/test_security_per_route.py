@@ -1,7 +1,7 @@
-from autoapi.v3.opspec import OpSpec
-from autoapi.v3.autoapi import AutoAPI
-from autoapi.v3.tables import Base
-from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.ops import OpSpec
+from autoapi.v3.autoapp import AutoApp
+from autoapi.v3.orm.tables import Base
+from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.bindings.rest import _build_router
 from fastapi import FastAPI, Security
 from fastapi.security import HTTPBearer
@@ -33,7 +33,7 @@ def test_set_auth_after_include_model_applies_security():
     class Gadget(Base, GUIDPk):
         __tablename__ = "gadgets_security"
 
-    api = AutoAPI()
+    api = AutoApp()
     api.include_model(Gadget)
     api.set_auth(authn=lambda cred=Security(HTTPBearer()): cred, allow_anon=False)
     app = FastAPI()

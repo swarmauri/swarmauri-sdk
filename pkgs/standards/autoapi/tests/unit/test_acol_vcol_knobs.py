@@ -4,7 +4,7 @@ from datetime import datetime
 from autoapi.v3.bindings.model import bind
 from autoapi.v3.runtime.atoms.schema import collect_in, collect_out
 from autoapi.v3.specs import ColumnSpec, F, IO, S, acol, vcol
-from autoapi.v3.tables import Base
+from autoapi.v3.orm.tables import Base
 from autoapi.v3.types import (
     Column,
     DateTime,

@@ -64,9 +64,12 @@ def _generate_keypair(path: pathlib.Path) -> Tuple[str, bytes, bytes]:
             label=path.stem,
         )
         ref = await kp.create_key(spec)
+        # ----------------------------------------------------
+        # ‼ We should not be writing keys to disk
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(ref.kid)
         os.chmod(path, 0o600)
+        # ----------------------------------------------------
         return ref.kid, ref.material or b"", ref.public or b""
 
     return asyncio.run(_create())
@@ -88,9 +91,12 @@ async def _ensure_key() -> Tuple[str, bytes, bytes]:
             export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
             label="jwt_ed25519",
         )
+        # ----------------------------------------------------
+        # ‼ We should not be writing keys to disk
         ref = await kp.create_key(spec)
         _DEFAULT_KEY_PATH.parent.mkdir(parents=True, exist_ok=True)
         _DEFAULT_KEY_PATH.write_text(ref.kid)
+        # ----------------------------------------------------    
     alg = ref.tags.get("alg") if ref.tags else None
     if alg != KeyAlg.ED25519.value:
         raise RuntimeError("JWT signing key is not Ed25519")

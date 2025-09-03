@@ -5,10 +5,10 @@ from __future__ import annotations
 import datetime as dt
 import uuid
 
-from autoapi.v3.tables import Base
-from autoapi.v3.mixins import TenantMixin, Timestamped, UserMixin
+from autoapi.v3.orm.tables import Base
+from autoapi.v3.orm.mixins import TenantColumn, Timestamped, UserColumn
 from autoapi.v3.specs import S, acol
-from autoapi.v3.specs.storage_spec import ForeignKeySpec
+from autoapi.v3.column.storage_spec import ForeignKeySpec
 from autoapi.v3.types import JSON, PgUUID, String, TZDateTime, Mapped
 from autoapi.v3 import op_ctx
 from fastapi import HTTPException, status
@@ -20,7 +20,7 @@ from ..routers.shared import _jwt, _require_tls
 from .user import User
 
 
-class AuthCode(Base, Timestamped, UserMixin, TenantMixin):
+class AuthCode(Base, Timestamped, UserColumn, TenantColumn):
     __tablename__ = "auth_codes"
     __table_args__ = ({"schema": "authn"},)
 

@@ -2,10 +2,11 @@
 from __future__ import annotations
 
 import copy
+import asyncio
+import inspect
 from types import SimpleNamespace
 from typing import (
     Any,
-    Awaitable,
     Callable,
     Dict,
     Iterable,
@@ -15,6 +16,9 @@ from typing import (
     Tuple,
 )
 
+from .api._api import Api as _Api
+from .engine.engine_spec import EngineCfg
+from .engine import resolver as _resolver
 from .system.dbschema import (
     ensure_schemas,
     bootstrap_dbschema,
@@ -32,38 +36,24 @@ from .bindings.model import rebind as _rebind, bind as _bind
 from .bindings.rest import build_router_and_attach as _build_router_and_attach
 from .transport import mount_jsonrpc as _mount_jsonrpc
 from .system import mount_diagnostics as _mount_diagnostics
-from .opspec import get_registry, OpSpec
-
-try:  # pragma: no cover - FastAPI optional
-    from .types import Router  # type: ignore
-except Exception:  # pragma: no cover
-
-    class Router:  # type: ignore
-        def __init__(self, *a, **kw):
-            self.routes = []
-            self.includes = []
-
-        def include_router(self, router, *, prefix: str = "", **opts):
-            self.includes.append((router, prefix, opts))
+from .ops import get_registry, OpSpec
 
 
-# optional compat: legacy transactional decorator
-try:
-    from .compat.transactional import transactional as _txn_decorator
-except Exception:  # pragma: no cover
-    _txn_decorator = None
-
-
-class AutoAPI:
+class AutoAPI(_Api):
     """
-    Monolithic facade that owns:
+    Canonical router-focused facade that owns:
       • containers (models, schemas, handlers, hooks, rpc, rest, routers, columns, table_config, core proxies)
       • model inclusion (REST + RPC wiring)
       • JSON-RPC / diagnostics mounting
-      • (optional) legacy-friendly helpers (transactional decorator, auth flags)
+      • (optional) auth knobs recognized by some middlewares/dispatchers
 
     It composes v3 primitives; you can still use the functions directly if you prefer.
     """
+
+    PREFIX = ""
+    TAGS: Sequence[Any] = ()
+    APIS: Sequence[Any] = ()
+    MODELS: Sequence[Any] = ()
 
     # --- optional auth knobs recognized by some middlewares/dispatchers (kept for back-compat) ---
     _authn: Any = None
@@ -74,23 +64,16 @@ class AutoAPI:
 
     def __init__(
         self,
-        app: Any | None = None,
         *,
-        get_db: Optional[Callable[..., Any]] = None,
-        get_async_db: Optional[Callable[..., Awaitable[Any]]] = None,
+        engine: EngineCfg | None = None,
         jsonrpc_prefix: str = "/rpc",
         system_prefix: str = "/system",
         api_hooks: Mapping[str, Iterable[Callable]]
         | Mapping[str, Mapping[str, Iterable[Callable]]]
         | None = None,
+        **router_kwargs: Any,
     ) -> None:
-        # host app (FastAPI or Router)
-        self.app = app
-        # always expose an aggregate router for later mounting
-        self.router = Router()
-        # DB dependencies for transports/diagnostics
-        self.get_db = get_db
-        self.get_async_db = get_async_db
+        _Api.__init__(self, engine=engine, **router_kwargs)
         self.jsonrpc_prefix = jsonrpc_prefix
         self.system_prefix = system_prefix
 
@@ -102,6 +85,7 @@ class AutoAPI:
         self.rpc = SimpleNamespace()
         self.rest = SimpleNamespace()
         self.routers: Dict[str, Any] = {}
+        self.tables: Dict[str, Any] = {}
         self.columns: Dict[str, Tuple[str, ...]] = {}
         self.table_config: Dict[str, Dict[str, Any]] = {}
         self.core = SimpleNamespace()
@@ -158,7 +142,7 @@ class AutoAPI:
         # inject API-level hooks so the binder merges them
         self._merge_api_hooks_into_model(model, self._api_hooks_map)
         return _include_model(
-            self, model, app=self.app, prefix=prefix, mount_router=mount_router
+            self, model, app=None, prefix=prefix, mount_router=mount_router
         )
 
     def include_models(
@@ -173,7 +157,7 @@ class AutoAPI:
         return _include_models(
             self,
             models,
-            app=self.app,
+            app=None,
             base_prefix=base_prefix,
             mount_router=mount_router,
         )
@@ -195,29 +179,26 @@ class AutoAPI:
     # ------------------------- extras / mounting -------------------------
 
     def mount_jsonrpc(self, *, prefix: str | None = None) -> Any:
-        """Mount JSON-RPC router onto `.router` and the host app if present."""
+        """Mount a JSON-RPC router onto this AutoAPI instance."""
         px = prefix if prefix is not None else self.jsonrpc_prefix
+        prov = _resolver.resolve_provider(api=self)
+        get_db = prov.get_db if prov else None
         router = _mount_jsonrpc(
             self,
-            self.router,
+            self,
             prefix=px,
-            get_db=self.get_db,
-            get_async_db=self.get_async_db,
+            get_db=get_db,
         )
-        if self.app and hasattr(self.app, "include_router"):
-            self.app.include_router(router, prefix=px)
         return router
 
     def attach_diagnostics(self, *, prefix: str | None = None) -> Any:
-        """Mount diagnostics router onto `.router` and the host app if present."""
+        """Mount a diagnostics router onto this AutoAPI instance."""
         px = prefix if prefix is not None else self.system_prefix
-        router = _mount_diagnostics(
-            self, get_db=self.get_db, get_async_db=self.get_async_db
-        )
-        if hasattr(self.router, "include_router"):
-            self.router.include_router(router, prefix=px)
-        if self.app and hasattr(self.app, "include_router"):
-            self.app.include_router(router, prefix=px)
+        prov = _resolver.resolve_provider(api=self)
+        get_db = prov.get_db if prov else None
+        router = _mount_diagnostics(self, get_db=get_db)
+        if hasattr(self, "include_router"):
+            self.include_router(router, prefix=px)
         return router
 
     # ------------------------- registry passthroughs -------------------------
@@ -236,17 +217,6 @@ class AutoAPI:
     ) -> Tuple[OpSpec, ...]:
         """Targeted rebuild of a bound model."""
         return _rebind(model, changed_keys=changed_keys)
-
-    # ------------------------- legacy helpers -------------------------
-
-    def transactional(self, *dargs, **dkw):
-        """
-        Legacy-friendly decorator: @api.transactional(...)
-        Wraps a function as a v3 custom op with START_TX/END_TX.
-        """
-        if _txn_decorator is None:
-            raise RuntimeError("transactional decorator not available")
-        return _txn_decorator(self, *dargs, **dkw)
 
     # Optional: let callers set auth knobs used by some middlewares/dispatchers
     def set_auth(
@@ -272,8 +242,8 @@ class AutoAPI:
 
     def _refresh_security(self) -> None:
         """Re-seed auth deps on models and rebuild routers."""
-        # Reset aggregate router and allow_anon ops cache
-        self.router = Router()
+        # Reset routes and allow_anon ops cache
+        self.routes = []
         self._allow_anon_ops = set()
         for model in self.models.values():
             _seed_security_and_deps(self, model)
@@ -290,9 +260,7 @@ class AutoAPI:
             setattr(self.rest, mname, rest_ns)
             self.routers[mname] = router
             prefix = _default_prefix(model)
-            _mount_router(self.router, router, prefix=prefix)
-            if self.app is not None:
-                _mount_router(self.app, router, prefix=prefix)
+            _mount_router(self, router, prefix=prefix)
 
     def _collect_tables(self):
         # dedupe; handle multiple DeclarativeBases (multiple metadatas)
@@ -341,8 +309,8 @@ class AutoAPI:
             md.create_all(bind=bind, checkfirst=True, tables=group)
 
         # 3) publish tables namespace
-        self.tables = SimpleNamespace(
-            **{
+        self.tables.update(
+            {
                 name: getattr(m, "__table__", None)
                 for name, m in self.models.items()
                 if hasattr(m, "__table__")
@@ -352,9 +320,10 @@ class AutoAPI:
     def initialize_sync(self, *, schemas=None, sqlite_attachments=None, tables=None):
         if getattr(self, "_ddl_executed", False):
             return
-        if not self.get_db:
-            raise ValueError("AutoAPI.get_db is not configured")
-        with next(self.get_db()) as db:
+        prov = _resolver.resolve_provider(api=self)
+        if prov is None:
+            raise ValueError("Engine provider is not configured")
+        with next(prov.get_db()) as db:
             bind = db.get_bind()  # Connection or Engine
             self._create_all_on_bind(
                 bind,
@@ -369,21 +338,55 @@ class AutoAPI:
     ):
         if getattr(self, "_ddl_executed", False):
             return
-        if not self.get_async_db:
-            raise ValueError("AutoAPI.get_async_db is not configured")
-        async for adb in self.get_async_db():  # AsyncSession
+        prov = _resolver.resolve_provider(api=self)
+        if prov is None:
+            raise ValueError("Engine provider is not configured")
 
-            def _sync_bootstrap(arg):
-                bind = arg.get_bind() if hasattr(arg, "get_bind") else arg
-                self._create_all_on_bind(
-                    bind,
-                    schemas=schemas,
-                    sqlite_attachments=sqlite_attachments,
-                    tables=tables,
-                )
+        if inspect.isasyncgenfunction(prov.get_db):
+            async for adb in prov.get_db():  # AsyncSession
 
-            await adb.run_sync(_sync_bootstrap)
-            break
+                def _sync_bootstrap(arg):
+                    bind = arg.get_bind() if hasattr(arg, "get_bind") else arg
+                    self._create_all_on_bind(
+                        bind,
+                        schemas=schemas,
+                        sqlite_attachments=sqlite_attachments,
+                        tables=tables,
+                    )
+
+                await adb.run_sync(_sync_bootstrap)
+                break
+        else:
+            gen = prov.get_db()
+            db = next(gen)
+
+            try:
+                if hasattr(db, "run_sync"):
+
+                    def _sync_bootstrap(arg):
+                        bind = arg.get_bind() if hasattr(arg, "get_bind") else arg
+                        self._create_all_on_bind(
+                            bind,
+                            schemas=schemas,
+                            sqlite_attachments=sqlite_attachments,
+                            tables=tables,
+                        )
+
+                    await db.run_sync(_sync_bootstrap)
+                else:
+                    bind = db.get_bind()
+                    await asyncio.to_thread(
+                        self._create_all_on_bind,
+                        bind,
+                        schemas=schemas,
+                        sqlite_attachments=sqlite_attachments,
+                        tables=tables,
+                    )
+            finally:
+                try:
+                    next(gen)
+                except StopIteration:
+                    pass
         self._ddl_executed = True
 
     # ------------------------- repr -------------------------

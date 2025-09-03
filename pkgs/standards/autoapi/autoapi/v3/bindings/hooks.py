@@ -16,8 +16,9 @@ from typing import (
     Tuple,
 )
 
-from ..opspec import OpHook, OpSpec
-from ..opspec.types import PHASES, StepFn
+from ..ops import OpSpec
+from ..hook import HookSpec
+from ..hook.types import PHASES, StepFn
 from ..config.constants import (
     AUTOAPI_API_HOOKS_ATTR,
     AUTOAPI_HOOKS_ATTR,
@@ -103,7 +104,7 @@ def _mark_skip_persist() -> StepFn:
 # ───────────────────────────────────────────────────────────────────────────────
 
 
-def _wrap_hook(h: OpHook) -> StepFn:
+def _wrap_hook(h: HookSpec) -> StepFn:
     fn = h.fn
     pred = h.when
 

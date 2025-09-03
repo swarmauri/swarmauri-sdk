@@ -5,15 +5,13 @@ Tests all hook phases and their behavior across CRUD, nested CRUD, and RPC opera
 """
 
 import pytest
-from autoapi.v3 import App, AutoAPI, Base
+from autoapi.v3 import App, AutoApp, Base
 from autoapi.v3.decorators import hook_ctx
-from autoapi.v3.mixins import GUIDPk
+from autoapi.v3.engine.shortcuts import mem
+from autoapi.v3.orm.mixins import GUIDPk
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import Column, ForeignKey, String, create_engine
+from sqlalchemy import Column, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
 
 
 async def setup_client(db_mode, Tenant, Item):
@@ -21,31 +19,11 @@ async def setup_client(db_mode, Tenant, Item):
     fastapi_app = App()
 
     if db_mode == "async":
-        engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=False)
-        AsyncSessionLocal = async_sessionmaker(
-            bind=engine, class_=AsyncSession, expire_on_commit=False
-        )
-
-        async def get_async_db() -> AsyncSession:
-            async with AsyncSessionLocal() as session:
-                yield session
-
-        api = AutoAPI(app=fastapi_app, get_async_db=get_async_db)
+        api = AutoApp(engine=mem())
         api.include_models([Tenant, Item])
         await api.initialize_async()
     else:
-        engine = create_engine(
-            "sqlite:///:memory:",
-            connect_args={"check_same_thread": False},
-            poolclass=StaticPool,
-        )
-        SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
-
-        def get_sync_db() -> Session:
-            with SessionLocal() as session:
-                yield session
-
-        api = AutoAPI(app=fastapi_app, get_db=get_sync_db)
+        api = AutoApp(engine=mem(async_=False))
         api.include_models([Tenant, Item])
         api.initialize_sync()
 

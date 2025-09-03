@@ -4,21 +4,21 @@ from __future__ import annotations
 from urllib.parse import urlparse
 from typing import Any, Mapping, Optional, TYPE_CHECKING
 
-from autoapi.v3.tables import Base
+from autoapi.v3.orm.tables import Base
 from autoapi.v3.types import (
     String,
     UniqueConstraint,
     relationship,
     Mapped,
 )
-from autoapi.v3.mixins import (
+from autoapi.v3.orm.mixins import (
     GUIDPk,
     Timestamped,
     TenantBound,
     TenantPolicy,
     Ownable,
     OwnerPolicy,
-    StatusMixin,
+    StatusColumn,
 )
 from autoapi.v3.runtime.errors import create_standardized_error
 from autoapi.v3.specs import F, IO, S, acol, vcol
@@ -30,7 +30,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from .tasks import Task
 
 
-class Repository(Base, GUIDPk, Timestamped, Ownable, TenantBound, StatusMixin):
+class Repository(Base, GUIDPk, Timestamped, Ownable, TenantBound, StatusColumn):
     __tablename__ = "repositories"
     __table_args__ = (
         UniqueConstraint("url"),

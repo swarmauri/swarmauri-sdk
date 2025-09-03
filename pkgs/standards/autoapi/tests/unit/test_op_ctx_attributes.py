@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 from autoapi.v3 import op_ctx
 from autoapi.v3.decorators import collect_decorated_ops, schema_ctx
-from autoapi.v3.opspec import resolve
+from autoapi.v3.ops import resolve
 from autoapi.v3.bindings import build_schemas, build_hooks, build_handlers, build_rest
 
 

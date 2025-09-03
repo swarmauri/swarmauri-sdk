@@ -24,22 +24,26 @@ Quick start:
 from __future__ import annotations
 
 # ── OpSpec (source of truth) ───────────────────────────────────────────────────
-from .opspec import (
+from .ops import (
     OpSpec,
     get_registry,
-    # types and helpers re-exported from opspec
+    # types and helpers re-exported from ops
     TargetOp,
     Arity,
     PersistPolicy,
     PHASE,
     HookPhase,
     PHASES,
-    SchemaRef,
-    SchemaArg,
 )
+from .schema.types import SchemaRef, SchemaArg
 
-# ── Ctx-only decorators (new surface; replaces legacy opspec.decorators) ───────
-from .decorators import alias_ctx, op_ctx, hook_ctx, schema_ctx, alias, op_alias
+# ── Ctx-only decorators (new surface; replaces legacy ops.decorators) ─────────
+
+from .decorators import alias_ctx, op_ctx, alias, op_alias, engine_ctx
+from .hook.decorators import hook_ctx
+from .schema.decorators import schema_ctx
+from .response.decorators import response_ctx
+from .response.types import ResponseSpec
 
 # ── Bindings (model + API orchestration) ───────────────────────────────────────
 from .bindings import (
@@ -70,15 +74,16 @@ from .system.dbschema import ensure_schemas, register_sqlite_attach, bootstrap_d
 
 # ── Config constants (defaults used by REST) ───────────────────────────────────
 from .config.constants import DEFAULT_HTTP_METHODS
+from .autoapp import AutoApp
 from .autoapi import AutoAPI
 
-from .tables import Base
+from .table import Base
 from .types import App
 
 
 __all__: list[str] = []
 
-__all__ += ["AutoAPI", "Base", "App"]
+__all__ += ["AutoApp", "AutoAPI", "Base", "App"]
 
 __all__ += [
     # OpSpec core
@@ -98,8 +103,11 @@ __all__ += [
     "op_ctx",
     "hook_ctx",
     "schema_ctx",
+    "response_ctx",
     "alias",
     "op_alias",
+    "engine_ctx",
+    "ResponseSpec",
     # Bindings
     "bind",
     "rebind",
