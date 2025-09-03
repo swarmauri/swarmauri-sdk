@@ -2,12 +2,13 @@
 
 Verify adapter delegation and hook registration behavior."""
 
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 import auto_authn.adapters.local_adapter as local_adapter_mod
-import auto_authn.adapters.remote_adapter as remote_adapter_mod
+from autoapi.v3.config.constants import AUTOAPI_AUTH_CONTEXT_ATTR
 from auto_authn.adapters.local_adapter import LocalAuthNAdapter
 from auto_authn.adapters.remote_adapter import RemoteAuthNAdapter
 
@@ -28,27 +29,37 @@ async def test_local_adapter_delegates_get_principal(monkeypatch):
 
 
 @pytest.mark.unit
-def test_local_adapter_register_inject_hook(monkeypatch):
-    """Hook registration delegates to module helper."""
+@pytest.mark.asyncio
+async def test_local_adapter_injects_auth_context(monkeypatch):
     adapter = LocalAuthNAdapter()
-    api = MagicMock()
-    hook = MagicMock()
-    monkeypatch.setattr(local_adapter_mod, "register_inject_hook", hook)
+    request = MagicMock()
+    request.state = SimpleNamespace()
+    principal = {"sub": "u1", "tid": "t1"}
+    mock_get = AsyncMock(return_value=principal)
+    monkeypatch.setattr(local_adapter_mod, "get_principal", mock_get)
 
-    adapter.register_inject_hook(api)
+    result = await adapter.get_principal(request)
 
-    hook.assert_called_once_with(api)
+    assert result == principal
+    assert getattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR) == {
+        "user_id": "u1",
+        "tenant_id": "t1",
+    }
 
 
 @pytest.mark.unit
-def test_remote_adapter_register_hook_noop(monkeypatch):
-    """RemoteAuthNAdapter does not register hooks but warns."""
+@pytest.mark.asyncio
+async def test_remote_adapter_injects_auth_context(monkeypatch):
     adapter = RemoteAuthNAdapter(base_url="https://auth.example")
-    api = MagicMock()
-    warn = MagicMock()
-    monkeypatch.setattr(remote_adapter_mod.warnings, "warn", warn)
+    request = MagicMock()
+    request.state = SimpleNamespace()
+    principal = {"sub": "u2", "tid": "t2"}
+    adapter._cache_put("key", principal)
 
-    adapter.register_inject_hook(api)
+    result = await adapter.get_principal(request, api_key="key")
 
-    api.register_hook.assert_not_called()
-    warn.assert_called_once()
+    assert result == principal
+    assert getattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR) == {
+        "user_id": "u2",
+        "tenant_id": "t2",
+    }

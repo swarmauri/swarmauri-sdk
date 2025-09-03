@@ -76,6 +76,7 @@ except Exception:  # pragma: no cover
 
 
 from ...runtime.errors import ERROR_MESSAGES, http_exc_to_rpc
+from ...config.constants import AUTOAPI_AUTH_CONTEXT_ATTR
 from .models import RPCRequest, RPCResponse
 
 logger = logging.getLogger(__name__)
@@ -244,6 +245,9 @@ async def _dispatch_one(
         if isinstance(extra_ctx, Mapping):
             base_ctx.update(extra_ctx)
         base_ctx.setdefault("rpc_id", rid)
+        ac = getattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, None)
+        if ac is not None:
+            base_ctx["auth_context"] = ac
 
         # Authorize (auth dep may already have raised; user may be on request.state)
         _authorize(api, request, model, alias, params, _user_from_request(request))
