@@ -167,6 +167,41 @@ def test_op_ctx_openapi_json(sync_db_session):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
+async def test_op_ctx_preserves_canon_schemas(sync_db_session):
+    _, get_sync_db = sync_db_session
+
+    class RegisterIn(BaseModel):
+        name: str
+
+    class TokenPair(BaseModel):
+        access: str
+
+    class Widget(Base, GUIDPk):
+        __tablename__ = "widgets"
+        __resource__ = "widget"
+        name = Column(String)
+
+        @op_ctx(
+            alias="register",
+            target="custom",
+            arity="collection",
+            request_schema=RegisterIn,
+            response_schema=TokenPair,
+        )
+        def register(cls, ctx):
+            return TokenPair(access="x")
+
+    app, _ = setup_api(Widget, get_sync_db)
+    spec = app.openapi()
+    schemas = spec["components"]["schemas"].keys()
+    assert "WidgetCreateRequest" in schemas
+    assert "WidgetCreateResponse" in schemas
+    assert "WidgetRegisterRequest" in schemas
+    assert "WidgetRegisterResponse" in schemas
+
+
+@pytest.mark.i9n
+@pytest.mark.asyncio
 async def test_op_ctx_storage_sqlalchemy(sync_db_session):
     _, get_sync_db = sync_db_session
 

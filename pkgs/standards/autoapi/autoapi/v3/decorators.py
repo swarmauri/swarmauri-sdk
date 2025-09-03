@@ -302,6 +302,7 @@ def _wrap_ctx_hook(
 # ──────────────────────────────────────────────────────────────────────
 
 _COLLECTION_VERBS = {
+    "create",
     "list",
     "bulk_create",
     "bulk_update",
