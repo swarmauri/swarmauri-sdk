@@ -342,3 +342,5 @@ async def _shutdown() -> None:
 
 app.add_event_handler("startup", _startup)
 app.add_event_handler("shutdown", _shutdown)
+
+__all__ = ["app"]
