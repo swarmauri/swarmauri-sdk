@@ -18,14 +18,14 @@ Both helpers are **framework-thin**: they translate `AuthError` raised by
 from __future__ import annotations
 
 from fastapi import Depends, Header, HTTPException, Request, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from autoapi.v3.engine import HybridSession
 
 from .backends import (
     ApiKeyBackend,
     AuthError,
     PasswordBackend,
 )  # PasswordBackend not used here, but re-exported for completeness
-from .db import get_async_db
+from .db import engine as db_engine
 from .jwtoken import JWTCoder, InvalidTokenError
 from .orm import User
 from .principal_ctx import principal_var
@@ -45,7 +45,7 @@ _jwt_coder = JWTCoder.default()
 # ---------------------------------------------------------------------
 # FastAPI dependencies
 # ---------------------------------------------------------------------
-async def _user_from_jwt(token: str, db: AsyncSession) -> User | None:
+async def _user_from_jwt(token: str, db: HybridSession) -> User | None:
     try:
         payload = await _jwt_coder.async_decode(token)
     except InvalidTokenError:
@@ -58,7 +58,7 @@ async def _user_from_jwt(token: str, db: AsyncSession) -> User | None:
     return await db.scalar(stmt)
 
 
-async def _user_from_api_key(raw_key: str, db: AsyncSession) -> Principal | None:
+async def _user_from_api_key(raw_key: str, db: HybridSession) -> Principal | None:
     try:
         principal, _ = await _api_key_backend.authenticate(db, raw_key)
         return principal
@@ -74,7 +74,7 @@ async def get_principal(  # <-- AutoAPI calls this
     authorization: str = Header("", alias="Authorization"),
     api_key: str | None = Header(None, alias="x-api-key"),
     dpop: str | None = Header(None, alias="DPoP"),
-    db: AsyncSession = Depends(get_async_db),
+    db: HybridSession = Depends(db_engine.get_db),
 ) -> dict:
     """
     Return a lightweight principal dict that AutoAPI understands:
@@ -101,7 +101,7 @@ async def get_current_principal(  # type: ignore[override]
     authorization: str = Header("", alias="Authorization"),
     api_key: str | None = Header(None, alias="x-api-key"),
     dpop: str | None = Header(None, alias="DPoP"),
-    db: AsyncSession = Depends(get_async_db),
+    db: HybridSession = Depends(db_engine.get_db),
 ) -> Principal:
     """
     Resolve the request principal via **exactly one** of:

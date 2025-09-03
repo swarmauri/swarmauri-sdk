@@ -57,7 +57,7 @@ from peagen.plugins.queues import QueueBase
 from swarmauri_standard.loggers.Logger import Logger
 
 from . import _publish, schedule_helpers
-from .db import dsn, engine
+from .db import engine, sql_engine
 from .ws_server import router as ws_router
 from sqlalchemy.exc import IntegrityError
 
@@ -158,7 +158,7 @@ logging.getLogger("uvicorn.error").setLevel("INFO")
 READY: bool = False
 app = AutoApp(
     title="Peagen Pool-Manager Gateway",
-    engine=dsn,
+    engine=engine,
     api_hooks={"PRE_TX_BEGIN": [_shadow_principal]},
 )
 api = app
@@ -307,13 +307,27 @@ async def _startup() -> None:
     log.info("gateway startup …")
 
     # 1 – metadata validation / SQLite convenience mode
-    await api.initialize_async()
+    try:
+        await api.initialize_async()
+    except OSError:
+        # Fallback to a local SQLite database if the configured database is unreachable
+        from autoapi.v3.engine import engine as engine_factory
+        from . import db as _db
+
+        fallback = "sqlite+aiosqlite:///./gateway.db"
+        _db.dsn = fallback
+        _db.engine = engine_factory(fallback)
+        global engine, sql_engine
+        engine = _db.engine
+        sql_engine, _db.Session = engine.raw()
+        api.bind = fallback
+        await api.initialize_async()
 
     # 2 – run Alembic first so the ORM never creates tables implicitly
-    if engine.url.get_backend_name() != "sqlite":
+    if sql_engine.url.get_backend_name() != "sqlite":
         mig = migrate_core.alembic_upgrade(
             # keep the exact credentials that were used to build the engine
-            db_url=engine.url.render_as_string(hide_password=False)
+            db_url=sql_engine.url.render_as_string(hide_password=False)
         )
         if not mig.get("ok"):
             # expose full stderr in logs for easier debugging
@@ -337,7 +351,7 @@ async def _startup() -> None:
 async def _shutdown() -> None:
     log.info("gateway shutdown …")
     await _flush_state()
-    await engine.dispose()
+    await sql_engine.dispose()
 
 
 app.add_event_handler("startup", _startup)

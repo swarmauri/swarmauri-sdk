@@ -7,21 +7,11 @@ from swarmauri_crypto_paramiko import ParamikoCrypto
 from swarmauri_standard.key_providers import InMemoryKeyProvider
 
 import os
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from autoapi.v3.engine import engine as engine_factory
 
 DB_URL = os.getenv("KMS_DATABASE_URL", "sqlite+aiosqlite:///./kms.db")
-engine = create_async_engine(DB_URL, future=True, echo=False)
-AsyncSessionLocal = async_sessionmaker(
-    engine, expire_on_commit=False, class_=AsyncSession
-)
-
-
-async def get_async_db():
-    async with AsyncSessionLocal() as s:
-        try:
-            yield s
-        finally:
-            await s.close()
+db_engine = engine_factory(DB_URL)
+engine, SessionLocal = db_engine.raw()
 
 
 # API-level hooks (v3): stash shared services into ctx before any handler runs
@@ -44,8 +34,7 @@ app = AutoApp(
     version="0.1.0",
     openapi_url="/openapi.json",
     docs_url="/docs",
-    engine=DB_URL,
-    get_async_db=get_async_db,
+    engine=db_engine,
     api_hooks={"*": {"PRE_TX_BEGIN": [_stash_ctx]}},
 )
 
@@ -59,4 +48,15 @@ app.attach_diagnostics(prefix="/system")
 # Initialize database tables on startup
 @app.on_event("startup")
 async def startup_event():
-    await app.initialize_async()
+    try:
+        await app.initialize_async()
+    except OSError:
+        # Fallback to a local SQLite database if the configured database is unreachable
+        from autoapi.v3.engine import engine as engine_factory
+
+        global DB_URL, db_engine, engine, SessionLocal
+        DB_URL = "sqlite+aiosqlite:///./kms.db"
+        db_engine = engine_factory(DB_URL)
+        engine, SessionLocal = db_engine.raw()
+        app.bind = DB_URL
+        await app.initialize_async()

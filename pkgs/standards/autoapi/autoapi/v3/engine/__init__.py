@@ -9,6 +9,7 @@ from .builders import (
     blocking_sqlite_engine,
     HybridSession,
 )
+from .shortcuts import engine, engine_spec, Engine, EngineSpec, prov
 
 __all__ = [
     "collect_from_objects",
@@ -19,4 +20,9 @@ __all__ = [
     "async_sqlite_engine",
     "async_postgres_engine",
     "HybridSession",
+    "engine",
+    "engine_spec",
+    "Engine",
+    "EngineSpec",
+    "prov",
 ]

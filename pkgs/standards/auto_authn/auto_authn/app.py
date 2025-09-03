@@ -18,7 +18,7 @@ from __future__ import annotations
 from autoapi.v3 import AutoApp
 
 from .routers.surface import surface_api
-from .db import dsn
+from .db import engine as db_engine
 from .runtime_cfg import settings
 from .rfc8414 import include_rfc8414
 from .oidc_discovery import include_oidc_discovery
@@ -36,7 +36,7 @@ app = AutoApp(
     version="0.1.0",
     openapi_url="/openapi.json",
     docs_url="/docs",
-    engine=dsn,
+    engine=db_engine,
 )
 
 # Mount routers
@@ -61,7 +61,18 @@ async def _startup() -> None:
     # so schema-qualified tables like "authn.tenants" work.
     # this should work without sqlite_attachments, if sqlite_attachments are required use:
     # > await surface_api.initialize_async(sqlite_attachments={"authn": "./authn.db"})
-    await surface_api.initialize_async()
+    try:
+        await surface_api.initialize_async()
+    except OSError:
+        # Fallback to a local SQLite database if the configured database is unreachable
+        from autoapi.v3.engine import engine as engine_factory
+        from . import db as _db
+
+        fallback = "sqlite+aiosqlite:///./authn.db"
+        _db.dsn = fallback
+        _db.engine = engine_factory(fallback)
+        surface_api.bind = fallback
+        await surface_api.initialize_async()
 
 
 app.add_event_handler("startup", _startup)
