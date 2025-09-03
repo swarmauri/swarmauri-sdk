@@ -102,9 +102,9 @@ def flatten(
                 raise ValueError(f"Label missing anchor: {lbl}")
             by_anchor[lbl.anchor].append(lbl)
 
-    # Deterministic order for secdep/dep blocks
-    secdeps.sort(key=lambda label: (label.subject,))
-    deps.sort(key=lambda label: (label.subject,))
+    # `secdeps` and `deps` are received in their runtime execution order.
+    # Preserve that order rather than sorting alphabetically so diagnostics
+    # reflect the actual pre-phase dependency sequence.
 
     # Anchor list honoring persist pruning + canonical order
     anchors_present = tuple(a for a in by_anchor.keys())
