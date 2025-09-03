@@ -1,4 +1,5 @@
 import pytest
+from sqlalchemy import text
 
 from autoapi.v3.engine.builders import async_postgres_engine
 
@@ -11,6 +12,6 @@ async def test_async_postgres_engine_connection_error(monkeypatch):
 
     with pytest.raises(RuntimeError, match="Failed to connect to database"):
         async with Session() as session:
-            await session.run_sync(lambda conn: None)
+            await session.run_sync(lambda s: s.execute(text("select 1")))
 
     await eng.dispose()
