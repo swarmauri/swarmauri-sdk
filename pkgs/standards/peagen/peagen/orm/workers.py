@@ -12,7 +12,7 @@ from autoapi.v3.types import (
     Mapped,
 )
 from autoapi.v3.orm.mixins import GUIDPk, Timestamped
-from autoapi.v3.specs import IO, S, acol
+from autoapi.v3.specs import F, IO, S, acol
 from autoapi.v3.column.storage_spec import ForeignKeySpec
 from autoapi.v3 import hook_ctx
 from peagen.defaults import DEFAULT_POOL_ID, WORKER_KEY, WORKER_TTL
@@ -32,15 +32,23 @@ class Worker(Base, GUIDPk, Timestamped, AllowAnonProvider):
             fk=ForeignKeySpec("peagen.pools.id"),
             nullable=False,
             default=DEFAULT_POOL_ID,
-        )
+        ),
+        field=F(),
+        io=IO(in_verbs=("create", "update"), out_verbs=("read", "list")),
     )
-    url: Mapped[str] = acol(storage=S(String, nullable=False))
+    url: Mapped[str] = acol(
+        storage=S(String, nullable=False),
+        field=F(),
+        io=IO(in_verbs=("create", "update"), out_verbs=("read", "list")),
+    )
     advertises: Mapped[dict | None] = acol(
         storage=S(
             MutableDict.as_mutable(JSON),
             default=lambda: {},
             nullable=True,
-        )
+        ),
+        field=F(),
+        io=IO(in_verbs=("create", "update"), out_verbs=("read", "list")),
     )
     handler_map: Mapped[dict | None] = acol(
         storage=S(
@@ -48,7 +56,13 @@ class Worker(Base, GUIDPk, Timestamped, AllowAnonProvider):
             default=lambda: {},
             nullable=True,
         ),
-        io=IO(alias_in="handlers", alias_out="handlers"),
+        field=F(),
+        io=IO(
+            alias_in="handlers",
+            alias_out="handlers",
+            in_verbs=("create", "update"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     pool: Mapped[Pool] = relationship(Pool, backref="workers")
@@ -315,5 +329,15 @@ class Worker(Base, GUIDPk, Timestamped, AllowAnonProvider):
 
         # hooks registered via @hook_ctx
 
+
+# Provide an example payload for Worker.create so the OpenAPI docs show a sample
+Worker.schemas.create.in_.model_config.setdefault("json_schema_extra", {})[
+    "example"
+] = {
+    "pool_id": str(DEFAULT_POOL_ID),
+    "url": "http://127.0.0.1:8001/rpc",
+    "advertises": {"cpu": True},
+    "handler_map": {"handlers": []},
+}
 
 __all__ = ["Worker"]
