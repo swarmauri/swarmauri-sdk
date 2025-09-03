@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+from dataclasses import replace
 from types import SimpleNamespace
 from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Tuple
 
@@ -196,6 +197,26 @@ def bind(model: type, *, only_keys: Optional[Set[_Key]] = None) -> Tuple[OpSpec,
 
     # 2) Add ctx-only ops discovered via decorators (tables + mixins)
     ctx_specs: List[OpSpec] = list(collect_decorated_ops(model))
+
+    # 2a) Inherit canonical schemas for aliased ops lacking explicit schemas
+    base_by_target: Dict[str, OpSpec] = {sp.target: sp for sp in base_specs}
+    fixed_ctx_specs: List[OpSpec] = []
+    for sp in ctx_specs:
+        if (
+            sp.alias != sp.target
+            and sp.target != "custom"
+            and sp.request_model is None
+            and sp.response_model is None
+        ):
+            base = base_by_target.get(sp.target)
+            if base:
+                sp = replace(
+                    sp,
+                    request_model=base.request_model,
+                    response_model=base.response_model,
+                )
+        fixed_ctx_specs.append(sp)
+    ctx_specs = fixed_ctx_specs
 
     # 2b) De-dupe by (alias,target) with ctx-only overriding canonical/defaults
     merged_by_key: Dict[_Key, OpSpec] = {}
