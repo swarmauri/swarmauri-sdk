@@ -16,7 +16,7 @@ def setup_api(model_cls, get_db):
     app = App()
     api = AutoApp(get_db=get_db)
     api.include_model(model_cls, prefix="")
-    api.initialize_sync()
+    api.initialize()
     app.include_router(api.router)
     return app, api
 

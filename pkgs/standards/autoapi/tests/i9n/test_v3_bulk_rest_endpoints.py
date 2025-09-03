@@ -25,7 +25,7 @@ async def v3_client() -> Iterator[tuple[AsyncClient, type]]:
     app = App()
     api = AutoApp(engine=mem(async_=False))
     api.include_model(Widget)
-    api.initialize_sync()
+    api.initialize()
     app.include_router(api.router)
 
     client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")

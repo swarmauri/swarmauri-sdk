@@ -47,4 +47,4 @@ app.attach_diagnostics(prefix="/system")
 # Initialize database tables on startup
 @app.on_event("startup")
 async def startup_event():
-    await app.initialize_async()
+    await app.initialize()

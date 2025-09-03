@@ -96,7 +96,7 @@ def _client_for_owner(
     api.include_models([User, Item])
     app = App()
     app.include_router(api.router)
-    api.initialize_sync()
+    api.initialize()
     return TestClient(app)
 
 
@@ -160,7 +160,7 @@ def _client_for_tenant(
     api.include_models([Tenant, Item])
     app = App()
     app.include_router(api.router)
-    api.initialize_sync()
+    api.initialize()
     return TestClient(app)
 
 

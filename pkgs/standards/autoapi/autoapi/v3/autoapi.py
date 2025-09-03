@@ -2,8 +2,6 @@
 from __future__ import annotations
 
 import copy
-import asyncio
-import inspect
 from types import SimpleNamespace
 from typing import (
     Any,
@@ -19,11 +17,7 @@ from typing import (
 from .api._api import Api as _Api
 from .engine.engine_spec import EngineCfg
 from .engine import resolver as _resolver
-from .system.dbschema import (
-    ensure_schemas,
-    bootstrap_dbschema,
-    sqlite_default_attach_map,
-)
+from .ddl import initialize as _ddl_initialize
 from .bindings.api import (
     include_model as _include_model,
     include_models as _include_models,
@@ -31,6 +25,7 @@ from .bindings.api import (
     _seed_security_and_deps,
     _mount_router,
     _default_prefix,
+    AttrDict,
 )
 from .bindings.model import rebind as _rebind, bind as _bind
 from .bindings.rest import build_router_and_attach as _build_router_and_attach
@@ -85,7 +80,7 @@ class AutoAPI(_Api):
         self.rpc = SimpleNamespace()
         self.rest = SimpleNamespace()
         self.routers: Dict[str, Any] = {}
-        self.tables: Dict[str, Any] = {}
+        self.tables = AttrDict()
         self.columns: Dict[str, Tuple[str, ...]] = {}
         self.table_config: Dict[str, Dict[str, Any]] = {}
         self.core = SimpleNamespace()
@@ -273,121 +268,7 @@ class AutoAPI(_Api):
                 tables.append(t)
         return tables
 
-    def _create_all_on_bind(
-        self, bind, *, schemas=None, sqlite_attachments=None, tables=None
-    ):
-        # 1) collect tables + schemas / SQLite ATTACH
-        engine = getattr(bind, "engine", bind)
-        tables = tables or self._collect_tables()
-
-        schema_names = set(schemas or [])
-        for t in tables:
-            if getattr(t, "schema", None):
-                schema_names.add(t.schema)
-
-        attachments = sqlite_attachments
-        if attachments is None and getattr(engine.dialect, "name", "") == "sqlite":
-            if schema_names:
-                attachments = sqlite_default_attach_map(engine, schema_names)
-
-        if attachments:
-            # also applies ensure_schemas; immediate listener warm-up
-            bootstrap_dbschema(
-                engine,
-                schemas=schema_names,
-                sqlite_attachments=attachments,
-                immediate=True,
-            )
-        else:
-            ensure_schemas(engine, schema_names)
-
-        # 2) create tables (group by metadata to support multiple bases)
-        by_meta = {}
-        for t in tables:
-            by_meta.setdefault(t.metadata, []).append(t)
-        for md, group in by_meta.items():
-            md.create_all(bind=bind, checkfirst=True, tables=group)
-
-        # 3) publish tables namespace
-        self.tables.update(
-            {
-                name: getattr(m, "__table__", None)
-                for name, m in self.models.items()
-                if hasattr(m, "__table__")
-            }
-        )
-
-    def initialize_sync(self, *, schemas=None, sqlite_attachments=None, tables=None):
-        if getattr(self, "_ddl_executed", False):
-            return
-        prov = _resolver.resolve_provider(api=self)
-        if prov is None:
-            raise ValueError("Engine provider is not configured")
-        with next(prov.get_db()) as db:
-            bind = db.get_bind()  # Connection or Engine
-            self._create_all_on_bind(
-                bind,
-                schemas=schemas,
-                sqlite_attachments=sqlite_attachments,
-                tables=tables,
-            )
-        self._ddl_executed = True
-
-    async def initialize_async(
-        self, *, schemas=None, sqlite_attachments=None, tables=None
-    ):
-        if getattr(self, "_ddl_executed", False):
-            return
-        prov = _resolver.resolve_provider(api=self)
-        if prov is None:
-            raise ValueError("Engine provider is not configured")
-
-        if inspect.isasyncgenfunction(prov.get_db):
-            async for adb in prov.get_db():  # AsyncSession
-
-                def _sync_bootstrap(arg):
-                    bind = arg.get_bind() if hasattr(arg, "get_bind") else arg
-                    self._create_all_on_bind(
-                        bind,
-                        schemas=schemas,
-                        sqlite_attachments=sqlite_attachments,
-                        tables=tables,
-                    )
-
-                await adb.run_sync(_sync_bootstrap)
-                break
-        else:
-            gen = prov.get_db()
-            db = next(gen)
-
-            try:
-                if hasattr(db, "run_sync"):
-
-                    def _sync_bootstrap(arg):
-                        bind = arg.get_bind() if hasattr(arg, "get_bind") else arg
-                        self._create_all_on_bind(
-                            bind,
-                            schemas=schemas,
-                            sqlite_attachments=sqlite_attachments,
-                            tables=tables,
-                        )
-
-                    await db.run_sync(_sync_bootstrap)
-                else:
-                    bind = db.get_bind()
-                    await asyncio.to_thread(
-                        self._create_all_on_bind,
-                        bind,
-                        schemas=schemas,
-                        sqlite_attachments=sqlite_attachments,
-                        tables=tables,
-                    )
-            finally:
-                try:
-                    next(gen)
-                except StopIteration:
-                    pass
-        self._ddl_executed = True
+    initialize = _ddl_initialize
 
     # ------------------------- repr -------------------------
 

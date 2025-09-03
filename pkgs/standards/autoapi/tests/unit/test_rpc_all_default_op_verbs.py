@@ -64,7 +64,7 @@ def api_and_session() -> Iterator[tuple[AutoApp, Session]]:
     cfg = mem(async_=False)
     api = AutoApp(engine=cfg)
     api.include_model(Widget, mount_router=False)
-    api.initialize_sync()
+    api.initialize()
 
     prov = _resolver.resolve_provider()
     engine, maker = prov.ensure()

@@ -37,7 +37,7 @@ async def schema_ctx_client():
     api.include_model(Widget, prefix="")
     api.mount_jsonrpc()
     api.attach_diagnostics()
-    await api.initialize_async()
+    await api.initialize()
     prov = _resolver.resolve_provider()
     _, sessionmaker = prov.ensure()
     app.include_router(api.router)

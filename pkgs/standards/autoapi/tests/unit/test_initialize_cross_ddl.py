@@ -17,10 +17,10 @@ def _model():
 
 
 @pytest.mark.asyncio
-async def test_initialize_async_with_sync_engine():
+async def test_initialize_with_sync_engine():
     Base.metadata.clear()
     Widget = _model()
     api = AutoApp(engine=mem(async_=False))
     api.include_model(Widget)
-    await api.initialize_async()
+    await api.initialize()
     assert getattr(api.tables, "Widget").name == "widgets"

@@ -47,7 +47,7 @@ async def client_and_model():
     # requiring greenlet magic.
     api = AutoAPIv3(engine=mem(async_=False))
     api.include_model(Gadget, prefix="")
-    await api.initialize_async()
+    await api.initialize()
     app.include_router(api.router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")

@@ -7,6 +7,7 @@ from typing import Any, Callable
 from ..engine._engine import AsyncSession, Session
 from ..engine import install_from_objects  # reuse the collector
 from ..engine import resolver as _resolver
+from ..ddl import initialize as _ddl_initialize
 from ._base import Base
 from .table_spec import TableSpec
 
@@ -49,3 +50,5 @@ class Table(Base, TableSpec):
     ) -> tuple[Session | AsyncSession, Callable[[], None]]:
         db, release = _resolver.acquire(model=cls, op_alias=op_alias)
         return db, release
+
+    initialize = classmethod(_ddl_initialize)

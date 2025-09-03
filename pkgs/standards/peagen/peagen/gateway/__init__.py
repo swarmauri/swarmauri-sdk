@@ -307,7 +307,7 @@ async def _startup() -> None:
     log.info("gateway startup …")
 
     # 1 – metadata validation / SQLite convenience mode
-    await api.initialize_async()
+    await api.initialize()
 
     # 2 – run Alembic first so the ORM never creates tables implicitly
     eng, _ = ENGINE.raw()

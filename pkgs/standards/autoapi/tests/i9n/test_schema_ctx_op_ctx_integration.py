@@ -39,7 +39,7 @@ async def widget_client():
     api = AutoApp(engine=mem())
     api.include_model(Widget, prefix="")
     api.mount_jsonrpc()
-    await api.initialize_async()
+    await api.initialize()
     app.include_router(api.router)
 
     client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")

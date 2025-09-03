@@ -40,7 +40,7 @@ def client_and_model():
 
     api = AutoAPIv3(engine=mem(async_=False))
     api.include_model(Gadget, prefix="")
-    api.initialize_sync()
+    api.initialize()
 
     # Remove generated out schemas to exercise jsonable fallback
     Gadget.schemas.read.out = None  # type: ignore[attr-defined]
