@@ -23,7 +23,7 @@ async def test_api_key_creation_requires_valid_payload(sync_db_session):
     app = App()
     api = AutoApp(get_db=get_sync_db)
     api.include_models([ConcreteApiKey])
-    api.initialize_sync()
+    api.initialize()
     app.include_router(api.router)
     transport = ASGITransport(app=app)
 

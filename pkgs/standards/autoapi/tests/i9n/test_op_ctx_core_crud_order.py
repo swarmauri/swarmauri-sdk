@@ -19,7 +19,7 @@ def setup_api(model_cls):
     app = App(engine=engine)
     api = AutoApp(engine=engine)
     api.include_model(model_cls, prefix="")
-    api.initialize_sync()
+    api.initialize()
     app.include_router(api.router)
     return app, engine
 

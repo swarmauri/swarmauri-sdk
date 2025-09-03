@@ -32,7 +32,7 @@ async def client():
 
     api = AutoAPIv3(engine=mem())
     api.include_model(Widget, prefix="")
-    await api.initialize_async()
+    await api.initialize()
     prov = _resolver.resolve_provider()
     engine, session_maker = prov.ensure()
     async with session_maker() as session:

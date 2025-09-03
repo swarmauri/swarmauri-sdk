@@ -28,7 +28,7 @@ def sync_api():
     eng = build_engine(mem(async_=False))
     api = AutoApp(engine=eng)
     api.include_model(CoreTestUser)
-    api.initialize_sync()
+    api.initialize()
     return api, eng
 
 
@@ -39,7 +39,7 @@ async def async_api():
     eng = build_engine(mem(async_=True))
     api = AutoApp(engine=eng)
     api.include_model(CoreTestUser)
-    await api.initialize_async()
+    await api.initialize()
     return api, eng
 
 

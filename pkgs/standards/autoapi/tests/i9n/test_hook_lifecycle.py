@@ -21,11 +21,11 @@ async def setup_client(db_mode, Tenant, Item):
     if db_mode == "async":
         api = AutoApp(engine=mem())
         api.include_models([Tenant, Item])
-        await api.initialize_async()
+        await api.initialize()
     else:
         api = AutoApp(engine=mem(async_=False))
         api.include_models([Tenant, Item])
-        api.initialize_sync()
+        api.initialize()
 
     api.mount_jsonrpc()
     fastapi_app.include_router(api.router)

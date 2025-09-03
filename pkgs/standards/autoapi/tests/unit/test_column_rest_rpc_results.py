@@ -15,7 +15,7 @@ def _setup_api(model):
     eng = build_engine(mem(async_=False))
     api = AutoAPI(engine=eng)
     api.include_model(model)
-    api.initialize_sync()
+    api.initialize()
 
     app = App()
     app.include_router(api)

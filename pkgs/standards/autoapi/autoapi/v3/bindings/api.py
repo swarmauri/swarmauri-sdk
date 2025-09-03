@@ -32,6 +32,20 @@ from ..engine import resolver as _resolver  # acquire(api=?, model=?, op_alias=?
 
 logger = logging.getLogger(__name__)
 
+
+class AttrDict(dict):
+    """Dictionary providing attribute-style access."""
+
+    def __getattr__(self, item: str) -> Any:  # pragma: no cover - trivial
+        try:
+            return self[item]
+        except KeyError as e:  # pragma: no cover - debug aid
+            raise AttributeError(item) from e
+
+    def __setattr__(self, key: str, value: Any) -> None:  # pragma: no cover - trivial
+        self[key] = value
+
+
 # Public type for the API facade object users pass to include_model(...)
 ApiLike = Any
 
@@ -86,7 +100,7 @@ def _ensure_api_ns(api: ApiLike) -> None:
     """
     for attr, default in (
         ("models", {}),
-        ("tables", {}),
+        ("tables", AttrDict()),
         ("schemas", SimpleNamespace()),
         ("handlers", SimpleNamespace()),
         ("hooks", SimpleNamespace()),

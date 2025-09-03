@@ -107,7 +107,7 @@ def create_test_api():
         Base.metadata.clear()
         api = AutoApp(engine=mem(async_=False))
         api.include_model(model_class)
-        api.initialize_sync()
+        api.initialize()
         return api
 
     return _create_api
@@ -182,12 +182,12 @@ async def api_client(db_mode):
     if db_mode == "async":
         api = AutoApp(engine=mem())
         api.include_models([Tenant, Item])
-        await api.initialize_async()
+        await api.initialize()
 
     else:
         api = AutoApp(engine=mem(async_=False))
         api.include_models([Tenant, Item])
-        api.initialize_sync()
+        api.initialize()
 
     api.mount_jsonrpc()
     fastapi_app.include_router(api.router)
@@ -262,7 +262,7 @@ async def api_client_v3():
     api.include_model(Widget, prefix="")
     api.mount_jsonrpc()
     api.attach_diagnostics()
-    await api.initialize_async()
+    await api.initialize()
     prov = _resolver.resolve_provider()
     _, session_maker = prov.ensure()
     fastapi_app.include_router(api.router)

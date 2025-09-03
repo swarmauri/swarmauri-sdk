@@ -40,7 +40,7 @@ async def widget_setup():
     api.include_model(Widget, prefix="/widget")
     api.mount_jsonrpc(prefix="/rpc")
     api.attach_diagnostics(prefix="/system")
-    api.initialize_sync()
+    api.initialize()
     app.include_router(api.router)
 
     prov = _resolver.resolve_provider()

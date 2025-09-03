@@ -70,7 +70,7 @@ async def schema_ctx_client():
     api.include_model(Widget, prefix="")
     api.mount_jsonrpc()
     api.attach_diagnostics()
-    api.initialize_sync()
+    api.initialize()
     prov = _resolver.resolve_provider()
     _, SessionLocal = prov.ensure()
     app.include_router(api.router)

@@ -51,7 +51,7 @@ def _build_client_with_auth():
     api.set_auth(authn=auth.get_principal)
     auth.register_inject_hook(api)
     api.include_model(Tenant)
-    api.initialize_sync()
+    api.initialize()
     return TestClient(api), auth
 
 

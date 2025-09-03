@@ -18,6 +18,7 @@ Nothing in this module performs I/O.
 from __future__ import annotations
 
 from typing import Mapping, Tuple
+import re
 
 # NOTE: importing CANON from ``ops.types`` introduces a circular dependency
 # because that module transitively imports this one via ``hook``. To keep the
@@ -204,6 +205,9 @@ CTX_TENANT_ID_KEY = "tenant_id"
 CTX_AUTH_KEY = "auth"
 
 
+# Regex for safe SQL identifiers
+__SAFE_IDENT__ = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+
 __all__ = [
     "ALL_VERBS",
     "BULK_VERBS",
@@ -245,4 +249,5 @@ __all__ = [
     "CTX_USER_ID_KEY",
     "CTX_TENANT_ID_KEY",
     "CTX_AUTH_KEY",
+    "__SAFE_IDENT__",
 ]

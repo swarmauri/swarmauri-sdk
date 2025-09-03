@@ -70,7 +70,7 @@ from .transport.jsonrpc import build_jsonrpc_router
 from .system import mount_diagnostics
 
 # ── DB/bootstrap helpers (infra; optional) ─────────────────────────────────────
-from .system.dbschema import ensure_schemas, register_sqlite_attach, bootstrap_dbschema
+from .ddl import ensure_schemas, register_sqlite_attach, bootstrap_dbschema
 
 # ── Config constants (defaults used by REST) ───────────────────────────────────
 from .config.constants import DEFAULT_HTTP_METHODS

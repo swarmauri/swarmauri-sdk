@@ -41,7 +41,7 @@ async def fs_app():
     app = App()
     api = AutoApp(engine=cfg)
     api.include_model(FSItem)
-    api.initialize_sync()
+    api.initialize()
     app.include_router(api.router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")

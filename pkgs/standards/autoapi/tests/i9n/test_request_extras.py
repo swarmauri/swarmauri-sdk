@@ -28,11 +28,11 @@ async def api_client_with_extras(db_mode):
     if db_mode == "async":
         api = AutoApp(engine=mem())
         api.include_model(Widget)
-        await api.initialize_async()
+        await api.initialize()
     else:
         api = AutoApp(engine=mem(async_=False))
         api.include_model(Widget)
-        api.initialize_sync()
+        api.initialize()
 
     app = App()
     app.include_router(api.router)

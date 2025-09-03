@@ -33,7 +33,7 @@ async def client_and_model():
     app = App()
     api = AutoAPIv3(engine=mem())
     api.include_model(Widget, prefix="")
-    await api.initialize_async()
+    await api.initialize()
     # Remove output schemas to trigger fallback serialization
     Widget.schemas.read.out = None
     Widget.schemas.list.out = None

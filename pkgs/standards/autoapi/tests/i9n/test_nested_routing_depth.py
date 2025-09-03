@@ -41,7 +41,7 @@ async def three_level_api_client(db_mode):
     else:
         api = AutoApp(engine=mem(async_=False))
         api.include_models([Company, Department, Employee])
-        api.initialize_sync()
+        api.initialize()
 
     app = App()
     app.include_router(api.router)

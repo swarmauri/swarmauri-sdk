@@ -27,7 +27,7 @@ async def test_response_ctx_alias_table_rpc():
     eng = build_engine(mem(async_=False))
     api = AutoAPI(engine=eng)
     api.include_model(Widget, mount_router=False)
-    api.initialize_sync()
+    api.initialize()
     raw_eng, _ = eng.raw()
     try:
         with eng.session() as session:
