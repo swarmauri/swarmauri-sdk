@@ -30,7 +30,7 @@ def client_app(tmp_path, monkeypatch):
 
 def _fetch_versions(app, key_id):
     async def _inner():
-        async with app.AsyncSessionLocal() as session:
+        async with app.db_engine.asession() as session:
             result = await session.execute(
                 select(KeyVersion.version).where(KeyVersion.key_id == UUID(str(key_id)))
             )

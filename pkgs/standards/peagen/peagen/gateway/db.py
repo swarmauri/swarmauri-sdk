@@ -8,4 +8,4 @@ else:
     dsn = "sqlite+aiosqlite:///./gateway.db"
 
 engine = engine_factory(dsn)
-sql_engine, Session = engine.raw()
+sql_engine, _ = engine.raw()

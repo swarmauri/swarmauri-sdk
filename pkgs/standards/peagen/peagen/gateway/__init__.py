@@ -319,7 +319,7 @@ async def _startup() -> None:
         _db.engine = engine_factory(fallback)
         global engine, sql_engine
         engine = _db.engine
-        sql_engine, _db.Session = engine.raw()
+        sql_engine, _ = engine.raw()
         api.bind = fallback
         await api.initialize_async()
 

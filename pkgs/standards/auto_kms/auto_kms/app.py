@@ -11,7 +11,7 @@ from autoapi.v3.engine import engine as engine_factory
 
 DB_URL = os.getenv("KMS_DATABASE_URL", "sqlite+aiosqlite:///./kms.db")
 db_engine = engine_factory(DB_URL)
-engine, SessionLocal = db_engine.raw()
+engine, _ = db_engine.raw()
 
 
 # API-level hooks (v3): stash shared services into ctx before any handler runs
@@ -54,9 +54,9 @@ async def startup_event():
         # Fallback to a local SQLite database if the configured database is unreachable
         from autoapi.v3.engine import engine as engine_factory
 
-        global DB_URL, db_engine, engine, SessionLocal
+        global DB_URL, db_engine, engine
         DB_URL = "sqlite+aiosqlite:///./kms.db"
         db_engine = engine_factory(DB_URL)
-        engine, SessionLocal = db_engine.raw()
+        engine, _ = db_engine.raw()
         app.bind = DB_URL
         await app.initialize_async()
