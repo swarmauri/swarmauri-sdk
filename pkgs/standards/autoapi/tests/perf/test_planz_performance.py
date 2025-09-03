@@ -55,7 +55,7 @@ async def test_planz_performance(monkeypatch, count):
             return self.anchor
 
     def fake_flattened_order(
-        plan, *, persist, include_system_steps, deps, secdeps=None
+        plan, *, persist, include_system_steps, deps, secdeps=None, hooks=None
     ):
         return [Label(events[i % len(events)]) for i in range(10)]
 
@@ -102,7 +102,7 @@ async def test_planz_cached_call_faster(monkeypatch) -> None:
     calls = {"flatten": 0}
 
     def fake_flattened_order(
-        plan, *, persist, include_system_steps, deps, secdeps=None
+        plan, *, persist, include_system_steps, deps, secdeps=None, hooks=None
     ):
         calls["flatten"] += 1
         sleep(0.01)

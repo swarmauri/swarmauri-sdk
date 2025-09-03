@@ -179,6 +179,39 @@ def test_flattened_order_skips_system_steps(
     assert not any(lbl.kind == "sys" for lbl in captured["labels"])
 
 
+def test_flattened_order_preserves_prelabel_order() -> None:
+    """secdeps and deps appear in the order they are declared."""
+    plan = plan_mod.Plan("M", {})
+    labels = plan_mod.flattened_order(
+        plan,
+        persist=True,
+        include_system_steps=False,
+        secdeps=("s2", "s1"),
+        deps=("d2", "d1"),
+    )
+    rendered = [lbl.render() for lbl in labels]
+    assert rendered == ["secdep:s2", "secdep:s1", "dep:d2", "dep:d1"]
+
+
+def test_flattened_order_includes_hooks() -> None:
+    """Hooks are inserted before atoms in their phase and ahead of system steps."""
+    node = _make_node("schema", "collect_in", _ev.SCHEMA_COLLECT_IN)
+    plan = plan_mod.Plan("M", {_ev.SCHEMA_COLLECT_IN: (node,)})
+    hook = "hook:wire:pre@PRE_HANDLER"
+    labels = plan_mod.flattened_order(
+        plan,
+        persist=True,
+        include_system_steps=True,
+        hooks={"PRE_HANDLER": [hook]},
+    )
+    rendered = [lbl.render() for lbl in labels]
+    assert rendered[0] == hook
+    assert rendered[1] == node.label.render()
+    assert rendered[2] == "sys:txn:begin@START_TX"
+    assert "sys:handler:crud@HANDLER" in rendered
+    assert rendered[-1] == "sys:txn:commit@END_TX"
+
+
 # ---------------------------------------------------------------------------
 # _should_instantiate
 # ---------------------------------------------------------------------------
