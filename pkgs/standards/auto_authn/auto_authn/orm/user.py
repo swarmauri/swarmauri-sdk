@@ -59,7 +59,7 @@ class User(UserBase):
         cascade="all, delete-orphan",
     )
 
-    @hook_ctx(ops=("create",), phase="PRE_VALIDATE")
+    @hook_ctx(ops=("create", "update", "register"), phase="PRE_HANDLER")
     async def _resolve_tenant_slug(cls, ctx):
         payload = ctx.get("payload") or {}
         slug = payload.pop("tenant_slug", None)
@@ -72,9 +72,17 @@ class User(UserBase):
                 raise HTTPException(status.HTTP_404_NOT_FOUND, "tenant not found")
             payload["tenant_id"] = tenant.id
 
-    @hook_ctx(ops=("create", "update"), phase="PRE_HANDLER")
+    @hook_ctx(ops=("create", "update", "register"), phase="PRE_HANDLER")
     async def _hash_password(cls, ctx):
         payload = ctx.get("payload") or {}
+        if not payload.get("password"):
+            request = ctx.get("request")
+            if request is not None:
+                try:
+                    body = await request.json()
+                except Exception:  # pragma: no cover - unexpected
+                    body = {}
+                payload.update(body)
         plain = payload.pop("password", None)
         if plain:
             from ..crypto import hash_pw
