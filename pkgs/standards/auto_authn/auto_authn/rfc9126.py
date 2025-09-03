@@ -16,9 +16,8 @@ from typing import TYPE_CHECKING, Any, Dict, Final
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import delete
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from .db import get_async_db
+from .db import ENGINE
 from .runtime_cfg import settings
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -35,7 +34,7 @@ router = APIRouter()
 @router.post("/par", status_code=status.HTTP_201_CREATED)
 async def pushed_authorization_request(
     request: Request,
-    db: AsyncSession = Depends(get_async_db),
+    db: Any = Depends(ENGINE.get_db),
 ) -> Dict[str, Any]:
     """Handle Pushed Authorization Requests.
 
@@ -56,7 +55,7 @@ async def pushed_authorization_request(
 
 async def store_par_request(
     params: Dict[str, Any],
-    db: AsyncSession,
+    db: Any,
     expires_in: int = DEFAULT_PAR_EXPIRY,
 ) -> str:
     """Store *params* and return a unique ``request_uri``."""
@@ -78,7 +77,7 @@ async def store_par_request(
     return request_uri
 
 
-async def get_par_request(request_uri: str, db: AsyncSession) -> Dict[str, Any] | None:
+async def get_par_request(request_uri: str, db: Any) -> Dict[str, Any] | None:
     """Retrieve parameters for *request_uri* if present and not expired."""
 
     from .orm import PushedAuthorizationRequest
@@ -92,7 +91,7 @@ async def get_par_request(request_uri: str, db: AsyncSession) -> Dict[str, Any] 
     return obj.params
 
 
-async def reset_par_store(db: AsyncSession) -> None:
+async def reset_par_store(db: Any) -> None:
     """Clear stored pushed authorization requests (test helper)."""
 
     from .orm import PushedAuthorizationRequest

@@ -5,8 +5,8 @@ from fastapi import FastAPI, status
 from httpx import ASGITransport, AsyncClient
 
 from auto_authn.routers.auth_flows import router
-from auto_authn.fastapi_deps import get_async_db
 from auto_authn.rfc7662 import register_token, reset_tokens
+from auto_authn.db import ENGINE
 
 
 # RFC 7662 specification excerpt for reference within tests
@@ -35,7 +35,7 @@ async def test_introspection_endpoint_returns_active_field(enable_rfc7662):
     async def override_db():
         yield None
 
-    app.dependency_overrides[get_async_db] = override_db
+    app.dependency_overrides[ENGINE.get_db] = override_db
 
     # Register a token in the introspection registry to mark it as active
     register_token("dummy")
@@ -61,7 +61,7 @@ async def test_introspection_requires_token_parameter(enable_rfc7662):
     async def override_db():
         yield None
 
-    app.dependency_overrides[get_async_db] = override_db
+    app.dependency_overrides[ENGINE.get_db] = override_db
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:

@@ -27,7 +27,7 @@ from typing import Iterable, Optional
 from typing import TYPE_CHECKING
 
 from sqlalchemy import Select, or_, select
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Any
 
 from .crypto import verify_pw
 from .typing import Principal
@@ -88,9 +88,7 @@ class PasswordBackend:
             user.is_active.is_(True),
         )
 
-    async def authenticate(
-        self, db: AsyncSession, identifier: str, password: str
-    ) -> User:
+    async def authenticate(self, db: Any, identifier: str, password: str) -> User:
         row: Optional["User"] = await db.scalar(await self._get_user_stmt(identifier))
         if not row or not verify_pw(password, row.password_hash):
             raise AuthError("invalid username/email or password")
@@ -128,9 +126,7 @@ class ApiKeyBackend:
         client = _Client()
         return select(client).where(client.is_active.is_(True))
 
-    async def authenticate(
-        self, db: AsyncSession, api_key: str
-    ) -> tuple[Principal, str]:
+    async def authenticate(self, db: Any, api_key: str) -> tuple[Principal, str]:
         api_key_cls = _ApiKey()
         digest = api_key_cls.digest_of(api_key)
 

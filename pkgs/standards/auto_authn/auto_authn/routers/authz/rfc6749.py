@@ -8,11 +8,10 @@ from typing import Any
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import ValidationError
 
 from ...backends import AuthError
-from ...fastapi_deps import get_async_db
+from ...db import ENGINE
 from ...orm import AuthCode, Client, DeviceCode, User
 from ...rfc8707 import extract_resource
 from ...runtime_cfg import settings
@@ -39,9 +38,7 @@ from . import router
 
 
 @router.post("/token", response_model=TokenPair)
-async def token(
-    request: Request, db: AsyncSession = Depends(get_async_db)
-) -> TokenPair:
+async def token(request: Request, db: Any = Depends(ENGINE.get_db)) -> TokenPair:
     _require_tls(request)
     form = await request.form()
     resources = form.getlist("resource")

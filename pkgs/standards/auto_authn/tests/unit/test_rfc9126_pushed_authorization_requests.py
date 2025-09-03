@@ -5,7 +5,7 @@ from fastapi import FastAPI, status
 from httpx import ASGITransport, AsyncClient
 
 from auto_authn.rfc9126 import DEFAULT_PAR_EXPIRY, router
-from auto_authn.fastapi_deps import get_async_db
+from auto_authn.db import ENGINE
 
 # RFC 9126 specification excerpt for reference within tests
 RFC9126_SPEC = """
@@ -27,7 +27,7 @@ async def test_par_returns_request_uri_and_expires(enable_rfc9126, monkeypatch):
     async def override_db():
         yield None
 
-    app.dependency_overrides[get_async_db] = override_db
+    app.dependency_overrides[ENGINE.get_db] = override_db
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -52,7 +52,7 @@ async def test_par_disabled_returns_404(monkeypatch):
     async def override_db():
         yield None
 
-    app.dependency_overrides[get_async_db] = override_db
+    app.dependency_overrides[ENGINE.get_db] = override_db
 
     original = settings.enable_rfc9126
     settings.enable_rfc9126 = False

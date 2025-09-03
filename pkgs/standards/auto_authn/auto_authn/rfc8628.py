@@ -16,7 +16,7 @@ import string
 from typing import Final, Literal, TYPE_CHECKING
 
 from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Any
 
 from .runtime_cfg import settings
 
@@ -63,9 +63,7 @@ class DeviceGrantForm(BaseModel):
     client_id: str
 
 
-async def approve_device_code(
-    device_code: str, sub: str, tid: str, db: AsyncSession
-) -> None:
+async def approve_device_code(device_code: str, sub: str, tid: str, db: Any) -> None:
     """Mark a device code as authorized (testing helper)."""
 
     from .orm import DeviceCode

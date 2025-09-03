@@ -80,6 +80,26 @@ async with eng.asession() as session:
 provider_pg = Provider(spec_pg)
 ```
 
+### Conformance rules
+
+Downstream services **must** create database connections using
+`autoapi.v3.engine.Engine` (or the helpers in
+`autoapi.v3.engine.shortcuts`). Direct imports from
+`sqlalchemy.ext.asyncio` like `create_async_engine`, `AsyncSession`, or
+`async_sessionmaker` and hand-rolled `get_async_db` dependencies are not
+allowed. Use the Engine's `get_db` generator for FastAPI dependencies:
+
+```python
+from fastapi import Depends
+from autoapi.v3.engine import engine
+
+DB_ENGINE = engine("sqlite+aiosqlite:///./app.db")
+
+@app.get("/items")
+async def handler(db=Depends(DB_ENGINE.get_db)):
+    ...
+```
+
 ### Attaching engine contexts
 
 `engine_ctx` binds database configuration to different layers. It accepts a
