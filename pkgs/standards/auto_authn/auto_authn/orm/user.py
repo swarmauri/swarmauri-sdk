@@ -6,6 +6,7 @@ import uuid
 
 from autoapi.v3.orm.tables import User as UserBase
 from autoapi.v3 import hook_ctx, op_ctx
+from ..routers.schemas import RegisterIn, TokenPair
 from autoapi.v3.types import LargeBinary, Mapped, String, relationship
 from autoapi.v3.specs import F, IO, S, acol, ColumnSpec
 from typing import TYPE_CHECKING
@@ -80,7 +81,13 @@ class User(UserBase):
 
             payload["password_hash"] = hash_pw(plain)
 
-    @op_ctx(alias="register", target="create", arity="collection")
+    @op_ctx(
+        alias="register",
+        target="create",
+        arity="collection",
+        request_schema=RegisterIn,
+        response_schema=TokenPair,
+    )
     async def register(cls, ctx):
         import secrets
         from ..rfc8414_metadata import ISSUER
