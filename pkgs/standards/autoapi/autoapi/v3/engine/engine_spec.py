@@ -1,8 +1,9 @@
 # autoapi/v3/engine/engine_spec.py
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field, fields
 from typing import Optional, Mapping, Union, Any, Tuple
+from urllib.parse import urlsplit, urlunsplit
 
 from ._engine import Engine, Provider, SessionFactory
 from .builders import (
@@ -56,7 +57,7 @@ class EngineSpec:
 
     # postgres
     user: Optional[str] = None
-    pwd: Optional[str] = None
+    pwd: Optional[str] = field(default=None, repr=False)
     host: Optional[str] = None
     port: Optional[int] = None
     name: Optional[str] = None
@@ -65,7 +66,34 @@ class EngineSpec:
 
     # raw passthroughs (for diagnostics)
     dsn: Optional[str] = None
-    mapping: Optional[Mapping[str, object]] = None
+    mapping: Optional[Mapping[str, object]] = field(default=None, repr=False)
+
+    def __repr__(self) -> str:  # pragma: no cover - representation logic
+        parts = []
+        for f in fields(self):
+            if not f.repr:
+                continue
+            value = getattr(self, f.name)
+            if f.name == "dsn":
+                value = self._redact_dsn(value)
+            if value is not None:
+                parts.append(f"{f.name}={value!r}")
+        return f"EngineSpec({', '.join(parts)})"
+
+    @staticmethod
+    def _redact_dsn(dsn: Optional[str]) -> Optional[str]:
+        if not dsn:
+            return dsn
+        try:
+            parts = urlsplit(dsn)
+            if parts.password:
+                netloc = parts.netloc.replace(parts.password, "***")
+                return urlunsplit(
+                    (parts.scheme, netloc, parts.path, parts.query, parts.fragment)
+                )
+        except Exception:
+            pass
+        return dsn
 
     # ---------- parsing / normalization ----------
 

@@ -39,6 +39,16 @@ def test_engine_spec_builds_from_dsn_postgres():
     assert spec.host is None and spec.user is None
 
 
+def test_engine_spec_repr_redacts_password():
+    spec = engine_spec({"kind": "postgres", "pwd": "s3cret"})
+    assert "s3cret" not in repr(spec)
+
+    spec = engine_spec("postgresql://user:pwd@localhost:5432/db")
+    rep = repr(spec)
+    assert "pwd" not in rep
+    assert "***" in rep
+
+
 def test_engine_builds_from_dsn_postgres():
     dsn = "postgresql://user:pwd@localhost:5432/db"
     spec = EngineSpec.from_any(dsn)
