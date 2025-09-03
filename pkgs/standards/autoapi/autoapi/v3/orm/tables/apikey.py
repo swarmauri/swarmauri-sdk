@@ -1,20 +1,12 @@
 from __future__ import annotations
 
 
-from datetime import datetime, timezone
 from hashlib import sha256
 from secrets import token_urlsafe
 
-from fastapi import HTTPException
-
-from ...specs import acol, F, IO, S
-from ...types import (
-    String,
-    Field,
-    ResponseExtrasProvider,
-    Mapped,
-)
-from ... import hook_ctx
+from ...specs import F, IO, S, acol
+from ...types import Mapped, String
+from ...column.io_spec import Pair
 from ._base import Base
 from ..mixins import (
     GUIDPk,
@@ -25,14 +17,7 @@ from ..mixins import (
 
 
 # ------------------------------------------------------------------ model
-class ApiKey(
-    Base,
-    GUIDPk,
-    Created,
-    LastUsed,
-    ValidityWindow,
-    ResponseExtrasProvider,
-):
+class ApiKey(Base, GUIDPk, Created, LastUsed, ValidityWindow):
     __tablename__ = "api_keys"
     __abstract__ = True
 
@@ -41,13 +26,17 @@ class ApiKey(
         field=F(constraints={"max_length": 120}),
     )
 
+    def _pair_api_key(ctx):
+        raw = token_urlsafe(32)
+        return Pair(raw=raw, stored=sha256(raw.encode()).hexdigest())
+
     digest: Mapped[str] = acol(
         storage=S(String, nullable=False, unique=True),
         field=F(constraints={"max_length": 64}),
-        io=IO(out_verbs=("read", "list")),
+        io=IO(out_verbs=("read", "list")).paired(
+            _pair_api_key, alias="api_key", verbs=("create",)
+        ),
     )
-
-    __autoapi_response_extras__ = {"*": {"api_key": (str | None, Field(None))}}
 
     # ------------------------------------------------------------------
     # Digest helpers
@@ -63,39 +52,3 @@ class ApiKey(
     @raw_key.setter
     def raw_key(self, value: str) -> None:
         self.digest = self.digest_of(value)
-
-    # ------------------------------------------------------------------
-    # Hooks
-    # ------------------------------------------------------------------
-    @hook_ctx(ops="create", phase="PRE_TX_BEGIN")
-    async def _pre_create_generate(cls, ctx):
-        params = ctx["env"].params
-        raw = token_urlsafe(32)
-        digest = cls.digest_of(raw)
-        now = datetime.now(timezone.utc)
-        if hasattr(params, "model_dump"):
-            params = params.model_dump()
-        else:  # pragma: no cover - defensive
-            params = dict(params)
-        if params.get("digest"):
-            raise HTTPException(status_code=422, detail="digest is server generated")
-        params["digest"] = digest
-        params["last_used_at"] = now
-        ctx["env"].params = params
-        ctx["raw_api_key"] = raw
-
-    @hook_ctx(ops="create", phase="POST_RESPONSE")
-    async def _post_response_inject(cls, ctx):
-        raw = ctx.pop("raw_api_key", None)
-        if not raw:
-            return
-        res = getattr(ctx.get("response"), "result", None)
-        if isinstance(res, dict):
-            result = dict(res)
-        elif hasattr(res, "__dict__"):
-            result = {k: v for k, v in res.__dict__.items() if not k.startswith("_")}
-        else:  # pragma: no cover - defensive
-            result = {"result": res}
-        result = {k: v for k, v in result.items() if v is not None}
-        result["api_key"] = raw
-        ctx["response"].result = result
