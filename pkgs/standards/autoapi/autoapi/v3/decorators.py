@@ -373,9 +373,18 @@ def collect_decorated_ops(table: type) -> list[OpSpec]:
             persist = _normalize_persist(decl.persist)
             alias = decl.alias or name
 
-            expose_kwargs = {}
+            expose_kwargs: dict[str, Any] = {}
+            extra: dict[str, Any] = {}
             if decl.rest is not None:
                 expose_kwargs["expose_routes"] = bool(decl.rest)
+            elif alias != target and target in {
+                "read",
+                "update",
+                "delete",
+                "list",
+                "clear",
+            }:
+                expose_kwargs["expose_routes"] = False
 
             spec = OpSpec(
                 table=table,
@@ -388,6 +397,7 @@ def collect_decorated_ops(table: type) -> list[OpSpec]:
                 response_model=decl.response_schema,
                 hooks=(),
                 status_code=decl.status_code,
+                extra=extra,
                 **expose_kwargs,
             )
             out.append(spec)
