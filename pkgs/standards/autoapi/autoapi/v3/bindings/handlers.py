@@ -65,12 +65,6 @@ def _ensure_alias_handlers_ns(model: type, alias: str) -> SimpleNamespace:
     return ns
 
 
-def _append_handler_step(model: type, alias: str, step: StepFn) -> None:
-    ns = _ensure_alias_hooks_ns(model, alias)
-    chain: list[StepFn] = getattr(ns, "HANDLER")
-    chain.append(step)
-
-
 # ───────────────────────────────────────────────────────────────────────────────
 # Payload/ctx helpers
 # ───────────────────────────────────────────────────────────────────────────────
@@ -547,46 +541,72 @@ def _wrap_core(model: type, target: str) -> StepFn:
     return step
 
 
-# ───────────────────────────────────────────────────────────────────────────────
-# Builder
-# ───────────────────────────────────────────────────────────────────────────────
-
-
-def _build_raw_step(model: type, sp: OpSpec) -> StepFn:
-    if sp.target == "custom" and sp.handler is not None:
-        return _wrap_custom(model, sp, sp.handler)  # user function
-    # Canonical/default core
-    return _wrap_core(model, sp.target)
-
-
 def _attach_one(model: type, sp: OpSpec) -> None:
     alias = sp.alias
     handlers_ns = _ensure_alias_handlers_ns(model, alias)
-    _ensure_alias_hooks_ns(model, alias)
+    hooks_ns = _ensure_alias_hooks_ns(model, alias)
+    chain: list[StepFn] = getattr(hooks_ns, "HANDLER")
 
-    raw_step = _build_raw_step(model, sp)
+    custom_step = _wrap_custom(model, sp, sp.handler) if sp.handler else None
+    core_step: Optional[StepFn] = (
+        None if sp.target == "custom" else _wrap_core(model, sp.target)
+    )
 
-    # Attach v2-compatible attributes on handlers ns
+    placement = sp.persist
+    raw_step: Optional[StepFn] = None
+
+    if placement == "skip":
+        if custom_step is not None:
+            chain.append(custom_step)
+            raw_step = custom_step
+    elif sp.target == "custom":
+        if custom_step is not None:
+            chain.append(custom_step)
+            raw_step = custom_step
+    elif custom_step is not None and core_step is not None:
+        if placement == "append":
+            chain.extend([core_step, custom_step])
+            raw_step = core_step
+        elif placement == "override":
+            chain.append(custom_step)
+            raw_step = custom_step
+            core_step = None
+        else:  # default/prepend
+            chain.extend([custom_step, core_step])
+            raw_step = core_step
+    elif core_step is not None:
+        chain.append(core_step)
+        raw_step = core_step
+    elif custom_step is not None:
+        chain.append(custom_step)
+        raw_step = custom_step
+
+    if raw_step is None:
+        return
+
     setattr(handlers_ns, "raw", raw_step)
-    # For now handler == raw; PRE/POST behavior is governed by executor phases
     setattr(handlers_ns, "handler", raw_step)
 
-    # Insert the raw step into the HANDLER phase chain
-    _append_handler_step(model, alias, raw_step)
-
-    # Update spec for introspection/back-compat
     try:
-        sp.core = raw_step
-        sp.core_raw = raw_step
+        if core_step is not None:
+            sp.core = core_step
+            sp.core_raw = core_step
+        else:
+            sp.core = raw_step
+            sp.core_raw = raw_step
     except Exception:
-        # OpSpec may be frozen; surface them via handlers namespace
-        setattr(handlers_ns, "core", raw_step)
-        setattr(handlers_ns, "core_raw", raw_step)
+        if core_step is not None:
+            setattr(handlers_ns, "core", core_step)
+            setattr(handlers_ns, "core_raw", core_step)
+        else:
+            setattr(handlers_ns, "core", raw_step)
+            setattr(handlers_ns, "core_raw", raw_step)
 
     logger.debug(
-        "handlers: %s.%s → raw step attached & inserted into HANDLER",
+        "handlers: %s.%s → handler chain updated (persist=%s)",
         model.__name__,
         alias,
+        sp.persist,
     )
 
 

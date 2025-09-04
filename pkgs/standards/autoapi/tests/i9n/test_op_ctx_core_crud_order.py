@@ -128,7 +128,10 @@ async def test_op_ctx_alias(
         openapi, _, _ = await fetch_inspection(client)
         assert path not in openapi["paths"]
 
-    assert calls == []
+    if verb == "create":
+        assert calls == ["op"]
+    else:
+        assert calls == []
 
 
 @pytest.mark.i9n

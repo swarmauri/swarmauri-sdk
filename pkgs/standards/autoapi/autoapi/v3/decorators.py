@@ -324,10 +324,14 @@ def _normalize_persist(p) -> str:
     p = str(p).lower()
     if p in {"none", "skip", "read"}:
         return "skip"
+    if p in {"append"}:
+        return "append"
+    if p in {"override"}:
+        return "override"
+    if p in {"prepend"}:
+        return "prepend"
     if p in {"write", "default", "persist"}:
         return "default"
-    if p == "override":
-        return "override"
     return "default"
 
 

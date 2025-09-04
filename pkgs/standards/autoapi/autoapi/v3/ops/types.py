@@ -18,7 +18,13 @@ if TYPE_CHECKING:  # pragma: no cover
 # Core aliases & enums
 # ───────────────────────────────────────────────────────────────────────────────
 
-PersistPolicy = Literal["default", "skip", "override"]  # TX policy
+PersistPolicy = Literal[
+    "default",
+    "prepend",
+    "append",
+    "override",
+    "skip",
+]  # TX policy
 Arity = Literal["collection", "member"]  # HTTP path shape
 
 TargetOp = Literal[
