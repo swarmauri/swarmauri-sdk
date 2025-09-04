@@ -175,7 +175,7 @@ class Worker(Base, GUIDPk, Timestamped, AllowAnonProvider):
             svc_resp.raise_for_status()
             service_id = svc_resp.json()["id"]
             key_resp = await authn_adapter._client.post(
-                f"{base}/service_key",
+                f"{base}/servicekey",
                 json={
                     "service_id": service_id,
                     "label": "worker",
