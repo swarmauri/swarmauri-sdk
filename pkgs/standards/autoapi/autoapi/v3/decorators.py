@@ -381,8 +381,6 @@ def collect_decorated_ops(table: type) -> list[OpSpec]:
                 "clear",
             }:
                 expose_kwargs["expose_routes"] = False
-            elif alias != target and target == "create":
-                extra["include_in_schema"] = False
 
             spec = OpSpec(
                 table=table,
