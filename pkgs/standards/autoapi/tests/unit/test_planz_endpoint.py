@@ -61,14 +61,16 @@ async def test_planz_endpoint_sequence(monkeypatch: pytest.MonkeyPatch):
         )
     )
 
-    Model.hooks = SimpleNamespace(write=SimpleNamespace(PRE_HANDLER=[sample_hook]))
+    Model.hooks = SimpleNamespace(
+        write=SimpleNamespace(PRE_HANDLER=[sample_hook], HANDLER=[handler])
+    )
 
     dummy_plan = object()
     Model.runtime = SimpleNamespace(plan=dummy_plan)
 
     dep_label = _diag._label_callable(dep_fn)
     secdep_label = _diag._label_callable(secdep_fn)
-    handler_label = _diag._label_callable(handler)
+    handler_hook_label = _diag._label_hook(handler, "HANDLER")
 
     def fake_flattened_order(
         plan,
@@ -82,14 +84,17 @@ async def test_planz_endpoint_sequence(monkeypatch: pytest.MonkeyPatch):
         assert plan is dummy_plan
         if persist:
             hook_label = _diag._label_hook(sample_hook, "PRE_HANDLER")
-            assert hooks == {"PRE_HANDLER": [hook_label]}
-            assert set(deps) == {dep_label, handler_label}
+            assert hooks == {
+                "PRE_HANDLER": [hook_label],
+                "HANDLER": [handler_hook_label],
+            }
+            assert set(deps) == {dep_label}
             assert secdeps == [secdep_label]
             return [
                 DummyLabel(f"secdep:{secdep_label}", "", kind="secdep"),
                 DummyLabel(f"dep:{dep_label}", "", kind="dep"),
-                DummyLabel(f"dep:{handler_label}", "", kind="dep"),
                 DummyLabel(hook_label, "PRE_HANDLER", kind="hook"),
+                DummyLabel(handler_hook_label, "HANDLER", kind="hook"),
                 DummyLabel("sys:txn:begin@START_TX", "START_TX", kind="sys"),
             ]
         return []
@@ -105,11 +110,12 @@ async def test_planz_endpoint_sequence(monkeypatch: pytest.MonkeyPatch):
     assert "Model" in data
     assert "write" in data["Model"]
     hook_label = f"hook:{_lbl.DOMAINS[-1]}:{_diag._label_callable(sample_hook).replace('.', ':')}@PRE_HANDLER"
+    handler_hook = handler_hook_label
     assert data["Model"]["write"] == [
         f"secdep:{secdep_label}",
         f"dep:{dep_label}",
-        f"dep:{handler_label}",
         hook_label,
+        handler_hook,
         "sys:txn:begin@START_TX",
     ]
     assert "read" in data["Model"]

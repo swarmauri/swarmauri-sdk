@@ -257,9 +257,6 @@ def _build_planz_endpoint(api: Any):
                         _label_callable(d) if callable(d) else str(d)
                         for d in getattr(sp, "secdeps", []) or []
                     ]
-                    handler = getattr(sp, "handler", None)
-                    if handler is not None:
-                        deps.append(_label_callable(handler))
                     hooks_root = getattr(model, "hooks", SimpleNamespace())
                     alias_ns = getattr(hooks_root, sp.alias, None)
                     hook_map: Dict[str, List[str]] = {}
@@ -276,6 +273,14 @@ def _build_planz_endpoint(api: Any):
                         secdeps=secdeps,
                         hooks=hook_map,
                     )
+                    if sp.target == "custom" or getattr(sp, "persist", "default") in {
+                        "override"
+                    }:
+                        labels = [
+                            lbl
+                            for lbl in labels
+                            if not (lbl.kind == "sys" and lbl.subject == "handler:crud")
+                        ]
                     seq = [str(lbl) for lbl in labels]
                 else:
                     deps: List[str] = [
@@ -286,17 +291,19 @@ def _build_planz_endpoint(api: Any):
                         _label_callable(d) if callable(d) else str(d)
                         for d in getattr(sp, "secdeps", []) or []
                     ]
-                    handler = getattr(sp, "handler", None)
-                    if handler is not None:
-                        deps.append(_label_callable(handler))
                     chains = build_phase_chains(model, sp.alias)
                     seq.extend(f"secdep:{s}" for s in secdeps)
                     seq.extend(f"dep:{d}" for d in deps)
                     for ph in PHASES:
                         if ph == "START_TX" and persist:
                             seq.append("sys:txn:begin@START_TX")
-                        if ph == "HANDLER" and persist:
-                            seq.append(f"sys:handler:{sp.target}@HANDLER")
+                        if (
+                            ph == "HANDLER"
+                            and persist
+                            and sp.target != "custom"
+                            and getattr(sp, "persist", "default") not in {"override"}
+                        ):
+                            seq.append("sys:handler:crud@HANDLER")
                         for step in chains.get(ph, []) or []:
                             name = getattr(step, "__name__", "")
                             if name in {"start_tx", "end_tx"}:
