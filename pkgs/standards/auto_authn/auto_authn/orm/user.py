@@ -93,7 +93,8 @@ class User(UserBase):
         alias="register",
         target="custom",
         arity="collection",
-        persist="override",
+        request_schema=RegisterIn,
+        response_schema=TokenPair,
     )
     async def register(cls, ctx):
         import secrets
