@@ -40,10 +40,10 @@ class GroqVisionModel(LLMBase):
 
     api_key: SecretStr
     allowed_models: List[str] = [
-        "llama-3.2-90b-vision-preview",
-        "llama-3.2-11b-vision-preview",
+        "meta-llama/llama-4-scout-17b-16e-instruct",
+        "meta-llama/llama-4-maverick-17b-128e-instruct",
     ]
-    name: str = "llama-3.2-90b-vision-preview"
+    name: str = "meta-llama/llama-4-maverick-17b-128e-instruct"
     type: Literal["GroqVisionModel"] = "GroqVisionModel"
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
