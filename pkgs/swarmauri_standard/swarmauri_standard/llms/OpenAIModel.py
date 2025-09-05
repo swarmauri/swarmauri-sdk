@@ -32,6 +32,12 @@ class OpenAIModel(LLMBase):
 
     api_key: SecretStr
     allowed_models: List[str] = [
+        "gpt-5-2025-08-07",
+        "gpt-5-mini-2025-08-07",
+        "gpt-5-nano-2025-08-07",
+        "gpt-4.1-2025-04-14",
+        "gpt-oss-20b",
+        "gpt-oss-120b",
         "gpt-4o-mini",
         "gpt-4o-2024-05-13",
         "gpt-4o-2024-08-06",
@@ -48,7 +54,7 @@ class OpenAIModel(LLMBase):
         "gpt-4-0613",
         "gpt-3.5-turbo-0125",
     ]
-    name: str = "gpt-4o-mini"
+    name: str = "gpt-5-2025-08-07"
     type: Literal["OpenAIModel"] = "OpenAIModel"
     timeout: float = 600.0
     _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/chat/completions")
@@ -485,6 +491,12 @@ class OpenAIModel(LLMBase):
             List[str]: List of allowed model names.
         """
         models_data = [
+            "gpt-5-2025-08-07",
+            "gpt-5-mini-2025-08-07",
+            "gpt-5-nano-2025-08-07",
+            "gpt-4.1-2025-04-14",
+            "gpt-oss-20b",
+            "gpt-oss-120b",
             "gpt-4o-mini",
             "gpt-4o-2024-05-13",
             "gpt-4o-2024-08-06",

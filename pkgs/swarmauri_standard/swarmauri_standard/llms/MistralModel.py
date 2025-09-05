@@ -1,6 +1,6 @@
 import asyncio
 import json
-from typing import AsyncIterator, Dict, Iterator, List, Type
+from typing import AsyncIterator, Dict, Iterator, List, Literal, Type
 
 import httpx
 from pydantic import PrivateAttr
@@ -34,6 +34,34 @@ class MistralModel(LLMBase):
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
     _BASE_URL: str = PrivateAttr(default="https://api.mistral.ai/v1/")
+    allowed_models: List[str] = [
+        "mistral-medium-2508",
+        "magistral-medium-2507",
+        "codestral-2508",
+        "devstral-medium-2507",
+        "mistral-ocr-2505",
+        "magistral-medium-2506",
+        "ministral-8b-2410",
+        "mistral-medium-2505",
+        "codestral-2501",
+        "mistral-large-2411",
+        "pixtral-large-2411",
+        "mistral-small-2407",
+        "mistral-embed",
+        "codestral-embed",
+        "mistral-moderation-2411",
+        "magistral-small-2507",
+        "mistral-small-2506",
+        "magistral-small-2506",
+        "devstral-small-2507",
+        "mistral-small-2501",
+        "devstral-small-2505",
+        "pixtral-12b-2409",
+        "open-mistral-nemo",
+    ]
+    name: str = "mistral-medium-2508"
+    type: Literal["MistralModel"] = "MistralModel"
+    timeout: float = 600.0
 
     def __init__(self, **data):
         """
