@@ -42,7 +42,7 @@ class AnthropicModel(LLMBase):
         "claude-3-5-haiku-20241022",
         "claude-3-7-sonnet-20250219",
     ]
-    name: str = "claude-3-7-sonnet-latest"
+    name: str = "claude-opus-4-1"
     type: Literal["AnthropicModel"] = "AnthropicModel"
 
     timeout: float = 600.0
