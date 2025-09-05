@@ -273,6 +273,14 @@ def _build_planz_endpoint(api: Any):
                         secdeps=secdeps,
                         hooks=hook_map,
                     )
+                    labels = [
+                        lbl
+                        for lbl in labels
+                        if not (
+                            lbl.startswith("HANDLER:hook:")
+                            and "hook:sys:handler:crud@HANDLER" not in lbl
+                        )
+                    ]
                     if sp.target == "custom" or getattr(sp, "persist", "default") in {
                         "override"
                     }:
