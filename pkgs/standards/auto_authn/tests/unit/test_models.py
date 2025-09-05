@@ -176,16 +176,32 @@ class TestServiceKeyModel:
         assert service_key.digest == expected_digest
 
     def test_service_key_schema_uses_service_id(self):
-        """Ensure ServiceKey API schema uses service_id and not user_id."""
+        """Ensure ServiceKey API schema exposes correct fields."""
         from auto_authn.routers.surface import surface_api
 
+        create_schema = surface_api.schemas.ServiceKey.create.in_.model_json_schema()
         create_fields = surface_api.schemas.ServiceKey.create.in_.model_fields
-        read_fields = surface_api.schemas.ServiceKey.read.out.model_fields
+        read_schema = surface_api.schemas.ServiceKey.read.out.model_json_schema()
 
+        # Only expected fields are exposed on create
+        assert set(create_fields.keys()) == {
+            "label",
+            "service_id",
+            "valid_from",
+            "valid_to",
+        }
+        # Only label and service_id are required
+        assert set(create_schema.get("required", [])) == {"label", "service_id"}
+        # Digest should not be part of the create payload
+        assert "digest" not in create_fields
+        # Validity window fields are included in responses
+        assert "valid_from" in read_schema.get("properties", {})
+        assert "valid_to" in read_schema.get("properties", {})
+        # Schemas still reference service_id and exclude user_id
         assert "service_id" in create_fields
         assert "user_id" not in create_fields
-        assert "service_id" in read_fields
-        assert "user_id" not in read_fields
+        assert "service_id" in surface_api.schemas.ServiceKey.read.out.model_fields
+        assert "user_id" not in surface_api.schemas.ServiceKey.read.out.model_fields
 
     def test_service_key_create_schema_fields(self):
         """ServiceKey create schema exposes only expected fields."""
