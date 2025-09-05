@@ -10,7 +10,7 @@ from autoapi.v3.types import (
 from sqlalchemy.orm import DeclarativeBase
 
 from autoapi.v3.bindings.model import bind
-from autoapi.v3.bindings.rest import _build_router
+from autoapi.v3.bindings.rest.router import _build_router
 from autoapi.v3.ops import OpSpec
 from autoapi.v3.runtime.atoms.resolve import assemble
 from autoapi.v3.runtime.atoms.schema import collect_in, collect_out
