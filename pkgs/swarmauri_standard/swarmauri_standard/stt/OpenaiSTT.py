@@ -27,7 +27,7 @@ class OpenaiSTT(STTBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = ["whisper-1"]
+    allowed_models: List[str] = ["whisper-1", "gpt-4o-transcribe", "gpt-4o-mini-transcribe"]
 
     name: str = "whisper-1"
     type: Literal["OpenaiSTT"] = "OpenaiSTT"
