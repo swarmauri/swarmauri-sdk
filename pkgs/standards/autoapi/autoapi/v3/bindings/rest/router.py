@@ -17,16 +17,13 @@ from .common import (
     OpSpec,
     Response,
     Router,
+    _DEFAULT_METHODS,
     _default_path_suffix,
     _nested_prefix,
     _normalize_deps,
     _normalize_secdeps,
     _optionalize_list_in_model,
     _path_for_spec,
-    _DEFAULT_METHODS,
-    _get_args,
-    _get_origin,
-    _typing,
     _req_state_db,
     _resource_name,
     _status,
@@ -35,6 +32,8 @@ from .common import (
     _RESPONSES_META,
     logger,
 )
+import typing as _typing
+from typing import get_args as _get_args, get_origin as _get_origin
 
 
 def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
