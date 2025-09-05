@@ -4,6 +4,7 @@ from typing import Any, Mapping
 
 import pytest
 from autoapi.v3.core import crud
+from autoapi.v3.core.crud import helpers
 from autoapi.v3.engine.shortcuts import engine, mem
 from autoapi.v3.specs import IO, S, F, acol
 from autoapi.v3.types import Column, Integer, SAEnum, SimpleNamespace, String
@@ -97,29 +98,29 @@ class DummyAsync:
 
 
 def test_is_async_db_detects_async(session):
-    assert not crud._is_async_db(session)
-    assert crud._is_async_db(DummyAsync())
+    assert not helpers._is_async_db(session)
+    assert helpers._is_async_db(DummyAsync())
 
 
 def test_pk_columns(session):
-    cols = crud._pk_columns(Widget)
+    cols = helpers._pk_columns(Widget)
     assert [c.name for c in cols] == ["id"]
 
     class NoTable:
         pass
 
     with pytest.raises(ValueError):
-        crud._pk_columns(NoTable)
+        helpers._pk_columns(NoTable)
 
     class NoPk:
         __table__ = SimpleNamespace(primary_key=SimpleNamespace(columns=[]))
 
     with pytest.raises(ValueError):
-        crud._pk_columns(NoPk)
+        helpers._pk_columns(NoPk)
 
 
 def test_single_pk_name():
-    assert crud._single_pk_name(Widget) == "id"
+    assert helpers._single_pk_name(Widget) == "id"
     col1 = SimpleNamespace(name="a")
     col2 = SimpleNamespace(name="b")
 
@@ -127,40 +128,40 @@ def test_single_pk_name():
         __table__ = SimpleNamespace(primary_key=SimpleNamespace(columns=[col1, col2]))
 
     with pytest.raises(NotImplementedError):
-        crud._single_pk_name(TwoPk)
+        helpers._single_pk_name(TwoPk)
 
 
 def test_model_columns():
-    cols = crud._model_columns(Widget)
+    cols = helpers._model_columns(Widget)
     assert set(cols) == {"id", "name", "value", "immutable"}
 
     class NoTable:
         pass
 
-    assert crud._model_columns(NoTable) == ()
+    assert helpers._model_columns(NoTable) == ()
 
 
 def test_colspecs_returns_mapping():
-    specs = crud._colspecs(Widget)
+    specs = helpers._colspecs(Widget)
     assert isinstance(specs, Mapping)
 
     class Dummy:
         __autoapi_colspecs__ = {"a": 1}
 
-    assert crud._colspecs(Dummy) == {"a": 1}
+    assert helpers._colspecs(Dummy) == {"a": 1}
 
 
 def test_filter_in_values_respects_verbs():
     data = {"name": "n", "immutable": "i", "extra": 1}
-    create_vals = crud._filter_in_values(Widget, data, "create")
+    create_vals = helpers._filter_in_values(Widget, data, "create")
     assert create_vals == {"name": "n", "immutable": "i", "extra": 1}
-    upd_vals = crud._filter_in_values(Widget, data, "update")
+    upd_vals = helpers._filter_in_values(Widget, data, "update")
     assert upd_vals == {"name": "n", "extra": 1}
 
 
 def test_immutable_columns():
-    assert crud._immutable_columns(Widget, "update") == {"immutable"}
-    assert crud._immutable_columns(Widget, "create") == set()
+    assert helpers._immutable_columns(Widget, "update") == {"immutable"}
+    assert helpers._immutable_columns(Widget, "create") == set()
 
 
 def test_coerce_filters_keeps_valid_ops():
@@ -171,7 +172,7 @@ def test_coerce_filters_keeps_valid_ops():
         "value__>=": 3,
         "unknown": 4,
     }
-    coerced = crud._coerce_filters(Widget, raw)
+    coerced = helpers._coerce_filters(Widget, raw)
     assert coerced == {"name__like": "a%", "value__gt": 1, "value__gte": 3}
 
 
@@ -182,9 +183,9 @@ def test_apply_filters_and_execution(session):
     asyncio.run(
         crud.create(Widget, {"name": "b", "immutable": "y", "value": 5}, session)
     )
-    clause = crud._apply_filters(Widget, {"value__gt": 1})
+    clause = helpers._apply_filters(Widget, {"value__gt": 1})
     stmt = select(Widget).where(clause)
-    result = asyncio.run(crud._maybe_execute(session, stmt))
+    result = asyncio.run(helpers._maybe_execute(session, stmt))
     names = [r.name for r in result.scalars().all()]
     assert names == ["b"]
 
@@ -196,17 +197,17 @@ def test_apply_sort_orders_results(session):
     asyncio.run(
         crud.create(Widget, {"name": "a", "immutable": "y", "value": 1}, session)
     )
-    exprs = crud._apply_sort(Widget, "name")
+    exprs = helpers._apply_sort(Widget, "name")
     stmt = select(Widget)
     for e in exprs or []:
         stmt = stmt.order_by(e)
-    res = asyncio.run(crud._maybe_execute(session, stmt))
+    res = asyncio.run(helpers._maybe_execute(session, stmt))
     assert [r.name for r in res.scalars().all()] == ["a", "b"]
-    exprs = crud._apply_sort(Widget, "-value")
+    exprs = helpers._apply_sort(Widget, "-value")
     stmt = select(Widget)
     for e in exprs or []:
         stmt = stmt.order_by(e)
-    res = asyncio.run(crud._maybe_execute(session, stmt))
+    res = asyncio.run(helpers._maybe_execute(session, stmt))
     assert [r.value for r in res.scalars().all()] == [2, 1]
 
 
@@ -215,7 +216,7 @@ async def test_maybe_get_sync(session):
     obj = await crud.create(
         Widget, {"name": "z", "immutable": "x", "value": 9}, session
     )
-    fetched = await crud._maybe_get(session, Widget, obj.id)
+    fetched = await helpers._maybe_get(session, Widget, obj.id)
     assert fetched.id == obj.id
 
 
@@ -224,19 +225,19 @@ async def test_maybe_flush_and_delete_sync(session):
     obj = await crud.create(
         Widget, {"name": "y", "immutable": "x", "value": 3}, session
     )
-    await crud._maybe_flush(session)
-    await crud._maybe_delete(session, obj)
-    await crud._maybe_flush(session)
-    assert await crud._maybe_get(session, Widget, obj.id) is None
+    await helpers._maybe_flush(session)
+    await helpers._maybe_delete(session, obj)
+    await helpers._maybe_flush(session)
+    assert await helpers._maybe_get(session, Widget, obj.id) is None
 
 
 @pytest.mark.asyncio
 async def test_maybe_wrappers_with_async():
     dummy = DummyAsync()
-    await crud._maybe_get(dummy, Widget, 1)
-    await crud._maybe_execute(dummy, "stmt")
-    await crud._maybe_flush(dummy)
-    await crud._maybe_delete(dummy, object())
+    await helpers._maybe_get(dummy, Widget, 1)
+    await helpers._maybe_execute(dummy, "stmt")
+    await helpers._maybe_flush(dummy)
+    await helpers._maybe_delete(dummy, object())
     assert dummy.executed == "stmt"
     assert dummy.flushed
     assert dummy.deleted is not None
@@ -245,40 +246,40 @@ async def test_maybe_wrappers_with_async():
 @pytest.mark.asyncio
 async def test_set_attrs_allows_missing():
     obj = Widget(id=1, name="a", value=1, immutable="i")
-    crud._set_attrs(obj, {"name": "b"}, allow_missing=True)
+    helpers._set_attrs(obj, {"name": "b"}, allow_missing=True)
     assert obj.name == "b" and obj.value == 1
-    crud._set_attrs(obj, {"name": "c"}, allow_missing=False)
+    helpers._set_attrs(obj, {"name": "c"}, allow_missing=False)
     assert obj.name == "c" and obj.value is None and obj.immutable is None
 
 
 def test_validate_enum_values():
-    crud._validate_enum_values(EnumModel, {"status": Status.ONE})
-    crud._validate_enum_values(EnumModel, {"status": "one"})
-    crud._validate_enum_values(EnumModel, {"status": "ONE"})
+    helpers._validate_enum_values(EnumModel, {"status": Status.ONE})
+    helpers._validate_enum_values(EnumModel, {"status": "one"})
+    helpers._validate_enum_values(EnumModel, {"status": "ONE"})
     with pytest.raises(LookupError):
-        crud._validate_enum_values(EnumModel, {"status": "bad"})
+        helpers._validate_enum_values(EnumModel, {"status": "bad"})
 
 
 def test_pop_bound_self():
     args = [object(), int]
-    crud._pop_bound_self(args)
+    helpers._pop_bound_self(args)
     assert args == [int]
     args = [Widget]
-    crud._pop_bound_self(args)
+    helpers._pop_bound_self(args)
     assert args == [Widget]
 
 
 def test_extract_db(session):
     args = [session]
     kwargs: dict[str, Any] = {}
-    db = crud._extract_db(args, kwargs)
+    db = helpers._extract_db(args, kwargs)
     assert db is session and args == [] and kwargs == {}
     args = []
     kwargs = {"db": session}
-    db = crud._extract_db(args, kwargs)
+    db = helpers._extract_db(args, kwargs)
     assert db is session and args == [] and kwargs == {}
     with pytest.raises(TypeError):
-        crud._extract_db([], {})
+        helpers._extract_db([], {})
 
 
 @pytest.mark.parametrize(
@@ -286,13 +287,13 @@ def test_extract_db(session):
     [(None, None), (5, 5), (-2, 0), ("7", 7), ("bad", None)],
 )
 def test_as_pos_int(value, expected):
-    assert crud._as_pos_int(value) == expected
+    assert helpers._as_pos_int(value) == expected
 
 
 def test_normalize_list_call_variants(session):
-    model, params = crud._normalize_list_call((Widget, {"name": "a"}, session), {})
+    model, params = helpers._normalize_list_call((Widget, {"name": "a"}, session), {})
     assert model is Widget and params["filters"] == {"name": "a"}
-    model2, params2 = crud._normalize_list_call((object(), Widget, session), {})
+    model2, params2 = helpers._normalize_list_call((object(), Widget, session), {})
     assert model2 is Widget and params2["filters"] == {}
 
 
