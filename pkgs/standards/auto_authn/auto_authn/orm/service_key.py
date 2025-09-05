@@ -26,7 +26,8 @@ class ServiceKey(Base, GUIDPk, Created, LastUsed, ValidityWindow, KeyDigest):
 
     label: Mapped[str] = acol(
         storage=S(String, nullable=False),
-        field=F(constraints={"max_length": 120}),
+        field=F(constraints={"max_length": 120}, required_in=("create",)),
+        io=IO(in_verbs=("create",), out_verbs=("read", "list"), filter_ops=("eq",)),
     )
 
     service_id: Mapped[UUID] = acol(
