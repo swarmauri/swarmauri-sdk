@@ -24,7 +24,7 @@ import re
 # because that module transitively imports this one via ``hook``. To keep the
 # constant values in sync without triggering the circular import at import time,
 # we inline the canonical verb tuple here. This tuple **must** match
-# ``autoapi.v3.ops.types.CANON``.
+# ``autoapi.v3.op.types.CANON``.
 CANON: Tuple[str, ...] = (
     "create",
     "read",

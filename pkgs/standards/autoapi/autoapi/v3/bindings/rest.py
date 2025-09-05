@@ -21,7 +21,7 @@ from typing import (
 )
 
 from typing import get_origin as _get_origin, get_args as _get_args
-from ..ops.types import CANON
+from ..op.types import CANON
 
 try:
     from ..types import (
@@ -91,8 +91,8 @@ except Exception:  # pragma: no cover
 
 from pydantic import BaseModel, Field, create_model
 
-from ..ops import OpSpec
-from ..ops.types import PHASES
+from ..op import OpSpec
+from ..op.types import PHASES
 from ..runtime import executor as _executor  # expects _invoke(request, db, phases, ctx)
 
 # Prefer Kernel phase-chains if available

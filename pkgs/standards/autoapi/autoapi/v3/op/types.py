@@ -1,4 +1,4 @@
-# autoapi/v3/ops/types.py
+# autoapi/v3/op/types.py
 from __future__ import annotations
 
 from dataclasses import dataclass, field

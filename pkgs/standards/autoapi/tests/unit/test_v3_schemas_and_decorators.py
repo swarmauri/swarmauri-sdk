@@ -7,8 +7,8 @@ from autoapi.v3 import (
     schema_ctx,
     SchemaRef,
 )
-from autoapi.v3.ops import resolve
-from autoapi.v3.decorators import collect_decorated_ops
+from autoapi.v3.op import resolve
+from autoapi.v3.op.collect import collect_decorated_ops
 from autoapi.v3.bindings import build_schemas, build_hooks, build_handlers, build_rest
 
 # REST test client

@@ -1,8 +1,43 @@
-"""Operation module exposing Op."""
+"""Operation module exposing Op and related helpers."""
 
 from __future__ import annotations
 
 from ._op import Op
-from ..ops.types import OpSpec
+from .types import (
+    OpSpec,
+    OpHook,
+    TargetOp,
+    Arity,
+    PersistPolicy,
+    PHASE,
+    HookPhase,
+    PHASES,
+    VerbAliasPolicy,
+)
+from .collect import resolve
+from .model_registry import (
+    OpspecRegistry,
+    get_registry,
+    register_ops,
+    get_registered_ops,
+    clear_registry,
+)
 
-__all__ = ["Op", "OpSpec"]
+__all__ = [
+    "Op",
+    "OpSpec",
+    "OpHook",
+    "TargetOp",
+    "Arity",
+    "PersistPolicy",
+    "PHASE",
+    "HookPhase",
+    "PHASES",
+    "VerbAliasPolicy",
+    "resolve",
+    "OpspecRegistry",
+    "get_registry",
+    "register_ops",
+    "get_registered_ops",
+    "clear_registry",
+]

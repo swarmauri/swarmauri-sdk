@@ -4,7 +4,7 @@ from autoapi.v3.runtime import atoms as runtime_atoms
 from autoapi.v3.runtime import events as _ev
 from autoapi.v3.runtime import labels as _lbl
 from autoapi.v3.runtime import plan as runtime_plan
-from autoapi.v3 import decorators as _deco
+from autoapi.v3.op.decorators import _wrap_ctx_core
 
 
 def test_plan_labels_collects_all_atom_labels():
@@ -252,6 +252,6 @@ def test_wrap_ctx_core_generates_valid_dep_name():
 
     op.__qualname__ = "T.op"
 
-    wrapped = _deco._wrap_ctx_core(T, op)
+    wrapped = _wrap_ctx_core(T, op)
     dep_name = f"{wrapped.__module__}.{wrapped.__qualname__}"
     assert runtime_plan._ensure_label(dep_name, kind="dep") == _lbl.make_dep(dep_name)

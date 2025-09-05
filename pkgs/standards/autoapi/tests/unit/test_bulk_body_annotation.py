@@ -2,7 +2,7 @@ from typing import get_args, get_origin
 
 from autoapi.v3.bindings import rest as rest_binding
 from autoapi.v3.orm.mixins import BulkCapable, GUIDPk
-from autoapi.v3.ops import OpSpec
+from autoapi.v3.op import OpSpec
 from autoapi.v3.orm.tables import Base
 from autoapi.v3.types import Column, String
 

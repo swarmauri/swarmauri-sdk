@@ -10,7 +10,7 @@ from autoapi.v3.response import (
 )
 from autoapi.v3.api.api_spec import APISpec
 from autoapi.v3.app.app_spec import AppSpec
-from autoapi.v3.ops.types import OpSpec
+from autoapi.v3.op.types import OpSpec
 from autoapi.v3.table.table_spec import TableSpec
 
 

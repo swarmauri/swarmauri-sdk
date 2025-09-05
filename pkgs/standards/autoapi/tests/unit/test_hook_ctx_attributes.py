@@ -1,4 +1,5 @@
-from autoapi.v3.decorators import HOOK_DECLS_ATTR, Hook, hook_ctx
+from autoapi.v3.hook import HOOK_DECLS_ATTR, Hook
+from autoapi.v3.decorators import hook_ctx
 
 
 def test_hook_ctx_marks_ctx_only():

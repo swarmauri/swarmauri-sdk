@@ -1,4 +1,4 @@
-# autoapi/v3/ops/model_registry.py
+# autoapi/v3/op/model_registry.py
 from __future__ import annotations
 
 from dataclasses import replace

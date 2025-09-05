@@ -7,7 +7,7 @@ from autoapi.v3.bindings import (
     build_schemas,
     register_rpc,
 )
-from autoapi.v3.decorators import collect_decorated_ops
+from autoapi.v3.op.collect import collect_decorated_ops
 from autoapi.v3.response import response_ctx, render_template
 from autoapi.v3.response.shortcuts import (
     as_file,
