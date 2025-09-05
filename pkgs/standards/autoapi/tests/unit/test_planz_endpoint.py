@@ -4,7 +4,7 @@ from types import SimpleNamespace
 from autoapi.v3.system import diagnostics as _diag
 from autoapi.v3.system.diagnostics import _build_planz_endpoint
 from autoapi.v3.ops import OpSpec
-from autoapi.v3.runtime import plan as _plan, labels as _lbl
+from autoapi.v3.runtime import plan as _plan
 
 
 class DummyLabel:
@@ -91,11 +91,12 @@ async def test_planz_endpoint_sequence(monkeypatch: pytest.MonkeyPatch):
             assert set(deps) == {dep_label}
             assert secdeps == [secdep_label]
             return [
-                DummyLabel(f"secdep:{secdep_label}", "", kind="secdep"),
-                DummyLabel(f"dep:{dep_label}", "", kind="dep"),
-                DummyLabel(hook_label, "PRE_HANDLER", kind="hook"),
-                DummyLabel(handler_hook_label, "HANDLER", kind="hook"),
-                DummyLabel("sys:txn:begin@START_TX", "START_TX", kind="sys"),
+                f"PRE_TX:secdep:{secdep_label}",
+                f"PRE_TX:dep:{dep_label}",
+                "START_TX:hook:sys:txn:begin@START_TX",
+                f"PRE_HANDLER:{hook_label}",
+                "HANDLER:hook:sys:handler:crud@HANDLER",
+                "END_TX:hook:sys:txn:commit@END_TX",
             ]
         return []
 
@@ -109,17 +110,17 @@ async def test_planz_endpoint_sequence(monkeypatch: pytest.MonkeyPatch):
 
     assert "Model" in data
     assert "write" in data["Model"]
-    hook_label = f"hook:{_lbl.DOMAINS[-1]}:{_diag._label_callable(sample_hook).replace('.', ':')}@PRE_HANDLER"
-    handler_hook = handler_hook_label
+    hook_label = _diag._label_hook(sample_hook, "PRE_HANDLER")
     assert data["Model"]["write"] == [
-        f"secdep:{secdep_label}",
-        f"dep:{dep_label}",
-        hook_label,
-        handler_hook,
-        "sys:txn:begin@START_TX",
+        f"PRE_TX:secdep:{secdep_label}",
+        f"PRE_TX:dep:{dep_label}",
+        "START_TX:hook:sys:txn:begin@START_TX",
+        f"PRE_HANDLER:{hook_label}",
+        "HANDLER:hook:sys:handler:crud@HANDLER",
+        "END_TX:hook:sys:txn:commit@END_TX",
     ]
     assert "read" in data["Model"]
-    assert not any("sys:txn:begin@START_TX" in s for s in data["Model"]["read"])
+    assert not any("hook:sys:txn:begin@START_TX" in s for s in data["Model"]["read"])
 
 
 @pytest.mark.asyncio
@@ -169,13 +170,11 @@ async def test_planz_endpoint_prefers_compiled_plan_for_atoms(
         hook_label = _diag._label_hook(sample_hook, "PRE_HANDLER")
         assert hooks == {"PRE_HANDLER": [hook_label]}
         return [
-            DummyLabel(hook_label, "PRE_HANDLER", kind="hook"),
-            DummyLabel("sys:txn:begin@START_TX", "START_TX", kind="sys"),
-            DummyLabel(
-                "atom:emit:paired_pre@emit:aliases:pre_flush",
-                "emit:aliases:pre_flush",
-                kind="atom",
-            ),
+            "START_TX:hook:sys:txn:begin@START_TX",
+            f"PRE_HANDLER:{hook_label}",
+            "PRE_HANDLER:atom:emit:paired_pre@emit:aliases:pre_flush",
+            "HANDLER:hook:sys:handler:crud@HANDLER",
+            "END_TX:hook:sys:txn:commit@END_TX",
         ]
 
     def fake_build_phase_chains(model, alias):
@@ -193,11 +192,13 @@ async def test_planz_endpoint_prefers_compiled_plan_for_atoms(
 
     assert calls["flatten"] is True
     assert calls["chains"] is False
-    hook_label = f"hook:{_lbl.DOMAINS[-1]}:{_diag._label_callable(sample_hook).replace('.', ':')}@PRE_HANDLER"
+    hook_label = _diag._label_hook(sample_hook, "PRE_HANDLER")
     assert data["Model"]["create"] == [
-        hook_label,
-        "sys:txn:begin@START_TX",
-        "atom:emit:paired_pre@emit:aliases:pre_flush",
+        "START_TX:hook:sys:txn:begin@START_TX",
+        f"PRE_HANDLER:{hook_label}",
+        "PRE_HANDLER:atom:emit:paired_pre@emit:aliases:pre_flush",
+        "HANDLER:hook:sys:handler:crud@HANDLER",
+        "END_TX:hook:sys:txn:commit@END_TX",
     ]
 
 

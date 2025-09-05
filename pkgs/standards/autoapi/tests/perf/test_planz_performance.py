@@ -57,7 +57,7 @@ async def test_planz_performance(monkeypatch, count):
     def fake_flattened_order(
         plan, *, persist, include_system_steps, deps, secdeps=None, hooks=None
     ):
-        return [Label(events[i % len(events)]) for i in range(10)]
+        return [f"PRE_HANDLER:{events[i % len(events)]}" for i in range(10)]
 
     monkeypatch.setattr(_plan, "flattened_order", fake_flattened_order)
 

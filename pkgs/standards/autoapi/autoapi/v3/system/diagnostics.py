@@ -56,7 +56,7 @@ except Exception:  # pragma: no cover
 from sqlalchemy import text
 from ..ops.types import PHASES
 from ..runtime.kernel import build_phase_chains
-from ..runtime import plan as _plan, labels as _lbl
+from ..runtime import plan as _plan
 
 logger = logging.getLogger(__name__)
 
@@ -84,7 +84,7 @@ def _label_callable(fn: Any) -> str:
 
 def _label_hook(fn: Any, phase: str) -> str:
     subj = _label_callable(fn).replace(".", ":")
-    return f"hook:{_lbl.DOMAINS[-1]}:{subj}@{phase}"
+    return f"hook:wire:{subj}@{phase}"
 
 
 async def _maybe_execute(db: Any, stmt: str):
@@ -279,9 +279,9 @@ def _build_planz_endpoint(api: Any):
                         labels = [
                             lbl
                             for lbl in labels
-                            if not (lbl.kind == "sys" and lbl.subject == "handler:crud")
+                            if "hook:sys:handler:crud@HANDLER" not in lbl
                         ]
-                    seq = [str(lbl) for lbl in labels]
+                    seq = labels
                 else:
                     deps: List[str] = [
                         _label_callable(d) if callable(d) else str(d)
@@ -292,25 +292,27 @@ def _build_planz_endpoint(api: Any):
                         for d in getattr(sp, "secdeps", []) or []
                     ]
                     chains = build_phase_chains(model, sp.alias)
-                    seq.extend(f"secdep:{s}" for s in secdeps)
-                    seq.extend(f"dep:{d}" for d in deps)
+                    seq.extend(f"PRE_TX:secdep:{s}" for s in secdeps)
+                    seq.extend(f"PRE_TX:dep:{d}" for d in deps)
                     for ph in PHASES:
+                        if ph == "PRE_TX":
+                            continue
                         if ph == "START_TX" and persist:
-                            seq.append("sys:txn:begin@START_TX")
+                            seq.append("START_TX:hook:sys:txn:begin@START_TX")
                         if (
                             ph == "HANDLER"
                             and persist
                             and sp.target != "custom"
                             and getattr(sp, "persist", "default") not in {"override"}
                         ):
-                            seq.append("sys:handler:crud@HANDLER")
+                            seq.append("HANDLER:hook:sys:handler:crud@HANDLER")
                         for step in chains.get(ph, []) or []:
                             name = getattr(step, "__name__", "")
                             if name in {"start_tx", "end_tx"}:
                                 continue
-                            seq.append(_label_hook(step, ph))
+                            seq.append(f"{ph}:{_label_hook(step, ph)}")
                         if ph == "END_TX" and persist:
-                            seq.append("sys:txn:commit@END_TX")
+                            seq.append("END_TX:hook:sys:txn:commit@END_TX")
                 seen_wire = set()
                 dedup_seq: List[str] = []
                 for lbl in seq:

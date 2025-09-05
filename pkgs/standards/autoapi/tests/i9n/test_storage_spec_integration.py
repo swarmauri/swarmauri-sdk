@@ -114,7 +114,7 @@ async def test_storage_spec_atomz(api_client_v3):
     client, _, _, _ = api_client_v3
     planz = (await client.get("/system/planz")).json()
     steps = planz["Widget"]["create"]
-    assert "sys:handler:crud@HANDLER" in steps
+    assert "HANDLER:hook:sys:handler:crud@HANDLER" in steps
 
 
 @pytest.mark.i9n

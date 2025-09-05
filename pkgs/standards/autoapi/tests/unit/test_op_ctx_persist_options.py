@@ -54,18 +54,23 @@ async def test_op_ctx_persist_options(
     core_step = step_map.get("create")
     custom_label = _diag._label_hook(custom_step, "HANDLER") if custom_step else None
     core_label = _diag._label_hook(core_step, "HANDLER") if core_step else None
+    custom_pref = f"HANDLER:{custom_label}" if custom_label else None
+    core_pref = f"HANDLER:{core_label}" if core_label else None
 
     expected_seq: list[str] = []
     if persist != "skip":
-        expected_seq.append("sys:txn:begin@START_TX")
-        if persist not in {"override"} and core_label is not None:
-            expected_seq.append("sys:handler:crud@HANDLER")
-        if persist == "append" and core_label is not None:
-            expected_seq.extend([core_label, custom_label])
+        expected_seq.append("START_TX:hook:sys:txn:begin@START_TX")
+        if persist not in {"override"} and core_pref is not None:
+            expected_seq.append("HANDLER:hook:sys:handler:crud@HANDLER")
+        if persist == "append" and core_pref is not None and custom_pref is not None:
+            expected_seq.extend([core_pref, custom_pref])
         else:
-            expected_seq.extend([custom_label] + ([core_label] if core_label else []))
-        expected_seq.append("sys:txn:commit@END_TX")
+            seq_items = [custom_pref]
+            if core_pref is not None:
+                seq_items.append(core_pref)
+            expected_seq.extend([s for s in seq_items if s])
+        expected_seq.append("END_TX:hook:sys:txn:commit@END_TX")
     else:
-        expected_seq.append(custom_label)
+        expected_seq.append(custom_pref)
 
-    assert seq == expected_seq
+    assert seq == [s for s in expected_seq if s]

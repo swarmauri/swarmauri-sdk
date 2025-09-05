@@ -166,7 +166,7 @@ async def test_schema_ctx_atomz(schema_ctx_client):
     client, _, _, _ = schema_ctx_client
     planz = (await client.get("/system/planz")).json()
     steps = planz["Widget"]["create"]
-    assert "sys:handler:crud@HANDLER" in steps
+    assert "HANDLER:hook:sys:handler:crud@HANDLER" in steps
 
 
 @pytest.mark.i9n

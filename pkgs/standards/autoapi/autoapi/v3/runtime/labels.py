@@ -34,6 +34,7 @@ DOMAINS: Tuple[str, ...] = (
     "schema",
     "storage",
     "wire",
+    "sys",
 )
 
 # minimal token rules (tight but readable)
@@ -276,7 +277,7 @@ def _validate_subject(subj: Optional[str]) -> None:
 
 def _validate_anchor(anchor: Optional[str]) -> None:
     _require(
-        anchor is not None and _ev.is_valid_event(anchor),
+        anchor is not None and (_ev.is_valid_event(anchor) or anchor in _ev.PHASES),
         f"Invalid or unknown anchor {anchor!r}",
     )
 
