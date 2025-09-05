@@ -20,7 +20,6 @@ class KeyDigest:
         storage=S(String, nullable=False, unique=True),
         field=F(constraints={"max_length": 64}),
         io=IO(
-            in_verbs=("create",),
             out_verbs=("read", "list", "create"),
         ).paired(_pair_api_key, alias="api_key"),
     )
