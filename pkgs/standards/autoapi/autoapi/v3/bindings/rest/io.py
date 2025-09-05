@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field, create_model
 
 from .fastapi import HTTPException, Query, Request, _status
 from .helpers import _ensure_jsonable, logger
-from ...ops import OpSpec
+from ...op import OpSpec
 
 
 def _serialize_output(

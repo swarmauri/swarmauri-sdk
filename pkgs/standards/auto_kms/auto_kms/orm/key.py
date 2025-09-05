@@ -11,7 +11,8 @@ from autoapi.v3.orm.mixins import BulkCapable, Replaceable
 
 from autoapi.v3.orm.tables import Base
 from autoapi.v3.specs import acol, vcol, S, F, IO
-from autoapi.v3.decorators import hook_ctx, op_ctx
+from autoapi.v3.hook import hook_ctx
+from autoapi.v3.op import op_ctx
 from fastapi import HTTPException, Response
 
 if TYPE_CHECKING:

@@ -4,7 +4,7 @@ from time import perf_counter, sleep
 
 from autoapi.v3.system.diagnostics import _build_methodz_endpoint
 from autoapi.v3.system import diagnostics as _diag
-from autoapi.v3.ops import OpSpec
+from autoapi.v3.op import OpSpec
 
 
 @pytest.mark.asyncio

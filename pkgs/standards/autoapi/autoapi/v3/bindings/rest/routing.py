@@ -5,8 +5,8 @@ from typing import Any, Dict, Optional, Sequence, Tuple
 
 
 from .fastapi import Depends, Security, _status
-from ...ops import OpSpec
-from ...ops.types import CANON
+from ...op import OpSpec
+from ...op.types import CANON
 
 
 def _normalize_deps(deps: Optional[Sequence[Any]]) -> list[Any]:

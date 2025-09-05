@@ -1,7 +1,7 @@
 import pytest
 from types import SimpleNamespace
 
-from autoapi.v3.decorators import collect_decorated_ops, op_ctx
+from autoapi.v3.op import collect_decorated_ops, op_ctx
 from autoapi.v3.bindings import handlers
 from autoapi.v3.system import diagnostics as _diag
 
