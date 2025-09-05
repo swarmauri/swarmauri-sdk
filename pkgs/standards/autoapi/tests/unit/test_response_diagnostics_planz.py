@@ -2,7 +2,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 import pytest
 
-from autoapi.v3.ops.types import OpSpec
+from autoapi.v3.op.types import OpSpec
 from autoapi.v3.response.types import ResponseSpec, TemplateSpec
 from autoapi.v3.runtime import plan as runtime_plan
 from autoapi.v3.system.diagnostics import _build_planz_endpoint

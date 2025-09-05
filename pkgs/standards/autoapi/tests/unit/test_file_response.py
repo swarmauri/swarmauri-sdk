@@ -3,7 +3,7 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from autoapi.v3.decorators import collect_decorated_ops, op_ctx
+from autoapi.v3.op import collect_decorated_ops, op_ctx
 from autoapi.v3.response.shortcuts import as_file
 from autoapi.v3.bindings import (
     build_hooks,

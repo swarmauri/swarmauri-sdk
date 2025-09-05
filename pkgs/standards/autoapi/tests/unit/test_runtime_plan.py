@@ -4,7 +4,7 @@ from autoapi.v3.runtime import atoms as runtime_atoms
 from autoapi.v3.runtime import events as _ev
 from autoapi.v3.runtime import labels as _lbl
 from autoapi.v3.runtime import plan as runtime_plan
-from autoapi.v3 import decorators as _deco
+from autoapi.v3.op import decorators as _deco
 
 
 def test_plan_labels_collects_all_atom_labels():

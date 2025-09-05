@@ -1,5 +1,5 @@
-from autoapi.v3.decorators import hook_ctx
 from autoapi.v3.bindings.model import bind
+from autoapi.v3.hook import hook_ctx
 from autoapi.v3.orm.tables import Base
 from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.types import Column, String

@@ -9,7 +9,7 @@ from typing import Any, Callable, Dict, Iterable, List, Mapping, Optional, Seque
 
 from .executor import _invoke, _Ctx
 from . import events as _ev
-from ..ops.types import PHASES, StepFn
+from ..op.types import PHASES, StepFn
 
 logger = logging.getLogger(__name__)
 

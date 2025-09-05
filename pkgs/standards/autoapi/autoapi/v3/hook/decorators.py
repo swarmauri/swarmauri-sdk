@@ -12,7 +12,7 @@ def hook_ctx(ops: Union[str, Iterable[str]], *, phase: str):
     """Declare a ctx-only hook for one/many ops at a given phase."""
 
     def deco(fn):
-        from ..decorators import _ensure_cm, _unwrap
+        from ..op.decorators import _ensure_cm, _unwrap
 
         cm = _ensure_cm(fn)
         f = _unwrap(cm)

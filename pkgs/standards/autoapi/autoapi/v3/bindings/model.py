@@ -6,18 +6,17 @@ from dataclasses import replace
 from types import SimpleNamespace
 from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Tuple
 
-from ..ops import OpSpec
-from ..ops import resolve as resolve_ops
-from ..ops import get_registry, OpspecRegistry
-from ..ops.types import PHASES  # phase allowlist for hook merges
-from ..config.constants import AUTOAPI_REGISTRY_LISTENER_ATTR
-
-# Ctx-only decorators integration
-from ..decorators import (
-    collect_decorated_ops,
-    collect_decorated_hooks,
+from ..op import (
+    OpSpec,
+    resolve as resolve_ops,
+    get_registry,
+    OpspecRegistry,
+    PHASES,
     alias_map_for,
 )
+from ..hook.collect import collect_decorated_hooks
+from ..op.collect import collect_decorated_ops
+from ..config.constants import AUTOAPI_REGISTRY_LISTENER_ATTR
 
 # Sub-binders (implemented elsewhere)
 from . import (
