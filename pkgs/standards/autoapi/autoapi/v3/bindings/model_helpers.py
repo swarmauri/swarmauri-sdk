@@ -6,7 +6,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 from typing import Dict, List, Optional, Sequence, Set, Tuple
 
-from ..ops import OpSpec
+from ..op import OpSpec
 
 
 _Key = Tuple[str, str]  # (alias, target)

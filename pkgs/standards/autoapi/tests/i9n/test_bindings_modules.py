@@ -20,7 +20,7 @@ from autoapi.v3.bindings import (
 )
 from autoapi.v3.bindings.schemas import build_and_attach as schemas_build_and_attach
 from autoapi.v3.specs import ColumnSpec, F, IO, S
-from autoapi.v3.ops import resolve
+from autoapi.v3.op import resolve
 from autoapi.v3.runtime import executor as _executor
 from autoapi.v3.column import shortcuts as sc
 

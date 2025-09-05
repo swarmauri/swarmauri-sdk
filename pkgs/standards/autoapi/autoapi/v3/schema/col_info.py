@@ -23,7 +23,7 @@ import warnings
 
 from typing import Any, Mapping
 
-from ..ops.types import CANON
+from ..op.types import CANON
 
 warnings.warn(
     "autoapi.v3.schema.col_info is deprecated; Column.info['autoapi'] will be removed. "

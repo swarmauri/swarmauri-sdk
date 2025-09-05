@@ -4,7 +4,7 @@ from uuid import UUID, uuid4
 
 from fastapi import HTTPException
 
-from autoapi.v3.decorators import hook_ctx
+from autoapi.v3.hook import hook_ctx
 from autoapi.v3.specs import IO, F, S, acol
 from autoapi.v3.orm.mixins import BulkCapable, Replaceable
 from autoapi.v3.column.io_spec import Pair

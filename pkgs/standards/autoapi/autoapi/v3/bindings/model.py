@@ -6,16 +6,12 @@ from dataclasses import replace
 from types import SimpleNamespace
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
-from ..ops import OpSpec
-from ..ops import resolve as resolve_ops
-from ..ops.types import PHASES  # phase allowlist for hook merges
+from ..op import OpSpec, alias_map_for, collect_decorated_ops
+from ..op import resolve as resolve_ops
+from ..op.types import PHASES  # phase allowlist for hook merges
 
 # Ctx-only decorators integration
-from ..decorators import (
-    collect_decorated_ops,
-    collect_decorated_hooks,
-    alias_map_for,
-)
+from ..hook.collect import collect_decorated_hooks
 
 # Sub-binders (implemented elsewhere)
 from . import (

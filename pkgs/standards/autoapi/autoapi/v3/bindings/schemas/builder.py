@@ -8,7 +8,7 @@ from typing import Dict, Optional, Sequence, Type
 
 from pydantic import BaseModel
 
-from ...ops import OpSpec
+from ...op import OpSpec
 from ...schema import collect_decorated_schemas
 from .defaults import _default_schemas_for_spec
 from .utils import _alias_schema, _ensure_alias_namespace, _resolve_schema_arg, _Key
