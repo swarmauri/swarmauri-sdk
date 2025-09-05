@@ -1,16 +1,9 @@
 import asyncio
 import json
-<<<<<<< HEAD
 from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Optional
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
-=======
-from typing import AsyncIterator, Dict, Iterator, List
-
-import httpx
-from pydantic import PrivateAttr
->>>>>>> upstream/mono/dev
 from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
