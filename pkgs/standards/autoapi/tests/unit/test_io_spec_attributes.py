@@ -3,7 +3,7 @@ from types import SimpleNamespace
 from autoapi.v3.specs import ColumnSpec, F, IO, S, acol
 from autoapi.v3.runtime.atoms.schema import collect_in, collect_out
 from autoapi.v3.runtime.atoms.out import masking
-from autoapi.v3.core import crud
+from autoapi.v3.core.crud import helpers
 from autoapi.v3.orm.tables import Base
 from sqlalchemy import Integer
 from sqlalchemy.orm import Mapped
@@ -22,8 +22,8 @@ def test_in_verbs_filters_input():
         )
     }
     data = {"name": "one"}
-    allowed = crud._filter_in_values(DummyModel, data, "create")
-    blocked = crud._filter_in_values(DummyModel, data, "update")
+    allowed = helpers._filter_in_values(DummyModel, data, "create")
+    blocked = helpers._filter_in_values(DummyModel, data, "update")
     assert allowed == data
     assert blocked == {}
 
@@ -57,7 +57,7 @@ def test_mutable_verbs_enforces_immutability():
             io=IO(in_verbs=("create",), mutable_verbs=("create",)),
         )
     }
-    imm = crud._immutable_columns(DummyModel, "update")
+    imm = helpers._immutable_columns(DummyModel, "update")
     assert "name" in imm
 
 
@@ -111,7 +111,7 @@ def test_filter_ops_restricts_filters():
     Model = type(
         "Model", (), {"__autoapi_colspecs__": {"name": spec}, "__table__": table}
     )
-    filters = crud._coerce_filters(Model, {"name": 1, "name__lt": 0, "name__gt": 2})
+    filters = helpers._coerce_filters(Model, {"name": 1, "name__lt": 0, "name__gt": 2})
     assert filters == {"name": 1, "name__gt": 2}
 
 
@@ -136,8 +136,8 @@ def test_sortable_allows_sorting():
 
     bind(SortModel)
 
-    assert crud._apply_sort(SortModel, "sortable")
-    assert crud._apply_sort(SortModel, "unsortable") is None
+    assert helpers._apply_sort(SortModel, "sortable")
+    assert helpers._apply_sort(SortModel, "unsortable") is None
 
 
 def test_allow_in_disables_field():
