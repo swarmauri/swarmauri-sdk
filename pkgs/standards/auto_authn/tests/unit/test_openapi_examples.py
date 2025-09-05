@@ -61,3 +61,37 @@ def test_all_models_registered_on_api_and_tables() -> None:
     expected = set(ORM_MODELS)
     assert expected == set(surface_api.tables.keys())
     assert expected.issubset(vars(surface_api.schemas).keys())
+
+
+def test_service_key_request_schema(openapi_spec: dict) -> None:
+    """ServiceKey request body exposes only allowed fields."""
+    schema = openapi_spec["components"]["schemas"]["ServiceKeyCreateRequest"]
+    assert set(schema["properties"].keys()) == {
+        "label",
+        "service_id",
+        "valid_from",
+        "valid_to",
+    }
+    assert set(schema["required"]) == {"label", "service_id"}
+    assert "digest" not in schema["properties"]
+    assert "api_key" not in schema["properties"]
+
+
+def test_service_key_response_examples_include_validity(openapi_spec: dict) -> None:
+    """Response examples include digest and validity window."""
+    schema = openapi_spec["components"]["schemas"]["ServiceKeyCreateResponse"]
+    props = schema["properties"]
+    assert {
+        "id",
+        "label",
+        "service_id",
+        "digest",
+        "valid_from",
+        "valid_to",
+        "last_used_at",
+        "created_at",
+    }.issubset(props.keys())
+    examples = schema.get("examples")
+    if examples:
+        example = examples[0]["value"]
+        assert "valid_from" in example and "valid_to" in example

@@ -18,11 +18,10 @@ class KeyDigest:
 
     digest: Mapped[str] = acol(
         storage=S(String, nullable=False, unique=True),
-        field=F(constraints={"max_length": 64}),
+        field=F(constraints={"max_length": 64}, required_in=()),
         io=IO(
-            in_verbs=("create",),
             out_verbs=("read", "list", "create"),
-        ).paired(_pair_api_key, alias="api_key"),
+        ).paired(_pair_api_key, alias="api_key", emit="pre_response"),
     )
 
     @staticmethod

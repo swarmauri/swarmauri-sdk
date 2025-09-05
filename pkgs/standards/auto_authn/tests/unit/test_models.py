@@ -187,6 +187,22 @@ class TestServiceKeyModel:
         assert "service_id" in read_fields
         assert "user_id" not in read_fields
 
+    def test_service_key_create_schema_fields(self):
+        """ServiceKey create schema exposes only expected fields."""
+        from auto_authn.routers.surface import surface_api
+
+        create_fields = surface_api.schemas.ServiceKey.create.in_.model_fields
+        assert set(create_fields.keys()) == {
+            "label",
+            "service_id",
+            "valid_from",
+            "valid_to",
+        }
+        assert create_fields["label"].is_required() is True
+        assert create_fields["service_id"].is_required() is True
+        assert create_fields["valid_from"].is_required() is False
+        assert create_fields["valid_to"].is_required() is False
+
 
 @pytest.mark.unit
 class TestModelIntegration:
