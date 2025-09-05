@@ -421,7 +421,7 @@ def build_jsonrpc_router(
 
     # Attach routes for both "/rpc" and "/rpc/"
     router.add_api_route(
-        path="/",
+        path="",
         endpoint=_endpoint,
         methods=["POST"],
         name="jsonrpc",
@@ -434,7 +434,7 @@ def build_jsonrpc_router(
 
     # Compatibility: serve same endpoint without trailing slash
     router.add_api_route(
-        path="",
+        path="/",
         endpoint=_endpoint,
         methods=["POST"],
         name="jsonrpc_alt",
