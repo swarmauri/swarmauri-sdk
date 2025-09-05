@@ -8,7 +8,7 @@ from sqlalchemy.pool import StaticPool
 from autoapi.v3.autoapp import AutoApp
 from autoapi.v3.engine.shortcuts import engine as engine_factory, mem
 from autoapi.v3.bindings.model import bind
-from autoapi.v3.bindings.rest import _build_router
+from autoapi.v3.bindings.rest.router import _build_router
 from autoapi.v3.bindings.rpc import register_and_attach
 from autoapi.v3.ops import OpSpec
 from autoapi.v3.runtime.atoms.resolve import assemble

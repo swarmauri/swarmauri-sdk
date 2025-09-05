@@ -1,6 +1,6 @@
 from autoapi.v3.types import App
 
-from autoapi.v3.bindings.rest import _build_router
+from autoapi.v3.bindings.rest.router import _build_router
 from autoapi.v3.ops import OpSpec
 from autoapi.v3.orm.tables import Base
 from autoapi.v3.orm.mixins import GUIDPk
