@@ -1,0 +1,273 @@
+"""Router builders for REST bindings."""
+
+from __future__ import annotations
+
+import inspect
+import re
+import typing as _typing
+from typing import (
+    Any,
+    Sequence,
+    get_args as _get_args,
+    get_origin as _get_origin,
+)
+from uuid import uuid4
+
+from pydantic import BaseModel
+
+from ...config.constants import (
+    AUTOAPI_ALLOW_ANON_ATTR,
+    AUTOAPI_AUTH_DEP_ATTR,
+    AUTOAPI_GET_DB_ATTR,
+    AUTOAPI_REST_DEPENDENCIES_ATTR,
+)
+from ...ops import OpSpec
+from ...rest import _nested_prefix
+from ...schema.builder import _strip_parent_fields
+from ..endpoints import _make_collection_endpoint, _make_member_endpoint
+from ..utils import (
+    Router,
+    Response,
+    _status,
+    _default_path_suffix,
+    _normalize_deps,
+    _normalize_secdeps,
+    _optionalize_list_in_model,
+    _path_for_spec,
+    _req_state_db,
+    _resource_name,
+    _status_for,
+    _RESPONSES_META,
+    _DEFAULT_METHODS,
+    logger,
+)
+from ...ops.types import CANON
+
+
+def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
+    resource = _resource_name(model)
+
+    # Router-level deps: extra deps only (transport-level; never part of runtime plan)
+    extra_router_deps = _normalize_deps(
+        getattr(model, AUTOAPI_REST_DEPENDENCIES_ATTR, None)
+    )
+    auth_dep = getattr(model, AUTOAPI_AUTH_DEP_ATTR, None)
+
+    # Verbs explicitly allowed without auth
+    allow_anon_attr = getattr(model, AUTOAPI_ALLOW_ANON_ATTR, None)
+    allow_anon = set(
+        allow_anon_attr() if callable(allow_anon_attr) else allow_anon_attr or []
+    )
+
+    router = Router(dependencies=extra_router_deps or None)
+
+    pk_param = "item_id"
+    db_dep = getattr(model, AUTOAPI_GET_DB_ATTR, None) or _req_state_db
+
+    raw_nested = _nested_prefix(model) or ""
+    nested_pref = re.sub(r"/{2,}", "/", raw_nested).rstrip("/") or ""
+    nested_vars = re.findall(r"{(\w+)}", raw_nested)
+
+    # If bulk_delete is present, drop clear to avoid route conflicts
+    if any(sp.target == "bulk_delete" for sp in specs):
+        specs = [sp for sp in specs if sp.target != "clear"]
+
+    # Register collection-level bulk routes before member routes so static paths
+    # like "/resource/bulk" aren't captured by dynamic member routes such as
+    # "/resource/{item_id}". FastAPI matches routes in the order they are
+    # added, so sorting here prevents "bulk" from being treated as an
+    # identifier. Ensure the single-record ``create`` route is registered
+    # before ``bulk_create`` so regular POSTs continue to behave as expected.
+    specs = sorted(
+        specs,
+        key=lambda sp: (
+            -1
+            if sp.target == "clear"
+            else 0
+            if sp.target in {"bulk_update", "bulk_replace", "bulk_delete", "bulk_merge"}
+            else 1
+            if sp.target in {"create", "merge"}
+            else 2
+            if sp.target in {"bulk_create"}
+            else 3
+        ),
+    )
+
+    for sp in specs:
+        if not sp.expose_routes:
+            continue
+
+        # Drop parent identifiers from request models when using nested paths
+        if nested_vars:
+            schemas_root = getattr(model, "schemas", None)
+            if schemas_root:
+                alias_ns = getattr(schemas_root, sp.alias, None)
+                if alias_ns:
+                    in_model = getattr(alias_ns, "in_", None)
+                    if (
+                        in_model
+                        and inspect.isclass(in_model)
+                        and issubclass(in_model, BaseModel)
+                    ):
+                        target = in_model
+                        root_field = getattr(in_model, "model_fields", {}).get("root")
+                        if root_field is not None:
+                            ann = root_field.annotation
+                            inner = None
+                            for t in _get_args(ann) or (ann,):
+                                origin = _get_origin(t)
+                                if origin in {list, _typing.List}:
+                                    t_args = _get_args(t)
+                                    if t_args:
+                                        t = t_args[0]
+                                        origin = _get_origin(t)
+                                if inspect.isclass(t) and issubclass(t, BaseModel):
+                                    inner = t
+                                    break
+                            if inner is not None:
+                                target = inner
+                        pruned = _strip_parent_fields(target, drop=set(nested_vars))
+                        setattr(alias_ns, "in_", pruned)
+
+        # Determine path and membership
+        if nested_pref:
+            if sp.path_suffix is None:
+                suffix = _default_path_suffix(sp) or ""
+            else:
+                suffix = sp.path_suffix or ""
+            if suffix and not suffix.startswith("/"):
+                suffix = "/" + suffix
+            base = nested_pref.rstrip("/")
+            if not base.endswith(f"/{resource}"):
+                base = f"{base}/{resource}"
+            if sp.arity == "member" or sp.target in {
+                "read",
+                "update",
+                "replace",
+                "merge",
+                "delete",
+            }:
+                path = f"{base}/{{{pk_param}}}{suffix}"
+                is_member = True
+            else:
+                path = f"{base}{suffix}"
+                is_member = False
+        else:
+            path, is_member = _path_for_spec(
+                model, sp, resource=resource, pk_param=pk_param
+            )
+
+        # HARDEN list.in_ at runtime to avoid bogus defaults blowing up empty GETs
+        if sp.target == "list":
+            schemas_root = getattr(model, "schemas", None)
+            if schemas_root:
+                alias_ns = getattr(schemas_root, sp.alias, None)
+                if alias_ns:
+                    in_model = getattr(alias_ns, "in_", None)
+                    if (
+                        in_model
+                        and inspect.isclass(in_model)
+                        and issubclass(in_model, BaseModel)
+                        and not getattr(in_model, "__autoapi_optionalized__", False)
+                    ):
+                        safe = _optionalize_list_in_model(in_model)
+                        setattr(alias_ns, "in_", safe)
+
+        # HTTP methods
+        methods = list(sp.http_methods or _DEFAULT_METHODS.get(sp.target, ("POST",)))
+        response_model = None  # Allow hooks to mutate response freely
+
+        # Build endpoint (split by body/no-body)
+        if is_member:
+            endpoint = _make_member_endpoint(
+                model,
+                sp,
+                resource=resource,
+                db_dep=db_dep,
+                pk_param=pk_param,
+                nested_vars=nested_vars,
+            )
+        else:
+            endpoint = _make_collection_endpoint(
+                model,
+                sp,
+                resource=resource,
+                db_dep=db_dep,
+                nested_vars=nested_vars,
+            )
+
+        # Status codes
+        status_code = _status_for(sp)
+
+        # Capture OUT schema for OpenAPI without enforcing runtime validation
+        alias_ns = getattr(getattr(model, "schemas", None), sp.alias, None)
+        out_model = getattr(alias_ns, "out", None) if alias_ns else None
+
+        responses_meta = dict(_RESPONSES_META)
+        if out_model is not None and status_code != _status.HTTP_204_NO_CONTENT:
+            responses_meta[status_code] = {"model": out_model}
+            response_class = None
+        else:
+            responses_meta[status_code] = {"description": "Successful Response"}
+            response_class = Response
+
+        # Attach route
+        label = f"{model.__name__} - {sp.alias}"
+        route_deps = None
+        if auth_dep and sp.alias not in allow_anon and sp.target not in allow_anon:
+            route_deps = _normalize_deps([auth_dep])
+
+        unique_id = f"{endpoint.__name__}_{uuid4().hex}"
+        include_in_schema = bool(
+            getattr(sp, "extra", {}).get("include_in_schema", True)
+        )
+        route_kwargs = dict(
+            path=path,
+            endpoint=endpoint,
+            methods=methods,
+            name=f"{model.__name__}.{sp.alias}",
+            operation_id=unique_id,
+            summary=label,
+            description=label,
+            response_model=response_model,
+            status_code=status_code,
+            # IMPORTANT: only class name here; never table name
+            tags=list(sp.tags or (model.__name__,)),
+            responses=responses_meta,
+            include_in_schema=include_in_schema,
+        )
+        if route_deps:
+            route_kwargs["dependencies"] = route_deps
+        if response_class is not None:
+            route_kwargs["response_class"] = response_class
+
+        secdeps: list[Any] = []
+        if auth_dep and sp.alias not in allow_anon and sp.target not in allow_anon:
+            secdeps.append(auth_dep)
+        secdeps.extend(getattr(sp, "secdeps", ()))
+        route_secdeps = _normalize_secdeps(secdeps)
+        if route_secdeps:
+            route_kwargs["dependencies"] = route_secdeps
+
+        if (
+            sp.alias != sp.target
+            and sp.target in CANON
+            and sp.alias != getattr(sp.handler, "__name__", sp.alias)
+        ):
+            route_kwargs["include_in_schema"] = False
+
+        router.add_api_route(**route_kwargs)
+
+        logger.debug(
+            "rest: registered %s %s -> %s.%s (response_model=%s)",
+            methods,
+            path,
+            model.__name__,
+            sp.alias,
+            getattr(response_model, "__name__", None) if response_model else None,
+        )
+
+    return router
+
+
+__all__ = ["_build_router"]
