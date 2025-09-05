@@ -31,7 +31,7 @@ from .bindings.model import rebind as _rebind, bind as _bind
 from .bindings.rest import build_router_and_attach as _build_router_and_attach
 from .transport import mount_jsonrpc as _mount_jsonrpc
 from .system import mount_diagnostics as _mount_diagnostics
-from .ops import get_registry, OpSpec
+from .op import get_registry, OpSpec
 
 
 class AutoAPI(_Api):

@@ -3,7 +3,7 @@ from types import SimpleNamespace
 
 from autoapi.v3.system import diagnostics as _diag
 from autoapi.v3.system.diagnostics import _build_planz_endpoint
-from autoapi.v3.ops import OpSpec
+from autoapi.v3.op import OpSpec
 from autoapi.v3.runtime import plan as _plan
 
 

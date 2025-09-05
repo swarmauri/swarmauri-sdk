@@ -7,7 +7,7 @@ import logging
 from typing import Set
 
 from ..config.constants import AUTOAPI_REGISTRY_LISTENER_ATTR
-from ..ops import OpspecRegistry, get_registry
+from ..op import OpspecRegistry, get_registry
 
 from .model_helpers import _Key
 

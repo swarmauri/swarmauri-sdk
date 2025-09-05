@@ -1,5 +1,5 @@
 from autoapi.v3.bindings.handlers import build_and_attach
-from autoapi.v3.ops import OpSpec
+from autoapi.v3.op import OpSpec
 from autoapi.v3 import core as _core
 
 

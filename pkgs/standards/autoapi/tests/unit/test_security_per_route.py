@@ -1,4 +1,4 @@
-from autoapi.v3.ops import OpSpec
+from autoapi.v3.op import OpSpec
 from autoapi.v3.autoapp import AutoApp
 from autoapi.v3.orm.tables import Base
 from autoapi.v3.orm.mixins import GUIDPk

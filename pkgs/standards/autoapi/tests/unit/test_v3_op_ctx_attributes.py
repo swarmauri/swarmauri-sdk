@@ -1,5 +1,5 @@
 from autoapi.v3 import op_ctx
-from autoapi.v3.decorators import collect_decorated_ops
+from autoapi.v3.op import collect_decorated_ops
 
 
 def test_op_ctx_alias_sets_alias():

@@ -1,6 +1,6 @@
 from autoapi.v3.types import App
 from autoapi.v3 import op_ctx
-from autoapi.v3.decorators import collect_decorated_ops
+from autoapi.v3.op import collect_decorated_ops
 from autoapi.v3.bindings.rest.router import _build_router
 from autoapi.v3.orm.tables import Base
 from autoapi.v3.orm.mixins import GUIDPk

@@ -57,8 +57,8 @@ from ...config.constants import (
     AUTOAPI_GET_DB_ATTR,
     AUTOAPI_REST_DEPENDENCIES_ATTR,
 )
-from ...ops import OpSpec
-from ...ops.types import CANON, PHASES
+from ...op import OpSpec
+from ...op.types import CANON, PHASES
 from ...rest import _nested_prefix
 from ...runtime import executor as _executor
 from ...schema.builder import _strip_parent_fields

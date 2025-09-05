@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 from autoapi.v3 import op_alias
-from autoapi.v3.ops import resolve
+from autoapi.v3.op import resolve
 
 
 def _get_spec(**decorator_kwargs):

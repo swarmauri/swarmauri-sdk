@@ -1,6 +1,6 @@
 import pytest
 from autoapi.v3.specs import F, S, acol, vcol
-from autoapi.v3.decorators import alias_ctx
+from autoapi.v3.op import alias_ctx
 from autoapi.v3.orm.tables import Base
 from autoapi.v3.deps import (
     Column,

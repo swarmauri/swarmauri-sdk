@@ -24,7 +24,7 @@ Quick start:
 from __future__ import annotations
 
 # ── OpSpec (source of truth) ───────────────────────────────────────────────────
-from .ops import (
+from .op import (
     OpSpec,
     get_registry,
     # types and helpers re-exported from ops
@@ -39,8 +39,9 @@ from .schema.types import SchemaRef, SchemaArg
 
 # ── Ctx-only decorators (new surface; replaces legacy ops.decorators) ─────────
 
-from .decorators import alias_ctx, op_ctx, alias, op_alias, engine_ctx
-from .hook.decorators import hook_ctx
+from .op import alias_ctx, op_ctx, alias, op_alias
+from .hook import hook_ctx
+from .engine.decorators import engine_ctx
 from .schema.decorators import schema_ctx
 from .response.decorators import response_ctx
 from .response.types import ResponseSpec

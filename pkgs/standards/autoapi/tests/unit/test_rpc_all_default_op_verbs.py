@@ -4,7 +4,7 @@ from collections.abc import Iterator
 from autoapi.v3.autoapp import AutoApp
 from autoapi.v3.engine import resolver as _resolver
 from autoapi.v3.engine.shortcuts import mem
-from autoapi.v3.ops import OpSpec
+from autoapi.v3.op import OpSpec
 from autoapi.v3.orm.mixins import BulkCapable, GUIDPk, Replaceable
 from autoapi.v3.orm.tables import Base
 from autoapi.v3.specs import IO, S, F, acol as spec_acol
