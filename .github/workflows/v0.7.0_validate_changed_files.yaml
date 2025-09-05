@@ -1,4 +1,7 @@
-name: v0.7.0 - Changes (Validate)
+# File: .github/workflows/validate.yml
+# Workflow: v0.7.1 – Changes (Validate)
+
+name: v0.7.1 - Changes (Validate)
 
 on:
   pull_request:
@@ -8,189 +11,160 @@ on:
 
 jobs:
   detect-changed-files:
-    runs-on: ubuntu-latest
+    runs-on: [testing]
     outputs:
       matrix: ${{ steps.detect.outputs.matrix }}
 
     steps:
+      # ──────────────────────────────────────────────────────────────────────────
+      # Step: Check out code ─ (uses: actions/checkout@v4)
+      # ──────────────────────────────────────────────────────────────────────────
       - name: Check out code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Fetch entire history for diffing
+          fetch-depth: 0            # fetch full history for diffing
 
-      - name: Get Changed Files (Pull Request)
-        if: github.event_name == 'pull_request'
+      # ──────────────────────────────────────────────────────────────────────────
+      # Step: Get changed files  (id=files)
+      # ──────────────────────────────────────────────────────────────────────────
+      - name: Get changed files
+        id: files
         run: |
-          echo "Files changed in this pull request:"
-          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} > changed_files.txt
+          set -eo pipefail
+          echo "Collecting changed files …"
+          git diff --name-only \
+            "${{ github.event.pull_request.base.sha }}" \
+            "${{ github.event.pull_request.head.sha }}" > changed_files.txt
           cat changed_files.txt
 
+      # ──────────────────────────────────────────────────────────────────────────
+      # Step: Detect changes and generate package matrix (id=detect)
+      # Function: find_pyproject_root   (Bash function)
+      # ──────────────────────────────────────────────────────────────────────────
       - name: Detect changes and generate test matrix
         id: detect
         run: |
-          echo "Detecting changes..."
-
-          # Filter only files in pkgs/
-          CHANGED_FILES=$(grep '^pkgs/' changed_files.txt || true)
-
+          echo "Detecting changed packages …"
+          # Exclude the monorepo root pyproject.toml as it does not represent
+          # a real package and will always fail validation.
+          CHANGED_FILES=$(grep '^pkgs/' changed_files.txt | grep -v '^pkgs/pyproject.toml$' || true)
           if [ -z "$CHANGED_FILES" ]; then
             echo "No changes in pkgs/. Exiting."
-            echo "matrix=[]" >> $GITHUB_OUTPUT
+            echo 'matrix=[]' >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          declare -A PACKAGE_TEST_MAP
+          declare -A PACKAGE_SET         # <package_path> ⇒ 1
 
-          # Helper function to find the nearest pyproject.toml, checking 
-          # the local directory first, then walking up.
+          # ── Function: find_pyproject_root ────────────────────────────────────
           find_pyproject_root() {
             local path="$1"
             while true; do
-              # 1) Check current directory
-              if [ -f "$path/pyproject.toml" ]; then
-                echo "$path"
-                return
-              fi
-              # 2) If we're at '.' or empty, no pyproject found
-              if [ "$path" = "." ] || [ -z "$path" ]; then
-                echo ""
-                return
-              fi
-              # 3) Move one directory up
+              [[ -f "$path/pyproject.toml" ]] && { echo "$path"; return; }
+              [[ "$path" == "." ]] && { echo ""; return; }
               path="$(dirname "$path")"
             done
           }
+          # ─────────────────────────────────────────────────────────────────────
 
           for FILE in $CHANGED_FILES; do
-            # Directory of this file (relative to root)
             DIR=$(dirname "$FILE")
-
-            # Find the package root containing pyproject.toml
-            PACKAGE_ROOT=$(find_pyproject_root "$DIR")
-            if [ -z "$PACKAGE_ROOT" ]; then
-              echo "No pyproject.toml found for $FILE"
+            PKG_ROOT=$(find_pyproject_root "$DIR")
+            if [[ -z "$PKG_ROOT" || "$PKG_ROOT" == "pkgs" ]]; then
               continue
             fi
-
-            # Strip leading "pkgs/" from PACKAGE_ROOT to form a relative path
-            # e.g., if PACKAGE_ROOT="pkgs/community/swarmauri_toolkit_github",
-            # then PACKAGE_ROOT_PATH="community/swarmauri_toolkit_github"
-            PACKAGE_ROOT_PATH="${PACKAGE_ROOT#pkgs/}"
-
-            # If the changed file itself is a test...
-            if echo "$FILE" | grep -qE '/tests/.*(test_.*\.py|.*_test\.py)$'; then
-              # Keep test file path relative to the package root
-              # For example, if FILE="pkgs/community/swarmauri_toolkit_github/tests/unit/test_xyz.py",
-              #   then RELATIVE_TEST_FILE="tests/unit/test_xyz.py"
-              RELATIVE_TEST_FILE=$(echo "$FILE" | sed "s|^$PACKAGE_ROOT/||")
-              PACKAGE_TEST_MAP["$PACKAGE_ROOT_PATH"]="${PACKAGE_TEST_MAP[$PACKAGE_ROOT_PATH]} $RELATIVE_TEST_FILE"
-            else
-              # Not a direct test file, so guess test files based on the changed filename
-              COMPONENT_NAME=$(basename "$FILE" | sed 's/\.py$//')
-              TEST_DIR="$PACKAGE_ROOT/tests"
-
-              if [ -d "$TEST_DIR" ]; then
-                # Find any test file that includes the changed component name
-                MATCHING_TEST_FILES=$(find "$TEST_DIR" -type f \( -iname "*${COMPONENT_NAME}_test.py" -o -iname "test_${COMPONENT_NAME}.py" \))
-                for TEST_FILE in $MATCHING_TEST_FILES; do
-                  RELATIVE_TEST_FILE=$(echo "$TEST_FILE" | sed "s|^$PACKAGE_ROOT/||")
-                  PACKAGE_TEST_MAP["$PACKAGE_ROOT_PATH"]="${PACKAGE_TEST_MAP[$PACKAGE_ROOT_PATH]} $RELATIVE_TEST_FILE"
-                done
-              fi
-            fi
+            PKG_PATH="${PKG_ROOT#pkgs/}"          # strip leading pkgs/
+            PACKAGE_SET["$PKG_PATH"]=1            # record the package
           done
 
-          # Build a JSON matrix
+          # Build JSON matrix
           MATRIX="["
-          for PKG_PATH in "${!PACKAGE_TEST_MAP[@]}"; do
-            # Deduplicate test files
-            UNIQUE_TEST_FILES=$(echo "${PACKAGE_TEST_MAP[$PKG_PATH]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')
-            
-            # In the JSON, store both the subpath (PKG_PATH) and the collected test files
-            MATRIX="$MATRIX{\"package_path\":\"$PKG_PATH\",\"tests\":\"${UNIQUE_TEST_FILES}\"},"
+          for PKG in "${!PACKAGE_SET[@]}"; do
+            MATRIX+='{"package_path":"'"$PKG"'","tests":""},'
           done
-          # Remove trailing comma, close JSON array
           MATRIX="${MATRIX%,}]"
-
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
           echo "Final test matrix: $MATRIX"
-          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
 
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Job: run-tests  – executes once per package reported in matrix
+  # ─────────────────────────────────────────────────────────────────────────────
   run-tests:
     needs: detect-changed-files
-    runs-on: ubuntu-latest
     if: ${{ needs.detect-changed-files.outputs.matrix != '[]' }}
+    runs-on: [testing]
     strategy:
       fail-fast: false
       matrix:
         package_tests: ${{ fromJSON(needs.detect-changed-files.outputs.matrix) }}
+
     env:
       UNIQUE_VENV_PATH: "${{ github.workspace }}/.venv_core_${{ github.run_id }}"
 
     steps:
+      # ────────────────────────────────────────────────────────────────────────
+      # Step: Check out code ─ (uses: actions/checkout@v4)
+      # ────────────────────────────────────────────────────────────────────────
       - name: Check out code
         uses: actions/checkout@v4
 
+      # ────────────────────────────────────────────────────────────────────────
+      # Step: Set up Python ─ (uses: actions/setup-python@v5)
+      # ────────────────────────────────────────────────────────────────────────
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-
-      - name: Create and Activate Virtual Environment
+      # ────────────────────────────────────────────────────────────────────────
+      # Step: Create & activate venv
+      # ────────────────────────────────────────────────────────────────────────
+      - name: Create and activate virtual environment
         run: |
-          python -m venv $UNIQUE_VENV_PATH
-          source $UNIQUE_VENV_PATH/bin/activate
+          python -m venv "$UNIQUE_VENV_PATH"
+          source "$UNIQUE_VENV_PATH/bin/activate"
 
-      # 3. Install project dependencies via Poetry
+      # ────────────────────────────────────────────────────────────────────────
+      # Step: Install dependencies
+      # ────────────────────────────────────────────────────────────────────────
       - name: Install dependencies
         run: |
-          source $UNIQUE_VENV_PATH/bin/activate
+          source "$UNIQUE_VENV_PATH/bin/activate"
           python -m pip install --upgrade pip
           pip install uv poetry toml
 
-
+      # ────────────────────────────────────────────────────────────────────────
+      # Step: Ruff Format  (package_path only)
+      # ────────────────────────────────────────────────────────────────────────
       - name: Ruff Format
         run: |
-          source $UNIQUE_VENV_PATH/bin/activate
+          source "$UNIQUE_VENV_PATH/bin/activate"
           PKG_PATH="${{ matrix.package_tests.package_path }}"
-          TEST_FILES="${{ matrix.package_tests.tests }}"
-
-          echo "Package path: pkgs/$PKG_PATH"
-          echo "Test files: $TEST_FILES"
-          
-          # Move into the directory that has pyproject.toml
-          cd "pkgs"
-
-          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${PKG_PATH}/pyproject.toml')['project']['name'])")
+          echo "Running ruff format on pkgs/$PKG_PATH"
+          cd pkgs
+          PACKAGE_NAME=$(python -c "import toml, pathlib, sys; print(toml.load(pathlib.Path('$PKG_PATH')/'pyproject.toml')['project']['name'])")
           uv run --directory "$PKG_PATH" --package "$PACKAGE_NAME" --isolated --active ruff format .
 
+      # ────────────────────────────────────────────────────────────────────────
+      # Step: Ruff Check  (package_path only)
+      # ────────────────────────────────────────────────────────────────────────
       - name: Ruff Check
         run: |
-          source $UNIQUE_VENV_PATH/bin/activate
+          source "$UNIQUE_VENV_PATH/bin/activate"
           PKG_PATH="${{ matrix.package_tests.package_path }}"
-          TEST_FILES="${{ matrix.package_tests.tests }}"
-
-          echo "Package path: pkgs/$PKG_PATH"
-          echo "Test files: $TEST_FILES"
-          
-          # Move into the directory that has pyproject.toml
-          cd "pkgs"
-
-          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${PKG_PATH}/pyproject.toml')['project']['name'])")
+          echo "Running ruff check on pkgs/$PKG_PATH"
+          cd pkgs
+          PACKAGE_NAME=$(python -c "import toml, pathlib, sys; print(toml.load(pathlib.Path('$PKG_PATH')/'pyproject.toml')['project']['name'])")
           uv run --directory "$PKG_PATH" --package "$PACKAGE_NAME" --isolated --active ruff check . --fix
 
+      # ────────────────────────────────────────────────────────────────────────
+      # Step: Run Pytests  (run all tests in package)
+      # ────────────────────────────────────────────────────────────────────────
       - name: Run Pytests
-        if: always()
         run: |
-          source $UNIQUE_VENV_PATH/bin/activate
+          source "$UNIQUE_VENV_PATH/bin/activate"
           PKG_PATH="${{ matrix.package_tests.package_path }}"
-          TEST_FILES="${{ matrix.package_tests.tests }}"
-
-          echo "Package path: pkgs/$PKG_PATH"
-          echo "Test files: $TEST_FILES"
-          
-          # Move into the directory that has pyproject.toml
-          cd "pkgs"
-
-          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${PKG_PATH}/pyproject.toml')['project']['name'])")
+          echo "Running pytest in pkgs/$PKG_PATH"
+          cd pkgs
+          PACKAGE_NAME=$(python -c "import toml, pathlib, sys; print(toml.load(pathlib.Path('$PKG_PATH')/'pyproject.toml')['project']['name'])")
           uv run --directory "$PKG_PATH" --package "$PACKAGE_NAME" --isolated --active pytest -vvv

@@ -1,0 +1,25 @@
+schemaVersion: "1.0.0"
+PROJECTS:
+- PROJECTS:
+  - NAME: BaseComponent
+    ROOT: pkgs/community
+    PACKAGES:
+    - NAME: component_base
+      TEMPLATE_SET_OVERRIDE: swarmauri_standard_standalone
+      EXTRAS: {}
+      MODULES:
+      - NAME: BaseComponent
+        EXTRAS:
+          CASE_SENSITIVE: false
+          SEARCH_STRATEGY: regex
+  META:
+    design_id: doe_spec-000
+    LLM_FACTORS: {}
+    factors: {}
+    spec_name: doe_spec
+    peagen_version: '0.0'
+SOURCE:
+  spec: doe_spec.yaml
+  template: template_project.yaml
+  context: null
+  spec_checksum: 48377d9c45c29d70f8c77de85211039b48ec2b068ac76d75820dfca7a988d2e6

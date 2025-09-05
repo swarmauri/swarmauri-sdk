@@ -1,6 +1,7 @@
 [project]
 name = "swarmauri-typing"
-version = "0.7.3"
+version = "0.7.6.dev5"
+
 description = "This repository includes typing used in the Swarmauri framework."
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" },

@@ -1,0 +1,38 @@
+# projects_payload.yaml
+schemaVersion: 1.0.0
+PROJECTS:
+  - NAME: orm_schema_project
+    ROOT: ./generated
+    TEMPLATE_SET: python_orm
+
+    PACKAGES:
+      - NAME: orm_models
+        TEMPLATE_SET_OVERRIDE: python_orm
+        MODULES:
+
+          # ──────────────────────────────────────────────
+          # Core authoring objects
+          # ──────────────────────────────────────────────
+          - NAME: project
+            EXTRAS:
+              PURPOSE: ""
+              DESCRIPTION: ""
+              REQUIREMENTS: []
+              MODEL_NAME: "Project"
+              CHILD_NAME: null
+              TABLE_NAME: "projects"
+              FIELD_DEFINITIONS: "id, name, root_path, template_set_id, extras, created_at, updated_at"
+              HAS_CHILDREN: false
+              DEPENDENCIES: []
+
+          - NAME: package
+            EXTRAS:
+              PURPOSE: ""
+              DESCRIPTION: ""
+              REQUIREMENTS: []
+              MODEL_NAME: "Package"
+              CHILD_NAME: null
+              TABLE_NAME: "packages"
+              FIELD_DEFINITIONS: "id, project_id, name, template_set_override_id, extras, created_at, updated_at"
+              HAS_CHILDREN: false
+              DEPENDENCIES: []

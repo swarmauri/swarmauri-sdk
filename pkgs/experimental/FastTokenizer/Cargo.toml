@@ -1,0 +1,29 @@
+[package]
+name = "fasttokenizer"
+version = "0.1.0"
+edition = "2021"
+authors = ["Michael Nwogha <michael@swarmauri.com>"]
+description = ""
+license = "Apache-2.0"
+readme = "README.md"
+repository = "http://github.com/swarmauri/swarmauri-sdk/pkgs/pkgs/FastTokenizer/"
+
+[lib]
+name = "fasttokenizer"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.18", features = ["extension-module"] }
+regex = "1.9"
+log = "0.4"
+unicode-normalization = "0.1.22"
+
+[features]
+py_bindings = []
+
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = 3
+strip = true

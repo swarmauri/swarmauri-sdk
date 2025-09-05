@@ -8,6 +8,7 @@ errors appropriately.
 
 from nbformat import NotebookNode
 from swarmauri_tool_jupyterfromdict.JupyterFromDictTool import JupyterFromDictTool
+from unittest.mock import patch
 
 
 def test_class_attributes() -> None:
@@ -72,17 +73,13 @@ def test_call_with_invalid_notebook_dict() -> None:
         "Error message should indicate a validation error for an invalid notebook."
     )
 
-    def test_call_with_exception_handling(mocker) -> None:
-        """
-        Ensures a generic exception is also handled and returned as an error if something unexpected occurs.
-        """
-        tool = JupyterFromDictTool()
 
-        # Mock from_dict to raise a generic exception when called
-        mocker.patch("nbformat.from_dict", side_effect=Exception("Mock failure"))
+def test_call_with_exception_handling() -> None:
+    """Ensure a generic exception is handled gracefully."""
+    tool = JupyterFromDictTool()
 
+    with patch("nbformat.from_dict", side_effect=Exception("Mock failure")):
         result = tool({})
 
-        # Assert that the result contains the error message
-        assert "error" in result
-        assert result["error"] == "An error occurred: Mock failure"
+    assert "error" in result
+    assert result["error"] == "An error occurred: Mock failure"

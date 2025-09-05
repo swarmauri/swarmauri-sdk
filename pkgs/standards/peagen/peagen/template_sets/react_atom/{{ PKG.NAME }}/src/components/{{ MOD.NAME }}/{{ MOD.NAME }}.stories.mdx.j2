@@ -1,0 +1,24 @@
+import {{ MOD.NAME }} from './{{ MOD.NAME }}.tsx';
+import { Meta, Story, ArgsTable, Canvas } from '@storybook/addon-docs';
+
+<Meta title="Atoms/{{ MOD.NAME }}" component={{{ MOD.NAME }}} />
+
+# {{ MOD.NAME }}
+
+A concise description of the {{ MOD.NAME }} atom.
+
+<ArgsTable of={{{ MOD.NAME }}} />
+
+<Canvas>
+  <Story name="Default">
+    <{{ MOD.NAME }} />
+  </Story>
+</Canvas>
+
+<Story name="With Props">
+  {/*
+    Show an example with props – replace/add
+    args below to demonstrate variants
+  */}
+  <{{ MOD.NAME }} {{ propExampleKey }}="{{ propExampleValue }}" />
+</Story>

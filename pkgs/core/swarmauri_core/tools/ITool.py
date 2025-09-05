@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 
 class ITool(ABC):
@@ -9,4 +9,8 @@ class ITool(ABC):
 
     @abstractmethod
     def __call__(self, *args, **kwargs) -> Dict[str, Any]:
+        pass
+
+    @abstractmethod
+    def batch(self, inputs: List[Any], *args, **kwargs) -> List[Any]:
         pass

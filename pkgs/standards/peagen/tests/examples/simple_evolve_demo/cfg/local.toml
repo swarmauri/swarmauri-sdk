@@ -1,0 +1,46 @@
+[queues]
+default_queue = "in_memory"
+
+[storage]
+default_filter = "minio"
+
+[storage.filters.file]
+output_dir = "./peagen_artifacts"
+[storage.filters.minio]
+bucket = "test"
+access_key = "${MINIO_ACCESS_KEY}"
+secret_key = "${MINIO_SECRET_KEY}"
+secure = false
+
+[result_backends]
+default_backend = "local_fs"
+[result_backends.adapters.local_fs]
+root_dir = "./task_runs"
+
+[evaluation]
+pool = "default"
+max_workers = 1
+async = false
+strict = true
+
+[vcs]
+
+default_vcs = "git"
+
+
+[vcs.adapters.git]
+mirror_git_url = "${MIRROR_GIT_URL}"
+mirror_git_token = "${MIRROR_GIT_TOKEN}"
+owner = "${OWNER}"
+
+
+[vcs.adapters.git.remotes]
+origin = "${GITEA_REMOTE}"
+upstream = "${GITHUB_REMOTE}"
+
+[evaluation.evaluators]
+default_evaluator = "performance"
+
+[evaluation.evaluators.performance]
+import_path = "sort_alg"
+entry_fn = "bad_sort"

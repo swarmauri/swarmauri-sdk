@@ -1,11 +1,15 @@
 import logging
-from typing import Any, Dict, List, Literal, Optional, Type
+from typing import Any, Dict, List, Optional, Type
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
+<<<<<<< HEAD
+=======
+from typing_extensions import Literal
+>>>>>>> upstream/mono/dev
 
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
@@ -33,8 +37,15 @@ class OpenAIReasonModel(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = []
-    name: str = ""
+    allowed_models: List[str] = [
+        "o1-mini",
+        "o1",
+        "o1-2024-12-17",
+        "o1-mini-2024-09-12",
+        "o3-mini",
+        "o3-mini-2025-01-31",
+    ]
+    name: str = "o1-mini"
     type: Literal["OpenAIReasonModel"] = "OpenAIReasonModel"
     timeout: float = 600.0
     _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/chat/completions")
@@ -52,8 +63,6 @@ class OpenAIReasonModel(LLMBase):
             "Authorization": f"Bearer {self.api_key.get_secret_value()}",
             "Content-Type": "application/json",
         }
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     def _format_messages(
         self,
@@ -177,8 +186,12 @@ class OpenAIReasonModel(LLMBase):
         message_content = response_data["choices"][0]["message"]["content"]
         usage_data = response_data.get("usage", {})
 
-        usage = self._prepare_usage_data(usage_data, promt_timer.duration)
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage and usage_data:
+            usage = self._prepare_usage_data(usage_data, promt_timer.duration)
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
+
         return conversation
 
     @retry_on_status_codes((429, 529), max_retries=1)
@@ -211,7 +224,7 @@ class OpenAIReasonModel(LLMBase):
         if enable_json:
             payload["response_format"] = "json_object"
 
-        with DurationManager() as promt_timer:
+        with DurationManager() as prompt_timer:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
                     self._BASE_URL, headers=self._headers, json=payload
@@ -223,8 +236,12 @@ class OpenAIReasonModel(LLMBase):
         message_content = response_data["choices"][0]["message"]["content"]
         usage_data = response_data.get("usage", {})
 
-        usage = self._prepare_usage_data(usage_data, promt_timer.duration)
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage and usage_data:
+            usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
+
         return conversation
 
     def get_allowed_models(self) -> List[str]:

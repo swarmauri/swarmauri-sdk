@@ -1,0 +1,38 @@
+# doe_spec.yaml
+templateSet: swarmauri_standard_standalone
+
+FACTORS:
+  COMPONENT:
+    code: CMP
+    description: "Base component variant"
+    type: composite
+    levels:
+      - name: SearchWord
+        requirements:
+          - "Highlight lines"
+          - "Count occurrences"
+      - name: RegexSearch
+        requirements:
+          - "Support regex groups"
+          - "Return match spans"
+    patches:
+      # … your JSON-Patch ops from before …
+
+# ────────────────────────────────────────────────
+# Evaluator pools to run for this experiment
+evaluatorPools:
+  # 1) local package-based pool
+  - alias: project_checks
+    ref:  package://peagen-evalpool-project_checks@0.1.0
+    # no auth needed for local code
+
+  # 2) cloud service–backed pool
+  - alias: security_scan
+    ref:  service://eval-api.acme.com/v1/pools/security_scan/execute?version=2025-07-01
+    auth:
+      header: "X-API-Key: ${SEC_SCAN_API_KEY}"
+
+  # 3) bus-driven pool (e.g. RabbitMQ / Redis)
+  - alias: compliance_scan
+    ref:  redis://acme.evaluator.compliance_scan
+    # publish-only, no local handler required

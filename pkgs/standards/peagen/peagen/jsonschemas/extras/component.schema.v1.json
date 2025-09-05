@@ -1,0 +1,8 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/extras/component.schema.json",
+  "title": "EXTRAS Schema for component",
+  "type": "object",
+  "properties": {},
+  "additionalProperties": false
+}

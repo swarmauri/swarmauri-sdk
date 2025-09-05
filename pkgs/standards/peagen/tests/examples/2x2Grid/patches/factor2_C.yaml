@@ -1,0 +1,5 @@
+PROJECTS:
+  - PACKAGES:
+    - MODULES:
+      - EXTRAS:
+          EXTRA_SETTING: C

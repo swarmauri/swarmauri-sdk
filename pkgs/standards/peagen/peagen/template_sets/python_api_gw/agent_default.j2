@@ -1,0 +1,64 @@
+I need you to generate a file named "{{ FILE.RENDERED_FILE_NAME }}".  
+This file belongs to the "{{ MOD.NAME }}" microservice and must conform to our FastAPI + SQLAlchemy + Pydantic conventions.
+
+Below are the details and requirements:
+
+1. **Purpose**:  
+   {{ FILE.EXTRAS.PURPOSE }}
+
+2. **Description**:  
+   {{ FILE.EXTRAS.DESCRIPTION }}
+
+3. **Requirements / Constraints**:  
+   {%- for req in FILE.EXTRAS.REQUIREMENTS %}
+   - {{ req }}
+   {%- endfor %}
+
+4. **Style Guide**:
+   - The code follows PEP 8 style guidelines.
+   - All modules, functions, classes, and methods must include spacy styled docstrings.
+   - The code follows PEP 484 annotation guidelines.
+   - Critical sections of the code include comments explaining the logic.
+   - Assume the user will copy-paste this code as-is into their project.
+
+5. **File & Code Preferences**:  
+   - Use absolute imports from the project root (e.g., `from {{ PKG.NAME }}.models import MyModel
+   - All methods must have type annotations.
+   - Handle errors with FastAPI HTTPExceptions.  
+
+### Desired Output
+Produce a single code snippet that contains the entire content for the file {{ FILE.RENDERED_FILE_NAME }}. 
+Do not wrap it in triple backticks! Just provide the raw code ready to copy-paste.
+Do not provide an explanation afterward.
+
+{# At the bottom of the template, include any example files specified by the EXAMPLES array #}
+{% if FILE.EXTRAS.EXAMPLES %}
+#### 
+Leverage the reference file below as a guideline to utilize when creating the new component.
+
+{%- for example in FILE.EXTRAS.EXAMPLES %}
+#### Reference File: `{{ example }}`
+```
+{% include example %}
+
+```
+{%- endfor %}
+{% endif %}
+ 
+### Example Format of the Output
+<!-- Example only; your code will vary. This is to show how your response should look. -->
+{% include FILE.FILE_NAME %}
+
+
+{# At the bottom of the template, include any dependency files specified by the DEPENDENCIES array #}
+{% if FILE.EXTRAS.DEPENDENCIES %}
+### Dependencies
+{%- for dependency in FILE.EXTRAS.DEPENDENCIES %}
+#### `{{ dependency | replace(PROJ.ROOT + '/', '') }}`
+```
+{% include dependency %}
+
+```
+
+{%- endfor %}
+{% endif %}

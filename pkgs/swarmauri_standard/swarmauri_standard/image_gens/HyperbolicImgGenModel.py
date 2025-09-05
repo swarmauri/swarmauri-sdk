@@ -4,8 +4,8 @@ from typing import Any, Dict, List, Literal
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
-from swarmauri_base.image_gens.ImageGenBase import ImageGenBase
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.image_gens.ImageGenBase import ImageGenBase
 
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
@@ -37,7 +37,13 @@ class HyperbolicImgGenModel(ImageGenBase):
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
 
     api_key: SecretStr
-    allowed_models: List[str] = []
+    allowed_models: List[str] = [
+        "SDXL1.0-base",
+        "SD1.5",
+        "SSD",
+        "SD2",
+        "SDXL-turbo",
+    ]
     timeout: float = 600.0
 
     name: str = ""
@@ -67,8 +73,6 @@ class HyperbolicImgGenModel(ImageGenBase):
             "Authorization": f"Bearer {self.api_key.get_secret_value()}",
         }
         self._client = httpx.Client(headers=self._headers, timeout=30)
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     async def _get_async_client(self) -> httpx.AsyncClient:
         """

@@ -55,8 +55,16 @@ class GroqToolModel(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = []
-    name: str = ""
+    allowed_models: List[str] = [
+        "qwen-2.5-32b",
+        "deepseek-r1-distill-qwen-32b",
+        "deepseek-r1-distill-llama-70b",
+        "llama-3.3-70b-versatile",
+        "llama-3.1-8b-instant",
+        "mixtral-8x7b-32768",
+        "gemma2-9b-it",
+    ]
+    name: str = "qwen-2.5-32b"
 
     type: Literal["GroqToolModel"] = "GroqToolModel"
     _client: httpx.Client = PrivateAttr(default=None)
@@ -86,10 +94,14 @@ class GroqToolModel(LLMBase):
             timeout=self.timeout,
         )
 
+<<<<<<< HEAD
         self.allowed_models = self.allowed_models or self.get_allowed_models()
         self.name = self.allowed_models[0]
 
     def _schema_convert_tools(self, tools: Dict[str, Any]) -> List[Dict[str, Any]]:
+=======
+    def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
+>>>>>>> upstream/mono/dev
         """
         Converts toolkit items to API-compatible schema format.
 

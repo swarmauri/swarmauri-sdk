@@ -39,8 +39,11 @@ class GroqVisionModel(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = []
-    name: str = ""
+    allowed_models: List[str] = [
+        "llama-3.2-90b-vision-preview",
+        "llama-3.2-11b-vision-preview",
+    ]
+    name: str = "llama-3.2-90b-vision-preview"
     type: Literal["GroqVisionModel"] = "GroqVisionModel"
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
@@ -68,9 +71,6 @@ class GroqVisionModel(LLMBase):
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
-
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     def _format_messages(
         self,

@@ -7,10 +7,12 @@ This document outlines the coding and documentation standards for our SDK. Our g
 ## Table of Contents
 
 - [General Coding Standards](#general-coding-standards)
+- [Testing Conventions](#testing-conventions)
 - [Docstring Conventions](#docstring-conventions)
   - [Overview](#overview)
   - [Structure](#structure)
   - [Example](#example)
+- [Packaging Standards](#packaging-standards)
 - [Contributing](#contributing)
 - [References](#references)
 
@@ -24,8 +26,17 @@ This document outlines the coding and documentation standards for our SDK. Our g
 - **Readable and Maintainable Code:**  
   Write clear, self-explanatory code. Refactor and comment where necessary to improve clarity.
   
-- **Consistent Formatting:**  
+- **Consistent Formatting:**
   Use our style guide and formatting tools (e.g., linters, formatters) to maintain consistency across the codebase.
+
+## Testing Conventions
+
+All tests must reside in directories named for their pytest marker. Example locations include:
+- `tests/unit/`
+- `tests/i9n/`
+- `tests/r8n/`
+
+Each test module must also include the corresponding `@pytest.mark.<marker>` annotation.
 
 ---
 
@@ -144,3 +155,54 @@ class TextProcessor:
             raise ValueError("Input text must not be empty.")
         return self.nlp(text)
 ```
+
+## Packaging Standards
+
+All standalone packages follow a consistent layout and metadata style.
+
+### pyproject.toml Pattern
+
+Use the standard project table with a GitHub repository link and reference
+internal dependencies via `tool.uv.sources`:
+
+```toml
+[project]
+name = "your_package"
+version = "<version>"
+readme = "README.md"
+repository = "https://github.com/swarmauri/swarmauri-sdk"
+
+[tool.uv.sources]
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+```
+
+### README Branding
+
+Every package README begins with the Swarmauri logo and PyPI badges showing
+downloads, supported Python versions, and the latest release.
+
+### Standalone Package Layout
+
+```
+pkgs/<tier>/<package>/
+    pyproject.toml
+    README.md
+    <package>/
+        __init__.py
+        ...
+```
+
+### Entry Points
+
+Plugins are exposed through `[project.entry-points]` groups. Example:
+
+```toml
+[project.entry-points."peagen.publishers"]
+rabbitmq = "peagen.plugins.publishers.rabbitmq_publisher:RabbitMQPublisher"
+```
+
+### Monorepo Workspace
+
+Add new packages to `pkgs/pyproject.toml` under `tool.uv.workspace.members` so
+they are installed and tested with the rest of the SDK.

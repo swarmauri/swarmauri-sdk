@@ -1,0 +1,58 @@
+[build-system]
+requires = ["meson-python", "ninja", "pybind11"]
+build-backend = "mesonpy"
+
+[project]
+name = "QueryEngine"
+version = "0.1.0"
+description = "Configuration for package QueryEngine with C++ extensions using Meson build system."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10,<3.13"
+authors = [
+    {name = "Nwogha Michael", email = "michael@swarmauri.com"}
+]
+classifiers = [
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11", 
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Development Status :: 3 - Alpha"
+]
+
+dependencies = [
+    "numpy",
+    "pybind11",
+    "uv"
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "uv"]
+
+[tool.pytest.ini_options]
+markers = [
+    "unit: Unit tests",
+    "i9n: Integration tests",
+    "r8n: Regression tests",
+    "xfail: Expected failures",
+    "xpass: Expected passes"
+]
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-xdist>=3.6.1",
+    "pytest-json-report>=1.5.0",
+    "python-dotenv",
+    "requests>=2.32.3",
+    "flake8>=7.0",
+    "pytest-timeout>=2.3.1",
+    "ruff>=0.9.9",
+    "pytest-benchmark>=4.0.0",
+]

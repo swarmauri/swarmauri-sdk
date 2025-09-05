@@ -64,6 +64,9 @@ class JSONRequestsTool(ToolBase):
         ]
     )
 
+    # Reusable client for requests; allows injection of a custom transport for testing.
+    client: httpx.Client = Field(default_factory=httpx.Client, exclude=True)
+
     def get(
         self,
         url: str,
@@ -81,7 +84,7 @@ class JSONRequestsTool(ToolBase):
         Returns:
             httpx.Response: The response object from the GET request.
         """
-        response = httpx.get(url, params=params, headers=headers)
+        response = self.client.get(url, params=params, headers=headers)
         response.raise_for_status()  # Raise an HTTPStatusError for bad responses (4xx and 5xx)
         return response
 
@@ -104,7 +107,7 @@ class JSONRequestsTool(ToolBase):
         Returns:
             httpx.Response: The response object from the POST request.
         """
-        response = httpx.post(url, data=data, json=json, headers=headers)
+        response = self.client.post(url, data=data, json=json, headers=headers)
         response.raise_for_status()  # Raise an HTTPStatusError for bad responses (4xx and 5xx)
         return response
 
@@ -127,7 +130,7 @@ class JSONRequestsTool(ToolBase):
         Returns:
             httpx.Response: The response object from the PUT request.
         """
-        response = httpx.put(url, data=data, json=json, headers=headers)
+        response = self.client.put(url, data=data, json=json, headers=headers)
         response.raise_for_status()  # Raise an HTTPStatusError for bad responses (4xx and 5xx)
         return response
 
@@ -144,7 +147,7 @@ class JSONRequestsTool(ToolBase):
         Returns:
             httpx.Response: The response object from the DELETE request.
         """
-        response = httpx.delete(url, headers=headers)
+        response = self.client.delete(url, headers=headers)
         response.raise_for_status()  # Raise an HTTPStatusError for bad responses (4xx and 5xx)
         return response
 

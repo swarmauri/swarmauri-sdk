@@ -1,0 +1,98 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/peagen.schema.json",
+  "title": "Peagen Configuration Schema (v1.0.3)",
+  "type": "object",
+
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.3",
+      "description": "Version of this Peagen configuration schema"
+    },
+
+    "workspace": {
+      "type": "object",
+      "properties": {
+        "org":          { "type": "string" },
+        "template_set": { "type": "string" },
+        "workers":      { "type": "integer" }
+      },
+      "required": [ "org" ],
+      "additionalProperties": true
+    },
+
+    "llm": {
+      "type": "object",
+      "properties": {
+        "default_provider":    { "type": "string" },
+        "default_model_name":  { "type": "string" },
+        "default_temperature": { "type": "number" },
+        "default_max_tokens":  { "type": "integer" }
+      },
+      "required": [ "default_provider", "default_model_name" ],
+      "additionalProperties": true
+    },
+
+    "storage": {
+      "type": "object",
+      "properties": {
+        "default_filter": { "type": "string" },
+        "filters": {
+          "type": "object",
+          "patternProperties": {
+            "^[A-Za-z0-9_\\-]+$": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "minProperties": 1,
+          "additionalProperties": false
+        }
+      },
+      "required": [ "default_filter", "filters" ],
+      "additionalProperties": false
+    },
+
+    "publishers": {
+      "type": "object",
+      "properties": {
+        "default_publisher": { "type": "string" },
+        "adapters": {
+          "type": "object",
+          "patternProperties": {
+            "^[A-Za-z0-9_\\-]+$": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "minProperties": 1,
+          "additionalProperties": false
+        }
+      },
+      "required": [ "default_publisher", "adapters" ],
+      "additionalProperties": false
+    },
+
+    "plugins": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["fallback", "switch", "fan-out"]
+        },
+        "switch": {
+          "type": "object",
+          "patternProperties": {
+            "^[A-Za-z0-9_\\-]+$": { "type": "string" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": ["mode"],
+      "additionalProperties": false
+    }
+  },
+
+  "required": [ "schemaVersion", "workspace", "llm", "storage", "publishers" ],
+  "additionalProperties": false
+}

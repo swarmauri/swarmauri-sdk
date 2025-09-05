@@ -1,0 +1,13 @@
+from typing import Optional
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.{{ MOD.EXTRAS.RESOURCE_KIND }}.{{ MOD.EXTRAS.INTERFACE_NAME }} import {{ MOD.EXTRAS.INTERFACE_NAME }}
+
+@ComponentBase.register_model()
+class {{ MOD.NAME }}({{ MOD.EXTRAS.INTERFACE_NAME }}, ComponentBase):
+    """
+    <!-- Add docstrings here -->
+    """
+    resource: Optional[str] = Field(default=ResourceTypes.{{ MOD.EXTRAS.RESOURCE_KIND | upper | make_singular  }}.value)
+    
+    # Methods
+    <!-- Include additional methods here. All methods should include complete implementation logic. -->

@@ -1,0 +1,32 @@
+import pytest
+from autoapi.v3.autoapp import AutoApp
+from autoapi.v3.engine.shortcuts import engine as build_engine, mem
+
+
+def _db_names(conn):
+    result = conn.exec_driver_sql("PRAGMA database_list")
+    return {row[1] for row in result.fetchall()}
+
+
+def test_initialize_sync_with_sqlite_attachments(tmp_path):
+    eng = build_engine(mem(async_=False))
+    attach_db = tmp_path / "logs.sqlite"
+    attach_db.touch()
+    api = AutoApp(engine=eng)
+    api.initialize(sqlite_attachments={"logs": str(attach_db)})
+    sql_eng, _ = eng.raw()
+    with sql_eng.connect() as conn:
+        assert "logs" in _db_names(conn)
+
+
+@pytest.mark.asyncio
+async def test_initialize_async_with_sqlite_attachments(tmp_path):
+    eng = build_engine(mem())
+    attach_db = tmp_path / "logs.sqlite"
+    attach_db.touch()
+    api = AutoApp(engine=eng)
+    await api.initialize(sqlite_attachments={"logs": str(attach_db)})
+    sql_eng, _ = eng.raw()
+    async with sql_eng.connect() as conn:
+        names = await conn.run_sync(_db_names)
+    assert "logs" in names

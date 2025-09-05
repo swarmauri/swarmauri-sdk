@@ -1,0 +1,27 @@
+// File: component.d.ts.j2
+
+import { DefineComponent } from 'vue';
+
+export interface {{ MOD.NAME }}Props {
+  {# Define your props here, e.g.: #}
+  {# label?: string; #}
+  {% for prop, type in props.items() %}
+  {{ prop }}?: {{ type }};
+  {% endfor %}
+}
+
+declare const {{ MOD.NAME }}: DefineComponent<
+  {{ MOD.NAME }}Props,
+  {},
+  {},
+  {},
+  {},
+  {},
+  {},
+  {},
+  string,
+  {},
+  {}
+>;
+
+export default {{ MOD.NAME }};

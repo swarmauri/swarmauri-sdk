@@ -44,7 +44,14 @@ class GeminiToolModel(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = []
+    allowed_models: List[str] = [
+        "gemini-2.0-flash",
+        "gemini-2.0-flash-lite",
+        "gemini-2.0-pro-exp-02-05",
+        "gemini-1.5-flash",
+        "gemini-1.5-flash-8b",
+        "gemini-1.5-pro",
+    ]
     name: str = ""
     type: Literal["GeminiToolModel"] = "GeminiToolModel"
     _BASE_URL: str = PrivateAttr(
@@ -85,8 +92,6 @@ class GeminiToolModel(LLMBase):
             **kwargs (Any): Additional keyword arguments, including 'allowed_models'.
         """
         super().__init__(*args, **kwargs)
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     def _schema_convert_tools(
         self, tools: Dict[str, Any]
@@ -101,7 +106,6 @@ class GeminiToolModel(LLMBase):
             Dict[str, List[Dict[str, Any]]]: Dictionary with function declarations for Gemini.
         """
         response = [GeminiSchemaConverter().convert(tools[tool]) for tool in tools]
-        logging.info(response)
         return {"function_declarations": response}
 
     def _format_messages(

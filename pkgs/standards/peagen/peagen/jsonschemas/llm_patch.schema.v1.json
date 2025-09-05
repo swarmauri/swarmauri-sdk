@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/schemas/llm_patch.schema.v1.json",
+  "title": "LLM Patch",
+  "type": "object",
+  "properties": {
+    "kind": { "type": "string", "const": "llm-patch" },
+    "id": { "type": "string" },
+    "provider": { "type": "string" },
+    "params": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "temperature": { "type": "number" },
+        "max_tokens": { "type": "integer" }
+      },
+      "required": ["name", "temperature", "max_tokens"],
+      "additionalProperties": true
+    },
+    "api_key": { "type": "string" },
+    "secretRef": { "type": "string" }
+  },
+  "required": ["kind", "id", "provider", "params"],
+  "additionalProperties": false
+}

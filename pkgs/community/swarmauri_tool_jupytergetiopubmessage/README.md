@@ -4,8 +4,8 @@
 <p align="center">
     <a href="https://pypi.org/project/swarmauri_tool_jupytergetiopubmessage/">
         <img src="https://img.shields.io/pypi/dm/swarmauri_tool_jupytergetiopubmessage" alt="PyPI - Downloads"/></a>
-    <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_jupytergetiopubmessage/README.md">
-        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupytergetiopubmessage/README.md&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_jupytergetiopubmessage/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_jupytergetiopubmessage.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_jupytergetiopubmessage/">
         <img src="https://img.shields.io/pypi/pyversions/swarmauri_tool_jupytergetiopubmessage" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_jupytergetiopubmessage/">
@@ -37,26 +37,21 @@ If you see a valid version number, the package is installed and ready to use.
 
 ## Usage
 
-Below is a brief example of how to use JupyterGetIOPubMessageTool to capture messages from an active Jupyter kernel. In most scenarios, you will have a running Jupyter kernel and a kernel client available.
+Below is a brief example of how to use ``JupyterGetIOPubMessageTool`` to capture
+messages from an active Jupyter kernel. The tool expects the WebSocket URL for
+the kernel's ``/api/kernels/{id}/channels`` endpoint.
 
 --------------------------------------------------------------------------------
 Example usage:
 
-from jupyter_client import KernelManager
 from swarmauri_tool_jupytergetiopubmessage import JupyterGetIOPubMessageTool
 
-# Initialize a new Jupyter kernel
-km = KernelManager()
-km.start_kernel()
-kc = km.client()
-kc.start_channels()
+# URL to the running kernel's channels endpoint
+channels_url = "ws://localhost:8888/api/kernels/12345/channels"
 
-# Execute a sample command in the kernel to produce some output
-kc.execute("print('Hello from the kernel!')")
-
-# Initialize and use the JupyterGetIOPubMessageTool
+# Initialize and use the tool
 tool = JupyterGetIOPubMessageTool()
-result = tool(kernel_client=kc, timeout=3.0)
+result = tool(channels_url, timeout=3.0)
 
 print("Captured stdout:", result["stdout"])
 print("Captured stderr:", result["stderr"])
@@ -64,9 +59,6 @@ print("Captured logs:", result["logs"])
 print("Execution results:", result["execution_results"])
 print("Did timeout occur?:", result["timeout_exceeded"])
 
-# Clean up kernel resources
-kc.stop_channels()
-km.shutdown_kernel()
 
 --------------------------------------------------------------------------------
 
@@ -74,10 +66,11 @@ This usage example demonstrates how to retrieve stdout messages, stderr messages
 
 ## Dependencies
 
-• Python 3.10 to 3.13  
-• jupyter_client  
-• swarmauri_core (for component registration)  
-• swarmauri_base (for the base tool functionality)  
+• Python 3.10 to 3.13
+• websocket-client
+• jupyter_client
+• swarmauri_core (for component registration)
+• swarmauri_base (for the base tool functionality)
 
 Additional development dependencies (e.g., flake8, pytest) are specified in the pyproject.toml file but not required for basic usage.
 

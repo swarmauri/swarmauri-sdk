@@ -1,0 +1,20 @@
+PROJECTS:
+  - NAME: "StandardParserImplementation"
+    ROOT: "pkgs"
+    TEMPLATE_SET: "swarmauri_standard"
+    PACKAGES:
+      - NAME: "swarmauri_standard"        
+        MODULES:
+          - NAME: "JSONParser"
+            EXTRAS:
+              PURPOSE: "Implement specialized parsing for JSON formatted data."
+              DESCRIPTION: "Concrete JSON parser implementation that efficiently processes JSON data with support for complex nested structures and specialized JSON-specific features."
+              REQUIREMENTS:
+              - "Must handle all valid JSON formats including nested objects and arrays."
+              - "Should provide specialized JSON schema validation capabilities."
+              - "Should include optimized handling for large JSON documents."
+              RESOURCE_KIND: "parsers"
+              BASE_NAME: "ParserBase"
+              BASE_FILE: "base/swarmauri_base/parsers/ParserBase.py"
+              EXAMPLES:
+              - "swarmauri_standard/swarmauri_standard/parsers/CSVParser.py"

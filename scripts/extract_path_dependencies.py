@@ -23,7 +23,9 @@ def extract_path_dependencies(pyproject_path):
 
 def main():
     # Set up argument parsing
-    parser = argparse.ArgumentParser(description="Extract path dependencies from pyproject.toml")
+    parser = argparse.ArgumentParser(
+        description="Extract path dependencies from pyproject.toml"
+    )
     parser.add_argument(
         "--pyproject", type=str, required=True, help="Path to the pyproject.toml file"
     )

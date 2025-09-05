@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/peagen/event.schema.v1.json",
+  "title": "Peagen Event",
+  "type": "object",
+  "required": ["type"],
+  "properties": {
+    "type": {"type": "string"},
+    "extra": {"type": "object", "additionalProperties": true}
+  }
+}

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri"
-version = "0.7.3"
+version = "0.7.6.dev5"
 description = "Namespace package for components, packages, and plugins within the Swarmauri framework."
 license = "Apache-2.0"
 readme = "README.md"
@@ -34,6 +34,7 @@ default = [
     "swarmauri_parser_beautifulsoupelement",
     #"swarmauri_vectorstore_tfidf",
     "swarmauri_distance_minkowski",
+    "swarmauri_signing_ed25519",
 ]
 
 full = [
@@ -46,6 +47,7 @@ full = [
     "swarmauri_embedding_nmf",
     "swarmauri_distance_minkowski",
     "swarmauri_tool_matplotlib",
+    "swarmauri_signing_ed25519",
 ]
 
 [tool.uv.sources]
@@ -61,6 +63,7 @@ swarmauri_parser_keywordextractor = { workspace = true }
 swarmauri_parser_beautifulsoupelement = { workspace = true }
 #swarmauri_vectorstore_tfidf = { workspace = true }
 swarmauri_distance_minkowski = { workspace = true }
+swarmauri_signing_ed25519 = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]

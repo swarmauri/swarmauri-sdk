@@ -1,0 +1,12 @@
+# Peagen starter payload for {{ PROJECT_ROOT }}
+# https://github.com/swarmauri/swarmauri-sdk/tree/main/peagen
+
+PROJECTS:
+  - NAME: {{ PROJECT_ROOT }}
+    PKGS:
+      - NAME: {{ PROJECT_ROOT }}
+        TEMPLATE_SET: {{ template_set }}
+        {% if provider %}
+        PROVIDER: {{ provider }}
+        {% endif %}
+        SOURCE_DIR: src/{{ PROJECT_ROOT }}

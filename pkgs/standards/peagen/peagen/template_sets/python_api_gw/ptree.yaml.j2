@@ -1,0 +1,60 @@
+# =====================================================
+# ptree.yaml.j2 for api_gateway + services template_sets
+# =====================================================
+
+{%- for PKG in PROJ.PKGS %}
+# -------------------------
+# Package: {{ PKG.NAME }}
+# -------------------------
+
+  # API Gateway files
+  - FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/__init__.py.j2{% endraw %}"
+    RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/__init__.py"
+    PROCESS_TYPE: "COPY"
+    EXTRAS:
+      RESOURCE_KIND: "api-gateway"
+      PURPOSE: "Blank __init__"
+      DESCRIPTION: "Blank __init__"
+      REQUIREMENTS: []
+      DEPENDENCIES: []
+
+  - FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/main.py.j2{% endraw %}"
+    RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/main.py"
+    PROCESS_TYPE: "GENERATE"
+    EXTRAS:
+      RESOURCE_KIND: "api-gateway"
+      PURPOSE: "Entry point for the API Gateway"
+      DESCRIPTION: "Bootstraps FastAPI, loads service routers, and runs the gateway."
+      REQUIREMENTS:
+        - "Use FastAPI to mount all service routers."
+        - "Read gateway configuration from config.py."
+      DEPENDENCIES: []
+
+  - FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/routes.py.j2{% endraw %}"
+    RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/routes.py"
+    PROCESS_TYPE: "GENERATE"
+    EXTRAS:
+      RESOURCE_KIND: "api-gateway"
+      PURPOSE: "Defines gateway routes for forwarding to microservices"
+      DESCRIPTION: "Creates APIRouter instances and includes each service's router."
+      REQUIREMENTS:
+        - "Import each service router dynamically."
+        - "Self‑register service routers via a DISCOVERY mechanism."
+      DEPENDENCIES:
+        - "./config.py"
+
+  - FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/config.py.j2{% endraw %}"
+    RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/config.py"
+    PROCESS_TYPE: "GENERATE"
+    EXTRAS:
+      RESOURCE_KIND: "api-gateway"
+      PURPOSE: "Holds configuration for gateway (host, port, service discovery settings)"
+      DESCRIPTION: "Defines settings like SERVICE_REGISTRY_URL, CORS origins, etc."
+      REQUIREMENTS:
+        - "Use Pydantic’s BaseSettings for env‑driven config."
+      DEPENDENCIES: []
+
+{%- endfor %}
+# =====================================================
+# End of ptree payload
+# =====================================================

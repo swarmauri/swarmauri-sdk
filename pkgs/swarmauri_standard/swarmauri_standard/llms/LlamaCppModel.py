@@ -1,9 +1,16 @@
 import asyncio
 import json
+<<<<<<< HEAD
 from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Optional
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
+=======
+from typing import AsyncIterator, Dict, Iterator, List
+
+import httpx
+from pydantic import PrivateAttr
+>>>>>>> upstream/mono/dev
 from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
@@ -33,6 +40,7 @@ class LlamaCppModel(LLMBase):
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
 
+<<<<<<< HEAD
     api_key: Optional[SecretStr] = None
     allowed_models: List[str] = []
 
@@ -43,6 +51,9 @@ class LlamaCppModel(LLMBase):
     timeout: float = 600.0
 
     def __init__(self, **data: Dict[str, Any]) -> None:
+=======
+    def __init__(self, **data):
+>>>>>>> upstream/mono/dev
         """
         Initializes the LlamaCppModel instance and sets up httpx clients
         for both sync and async operations.
@@ -66,7 +77,7 @@ class LlamaCppModel(LLMBase):
         )
 
         self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
+        self.name = self.name or self.allowed_models[0]
 
     def _format_messages(
         self, messages: List[SubclassUnion[MessageBase]]

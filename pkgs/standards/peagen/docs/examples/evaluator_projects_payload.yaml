@@ -1,0 +1,215 @@
+PROJECTS:
+  - NAME: "EVsProject"
+    ROOT: "pkgs"
+    PACKAGES:
+
+      # Core Interfaces
+      - NAME: "core/swarmauri_core"
+        TEMPLATE_SET_OVERRIDE: "swarmauri_core"
+        MODULES:
+
+          # Existing interfaces...
+          - NAME: "IEvaluate"
+            EXTRAS:
+              PURPOSE: "Defines the contract for evaluation functions in EV pools."
+              DESCRIPTION: "Interface requiring implementation of methods to evaluate program fitness."
+              RESOURCE_KIND: "evaluators"
+              REQUIREMENTS:
+                - "Must implement method: def evaluate(self, program: Program, **kwargs) -> Tuple[float, Dict[str,Any]]"
+                - "Must be stateless (no shared mutable or global state) to allow parallel execution"
+                - "Must support multiple feature dimensions and return a scalar score plus metadata"
+                - "Must document all input and output types explicitly (never use Any)"
+                - "Must raise EvaluationError on failure"
+              DEPENDENCIES:
+                - "pkgs/core/swarmauri_core/evaluators/IProgram.py"
+
+          - NAME: "IPoolEvaluator"
+            EXTRAS:
+              PURPOSE: "Defines the contract for EV pools, managing sets of EVs."
+              DESCRIPTION: "Interface requiring methods for dynamic registration, execution, and aggregation of evaluators."
+              RESOURCE_KIND: "evaluator_pools"
+              REQUIREMENTS:
+                - "Must implement add_evaluator(ev: IEvaluate) and remove_evaluator(name: str)"
+                - "Must provide evaluate(programs: Sequence[Program]) -> Sequence[EvaluationResult]"
+                - "Must support async evaluation via async def evaluate_async(...)"
+                - "Must expose aggregate(scores: Sequence[float]) -> float and allow pluggable aggregation"
+                - "Must include initialize() and shutdown() lifecycle hooks for resource management"
+              DEPENDENCIES:
+                - "pkgs/core/swarmauri_core/evaluators/IEvaluate.py"
+
+          - NAME: "IProgram"
+            EXTRAS:
+              PURPOSE: "Defines the contract for programs under evolution."
+              DESCRIPTION: "Interface requiring methods to represent, diff, apply, and serialize a program."
+              RESOURCE_KIND: "programs"
+              REQUIREMENTS:
+                - "Must implement serialize() -> Dict[str,Any]"
+                - "Must implement diff(other: IProgram) -> Any"
+                - "Must implement apply_diff(diff: Any) -> IProgram"
+                - "Must implement validate() -> bool"
+                - "Never use Any in public method signatures; document types explicitly"
+
+          - NAME: "IEvalResult"
+            EXTRAS:
+              PURPOSE: "Defines the contract for evaluation results."
+              DESCRIPTION: "Interface requiring accessors for score, metadata, and linkage to a program."
+              RESOURCE_KIND: "evaluator_results"
+              REQUIREMENTS:
+                - "Must expose property score: float"
+                - "Must expose property metadata: Dict[str,Any]"
+                - "Must expose property program: IProgram"
+                - "Must implement to_dict() -> Dict[str,Any]"
+
+      # Base Classes
+      - NAME: "base/swarmauri_base"
+        TEMPLATE_SET_OVERRIDE: "swarmauri_base"
+        MODULES:
+
+          # Existing base classes...
+          - NAME: "EvaluatorBase"
+            EXTRAS:
+              PURPOSE: "Provides reusable logic for evaluation function implementations."
+              DESCRIPTION: "Abstract base implementing template methods, logging, and partial evaluation workflow."
+              RESOURCE_KIND: "evaluators"
+              INTERFACE_NAME: "IEvaluate"
+              INTERFACE_FILE: "pkgs/core/swarmauri_core/evaluators/IEvaluate.py"
+              REQUIREMENTS:
+                - "Must inherit from IEvaluate"
+                - "Must implement protected _compute_score(self, program: Program, **kwargs) -> Tuple[float, Dict]"
+                - "Must wrap _compute_score in evaluate(), capturing execution time and exceptions"
+                - "Must provide default metadata‐aware aggregation (e.g. average of sub-scores)"
+
+          - NAME: "PoolEvaluatorBase"
+            EXTRAS:
+              PURPOSE: "Provides reusable logic for managing sets of evaluation functions."
+              DESCRIPTION: "Abstract base implementing thread-safe registry, dispatch, and result aggregation."
+              RESOURCE_KIND: "evaluator_pools"
+              INTERFACE_NAME: "IPoolEvaluator"
+              INTERFACE_FILE: "pkgs/core/swarmauri_core/evaluator_pools/IPoolEvaluator.py"
+              REQUIREMENTS:
+                - "Must inherit from IPoolEvaluator"
+                - "Must implement _dispatch(self, programs: Sequence[Program]) -> Sequence[EvaluationResult]"
+                - "Must provide default evaluate, evaluate_async, and aggregate implementations"
+                - "Must manage a concurrent.futures.Executor for parallel runs"
+                - "Must include pre_process and post_process hooks for inputs and outputs"
+
+          # ▶ New Base Class: ProgramBase
+          - NAME: "ProgramBase"
+            EXTRAS:
+              PURPOSE: "Provides reusable logic for program representation and diff/apply."
+              DESCRIPTION: "Abstract base implementing serialization, diffing, and validation workflows."
+              RESOURCE_KIND: "models"
+              INTERFACE_NAME: "IProgram"
+              INTERFACE_FILE: "pkgs/core/swarmauri_core/models/IProgram.py"
+              REQUIREMENTS:
+                - "Must inherit from IProgram"
+                - "Must implement serialize(), diff(), apply_diff(), validate()"
+                - "Must include default JSON-based serialization"
+                - "Must log diff operations for auditability"
+
+          # ▶ New Base Class: EvalResultBase
+          - NAME: "EvalResultBase"
+            EXTRAS:
+              PURPOSE: "Provides reusable logic for packaging evaluation results."
+              DESCRIPTION: "Abstract base implementing score storage, metadata handling, and serialization."
+              RESOURCE_KIND: "models"
+              INTERFACE_NAME: "IEvalResult"
+              INTERFACE_FILE: "pkgs/core/swarmauri_core/models/IEvalResult.py"
+              REQUIREMENTS:
+                - "Must inherit from IEvalResult"
+                - "Must store score and metadata in protected attributes"
+                - "Must implement to_dict() returning {'score': ..., 'metadata': ..., 'program': ...}"
+                - "Must validate metadata keys against a schema"
+
+      # Concrete Evaluation Functions and Models
+      - NAME: "swarmauri_standard/swarmauri_standard"
+        TEMPLATE_SET_OVERRIDE: "swarmauri_standard"
+        MODULES:
+
+          - NAME: "Program"
+            EXTRAS:
+              PURPOSE: "Concrete implementation of ProgramBase."
+              DESCRIPTION: "Immutable program object supporting serialization, diff, and apply."
+              BASE_NAME: "ProgramBase"
+              RESOURCE_KIND: "models"
+              BASE_FILE: "pkgs/base/swarmauri_base/models/ProgramBase.py"
+              REQUIREMENTS:
+                - "Must implement serialize(), diff(), apply_diff(), validate() using ProgramBase defaults"
+                - "Must include program ID and version in metadata"
+                - "Must be JSON-serializable"
+
+          - NAME: "EvalResult"
+            EXTRAS:
+              PURPOSE: "Concrete implementation of EvalResultBase."
+              DESCRIPTION: "Holds a program reference, scalar score, and metadata."
+              BASE_NAME: "EvalResultBase"
+              RESOURCE_KIND: "models"
+              BASE_FILE: "pkgs/base/swarmauri_base/models/EvalResultBase.py"
+              REQUIREMENTS:
+                - "Must implement to_dict() using EvalResultBase logic"
+                - "Must link to the evaluated Program instance"
+                - "Must enforce score ∈ ℝ and metadata keys are strings"
+
+      # Standalone Evaluators
+      - NAME: "standalone/swarmauri_evaluator_subprocess"
+        TEMPLATE_SET_OVERRIDE: "pythonpkg"
+        MODULES:
+          - NAME: "SubprocessEvaluator"
+            EXTRAS:
+              PURPOSE: "Runs target programs in isolated subprocesses and measures exit code, stdout, stderr."
+              DESCRIPTION: "Spawns a sandboxed subprocess to execute a program binary or script, captures outputs, and returns status metrics."
+              BASE_NAME: "EvaluatorBase"
+              RESOURCE_KIND: "evaluators"
+              BASE_FILE: "pkgs/base/swarmauri_base/evaluators/EvaluatorBase.py"
+              REQUIREMENTS:
+                - "Must launch the program in a secure, sandboxed subprocess"
+                - "Must capture exit code, stdout, stderr, and runtime"
+                - "Must return a scalar success score plus detailed metadata"
+
+      - NAME: "standalone/swarmauri_evaluator_anyusage"
+        TEMPLATE_SET_OVERRIDE: "swarmauri_standalone"
+        MODULES:
+          - NAME: "AnyTypeUsageEvaluator"
+            EXTRAS:
+              PURPOSE: "Detects usage or import of the `Any` type in Python source files."
+              DESCRIPTION: "Parses Python files to find `typing.Any` imports or `Any` annotations and flags occurrences."
+              BASE_NAME: "EvaluatorBase"
+              RESOURCE_KIND: "evaluators"
+              BASE_FILE: "pkgs/base/swarmauri_base/evaluators/EvaluatorBase.py"
+              REQUIREMENTS:
+                - "Must scan provided Python files for `from typing import Any` or inline `Any` usage"
+                - "Must count and report number of `Any` occurrences"
+                - "Must return a penalty score proportional to `Any` usage and metadata listing file paths and line numbers"
+
+      - NAME: "standalone/swarmauri_evaluator_abstractmethods"
+        TEMPLATE_SET_OVERRIDE: "swarmauri_standalone"
+        MODULES:
+          - NAME: "AbstractMethodsEvaluator"
+            EXTRAS:
+              PURPOSE: "Verifies that all methods in Python classes are marked as abstract when defined in an interface or base class."
+              DESCRIPTION: "Parses Python source to ensure methods decorated with `@abstractmethod` in ABCs or interfaces."
+              BASE_NAME: "EvaluatorBase"
+              RESOURCE_KIND: "evaluators"
+              BASE_FILE: "pkgs/base/swarmauri_base/evaluators/EvaluatorBase.py"
+              REQUIREMENTS:
+                - "Must identify classes inheriting from `abc.ABC` or similar"
+                - "Must verify that all declared methods are decorated with `@abstractmethod`"
+                - "Must report missing decorators with file and line metadata"
+                - "Must return a compliance score and detailed metadata"
+
+      - NAME: "standalone/swarmauri_evaluator_externalimports"
+        TEMPLATE_SET_OVERRIDE: "pythonpkg"
+        MODULES:
+          - NAME: "ExternalImportsEvaluator"
+            EXTRAS:
+              PURPOSE: "Detects non–built-in Python imports in source files."
+              DESCRIPTION: "Analyzes import statements to find modules not in the standard library."
+              BASE_NAME: "EvaluatorBase"
+              RESOURCE_KIND: "evaluators"
+              BASE_FILE: "pkgs/base/swarmauri_base/evaluators/EvaluatorBase.py"
+              REQUIREMENTS:
+                - "Must parse import statements from Python files"
+                - "Must cross-reference imports against the standard library module list"
+                - "Must list any third-party or external imports with file and line metadata"
+                - "Must return a score penalizing external dependencies and detailed metadata"
+

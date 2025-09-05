@@ -34,10 +34,27 @@ class FalVLM(VLMBase):
     _header: Dict[str, str] = PrivateAttr()
 
     allowed_models: List[str] = [
+        "fal-ai/got-ocr/v2",
+        "fal-ai/any-llm/vision",
+        "fal-ai/llavav15-13b",
         "fal-ai/llava-next",
+        "fal-ai/imageutils/nsfw",
+        "fal-ai/moondream/batched",
+        "fal-ai/florence-2-large/caption",
+        "fal-ai/florence-2-large/detailed-caption",
+        "fal-ai/florence-2-large/more-detailed-caption",
+        "fal-ai/florence-2-large/region-to-category",
+        "fal-ai/florence-2-large/ocr",
+        "fal-ai/sa2va/8b/image",
+        "fal-ai/sa2va/8b/video",
+        "fal-ai/sa2va/4b/video",
+        "fal-ai/sa2va/4b/image",
+        "fal-ai/mini-cpm",
+        "fal-ai/moondream-next",
+        "fal-ai/moondream-next/batch",
     ]
     api_key: SecretStr
-    name: str = Field(default="fal-ai/llava-next")
+    name: str = Field(default="fal-ai/got-ocr/v2")
     type: Literal["FalVLM"] = "FalVLM"
     max_retries: int = Field(default=60)
     retry_delay: float = Field(default=1.0)
@@ -55,8 +72,6 @@ class FalVLM(VLMBase):
             "Authorization": f"Key {self.api_key.get_secret_value()}",
         }
         self._client = httpx.Client(headers=self._headers, timeout=30)
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     @retry_on_status_codes((429, 529), max_retries=1)
     def _send_request(self, image_url: str, prompt: str, **kwargs: dict[str, Any]) -> Dict:

@@ -35,8 +35,8 @@ class DeepSeekModel(LLMBase):
     _BASE_URL: str = PrivateAttr("https://api.deepseek.com/v1")
 
     api_key: SecretStr
-    allowed_models: List[str] = []
-    name: str = ""
+    allowed_models: List[str] = ["deepseek-chat", "deepseek-reasoner"]
+    name: str = "deepseek-chat"
 
     type: Literal["DeepSeekModel"] = "DeepSeekModel"
     _client: httpx.Client = PrivateAttr()
@@ -57,9 +57,6 @@ class DeepSeekModel(LLMBase):
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
-
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     def _format_messages(
         self, messages: List[SubclassUnion[MessageBase]]

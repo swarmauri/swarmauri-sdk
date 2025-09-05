@@ -1,0 +1,105 @@
+# =====================================================
+# Global Project Files
+# =====================================================
+
+
+# =====================================================
+# Begin Package File Entries
+# =====================================================
+{%- for PKG in PROJ.PKGS %}
+
+
+# -------------------------
+# Package Source Files
+# -------------------------
+
+{% for MOD in PKG.MODULES %}
+- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/swarmauri_standard/swarmauri_standard/{{ MOD.EXTRAS.RESOURCE_KIND }}/__init__.py.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/swarmauri_standard/swarmauri_standard/{{ MOD.EXTRAS.RESOURCE_KIND }}/__init__.py"
+  PROCESS_TYPE: "COPY"
+  AGENT_PROMPT_TEMPLATE: "agent_default.j2"
+  PROJECT_NAME: "{{ PROJ.NAME }}"
+  PACKAGE_NAME: "{{ PKG.NAME }}"
+  MODULE_NAME: null
+  EXTRAS:
+    PURPOSE: "Initializes the source package for {{ PKG.NAME }}."
+    DESCRIPTION: "This file makes the directory a Python package."
+    DEPENDENCIES: []
+
+- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/swarmauri_standard/swarmauri_standard/{{ MOD.EXTRAS.RESOURCE_KIND }}/{{ MOD.NAME }}.py.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/swarmauri_standard/swarmauri_standard/{{ MOD.EXTRAS.RESOURCE_KIND }}/{{ MOD.NAME }}.py"
+  PROCESS_TYPE: "GENERATE"
+  AGENT_PROMPT_TEMPLATE: "{{ MOD.AGENT_PROMPT_TEMPLATE_OVERRIDE | default(PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2')) }}"
+  PROJECT_NAME: "{{ PROJ.NAME }}"
+  PACKAGE_NAME: "{{ PKG.NAME }}"
+  MODULE_NAME: "{{ MOD.NAME }}"
+  EXTRAS:
+    DEPENDENCIES:
+      {%- if MOD.EXTRAS.BASE_FILE %}
+              - "{{ MOD.EXTRAS.BASE_FILE }}"
+      {%- endif %}
+      {%- if MOD.EXTRAS.EXTERNAL_DOC_FILES %}
+        {%- for doc in MOD.EXTRAS.EXTERNAL_DOC_FILES %}
+              - "{{ doc }}"
+        {%- endfor %}
+      {%- endif %}
+      {%- if MOD.EXTRAS.DEPENDENCIES %}
+        {%- for dep in MOD.EXTRAS.DEPENDENCIES %}
+          {%- if "/" in dep %}
+              - "{{ dep }}"
+          {%- else %}
+            {%- set parts = dep | split('.') %}
+            {%- if parts | length > 2 %}
+              - "{{ PROJ.ROOT }}/{{ (parts)[0] }}/{{ (parts)[0] }}/{{ (parts)[1] }}.{{ (parts)[2] }}"
+            {%- else %}
+              - "{{ PROJ.ROOT }}/swarmauri_standard/swarmauri_standard/{{ dep }}"
+            {%- endif %}
+          {%- endif %}
+        {%- endfor %}
+      {%- endif %}
+      {%- if MOD.EXTRAS.MIXIN_FILES %}
+        {%- for mf in MOD.EXTRAS.MIXIN_FILES %}
+              - "{{ mf }}"
+        {%- endfor %}
+      {%- endif %}
+    PURPOSE: "{{ MOD.EXTRAS.PURPOSE }}"
+    DESCRIPTION: "{{ MOD.EXTRAS.DESCRIPTION }}"
+    REQUIREMENTS:
+      - "Implement the functionality for module {{ MOD.NAME }}."
+      - "Provide implementation logic for inherited methods when applicable."
+      - "Ensure that all methods include complete, comprehensive, and fully functional implementation logic."
+          {%- if MOD.EXTRAS.REQUIREMENTS %}
+    {%- for req in MOD.EXTRAS.REQUIREMENTS %}
+      - "{{ req }}"
+    {%- endfor %}
+    {%- endif %}
+    BASE_CLASS: "{{ MOD.EXTRAS.BASE_NAME }}"
+    MIXINS: {{ MOD.EXTRAS.MIXINS | default([]) | tojson }}
+    RESOURCE_KIND: "{{ MOD.EXTRAS.RESOURCE_KIND }}"
+    EXAMPLES: {{ MOD.EXTRAS.EXAMPLES | default([]) | tojson }}
+
+- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/swarmauri_standard/tests/unit/{{ MOD.EXTRAS.RESOURCE_KIND }}/{{ MOD.NAME }}_unit_test.py.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/swarmauri_standard/tests/unit/{{ MOD.EXTRAS.RESOURCE_KIND }}/{{ MOD.NAME }}_unit_test.py"
+  PROCESS_TYPE: "GENERATE"
+  AGENT_PROMPT_TEMPLATE: "{{ MOD.AGENT_PROMPT_TEMPLATE_OVERRIDE | default(PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2')) }}"
+  PROJECT_NAME: "{{ PROJ.NAME }}"
+  PACKAGE_NAME: "{{ PKG.NAME }}"
+  MODULE_NAME: "{{ MOD.NAME }}"
+  EXTRAS:
+    DEPENDENCIES:
+      - "{{ PROJ.ROOT }}/swarmauri_standard/swarmauri_standard/{{ MOD.EXTRAS.RESOURCE_KIND }}/{{ MOD.NAME }}.py"
+    PURPOSE: "Unit tests for module {{ MOD.NAME }} in package {{ PKG.NAME }}."
+    DESCRIPTION: "Tests for module {{ MOD.NAME }}."
+    REQUIREMENTS:
+      - "Must use pytest."
+      - "Must use @pytest.mark.unit decorator to mark test cases."
+      - "Where applicable use pytest fixtures and parameterize."
+      - "Should import and test the class from the main module."
+
+{% endfor %}
+
+{%- endfor %}
+
+# =====================================================
+# End of Payload
+# =====================================================

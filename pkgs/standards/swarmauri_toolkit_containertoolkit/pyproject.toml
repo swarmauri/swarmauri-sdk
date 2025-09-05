@@ -1,0 +1,72 @@
+[project]
+name = "swarmauri_toolkit_containertoolkit"
+version = "0.7.6.dev5"
+description = "Toolkit bundling container management tools."
+license = "Apache-2.0"
+readme = "README.md"
+repository = "http://github.com/swarmauri/swarmauri-sdk"
+requires-python = ">=3.10,<3.13"
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+dependencies = [
+    "swarmauri_core",
+    "swarmauri_base",
+    "swarmauri_standard",
+    "swarmauri_tool_containernewsession",
+    "swarmauri_tool_containerfeedchars",
+    "swarmauri_tool_containermakepr",
+]
+
+[tool.uv.sources]
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+swarmauri_standard = { workspace = true }
+swarmauri_tool_containernewsession = { workspace = true }
+swarmauri_tool_containerfeedchars = { workspace = true }
+swarmauri_tool_containermakepr = { workspace = true }
+
+[tool.pytest.ini_options]
+norecursedirs = ["combined", "scripts"]
+markers = [
+    "test: standard test",
+    "unit: Unit tests",
+    "i9n: Integration tests",
+    "r8n: Regression tests",
+    "timeout: mark test to timeout after X seconds",
+    "xpass: Expected passes",
+    "xfail: Expected failures",
+    "acceptance: Acceptance tests",
+    "perf: Performance tests that measure execution time and resource usage",
+]
+timeout = 300
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+asyncio_default_fixture_loop_scope = "function"
+
+[project.entry-points.'swarmauri.toolkits']
+ContainerToolkit = "swarmauri_toolkit_containertoolkit:ContainerToolkit"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-xdist>=3.6.1",
+    "pytest-json-report>=1.5.0",
+    "python-dotenv",
+    "requests>=2.32.3",
+    "flake8>=7.0",
+    "pytest-timeout>=2.3.1",
+    "ruff>=0.9.9",
+    "pytest-benchmark>=4.0.0",
+]

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupytergetiopubmessage"
-version = "0.7.3"
+version = "0.7.6.dev5"
 description = "A tool designed to retrieve messages from the IOPub channel of a Jupyter kernel using jupyter_client, capturing cell outputs and logs."
 license = "Apache-2.0"
 readme = "README.md"
@@ -16,6 +16,7 @@ classifiers = [
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "jupyter_client>=8.6.3",
+    "websocket-client>=1.8.0",
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",

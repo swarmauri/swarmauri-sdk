@@ -4,14 +4,17 @@ import logging
 from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
 
 import httpx
-from pydantic import PrivateAttr
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
 from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
-from swarmauri_core.conversations.IConversation import IConversation
 
+<<<<<<< HEAD
 from swarmauri_standard.conversations.Conversation import Conversation
+=======
+from swarmauri_core.conversations.IConversation import IConversation
+>>>>>>> upstream/mono/dev
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.messages.FunctionMessage import FunctionMessage
 from swarmauri_standard.schema_converters.GeminiSchemaConverter import (
@@ -35,7 +38,17 @@ class GeminiToolModel(ToolLLMBase):
     Providers Resources: https://ai.google.dev/api/python/google/generativeai/protos/
     """
 
-    name: str = ""
+    api_key: SecretStr
+    allowed_models: List[str] = [
+        "gemini-2.0-flash",
+        "gemini-2.0-flash-lite",
+        "gemini-2.0-pro-exp-02-05",
+        "gemini-1.5-flash",
+        "gemini-1.5-flash-8b",
+        "gemini-1.5-pro",
+    ]
+    name: str = "gemini-1.5-pro"
+
     type: Literal["GeminiToolModel"] = "GeminiToolModel"
     timeout: float = 600.0
     BASE_URL: str = "https://generativelanguage.googleapis.com/v1beta/models"

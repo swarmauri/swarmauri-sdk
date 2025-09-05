@@ -4,8 +4,8 @@ from typing import Any, Dict, List, Literal
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
-from swarmauri_base.image_gens.ImageGenBase import ImageGenBase
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.image_gens.ImageGenBase import ImageGenBase
 
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
@@ -31,8 +31,13 @@ class DeepInfraImgGenModel(ImageGenBase):
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
     timeout: float = 600.0
     api_key: SecretStr
-    allowed_models: List[str] = []
-    name: str = ""  # Default model
+    allowed_models: List[str] = [
+        "black-forest-labs/FLUX-1-dev",
+        "black-forest-labs/FLUX-1-schnell",
+        "stabilityai/sdxl-turbo",
+        "stabilityai/stable-diffusion-2-1",
+    ]
+    name: str = "black-forest-labs/FLUX-1-dev"
     type: Literal["DeepInfraImgGenModel"] = "DeepInfraImgGenModel"
 
     def __init__(self, **kwargs: Dict[str, Any]):

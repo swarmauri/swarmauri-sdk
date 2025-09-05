@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "3.0.0",
+  "workspace_uri": "minio://149.255.38.126:9000/test",
+  "project": "ExampleParserProject",
+  "generated": [
+    "swarmauri/pkgs/base/swarmauri_base/parsers/ParserBase.py",
+    "swarmauri/pkgs/base/swarmauri_base/parsers/__init__.py"
+  ],
+  "source_packages": [
+    {
+      "type": "git",
+      "uri": "testproject",
+      "ref": "master",
+      "dest": "swarmauri_sdk"
+    }
+  ],
+  "peagen_version": "0.1.2.dev10",
+  "generated_at": "2025-05-20T13:37:04+00:00"
+}

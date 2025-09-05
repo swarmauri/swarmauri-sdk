@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://peagen.dev/schemas/manifest-v3.json",
+  "title": "Peagen Manifest (schema_version 3)",
+  "schemaVersion": "3.0.0",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "workspace_uri",
+    "project",
+    "generated",
+    "source_packages",
+    "peagen_version",
+    "generated_at"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "3.0.0",
+      "description": "Hard-coded version tag; bump only on breaking changes.",
+      "$comment": "Used to detect format version; camelCase per IP-0003."
+    },
+    "workspace_uri": {
+      "type": "string",
+      "description": "Fetchable root location of the rendered workspace. Acceptable schemes: file://<abs-path> (local run), minio://host:port/bucket[/prefix]/, s3://bucket[/prefix]/, gh://owner/repo[/prefix]/ (GitHub Contents API). Evaluators choose an adapter based on the URI scheme."
+    },
+    "project": {
+      "type": "string",
+      "description": "Human-readable project name taken from payload NAME."
+    },
+    "generated": {
+      "type": "array",
+      "description": "Relative paths of all files Peagen created or overwrote during this run. Paths always use Unix-style '/' separators.",
+      "items": { "type": "string" }
+    },
+    "source_packages": {
+      "type": "array",
+      "description": "External code or material cloned or copied into the workspace before rendering. Evaluators must materialise these the same way to reconstruct the full tree.",
+      "items": {
+        "type": "object",
+        "required": ["type", "dest"],
+        "properties": {
+          "type": {
+            "enum": ["git", "local"],
+            "description": "Source type: 'git' clones from remote; 'local' copies from filesystem."
+          },
+          "uri": {
+            "type": "string",
+            "description": "HTTPS or SSH URI for git packages."
+          },
+          "ref": {
+            "type": "string",
+            "description": "Tag, branch, or commit SHA for git packages."
+          },
+          "path": {
+            "type": "string",
+            "description": "Absolute or relative path for local packages."
+          },
+          "dest": {
+            "type": "string",
+            "description": "Destination folder inside the workspace (Unix style)."
+          },
+          "checksum": {
+            "type": "string",
+            "description": "Optional sha256 (or similar) checksum for byte-level reproducibility."
+          }
+        },
+        "allOf": [
+          {
+            "if": { "properties": { "type": { "const": "git" } } },
+            "then": { "required": ["uri"] }
+          },
+          {
+            "if": { "properties": { "type": { "const": "local" } } },
+            "then": { "required": ["path"] }
+          }
+        ],
+        "additionalProperties": false
+      }
+    },
+    "peagen_version": {
+      "type": "string",
+      "pattern": "^(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)$",
+      "description": "Semantic version of the Peagen CLI that produced the manifest.",
+      "$comment": "Semantic version (MAJOR.MINOR.PATCH) of the Peagen CLI that generated this artefact."
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC timestamp (ISO-8601) when rendering finished."
+    }
+  },
+  "additionalProperties": false
+}

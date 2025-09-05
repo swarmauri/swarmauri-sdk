@@ -1,0 +1,40 @@
+image: python:{{ python_version }}
+
+variables:
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+cache:
+  paths:
+    - .cache/pip
+    - .venv
+
+stages:
+  - test
+  - peagen
+
+before_script:
+  - python -m venv .venv
+  - source .venv/bin/activate
+  - pip install --upgrade pip
+  - pip install "peagen=={{ peagen_version }}"
+  {% if template_set %}
+  - pip install "{{ template_set }}"
+  {% endif %}
+  - pip install -e .
+
+unit_tests:
+  stage: test
+  script:
+    - source .venv/bin/activate
+    - pytest -q
+
+peagen_process:
+  stage: peagen
+  script:
+    - source .venv/bin/activate
+    - peagen process --workers 2 --truncate --dry-run
+  artifacts:
+    when: always
+    paths:
+      - peagen_out/

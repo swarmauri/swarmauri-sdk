@@ -1,6 +1,5 @@
 import asyncio
 import json
-import warnings
 from typing import Any, AsyncGenerator, Dict, Generator, List, Literal, Optional, Type
 
 import httpx
@@ -13,14 +12,6 @@ from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.utils.duration_manager import DurationManager
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
-
-warnings.warn(
-    "Importing OpenAIModel from swarmauri.llms is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_standard.stt import "
-    "OpenaiSTT' or 'from swarmauri.stt import OpenaiSTT' instead.",
-    DeprecationWarning,
-    stacklevel=2,
-)
 
 
 @ComponentBase.register_type(LLMBase, "OpenAIModel")
@@ -40,8 +31,24 @@ class OpenAIModel(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = []
-    name: str = ""
+    allowed_models: List[str] = [
+        "gpt-4o-mini",
+        "gpt-4o-2024-05-13",
+        "gpt-4o-2024-08-06",
+        "gpt-4o-mini-2024-07-18",
+        "gpt-4o",
+        "gpt-4-turbo",
+        "gpt-4-turbo-preview",
+        "gpt-4-1106-preview",
+        "gpt-4",
+        "gpt-3.5-turbo-1106",
+        "gpt-3.5-turbo",
+        "gpt-4-turbo-2024-04-09",
+        "gpt-4-0125-preview",
+        "gpt-4-0613",
+        "gpt-3.5-turbo-0125",
+    ]
+    name: str = "gpt-4o-mini"
     type: Literal["OpenAIModel"] = "OpenAIModel"
     timeout: float = 600.0
     _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/chat/completions")
@@ -59,8 +66,6 @@ class OpenAIModel(LLMBase):
             "Authorization": f"Bearer {self.api_key.get_secret_value()}",
             "Content-Type": "application/json",
         }
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     def _format_messages(
         self,
@@ -188,8 +193,12 @@ class OpenAIModel(LLMBase):
         message_content = response_data["choices"][0]["message"]["content"]
         usage_data = response_data.get("usage", {})
 
-        usage = self._prepare_usage_data(usage_data, promt_timer.duration)
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage and usage_data:
+            usage = self._prepare_usage_data(usage_data, promt_timer.duration)
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
+
         return conversation
 
     @retry_on_status_codes((429, 529), max_retries=1)
@@ -240,8 +249,12 @@ class OpenAIModel(LLMBase):
         message_content = response_data["choices"][0]["message"]["content"]
         usage_data = response_data.get("usage", {})
 
-        usage = self._prepare_usage_data(usage_data, promt_timer.duration)
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage and usage_data:
+            usage = self._prepare_usage_data(usage_data, promt_timer.duration)
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
+
         return conversation
 
     @retry_on_status_codes((429, 529), max_retries=1)
@@ -283,7 +296,7 @@ class OpenAIModel(LLMBase):
         if enable_json:
             payload["response_format"] = "json_object"
 
-        with DurationManager() as promt_timer:
+        with DurationManager() as prompt_timer:
             with httpx.Client(timeout=self.timeout) as client:
                 response = client.post(
                     self._BASE_URL, headers=self._headers, json=payload
@@ -308,10 +321,13 @@ class OpenAIModel(LLMBase):
                 except json.JSONDecodeError:
                     pass
 
-        usage = self._prepare_usage_data(
-            usage_data, promt_timer.duration, completion_timer.duration
-        )
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage and usage_data:
+            usage = self._prepare_usage_data(
+                usage_data, prompt_timer.duration, completion_timer.duration
+            )
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
 
     @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
@@ -352,7 +368,7 @@ class OpenAIModel(LLMBase):
         if enable_json:
             payload["response_format"] = "json_object"
 
-        with DurationManager() as promt_timer:
+        with DurationManager() as prompt_timer:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
                     self._BASE_URL, headers=self._headers, json=payload
@@ -376,10 +392,13 @@ class OpenAIModel(LLMBase):
                 except json.JSONDecodeError:
                     pass
 
-        usage = self._prepare_usage_data(
-            usage_data, promt_timer.duration, completion_timer.duration
-        )
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage and usage_data:
+            usage = self._prepare_usage_data(
+                usage_data, prompt_timer.duration, completion_timer.duration
+            )
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
 
     def batch(
         self,

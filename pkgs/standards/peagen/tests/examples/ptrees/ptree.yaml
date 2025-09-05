@@ -1,0 +1,22 @@
+# File tree for template-set
+schemaVersion: "1.0.0"
+ptree:
+  - FILE_NAME: "{{ PROJECT_ROOT }}/greeting.txt.j2"
+    RENDERED_FILE_NAME: "asd/greeting.txt"
+    PROCESS_TYPE: COPY
+    PROCESS_TYPE: "COPY"
+    EXTRAS:
+      PURPOSE: "Blank __init__"
+      DESCRIPTION: "Blank __init__"
+      REQUIREMENTS: []
+      DEPENDENCIES: []
+
+  - FILE_NAME: "{{ PROJECT_ROOT }}/hello.txt.j2"
+    RENDERED_FILE_NAME: "asd/hello.txt"
+    PROCESS_TYPE: COPY
+    PROCESS_TYPE: "COPY"
+    EXTRAS:
+      PURPOSE: "Blank __init__"
+      DESCRIPTION: "Blank __init__"
+      REQUIREMENTS: []
+      DEPENDENCIES: []

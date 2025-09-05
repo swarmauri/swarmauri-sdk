@@ -1,0 +1,14 @@
+# Extras Keys for swarmauri_base
+
+This template set recognizes the following EXTRAS keys:
+
+- RESOURCE_KIND
+- PURPOSE
+- DESCRIPTION
+- REQUIREMENTS
+- DEPENDENCIES
+- INTERFACE_FILE
+- EXTERNAL_DOC_FILES
+- MIXIN_FILES
+- INTERFACE_NAME
+- EXAMPLES

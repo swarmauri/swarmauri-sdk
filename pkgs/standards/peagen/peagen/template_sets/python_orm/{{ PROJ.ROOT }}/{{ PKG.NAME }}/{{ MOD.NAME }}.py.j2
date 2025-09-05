@@ -1,0 +1,52 @@
+{% if FILE.EXTRAS.HAS_CHILDREN is true %}
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import relationship
+{% endif %}
+from sqlalchemy import Column, Integer, String, DateTime
+from pydantic import BaseModel
+from typing import List, Optional
+from datetime import datetime
+
+# SQLAlchemy model for {{ MOD.MODEL_NAME }}
+class {{ MOD.MODEL_NAME }}Model(Base):
+    __tablename__ = "{{ MOD.NAME | make_plural | lower }}"
+    id = Column(String, primary_key=True, default=generate_uuid, unique=True, index=True)
+    date_created = Column(DateTime(timezone=True), default=datetime.utcnow)
+    last_modified = Column(
+        DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+    {{ MOD.EXTRAS.FIELD_DEFINITIONS }}
+    {% if MOD.EXTRAS.HAS_CHILDREN is true %}
+    children = relationship("{{ MOD.EXTRAS.CHILD_NAME }}", back_populates="parent")
+    {% else %}
+    # No relationships required.
+    {% endif %}
+
+# Pydantic schemas
+class {{ MOD.MODEL_NAME }}Update(BaseModel):
+    # Fields that can be updated on {{ MOD.MODEL_NAME }}
+    ...
+
+class {{ MOD.MODEL_NAME }}Create({{ MOD.MODEL_NAME }}Update):
+    # Fields required for creating a {{ MOD.MODEL_NAME }}
+    ...
+
+class {{ MOD.MODEL_NAME }}({{ MOD.MODEL_NAME }}Create):
+    id: int
+    # Other {{ MOD.MODEL_NAME }} fields
+    {% if MOD.EXTRAS.HAS_CHILDREN is true %}
+    children: List[ChildRead] = []
+    {% endif %}
+    class Config:
+        orm_mode = True
+
+{% if MOD.EXTRAS.HAS_CHILDREN is true %}
+class ChildRead(BaseModel):
+    # Fields for nested child resource
+    ...
+    class Config:
+        from_attributes  = True
+{% endif %}
+
+
+

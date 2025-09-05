@@ -1,12 +1,12 @@
 import asyncio
 import json
-from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
+from typing import AsyncIterator, Dict, Iterator, List, Type
 
 import httpx
-from pydantic import PrivateAttr, SecretStr
+from pydantic import PrivateAttr
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.ComponentBase import ComponentBase
 
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
@@ -31,11 +31,6 @@ class MistralModel(LLMBase):
     Provider resources: https://docs.mistral.ai/getting-started/models/
     """
 
-    api_key: SecretStr
-    allowed_models: List[str] = []
-    name: str = ""
-    type: Literal["MistralModel"] = "MistralModel"
-    timeout: float = 600.0
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
     _BASE_URL: str = PrivateAttr(default="https://api.mistral.ai/v1/")
@@ -58,8 +53,6 @@ class MistralModel(LLMBase):
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     def _format_messages(
         self, messages: List[Type[MessageBase]]
@@ -122,8 +115,6 @@ class MistralModel(LLMBase):
         response.raise_for_status()
         response_data = response.json()
 
-        print(response_data)
-
         chat_models = [
             model["id"]
             for model in response_data["data"]
@@ -179,9 +170,12 @@ class MistralModel(LLMBase):
 
         usage_data = response_data.get("usage", {})
 
-        usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
+        if self.include_usage:
+            usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
 
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
 
         return conversation
 
@@ -233,9 +227,11 @@ class MistralModel(LLMBase):
 
         usage_data = response_data.get("usage", {})
 
-        usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
-
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage and usage_data:
+            usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
 
         return conversation
 
@@ -298,11 +294,13 @@ class MistralModel(LLMBase):
                 except json.JSONDecodeError:
                     pass
 
-        usage = self._prepare_usage_data(
-            usage_data, prompt_timer.duration, completion_timer.duration
-        )
-
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage and usage_data:
+            usage = self._prepare_usage_data(
+                usage_data, prompt_timer.duration, completion_timer.duration
+            )
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
 
     @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
@@ -363,11 +361,13 @@ class MistralModel(LLMBase):
                 except json.JSONDecodeError:
                     pass
 
-        usage = self._prepare_usage_data(
-            usage_data, prompt_timer.duration, completion_timer.duration
-        )
-
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage and usage_data:
+            usage = self._prepare_usage_data(
+                usage_data, prompt_timer.duration, completion_timer.duration
+            )
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
 
     def batch(
         self,

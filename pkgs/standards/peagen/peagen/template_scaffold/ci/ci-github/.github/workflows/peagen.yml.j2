@@ -1,0 +1,57 @@
+name: Peagen CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python {{ python_version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: "{{ python_version }}"
+
+      - name: Cache venv
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-py{{ python_version }}-${{ hashFiles('pyproject.toml') }}
+
+      - name: Install dependencies
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install --upgrade pip
+          pip install "peagen=={{ peagen_version }}"
+          {% if template_set %}
+          pip install "{{ template_set }}"
+          {% endif %}
+          pip install -e .
+
+      - name: Run unit tests
+        run: |
+          source .venv/bin/activate
+          pytest -q
+
+      - name: Run Peagen (dry-run)
+        run: |
+          source .venv/bin/activate
+          peagen process --workers 2 --truncate --dry-run
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: peagen_out
+          path: peagen_out/

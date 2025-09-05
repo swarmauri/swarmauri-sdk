@@ -5,7 +5,8 @@ import uuid
 from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type, Union
 
 import httpx
-from pydantic import PrivateAttr
+from pydantic import PrivateAttr, SecretStr
+
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.DynamicBase import SubclassUnion
 from swarmauri_base.messages.MessageBase import MessageBase
@@ -50,7 +51,19 @@ class CohereToolModel(ToolLLMBase):
     BASE_URL: str = "https://api.cohere.ai/v1"
     _client: httpx.Client = PrivateAttr()
     _async_client: httpx.AsyncClient = PrivateAttr()
-    name: str = ""
+    api_key: SecretStr
+    allowed_models: List[str] = [
+        "command-a-03-2025",
+        "command-r7b-12-2024",
+        "command-r-plus",
+        "command-r",
+        "command",
+        "command-nightly",
+        "command-light",
+        "command-light-nightly",
+    ]
+    name: str = "command-a-03-2025"
+
     type: Literal["CohereToolModel"] = "CohereToolModel"
 
     def __init__(self, **data: Dict[str, Any]) -> None:
@@ -72,8 +85,6 @@ class CohereToolModel(ToolLLMBase):
         self._async_client = httpx.AsyncClient(
             headers=self._headers, base_url=self.BASE_URL, timeout=self.timeout
         )
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     def get_schema_converter(self) -> Type[SchemaConverterBase]:
         """

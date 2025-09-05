@@ -1,6 +1,7 @@
 import os
 import json
 
+
 def get_all_base_files(root_dir, save_dir):
     # Define dictionaries to store file paths and their contents
     data = {
@@ -17,24 +18,28 @@ def get_all_base_files(root_dir, save_dir):
     def find_base_files(directory):
         for root, dirs, files in os.walk(directory):
             for file in files:
-                if file.endswith(".py") and not file.endswith(".pyc"):  # Exclude .pyc files
-                    relative_path = os.path.relpath(os.path.join(root, file), directory).replace("\\", "/")
+                if file.endswith(".py") and not file.endswith(
+                    ".pyc"
+                ):  # Exclude .pyc files
+                    relative_path = os.path.relpath(
+                        os.path.join(root, file), directory
+                    ).replace("\\", "/")
                     full_path = f"swarmauri/{relative_path}"
                     with open(os.path.join(root, file), "r") as f:
                         content = f.read()
-                        content = f'```{full_path}\n{content}\n```'
+                        content = f"```{full_path}\n{content}\n```"
                         entry = {"document_name": full_path, "content": content}
 
                         # Assign to categories based on folder structure
-                        if '_core' in root:
+                        if "_core" in root:
                             data["core_files"].append(entry)
-                        if 'swarmauri' in root:
+                        if "swarmauri" in root:
                             data["standard_files"].append(entry)
-                        if '_community' in root:
+                        if "_community" in root:
                             data["community_files"].append(entry)
-                        if '_experimental' in root:
+                        if "_experimental" in root:
                             data["experimental_files"].append(entry)
-                        if 'examples' in root:
+                        if "examples" in root:
                             data["examples_files"].append(entry)
                         # For all content irrespective of categorization
                         data["all_content"].append(entry)
@@ -56,11 +61,11 @@ def get_all_base_files(root_dir, save_dir):
     save_to_json(data["examples_files"], "combined_examples")
     save_to_json(data["all_content"], "combined_content")
 
-    
     combined_core_standard = []
     combined_core_standard.extend(data["core_files"])
     combined_core_standard.extend(data["standard_files"])
     save_to_json(combined_core_standard, "combined_core_standard")
 
-if __name__ == '__main__':
-    get_all_base_files('../pkgs', '../combined')
+
+if __name__ == "__main__":
+    get_all_base_files("../pkgs", "../combined")

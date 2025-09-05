@@ -32,8 +32,8 @@ class WhisperLargeSTT(STTBase):
         >>> print(text)
     """
 
-    allowed_models: List[str] = []
-    name: str = ""
+    allowed_models: List[str] = ["openai/whisper-large-v3"]
+    name: str = "openai/whisper-large-v3"
     type: Literal["WhisperLargeSTT"] = "WhisperLargeSTT"
     api_key: SecretStr
     _BASE_URL: str = PrivateAttr(

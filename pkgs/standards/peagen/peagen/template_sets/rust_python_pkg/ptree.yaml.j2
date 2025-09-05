@@ -1,0 +1,192 @@
+# =====================================================
+# Global Project Files
+# =====================================================
+
+
+# =====================================================
+# Begin Package File Entries
+# =====================================================
+{%- for PKG in PROJ.PKGS %}
+
+# -------------------------
+# Package-Level Files for {{ PKG.NAME }}
+# -------------------------
+
+- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/LICENSE.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/LICENSE"
+  PROCESS_TYPE: "COPY"
+  AGENT_PROMPT_TEMPLATE: "agent_default.j2"
+  PROJECT_NAME: "{{ PROJ.NAME }}"
+  PACKAGE_NAME: "{{ PKG.NAME }}"
+  MODULE_NAME: null
+  EXTRAS:
+    DEPENDENCIES: []
+    PURPOSE: "Defines the license for package {{ PKG.NAME }}."
+    DESCRIPTION: "This file contains the license for package {{ PKG.NAME }}."
+
+- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/Cargo.toml.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/Cargo.toml"
+  PROCESS_TYPE: "GENERATE"
+  AGENT_PROMPT_TEMPLATE: "{{ PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2') }}"
+  PROJECT_NAME: "{{ PROJ.NAME }}"
+  PACKAGE_NAME: "{{ PKG.NAME }}"
+  MODULE_NAME: null
+  EXTRAS:
+    DEPENDENCIES: []
+    PURPOSE: "Specifies Rust package metadata and dependencies for {{ PKG.NAME }}."
+    DESCRIPTION: "Configuration for Rust package {{ PKG.NAME }}."
+    REQUIREMENTS:
+      - "Must configure appropriate crate name and version"
+      - "Must set up PyO3 features for Python binding"
+      - "Must include any Rust dependencies needed"
+
+- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/pyproject.toml.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/pyproject.toml"
+  PROCESS_TYPE: "GENERATE"
+  AGENT_PROMPT_TEMPLATE: "{{ PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2') }}"
+  PROJECT_NAME: "{{ PROJ.NAME }}"
+  PACKAGE_NAME: "{{ PKG.NAME }}"
+  MODULE_NAME: null
+  EXTRAS:
+    DEPENDENCIES:
+      {#- Loop over modules to include their main file as dependencies #}
+      {%- for MOD in PKG.MODULES %}
+        - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/src/{{ MOD.NAME }}.rs"
+      {%- endfor %}
+    PURPOSE: "Specifies Python project metadata and dependencies for {{ PKG.NAME }}."
+    DESCRIPTION: "Configuration for Python package {{ PKG.NAME }} with Rust extensions."
+    REQUIREMENTS:
+      - "Must use maturin as the build system"
+      - "Must be uv-compatible and reference required Python dependencies"
+      - "Must reference the main module, README, and LICENSE"
+      - "Must include any third party dependencies, setting the version to '*'"
+      - "Must include a comprehensive list of applicable keywords"
+
+- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/README.md.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/README.md"
+  PROCESS_TYPE: "GENERATE"
+  AGENT_PROMPT_TEMPLATE: "{{ PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2') }}"
+  PROJECT_NAME: "{{ PROJ.NAME }}"
+  PACKAGE_NAME: "{{ PKG.NAME }}"
+  MODULE_NAME: null
+  EXTRAS:
+    DEPENDENCIES:
+      {%- for MOD in PKG.MODULES %}
+        - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/src/{{ MOD.NAME }}.rs"
+      {%- endfor %}
+        - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/pyproject.toml"
+    PURPOSE: "Documents package {{ PKG.NAME }}."
+    DESCRIPTION: "{{ PKG.EXTRAS.DESCRIPTION }}"
+    REQUIREMENTS:
+      - "Purpose: {{ PKG.EXTRAS.PURPOSE }}"
+      - "Authors: {{ PKG.EXTRAS.AUTHORS | join(', ') }}"
+      - "Include all of the HTML header shown in the example output"
+      - "Based on the dependencies, create comprehensive installation and usage documentation sections"
+      - "The installation and usage documentation sections should be significantly more complete than the example format provided"
+      - "Do not include details regarding cloning or forking the repository"
+      - "Include a section on Rust-specific details and compilation requirements"
+
+# -------------------------
+# Rust Source Files
+# -------------------------
+- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/src/lib.rs.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/src/lib.rs"
+  PROCESS_TYPE: "GENERATE"
+  AGENT_PROMPT_TEMPLATE: "{{ PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2') }}"
+  PROJECT_NAME: "{{ PROJ.NAME }}"
+  PACKAGE_NAME: "{{ PKG.NAME }}"
+  MODULE_NAME: null
+  EXTRAS:
+    DEPENDENCIES:
+      {%- for MOD in PKG.MODULES %}
+        - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/src/{{ MOD.NAME }}.rs"
+      {%- endfor %}
+    PURPOSE: "Defines the main library for package {{ PKG.NAME }}."
+    DESCRIPTION: "Main entry point for Rust package {{ PKG.NAME }}."
+    REQUIREMENTS:
+      - "Must include all necessary imports and module declarations"
+      - "Must use #[pymodule] macro to define the Python module"
+      - "Must include any necessary setup code for PyO3"
+
+{% for MOD in PKG.MODULES %}
+- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/src/{{ MOD.NAME }}.rs.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/src/{{ MOD.NAME }}.rs"
+  PROCESS_TYPE: "GENERATE"
+  AGENT_PROMPT_TEMPLATE: "{{ MOD.AGENT_PROMPT_TEMPLATE_OVERRIDE | default(PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2')) }}"
+  PROJECT_NAME: "{{ PROJ.NAME }}"
+  PACKAGE_NAME: "{{ PKG.NAME }}"
+  MODULE_NAME: "{{ MOD.NAME }}"
+  EXTRAS:
+    DEPENDENCIES:
+      {%- if MOD.BASE_FILE %}
+        - "{{ MOD.BASE_FILE }}"
+      {%- endif %}
+    PURPOSE: "{{ MOD.EXTRAS.PURPOSE }}"
+    DESCRIPTION: "{{ MOD.EXTRAS.DESCRIPTION }}"
+    REQUIREMENTS:
+      - "Must use PyO3 to create Python bindings"
+      - "Must implement all required Rust functions"
+      - "Must handle Python types conversion properly"
+      - "Must include proper error handling"
+      - "Must use #[pymodule] and #[pyfunction] macros"
+    {%- if MOD.REQUIREMENTS %}
+    {%- for req in MOD.REQUIREMENTS %}
+      - "{{ req }}"
+    {%- endfor %}
+    {%- endif %}
+
+- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/tests/unit/test_{{ MOD.NAME }}.py.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/tests/unit/test_{{ MOD.NAME }}.py"
+  PROCESS_TYPE: "GENERATE"
+  AGENT_PROMPT_TEMPLATE: "{{ MOD.AGENT_PROMPT_TEMPLATE_OVERRIDE | default(PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2')) }}"
+  PROJECT_NAME: "{{ PROJ.NAME }}"
+  PACKAGE_NAME: "{{ PKG.NAME }}"
+  MODULE_NAME: "{{ MOD.NAME }}"
+  EXTRAS:
+    DEPENDENCIES:
+      - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/src/{{ MOD.NAME }}.rs"
+    PURPOSE: "Unit tests for module {{ MOD.NAME }} in package {{ PKG.NAME }}."
+    DESCRIPTION: "Tests for module {{ MOD.NAME }}."
+    REQUIREMENTS:
+      - "Must use pytest"
+      - "Must use @pytest.mark.unit decorator to mark test cases"
+      - "Where applicable use pytest fixtures and parameterize"
+      - "Should import and test the class from the main module and its Rust extensions"
+{% endfor %}
+
+- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/src/{{ PKG.NAME }}/__init__.py.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/src/{{ PKG.NAME }}/__init__.py"
+  PROCESS_TYPE: "COPY"
+  AGENT_PROMPT_TEMPLATE: "{{ PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2') }}"
+  PROJECT_NAME: "{{ PROJ.NAME }}"
+  PACKAGE_NAME: "{{ PKG.NAME }}"
+  MODULE_NAME: null
+  EXTRAS:
+    PURPOSE: "Package initializer for {{ PKG.NAME }}."
+    DESCRIPTION: "This file initializes the package {{ PKG.NAME }}."
+    REQUIREMENTS:
+      - "Must include all necessary imports and module declarations"
+
+# -------------------------
+# Package-Level Tests
+# -------------------------
+
+- FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/tests/i9n/test_i9n__init__.py.j2{% endraw %}"
+  RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/tests/i9n/test_i9n__init__.py"
+  PROCESS_TYPE: "GENERATE"
+  AGENT_PROMPT_TEMPLATE: "{{ PKG.AGENT_PROMPT_TEMPLATE_OVERRIDE | default('agent_default.j2') }}"
+  PROJECT_NAME: "{{ PROJ.NAME }}"
+  PACKAGE_NAME: "{{ PKG.NAME }}"
+  MODULE_NAME: "None"
+  EXTRAS:
+    PURPOSE: "Tests the package initializer for {{ PKG.NAME }}."
+    REQUIREMENTS:
+      - "Must use pytest"
+      - "Must use @pytest.mark.i9n decorator to mark test cases"
+      - "Where applicable use pytest fixtures"
+      - "Should test that the Rust extension loads correctly"
+{%- endfor %}
+
+# =====================================================
+# End of Payload
+# =====================================================

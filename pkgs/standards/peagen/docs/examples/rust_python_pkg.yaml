@@ -1,0 +1,64 @@
+PROJECTS:
+  - NAME: "FastTokenizerNLP"
+    ROOT: "pkgs"
+    TEMPLATE_SET: "rust_python_pkg"
+    EXTRAS:
+      REQUIREMENTS:
+        - "Provide extremely fast and memory-efficient text tokenization suitable for NLP pipelines."
+        - "Optimize performance for large-scale text corpora, enabling real-time NLP preprocessing."
+        - "Easy integration with Python-based NLP and data science libraries such as SpaCy, HuggingFace, and pandas."
+
+    PACKAGES:
+      #-----------------------------------------------------
+      # 1) FastTokenizer
+      #-----------------------------------------------------
+      - NAME: "FastTokenizer"
+        EXTRAS:
+          AUTHORS:
+            - NAME: "Michael Nwogha"
+              EMAIL: "michael@swamauri.com"
+          PURPOSE: "Implement optimized text tokenization and preprocessing using Rust for Python."
+          DESCRIPTION: "A high-performance tokenizer written in Rust, designed to quickly tokenize, normalize, and preprocess large text datasets efficiently, significantly outperforming pure Python implementations."
+          REQUIREMENTS:
+            - "Efficient tokenization of large textual datasets."
+            - "Low memory usage and high throughput suitable for production NLP pipelines."
+            - "Support multithreaded execution for parallel text processing."
+
+        MODULES:
+          - NAME: "regex_tokenizer"
+            EXTRAS:
+              PURPOSE: "Provide a high-speed regex-based tokenizer."
+              DESCRIPTION: "Rust-accelerated tokenizer that leverages optimized regex processing for extremely fast token extraction."
+              REQUIREMENTS:
+                - "Perform tokenization with optimized regular expressions."
+                - "Support batch tokenization for large documents and text arrays."
+                - "Optimize regex execution for minimal CPU and memory overhead."
+                - "Provide thread-safe execution for concurrent tokenization tasks."
+
+          - NAME: "whitespace_tokenizer"
+            EXTRAS:
+              PURPOSE: "Fast whitespace-based tokenization."
+              DESCRIPTION: "Simple yet highly performant whitespace tokenizer optimized in Rust for quickly splitting large text corpora."
+              REQUIREMENTS:
+                - "Rapidly split large strings on whitespace with minimal overhead."
+                - "Provide parallelized tokenization to utilize multi-core CPUs effectively."
+                - "Ensure low-latency execution for real-time NLP tasks."
+
+          - NAME: "normalizer"
+            EXTRAS:
+              PURPOSE: "Efficient text normalization utilities."
+              DESCRIPTION: "Optimized Rust utilities for lowercasing, Unicode normalization, and removing punctuation, significantly faster than pure Python solutions."
+              REQUIREMENTS:
+                - "Support Unicode-compliant text normalization (NFC, NFD forms)."
+                - "Fast removal of punctuation and special characters."
+                - "Parallelized execution for high-performance normalization on large text datasets."
+
+          - NAME: "tokenizer_io"
+            EXTRAS:
+              PURPOSE: "Efficient utilities for loading and preparing textual data."
+              DESCRIPTION: "Rust-powered utilities optimized for fast loading, saving, and preprocessing textual data, suitable for streaming large text datasets."
+              REQUIREMENTS:
+                - "Enable efficient text data loading from pandas DataFrames, NumPy arrays, and file streams."
+                - "Support zero-copy data transfers between Rust internals and Python."
+                - "Provide optimized functions for batch preprocessing of textual data."
+                - "Handle memory-mapped files and incremental streaming for datasets larger than available memory."

@@ -3,8 +3,8 @@
 <p align="center">
     <a href="https://pypi.org/project/swarmauri/">
         <img src="https://img.shields.io/pypi/dm/swarmauri" alt="PyPI - Downloads"/></a>
-    <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/swarmauri/README.md">
-        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/swarmauri/swarmauri-sdk/pkgs/swarmauri/README.md&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false" alt="GitHub Hits"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/swarmauri/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/swarmauri.svg"/></a>
     <a href="https://pypi.org/project/swarmauri/">
         <img src="https://img.shields.io/pypi/pyversions/swarmauri" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri/">
@@ -17,7 +17,18 @@
 
 # Swarmauri SDK
 
-The Swarmauri SDK offers a comprehensive suite of tools designed for building distributed, extensible systems using the Swarmauri framework. 
+The Swarmauri SDK offers a comprehensive suite of tools designed for building distributed, extensible systems using the Swarmauri framework.
+
+## Swarmauri Namespace Microkernel
+
+The `swarmauri` package is implemented as a namespace microkernel. When the
+package is imported it registers a custom importer that consults the interface
+and plugin citizenship registries to locate actual implementations. This design
+keeps the namespace lightweight while still allowing first-party and community
+plugins to be discovered and loaded on demand. New resource kinds are declared
+in `interface_registry.py`, then mapped to plugin modules via
+`plugin_citizenship_registry.py`. For a deeper look at the import flow, see
+[`docs/callflow.md`](docs/callflow.md).
 
 ## Core 
 - **Core Interfaces**: Define the fundamental communication and data-sharing protocols between components in a Swarmauri-based system.
@@ -39,7 +50,7 @@ The Swarmauri SDK offers a comprehensive suite of tools designed for building di
 - **Polymorphism**: Allows for dynamic behavior switching between components, enabling flexible, context-aware system behavior.
 - **Discriminated Unions**: Provides a robust method for handling multiple possible object types in a type-safe manner.
 - **Serialization**: Efficiently encode and decode data for transmission across different environments and system components, with support for both standard and custom serialization formats.
-- **Intensional and Extensional Programming**: Leverages both rule-based (intensional) and set-based (extensional) approaches to building and manipulating complex data structures, offering developers a wide range of tools for system design.
+- **Intensional and Extensional Programming**: The microkernel continues to leverage both rule-based (intensional) patterns and set-based (extensional) plugin discovery, allowing you to build and manipulate complex data structures with ease.
 
 ## Use Cases
 
@@ -62,6 +73,10 @@ The Swarmauri SDK is an evolving platform, and the community is encouraged to co
 
 ### Plugin Citizenship Registry
 - [plugin_citizenship_registry.py](swarmauri/plugin_citizenship_registry.py): Maintains a registry of plugins and their citizenship status within the Swarmauri ecosystem.
+
+When introducing a new resource kind or class, remember to update both the
+`plugin_citizenship_registry.py` and `interface_registry.py` so the framework can
+discover and validate your additions.
 
 ### Plugin Manager
 - [plugin_manager.py](swarmauri/plugin_manager.py): Oversees the loading, initialization, and management of plugins to extend the functionality of the Swarmauri framework.

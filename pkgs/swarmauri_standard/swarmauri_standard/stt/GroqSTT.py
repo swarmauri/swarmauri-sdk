@@ -4,8 +4,8 @@ from typing import Any, Dict, List, Literal
 import aiofiles
 import httpx
 from pydantic import PrivateAttr, SecretStr
-from swarmauri_base.stt.STTBase import STTBase
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.stt.STTBase import STTBase
 
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
@@ -25,9 +25,13 @@ class GroqSTT(STTBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = []
+    allowed_models: List[str] = [
+        "whisper-large-v3-turbo",
+        "distil-whisper-large-v3-en",
+        "whisper-large-v3",
+    ]
 
-    name: str = ""
+    name: str = "whisper-large-v3-turbo"
     type: Literal["GroqSTT"] = "GroqSTT"
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
@@ -51,8 +55,6 @@ class GroqSTT(STTBase):
             base_url=self._BASE_URL,
             timeout=30,
         )
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     @retry_on_status_codes((429, 529), max_retries=1)
     def predict(

@@ -1,0 +1,39 @@
+PROJECTS:
+  - NAME: "SearchWordTool"
+    ROOT: "pkgs/community"
+  TEMPLATE_SET: "swarmauri_standard_standalone"
+    EXTRAS:
+      REQUIREMENTS:
+        - "Implement a tool to search for a phrase or a word within a file and return its occurances."
+        - "Each package encapsulates a distinct strategy to search and return the occurances of the word within the file."
+
+    PACKAGES:
+      #-----------------------------------------------------
+      # 1) swarmauri_tool_searchword
+      #-----------------------------------------------------
+      - NAME: "swarmauri_tool_searchword"
+        TEMPLATE_SET_OVERRIDE: "swarmauri_standard_standalone"
+        EXTRAS:
+          AUTHORS:
+            - "Vijay Vignesh Prasad Rao"
+          PURPOSE: "Implement a tool to search for specific word or phrase within a file and return its occurances."
+          DESCRIPTION: "Searches for a specific word or phrase in a file, highlights it and returns its occurances."
+          REQUIREMENTS:
+            - "Highlight the line where the word appears."
+            - "Return word or phrase count."
+            - "Support case insensitive search."
+
+        MODULES:
+          - NAME: "SearchWordTool"
+            EXTRAS:
+              PURPOSE: "Search for a specific word or phrase in a file."
+              DESCRIPTION: "Searches for a word or a phrase in a file and highlights it along with generating the number of occurances in the file."
+              REQUIREMENTS:
+              - "Highlight the line where the word appears."
+              - "Return word or phrase count."
+              - "Support case insensitive search."
+              RESOURCE_KIND: "tools"
+              BASE_NAME: "ToolBase"
+              BASE_FILE: "base/swarmauri_base/tools/ToolBase.py"
+              EXAMPLES:
+              - "swarmauri_standard/swarmauri_standard/tools/AutomatedReadabilityIndexTool.py"

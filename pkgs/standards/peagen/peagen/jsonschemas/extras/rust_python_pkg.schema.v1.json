@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/extras/rust_python_pkg.schema.json",
+  "title": "EXTRAS Schema for rust_python_pkg",
+  "type": "object",
+  "properties": {
+    "AUTHORS": {},
+    "PURPOSE": {},
+    "DESCRIPTION": {},
+    "REQUIREMENTS": {},
+    "DEPENDENCIES": {}
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,3 @@
+commands:
+  - ["--help"]
+  - ["remote", "--gateway-url", "http://127.0.0.1:9999/rpc", "sort", "tests/examples/projects_payloads/template_two_project.yaml", "--repo", "testproject"]

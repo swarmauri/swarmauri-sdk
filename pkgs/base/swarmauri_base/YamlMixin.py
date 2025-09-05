@@ -1,11 +1,16 @@
+"""Mixin for YAML serialization and validation utilities."""
+
 import json
 import yaml
 from pydantic import BaseModel, ValidationError
 
 
 class YamlMixin(BaseModel):
+    """Provide YAML-based validation and serialization helpers."""
+
     @classmethod
     def model_validate_yaml(cls, yaml_data: str):
+        """Validate a model from a YAML string."""
         try:
             # Parse YAML into a Python dictionary
             yaml_content = yaml.safe_load(yaml_data)
@@ -18,6 +23,7 @@ class YamlMixin(BaseModel):
             raise ValueError(f"Validation failed: {e}")
 
     def model_dump_yaml(self, fields_to_exclude=None, api_key_placeholder=None):
+        """Return a YAML representation of the model."""
         if fields_to_exclude is None:
             fields_to_exclude = []
 
@@ -26,6 +32,7 @@ class YamlMixin(BaseModel):
 
         # Function to recursively remove specific keys and handle api_key placeholders
         def process_fields(data, fields_to_exclude):
+            """Recursively filter fields and apply placeholders."""
             if isinstance(data, dict):
                 return {
                     key: (
@@ -44,5 +51,5 @@ class YamlMixin(BaseModel):
         # Filter the JSON data
         filtered_data = process_fields(json_data, fields_to_exclude)
 
-        # Convert the filtered data into YAML
-        return yaml.dump(filtered_data, default_flow_style=False)
+        # Convert the filtered data into YAML using safe mode
+        return yaml.safe_dump(filtered_data, default_flow_style=False)

@@ -1,15 +1,15 @@
 import pytest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from swarmauri_standard.documents.Document import Document
 from swarmauri_vectorstore_neo4j.Neo4jVectorStore import Neo4jVectorStore
 
 
 @pytest.fixture
-def mock_driver(mocker):
+def mock_driver():
     """Mock Neo4j driver"""
-    mock_driver = mocker.MagicMock()
-    mock_session = mocker.MagicMock()
-    mock_transaction = mocker.MagicMock()
+    mock_driver = MagicMock()
+    mock_session = MagicMock()
+    mock_transaction = MagicMock()
 
     # Set up the session context manager behavior
     mock_session.__enter__.return_value = mock_session

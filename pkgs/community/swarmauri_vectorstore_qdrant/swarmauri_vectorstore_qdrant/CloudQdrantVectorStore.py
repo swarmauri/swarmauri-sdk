@@ -64,12 +64,14 @@ class CloudQdrantVectorStore(
                 url=self.url,
             )
 
-        # TODO  may need optimization two loops may not be necessary
         # Check if the collection exists
         existing_collections = self.client.get_collections().collections
-        collection_names = [collection.name for collection in existing_collections]
+        collection_exists = any(
+            collection.name == self.collection_name
+            for collection in existing_collections
+        )
 
-        if self.collection_name not in collection_names:
+        if not collection_exists:
             # Ensure the collection exists with the desired configuration
             self.client.recreate_collection(
                 collection_name=self.collection_name,

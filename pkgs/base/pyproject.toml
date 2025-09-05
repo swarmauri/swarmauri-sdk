@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri-base"
-version = "0.7.3"
+version = "0.7.6.dev5"
 description = "This repository includes base classes and mixins for the Swarmauri framework."
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" },
@@ -22,8 +22,14 @@ dependencies = [
 "requests>=2.0",
 "pandas>=2.2",
 "swarmauri_core",
-"swarmauri_typing"
+"swarmauri_typing",
+"toml>=0.10.2"
 ]
+
+[project.optional-dependencies]
+cryptography = ["cryptography>=41.0.0"]
+pyopenssl = ["pyopenssl>=23.2.0"]
+
 
 [tool.uv.sources]
 swarmauri_core = { workspace = true }

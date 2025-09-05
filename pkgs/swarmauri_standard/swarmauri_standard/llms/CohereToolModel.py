@@ -16,10 +16,15 @@ from typing import (
 import httpx
 from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
+<<<<<<< HEAD
 from swarmauri_base.DynamicBase import SubclassUnion
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.tools.ToolBase import ToolBase
+=======
+from swarmauri_base.llms.LLMBase import LLMBase
+from swarmauri_base.messages.MessageBase import MessageBase
+>>>>>>> upstream/mono/dev
 
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
@@ -66,8 +71,17 @@ class CohereToolModel(LLMBase):
     _async_client: httpx.AsyncClient = PrivateAttr()
 
     api_key: SecretStr
-    allowed_models: List[str] = []
-    name: str = ""
+    allowed_models: List[str] = [
+        "command-a-03-2025",
+        "command-r7b-12-2024",
+        "command-r-plus",
+        "command-r",
+        "command",
+        "command-nightly",
+        "command-light",
+        "command-light-nightly",
+    ]
+    name: str = "command-a-03-2025"
     type: Literal["CohereToolModel"] = "CohereToolModel"
     timeout: float = 600.0
 
@@ -90,8 +104,6 @@ class CohereToolModel(LLMBase):
         self._async_client = httpx.AsyncClient(
             headers=headers, base_url=self._BASE_URL, timeout=self.timeout
         )
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     def _schema_convert_tools(
         self, tools: Dict[str, SubclassUnion[ToolBase]]

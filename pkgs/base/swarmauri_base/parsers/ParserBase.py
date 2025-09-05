@@ -13,11 +13,11 @@ T = TypeVar("T", bound=IDocument)
 @ComponentBase.register_model()
 class ParserBase(IParser, ComponentBase):
     """
-    Interface for chunking text into smaller pieces.
+    Parse input data into ``Document`` objects.
 
-    This interface defines abstract methods for chunking texts. Implementing classes
-    should provide concrete implementations for these methods tailored to their specific
-    chunking algorithms.
+    This interface defines abstract methods that convert raw input into
+    ``Document`` instances. Implementing classes should override these
+    methods with parsing logic suited to their specific needs.
     """
 
     resource: Optional[str] = Field(default=ResourceTypes.PARSER.value, frozen=True)

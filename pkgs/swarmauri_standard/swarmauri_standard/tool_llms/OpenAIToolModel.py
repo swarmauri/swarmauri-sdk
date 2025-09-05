@@ -4,7 +4,7 @@ import logging
 from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
 
 import httpx
-from pydantic import PrivateAttr
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.DynamicBase import SubclassUnion
 from swarmauri_base.messages.MessageBase import MessageBase
@@ -41,7 +41,25 @@ class OpenAIToolModel(ToolLLMBase):
     Provider resources: https://platform.openai.com/docs/guides/function-calling/which-models-support-function-calling
     """
 
-    name: str = ""
+    api_key: SecretStr
+    allowed_models: List[str] = [
+        "gpt-4o-2024-05-13",
+        "gpt-4-turbo",
+        "gpt-4o-mini",
+        "gpt-4o-mini-2024-07-18",
+        "gpt-4o-2024-08-06",
+        "gpt-4-turbo-2024-04-09",
+        "gpt-4-turbo-preview",
+        "gpt-4-0125-preview",
+        "gpt-4-1106-preview",
+        "gpt-4",
+        "gpt-4-0613",
+        "gpt-3.5-turbo",
+        "gpt-3.5-turbo-0125",
+        "gpt-3.5-turbo-1106",
+    ]
+    name: str = "gpt-4o-2024-05-13"
+
     type: Literal["OpenAIToolModel"] = "OpenAIToolModel"
     BASE_URL: str = "https://api.openai.com/v1/chat/completions"
     _headers: Dict[str, str] = PrivateAttr(default=None)
@@ -58,6 +76,7 @@ class OpenAIToolModel(ToolLLMBase):
             "Authorization": f"Bearer {self.api_key.get_secret_value()}",
             "Content-Type": "application/json",
         }
+
         self.allowed_models = self.allowed_models or self.get_allowed_models()
         if not self.name and self.allowed_models:
             self.name = self.allowed_models[0]

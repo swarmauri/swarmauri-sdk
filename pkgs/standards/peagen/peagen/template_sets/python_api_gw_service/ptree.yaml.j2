@@ -1,0 +1,118 @@
+# =====================================================
+# ptree.yaml.j2 for api_gateway + {{ PKG.NAME }} template_sets
+# =====================================================
+
+{%- for PKG in PROJ.PKGS %}
+# -------------------------
+# Package: {{ PKG.NAME }}
+# -------------------------
+
+  {# One block per microservice defined in MODULES #}
+  {%- for MOD in PKG.MODULES %}
+  - FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ MOD.NAME }}/main.py.j2{% endraw %}"
+    RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ MOD.NAME }}/main.py"
+    PROCESS_TYPE: "GENERATE"
+    EXTRAS:
+      RESOURCE_KIND: "microservice"
+      PURPOSE: "Entry point for {{ MOD.NAME }}"
+      DESCRIPTION: "Initializes FastAPI for the {{ MOD.NAME }} service."
+      REQUIREMENTS:
+        - "Use FastAPI and mount local routers."
+        - "Instantiate FastAPI, include CORS settings from `config.py`, and mount the service’s router. "
+      DEPENDENCIES:
+        - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ MOD.NAME }}/routes.py"
+
+  - FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ MOD.NAME }}/routes.py.j2{% endraw %}"
+    RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ MOD.NAME }}/routes.py"
+    PROCESS_TYPE: "GENERATE"
+    EXTRAS:
+      RESOURCE_KIND: "microservice"
+      PURPOSE: "Define HTTP endpoints for {{ MOD.NAME }}"
+      DESCRIPTION: "Creates APIRouter for CRUD operations on {{ MOD.NAME }}."
+      REQUIREMENTS:
+        - "For FastAPI routers: use `APIRouter()`, include type‑annotated path parameters, request bodies, and response models. "
+        - "Define CRUD endpoints using `@router.get/post/put/delete`, reference Pydantic schemas."
+      DEPENDENCIES:
+        - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ MOD.NAME }}/models.py"
+
+
+  - FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ MOD.NAME }}/models.py.j2{% endraw %}"
+    RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ MOD.NAME }}/models.py"
+    PROCESS_TYPE: "GENERATE"
+    EXTRAS:
+      RESOURCE_KIND: "microservice"
+      PURPOSE: "Define Pydantic schemas and ORM models for {{ MOD.NAME }}"
+      DESCRIPTION: "Contains SQLAlchemy models and Pydantic DTOs."
+      REQUIREMENTS:
+        - "Use SQLAlchemy declarative base."
+        - "Define Create, Read, Update schemas via Pydantic."
+        - "Use SQLAlchemy ORM declarative base for models and Pydantic BaseModel for models/schemas."
+      DEPENDENCIES: []
+
+  - FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ MOD.NAME }}/services.py.j2{% endraw %}"
+    RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ MOD.NAME }}/services.py"
+    PROCESS_TYPE: "GENERATE"
+    EXTRAS:
+      RESOURCE_KIND: "microservice"
+      PURPOSE: "Business logic for {{ MOD.NAME }}"
+      DESCRIPTION: "Implements CRUD functions interacting with the database."
+      REQUIREMENTS:
+        - "All functions return domain model or Pydantic schema."
+        - "Implement functions that encapsulate business logic, returning Pydantic schemas."
+      DEPENDENCIES: 
+        - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ MOD.NAME }}/models.py"
+
+  # Unit tests for each layer
+  - FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/tests/unit/test_{{ MOD.NAME }}_main.py.j2{% endraw %}"
+    RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/tests/unit/test_{{ MOD.NAME }}_main.py"
+    PROCESS_TYPE: "GENERATE"
+    EXTRAS:
+      RESOURCE_KIND: "microservice"
+      PURPOSE: "Unit tests for main.py of {{ MOD.NAME }}"
+      DESCRIPTION: "Smoke tests for service startup."
+      REQUIREMENTS:
+        - "Use pytest fixtures to instantiate app."
+      DEPENDENCIES:
+        - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ MOD.NAME }}/main.py"
+
+  - FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/tests/unit/test_{{ MOD.NAME }}_routes.py.j2{% endraw %}"
+    RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/tests/unit/test_{{ MOD.NAME }}_routes.py"
+    PROCESS_TYPE: "GENERATE"
+    EXTRAS:
+      RESOURCE_KIND: "microservice"
+      PURPOSE: "Unit tests for routes.py of {{ MOD.NAME }}"
+      DESCRIPTION: "Verifies endpoint handlers return expected status codes."
+      REQUIREMENTS:
+        - "Mock dependencies where appropriate."
+      DEPENDENCIES:
+        - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ MOD.NAME }}/routes.py"
+
+  - FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/tests/unit/test_{{ MOD.NAME }}_models.py.j2{% endraw %}"
+    RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/tests/unit/test_{{ MOD.NAME }}_models.py"
+    PROCESS_TYPE: "GENERATE"
+    EXTRAS:
+      RESOURCE_KIND: "microservice"
+      PURPOSE: "Unit tests for models.py of {{ MOD.NAME }}"
+      DESCRIPTION: "Validates Pydantic schema validation and ORM mappings."
+      REQUIREMENTS:
+        - "Test schema field constraints."
+      DEPENDENCIES:
+        - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ MOD.NAME }}/models.py"
+
+  - FILE_NAME: "{% raw %}{{ PROJ.ROOT }}/{{ PKG.NAME }}/tests/unit/test_{{ MOD.NAME }}_services.py.j2{% endraw %}"
+    RENDERED_FILE_NAME: "{{ PROJ.ROOT }}/{{ PKG.NAME }}/tests/unit/test_{{ MOD.NAME }}_services.py"
+    PROCESS_TYPE: "GENERATE"
+    EXTRAS:
+      RESOURCE_KIND: "microservice"
+      PURPOSE: "Unit tests for services.py of {{ MOD.NAME }}"
+      DESCRIPTION: "Ensures business logic functions behave correctly."
+      REQUIREMENTS:
+        - "Mock database session."
+      DEPENDENCIES:
+        - "{{ PROJ.ROOT }}/{{ PKG.NAME }}/{{ MOD.NAME }}/services.py"
+
+
+{%- endfor %}
+# =====================================================
+# End of ptree payload
+# =====================================================

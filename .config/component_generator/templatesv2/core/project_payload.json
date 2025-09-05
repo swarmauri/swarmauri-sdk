@@ -1,7 +1,0 @@
-[{
-  "PROJECT_ROOT": "pkgs",
-  "RESOURCE_KIND": "parser",
-  "INTERFACE_NAME": "IParser",
-  "ADDITIONAL_REQUIREMENTS": [],
-  "NEW_RESOURCE_KIND": null
-}]

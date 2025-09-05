@@ -34,8 +34,13 @@ class PerplexityModel(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = []
-    name: str = ""
+    allowed_models: List[str] = [
+        "sonar-reasoning-pro",
+        "sonar-reasoning",
+        "sonar-pro",
+        "sonar",
+    ]
+    name: str = "sonar"
     type: Literal["PerplexityModel"] = "PerplexityModel"
     timeout: float = 600.0
     _client: httpx.Client = PrivateAttr(default=None)
@@ -60,8 +65,6 @@ class PerplexityModel(LLMBase):
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     def _format_messages(
         self, messages: List[Type[MessageBase]]
@@ -173,9 +176,12 @@ class PerplexityModel(LLMBase):
 
         usage_data = result.get("usage", {})
 
-        usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
+        if self.include_usage:
+            usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
 
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
         return conversation
 
     @retry_on_status_codes((429, 529), max_retries=1)
@@ -240,8 +246,12 @@ class PerplexityModel(LLMBase):
         message_content = result["choices"][0]["message"]["content"]
 
         usage_data = result.get("usage", {})
-        usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+
+        if self.include_usage and usage_data:
+            usage = self._prepare_usage_data(usage_data, prompt_timer.duration)
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
 
         return conversation
 
@@ -320,11 +330,13 @@ class PerplexityModel(LLMBase):
                     if chunk_data.get("usage"):
                         usage_data = chunk_data["usage"]
 
-        usage = self._prepare_usage_data(
-            usage_data, prompt_timer.duration, completion_timer.duration
-        )
-
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage and usage_data:
+            usage = self._prepare_usage_data(
+                usage_data, prompt_timer.duration, completion_timer.duration
+            )
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
 
     @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
@@ -393,10 +405,13 @@ class PerplexityModel(LLMBase):
                     yield delta_content
                     usage_data = chunk_data.get("usage", usage_data)
 
-        usage = self._prepare_usage_data(
-            usage_data, prompt_timer.duration, completion_timer.duration
-        )
-        conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        if self.include_usage and usage_data:
+            usage = self._prepare_usage_data(
+                usage_data, prompt_timer.duration, completion_timer.duration
+            )
+            conversation.add_message(AgentMessage(content=message_content, usage=usage))
+        else:
+            conversation.add_message(AgentMessage(content=message_content))
 
     def batch(
         self,

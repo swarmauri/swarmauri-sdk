@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/extras/python_orm.schema.json",
+  "title": "EXTRAS Schema for python_orm",
+  "type": "object",
+  "properties": {
+    "RESOURCE_KIND": {},
+    "PURPOSE": {},
+    "DESCRIPTION": {},
+    "REQUIREMENTS": {},
+    "HAS_CHILDREN": {},
+    "CHILD_NAME": {},
+    "FIELD_DEFINITIONS": {},
+    "DEPENDENCIES": {}
+  },
+  "additionalProperties": false
+}

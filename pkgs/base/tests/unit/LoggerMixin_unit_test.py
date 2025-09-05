@@ -1,8 +1,8 @@
 """
 Unit tests for LoggerMixin.
 
-These tests validate the logger initialization and configuration for models that inherit
-from LoggerMixin.
+These tests validate the logger initialization and configuration for models that
+inherit from :class:`LoggerMixin`.
 """
 
 import pytest
@@ -10,11 +10,11 @@ from swarmauri_base.LoggerMixin import LoggerMixin  # Adjust the import as neede
 
 
 class DummyModel(LoggerMixin):
-    """
-    Dummy model for testing LoggerMixin.
+    """Dummy model for testing :class:`LoggerMixin`.
 
-    This model is used to verify that LoggerMixin correctly initializes a logger,
-    using either the class-level default or a provided custom logger.
+    This model verifies that :class:`LoggerMixin` leaves ``logger`` unset when no
+    logger is supplied. A custom logger can be provided at instantiation or via
+    ``default_logger``.
 
     Attributes:
         name (str): An example field.
@@ -26,11 +26,11 @@ class DummyModel(LoggerMixin):
 @pytest.mark.unit
 def test_default_logger_initialization():
     """
-    Test that the default logger is correctly initialized in DummyModel.
+    Verify that no logger is created by default.
 
-    When no logger is provided, DummyModel should create a logger using the class-level
-    default logger (or fallback to the standard Python logger) with the expected name and level.
+    If neither ``default_logger`` nor a custom logger is supplied,
+    ``LoggerMixin`` leaves ``logger`` as ``None``.
     """
     model = DummyModel(name="TestModel")
-    # Assert that a logger instance exists.
+    # Logger should remain unset.
     assert model.logger is None, "Logger should be null by default."

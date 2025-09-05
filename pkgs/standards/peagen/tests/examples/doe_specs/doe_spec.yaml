@@ -1,0 +1,40 @@
+# doe_spec.yaml
+# ───────────────────────────────────────────────────────────────
+# Define each factor, its levels, and the JSON-Patch ops to apply.
+schemaVersion: "1.0.1"
+FACTORS:
+  COMPONENT_NAME:
+    description: "Base name of the generated component"
+    code: CMP
+    levels:
+      - SearchWord
+      - RegexSearch
+    # a list of JSON-Patch templates, using {{…}} for placeholder substitution
+    patches:
+      - op: replace
+        path: /PROJECTS/0/NAME
+        value: "{{ BASE_NAME }}-{{ CMP }}-{{ EXP_ID }}"
+      - op: replace
+        path: /PROJECTS/0/PACKAGES/0/NAME
+        value: "component_{{ CMP | lower }}"
+      - op: replace
+        path: /PROJECTS/0/PACKAGES/0/MODULES/0/NAME
+        value: "{{ CMP }}Tool"
+
+  CASE_SENSITIVE:
+    description: "Toggle case sensitivity in the module"
+    code: CS
+    levels: [true, false]
+    patches:
+      - op: replace
+        path: /PROJECTS/0/PACKAGES/0/MODULES/0/EXTRAS/CASE_SENSITIVE
+        value: "{{ CS }}"
+
+  SEARCH_STRATEGY:
+    description: "Algorithm for searching inside files"
+    code: SSTR
+    levels: [regex, trie]
+    patches:
+      - op: replace
+        path: /PROJECTS/0/PACKAGES/0/MODULES/0/EXTRAS/SEARCH_STRATEGY
+        value: "{{ SSTR }}"

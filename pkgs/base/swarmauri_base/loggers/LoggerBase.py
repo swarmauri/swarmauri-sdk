@@ -4,7 +4,7 @@ from pydantic import Field
 from swarmauri_core.loggers.ILogger import ILogger
 from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
 from swarmauri_base.ObserveBase import ObserveBase
-from swarmauri_base import SubclassUnion
+from swarmauri_base import FullUnion
 
 
 @ObserveBase.register_model()
@@ -15,7 +15,7 @@ class LoggerBase(ILogger, ObserveBase):
     """
 
     name: str = __name__
-    handlers: List[SubclassUnion[HandlerBase]] = []
+    handlers: List[FullUnion[HandlerBase]] = []
     default_level: int = logging.INFO
     default_format: str = "[%(name)s][%(levelname)s] %(message)s"
     logger: Optional[Any] = Field(exclude=True, default=None)
@@ -57,7 +57,6 @@ class LoggerBase(ILogger, ObserveBase):
 
     def set_level(self, level: int = 20) -> None:
         self.default_level = level
-        print(self.default_level)
         self.compile_logger(logger_name=self.name)
 
     def set_format(

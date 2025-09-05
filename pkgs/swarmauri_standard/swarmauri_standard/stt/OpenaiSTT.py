@@ -27,9 +27,9 @@ class OpenaiSTT(STTBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = []
+    allowed_models: List[str] = ["whisper-1"]
 
-    name: str = ""
+    name: str = "whisper-1"
     type: Literal["OpenaiSTT"] = "OpenaiSTT"
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
@@ -51,8 +51,6 @@ class OpenaiSTT(STTBase):
             headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
         )
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
-        self.name = self.allowed_models[0]
 
     @retry_on_status_codes((429, 529), max_retries=1)
     def predict(

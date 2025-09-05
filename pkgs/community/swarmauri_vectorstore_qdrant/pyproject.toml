@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_vectorstore_qdrant"
-version = "0.7.3"
+version = "0.7.5"
 description = "Swarmauri Persistent Qdrant Vector Store"
 license = "Apache-2.0"
 readme = "README.md"

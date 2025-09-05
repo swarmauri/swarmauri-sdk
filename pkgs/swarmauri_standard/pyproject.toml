@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri-standard"
-version = "0.7.3"
+version = "0.7.6.dev3"
 description = "This repository includes standard components within the Swarmauri framework."
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" },
@@ -18,12 +18,14 @@ requires-python = ">=3.10,<3.13"
 dependencies = [
 "toml>=0.10.2",
 "pydantic>=2.9.2",
+"h11>=0.16.0",
 "httpx>=0.27.0",
 "numpy",
 "pandas",
 "joblib>=1.4.0",
 "pillow>=11.1.0",
 "aiofiles",
+"rich",
 "typing_extensions",
 "swarmauri_core",
 "swarmauri_base",

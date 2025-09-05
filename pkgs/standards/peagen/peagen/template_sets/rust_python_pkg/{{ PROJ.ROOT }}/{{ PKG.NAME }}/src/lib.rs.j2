@@ -1,0 +1,24 @@
+use pyo3::prelude::*;
+
+{% for module in PKG.MODULES %}
+mod {{ module.NAME }};
+{% endfor %}
+
+// Import the specific structs, classes and functions
+
+/// A Python module implemented in Rust.
+/// 
+/// This module provides {{ PKG.DESCRIPTION | lower }}.
+#[pymodule]
+fn {{ PKG.NAME }}(_py: Python, m: &PyModule) -> PyResult<()> {
+    // Register Python classes
+    
+
+    // Register standalone functions
+    
+    
+    // Add module metadata
+    m.add("__version__", env!("CARGO_PKG_VERSION"))?;
+    
+    Ok(())
+}

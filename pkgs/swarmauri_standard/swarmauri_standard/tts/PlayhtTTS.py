@@ -31,12 +31,17 @@ class PlayhtTTS(TTSBase):
     Provider resourses: https://docs.play.ht/reference/api-getting-started
     """
 
-    allowed_models: List[str] = []
+    allowed_models: List[str] = [
+        "Play3.0-mini",
+        "PlayHT2.0-turbo",
+        "PlayHT1.0",
+        "PlayHT2.0",
+    ]
     allowed_voices: List[str] = Field(default=None)
     voice: str = Field(default="Adolfo")
     api_key: SecretStr
     user_id: str
-    name: str = ""
+    name: str = "Play3.0-mini"
     type: Literal["PlayhtTTS"] = "PlayhtTTS"
     output_format: str = "mp3"
     _voice_id: str = PrivateAttr(default=None)

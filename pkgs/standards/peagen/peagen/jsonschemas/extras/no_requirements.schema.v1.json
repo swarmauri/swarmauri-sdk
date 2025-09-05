@@ -1,0 +1,8 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/extras/no_requirements.schema.json",
+  "title": "EXTRAS Schema for no_requirements",
+  "type": "object",
+  "properties": {},
+  "additionalProperties": false
+}
