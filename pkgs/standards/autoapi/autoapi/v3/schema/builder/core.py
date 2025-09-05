@@ -1,17 +1,8 @@
-# autoapi/v3/schema/builder.py
-"""
-Schema building for AutoAPI v3.
-
-Builds verb-specific Pydantic models from SQLAlchemy ORM classes, with:
-• Column.info["autoapi"] support (read_only, disable_on, no_update, write_only, default_factory, examples)
-• Request-only virtual fields via __autoapi_request_extras__
-• Response-only virtual fields via __autoapi_response_extras__
-• A small cache keyed by (orm_cls, verb, include, exclude)
-• A helper to strip fields from a parent schema class
-"""
+"""Core schema builders for AutoAPI v3."""
 
 from __future__ import annotations
 
+import inspect
 import logging
 import uuid
 import warnings
@@ -19,7 +10,6 @@ from typing import (
     Any,
     Dict,
     Iterable,
-    Literal,
     Mapping,
     Set,
     Tuple,
@@ -31,15 +21,13 @@ from typing import (
     List,
 )
 
-import inspect
-
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, create_model
 
-from .utils import namely_model
+from ..utils import namely_model
 
 try:
     # Optional: validate column meta (if available in your tree)
-    from ..info_schema import check as _info_check  # type: ignore
+    from ...info_schema import check as _info_check  # type: ignore
 except Exception:  # pragma: no cover
 
     def _info_check(meta: Mapping[str, Any], attr_name: str, model_name: str) -> None:
@@ -66,169 +54,11 @@ except Exception:  # pragma: no cover
     PydanticUndefined = PydanticUndefinedClass()  # type: ignore
 
 
-from ..config.constants import (
-    AUTOAPI_REQUEST_EXTRAS_ATTR,
-    AUTOAPI_RESPONSE_EXTRAS_ATTR,
-)
+from .cache import _SchemaCache
+from .helpers import _bool, _add_field, _python_type, _is_required
+from .extras import _merge_request_extras, _merge_response_extras
 
 logger = logging.getLogger(__name__)
-
-# ───────────────────────────────────────────────────────────────────────────────
-# Types & cache
-# ───────────────────────────────────────────────────────────────────────────────
-
-_SchemaVerb = Union[
-    # Canonical AutoAPI verbs
-    Literal["create"],  # type: ignore[name-defined]
-    Literal["read"],  # type: ignore[name-defined]
-    Literal["update"],  # type: ignore[name-defined]
-    Literal["replace"],  # type: ignore[name-defined]
-    Literal["merge"],  # type: ignore[name-defined]
-    Literal["delete"],  # type: ignore[name-defined]
-    Literal["list"],  # type: ignore[name-defined]
-    Literal["clear"],  # type: ignore[name-defined]
-]
-
-_SchemaCache: Dict[
-    Tuple[type, str, frozenset, frozenset, str | None], Type[BaseModel]
-] = {}
-
-
-# ───────────────────────────────────────────────────────────────────────────────
-# Internal helpers
-# ───────────────────────────────────────────────────────────────────────────────
-
-
-def _bool(x: Any) -> bool:
-    try:
-        return bool(x)
-    except Exception:  # pragma: no cover
-        return False
-
-
-def _add_field(
-    sink: Dict[str, Tuple[type, Field]],
-    *,
-    name: str,
-    py_t: type | Any,
-    field: Field | None = None,
-) -> None:
-    sink[name] = (py_t, field if field is not None else Field(None))
-
-
-def _merge_request_extras(
-    orm_cls: type,
-    verb: str,
-    fields: Dict[str, Tuple[type, Field]],
-    *,
-    include: Set[str] | None,
-    exclude: Set[str] | None,
-) -> None:
-    """
-    Merge **request-only** virtual fields into the input schema.
-
-    The ORM may declare:
-        __autoapi_request_extras__ = {
-            "*": { "github_pat": (str | None, Field(default=None, exclude=True)) },
-            "create": {...}, "update": {...}, "delete": {...}, "replace": {...}
-        }
-
-    Notes:
-    • Applied only to request verbs (create/update/replace/delete)
-    • Respects include/exclude sets
-    • Field(...) is used as-is; if only a type is provided, defaults to Field(None)
-    • Recommend Field(exclude=True) for secrets so they drop from .model_dump()
-    """
-    buckets = getattr(orm_cls, AUTOAPI_REQUEST_EXTRAS_ATTR, None)
-    if not buckets:
-        return
-    if verb not in {"create", "update", "replace", "delete"}:
-        return
-
-    for bucket in (buckets.get("*", {}), buckets.get(verb, {})):
-        for name, spec in (bucket or {}).items():
-            if include and name not in include:
-                continue
-            if exclude and name in exclude:
-                continue
-            if isinstance(spec, tuple) and len(spec) == 2:
-                py_t, fld = spec
-            else:
-                py_t, fld = (spec or Any), Field(None)
-            _add_field(fields, name=name, py_t=py_t, field=fld)
-            logger.debug(
-                "schema: added request-extra field %s (verb=%s, type=%r)",
-                name,
-                verb,
-                py_t,
-            )
-
-
-def _merge_response_extras(
-    orm_cls: type,
-    verb: str,
-    fields: Dict[str, Tuple[type, Field]],
-    *,
-    include: Set[str] | None,
-    exclude: Set[str] | None,
-) -> None:
-    """Merge **response-only** virtual fields into the output schema."""
-    buckets = getattr(orm_cls, AUTOAPI_RESPONSE_EXTRAS_ATTR, None)
-    if not buckets:
-        return
-
-    for bucket in (buckets.get("*", {}), buckets.get(verb, {})):
-        for name, spec in (bucket or {}).items():
-            if include and name not in include:
-                continue
-            if exclude and name in exclude:
-                continue
-            if isinstance(spec, tuple) and len(spec) == 2:
-                py_t, fld = spec
-            else:
-                py_t, fld = (spec or Any), Field(None)
-            _add_field(fields, name=name, py_t=py_t, field=fld)
-            logger.debug(
-                "schema: added response-extra field %s (verb=%s, type=%r)",
-                name,
-                verb,
-                py_t,
-            )
-
-
-def _python_type(col: Any) -> type | Any:
-    try:
-        return col.type.python_type
-    except Exception:  # pragma: no cover
-        return Any
-
-
-def _is_required(col: Any, verb: str) -> bool:
-    """
-    Decide if a column should be required for this verb.
-    - PK is required for update/replace/delete
-    - otherwise, nullable or server/default determines optionality
-    """
-    # Primary keys remain required for mutating verbs so the row can be
-    # identified. For ``update`` operations however, other fields should be
-    # optional to support partial updates. Previously non-nullable columns were
-    # always marked as required which caused validation errors for payloads that
-    # omitted untouched fields.
-    if getattr(col, "primary_key", False) and verb in {"update", "replace", "delete"}:
-        return True
-    if verb == "update":
-        # Allow partial updates by treating non-PK fields as optional.
-        return False
-    is_nullable = bool(getattr(col, "nullable", True))
-    has_default = (getattr(col, "default", None) is not None) or (
-        getattr(col, "server_default", None) is not None
-    )
-    return not is_nullable and not has_default
-
-
-# ───────────────────────────────────────────────────────────────────────────────
-# Public builders
-# ───────────────────────────────────────────────────────────────────────────────
 
 
 def _build_schema(
@@ -520,11 +350,11 @@ def _build_list_params(model: type) -> Type[BaseModel]:
         )
         return schema
 
-    # Determine primary key name (first PK column)
-    try:
-        pk_name = next(iter(table.primary_key.columns)).name
-    except Exception:
-        pk_name = None
+    pk_name = None
+    for c in table.columns:
+        if getattr(c, "primary_key", False):
+            pk_name = c.name
+            break
 
     _canon = {
         "eq": "eq",
@@ -646,6 +476,4 @@ __all__ = [
     "_build_schema",
     "_build_list_params",
     "_strip_parent_fields",
-    "_merge_request_extras",
-    "_merge_response_extras",
 ]
