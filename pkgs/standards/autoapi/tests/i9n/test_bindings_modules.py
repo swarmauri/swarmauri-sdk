@@ -17,8 +17,8 @@ from autoapi.v3.bindings import (
     model as model_binding,
     rest as rest_binding,
     rpc as rpc_binding,
-    schemas as schemas_binding,
 )
+from autoapi.v3.bindings.schemas import build_and_attach as schemas_build_and_attach
 from autoapi.v3.specs import ColumnSpec, F, IO, S
 from autoapi.v3.ops import resolve
 from autoapi.v3.runtime import executor as _executor
@@ -69,7 +69,7 @@ def test_columns_build_and_attach(model_cls):
 @pytest.mark.i9n
 def test_schemas_build_and_attach(model_cls, specs):
     columns_binding.build_and_attach(model_cls)
-    schemas_binding.build_and_attach(model_cls, specs)
+    schemas_build_and_attach(model_cls, specs)
     assert hasattr(model_cls.schemas.create, "in_")
     assert hasattr(model_cls.schemas.read, "out")
 
