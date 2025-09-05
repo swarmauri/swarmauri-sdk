@@ -33,25 +33,11 @@ class GroqModel(LLMBase):
     allowed_models: List[str] = [
         "llama-3.3-70b-versatile",
         "llama-3.1-8b-instant",
-        "distil-whisper-large-v3-en",
+        "meta-llama/llama-guard-4-12b",
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b",
         "whisper-large-v3-turbo",
-        "qwen-2.5-coder-32b",
-        "gemma2-9b-it",
-        "llama3-70b-8192",
-        "llama-3.2-1b-preview",
-        "llama-3.2-3b-preview",
-        "mistral-saba-24b",
-        "qwen-2.5-32b",
-        "llama-3.2-90b-vision-preview",
-        "qwen-qwq-32b",
-        "llama-3.3-70b-specdec",
         "whisper-large-v3",
-        "deepseek-r1-distill-qwen-32b",
-        "allam-2-7b",
-        "llama3-8b-8192",
-        "deepseek-r1-distill-llama-70b",
-        "llama-guard-3-8b",
-        "llama-3.2-11b-vision-preview",
     ]
     name: str = "llama-3.3-70b-versatile"
 

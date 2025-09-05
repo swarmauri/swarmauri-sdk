@@ -45,7 +45,27 @@ class MistralToolModel(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = []
+    allowed_models: List[str] = [
+        "mistral-medium-2508",
+        "codestral-2508",
+        "devstral-medium-2507",
+        "mistral-ocr-2505",
+        "ministral-8b-2410",
+        "mistral-medium-2505",
+        "codestral-2501",
+        "mistral-large-2411",
+        "pixtral-large-2411",
+        "mistral-small-2407",
+        "mistral-embed",
+        "codestral-embed",
+        "mistral-moderation-2411",
+        "mistral-small-2506",
+        "devstral-small-2507",
+        "mistral-small-2501",
+        "devstral-small-2505",
+        "pixtral-12b-2409",
+        "open-mistral-nemo",
+    ]
     name: str = ""
     type: Literal["MistralToolModel"] = "MistralToolModel"
     timeout: float = 600.0

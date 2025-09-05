@@ -56,15 +56,16 @@ class GroqToolModel(LLMBase):
 
     api_key: SecretStr
     allowed_models: List[str] = [
-        "qwen-2.5-32b",
-        "deepseek-r1-distill-qwen-32b",
-        "deepseek-r1-distill-llama-70b",
+        "moonshotai/kimi-k2-instruct",
+        "moonshotai/kimi-k2-instruct-0905",
+        "openai/gpt-oss-20b",
+        "openai/gpt-oss-120b",
+        "meta-llama/llama-4-maverick-17b-128e-instruct",
+        "meta-llama/llama-4-scout-17b-16e-instruct",
         "llama-3.3-70b-versatile",
         "llama-3.1-8b-instant",
-        "mixtral-8x7b-32768",
-        "gemma2-9b-it",
     ]
-    name: str = "qwen-2.5-32b"
+    name: str = "moonshotai/kimi-k2-instruct"
 
     type: Literal["GroqToolModel"] = "GroqToolModel"
     _client: httpx.Client = PrivateAttr(default=None)
@@ -507,12 +508,13 @@ class GroqToolModel(LLMBase):
             List[str]: List of allowed model names.
         """
         models_data = [
-            "qwen-2.5-32b",
-            "deepseek-r1-distill-qwen-32b",
-            "deepseek-r1-distill-llama-70b",
+            "moonshotai/kimi-k2-instruct",
+            "moonshotai/kimi-k2-instruct-0905",
+            "openai/gpt-oss-20b",
+            "openai/gpt-oss-120b",
+            "meta-llama/llama-4-maverick-17b-128e-instruct",
+            "meta-llama/llama-4-scout-17b-16e-instruct",
             "llama-3.3-70b-versatile",
             "llama-3.1-8b-instant",
-            "mixtral-8x7b-32768",
-            "gemma2-9b-it",
         ]
         return models_data

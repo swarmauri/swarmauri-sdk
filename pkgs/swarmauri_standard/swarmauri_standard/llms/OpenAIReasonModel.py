@@ -38,6 +38,12 @@ class OpenAIReasonModel(LLMBase):
 
     api_key: SecretStr
     allowed_models: List[str] = [
+        "o3-deep-research-2025-06-26",
+        "o4-mini-deep-research-2025-06-26",
+        "o3-pro-2025-06-10",
+        "o3-2025-04-16",
+        "o4-mini-2025-04-16",
+        "o1-pro-2025-03-19",
         "o1-mini",
         "o1",
         "o1-2024-12-17",
