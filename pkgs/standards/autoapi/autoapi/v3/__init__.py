@@ -24,10 +24,10 @@ Quick start:
 from __future__ import annotations
 
 # ── OpSpec (source of truth) ───────────────────────────────────────────────────
-from .ops import (
+from .op import (
     OpSpec,
     get_registry,
-    # types and helpers re-exported from ops
+    # types and helpers re-exported from op
     TargetOp,
     Arity,
     PersistPolicy,

@@ -3,7 +3,7 @@ import autoapi.v3.core as core
 from pydantic import BaseModel
 
 from autoapi.v3 import alias_ctx, alias, schema_ctx
-from autoapi.v3.ops import resolve
+from autoapi.v3.op import resolve
 from autoapi.v3.bindings import build_schemas, build_handlers
 
 

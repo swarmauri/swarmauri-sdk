@@ -6,7 +6,7 @@ from typing import Dict, Optional, Type
 
 from pydantic import BaseModel
 
-from ...ops import OpSpec
+from ...op import OpSpec
 from ...schema import (
     _build_schema,
     _build_list_params,

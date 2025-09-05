@@ -22,7 +22,14 @@ from .types import (
 from ..config.constants import (
     AUTOAPI_OPS_ATTR,
 )
-from ..decorators import alias_map_for  # canonical→alias mapping source
+from .decorators import (
+    _OpDecl,
+    _unwrap,
+    _wrap_ctx_core,
+    _infer_arity,
+    _normalize_persist,
+    alias_map_for,  # canonical→alias mapping source
+)
 from .canonical import should_wire_canonical
 
 try:
@@ -37,6 +44,72 @@ except Exception:  # pragma: no cover
 logger = logging.getLogger(__name__)
 
 _ALIAS_RE = re.compile(r"^[a-z][a-z0-9_]*$")
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# Decorator collection (ctx-only declarations)
+# ───────────────────────────────────────────────────────────────────────────────
+
+
+def collect_decorated_ops(table: type) -> list[OpSpec]:
+    """
+    Scan MRO for ctx-only op declarations (@op_ctx) and build OpSpecs.
+
+    Normalization:
+      • `target` is the canonical verb ("create","read","...", default "custom").
+      • `arity` is "member"/"collection". If omitted, inferred from target.
+      • `rest` toggles `expose_routes` on the spec.
+    """
+
+    out: list[OpSpec] = []
+
+    for base in reversed(table.__mro__):
+        names = list(getattr(base, "__dict__", {}).keys())
+        for name in dir(base):
+            if name not in names:
+                names.append(name)
+        for name in names:
+            attr = getattr(base, name, None)
+            func = _unwrap(attr)
+            decl: _OpDecl | None = getattr(func, "__autoapi_op_decl__", None)
+            if not decl:
+                continue
+
+            target = decl.target or "custom"
+            arity = decl.arity or _infer_arity(target)
+            persist = _normalize_persist(decl.persist)
+            alias = decl.alias or name
+
+            expose_kwargs: dict[str, Any] = {}
+            extra: dict[str, Any] = {}
+            if decl.rest is not None:
+                expose_kwargs["expose_routes"] = bool(decl.rest)
+            elif alias != target and target in {
+                "read",
+                "update",
+                "delete",
+                "list",
+                "clear",
+            }:
+                expose_kwargs["expose_routes"] = False
+
+            spec = OpSpec(
+                table=table,
+                alias=alias,
+                target=target,  # canonical verb
+                arity=arity,
+                persist=persist,
+                handler=_wrap_ctx_core(table, func),
+                request_model=decl.request_schema,
+                response_model=decl.response_schema,
+                hooks=(),
+                status_code=decl.status_code,
+                extra=extra,
+                **expose_kwargs,
+            )
+            out.append(spec)
+
+    return out
 
 
 # ───────────────────────────────────────────────────────────────────────────────
@@ -309,4 +382,4 @@ def resolve(model: type) -> List[OpSpec]:
     return specs
 
 
-__all__ = ["resolve"]
+__all__ = ["resolve", "collect_decorated_ops"]

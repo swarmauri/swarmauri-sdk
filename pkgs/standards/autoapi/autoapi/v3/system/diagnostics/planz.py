@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional
 from types import SimpleNamespace
 
-from ...ops.types import PHASES
+from ...op.types import PHASES
 from ...runtime import plan as _plan
 
 
