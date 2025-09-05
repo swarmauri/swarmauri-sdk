@@ -37,7 +37,28 @@ class MistralToolModel(ToolLLMBase):
     Provider resources: https://docs.mistral.ai/capabilities/function_calling/#available-models
     """
 
-    name: str = ""
+    allowed_models: List[str] = [
+        "mistral-medium-2508",
+        "codestral-2508",
+        "devstral-medium-2507",
+        "mistral-ocr-2505",
+        "ministral-8b-2410",
+        "mistral-medium-2505",
+        "codestral-2501",
+        "mistral-large-2411",
+        "pixtral-large-2411",
+        "mistral-small-2407",
+        "mistral-embed",
+        "codestral-embed",
+        "mistral-moderation-2411",
+        "mistral-small-2506",
+        "devstral-small-2507",
+        "mistral-small-2501",
+        "devstral-small-2505",
+        "pixtral-12b-2409",
+        "open-mistral-nemo",
+    ]
+    name: str = "mistral-medium-2508"
     type: Literal["MistralToolModel"] = "MistralToolModel"
     BASE_URL: str = "https://api.mistral.ai/v1/chat/completions"
     _client: httpx.Client = PrivateAttr(default=None)
