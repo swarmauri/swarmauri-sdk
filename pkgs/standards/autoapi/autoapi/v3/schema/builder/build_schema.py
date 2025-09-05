@@ -1,62 +1,18 @@
-"""Core schema builders for AutoAPI v3."""
+"""Core schema builder logic for AutoAPI v3."""
 
 from __future__ import annotations
 
-import inspect
 import logging
-import uuid
 import warnings
-from typing import (
-    Any,
-    Dict,
-    Iterable,
-    Mapping,
-    Set,
-    Tuple,
-    Type,
-    Union,
-    get_args,
-    get_origin,
-    get_type_hints,
-    List,
-)
+from typing import Any, Dict, Iterable, Mapping, Set, Tuple, Type, Union
 
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, create_model
 
 from ..utils import namely_model
-
-try:
-    # Optional: validate column meta (if available in your tree)
-    from ...info_schema import check as _info_check  # type: ignore
-except Exception:  # pragma: no cover
-
-    def _info_check(meta: Mapping[str, Any], attr_name: str, model_name: str) -> None:
-        return None  # no-op if v3.info_schema is absent
-
-
-try:
-    # Use SQLAlchemy's hybrid_property
-    from sqlalchemy.ext.hybrid import hybrid_property  # type: ignore
-except Exception:  # pragma: no cover
-
-    class hybrid_property:  # minimal shim
-        pass
-
-
-try:
-    # Pydantic v2 sentinel for "no default"
-    from pydantic_core import PydanticUndefined  # type: ignore
-except Exception:  # pragma: no cover
-
-    class PydanticUndefinedClass:  # shim
-        pass
-
-    PydanticUndefined = PydanticUndefinedClass()  # type: ignore
-
-
 from .cache import _SchemaCache
-from .helpers import _bool, _add_field, _python_type, _is_required
+from .compat import _info_check, hybrid_property
 from .extras import _merge_request_extras, _merge_response_extras
+from .helpers import _add_field, _bool, _is_required, _python_type
 
 logger = logging.getLogger(__name__)
 
@@ -69,20 +25,7 @@ def _build_schema(
     exclude: Set[str] | None = None,
     verb: str = "create",
 ) -> Type[BaseModel]:
-    """
-    Build (and cache) a verb-specific Pydantic schema from *orm_cls*,
-    ignoring relationships entirely. Columns come directly from __table__.columns
-    (ColumnProperty only).
-
-    Supported metadata on columns:
-      • Column.info["autoapi"] with keys:
-        - read_only   : bool | Iterable[str] | Mapping[str,bool]
-        - write_only  : bool (hidden from read schemas)
-        - disable_on  : Iterable[str] (verbs)
-        - no_update   : legacy flag (treated like disable_on={"update","replace"})
-        - default_factory, examples
-      • __autoapi_request_extras__ / __autoapi_response_extras__ on the ORM class
-    """
+    """Build (and cache) a verb-specific Pydantic schema for *orm_cls*."""
     cache_key = (
         orm_cls,
         verb,
@@ -153,7 +96,9 @@ def _build_schema(
         meta_src = getattr(col, "info", {}) or {}
         if isinstance(meta_src, Mapping) and "autoapi" in meta_src:
             warnings.warn(
-                "col.info['autoapi'] is deprecated and support will be removed; behavior is no longer guaranteed for col.info['autoapi'] based column configuration.",
+                "col.info['autoapi'] is deprecated and support will be removed;"
+                " behavior is no longer guaranteed for col.info['autoapi'] based"
+                " column configuration.",
                 DeprecationWarning,
                 stacklevel=5,
             )
@@ -288,7 +233,9 @@ def _build_schema(
         meta_src = getattr(attr, "info", {}) or {}
         if isinstance(meta_src, Mapping) and "autoapi" in meta_src:
             warnings.warn(
-                "col.info['autoapi'] is deprecated and support will be removed; behavior is no longer guaranteed for col.info['autoapi'] based column configuration.",
+                "col.info['autoapi'] is deprecated and support will be removed;"
+                " behavior is no longer guaranteed for col.info['autoapi'] based"
+                " column configuration.",
                 DeprecationWarning,
                 stacklevel=5,
             )
@@ -318,162 +265,4 @@ def _build_schema(
     return schema_cls
 
 
-def _build_list_params(model: type) -> Type[BaseModel]:
-    """
-    Create a list/filter schema for the given model (forbid extra keys).
-    Includes: skip>=0, limit>=10, plus nullable scalar filters for non-PK columns.
-    """
-    tab = model.__name__
-    logger.debug("schema: build_list_params for %s", tab)
-
-    base = dict(
-        skip=(int | None, Field(None, ge=0)),
-        limit=(int | None, Field(None, ge=10)),
-        sort=(str | list[str] | None, Field(None)),
-    )
-    _scalars = {str, int, float, bool, bytes, uuid.UUID}
-    cols: dict[str, tuple[type, Field]] = {}
-
-    table = getattr(model, "__table__", None)
-    if table is None or not getattr(table, "columns", None):
-        # No table info; return a minimal pager schema
-        schema = create_model(
-            f"{tab}ListParams", __config__=ConfigDict(extra="forbid"), **base
-        )  # type: ignore[arg-type]
-        schema = namely_model(
-            schema,
-            name=f"{tab}ListParams",
-            doc=f"List parameters for {tab}",
-        )
-        logger.debug(
-            "schema: build_list_params generated %s (no columns)", schema.__name__
-        )
-        return schema
-
-    pk_name = None
-    for c in table.columns:
-        if getattr(c, "primary_key", False):
-            pk_name = c.name
-            break
-
-    _canon = {
-        "eq": "eq",
-        "=": "eq",
-        "==": "eq",
-        "ne": "ne",
-        "!=": "ne",
-        "<>": "ne",
-        "lt": "lt",
-        "<": "lt",
-        "gt": "gt",
-        ">": "gt",
-        "lte": "lte",
-        "le": "lte",
-        "<=": "lte",
-        "gte": "gte",
-        "ge": "gte",
-        ">=": "gte",
-        "like": "like",
-        "not_like": "not_like",
-        "ilike": "ilike",
-        "not_ilike": "not_ilike",
-        "in": "in",
-        "not_in": "not_in",
-    }
-
-    for c in table.columns:
-        if pk_name and c.name == pk_name:
-            continue
-        py_t = getattr(c.type, "python_type", Any)
-        if py_t in _scalars:
-            spec_map = getattr(model, "__autoapi_colspecs__", None) or getattr(
-                model, "__autoapi_cols__", {}
-            )
-            spec = spec_map.get(c.name) if isinstance(spec_map, Mapping) else None
-            io = getattr(spec, "io", None)
-            ops_raw = set(getattr(io, "filter_ops", ()) or [])
-            if not ops_raw:
-                # Allow basic equality filtering by default on scalar columns
-                ops_raw = {"eq"}
-            ops = {_canon.get(op, op) for op in ops_raw}
-            if "eq" in ops:
-                cols[c.name] = (py_t | None, Field(None))
-                logger.debug("schema: list filter add %s type=%r", c.name, py_t)
-            for op in ops:
-                if op == "eq":
-                    continue
-                fname = f"{c.name}__{op}"
-                cols[fname] = (py_t | None, Field(None))
-                logger.debug(
-                    "schema: list filter add %s op=%s type=%r", c.name, op, py_t
-                )
-
-    schema = create_model(
-        f"{tab}ListParams",
-        __config__=ConfigDict(extra="forbid"),
-        **base,  # type: ignore[arg-type]
-        **cols,  # type: ignore[arg-type]
-    )
-    schema = namely_model(
-        schema,
-        name=f"{tab}ListParams",
-        doc=f"List parameters for {tab}",
-    )
-    logger.debug("schema: build_list_params generated %s", schema.__name__)
-    return schema
-
-
-def _strip_parent_fields(base: Type[BaseModel], *, drop: Set[str]) -> Type[BaseModel]:
-    """
-    Return a shallow clone of *base* with selected fields removed.
-    Preserves field types and defaults where possible.
-    """
-    assert issubclass(base, BaseModel), "base must be a Pydantic BaseModel subclass"
-
-    # RootModel[Union[Model, List[Model]]] – unwrap inner model so we can strip
-    # identifiers and return the cleaned schema directly.
-    if len(getattr(base, "model_fields", {})) == 1 and "root" in base.model_fields:
-        root_ann = base.model_fields["root"].annotation
-        if get_origin(root_ann) is Union:
-            item_type = None
-            for arg in get_args(root_ann):
-                origin = get_origin(arg)
-                if inspect.isclass(arg) and issubclass(arg, BaseModel):
-                    item_type = arg
-                    break
-                if origin in (list, List):
-                    sub = get_args(arg)[0]
-                    if inspect.isclass(sub) and issubclass(sub, BaseModel):
-                        item_type = sub
-                        break
-            if item_type is not None:
-                return _strip_parent_fields(item_type, drop=drop)
-
-    hints = get_type_hints(base, include_extras=True)
-    new_fields: Dict[str, Tuple[type, Any]] = {}
-
-    for name, finfo in base.model_fields.items():  # type: ignore[attr-defined]
-        if name in (drop or ()):  # pragma: no branch
-            continue
-        typ = hints.get(name, Any)
-        default = (
-            finfo.default
-            if getattr(finfo, "default", PydanticUndefined) is not PydanticUndefined
-            else ...
-        )
-        new_fields[name] = (typ, default)
-
-    clone = create_model(
-        f"{base.__name__}Pruned",
-        __config__=getattr(base, "model_config", None),
-        **new_fields,
-    )  # type: ignore[arg-type]
-    clone.model_rebuild(force=True)
-    return clone
-
-
-__all__ = [
-    "_build_schema",
-    "_build_list_params",
-    "_strip_parent_fields",
-]
+__all__ = ["_build_schema"]
