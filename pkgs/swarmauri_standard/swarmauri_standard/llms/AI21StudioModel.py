@@ -33,8 +33,13 @@ class AI21StudioModel(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = ["jamba-1.5-large", "jamba-1.5-mini"]
-    name: str = "jamba-1.5-large"
+    allowed_models: List[str] = [
+        "jamba-large",
+        "jamba-mini",
+        "jamba-large-1.7",
+        "jamba-mini-1.7",
+    ]
+    name: str = "jamba-large"
     type: Literal["AI21StudioModel"] = "AI21StudioModel"
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
@@ -425,4 +430,4 @@ class AI21StudioModel(LLMBase):
         Returns:
             List[str]: List of allowed model names.
         """
-        return ["jamba-1.5-large", "jamba-1.5-mini"]
+        return ["jamba-large", "jamba-mini", "jamba-large-1.7", "jamba-mini-1.7"]
