@@ -69,20 +69,17 @@ def flatten(
     anchor_policies: Optional[Mapping[str, AnchorPolicy]] = None,
 ) -> List[Label]:
     """
-    Produce a full, flattened order of labels across all phases.
+    Produce a flattened order of labels across all anchors.
 
     Rules:
-    - secdep → dep → PRE_HANDLER anchors → START_TX sys → HANDLER anchors →
-      HANDLER sys → POST_HANDLER anchors → END_TX sys → POST_RESPONSE anchors
-    - sys labels are pruned when persist=False (no txn for read-only ops).
+    - secdep → dep → PRE_HANDLER anchors → POST_HANDLER anchors → POST_RESPONSE anchors
     - persist-tied anchors are pruned when persist=False (see events.is_persist_tied).
     - Within each anchor, perform a topo sort using DEFAULT_EDGES + anchor_policies[anchor].edges,
       with stable tie-breaks using preferences + (kind, domain, subject, field).
     """
-    # Partition by kind/phase/anchor
+    # Partition by kind/anchor
     secdeps: List[Label] = []
     deps: List[Label] = []
-    sys_by_phase: Dict[_ev.Phase, List[Label]] = defaultdict(list)
     by_anchor: Dict[str, List[Label]] = defaultdict(list)
 
     for lbl in labels:
@@ -90,35 +87,21 @@ def flatten(
             secdeps.append(lbl)
         elif lbl.kind == "dep":
             deps.append(lbl)
-        elif lbl.kind == "sys":
-            # accept any phase, but common are START_TX/HANDLER/END_TX
-            phase = lbl.anchor  # type: ignore[assignment]
-            if phase not in _ev.PHASES:
-                raise ValueError(f"System label carries unknown phase: {lbl}")
-            sys_by_phase[phase].append(lbl)
         else:
-            # atom/hook (must carry anchor)
             if not lbl.anchor:
                 raise ValueError(f"Label missing anchor: {lbl}")
             by_anchor[lbl.anchor].append(lbl)
 
-    # `secdeps` and `deps` are received in their runtime execution order.
-    # Preserve that order rather than sorting alphabetically so diagnostics
-    # reflect the actual pre-phase dependency sequence.
-
-    # Anchor list honoring persist pruning + canonical order
-    anchors_present = tuple(a for a in by_anchor.keys())
+    anchors_present = tuple(by_anchor.keys())
     anchors = _ev.order_events(anchors_present)
     if not persist:
         anchors = _ev.prune_events_for_persist(anchors, persist=False)
 
     out: List[Label] = []
 
-    # Pre-phase deps
     out.extend(secdeps)
     out.extend(deps)
 
-    # PRE_HANDLER anchors
     _append_anchor_block(
         out,
         by_anchor,
@@ -127,24 +110,6 @@ def flatten(
         anchor_policies=anchor_policies,
         persist=persist,
     )
-
-    # START_TX sys (prune for non-persist)
-    if persist:
-        out.extend(_sorted_sys(sys_by_phase.get("START_TX", ())))
-    # HANDLER anchors
-    _append_anchor_block(
-        out,
-        by_anchor,
-        anchors,
-        target_phase="HANDLER",
-        anchor_policies=anchor_policies,
-        persist=persist,
-    )
-
-    # HANDLER sys (prune for non-persist)
-    if persist:
-        out.extend(_sorted_sys(sys_by_phase.get("HANDLER", ())))
-    # POST_HANDLER anchors
     _append_anchor_block(
         out,
         by_anchor,
@@ -153,11 +118,6 @@ def flatten(
         anchor_policies=anchor_policies,
         persist=persist,
     )
-
-    # END_TX sys (prune for non-persist)
-    if persist:
-        out.extend(_sorted_sys(sys_by_phase.get("END_TX", ())))
-    # POST_RESPONSE anchors
     _append_anchor_block(
         out,
         by_anchor,
@@ -166,15 +126,6 @@ def flatten(
         anchor_policies=anchor_policies,
         persist=persist,
     )
-
-    # Any remaining sys in atypical phases (rare): append at the end of their phase window
-    # PRE_HANDLER / POST_RESPONSE specifically
-    if sys_by_phase.get("PRE_HANDLER"):
-        out = _insert_after(
-            out, after_kinds=("dep",), addition=_sorted_sys(sys_by_phase["PRE_HANDLER"])
-        )
-    if sys_by_phase.get("POST_RESPONSE"):
-        out.extend(_sorted_sys(sys_by_phase["POST_RESPONSE"]))
 
     return out
 
@@ -290,34 +241,6 @@ def order_within_anchor(
         out.extend(remaining)
 
     return out
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# Utilities
-# ──────────────────────────────────────────────────────────────────────────────
-
-
-def _sorted_sys(sys_labels: Sequence[Label]) -> List[Label]:
-    """Deterministic ordering for system steps within the same phase."""
-    return sorted(
-        sys_labels, key=lambda label: (label.subject or "", label.field or "")
-    )
-
-
-def _insert_after(
-    seq: List[Label],
-    *,
-    after_kinds: Tuple[str, ...],
-    addition: Sequence[Label],
-) -> List[Label]:
-    """Insert `addition` after the last occurrence of any label with kind in after_kinds."""
-    idx = -1
-    for i, label in enumerate(seq):
-        if label.kind in after_kinds:
-            idx = i
-    if idx == -1:
-        return list(addition) + seq
-    return seq[: idx + 1] + list(addition) + seq[idx + 1 :]
 
 
 __all__ = [

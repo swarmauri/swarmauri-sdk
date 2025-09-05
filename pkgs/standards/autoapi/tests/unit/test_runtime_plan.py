@@ -78,7 +78,7 @@ def test_build_plan_creates_per_model_and_per_field_atoms(monkeypatch):
 
 
 def test_flattened_order_includes_deps_and_system_steps():
-    """flattened_order adds dep/secdep and system labels in order."""
+    """flattened_order adds dep/secdep and system hooks in order."""
     node = runtime_plan.AtomNode(
         label=_lbl.make_atom("schema", "collect_in", _ev.SCHEMA_COLLECT_IN),
         run=lambda *_: None,
@@ -97,13 +97,12 @@ def test_flattened_order_includes_deps_and_system_steps():
         secdeps=("a",),
         deps=("b",),
     )
-    rendered = [lbl.render() for lbl in labels]
-    assert rendered[:2] == ["secdep:a", "dep:b"]
-    assert rendered[2] == node.label.render()
-    assert rendered[3:] == [
-        "sys:txn:begin@START_TX",
-        "sys:handler:crud@HANDLER",
-        "sys:txn:commit@END_TX",
+    assert labels[:2] == ["PRE_TX:secdep:a", "PRE_TX:dep:b"]
+    assert labels[2] == "START_TX:hook:sys:txn:begin@START_TX"
+    assert labels[3] == "PRE_HANDLER:atom:schema:collect_in@schema:collect_in"
+    assert labels[4:] == [
+        "HANDLER:hook:sys:handler:crud@HANDLER",
+        "END_TX:hook:sys:txn:commit@END_TX",
     ]
 
 
@@ -125,7 +124,7 @@ def test_flattened_order_omits_system_steps_when_not_persist():
         persist=False,
         include_system_steps=True,
     )
-    assert all(lbl.kind != "sys" for lbl in labels)
+    assert all("hook:sys" not in lbl for lbl in labels)
 
 
 def test_flattened_order_skips_system_steps_when_disabled():
@@ -146,7 +145,7 @@ def test_flattened_order_skips_system_steps_when_disabled():
         persist=True,
         include_system_steps=False,
     )
-    assert all(lbl.kind != "sys" for lbl in labels)
+    assert all("hook:sys" not in lbl for lbl in labels)
 
 
 def test_build_plan_respects_only_keys(monkeypatch):

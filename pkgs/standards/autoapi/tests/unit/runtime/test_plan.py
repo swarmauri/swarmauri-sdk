@@ -152,12 +152,14 @@ def test_flattened_order_combines_labels_and_system_steps(
         deps=["d"],
         anchor_policies={"x": _ord.AnchorPolicy()},
     )
-    assert result == captured["labels"]
     kinds = [lbl.kind for lbl in captured["labels"]]
     assert kinds[:2] == ["secdep", "dep"]
-    assert any(lbl.kind == "sys" for lbl in captured["labels"])
+    assert not any(lbl.kind == "sys" for lbl in captured["labels"])
     assert captured["persist"] is True
     assert "x" in captured["anchor_policies"]
+    assert result[0] == "PRE_TX:secdep:s"
+    assert result[1] == "PRE_TX:dep:d"
+    assert "START_TX:hook:sys:txn:begin@START_TX" in result
 
 
 @pytest.mark.parametrize(
@@ -175,8 +177,10 @@ def test_flattened_order_skips_system_steps(
         return list(labels)
 
     monkeypatch.setattr(plan_mod._ord, "flatten", fake_flatten)
-    plan_mod.flattened_order(plan, persist=persist, include_system_steps=include_steps)
-    assert not any(lbl.kind == "sys" for lbl in captured["labels"])
+    out = plan_mod.flattened_order(
+        plan, persist=persist, include_system_steps=include_steps
+    )
+    assert not any("hook:sys" in s for s in out)
 
 
 def test_flattened_order_preserves_prelabel_order() -> None:
@@ -189,12 +193,16 @@ def test_flattened_order_preserves_prelabel_order() -> None:
         secdeps=("s2", "s1"),
         deps=("d2", "d1"),
     )
-    rendered = [lbl.render() for lbl in labels]
-    assert rendered == ["secdep:s2", "secdep:s1", "dep:d2", "dep:d1"]
+    assert labels == [
+        "PRE_TX:secdep:s2",
+        "PRE_TX:secdep:s1",
+        "PRE_TX:dep:d2",
+        "PRE_TX:dep:d1",
+    ]
 
 
 def test_flattened_order_includes_hooks() -> None:
-    """Hooks are inserted before atoms in their phase and ahead of system steps."""
+    """Hooks are inserted after atoms in their phase."""
     node = _make_node("schema", "collect_in", _ev.SCHEMA_COLLECT_IN)
     plan = plan_mod.Plan("M", {_ev.SCHEMA_COLLECT_IN: (node,)})
     hook = "hook:wire:pre@PRE_HANDLER"
@@ -204,12 +212,12 @@ def test_flattened_order_includes_hooks() -> None:
         include_system_steps=True,
         hooks={"PRE_HANDLER": [hook]},
     )
-    rendered = [lbl.render() for lbl in labels]
-    assert rendered[0] == hook
-    assert rendered[1] == node.label.render()
-    assert rendered[2] == "sys:txn:begin@START_TX"
-    assert "sys:handler:crud@HANDLER" in rendered
-    assert rendered[-1] == "sys:txn:commit@END_TX"
+    assert labels[0] == "START_TX:hook:sys:txn:begin@START_TX"
+    assert "PRE_HANDLER:atom:schema:collect_in@schema:collect_in" in labels
+    idx_atom = labels.index("PRE_HANDLER:atom:schema:collect_in@schema:collect_in")
+    assert labels[idx_atom + 1] == "PRE_HANDLER:hook:wire:pre@PRE_HANDLER"
+    assert "HANDLER:hook:sys:handler:crud@HANDLER" in labels
+    assert labels[-1] == "END_TX:hook:sys:txn:commit@END_TX"
 
 
 # ---------------------------------------------------------------------------

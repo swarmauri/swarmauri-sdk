@@ -190,12 +190,12 @@ def flattened_order(
     deps: Iterable[str] | Iterable[_lbl.Label] = (),
     hooks: Optional[Mapping[str, Iterable[str | _lbl.Label]]] = None,
     anchor_policies: Optional[Mapping[str, _ord.AnchorPolicy]] = None,
-) -> List[_lbl.Label]:
+) -> List[str]:
     """
     Compute a flattened list of labels for diagnostics/execution preview.
 
     - Injects optional secdep/dep labels (strings auto-wrapped).
-    - Injects system step labels (txn begin/handler/commit) when requested and persist=True.
+    - Injects system step hooks (txn begin/handler/commit) when requested and persist=True.
     - Applies persist pruning and deterministic ordering via runtime.ordering.flatten().
     """
     # 1) Base atom labels
@@ -208,68 +208,46 @@ def flattened_order(
     dep_labels = [_ensure_label(x, kind="dep") for x in deps]
 
     # 3) Optional system steps (labels only; executor owns behavior)
-    sys_labels: List[_lbl.Label] = []
+    system_hooks: Dict[str, _lbl.Label] = {}
     if include_system_steps and persist:
-        sys_labels.extend(
-            [
-                _lbl.make_sys("txn:begin", "START_TX"),
-                _lbl.make_sys("handler:crud", "HANDLER"),
-                _lbl.make_sys("txn:commit", "END_TX"),
-            ]
-        )
+        system_hooks = {
+            "START_TX": _lbl.make_hook("sys", "txn:begin", "START_TX"),
+            "HANDLER": _lbl.make_hook("sys", "handler:crud", "HANDLER"),
+            "END_TX": _lbl.make_hook("sys", "txn:commit", "END_TX"),
+        }
 
     # 4) Flatten using canonical ordering
     flattened = _ord.flatten(
-        tuple(secdep_labels + dep_labels + sys_labels + atom_labels),
+        tuple(secdep_labels + dep_labels + atom_labels),
         persist=persist,
         anchor_policies=anchor_policies,
     )
 
-    # 5) Inject hooks (per phase) ahead of atoms while preserving system steps
-    if not hooks:
-        return flattened
-
     phase_hooks: Dict[str, List[_lbl.Label]] = {
-        ph: [_ensure_hook_label(lbl) for lbl in hooks.get(ph, [])] for ph in _ev.PHASES
+        ph: [_ensure_hook_label(lbl) for lbl in hooks.get(ph, [])] if hooks else []
+        for ph in _ev.PHASES
     }
 
-    pre_labels: List[_lbl.Label] = []
-    phase_labels: Dict[str, List[_lbl.Label]] = {ph: [] for ph in _ev.PHASES}
+    pre_labels: List[str] = []
+    phase_labels: Dict[str, List[str]] = {ph: [] for ph in _ev.PHASES}
 
     for lbl in flattened:
-        kind = getattr(lbl, "kind", None)
-        if kind in {"secdep", "dep"}:
-            pre_labels.append(lbl)
+        if lbl.kind in {"secdep", "dep"}:
+            pre_labels.append(f"PRE_TX:{lbl.render()}")
             continue
-        phase = lbl.anchor if kind == "sys" else _ev.phase_for_event(lbl.anchor)
-        phase_labels[phase].append(lbl)
+        phase = _ev.phase_for_event(lbl.anchor)
+        phase_labels[phase].append(f"{phase}:{lbl.render()}")
 
-    for ph, hook_list in phase_hooks.items():
-        if not hook_list:
-            continue
-        existing = phase_labels.get(ph, [])
-        if existing and existing[0].kind == "sys":
-            phase_labels[ph] = [existing[0]] + hook_list + existing[1:]
-        else:
-            phase_labels[ph] = hook_list + existing
-
-    seq: List[_lbl.Label] = []
+    seq: List[str] = []
     seq.extend(pre_labels)
     for ph in _ev.PHASES:
-        if ph == "START_TX":
-            seq.extend(phase_labels.get("PRE_HANDLER", []))
-            seq.extend(phase_labels.get(ph, []))
-        elif ph == "PRE_HANDLER":
+        if ph == "PRE_TX":
             continue
-        elif ph == "HANDLER":
-            phase_list = phase_labels.get(ph, [])
-            if phase_list and phase_list[0].kind == "sys":
-                seq.append(phase_list[0])
-                seq.extend(phase_list[1:])
-            else:
-                seq.extend(phase_list)
-        else:
-            seq.extend(phase_labels.get(ph, []))
+        sys_hook = system_hooks.get(ph)
+        if sys_hook is not None:
+            seq.append(f"{ph}:{sys_hook.render()}")
+        seq.extend(phase_labels.get(ph, []))
+        seq.extend([f"{ph}:{hk.render()}" for hk in phase_hooks.get(ph, []) if hk])
 
     return seq
 

@@ -42,9 +42,9 @@ async def test_response_atom_in_diagnostics_planz(kind) -> None:
 
     planz = _build_planz_endpoint(api)
     data = await planz()
-    assert "atom:response:template@out:dump" in data["Model"]["read"]
-    assert "atom:response:negotiate@out:dump" in data["Model"]["read"]
-    assert "atom:response:render@out:dump" in data["Model"]["read"]
+    assert "POST_RESPONSE:atom:response:template@out:dump" in data["Model"]["read"]
+    assert "POST_RESPONSE:atom:response:negotiate@out:dump" in data["Model"]["read"]
+    assert "POST_RESPONSE:atom:response:render@out:dump" in data["Model"]["read"]
 
 
 @pytest.mark.asyncio
@@ -79,6 +79,6 @@ async def test_response_atom_in_diagnostics_planz_template(tmp_path) -> None:
 
     planz = _build_planz_endpoint(api)
     data = await planz()
-    assert "atom:response:template@out:dump" in data["Model"]["read"]
-    assert "atom:response:negotiate@out:dump" in data["Model"]["read"]
-    assert "atom:response:render@out:dump" in data["Model"]["read"]
+    assert "POST_RESPONSE:atom:response:template@out:dump" in data["Model"]["read"]
+    assert "POST_RESPONSE:atom:response:negotiate@out:dump" in data["Model"]["read"]
+    assert "POST_RESPONSE:atom:response:render@out:dump" in data["Model"]["read"]

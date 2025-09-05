@@ -6,13 +6,15 @@ from typing import Dict, Iterable, List, Literal, Tuple
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Phases
+#   - PRE_TX is a synthetic phase for security/dependency checks.
 #   - START_TX / END_TX are reserved for system steps (no atom anchors there).
 #   - Atoms bind only to the event anchors below.
 # ──────────────────────────────────────────────────────────────────────────────
 
 Phase = Literal[
-    "PRE_HANDLER",
+    "PRE_TX",
     "START_TX",
+    "PRE_HANDLER",
     "HANDLER",
     "POST_HANDLER",
     "END_TX",
@@ -20,8 +22,9 @@ Phase = Literal[
 ]
 
 PHASES: Tuple[Phase, ...] = (
-    "PRE_HANDLER",
+    "PRE_TX",
     "START_TX",  # system-only
+    "PRE_HANDLER",
     "HANDLER",
     "POST_HANDLER",
     "END_TX",  # system-only
@@ -88,10 +91,9 @@ _ANCHORS: Dict[str, AnchorInfo] = {
     # PRE_HANDLER (not persist-tied)
     SCHEMA_COLLECT_IN: AnchorInfo(SCHEMA_COLLECT_IN, "PRE_HANDLER", 0, False),
     IN_VALIDATE: AnchorInfo(IN_VALIDATE, "PRE_HANDLER", 1, False),
-    # HANDLER (persist-tied)
-    RESOLVE_VALUES: AnchorInfo(RESOLVE_VALUES, "HANDLER", 2, True),
-    PRE_FLUSH: AnchorInfo(PRE_FLUSH, "HANDLER", 3, True),
-    EMIT_ALIASES_PRE: AnchorInfo(EMIT_ALIASES_PRE, "HANDLER", 4, True),
+    RESOLVE_VALUES: AnchorInfo(RESOLVE_VALUES, "PRE_HANDLER", 2, True),
+    PRE_FLUSH: AnchorInfo(PRE_FLUSH, "PRE_HANDLER", 3, True),
+    EMIT_ALIASES_PRE: AnchorInfo(EMIT_ALIASES_PRE, "PRE_HANDLER", 4, True),
     # POST_HANDLER (mixed)
     POST_FLUSH: AnchorInfo(POST_FLUSH, "POST_HANDLER", 5, True),
     EMIT_ALIASES_POST: AnchorInfo(EMIT_ALIASES_POST, "POST_HANDLER", 6, True),
