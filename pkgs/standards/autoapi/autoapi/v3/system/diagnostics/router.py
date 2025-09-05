@@ -1,0 +1,73 @@
+from __future__ import annotations
+
+from typing import Any, Callable, Optional
+
+from .compat import Router
+from .healthz import build_healthz_endpoint
+from .methodz import build_methodz_endpoint
+from .hookz import build_hookz_endpoint
+from .planz import build_planz_endpoint
+
+
+def mount_diagnostics(
+    api: Any,
+    *,
+    get_db: Optional[Callable[..., Any]] = None,
+) -> Router:
+    """
+    Create & return a Router that exposes:
+      GET /healthz
+      GET /methodz
+      GET /hookz
+      GET /planz
+    """
+    router = Router()
+
+    dep = get_db
+
+    router.add_api_route(
+        "/healthz",
+        build_healthz_endpoint(dep),
+        methods=["GET"],
+        name="healthz",
+        tags=["system"],
+        summary="Health",
+        description="Database connectivity check.",
+    )
+    router.add_api_route(
+        "/methodz",
+        build_methodz_endpoint(api),
+        methods=["GET"],
+        name="methodz",
+        tags=["system"],
+        summary="Methods",
+        description="Ordered, canonical operation list.",
+    )
+    router.add_api_route(
+        "/hookz",
+        build_hookz_endpoint(api),
+        methods=["GET"],
+        name="hookz",
+        tags=["system"],
+        summary="Hooks",
+        description=(
+            "Expose hook execution order for each method.\n\n"
+            "Phases appear in runner order; error phases trail.\n"
+            "Within each phase, hooks are listed in execution order: "
+            "global (None) hooks, then method-specific hooks."
+        ),
+    )
+    router.add_api_route(
+        "/planz",
+        build_planz_endpoint(api),
+        methods=["GET"],
+        name="planz",
+        tags=["system"],
+        summary="Plan",
+        description="Flattened runtime execution plan per operation.",
+    )
+
+    return router
+
+
+__all__ = ["mount_diagnostics"]
