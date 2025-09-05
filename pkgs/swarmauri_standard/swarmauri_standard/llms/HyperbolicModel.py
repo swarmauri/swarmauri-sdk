@@ -31,6 +31,14 @@ class HyperbolicModel(LLMBase):
 
     api_key: SecretStr
     allowed_models: List[str] = [
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b",
+        "Qwen/Qwen3-Coder-480B-A35B-Instruct",
+        "Qwen/Qwen3-235B-A22B-Instruct-2507",
+        "moonshotai/Kimi-K2-Instruct",
+        "deepseek-ai/DeepSeek-R1-0528",
+        "Qwen/Qwen3-235B-A22B",
+        "deepseek-ai/DeepSeek-V3-0324",
         "meta-llama/Meta-Llama-3-70B-Instruct",
         "meta-llama/Meta-Llama-3.1-70B-Instruct",
         "meta-llama/Meta-Llama-3.1-8B-Instruct",
