@@ -19,7 +19,7 @@ class KeyDigest:
     digest: Mapped[str] = acol(
         storage=S(String, nullable=False, unique=True),
         field=F(constraints={"max_length": 64}),
-        io=IO(out_verbs=("read", "list"), allow_in=False).paired(
+        io=IO(out_verbs=("read", "list", "create"), allow_in=True).paired(
             _pair_api_key, alias="api_key"
         ),
     )
