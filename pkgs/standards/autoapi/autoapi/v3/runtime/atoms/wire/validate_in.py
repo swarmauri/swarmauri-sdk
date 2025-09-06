@@ -173,6 +173,8 @@ def _target_type(colspec: Any) -> Optional[type]:
         return None
     for name in ("py_type", "python_type"):
         t = getattr(field, name, None)
+        if t is Any:
+            return None
         if isinstance(t, type):
             return t
     return None

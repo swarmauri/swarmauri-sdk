@@ -21,6 +21,7 @@ from .common import (
     _validate_query,
     _executor,
 )
+from ...column.collect import collect_columns
 
 
 def _make_collection_endpoint(
@@ -60,6 +61,7 @@ def _make_collection_endpoint(
                         method=alias, params=payload, target=target, model=model
                     ),
                 }
+                ctx["specs"] = collect_columns(model)
                 ac = getattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, None)
                 if ac is not None:
                     ctx["auth_context"] = ac
@@ -119,6 +121,7 @@ def _make_collection_endpoint(
                         method=alias, params=payload, target=target, model=model
                     ),
                 }
+                ctx["specs"] = collect_columns(model)
                 ac = getattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, None)
                 if ac is not None:
                     ctx["auth_context"] = ac
@@ -245,6 +248,15 @@ def _make_collection_endpoint(
                 method=exec_alias, params=payload, target=exec_target, model=model
             ),
         }
+        ctx["specs"] = collect_columns(model)
+        temp_ctx = SimpleNamespace(temp={})
+        specs = ctx["specs"]
+        for field, spec in specs.items():
+            paired = getattr(getattr(spec, "io", None), "_paired", None)
+            if paired and field not in payload:
+                raw = paired.gen(temp_ctx)
+                payload[field] = paired.store(raw, temp_ctx)
+                ctx.setdefault("response_extras", {})[paired.alias] = raw
         ac = getattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, None)
         if ac is not None:
             ctx["auth_context"] = ac
@@ -258,6 +270,9 @@ def _make_collection_endpoint(
             phases=phases,
             ctx=ctx,
         )
+        extras = ctx.get("response_extras") or {}
+        if isinstance(result, dict) and extras:
+            result = {**result, **extras}
         return result
 
     params = [

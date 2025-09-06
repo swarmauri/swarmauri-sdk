@@ -4,9 +4,15 @@ import logging
 from types import SimpleNamespace
 from typing import Any, Awaitable, Callable, Dict, Mapping, Optional
 
-from ..rpc import _coerce_payload, _get_phase_chains, _validate_input, _serialize_output
+from ..rpc import (
+    _coerce_payload,
+    _get_phase_chains,
+    _validate_input,
+    _serialize_output,
+)
 from ...runtime import executor as _executor
 from ...engine import resolver as _resolver
+from ...column.collect import collect_columns
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +52,16 @@ class _ResourceProxy:
 
             base_ctx: Dict[str, Any] = dict(ctx or {})
             base_ctx.setdefault("payload", norm_payload)
+            base_ctx.setdefault("specs", collect_columns(self._model))
+            temp_ctx = SimpleNamespace(temp={})
+            specs = base_ctx["specs"]
+            payload = base_ctx["payload"]
+            for field, spec in specs.items():
+                paired = getattr(getattr(spec, "io", None), "_paired", None)
+                if paired and field not in payload:
+                    raw = paired.gen(temp_ctx)
+                    payload[field] = paired.store(raw, temp_ctx)
+                    base_ctx.setdefault("response_extras", {})[paired.alias] = raw
             if request is not None:
                 base_ctx.setdefault("request", request)
             base_ctx.setdefault(
@@ -80,12 +96,16 @@ class _ResourceProxy:
             base_ctx.setdefault("db", db)
             phases = _get_phase_chains(self._model, alias)
             try:
-                return await _executor._invoke(
+                result = await _executor._invoke(
                     request=request,
                     db=db,
                     phases=phases,
                     ctx=base_ctx,
                 )
+                extras = base_ctx.get("response_extras") or {}
+                if isinstance(result, dict) and extras:
+                    result = {**result, **extras}
+                return result
             finally:
                 if _release_db is not None:
                     try:
