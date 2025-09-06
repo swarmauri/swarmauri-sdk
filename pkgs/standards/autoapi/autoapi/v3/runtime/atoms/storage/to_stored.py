@@ -173,6 +173,10 @@ def _get_deriver(colspec: Any) -> Callable[[Any, Any], Any]:
     Return a callable(raw, ctx) that derives stored from paired raw.
     If none provided, fall back to a SHA-256 hex digester with optional pepper/salt.
     """
+    io = getattr(colspec, "io", None)
+    paired = getattr(io, "_paired", None)
+    if paired is not None and callable(getattr(paired, "store", None)):
+        return paired.store
     for obj in (colspec, getattr(colspec, "field", None)):
         if obj is None:
             continue
