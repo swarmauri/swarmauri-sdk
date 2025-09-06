@@ -2,11 +2,14 @@
 from __future__ import annotations
 
 from typing import Any, Dict, Mapping, MutableMapping, Optional, Sequence
+import logging
 
 from ... import events as _ev
 
 # Runs at the very end of the lifecycle (after wire:dump).
 ANCHOR = _ev.OUT_DUMP  # "out:dump"
+
+logger = logging.getLogger("uvicorn")
 
 
 def run(obj: Optional[object], ctx: Any) -> None:
@@ -35,6 +38,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
     - Leaves alias extras untouched (based on the alias sets captured from
       emit_aliases.post/read).
     """
+    logger.debug("Running out:masking")
     specs: Mapping[str, Any] = getattr(ctx, "specs", {}) or {}
     if not specs:
         return

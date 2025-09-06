@@ -4,6 +4,7 @@ from __future__ import annotations
 import datetime as _dt
 import decimal as _dc
 import uuid as _uuid
+import logging
 from typing import Any, Callable, Dict, Mapping, MutableMapping, Optional, Tuple
 import typing as _typing
 
@@ -13,6 +14,8 @@ from ... import events as _ev
 
 # PRE_HANDLER, runs after wire:build_in
 ANCHOR = _ev.IN_VALIDATE  # "in:validate"
+
+logger = logging.getLogger("uvicorn")
 
 
 def run(obj: Optional[object], ctx: Any) -> None:
@@ -39,6 +42,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
         ctx.temp["in_coerced"] : tuple of coerced field names (if any)
     - Raises HTTPException(422) if any validation errors are found
     """
+    logger.debug("Running wire:validate_in")
     temp = _ensure_temp(ctx)
     schema_in = _schema_in(ctx)
     specs: Mapping[str, Any] = getattr(ctx, "specs", {}) or {}

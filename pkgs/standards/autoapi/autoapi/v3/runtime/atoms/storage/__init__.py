@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from typing import Any, Callable, Dict, Optional, Tuple
+import logging
 
 # Atom implementations (model-scoped)
 from . import to_stored as _to_stored
@@ -15,10 +16,14 @@ REGISTRY: Dict[Tuple[str, str], Tuple[str, RunFn]] = {
     ("storage", "to_stored"): (_to_stored.ANCHOR, _to_stored.run),
 }
 
+logger = logging.getLogger("uvicorn")
+
 
 def subjects() -> Tuple[str, ...]:
     """Return the subject names exported by this domain."""
-    return tuple(s for (_, s) in REGISTRY.keys())
+    subjects = tuple(s for (_, s) in REGISTRY.keys())
+    logger.debug("Listing 'storage' subjects: %s", subjects)
+    return subjects
 
 
 def get(subject: str) -> Tuple[str, RunFn]:
@@ -26,6 +31,7 @@ def get(subject: str) -> Tuple[str, RunFn]:
     key = ("storage", subject)
     if key not in REGISTRY:
         raise KeyError(f"Unknown storage atom subject: {subject!r}")
+    logger.debug("Retrieving 'storage' subject %s", subject)
     return REGISTRY[key]
 
 

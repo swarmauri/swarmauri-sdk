@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Any, Callable, Dict, Optional, Tuple
+import logging
 
 from ... import events as _ev
 from . import render as _render
@@ -8,8 +9,11 @@ from . import templates as _tmpl
 
 RunFn = Callable[[Optional[object], Any], None]
 
+logger = logging.getLogger("uvicorn")
+
 
 async def _template(obj: Optional[object], ctx: Any) -> None:
+    logger.debug("Running response:template")
     resp_ns = getattr(ctx, "response", None)
     req = getattr(ctx, "request", None)
     if resp_ns is None or req is None:
@@ -39,6 +43,7 @@ async def _template(obj: Optional[object], ctx: Any) -> None:
 
 
 def _negotiate(obj: Optional[object], ctx: Any) -> None:
+    logger.debug("Running response:negotiate")
     resp_ns = getattr(ctx, "response", None)
     req = getattr(ctx, "request", None)
     if resp_ns is None or req is None:
@@ -56,6 +61,7 @@ def _negotiate(obj: Optional[object], ctx: Any) -> None:
 def _render_run(
     obj: Optional[object], ctx: Any
 ) -> None:  # pragma: no cover - glue code
+    logger.debug("Running response:render")
     resp_ns = getattr(ctx, "response", None)
     req = getattr(ctx, "request", None)
     if resp_ns is None or req is None:

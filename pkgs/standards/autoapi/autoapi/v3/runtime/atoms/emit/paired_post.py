@@ -2,11 +2,14 @@
 from __future__ import annotations
 
 from typing import Any, Dict, Mapping, MutableMapping, Optional
+import logging
 
 from ... import events as _ev
 
 # Runs after DB flush + refresh, before out model construction.
 ANCHOR = _ev.EMIT_ALIASES_POST  # "emit:aliases:post_refresh"
+
+logger = logging.getLogger("uvicorn")
 
 
 def run(obj: Optional[object], ctx: Any) -> None:
@@ -37,6 +40,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
     """
     # Non-persisting ops should have pruned this anchor via the planner,
     # but guard anyway for robustness.
+    logger.debug("Running emit:paired_post")
     if getattr(ctx, "persist", True) is False:
         return
 

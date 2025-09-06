@@ -2,11 +2,14 @@
 from __future__ import annotations
 
 from typing import Any, Dict, Mapping, MutableMapping, Optional
+import logging
 
 from ... import events as _ev
 
 # Runs late in POST_HANDLER, before out model build and dumping.
 ANCHOR = _ev.SCHEMA_COLLECT_OUT  # "schema:collect_out"
+
+logger = logging.getLogger("uvicorn")
 
 
 def run(obj: Optional[object], ctx: Any) -> None:
@@ -50,6 +53,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
         "order": tuple[str, ...],          # stable field order for model build
       }
     """
+    logger.debug("Running schema:collect_out")
     specs: Mapping[str, Any] = getattr(ctx, "specs", {}) or {}
     if not specs:
         return
