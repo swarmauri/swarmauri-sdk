@@ -23,6 +23,7 @@ from ._column import Column
 from .field_spec import FieldSpec as F
 from .storage_spec import StorageSpec as S
 from .io_spec import IOSpec as IO
+from .collect import collect_columns
 
 # Ergonomic constructors
 from .shortcuts import makeColumn, makeVirtualColumn, acol, vcol
@@ -60,6 +61,7 @@ __all__ = [
     "InferenceError",
     "UnsupportedType",
     "is_virtual",
+    "collect_columns",
 ]
 
 

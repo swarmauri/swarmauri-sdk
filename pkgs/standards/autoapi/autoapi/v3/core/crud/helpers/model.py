@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any, Dict, Mapping, Tuple
 
+from ....column.collect import collect_columns
+
 
 def _pk_columns(model: type) -> Tuple[Any, ...]:
     table = getattr(model, "__table__", None)
@@ -46,13 +48,7 @@ def _model_columns(model: type) -> Tuple[str, ...]:
 
 
 def _colspecs(model: type) -> Mapping[str, Any]:
-    specs = getattr(model, "__autoapi_colspecs__", None)
-    if isinstance(specs, Mapping):
-        return specs
-    specs = getattr(model, "__autoapi_cols__", None)
-    if isinstance(specs, Mapping):
-        return specs
-    return {}
+    return collect_columns(model)
 
 
 def _filter_in_values(
