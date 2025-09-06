@@ -2,7 +2,6 @@ import pytest
 from autoapi.v3.types import App
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import func, select
-from uuid import uuid4
 
 from autoapi.v3.autoapp import AutoApp
 from autoapi.v3.types import Column, String
@@ -78,7 +77,7 @@ async def test_hook_ctx_request_response_schema_i9n():
             ctx["response"].result["hook"] = True
 
     client, _, _ = create_client(Item)
-    res = await client.post("/item", json={"id": str(uuid4()), "name": "a"})
+    res = await client.post("/item", json={"name": "a"})
     assert res.status_code == 201
     assert res.json()["hook"] is True
     await client.aclose()
@@ -107,7 +106,7 @@ async def test_hook_ctx_columns_i9n():
             ctx["response"].result["cols"] = ctx["cols"]
 
     client, _, _ = create_client(Item)
-    res = await client.post("/item", json={"id": str(uuid4()), "name": "x"})
+    res = await client.post("/item", json={"name": "x"})
     assert set(res.json()["cols"]) == {"id", "name"}
     await client.aclose()
 
@@ -132,7 +131,7 @@ async def test_hook_ctx_defaults_resolution_i9n():
             ctx["payload"].setdefault("name", "default")
 
     client, _, _ = create_client(Item)
-    res = await client.post("/item", json={"id": str(uuid4())})
+    res = await client.post("/item", json={})
     assert res.status_code == 201
     assert res.json()["name"] == "default"
     await client.aclose()
@@ -161,7 +160,7 @@ async def test_hook_ctx_internal_model_i9n():
             ctx["response"].result["model"] = ctx["model_name"]
 
     client, _, _ = create_client(Item)
-    res = await client.post("/item", json={"id": str(uuid4()), "name": "a"})
+    res = await client.post("/item", json={"name": "a"})
     assert res.json()["model"] == "Item"
     await client.aclose()
 
@@ -214,7 +213,7 @@ async def test_hook_ctx_storage_sqlalchemy_i9n():
             ctx["response"].result["count"] = ctx["count"]
 
     client, _, _ = create_client(Item)
-    res = await client.post("/item", json={"id": str(uuid4()), "name": "a"})
+    res = await client.post("/item", json={"name": "a"})
     assert res.json()["count"] == 1
     await client.aclose()
 
@@ -238,7 +237,7 @@ async def test_hook_ctx_rest_call_i9n():
             ctx["response"].result["phase"] = "rest"
 
     client, _, _ = create_client(Item)
-    res = await client.post("/item", json={"id": str(uuid4()), "name": "a"})
+    res = await client.post("/item", json={"name": "a"})
     assert res.json()["phase"] == "rest"
     await client.aclose()
 
@@ -295,9 +294,7 @@ async def test_hook_ctx_core_crud_i9n():
 
     client, api, SessionLocal = create_client(Item)
     with SessionLocal() as session:
-        result = await api.core.Item.create(
-            {"id": str(uuid4()), "name": "x"}, db=session
-        )
+        result = await api.core.Item.create({"name": "x"}, db=session)
     assert result["via"] == "core"
     await client.aclose()
 
@@ -351,7 +348,7 @@ async def test_hook_ctx_atomz_i9n():
             ctx["response"].result["captured"] = ctx["captured"]
 
     client, _, _ = create_client(Item)
-    res = await client.post("/item", json={"id": str(uuid4()), "name": "alpha"})
+    res = await client.post("/item", json={"name": "alpha"})
     assert res.json()["captured"] == "alpha"
     await client.aclose()
 
