@@ -35,6 +35,7 @@ API integration:
 """
 
 from __future__ import annotations
+import logging
 
 # Core model orchestrator
 from .model import bind, rebind
@@ -49,6 +50,9 @@ from ..response.bind import bind as bind_response
 
 # API facade integration
 from .api import include_model, include_models, rpc_call
+
+logger = logging.getLogger("uvicorn")
+logger.debug("Loaded module v3/bindings/__init__")
 
 
 __all__ = [

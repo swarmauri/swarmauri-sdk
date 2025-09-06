@@ -25,7 +25,8 @@ from ..config.constants import (
     CTX_SKIP_PERSIST_FLAG,
 )
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("uvicorn")
+logger.debug("Loaded module v3/bindings/hooks")
 
 _Key = Tuple[str, str]  # (alias, target)
 

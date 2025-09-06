@@ -27,7 +27,8 @@ try:
 except Exception:  # pragma: no cover
     _kernel_build_phase_chains = None  # type: ignore
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("uvicorn")
+logger.debug("Loaded module v3/bindings/rpc")
 
 _Key = Tuple[str, str]  # (alias, target)
 

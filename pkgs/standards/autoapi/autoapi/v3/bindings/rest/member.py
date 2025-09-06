@@ -1,4 +1,5 @@
 from __future__ import annotations
+import logging
 
 import inspect
 from types import SimpleNamespace
@@ -31,6 +32,10 @@ from .common import (
     _executor,
     _status,
 )
+
+
+logger = logging.getLogger("uvicorn")
+logger.debug("Loaded module v3/bindings/rest/member")
 
 
 def _make_member_endpoint(
