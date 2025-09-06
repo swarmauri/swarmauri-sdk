@@ -78,7 +78,7 @@ def test_owner_policy_runtime_switch():
     client = _client_for_owner(OwnerPolicy.STRICT_SERVER, user_id, tenant_id)
     res = client.post(
         "/item",
-        json={"id": str(uuid.uuid4()), "name": "one", "owner_id": str(user_id)},
+        json={"name": "one", "owner_id": str(user_id)},
         headers=headers,
     )
     assert res.status_code == 400
@@ -87,7 +87,7 @@ def test_owner_policy_runtime_switch():
     supplied = str(uuid.uuid4())
     res = client.post(
         "/item",
-        json={"id": str(uuid.uuid4()), "name": "two", "owner_id": supplied},
+        json={"name": "two", "owner_id": supplied},
         headers=headers,
     )
     assert res.status_code == 201
@@ -141,7 +141,7 @@ def test_tenant_policy_runtime_switch():
     client = _client_for_tenant(TenantPolicy.STRICT_SERVER, user_id, tenant_id)
     res = client.post(
         "/item",
-        json={"id": str(uuid.uuid4()), "name": "one", "tenant_id": str(tenant_id)},
+        json={"name": "one", "tenant_id": str(tenant_id)},
         headers=headers,
     )
     assert res.status_code == 400
@@ -150,7 +150,7 @@ def test_tenant_policy_runtime_switch():
     supplied = str(uuid.uuid4())
     res = client.post(
         "/item",
-        json={"id": str(uuid.uuid4()), "name": "two", "tenant_id": supplied},
+        json={"name": "two", "tenant_id": supplied},
         headers=headers,
     )
     assert res.status_code == 201
