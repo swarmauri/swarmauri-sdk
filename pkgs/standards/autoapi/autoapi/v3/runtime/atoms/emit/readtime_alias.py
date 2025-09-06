@@ -2,11 +2,14 @@
 from __future__ import annotations
 
 from typing import Any, Dict, Mapping, MutableMapping, Optional
+import logging
 
 from ... import events as _ev
 
 # Runs near the end of the lifecycle, before wire:dump/out:masking.
 ANCHOR = _ev.EMIT_ALIASES_READ  # "emit:aliases:readtime"
+
+logger = logging.getLogger("uvicorn")
 
 
 def run(obj: Optional[object], ctx: Any) -> None:
@@ -37,6 +40,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
     - Records a minimal descriptor in emit_aliases["read"] (no raw).
     - Never reads or emits any "raw" secret (paired_post already scrubbed).
     """
+    logger.debug("Running emit:readtime_alias")
     temp = _ensure_temp(ctx)
     emit_buf = _ensure_emit_buf(temp)
     extras = _ensure_response_extras(temp)

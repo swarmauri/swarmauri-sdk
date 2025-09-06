@@ -2,11 +2,14 @@
 from __future__ import annotations
 
 from typing import Any, Dict, Mapping, MutableMapping, Optional
+import logging
 
 from ... import events as _ev
 
 # POST_HANDLER, runs before readtime aliases and dump.
 ANCHOR = _ev.OUT_BUILD  # "out:build"
+
+logger = logging.getLogger("uvicorn")
 
 
 def run(obj: Optional[object], ctx: Any) -> None:
@@ -32,6 +35,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
     if not schema_out:
         return
 
+    logger.debug("Running wire:build_out")
     temp = _ensure_temp(ctx)
     specs: Mapping[str, Any] = getattr(ctx, "specs", {}) or {}
     _by_field: Mapping[str, Mapping[str, Any]] = schema_out.get("by_field", {})  # type: ignore[assignment]

@@ -2,11 +2,14 @@
 from __future__ import annotations
 
 from typing import Any, Iterable, Mapping, MutableMapping, Optional, Tuple
+import logging
 
 from ... import events as _ev
 
 # After the handler flushes changes; decide whether to hydrate DB-generated values.
 ANCHOR = _ev.POST_FLUSH  # "post:flush"
+
+logger = logging.getLogger("uvicorn")
 
 
 def run(obj: Optional[object], ctx: Any) -> None:
@@ -35,6 +38,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
     - ctx.temp["refresh_fields"] : tuple[str, ...] (hint: which fields likely changed in DB)
     - ctx.temp["refresh_reason"] : str (diagnostic only)
     """
+    logger.debug("Running refresh:demand")
     if getattr(ctx, "persist", True) is False:
         return
 

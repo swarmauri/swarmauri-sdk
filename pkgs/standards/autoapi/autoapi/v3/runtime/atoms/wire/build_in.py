@@ -2,11 +2,14 @@
 from __future__ import annotations
 
 from typing import Any, Dict, Mapping, MutableMapping, Optional
+import logging
 
 from ... import events as _ev
 
 # Runs in PRE_HANDLER just before validation.
 ANCHOR = _ev.IN_VALIDATE  # "in:validate"
+
+logger = logging.getLogger("uvicorn")
 
 
 def run(obj: Optional[object], ctx: Any) -> None:
@@ -37,6 +40,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
     if not schema_in:
         return  # nothing to do
 
+    logger.debug("Running wire:build_in")
     temp = _ensure_temp(ctx)
 
     payload = _coerce_payload(ctx)

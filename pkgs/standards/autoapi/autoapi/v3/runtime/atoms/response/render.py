@@ -2,6 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, AsyncIterable, Iterable, Mapping, Optional, Union, cast
+import logging
 
 from ....deps.starlette import BackgroundTask, Response
 
@@ -14,6 +15,8 @@ from ....response.shortcuts import (
 )
 
 JSON = Mapping[str, Any]
+
+logger = logging.getLogger("uvicorn")
 
 
 @dataclass
@@ -58,6 +61,7 @@ def render(
     default_media: str = "application/json",
     envelope_default: bool = True,
 ) -> Response:
+    logger.debug("Rendering response with payload type %s", type(payload))
     if isinstance(payload, Response):
         return payload
 

@@ -2,12 +2,15 @@
 from __future__ import annotations
 
 import hashlib
+import logging
 from typing import Any, Callable, Dict, Mapping, MutableMapping, Optional
 
 from ... import events as _ev
 
 # Runs right before the handler flushes to the DB.
 ANCHOR = _ev.PRE_FLUSH  # "pre:flush"
+
+logger = logging.getLogger("uvicorn")
 
 
 def run(obj: Optional[object], ctx: Any) -> None:
@@ -26,6 +29,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
     On failure to derive for paired, raise ValueError (mapped by higher layers) to
     avoid leaking DB IntegrityErrors.
     """
+    logger.debug("Running storage:to_stored")
     if getattr(ctx, "persist", True) is False:
         return
 
