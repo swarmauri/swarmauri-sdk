@@ -11,7 +11,8 @@ from ..op import OpspecRegistry, get_registry
 
 from .model_helpers import _Key
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("uvicorn")
+logger.debug("Loaded module v3/bindings/model_registry")
 
 
 def _ensure_registry_listener(model: type) -> None:

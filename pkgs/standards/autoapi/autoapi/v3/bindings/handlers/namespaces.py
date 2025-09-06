@@ -1,7 +1,11 @@
 # autoapi/v3/bindings/handlers/namespaces.py
 from __future__ import annotations
+import logging
 
 from types import SimpleNamespace
+
+logger = logging.getLogger("uvicorn")
+logger.debug("Loaded module v3/bindings/handlers/namespaces")
 
 
 def _ensure_alias_hooks_ns(model: type, alias: str) -> SimpleNamespace:

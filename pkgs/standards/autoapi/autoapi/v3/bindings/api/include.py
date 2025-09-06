@@ -24,7 +24,8 @@ from ...config.constants import (
 )
 from ...engine import resolver as _resolver
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("uvicorn")
+logger.debug("Loaded module v3/bindings/api/include")
 
 
 # --- keep as helper, no behavior change to transports/kernel ---

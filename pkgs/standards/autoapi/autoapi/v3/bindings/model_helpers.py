@@ -2,11 +2,15 @@
 """Internal helpers for the model bindings."""
 
 from __future__ import annotations
+import logging
 
 from types import SimpleNamespace
 from typing import Dict, List, Optional, Sequence, Set, Tuple
 
 from ..op import OpSpec
+
+logger = logging.getLogger("uvicorn")
+logger.debug("Loaded module v3/bindings/model_helpers")
 
 
 _Key = Tuple[str, str]  # (alias, target)
