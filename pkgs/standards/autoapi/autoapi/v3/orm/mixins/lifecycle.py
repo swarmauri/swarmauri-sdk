@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime as dt
 
-from ...specs import ColumnSpec, F, S, acol
+from ...specs import ColumnSpec, F, S, acol, IO
 from ...types import (
     TZDateTime,
     Boolean,
