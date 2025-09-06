@@ -52,7 +52,8 @@ def _discover_atoms() -> list[_DiscoveredAtom]:
 
 def _wrap_atom(run: _AtomRun) -> StepFn:
     async def _step(ctx: Any) -> Any:
-        rv = run(None, ctx)
+        obj = getattr(ctx, "result", None)
+        rv = run(obj, ctx)
         if hasattr(rv, "__await__"):
             return await rv  # type: ignore[misc]
         return rv
