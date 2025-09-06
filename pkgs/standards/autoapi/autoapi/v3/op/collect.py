@@ -4,6 +4,7 @@ from __future__ import annotations
 from dataclasses import replace
 import logging
 import re
+from functools import lru_cache
 from typing import (
     Any,
     Callable,
@@ -69,6 +70,7 @@ def _wrap_ctx_core(table: type, func: Callable[..., Any]) -> Callable[..., Any]:
     return core
 
 
+@lru_cache(maxsize=None)
 def collect_decorated_ops(table: type) -> list[OpSpec]:
     """Scan MRO for ctx-only op declarations (@op_ctx) and build OpSpecs."""
 

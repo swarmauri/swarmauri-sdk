@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from functools import lru_cache
 from typing import Dict
 
 from .column_spec import ColumnSpec
@@ -8,6 +9,7 @@ from .column_spec import ColumnSpec
 logger = logging.getLogger("uvicorn")
 
 
+@lru_cache(maxsize=None)
 def collect_columns(model: type) -> Dict[str, ColumnSpec]:
     """Gather ColumnSpecs declared on *model* and all mixins.
 

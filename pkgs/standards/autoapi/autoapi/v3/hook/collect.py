@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from functools import lru_cache
 from typing import Any, Callable, Dict, Iterable, Union
 
 from ..runtime.executor import _Ctx
@@ -51,18 +52,26 @@ def collect_decorated_hooks(
 ) -> Dict[str, Dict[str, list[Callable[..., Any]]]]:
     """Build alias→phase→[hook] map from ctx-only hook declarations."""
 
+    return _collect_decorated_hooks_cached(table, tuple(sorted(visible_aliases)))
+
+
+@lru_cache(maxsize=None)
+def _collect_decorated_hooks_cached(
+    table: type, visible_aliases: tuple[str, ...]
+) -> Dict[str, Dict[str, list[Callable[..., Any]]]]:
     logger.info("Collecting hooks for %s", table.__name__)
     mapping: Dict[str, Dict[str, list[Callable[..., Any]]]] = {}
     aliases = alias_map_for(table)
+    visible_aliases_set = set(visible_aliases)
 
     def _resolve_ops(spec: Union[str, Iterable[str]]) -> Iterable[str]:
         if spec == "*":
-            return visible_aliases
+            return visible_aliases_set
         if isinstance(spec, str):
-            return [spec if spec in visible_aliases else apply_alias(spec, aliases)]
+            return [spec if spec in visible_aliases_set else apply_alias(spec, aliases)]
         out: list[str] = []
         for x in spec:
-            out.append(x if x in visible_aliases else apply_alias(x, aliases))
+            out.append(x if x in visible_aliases_set else apply_alias(x, aliases))
         return out
 
     for base in reversed(table.__mro__):
@@ -74,7 +83,7 @@ def collect_decorated_hooks(
                 continue
             for d in decls:
                 for op in _resolve_ops(d.ops):
-                    if op not in visible_aliases:
+                    if op not in visible_aliases_set:
                         continue
                     ph = d.phase
                     mapping.setdefault(op, {}).setdefault(ph, []).append(
@@ -82,6 +91,14 @@ def collect_decorated_hooks(
                     )
     logger.debug("Collected hooks for aliases: %s", list(mapping.keys()))
     return mapping
+
+
+collect_decorated_hooks.cache_clear = (  # type: ignore[attr-defined]
+    _collect_decorated_hooks_cached.cache_clear
+)
+collect_decorated_hooks.cache_info = (  # type: ignore[attr-defined]
+    _collect_decorated_hooks_cached.cache_info
+)
 
 
 __all__ = ["collect_decorated_hooks"]

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from functools import lru_cache
 from types import SimpleNamespace
 from typing import Any, Dict, Iterable, Mapping, Tuple
 
@@ -73,6 +74,13 @@ def collect_from_objects(
     *, app: Any | None = None, api: Any | None = None, models: Iterable[Any] = ()
 ) -> Dict[str, Any]:
     """Collect engine configuration from objects without binding them."""
+    return _collect_from_objects_cached(app, api, tuple(models))
+
+
+@lru_cache(maxsize=None)
+def _collect_from_objects_cached(
+    app: Any | None, api: Any | None, models: Tuple[Any, ...]
+) -> Dict[str, Any]:
     logger.info("Collecting engine configuration")
     app_engine = _read_engine_attr(app) if app is not None else None
     api_engine = _read_engine_attr(api) if api is not None else None
@@ -107,3 +115,11 @@ def collect_from_objects(
         "tables": tables,
         "ops": ops,
     }
+
+
+collect_from_objects.cache_clear = (  # type: ignore[attr-defined]
+    _collect_from_objects_cached.cache_clear
+)
+collect_from_objects.cache_info = (  # type: ignore[attr-defined]
+    _collect_from_objects_cached.cache_info
+)

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import inspect
 import logging
+from functools import lru_cache
 from typing import Dict
 
 from ..config.constants import AUTOAPI_SCHEMA_DECLS_ATTR
@@ -12,6 +13,7 @@ from .decorators import _SchemaDecl
 logger = logging.getLogger("uvicorn")
 
 
+@lru_cache(maxsize=None)
 def collect_decorated_schemas(model: type) -> Dict[str, Dict[str, type]]:
     """Gather schema declarations for ``model`` across its MRO."""
     logger.info("Collecting decorated schemas for %s", model.__name__)
