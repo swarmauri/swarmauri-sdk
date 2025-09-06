@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import List
+import logging
 
 
 def _parse(accept: str) -> List[str]:
@@ -18,7 +19,11 @@ def _parse(accept: str) -> List[str]:
     return sorted(parts, key=q, reverse=True)
 
 
+logger = logging.getLogger("uvicorn")
+
+
 def negotiate_media_type(accept: str, default_media: str) -> str:
+    logger.debug("Negotiating media type from Accept header %s", accept)
     if not accept or accept == "*/*":
         return default_media
     for cand in _parse(accept):

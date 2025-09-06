@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from typing import Any, Callable, Dict, Optional, Tuple
+import logging
 
 # Atom implementations (per-field)
 from . import build_in as _build_in
@@ -22,10 +23,14 @@ REGISTRY: Dict[Tuple[str, str], Tuple[str, RunFn]] = {
     ("wire", "dump"): (_dump.ANCHOR, _dump.run),
 }
 
+logger = logging.getLogger("uvicorn")
+
 
 def subjects() -> Tuple[str, ...]:
     """Return the subject names exported by this domain."""
-    return tuple(s for (_, s) in REGISTRY.keys())
+    subjects = tuple(s for (_, s) in REGISTRY.keys())
+    logger.debug("Listing 'wire' subjects: %s", subjects)
+    return subjects
 
 
 def get(subject: str) -> Tuple[str, RunFn]:
@@ -33,6 +38,7 @@ def get(subject: str) -> Tuple[str, RunFn]:
     key = ("wire", subject)
     if key not in REGISTRY:
         raise KeyError(f"Unknown wire atom subject: {subject!r}")
+    logger.debug("Retrieving 'wire' subject %s", subject)
     return REGISTRY[key]
 
 

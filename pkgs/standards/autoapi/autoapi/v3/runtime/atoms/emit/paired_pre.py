@@ -2,11 +2,14 @@
 from __future__ import annotations
 
 from typing import Any, Dict, Mapping, MutableMapping, Optional
+import logging
 
 from ... import events as _ev
 
 # This atom runs before the flush, after values have been assembled/generated.
 ANCHOR = _ev.EMIT_ALIASES_PRE  # "emit:aliases:pre_flush"
+
+logger = logging.getLogger("uvicorn")
 
 
 def run(obj: Optional[object], ctx: Any) -> None:
@@ -37,6 +40,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
     """
     # Non-persisting ops should have pruned this anchor via the planner,
     # but guard anyway for robustness.
+    logger.debug("Running emit:paired_pre")
     if getattr(ctx, "persist", True) is False:
         return
 

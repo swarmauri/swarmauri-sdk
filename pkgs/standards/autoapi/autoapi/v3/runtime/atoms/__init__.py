@@ -23,7 +23,7 @@ RunFn = Callable[[Optional[object], Any], None]
 #:   { (domain, subject): (anchor, runner) }
 REGISTRY: Dict[Tuple[str, str], Tuple[str, RunFn]] = {}
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("uvicorn")
 
 
 def _add_bulk(source: Dict[Tuple[str, str], Tuple[str, RunFn]]) -> None:
