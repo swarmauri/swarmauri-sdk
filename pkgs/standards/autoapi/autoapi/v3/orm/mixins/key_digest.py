@@ -19,13 +19,15 @@ class KeyDigest:
         return Pair(raw=raw, stored=sha256(raw.encode()).hexdigest())
 
     digest: Mapped[str] = acol(
-        storage=S(String, nullable=False, unique=True),
+        storage=S(String, nullable=False, unique=True, index=True),
         field=F(constraints={"max_length": 64}),
         io=IO(out_verbs=("read", "list", "create"), mutable_verbs=("create",)).paired(
-            _generate_pair,
+            make=_generate_pair,
             alias="api_key",
             verbs=("create",),
             emit="post_refresh",
+            alias_field=F(py_type=str),    # include alias in the response schema
+            mask_last=None,                # set an int if you want masking
         ),
     )
 
