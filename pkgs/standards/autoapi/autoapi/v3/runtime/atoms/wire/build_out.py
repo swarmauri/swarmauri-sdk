@@ -28,6 +28,8 @@ def run(obj: Optional[object], ctx: Any) -> None:
     - We intentionally keep keys as canonical field names so out:masking can
       evaluate sensitivity on real fields, while alias extras remain separate.
     """
+    if obj is None:
+        return
     schema_out = _schema_out(ctx)
     if not schema_out:
         return
