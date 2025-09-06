@@ -52,8 +52,8 @@ def test_attach_atoms_for_model_sets_plan_and_runtime(monkeypatch):
 def test_build_plan_creates_per_model_and_per_field_atoms(monkeypatch):
     """build_plan instantiates per-model and per-field atoms based on registry."""
     fake_registry = {
+        ("refresh", "demand"): (_ev.POST_FLUSH, lambda *_: None),
         ("emit", "paired_pre"): (_ev.EMIT_ALIASES_PRE, lambda *_: None),
-        ("wire", "build_in"): (_ev.IN_VALIDATE, lambda *_: None),
     }
     monkeypatch.setattr(runtime_atoms, "REGISTRY", fake_registry, raising=False)
     monkeypatch.setattr(
@@ -69,12 +69,44 @@ def test_build_plan_creates_per_model_and_per_field_atoms(monkeypatch):
 
     assert plan.model_name == "Model"
     assert set(plan.atoms_by_anchor) == {
+        _ev.POST_FLUSH,
         _ev.EMIT_ALIASES_PRE,
-        _ev.IN_VALIDATE,
     }
-    assert len(plan.atoms_by_anchor[_ev.EMIT_ALIASES_PRE]) == 1
-    assert len(plan.atoms_by_anchor[_ev.IN_VALIDATE]) == 2
-    assert {n.field for n in plan.atoms_by_anchor[_ev.IN_VALIDATE]} == {"f1", "f2"}
+    assert len(plan.atoms_by_anchor[_ev.POST_FLUSH]) == 1
+    assert len(plan.atoms_by_anchor[_ev.EMIT_ALIASES_PRE]) == 2
+    assert {n.field for n in plan.atoms_by_anchor[_ev.EMIT_ALIASES_PRE]} == {"f1", "f2"}
+
+
+def test_build_plan_instantiates_resolve_and_emit_per_field(monkeypatch):
+    """resolve:assemble/paired_gen and emit:paired_pre are per-field."""
+    fake_registry = {
+        ("resolve", "assemble"): (_ev.RESOLVE_VALUES, lambda *_: None),
+        ("resolve", "paired_gen"): (_ev.RESOLVE_VALUES, lambda *_: None),
+        ("emit", "paired_pre"): (_ev.EMIT_ALIASES_PRE, lambda *_: None),
+    }
+    monkeypatch.setattr(runtime_atoms, "REGISTRY", fake_registry, raising=False)
+    monkeypatch.setattr(
+        runtime_plan, "_should_instantiate", lambda *a, **k: True, raising=False
+    )
+
+    specs = {"f1": object(), "f2": object()}
+
+    class Model:
+        pass
+
+    plan = runtime_plan.build_plan(Model, specs)
+    resolve_nodes = plan.atoms_by_anchor[_ev.RESOLVE_VALUES]
+    emit_nodes = plan.atoms_by_anchor[_ev.EMIT_ALIASES_PRE]
+
+    fields_by_subject = {"assemble": set(), "paired_gen": set()}
+    for n in resolve_nodes:
+        fields_by_subject[n.subject].add(n.field)
+
+    assert fields_by_subject == {
+        "assemble": {"f1", "f2"},
+        "paired_gen": {"f1", "f2"},
+    }
+    assert {n.field for n in emit_nodes} == {"f1", "f2"}
 
 
 def test_flattened_order_includes_deps_and_system_steps():
