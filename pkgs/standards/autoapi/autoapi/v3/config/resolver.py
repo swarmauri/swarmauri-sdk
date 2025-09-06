@@ -148,16 +148,17 @@ def _coerce_map(obj: Any) -> Mapping[str, Any]:
             return {k: v for k, v in asdict(obj).items() if v is not None}
         except Exception:
             pass
+    # pydantic v2 config-like
+    if hasattr(obj, "model_dump") and callable(getattr(obj, "model_dump")):
+        try:
+            # Drop ``None`` values so optional fields don't override defaults.
+            return {k: v for k, v in obj.model_dump(exclude_none=True).items()}
+        except Exception:
+            pass
     # namespace-like with __dict__
     d = getattr(obj, "__dict__", None)
     if isinstance(d, dict):
         return d
-    # pydantic v2 config-like
-    if hasattr(obj, "model_dump") and callable(getattr(obj, "model_dump")):
-        try:
-            return dict(obj.model_dump())
-        except Exception:
-            pass
     # last resort: single 'cfg' attr if it's a mapping
     cfg = getattr(obj, "cfg", None)
     if isinstance(cfg, Mapping):
