@@ -9,8 +9,6 @@ from swarmauri_crypto_paramiko import ParamikoCrypto
 from swarmauri_standard.key_providers import InMemoryKeyProvider
 from .orm import Key, KeyVersion
 
-logging.getLogger("uvicorn").setLevel(logging.DEBUG)
-
 DB_URL = os.getenv("KMS_DATABASE_URL", "sqlite+aiosqlite:///./kms.db")
 ENGINE = build_engine(DB_URL)
 
