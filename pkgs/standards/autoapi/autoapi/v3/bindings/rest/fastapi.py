@@ -1,7 +1,11 @@
 from __future__ import annotations
+import logging
 
 from types import SimpleNamespace
 from typing import Callable, Sequence
+
+logger = logging.getLogger("uvicorn")
+logger.debug("Loaded module v3/bindings/rest/fastapi")
 
 try:
     from ...types import (

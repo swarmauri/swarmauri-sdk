@@ -1,4 +1,5 @@
 from __future__ import annotations
+import logging
 
 from types import SimpleNamespace
 from typing import Any, Dict, Optional, Sequence, Tuple
@@ -7,6 +8,9 @@ from typing import Any, Dict, Optional, Sequence, Tuple
 from .fastapi import Depends, Security, _status
 from ...op import OpSpec
 from ...op.types import CANON
+
+logger = logging.getLogger("uvicorn")
+logger.debug("Loaded module v3/bindings/rest/routing")
 
 
 def _normalize_deps(deps: Optional[Sequence[Any]]) -> list[Any]:

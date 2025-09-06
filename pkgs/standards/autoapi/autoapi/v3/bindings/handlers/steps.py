@@ -1,5 +1,6 @@
 # autoapi/v3/bindings/handlers/steps.py
 from __future__ import annotations
+import logging
 
 import inspect
 from typing import Any, Callable, Mapping, Optional
@@ -10,6 +11,9 @@ from ...op.types import StepFn
 from ...runtime.executor import _Ctx
 from .ctx import _ctx_db, _ctx_payload, _ctx_request
 from .identifiers import _resolve_ident
+
+logger = logging.getLogger("uvicorn")
+logger.debug("Loaded module v3/bindings/handlers/steps")
 
 
 async def _call_list_core(

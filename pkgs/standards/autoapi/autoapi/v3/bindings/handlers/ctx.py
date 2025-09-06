@@ -1,7 +1,11 @@
 # autoapi/v3/bindings/handlers/ctx.py
 from __future__ import annotations
+import logging
 
 from typing import Any, Mapping, Sequence
+
+logger = logging.getLogger("uvicorn")
+logger.debug("Loaded module v3/bindings/handlers/ctx")
 
 
 def _ctx_get(ctx: Mapping[str, Any], key: str, default: Any = None) -> Any:

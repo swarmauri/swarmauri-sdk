@@ -1,10 +1,14 @@
 from __future__ import annotations
+import logging
 
 from types import SimpleNamespace
 from typing import Optional, Sequence
 
-from .common import OpSpec, _Key, logger
+from .common import OpSpec, _Key
 from .router import _build_router
+
+logger = logging.getLogger("uvicorn")
+logger.debug("Loaded module v3/bindings/rest/attach")
 
 
 def build_router_and_attach(
