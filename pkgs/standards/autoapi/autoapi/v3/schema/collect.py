@@ -2,15 +2,19 @@
 from __future__ import annotations
 
 import inspect
+import logging
 from typing import Dict
 
 from ..config.constants import AUTOAPI_SCHEMA_DECLS_ATTR
 
 from .decorators import _SchemaDecl
 
+logger = logging.getLogger("uvicorn")
+
 
 def collect_decorated_schemas(model: type) -> Dict[str, Dict[str, type]]:
     """Gather schema declarations for ``model`` across its MRO."""
+    logger.info("Collecting decorated schemas for %s", model.__name__)
     out: Dict[str, Dict[str, type]] = {}
 
     # Explicit registrations (MRO-merged)
@@ -34,6 +38,7 @@ def collect_decorated_schemas(model: type) -> Dict[str, Dict[str, type]]:
             bucket = out.setdefault(decl.alias, {})
             bucket[decl.kind] = obj
 
+    logger.debug("Collected schema aliases: %s", list(out.keys()))
     return out
 
 
