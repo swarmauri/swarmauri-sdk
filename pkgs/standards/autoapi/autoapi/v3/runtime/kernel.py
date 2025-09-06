@@ -52,7 +52,19 @@ def _discover_atoms() -> list[_DiscoveredAtom]:
 
 def _wrap_atom(run: _AtomRun) -> StepFn:
     async def _step(ctx: Any) -> Any:
-        rv = run(None, ctx)
+        candidate = getattr(ctx, "result", None)
+        if candidate is None or isinstance(candidate, (list, tuple, set, Mapping)):
+            obj = getattr(ctx, "obj", None)
+        else:
+            obj = candidate
+        if isinstance(obj, (list, tuple, set, Mapping)):
+            obj = None
+        if obj is not None:
+            try:
+                setattr(ctx, "obj", obj)
+            except Exception:
+                pass
+        rv = run(obj, ctx)
         if hasattr(rv, "__await__"):
             return await rv  # type: ignore[misc]
         return rv
