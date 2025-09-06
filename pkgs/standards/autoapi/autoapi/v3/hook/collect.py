@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any, Callable, Dict, Iterable, Union
 
 from ..runtime.executor import _Ctx
 from ..op.collect import alias_map_for, apply_alias
 from ..op.decorators import _maybe_await, _unwrap
 from .decorators import HOOK_DECLS_ATTR, Hook
+
+logger = logging.getLogger("uvicorn")
 
 
 def _phase_io_key(phase: str) -> str | None:
@@ -48,6 +51,7 @@ def collect_decorated_hooks(
 ) -> Dict[str, Dict[str, list[Callable[..., Any]]]]:
     """Build alias→phase→[hook] map from ctx-only hook declarations."""
 
+    logger.info("Collecting hooks for %s", table.__name__)
     mapping: Dict[str, Dict[str, list[Callable[..., Any]]]] = {}
     aliases = alias_map_for(table)
 
@@ -76,6 +80,7 @@ def collect_decorated_hooks(
                     mapping.setdefault(op, {}).setdefault(ph, []).append(
                         _wrap_ctx_hook(table, d.fn, ph)
                     )
+    logger.debug("Collected hooks for aliases: %s", list(mapping.keys()))
     return mapping
 
 

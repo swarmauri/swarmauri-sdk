@@ -31,7 +31,7 @@ except Exception:  # pragma: no cover
         return ()
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("uvicorn")
 
 _ALIAS_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 
@@ -72,6 +72,7 @@ def _wrap_ctx_core(table: type, func: Callable[..., Any]) -> Callable[..., Any]:
 def collect_decorated_ops(table: type) -> list[OpSpec]:
     """Scan MRO for ctx-only op declarations (@op_ctx) and build OpSpecs."""
 
+    logger.info("Collecting decorated ops for %s", table.__name__)
     out: list[OpSpec] = []
 
     for base in reversed(table.__mro__):
@@ -120,6 +121,7 @@ def collect_decorated_ops(table: type) -> list[OpSpec]:
             )
             out.append(spec)
 
+    logger.debug("Collected %d ops for %s", len(out), table.__name__)
     return out
 
 
