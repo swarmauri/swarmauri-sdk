@@ -2,12 +2,15 @@
 from __future__ import annotations
 
 import secrets
+import logging
 from typing import Any, Dict, Mapping, MutableMapping, Optional
 
 from ... import events as _ev
 
 # Runs in HANDLER phase, before pre:flush (and before storage transforms).
 ANCHOR = _ev.RESOLVE_VALUES  # "resolve:values"
+
+logger = logging.getLogger("uvicorn")
 
 
 def run(obj: Optional[object], ctx: Any) -> None:
@@ -46,6 +49,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
     if getattr(ctx, "persist", True) is False:
         return
 
+    logger.debug("Running resolve:paired_gen")
     specs: Mapping[str, Any] = getattr(ctx, "specs", {}) or {}
     if not specs:
         return
