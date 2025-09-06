@@ -33,7 +33,7 @@ class LastUsed:
         spec=ColumnSpec(
             storage=S(type_=TZDateTime, nullable=True, onupdate=tzutcnow),
             field=F(py_type=dt.datetime),
-            io=RO_IO,
+            io=IO(out_verbs=("read", "list", "create")),
         )
     )
 
