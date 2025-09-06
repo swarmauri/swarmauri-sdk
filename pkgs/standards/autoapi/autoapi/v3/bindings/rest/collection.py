@@ -56,6 +56,7 @@ def _make_collection_endpoint(
                     "db": db,
                     "payload": payload,
                     "path_params": parent_kw,
+                    "specs": getattr(model, "__autoapi_cols__", {}),
                     "env": SimpleNamespace(
                         method=alias, params=payload, target=target, model=model
                     ),
@@ -115,6 +116,7 @@ def _make_collection_endpoint(
                     "db": db,
                     "payload": payload,
                     "path_params": parent_kw,
+                    "specs": getattr(model, "__autoapi_cols__", {}),
                     "env": SimpleNamespace(
                         method=alias, params=payload, target=target, model=model
                     ),
@@ -241,6 +243,7 @@ def _make_collection_endpoint(
             "db": db,
             "payload": payload,
             "path_params": parent_kw,
+            "specs": getattr(model, "__autoapi_cols__", {}),
             "env": SimpleNamespace(
                 method=exec_alias, params=payload, target=exec_target, model=model
             ),

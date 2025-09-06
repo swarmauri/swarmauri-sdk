@@ -151,11 +151,10 @@ def _is_paired(colspec: Any) -> bool:
             continue
         if getattr(obj, "_paired", None) is not None:
             return True
-        if any(
-            bool(getattr(obj, name, False))
-            for name in ("secret_once", "paired", "paired_input", "generate_on_absent")
-        ):
-            return True
+        for name in ("secret_once", "paired", "paired_input", "generate_on_absent"):
+            val = getattr(obj, name, None)
+            if isinstance(val, bool) and val:
+                return True
         if any(
             callable(getattr(obj, name, None))
             for name in ("generator", "paired_generator", "secret_generator")

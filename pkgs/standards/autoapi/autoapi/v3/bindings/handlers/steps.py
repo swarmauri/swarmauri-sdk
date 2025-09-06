@@ -8,6 +8,7 @@ from ... import core as _core
 from ...op import OpSpec
 from ...op.types import StepFn
 from ...runtime.executor import _Ctx
+from ...runtime.atoms.storage import to_stored as _to_stored
 from .ctx import _ctx_db, _ctx_payload, _ctx_request
 from .identifiers import _resolve_ident
 
@@ -136,7 +137,13 @@ def _wrap_custom(model: type, sp: OpSpec, user_handler: Callable[..., Any]) -> S
 def _wrap_core(model: type, target: str) -> StepFn:
     async def step(ctx: Any) -> Any:
         db = _ctx_db(ctx)
-        payload = _ctx_payload(ctx)
+        assembled = getattr(ctx, "temp", {}).get("assembled_values")
+        if isinstance(assembled, Mapping):
+            ctx.payload = dict(assembled)
+            _to_stored.run(None, ctx)
+            payload = ctx.temp.get("assembled_values", {})
+        else:
+            payload = _ctx_payload(ctx)
 
         if target == "create":
             return await _core.create(model, payload, db=db)

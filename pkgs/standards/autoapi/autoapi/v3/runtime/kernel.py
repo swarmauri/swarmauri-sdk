@@ -95,6 +95,21 @@ def _is_persistent(chains: Mapping[str, Sequence[StepFn]]) -> bool:
     for fn in chains.get("PRE_TX_BEGIN", ()) or ():
         if getattr(fn, "__name__", "") == "mark_skip_persist":
             return False
+    for fn in chains.get("HANDLER", ()) or ():
+        if getattr(fn, "__name__", "") in {
+            "create",
+            "update",
+            "replace",
+            "merge",
+            "delete",
+            "bulk_create",
+            "bulk_update",
+            "bulk_replace",
+            "bulk_merge",
+            "bulk_delete",
+            "clear",
+        }:
+            return True
     return False
 
 

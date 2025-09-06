@@ -5,6 +5,7 @@ import datetime as _dt
 import decimal as _dc
 import uuid as _uuid
 from typing import Any, Callable, Dict, Mapping, MutableMapping, Optional, Tuple
+import typing as _typing
 
 from fastapi import HTTPException, status as _status
 
@@ -173,6 +174,8 @@ def _target_type(colspec: Any) -> Optional[type]:
         return None
     for name in ("py_type", "python_type"):
         t = getattr(field, name, None)
+        if t is _typing.Any:
+            return None
         if isinstance(t, type):
             return t
     return None
