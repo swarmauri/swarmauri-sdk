@@ -1,6 +1,6 @@
 import pytest
 from httpx import ASGITransport, AsyncClient
-from autoapi.v3.types import App, BaseModel, Column, String, UUID, uuid4
+from autoapi.v3.types import App, BaseModel, Column, String, UUID
 
 from autoapi.v3 import AutoApp, op_ctx, schema_ctx, hook_ctx
 from autoapi.v3.orm.tables import Base
@@ -98,7 +98,7 @@ async def test_op_ctx_defaults_value_resolution(sync_db_session):
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
-        res = await client.post("/thing", json={"id": str(uuid4()), "name": "a"})
+        res = await client.post("/thing", json={"name": "a"})
     assert res.status_code == 201
     item_id = UUID(res.json()["id"])
     assert res.json()["status"] == "new"
@@ -132,7 +132,7 @@ async def test_op_ctx_internal_orm_models(sync_db_session):
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
-        res = await client.post("/item", json={"id": str(uuid4()), "name": "a"})
+        res = await client.post("/item", json={"name": "a"})
     assert res.status_code == 201
     item_id = UUID(res.json()["id"])
 
@@ -219,7 +219,7 @@ async def test_op_ctx_storage_sqlalchemy(sync_db_session):
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
-        res = await client.post("/widget", json={"id": str(uuid4()), "name": "w"})
+        res = await client.post("/widget", json={"name": "w"})
     assert res.status_code == 201
     item_id = UUID(res.json()["id"])
 

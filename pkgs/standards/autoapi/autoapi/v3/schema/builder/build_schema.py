@@ -250,7 +250,10 @@ def _build_schema(
     _merge_response_extras(orm_cls, verb, fields, include=include, exclude=exclude)
 
     model_name = name or f"{orm_cls.__name__}{verb.capitalize()}"
-    cfg = ConfigDict(from_attributes=True)
+    cfg_kwargs = {"from_attributes": True}
+    if verb in {"create", "update", "replace"}:
+        cfg_kwargs["extra"] = "forbid"
+    cfg = ConfigDict(**cfg_kwargs)
 
     schema_cls = create_model(model_name, __config__=cfg, **fields)  # type: ignore[arg-type]
     schema_cls.model_rebuild(force=True)
