@@ -152,7 +152,7 @@ def _build_client_create_noauth():
 
         @classmethod
         def __autoapi_allow_anon__(cls):
-            return {"create"}
+            return {"create", "bulk_create"}
 
     cfg = mem(async_=False)
     api = AutoApp(engine=cfg)
@@ -181,7 +181,7 @@ def _build_client_create_attr_noauth():
         )
         name = Column(String, nullable=False)
 
-        __autoapi_allow_anon__ = {"create"}
+        __autoapi_allow_anon__ = {"create", "bulk_create"}
 
     cfg = mem(async_=False)
     api = AutoApp(engine=cfg)
@@ -203,8 +203,9 @@ def test_allow_anon_create_method():
         db.add(tenant)
         db.commit()
         db.refresh(tenant)
-        payload = {"id": str(uuid4()), "tenant_id": str(tenant.id), "name": "thing"}
-    assert client.post("/item", json=payload).status_code == 201
+        tid = str(tenant.id)
+    payload = {"id": str(uuid4()), "tenant_id": tid, "name": "one"}
+    assert client.post("/item", json=[payload]).status_code == 201
 
 
 def test_allow_anon_create_attr_noauth():
@@ -214,8 +215,9 @@ def test_allow_anon_create_attr_noauth():
         db.add(tenant)
         db.commit()
         db.refresh(tenant)
-        payload = {"id": str(uuid4()), "tenant_id": str(tenant.id), "name": "thing"}
-    assert client.post("/item", json=payload).status_code == 201
+        tid = str(tenant.id)
+    payload = {"id": str(uuid4()), "tenant_id": tid, "name": "one"}
+    assert client.post("/item", json=[payload]).status_code == 201
 
 
 def test_allow_anon_list_and_read_attr():
