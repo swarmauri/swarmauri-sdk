@@ -8,7 +8,7 @@ def main() -> None:
     """Run the auto_kms server using uvicorn."""
     host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("PORT", "8000"))
-    log_level = os.getenv("AUTO_KMS_LOG_LEVEL", "info").lower()
+    log_level = os.getenv("AUTO_KMS_LOG_LEVEL", "debug").lower()
     uvicorn.run(
         "auto_kms.app:app",
         host=host,

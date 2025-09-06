@@ -28,6 +28,8 @@ from .oidc_userinfo import include_oidc_userinfo
 from .rfc7009 import include_rfc7009
 
 
+import logging
+logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 # --------------------------------------------------------------------
 # AutoApp application
 # --------------------------------------------------------------------
