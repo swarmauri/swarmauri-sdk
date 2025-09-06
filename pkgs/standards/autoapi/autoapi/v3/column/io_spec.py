@@ -74,9 +74,20 @@ class IOSpec:
         """Return a new spec with a paired field configuration."""
 
         def gen(ctx):
-            return make(ctx).raw
+            pair = make(ctx)
+            temp = (
+                ctx.get("temp") if isinstance(ctx, dict) else getattr(ctx, "temp", None)
+            )
+            if isinstance(temp, dict):
+                temp.setdefault("_paired_cache", {})[alias] = pair.stored
+            return pair.raw
 
         def store(raw, ctx):
+            temp = getattr(ctx, "temp", None)
+            if isinstance(temp, dict):
+                cached = temp.get("_paired_cache", {}).pop(alias, None)
+                if cached is not None:
+                    return cached
             return make(ctx).stored
 
         cfg = _PairedCfg(
