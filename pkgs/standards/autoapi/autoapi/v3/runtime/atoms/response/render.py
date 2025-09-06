@@ -56,7 +56,7 @@ def render(
     *,
     hints: Optional[ResponseHints] = None,
     default_media: str = "application/json",
-    envelope_default: bool = True,
+    envelope_default: bool = False,
 ) -> Response:
     if isinstance(payload, Response):
         return payload

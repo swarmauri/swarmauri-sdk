@@ -65,7 +65,7 @@ def _render_run(
         return
     hints = getattr(resp_ns, "hints", None)
     default_media = getattr(resp_ns, "default_media", "application/json")
-    envelope_default = getattr(resp_ns, "envelope_default", True)
+    envelope_default = getattr(resp_ns, "envelope_default", False)
     resp_ns.result = _render.render(
         req,
         result,

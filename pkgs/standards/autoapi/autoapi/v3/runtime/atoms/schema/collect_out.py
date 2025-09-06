@@ -58,6 +58,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
     if "schema_out" in temp:
         return
 
+    op = (getattr(ctx, "op", None) or getattr(ctx, "method", None) or "").lower() or None
     fields_sorted = sorted(specs.keys())
     entries: list[Dict[str, Any]] = []
     by_field: Dict[str, Dict[str, Any]] = {}
@@ -71,6 +72,9 @@ def run(obj: Optional[object], ctx: Any) -> None:
         f = getattr(col, "field", None)
 
         out_enabled = _bool_attr(io, "out", "allow_out", "expose_out", default=True)
+        if out_enabled and op and getattr(io, "out_verbs", ()):  # type: ignore[arg-type]
+            if op not in getattr(io, "out_verbs", ()):  # type: ignore[arg-type]
+                out_enabled = False
         if not out_enabled:
             # Not exposed on output — skip entirely for outbound schema
             continue
