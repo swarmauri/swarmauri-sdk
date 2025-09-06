@@ -63,7 +63,13 @@ def register_api(api: Any, ctx: EngineCfg | None) -> None:
     if prov is None:
         return
     with _LOCK:
+        global _DEFAULT
         _API[id(api)] = prov
+        models = getattr(api, "models", None)
+        if isinstance(models, dict):
+            for m in models.values():
+                _TAB[m] = prov
+        _DEFAULT = prov
 
 
 def register_table(model: Any, ctx: EngineCfg | None) -> None:
