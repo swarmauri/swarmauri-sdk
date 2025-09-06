@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import inspect
 import logging
+from dataclasses import asdict, is_dataclass
 from types import SimpleNamespace
 from typing import (
     Any,
@@ -115,6 +116,17 @@ def _ensure_jsonable(obj: Any) -> Any:
             return AttrDict({k: _ensure_jsonable(v) for k, v in dict(obj).items()})
         except Exception:
             pass
+    if is_dataclass(obj):
+        try:
+            return AttrDict({k: _ensure_jsonable(v) for k, v in asdict(obj).items()})
+        except Exception:
+            return asdict(obj)
+    slots = getattr(obj, "__slots__", None)
+    if isinstance(slots, (list, tuple)):
+        try:
+            return AttrDict({s: _ensure_jsonable(getattr(obj, s)) for s in slots})
+        except Exception:
+            return {s: getattr(obj, s, None) for s in slots}
     try:
         data = vars(obj)
     except TypeError:
