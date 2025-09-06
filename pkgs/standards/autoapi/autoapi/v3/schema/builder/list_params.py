@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import logging
 import uuid
-from typing import Any, Mapping, Type
+from typing import Any, Type
 
 from pydantic import BaseModel, ConfigDict, Field, create_model
 
 from ..utils import namely_model
+from ...column.collect import collect_columns
 
 logger = logging.getLogger(__name__)
 
@@ -78,10 +79,8 @@ def _build_list_params(model: type) -> Type[BaseModel]:
             continue
         py_t = getattr(c.type, "python_type", Any)
         if py_t in _scalars:
-            spec_map = getattr(model, "__autoapi_colspecs__", None) or getattr(
-                model, "__autoapi_cols__", {}
-            )
-            spec = spec_map.get(c.name) if isinstance(spec_map, Mapping) else None
+            spec_map = collect_columns(model)
+            spec = spec_map.get(c.name)
             io = getattr(spec, "io", None)
             ops_raw = set(getattr(io, "filter_ops", ()) or [])
             if not ops_raw:
