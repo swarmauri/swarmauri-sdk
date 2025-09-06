@@ -128,6 +128,12 @@ def build_plan(
         ("wire", "validate_in"),  # accept old name if registrar exports it
         ("wire", "build_out"),
         ("wire", "dump"),
+        # resolve (value preparation)
+        ("resolve", "assemble"),
+        ("resolve", "paired_gen"),
+        # emit (alias handling for paired values)
+        ("emit", "paired_pre"),
+        ("emit", "paired_post"),
         # storage / out
         ("storage", "to_stored"),
         ("out", "masking"),
