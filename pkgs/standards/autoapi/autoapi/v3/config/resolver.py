@@ -144,7 +144,8 @@ def _coerce_map(obj: Any) -> Mapping[str, Any]:
     # dataclass?
     if is_dataclass(obj):
         try:
-            return asdict(obj)
+            # Drop keys with ``None`` values so they don't override defaults.
+            return {k: v for k, v in asdict(obj).items() if v is not None}
         except Exception:
             pass
     # namespace-like with __dict__
