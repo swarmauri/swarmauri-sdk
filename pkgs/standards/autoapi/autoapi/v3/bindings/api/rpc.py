@@ -7,7 +7,8 @@ from typing import Any, Dict, Optional, Union
 from .common import ApiLike, _ensure_api_ns
 from ...engine import resolver as _resolver
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("uvicorn")
+logger.debug("Loaded module v3/bindings/api/rpc")
 
 
 async def rpc_call(

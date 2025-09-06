@@ -1,10 +1,14 @@
 # autoapi/v3/bindings/handlers/identifiers.py
 from __future__ import annotations
+import logging
 
 import uuid
 from typing import Any, Mapping, Optional
 
 from .ctx import _ctx_payload, _ctx_path_params
+
+logger = logging.getLogger("uvicorn")
+logger.debug("Loaded module v3/bindings/handlers/identifiers")
 
 try:  # pragma: no cover
     from sqlalchemy.inspection import inspect as _sa_inspect  # type: ignore

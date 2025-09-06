@@ -5,6 +5,7 @@ import surface stable while easing maintenance.
 """
 
 from __future__ import annotations
+import logging
 
 from pydantic import BaseModel
 
@@ -29,7 +30,6 @@ from .helpers import (
     _pk_names,
     _req_state_db,
     _resource_name,
-    logger,
 )
 from .io import (
     _make_list_query_dep,
@@ -62,6 +62,9 @@ from ...op.types import CANON, PHASES
 from ...rest import _nested_prefix
 from ...runtime import executor as _executor
 from ...schema.builder import _strip_parent_fields
+
+logger = logging.getLogger("uvicorn")
+logger.debug("Loaded module v3/bindings/rest/common")
 
 __all__ = [
     "Body",

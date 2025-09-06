@@ -1,4 +1,5 @@
 from __future__ import annotations
+import logging
 
 # autoapi/v3/bindings/schemas/defaults.py
 
@@ -17,6 +18,9 @@ from ...schema import (
     _make_pk_model,
 )
 from .utils import _pk_info
+
+logger = logging.getLogger("uvicorn")
+logger.debug("Loaded module v3/bindings/schemas/defaults")
 
 
 def _default_schemas_for_spec(
