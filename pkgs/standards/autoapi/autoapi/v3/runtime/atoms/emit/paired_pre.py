@@ -121,6 +121,10 @@ def _infer_alias_from_spec(field: str, colspec: Any) -> Optional[str]:
     # IO-level hints
     io = getattr(colspec, "io", None)
     if io is not None:
+        paired = getattr(io, "_paired", None)
+        if paired is not None and isinstance(getattr(paired, "alias", None), str):
+            if paired.alias:
+                return paired.alias
         for name in ("emit_alias", "response_alias", "alias_out", "out_alias"):
             val = getattr(io, name, None)
             if isinstance(val, str) and val:

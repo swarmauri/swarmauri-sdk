@@ -161,16 +161,23 @@ def _is_paired(colspec: Any) -> bool:
             for name in ("generator", "paired_generator", "secret_generator")
         ):
             return True
+        io = getattr(obj, "io", None)
+        if getattr(getattr(io, "_paired", None), "gen", None) is not None:
+            return True
+    io = getattr(colspec, "io", None)
+    if getattr(getattr(io, "_paired", None), "gen", None) is not None:
+        return True
     return False
 
 
 def _get_generator(colspec: Any):
     """Return the first available generator callable, if any."""
-    field = getattr(colspec, "field", None)
     io = getattr(colspec, "io", None)
-    field_io = getattr(field, "io", None)
-
-    for obj in (colspec, field, io, field_io):
+    if getattr(getattr(io, "_paired", None), "gen", None):
+        fn = io._paired.gen
+        if callable(fn):
+            return fn
+    for obj in (colspec, getattr(colspec, "field", None)):
         if obj is None:
             continue
         paired_cfg = getattr(obj, "_paired", None)
@@ -199,6 +206,10 @@ def _infer_alias_from_spec(field: str, colspec: Any) -> Optional[str]:
     # IO-level hints
     io = getattr(colspec, "io", None)
     if io is not None:
+        paired = getattr(io, "_paired", None)
+        if paired is not None and isinstance(getattr(paired, "alias", None), str):
+            if paired.alias:
+                return paired.alias
         for name in ("emit_alias", "response_alias", "alias_out", "out_alias", "alias"):
             val = getattr(io, name, None)
             if isinstance(val, str) and val:
