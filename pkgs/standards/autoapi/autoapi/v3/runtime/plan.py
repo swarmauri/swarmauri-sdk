@@ -14,10 +14,13 @@ from typing import (
     Sequence,
     Tuple,
 )
+import logging
 
 from . import events as _ev
 from . import labels as _lbl
 from . import ordering as _ord
+
+logger = logging.getLogger(__name__)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -79,12 +82,23 @@ def attach_atoms_for_model(
     `specs` is expected to be a mapping {field_name -> ColumnSpec}.
     If `only_keys` is provided, restrict per-field instantiation to that subset.
     """
+    logger.debug(
+        "Attaching atoms for model %s with keys %s",
+        getattr(model, "__name__", model),
+        list(only_keys) if only_keys else "<all>",
+    )
     plan = build_plan(model, specs, only_keys=only_keys)
 
     # Attach for easy access from executor/bindings/diagnostics
     setattr(model, "_autoapi_plan", plan)
     # Optional: a tiny namespace with convenience views
     setattr(model, "runtime", SimpleNamespace(plan=plan))
+
+    logger.info(
+        "Attached runtime plan for %s with %d anchors",
+        plan.model_name,
+        len(plan.atoms_by_anchor),
+    )
 
     return plan
 
@@ -99,6 +113,7 @@ def build_plan(
     Compile a Plan by reading atom registrations and instantiating per-model / per-field atoms.
     """
     model_name = getattr(model, "__name__", str(model))
+    logger.debug("Building plan for model %s", model_name)
 
     # Import registry lazily to avoid import cycles during package init
     try:
@@ -111,11 +126,14 @@ def build_plan(
 
     # Normalize field filter
     only: Optional[set[str]] = set(only_keys) if only_keys else None
+    if only is not None:
+        logger.debug("Restricting fields to %s", sorted(only))
 
     # Field inventory from ColumnSpecs
     fields = sorted(specs.keys())
     if only is not None:
         fields = [f for f in fields if f in only]
+    logger.debug("Fields considered for plan: %s", fields)
 
     # Partition atoms into per-model vs per-field subjects
     per_field_subjects = {
@@ -158,6 +176,7 @@ def build_plan(
             field=None,
         )
         atoms_by_anchor[anchor].append(node)
+        logger.debug("Registered model atom %s:%s@%s", domain, subject, anchor)
 
     # 2) Per-field atoms (one instance per field, with #field suffix)
     for (domain, subject), (anchor, runner) in _ATOM_REGISTRY.items():
@@ -177,12 +196,26 @@ def build_plan(
                 field=field,
             )
             atoms_by_anchor[anchor].append(node)
+            logger.debug(
+                "Registered field atom %s:%s@%s#%s",
+                domain,
+                subject,
+                anchor,
+                field,
+            )
 
     # Freeze to tuples and drop anchors with no atoms to keep plan compact
     frozen: Dict[str, Tuple[AtomNode, ...]] = {}
     for anchor, items in atoms_by_anchor.items():
         if items:
             frozen[anchor] = tuple(items)
+            logger.debug("Anchor %s has %d atoms", anchor, len(items))
+
+    logger.debug(
+        "Plan build completed for %s with %d anchors",
+        model_name,
+        len(frozen),
+    )
 
     return Plan(model_name=model_name, atoms_by_anchor=frozen)
 
@@ -204,6 +237,12 @@ def flattened_order(
     - Injects system step hooks (txn begin/handler/commit) when requested and persist=True.
     - Applies persist pruning and deterministic ordering via runtime.ordering.flatten().
     """
+    logger.debug(
+        "Flattening plan for %s (persist=%s, system_steps=%s)",
+        plan.model_name,
+        persist,
+        include_system_steps,
+    )
     # 1) Base atom labels
     atom_labels: List[_lbl.Label] = []
     for nodes in plan.atoms_by_anchor.values():
@@ -228,6 +267,7 @@ def flattened_order(
         persist=persist,
         anchor_policies=anchor_policies,
     )
+    logger.debug("Flattened %d labels", len(flattened))
 
     phase_hooks: Dict[str, List[_lbl.Label]] = {
         ph: [_ensure_hook_label(lbl) for lbl in hooks.get(ph, [])] if hooks else []
@@ -272,6 +312,9 @@ def _should_instantiate(
     with domain-specific logic in the future.
     """
 
+    logger.debug(
+        "Instantiate check for %s:%s@%s#%s -> True", domain, subject, anchor, field
+    )
     return True
 
 

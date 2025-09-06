@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+import logging
 from types import SimpleNamespace
 from typing import Any, Dict, Iterable, Mapping, Tuple
+
+
+logger = logging.getLogger("uvicorn")
 
 
 def _read_engine_attr(obj: Any):
@@ -69,6 +73,7 @@ def collect_from_objects(
     *, app: Any | None = None, api: Any | None = None, models: Iterable[Any] = ()
 ) -> Dict[str, Any]:
     """Collect engine configuration from objects without binding them."""
+    logger.info("Collecting engine configuration")
     app_engine = _read_engine_attr(app) if app is not None else None
     api_engine = _read_engine_attr(api) if api is not None else None
 
@@ -95,6 +100,7 @@ def collect_from_objects(
 
     api_map = {api: api_engine} if api_engine is not None and api is not None else {}
 
+    logger.debug("Collected engine config for %d models", len(models))
     return {
         "default": app_engine,
         "api": api_map,

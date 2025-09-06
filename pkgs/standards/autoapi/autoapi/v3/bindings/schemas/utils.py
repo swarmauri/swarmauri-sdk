@@ -1,4 +1,5 @@
 from __future__ import annotations
+import logging
 
 # autoapi/v3/bindings/schemas/utils.py
 
@@ -9,6 +10,9 @@ from pydantic import BaseModel, create_model
 
 from ...schema.types import SchemaArg, SchemaRef
 from ...schema import namely_model
+
+logger = logging.getLogger("uvicorn")
+logger.debug("Loaded module v3/bindings/schemas/utils")
 
 
 _Key = Tuple[str, str]  # (alias, target)

@@ -1,4 +1,5 @@
 from __future__ import annotations
+import logging
 
 import inspect
 from types import SimpleNamespace
@@ -9,8 +10,11 @@ import typing as _typing
 from pydantic import BaseModel, Field, create_model
 
 from .fastapi import HTTPException, Query, Request, _status
-from .helpers import _ensure_jsonable, logger
+from .helpers import _ensure_jsonable
 from ...op import OpSpec
+
+logger = logging.getLogger("uvicorn")
+logger.debug("Loaded module v3/bindings/rest/io")
 
 
 def _serialize_output(

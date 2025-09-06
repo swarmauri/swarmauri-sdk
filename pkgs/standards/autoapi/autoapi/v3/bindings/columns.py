@@ -1,6 +1,11 @@
+import logging
+
 # autoapi/v3/bindings/columns.py
 from sqlalchemy import Column
 from ..specs import ColumnSpec, is_virtual
+
+logger = logging.getLogger("uvicorn")
+logger.debug("Loaded module v3/bindings/columns")
 
 
 def build_and_attach(model: type, specs=None, only_keys=None):

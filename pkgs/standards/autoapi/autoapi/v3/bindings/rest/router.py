@@ -1,4 +1,5 @@
 from __future__ import annotations
+import logging
 
 import inspect
 import re
@@ -30,10 +31,12 @@ from .common import (
     _status_for,
     _strip_parent_fields,
     _RESPONSES_META,
-    logger,
 )
 import typing as _typing
 from typing import get_args as _get_args, get_origin as _get_origin
+
+logger = logging.getLogger("uvicorn")
+logger.debug("Loaded module v3/bindings/rest/router")
 
 
 def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:

@@ -4,7 +4,8 @@ import logging
 from types import SimpleNamespace
 from typing import Any
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("uvicorn")
+logger.debug("Loaded module v3/bindings/api/common")
 
 
 class AttrDict(dict):

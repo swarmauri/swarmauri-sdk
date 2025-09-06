@@ -13,7 +13,8 @@ from ...schema import collect_decorated_schemas
 from .defaults import _default_schemas_for_spec
 from .utils import _alias_schema, _ensure_alias_namespace, _resolve_schema_arg, _Key
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("uvicorn")
+logger.debug("Loaded module v3/bindings/schemas/builder")
 
 
 def build_and_attach(

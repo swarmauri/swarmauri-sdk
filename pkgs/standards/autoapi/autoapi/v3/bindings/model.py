@@ -40,7 +40,8 @@ from .model_helpers import (
 )
 from .model_registry import _ensure_op_ctx_attach_hook, _ensure_registry_listener
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("uvicorn")
+logger.debug("Loaded module v3/bindings/model")
 
 
 # ───────────────────────────────────────────────────────────────────────────────

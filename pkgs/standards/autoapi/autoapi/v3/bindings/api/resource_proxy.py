@@ -8,7 +8,8 @@ from ..rpc import _coerce_payload, _get_phase_chains, _validate_input, _serializ
 from ...runtime import executor as _executor
 from ...engine import resolver as _resolver
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("uvicorn")
+logger.debug("Loaded module v3/bindings/api/resource_proxy")
 
 
 class _ResourceProxy:
