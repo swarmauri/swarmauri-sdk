@@ -142,8 +142,7 @@ async def _invoke(
         in_tx=False,
         nonfatal=True,
     )
-    if ctx.get("result") is not None:
-        ctx.response.result = ctx.get("result")
+    ctx["result"] = ctx.response.result
     if db is not None and _in_tx(db):
         try:
             if _is_async_db(db):
