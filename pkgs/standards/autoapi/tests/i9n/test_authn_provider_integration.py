@@ -5,7 +5,7 @@ from autoapi.v3.engine.shortcuts import mem
 
 from autoapi.v3 import AutoApp, Base, hook_ctx
 from autoapi.v3.config.constants import AUTOAPI_AUTH_CONTEXT_ATTR
-from autoapi.v3.orm.mixins import GUIDPk, BulkCapable
+from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.types.authn_abc import AuthNProvider
 
 
@@ -32,10 +32,10 @@ def _build_client_with_auth():
 
     auth = HookedAuth()
 
-    class Tenant(Base, GUIDPk, BulkCapable):
+    class Tenant(Base, GUIDPk):
         __tablename__ = "tenants"
 
-        @hook_ctx(ops="bulk_create", phase="PRE_HANDLER")
+        @hook_ctx(ops="create", phase="PRE_HANDLER")
         async def capture(cls, ctx):
             auth.ctx_principal = ctx.get("auth_context")
 
@@ -49,7 +49,10 @@ def _build_client_with_auth():
 def test_authn_hooks_and_context_injection():
     client, auth = _build_client_with_auth()
 
-    res = client.post("/tenant", json=[{}], headers={"Authorization": "Bearer secret"})
+    payload = {}
+    res = client.post(
+        "/tenant", json=payload, headers={"Authorization": "Bearer secret"}
+    )
     assert res.status_code == 201
     assert auth.ctx_principal == {"sub": "user", "tid": "tenant"}
 
