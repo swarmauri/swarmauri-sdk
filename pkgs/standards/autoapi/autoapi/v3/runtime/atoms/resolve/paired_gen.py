@@ -140,18 +140,22 @@ def _ctx_view(ctx: Any) -> Dict[str, Any]:
 
 
 def _is_paired(colspec: Any) -> bool:
-    """
-    Heuristic: recognize secret-once/paired columns without hard-coding spec structure.
-    """
-    for obj in (colspec, getattr(colspec, "field", None)):
+    """Best-effort detection of secret-once/paired columns."""
+
+    field = getattr(colspec, "field", None)
+    io = getattr(colspec, "io", None)
+    field_io = getattr(field, "io", None)
+
+    for obj in (colspec, field, io, field_io):
         if obj is None:
             continue
+        if getattr(obj, "_paired", None) is not None:
+            return True
         if any(
             bool(getattr(obj, name, False))
             for name in ("secret_once", "paired", "paired_input", "generate_on_absent")
         ):
             return True
-        # Presence of a generator implies paired
         if any(
             callable(getattr(obj, name, None))
             for name in ("generator", "paired_generator", "secret_generator")
@@ -176,6 +180,9 @@ def _get_generator(colspec: Any):
     for obj in (colspec, getattr(colspec, "field", None)):
         if obj is None:
             continue
+        paired_cfg = getattr(obj, "_paired", None)
+        if paired_cfg is not None and callable(getattr(paired_cfg, "gen", None)):
+            return paired_cfg.gen
         for name in ("generator", "paired_generator", "secret_generator"):
             fn = getattr(obj, name, None)
             if callable(fn):
