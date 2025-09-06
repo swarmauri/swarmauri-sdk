@@ -1,5 +1,6 @@
 from __future__ import annotations
 from functools import lru_cache
+import logging
 from typing import Any, Dict, Iterable, Optional, Tuple
 
 from ....deps.starlette import Request
@@ -12,6 +13,7 @@ from ....deps.jinja import (
     TemplateNotFound,
 )
 
+logger = logging.getLogger("uvicorn")
 if Environment is None:  # pragma: no cover - jinja2 not installed
 
     async def render_template(
@@ -25,6 +27,7 @@ if Environment is None:  # pragma: no cover - jinja2 not installed
         globals_: Optional[Dict[str, Any]] = None,
         request: Optional[Request] = None,
     ) -> str:
+        logger.debug("Rendering template %s", name)
         raise RuntimeError("jinja2 is required for template rendering")
 
 else:
@@ -64,6 +67,7 @@ else:
         globals_: Optional[Dict[str, Any]] = None,
         request: Optional[Request] = None,
     ) -> str:
+        logger.debug("Rendering template %s", name)
         env = _get_env(tuple(search_paths), package, auto_reload)
         if filters:
             env.filters.update(filters)

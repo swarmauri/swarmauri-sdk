@@ -5,12 +5,15 @@ import base64
 import datetime as _dt
 import decimal as _dc
 import uuid as _uuid
+import logging
 from typing import Any, Dict, Mapping, MutableMapping, Optional
 
 from ... import events as _ev
 
 # Runs at the very end of model shaping; out:masking follows at the same anchor.
 ANCHOR = _ev.OUT_DUMP  # "out:dump"
+
+logger = logging.getLogger("uvicorn")
 
 
 def run(obj: Optional[object], ctx: Any) -> None:
@@ -37,6 +40,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
     - This step does NOT perform masking/redaction; that is handled by out:masking.
     - For collection/list responses, extras are not merged (they are usually per-item).
     """
+    logger.debug("Running wire:dump")
     temp = _ensure_temp(ctx)
     out_values = temp.get("out_values")
 

@@ -2,11 +2,14 @@
 from __future__ import annotations
 
 from typing import Any, Dict, Mapping, MutableMapping, Optional
+import logging
 
 from ... import events as _ev
 
 # Runs at the very beginning of the lifecycle, before in-model build/validation.
 ANCHOR = _ev.SCHEMA_COLLECT_IN  # "schema:collect_in"
+
+logger = logging.getLogger("uvicorn")
 
 
 def run(obj: Optional[object], ctx: Any) -> None:
@@ -49,6 +52,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
         "order": tuple[str, ...],           # stable field order for wire builder
       }
     """
+    logger.debug("Running schema:collect_in")
     specs: Mapping[str, Any] = getattr(ctx, "specs", {}) or {}
     if not specs:
         return
