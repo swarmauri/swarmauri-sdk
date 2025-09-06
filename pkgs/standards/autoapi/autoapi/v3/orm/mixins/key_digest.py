@@ -3,8 +3,6 @@ from __future__ import annotations
 from hashlib import sha256
 from secrets import token_urlsafe
 
-from sqlalchemy import event
-
 from ...column.io_spec import Pair
 from ...specs import F, IO, S, acol
 from ...types import Mapped, String, declarative_mixin
@@ -15,28 +13,21 @@ class KeyDigest:
     """Provides hashed API key storage with helpers."""
 
     @staticmethod
-    def _generate_pair() -> Pair:
+    def _generate_pair(_ctx: dict | None = None) -> Pair:
+        """Generate a raw/stored pair for API keys."""
         raw = token_urlsafe(32)
         return Pair(raw=raw, stored=sha256(raw.encode()).hexdigest())
 
     digest: Mapped[str] = acol(
         storage=S(String, nullable=False, unique=True),
         field=F(constraints={"max_length": 64}),
-        io=IO(out_verbs=("read", "list", "create")).alias_readtime(
-            "api_key",
-            lambda obj, ctx: getattr(obj, "_api_key", None),
+        io=IO(out_verbs=("read", "list", "create"), mutable_verbs=("create",)).paired(
+            _generate_pair,
+            alias="api_key",
             verbs=("create",),
+            emit="post_refresh",
         ),
     )
-
-    @classmethod
-    def __declare_last__(cls) -> None:  # pragma: no cover - SQLAlchemy hook
-        @event.listens_for(cls, "before_insert", propagate=True)
-        def _set_digest(_mapper, _conn, target) -> None:
-            if not getattr(target, "digest", None):
-                pair = cls._generate_pair()
-                target.digest = pair.stored
-                setattr(target, "_api_key", pair.raw)
 
     @staticmethod
     def digest_of(value: str) -> str:
