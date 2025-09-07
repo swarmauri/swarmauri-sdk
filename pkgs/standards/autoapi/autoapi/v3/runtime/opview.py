@@ -32,8 +32,15 @@ def opview_from_ctx(ctx: Any):
         return K.get_opview(app, model, alias)
 
     specs = getattr(ctx, "specs", None)
-    if alias and specs is not None:
-        return K._compile_opview_from_specs(specs, SimpleNamespace(alias=alias))
+    if alias:
+        if specs is not None:
+            return K._compile_opview_from_specs(specs, SimpleNamespace(alias=alias))
+        if model and not app:
+            try:
+                specs = K._specs_cache.get(model)
+                return K._compile_opview_from_specs(specs, SimpleNamespace(alias=alias))
+            except Exception:
+                pass
 
     missing = []
     if not alias:
