@@ -33,20 +33,7 @@ class LlamaCppModel(LLMBase):
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
 
-<<<<<<< HEAD
-    api_key: Optional[SecretStr] = None
-    allowed_models: List[str] = []
-
-    name: str = ""
-
-    type: Literal["LlamaCppModel"] = "LlamaCppModel"
-
-    timeout: float = 600.0
-
-    def __init__(self, **data: Dict[str, Any]) -> None:
-=======
     def __init__(self, **data):
->>>>>>> upstream/mono/dev
         """
         Initializes the LlamaCppModel instance and sets up httpx clients
         for both sync and async operations.

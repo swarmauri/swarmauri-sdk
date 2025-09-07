@@ -6,10 +6,7 @@ from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
-<<<<<<< HEAD
-=======
 from typing_extensions import Literal
->>>>>>> upstream/mono/dev
 
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
