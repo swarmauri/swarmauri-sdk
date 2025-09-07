@@ -62,7 +62,6 @@ def _discover_atoms() -> list[_DiscoveredAtom]:
     return out
 
 
-
 def _wrap_atom(run: _AtomRun, *, anchor: str) -> StepFn:
     async def _step(ctx: Any) -> Any:
         rv = run(None, ctx)
@@ -204,7 +203,7 @@ class Kernel:
         ctx: Optional[Mapping[str, Any]] = None,
     ) -> Any:
         phases = self.build(model, alias)
-        base_ctx = _Ctx.from_request(request, db=db, seed=ctx)
+        base_ctx = _Ctx.ensure(request=request, db=db, seed=ctx)
         try:
             base_ctx.method = alias
         except Exception:
