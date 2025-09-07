@@ -13,6 +13,7 @@ from autoapi.v3.specs import IO, S, acol
 from autoapi.v3.types import App, String, UUID
 from autoapi.v3.core import crud
 from autoapi.v3.runtime.atoms.resolve import assemble
+from autoapi.v3.runtime.kernel import _default_kernel as K
 
 
 class Widget(Base, GUIDPk):
@@ -81,8 +82,9 @@ async def test_columns_store_io_spec(widget_setup):
 async def test_default_factory_resolution(widget_setup):
     _, _, _ = widget_setup
     specs = Widget.__autoapi_cols__
+    opview = K._compile_opview_from_specs(specs, SimpleNamespace(alias="create"))
     ctx = SimpleNamespace(
-        specs=specs, op="create", temp={"in_values": {}}, persist=True
+        op="create", temp={"in_values": {}}, persist=True, opview=opview
     )
     assemble.run(None, ctx)
     assert ctx.temp["assembled_values"]["created_at"] == "now"

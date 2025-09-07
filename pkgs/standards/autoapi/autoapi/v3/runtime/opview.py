@@ -1,6 +1,5 @@
 from __future__ import annotations
 from typing import Any, Mapping, Dict
-from types import SimpleNamespace
 
 from .kernel import _default_kernel as K  # single, app-scoped kernel
 
@@ -18,9 +17,9 @@ def opview_from_ctx(ctx: Any):
     Resolve the ``OpView`` for this request context or raise a runtime error.
 
     Preferred resolution path is via ``ctx.opview`` which should be attached by
-    the caller.  Falling back to kernel lookups requires ``ctx.app`` (or
-    ``ctx.api``), ``ctx.model`` (or derivable from ``ctx.obj``), and ``ctx.op``
-    (or ``ctx.method``).
+    the caller. Kernel lookups require ``ctx.app`` (or ``ctx.api``),
+    ``ctx.model`` (or derivable from ``ctx.obj``), and ``ctx.op`` (or
+    ``ctx.method``).
     """
     ov = getattr(ctx, "opview", None)
     if ov is not None:
@@ -37,11 +36,6 @@ def opview_from_ctx(ctx: Any):
     if app and model and alias:
         # One-kernel-per-app, prime once; raises if not compiled
         return K.get_opview(app, model, alias)
-
-    if alias:
-        specs = getattr(ctx, "specs", None)
-        if specs is not None:
-            return K._compile_opview_from_specs(specs, SimpleNamespace(alias=alias))
 
     missing = []
     if not alias:
