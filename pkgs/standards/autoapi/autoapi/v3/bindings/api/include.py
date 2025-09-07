@@ -24,6 +24,7 @@ from ...config.constants import (
 )
 from ...engine import resolver as _resolver
 
+logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/api/include")
 
@@ -41,35 +42,55 @@ def _seed_security_and_deps(api: Any, model: type) -> None:
     # DB deps
     prov = _resolver.resolve_provider(api=api)
     if prov is not None:
+        logger.debug("Resolved provider for %s", model.__name__)
         setattr(model, AUTOAPI_GET_DB_ATTR, prov.get_db)
+    else:
+        logger.debug("No provider resolved for %s", model.__name__)
 
     # Authn (prefer optional dep when available)
     auth_dep = None
     if getattr(api, "_optional_authn_dep", None):
         auth_dep = api._optional_authn_dep
+        logger.debug("Using optional auth dependency for %s", model.__name__)
     elif getattr(api, "_allow_anon", True) is False and getattr(api, "_authn", None):
         auth_dep = api._authn
+        logger.debug("Using required auth dependency for %s", model.__name__)
     elif getattr(api, "_authn", None):
         auth_dep = api._authn
+        logger.debug("Using default auth dependency for %s", model.__name__)
     if auth_dep is not None:
         setattr(model, AUTOAPI_AUTH_DEP_ATTR, auth_dep)
+    else:
+        logger.debug("No auth dependency configured for %s", model.__name__)
 
     # Allow anonymous verbs
     allow_attr = getattr(model, AUTOAPI_ALLOW_ANON_ATTR, None)
     if allow_attr:
         verbs = allow_attr() if callable(allow_attr) else allow_attr
+        logger.debug("Allowing anonymous verbs %s for %s", verbs, model.__name__)
         for v in verbs:
             api._allow_anon_ops.add(f"{model.__name__}.{v}")
+    else:
+        logger.debug("No anonymous verbs for %s", model.__name__)
 
     # Authz
     if getattr(api, "_authorize", None):
         setattr(model, AUTOAPI_AUTHORIZE_ATTR, api._authorize)
+        logger.debug("Authorization hook attached for %s", model.__name__)
+    else:
+        logger.debug("No authorization hook for %s", model.__name__)
 
     # Extra deps (router-level only; never part of runtime plan)
     if getattr(api, "rest_dependencies", None):
         setattr(model, AUTOAPI_REST_DEPENDENCIES_ATTR, list(api.rest_dependencies))
+        logger.debug("REST dependencies seeded for %s", model.__name__)
+    else:
+        logger.debug("No REST dependencies for %s", model.__name__)
     if getattr(api, "rpc_dependencies", None):
         setattr(model, AUTOAPI_RPC_DEPENDENCIES_ATTR, list(api.rpc_dependencies))
+        logger.debug("RPC dependencies seeded for %s", model.__name__)
+    else:
+        logger.debug("No RPC dependencies for %s", model.__name__)
 
 
 def _attach_to_api(api: ApiLike, model: type) -> None:
@@ -81,6 +102,7 @@ def _attach_to_api(api: ApiLike, model: type) -> None:
     mname = model.__name__
     rname = _resource_name(model)
     rtitle = rname[:1].upper() + rname[1:]
+    logger.debug("Attaching model %s as resource '%s'", mname, rname)
 
     # Index model object
     api.models[mname] = model
@@ -94,6 +116,7 @@ def _attach_to_api(api: ApiLike, model: type) -> None:
     setattr(api.rpc, mname, rpc_ns)
     if rtitle != mname:
         setattr(api.rpc, rtitle, rpc_ns)
+        logger.debug("Registered RPC namespace alias '%s'", rtitle)
     # rest (router lives on model.rest.router)
     rest_ns = getattr(api, "rest")
     setattr(
@@ -117,7 +140,6 @@ def _attach_to_api(api: ApiLike, model: type) -> None:
     setattr(api.core, mname, core_proxy)
     if rtitle != mname:
         setattr(api.core, rtitle, core_proxy)
-
     core_raw_proxy = _ResourceProxy(model, serialize=False, api=api)
     setattr(api.core_raw, mname, core_raw_proxy)
     if rtitle != mname:
@@ -149,6 +171,8 @@ def include_model(
     Returns:
         (model, router) – the model class and its Router (or None if not present).
     """
+    logger.debug("Including model %s", model.__name__)
+
     # 0) seed deps/security so binders can see them (transport-level only)
     _seed_security_and_deps(api, model)
 
@@ -159,16 +183,30 @@ def include_model(
     router = getattr(getattr(model, "rest", SimpleNamespace()), "router", None)
     if prefix is None:
         prefix = _default_prefix(model)
+        logger.debug("Computed default prefix '%s' for %s", prefix, model.__name__)
+    else:
+        logger.debug("Using provided prefix '%s' for %s", prefix, model.__name__)
 
     # 3) Always bind model router to the API object when possible
     root_router = api if _has_include_router(api) else getattr(api, "router", None)
     if router is not None:
+        logger.debug("Mounting model router for %s on api", model.__name__)
         _mount_router(root_router, router, prefix=prefix)
+    else:
+        logger.debug("Model %s has no router to mount", model.__name__)
 
     # Optionally mount onto a host app
     target_app = app or getattr(api, "app", None)
     if mount_router and router is not None:
+        logger.debug("Mounting router for %s on host app", model.__name__)
         _mount_router(target_app, router, prefix=prefix)
+    else:
+        logger.debug(
+            "Skipping host app mount for %s (mount_router=%s, router=%s)",
+            model.__name__,
+            mount_router,
+            router is not None,
+        )
 
     # 4) Attach all namespaces onto api
     _attach_to_api(api, model)
@@ -191,11 +229,14 @@ def include_models(
     If ``base_prefix`` is provided, each model's router is mounted under that
     prefix. The model router itself already has its own `/{resource}` prefix.
     """
+    logger.debug("Including %d models", len(models))
     results: Dict[str, Any] = {}
     for mdl in models:
         px = base_prefix.rstrip("/") if base_prefix else None
+        logger.debug("Including model %s with base prefix %s", mdl.__name__, px)
         _, router = include_model(
             api, mdl, app=app, prefix=px, mount_router=mount_router
         )
         results[mdl.__name__] = router
+    logger.debug("Finished including models")
     return results
