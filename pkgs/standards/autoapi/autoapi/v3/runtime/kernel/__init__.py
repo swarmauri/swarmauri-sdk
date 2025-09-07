@@ -62,6 +62,7 @@ def _discover_atoms() -> list[_DiscoveredAtom]:
     return out
 
 
+
 def _wrap_atom(run: _AtomRun, *, anchor: str) -> StepFn:
     async def _step(ctx: Any) -> Any:
         rv = run(None, ctx)
