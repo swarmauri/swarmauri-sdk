@@ -43,14 +43,12 @@ def mro_collect_decorated_ops(table: type) -> list[OpSpec]:
 
     logger.info("Collecting decorated ops for %s", table.__name__)
     out: list[OpSpec] = []
+    seen: set[str] = set()
 
-    for base in reversed(table.__mro__):
-        names = list(getattr(base, "__dict__", {}).keys())
-        for name in dir(base):
-            if name not in names:
-                names.append(name)
-        for name in names:
-            attr = getattr(base, name, None)
+    for base in table.__mro__:
+        for name, attr in vars(base).items():
+            if name in seen:
+                continue
             func = _unwrap(attr)
             decl: _OpDecl | None = getattr(func, "__autoapi_op_decl__", None)
             if not decl:
@@ -89,6 +87,7 @@ def mro_collect_decorated_ops(table: type) -> list[OpSpec]:
                 **expose_kwargs,
             )
             out.append(spec)
+            seen.add(name)
 
     logger.debug("Collected %d ops for %s", len(out), table.__name__)
     return out
