@@ -215,7 +215,9 @@ def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
 # ───────────────────────────────────────────────────────────────────────────────
 
 
-def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]]:
+def _build_rpc_callable(
+    model: type, sp: OpSpec, api: Any | None = None
+) -> Callable[..., Awaitable[Any]]:
     """
     Create an async callable that:
       1) validates payload (if schema present),
@@ -275,8 +277,10 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
         if request is not None:
             base_ctx.setdefault("request", request)
         # surface contextual metadata for runtime atoms
-        base_ctx.setdefault("app", getattr(request, "app", None))
-        base_ctx.setdefault("api", getattr(request, "app", None))
+        base_ctx.setdefault(
+            "app", getattr(request, "app", None) or getattr(api, "app", None) or api
+        )
+        base_ctx.setdefault("api", api)
         base_ctx.setdefault("model", model)
         base_ctx.setdefault("op", alias)
         base_ctx.setdefault("method", alias)
@@ -311,9 +315,9 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
     return _rpc_method
 
 
-def _attach_one(model: type, sp: OpSpec) -> None:
+def _attach_one(model: type, sp: OpSpec, api: Any | None = None) -> None:
     rpc_root = _ns(model, "rpc")
-    fn = _build_rpc_callable(model, sp)
+    fn = _build_rpc_callable(model, sp, api)
     setattr(rpc_root, sp.alias, fn)
     logger.debug("rpc: %s.%s registered", model.__name__, sp.alias)
 
@@ -324,7 +328,11 @@ def _attach_one(model: type, sp: OpSpec) -> None:
 
 
 def register_and_attach(
-    model: type, specs: Sequence[OpSpec], *, only_keys: Optional[Sequence[_Key]] = None
+    model: type,
+    specs: Sequence[OpSpec],
+    *,
+    api: Any | None = None,
+    only_keys: Optional[Sequence[_Key]] = None,
 ) -> None:
     """
     Register async callables under `model.rpc.<alias>` for each OpSpec.
@@ -335,7 +343,7 @@ def register_and_attach(
         key = (sp.alias, sp.target)
         if wanted and key not in wanted:
             continue
-        _attach_one(model, sp)
+        _attach_one(model, sp, api)
 
 
 __all__ = ["register_and_attach"]

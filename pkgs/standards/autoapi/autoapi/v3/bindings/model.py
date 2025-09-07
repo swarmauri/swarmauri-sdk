@@ -149,7 +149,7 @@ def bind(
     _schemas_binding.build_and_attach(model, specs, only_keys=only_keys)
     _hooks_binding.normalize_and_attach(model, specs, only_keys=only_keys)
     _handlers_binding.build_and_attach(model, specs, only_keys=only_keys)
-    _rpc_binding.register_and_attach(model, specs, only_keys=only_keys)
+    _rpc_binding.register_and_attach(model, specs, api=api, only_keys=only_keys)
     _rest_binding.build_router_and_attach(model, specs, api=api, only_keys=only_keys)
 
     # 6) Index on the model (always overwrite with fresh views)
