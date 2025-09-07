@@ -22,13 +22,18 @@ def _ctx_get(ctx: Mapping[str, Any], key: str, default: Any = None) -> Any:
 
 def _ctx_payload(ctx: Mapping[str, Any]) -> Any:
     temp = _ctx_get(ctx, "temp", None)
+    raw = _ctx_get(ctx, "payload", None)
     if isinstance(temp, Mapping):
         av = temp.get("assembled_values")
         if isinstance(av, Mapping):
-            logger.debug("Payload from assembled values: %s", av)
-            return av
+            merged = {}
+            if isinstance(raw, Mapping):
+                merged.update(raw)
+            merged.update(av)
+            logger.debug("Payload from assembled values: %s", merged)
+            return merged
 
-    v = _ctx_get(ctx, "payload", None)
+    v = raw
     if isinstance(v, Mapping):
         logger.debug("Payload is a mapping")
         logger.debug("Payload: %s", v)
