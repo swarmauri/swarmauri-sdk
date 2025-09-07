@@ -295,22 +295,11 @@ class Kernel:
             self._primed[app] = True
 
     def get_opview(self, app: Any, model: type, alias: str) -> OpView:
-        """Return OpView for (model, alias); compile on-demand if missing."""
+        """Return OpView for (model, alias); eject with RuntimeError if missing."""
         self.ensure_primed(app)
-        ov_map = self._opviews.setdefault(app, {})
-        key = (model, alias)
-        if key not in ov_map:
-            from ..system.diagnostics.utils import opspecs as _opspecs
-
-            specs = self._specs_cache.get(model)
-            for sp in _opspecs(model):
-                ov_map[(model, sp.alias)] = self._compile_opview_from_specs(specs, sp)
-            # rebuild kernelz payload to include new model ops
-            self._kernelz_payload[app] = self._build_kernelz_payload_internal(app)
-
         try:
-            return ov_map[key]
-        except KeyError:
+            return self._opviews[app][(model, alias)]
+        except Exception:
             raise RuntimeError(
                 f"opview_missing: app={app!r} model={getattr(model, '__name__', model)!r} alias={alias!r}"
             )
