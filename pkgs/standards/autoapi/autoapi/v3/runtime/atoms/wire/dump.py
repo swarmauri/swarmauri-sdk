@@ -45,6 +45,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
     out_values = temp.get("out_values")
 
     if out_values is None:
+        logger.debug("No out_values available; skipping dump")
         return  # nothing to dump
 
     schema_out = _schema_out(ctx)
@@ -57,6 +58,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
 
     # Single object
     if isinstance(out_values, Mapping):
+        logger.debug("Dumping single-object payload")
         payload = _dump_one(out_values, aliases, omit_nulls)
         # Merge extras (single-object only)
         extras = temp.get("response_extras")
@@ -65,17 +67,20 @@ def run(obj: Optional[object], ctx: Any) -> None:
             for k, v in extras.items():
                 if (k in payload) and not allow_overwrite:
                     conflicts.append(k)
+                    logger.debug("Conflict on extra key %s", k)
                     continue
                 payload[k] = _dump_scalar(v)
             if conflicts:
                 temp["dump_conflicts"] = tuple(sorted(set(conflicts)))
         temp["response_payload"] = payload
+        logger.debug("Response payload built: %s", payload)
         return payload
 
     # List/tuple of objects (already expanded by executor)
     if isinstance(out_values, (list, tuple)) and all(
         isinstance(x, Mapping) for x in out_values
     ):
+        logger.debug("Dumping list payload with %d items", len(out_values))
         payload_list = [
             _dump_one(item, aliases, omit_nulls)
             for item in out_values  # type: ignore[arg-type]
@@ -85,6 +90,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
 
     # Unknown shape — stash as-is to avoid surprises (transport may serialize).
     temp["response_payload"] = out_values
+    logger.debug("Stored opaque response payload: %s", type(out_values).__name__)
     return out_values
 
 

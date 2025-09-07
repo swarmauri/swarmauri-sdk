@@ -47,11 +47,13 @@ def run(obj: Optional[object], ctx: Any) -> None:
     """
     # Non-persisting ops should have pruned this anchor; keep guard for safety.
     if getattr(ctx, "persist", True) is False:
+        logger.debug("Skipping resolve:paired_gen; ctx.persist is False")
         return
 
     logger.debug("Running resolve:paired_gen")
     specs: Mapping[str, Any] = getattr(ctx, "specs", {}) or {}
     if not specs:
+        logger.debug("No specs provided; nothing to generate")
         return
 
     temp = _ensure_temp(ctx)
@@ -66,10 +68,14 @@ def run(obj: Optional[object], ctx: Any) -> None:
         col = specs[field]
         # Skip non-paired columns quickly
         if not _is_paired(col):
+            logger.debug("Field %s is not paired; skipping", field)
             continue
 
         # If client already supplied a persisted value, don't generate.
         if field in assembled:
+            logger.debug(
+                "Field %s already has assembled value; skipping generation", field
+            )
             continue
 
         # Figure out alias name to look for in virtual input and to emit later.
@@ -79,14 +85,19 @@ def run(obj: Optional[object], ctx: Any) -> None:
         raw = None
         if alias and alias in virtual_in:
             raw = virtual_in.get(alias)
+            logger.debug(
+                "Using client-provided raw for field %s via alias %s", field, alias
+            )
 
         if raw is None:
+            logger.debug("Generating raw value for field %s", field)
             # Generator precedence: explicit generator on ColumnSpec/FieldSpec, else secure token
             gen = _get_generator(col)
             if callable(gen):
                 try:
                     raw = gen(_ctx_view(ctx))
                 except Exception:
+                    logger.debug("Generator failed for field %s", field)
                     # Fall back to secure token on generator failure
                     raw = None
             if raw is None:
@@ -94,11 +105,13 @@ def run(obj: Optional[object], ctx: Any) -> None:
 
         # If we still couldn't produce a raw (very unlikely), skip safely.
         if raw is None:
+            logger.debug("Failed to produce raw value for field %s", field)
             continue
 
         # Record paired raw (never touch assembled_values with raw).
         meta = _alias_meta(col)
         paired_values[field] = {"raw": raw, "alias": alias or field, "meta": meta}
+        logger.debug("Recorded paired raw for field %s", field)
 
         # Hint to storage step that persisted value must be derived from this raw.
         persist_from_paired[field] = {"source": ("paired_values", field, "raw")}
@@ -107,6 +120,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
 
     if generated:
         temp["generated_paired"] = tuple(generated)
+        logger.debug("Generated paired fields: %s", generated)
 
 
 # ──────────────────────────────────────────────────────────────────────────────

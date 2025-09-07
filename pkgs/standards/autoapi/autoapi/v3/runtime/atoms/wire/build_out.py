@@ -33,6 +33,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
     """
     schema_out = _schema_out(ctx)
     if not schema_out:
+        logger.debug("No schema_out available; skipping wire:build_out")
         return
 
     logger.debug("Running wire:build_out")
@@ -48,6 +49,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
     for field in expose:
         col = specs.get(field)
         if col is None:
+            logger.debug("No spec for field %s; skipping", field)
             continue
 
         is_virtual = getattr(col, "storage", None) is None
@@ -58,18 +60,22 @@ def run(obj: Optional[object], ctx: Any) -> None:
                 try:
                     out_values[field] = producer(obj, ctx)
                     produced_virtuals.append(field)
+                    logger.debug("Produced virtual field %s", field)
                 except Exception:
                     # Virtual read failed; leave missing for now
                     missing.append(field)
+                    logger.debug("Virtual producer failed for field %s", field)
             else:
                 # No producer configured; virtual field cannot be derived
                 missing.append(field)
+                logger.debug("No producer for virtual field %s", field)
             continue
 
         # persisted column: prefer attribute on the hydrated object
         value = _read_current_value(obj, ctx, field)
         if value is None:
             missing.append(field)
+            logger.debug("No value available for field %s", field)
         out_values[field] = value
 
     # Persist results + small diagnostics
@@ -78,6 +84,12 @@ def run(obj: Optional[object], ctx: Any) -> None:
         temp["out_virtual_produced"] = tuple(produced_virtuals)
     if missing:
         temp["out_missing"] = tuple(missing)
+    logger.debug(
+        "Built outbound values: %s (virtuals=%s, missing=%s)",
+        out_values,
+        produced_virtuals,
+        missing,
+    )
 
 
 # ──────────────────────────────────────────────────────────────────────────────
