@@ -105,6 +105,7 @@ def create_test_api():
     def _create_api(model_class):
         """Create AutoAPI instance with a single model for testing."""
         Base.metadata.clear()
+        v3_builder._SchemaCache.clear()
         api = AutoApp(engine=mem(async_=False))
         api.include_model(model_class)
         api.initialize()
@@ -119,6 +120,7 @@ async def create_test_api_async():
 
     def _create_api_async(model_class):
         Base.metadata.clear()
+        v3_builder._SchemaCache.clear()
         api = AutoApp(engine=mem())
         api.include_model(model_class)
         return api
