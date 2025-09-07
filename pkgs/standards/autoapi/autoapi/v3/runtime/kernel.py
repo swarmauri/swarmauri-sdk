@@ -297,20 +297,31 @@ class Kernel:
     def get_opview(self, app: Any, model: type, alias: str) -> OpView:
         """Return OpView for (model, alias); compile on-demand if missing."""
         self.ensure_primed(app)
-        ov_map = self._opviews.setdefault(app, {})
-        key = (model, alias)
-        if key not in ov_map:
-            from ..system.diagnostics.utils import opspecs as _opspecs
 
-            specs = self._specs_cache.get(model)
-            for sp in _opspecs(model):
-                ov_map[(model, sp.alias)] = self._compile_opview_from_specs(specs, sp)
-            # rebuild kernelz payload to include new model ops
-            self._kernelz_payload[app] = self._build_kernelz_payload_internal(app)
+        ov_map: Dict[Tuple[type, str], OpView] = self._opviews.setdefault(app, {})
+        ov = ov_map.get((model, alias))
+        if ov is not None:
+            return ov
 
         try:
-            return ov_map[key]
-        except KeyError:
+            specs = self._specs_cache.get(model)
+            from types import SimpleNamespace
+            from ..system.diagnostics.utils import opspecs as _opspecs
+
+            found = False
+            for sp in _opspecs(model):
+                ov_map.setdefault(
+                    (model, sp.alias), self._compile_opview_from_specs(specs, sp)
+                )
+                if sp.alias == alias:
+                    found = True
+
+            if not found:
+                temp_sp = SimpleNamespace(alias=alias)
+                ov_map[(model, alias)] = self._compile_opview_from_specs(specs, temp_sp)
+
+            return ov_map[(model, alias)]
+        except Exception:
             raise RuntimeError(
                 f"opview_missing: app={app!r} model={getattr(model, '__name__', model)!r} alias={alias!r}"
             )
