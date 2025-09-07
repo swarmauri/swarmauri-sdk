@@ -71,6 +71,7 @@ def _make_member_endpoint(
                 "db": db,
                 "payload": payload,
                 "path_params": path_params,
+                "model": model,
                 "env": SimpleNamespace(
                     method=alias, params=payload, target=target, model=model
                 ),
@@ -145,6 +146,7 @@ def _make_member_endpoint(
                 "db": db,
                 "payload": payload,
                 "path_params": path_params,
+                "model": model,
                 "env": SimpleNamespace(
                     method=alias, params=payload, target=target, model=model
                 ),
@@ -240,6 +242,7 @@ def _make_member_endpoint(
             "db": db,
             "payload": payload,
             "path_params": path_params,
+            "model": model,
             "env": SimpleNamespace(
                 method=alias, params=payload, target=target, model=model
             ),

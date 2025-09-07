@@ -65,6 +65,7 @@ class _ResourceProxy:
 
             base_ctx: Dict[str, Any] = dict(ctx or {})
             base_ctx.setdefault("payload", norm_payload)
+            base_ctx.setdefault("model", self._model)
             if request is not None:
                 logger.debug("Request provided for %s.%s", self._model.__name__, alias)
                 base_ctx.setdefault("request", request)

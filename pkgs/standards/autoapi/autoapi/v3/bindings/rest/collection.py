@@ -43,6 +43,7 @@ def _ctx(model, alias, target, request, db, payload, parent_kw):
         "db": db,
         "payload": payload,
         "path_params": parent_kw,
+        "model": model,
         "env": SimpleNamespace(
             method=alias, params=payload, target=target, model=model
         ),

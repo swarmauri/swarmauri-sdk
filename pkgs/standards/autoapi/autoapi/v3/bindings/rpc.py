@@ -274,6 +274,7 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
         base_ctx.setdefault("db", db)
         if request is not None:
             base_ctx.setdefault("request", request)
+        base_ctx.setdefault("model", model)
         # helpful env metadata
         base_ctx.setdefault(
             "env",
