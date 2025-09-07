@@ -11,7 +11,7 @@ from autoapi.v3.orm.mixins import (
     ValidityWindow,
 )
 from autoapi.v3.orm.tables._base import Base
-from autoapi.v3.specs import F, S, acol
+from autoapi.v3.specs import F, IO, S, acol
 
 
 class ConcreteApiKey(Base, GUIDPk, Created, LastUsed, ValidityWindow, KeyDigest):
@@ -23,7 +23,8 @@ class ConcreteApiKey(Base, GUIDPk, Created, LastUsed, ValidityWindow, KeyDigest)
 
     label: Mapped[str] = acol(
         storage=S(String, nullable=False),
-        field=F(constraints={"max_length": 120}),
+        field=F(required_in=("create",), constraints={"max_length": 120}),
+        io=IO(in_verbs=("create",)),
     )
 
 
