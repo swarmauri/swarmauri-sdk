@@ -56,10 +56,12 @@ def run(obj: Optional[object], ctx: Any) -> None:
     logger.debug("Running schema:collect_out")
     specs: Mapping[str, Any] = getattr(ctx, "specs", {}) or {}
     if not specs:
+        logger.debug("No specs provided; skipping schema collection")
         return
 
     temp = _ensure_temp(ctx)
     if "schema_out" in temp:
+        logger.debug("schema_out already populated; skipping")
         return
 
     fields_sorted = sorted(specs.keys())
@@ -76,6 +78,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
 
         out_enabled = _bool_attr(io, "out", "allow_out", "expose_out", default=True)
         if not out_enabled:
+            logger.debug("Field %s excluded from outbound schema", field)
             # Not exposed on output — skip entirely for outbound schema
             continue
 
@@ -86,6 +89,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
         alias_out = _infer_out_alias(field, col)
         if alias_out:
             aliases[field] = alias_out
+            logger.debug("Field %s has alias_out %s", field, alias_out)
 
         sensitive, redact_last = _sensitivity(col)
         max_len = _max_len(col)
@@ -105,6 +109,12 @@ def run(obj: Optional[object], ctx: Any) -> None:
         entries.append(entry)
         by_field[field] = entry
         expose.append(field)
+        logger.debug(
+            "Collected outbound field %s (virtual=%s, sensitive=%s)",
+            field,
+            is_virtual,
+            sensitive,
+        )
 
     schema_out = {
         "fields": entries,
@@ -114,6 +124,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
         "order": tuple(e["name"] for e in entries),
     }
     temp["schema_out"] = schema_out
+    logger.debug("schema_out populated with %d fields", len(entries))
 
 
 # ──────────────────────────────────────────────────────────────────────────────

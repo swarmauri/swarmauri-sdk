@@ -55,10 +55,12 @@ def run(obj: Optional[object], ctx: Any) -> None:
     logger.debug("Running schema:collect_in")
     specs: Mapping[str, Any] = getattr(ctx, "specs", {}) or {}
     if not specs:
+        logger.debug("No specs provided; skipping schema collection")
         return
 
     temp = _ensure_temp(ctx)
     if "schema_in" in temp:
+        logger.debug("schema_in already populated; skipping")
         return
     op = (getattr(ctx, "op", None) or "").lower() or None
 
@@ -83,6 +85,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
             if not getattr(io, "in_verbs", ()):  # implicit: no inbound verbs specified
                 in_enabled = False
         if not in_enabled:
+            logger.debug("Field %s excluded from inbound schema", field)
             # Not accepted on input — skip entirely for inbound schema
             continue
 
@@ -117,6 +120,13 @@ def run(obj: Optional[object], ctx: Any) -> None:
         entries.append(entry)
         by_field[field] = entry
         (req if entry["required"] else opt).append(field)
+        logger.debug(
+            "Collected field %s (required=%s, virtual=%s, alias=%s)",
+            field,
+            entry["required"],
+            entry["virtual"],
+            alias_in,
+        )
 
     schema_in = {
         "fields": entries,
@@ -126,6 +136,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
         "order": tuple(e["name"] for e in entries),
     }
     temp["schema_in"] = schema_in
+    logger.debug("schema_in populated with %d fields", len(entries))
 
 
 # ──────────────────────────────────────────────────────────────────────────────

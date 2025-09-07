@@ -41,11 +41,13 @@ def run(obj: Optional[object], ctx: Any) -> None:
     logger.debug("Running out:masking")
     specs: Mapping[str, Any] = getattr(ctx, "specs", {}) or {}
     if not specs:
+        logger.debug("No specs provided; skipping masking")
         return
 
     temp = _ensure_temp(ctx)
     payload = temp.get("response_payload")
     if payload is None:
+        logger.debug("No response payload present; skipping masking")
         # If wire:dump hasn't produced a payload, do nothing.
         return
 
@@ -54,11 +56,19 @@ def run(obj: Optional[object], ctx: Any) -> None:
     skip_aliases = _collect_emitted_aliases(emit_buf)
 
     if isinstance(payload, dict):
+        logger.debug("Masking single-object payload")
         _mask_one(payload, specs, skip_aliases)
     elif isinstance(payload, (list, tuple)):
+        logger.debug("Masking list payload with %d items", len(payload))
         for item in payload:
             if isinstance(item, dict):
                 _mask_one(item, specs, skip_aliases)
+            else:
+                logger.debug("Skipping non-dict item in payload: %s", item)
+    else:
+        logger.debug(
+            "Unsupported payload type %s; leaving as-is", type(payload).__name__
+        )
     # else: unsupported shape; treat as opaque
 
 
