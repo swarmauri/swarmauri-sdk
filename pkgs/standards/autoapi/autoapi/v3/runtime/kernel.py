@@ -295,10 +295,32 @@ class Kernel:
             self._primed[app] = True
 
     def get_opview(self, app: Any, model: type, alias: str) -> OpView:
-        """Return OpView for (model, alias); eject with RuntimeError if missing."""
+        """Return OpView for (model, alias); compile on-demand if missing."""
         self.ensure_primed(app)
+
+        ov_map: Dict[Tuple[type, str], OpView] = self._opviews.setdefault(app, {})
+        ov = ov_map.get((model, alias))
+        if ov is not None:
+            return ov
+
         try:
-            return self._opviews[app][(model, alias)]
+            specs = self._specs_cache.get(model)
+            from types import SimpleNamespace
+            from ..system.diagnostics.utils import opspecs as _opspecs
+
+            found = False
+            for sp in _opspecs(model):
+                ov_map.setdefault(
+                    (model, sp.alias), self._compile_opview_from_specs(specs, sp)
+                )
+                if sp.alias == alias:
+                    found = True
+
+            if not found:
+                temp_sp = SimpleNamespace(alias=alias)
+                ov_map[(model, alias)] = self._compile_opview_from_specs(specs, temp_sp)
+
+            return ov_map[(model, alias)]
         except Exception:
             raise RuntimeError(
                 f"opview_missing: app={app!r} model={getattr(model, '__name__', model)!r} alias={alias!r}"
