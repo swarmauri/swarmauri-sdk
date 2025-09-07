@@ -211,15 +211,18 @@ def include_model(
 
     # Optionally mount onto a host app
     target_app = app or getattr(api, "app", None)
-    if mount_router and router is not None:
+    if target_app is root_router:
+        target_app = None
+    if mount_router and router is not None and target_app is not None:
         logger.debug("Mounting router for %s on host app", model.__name__)
         _mount_router(target_app, router, prefix=prefix)
     else:
         logger.debug(
-            "Skipping host app mount for %s (mount_router=%s, router=%s)",
+            "Skipping host app mount for %s (mount_router=%s, router=%s, target_app=%s)",
             model.__name__,
             mount_router,
             router is not None,
+            target_app is not None,
         )
 
     # 4) Attach all namespaces onto api
