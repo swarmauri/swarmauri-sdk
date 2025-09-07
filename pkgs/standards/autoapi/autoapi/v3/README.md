@@ -63,3 +63,30 @@ Virtual columns like `checksum` use a `read_producer` (or `producer`)
 function to compute values on the fly.  Leveraging these specs keeps
 column behavior declarative and consistent across the ORM, schema
 generation, and runtime I/O.
+
+## 🧩 First-Class Object Pattern
+
+AutoAPI v3 organizes its core building blocks with a common structure:
+
+- 📄 **Spec** – declarative metadata describing behavior.
+- 🏛️ **Class** – runtime implementation of the object.
+- 🎀 **Decorators** – syntactic sugar for declaring features.
+- ⚡️ **Shortcuts** – handy constructors for common setups.
+
+Some objects also expose optional helpers:
+
+- 🫺 **Collect** – gathers declarations from a class hierarchy.
+- 🧩 **Resolver** – finalizes configuration from specs.
+- 🎧 **Builder** – assembles complex runtime resources.
+
+| Object | 📄 Spec | 🏛️ Class | 🎀 Decorators | ⚡️ Shortcuts | 🫺 Collect | 🧩 Resolver | 🎧 Builder |
+|--------|----------|-----------|----------------|----------------|----------------|----------------|----------------|
+| Column | `column_spec.py` | `_column.py` | — | `shortcuts.py` | `collect.py` | — | — |
+| Engine | `engine_spec.py` | `_engine.py` | `decorators.py` | `shortcuts.py` | `collect.py` | `resolver.py` | `builders.py` |
+| Op | `types.py` | `_op.py` | `decorators.py` | — | `collect.py` | — | — |
+| API | `api_spec.py` | `_api.py` | — | `shortcuts.py` | — | — | — |
+| App | `app_spec.py` | `_app.py` | — | `shortcuts.py` | — | — | — |
+| Table | `table_spec.py` | `_table.py` | — | `shortcuts.py` | — | — | — |
+
+This pattern keeps the system modular and predictable, making it easy to
+discover related modules for any given concept.
