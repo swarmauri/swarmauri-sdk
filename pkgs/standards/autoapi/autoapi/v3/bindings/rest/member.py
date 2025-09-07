@@ -46,6 +46,7 @@ def _make_member_endpoint(
     db_dep: Callable[..., Any],
     pk_param: str = "item_id",
     nested_vars: Sequence[str] | None = None,
+    api: Any | None = None,
 ) -> Callable[..., Awaitable[Any]]:
     alias = sp.alias
     target = sp.target
@@ -74,6 +75,9 @@ def _make_member_endpoint(
                 "env": SimpleNamespace(
                     method=alias, params=payload, target=target, model=model
                 ),
+                "api": api,
+                "model": model,
+                "op": alias,
             }
             ac = getattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, None)
             if ac is not None:
@@ -148,6 +152,9 @@ def _make_member_endpoint(
                 "env": SimpleNamespace(
                     method=alias, params=payload, target=target, model=model
                 ),
+                "api": api,
+                "model": model,
+                "op": alias,
             }
             ac = getattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, None)
             if ac is not None:

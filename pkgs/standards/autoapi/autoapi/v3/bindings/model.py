@@ -28,7 +28,7 @@ from . import (
 )  # register_and_attach(model, specs, only_keys=None) -> None
 from . import (
     rest as _rest_binding,
-)  # build_router_and_attach(model, specs, only_keys=None) -> None
+)  # build_router_and_attach(model, specs, api=None, only_keys=None) -> None
 from . import columns as _columns_binding
 from .model_helpers import (
     _Key,
@@ -54,7 +54,9 @@ def _dedupe_by_name(funcs: Iterable[Callable[..., Any]]) -> List[Callable[..., A
 # ───────────────────────────────────────────────────────────────────────────────
 
 
-def bind(model: type, *, only_keys: Optional[Set[_Key]] = None) -> Tuple[OpSpec, ...]:
+def bind(
+    model: type, *, api: Any | None = None, only_keys: Optional[Set[_Key]] = None
+) -> Tuple[OpSpec, ...]:
     """
     Build (or refresh) all AutoAPI namespaces on the model class.
 
@@ -147,7 +149,7 @@ def bind(model: type, *, only_keys: Optional[Set[_Key]] = None) -> Tuple[OpSpec,
     _hooks_binding.normalize_and_attach(model, specs, only_keys=only_keys)
     _handlers_binding.build_and_attach(model, specs, only_keys=only_keys)
     _rpc_binding.register_and_attach(model, specs, only_keys=only_keys)
-    _rest_binding.build_router_and_attach(model, specs, only_keys=only_keys)
+    _rest_binding.build_router_and_attach(model, specs, api=api, only_keys=only_keys)
 
     # 6) Index on the model (always overwrite with fresh views)
     all_specs, by_key, by_alias = _index_specs(all_merged_specs)
@@ -176,13 +178,16 @@ def bind(model: type, *, only_keys: Optional[Set[_Key]] = None) -> Tuple[OpSpec,
 
 
 def rebind(
-    model: type, *, changed_keys: Optional[Set[_Key]] = None
+    model: type,
+    *,
+    api: Any | None = None,
+    changed_keys: Optional[Set[_Key]] = None,
 ) -> Tuple[OpSpec, ...]:
     """
     Public helper to trigger a rebind for the model. If `changed_keys` is provided,
     we attempt a targeted refresh; otherwise we rebuild everything.
     """
-    return bind(model, only_keys=changed_keys)
+    return bind(model, api=api, only_keys=changed_keys)
 
 
 __all__ = ["bind", "rebind"]

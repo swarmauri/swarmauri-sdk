@@ -177,7 +177,7 @@ def include_model(
     _seed_security_and_deps(api, model)
 
     # 1) Build/bind model namespaces (idempotent)
-    _binder.bind(model)
+    _binder.bind(model, api=api)
 
     # 2) Pick a router & mount prefix
     router = getattr(getattr(model, "rest", SimpleNamespace()), "router", None)

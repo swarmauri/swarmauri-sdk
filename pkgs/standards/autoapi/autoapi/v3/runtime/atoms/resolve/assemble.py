@@ -46,13 +46,19 @@ def run(obj: Optional[object], ctx: Any) -> None:
         return
 
     logger.debug("Running resolve:assemble")
-    app = getattr(ctx, "app", None) or getattr(ctx, "api", None)
+    app = getattr(ctx, "app", None)
     model = getattr(ctx, "model", None) or type(getattr(ctx, "obj", None))
     alias = getattr(ctx, "op", None) or getattr(ctx, "method", None)
-    if not (app and model and alias):
-        raise RuntimeError("ctx_missing_app_model_or_op")
-
-    ov = K.get_opview(app, model, alias)
+    if app and model and alias:
+        ov = K.get_opview(app, model, alias)
+    else:
+        if not (model and alias):
+            logger.debug(
+                "resolve:assemble: missing ctx.app/model/op and no specs; skipping"
+            )
+            return
+        specs = getattr(ctx, "specs", None) or K.get_specs(model)
+        ov = K._compile_opview_from_specs(specs, None)
 
     inbound = _coerce_inbound(getattr(ctx, "temp", {}).get("in_values", None), ctx)
 
