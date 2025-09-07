@@ -387,7 +387,17 @@ class Kernel:
             expose=tuple(sorted(out_fields)),
         )
         paired_index: Dict[str, Dict[str, object]] = {}
+        to_stored_transforms: Dict[str, Callable[[object, dict], object]] = {}
+        refresh_hints: list[str] = []
         for field, col in specs.items():
+            storage = getattr(col, "storage", None)
+            if storage is not None:
+                transform = getattr(storage, "transform", None)
+                if transform and callable(getattr(transform, "to_stored", None)):
+                    to_stored_transforms[field] = transform.to_stored  # type: ignore[assignment]
+                if getattr(storage, "refresh_on_return", False):
+                    refresh_hints.append(field)
+
             io = getattr(col, "io", None)
             cfg = getattr(io, "_paired", None)
             if cfg and sp.alias in getattr(cfg, "verbs", ()):  # type: ignore[attr-defined]
@@ -412,8 +422,8 @@ class Kernel:
             schema_out=schema_out,
             paired_index=paired_index,
             virtual_producers={},
-            to_stored_transforms={},
-            refresh_hints=(),
+            to_stored_transforms=to_stored_transforms,
+            refresh_hints=tuple(sorted(refresh_hints)),
         )
 
     # ——— internal: endpoint-ready payload (once per App) ———

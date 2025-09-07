@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 
 from autoapi.v3.runtime.atoms.storage import to_stored
-from autoapi.v3.specs import S, acol
+from autoapi.v3.specs import S, IO, acol
 from autoapi.v3.column.storage_spec import ForeignKeySpec, StorageTransform
 from autoapi.v3.orm.tables import Base
 from sqlalchemy import Integer, String, text
@@ -166,11 +166,16 @@ def test_transform_applied_during_persist():
         __allow_unmapped__ = True
 
         id: Mapped[int] = acol(storage=S(type_=Integer, primary_key=True))
-        name: Mapped[str] = acol(storage=S(type_=String, transform=transform))
+        name: Mapped[str] = acol(
+            io=IO(in_verbs=("create",)),
+            storage=S(type_=String, transform=transform),
+        )
 
-    specs = Thing.__autoapi_cols__
     ctx = SimpleNamespace(
-        persist=True, specs=specs, temp={"assembled_values": {"name": "abc"}}
+        persist=True,
+        model=Thing,
+        op="create",
+        temp={"assembled_values": {"name": "abc"}},
     )
     to_stored.run(None, ctx)
     assert ctx.temp["assembled_values"]["name"] == "ABC"
