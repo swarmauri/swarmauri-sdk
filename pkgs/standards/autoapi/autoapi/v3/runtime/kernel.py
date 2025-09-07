@@ -440,8 +440,6 @@ class Kernel:
                 py_t = getattr(getattr(fs, "py_type", None), "__name__", None)
                 if py_t:
                     meta_out["py_type"] = py_t
-                if getattr(io, "sensitive", False):
-                    meta_out["sensitive"] = True
                 by_field_out[name] = meta_out
 
         schema_in = SchemaIn(
