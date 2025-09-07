@@ -402,15 +402,27 @@ class Kernel:
         out_fields: list[str] = []
         by_field_in: Dict[str, Dict[str, object]] = {}
         by_field_out: Dict[str, Dict[str, object]] = {}
+        to_stored_transforms: Dict[str, Callable[[object, dict], object]] = {}
 
         for name, spec in specs.items():
             io = getattr(spec, "io", None)
             fs = getattr(spec, "field", None)
             storage = getattr(spec, "storage", None)
-            in_verbs = set(getattr(io, "in_verbs", ()) or ())
-            out_verbs = set(getattr(io, "out_verbs", ()) or ())
+            in_verbs = set(
+                getattr(io, "in_verbs", None) or ("create", "update", "replace")
+            )
+            out_verbs = set(getattr(io, "out_verbs", None) or ("read", "list"))
 
-            if alias in in_verbs:
+            allow_in_fn = getattr(io, "allow_in", None)
+            if allow_in_fn is None:
+                allow_in = True
+            else:
+                allow_in = (
+                    allow_in_fn(name, {})
+                    if callable(allow_in_fn)
+                    else bool(allow_in_fn)
+                )
+            if allow_in and alias in in_verbs:
                 in_fields.append(name)
                 meta: Dict[str, object] = {"in_enabled": True}
                 if storage is None:
@@ -428,8 +440,21 @@ class Kernel:
                 )
                 meta["nullable"] = base_nullable
                 by_field_in[name] = meta
+                transform = getattr(storage, "transform", None)
+                to_store = getattr(transform, "to_stored", None) if transform else None
+                if callable(to_store):
+                    to_stored_transforms[name] = to_store
 
-            if alias in out_verbs:
+            allow_out_fn = getattr(io, "allow_out", None)
+            if allow_out_fn is None:
+                allow_out = True
+            else:
+                allow_out = (
+                    allow_out_fn(name, {})
+                    if callable(allow_out_fn)
+                    else bool(allow_out_fn)
+                )
+            if allow_out and alias in out_verbs:
                 out_fields.append(name)
                 meta_out: Dict[str, object] = {}
                 alias_out = getattr(io, "alias_out", None)
@@ -479,7 +504,7 @@ class Kernel:
             schema_out=schema_out,
             paired_index=paired_index,
             virtual_producers={},
-            to_stored_transforms={},
+            to_stored_transforms=to_stored_transforms,
             refresh_hints=(),
         )
 

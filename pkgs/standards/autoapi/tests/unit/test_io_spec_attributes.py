@@ -66,7 +66,9 @@ def test_alias_in_reflected_in_schema():
     spec = ColumnSpec(
         storage=S(type_=Integer), field=F(py_type=int), io=IO(alias_in="nickname")
     )
-    ctx = SimpleNamespace(specs={"name": spec}, op="create", temp={})
+    specs = {"name": spec}
+    ov = K._compile_opview_from_specs(specs, SimpleNamespace(alias="create"))
+    ctx = SimpleNamespace(opview=ov, temp={})
     collect_in.run(None, ctx)
     alias = ctx.temp["schema_in"]["by_field"]["name"]["alias_in"]
     assert alias == "nickname"
@@ -76,30 +78,32 @@ def test_alias_out_reflected_in_schema():
     spec = ColumnSpec(
         storage=S(type_=Integer), field=F(py_type=int), io=IO(alias_out="nickname")
     )
-    ctx = SimpleNamespace(specs={"name": spec}, op="read", temp={})
+    specs = {"name": spec}
+    ov = K._compile_opview_from_specs(specs, SimpleNamespace(alias="read"))
+    ctx = SimpleNamespace(opview=ov, temp={})
     collect_out.run(None, ctx)
     alias = ctx.temp["schema_out"]["by_field"]["name"]["alias_out"]
     assert alias == "nickname"
 
 
-def test_sensitive_flag_has_no_masking_effect():
+def test_sensitive_flag_triggers_masking():
     spec = ColumnSpec(
         storage=S(type_=Integer), field=F(py_type=int), io=IO(sensitive=True)
     )
-    ctx = SimpleNamespace(
-        specs={"secret": spec}, temp={"response_payload": {"secret": "topsecret"}}
-    )
+    specs = {"secret": spec}
+    ov = K._compile_opview_from_specs(specs, SimpleNamespace(alias="read"))
+    ctx = SimpleNamespace(opview=ov, temp={"response_payload": {"secret": "topsecret"}})
     masking.run(None, ctx)
-    assert ctx.temp["response_payload"]["secret"] == "topsecret"
+    assert ctx.temp["response_payload"]["secret"] == "•••••cret"
 
 
 def test_redact_last_flag_has_no_masking_effect():
     spec = ColumnSpec(
         storage=S(type_=Integer), field=F(py_type=int), io=IO(redact_last=2)
     )
-    ctx = SimpleNamespace(
-        specs={"secret": spec}, temp={"response_payload": {"secret": "abcdef"}}
-    )
+    specs = {"secret": spec}
+    ov = K._compile_opview_from_specs(specs, SimpleNamespace(alias="read"))
+    ctx = SimpleNamespace(opview=ov, temp={"response_payload": {"secret": "abcdef"}})
     masking.run(None, ctx)
     assert ctx.temp["response_payload"]["secret"] == "abcdef"
 
