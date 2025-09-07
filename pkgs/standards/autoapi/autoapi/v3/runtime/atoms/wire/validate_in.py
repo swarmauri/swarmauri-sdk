@@ -5,11 +5,12 @@ import datetime as _dt
 import decimal as _dc
 import uuid as _uuid
 import logging
-from typing import Any, Callable, Dict, Mapping, MutableMapping, Optional, Tuple
+from typing import Any, Dict, Mapping, Optional, Tuple
 
 from fastapi import HTTPException, status as _status
 
 from ... import events as _ev
+from ...opview import opview_from_ctx, ensure_schema_in, _ensure_temp
 
 # PRE_HANDLER, runs after wire:build_in
 ANCHOR = _ev.IN_VALIDATE  # "in:validate"
@@ -43,16 +44,10 @@ def run(obj: Optional[object], ctx: Any) -> None:
     """
     logger.debug("Running wire:validate_in")
     temp = _ensure_temp(ctx)
-    schema_in = _schema_in(ctx)
-    specs: Mapping[str, Any] = getattr(ctx, "specs", {}) or {}
+    ov = opview_from_ctx(ctx)
+    schema_in = ensure_schema_in(ctx, ov)
 
     in_values: Dict[str, Any] = dict(temp.get("in_values") or {})
-    if not schema_in:
-        logger.debug("No schema_in available; skipping validation")
-        # No schema collected; nothing to validate (router/adapters may bypass)
-        temp["in_values"] = in_values
-        return
-
     by_field: Mapping[str, Mapping[str, Any]] = schema_in.get("by_field", {})  # type: ignore[assignment]
     required: Tuple[str, ...] = tuple(schema_in.get("required", ()))  # type: ignore[assignment]
 
@@ -70,7 +65,6 @@ def run(obj: Optional[object], ctx: Any) -> None:
     # 2) Per-field validation
     for name, value in list(in_values.items()):
         entry = by_field.get(name) or {}
-        col = specs.get(name)
 
         # Nullability
         nullable = entry.get("nullable", None)
@@ -82,11 +76,9 @@ def run(obj: Optional[object], ctx: Any) -> None:
             continue  # skip further checks for this field
 
         # Type (optionally coerce)
-        target_type = _target_type(col)
-        if value is not None and target_type is not None:
-            allow_coerce = _bool_attr(
-                _get_io(col), "coerce", "coerce_in", "autocoerce", default=True
-            )
+        target_type = entry.get("py_type")
+        if value is not None and isinstance(target_type, type):
+            allow_coerce = bool(entry.get("coerce", True))
             ok, new_val, msg = _coerce_if_needed(value, target_type, allow=allow_coerce)
             if not ok:
                 logger.debug("Type mismatch for field %s", name)
@@ -117,7 +109,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
                 continue
 
         # Author-supplied validator(s)
-        vfn = _get_validator(col)
+        vfn = entry.get("validator")
         if callable(vfn) and in_values.get(name) is not None:
             try:
                 out = vfn(in_values[name], ctx)
@@ -157,61 +149,6 @@ def run(obj: Optional[object], ctx: Any) -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 # Internals
 # ──────────────────────────────────────────────────────────────────────────────
-
-
-def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
-    tmp = getattr(ctx, "temp", None)
-    if not isinstance(tmp, dict):
-        tmp = {}
-        setattr(ctx, "temp", tmp)
-    return tmp
-
-
-def _schema_in(ctx: Any) -> Mapping[str, Any]:
-    tmp = getattr(ctx, "temp", {})
-    sch = getattr(tmp, "get", lambda *_a, **_k: None)("schema_in")  # type: ignore
-    return sch if isinstance(sch, Mapping) else {}
-
-
-def _get_io(colspec: Any) -> Any:
-    return getattr(colspec, "io", None)
-
-
-def _target_type(colspec: Any) -> Optional[type]:
-    """
-    Try to obtain a Python type to validate/coerce against from FieldSpec.
-    """
-    field = getattr(colspec, "field", None)
-    if field is None:
-        return None
-    for name in ("py_type", "python_type"):
-        t = getattr(field, name, None)
-        if isinstance(t, type):
-            return t
-    return None
-
-
-def _get_validator(colspec: Any) -> Optional[Callable[[Any, Any], Any]]:
-    """
-    Return the first available author-supplied inbound validator callable.
-    """
-    for obj in (colspec, getattr(colspec, "field", None), getattr(colspec, "io", None)):
-        if obj is None:
-            continue
-        for name in ("validate_in", "in_validator", "validator_in", "check_in"):
-            fn = getattr(obj, name, None)
-            if callable(fn):
-                return fn
-    return None
-
-
-def _bool_attr(obj: Any, *names: str, default: bool) -> bool:
-    for n in names:
-        if hasattr(obj, n):
-            v = getattr(obj, n)
-            if isinstance(v, bool):
-                return v
-    return default
 
 
 def _reject_unknown(ctx: Any) -> bool:
