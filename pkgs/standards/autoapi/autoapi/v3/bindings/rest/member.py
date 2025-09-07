@@ -71,6 +71,13 @@ def _make_member_endpoint(
                 "db": db,
                 "payload": payload,
                 "path_params": path_params,
+                # expose contextual metadata for downstream atoms
+                "app": getattr(request, "app", None),
+                "api": getattr(request, "app", None),
+                "model": model,
+                "op": alias,
+                "method": alias,
+                "target": target,
                 "env": SimpleNamespace(
                     method=alias, params=payload, target=target, model=model
                 ),
@@ -145,6 +152,13 @@ def _make_member_endpoint(
                 "db": db,
                 "payload": payload,
                 "path_params": path_params,
+                # expose contextual metadata for downstream atoms
+                "app": getattr(request, "app", None),
+                "api": getattr(request, "app", None),
+                "model": model,
+                "op": alias,
+                "method": alias,
+                "target": target,
                 "env": SimpleNamespace(
                     method=alias, params=payload, target=target, model=model
                 ),
@@ -240,6 +254,13 @@ def _make_member_endpoint(
             "db": db,
             "payload": payload,
             "path_params": path_params,
+            # expose contextual metadata for downstream atoms
+            "app": getattr(request, "app", None),
+            "api": getattr(request, "app", None),
+            "model": model,
+            "op": alias,
+            "method": alias,
+            "target": target,
             "env": SimpleNamespace(
                 method=alias, params=payload, target=target, model=model
             ),
