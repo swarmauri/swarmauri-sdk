@@ -39,7 +39,7 @@ async def running_app(sync_db_session):
     app = App()
     api = AutoApp(get_db=get_sync_db)
     api.include_models([ApiKey])
-    api.initialize()
+    await api.initialize()
     app.include_router(api.router)
 
     cfg = uvicorn.Config(app, host="127.0.0.1", port=8000, log_level="warning")
