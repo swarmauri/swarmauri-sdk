@@ -5,6 +5,7 @@ from typing import Any, Iterable, Mapping, MutableMapping, Optional, Tuple
 import logging
 
 from ... import events as _ev
+from ...kernel import get_cached_specs
 
 # After the handler flushes changes; decide whether to hydrate DB-generated values.
 ANCHOR = _ev.POST_FLUSH  # "post:flush"
@@ -44,7 +45,14 @@ def run(obj: Optional[object], ctx: Any) -> None:
         return
 
     temp = _ensure_temp(ctx)
-    specs: Mapping[str, Any] = getattr(ctx, "specs", {}) or {}
+    model = (
+        getattr(ctx, "model", None)
+        or getattr(ctx, "Model", None)
+        or type(getattr(ctx, "obj", None))
+    )
+    specs: Mapping[str, Any] = getattr(ctx, "specs", None) or (
+        get_cached_specs(model) if model else {}
+    )
 
     # If RETURNING already produced hydrated values, skip unless policy forces refresh.
     returning_satisfied = bool(temp.get("used_returning")) or bool(

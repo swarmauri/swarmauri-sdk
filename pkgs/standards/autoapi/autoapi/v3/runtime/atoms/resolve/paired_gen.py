@@ -6,6 +6,7 @@ import logging
 from typing import Any, Dict, Mapping, MutableMapping, Optional
 
 from ... import events as _ev
+from ...kernel import get_cached_specs
 
 # Runs in HANDLER phase, before pre:flush (and before storage transforms).
 ANCHOR = _ev.RESOLVE_VALUES  # "resolve:values"
@@ -51,7 +52,14 @@ def run(obj: Optional[object], ctx: Any) -> None:
         return
 
     logger.debug("Running resolve:paired_gen")
-    specs: Mapping[str, Any] = getattr(ctx, "specs", {}) or {}
+    model = (
+        getattr(ctx, "model", None)
+        or getattr(ctx, "Model", None)
+        or type(getattr(ctx, "obj", None))
+    )
+    specs: Mapping[str, Any] = getattr(ctx, "specs", None) or (
+        get_cached_specs(model) if model else {}
+    )
     if not specs:
         logger.debug("No specs provided; nothing to generate")
         return
