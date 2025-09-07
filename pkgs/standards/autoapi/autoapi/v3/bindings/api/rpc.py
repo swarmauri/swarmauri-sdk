@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import logging
 from types import SimpleNamespace
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Mapping, Optional, Union
 
 from .common import ApiLike, _ensure_api_ns
 from ...engine import resolver as _resolver
+from ...core.crud.helpers.model import _single_pk_name
 
 logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
@@ -70,9 +71,30 @@ async def rpc_call(
             method,
         )
 
+    # Ensure execution context contains basic runtime metadata.  In tests or
+    # other direct calls there may be no `request` object to supply an app
+    # reference, which the runtime requires to resolve the opview.  Default the
+    # ``app`` and ``api`` keys so downstream atoms receive the expected
+    # context.
+    ctx_dict: Dict[str, Any] = dict(ctx or {})
+    ctx_dict.setdefault("app", api)
+    ctx_dict.setdefault("api", api)
+    # Opportunistically derive path params from the payload when the caller
+    # supplies the primary key in the body. Many RPC handlers expect the
+    # identifier via ``ctx['path_params']`` (mirroring REST semantics), but
+    # test code invokes ``rpc_call`` directly with the id embedded in the
+    # payload.  Normalizing here preserves backwards compatibility and keeps
+    # default CRUD handlers happy.
+    if isinstance(payload, Mapping):
+        pk_name = _single_pk_name(mdl)
+        if pk_name in payload:
+            pp = dict(ctx_dict.get("path_params", {}))
+            pp.setdefault(pk_name, payload[pk_name])
+            ctx_dict["path_params"] = pp
+
     try:
         logger.debug("Executing rpc_call %s.%s", getattr(mdl, "__name__", mdl), method)
-        return await fn(payload, db=db, request=request, ctx=ctx)
+        return await fn(payload, db=db, request=request, ctx=ctx_dict)
     finally:
         if _release_db is not None:
             try:
