@@ -80,6 +80,9 @@ def _generate_canonical(table: type) -> List[OpSpec]:
         ("create", "create"),
         ("read", "read"),
         ("update", "update"),
+        # Include canonical "replace" so RPC callers get full CRUD semantics
+        # without opting into the Replaceable mixin.
+        ("replace", "replace"),
         ("delete", "delete"),
         ("list", "list"),
         ("clear", "clear"),
