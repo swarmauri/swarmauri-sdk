@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict, Iterable, List, Mapping, Union
 
 import builtins as _builtins
+import logging
 
 from .helpers import (
     AsyncSession,
@@ -20,6 +21,9 @@ from .helpers import (
 )
 from .ops import merge, read
 
+logging.getLogger("uvicorn").setLevel(logging.DEBUG)
+logger = logging.getLogger("uvicorn")
+
 
 async def bulk_create(
     model: type, rows: Iterable[Mapping[str, Any]], db: Union[Session, AsyncSession]
@@ -28,11 +32,13 @@ async def bulk_create(
     Insert many rows. Returns the list of persisted instances.
     Flush-only.
     """
+    logger.debug("bulk_create called with model=%s rows=%s", model, rows)
     items_data = [dict(r) for r in (rows or ())]
     for r in items_data:
         _validate_enum_values(model, r)
     items = [model(**r) for r in items_data]
     if not items:
+        logger.debug("bulk_create no items to create")
         return []
     if hasattr(db, "add_all"):
         db.add_all(items)  # type: ignore[attr-defined]
@@ -40,6 +46,7 @@ async def bulk_create(
         for it in items:
             db.add(it)  # type: ignore[attr-defined]
     await _maybe_flush(db)
+    logger.debug("bulk_create persisted %d items", len(items))
     return items
 
 
@@ -50,6 +57,7 @@ async def bulk_update(
     Update many rows by PK. Each row must include the PK field.
     Returns the list of updated instances. Flush-only.
     """
+    logger.debug("bulk_update called with model=%s rows=%s", model, rows)
     pk = _single_pk_name(model)
     skip = _immutable_columns(model, "update")
     updated: List[Any] = []
@@ -60,12 +68,12 @@ async def bulk_update(
         if ident is None:
             raise ValueError(f"bulk_update requires '{pk}' in each row")
         obj = await read(model, ident, db)
-        # remove pk to avoid accidental overwrite
         data = {k: v for k, v in r.items() if k != pk}
         _set_attrs(obj, data, allow_missing=True, skip=skip)
         updated.append(obj)
     if updated:
         await _maybe_flush(db)
+    logger.debug("bulk_update updated %d items", len(updated))
     return updated
 
 
@@ -76,6 +84,7 @@ async def bulk_replace(
     Replace many rows by PK. Each row must include the PK field.
     Missing attributes are nulled (except PK). Flush-only.
     """
+    logger.debug("bulk_replace called with model=%s rows=%s", model, rows)
     pk = _single_pk_name(model)
     skip = _immutable_columns(model, "replace")
     replaced: List[Any] = []
@@ -91,6 +100,7 @@ async def bulk_replace(
         replaced.append(obj)
     if replaced:
         await _maybe_flush(db)
+    logger.debug("bulk_replace replaced %d items", len(replaced))
     return replaced
 
 
@@ -98,6 +108,7 @@ async def bulk_merge(
     model: type, rows: Iterable[Mapping[str, Any]], db: Union[Session, AsyncSession]
 ) -> List[Any]:
     """Merge many rows by primary key with upsert semantics."""
+    logger.debug("bulk_merge called with model=%s rows=%s", model, rows)
     pk = _single_pk_name(model)
     results: List[Any] = []
     to_create: List[Mapping[str, Any]] = []
@@ -116,6 +127,11 @@ async def bulk_merge(
     if to_create:
         created = await bulk_create(model, to_create, db)
         results.extend(created)
+    logger.debug(
+        "bulk_merge returning %d results (%d created)",
+        len(results),
+        len(to_create),
+    )
     return results
 
 
@@ -126,25 +142,27 @@ async def bulk_delete(
     Delete many rows by a sequence of PK values. Returns {"deleted": N}.
     Flush-only.
     """
+    logger.debug("bulk_delete called with model=%s idents=%s", model, idents)
     pk_name = _single_pk_name(model)
     id_seq = _builtins.list(idents or ())
     if not id_seq:
+        logger.debug("bulk_delete no ids supplied")
         return {"deleted": 0}
 
-    # Prefer DELETE ... WHERE pk IN (...)
     if sa_delete is not None:
         col = getattr(model, pk_name)
         stmt = sa_delete(model).where(col.in_(id_seq))  # type: ignore[attr-defined]
         res = await _maybe_execute(db, stmt)
         await _maybe_flush(db)
         n = int(getattr(res, "rowcount", 0) or 0)
+        logger.debug("bulk_delete removed %d rows via stmt", n)
         return {"deleted": n}
 
-    # Fallback: row-by-row
     n = 0
     for ident in id_seq:
         obj = await read(model, ident, db)
         await _maybe_delete(db, obj)
         n += 1
     await _maybe_flush(db)
+    logger.debug("bulk_delete removed %d rows individually", n)
     return {"deleted": n}

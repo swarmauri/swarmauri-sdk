@@ -2,12 +2,18 @@ from __future__ import annotations
 
 from typing import Any, Mapping
 import builtins as _builtins
+import logging
 
 from . import SAEnum
 
+logging.getLogger("uvicorn").setLevel(logging.DEBUG)
+logger = logging.getLogger("uvicorn")
+
 
 def _validate_enum_values(model: type, values: Mapping[str, Any]) -> None:
+    logger.debug("_validate_enum_values called with model=%s values=%s", model, values)
     if not values or SAEnum is None:
+        logger.debug("_validate_enum_values no validation needed")
         return
 
     table = getattr(model, "__table__", None)
@@ -43,6 +49,9 @@ def _validate_enum_values(model: type, values: Mapping[str, Any]) -> None:
             if _enum is not None and isinstance(v, _enum.Enum):
                 if isinstance(v, enum_cls):
                     continue
+                logger.debug(
+                    "_validate_enum_values invalid value %s for enum %s", v, enum_cls
+                )
                 raise LookupError(
                     f"{v!r} is not among the defined enum values. "
                     f"Enum name: {enum_cls.__name__}. "
@@ -54,6 +63,9 @@ def _validate_enum_values(model: type, values: Mapping[str, Any]) -> None:
             if isinstance(v, str) and (v in allowed_values or v in allowed_names):
                 continue
 
+            logger.debug(
+                "_validate_enum_values invalid value %s for enum %s", v, enum_cls
+            )
             raise LookupError(
                 f"{v!r} is not among the defined enum values. "
                 f"Enum name: {enum_cls.__name__}. "
@@ -63,8 +75,12 @@ def _validate_enum_values(model: type, values: Mapping[str, Any]) -> None:
             allowed = _builtins.list(getattr(col_type, "enums", []) or [])
             if isinstance(v, str) and v in allowed:
                 continue
+            logger.debug(
+                "_validate_enum_values invalid value %s for enum %s", v, col_type
+            )
             raise LookupError(
                 f"{v!r} is not among the defined enum values. "
                 f"Enum name: {getattr(col_type, 'name', 'Enum')}. "
                 f"Possible values: {', '.join(allowed) if allowed else '(none)'}"
             )
+    logger.debug("_validate_enum_values completed")
