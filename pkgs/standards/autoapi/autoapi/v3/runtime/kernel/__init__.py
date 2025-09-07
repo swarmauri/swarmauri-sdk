@@ -1,4 +1,4 @@
-# autoapi/v3/runtime/kernel.py
+# autoapi/v3/runtime/kernel/__init__.py
 from __future__ import annotations
 
 import importlib
@@ -17,10 +17,11 @@ from typing import (
     cast,
 )
 
-from .executor import _invoke, _Ctx
-from . import events as _ev
-from . import trace as _trace
-from ..op.types import PHASES, StepFn
+from ..executor import _invoke, _Ctx
+from .. import events as _ev
+from .. import trace as _trace
+from ...op.types import PHASES, StepFn
+from .labels import _make_label, _labels_from_chains
 
 logger = logging.getLogger(__name__)
 
@@ -60,24 +61,6 @@ def _discover_atoms() -> list[_DiscoveredAtom]:
             mod = None
     return out
 
-
-def _infer_domain_subject(run: _AtomRun) -> tuple[str | None, str | None]:
-    mod = getattr(run, "__module__", "") or ""
-    parts = mod.split(".")
-    try:
-        i = parts.index("atoms")
-        domain = parts[i + 1] if i + 1 < len(parts) else None
-        subject = parts[i + 2] if i + 2 < len(parts) else None
-        return domain, subject
-    except ValueError:
-        return None, None
-
-
-def _make_label(anchor: str, run: _AtomRun) -> str | None:
-    d, s = _infer_domain_subject(run)
-    if not (d and s):
-        return None
-    return f"atom:{d}:{s}@{anchor}"
 
 
 def _wrap_atom(run: _AtomRun, *, anchor: str) -> StepFn:
@@ -158,24 +141,6 @@ def _inject_atoms(
             continue
         chains.setdefault(info.phase, [])
         chains[info.phase].append(_wrap_atom(run, anchor=anchor))
-
-
-# ───────────────────────────────────────────────────────────────────────────────
-# Plan helpers
-# ───────────────────────────────────────────────────────────────────────────────
-
-
-def _labels_from_chains(chains: Mapping[str, Sequence[StepFn]]) -> list[str]:
-    ordered_events = _ev.all_events_ordered()
-    labels: list[str] = []
-    phase_for = {a: _ev.get_anchor_info(a).phase for a in ordered_events}
-    for anchor in ordered_events:
-        phase = phase_for[anchor]
-        for step in chains.get(phase, []) or []:
-            lbl = getattr(step, "__autoapi_label", None)
-            if isinstance(lbl, str) and lbl.endswith(f"@{anchor}"):
-                labels.append(lbl)
-    return labels
 
 
 # ───────────────────────────────────────────────────────────────────────────────

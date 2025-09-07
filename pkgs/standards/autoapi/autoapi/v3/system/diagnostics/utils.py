@@ -23,6 +23,9 @@ def label_callable(fn: Any) -> str:
 
 
 def label_hook(fn: Any, phase: str) -> str:
+    label = getattr(fn, "__autoapi_label", None)
+    if isinstance(label, str):
+        return label
     subj = label_callable(fn).replace(".", ":")
     return f"hook:wire:{subj}@{phase}"
 
