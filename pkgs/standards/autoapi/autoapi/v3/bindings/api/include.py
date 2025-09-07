@@ -107,6 +107,7 @@ def _attach_to_api(api: ApiLike, model: type) -> None:
     # Index model object
     api.models[mname] = model
     api.tables[mname] = getattr(model, "__table__", None)
+    setattr(model, "__autoapi_app__", api)
 
     # Direct references to model namespaces
     setattr(api.schemas, mname, getattr(model, "schemas", SimpleNamespace()))

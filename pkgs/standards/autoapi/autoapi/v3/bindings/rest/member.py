@@ -73,8 +73,8 @@ def _make_member_endpoint(
                 "payload": payload,
                 "path_params": path_params,
                 # expose contextual metadata for downstream atoms
-                "app": getattr(request, "app", None),
-                "api": getattr(request, "app", None),
+                "app": api or getattr(request, "app", None),
+                "api": api or getattr(request, "app", None),
                 "model": model,
                 "op": alias,
                 "method": alias,
@@ -82,9 +82,6 @@ def _make_member_endpoint(
                 "env": SimpleNamespace(
                     method=alias, params=payload, target=target, model=model
                 ),
-                "api": api,
-                "model": model,
-                "op": alias,
             }
             ac = getattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, None)
             if ac is not None:
@@ -157,8 +154,8 @@ def _make_member_endpoint(
                 "payload": payload,
                 "path_params": path_params,
                 # expose contextual metadata for downstream atoms
-                "app": getattr(request, "app", None),
-                "api": getattr(request, "app", None),
+                "app": api or getattr(request, "app", None),
+                "api": api or getattr(request, "app", None),
                 "model": model,
                 "op": alias,
                 "method": alias,
@@ -166,9 +163,6 @@ def _make_member_endpoint(
                 "env": SimpleNamespace(
                     method=alias, params=payload, target=target, model=model
                 ),
-                "api": api,
-                "model": model,
-                "op": alias,
             }
             ac = getattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, None)
             if ac is not None:
@@ -262,8 +256,8 @@ def _make_member_endpoint(
             "payload": payload,
             "path_params": path_params,
             # expose contextual metadata for downstream atoms
-            "app": getattr(request, "app", None),
-            "api": getattr(request, "app", None),
+            "app": api or getattr(request, "app", None),
+            "api": api or getattr(request, "app", None),
             "model": model,
             "op": alias,
             "method": alias,

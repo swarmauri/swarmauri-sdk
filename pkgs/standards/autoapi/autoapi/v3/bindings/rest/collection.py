@@ -44,8 +44,8 @@ def _ctx(model, alias, target, request, db, payload, parent_kw, api):
         "payload": payload,
         "path_params": parent_kw,
         # surface key metadata for runtime atoms
-        "app": getattr(request, "app", None),
-        "api": getattr(request, "app", None),
+        "app": api or getattr(request, "app", None),
+        "api": api or getattr(request, "app", None),
         "model": model,
         "op": alias,
         "method": alias,
@@ -53,9 +53,6 @@ def _ctx(model, alias, target, request, db, payload, parent_kw, api):
         "env": SimpleNamespace(
             method=alias, params=payload, target=target, model=model
         ),
-        "api": api,
-        "model": model,
-        "op": alias,
     }
     ac = getattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, None)
     if ac is not None:
