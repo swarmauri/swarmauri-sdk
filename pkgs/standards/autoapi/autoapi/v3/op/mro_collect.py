@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Callable, Dict
 
-from .types import OpSpec
+from .types import CANON, OpSpec
 from .decorators import _maybe_await, _OpDecl, _infer_arity, _normalize_persist, _unwrap
 from ..runtime.executor import _Ctx
 
@@ -90,6 +90,11 @@ def mro_collect_decorated_ops(table: type) -> list[OpSpec]:
             seen.add(name)
 
     logger.debug("Collected %d ops for %s", len(out), table.__name__)
+    out.sort(
+        key=lambda spec: CANON.index(spec.target)
+        if spec.target in CANON
+        else len(CANON)
+    )
     return out
 
 
