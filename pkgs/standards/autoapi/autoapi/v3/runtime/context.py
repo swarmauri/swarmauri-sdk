@@ -18,7 +18,6 @@ class Context:
     Minimal contract (consumed by atoms we’ve written so far):
       - op:        operation name (e.g., 'create' | 'update' | 'read' | 'list' | custom)
       - persist:   write vs. read (affects pruning of persist-tied anchors)
-      - specs:     mapping of field -> ColumnSpec (frozen at bind time)
       - cfg:       read-only config view (see config.resolver.CfgView)
       - temp:      dict scratchpad used by atoms to exchange data
 
@@ -34,7 +33,6 @@ class Context:
     # core
     op: str
     persist: bool
-    specs: Mapping[str, Any]
     cfg: Any
 
     # shared scratchpad
@@ -103,7 +101,6 @@ class Context:
             "op": self.op,
             "persist": self.persist,
             "model": self.model,
-            "specs": self.specs,
             "user": self.user,
             "tenant": self.tenant,
             "now": self.now,
