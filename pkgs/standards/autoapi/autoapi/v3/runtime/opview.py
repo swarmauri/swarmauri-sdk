@@ -1,6 +1,5 @@
 from __future__ import annotations
 from typing import Any, Mapping, Dict
-from types import SimpleNamespace
 
 from .kernel import _default_kernel as K  # single, app-scoped kernel
 
@@ -15,10 +14,17 @@ def _ensure_temp(ctx: Any) -> Dict[str, Any]:
 
 def opview_from_ctx(ctx: Any):
     """
-    Resolve the OpView for this request context, or raise a runtime error.
-    Requirements:
-      - ctx.app (or ctx.api), ctx.model (or derived from ctx.obj), ctx.op (or ctx.method)
+    Resolve the ``OpView`` for this request context or raise a runtime error.
+
+    Preferred resolution path is via ``ctx.opview`` which should be attached by
+    the caller.  Falling back to kernel lookups requires ``ctx.app`` (or
+    ``ctx.api``), ``ctx.model`` (or derivable from ``ctx.obj``), and ``ctx.op``
+    (or ``ctx.method``).
     """
+    ov = getattr(ctx, "opview", None)
+    if ov is not None:
+        return ov
+
     app = getattr(ctx, "app", None) or getattr(ctx, "api", None)
     model = getattr(ctx, "model", None)
     if model is None:
@@ -30,17 +36,6 @@ def opview_from_ctx(ctx: Any):
     if app and model and alias:
         # One-kernel-per-app, prime once; raises if not compiled
         return K.get_opview(app, model, alias)
-
-    specs = getattr(ctx, "specs", None)
-    if alias:
-        if specs is not None:
-            return K._compile_opview_from_specs(specs, SimpleNamespace(alias=alias))
-        if model and not app:
-            try:
-                specs = K._specs_cache.get(model)
-                return K._compile_opview_from_specs(specs, SimpleNamespace(alias=alias))
-            except Exception:
-                pass
 
     missing = []
     if not alias:
