@@ -209,12 +209,29 @@ def _create_all_on_bind(
             attachments = sqlite_default_attach_map(engine, schema_names)
 
     if attachments:
-        bootstrap_dbschema(
+        info = bootstrap_dbschema(
             engine,
             schemas=schema_names,
             sqlite_attachments=attachments,
             immediate=True,
         )
+        # If schemas were collected, treat the DSN path as a base path by
+        # removing the original SQLite file once schema-specific attachments
+        # have been created. This avoids leaving behind an unused ``main``
+        # database like ``authn.db`` alongside the expected
+        # ``authn__authn.db`` attachment.
+        if getattr(engine.dialect, "name", "") == "sqlite":
+            base_db = getattr(getattr(engine, "url", None), "database", None)
+            if base_db and base_db not in (":memory:", ""):
+                base_path = Path(base_db)
+                attached_paths = {
+                    Path(p) for p in info.get("sqlite_attachments", {}).values()
+                }
+                if base_path.exists() and base_path not in attached_paths:
+                    try:
+                        base_path.unlink()
+                    except OSError:
+                        pass
     else:
         ensure_schemas(engine, schema_names)
 

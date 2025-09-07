@@ -1,5 +1,8 @@
 import pytest
 from autoapi.v3.autoapp import AutoApp
+from autoapi.v3.orm.tables import Base
+from autoapi.v3.orm.mixins import GUIDPk
+from autoapi.v3.types import Column, String
 
 
 def _db_names(conn):
@@ -47,3 +50,22 @@ async def test_initialize_async_with_sqlite_attachments(async_db_session, tmp_pa
         result = await conn.exec_driver_sql("PRAGMA database_list")
         names = {row[1] for row in result.fetchall()}
     assert "logs" in names
+
+
+@pytest.mark.asyncio
+async def test_dsn_treated_as_base_path(tmp_path):
+    """Ensure only schema-attached SQLite database files are created."""
+    base = tmp_path / "authn.db"
+
+    class Model(Base, GUIDPk):
+        __tablename__ = "things"
+        __table_args__ = {"schema": "authn"}
+        name = Column(String, nullable=False)
+
+    api = AutoApp(engine=f"sqlite+aiosqlite:///{base}")
+    api.include_model(Model)
+    await api.initialize()
+
+    attach_path = tmp_path / "authn__authn.db"
+    assert attach_path.exists()
+    assert not base.exists()
