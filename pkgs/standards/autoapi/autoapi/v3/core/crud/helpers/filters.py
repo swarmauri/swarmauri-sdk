@@ -2,8 +2,13 @@ from __future__ import annotations
 
 from typing import Any, Dict, Iterable, Mapping, Optional, Sequence
 
+import logging
+
 from . import select, and_, asc, desc
 from .model import _model_columns, _colspecs
+
+logging.getLogger("uvicorn").setLevel(logging.DEBUG)
+logger = logging.getLogger("uvicorn")
 
 _CANON_OPS = {
     "eq": "eq",
@@ -35,6 +40,7 @@ _CANON_OPS = {
 def _coerce_filters(
     model: type, filters: Optional[Mapping[str, Any]]
 ) -> Dict[str, Any]:
+    logger.debug("_coerce_filters called with filters=%s", filters)
     cols = set(_model_columns(model))
     specs = _colspecs(model)
     raw = dict(filters or {})
@@ -53,10 +59,12 @@ def _coerce_filters(
                 continue
         key = name if canon == "eq" else f"{name}__{canon}"
         out[key] = v
+    logger.debug("_coerce_filters returning %s", out)
     return out
 
 
 def _apply_filters(model: type, filters: Mapping[str, Any]) -> Any:
+    logger.debug("_apply_filters called with filters=%s", filters)
     if select is None:  # pragma: no cover
         return None
     clauses = []
@@ -93,11 +101,15 @@ def _apply_filters(model: type, filters: Mapping[str, Any]) -> Any:
             seq = list(v) if isinstance(v, (list, tuple, set)) else [v]
             clauses.append(~col.in_(seq))
     if not clauses:
+        logger.debug("_apply_filters produced no clauses")
         return None
-    return clauses[0] if len(clauses) == 1 else and_(*clauses)
+    result = clauses[0] if len(clauses) == 1 else and_(*clauses)
+    logger.debug("_apply_filters returning %s", result)
+    return result
 
 
 def _apply_sort(model: type, sort: Any) -> Sequence[Any] | None:
+    logger.debug("_apply_sort called with sort=%s", sort)
     if select is None or sort is None:  # pragma: no cover
         return None
 
@@ -113,6 +125,7 @@ def _apply_sort(model: type, sort: Any) -> Sequence[Any] | None:
                 tokens.extend(_tokenize(t))
 
     if not tokens:
+        logger.debug("_apply_sort no tokens derived")
         return None
 
     specs = _colspecs(model)
@@ -144,4 +157,6 @@ def _apply_sort(model: type, sort: Any) -> Sequence[Any] | None:
         else:
             order_by_exprs.append(asc(col))
 
-    return order_by_exprs or None
+    result = order_by_exprs or None
+    logger.debug("_apply_sort returning %s", result)
+    return result
