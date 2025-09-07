@@ -10,10 +10,16 @@ from autoapi.v3.core import crud
 from autoapi.v3.engine.shortcuts import mem
 from autoapi.v3.engine.engine_spec import EngineSpec
 from autoapi.v3.engine._engine import Engine
+from autoapi.v3.runtime import kernel as runtime_kernel
+from autoapi.v3.schema import builder as v3_builder
+from autoapi.v3.op import model_registry
 
 
 def setup_api(model_cls):
     Base.metadata.clear()
+    v3_builder._SchemaCache.clear()
+    runtime_kernel._default_kernel = runtime_kernel.Kernel()
+    model_registry._REGISTRIES.clear()
     spec = EngineSpec.from_any(mem(async_=False))
     engine = Engine(spec)
     app = App(engine=engine)
