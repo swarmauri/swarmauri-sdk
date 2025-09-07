@@ -3,6 +3,7 @@ from types import SimpleNamespace
 from autoapi.v3.specs import ColumnSpec, F, IO, S, acol
 from autoapi.v3.runtime.atoms.schema import collect_in, collect_out
 from autoapi.v3.runtime.atoms.out import masking
+from autoapi.v3.runtime.kernel import _default_kernel as K
 from autoapi.v3.core.crud import helpers
 from autoapi.v3.orm.tables import Base
 from sqlalchemy import Integer
@@ -144,7 +145,9 @@ def test_allow_in_disables_field():
     spec = ColumnSpec(
         storage=S(type_=Integer), field=F(py_type=int), io=IO(allow_in=False)
     )
-    ctx = SimpleNamespace(specs={"name": spec}, op="create", temp={})
+    specs = {"name": spec}
+    ov = K._compile_opview_from_specs(specs, SimpleNamespace(alias="create"))
+    ctx = SimpleNamespace(opview=ov, temp={})
     collect_in.run(None, ctx)
     assert "name" not in ctx.temp["schema_in"]["by_field"]
 
@@ -153,6 +156,8 @@ def test_allow_out_disables_field():
     spec = ColumnSpec(
         storage=S(type_=Integer), field=F(py_type=int), io=IO(allow_out=False)
     )
-    ctx = SimpleNamespace(specs={"name": spec}, op="read", temp={})
+    specs = {"name": spec}
+    ov = K._compile_opview_from_specs(specs, SimpleNamespace(alias="read"))
+    ctx = SimpleNamespace(opview=ov, temp={})
     collect_out.run(None, ctx)
     assert "name" not in ctx.temp["schema_out"]["by_field"]
