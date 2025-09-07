@@ -38,6 +38,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
     """
     schema_in = _schema_in(ctx)
     if not schema_in:
+        logger.debug("No schema_in available; skipping wire:build_in")
         return  # nothing to do
 
     logger.debug("Running wire:build_in")
@@ -45,6 +46,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
 
     payload = _coerce_payload(ctx)
     if not isinstance(payload, Mapping):
+        logger.debug("Payload is not a mapping; skipping normalization")
         # Non-mapping payloads are ignored here; adapters can pre-normalize.
         return
 
@@ -78,6 +80,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
     for key, val in list(unknown_keys.items()):
         target = alias_to_field.get(key)
         if target and target not in in_values:
+            logger.debug("Resolved alias %s -> %s", key, target)
             in_values[target] = val
             present_fields.add(target)
             unknown_keys.pop(key, None)
@@ -87,11 +90,13 @@ def run(obj: Optional[object], ctx: Any) -> None:
     temp["in_present"] = tuple(sorted(present_fields))
     if unknown_keys:
         temp["in_unknown"] = tuple(sorted(unknown_keys.keys()))
+        logger.debug("Unknown inbound keys: %s", list(unknown_keys.keys()))
         # optionally stash raw unknowns for tooling (avoid huge payloads)
         if len(unknown_keys) <= 16:  # small guard
             temp["in_unknown_samples"] = {
                 k: unknown_keys[k] for k in list(unknown_keys)[:16]
             }
+    logger.debug("Normalized inbound values: %s", in_values)
 
 
 # ──────────────────────────────────────────────────────────────────────────────

@@ -8,6 +8,7 @@ from ..rpc import _coerce_payload, _get_phase_chains, _validate_input, _serializ
 from ...runtime import executor as _executor
 from ...engine import resolver as _resolver
 
+logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/api/resource_proxy")
 
@@ -28,9 +29,13 @@ class _ResourceProxy:
         return f"<ResourceProxy {self._model.__name__}>"
 
     def __getattr__(self, alias: str) -> Callable[..., Awaitable[Any]]:
+        logger.debug("Resolving core handler '%s' for %s", alias, self._model.__name__)
         handlers_root = getattr(self._model, "handlers", None)
         h_alias = getattr(handlers_root, alias, None) if handlers_root else None
         if h_alias is None or not hasattr(h_alias, "core"):
+            logger.debug(
+                "No core handler '%s' found for %s", alias, self._model.__name__
+            )
             raise AttributeError(f"{self._model.__name__} has no core method '{alias}'")
 
         async def _call(
@@ -41,13 +46,27 @@ class _ResourceProxy:
             ctx: Optional[Dict[str, Any]] = None,
         ) -> Any:
             raw_payload = _coerce_payload(payload)
+            logger.debug(
+                "Calling %s.%s with payload %s",
+                self._model.__name__,
+                alias,
+                raw_payload,
+            )
             if alias == "bulk_delete" and not isinstance(raw_payload, Mapping):
                 raw_payload = {"ids": raw_payload}
+                logger.debug("Coerced bulk_delete payload to mapping: %s", raw_payload)
             norm_payload = _validate_input(self._model, alias, alias, raw_payload)
+            logger.debug(
+                "Validated payload for %s.%s: %s",
+                self._model.__name__,
+                alias,
+                norm_payload,
+            )
 
             base_ctx: Dict[str, Any] = dict(ctx or {})
             base_ctx.setdefault("payload", norm_payload)
             if request is not None:
+                logger.debug("Request provided for %s.%s", self._model.__name__, alias)
                 base_ctx.setdefault("request", request)
             base_ctx.setdefault(
                 "env",
@@ -56,17 +75,28 @@ class _ResourceProxy:
                 ),
             )
             if self._serialize:
+                logger.debug(
+                    "Serialization enabled for %s.%s", self._model.__name__, alias
+                )
                 base_ctx.setdefault(
                     "response_serializer",
                     lambda r: _serialize_output(self._model, alias, alias, r),
                 )
             else:
+                logger.debug(
+                    "Serialization disabled for %s.%s", self._model.__name__, alias
+                )
                 base_ctx.setdefault("response_serializer", lambda r: r)
 
             # Acquire DB if one was not explicitly provided (op > model > api > app)
             _release_db = None
             if db is None:
                 try:
+                    logger.debug(
+                        "Acquiring DB for %s.%s via resolver",
+                        self._model.__name__,
+                        alias,
+                    )
                     db, _release_db = _resolver.acquire(
                         api=self._api, model=self._model, op_alias=alias
                     )
@@ -77,9 +107,14 @@ class _ResourceProxy:
                         alias,
                     )
                     raise
+            else:
+                logger.debug("Using provided DB for %s.%s", self._model.__name__, alias)
 
             base_ctx.setdefault("db", db)
             phases = _get_phase_chains(self._model, alias)
+            logger.debug(
+                "Executing phases %s for %s.%s", phases, self._model.__name__, alias
+            )
             try:
                 return await _executor._invoke(
                     request=request,
@@ -91,6 +126,9 @@ class _ResourceProxy:
                 if _release_db is not None:
                     try:
                         _release_db()
+                        logger.debug(
+                            "Released DB for %s.%s", self._model.__name__, alias
+                        )
                     except Exception:
                         logger.debug(
                             "Non-fatal: error releasing acquired DB session",

@@ -5,6 +5,7 @@ from typing import Any, Dict, Mapping, MutableMapping, Optional, Sequence
 import logging
 
 from ... import events as _ev
+from ...kernel import get_cached_specs
 
 # Runs at the very end of the lifecycle (after wire:dump).
 ANCHOR = _ev.OUT_DUMP  # "out:dump"
@@ -39,13 +40,22 @@ def run(obj: Optional[object], ctx: Any) -> None:
       emit_aliases.post/read).
     """
     logger.debug("Running out:masking")
-    specs: Mapping[str, Any] = getattr(ctx, "specs", {}) or {}
+    model = (
+        getattr(ctx, "model", None)
+        or getattr(ctx, "Model", None)
+        or type(getattr(ctx, "obj", None))
+    )
+    specs: Mapping[str, Any] = getattr(ctx, "specs", None) or (
+        get_cached_specs(model) if model else {}
+    )
     if not specs:
+        logger.debug("No specs provided; skipping masking")
         return
 
     temp = _ensure_temp(ctx)
     payload = temp.get("response_payload")
     if payload is None:
+        logger.debug("No response payload present; skipping masking")
         # If wire:dump hasn't produced a payload, do nothing.
         return
 
@@ -54,11 +64,19 @@ def run(obj: Optional[object], ctx: Any) -> None:
     skip_aliases = _collect_emitted_aliases(emit_buf)
 
     if isinstance(payload, dict):
+        logger.debug("Masking single-object payload")
         _mask_one(payload, specs, skip_aliases)
     elif isinstance(payload, (list, tuple)):
+        logger.debug("Masking list payload with %d items", len(payload))
         for item in payload:
             if isinstance(item, dict):
                 _mask_one(item, specs, skip_aliases)
+            else:
+                logger.debug("Skipping non-dict item in payload: %s", item)
+    else:
+        logger.debug(
+            "Unsupported payload type %s; leaving as-is", type(payload).__name__
+        )
     # else: unsupported shape; treat as opaque
 
 

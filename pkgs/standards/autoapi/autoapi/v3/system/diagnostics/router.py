@@ -7,6 +7,7 @@ from .healthz import build_healthz_endpoint
 from .methodz import build_methodz_endpoint
 from .hookz import build_hookz_endpoint
 from .planz import build_planz_endpoint
+from .kernelz import build_kernelz_endpoint
 
 
 def mount_diagnostics(
@@ -20,6 +21,7 @@ def mount_diagnostics(
       GET /methodz
       GET /hookz
       GET /planz
+      GET /kernelz
     """
     router = Router()
 
@@ -65,6 +67,15 @@ def mount_diagnostics(
         tags=["system"],
         summary="Plan",
         description="Flattened runtime execution plan per operation.",
+    )
+    router.add_api_route(
+        "/kernelz",
+        build_kernelz_endpoint(api),
+        methods=["GET"],
+        name="kernelz",
+        tags=["system"],
+        summary="Kernel Plan",
+        description="Phase-chain plan as built by the kernel per operation.",
     )
 
     return router

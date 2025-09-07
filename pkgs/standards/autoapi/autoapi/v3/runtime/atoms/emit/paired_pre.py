@@ -5,6 +5,7 @@ from typing import Any, Dict, Mapping, MutableMapping, Optional
 import logging
 
 from ... import events as _ev
+from ...kernel import get_cached_specs
 
 # This atom runs before the flush, after values have been assembled/generated.
 ANCHOR = _ev.EMIT_ALIASES_PRE  # "emit:aliases:pre_flush"
@@ -42,6 +43,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
     # but guard anyway for robustness.
     logger.debug("Running emit:paired_pre")
     if getattr(ctx, "persist", True) is False:
+        logger.debug("Skipping emit:paired_pre; ctx.persist is False")
         return
 
     temp = _ensure_temp(ctx)
@@ -49,14 +51,26 @@ def run(obj: Optional[object], ctx: Any) -> None:
     paired = _get_paired_values(temp)
 
     if not paired:
+        logger.debug("No paired values found; nothing to schedule")
         return
 
-    specs: Mapping[str, Any] = getattr(ctx, "specs", {}) or {}
+    model = (
+        getattr(ctx, "model", None)
+        or getattr(ctx, "Model", None)
+        or type(getattr(ctx, "obj", None))
+    )
+    specs: Mapping[str, Any] = getattr(ctx, "specs", None) or (
+        get_cached_specs(model) if model else {}
+    )
 
     for field, entry in paired.items():
         if not isinstance(entry, dict):
+            logger.debug(
+                "Skipping non-dict paired entry for field %s: %s", field, entry
+            )
             continue
         if "raw" not in entry:
+            logger.debug("Paired entry for field %s lacks raw value", field)
             # nothing to emit
             continue
 
@@ -75,6 +89,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
                 "meta": entry.get("meta") or {},
             }
         )
+        logger.debug("Queued deferred alias '%s' for field '%s'", alias, field)
 
 
 # ──────────────────────────────────────────────────────────────────────────────

@@ -5,6 +5,7 @@ from typing import Any, Dict, Mapping, MutableMapping, Optional
 import logging
 
 from ... import events as _ev
+from ...kernel import get_cached_specs
 
 # Runs near the end of the lifecycle, before wire:dump/out:masking.
 ANCHOR = _ev.EMIT_ALIASES_READ  # "emit:aliases:readtime"
@@ -45,26 +46,38 @@ def run(obj: Optional[object], ctx: Any) -> None:
     emit_buf = _ensure_emit_buf(temp)
     extras = _ensure_response_extras(temp)
 
-    specs: Mapping[str, Any] = getattr(ctx, "specs", {}) or {}
+    model = (
+        getattr(ctx, "model", None)
+        or getattr(ctx, "Model", None)
+        or type(getattr(ctx, "obj", None))
+    )
+    specs: Mapping[str, Any] = getattr(ctx, "specs", None) or (
+        get_cached_specs(model) if model else {}
+    )
     if not specs:
+        logger.debug("No specs available; skipping read-time alias emission")
         return
 
     for field, colspec in specs.items():
         alias = _infer_alias_from_spec(field, colspec)
         if not alias:
+            logger.debug("No alias inferred for field %s", field)
             continue
         # Don't clobber values that were explicitly emitted post-flush
         if alias in extras:
+            logger.debug("Alias %s already present in extras; skipping", alias)
             continue
 
         value = _read_current_value(obj, ctx, field)
         if value is None:
+            logger.debug("No current value available for field %s", field)
             continue
 
         safe_val = _safe_readtime_value(value, colspec)
 
         # Record into response extras
         extras[alias] = safe_val
+        logger.debug("Emitted read-time alias '%s' for field '%s'", alias, field)
 
         # Minimal audit descriptor (no sensitive content)
         emit_buf["read"].append(

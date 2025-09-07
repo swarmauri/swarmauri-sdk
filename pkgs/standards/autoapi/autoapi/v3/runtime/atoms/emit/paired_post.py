@@ -42,12 +42,14 @@ def run(obj: Optional[object], ctx: Any) -> None:
     # but guard anyway for robustness.
     logger.debug("Running emit:paired_post")
     if getattr(ctx, "persist", True) is False:
+        logger.debug("Skipping emit:paired_post; ctx.persist is False")
         return
 
     temp = _ensure_temp(ctx)
     emit_buf = _ensure_emit_buf(temp)
     pre_queue = list(emit_buf.get("pre") or ())
     if not pre_queue:
+        logger.debug("No deferred aliases to emit")
         return
 
     pv = _get_paired_values(temp)
@@ -55,17 +57,20 @@ def run(obj: Optional[object], ctx: Any) -> None:
 
     for desc in pre_queue:
         if not isinstance(desc, dict):
+            logger.debug("Skipping non-dict descriptor: %s", desc)
             continue
         field = desc.get("field")
         alias = desc.get("alias")
         if not isinstance(field, str) or not isinstance(alias, str) or not field:
+            logger.debug("Descriptor missing valid field/alias: %s", desc)
             continue
 
         value = _resolve_value_from_source(desc.get("source"), pv, field)
         if value is None:
-            # Nothing to emit; skip safely
+            logger.debug("No value resolved for field %s; skipping", field)
             continue
 
+        logger.debug("Emitting alias '%s' for field '%s'", alias, field)
         # 1) Emit into response extras (to be merged by wire/out stages)
         extras[alias] = value
 
@@ -81,9 +86,11 @@ def run(obj: Optional[object], ctx: Any) -> None:
 
         # 3) Enforce secret-once: scrub raw so later steps cannot re-emit accidentally
         _scrub_paired_raw(pv, field)
+        logger.debug("Scrubbed paired raw for field '%s'", field)
 
     # All pre-emit descriptors consumed
     emit_buf["pre"].clear()
+    logger.debug("Cleared pre-emit queue")
 
 
 # ──────────────────────────────────────────────────────────────────────────────
