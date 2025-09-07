@@ -71,14 +71,11 @@ async def rpc_call(
             method,
         )
 
-    # Ensure execution context contains basic runtime metadata.  In tests or
-    # other direct calls there may be no `request` object to supply an app
-    # reference, which the runtime requires to resolve the opview.  Default the
-    # ``app`` and ``api`` keys so downstream atoms receive the expected
-    # context.
+    # Ensure execution context contains basic runtime metadata. In tests or
+    # other direct calls there may be no ``request`` object to supply an app
+    # reference, which the runtime uses to resolve the opview. When absent, the
+    # kernel falls back to cached specs for the given model and alias.
     ctx_dict: Dict[str, Any] = dict(ctx or {})
-    ctx_dict.setdefault("app", api)
-    ctx_dict.setdefault("api", api)
     # Opportunistically derive path params from the payload when the caller
     # supplies the primary key in the body. Many RPC handlers expect the
     # identifier via ``ctx['path_params']`` (mirroring REST semantics), but
@@ -86,8 +83,11 @@ async def rpc_call(
     # payload.  Normalizing here preserves backwards compatibility and keeps
     # default CRUD handlers happy.
     if isinstance(payload, Mapping):
-        pk_name = _single_pk_name(mdl)
-        if pk_name in payload:
+        try:
+            pk_name = _single_pk_name(mdl)
+        except Exception:  # model may not be bound to a table
+            pk_name = None
+        if pk_name and pk_name in payload:
             pp = dict(ctx_dict.get("path_params", {}))
             pp.setdefault(pk_name, payload[pk_name])
             ctx_dict["path_params"] = pp
