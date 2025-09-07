@@ -41,15 +41,16 @@ def test_request_and_response_schemas_respect_iospec_aliases():
         )
 
     bind(Thing)
-    specs = Thing.__autoapi_cols__
+    api = AutoApp()
+    api.include_model(Thing)
 
-    ctx_in = SimpleNamespace(specs=specs, op="create", temp={})
+    ctx_in = SimpleNamespace(app=api, model=Thing, op="create", temp={})
     collect_in.run(None, ctx_in)
     schema_in = ctx_in.temp["schema_in"]
     assert "id" not in schema_in["by_field"]
     assert schema_in["by_field"]["name"]["alias_in"] == "first_name"
 
-    ctx_out = SimpleNamespace(specs=specs, op="read", temp={})
+    ctx_out = SimpleNamespace(app=api, model=Thing, op="read", temp={})
     collect_out.run(None, ctx_out)
     schema_out = ctx_out.temp["schema_out"]
     assert "id" in schema_out["by_field"]
@@ -89,9 +90,10 @@ def test_default_factory_resolves_missing_value():
         )
 
     bind(Thing)
-    specs = Thing.__autoapi_cols__
+    api = AutoApp()
+    api.include_model(Thing)
     ctx = SimpleNamespace(
-        specs=specs, op="create", temp={"in_values": {}}, persist=True
+        app=api, model=Thing, op="create", temp={"in_values": {}}, persist=True
     )
     assemble.run(None, ctx)
     assembled = ctx.temp["assembled_values"]
@@ -325,9 +327,14 @@ def test_atoms_execute_with_iospec():
         )
 
     bind(Thing)
-    specs = Thing.__autoapi_cols__
+    api = AutoApp()
+    api.include_model(Thing)
     ctx = SimpleNamespace(
-        specs=specs, op="create", temp={"in_values": {"name": "x"}}, persist=True
+        app=api,
+        model=Thing,
+        op="create",
+        temp={"in_values": {"name": "x"}},
+        persist=True,
     )
     collect_in.run(None, ctx)
     assemble.run(None, ctx)
