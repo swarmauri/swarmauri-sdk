@@ -4,7 +4,7 @@ from .runtime_cfg import settings
 if settings.pg_dsn_env or (settings.pg_host and settings.pg_db and settings.pg_user):
     dsn = settings.apg_dsn
 else:
-    dsn = "sqlite+aiosqlite:///./authn.db"
+    dsn = "sqlite+aiosqlite:///./authn__authn.db"
 
 ENGINE = build_engine(dsn)
 get_db = ENGINE.get_db

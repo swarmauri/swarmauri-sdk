@@ -16,6 +16,7 @@ Features
 from __future__ import annotations
 
 from autoapi.v3 import AutoApp
+from sqlalchemy.engine import make_url
 
 from .routers.surface import surface_api
 from .db import dsn
@@ -29,6 +30,7 @@ from .rfc7009 import include_rfc7009
 
 
 import logging
+
 logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 # --------------------------------------------------------------------
 # AutoApp application
@@ -58,12 +60,14 @@ if settings.enable_rfc8414:
 
 
 async def _startup() -> None:
-    # 1 – metadata validation / SQLite convenience mode
-    # When running on SQLite, attach the same file under the "authn" alias
-    # so schema-qualified tables like "authn.tenants" work.
-    # this should work without sqlite_attachments, if sqlite_attachments are required use:
-    # > await surface_api.initialize(sqlite_attachments={"authn": "./authn.db"})
-    await surface_api.initialize()
+    if dsn.startswith("sqlite"):
+        url = make_url(dsn)
+        db_path = url.database
+        schemas = {t.schema for t in surface_api._collect_tables() if t.schema}
+        attachments = {s: db_path for s in schemas} if db_path else None
+        await surface_api.initialize(sqlite_attachments=attachments)
+    else:
+        await surface_api.initialize()
 
 
 app.add_event_handler("startup", _startup)
