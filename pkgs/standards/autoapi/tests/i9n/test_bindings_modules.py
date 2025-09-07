@@ -27,6 +27,7 @@ from autoapi.v3.column import shortcuts as sc
 
 def _make_model():
     Base.metadata.clear()
+    Base.registry.dispose()
 
     class Item(Base):  # type: ignore[misc]
         __tablename__ = "items"
