@@ -405,13 +405,15 @@ class Kernel:
 
         for name, spec in specs.items():
             io = getattr(spec, "io", None)
+            fs = getattr(spec, "field", None)
+            storage = getattr(spec, "storage", None)
             in_verbs = set(getattr(io, "in_verbs", ()) or ())
             out_verbs = set(getattr(io, "out_verbs", ()) or ())
 
             if alias in in_verbs:
                 in_fields.append(name)
                 meta: Dict[str, object] = {"in_enabled": True}
-                if getattr(spec, "storage", None) is None:
+                if storage is None:
                     meta["virtual"] = True
                 df = getattr(spec, "default_factory", None)
                 if callable(df):
@@ -419,6 +421,12 @@ class Kernel:
                 alias_in = getattr(io, "alias_in", None)
                 if alias_in:
                     meta["alias_in"] = alias_in
+                required = bool(fs and alias in getattr(fs, "required_in", ()))
+                meta["required"] = required
+                base_nullable = (
+                    True if storage is None else getattr(storage, "nullable", True)
+                )
+                meta["nullable"] = base_nullable
                 by_field_in[name] = meta
 
             if alias in out_verbs:
@@ -427,6 +435,13 @@ class Kernel:
                 alias_out = getattr(io, "alias_out", None)
                 if alias_out:
                     meta_out["alias_out"] = alias_out
+                if storage is None:
+                    meta_out["virtual"] = True
+                py_t = getattr(getattr(fs, "py_type", None), "__name__", None)
+                if py_t:
+                    meta_out["py_type"] = py_t
+                if getattr(io, "sensitive", False):
+                    meta_out["sensitive"] = True
                 by_field_out[name] = meta_out
 
         schema_in = SchemaIn(
