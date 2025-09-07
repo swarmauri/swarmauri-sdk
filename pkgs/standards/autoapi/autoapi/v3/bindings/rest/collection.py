@@ -43,6 +43,13 @@ def _ctx(model, alias, target, request, db, payload, parent_kw, api):
         "db": db,
         "payload": payload,
         "path_params": parent_kw,
+        # surface key metadata for runtime atoms
+        "app": getattr(request, "app", None),
+        "api": getattr(request, "app", None),
+        "model": model,
+        "op": alias,
+        "method": alias,
+        "target": target,
         "env": SimpleNamespace(
             method=alias, params=payload, target=target, model=model
         ),
