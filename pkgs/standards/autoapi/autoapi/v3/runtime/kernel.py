@@ -6,6 +6,7 @@ import pkgutil
 import threading
 import weakref
 import time
+from dataclasses import dataclass
 from types import SimpleNamespace
 from typing import (
     Any,
@@ -25,6 +26,32 @@ from ..op.types import PHASES, StepFn
 from ..column.collect import collect_columns
 
 logger = logging.getLogger(__name__)
+
+# ---- OpView shapes -------------------------------------------------
+
+
+@dataclass(frozen=True)
+class SchemaIn:
+    fields: tuple[str, ...]
+    by_field: Dict[str, Dict[str, object]]
+
+
+@dataclass(frozen=True)
+class SchemaOut:
+    fields: tuple[str, ...]
+    by_field: Dict[str, Dict[str, object]]
+    expose: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class OpView:
+    schema_in: SchemaIn
+    schema_out: SchemaOut
+    paired_index: Dict[str, Dict[str, object]]
+    virtual_producers: Dict[str, Callable[[object, dict], object]]
+    to_stored_transforms: Dict[str, Callable[[object, dict], object]]
+    refresh_hints: tuple[str, ...]
+
 
 # ──────────────────────────── Discovery ────────────────────────────
 
@@ -178,12 +205,12 @@ class Kernel:
             list(atoms) if atoms else None
         )
         self._specs_cache = _SpecsOnceCache()
-        # App-scoped payload cache (no leaks if App is GC’d)
-        self._app_payload_cache: "weakref.WeakKeyDictionary[Any, Dict[str, Dict[str, List[str]]]]" = weakref.WeakKeyDictionary()
-        self._app_primed: "weakref.WeakKeyDictionary[Any, bool]" = (
+        self._opviews: "weakref.WeakKeyDictionary[Any, Dict[tuple[type, str], OpView]]" = weakref.WeakKeyDictionary()
+        self._kernelz_payload: "weakref.WeakKeyDictionary[Any, Dict[str, Dict[str, List[str]]]]" = weakref.WeakKeyDictionary()
+        self._primed: "weakref.WeakKeyDictionary[Any, bool]" = (
             weakref.WeakKeyDictionary()
         )
-        self._prime_lock = threading.Lock()
+        self._lock = threading.Lock()
 
     # ——— atoms ———
     def _atoms(self) -> list[_DiscoveredAtom]:
@@ -237,46 +264,67 @@ class Kernel:
 
     # ——— per-App autoprime (hidden) ———
     def ensure_primed(self, app: Any) -> None:
-        """
-        Idempotent: primes once per App.
-        • primes specs for all models in the App
-        • builds and caches the final /kernelz payload
-        """
-        with self._prime_lock:
-            if self._app_primed.get(app):
+        """Idempotently prime caches for a given application."""
+        with self._lock:
+            if self._primed.get(app):
                 return
-            from ..app.system import _model_iter  # re-use existing enumeration helpers
+            from ..system.diagnostics import _model_iter, _opspecs  # type: ignore
 
             models = list(_model_iter(app))
             start = time.monotonic()
-            self.prime_specs(models)
+
+            # 1) compute specs once per model
+            for m in models:
+                self._specs_cache.get(m)
+
+            # 2) compile OpViews per (model, alias)
+            ov_map: Dict[tuple[type, str], OpView] = {}
+            for m in models:
+                specs = self._specs_cache.get(m)
+                for sp in _opspecs(m):
+                    ov_map[(m, sp.alias)] = self._compile_opview_from_specs(specs, sp)
+            self._opviews[app] = ov_map
+
+            # 3) build kernelz payload once
             payload = self._build_kernelz_payload_internal(app)
-            self._app_payload_cache[app] = payload
-            self._app_primed[app] = True
+            self._kernelz_payload[app] = payload
+
+            self._primed[app] = True
             duration = time.monotonic() - start
             logger.debug(
                 "kernel: primed app %s in %.3fs (models=%d)", app, duration, len(models)
             )
 
-    def kernelz_payload(self, app: Any) -> Dict[str, Dict[str, List[str]]]:
-        """Thin accessor for endpoint: guarantees primed, returns cached payload."""
+    def get_opview(self, app: Any, model: type, alias: str) -> OpView:
+        """Return a compiled OpView for the given app/model/alias or raise."""
         self.ensure_primed(app)
-        return self._app_payload_cache[app]
+        try:
+            return self._opviews[app][(model, alias)]
+        except Exception as exc:  # pragma: no cover - defensive
+            raise RuntimeError(
+                f"opview_missing: app={app!r} model={getattr(model, '__name__', model)!r} alias={alias!r}"
+            ) from exc
+
+    def kernelz_payload(self, app: Any) -> Dict[str, Dict[str, List[str]]]:
+        self.ensure_primed(app)
+        return self._kernelz_payload[app]
 
     def invalidate_kernelz_payload(self, app: Optional[Any] = None) -> None:
-        with self._prime_lock:
+        with self._lock:
             if app is None:
-                self._app_payload_cache = weakref.WeakKeyDictionary()
-                self._app_primed = weakref.WeakKeyDictionary()
+                self._kernelz_payload = weakref.WeakKeyDictionary()
+                self._opviews = weakref.WeakKeyDictionary()
+                self._primed = weakref.WeakKeyDictionary()
             else:
-                self._app_payload_cache.pop(app, None)
-                self._app_primed.pop(app, None)
+                self._kernelz_payload.pop(app, None)
+                self._opviews.pop(app, None)
+                self._primed.pop(app, None)
 
     # ——— internal: endpoint-ready payload (once per App) ———
     def _build_kernelz_payload_internal(
         self, app: Any
     ) -> Dict[str, Dict[str, List[str]]]:
-        from ..app.system import (
+        from ..system.diagnostics import (
             _model_iter,
             _opspecs,
             _label_callable,
@@ -340,6 +388,23 @@ class Kernel:
         logger.debug("kernel: built kernelz payload for app %s in %.3fs", app, duration)
         return out
 
+    def _compile_opview_from_specs(self, specs: Mapping[str, Any], sp: Any) -> OpView:
+        fields = tuple(sorted(specs.keys()))
+        by_in: Dict[str, Dict[str, object]] = {
+            f: {"required": False, "nullable": True} for f in fields
+        }
+        schema_in = SchemaIn(fields=fields, by_field=by_in)
+        by_out: Dict[str, Dict[str, object]] = {f: {"nullable": True} for f in fields}
+        schema_out = SchemaOut(fields=fields, by_field=by_out, expose=fields)
+        return OpView(
+            schema_in=schema_in,
+            schema_out=schema_out,
+            paired_index={},
+            virtual_producers={},
+            to_stored_transforms={},
+            refresh_hints=(),
+        )
+
 
 # ───────────────────────── Module-level exports ────────────────────
 
@@ -355,6 +420,10 @@ def build_phase_chains(model: type, alias: str) -> Dict[str, List[StepFn]]:
     return _default_kernel.build(model, alias)
 
 
+def get_opview(app: Any, model: type, alias: str) -> OpView:
+    return _default_kernel.get_opview(app, model, alias)
+
+
 async def run(
     model: type,
     alias: str,
@@ -368,4 +437,11 @@ async def run(
     return await _invoke(request=request, db=db, phases=phases, ctx=base_ctx)
 
 
-__all__ = ["Kernel", "get_cached_specs", "_default_kernel", "build_phase_chains", "run"]
+__all__ = [
+    "Kernel",
+    "get_cached_specs",
+    "_default_kernel",
+    "build_phase_chains",
+    "get_opview",
+    "run",
+]

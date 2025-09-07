@@ -1,11 +1,10 @@
-# autoapi/v3/runtime/atoms/out/masking.py
 from __future__ import annotations
 
-from typing import Any, Dict, Mapping, MutableMapping, Optional, Sequence
 import logging
+from typing import Any, Dict, MutableMapping, Optional, Sequence, Mapping
 
 from ... import events as _ev
-from ...kernel import get_cached_specs
+from ...kernel import _default_kernel as K
 
 # Runs at the very end of the lifecycle (after wire:dump).
 ANCHOR = _ev.OUT_DUMP  # "out:dump"
@@ -14,70 +13,29 @@ logger = logging.getLogger("uvicorn")
 
 
 def run(obj: Optional[object], ctx: Any) -> None:
-    """
-    out:masking@out:dump
+    app = getattr(ctx, "app", None) or getattr(ctx, "api", None)
+    model = getattr(ctx, "model", None)
+    alias = getattr(ctx, "op", None) or getattr(ctx, "method", None)
+    if not (app and model and alias):
+        raise RuntimeError("ctx_missing_app_model_or_op")
 
-    Purpose
-    -------
-    Mask sensitive top-level fields in the already-built response payload.
-    This runs AFTER wire:dump so the payload exists and after emit:readtime_alias
-    so alias extras are already present. It does NOT redact explicitly emitted
-    alias extras (e.g., secret-once raw tokens) — those are intentional.
-
-    Inputs / Conventions
-    --------------------
-    - ctx.specs : mapping field_name -> ColumnSpec
-    - ctx.temp["response_payload"] : dict or list[dict] (produced by wire:dump)
-    - ctx.temp["emit_aliases"]["post"] / ["read"] : lists of descriptors that
-      include {"alias": "..."}; these alias keys are skipped (not masked).
-
-    Effects
-    -------
-    - For each payload item (dict), if a key equals a ColumnSpec field name and
-      that column is marked sensitive (via `sensitive`/`redact`/`redact_last`),
-      replace the value with a masked hint.
-    - Leaves alias extras untouched (based on the alias sets captured from
-      emit_aliases.post/read).
-    """
-    logger.debug("Running out:masking")
-    model = (
-        getattr(ctx, "model", None)
-        or getattr(ctx, "Model", None)
-        or type(getattr(ctx, "obj", None))
-    )
-    specs: Mapping[str, Any] = getattr(ctx, "specs", None) or (
-        get_cached_specs(model) if model else {}
-    )
-    if not specs:
-        logger.debug("No specs provided; skipping masking")
-        return
+    ov = K.get_opview(app, model, alias)
+    meta = ov.schema_out.by_field
 
     temp = _ensure_temp(ctx)
     payload = temp.get("response_payload")
     if payload is None:
-        logger.debug("No response payload present; skipping masking")
-        # If wire:dump hasn't produced a payload, do nothing.
-        return
+        raise RuntimeError("response_payload_missing")
 
-    # Build the set of alias keys that we should never touch here.
     emit_buf = _ensure_emit_buf(temp)
     skip_aliases = _collect_emitted_aliases(emit_buf)
 
     if isinstance(payload, dict):
-        logger.debug("Masking single-object payload")
-        _mask_one(payload, specs, skip_aliases)
+        _mask_one(payload, meta, skip_aliases)
     elif isinstance(payload, (list, tuple)):
-        logger.debug("Masking list payload with %d items", len(payload))
         for item in payload:
             if isinstance(item, dict):
-                _mask_one(item, specs, skip_aliases)
-            else:
-                logger.debug("Skipping non-dict item in payload: %s", item)
-    else:
-        logger.debug(
-            "Unsupported payload type %s; leaving as-is", type(payload).__name__
-        )
-    # else: unsupported shape; treat as opaque
+                _mask_one(item, meta, skip_aliases)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -118,53 +76,19 @@ def _collect_emitted_aliases(
 
 
 def _mask_one(
-    item: Dict[str, Any], specs: Mapping[str, Any], skip_aliases: set[str]
+    item: Dict[str, Any], meta: Mapping[str, Dict[str, Any]], skip_aliases: set[str]
 ) -> None:
-    for field, colspec in specs.items():
-        # Only touch top-level column keys; never touch known alias keys.
+    for field, info in meta.items():
         if field not in item or field in skip_aliases:
             continue
-        val = item.get(field, None)
-        if val is None:
+        if not info.get("sensitive"):
             continue
-        sensitive, keep_last = _is_sensitive(colspec)
-        if not sensitive:
-            continue
-        item[field] = _mask_value(val, keep_last)
-
-
-def _is_sensitive(colspec: Any) -> tuple[bool, Optional[int]]:
-    """
-    Return (sensitive, keep_last_n). keep_last_n may come from `redact_last`
-    (bool→default=4, or int N). We look on ColumnSpec and then FieldSpec.
-    """
-    sensitive = False
-    keep_last: Optional[int] = None
-
-    def _probe(obj: Any) -> None:
-        nonlocal sensitive, keep_last
-        if obj is None:
-            return
-        if getattr(obj, "sensitive", False) or getattr(obj, "redact", False):
-            sensitive = True
-        rl = getattr(obj, "redact_last", None)
-        if isinstance(rl, bool) and rl:
-            sensitive = True
-            keep_last = keep_last or 4
-        elif isinstance(rl, int) and rl > 0:
-            sensitive = True
-            keep_last = rl
-
-    _probe(colspec)
-    _probe(getattr(colspec, "field", None))
-
-    return sensitive, keep_last
+        value = item.get(field)
+        keep_last = info.get("mask_last")
+        item[field] = _mask_value(value, keep_last)
 
 
 def _mask_value(value: Any, keep_last: Optional[int]) -> str:
-    """
-    Generic masking for strings/bytes; falls back to a fixed token when unknown.
-    """
     if isinstance(value, (bytes, bytearray, memoryview)):
         return "••••"
     s = str(value) if value is not None else ""

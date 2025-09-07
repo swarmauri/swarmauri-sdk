@@ -1,11 +1,10 @@
-# autoapi/v3/runtime/atoms/emit/paired_pre.py
 from __future__ import annotations
 
-from typing import Any, Dict, Mapping, MutableMapping, Optional
 import logging
+from typing import Any, Dict, MutableMapping, Optional
 
 from ... import events as _ev
-from ...kernel import get_cached_specs
+from ...kernel import _default_kernel as K
 
 # This atom runs before the flush, after values have been assembled/generated.
 ANCHOR = _ev.EMIT_ALIASES_PRE  # "emit:aliases:pre_flush"
@@ -14,82 +13,33 @@ logger = logging.getLogger("uvicorn")
 
 
 def run(obj: Optional[object], ctx: Any) -> None:
-    """
-    emit:paired_pre@emit:aliases:pre_flush
+    app = getattr(ctx, "app", None) or getattr(ctx, "api", None)
+    model = getattr(ctx, "model", None)
+    alias = getattr(ctx, "op", None) or getattr(ctx, "method", None)
+    if not (app and model and alias):
+        raise RuntimeError("ctx_missing_app_model_or_op")
 
-    Purpose
-    -------
-    Prepare *deferred* alias emissions for "paired" values (e.g., secret-once raw tokens)
-    that were generated earlier (typically by resolve:paired_gen) and stored on
-    ctx.temp["paired_values"] = { <field>: {"raw": <value>, "alias"?: <str>, "meta"?: {...}} }.
-
-    This atom:
-      - Ensures ctx.temp["emit_aliases"] = {"pre": [], "post": [], "read": []}
-      - Scans paired_values and pushes *deferred* emit specs into "pre"
-        so that emit:paired_post can resolve them after flush/refresh and
-        attach to the outbound payload/extras safely.
-
-    Contracts / Conventions
-    -----------------------
-    - ctx.temp is a dict-like scratch space shared across atoms.
-    - ctx.specs is a mapping field_name -> ColumnSpec (optional; used to infer alias names).
-    - paired_values entries may provide an explicit "alias"; otherwise we infer one
-      using ColumnSpec IO/Field hints; if nothing is available, we default to the field name.
-    - This atom is a no-op when there are no paired values.
-
-    It is safe to call multiple times; it only appends idempotent descriptors.
-    """
-    # Non-persisting ops should have pruned this anchor via the planner,
-    # but guard anyway for robustness.
-    logger.debug("Running emit:paired_pre")
-    if getattr(ctx, "persist", True) is False:
-        logger.debug("Skipping emit:paired_pre; ctx.persist is False")
-        return
+    ov = K.get_opview(app, model, alias)
+    paired_meta = ov.paired_index
 
     temp = _ensure_temp(ctx)
     emit_buf = _ensure_emit_buf(temp)
     paired = _get_paired_values(temp)
 
-    if not paired:
-        logger.debug("No paired values found; nothing to schedule")
-        return
-
-    model = (
-        getattr(ctx, "model", None)
-        or getattr(ctx, "Model", None)
-        or type(getattr(ctx, "obj", None))
-    )
-    specs: Mapping[str, Any] = getattr(ctx, "specs", None) or (
-        get_cached_specs(model) if model else {}
-    )
-
     for field, entry in paired.items():
-        if not isinstance(entry, dict):
-            logger.debug(
-                "Skipping non-dict paired entry for field %s: %s", field, entry
-            )
+        if not isinstance(entry, dict) or "raw" not in entry:
             continue
-        if "raw" not in entry:
-            logger.debug("Paired entry for field %s lacks raw value", field)
-            # nothing to emit
-            continue
-
-        alias = (
-            entry.get("alias")
-            or _infer_alias_from_spec(field, specs.get(field))
-            or field
+        alias_name = (
+            entry.get("alias") or paired_meta.get(field, {}).get("alias") or field
         )
-
-        # Record a *deferred* emission descriptor; emit:paired_post will resolve it.
         emit_buf["pre"].append(
             {
                 "field": field,
-                "alias": alias,
+                "alias": alias_name,
                 "source": ("paired_values", field, "raw"),
                 "meta": entry.get("meta") or {},
             }
         )
-        logger.debug("Queued deferred alias '%s' for field '%s'", alias, field)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -117,47 +67,9 @@ def _ensure_emit_buf(temp: MutableMapping[str, Any]) -> Dict[str, list]:
     return buf  # type: ignore[return-value]
 
 
-def _get_paired_values(temp: Mapping[str, Any]) -> Mapping[str, Dict[str, Any]]:
+def _get_paired_values(temp: MutableMapping[str, Any]) -> Dict[str, Dict[str, Any]]:
     pv = temp.get("paired_values")
     return pv if isinstance(pv, dict) else {}
-
-
-def _infer_alias_from_spec(field: str, colspec: Any) -> Optional[str]:
-    """
-    Best-effort alias inference from ColumnSpec / IOSpec / FieldSpec.
-    We try a few conventional attribute names without taking a hard dependency
-    on any one spec layout. If nothing is found, return None.
-    """
-    if colspec is None:
-        return None
-
-    # Column-level direct hints
-    for name in ("emit_alias", "response_alias", "alias_out", "out_alias"):
-        val = getattr(colspec, name, None)
-        if isinstance(val, str) and val:
-            return val
-
-    # IO-level hints
-    io = getattr(colspec, "io", None)
-    if io is not None:
-        paired = getattr(io, "_paired", None)
-        if paired is not None and isinstance(getattr(paired, "alias", None), str):
-            if paired.alias:
-                return paired.alias
-        for name in ("emit_alias", "response_alias", "alias_out", "out_alias"):
-            val = getattr(io, name, None)
-            if isinstance(val, str) and val:
-                return val
-
-    # Field-level hints
-    fld = getattr(colspec, "field", None)
-    if fld is not None:
-        for name in ("emit_alias", "response_alias", "alias_out", "out_alias"):
-            val = getattr(fld, name, None)
-            if isinstance(val, str) and val:
-                return val
-
-    return None
 
 
 __all__ = ["ANCHOR", "run"]
