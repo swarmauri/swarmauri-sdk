@@ -316,6 +316,26 @@ class Kernel:
                     labels.append(lbl)
         return labels
 
+    async def invoke(
+        self,
+        *,
+        model: type,
+        alias: str,
+        db: Any,
+        request: Any | None = None,
+        ctx: Optional[Mapping[str, Any]] = None,
+    ) -> Any:
+        """Execute an operation for ``model.alias`` using the executor."""
+        phases = self.build(model, alias)
+        base_ctx = _Ctx.ensure(request=request, db=db, seed=ctx)
+        base_ctx.model = model
+        base_ctx.op = alias
+        specs = self.get_specs(model)
+        base_ctx.opview = self._compile_opview_from_specs(
+            specs, SimpleNamespace(alias=alias)
+        )
+        return await _invoke(request=request, db=db, phases=phases, ctx=base_ctx)
+
     # ——— per-App autoprime (hidden) ———
     def ensure_primed(self, app: Any) -> None:
         """Autoprime once per App: specs → OpViews → /kernelz payload."""
@@ -440,8 +460,6 @@ class Kernel:
                 py_t = getattr(getattr(fs, "py_type", None), "__name__", None)
                 if py_t:
                     meta_out["py_type"] = py_t
-                if getattr(io, "sensitive", False):
-                    meta_out["sensitive"] = True
                 by_field_out[name] = meta_out
 
         schema_in = SchemaIn(
