@@ -72,8 +72,8 @@ async def test_response_schema_reflects_io_spec(widget_setup):
 @pytest.mark.asyncio
 async def test_columns_store_io_spec(widget_setup):
     _, _, _ = widget_setup
-    info = Widget.__table__.c.secret.info["autoapi"]["spec"].io
-    assert info.allow_out is False
+    spec = Widget.__autoapi_cols__["secret"].io
+    assert spec.allow_out is False
 
 
 @pytest.mark.i9n
