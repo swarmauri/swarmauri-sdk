@@ -74,6 +74,7 @@ def _make_member_endpoint(
                 "path_params": path_params,
                 # expose contextual metadata for downstream atoms
                 "api": api if api is not None else getattr(request, "app", None),
+                "app": getattr(request, "app", None),
                 "model": model,
                 "op": alias,
                 "method": alias,
@@ -168,6 +169,7 @@ def _make_member_endpoint(
                 "path_params": path_params,
                 # expose contextual metadata for downstream atoms
                 "api": api if api is not None else getattr(request, "app", None),
+                "app": getattr(request, "app", None),
                 "model": model,
                 "op": alias,
                 "method": alias,
