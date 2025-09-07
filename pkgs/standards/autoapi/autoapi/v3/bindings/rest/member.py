@@ -73,8 +73,7 @@ def _make_member_endpoint(
                 "payload": payload,
                 "path_params": path_params,
                 # expose contextual metadata for downstream atoms
-                "app": getattr(request, "app", None),
-                "api": getattr(request, "app", None),
+                "api": api if api is not None else getattr(request, "app", None),
                 "model": model,
                 "op": alias,
                 "method": alias,
@@ -82,9 +81,6 @@ def _make_member_endpoint(
                 "env": SimpleNamespace(
                     method=alias, params=payload, target=target, model=model
                 ),
-                "api": api,
-                "model": model,
-                "op": alias,
             }
             ac = getattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, None)
             if ac is not None:
@@ -99,6 +95,20 @@ def _make_member_endpoint(
                 phases=phases,
                 ctx=ctx,
             )
+            temp = ctx.get("temp", {}) if isinstance(ctx, Mapping) else {}
+            extras = (
+                temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}
+            )
+            raw = (
+                temp.get("paired_values", {}).get("digest", {}).get("raw")
+                if isinstance(temp, Mapping)
+                else None
+            )
+            if isinstance(result, dict):
+                if isinstance(extras, dict):
+                    result.update(extras)
+                if raw is not None and "api_key" not in result:
+                    result["api_key"] = raw
             return result
 
         params = [
@@ -157,8 +167,7 @@ def _make_member_endpoint(
                 "payload": payload,
                 "path_params": path_params,
                 # expose contextual metadata for downstream atoms
-                "app": getattr(request, "app", None),
-                "api": getattr(request, "app", None),
+                "api": api if api is not None else getattr(request, "app", None),
                 "model": model,
                 "op": alias,
                 "method": alias,
@@ -166,9 +175,6 @@ def _make_member_endpoint(
                 "env": SimpleNamespace(
                     method=alias, params=payload, target=target, model=model
                 ),
-                "api": api,
-                "model": model,
-                "op": alias,
             }
             ac = getattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, None)
             if ac is not None:
@@ -183,6 +189,20 @@ def _make_member_endpoint(
                 phases=phases,
                 ctx=ctx,
             )
+            temp = ctx.get("temp", {}) if isinstance(ctx, Mapping) else {}
+            extras = (
+                temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}
+            )
+            raw = (
+                temp.get("paired_values", {}).get("digest", {}).get("raw")
+                if isinstance(temp, Mapping)
+                else None
+            )
+            if isinstance(result, dict):
+                if isinstance(extras, dict):
+                    result.update(extras)
+                if raw is not None and "api_key" not in result:
+                    result["api_key"] = raw
             return result
 
         params = [
@@ -285,6 +305,18 @@ def _make_member_endpoint(
             phases=phases,
             ctx=ctx,
         )
+        temp = ctx.get("temp", {}) if isinstance(ctx, Mapping) else {}
+        extras = temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}
+        raw = (
+            temp.get("paired_values", {}).get("digest", {}).get("raw")
+            if isinstance(temp, Mapping)
+            else None
+        )
+        if isinstance(result, dict):
+            if isinstance(extras, dict):
+                result.update(extras)
+            if raw is not None and "api_key" not in result:
+                result["api_key"] = raw
         return result
 
     params = [

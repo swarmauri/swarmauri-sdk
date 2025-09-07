@@ -295,11 +295,22 @@ class Kernel:
             self._primed[app] = True
 
     def get_opview(self, app: Any, model: type, alias: str) -> OpView:
-        """Return OpView for (model, alias); eject with RuntimeError if missing."""
+        """Return OpView for (model, alias); compile on-demand if missing."""
         self.ensure_primed(app)
+        ov_map = self._opviews.setdefault(app, {})
+        key = (model, alias)
+        if key not in ov_map:
+            from ..system.diagnostics.utils import opspecs as _opspecs
+
+            specs = self._specs_cache.get(model)
+            for sp in _opspecs(model):
+                ov_map[(model, sp.alias)] = self._compile_opview_from_specs(specs, sp)
+            # rebuild kernelz payload to include new model ops
+            self._kernelz_payload[app] = self._build_kernelz_payload_internal(app)
+
         try:
-            return self._opviews[app][(model, alias)]
-        except Exception:
+            return ov_map[key]
+        except KeyError:
             raise RuntimeError(
                 f"opview_missing: app={app!r} model={getattr(model, '__name__', model)!r} alias={alias!r}"
             )
@@ -364,10 +375,31 @@ class Kernel:
             by_field={f: by_field_out.get(f, {}) for f in sorted(out_fields)},
             expose=tuple(sorted(out_fields)),
         )
+        paired_index: Dict[str, Dict[str, object]] = {}
+        for field, col in specs.items():
+            io = getattr(col, "io", None)
+            cfg = getattr(io, "_paired", None)
+            if cfg and sp.alias in getattr(cfg, "verbs", ()):  # type: ignore[attr-defined]
+                field_spec = getattr(col, "field", None)
+                max_len = None
+                if field_spec is not None:
+                    max_len = getattr(
+                        getattr(field_spec, "constraints", {}),
+                        "get",
+                        lambda k, d=None: None,
+                    )("max_length")
+                paired_index[field] = {
+                    "alias": cfg.alias,
+                    "gen": cfg.gen,
+                    "store": cfg.store,
+                    "mask_last": cfg.mask_last,
+                    "max_length": max_len,
+                }
+
         return OpView(
             schema_in=schema_in,
             schema_out=schema_out,
-            paired_index={},
+            paired_index=paired_index,
             virtual_producers={},
             to_stored_transforms={},
             refresh_hints=(),

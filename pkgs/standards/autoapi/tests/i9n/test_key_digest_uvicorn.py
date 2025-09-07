@@ -116,6 +116,19 @@ async def test_persisted_columns(running_app):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
+async def test_read_excludes_api_key(running_app):
+    base_url, _ = running_app
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(f"{base_url}/apikey", json=_payload())
+        created = resp.json()
+        fetched = await client.get(f"{base_url}/apikey/{created['id']}")
+    body = fetched.json()
+    assert "api_key" not in body
+    assert body["digest"] == created["digest"]
+
+
+@pytest.mark.i9n
+@pytest.mark.asyncio
 async def test_rejects_digest_in_request(running_app):
     base_url, _ = running_app
     bad = _payload() | {"digest": "x"}

@@ -44,8 +44,7 @@ def _ctx(model, alias, target, request, db, payload, parent_kw, api):
         "payload": payload,
         "path_params": parent_kw,
         # surface key metadata for runtime atoms
-        "app": getattr(request, "app", None),
-        "api": getattr(request, "app", None),
+        "api": api if api is not None else getattr(request, "app", None),
         "model": model,
         "op": alias,
         "method": alias,
@@ -53,9 +52,6 @@ def _ctx(model, alias, target, request, db, payload, parent_kw, api):
         "env": SimpleNamespace(
             method=alias, params=payload, target=target, model=model
         ),
-        "api": api,
-        "model": model,
-        "op": alias,
     }
     ac = getattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, None)
     if ac is not None:
@@ -206,10 +202,34 @@ def _make_collection_endpoint(
             ctx["response_serializer"] = lambda r: _serialize_output(
                 model, exec_alias, exec_target, sp, r
             )
+            raw_key = None
+            if (
+                exec_target == "create"
+                and isinstance(payload, Mapping)
+                and "digest" not in payload
+                and hasattr(model, "_generate_pair")
+            ):
+                pair = model._generate_pair(None)  # type: ignore[attr-defined]
+                raw_key = pair.raw
+                payload["digest"] = pair.stored
             phases = _get_phase_chains(model, exec_alias)
             result = await _executor._invoke(
                 request=request, db=db, phases=phases, ctx=ctx
             )
+            temp = ctx.get("temp", {}) if isinstance(ctx, Mapping) else {}
+            extras = (
+                temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}
+            )
+            raw = None
+            if isinstance(temp, Mapping):
+                raw = temp.get("paired_values", {}).get("digest", {}).get("raw")
+            if raw is None:
+                raw = raw_key
+            if isinstance(result, dict):
+                if isinstance(extras, dict):
+                    result.update(extras)
+                if raw is not None and "api_key" not in result:
+                    result["api_key"] = raw
             return result
 
         _endpoint.__signature__ = _sig(
