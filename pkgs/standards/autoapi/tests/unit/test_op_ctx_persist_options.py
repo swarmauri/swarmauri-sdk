@@ -1,7 +1,8 @@
 import pytest
 from types import SimpleNamespace
 
-from autoapi.v3.op import collect_decorated_ops, op_ctx
+from autoapi.v3.op.mro_collect import mro_collect_decorated_ops
+from autoapi.v3.op import op_ctx
 from autoapi.v3.bindings import handlers
 from autoapi.v3.system import diagnostics as _diag
 
@@ -14,7 +15,7 @@ def _build_model(persist: str):
         def custom(cls, ctx):  # pragma: no cover - execution not needed
             return None
 
-    specs = collect_decorated_ops(Model)
+    specs = mro_collect_decorated_ops(Model)
     Model.opspecs = SimpleNamespace(all=tuple(specs))
     handlers.build_and_attach(Model, specs)
     return Model
