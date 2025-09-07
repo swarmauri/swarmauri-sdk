@@ -228,8 +228,8 @@ async def clear(
     if where is not None:
         stmt = stmt.where(where)
 
-        res = await _maybe_execute(db, stmt)
-        await _maybe_flush(db)
-        n = int(getattr(res, "rowcount", 0) or 0)
-        logger.debug("clear removed %d rows", n)
-        return {"deleted": n}
+    res = await _maybe_execute(db, stmt)
+    await _maybe_flush(db)
+    n = int(getattr(res, "rowcount", 0) or 0)
+    logger.debug("clear removed %d rows", n)
+    return {"deleted": n}
