@@ -47,24 +47,29 @@ def run(obj: Optional[object], ctx: Any) -> None:
 
     specs: Mapping[str, Any] = getattr(ctx, "specs", {}) or {}
     if not specs:
+        logger.debug("No specs available; skipping read-time alias emission")
         return
 
     for field, colspec in specs.items():
         alias = _infer_alias_from_spec(field, colspec)
         if not alias:
+            logger.debug("No alias inferred for field %s", field)
             continue
         # Don't clobber values that were explicitly emitted post-flush
         if alias in extras:
+            logger.debug("Alias %s already present in extras; skipping", alias)
             continue
 
         value = _read_current_value(obj, ctx, field)
         if value is None:
+            logger.debug("No current value available for field %s", field)
             continue
 
         safe_val = _safe_readtime_value(value, colspec)
 
         # Record into response extras
         extras[alias] = safe_val
+        logger.debug("Emitted read-time alias '%s' for field '%s'", alias, field)
 
         # Minimal audit descriptor (no sensitive content)
         emit_buf["read"].append(

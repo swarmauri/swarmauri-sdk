@@ -48,6 +48,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
 
     in_values: Dict[str, Any] = dict(temp.get("in_values") or {})
     if not schema_in:
+        logger.debug("No schema_in available; skipping validation")
         # No schema collected; nothing to validate (router/adapters may bypass)
         temp["in_values"] = in_values
         return
@@ -61,6 +62,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
     # 1) Required presence (ABSENT → error)
     for name in required:
         if name not in in_values:
+            logger.debug("Required field %s missing", name)
             errors.append(
                 _err(name, "required", "Field is required but was not provided.")
             )
@@ -73,6 +75,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
         # Nullability
         nullable = entry.get("nullable", None)
         if value is None and nullable is False:
+            logger.debug("Field %s is null but not nullable", name)
             errors.append(
                 _err(name, "null_not_allowed", "Null is not allowed for this field.")
             )
@@ -86,6 +89,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
             )
             ok, new_val, msg = _coerce_if_needed(value, target_type, allow=allow_coerce)
             if not ok:
+                logger.debug("Type mismatch for field %s", name)
                 errors.append(
                     _err(
                         name,
@@ -106,6 +110,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
             and isinstance(in_values.get(name), str)
         ):
             if len(in_values[name]) > max_len:
+                logger.debug("Field %s exceeds max_length %d", name, max_len)
                 errors.append(
                     _err(name, "max_length", f"String exceeds max_length={max_len}.")
                 )
@@ -119,6 +124,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
                 if out is not None:
                     in_values[name] = out
             except Exception as e:
+                logger.debug("Validator failed for field %s: %s", name, e)
                 errors.append(
                     _err(name, "validator_failed", f"{type(e).__name__}: {e}")
                 )
@@ -127,6 +133,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
     # 3) Unknown keys policy (handled after build_in captured samples)
     unknown = tuple(temp.get("in_unknown") or ())
     if unknown and _reject_unknown(ctx):
+        logger.debug("Rejecting unknown fields: %s", unknown)
         for k in unknown:
             errors.append(_err(k, "unknown_field", "Unknown input key."))
 
@@ -138,11 +145,13 @@ def run(obj: Optional[object], ctx: Any) -> None:
     if errors:
         temp["in_errors"] = errors
         temp["in_invalid"] = True
+        logger.debug("Validation errors found: %s", errors)
         raise HTTPException(
             status_code=_status.HTTP_422_UNPROCESSABLE_ENTITY, detail=errors
         )
     else:
         temp["in_invalid"] = False
+        logger.debug("Inbound payload validated successfully")
 
 
 # ──────────────────────────────────────────────────────────────────────────────
