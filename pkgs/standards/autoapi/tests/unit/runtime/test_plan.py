@@ -183,6 +183,13 @@ def test_flattened_order_skips_system_steps(
     assert not any("hook:sys" in s for s in out)
 
 
+def test_flattened_order_reports_skipped_atoms() -> None:
+    node = _make_node("resolve", "assemble", _ev.RESOLVE_VALUES)
+    plan = plan_mod.Plan("M", {_ev.RESOLVE_VALUES: (node,)})
+    out = plan_mod.flattened_order(plan, persist=False, include_skipped=True)
+    assert out == ["PRE_HANDLER:atom:resolve:assemble@resolve:values [SKIPPED]"]
+
+
 def test_flattened_order_preserves_prelabel_order() -> None:
     """secdeps and deps appear in the order they are declared."""
     plan = plan_mod.Plan("M", {})

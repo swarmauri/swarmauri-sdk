@@ -229,6 +229,7 @@ def flattened_order(
     deps: Iterable[str] | Iterable[_lbl.Label] = (),
     hooks: Optional[Mapping[str, Iterable[str | _lbl.Label]]] = None,
     anchor_policies: Optional[Mapping[str, _ord.AnchorPolicy]] = None,
+    include_skipped: bool = False,
 ) -> List[str]:
     """
     Compute a flattened list of labels for diagnostics/execution preview.
@@ -236,6 +237,7 @@ def flattened_order(
     - Injects optional secdep/dep labels (strings auto-wrapped).
     - Injects system step hooks (txn begin/handler/commit) when requested and persist=True.
     - Applies persist pruning and deterministic ordering via runtime.ordering.flatten().
+    - When ``include_skipped`` is True, emit placeholders for persist-pruned atoms.
     """
     logger.debug(
         "Flattening plan for %s (persist=%s, system_steps=%s)",
@@ -247,6 +249,19 @@ def flattened_order(
     atom_labels: List[_lbl.Label] = []
     for nodes in plan.atoms_by_anchor.values():
         atom_labels.extend(n.label for n in nodes)
+
+    # Track pruned labels for diagnostics
+    skipped_labels: List[str] = []
+    if include_skipped and not persist:
+        skipped_anchors = [
+            a
+            for a in _ev.order_events(plan.atoms_by_anchor.keys())
+            if _ev.is_persist_tied(a)
+        ]
+        for a in skipped_anchors:
+            phase = _ev.phase_for_event(a)
+            for node in plan.atoms_by_anchor[a]:
+                skipped_labels.append(f"{phase}:{node.label.render()} [SKIPPED]")
 
     # 2) Optional deps/secdeps
     secdep_labels = [_ensure_label(x, kind="secdep") for x in secdeps]
@@ -295,6 +310,8 @@ def flattened_order(
         seq.extend(phase_labels.get(ph, []))
         seq.extend([f"{ph}:{hk.render()}" for hk in phase_hooks.get(ph, []) if hk])
 
+    if include_skipped:
+        seq.extend(skipped_labels)
     return seq
 
 
