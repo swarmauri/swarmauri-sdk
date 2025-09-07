@@ -162,9 +162,31 @@ jobs:
       # ────────────────────────────────────────────────────────────────────────
       - name: Run Pytests
         run: |
+          set -o pipefail
           source "$UNIQUE_VENV_PATH/bin/activate"
           PKG_PATH="${{ matrix.package_tests.package_path }}"
           echo "Running pytest in pkgs/$PKG_PATH"
           cd pkgs
           PACKAGE_NAME=$(python -c "import toml, pathlib, sys; print(toml.load(pathlib.Path('$PKG_PATH')/'pyproject.toml')['project']['name'])")
-          uv run --directory "$PKG_PATH" --package "$PACKAGE_NAME" --isolated --active pytest -vvv
+          uv run --directory "$PKG_PATH" --package "$PACKAGE_NAME" --isolated --active pytest -vvv | tee pytest.log
+          STATUS=${PIPESTATUS[0]}
+          python - <<'PY'
+            import re, pathlib
+            log = pathlib.Path('pytest.log').read_text().splitlines()[-1]
+            patterns = {
+                'passed': r'(\d+) passed',
+                'failed': r'(\d+) failed',
+                'xfailed': r'(\d+) xfailed',
+                'xpassed': r'(\d+) xpassed',
+                'skipped': r'(\d+) skipped',
+                'warnings': r'(\d+) warnings?',
+                'errors': r'(\d+) errors?'
+            }
+            counts = {k: 0 for k in patterns}
+            for key, pat in patterns.items():
+                m = re.search(pat, log)
+                if m:
+                    counts[key] = int(m.group(1))
+            print("::notice title=pytest summary::" + " ".join(f"{k}={v}" for k, v in counts.items()))
+          PY
+          exit $STATUS
