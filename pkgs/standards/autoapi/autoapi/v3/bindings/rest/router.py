@@ -39,7 +39,9 @@ logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/rest/router")
 
 
-def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
+def _build_router(
+    model: type, specs: Sequence[OpSpec], *, api: Any | None = None
+) -> Router:
     resource = _resource_name(model)
 
     # Router-level deps: extra deps only (transport-level; never part of runtime plan)
@@ -181,6 +183,7 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
                 db_dep=db_dep,
                 pk_param=pk_param,
                 nested_vars=nested_vars,
+                api=api,
             )
         else:
             endpoint = _make_collection_endpoint(
@@ -189,6 +192,7 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
                 resource=resource,
                 db_dep=db_dep,
                 nested_vars=nested_vars,
+                api=api,
             )
 
         # Status codes

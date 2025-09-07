@@ -37,7 +37,7 @@ from .common import (
 logging.getLogger("uvicorn").debug("Loaded module v3/bindings/rest/collection")
 
 
-def _ctx(model, alias, target, request, db, payload, parent_kw):
+def _ctx(model, alias, target, request, db, payload, parent_kw, api):
     ctx: Dict[str, Any] = {
         "request": request,
         "db": db,
@@ -46,6 +46,9 @@ def _ctx(model, alias, target, request, db, payload, parent_kw):
         "env": SimpleNamespace(
             method=alias, params=payload, target=target, model=model
         ),
+        "api": api,
+        "model": model,
+        "op": alias,
     }
     ac = getattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, None)
     if ac is not None:
@@ -87,6 +90,7 @@ def _make_collection_endpoint(
     resource: str,
     db_dep: Callable[..., Any],
     nested_vars: Sequence[str] | None = None,
+    api: Any | None = None,
 ) -> Callable[..., Awaitable[Any]]:
     alias, target, nested_vars = sp.alias, sp.target, list(nested_vars or [])
 
@@ -106,7 +110,7 @@ def _make_collection_endpoint(
                 payload = _validate_query(model, alias, target, query)
             else:
                 payload = dict(parent_kw)
-            ctx = _ctx(model, alias, target, request, db, payload, parent_kw)
+            ctx = _ctx(model, alias, target, request, db, payload, parent_kw, api)
             phases = _get_phase_chains(model, alias)
             result = await _executor._invoke(
                 request=request, db=db, phases=phases, ctx=ctx
@@ -189,7 +193,9 @@ def _make_collection_endpoint(
                     payload = {**payload, **parent_kw}
                 else:
                     payload = parent_kw
-            ctx = _ctx(model, exec_alias, exec_target, request, db, payload, parent_kw)
+            ctx = _ctx(
+                model, exec_alias, exec_target, request, db, payload, parent_kw, api
+            )
             ctx["response_serializer"] = lambda r: _serialize_output(
                 model, exec_alias, exec_target, sp, r
             )

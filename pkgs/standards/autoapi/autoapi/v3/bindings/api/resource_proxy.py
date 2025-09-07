@@ -74,6 +74,9 @@ class _ResourceProxy:
                     method=alias, params=norm_payload, target=alias, model=self._model
                 ),
             )
+            base_ctx.setdefault("api", self._api)
+            base_ctx.setdefault("model", self._model)
+            base_ctx.setdefault("op", alias)
             if self._serialize:
                 logger.debug(
                     "Serialization enabled for %s.%s", self._model.__name__, alias
