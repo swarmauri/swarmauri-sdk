@@ -88,8 +88,11 @@ def _build_schema(
                 allowed_verbs = (
                     getattr(io, "in_verbs", None) if io is not None else None
                 )
-                if allowed_verbs is not None and verb not in set(allowed_verbs):
-                    continue
+                if allowed_verbs is not None:
+                    if not allowed_verbs and not getattr(io, "out_verbs", None):
+                        pass  # treat default IOSpec with no verbs as allow-all
+                    elif verb not in set(allowed_verbs):
+                        continue
 
         # Column.info["autoapi"]
         meta_src = getattr(col, "info", {}) or {}
