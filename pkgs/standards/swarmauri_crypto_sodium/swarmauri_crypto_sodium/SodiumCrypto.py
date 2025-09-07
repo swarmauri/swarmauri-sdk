@@ -25,6 +25,7 @@ from ctypes import (
     c_ubyte,
     c_ulonglong,
 )
+from ctypes.util import find_library
 from functools import lru_cache
 from typing import Any, Dict, Iterable, Literal, Optional
 
@@ -90,12 +91,33 @@ def _load_libsodium() -> CDLL:
     if env and os.path.exists(env):
         return CDLL(env)
 
+    # Try to locate libsodium via the system's library resolver
+    libname = find_library("sodium")
+    if libname:
+        try:
+            return CDLL(libname)
+        except OSError:
+            pass
+
     # Try system-installed libsodium
     names: list[str]
     if sys.platform.startswith("linux"):
-        names = ["libsodium.so.23", "libsodium.so"]
+        names = [
+            "libsodium.so.26",
+            "libsodium.so.25",
+            "libsodium.so.24",
+            "libsodium.so.23",
+            "libsodium.so",
+        ]
     elif sys.platform == "darwin":
-        names = ["libsodium.23.dylib", "libsodium.dylib", "lib/libsodium.dylib"]
+        names = [
+            "libsodium.26.dylib",
+            "libsodium.25.dylib",
+            "libsodium.24.dylib",
+            "libsodium.23.dylib",
+            "libsodium.dylib",
+            "lib/libsodium.dylib",
+        ]
     elif sys.platform.startswith("win"):
         names = ["libsodium.dll", "sodium.dll"]
     else:

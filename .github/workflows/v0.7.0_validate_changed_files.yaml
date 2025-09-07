@@ -131,7 +131,7 @@ jobs:
         run: |
           source "$UNIQUE_VENV_PATH/bin/activate"
           python -m pip install --upgrade pip
-          pip install uv poetry toml
+          pip install uv poetry toml meson-python
 
       # ────────────────────────────────────────────────────────────────────────
       # Step: Ruff Format  (package_path only)
