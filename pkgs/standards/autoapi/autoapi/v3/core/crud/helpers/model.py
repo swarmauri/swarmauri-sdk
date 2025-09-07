@@ -66,16 +66,16 @@ def _model_columns(model: type) -> Tuple[str, ...]:
 
 
 def _colspecs(model: type) -> Mapping[str, Any]:
-    logger.debug("_colspecs called with model=%s", model)
+    logger.info("_colspecs called with model=%s", model)
     specs = collect_columns(model)
-    logger.debug("_colspecs returning %s", specs)
+    logger.info("_colspecs returning %s", specs)
     return specs
 
 
 def _filter_in_values(
     model: type, data: Mapping[str, Any], verb: str
 ) -> Dict[str, Any]:
-    logger.debug("_filter_in_values called with data=%s verb=%s", data, verb)
+    logger.info("_filter_in_values called with data=%s verb=%s", data, verb)
     specs = _colspecs(model)
     if not specs:
         result = dict(data)
@@ -98,12 +98,12 @@ def _filter_in_values(
                 allowed = False
         if allowed:
             out[k] = v
-    logger.debug("_filter_in_values returning %s", out)
+    logger.info("_filter_in_values returning %s", out)
     return out
 
 
 def _immutable_columns(model: type, verb: str) -> set[str]:
-    logger.debug("_immutable_columns called with model=%s verb=%s", model, verb)
+    logger.info("_immutable_columns called with model=%s verb=%s", model, verb)
     specs = _colspecs(model)
     if not specs:
         return set()
@@ -113,5 +113,5 @@ def _immutable_columns(model: type, verb: str) -> set[str]:
         mutable = getattr(io, "mutable_verbs", ()) if io else ()
         if mutable and verb not in mutable:
             imm.add(name)
-    logger.debug("_immutable_columns returning %s", imm)
+    logger.info("_immutable_columns returning %s", imm)
     return imm

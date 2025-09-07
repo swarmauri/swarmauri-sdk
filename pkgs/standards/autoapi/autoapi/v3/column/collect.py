@@ -24,7 +24,7 @@ def collect_columns(model: type) -> Dict[str, ColumnSpec]:
         mapping = getattr(base, "__autoapi_cols__", None)
         if isinstance(mapping, dict):
             out.update(mapping)
-    logger.debug("Collected %d columns for %s", len(out), model.__name__)
+    logger.info("Collected %d columns for %s", len(out), model.__name__)
     return out
 
 

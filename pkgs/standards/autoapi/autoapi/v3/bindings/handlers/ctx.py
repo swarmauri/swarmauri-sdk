@@ -24,12 +24,16 @@ def _ctx_payload(ctx: Mapping[str, Any]) -> Any:
     v = _ctx_get(ctx, "payload", None)
     if isinstance(v, Mapping):
         logger.debug("Payload is a mapping")
+        logger.debug("Payload: %s", v)
         return v
     if isinstance(v, Sequence) and not isinstance(v, (str, bytes)):
         logger.debug("Payload is a non-string sequence")
+        logger.debug("Payload: %s", v)
         return v
     logger.debug("Payload absent or unsupported; defaulting to empty dict")
-    return {}
+    v = {}
+    logger.debug("Payload: %s", v)
+    return v
 
 
 def _ctx_db(ctx: Mapping[str, Any]) -> Any:
