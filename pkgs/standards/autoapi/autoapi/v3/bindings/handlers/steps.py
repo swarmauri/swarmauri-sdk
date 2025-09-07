@@ -12,6 +12,7 @@ from ...runtime.executor import _Ctx
 from .ctx import _ctx_db, _ctx_payload, _ctx_request
 from .identifiers import _resolve_ident
 
+logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/handlers/steps")
 
@@ -73,14 +74,18 @@ async def _call_list_core(
     last_err: Optional[BaseException] = None
     for args, kwargs in candidates:
         try:
+            logger.debug("Trying list core call with args=%s kwargs=%s", args, kwargs)
             rv = fn(model, *args, **kwargs)
             if inspect.isawaitable(rv):
+                logger.debug("Awaiting async result for list core")
                 return await rv
             return rv
         except TypeError as e:
+            logger.debug("Candidate failed with TypeError: %s", e)
             last_err = e
             continue
     if last_err:
+        logger.debug("Reraising last TypeError from list core resolution")
         raise last_err
     raise RuntimeError("list() call resolution failed unexpectedly")
 
@@ -88,14 +93,17 @@ async def _call_list_core(
 def _accepted_kw(handler: Callable[..., Any]) -> set[str]:
     try:
         sig = inspect.signature(handler)
-    except Exception:
+    except Exception as exc:
+        logger.debug("Failed to inspect handler %r: %s", handler, exc)
         return {"ctx"}
 
     names: set[str] = set()
     for p in sig.parameters.values():
         if p.kind in (p.VAR_KEYWORD, p.VAR_POSITIONAL):
+            logger.debug("Handler %r accepts arbitrary params", handler)
             return {"ctx", "db", "payload", "request", "model", "op", "spec", "alias"}
         names.add(p.name)
+    logger.debug("Handler %r accepts keywords %s", handler, names)
     return names
 
 
@@ -125,9 +133,10 @@ def _wrap_custom(model: type, sp: OpSpec, user_handler: Callable[..., Any]) -> S
             kw["spec"] = sp
         if "alias" in wanted:
             kw["alias"] = sp.alias
-
+        logger.debug("Calling custom handler %r with kw=%s", bound, kw)
         rv = bound(**kw)  # type: ignore[misc]
         if inspect.isawaitable(rv):
+            logger.debug("Awaiting async custom handler")
             return await rv
         return rv
 
@@ -141,49 +150,66 @@ def _wrap_core(model: type, target: str) -> StepFn:
     async def step(ctx: Any) -> Any:
         db = _ctx_db(ctx)
         payload = _ctx_payload(ctx)
+        logger.debug(
+            "Wrapping core operation '%s' for model %s", target, model.__name__
+        )
 
         if target == "create":
+            logger.debug("Dispatching to core.create")
             return await _core.create(model, payload, db=db)
         if target == "read":
             ident = _resolve_ident(model, ctx)
+            logger.debug("Dispatching to core.read with ident=%r", ident)
             return await _core.read(model, ident, db=db)
         if target == "update":
             ident = _resolve_ident(model, ctx)
+            logger.debug("Dispatching to core.update with ident=%r", ident)
             return await _core.update(model, ident, payload, db=db)
         if target == "replace":
             ident = _resolve_ident(model, ctx)
+            logger.debug("Dispatching to core.replace with ident=%r", ident)
             return await _core.replace(model, ident, payload, db=db)
         if target == "merge":
             ident = _resolve_ident(model, ctx)
+            logger.debug("Dispatching to core.merge with ident=%r", ident)
             return await _core.merge(model, ident, payload, db=db)
         if target == "delete":
             ident = _resolve_ident(model, ctx)
+            logger.debug("Dispatching to core.delete with ident=%r", ident)
             return await _core.delete(model, ident, db=db)
         if target == "list":
+            logger.debug("Dispatching to core.list")
             return await _call_list_core(_core.list, model, payload, ctx)
         if target == "clear":
+            logger.debug("Dispatching to core.clear")
             return await _core.clear(model, {}, db=db)
         if target == "bulk_create":
+            logger.debug("Dispatching to core.bulk_create")
             if not isinstance(payload, list):
                 raise TypeError("bulk_create expects a list payload")
             return await _core.bulk_create(model, payload, db=db)
         if target == "bulk_update":
+            logger.debug("Dispatching to core.bulk_update")
             if not isinstance(payload, list):
                 raise TypeError("bulk_update expects a list payload")
             return await _core.bulk_update(model, payload, db=db)
         if target == "bulk_replace":
+            logger.debug("Dispatching to core.bulk_replace")
             if not isinstance(payload, list):
                 raise TypeError("bulk_replace expects a list payload")
             return await _core.bulk_replace(model, payload, db=db)
         if target == "bulk_merge":
+            logger.debug("Dispatching to core.bulk_merge")
             if not isinstance(payload, list):
                 raise TypeError("bulk_merge expects a list payload")
             return await _core.bulk_merge(model, payload, db=db)
         if target == "bulk_delete":
+            logger.debug("Dispatching to core.bulk_delete")
             ids = payload.get("ids") if isinstance(payload, Mapping) else None
             if ids is None:
                 ids = []
             return await _core.bulk_delete(model, ids, db=db)
+        logger.debug("No core operation matched; returning payload")
         return payload
 
     fn = getattr(_core, target, None)
