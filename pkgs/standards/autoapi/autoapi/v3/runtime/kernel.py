@@ -19,6 +19,8 @@ from typing import (
     Sequence,
     Tuple,
     cast,
+    Generic,
+    TypeVar,
 )
 
 from .executor import _invoke, _Ctx
@@ -27,6 +29,54 @@ from ..op.types import PHASES, StepFn
 from ..column.mro_collect import mro_collect_columns
 
 logger = logging.getLogger(__name__)
+
+
+K = TypeVar("K")
+V = TypeVar("V")
+
+
+class _WeakMaybeDict(Generic[K, V]):
+    """Dictionary that uses weak references when possible.
+
+    Falls back to strong references when ``key`` cannot be weakly referenced.
+    """
+
+    def __init__(self) -> None:
+        self._weak: "weakref.WeakKeyDictionary[Any, V]" = weakref.WeakKeyDictionary()
+        self._strong: Dict[int, tuple[Any, V]] = {}
+
+    def _use_weak(self, key: Any) -> bool:
+        try:
+            weakref.ref(key)
+            return True
+        except TypeError:
+            return False
+
+    def __setitem__(self, key: K, value: V) -> None:
+        if self._use_weak(key):
+            self._weak[key] = value
+        else:
+            self._strong[id(key)] = (key, value)
+
+    def __getitem__(self, key: K) -> V:
+        if self._use_weak(key):
+            return self._weak[key]
+        return self._strong[id(key)][1]
+
+    def get(self, key: K, default: Optional[V] = None) -> Optional[V]:
+        if self._use_weak(key):
+            return self._weak.get(key, default)
+        return self._strong.get(id(key), (None, default))[1]
+
+    def setdefault(self, key: K, default: V) -> V:
+        if self._use_weak(key):
+            return self._weak.setdefault(key, default)
+        return self._strong.setdefault(id(key), (key, default))[1]
+
+    def pop(self, key: K, default: Optional[V] = None) -> Optional[V]:
+        if self._use_weak(key):
+            return self._weak.pop(key, default)
+        return self._strong.pop(id(key), (None, default))[1]
 
 
 # ---- OpView shapes -------------------------------------------------
@@ -207,11 +257,13 @@ class Kernel:
             list(atoms) if atoms else None
         )
         self._specs_cache = _SpecsOnceCache()
-        self._opviews: "weakref.WeakKeyDictionary[Any, Dict[Tuple[type, str], OpView]]" = weakref.WeakKeyDictionary()
-        self._kernelz_payload: "weakref.WeakKeyDictionary[Any, Dict[str, Dict[str, List[str]]]]" = weakref.WeakKeyDictionary()
-        self._primed: "weakref.WeakKeyDictionary[Any, bool]" = (
-            weakref.WeakKeyDictionary()
+        self._opviews: _WeakMaybeDict[Any, Dict[Tuple[type, str], OpView]] = (
+            _WeakMaybeDict()
         )
+        self._kernelz_payload: _WeakMaybeDict[Any, Dict[str, Dict[str, List[str]]]] = (
+            _WeakMaybeDict()
+        )
+        self._primed: _WeakMaybeDict[Any, bool] = _WeakMaybeDict()
         self._lock = threading.Lock()
 
     # ——— atoms ———
@@ -334,9 +386,9 @@ class Kernel:
     def invalidate_kernelz_payload(self, app: Optional[Any] = None) -> None:
         with self._lock:
             if app is None:
-                self._kernelz_payload = weakref.WeakKeyDictionary()
-                self._opviews = weakref.WeakKeyDictionary()
-                self._primed = weakref.WeakKeyDictionary()
+                self._kernelz_payload = _WeakMaybeDict()
+                self._opviews = _WeakMaybeDict()
+                self._primed = _WeakMaybeDict()
             else:
                 self._kernelz_payload.pop(app, None)
                 self._opviews.pop(app, None)
