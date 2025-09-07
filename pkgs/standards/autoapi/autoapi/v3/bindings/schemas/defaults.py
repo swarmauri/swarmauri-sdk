@@ -44,6 +44,11 @@ def _default_schemas_for_spec(
 
     # Element schema for many OUT shapes
     read_schema: Optional[Type[BaseModel]] = _build_schema(model, verb="read")
+    logger.debug(
+        "Resolved base read schema for %s as %s",
+        model.__name__,
+        read_schema.__name__ if read_schema else None,
+    )
 
     # Canonical targets
     logger.debug(
@@ -109,12 +114,22 @@ def _default_schemas_for_spec(
         )
         result["in_"] = _make_bulk_rows_model(model, "bulk_create", item_in)
         result["in_item"] = item_in
-        result["out"] = (
-            _make_bulk_rows_response_model(model, "bulk_create", read_schema)
-            if read_schema
-            else None
-        )
-        result["out_item"] = read_schema
+        if read_schema:
+            result["out"] = _make_bulk_rows_response_model(
+                model, "bulk_create", read_schema
+            )
+            result["out_item"] = read_schema
+            logger.debug(
+                "Built bulk_create response schemas for %s.%s", model.__name__, sp.alias
+            )
+        else:
+            result["out"] = None
+            result["out_item"] = None
+            logger.debug(
+                "No read schema available for bulk_create %s.%s",
+                model.__name__,
+                sp.alias,
+            )
 
     elif target == "bulk_update":
         logger.debug("Using bulk_update defaults for %s.%s", model.__name__, sp.alias)
@@ -125,12 +140,22 @@ def _default_schemas_for_spec(
         )
         result["in_"] = _make_bulk_rows_model(model, "bulk_update", item_in)
         result["in_item"] = item_in
-        result["out"] = (
-            _make_bulk_rows_response_model(model, "bulk_update", read_schema)
-            if read_schema
-            else None
-        )
-        result["out_item"] = read_schema
+        if read_schema:
+            result["out"] = _make_bulk_rows_response_model(
+                model, "bulk_update", read_schema
+            )
+            result["out_item"] = read_schema
+            logger.debug(
+                "Built bulk_update response schemas for %s.%s", model.__name__, sp.alias
+            )
+        else:
+            result["out"] = None
+            result["out_item"] = None
+            logger.debug(
+                "No read schema available for bulk_update %s.%s",
+                model.__name__,
+                sp.alias,
+            )
 
     elif target == "bulk_replace":
         logger.debug("Using bulk_replace defaults for %s.%s", model.__name__, sp.alias)
@@ -141,12 +166,24 @@ def _default_schemas_for_spec(
         )
         result["in_"] = _make_bulk_rows_model(model, "bulk_replace", item_in)
         result["in_item"] = item_in
-        result["out"] = (
-            _make_bulk_rows_response_model(model, "bulk_replace", read_schema)
-            if read_schema
-            else None
-        )
-        result["out_item"] = read_schema
+        if read_schema:
+            result["out"] = _make_bulk_rows_response_model(
+                model, "bulk_replace", read_schema
+            )
+            result["out_item"] = read_schema
+            logger.debug(
+                "Built bulk_replace response schemas for %s.%s",
+                model.__name__,
+                sp.alias,
+            )
+        else:
+            result["out"] = None
+            result["out_item"] = None
+            logger.debug(
+                "No read schema available for bulk_replace %s.%s",
+                model.__name__,
+                sp.alias,
+            )
 
     elif target == "bulk_merge":
         logger.debug("Using bulk_merge defaults for %s.%s", model.__name__, sp.alias)
@@ -157,12 +194,22 @@ def _default_schemas_for_spec(
         )
         result["in_"] = _make_bulk_rows_model(model, "bulk_merge", item_in)
         result["in_item"] = item_in
-        result["out"] = (
-            _make_bulk_rows_response_model(model, "bulk_merge", read_schema)
-            if read_schema
-            else None
-        )
-        result["out_item"] = read_schema
+        if read_schema:
+            result["out"] = _make_bulk_rows_response_model(
+                model, "bulk_merge", read_schema
+            )
+            result["out_item"] = read_schema
+            logger.debug(
+                "Built bulk_merge response schemas for %s.%s", model.__name__, sp.alias
+            )
+        else:
+            result["out"] = None
+            result["out_item"] = None
+            logger.debug(
+                "No read schema available for bulk_merge %s.%s",
+                model.__name__,
+                sp.alias,
+            )
 
     elif target == "bulk_delete":
         logger.debug("Using bulk_delete defaults for %s.%s", model.__name__, sp.alias)

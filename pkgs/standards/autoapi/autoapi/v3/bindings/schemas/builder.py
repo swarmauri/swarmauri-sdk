@@ -201,6 +201,12 @@ def build_and_attach(
                 )
                 raise
             setattr(ns, "in_", resolved_in)
+            logger.debug(
+                "Request override for %s.%s resolved to %s",
+                model.__name__,
+                sp.alias,
+                getattr(resolved_in, "__name__", None),
+            )
         else:
             logger.debug("No request override for %s.%s", model.__name__, sp.alias)
 
@@ -221,6 +227,12 @@ def build_and_attach(
                 )
                 raise
             setattr(ns, "out", resolved_out)
+            logger.debug(
+                "Response override for %s.%s resolved to %s",
+                model.__name__,
+                sp.alias,
+                getattr(resolved_out, "__name__", None),
+            )
         else:
             logger.debug("No response override for %s.%s", model.__name__, sp.alias)
 
@@ -248,10 +260,22 @@ def build_and_attach(
             logger.debug(
                 "Restored default request schema for %s.%s", model.__name__, sp.alias
             )
+        else:
+            logger.debug(
+                "No request schema restoration needed for %s.%s",
+                model.__name__,
+                sp.alias,
+            )
         if getattr(ns, "in_item", None) is None and shapes.get("in_item") is not None:
             setattr(ns, "in_item", shapes["in_item"])
             logger.debug(
                 "Restored default request item schema for %s.%s",
+                model.__name__,
+                sp.alias,
+            )
+        else:
+            logger.debug(
+                "No request item schema restoration needed for %s.%s",
                 model.__name__,
                 sp.alias,
             )
@@ -260,10 +284,22 @@ def build_and_attach(
             logger.debug(
                 "Restored default response schema for %s.%s", model.__name__, sp.alias
             )
+        else:
+            logger.debug(
+                "No response schema restoration needed for %s.%s",
+                model.__name__,
+                sp.alias,
+            )
         if getattr(ns, "out_item", None) is None and shapes.get("out_item") is not None:
             setattr(ns, "out_item", shapes["out_item"])
             logger.debug(
                 "Restored default response item schema for %s.%s",
+                model.__name__,
+                sp.alias,
+            )
+        else:
+            logger.debug(
+                "No response item schema restoration needed for %s.%s",
                 model.__name__,
                 sp.alias,
             )
