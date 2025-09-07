@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 from dataclasses import replace
 from types import SimpleNamespace
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple
 
 from ..op import OpSpec, alias_map_for, collect_decorated_ops
 from ..op import resolve as resolve_ops
@@ -42,6 +42,11 @@ from .model_registry import _ensure_op_ctx_attach_hook, _ensure_registry_listene
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/model")
+
+
+def _dedupe_by_name(funcs: Iterable[Callable[..., Any]]) -> List[Callable[..., Any]]:
+    """Return callables deduplicated by qualified name preserving last occurrence."""
+    return list({getattr(fn, "__qualname__", str(fn)): fn for fn in funcs}.values())
 
 
 # ───────────────────────────────────────────────────────────────────────────────
@@ -123,28 +128,17 @@ def bind(model: type, *, only_keys: Optional[Set[_Key]] = None) -> Tuple[OpSpec,
     ctx_hooks = collect_decorated_hooks(model, visible_aliases=visible_aliases)
     base_hooks = getattr(model, "__autoapi_hooks__", {}) or {}
 
-    # Coerce any pre-existing phase sequences to mutable lists so we can extend
-    # and deduplicate by function name
+    # Coerce any pre-existing phase sequences to mutable lists and deduplicate
     for phases in base_hooks.values():
         for phase, fns in list(phases.items()):
-            seq = list(fns) if not isinstance(fns, list) else fns
-            uniq: dict[str, Callable[..., Any]] = {}
-            for fn in seq:
-                uniq[getattr(fn, "__qualname__", str(fn))] = fn
-            phases[phase] = list(uniq.values())
+            phases[phase] = _dedupe_by_name(fns if isinstance(fns, list) else list(fns))
 
     for alias, phases in ctx_hooks.items():
         per = base_hooks.setdefault(alias, {})
         for phase, fns in phases.items():
             if phase in PHASES:
-                lst = per.setdefault(phase, [])
-                seen = {getattr(fn, "__qualname__", str(fn)) for fn in lst}
-                for fn in fns:
-                    name = getattr(fn, "__qualname__", str(fn))
-                    if name not in seen:
-                        lst.append(fn)
-                        seen.add(name)
-                per[phase] = lst
+                existing = per.setdefault(phase, [])
+                per[phase] = _dedupe_by_name([*existing, *fns])
 
     setattr(model, "__autoapi_hooks__", base_hooks)
 
