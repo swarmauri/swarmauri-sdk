@@ -1,6 +1,6 @@
 from __future__ import annotations
+
 from typing import Any, Mapping, Dict
-from types import SimpleNamespace
 
 from .kernel import _default_kernel as K  # single, app-scoped kernel
 
@@ -30,17 +30,6 @@ def opview_from_ctx(ctx: Any):
     if app and model and alias:
         # One-kernel-per-app, prime once; raises if not compiled
         return K.get_opview(app, model, alias)
-
-    specs = getattr(ctx, "specs", None)
-    if alias:
-        if specs is not None:
-            return K._compile_opview_from_specs(specs, SimpleNamespace(alias=alias))
-        if model and not app:
-            try:
-                specs = K._specs_cache.get(model)
-                return K._compile_opview_from_specs(specs, SimpleNamespace(alias=alias))
-            except Exception:
-                pass
 
     missing = []
     if not alias:
