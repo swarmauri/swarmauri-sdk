@@ -316,6 +316,28 @@ class Kernel:
                     labels.append(lbl)
         return labels
 
+    async def invoke(
+        self,
+        model: type,
+        alias: str,
+        *,
+        db: Any,
+        request: Any | None = None,
+        ctx: Optional[Mapping[str, Any]] = None,
+    ) -> Any:
+        phases = self.build(model, alias)
+        base_ctx = _Ctx.ensure(request=request, db=db, seed=ctx)
+        base_ctx.model = model
+        base_ctx.op = alias
+        try:
+            from types import SimpleNamespace as _NS
+
+            specs = self.get_specs(model)
+            base_ctx.opview = self._compile_opview_from_specs(specs, _NS(alias=alias))
+        except Exception:
+            pass
+        return await _invoke(request=request, db=db, phases=phases, ctx=base_ctx)
+
     # ——— per-App autoprime (hidden) ———
     def ensure_primed(self, app: Any) -> None:
         """Autoprime once per App: specs → OpViews → /kernelz payload."""
