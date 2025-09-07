@@ -69,6 +69,14 @@ def _build_router(
     if any(sp.target == "bulk_delete" for sp in specs):
         specs = [sp for sp in specs if sp.target != "clear"]
 
+    # Prefer the single-item create route when both create and bulk_create are
+    # available. The create handler already accepts lists, so exposing a
+    # separate bulk_create REST route would lead to conflicts.
+    if any(sp.target == "bulk_create" for sp in specs) and any(
+        sp.target == "create" for sp in specs
+    ):
+        specs = [sp for sp in specs if sp.target != "bulk_create"]
+
     # Register collection-level bulk routes before member routes so static paths
     # like "/resource/bulk" aren't captured by dynamic member routes such as
     # "/resource/{item_id}". FastAPI matches routes in the order they are

@@ -94,6 +94,7 @@ def _generate_canonical(table: type) -> List[OpSpec]:
         ("bulk_delete", "bulk_delete"),
     ]
     collection_targets = {
+        "create",
         "list",
         "clear",
         "bulk_create",
