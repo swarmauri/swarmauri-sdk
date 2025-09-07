@@ -275,8 +275,14 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
         if request is not None:
             base_ctx.setdefault("request", request)
         # surface contextual metadata for runtime atoms
-        base_ctx.setdefault("app", getattr(request, "app", None))
-        base_ctx.setdefault("api", getattr(request, "app", None))
+        app_ref = (
+            getattr(request, "app", None)
+            or base_ctx.get("app")
+            or getattr(model, "api", None)
+            or model
+        )
+        base_ctx.setdefault("app", app_ref)
+        base_ctx.setdefault("api", base_ctx.get("api") or app_ref)
         base_ctx.setdefault("model", model)
         base_ctx.setdefault("op", alias)
         base_ctx.setdefault("method", alias)
