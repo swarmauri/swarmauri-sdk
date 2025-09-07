@@ -27,11 +27,13 @@ def _build_schema(
     verb: str = "create",
 ) -> Type[BaseModel]:
     """Build (and cache) a verb-specific Pydantic schema for *orm_cls*."""
+    include_key = frozenset(include) if include is not None else None
+    exclude_key = frozenset(exclude) if exclude is not None else None
     cache_key = (
         orm_cls,
         verb,
-        frozenset(include or ()),
-        frozenset(exclude or ()),
+        include_key,
+        exclude_key,
         name,
     )
     cached = _SchemaCache.get(cache_key)

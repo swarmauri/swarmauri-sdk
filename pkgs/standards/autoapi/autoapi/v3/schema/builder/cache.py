@@ -18,7 +18,7 @@ _SchemaVerb = Union[
 ]
 
 _SchemaCache: Dict[
-    Tuple[type, str, frozenset, frozenset, str | None], Type[BaseModel]
+    Tuple[type, str, frozenset | None, frozenset | None, str | None], Type[BaseModel]
 ] = {}
 
 __all__ = ["_SchemaVerb", "_SchemaCache"]
