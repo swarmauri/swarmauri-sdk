@@ -83,10 +83,25 @@ def _generate_canonical(table: type) -> List[OpSpec]:
         # Include canonical "replace" so RPC callers get full CRUD semantics
         # without opting into the Replaceable mixin.
         ("replace", "replace"),
+        ("merge", "merge"),
         ("delete", "delete"),
         ("list", "list"),
         ("clear", "clear"),
+        ("bulk_create", "bulk_create"),
+        ("bulk_update", "bulk_update"),
+        ("bulk_replace", "bulk_replace"),
+        ("bulk_merge", "bulk_merge"),
+        ("bulk_delete", "bulk_delete"),
     ]
+    collection_targets = {
+        "list",
+        "clear",
+        "bulk_create",
+        "bulk_update",
+        "bulk_replace",
+        "bulk_merge",
+        "bulk_delete",
+    }
     for alias, target in targets:
         if not should_wire_canonical(table, target):
             continue
@@ -95,7 +110,7 @@ def _generate_canonical(table: type) -> List[OpSpec]:
                 table=table,
                 alias=alias,
                 target=target,
-                arity="collection" if target in {"list", "clear"} else "member",
+                arity="collection" if target in collection_targets else "member",
                 persist="default",
                 handler=None,
                 request_model=None,
