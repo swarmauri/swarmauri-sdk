@@ -327,10 +327,31 @@ class Kernel:
         schema_out = SchemaOut(
             fields=fields, by_field={f: {} for f in fields}, expose=fields
         )
+        paired_index: Dict[str, Dict[str, object]] = {}
+        for field, col in specs.items():
+            io = getattr(col, "io", None)
+            cfg = getattr(io, "_paired", None)
+            if cfg and sp.alias in getattr(cfg, "verbs", ()):  # type: ignore[attr-defined]
+                field_spec = getattr(col, "field", None)
+                max_len = None
+                if field_spec is not None:
+                    max_len = getattr(
+                        getattr(field_spec, "constraints", {}),
+                        "get",
+                        lambda k, d=None: None,
+                    )("max_length")
+                paired_index[field] = {
+                    "alias": cfg.alias,
+                    "gen": cfg.gen,
+                    "store": cfg.store,
+                    "mask_last": cfg.mask_last,
+                    "max_length": max_len,
+                }
+
         return OpView(
             schema_in=schema_in,
             schema_out=schema_out,
-            paired_index={},
+            paired_index=paired_index,
             virtual_producers={},
             to_stored_transforms={},
             refresh_hints=(),
