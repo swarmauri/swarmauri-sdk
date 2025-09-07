@@ -45,7 +45,8 @@ def run(obj: Optional[object], ctx: Any) -> None:
     temp = _ensure_temp(ctx)
     payload = temp.get("response_payload")
     if payload is None:
-        raise RuntimeError("response_payload_missing")
+        logger.debug("No response payload found; skipping masking")
+        return
 
     emit_buf = _ensure_emit_buf(temp)
     skip_aliases = _collect_emitted_aliases(emit_buf)
