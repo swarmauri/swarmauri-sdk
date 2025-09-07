@@ -1,4 +1,4 @@
-from ...runtime.kernel import build_phase_chains
+from ...runtime.kernel import _default_kernel, build_phase_chains
 from .router import mount_diagnostics
 from .methodz import build_methodz_endpoint as _build_methodz_endpoint
 from .hookz import build_hookz_endpoint as _build_hookz_endpoint
@@ -22,4 +22,5 @@ __all__ = [
     "_label_callable",
     "_label_hook",
     "build_phase_chains",
+    "_default_kernel",
 ]
