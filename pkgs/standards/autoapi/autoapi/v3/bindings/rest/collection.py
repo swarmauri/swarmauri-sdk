@@ -43,8 +43,10 @@ def _ctx(model, alias, target, request, db, payload, parent_kw, api):
         "db": db,
         "payload": payload,
         "path_params": parent_kw,
-        # surface key metadata for runtime atoms
+        # expose both API router and FastAPI app; runtime opview resolution
+        # relies on the app object, which must be hashable.
         "api": api if api is not None else getattr(request, "app", None),
+        "app": getattr(request, "app", None),
         "model": model,
         "op": alias,
         "method": alias,
