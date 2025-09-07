@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Mapping, MutableMapping, Optional
+from typing import Any, Dict, Mapping, Optional
 import logging
 
 from ... import events as _ev
-from ...kernel import _default_kernel as K
+from ...opview import opview_from_ctx, ensure_schema_out, _ensure_temp
 
 # POST_HANDLER, runs before readtime aliases and dump.
 ANCHOR = _ev.OUT_BUILD  # "out:build"
@@ -15,21 +15,10 @@ logger = logging.getLogger("uvicorn")
 def run(obj: Optional[object], ctx: Any) -> None:
     """Build canonical outbound values keyed by field name."""
     logger.debug("Running wire:build_out")
-    app = getattr(ctx, "app", None)
-    model = getattr(ctx, "model", None) or type(getattr(ctx, "obj", None))
-    alias = getattr(ctx, "op", None) or getattr(ctx, "method", None)
-    ov = None
-    if app and model and alias:
-        ov = K.get_opview(app, model, alias)
-    else:
-        if not (model and alias):
-            logger.debug("build_out: missing ctx.app/model/op and no specs; skipping")
-            return
-        specs = getattr(ctx, "specs", None) or K.get_specs(model)
-        ov = K._compile_opview_from_specs(specs, None)
-    schema_out = ov.schema_out
-    by_field = schema_out.by_field
-    expose = schema_out.expose
+    ov = opview_from_ctx(ctx)
+    schema_out = ensure_schema_out(ctx, ov)
+    by_field = schema_out["by_field"]
+    expose = schema_out["expose"]
 
     temp = _ensure_temp(ctx)
     out_values: Dict[str, Any] = {}
@@ -75,14 +64,6 @@ def run(obj: Optional[object], ctx: Any) -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 # Internals
 # ──────────────────────────────────────────────────────────────────────────────
-
-
-def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
-    tmp = getattr(ctx, "temp", None)
-    if not isinstance(tmp, dict):
-        tmp = {}
-        setattr(ctx, "temp", tmp)
-    return tmp
 
 
 def _read_current_value(obj: Optional[object], ctx: Any, field: str) -> Optional[Any]:

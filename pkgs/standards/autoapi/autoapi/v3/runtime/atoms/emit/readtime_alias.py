@@ -4,7 +4,7 @@ from typing import Any, Dict, Mapping, MutableMapping, Optional
 import logging
 
 from ... import events as _ev
-from ...kernel import _default_kernel as K
+from ...opview import opview_from_ctx, ensure_schema_out, _ensure_temp
 
 # Runs near the end of the lifecycle, before wire:dump/out:masking.
 ANCHOR = _ev.EMIT_ALIASES_READ  # "emit:aliases:readtime"
@@ -19,20 +19,9 @@ def run(obj: Optional[object], ctx: Any) -> None:
     emit_buf = _ensure_emit_buf(temp)
     extras = _ensure_response_extras(temp)
 
-    app = getattr(ctx, "app", None)
-    model = getattr(ctx, "model", None) or type(getattr(ctx, "obj", None))
-    alias = getattr(ctx, "op", None) or getattr(ctx, "method", None)
-    if app and model and alias:
-        ov = K.get_opview(app, model, alias)
-    else:
-        if not (model and alias):
-            logger.debug(
-                "emit:readtime_alias: missing ctx.app/model/op and no specs; skipping"
-            )
-            return
-        specs = getattr(ctx, "specs", None) or K.get_specs(model)
-        ov = K._compile_opview_from_specs(specs, None)
-    for field, desc in ov.schema_out.by_field.items():
+    ov = opview_from_ctx(ctx)
+    schema_out = ensure_schema_out(ctx, ov)
+    for field, desc in schema_out["by_field"].items():
         out_alias = desc.get("alias_out")
         if not out_alias:
             continue
@@ -62,14 +51,6 @@ def run(obj: Optional[object], ctx: Any) -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 # Internals
 # ──────────────────────────────────────────────────────────────────────────────
-
-
-def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
-    temp = getattr(ctx, "temp", None)
-    if not isinstance(temp, dict):
-        temp = {}
-        setattr(ctx, "temp", temp)
-    return temp
 
 
 def _ensure_emit_buf(temp: MutableMapping[str, Any]) -> Dict[str, list]:

@@ -23,6 +23,14 @@ async def _invoke(
     """Execute an operation through explicit phases with strict write policies."""
 
     ctx = _Ctx.ensure(request=request, db=db, seed=ctx)
+    if getattr(ctx, "app", None) is None and getattr(ctx, "api", None) is not None:
+        ctx.app = ctx.api
+    if getattr(ctx, "op", None) is None and getattr(ctx, "method", None) is not None:
+        ctx.op = ctx.method
+    if getattr(ctx, "model", None) is None:
+        obj = getattr(ctx, "obj", None)
+        if obj is not None:
+            ctx.model = type(obj)
     if db is not None and _in_tx(db):
         try:
             if _is_async_db(db):
