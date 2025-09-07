@@ -43,8 +43,9 @@ def run(obj: Optional[object], ctx: Any) -> None:
     # but guard anyway for robustness.
     logger.debug("Running emit:paired_pre")
     if getattr(ctx, "persist", True) is False:
-        logger.debug("Skipping emit:paired_pre; ctx.persist is False")
-        return
+        msg = "ctx.persist is False; emit:paired_pre cannot run"
+        logger.debug(msg)
+        raise RuntimeError(msg)
 
     temp = _ensure_temp(ctx)
     emit_buf = _ensure_emit_buf(temp)

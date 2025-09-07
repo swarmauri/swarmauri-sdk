@@ -41,8 +41,9 @@ def run(obj: Optional[object], ctx: Any) -> None:
     """
     logger.debug("Running refresh:demand")
     if getattr(ctx, "persist", True) is False:
-        logger.debug("Skipping refresh:demand; ctx.persist is False")
-        return
+        msg = "ctx.persist is False; refresh:demand cannot run"
+        logger.debug(msg)
+        raise RuntimeError(msg)
 
     temp = _ensure_temp(ctx)
     model = (

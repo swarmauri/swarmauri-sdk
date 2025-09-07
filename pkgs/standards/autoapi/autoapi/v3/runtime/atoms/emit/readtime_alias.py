@@ -55,8 +55,9 @@ def run(obj: Optional[object], ctx: Any) -> None:
         get_cached_specs(model) if model else {}
     )
     if not specs:
-        logger.debug("No specs available; skipping read-time alias emission")
-        return
+        msg = "ctx.specs is required for emit:readtime_alias"
+        logger.debug(msg)
+        raise RuntimeError(msg)
 
     for field, colspec in specs.items():
         alias = _infer_alias_from_spec(field, colspec)

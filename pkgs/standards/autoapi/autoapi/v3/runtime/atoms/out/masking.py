@@ -49,8 +49,9 @@ def run(obj: Optional[object], ctx: Any) -> None:
         get_cached_specs(model) if model else {}
     )
     if not specs:
-        logger.debug("No specs provided; skipping masking")
-        return
+        msg = "ctx.specs is required for out:masking"
+        logger.debug(msg)
+        raise RuntimeError(msg)
 
     temp = _ensure_temp(ctx)
     payload = temp.get("response_payload")

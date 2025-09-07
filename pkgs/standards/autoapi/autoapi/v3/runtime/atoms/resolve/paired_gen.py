@@ -48,8 +48,9 @@ def run(obj: Optional[object], ctx: Any) -> None:
     """
     # Non-persisting ops should have pruned this anchor; keep guard for safety.
     if getattr(ctx, "persist", True) is False:
-        logger.debug("Skipping resolve:paired_gen; ctx.persist is False")
-        return
+        msg = "ctx.persist is False; resolve:paired_gen cannot run"
+        logger.debug(msg)
+        raise RuntimeError(msg)
 
     logger.debug("Running resolve:paired_gen")
     model = (
@@ -61,8 +62,9 @@ def run(obj: Optional[object], ctx: Any) -> None:
         get_cached_specs(model) if model else {}
     )
     if not specs:
-        logger.debug("No specs provided; nothing to generate")
-        return
+        msg = "ctx.specs is required for resolve:paired_gen"
+        logger.debug(msg)
+        raise RuntimeError(msg)
 
     temp = _ensure_temp(ctx)
     assembled = _ensure_dict(temp, "assembled_values")

@@ -43,8 +43,9 @@ def run(obj: Optional[object], ctx: Any) -> None:
     """
     # Non-persisting ops should have pruned this anchor; retain guard for safety.
     if getattr(ctx, "persist", True) is False:
-        logger.debug("Skipping resolve:assemble; ctx.persist is False")
-        return
+        msg = "ctx.persist is False; resolve:assemble cannot run"
+        logger.debug(msg)
+        raise RuntimeError(msg)
 
     logger.debug("Running resolve:assemble")
     model = (
@@ -56,8 +57,9 @@ def run(obj: Optional[object], ctx: Any) -> None:
         get_cached_specs(model) if model else {}
     )
     if not specs:
-        logger.debug("No specs provided; nothing to assemble")
-        return
+        msg = "ctx.specs is required for resolve:assemble"
+        logger.debug(msg)
+        raise RuntimeError(msg)
 
     inbound = _coerce_inbound(getattr(ctx, "temp", {}).get("in_values", None), ctx)
 

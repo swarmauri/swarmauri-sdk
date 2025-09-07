@@ -31,13 +31,15 @@ def run(obj: Optional[object], ctx: Any) -> None:
     """
     logger.debug("Running storage:to_stored")
     if getattr(ctx, "persist", True) is False:
-        logger.debug("Skipping storage:to_stored; ctx.persist is False")
-        return
+        msg = "ctx.persist is False; storage:to_stored cannot run"
+        logger.debug(msg)
+        raise RuntimeError(msg)
 
     specs: Mapping[str, Any] = getattr(ctx, "specs", {}) or {}
     if not specs:
-        logger.debug("No specs provided; skipping")
-        return
+        msg = "ctx.specs is required for storage:to_stored"
+        logger.debug(msg)
+        raise RuntimeError(msg)
 
     temp = _ensure_temp(ctx)
     assembled = _ensure_dict(temp, "assembled_values")
