@@ -15,11 +15,11 @@ from .types import (
     VerbAliasPolicy,
 )
 from .collect import (
-    resolve,
     collect_decorated_ops,
     alias_map_for,
     apply_alias,
 )
+from .resolver import resolve
 from .model_registry import (
     OpspecRegistry,
     get_registry,
