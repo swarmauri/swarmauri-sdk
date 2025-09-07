@@ -45,7 +45,7 @@ def mro_collect_columns(model: type) -> Dict[str, ColumnSpec]:
     table = getattr(model, "__table__", None)
     if table is not None:
         for col in table.columns:
-            name = col.key or col.name
+            name = getattr(col, "key", None) or col.name
             out.setdefault(name, ColumnSpec(storage=S(), io=_DEFAULT_IO))
 
     logger.info("Collected %d columns for %s", len(out), model.__name__)

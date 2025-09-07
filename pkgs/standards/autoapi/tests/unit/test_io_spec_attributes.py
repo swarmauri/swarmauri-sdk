@@ -42,8 +42,8 @@ def test_out_verbs_filters_output():
             io=IO(out_verbs=("list",)),
         ),
     }
-    filtered = {k: v for k, v in specs.items() if "read" in v.io.out_verbs}
-    ctx = SimpleNamespace(specs=filtered, op="read", temp={})
+    ov = K._compile_opview_from_specs(specs, SimpleNamespace(alias="read"))
+    ctx = SimpleNamespace(opview=ov, temp={})
     collect_out.run(None, ctx)
     schema_out = ctx.temp["schema_out"]["by_field"]
     assert "visible" in schema_out
@@ -64,9 +64,12 @@ def test_mutable_verbs_enforces_immutability():
 
 def test_alias_in_reflected_in_schema():
     spec = ColumnSpec(
-        storage=S(type_=Integer), field=F(py_type=int), io=IO(alias_in="nickname")
+        storage=S(type_=Integer),
+        field=F(py_type=int),
+        io=IO(alias_in="nickname", in_verbs=("create",)),
     )
-    ctx = SimpleNamespace(specs={"name": spec}, op="create", temp={})
+    ov = K._compile_opview_from_specs({"name": spec}, SimpleNamespace(alias="create"))
+    ctx = SimpleNamespace(opview=ov, temp={})
     collect_in.run(None, ctx)
     alias = ctx.temp["schema_in"]["by_field"]["name"]["alias_in"]
     assert alias == "nickname"
@@ -74,9 +77,12 @@ def test_alias_in_reflected_in_schema():
 
 def test_alias_out_reflected_in_schema():
     spec = ColumnSpec(
-        storage=S(type_=Integer), field=F(py_type=int), io=IO(alias_out="nickname")
+        storage=S(type_=Integer),
+        field=F(py_type=int),
+        io=IO(alias_out="nickname", out_verbs=("read",)),
     )
-    ctx = SimpleNamespace(specs={"name": spec}, op="read", temp={})
+    ov = K._compile_opview_from_specs({"name": spec}, SimpleNamespace(alias="read"))
+    ctx = SimpleNamespace(opview=ov, temp={})
     collect_out.run(None, ctx)
     alias = ctx.temp["schema_out"]["by_field"]["name"]["alias_out"]
     assert alias == "nickname"
@@ -84,22 +90,24 @@ def test_alias_out_reflected_in_schema():
 
 def test_sensitive_flag_has_no_masking_effect():
     spec = ColumnSpec(
-        storage=S(type_=Integer), field=F(py_type=int), io=IO(sensitive=True)
+        storage=S(type_=Integer),
+        field=F(py_type=int),
+        io=IO(sensitive=True, out_verbs=("read",)),
     )
-    ctx = SimpleNamespace(
-        specs={"secret": spec}, temp={"response_payload": {"secret": "topsecret"}}
-    )
+    ov = K._compile_opview_from_specs({"secret": spec}, SimpleNamespace(alias="read"))
+    ctx = SimpleNamespace(opview=ov, temp={"response_payload": {"secret": "topsecret"}})
     masking.run(None, ctx)
     assert ctx.temp["response_payload"]["secret"] == "topsecret"
 
 
 def test_redact_last_flag_has_no_masking_effect():
     spec = ColumnSpec(
-        storage=S(type_=Integer), field=F(py_type=int), io=IO(redact_last=2)
+        storage=S(type_=Integer),
+        field=F(py_type=int),
+        io=IO(redact_last=2, out_verbs=("read",)),
     )
-    ctx = SimpleNamespace(
-        specs={"secret": spec}, temp={"response_payload": {"secret": "abcdef"}}
-    )
+    ov = K._compile_opview_from_specs({"secret": spec}, SimpleNamespace(alias="read"))
+    ctx = SimpleNamespace(opview=ov, temp={"response_payload": {"secret": "abcdef"}})
     masking.run(None, ctx)
     assert ctx.temp["response_payload"]["secret"] == "abcdef"
 
