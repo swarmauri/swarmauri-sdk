@@ -19,6 +19,7 @@ from ...schema import (
 )
 from .utils import _pk_info
 
+logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/schemas/defaults")
 
@@ -34,6 +35,9 @@ def _default_schemas_for_spec(
       • Custom target     → no defaults (raw) unless explicitly overridden.
     """
     target = sp.target
+    logger.debug(
+        "computing default schemas: model=%s target=%s", model.__name__, target
+    )
     result: Dict[str, Optional[Type[BaseModel]]] = {
         "in_": None,
         "out": None,
@@ -46,46 +50,55 @@ def _default_schemas_for_spec(
 
     # Canonical targets
     if target == "create":
+        logger.debug("target create")
         item_in = _build_schema(model, verb="create")
         result["in_"] = item_in
         result["out"] = read_schema
 
     elif target == "read":
+        logger.debug("target read")
         pk_name, pk_type = _pk_info(model)
         result["in_"] = _make_pk_model(model, "read", pk_name, pk_type)
         result["out"] = read_schema
 
     elif target == "update":
+        logger.debug("target update")
         pk_name, _ = _pk_info(model)
         result["in_"] = _build_schema(model, verb="update", exclude={pk_name})
         result["out"] = read_schema
 
     elif target == "replace":
+        logger.debug("target replace")
         pk_name, _ = _pk_info(model)
         result["in_"] = _build_schema(model, verb="replace", exclude={pk_name})
         result["out"] = read_schema
 
     elif target == "merge":
+        logger.debug("target merge")
         pk_name, _ = _pk_info(model)
         result["in_"] = _build_schema(model, verb="update", exclude={pk_name})
         result["out"] = read_schema
 
     elif target == "delete":
+        logger.debug("target delete")
         # For RPC delete, a body with PK is allowed; REST delete ignores body.
         result["in_"] = _build_schema(model, verb="delete")
         result["out"] = read_schema
 
     elif target == "list":
+        logger.debug("target list")
         params = _build_list_params(model)
         result["in_"] = params
         result["out"] = read_schema
 
     elif target == "clear":
+        logger.debug("target clear")
         params = _build_list_params(model)
         result["in_"] = params
         result["out"] = _make_deleted_response_model(model, "clear")
 
     elif target == "bulk_create":
+        logger.debug("target bulk_create")
         item_in = _build_schema(
             model,
             verb="create",
@@ -101,6 +114,7 @@ def _default_schemas_for_spec(
         result["out_item"] = read_schema
 
     elif target == "bulk_update":
+        logger.debug("target bulk_update")
         item_in = _build_schema(
             model,
             verb="update",
@@ -116,6 +130,7 @@ def _default_schemas_for_spec(
         result["out_item"] = read_schema
 
     elif target == "bulk_replace":
+        logger.debug("target bulk_replace")
         item_in = _build_schema(
             model,
             verb="replace",
@@ -131,6 +146,7 @@ def _default_schemas_for_spec(
         result["out_item"] = read_schema
 
     elif target == "bulk_merge":
+        logger.debug("target bulk_merge")
         item_in = _build_schema(
             model,
             verb="update",
@@ -146,11 +162,13 @@ def _default_schemas_for_spec(
         result["out_item"] = read_schema
 
     elif target == "bulk_delete":
+        logger.debug("target bulk_delete")
         pk_name, pk_type = _pk_info(model)
         result["in_"] = _make_bulk_ids_model(model, "bulk_delete", pk_type)
         result["out"] = _make_deleted_response_model(model, "bulk_delete")
 
     elif target == "custom":
+        logger.debug("target custom")
         # Build schemas for custom operations based on verb-specific IO specs
         alias = sp.alias
         specs = getattr(model, "__autoapi_cols__", {})
@@ -172,8 +190,10 @@ def _default_schemas_for_spec(
         )
 
     else:
+        logger.debug("target %s not recognized; using raw", target)
         # Defensive default: treat unknown like custom (raw)
         result["in_"] = None
         result["out"] = None
 
+    logger.debug("default schemas result for %s.%s: %s", model.__name__, target, result)
     return result

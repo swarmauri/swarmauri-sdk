@@ -24,6 +24,7 @@ from .common import (
 )
 
 
+logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/rest/collection")
 
@@ -39,9 +40,16 @@ def _make_collection_endpoint(
     alias = sp.alias
     target = sp.target
     nested_vars = list(nested_vars or [])
+    logger.debug(
+        "_make_collection_endpoint alias=%s target=%s nested=%s",
+        alias,
+        target,
+        nested_vars,
+    )
 
     # --- No body on GET list / DELETE clear ---
     if target in {"list", "clear"}:
+        logger.debug("building %s endpoint without body", target)
         if target == "list":
             list_dep = _make_list_query_dep(model, alias)
 
@@ -106,6 +114,7 @@ def _make_collection_endpoint(
             )
             _endpoint.__signature__ = inspect.Signature(params)
         else:
+            logger.debug("building clear endpoint")
 
             async def _endpoint(
                 request: Request,
@@ -170,6 +179,7 @@ def _make_collection_endpoint(
 
     # --- Body-based collection endpoints: create / bulk_* ---
 
+    logger.debug("building body-based endpoint for target %s", target)
     body_model = _request_model_for(sp, model)
     base_annotation = body_model if body_model is not None else Mapping[str, Any]
 

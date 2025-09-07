@@ -35,11 +35,13 @@ from .common import (
 import typing as _typing
 from typing import get_args as _get_args, get_origin as _get_origin
 
+logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/rest/router")
 
 
 def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
+    logger.debug("_build_router model=%s specs=%d", model.__name__, len(specs))
     resource = _resource_name(model)
 
     # Router-level deps: extra deps only (transport-level; never part of runtime plan)
@@ -65,6 +67,7 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
 
     # If bulk_delete is present, drop clear to avoid route conflicts
     if any(sp.target == "bulk_delete" for sp in specs):
+        logger.debug("dropping clear route due to bulk_delete presence")
         specs = [sp for sp in specs if sp.target != "clear"]
 
     # Register collection-level bulk routes before member routes so static paths
@@ -87,10 +90,13 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
             else 3
         ),
     )
+    logger.debug("sorted specs: %s", [sp.alias for sp in specs])
 
     for sp in specs:
         if not sp.expose_routes:
+            logger.debug("skipping %s (expose_routes=False)", sp.alias)
             continue
+        logger.debug("processing spec %s target=%s", sp.alias, sp.target)
 
         # Drop parent identifiers from request models when using nested paths
         if nested_vars:
@@ -197,6 +203,7 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
         # Capture OUT schema for OpenAPI without enforcing runtime validation
         alias_ns = getattr(getattr(model, "schemas", None), sp.alias, None)
         out_model = getattr(alias_ns, "out", None) if alias_ns else None
+        logger.debug("route %s -> path=%s methods=%s", sp.alias, path, methods)
 
         responses_meta = dict(_RESPONSES_META)
         if out_model is not None and status_code != _status.HTTP_204_NO_CONTENT:

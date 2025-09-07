@@ -13,6 +13,7 @@ from ...schema import collect_decorated_schemas
 from .defaults import _default_schemas_for_spec
 from .utils import _alias_schema, _ensure_alias_namespace, _resolve_schema_arg, _Key
 
+logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/schemas/builder")
 
@@ -34,6 +35,12 @@ def build_and_attach(
     Defaults are still ensured for all specs so cross-op SchemaRefs resolve reliably
     for canonical ops.
     """
+    logger.debug(
+        "build_and_attach start: model=%s specs=%s only_keys=%s",
+        getattr(model, "__name__", model),
+        [getattr(sp, "alias", None) for sp in specs],
+        only_keys,
+    )
     if not hasattr(model, "schemas"):
         model.schemas = SimpleNamespace()
 
@@ -41,16 +48,24 @@ def build_and_attach(
 
     # Pass 0: attach schemas declared via @schema_ctx
     declared = collect_decorated_schemas(model)  # {alias: {"in": cls, "out": cls}}
+    logger.debug("declared schemas: %s", declared)
     for alias, kinds in (declared or {}).items():
         ns = _ensure_alias_namespace(model, alias)
         if "in" in kinds:
             setattr(ns, "in_", kinds["in"])
+            logger.debug(
+                "attached declared in_ schema for %s.%s", model.__name__, alias
+            )
         if "out" in kinds:
             setattr(ns, "out", kinds["out"])
+            logger.debug(
+                "attached declared out schema for %s.%s", model.__name__, alias
+            )
 
     # Ensure a namespace per op alias (even if empty)
     for sp in specs:
         _ = _ensure_alias_namespace(model, sp.alias)
+        logger.debug("ensured namespace for %s.%s", model.__name__, sp.alias)
 
     # Pass 1: attach defaults for all specs and capture them so canonical
     # defaults can be restored later if needed.
@@ -62,11 +77,18 @@ def build_and_attach(
         ns = _ensure_alias_namespace(model, sp.alias)
         shapes = _default_schemas_for_spec(model, sp)
         defaults[(sp.alias, sp.target)] = shapes
+        logger.debug(
+            "default shapes for %s.%s: %s",
+            model.__name__,
+            sp.alias,
+            shapes,
+        )
 
         if shapes.get("in_") is not None:
             existing_in = getattr(ns, "in_", None)
             if existing_in is None or not getattr(existing_in, "model_fields", None):
                 setattr(ns, "in_", shapes["in_"])
+                logger.debug("attached default in_ for %s.%s", model.__name__, sp.alias)
 
         if shapes.get("in_item") is not None:
             existing_in_item = getattr(ns, "in_item", None)
@@ -74,11 +96,15 @@ def build_and_attach(
                 existing_in_item, "model_fields", None
             ):
                 setattr(ns, "in_item", shapes["in_item"])
+                logger.debug(
+                    "attached default in_item for %s.%s", model.__name__, sp.alias
+                )
 
         if shapes.get("out") is not None:
             existing_out = getattr(ns, "out", None)
             if existing_out is None or not getattr(existing_out, "model_fields", None):
                 setattr(ns, "out", shapes["out"])
+                logger.debug("attached default out for %s.%s", model.__name__, sp.alias)
 
         if shapes.get("out_item") is not None:
             existing_out_item = getattr(ns, "out_item", None)
@@ -86,6 +112,11 @@ def build_and_attach(
                 existing_out_item, "model_fields", None
             ):
                 setattr(ns, "out_item", shapes["out_item"])
+                logger.debug(
+                    "attached default out_item for %s.%s",
+                    model.__name__,
+                    sp.alias,
+                )
 
         logger.debug(
             "schemas(default): %s.%s -> in=%s out=%s",
@@ -99,6 +130,7 @@ def build_and_attach(
     for sp in specs:
         key = (sp.alias, sp.target)
         if wanted and key not in wanted:
+            logger.debug("skipping override for %s due to only_keys", key)
             continue
 
         ns = _ensure_alias_namespace(model, sp.alias)
@@ -118,6 +150,12 @@ def build_and_attach(
                 raise
             # Set to model or None (raw)
             setattr(ns, "in_", resolved_in)
+            logger.debug(
+                "override in_ for %s.%s -> %s",
+                model.__name__,
+                sp.alias,
+                getattr(resolved_in, "__name__", None) if resolved_in else None,
+            )
 
         if sp.response_model is not None:
             try:
@@ -134,6 +172,12 @@ def build_and_attach(
                 raise
             # Set to model or None (raw)
             setattr(ns, "out", resolved_out)
+            logger.debug(
+                "override out for %s.%s -> %s",
+                model.__name__,
+                sp.alias,
+                getattr(resolved_out, "__name__", None) if resolved_out else None,
+            )
 
         logger.debug(
             "schemas(override): %s.%s -> in=%s out=%s",
@@ -151,12 +195,20 @@ def build_and_attach(
         shapes = defaults.get((sp.alias, sp.target)) or {}
         if getattr(ns, "in_", None) is None and shapes.get("in_") is not None:
             setattr(ns, "in_", shapes["in_"])
+            logger.debug("restored canonical in_ for %s.%s", model.__name__, sp.alias)
         if getattr(ns, "in_item", None) is None and shapes.get("in_item") is not None:
             setattr(ns, "in_item", shapes["in_item"])
+            logger.debug(
+                "restored canonical in_item for %s.%s", model.__name__, sp.alias
+            )
         if getattr(ns, "out", None) is None and shapes.get("out") is not None:
             setattr(ns, "out", shapes["out"])
+            logger.debug("restored canonical out for %s.%s", model.__name__, sp.alias)
         if getattr(ns, "out_item", None) is None and shapes.get("out_item") is not None:
             setattr(ns, "out_item", shapes["out_item"])
+            logger.debug(
+                "restored canonical out_item for %s.%s", model.__name__, sp.alias
+            )
 
     # Pass 3: ensure alias-specific request/response schema names
     for sp in specs:
@@ -183,6 +235,7 @@ def build_and_attach(
                 "out",
                 _alias_schema(out_model, model=model, alias=sp.alias, kind="Response"),
             )
+    logger.debug("build_and_attach complete for %s", model.__name__)
 
 
 __all__ = ["build_and_attach"]

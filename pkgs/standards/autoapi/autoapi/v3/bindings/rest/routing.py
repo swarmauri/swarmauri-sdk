@@ -9,33 +9,39 @@ from .fastapi import Depends, Security, _status
 from ...op import OpSpec
 from ...op.types import CANON
 
+logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/rest/routing")
 
 
 def _normalize_deps(deps: Optional[Sequence[Any]]) -> list[Any]:
     """Turn callables into Depends(...) unless already a dependency object."""
+    logger.debug("_normalize_deps input=%s", deps)
     if not deps:
         return []
     out: list[Any] = []
     for d in deps:
         is_dep_obj = getattr(d, "dependency", None) is not None
+        logger.debug("dep %s is_obj=%s", d, is_dep_obj)
         out.append(d if is_dep_obj else Depends(d))
     return out
 
 
 def _normalize_secdeps(secdeps: Optional[Sequence[Any]]) -> list[Any]:
     """Turn callables into Security(...) unless already a dependency object."""
+    logger.debug("_normalize_secdeps input=%s", secdeps)
     if not secdeps:
         return []
     out: list[Any] = []
     for d in secdeps:
         is_dep_obj = getattr(d, "dependency", None) is not None
+        logger.debug("secdep %s is_obj=%s", d, is_dep_obj)
         out.append(d if is_dep_obj else Security(d))
     return out
 
 
 def _status_for(sp: OpSpec) -> int:
+    logger.debug("_status_for %s.%s", sp.alias, sp.target)
     if sp.status_code is not None:
         return sp.status_code
     target = sp.target
@@ -77,6 +83,7 @@ _DEFAULT_METHODS: Dict[str, Tuple[str, ...]] = {
 
 
 def _default_path_suffix(sp: OpSpec) -> str | None:
+    logger.debug("_default_path_suffix alias=%s target=%s", sp.alias, sp.target)
     if sp.target.startswith("bulk_"):
         return None
     if sp.alias != sp.target and (
@@ -89,6 +96,7 @@ def _default_path_suffix(sp: OpSpec) -> str | None:
 def _path_for_spec(
     model: type, sp: OpSpec, *, resource: str, pk_param: str = "item_id"
 ) -> Tuple[str, bool]:
+    logger.debug("_path_for_spec alias=%s target=%s", sp.alias, sp.target)
     if sp.path_suffix is None:
         suffix = _default_path_suffix(sp) or ""
     else:
@@ -108,6 +116,7 @@ def _path_for_spec(
 
 
 def _response_model_for(sp: OpSpec, model: type) -> Any | None:
+    logger.debug("_response_model_for alias=%s target=%s", sp.alias, sp.target)
     if sp.target == "delete":
         return None
     alias_ns = getattr(
@@ -125,6 +134,7 @@ def _response_model_for(sp: OpSpec, model: type) -> Any | None:
 
 
 def _request_model_for(sp: OpSpec, model: type) -> Any | None:
+    logger.debug("_request_model_for alias=%s", sp.alias)
     alias_ns = getattr(
         getattr(model, "schemas", None) or SimpleNamespace(), sp.alias, None
     )

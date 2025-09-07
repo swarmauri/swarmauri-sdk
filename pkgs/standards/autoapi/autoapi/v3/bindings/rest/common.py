@@ -63,6 +63,7 @@ from ...rest import _nested_prefix
 from ...runtime import executor as _executor
 from ...schema.builder import _strip_parent_fields
 
+logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/rest/common")
 

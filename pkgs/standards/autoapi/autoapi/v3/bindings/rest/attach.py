@@ -7,6 +7,7 @@ from typing import Optional, Sequence
 from .common import OpSpec, _Key
 from .router import _build_router
 
+logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/rest/attach")
 
@@ -19,6 +20,12 @@ def build_router_and_attach(
     For simplicity and correctness with FastAPI, we **rebuild the entire router**
     on each call (FastAPI does not support removing individual routes cleanly).
     """
+    logger.debug(
+        "build_router_and_attach model=%s specs=%d only_keys=%s",
+        model.__name__,
+        len(specs),
+        only_keys,
+    )
     router = _build_router(model, specs)
     rest_ns = getattr(model, "rest", None) or SimpleNamespace()
     rest_ns.router = router

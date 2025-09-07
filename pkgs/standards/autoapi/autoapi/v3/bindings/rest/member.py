@@ -34,6 +34,7 @@ from .common import (
 )
 
 
+logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/rest/member")
 
@@ -52,6 +53,9 @@ def _make_member_endpoint(
     real_pk = _pk_name(model)
     pk_names = _pk_names(model)
     nested_vars = list(nested_vars or [])
+    logger.debug(
+        "_make_member_endpoint alias=%s target=%s nested=%s", alias, target, nested_vars
+    )
 
     # --- No body on GET read / DELETE delete ---
     if target in {"read", "delete"}:
@@ -129,6 +133,7 @@ def _make_member_endpoint(
 
     body_model = _request_model_for(sp, model)
     if body_model is None and sp.request_model is None and target == "custom":
+        logger.debug("building custom member endpoint without body")
 
         async def _endpoint(
             item_id: Any,

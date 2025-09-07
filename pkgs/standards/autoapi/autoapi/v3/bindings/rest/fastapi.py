@@ -4,6 +4,7 @@ import logging
 from types import SimpleNamespace
 from typing import Callable, Sequence
 
+logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/rest/fastapi")
 
