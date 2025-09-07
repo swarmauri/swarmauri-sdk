@@ -10,7 +10,10 @@ from autoapi.v3.runtime.kernel import (
 
 
 def test_collect_out_loads_schema() -> None:
-    app = object()
+    class App:
+        pass
+
+    app = App()
 
     class Model:
         pass
@@ -35,6 +38,6 @@ def test_collect_out_loads_schema() -> None:
     ctx = SimpleNamespace(app=app, model=Model, op=alias, temp={})
     collect_out.run(None, ctx)
     schema = ctx.temp["schema_out"]
-    assert schema.by_field["name"]["sensitive"] is True
-    assert schema.by_field["name"]["alias_out"] == "alias"
-    assert "name" in schema.expose
+    assert schema["by_field"]["name"]["sensitive"] is True
+    assert schema["by_field"]["name"]["alias_out"] == "alias"
+    assert "name" in schema["expose"]
