@@ -106,9 +106,10 @@ def _mask_one(
         val = item.get(field, None)
         if val is None:
             continue
-        if not (desc.get("sensitive") or desc.get("mask_last") is not None):
+        keep_last = desc.get("mask_last")
+        if keep_last is None:
             continue
-        item[field] = _mask_value(val, desc.get("mask_last"))
+        item[field] = _mask_value(val, keep_last)
 
 
 def _mask_value(value: Any, keep_last: Optional[int]) -> str:
