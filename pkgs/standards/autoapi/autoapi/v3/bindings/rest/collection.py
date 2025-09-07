@@ -1,18 +1,28 @@
 from __future__ import annotations
-import logging
 
 import inspect
+import logging
 from types import SimpleNamespace
-from typing import Annotated, Any, Awaitable, Callable, Dict, List, Mapping, Sequence
+from typing import (
+    Annotated,
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    Mapping,
+    Sequence,
+    List as _List,
+    Union as _Union,
+)
 
 from .common import (
     AUTOAPI_AUTH_CONTEXT_ATTR,
+    BaseModel,
     Body,
     Depends,
+    OpSpec,
     Path,
     Request,
-    BaseModel,
-    OpSpec,
     _coerce_parent_kw,
     _get_phase_chains,
     _make_list_query_dep,
@@ -24,8 +34,50 @@ from .common import (
 )
 
 
-logger = logging.getLogger("uvicorn")
-logger.debug("Loaded module v3/bindings/rest/collection")
+logging.getLogger("uvicorn").debug("Loaded module v3/bindings/rest/collection")
+
+
+def _ctx(model, alias, target, request, db, payload, parent_kw):
+    ctx: Dict[str, Any] = {
+        "request": request,
+        "db": db,
+        "payload": payload,
+        "path_params": parent_kw,
+        "env": SimpleNamespace(
+            method=alias, params=payload, target=target, model=model
+        ),
+    }
+    ac = getattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, None)
+    if ac is not None:
+        ctx["auth_context"] = ac
+    return ctx
+
+
+def _sig(nested_vars, extra):
+    params = [
+        inspect.Parameter(
+            nv,
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            annotation=Annotated[str, Path(...)],
+        )
+        for nv in nested_vars
+    ]
+    params.extend(extra)
+    return inspect.Signature(params)
+
+
+def _list_ann(tp):
+    try:
+        return list[tp]  # type: ignore[valid-type]
+    except Exception:  # pragma: no cover - best effort
+        return _List[tp]  # type: ignore[name-defined]
+
+
+def _union(a, b):
+    try:
+        return a | b  # type: ignore[operator]
+    except Exception:  # pragma: no cover - best effort
+        return _Union[a, b]
 
 
 def _make_collection_endpoint(
@@ -36,268 +88,142 @@ def _make_collection_endpoint(
     db_dep: Callable[..., Any],
     nested_vars: Sequence[str] | None = None,
 ) -> Callable[..., Awaitable[Any]]:
-    alias = sp.alias
-    target = sp.target
-    nested_vars = list(nested_vars or [])
+    alias, target, nested_vars = sp.alias, sp.target, list(nested_vars or [])
 
-    # --- No body on GET list / DELETE clear ---
     if target in {"list", "clear"}:
-        if target == "list":
-            list_dep = _make_list_query_dep(model, alias)
+        list_dep = _make_list_query_dep(model, alias) if target == "list" else None
 
-            async def _endpoint(
-                request: Request,
-                q: Mapping[str, Any] = Depends(list_dep),
-                db: Any = Depends(db_dep),
-                **kw: Any,
-            ):
-                parent_kw = {k: kw[k] for k in nested_vars if k in kw}
-                _coerce_parent_kw(model, parent_kw)
-                query = dict(q)
-                query.update(parent_kw)
+        async def _endpoint(
+            request: Request,
+            db: Any = Depends(db_dep),
+            q: Mapping[str, Any] | None = None,
+            **kw: Any,
+        ):
+            parent_kw = {k: kw[k] for k in nested_vars if k in kw}
+            _coerce_parent_kw(model, parent_kw)
+            if q is not None:
+                query = {**dict(q), **parent_kw}
                 payload = _validate_query(model, alias, target, query)
-                ctx: Dict[str, Any] = {
-                    "request": request,
-                    "db": db,
-                    "payload": payload,
-                    "path_params": parent_kw,
-                    "env": SimpleNamespace(
-                        method=alias, params=payload, target=target, model=model
-                    ),
-                }
-                ac = getattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, None)
-                if ac is not None:
-                    ctx["auth_context"] = ac
-                phases = _get_phase_chains(model, alias)
-                result = await _executor._invoke(
-                    request=request,
-                    db=db,
-                    phases=phases,
-                    ctx=ctx,
-                )
-                return _serialize_output(model, alias, target, sp, result)
-
-            params = [
-                inspect.Parameter(
-                    nv,
-                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                    annotation=Annotated[str, Path(...)],
-                )
-                for nv in nested_vars
-            ]
-            params.extend(
-                [
-                    inspect.Parameter(
-                        "request",
-                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                        annotation=Request,
-                    ),
-                    inspect.Parameter(
-                        "q",
-                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                        annotation=Annotated[Mapping[str, Any], Depends(list_dep)],
-                    ),
-                    inspect.Parameter(
-                        "db",
-                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                        annotation=Annotated[Any, Depends(db_dep)],
-                    ),
-                ]
-            )
-            _endpoint.__signature__ = inspect.Signature(params)
-        else:
-
-            async def _endpoint(
-                request: Request,
-                db: Any = Depends(db_dep),
-                **kw: Any,
-            ):
-                parent_kw = {k: kw[k] for k in nested_vars if k in kw}
-                _coerce_parent_kw(model, parent_kw)
-                payload: Mapping[str, Any] = dict(parent_kw)
-                ctx: Dict[str, Any] = {
-                    "request": request,
-                    "db": db,
-                    "payload": payload,
-                    "path_params": parent_kw,
-                    "env": SimpleNamespace(
-                        method=alias, params=payload, target=target, model=model
-                    ),
-                }
-                ac = getattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, None)
-                if ac is not None:
-                    ctx["auth_context"] = ac
-                phases = _get_phase_chains(model, alias)
-                result = await _executor._invoke(
-                    request=request,
-                    db=db,
-                    phases=phases,
-                    ctx=ctx,
-                )
-                return _serialize_output(model, alias, target, sp, result)
-
-            params = [
-                inspect.Parameter(
-                    nv,
-                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                    annotation=Annotated[str, Path(...)],
-                )
-                for nv in nested_vars
-            ]
-            params.extend(
-                [
-                    inspect.Parameter(
-                        "request",
-                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                        annotation=Request,
-                    ),
-                    inspect.Parameter(
-                        "db",
-                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                        annotation=Annotated[Any, Depends(db_dep)],
-                    ),
-                ]
-            )
-            _endpoint.__signature__ = inspect.Signature(params)
-
-        _endpoint.__name__ = f"rest_{model.__name__}_{alias}_collection"
-        _endpoint.__qualname__ = _endpoint.__name__
-        _endpoint.__doc__ = (
-            f"REST collection endpoint for {model.__name__}.{alias} ({target})"
-        )
-        # NOTE: do NOT set body annotation for no-body endpoints
-        return _endpoint
-
-    # --- Body-based collection endpoints: create / bulk_* ---
-
-    body_model = _request_model_for(sp, model)
-    base_annotation = body_model if body_model is not None else Mapping[str, Any]
-
-    if target in {"bulk_create", "bulk_update", "bulk_replace", "bulk_merge"}:
-        alias_ns = getattr(
-            getattr(model, "schemas", None) or SimpleNamespace(), alias, None
-        )
-        item_model = getattr(alias_ns, "in_item", None) if alias_ns else None
-        if (
-            item_model
-            and inspect.isclass(item_model)
-            and issubclass(item_model, BaseModel)
-        ):
-            try:
-                body_annotation = list[item_model]  # type: ignore[valid-type]
-            except Exception:  # pragma: no cover - best effort
-                body_annotation = List[item_model]  # type: ignore[name-defined]
-        elif body_model is None:
-            try:
-                body_annotation = list[Mapping[str, Any]]  # type: ignore[valid-type]
-            except Exception:  # pragma: no cover - best effort
-                body_annotation = List[Mapping[str, Any]]  # type: ignore[name-defined]
-        else:
-            body_annotation = base_annotation
-    else:
-        if target in {"create", "update", "replace", "merge"}:
-            try:
-                list_ann = list[Mapping[str, Any]]  # type: ignore[valid-type]
-            except Exception:  # pragma: no cover - best effort
-                list_ann = List[Mapping[str, Any]]  # type: ignore[name-defined]
-            if body_model is not None:
-                try:
-                    body_annotation = body_model | list_ann  # type: ignore[operator]
-                except Exception:  # pragma: no cover - best effort
-                    from typing import Union as _Union
-
-                    body_annotation = _Union[body_model, list_ann]
             else:
-                try:
-                    body_annotation = Mapping[str, Any] | list_ann  # type: ignore[operator]
-                except Exception:  # pragma: no cover - best effort
-                    from typing import Union as _Union
+                payload = dict(parent_kw)
+            ctx = _ctx(model, alias, target, request, db, payload, parent_kw)
+            phases = _get_phase_chains(model, alias)
+            result = await _executor._invoke(
+                request=request, db=db, phases=phases, ctx=ctx
+            )
+            return _serialize_output(model, alias, target, sp, result)
 
-                    body_annotation = _Union[Mapping[str, Any], list_ann]
-        else:
-            body_annotation = base_annotation
-
-    async def _endpoint(
-        request: Request,
-        db: Any = Depends(db_dep),
-        body=Body(...),
-        **kw: Any,
-    ):
-        parent_kw = {k: kw[k] for k in nested_vars if k in kw}
-        _coerce_parent_kw(model, parent_kw)
-        payload = _validate_body(model, alias, target, body)
-        exec_alias = alias
-        exec_target = target
-        if (
-            target in {"create", "update", "replace", "merge"}
-            and isinstance(payload, Sequence)
-            and not isinstance(payload, Mapping)
-        ):
-            exec_alias = f"bulk_{target}"
-            exec_target = f"bulk_{target}"
-        if parent_kw:
-            if isinstance(payload, Mapping):
-                payload = dict(payload)
-                payload.update(parent_kw)
-            else:
-                payload = parent_kw
-        ctx: Dict[str, Any] = {
-            "request": request,
-            "db": db,
-            "payload": payload,
-            "path_params": parent_kw,
-            "env": SimpleNamespace(
-                method=exec_alias, params=payload, target=exec_target, model=model
-            ),
-        }
-        ac = getattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, None)
-        if ac is not None:
-            ctx["auth_context"] = ac
-        ctx["response_serializer"] = lambda r: _serialize_output(
-            model, exec_alias, exec_target, sp, r
-        )
-        phases = _get_phase_chains(model, exec_alias)
-        result = await _executor._invoke(
-            request=request,
-            db=db,
-            phases=phases,
-            ctx=ctx,
-        )
-        return result
-
-    params = [
-        inspect.Parameter(
-            nv,
-            inspect.Parameter.POSITIONAL_OR_KEYWORD,
-            annotation=Annotated[str, Path(...)],
-        )
-        for nv in nested_vars
-    ]
-    params.extend(
-        [
+        params = [
             inspect.Parameter(
-                "request",
+                nv,
                 inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                annotation=Request,
-            ),
-            inspect.Parameter(
-                "db",
-                inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                annotation=Annotated[Any, Depends(db_dep)],
-            ),
-            inspect.Parameter(
-                "body",
-                inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                annotation=Annotated[body_annotation, Body(...)],
-            ),
+                annotation=Annotated[str, Path(...)],
+            )
+            for nv in nested_vars
         ]
-    )
-    _endpoint.__signature__ = inspect.Signature(params)
+        params.extend(
+            [
+                inspect.Parameter(
+                    "request",
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Request,
+                ),
+                inspect.Parameter(
+                    "db",
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Annotated[Any, Depends(db_dep)],
+                ),
+            ]
+        )
+        if target == "list":
+            params.insert(
+                len(nested_vars) + 1,
+                inspect.Parameter(
+                    "q",
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Annotated[Mapping[str, Any], Depends(list_dep)],
+                ),
+            )
+        _endpoint.__signature__ = inspect.Signature(params)
+    else:
+        body_model = _request_model_for(sp, model)
+        base = body_model or Mapping[str, Any]
+        if target.startswith("bulk_"):
+            alias_ns = getattr(
+                getattr(model, "schemas", None) or SimpleNamespace(), alias, None
+            )
+            item_model = getattr(alias_ns, "in_item", None) if alias_ns else None
+            body_annotation = (
+                _list_ann(item_model)
+                if isinstance(item_model, type) and issubclass(item_model, BaseModel)
+                else _list_ann(Mapping[str, Any])
+                if body_model is None
+                else base
+            )
+        elif target in {"create", "update", "replace", "merge"}:
+            body_annotation = _union(
+                base if body_model else Mapping[str, Any],
+                _list_ann(Mapping[str, Any]),
+            )
+        else:
+            body_annotation = base
+
+        async def _endpoint(
+            request: Request,
+            db: Any = Depends(db_dep),
+            body=Body(...),
+            **kw: Any,
+        ):
+            parent_kw = {k: kw[k] for k in nested_vars if k in kw}
+            _coerce_parent_kw(model, parent_kw)
+            payload = _validate_body(model, alias, target, body)
+            is_seq = (
+                target in {"create", "update", "replace", "merge"}
+                and isinstance(payload, Sequence)
+                and not isinstance(payload, Mapping)
+            )
+            exec_alias = f"bulk_{target}" if is_seq else alias
+            exec_target = f"bulk_{target}" if is_seq else target
+            if parent_kw:
+                if isinstance(payload, Mapping):
+                    payload = {**payload, **parent_kw}
+                else:
+                    payload = parent_kw
+            ctx = _ctx(model, exec_alias, exec_target, request, db, payload, parent_kw)
+            ctx["response_serializer"] = lambda r: _serialize_output(
+                model, exec_alias, exec_target, sp, r
+            )
+            phases = _get_phase_chains(model, exec_alias)
+            result = await _executor._invoke(
+                request=request, db=db, phases=phases, ctx=ctx
+            )
+            return result
+
+        _endpoint.__signature__ = _sig(
+            nested_vars,
+            [
+                inspect.Parameter(
+                    "request",
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Request,
+                ),
+                inspect.Parameter(
+                    "db",
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Annotated[Any, Depends(db_dep)],
+                ),
+                inspect.Parameter(
+                    "body",
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Annotated[body_annotation, Body(...)],
+                ),
+            ],
+        )
+        _endpoint.__annotations__["body"] = body_annotation
 
     _endpoint.__name__ = f"rest_{model.__name__}_{alias}_collection"
     _endpoint.__qualname__ = _endpoint.__name__
     _endpoint.__doc__ = (
         f"REST collection endpoint for {model.__name__}.{alias} ({target})"
     )
-    _endpoint.__annotations__["body"] = body_annotation
     return _endpoint
