@@ -42,11 +42,13 @@ def run(obj: Optional[object], ctx: Any) -> None:
     """
     # Non-persisting ops should have pruned this anchor; retain guard for safety.
     if getattr(ctx, "persist", True) is False:
+        logger.debug("Skipping resolve:assemble; ctx.persist is False")
         return
 
     logger.debug("Running resolve:assemble")
     specs: Mapping[str, Any] = getattr(ctx, "specs", {}) or {}
     if not specs:
+        logger.debug("No specs provided; nothing to assemble")
         return
 
     inbound = _coerce_inbound(getattr(ctx, "temp", {}).get("in_values", None), ctx)
@@ -70,13 +72,17 @@ def run(obj: Optional[object], ctx: Any) -> None:
         if present:
             if _is_virtual(col):
                 virtual_in[field] = value
+                logger.debug("Captured virtual inbound %s=%s", field, value)
             elif in_enabled:
                 assembled[field] = value
-            # if not in_enabled, ignore inbound quietly
+                logger.debug("Assembled inbound %s=%s", field, value)
+            else:
+                logger.debug("Inbound for field %s ignored; in_enabled is False", field)
             continue
 
         # Not present in inbound → ABSENT semantics
         absent.append(field)
+        logger.debug("Field %s absent from inbound", field)
 
         # Apply server-side default if provided and inbound is ABSENT.
         default_fn = getattr(col, "default_factory", None)
@@ -85,7 +91,9 @@ def run(obj: Optional[object], ctx: Any) -> None:
                 default_val = default_fn(_ctx_view(ctx))
                 assembled[field] = default_val
                 used_default.append(field)
+                logger.debug("Applied default for field %s", field)
             except Exception:
+                logger.debug("Default factory failed for field %s", field)
                 # Be conservative: do not fail the request here; leave field absent
                 # Handler/DB defaults may still populate via server_default/RETURNING.
                 pass
@@ -95,6 +103,13 @@ def run(obj: Optional[object], ctx: Any) -> None:
     temp["virtual_in"] = virtual_in
     temp["absent_fields"] = tuple(absent)
     temp["used_default_factory"] = tuple(used_default)
+    logger.debug(
+        "Assembled values: %s, virtual_in: %s, absent: %s, defaults: %s",
+        assembled,
+        virtual_in,
+        absent,
+        used_default,
+    )
 
 
 # ──────────────────────────────────────────────────────────────────────────────
