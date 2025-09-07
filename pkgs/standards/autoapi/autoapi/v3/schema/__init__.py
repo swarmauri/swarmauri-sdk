@@ -9,15 +9,6 @@ from .utils import (
     _make_pk_model,
 )
 from .get_schema import get_schema
-from .col_info import (
-    VALID_KEYS,
-    VALID_VERBS,
-    WRITE_VERBS,
-    normalize,
-    check,
-    should_include_in_input,
-    should_include_in_output,
-)
 from .decorators import schema_ctx
 from .collect import collect_decorated_schemas
 from ._schema import Schema
@@ -35,13 +26,6 @@ __all__ = [
     "_make_deleted_response_model",
     "_make_pk_model",
     "get_schema",
-    "VALID_KEYS",
-    "VALID_VERBS",
-    "WRITE_VERBS",
-    "normalize",
-    "check",
-    "should_include_in_input",
-    "should_include_in_output",
     "schema_ctx",
     "collect_decorated_schemas",
     "Schema",
