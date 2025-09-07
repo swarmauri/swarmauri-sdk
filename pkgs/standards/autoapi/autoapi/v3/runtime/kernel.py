@@ -22,7 +22,7 @@ from typing import (
 from .executor import _invoke, _Ctx
 from . import events as _ev
 from ..op.types import PHASES, StepFn
-from ..column.collect import collect_columns
+from ..column.mro_collect import mro_collect_columns
 
 logger = logging.getLogger(__name__)
 
@@ -105,7 +105,7 @@ class _SpecsOnceCache:
         with self._lock:
             rv = self._d.get(model)
             if rv is None:
-                rv = collect_columns(model)
+                rv = mro_collect_columns(model)
                 self._d[model] = rv
         return rv
 

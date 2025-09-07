@@ -6,7 +6,8 @@ import logging
 from typing import Any, Callable, Dict, Iterable, Union
 
 from ..runtime.executor import _Ctx
-from ..op.collect import alias_map_for, apply_alias
+from ..op.collect import apply_alias
+from ..op.mro_collect import mro_alias_map_for
 from ..op.decorators import _maybe_await, _unwrap
 from .decorators import HOOK_DECLS_ATTR, Hook
 
@@ -53,7 +54,7 @@ def collect_decorated_hooks(
 
     logger.info("Collecting hooks for %s", table.__name__)
     mapping: Dict[str, Dict[str, list[Callable[..., Any]]]] = {}
-    aliases = alias_map_for(table)
+    aliases = mro_alias_map_for(table)
 
     def _resolve_ops(spec: Union[str, Iterable[str]]) -> Iterable[str]:
         if spec == "*":

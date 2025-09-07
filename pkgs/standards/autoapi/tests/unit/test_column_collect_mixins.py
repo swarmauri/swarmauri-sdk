@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from autoapi.v3.column.collect import collect_columns
+from autoapi.v3.column.mro_collect import mro_collect_columns
 from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.orm.tables._base import Base
 from autoapi.v3.specs import S, acol
@@ -16,6 +16,6 @@ class Thing(Base, GUIDPk, NameMixin):
 
 
 def test_collect_columns_includes_mixin_fields():
-    specs = collect_columns(Thing)
+    specs = mro_collect_columns(Thing)
     assert "id" in specs
     assert "name" in specs

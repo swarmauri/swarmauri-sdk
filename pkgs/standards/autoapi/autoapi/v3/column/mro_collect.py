@@ -8,8 +8,8 @@ from .column_spec import ColumnSpec
 logger = logging.getLogger("uvicorn")
 
 
-def collect_columns(model: type) -> Dict[str, ColumnSpec]:
-    """Gather ColumnSpecs declared on *model* and all mixins.
+def mro_collect_columns(model: type) -> Dict[str, ColumnSpec]:
+    """Collect ColumnSpecs declared on *model* and all mixins.
 
     Iterates across the model's MRO so that mixin-defined columns are included
     in the resulting mapping. Later definitions take precedence over earlier
@@ -28,4 +28,4 @@ def collect_columns(model: type) -> Dict[str, ColumnSpec]:
     return out
 
 
-__all__ = ["collect_columns"]
+__all__ = ["mro_collect_columns"]

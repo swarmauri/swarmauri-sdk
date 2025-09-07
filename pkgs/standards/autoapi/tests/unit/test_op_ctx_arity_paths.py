@@ -1,6 +1,6 @@
 from autoapi.v3.types import App
 from autoapi.v3 import op_ctx
-from autoapi.v3.op import collect_decorated_ops
+from autoapi.v3.op.mro_collect import mro_collect_decorated_ops
 from autoapi.v3.bindings.rest.router import _build_router
 from autoapi.v3.orm.tables import Base
 from autoapi.v3.orm.mixins import GUIDPk
@@ -18,7 +18,7 @@ def test_member_arity_rest_path_includes_pk():
         def do(cls, ctx):
             return None
 
-    spec = collect_decorated_ops(MemberModel)[0]
+    spec = mro_collect_decorated_ops(MemberModel)[0]
     router = _build_router(MemberModel, [spec])
     paths = {route.path for route in router.routes}
     assert f"/{MemberModel.__name__.lower()}/{{item_id}}/do" in paths
@@ -35,7 +35,7 @@ def test_collection_arity_rest_path_excludes_pk():
         def do(cls, ctx):
             return None
 
-    spec = collect_decorated_ops(CollectionModel)[0]
+    spec = mro_collect_decorated_ops(CollectionModel)[0]
     router = _build_router(CollectionModel, [spec])
     paths = {route.path for route in router.routes}
     assert f"/{CollectionModel.__name__.lower()}/do" in paths
@@ -52,7 +52,7 @@ def test_member_arity_openapi_has_path_param():
         def do(cls, ctx):
             return None
 
-    spec = collect_decorated_ops(MemberModel)[0]
+    spec = mro_collect_decorated_ops(MemberModel)[0]
     router = _build_router(MemberModel, [spec])
     app = App()
     app.include_router(router)
@@ -73,7 +73,7 @@ def test_collection_arity_openapi_has_no_path_param():
         def do(cls, ctx):
             return None
 
-    spec = collect_decorated_ops(CollectionModel)[0]
+    spec = mro_collect_decorated_ops(CollectionModel)[0]
     router = _build_router(CollectionModel, [spec])
     app = App()
     app.include_router(router)

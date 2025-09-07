@@ -14,12 +14,7 @@ from .types import (
     PHASES,
     VerbAliasPolicy,
 )
-from .collect import (
-    resolve,
-    collect_decorated_ops,
-    alias_map_for,
-    apply_alias,
-)
+from .collect import resolve, apply_alias
 from .model_registry import (
     OpspecRegistry,
     get_registry,
@@ -41,8 +36,6 @@ __all__ = [
     "PHASES",
     "VerbAliasPolicy",
     "resolve",
-    "collect_decorated_ops",
-    "alias_map_for",
     "apply_alias",
     "OpspecRegistry",
     "get_registry",
