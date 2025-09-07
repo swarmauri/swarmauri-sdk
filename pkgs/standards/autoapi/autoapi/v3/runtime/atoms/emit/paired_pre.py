@@ -5,7 +5,7 @@ from typing import Any, Dict, Mapping, MutableMapping, Optional
 import logging
 
 from ... import events as _ev
-from ...kernel import _default_kernel as K
+from ...opview import opview_from_ctx, _ensure_temp
 
 # This atom runs before the flush, after values have been assembled/generated.
 ANCHOR = _ev.EMIT_ALIASES_PRE  # "emit:aliases:pre_flush"
@@ -53,19 +53,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
         logger.debug("No paired values found; nothing to schedule")
         return
 
-    app = getattr(ctx, "app", None)
-    model = getattr(ctx, "model", None) or type(getattr(ctx, "obj", None))
-    alias = getattr(ctx, "op", None) or getattr(ctx, "method", None)
-    if app and model and alias:
-        ov = K.get_opview(app, model, alias)
-    else:
-        if not (model and alias):
-            logger.debug(
-                "emit:paired_pre: missing ctx.app/model/op and no specs; skipping"
-            )
-            return
-        specs = getattr(ctx, "specs", None) or K.get_specs(model)
-        ov = K._compile_opview_from_specs(specs, None)
+    ov = opview_from_ctx(ctx)
 
     for field, entry in paired.items():
         if not isinstance(entry, dict):
@@ -96,14 +84,6 @@ def run(obj: Optional[object], ctx: Any) -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 # Internals
 # ──────────────────────────────────────────────────────────────────────────────
-
-
-def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
-    temp = getattr(ctx, "temp", None)
-    if not isinstance(temp, dict):
-        temp = {}
-        setattr(ctx, "temp", temp)
-    return temp
 
 
 def _ensure_emit_buf(temp: MutableMapping[str, Any]) -> Dict[str, list]:

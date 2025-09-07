@@ -5,7 +5,7 @@ from typing import Any, Dict, Mapping, MutableMapping, Optional, Sequence
 import logging
 
 from ... import events as _ev
-from ...kernel import _default_kernel as K
+from ...opview import opview_from_ctx, ensure_schema_out, _ensure_temp
 
 # Runs at the very end of the lifecycle (after wire:dump).
 ANCHOR = _ev.OUT_DUMP  # "out:dump"
@@ -39,17 +39,8 @@ def run(obj: Optional[object], ctx: Any) -> None:
       emit_aliases.post/read).
     """
     logger.debug("Running out:masking")
-    app = getattr(ctx, "app", None)
-    model = getattr(ctx, "model", None) or type(getattr(ctx, "obj", None))
-    alias = getattr(ctx, "op", None) or getattr(ctx, "method", None)
-    if app and model and alias:
-        ov = K.get_opview(app, model, alias)
-    else:
-        if not (model and alias):
-            logger.debug("out:masking: missing ctx.app/model/op and no specs; skipping")
-            return
-        specs = getattr(ctx, "specs", None) or K.get_specs(model)
-        ov = K._compile_opview_from_specs(specs, None)
+    ov = opview_from_ctx(ctx)
+    schema_out = ensure_schema_out(ctx, ov)
 
     temp = _ensure_temp(ctx)
     payload = temp.get("response_payload")
@@ -61,12 +52,12 @@ def run(obj: Optional[object], ctx: Any) -> None:
 
     if isinstance(payload, dict):
         logger.debug("Masking single-object payload")
-        _mask_one(payload, ov.schema_out.by_field, skip_aliases)
+        _mask_one(payload, schema_out["by_field"], skip_aliases)
     elif isinstance(payload, (list, tuple)):
         logger.debug("Masking list payload with %d items", len(payload))
         for item in payload:
             if isinstance(item, dict):
-                _mask_one(item, ov.schema_out.by_field, skip_aliases)
+                _mask_one(item, schema_out["by_field"], skip_aliases)
             else:
                 logger.debug("Skipping non-dict item in payload: %s", item)
     else:
@@ -78,14 +69,6 @@ def run(obj: Optional[object], ctx: Any) -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 # Internals
 # ──────────────────────────────────────────────────────────────────────────────
-
-
-def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
-    temp = getattr(ctx, "temp", None)
-    if not isinstance(temp, dict):
-        temp = {}
-        setattr(ctx, "temp", temp)
-    return temp
 
 
 def _ensure_emit_buf(temp: MutableMapping[str, Any]) -> Dict[str, list]:
