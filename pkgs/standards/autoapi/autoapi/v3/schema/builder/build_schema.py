@@ -3,17 +3,16 @@
 from __future__ import annotations
 
 import logging
-import warnings
-from typing import Any, Dict, Iterable, Mapping, Set, Tuple, Type, Union
+from typing import Any, Dict, Iterable, Set, Tuple, Type, Union
 
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, create_model
 
 from ..utils import namely_model
 from ...column.collect import collect_columns
 from .cache import _SchemaCache
-from .compat import _info_check, hybrid_property
+from .compat import hybrid_property
 from .extras import _merge_request_extras, _merge_response_extras
-from .helpers import _add_field, _bool, _is_required, _python_type
+from .helpers import _add_field, _is_required, _python_type
 
 logger = logging.getLogger(__name__)
 
@@ -91,46 +90,7 @@ def _build_schema(
                 if allowed_verbs is not None and verb not in set(allowed_verbs):
                     continue
 
-        # Column.info["autoapi"]
-        meta_src = getattr(col, "info", {}) or {}
-        if isinstance(meta_src, Mapping) and "autoapi" in meta_src:
-            warnings.warn(
-                "col.info['autoapi'] is deprecated and support will be removed;"
-                " behavior is no longer guaranteed for col.info['autoapi'] based"
-                " column configuration.",
-                DeprecationWarning,
-                stacklevel=5,
-            )
-        meta = (meta_src.get("autoapi") if isinstance(meta_src, dict) else None) or {}
-        _info_check(meta, attr_name, orm_cls.__name__)
         logger.debug("schema: processing column %s (verb=%s)", attr_name, verb)
-
-        # Legacy flags
-        if verb == "create" and getattr(meta_src, "get", lambda *_: None)("no_create"):
-            continue
-        if verb in {"update", "replace"} and getattr(meta_src, "get", lambda *_: None)(
-            "no_update"
-        ):
-            continue
-
-        # Disable on verb
-        if verb in set(meta.get("disable_on", ()) or ()):
-            continue
-
-        # write_only → hide from read schemas
-        if meta.get("write_only") and verb == "read":
-            continue
-
-        # read_only policies
-        ro = meta.get("read_only")
-        if isinstance(ro, Mapping):
-            if _bool(ro.get(verb)):
-                continue
-        elif isinstance(ro, (set, list, tuple)):
-            if verb in ro:
-                continue
-        elif ro and verb != "read":
-            continue
 
         # Determine type and requiredness
         py_t = _python_type(col)
@@ -138,14 +98,22 @@ def _build_schema(
 
         # Field construction (collect kwargs then create Field once)
         field_kwargs: Dict[str, Any] = {}
-        if "default_factory" in meta:
-            field_kwargs["default_factory"] = meta["default_factory"]
+        default_factory = getattr(spec, "default_factory", None)
+        if default_factory and verb in set(
+            getattr(getattr(spec, "io", None), "in_verbs", []) or []
+        ):
+            field_kwargs["default_factory"] = default_factory
             required = False
         else:
             field_kwargs["default"] = None if not required else ...
 
-        if "examples" in meta:
-            field_kwargs["examples"] = meta["examples"]
+        examples = (
+            getattr(getattr(spec, "field", None), "constraints", {}).get("examples")
+            if spec is not None
+            else None
+        )
+        if examples is not None:
+            field_kwargs["examples"] = examples
 
         # IOSpec aliases → Pydantic validation/serialization aliases
         alias_in = getattr(io, "alias_in", None) if io is not None else None
@@ -226,21 +194,7 @@ def _build_schema(
 
     # ── PASS 2: reject @hybrid_property usage
     for attr_name, attr in list(getattr(orm_cls, "__dict__", {}).items()):
-        if not isinstance(attr, hybrid_property):
-            continue
-
-        meta_src = getattr(attr, "info", {}) or {}
-        if isinstance(meta_src, Mapping) and "autoapi" in meta_src:
-            warnings.warn(
-                "col.info['autoapi'] is deprecated and support will be removed;"
-                " behavior is no longer guaranteed for col.info['autoapi'] based"
-                " column configuration.",
-                DeprecationWarning,
-                stacklevel=5,
-            )
-        meta = (meta_src.get("autoapi") if isinstance(meta_src, dict) else None) or {}
-
-        if meta.get("hybrid"):
+        if isinstance(attr, hybrid_property):
             raise ValueError(
                 f"{orm_cls.__name__}.{attr_name}: hybrid_property is not supported"
             )
