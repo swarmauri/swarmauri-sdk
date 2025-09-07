@@ -42,3 +42,35 @@ def test_out_masking_applies_to_sensitive_fields() -> None:
     masking.run(None, ctx)
     assert ctx.temp["response_payload"]["secret"] == "••••1234"
     assert ctx.temp["response_payload"]["token"] == "abc"
+
+
+def test_out_masking_handles_missing_payload_gracefully() -> None:
+    class App:
+        pass
+
+    app = App()
+
+    class Model:
+        pass
+
+    alias = "read"
+    ov = OpView(
+        schema_in=SchemaIn(fields=(), by_field={}),
+        schema_out=SchemaOut(
+            fields=("secret",),
+            by_field={"secret": {"sensitive": True}},
+            expose=("secret",),
+        ),
+        paired_index={},
+        virtual_producers={},
+        to_stored_transforms={},
+        refresh_hints=(),
+    )
+    K._opviews[app] = {(Model, alias): ov}
+    K._primed[app] = True
+
+    temp = {}
+    ctx = SimpleNamespace(app=app, model=Model, op=alias, temp=temp)
+    masking.run(None, ctx)
+    assert "response_payload" not in ctx.temp
+    assert "emit_aliases" not in ctx.temp

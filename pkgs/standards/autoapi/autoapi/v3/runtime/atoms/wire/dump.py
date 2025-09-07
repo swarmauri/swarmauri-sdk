@@ -44,7 +44,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
     temp = _ensure_temp(ctx)
     out_values = temp.get("out_values")
 
-    if out_values is None:
+    if not out_values:
         logger.debug("No out_values available; skipping dump")
         return  # nothing to dump
 
@@ -74,7 +74,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
                 temp["dump_conflicts"] = tuple(sorted(set(conflicts)))
         temp["response_payload"] = payload
         logger.debug("Response payload built: %s", payload)
-        return payload
+        return None
 
     # List/tuple of objects (already expanded by executor)
     if isinstance(out_values, (list, tuple)) and all(
@@ -86,12 +86,12 @@ def run(obj: Optional[object], ctx: Any) -> None:
             for item in out_values  # type: ignore[arg-type]
         ]
         temp["response_payload"] = payload_list
-        return payload_list
+        return None
 
     # Unknown shape — stash as-is to avoid surprises (transport may serialize).
     temp["response_payload"] = out_values
     logger.debug("Stored opaque response payload: %s", type(out_values).__name__)
-    return out_values
+    return None
 
 
 # ──────────────────────────────────────────────────────────────────────────────
