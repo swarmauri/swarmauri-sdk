@@ -68,9 +68,10 @@ class _ResourceProxy:
             if request is not None:
                 logger.debug("Request provided for %s.%s", self._model.__name__, alias)
                 base_ctx.setdefault("request", request)
-            # surface contextual metadata for runtime atoms
-            base_ctx.setdefault("app", getattr(request, "app", None))
-            base_ctx.setdefault("api", getattr(request, "app", None))
+                base_ctx.setdefault("app", getattr(request, "app", None))
+            else:
+                base_ctx.setdefault("app", self._api)
+            base_ctx.setdefault("api", self._api)
             base_ctx.setdefault("model", self._model)
             base_ctx.setdefault("op", alias)
             base_ctx.setdefault("method", alias)
@@ -81,9 +82,6 @@ class _ResourceProxy:
                     method=alias, params=norm_payload, target=alias, model=self._model
                 ),
             )
-            base_ctx.setdefault("api", self._api)
-            base_ctx.setdefault("model", self._model)
-            base_ctx.setdefault("op", alias)
             if self._serialize:
                 logger.debug(
                     "Serialization enabled for %s.%s", self._model.__name__, alias
