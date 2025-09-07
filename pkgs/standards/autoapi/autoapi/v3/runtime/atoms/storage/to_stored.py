@@ -5,7 +5,7 @@ import logging
 from typing import Any, Dict, Mapping, MutableMapping, Optional
 
 from ... import events as _ev
-from ...kernel import _default_kernel as K
+from ...opview import opview_from_ctx, ensure_schema_in, _ensure_temp
 
 # Runs right before the handler flushes to the DB.
 ANCHOR = _ev.PRE_FLUSH  # "pre:flush"
@@ -34,18 +34,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
         logger.debug("Skipping storage:to_stored; ctx.persist is False")
         return
 
-    app = getattr(ctx, "app", None)
-    model = getattr(ctx, "model", None) or type(getattr(ctx, "obj", None))
-    alias = getattr(ctx, "op", None) or getattr(ctx, "method", None)
-    ov = None
-    if app and model and alias:
-        ov = K.get_opview(app, model, alias)
-    else:
-        if not (model and alias):
-            logger.debug("to_stored: missing ctx.app/model/op and no specs; skipping")
-            return
-        specs = getattr(ctx, "specs", None) or K.get_specs(model)
-        ov = K._compile_opview_from_specs(specs, None)
+    ov = opview_from_ctx(ctx)
 
     temp = _ensure_temp(ctx)
     assembled = _ensure_dict(temp, "assembled_values")
@@ -57,7 +46,8 @@ def run(obj: Optional[object], ctx: Any) -> None:
     # Prefer explicit obj (hydrated instance), else ctx.model if adapter provided it
     target_obj = obj or getattr(ctx, "model", None)
 
-    for field in sorted(ov.schema_in.fields):
+    schema_in = ensure_schema_in(ctx, ov)
+    for field in sorted(schema_in["fields"]):
         if field in ov.paired_index:
             if field in pf_paired or field in paired_values:
                 raw = None
@@ -86,7 +76,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
                 logger.debug("Derived stored value for paired field %s", field)
                 continue
 
-            nullable = ov.schema_in.by_field.get(field, {}).get("nullable", True)
+            nullable = schema_in["by_field"].get(field, {}).get("nullable", True)
             if (
                 not nullable
                 and field not in assembled
@@ -140,14 +130,6 @@ def _has_attr_with_value(target: Optional[object], field: str) -> bool:
         return getattr(target, field) is not None
     except Exception:
         return False
-
-
-def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
-    tmp = getattr(ctx, "temp", None)
-    if not isinstance(tmp, dict):
-        tmp = {}
-        setattr(ctx, "temp", tmp)
-    return tmp
 
 
 def _ensure_dict(temp: MutableMapping[str, Any], key: str) -> Dict[str, Any]:

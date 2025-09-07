@@ -251,6 +251,23 @@ class Kernel:
             chains.setdefault(ph, [])
         return chains
 
+    async def invoke(
+        self,
+        *,
+        model: type,
+        alias: str,
+        db: Any,
+        request: Any | None = None,
+        ctx: Optional[Mapping[str, Any]] = None,
+    ) -> Any:
+        phases = self.build(model, alias)
+        base_ctx = _Ctx.ensure(request=request, db=db, seed=ctx)
+        if getattr(base_ctx, "model", None) is None:
+            base_ctx.model = model
+        if getattr(base_ctx, "op", None) is None:
+            base_ctx.op = alias
+        return await _invoke(request=request, db=db, phases=phases, ctx=base_ctx)
+
     def plan_labels(self, model: type, alias: str) -> list[str]:
         labels: list[str] = []
         chains = self.build(model, alias)
@@ -429,6 +446,10 @@ async def run(
 ) -> Any:
     phases = _default_kernel.build(model, alias)
     base_ctx = _Ctx.ensure(request=request, db=db, seed=ctx)
+    if getattr(base_ctx, "model", None) is None:
+        base_ctx.model = model
+    if getattr(base_ctx, "op", None) is None:
+        base_ctx.op = alias
     return await _invoke(request=request, db=db, phases=phases, ctx=base_ctx)
 
 

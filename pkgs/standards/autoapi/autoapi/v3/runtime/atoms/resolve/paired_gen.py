@@ -6,7 +6,7 @@ import logging
 from typing import Any, Dict, MutableMapping, Optional
 
 from ... import events as _ev
-from ...kernel import _default_kernel as K
+from ...opview import opview_from_ctx, _ensure_temp
 
 # Runs in HANDLER phase, before pre:flush (and before storage transforms).
 ANCHOR = _ev.RESOLVE_VALUES  # "resolve:values"
@@ -51,19 +51,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
         return
 
     logger.debug("Running resolve:paired_gen")
-    app = getattr(ctx, "app", None)
-    model = getattr(ctx, "model", None) or type(getattr(ctx, "obj", None))
-    alias = getattr(ctx, "op", None) or getattr(ctx, "method", None)
-    if app and model and alias:
-        ov = K.get_opview(app, model, alias)
-    else:
-        if not (model and alias):
-            logger.debug(
-                "resolve:paired_gen: missing ctx.app/model/op and no specs; skipping"
-            )
-            return
-        specs = getattr(ctx, "specs", None) or K.get_specs(model)
-        ov = K._compile_opview_from_specs(specs, None)
+    ov = opview_from_ctx(ctx)
 
     temp = _ensure_temp(ctx)
     assembled = _ensure_dict(temp, "assembled_values")
@@ -122,14 +110,6 @@ def run(obj: Optional[object], ctx: Any) -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 # Internals
 # ──────────────────────────────────────────────────────────────────────────────
-
-
-def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
-    tmp = getattr(ctx, "temp", None)
-    if not isinstance(tmp, dict):
-        tmp = {}
-        setattr(ctx, "temp", tmp)
-    return tmp
 
 
 def _ensure_dict(temp: MutableMapping[str, Any], key: str) -> Dict[str, Any]:

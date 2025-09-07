@@ -1,11 +1,11 @@
 # autoapi/v3/runtime/atoms/resolve/assemble.py
 from __future__ import annotations
 
-from typing import Any, Mapping, MutableMapping, Optional, Dict, Tuple
+from typing import Any, Mapping, Optional, Dict, Tuple
 import logging
 
 from ... import events as _ev
-from ...kernel import _default_kernel as K
+from ...opview import opview_from_ctx, ensure_schema_in, _ensure_temp
 
 # Runs in HANDLER phase, before pre:flush and any storage transforms.
 ANCHOR = _ev.RESOLVE_VALUES  # "resolve:values"
@@ -46,19 +46,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
         return
 
     logger.debug("Running resolve:assemble")
-    app = getattr(ctx, "app", None)
-    model = getattr(ctx, "model", None) or type(getattr(ctx, "obj", None))
-    alias = getattr(ctx, "op", None) or getattr(ctx, "method", None)
-    if app and model and alias:
-        ov = K.get_opview(app, model, alias)
-    else:
-        if not (model and alias):
-            logger.debug(
-                "resolve:assemble: missing ctx.app/model/op and no specs; skipping"
-            )
-            return
-        specs = getattr(ctx, "specs", None) or K.get_specs(model)
-        ov = K._compile_opview_from_specs(specs, None)
+    ov = opview_from_ctx(ctx)
 
     inbound = _coerce_inbound(getattr(ctx, "temp", {}).get("in_values", None), ctx)
 
@@ -69,8 +57,9 @@ def run(obj: Optional[object], ctx: Any) -> None:
     used_default: list[str] = []
 
     # Iterate fields in a stable order
-    for field in sorted(ov.schema_in.fields):
-        meta = ov.schema_in.by_field.get(field, {})
+    schema_in = ensure_schema_in(ctx, ov)
+    for field in sorted(schema_in["fields"]):
+        meta = schema_in["by_field"].get(field, {})
         in_enabled = meta.get("in_enabled", True)
         is_virtual = meta.get("virtual", False)
 
@@ -114,14 +103,6 @@ def run(obj: Optional[object], ctx: Any) -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 # Internals
 # ──────────────────────────────────────────────────────────────────────────────
-
-
-def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
-    tmp = getattr(ctx, "temp", None)
-    if not isinstance(tmp, dict):
-        tmp = {}
-        setattr(ctx, "temp", tmp)
-    return tmp
 
 
 def _coerce_inbound(candidate: Any, ctx: Any) -> Mapping[str, Any]:

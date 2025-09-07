@@ -1,11 +1,11 @@
 # autoapi/v3/runtime/atoms/refresh/demand.py
 from __future__ import annotations
 
-from typing import Any, Iterable, MutableMapping, Optional
+from typing import Any, Iterable, Optional
 import logging
 
 from ... import events as _ev
-from ...kernel import _default_kernel as K
+from ...opview import opview_from_ctx, _ensure_temp
 
 # After the handler flushes changes; decide whether to hydrate DB-generated values.
 ANCHOR = _ev.POST_FLUSH  # "post:flush"
@@ -44,19 +44,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
         return
 
     temp = _ensure_temp(ctx)
-    app = getattr(ctx, "app", None)
-    model = getattr(ctx, "model", None) or type(getattr(ctx, "obj", None))
-    alias = getattr(ctx, "op", None) or getattr(ctx, "method", None)
-    if app and model and alias:
-        ov = K.get_opview(app, model, alias)
-    else:
-        if not (model and alias):
-            logger.debug(
-                "refresh:demand: missing ctx.app/model/op and no specs; skipping"
-            )
-            return
-        specs = getattr(ctx, "specs", None) or K.get_specs(model)
-        ov = K._compile_opview_from_specs(specs, None)
+    ov = opview_from_ctx(ctx)
     refresh_hints = tuple(ov.refresh_hints)
 
     # If RETURNING already produced hydrated values, skip unless policy forces refresh.
@@ -92,14 +80,6 @@ def run(obj: Optional[object], ctx: Any) -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 # Internals
 # ──────────────────────────────────────────────────────────────────────────────
-
-
-def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
-    tmp = getattr(ctx, "temp", None)
-    if not isinstance(tmp, dict):
-        tmp = {}
-        setattr(ctx, "temp", tmp)
-    return tmp
 
 
 def _get_refresh_policy(ctx: Any) -> str:
