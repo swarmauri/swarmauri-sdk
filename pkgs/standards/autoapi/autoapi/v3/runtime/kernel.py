@@ -321,11 +321,48 @@ class Kernel:
                 self._primed.pop(app, None)
 
     def _compile_opview_from_specs(self, specs: Mapping[str, Any], sp: Any) -> OpView:
-        """Build a minimal OpView from collected specs and an opspec."""
-        fields = tuple(sorted(specs.keys()))
-        schema_in = SchemaIn(fields=fields, by_field={f: {} for f in fields})
+        """Build a basic OpView from collected specs when no app/model is present."""
+        alias = getattr(sp, "alias", "")
+
+        in_fields: list[str] = []
+        out_fields: list[str] = []
+        by_field_in: Dict[str, Dict[str, object]] = {}
+        by_field_out: Dict[str, Dict[str, object]] = {}
+
+        for name, spec in specs.items():
+            io = getattr(spec, "io", None)
+            in_verbs = set(getattr(io, "in_verbs", ()) or ())
+            out_verbs = set(getattr(io, "out_verbs", ()) or ())
+
+            if alias in in_verbs:
+                in_fields.append(name)
+                meta: Dict[str, object] = {"in_enabled": True}
+                if getattr(spec, "storage", None) is None:
+                    meta["virtual"] = True
+                df = getattr(spec, "default_factory", None)
+                if callable(df):
+                    meta["default_factory"] = df
+                alias_in = getattr(io, "alias_in", None)
+                if alias_in:
+                    meta["alias_in"] = alias_in
+                by_field_in[name] = meta
+
+            if alias in out_verbs:
+                out_fields.append(name)
+                meta_out: Dict[str, object] = {}
+                alias_out = getattr(io, "alias_out", None)
+                if alias_out:
+                    meta_out["alias_out"] = alias_out
+                by_field_out[name] = meta_out
+
+        schema_in = SchemaIn(
+            fields=tuple(sorted(in_fields)),
+            by_field={f: by_field_in.get(f, {}) for f in sorted(in_fields)},
+        )
         schema_out = SchemaOut(
-            fields=fields, by_field={f: {} for f in fields}, expose=fields
+            fields=tuple(sorted(out_fields)),
+            by_field={f: by_field_out.get(f, {}) for f in sorted(out_fields)},
+            expose=tuple(sorted(out_fields)),
         )
         return OpView(
             schema_in=schema_in,

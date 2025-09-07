@@ -1,5 +1,7 @@
 from __future__ import annotations
 from typing import Any, Mapping, Dict
+from types import SimpleNamespace
+
 from .kernel import _default_kernel as K  # single, app-scoped kernel
 
 
@@ -25,15 +27,23 @@ def opview_from_ctx(ctx: Any):
             model = type(obj)
     alias = getattr(ctx, "op", None) or getattr(ctx, "method", None)
 
-    missing = [
-        name for name, val in (("app", app), ("model", model), ("op", alias)) if not val
-    ]
-    if missing:
-        # runtime-error policy: eject loudly; no skip
-        raise RuntimeError(f"ctx_missing:{','.join(missing)}")
+    if app and model and alias:
+        # One-kernel-per-app, prime once; raises if not compiled
+        return K.get_opview(app, model, alias)
 
-    # One-kernel-per-app, prime once; raises if not compiled
-    return K.get_opview(app, model, alias)
+    specs = getattr(ctx, "specs", None)
+    if alias and specs is not None:
+        return K._compile_opview_from_specs(specs, SimpleNamespace(alias=alias))
+
+    missing = []
+    if not alias:
+        missing.append("op")
+    if not app:
+        missing.append("app")
+    if not model:
+        missing.append("model")
+    # runtime-error policy: eject loudly; no skip
+    raise RuntimeError(f"ctx_missing:{','.join(missing)}")
 
 
 def ensure_schema_in(ctx: Any, ov) -> Mapping[str, Any]:
