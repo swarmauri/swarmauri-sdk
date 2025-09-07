@@ -46,6 +46,10 @@ def _ctx(model, alias, target, request, db, payload, parent_kw):
         "env": SimpleNamespace(
             method=alias, params=payload, target=target, model=model
         ),
+        "app": request.app,
+        "api": request.app,
+        "model": model,
+        "op": alias,
     }
     ac = getattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, None)
     if ac is not None:
