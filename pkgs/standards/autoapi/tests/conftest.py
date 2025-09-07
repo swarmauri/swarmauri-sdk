@@ -9,6 +9,7 @@ from autoapi.v3.schema import builder as v3_builder
 from autoapi.v3.runtime import kernel as runtime_kernel
 from autoapi.v3.engine.shortcuts import mem
 from autoapi.v3.engine import resolver as _resolver
+from autoapi.v3.op import model_registry
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
@@ -32,10 +33,12 @@ def _reset_state():
     Base.metadata.clear()
     v3_builder._SchemaCache.clear()
     runtime_kernel._default_kernel = runtime_kernel.Kernel()
+    model_registry._REGISTRIES.clear()
     yield
     Base.metadata.clear()
     v3_builder._SchemaCache.clear()
     runtime_kernel._default_kernel = runtime_kernel.Kernel()
+    model_registry._REGISTRIES.clear()
 
 
 def pytest_addoption(parser):
