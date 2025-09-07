@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Any, Callable, Dict, Optional, Tuple
+from ....deps.starlette import Response
 import logging
 
 from ... import events as _ev
@@ -7,7 +8,7 @@ from . import render as _render
 from . import negotiation as _neg
 from . import templates as _tmpl
 
-RunFn = Callable[[Optional[object], Any], None]
+RunFn = Callable[[Optional[object], Any], Any]
 
 logger = logging.getLogger("uvicorn")
 
@@ -60,25 +61,33 @@ def _negotiate(obj: Optional[object], ctx: Any) -> None:
 
 def _render_run(
     obj: Optional[object], ctx: Any
-) -> None:  # pragma: no cover - glue code
+) -> Response | None:  # pragma: no cover - glue code
+    """Render a payload into a concrete :class:`Response`.
+
+    Returning the rendered ``Response`` allows the runtime executor to update
+    ``ctx.result`` so later atoms or the final transport step don't overwrite
+    the rendered output.
+    """
     logger.debug("Running response:render")
     resp_ns = getattr(ctx, "response", None)
     req = getattr(ctx, "request", None)
     if resp_ns is None or req is None:
-        return
+        return None
     result = getattr(resp_ns, "result", None)
     if result is None:
-        return
+        return None
     hints = getattr(resp_ns, "hints", None)
     default_media = getattr(resp_ns, "default_media", "application/json")
     envelope_default = getattr(resp_ns, "envelope_default", True)
-    resp_ns.result = _render.render(
+    resp = _render.render(
         req,
         result,
         hints=hints,
         default_media=default_media,
         envelope_default=envelope_default,
     )
+    resp_ns.result = resp
+    return resp
 
 
 REGISTRY: Dict[Tuple[str, str], Tuple[str, RunFn]] = {
