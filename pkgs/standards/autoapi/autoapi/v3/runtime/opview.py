@@ -1,6 +1,5 @@
 from __future__ import annotations
 from typing import Any, Mapping, Dict
-from types import SimpleNamespace
 
 from .kernel import _default_kernel as K  # single, app-scoped kernel
 
@@ -19,6 +18,13 @@ def opview_from_ctx(ctx: Any):
     Requirements:
       - ctx.app (or ctx.api), ctx.model (or derived from ctx.obj), ctx.op (or ctx.method)
     """
+    # Prefer an opview already attached to the context. Runtime atoms
+    # should always work with a pre-resolved view and never rely on specs
+    # on the base context.
+    ov = getattr(ctx, "opview", None)
+    if ov is not None:
+        return ov
+
     app = getattr(ctx, "app", None) or getattr(ctx, "api", None)
     model = getattr(ctx, "model", None)
     if model is None:
@@ -31,24 +37,14 @@ def opview_from_ctx(ctx: Any):
         # One-kernel-per-app, prime once; raises if not compiled
         return K.get_opview(app, model, alias)
 
-    specs = getattr(ctx, "specs", None)
-    if alias:
-        if specs is not None:
-            return K._compile_opview_from_specs(specs, SimpleNamespace(alias=alias))
-        if model and not app:
-            try:
-                specs = K._specs_cache.get(model)
-                return K._compile_opview_from_specs(specs, SimpleNamespace(alias=alias))
-            except Exception:
-                pass
-
     missing = []
-    if not alias:
-        missing.append("op")
-    if not app:
-        missing.append("app")
-    if not model:
-        missing.append("model")
+    if ov is None:
+        if not alias:
+            missing.append("op")
+        if not app:
+            missing.append("app")
+        if not model:
+            missing.append("model")
     # runtime-error policy: eject loudly; no skip
     raise RuntimeError(f"ctx_missing:{','.join(missing)}")
 
