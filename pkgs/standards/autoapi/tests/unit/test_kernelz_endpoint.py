@@ -10,6 +10,13 @@ def sample_hook(ctx):
     return None
 
 
+def sample_atom(ctx):
+    return None
+
+
+sample_atom.__autoapi_label = "atom:test:step@resolve:values"
+
+
 def handler(ctx):
     return None
 
@@ -39,7 +46,7 @@ async def test_kernelz_endpoint(monkeypatch: pytest.MonkeyPatch) -> None:
 
     def fake_build_phase_chains(model, alias):
         assert model is Model and alias == "create"
-        return {"PRE_HANDLER": [sample_hook], "HANDLER": [handler]}
+        return {"PRE_HANDLER": [sample_atom, sample_hook], "HANDLER": [handler]}
 
     monkeypatch.setattr(_diag, "build_phase_chains", fake_build_phase_chains)
 
@@ -49,5 +56,8 @@ async def test_kernelz_endpoint(monkeypatch: pytest.MonkeyPatch) -> None:
     assert "Model" in data
     assert "create" in data["Model"]
     phases = data["Model"]["create"]
-    assert phases["PRE_HANDLER"] == [_diag._label_hook(sample_hook, "PRE_HANDLER")]
+    assert phases["PRE_HANDLER"] == [
+        _diag._label_hook(sample_atom, "PRE_HANDLER"),
+        _diag._label_hook(sample_hook, "PRE_HANDLER"),
+    ]
     assert phases["HANDLER"] == [_diag._label_hook(handler, "HANDLER")]

@@ -1,15 +1,27 @@
-# autoapi/v3/runtime/kernel.py
+# autoapi/v3/runtime/kernel/__init__.py
 from __future__ import annotations
 
 import importlib
 import logging
 import pkgutil
 from types import SimpleNamespace
-from typing import Any, Callable, Dict, Iterable, List, Mapping, Optional, Sequence
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    cast,
+)
 
-from .executor import _invoke, _Ctx
-from . import events as _ev
-from ..op.types import PHASES, StepFn
+from ..executor import _invoke, _Ctx
+from .. import events as _ev
+from .. import trace as _trace
+from ...op.types import PHASES, StepFn
+from .labels import _make_label, _labels_from_chains
 
 logger = logging.getLogger(__name__)
 
@@ -50,15 +62,18 @@ def _discover_atoms() -> list[_DiscoveredAtom]:
     return out
 
 
-def _wrap_atom(run: _AtomRun) -> StepFn:
+def _wrap_atom(run: _AtomRun, *, anchor: str) -> StepFn:
     async def _step(ctx: Any) -> Any:
         rv = run(None, ctx)
         if hasattr(rv, "__await__"):
-            return await rv  # type: ignore[misc]
+            return await cast(Any, rv)  # type: ignore[misc]
         return rv
 
     _step.__name__ = getattr(run, "__name__", "atom")
     _step.__qualname__ = getattr(run, "__qualname__", _step.__name__)
+    label = _make_label(anchor, run)
+    if label:
+        setattr(_step, "__autoapi_label", label)
     return _step
 
 
@@ -124,7 +139,7 @@ def _inject_atoms(
         if not persistent and info.persist_tied:
             continue
         chains.setdefault(info.phase, [])
-        chains[info.phase].append(_wrap_atom(run))
+        chains[info.phase].append(_wrap_atom(run, anchor=anchor))
 
 
 # ───────────────────────────────────────────────────────────────────────────────
@@ -154,7 +169,12 @@ class Kernel:
 
     def build(self, model: type, alias: str) -> Dict[str, List[StepFn]]:
         chains = _hook_phase_chains(model, alias)
-        persistent = _is_persistent(chains)
+        persistent = alias.lower() in {
+            "create",
+            "update",
+            "replace",
+            "delete",
+        } or _is_persistent(chains)
         try:
             _inject_atoms(chains, self._atoms() or (), persistent=persistent)
         except Exception:
@@ -168,6 +188,10 @@ class Kernel:
         for ph in PHASES:
             chains.setdefault(ph, [])
         return chains
+
+    def plan_labels(self, model: type, alias: str) -> list[str]:
+        chains = self.build(model, alias)
+        return _labels_from_chains(chains)
 
     async def invoke(
         self,
@@ -186,6 +210,11 @@ class Kernel:
             pass
         try:
             base_ctx.model = getattr(model, "__name__", str(model))
+        except Exception:
+            pass
+        try:
+            labels = _labels_from_chains(phases)
+            _trace.init(base_ctx, plan_labels=labels)
         except Exception:
             pass
         return await _invoke(request=request, db=db, phases=phases, ctx=base_ctx)
