@@ -19,7 +19,7 @@ def opview_from_ctx(ctx: Any):
     Requirements:
       - ctx.app (or ctx.api), ctx.model (or derived from ctx.obj), ctx.op (or ctx.method)
     """
-    app = getattr(ctx, "app", None) or getattr(ctx, "api", None)
+    app = getattr(ctx, "api", None) or getattr(ctx, "app", None)
     model = getattr(ctx, "model", None)
     if model is None:
         obj = getattr(ctx, "obj", None)

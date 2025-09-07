@@ -92,7 +92,9 @@ def _generate_canonical(table: type) -> List[OpSpec]:
                 table=table,
                 alias=alias,
                 target=target,
-                arity="collection" if target in {"list", "clear"} else "member",
+                arity="collection"
+                if target in {"create", "list", "clear"}
+                else "member",
                 persist="default",
                 handler=None,
                 request_model=None,
