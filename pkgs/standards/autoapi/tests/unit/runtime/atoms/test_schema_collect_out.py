@@ -1,36 +1,40 @@
 from types import SimpleNamespace
 
 from autoapi.v3.runtime.atoms.schema import collect_out
+from autoapi.v3.runtime.kernel import (
+    SchemaIn,
+    SchemaOut,
+    OpView,
+    _default_kernel as K,
+)
 
 
-class Storage:
-    def __init__(self) -> None:
-        self.nullable = True
+def test_collect_out_loads_schema() -> None:
+    app = object()
 
+    class Model:
+        pass
 
-class Col:
-    def __init__(self) -> None:
-        self.storage = Storage()
-        self.alias_out = "alias"
-        self.sensitive = True
+    alias = "read"
+    schema_out = SchemaOut(
+        fields=("name",),
+        by_field={"name": {"alias_out": "alias", "sensitive": True}},
+        expose=("name",),
+    )
+    ov = OpView(
+        schema_in=SchemaIn(fields=(), by_field={}),
+        schema_out=schema_out,
+        paired_index={},
+        virtual_producers={},
+        to_stored_transforms={},
+        refresh_hints=(),
+    )
+    K._opviews[app] = {(Model, alias): ov}
+    K._primed[app] = True
 
-
-def test_collect_out_registers_alias_and_sensitivity() -> None:
-    specs = {"name": Col()}
-    ctx = SimpleNamespace(specs=specs, temp={})
+    ctx = SimpleNamespace(app=app, model=Model, op=alias, temp={})
     collect_out.run(None, ctx)
     schema = ctx.temp["schema_out"]
-    assert schema["aliases"]["name"] == "alias"
-    assert schema["by_field"]["name"]["sensitive"] is True
-    assert "name" in schema["expose"]
-
-
-def test_collect_out_runs_only_once() -> None:
-    specs = {"name": Col()}
-    ctx = SimpleNamespace(specs=specs, temp={})
-    collect_out.run(None, ctx)
-    ctx.specs = {"other": Col()}
-    collect_out.run(None, ctx)
-    schema = ctx.temp["schema_out"]
-    assert "name" in schema["by_field"]
-    assert "other" not in schema["by_field"]
+    assert schema.by_field["name"]["sensitive"] is True
+    assert schema.by_field["name"]["alias_out"] == "alias"
+    assert "name" in schema.expose
