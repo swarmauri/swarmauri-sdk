@@ -9,6 +9,7 @@ from ..config.constants import AUTOAPI_SCHEMA_DECLS_ATTR
 
 from .decorators import _SchemaDecl
 
+logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 
 
@@ -22,6 +23,10 @@ def collect_decorated_schemas(model: type) -> Dict[str, Dict[str, type]]:
         mapping: Dict[str, Dict[str, type]] = (
             getattr(base, AUTOAPI_SCHEMA_DECLS_ATTR, {}) or {}
         )
+        if mapping:
+            logger.debug(
+                "Found explicit schema mapping on %s: %s", base.__name__, mapping
+            )
         for alias, kinds in mapping.items():
             bucket = out.setdefault(alias, {})
             bucket.update(kinds or {})
@@ -31,9 +36,13 @@ def collect_decorated_schemas(model: type) -> Dict[str, Dict[str, type]]:
         for name in dir(base):
             obj = getattr(base, name, None)
             if not inspect.isclass(obj):
+                logger.debug("Skipping non-class attribute %s.%s", base.__name__, name)
                 continue
             decl: _SchemaDecl | None = getattr(obj, "__autoapi_schema_decl__", None)
             if not decl:
+                logger.debug(
+                    "Class %s.%s has no schema declaration", base.__name__, name
+                )
                 continue
             bucket = out.setdefault(decl.alias, {})
             bucket[decl.kind] = obj
