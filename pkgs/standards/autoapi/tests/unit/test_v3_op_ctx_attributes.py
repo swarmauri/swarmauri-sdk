@@ -1,5 +1,5 @@
 from autoapi.v3 import op_ctx
-from autoapi.v3.op import collect_decorated_ops
+from autoapi.v3.op.mro_collect import mro_collect_decorated_ops
 
 
 def test_op_ctx_alias_sets_alias():
@@ -8,7 +8,7 @@ def test_op_ctx_alias_sets_alias():
         def do(cls, ctx):
             return None
 
-    spec = collect_decorated_ops(Model)[0]
+    spec = mro_collect_decorated_ops(Model)[0]
     assert spec.alias == "custom_alias"
 
 
@@ -18,7 +18,7 @@ def test_op_ctx_target_sets_target():
         def do(cls, ctx):
             return None
 
-    spec = collect_decorated_ops(Model)[0]
+    spec = mro_collect_decorated_ops(Model)[0]
     assert spec.target == "create"
 
 
@@ -28,7 +28,7 @@ def test_op_ctx_arity_sets_arity():
         def do(cls, ctx):
             return None
 
-    spec = collect_decorated_ops(Model)[0]
+    spec = mro_collect_decorated_ops(Model)[0]
     assert spec.arity == "collection"
 
 
@@ -38,7 +38,7 @@ def test_op_ctx_rest_controls_exposure():
         def do(cls, ctx):
             return None
 
-    spec = collect_decorated_ops(Model)[0]
+    spec = mro_collect_decorated_ops(Model)[0]
     assert spec.expose_routes is False
 
 
@@ -48,7 +48,7 @@ def test_op_ctx_request_schema_attached():
         def do(cls, ctx):
             return None
 
-    spec = collect_decorated_ops(Model)[0]
+    spec = mro_collect_decorated_ops(Model)[0]
     assert spec.request_model == "InputSchema"
 
 
@@ -58,7 +58,7 @@ def test_op_ctx_response_schema_attached():
         def do(cls, ctx):
             return None
 
-    spec = collect_decorated_ops(Model)[0]
+    spec = mro_collect_decorated_ops(Model)[0]
     assert spec.response_model == "OutputSchema"
 
 
@@ -68,7 +68,7 @@ def test_op_ctx_persist_policy_override():
         def do(cls, ctx):
             return None
 
-    spec = collect_decorated_ops(Model)[0]
+    spec = mro_collect_decorated_ops(Model)[0]
     assert spec.persist == "skip"
 
 
@@ -90,7 +90,7 @@ def test_op_ctx_core_crud_order():
         def delete(cls, ctx, obj):
             return None
 
-    specs = collect_decorated_ops(Model)
+    specs = mro_collect_decorated_ops(Model)
     assert [sp.target for sp in specs] == [
         "create",
         "read",

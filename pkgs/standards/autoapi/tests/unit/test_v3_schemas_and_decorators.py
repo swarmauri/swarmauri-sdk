@@ -8,7 +8,7 @@ from autoapi.v3 import (
     SchemaRef,
 )
 from autoapi.v3.op import resolve
-from autoapi.v3.op import collect_decorated_ops
+from autoapi.v3.op.mro_collect import mro_collect_decorated_ops
 from autoapi.v3.bindings import build_schemas, build_hooks, build_handlers, build_rest
 
 # REST test client
@@ -60,7 +60,7 @@ def _build_all(model):
     canonical CRUD cores during the test.
     """
     canon = resolve(model)  # canonical specs (alias_ctx applied)
-    custom = collect_decorated_ops(model)  # ctx-only specs
+    custom = mro_collect_decorated_ops(model)  # ctx-only specs
     specs = canon + custom
 
     # Schemas first (seeds schema_ctx, then defaults, then overrides)

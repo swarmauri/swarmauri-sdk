@@ -5,7 +5,7 @@ from types import SimpleNamespace
 
 from ...op.types import PHASES
 from ...runtime import plan as _plan
-from ...column.collect import collect_columns
+from ...column.mro_collect import mro_collect_columns
 
 
 def build_planz_endpoint(api: Any):
@@ -32,7 +32,7 @@ def build_planz_endpoint(api: Any):
                 getattr(model, "runtime", SimpleNamespace()), "plan", None
             )
             if compiled_plan is None:
-                specs = collect_columns(model)
+                specs = mro_collect_columns(model)
                 if specs:
                     try:
                         compiled_plan = _plan.attach_atoms_for_model(model, specs)

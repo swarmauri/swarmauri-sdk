@@ -69,7 +69,7 @@ def _iter_declared_ops(model: Any) -> Dict[Tuple[Any, str], Mapping[str, Any]]:
     return out
 
 
-def collect_from_objects(
+def collect_engine_config(
     *, app: Any | None = None, api: Any | None = None, models: Iterable[Any] = ()
 ) -> Dict[str, Any]:
     """Collect engine configuration from objects without binding them."""
@@ -107,3 +107,6 @@ def collect_from_objects(
         "tables": tables,
         "ops": ops,
     }
+
+
+__all__ = ["collect_engine_config"]

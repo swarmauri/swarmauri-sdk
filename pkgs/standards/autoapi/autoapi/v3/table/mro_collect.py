@@ -19,7 +19,7 @@ def _merge_seq_attr(model: type, attr: str) -> Tuple[Any, ...]:
     return tuple(values)
 
 
-def collect_table_spec(model: type) -> TableSpec:
+def mro_collect_table_spec(model: type) -> TableSpec:
     """Collect TableSpec-like declarations across the model's MRO.
 
     Merges common spec attributes (OPS, COLUMNS, SCHEMAS, HOOKS, SECURITY_DEPS,
@@ -64,4 +64,4 @@ def collect_table_spec(model: type) -> TableSpec:
     return spec
 
 
-__all__ = ["collect_table_spec"]
+__all__ = ["mro_collect_table_spec"]

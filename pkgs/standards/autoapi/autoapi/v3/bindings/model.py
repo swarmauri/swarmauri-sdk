@@ -6,12 +6,13 @@ from dataclasses import replace
 from types import SimpleNamespace
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple
 
-from ..op import OpSpec, alias_map_for, collect_decorated_ops
+from ..op import OpSpec
+from ..op.mro_collect import mro_alias_map_for, mro_collect_decorated_ops
 from ..op import resolve as resolve_ops
 from ..op.types import PHASES  # phase allowlist for hook merges
 
 # Ctx-only decorators integration
-from ..hook.collect import collect_decorated_hooks
+from ..hook.mro_collect import mro_collect_decorated_hooks
 
 # Sub-binders (implemented elsewhere)
 from . import (
@@ -88,7 +89,7 @@ def bind(
     base_specs: List[OpSpec] = list(resolve_ops(model))
 
     # 2) Add ctx-only ops discovered via decorators (tables + mixins)
-    ctx_specs: List[OpSpec] = list(collect_decorated_ops(model))
+    ctx_specs: List[OpSpec] = list(mro_collect_decorated_ops(model))
 
     # 2a) Inherit canonical schemas for aliased ops lacking explicit schemas
     base_by_target: Dict[str, OpSpec] = {sp.target: sp for sp in base_specs}
@@ -127,7 +128,7 @@ def bind(
     visible_aliases = (
         {sp.alias for sp in specs} if specs else {sp.alias for sp in all_merged_specs}
     )
-    ctx_hooks = collect_decorated_hooks(model, visible_aliases=visible_aliases)
+    ctx_hooks = mro_collect_decorated_hooks(model, visible_aliases=visible_aliases)
     base_hooks = getattr(model, "__autoapi_hooks__", {}) or {}
 
     # Coerce any pre-existing phase sequences to mutable lists and deduplicate
@@ -159,7 +160,7 @@ def bind(
 
     # (Optional) expose resolved alias map for diagnostics
     try:
-        model.alias_map = alias_map_for(model)
+        model.alias_map = mro_alias_map_for(model)
     except Exception:  # defensive
         pass
 
