@@ -5,6 +5,7 @@ from typing import Any, Dict, Mapping, MutableMapping, Optional
 import logging
 
 from ... import events as _ev
+from ...kernel import get_cached_specs
 
 # Runs late in POST_HANDLER, before out model build and dumping.
 ANCHOR = _ev.SCHEMA_COLLECT_OUT  # "schema:collect_out"
@@ -54,7 +55,14 @@ def run(obj: Optional[object], ctx: Any) -> None:
       }
     """
     logger.debug("Running schema:collect_out")
-    specs: Mapping[str, Any] = getattr(ctx, "specs", {}) or {}
+    model = (
+        getattr(ctx, "model", None)
+        or getattr(ctx, "Model", None)
+        or type(getattr(ctx, "obj", None))
+    )
+    specs: Mapping[str, Any] = getattr(ctx, "specs", None) or (
+        get_cached_specs(model) if model else {}
+    )
     if not specs:
         logger.debug("No specs provided; skipping schema collection")
         return

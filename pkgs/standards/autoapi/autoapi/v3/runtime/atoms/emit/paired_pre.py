@@ -5,6 +5,7 @@ from typing import Any, Dict, Mapping, MutableMapping, Optional
 import logging
 
 from ... import events as _ev
+from ...kernel import get_cached_specs
 
 # This atom runs before the flush, after values have been assembled/generated.
 ANCHOR = _ev.EMIT_ALIASES_PRE  # "emit:aliases:pre_flush"
@@ -53,7 +54,14 @@ def run(obj: Optional[object], ctx: Any) -> None:
         logger.debug("No paired values found; nothing to schedule")
         return
 
-    specs: Mapping[str, Any] = getattr(ctx, "specs", {}) or {}
+    model = (
+        getattr(ctx, "model", None)
+        or getattr(ctx, "Model", None)
+        or type(getattr(ctx, "obj", None))
+    )
+    specs: Mapping[str, Any] = getattr(ctx, "specs", None) or (
+        get_cached_specs(model) if model else {}
+    )
 
     for field, entry in paired.items():
         if not isinstance(entry, dict):
