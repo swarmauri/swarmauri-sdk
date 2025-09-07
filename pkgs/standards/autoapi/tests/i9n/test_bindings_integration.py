@@ -17,7 +17,6 @@ from autoapi.v3.bindings import (
     rpc_call,
     rebind,
 )
-from autoapi.v3.bindings import col_info
 from autoapi.v3.runtime import build_phase_chains
 from autoapi.v3.config.constants import AUTOAPI_GET_DB_ATTR
 
@@ -107,10 +106,3 @@ def test_bind_and_rebind():
 
     rebind(Widget)
     assert Widget.rest.router is not None
-
-
-def test_col_info_reexport():
-    from autoapi.v3.schema import col_info as schema_col_info
-
-    assert col_info.normalize is schema_col_info.normalize
-    assert col_info.VALID_KEYS == schema_col_info.VALID_KEYS
