@@ -114,6 +114,8 @@ def _classify_exception(
         return status.HTTP_501_NOT_IMPLEMENTED, _stringify_exc(exc), None
     if isinstance(exc, TimeoutError):
         return status.HTTP_504_GATEWAY_TIMEOUT, _stringify_exc(exc), None
+    if isinstance(exc, RuntimeError) and str(exc) == "ctx_missing_app_model_or_op":
+        return status.HTTP_422_UNPROCESSABLE_ENTITY, _stringify_exc(exc), None
 
     # 4) ORM/DB mapping
     if (NoResultFound is not None) and isinstance(exc, NoResultFound):
