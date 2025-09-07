@@ -14,6 +14,8 @@ from .model_helpers import _Key
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/model_registry")
 
+_PATCHED_METAS: Set[type] = set()
+
 
 def _ensure_registry_listener(model: type) -> None:
     """
@@ -67,9 +69,25 @@ def _ensure_op_ctx_attach_hook(model: type) -> None:
 
     meta.__setattr__ = _meta_setattr  # type: ignore[attr-defined]
     setattr(meta, "__autoapi_op_ctx_meta_patch__", True)
+    setattr(meta, "__autoapi_orig_setattr__", orig_meta_setattr)
+    _PATCHED_METAS.add(meta)
+
+
+def _clear_op_ctx_attach_hook() -> None:
+    """Restore any metaclasses patched by `_ensure_op_ctx_attach_hook`."""
+
+    while _PATCHED_METAS:
+        meta = _PATCHED_METAS.pop()
+        orig = getattr(meta, "__autoapi_orig_setattr__", None)
+        if orig is not None:
+            meta.__setattr__ = orig  # type: ignore[attr-defined]
+            delattr(meta, "__autoapi_orig_setattr__")
+        if getattr(meta, "__autoapi_op_ctx_meta_patch__", False):
+            delattr(meta, "__autoapi_op_ctx_meta_patch__")
 
 
 __all__ = [
     "_ensure_registry_listener",
     "_ensure_op_ctx_attach_hook",
+    "_clear_op_ctx_attach_hook",
 ]
