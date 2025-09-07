@@ -23,6 +23,7 @@ RunFn = Callable[[Optional[object], Any], None]
 #:   { (domain, subject): (anchor, runner) }
 REGISTRY: Dict[Tuple[str, str], Tuple[str, RunFn]] = {}
 
+logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 
 

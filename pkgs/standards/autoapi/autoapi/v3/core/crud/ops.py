@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict, List, Mapping, Optional, Union
 
 import builtins as _builtins
+import logging
 
 from .helpers import (
     AsyncSession,
@@ -26,6 +27,9 @@ from .helpers import (
     _validate_enum_values,
 )
 
+logging.getLogger("uvicorn").setLevel(logging.DEBUG)
+logger = logging.getLogger("uvicorn")
+
 
 async def create(
     model: type, data: Mapping[str, Any], db: Union[Session, AsyncSession]
@@ -34,12 +38,14 @@ async def create(
     Insert a single row. Returns the persisted model instance.
     Flush-only (commit happens later in END_TX).
     """
+    logger.debug("create called with model=%s data=%s", model, data)
     data = _filter_in_values(model, data or {}, "create")
     _validate_enum_values(model, data)
     obj = model(**data)
     if hasattr(db, "add"):
         db.add(obj)
     await _maybe_flush(db)
+    logger.debug("create persisted obj=%s", obj)
     return obj
 
 
@@ -47,9 +53,12 @@ async def read(model: type, ident: Any, db: Union[Session, AsyncSession]) -> Any
     """
     Load a single row by primary key. Raises NoResultFound if not found.
     """
+    logger.debug("read called with model=%s ident=%s", model, ident)
     obj = await _maybe_get(db, model, ident)
     if obj is None:
+        logger.debug("read did not find model=%s ident=%s", model, ident)
         raise NoResultFound(f"{model.__name__}({ident!r}) not found")
+    logger.debug("read returning obj=%s", obj)
     return obj
 
 
@@ -60,12 +69,14 @@ async def update(
     Partial update by primary key. Missing keys are left unchanged.
     Returns the updated model instance. Flush-only.
     """
+    logger.debug("update called with model=%s ident=%s data=%s", model, ident, data)
     data = _filter_in_values(model, data or {}, "update")
     _validate_enum_values(model, data)
     obj = await read(model, ident, db)
     skip = _immutable_columns(model, "update")
     _set_attrs(obj, data, allow_missing=True, skip=skip)
     await _maybe_flush(db)
+    logger.debug("update returning obj=%s", obj)
     return obj
 
 
@@ -79,16 +90,20 @@ async def replace(
     If the row does not exist it is created with the provided identifier.
     Flush-only.
     """
+    logger.debug("replace called with model=%s ident=%s data=%s", model, ident, data)
     data = _filter_in_values(model, data or {}, "replace")
     _validate_enum_values(model, data)
     pk = _single_pk_name(model)
     obj = await _maybe_get(db, model, ident)
     if obj is None:
         payload = {pk: ident, **data}
-        return await create(model, payload, db=db)
+        result = await create(model, payload, db=db)
+        logger.debug("replace created obj=%s", result)
+        return result
     skip = _immutable_columns(model, "replace")
     _set_attrs(obj, data, allow_missing=False, skip=skip)
     await _maybe_flush(db)
+    logger.debug("replace updated obj=%s", obj)
     return obj
 
 
@@ -96,21 +111,24 @@ async def merge(
     model: type, ident: Any, data: Mapping[str, Any], db: Union[Session, AsyncSession]
 ) -> Any:
     """PATCH semantics with upsert behaviour."""
+    logger.debug("merge called with model=%s ident=%s data=%s", model, ident, data)
     pk = _single_pk_name(model)
     ident = _coerce_pk_value(model, ident)
     obj = await _maybe_get(db, model, ident)
 
-    # Respect create-only fields when upserting a new row
     verb = "update" if obj is not None else "create"
     data = _filter_in_values(model, data or {}, verb)
     _validate_enum_values(model, data)
     data_no_pk = {k: v for k, v in data.items() if k != pk}
     if obj is None:
         payload = {pk: ident, **data_no_pk}
-        return await create(model, payload, db=db)
+        result = await create(model, payload, db=db)
+        logger.debug("merge created obj=%s", result)
+        return result
     skip = _immutable_columns(model, "update")
     _set_attrs(obj, data_no_pk, allow_missing=True, skip=skip)
     await _maybe_flush(db)
+    logger.debug("merge updated obj=%s", obj)
     return obj
 
 
@@ -121,9 +139,11 @@ async def delete(
     Delete by primary key. Returns {"deleted": 1} if removed, else raises NoResultFound.
     Flush-only.
     """
+    logger.debug("delete called with model=%s ident=%s", model, ident)
     obj = await read(model, ident, db)
     await _maybe_delete(db, obj)
     await _maybe_flush(db)
+    logger.debug("delete removed obj=%s", obj)
     return {"deleted": 1}
 
 
@@ -137,6 +157,7 @@ async def list(*_args: Any, **_kwargs: Any) -> List[Any]:  # noqa: A001  (shadow
       - positional or keyword args
       - stray extras (e.g., request) which are ignored
     """
+    logger.debug("list called with args=%s kwargs=%s", _args, _kwargs)
     model, params = _normalize_list_call(_args, _kwargs)
 
     filters: Mapping[str, Any] = _coerce_filters(model, params["filters"])
@@ -172,7 +193,9 @@ async def list(*_args: Any, **_kwargs: Any) -> List[Any]:  # noqa: A001  (shadow
         stmt = stmt.limit(max(limit, 0))
 
     result = await _maybe_execute(db, stmt)
-    return _builtins.list(result.scalars().all())  # type: ignore[attr-defined]
+    items = _builtins.list(result.scalars().all())  # type: ignore[attr-defined]
+    logger.debug("list returning %d items", len(items))
+    return items
 
 
 async def clear(
@@ -184,6 +207,7 @@ async def clear(
     Flush-only. Tolerant to the same calling variations as `list`.
     """
     # Reuse normalizer to accept the same shapes
+    logger.debug("clear called with args=%s kwargs=%s", args, kwargs)
     model, params = _normalize_list_call(args, kwargs)
     raw_filters: Mapping[str, Any] = params["filters"]
     db: Union[Session, AsyncSession] = params["db"]
@@ -206,6 +230,6 @@ async def clear(
 
     res = await _maybe_execute(db, stmt)
     await _maybe_flush(db)
-    # Some dialects don't populate rowcount; best-effort
     n = int(getattr(res, "rowcount", 0) or 0)
+    logger.debug("clear removed %d rows", n)
     return {"deleted": n}

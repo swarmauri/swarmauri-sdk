@@ -40,6 +40,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
     """
     logger.debug("Running refresh:demand")
     if getattr(ctx, "persist", True) is False:
+        logger.debug("Skipping refresh:demand; ctx.persist is False")
         return
 
     temp = _ensure_temp(ctx)
@@ -49,12 +50,16 @@ def run(obj: Optional[object], ctx: Any) -> None:
     returning_satisfied = bool(temp.get("used_returning")) or bool(
         temp.get("hydrated_values")
     )
+    logger.debug("Returning satisfied: %s", returning_satisfied)
 
     # Policy: cfg.refresh_after_write wins if explicitly set; otherwise "auto".
     policy = _get_refresh_policy(ctx)
+    logger.debug("Refresh policy: %s", policy)
     # auto → infer from specs (db-generated signals) OR absence of returning values
     needs_by_specs, fields = _scan_specs_for_refresh(specs)
+    logger.debug("Specs indicate refresh: %s; fields=%s", needs_by_specs, fields)
     need_refresh = _decide(policy, returning_satisfied, needs_by_specs)
+    logger.debug("Refresh decision: %s", need_refresh)
 
     temp["refresh_demand"] = bool(need_refresh)
     temp["refresh_fields"] = tuple(fields)
@@ -63,8 +68,10 @@ def run(obj: Optional[object], ctx: Any) -> None:
         temp["refresh_reason"] = _reason(
             policy, returning_satisfied, needs_by_specs, fields
         )
+        logger.debug("Refresh scheduled: %s", temp["refresh_reason"])
     else:
         temp["refresh_reason"] = "skipped: returning_satisfied or policy=false"
+        logger.debug("Refresh skipped: %s", temp["refresh_reason"])
 
     # Executor/handler will look at ctx.temp["refresh_demand"] and act accordingly.
 

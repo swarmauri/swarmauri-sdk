@@ -1,13 +1,13 @@
 from __future__ import annotations
 
+import logging
+import os
+
 from autoapi.v3 import AutoApp
 from autoapi.v3.engine import engine as build_engine
-from .orm import Key, KeyVersion
-
 from swarmauri_crypto_paramiko import ParamikoCrypto
 from swarmauri_standard.key_providers import InMemoryKeyProvider
-
-import os
+from .orm import Key, KeyVersion
 
 DB_URL = os.getenv("KMS_DATABASE_URL", "sqlite+aiosqlite:///./kms.db")
 ENGINE = build_engine(DB_URL)
