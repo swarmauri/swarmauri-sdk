@@ -1,5 +1,9 @@
 import pytest
 
+from standards.autoapi.autoapi.v3.bindings.model_registry import (
+    clear_op_ctx_attach_hook,
+)
+
 
 def pytest_configure(config):
     config.addinivalue_line(
@@ -23,3 +27,9 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(skip_infra)
         if "smoke" in item.keywords:
             item.add_marker(skip_smoke)
+
+
+@pytest.fixture(autouse=True)
+def _clear_autoapi_meta_patch():
+    yield
+    clear_op_ctx_attach_hook()

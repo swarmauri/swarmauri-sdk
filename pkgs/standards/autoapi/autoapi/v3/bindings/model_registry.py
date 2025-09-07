@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Set
+from typing import Dict, Set, Type
 
 from ..config.constants import AUTOAPI_REGISTRY_LISTENER_ATTR
 from ..op import OpspecRegistry, get_registry
@@ -45,11 +45,14 @@ def _ensure_registry_listener(model: type) -> None:
     setattr(model, AUTOAPI_REGISTRY_LISTENER_ATTR, _on_registry_change)
 
 
+_patched_metas: Dict[Type[type], object] = {}
+
+
 def _ensure_op_ctx_attach_hook(model: type) -> None:
     """Patch the model's metaclass to auto-rebind on ctx-only op attachment."""
 
     meta = type(model)
-    if getattr(meta, "__autoapi_op_ctx_meta_patch__", False):
+    if meta in _patched_metas:
         return
 
     orig_meta_setattr = meta.__setattr__
@@ -66,10 +69,19 @@ def _ensure_op_ctx_attach_hook(model: type) -> None:
             rebind(cls, changed_keys={(alias, target)})
 
     meta.__setattr__ = _meta_setattr  # type: ignore[attr-defined]
-    setattr(meta, "__autoapi_op_ctx_meta_patch__", True)
+    _patched_metas[meta] = orig_meta_setattr
+
+
+def clear_op_ctx_attach_hook() -> None:
+    """Restore any metaclasses patched by :func:`_ensure_op_ctx_attach_hook`."""
+
+    while _patched_metas:
+        meta, orig = _patched_metas.popitem()
+        meta.__setattr__ = orig  # type: ignore[attr-defined]
 
 
 __all__ = [
     "_ensure_registry_listener",
     "_ensure_op_ctx_attach_hook",
+    "clear_op_ctx_attach_hook",
 ]
