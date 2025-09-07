@@ -86,6 +86,12 @@ def _generate_canonical(table: type) -> List[OpSpec]:
         ("delete", "delete"),
         ("list", "list"),
         ("clear", "clear"),
+        # Bulk operations (enabled via mixins such as BulkCapable/Replaceable)
+        ("bulk_create", "bulk_create"),
+        ("bulk_update", "bulk_update"),
+        ("bulk_replace", "bulk_replace"),
+        ("bulk_merge", "bulk_merge"),
+        ("bulk_delete", "bulk_delete"),
     ]
     for alias, target in targets:
         if not should_wire_canonical(table, target):
