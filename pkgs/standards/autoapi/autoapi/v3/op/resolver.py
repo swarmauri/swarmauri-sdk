@@ -80,6 +80,7 @@ def _generate_canonical(table: type) -> List[OpSpec]:
         ("create", "create"),
         ("read", "read"),
         ("update", "update"),
+        ("replace", "replace"),
         ("delete", "delete"),
         ("list", "list"),
         ("clear", "clear"),

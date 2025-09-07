@@ -72,7 +72,10 @@ async def rpc_call(
 
     try:
         logger.debug("Executing rpc_call %s.%s", getattr(mdl, "__name__", mdl), method)
-        return await fn(payload, db=db, request=request, ctx=ctx)
+        seeded_ctx = dict(ctx or {})
+        seeded_ctx.setdefault("app", api)
+        seeded_ctx.setdefault("api", api)
+        return await fn(payload, db=db, request=request, ctx=seeded_ctx)
     finally:
         if _release_db is not None:
             try:
