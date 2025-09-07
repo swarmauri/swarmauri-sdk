@@ -16,6 +16,14 @@ class Api(APISpec, ApiRouter):
     MODELS: tuple[Any, ...] = ()
     TABLES: tuple[Any, ...] = ()
 
+    # dataclass inheritance makes instances unhashable; use identity semantics
+    # for both hashing and equality so objects can participate in sets/dicts
+    def __hash__(self) -> int:  # pragma: no cover - simple identity hash
+        return id(self)
+
+    def __eq__(self, other: object) -> bool:  # pragma: no cover - identity compare
+        return self is other
+
     def __init__(
         self, *, engine: EngineCfg | None = None, **router_kwargs: Any
     ) -> None:
