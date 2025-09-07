@@ -54,6 +54,16 @@ def _make_member_endpoint(
     pk_names = _pk_names(model)
     nested_vars = list(nested_vars or [])
 
+    def _endpoint_name() -> str:
+        parts = ["rest", model.__name__]
+        if resource:
+            parts.append(resource.replace("/", "_"))
+        parts.append(alias)
+        parts.append("member")
+        if nested_vars:
+            parts.extend(nested_vars)
+        return "_".join(parts)
+
     # --- No body on GET read / DELETE delete ---
     if target in {"read", "delete"}:
 
@@ -141,7 +151,7 @@ def _make_member_endpoint(
         )
         _endpoint.__signature__ = inspect.Signature(params)
 
-        _endpoint.__name__ = f"rest_{model.__name__}_{alias}_member"
+        _endpoint.__name__ = _endpoint_name()
         _endpoint.__qualname__ = _endpoint.__name__
         _endpoint.__doc__ = (
             f"REST member endpoint for {model.__name__}.{alias} ({target})"
@@ -236,7 +246,7 @@ def _make_member_endpoint(
         )
         _endpoint.__signature__ = inspect.Signature(params)
 
-        _endpoint.__name__ = f"rest_{model.__name__}_{alias}_member"
+        _endpoint.__name__ = _endpoint_name()
         _endpoint.__qualname__ = _endpoint.__name__
         _endpoint.__doc__ = (
             f"REST member endpoint for {model.__name__}.{alias} ({target})"
@@ -356,7 +366,7 @@ def _make_member_endpoint(
     )
     _endpoint.__signature__ = inspect.Signature(params)
 
-    _endpoint.__name__ = f"rest_{model.__name__}_{alias}_member"
+    _endpoint.__name__ = _endpoint_name()
     _endpoint.__qualname__ = _endpoint.__name__
     _endpoint.__doc__ = f"REST member endpoint for {model.__name__}.{alias} ({target})"
     _endpoint.__annotations__["body"] = body_annotation
