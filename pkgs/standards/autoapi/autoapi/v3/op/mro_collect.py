@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from functools import lru_cache
 from typing import Any, Callable, Dict
 
 from .types import OpSpec
@@ -17,6 +18,7 @@ def _merge_mro_dict(cls: type, attr: str) -> Dict[str, Any]:
     return merged
 
 
+@lru_cache(maxsize=None)
 def mro_alias_map_for(table: type) -> Dict[str, str]:
     """Collect alias overrides across the table's MRO."""
     return _merge_mro_dict(table, "__autoapi_aliases__")
@@ -38,6 +40,7 @@ def _wrap_ctx_core(table: type, func: Callable[..., Any]) -> Callable[..., Any]:
     return core
 
 
+@lru_cache(maxsize=None)
 def mro_collect_decorated_ops(table: type) -> list[OpSpec]:
     """Collect ctx-only op declarations across the table's MRO."""
 

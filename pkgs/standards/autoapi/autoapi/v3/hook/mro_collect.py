@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from functools import lru_cache
 from typing import Any, Callable, Dict, Iterable, Union
 
 from ..runtime.executor import _Ctx
@@ -47,11 +48,11 @@ def _wrap_ctx_hook(
     return hook
 
 
-def mro_collect_decorated_hooks(
-    table: type, *, visible_aliases: set[str]
+@lru_cache(maxsize=None)
+def _cached_collect_hooks(
+    table: type, aliases_key: tuple[str, ...]
 ) -> Dict[str, Dict[str, list[Callable[..., Any]]]]:
-    """Collect alias→phase→[hook] declarations across a table's MRO."""
-
+    visible_aliases = set(aliases_key)
     logger.info("Collecting hooks for %s", table.__name__)
     mapping: Dict[str, Dict[str, list[Callable[..., Any]]]] = {}
     aliases = mro_alias_map_for(table)
@@ -83,6 +84,15 @@ def mro_collect_decorated_hooks(
                     )
     logger.debug("Collected hooks for aliases: %s", list(mapping.keys()))
     return mapping
+
+
+def mro_collect_decorated_hooks(
+    table: type, *, visible_aliases: set[str]
+) -> Dict[str, Dict[str, list[Callable[..., Any]]]]:
+    """Collect alias→phase→[hook] declarations across a table's MRO."""
+
+    key = tuple(sorted(visible_aliases))
+    return _cached_collect_hooks(table, key)
 
 
 __all__ = ["mro_collect_decorated_hooks"]

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from functools import lru_cache
 from typing import Any, Mapping, Tuple
 
 from .table_spec import TableSpec
@@ -19,6 +20,7 @@ def _merge_seq_attr(model: type, attr: str) -> Tuple[Any, ...]:
     return tuple(values)
 
 
+@lru_cache(maxsize=None)
 def mro_collect_table_spec(model: type) -> TableSpec:
     """Collect TableSpec-like declarations across the model's MRO.
 
