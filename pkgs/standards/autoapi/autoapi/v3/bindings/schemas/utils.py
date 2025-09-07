@@ -156,6 +156,12 @@ def _resolve_schema_arg(model: type, arg: SchemaArg) -> Optional[Type[BaseModel]
                 "Schema '%s.%s' not found on %s", arg.alias, attr, model.__name__
             )
             raise KeyError(f"Schema '{arg.alias}.{attr}' not found on {model.__name__}")
+        logger.debug(
+            "Resolved SchemaRef %s.%s to %s",
+            arg.alias,
+            attr,
+            getattr(res, "__name__", None),
+        )
         return res  # type: ignore[return-value]
 
     # dotted string
@@ -171,6 +177,12 @@ def _resolve_schema_arg(model: type, arg: SchemaArg) -> Optional[Type[BaseModel]
         if res is None:
             logger.debug("Schema '%s.%s' not found on %s", alias, attr, model.__name__)
             raise KeyError(f"Schema '{alias}.{attr}' not found on {model.__name__}")
+        logger.debug(
+            "Resolved schema path %s.%s to %s",
+            alias,
+            attr,
+            getattr(res, "__name__", None),
+        )
         return res  # type: ignore[return-value]
 
     logger.debug("Unsupported SchemaArg type: %s", type(arg))
