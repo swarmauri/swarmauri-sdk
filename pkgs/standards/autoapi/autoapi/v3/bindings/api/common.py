@@ -4,6 +4,7 @@ import logging
 from types import SimpleNamespace
 from typing import Any
 
+logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/api/common")
 
@@ -34,7 +35,13 @@ def _resource_name(model: type) -> str:
       - Otherwise, use the model *class name* in lowercase.
       - DO NOT use `__tablename__` here (strictly DB-only per project policy).
     """
-    return getattr(model, "__resource__", model.__name__.lower())
+    if hasattr(model, "__resource__"):
+        resource = model.__resource__
+        logger.debug("Using explicit resource '%s' for %s", resource, model.__name__)
+    else:
+        resource = model.__name__.lower()
+        logger.debug("Derived resource '%s' for %s", resource, model.__name__)
+    return resource
 
 
 def _default_prefix(model: type) -> str:
@@ -44,11 +51,16 @@ def _default_prefix(model: type) -> str:
     duplicated path segments such as ``/item/item``.  To expose REST endpoints
     under ``/item`` we now mount routers at the application root by default.
     """
+    logger.debug("Default prefix for %s is root '/'", model.__name__)
     return ""
 
 
 def _has_include_router(obj: Any) -> bool:
-    return hasattr(obj, "include_router") and callable(getattr(obj, "include_router"))
+    has_router = hasattr(obj, "include_router") and callable(
+        getattr(obj, "include_router")
+    )
+    logger.debug("Object %s has include_router: %s", obj, has_router)
+    return has_router
 
 
 def _mount_router(app_or_router: Any, router: Any, *, prefix: str) -> None:
@@ -57,10 +69,17 @@ def _mount_router(app_or_router: Any, router: Any, *, prefix: str) -> None:
     If not available, we still attach router under api.routers for later use.
     """
     if app_or_router is None:
+        logger.debug("No app/router; skipping mount for prefix %s", prefix)
         return
     try:
         if _has_include_router(app_or_router):
+            logger.debug("Mounting router %s at prefix %s", router, prefix)
             app_or_router.include_router(router, prefix=prefix)  # FastAPI / Router
+        else:
+            logger.debug(
+                "Provided object %s lacks include_router; not mounting router",
+                app_or_router,
+            )
     except Exception:
         logger.exception("Failed to mount router at %s", prefix)
 
@@ -85,3 +104,6 @@ def _ensure_api_ns(api: ApiLike) -> None:
     ):
         if not hasattr(api, attr):
             setattr(api, attr, default)
+            logger.debug("Initialized api.%s", attr)
+        else:
+            logger.debug("api already has attribute %s", attr)
