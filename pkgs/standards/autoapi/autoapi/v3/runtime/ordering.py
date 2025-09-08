@@ -26,7 +26,13 @@ _PREF: Dict[str, Tuple[str, ...]] = {
     _ev.SCHEMA_COLLECT_OUT: ("schema:collect_out",),
     _ev.OUT_BUILD: ("wire:build_out",),
     _ev.EMIT_ALIASES_READ: ("emit:readtime_alias",),
-    _ev.OUT_DUMP: ("wire:dump", "out:masking"),
+    _ev.OUT_DUMP: (
+        "wire:dump",
+        "out:masking",
+        "response:negotiate",
+        "response:render",
+        "response:template",
+    ),
 }
 
 
