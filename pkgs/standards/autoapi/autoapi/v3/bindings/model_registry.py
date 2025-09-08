@@ -56,6 +56,7 @@ def _ensure_op_ctx_attach_hook(model: type) -> None:
 
     def _meta_setattr(cls, name, value):
         from .model import rebind
+        from ..op.mro_collect import mro_collect_decorated_ops
 
         orig_meta_setattr(cls, name, value)
         fn = getattr(value, "__func__", value)
@@ -63,6 +64,7 @@ def _ensure_op_ctx_attach_hook(model: type) -> None:
         if decl and getattr(cls, "__autoapi_op_ctx_watch__", False):
             alias = decl.alias or name
             target = decl.target or "custom"
+            mro_collect_decorated_ops.cache_clear()
             rebind(cls, changed_keys={(alias, target)})
 
     meta.__setattr__ = _meta_setattr  # type: ignore[attr-defined]
