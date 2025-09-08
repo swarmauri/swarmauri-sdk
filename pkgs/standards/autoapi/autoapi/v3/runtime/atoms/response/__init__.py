@@ -4,7 +4,7 @@ from ....deps.starlette import Response
 import logging
 
 from ... import events as _ev
-from . import render as _render
+from . import render as _render_utils
 from . import negotiation as _neg
 from . import templates as _tmpl
 
@@ -37,7 +37,7 @@ async def _template(obj: Optional[object], ctx: Any) -> None:
     resp_ns.result = html
     hints = getattr(resp_ns, "hints", None)
     if hints is None:
-        hints = _render.ResponseHints()
+        hints = _render_utils.ResponseHints()
         resp_ns.hints = hints
     if not hints.media_type:
         hints.media_type = "text/html"
@@ -51,7 +51,7 @@ def _negotiate(obj: Optional[object], ctx: Any) -> None:
         return
     hints = getattr(resp_ns, "hints", None)
     if hints is None:
-        hints = _render.ResponseHints()
+        hints = _render_utils.ResponseHints()
         resp_ns.hints = hints
     if not hints.media_type:
         accept = getattr(req, "headers", {}).get("accept", "*/*")
@@ -59,7 +59,7 @@ def _negotiate(obj: Optional[object], ctx: Any) -> None:
         hints.media_type = _neg.negotiate_media_type(accept, default_media)
 
 
-def _render_run(
+def _render(
     obj: Optional[object], ctx: Any
 ) -> Response | None:  # pragma: no cover - glue code
     """Render a payload into a concrete :class:`Response`.
@@ -79,7 +79,7 @@ def _render_run(
     hints = getattr(resp_ns, "hints", None)
     default_media = getattr(resp_ns, "default_media", "application/json")
     envelope_default = getattr(resp_ns, "envelope_default", True)
-    resp = _render.render(
+    resp = _render_utils.render(
         req,
         result,
         hints=hints,
@@ -93,7 +93,7 @@ def _render_run(
 REGISTRY: Dict[Tuple[str, str], Tuple[str, RunFn]] = {
     ("response", "template"): (_ev.OUT_DUMP, _template),
     ("response", "negotiate"): (_ev.OUT_DUMP, _negotiate),
-    ("response", "render"): (_ev.OUT_DUMP, _render_run),
+    ("response", "render"): (_ev.OUT_DUMP, _render),
 }
 
 

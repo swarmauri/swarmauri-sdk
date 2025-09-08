@@ -117,6 +117,15 @@ def _discover_atoms() -> list[_DiscoveredAtom]:
         import autoapi.v3.runtime.atoms as atoms_pkg  # type: ignore
     except Exception:
         return out
+    all_items = getattr(atoms_pkg, "all_items", None)
+    if callable(all_items):
+        try:
+            for _key, (anchor, fn) in all_items():  # type: ignore[misc]
+                out.append((anchor, fn))
+        except Exception:
+            out = []
+        logger.debug("kernel: discovered %d atoms", len(out))
+        return out
     for info in pkgutil.walk_packages(atoms_pkg.__path__, atoms_pkg.__name__ + "."):  # type: ignore[attr-defined]
         if info.ispkg:
             continue
@@ -140,10 +149,13 @@ def _infer_domain_subject(run: _AtomRun) -> tuple[Optional[str], Optional[str]]:
     parts = mod.split(".")
     try:
         i = parts.index("atoms")
-        return (
-            parts[i + 1] if i + 1 < len(parts) else None,
-            parts[i + 2] if i + 2 < len(parts) else None,
-        )
+        domain = parts[i + 1] if i + 1 < len(parts) else None
+        subject = parts[i + 2] if i + 2 < len(parts) else None
+        if subject is None:
+            name = getattr(run, "__name__", "")
+            if name:
+                subject = name.lstrip("_")
+        return (domain, subject)
     except ValueError:
         return None, None
 
