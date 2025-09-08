@@ -1,4 +1,4 @@
-from autoapi.v3.table.collect import collect_table_spec
+from autoapi.v3.table.mro_collect import mro_collect_table_spec
 from autoapi.v3.table.shortcuts import defineTableSpec
 from autoapi.v3.orm.tables import Base
 from autoapi.v3.orm.mixins import GUIDPk
@@ -30,7 +30,7 @@ class Model(SpecA, SpecB, Base, GUIDPk):
 
 
 def test_collect_table_spec_merges_mro():
-    spec = collect_table_spec(Model)
+    spec = mro_collect_table_spec(Model)
     assert spec.model is Model
     assert spec.engine == "db_b"
     assert spec.ops == ("a", "b")

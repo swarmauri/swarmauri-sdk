@@ -3,6 +3,7 @@ from datetime import datetime
 
 from autoapi.v3.bindings.model import bind
 from autoapi.v3.runtime.atoms.schema import collect_in, collect_out
+from autoapi.v3.runtime.kernel import _default_kernel as K
 from autoapi.v3.specs import ColumnSpec, F, IO, S, acol, vcol
 from autoapi.v3.orm.tables import Base
 from autoapi.v3.types import (
@@ -59,7 +60,8 @@ def test_acol_vcol_knobs_affect_bindings_and_schemas():
     specs = Thing.__autoapi_cols__
 
     # openapi request schema via collect_in
-    ctx_in = SimpleNamespace(specs=specs, op="create", temp={})
+    ov_in = K._compile_opview_from_specs(specs, Thing.ops.by_alias["create"][0])
+    ctx_in = SimpleNamespace(opview=ov_in, op="create", temp={})
     collect_in.run(None, ctx_in)
     schema_in = ctx_in.temp["schema_in"]
     assert schema_in["by_field"]["name"]["required"] is True
@@ -67,7 +69,8 @@ def test_acol_vcol_knobs_affect_bindings_and_schemas():
     assert schema_in["by_field"]["nickname"]["virtual"] is True
 
     # openapi response schema via collect_out
-    ctx_out = SimpleNamespace(specs=specs, op="read", temp={})
+    ov_out = K._compile_opview_from_specs(specs, Thing.ops.by_alias["read"][0])
+    ctx_out = SimpleNamespace(opview=ov_out, op="read", temp={})
     collect_out.run(None, ctx_out)
     schema_out = ctx_out.temp["schema_out"]
     for field in ("name", "created_at", "nickname", "slug"):

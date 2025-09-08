@@ -1,11 +1,11 @@
 # autoapi/v3/runtime/atoms/refresh/demand.py
 from __future__ import annotations
 
-from typing import Any, Iterable, Mapping, MutableMapping, Optional, Tuple
+from typing import Any, Iterable, Optional
 import logging
 
 from ... import events as _ev
-from ...kernel import get_cached_specs
+from ...opview import opview_from_ctx, _ensure_temp
 
 # After the handler flushes changes; decide whether to hydrate DB-generated values.
 ANCHOR = _ev.POST_FLUSH  # "post:flush"
@@ -26,7 +26,6 @@ def run(obj: Optional[object], ctx: Any) -> None:
     Inputs (conventions)
     --------------------
     - ctx.persist : bool               → write op? (anchor is persist-tied but we guard)
-    - ctx.specs   : {field -> ColumnSpec}
     - ctx.temp["used_returning"] : bool              → a prior step already satisfied hydration
     - ctx.temp["hydrated_values"] : Mapping[str, Any]→ values captured from RETURNING
     - ctx.cfg.refresh_after_write : Optional[bool]   → policy override (true/false)
@@ -45,14 +44,8 @@ def run(obj: Optional[object], ctx: Any) -> None:
         return
 
     temp = _ensure_temp(ctx)
-    model = (
-        getattr(ctx, "model", None)
-        or getattr(ctx, "Model", None)
-        or type(getattr(ctx, "obj", None))
-    )
-    specs: Mapping[str, Any] = getattr(ctx, "specs", None) or (
-        get_cached_specs(model) if model else {}
-    )
+    ov = opview_from_ctx(ctx)
+    refresh_hints = tuple(ov.refresh_hints)
 
     # If RETURNING already produced hydrated values, skip unless policy forces refresh.
     returning_satisfied = bool(temp.get("used_returning")) or bool(
@@ -64,17 +57,17 @@ def run(obj: Optional[object], ctx: Any) -> None:
     policy = _get_refresh_policy(ctx)
     logger.debug("Refresh policy: %s", policy)
     # auto → infer from specs (db-generated signals) OR absence of returning values
-    needs_by_specs, fields = _scan_specs_for_refresh(specs)
-    logger.debug("Specs indicate refresh: %s; fields=%s", needs_by_specs, fields)
+    needs_by_specs = bool(refresh_hints)
+    logger.debug("Refresh hints: %s; fields=%s", needs_by_specs, refresh_hints)
     need_refresh = _decide(policy, returning_satisfied, needs_by_specs)
     logger.debug("Refresh decision: %s", need_refresh)
 
     temp["refresh_demand"] = bool(need_refresh)
-    temp["refresh_fields"] = tuple(fields)
+    temp["refresh_fields"] = refresh_hints
 
     if need_refresh:
         temp["refresh_reason"] = _reason(
-            policy, returning_satisfied, needs_by_specs, fields
+            policy, returning_satisfied, needs_by_specs, refresh_hints
         )
         logger.debug("Refresh scheduled: %s", temp["refresh_reason"])
     else:
@@ -87,14 +80,6 @@ def run(obj: Optional[object], ctx: Any) -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 # Internals
 # ──────────────────────────────────────────────────────────────────────────────
-
-
-def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
-    tmp = getattr(ctx, "temp", None)
-    if not isinstance(tmp, dict):
-        tmp = {}
-        setattr(ctx, "temp", tmp)
-    return tmp
 
 
 def _get_refresh_policy(ctx: Any) -> str:
@@ -116,42 +101,6 @@ def _get_refresh_policy(ctx: Any) -> str:
         if isinstance(pol, str) and pol in {"always", "never", "auto"}:
             return pol
     return "auto"
-
-
-def _scan_specs_for_refresh(specs: Mapping[str, Any]) -> Tuple[bool, Tuple[str, ...]]:
-    """
-    Heuristically determine if any column is likely DB-generated and requires hydration.
-    We examine StorageSpec-like attributes but keep this tolerant (no hard dependency).
-    """
-    need = False
-    fields: list[str] = []
-
-    for fname, col in specs.items():
-        s = getattr(col, "storage", None)
-        if s is None:
-            continue
-
-        # Common server-side generation signals
-        flags = (
-            getattr(s, "server_default", None),
-            getattr(s, "server_onupdate", None),
-            getattr(s, "computed", None),
-            getattr(s, "sa_computed", None),
-            getattr(s, "db_generated", None),
-            getattr(s, "identity", None),
-            getattr(s, "sequence", None),
-            getattr(s, "autoincrement", None),
-            getattr(s, "onupdate", None),
-        )
-        pk = bool(getattr(s, "primary_key", False))
-        # Consider PKs with autoincrement/identity as refresh candidates
-        if any(bool(f) for f in flags) or (
-            pk and bool(getattr(s, "autoincrement", False))
-        ):
-            need = True
-            fields.append(fname)
-
-    return need, tuple(sorted(set(fields)))
 
 
 def _decide(policy: str, returning_satisfied: bool, needs_by_specs: bool) -> bool:

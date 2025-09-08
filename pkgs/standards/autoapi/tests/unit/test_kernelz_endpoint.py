@@ -44,20 +44,22 @@ async def test_kernelz_endpoint(monkeypatch: pytest.MonkeyPatch) -> None:
     api = API()
     api.models = {"Model": Model}
 
-    def fake_build_phase_chains(model, alias):
+    def fake_build(model, alias):
         assert model is Model and alias == "create"
         return {"PRE_HANDLER": [sample_atom, sample_hook], "HANDLER": [handler]}
 
-    monkeypatch.setattr(_diag, "build_phase_chains", fake_build_phase_chains)
+    monkeypatch.setattr(_diag._default_kernel, "build", fake_build)
 
     kernelz = _build_kernelz_endpoint(api)
     data = await kernelz()
 
     assert "Model" in data
     assert "create" in data["Model"]
-    phases = data["Model"]["create"]
-    assert phases["PRE_HANDLER"] == [
-        _diag._label_hook(sample_atom, "PRE_HANDLER"),
-        _diag._label_hook(sample_hook, "PRE_HANDLER"),
+    seq = data["Model"]["create"]
+    assert seq == [
+        "START_TX:hook:sys:txn:begin@START_TX",
+        f"PRE_HANDLER:{_diag._label_hook(sample_atom, 'PRE_HANDLER')}",
+        f"PRE_HANDLER:{_diag._label_hook(sample_hook, 'PRE_HANDLER')}",
+        f"HANDLER:{_diag._label_hook(handler, 'HANDLER')}",
+        "END_TX:hook:sys:txn:commit@END_TX",
     ]
-    assert phases["HANDLER"] == [_diag._label_hook(handler, "HANDLER")]

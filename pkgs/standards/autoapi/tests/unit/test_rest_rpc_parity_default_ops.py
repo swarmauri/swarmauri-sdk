@@ -59,6 +59,8 @@ def test_rest_rpc_parity_for_default_verbs(alias, target, path, methods):
     routes = _route_map(Item.rest.router)
     if alias == "clear" and "bulk_delete" in routes:
         assert alias not in routes
+    elif alias == "bulk_create" and "create" in routes:
+        assert alias not in routes
     else:
         assert alias in routes
         got_path, got_methods = routes[alias]

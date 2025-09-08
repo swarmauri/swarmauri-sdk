@@ -273,4 +273,7 @@ class AutoAPI(_Api):
     # ------------------------- repr -------------------------
 
     def __repr__(self) -> str:  # pragma: no cover
-        return f"<AutoAPI models={list(self.models)} rpc={list(getattr(self.rpc, '__dict__', {}).keys())}>"
+        models = list(getattr(self, "models", {}))
+        rpc_ns = getattr(self, "rpc", None)
+        rpc_keys = list(getattr(rpc_ns, "__dict__", {}).keys()) if rpc_ns else []
+        return f"<AutoAPI models={models} rpc={rpc_keys}>"

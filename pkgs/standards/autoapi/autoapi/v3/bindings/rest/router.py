@@ -39,7 +39,9 @@ logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/rest/router")
 
 
-def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
+def _build_router(
+    model: type, specs: Sequence[OpSpec], *, api: Any | None = None
+) -> Router:
     resource = _resource_name(model)
 
     # Router-level deps: extra deps only (transport-level; never part of runtime plan)
@@ -66,6 +68,14 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
     # If bulk_delete is present, drop clear to avoid route conflicts
     if any(sp.target == "bulk_delete" for sp in specs):
         specs = [sp for sp in specs if sp.target != "clear"]
+
+    # Prefer the single-item create route when both create and bulk_create are
+    # available. The create handler already accepts lists, so exposing a
+    # separate bulk_create REST route would lead to conflicts.
+    if any(sp.target == "bulk_create" for sp in specs) and any(
+        sp.target == "create" for sp in specs
+    ):
+        specs = [sp for sp in specs if sp.target != "bulk_create"]
 
     # Register collection-level bulk routes before member routes so static paths
     # like "/resource/bulk" aren't captured by dynamic member routes such as
@@ -181,6 +191,7 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
                 db_dep=db_dep,
                 pk_param=pk_param,
                 nested_vars=nested_vars,
+                api=api,
             )
         else:
             endpoint = _make_collection_endpoint(
@@ -189,6 +200,7 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
                 resource=resource,
                 db_dep=db_dep,
                 nested_vars=nested_vars,
+                api=api,
             )
 
         # Status codes

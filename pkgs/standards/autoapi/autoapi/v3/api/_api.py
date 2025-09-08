@@ -1,6 +1,7 @@
 # autoapi/autoapi/v3/api/_api.py
 from __future__ import annotations
 from typing import Any
+from types import SimpleNamespace
 
 from ..deps.fastapi import APIRouter as ApiRouter
 from ..engine.engine_spec import EngineCfg
@@ -15,20 +16,42 @@ class Api(APISpec, ApiRouter):
     MODELS: tuple[Any, ...] = ()
     TABLES: tuple[Any, ...] = ()
 
+    # dataclass inheritance makes instances unhashable; use identity semantics
+    # for both hashing and equality so objects can participate in sets/dicts
+    def __hash__(self) -> int:  # pragma: no cover - simple identity hash
+        return id(self)
+
+    def __eq__(self, other: object) -> bool:  # pragma: no cover - identity compare
+        return self is other
+
     def __init__(
         self, *, engine: EngineCfg | None = None, **router_kwargs: Any
     ) -> None:
+        # Manually initialize fields from ``APISpec`` so ``repr`` and other
+        # dataclass-generated helpers have the expected attributes, while also
+        # preparing mutable containers used at runtime.
+        self.name = getattr(self, "NAME", "api")
+        self.prefix = self.PREFIX
+        self.engine = engine if engine is not None else getattr(self, "ENGINE", None)
+        self.tags = list(getattr(self, "TAGS", []))
+        self.ops = tuple(getattr(self, "OPS", ()))
+        self.schemas = SimpleNamespace()
+        self.hooks = SimpleNamespace()
+        self.security_deps = tuple(getattr(self, "SECURITY_DEPS", ()))
+        self.deps = tuple(getattr(self, "DEPS", ()))
+        self.response = getattr(self, "RESPONSE", None)
+        # ``models`` is expected to be a dict at runtime for registry lookups.
+        self.models: dict[str, type] = {}
+
         ApiRouter.__init__(
             self,
             prefix=self.PREFIX,
-            tags=list(getattr(self, "TAGS", [])),
-            dependencies=list(getattr(self, "SECURITY_DEPS", []))
-            + list(getattr(self, "DEPS", [])),
+            tags=self.tags,
+            dependencies=list(self.security_deps) + list(self.deps),
             **router_kwargs,
         )
 
         # namespace containers
-        self.models: dict[str, type] = {}
         self.tables: dict[str, Any] = {}
 
         _engine_ctx = engine if engine is not None else getattr(self, "ENGINE", None)

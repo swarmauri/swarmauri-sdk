@@ -4,7 +4,7 @@ from typing import Any, Dict, Mapping, Tuple
 
 import logging
 
-from ....column.collect import collect_columns
+from ....column.mro_collect import mro_collect_columns
 
 logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
@@ -67,7 +67,7 @@ def _model_columns(model: type) -> Tuple[str, ...]:
 
 def _colspecs(model: type) -> Mapping[str, Any]:
     logger.info("_colspecs called with model=%s", model)
-    specs = collect_columns(model)
+    specs = mro_collect_columns(model)
     logger.info("_colspecs returning %s", specs)
     return specs
 
