@@ -39,14 +39,14 @@ async def test_op_ctx_persist_options(
     chain = [fn.__name__ for fn in Model.hooks.create.HANDLER]
     assert chain == expected_chain
 
-    def fake_build_phase_chains(model, alias):
+    def fake_build(model, alias):
         return {"HANDLER": Model.hooks.create.HANDLER}
 
-    monkeypatch.setattr(_diag, "build_phase_chains", fake_build_phase_chains)
+    monkeypatch.setattr(_diag._default_kernel, "build", fake_build)
 
     api = SimpleNamespace(models={"Model": Model})
-    planz = _diag._build_planz_endpoint(api)
-    data = await planz()
+    kernelz = _diag._build_kernelz_endpoint(api)
+    data = await kernelz()
     seq = data["Model"]["create"]
 
     chain_steps = Model.hooks.create.HANDLER
@@ -61,8 +61,6 @@ async def test_op_ctx_persist_options(
     expected_seq: list[str] = []
     if persist != "skip":
         expected_seq.append("START_TX:hook:sys:txn:begin@START_TX")
-        if persist not in {"override"} and core_pref is not None:
-            expected_seq.append("HANDLER:hook:sys:handler:crud@HANDLER")
         if persist == "append" and core_pref is not None and custom_pref is not None:
             expected_seq.extend([core_pref, custom_pref])
         else:

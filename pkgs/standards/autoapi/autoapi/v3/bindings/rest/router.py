@@ -44,7 +44,7 @@ def _build_router(
 ) -> Router:
     resource = _resource_name(model)
 
-    # Router-level deps: extra deps only (transport-level; never part of runtime plan)
+    # Router-level deps: extra deps only (transport-level; never part of kernel plan)
     extra_router_deps = _normalize_deps(
         getattr(model, AUTOAPI_REST_DEPENDENCIES_ATTR, None)
     )

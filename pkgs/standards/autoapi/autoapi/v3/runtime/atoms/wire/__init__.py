@@ -13,7 +13,7 @@ from . import dump as _dump
 # Runner signature: (obj|None, ctx) -> None
 RunFn = Callable[[Optional[object], Any], None]
 
-#: Domain-scoped registry consumed by runtime.plan (and aggregated at atoms/__init__.py).
+#: Domain-scoped registry consumed by the kernel plan (and aggregated at atoms/__init__.py).
 #: Keys are (domain, subject); values are (anchor, runner).
 #: Canonical subjects mirror filenames; we keep "validate_in" (not "validate") to avoid duplicates.
 REGISTRY: Dict[Tuple[str, str], Tuple[str, RunFn]] = {

@@ -19,7 +19,7 @@ from .response import REGISTRY as _RESPONSE
 # Runner signature: (obj|None, ctx) -> None
 RunFn = Callable[[Optional[object], Any], None]
 
-#: Global registry consumed by runtime.plan:
+#: Global registry consumed by the kernel plan:
 #:   { (domain, subject): (anchor, runner) }
 REGISTRY: Dict[Tuple[str, str], Tuple[str, RunFn]] = {}
 

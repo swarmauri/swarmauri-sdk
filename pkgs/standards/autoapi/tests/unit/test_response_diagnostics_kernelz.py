@@ -4,8 +4,7 @@ import pytest
 
 from autoapi.v3.op.types import OpSpec
 from autoapi.v3.response.types import ResponseSpec, TemplateSpec
-from autoapi.v3.runtime import plan as runtime_plan
-from autoapi.v3.system.diagnostics import _build_planz_endpoint
+from autoapi.v3.system.diagnostics import _build_kernelz_endpoint
 
 from .response_utils import RESPONSE_KINDS
 
@@ -16,7 +15,7 @@ def handler(ctx):  # pragma: no cover - simple handler
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("kind", RESPONSE_KINDS)
-async def test_response_atom_in_diagnostics_planz(kind) -> None:
+async def test_response_atom_in_diagnostics_kernelz(kind) -> None:
     class Model:  # pragma: no cover - simple model
         __name__ = "Model"
 
@@ -32,7 +31,6 @@ async def test_response_atom_in_diagnostics_planz(kind) -> None:
             ),
         )
     )
-    runtime_plan.attach_atoms_for_model(Model, {})
 
     class API:  # pragma: no cover - simple container
         pass
@@ -40,15 +38,15 @@ async def test_response_atom_in_diagnostics_planz(kind) -> None:
     api = API()
     api.models = {"Model": Model}
 
-    planz = _build_planz_endpoint(api)
-    data = await planz()
+    kernelz = _build_kernelz_endpoint(api)
+    data = await kernelz()
     assert "POST_RESPONSE:atom:response:template@out:dump" in data["Model"]["read"]
     assert "POST_RESPONSE:atom:response:negotiate@out:dump" in data["Model"]["read"]
     assert "POST_RESPONSE:atom:response:render@out:dump" in data["Model"]["read"]
 
 
 @pytest.mark.asyncio
-async def test_response_atom_in_diagnostics_planz_template(tmp_path) -> None:
+async def test_response_atom_in_diagnostics_kernelz_template(tmp_path) -> None:
     class Model:  # pragma: no cover - simple model
         __name__ = "Model"
 
@@ -69,7 +67,6 @@ async def test_response_atom_in_diagnostics_planz_template(tmp_path) -> None:
             ),
         )
     )
-    runtime_plan.attach_atoms_for_model(Model, {})
 
     class API:  # pragma: no cover - simple container
         pass
@@ -77,8 +74,8 @@ async def test_response_atom_in_diagnostics_planz_template(tmp_path) -> None:
     api = API()
     api.models = {"Model": Model}
 
-    planz = _build_planz_endpoint(api)
-    data = await planz()
+    kernelz = _build_kernelz_endpoint(api)
+    data = await kernelz()
     assert "POST_RESPONSE:atom:response:template@out:dump" in data["Model"]["read"]
     assert "POST_RESPONSE:atom:response:negotiate@out:dump" in data["Model"]["read"]
     assert "POST_RESPONSE:atom:response:render@out:dump" in data["Model"]["read"]
