@@ -3,17 +3,16 @@
 from __future__ import annotations
 
 import logging
-import warnings
-from typing import Any, Dict, Iterable, Mapping, Set, Tuple, Type, Union
+from typing import Any, Dict, Iterable, Set, Tuple, Type, Union
 
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, create_model
 
 from ..utils import namely_model
 from ...column.mro_collect import mro_collect_columns
 from .cache import _SchemaCache
-from .compat import _info_check, hybrid_property
+from .compat import hybrid_property
 from .extras import _merge_request_extras, _merge_response_extras
-from .helpers import _add_field, _bool, _is_required, _python_type
+from .helpers import _add_field, _is_required, _python_type
 
 logger = logging.getLogger(__name__)
 
@@ -63,89 +62,41 @@ def _build_schema(
 
         spec = specs.get(attr_name)
         io = getattr(spec, "io", None) if spec is not None else None
-        if verb in {"create", "update", "replace"}:
-            """Determine if the column participates in inbound verbs.
 
-            When a ColumnSpec is present it may explicitly restrict the verbs a
-            field accepts via ``io.in_verbs``.  Previous behaviour treated the
-            absence of this specification as "deny all", which caused models
-            without explicit ColumnSpec declarations to generate empty request
-            schemas.  Here we interpret a missing ``io`` or ``in_verbs`` as
-            allowing all verbs, only filtering when the spec explicitly lists
-            them.
-            """
+        if verb in {"read", "list"}:
+            allowed_verbs = getattr(io, "out_verbs", None) if io is not None else None
+            if allowed_verbs is not None and verb not in set(allowed_verbs):
+                continue
+        elif getattr(col, "primary_key", False) and verb in {
+            "update",
+            "replace",
+            "delete",
+        }:
+            pass
+        else:
+            allowed_verbs = getattr(io, "in_verbs", None) if io is not None else None
+            if allowed_verbs is not None and verb not in set(allowed_verbs):
+                continue
 
-            if getattr(col, "primary_key", False) and verb in {
-                "update",
-                "replace",
-                "delete",
-            }:
-                # Always expose the PK for mutating operations even when the
-                # ColumnSpec omits inbound verbs. The identifier is required so
-                # consumers can target the correct row.
-                pass
-            else:
-                allowed_verbs = (
-                    getattr(io, "in_verbs", None) if io is not None else None
-                )
-                if allowed_verbs is not None and verb not in set(allowed_verbs):
-                    continue
-
-        # Column.info["autoapi"]
-        meta_src = getattr(col, "info", {}) or {}
-        if isinstance(meta_src, Mapping) and "autoapi" in meta_src:
-            warnings.warn(
-                "col.info['autoapi'] is deprecated and support will be removed;"
-                " behavior is no longer guaranteed for col.info['autoapi'] based"
-                " column configuration.",
-                DeprecationWarning,
-                stacklevel=5,
-            )
-        meta = (meta_src.get("autoapi") if isinstance(meta_src, dict) else None) or {}
-        _info_check(meta, attr_name, orm_cls.__name__)
         logger.debug("schema: processing column %s (verb=%s)", attr_name, verb)
 
-        # Legacy flags
-        if verb == "create" and getattr(meta_src, "get", lambda *_: None)("no_create"):
-            continue
-        if verb in {"update", "replace"} and getattr(meta_src, "get", lambda *_: None)(
-            "no_update"
-        ):
-            continue
+        fs = getattr(spec, "field", None)
+        py_t = getattr(fs, "py_type", Any)
+        if py_t is Any:
+            py_t = _python_type(col)
 
-        # Disable on verb
-        if verb in set(meta.get("disable_on", ()) or ()):
-            continue
-
-        # write_only → hide from read schemas
-        if meta.get("write_only") and verb == "read":
-            continue
-
-        # read_only policies
-        ro = meta.get("read_only")
-        if isinstance(ro, Mapping):
-            if _bool(ro.get(verb)):
-                continue
-        elif isinstance(ro, (set, list, tuple)):
-            if verb in ro:
-                continue
-        elif ro and verb != "read":
-            continue
-
-        # Determine type and requiredness
-        py_t = _python_type(col)
         required = _is_required(col, verb)
+        if fs is not None and verb in getattr(fs, "required_in", ()):  # noqa: SIM108
+            required = True
 
-        # Field construction (collect kwargs then create Field once)
-        field_kwargs: Dict[str, Any] = {}
-        if "default_factory" in meta:
-            field_kwargs["default_factory"] = meta["default_factory"]
+        field_kwargs: Dict[str, Any] = dict(getattr(fs, "constraints", {}) or {})
+
+        default_factory = getattr(spec, "default_factory", None)
+        if default_factory and verb in set(getattr(io, "in_verbs", ()) or ()):
+            field_kwargs["default_factory"] = default_factory
             required = False
         else:
             field_kwargs["default"] = None if not required else ...
-
-        if "examples" in meta:
-            field_kwargs["examples"] = meta["examples"]
 
         # IOSpec aliases → Pydantic validation/serialization aliases
         alias_in = getattr(io, "alias_in", None) if io is not None else None
@@ -201,7 +152,6 @@ def _build_schema(
         fs = getattr(spec, "field", None)
         py_t = getattr(fs, "py_type", Any) if fs is not None else Any
         required = bool(fs and verb in getattr(fs, "required_in", ()))
-        allow_null = bool(fs and verb in getattr(fs, "allow_null_in", ()))
         field_kwargs: Dict[str, Any] = dict(getattr(fs, "constraints", {}) or {})
 
         default_factory = getattr(spec, "default_factory", None)
@@ -212,9 +162,6 @@ def _build_schema(
             field_kwargs["default"] = None if not required else ...
 
         fld = Field(**field_kwargs)
-
-        if allow_null and py_t is not Any:
-            py_t = Union[py_t, None]
 
         _add_field(fields, name=attr_name, py_t=py_t, field=fld)
         logger.debug(
@@ -229,21 +176,9 @@ def _build_schema(
         if not isinstance(attr, hybrid_property):
             continue
 
-        meta_src = getattr(attr, "info", {}) or {}
-        if isinstance(meta_src, Mapping) and "autoapi" in meta_src:
-            warnings.warn(
-                "col.info['autoapi'] is deprecated and support will be removed;"
-                " behavior is no longer guaranteed for col.info['autoapi'] based"
-                " column configuration.",
-                DeprecationWarning,
-                stacklevel=5,
-            )
-        meta = (meta_src.get("autoapi") if isinstance(meta_src, dict) else None) or {}
-
-        if meta.get("hybrid"):
-            raise ValueError(
-                f"{orm_cls.__name__}.{attr_name}: hybrid_property is not supported"
-            )
+        raise ValueError(
+            f"{orm_cls.__name__}.{attr_name}: hybrid_property is not supported"
+        )
 
     # ── PASS 3: request/response extras
     _merge_request_extras(orm_cls, verb, fields, include=include, exclude=exclude)

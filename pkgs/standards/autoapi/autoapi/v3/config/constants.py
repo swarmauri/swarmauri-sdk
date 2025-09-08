@@ -84,31 +84,6 @@ DEFAULT_HTTP_METHODS: Mapping[str, Tuple[str, ...]] = {
 
 
 # ───────────────────────────────────────────────────────────────────────────────
-# ‼ Column.info["autoapi"] is deprecated and will be removed.
-# ‼ Support is not guaranteed.
-# Column-level configuration keys (Column.info["autoapi"])
-#   See: v3 schema builder & v3 schema.info check(meta, attr, model)
-#
-# ───────────────────────────────────────────────────────────────────────────────
-
-COL_LEVEL_CFGS: frozenset[str] = frozenset(
-    {
-        # legacy switches (still recognized)
-        "no_create",  # legacy: exclude column on create
-        "no_update",  # legacy: exclude column on update/replace
-        # modern flags (kept in v3)
-        "disable_on",  # iterable of verbs to disable this field on
-        "write_only",  # omit in OUT/read schemas
-        "read_only",  # omit from IN when True or when verb is in mapping
-        "default_factory",  # callable to produce default Field value
-        "examples",  # example values for OpenAPI/Pydantic
-        "hybrid",  # opt-in for @hybrid_property fields
-        "py_type",  # explicit Python type for hybrids/unknowns
-    }
-)
-
-
-# ───────────────────────────────────────────────────────────────────────────────
 # Model-level configuration attributes (looked up on the SQLAlchemy class)
 # ───────────────────────────────────────────────────────────────────────────────
 
@@ -216,7 +191,6 @@ __all__ = [
     "BULK_VERBS",
     "ROUTING_VERBS",
     "DEFAULT_HTTP_METHODS",
-    "COL_LEVEL_CFGS",
     "MODEL_LEVEL_CFGS",
     "AUTOAPI_REQUEST_EXTRAS_ATTR",
     "AUTOAPI_RESPONSE_EXTRAS_ATTR",
