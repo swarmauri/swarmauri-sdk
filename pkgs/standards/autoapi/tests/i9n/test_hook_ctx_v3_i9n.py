@@ -212,7 +212,7 @@ async def test_hook_ctx_storage_sqlalchemy_i9n():
 
         @hook_ctx(ops="create", phase="POST_COMMIT")
         async def count_rows(cls, ctx):
-            result = ctx["db"].execute(select(func.count()).select_from(cls)).scalar()
+            result = ctx["db"].scalar(select(func.count()).select_from(cls))
             ctx["count"] = result
 
         @hook_ctx(ops="create", phase="POST_RESPONSE")
