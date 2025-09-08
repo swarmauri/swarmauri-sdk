@@ -1,5 +1,4 @@
 name: Deploy Documentation
-
 on:
   push:
     branches: [master, mono/dev, mono/docs]
@@ -10,19 +9,17 @@ on:
 
 jobs:
   deploy:
-    runs-on: docs
+    runs-on: [self-hosted, docs]
+    defaults:
+      run:
+        working-directory: docs
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          
-      - name: Deploy documentation
-        working-directory: docs
+
+      - name: Restart docs stack
         run: |
-          echo "Deploying to VM: $VM_NAME"
-          # Stop any previous containers
-          docker-compose down
-          
-          # Build and start the new container
-          docker-compose up -d
+          docker compose -f infra/docker-compose.yml down
+          docker compose -f infra/docker-compose.yml up -d --pull always
