@@ -181,7 +181,9 @@ def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
     try:
         if target == "list" and isinstance(result, (list, tuple)):
             return [
-                out_model.model_validate(x).model_dump(exclude_none=True, by_alias=True)
+                out_model.model_validate(x).model_dump(
+                    exclude_none=False, by_alias=True
+                )
                 for x in result
             ]
         if target in {
@@ -191,12 +193,14 @@ def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
             "bulk_merge",
         } and isinstance(result, (list, tuple)):
             return [
-                out_model.model_validate(x).model_dump(exclude_none=True, by_alias=True)
+                out_model.model_validate(x).model_dump(
+                    exclude_none=False, by_alias=True
+                )
                 for x in result
             ]
         # Single object case
         return out_model.model_validate(result).model_dump(
-            exclude_none=True, by_alias=True
+            exclude_none=False, by_alias=True
         )
     except Exception as e:
         # If serialization fails, let raw result through rather than failing the call
@@ -296,6 +300,12 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
         )
 
         phases = _get_phase_chains(model, alias)
+        # RPC methods should return raw data for JSON-RPC envelopes;
+        # remove response rendering atoms (which produce Starlette responses)
+        # JSON-RPC endpoints handle rendering at the transport layer; skip
+        # response-related atoms entirely to preserve raw results for the RPC envelope.
+        phases["POST_RESPONSE"] = []
+
         base_ctx["response_serializer"] = lambda r: _serialize_output(
             model, alias, target, r
         )
