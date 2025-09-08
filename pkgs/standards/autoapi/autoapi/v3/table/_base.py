@@ -176,9 +176,16 @@ class Base(DeclarativeBase):
     def __init_subclass__(cls, **kw):
         # 0) Remove any previously registered class with the same name.
         try:
-            existing = Base.registry._class_registry.get(cls.__name__)
+            reg = Base.registry._class_registry
+            keys = [cls.__name__, f"{cls.__module__}.{cls.__name__}"]
+            existing = next((reg.get(k) for k in keys if reg.get(k) is not None), None)
             if existing is not None:
-                Base.registry._dispose_cls(existing)
+                try:
+                    Base.registry._dispose_cls(existing)
+                except Exception:
+                    pass
+                for k in keys:
+                    reg.pop(k, None)
         except Exception:
             pass
 
