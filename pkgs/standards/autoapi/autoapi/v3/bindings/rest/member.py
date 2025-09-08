@@ -100,7 +100,8 @@ def _make_member_endpoint(
                 ctx=ctx,
             )
             if isinstance(result, Response):
-                result.status_code = status_code
+                if sp.status_code is not None:
+                    result.status_code = status_code
                 return result
             temp = ctx.get("temp", {}) if isinstance(ctx, Mapping) else {}
             extras = (
@@ -314,7 +315,8 @@ def _make_member_endpoint(
             ctx=ctx,
         )
         if isinstance(result, Response):
-            result.status_code = status_code
+            if sp.status_code is not None:
+                result.status_code = status_code
             return result
         temp = ctx.get("temp", {}) if isinstance(ctx, Mapping) else {}
         extras = temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}
