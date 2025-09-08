@@ -314,7 +314,7 @@ async def test_hook_context_modification(db_mode):
         async def enrich_response(cls, ctx):
             hook_executions.append("POST_RESPONSE")
             assert ctx["custom_data"]["verified"] is True
-            assert hasattr(ctx["response"].result, "name")
+            assert "name" in ctx["response"].result
 
     client, _ = await setup_client(db_mode, Tenant, Item)
 
