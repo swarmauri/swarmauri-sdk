@@ -26,7 +26,9 @@ _DEFAULT_IO = IO(
 
 
 @lru_cache(maxsize=None)
-def mro_collect_columns(model: type) -> Dict[str, ColumnSpec]:
+def mro_collect_columns(
+    model: type, *, _cache_bust: int | None = None
+) -> Dict[str, ColumnSpec]:
     """Collect ColumnSpecs declared on *model* and all mixins.
 
     Iterates across the model's MRO so that mixin-defined columns are included
