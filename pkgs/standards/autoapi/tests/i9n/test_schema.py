@@ -8,19 +8,19 @@ from autoapi.v3.types import BaseModel
 async def test_schema_generation(api_client):
     client, _, Item = api_client
 
-    create_model = Item.schemas.create.in_
+    bulk_model = Item.schemas.bulk_create.in_item
     read_model = _build_schema(Item, verb="read")
     update_model = _build_schema(Item, verb="update")
     delete_model = _build_schema(Item, verb="delete")
     list_model = _build_schema(Item, verb="list")
 
-    assert issubclass(create_model, BaseModel)
+    assert issubclass(bulk_model, BaseModel)
     assert issubclass(read_model, BaseModel)
     assert issubclass(update_model, BaseModel)
     assert issubclass(delete_model, BaseModel)
     assert issubclass(list_model, BaseModel)
 
-    assert create_model.__name__.startswith("ItemCreate")
+    assert bulk_model.__name__.startswith("ItemBulkCreateItem")
     assert read_model.__name__ == "ItemRead"
     assert update_model.__name__ == "ItemUpdate"
     assert delete_model.__name__ == "ItemDelete"
@@ -28,10 +28,8 @@ async def test_schema_generation(api_client):
 
     spec = (await client.get("/openapi.json")).json()
     schemas = spec["components"]["schemas"]
-    assert create_model.__name__ in schemas
-    fields = getattr(
-        create_model, "model_fields", getattr(create_model, "__fields__", {})
-    )
+    assert bulk_model.__name__ in schemas
+    fields = getattr(bulk_model, "model_fields", getattr(bulk_model, "__fields__", {}))
     assert "tenant_id" not in fields
 
 
