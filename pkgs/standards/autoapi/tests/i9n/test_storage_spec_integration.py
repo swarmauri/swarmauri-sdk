@@ -114,7 +114,7 @@ async def test_storage_spec_atomz(api_client_v3):
     client, _, _, _ = api_client_v3
     kernelz = (await client.get("/system/kernelz")).json()
     steps = kernelz["Widget"]["create"]
-    assert "HANDLER:hook:sys:handler:crud@HANDLER" in steps
+    assert "HANDLER:hook:wire:autoapi:v3:core:crud:ops:create@HANDLER" in steps
 
 
 @pytest.mark.i9n

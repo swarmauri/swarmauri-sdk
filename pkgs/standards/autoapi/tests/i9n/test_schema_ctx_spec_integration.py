@@ -197,7 +197,7 @@ async def test_schema_ctx_atomz(schema_ctx_client):
     client, _, _, _ = schema_ctx_client
     kernelz = (await client.get("/system/kernelz")).json()
     steps = kernelz["Widget"]["create"]
-    assert "HANDLER:hook:sys:handler:crud@HANDLER" in steps
+    assert "HANDLER:hook:wire:autoapi:v3:core:crud:ops:create@HANDLER" in steps
 
 
 @pytest.mark.i9n
