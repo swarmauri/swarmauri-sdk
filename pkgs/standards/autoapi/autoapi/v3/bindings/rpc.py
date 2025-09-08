@@ -300,11 +300,16 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
         )
 
         phases = _get_phase_chains(model, alias)
-        # RPC methods should return raw data for JSON-RPC envelopes;
-        # remove response rendering atoms (which produce Starlette responses)
-        # JSON-RPC endpoints handle rendering at the transport layer; skip
-        # response-related atoms entirely to preserve raw results for the RPC envelope.
-        phases["POST_RESPONSE"] = []
+        # RPC methods should return raw data for JSON-RPC envelopes; remove
+        # only the response rendering atoms while preserving any user-defined
+        # hooks registered for ``POST_RESPONSE``.
+        phases["POST_RESPONSE"] = [
+            step
+            for step in phases.get("POST_RESPONSE", [])
+            if not getattr(step, "__module__", "").startswith(
+                "autoapi.v3.runtime.atoms.response"
+            )
+        ]
 
         base_ctx["response_serializer"] = lambda r: _serialize_output(
             model, alias, target, r
