@@ -17,6 +17,8 @@ def test_initialize_sync_with_sqlite_attachments(tmp_path):
     sql_eng, _ = eng.raw()
     with sql_eng.connect() as conn:
         assert "logs" in _db_names(conn)
+        fk = conn.exec_driver_sql("PRAGMA foreign_keys").scalar()
+        assert fk == 1
 
 
 @pytest.mark.asyncio
@@ -29,4 +31,6 @@ async def test_initialize_async_with_sqlite_attachments(tmp_path):
     sql_eng, _ = eng.raw()
     async with sql_eng.connect() as conn:
         names = await conn.run_sync(_db_names)
+        fk = await conn.exec_driver_sql("PRAGMA foreign_keys")
+        assert fk.scalar() == 1
     assert "logs" in names
