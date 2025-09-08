@@ -6,7 +6,7 @@ from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.types import App
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, ForeignKey, String
-from autoapi.v3.deps.sqlalchemy import PgUUID
+from autoapi.v3.types import PgUUID
 
 
 @pytest_asyncio.fixture
