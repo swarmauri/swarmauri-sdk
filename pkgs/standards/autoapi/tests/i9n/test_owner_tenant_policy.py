@@ -1,4 +1,6 @@
 from autoapi.v3.types import App, HTTPException, Request, Security
+from typing import Iterable
+
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.testclient import TestClient
 import pytest
@@ -32,7 +34,10 @@ class DummyAuth(AuthNProvider):
 
 
 def _client_for_owner(
-    policy: OwnerPolicy, user_id: uuid.UUID, tenant_id: uuid.UUID
+    policy: OwnerPolicy,
+    user_id: uuid.UUID,
+    tenant_id: uuid.UUID,
+    extra_user_ids: Iterable[uuid.UUID] | None = None,
 ) -> TestClient:
     Base.metadata.clear()
 
@@ -57,6 +62,8 @@ def _client_for_owner(
 
     with engine.session() as session:
         session.execute(User.__table__.insert().values(id=user_id, name="owner"))
+        for extra in extra_user_ids or []:
+            session.execute(User.__table__.insert().values(id=extra, name="extra"))
         session.commit()
 
     authn = DummyAuth(user_id, tenant_id)
@@ -83,19 +90,24 @@ def test_owner_policy_runtime_switch():
     )
     assert res.status_code == 400
 
-    client = _client_for_owner(OwnerPolicy.CLIENT_SET, user_id, tenant_id)
-    supplied = str(uuid.uuid4())
+    supplied = uuid.uuid4()
+    client = _client_for_owner(
+        OwnerPolicy.CLIENT_SET, user_id, tenant_id, extra_user_ids=[supplied]
+    )
     res = client.post(
         "/item",
-        json={"name": "two", "owner_id": supplied},
+        json={"name": "two", "owner_id": str(supplied)},
         headers=headers,
     )
     assert res.status_code == 201
-    assert res.json()["owner_id"] == supplied
+    assert res.json()["owner_id"] == str(supplied)
 
 
 def _client_for_tenant(
-    policy: TenantPolicy, user_id: uuid.UUID, tenant_id: uuid.UUID
+    policy: TenantPolicy,
+    user_id: uuid.UUID,
+    tenant_id: uuid.UUID,
+    extra_tenant_ids: Iterable[uuid.UUID] | None = None,
 ) -> TestClient:
     Base.metadata.clear()
 
@@ -120,6 +132,8 @@ def _client_for_tenant(
 
     with engine.session() as session:
         session.execute(Tenant.__table__.insert().values(id=tenant_id, name="acme"))
+        for extra in extra_tenant_ids or []:
+            session.execute(Tenant.__table__.insert().values(id=extra, name="extra"))
         session.commit()
 
     authn = DummyAuth(user_id, tenant_id)
@@ -146,12 +160,14 @@ def test_tenant_policy_runtime_switch():
     )
     assert res.status_code == 400
 
-    client = _client_for_tenant(TenantPolicy.CLIENT_SET, user_id, tenant_id)
-    supplied = str(uuid.uuid4())
+    supplied = uuid.uuid4()
+    client = _client_for_tenant(
+        TenantPolicy.CLIENT_SET, user_id, tenant_id, extra_tenant_ids=[supplied]
+    )
     res = client.post(
         "/item",
-        json={"name": "two", "tenant_id": supplied},
+        json={"name": "two", "tenant_id": str(supplied)},
         headers=headers,
     )
     assert res.status_code == 201
-    assert res.json()["tenant_id"] == supplied
+    assert res.json()["tenant_id"] == str(supplied)

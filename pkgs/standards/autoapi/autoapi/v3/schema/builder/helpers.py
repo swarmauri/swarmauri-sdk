@@ -33,8 +33,12 @@ def _python_type(col: Any) -> type | Any:
 
 def _is_required(col: Any, verb: str) -> bool:
     """Decide if a column should be required for the given verb."""
-    if getattr(col, "primary_key", False) and verb in {"update", "replace", "delete"}:
-        return True
+    if getattr(col, "primary_key", False):
+        if verb in {"update", "replace", "delete"}:
+            return True
+        auto = getattr(col, "autoincrement", False)
+        if auto not in (False, None) or getattr(col, "identity", None) is not None:
+            return False
     if verb == "update":
         return False
     is_nullable = bool(getattr(col, "nullable", True))
