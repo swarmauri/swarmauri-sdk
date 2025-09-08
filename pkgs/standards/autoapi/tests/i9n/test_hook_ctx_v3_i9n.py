@@ -44,6 +44,7 @@ def create_client(model_cls):
 @pytest.mark.asyncio
 async def test_hook_ctx_binding_i9n():
     Base.metadata.clear()
+    Base.registry.dispose()
 
     class Item(Base, GUIDPk):
         __tablename__ = "items"
@@ -67,6 +68,7 @@ async def test_hook_ctx_binding_i9n():
 @pytest.mark.asyncio
 async def test_hook_ctx_request_response_schema_i9n():
     Base.metadata.clear()
+    Base.registry.dispose()
 
     class Item(Base, GUIDPk):
         __tablename__ = "items"
@@ -92,6 +94,7 @@ async def test_hook_ctx_request_response_schema_i9n():
 @pytest.mark.asyncio
 async def test_hook_ctx_columns_i9n():
     Base.metadata.clear()
+    Base.registry.dispose()
 
     class Item(Base, GUIDPk):
         __tablename__ = "items"
@@ -120,6 +123,7 @@ async def test_hook_ctx_columns_i9n():
 @pytest.mark.asyncio
 async def test_hook_ctx_defaults_resolution_i9n():
     Base.metadata.clear()
+    Base.registry.dispose()
 
     class Item(Base, GUIDPk):
         __tablename__ = "items"
@@ -146,6 +150,7 @@ async def test_hook_ctx_defaults_resolution_i9n():
 @pytest.mark.asyncio
 async def test_hook_ctx_internal_model_i9n():
     Base.metadata.clear()
+    Base.registry.dispose()
 
     class Item(Base, GUIDPk):
         __tablename__ = "items"
@@ -174,6 +179,7 @@ async def test_hook_ctx_internal_model_i9n():
 @pytest.mark.asyncio
 async def test_hook_ctx_openapi_json_i9n():
     Base.metadata.clear()
+    Base.registry.dispose()
 
     class Item(Base, GUIDPk):
         __tablename__ = "items"
@@ -198,6 +204,7 @@ async def test_hook_ctx_openapi_json_i9n():
 @pytest.mark.asyncio
 async def test_hook_ctx_storage_sqlalchemy_i9n():
     Base.metadata.clear()
+    Base.registry.dispose()
 
     class Item(Base, GUIDPk):
         __tablename__ = "items"
@@ -227,6 +234,7 @@ async def test_hook_ctx_storage_sqlalchemy_i9n():
 @pytest.mark.asyncio
 async def test_hook_ctx_rest_call_i9n():
     Base.metadata.clear()
+    Base.registry.dispose()
 
     class Item(Base, GUIDPk):
         __tablename__ = "items"
@@ -251,6 +259,7 @@ async def test_hook_ctx_rest_call_i9n():
 @pytest.mark.asyncio
 async def test_hook_ctx_rpc_method_i9n():
     Base.metadata.clear()
+    Base.registry.dispose()
 
     class Item(Base, GUIDPk):
         __tablename__ = "items"
@@ -283,6 +292,7 @@ async def test_hook_ctx_rpc_method_i9n():
 @pytest.mark.asyncio
 async def test_hook_ctx_core_crud_i9n():
     Base.metadata.clear()
+    Base.registry.dispose()
 
     class Item(Base, GUIDPk):
         __tablename__ = "items"
@@ -308,6 +318,7 @@ async def test_hook_ctx_core_crud_i9n():
 @pytest.mark.asyncio
 async def test_hook_ctx_hookz_i9n():
     Base.metadata.clear()
+    Base.registry.dispose()
 
     class Item(Base, GUIDPk):
         __tablename__ = "items"
@@ -334,6 +345,7 @@ async def test_hook_ctx_hookz_i9n():
 @pytest.mark.asyncio
 async def test_hook_ctx_atomz_i9n():
     Base.metadata.clear()
+    Base.registry.dispose()
 
     class Item(Base, GUIDPk):
         __tablename__ = "items"
@@ -362,6 +374,7 @@ async def test_hook_ctx_atomz_i9n():
 @pytest.mark.asyncio
 async def test_hook_ctx_system_steps_i9n():
     Base.metadata.clear()
+    Base.registry.dispose()
 
     class Item(Base, GUIDPk):
         __tablename__ = "items"
@@ -372,8 +385,8 @@ async def test_hook_ctx_system_steps_i9n():
             pass
 
     client, _, _ = create_client(Item)
-    res = await client.get("/system/planz")
+    res = await client.get("/system/kernelz")
     data = res.json()
     steps = data["Item"]["create"]
-    assert "HANDLER:hook:sys:handler:crud@HANDLER" in steps
+    assert "HANDLER:hook:wire:autoapi:v3:core:crud:ops:create@HANDLER" in steps
     await client.aclose()

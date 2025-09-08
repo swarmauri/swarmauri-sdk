@@ -49,24 +49,13 @@ from sqlalchemy.ext.mutable import MutableDict, MutableList
 from sqlalchemy.ext.hybrid import hybrid_property
 
 
-# ── Custom Extensions / Generics ─────────────────────────────────────────
-DateTime = _DateTime(timezone=False)
-TZDateTime = _DateTime(timezone=True)
-
-
-class PgUUID(_PgUUID):
-    @property
-    def hex(self):
-        return self.as_uuid.hex
-
 
 # ── Public Exports ───────────────────────────────────────────────────────
 __all__ = [
     # Core types
     "Boolean",
     "Column",
-    "DateTime",
-    "TZDateTime",
+    "_DateTime",
     "SAEnum",
     "Text",
     "ForeignKey",
@@ -85,7 +74,7 @@ __all__ = [
     "ARRAY",
     "PgEnum",
     "JSONB",
-    "PgUUID",
+    "_PgUUID",
     "TSVECTOR",
     # ORM
     "Mapped",

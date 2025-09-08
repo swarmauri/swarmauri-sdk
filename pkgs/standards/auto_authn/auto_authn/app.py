@@ -10,7 +10,7 @@ Features
 * Auto-generated CRUD router for Tenant / Client / User / ApiKey
 * Public credential routes  (/register, /login, /logout, …)
 * OIDC discovery (`/.well-known/openid-configuration`) + `jwks.json`
-* System diagnostics endpoints (healthz, methodz, hookz, planz)
+* System diagnostics endpoints (healthz, methodz, hookz, kernelz)
 """
 
 from __future__ import annotations
@@ -29,6 +29,7 @@ from .rfc7009 import include_rfc7009
 
 
 import logging
+
 logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 # --------------------------------------------------------------------
 # AutoApp application

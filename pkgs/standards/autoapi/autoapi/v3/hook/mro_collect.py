@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import logging
+from functools import lru_cache
 from typing import Any, Callable, Dict, Iterable, Union
 
 from ..runtime.executor import _Ctx
-from ..op.collect import alias_map_for, apply_alias
+from ..op.collect import apply_alias
+from ..op.mro_collect import mro_alias_map_for
 from ..op.decorators import _maybe_await, _unwrap
 from .decorators import HOOK_DECLS_ATTR, Hook
 
@@ -46,14 +48,16 @@ def _wrap_ctx_hook(
     return hook
 
 
-def collect_decorated_hooks(
-    table: type, *, visible_aliases: set[str]
+@lru_cache(maxsize=None)
+def _mro_collect_decorated_hooks_cached(
+    table: type, visible_aliases_fs: frozenset[str]
 ) -> Dict[str, Dict[str, list[Callable[..., Any]]]]:
-    """Build alias→phase→[hook] map from ctx-only hook declarations."""
+    """Cached helper for :func:`mro_collect_decorated_hooks`."""
 
+    visible_aliases = set(visible_aliases_fs)
     logger.info("Collecting hooks for %s", table.__name__)
     mapping: Dict[str, Dict[str, list[Callable[..., Any]]]] = {}
-    aliases = alias_map_for(table)
+    aliases = mro_alias_map_for(table)
 
     def _resolve_ops(spec: Union[str, Iterable[str]]) -> Iterable[str]:
         if spec == "*":
@@ -66,8 +70,7 @@ def collect_decorated_hooks(
         return out
 
     for base in reversed(table.__mro__):
-        for name in dir(base):
-            attr = getattr(base, name, None)
+        for name, attr in base.__dict__.items():
             func = _unwrap(attr)
             decls: list[Hook] | None = getattr(func, HOOK_DECLS_ATTR, None)
             if not decls:
@@ -84,4 +87,12 @@ def collect_decorated_hooks(
     return mapping
 
 
-__all__ = ["collect_decorated_hooks"]
+def mro_collect_decorated_hooks(
+    table: type, *, visible_aliases: set[str]
+) -> Dict[str, Dict[str, list[Callable[..., Any]]]]:
+    """Collect alias→phase→[hook] declarations across a table's MRO."""
+
+    return _mro_collect_decorated_hooks_cached(table, frozenset(visible_aliases))
+
+
+__all__ = ["mro_collect_decorated_hooks"]

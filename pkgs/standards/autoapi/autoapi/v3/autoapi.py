@@ -186,14 +186,21 @@ class AutoAPI(_Api):
         )
         return router
 
-    def attach_diagnostics(self, *, prefix: str | None = None) -> Any:
-        """Mount a diagnostics router onto this AutoAPI instance."""
+    def attach_diagnostics(
+        self, *, prefix: str | None = None, app: Any | None = None
+    ) -> Any:
+        """Mount a diagnostics router onto this AutoAPI instance or ``app``."""
         px = prefix if prefix is not None else self.system_prefix
         prov = _resolver.resolve_provider(api=self)
         get_db = prov.get_db if prov else None
         router = _mount_diagnostics(self, get_db=get_db)
-        if hasattr(self, "include_router"):
-            self.include_router(router, prefix=px)
+        include_self = getattr(self, "include_router", None)
+        if callable(include_self):
+            include_self(router, prefix=px)
+        if app is not None and app is not self:
+            include_other = getattr(app, "include_router", None)
+            if callable(include_other):
+                include_other(router, prefix=px)
         return router
 
     # ------------------------- registry passthroughs -------------------------
@@ -273,4 +280,7 @@ class AutoAPI(_Api):
     # ------------------------- repr -------------------------
 
     def __repr__(self) -> str:  # pragma: no cover
-        return f"<AutoAPI models={list(self.models)} rpc={list(getattr(self.rpc, '__dict__', {}).keys())}>"
+        models = list(getattr(self, "models", {}))
+        rpc_ns = getattr(self, "rpc", None)
+        rpc_keys = list(getattr(rpc_ns, "__dict__", {}).keys()) if rpc_ns else []
+        return f"<AutoAPI models={models} rpc={rpc_keys}>"

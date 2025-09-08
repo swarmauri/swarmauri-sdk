@@ -13,6 +13,8 @@ def test_initialize_sync_without_sqlite_attachments(sync_db_session):
     api.initialize()
     with engine.connect() as conn:
         assert _db_names(conn) == {"main"}
+        fk = conn.exec_driver_sql("PRAGMA foreign_keys").scalar()
+        assert fk == 1
 
 
 def test_initialize_sync_with_sqlite_attachments(sync_db_session, tmp_path):
@@ -23,6 +25,8 @@ def test_initialize_sync_with_sqlite_attachments(sync_db_session, tmp_path):
     api.initialize(sqlite_attachments={"logs": str(attach_db)})
     with engine.connect() as conn:
         assert "logs" in _db_names(conn)
+        fk = conn.exec_driver_sql("PRAGMA foreign_keys").scalar()
+        assert fk == 1
 
 
 @pytest.mark.asyncio
@@ -33,6 +37,8 @@ async def test_initialize_async_without_sqlite_attachments(async_db_session):
     async with engine.connect() as conn:
         result = await conn.exec_driver_sql("PRAGMA database_list")
         names = {row[1] for row in result.fetchall()}
+        fk = await conn.exec_driver_sql("PRAGMA foreign_keys")
+        assert fk.scalar() == 1
     assert names == {"main"}
 
 
@@ -46,4 +52,6 @@ async def test_initialize_async_with_sqlite_attachments(async_db_session, tmp_pa
     async with engine.connect() as conn:
         result = await conn.exec_driver_sql("PRAGMA database_list")
         names = {row[1] for row in result.fetchall()}
+        fk = await conn.exec_driver_sql("PRAGMA foreign_keys")
+        assert fk.scalar() == 1
     assert "logs" in names

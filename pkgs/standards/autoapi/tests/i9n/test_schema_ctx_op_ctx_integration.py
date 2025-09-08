@@ -1,5 +1,5 @@
-import pytest
 import pytest_asyncio
+import pytest
 from pydantic import BaseModel
 from autoapi.v3.types import App
 from httpx import ASGITransport, AsyncClient
@@ -42,8 +42,10 @@ async def widget_client():
     await api.initialize()
     app.include_router(api.router)
 
-    client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
-    return client, api, Widget
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        yield client, api, Widget
 
 
 @pytest.mark.i9n

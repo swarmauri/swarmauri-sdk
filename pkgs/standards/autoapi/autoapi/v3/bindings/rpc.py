@@ -181,7 +181,9 @@ def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
     try:
         if target == "list" and isinstance(result, (list, tuple)):
             return [
-                out_model.model_validate(x).model_dump(exclude_none=True, by_alias=True)
+                out_model.model_validate(x).model_dump(
+                    exclude_none=False, by_alias=True
+                )
                 for x in result
             ]
         if target in {
@@ -191,12 +193,14 @@ def _serialize_output(model: type, alias: str, target: str, result: Any) -> Any:
             "bulk_merge",
         } and isinstance(result, (list, tuple)):
             return [
-                out_model.model_validate(x).model_dump(exclude_none=True, by_alias=True)
+                out_model.model_validate(x).model_dump(
+                    exclude_none=False, by_alias=True
+                )
                 for x in result
             ]
         # Single object case
         return out_model.model_validate(result).model_dump(
-            exclude_none=True, by_alias=True
+            exclude_none=False, by_alias=True
         )
     except Exception as e:
         # If serialization fails, let raw result through rather than failing the call
@@ -274,6 +278,19 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
         base_ctx.setdefault("db", db)
         if request is not None:
             base_ctx.setdefault("request", request)
+        # surface contextual metadata for runtime atoms
+        app_ref = (
+            getattr(request, "app", None)
+            or base_ctx.get("app")
+            or getattr(model, "api", None)
+            or model
+        )
+        base_ctx.setdefault("app", app_ref)
+        base_ctx.setdefault("api", base_ctx.get("api") or app_ref)
+        base_ctx.setdefault("model", model)
+        base_ctx.setdefault("op", alias)
+        base_ctx.setdefault("method", alias)
+        base_ctx.setdefault("target", target)
         # helpful env metadata
         base_ctx.setdefault(
             "env",
@@ -283,6 +300,19 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
         )
 
         phases = _get_phase_chains(model, alias)
+        # RPC methods should return raw data for JSON-RPC envelopes;
+        # remove response rendering atoms (which produce Starlette responses)
+        # JSON-RPC endpoints handle rendering at the transport layer. Filter
+        # out response rendering atoms but preserve any POST_RESPONSE hooks.
+        phases["POST_RESPONSE"] = [
+            fn
+            for fn in phases.get("POST_RESPONSE", [])
+            if not (
+                isinstance(getattr(fn, "__autoapi_label", None), str)
+                and getattr(fn, "__autoapi_label").endswith("@out:dump")
+            )
+        ]
+
         base_ctx["response_serializer"] = lambda r: _serialize_output(
             model, alias, target, r
         )

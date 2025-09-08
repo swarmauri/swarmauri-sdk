@@ -5,7 +5,7 @@ from typing import Any, Dict, Mapping, MutableMapping, Optional
 import logging
 
 from ... import events as _ev
-from ...kernel import get_cached_specs
+from ...opview import opview_from_ctx, _ensure_temp
 
 # This atom runs before the flush, after values have been assembled/generated.
 ANCHOR = _ev.EMIT_ALIASES_PRE  # "emit:aliases:pre_flush"
@@ -32,9 +32,8 @@ def run(obj: Optional[object], ctx: Any) -> None:
     Contracts / Conventions
     -----------------------
     - ctx.temp is a dict-like scratch space shared across atoms.
-    - ctx.specs is a mapping field_name -> ColumnSpec (optional; used to infer alias names).
     - paired_values entries may provide an explicit "alias"; otherwise we infer one
-      using ColumnSpec IO/Field hints; if nothing is available, we default to the field name.
+      using OpView metadata; if nothing is available, we default to the field name.
     - This atom is a no-op when there are no paired values.
 
     It is safe to call multiple times; it only appends idempotent descriptors.
@@ -54,14 +53,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
         logger.debug("No paired values found; nothing to schedule")
         return
 
-    model = (
-        getattr(ctx, "model", None)
-        or getattr(ctx, "Model", None)
-        or type(getattr(ctx, "obj", None))
-    )
-    specs: Mapping[str, Any] = getattr(ctx, "specs", None) or (
-        get_cached_specs(model) if model else {}
-    )
+    ov = opview_from_ctx(ctx)
 
     for field, entry in paired.items():
         if not isinstance(entry, dict):
@@ -74,11 +66,8 @@ def run(obj: Optional[object], ctx: Any) -> None:
             # nothing to emit
             continue
 
-        alias = (
-            entry.get("alias")
-            or _infer_alias_from_spec(field, specs.get(field))
-            or field
-        )
+        desc = ov.paired_index.get(field, {})
+        alias = entry.get("alias") or desc.get("alias") or field
 
         # Record a *deferred* emission descriptor; emit:paired_post will resolve it.
         emit_buf["pre"].append(
@@ -97,14 +86,6 @@ def run(obj: Optional[object], ctx: Any) -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 
 
-def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
-    temp = getattr(ctx, "temp", None)
-    if not isinstance(temp, dict):
-        temp = {}
-        setattr(ctx, "temp", temp)
-    return temp
-
-
 def _ensure_emit_buf(temp: MutableMapping[str, Any]) -> Dict[str, list]:
     buf = temp.get("emit_aliases")
     if not isinstance(buf, dict):
@@ -120,44 +101,6 @@ def _ensure_emit_buf(temp: MutableMapping[str, Any]) -> Dict[str, list]:
 def _get_paired_values(temp: Mapping[str, Any]) -> Mapping[str, Dict[str, Any]]:
     pv = temp.get("paired_values")
     return pv if isinstance(pv, dict) else {}
-
-
-def _infer_alias_from_spec(field: str, colspec: Any) -> Optional[str]:
-    """
-    Best-effort alias inference from ColumnSpec / IOSpec / FieldSpec.
-    We try a few conventional attribute names without taking a hard dependency
-    on any one spec layout. If nothing is found, return None.
-    """
-    if colspec is None:
-        return None
-
-    # Column-level direct hints
-    for name in ("emit_alias", "response_alias", "alias_out", "out_alias"):
-        val = getattr(colspec, name, None)
-        if isinstance(val, str) and val:
-            return val
-
-    # IO-level hints
-    io = getattr(colspec, "io", None)
-    if io is not None:
-        paired = getattr(io, "_paired", None)
-        if paired is not None and isinstance(getattr(paired, "alias", None), str):
-            if paired.alias:
-                return paired.alias
-        for name in ("emit_alias", "response_alias", "alias_out", "out_alias"):
-            val = getattr(io, name, None)
-            if isinstance(val, str) and val:
-                return val
-
-    # Field-level hints
-    fld = getattr(colspec, "field", None)
-    if fld is not None:
-        for name in ("emit_alias", "response_alias", "alias_out", "out_alias"):
-            val = getattr(fld, name, None)
-            if isinstance(val, str) and val:
-                return val
-
-    return None
 
 
 __all__ = ["ANCHOR", "run"]

@@ -32,6 +32,7 @@ from .common import (
     _strip_parent_fields,
     _RESPONSES_META,
 )
+from ...schema import _make_bulk_rows_model
 import typing as _typing
 from typing import get_args as _get_args, get_origin as _get_origin
 
@@ -39,10 +40,12 @@ logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/rest/router")
 
 
-def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
+def _build_router(
+    model: type, specs: Sequence[OpSpec], *, api: Any | None = None
+) -> Router:
     resource = _resource_name(model)
 
-    # Router-level deps: extra deps only (transport-level; never part of runtime plan)
+    # Router-level deps: extra deps only (transport-level; never part of kernel plan)
     extra_router_deps = _normalize_deps(
         getattr(model, AUTOAPI_REST_DEPENDENCIES_ATTR, None)
     )
@@ -63,16 +66,70 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
     nested_pref = re.sub(r"/{2,}", "/", raw_nested).rstrip("/") or ""
     nested_vars = re.findall(r"{(\w+)}", raw_nested)
 
+    # When models are mounted on nested paths, parent identifiers should not
+    # appear in request schemas.  Capture the original spec sequence so we can
+    # prune request models even if some specs (e.g. ``create`` when
+    # ``bulk_create`` is present) are later dropped from the router.
+    all_specs = list(specs)
+
+    if nested_vars:
+        schemas_root = getattr(model, "schemas", None)
+        if schemas_root:
+            for sp in all_specs:
+                alias_ns = getattr(schemas_root, sp.alias, None)
+                if not alias_ns:
+                    continue
+                in_model = getattr(alias_ns, "in_", None)
+                if (
+                    in_model
+                    and inspect.isclass(in_model)
+                    and issubclass(in_model, BaseModel)
+                ):
+                    root_field = getattr(in_model, "model_fields", {}).get("root")
+                    if root_field is not None:
+                        ann = root_field.annotation
+                        inner = None
+                        for t in _get_args(ann) or (ann,):
+                            origin = _get_origin(t)
+                            if origin in {list, _typing.List}:
+                                t_args = _get_args(t)
+                                if t_args:
+                                    t = t_args[0]
+                                    origin = _get_origin(t)
+                            if inspect.isclass(t) and issubclass(t, BaseModel):
+                                inner = t
+                                break
+                        if inner is not None:
+                            pruned = _strip_parent_fields(inner, drop=set(nested_vars))
+                            setattr(alias_ns, "in_item", pruned)
+                            setattr(
+                                alias_ns,
+                                "in_",
+                                _make_bulk_rows_model(model, sp.target, pruned),
+                            )
+                            continue
+                    pruned = _strip_parent_fields(in_model, drop=set(nested_vars))
+                    setattr(alias_ns, "in_", pruned)
+
     # If bulk_delete is present, drop clear to avoid route conflicts
     if any(sp.target == "bulk_delete" for sp in specs):
         specs = [sp for sp in specs if sp.target != "clear"]
+
+    # When both ``create`` and ``bulk_create`` handlers are available,
+    # prefer ``bulk_create`` for the REST route to avoid conflicting POST
+    # registrations at the collection path. Both operations remain bound
+    # for schema generation, but only ``bulk_create`` should surface as a
+    # REST endpoint and in the OpenAPI spec.
+    if any(sp.target == "bulk_create" for sp in specs) and any(
+        sp.target == "create" for sp in specs
+    ):
+        specs = [sp for sp in specs if sp.target != "create"]
 
     # Register collection-level bulk routes before member routes so static paths
     # like "/resource/bulk" aren't captured by dynamic member routes such as
     # "/resource/{item_id}". FastAPI matches routes in the order they are
     # added, so sorting here prevents "bulk" from being treated as an
-    # identifier. Ensure the single-record ``create`` route is registered
-    # before ``bulk_create`` so regular POSTs continue to behave as expected.
+    # identifier.
     specs = sorted(
         specs,
         key=lambda sp: (
@@ -91,38 +148,6 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
     for sp in specs:
         if not sp.expose_routes:
             continue
-
-        # Drop parent identifiers from request models when using nested paths
-        if nested_vars:
-            schemas_root = getattr(model, "schemas", None)
-            if schemas_root:
-                alias_ns = getattr(schemas_root, sp.alias, None)
-                if alias_ns:
-                    in_model = getattr(alias_ns, "in_", None)
-                    if (
-                        in_model
-                        and inspect.isclass(in_model)
-                        and issubclass(in_model, BaseModel)
-                    ):
-                        target = in_model
-                        root_field = getattr(in_model, "model_fields", {}).get("root")
-                        if root_field is not None:
-                            ann = root_field.annotation
-                            inner = None
-                            for t in _get_args(ann) or (ann,):
-                                origin = _get_origin(t)
-                                if origin in {list, _typing.List}:
-                                    t_args = _get_args(t)
-                                    if t_args:
-                                        t = t_args[0]
-                                        origin = _get_origin(t)
-                                if inspect.isclass(t) and issubclass(t, BaseModel):
-                                    inner = t
-                                    break
-                            if inner is not None:
-                                target = inner
-                        pruned = _strip_parent_fields(target, drop=set(nested_vars))
-                        setattr(alias_ns, "in_", pruned)
 
         # Determine path and membership
         if nested_pref:
@@ -181,6 +206,7 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
                 db_dep=db_dep,
                 pk_param=pk_param,
                 nested_vars=nested_vars,
+                api=api,
             )
         else:
             endpoint = _make_collection_endpoint(
@@ -189,6 +215,7 @@ def _build_router(model: type, specs: Sequence[OpSpec]) -> Router:
                 resource=resource,
                 db_dep=db_dep,
                 nested_vars=nested_vars,
+                api=api,
             )
 
         # Status codes

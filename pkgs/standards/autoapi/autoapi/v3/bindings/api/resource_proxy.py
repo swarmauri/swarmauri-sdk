@@ -68,6 +68,14 @@ class _ResourceProxy:
             if request is not None:
                 logger.debug("Request provided for %s.%s", self._model.__name__, alias)
                 base_ctx.setdefault("request", request)
+            # surface contextual metadata for runtime atoms
+            app_ref = getattr(request, "app", None) or base_ctx.get("app") or self._api
+            base_ctx.setdefault("app", app_ref)
+            base_ctx.setdefault("api", base_ctx.get("api") or self._api or app_ref)
+            base_ctx.setdefault("model", self._model)
+            base_ctx.setdefault("op", alias)
+            base_ctx.setdefault("method", alias)
+            base_ctx.setdefault("target", alias)
             base_ctx.setdefault(
                 "env",
                 SimpleNamespace(

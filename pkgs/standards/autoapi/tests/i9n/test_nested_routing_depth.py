@@ -6,6 +6,7 @@ from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.types import App
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, ForeignKey, String
+from autoapi.v3.types import PgUUID
 
 
 @pytest_asyncio.fixture
@@ -19,7 +20,9 @@ async def three_level_api_client(db_mode):
 
     class Department(Base, GUIDPk):
         __tablename__ = "departments"
-        company_id = Column(String, ForeignKey("companies.id"), nullable=False)
+        company_id = Column(
+            PgUUID(as_uuid=True), ForeignKey("companies.id"), nullable=False
+        )
         name = Column(String, nullable=False)
 
         @classmethod
@@ -28,8 +31,12 @@ async def three_level_api_client(db_mode):
 
     class Employee(Base, GUIDPk):
         __tablename__ = "employees"
-        company_id = Column(String, ForeignKey("companies.id"), nullable=False)
-        department_id = Column(String, ForeignKey("departments.id"), nullable=False)
+        company_id = Column(
+            PgUUID(as_uuid=True), ForeignKey("companies.id"), nullable=False
+        )
+        department_id = Column(
+            PgUUID(as_uuid=True), ForeignKey("departments.id"), nullable=False
+        )
         name = Column(String, nullable=False)
 
         @classmethod

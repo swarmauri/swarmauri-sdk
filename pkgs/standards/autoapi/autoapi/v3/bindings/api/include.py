@@ -80,7 +80,7 @@ def _seed_security_and_deps(api: Any, model: type) -> None:
     else:
         logger.debug("No authorization hook for %s", model.__name__)
 
-    # Extra deps (router-level only; never part of runtime plan)
+    # Extra deps (router-level only; never part of kernel plan)
     if getattr(api, "rest_dependencies", None):
         setattr(model, AUTOAPI_REST_DEPENDENCIES_ATTR, list(api.rest_dependencies))
         logger.debug("REST dependencies seeded for %s", model.__name__)
@@ -173,11 +173,25 @@ def include_model(
     """
     logger.debug("Including model %s", model.__name__)
 
+    # If another test or call disposed the SQLAlchemy registry, previously
+    # imported models lose their table mapping.  Re-map on demand so tests that
+    # run after a registry dispose still have working models.
+    if not hasattr(model, "__table__"):
+        try:  # pragma: no cover - defensive path exercised in tests
+            from ...table import Base
+            from ...table._base import _materialize_colspecs_to_sqla
+
+            # Recreate mapped_column attributes from ColumnSpecs then map
+            _materialize_colspecs_to_sqla(model)
+            Base.registry.map_declaratively(model)
+        except Exception:  # pragma: no cover
+            logger.debug("Failed to remap model %s", model.__name__, exc_info=True)
+
     # 0) seed deps/security so binders can see them (transport-level only)
     _seed_security_and_deps(api, model)
 
     # 1) Build/bind model namespaces (idempotent)
-    _binder.bind(model)
+    _binder.bind(model, api=api)
 
     # 2) Pick a router & mount prefix
     router = getattr(getattr(model, "rest", SimpleNamespace()), "router", None)

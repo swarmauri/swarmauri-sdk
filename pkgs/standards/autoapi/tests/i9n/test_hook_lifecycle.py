@@ -46,52 +46,45 @@ async def test_hook_phases_execution_order(db_mode):
         __tablename__ = "tenants"
         name = Column(String, nullable=False)
 
-    @hook_ctx(ops="create", phase="PRE_TX_BEGIN")
-    async def pre_tx_begin(cls, ctx):
-        execution_order.append("PRE_TX_BEGIN")
-        ctx["test_data"] = {"started": True}
-
-    @hook_ctx(ops="create", phase="PRE_HANDLER")
-    async def pre_handler(cls, ctx):
-        execution_order.append("PRE_HANDLER")
-        assert ctx["test_data"]["started"] is True
-        ctx["test_data"]["pre_handler_done"] = True
-
-    @hook_ctx(ops="create", phase="POST_HANDLER")
-    async def post_handler(cls, ctx):
-        execution_order.append("POST_HANDLER")
-        assert ctx["test_data"]["pre_handler_done"] is True
-        ctx["test_data"]["handler_done"] = True
-
-    @hook_ctx(ops="create", phase="PRE_COMMIT")
-    async def pre_commit(cls, ctx):
-        execution_order.append("PRE_COMMIT")
-        assert ctx["test_data"]["handler_done"] is True
-        ctx["test_data"]["pre_commit_done"] = True
-
-    @hook_ctx(ops="create", phase="POST_COMMIT")
-    async def post_commit(cls, ctx):
-        execution_order.append("POST_COMMIT")
-        assert ctx["test_data"]["pre_commit_done"] is True
-        ctx["test_data"]["committed"] = True
-
-    @hook_ctx(ops="create", phase="POST_RESPONSE")
-    async def post_response(cls, ctx):
-        execution_order.append("POST_RESPONSE")
-        assert ctx["test_data"]["committed"] is True
-        ctx["response"].result["hook_completed"] = True
-
     class Item(Base, GUIDPk):
         __tablename__ = "items"
         tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
         name = Column(String, nullable=False)
 
-    Item.pre_tx_begin = pre_tx_begin
-    Item.pre_handler = pre_handler
-    Item.post_handler = post_handler
-    Item.pre_commit = pre_commit
-    Item.post_commit = post_commit
-    Item.post_response = post_response
+        @hook_ctx(ops="create", phase="PRE_TX_BEGIN")
+        async def pre_tx_begin(cls, ctx):
+            execution_order.append("PRE_TX_BEGIN")
+            ctx["test_data"] = {"started": True}
+
+        @hook_ctx(ops="create", phase="PRE_HANDLER")
+        async def pre_handler(cls, ctx):
+            execution_order.append("PRE_HANDLER")
+            assert ctx["test_data"]["started"] is True
+            ctx["test_data"]["pre_handler_done"] = True
+
+        @hook_ctx(ops="create", phase="POST_HANDLER")
+        async def post_handler(cls, ctx):
+            execution_order.append("POST_HANDLER")
+            assert ctx["test_data"]["pre_handler_done"] is True
+            ctx["test_data"]["handler_done"] = True
+
+        @hook_ctx(ops="create", phase="PRE_COMMIT")
+        async def pre_commit(cls, ctx):
+            execution_order.append("PRE_COMMIT")
+            assert ctx["test_data"]["handler_done"] is True
+            ctx["test_data"]["pre_commit_done"] = True
+
+        @hook_ctx(ops="create", phase="POST_COMMIT")
+        async def post_commit(cls, ctx):
+            execution_order.append("POST_COMMIT")
+            assert ctx["test_data"]["pre_commit_done"] is True
+            ctx["test_data"]["committed"] = True
+
+        @hook_ctx(ops="create", phase="POST_RESPONSE")
+        async def post_response(cls, ctx):
+            execution_order.append("POST_RESPONSE")
+            assert ctx["test_data"]["committed"] is True
+            ctx["response"].result["hook_completed"] = True
 
     client, _ = await setup_client(db_mode, Tenant, Item)
 
@@ -135,27 +128,24 @@ async def test_hook_parity_crud_vs_rpc(db_mode):
         __tablename__ = "tenants"
         name = Column(String, nullable=False)
 
-    @hook_ctx(ops="create", phase="PRE_TX_BEGIN")
-    async def track_pre_tx(cls, ctx):
-        if hasattr(ctx.get("request"), "url") and "/rpc" in str(ctx["request"].url):
-            rpc_hooks.append("PRE_TX_BEGIN")
-        else:
-            crud_hooks.append("PRE_TX_BEGIN")
-
-    @hook_ctx(ops="create", phase="POST_COMMIT")
-    async def track_post_commit(cls, ctx):
-        if hasattr(ctx.get("request"), "url") and "/rpc" in str(ctx["request"].url):
-            rpc_hooks.append("POST_COMMIT")
-        else:
-            crud_hooks.append("POST_COMMIT")
-
     class Item(Base, GUIDPk):
         __tablename__ = "items"
         tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
         name = Column(String, nullable=False)
 
-    Item.track_pre_tx = track_pre_tx
-    Item.track_post_commit = track_post_commit
+        @hook_ctx(ops="create", phase="PRE_TX_BEGIN")
+        async def track_pre_tx(cls, ctx):
+            if hasattr(ctx.get("request"), "url") and "/rpc" in str(ctx["request"].url):
+                rpc_hooks.append("PRE_TX_BEGIN")
+            else:
+                crud_hooks.append("PRE_TX_BEGIN")
+
+        @hook_ctx(ops="create", phase="POST_COMMIT")
+        async def track_post_commit(cls, ctx):
+            if hasattr(ctx.get("request"), "url") and "/rpc" in str(ctx["request"].url):
+                rpc_hooks.append("POST_COMMIT")
+            else:
+                crud_hooks.append("POST_COMMIT")
 
     client, _ = await setup_client(db_mode, Tenant, Item)
 
@@ -189,22 +179,19 @@ async def test_hook_error_handling(db_mode):
         __tablename__ = "tenants"
         name = Column(String, nullable=False)
 
-    @hook_ctx(ops="*", phase="ON_ERROR")
-    async def error_handler(cls, ctx):
-        error_hooks.append("ERROR_HANDLED")
-        ctx["error_data"] = {"handled": True}
-
-    @hook_ctx(ops="create", phase="PRE_TX_BEGIN")
-    async def failing_hook(cls, ctx):
-        raise ValueError("Intentional test error")
-
     class Item(Base, GUIDPk):
         __tablename__ = "items"
         tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
         name = Column(String, nullable=False)
 
-    Item.error_handler = error_handler
-    Item.failing_hook = failing_hook
+        @hook_ctx(ops="*", phase="ON_ERROR")
+        async def error_handler(cls, ctx):
+            error_hooks.append("ERROR_HANDLED")
+            ctx["error_data"] = {"handled": True}
+
+        @hook_ctx(ops="create", phase="PRE_TX_BEGIN")
+        async def failing_hook(cls, ctx):
+            raise ValueError("Intentional test error")
 
     client, _ = await setup_client(db_mode, Tenant, Item)
 
@@ -236,42 +223,35 @@ async def test_hook_early_termination_and_cleanup(db_mode):
         __tablename__ = "tenants"
         name = Column(String, nullable=False)
 
-    @hook_ctx(ops="create", phase="PRE_TX_BEGIN")
-    async def pre_tx_begin(cls, ctx):
-        execution_order.append("PRE_TX_BEGIN")
-
-    @hook_ctx(ops="create", phase="PRE_HANDLER")
-    async def pre_handler(cls, ctx):
-        execution_order.append("PRE_HANDLER")
-
-    @hook_ctx(ops="create", phase="POST_HANDLER")
-    async def post_handler(cls, ctx):
-        execution_order.append("POST_HANDLER")
-
-    @hook_ctx(ops="create", phase="PRE_COMMIT")
-    async def pre_commit(cls, ctx):
-        execution_order.append("PRE_COMMIT")
-        raise RuntimeError("boom")
-
-    @hook_ctx(ops="create", phase="POST_COMMIT")
-    async def post_commit(cls, ctx):
-        execution_order.append("POST_COMMIT")
-
-    @hook_ctx(ops="create", phase="POST_RESPONSE")
-    async def post_response(cls, ctx):
-        execution_order.append("POST_RESPONSE")
-
     class Item(Base, GUIDPk):
         __tablename__ = "items"
         tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
         name = Column(String, nullable=False)
 
-    Item.pre_tx_begin = pre_tx_begin
-    Item.pre_handler = pre_handler
-    Item.post_handler = post_handler
-    Item.pre_commit = pre_commit
-    Item.post_commit = post_commit
-    Item.post_response = post_response
+        @hook_ctx(ops="create", phase="PRE_TX_BEGIN")
+        async def pre_tx_begin(cls, ctx):
+            execution_order.append("PRE_TX_BEGIN")
+
+        @hook_ctx(ops="create", phase="PRE_HANDLER")
+        async def pre_handler(cls, ctx):
+            execution_order.append("PRE_HANDLER")
+
+        @hook_ctx(ops="create", phase="POST_HANDLER")
+        async def post_handler(cls, ctx):
+            execution_order.append("POST_HANDLER")
+
+        @hook_ctx(ops="create", phase="PRE_COMMIT")
+        async def pre_commit(cls, ctx):
+            execution_order.append("PRE_COMMIT")
+            raise RuntimeError("boom")
+
+        @hook_ctx(ops="create", phase="POST_COMMIT")
+        async def post_commit(cls, ctx):
+            execution_order.append("POST_COMMIT")
+
+        @hook_ctx(ops="create", phase="POST_RESPONSE")
+        async def post_response(cls, ctx):
+            execution_order.append("POST_RESPONSE")
 
     client, _ = await setup_client(db_mode, Tenant, Item)
 
@@ -314,31 +294,27 @@ async def test_hook_context_modification(db_mode):
         __tablename__ = "tenants"
         name = Column(String, nullable=False)
 
-    @hook_ctx(ops="create", phase="PRE_TX_BEGIN")
-    async def modify_params(cls, ctx):
-        hook_executions.append("PRE_TX_BEGIN")
-        ctx["custom_data"] = {"modified": True}
-
-    @hook_ctx(ops="create", phase="POST_HANDLER")
-    async def verify_modification(cls, ctx):
-        hook_executions.append("POST_HANDLER")
-        assert ctx["custom_data"]["modified"] is True
-        ctx["custom_data"]["verified"] = True
-
-    @hook_ctx(ops="create", phase="POST_RESPONSE")
-    async def enrich_response(cls, ctx):
-        hook_executions.append("POST_RESPONSE")
-        assert ctx["custom_data"]["verified"] is True
-        assert hasattr(ctx["response"].result, "name")
-
     class Item(Base, GUIDPk):
         __tablename__ = "items"
         tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
         name = Column(String, nullable=False)
 
-    Item.modify_params = modify_params
-    Item.verify_modification = verify_modification
-    Item.enrich_response = enrich_response
+        @hook_ctx(ops="create", phase="PRE_TX_BEGIN")
+        async def modify_params(cls, ctx):
+            hook_executions.append("PRE_TX_BEGIN")
+            ctx["custom_data"] = {"modified": True}
+
+        @hook_ctx(ops="create", phase="POST_HANDLER")
+        async def verify_modification(cls, ctx):
+            hook_executions.append("POST_HANDLER")
+            assert ctx["custom_data"]["modified"] is True
+            ctx["custom_data"]["verified"] = True
+
+        @hook_ctx(ops="create", phase="POST_RESPONSE")
+        async def enrich_response(cls, ctx):
+            hook_executions.append("POST_RESPONSE")
+            assert ctx["custom_data"]["verified"] is True
+            assert hasattr(ctx["response"].result, "name")
 
     client, _ = await setup_client(db_mode, Tenant, Item)
 
@@ -430,26 +406,22 @@ async def test_multiple_hooks_same_phase(db_mode):
         __tablename__ = "tenants"
         name = Column(String, nullable=False)
 
-    @hook_ctx(ops="create", phase="POST_COMMIT")
-    async def first_hook(cls, ctx):
-        executions.append("first")
-
-    @hook_ctx(ops="create", phase="POST_COMMIT")
-    async def second_hook(cls, ctx):
-        executions.append("second")
-
-    @hook_ctx(ops="create", phase="POST_COMMIT")
-    async def third_hook(cls, ctx):
-        executions.append("third")
-
     class Item(Base, GUIDPk):
         __tablename__ = "items"
         tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
         name = Column(String, nullable=False)
 
-    Item.first_hook = first_hook
-    Item.second_hook = second_hook
-    Item.third_hook = third_hook
+        @hook_ctx(ops="create", phase="POST_COMMIT")
+        async def first_hook(cls, ctx):
+            executions.append("first")
+
+        @hook_ctx(ops="create", phase="POST_COMMIT")
+        async def second_hook(cls, ctx):
+            executions.append("second")
+
+        @hook_ctx(ops="create", phase="POST_COMMIT")
+        async def third_hook(cls, ctx):
+            executions.append("third")
 
     client, _ = await setup_client(db_mode, Tenant, Item)
 

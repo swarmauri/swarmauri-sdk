@@ -112,15 +112,15 @@ async def test_storage_spec_hookz(api_client_v3):
 @pytest.mark.asyncio
 async def test_storage_spec_atomz(api_client_v3):
     client, _, _, _ = api_client_v3
-    planz = (await client.get("/system/planz")).json()
-    steps = planz["Widget"]["create"]
-    assert "HANDLER:hook:sys:handler:crud@HANDLER" in steps
+    kernelz = (await client.get("/system/kernelz")).json()
+    steps = kernelz["Widget"]["create"]
+    assert "HANDLER:hook:wire:autoapi:v3:core:crud:ops:create@HANDLER" in steps
 
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_storage_spec_system_steps(api_client_v3):
     client, _, _, _ = api_client_v3
-    planz = (await client.get("/system/planz")).json()
-    assert "Widget" in planz
-    assert "create" in planz["Widget"]
+    kernelz = (await client.get("/system/kernelz")).json()
+    assert "Widget" in kernelz
+    assert "create" in kernelz["Widget"]

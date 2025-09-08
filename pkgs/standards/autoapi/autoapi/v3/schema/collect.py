@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import inspect
 import logging
+from functools import lru_cache
 from typing import Dict
 
 from ..config.constants import AUTOAPI_SCHEMA_DECLS_ATTR
@@ -13,6 +14,7 @@ logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 
 
+@lru_cache(maxsize=None)
 def collect_decorated_schemas(model: type) -> Dict[str, Dict[str, type]]:
     """Gather schema declarations for ``model`` across its MRO."""
     logger.info("Collecting decorated schemas for %s", model.__name__)
@@ -33,8 +35,7 @@ def collect_decorated_schemas(model: type) -> Dict[str, Dict[str, type]]:
 
     # Nested classes with __autoapi_schema_decl__
     for base in reversed(model.__mro__):
-        for name in dir(base):
-            obj = getattr(base, name, None)
+        for name, obj in base.__dict__.items():
             if not inspect.isclass(obj):
                 logger.debug("Skipping non-class attribute %s.%s", base.__name__, name)
                 continue

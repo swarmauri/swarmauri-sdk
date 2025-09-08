@@ -1,17 +1,36 @@
 from types import SimpleNamespace
 
-from autoapi.v3.column.io_spec import Pair
 from autoapi.v3.runtime.atoms.resolve import paired_gen
-from autoapi.v3.specs import IO
-
-
-class Col:
-    def __init__(self) -> None:
-        self.paired = True
+from autoapi.v3.runtime.kernel import (
+    SchemaIn,
+    SchemaOut,
+    OpView,
+    _default_kernel as K,
+)
 
 
 def test_generate_paired_value() -> None:
-    ctx = SimpleNamespace(persist=True, specs={"secret": Col()}, temp={})
+    class App:
+        pass
+
+    app = App()
+
+    class Model:
+        pass
+
+    alias = "create"
+    ov = OpView(
+        schema_in=SchemaIn(fields=("secret",), by_field={"secret": {}}),
+        schema_out=SchemaOut(fields=(), by_field={}, expose=()),
+        paired_index={"secret": {}},
+        virtual_producers={},
+        to_stored_transforms={},
+        refresh_hints=(),
+    )
+    K._opviews[app] = {(Model, alias): ov}
+    K._primed[app] = True
+
+    ctx = SimpleNamespace(app=app, model=Model, op=alias, persist=True, temp={})
     paired_gen.run(None, ctx)
     pv = ctx.temp["paired_values"]
     pf = ctx.temp["persist_from_paired"]
@@ -19,12 +38,28 @@ def test_generate_paired_value() -> None:
     assert pf["secret"]["source"] == ("paired_values", "secret", "raw")
 
 
-class ColIO:
-    io = IO().paired(lambda ctx: Pair(raw="r", stored="s"), alias="extra")
-
-
 def test_generate_paired_value_from_io() -> None:
-    ctx = SimpleNamespace(persist=True, specs={"secret": ColIO()}, temp={})
+    class App:
+        pass
+
+    app = App()
+
+    class Model:
+        pass
+
+    alias = "create"
+    ov = OpView(
+        schema_in=SchemaIn(fields=("secret",), by_field={"secret": {}}),
+        schema_out=SchemaOut(fields=(), by_field={}, expose=()),
+        paired_index={"secret": {"gen": lambda ctx: "r"}},
+        virtual_producers={},
+        to_stored_transforms={},
+        refresh_hints=(),
+    )
+    K._opviews[app] = {(Model, alias): ov}
+    K._primed[app] = True
+
+    ctx = SimpleNamespace(app=app, model=Model, op=alias, persist=True, temp={})
     paired_gen.run(None, ctx)
     pv = ctx.temp["paired_values"]
     assert pv["secret"]["raw"] == "r"

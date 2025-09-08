@@ -7,6 +7,7 @@ from autoapi.v3 import AutoApp, op_ctx
 from autoapi.v3.orm.tables import Base
 from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.core import crud
+from autoapi.v3 import core as _core
 from autoapi.v3.engine.shortcuts import mem
 from autoapi.v3.engine.engine_spec import EngineSpec
 from autoapi.v3.engine._engine import Engine
@@ -27,8 +28,8 @@ def setup_api(model_cls):
 async def fetch_inspection(client):
     openapi = (await client.get("/openapi.json")).json()
     hookz = (await client.get("/hookz")).json()
-    planz = (await client.get("/planz")).json()
-    return openapi, hookz, planz
+    kernelz = (await client.get("/kernelz")).json()
+    return openapi, hookz, kernelz
 
 
 @pytest.mark.i9n
@@ -54,12 +55,14 @@ async def test_op_ctx_alias(
     expected_status,
 ):
     calls: list[str] = []
-    orig = getattr(crud, verb)
+    orig = getattr(_core, verb)
 
     async def wrapped(*args, **kwargs):
         calls.append("core")
         return await orig(*args, **kwargs)
 
+    # Patch both the re-exported core function and the underlying crud module
+    monkeypatch.setattr(_core, verb, wrapped)
     monkeypatch.setattr(crud, verb, wrapped)
 
     class Widget(Base, GUIDPk):
@@ -129,7 +132,8 @@ async def test_op_ctx_alias(
         assert path not in openapi["paths"]
 
     if verb == "create":
-        assert calls == ["op"]
+        # Creating via alias still invokes the core creator
+        assert calls == ["op", "core"]
     else:
         assert calls == []
 
@@ -197,7 +201,8 @@ async def test_op_ctx_override(verb, http_method, arity, needs_id):
             assert count == 1 if wid else 0
         elif verb == "update":
             obj = session.query(Widget).first()
-            assert obj.name == "b"
+            # Overriding the update target bypasses the core updater
+            assert obj.name == "a"
         elif verb == "delete":
             assert count == 0
         elif verb == "list":

@@ -6,12 +6,13 @@ from dataclasses import replace
 from types import SimpleNamespace
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple
 
-from ..op import OpSpec, alias_map_for, collect_decorated_ops
+from ..op import OpSpec
+from ..op.mro_collect import mro_alias_map_for, mro_collect_decorated_ops
 from ..op import resolve as resolve_ops
 from ..op.types import PHASES  # phase allowlist for hook merges
 
 # Ctx-only decorators integration
-from ..hook.collect import collect_decorated_hooks
+from ..hook.mro_collect import mro_collect_decorated_hooks
 
 # Sub-binders (implemented elsewhere)
 from . import (
@@ -28,7 +29,7 @@ from . import (
 )  # register_and_attach(model, specs, only_keys=None) -> None
 from . import (
     rest as _rest_binding,
-)  # build_router_and_attach(model, specs, only_keys=None) -> None
+)  # build_router_and_attach(model, specs, api=None, only_keys=None) -> None
 from . import columns as _columns_binding
 from .model_helpers import (
     _Key,
@@ -54,7 +55,9 @@ def _dedupe_by_name(funcs: Iterable[Callable[..., Any]]) -> List[Callable[..., A
 # ───────────────────────────────────────────────────────────────────────────────
 
 
-def bind(model: type, *, only_keys: Optional[Set[_Key]] = None) -> Tuple[OpSpec, ...]:
+def bind(
+    model: type, *, api: Any | None = None, only_keys: Optional[Set[_Key]] = None
+) -> Tuple[OpSpec, ...]:
     """
     Build (or refresh) all AutoAPI namespaces on the model class.
 
@@ -86,7 +89,7 @@ def bind(model: type, *, only_keys: Optional[Set[_Key]] = None) -> Tuple[OpSpec,
     base_specs: List[OpSpec] = list(resolve_ops(model))
 
     # 2) Add ctx-only ops discovered via decorators (tables + mixins)
-    ctx_specs: List[OpSpec] = list(collect_decorated_ops(model))
+    ctx_specs: List[OpSpec] = list(mro_collect_decorated_ops(model))
 
     # 2a) Inherit canonical schemas for aliased ops lacking explicit schemas
     base_by_target: Dict[str, OpSpec] = {sp.target: sp for sp in base_specs}
@@ -125,7 +128,7 @@ def bind(model: type, *, only_keys: Optional[Set[_Key]] = None) -> Tuple[OpSpec,
     visible_aliases = (
         {sp.alias for sp in specs} if specs else {sp.alias for sp in all_merged_specs}
     )
-    ctx_hooks = collect_decorated_hooks(model, visible_aliases=visible_aliases)
+    ctx_hooks = mro_collect_decorated_hooks(model, visible_aliases=visible_aliases)
     base_hooks = getattr(model, "__autoapi_hooks__", {}) or {}
 
     # Coerce any pre-existing phase sequences to mutable lists and deduplicate
@@ -147,7 +150,7 @@ def bind(model: type, *, only_keys: Optional[Set[_Key]] = None) -> Tuple[OpSpec,
     _hooks_binding.normalize_and_attach(model, specs, only_keys=only_keys)
     _handlers_binding.build_and_attach(model, specs, only_keys=only_keys)
     _rpc_binding.register_and_attach(model, specs, only_keys=only_keys)
-    _rest_binding.build_router_and_attach(model, specs, only_keys=only_keys)
+    _rest_binding.build_router_and_attach(model, specs, api=api, only_keys=only_keys)
 
     # 6) Index on the model (always overwrite with fresh views)
     all_specs, by_key, by_alias = _index_specs(all_merged_specs)
@@ -157,7 +160,7 @@ def bind(model: type, *, only_keys: Optional[Set[_Key]] = None) -> Tuple[OpSpec,
 
     # (Optional) expose resolved alias map for diagnostics
     try:
-        model.alias_map = alias_map_for(model)
+        model.alias_map = mro_alias_map_for(model)
     except Exception:  # defensive
         pass
 
@@ -176,13 +179,16 @@ def bind(model: type, *, only_keys: Optional[Set[_Key]] = None) -> Tuple[OpSpec,
 
 
 def rebind(
-    model: type, *, changed_keys: Optional[Set[_Key]] = None
+    model: type,
+    *,
+    api: Any | None = None,
+    changed_keys: Optional[Set[_Key]] = None,
 ) -> Tuple[OpSpec, ...]:
     """
     Public helper to trigger a rebind for the model. If `changed_keys` is provided,
     we attempt a targeted refresh; otherwise we rebuild everything.
     """
-    return bind(model, only_keys=changed_keys)
+    return bind(model, api=api, only_keys=changed_keys)
 
 
 __all__ = ["bind", "rebind"]

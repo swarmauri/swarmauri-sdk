@@ -7,7 +7,7 @@ from autoapi.v3.bindings import (
     build_schemas,
     register_rpc,
 )
-from autoapi.v3.op import collect_decorated_ops
+from autoapi.v3.op.mro_collect import mro_collect_decorated_ops
 from autoapi.v3.response import response_ctx, render_template
 from autoapi.v3.response.shortcuts import (
     as_file,
@@ -17,7 +17,6 @@ from autoapi.v3.response.shortcuts import (
     as_stream,
     as_text,
 )
-from autoapi.v3.runtime import plan as runtime_plan
 from pydantic import BaseModel
 from typing import get_args
 from autoapi.v3.response.types import ResponseKind
@@ -38,11 +37,10 @@ def build_ping_model():
         def ping(cls, ctx):
             return {"pong": True}
 
-    specs = list(collect_decorated_ops(Widget))
+    specs = list(mro_collect_decorated_ops(Widget))
     build_schemas(Widget, specs)
     build_hooks(Widget, specs)
     build_handlers(Widget, specs)
-    runtime_plan.attach_atoms_for_model(Widget, {})
     build_rest(Widget, specs)
     register_rpc(Widget, specs)
     return Widget
@@ -75,11 +73,10 @@ def build_model_for_response(kind: str, tmp_path) -> tuple[type, str | None]:
                 return as_redirect("/redirected")
             return {"pong": True}
 
-    specs = list(collect_decorated_ops(Widget))
+    specs = list(mro_collect_decorated_ops(Widget))
     build_schemas(Widget, specs)
     build_hooks(Widget, specs)
     build_handlers(Widget, specs)
-    runtime_plan.attach_atoms_for_model(Widget, {})
     build_rest(Widget, specs)
     register_rpc(Widget, specs)
     return Widget, (file_path if kind == "file" else None)
@@ -111,11 +108,10 @@ def build_model_for_response_non_alias(kind: str, tmp_path) -> tuple[type, str |
                 return as_redirect("/redirected")
             return {"pong": True}
 
-    specs = list(collect_decorated_ops(Widget))
+    specs = list(mro_collect_decorated_ops(Widget))
     build_schemas(Widget, specs)
     build_hooks(Widget, specs)
     build_handlers(Widget, specs)
-    runtime_plan.attach_atoms_for_model(Widget, {})
     build_rest(Widget, specs)
     register_rpc(Widget, specs)
     return Widget, (file_path if kind == "file" else None)
@@ -137,11 +133,10 @@ def build_model_for_jinja_response(tmp_path) -> type:
             )
             return as_html(html)
 
-    specs = list(collect_decorated_ops(Widget))
+    specs = list(mro_collect_decorated_ops(Widget))
     build_schemas(Widget, specs)
     build_hooks(Widget, specs)
     build_handlers(Widget, specs)
-    runtime_plan.attach_atoms_for_model(Widget, {})
     build_rest(Widget, specs)
     register_rpc(Widget, specs)
     return Widget

@@ -6,7 +6,8 @@ Tests all mixins and their expected behavior using individual DummyModel instanc
 
 import pytest
 from datetime import datetime, timedelta, timezone
-from autoapi.v3.types import Column, String, uuid4
+from autoapi.v3.types import String, uuid4
+from autoapi.v3.column.shortcuts import acol, F, IO, S
 
 from autoapi.v3 import Base
 from autoapi.v3.orm.mixins import (
@@ -36,109 +37,121 @@ from autoapi.v3.schema import _build_schema
 from autoapi.v3.engine import resolver as _resolver
 
 
+NAME_FIELD = acol(
+    storage=S(type_=String, nullable=False),
+    field=F(py_type=str),
+    io=IO(
+        in_verbs=("create", "update", "replace"),
+        out_verbs=("read", "list"),
+        mutable_verbs=("create", "update", "replace"),
+        filter_ops=("eq",),
+    ),
+)
+
+
 class DummyModelTimestamped(Base, GUIDPk, Timestamped):
     """Test model for Timestamped mixin."""
 
     __tablename__ = "dummy_timestamped"
-    name = Column(String)
+    name = NAME_FIELD
 
 
 class DummyModelCreated(Base, GUIDPk, Created):
     """Test model for Created mixin."""
 
     __tablename__ = "dummy_created"
-    name = Column(String)
+    name = NAME_FIELD
 
 
 class DummyModelLastUsed(Base, GUIDPk, LastUsed):
     """Test model for LastUsed mixin."""
 
     __tablename__ = "dummy_last_used"
-    name = Column(String)
+    name = NAME_FIELD
 
 
 class DummyModelActiveToggle(Base, GUIDPk, ActiveToggle):
     """Test model for ActiveToggle mixin."""
 
     __tablename__ = "dummy_active_toggle"
-    name = Column(String)
+    name = NAME_FIELD
 
 
 class DummyModelSoftDelete(Base, GUIDPk, SoftDelete):
     """Test model for SoftDelete mixin."""
 
     __tablename__ = "dummy_soft_delete"
-    name = Column(String)
+    name = NAME_FIELD
 
 
 class DummyModelVersioned(Base, GUIDPk, Versioned):
     """Test model for Versioned mixin."""
 
     __tablename__ = "dummy_versioned"
-    name = Column(String)
+    name = NAME_FIELD
 
 
 class DummyModelBulkCapable(Base, GUIDPk, BulkCapable):
     """Test model for BulkCapable mixin."""
 
     __tablename__ = "dummy_bulk_capable"
-    name = Column(String)
+    name = NAME_FIELD
 
 
 class DummyModelReplaceable(Base, GUIDPk, Replaceable):
     """Test model for Replaceable mixin."""
 
     __tablename__ = "dummy_replaceable"
-    name = Column(String)
+    name = NAME_FIELD
 
 
 class DummyModelAsyncCapable(Base, GUIDPk, AsyncCapable):
     """Test model for AsyncCapable mixin."""
 
     __tablename__ = "dummy_async_capable"
-    name = Column(String)
+    name = NAME_FIELD
 
 
 class DummyModelSlugged(Base, GUIDPk, Slugged):
     """Test model for Slugged mixin."""
 
     __tablename__ = "dummy_slugged"
-    name = Column(String)
+    name = NAME_FIELD
 
 
 class DummyModelStatusColumn(Base, GUIDPk, StatusColumn):
     """Test model for StatusColumn."""
 
     __tablename__ = "dummy_status_column"
-    name = Column(String)
+    name = NAME_FIELD
 
 
 class DummyModelValidityWindow(Base, GUIDPk, ValidityWindow):
     """Test model for ValidityWindow mixin."""
 
     __tablename__ = "dummy_validity_window"
-    name = Column(String)
+    name = NAME_FIELD
 
 
 class DummyModelMonetary(Base, GUIDPk, Monetary):
     """Test model for Monetary mixin."""
 
     __tablename__ = "dummy_monetary"
-    name = Column(String)
+    name = NAME_FIELD
 
 
 class DummyModelExtRef(Base, GUIDPk, ExtRef):
     """Test model for ExtRef mixin."""
 
     __tablename__ = "dummy_ext_ref"
-    name = Column(String)
+    name = NAME_FIELD
 
 
 class DummyModelMetaJSON(Base, GUIDPk, MetaJSON):
     """Test model for MetaJSON mixin."""
 
     __tablename__ = "dummy_meta_json"
-    name = Column(String)
+    name = NAME_FIELD
 
 
 @pytest.mark.i9n
@@ -461,15 +474,15 @@ async def test_marker_mixins(create_test_api):
     # Create dummy models for other marker mixins
     class DummyAudited(Base, GUIDPk, Audited):
         __tablename__ = "dummy_audited"
-        name = Column(String)
+        name = NAME_FIELD
 
     class DummyStreamable(Base, GUIDPk, Streamable):
         __tablename__ = "dummy_streamable"
-        name = Column(String)
+        name = NAME_FIELD
 
     class DummyRelationEdge(Base, GUIDPk, RelationEdge):
         __tablename__ = "dummy_relation_edge"
-        name = Column(String)
+        name = NAME_FIELD
 
     marker_models = [DummyAudited, DummyStreamable, DummyRelationEdge]
 
@@ -493,7 +506,7 @@ async def test_multiple_mixins_combination(create_test_api):
         Base, GUIDPk, Timestamped, ActiveToggle, Slugged, StatusColumn
     ):
         __tablename__ = "dummy_multiple_mixins"
-        name = Column(String)
+        name = NAME_FIELD
 
     create_test_api(DummyMultipleMixins)
 

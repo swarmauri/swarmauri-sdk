@@ -39,7 +39,7 @@ async def running_app(sync_db_session):
     app = App()
     api = AutoApp(get_db=get_sync_db)
     api.include_models([ApiKey])
-    api.initialize()
+    await api.initialize()
     app.include_router(api.router)
 
     cfg = uvicorn.Config(app, host="127.0.0.1", port=8000, log_level="warning")
@@ -112,6 +112,19 @@ async def test_persisted_columns(running_app):
         "id",
     }
     assert cols == expected
+
+
+@pytest.mark.i9n
+@pytest.mark.asyncio
+async def test_read_excludes_api_key(running_app):
+    base_url, _ = running_app
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(f"{base_url}/apikey", json=_payload())
+        created = resp.json()
+        fetched = await client.get(f"{base_url}/apikey/{created['id']}")
+    body = fetched.json()
+    assert "api_key" not in body
+    assert body["digest"] == created["digest"]
 
 
 @pytest.mark.i9n
