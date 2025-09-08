@@ -81,6 +81,11 @@ def _read_current_value(obj: Optional[object], ctx: Any, field: str) -> Optional
     )  # type: ignore
     if isinstance(hv, Mapping):
         return hv.get(field)
+    av = getattr(getattr(ctx, "temp", {}), "get", lambda *a, **k: None)(
+        "assembled_values"
+    )  # type: ignore
+    if isinstance(av, Mapping):
+        return av.get(field)
     return None
 
 

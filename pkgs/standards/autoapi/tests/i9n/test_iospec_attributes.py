@@ -207,7 +207,12 @@ def test_rest_call_respects_aliases():
         )
         name = acol(
             storage=S(type_=StrType, nullable=False),
-            io=IO(in_verbs=("create",), out_verbs=("read",)),
+            io=IO(
+                in_verbs=("create",),
+                out_verbs=("create", "read"),
+                alias_in="first_name",
+                alias_out="firstName",
+            ),
         )
 
     api = AutoApp(engine=eng)
@@ -215,9 +220,9 @@ def test_rest_call_respects_aliases():
     Base.metadata.create_all(eng.raw()[0])
     client = TestClient(api)
 
-    resp = client.post("/thing", json={"name": "Ada"})
+    resp = client.post("/thing", json={"first_name": "Ada"})
     data = resp.json()
-    assert data["name"] == "Ada"
+    assert data["data"]["firstName"] == "Ada"
 
 
 @pytest.mark.i9n
