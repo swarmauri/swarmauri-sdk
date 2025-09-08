@@ -47,6 +47,7 @@ def run(obj: Optional[object], ctx: Any) -> None:
     if payload is None:
         logger.debug("No response payload found; skipping masking")
         return
+    logger.debug("Original payload before masking: %s", payload)
 
     emit_buf = _ensure_emit_buf(temp)
     skip_aliases = _collect_emitted_aliases(emit_buf)
@@ -65,6 +66,8 @@ def run(obj: Optional[object], ctx: Any) -> None:
         logger.debug(
             "Unsupported payload type %s; leaving as-is", type(payload).__name__
         )
+
+    logger.debug("Payload after masking: %s", payload)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -109,7 +112,10 @@ def _mask_one(
             continue
         if not (desc.get("sensitive") or desc.get("mask_last") is not None):
             continue
-        item[field] = _mask_value(val, desc.get("mask_last"))
+        masked = _mask_value(val, desc.get("mask_last"))
+        logger.debug("Masking field '%s': %r -> %r", field, val, masked)
+        item[field] = masked
+    logger.debug("Item after masking: %s", item)
 
 
 def _mask_value(value: Any, keep_last: Optional[int]) -> str:
