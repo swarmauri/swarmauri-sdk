@@ -34,6 +34,7 @@ from .common import (
     _executor,
     _status_for,
 )
+from ...core.crud.helpers import _colspecs
 
 
 logging.getLogger("uvicorn").debug("Loaded module v3/bindings/rest/collection")
@@ -214,7 +215,6 @@ def _make_collection_endpoint(
             ctx["response_serializer"] = lambda r: _serialize_output(
                 model, exec_alias, exec_target, sp, r
             )
-            raw_key = None
             if (
                 exec_target == "create"
                 and isinstance(payload, Mapping)
@@ -222,8 +222,15 @@ def _make_collection_endpoint(
                 and hasattr(model, "_generate_pair")
             ):
                 pair = model._generate_pair(None)  # type: ignore[attr-defined]
-                raw_key = pair.raw
                 payload["digest"] = pair.stored
+                temp = ctx.setdefault("temp", {})
+                pv = temp.setdefault("paired_values", {})
+                alias_name = (
+                    getattr(
+                        _colspecs(model).get("digest").io._paired, "alias", "digest"
+                    )  # type: ignore[union-attr]
+                )
+                pv["digest"] = {"raw": pair.raw, "alias": alias_name}
             phases = _get_phase_chains(model, exec_alias)
             result = await _executor._invoke(
                 request=request, db=db, phases=phases, ctx=ctx
@@ -232,20 +239,6 @@ def _make_collection_endpoint(
                 if sp.status_code is not None or result.status_code == 200:
                     result.status_code = status_code
                 return result
-            temp = ctx.get("temp", {}) if isinstance(ctx, Mapping) else {}
-            extras = (
-                temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}
-            )
-            raw = None
-            if isinstance(temp, Mapping):
-                raw = temp.get("paired_values", {}).get("digest", {}).get("raw")
-            if raw is None:
-                raw = raw_key
-            if isinstance(result, dict):
-                if isinstance(extras, dict):
-                    result.update(extras)
-                if raw is not None and "api_key" not in result:
-                    result["api_key"] = raw
             return result
 
         _endpoint.__signature__ = _sig(

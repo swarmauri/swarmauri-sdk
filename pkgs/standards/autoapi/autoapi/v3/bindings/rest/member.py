@@ -103,20 +103,6 @@ def _make_member_endpoint(
                 if sp.status_code is not None or result.status_code == 200:
                     result.status_code = status_code
                 return result
-            temp = ctx.get("temp", {}) if isinstance(ctx, Mapping) else {}
-            extras = (
-                temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}
-            )
-            raw = (
-                temp.get("paired_values", {}).get("digest", {}).get("raw")
-                if isinstance(temp, Mapping)
-                else None
-            )
-            if isinstance(result, dict):
-                if isinstance(extras, dict):
-                    result.update(extras)
-                if raw is not None and "api_key" not in result:
-                    result["api_key"] = raw
             return result
 
         params = [
@@ -198,20 +184,6 @@ def _make_member_endpoint(
                 phases=phases,
                 ctx=ctx,
             )
-            temp = ctx.get("temp", {}) if isinstance(ctx, Mapping) else {}
-            extras = (
-                temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}
-            )
-            raw = (
-                temp.get("paired_values", {}).get("digest", {}).get("raw")
-                if isinstance(temp, Mapping)
-                else None
-            )
-            if isinstance(result, dict):
-                if isinstance(extras, dict):
-                    result.update(extras)
-                if raw is not None and "api_key" not in result:
-                    result["api_key"] = raw
             return result
 
         params = [
@@ -318,18 +290,7 @@ def _make_member_endpoint(
             if sp.status_code is not None or result.status_code == 200:
                 result.status_code = status_code
             return result
-        temp = ctx.get("temp", {}) if isinstance(ctx, Mapping) else {}
-        extras = temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}
-        raw = (
-            temp.get("paired_values", {}).get("digest", {}).get("raw")
-            if isinstance(temp, Mapping)
-            else None
-        )
-        if isinstance(result, dict):
-            if isinstance(extras, dict):
-                result.update(extras)
-            if raw is not None and "api_key" not in result:
-                result["api_key"] = raw
+
         return result
 
     params = [
