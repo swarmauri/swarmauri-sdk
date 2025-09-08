@@ -17,7 +17,6 @@ from autoapi.v3.response.shortcuts import (
     as_stream,
     as_text,
 )
-from autoapi.v3.runtime import plan as runtime_plan
 from pydantic import BaseModel
 from typing import get_args
 from autoapi.v3.response.types import ResponseKind
@@ -42,7 +41,6 @@ def build_ping_model():
     build_schemas(Widget, specs)
     build_hooks(Widget, specs)
     build_handlers(Widget, specs)
-    runtime_plan.attach_atoms_for_model(Widget, {})
     build_rest(Widget, specs)
     register_rpc(Widget, specs)
     return Widget
@@ -79,7 +77,6 @@ def build_model_for_response(kind: str, tmp_path) -> tuple[type, str | None]:
     build_schemas(Widget, specs)
     build_hooks(Widget, specs)
     build_handlers(Widget, specs)
-    runtime_plan.attach_atoms_for_model(Widget, {})
     build_rest(Widget, specs)
     register_rpc(Widget, specs)
     return Widget, (file_path if kind == "file" else None)
@@ -115,7 +112,6 @@ def build_model_for_response_non_alias(kind: str, tmp_path) -> tuple[type, str |
     build_schemas(Widget, specs)
     build_hooks(Widget, specs)
     build_handlers(Widget, specs)
-    runtime_plan.attach_atoms_for_model(Widget, {})
     build_rest(Widget, specs)
     register_rpc(Widget, specs)
     return Widget, (file_path if kind == "file" else None)
@@ -141,7 +137,6 @@ def build_model_for_jinja_response(tmp_path) -> type:
     build_schemas(Widget, specs)
     build_hooks(Widget, specs)
     build_handlers(Widget, specs)
-    runtime_plan.attach_atoms_for_model(Widget, {})
     build_rest(Widget, specs)
     register_rpc(Widget, specs)
     return Widget
