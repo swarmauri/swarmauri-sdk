@@ -66,6 +66,51 @@ def _build_router(
     nested_pref = re.sub(r"/{2,}", "/", raw_nested).rstrip("/") or ""
     nested_vars = re.findall(r"{(\w+)}", raw_nested)
 
+    # When models are mounted on nested paths, parent identifiers should not
+    # appear in request schemas.  Capture the original spec sequence so we can
+    # prune request models even if some specs (e.g. ``create`` when
+    # ``bulk_create`` is present) are later dropped from the router.
+    all_specs = list(specs)
+
+    if nested_vars:
+        schemas_root = getattr(model, "schemas", None)
+        if schemas_root:
+            for sp in all_specs:
+                alias_ns = getattr(schemas_root, sp.alias, None)
+                if not alias_ns:
+                    continue
+                in_model = getattr(alias_ns, "in_", None)
+                if (
+                    in_model
+                    and inspect.isclass(in_model)
+                    and issubclass(in_model, BaseModel)
+                ):
+                    root_field = getattr(in_model, "model_fields", {}).get("root")
+                    if root_field is not None:
+                        ann = root_field.annotation
+                        inner = None
+                        for t in _get_args(ann) or (ann,):
+                            origin = _get_origin(t)
+                            if origin in {list, _typing.List}:
+                                t_args = _get_args(t)
+                                if t_args:
+                                    t = t_args[0]
+                                    origin = _get_origin(t)
+                            if inspect.isclass(t) and issubclass(t, BaseModel):
+                                inner = t
+                                break
+                        if inner is not None:
+                            pruned = _strip_parent_fields(inner, drop=set(nested_vars))
+                            setattr(alias_ns, "in_item", pruned)
+                            setattr(
+                                alias_ns,
+                                "in_",
+                                _make_bulk_rows_model(model, sp.target, pruned),
+                            )
+                            continue
+                    pruned = _strip_parent_fields(in_model, drop=set(nested_vars))
+                    setattr(alias_ns, "in_", pruned)
+
     # If bulk_delete is present, drop clear to avoid route conflicts
     if any(sp.target == "bulk_delete" for sp in specs):
         specs = [sp for sp in specs if sp.target != "clear"]
@@ -103,45 +148,6 @@ def _build_router(
     for sp in specs:
         if not sp.expose_routes:
             continue
-
-        # Drop parent identifiers from request models when using nested paths
-        if nested_vars:
-            schemas_root = getattr(model, "schemas", None)
-            if schemas_root:
-                alias_ns = getattr(schemas_root, sp.alias, None)
-                if alias_ns:
-                    in_model = getattr(alias_ns, "in_", None)
-                    if (
-                        in_model
-                        and inspect.isclass(in_model)
-                        and issubclass(in_model, BaseModel)
-                    ):
-                        root_field = getattr(in_model, "model_fields", {}).get("root")
-                        if root_field is not None:
-                            ann = root_field.annotation
-                            inner = None
-                            for t in _get_args(ann) or (ann,):
-                                origin = _get_origin(t)
-                                if origin in {list, _typing.List}:
-                                    t_args = _get_args(t)
-                                    if t_args:
-                                        t = t_args[0]
-                                        origin = _get_origin(t)
-                                if inspect.isclass(t) and issubclass(t, BaseModel):
-                                    inner = t
-                                    break
-                            if inner is not None:
-                                pruned = _strip_parent_fields(
-                                    inner, drop=set(nested_vars)
-                                )
-                                setattr(alias_ns, "in_item", pruned)
-                                setattr(
-                                    alias_ns,
-                                    "in_",
-                                    _make_bulk_rows_model(model, sp.target, pruned),
-                                )
-                        pruned = _strip_parent_fields(in_model, drop=set(nested_vars))
-                        setattr(alias_ns, "in_", pruned)
 
         # Determine path and membership
         if nested_pref:
