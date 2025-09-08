@@ -29,7 +29,9 @@ def _camel(s: str) -> str:
     return rv
 
 
-def _extract_example(schema: Type[BaseModel]) -> Dict[str, Any]:
+def _extract_example(
+    schema: Type[BaseModel], exclude: set[str] | None = None
+) -> Dict[str, Any]:
     """Build a simple example object from field examples if available."""
     try:
         js = schema.model_json_schema()
@@ -38,6 +40,8 @@ def _extract_example(schema: Type[BaseModel]) -> Dict[str, Any]:
         return {}
     out: Dict[str, Any] = {}
     for name, prop in (js.get("properties") or {}).items():
+        if exclude and name in exclude:
+            continue
         examples = prop.get("examples")
         if examples:
             out[name] = examples[0]
@@ -65,11 +69,16 @@ def _make_bulk_rows_model(
 
 
 def _make_bulk_rows_response_model(
-    model: type, verb: str, item_schema: Type[BaseModel]
+    model: type,
+    verb: str,
+    item_schema: Type[BaseModel],
+    *,
+    pk_name: str | None = None,
 ) -> Type[BaseModel]:
     """Build a root model representing ``List[item_schema]`` for responses."""
     name = f"{model.__name__}{_camel(verb)}Response"
-    example = _extract_example(item_schema)
+    exclude = {pk_name} if pk_name else None
+    example = _extract_example(item_schema, exclude)
     examples = [[example]] if example else []
 
     class _BulkModel(RootModel[List[item_schema]]):  # type: ignore[misc]

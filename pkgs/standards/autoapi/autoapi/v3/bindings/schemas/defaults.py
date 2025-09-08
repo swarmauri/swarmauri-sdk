@@ -49,6 +49,7 @@ def _default_schemas_for_spec(
         model.__name__,
         read_schema.__name__ if read_schema else None,
     )
+    pk_name, pk_type = _pk_info(model)
 
     # Canonical targets
     logger.debug(
@@ -65,25 +66,21 @@ def _default_schemas_for_spec(
 
     elif target == "read":
         logger.debug("Using read defaults for %s.%s", model.__name__, sp.alias)
-        pk_name, pk_type = _pk_info(model)
         result["in_"] = _make_pk_model(model, "read", pk_name, pk_type)
         result["out"] = read_schema
 
     elif target == "update":
         logger.debug("Using update defaults for %s.%s", model.__name__, sp.alias)
-        pk_name, _ = _pk_info(model)
         result["in_"] = _build_schema(model, verb="update", exclude={pk_name})
         result["out"] = read_schema
 
     elif target == "replace":
         logger.debug("Using replace defaults for %s.%s", model.__name__, sp.alias)
-        pk_name, _ = _pk_info(model)
         result["in_"] = _build_schema(model, verb="replace", exclude={pk_name})
         result["out"] = read_schema
 
     elif target == "merge":
         logger.debug("Using merge defaults for %s.%s", model.__name__, sp.alias)
-        pk_name, _ = _pk_info(model)
         result["in_"] = _build_schema(model, verb="update", exclude={pk_name})
         result["out"] = read_schema
 
@@ -116,7 +113,7 @@ def _default_schemas_for_spec(
         result["in_item"] = item_in
         if read_schema:
             result["out"] = _make_bulk_rows_response_model(
-                model, "bulk_create", read_schema
+                model, "bulk_create", read_schema, pk_name=pk_name
             )
             result["out_item"] = read_schema
             logger.debug(
@@ -142,7 +139,7 @@ def _default_schemas_for_spec(
         result["in_item"] = item_in
         if read_schema:
             result["out"] = _make_bulk_rows_response_model(
-                model, "bulk_update", read_schema
+                model, "bulk_update", read_schema, pk_name=pk_name
             )
             result["out_item"] = read_schema
             logger.debug(
@@ -168,7 +165,7 @@ def _default_schemas_for_spec(
         result["in_item"] = item_in
         if read_schema:
             result["out"] = _make_bulk_rows_response_model(
-                model, "bulk_replace", read_schema
+                model, "bulk_replace", read_schema, pk_name=pk_name
             )
             result["out_item"] = read_schema
             logger.debug(
@@ -196,7 +193,7 @@ def _default_schemas_for_spec(
         result["in_item"] = item_in
         if read_schema:
             result["out"] = _make_bulk_rows_response_model(
-                model, "bulk_merge", read_schema
+                model, "bulk_merge", read_schema, pk_name=pk_name
             )
             result["out_item"] = read_schema
             logger.debug(
@@ -213,7 +210,6 @@ def _default_schemas_for_spec(
 
     elif target == "bulk_delete":
         logger.debug("Using bulk_delete defaults for %s.%s", model.__name__, sp.alias)
-        pk_name, pk_type = _pk_info(model)
         result["in_"] = _make_bulk_ids_model(model, "bulk_delete", pk_type)
         result["out"] = _make_deleted_response_model(model, "bulk_delete")
 

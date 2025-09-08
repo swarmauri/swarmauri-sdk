@@ -430,7 +430,7 @@ class Kernel:
             in_verbs = set(getattr(io, "in_verbs", ()) or ())
             out_verbs = set(getattr(io, "out_verbs", ()) or ())
 
-            if alias in in_verbs:
+            if not in_verbs or alias in in_verbs:
                 in_fields.append(name)
                 meta: Dict[str, object] = {"in_enabled": True}
                 if storage is None:
@@ -449,7 +449,7 @@ class Kernel:
                 meta["nullable"] = base_nullable
                 by_field_in[name] = meta
 
-            if alias in out_verbs:
+            if not out_verbs or alias in out_verbs:
                 out_fields.append(name)
                 meta_out: Dict[str, object] = {}
                 alias_out = getattr(io, "alias_out", None)

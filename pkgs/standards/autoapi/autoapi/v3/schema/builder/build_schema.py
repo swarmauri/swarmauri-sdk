@@ -62,26 +62,19 @@ def _build_schema(
         spec = specs.get(attr_name)
         io = getattr(spec, "io", None) if spec is not None else None
         if verb in {"create", "update", "replace"}:
-            """Determine if the column participates in inbound verbs.
-
-            When a ColumnSpec is present it may explicitly restrict the verbs a
-            field accepts via ``io.in_verbs``.  Previous behaviour treated the
-            absence of this specification as "deny all", which caused models
-            without explicit ColumnSpec declarations to generate empty request
-            schemas.  Here we interpret a missing ``io`` or ``in_verbs`` as
-            allowing all verbs, only filtering when the spec explicitly lists
-            them.
-            """
-
-            if getattr(col, "primary_key", False) and verb in {
-                "update",
-                "replace",
-                "delete",
-            }:
-                # Always expose the PK for mutating operations even when the
-                # ColumnSpec omits inbound verbs. The identifier is required so
-                # consumers can target the correct row.
-                pass
+            """Determine if the column participates in inbound verbs."""
+            if getattr(col, "primary_key", False):
+                if verb in {"update", "replace", "delete"}:
+                    # Always expose the PK for mutating operations even when the
+                    # ColumnSpec omits inbound verbs. The identifier is required so
+                    # consumers can target the correct row.
+                    pass
+                else:  # create
+                    allowed_verbs = (
+                        getattr(io, "in_verbs", None) if io is not None else ()
+                    )
+                    if not allowed_verbs or verb not in set(allowed_verbs):
+                        continue
             else:
                 allowed_verbs = (
                     getattr(io, "in_verbs", None) if io is not None else None
