@@ -1,0 +1,2584 @@
+{
+  "files": {
+    "../pkgs/base/swarmauri_base/ComponentBase.py": {
+      "hash": "2f03982595509cc1fadc56d18df5be2c6259aa7900ac5e578f2d14ac08149e11",
+      "mtime": 1757094946.5810888
+    },
+    "../pkgs/base/swarmauri_base/DynamicBase.py": {
+      "hash": "1857d25bda0a2d8477515d6375714b4ef01ce7fe46bf2ca0c287e27f9ba4306d",
+      "mtime": 1757094946.581293
+    },
+    "../pkgs/base/swarmauri_base/LoggerMixin.py": {
+      "hash": "bfd664de257a47fdae188c48226cf0d6066d4a732329b29743494239479b8b5c",
+      "mtime": 1757094946.5814543
+    },
+    "../pkgs/base/swarmauri_base/ObserveBase.py": {
+      "hash": "e9915ad8a667278a0e245e9c4fc4af0e6a91a4f00fba5c066bcbbde87aeaf57d",
+      "mtime": 1757094946.5815678
+    },
+    "../pkgs/base/swarmauri_base/ServiceMixin.py": {
+      "hash": "126b7f5d25a50a9cd5259f4ad94cb296af36e5819c4c41bc4e3fd0575dd3db28",
+      "mtime": 1757094946.5816686
+    },
+    "../pkgs/base/swarmauri_base/TomlMixin.py": {
+      "hash": "9a2fb48ace7a815824d6f999f8f6835b3651e0ed457a21648d04bcc6fdad70bb",
+      "mtime": 1757094946.5817263
+    },
+    "../pkgs/base/swarmauri_base/YamlMixin.py": {
+      "hash": "58c9dbdead5ac2f61b6d127c7af09d99f9c759d3bdd27ff472693850a2d23a1a",
+      "mtime": 1757094946.5818224
+    },
+    "../pkgs/base/swarmauri_base/agents/AgentBase.py": {
+      "hash": "c924276369d6f3c33542eaea7f8af8f2a6179799d022087f0715bff5829a6b2a",
+      "mtime": 1757094946.582021
+    },
+    "../pkgs/base/swarmauri_base/agents/AgentConversationMixin.py": {
+      "hash": "ce6f71f2b92e8077ef1e5a4c5e6e46867070c5994012ab38065e10afc8fb6999",
+      "mtime": 1751536362.3244607
+    },
+    "../pkgs/base/swarmauri_base/agents/AgentRetrieveMixin.py": {
+      "hash": "f339a06bf8b51501958693db8a810eba39a70ffe444c67bed29a06d9fb003b25",
+      "mtime": 1751536362.3245232
+    },
+    "../pkgs/base/swarmauri_base/agents/AgentSystemContextMixin.py": {
+      "hash": "dcb3cd50737d1edca24caba85e0ca7be5d1448170097b47b5956a2722f9aa171",
+      "mtime": 1751536362.3245864
+    },
+    "../pkgs/base/swarmauri_base/agents/AgentToolMixin.py": {
+      "hash": "4018a69aee19e4e185f8e90c4f8df9be278cffd89000ec16fd3d07f653602781",
+      "mtime": 1751536362.324643
+    },
+    "../pkgs/base/swarmauri_base/agents/AgentVectorStoreMixin.py": {
+      "hash": "87fd14eadd6a7b9ceb5a1183ea2881662cf59e7744605da444d02c060b2c1675",
+      "mtime": 1751536362.3247
+    },
+    "../pkgs/base/swarmauri_base/agents/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.3247252
+    },
+    "../pkgs/base/swarmauri_base/certs/CertServiceBase.py": {
+      "hash": "22abe2d7643110701d28fd79b6b98000f99982237e76079dbb266bc78a2a7da4",
+      "mtime": 1757094946.5821211
+    },
+    "../pkgs/base/swarmauri_base/certs/__init__.py": {
+      "hash": "f411bcf49a5c3de59b4f8209883c599ea219fabf0ab708bbaa59c29238289770",
+      "mtime": 1757094946.5821803
+    },
+    "../pkgs/base/swarmauri_base/chains/ChainBase.py": {
+      "hash": "2dd4cd840ee6b68ff26c36ebca40e6afc2f06ce52b6083ed2a758f76fe7e10f0",
+      "mtime": 1751536362.3248246
+    },
+    "../pkgs/base/swarmauri_base/chains/ChainContextBase.py": {
+      "hash": "05614f1abd43c603622f82e750d79be460fbfc8bdd6de3f0773ce43e7dd824a7",
+      "mtime": 1751536362.324883
+    },
+    "../pkgs/base/swarmauri_base/chains/ChainStepBase.py": {
+      "hash": "a3ff89639501c4ac270cbe917e25c397784b08e680961463f693ab8bdd76b106",
+      "mtime": 1751536362.3249376
+    },
+    "../pkgs/base/swarmauri_base/chains/PromptContextChainBase.py": {
+      "hash": "a902387f21c4c35de4434b75cc91a03616abf20f51719187026c9d3af778627e",
+      "mtime": 1751536362.3251607
+    },
+    "../pkgs/base/swarmauri_base/chains/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.3251872
+    },
+    "../pkgs/base/swarmauri_base/chunkers/ChunkerBase.py": {
+      "hash": "da19ffa2a775906be5387784ead2c5b1ba3cc653cc080ebd77a87a4a6e9b89cc",
+      "mtime": 1751536362.3252869
+    },
+    "../pkgs/base/swarmauri_base/chunkers/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.3253143
+    },
+    "../pkgs/base/swarmauri_base/control_panels/ControlPanelBase.py": {
+      "hash": "b6513109254e7dcfea713a2ef97a40855d3cf155f1d3ae0417173aaa6fe1ec08",
+      "mtime": 1751536362.3255715
+    },
+    "../pkgs/base/swarmauri_base/control_panels/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.3255987
+    },
+    "../pkgs/base/swarmauri_base/conversations/ConversationBase.py": {
+      "hash": "8c7944303728c2c82cff2a97d2014aa4daa09ed0606f48b417073cebf6351e5f",
+      "mtime": 1751536362.3256962
+    },
+    "../pkgs/base/swarmauri_base/conversations/ConversationSystemContextMixin.py": {
+      "hash": "fb0e691e24177891558e061deaaba6ce516b8f05fa490208365aa65683d0f1f8",
+      "mtime": 1751536362.3257499
+    },
+    "../pkgs/base/swarmauri_base/conversations/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.3257766
+    },
+    "../pkgs/base/swarmauri_base/crypto/CryptoBase.py": {
+      "hash": "2187e1db529fb539601a8b0e0387fc14e0de2cd80a16343001993508ec151ec4",
+      "mtime": 1757094946.5823164
+    },
+    "../pkgs/base/swarmauri_base/crypto/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757094946.582361
+    },
+    "../pkgs/base/swarmauri_base/dataconnectors/DataConnectorBase.py": {
+      "hash": "a2fe8d8d6c31113b68af1b96392da88def50913559633cb79bd947e4ad69c885",
+      "mtime": 1751536362.3258746
+    },
+    "../pkgs/base/swarmauri_base/dataconnectors/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.325903
+    },
+    "../pkgs/base/swarmauri_base/distances/DistanceBase.py": {
+      "hash": "08c2f59c52b111d56bcfb50f1c08065a56bed1ea23aa9b318091f26e00bccc52",
+      "mtime": 1751536362.3260128
+    },
+    "../pkgs/base/swarmauri_base/distances/VisionDistanceBase.py": {
+      "hash": "285b8a13318a7d06f1b8262c761b63b2596990670cae16608c5710bae8403bc6",
+      "mtime": 1751536362.3260875
+    },
+    "../pkgs/base/swarmauri_base/distances/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.3261185
+    },
+    "../pkgs/base/swarmauri_base/document_stores/DocumentStoreBase.py": {
+      "hash": "b7cfe9e840a8016fadce8977e92630255ba84579ef97f1bece84b50079ab7d56",
+      "mtime": 1751536362.3263419
+    },
+    "../pkgs/base/swarmauri_base/document_stores/DocumentStoreRetrieveBase.py": {
+      "hash": "a6d56b17d81338adb98a0ae750790afcd66592b3e77422c9762424a9e53a27c0",
+      "mtime": 1751536362.3264005
+    },
+    "../pkgs/base/swarmauri_base/document_stores/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.326426
+    },
+    "../pkgs/base/swarmauri_base/documents/DocumentBase.py": {
+      "hash": "9573876f8ede4b3efd2a83cb35747eaa2ee60314894155f7557c6ae1b5eaaeae",
+      "mtime": 1751536362.3265285
+    },
+    "../pkgs/base/swarmauri_base/documents/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.3265586
+    },
+    "../pkgs/base/swarmauri_base/embeddings/EmbeddingBase.py": {
+      "hash": "9235af4ba823cae25dffc15a8e7ca20d64b3ac00107abdc5ba700dbd9acbad30",
+      "mtime": 1751536362.326653
+    },
+    "../pkgs/base/swarmauri_base/embeddings/VisionEmbeddingBase.py": {
+      "hash": "172a76612d1bd0f7db1479a0e5f94d5d606b5cf6972c2b355556148a926d9250",
+      "mtime": 1751536362.3267062
+    },
+    "../pkgs/base/swarmauri_base/embeddings/__init__.py": {
+      "hash": "32c4858e22cc2c967b42150fa550562a2c839c2cebcaab91cabdf6f4da020022",
+      "mtime": 1751536362.3267612
+    },
+    "../pkgs/base/swarmauri_base/ensembles/EnsembleBase.py": {
+      "hash": "0a84711d5fbfc6cfdf94d94f4c86b2f32439081d0c1d8adbb7a299bfbcfe60f5",
+      "mtime": 1757094946.582479
+    },
+    "../pkgs/base/swarmauri_base/ensembles/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757094946.5825448
+    },
+    "../pkgs/base/swarmauri_base/evaluator_pools/EvaluatorPoolBase.py": {
+      "hash": "cfaa47d532ef00d2f79e1e470bfa34f5b129f17ee5ea68e7c6af32d8fed5e05f",
+      "mtime": 1757094946.582729
+    },
+    "../pkgs/base/swarmauri_base/evaluator_pools/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757094946.5827622
+    },
+    "../pkgs/base/swarmauri_base/evaluator_results/EvalResultBase.py": {
+      "hash": "b9ca2e8ee8b72439cc48f6905fcb9220653fd802c3e7f985476aea9f3566c3f9",
+      "mtime": 1757094946.5828497
+    },
+    "../pkgs/base/swarmauri_base/evaluator_results/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757094946.582879
+    },
+    "../pkgs/base/swarmauri_base/evaluators/EvaluatorBase.py": {
+      "hash": "be9cece1d7939763c56f8803490763219e8fcd80a78296abbd19d77414fcafec",
+      "mtime": 1757094946.5832083
+    },
+    "../pkgs/base/swarmauri_base/evaluators/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757094946.583241
+    },
+    "../pkgs/base/swarmauri_base/factories/FactoryBase.py": {
+      "hash": "1284f554de46daa04a49abb1e7beedec9f02a874f3667685d8e5bd3243419315",
+      "mtime": 1751536362.3277254
+    },
+    "../pkgs/base/swarmauri_base/factories/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.3277617
+    },
+    "../pkgs/base/swarmauri_base/factories/_init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.3277617
+    },
+    "../pkgs/base/swarmauri_base/git_filters/GitFilterBase.py": {
+      "hash": "c35ed8e0d0b50881d3bfd7c549c233d94c1d8e3d01d4ec8db5247223975cd259",
+      "mtime": 1757094946.5833232
+    },
+    "../pkgs/base/swarmauri_base/git_filters/__init__.py": {
+      "hash": "3603b7a8ec24b43a1e402d84715bdc8a5f2a286f1103f031556fbe75845efb60",
+      "mtime": 1757094946.5833793
+    },
+    "../pkgs/base/swarmauri_base/glogging.py": {
+      "hash": "a258e21c5a960587013cc19136e52add189b4cfa473d905968f9441663545770",
+      "mtime": 1751536362.3278365
+    },
+    "../pkgs/base/swarmauri_base/image_gens/ImageGenBase.py": {
+      "hash": "b3b2bf8f8d64c052db61dee4c0ce1d9c2094d0a1733aeb8ec0fcab71482ff7ef",
+      "mtime": 1751536362.3279383
+    },
+    "../pkgs/base/swarmauri_base/image_gens/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.3279712
+    },
+    "../pkgs/base/swarmauri_base/inner_products/InnerProductBase.py": {
+      "hash": "1ab7399a691ab4e6c97ccb174caaf55c3cf5ee9640359cefd5ec706c5827c042",
+      "mtime": 1757094946.5836804
+    },
+    "../pkgs/base/swarmauri_base/inner_products/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757322287.6617568
+    },
+    "../pkgs/base/swarmauri_base/keys/KeyProviderBase.py": {
+      "hash": "2c1ef21aa429fe6bfed57987a77d1d440e5bae1d95b1e3f80bb1a860e5449e6b",
+      "mtime": 1757094946.5837502
+    },
+    "../pkgs/base/swarmauri_base/keys/__init__.py": {
+      "hash": "ab7ea0a34efc1407aa15d87cb8d5ce6ded95df86b48df61c12143f4f4153b6a4",
+      "mtime": 1757094946.5838025
+    },
+    "../pkgs/base/swarmauri_base/llms/LLMBase.py": {
+      "hash": "e916d9a25f4ea79e3a0ad774048e4fbd1de7ac5a1818a6a25671adf461848523",
+      "mtime": 1757094946.5839212
+    },
+    "../pkgs/base/swarmauri_base/llms/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.3283799
+    },
+    "../pkgs/base/swarmauri_base/logger_formatters/FormatterBase.py": {
+      "hash": "775d7ef0e17f1a3e40f6993527f76c3d40d50b6132eda1824ca0f5311dd58723",
+      "mtime": 1751536362.3284752
+    },
+    "../pkgs/base/swarmauri_base/logger_formatters/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.328505
+    },
+    "../pkgs/base/swarmauri_base/logger_handlers/HandlerBase.py": {
+      "hash": "bae3cdc73fe9c8168e8736aba01b9d7c374a6383940871cf051c11c4afeb71cb",
+      "mtime": 1751536362.3285992
+    },
+    "../pkgs/base/swarmauri_base/logger_handlers/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.3286273
+    },
+    "../pkgs/base/swarmauri_base/loggers/LoggerBase.py": {
+      "hash": "99136e1f91263fa22e4e05f7fa2b2a67ab9c71305a0a1b2e6d1422bc777cc24c",
+      "mtime": 1757094946.5842621
+    },
+    "../pkgs/base/swarmauri_base/loggers/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.3289285
+    },
+    "../pkgs/base/swarmauri_base/matrices/MatrixBase.py": {
+      "hash": "676d0ab61b84deaa5772d2322dfe57c2cf17b803ad5e7b38adf64e9378bb6268",
+      "mtime": 1757094946.5844603
+    },
+    "../pkgs/base/swarmauri_base/matrices/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757322319.019982
+    },
+    "../pkgs/base/swarmauri_base/measurements/MeasurementAggregateMixin.py": {
+      "hash": "0995fc1f7ca535eb437eb55811e0d1fdbc7d343f5600710fef381b23f04f4038",
+      "mtime": 1751536362.3291962
+    },
+    "../pkgs/base/swarmauri_base/measurements/MeasurementBase.py": {
+      "hash": "393cdff4fe53852817ce5cc91ad77ef57963dc98d12173e5f101faefaca8047c",
+      "mtime": 1751536362.3292558
+    },
+    "../pkgs/base/swarmauri_base/measurements/MeasurementCalculateMixin.py": {
+      "hash": "f6088c25fac756edaa5a46c05926791eda37c194d05cd7d6db046148fcf40baa",
+      "mtime": 1751536362.3293161
+    },
+    "../pkgs/base/swarmauri_base/measurements/MeasurementThresholdMixin.py": {
+      "hash": "ef6822b400246eb1c650c520600af8280a93470e8ebe8fdd8f1b18042c84b72f",
+      "mtime": 1751536362.3293724
+    },
+    "../pkgs/base/swarmauri_base/measurements/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.329403
+    },
+    "../pkgs/base/swarmauri_base/messages/MessageBase.py": {
+      "hash": "4fcadccaa5934fd08d8abf9d95a039d187fbc4e2b9cd01ed693df1310f540005",
+      "mtime": 1751536362.3295016
+    },
+    "../pkgs/base/swarmauri_base/messages/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.3295312
+    },
+    "../pkgs/base/swarmauri_base/metrics/MetricBase.py": {
+      "hash": "30684cb06309838290af35f81f50a9e19edae358d6005bae9a335ae3d9a8beda",
+      "mtime": 1757094946.5847824
+    },
+    "../pkgs/base/swarmauri_base/metrics/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757322338.1089063
+    },
+    "../pkgs/base/swarmauri_base/middlewares/MiddlewareBase.py": {
+      "hash": "0924747d37066ceae17e0b7bc8a0f3ce5b3916d43d731ca5fe5efc3ca516c20a",
+      "mtime": 1757094946.5849116
+    },
+    "../pkgs/base/swarmauri_base/middlewares/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757094946.5849416
+    },
+    "../pkgs/base/swarmauri_base/mre_crypto/MreCryptoBase.py": {
+      "hash": "76a353c37a5a2985241cc7f2a117e6bcb911b5c429a7929c8debab75a609dd68",
+      "mtime": 1757094946.5850823
+    },
+    "../pkgs/base/swarmauri_base/mre_crypto/__init__.py": {
+      "hash": "2926e5620a8cea5ea12d7817179b19b596a90226d46e58daad9daa1733da0954",
+      "mtime": 1757094946.585135
+    },
+    "../pkgs/base/swarmauri_base/norms/NormBase.py": {
+      "hash": "c9e138f48f78d6116ad136e926099e4a9e242bed57cb638e4e662dd67521ff38",
+      "mtime": 1757094946.5854921
+    },
+    "../pkgs/base/swarmauri_base/norms/UseInnerProductMixin.py": {
+      "hash": "9421e617868d53b60de3df0634f27f81f59ae7e3f5f86b5236840589044ea207",
+      "mtime": 1757094946.5857878
+    },
+    "../pkgs/base/swarmauri_base/norms/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757322350.8497987
+    },
+    "../pkgs/base/swarmauri_base/ocrs/OCRBase.py": {
+      "hash": "186af617e5b98318207257948f809e34676748e5e180672b5412082f78ad2cd6",
+      "mtime": 1751536362.3304155
+    },
+    "../pkgs/base/swarmauri_base/ocrs/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.3304434
+    },
+    "../pkgs/base/swarmauri_base/parsers/ParserBase.py": {
+      "hash": "b2cdca43434e62534c45b10f0638c482ebfc20ba243a0bd613eb594f88313cce",
+      "mtime": 1757094946.5859354
+    },
+    "../pkgs/base/swarmauri_base/parsers/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.330569
+    },
+    "../pkgs/base/swarmauri_base/pipelines/PipelineBase.py": {
+      "hash": "5bf59dc0cb7d51d0d9d6e0c8d53878a6e057e2777b4268d2374e2fa8c0a034ab",
+      "mtime": 1751536362.330674
+    },
+    "../pkgs/base/swarmauri_base/pipelines/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.3307014
+    },
+    "../pkgs/base/swarmauri_base/programs/ProgramBase.py": {
+      "hash": "7f03c12e4efe0e71b25faddce749fa77a37500f8a3762c35688a3c5395f195b9",
+      "mtime": 1757094946.5862424
+    },
+    "../pkgs/base/swarmauri_base/programs/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757094946.5862715
+    },
+    "../pkgs/base/swarmauri_base/prompt_templates/PromptTemplateBase.py": {
+      "hash": "ad4489beaa77c190d8514ad5ceb673e829dbd4a4805054b68b415cf66e043509",
+      "mtime": 1751536362.3310874
+    },
+    "../pkgs/base/swarmauri_base/prompt_templates/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.3311167
+    },
+    "../pkgs/base/swarmauri_base/prompts/PromptBase.py": {
+      "hash": "5a2cfddad17e0c55c5d28c137c764de6d3fa03289d67c81df06578ae22e4443e",
+      "mtime": 1751536362.3312135
+    },
+    "../pkgs/base/swarmauri_base/prompts/PromptGeneratorBase.py": {
+      "hash": "a802b9666b925852eb28dbf672c534f9f7d0d29615b75acc51cc8ff1de4f0da1",
+      "mtime": 1751536362.331272
+    },
+    "../pkgs/base/swarmauri_base/prompts/PromptMatrixBase.py": {
+      "hash": "28f2568f94788c0c5ffcf8cce58a0d608522613d693c4eddf5455e6d6437ed90",
+      "mtime": 1751536362.3313298
+    },
+    "../pkgs/base/swarmauri_base/prompts/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.3313556
+    },
+    "../pkgs/base/swarmauri_base/pseudometrics/PseudometricBase.py": {
+      "hash": "256002126dc3381e09e8a1d8f3441237004e13171602c65852a8dce44d93b80f",
+      "mtime": 1757094946.5865707
+    },
+    "../pkgs/base/swarmauri_base/pseudometrics/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757322365.2628648
+    },
+    "../pkgs/base/swarmauri_base/publishers/PublishBase.py": {
+      "hash": "7215cf85e9afa2efee4719c7b467614ca744b091fa16b1647226ec400fc77197",
+      "mtime": 1757094946.5866675
+    },
+    "../pkgs/base/swarmauri_base/publishers/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757094946.5866964
+    },
+    "../pkgs/base/swarmauri_base/rate_limits/RateLimitBase.py": {
+      "hash": "e598c73d4528f479642aff8800ff5a2c6cf2d07d41b5adf7f8d625a9bb0a7e0d",
+      "mtime": 1757094946.5868046
+    },
+    "../pkgs/base/swarmauri_base/rate_limits/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757094946.5868366
+    },
+    "../pkgs/base/swarmauri_base/schema_converters/SchemaConverterBase.py": {
+      "hash": "a8454d32afd8b7e51bc7dc336eadd4198ccd287ab220e9d82ef8a0a4faf3a020",
+      "mtime": 1751536362.3319662
+    },
+    "../pkgs/base/swarmauri_base/schema_converters/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.3319943
+    },
+    "../pkgs/base/swarmauri_base/secrets/__init__.py": {
+      "hash": "a50613d23a8b7914a21035694d9db29df4c9fe294b64eb5597b1b96efa3aff62",
+      "mtime": 1757094946.5869193
+    },
+    "../pkgs/base/swarmauri_base/seminorms/SeminormBase.py": {
+      "hash": "7084566a9ae7f461418e47a8d94c16840fe7493e384e33ff3d3d377f68a49090",
+      "mtime": 1757094946.5870404
+    },
+    "../pkgs/base/swarmauri_base/seminorms/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757322380.5270345
+    },
+    "../pkgs/base/swarmauri_base/service_registries/ServiceRegistryBase.py": {
+      "hash": "3fbf764c01074970c37e9de89ed92668938acf4eb103ed28d8f1b19f69a3fbba",
+      "mtime": 1751536362.3322134
+    },
+    "../pkgs/base/swarmauri_base/service_registries/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.3322415
+    },
+    "../pkgs/base/swarmauri_base/signing/SigningBase.py": {
+      "hash": "8d62e156c09a97c7f2877254d15916bb0f44a4afd175317a635598c772be9c46",
+      "mtime": 1757094946.5871034
+    },
+    "../pkgs/base/swarmauri_base/signing/__init__.py": {
+      "hash": "961d9235931de2c038a3fa8d4a141d1d4c99072bf8971ee892398b3b9288704d",
+      "mtime": 1757094946.5871825
+    },
+    "../pkgs/base/swarmauri_base/similarities/SimilarityBase.py": {
+      "hash": "1f67832c200658fd898867f689321ea61e5610edc021d56106e17571804ffacb",
+      "mtime": 1757094946.5873785
+    },
+    "../pkgs/base/swarmauri_base/similarities/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757322393.2383225
+    },
+    "../pkgs/base/swarmauri_base/state/StateBase.py": {
+      "hash": "d30168b0a3cd691ffe4d2809d597cbc7ca3d5d432607a84cf8ebcf47833d51ee",
+      "mtime": 1751536362.3325024
+    },
+    "../pkgs/base/swarmauri_base/state/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.332535
+    },
+    "../pkgs/base/swarmauri_base/storage/StorageAdapterBase.py": {
+      "hash": "273a7e137873c986b4797320ab6cc59f6cfe2674b93d50450a3ceaef67287c50",
+      "mtime": 1757094946.5874453
+    },
+    "../pkgs/base/swarmauri_base/storage/__init__.py": {
+      "hash": "b809b9742397e6e085268d6c095b0214a32dadb38b0085d8f64badd6d0189b98",
+      "mtime": 1757094946.5875
+    },
+    "../pkgs/base/swarmauri_base/stt/STTBase.py": {
+      "hash": "5bbb5ff5ec69601b5635f35cbd217a574bae5a42047839232ccfa0ea522b0530",
+      "mtime": 1751536362.3327768
+    },
+    "../pkgs/base/swarmauri_base/stt/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.3328164
+    },
+    "../pkgs/base/swarmauri_base/swarms/SwarmBase.py": {
+      "hash": "63c02a430715d0eec6a236a3fe9f33304a139ab84a9ec546136fa4f3ca188ffd",
+      "mtime": 1751536362.3330405
+    },
+    "../pkgs/base/swarmauri_base/swarms/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.3330734
+    },
+    "../pkgs/base/swarmauri_base/task_mgmt_strategies/TaskMgmtStrategyBase.py": {
+      "hash": "724d1345b455ecfe0c5b6ea5f4191bb4f6b164016edfde194310b4bcd7ebe5aa",
+      "mtime": 1751536362.3331861
+    },
+    "../pkgs/base/swarmauri_base/task_mgmt_strategies/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.3332162
+    },
+    "../pkgs/base/swarmauri_base/tensors/TensorBase.py": {
+      "hash": "6c1c53f089222f48a1696f85a8d2eb2b726ba0dee9361a37d35ce2d810b84f2f",
+      "mtime": 1757094946.5877008
+    },
+    "../pkgs/base/swarmauri_base/tensors/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757322406.0062964
+    },
+    "../pkgs/base/swarmauri_base/tokens/TokenServiceBase.py": {
+      "hash": "06a6aae8731a4139c321fb30b47b8e8e75e0c0e1252fb21bfc9fb2da18352297",
+      "mtime": 1757094946.5877752
+    },
+    "../pkgs/base/swarmauri_base/tokens/__init__.py": {
+      "hash": "ed352f681c5947ae575dec43dcbf87aadafabb497e44d7760083771784303df3",
+      "mtime": 1757094946.5878363
+    },
+    "../pkgs/base/swarmauri_base/tool_llms/ToolLLMBase.py": {
+      "hash": "6dddd7945653b0384f3a2a64daee99ac1c8a7147f1d7cd58dc647655b4c1d61c",
+      "mtime": 1757094675.1793568
+    },
+    "../pkgs/base/swarmauri_base/tool_llms/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.333687
+    },
+    "../pkgs/base/swarmauri_base/toolkits/ToolkitBase.py": {
+      "hash": "80dd942c45e5981d4957aaef574179cd88ce7fb575449e8c5aabaca4c5b8f6eb",
+      "mtime": 1751536362.3338966
+    },
+    "../pkgs/base/swarmauri_base/toolkits/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.333931
+    },
+    "../pkgs/base/swarmauri_base/tools/ParameterBase.py": {
+      "hash": "2ddc40dd2b41e8d098f81b9f030f5f1ffdb8f0e34b7c15b9cbeb83a89cfd4215",
+      "mtime": 1757094946.5879574
+    },
+    "../pkgs/base/swarmauri_base/tools/ToolBase.py": {
+      "hash": "24f52e785a72bc10e2cf2b491de70daced2fb1386370612506d88c8ac13078c2",
+      "mtime": 1757094946.58806
+    },
+    "../pkgs/base/swarmauri_base/tools/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.334348
+    },
+    "../pkgs/base/swarmauri_base/transports/TransportBase.py": {
+      "hash": "ffe45468191070a82e33f046554ec6b6426bfcfaeb0a7af4cf97651b0bd9293f",
+      "mtime": 1751536362.3346267
+    },
+    "../pkgs/base/swarmauri_base/transports/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.334657
+    },
+    "../pkgs/base/swarmauri_base/tts/TTSBase.py": {
+      "hash": "fd98df368adbb67c7d7b1e0242a667e5d12a0bdcec749102bc3768ed7b69d100",
+      "mtime": 1751536362.3352876
+    },
+    "../pkgs/base/swarmauri_base/tts/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.335323
+    },
+    "../pkgs/base/swarmauri_base/vector_stores/VectorStoreBase.py": {
+      "hash": "d17525790162b9165cdb1af273f33e1528e924552d2a3733b6bb506eaea2ff8c",
+      "mtime": 1751536362.335578
+    },
+    "../pkgs/base/swarmauri_base/vector_stores/VectorStoreCloudMixin.py": {
+      "hash": "b5ee08a7191424900ce31330a776a534539a9576e1f11f72ea797249f82a2cf2",
+      "mtime": 1751536362.33654
+    },
+    "../pkgs/base/swarmauri_base/vector_stores/VectorStorePersistentMixin.py": {
+      "hash": "0e7012fd7813c961e3a972ea76eba09d62dc144b131972ff6fb8d941ff3a6816",
+      "mtime": 1751536362.3365993
+    },
+    "../pkgs/base/swarmauri_base/vector_stores/VectorStoreRetrieveMixin.py": {
+      "hash": "9f17dcb32388fe3d876b404fcd1c2c4c6abac80e90049475053d0f8591262e12",
+      "mtime": 1751536362.3366668
+    },
+    "../pkgs/base/swarmauri_base/vector_stores/VectorStoreSaveLoadMixin.py": {
+      "hash": "7f1f45b05636082b715f7b7aee9fd4388636e1e3bad59ee13acb81e6c282b25e",
+      "mtime": 1751536362.336908
+    },
+    "../pkgs/base/swarmauri_base/vector_stores/VisionVectorStoreBase.py": {
+      "hash": "cfb9a55c78a444532cf2be2742d1faba0351e04eab417ebeeea107606f5241d8",
+      "mtime": 1751536362.3369792
+    },
+    "../pkgs/base/swarmauri_base/vector_stores/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.3370113
+    },
+    "../pkgs/base/swarmauri_base/vectors/VectorBase.py": {
+      "hash": "24dc9322c98892bde31c807a9ab47ee80f1d4816a2d1778677e4292475cf91d9",
+      "mtime": 1757094946.5883038
+    },
+    "../pkgs/base/swarmauri_base/vectors/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.337269
+    },
+    "../pkgs/base/swarmauri_base/vlms/VLMBase.py": {
+      "hash": "dc438c21105d76f3da9af5d7534780585168804f43a9b21c669afedef95e6622",
+      "mtime": 1751536362.3373742
+    },
+    "../pkgs/base/swarmauri_base/vlms/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.3374054
+    },
+    "../pkgs/core/swarmauri_core/agent_apis/IAgentCommands.py": {
+      "hash": "223456132689829c9e96488466ddf2c718a5f4c286b29cd26017dd0581d8ca05",
+      "mtime": 1751536362.4102187
+    },
+    "../pkgs/core/swarmauri_core/agent_apis/IAgentRouterCRUD.py": {
+      "hash": "646c3ff2aa634c3445489e27c0d29c00e0c9e75c6f68b4677176c0be5020f9cf",
+      "mtime": 1751536362.4102836
+    },
+    "../pkgs/core/swarmauri_core/agent_apis/__init__.py": {
+      "hash": "aa29ee9cb758eaaa965967a52c7d26fa65df3a0c3ff621e7e39f3dbb84567242",
+      "mtime": 1751536362.4103408
+    },
+    "../pkgs/core/swarmauri_core/agent_factories/IExportConf.py": {
+      "hash": "ae10b25324727227071755b3d1601f29a365e8918b5106889966534987a63d2a",
+      "mtime": 1751536362.410448
+    },
+    "../pkgs/core/swarmauri_core/agent_factories/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.4104793
+    },
+    "../pkgs/core/swarmauri_core/agents/IAgent.py": {
+      "hash": "1ba73136230169bf535444adcb8a8f0501d4f8d3b05486fbce630d5cc7292067",
+      "mtime": 1757094946.6351073
+    },
+    "../pkgs/core/swarmauri_core/agents/IAgentConversation.py": {
+      "hash": "4d6a904a2618f25392bb75e0fb8a55189c82eb55b79d91b44fccc4b19253f6a6",
+      "mtime": 1751536362.4106424
+    },
+    "../pkgs/core/swarmauri_core/agents/IAgentParser.py": {
+      "hash": "d04a4c210dd561c2b8aa84eee06f77e6373bb869ff9e643a336888ef21b44cd2",
+      "mtime": 1751536362.4107094
+    },
+    "../pkgs/core/swarmauri_core/agents/IAgentRetrieve.py": {
+      "hash": "9a5a1f02f168c03fe302e7df4a1fc7af8f0231be7c2df146b3476ee930e7c24d",
+      "mtime": 1751536362.4107606
+    },
+    "../pkgs/core/swarmauri_core/agents/IAgentSystemContext.py": {
+      "hash": "057a1c8c87e4af3d970d699c4fa3aec79e664887a0815a31acd420e81a84f324",
+      "mtime": 1751536362.4108086
+    },
+    "../pkgs/core/swarmauri_core/agents/IAgentToolkit.py": {
+      "hash": "a25da7f612f1c98279174aec53aa28240ed47978df497f13547c1525d0c5e251",
+      "mtime": 1751536362.4108567
+    },
+    "../pkgs/core/swarmauri_core/agents/IAgentVectorStore.py": {
+      "hash": "a4fa66b0b5adaa68ed57af9e3420a79e166c27980fd15d17bea165db101a354d",
+      "mtime": 1751536362.4109042
+    },
+    "../pkgs/core/swarmauri_core/agents/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.4109287
+    },
+    "../pkgs/core/swarmauri_core/certs/ICertService.py": {
+      "hash": "7853b1a8d8f2c3a32d82b8cd5b573b4d2786fd5e7849a02ae3aa09031cda6849",
+      "mtime": 1757094946.6354172
+    },
+    "../pkgs/core/swarmauri_core/certs/__init__.py": {
+      "hash": "a46822071d9e970a3ffddafc34eaaa1fb557ef83347aa73b44b7fba8f50880d9",
+      "mtime": 1757094946.635475
+    },
+    "../pkgs/core/swarmauri_core/chains/ICallableChain.py": {
+      "hash": "91997dba1ae9255c7b3a76362322a79a11ded721803314b5bfd612c7d7383e24",
+      "mtime": 1751536362.4110196
+    },
+    "../pkgs/core/swarmauri_core/chains/IChain.py": {
+      "hash": "6ffe15a2ffa1801c8729adb6165b3d1b82b80faa38527781c866d3a976db8740",
+      "mtime": 1757094675.2036614
+    },
+    "../pkgs/core/swarmauri_core/chains/IChainContext.py": {
+      "hash": "7a72588bfa9d219ba73b546313d01352f79fae58f928b0fe1fd6f3d15d83c447",
+      "mtime": 1751536362.4113176
+    },
+    "../pkgs/core/swarmauri_core/chains/IChainContextLoader.py": {
+      "hash": "879dd0d8e00cac53dadc8452ef8cef49eef5b9dc4aa059f83b52ec97ab2ba116",
+      "mtime": 1751536362.4115062
+    },
+    "../pkgs/core/swarmauri_core/chains/IChainDependencyResolver.py": {
+      "hash": "6c5d35d9d7f8aecdc3fbd9d77ee95b90e19e6a680d15bec4e6e146d465db5aa3",
+      "mtime": 1751536362.4116583
+    },
+    "../pkgs/core/swarmauri_core/chains/IChainFactory.py": {
+      "hash": "1e65642561911ce939ccfa4ead038d10cfc456a18b3a5992fe0b90076c7bff61",
+      "mtime": 1757094675.203761
+    },
+    "../pkgs/core/swarmauri_core/chains/IChainStep.py": {
+      "hash": "567d019156a04c6d1f1a33f245e00d593e99bcf0ef391ce709ef5a843ea8eb6a",
+      "mtime": 1751536362.4117749
+    },
+    "../pkgs/core/swarmauri_core/chains/__init__.py": {
+      "hash": "58f2ded4d9f2eeddc8d542005717bce80f94a4e170576be3bbf947e8fe37b669",
+      "mtime": 1751536362.4119241
+    },
+    "../pkgs/core/swarmauri_core/chunkers/IChunker.py": {
+      "hash": "8fd81af5aba926f69ef9b9f1a30ded44923ab946c27fcb431a3b8783230208a1",
+      "mtime": 1751536362.4120078
+    },
+    "../pkgs/core/swarmauri_core/chunkers/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.412034
+    },
+    "../pkgs/core/swarmauri_core/control_panels/IControlPanel.py": {
+      "hash": "c443082226438c10b2c493e8944da71e9c22807b04c0ad367ae8cc2c7f963fd0",
+      "mtime": 1751536362.4121284
+    },
+    "../pkgs/core/swarmauri_core/control_panels/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.4121573
+    },
+    "../pkgs/core/swarmauri_core/conversations/IConversation.py": {
+      "hash": "d68b8278826abf17766a5ae58cba4fc15b2e6579c95b7d904e906b15bc998e4c",
+      "mtime": 1751536362.4123557
+    },
+    "../pkgs/core/swarmauri_core/conversations/IMaxSize.py": {
+      "hash": "28203847c20fcda23868ca372acebe4b724caa0fe5c5140c5d34010ca4d9d341",
+      "mtime": 1751536362.4124093
+    },
+    "../pkgs/core/swarmauri_core/conversations/ISystemContext.py": {
+      "hash": "2e340205a128cee96ad1b3d759e00473b999b8a9bcd8e18262cbb3c23b0c4d16",
+      "mtime": 1751536362.4124644
+    },
+    "../pkgs/core/swarmauri_core/conversations/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.4124935
+    },
+    "../pkgs/core/swarmauri_core/crypto/ICrypto.py": {
+      "hash": "bef978ec8b385c1608fd137290c00baab50bc2b41d6fde738a95eb02f8aca126",
+      "mtime": 1757094946.6359444
+    },
+    "../pkgs/core/swarmauri_core/crypto/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757094946.6359742
+    },
+    "../pkgs/core/swarmauri_core/crypto/types.py": {
+      "hash": "0fcfdc56b867feeb2730088e1e7ad0881e7c8c399e8ffcd21fadf97e2bcc6e52",
+      "mtime": 1757094946.6362689
+    },
+    "../pkgs/core/swarmauri_core/dataconnectors/IDataConnector.py": {
+      "hash": "d0781ff8905daba3bb24ba7835824e99c1f20af9cea1889489ed0d8c9b3b75a7",
+      "mtime": 1751536362.4126015
+    },
+    "../pkgs/core/swarmauri_core/dataconnectors/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.4126322
+    },
+    "../pkgs/core/swarmauri_core/distances/IDistanceSimilarity.py": {
+      "hash": "79f54f476dd0ec2188ab3ce3a88873e75bb1ac7e7f3155a72db42bffed04e925",
+      "mtime": 1751536362.412743
+    },
+    "../pkgs/core/swarmauri_core/distances/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.412775
+    },
+    "../pkgs/core/swarmauri_core/document_stores/IDocumentRetrieve.py": {
+      "hash": "6e32699f809491ffe87ea2ab5e495731923c49c0bca4d9e4c8e9adf7ed24cebf",
+      "mtime": 1751536362.4128847
+    },
+    "../pkgs/core/swarmauri_core/document_stores/IDocumentStore.py": {
+      "hash": "42829241d10c6d04f69450c2e3ce217817f8f53458789e0303c84ec268c0e3d1",
+      "mtime": 1751536362.4129443
+    },
+    "../pkgs/core/swarmauri_core/document_stores/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.4129715
+    },
+    "../pkgs/core/swarmauri_core/documents/IDocument.py": {
+      "hash": "91217921e60fb96ad2c2f8bfdd4b0212fd22b95adc810d5b8f947bf3aecec6c1",
+      "mtime": 1751536362.413061
+    },
+    "../pkgs/core/swarmauri_core/documents/IExperimentDocument.py": {
+      "hash": "281b7c99b9d05252944be77fa8dc4ee71885b1b0287cccbfb0a22f731e45d29e",
+      "mtime": 1751536362.413198
+    },
+    "../pkgs/core/swarmauri_core/documents/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.4132233
+    },
+    "../pkgs/core/swarmauri_core/embeddings/IFeature.py": {
+      "hash": "c3231b414efddd1383496cf18d3d044deeec2a3e078bbe880ddd920a583b0ca2",
+      "mtime": 1751536362.4133263
+    },
+    "../pkgs/core/swarmauri_core/embeddings/ISaveModel.py": {
+      "hash": "9079b3815ec5e5e6db1cbd0b736affdf0df8352565a7e99af379d60d3b17aa76",
+      "mtime": 1751536362.41346
+    },
+    "../pkgs/core/swarmauri_core/embeddings/IVectorize.py": {
+      "hash": "d611749c175e7fae8b98b2293950efca95e5339290fc6c3d48bf34d73a469d8c",
+      "mtime": 1751536362.4135225
+    },
+    "../pkgs/core/swarmauri_core/embeddings/__init__.py": {
+      "hash": "32c4858e22cc2c967b42150fa550562a2c839c2cebcaab91cabdf6f4da020022",
+      "mtime": 1751536362.4135776
+    },
+    "../pkgs/core/swarmauri_core/ensembles/IEnsemble.py": {
+      "hash": "ad27e30d226ee0d1b2ff99246b844acac4f11318c089f18bdbc72506c9bb73ed",
+      "mtime": 1757094946.636366
+    },
+    "../pkgs/core/swarmauri_core/ensembles/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757094946.6363955
+    },
+    "../pkgs/core/swarmauri_core/evaluator_pools/IEvaluatorPool.py": {
+      "hash": "ef4105bf269e24f0652f3354f7a489f7d2f5f36f4a91fc48da472904c50081ac",
+      "mtime": 1757094946.6366827
+    },
+    "../pkgs/core/swarmauri_core/evaluator_pools/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757094946.6367118
+    },
+    "../pkgs/core/swarmauri_core/evaluator_results/IEvalResult.py": {
+      "hash": "7eace41de993b19f06ff9dd61a56cb850dc1aa50cd06dec0074e561fa5622e81",
+      "mtime": 1757094946.6367846
+    },
+    "../pkgs/core/swarmauri_core/evaluator_results/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757094946.6368113
+    },
+    "../pkgs/core/swarmauri_core/evaluators/IEvaluate.py": {
+      "hash": "2ebace7c548eddec285a78f6e2f6ac7f901de1e0b0e314d6c2c6b4fef0f33cbf",
+      "mtime": 1757094946.6369004
+    },
+    "../pkgs/core/swarmauri_core/evaluators/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757094946.6369276
+    },
+    "../pkgs/core/swarmauri_core/factories/IFactory.py": {
+      "hash": "5facaa22962fe6a1ab61abd5d37f63a4bfff54547dc553663a1db762c4acab02",
+      "mtime": 1751536362.414582
+    },
+    "../pkgs/core/swarmauri_core/factories/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.4146101
+    },
+    "../pkgs/core/swarmauri_core/git_filters/IGitFilter.py": {
+      "hash": "d3b4cb892a31d6319b7774bb41ed36da2957c819d85f021ad51f9c89aa7de877",
+      "mtime": 1757094946.6370077
+    },
+    "../pkgs/core/swarmauri_core/git_filters/__init__.py": {
+      "hash": "d8483c62ffe0b3d9f86ae2cad9463f97856f9e039fab8dee36b213ecae63da4e",
+      "mtime": 1757094946.6370585
+    },
+    "../pkgs/core/swarmauri_core/image_gens/IGenImage.py": {
+      "hash": "f0b300d5a90142646a6a33e0c2d61e92e93a4bd651e2cf420b8150f88ac2e8cc",
+      "mtime": 1751536362.4148152
+    },
+    "../pkgs/core/swarmauri_core/image_gens/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.4148486
+    },
+    "../pkgs/core/swarmauri_core/inner_products/IInnerProduct.py": {
+      "hash": "8a14c678cac2d33e46d17ce53abacce76acc3f47def18987ad29803b58f0ac30",
+      "mtime": 1757094946.6371896
+    },
+    "../pkgs/core/swarmauri_core/inner_products/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757322466.4514334
+    },
+    "../pkgs/core/swarmauri_core/keys/IKeyProvider.py": {
+      "hash": "9c156bb8e37ca3d4ea0e6fa95facae8a2ee7da6e32f518d44a65c5e0af3a864a",
+      "mtime": 1757094946.6372564
+    },
+    "../pkgs/core/swarmauri_core/keys/__init__.py": {
+      "hash": "f7dd20d849e920e59c50688ec022301e20cae349c7af0b5e969f59f372a8dcb4",
+      "mtime": 1757094946.6373153
+    },
+    "../pkgs/core/swarmauri_core/keys/types.py": {
+      "hash": "bb7edcb59216b85a15e2bde64f9ea33f96e1387a2475d6b3d2565e7a4ba67228",
+      "mtime": 1757094946.6373727
+    },
+    "../pkgs/core/swarmauri_core/llms/IFit.py": {
+      "hash": "06e603fcde441a17a1866f21a30d88691aa6b33ad850df08959c050b18e07d68",
+      "mtime": 1751536362.4151137
+    },
+    "../pkgs/core/swarmauri_core/llms/IPredict.py": {
+      "hash": "486e1bfb5c4afb3d8247c8712c7ed42c666c0ff1bd33ae7edbaa1b320d47d84c",
+      "mtime": 1751536362.4151745
+    },
+    "../pkgs/core/swarmauri_core/llms/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.4152045
+    },
+    "../pkgs/core/swarmauri_core/logger_formatters/IFormatter.py": {
+      "hash": "6889c22bd92f69918a6e173e92e3503fbc498a3423d482dccbc010cf3aa1d1db",
+      "mtime": 1751536362.4153106
+    },
+    "../pkgs/core/swarmauri_core/logger_formatters/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.4153411
+    },
+    "../pkgs/core/swarmauri_core/logger_handlers/IHandler.py": {
+      "hash": "b47eb7e40f553b32a6144e6b487832bd72424dc668773ae23b4080bd71ceb046",
+      "mtime": 1751536362.415443
+    },
+    "../pkgs/core/swarmauri_core/logger_handlers/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.4154754
+    },
+    "../pkgs/core/swarmauri_core/loggers/ILogger.py": {
+      "hash": "a94bc71b8811ce0794c2581553c857cac567de3bbfe56aaf205cbb52250ee9b0",
+      "mtime": 1751536362.415577
+    },
+    "../pkgs/core/swarmauri_core/loggers/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.4156065
+    },
+    "../pkgs/core/swarmauri_core/matrices/IMatrix.py": {
+      "hash": "aa9513dbc5c6fdd4e9f3c95c10a9194881825b7da5ade421b1cfe2fec93f9ffe",
+      "mtime": 1757094946.637647
+    },
+    "../pkgs/core/swarmauri_core/matrices/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757322488.2453322
+    },
+    "../pkgs/core/swarmauri_core/measurements/IMeasurement.py": {
+      "hash": "ce0633680711b4c582032902304e7e234c81f27451b588ef7690780903fea549",
+      "mtime": 1757094675.2038677
+    },
+    "../pkgs/core/swarmauri_core/measurements/IMeasurementAggregate.py": {
+      "hash": "cd3d965904823b244fc4bbd8a0a2c61ed7c3663c92954a79adc8011ebf8249e2",
+      "mtime": 1751536362.4160354
+    },
+    "../pkgs/core/swarmauri_core/measurements/IMeasurementCalculate.py": {
+      "hash": "7ec736869debe4a02e9f0ef0364edd5c1552837dfe2e1e870c672d7d00072671",
+      "mtime": 1757094675.2039695
+    },
+    "../pkgs/core/swarmauri_core/measurements/IThreshold.py": {
+      "hash": "037fa697ad942318b6bcfe0e6d6c7e67ab14526be6d5bf65f5c9823dc3db0902",
+      "mtime": 1751536362.4162269
+    },
+    "../pkgs/core/swarmauri_core/measurements/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.4162543
+    },
+    "../pkgs/core/swarmauri_core/messages/IMessage.py": {
+      "hash": "46fa16d68be51e771654aa4d6acb4f76bdd62668cd0179d5785ef2588d163246",
+      "mtime": 1751536362.4163532
+    },
+    "../pkgs/core/swarmauri_core/messages/__init__.py": {
+      "hash": "c76b0604e7477193bc3ea4d31221e722717244510f486c4c0a504e74f325c2ab",
+      "mtime": 1751536362.4164069
+    },
+    "../pkgs/core/swarmauri_core/metrics/IMetric.py": {
+      "hash": "f3c6e023a61e3a66b7e5863f5c4b075e2daf495cf2fc385d4b40a15c5bab99aa",
+      "mtime": 1757094946.637945
+    },
+    "../pkgs/core/swarmauri_core/metrics/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757322486.0142157
+    },
+    "../pkgs/core/swarmauri_core/middlewares/IMiddleware.py": {
+      "hash": "2515aab4d20eb60922fbd08b07a0a5eb2b55578ba866aa7a39f87225a1757452",
+      "mtime": 1757094946.6380403
+    },
+    "../pkgs/core/swarmauri_core/middlewares/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757094946.6380706
+    },
+    "../pkgs/core/swarmauri_core/mre_crypto/IMreCrypto.py": {
+      "hash": "e61b45b922d533dafc367c9c7fde3b1bfeeec463754e4174174ca6c7250716c8",
+      "mtime": 1757094946.6383612
+    },
+    "../pkgs/core/swarmauri_core/mre_crypto/__init__.py": {
+      "hash": "995333894d9c39d9d11394091615d1f5ca047df9f2936001ce9f6553afc3e377",
+      "mtime": 1757094946.6384172
+    },
+    "../pkgs/core/swarmauri_core/mre_crypto/types.py": {
+      "hash": "be15b407497e026c92c3fa87022949e9c2781a08b00bb4a7ff7ce5e202cdb5d4",
+      "mtime": 1757094946.6384778
+    },
+    "../pkgs/core/swarmauri_core/norms/INorm.py": {
+      "hash": "59899d897c13bae44e10c3ac757903c4a3c0668221b776e8202e7dbd1727ee2d",
+      "mtime": 1757094946.6387393
+    },
+    "../pkgs/core/swarmauri_core/norms/IUseInnerProduct.py": {
+      "hash": "583f57fb962de71a59f873b6bf886d3bea5a8847a6821e3e60d735f98bfc5699",
+      "mtime": 1757094946.6388037
+    },
+    "../pkgs/core/swarmauri_core/norms/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757322461.968618
+    },
+    "../pkgs/core/swarmauri_core/ocrs/IPredict.py": {
+      "hash": "5209ec0d7f96324973628eec1d8fa7df99f42f583eeea31ba28b022d1d8c6e2d",
+      "mtime": 1757094675.2040725
+    },
+    "../pkgs/core/swarmauri_core/ocrs/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.4170995
+    },
+    "../pkgs/core/swarmauri_core/parsers/IParser.py": {
+      "hash": "6375f8286b4e3101146af4e3d1bbda0d7e642fa344e0db86c5b6ccebdee86ab2",
+      "mtime": 1751536362.417192
+    },
+    "../pkgs/core/swarmauri_core/parsers/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.4172192
+    },
+    "../pkgs/core/swarmauri_core/pipelines/IPipeline.py": {
+      "hash": "b5fead96a06c0564e4808027a62dc79802d335448ac0c47c901e1b2a80e301e0",
+      "mtime": 1751536362.41733
+    },
+    "../pkgs/core/swarmauri_core/pipelines/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.4173567
+    },
+    "../pkgs/core/swarmauri_core/programs/IProgram.py": {
+      "hash": "7064d12fa25b2e6d65fb553d561d350ee26549fef175b1dc6233a4c1ce89100b",
+      "mtime": 1757094946.639009
+    },
+    "../pkgs/core/swarmauri_core/programs/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757094946.6390378
+    },
+    "../pkgs/core/swarmauri_core/prompt_templates/IPromptTemplate.py": {
+      "hash": "3000858204c6253625b47e81858d496103c9aebc1ee0903a4790f49f79576d2b",
+      "mtime": 1757094675.2041824
+    },
+    "../pkgs/core/swarmauri_core/prompt_templates/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.4177175
+    },
+    "../pkgs/core/swarmauri_core/prompts/IPrompt.py": {
+      "hash": "3fd5e07f758b573c9b57365f54ada069dd7c2ef4de59db8352b412e30f9f904d",
+      "mtime": 1757094675.2042828
+    },
+    "../pkgs/core/swarmauri_core/prompts/IPromptMatrix.py": {
+      "hash": "12c7adba9265264baeb707c1a8ca5d39181cb9ff1297e2ef3abd29fe0f9e2ab4",
+      "mtime": 1751536362.4179425
+    },
+    "../pkgs/core/swarmauri_core/prompts/ITemplate.py": {
+      "hash": "bc28aea52df2673afa2cce8ee00678d86684c7d2bd5d328bc92e4249309e0cb9",
+      "mtime": 1757094675.2043765
+    },
+    "../pkgs/core/swarmauri_core/prompts/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.4181194
+    },
+    "../pkgs/core/swarmauri_core/pseudometrics/IPseudometric.py": {
+      "hash": "e9927c634b305fafc3b28fc7006bf7dac75851def27f83f370338ad721ff0d65",
+      "mtime": 1757094946.6393182
+    },
+    "../pkgs/core/swarmauri_core/pseudometrics/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757322510.0836365
+    },
+    "../pkgs/core/swarmauri_core/publishers/IPublish.py": {
+      "hash": "e951901759a4f384b8bb642dcd68481a45748d23fb0c173844af97fabf571737",
+      "mtime": 1757094946.6393871
+    },
+    "../pkgs/core/swarmauri_core/publishers/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757094946.6394176
+    },
+    "../pkgs/core/swarmauri_core/rate_limits/IRateLimit.py": {
+      "hash": "c5643786f2cb3d1c47ca2c7e5f9d27f948417c557b78e8d953ee882c2e60ced4",
+      "mtime": 1757094946.6394928
+    },
+    "../pkgs/core/swarmauri_core/rate_limits/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757094946.639522
+    },
+    "../pkgs/core/swarmauri_core/schema_converters/ISchemaConvert.py": {
+      "hash": "b1e72eee5ac8d28410393639c4d1efe97ebd0ef24a1afab8ec8eafcfa667fe27",
+      "mtime": 1751536362.418719
+    },
+    "../pkgs/core/swarmauri_core/schema_converters/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.418748
+    },
+    "../pkgs/core/swarmauri_core/seminorms/ISeminorm.py": {
+      "hash": "ba0116c5d4d097e86fc87fb640a2004ac6705e5f12db4d501f2fe8dee9319bb3",
+      "mtime": 1757094946.639604
+    },
+    "../pkgs/core/swarmauri_core/seminorms/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757322480.098738
+    },
+    "../pkgs/core/swarmauri_core/service_registries/IServiceRegistry.py": {
+      "hash": "e60c1c4c033789248e41b03b88609343f1a0f90d0f2da887bd71f3c820403622",
+      "mtime": 1751536362.4189487
+    },
+    "../pkgs/core/swarmauri_core/service_registries/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.4189787
+    },
+    "../pkgs/core/swarmauri_core/signing/ISigning.py": {
+      "hash": "903733f5b98daa236730f7fdf7fd1df968791e1eb90000f53b30824fa17bf8f9",
+      "mtime": 1757094946.6398704
+    },
+    "../pkgs/core/swarmauri_core/signing/__init__.py": {
+      "hash": "5e24c86acbe78424baff909995f21c6dc2b6b0055feb2ef52eb831f793ca801f",
+      "mtime": 1757094946.6399307
+    },
+    "../pkgs/core/swarmauri_core/signing/types.py": {
+      "hash": "999c892a0fd48c58dc3255dd55c0251b9b7f01751caa8e8b913215b8b09b81a5",
+      "mtime": 1757094946.6399932
+    },
+    "../pkgs/core/swarmauri_core/similarities/ISimilarity.py": {
+      "hash": "def7aa519e5d06ddf78c5305557934c0de92905d58503a88cadebadf6f6c9069",
+      "mtime": 1757094946.6402996
+    },
+    "../pkgs/core/swarmauri_core/similarities/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757322470.1104934
+    },
+    "../pkgs/core/swarmauri_core/sst/IPredict.py": {
+      "hash": "486e1bfb5c4afb3d8247c8712c7ed42c666c0ff1bd33ae7edbaa1b320d47d84c",
+      "mtime": 1751536362.4193575
+    },
+    "../pkgs/core/swarmauri_core/sst/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.419387
+    },
+    "../pkgs/core/swarmauri_core/state/IState.py": {
+      "hash": "b829ef38c5e2c51ef270ea0d6d18a5f04ac878162e1b1a9dfb9a38acb1b80bfc",
+      "mtime": 1751536362.4194887
+    },
+    "../pkgs/core/swarmauri_core/state/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757322531.2636864
+    },
+    "../pkgs/core/swarmauri_core/storage/IStorageAdapter.py": {
+      "hash": "7a01f603f04d2215ff42933c31d34a98629dff52e58b0c6d3455de667be3e3a7",
+      "mtime": 1757094946.6403744
+    },
+    "../pkgs/core/swarmauri_core/storage/__init__.py": {
+      "hash": "8017ad8e685dc506127169e021a531bdb5c917515a1059dff2d56e35a4fde431",
+      "mtime": 1757094946.6404324
+    },
+    "../pkgs/core/swarmauri_core/swarm_apis/IAgentRegistrationAPI.py": {
+      "hash": "a024845c485f9f3a67683b2dd31afee529483c836d9597ec0bda6a2295dc2884",
+      "mtime": 1751536362.4196951
+    },
+    "../pkgs/core/swarmauri_core/swarm_apis/ISwarmAPI.py": {
+      "hash": "459cec97e5124a33f2fc79a0beda927f162e597a87781aae91e09339897406d8",
+      "mtime": 1751536362.4197571
+    },
+    "../pkgs/core/swarmauri_core/swarm_apis/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.4197838
+    },
+    "../pkgs/core/swarmauri_core/swarms/ISwarm.py": {
+      "hash": "7afe8a13cf56fc496ec23a741d6c445d53bd7df40dc703428b20b250b2f8be42",
+      "mtime": 1751536362.4198833
+    },
+    "../pkgs/core/swarmauri_core/swarms/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.4199133
+    },
+    "../pkgs/core/swarmauri_core/task_mgmt_strategies/ITaskMgmtStrategy.py": {
+      "hash": "2852c841dc3d6c99c250489ca3fd5646ff002add1fd00a7e0ca5ebe1edcb9acc",
+      "mtime": 1751536362.4200091
+    },
+    "../pkgs/core/swarmauri_core/task_mgmt_strategies/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.4200358
+    },
+    "../pkgs/core/swarmauri_core/tensors/ITensor.py": {
+      "hash": "d7545ce897d5f228f5617fd934585a950eae60144262f48c13b25867af5b65da",
+      "mtime": 1757094946.6406379
+    },
+    "../pkgs/core/swarmauri_core/tensors/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757322473.806633
+    },
+    "../pkgs/core/swarmauri_core/tokens/ITokenService.py": {
+      "hash": "261e2467b4f3eb81ba8a9df2571653423d4d4ac1f67f8bd789e0585f1850cb07",
+      "mtime": 1757094946.6408148
+    },
+    "../pkgs/core/swarmauri_core/tokens/__init__.py": {
+      "hash": "ff69e6cbe1f82c629d9fdf26d6ac0ed16ce42252c8358af0e6196624ded1797a",
+      "mtime": 1757094946.6408777
+    },
+    "../pkgs/core/swarmauri_core/tool_llms/IToolPredict.py": {
+      "hash": "187077fbabf5677dce09f77ffd437c7690155a516b95352d1a96fb167aabd4e9",
+      "mtime": 1751536362.4203136
+    },
+    "../pkgs/core/swarmauri_core/tool_llms/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.4203453
+    },
+    "../pkgs/core/swarmauri_core/toolkits/IToolkit.py": {
+      "hash": "dae181fd5ff9efaf4bb3685f9df3f8b8715f052db5e4b6b947bee52b75b9bf3f",
+      "mtime": 1757094675.2045543
+    },
+    "../pkgs/core/swarmauri_core/toolkits/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.4204803
+    },
+    "../pkgs/core/swarmauri_core/tools/IParameter.py": {
+      "hash": "9f9eecaa0707996d43e859cf6bd7abe49ab0083669f39fd94d66efe009b32d49",
+      "mtime": 1751536362.4205842
+    },
+    "../pkgs/core/swarmauri_core/tools/ITool.py": {
+      "hash": "f390145b0b514e56e8a790716eeecd9ce5580b8db66c9233adf5bb42df323af1",
+      "mtime": 1757094946.6409879
+    },
+    "../pkgs/core/swarmauri_core/tools/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.4206655
+    },
+    "../pkgs/core/swarmauri_core/tracing/IChainTracer.py": {
+      "hash": "30a8ccce89b278de812d2ea9cbad09872bd3e5ff898cd9312f6f5d56f3e0f1b7",
+      "mtime": 1751536362.4207783
+    },
+    "../pkgs/core/swarmauri_core/tracing/ITraceContext.py": {
+      "hash": "7607559bf785eeb0f514da63288cdc6abdc3a07e19decf354d79b7f0c2986765",
+      "mtime": 1751536362.4208431
+    },
+    "../pkgs/core/swarmauri_core/tracing/ITracer.py": {
+      "hash": "b147e1ec27e69e988f6811737f92bd31b842692ba8c7e4230fd06fd94da020b0",
+      "mtime": 1751536362.4209015
+    },
+    "../pkgs/core/swarmauri_core/tracing/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.4209297
+    },
+    "../pkgs/core/swarmauri_core/transports/ITransport.py": {
+      "hash": "79a2ffc1bef8149b4ee8169fa1fab3113d16f7010635f06187a7dc78ce73a16a",
+      "mtime": 1751536362.4211347
+    },
+    "../pkgs/core/swarmauri_core/transports/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.421166
+    },
+    "../pkgs/core/swarmauri_core/tts/IPredict.py": {
+      "hash": "486e1bfb5c4afb3d8247c8712c7ed42c666c0ff1bd33ae7edbaa1b320d47d84c",
+      "mtime": 1751536362.4212573
+    },
+    "../pkgs/core/swarmauri_core/tts/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.4212835
+    },
+    "../pkgs/core/swarmauri_core/utils/ITransactional.py": {
+      "hash": "b71a0264d9fa31b4f1a95f1d9009828e81bc8370674c3d9fd22df89102db863a",
+      "mtime": 1751536362.421376
+    },
+    "../pkgs/core/swarmauri_core/utils/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.4214022
+    },
+    "../pkgs/core/swarmauri_core/vector_stores/ICloudVectorStore.py": {
+      "hash": "fb1cf59a9c4b2d4eaf2488144a3d93534b70dc76235c8fd869538154be9de3a8",
+      "mtime": 1751536362.4215038
+    },
+    "../pkgs/core/swarmauri_core/vector_stores/IPersistentVectorStore.py": {
+      "hash": "374ddb7b912e91dc138aaa0155a8d7d2f2295c00c05f815f52fdc374acd27efe",
+      "mtime": 1751536362.42157
+    },
+    "../pkgs/core/swarmauri_core/vector_stores/ISimilarity.py": {
+      "hash": "d06aba538a5a8d186688681274b27f083fd94895bcf3f966cc5588657491de6d",
+      "mtime": 1751536362.4216304
+    },
+    "../pkgs/core/swarmauri_core/vector_stores/IVectorNorm.py": {
+      "hash": "3006911cbd583964cd1d1323120f78e8f0f261478a771449aac372482c8d0892",
+      "mtime": 1751536362.421688
+    },
+    "../pkgs/core/swarmauri_core/vector_stores/IVectorStore.py": {
+      "hash": "b7d3660fbbe812173ede506ae493ce52be29e92b6244a3a42f21bac0f955360a",
+      "mtime": 1751536362.421833
+    },
+    "../pkgs/core/swarmauri_core/vector_stores/IVectorStoreRetrieve.py": {
+      "hash": "b03b40e257e99ac75acfd409fc0df9df8b7d9e7569bbebefc5e001ab76f999c8",
+      "mtime": 1751536362.4218907
+    },
+    "../pkgs/core/swarmauri_core/vector_stores/IVectorStoreSaveLoad.py": {
+      "hash": "7c22bd7cc64e4ba2f16f9a539b89362ba50172592ac693bbdb2c8b23aa55e6a7",
+      "mtime": 1751536362.421952
+    },
+    "../pkgs/core/swarmauri_core/vector_stores/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.4219804
+    },
+    "../pkgs/core/swarmauri_core/vectors/IVector.py": {
+      "hash": "154022d4865d050dc3f70a5582ab0442d61a04eb3e2f20c7f1fe17ef18c7c291",
+      "mtime": 1751536362.4220731
+    },
+    "../pkgs/core/swarmauri_core/vectors/IVectorMeta.py": {
+      "hash": "df7d5e0f01d0580e7ff31923caa91a25111304ef659731c1007ce444b09ec38a",
+      "mtime": 1751536362.422128
+    },
+    "../pkgs/core/swarmauri_core/vectors/IVectorProduct.py": {
+      "hash": "6df58b9489754f5f84d783bf61f5e4b22b85a945bf7e318d8bfb9b52144f91cd",
+      "mtime": 1751536362.4221795
+    },
+    "../pkgs/core/swarmauri_core/vectors/IVectorTransform.py": {
+      "hash": "25c220ff11f83412d85e5cdd1ec5cfae097b3fadc99a3673e6a9fcaf84d42268",
+      "mtime": 1751536362.4222932
+    },
+    "../pkgs/core/swarmauri_core/vectors/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.422325
+    },
+    "../pkgs/core/swarmauri_core/vlms/IPredictVision.py": {
+      "hash": "5a39bfe3d913408704b6f49d754447dfe55d20c5a2bf56a2bf6d732538138810",
+      "mtime": 1751536362.422427
+    },
+    "../pkgs/core/swarmauri_core/vlms/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.4224546
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/agents/QAAgent.py": {
+      "hash": "74a91e9df572f35a5d56c8d8cddc2f2c03f8a07a9f2390a704644aecffa19829",
+      "mtime": 1751536362.5425942
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/agents/RagAgent.py": {
+      "hash": "593538076e60aaa6eba5d0e2d553a9846d24b5e17facd6b81c149bd1f01d476b",
+      "mtime": 1751536362.5428102
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/agents/SimpleConversationAgent.py": {
+      "hash": "d175bb150c1053ab1c7f3f1748679f4c627f0448e1f4d687117ae50ba2d6392e",
+      "mtime": 1751536362.542867
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/agents/ToolAgent.py": {
+      "hash": "d40d0993f110fc5cbd2c317ac7f78083a3cfd56f887006c173e184675e2dd77c",
+      "mtime": 1751536362.542928
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/agents/__init__.py": {
+      "hash": "d697320b16194fdd3e39e5309f50f494a660c7f8c27cda408de22ea8c82fdd4e",
+      "mtime": 1751536362.5429826
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/chains/CallableChain.py": {
+      "hash": "a14540d2e3d87608d1e8264cd07f735497f00e3c9eb1bf5b9e368af0c13da579",
+      "mtime": 1751536362.5430782
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/chains/ChainStep.py": {
+      "hash": "8e5c3d9ff86e108b4ac1302a4a3578c5fcfa9d7f96653b93125aed2b661e0ca0",
+      "mtime": 1751536362.5431323
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/chains/ContextChain.py": {
+      "hash": "573a53745375fa9289cbaa1ae46eb59b5170e4e765ca8e84fc30155f8b16495d",
+      "mtime": 1751536362.543187
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/chains/PromptContextChain.py": {
+      "hash": "74e8bb6a5f20d0b04e1eb01f8a3ca7d79a8f423140c8ad1821cc25630738b118",
+      "mtime": 1751536362.5432367
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/chains/__init__.py": {
+      "hash": "cab6320e34318d720d357b16bcf1ac5244e4f2d65e9c40c67f8b2036e09dd6a1",
+      "mtime": 1751536362.5432901
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/chunkers/DelimiterBasedChunker.py": {
+      "hash": "c8b135a6b5b925bfee38209bdcf73dd7d75fe5d242c006cb343bbd2cbbc31084",
+      "mtime": 1751536362.5433812
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/chunkers/FixedLengthChunker.py": {
+      "hash": "fd4969ec00b694dfefa7b35ffb2a8b8f5274ba354b8bedd5e3a58125314aaec3",
+      "mtime": 1751536362.5435424
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/chunkers/MdSnippetChunker.py": {
+      "hash": "8f32a90b2bd598c9ee35a179621968e222a83a7fd7cd8ab1c2419f8e34a19213",
+      "mtime": 1751536362.5437937
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/chunkers/SentenceChunker.py": {
+      "hash": "ec000213aa7cda3436b30ba9d1a1a47419dd8c6d00e77eb8fa7023e7b9d00873",
+      "mtime": 1757094675.2357316
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/chunkers/SlidingWindowChunker.py": {
+      "hash": "fcda95bed049365be7db6d7bcb9d518e80522f2f66649fd070ca9ecadf6a6405",
+      "mtime": 1751536362.544034
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/chunkers/__init__.py": {
+      "hash": "1a7712d7f4988dc53388c9e5d5e81829a2c11921b9ff29eb19636eb235203553",
+      "mtime": 1751536362.544172
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/control_panels/ControlPanel.py": {
+      "hash": "128f16b4b87b3526c792d88f7938b1df46bc991aab7fd85737b958592eb669c5",
+      "mtime": 1751536362.5442703
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/control_panels/__init__.py": {
+      "hash": "0ef38886d48a1ecb0cb853f04b1928cf7f3f9a7208f6e5951deb383532dd7647",
+      "mtime": 1751536362.5444088
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/conversations/Conversation.py": {
+      "hash": "f4ec90ec436cfd9b417770ed548947e011d03edefa049a45933e4c626e858a01",
+      "mtime": 1751536362.5445065
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/conversations/MaxSizeConversation.py": {
+      "hash": "36fbec5a6d78719ad5aaf50bcc623f340118daea8b0a7c01c0732de2f811e964",
+      "mtime": 1751536362.5445893
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/conversations/MaxSystemContextConversation.py": {
+      "hash": "7265a9f1c14c11694477f16287cdfa4fc7b28c9682c3ef450892bdcaa9e7b904",
+      "mtime": 1751536362.5448008
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/conversations/SessionCacheConversation.py": {
+      "hash": "ce5e997293e0fa1a6c36c893f5fd6fe01d47ac42bd5b19093bd721f1eaff1b92",
+      "mtime": 1751536362.5448656
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/conversations/__init__.py": {
+      "hash": "1603f140d594da8cf89bd7d3653bb708fbbc5f313af174de9a6742484d5234c5",
+      "mtime": 1751536362.5449193
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/dataconnectors/GoogleDriveDataConnector.py": {
+      "hash": "991461f0d02692a200307999e79e245dc7d60ffad7a0c2383096493f1c2c7f3d",
+      "mtime": 1751536362.5451062
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/dataconnectors/__init__.py": {
+      "hash": "76d8f900eb860f7acff09986c35cc1b747861b34793065d0aa9162e369842774",
+      "mtime": 1751536362.5451732
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/decorators/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.545234
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/decorators/deprecate.py": {
+      "hash": "de23f4176eb7f993dd10f4f6391e7a5f7e4a9f425ebe6115034acc248d7ec47c",
+      "mtime": 1751536362.5454655
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/decorators/maybe_async.py": {
+      "hash": "ea91d39e0f34ad31f759a1dbe1b15bbf49d340b191129f3258931af4ee779511",
+      "mtime": 1751536362.5455444
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/decorators/retry_on_status_codes.py": {
+      "hash": "725d0f53d9efd748947e96e4fbe9e7c820ce70a4dc726337d4501ca0e65218b9",
+      "mtime": 1751536362.5456095
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/decorators/tool_decorator.py": {
+      "hash": "62d5101c26861db38e8b6990bfd25f631e418b9e7e29a2cf1694e3a0a11b11b1",
+      "mtime": 1751536362.5456703
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/distances/CanberraDistance.py": {
+      "hash": "bcf9f8373748e64bd06962231f72bbc37e5a9749c9744715080d7e09046b1602",
+      "mtime": 1757094946.9021568
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/distances/ChebyshevDistance.py": {
+      "hash": "5c9a07e6b054067d1e6ac0f1b63fc61db0b1405218cf388bb95195e03d761655",
+      "mtime": 1757094946.9022567
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/distances/ChiSquaredDistance.py": {
+      "hash": "eb49888bec2ccf8132b991ae478667564e9ac32d09039f2158ad41028215ba7c",
+      "mtime": 1757094946.9023638
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/distances/CosineDistance.py": {
+      "hash": "6245c3117439bf68bb8c34964cb562c41902ab11898cf7b9fa79e4e9fdb9cfac",
+      "mtime": 1757094946.9024715
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/distances/EuclideanDistance.py": {
+      "hash": "f8d028321248db58de9d2a54ad4d3fd82e1e838b36bb507bde05374e9aa44593",
+      "mtime": 1757094946.902573
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/distances/HaversineDistance.py": {
+      "hash": "7950822fc888cee22115dbc3c89421f15ec6d8653e6a360010c101505cc0ebd7",
+      "mtime": 1757094946.9026823
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/distances/JaccardIndexDistance.py": {
+      "hash": "314b8ebf2b274fabbffb4a91f4b5bb0e7db64a224ae99a5849e83b903938f358",
+      "mtime": 1757094946.902776
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/distances/LevenshteinDistance.py": {
+      "hash": "09158fbe80a111f0eace82176253edc5abe791dc03bd3439557ceeff404300c3",
+      "mtime": 1757094946.902884
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/distances/ManhattanDistance.py": {
+      "hash": "954cc55e0460be46749db55e70d679cb9486395c343faa45ea217206193f0d15",
+      "mtime": 1757094946.9029815
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/distances/SorensenDiceDistance.py": {
+      "hash": "44105e37e1b6d78c99a1d4e48b8aba3956f0cce294c8ca8156452692632dd4eb",
+      "mtime": 1757094946.9030802
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/distances/SquaredEuclideanDistance.py": {
+      "hash": "f15daa14ce26a9ef7a7c6bd9250c58f11ef8bade80cbb1eeca763521ff9d96d8",
+      "mtime": 1757094946.9031987
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/distances/__init__.py": {
+      "hash": "4b52d91872c832fbf303200357d653621c5bb9562c64367e315a3fa1583e40e6",
+      "mtime": 1751536362.5469475
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/documents/Document.py": {
+      "hash": "cd22b1b5bce5768d4eaa666ca9b1915cf81e8ad1d2afcb35774330fcf2f7fbe3",
+      "mtime": 1751536362.547037
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/documents/__init__.py": {
+      "hash": "c8365eb34f60705b3261e198ce92a0bba4c9bceb9c4b1d9f8438d10193d69e22",
+      "mtime": 1751536362.5471134
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/embeddings/CohereEmbedding.py": {
+      "hash": "d48e7c3c9c40c5cd342205d7ad87a1a8ab0cffd851e12e59d91c6c8368d8e820",
+      "mtime": 1757094675.2382207
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/embeddings/GeminiEmbedding.py": {
+      "hash": "e9fa1e9044b58d597468480f4a9b6975994126a094c57f9754966e7e964e7bf4",
+      "mtime": 1751536362.5476265
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/embeddings/MistralEmbedding.py": {
+      "hash": "dd6f35ad0e9c8fc178ae1892ac66f00476bbc6b662c07232b96d289636e14fbd",
+      "mtime": 1751536362.5478582
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/embeddings/OpenAIEmbedding.py": {
+      "hash": "b008958d0ab6d57f427a7ba5486e8f8f1f36ec0638749a8024a3cbcf8d5d51af",
+      "mtime": 1752233027.2291422
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/embeddings/TfidfEmbedding.py": {
+      "hash": "dbb52c544e087c22b54f7c2acaeac5547c0b1d1d46494da93e03296c7276636f",
+      "mtime": 1751536362.548311
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/embeddings/VoyageEmbedding.py": {
+      "hash": "cdadea8c0c94104b3ddaa2dec0999d73064df9c7012f178a544558e66eba87f1",
+      "mtime": 1751536362.5483892
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/embeddings/__init__.py": {
+      "hash": "bf5a76d4f8abd804b36a64936c36c6f0554a9e02cdd86ddabcc3c31f0b2e8271",
+      "mtime": 1751536362.5485294
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/evaluator_pools/EvaluatorPool.py": {
+      "hash": "27186eb414e4181c254c2803fea575daecba9732427f8ef502c597e77b6687e0",
+      "mtime": 1757094946.9032767
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/evaluator_pools/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757322583.033438
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/evaluator_results/EvalResult.py": {
+      "hash": "aabb0a48ef7b20e9e7bfa3bcb1f94e4acc09c9a10c6e28c27a65759af4aeb57e",
+      "mtime": 1757094946.9035606
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/evaluator_results/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757094946.9035883
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/exceptions/IndexErrorWithContext.py": {
+      "hash": "fb6c31c57e8764279059c0a8c0ddfde68b9ac98acba5c46f5c56fd79f6d1cdc1",
+      "mtime": 1751536362.5491457
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/exceptions/__init__.py": {
+      "hash": "4d6e8f46cff67f57f69c73f74c50524b098ef1dbc8585bdee50c6df3a9d892f4",
+      "mtime": 1751536362.5492105
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/factories/AgentFactory.py": {
+      "hash": "e126fcece00116d0c402fbbc8d6c4bd5f47c71503038fecbe715d5a5578692d0",
+      "mtime": 1751536362.5494127
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/factories/Factory.py": {
+      "hash": "d9d64f1a4bca4feae8f81d561f97affa13ffa2dab6d63980dbbe9c1a338ba4ce",
+      "mtime": 1751536362.5496767
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/factories/__init__.py": {
+      "hash": "41726f1b42e13a3e83d1009881f49d60d8d29386636f207515d3e29fe4680bcd",
+      "mtime": 1751536362.5504293
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/image_gens/BlackForestImgGenModel.py": {
+      "hash": "e5a8187edffd8ae108150637104afa1cafe6b097bbc66e4255adb1c4601cd4c5",
+      "mtime": 1757094946.9038699
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/image_gens/DeepInfraImgGenModel.py": {
+      "hash": "a98c474d2b54bb807acef8c09b694bd764423406fe3c9549114ab7dac7fa6d12",
+      "mtime": 1757094946.9042363
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/image_gens/FalAIImgGenModel.py": {
+      "hash": "fb1886198ed8d6a4e6ae202773cc3353c27886f37849e56039a2aae6c8174316",
+      "mtime": 1757094946.9048111
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/image_gens/HyperbolicImgGenModel.py": {
+      "hash": "062da63185c103659514f232fc4baa25b7fbc54d909dbf1bf2eabe68f9f8ab9f",
+      "mtime": 1757094946.905085
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/image_gens/OpenAIImgGenModel.py": {
+      "hash": "961ffbe6a22eeb4af7b1b6ffb1667de87381874c642bea0791068944249deeb9",
+      "mtime": 1757094946.9054449
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/image_gens/__init__.py": {
+      "hash": "4d946a3c53788c7d00b1a8df6dcf7cc23f1fa9024c242dce3cdd96c8cbba33b5",
+      "mtime": 1751536362.5514853
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/inner_products/EuclideanInnerProduct.py": {
+      "hash": "9583592f83df939e6a5b428a5a5173160c5d727bfd851a7eddd9d36fb327ee6d",
+      "mtime": 1757094946.9057603
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/inner_products/FrobeniusComplexInnerProduct.py": {
+      "hash": "5f3177e249ca7cbc2156de031bc77c3d192ca12971ddcdf91c90b3ec904cc74f",
+      "mtime": 1757094946.9059339
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/inner_products/FrobeniusRealInnerProduct.py": {
+      "hash": "18deeb4daa04485a6f8d06d536c81852e324e51bb338218f7931ebec8fe270fe",
+      "mtime": 1757094946.9062555
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/inner_products/HermitianInnerProduct.py": {
+      "hash": "c93521cfec7423c6df5508f0c4fd6fff97f7d69a9951d67d934b62f270dd2356",
+      "mtime": 1757094946.9064107
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/inner_products/RKHSInnerProduct.py": {
+      "hash": "6c878a790998bc25d8df20542ae6bc435ec62a010b13c871acf5a171b8ae2e2b",
+      "mtime": 1757094946.9066157
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/inner_products/SobolevH1InnerProduct.py": {
+      "hash": "63aa05d1a49af093dff6e241b16139f83e7b5d3ed550569a3d15af3a1df636a9",
+      "mtime": 1757094946.9069
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/inner_products/TraceFormWeightedInnerProduct.py": {
+      "hash": "93a5193f054ec8ed4eb328c0e27662a02b0cf3215870880ceae2ad937b225dde",
+      "mtime": 1757094946.9071093
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/inner_products/WeightedL2InnerProduct.py": {
+      "hash": "94aa0342a312fb8b7b5aa47982ab9df168769895c6bd14f4a27ea2b0c4cb0883",
+      "mtime": 1757094946.9073117
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/inner_products/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757322607.1513908
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/key_providers/InMemoryKeyProvider.py": {
+      "hash": "6f655e0ee730d24d0b0217915bfcd07360cb58f16a8e89cf41906d92940346d6",
+      "mtime": 1757094946.9075916
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/key_providers/__init__.py": {
+      "hash": "dda102db7f9e60c69cad0627822bbcb2e3ac7eb977a1acdbc1e13a3b21ea9806",
+      "mtime": 1757094946.907664
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/llms/AI21StudioModel.py": {
+      "hash": "f0181fd85e277c3730786f94230584e70d648179928e875914784eadbf9432e1",
+      "mtime": 1757203006.732227
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/llms/AnthropicModel.py": {
+      "hash": "c9896af3a334f092fa701bb0e1402c05f238fb9d2f5ba15083f8b372a25bfa0e",
+      "mtime": 1757203006.746928
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/llms/AnthropicToolModel.py": {
+      "hash": "fbbf4674205a873b5bd91518055fd1280c4354cba50ddb523eed3eaf19de5c9f",
+      "mtime": 1757203006.747209
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/llms/CerebrasModel.py": {
+      "hash": "378120cdd065a99af0cb70fe46195079ec7e73730212091d7dfc4600f3497a46",
+      "mtime": 1757203006.7608716
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/llms/CohereModel.py": {
+      "hash": "4023e9c62946ded577ca5eb955c10b989f719deb934fff77c28f2e8c72e24cf0",
+      "mtime": 1757203006.779747
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/llms/CohereToolModel.py": {
+      "hash": "0dfb788f4f41b8724d6b6232530549a58ccaba9d8bfcc6f27c338f7cc5e734b9",
+      "mtime": 1757203006.7803032
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/llms/DeepInfraModel.py": {
+      "hash": "3904019c6007569a89f99efdf4814fa45abb870bb297dd002168f61f5f2c24be",
+      "mtime": 1757094946.9103084
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/llms/DeepSeekModel.py": {
+      "hash": "96682c67ec4d38997d65ad54f8569b202e0670234667a022723ab7a7cc3afb68",
+      "mtime": 1757094946.9106052
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/llms/FalAIVisionModel.py": {
+      "hash": "4e5c60d0f9692fd596237cc5573b23914a12f5530c012f51ec19593366bee490",
+      "mtime": 1757094946.9108043
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/llms/GeminiProModel.py": {
+      "hash": "2887add2dd0f0f93a25c6c1b4abfe48ecf646525834f79cd7f32208c6da0249e",
+      "mtime": 1757094946.910928
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/llms/GeminiToolModel.py": {
+      "hash": "01d0a29fcca29f3f03a402327115cd165d1aff09b1a6653058b007e7964ebc1e",
+      "mtime": 1757094946.911123
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/llms/GroqAIAudio.py": {
+      "hash": "65d58e7cdcfb8827a1c23a36a0601dd2b390aa30dcb13959904f94bb540561a7",
+      "mtime": 1757094946.9113274
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/llms/GroqModel.py": {
+      "hash": "6634178083f2dcac611f1d36e8f88190f2060c4c224c504d8737820119fcd037",
+      "mtime": 1757203006.7819097
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/llms/GroqToolModel.py": {
+      "hash": "df4a8ed183eb363bb33a536e80e4e6120dd5a77824c443213d8cb136272c8c34",
+      "mtime": 1757203006.782225
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/llms/GroqVisionModel.py": {
+      "hash": "67db07d10d64899fcd05afdeb8f442a95b9ccc60050db453242a5b14995795a3",
+      "mtime": 1757203006.782965
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/llms/HyperbolicAudioTTS.py": {
+      "hash": "05bd7abd0e45f3086df3bdb957a21f72beb9505879b41a0cc33f7b8e25049cc4",
+      "mtime": 1751536362.556244
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/llms/HyperbolicModel.py": {
+      "hash": "ca974b9ea3f63fcd80f42b517ce2512e444fba2d24174d8e2fd512234f3c6132",
+      "mtime": 1757203006.7831478
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/llms/HyperbolicVisionModel.py": {
+      "hash": "b19283094132b1f4c8ce9185a8e859b1bde8d616264275b3ec5632a1fd725ad1",
+      "mtime": 1757203006.783444
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/llms/LLM.py": {
+      "hash": "d8221e9ce397282162f3790d4f336e06a7270d1d932fa56e122910c6fd01628c",
+      "mtime": 1757094946.91286
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/llms/LlamaCppModel.py": {
+      "hash": "18219c978181902d059a6b98115a275405c11269e631752655dc339892b4b715",
+      "mtime": 1757203449.4618473
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/llms/MistralModel.py": {
+      "hash": "a8a337a549ad73dd4e6c1766fcad0b86af8ffd316ee7d8b1bf4695ab5303834a",
+      "mtime": 1757203006.783597
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/llms/MistralToolModel.py": {
+      "hash": "9609a955e7c589bd0a0c92ad5d26d4bb5b0700bcd08b1c559afa92ebd5959b23",
+      "mtime": 1757203006.7838962
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/llms/OpenAIAudio.py": {
+      "hash": "2d6277613d198caf5226c0bba9d61a32f5c5b5f96204e989d6bd4a1ffab76943",
+      "mtime": 1757203006.8536732
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/llms/OpenAIAudioTTS.py": {
+      "hash": "48037c1551ec91acc73f8bfed415a9548213db4460bd13ae571aeaa4178daec8",
+      "mtime": 1757203006.85402
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/llms/OpenAIModel.py": {
+      "hash": "5d6c8a2628da0ee3a57ba10694e2deb587c726d5dc73d7b86cb2f58fb763b68b",
+      "mtime": 1757203006.78407
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/llms/OpenAIReasonModel.py": {
+      "hash": "a1aa36d5c920de238dcf16886ca7988a458bb985cbfd04ea8f6d3a4af5d0b067",
+      "mtime": 1757203449.4620528
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/llms/OpenAIToolModel.py": {
+      "hash": "9ce665846028f2e9458944a51617c204d6c38dc0bbebbb7a0201be28d47e4ff2",
+      "mtime": 1757203006.7845166
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/llms/PerplexityModel.py": {
+      "hash": "f85507742eb3a2a36a18fc184d4de30c8828461a78251ee341377ac283a3c003",
+      "mtime": 1757094946.9152079
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/llms/PlayHTModel.py": {
+      "hash": "8ecaf5c19132c40062c32a38682c2f6a7a835160ce62efdb4ccf1236afd8b94b",
+      "mtime": 1757094946.9154232
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/llms/WhisperLargeModel.py": {
+      "hash": "7eff3c0c6b956ec385a2b5b5d6caf1a2d78a19f6178c2c44b70c754b1f21e8b3",
+      "mtime": 1757094946.9156706
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/llms/__init__.py": {
+      "hash": "049fa082ebd94ac065f6bb4cf9ccea9549313b985be8906f6b290b3ee0ce6d93",
+      "mtime": 1751536362.5588014
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/logger_formatters/BorderFormatter.py": {
+      "hash": "12269b7acc5adc653e33b557316e76480dd36f007add99a807e435905cc23ced",
+      "mtime": 1757094946.9159205
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/logger_formatters/ColorFormatter.py": {
+      "hash": "37ad4afe69434cc0b7501fdf54e748434a132aff8d56ed9bd004fd40d3a05044",
+      "mtime": 1757094946.9161937
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/logger_formatters/ContextualFormatter.py": {
+      "hash": "deab0fa0e3a2dd17cae432f0b12bf3655df70d060ca93c1d7b34c1669b07b21b",
+      "mtime": 1757094946.9164708
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/logger_formatters/HTMLFormatter.py": {
+      "hash": "55fbbbae7aefb886433bdadadf1ac8a61ff08cc5cc97fe66aab3312cfd54240a",
+      "mtime": 1757094946.9167511
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/logger_formatters/IndentedFormatter.py": {
+      "hash": "5b643839636e425e46ec2c13c7c0d91d620d7505404271d63617c3a5b92039d2",
+      "mtime": 1757094946.9168231
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/logger_formatters/JSONFormatter.py": {
+      "hash": "029562db8884f74ee92b43530c0ec427d76eb5726ab0d0669c35e470dd74fae2",
+      "mtime": 1757094946.917096
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/logger_formatters/KeyValueFormatter.py": {
+      "hash": "0ba841a35b1315a2cc19b13bf7e15a998902023d6e1cb144778cb5e7c8396f54",
+      "mtime": 1757094946.9175162
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/logger_formatters/LoggerFormatter.py": {
+      "hash": "7086dba5f7e0fb14a57b1b5f8763e3381e5c0bb62475cef1f82a4ac3d4f08dd2",
+      "mtime": 1751536362.5603611
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/logger_formatters/MultilineFormatter.py": {
+      "hash": "f53eeb6b7d5539a84106f47e9485afcfa7869ac3fa094a04b2228ae274056c66",
+      "mtime": 1757094946.9178152
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/logger_formatters/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757094946.917851
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/logger_handlers/EmailLoggingHandler.py": {
+      "hash": "8deedcaafb21c9c965a4721f8d208cb7bcc2103e357f199701fa38219d586159",
+      "mtime": 1757094946.9182901
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/logger_handlers/FileLoggingHandler.py": {
+      "hash": "40ff84b7f3561ed4b04d83d8db221ca61a68dee6b42cf78118165522cdd48050",
+      "mtime": 1757094946.9184375
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/logger_handlers/HTTPLoggingHandler.py": {
+      "hash": "f2f9223dee57526144833fe539a64bee6221a78ca3fa6a84482515bcfec75fb9",
+      "mtime": 1757094946.9187841
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/logger_handlers/HTTPSLoggingHandler.py": {
+      "hash": "9524fb90846fe58acd7992c14bdfd526817479abe608f5db4e55a90c049e0315",
+      "mtime": 1757094946.9193006
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/logger_handlers/MemoryLoggingHandler.py": {
+      "hash": "43dece486f28d9bc26b11766c0597136b13c4cce4ecd4ec3eab7ac20e8b16f93",
+      "mtime": 1757094946.9196036
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/logger_handlers/NullLoggingHandler.py": {
+      "hash": "8f45096088fee7d045d7e8159b60868228f4fb671e8f3bce1528ddadf64d5c93",
+      "mtime": 1757094946.9196913
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/logger_handlers/QueueLoggingHandler.py": {
+      "hash": "c0a8255f229fce02f3082c4af6269665b89691d7b91ec0b42d5bd12ac82eb3fa",
+      "mtime": 1757094946.9197845
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/logger_handlers/RichLoggingHandler.py": {
+      "hash": "05c33c51b30201a539dc76283511794e696c0d3585971bf6106e5e6b16bebad2",
+      "mtime": 1757094946.9198701
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/logger_handlers/RotatingFileLoggingHandler.py": {
+      "hash": "5e7b692cf24b0cbd74bb9d87aff6eba26a5a2b5d0e499f7dbf9418c6dfd5e735",
+      "mtime": 1757094946.9199545
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/logger_handlers/StreamLoggingHandler.py": {
+      "hash": "6a7b3cb822b49a4db02618b1116d8c08cf1068fd761d97adf6de3b315c100be6",
+      "mtime": 1757094946.9200323
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/logger_handlers/SysLogLoggingHandler.py": {
+      "hash": "8f1ba4515517cf1284efd7f14f6845850707986db63656d0811babaa3211f4aa",
+      "mtime": 1757094946.9201026
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/logger_handlers/TimedRotatingFileLoggingHandler.py": {
+      "hash": "eb547daf85ad5aca98d27a4329c148b08cc3c374e71ef4f99f6f125da2505726",
+      "mtime": 1757094946.92038
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/logger_handlers/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757094946.9204094
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/loggers/Logger.py": {
+      "hash": "a95a9ba94efeb342e71701ae8d62b1ce3521adf4acda606d58a65d366e89ba06",
+      "mtime": 1757094946.920584
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/loggers/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.5629966
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/measurements/CompletenessMeasurement.py": {
+      "hash": "f4620cf93056f2d0184cd29050f14d92e9efb169c51fdaa506d60e86e467f617",
+      "mtime": 1751536362.5632286
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/measurements/DistinctivenessMeasurement.py": {
+      "hash": "16de644c082d45ddb8bb88d5de798d982eb032ad5045c692da6cd04aa20928dd",
+      "mtime": 1751536362.563293
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/measurements/FirstImpressionMeasurement.py": {
+      "hash": "3df3ff46bda115bd8903c7faa5764b33b0f6a90fb4be4c39e1945249e3cf3836",
+      "mtime": 1751536362.5633476
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/measurements/MeanMeasurement.py": {
+      "hash": "6c726d7486cd2a665b5e83fc858c8947bac3338a94ffb275e1d8836196573e51",
+      "mtime": 1751536362.5634034
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/measurements/MiscMeasurement.py": {
+      "hash": "daecdcbf1fbe1dfd5369e222f3b5933af18d66d69f32f88c0ec71e81a260ce46",
+      "mtime": 1751536362.5636258
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/measurements/MissingnessMeasurement.py": {
+      "hash": "d9e28148c058d10f911abc2ee08b8ba4d7dc273577bbf78c0f07c0eacaf7664e",
+      "mtime": 1751536362.5638359
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/measurements/PatternMatchingMeasurement.py": {
+      "hash": "4586f766a20aa1ec56163b446674b66e01764013c1e05396b30acc8108ac81cb",
+      "mtime": 1751536362.563905
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/measurements/RatioOfSumsMeasurement.py": {
+      "hash": "d6ca6619fb5ea41b1028f6179b6a026bb5ed91d694dd4528f6c1cf95e239c00b",
+      "mtime": 1751536362.563957
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/measurements/StaticMeasurement.py": {
+      "hash": "80e9f612f84940213eb4df0228ed977ef095b50ea78616732dd1172120024936",
+      "mtime": 1751536362.564013
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/measurements/UniquenessMeasurement.py": {
+      "hash": "586a4f2b1da3aae1cc5b83537e3d2a9584a3b4009075d4d25c63af06a06674cf",
+      "mtime": 1751536362.5641932
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/measurements/ZeroMeasurement.py": {
+      "hash": "c3afbc8182d784fdfdb33f48e11dbdc099cef54ee7fa9b2a297c22eb6839e2f2",
+      "mtime": 1751536362.564252
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/measurements/__init__.py": {
+      "hash": "97788e748ecd9b9f28046e5e09011bff0f7619acef6f14328d2763842b23257b",
+      "mtime": 1751536362.5643005
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/messages/AgentMessage.py": {
+      "hash": "eb02550f729898e216d66861e514e9917e8fd6a784084216b5aac67424f9067e",
+      "mtime": 1751536362.5643892
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/messages/FunctionMessage.py": {
+      "hash": "4b407240e52b44b690c75eb02a1385e8d1dcbd6b466b79e4ebffe2770b97a74a",
+      "mtime": 1751536362.5644479
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/messages/HumanMessage.py": {
+      "hash": "eb92d70b03d2994d83f78c135db67fe7b0d969d4ee7cea8385bc38f28d40b6bb",
+      "mtime": 1751536362.564504
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/messages/SystemMessage.py": {
+      "hash": "91c3ad6c1248baeff76a5b115ba8ee54dcfaddf1f1975bf5ccd18843647cc5f6",
+      "mtime": 1751536362.5645554
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/messages/__init__.py": {
+      "hash": "65ad891680fc691f3e0eef94374d361e1888d201fcd9b9e974f3929d59f5e34f",
+      "mtime": 1751536362.5646126
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/metrics/AbsoluteValueMetric.py": {
+      "hash": "24ae0d88a08d51e942c9c4eb4099b0b40afd5e204e84054cacba5687cebdae93",
+      "mtime": 1757094946.920831
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/metrics/DiscreteMetric.py": {
+      "hash": "454f54996740096796f697c55eea39348a49d385a36ea75d0fe8159e85b22d19",
+      "mtime": 1757094946.9214206
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/metrics/EuclideanMetric.py": {
+      "hash": "0f38e6a2f47ceac9b62e688b635734637269af0f49bb14af1756a93194519899",
+      "mtime": 1757094946.9216948
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/metrics/FrobeniusMetric.py": {
+      "hash": "47efa85cd1d8dc09fa4bc69b1c397d63518aa5a70764f2c4e74ebc474eddfb65",
+      "mtime": 1757094946.9218798
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/metrics/HammingMetric.py": {
+      "hash": "223cfbbaa1e96dc8f37fef211396f53dec16d469cd86062818c5df1bb4e5f0b6",
+      "mtime": 1757094946.9221008
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/metrics/LevenshteinMetric.py": {
+      "hash": "e55e41879cba1e4ac659bb68113d9eef6e566b2abf9ffba3845fd163fd28f2a8",
+      "mtime": 1757094946.9222744
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/metrics/LpMetric.py": {
+      "hash": "f399691f4e3c3743ee1c498f6dab1f44a389709f23752c2bef1a34432f7cc3e7",
+      "mtime": 1757094946.922458
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/metrics/SobolevMetric.py": {
+      "hash": "b07202be790e699bae8c717e695124dcd231b92f16024b6e8432be644f391371",
+      "mtime": 1757094946.9226446
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/metrics/SupremumMetric.py": {
+      "hash": "db3e122e2ed5a6737cc842f89ab07e5d9284cf6c47b9b6572312ff8316b4ed6e",
+      "mtime": 1757094946.9228215
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/metrics/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757322675.6177654
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/norms/GeneralLpNorm.py": {
+      "hash": "30b35a495444026c0562693872322491d7a3fa5ac10f9439d725573eaff9152c",
+      "mtime": 1757094946.923009
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/norms/L1ManhattanNorm.py": {
+      "hash": "89b8082838ce69f27b4c034eef34d1389612bab655f00ca420f1f2ad3fdc5e76",
+      "mtime": 1757094946.9232154
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/norms/L2EuclideanNorm.py": {
+      "hash": "fc811161ff00ce0cfa27966c36fd334fa7466b1ad301a2e899237196987c8f8e",
+      "mtime": 1757094946.9233851
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/norms/LInfNorm.py": {
+      "hash": "83fc39d89c359b18b50c18f2feb4fac90e7df18f5a8f59e4f1ce977e1bfdca5b",
+      "mtime": 1757094946.9235742
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/norms/SobolevNorm.py": {
+      "hash": "756d681907db083d85a82d0d2b91623257860016dd7847ae64b09e4107e10ab0",
+      "mtime": 1757094946.9236515
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/norms/SupremumComplexNorm.py": {
+      "hash": "d839865de5771a4fbfabba52a295a36f88e146d9af623f548c2169e8e4b777b2",
+      "mtime": 1757094946.9241564
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/norms/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757322611.7313519
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/parsers/CSVParser.py": {
+      "hash": "84415db66403a7e6a3616b27aa00cfafdbe296d2b558ff95421427bd75a8caf5",
+      "mtime": 1751536362.56761
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/parsers/HTMLTagStripParser.py": {
+      "hash": "e18714ddd604887282b776f25bdb5c60e351b8dd58d038929844047e6c1790d9",
+      "mtime": 1757094675.2467158
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/parsers/Md2HtmlParser.py": {
+      "hash": "064f4437fe0547dca741a0688f0d77526f3c78ef398e3e49da0cd645a05b93b0",
+      "mtime": 1751536362.5677285
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/parsers/OpenAPISpecParser.py": {
+      "hash": "07881b78f3f829f7874689fce1b804a80afe9ac1a905c9215912c1e0363bdcf5",
+      "mtime": 1751536362.5677867
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/parsers/PhoneNumberExtractorParser.py": {
+      "hash": "5324a136344fa2f6a2cfd91211d3365e2efb0f8269c00ce071dac7eaa0a8844f",
+      "mtime": 1751536362.567846
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/parsers/PythonParser.py": {
+      "hash": "c4da5232c2da99536c452840c60f8e7e2feccf39294a7beccd745eaa9c23d734",
+      "mtime": 1751536362.567904
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/parsers/RegExParser.py": {
+      "hash": "fa52a6b86d08690e92545760ace98cd2a55a2a96a50002d8a8f2d2b7312b0b71",
+      "mtime": 1751536362.5679655
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/parsers/URLExtractorParser.py": {
+      "hash": "6a4e11e17ca85f5e246ddee9f9fd6ce15380be2db1634d36c412d5b3bcc993d4",
+      "mtime": 1751536362.568026
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/parsers/XMLParser.py": {
+      "hash": "c6a8fdd26ccdfe7f71553edf4726754a6e1fb163d94956ed44ff927983133a1d",
+      "mtime": 1751536362.5680873
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/parsers/__init__.py": {
+      "hash": "cb6511d9a5a3e817d5151f68fdc3577f5e8142b45bfd238af3f34727e865e7dc",
+      "mtime": 1751536362.5681376
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/pipelines/Pipeline.py": {
+      "hash": "1529e86fc24ccf94e381099a72b6019e17170089f4488272ea901202e7e3d346",
+      "mtime": 1751536362.5682387
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/pipelines/__init__.py": {
+      "hash": "2d4f9be6f98dae06923ea19ae473fb39f4d5f391d402159137a94e1175d8d49a",
+      "mtime": 1751536362.5682957
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/programs/Program.py": {
+      "hash": "3e51831f08b1dcfea64308ddc47ae585ab2daca633399230926ecf20d29aa322",
+      "mtime": 1757094946.9245088
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/programs/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757094946.924548
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/prompt_templates/PromptTemplate.py": {
+      "hash": "3a70eac22cbc8326aa8bd426871d547bf52b923eae3e5212a11113c5e17da0a2",
+      "mtime": 1751536362.5688012
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/prompt_templates/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.5688317
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/prompts/Prompt.py": {
+      "hash": "bee2c7799ba5945cf091b3d150a7ebb3d095bc8eb3fd455e39b81a6c9405aac5",
+      "mtime": 1751536362.568937
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/prompts/PromptGenerator.py": {
+      "hash": "8485c5d34ee2cf2c795861a22978402ee1660c5605b2482acf159065ae59321e",
+      "mtime": 1751536362.568995
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/prompts/PromptMatrix.py": {
+      "hash": "16d703b3749f6094b0d1176ed180ae273943681fe26e09566ddd8e6f4a2e965d",
+      "mtime": 1751536362.5690536
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/prompts/__init__.py": {
+      "hash": "a5fd3e41dba197494e38fd48295c692506ac47b489747f1bf89dba67b4160ce2",
+      "mtime": 1751536362.5691066
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/pseudometrics/EquivalenceRelationPseudometric.py": {
+      "hash": "42bcbf8e751b5fdcf14e63e6878649bd7941168922520656eb8642f36a67c124",
+      "mtime": 1757094946.924748
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/pseudometrics/FunctionDifferencePseudometric.py": {
+      "hash": "cce67fb799821f858e6845af6003b986a30f3765ecdb9ecc74d644f8f8f73ca1",
+      "mtime": 1757094946.92489
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/pseudometrics/LpPseudometric.py": {
+      "hash": "e068e5c6366e869c50ab02d6b053187b480373c9907cdbcb91b5a1de1fc6bbb5",
+      "mtime": 1757094946.9250226
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/pseudometrics/ProjectionPseudometricR2.py": {
+      "hash": "432efc922ed850674934fcd7c4af78bfe08e8990065a702aab611f4643479a2f",
+      "mtime": 1757094946.9252598
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/pseudometrics/ZeroPseudometric.py": {
+      "hash": "7cb0f0398def5de74cc24d09bd0ed54a671191e1a1093c8d77817b736e229081",
+      "mtime": 1757094946.9254563
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/pseudometrics/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757322626.679716
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/rate_limits/TokenBucketRateLimit.py": {
+      "hash": "9f9e335c8adc3215da60dc3f3a36ffc7c413a0ec5b958cdde82185cc46a9c1bd",
+      "mtime": 1757094946.9255362
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/rate_limits/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757094946.925567
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/schema_converters/AnthropicSchemaConverter.py": {
+      "hash": "beed08de49f5f1d29b8a13f6da6ad73badfe57a27d5731b92c490f3a1558ab83",
+      "mtime": 1751536362.5703075
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/schema_converters/CohereSchemaConverter.py": {
+      "hash": "13dfa21271e74baa17666271b9c8c76e0eebc84c5457cba5fda4be6732989648",
+      "mtime": 1751536362.5703697
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/schema_converters/GeminiSchemaConverter.py": {
+      "hash": "94aff8cc28a9560a2e8a9f5120fbc447d53ba49aa6da4c6f1540aeaeb34be462",
+      "mtime": 1751536362.570424
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/schema_converters/GroqSchemaConverter.py": {
+      "hash": "981a7c476c5c09578a313b281bdae330c4d7471171435e86584189bbea2c7013",
+      "mtime": 1751536362.5704806
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/schema_converters/MistralSchemaConverter.py": {
+      "hash": "8f4fc82e6f974f7acf787ee1ececcd72003665f9000957dc2bb4adb2864524ab",
+      "mtime": 1751536362.5705378
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/schema_converters/OpenAISchemaConverter.py": {
+      "hash": "47f5ec9895498b87baeac0e8a8a123d04fca3407d741ad7524b53e7bc5e5b1fe",
+      "mtime": 1751536362.5705934
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/schema_converters/ShuttleAISchemaConverter.py": {
+      "hash": "fc8c656bba25a1fc25d65586f0e375c1fbab001504fedc2c221be63e09144429",
+      "mtime": 1751536362.5706508
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/schema_converters/__init__.py": {
+      "hash": "5b345a8ca49761a49d2fe72ef15c13a8a95852125492f0d39a1ec5d37493134b",
+      "mtime": 1751536362.5707057
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/seminorms/CoordinateProjectionSeminorm.py": {
+      "hash": "e62d9064eedaa1278078aaa4176dc4507dcfa14c1161092c5b8a950475c6d1e7",
+      "mtime": 1757094946.9257326
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/seminorms/LpSeminorm.py": {
+      "hash": "363c4cf40ab92ff5a0980d76a5e31f00ddd93eb8c6ff0a9b7292a3c1829a5821",
+      "mtime": 1757094946.9260418
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/seminorms/PartialSumSeminorm.py": {
+      "hash": "6c59d7960e98c3724616381adbc567a00beab6d4d65282217beddf531667e08d",
+      "mtime": 1757094946.9261894
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/seminorms/PointEvaluationSeminorm.py": {
+      "hash": "a247ba6102f7e9795c4abcd304a2d8021729c224f25b375d70954dcaab617c9a",
+      "mtime": 1757094946.926363
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/seminorms/TraceSeminorm.py": {
+      "hash": "461ac6f41314c66eb9c9ae706a4948f91348f6df8cc8e8ea9372852f7de4c44e",
+      "mtime": 1757094946.9265287
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/seminorms/ZeroSeminorm.py": {
+      "hash": "5317939f9e0b1edb2bf09bbb4e82cd35be4c7c7029328eb5bf33750e962bbad7",
+      "mtime": 1757094946.9265974
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/seminorms/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757322623.9846032
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/service_registries/ServiceRegistry.py": {
+      "hash": "6776452eb5ae04ca97b945ce3dfb7f0298300bb1b62671c9c447747e64414ab3",
+      "mtime": 1751536362.571758
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/service_registries/__init__.py": {
+      "hash": "86e4b9141211d059c8a66a0dfca09921c9cacadd8b08b37a40ee4caedc0e9805",
+      "mtime": 1751536362.5718129
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/similarities/BhattacharyyaCoefficientSimilarity.py": {
+      "hash": "73997bb0933072c576a6f177a064ccbb074afa4ca1b6ae77ee21b303e3bf34be",
+      "mtime": 1757094946.9267921
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/similarities/BrayCurtisSimilarity.py": {
+      "hash": "c4ff0c8a1c812cdff75cbab4eea5d31f69dec83117f08af581c5d6d06e296556",
+      "mtime": 1757094946.9269776
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/similarities/CosineSimilarity.py": {
+      "hash": "a8040cbd844237564236a07525901241aeda304dbaf8709c52fb7118e9d864b4",
+      "mtime": 1757094946.927144
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/similarities/DiceSimilarity.py": {
+      "hash": "e578ea30f6976a9331e75f1f36f4ac8743bb287590cf1851d982bad9ff16da15",
+      "mtime": 1757094946.9274263
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/similarities/GaussianRBFSimilarity.py": {
+      "hash": "bc3ee0096684228a083af0998e20180cb74985bffc016d4f5ec1d484d6750532",
+      "mtime": 1757094946.9277036
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/similarities/HellingerAffinitySimilarity.py": {
+      "hash": "ef93030c92bfa45afb8efd5b166a6f2c9fb563041a1c8666d5cbe10435cc068b",
+      "mtime": 1757094946.9278748
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/similarities/JaccardIndexSimilarity.py": {
+      "hash": "2c5fae63fb97c20c247595394a2299e01fdb85cda537a25cd570a4e26fc245d8",
+      "mtime": 1757094946.9281936
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/similarities/OverlapCoefficientSimilarity.py": {
+      "hash": "d058b53213a69fc2f1c1f085b6d1ac44f393f2abe52a12e512ddd0ed9ffe6112",
+      "mtime": 1757094946.9283662
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/similarities/TanimotoSimilarity.py": {
+      "hash": "bdae22aca9e31029b573f21a18aadb9d136b3ec6149abbc945a466681783e38e",
+      "mtime": 1757094946.928628
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/similarities/TriangleCosineSimilarity.py": {
+      "hash": "3f757359013087b2b383627dcb4ace1b3df4320e6803380a025aace9fe25d18b",
+      "mtime": 1757094946.9288466
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/similarities/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1757322620.1735272
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/state/DictState.py": {
+      "hash": "6dbc0198ffc6bce13e1fc81089c7a7a2c4ed4899e5bb3e398ace1f23f4da4f3b",
+      "mtime": 1751536362.574329
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/state/__init__.py": {
+      "hash": "5e49d0a64b4d9ac55488aa74dc16a02ad0b23421c8909b61d91f2df051f22f24",
+      "mtime": 1751536362.5743816
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/stt/GroqSTT.py": {
+      "hash": "93970e5ef49c323e8932d1320587cfb4051e6cd858f86e5d313a5d992a7ce0d4",
+      "mtime": 1757094946.9293003
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/stt/OpenaiSTT.py": {
+      "hash": "b2c9c56bd5e6d5a1b43f57c11bdfbf4215a54041132eef1b1d6aac9006c9d613",
+      "mtime": 1757203006.8094347
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/stt/WhisperLargeSTT.py": {
+      "hash": "19b524e88defd7e288eff7cc37398d02a617fc555909bbbf1f63d872329f0c90",
+      "mtime": 1757094946.929968
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/stt/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.5750449
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/swarms/Swarm.py": {
+      "hash": "93b6fc328fc3984df55bb52543ee1377ccad8cfe7fc470562b761365c30cc721",
+      "mtime": 1757094946.9301188
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/swarms/__init__.py": {
+      "hash": "78179ceebfe0d484625b6453ad9e79eeecc1f7db333006dd1510aae45f191c03",
+      "mtime": 1751536362.5751984
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/task_mgmt_strategies/RoundRobinStrategy.py": {
+      "hash": "0df206514436efc0ab852dae2314e4df3d282b444d6fd713581394fa010c70e8",
+      "mtime": 1751536362.5752943
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/task_mgmt_strategies/__init__.py": {
+      "hash": "47a00c3379156d19b86373f848d12a4e4da4ee187aa1a0a030dd674339bc09b4",
+      "mtime": 1751536362.5753462
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tool_llms/AnthropicToolModel.py": {
+      "hash": "704ead2432c8292d386cfb3ef323cdde34ab1b44dfb50ba29c12bd0479dd51cb",
+      "mtime": 1757203449.4622161
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tool_llms/CohereToolModel.py": {
+      "hash": "e3c54a4ad5b6afec3dd48dac1236567eabfd59d77a49e25c70dae3f31d1f2478",
+      "mtime": 1757203006.8250394
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tool_llms/DeepInfraToolModel.py": {
+      "hash": "7fe3a425789caa29906d3ed1e162ce852941a9ecc4d079ffe9a0d6021c4e74c8",
+      "mtime": 1757094675.248416
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tool_llms/GeminiToolModel.py": {
+      "hash": "d2f65ab476f7b3f1a4552c04477ed1aa2b2209e174d9d383232f39016b40ad01",
+      "mtime": 1757094946.9307137
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tool_llms/GroqToolModel.py": {
+      "hash": "0a005cb0f885f7e860976ba59c189f48dc7260f1d8f5489b15b436c4bb5c857a",
+      "mtime": 1757203449.4623873
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tool_llms/MistralToolModel.py": {
+      "hash": "67786915485f05f48376e60edce0e345be5f4bd66a9301fcc653f469295a0250",
+      "mtime": 1757203006.8266616
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tool_llms/OpenAIToolModel.py": {
+      "hash": "e327b168bf662df41d3336057fc217907048c363f83f61a5cf25ac2fe56ca702",
+      "mtime": 1757203006.8268697
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tool_llms/ToolLLM.py": {
+      "hash": "468ad6ecb0bcdbac9225564a9b22941a0ca26880e4290795afd969352b7e1254",
+      "mtime": 1757094675.2491932
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tool_llms/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.576167
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/toolkits/AccessibilityToolkit.py": {
+      "hash": "6be45109ab3484844a6c5c01142addb7fb33cbb5c6e20d640172c8ddaa39645a",
+      "mtime": 1751536362.576271
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/toolkits/Toolkit.py": {
+      "hash": "825acafd092ad7bdf57c0f6f579ed3ee3f71ef3460a02250a95e1629ed0ae20a",
+      "mtime": 1751536362.5763316
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/toolkits/__init__.py": {
+      "hash": "c6b281a7f400584b5d0588a8bdff994548db6008fc9d583818d903b628834a2d",
+      "mtime": 1751536362.5763812
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tools/AdditionTool.py": {
+      "hash": "8dd2f82aeb6a2e8e0accccce94b3882c9027fa3b7800367ec02bce4b4ff6ee7c",
+      "mtime": 1751536362.57648
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tools/AutomatedReadabilityIndexTool.py": {
+      "hash": "0551d3d89994eb225b93b61e8fc1cd2659d4ec8645ab6390752479700ad69640",
+      "mtime": 1751536362.5765417
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tools/CalculatorTool.py": {
+      "hash": "7b998fd82b0159ba88db61cc2943f2bbf8d635821a0681d043bdc2fdfb4129b3",
+      "mtime": 1751536362.5766082
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tools/CodeExtractorTool.py": {
+      "hash": "402be42043d081761ccfbd4cb4d78a6cfb529f13e07f26f47fd0b3ec85bd16a0",
+      "mtime": 1751536362.5768406
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tools/CodeInterpreterTool.py": {
+      "hash": "e3951d051e32faf6bb4a3a8ba3d3cb31b407943e3d8d24af7a735370f5c2af13",
+      "mtime": 1751536362.5768962
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tools/ColemanLiauIndexTool.py": {
+      "hash": "c62dab220bae49b81603af64e9febdb969d233813dcce4ce0919c98333b059e5",
+      "mtime": 1751536362.577358
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tools/FleschKincaidTool.py": {
+      "hash": "28405093ba0645e6f4217222ca05773328fde53131cfa071d6f121d6588419e1",
+      "mtime": 1751536362.5776007
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tools/FleschReadingEaseTool.py": {
+      "hash": "261eb6ac92005b3f6e136a3a5e4c46ef16701e21599d563c98f9cc02d91cbd82",
+      "mtime": 1751536362.5776782
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tools/GunningFogTool.py": {
+      "hash": "0a2e11c6652243ce878a098454f4fe714f8a2b52e9254b6c2dfa9a00d0b47424",
+      "mtime": 1751536362.5779014
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tools/ImportMemoryModuleTool.py": {
+      "hash": "1bef033cb12e480c4a5308a06200980feef5732232b4b1f471a80e642d15c38b",
+      "mtime": 1751536362.5779672
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tools/JSONRequestsTool.py": {
+      "hash": "7a9718e03a519ab20e7880d1e9635b359bdc294ef952c9dd0252f6ff19013513",
+      "mtime": 1757094946.9314396
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tools/Parameter.py": {
+      "hash": "ce1899b8e24e03382e85af9b923c5bfff7c1ca72c04fd1918a16306a3c7c2883",
+      "mtime": 1751536362.5782561
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tools/RequestsTool.py": {
+      "hash": "eea24e808b5868d340f5c011f68f3283cc3d9dc6feb6fdf6be7da24e2bf67a62",
+      "mtime": 1751536362.5784972
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tools/SubprocessTool.py": {
+      "hash": "3783841deceb3c7a48157e764f3fb4ffd571c1b63d92651f2605321fcb97fb11",
+      "mtime": 1757094946.9315066
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tools/TemperatureConverterTool.py": {
+      "hash": "a82c304c00a6ecc156381e9a90769b3d1d3405efd7948782dd522bf836e49819",
+      "mtime": 1751536362.5786276
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tools/TestTool.py": {
+      "hash": "efe860734829f95d8e2be1938ade072c7179e03d38bb92e65076b498561cdcfe",
+      "mtime": 1751536362.5786927
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tools/WeatherTool.py": {
+      "hash": "3cbdd6825be9a19eeffd3239454e98b3d5be33bde03d49c777f5f1accd995817",
+      "mtime": 1751536362.5787592
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tools/__init__.py": {
+      "hash": "d3de87790d9961ea3ee6f38416d1023fdce4f4e245e99dfb9b70193cad584633",
+      "mtime": 1751536362.5788262
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tracing/CallableTracer.py": {
+      "hash": "8a40f9782e85a984edcd90c9035ae571f8ab49794ff406e41e760fee256b3e63",
+      "mtime": 1751536362.5789342
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tracing/ChainTracer.py": {
+      "hash": "4fde63b224d8c118731f4c04dd53f6438a3719076be696f5cec40234ff01ed7a",
+      "mtime": 1751536362.579
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tracing/SimpleTraceContext.py": {
+      "hash": "3e54076572de68252d42d438cf3c6c495d8396c5a87f89108a48e3f0be6c2ad1",
+      "mtime": 1751536362.57906
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tracing/SimpleTracer.py": {
+      "hash": "c194091bf277d913a5f5eeebef532ce92552a734f113cb17778e9a7980651fa1",
+      "mtime": 1751536362.5791247
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tracing/TracedVariable.py": {
+      "hash": "39269e3409dc21f0517145977cd3ea19e977015673c70319a20ef16c1e7ba2af",
+      "mtime": 1751536362.5791872
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tracing/VariableTracer.py": {
+      "hash": "36b4cfd637d047a54675318feb5d80f0bcfeb828869c9272ec04a87ff601915b",
+      "mtime": 1751536362.5792468
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tracing/__init__.py": {
+      "hash": "8358b1c60c90d7fdc467356c389d3c18c8a65b889c63eb79bc8bbc2cb94872b8",
+      "mtime": 1751536362.5793052
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/transports/PubSubTransport.py": {
+      "hash": "a84315a92ebeaee9e8c7fc59e630ba2b9095d3920eab57a3058f636140c4b6b4",
+      "mtime": 1751536362.5794036
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/transports/__init__.py": {
+      "hash": "ded9add2b795f897b018b509f0522fde5ee981a99724c79d0f88b6da759182e2",
+      "mtime": 1751536362.5794623
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tts/HyperbolicTTS.py": {
+      "hash": "97dd90476117077ea31501403839f1229736ca8ea52822087dd5e0ab5654b3b1",
+      "mtime": 1751536362.5797358
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tts/OpenaiTTS.py": {
+      "hash": "43da51a1504264844bfdc5bf311a57cf07ee0e3d2f64a0029d6b121ccb827354",
+      "mtime": 1757203006.854261
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tts/PlayhtTTS.py": {
+      "hash": "5cba84a2f8c6e2d05eb88885f39d774f6007b99e54cb33adb9e0efe48e39ffaa",
+      "mtime": 1757203006.854672
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/tts/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.5802228
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/utils/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.5802934
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/utils/_get_subclasses.py": {
+      "hash": "f6efe12914f5c57d81056f875c7f2b5894ea34c7431869e89537efe0abed24f1",
+      "mtime": 1751536362.5803623
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/utils/_lazy_import.py": {
+      "hash": "4d86c367d6c24275b807752bf0bab7e813c4a0a3a9edb4dfabc53fe8cdeef176",
+      "mtime": 1751536362.5804193
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/utils/apply_metaclass.py": {
+      "hash": "5524a378b38b53398aae0da7d8c8df434aa5f97fe60733dede7aa0b53289c567",
+      "mtime": 1751536362.580472
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/utils/base64_encoder.py": {
+      "hash": "94e7cf93fc6cd78a0ecdfb3635251a1b6bb5697662409c0f8554d71be6521388",
+      "mtime": 1751536362.5805302
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/utils/base64_to_file_path.py": {
+      "hash": "1eaf2140f643a888a98e74dfafcb1b6c1f1edc6e9d9ee0f1fbb605ec621e3abe",
+      "mtime": 1751536362.5805864
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/utils/base64_to_img_url.py": {
+      "hash": "4af3562fab6f8cb9563461b81163cabfc9371be005d846681f9d010bf6732121",
+      "mtime": 1751536362.5806456
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/utils/base64_to_in_memory_img.py": {
+      "hash": "8c308c99b0d31ab7d2425cb8533d68302b934a53d8f8ea209ac0ff33a1c7007a",
+      "mtime": 1751536362.5807028
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/utils/decorate.py": {
+      "hash": "f60c855619a41d5493ec409aff3d299d608e3e7f59a6f8f0a63adf6f1fe05c6d",
+      "mtime": 1751536362.5807583
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/utils/duration_manager.py": {
+      "hash": "8299fe5bacb8461a2d755b8a36acd8ff4a7128e7a0050b9b0df931b2a090a5e7",
+      "mtime": 1751536362.5808158
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/utils/file_path_to_base64.py": {
+      "hash": "cf90adc4a7504ab42532f295ed471505407e0856770ac393fff731d3dbc67437",
+      "mtime": 1751536362.5808702
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/utils/file_path_to_img_url.py": {
+      "hash": "1a62689082afa4be099f109a965ee048b35da25b1df8746d3aa6dabc8f9897d3",
+      "mtime": 1751536362.5809274
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/utils/file_path_to_in_memory_img.py": {
+      "hash": "ac470754d8cc3f09ee2b9acbea829e44403f5a3f7745397e94a572bf40e8c031",
+      "mtime": 1751536362.5809846
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/utils/get_class_hash.py": {
+      "hash": "a06005d783ffd8ef8c77ec4cab587973ded2b42da1061d339a6589cc4ceb832d",
+      "mtime": 1751536362.581041
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/utils/img_url_to_base64.py": {
+      "hash": "6b1360e58b1ff5941cb0eea61b29d74f3c39ecc81327a7fe7ba41bad321e3c90",
+      "mtime": 1751536362.5811028
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/utils/img_url_to_file_path.py": {
+      "hash": "164c85f79b8ea2ce9d022f64c45b56b602069b54fbac2bee1e9dc1a57e71cefb",
+      "mtime": 1751536362.581279
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/utils/img_url_to_in_memory_img.py": {
+      "hash": "4d33136888ea0215323acd806f89f872f0181445f01e8202d64aea5142e696a0",
+      "mtime": 1751536362.581347
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/utils/in_memory_img_to_base64.py": {
+      "hash": "97fbb493617a66e9a3957588d773356dab21a20f72acbf13e72a683c193e4df4",
+      "mtime": 1751536362.581408
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/utils/in_memory_img_to_file_path.py": {
+      "hash": "d34369f419421e31cde5839fcbcb57d0b585d342c42f4d59f4d8f902538ac644",
+      "mtime": 1751536362.581463
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/utils/in_memory_img_to_img_url.py": {
+      "hash": "76f29e7fd48e48281697061c76c58405c2c703f80eeee85f89e660f5b27c611c",
+      "mtime": 1751536362.5815153
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/utils/json_validator.py": {
+      "hash": "54579aea1cf9ea12835b6ff3f6c65553da2b3326adcfcfc0b96a7a82d015eb63",
+      "mtime": 1751536362.5815678
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/utils/load_documents_from_folder.py": {
+      "hash": "a3227e876df3dfa666c1fe3e845a8af961a851f57aa22fe6f972eba4f5e57925",
+      "mtime": 1751536362.5816255
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/utils/load_documents_from_json.py": {
+      "hash": "4e633ffeb071dfc6d0c6858e9fc08c30129a23515aab004c54be772ab6ba7a94",
+      "mtime": 1751536362.5816875
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/utils/memoize.py": {
+      "hash": "e2393bdc133edee283796a7da4ee3288a2e79f22d4ab5c3f2fa7970dbb39eb0a",
+      "mtime": 1751536362.5817447
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/utils/method_signature_extractor_decorator.py": {
+      "hash": "5806d4e23d526751a86936d309481e3059c82c754184be3108f9adc25a879595",
+      "mtime": 1751536362.5818095
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/utils/print_notebook_metadata.py": {
+      "hash": "fa4a762fe93d25dadd5d99d1cf704d5d50916f8e6779e1a83946a58196bff14a",
+      "mtime": 1751536362.5818703
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/utils/retry_decorator.py": {
+      "hash": "725d0f53d9efd748947e96e4fbe9e7c820ce70a4dc726337d4501ca0e65218b9",
+      "mtime": 1751536362.5819328
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/utils/sql_log.py": {
+      "hash": "29a3cc7c6f792e884aef8f0807ca4894e2d329a01abd6fd50c02cdbbaba5caad",
+      "mtime": 1751536362.5819912
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/utils/timeout_wrapper.py": {
+      "hash": "2203fb31f95f93d256f4e9cc1f61ae779e25113928261058b338d8cabe6945f3",
+      "mtime": 1751536362.5821776
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/utils/tool_decorator.py": {
+      "hash": "20b8131a466326ed0fd51cf66fda881d440272d4c9d315e840e3dca292985626",
+      "mtime": 1757094946.9321883
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/vector_stores/TfidfVectorStore.py": {
+      "hash": "1607169b874facad163aaedebe65b4ab1ba402699c605263ce49df668e112e07",
+      "mtime": 1751536362.5823374
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/vector_stores/__init__.py": {
+      "hash": "94e544171a71f6a7d61c4b832f841b5a64bb5a8077bccc8b4a1455756f4ceb92",
+      "mtime": 1751536362.5823927
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/vectors/Vector.py": {
+      "hash": "e8ccda0a73aaae43caf4927950056e292e185baf741053dcb2707b23fe57c6c2",
+      "mtime": 1751536362.5824785
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/vectors/__init__.py": {
+      "hash": "7668da4fb1d1becdb3a0aa5a55a8a30bbf562b8d7716dd527fe500e638c8b50e",
+      "mtime": 1751536362.5825317
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/vlms/FalVLM.py": {
+      "hash": "44546f00e93e078cc63ce02e9584f293253641c0925b6ceae0ffc6a32568467b",
+      "mtime": 1757094946.9324493
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/vlms/GroqVLM.py": {
+      "hash": "ff1cb0e5d4ba8d258e62739e5585aa2d7c255338a8581e5c78d2c70993afa84b",
+      "mtime": 1757203006.8400242
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/vlms/HyperbolicVLM.py": {
+      "hash": "d90c32c9e440dd7ee5523f7e823351c5b4ea857eb8071e8f2c88bdb73fad57b5",
+      "mtime": 1757203006.840264
+    },
+    "../pkgs/swarmauri_standard/swarmauri_standard/vlms/__init__.py": {
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1751536362.5834084
+    }
+  }
+}

@@ -13,40 +13,37 @@ services:
       sh -c "
         set -euo pipefail
 
-        # Install uv and sync project dependencies
+        # Use an ephemeral virtualenv inside the container
+        export UV_PROJECT_ENVIRONMENT=/tmp/.venv
+
+        # Install uv and sync docs project dependencies
         pip install --no-cache-dir -U pip uv && 
         uv sync &&
 
-        # Add packages to PYTHONPATH to ensure they're importable
-        export PYTHONPATH=$$PYTHONPATH:/pkgs:/pkgs/standards:/pkgs/community &&
+        # Generate API docs (incremental)
+        uv run python scripts/gen_api.py --manifest api_manifest.yaml --changed-only &&
 
-        # Install core packages in development mode
-        uv pip install -e /pkgs/base/ &&
-        uv pip install -e /pkgs/core/ &&
-        uv pip install -e /pkgs/swarmauri_standard/ &&
-
-        # Install standards packages
-        for dir in /pkgs/standards/*/; do
-          if [ -d \"$$dir\" ]; then
-            echo \"Installing $$dir\"; 
-            uv pip install -e \"$$dir\" || echo \"Failed to install $$dir\"; 
-          fi
-        done
-
-        # Install community packages
-        for dir in /pkgs/community/*/; do
-          if [ -d \"$$dir\" ]; then
-            echo \"Installing $$dir\"; 
-            uv pip install -e \"$$dir\" || echo \"Failed to install $$dir\"; 
-          fi
-        done
-        
-        # Generate documentation
-        uv run python scripts/generate_content.py &&
-        
         # Serve the static site
         uv run mkdocs serve -a 0.0.0.0:8000
       "
+    networks:
+      - dockernet
+
+  nginx-proxy-manager:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: nginx-proxy-manager
+    # restart: unless-stopped
+    depends_on:
+      - mkdocs
+    ports:
+      - "80:80"   # HTTP
+      - "443:443" # HTTPS
+      - "81:81"   # Admin UI
+    volumes:
+      - ./npm/data:/data
+      - ./npm/letsencrypt:/etc/letsencrypt
+    environment:
+      DISABLE_IPV6: "true"
     networks:
       - dockernet
 
@@ -54,4 +51,3 @@ services:
 networks:
   dockernet:
     driver: bridge
-
