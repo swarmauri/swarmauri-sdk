@@ -7,7 +7,6 @@ import os
 import mimetypes
 
 from ..deps.starlette import (
-    JSONResponse,
     HTMLResponse,
     PlainTextResponse,
     StreamingResponse,
@@ -51,18 +50,17 @@ def as_json(
 ) -> Response:
     payload = _maybe_envelope(data) if envelope else data
     try:
-        return JSONResponse(
-            payload,
-            status_code=status,
-            headers=dict(headers or {}),
-            dumps=lambda o: dumps(o).decode(),
-        )
-    except TypeError:  # pragma: no cover - starlette >= 0.44
-        return JSONResponse(
-            payload,
-            status_code=status,
-            headers=dict(headers or {}),
-        )
+        body = dumps(payload)
+    except TypeError:
+        body = json.dumps(payload, default=str).encode("utf-8")
+    if isinstance(body, str):
+        body = body.encode("utf-8")
+    return Response(
+        body,
+        status_code=status,
+        headers=dict(headers or {}),
+        media_type="application/json",
+    )
 
 
 def as_html(
