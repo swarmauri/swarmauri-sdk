@@ -20,6 +20,7 @@ from .common import (
     BaseModel,
     Body,
     Depends,
+    Response,
     OpSpec,
     Path,
     Request,
@@ -31,6 +32,7 @@ from .common import (
     _validate_body,
     _validate_query,
     _executor,
+    _status_for,
 )
 
 
@@ -98,6 +100,7 @@ def _make_collection_endpoint(
     api: Any | None = None,
 ) -> Callable[..., Awaitable[Any]]:
     alias, target, nested_vars = sp.alias, sp.target, list(nested_vars or [])
+    status_code = _status_for(sp)
 
     if target in {"list", "clear"}:
         list_dep = _make_list_query_dep(model, alias) if target == "list" else None
@@ -120,6 +123,9 @@ def _make_collection_endpoint(
             result = await _executor._invoke(
                 request=request, db=db, phases=phases, ctx=ctx
             )
+            if isinstance(result, Response):
+                result.status_code = status_code
+                return result
             return _serialize_output(model, alias, target, sp, result)
 
         params = [
@@ -218,6 +224,9 @@ def _make_collection_endpoint(
             result = await _executor._invoke(
                 request=request, db=db, phases=phases, ctx=ctx
             )
+            if isinstance(result, Response):
+                result.status_code = status_code
+                return result
             temp = ctx.get("temp", {}) if isinstance(ctx, Mapping) else {}
             extras = (
                 temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}

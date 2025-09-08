@@ -19,6 +19,7 @@ from .common import (
     Body,
     Depends,
     HTTPException,
+    Response,
     Path,
     Request,
     OpSpec,
@@ -31,6 +32,7 @@ from .common import (
     _validate_body,
     _executor,
     _status,
+    _status_for,
 )
 
 
@@ -50,6 +52,7 @@ def _make_member_endpoint(
 ) -> Callable[..., Awaitable[Any]]:
     alias = sp.alias
     target = sp.target
+    status_code = _status_for(sp)
     real_pk = _pk_name(model)
     pk_names = _pk_names(model)
     nested_vars = list(nested_vars or [])
@@ -96,6 +99,9 @@ def _make_member_endpoint(
                 phases=phases,
                 ctx=ctx,
             )
+            if isinstance(result, Response):
+                result.status_code = status_code
+                return result
             temp = ctx.get("temp", {}) if isinstance(ctx, Mapping) else {}
             extras = (
                 temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}
@@ -307,6 +313,9 @@ def _make_member_endpoint(
             phases=phases,
             ctx=ctx,
         )
+        if isinstance(result, Response):
+            result.status_code = status_code
+            return result
         temp = ctx.get("temp", {}) if isinstance(ctx, Mapping) else {}
         extras = temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}
         raw = (
