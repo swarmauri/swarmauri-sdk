@@ -2,14 +2,16 @@ import pytest
 from autoapi.v3 import AutoApp, Base
 from autoapi.v3.engine.shortcuts import mem
 from autoapi.v3.orm.mixins import GUIDPk
-from autoapi.v3.types import App
+from autoapi.v3.specs import F, S, acol
+from autoapi.v3.types import App, Mapped, String
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import Column, String
 
 
 class Widget(Base, GUIDPk):
     __tablename__ = "widgets_example_presence"
-    name = Column(String, nullable=False, info={"autoapi": {"examples": ["foo"]}})
+    name: Mapped[str] = acol(
+        storage=S(String, nullable=False), field=F(constraints={"examples": ["foo"]})
+    )
 
 
 def _resolve_schema(spec, schema):
