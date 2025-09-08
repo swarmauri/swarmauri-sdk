@@ -174,8 +174,17 @@ class Base(DeclarativeBase):
     __allow_unmapped__ = True
 
     def __init_subclass__(cls, **kw):
+        # 0) Remove any previously registered class with the same name.
+        try:
+            existing = Base.registry._class_registry.get(cls.__name__)
+            if existing is not None:
+                Base.registry._dispose_cls(existing)
+        except Exception:
+            pass
+
         # 1) BEFORE SQLAlchemy maps: turn ColumnSpecs into real mapped_column(...)
         _materialize_colspecs_to_sqla(cls)
+
         # 2) Let SQLAlchemy map the class (PK now exists)
         super().__init_subclass__(**kw)
 
