@@ -7,8 +7,7 @@ from ..deps.sqlalchemy import (
     # Core SQLAlchemy
     Boolean,
     Column,
-    DateTime,
-    TZDateTime,
+    _DateTime,
     SAEnum,
     Text,
     ForeignKey,
@@ -26,7 +25,7 @@ from ..deps.sqlalchemy import (
     ARRAY,
     PgEnum,
     JSONB,
-    PgUUID,
+    _PgUUID,
     TSVECTOR,
     # ORM
     Mapped,
@@ -83,6 +82,16 @@ from .response_extras_provider import (
 
 from .op_verb_alias_provider import OpVerbAliasProvider, list_verb_alias_providers
 from .op_config_provider import OpConfigProvider
+
+# ── Generics / Extensions ─────────────────────────────────────────────────
+DateTime = _DateTime(timezone=False)
+TZDateTime = _DateTime(timezone=True)
+
+
+class PgUUID(_PgUUID):
+    @property
+    def hex(self):
+        return self.as_uuid.hex
 
 
 # ── Public Re-exports (Backwards Compatibility) ──────────────────────────
