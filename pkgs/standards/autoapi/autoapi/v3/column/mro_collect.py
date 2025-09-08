@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from functools import lru_cache
 from typing import Dict
 
 from .column_spec import ColumnSpec
@@ -24,6 +25,7 @@ _DEFAULT_IO = IO(
 )
 
 
+@lru_cache(maxsize=None)
 def mro_collect_columns(model: type) -> Dict[str, ColumnSpec]:
     """Collect ColumnSpecs declared on *model* and all mixins.
 
