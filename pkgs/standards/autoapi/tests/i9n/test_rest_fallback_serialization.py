@@ -20,7 +20,8 @@ async def client_and_model():
         __allow_unmapped__ = True
 
         id: Mapped[int] = acol(
-            storage=S(type_=Integer, primary_key=True, autoincrement=True)
+            storage=S(type_=Integer, primary_key=True, autoincrement=True),
+            io=IO(out_verbs=("read", "list")),
         )
         name: Mapped[str] = acol(
             storage=S(type_=String, nullable=False),
