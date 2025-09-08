@@ -9,7 +9,7 @@ async def test_bindings_before_mount(monkeypatch):
     monkeypatch.setattr(
         rest_binding,
         "build_router_and_attach",
-        lambda model, specs, only_keys=None: None,
+        lambda model, specs, api=None, only_keys=None: None,
     )
 
     from autoapi.v3.runtime import executor as _executor
