@@ -1,8 +1,12 @@
 from __future__ import annotations
 from typing import Any, Optional
+import logging
 
 from ... import events as _ev
 from .renderer import render
+
+
+logger = logging.getLogger("uvicorn")
 
 ANCHOR = _ev.OUT_DUMP  # "out:dump"
 
@@ -19,6 +23,7 @@ def run(obj: Optional[object], ctx: Any) -> Any:
     result = getattr(resp_ns, "result", None)
     if result is None:
         return None
+    logger.debug("Render atom received result of type %s", type(result))
     hints = getattr(resp_ns, "hints", None)
     default_media = getattr(resp_ns, "default_media", "application/json")
     envelope_default = getattr(resp_ns, "envelope_default", False)
@@ -30,6 +35,11 @@ def run(obj: Optional[object], ctx: Any) -> Any:
         envelope_default=envelope_default,
     )
     resp_ns.result = resp
+    logger.debug(
+        "Render atom produced Response with status %s and media_type %s",
+        getattr(resp, "status_code", None),
+        getattr(resp, "media_type", None),
+    )
     return resp
 
 

@@ -24,20 +24,23 @@ logger = logging.getLogger("uvicorn")
 
 def negotiate_media_type(accept: str, default_media: str) -> str:
     logger.debug("Negotiating media type from Accept header %s", accept)
-    if not accept or accept == "*/*":
-        return default_media
-    for cand in _parse(accept):
-        mt = cand.split(";")[0].strip()
-        if mt in (
-            "application/json",
-            "text/html",
-            "text/plain",
-            "application/octet-stream",
-        ):
-            return mt
-        if mt.startswith("text/"):
-            return "text/plain"
-    return default_media
+    chosen = default_media
+    if accept and accept != "*/*":
+        for cand in _parse(accept):
+            mt = cand.split(";")[0].strip()
+            if mt in (
+                "application/json",
+                "text/html",
+                "text/plain",
+                "application/octet-stream",
+            ):
+                chosen = mt
+                break
+            if mt.startswith("text/"):
+                chosen = "text/plain"
+                break
+    logger.debug("Negotiated media type %s", chosen)
+    return chosen
 
 
 __all__ = ["negotiate_media_type"]

@@ -63,49 +63,57 @@ def render(
 ) -> Response:
     logger.debug("Rendering response with payload type %s", type(payload))
     if isinstance(payload, Response):
+        logger.debug("Payload is already a Response; returning unchanged")
         return payload
 
     hints = hints or ResponseHints()
     chosen = hints.media_type or default_media
+    logger.debug(
+        "Rendering with media type %s and status %s", chosen, hints.status_code
+    )
 
     if isinstance(payload, Path):
-        return as_file(
+        resp = as_file(
             payload,
             filename=hints.filename,
             download=hints.download,
             status=hints.status_code,
             headers=hints.headers,
         )
-
-    if isinstance(payload, (bytes, bytearray, memoryview)):
-        return as_stream(
+    elif isinstance(payload, (bytes, bytearray, memoryview)):
+        resp = as_stream(
             iter((bytes(payload),)),
             media_type="application/octet-stream",
             status=hints.status_code,
             headers=hints.headers,
         )
-
-    if hasattr(payload, "__aiter__") or (
+    elif hasattr(payload, "__aiter__") or (
         hasattr(payload, "__iter__") and not isinstance(payload, (str, dict, list))
     ):
-        return as_stream(
+        resp = as_stream(
             cast(Union[Iterable[bytes], AsyncIterable[bytes]], payload),
             media_type="application/octet-stream",
             status=hints.status_code,
             headers=hints.headers,
         )
-
-    if isinstance(payload, str):
+    elif isinstance(payload, str):
         if payload.lstrip().startswith("<") or chosen == "text/html":
-            return as_html(payload, status=hints.status_code, headers=hints.headers)
-        return as_text(payload, status=hints.status_code, headers=hints.headers)
-
-    return as_json(
-        payload,
-        status=hints.status_code,
-        headers=hints.headers,
-        envelope=envelope_default,
+            resp = as_html(payload, status=hints.status_code, headers=hints.headers)
+        else:
+            resp = as_text(payload, status=hints.status_code, headers=hints.headers)
+    else:
+        resp = as_json(
+            payload,
+            status=hints.status_code,
+            headers=hints.headers,
+            envelope=envelope_default,
+        )
+    logger.debug(
+        "Rendered Response: status=%s media_type=%s",
+        getattr(resp, "status_code", None),
+        getattr(resp, "media_type", None),
     )
+    return resp
 
 
 __all__ = [

@@ -82,7 +82,9 @@ else:
         except TemplateNotFound as e:  # pragma: no cover - passthrough
             raise FileNotFoundError(f"Template not found: {name}") from e
 
-        return await tmpl.render_async(**context)
+        rendered = await tmpl.render_async(**context)
+        logger.debug("Template %s rendered %d characters", name, len(rendered))
+        return rendered
 
 
 __all__ = ["render_template"]
