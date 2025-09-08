@@ -64,13 +64,10 @@ def _build_schema(
         if verb in {"create", "update", "replace"}:
             """Determine if the column participates in inbound verbs.
 
-            When a ColumnSpec is present it may explicitly restrict the verbs a
-            field accepts via ``io.in_verbs``.  Previous behaviour treated the
-            absence of this specification as "deny all", which caused models
-            without explicit ColumnSpec declarations to generate empty request
-            schemas.  Here we interpret a missing ``io`` or ``in_verbs`` as
-            allowing all verbs, only filtering when the spec explicitly lists
-            them.
+            When a ColumnSpec is present it may explicitly restrict inbound
+            verbs via ``io.in_verbs``. Columns that only declare outbound verbs
+            are treated as read-only and omitted from request schemas. If no
+            ColumnSpec or ``in_verbs`` is provided we allow all verbs.
             """
 
             if getattr(col, "primary_key", False) and verb in {
@@ -83,11 +80,14 @@ def _build_schema(
                 # consumers can target the correct row.
                 pass
             else:
-                allowed_verbs = (
-                    getattr(io, "in_verbs", None) if io is not None else None
-                )
-                if allowed_verbs and verb not in set(allowed_verbs):
-                    continue
+                if io is not None:
+                    in_verbs = set(getattr(io, "in_verbs", ()) or ())
+                    out_verbs = set(getattr(io, "out_verbs", ()) or ())
+                    if not in_verbs:
+                        if out_verbs:
+                            continue
+                    elif verb not in in_verbs:
+                        continue
 
         logger.debug("schema: processing column %s (verb=%s)", attr_name, verb)
 
