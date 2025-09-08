@@ -13,9 +13,9 @@ async def test_nested_path_schema_and_rpc(api_client):
 
     # Schema should mark parent identifiers optional
     create_model = Item.schemas.create.in_
-    fields = getattr(
-        create_model, "model_fields", getattr(create_model, "__fields__", {})
-    )
+    fields = getattr(create_model, "model_fields", None)
+    if fields is None:
+        fields = getattr(create_model, "__fields__", {})
     assert "tenant_id" not in fields
 
     # REST call should inject path params
