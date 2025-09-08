@@ -46,7 +46,13 @@ def run(obj: Optional[object], ctx: Any) -> None:
     # Prefer explicit obj (hydrated instance), else ctx.model if adapter provided it
     target_obj = obj or getattr(ctx, "model", None)
 
-    for field in sorted(schema_in["fields"]):
+    # Ensure paired fields are considered even when absent from inbound schema.
+    # schema_in["fields"] may omit columns like "digest" that generate their
+    # values server-side via IO(...).paired. To derive their stored values, merge
+    # the explicit schema fields with the paired index keys.
+    all_fields = set(schema_in["fields"]) | set(ov.paired_index.keys())
+
+    for field in sorted(all_fields):
         if field in ov.paired_index:
             if field in pf_paired or field in paired_values:
                 raw = None
