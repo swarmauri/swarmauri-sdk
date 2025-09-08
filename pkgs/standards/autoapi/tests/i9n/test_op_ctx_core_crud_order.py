@@ -28,8 +28,8 @@ def setup_api(model_cls):
 async def fetch_inspection(client):
     openapi = (await client.get("/openapi.json")).json()
     hookz = (await client.get("/hookz")).json()
-    planz = (await client.get("/planz")).json()
-    return openapi, hookz, planz
+    kernelz = (await client.get("/kernelz")).json()
+    return openapi, hookz, kernelz
 
 
 @pytest.mark.i9n

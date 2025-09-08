@@ -385,7 +385,7 @@ async def test_hook_ctx_system_steps_i9n():
             pass
 
     client, _, _ = create_client(Item)
-    res = await client.get("/system/planz")
+    res = await client.get("/system/kernelz")
     data = res.json()
     steps = data["Item"]["create"]
     assert "HANDLER:hook:sys:handler:crud@HANDLER" in steps

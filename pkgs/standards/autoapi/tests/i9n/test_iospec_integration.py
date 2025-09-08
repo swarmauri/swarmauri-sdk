@@ -173,9 +173,9 @@ async def test_hookz_reports_operations(widget_setup):
 
 @pytest.mark.i9n
 @pytest.mark.asyncio
-async def test_planz_lists_atoms_and_steps(widget_setup):
+async def test_kernelz_lists_atoms_and_steps(widget_setup):
     client, _, _ = widget_setup
-    data = (await client.get("/system/planz")).json()
+    data = (await client.get("/system/kernelz")).json()
     steps = data["Widget"]["create"]
     assert "HANDLER:hook:sys:handler:crud@HANDLER" in steps
     assert any("hook:sys:txn:begin@START_TX" in s for s in steps)
