@@ -70,8 +70,7 @@ def _mro_collect_decorated_hooks_cached(
         return out
 
     for base in reversed(table.__mro__):
-        for name in dir(base):
-            attr = getattr(base, name, None)
+        for name, attr in base.__dict__.items():
             func = _unwrap(attr)
             decls: list[Hook] | None = getattr(func, HOOK_DECLS_ATTR, None)
             if not decls:

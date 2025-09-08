@@ -9,8 +9,7 @@ Highlights
 ----------
 • Verbs/targets are *derived* from the v3 OpSpec canon so they always stay in sync.
 • Default HTTP method mapping for REST bindings lives here (used by bindings.rest).
-• Column / model config keys document the names we look for in SQLAlchemy
-  Column.info["autoapi"] and on model classes.
+• Model config keys document the names we look for on SQLAlchemy classes.
 
 Nothing in this module performs I/O.
 """

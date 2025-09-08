@@ -3,7 +3,7 @@ from typing import Dict, Optional
 
 from dataclasses import fields
 from .types import ResponseSpec, TemplateSpec
-from ..runtime.atoms.response.render import ResponseHints
+from ..runtime.atoms.response.renderer import ResponseHints
 
 
 def _merge_template(

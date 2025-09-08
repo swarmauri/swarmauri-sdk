@@ -35,8 +35,7 @@ def collect_decorated_schemas(model: type) -> Dict[str, Dict[str, type]]:
 
     # Nested classes with __autoapi_schema_decl__
     for base in reversed(model.__mro__):
-        for name in dir(base):
-            obj = getattr(base, name, None)
+        for name, obj in base.__dict__.items():
             if not inspect.isclass(obj):
                 logger.debug("Skipping non-class attribute %s.%s", base.__name__, name)
                 continue
