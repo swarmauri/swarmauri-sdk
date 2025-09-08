@@ -91,7 +91,7 @@ def _default_schemas_for_spec(
         logger.debug("Using delete defaults for %s.%s", model.__name__, sp.alias)
         # For RPC delete, a body with PK is allowed; REST delete ignores body.
         result["in_"] = _build_schema(model, verb="delete")
-        result["out"] = read_schema
+        result["out"] = _make_deleted_response_model(model, "delete")
 
     elif target == "list":
         logger.debug("Using list defaults for %s.%s", model.__name__, sp.alias)

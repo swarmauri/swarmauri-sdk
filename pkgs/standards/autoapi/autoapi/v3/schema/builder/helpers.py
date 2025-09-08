@@ -38,8 +38,11 @@ def _is_required(col: Any, verb: str) -> bool:
     if verb == "update":
         return False
     is_nullable = bool(getattr(col, "nullable", True))
-    has_default = (getattr(col, "default", None) is not None) or (
-        getattr(col, "server_default", None) is not None
+    has_default = (
+        getattr(col, "default", None) is not None
+        or getattr(col, "server_default", None) is not None
+        or getattr(col, "autoincrement", False) not in (False, "ignore")
+        or getattr(col, "identity", None) is not None
     )
     return not is_nullable and not has_default
 
