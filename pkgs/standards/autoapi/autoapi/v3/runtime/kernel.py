@@ -430,7 +430,10 @@ class Kernel:
             in_verbs = set(getattr(io, "in_verbs", ()) or ())
             out_verbs = set(getattr(io, "out_verbs", ()) or ())
 
-            if alias in in_verbs:
+            if not in_verbs and out_verbs:
+                # Field is read-only; expose in outbound schema only
+                pass
+            elif alias in in_verbs or (not in_verbs and not out_verbs):
                 in_fields.append(name)
                 meta: Dict[str, object] = {"in_enabled": True}
                 if storage is None:
