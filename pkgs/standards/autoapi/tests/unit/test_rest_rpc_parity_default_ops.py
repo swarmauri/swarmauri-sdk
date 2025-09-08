@@ -1,9 +1,10 @@
 import pytest
 
+
 from autoapi.v3.autoapp import AutoApp
 from autoapi.v3.orm.mixins import GUIDPk, BulkCapable, Mergeable
-from autoapi.v3.op.types import CANON
 from autoapi.v3.orm.tables import Base
+from autoapi.v3.op.types import CANON
 from autoapi.v3.types import Column, String
 
 
@@ -59,7 +60,7 @@ def test_rest_rpc_parity_for_default_verbs(alias, target, path, methods):
     routes = _route_map(Item.rest.router)
     if alias == "clear" and "bulk_delete" in routes:
         assert alias not in routes
-    elif alias == "bulk_create" and "create" in routes:
+    elif alias == "create" and "bulk_create" in routes:
         assert alias not in routes
     else:
         assert alias in routes
@@ -68,3 +69,20 @@ def test_rest_rpc_parity_for_default_verbs(alias, target, path, methods):
         assert got_methods == methods
 
     assert hasattr(api.rpc.Item, alias)
+
+
+def test_non_bulkcapable_prefers_create() -> None:
+    Base.metadata.clear()
+
+    class Item(Base, GUIDPk, Mergeable):
+        __tablename__ = "items"
+        name = Column(String, nullable=False)
+
+    api = AutoApp()
+    api.include_model(Item, mount_router=False)
+
+    routes = _route_map(Item.rest.router)
+    assert "bulk_create" not in routes
+    assert "create" in routes
+    assert hasattr(api.rpc.Item, "create")
+    assert not hasattr(api.rpc.Item, "bulk_create")
