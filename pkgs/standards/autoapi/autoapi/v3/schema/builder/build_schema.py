@@ -161,6 +161,7 @@ def _build_schema(
         py_t = getattr(fs, "py_type", Any) if fs is not None else Any
         required = bool(fs and verb in getattr(fs, "required_in", ()))
         allow_null = bool(fs and verb in getattr(fs, "allow_null_in", ()))
+        nullable = bool(getattr(spec, "nullable", True))
         field_kwargs: Dict[str, Any] = dict(getattr(fs, "constraints", {}) or {})
 
         default_factory = getattr(spec, "default_factory", None)
@@ -172,7 +173,7 @@ def _build_schema(
 
         fld = Field(**field_kwargs)
 
-        if allow_null and py_t is not Any:
+        if (allow_null or nullable) and py_t is not Any:
             py_t = Union[py_t, None]
 
         _add_field(fields, name=attr_name, py_t=py_t, field=fld)
