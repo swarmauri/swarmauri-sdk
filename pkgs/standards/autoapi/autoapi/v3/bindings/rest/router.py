@@ -32,6 +32,7 @@ from .common import (
     _strip_parent_fields,
     _RESPONSES_META,
 )
+from ...schema import _make_bulk_rows_model
 import typing as _typing
 from typing import get_args as _get_args, get_origin as _get_origin
 
@@ -115,7 +116,6 @@ def _build_router(
                         and inspect.isclass(in_model)
                         and issubclass(in_model, BaseModel)
                     ):
-                        target = in_model
                         root_field = getattr(in_model, "model_fields", {}).get("root")
                         if root_field is not None:
                             ann = root_field.annotation
@@ -131,8 +131,16 @@ def _build_router(
                                     inner = t
                                     break
                             if inner is not None:
-                                target = inner
-                        pruned = _strip_parent_fields(target, drop=set(nested_vars))
+                                pruned = _strip_parent_fields(
+                                    inner, drop=set(nested_vars)
+                                )
+                                setattr(alias_ns, "in_item", pruned)
+                                setattr(
+                                    alias_ns,
+                                    "in_",
+                                    _make_bulk_rows_model(model, sp.target, pruned),
+                                )
+                        pruned = _strip_parent_fields(in_model, drop=set(nested_vars))
                         setattr(alias_ns, "in_", pruned)
 
         # Determine path and membership
