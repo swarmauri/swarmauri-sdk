@@ -8,7 +8,7 @@ from typing import Any, Dict, Iterable, Set, Tuple, Type, Union
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, create_model
 
 from ..utils import namely_model
-from ...column.collect import collect_columns
+from ...column.mro_collect import mro_collect_columns
 from .cache import _SchemaCache
 from .compat import hybrid_property
 from .extras import _merge_request_extras, _merge_response_extras
@@ -50,7 +50,7 @@ def _build_schema(
     # ── PASS 1: table-backed columns only (avoid mapper relationships)
     table = getattr(orm_cls, "__table__", None)
     table_cols: Iterable[Any] = tuple(table.columns) if table is not None else ()
-    specs: Dict[str, Any] = collect_columns(orm_cls)
+    specs: Dict[str, Any] = mro_collect_columns(orm_cls)
 
     for col in table_cols:
         attr_name = col.key or col.name

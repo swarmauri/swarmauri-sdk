@@ -37,12 +37,20 @@ from .common import (
 logging.getLogger("uvicorn").debug("Loaded module v3/bindings/rest/collection")
 
 
-def _ctx(model, alias, target, request, db, payload, parent_kw):
+def _ctx(model, alias, target, request, db, payload, parent_kw, api):
     ctx: Dict[str, Any] = {
         "request": request,
         "db": db,
         "payload": payload,
         "path_params": parent_kw,
+        # expose both API router and FastAPI app; runtime opview resolution
+        # relies on the app object, which must be hashable.
+        "api": api if api is not None else getattr(request, "app", None),
+        "app": getattr(request, "app", None),
+        "model": model,
+        "op": alias,
+        "method": alias,
+        "target": target,
         "env": SimpleNamespace(
             method=alias, params=payload, target=target, model=model
         ),
@@ -87,6 +95,7 @@ def _make_collection_endpoint(
     resource: str,
     db_dep: Callable[..., Any],
     nested_vars: Sequence[str] | None = None,
+    api: Any | None = None,
 ) -> Callable[..., Awaitable[Any]]:
     alias, target, nested_vars = sp.alias, sp.target, list(nested_vars or [])
 
@@ -106,7 +115,7 @@ def _make_collection_endpoint(
                 payload = _validate_query(model, alias, target, query)
             else:
                 payload = dict(parent_kw)
-            ctx = _ctx(model, alias, target, request, db, payload, parent_kw)
+            ctx = _ctx(model, alias, target, request, db, payload, parent_kw, api)
             phases = _get_phase_chains(model, alias)
             result = await _executor._invoke(
                 request=request, db=db, phases=phases, ctx=ctx
@@ -189,14 +198,40 @@ def _make_collection_endpoint(
                     payload = {**payload, **parent_kw}
                 else:
                     payload = parent_kw
-            ctx = _ctx(model, exec_alias, exec_target, request, db, payload, parent_kw)
+            ctx = _ctx(
+                model, exec_alias, exec_target, request, db, payload, parent_kw, api
+            )
             ctx["response_serializer"] = lambda r: _serialize_output(
                 model, exec_alias, exec_target, sp, r
             )
+            raw_key = None
+            if (
+                exec_target == "create"
+                and isinstance(payload, Mapping)
+                and "digest" not in payload
+                and hasattr(model, "_generate_pair")
+            ):
+                pair = model._generate_pair(None)  # type: ignore[attr-defined]
+                raw_key = pair.raw
+                payload["digest"] = pair.stored
             phases = _get_phase_chains(model, exec_alias)
             result = await _executor._invoke(
                 request=request, db=db, phases=phases, ctx=ctx
             )
+            temp = ctx.get("temp", {}) if isinstance(ctx, Mapping) else {}
+            extras = (
+                temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}
+            )
+            raw = None
+            if isinstance(temp, Mapping):
+                raw = temp.get("paired_values", {}).get("digest", {}).get("raw")
+            if raw is None:
+                raw = raw_key
+            if isinstance(result, dict):
+                if isinstance(extras, dict):
+                    result.update(extras)
+                if raw is not None and "api_key" not in result:
+                    result["api_key"] = raw
             return result
 
         _endpoint.__signature__ = _sig(

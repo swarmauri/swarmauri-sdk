@@ -96,6 +96,8 @@ def _path_for_spec(
     if suffix and not suffix.startswith("/"):
         suffix = "/" + suffix
 
+    if sp.target == "create":
+        return f"/{resource}{suffix}", False
     if sp.arity == "member" or sp.target in {
         "read",
         "update",

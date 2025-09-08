@@ -27,7 +27,7 @@ def install_from_objects(
     *, app: Any | None = None, api: Any | None = None, models: Iterable[Any] = ()
 ) -> None:
     """Collect engine config from objects and bind them to the resolver."""
-    from .collect import collect_from_objects
+    from .collect import collect_engine_config
 
-    collected = collect_from_objects(app=app, api=api, models=models)
+    collected = collect_engine_config(app=app, api=api, models=models)
     bind(collected)

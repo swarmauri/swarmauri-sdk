@@ -1,4 +1,3 @@
-# autoapi/v3/op/resolver.py
 from __future__ import annotations
 
 from dataclasses import replace
@@ -9,7 +8,7 @@ from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 from .types import OpSpec, TargetOp
 from ..config.constants import AUTOAPI_OPS_ATTR
 from .canonical import should_wire_canonical
-from .collect import alias_map_for
+from .mro_collect import mro_alias_map_for
 
 try:
     # Per-model registry (observable, triggers rebind elsewhere)
@@ -32,14 +31,7 @@ def _ensure_spec_table(spec: OpSpec, table: type) -> OpSpec:
 
 
 def _as_specs(value: Any, table: type) -> List[OpSpec]:
-    """
-    Accepts a variety of shapes from __autoapi_ops__:
-      • OpSpec
-      • Iterable[OpSpec]
-      • Mapping[str, dict]  (alias -> kwargs for OpSpec without the handler)
-      • Iterable[Mapping[str, Any]] (each with 'alias' & 'target')
-    Returns a list of OpSpec with .table set.
-    """
+    """Normalize various `__autoapi_ops__` shapes to a list of OpSpec."""
     specs: List[OpSpec] = []
     if value is None:
         return specs
@@ -48,73 +40,61 @@ def _as_specs(value: Any, table: type) -> List[OpSpec]:
         if "alias" not in kwargs or "target" not in kwargs:
             return None
         try:
-            return OpSpec(table=table, **kwargs)  # type: ignore[arg-type]
-        except TypeError as e:
-            logger.error(
-                "Invalid OpSpec kwargs in __autoapi_ops__ for %s: %s", table.__name__, e
-            )
+            spec = OpSpec(table=table, hooks=(), extra={}, **kwargs)
+            return spec
+        except Exception:  # pragma: no cover - defensive
             return None
 
     if isinstance(value, OpSpec):
         specs.append(_ensure_spec_table(value, table))
     elif isinstance(value, Mapping):
-        for maybe_alias, cfg in value.items():
-            if isinstance(cfg, OpSpec):
-                specs.append(_ensure_spec_table(cfg, table))
-                continue
+        for alias, cfg in value.items():
             if isinstance(cfg, Mapping):
-                kwargs = dict(cfg)
-                kwargs.setdefault("alias", maybe_alias)
-                sp = _from_kwargs(kwargs)
-                if sp:
-                    specs.append(sp)
+                spec = _from_kwargs({"alias": alias, **cfg})
+                if spec:
+                    specs.append(spec)
     elif isinstance(value, Iterable):
         for item in value:
             if isinstance(item, OpSpec):
                 specs.append(_ensure_spec_table(item, table))
             elif isinstance(item, Mapping):
-                sp = _from_kwargs(item)
-                if sp:
-                    specs.append(sp)
+                spec = _from_kwargs(item)
+                if spec:
+                    specs.append(spec)
     else:
-        logger.warning(
-            "__autoapi_ops__ on %s has unsupported type: %r",
-            table.__name__,
-            type(value),
+        spec = _from_kwargs(
+            {
+                "alias": getattr(value, "alias", None),
+                "target": getattr(value, "target", None),
+            }
         )
-
+        if spec:
+            specs.append(spec)
     return specs
 
 
-def _collect_class_declared(model: type) -> List[OpSpec]:
-    declared = getattr(model, AUTOAPI_OPS_ATTR, None)
-    return _as_specs(declared, model)
-
-
-def _collect_registry(model: type) -> List[OpSpec]:
-    try:
-        return [
-            _ensure_spec_table(sp, model) for sp in (get_registered_ops(model) or ())
-        ]
-    except Exception as e:  # pragma: no cover
-        logger.exception("get_registered_ops failed for %s: %s", model.__name__, e)
-        return []
-
-
-def _generate_canonical(model: type) -> List[OpSpec]:
-    """
-    Provide a baseline set of canonical specs for CRUD, list, clear, and bulk ops.
-
-    NOTE: We do not wire any `returns` preference here. Serialization mode is
-    inferred later from the presence/absence of a response schema during binding.
-    """
-    canon_targets: Tuple[TargetOp, ...] = (
+def _generate_canonical(table: type) -> List[OpSpec]:
+    """Generate canonical CRUD specs based on model attributes."""
+    specs: List[OpSpec] = []
+    targets: List[Tuple[str, TargetOp]] = [
+        ("create", "create"),
+        ("read", "read"),
+        ("update", "update"),
+        # Include canonical "replace" so RPC callers get full CRUD semantics
+        # without opting into the Replaceable mixin.
+        ("replace", "replace"),
+        ("merge", "merge"),
+        ("delete", "delete"),
+        ("list", "list"),
+        ("clear", "clear"),
+        ("bulk_create", "bulk_create"),
+        ("bulk_update", "bulk_update"),
+        ("bulk_replace", "bulk_replace"),
+        ("bulk_merge", "bulk_merge"),
+        ("bulk_delete", "bulk_delete"),
+    ]
+    collection_targets = {
         "create",
-        "read",
-        "update",
-        "replace",
-        "merge",
-        "delete",
         "list",
         "clear",
         "bulk_create",
@@ -122,58 +102,53 @@ def _generate_canonical(model: type) -> List[OpSpec]:
         "bulk_replace",
         "bulk_merge",
         "bulk_delete",
-    )
-    out: List[OpSpec] = []
-    for target in canon_targets:
-        if not should_wire_canonical(model, target):
+    }
+    for alias, target in targets:
+        if not should_wire_canonical(table, target):
             continue
-        alias = target  # canonical alias matches the target
-        out.append(
+        specs.append(
             OpSpec(
+                table=table,
                 alias=alias,
                 target=target,
-                table=model,
-                arity="member"
-                if target in {"read", "update", "replace", "merge", "delete"}
-                else "collection",
+                arity="collection" if target in collection_targets else "member",
                 persist="default",
+                handler=None,
+                request_model=None,
+                response_model=None,
+                hooks=(),
+                status_code=None,
+                extra={},
             )
         )
+    return specs
+
+
+def _collect_class_declared(model: type) -> List[OpSpec]:
+    out: List[OpSpec] = []
+    raw = getattr(model, AUTOAPI_OPS_ATTR, None)
+    if isinstance(raw, Mapping) or isinstance(raw, Iterable):
+        out.extend(_as_specs(raw, model))
     return out
+
+
+def _collect_registry(model: type) -> List[OpSpec]:
+    return list(get_registered_ops(model))
 
 
 def _dedupe(
     existing: Dict[Tuple[str, str], OpSpec], incoming: Iterable[OpSpec]
 ) -> None:
-    """
-    Merge specs into `existing` using (alias, target) as the key.
-    Later sources overwrite earlier ones.
-    """
     for sp in incoming:
         if not isinstance(sp, OpSpec):
             continue
         if not sp.alias or not sp.target:
             continue
-        existing[(sp.alias, sp.target)] = sp  # last wins
+        existing[(sp.alias, sp.target)] = sp
 
 
 def _apply_alias_ctx_to_canon(specs: List[OpSpec], model: type) -> List[OpSpec]:
-    """
-    Apply @alias_ctx to canonical specs:
-
-      • Rename canonical alias (alias==target) → provided alias.
-      • Apply per-verb overrides from `__autoapi_alias_overrides__`:
-          - request_schema    → OpSpec.request_model
-          - response_schema   → OpSpec.response_model
-          - persist           → OpSpec.persist
-          - arity             → OpSpec.arity
-          - rest (bool)       → OpSpec.expose_routes
-          - engine            → OpSpec.engine
-
-    We do NOT support any `returns` override. If no response schema is set,
-    binders should treat the op as returning raw.
-    """
-    aliases = alias_map_for(model)  # {verb: alias}
+    aliases = mro_alias_map_for(model)
     overrides: Mapping[str, Mapping[str, Any]] = (
         getattr(model, "__autoapi_alias_overrides__", {}) or {}
     )
@@ -183,8 +158,8 @@ def _apply_alias_ctx_to_canon(specs: List[OpSpec], model: type) -> List[OpSpec]:
 
     out: List[OpSpec] = []
     for sp in specs:
-        canon = sp.target  # canonical verb string
-        new_alias = aliases.get(canon, sp.alias)  # type: ignore[arg-type]
+        canon = sp.target
+        new_alias = aliases.get(canon, sp.alias)
         mutated = sp
         if new_alias != sp.alias:
             if not isinstance(new_alias, str) or not _ALIAS_RE.match(new_alias):
@@ -198,60 +173,28 @@ def _apply_alias_ctx_to_canon(specs: List[OpSpec], model: type) -> List[OpSpec]:
             else:
                 mutated = replace(mutated, alias=new_alias, path_suffix="")
 
-        ov = overrides.get(canon)  # type: ignore[index]
+        ov = overrides.get(canon)
         if ov:
-            repl_kwargs: Dict[str, Any] = {}
-            if ov.get("request_schema") is not None:
-                repl_kwargs["request_model"] = ov["request_schema"]
-            if ov.get("response_schema") is not None:
-                repl_kwargs["response_model"] = ov["response_schema"]
-            if ov.get("engine") is not None:
-                repl_kwargs["engine"] = ov["engine"]
-            if ov.get("persist") is not None:
-                val = ov["persist"]
-                if val in ("default", "skip", "override"):
-                    repl_kwargs["persist"] = val
-                else:
-                    logger.warning(
-                        "Invalid persist=%r for %s.%s",
-                        val,
-                        model.__name__,
-                        mutated.alias,
-                    )
-            if ov.get("arity") is not None:
-                val = ov["arity"]
-                if val in ("member", "collection"):
-                    repl_kwargs["arity"] = val
-                else:
-                    logger.warning(
-                        "Invalid arity=%r for %s.%s", val, model.__name__, mutated.alias
-                    )
-            if ov.get("rest") is not None:
-                repl_kwargs["expose_routes"] = bool(ov["rest"])
-
-            if repl_kwargs:
-                mutated = replace(mutated, **repl_kwargs)
-
+            kwargs = {}
+            if "request_schema" in ov:
+                kwargs["request_model"] = ov["request_schema"]
+            if "response_schema" in ov:
+                kwargs["response_model"] = ov["response_schema"]
+            if "persist" in ov:
+                kwargs["persist"] = ov["persist"]
+            if "arity" in ov:
+                kwargs["arity"] = ov["arity"]
+            if "rest" in ov:
+                kwargs["expose_routes"] = bool(ov["rest"])
+            if "engine" in ov:
+                kwargs["engine"] = ov["engine"]
+            if kwargs:
+                mutated = replace(mutated, **kwargs)
         out.append(mutated)
-
     return out
 
 
 def resolve(model: type) -> List[OpSpec]:
-    """
-    Build the effective OpSpec list for a model class.
-
-    Precedence (later wins):
-      1) Canonical defaults (subject to @alias_ctx renaming/overrides)
-      2) Class-declared (__autoapi_ops__)
-      3) Imperative registry (register_ops)
-
-    Dedupe key: (alias, target)
-
-    Note:
-      • ctx-only ops declared via @op_ctx are collected elsewhere and then merged.
-      • Legacy @custom_op and legacy alias policies are intentionally unsupported.
-    """
     canon = _generate_canonical(model)
     canon = _apply_alias_ctx_to_canon(canon, model)
 

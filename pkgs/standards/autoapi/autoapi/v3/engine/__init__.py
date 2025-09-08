@@ -1,7 +1,7 @@
 """Engine utilities for collecting and binding database providers."""
 
 from .bind import bind, install_from_objects
-from .collect import collect_from_objects
+from .collect import collect_engine_config
 from .builders import (
     async_postgres_engine,
     async_sqlite_engine,
@@ -13,7 +13,7 @@ from ._engine import Engine
 from .shortcuts import engine
 
 __all__ = [
-    "collect_from_objects",
+    "collect_engine_config",
     "bind",
     "install_from_objects",
     "blocking_sqlite_engine",

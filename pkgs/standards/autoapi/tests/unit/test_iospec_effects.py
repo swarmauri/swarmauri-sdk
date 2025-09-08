@@ -14,6 +14,7 @@ from autoapi.v3.bindings.rest.router import _build_router
 from autoapi.v3.op import OpSpec
 from autoapi.v3.runtime.atoms.resolve import assemble
 from autoapi.v3.runtime.atoms.schema import collect_in, collect_out
+from autoapi.v3.runtime.kernel import _default_kernel as K
 from autoapi.v3.schema import _build_list_params
 from autoapi.v3.specs import ColumnSpec, F, IO, S, acol, vcol
 from autoapi.v3.orm.tables import Base
@@ -51,14 +52,15 @@ def test_iospec_aliases_affect_schemas() -> None:
 
     bind(Thing)
     specs = Thing.__autoapi_cols__
-
-    ctx_in = SimpleNamespace(specs=specs, op="create", temp={})
+    ov_in = K._compile_opview_from_specs(specs, SimpleNamespace(alias="create"))
+    ctx_in = SimpleNamespace(opview=ov_in, temp={})
     collect_in.run(None, ctx_in)
     schema_in = ctx_in.temp["schema_in"]
     assert "id" not in schema_in["by_field"]
     assert schema_in["by_field"]["name"]["alias_in"] == "first_name"
 
-    ctx_out = SimpleNamespace(specs=specs, op="read", temp={})
+    ov_out = K._compile_opview_from_specs(specs, SimpleNamespace(alias="read"))
+    ctx_out = SimpleNamespace(opview=ov_out, temp={})
     collect_out.run(None, ctx_out)
     schema_out = ctx_out.temp["schema_out"]
     assert "id" in schema_out["by_field"]
@@ -101,9 +103,8 @@ def test_iospec_default_factory_resolves_absent_values() -> None:
 
     bind(Thing)
     specs = Thing.__autoapi_cols__
-    ctx = SimpleNamespace(
-        specs=specs, op="create", temp={"in_values": {}}, persist=True
-    )
+    ov = K._compile_opview_from_specs(specs, SimpleNamespace(alias="create"))
+    ctx = SimpleNamespace(opview=ov, temp={"in_values": {}}, persist=True)
     assemble.run(None, ctx)
     assembled = ctx.temp["assembled_values"]
     assert assembled["created_at"] == "now"

@@ -26,8 +26,8 @@ class KeyDigest:
             alias="api_key",
             verbs=("create",),
             emit="post_refresh",
-            alias_field=F(py_type=str),    # include alias in the response schema
-            mask_last=None,                # set an int if you want masking
+            alias_field=F(py_type=str),  # include alias in the response schema
+            mask_last=None,  # set an int if you want masking
         ),
     )
 
