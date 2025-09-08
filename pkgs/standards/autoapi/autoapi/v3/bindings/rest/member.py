@@ -46,6 +46,7 @@ def _make_member_endpoint(
     db_dep: Callable[..., Any],
     pk_param: str = "item_id",
     nested_vars: Sequence[str] | None = None,
+    api: Any | None = None,
 ) -> Callable[..., Awaitable[Any]]:
     alias = sp.alias
     target = sp.target
@@ -71,6 +72,13 @@ def _make_member_endpoint(
                 "db": db,
                 "payload": payload,
                 "path_params": path_params,
+                # expose contextual metadata for downstream atoms
+                "api": api if api is not None else getattr(request, "app", None),
+                "app": getattr(request, "app", None),
+                "model": model,
+                "op": alias,
+                "method": alias,
+                "target": target,
                 "env": SimpleNamespace(
                     method=alias, params=payload, target=target, model=model
                 ),
@@ -88,6 +96,20 @@ def _make_member_endpoint(
                 phases=phases,
                 ctx=ctx,
             )
+            temp = ctx.get("temp", {}) if isinstance(ctx, Mapping) else {}
+            extras = (
+                temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}
+            )
+            raw = (
+                temp.get("paired_values", {}).get("digest", {}).get("raw")
+                if isinstance(temp, Mapping)
+                else None
+            )
+            if isinstance(result, dict):
+                if isinstance(extras, dict):
+                    result.update(extras)
+                if raw is not None and "api_key" not in result:
+                    result["api_key"] = raw
             return result
 
         params = [
@@ -145,6 +167,13 @@ def _make_member_endpoint(
                 "db": db,
                 "payload": payload,
                 "path_params": path_params,
+                # expose contextual metadata for downstream atoms
+                "api": api if api is not None else getattr(request, "app", None),
+                "app": getattr(request, "app", None),
+                "model": model,
+                "op": alias,
+                "method": alias,
+                "target": target,
                 "env": SimpleNamespace(
                     method=alias, params=payload, target=target, model=model
                 ),
@@ -162,6 +191,20 @@ def _make_member_endpoint(
                 phases=phases,
                 ctx=ctx,
             )
+            temp = ctx.get("temp", {}) if isinstance(ctx, Mapping) else {}
+            extras = (
+                temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}
+            )
+            raw = (
+                temp.get("paired_values", {}).get("digest", {}).get("raw")
+                if isinstance(temp, Mapping)
+                else None
+            )
+            if isinstance(result, dict):
+                if isinstance(extras, dict):
+                    result.update(extras)
+                if raw is not None and "api_key" not in result:
+                    result["api_key"] = raw
             return result
 
         params = [
@@ -240,6 +283,13 @@ def _make_member_endpoint(
             "db": db,
             "payload": payload,
             "path_params": path_params,
+            # expose contextual metadata for downstream atoms
+            "app": getattr(request, "app", None),
+            "api": getattr(request, "app", None),
+            "model": model,
+            "op": alias,
+            "method": alias,
+            "target": target,
             "env": SimpleNamespace(
                 method=alias, params=payload, target=target, model=model
             ),
@@ -257,6 +307,18 @@ def _make_member_endpoint(
             phases=phases,
             ctx=ctx,
         )
+        temp = ctx.get("temp", {}) if isinstance(ctx, Mapping) else {}
+        extras = temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}
+        raw = (
+            temp.get("paired_values", {}).get("digest", {}).get("raw")
+            if isinstance(temp, Mapping)
+            else None
+        )
+        if isinstance(result, dict):
+            if isinstance(extras, dict):
+                result.update(extras)
+            if raw is not None and "api_key" not in result:
+                result["api_key"] = raw
         return result
 
     params = [

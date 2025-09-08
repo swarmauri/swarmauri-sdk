@@ -3,7 +3,8 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from autoapi.v3.op import collect_decorated_ops, op_ctx
+from autoapi.v3.op.mro_collect import mro_collect_decorated_ops
+from autoapi.v3.op import op_ctx
 from autoapi.v3.response.shortcuts import as_file
 from autoapi.v3.bindings import (
     build_hooks,
@@ -43,7 +44,7 @@ def _build_model(base: type, file_path: Path, *, bind: bool = True) -> type:
                 return as_file(file_path)
 
     if bind:
-        specs = list(collect_decorated_ops(Widget))
+        specs = list(mro_collect_decorated_ops(Widget))
         build_schemas(Widget, specs)
         build_hooks(Widget, specs)
         build_handlers(Widget, specs)

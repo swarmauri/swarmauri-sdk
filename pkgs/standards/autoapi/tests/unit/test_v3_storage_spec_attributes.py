@@ -1,6 +1,12 @@
 from types import SimpleNamespace
 
 from autoapi.v3.runtime.atoms.storage import to_stored
+from autoapi.v3.runtime.kernel import (
+    SchemaIn,
+    SchemaOut,
+    OpView,
+    _default_kernel as K,
+)
 from autoapi.v3.specs import S, acol
 from autoapi.v3.column.storage_spec import ForeignKeySpec, StorageTransform
 from autoapi.v3.orm.tables import Base
@@ -168,9 +174,24 @@ def test_transform_applied_during_persist():
         id: Mapped[int] = acol(storage=S(type_=Integer, primary_key=True))
         name: Mapped[str] = acol(storage=S(type_=String, transform=transform))
 
-    specs = Thing.__autoapi_cols__
+    app = SimpleNamespace()
+    alias = "create"
+    ov = OpView(
+        schema_in=SchemaIn(fields=("name",), by_field={"name": {}}),
+        schema_out=SchemaOut(fields=(), by_field={}, expose=()),
+        paired_index={},
+        virtual_producers={},
+        to_stored_transforms={"name": transform.to_stored},
+        refresh_hints=(),
+    )
+    K._opviews[app] = {(Thing, alias): ov}
+    K._primed[app] = True
     ctx = SimpleNamespace(
-        persist=True, specs=specs, temp={"assembled_values": {"name": "abc"}}
+        app=app,
+        model=Thing,
+        op=alias,
+        persist=True,
+        temp={"assembled_values": {"name": "abc"}},
     )
     to_stored.run(None, ctx)
     assert ctx.temp["assembled_values"]["name"] == "ABC"

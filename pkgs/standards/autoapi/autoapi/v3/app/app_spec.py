@@ -7,7 +7,7 @@ from ..engine.engine_spec import EngineCfg
 from ..response.types import ResponseSpec
 
 
-@dataclass
+@dataclass(eq=False)
 class AppSpec:
     """
     Used to *produce an App subclass* via App.from_spec().

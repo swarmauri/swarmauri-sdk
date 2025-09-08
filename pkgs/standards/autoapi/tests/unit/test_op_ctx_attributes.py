@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, patch
 from pydantic import BaseModel
 
 from autoapi.v3 import op_ctx
-from autoapi.v3.op import collect_decorated_ops
+from autoapi.v3.op.mro_collect import mro_collect_decorated_ops
 from autoapi.v3.schema.decorators import schema_ctx
 from autoapi.v3.op import resolve
 from autoapi.v3.bindings import build_schemas, build_hooks, build_handlers, build_rest
@@ -12,7 +12,7 @@ from autoapi.v3.bindings import build_schemas, build_hooks, build_handlers, buil
 
 def _build_all(model):
     canon = resolve(model)
-    custom = collect_decorated_ops(model)
+    custom = mro_collect_decorated_ops(model)
     specs = canon + custom
     build_schemas(model, specs)
     build_hooks(model, specs)
@@ -27,7 +27,7 @@ def test_op_ctx_alias_attribute():
         def op(cls, ctx):
             return None
 
-    specs = collect_decorated_ops(Widget)
+    specs = mro_collect_decorated_ops(Widget)
     assert specs[0].alias == "foo"
 
 
@@ -143,5 +143,5 @@ def test_op_ctx_persist_attribute():
         def op(cls, ctx):
             return None
 
-    specs = collect_decorated_ops(Gadget)
+    specs = mro_collect_decorated_ops(Gadget)
     assert specs[0].persist == "skip"

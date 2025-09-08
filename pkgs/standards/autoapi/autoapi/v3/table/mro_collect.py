@@ -10,8 +10,8 @@ logger = logging.getLogger("uvicorn")
 
 def _merge_seq_attr(model: type, attr: str) -> Tuple[Any, ...]:
     values: list[Any] = []
-    for base in reversed(model.__mro__):
-        seq = getattr(base, attr, ()) or ()
+    for base in model.__mro__:
+        seq = base.__dict__.get(attr, ()) or ()
         try:
             values.extend(seq)
         except TypeError:  # pragma: no cover - non-iterable
@@ -19,7 +19,7 @@ def _merge_seq_attr(model: type, attr: str) -> Tuple[Any, ...]:
     return tuple(values)
 
 
-def collect_table_spec(model: type) -> TableSpec:
+def mro_collect_table_spec(model: type) -> TableSpec:
     """Collect TableSpec-like declarations across the model's MRO.
 
     Merges common spec attributes (OPS, COLUMNS, SCHEMAS, HOOKS, SECURITY_DEPS,
@@ -31,8 +31,8 @@ def collect_table_spec(model: type) -> TableSpec:
     logger.info("Collecting table spec for %s", model.__name__)
 
     engine: Any | None = None
-    for base in reversed(model.__mro__):
-        cfg = getattr(base, "table_config", None)
+    for base in model.__mro__:
+        cfg = base.__dict__.get("table_config")
         if isinstance(cfg, Mapping):
             eng = (
                 cfg.get("engine")
@@ -64,4 +64,4 @@ def collect_table_spec(model: type) -> TableSpec:
     return spec
 
 
-__all__ = ["collect_table_spec"]
+__all__ = ["mro_collect_table_spec"]

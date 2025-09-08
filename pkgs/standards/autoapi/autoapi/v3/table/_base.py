@@ -160,7 +160,6 @@ def _materialize_colspecs_to_sqla(cls) -> None:
             server_default=getattr(storage, "server_default", None),
             comment=getattr(storage, "comment", None),
             autoincrement=getattr(storage, "autoincrement", None),
-            info={"autoapi": {"spec": spec}},
         )
 
         setattr(cls, name, mc)

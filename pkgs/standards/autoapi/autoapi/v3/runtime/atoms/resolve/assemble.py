@@ -1,11 +1,11 @@
 # autoapi/v3/runtime/atoms/resolve/assemble.py
 from __future__ import annotations
 
-from typing import Any, Mapping, MutableMapping, Optional, Dict, Tuple
+from typing import Any, Mapping, Optional, Dict, Tuple
 import logging
 
 from ... import events as _ev
-from ...kernel import get_cached_specs
+from ...opview import opview_from_ctx, ensure_schema_in, _ensure_temp
 
 # Runs in HANDLER phase, before pre:flush and any storage transforms.
 ANCHOR = _ev.RESOLVE_VALUES  # "resolve:values"
@@ -28,7 +28,6 @@ def run(obj: Optional[object], ctx: Any) -> None:
 
     Inputs (conventions)
     --------------------
-    - ctx.specs : mapping field_name -> ColumnSpec
     - ctx.temp["in_values"] OR ctx.in_data / ctx.payload / ctx.data / ctx.body :
         dict-like or Pydantic model; used as inbound source
     - ctx.persist : bool  (writes only; non-persist ops typically prune this anchor)
@@ -47,18 +46,8 @@ def run(obj: Optional[object], ctx: Any) -> None:
         return
 
     logger.debug("Running resolve:assemble")
-    model = (
-        getattr(ctx, "model", None)
-        or getattr(ctx, "Model", None)
-        or type(getattr(ctx, "obj", None))
-    )
-    specs: Mapping[str, Any] = getattr(ctx, "specs", None) or (
-        get_cached_specs(model) if model else {}
-    )
-    if not specs:
-        logger.debug("No specs provided; nothing to assemble")
-        return
-
+    ov = opview_from_ctx(ctx)
+    schema_in = ensure_schema_in(ctx, ov)
     inbound = _coerce_inbound(getattr(ctx, "temp", {}).get("in_values", None), ctx)
 
     temp = _ensure_temp(ctx)
@@ -68,33 +57,26 @@ def run(obj: Optional[object], ctx: Any) -> None:
     used_default: list[str] = []
 
     # Iterate fields in a stable order
-    for field in sorted(specs.keys()):
-        col = specs[field]
-        io = getattr(col, "io", None)
+    for field in sorted(schema_in["fields"]):
+        meta = schema_in["by_field"].get(field, {})
+        in_enabled = meta.get("in_enabled", True)
+        is_virtual = meta.get("virtual", False)
 
-        # honor IO inbound exposure; default True when unspecified
-        in_enabled = _bool_attr(io, "in_", "allow_in", "expose_in", default=True)
-
-        # If inbound value is present, prefer it
         present, value = _try_read_inbound(inbound, field)
         if present:
-            if _is_virtual(col):
+            if is_virtual:
                 virtual_in[field] = value
                 logger.debug("Captured virtual inbound %s=%s", field, value)
             elif in_enabled:
                 assembled[field] = value
                 logger.debug("Assembled inbound %s=%s", field, value)
-            else:
-                logger.debug("Inbound for field %s ignored; in_enabled is False", field)
             continue
 
-        # Not present in inbound → ABSENT semantics
         absent.append(field)
         logger.debug("Field %s absent from inbound", field)
 
-        # Apply server-side default if provided and inbound is ABSENT.
-        default_fn = getattr(col, "default_factory", None)
-        if callable(default_fn) and in_enabled and not _is_virtual(col):
+        default_fn = meta.get("default_factory")
+        if callable(default_fn) and in_enabled and not is_virtual:
             try:
                 default_val = default_fn(_ctx_view(ctx))
                 assembled[field] = default_val
@@ -102,9 +84,6 @@ def run(obj: Optional[object], ctx: Any) -> None:
                 logger.debug("Applied default for field %s", field)
             except Exception:
                 logger.debug("Default factory failed for field %s", field)
-                # Be conservative: do not fail the request here; leave field absent
-                # Handler/DB defaults may still populate via server_default/RETURNING.
-                pass
 
     # Stash results on ctx.temp
     temp["assembled_values"] = assembled
@@ -123,28 +102,6 @@ def run(obj: Optional[object], ctx: Any) -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 # Internals
 # ──────────────────────────────────────────────────────────────────────────────
-
-
-def _ensure_temp(ctx: Any) -> MutableMapping[str, Any]:
-    tmp = getattr(ctx, "temp", None)
-    if not isinstance(tmp, dict):
-        tmp = {}
-        setattr(ctx, "temp", tmp)
-    return tmp
-
-
-def _is_virtual(colspec: Any) -> bool:
-    """Storage-less columns are virtual (wire-only)."""
-    return getattr(colspec, "storage", None) is None
-
-
-def _bool_attr(obj: Any, *names: str, default: bool) -> bool:
-    for n in names:
-        if hasattr(obj, n):
-            v = getattr(obj, n)
-            if isinstance(v, bool):
-                return v
-    return default
 
 
 def _coerce_inbound(candidate: Any, ctx: Any) -> Mapping[str, Any]:
@@ -198,7 +155,6 @@ def _ctx_view(ctx: Any) -> Dict[str, Any]:
     view = {
         "op": getattr(ctx, "op", None),
         "persist": getattr(ctx, "persist", True),
-        "specs": getattr(ctx, "specs", None),
         "temp": getattr(ctx, "temp", None),
         # optional hints the executor might set
         "tenant": getattr(ctx, "tenant", None),
