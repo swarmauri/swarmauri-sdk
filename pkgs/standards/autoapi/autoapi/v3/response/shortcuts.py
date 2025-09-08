@@ -26,9 +26,12 @@ try:
 except Exception:  # pragma: no cover - fallback
 
     def _dumps(obj: Any) -> bytes:
-        return json.dumps(obj, separators=(",", ":"), ensure_ascii=False).encode(
-            "utf-8"
-        )
+        return json.dumps(
+            obj,
+            separators=(",", ":"),
+            ensure_ascii=False,
+            default=str,
+        ).encode("utf-8")
 
 
 def _maybe_envelope(data: Any) -> Any:
@@ -58,10 +61,11 @@ def as_json(
             dumps=lambda o: dumps(o).decode(),
         )
     except TypeError:  # pragma: no cover - starlette >= 0.44
-        return JSONResponse(
-            payload,
+        return Response(
+            dumps(payload),
             status_code=status,
             headers=dict(headers or {}),
+            media_type="application/json",
         )
 
 
