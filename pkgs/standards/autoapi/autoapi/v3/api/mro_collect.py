@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+from functools import lru_cache
 from typing import Any, Callable, Dict, Iterable, Mapping
 
 from ..config.constants import AUTOAPI_API_HOOKS_ATTR
@@ -9,6 +10,7 @@ from ..config.constants import AUTOAPI_API_HOOKS_ATTR
 logger = logging.getLogger("uvicorn")
 
 
+@lru_cache(maxsize=None)
 def mro_collect_api_hooks(api: type) -> Dict[str, Dict[str, list[Callable[..., Any]]]]:
     """Collect API-level hook declarations across ``api``'s MRO.
 
