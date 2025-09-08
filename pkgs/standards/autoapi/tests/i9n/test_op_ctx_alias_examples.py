@@ -1,9 +1,10 @@
 import pytest
 from pydantic import BaseModel
-from autoapi.v3.types import Column, String
 from autoapi.v3 import op_alias, op_ctx
 from autoapi.v3.orm.mixins import GUIDPk
 from autoapi.v3.orm.tables import Base
+from autoapi.v3.specs import F, S, acol
+from autoapi.v3.types import Column, Mapped, String
 from .test_op_ctx_behavior import setup_api
 
 
@@ -14,7 +15,9 @@ def test_op_ctx_alias_create_examples(sync_db_session):
     class Person(Base, GUIDPk):
         __tablename__ = "people"
         __resource__ = "person"
-        name = Column(String, info={"autoapi": {"examples": ["Alice"]}})
+        name: Mapped[str] = acol(
+            storage=S(String), field=F(constraints={"examples": ["Alice"]})
+        )
 
         @op_ctx(alias="register", target="create", arity="collection")
         def register(cls, ctx):  # pragma: no cover - logic irrelevant
@@ -48,7 +51,7 @@ def test_op_ctx_alias_inherits_canonical_schemas(sync_db_session):
     class Person(Base, GUIDPk):
         __tablename__ = "people2"
         __resource__ = "person2"
-        name = Column(String)
+        name: Mapped[str] = Column(String)
 
         @op_ctx(alias="register", target="create", arity="collection")
         def register(cls, ctx):  # pragma: no cover - logic irrelevant
