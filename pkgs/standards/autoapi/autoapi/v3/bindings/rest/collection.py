@@ -35,6 +35,8 @@ from .common import (
     _status_for,
 )
 
+from ...runtime.executor.types import _Ctx
+
 
 logging.getLogger("uvicorn").debug("Loaded module v3/bindings/rest/collection")
 
@@ -60,7 +62,7 @@ def _ctx(model, alias, target, request, db, payload, parent_kw, api):
     ac = getattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, None)
     if ac is not None:
         ctx["auth_context"] = ac
-    return ctx
+    return _Ctx(ctx)
 
 
 def _sig(nested_vars, extra):
@@ -211,19 +213,18 @@ def _make_collection_endpoint(
             ctx = _ctx(
                 model, exec_alias, exec_target, request, db, payload, parent_kw, api
             )
-            ctx["response_serializer"] = lambda r: _serialize_output(
-                model, exec_alias, exec_target, sp, r
-            )
-            raw_key = None
-            if (
-                exec_target == "create"
-                and isinstance(payload, Mapping)
-                and "digest" not in payload
-                and hasattr(model, "_generate_pair")
-            ):
-                pair = model._generate_pair(None)  # type: ignore[attr-defined]
-                raw_key = pair.raw
-                payload["digest"] = pair.stored
+
+            def _serializer(r, _ctx=ctx):
+                out = _serialize_output(model, exec_alias, exec_target, sp, r)
+                temp = getattr(_ctx, "temp", {}) if isinstance(_ctx, Mapping) else {}
+                extras = (
+                    temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}
+                )
+                if isinstance(out, dict) and isinstance(extras, dict):
+                    out.update(extras)
+                return out
+
+            ctx["response_serializer"] = _serializer
             phases = _get_phase_chains(model, exec_alias)
             result = await _executor._invoke(
                 request=request, db=db, phases=phases, ctx=ctx
@@ -232,20 +233,6 @@ def _make_collection_endpoint(
                 if sp.status_code is not None or result.status_code == 200:
                     result.status_code = status_code
                 return result
-            temp = ctx.get("temp", {}) if isinstance(ctx, Mapping) else {}
-            extras = (
-                temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}
-            )
-            raw = None
-            if isinstance(temp, Mapping):
-                raw = temp.get("paired_values", {}).get("digest", {}).get("raw")
-            if raw is None:
-                raw = raw_key
-            if isinstance(result, dict):
-                if isinstance(extras, dict):
-                    result.update(extras)
-                if raw is not None and "api_key" not in result:
-                    result["api_key"] = raw
             return result
 
         _endpoint.__signature__ = _sig(
