@@ -204,15 +204,23 @@ class AutoApp(_App):
         self._base_routes = list(self.router.routes)
         return router
 
-    def attach_diagnostics(self, *, prefix: str | None = None) -> Any:
-        """Mount diagnostics router onto this app."""
+    def attach_diagnostics(
+        self, *, prefix: str | None = None, app: Any | None = None
+    ) -> Any:
+        """Mount diagnostics router onto this app or the provided ``app``."""
         px = prefix if prefix is not None else self.system_prefix
         prov = _resolver.resolve_provider(api=self)
         get_db = prov.get_db if prov else None
         router = _mount_diagnostics(self, get_db=get_db)
-        if hasattr(self, "include_router"):
-            self.include_router(router, prefix=px)
-        self._base_routes = list(self.router.routes)
+        include_self = getattr(self, "include_router", None)
+        if callable(include_self):
+            include_self(router, prefix=px)
+        if app is not None and app is not self:
+            include_other = getattr(app, "include_router", None)
+            if callable(include_other):
+                include_other(router, prefix=px)
+        if app is None:
+            self._base_routes = list(self.router.routes)
         return router
 
     # ------------------------- registry passthroughs -------------------------
