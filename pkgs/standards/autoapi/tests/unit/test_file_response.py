@@ -14,7 +14,6 @@ from autoapi.v3.bindings import (
     register_rpc,
     include_model,
 )
-from autoapi.v3.runtime import plan as runtime_plan
 from autoapi.v3.types import App as FastApp
 from autoapi.v3.types import Integer, Mapped, mapped_column
 from autoapi.v3.table import Table
@@ -48,7 +47,6 @@ def _build_model(base: type, file_path: Path, *, bind: bool = True) -> type:
         build_schemas(Widget, specs)
         build_hooks(Widget, specs)
         build_handlers(Widget, specs)
-        runtime_plan.attach_atoms_for_model(Widget, {})
         build_rest(Widget, specs)
         register_rpc(Widget, specs)
     return Widget

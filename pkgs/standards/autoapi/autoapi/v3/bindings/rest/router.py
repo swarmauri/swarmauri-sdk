@@ -44,7 +44,7 @@ def _build_router(
 ) -> Router:
     resource = _resource_name(model)
 
-    # Router-level deps: extra deps only (transport-level; never part of runtime plan)
+    # Router-level deps: extra deps only (transport-level; never part of kernel plan)
     extra_router_deps = _normalize_deps(
         getattr(model, AUTOAPI_REST_DEPENDENCIES_ATTR, None)
     )
@@ -69,20 +69,21 @@ def _build_router(
     if any(sp.target == "bulk_delete" for sp in specs):
         specs = [sp for sp in specs if sp.target != "clear"]
 
-    # Prefer the single-item create route when both create and bulk_create are
-    # available. The create handler already accepts lists, so exposing a
-    # separate bulk_create REST route would lead to conflicts.
+    # When both ``create`` and ``bulk_create`` handlers are available,
+    # prefer ``bulk_create`` for the REST route to avoid conflicting POST
+    # registrations at the collection path. Both operations remain bound
+    # for schema generation, but only ``bulk_create`` should surface as a
+    # REST endpoint and in the OpenAPI spec.
     if any(sp.target == "bulk_create" for sp in specs) and any(
         sp.target == "create" for sp in specs
     ):
-        specs = [sp for sp in specs if sp.target != "bulk_create"]
+        specs = [sp for sp in specs if sp.target != "create"]
 
     # Register collection-level bulk routes before member routes so static paths
     # like "/resource/bulk" aren't captured by dynamic member routes such as
     # "/resource/{item_id}". FastAPI matches routes in the order they are
     # added, so sorting here prevents "bulk" from being treated as an
-    # identifier. Ensure the single-record ``create`` route is registered
-    # before ``bulk_create`` so regular POSTs continue to behave as expected.
+    # identifier.
     specs = sorted(
         specs,
         key=lambda sp: (

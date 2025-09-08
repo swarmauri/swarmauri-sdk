@@ -23,7 +23,6 @@ def key_version_routes(tmp_path, monkeypatch):
 @pytest.mark.parametrize(
     "alias,path,methods",
     [
-        ("create", "/kms/key_version", {"POST"}),
         ("read", "/kms/key_version/{item_id}", {"GET"}),
         ("update", "/kms/key_version/{item_id}", {"PATCH"}),
         ("replace", "/kms/key_version/{item_id}", {"PUT"}),
@@ -40,3 +39,14 @@ def test_key_version_default_op_verbs(key_version_routes, alias, path, methods):
     got_path, got_methods = key_version_routes[alias]
     assert got_path.lower() == path.lower()
     assert got_methods == methods
+
+
+def test_key_version_create_overridden(key_version_routes):
+    assert "create" not in key_version_routes
+
+
+def test_key_version_create_schemas_present():
+    from auto_kms.orm import KeyVersion
+
+    assert hasattr(KeyVersion.schemas, "create")
+    assert hasattr(KeyVersion.schemas, "bulk_create")

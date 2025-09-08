@@ -2,6 +2,7 @@ import importlib
 import pytest
 
 
+
 def _route_map(app, resource: str) -> dict[str, tuple[str, set[str]]]:
     out: dict[str, tuple[str, set[str]]] = {}
     for r in getattr(app, "routes", []):
@@ -23,7 +24,6 @@ def key_routes(tmp_path, monkeypatch):
 @pytest.mark.parametrize(
     "alias,path,methods",
     [
-        ("create", "/kms/key", {"POST"}),
         ("read", "/kms/key/{item_id}", {"GET"}),
         ("update", "/kms/key/{item_id}", {"PATCH"}),
         ("replace", "/kms/key/{item_id}", {"PUT"}),
@@ -40,3 +40,14 @@ def test_key_default_op_verbs(key_routes, alias, path, methods):
     got_path, got_methods = key_routes[alias]
     assert got_path.lower() == path.lower()
     assert got_methods == methods
+
+
+def test_key_create_overridden(key_routes):
+    assert "create" not in key_routes
+
+
+def test_key_create_schemas_present():
+    from auto_kms.orm import Key
+
+    assert hasattr(Key.schemas, "create")
+    assert hasattr(Key.schemas, "bulk_create")
