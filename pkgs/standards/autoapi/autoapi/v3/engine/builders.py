@@ -2,7 +2,7 @@
 
 import logging
 import os
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.pool import StaticPool  # only for SQLite
 from sqlalchemy.orm import sessionmaker
@@ -43,6 +43,14 @@ def blocking_sqlite_engine(path: str | None = None):
         kwargs = dict(echo=False, future=True)
 
     eng = create_engine(url, **kwargs)
+
+    def _fk_pragma(dbapi_conn, _):
+        try:
+            dbapi_conn.execute("PRAGMA foreign_keys=ON")
+        except Exception:
+            pass
+
+    event.listen(eng, "connect", _fk_pragma)
     logger.debug("blocking_sqlite_engine: created engine %r", eng)
     return eng, sessionmaker(bind=eng, expire_on_commit=False)
 
@@ -165,6 +173,14 @@ def async_sqlite_engine(path: str | None = None):
         poolclass=StaticPool,
         echo=False,
     )
+
+    def _fk_pragma(dbapi_conn, _):
+        try:
+            dbapi_conn.execute("PRAGMA foreign_keys=ON")
+        except Exception:
+            pass
+
+    event.listen(eng.sync_engine, "connect", _fk_pragma)
     logger.debug("async_sqlite_engine: created engine %r", eng)
     return eng, async_sessionmaker(
         eng,
