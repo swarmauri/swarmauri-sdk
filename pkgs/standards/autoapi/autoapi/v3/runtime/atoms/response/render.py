@@ -21,7 +21,7 @@ def run(obj: Optional[object], ctx: Any) -> Any:
         return None
     hints = getattr(resp_ns, "hints", None)
     default_media = getattr(resp_ns, "default_media", "application/json")
-    envelope_default = getattr(resp_ns, "envelope_default", True)
+    envelope_default = getattr(resp_ns, "envelope_default", False)
     resp = render(
         req,
         result,

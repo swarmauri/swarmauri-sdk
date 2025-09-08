@@ -59,7 +59,7 @@ def render(
     *,
     hints: Optional[ResponseHints] = None,
     default_media: str = "application/json",
-    envelope_default: bool = True,
+    envelope_default: bool = False,
 ) -> Response:
     logger.debug("Rendering response with payload type %s", type(payload))
     if isinstance(payload, Response):
