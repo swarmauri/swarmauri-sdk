@@ -29,7 +29,9 @@ async def test_schema_generation(api_client):
     spec = (await client.get("/openapi.json")).json()
     schemas = spec["components"]["schemas"]
     assert bulk_model.__name__ in schemas
-    fields = getattr(bulk_model, "model_fields", getattr(bulk_model, "__fields__", {}))
+    fields = getattr(bulk_model, "model_fields", None)
+    if fields is None:
+        fields = getattr(bulk_model, "__fields__", {})
     assert "tenant_id" not in fields
 
 
