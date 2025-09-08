@@ -59,6 +59,10 @@ def _attach_sqlite_dbapi(dbapi_conn: Any, attachments: Mapping[str, str]) -> Non
     try:
         existing = _attached_names_sqlite(dbapi_conn)
         cur = dbapi_conn.cursor()
+        try:
+            cur.execute("PRAGMA foreign_keys=ON")
+        except Exception:
+            pass
         for schema, path in (attachments or {}).items():
             if not path or schema in existing:
                 continue
