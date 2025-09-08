@@ -206,7 +206,7 @@ def _make_collection_endpoint(
                 if isinstance(payload, Mapping):
                     payload = {**payload, **parent_kw}
                 else:
-                    payload = parent_kw
+                    payload = [{**dict(item), **parent_kw} for item in payload]
             ctx = _ctx(
                 model, exec_alias, exec_target, request, db, payload, parent_kw, api
             )
