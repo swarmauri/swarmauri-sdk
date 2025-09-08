@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from functools import lru_cache
 from typing import Any, Tuple
 
 from .app_spec import AppSpec
@@ -19,6 +20,7 @@ def _merge_seq_attr(app: type, attr: str) -> Tuple[Any, ...]:
     return tuple(values)
 
 
+@lru_cache(maxsize=None)
 def mro_collect_app_spec(app: type) -> AppSpec:
     """Collect AppSpec-like declarations across the app's MRO."""
     logger.info("Collecting app spec for %s", app.__name__)

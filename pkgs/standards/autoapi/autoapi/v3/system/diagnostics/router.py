@@ -6,7 +6,6 @@ from .compat import Router
 from .healthz import build_healthz_endpoint
 from .methodz import build_methodz_endpoint
 from .hookz import build_hookz_endpoint
-from .planz import build_planz_endpoint
 from .kernelz import build_kernelz_endpoint
 
 
@@ -20,7 +19,6 @@ def mount_diagnostics(
       GET /healthz
       GET /methodz
       GET /hookz
-      GET /planz
       GET /kernelz
     """
     router = Router()
@@ -58,15 +56,6 @@ def mount_diagnostics(
             "Within each phase, hooks are listed in execution order: "
             "global (None) hooks, then method-specific hooks."
         ),
-    )
-    router.add_api_route(
-        "/planz",
-        build_planz_endpoint(api),
-        methods=["GET"],
-        name="planz",
-        tags=["system"],
-        summary="Plan",
-        description="Flattened runtime execution plan per operation.",
     )
     router.add_api_route(
         "/kernelz",
