@@ -8,7 +8,7 @@ from .types import (
 )
 from .resolver import resolve_response_spec, infer_hints
 from .shortcuts import as_json, as_html, as_text, as_redirect, as_stream, as_file
-from ..runtime.atoms.response.render import ResponseHints, render
+from ..runtime.atoms.response.renderer import ResponseHints, render
 from ..runtime.atoms.response.templates import render_template
 
 __all__ = [
