@@ -1,116 +1,36 @@
 from __future__ import annotations
-from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Any, AsyncIterable, Iterable, Mapping, Optional, Union, cast
-import logging
+from typing import Any, Optional
 
-from ....deps.starlette import BackgroundTask, Response
+from ... import events as _ev
+from .renderer import render
 
-from ....response.shortcuts import (
-    as_file,
-    as_html,
-    as_json,
-    as_stream,
-    as_text,
-)
-
-JSON = Mapping[str, Any]
-
-logger = logging.getLogger("uvicorn")
+ANCHOR = _ev.OUT_DUMP  # "out:dump"
 
 
-@dataclass
-class ResponseHints:
-    media_type: Optional[str] = None
-    status_code: int = 200
-    headers: dict[str, str] = field(default_factory=dict)
-    filename: Optional[str] = None
-    download: bool = False
-    etag: Optional[str] = None
-    last_modified: Optional[Any] = None
-    background: Optional[BackgroundTask] = None
+def run(obj: Optional[object], ctx: Any) -> Any:
+    """response:render@out:dump
 
-
-class ResponseKind:
-    JSON = "application/json"
-    HTML = "text/html"
-    TEXT = "text/plain"
-    FILE = "application/file"
-    STREAM = "application/stream"
-    REDIRECT = "application/redirect"
-
-
-ResponseLike = Union[
-    Response,
-    bytes,
-    bytearray,
-    memoryview,
-    str,
-    Path,
-    JSON,
-    Iterable[bytes],
-    AsyncIterable[bytes],
-]
-
-
-def render(
-    request: Any,
-    payload: ResponseLike,
-    *,
-    hints: Optional[ResponseHints] = None,
-    default_media: str = "application/json",
-    envelope_default: bool = True,
-) -> Response:
-    logger.debug("Rendering response with payload type %s", type(payload))
-    if isinstance(payload, Response):
-        return payload
-
-    hints = hints or ResponseHints()
-    chosen = hints.media_type or default_media
-
-    if isinstance(payload, Path):
-        return as_file(
-            payload,
-            filename=hints.filename,
-            download=hints.download,
-            status=hints.status_code,
-            headers=hints.headers,
-        )
-
-    if isinstance(payload, (bytes, bytearray, memoryview)):
-        return as_stream(
-            iter((bytes(payload),)),
-            media_type="application/octet-stream",
-            status=hints.status_code,
-            headers=hints.headers,
-        )
-
-    if hasattr(payload, "__aiter__") or (
-        hasattr(payload, "__iter__") and not isinstance(payload, (str, dict, list))
-    ):
-        return as_stream(
-            cast(Union[Iterable[bytes], AsyncIterable[bytes]], payload),
-            media_type="application/octet-stream",
-            status=hints.status_code,
-            headers=hints.headers,
-        )
-
-    if isinstance(payload, str):
-        if payload.lstrip().startswith("<") or chosen == "text/html":
-            return as_html(payload, status=hints.status_code, headers=hints.headers)
-        return as_text(payload, status=hints.status_code, headers=hints.headers)
-
-    return as_json(
-        payload,
-        status=hints.status_code,
-        headers=hints.headers,
-        envelope=envelope_default,
+    Render ``ctx.response.result`` into a concrete Response object.
+    """
+    resp_ns = getattr(ctx, "response", None)
+    req = getattr(ctx, "request", None)
+    if resp_ns is None or req is None:
+        return None
+    result = getattr(resp_ns, "result", None)
+    if result is None:
+        return None
+    hints = getattr(resp_ns, "hints", None)
+    default_media = getattr(resp_ns, "default_media", "application/json")
+    envelope_default = getattr(resp_ns, "envelope_default", True)
+    resp = render(
+        req,
+        result,
+        hints=hints,
+        default_media=default_media,
+        envelope_default=envelope_default,
     )
+    resp_ns.result = resp
+    return resp
 
 
-__all__ = [
-    "ResponseHints",
-    "ResponseKind",
-    "ResponseLike",
-    "render",
-]
+__all__ = ["ANCHOR", "run"]
