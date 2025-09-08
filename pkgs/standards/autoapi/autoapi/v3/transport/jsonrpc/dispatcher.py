@@ -23,6 +23,7 @@ You would usually mount the returned router at `/rpc`, e.g.:
 
 from __future__ import annotations
 
+import json
 import logging
 from typing import (
     Any,
@@ -159,6 +160,16 @@ async def _dispatch_one(
 
         # Execute
         result = await rpc_call(params, db=db, request=request, ctx=base_ctx)
+
+        if isinstance(result, Response):
+            try:
+                content = result.body
+                if isinstance(content, (bytes, bytearray)):
+                    content = content.decode()
+                result = json.loads(content or "{}")
+            except Exception:
+                logger.exception("jsonrpc response serialization failed")
+                return _err(-32603, ERROR_MESSAGES.get(-32603, "Internal error"), rid)
 
         return _ok(result, rid)
 
