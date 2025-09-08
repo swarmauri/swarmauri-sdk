@@ -80,7 +80,7 @@ def _seed_security_and_deps(api: Any, model: type) -> None:
     else:
         logger.debug("No authorization hook for %s", model.__name__)
 
-    # Extra deps (router-level only; never part of runtime plan)
+    # Extra deps (router-level only; never part of kernel plan)
     if getattr(api, "rest_dependencies", None):
         setattr(model, AUTOAPI_REST_DEPENDENCIES_ATTR, list(api.rest_dependencies))
         logger.debug("REST dependencies seeded for %s", model.__name__)

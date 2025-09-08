@@ -195,8 +195,8 @@ async def test_schema_ctx_hookz(schema_ctx_client):
 @pytest.mark.asyncio
 async def test_schema_ctx_atomz(schema_ctx_client):
     client, _, _, _ = schema_ctx_client
-    planz = (await client.get("/system/planz")).json()
-    steps = planz["Widget"]["create"]
+    kernelz = (await client.get("/system/kernelz")).json()
+    steps = kernelz["Widget"]["create"]
     assert "HANDLER:hook:sys:handler:crud@HANDLER" in steps
 
 
@@ -204,6 +204,6 @@ async def test_schema_ctx_atomz(schema_ctx_client):
 @pytest.mark.asyncio
 async def test_schema_ctx_system_steps(schema_ctx_client):
     client, _, _, _ = schema_ctx_client
-    planz = (await client.get("/system/planz")).json()
-    assert "Widget" in planz
-    assert "create" in planz["Widget"]
+    kernelz = (await client.get("/system/kernelz")).json()
+    assert "Widget" in kernelz
+    assert "create" in kernelz["Widget"]

@@ -6,8 +6,8 @@ from fastapi.testclient import TestClient
 
 from autoapi.v3.types import App
 from autoapi.v3.bindings import rpc_call
-from autoapi.v3.runtime import plan as runtime_plan
-from autoapi.v3.system.diagnostics import _build_planz_endpoint
+from autoapi.v3.system.diagnostics import _build_kernelz_endpoint
+from autoapi.v3.runtime.kernel import _default_kernel as K
 from autoapi.v3.response import render_template
 
 from .response_utils import build_model_for_response, build_model_for_jinja_response
@@ -65,30 +65,32 @@ async def test_jinja_response_rpc_alias_table(tmp_path):
     assert result["body"] == b"<h1>World</h1>"
 
 
-# 4. Diagnostics planz state when active
+# 4. Diagnostics kernelz state when active
 
 
 @pytest.mark.asyncio
-async def test_diagnostics_planz_active_for_jinja_response(tmp_path):
+async def test_diagnostics_kernelz_active_for_jinja_response(tmp_path):
     pytest.importorskip("jinja2")
     Widget = build_model_for_jinja_response(tmp_path)
-    runtime_plan.attach_atoms_for_model(Widget, {})
     api = SimpleNamespace(models={"Widget": Widget})
-    planz = _build_planz_endpoint(api)
-    data = await planz()
+    kernelz = _build_kernelz_endpoint(api)
+    data = await kernelz()
     assert "atom:response:template@out:dump" in data["Widget"]["download"]
     assert "atom:response:negotiate@out:dump" in data["Widget"]["download"]
     assert "atom:response:render@out:dump" in data["Widget"]["download"]
 
 
-# 5. Runtime plan state
+# 5. Kernel state
 
 
-def test_runtime_plan_for_jinja_response(tmp_path):
+def test_kernel_state_for_jinja_response(tmp_path):
     pytest.importorskip("jinja2")
     Widget = build_model_for_jinja_response(tmp_path)
-    plan = runtime_plan.attach_atoms_for_model(Widget, {})
-    labels = [lbl.render() for lbl in plan.labels()]
+    api = SimpleNamespace(models={"Widget": Widget})
+    K.ensure_primed(api)
+    labels = [
+        lbl.split(":", 1)[1] for lbl in K.kernelz_payload(api)["Widget"]["download"]
+    ]
     assert "atom:response:template@out:dump" in labels
     assert "atom:response:negotiate@out:dump" in labels
     assert "atom:response:render@out:dump" in labels

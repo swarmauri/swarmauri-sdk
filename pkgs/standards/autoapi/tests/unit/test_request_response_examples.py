@@ -2,17 +2,22 @@ from autoapi.v3.bindings.rest.router import _build_router
 from autoapi.v3.op import OpSpec
 from autoapi.v3.orm.tables import Base
 from autoapi.v3.orm.mixins import GUIDPk, BulkCapable, Mergeable
-from autoapi.v3.types import Column, String, App
+from autoapi.v3.specs import F, S, acol
+from autoapi.v3.types import App, Mapped, String
 
 
 class Widget(Base, GUIDPk, Mergeable):
     __tablename__ = "widgets_example_schemas"
-    name = Column(String, nullable=False, info={"autoapi": {"examples": ["foo"]}})
+    name: Mapped[str] = acol(
+        storage=S(String, nullable=False), field=F(constraints={"examples": ["foo"]})
+    )
 
 
 class BulkWidget(Base, GUIDPk, BulkCapable, Mergeable):
     __tablename__ = "widgets_example_schemas_bulk"
-    name = Column(String, nullable=False, info={"autoapi": {"examples": ["foo"]}})
+    name: Mapped[str] = acol(
+        storage=S(String, nullable=False), field=F(constraints={"examples": ["foo"]})
+    )
 
 
 def _openapi_for(model, ops):
