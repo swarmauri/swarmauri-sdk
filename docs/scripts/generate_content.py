@@ -9,7 +9,6 @@ import yaml
 HOME_PAGE_MD = "index.md"  # The file name for your home page.
 
 
-
 def ensure_home_page(docs_dir: str):
     """
     Ensure there is a docs/index.md for the Home page.
@@ -23,7 +22,6 @@ def ensure_home_page(docs_dir: str):
         print(f"Created a new home page at {home_file_path}")
     else:
         print(f"Home page already exists at {home_file_path}")
-
 
 
 def generate_docs(package_name: str, output_dir: str) -> dict:

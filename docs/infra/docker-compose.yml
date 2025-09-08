@@ -6,18 +6,20 @@ services:
     ports:
       - "8000:8000" # Expose mkdocs on port 8000
     volumes:
-      - .:/docs # Mount the local docs directory
-      - ../pkgs:/pkgs # Mount the local pkgs directory
+      - ..:/docs # Mount the repo docs directory
+      - ../../pkgs:/pkgs # Mount the repo pkgs directory
     working_dir: /docs
     command: |
       sh -c "
-        # Install dependencies
-        pip install poetry mkdocs mkdocs-material mkdocstrings mkdocstrings-python griffe_typingdoc && 
-        poetry install &&
+        set -euo pipefail
+
+        # Install uv and sync project dependencies
+        pip install --no-cache-dir -U pip uv && 
+        uv sync &&
 
         # Add packages to PYTHONPATH to ensure they're importable
         export PYTHONPATH=$$PYTHONPATH:/pkgs:/pkgs/standards:/pkgs/community &&
-        
+
         # Install core packages in development mode
         uv pip install -e /pkgs/base/ &&
         uv pip install -e /pkgs/core/ &&
@@ -26,24 +28,24 @@ services:
         # Install standards packages
         for dir in /pkgs/standards/*/; do
           if [ -d \"$$dir\" ]; then
-            echo \"Installing $$dir\"
-            uv pip install -e \"$$dir\" || echo \"Failed to install $$dir\"
+            echo \"Installing $$dir\"; 
+            uv pip install -e \"$$dir\" || echo \"Failed to install $$dir\"; 
           fi
         done
 
         # Install community packages
         for dir in /pkgs/community/*/; do
           if [ -d \"$$dir\" ]; then
-            echo \"Installing $$dir\"
-            uv pip install -e \"$$dir\" || echo \"Failed to install $$dir\"
+            echo \"Installing $$dir\"; 
+            uv pip install -e \"$$dir\" || echo \"Failed to install $$dir\"; 
           fi
         done
         
         # Generate documentation
-        python scripts/generate_content.py &&
+        uv run python scripts/generate_content.py &&
         
         # Serve the static site
-        mkdocs serve -a 0.0.0.0:8000
+        uv run mkdocs serve -a 0.0.0.0:8000
       "
     networks:
       - dockernet
@@ -52,3 +54,4 @@ services:
 networks:
   dockernet:
     driver: bridge
+

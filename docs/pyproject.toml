@@ -1,16 +1,15 @@
-[tool.poetry]
+[project]
 name = "swarmauri-docs"
 version = "0.1.0"
 description = "Swarmauri Documentation"
-authors = ["Jacob Stewart <jacob@swarmauri.com>"]
-package-mode = false
-
-[tool.poetry.dependencies]
-python = ">=3.12,<3.13"
-mkdocs-material = "^9.6.4"
-mkdocstrings = {version = "^0.28.1", extras=["python"]}
-mkdocs-autorefs = "*"
-griffe-typingdoc = "*"
+requires-python = ">=3.12,<3.13"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+dependencies = [
+    "mkdocs-material>=9.6.4,<10.0.0",
+    "mkdocstrings[python]>=0.28.1,<0.29.0",
+    "mkdocs-autorefs",
+    "griffe-typingdoc",
+]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
