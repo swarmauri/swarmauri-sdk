@@ -119,6 +119,9 @@ def _make_collection_endpoint(
             else:
                 payload = dict(parent_kw)
             ctx = _ctx(model, alias, target, request, db, payload, parent_kw, api)
+            ctx["response_serializer"] = lambda r: _serialize_output(
+                model, alias, target, sp, r
+            )
             phases = _get_phase_chains(model, alias)
             result = await _executor._invoke(
                 request=request, db=db, phases=phases, ctx=ctx
@@ -126,7 +129,7 @@ def _make_collection_endpoint(
             if isinstance(result, Response):
                 result.status_code = status_code
                 return result
-            return _serialize_output(model, alias, target, sp, result)
+            return result
 
         params = [
             inspect.Parameter(
