@@ -95,6 +95,97 @@ attach handlers at any phase to customize behavior or enforce policy.
 | `ON_POST_RESPONSE_ERROR` | Handle errors raised during `POST_RESPONSE`. |
 | `ON_ROLLBACK` | Run when the transaction rolls back to perform cleanup. |
 
+## Hook Configuration Precedence
+
+Hooks can be registered at the API, model, or operation level. When the
+framework builds the hook chain for an operation, configuration from these
+sources is merged per phase with well-defined precedence:
+
+- **Pre-like phases** (`PRE_TX_BEGIN`, `START_TX`, `PRE_HANDLER`, `PRE_COMMIT`):
+  API hooks run first, then model hooks, and finally op hooks.
+- **Post and error phases** (`POST_HANDLER`, `POST_COMMIT`, `POST_RESPONSE`,
+  and all `ON_*` variants): op hooks execute before model hooks, which run
+  before API hooks.
+
+This ordering lets broad API policies execute before model and op
+customizations on the way in and unwind in reverse for post-processing and
+error handling.
+
+During a successful request the runtime advances through each phase in the
+order shown below. Each step completes before the next begins and hooks may
+extend or short‑circuit the flow.
+
+```
+PRE_TX_BEGIN
+   |
+START_TX
+   |
+PRE_HANDLER
+   |
+HANDLER
+   |
+POST_HANDLER
+   |
+PRE_COMMIT
+   |
+END_TX
+   |
+POST_COMMIT
+   |
+POST_RESPONSE
+```
+
+If a phase raises an exception, control transfers to the matching
+`ON_<PHASE>_ERROR` chain or falls back to `ON_ERROR`, with `ON_ROLLBACK`
+executing when the transaction is rolled back.
+
+## Request to Response Flow Examples
+
+The diagrams below illustrate how a request moves through Tigrbl and returns
+a response.
+
+### REST example
+
+```
+Client
+  |
+  v
+HTTP Request
+  |
+  v
+FastAPI Router
+  |
+  v
+Tigrbl Runtime
+  |
+  v
+Operation Handler
+  |
+  v
+HTTP Response
+```
+
+### RPC example
+
+```
+Client
+  |
+  v
+JSON-RPC Request
+  |
+  v
+RPC Dispatcher
+  |
+  v
+Tigrbl Runtime
+  |
+  v
+Operation Handler
+  |
+  v
+JSON-RPC Response
+```
+
 ## Hooks
 
 Hooks allow you to plug custom logic into any phase of a verb. Use the
@@ -147,7 +238,66 @@ Tigrbl orders work into labeled steps that control how phases run:
 Only `secdeps`, `deps`, and `hooks` are expected to be configured downstream;
 `sys` and `atom` steps are maintained by the Tigrbl maintainers.
 
+## Kernelz Labeling
+
+Running apps expose a `/system/kernelz` diagnostics endpoint that returns the
+kernel's phase plan for each model and operation. Every entry is prefixed by
+its phase and a descriptive label, for example:
+
+```
+PRE_TX:secdep:myapp.auth.require_user
+HANDLER:hook:wire:myapp.handlers.audit@HANDLER
+END_TX:hook:sys:txn:commit@END_TX
+POST_HANDLER:atom:wire:dump@POST_HANDLER
+```
+
+The token after the phase identifies the step type:
+
+- `secdep` and `dep` list security and general dependencies as
+  `PRE_TX:secdep:<callable>` and `PRE_TX:dep:<callable>`.
+- `hook:sys` labels built-in system hooks shipped with Tigrbl.
+- `hook:wire` is the default label for user hooks and includes the module and
+  function name plus the phase.
+- `atom:{domain}:{subject}` denotes runtime atoms, such as
+  `atom:wire:dump`.
+
+These labels allow downstream services to inspect execution order and debug how
+work is scheduled.
+
 ## Configuration Overview
+
+### Operation Config Precedence
+
+When merging configuration for a given operation, Tigrbl layers settings in
+increasing order of precedence:
+
+1. defaults
+2. app config
+3. API config
+4. table config
+5. column `.cfg` entries
+6. operation spec
+7. per-request overrides
+
+Later entries override earlier ones, so request overrides win over all other
+sources. This can be summarized as
+`overrides > opspec > colspecs > tabspec > apispec > appspec > defaults`.
+
+### Schema Config Precedence
+
+Tigrbl merges schema configuration from several scopes.  
+Later layers override earlier ones, with the precedence order:
+
+1. defaults (lowest)
+2. app configuration
+3. API configuration
+4. table configuration
+5. column-level `cfg` values
+6. op-specific `cfg`
+7. per-request overrides (highest)
+
+This hierarchy ensures that the most specific settings always win.
+
 
 ### Table-Level
 - `__tigrbl_request_extras__` – verb-scoped virtual request fields.
@@ -171,6 +321,15 @@ Only `secdeps`, `deps`, and `hooks` are expected to be configured downstream;
 ### Security
 - Pluggable `AuthNProvider` interface.
 - `__tigrbl_allow_anon__` to permit anonymous access.
+
+### Default Precedence
+When assembling values for persistence, defaults are resolved in this order:
+
+1. Client-supplied value
+2. API `default_factory`
+3. ORM default
+4. Database `server_default`
+5. HTTP 422 if the field is required and still missing
 
 ### Database Guards
 Tigrbl executes each phase under database guards that temporarily replace
@@ -230,6 +389,18 @@ provider_pg = Provider(spec_pg)
 DSN string, a mapping, an `EngineSpec`, a `Provider`, or an `Engine`. The
 resolver chooses the most specific binding in the order
 `op > table > api > app`.
+
+#### Engine precedence
+
+When engine contexts are declared at multiple scopes, Tigrbl resolves them
+with strict precedence:
+
+1. **Op level** – bindings attached directly to an operation take highest priority.
+2. **Table/Model level** – definitions on a model or table override API and app defaults.
+3. **API level** – bindings on the API class apply when no model-specific context exists.
+4. **App level** – the default engine supplied to the application is used last.
+
+This ordering ensures that the most specific engine context always wins.
 
 #### Declarative bindings
 
