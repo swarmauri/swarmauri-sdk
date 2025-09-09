@@ -262,7 +262,9 @@ def init_repo(
 
     final_remotes = remotes.copy() if remotes else {}
     if not remotes:
-        from peagen.defaults import GIT_SHADOW_BASE # update this such that the server uses their runtime_cfg
+        from peagen.defaults import (
+            GIT_SHADOW_BASE,
+        )  # update this such that the server uses their runtime_cfg
 
         shadow = GIT_SHADOW_BASE.rstrip("/")
         final_remotes["origin"] = f"{shadow}/{principal}/{name}.git"

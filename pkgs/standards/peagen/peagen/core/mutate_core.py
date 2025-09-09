@@ -30,7 +30,9 @@ from peagen.core.git_repo_core import (
     open_repo,
     fetch_git_remote,
 )
-from peagen.core.git_repo_core import add_git_worktree  # imported separately for clarity
+from peagen.core.git_repo_core import (
+    add_git_worktree,
+)  # imported separately for clarity
 from peagen.defaults import ROOT_DIR
 from swarmauri_standard.programs.Program import Program
 
@@ -116,7 +118,9 @@ def mutate_workspace(  # noqa: PLR0913
     mutators = _pick_mutators(pm, mutations)
     pool = pm.get("evaluator_pools")
     EvalCls = resolve_plugin_spec("evaluators", evaluator_ref)
-    evaluator = EvalCls(import_path=import_path, entry_fn=entry_fn, profile_mod=profile_mod)
+    evaluator = EvalCls(
+        import_path=import_path, entry_fn=entry_fn, profile_mod=profile_mod
+    )
     pool.add_evaluator(evaluator, name="performance")
 
     # ── 3. GA loop ─────────────────────────────────────────────────────

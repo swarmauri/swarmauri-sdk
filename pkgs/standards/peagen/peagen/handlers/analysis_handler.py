@@ -18,7 +18,7 @@ from contextlib import suppress
 from pathlib import Path
 from typing import Any, Dict, List
 
-from autoapi.v3 import get_schema
+from tigrbl.v3 import get_schema
 from peagen.orm import Task
 from peagen.core.analysis_core import analyze_runs
 from peagen._utils.config_loader import resolve_cfg

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_crypto_ecdh_es_a128kw"
-version = "0.1.0"
+version = "0.1.1.dev2"
 description = "ECDH-ES+A128KW crypto provider for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

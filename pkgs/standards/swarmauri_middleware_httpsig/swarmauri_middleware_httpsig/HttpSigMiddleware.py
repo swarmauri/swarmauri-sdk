@@ -33,14 +33,18 @@ class HttpSigMiddleware(MiddlewareBase, ComponentBase):
     header_name: Optional[str] = "X-Signature"
     logger: logging.Logger = Field(default_factory=lambda: logger, exclude=True)
 
-    def __init__(self, secret_key: str, header_name: str = "X-Signature", **kwargs: Any) -> None:
+    def __init__(
+        self, secret_key: str, header_name: str = "X-Signature", **kwargs: Any
+    ) -> None:
         """Initialize the middleware with a secret key and header name."""
         super().__init__(**kwargs)
         self.secret_key = secret_key
         self.header_name = header_name
         self.logger = logger
 
-    async def dispatch(self, request: Request, call_next: Callable[[Request], Any]) -> Any:
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Any]
+    ) -> Any:
         """Dispatch the request after verifying the signature.
 
         Args:

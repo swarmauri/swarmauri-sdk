@@ -1,4 +1,4 @@
-"""Utility helpers for managing encrypted secrets – AutoAPI edition."""
+"""Utility helpers for managing encrypted secrets – Tigrbl edition."""
 
 from __future__ import annotations
 
@@ -7,8 +7,8 @@ import httpx
 from pathlib import Path
 from typing import List, Optional
 
-from autoapi_client import AutoAPIClient
-from autoapi.v3 import get_schema
+from tigrbl_client import TigrblClient
+from tigrbl.v3 import get_schema
 from peagen.orm import RepoSecret, Worker
 
 from peagen.plugins import PluginManager
@@ -23,8 +23,8 @@ def _schema(model, tag: str):
     return get_schema(model, tag)
 
 
-def _rpc(url: str, *, timeout: float = 30.0) -> AutoAPIClient:
-    return AutoAPIClient(url, client=httpx.Client(timeout=timeout))
+def _rpc(url: str, *, timeout: float = 30.0) -> TigrblClient:
+    return TigrblClient(url, client=httpx.Client(timeout=timeout))
 
 
 def _pool_worker_pubs(pool: str, gateway_url: str) -> list[str]:

@@ -72,4 +72,3 @@ def test_call():
         assert len(result) == 1
         assert result[0].type == "CalculatorTool"
         mock_get.assert_called_with("http://example.com", headers=None)
-

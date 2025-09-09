@@ -219,22 +219,22 @@ services:
     networks: [app_net]
 
   # ────────────────────────────────────────────────
-  # AutoAuthN
+  # TigrblAuth
   # ────────────────────────────────────────────────
-  auto_authn:
+  tigrbl_auth:
     build:
       context: ../../
-      dockerfile: pkgs/standards/auto_authn/Dockerfile
+      dockerfile: pkgs/standards/tigrbl_auth/Dockerfile
     depends_on:
       postgres:
         condition: service_healthy
     environment:
       PG_HOST: postgres
       PG_PORT: 5432
-      PG_DB: ${AUTO_AUTHN_DB}
+      PG_DB: ${TIGRBL_AUTH_DB}
       PG_USER: ${POSTGRES_USER}
       PG_PASS: ${POSTGRES_PASSWORD}
-      PG_DSN: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${AUTO_AUTHN_DB}
+      PG_DSN: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${TIGRBL_AUTH_DB}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8002/system/healthz"]
       interval: 10s
@@ -244,17 +244,17 @@ services:
     networks: [app_net]
 
   # ────────────────────────────────────────────────
-  # AutoKMS
+  # Tigrbl KMS
   # ────────────────────────────────────────────────
-  auto_kms:
+  tigrbl_kms:
     build:
       context: ../../
-      dockerfile: pkgs/standards/auto_kms/Dockerfile
+      dockerfile: pkgs/standards/tigrbl_kms/Dockerfile
     depends_on:
       postgres:
         condition: service_healthy
     environment:
-      KMS_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${AUTO_KMS_DB}
+      KMS_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${TIGRBL_KMS_DB}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/system/healthz"]
       interval: 10s

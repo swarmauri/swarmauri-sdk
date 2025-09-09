@@ -4,14 +4,14 @@ from __future__ import annotations
 from urllib.parse import urlparse
 from typing import Any, Mapping, Optional, TYPE_CHECKING
 
-from autoapi.v3.orm.tables import Base
-from autoapi.v3.types import (
+from tigrbl.v3.orm.tables import Base
+from tigrbl.v3.types import (
     String,
     UniqueConstraint,
     relationship,
     Mapped,
 )
-from autoapi.v3.orm.mixins import (
+from tigrbl.v3.orm.mixins import (
     GUIDPk,
     Timestamped,
     TenantBound,
@@ -20,9 +20,9 @@ from autoapi.v3.orm.mixins import (
     OwnerPolicy,
     StatusColumn,
 )
-from autoapi.v3.runtime.errors import create_standardized_error
-from autoapi.v3.specs import F, IO, S, acol, vcol
-from autoapi.v3 import hook_ctx
+from tigrbl.v3.runtime.errors import create_standardized_error
+from tigrbl.v3.specs import F, IO, S, acol, vcol
+from tigrbl.v3 import hook_ctx
 
 if TYPE_CHECKING:  # pragma: no cover
     from .secrets import RepoSecret
@@ -37,8 +37,8 @@ class Repository(Base, GUIDPk, Timestamped, Ownable, TenantBound, StatusColumn):
         {"schema": "peagen", "extend_existing": True},
     )
 
-    __autoapi_owner_policy__: OwnerPolicy = OwnerPolicy.STRICT_SERVER
-    __autoapi_tenant_policy__: TenantPolicy = TenantPolicy.STRICT_SERVER
+    __tigrbl_owner_policy__: OwnerPolicy = OwnerPolicy.STRICT_SERVER
+    __tigrbl_tenant_policy__: TenantPolicy = TenantPolicy.STRICT_SERVER
 
     name: Mapped[str] = acol(storage=S(String, nullable=False))
     url: Mapped[str] = acol(storage=S(String, unique=True, nullable=False))

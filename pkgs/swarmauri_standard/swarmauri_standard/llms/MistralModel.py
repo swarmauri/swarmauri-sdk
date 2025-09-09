@@ -1,6 +1,6 @@
 import asyncio
 import json
-from typing import AsyncIterator, Dict, Iterator, List, Literal, Type
+from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
 
 import httpx
 from pydantic import PrivateAttr
@@ -63,12 +63,12 @@ class MistralModel(LLMBase):
     type: Literal["MistralModel"] = "MistralModel"
     timeout: float = 600.0
 
-    def __init__(self, **data):
+    def __init__(self, **data: Dict[str, Any]):
         """
         Initialize the GroqAIAudio class with the provided data.
 
         Args:
-            **data: Arbitrary keyword arguments containing initialization data.
+            **data (Dict[str, Any]): Arbitrary keyword arguments containing initialization data.
         """
         super().__init__(**data)
         self._client = httpx.Client(

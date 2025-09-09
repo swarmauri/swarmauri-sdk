@@ -1,5 +1,5 @@
 """Helpers for authenticating a user and uploading their public key to a Peagen
-gateway – refactored for AutoAPIClient.
+gateway – refactored for TigrblClient.
 
 The function still:
 
@@ -15,8 +15,8 @@ from typing import Any, Optional
 
 import httpx
 
-from autoapi_client import AutoAPIClient  # ← new client
-from autoapi.v3 import get_schema  # ← schema helper
+from tigrbl_client import TigrblClient  # ← new client
+from tigrbl.v3 import get_schema  # ← schema helper
 from peagen.orm import PublicKey  # ORM resource
 
 from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_SUPER_USER_ID
@@ -61,8 +61,8 @@ def login(
         user_id=str(DEFAULT_SUPER_USER_ID),
     )
 
-    # 3 ─ JSON-RPC call via AutoAPIClient
-    with AutoAPIClient(gateway_url, client=httpx.Client(timeout=timeout_s)) as rpc:
+    # 3 ─ JSON-RPC call via TigrblClient
+    with TigrblClient(gateway_url, client=httpx.Client(timeout=timeout_s)) as rpc:
         try:
             result = rpc.call("PublicKeys.create", params=params, out_schema=SRead)
         except (httpx.HTTPError, RuntimeError):

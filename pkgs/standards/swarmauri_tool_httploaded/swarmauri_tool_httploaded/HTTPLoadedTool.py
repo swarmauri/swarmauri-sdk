@@ -27,7 +27,13 @@ class HTTPLoadedTool(ToolBase):
     _cache: Dict[str, str] = PrivateAttr(default_factory=dict)
     _manifest: Dict[str, Any] = PrivateAttr(default_factory=dict)
 
-    def __init__(self, url: str, headers: Optional[Dict[str, str]] = None, use_cache: bool = True, **data: Any) -> None:
+    def __init__(
+        self,
+        url: str,
+        headers: Optional[Dict[str, str]] = None,
+        use_cache: bool = True,
+        **data: Any,
+    ) -> None:
         super().__init__(url=url, headers=headers, use_cache=use_cache, **data)
         self.url = url
         self.headers = headers
@@ -56,7 +62,9 @@ class HTTPLoadedTool(ToolBase):
         params_data = self._manifest.get("parameters") or []
         if isinstance(params_data, list):
             self.parameters = [
-                Parameter.model_validate_yaml(yaml.dump(p)) if not isinstance(p, Parameter) else p
+                Parameter.model_validate_yaml(yaml.dump(p))
+                if not isinstance(p, Parameter)
+                else p
                 for p in params_data
                 if isinstance(p, (dict, Parameter))
             ]

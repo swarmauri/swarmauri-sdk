@@ -60,12 +60,12 @@ class OpenAIModel(LLMBase):
     _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/chat/completions")
     _headers: Dict[str, str] = PrivateAttr(default=None)
 
-    def __init__(self, **data) -> None:
+    def __init__(self, **data: Dict[str, Any]) -> None:
         """
         Initialize the OpenAIModel class with the provided data.
 
         Args:
-            **data: Arbitrary keyword arguments containing initialization data.
+            **data (Dict[str, Any]): Arbitrary keyword arguments containing initialization data.
         """
         super().__init__(**data)
         self._headers = {
@@ -107,7 +107,7 @@ class OpenAIModel(LLMBase):
 
     def _prepare_usage_data(
         self,
-        usage_data,
+        usage_data: UsageData,
         prompt_time: float = 0.0,
         completion_time: float = 0.0,
     ) -> UsageData:

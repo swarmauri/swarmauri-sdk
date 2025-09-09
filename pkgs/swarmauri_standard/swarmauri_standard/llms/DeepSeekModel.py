@@ -1,6 +1,6 @@
 import asyncio
 import json
-from typing import AsyncIterator, Dict, Iterator, List, Literal
+from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Optional
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -8,6 +8,7 @@ from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
 
+from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
@@ -22,7 +23,7 @@ class DeepSeekModel(LLMBase):
     with the DeepSeek API.
 
     Attributes:
-        api_key (str): The API key for authenticating with DeepSeek.
+        api_key (SecretStr): The API key for authenticating with DeepSeek.
         allowed_models (List[str]): List of models supported by DeepSeek, defaulting to ["deepseek-chat"].
         name (str): The model name, defaulting to "deepseek-chat".
         type (Literal): The class type for identifying the LLM, set to "DeepSeekModel".
@@ -43,7 +44,7 @@ class DeepSeekModel(LLMBase):
 
     timeout: float = 600.0
 
-    def __init__(self, **data):
+    def __init__(self, **data: Dict[str, Any]) -> None:
         super().__init__(**data)
 
         self._client = httpx.Client(
@@ -52,7 +53,7 @@ class DeepSeekModel(LLMBase):
             timeout=self.timeout,
         )
         self._async_client = httpx.AsyncClient(
-            headers={"Authorization": f"Bearer {self.api_key}"},
+            headers={"Authorization": f"Bearer {self.api_key.get_secret_value()}"},
             base_url=self._BASE_URL,
             timeout=self.timeout,
         )
@@ -78,28 +79,28 @@ class DeepSeekModel(LLMBase):
     @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
         self,
-        conversation,
-        temperature=0.7,
-        max_tokens=256,
-        frequency_penalty=0,
-        presence_penalty=0,
-        stop="\n",
-        top_p=1.0,
-    ):
+        conversation: Conversation,
+        temperature: float = 0.7,
+        max_tokens: int = 256,
+        frequency_penalty: float = 0,
+        presence_penalty: float = 0,
+        stop: Optional[str] = "\n",
+        top_p: float = 1.0,
+    ) -> Conversation:
         """
         Sends a synchronous request to the DeepSeek API to generate a chat response.
 
         Args:
-            conversation: The conversation object containing message history.
+            conversation (Conversation): The conversation object containing message history.
             temperature (float): Sampling temperature for randomness in response.
             max_tokens (int): Maximum number of tokens in the response.
             frequency_penalty (float): Penalty for frequent tokens in the response.
             presence_penalty (float): Penalty for new topics in the response.
-            stop (str): Token at which response generation should stop.
+            stop (Optional[str]): Token at which response generation should stop.
             top_p (float): Top-p sampling value for nucleus sampling.
 
         Returns:
-            Updated conversation object with the generated response added.
+            Conversation: Updated conversation object with the generated response added.
         """
         formatted_messages = self._format_messages(conversation.history)
         payload = {
@@ -122,28 +123,28 @@ class DeepSeekModel(LLMBase):
     @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
         self,
-        conversation,
-        temperature=0.7,
-        max_tokens=256,
-        frequency_penalty=0,
-        presence_penalty=0,
-        stop="\n",
-        top_p=1.0,
-    ):
+        conversation: Conversation,
+        temperature: float = 0.7,
+        max_tokens: int = 256,
+        frequency_penalty: float = 0,
+        presence_penalty: float = 0,
+        stop: Optional[str] = "\n",
+        top_p: float = 1.0,
+    ) -> Conversation:
         """
         Sends an asynchronous request to the DeepSeek API to generate a chat response.
 
         Args:
-            conversation: The conversation object containing message history.
+            conversation (Conversation): The conversation object containing message history.
             temperature (float): Sampling temperature for randomness in response.
             max_tokens (int): Maximum number of tokens in the response.
             frequency_penalty (float): Penalty for frequent tokens in the response.
             presence_penalty (float): Penalty for new topics in the response.
-            stop (str): Token at which response generation should stop.
+            stop (Optional[str]): Token at which response generation should stop.
             top_p (float): Top-p sampling value for nucleus sampling.
 
         Returns:
-            Updated conversation object with the generated response added.
+            Conversation: Updated conversation object with the generated response added.
         """
         formatted_messages = self._format_messages(conversation.history)
         payload = {
@@ -166,24 +167,24 @@ class DeepSeekModel(LLMBase):
     @retry_on_status_codes((429, 529), max_retries=1)
     def stream(
         self,
-        conversation,
-        temperature=0.7,
-        max_tokens=256,
-        frequency_penalty=0,
-        presence_penalty=0,
-        stop="\n",
-        top_p=1.0,
+        conversation: Conversation,
+        temperature: float = 0.7,
+        max_tokens: int = 256,
+        frequency_penalty: float = 0,
+        presence_penalty: float = 0,
+        stop: Optional[str] = "\n",
+        top_p: float = 1.0,
     ) -> Iterator[str]:
         """
         Streams the response token by token synchronously from the DeepSeek API.
 
         Args:
-            conversation: The conversation object containing message history.
+            conversation (Conversation): The conversation object containing message history.
             temperature (float): Sampling temperature for randomness in response.
             max_tokens (int): Maximum number of tokens in the response.
             frequency_penalty (float): Penalty for frequent tokens in the response.
             presence_penalty (float): Penalty for new topics in the response.
-            stop (str): Token at which response generation should stop.
+            stop (Optional[str]): Token at which response generation should stop.
             top_p (float): Top-p sampling value for nucleus sampling.
 
         Yields:
@@ -223,24 +224,24 @@ class DeepSeekModel(LLMBase):
     @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
         self,
-        conversation,
-        temperature=0.7,
-        max_tokens=256,
-        frequency_penalty=0,
-        presence_penalty=0,
-        stop="\n",
-        top_p=1.0,
+        conversation: Conversation,
+        temperature: float = 0.7,
+        max_tokens: int = 256,
+        frequency_penalty: float = 0,
+        presence_penalty: float = 0,
+        stop: Optional[str] = "\n",
+        top_p: float = 1.0,
     ) -> AsyncIterator[str]:
         """
         Asynchronously streams the response token by token from the DeepSeek API.
 
         Args:
-            conversation: The conversation object containing message history.
+            conversation (Conversation): The conversation object containing message history.
             temperature (float): Sampling temperature for randomness in response.
             max_tokens (int): Maximum number of tokens in the response.
             frequency_penalty (float): Penalty for frequent tokens in the response.
             presence_penalty (float): Penalty for new topics in the response.
-            stop (str): Token at which response generation should stop.
+            stop (Optional[str]): Token at which response generation should stop.
             top_p (float): Top-p sampling value for nucleus sampling.
 
         Yields:
@@ -281,28 +282,28 @@ class DeepSeekModel(LLMBase):
 
     def batch(
         self,
-        conversations: List,
-        temperature=0.7,
-        max_tokens=256,
-        frequency_penalty=0,
-        presence_penalty=0,
-        stop="\n",
-        top_p=1.0,
-    ) -> List:
+        conversations: List[Conversation],
+        temperature: float = 0.7,
+        max_tokens: int = 256,
+        frequency_penalty: float = 0,
+        presence_penalty: float = 0,
+        stop: Optional[str] = "\n",
+        top_p: float = 1.0,
+    ) -> List[Conversation]:
         """
         Processes multiple conversations synchronously in a batch.
 
         Args:
-            conversations (List): List of conversation objects.
+            conversations (List[Conversation]): List of conversation objects.
             temperature (float): Sampling temperature for randomness in response.
             max_tokens (int): Maximum number of tokens in the response.
             frequency_penalty (float): Penalty for frequent tokens in the response.
             presence_penalty (float): Penalty for new topics in the response.
-            stop (str): Token at which response generation should stop.
+            stop (Optional[str]): Token at which response generation should stop.
             top_p (float): Top-p sampling value for nucleus sampling.
 
         Returns:
-            List: List of updated conversation objects with responses added.
+            List[Conversation]: List of updated conversation objects with responses added.
         """
         return [
             self.predict(
@@ -319,34 +320,34 @@ class DeepSeekModel(LLMBase):
 
     async def abatch(
         self,
-        conversations: List,
-        temperature=0.7,
-        max_tokens=256,
-        frequency_penalty=0,
-        presence_penalty=0,
-        stop="\n",
-        top_p=1.0,
-        max_concurrent=5,
-    ) -> List:
+        conversations: List[Conversation],
+        temperature: float = 0.7,
+        max_tokens: int = 256,
+        frequency_penalty: float = 0,
+        presence_penalty: float = 0,
+        stop: Optional[str] = "\n",
+        top_p: float = 1.0,
+        max_concurrent: int = 5,
+    ) -> List[Conversation]:
         """
         Processes multiple conversations asynchronously in parallel, with concurrency control.
 
         Args:
-            conversations (List): List of conversation objects.
+            conversations (List[Conversation]): List of conversation objects.
             temperature (float): Sampling temperature for randomness in response.
             max_tokens (int): Maximum number of tokens in the response.
             frequency_penalty (float): Penalty for frequent tokens in the response.
             presence_penalty (float): Penalty for new topics in the response.
-            stop (str): Token at which response generation should stop.
+            stop (Optional[str]): Token at which response generation should stop.
             top_p (float): Top-p sampling value for nucleus sampling.
             max_concurrent (int): Maximum number of concurrent tasks allowed.
 
         Returns:
-            List: List of updated conversation objects with responses added.
+            List[Conversation]: List of updated conversation objects with responses added.
         """
         semaphore = asyncio.Semaphore(max_concurrent)
 
-        async def process_conversation(conv):
+        async def process_conversation(conv: Conversation) -> Conversation:
             async with semaphore:
                 return await self.apredict(
                     conv,

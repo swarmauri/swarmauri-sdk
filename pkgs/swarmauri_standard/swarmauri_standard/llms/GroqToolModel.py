@@ -1,7 +1,17 @@
 import asyncio
 import json
 import warnings
-from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
+from typing import (
+    Any,
+    AsyncIterator,
+    Dict,
+    Iterator,
+    List,
+    Literal,
+    Optional,
+    Type,
+    Union,
+)
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -35,10 +45,11 @@ class GroqToolModel(LLMBase):
     and handle tool-related functions.
 
     Attributes:
-        api_key (str): API key to authenticate with Groq API.
+        api_key (SecretStr): API key to authenticate with Groq API.
         allowed_models (List[str]): List of permissible model names.
         name (str): Default model name for predictions.
-        type (Literal): Type identifier for the model.
+        type (Literal["GroqToolModel"]): Type identifier for the model.
+        timeout (float): Request timeout in seconds.
 
     Provider Documentation: https://console.groq.com/docs/tool-use#models
     """
@@ -65,12 +76,12 @@ class GroqToolModel(LLMBase):
 
     timeout: float = 600.0
 
-    def __init__(self, **data):
+    def __init__(self, **data: Any):
         """
         Initialize the GroqAIAudio class with the provided data.
 
         Args:
-            **data: Arbitrary keyword arguments containing initialization data.
+            **data (Any): Arbitrary keyword arguments containing initialization data.
         """
         super().__init__(**data)
         self._client = httpx.Client(
@@ -84,31 +95,39 @@ class GroqToolModel(LLMBase):
             timeout=self.timeout,
         )
 
-    def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
+        self.allowed_models = self.allowed_models or self.get_allowed_models()
+        self.name = self.allowed_models[0]
+
+    def _schema_convert_tools(self, tools: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Converts toolkit items to API-compatible schema format.
 
         Parameters:
-            tools: Dictionary of tools to be converted.
+            tools (Dict[str, Any]): Dictionary of tools to be converted.
 
         Returns:
             List[Dict[str, Any]]: Formatted list of tool dictionaries.
         """
         return [GroqSchemaConverter().convert(tools[tool]) for tool in tools]
 
-    def _process_tool_calls(self, tool_calls, toolkit, messages) -> List[MessageBase]:
+    def _process_tool_calls(
+        self,
+        tool_calls: List[Dict[str, Any]],
+        toolkit: Any,
+        messages: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
         """
         Processes a list of tool calls and appends the results to the messages list.
 
         Args:
-            tool_calls (list): A list of dictionaries representing tool calls. Each dictionary should contain
+            tool_calls (List[Dict[str, Any]]): A list of dictionaries representing tool calls. Each dictionary should contain
                                a "function" key with a nested dictionary that includes the "name" and "arguments"
                                of the function to be called, and an "id" key for the tool call identifier.
-            toolkit (object): An object that provides access to tools via the `get_tool_by_name` method.
-            messages (list): A list of message dictionaries to which the results of the tool calls will be appended.
+            toolkit (Any): An object that provides access to tools via the `get_tool_by_name` method.
+            messages (List[Dict[str, Any]]): A list of message dictionaries to which the results of the tool calls will be appended.
 
         Returns:
-            List[MessageBase]: The updated list of messages with the results of the tool calls appended.
+            List[Dict[str, Any]]: The updated list of messages with the results of the tool calls appended.
         """
         if tool_calls:
             for tool_call in tool_calls:
@@ -130,15 +149,15 @@ class GroqToolModel(LLMBase):
 
     def _format_messages(
         self, messages: List[Type[MessageBase]]
-    ) -> List[Dict[str, str]]:
+    ) -> List[Dict[str, Any]]:
         """
         Formats messages for API compatibility.
 
         Parameters:
-            messages (List[MessageBase]): List of message instances to format.
+            messages (List[Type[MessageBase]]): List of message instances to format.
 
         Returns:
-            List[Dict[str, str]]: List of formatted message dictionaries.
+            List[Dict[str, Any]]: List of formatted message dictionaries.
         """
         message_properties = ["content", "role", "name", "tool_call_id", "tool_calls"]
         formatted_messages = [
@@ -150,19 +169,19 @@ class GroqToolModel(LLMBase):
     @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
         self,
-        conversation,
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
+        conversation: Conversation,
+        toolkit: Optional[Any] = None,
+        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
     ) -> Conversation:
         """
         Makes a synchronous prediction using the Groq model.
 
         Parameters:
             conversation (Conversation): Conversation instance with message history.
-            toolkit: Optional toolkit for tool conversion.
-            tool_choice: Tool selection strategy.
+            toolkit (Optional[Any]): Optional toolkit for tool conversion.
+            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection strategy.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
 
@@ -211,19 +230,19 @@ class GroqToolModel(LLMBase):
     @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
         self,
-        conversation,
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
+        conversation: Conversation,
+        toolkit: Optional[Any] = None,
+        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
     ) -> Conversation:
         """
         Makes an asynchronous prediction using the Groq model.
 
         Parameters:
             conversation (Conversation): Conversation instance with message history.
-            toolkit: Optional toolkit for tool conversion.
-            tool_choice: Tool selection strategy.
+            toolkit (Optional[Any]): Optional toolkit for tool conversion.
+            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection strategy.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
 
@@ -273,18 +292,18 @@ class GroqToolModel(LLMBase):
     def stream(
         self,
         conversation: Conversation,
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
+        toolkit: Optional[Any] = None,
+        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
     ) -> Iterator[str]:
         """
         Streams response from Groq model in real-time.
 
         Parameters:
             conversation (Conversation): Conversation instance with message history.
-            toolkit: Optional toolkit for tool conversion.
-            tool_choice: Tool selection strategy.
+            toolkit (Optional[Any]): Optional toolkit for tool conversion.
+            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection strategy.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
 
@@ -339,19 +358,19 @@ class GroqToolModel(LLMBase):
     @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
         self,
-        conversation,
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
+        conversation: Conversation,
+        toolkit: Optional[Any] = None,
+        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
     ) -> AsyncIterator[str]:
         """
         Asynchronously streams response from Groq model.
 
         Parameters:
             conversation (Conversation): Conversation instance with message history.
-            toolkit: Optional toolkit for tool conversion.
-            tool_choice: Tool selection strategy.
+            toolkit (Optional[Any]): Optional toolkit for tool conversion.
+            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection strategy.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
 
@@ -404,21 +423,20 @@ class GroqToolModel(LLMBase):
     def batch(
         self,
         conversations: List[Conversation],
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
+        toolkit: Optional[Any] = None,
+        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
     ) -> List[Conversation]:
         """
         Processes a batch of conversations and generates responses for each sequentially.
 
         Args:
             conversations (List[Conversation]): List of conversations to process.
+            toolkit (Optional[Any]): Optional toolkit for tool conversion.
+            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection strategy.
             temperature (float): Sampling temperature for response diversity.
             max_tokens (int): Maximum tokens for each response.
-            top_p (float): Cumulative probability for nucleus sampling.
-            enable_json (bool): Whether to format the response as JSON.
-            stop (Optional[List[str]]): List of stop sequences for response termination.
 
         Returns:
             List[Conversation]: List of updated conversations with model responses.
@@ -440,22 +458,21 @@ class GroqToolModel(LLMBase):
     async def abatch(
         self,
         conversations: List[Conversation],
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
-        max_concurrent=5,
+        toolkit: Optional[Any] = None,
+        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
+        max_concurrent: int = 5,
     ) -> List[Conversation]:
         """
         Async method for processing a batch of conversations concurrently.
 
         Args:
             conversations (List[Conversation]): List of conversations to process.
+            toolkit (Optional[Any]): Optional toolkit for tool conversion.
+            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection strategy.
             temperature (float): Sampling temperature for response diversity.
             max_tokens (int): Maximum tokens for each response.
-            top_p (float): Cumulative probability for nucleus sampling.
-            enable_json (bool): Whether to format the response as JSON.
-            stop (Optional[List[str]]): List of stop sequences for response termination.
             max_concurrent (int): Maximum number of concurrent requests.
 
         Returns:
@@ -466,7 +483,7 @@ class GroqToolModel(LLMBase):
 
         semaphore = asyncio.Semaphore(max_concurrent)
 
-        async def process_conversation(conv) -> Conversation:
+        async def process_conversation(conv: Conversation) -> Conversation:
             async with semaphore:
                 return await self.apredict(
                     conv,
