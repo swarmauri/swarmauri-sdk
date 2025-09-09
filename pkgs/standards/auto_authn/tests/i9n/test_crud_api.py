@@ -2,7 +2,7 @@
 Simplified integration tests for CRUD API endpoints.
 
 Tests basic CRUD operations and endpoint availability for auto-generated
-AutoAPI endpoints, focusing on status codes and basic response validation.
+Tigrbl endpoints, focusing on status codes and basic response validation.
 """
 
 import uuid

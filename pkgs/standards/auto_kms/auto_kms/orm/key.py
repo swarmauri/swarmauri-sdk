@@ -6,13 +6,13 @@ from uuid import UUID, uuid4
 from typing import List, Optional, TYPE_CHECKING
 
 from sqlalchemy import String, Integer, Enum as SAEnum
-from autoapi.v3.types import Mapped, relationship
-from autoapi.v3.orm.mixins import BulkCapable, Replaceable
+from tigrbl.v3.types import Mapped, relationship
+from tigrbl.v3.orm.mixins import BulkCapable, Replaceable
 
-from autoapi.v3.orm.tables import Base
-from autoapi.v3.specs import acol, vcol, S, F, IO
-from autoapi.v3.hook import hook_ctx
-from autoapi.v3.op import op_ctx
+from tigrbl.v3.orm.tables import Base
+from tigrbl.v3.specs import acol, vcol, S, F, IO
+from tigrbl.v3.hook import hook_ctx
+from tigrbl.v3.op import op_ctx
 from fastapi import HTTPException, Response
 
 if TYPE_CHECKING:

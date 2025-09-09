@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from autoapi.v3.orm.tables import Tenant as TenantBase
-from autoapi.v3.orm.mixins import Bootstrappable, Upsertable
+from tigrbl.v3.orm.tables import Tenant as TenantBase
+from tigrbl.v3.orm.mixins import Bootstrappable, Upsertable
 from peagen.defaults import (
     DEFAULT_TENANT_ID,
     DEFAULT_TENANT_SLUG,

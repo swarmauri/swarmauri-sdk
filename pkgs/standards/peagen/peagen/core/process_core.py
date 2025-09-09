@@ -54,8 +54,10 @@ def load_projects_payload(
     else:
         try:
             pp = Path(os.fspath(projects_payload))
-            yaml_text = pp.read_text(encoding="utf-8") if pp.is_file() else str(
-                projects_payload
+            yaml_text = (
+                pp.read_text(encoding="utf-8")
+                if pp.is_file()
+                else str(projects_payload)
             )
         except Exception:
             yaml_text = str(projects_payload)

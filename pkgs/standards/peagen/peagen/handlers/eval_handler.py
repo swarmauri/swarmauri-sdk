@@ -15,7 +15,7 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Any, Dict, Optional
 
-from autoapi.v3 import get_schema
+from tigrbl.v3 import get_schema
 from peagen.orm import Task
 
 from peagen.core.eval_core import evaluate_workspace

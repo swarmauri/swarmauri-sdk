@@ -8,7 +8,7 @@ from typing import Any
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from sqlalchemy import select
-from autoapi.v3.engine import HybridSession as AsyncSession
+from tigrbl.v3.engine import HybridSession as AsyncSession
 from pydantic import ValidationError
 
 from ...backends import AuthError

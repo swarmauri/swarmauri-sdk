@@ -1,5 +1,5 @@
 """
-autoapi_authn.typing
+tigrbl_authn.typing
 ====================
 
 Pure-typing utilities for the AuthN service.

@@ -1,4 +1,4 @@
-# """Minimal helper for AutoAPI JSON-RPC requests."""
+# """Minimal helper for Tigrbl JSON-RPC requests."""
 
 # from __future__ import annotations
 
@@ -6,7 +6,7 @@
 
 # import httpx
 # from pydantic import BaseModel
-# from autoapi_client import AutoAPIClient
+# from tigrbl_client import TigrblClient
 
 # R = TypeVar("R", bound=BaseModel)
 # RPC_TIMEOUT: float = 30.0
@@ -56,10 +56,10 @@
 #     expect: Type[R] | None = None,
 #     timeout: float = RPC_TIMEOUT,
 # ) -> Union[dict, R]:
-#     """Call *method* on *gateway_url* using :class:`AutoAPIClient`."""
+#     """Call *method* on *gateway_url* using :class:`TigrblClient`."""
 
 #     try:
-#         with AutoAPIClient(gateway_url, client=httpx.Client(timeout=timeout)) as rpc:
+#         with TigrblClient(gateway_url, client=httpx.Client(timeout=timeout)) as rpc:
 #             return rpc.call(method, params=params, out_schema=expect)
 #     except httpx.HTTPError as exc:  # pragma: no cover
 #         raise RPCTransportError(str(exc)) from exc

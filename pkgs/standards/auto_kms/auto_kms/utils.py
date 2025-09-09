@@ -124,7 +124,7 @@ def auth_tenant_from_ctx(ctx) -> Optional[str]:
     if not req:
         return None
     c = getattr(req.state, "ctx", {}) or {}
-    auth = c.get("__autoapi_auth_context__", {}) or {}
+    auth = c.get("__tigrbl_auth_context__", {}) or {}
     return auth.get("tenant_id") or auth.get("tid")
 
 

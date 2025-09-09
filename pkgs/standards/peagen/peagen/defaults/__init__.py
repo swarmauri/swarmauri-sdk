@@ -25,14 +25,17 @@ ROOT_DIR = os.getenv("PEAGEN_ROOT_DIR", "~/.cache/peagen")
 # Directory for repository lock files, under the root path.
 LOCK_DIR = os.path.join(ROOT_DIR, "locks")
 
+
 def lock_dir() -> Path:
     """Return the directory used for repository locks."""
     return Path(os.getenv("PEAGEN_LOCK_DIR", LOCK_DIR)).expanduser()
+
 
 # Convenience accessor for the root directory.
 def root_dir() -> Path:
     """Return Peagen’s root working directory."""
     return Path(ROOT_DIR).expanduser()
+
 
 # ─────────────────────────── GIT Shadow ─────────────────────────────
 
@@ -45,17 +48,17 @@ GIT_SHADOW_TOKEN = os.getenv("PEAGEN_GIT_SHADOW_PAT", None)
 
 ## DEFAULT RESOURCES UUIDS
 DEFAULT_TENANT_ID = uuid.UUID("FFFFFFFF-0000-0000-0000-000000000000")
-DEFAULT_TENANT_EMAIL = "tenant@example.com" 
-DEFAULT_TENANT_NAME  = "Public"
-DEFAULT_TENANT_SLUG  = "public"
+DEFAULT_TENANT_EMAIL = "tenant@example.com"
+DEFAULT_TENANT_NAME = "Public"
+DEFAULT_TENANT_SLUG = "public"
 
 DEFAULT_POOL_ID = uuid.UUID("FFFFFFFF-0000-0000-0000-000000000001")
 DEFAULT_POOL_NAME = "default"
 DEFAULT_SUPER_USER_ID = uuid.UUID("FFFFFFFF-0000-0000-0000-000000000099")
-DEFAULT_SUPER_USER_EMAIL = "admin@example.com" 
+DEFAULT_SUPER_USER_EMAIL = "admin@example.com"
 
 DEFAULT_SUPER_USER_ID_2 = uuid.UUID("FFFFFFFF-0000-0000-0000-000000000100")
-DEFAULT_SUPER_USER_EMAIL_2 = "admi2n@example.com" 
+DEFAULT_SUPER_USER_EMAIL_2 = "admi2n@example.com"
 
 # ──────────────────────── Plugin Config ────────────────────────────
 

@@ -7,7 +7,7 @@ import secrets
 
 import pytest
 from fastapi.testclient import TestClient
-from autoapi.v3.orm.tables import Base
+from tigrbl.v3.orm.tables import Base
 
 
 def _create_key(client, name: str = None, algorithm: str = "AES256_GCM"):

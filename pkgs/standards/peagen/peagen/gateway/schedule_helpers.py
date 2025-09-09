@@ -17,9 +17,9 @@ import json
 import time
 from typing import Any, Dict, List, Optional, Protocol
 
-from autoapi.v3 import get_schema
-from autoapi.v3.orm.tables.status import Status
-from autoapi_client import AutoAPIClient
+from tigrbl.v3 import get_schema
+from tigrbl.v3.orm.tables.status import Status
+from tigrbl_client import TigrblClient
 
 from peagen.defaults import READY_QUEUE, TASK_KEY, TASK_TTL, WORKER_KEY, WORKER_TTL
 from peagen.orm import Task, Worker
@@ -121,12 +121,12 @@ async def remove_worker(queue, worker_id: str) -> None:
     await _publish_event(queue, "worker.update", {"id": worker_id, "removed": True})
 
 
-# ─────────── Dispatch helper (AutoAPI-native) ─────────────────────────
+# ─────────── Dispatch helper (Tigrbl-native) ─────────────────────────
 async def dispatch_work(
     task: TaskCreate, worker: Dict[str, Any], log: Logger = None
 ) -> bool:
     """
-    Invoke *work.start* on the chosen worker using AutoAPIClient.
+    Invoke *work.start* on the chosen worker using TigrblClient.
 
     Returns:
         True  – RPC returned without error
@@ -137,10 +137,10 @@ async def dispatch_work(
     if not endpoint.endswith("/rpc"):
         endpoint += "/rpc"
 
-    # AutoAPIClient is synchronous; run it in a thread so we don't block
+    # TigrblClient is synchronous; run it in a thread so we don't block
     def _sync_rpc() -> bool:
         try:
-            with AutoAPIClient(endpoint) as rpc:
+            with TigrblClient(endpoint) as rpc:
                 rpc.call(
                     "Works.create",
                     params={

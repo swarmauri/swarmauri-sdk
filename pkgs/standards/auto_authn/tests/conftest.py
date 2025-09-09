@@ -23,9 +23,9 @@ from auto_authn.db import get_db
 from auto_authn.routers.surface import surface_api
 from auto_authn.orm import Base, Tenant, User, Client, ApiKey
 from auto_authn.crypto import hash_pw
-from autoapi.v3.engine import resolver as engine_resolver
-from autoapi.v3.engine.engine_spec import EngineSpec
-from autoapi.v3.engine._engine import Provider
+from tigrbl.v3.engine import resolver as engine_resolver
+from tigrbl.v3.engine.engine_spec import EngineSpec
+from tigrbl.v3.engine._engine import Provider
 
 
 # Disable TLS enforcement for tests
@@ -84,7 +84,7 @@ async def db_session(test_db_engine) -> AsyncGenerator[AsyncSession, None]:
 
 @pytest.fixture
 def override_get_db(db_session, test_db_engine):
-    """Override database dependencies and AutoAPI engine for tests."""
+    """Override database dependencies and Tigrbl engine for tests."""
 
     async def _get_test_db():
         yield db_session

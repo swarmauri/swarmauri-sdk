@@ -8,8 +8,8 @@ import httpx
 from fastapi import HTTPException, Request, Security, status
 from fastapi.security import APIKeyHeader
 
-from autoapi.v3.config.constants import AUTOAPI_AUTH_CONTEXT_ATTR
-from autoapi.v3.types.authn_abc import AuthNProvider
+from tigrbl.v3.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
+from tigrbl.v3.types.authn_abc import AuthNProvider
 from ..principal_ctx import principal_var
 
 
@@ -22,7 +22,7 @@ def _set_auth_context(request: Request, principal: dict | None) -> None:
             ctx["tenant_id"] = tid
         if uid is not None:
             ctx["user_id"] = uid
-    setattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, ctx)
+    setattr(request.state, TIGRBL_AUTH_CONTEXT_ATTR, ctx)
 
 
 # OpenAPI-advertised security scheme (header-based API key)

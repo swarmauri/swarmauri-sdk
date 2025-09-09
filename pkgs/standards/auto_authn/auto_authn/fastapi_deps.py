@@ -1,5 +1,5 @@
 """
-autoapi_authn.fastapi_deps
+tigrbl_authn.fastapi_deps
 ==========================
 
 FastAPI dependency helpers used by the AuthN service itself
@@ -18,7 +18,7 @@ Both helpers are **framework-thin**: they translate `AuthError` raised by
 from __future__ import annotations
 
 from fastapi import Depends, Header, HTTPException, Request, status
-from autoapi.v3.engine import HybridSession as AsyncSession
+from tigrbl.v3.engine import HybridSession as AsyncSession
 
 from .backends import (
     ApiKeyBackend,
@@ -69,7 +69,7 @@ async def _user_from_api_key(raw_key: str, db: AsyncSession) -> Principal | None
 # ---------------------------------------------------------------------
 # NEW — AuthNProvider‑compatible helper
 # ---------------------------------------------------------------------
-async def get_principal(  # <-- AutoAPI calls this
+async def get_principal(  # <-- Tigrbl calls this
     request: Request,
     authorization: str = Header("", alias="Authorization"),
     api_key: str | None = Header(None, alias="x-api-key"),
@@ -77,7 +77,7 @@ async def get_principal(  # <-- AutoAPI calls this
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """
-    Return a lightweight principal dict that AutoAPI understands:
+    Return a lightweight principal dict that Tigrbl understands:
         { "sub": "<user_id>", "tid": "<tenant_id>" }
     Raises HTTP 401 on failure.
     """

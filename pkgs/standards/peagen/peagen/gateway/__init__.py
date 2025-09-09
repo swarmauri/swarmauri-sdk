@@ -1,7 +1,7 @@
 """
 peagen.gateway
 ──────────────
-FastAPI + AutoAPI JSON-RPC gateway with schema-driven task scheduling.
+FastAPI + Tigrbl JSON-RPC gateway with schema-driven task scheduling.
 
 This file assumes:
 • Updated ORM (Task v3, Worker heartbeat via Worker.update)
@@ -19,7 +19,7 @@ import uuid
 
 
 # ─────────── Peagen internals ──────────────────────────────────────────
-from autoapi.v3 import AutoApp, get_schema
+from tigrbl.v3 import AutoApp, get_schema
 from auto_authn.adapters import RemoteAuthNAdapter
 from fastapi import Request
 

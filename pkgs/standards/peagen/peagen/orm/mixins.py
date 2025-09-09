@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from autoapi.v3.types import (
+from tigrbl.v3.types import (
     PgUUID,
     String,
     Mapped,
@@ -8,8 +8,8 @@ from autoapi.v3.types import (
     declared_attr,
     relationship,
 )
-from autoapi.v3.specs import S, acol
-from autoapi.v3.column.storage_spec import ForeignKeySpec
+from tigrbl.v3.specs import S, acol
+from tigrbl.v3.column.storage_spec import ForeignKeySpec
 
 
 @declarative_mixin

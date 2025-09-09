@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from autoapi.v3.orm.tables import Org as OrgBase
+from tigrbl.v3.orm.tables import Org as OrgBase
 
 
 class Org(OrgBase):

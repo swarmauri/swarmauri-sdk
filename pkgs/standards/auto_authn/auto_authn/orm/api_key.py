@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from autoapi.v3.orm.mixins import (
+from tigrbl.v3.orm.mixins import (
     Created,
     GUIDPk,
     KeyDigest,
@@ -10,9 +10,9 @@ from autoapi.v3.orm.mixins import (
     UserColumn,
     ValidityWindow,
 )
-from autoapi.v3.orm.tables._base import Base
-from autoapi.v3.specs import F, S, acol
-from autoapi.v3.types import Mapped, String, relationship
+from tigrbl.v3.orm.tables._base import Base
+from tigrbl.v3.specs import F, S, acol
+from tigrbl.v3.types import Mapped, String, relationship
 
 
 class ApiKey(Base, GUIDPk, Created, LastUsed, ValidityWindow, UserColumn, KeyDigest):

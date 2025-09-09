@@ -5,7 +5,7 @@ from auto_authn.orm.tenant import Tenant
 
 
 def test_user_column_io() -> None:
-    specs = User.__autoapi_colspecs__
+    specs = User.__tigrbl_colspecs__
     expected_in = {"create", "update", "replace"}
     assert set(specs["username"].io.in_verbs) == expected_in
     assert set(specs["email"].io.in_verbs) == expected_in
@@ -15,7 +15,7 @@ def test_user_column_io() -> None:
 
 
 def test_tenant_column_io() -> None:
-    specs = Tenant.__autoapi_colspecs__
+    specs = Tenant.__tigrbl_colspecs__
     expected_in = {"create", "update", "replace"}
     for col in ("name", "email"):
         assert set(specs[col].io.in_verbs) == expected_in

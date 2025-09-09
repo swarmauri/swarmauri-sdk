@@ -405,7 +405,7 @@ class TestGetCurrentPrincipal:
 
 @pytest.mark.unit
 class TestGetPrincipal:
-    """Test get_principal AutoAPI-compatible dependency."""
+    """Test get_principal Tigrbl-compatible dependency."""
 
     @pytest.mark.asyncio
     async def test_get_principal_with_valid_credentials(self):

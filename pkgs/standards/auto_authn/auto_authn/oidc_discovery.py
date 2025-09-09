@@ -1,7 +1,7 @@
 """OpenID Connect discovery endpoints.
 
 Provides `.well-known/openid-configuration` and JWKS publication for the
-AutoAPI AuthN service. These features are OIDC-specific and therefore live in
+Tigrbl AuthN service. These features are OIDC-specific and therefore live in
 an `oidc_*` module rather than an `rfcXXXX` module.
 """
 

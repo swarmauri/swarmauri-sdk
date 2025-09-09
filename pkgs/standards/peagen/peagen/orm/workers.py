@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from autoapi.v3.orm.tables import Base
-from autoapi.v3.types import (
+from tigrbl.v3.orm.tables import Base
+from tigrbl.v3.types import (
     JSON,
     PgUUID,
     UUID,
@@ -11,10 +11,10 @@ from autoapi.v3.types import (
     AllowAnonProvider,
     Mapped,
 )
-from autoapi.v3.orm.mixins import GUIDPk, Timestamped
-from autoapi.v3.specs import IO, S, acol
-from autoapi.v3.column.storage_spec import ForeignKeySpec
-from autoapi.v3 import hook_ctx
+from tigrbl.v3.orm.mixins import GUIDPk, Timestamped
+from tigrbl.v3.specs import IO, S, acol
+from tigrbl.v3.column.storage_spec import ForeignKeySpec
+from tigrbl.v3 import hook_ctx
 from peagen.defaults import DEFAULT_POOL_ID, WORKER_KEY, WORKER_TTL
 
 from .pools import Pool
@@ -27,7 +27,7 @@ class Worker(Base, GUIDPk, Timestamped, AllowAnonProvider):
     __tablename__ = "workers"
     __table_args__ = ({"schema": "peagen"},)
 
-    __autoapi_allow_anon__ = {"create"}  # allow unauthenticated worker registration
+    __tigrbl_allow_anon__ = {"create"}  # allow unauthenticated worker registration
 
     pool_id: Mapped[PgUUID] = acol(
         storage=S(
@@ -98,7 +98,7 @@ class Worker(Base, GUIDPk, Timestamped, AllowAnonProvider):
         if max_instances is not None and count >= int(max_instances):
             raise RPCException(code=-32602, message="pool at capacity")
 
-    # ─── AutoAPI hook callbacks ------------------------------------------
+    # ─── Tigrbl hook callbacks ------------------------------------------
     @hook_ctx(ops="create", phase="PRE_TX_BEGIN")
     async def _pre_create_policy_gate(cls, ctx):
         from peagen.gateway import log

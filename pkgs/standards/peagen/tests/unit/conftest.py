@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 import importlib.util
 import sys
 from pathlib import Path
-import autoapi.v3 as autoapi_v3
+import tigrbl.v3 as tigrbl_v3
 
 
 class DummyTaskModel(BaseModel):
@@ -27,7 +27,7 @@ class DummyTaskModel(BaseModel):
         return {"action": self.action, "args": self.args or {}}
 
 
-_orig_get_schema = autoapi_v3.get_schema
+_orig_get_schema = tigrbl_v3.get_schema
 
 
 def _dummy_get_schema(orm_cls, op, *, kind="out"):
@@ -36,7 +36,7 @@ def _dummy_get_schema(orm_cls, op, *, kind="out"):
     return _orig_get_schema(orm_cls, op, kind=kind)
 
 
-autoapi_v3.get_schema = _dummy_get_schema
+tigrbl_v3.get_schema = _dummy_get_schema
 
 spec = importlib.util.spec_from_file_location(
     "peagen.cli.task_helpers",
@@ -50,4 +50,4 @@ spec.loader.exec_module(task_helpers)
 @pytest.fixture(autouse=True)
 def restore_get_schema():
     yield
-    autoapi_v3.get_schema = _orig_get_schema
+    tigrbl_v3.get_schema = _orig_get_schema

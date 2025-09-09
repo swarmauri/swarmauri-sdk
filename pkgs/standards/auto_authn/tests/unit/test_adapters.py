@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 import auto_authn.adapters.local_adapter as local_adapter_mod
-from autoapi.v3.config.constants import AUTOAPI_AUTH_CONTEXT_ATTR
+from tigrbl.v3.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
 from auto_authn.adapters.local_adapter import LocalAuthNAdapter
 from auto_authn.adapters.remote_adapter import RemoteAuthNAdapter
 
@@ -41,7 +41,7 @@ async def test_local_adapter_injects_auth_context(monkeypatch):
     result = await adapter.get_principal(request)
 
     assert result == principal
-    assert getattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR) == {
+    assert getattr(request.state, TIGRBL_AUTH_CONTEXT_ATTR) == {
         "user_id": "u1",
         "tenant_id": "t1",
     }
@@ -59,7 +59,7 @@ async def test_remote_adapter_injects_auth_context(monkeypatch):
     result = await adapter.get_principal(request, api_key="key")
 
     assert result == principal
-    assert getattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR) == {
+    assert getattr(request.state, TIGRBL_AUTH_CONTEXT_ATTR) == {
         "user_id": "u2",
         "tenant_id": "t2",
     }

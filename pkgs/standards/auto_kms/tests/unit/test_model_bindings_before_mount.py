@@ -3,8 +3,8 @@ import pytest
 
 @pytest.mark.asyncio
 async def test_bindings_before_mount(monkeypatch):
-    from autoapi.v3.autoapp import AutoApp
-    from autoapi.v3.bindings import rest as rest_binding
+    from tigrbl.v3.autoapp import AutoApp
+    from tigrbl.v3.bindings import rest as rest_binding
 
     monkeypatch.setattr(
         rest_binding,
@@ -12,7 +12,7 @@ async def test_bindings_before_mount(monkeypatch):
         lambda model, specs, api=None, only_keys=None: None,
     )
 
-    from autoapi.v3.runtime import executor as _executor
+    from tigrbl.v3.runtime import executor as _executor
 
     called: dict[str, object] = {}
 

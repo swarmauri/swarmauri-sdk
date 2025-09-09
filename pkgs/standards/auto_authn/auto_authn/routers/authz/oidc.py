@@ -9,7 +9,7 @@ from urllib.parse import urlencode
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
-from autoapi.v3.engine import HybridSession as AsyncSession
+from tigrbl.v3.engine import HybridSession as AsyncSession
 
 from ...fastapi_deps import get_db
 from ...orm import AuthCode, Client, User

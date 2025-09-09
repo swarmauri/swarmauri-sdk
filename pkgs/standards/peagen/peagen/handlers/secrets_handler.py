@@ -3,7 +3,7 @@ peagen.handlers.secrets_handler
 ───────────────────────────────
 Async entry-point for secret-management tasks.
 
-Input : TaskRead  – AutoAPI schema for the Task table
+Input : TaskRead  – Tigrbl schema for the Task table
 Output: dict      – result from peagen.core.secrets_core helpers
 """
 
@@ -12,7 +12,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict
 
-from autoapi.v3 import get_schema
+from tigrbl.v3 import get_schema
 from peagen.orm import Task
 
 from peagen.core import secrets_core

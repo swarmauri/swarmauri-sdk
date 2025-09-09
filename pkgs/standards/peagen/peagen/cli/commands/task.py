@@ -1,5 +1,5 @@
 """
-CLI wrapper for querying and managing asynchronous Tasks via AutoAPI.
+CLI wrapper for querying and managing asynchronous Tasks via Tigrbl.
 """
 
 from __future__ import annotations
@@ -8,8 +8,8 @@ import json
 import time
 
 import typer
-from autoapi_client import AutoAPIClient
-from autoapi.v3 import get_schema
+from tigrbl_client import TigrblClient
+from tigrbl.v3 import get_schema
 from peagen.orm import Status, Task
 from peagen.cli.task_helpers import get_task, build_task, submit_task
 
@@ -17,7 +17,7 @@ remote_task_app = typer.Typer(help="Inspect asynchronous tasks.")
 
 
 # ───────────────────────── helpers ────────────────────────────────────
-def _rpc(ctx: typer.Context) -> AutoAPIClient:
+def _rpc(ctx: typer.Context) -> TigrblClient:
     return ctx.obj["rpc"]
 
 

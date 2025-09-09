@@ -1,7 +1,7 @@
 """
 Initialisation handler – delegates to peagen.core.init_core.*
 
-Input : TaskRead  (AutoAPI schema for the Task table)
+Input : TaskRead  (Tigrbl schema for the Task table)
 Output: dict      (serialisable result from init_core helpers)
 """
 
@@ -10,7 +10,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict
 
-from autoapi.v3 import get_schema
+from tigrbl.v3 import get_schema
 from peagen.orm import Task
 from peagen.core import init_core
 

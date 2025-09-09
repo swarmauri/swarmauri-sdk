@@ -6,8 +6,8 @@ import re
 import uuid
 from typing import Final
 
-from autoapi.v3.orm.tables import Client as ClientBase
-from autoapi.v3 import hook_ctx
+from tigrbl.v3.orm.tables import Client as ClientBase
+from tigrbl.v3 import hook_ctx
 
 from ..crypto import hash_pw
 from ..rfc8252 import validate_native_redirect_uri

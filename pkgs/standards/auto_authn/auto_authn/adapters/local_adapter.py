@@ -2,28 +2,28 @@
 auto_authn.adapters.local_adapter
 ──────────────────
 Concrete implementation of the ``AuthNProvider`` ABC declared by
-``autoapi.v3.authn_abc``.  It merely **adapts** the public helpers that already
-exist in *auto_authn* so that AutoAPI can consume them automatically.
+``tigrbl.v3.authn_abc``.  It merely **adapts** the public helpers that already
+exist in *auto_authn* so that Tigrbl can consume them automatically.
 
 Usage
 -----
->>> from autoapi.v3 import AutoAPI
+>>> from tigrbl.v3 import Tigrbl
 >>> from auto_authn.adapters import LocalAuthNAdapter
->>> api = AutoAPI(engine=ENGINE, authn=LocalAuthNAdapter())
+>>> api = Tigrbl(engine=ENGINE, authn=LocalAuthNAdapter())
 """
 
 from __future__ import annotations
 
 from fastapi import Request
 
-from autoapi.v3.config.constants import AUTOAPI_AUTH_CONTEXT_ATTR
-from autoapi.v3.types.authn_abc import AuthNProvider
+from tigrbl.v3.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
+from tigrbl.v3.types.authn_abc import AuthNProvider
 from ..fastapi_deps import get_principal
 from ..principal_ctx import principal_var  # noqa: F401  # ensure ContextVar is initialised
 
 
 def _set_auth_context(request: Request, principal: dict) -> None:
-    """Populate request.state with the auth context expected by AutoAPI."""
+    """Populate request.state with the auth context expected by Tigrbl."""
     ctx: dict[str, str] = {}
     tid = principal.get("tid") or principal.get("tenant_id")
     uid = principal.get("sub") or principal.get("user_id")
@@ -31,13 +31,13 @@ def _set_auth_context(request: Request, principal: dict) -> None:
         ctx["tenant_id"] = tid
     if uid is not None:
         ctx["user_id"] = uid
-    setattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, ctx)
+    setattr(request.state, TIGRBL_AUTH_CONTEXT_ATTR, ctx)
 
 
 class LocalAuthNAdapter(AuthNProvider):
     """
     Thin wrapper that plugs existing *auto_authn* functions into
-    the abstract interface expected by AutoAPI.
+    the abstract interface expected by Tigrbl.
     """
 
     # ------------------------------------------------------------------ #
