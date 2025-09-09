@@ -41,6 +41,17 @@ class Pair:
 
 @dataclass(frozen=True)
 class IOSpec:
+    """Control how a column participates in API input and output.
+
+    ``in_verbs`` and ``out_verbs`` enumerate which operations may accept or
+    emit the field. ``alias_in``/``alias_out`` allow different payload keys,
+    ``sensitive`` and ``redact_last`` mark values for masking, and
+    ``filter_ops``/``sortable`` flag whether the field can be used in query
+    filters or ordering. Advanced helpers like :meth:`assemble`,
+    :meth:`paired`, and :meth:`alias_readtime` derive values or expose extra
+    read-time aliases.
+    """
+
     in_verbs: Tuple[str, ...] = ()
     out_verbs: Tuple[str, ...] = ()
     mutable_verbs: Tuple[str, ...] = ()

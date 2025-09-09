@@ -8,7 +8,21 @@ from .storage_spec import StorageSpec as S
 
 
 class ColumnSpec:
-    """Configuration container for column construction."""
+    """Aggregate configuration for a model attribute.
+
+    A :class:`ColumnSpec` brings together the three lower-level specs used by
+    Tigrbl's declarative column system:
+
+    - ``storage`` (:class:`~tigrbl.v3.column.storage_spec.StorageSpec`) controls
+      how the value is persisted in the database.
+    - ``field`` (:class:`~tigrbl.v3.column.field_spec.FieldSpec`) describes the
+      Python type and any schema metadata.
+    - ``io`` (:class:`~tigrbl.v3.column.io_spec.IOSpec`) governs inbound and
+      outbound API exposure.
+
+    Optional ``default_factory`` and ``read_producer`` callables allow for
+    programmatic defaults and virtual read-time values respectively.
+    """
 
     def __init__(
         self,

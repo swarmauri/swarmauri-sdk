@@ -146,6 +146,11 @@ owns the transaction. See the
 [runtime documentation](tigrbl/v3/runtime/README.md#db-guards) for the full
 matrix of phase policies.
 
+### Response and Template Specs
+Customize outbound responses with `ResponseSpec` and `TemplateSpec`. These dataclasses
+control headers, status codes, and optional template rendering. See
+[tigrbl/v3/response/README.md](tigrbl/v3/response/README.md) for field descriptions and examples.
+
 ### Dependencies
 - SQLAlchemy for ORM integration.
 - Pydantic for schema generation.

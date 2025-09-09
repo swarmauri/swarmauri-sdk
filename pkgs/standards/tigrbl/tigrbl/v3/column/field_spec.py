@@ -10,9 +10,15 @@ PostFn = Callable[[Any, ValidationInfo], Any]  # AfterValidator
 
 @dataclass(frozen=True)
 class FieldSpec:
-    """
-    - py_type may be omitted when annotated on the model; we infer it.
-    - No custom serializers: responses use Pydantic BaseModel's built-in encoders based on type.
+    """Describe Python-side metadata for a column or virtual field.
+
+    ``py_type`` denotes the expected Python type and may be omitted when the
+    model attribute is annotated; the type will then be inferred. ``constraints``
+    mirrors arguments accepted by :func:`pydantic.Field` and participates in
+    schema generation. ``required_in`` and ``allow_null_in`` govern which API
+    verbs must supply the value or may explicitly send ``null`` in requests.
+    Responses rely on Pydantic's built-in encoders based solely on the
+    declared type.
     """
 
     py_type: Any = Any
