@@ -1,5 +1,21 @@
-## Tigrbl KMS
+![Tigrbl Logo](../../../assets/tigrbl_full_logo)
 
+<p align="center">
+    <a href="https://pypi.org/project/tigrbl_kms/">
+        <img src="https://img.shields.io/pypi/dm/tigrbl_kms" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/tigrbl_kms/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/tigrbl_kms.svg"/></a>
+    <a href="https://pypi.org/project/tigrbl_kms/">
+        <img src="https://img.shields.io/pypi/pyversions/tigrbl_kms" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/tigrbl_kms/">
+        <img src="https://img.shields.io/pypi/l/tigrbl_kms" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/tigrbl_kms/">
+        <img src="https://img.shields.io/pypi/v/tigrbl_kms?label=tigrbl_kms&color=green" alt="PyPI - tigrbl_kms"/></a>
+</p>
+
+---
+
+# Tigrbl KMS
 Tigrbl KMS provides a lightweight key management service built on FastAPI. 
 
 ### Deploy

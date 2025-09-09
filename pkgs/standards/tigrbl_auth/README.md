@@ -1,4 +1,4 @@
-![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
+![Tigrbl Logo](../../../assets/tigrbl_full_logo)
 
 <p align="center">
     <a href="https://pypi.org/project/tigrbl_auth/">
@@ -12,6 +12,10 @@
     <a href="https://pypi.org/project/tigrbl_auth/">
         <img src="https://img.shields.io/pypi/v/tigrbl_auth?label=tigrbl_auth&color=green" alt="PyPI - tigrbl_auth"/></a>
 </p>
+
+---
+
+# Tigrbl Auth
 
 ### Terminology
 
