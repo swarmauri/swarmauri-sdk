@@ -1,4 +1,4 @@
-![Tigrbl Logo](../../../assets/tigrbl_full_logo)
+![Tigrbl Logo](../../../assets/tigrbl_full_logo.png)
 
 <p align="center">
     <a href="https://pypi.org/project/tigrbl/">
