@@ -11,7 +11,7 @@ from tigrbl.v3.engine.shortcuts import mem
 from tigrbl.v3.orm.mixins import GUIDPk
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, ForeignKey, String
-from sqlalchemy.dialects.postgresql import UUID
+from tigrbl.v3.types import PgUUID
 
 
 async def setup_client(db_mode, Tenant, Item):
@@ -48,7 +48,9 @@ async def test_hook_phases_execution_order(db_mode):
 
     class Item(Base, GUIDPk):
         __tablename__ = "items"
-        tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
+        tenant_id = Column(
+            PgUUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
+        )
         name = Column(String, nullable=False)
 
         @hook_ctx(ops="create", phase="PRE_TX_BEGIN")
@@ -130,7 +132,9 @@ async def test_hook_parity_crud_vs_rpc(db_mode):
 
     class Item(Base, GUIDPk):
         __tablename__ = "items"
-        tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
+        tenant_id = Column(
+            PgUUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
+        )
         name = Column(String, nullable=False)
 
         @hook_ctx(ops="create", phase="PRE_TX_BEGIN")
@@ -181,7 +185,9 @@ async def test_hook_error_handling(db_mode):
 
     class Item(Base, GUIDPk):
         __tablename__ = "items"
-        tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
+        tenant_id = Column(
+            PgUUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
+        )
         name = Column(String, nullable=False)
 
         @hook_ctx(ops="*", phase="ON_ERROR")
@@ -225,7 +231,9 @@ async def test_hook_early_termination_and_cleanup(db_mode):
 
     class Item(Base, GUIDPk):
         __tablename__ = "items"
-        tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
+        tenant_id = Column(
+            PgUUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
+        )
         name = Column(String, nullable=False)
 
         @hook_ctx(ops="create", phase="PRE_TX_BEGIN")
@@ -296,7 +304,9 @@ async def test_hook_context_modification(db_mode):
 
     class Item(Base, GUIDPk):
         __tablename__ = "items"
-        tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
+        tenant_id = Column(
+            PgUUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
+        )
         name = Column(String, nullable=False)
 
         @hook_ctx(ops="create", phase="PRE_TX_BEGIN")
@@ -356,7 +366,9 @@ async def test_catch_all_hooks(db_mode):
 
     class Item(CatchAllMixin, Base, GUIDPk):
         __tablename__ = "items"
-        tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
+        tenant_id = Column(
+            PgUUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
+        )
         name = Column(String, nullable=False)
 
     client, _ = await setup_client(db_mode, Tenant, Item)
@@ -408,7 +420,9 @@ async def test_multiple_hooks_same_phase(db_mode):
 
     class Item(Base, GUIDPk):
         __tablename__ = "items"
-        tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
+        tenant_id = Column(
+            PgUUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
+        )
         name = Column(String, nullable=False)
 
         @hook_ctx(ops="create", phase="POST_COMMIT")
