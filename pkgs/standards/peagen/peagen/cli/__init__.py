@@ -167,7 +167,7 @@ def _global_remote_ctx(  # noqa: D401
 
     if api_key is None and keyring is not None:  # pragma: no branch
         try:
-            api_key = keyring.get_password("auto_authn-api-key", "default")
+            api_key = keyring.get_password("tigrbl_auth-api-key", "default")
         except Exception:  # noqa: BLE001
             api_key = None
 

@@ -15,6 +15,7 @@ from peagen.defaults import (
 
 # ───────────────────────────── helpers ─────────────────────────────
 
+
 def _slug_from_url(url: str) -> Tuple[str, str]:
     """
     Accepts HTTPS or SSH GitHub URL and returns (owner, repo).
@@ -38,7 +39,14 @@ def _slug_from_url(url: str) -> Tuple[str, str]:
     return owner, name
 
 
-async def _shadow_req(method: str, path: str, *, base: Optional[str] = None, token: Optional[str] = None, **kw) -> httpx.Response:
+async def _shadow_req(
+    method: str,
+    path: str,
+    *,
+    base: Optional[str] = None,
+    token: Optional[str] = None,
+    **kw,
+) -> httpx.Response:
     """
     Low-level request to the shadow (Gitea-like) API.
     Raises for non-2xx/404. Lets caller decide 404 flow.
@@ -46,7 +54,9 @@ async def _shadow_req(method: str, path: str, *, base: Optional[str] = None, tok
     base = (base or GIT_SHADOW_BASE or "").rstrip("/")
     tok = (token or GIT_SHADOW_TOKEN or "").strip()
     if not base or not tok:
-        raise RuntimeError("git-shadow not configured (GIT_SHADOW_BASE / GIT_SHADOW_TOKEN).")
+        raise RuntimeError(
+            "git-shadow not configured (GIT_SHADOW_BASE / GIT_SHADOW_TOKEN)."
+        )
 
     headers = kw.pop("headers", {})
     headers.setdefault("Authorization", f"token {tok}")
@@ -65,12 +75,15 @@ async def _gh_req(method: str, path: str, *, pat: str, **kw) -> httpx.Response:
     headers = kw.pop("headers", {})
     headers.setdefault("Authorization", f"token {pat}")
     headers.setdefault("Accept", "application/vnd.github+json")
-    async with httpx.AsyncClient(base_url="https://api.github.com", timeout=30.0) as cli:
+    async with httpx.AsyncClient(
+        base_url="https://api.github.com", timeout=30.0
+    ) as cli:
         r = await cli.request(method, path, headers=headers, **kw)
         return r
 
 
 # ───────────────────────────── GitHub side ─────────────────────────
+
 
 async def _gh_repo_exists(owner: str, repo: str, *, pat: str) -> bool:
     r = await _gh_req("GET", f"/repos/{owner}/{repo}", pat=pat)
@@ -88,7 +101,9 @@ async def _gh_authed_login(*, pat: str) -> str:
     return r.json()["login"]
 
 
-async def _gh_ensure_repo(owner: str, repo: str, *, pat: str, description: str = "") -> None:
+async def _gh_ensure_repo(
+    owner: str, repo: str, *, pat: str, description: str = ""
+) -> None:
     if await _gh_repo_exists(owner, repo, pat=pat):
         return
     me = await _gh_authed_login(pat=pat)
@@ -105,6 +120,7 @@ async def _gh_ensure_repo(owner: str, repo: str, *, pat: str, description: str =
 
 
 # ───────────────────────────── shadow side ─────────────────────────
+
 
 async def _shadow_org_exists(owner: str) -> bool:
     r = await _shadow_req("GET", f"/api/v1/orgs/{owner}")
@@ -139,7 +155,9 @@ async def _shadow_repo_exists(owner: str, repo: str) -> bool:
     return False
 
 
-async def _shadow_migrate_mirror(owner: str, repo: str, *, upstream_https: str, upstream_pat: str) -> None:
+async def _shadow_migrate_mirror(
+    owner: str, repo: str, *, upstream_https: str, upstream_pat: str
+) -> None:
     """
     Use the Gitea 'migrate' endpoint with mirror=True so shadow tracks GitHub.
     Safe to call if repo already exists: we'll skip earlier.
@@ -167,7 +185,10 @@ async def _shadow_migrate_mirror(owner: str, repo: str, *, upstream_https: str, 
 
 # ───────────────────────────── orchestration ────────────────────────
 
-async def ensure_repo_and_mirror(*, slug: str, github_pat: str, description: str = "") -> dict[str, Any]:
+
+async def ensure_repo_and_mirror(
+    *, slug: str, github_pat: str, description: str = ""
+) -> dict[str, Any]:
     """
     Idempotently ensure:
       • GitHub repo {slug}
@@ -184,7 +205,9 @@ async def ensure_repo_and_mirror(*, slug: str, github_pat: str, description: str
     # 2) Ensure shadow org + mirror from GitHub (uses server token)
     await _shadow_ensure_org(owner)
     upstream_https = f"https://github.com/{owner}/{repo}.git"
-    await _shadow_migrate_mirror(owner, repo, upstream_https=upstream_https, upstream_pat=github_pat)
+    await _shadow_migrate_mirror(
+        owner, repo, upstream_https=upstream_https, upstream_pat=github_pat
+    )
 
     # 3) Build SSH remotes
     # Shadow SSH base derived from shadow HTTP base hostname (or configurable)
