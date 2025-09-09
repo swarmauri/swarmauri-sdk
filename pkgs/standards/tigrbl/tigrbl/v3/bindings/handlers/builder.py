@@ -81,23 +81,18 @@ def _attach_one(model: type, sp: OpSpec) -> None:
     setattr(handlers_ns, "raw", raw_step)
     setattr(handlers_ns, "handler", raw_step)
 
-    try:
-        if core_step is not None:
-            sp.core = core_step
-            sp.core_raw = core_step
-            logger.debug("Core step registered for %s.%s", model.__name__, alias)
-        else:
-            sp.core = raw_step
-            sp.core_raw = raw_step
-            logger.debug("Raw step registered as core for %s.%s", model.__name__, alias)
-    except Exception as exc:
-        logger.debug("Failed to set core step: %s", exc)
-        if core_step is not None:
-            setattr(handlers_ns, "core", core_step)
-            setattr(handlers_ns, "core_raw", core_step)
-        else:
-            setattr(handlers_ns, "core", raw_step)
-            setattr(handlers_ns, "core_raw", raw_step)
+    if core_step is not None:
+        object.__setattr__(sp, "core", core_step)
+        object.__setattr__(sp, "core_raw", core_step)
+        setattr(handlers_ns, "core", core_step)
+        setattr(handlers_ns, "core_raw", core_step)
+        logger.debug("Core step registered for %s.%s", model.__name__, alias)
+    else:
+        object.__setattr__(sp, "core", raw_step)
+        object.__setattr__(sp, "core_raw", raw_step)
+        setattr(handlers_ns, "core", raw_step)
+        setattr(handlers_ns, "core_raw", raw_step)
+        logger.debug("Raw step registered as core for %s.%s", model.__name__, alias)
 
     logger.debug(
         "handlers: %s.%s → handler chain updated (persist=%s)",
