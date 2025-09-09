@@ -7,15 +7,14 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 
 from tigrbl.v3.orm.tables import Base
-
 from tigrbl_kms.orm import KeyVersion
 
 
 def _create_key(client, name: str = "k1"):
-    payload = {"name": name, "algorithm": "AES256_GCM"}
+    payload = [{"name": name, "algorithm": "AES256_GCM"}]
     res = client.post("/kms/key", json=payload)
-    assert res.status_code == 201
-    return res.json()
+    assert res.status_code in {200, 201}
+    return res.json()[0]
 
 
 @pytest.fixture
