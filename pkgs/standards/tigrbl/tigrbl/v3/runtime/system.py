@@ -2,9 +2,11 @@
 from __future__ import annotations
 
 import logging
+import inspect
 from typing import Any, Callable, Dict, Mapping, MutableMapping, Optional, Tuple
 
 from . import errors as _err
+from .executor.helpers import _in_tx, _is_async_db
 
 log = logging.getLogger(__name__)
 
@@ -75,17 +77,23 @@ def _sys_tx_begin(_obj: Optional[object], ctx: Any) -> None:
     sys:txn:begin — open a transaction/savepoint if the adapter installed a runner.
     Defaults to no-op; sets a small flag for diagnostics.
     """
+    log.debug("system: begin_tx enter")
     _ensure_temp(ctx)
-    ctx.temp.setdefault("__sys_tx_open__", False)
+    has_open = any(
+        callable(fn) for fn in (INSTALLED.begin, INSTALLED.commit, INSTALLED.rollback)
+    )
+    ctx.temp["__sys_tx_open__"] = has_open
     try:
         if callable(INSTALLED.begin):
             INSTALLED.begin(ctx)
-            ctx.temp["__sys_tx_open__"] = True
             log.debug("system: begin_tx executed.")
         else:
             log.debug("system: begin_tx no-op (no adapter installed).")
     except Exception as e:  # escalate as typed error
+        ctx.temp["__sys_tx_open__"] = False
         raise _err.SystemStepError("Failed to begin transaction.", cause=e)
+    finally:
+        log.debug("system: begin_tx exit")
 
 
 def _sys_handler_crud(obj: Optional[object], ctx: Any) -> None:
@@ -135,27 +143,48 @@ def _sys_handler_crud(obj: Optional[object], ctx: Any) -> None:
         raise _err.SystemStepError("Handler execution failed.", cause=e)
 
 
-def _sys_tx_commit(_obj: Optional[object], ctx: Any) -> None:
+async def _sys_tx_commit(_obj: Optional[object], ctx: Any) -> None:
     """
     sys:txn:commit — commit the transaction if begin ran and adapter installed commit.
     Defaults to no-op; clears the 'open' flag.
     """
+    log.debug("system: commit_tx enter")
     _ensure_temp(ctx)
-    open_flag = bool(ctx.temp.get("__sys_tx_open__"))
+    db = getattr(ctx, "db", None)
+    open_flag = bool(ctx.temp.get("__sys_tx_open__")) or (db is not None and _in_tx(db))
     try:
-        if callable(INSTALLED.commit) and open_flag:
-            INSTALLED.commit(ctx)
-            log.debug("system: commit_tx executed.")
+        if open_flag:
+            if callable(INSTALLED.commit):
+                rv = INSTALLED.commit(ctx)
+                if inspect.isawaitable(rv):
+                    await rv  # type: ignore[func-returns-value]
+                log.debug("system: commit_tx executed.")
+            else:
+                log.debug("system: commit_tx no-op (no adapter commit).")
+
+            if db is not None and _in_tx(db):
+                log.debug("system: commit_tx fallback commit executing.")
+                commit = getattr(db, "commit", None)
+                if callable(commit):
+                    try:
+                        if _is_async_db(db):
+                            await commit()  # type: ignore[misc]
+                        else:
+                            commit()
+                        log.debug("system: commit_tx fallback commit succeeded.")
+                    except Exception as e:  # pragma: no cover - defensive safeguard
+                        log.exception("system: commit_tx fallback commit failed: %s", e)
+                else:
+                    log.debug(
+                        "system: commit_tx fallback commit not possible (no commit attr)."
+                    )
         else:
-            log.debug(
-                "system: commit_tx no-op (open=%s, installed=%s).",
-                open_flag,
-                bool(INSTALLED.commit),
-            )
+            log.debug("system: commit_tx no-op (open=%s).", open_flag)
     except Exception as e:
         raise _err.SystemStepError("Failed to commit transaction.", cause=e)
     finally:
         ctx.temp["__sys_tx_open__"] = False
+        log.debug("system: commit_tx exit")
 
 
 def run_rollback(ctx: Any, err: BaseException | None = None) -> None:
