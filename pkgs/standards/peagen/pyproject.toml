@@ -89,7 +89,7 @@ dependencies = [
     # db api support
     "tigrbl",
     "tigrbl_client",
-    "auto_authn",
+    "tigrbl_auth",
 
 ]
 
@@ -100,7 +100,7 @@ swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 tigrbl = { workspace = true }
 tigrbl_client = { workspace = true }
-auto_authn = { workspace = true }
+tigrbl_auth = { workspace = true }
 swarmauri_keyprovider_ssh = { workspace = true }
 swarmauri_crypto_paramiko = { workspace = true }
 swarmauri_crypto_pgp = { workspace = true }
