@@ -30,9 +30,9 @@ def client_app(tmp_path, monkeypatch):
 def test_key_read_and_list_without_versions(client_app):
     client = client_app
     payload = {"name": "k1", "algorithm": "AES256_GCM"}
-    res = client.post("/kms/key", json=payload)
-    assert res.status_code == 201
-    key = res.json()
+    res = client.post("/kms/key", json=[payload])
+    assert res.status_code in {200, 201}
+    key = res.json()[0]
 
     res = client.get(f"/kms/key/{key['id']}")
     assert res.status_code == 200

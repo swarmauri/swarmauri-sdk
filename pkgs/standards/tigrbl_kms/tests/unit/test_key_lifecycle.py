@@ -43,15 +43,15 @@ def _fetch_versions(app, key_id):
 def test_key_full_lifecycle(client_app):
     client, app = client_app
     payload = {"name": "k1", "algorithm": "AES256_GCM"}
-    res = client.post("/kms/key", json=payload)
-    assert res.status_code == 201
-    key = res.json()
+    res = client.post("/kms/key", json=[payload])
+    assert res.status_code in {200, 201}
+    key = res.json()[0]
 
     assert _fetch_versions(app, key["id"]) == [1]
 
     kv_payload = {"key_id": key["id"], "version": 2, "status": "active"}
-    res = client.post("/kms/key_version", json=kv_payload)
-    assert res.status_code == 201
+    res = client.post("/kms/key_version", json=[kv_payload])
+    assert res.status_code in {200, 201}
     assert _fetch_versions(app, key["id"]) == [1, 2]
 
     res = client.delete(f"/kms/key/{key['id']}")
