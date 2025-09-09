@@ -163,39 +163,42 @@ class Key(Base, BulkCapable, Replaceable):
     )
 
     # ---- Hook: seed key material on create ----
-    @hook_ctx(ops="create", phase="POST_HANDLER")
+    @hook_ctx(ops=("create", "bulk_create"), phase="POST_HANDLER")
     async def _seed_primary_version(cls, ctx):
         import secrets
         from .key_version import KeyVersion
 
         db = ctx.get("db")
-        key_obj = ctx.get("result")
-        if db is None or key_obj is None:
+        result = ctx.get("result")
+        if db is None or result is None:
             raise HTTPException(status_code=500, detail="DB session missing")
 
-        if key_obj.algorithm != KeyAlg.AES256_GCM:
-            return  # only symmetric keys supported for now
+        keys = result if isinstance(result, list) else [result]
 
-        existing = await KeyVersion.handlers.list.core(
-            {
-                "db": db,
-                "payload": {
-                    "filters": {
-                        "key_id": key_obj.id,
-                        "version": key_obj.primary_version,
-                    }
-                },
-            }
-        )
-        if not existing:
-            material = secrets.token_bytes(32)
-            kv = KeyVersion(
-                key_id=key_obj.id,
-                version=key_obj.primary_version,
-                status="active",
-                public_material=material,
+        for key_obj in keys:
+            if key_obj.algorithm != KeyAlg.AES256_GCM:
+                continue  # only symmetric keys supported for now
+
+            existing = await KeyVersion.handlers.list.core(
+                {
+                    "db": db,
+                    "payload": {
+                        "filters": {
+                            "key_id": key_obj.id,
+                            "version": key_obj.primary_version,
+                        }
+                    },
+                }
             )
-            db.add(kv)
+            if not existing:
+                material = secrets.token_bytes(32)
+                kv = KeyVersion(
+                    key_id=key_obj.id,
+                    version=key_obj.primary_version,
+                    status="active",
+                    public_material=material,
+                )
+                db.add(kv)
 
     @hook_ctx(
         ops=("create", "read", "list", "update", "replace", "wrap", "unwrap"),
