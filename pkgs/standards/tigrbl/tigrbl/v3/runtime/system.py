@@ -79,10 +79,11 @@ def _sys_tx_begin(_obj: Optional[object], ctx: Any) -> None:
     """
     log.debug("system: begin_tx enter")
     _ensure_temp(ctx)
-    ctx.temp["__sys_tx_open__"] = True
+    ctx.temp["__sys_tx_open__"] = False
     try:
         if callable(INSTALLED.begin):
             INSTALLED.begin(ctx)
+            ctx.temp["__sys_tx_open__"] = True
             log.debug("system: begin_tx executed.")
         else:
             log.debug("system: begin_tx no-op (no adapter installed).")
