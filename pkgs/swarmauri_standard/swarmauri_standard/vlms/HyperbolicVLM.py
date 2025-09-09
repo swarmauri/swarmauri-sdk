@@ -44,7 +44,7 @@ class HyperbolicVLM(VLMBase):
     _client: httpx.Client = PrivateAttr(default=None)
     _BASE_URL: str = PrivateAttr(default="https://api.hyperbolic.xyz/v1/")
 
-    def __init__(self, **data):
+    def __init__(self, **data: dict[str, Any]) -> None:
         """
         Initialize the HyperbolicVisionModel class with the provided data.
 

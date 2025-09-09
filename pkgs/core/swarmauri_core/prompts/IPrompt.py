@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Any
 
 
 class IPrompt(ABC):
@@ -10,7 +11,7 @@ class IPrompt(ABC):
     """
 
     @abstractmethod
-    def __call__(self, **kwargs) -> str:
+    def __call__(self, **kwargs: dict[str, Any]) -> str:
         """
         Abstract method that subclasses must implement to define the behavior of the prompt when called.
 

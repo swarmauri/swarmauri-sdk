@@ -42,7 +42,7 @@ class GroqVLM(VLMBase):
         default="https://api.groq.com/openai/v1/chat/completions"
     )
 
-    def __init__(self, **data):
+    def __init__(self, **data: dict[str, Any]):
         """
         Initialize the GroqAIAudio class with the provided data.
 

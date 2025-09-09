@@ -1,0 +1,22 @@
+name: Deploy Docs Apps
+on:
+  push:
+    branches: [master, mono/dev]
+    paths:
+      - 'docs/**'
+      - 'pkgs/**'
+  workflow_dispatch:
+
+jobs:
+  deploy-apps:
+    runs-on: [docs]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Restart mkdocs service
+        run: |
+          docker compose -f infra/docs/docker-compose.yml up -d --pull always mkdocs
+

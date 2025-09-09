@@ -1,5 +1,5 @@
 import asyncio
-from typing import Dict, List, Literal
+from typing import Any, Dict, List, Literal
 
 import aiofiles
 import httpx
@@ -37,12 +37,12 @@ class GroqSTT(STTBase):
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
     _BASE_URL: str = PrivateAttr(default="https://api.groq.com/openai/v1/audio/")
 
-    def __init__(self, **data):
+    def __init__(self, **data: Dict[str, Any]):
         """
         Initialize the GroqSTT class with the provided data.
 
         Args:
-            **data: Arbitrary keyword arguments containing initialization data.
+            **data (Dict[str, Any]): Arbitrary keyword arguments containing initialization data.
         """
         super().__init__(**data)
         self._client = httpx.Client(
