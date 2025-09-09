@@ -22,7 +22,6 @@ class ParserBase(IParser, ComponentBase):
 
     resource: Optional[str] = Field(default=ResourceTypes.PARSER.value, frozen=True)
     type: Literal["ParserBase"] = "ParserBase"
-    model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
 
     @abstractmethod
     def parse(self, data: Union[str, Any]) -> List[T]:
