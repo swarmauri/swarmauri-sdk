@@ -5,7 +5,7 @@ import logging
 from typing import Any, MutableMapping, Optional, Union
 
 from .types import _Ctx, PhaseChains, Request, Session, AsyncSession
-from .helpers import _in_tx, _run_chain, _g, _is_async_db
+from .helpers import _in_tx, _run_chain, _g
 from .guards import _install_db_guards, _rollback_if_owned
 from ..errors import create_standardized_error
 from ...config.constants import CTX_SKIP_PERSIST_FLAG
@@ -31,14 +31,6 @@ async def _invoke(
         obj = getattr(ctx, "obj", None)
         if obj is not None:
             ctx.model = type(obj)
-    if db is not None and _in_tx(db):
-        try:
-            if _is_async_db(db):
-                await db.commit()  # type: ignore[attr-defined]
-            else:
-                db.commit()  # type: ignore[attr-defined]
-        except Exception:  # pragma: no cover
-            pass
     skip_persist: bool = bool(ctx.get(CTX_SKIP_PERSIST_FLAG) or ctx.get("skip_persist"))
 
     existed_tx_before = _in_tx(db) if db is not None else False
@@ -152,14 +144,6 @@ async def _invoke(
     )
     if ctx.get("result") is not None:
         ctx.response.result = ctx.get("result")
-    if db is not None and _in_tx(db):
-        try:
-            if _is_async_db(db):
-                await db.commit()  # type: ignore[attr-defined]
-            else:
-                db.commit()  # type: ignore[attr-defined]
-        except Exception:  # pragma: no cover - defensive safeguard
-            pass
     return ctx.response.result
 
 
