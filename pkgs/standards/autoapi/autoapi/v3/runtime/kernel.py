@@ -24,7 +24,7 @@ from typing import (
 )
 
 from .executor import _invoke, _Ctx
-from . import events as _ev
+from . import events as _ev, ordering as _ordering
 from ..op.types import PHASES, StepFn
 from ..column.mro_collect import mro_collect_columns
 
@@ -231,7 +231,17 @@ def _inject_atoms(
     persistent: bool,
 ) -> None:
     order = {name: i for i, name in enumerate(_ev.all_events_ordered())}
-    for anchor, run in sorted(atoms, key=lambda it: order.get(it[0], 10_000)):
+
+    def _sort_key(item: _DiscoveredAtom) -> tuple[int, int]:
+        anchor, run = item
+        anchor_idx = order.get(anchor, 10_000)
+        d, s = _infer_domain_subject(run)
+        token = f"{d}:{s}" if d and s else ""
+        pref = _ordering._PREF.get(anchor, ())
+        token_idx = pref.index(token) if token in pref else 10_000
+        return anchor_idx, token_idx
+
+    for anchor, run in sorted(atoms, key=_sort_key):
         try:
             info = _ev.get_anchor_info(anchor)
         except Exception:

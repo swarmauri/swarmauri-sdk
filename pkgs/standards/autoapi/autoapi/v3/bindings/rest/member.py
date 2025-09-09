@@ -35,6 +35,8 @@ from .common import (
     _status_for,
 )
 
+from ...runtime.executor.types import _Ctx
+
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/rest/member")
@@ -89,9 +91,19 @@ def _make_member_endpoint(
             ac = getattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, None)
             if ac is not None:
                 ctx["auth_context"] = ac
-            ctx["response_serializer"] = lambda r: _serialize_output(
-                model, alias, target, sp, r
-            )
+            ctx = _Ctx(ctx)
+
+            def _serializer(r, _ctx=ctx):
+                out = _serialize_output(model, alias, target, sp, r)
+                temp = getattr(_ctx, "temp", {}) if isinstance(_ctx, Mapping) else {}
+                extras = (
+                    temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}
+                )
+                if isinstance(out, dict) and isinstance(extras, dict):
+                    out.update(extras)
+                return out
+
+            ctx["response_serializer"] = _serializer
             phases = _get_phase_chains(model, alias)
             result = await _executor._invoke(
                 request=request,
@@ -100,22 +112,9 @@ def _make_member_endpoint(
                 ctx=ctx,
             )
             if isinstance(result, Response):
-                result.status_code = status_code
+                if sp.status_code is not None or result.status_code == 200:
+                    result.status_code = status_code
                 return result
-            temp = ctx.get("temp", {}) if isinstance(ctx, Mapping) else {}
-            extras = (
-                temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}
-            )
-            raw = (
-                temp.get("paired_values", {}).get("digest", {}).get("raw")
-                if isinstance(temp, Mapping)
-                else None
-            )
-            if isinstance(result, dict):
-                if isinstance(extras, dict):
-                    result.update(extras)
-                if raw is not None and "api_key" not in result:
-                    result["api_key"] = raw
             return result
 
         params = [
@@ -187,9 +186,19 @@ def _make_member_endpoint(
             ac = getattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, None)
             if ac is not None:
                 ctx["auth_context"] = ac
-            ctx["response_serializer"] = lambda r: _serialize_output(
-                model, alias, target, sp, r
-            )
+            ctx = _Ctx(ctx)
+
+            def _serializer(r, _ctx=ctx):
+                out = _serialize_output(model, alias, target, sp, r)
+                temp = getattr(_ctx, "temp", {}) if isinstance(_ctx, Mapping) else {}
+                extras = (
+                    temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}
+                )
+                if isinstance(out, dict) and isinstance(extras, dict):
+                    out.update(extras)
+                return out
+
+            ctx["response_serializer"] = _serializer
             phases = _get_phase_chains(model, alias)
             result = await _executor._invoke(
                 request=request,
@@ -197,20 +206,6 @@ def _make_member_endpoint(
                 phases=phases,
                 ctx=ctx,
             )
-            temp = ctx.get("temp", {}) if isinstance(ctx, Mapping) else {}
-            extras = (
-                temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}
-            )
-            raw = (
-                temp.get("paired_values", {}).get("digest", {}).get("raw")
-                if isinstance(temp, Mapping)
-                else None
-            )
-            if isinstance(result, dict):
-                if isinstance(extras, dict):
-                    result.update(extras)
-                if raw is not None and "api_key" not in result:
-                    result["api_key"] = raw
             return result
 
         params = [
@@ -303,9 +298,19 @@ def _make_member_endpoint(
         ac = getattr(request.state, AUTOAPI_AUTH_CONTEXT_ATTR, None)
         if ac is not None:
             ctx["auth_context"] = ac
-        ctx["response_serializer"] = lambda r: _serialize_output(
-            model, alias, target, sp, r
-        )
+        ctx = _Ctx(ctx)
+
+        def _serializer(r, _ctx=ctx):
+            out = _serialize_output(model, alias, target, sp, r)
+            temp = getattr(_ctx, "temp", {}) if isinstance(_ctx, Mapping) else {}
+            extras = (
+                temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}
+            )
+            if isinstance(out, dict) and isinstance(extras, dict):
+                out.update(extras)
+            return out
+
+        ctx["response_serializer"] = _serializer
         phases = _get_phase_chains(model, alias)
         result = await _executor._invoke(
             request=request,
@@ -313,21 +318,11 @@ def _make_member_endpoint(
             phases=phases,
             ctx=ctx,
         )
+
         if isinstance(result, Response):
-            result.status_code = status_code
+            if sp.status_code is not None or result.status_code == 200:
+                result.status_code = status_code
             return result
-        temp = ctx.get("temp", {}) if isinstance(ctx, Mapping) else {}
-        extras = temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}
-        raw = (
-            temp.get("paired_values", {}).get("digest", {}).get("raw")
-            if isinstance(temp, Mapping)
-            else None
-        )
-        if isinstance(result, dict):
-            if isinstance(extras, dict):
-                result.update(extras)
-            if raw is not None and "api_key" not in result:
-                result["api_key"] = raw
         return result
 
     params = [
