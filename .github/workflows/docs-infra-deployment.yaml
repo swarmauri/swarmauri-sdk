@@ -15,8 +15,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Deploy nginx-proxy-manager
+      - name: Restart docs infra stack
         run: |
-          docker compose -f infra/docs/docker-compose.yml pull nginx-proxy-manager
-          docker compose -f infra/docs/docker-compose.yml up -d --no-deps nginx-proxy-manager
-
+          docker compose -f infra/docs/docker-compose.yml down || true
+          docker compose -f infra/docs/docker-compose.yml up -d --pull always
