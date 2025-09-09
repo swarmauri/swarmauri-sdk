@@ -95,6 +95,22 @@ attach handlers at any phase to customize behavior or enforce policy.
 | `ON_POST_RESPONSE_ERROR` | Handle errors raised during `POST_RESPONSE`. |
 | `ON_ROLLBACK` | Run when the transaction rolls back to perform cleanup. |
 
+## Hook Configuration Precedence
+
+Hooks can be registered at the API, model, or operation level. When the
+framework builds the hook chain for an operation, configuration from these
+sources is merged per phase with well-defined precedence:
+
+- **Pre-like phases** (`PRE_TX_BEGIN`, `START_TX`, `PRE_HANDLER`, `PRE_COMMIT`):
+  API hooks run first, then model hooks, and finally op hooks.
+- **Post and error phases** (`POST_HANDLER`, `POST_COMMIT`, `POST_RESPONSE`,
+  and all `ON_*` variants): op hooks execute before model hooks, which run
+  before API hooks.
+
+This ordering lets broad API policies execute before model and op
+customizations on the way in and unwind in reverse for post-processing and
+error handling.
+
 ## Configuration Overview
 
 ### Table-Level
