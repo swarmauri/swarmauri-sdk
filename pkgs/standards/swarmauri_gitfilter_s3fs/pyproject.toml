@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_gitfilter_s3fs"
-version = "0.1.0.dev3"
+version = "0.1.0.dev4"
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" }
 ]

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupyterreadnotebook"
-version = "0.7.6.dev7"
+version = "0.7.6.dev8"
 description = "A tool that reads a Jupyter Notebook file using nbformat, converting the JSON file into a NotebookNode object."
 license = "Apache-2.0"
 readme = "README.md"
