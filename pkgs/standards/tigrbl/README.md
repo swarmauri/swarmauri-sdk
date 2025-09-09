@@ -23,6 +23,49 @@ A high-leverage meta-framework that turns plain SQLAlchemy models into a fully-f
 - Automated route creation: rest paths or nested rest paths, rpc dispatch, healthz, methodz, hookz
 - Support for AuthNProvider extensions
 
+## Built-in Verbs
+
+Tigrbl exposes a canonical set of operations that surface as both REST
+and RPC endpoints. The table below summarizes the default REST routes,
+RPC methods, arity, and the expected input and output shapes for each
+verb. `{resource}` stands for the collection path and `{id}` is the
+primary key placeholder.
+
+| Verb | REST route | RPC method | Arity | Input type | Output type |
+|------|------------|------------|-------|------------|-------------|
+| `create` | `POST /{resource}` | `Model.create` | collection | dict | dict |
+| `read` | `GET /{resource}/{id}` | `Model.read` | member | – | dict |
+| `update` | `PATCH /{resource}/{id}` | `Model.update` | member | dict | dict |
+| `replace` | `PUT /{resource}/{id}` | `Model.replace` | member | dict | dict |
+| `merge` | `PATCH /{resource}/{id}` | `Model.merge` | member | dict | dict |
+| `delete` | `DELETE /{resource}/{id}` | `Model.delete` | member | – | dict |
+| `list` | `GET /{resource}` | `Model.list` | collection | dict | array |
+| `clear` | `DELETE /{resource}` | `Model.clear` | collection | dict | dict |
+| `bulk_create` | `POST /{resource}` | `Model.bulk_create` | collection | array | array |
+| `bulk_update` | `PATCH /{resource}` | `Model.bulk_update` | collection | array | array |
+| `bulk_replace` | `PUT /{resource}` | `Model.bulk_replace` | collection | array | array |
+| `bulk_merge` | `PATCH /{resource}` | `Model.bulk_merge` | collection | array | array |
+| `bulk_delete` | `DELETE /{resource}` | `Model.bulk_delete` | collection | dict | dict |
+| `bulk_read` | – | – | – | – | – |
+
+### Update, Merge, and Replace
+
+`update` applies a shallow PATCH: only the supplied fields change and
+missing fields are left untouched. `merge` performs a deep merge with
+upsert semantics—if the target row is absent it is created, and nested
+mapping fields are merged rather than replaced. `replace` follows PUT
+semantics, overwriting the entire record and nulling any omitted
+attributes.
+
+### Verb Overrides
+
+Because `create` and `bulk_create` share the same collection `POST`
+route, enabling `bulk_create` removes the REST `create` endpoint; the
+`Model.create` RPC method remains available. Likewise, `bulk_delete`
+supersedes `clear` by claiming the collection `DELETE` route. Only one
+of each conflicting pair can be exposed at a time. Other verbs coexist
+without conflict because they operate on distinct paths or HTTP
+methods.
 
 ## Configuration Overview
 
