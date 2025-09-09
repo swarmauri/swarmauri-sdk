@@ -139,6 +139,53 @@ If a phase raises an exception, control transfers to the matching
 `ON_<PHASE>_ERROR` chain or falls back to `ON_ERROR`, with `ON_ROLLBACK`
 executing when the transaction is rolled back.
 
+## Request to Response Flow Examples
+
+The diagrams below illustrate how a request moves through Tigrbl and returns
+a response.
+
+### REST example
+
+```
+Client
+  |
+  v
+HTTP Request
+  |
+  v
+FastAPI Router
+  |
+  v
+Tigrbl Runtime
+  |
+  v
+Operation Handler
+  |
+  v
+HTTP Response
+```
+
+### RPC example
+
+```
+Client
+  |
+  v
+JSON-RPC Request
+  |
+  v
+RPC Dispatcher
+  |
+  v
+Tigrbl Runtime
+  |
+  v
+Operation Handler
+  |
+  v
+JSON-RPC Response
+```
+
 ## Hooks
 
 Hooks allow you to plug custom logic into any phase of a verb. Use the
