@@ -147,6 +147,32 @@ Tigrbl orders work into labeled steps that control how phases run:
 Only `secdeps`, `deps`, and `hooks` are expected to be configured downstream;
 `sys` and `atom` steps are maintained by the Tigrbl maintainers.
 
+## Kernelz Labeling
+
+Running apps expose a `/system/kernelz` diagnostics endpoint that returns the
+kernel's phase plan for each model and operation. Every entry is prefixed by
+its phase and a descriptive label, for example:
+
+```
+PRE_TX:secdep:myapp.auth.require_user
+HANDLER:hook:wire:myapp.handlers.audit@HANDLER
+END_TX:hook:sys:txn:commit@END_TX
+POST_HANDLER:atom:wire:dump@POST_HANDLER
+```
+
+The token after the phase identifies the step type:
+
+- `secdep` and `dep` list security and general dependencies as
+  `PRE_TX:secdep:<callable>` and `PRE_TX:dep:<callable>`.
+- `hook:sys` labels built-in system hooks shipped with Tigrbl.
+- `hook:wire` is the default label for user hooks and includes the module and
+  function name plus the phase.
+- `atom:{domain}:{subject}` denotes runtime atoms, such as
+  `atom:wire:dump`.
+
+These labels allow downstream services to inspect execution order and debug how
+work is scheduled.
+
 ## Configuration Overview
 
 ### Table-Level
