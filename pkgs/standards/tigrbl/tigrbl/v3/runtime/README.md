@@ -20,7 +20,23 @@ Phase chains map phase names to ordered handler lists. The executor runs the pha
 
 ## DB Guards
 
-For every phase the executor installs database guards that monkey‑patch `commit` and `flush` on the session. Guards enforce which operations are allowed and ensure only the owning transaction may commit.
+For every phase the executor installs database guards that monkey‑patch
+`commit` and `flush` on the session. Guards enforce which operations are
+allowed and ensure only the owning transaction may commit.
+
+The guard installer swaps these methods with stubs that raise
+`RuntimeError` when a disallowed operation is attempted. Each phase passes
+flags describing its policy:
+
+- `allow_flush` – permit calls to `session.flush`.
+- `allow_commit` – permit calls to `session.commit`.
+- `require_owned_tx_for_commit` – when `True`, block commits if the
+  executor did not open the transaction.
+
+The installer returns a handle that restores the original methods once the
+phase finishes so restrictions do not leak across phases. A companion
+helper triggers a rollback if the runtime owns the transaction and a phase
+raises an error.
 
 | Phase | Flush | Commit | Notes |
 |-------|-------|--------|-------|

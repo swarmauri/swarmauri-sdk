@@ -67,6 +67,34 @@ of each conflicting pair can be exposed at a time. Other verbs coexist
 without conflict because they operate on distinct paths or HTTP
 methods.
 
+## Phase Lifecycle
+
+Tigrbl operations execute through a fixed sequence of phases. Hook chains can
+attach handlers at any phase to customize behavior or enforce policy.
+
+| Phase | Description |
+|-------|-------------|
+| `PRE_TX_BEGIN` | Pre-transaction checks before a database session is used. |
+| `START_TX` | Open a new transaction when one is not already active. |
+| `PRE_HANDLER` | Validate the request and prepare resources for the handler. |
+| `HANDLER` | Execute the core operation logic within the transaction. |
+| `POST_HANDLER` | Post-processing while still inside the transaction. |
+| `PRE_COMMIT` | Final verification before committing; writes are frozen. |
+| `END_TX` | Commit and close the transaction. |
+| `POST_COMMIT` | Steps that run after commit but before the response is returned. |
+| `POST_RESPONSE` | Fire-and-forget work after the response has been sent. |
+| `ON_ERROR` | Fallback error handler when no phase-specific chain matches. |
+| `ON_PRE_TX_BEGIN_ERROR` | Handle errors raised during `PRE_TX_BEGIN`. |
+| `ON_START_TX_ERROR` | Handle errors raised during `START_TX`. |
+| `ON_PRE_HANDLER_ERROR` | Handle errors raised during `PRE_HANDLER`. |
+| `ON_HANDLER_ERROR` | Handle errors raised during `HANDLER`. |
+| `ON_POST_HANDLER_ERROR` | Handle errors raised during `POST_HANDLER`. |
+| `ON_PRE_COMMIT_ERROR` | Handle errors raised during `PRE_COMMIT`. |
+| `ON_END_TX_ERROR` | Handle errors raised during `END_TX`. |
+| `ON_POST_COMMIT_ERROR` | Handle errors raised during `POST_COMMIT`. |
+| `ON_POST_RESPONSE_ERROR` | Handle errors raised during `POST_RESPONSE`. |
+| `ON_ROLLBACK` | Run when the transaction rolls back to perform cleanup. |
+
 ## Configuration Overview
 
 ### Table-Level
@@ -91,6 +119,14 @@ methods.
 ### Security
 - Pluggable `AuthNProvider` interface.
 - `__tigrbl_allow_anon__` to permit anonymous access.
+
+### Database Guards
+Tigrbl executes each phase under database guards that temporarily replace
+`commit` and `flush` on the SQLAlchemy session. Guards prevent writes or
+commits outside their allowed phases and only permit commits when Tigrbl
+owns the transaction. See the
+[runtime documentation](tigrbl/v3/runtime/README.md#db-guards) for the full
+matrix of phase policies.
 
 ### Dependencies
 - SQLAlchemy for ORM integration.
