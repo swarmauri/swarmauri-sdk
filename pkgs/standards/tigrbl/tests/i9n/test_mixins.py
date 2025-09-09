@@ -1,5 +1,5 @@
 """
-Mixins Tests for Tigrbl v2
+Mixins Tests for Tigrbl v3
 
 Tests all mixins and their expected behavior using individual DummyModel instances.
 """

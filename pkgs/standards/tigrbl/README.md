@@ -95,6 +95,86 @@ attach handlers at any phase to customize behavior or enforce policy.
 | `ON_POST_RESPONSE_ERROR` | Handle errors raised during `POST_RESPONSE`. |
 | `ON_ROLLBACK` | Run when the transaction rolls back to perform cleanup. |
 
+During a successful request the runtime advances through each phase in the
+order shown below. Each step completes before the next begins and hooks may
+extend or short‑circuit the flow.
+
+```
+PRE_TX_BEGIN
+   |
+START_TX
+   |
+PRE_HANDLER
+   |
+HANDLER
+   |
+POST_HANDLER
+   |
+PRE_COMMIT
+   |
+END_TX
+   |
+POST_COMMIT
+   |
+POST_RESPONSE
+```
+
+If a phase raises an exception, control transfers to the matching
+`ON_<PHASE>_ERROR` chain or falls back to `ON_ERROR`, with `ON_ROLLBACK`
+executing when the transaction is rolled back.
+
+## Hooks
+
+Hooks allow you to plug custom logic into any phase of a verb. Use the
+`hook_ctx` decorator to declare context-only hooks:
+
+```python
+from tigrbl.v3 import Base, hook_ctx
+
+class Item(Base):
+    __tablename__ = "items"
+
+    @hook_ctx(ops="create", phase="PRE_HANDLER")
+    async def validate(cls, ctx):
+        if ctx["request"].payload.get("name") == "bad":
+            raise ValueError("invalid name")
+```
+
+The function runs during the `PRE_HANDLER` phase of `create`. The
+`ctx` mapping provides request and response objects, a database session,
+and values from earlier hooks.
+
+Hooks can also be registered imperatively:
+
+```python
+async def audit(ctx):
+    ...
+
+class Item(Base):
+    __tigrbl_hooks__ = {"delete": {"POST_COMMIT": [audit]}}
+```
+
+Running apps expose a `/system/hookz` route that lists all registered
+hooks.
+
+## Step Types
+
+Tigrbl orders work into labeled steps that control how phases run:
+
+- **secdeps** – security dependencies executed before other checks. Downstream
+  applications declare these to enforce auth or policy.
+- **deps** – general dependencies resolved ahead of phase handlers. Downstream
+  code provides these to inject request context or resources.
+- **sys** – system steps bundled with Tigrbl that drive core behavior.
+  Maintainers own these and downstream packages should not modify them.
+- **atoms** – built-in runtime units such as schema collectors or wire
+  validators. These are maintained by the core team.
+- **hooks** – extension points that downstream packages register to customize
+  phase behavior.
+
+Only `secdeps`, `deps`, and `hooks` are expected to be configured downstream;
+`sys` and `atom` steps are maintained by the Tigrbl maintainers.
+
 ## Configuration Overview
 
 ### Operation Config Precedence
@@ -113,6 +193,22 @@ increasing order of precedence:
 Later entries override earlier ones, so request overrides win over all other
 sources. This can be summarized as
 `overrides > opspec > colspecs > tabspec > apispec > appspec > defaults`.
+
+### Schema Config Precedence
+
+Tigrbl merges schema configuration from several scopes.  
+Later layers override earlier ones, with the precedence order:
+
+1. defaults (lowest)
+2. app configuration
+3. API configuration
+4. table configuration
+5. column-level `cfg` values
+6. op-specific `cfg`
+7. per-request overrides (highest)
+
+This hierarchy ensures that the most specific settings always win.
+
 
 ### Table-Level
 - `__tigrbl_request_extras__` – verb-scoped virtual request fields.
@@ -137,6 +233,15 @@ sources. This can be summarized as
 - Pluggable `AuthNProvider` interface.
 - `__tigrbl_allow_anon__` to permit anonymous access.
 
+### Default Precedence
+When assembling values for persistence, defaults are resolved in this order:
+
+1. Client-supplied value
+2. API `default_factory`
+3. ORM default
+4. Database `server_default`
+5. HTTP 422 if the field is required and still missing
+
 ### Database Guards
 Tigrbl executes each phase under database guards that temporarily replace
 `commit` and `flush` on the SQLAlchemy session. Guards prevent writes or
@@ -144,6 +249,19 @@ commits outside their allowed phases and only permit commits when Tigrbl
 owns the transaction. See the
 [runtime documentation](tigrbl/v3/runtime/README.md#db-guards) for the full
 matrix of phase policies.
+
+The `START_TX` phase opens a transaction and disables `session.flush`,
+allowing validation and hooks to run before any statements hit the
+database. Once the transaction exists, `PRE_HANDLER`, `HANDLER`, and
+`POST_HANDLER` phases permit flushes so pending writes reach the database
+without committing. The workflow concludes in `END_TX`, which performs a
+final flush and commits the transaction when the runtime owns it.
+
+### Response and Template Specs
+Customize outbound responses with `ResponseSpec` and `TemplateSpec`. These dataclasses
+control headers, status codes, and optional template rendering. See
+[tigrbl/v3/response/README.md](tigrbl/v3/response/README.md) for field descriptions and examples.
+
 
 ### Dependencies
 - SQLAlchemy for ORM integration.

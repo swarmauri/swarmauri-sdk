@@ -1,5 +1,5 @@
 """
-Healthz, Methodz and Hookz Endpoints Tests for Tigrbl v2
+Healthz, Methodz and Hookz Endpoints Tests for Tigrbl v3
 
 Tests that healthz, methodz and hookz endpoints are properly attached and behave as expected.
 """
