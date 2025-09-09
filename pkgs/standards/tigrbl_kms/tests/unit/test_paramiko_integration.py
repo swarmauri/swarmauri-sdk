@@ -10,9 +10,9 @@ from tigrbl.v3.orm.tables import Base
 
 def _create_key(client, name="k1"):
     payload = {"name": name, "algorithm": "AES256_GCM"}
-    res = client.post("/kms/key", json=payload)
-    assert res.status_code == 201
-    return res.json()
+    res = client.post("/kms/key", json=[payload])
+    assert res.status_code in {200, 201}
+    return res.json()[0]
 
 
 @pytest.fixture
@@ -42,8 +42,8 @@ def test_key_encrypt_decrypt_with_paramiko_crypto(client_paramiko):
 
     key = _create_key(client)
     kv_payload = {"key_id": key["id"], "version": 2, "status": "active"}
-    res = client.post("/kms/key_version", json=kv_payload)
-    assert res.status_code == 201
+    res = client.post("/kms/key_version", json=[kv_payload])
+    assert res.status_code in {200, 201}
 
     pt = b"hello"
     payload = {"plaintext_b64": base64.b64encode(pt).decode()}
@@ -64,8 +64,8 @@ def test_encrypt_accepts_unpadded_base64(client_paramiko):
 
     key = _create_key(client, name="k2")
     kv_payload = {"key_id": key["id"], "version": 2, "status": "active"}
-    res = client.post("/kms/key_version", json=kv_payload)
-    assert res.status_code == 201
+    res = client.post("/kms/key_version", json=[kv_payload])
+    assert res.status_code in {200, 201}
 
     pt = b"world"
     pt_b64 = base64.b64encode(pt).decode().rstrip("=")

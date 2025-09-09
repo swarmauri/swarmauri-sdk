@@ -41,7 +41,17 @@ def test_all_schemas_listed_in_openapi():
     """Validate that all dynamically generated schemas appear in OpenAPI."""
     app, spec = _get_app_and_spec()
     component_names = set(spec["components"]["schemas"])
-    standard_ops = ["create", "read", "update", "replace", "delete", "list"]
+    standard_ops = [
+        "read",
+        "update",
+        "replace",
+        "delete",
+        "list",
+        "bulk_create",
+        "bulk_update",
+        "bulk_replace",
+        "bulk_delete",
+    ]
     for model_name in MODELS:
         model_ns = getattr(app.schemas, model_name)
         for alias in standard_ops:

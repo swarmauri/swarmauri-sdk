@@ -17,11 +17,11 @@ def _create_key(client, name: str = None, algorithm: str = "AES256_GCM"):
 
         name = f"wrap_test_key_{uuid.uuid4().hex[:8]}"
     payload = {"name": name, "algorithm": algorithm}
-    res = client.post("/kms/key", json=payload)
-    if res.status_code != 201:
+    res = client.post("/kms/key", json=[payload])
+    if res.status_code not in {200, 201}:
         print(f"Key creation failed: {res.status_code} - {res.json()}")
-    assert res.status_code == 201
-    return res.json()
+    assert res.status_code in {200, 201}
+    return res.json()[0]
 
 
 @pytest.fixture

@@ -9,9 +9,9 @@ from tigrbl.v3.orm.tables import Base
 
 def _create_key(client, name: str = "k1"):
     payload = {"name": name, "algorithm": "AES256_GCM"}
-    res = client.post("/kms/key", json=payload)
-    assert res.status_code == 201
-    return res.json()
+    res = client.post("/kms/key", json=[payload])
+    assert res.status_code in {200, 201}
+    return res.json()[0]
 
 
 @pytest.fixture

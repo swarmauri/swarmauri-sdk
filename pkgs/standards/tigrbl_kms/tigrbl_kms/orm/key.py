@@ -162,8 +162,26 @@ class Key(Base, BulkCapable, Replaceable):
         io=IO(in_verbs=("unwrap",), out_verbs=("wrap",)),
     )
 
+    # ---- Hooks: allow single-object bulk_create ----
+    @hook_ctx(ops="bulk_create", phase="PRE_HANDLER")
+    async def _coerce_single_bulk_create(cls, ctx):
+        payload = ctx.get("payload")
+        if isinstance(payload, dict):
+            ctx["payload"] = [payload]
+            ctx["_single_bulk"] = True
+
+    @hook_ctx(ops="bulk_create", phase="POST_RESPONSE")
+    async def _unwrap_single_bulk_create(cls, ctx):
+        if ctx.pop("_single_bulk", False):
+            result = ctx.get("result")
+            if isinstance(result, list):
+                ctx["result"] = result[0] if result else None
+            resp = ctx.get("response")
+            if isinstance(resp, Response):
+                resp.status_code = 201
+
     # ---- Hook: seed key material on create ----
-    @hook_ctx(ops="create", phase="POST_HANDLER")
+    @hook_ctx(ops=("create", "bulk_create"), phase="POST_HANDLER")
     async def _seed_primary_version(cls, ctx):
         import secrets
         from .key_version import KeyVersion
@@ -173,32 +191,43 @@ class Key(Base, BulkCapable, Replaceable):
         if db is None or key_obj is None:
             raise HTTPException(status_code=500, detail="DB session missing")
 
-        if key_obj.algorithm != KeyAlg.AES256_GCM:
-            return  # only symmetric keys supported for now
+        key_objs = key_obj if isinstance(key_obj, list) else [key_obj]
+        for obj in key_objs:
+            if obj.algorithm != KeyAlg.AES256_GCM:
+                continue  # only symmetric keys supported for now
 
-        existing = await KeyVersion.handlers.list.core(
-            {
-                "db": db,
-                "payload": {
-                    "filters": {
-                        "key_id": key_obj.id,
-                        "version": key_obj.primary_version,
-                    }
-                },
-            }
-        )
-        if not existing:
-            material = secrets.token_bytes(32)
-            kv = KeyVersion(
-                key_id=key_obj.id,
-                version=key_obj.primary_version,
-                status="active",
-                public_material=material,
+            existing = await KeyVersion.handlers.list.core(
+                {
+                    "db": db,
+                    "payload": {
+                        "filters": {
+                            "key_id": obj.id,
+                            "version": obj.primary_version,
+                        }
+                    },
+                }
             )
-            db.add(kv)
+            if not existing:
+                material = secrets.token_bytes(32)
+                kv = KeyVersion(
+                    key_id=obj.id,
+                    version=obj.primary_version,
+                    status="active",
+                    public_material=material,
+                )
+                db.add(kv)
 
     @hook_ctx(
-        ops=("create", "read", "list", "update", "replace", "wrap", "unwrap"),
+        ops=(
+            "create",
+            "bulk_create",
+            "read",
+            "list",
+            "update",
+            "replace",
+            "wrap",
+            "unwrap",
+        ),
         phase="POST_RESPONSE",
     )
     async def _scrub_version_material(cls, ctx):
