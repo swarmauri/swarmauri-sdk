@@ -18,6 +18,23 @@ Phase chains map phase names to ordered handler lists. The executor runs the pha
 8. `POST_COMMIT` – steps after commit.
 9. `POST_RESPONSE` – fire-and-forget side effects.
 
+## Step Kinds
+
+The kernel labels every piece of work so it can be ordered predictably:
+
+- **secdeps** – security dependencies that run before any other steps. Downstream
+  applications configure these to enforce authentication or authorization.
+- **deps** – general dependencies resolved ahead of handlers. These are also
+  provided downstream.
+- **sys** – system steps shipped with Tigrbl to coordinate core behavior. They
+  are maintained by project maintainers.
+- **atoms** – built-in runtime units such as schema collectors or wire
+  serializers. Maintainers own these components.
+- **hooks** – user-supplied handlers that attach to anchors within phases.
+
+Downstream consumers configure `secdeps`, `deps`, and `hooks`, while `sys` and
+`atom` steps are maintained by the Tigrbl maintainers.
+
 ## DB Guards
 
 For every phase the executor installs database guards that monkey‑patch
