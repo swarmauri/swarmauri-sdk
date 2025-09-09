@@ -97,6 +97,23 @@ attach handlers at any phase to customize behavior or enforce policy.
 
 ## Configuration Overview
 
+### Operation Config Precedence
+
+When merging configuration for a given operation, Tigrbl layers settings in
+increasing order of precedence:
+
+1. defaults
+2. app config
+3. API config
+4. table config
+5. column `.cfg` entries
+6. operation spec
+7. per-request overrides
+
+Later entries override earlier ones, so request overrides win over all other
+sources. This can be summarized as
+`overrides > opspec > colspecs > tabspec > apispec > appspec > defaults`.
+
 ### Table-Level
 - `__tigrbl_request_extras__` – verb-scoped virtual request fields.
 - `__tigrbl_response_extras__` – verb-scoped virtual response fields.
