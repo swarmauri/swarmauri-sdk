@@ -41,5 +41,5 @@ async def test_sys_tx_handles_async_begin_sync_commit(
 
     system._sys_tx_begin(None, ctx)
     await asyncio.sleep(0)
-    system._sys_tx_commit(None, ctx)
+    await system._sys_tx_commit(None, ctx)
     assert db.started and db.committed
