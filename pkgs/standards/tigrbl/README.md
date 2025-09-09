@@ -177,6 +177,23 @@ Only `secdeps`, `deps`, and `hooks` are expected to be configured downstream;
 
 ## Configuration Overview
 
+### Operation Config Precedence
+
+When merging configuration for a given operation, Tigrbl layers settings in
+increasing order of precedence:
+
+1. defaults
+2. app config
+3. API config
+4. table config
+5. column `.cfg` entries
+6. operation spec
+7. per-request overrides
+
+Later entries override earlier ones, so request overrides win over all other
+sources. This can be summarized as
+`overrides > opspec > colspecs > tabspec > apispec > appspec > defaults`.
+
 ### Schema Config Precedence
 
 Tigrbl merges schema configuration from several scopes.  
@@ -191,6 +208,7 @@ Later layers override earlier ones, with the precedence order:
 7. per-request overrides (highest)
 
 This hierarchy ensures that the most specific settings always win.
+
 
 ### Table-Level
 - `__tigrbl_request_extras__` – verb-scoped virtual request fields.
