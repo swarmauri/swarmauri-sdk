@@ -95,6 +95,40 @@ attach handlers at any phase to customize behavior or enforce policy.
 | `ON_POST_RESPONSE_ERROR` | Handle errors raised during `POST_RESPONSE`. |
 | `ON_ROLLBACK` | Run when the transaction rolls back to perform cleanup. |
 
+## Hooks
+
+Hooks allow you to plug custom logic into any phase of a verb. Use the
+`hook_ctx` decorator to declare context-only hooks:
+
+```python
+from tigrbl.v3 import Base, hook_ctx
+
+class Item(Base):
+    __tablename__ = "items"
+
+    @hook_ctx(ops="create", phase="PRE_HANDLER")
+    async def validate(cls, ctx):
+        if ctx["request"].payload.get("name") == "bad":
+            raise ValueError("invalid name")
+```
+
+The function runs during the `PRE_HANDLER` phase of `create`. The
+`ctx` mapping provides request and response objects, a database session,
+and values from earlier hooks.
+
+Hooks can also be registered imperatively:
+
+```python
+async def audit(ctx):
+    ...
+
+class Item(Base):
+    __tigrbl_hooks__ = {"delete": {"POST_COMMIT": [audit]}}
+```
+
+Running apps expose a `/system/hookz` route that lists all registered
+hooks.
+
 ## Configuration Overview
 
 ### Table-Level
