@@ -1,7 +1,7 @@
 [project]
-name = "tigrbl_auth"
+name = "tigrbl-auth"
 version = "0.1.0.dev2"
-description = "Multi‑tenant OpenID‑Connect / OAuth2 Identity‑Provider server by Swarmauri."
+description = "A Tigrbl Multi‑tenant OpenID‑Connect / OAuth2 Identity‑Provider server by Swarmauri."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"

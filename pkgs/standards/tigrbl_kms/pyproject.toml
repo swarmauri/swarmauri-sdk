@@ -1,7 +1,7 @@
 [project]
-name = "tigrbl_kms"
+name = "tigrbl-kms"
 version = "0.1.0.dev1"
-description = "A key management service for Swarmauri."
+description = "A Tigrbl key management service for Swarmauri."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
