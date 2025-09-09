@@ -49,6 +49,14 @@ A high-leverage meta-framework that turns plain SQLAlchemy models into a fully-f
 - Pluggable `AuthNProvider` interface.
 - `__tigrbl_allow_anon__` to permit anonymous access.
 
+### Database Guards
+Tigrbl executes each phase under database guards that temporarily replace
+`commit` and `flush` on the SQLAlchemy session. Guards prevent writes or
+commits outside their allowed phases and only permit commits when Tigrbl
+owns the transaction. See the
+[runtime documentation](tigrbl/v3/runtime/README.md#db-guards) for the full
+matrix of phase policies.
+
 ### Dependencies
 - SQLAlchemy for ORM integration.
 - Pydantic for schema generation.
