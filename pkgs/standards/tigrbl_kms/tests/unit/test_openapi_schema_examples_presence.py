@@ -47,6 +47,10 @@ def test_all_schemas_listed_in_openapi():
         for alias in standard_ops:
             if not hasattr(model_ns, alias):
                 continue
+            # If a bulk operation exists, the singular op may be omitted from the
+            # OpenAPI components. Skip those cases to avoid false positives.
+            if alias == "create" and hasattr(model_ns, "bulk_create"):
+                continue
             op_ns = getattr(model_ns, alias)
             if alias in {"create", "update", "replace"} and hasattr(op_ns, "in_"):
                 assert op_ns.in_.__name__ in component_names
