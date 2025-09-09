@@ -180,10 +180,18 @@ owns the transaction. See the
 [runtime documentation](tigrbl/v3/runtime/README.md#db-guards) for the full
 matrix of phase policies.
 
+The `START_TX` phase opens a transaction and disables `session.flush`,
+allowing validation and hooks to run before any statements hit the
+database. Once the transaction exists, `PRE_HANDLER`, `HANDLER`, and
+`POST_HANDLER` phases permit flushes so pending writes reach the database
+without committing. The workflow concludes in `END_TX`, which performs a
+final flush and commits the transaction when the runtime owns it.
+
 ### Response and Template Specs
 Customize outbound responses with `ResponseSpec` and `TemplateSpec`. These dataclasses
 control headers, status codes, and optional template rendering. See
 [tigrbl/v3/response/README.md](tigrbl/v3/response/README.md) for field descriptions and examples.
+
 
 ### Dependencies
 - SQLAlchemy for ORM integration.
