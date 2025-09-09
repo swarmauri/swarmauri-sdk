@@ -79,7 +79,10 @@ def _sys_tx_begin(_obj: Optional[object], ctx: Any) -> None:
     """
     log.debug("system: begin_tx enter")
     _ensure_temp(ctx)
-    ctx.temp["__sys_tx_open__"] = True
+    has_open = any(
+        callable(fn) for fn in (INSTALLED.begin, INSTALLED.commit, INSTALLED.rollback)
+    )
+    ctx.temp["__sys_tx_open__"] = has_open
     try:
         if callable(INSTALLED.begin):
             INSTALLED.begin(ctx)
@@ -87,6 +90,7 @@ def _sys_tx_begin(_obj: Optional[object], ctx: Any) -> None:
         else:
             log.debug("system: begin_tx no-op (no adapter installed).")
     except Exception as e:  # escalate as typed error
+        ctx.temp["__sys_tx_open__"] = False
         raise _err.SystemStepError("Failed to begin transaction.", cause=e)
     finally:
         log.debug("system: begin_tx exit")
@@ -146,7 +150,8 @@ async def _sys_tx_commit(_obj: Optional[object], ctx: Any) -> None:
     """
     log.debug("system: commit_tx enter")
     _ensure_temp(ctx)
-    open_flag = bool(ctx.temp.get("__sys_tx_open__"))
+    db = getattr(ctx, "db", None)
+    open_flag = bool(ctx.temp.get("__sys_tx_open__")) or (db is not None and _in_tx(db))
     try:
         if open_flag:
             if callable(INSTALLED.commit):
@@ -157,7 +162,6 @@ async def _sys_tx_commit(_obj: Optional[object], ctx: Any) -> None:
             else:
                 log.debug("system: commit_tx no-op (no adapter commit).")
 
-            db = getattr(ctx, "db", None)
             if db is not None and _in_tx(db):
                 log.debug("system: commit_tx fallback commit executing.")
                 commit = getattr(db, "commit", None)
