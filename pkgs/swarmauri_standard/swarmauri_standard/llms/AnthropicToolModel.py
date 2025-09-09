@@ -2,7 +2,7 @@ import asyncio
 import json
 import logging
 import warnings
-from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
+from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Optional, Type
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -10,11 +10,15 @@ from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
 
+from swarmauri_core.conversations.IConversation import IConversation
+
+
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.messages.FunctionMessage import FunctionMessage
 from swarmauri_standard.schema_converters.AnthropicSchemaConverter import (
     AnthropicSchemaConverter,
 )
+from swarmauri_standard.toolkits.Toolkit import Toolkit
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 warnings.warn(
@@ -36,10 +40,11 @@ class AnthropicToolModel(LLMBase):
     techniques to facilitate enhanced interactions involving tool usage within conversations.
 
     Attributes:
-        api_key (str): The API key used for authenticating requests to the Anthropic API.
+        api_key (SecretStr): The API key used for authenticating requests to the Anthropic API.
         allowed_models (List[str]): A list of allowed model versions that can be used.
         name (str): The default model name used for predictions.
-        type (Literal): The type of the model, which is set to "AnthropicToolModel".
+        type (Literal["AnthropicToolModel"]): The type of the model, which is set to "AnthropicToolModel".
+        timeout (float): Timeout duration for API requests in seconds.
 
     Linked to Allowed Models: https://docs.anthropic.com/en/docs/build-with-claude/tool-use
     Link to API KEY: https://console.anthropic.com/settings/keys
@@ -64,7 +69,13 @@ class AnthropicToolModel(LLMBase):
 
     timeout: float = 600.0
 
-    def __init__(self, **data):
+    def __init__(self, **data: Dict[str, Any]) -> None:
+        """
+        Initialize the AnthropicToolModel with the provided configuration.
+
+        Args:
+            **data (Dict[str, Any]): Keyword arguments for model configuration.
+        """
         super().__init__(**data)
         headers = {
             "Content-Type": "application/json",
@@ -80,12 +91,12 @@ class AnthropicToolModel(LLMBase):
         self.allowed_models = self.allowed_models or self.get_allowed_models()
         self.name = self.name or self.allowed_models[0]
 
-    def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
+    def _schema_convert_tools(self, tools: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Converts a toolkit's tools to the Anthropic-compatible schema format.
 
         Args:
-            tools (List): A list of tools to be converted.
+            tools (Dict[str, Any]): A dictionary of tools to be converted.
 
         Returns:
             List[Dict[str, Any]]: A list of tool schemas converted to the Anthropic format.
@@ -98,7 +109,7 @@ class AnthropicToolModel(LLMBase):
 
     def _format_messages(
         self, messages: List[Type[MessageBase]]
-    ) -> List[Dict[str, str]]:
+    ) -> List[Dict[str, Any]]:
         """
         Formats a list of messages to a schema that matches the Anthropic API's expectations.
 
@@ -106,7 +117,7 @@ class AnthropicToolModel(LLMBase):
             messages (List[Type[MessageBase]]): The conversation history.
 
         Returns:
-            List[Dict[str, str]]: A formatted list of message dictionaries.
+            List[Dict[str, Any]]: A formatted list of message dictionaries.
         """
         message_properties = ["content", "role", "tool_call_id", "tool_calls"]
         formatted_messages = [
@@ -118,24 +129,24 @@ class AnthropicToolModel(LLMBase):
 
     def predict(
         self,
-        conversation,
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
-    ):
+        conversation: IConversation,
+        toolkit: Optional[Toolkit] = None,
+        tool_choice: Optional[Dict[str, Any]] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
+    ) -> IConversation:
         """
         Predicts the response based on the given conversation and optional toolkit.
 
         Args:
-            conversation: The current conversation object.
-            toolkit: Optional toolkit object containing tools for tool-based responses.
-            tool_choice: Optional parameter to choose specific tools or set to 'auto' for automatic tool usage.
+            conversation (IConversation): The current conversation object.
+            toolkit (Optional[Toolkit]): Optional toolkit object containing tools for tool-based responses.
+            tool_choice (Optional[Dict[str, Any]]): Optional parameter to choose specific tools or set to 'auto' for automatic tool usage.
             temperature (float): The temperature for the model's output randomness.
             max_tokens (int): The maximum number of tokens in the response.
 
         Returns:
-            The conversation object updated with the assistant's response.
+            IConversation: The conversation object updated with the assistant's response.
         """
         formatted_messages = self._format_messages(conversation.history)
 
@@ -179,24 +190,24 @@ class AnthropicToolModel(LLMBase):
     @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
         self,
-        conversation,
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
-    ):
+        conversation: IConversation,
+        toolkit: Optional[Toolkit] = None,
+        tool_choice: Optional[Dict[str, Any]] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
+    ) -> IConversation:
         """
         Asynchronous version of the `predict` method to handle concurrent processing of requests.
 
         Args:
-            conversation: The current conversation object.
-            toolkit: Optional toolkit object containing tools for tool-based responses.
-            tool_choice: Optional parameter to choose specific tools or set to 'auto' for automatic tool usage.
+            conversation (IConversation): The current conversation object.
+            toolkit (Optional[Toolkit]): Optional toolkit object containing tools for tool-based responses.
+            tool_choice (Optional[Dict[str, Any]]): Optional parameter to choose specific tools or set to 'auto' for automatic tool usage.
             temperature (float): The temperature for the model's output randomness.
             max_tokens (int): The maximum number of tokens in the response.
 
         Returns:
-            The conversation object updated with the assistant's response.
+            IConversation: The conversation object updated with the assistant's response.
         """
         formatted_messages = self._format_messages(conversation.history)
         logging.info(f"formatted_messages: {formatted_messages}")
@@ -239,19 +250,19 @@ class AnthropicToolModel(LLMBase):
 
     def stream(
         self,
-        conversation,
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
+        conversation: IConversation,
+        toolkit: Optional[Toolkit] = None,
+        tool_choice: Optional[Dict[str, Any]] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
     ) -> Iterator[str]:
         """
         Streams the response for a conversation in real-time, yielding text as it is received.
 
         Args:
-            conversation: The current conversation object.
-            toolkit: Optional toolkit object for tool-based responses.
-            tool_choice: Optional parameter to choose specific tools or set to 'auto' for automatic tool usage.
+            conversation (IConversation): The current conversation object.
+            toolkit (Optional[Toolkit]): Optional toolkit object for tool-based responses.
+            tool_choice (Optional[Dict[str, Any]]): Optional parameter to choose specific tools or set to 'auto' for automatic tool usage.
             temperature (float): The temperature for the model's output randomness.
             max_tokens (int): The maximum number of tokens in the response.
 
@@ -313,19 +324,19 @@ class AnthropicToolModel(LLMBase):
 
     async def astream(
         self,
-        conversation,
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
+        conversation: IConversation,
+        toolkit: Optional[Toolkit] = None,
+        tool_choice: Optional[Dict[str, Any]] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
     ) -> AsyncIterator[str]:
         """
         Asynchronously streams the response for a conversation, yielding text in real-time.
 
         Args:
-            conversation: The current conversation object.
-            toolkit: Optional toolkit object for tool-based responses.
-            tool_choice: Optional parameter to choose specific tools or set to 'auto' for automatic tool usage.
+            conversation (IConversation): The current conversation object.
+            toolkit (Optional[Toolkit]): Optional toolkit object for tool-based responses.
+            tool_choice (Optional[Dict[str, Any]]): Optional parameter to choose specific tools or set to 'auto' for automatic tool usage.
             temperature (float): The temperature for the model's output randomness.
             max_tokens (int): The maximum number of tokens in the response.
 
@@ -392,24 +403,24 @@ class AnthropicToolModel(LLMBase):
 
     def batch(
         self,
-        conversations: List,
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
-    ) -> List:
+        conversations: List[IConversation],
+        toolkit: Optional[Toolkit] = None,
+        tool_choice: Optional[Dict[str, Any]] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
+    ) -> List[IConversation]:
         """
         Processes a batch of conversations in a synchronous manner.
 
         Args:
-            conversations (List): A list of conversation objects to process.
-            toolkit: Optional toolkit object for tool-based responses.
-            tool_choice: Optional parameter to choose specific tools or set to 'auto' for automatic tool usage.
+            conversations (List[IConversation]): A list of conversation objects to process.
+            toolkit (Optional[Toolkit]): Optional toolkit object for tool-based responses.
+            tool_choice (Optional[Dict[str, Any]]): Optional parameter to choose specific tools or set to 'auto' for automatic tool usage.
             temperature (float): The temperature for the model's output randomness.
             max_tokens (int): The maximum number of tokens in the response.
 
         Returns:
-            List: A list of conversation objects updated with the assistant's responses.
+            List[IConversation]: A list of conversation objects updated with the assistant's responses.
         """
         results = []
         for conv in conversations:
@@ -425,28 +436,27 @@ class AnthropicToolModel(LLMBase):
 
     async def abatch(
         self,
-        conversations: List,
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
-        max_concurrent=5,
-    ) -> List:
+        conversations: List[IConversation],
+        toolkit: Optional[Toolkit] = None,
+        tool_choice: Optional[Dict[str, Any]] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
+        max_concurrent: int = 5,
+    ) -> List[IConversation]:
         """
         Processes a batch of conversations asynchronously with limited concurrency.
 
         Args:
-            conversations (List): A list of conversation objects to process.
-            toolkit: Optional toolkit object for tool-based responses.
-            tool_choice: Optional parameter to choose specific tools or set to 'auto' for automatic tool usage.
+            conversations (List[IConversation]): A list of conversation objects to process.
+            toolkit (Optional[Toolkit]): Optional toolkit object for tool-based responses.
+            tool_choice (Optional[Dict[str, Any]]): Optional parameter to choose specific tools or set to 'auto' for automatic tool usage.
             temperature (float): The temperature for the model's output randomness.
             max_tokens (int): The maximum number of tokens in the response.
             max_concurrent (int): The maximum number of concurrent processes allowed.
 
         Returns:
-            List: A list of conversation objects updated with the assistant's responses.
+            List[IConversation]: A list of conversation objects updated with the assistant's responses.
         """
-
         semaphore = asyncio.Semaphore(max_concurrent)
 
         async def process_conversation(conv):
@@ -464,10 +474,10 @@ class AnthropicToolModel(LLMBase):
 
     def get_allowed_models(self) -> List[str]:
         """
-        Queries the LLMProvider API endpoint to retrieve the list of allowed models.
+        Retrieves the list of allowed models for the Anthropic API.
 
         Returns:
-            List[str]: A list of allowed model names retrieved from the API.
+            List[str]: A list of allowed model names.
         """
         allowed_models = [
             "claude-3-sonnet-20240229",

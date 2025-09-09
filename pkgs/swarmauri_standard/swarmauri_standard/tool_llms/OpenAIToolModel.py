@@ -6,16 +6,20 @@ from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
 import httpx
 from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.DynamicBase import SubclassUnion
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
 from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
+from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_core.conversations.IConversation import IConversation
 
+from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.messages.FunctionMessage import FunctionMessage
 from swarmauri_standard.schema_converters.OpenAISchemaConverter import (
     OpenAISchemaConverter,
 )
+from swarmauri_standard.toolkits.Toolkit import Toolkit
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 
@@ -67,12 +71,12 @@ class OpenAIToolModel(ToolLLMBase):
     BASE_URL: str = "https://api.openai.com/v1/chat/completions"
     _headers: Dict[str, str] = PrivateAttr(default=None)
 
-    def __init__(self, **data):
+    def __init__(self, **data: dict[str, Any]):
         """
         Initialize the OpenAIToolModel class with the provided data.
 
         Args:
-            **data: Arbitrary keyword arguments containing initialization data.
+            **data dict[str, Any]: Arbitrary keyword arguments containing initialization data.
         """
         super().__init__(**data)
         self._headers = {
@@ -93,12 +97,14 @@ class OpenAIToolModel(ToolLLMBase):
         """
         return OpenAISchemaConverter
 
-    def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
+    def _schema_convert_tools(
+        self, tools: Dict[str, SubclassUnion[ToolBase]]
+    ) -> List[Dict[str, Any]]:
         """
         Convert a dictionary of tools to the schema format required by OpenAI API.
 
         Args:
-            tools (dict): A dictionary of tool objects.
+            tools (Dict[str, SubclassUnion[ToolBase]]): A dictionary of tool objects.
 
         Returns:
             List[Dict[str, Any]]: A list of converted tool schemas.
@@ -125,7 +131,9 @@ class OpenAIToolModel(ToolLLMBase):
             if message.role != "tool"
         ]
 
-    def _process_tool_calls(self, tool_calls, toolkit, messages) -> List[Dict]:
+    def _process_tool_calls(
+        self, tool_calls: List[Any], toolkit: Toolkit, messages: List[Type[MessageBase]]
+    ) -> List[Dict]:
         """
         Processes a list of tool calls and appends the results to the messages list.
 
@@ -133,7 +141,7 @@ class OpenAIToolModel(ToolLLMBase):
             tool_calls (list): A list of dictionaries representing tool calls. Each dictionary should contain
                                a "function" key with a nested dictionary that includes the "name" and "arguments"
                                of the function to be called, and an "id" key for the tool call identifier.
-            toolkit (object): An object that provides access to tools via the `get_tool_by_name` method.
+            toolkit (Toolkit): Toolkit that provides access to tools via the `get_tool_by_name` method.
             messages (list): A list of message dictionaries to which the results of the tool calls will be appended.
 
         Returns:
@@ -160,13 +168,13 @@ class OpenAIToolModel(ToolLLMBase):
     @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
         self,
-        conversation: IConversation,
-        toolkit=None,
-        tool_choice=None,
+        conversation: Conversation,
+        toolkit: Toolkit,
+        tool_choice: dict[str, Any],
         multiturn: bool = True,
-        temperature=0.7,
-        max_tokens=1024,
-    ) -> IConversation:
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
+    ) -> Conversation:
         """
         Makes a synchronous prediction using the OpenAI model.
 
@@ -241,20 +249,20 @@ class OpenAIToolModel(ToolLLMBase):
     @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
         self,
-        conversation: IConversation,
-        toolkit=None,
-        tool_choice=None,
+        conversation: Conversation,
+        toolkit: Toolkit,
+        tool_choice: dict[str, Any],
         multiturn: bool = True,
-        temperature=0.7,
-        max_tokens=1024,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
     ) -> IConversation:
         """
         Makes an asynchronous prediction using the OpenAI model.
 
         Parameters:
             conversation (IConversation): Conversation instance with message history.
-            toolkit: Optional toolkit for tool conversion.
-            tool_choice: Tool selection strategy.
+            toolkit (Toolkit): Optional toolkit for tool conversion.
+            tool_choice (dict[str, Any]): Tool selection strategy.
             multiturn (bool): Whether to follow up a tool call with another LLM request.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
@@ -322,11 +330,11 @@ class OpenAIToolModel(ToolLLMBase):
     @retry_on_status_codes((429, 529), max_retries=1)
     def stream(
         self,
-        conversation: IConversation,
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
+        conversation: Conversation,
+        toolkit: Toolkit,
+        tool_choice: dict[str, Any],
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
     ) -> Iterator[str]:
         """
         Streams response from OpenAI model in real-time.
@@ -419,11 +427,11 @@ class OpenAIToolModel(ToolLLMBase):
     @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
         self,
-        conversation: IConversation,
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
+        conversation: Conversation,
+        toolkit: Toolkit,
+        tool_choice: dict[str, Any],
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
     ) -> AsyncIterator[str]:
         """
         Asynchronously streams response from OpenAI model.
@@ -516,11 +524,11 @@ class OpenAIToolModel(ToolLLMBase):
 
     def batch(
         self,
-        conversations: List[IConversation],
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
+        conversations: List[Conversation],
+        toolkit: Toolkit,
+        tool_choice: dict[str, Any],
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
     ) -> List[IConversation]:
         """
         Synchronously processes multiple conversations and generates responses for each.
@@ -549,12 +557,12 @@ class OpenAIToolModel(ToolLLMBase):
 
     async def abatch(
         self,
-        conversations: List[IConversation],
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
-        max_concurrent=5,
+        conversations: List[Conversation],
+        toolkit: Toolkit,
+        tool_choice: dict[str, Any],
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
+        max_concurrent: int = 5,
     ) -> List[IConversation]:
         """
         Asynchronously processes multiple conversations with controlled concurrency.

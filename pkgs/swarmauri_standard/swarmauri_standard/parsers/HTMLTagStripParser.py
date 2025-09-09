@@ -1,6 +1,6 @@
 import html
 import re
-from typing import Literal
+from typing import List, Literal
 from swarmauri_standard.documents.Document import Document
 from swarmauri_base.parsers.ParserBase import ParserBase
 from swarmauri_base.ComponentBase import ComponentBase
@@ -15,7 +15,7 @@ class HTMLTagStripParser(ParserBase):
 
     type: Literal["HTMLTagStripParser"] = "HTMLTagStripParser"
 
-    def parse(self, data: str):
+    def parse(self, data: str) -> List[Document]:
         """
         Strips HTML tags from input data and unescapes HTML content.
 
@@ -23,7 +23,7 @@ class HTMLTagStripParser(ParserBase):
             data (str): The HTML content to be parsed.
 
         Returns:
-            List[IDocument]: A list containing a single IDocument instance of the stripped text.
+            List[Document]: A list containing a single IDocument instance of the stripped text.
         """
 
         # Ensure that input is a string

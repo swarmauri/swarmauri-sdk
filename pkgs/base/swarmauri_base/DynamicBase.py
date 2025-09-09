@@ -14,6 +14,7 @@ from threading import Lock
 from typing import (
     Annotated,
     Any,
+    Callable,
     ClassVar,
     Dict,
     List,
@@ -559,7 +560,7 @@ class DynamicBase(BaseModel):
     ###############################################################
 
     @classmethod
-    def register_model(cls):
+    def register_model(cls) -> Callable[[Type[BaseModel]], Type[BaseModel]]:
         """
         Decorator to register a base model in the unified registry.
 
@@ -588,7 +589,7 @@ class DynamicBase(BaseModel):
         cls,
         resource_type: Optional[Union[Type[T], List[Type[T]]]] = None,
         type_name: Optional[str] = None,
-    ):
+    ) -> Callable[[Type["DynamicBase"]], Type["DynamicBase"]]:
         """
         Decorator to register a subtype under one or more base models in the unified registry.
 

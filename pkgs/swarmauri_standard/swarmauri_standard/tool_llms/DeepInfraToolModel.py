@@ -1,6 +1,16 @@
 import asyncio
 import json
-from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
+from typing import (
+    Any,
+    AsyncIterator,
+    Dict,
+    Iterator,
+    List,
+    Literal,
+    Optional,
+    Type,
+    Union,
+)
 
 import httpx
 from swarmauri_base.ComponentBase import ComponentBase
@@ -14,6 +24,7 @@ from swarmauri_standard.messages.FunctionMessage import FunctionMessage
 from swarmauri_standard.schema_converters.OpenAISchemaConverter import (
     OpenAISchemaConverter,
 )
+from swarmauri_standard.toolkits.Toolkit import Toolkit
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 
@@ -41,7 +52,7 @@ class DeepInfraToolModel(ToolLLMBase):
     type: Literal["DeepInfraToolModel"] = "DeepInfraToolModel"
     BASE_URL: str = "https://api.deepinfra.com/v1/openai/chat/completions"
 
-    def __init__(self, **data):
+    def __init__(self, **data: Dict[str, Any]) -> None:
         """
         Initialize the DeepInfraToolModel with the provided data.
 
@@ -67,12 +78,12 @@ class DeepInfraToolModel(ToolLLMBase):
         """
         return OpenAISchemaConverter
 
-    def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
+    def _schema_convert_tools(self, tools: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Converts a toolkit's tools to the DeepInfra-compatible schema format.
 
         Args:
-            tools (Dict): A dictionary of tools to be converted.
+            tools (Dict[str, Any]): A dictionary of tools to be converted.
 
         Returns:
             List[Dict[str, Any]]: A list of tool schemas in OpenAI format.
@@ -80,14 +91,12 @@ class DeepInfraToolModel(ToolLLMBase):
         converter = self.get_schema_converter()()
         return [converter.convert(tools[tool]) for tool in tools]
 
-    def _format_messages(
-        self, messages: List[Type[MessageBase]]
-    ) -> List[Dict[str, str]]:
+    def _format_messages(self, messages: List[MessageBase]) -> List[Dict[str, str]]:
         """
         Formats a list of messages to a schema that matches the DeepInfra API's expectations.
 
         Args:
-            messages (List[Type[MessageBase]]): The conversation history.
+            messages (List[MessageBase]): The conversation history.
 
         Returns:
             List[Dict[str, str]]: A formatted list of message dictionaries.
@@ -99,17 +108,22 @@ class DeepInfraToolModel(ToolLLMBase):
             if m.role != "tool"
         ]
 
-    def _process_tool_calls(self, tool_calls, toolkit, messages) -> List[MessageBase]:
+    def _process_tool_calls(
+        self,
+        tool_calls: List[Dict[str, Any]],
+        toolkit: Toolkit,
+        messages: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
         """
         Processes a list of tool calls and appends the results to the messages list.
 
         Args:
-            tool_calls (list): Tool calls from the LLM response.
-            toolkit: Toolkit containing tools to be called.
-            messages (list): Message list to append tool responses to.
+            tool_calls (List[Dict[str, Any]]): Tool calls from the LLM response.
+            toolkit (Toolkit): Toolkit containing tools to be called.
+            messages (List[Dict[str, Any]]): Message list to append tool responses to.
 
         Returns:
-            List[MessageBase]: Updated list of messages with tool responses added.
+            List[Dict[str, Any]]: Updated list of messages with tool responses added.
         """
         if tool_calls:
             for tool_call in tool_calls:
@@ -132,19 +146,19 @@ class DeepInfraToolModel(ToolLLMBase):
     def predict(
         self,
         conversation: IConversation,
-        toolkit=None,
-        tool_choice=None,
+        toolkit: Optional[Toolkit] = None,
+        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
         multiturn: bool = True,
-        temperature=0.7,
-        max_tokens=1024,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
     ) -> IConversation:
         """
         Makes a synchronous prediction using the DeepInfra model.
 
         Parameters:
             conversation (IConversation): Conversation instance with message history.
-            toolkit: Optional toolkit for tool conversion.
-            tool_choice: Tool selection strategy.
+            toolkit (Optional[Toolkit]): Optional toolkit for tool conversion.
+            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection strategy.
             multiturn (bool): Whether to follow up a tool call with additional LLM call.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
@@ -216,19 +230,19 @@ class DeepInfraToolModel(ToolLLMBase):
     async def apredict(
         self,
         conversation: IConversation,
-        toolkit=None,
-        tool_choice=None,
+        toolkit: Optional[Toolkit] = None,
+        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
         multiturn: bool = True,
-        temperature=0.7,
-        max_tokens=1024,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
     ) -> IConversation:
         """
         Makes an asynchronous prediction using the DeepInfra model.
 
         Parameters:
             conversation (IConversation): Conversation instance with message history.
-            toolkit: Optional toolkit for tool conversion.
-            tool_choice: Tool selection strategy.
+            toolkit (Optional[Toolkit]): Optional toolkit for tool conversion.
+            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection strategy.
             multiturn (bool): Whether to follow up a tool call with additional LLM call.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
@@ -302,18 +316,18 @@ class DeepInfraToolModel(ToolLLMBase):
     def stream(
         self,
         conversation: IConversation,
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
+        toolkit: Optional[Toolkit] = None,
+        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
     ) -> Iterator[str]:
         """
         Streams response from DeepInfra model in real-time.
 
         Parameters:
             conversation (IConversation): Conversation instance with message history.
-            toolkit: Optional toolkit for tool conversion.
-            tool_choice: Tool selection strategy.
+            toolkit (Optional[Toolkit]): Optional toolkit for tool conversion.
+            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection strategy.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
 
@@ -391,18 +405,18 @@ class DeepInfraToolModel(ToolLLMBase):
     async def astream(
         self,
         conversation: IConversation,
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
+        toolkit: Optional[Toolkit] = None,
+        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
     ) -> AsyncIterator[str]:
         """
         Asynchronously streams response from DeepInfra model.
 
         Parameters:
             conversation (IConversation): Conversation instance with message history.
-            toolkit: Optional toolkit for tool conversion.
-            tool_choice: Tool selection strategy.
+            toolkit (Optional[Toolkit]): Optional toolkit for tool conversion.
+            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection strategy.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
 
@@ -481,18 +495,18 @@ class DeepInfraToolModel(ToolLLMBase):
     def batch(
         self,
         conversations: List[IConversation],
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
+        toolkit: Optional[Toolkit] = None,
+        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
     ) -> List[IConversation]:
         """
         Processes a batch of conversations sequentially.
 
         Args:
             conversations (List[IConversation]): List of conversations to process.
-            toolkit: Optional toolkit for tool conversion.
-            tool_choice: Tool selection strategy.
+            toolkit (Optional[Toolkit]): Optional toolkit for tool conversion.
+            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection strategy.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
 
@@ -514,19 +528,19 @@ class DeepInfraToolModel(ToolLLMBase):
     async def abatch(
         self,
         conversations: List[IConversation],
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
-        max_concurrent=5,
+        toolkit: Optional[Toolkit] = None,
+        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
+        max_concurrent: int = 5,
     ) -> List[IConversation]:
         """
         Processes a batch of conversations concurrently with limited concurrency.
 
         Args:
             conversations (List[IConversation]): List of conversations to process.
-            toolkit: Optional toolkit for tool conversion.
-            tool_choice: Tool selection strategy.
+            toolkit (Optional[Toolkit]): Optional toolkit for tool conversion.
+            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection strategy.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
             max_concurrent (int): Maximum number of concurrent requests.
@@ -536,7 +550,7 @@ class DeepInfraToolModel(ToolLLMBase):
         """
         semaphore = asyncio.Semaphore(max_concurrent)
 
-        async def process_conversation(conv):
+        async def process_conversation(conv: IConversation) -> IConversation:
             async with semaphore:
                 return await self.apredict(
                     conv,

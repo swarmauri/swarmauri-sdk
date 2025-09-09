@@ -7,18 +7,22 @@ import httpx
 from pydantic import PrivateAttr, SecretStr
 
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.DynamicBase import SubclassUnion
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
 from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
 
+from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_core.conversations.IConversation import IConversation
 
 
+from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.messages.FunctionMessage import FunctionMessage
 from swarmauri_standard.schema_converters.AnthropicSchemaConverter import (
     AnthropicSchemaConverter,
 )
+from swarmauri_standard.toolkits.Toolkit import Toolkit
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 
@@ -58,7 +62,7 @@ class AnthropicToolModel(ToolLLMBase):
 
     type: Literal["AnthropicToolModel"] = "AnthropicToolModel"
 
-    def __init__(self, **data):
+    def __init__(self, **data: dict[str, Any]):
         super().__init__(**data)
         self._headers = {
             "Content-Type": "application/json",
@@ -84,7 +88,9 @@ class AnthropicToolModel(ToolLLMBase):
         """
         return AnthropicSchemaConverter
 
-    def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
+    def _schema_convert_tools(
+        self, tools: Dict[str, SubclassUnion[ToolBase]]
+    ) -> List[Dict[str, Any]]:
         """
         Converts a toolkit's tools to the Anthropic-compatible schema format.
 
@@ -120,7 +126,9 @@ class AnthropicToolModel(ToolLLMBase):
         ]
         return formatted_messages
 
-    def _process_tool_calls(self, tool_calls, toolkit, messages) -> List[MessageBase]:
+    def _process_tool_calls(
+        self, tool_calls: List[Any], toolkit: Toolkit, messages: List[Type[MessageBase]]
+    ) -> List[Type[MessageBase]]:
         """
         Processes tool calls from Anthropic API response and adds the results to messages.
 
@@ -170,13 +178,13 @@ class AnthropicToolModel(ToolLLMBase):
 
     def predict(
         self,
-        conversation: IConversation,
-        toolkit=None,
-        tool_choice=None,
+        conversation: Conversation,
+        toolkit: Toolkit,
+        tool_choice: dict[str, Any],
         multiturn: bool = True,
-        temperature=0.7,
-        max_tokens=1024,
-    ) -> IConversation:
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
+    ) -> Conversation:
         """
         Predicts the response based on the given conversation and optional toolkit.
 
@@ -263,12 +271,12 @@ class AnthropicToolModel(ToolLLMBase):
     @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
         self,
-        conversation: IConversation,
-        toolkit=None,
-        tool_choice=None,
+        conversation: Conversation,
+        toolkit: Toolkit,
+        tool_choice: dict[str, Any],
         multiturn: bool = True,
-        temperature=0.7,
-        max_tokens=1024,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
     ) -> IConversation:
         """
         Asynchronous version of the `predict` method to handle concurrent processing of requests.
@@ -355,11 +363,11 @@ class AnthropicToolModel(ToolLLMBase):
 
     def stream(
         self,
-        conversation: IConversation,
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
+        conversation: Conversation,
+        toolkit: Toolkit,
+        tool_choice: dict[str, Any],
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
     ) -> Iterator[str]:
         """
         Streams the response for a conversation in real-time, yielding text as it is received.
@@ -461,11 +469,11 @@ class AnthropicToolModel(ToolLLMBase):
 
     async def astream(
         self,
-        conversation: IConversation,
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
+        conversation: Conversation,
+        toolkit: Toolkit,
+        tool_choice: dict[str, Any],
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
     ) -> AsyncIterator[str]:
         """
         Asynchronously streams the response for a conversation, yielding text in real-time.
@@ -560,11 +568,11 @@ class AnthropicToolModel(ToolLLMBase):
 
     def batch(
         self,
-        conversations: List[IConversation],
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
+        conversations: List[Conversation],
+        toolkit: Toolkit,
+        tool_choice: dict[str, Any],
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
     ) -> List[IConversation]:
         """
         Processes a batch of conversations in a synchronous manner.
@@ -593,11 +601,11 @@ class AnthropicToolModel(ToolLLMBase):
 
     async def abatch(
         self,
-        conversations: List[IConversation],
-        toolkit=None,
-        tool_choice=None,
-        temperature=0.7,
-        max_tokens=1024,
+        conversations: List[Conversation],
+        toolkit: Toolkit,
+        tool_choice: dict[str, Any],
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
         max_concurrent=5,
     ) -> List[IConversation]:
         """
