@@ -19,7 +19,7 @@ from contextlib import suppress
 from pathlib import Path
 from typing import Any, Dict
 
-from autoapi.v3 import get_schema
+from tigrbl.v3 import get_schema
 from peagen.orm import Task
 from peagen.core.mutate_core import mutate_workspace
 from peagen._utils.config_loader import resolve_cfg

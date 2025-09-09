@@ -102,11 +102,7 @@ class FilterBar(Horizontal):
     def update_options(self, tasks: Iterable[dict]) -> None:
         pools = {str(t.get("pool")) for t in tasks if t.get("pool") is not None}
         statuses = {status.value for status in Status}
-        actions = {
-            str(t.get("action"))
-            for t in tasks
-            if t.get("action") is not None
-        }
+        actions = {str(t.get("action")) for t in tasks if t.get("action") is not None}
         labels = {
             str(lbl) for t in tasks for lbl in t.get("labels", []) if lbl is not None
         }

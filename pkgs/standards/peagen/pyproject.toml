@@ -87,9 +87,9 @@ dependencies = [
     "filelock",
 
     # db api support
-    "autoapi",
-    "autoapi_client",
-    "auto_authn",
+    "tigrbl",
+    "tigrbl_client",
+    "tigrbl_auth",
 
 ]
 
@@ -98,9 +98,9 @@ dependencies = [
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
-autoapi = { workspace = true }
-autoapi_client = { workspace = true }
-auto_authn = { workspace = true }
+tigrbl = { workspace = true }
+tigrbl_client = { workspace = true }
+tigrbl_auth = { workspace = true }
 swarmauri_keyprovider_ssh = { workspace = true }
 swarmauri_crypto_paramiko = { workspace = true }
 swarmauri_crypto_pgp = { workspace = true }

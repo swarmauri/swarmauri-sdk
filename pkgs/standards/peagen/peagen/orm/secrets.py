@@ -1,16 +1,16 @@
 from __future__ import annotations
 
-from autoapi.v3.orm.tables import Base
-from autoapi.v3.types import (
+from tigrbl.v3.orm.tables import Base
+from tigrbl.v3.types import (
     String,
     UniqueConstraint,
     CheckConstraint,
     relationship,
     Mapped,
 )
-from autoapi.v3.orm.mixins import GUIDPk, OrgColumn, Timestamped, UserColumn
-from autoapi.v3.specs import S, acol
-from autoapi.v3 import hook_ctx
+from tigrbl.v3.orm.mixins import GUIDPk, OrgColumn, Timestamped, UserColumn
+from tigrbl.v3.specs import S, acol
+from tigrbl.v3 import hook_ctx
 from typing import TYPE_CHECKING
 from peagen.orm.mixins import RepositoryMixin
 

@@ -24,7 +24,7 @@ from peagen.defaults import PUBSUB_CHANNEL, READY_QUEUE
 async def _publish_event(queue, event_type: str, data_obj: Any) -> None:
     try:
         data = _to_serialisable(data_obj).copy()
-    
+
         event = {
             "type": event_type,
             "time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
@@ -32,7 +32,7 @@ async def _publish_event(queue, event_type: str, data_obj: Any) -> None:
         }
         await queue.publish(PUBSUB_CHANNEL, json.dumps(event, default=str))
     except Exception as exc:
-        print(f'_publish_event failed: {exc}')
+        print(f"_publish_event failed: {exc}")
         raise exc
 
 

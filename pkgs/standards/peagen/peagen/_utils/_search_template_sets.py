@@ -64,6 +64,7 @@ def build_global_template_search_paths(base_dir: Path) -> List[Path]:
 
     # 1) built-in templates
     import peagen.template_sets  # noqa: F401
+
     for entry in peagen.template_sets.__path__:
         search_paths.append(Path(entry).resolve())
 

@@ -4,8 +4,8 @@ from __future__ import annotations
 import uuid
 from typing import Any, Dict, Optional
 
-from autoapi_client import AutoAPIClient
-from autoapi.v3 import get_schema
+from tigrbl_client import TigrblClient
+from tigrbl.v3 import get_schema
 from peagen.orm import Status, Task, Action, SpecKind
 
 
@@ -27,7 +27,7 @@ def build_task(
     status: Status = Status.WAITING,
 ):
     """
-    Return a TaskCreate Pydantic instance that matches AutoAPI's
+    Return a TaskCreate Pydantic instance that matches Tigrbl's
     current schema (no 'payload' column any more).
     """
     SCreate = get_schema(Task, "read")
@@ -59,7 +59,7 @@ def build_task(
 
 # ─────────────────── RPC helpers ────────────────────────────────────────
 def submit_task(
-    rpc: AutoAPIClient | str,
+    rpc: TigrblClient | str,
     task_model: Any,  # instance from build_task()
 ) -> Dict[str, Any]:
     """POST ``tasks.create`` and return the validated TaskRead dict.
@@ -67,18 +67,18 @@ def submit_task(
     Parameters
     ----------
     rpc
-        Either an :class:`autoapi_client.AutoAPIClient` instance or a string
+        Either an :class:`tigrbl_client.TigrblClient` instance or a string
         representing the gateway URL. When a URL is provided, a temporary
-        ``AutoAPIClient`` is created for the duration of the request.
+        ``TigrblClient`` is created for the duration of the request.
     task_model
         A model produced by :func:`build_task`.
     """
 
     SRead = get_schema(Task, "read")
-    params = task_model.model_dump()  # AutoAPIClient expects dict
+    params = task_model.model_dump()  # TigrblClient expects dict
 
     if isinstance(rpc, str):
-        with AutoAPIClient(rpc) as client:
+        with TigrblClient(rpc) as client:
             res = client.call("tasks.create", params=params, out_schema=SRead)
     else:
         res = rpc.call("tasks.create", params=params, out_schema=SRead)
@@ -87,7 +87,7 @@ def submit_task(
 
 
 def get_task(
-    rpc: AutoAPIClient,
+    rpc: TigrblClient,
     task_id: str,
 ):
     """Return a validated TaskRead Pydantic object for *task_id*."""

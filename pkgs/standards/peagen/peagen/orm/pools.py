@@ -1,16 +1,16 @@
 from __future__ import annotations
 
-from autoapi.v3.orm.tables import Base
-from autoapi.v3.types import (
+from tigrbl.v3.orm.tables import Base
+from tigrbl.v3.types import (
     JSON,
     String,
     UniqueConstraint,
     MutableDict,
     Mapped,
 )
-from autoapi.v3.orm.mixins import GUIDPk, Bootstrappable, Timestamped, TenantBound
-from autoapi.v3.specs import S, acol
-from autoapi.v3 import hook_ctx
+from tigrbl.v3.orm.mixins import GUIDPk, Bootstrappable, Timestamped, TenantBound
+from tigrbl.v3.specs import S, acol
+from tigrbl.v3 import hook_ctx
 from peagen.defaults import DEFAULT_POOL_NAME, DEFAULT_POOL_ID, DEFAULT_TENANT_ID
 
 

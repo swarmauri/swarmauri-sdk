@@ -27,6 +27,7 @@ from peagen.core.git_repo_core import (
     repo_lock,
 )
 
+
 # ───────────────────────── helper: deterministic paths ────────────
 def _mirror_path(repo_url: str) -> Path:
     """Return the filesystem path of the bare mirror for *repo_url*."""
@@ -119,9 +120,7 @@ def fetch_many(
     base = (
         out_dir.expanduser().resolve()
         if out_dir
-        else Path(ROOT_DIR).expanduser()
-        / "worktrees"
-        / f"bulk_{uuid.uuid4().hex[:8]}"
+        else Path(ROOT_DIR).expanduser() / "worktrees" / f"bulk_{uuid.uuid4().hex[:8]}"
     )
     base.mkdir(parents=True, exist_ok=True)
 

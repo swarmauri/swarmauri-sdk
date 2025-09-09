@@ -17,8 +17,8 @@ from pathlib import Path
 import os
 import anyio
 import httpx
-from autoapi_client import AutoAPIClient
-from autoapi.v3 import get_schema
+from tigrbl_client import TigrblClient
+from tigrbl.v3 import get_schema
 from peagen._utils.config_loader import (
     load_peagen_toml,
     resolve_cfg,
@@ -48,7 +48,7 @@ def _get_key_provider():
 
 @contextmanager
 def _rpc(gateway: str = DEFAULT_GATEWAY, timeout: float = 30.0):
-    with AutoAPIClient(gateway, timeout=httpx.Timeout(timeout)) as client:
+    with TigrblClient(gateway, timeout=httpx.Timeout(timeout)) as client:
         yield client
 
 

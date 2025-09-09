@@ -39,6 +39,7 @@ from peagen.core.git_repo_core import (
 )
 from swarmauri_standard.programs import Program
 
+
 # ───────────────────────── helper: pool resolution ──────────────────────────
 def _build_pool(pool_ref: Optional[str], eval_cfg: Dict[str, Any]):
     choice = pool_ref or eval_cfg.get("pool")
@@ -91,7 +92,9 @@ def _register_evaluators(pool, evaluators_cfg: Dict[str, Any]):
 
 
 # ───────────── helper: workspace program discovery (local only) ─────────────
-def _collect_programs(workspace: Path, pattern: str) -> Tuple[List[Path], List[Program]]:
+def _collect_programs(
+    workspace: Path, pattern: str
+) -> Tuple[List[Path], List[Program]]:
     paths, programs = [], []
     for p in workspace.glob(pattern):
         if p.is_file():
