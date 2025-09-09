@@ -25,10 +25,8 @@ def _ctx_payload(ctx: Mapping[str, Any]) -> Any:
     raw = _ctx_get(ctx, "payload", None)
     if isinstance(temp, Mapping):
         av = temp.get("assembled_values")
-        if isinstance(av, Mapping):
-            merged = {}
-            if isinstance(raw, Mapping):
-                merged.update(raw)
+        if isinstance(av, Mapping) and isinstance(raw, Mapping):
+            merged = dict(raw)
             merged.update(av)
             logger.debug("Payload from assembled values: %s", merged)
             return merged
