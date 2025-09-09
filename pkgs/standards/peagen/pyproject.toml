@@ -9,6 +9,7 @@ repository = "https://github.com/swarmauri/swarmauri-sdk/pkgs/standards/peagen/p
 requires-python = ">=3.10,<3.13"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
+    "Development Status :: 3 - Alpha",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
