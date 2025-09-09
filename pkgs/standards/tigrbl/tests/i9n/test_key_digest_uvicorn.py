@@ -7,7 +7,15 @@ import uvicorn
 import pytest_asyncio
 
 from tigrbl.v3 import AutoApp
-from tigrbl.v3.orm.mixins import GUIDPk, Created, LastUsed, ValidityWindow, KeyDigest
+from tigrbl.v3.orm.mixins import (
+    GUIDPk,
+    Created,
+    LastUsed,
+    ValidityWindow,
+    KeyDigest,
+    tzutcnow,
+    tzutcnow_plus_day,
+)
 from tigrbl.v3.orm.mixins.utils import CRUD_IO
 from tigrbl.v3.orm.tables._base import Base
 from tigrbl.v3.specs import F, S, acol
@@ -55,11 +63,12 @@ async def running_app(sync_db_session):
 
 
 def _payload() -> dict:
+    now = tzutcnow()
     return {
         "label": "test",
         "service_id": str(uuid4()),
-        "valid_from": "2024-01-01T00:00:00+00:00",
-        "valid_to": "2024-12-31T00:00:00+00:00",
+        "valid_from": now.isoformat(),
+        "valid_to": tzutcnow_plus_day().isoformat(),
     }
 
 
