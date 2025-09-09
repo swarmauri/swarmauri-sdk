@@ -6,7 +6,7 @@ services:
     ports:
       - "8000:8000" # Expose mkdocs on port 8000
     volumes:
-      - ..:/docs # Mount the repo docs directory
+      - ../../docs:/docs # Mount the repo docs directory
       - ../../pkgs:/pkgs # Mount the repo pkgs directory
     working_dir: /docs
     command: |
@@ -51,3 +51,4 @@ services:
 networks:
   dockernet:
     driver: bridge
+
