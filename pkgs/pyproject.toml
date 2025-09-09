@@ -77,8 +77,8 @@ members = [
     "standards/swarmauri_middleware_stdio",
     "standards/swarmauri_middleware_jsonrpc",
     "standards/swarmauri_prompt_j2prompttemplate",
-    "standards/autoapi",
-    "standards/autoapi_client",
+    "standards/tigrbl",
+    "standards/tigrbl_client",
     "standards/peagen",
     "standards/swarmauri_storage_file",
     "standards/swarmauri_storage_github",
@@ -270,8 +270,8 @@ swarmauri_middleware_jsonrpc = { workspace = true }
 swarmauri_middleware_circuitbreaker = { workspace = true }
 swarmauri_middleware_ratepolicy = { workspace = true }
 
-autoapi = { workspace = true }
-autoapi_client = { workspace = true }
+tigrbl = { workspace = true }
+tigrbl_client = { workspace = true }
 auto_authn = { workspace = true }
 auto_kms = { workspace = true }
 peagen = { workspace = true }

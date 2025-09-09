@@ -16,7 +16,7 @@ import string
 from typing import Final, Literal, TYPE_CHECKING
 
 from pydantic import BaseModel
-from autoapi.v3.engine import HybridSession as AsyncSession
+from tigrbl.v3.engine import HybridSession as AsyncSession
 
 from .runtime_cfg import settings
 

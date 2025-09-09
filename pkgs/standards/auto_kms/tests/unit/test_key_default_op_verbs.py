@@ -2,7 +2,6 @@ import importlib
 import pytest
 
 
-
 def _route_map(app, resource: str) -> dict[str, tuple[str, set[str]]]:
     out: dict[str, tuple[str, set[str]]] = {}
     for r in getattr(app, "routes", []):

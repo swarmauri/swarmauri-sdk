@@ -4,17 +4,17 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from autoapi.v3.column.storage_spec import ForeignKeySpec
-from autoapi.v3.orm.mixins import (
+from tigrbl.v3.column.storage_spec import ForeignKeySpec
+from tigrbl.v3.orm.mixins import (
     Created,
     GUIDPk,
     KeyDigest,
     LastUsed,
     ValidityWindow,
 )
-from autoapi.v3.orm.tables._base import Base
-from autoapi.v3.specs import F, IO, S, acol
-from autoapi.v3.types import Mapped, PgUUID, String, relationship
+from tigrbl.v3.orm.tables._base import Base
+from tigrbl.v3.specs import F, IO, S, acol
+from tigrbl.v3.types import Mapped, PgUUID, String, relationship
 
 
 class ServiceKey(Base, GUIDPk, Created, LastUsed, ValidityWindow, KeyDigest):

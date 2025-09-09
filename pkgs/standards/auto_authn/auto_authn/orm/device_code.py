@@ -5,12 +5,12 @@ from __future__ import annotations
 import datetime as dt
 import uuid
 
-from autoapi.v3.orm.tables import Base
-from autoapi.v3.orm.mixins import Timestamped
-from autoapi.v3.specs import S, acol
-from autoapi.v3.column.storage_spec import ForeignKeySpec
-from autoapi.v3.types import Boolean, Integer, Mapped, PgUUID, String, TZDateTime
-from autoapi.v3 import op_ctx
+from tigrbl.v3.orm.tables import Base
+from tigrbl.v3.orm.mixins import Timestamped
+from tigrbl.v3.specs import S, acol
+from tigrbl.v3.column.storage_spec import ForeignKeySpec
+from tigrbl.v3.types import Boolean, Integer, Mapped, PgUUID, String, TZDateTime
+from tigrbl.v3 import op_ctx
 from fastapi import HTTPException, status
 
 from ..runtime_cfg import settings

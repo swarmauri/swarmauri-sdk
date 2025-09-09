@@ -1,8 +1,8 @@
 """
-autoapi_authn.app
+tigrbl_authn.app
 =================
 
-FastAPI application factory for the **autoapi-authn** service.
+FastAPI application factory for the **tigrbl-authn** service.
 
 Features
 --------
@@ -15,7 +15,7 @@ Features
 
 from __future__ import annotations
 
-from autoapi.v3 import AutoApp
+from tigrbl.v3 import AutoApp
 
 from .routers.surface import surface_api
 from .db import dsn

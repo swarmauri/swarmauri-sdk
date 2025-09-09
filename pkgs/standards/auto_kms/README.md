@@ -27,7 +27,7 @@ Initialize the SQLite database:
 ```bash
 uv run --package auto_kms --directory pkgs/standards/auto_kms -- python - <<'PY'
 from auto_kms.app import engine
-from autoapi.v3.orm.tables import Base
+from tigrbl.v3.orm.tables import Base
 import asyncio
 
 async def init():

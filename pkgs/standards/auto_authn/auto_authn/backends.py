@@ -1,5 +1,5 @@
 """
-autoapi_authn.backends
+tigrbl_authn.backends
 ======================
 
 Framework-agnostic credential verification helpers.
@@ -27,7 +27,7 @@ from typing import Iterable, Optional
 from typing import TYPE_CHECKING
 
 from sqlalchemy import Select, or_, select
-from autoapi.v3.engine import HybridSession as AsyncSession
+from tigrbl.v3.engine import HybridSession as AsyncSession
 
 from .crypto import verify_pw
 from .typing import Principal

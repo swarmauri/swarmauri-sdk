@@ -57,7 +57,7 @@ def test_openapi_contains_all_schemas(openapi_spec: dict) -> None:
 
 
 def test_all_models_registered_on_api_and_tables() -> None:
-    """Ensure AutoAPI tracks all ORM models in schemas and tables."""
+    """Ensure Tigrbl tracks all ORM models in schemas and tables."""
     expected = set(ORM_MODELS)
     assert expected == set(surface_api.tables.keys())
     assert expected.issubset(vars(surface_api.schemas).keys())

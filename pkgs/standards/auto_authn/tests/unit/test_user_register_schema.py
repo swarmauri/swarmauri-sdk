@@ -1,5 +1,5 @@
 import pytest
-from autoapi.v3.bindings import bind
+from tigrbl.v3.bindings import bind
 from auto_authn.orm import User
 from auto_authn.routers.schemas import RegisterIn, TokenPair
 

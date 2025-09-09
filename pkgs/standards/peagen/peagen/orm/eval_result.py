@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from autoapi.v3.orm.tables import Base
-from autoapi.v3.types import JSON, PgUUID, String, Mapped, relationship
-from autoapi.v3.orm.mixins import GUIDPk, Timestamped, Ownable, TenantBound
-from autoapi.v3.specs import S, acol
-from autoapi.v3.column.storage_spec import ForeignKeySpec
+from tigrbl.v3.orm.tables import Base
+from tigrbl.v3.types import JSON, PgUUID, String, Mapped, relationship
+from tigrbl.v3.orm.mixins import GUIDPk, Timestamped, Ownable, TenantBound
+from tigrbl.v3.specs import S, acol
+from tigrbl.v3.column.storage_spec import ForeignKeySpec
 from typing import TYPE_CHECKING
 
 from .users import User

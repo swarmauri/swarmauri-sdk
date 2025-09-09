@@ -2,16 +2,16 @@
 
 from __future__ import annotations
 
-from autoapi.v3.orm.tables import Base
-from autoapi.v3.orm.mixins import (
+from tigrbl.v3.orm.tables import Base
+from tigrbl.v3.orm.mixins import (
     GUIDPk,
     Timestamped,
     TenantBound,
     Principal,
     ActiveToggle,
 )
-from autoapi.v3.types import Mapped, String, relationship
-from autoapi.v3.specs import F, IO, S, acol, ColumnSpec
+from tigrbl.v3.types import Mapped, String, relationship
+from tigrbl.v3.specs import F, IO, S, acol, ColumnSpec
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover

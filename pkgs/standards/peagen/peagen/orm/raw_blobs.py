@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from autoapi.v3.orm.tables import Base
-from autoapi.v3.types import Integer, String, Mapped
-from autoapi.v3.orm.mixins import GUIDPk, Timestamped, BlobRef
-from autoapi.v3.specs import S, acol
+from tigrbl.v3.orm.tables import Base
+from tigrbl.v3.types import Integer, String, Mapped
+from tigrbl.v3.orm.mixins import GUIDPk, Timestamped, BlobRef
+from tigrbl.v3.specs import S, acol
 
 
 class RawBlob(Base, GUIDPk, Timestamped, BlobRef):

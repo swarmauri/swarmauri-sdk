@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 import yaml
-from autoapi.v3 import get_schema
+from tigrbl.v3 import get_schema
 from peagen.orm import Task, Status, Action
 
 from peagen.core.git_repo_core import (

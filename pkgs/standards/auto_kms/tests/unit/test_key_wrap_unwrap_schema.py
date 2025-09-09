@@ -1,6 +1,6 @@
 """Test wrap/unwrap endpoint schema validation."""
 
-from autoapi.v3.bindings import bind
+from tigrbl.v3.bindings import bind
 from auto_kms.orm import Key
 
 

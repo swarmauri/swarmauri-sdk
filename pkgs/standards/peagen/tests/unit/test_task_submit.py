@@ -31,9 +31,9 @@ def test_submit_task_sends_request(monkeypatch):
 
         return Res()
 
-    from autoapi_client import AutoAPIClient
+    from tigrbl_client import TigrblClient
 
-    monkeypatch.setattr(AutoAPIClient, "call", fake_call)
+    monkeypatch.setattr(TigrblClient, "call", fake_call)
     task = build_task(
         action="demo",
         args={},

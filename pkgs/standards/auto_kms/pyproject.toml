@@ -17,7 +17,7 @@ dependencies = [
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
-    "autoapi",
+    "tigrbl",
     "fastapi>=0.100.0",
     "pydantic>=2.0.0",
     "typer>=0.12.3",
@@ -32,7 +32,7 @@ dependencies = [
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
-autoapi = { workspace = true }
+tigrbl = { workspace = true }
 swarmauri_secret_autogpg = { workspace = true }
 swarmauri_crypto_paramiko = { workspace = true }
 

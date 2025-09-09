@@ -1,5 +1,5 @@
 """
-autoapi_authn.crypto
+tigrbl_authn.crypto
 ====================
 
 Password hashing and JWT signing key management backed by swarmauri plugins.

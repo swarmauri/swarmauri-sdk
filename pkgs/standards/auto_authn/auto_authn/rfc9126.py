@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING, Any, Dict, Final
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import delete
-from autoapi.v3.engine import HybridSession as AsyncSession
+from tigrbl.v3.engine import HybridSession as AsyncSession
 
 from .db import get_db
 from .runtime_cfg import settings
