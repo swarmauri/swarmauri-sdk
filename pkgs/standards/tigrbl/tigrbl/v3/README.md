@@ -34,6 +34,8 @@ can combine three optional specs:
 - `IO` (`IOSpec`) – inbound/outbound exposure settings, aliases,
   sensitivity flags, and filtering/sorting capabilities.
 
+For a deeper look at these helpers, see [column/README.md](column/README.md).
+
 Example:
 
 ```python
