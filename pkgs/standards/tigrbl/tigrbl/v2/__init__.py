@@ -169,7 +169,7 @@ class Tigrbl:
                 request.state.principal = principal
                 # best-effort: propagate to contextvar if available
                 try:
-                    from auto_authn.principal_ctx import principal_var  # optional
+                    from tigrbl_auth.principal_ctx import principal_var  # optional
 
                     principal_var.set(principal)
                 except Exception:

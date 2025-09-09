@@ -18,7 +18,7 @@ Use `DB.get_db` as the FastAPI dependency for acquiring sessions and avoid
 exporting custom `get_async_db` helpers.
 
 These rules apply to all first-party applications, including
-`tigrbl_kms`, `auto_authn`, and the `peagen` gateway.
+`tigrbl_kms`, `tigrbl_auth`, and the `peagen` gateway.
 
 ## Column-Level Configuration
 
