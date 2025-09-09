@@ -35,6 +35,32 @@ The kernel labels every piece of work so it can be ordered predictably:
 Downstream consumers configure `secdeps`, `deps`, and `hooks`, while `sys` and
 `atom` steps are maintained by the Tigrbl maintainers.
 
+## Atom Domains
+
+Atoms are grouped into domain-specific registries so the kernel can inject them
+at the correct stage of the lifecycle. Each domain focuses on a different slice
+of request or response processing:
+
+- **wire** – builds inbound data, validates it, and prepares outbound payloads at
+  the field level.
+- **schema** – collects request and response schema definitions for models.
+- **resolve** – assembles derived values or generates paired inputs before they
+  are flushed.
+- **storage** – converts field specifications into storage-layer instructions.
+- **emit** – surfaces runtime metadata such as aliases or extras for downstream
+  consumers.
+- **out** – mutates data after handlers run, for example masking fields before
+  serialization.
+- **response** – negotiates content types and renders the final HTTP response or
+  template.
+- **refresh** – triggers post-commit refreshes like demand-driven reloads.
+
+Domains differ by the moment they run and the guarantees they provide. A `wire`
+atom transforms raw request values before validation, whereas a `response` atom
+operates after the transaction is committed to shape the returned payload. The
+kernel uses the pair `(domain, subject)` to register and inject atoms into phase
+chains.
+
 ## DB Guards
 
 For every phase the executor installs database guards that monkey‑patch
