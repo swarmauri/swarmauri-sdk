@@ -95,6 +95,24 @@ attach handlers at any phase to customize behavior or enforce policy.
 | `ON_POST_RESPONSE_ERROR` | Handle errors raised during `POST_RESPONSE`. |
 | `ON_ROLLBACK` | Run when the transaction rolls back to perform cleanup. |
 
+## Step Types
+
+Tigrbl orders work into labeled steps that control how phases run:
+
+- **secdeps** – security dependencies executed before other checks. Downstream
+  applications declare these to enforce auth or policy.
+- **deps** – general dependencies resolved ahead of phase handlers. Downstream
+  code provides these to inject request context or resources.
+- **sys** – system steps bundled with Tigrbl that drive core behavior.
+  Maintainers own these and downstream packages should not modify them.
+- **atoms** – built-in runtime units such as schema collectors or wire
+  validators. These are maintained by the core team.
+- **hooks** – extension points that downstream packages register to customize
+  phase behavior.
+
+Only `secdeps`, `deps`, and `hooks` are expected to be configured downstream;
+`sys` and `atom` steps are maintained by the Tigrbl maintainers.
+
 ## Configuration Overview
 
 ### Table-Level
