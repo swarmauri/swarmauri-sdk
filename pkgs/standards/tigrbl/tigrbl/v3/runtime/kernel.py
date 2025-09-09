@@ -24,7 +24,7 @@ from typing import (
 )
 
 from .executor import _invoke, _Ctx
-from . import events as _ev, ordering as _ordering
+from . import events as _ev, ordering as _ordering, system as _sys
 from ..op.types import PHASES, StepFn
 from ..column.mro_collect import mro_collect_columns
 
@@ -295,12 +295,14 @@ class Kernel:
     # ——— build / plan ———
     def build(self, model: type, alias: str) -> Dict[str, List[StepFn]]:
         chains = _hook_phase_chains(model, alias)
-        persistent = (alias or "").lower() in {
-            "create",
-            "update",
-            "replace",
-            "delete",
-        } or _is_persistent(chains)
+        specs = getattr(getattr(model, "ops", SimpleNamespace()), "by_alias", {})
+        sp_list = specs.get(alias) or ()
+        sp = sp_list[0] if sp_list else None
+        target = (getattr(sp, "target", alias) or "").lower()
+        persist_policy = getattr(sp, "persist", "default")
+        persistent = (
+            persist_policy != "skip" and target not in {"read", "list"}
+        ) or _is_persistent(chains)
         try:
             _inject_atoms(chains, self._atoms() or (), persistent=persistent)
         except Exception:
@@ -309,6 +311,22 @@ class Kernel:
                 getattr(model, "__name__", model),
                 alias,
             )
+        if persistent:
+            try:
+                start_anchor, start_run = _sys.get("txn", "begin")
+                end_anchor, end_run = _sys.get("txn", "commit")
+                chains.setdefault(start_anchor, []).append(
+                    _wrap_atom(start_run, anchor=start_anchor)
+                )
+                chains.setdefault(end_anchor, []).append(
+                    _wrap_atom(end_run, anchor=end_anchor)
+                )
+            except Exception:
+                logger.exception(
+                    "kernel: failed to inject txn system steps for %s.%s",
+                    getattr(model, "__name__", model),
+                    alias,
+                )
         for ph in PHASES:
             chains.setdefault(ph, [])
         return chains
