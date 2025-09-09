@@ -302,7 +302,7 @@ class Kernel:
         persist_policy = getattr(sp, "persist", "default")
         persistent = (
             persist_policy != "skip"
-            and target in {"create", "update", "replace", "delete"}
+            and target in {"create", "update", "replace", "delete", "clear"}
         ) or _is_persistent(chains)
         try:
             _inject_atoms(chains, self._atoms() or (), persistent=persistent)
