@@ -14,11 +14,11 @@ The Core Library provides the foundational interfaces and abstract base classes 
 
 ## Getting Started
 
-To start developing with the Core Library, include it as a module in your Python project. Ensure you have Python 3.6 or later installed.
+To start developing with the Core Library, include it as a module in your Python project. Ensure you have Python 3.10 or later installed.
 
 ```python
 # Example of using an abstract model interface from the Core Library
-from swarmauri.core.models.IModel import IModel
+from swarmauri_core.models.IModel import IModel
 
 class MyModel(IModel):
     # Implement the abstract methods here

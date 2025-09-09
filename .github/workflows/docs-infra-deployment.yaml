@@ -1,0 +1,21 @@
+name: Deploy Docs Infra
+on:
+  push:
+    branches: [master, mono/dev]
+    paths:
+      - 'infra/docs/**'
+  workflow_dispatch:
+
+jobs:
+  deploy-infra:
+    runs-on: [docs]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Restart docs infra stack
+        run: |
+          docker compose -f infra/docs/docker-compose.yml down || true
+          docker compose -f infra/docs/docker-compose.yml up -d --pull always

@@ -1,4 +1,11 @@
-# tigrbl/v3/runtime/executor/guards.py
+"""Database session guard utilities for the runtime executor.
+
+This module temporarily replaces ``commit`` and ``flush`` on SQLAlchemy
+sessions to enforce phase-specific policies. Each guard returns a handle that
+restores the original methods once the phase completes and provides helpers to
+rollback when the runtime owns the transaction.
+"""
+
 from __future__ import annotations
 
 import logging
@@ -18,6 +25,8 @@ logger = logging.getLogger(__name__)
 
 
 class _GuardHandle:
+    """Stores original ``commit``/``flush`` methods for later restoration."""
+
     __slots__ = ("db", "orig_commit", "orig_flush")
 
     def __init__(self, db: Any, orig_commit: Any, orig_flush: Any) -> None:
@@ -47,7 +56,20 @@ def _install_db_guards(
     require_owned_tx_for_commit: bool,
     owns_tx: bool,
 ) -> _GuardHandle:
-    """Monkey-patch db.commit/db.flush during a phase to enforce policy."""
+    """Install guards that restrict ``commit``/``flush`` during a phase.
+
+    Parameters:
+        db: SQLAlchemy ``Session``/``AsyncSession`` to guard.
+        phase: Name of the executing phase for error messages.
+        allow_flush: Whether ``flush`` should be permitted.
+        allow_commit: Whether ``commit`` should be permitted.
+        require_owned_tx_for_commit: Block commits if the executor did not
+            open the transaction.
+        owns_tx: Whether the runtime opened the transaction.
+
+    Returns:
+        A ``_GuardHandle`` for restoring original methods.
+    """
     if db is None:
         return _GuardHandle(None, None, None)
     orig_commit = getattr(db, "commit", None)
@@ -90,6 +112,8 @@ async def _rollback_if_owned(
     phases: Optional[PhaseChains],
     ctx: _Ctx,
 ) -> None:
+    """Rollback the session if this runtime owns the transaction."""
+
     if not owns_tx or db is None:
         return
     try:

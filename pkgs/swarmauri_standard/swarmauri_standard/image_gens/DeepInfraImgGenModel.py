@@ -1,6 +1,6 @@
 import asyncio
 import contextlib
-from typing import List, Literal
+from typing import Any, Dict, List, Literal
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -40,7 +40,7 @@ class DeepInfraImgGenModel(ImageGenBase):
     name: str = "black-forest-labs/FLUX-1-dev"
     type: Literal["DeepInfraImgGenModel"] = "DeepInfraImgGenModel"
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Dict[str, Any]):
         """
         Initializes the DeepInfraImgGenModel instance.
 
@@ -48,7 +48,7 @@ class DeepInfraImgGenModel(ImageGenBase):
         operations and configures request headers with the provided API key.
 
         Args:
-            **data: Keyword arguments for model initialization.
+            **kwargs (Dict[str, Any]): Additional keyword arguments, which may includes api_key and allowed_models.
         """
         super().__init__(**kwargs)
         self._headers = {
