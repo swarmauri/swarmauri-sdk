@@ -24,7 +24,7 @@ from typing import (
 )
 
 from .executor import _invoke, _Ctx
-from . import events as _ev, ordering as _ordering
+from . import events as _ev, ordering as _ordering, system as _sys
 from ..op.types import PHASES, StepFn
 from ..column.mro_collect import mro_collect_columns
 
@@ -309,6 +309,22 @@ class Kernel:
                 getattr(model, "__name__", model),
                 alias,
             )
+        if persistent:
+            try:
+                start_anchor, start_run = _sys.get("txn", "begin")
+                end_anchor, end_run = _sys.get("txn", "commit")
+                chains.setdefault(start_anchor, []).append(
+                    _wrap_atom(start_run, anchor=start_anchor)
+                )
+                chains.setdefault(end_anchor, []).append(
+                    _wrap_atom(end_run, anchor=end_anchor)
+                )
+            except Exception:
+                logger.exception(
+                    "kernel: failed to inject txn system steps for %s.%s",
+                    getattr(model, "__name__", model),
+                    alias,
+                )
         for ph in PHASES:
             chains.setdefault(ph, [])
         return chains
