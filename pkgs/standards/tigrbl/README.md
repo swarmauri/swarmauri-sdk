@@ -22,22 +22,19 @@ A high-leverage meta-framework that turns plain SQLAlchemy models into a fully-f
 
 - **Tenant** – a namespace used to group related resources.
 - **Principal** – an owner of resources, such as an individual user or an organization.
-
-## Features
-- Unified invocation 
-- Automated REST & RPC symmetry and parity
-	- table creation instantiates routes and rpc methods
-	- `transactional` adds routes and rpc methods
-	- REST routes and RPC both invoke the `_runner._invoke()`
-- Automated Request and Response schemas
-- Default operations: create, read, update, delete, list, clear
-- Extended operations: replace (put), bulk create/delete/update
-- 6 Phase Hook Lifecycle
-- Transactionals
-- _RowBound hook providers
-- phase-level hooks that can be wildcard or per-verb, per-model
-- Automated route creation: rest paths or nested rest paths, rpc dispatch, healthz, methodz, hookz
-- Support for AuthNProvider extensions
+- **Resource** – a logical collection of data or functionality exposed by the API.
+- **Engine** – the database connection and transaction manager backing a resource.
+- **Model / Table** – the ORM or database representation of a resource's records.
+- **Column** – a field on a model that maps to a table column.
+- **Operation** – a verb-driven action executed against a resource.
+- **Hook** – a callback that runs during a phase to customize behavior.
+- **Phase** – a step in the request lifecycle where hooks may run.
+- **Verb** – the canonical name of an operation such as create or read.
+- **Runtime** – orchestrates phases and hooks while processing a request.
+- **Kernel** – the core dispatcher invoked by the runtime to handle operations.
+- **Schema** – the structured shape of request or response data.
+- **Request** – inbound data and context provided to an operation.
+- **Response** – outbound result returned after an operation completes.
 
 ## Built-in Verbs
 
