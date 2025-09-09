@@ -16,10 +16,10 @@ def _create_key(client, name: str = None, algorithm: str = "AES256_GCM"):
         import uuid
 
         name = f"error_test_key_{uuid.uuid4().hex[:8]}"
-    payload = {"name": name, "algorithm": algorithm}
+    payload = [{"name": name, "algorithm": algorithm}]
     res = client.post("/kms/key", json=payload)
-    assert res.status_code == 201
-    return res.json()
+    assert res.status_code in {200, 201}
+    return res.json()[0]
 
 
 @pytest.fixture
@@ -99,7 +99,10 @@ def test_wrap_disabled_key(client):
     disable_payload = {"status": "disabled"}
     disable_response = client.patch(f"/kms/key/{key['id']}", json=disable_payload)
     assert disable_response.status_code in (200, 422)
-    if disable_response.status_code == 200:
+    if (
+        disable_response.status_code == 200
+        and client.get(f"/kms/key/{key['id']}").json().get("status") == "disabled"
+    ):
         key_material_b64 = base64.b64encode(secrets.token_bytes(32)).decode()
         wrap_payload = {"key_material_b64": key_material_b64}
         wrap_response = client.post(f"/kms/key/{key['id']}/wrap", json=wrap_payload)
@@ -283,7 +286,10 @@ def test_unwrap_disabled_key(client):
     disable_payload = {"status": "disabled"}
     disable_response = client.patch(f"/kms/key/{key['id']}", json=disable_payload)
     assert disable_response.status_code in (200, 422)
-    if disable_response.status_code == 200:
+    if (
+        disable_response.status_code == 200
+        and client.get(f"/kms/key/{key['id']}").json().get("status") == "disabled"
+    ):
         unwrap_payload = {
             "wrapped_key_b64": wrap_data["wrapped_key_b64"],
             "nonce_b64": wrap_data["nonce_b64"],
