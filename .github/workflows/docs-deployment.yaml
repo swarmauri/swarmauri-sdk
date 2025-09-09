@@ -1,7 +1,7 @@
 name: Deploy Documentation
 on:
   push:
-    branches: [master, mono/dev, mono/docs]
+    branches: [master, mono/dev]
     paths:
       - 'docs/**'
       - 'pkgs/**'
@@ -9,7 +9,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: [self-hosted, docs]
+    runs-on: [docs]
     defaults:
       run:
         working-directory: docs
