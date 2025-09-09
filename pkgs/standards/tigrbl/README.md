@@ -166,6 +166,18 @@ DSN string, a mapping, an `EngineSpec`, a `Provider`, or an `Engine`. The
 resolver chooses the most specific binding in the order
 `op > table > api > app`.
 
+#### Engine precedence
+
+When engine contexts are declared at multiple scopes, Tigrbl resolves them
+with strict precedence:
+
+1. **Op level** – bindings attached directly to an operation take highest priority.
+2. **Table/Model level** – definitions on a model or table override API and app defaults.
+3. **API level** – bindings on the API class apply when no model-specific context exists.
+4. **App level** – the default engine supplied to the application is used last.
+
+This ordering ensures that the most specific engine context always wins.
+
 #### Declarative bindings
 
 ```python
