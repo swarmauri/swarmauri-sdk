@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_folium"
-version = "0.7.6.dev6"
+version = "0.7.6.dev7"
 description = "This repository includes an example of a First Class Swarmauri Example."
 license = "Apache-2.0"
 readme = "README.md"

@@ -390,6 +390,6 @@ def test_op_ctx_system_steps(sync_db_session):
 
     _, api = setup_api(Widget, get_sync_db)
     chains = build_phase_chains(Widget, "ping")
-    
+
     assert chains["START_TX"]
     assert chains["END_TX"]

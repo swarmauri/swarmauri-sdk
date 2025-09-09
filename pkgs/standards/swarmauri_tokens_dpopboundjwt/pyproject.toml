@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tokens_dpopboundjwt"
-version = "0.1.1.dev1"
+version = "0.1.1.dev2"
 description = "DPoP-bound JWT token service for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

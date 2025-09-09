@@ -51,7 +51,9 @@ class IChain(ABC):
         pass
 
     @abstractmethod
-    def execute(self, *args: tuple[Any, ...], **kwargs: dict[str, Any]) -> Dict[str, Any]:
+    def execute(
+        self, *args: tuple[Any, ...], **kwargs: dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Initiates the execution of the chain. This involves invoking each step in the order
         they have been added to the chain, passing control from one step to the next, and optionally

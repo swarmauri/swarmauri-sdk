@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_toolkit_github"
-version = "0.7.6.dev6"
+version = "0.7.6.dev7"
 description = "Github Toolkit"
 license = "Apache-2.0"
 readme = "README.md"

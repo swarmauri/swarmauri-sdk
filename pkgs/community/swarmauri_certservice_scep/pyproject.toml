@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_certservice_scep"
-version = "0.7.6.dev6"
+version = "0.7.6.dev7"
 description = "Swarmauri SCEP Certificate Service"
 license = "Apache-2.0"
 readme = "README.md"
