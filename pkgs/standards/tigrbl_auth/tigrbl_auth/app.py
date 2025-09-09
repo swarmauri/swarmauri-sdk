@@ -35,7 +35,7 @@ logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 # AutoApp application
 # --------------------------------------------------------------------
 app = AutoApp(
-    title="Auto-AuthNZ",
+    title="Tigrbl-Auth",
     version="0.1.0",
     openapi_url="/openapi.json",
     docs_url="/docs",
