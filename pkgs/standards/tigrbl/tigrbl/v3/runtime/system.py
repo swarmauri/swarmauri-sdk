@@ -79,16 +79,18 @@ def _sys_tx_begin(_obj: Optional[object], ctx: Any) -> None:
     """
     log.debug("system: begin_tx enter")
     _ensure_temp(ctx)
-    ctx.temp["__sys_tx_open__"] = True
+    open_flag = False
     try:
         if callable(INSTALLED.begin):
             INSTALLED.begin(ctx)
+            open_flag = True
             log.debug("system: begin_tx executed.")
         else:
             log.debug("system: begin_tx no-op (no adapter installed).")
     except Exception as e:  # escalate as typed error
         raise _err.SystemStepError("Failed to begin transaction.", cause=e)
     finally:
+        ctx.temp["__sys_tx_open__"] = open_flag
         log.debug("system: begin_tx exit")
 
 
@@ -148,34 +150,33 @@ async def _sys_tx_commit(_obj: Optional[object], ctx: Any) -> None:
     _ensure_temp(ctx)
     open_flag = bool(ctx.temp.get("__sys_tx_open__"))
     try:
-        if open_flag:
-            if callable(INSTALLED.commit):
-                rv = INSTALLED.commit(ctx)
-                if inspect.isawaitable(rv):
-                    await rv  # type: ignore[func-returns-value]
-                log.debug("system: commit_tx executed.")
-            else:
-                log.debug("system: commit_tx no-op (no adapter commit).")
-
-            db = getattr(ctx, "db", None)
-            if db is not None and _in_tx(db):
-                log.debug("system: commit_tx fallback commit executing.")
-                commit = getattr(db, "commit", None)
-                if callable(commit):
-                    try:
-                        if _is_async_db(db):
-                            await commit()  # type: ignore[misc]
-                        else:
-                            commit()
-                        log.debug("system: commit_tx fallback commit succeeded.")
-                    except Exception as e:  # pragma: no cover - defensive safeguard
-                        log.exception("system: commit_tx fallback commit failed: %s", e)
-                else:
-                    log.debug(
-                        "system: commit_tx fallback commit not possible (no commit attr)."
-                    )
+        if open_flag and callable(INSTALLED.commit):
+            rv = INSTALLED.commit(ctx)
+            if inspect.isawaitable(rv):
+                await rv  # type: ignore[func-returns-value]
+            log.debug("system: commit_tx executed.")
+        elif open_flag:
+            log.debug("system: commit_tx no-op (no adapter commit).")
         else:
             log.debug("system: commit_tx no-op (open=%s).", open_flag)
+
+        db = getattr(ctx, "db", None)
+        if db is not None and _in_tx(db):
+            log.debug("system: commit_tx fallback commit executing.")
+            commit = getattr(db, "commit", None)
+            if callable(commit):
+                try:
+                    if _is_async_db(db):
+                        await commit()  # type: ignore[misc]
+                    else:
+                        commit()
+                    log.debug("system: commit_tx fallback commit succeeded.")
+                except Exception as e:  # pragma: no cover - defensive safeguard
+                    log.exception("system: commit_tx fallback commit failed: %s", e)
+            else:
+                log.debug(
+                    "system: commit_tx fallback commit not possible (no commit attr)."
+                )
     except Exception as e:
         raise _err.SystemStepError("Failed to commit transaction.", cause=e)
     finally:
