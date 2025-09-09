@@ -1,5 +1,21 @@
-# Tigrbl
+![Tigrbl Logo](../../../assets/tigrbl_full_logo)
 
+<p align="center">
+    <a href="https://pypi.org/project/tigrbl/">
+        <img src="https://img.shields.io/pypi/dm/tigrbl" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/tigrbl/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/tigrbl.svg"/></a>
+    <a href="https://pypi.org/project/tigrbl/">
+        <img src="https://img.shields.io/pypi/pyversions/tigrbl" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/tigrbl/">
+        <img src="https://img.shields.io/pypi/l/tigrbl" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/tigrbl/">
+        <img src="https://img.shields.io/pypi/v/tigrbl?label=tigrbl&color=green" alt="PyPI - tigrbl"/></a>
+</p>
+
+---
+
+# Tigrbl
 A high-leverage meta-framework that turns plain SQLAlchemy models into a fully-featured REST+RPC surface with near zero boiler plate.
 
 ## Terminology
