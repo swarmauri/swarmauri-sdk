@@ -300,6 +300,14 @@ class Kernel:
             "update",
             "replace",
             "delete",
+            "merge",
+            "clear",
+            "bulk_create",
+            "bulk_update",
+            "bulk_replace",
+            "bulk_merge",
+            "bulk_delete",
+            "custom",
         } or _is_persistent(chains)
         try:
             _inject_atoms(chains, self._atoms() or (), persistent=persistent)

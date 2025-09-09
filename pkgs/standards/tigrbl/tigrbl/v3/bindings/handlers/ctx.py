@@ -23,6 +23,10 @@ def _ctx_get(ctx: Mapping[str, Any], key: str, default: Any = None) -> Any:
 def _ctx_payload(ctx: Mapping[str, Any]) -> Any:
     temp = _ctx_get(ctx, "temp", None)
     raw = _ctx_get(ctx, "payload", None)
+    if isinstance(raw, Sequence) and not isinstance(raw, (str, bytes)):
+        logger.debug("Payload is a non-string sequence")
+        logger.debug("Payload: %s", raw)
+        return raw
     if isinstance(temp, Mapping):
         av = temp.get("assembled_values")
         if isinstance(av, Mapping):
@@ -36,10 +40,6 @@ def _ctx_payload(ctx: Mapping[str, Any]) -> Any:
     v = raw
     if isinstance(v, Mapping):
         logger.debug("Payload is a mapping")
-        logger.debug("Payload: %s", v)
-        return v
-    if isinstance(v, Sequence) and not isinstance(v, (str, bytes)):
-        logger.debug("Payload is a non-string sequence")
         logger.debug("Payload: %s", v)
         return v
     logger.debug("Payload absent or unsupported; defaulting to empty dict")
