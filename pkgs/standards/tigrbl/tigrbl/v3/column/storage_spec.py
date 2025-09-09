@@ -7,6 +7,8 @@ from typing import Any, Literal, Union
 
 @dataclass(frozen=True)
 class StorageTransform:
+    """Functions used to transform values on the way to and from the database."""
+
     to_stored: Union[callable, None] = (
         None  # (python, ctx) -> python persisted (e.g., hash/encrypt/normalize)
     )
@@ -17,6 +19,8 @@ class StorageTransform:
 
 @dataclass(frozen=True)
 class ForeignKeySpec:
+    """Lightweight description of a foreign key relationship."""
+
     target: str  # "tenant(id)" or fully-qualified
     on_delete: Literal["CASCADE", "RESTRICT", "SET NULL", "SET DEFAULT"] = "RESTRICT"
     on_update: Literal["CASCADE", "RESTRICT", "SET NULL", "SET DEFAULT"] = "RESTRICT"
@@ -27,6 +31,16 @@ class ForeignKeySpec:
 
 @dataclass(frozen=True)
 class StorageSpec:
+    """Describe the database-level shape and behaviour of a column.
+
+    The spec maps closely to SQLAlchemy's :class:`~sqlalchemy.Column` keyword
+    arguments: ``type_`` and flags such as ``nullable`` or ``primary_key``
+    define the table schema while ``default`` and ``onupdate`` represent ORM
+    side defaults. ``server_default`` and ``refresh_on_return`` support
+    database-generated values. Optional helpers provide value transforms,
+    foreign keys, check constraints and comments.
+    """
+
     # SQLAlchemy column shape (DDL/runtime)
     type_: Any | None = None
     _: KW_ONLY
