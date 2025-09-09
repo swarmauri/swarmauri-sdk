@@ -35,6 +35,21 @@ The kernel labels every piece of work so it can be ordered predictably:
 Downstream consumers configure `secdeps`, `deps`, and `hooks`, while `sys` and
 `atom` steps are maintained by the Tigrbl maintainers.
 
+## Step Precedence
+
+When the kernel assembles an operation it flattens several step kinds into a
+single execution plan. They run in the following precedence:
+
+1. Security dependencies (`secdeps`)
+2. General dependencies (`deps`)
+3. System steps (`sys`) such as transaction begin, handler dispatch, and commit
+4. Runtime atoms (`atoms`)
+5. Hooks (`hooks`)
+
+System steps appear only on the `START_TX`, `HANDLER`, and `END_TX` anchors. Within
+each anchor, atoms execute before hooks and any remaining ties are resolved by
+anchor-specific preferences.
+
 ## DB Guards
 
 For every phase the executor installs database guards that monkey‑patch
