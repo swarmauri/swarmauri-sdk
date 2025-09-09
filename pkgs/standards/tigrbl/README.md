@@ -97,6 +97,21 @@ attach handlers at any phase to customize behavior or enforce policy.
 
 ## Configuration Overview
 
+### Schema Config Precedence
+
+Tigrbl merges schema configuration from several scopes.  
+Later layers override earlier ones, with the precedence order:
+
+1. defaults (lowest)
+2. app configuration
+3. API configuration
+4. table configuration
+5. column-level `cfg` values
+6. op-specific `cfg`
+7. per-request overrides (highest)
+
+This hierarchy ensures that the most specific settings always win.
+
 ### Table-Level
 - `__tigrbl_request_extras__` – verb-scoped virtual request fields.
 - `__tigrbl_response_extras__` – verb-scoped virtual response fields.
