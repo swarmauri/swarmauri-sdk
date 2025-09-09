@@ -1,8 +1,9 @@
 # tigrbl/v3/runtime/system.py
 from __future__ import annotations
 
-import logging
+import asyncio
 import inspect
+import logging
 from typing import Any, Callable, Dict, Mapping, MutableMapping, Optional, Tuple
 
 from . import errors as _err
@@ -79,10 +80,11 @@ def _sys_tx_begin(_obj: Optional[object], ctx: Any) -> None:
     """
     log.debug("system: begin_tx enter")
     _ensure_temp(ctx)
-    ctx.temp["__sys_tx_open__"] = True
+    ctx.temp["__sys_tx_open__"] = False
     try:
         if callable(INSTALLED.begin):
             INSTALLED.begin(ctx)
+            ctx.temp["__sys_tx_open__"] = True
             log.debug("system: begin_tx executed.")
         else:
             log.debug("system: begin_tx no-op (no adapter installed).")
@@ -139,7 +141,7 @@ def _sys_handler_crud(obj: Optional[object], ctx: Any) -> None:
         raise _err.SystemStepError("Handler execution failed.", cause=e)
 
 
-async def _sys_tx_commit(_obj: Optional[object], ctx: Any) -> None:
+def _sys_tx_commit(_obj: Optional[object], ctx: Any) -> None:
     """
     sys:txn:commit — commit the transaction if begin ran and adapter installed commit.
     Defaults to no-op; clears the 'open' flag.
@@ -152,7 +154,12 @@ async def _sys_tx_commit(_obj: Optional[object], ctx: Any) -> None:
             if callable(INSTALLED.commit):
                 rv = INSTALLED.commit(ctx)
                 if inspect.isawaitable(rv):
-                    await rv  # type: ignore[func-returns-value]
+                    try:
+                        loop = asyncio.get_running_loop()
+                    except RuntimeError:
+                        asyncio.run(rv)  # type: ignore[arg-type]
+                    else:  # pragma: no branch - coverage for running loop
+                        loop.create_task(rv)
                 log.debug("system: commit_tx executed.")
             else:
                 log.debug("system: commit_tx no-op (no adapter commit).")
@@ -164,7 +171,14 @@ async def _sys_tx_commit(_obj: Optional[object], ctx: Any) -> None:
                 if callable(commit):
                     try:
                         if _is_async_db(db):
-                            await commit()  # type: ignore[misc]
+                            rv2 = commit()
+                            if inspect.isawaitable(rv2):
+                                try:
+                                    loop = asyncio.get_running_loop()
+                                except RuntimeError:
+                                    asyncio.run(rv2)  # type: ignore[arg-type]
+                                else:  # pragma: no branch - running loop
+                                    loop.create_task(rv2)
                         else:
                             commit()
                         log.debug("system: commit_tx fallback commit succeeded.")
