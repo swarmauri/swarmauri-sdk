@@ -18,6 +18,23 @@ Phase chains map phase names to ordered handler lists. The executor runs the pha
 8. `POST_COMMIT` – steps after commit.
 9. `POST_RESPONSE` – fire-and-forget side effects.
 
+## Step Kinds
+
+The kernel labels every piece of work so it can be ordered predictably:
+
+- **secdeps** – security dependencies that run before any other steps. Downstream
+  applications configure these to enforce authentication or authorization.
+- **deps** – general dependencies resolved ahead of handlers. These are also
+  provided downstream.
+- **sys** – system steps shipped with Tigrbl to coordinate core behavior. They
+  are maintained by project maintainers.
+- **atoms** – built-in runtime units such as schema collectors or wire
+  serializers. Maintainers own these components.
+- **hooks** – user-supplied handlers that attach to anchors within phases.
+
+Downstream consumers configure `secdeps`, `deps`, and `hooks`, while `sys` and
+`atom` steps are maintained by the Tigrbl maintainers.
+
 ## DB Guards
 
 For every phase the executor installs database guards that monkey‑patch
@@ -49,6 +66,18 @@ raises an error.
 | END_TX | ✅ | ✅ | commit allowed only if runtime owns the transaction |
 | POST_COMMIT | ✅ | ❌ | post-commit writes without commit |
 | POST_RESPONSE | ❌ | ❌ | background work, no writes |
+
+### Transaction Boundaries
+
+`start_tx` is a system step that opens a new database transaction when
+no transaction is active and marks the runtime as its owner. While this
+phase runs, both `session.flush` and `session.commit` are blocked. After a
+transaction is started, phases such as `PRE_HANDLER`, `HANDLER`, and
+`POST_HANDLER` allow flushes so SQL statements can be issued while the
+commit remains deferred. The `end_tx` step executes during the `END_TX`
+phase, performing a final flush and committing the transaction if the
+runtime owns it. Once this phase completes, guards restore the original
+session methods.
 
 If a phase fails, the guard restores the original methods and the executor rolls back when it owns the transaction. Optional `ON_<PHASE>_ERROR` chains can handle cleanup.
 
