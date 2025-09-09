@@ -215,6 +215,15 @@ This hierarchy ensures that the most specific settings always win.
 - Pluggable `AuthNProvider` interface.
 - `__tigrbl_allow_anon__` to permit anonymous access.
 
+### Default Precedence
+When assembling values for persistence, defaults are resolved in this order:
+
+1. Client-supplied value
+2. API `default_factory`
+3. ORM default
+4. Database `server_default`
+5. HTTP 422 if the field is required and still missing
+
 ### Database Guards
 Tigrbl executes each phase under database guards that temporarily replace
 `commit` and `flush` on the SQLAlchemy session. Guards prevent writes or
