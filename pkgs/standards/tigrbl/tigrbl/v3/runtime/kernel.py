@@ -295,12 +295,15 @@ class Kernel:
     # ——— build / plan ———
     def build(self, model: type, alias: str) -> Dict[str, List[StepFn]]:
         chains = _hook_phase_chains(model, alias)
-        persistent = (alias or "").lower() in {
-            "create",
-            "update",
-            "replace",
-            "delete",
-        } or _is_persistent(chains)
+        specs = getattr(getattr(model, "ops", SimpleNamespace()), "by_alias", {})
+        sp_list = specs.get(alias) or ()
+        sp = sp_list[0] if sp_list else None
+        target = (getattr(sp, "target", alias) or "").lower()
+        persist_policy = getattr(sp, "persist", "default")
+        persistent = (
+            persist_policy != "skip"
+            and target in {"create", "update", "replace", "delete"}
+        ) or _is_persistent(chains)
         try:
             _inject_atoms(chains, self._atoms() or (), persistent=persistent)
         except Exception:
