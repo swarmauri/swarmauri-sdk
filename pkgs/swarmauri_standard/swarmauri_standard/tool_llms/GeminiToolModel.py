@@ -10,11 +10,7 @@ from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
 from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
 
-<<<<<<< HEAD
 from swarmauri_standard.conversations.Conversation import Conversation
-=======
-from swarmauri_core.conversations.IConversation import IConversation
->>>>>>> upstream/mono/dev
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.messages.FunctionMessage import FunctionMessage
 from swarmauri_standard.schema_converters.GeminiSchemaConverter import (
@@ -238,7 +234,7 @@ class GeminiToolModel(ToolLLMBase):
         multiturn: bool = True,
         temperature: float = 0.7,
         max_tokens: int = 1024,
-    ) -> IConversation:
+    ) -> Conversation:
         """
         Generates model responses for a conversation synchronously.
 

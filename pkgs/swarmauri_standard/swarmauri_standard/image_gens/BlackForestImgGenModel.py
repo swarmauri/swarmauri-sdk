@@ -221,7 +221,9 @@ class BlackForestImgGenModel(ImageGenBase):
         finally:
             await self._close_async_client()
 
-    def batch_generate(self, prompts: List[str], **kwargs: Dict[str, Any]) -> List[Dict]:
+    def batch_generate(
+        self, prompts: List[str], **kwargs: Dict[str, Any]
+    ) -> List[Dict]:
         """
         Generates images for a batch of prompts synchronously.
 

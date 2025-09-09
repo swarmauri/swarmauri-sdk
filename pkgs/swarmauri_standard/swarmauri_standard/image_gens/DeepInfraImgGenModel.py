@@ -48,7 +48,7 @@ class DeepInfraImgGenModel(ImageGenBase):
         operations and configures request headers with the provided API key.
 
         Args:
-            **kwargs (Dict[str, Any]): Additional keyword arguments, which may includes api_key and allowed_models.           
+            **kwargs (Dict[str, Any]): Additional keyword arguments, which may includes api_key and allowed_models.
         """
         super().__init__(**kwargs)
         self._headers = {

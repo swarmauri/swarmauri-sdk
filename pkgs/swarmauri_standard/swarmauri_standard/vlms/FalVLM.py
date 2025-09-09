@@ -74,7 +74,9 @@ class FalVLM(VLMBase):
         self._client = httpx.Client(headers=self._headers, timeout=30)
 
     @retry_on_status_codes((429, 529), max_retries=1)
-    def _send_request(self, image_url: str, prompt: str, **kwargs: dict[str, Any]) -> Dict:
+    def _send_request(
+        self, image_url: str, prompt: str, **kwargs: dict[str, Any]
+    ) -> Dict:
         """
         Send a synchronous request to the vision model API for image processing.
 
@@ -99,7 +101,9 @@ class FalVLM(VLMBase):
         return response_data  # For immediate responses
 
     @retry_on_status_codes((429, 529), max_retries=1)
-    async def _async_send_request(self, image_url: str, prompt: str, **kwargs: dict[str, Any]) -> Dict:
+    async def _async_send_request(
+        self, image_url: str, prompt: str, **kwargs: dict[str, Any]
+    ) -> Dict:
         """
         Send an asynchronous request to the vision model API for image processing.
 
@@ -192,7 +196,9 @@ class FalVLM(VLMBase):
             f"Request {request_id} did not complete within the timeout period"
         )
 
-    def predict_vision(self, image_url: str, prompt: str, **kwargs: dict[str, Any]) -> str:
+    def predict_vision(
+        self, image_url: str, prompt: str, **kwargs: dict[str, Any]
+    ) -> str:
         """
         Process an image and answer a question based on the prompt.
 
@@ -207,7 +213,9 @@ class FalVLM(VLMBase):
         response_data = self._send_request(image_url, prompt, **kwargs)
         return response_data.get("output", "")
 
-    async def apredict_vision(self, image_url: str, prompt: str, **kwargs: dict[str, Any]) -> str:
+    async def apredict_vision(
+        self, image_url: str, prompt: str, **kwargs: dict[str, Any]
+    ) -> str:
         """
         Asynchronously process an image and answer a question based on the prompt.
 
@@ -222,7 +230,9 @@ class FalVLM(VLMBase):
         response_data = await self._async_send_request(image_url, prompt, **kwargs)
         return response_data.get("output", "")
 
-    def batch(self, image_urls: List[str], prompts: List[str], **kwargs: dict[str, Any]) -> List[str]:
+    def batch(
+        self, image_urls: List[str], prompts: List[str], **kwargs: dict[str, Any]
+    ) -> List[str]:
         """
         Process a batch of images and answer questions for each image synchronously.
 

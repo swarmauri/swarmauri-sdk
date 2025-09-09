@@ -16,15 +16,10 @@ from typing import (
 import httpx
 from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
-<<<<<<< HEAD
 from swarmauri_base.DynamicBase import SubclassUnion
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.tools.ToolBase import ToolBase
-=======
-from swarmauri_base.llms.LLMBase import LLMBase
-from swarmauri_base.messages.MessageBase import MessageBase
->>>>>>> upstream/mono/dev
 
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
