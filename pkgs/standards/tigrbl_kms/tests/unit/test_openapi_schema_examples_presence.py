@@ -41,14 +41,29 @@ def test_all_schemas_listed_in_openapi():
     """Validate that all dynamically generated schemas appear in OpenAPI."""
     app, spec = _get_app_and_spec()
     component_names = set(spec["components"]["schemas"])
-    standard_ops = ["create", "read", "update", "replace", "delete", "list"]
+    # tigrbl-kms exposes bulk operations rather than the standard single-item
+    # ``create`` verb, so the OpenAPI spec lacks separate
+    # ``CreateRequest``/``CreateResponse`` schemas. Verify schemas for both
+    # standard CRUD verbs and their bulk counterparts that are actually
+    # represented in the REST API.
+    ops = [
+        "read",
+        "update",
+        "replace",
+        "delete",
+        "list",
+        "bulk_create",
+        "bulk_update",
+        "bulk_replace",
+        "bulk_delete",
+    ]
     for model_name in MODELS:
         model_ns = getattr(app.schemas, model_name)
-        for alias in standard_ops:
+        for alias in ops:
             if not hasattr(model_ns, alias):
                 continue
             op_ns = getattr(model_ns, alias)
-            if alias in {"create", "update", "replace"} and hasattr(op_ns, "in_"):
+            if alias in {"update", "replace", "bulk_delete"} and hasattr(op_ns, "in_"):
                 assert op_ns.in_.__name__ in component_names
             if hasattr(op_ns, "out"):
                 assert op_ns.out.__name__ in component_names
