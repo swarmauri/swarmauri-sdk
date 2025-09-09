@@ -219,12 +219,12 @@ services:
     networks: [app_net]
 
   # ────────────────────────────────────────────────
-  # AutoAuthN
+  # tigrbl_auth
   # ────────────────────────────────────────────────
-  auto_authn:
+  tigrbl_auth:
     build:
       context: ../../
-      dockerfile: pkgs/standards/auto_authn/Dockerfile
+      dockerfile: pkgs/standards/tigrbl_auth/Dockerfile
     depends_on:
       postgres:
         condition: service_healthy
