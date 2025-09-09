@@ -502,6 +502,8 @@ class Key(Base, BulkCapable, Replaceable):
 
         kid = str(ctx["key"].id)
         key_obj = ctx["key"]
+        if key_obj.status != KeyStatus.enabled:
+            raise HTTPException(status_code=403, detail="Key is disabled")
         if key_obj.algorithm not in (KeyAlg.AES256_GCM, KeyAlg.CHACHA20_POLY1305):
             raise HTTPException(
                 status_code=400,
@@ -607,6 +609,8 @@ class Key(Base, BulkCapable, Replaceable):
 
         kid = str(ctx["key"].id)
         key_obj = ctx["key"]
+        if key_obj.status != KeyStatus.enabled:
+            raise HTTPException(status_code=403, detail="Key is disabled")
         alg_str = _alg_to_provider(key_obj.algorithm)
 
         from swarmauri_core.crypto.types import (
