@@ -125,7 +125,6 @@ members = [
     "standards/swarmauri_tokens_jwt",
     "standards/swarmauri_tokens_sshsig",
     "standards/swarmauri_tokens_sshcert",
-    "standards/swarmauri_secret_autogpg",
     "standards/swarmauri_tokens_dpopboundjwt",
     "standards/swarmauri_signing_pgp",
     "standards/swarmauri_signing_rsa",
@@ -285,7 +284,6 @@ swarmauri_gitfilter_s3fs = { workspace = true }
 swarmauri_gitfilter_minio = { workspace = true }
 swarmauri_gitfilter_gh_release = { workspace = true }
 
-swarmauri_secret_autogpg = { workspace = true }
 swarmauri_crypto_paramiko = { workspace = true }
 swarmauri_crypto_pgp = { workspace = true }
 swarmauri_crypto_rust = { workspace = true }

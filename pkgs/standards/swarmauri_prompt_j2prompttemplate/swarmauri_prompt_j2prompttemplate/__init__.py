@@ -1,6 +1,5 @@
 from .J2PromptTemplate import J2PromptTemplate
 
-
 __all__ = ["J2PromptTemplate"]
 
 try:
