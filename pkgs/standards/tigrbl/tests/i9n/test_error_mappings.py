@@ -1,5 +1,5 @@
 """
-Error Mappings and Parity Tests for Tigrbl v2
+Error Mappings and Parity Tests for Tigrbl v3
 
 Tests error mappings between RPC and HTTP, and verifies parity between error responses.
 """
