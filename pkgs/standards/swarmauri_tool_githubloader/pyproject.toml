@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_githubloader"
-version = "0.7.6.dev3"
+version = "0.7.6.dev4"
 description = "Load YAML-defined components directly from GitHub repositories."
 license = "Apache-2.0"
 readme = "README.md"

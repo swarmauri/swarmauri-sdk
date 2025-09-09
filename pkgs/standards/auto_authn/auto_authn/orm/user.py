@@ -112,13 +112,13 @@ class User(UserBase):
         plain_pw = payload.get("password")
         try:
             tenant_slug = payload.pop("tenant_slug")
-            tenant = await  db.scalar(
+            tenant = await db.scalar(
                 select(Tenant).where(Tenant.slug == tenant_slug).limit(1)
             )
             if tenant is None:
                 raise HTTPException(status.HTTP_404_NOT_FOUND, "tenant not found")
             payload["tenant_id"] = tenant.id
-            
+
             await cls.handlers.create.core({"db": db, "payload": payload})
             session_id = secrets.token_urlsafe(16)
             session = await AuthSession.handlers.login.core(

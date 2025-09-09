@@ -49,7 +49,6 @@ from sqlalchemy.ext.mutable import MutableDict, MutableList
 from sqlalchemy.ext.hybrid import hybrid_property
 
 
-
 # ── Public Exports ───────────────────────────────────────────────────────
 __all__ = [
     # Core types

@@ -14,7 +14,9 @@ async def test_retry_async_exhausts_retries():
         call_count += 1
         request = httpx.Request("GET", "http://test")
         response = httpx.Response(status_code=429, request=request)
-        raise httpx.HTTPStatusError("Too Many Requests", request=request, response=response)
+        raise httpx.HTTPStatusError(
+            "Too Many Requests", request=request, response=response
+        )
 
     with pytest.raises(Exception) as exc_info:
         await failing()
@@ -34,7 +36,9 @@ def test_retry_sync_eventual_success():
         if call_count < 3:
             request = httpx.Request("GET", "http://test")
             response = httpx.Response(status_code=429, request=request)
-            raise httpx.HTTPStatusError("Too Many Requests", request=request, response=response)
+            raise httpx.HTTPStatusError(
+                "Too Many Requests", request=request, response=response
+            )
         return "ok"
 
     assert sometimes_fails() == "ok"

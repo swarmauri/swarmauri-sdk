@@ -96,7 +96,7 @@ async def _ensure_key() -> Tuple[str, bytes, bytes]:
         ref = await kp.create_key(spec)
         _DEFAULT_KEY_PATH.parent.mkdir(parents=True, exist_ok=True)
         _DEFAULT_KEY_PATH.write_text(ref.kid)
-        # ----------------------------------------------------    
+        # ----------------------------------------------------
     alg = ref.tags.get("alg") if ref.tags else None
     if alg != KeyAlg.ED25519.value:
         raise RuntimeError("JWT signing key is not Ed25519")

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_parser_fitzpdf"
-version = "0.7.6.dev5"
+version = "0.7.6.dev6"
 description = "Fitz PDF Parser for Swarmauri."
 license = "Apache-2.0"
 readme = "README.md"
