@@ -95,6 +95,34 @@ attach handlers at any phase to customize behavior or enforce policy.
 | `ON_POST_RESPONSE_ERROR` | Handle errors raised during `POST_RESPONSE`. |
 | `ON_ROLLBACK` | Run when the transaction rolls back to perform cleanup. |
 
+During a successful request the runtime advances through each phase in the
+order shown below. Each step completes before the next begins and hooks may
+extend or short‑circuit the flow.
+
+```
+PRE_TX_BEGIN
+   |
+START_TX
+   |
+PRE_HANDLER
+   |
+HANDLER
+   |
+POST_HANDLER
+   |
+PRE_COMMIT
+   |
+END_TX
+   |
+POST_COMMIT
+   |
+POST_RESPONSE
+```
+
+If a phase raises an exception, control transfers to the matching
+`ON_<PHASE>_ERROR` chain or falls back to `ON_ERROR`, with `ON_ROLLBACK`
+executing when the transaction is rolled back.
+
 ## Hooks
 
 Hooks allow you to plug custom logic into any phase of a verb. Use the
