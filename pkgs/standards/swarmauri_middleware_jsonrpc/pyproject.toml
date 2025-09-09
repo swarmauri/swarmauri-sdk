@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_middleware_jsonrpc"
-version = "0.6.2.dev3"
+version = "0.6.2.dev4"
 description = "Middleware for validating basic JSON-RPC requests"
 license = "Apache-2.0"
 readme = "README.md"

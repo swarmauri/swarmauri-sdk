@@ -1,7 +1,7 @@
 """JWTMiddleware implementation for validating JWT tokens in FastAPI requests."""
 
 import logging
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict
 
 import jwt
 from fastapi import HTTPException, Request
@@ -24,13 +24,17 @@ class JWTMiddleware(MiddlewareBase, ComponentBase):
         algorithm: Algorithm used for decoding (default ``HS256``).
     """
 
-    def __init__(self, secret_key: str, algorithm: str = "HS256", **kwargs: Any) -> None:
+    def __init__(
+        self, secret_key: str, algorithm: str = "HS256", **kwargs: Any
+    ) -> None:
         """Initialize JWTMiddleware with token settings."""
         super().__init__(**kwargs)
         self.secret_key = secret_key
         self.algorithm = algorithm
 
-    async def dispatch(self, request: Request, call_next: Callable[[Request], Any]) -> Any:
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Any]
+    ) -> Any:
         """Validate the JWT token and continue processing."""
         auth_header = request.headers.get("Authorization", "")
         if not auth_header.startswith("Bearer "):

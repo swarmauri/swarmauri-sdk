@@ -3,7 +3,6 @@ import pytest
 
 from swarmauri_core.crypto.types import JWAAlg
 from swarmauri_signing_hmac import HmacEnvelopeSigner
-from swarmauri_core.crypto.types import JWAAlg
 
 
 @pytest.mark.perf
