@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_keyprovider_gcpkms"
-version = "0.7.6.dev1"
+version = "0.7.6.dev2"
 description = "Google Cloud KMS Key Provider for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

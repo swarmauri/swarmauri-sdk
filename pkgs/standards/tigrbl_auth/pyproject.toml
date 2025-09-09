@@ -1,6 +1,6 @@
 [project]
 name = "tigrbl-auth"
-version = "0.1.0.dev2"
+version = "0.1.0.dev3"
 description = "A Tigrbl Multi‑tenant OpenID‑Connect / OAuth2 Identity‑Provider server by Swarmauri."
 license = "Apache-2.0"
 readme = "README.md"
@@ -8,6 +8,7 @@ repository = "http://github.com/swarmauri/swarmauri-sdk"
 requires-python = ">=3.10,<3.13"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
+    "Development Status :: 3 - Alpha",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",

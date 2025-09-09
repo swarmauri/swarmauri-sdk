@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import Any, List, Literal, Optional, TypeVar, Union
 
-from pydantic import ConfigDict, Field
+from pydantic import Field
 from swarmauri_core.documents.IDocument import IDocument
 from swarmauri_core.parsers.IParser import IParser
 
