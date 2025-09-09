@@ -34,6 +34,8 @@ class TestCircuitBreakerMiddleware:
 
         return mocker.AsyncMock(side_effect=mock_call_next)
 
+    @pytest.mark.asyncio
+    @pytest.mark.unit
     def test_init(self, middleware):
         """Test CircuitBreakerMiddleware initialization."""
         assert hasattr(middleware, "circuit_breaker")
@@ -41,12 +43,16 @@ class TestCircuitBreakerMiddleware:
         assert hasattr(middleware, "reset_timeout")
         assert hasattr(middleware, "half_open_wait_time")
 
+    @pytest.mark.asyncio
+    @pytest.mark.unit
     async def test_dispatch_success(self, middleware, successful_call_next):
         """Test successful request dispatch."""
         request = Request(scope={"type": "http"}, receive=lambda: b"")
         response = await middleware.dispatch(request, successful_call_next)
         assert response == {"status": "success"}
 
+    @pytest.mark.asyncio
+    @pytest.mark.unit
     async def test_dispatch_failure(self, middleware, failing_call_next):
         """Test failed request dispatch with circuit breaking."""
         request = Request(scope={"type": "http"}, receive=lambda: b"")
@@ -61,6 +67,8 @@ class TestCircuitBreakerMiddleware:
             await middleware.dispatch(request, failing_call_next)
             assert exc_info.value.status_code == 429
 
+    @pytest.mark.asyncio
+    @pytest.mark.unit
     async def test_circuit_state_changes(
         self, middleware, caplog, failing_call_next, successful_call_next
     ):
@@ -82,6 +90,8 @@ class TestCircuitBreakerMiddleware:
         assert response == {"status": "success"}
         assert "Circuit closed: Service is healthy again" in caplog.text
 
+    @pytest.mark.asyncio
+    @pytest.mark.unit
     async def test_circuit_recovery(
         self, middleware, failing_call_next, successful_call_next
     ):
