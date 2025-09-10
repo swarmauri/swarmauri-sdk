@@ -1,5 +1,5 @@
 [project]
-name = "swarmauri-docs"
+name = "zdx"
 version = "0.1.0"
 description = "Swarmauri Documentation"
 requires-python = ">=3.12,<3.13"
