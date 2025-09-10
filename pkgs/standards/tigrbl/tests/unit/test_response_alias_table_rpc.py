@@ -7,7 +7,7 @@ from tigrbl.v3.orm.mixins import GUIDPk
 from tigrbl.v3.orm.tables import Base
 from tigrbl.v3.specs import IO, S, F, acol as spec_acol
 from tigrbl.v3.types import String
-from tigrbl.v3.tigrbl import Tigrbl
+from tigrbl.v3.tigrbl import TigrblApi
 
 
 @pytest.mark.asyncio
@@ -25,7 +25,7 @@ async def test_response_ctx_alias_table_rpc():
         )
 
     eng = build_engine(mem(async_=False))
-    api = Tigrbl(engine=eng)
+    api = TigrblApi(engine=eng)
     api.include_model(Widget, mount_router=False)
     api.initialize()
     raw_eng, _ = eng.raw()

@@ -1,9 +1,9 @@
-from tigrbl.v3 import Tigrbl, Base, op_ctx
+from tigrbl.v3 import TigrblApi, Base, op_ctx
 from sqlalchemy.orm import Mapped, mapped_column
 
 
 def test_op_ctx_dynamic_attach_auto_discovers_ops():
-    api = Tigrbl()
+    api = TigrblApi()
 
     class Book(Base):
         __tablename__ = "book"
