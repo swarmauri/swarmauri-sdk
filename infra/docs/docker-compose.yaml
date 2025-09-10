@@ -14,20 +14,6 @@ services:
     container_name: swarmauri-sdk-docs
     volumes:
       - ./swarmauri-sdk:/docs   # Mount the swarmauri-sdk docs directory
-      - ../../pkgs:/pkgs           # Mount the repo pkgs directory
-    working_dir: /docs
-    command: |
-      sh -c "
-        set -euo pipefail
-
-        # Install the zdx project into the venv
-        uv pip install --directory /pkgs/community/zdx . --upgrade
-
-        # Run docs server inside the venv
-        uv run zdx serve \
-          --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
-      "
-
     depends_on:
       - nginx-proxy-manager
     networks:
@@ -42,19 +28,6 @@ services:
     container_name: peagen-docs
     volumes:
       - ./peagen:/docs
-      - ../../pkgs:/pkgs
-    working_dir: /docs
-    command: |
-      sh -c "
-        set -euo pipefail
-        
-        # Install the zdx project into the venv
-        uv pip install --directory /pkgs/community/zdx . --upgrade
-
-        # Run docs server inside the venv
-        uv run zdx serve \
-          --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
-      "
     depends_on:
       - nginx-proxy-manager
     networks:
@@ -69,20 +42,6 @@ services:
     container_name: tigrbl-docs
     volumes:
       - ./tigrbl:/docs
-      - ../../pkgs:/pkgs
-    working_dir: /docs
-    command: |
-      sh -c "
-        set -euo pipefail
-
-        # Install the zdx project into the venv
-        uv pip install --directory /pkgs/community/zdx . --upgrade
-
-        # Run docs server inside the venv
-        uv run zdx serve \
-          --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
-      "
-
     depends_on:
       - nginx-proxy-manager
     networks:

@@ -1,26 +1,23 @@
+# ───────────────────────── base image ──────────────────────────────
 FROM python:3.12-slim
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    UV_LINK_MODE=copy
+# ─────────────────── system deps + uv package manager ──────────────
+RUN apt-get update && \
+    apt-get install --yes --no-install-recommends build-essential git && \
+    pip install --no-cache-dir uv && \
+    apt-get purge -y build-essential && \
+    apt-get autoremove -y && \
+    apt-get install -y curl && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        build-essential \
-        git \
-    && rm -rf /var/lib/apt/lists/*
+# ─────────────────── install Python deps with uv  ──────────────────
+WORKDIR /app
 
-RUN pip install --no-cache-dir -U pip uv
+# 1. Copy only dependency-defining files first (better layer caching)
+COPY ./pkgs/ ./pkgs/
 
-RUN uv venv /tmp/.venv
-ENV UV_PROJECT_ENVIRONMENT=/tmp/.venv
-
-WORKDIR /docs
+RUN uv pip install --directory pkgs/community/zdx --system .
 
 EXPOSE 8000
 
-# The compose file binds the docs/ directory at runtime.
-# Dependencies are installed via `uv sync` in the service command.
-
-CMD ["bash", "-lc", "uv --version && python --version"]
-
+CMD ["zdx", "serve", "--generate", "--docs-dir", "/docs", "--manifest", "api_manifest.yaml", "--changed-only"]
