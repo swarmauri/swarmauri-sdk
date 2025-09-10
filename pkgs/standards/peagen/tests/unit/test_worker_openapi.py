@@ -1,4 +1,4 @@
-from tigrbl.v3 import get_schema
+from tigrbl import get_schema
 from peagen.orm import Worker
 
 

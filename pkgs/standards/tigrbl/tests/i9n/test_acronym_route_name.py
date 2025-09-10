@@ -1,7 +1,7 @@
 import pytest
-from tigrbl.v3 import Base
-from tigrbl.v3.orm.mixins import GUIDPk
-from tigrbl.v3.types import Column, String
+from tigrbl import Base
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.types import Column, String
 
 
 @pytest.mark.i9n

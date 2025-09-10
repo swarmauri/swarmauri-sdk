@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from tigrbl.v3.runtime.atoms.wire import build_in
+from tigrbl.runtime.atoms.wire import build_in
 
 
 def test_build_in_maps_alias_and_tracks_unknown() -> None:

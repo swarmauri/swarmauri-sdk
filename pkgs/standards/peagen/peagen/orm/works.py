@@ -1,17 +1,17 @@
 from __future__ import annotations
 
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.types import (
+from tigrbl.orm.tables import Base
+from tigrbl.types import (
     JSON,
     PgUUID,
     Integer,
     relationship,
     Mapped,
 )
-from tigrbl.v3.orm.mixins import GUIDPk, Timestamped, StatusColumn
-from tigrbl.v3.specs import S, acol
-from tigrbl.v3.column.storage_spec import ForeignKeySpec
-from tigrbl.v3 import hook_ctx
+from tigrbl.orm.mixins import GUIDPk, Timestamped, StatusColumn
+from tigrbl.specs import S, acol
+from tigrbl.column.storage_spec import ForeignKeySpec
+from tigrbl import hook_ctx
 from typing import TYPE_CHECKING
 
 from .tasks import Task

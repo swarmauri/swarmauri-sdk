@@ -4,13 +4,13 @@ from uuid import UUID, uuid4
 
 from fastapi import HTTPException
 
-from tigrbl.v3.hook import hook_ctx
-from tigrbl.v3.specs import IO, F, S, acol
-from tigrbl.v3.orm.mixins import BulkCapable, Replaceable
-from tigrbl.v3.column.io_spec import Pair
-from tigrbl.v3.column.storage_spec import ForeignKeySpec
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.types import (
+from tigrbl.hook import hook_ctx
+from tigrbl.specs import IO, F, S, acol
+from tigrbl.orm.mixins import BulkCapable, Replaceable
+from tigrbl.column.io_spec import Pair
+from tigrbl.column.storage_spec import ForeignKeySpec
+from tigrbl.orm.tables import Base
+from tigrbl.types import (
     Integer,
     LargeBinary,
     PgUUID,

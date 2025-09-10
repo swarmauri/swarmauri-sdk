@@ -2,10 +2,10 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, declarative_base
 
-from tigrbl.v3.core import crud
-from tigrbl.v3.specs import IO, S, F, acol
-from tigrbl.v3.types import Integer, String
-from tigrbl.v3.schema import _build_list_params
+from tigrbl.core import crud
+from tigrbl.specs import IO, S, F, acol
+from tigrbl.types import Integer, String
+from tigrbl.schema import _build_list_params
 from sqlalchemy.orm.exc import NoResultFound
 
 Base = declarative_base()

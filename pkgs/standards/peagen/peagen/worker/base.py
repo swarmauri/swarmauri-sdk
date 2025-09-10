@@ -15,7 +15,7 @@ from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_POOL_ID, DEFAULT_POOL_NAME
 
 # ─── Tigrbl & client ────────────────────────────────────────────────
 from tigrbl_client import TigrblClient
-from tigrbl.v3 import get_schema
+from tigrbl import get_schema
 from peagen.orm import Worker, Work, Status  # Status enum for updates
 
 

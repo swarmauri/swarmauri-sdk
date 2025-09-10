@@ -6,7 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
-from tigrbl.v3.orm.tables import Base
+from tigrbl.orm.tables import Base
 from tigrbl_kms.orm import Key
 from tigrbl_kms.orm import KeyVersion
 

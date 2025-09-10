@@ -16,7 +16,7 @@ from typing import Any, Optional
 import httpx
 
 from tigrbl_client import TigrblClient  # ← new client
-from tigrbl.v3 import get_schema  # ← schema helper
+from tigrbl import get_schema  # ← schema helper
 from peagen.orm import PublicKey  # ORM resource
 
 from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_SUPER_USER_ID

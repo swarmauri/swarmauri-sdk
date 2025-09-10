@@ -1,10 +1,10 @@
 import pytest
 
-from tigrbl.v3 import Base
-from tigrbl.v3.orm.mixins import GUIDPk
-from tigrbl.v3.schema import _build_schema
-from tigrbl.v3.types import Column, Field, ResponseExtrasProvider, String
-from tigrbl.v3.types.response_extras_provider import list_response_extras_providers
+from tigrbl import Base
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.schema import _build_schema
+from tigrbl.types import Column, Field, ResponseExtrasProvider, String
+from tigrbl.types.response_extras_provider import list_response_extras_providers
 
 
 @pytest.mark.i9n

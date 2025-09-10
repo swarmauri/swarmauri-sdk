@@ -1,14 +1,14 @@
 import pytest
 import pytest_asyncio
-from tigrbl.v3 import TigrblApp, Base
-from tigrbl.v3.types import App
-from tigrbl.v3.orm.mixins import BulkCapable, GUIDPk
-from tigrbl.v3.specs import F, IO, S, acol
-from tigrbl.v3.column.storage_spec import StorageTransform
-from tigrbl.v3.schema import builder as v3_builder
-from tigrbl.v3.runtime import kernel as runtime_kernel
-from tigrbl.v3.engine.shortcuts import mem
-from tigrbl.v3.engine import resolver as _resolver
+from tigrbl import TigrblApp, Base
+from tigrbl.types import App
+from tigrbl.orm.mixins import BulkCapable, GUIDPk
+from tigrbl.specs import F, IO, S, acol
+from tigrbl.column.storage_spec import StorageTransform
+from tigrbl.schema import builder as v3_builder
+from tigrbl.runtime import kernel as runtime_kernel
+from tigrbl.engine.shortcuts import mem
+from tigrbl.engine import resolver as _resolver
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import UUID

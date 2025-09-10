@@ -1,14 +1,14 @@
 import pytest
 import pytest_asyncio
-from tigrbl.v3.types import App
+from tigrbl.types import App
 from httpx import ASGITransport, AsyncClient
 from pydantic import Field
 from sqlalchemy import Column, String
 from uuid import uuid4
 
-from tigrbl.v3 import TigrblApp, Base
-from tigrbl.v3.engine.shortcuts import mem
-from tigrbl.v3.schema import _build_schema
+from tigrbl import TigrblApp, Base
+from tigrbl.engine.shortcuts import mem
+from tigrbl.schema import _build_schema
 
 
 @pytest_asyncio.fixture()

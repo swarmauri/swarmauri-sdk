@@ -2,17 +2,17 @@ from __future__ import annotations
 
 import uuid
 
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.types import (
+from tigrbl.orm.tables import Base
+from tigrbl.types import (
     Boolean,
     String,
     UniqueConstraint,
     Mapped,
     relationship,
 )
-from tigrbl.v3.orm.mixins import GUIDPk, Timestamped, UserColumn
-from tigrbl.v3.specs import S, acol
-from tigrbl.v3 import hook_ctx
+from tigrbl.orm.mixins import GUIDPk, Timestamped, UserColumn
+from tigrbl.specs import S, acol
+from tigrbl import hook_ctx
 from typing import TYPE_CHECKING
 from peagen.orm.mixins import RepositoryRefMixin
 

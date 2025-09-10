@@ -1,5 +1,5 @@
-from tigrbl.v3 import op_ctx
-from tigrbl.v3.op.mro_collect import mro_collect_decorated_ops
+from tigrbl import op_ctx
+from tigrbl.op.mro_collect import mro_collect_decorated_ops
 
 
 def test_op_ctx_alias_sets_alias():

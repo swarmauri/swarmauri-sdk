@@ -2,8 +2,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from tigrbl.v3.runtime import system
-from tigrbl.v3.runtime.errors import SystemStepError
+from tigrbl.runtime import system
+from tigrbl.runtime.errors import SystemStepError
 
 
 def test_registry_handler_crud_step() -> None:

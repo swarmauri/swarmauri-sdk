@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import datetime as dt
 
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.orm.mixins import TenantColumn, Timestamped, UserColumn
-from tigrbl.v3.specs import S, acol
-from tigrbl.v3.types import Mapped, String, TZDateTime
-from tigrbl.v3 import hook_ctx, op_ctx
+from tigrbl.orm.tables import Base
+from tigrbl.orm.mixins import TenantColumn, Timestamped, UserColumn
+from tigrbl.specs import S, acol
+from tigrbl.types import Mapped, String, TZDateTime
+from tigrbl import hook_ctx, op_ctx
 from fastapi import HTTPException, status
 from fastapi.responses import JSONResponse, Response
 

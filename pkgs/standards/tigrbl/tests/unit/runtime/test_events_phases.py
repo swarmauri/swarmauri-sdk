@@ -1,4 +1,4 @@
-from tigrbl.v3.runtime import events as _ev
+from tigrbl.runtime import events as _ev
 
 
 def test_phases_constant_lists_all_phases_in_order() -> None:

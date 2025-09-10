@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from tigrbl.v3.transport import build_jsonrpc_router
+from tigrbl.transport import build_jsonrpc_router
 
 
 def test_jsonrpc_router_default_tag():

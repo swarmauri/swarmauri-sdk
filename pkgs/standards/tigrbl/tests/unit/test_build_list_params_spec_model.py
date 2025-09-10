@@ -1,7 +1,7 @@
-from tigrbl.v3.orm.tables._base import _materialize_colspecs_to_sqla
-from tigrbl.v3.specs import acol, S, F, IO
-from tigrbl.v3.types import Integer, String
-from tigrbl.v3.schema import _build_list_params
+from tigrbl.orm.tables._base import _materialize_colspecs_to_sqla
+from tigrbl.specs import acol, S, F, IO
+from tigrbl.types import Integer, String
+from tigrbl.schema import _build_list_params
 from sqlalchemy.orm import Mapped, DeclarativeBase
 
 

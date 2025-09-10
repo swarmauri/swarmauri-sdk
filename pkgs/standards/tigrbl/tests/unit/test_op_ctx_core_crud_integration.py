@@ -1,8 +1,8 @@
 import pytest
 from sqlalchemy import Column, Integer, String
 
-from tigrbl.v3 import Base, op_ctx
-import tigrbl.v3.core as core
+from tigrbl import Base, op_ctx
+import tigrbl.core as core
 
 
 @pytest.mark.asyncio

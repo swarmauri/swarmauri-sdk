@@ -1,7 +1,7 @@
-from tigrbl.v3.bindings.model import bind
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.orm.mixins import GUIDPk, Replaceable
-from tigrbl.v3.types import Column, String
+from tigrbl.bindings.model import bind
+from tigrbl.orm.tables import Base
+from tigrbl.orm.mixins import GUIDPk, Replaceable
+from tigrbl.types import Column, String
 
 
 class Gadget(Base, GUIDPk, Replaceable):

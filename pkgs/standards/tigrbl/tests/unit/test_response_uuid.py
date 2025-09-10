@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from uuid import uuid4
 
-from tigrbl.v3.response.shortcuts import as_json
+from tigrbl.response.shortcuts import as_json
 
 
 def test_as_json_serializes_uuid() -> None:

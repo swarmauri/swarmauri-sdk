@@ -1,4 +1,4 @@
-from tigrbl.v3 import TigrblApi, Base, op_ctx
+from tigrbl import TigrblApi, Base, op_ctx
 from sqlalchemy.orm import Mapped, mapped_column
 
 

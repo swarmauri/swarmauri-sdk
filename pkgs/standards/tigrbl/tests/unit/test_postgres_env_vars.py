@@ -1,4 +1,4 @@
-from tigrbl.v3.engine.builders import async_postgres_engine
+from tigrbl.engine.builders import async_postgres_engine
 
 
 def test_async_postgres_engine_uses_pg_env(monkeypatch):

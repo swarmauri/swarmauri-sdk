@@ -43,7 +43,7 @@ Initialize the SQLite database:
 ```bash
 uv run --package tigrbl_kms --directory pkgs/standards/tigrbl_kms -- python - <<'PY'
 from tigrbl_kms.app import engine
-from tigrbl.v3.orm.tables import Base
+from tigrbl.orm.tables import Base
 import asyncio
 
 async def init():

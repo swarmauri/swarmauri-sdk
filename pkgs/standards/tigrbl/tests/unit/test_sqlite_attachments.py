@@ -1,5 +1,5 @@
 import pytest
-from tigrbl.v3 import TigrblApp
+from tigrbl import TigrblApp
 
 
 def _db_names(conn):

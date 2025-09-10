@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from tigrbl.v3.config import resolve_cfg
+from tigrbl.config import resolve_cfg
 
 
 def test_dataclass_none_fields_do_not_override_defaults() -> None:

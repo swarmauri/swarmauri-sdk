@@ -1,5 +1,5 @@
-from tigrbl.v3.specs import S
-from tigrbl.v3.column.storage_spec import StorageTransform, ForeignKeySpec
+from tigrbl.specs import S
+from tigrbl.column.storage_spec import StorageTransform, ForeignKeySpec
 from sqlalchemy import Integer, text
 
 

@@ -1,4 +1,4 @@
-from tigrbl.v3.transport.jsonrpc.models import RPCRequest
+from tigrbl.transport.jsonrpc.models import RPCRequest
 
 
 def test_rpc_request_id_example_changes():

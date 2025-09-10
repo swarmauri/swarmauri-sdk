@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from tigrbl.v3.orm.tables import Base, User
-from tigrbl.v3.types import Boolean, Integer, String, Mapped, relationship
-from tigrbl.v3.orm.mixins import GUIDPk, Timestamped, Ownable
-from tigrbl.v3.specs import S, acol
+from tigrbl.orm.tables import Base, User
+from tigrbl.types import Boolean, Integer, String, Mapped, relationship
+from tigrbl.orm.mixins import GUIDPk, Timestamped, Ownable
+from tigrbl.specs import S, acol
 
 
 class AbuseRecord(Base, GUIDPk, Timestamped, Ownable):

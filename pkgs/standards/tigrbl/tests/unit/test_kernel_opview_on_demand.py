@@ -1,9 +1,9 @@
-from tigrbl.v3 import TigrblApp
-from tigrbl.v3.bindings.model import bind
-from tigrbl.v3.runtime.kernel import _default_kernel as K
-from tigrbl.v3.specs import S, IO, acol
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.types import Integer as IntType
+from tigrbl import TigrblApp
+from tigrbl.bindings.model import bind
+from tigrbl.runtime.kernel import _default_kernel as K
+from tigrbl.specs import S, IO, acol
+from tigrbl.orm.tables import Base
+from tigrbl.types import Integer as IntType
 
 
 def test_compiles_opview_for_new_model_after_prime():

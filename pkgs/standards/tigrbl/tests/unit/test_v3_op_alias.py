@@ -1,10 +1,10 @@
 import pytest
-import tigrbl.v3.core as core
+import tigrbl.core as core
 from pydantic import BaseModel
 
-from tigrbl.v3 import alias_ctx, alias, schema_ctx
-from tigrbl.v3.op import resolve
-from tigrbl.v3.bindings import build_schemas, build_handlers
+from tigrbl import alias_ctx, alias, schema_ctx
+from tigrbl.op import resolve
+from tigrbl.bindings import build_schemas, build_handlers
 
 
 @pytest.mark.asyncio

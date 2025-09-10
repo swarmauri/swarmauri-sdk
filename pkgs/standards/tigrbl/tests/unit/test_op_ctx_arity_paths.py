@@ -1,10 +1,10 @@
-from tigrbl.v3.types import App
-from tigrbl.v3 import op_ctx
-from tigrbl.v3.op.mro_collect import mro_collect_decorated_ops
-from tigrbl.v3.bindings.rest.router import _build_router
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.orm.mixins import GUIDPk
-from tigrbl.v3.types import Column, String
+from tigrbl.types import App
+from tigrbl import op_ctx
+from tigrbl.op.mro_collect import mro_collect_decorated_ops
+from tigrbl.bindings.rest.router import _build_router
+from tigrbl.orm.tables import Base
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.types import Column, String
 
 
 def test_member_arity_rest_path_includes_pk():

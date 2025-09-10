@@ -1,10 +1,10 @@
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from tigrbl.v3 import TigrblApp
-from tigrbl.v3.orm.mixins import GUIDPk
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.types import App, Column, String
+from tigrbl import TigrblApp
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.orm.tables import Base
+from tigrbl.types import App, Column, String
 
 
 @pytest.mark.asyncio()

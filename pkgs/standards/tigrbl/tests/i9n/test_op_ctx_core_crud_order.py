@@ -1,16 +1,16 @@
 import pytest
-from tigrbl.v3.types import App
+from tigrbl.types import App
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, String
 
-from tigrbl.v3 import TigrblApp, op_ctx
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.orm.mixins import GUIDPk
-from tigrbl.v3.core import crud
-from tigrbl.v3 import core as _core
-from tigrbl.v3.engine.shortcuts import mem
-from tigrbl.v3.engine.engine_spec import EngineSpec
-from tigrbl.v3.engine._engine import Engine
+from tigrbl import TigrblApp, op_ctx
+from tigrbl.orm.tables import Base
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.core import crud
+from tigrbl import core as _core
+from tigrbl.engine.shortcuts import mem
+from tigrbl.engine.engine_spec import EngineSpec
+from tigrbl.engine._engine import Engine
 
 
 def setup_api(model_cls):

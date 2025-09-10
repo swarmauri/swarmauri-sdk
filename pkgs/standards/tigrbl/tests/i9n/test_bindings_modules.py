@@ -1,15 +1,15 @@
 import inspect
 
 import pytest
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.types import (
+from tigrbl.orm.tables import Base
+from tigrbl.types import (
     InstrumentedAttribute,
     Integer,
     SimpleNamespace,
     String,
 )
 
-from tigrbl.v3.bindings import (
+from tigrbl.bindings import (
     api as api_binding,
     columns as columns_binding,
     handlers as handlers_binding,
@@ -18,11 +18,11 @@ from tigrbl.v3.bindings import (
     rest as rest_binding,
     rpc as rpc_binding,
 )
-from tigrbl.v3.bindings.schemas import build_and_attach as schemas_build_and_attach
-from tigrbl.v3.specs import ColumnSpec, F, IO, S
-from tigrbl.v3.op import resolve
-from tigrbl.v3.runtime import executor as _executor
-from tigrbl.v3.column import shortcuts as sc
+from tigrbl.bindings.schemas import build_and_attach as schemas_build_and_attach
+from tigrbl.specs import ColumnSpec, F, IO, S
+from tigrbl.op import resolve
+from tigrbl.runtime import executor as _executor
+from tigrbl.column import shortcuts as sc
 
 
 def _make_model():

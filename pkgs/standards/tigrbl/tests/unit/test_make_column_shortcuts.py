@@ -1,6 +1,6 @@
 import pytest
 
-from tigrbl.v3.column import (
+from tigrbl.column import (
     Column,
     ColumnSpec,
     F,
@@ -10,7 +10,7 @@ from tigrbl.v3.column import (
     makeColumn,
     makeVirtualColumn,
 )
-from tigrbl.v3.types import Integer
+from tigrbl.types import Integer
 
 
 def test_make_column_components() -> None:

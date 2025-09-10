@@ -1,10 +1,10 @@
 import pytest
 from pydantic import BaseModel
-from tigrbl.v3 import op_alias, op_ctx
-from tigrbl.v3.orm.mixins import GUIDPk
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.specs import F, S, acol
-from tigrbl.v3.types import Column, Mapped, String
+from tigrbl import op_alias, op_ctx
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.orm.tables import Base
+from tigrbl.specs import F, S, acol
+from tigrbl.types import Column, Mapped, String
 from .test_op_ctx_behavior import setup_api
 
 

@@ -1,9 +1,9 @@
 import pytest
 from types import SimpleNamespace
-from tigrbl.v3.types import App
+from tigrbl.types import App
 from httpx import AsyncClient, ASGITransport
 
-from tigrbl.v3.system.diagnostics import mount_diagnostics
+from tigrbl.system.diagnostics import mount_diagnostics
 
 
 class DummyDB:

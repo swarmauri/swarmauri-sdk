@@ -1,15 +1,15 @@
 from __future__ import annotations
-from tigrbl.v3 import alias_ctx, op_ctx, schema_ctx
-from tigrbl.v3.bindings import (
+from tigrbl import alias_ctx, op_ctx, schema_ctx
+from tigrbl.bindings import (
     build_handlers,
     build_hooks,
     build_rest,
     build_schemas,
     register_rpc,
 )
-from tigrbl.v3.op.mro_collect import mro_collect_decorated_ops
-from tigrbl.v3.response import response_ctx, render_template
-from tigrbl.v3.response.shortcuts import (
+from tigrbl.op.mro_collect import mro_collect_decorated_ops
+from tigrbl.response import response_ctx, render_template
+from tigrbl.response.shortcuts import (
     as_file,
     as_html,
     as_json,
@@ -19,7 +19,7 @@ from tigrbl.v3.response.shortcuts import (
 )
 from pydantic import BaseModel
 from typing import get_args
-from tigrbl.v3.response.types import ResponseKind
+from tigrbl.response.types import ResponseKind
 
 
 RESPONSE_KINDS = get_args(ResponseKind)

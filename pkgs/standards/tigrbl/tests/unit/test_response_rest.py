@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pytest
-from tigrbl.v3.types import App
+from tigrbl.types import App
 from fastapi.testclient import TestClient
 
 from .response_utils import (

@@ -1,19 +1,19 @@
 import asyncio
 
 import pytest
-from tigrbl.v3.types import App
+from tigrbl.types import App
 from sqlalchemy import String, create_engine
 from sqlalchemy.orm import sessionmaker
 
-from tigrbl.v3 import core as _core
-from tigrbl.v3.bindings.model import bind
-from tigrbl.v3.hook import hook_ctx
-from tigrbl.v3.op.types import PHASES
-from tigrbl.v3.runtime import system as runtime_system
-from tigrbl.v3.runtime.kernel import build_phase_chains
-from tigrbl.v3.specs import IO, S, acol
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.orm.mixins import GUIDPk
+from tigrbl import core as _core
+from tigrbl.bindings.model import bind
+from tigrbl.hook import hook_ctx
+from tigrbl.op.types import PHASES
+from tigrbl.runtime import system as runtime_system
+from tigrbl.runtime.kernel import build_phase_chains
+from tigrbl.specs import IO, S, acol
+from tigrbl.orm.tables import Base
+from tigrbl.orm.mixins import GUIDPk
 
 
 # --- models --------------------------------------------------------------------

@@ -1,9 +1,9 @@
 import pytest
 from types import SimpleNamespace
 
-from tigrbl.v3.op import OpSpec
-from tigrbl.v3.system import diagnostics as _diag
-from tigrbl.v3.system.diagnostics import _build_kernelz_endpoint
+from tigrbl.op import OpSpec
+from tigrbl.system import diagnostics as _diag
+from tigrbl.system.diagnostics import _build_kernelz_endpoint
 
 
 def sample_hook(ctx):

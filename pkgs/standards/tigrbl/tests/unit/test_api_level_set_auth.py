@@ -1,6 +1,6 @@
-from tigrbl.v3 import TigrblApp
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.orm.mixins import GUIDPk
+from tigrbl import TigrblApp
+from tigrbl.orm.tables import Base
+from tigrbl.orm.mixins import GUIDPk
 from fastapi import FastAPI, Security
 from fastapi.security import HTTPBearer
 

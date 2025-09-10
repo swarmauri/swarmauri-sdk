@@ -1,6 +1,6 @@
-from tigrbl.v3.engine import install_from_objects, resolver
-from tigrbl.v3.engine.shortcuts import mem, pga, pgs, sqlitef
-from tigrbl.v3.op import Op
+from tigrbl.engine import install_from_objects, resolver
+from tigrbl.engine.shortcuts import mem, pga, pgs, sqlitef
+from tigrbl.op import Op
 
 
 class Model:

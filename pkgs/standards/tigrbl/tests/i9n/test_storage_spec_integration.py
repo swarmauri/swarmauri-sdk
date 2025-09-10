@@ -1,6 +1,6 @@
 import pytest
-from tigrbl.v3.core import crud
-from tigrbl.v3.types import String
+from tigrbl.core import crud
+from tigrbl.types import String
 
 
 @pytest.mark.i9n
@@ -114,7 +114,7 @@ async def test_storage_spec_atomz(api_client_v3):
     client, _, _, _ = api_client_v3
     kernelz = (await client.get("/system/kernelz")).json()
     steps = kernelz["Widget"]["create"]
-    assert "HANDLER:hook:wire:tigrbl:v3:core:crud:ops:create@HANDLER" in steps
+    assert "HANDLER:hook:wire:tigrbl:core:crud:ops:create@HANDLER" in steps
 
 
 @pytest.mark.i9n

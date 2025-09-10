@@ -1,17 +1,17 @@
 import pytest
-from tigrbl.v3.types import App, Mapped, String
+from tigrbl.types import App, Mapped, String
 from httpx import ASGITransport, AsyncClient
 
-from tigrbl.v3 import TigrblApp
-from tigrbl.v3.orm.mixins import (
+from tigrbl import TigrblApp
+from tigrbl.orm.mixins import (
     Created,
     GUIDPk,
     KeyDigest,
     LastUsed,
     ValidityWindow,
 )
-from tigrbl.v3.orm.tables._base import Base
-from tigrbl.v3.specs import F, IO, S, acol
+from tigrbl.orm.tables._base import Base
+from tigrbl.specs import F, IO, S, acol
 
 
 class ConcreteApiKey(Base, GUIDPk, Created, LastUsed, ValidityWindow, KeyDigest):

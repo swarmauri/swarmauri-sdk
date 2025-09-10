@@ -4,15 +4,15 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy import select
 from types import SimpleNamespace
 
-from tigrbl.v3 import TigrblApp
-from tigrbl.v3.engine import resolver as _resolver
-from tigrbl.v3.engine.shortcuts import mem
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.orm.mixins import GUIDPk
-from tigrbl.v3.specs import IO, S, acol
-from tigrbl.v3.types import App, String, UUID
-from tigrbl.v3.core import crud
-from tigrbl.v3.runtime.atoms.resolve import assemble
+from tigrbl import TigrblApp
+from tigrbl.engine import resolver as _resolver
+from tigrbl.engine.shortcuts import mem
+from tigrbl.orm.tables import Base
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.specs import IO, S, acol
+from tigrbl.types import App, String, UUID
+from tigrbl.core import crud
+from tigrbl.runtime.atoms.resolve import assemble
 
 
 class Widget(Base, GUIDPk):
@@ -177,5 +177,5 @@ async def test_kernelz_lists_atoms_and_steps(widget_setup):
     client, _, _ = widget_setup
     data = (await client.get("/system/kernelz")).json()
     steps = data["Widget"]["create"]
-    assert "HANDLER:hook:wire:tigrbl:v3:core:crud:ops:create@HANDLER" in steps
+    assert "HANDLER:hook:wire:tigrbl:core:crud:ops:create@HANDLER" in steps
     assert any("hook:sys:txn:begin@START_TX" in s for s in steps)

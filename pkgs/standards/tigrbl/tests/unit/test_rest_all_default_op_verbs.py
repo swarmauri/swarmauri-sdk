@@ -1,9 +1,9 @@
 import pytest
-from tigrbl.v3.bindings.rest import build_router_and_attach
-from tigrbl.v3.orm.mixins import GUIDPk
-from tigrbl.v3.op import OpSpec
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.types import Column, String
+from tigrbl.bindings.rest import build_router_and_attach
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.op import OpSpec
+from tigrbl.orm.tables import Base
+from tigrbl.types import Column, String
 
 
 def _route_map(router) -> dict[str, tuple[str, set[str]]]:

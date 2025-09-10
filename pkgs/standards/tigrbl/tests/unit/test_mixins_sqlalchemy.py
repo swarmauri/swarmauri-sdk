@@ -1,5 +1,5 @@
-from tigrbl.v3.orm.mixins import GUIDPk, Timestamped
-from tigrbl.v3.table import Base
+from tigrbl.orm.mixins import GUIDPk, Timestamped
+from tigrbl.table import Base
 
 
 def test_mixins_define_model_without_error() -> None:

@@ -1,5 +1,5 @@
-from tigrbl.v3.runtime import events as _ev
-from tigrbl.v3.runtime.kernel import Kernel
+from tigrbl.runtime import events as _ev
+from tigrbl.runtime.kernel import Kernel
 
 
 def _mk_atom(module: str):
@@ -12,8 +12,8 @@ def _mk_atom(module: str):
 
 def test_plan_labels_reflect_kernel_injection():
     atoms = [
-        (_ev.RESOLVE_VALUES, _mk_atom("tigrbl.v3.runtime.atoms.resolve.values")),
-        (_ev.PRE_FLUSH, _mk_atom("tigrbl.v3.runtime.atoms.pre.flush")),
+        (_ev.RESOLVE_VALUES, _mk_atom("tigrbl.runtime.atoms.resolve.values")),
+        (_ev.PRE_FLUSH, _mk_atom("tigrbl.runtime.atoms.pre.flush")),
     ]
     k = Kernel(atoms=atoms)
 
@@ -29,7 +29,7 @@ def test_plan_labels_reflect_kernel_injection():
 
 def test_plan_labels_prune_non_persistent():
     atoms = [
-        (_ev.RESOLVE_VALUES, _mk_atom("tigrbl.v3.runtime.atoms.resolve.values")),
+        (_ev.RESOLVE_VALUES, _mk_atom("tigrbl.runtime.atoms.resolve.values")),
     ]
     k = Kernel(atoms=atoms)
 

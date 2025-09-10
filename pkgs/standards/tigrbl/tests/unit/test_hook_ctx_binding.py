@@ -1,8 +1,8 @@
-from tigrbl.v3.hook import hook_ctx
-from tigrbl.v3.bindings.model import bind
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.orm.mixins import GUIDPk
-from tigrbl.v3.types import Column, String
+from tigrbl.hook import hook_ctx
+from tigrbl.bindings.model import bind
+from tigrbl.orm.tables import Base
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.types import Column, String
 
 
 Base.metadata.clear()

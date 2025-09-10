@@ -190,7 +190,7 @@ Hooks allow you to plug custom logic into any phase of a verb. Use the
 `hook_ctx` decorator to declare context-only hooks:
 
 ```python
-from tigrbl.v3 import Base, hook_ctx
+from tigrbl import Base, hook_ctx
 
 class Item(Base):
     __tablename__ = "items"
@@ -362,8 +362,8 @@ control headers, status codes, and optional template rendering. See
 ### Engine & Provider examples 🛠️
 
 ```python
-from tigrbl.v3.engine.shortcuts import engine_spec, prov
-from tigrbl.v3.engine._engine import Engine, Provider
+from tigrbl.engine.shortcuts import engine_spec, prov
+from tigrbl.engine._engine import Engine, Provider
 
 # Build an EngineSpec from a DSN string
 spec = engine_spec("sqlite://:memory:")
@@ -408,7 +408,7 @@ This ordering ensures that the most specific engine context always wins.
 
 ```python
 from types import SimpleNamespace
-from tigrbl.v3.engine.shortcuts import prov, engine
+from tigrbl.engine.shortcuts import prov, engine
 
 app = SimpleNamespace(db=prov(kind="sqlite", mode="memory"))
 alt = SimpleNamespace(db=engine(kind="sqlite", mode="memory"))
@@ -434,8 +434,8 @@ create.__tigrbl_engine_ctx__ = {
 #### Decorative bindings 🎛️
 
 ```python
-from tigrbl.v3.engine.decorators import engine_ctx
-from tigrbl.v3.engine.shortcuts import prov, engine
+from tigrbl.engine.decorators import engine_ctx
+from tigrbl.engine.shortcuts import prov, engine
 
 @engine_ctx(prov(kind="sqlite", mode="memory"))
 class App:

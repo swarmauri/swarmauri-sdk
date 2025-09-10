@@ -1,11 +1,11 @@
 import pytest
 from httpx import ASGITransport, AsyncClient
-from tigrbl.v3.types import App, BaseModel, Column, String, UUID
+from tigrbl.types import App, BaseModel, Column, String, UUID
 
-from tigrbl.v3 import TigrblApp, op_ctx, schema_ctx, hook_ctx
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.orm.mixins import GUIDPk
-from tigrbl.v3.runtime.kernel import build_phase_chains
+from tigrbl import TigrblApp, op_ctx, schema_ctx, hook_ctx
+from tigrbl.orm.tables import Base
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.runtime.kernel import build_phase_chains
 
 
 # helper to set up Tigrbl with sync DB from fixture

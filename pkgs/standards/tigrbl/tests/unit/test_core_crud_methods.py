@@ -3,11 +3,11 @@ import enum
 from typing import Any, Mapping
 
 import pytest
-from tigrbl.v3.core import crud
-from tigrbl.v3.core.crud import helpers
-from tigrbl.v3.engine.shortcuts import engine, mem
-from tigrbl.v3.specs import IO, S, F, acol
-from tigrbl.v3.types import Column, Integer, SAEnum, SimpleNamespace, String
+from tigrbl.core import crud
+from tigrbl.core.crud import helpers
+from tigrbl.engine.shortcuts import engine, mem
+from tigrbl.specs import IO, S, F, acol
+from tigrbl.types import Column, Integer, SAEnum, SimpleNamespace, String
 from sqlalchemy import select
 from sqlalchemy.orm import declarative_base
 

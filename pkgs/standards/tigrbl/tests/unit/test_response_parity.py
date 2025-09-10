@@ -1,10 +1,10 @@
 from __future__ import annotations
 from types import SimpleNamespace
 import pytest
-from tigrbl.v3.types import App
+from tigrbl.types import App
 from fastapi.testclient import TestClient
 
-from tigrbl.v3.bindings import rpc_call
+from tigrbl.bindings import rpc_call
 from .response_utils import build_ping_model
 
 

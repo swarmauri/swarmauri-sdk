@@ -1,10 +1,10 @@
 import pytest
 from types import SimpleNamespace
 
-from tigrbl.v3.op.mro_collect import mro_collect_decorated_ops
-from tigrbl.v3.op import op_ctx
-from tigrbl.v3.bindings import handlers
-from tigrbl.v3.system import diagnostics as _diag
+from tigrbl.op.mro_collect import mro_collect_decorated_ops
+from tigrbl.op import op_ctx
+from tigrbl.bindings import handlers
+from tigrbl.system import diagnostics as _diag
 
 
 def _build_model(persist: str):

@@ -6,13 +6,13 @@ Tests all hook phases and their behavior across CRUD, nested CRUD, and RPC opera
 
 import pytest
 from fastapi import FastAPI
-from tigrbl.v3 import TigrblApp, Base
-from tigrbl.v3.hook import hook_ctx
-from tigrbl.v3.engine.shortcuts import mem
-from tigrbl.v3.orm.mixins import GUIDPk
+from tigrbl import TigrblApp, Base
+from tigrbl.hook import hook_ctx
+from tigrbl.engine.shortcuts import mem
+from tigrbl.orm.mixins import GUIDPk
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, ForeignKey, String
-from tigrbl.v3.types import PgUUID
+from tigrbl.types import PgUUID
 
 
 async def setup_client(db_mode, Tenant, Item):

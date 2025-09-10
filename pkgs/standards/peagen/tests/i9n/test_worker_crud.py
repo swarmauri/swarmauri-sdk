@@ -14,7 +14,7 @@ import pytest
 
 # ❶ ------------------------------------------------------------------------
 # Runtime wiring
-from tigrbl.v3 import get_schema  # your AutoTigrbl import
+from tigrbl import get_schema  # your AutoTigrbl import
 from peagen.orm import Worker  # ORM class
 from peagen.defaults import DEFAULT_POOL_ID
 from tigrbl_client import TigrblClient  # JSON-RPC helper

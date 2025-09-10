@@ -2,9 +2,9 @@ from __future__ import annotations
 from types import SimpleNamespace
 import pytest
 
-from tigrbl.v3.op.types import OpSpec
-from tigrbl.v3.response.types import ResponseSpec, TemplateSpec
-from tigrbl.v3.system.diagnostics import _build_kernelz_endpoint
+from tigrbl.op.types import OpSpec
+from tigrbl.response.types import ResponseSpec, TemplateSpec
+from tigrbl.system.diagnostics import _build_kernelz_endpoint
 
 from .response_utils import RESPONSE_KINDS
 

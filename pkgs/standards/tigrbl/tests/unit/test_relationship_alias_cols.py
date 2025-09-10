@@ -1,8 +1,8 @@
 import pytest
-from tigrbl.v3.specs import F, S, acol, vcol
-from tigrbl.v3.op import alias_ctx
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.deps import (
+from tigrbl.specs import F, S, acol, vcol
+from tigrbl.op import alias_ctx
+from tigrbl.orm.tables import Base
+from tigrbl.deps import (
     Column,
     Integer,
     String,

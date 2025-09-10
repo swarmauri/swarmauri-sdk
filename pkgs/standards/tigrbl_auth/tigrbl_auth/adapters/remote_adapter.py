@@ -8,8 +8,8 @@ import httpx
 from fastapi import HTTPException, Request, Security, status
 from fastapi.security import APIKeyHeader
 
-from tigrbl.v3.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
-from tigrbl.v3.types.authn_abc import AuthNProvider
+from tigrbl.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
+from tigrbl.types.authn_abc import AuthNProvider
 from ..principal_ctx import principal_var
 
 

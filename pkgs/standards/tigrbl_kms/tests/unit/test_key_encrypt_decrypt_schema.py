@@ -1,4 +1,4 @@
-from tigrbl.v3.bindings import bind
+from tigrbl.bindings import bind
 from tigrbl_kms.orm import Key
 
 

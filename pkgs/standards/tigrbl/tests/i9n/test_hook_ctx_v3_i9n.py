@@ -1,13 +1,13 @@
 import pytest
-from tigrbl.v3.types import App
+from tigrbl.types import App
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import func, select
 
-from tigrbl.v3 import TigrblApp
-from tigrbl.v3.types import Column, String
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.orm.mixins import GUIDPk
-from tigrbl.v3.hook import hook_ctx
+from tigrbl import TigrblApp
+from tigrbl.types import Column, String
+from tigrbl.orm.tables import Base
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.hook import hook_ctx
 
 
 # ---------------------------------------------------------------------------
@@ -23,7 +23,7 @@ def create_client(model_cls):
     api.mount_jsonrpc()
     api.attach_diagnostics()
 
-    from tigrbl.v3.engine import resolver as _resolver
+    from tigrbl.engine import resolver as _resolver
 
     prov = _resolver.resolve_provider(api=api)
     engine, SessionLocal = prov.ensure()
@@ -388,5 +388,5 @@ async def test_hook_ctx_system_steps_i9n():
     res = await client.get("/system/kernelz")
     data = res.json()
     steps = data["Item"]["create"]
-    assert "HANDLER:hook:wire:tigrbl:v3:core:crud:ops:create@HANDLER" in steps
+    assert "HANDLER:hook:wire:tigrbl:core:crud:ops:create@HANDLER" in steps
     await client.aclose()

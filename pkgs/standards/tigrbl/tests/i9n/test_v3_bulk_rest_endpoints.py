@@ -1,14 +1,14 @@
 import pytest
 import pytest_asyncio
 from typing import Iterator
-from tigrbl.v3.types import App
+from tigrbl.types import App
 from httpx import AsyncClient, ASGITransport
 
-from tigrbl.v3 import TigrblApp
-from tigrbl.v3.engine.shortcuts import mem
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.orm.mixins import GUIDPk, BulkCapable, Replaceable
-from tigrbl.v3.types import Column, String
+from tigrbl import TigrblApp
+from tigrbl.engine.shortcuts import mem
+from tigrbl.orm.tables import Base
+from tigrbl.orm.mixins import GUIDPk, BulkCapable, Replaceable
+from tigrbl.types import Column, String
 
 pytestmark = pytest.mark.skip("bulk rest endpoints require revision")
 

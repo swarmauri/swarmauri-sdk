@@ -1,9 +1,9 @@
-from tigrbl.v3.bindings.rest.router import _build_router
-from tigrbl.v3.op import OpSpec
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.orm.mixins import GUIDPk, BulkCapable, Mergeable
-from tigrbl.v3.specs import F, S, acol
-from tigrbl.v3.types import App, Mapped, String
+from tigrbl.bindings.rest.router import _build_router
+from tigrbl.op import OpSpec
+from tigrbl.orm.tables import Base
+from tigrbl.orm.mixins import GUIDPk, BulkCapable, Mergeable
+from tigrbl.specs import F, S, acol
+from tigrbl.types import App, Mapped, String
 
 
 class Widget(Base, GUIDPk, Mergeable):

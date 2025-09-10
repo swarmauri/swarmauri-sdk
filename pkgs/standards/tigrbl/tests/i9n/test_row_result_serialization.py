@@ -1,21 +1,21 @@
 import pytest
 import pytest_asyncio
-from tigrbl.v3.types import App
+from tigrbl.types import App
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Integer, String, select
 from sqlalchemy.orm import Mapped
 
-from tigrbl.v3 import TigrblApp as Tigrblv3
-from tigrbl.v3.engine import resolver as _resolver
-from tigrbl.v3.engine.shortcuts import mem
-from tigrbl.v3.specs import S, acol
-from tigrbl.v3.orm.tables import Base as Base3
+from tigrbl import TigrblApp as Tigrblv3
+from tigrbl.engine import resolver as _resolver
+from tigrbl.engine.shortcuts import mem
+from tigrbl.specs import S, acol
+from tigrbl.orm.tables import Base as Base3
 
 
 @pytest_asyncio.fixture()
 async def client():
     Base3.metadata.clear()
-    from tigrbl.v3.schema.builder import _SchemaCache as _SchemaCache_v3
+    from tigrbl.schema.builder import _SchemaCache as _SchemaCache_v3
 
     _SchemaCache_v3.clear()
 
@@ -40,7 +40,7 @@ async def client():
         await session.commit()
 
     # Monkeypatch crud functions to return raw Row objects
-    from tigrbl.v3.core import crud
+    from tigrbl.core import crud
 
     original_read = crud.read
     original_list = crud.list

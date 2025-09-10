@@ -5,7 +5,7 @@ import uuid
 from typing import Any, Dict, Optional
 
 from tigrbl_client import TigrblClient
-from tigrbl.v3 import get_schema
+from tigrbl import get_schema
 from peagen.orm import Status, Task, Action, SpecKind
 
 

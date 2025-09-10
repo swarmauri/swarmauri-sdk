@@ -1,13 +1,13 @@
 import pytest
 import pytest_asyncio
-from tigrbl.v3.orm.mixins import BulkCapable, Replaceable, Mergeable
-from tigrbl.v3.types import App, Integer, Mapped, String, uuid4
+from tigrbl.orm.mixins import BulkCapable, Replaceable, Mergeable
+from tigrbl.types import App, Integer, Mapped, String, uuid4
 from httpx import AsyncClient, ASGITransport
 
-from tigrbl.v3 import TigrblApp as Tigrblv3
-from tigrbl.v3.engine.shortcuts import mem
-from tigrbl.v3.orm.tables import Base as Base3
-from tigrbl.v3.specs import F, IO, S, acol
+from tigrbl import TigrblApp as Tigrblv3
+from tigrbl.engine.shortcuts import mem
+from tigrbl.orm.tables import Base as Base3
+from tigrbl.specs import F, IO, S, acol
 
 
 @pytest_asyncio.fixture()

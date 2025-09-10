@@ -1,23 +1,23 @@
 import pytest
-from tigrbl.v3.types import App, SimpleNamespace
+from tigrbl.types import App, SimpleNamespace
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Mapped, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from tigrbl.v3 import TigrblApp
-from tigrbl.v3.engine.shortcuts import engine as engine_factory, mem
-from tigrbl.v3.bindings.model import bind
-from tigrbl.v3.bindings.rest.router import _build_router
-from tigrbl.v3.bindings.rpc import register_and_attach
-from tigrbl.v3.op import OpSpec
-from tigrbl.v3.runtime.atoms.resolve import assemble
-from tigrbl.v3.runtime.atoms.schema import collect_in, collect_out
-from tigrbl.v3.runtime.kernel import _default_kernel as K, build_phase_chains
-from tigrbl.v3.specs import F, IO, S, acol, vcol
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.orm.mixins import GUIDPk
-from tigrbl.v3.types import Integer as IntType, String as StrType
+from tigrbl import TigrblApp
+from tigrbl.engine.shortcuts import engine as engine_factory, mem
+from tigrbl.bindings.model import bind
+from tigrbl.bindings.rest.router import _build_router
+from tigrbl.bindings.rpc import register_and_attach
+from tigrbl.op import OpSpec
+from tigrbl.runtime.atoms.resolve import assemble
+from tigrbl.runtime.atoms.schema import collect_in, collect_out
+from tigrbl.runtime.kernel import _default_kernel as K, build_phase_chains
+from tigrbl.specs import F, IO, S, acol, vcol
+from tigrbl.orm.tables import Base
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.types import Integer as IntType, String as StrType
 
 
 @pytest.mark.i9n

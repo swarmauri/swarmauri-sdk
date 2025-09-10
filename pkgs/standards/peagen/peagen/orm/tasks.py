@@ -3,8 +3,8 @@ from __future__ import annotations
 import json
 from enum import Enum, auto
 
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.types import (
+from tigrbl.orm.tables import Base
+from tigrbl.types import (
     JSON,
     String,
     PgEnum,
@@ -13,17 +13,17 @@ from tigrbl.v3.types import (
     relationship,
     Mapped,
 )
-from tigrbl.v3.orm.mixins import (
+from tigrbl.orm.mixins import (
     GUIDPk,
     Timestamped,
     TenantBound,
     Ownable,
     StatusColumn,
 )
-from tigrbl.v3.specs import S, acol
-from tigrbl.v3.column.storage_spec import ForeignKeySpec
-from tigrbl.v3 import hook_ctx
-from tigrbl.v3.bindings import build_schemas as _build_schemas
+from tigrbl.specs import S, acol
+from tigrbl.column.storage_spec import ForeignKeySpec
+from tigrbl import hook_ctx
+from tigrbl.bindings import build_schemas as _build_schemas
 from typing import TYPE_CHECKING
 from peagen.orm.mixins import RepositoryRefMixin
 

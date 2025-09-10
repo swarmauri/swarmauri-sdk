@@ -1,14 +1,14 @@
 import inspect
 
-from tigrbl.v3 import TigrblApp
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.orm.mixins import (
+from tigrbl import TigrblApp
+from tigrbl.orm.tables import Base
+from tigrbl.orm.mixins import (
     GUIDPk,
     BulkCapable,
     Replaceable,
     Mergeable,
 )
-from tigrbl.v3.types import Column, String
+from tigrbl.types import Column, String
 
 
 def _rpc_param_names(fn):

@@ -1,9 +1,9 @@
 from pydantic import BaseModel
-from tigrbl.v3.app.shortcuts import deriveApp
-from tigrbl.v3.api.shortcuts import deriveApi
-from tigrbl.v3.table.shortcuts import defineTableSpec
-from tigrbl.v3.orm.mixins import GUIDPk
-from tigrbl.v3.orm.tables import Base
+from tigrbl.app.shortcuts import deriveApp
+from tigrbl.api.shortcuts import deriveApi
+from tigrbl.table.shortcuts import defineTableSpec
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.orm.tables import Base
 from sqlalchemy import Column, String
 from uuid import uuid4
 

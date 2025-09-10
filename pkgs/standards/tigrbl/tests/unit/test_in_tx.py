@@ -1,7 +1,7 @@
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from tigrbl.v3.runtime.executor import _in_tx
+from tigrbl.runtime.executor import _in_tx
 
 
 @pytest.mark.asyncio

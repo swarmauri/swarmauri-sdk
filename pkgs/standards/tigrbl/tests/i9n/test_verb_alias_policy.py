@@ -2,8 +2,8 @@
 
 import pytest
 
-from tigrbl.v3 import Base
-from tigrbl.v3.orm.mixins import GUIDPk
+from tigrbl import Base
+from tigrbl.orm.mixins import GUIDPk
 
 
 @pytest.mark.i9n

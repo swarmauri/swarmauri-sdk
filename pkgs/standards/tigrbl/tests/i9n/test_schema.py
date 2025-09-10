@@ -1,6 +1,6 @@
 import pytest
-from tigrbl.v3.schema import _build_schema
-from tigrbl.v3.types import BaseModel
+from tigrbl.schema import _build_schema
+from tigrbl.types import BaseModel
 
 
 @pytest.mark.i9n

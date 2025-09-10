@@ -1,8 +1,8 @@
 import pytest
 from pydantic import BaseModel
 
-from tigrbl.v3 import schema_ctx
-from tigrbl.v3.bindings import build_schemas
+from tigrbl import schema_ctx
+from tigrbl.bindings import build_schemas
 
 
 def test_schema_ctx_records_alias() -> None:

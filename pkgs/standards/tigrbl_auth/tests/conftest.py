@@ -23,9 +23,9 @@ from tigrbl_auth.db import get_db
 from tigrbl_auth.routers.surface import surface_api
 from tigrbl_auth.orm import Base, Tenant, User, Client, ApiKey
 from tigrbl_auth.crypto import hash_pw
-from tigrbl.v3.engine import resolver as engine_resolver
-from tigrbl.v3.engine.engine_spec import EngineSpec
-from tigrbl.v3.engine._engine import Provider
+from tigrbl.engine import resolver as engine_resolver
+from tigrbl.engine.engine_spec import EngineSpec
+from tigrbl.engine._engine import Provider
 
 
 # Disable TLS enforcement for tests

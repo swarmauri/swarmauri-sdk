@@ -1,5 +1,5 @@
-from tigrbl.v3.orm.mixins import BulkCapable, Mergeable, Replaceable
-from tigrbl.v3.op.canonical import should_wire_canonical
+from tigrbl.orm.mixins import BulkCapable, Mergeable, Replaceable
+from tigrbl.op.canonical import should_wire_canonical
 
 NON_BULK_VERBS = {
     "create",
