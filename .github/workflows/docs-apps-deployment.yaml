@@ -18,5 +18,5 @@ jobs:
 
       - name: Restart mkdocs service
         run: |
-          docker compose -f infra/docs/docker-compose.yml up -d --pull always mkdocs
+          docker compose -f infra/docs/docker-compose.yaml up -d --pull always mkdocs
 
