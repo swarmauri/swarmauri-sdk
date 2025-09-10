@@ -216,7 +216,6 @@ members = [
     "community/swarmauri_certservice_ms_adcs",
     "community/swarmauri_certservice_gcpkms",
     "standards/swarmauri_tool_containernewsession",
-    "standards/swarmauri_tool_containerfeedchars",
     "standards/swarmauri_tool_githubloader",
     "standards/swarmauri_toolkit_containertoolkit",
     "experimental/swarmauri_workflow_statedriven"
