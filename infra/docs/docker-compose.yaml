@@ -1,5 +1,5 @@
 services:
-  mkdocs:
+  swarmauri-sdk-docs:
     build:
       context: ../pkgs/community/docsite_builder
       dockerfile: Dockerfile
@@ -24,11 +24,63 @@ services:
     networks:
       - dockernet
 
+  peagen-docs:
+    build:
+      context: ../pkgs/community/docsite_builder
+      dockerfile: Dockerfile
+    container_name: peagen-docs
+    ports:
+      - "8001:8000" # Expose mkdocs on port 8001
+    volumes:
+      - ./peagen:/docs # Mount the peagen docs directory
+      - ../pkgs:/pkgs # Mount the repo pkgs directory
+    working_dir: /docs
+    command: |
+      sh -c "
+        set -euo pipefail
+
+        export UV_PROJECT_ENVIRONMENT=/tmp/.venv
+
+        uv --directory /pkgs/community/docsite_builder sync &&
+
+        uv run --package docsite_builder --directory /pkgs/community/docsite_builder \
+          docsite-builder serve --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
+      "
+    networks:
+      - dockernet
+
+  tigrbl-docs:
+    build:
+      context: ../pkgs/community/docsite_builder
+      dockerfile: Dockerfile
+    container_name: tigrbl-docs
+    ports:
+      - "8002:8000" # Expose mkdocs on port 8002
+    volumes:
+      - ./tigrbl:/docs # Mount the tigrbl docs directory
+      - ../pkgs:/pkgs # Mount the repo pkgs directory
+    working_dir: /docs
+    command: |
+      sh -c "
+        set -euo pipefail
+
+        export UV_PROJECT_ENVIRONMENT=/tmp/.venv
+
+        uv --directory /pkgs/community/docsite_builder sync &&
+
+        uv run --package docsite_builder --directory /pkgs/community/docsite_builder \
+          docsite-builder serve --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
+      "
+    networks:
+      - dockernet
+
   nginx-proxy-manager:
     image: jc21/nginx-proxy-manager:latest
     container_name: nginx-proxy-manager
     depends_on:
-      - mkdocs
+      - swarmauri-sdk-docs
+      - peagen-docs
+      - tigrbl-docs
     ports:
       - "80:80"   # HTTP
       - "443:443" # HTTPS
@@ -44,3 +96,4 @@ services:
 networks:
   dockernet:
     driver: bridge
+
