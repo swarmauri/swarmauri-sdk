@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_keyprovider_file"
-version = "0.1.1.dev5"
+version = "0.1.1.dev6"
 description = "File-backed key provider for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
