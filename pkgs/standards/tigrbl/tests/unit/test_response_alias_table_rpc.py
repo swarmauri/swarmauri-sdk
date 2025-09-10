@@ -7,7 +7,7 @@ from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base
 from tigrbl.specs import IO, S, F, acol as spec_acol
 from tigrbl.types import String
-from tigrbl.tigrbl import TigrblApi
+from tigrbl.api import TigrblApi
 
 
 @pytest.mark.asyncio
