@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_cert_cfssl"
-version = "0.2.0.dev2"
+version = "0.2.0.dev3"
 description = "CFSSL-backed certificate service for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

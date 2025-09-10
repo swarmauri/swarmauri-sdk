@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_crypto_paramiko"
-version = "0.3.0.dev2"
+version = "0.3.0.dev3"
 description = "Paramiko-backed RSA + AES-GCM crypto provider for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

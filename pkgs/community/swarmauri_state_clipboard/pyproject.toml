@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_state_clipboard"
-version = "0.8.0.dev2"
+version = "0.8.0.dev3"
 description = "Swarmauri Community Clipboard State"
 license = "Apache-2.0"
 readme = "README.md"
