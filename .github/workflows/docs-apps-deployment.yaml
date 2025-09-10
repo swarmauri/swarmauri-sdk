@@ -1,4 +1,5 @@
 name: Deploy Docs Apps
+
 on:
   push:
     branches: [master, mono/dev]
@@ -16,8 +17,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Restart zdx services
+      # Provide the runner's UID/GID to Compose (consumed by infra/docs/.env)
+      - name: Export runner UID/GID for Compose
+        working-directory: infra/docs
         run: |
-          docker compose -f infra/docs/docker-compose.yaml \
-          up -d --build --force-recreate --no-deps \
-          swarmauri-sdk-docs peagen-docs tigrbl-docs
+          printf "RUN_UID=%s\nRUN_GID=%s\n" "$(id -u)" "$(id -g)" > .env
+          echo "Using UID:GID $(id -u):$(id -g)"
+
+      - name: Restart docs services
+        working-directory: infra/docs
+        run: |
+          docker compose -f docker-compose.yaml \
+            up -d --build --force-recreate --no-deps \
+            swarmauri-sdk-docs peagen-docs tigrbl-docs

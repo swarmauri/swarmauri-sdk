@@ -1,5 +1,3 @@
-version: "3.9"
-
 x-as-user: &as_user
   # Run containers as the invoking user (provided by .env)
   user: "${RUN_UID}:${RUN_GID}"
