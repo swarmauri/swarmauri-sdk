@@ -1,4 +1,4 @@
-from tigrbl.v3.autoapp import AutoApp
+from tigrbl.v3 import TigrblApp
 from tigrbl.v3.orm.tables import Base
 from tigrbl.v3.orm.mixins import GUIDPk
 from tigrbl.v3.types import Column, String
@@ -16,7 +16,7 @@ def test_default_resource_and_rpc_prefixes():
         __tablename__ = "items"
         name = Column(String, nullable=False)
 
-    api = AutoApp()
+    api = TigrblApp()
     api.include_model(Item, mount_router=False)
 
     paths = {p.lower() for p in _router_paths(api, "Item")}
@@ -32,7 +32,7 @@ def test_resource_override_affects_prefixes():
         __resource__ = "test"
         name = Column(String, nullable=False)
 
-    api = AutoApp()
+    api = TigrblApp()
     api.include_model(Item, mount_router=False)
 
     paths = {p.lower() for p in _router_paths(api, "Item")}

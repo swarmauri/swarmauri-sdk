@@ -5,7 +5,7 @@ from tigrbl.v3.types import App
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, String
 
-from tigrbl.v3 import AutoApp, Base, op_ctx, schema_ctx
+from tigrbl.v3 import TigrblApp, Base, op_ctx, schema_ctx
 from tigrbl.v3.engine.shortcuts import mem
 from tigrbl.v3.orm.mixins import GUIDPk
 
@@ -36,7 +36,7 @@ async def widget_client():
             return ctx["payload"]
 
     app = App()
-    api = AutoApp(engine=mem())
+    api = TigrblApp(engine=mem())
     api.include_model(Widget, prefix="")
     api.mount_jsonrpc()
     await api.initialize()

@@ -1,7 +1,7 @@
 import pytest
 from collections.abc import Iterator
 
-from tigrbl.v3.autoapp import AutoApp
+from tigrbl.v3 import TigrblApp
 from tigrbl.v3.orm.mixins import BulkCapable, GUIDPk
 from tigrbl.v3.specs import IO, S, F, acol as spec_acol
 from tigrbl.v3.orm.tables import Base
@@ -11,7 +11,7 @@ from tigrbl.v3.engine import resolver as _resolver
 
 
 @pytest.fixture()
-def api_and_session() -> Iterator[tuple[AutoApp, Session, type[Base]]]:
+def api_and_session() -> Iterator[tuple[TigrblApp, Session, type[Base]]]:
     class Widget(Base, GUIDPk, BulkCapable):
         __tablename__ = "widgets_rpc_ops"
         __allow_unmapped__ = True
@@ -26,7 +26,7 @@ def api_and_session() -> Iterator[tuple[AutoApp, Session, type[Base]]]:
             ),
         )
 
-    api = AutoApp(engine=mem(async_=False))
+    api = TigrblApp(engine=mem(async_=False))
     api.include_model(Widget, mount_router=False)
     api.initialize()
     prov = _resolver.resolve_provider()

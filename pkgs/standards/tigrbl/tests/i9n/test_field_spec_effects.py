@@ -8,7 +8,7 @@ from tigrbl.v3.engine import resolver as _resolver
 from tigrbl.v3.engine.shortcuts import mem
 from sqlalchemy.orm import sessionmaker
 
-from tigrbl.v3.autoapp import AutoApp
+from tigrbl.v3 import TigrblApp
 from tigrbl.v3.orm.tables import Base
 from tigrbl.v3.orm.mixins import GUIDPk
 from tigrbl.v3.specs import acol, F, IO, S
@@ -39,7 +39,7 @@ async def fs_app():
 
     Base.metadata.create_all(engine)
     app = App()
-    api = AutoApp(engine=cfg)
+    api = TigrblApp(engine=cfg)
     api.include_model(FSItem)
     api.initialize()
     app.include_router(api.router)

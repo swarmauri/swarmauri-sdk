@@ -11,7 +11,7 @@ Instead, construct an engine via `Engine` or the helper `engine()` function:
 from tigrbl.v3.engine import engine
 
 DB = engine("sqlite+aiosqlite:///./app.db")
-app = AutoApp(engine=DB)
+app = TigrblApp(engine=DB)
 ```
 
 Use `DB.get_db` as the FastAPI dependency for acquiring sessions and avoid

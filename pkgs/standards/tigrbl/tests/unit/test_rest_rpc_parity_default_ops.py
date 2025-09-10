@@ -1,7 +1,7 @@
 import pytest
 
 
-from tigrbl.v3.autoapp import AutoApp
+from tigrbl.v3 import TigrblApp
 from tigrbl.v3.orm.mixins import GUIDPk, BulkCapable, Mergeable
 from tigrbl.v3.orm.tables import Base
 from tigrbl.v3.op.types import CANON
@@ -52,7 +52,7 @@ def test_rest_rpc_parity_for_default_verbs(alias, target, path, methods):
 
     Item.__tigrbl_ops__ = {verb: {"target": verb} for verb in CANON if verb != "custom"}
 
-    api = AutoApp()
+    api = TigrblApp()
     api.include_model(Item, mount_router=False)
 
     routes = _route_map(Item.rest.router)
@@ -76,7 +76,7 @@ def test_non_bulkcapable_prefers_create() -> None:
         __tablename__ = "items"
         name = Column(String, nullable=False)
 
-    api = AutoApp()
+    api = TigrblApp()
     api.include_model(Item, mount_router=False)
 
     routes = _route_map(Item.rest.router)

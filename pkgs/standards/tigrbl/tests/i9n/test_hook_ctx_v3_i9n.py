@@ -3,7 +3,7 @@ from tigrbl.v3.types import App
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import func, select
 
-from tigrbl.v3.autoapp import AutoApp
+from tigrbl.v3 import TigrblApp
 from tigrbl.v3.types import Column, String
 from tigrbl.v3.orm.tables import Base
 from tigrbl.v3.orm.mixins import GUIDPk
@@ -18,7 +18,7 @@ from tigrbl.v3.hook import hook_ctx
 def create_client(model_cls):
     """Build a FastAPI app with Tigrbl v3 and return an AsyncClient."""
     app = App()
-    api = AutoApp(engine={"kind": "sqlite", "memory": True})
+    api = TigrblApp(engine={"kind": "sqlite", "memory": True})
     api.include_model(model_cls)
     api.mount_jsonrpc()
     api.attach_diagnostics()

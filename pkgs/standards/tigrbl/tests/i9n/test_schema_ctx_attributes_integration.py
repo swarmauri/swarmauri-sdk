@@ -5,7 +5,7 @@ from httpx import ASGITransport, AsyncClient
 
 from tigrbl.v3.types import App, BaseModel, Column, Integer, String
 
-from tigrbl.v3 import AutoApp, Base, schema_ctx
+from tigrbl.v3 import TigrblApp, Base, schema_ctx
 from tigrbl.v3.core import crud
 from tigrbl.v3.engine.shortcuts import mem
 from tigrbl.v3.engine import resolver as _resolver
@@ -33,7 +33,7 @@ async def schema_ctx_client():
 
     cfg = mem()
     app = App()
-    api = AutoApp(engine=cfg)
+    api = TigrblApp(engine=cfg)
     api.include_model(Widget, prefix="")
     api.mount_jsonrpc()
     api.attach_diagnostics()

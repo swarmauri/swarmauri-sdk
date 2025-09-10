@@ -1,5 +1,5 @@
 import pytest
-from tigrbl.v3 import AutoApp, Base
+from tigrbl.v3 import TigrblApp, Base
 from tigrbl.v3.engine.shortcuts import mem
 from tigrbl.v3.orm.mixins import GUIDPk
 from tigrbl.v3.specs import F, S, acol
@@ -33,7 +33,7 @@ def _resolve_schema(spec, schema):
 async def test_openapi_examples_and_schemas_present(db_mode):
     fastapi_app = App()
     engine = mem() if db_mode == "async" else mem(async_=False)
-    api = AutoApp(engine=engine)
+    api = TigrblApp(engine=engine)
     api.include_model(Widget)
     if db_mode == "async":
         await api.initialize()
