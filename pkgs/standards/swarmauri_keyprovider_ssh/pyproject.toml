@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_keyprovider_ssh"
-version = "0.1.1.dev3"
+version = "0.1.1.dev4"
 description = "SSH-based key provider for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

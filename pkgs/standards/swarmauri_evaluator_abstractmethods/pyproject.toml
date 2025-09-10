@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_evaluator_abstractmethods"
-version = "0.1.3.dev8"
+version = "0.1.3.dev9"
 description = "An evaluator that verifies all methods in abstract base classes are properly marked as abstract"
 license = "Apache-2.0"
 readme = "README.md"

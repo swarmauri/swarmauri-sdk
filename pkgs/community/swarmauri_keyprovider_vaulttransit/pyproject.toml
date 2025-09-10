@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_keyprovider_vaulttransit"
-version = "0.7.6.dev8"
+version = "0.7.6.dev9"
 description = "Swarmauri Vault Transit Key Provider"
 license = "Apache-2.0"
 readme = "README.md"
