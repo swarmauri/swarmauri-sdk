@@ -1,27 +1,32 @@
 targets:
   - name: Tigrbl
     package: tigrbl
-    search_path: /pkgs/standards
+    search_path: /pkgs/standards/tigrbl
     include:
       - tigrbl.*
     exclude:
       - "*.tests.*"
-      - "*.experimental.*"
-
-  - name: Tigrbl_Auth
-    package: tigrbl_auth
-    search_path: /pkgs/standards
-    include:
-      - tigrbl_auth.*
 
   - name: Tigrbl_Client
     package: tigrbl_client
-    search_path: /pkgs/standards
+    search_path: /pkgs/standards/tigrbl_client
     include:
       - tigrbl_client.*
+    exclude:
+      - "*.tests.*"
+
+  - name: Tigrbl_Auth
+    package: tigrbl_auth
+    search_path: /pkgs/standards/tigrbl_auth
+    include:
+      - tigrbl_auth.*
+    exclude:
+      - "*.tests.*"
 
   - name: Tigrbl_Kms
     package: tigrbl_kms
-    search_path: /pkgs/standards
+    search_path: /pkgs/standards/tigrbl_kms
     include:
       - tigrbl_kms.*
+    exclude:
+      - "*.tests.*"
