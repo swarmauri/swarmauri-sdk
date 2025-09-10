@@ -177,5 +177,5 @@ async def test_kernelz_lists_atoms_and_steps(widget_setup):
     client, _, _ = widget_setup
     data = (await client.get("/system/kernelz")).json()
     steps = data["Widget"]["create"]
-    assert "HANDLER:hook:wire:tigrbl:v3:core:crud:ops:create@HANDLER" in steps
+    assert "HANDLER:hook:wire:tigrbl:core:crud:ops:create@HANDLER" in steps
     assert any("hook:sys:txn:begin@START_TX" in s for s in steps)
