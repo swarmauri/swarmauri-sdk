@@ -1,6 +1,6 @@
 [project]
 name = "jaml"
-version = "0.2.0.dev1"
+version = "0.2.0.dev2"
 description = "Swarmauri's Canon Jaml Handler"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 license = "Apache-2.0"

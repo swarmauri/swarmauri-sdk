@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_middleware_ratelimit"
-version = "0.7.0.dev1"
+version = "0.7.0.dev2"
 description = "Rate limiting middleware for Swarmauri applications"
 license = "Apache-2.0"
 readme = "README.md"

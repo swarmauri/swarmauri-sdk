@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupyterexportlatex"
-version = "0.8.0.dev1"
+version = "0.8.0.dev2"
 description = "A tool that exports a Jupyter Notebook to LaTeX format using nbconvert’s LatexExporter, enabling further conversion to PDF."
 license = "Apache-2.0"
 readme = "README.md"

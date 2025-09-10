@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_mre_crypto_ecdh_es_kw"
-version = "0.2.0.dev1"
+version = "0.2.0.dev2"
 description = "ECDH-ES+A128KW based multi-recipient encryption provider for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
