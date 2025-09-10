@@ -1,6 +1,6 @@
 site_name: ZDX
 repo_name: zdx
-repo_url: https://github.com/swarmauri/swarmauri-sdk
+repo_url: https://github.com/swarmauri/swarmauri-sdk/community/zdx
 theme:
   name: material
 plugins:
