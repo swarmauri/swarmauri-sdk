@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_captchagenerator"
-version = "0.7.6.dev12"
+version = "0.8.0.dev1"
 description = "Swarmauri Community Captcha Generator Tool"
 license = "Apache-2.0"
 readme = "README.md"

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_distance_minkowski"
-version = "0.7.6.dev12"
+version = "0.8.0.dev1"
 description = "Minkowski Distance for Swarmauri."
 license = "Apache-2.0"
 readme = "README.md"

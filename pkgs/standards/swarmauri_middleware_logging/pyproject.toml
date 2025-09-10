@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_middleware_logging"
-version = "0.6.2.dev10"
+version = "0.7.0.dev1"
 description = "Logging middleware for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

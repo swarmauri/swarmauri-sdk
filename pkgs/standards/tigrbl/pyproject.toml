@@ -1,6 +1,6 @@
 [project]
 name = "tigrbl"
-version = "0.1.3.dev9"
+version = "0.2.0.dev1"
 description = "Automatic API generation tools by Swarmauri."
 license = "Apache-2.0"
 readme = "README.md"
