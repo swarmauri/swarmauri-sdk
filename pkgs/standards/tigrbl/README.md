@@ -15,28 +15,28 @@
 
 ---
 
-# Tigrbl
-A high-leverage meta-framework that turns plain SQLAlchemy models into a fully-featured REST+RPC surface with near zero boiler plate.
+# Tigrbl 🐅🐂
+A high-leverage meta-framework that turns plain SQLAlchemy models into a fully-featured REST+RPC surface with near-zero boilerplate. 🚀
 
-## Terminology
+## Terminology 📚
 
-- **Tenant** – a namespace used to group related resources.
-- **Principal** – an owner of resources, such as an individual user or an organization.
-- **Resource** – a logical collection of data or functionality exposed by the API.
-- **Engine** – the database connection and transaction manager backing a resource.
-- **Model / Table** – the ORM or database representation of a resource's records.
-- **Column** – a field on a model that maps to a table column.
-- **Operation** – a verb-driven action executed against a resource.
-- **Hook** – a callback that runs during a phase to customize behavior.
-- **Phase** – a step in the request lifecycle where hooks may run.
-- **Verb** – the canonical name of an operation such as create or read.
-- **Runtime** – orchestrates phases and hooks while processing a request.
-- **Kernel** – the core dispatcher invoked by the runtime to handle operations.
-- **Schema** – the structured shape of request or response data.
-- **Request** – inbound data and context provided to an operation.
-- **Response** – outbound result returned after an operation completes.
+- **Tenant** 🏢 – a namespace used to group related resources.
+- **Principal** 👤 – an owner of resources, such as an individual user or an organization.
+- **Resource** 📦 – a logical collection of data or functionality exposed by the API.
+- **Engine** ⚙️ – the database connection and transaction manager backing a resource.
+- **Model / Table** 🧱 – the ORM or database representation of a resource's records.
+- **Column** 📏 – a field on a model that maps to a table column.
+- **Operation** 🛠️ – a verb-driven action executed against a resource.
+- **Hook** 🪝 – a callback that runs during a phase to customize behavior.
+- **Phase** ⏱️ – a step in the request lifecycle where hooks may run.
+- **Verb** 🔤 – the canonical name of an operation such as create or read.
+- **Runtime** 🧠 – orchestrates phases and hooks while processing a request.
+- **Kernel** 🧩 – the core dispatcher invoked by the runtime to handle operations.
+- **Schema** 🧬 – the structured shape of request or response data.
+- **Request** 📥 – inbound data and context provided to an operation.
+- **Response** 📤 – outbound result returned after an operation completes.
 
-## Built-in Verbs
+## Built-in Verbs 🧰
 
 Tigrbl exposes a canonical set of operations that surface as both REST
 and RPC endpoints. The table below summarizes the default REST routes,
@@ -46,22 +46,22 @@ primary key placeholder.
 
 | Verb | REST route | RPC method | Arity | Input type | Output type |
 |------|------------|------------|-------|------------|-------------|
-| `create` | `POST /{resource}` | `Model.create` | collection | dict | dict |
-| `read` | `GET /{resource}/{id}` | `Model.read` | member | – | dict |
-| `update` | `PATCH /{resource}/{id}` | `Model.update` | member | dict | dict |
-| `replace` | `PUT /{resource}/{id}` | `Model.replace` | member | dict | dict |
-| `merge` | `PATCH /{resource}/{id}` | `Model.merge` | member | dict | dict |
-| `delete` | `DELETE /{resource}/{id}` | `Model.delete` | member | – | dict |
-| `list` | `GET /{resource}` | `Model.list` | collection | dict | array |
-| `clear` | `DELETE /{resource}` | `Model.clear` | collection | dict | dict |
-| `bulk_create` | `POST /{resource}` | `Model.bulk_create` | collection | array | array |
-| `bulk_update` | `PATCH /{resource}` | `Model.bulk_update` | collection | array | array |
-| `bulk_replace` | `PUT /{resource}` | `Model.bulk_replace` | collection | array | array |
-| `bulk_merge` | `PATCH /{resource}` | `Model.bulk_merge` | collection | array | array |
-| `bulk_delete` | `DELETE /{resource}` | `Model.bulk_delete` | collection | dict | dict |
-| `bulk_read` | – | – | – | – | – |
+| `create` ➕ | `POST /{resource}` | `Model.create` | collection | dict | dict |
+| `read` 🔍 | `GET /{resource}/{id}` | `Model.read` | member | – | dict |
+| `update` ✏️ | `PATCH /{resource}/{id}` | `Model.update` | member | dict | dict |
+| `replace` ♻️ | `PUT /{resource}/{id}` | `Model.replace` | member | dict | dict |
+| `merge` 🧬 | `PATCH /{resource}/{id}` | `Model.merge` | member | dict | dict |
+| `delete` 🗑️ | `DELETE /{resource}/{id}` | `Model.delete` | member | – | dict |
+| `list` 📃 | `GET /{resource}` | `Model.list` | collection | dict | array |
+| `clear` 🧹 | `DELETE /{resource}` | `Model.clear` | collection | dict | dict |
+| `bulk_create` 📦➕ | `POST /{resource}` | `Model.bulk_create` | collection | array | array |
+| `bulk_update` 📦✏️ | `PATCH /{resource}` | `Model.bulk_update` | collection | array | array |
+| `bulk_replace` 📦♻️ | `PUT /{resource}` | `Model.bulk_replace` | collection | array | array |
+| `bulk_merge` 📦🧬 | `PATCH /{resource}` | `Model.bulk_merge` | collection | array | array |
+| `bulk_delete` 📦🗑️ | `DELETE /{resource}` | `Model.bulk_delete` | collection | dict | dict |
+| `bulk_read` – | – | – | – | – | – |
 
-### Update, Merge, and Replace
+### Update, Merge, and Replace 🔄
 
 `update` applies a shallow PATCH: only the supplied fields change and
 missing fields are left untouched. `merge` performs a deep merge with
@@ -70,7 +70,7 @@ mapping fields are merged rather than replaced. `replace` follows PUT
 semantics, overwriting the entire record and nulling any omitted
 attributes.
 
-### Verb Overrides
+### Verb Overrides 🧭
 
 Because `create` and `bulk_create` share the same collection `POST`
 route, enabling `bulk_create` removes the REST `create` endpoint; the
@@ -80,126 +80,111 @@ of each conflicting pair can be exposed at a time. Other verbs coexist
 without conflict because they operate on distinct paths or HTTP
 methods.
 
-## Phase Lifecycle
+## Phase Lifecycle ⛓️
 
 Tigrbl operations execute through a fixed sequence of phases. Hook chains can
 attach handlers at any phase to customize behavior or enforce policy.
 
 | Phase | Description |
 |-------|-------------|
-| `PRE_TX_BEGIN` | Pre-transaction checks before a database session is used. |
-| `START_TX` | Open a new transaction when one is not already active. |
-| `PRE_HANDLER` | Validate the request and prepare resources for the handler. |
-| `HANDLER` | Execute the core operation logic within the transaction. |
-| `POST_HANDLER` | Post-processing while still inside the transaction. |
-| `PRE_COMMIT` | Final verification before committing; writes are frozen. |
-| `END_TX` | Commit and close the transaction. |
-| `POST_COMMIT` | Steps that run after commit but before the response is returned. |
-| `POST_RESPONSE` | Fire-and-forget work after the response has been sent. |
-| `ON_ERROR` | Fallback error handler when no phase-specific chain matches. |
-| `ON_PRE_TX_BEGIN_ERROR` | Handle errors raised during `PRE_TX_BEGIN`. |
-| `ON_START_TX_ERROR` | Handle errors raised during `START_TX`. |
-| `ON_PRE_HANDLER_ERROR` | Handle errors raised during `PRE_HANDLER`. |
-| `ON_HANDLER_ERROR` | Handle errors raised during `HANDLER`. |
-| `ON_POST_HANDLER_ERROR` | Handle errors raised during `POST_HANDLER`. |
-| `ON_PRE_COMMIT_ERROR` | Handle errors raised during `PRE_COMMIT`. |
-| `ON_END_TX_ERROR` | Handle errors raised during `END_TX`. |
-| `ON_POST_COMMIT_ERROR` | Handle errors raised during `POST_COMMIT`. |
-| `ON_POST_RESPONSE_ERROR` | Handle errors raised during `POST_RESPONSE`. |
-| `ON_ROLLBACK` | Run when the transaction rolls back to perform cleanup. |
+| `PRE_TX_BEGIN` ⏳ | Pre-transaction checks before a database session is used. |
+| `START_TX` 🚦 | Open a new transaction when one is not already active. |
+| `PRE_HANDLER` 🧹 | Validate the request and prepare resources for the handler. |
+| `HANDLER` ▶️ | Execute the core operation logic within the transaction. |
+| `POST_HANDLER` 🔧 | Post-processing while still inside the transaction. |
+| `PRE_COMMIT` ✅ | Final verification before committing; writes are frozen. |
+| `END_TX` 🧾 | Commit and close the transaction. |
+| `POST_COMMIT` 📌 | Steps that run after commit but before the response is returned. |
+| `POST_RESPONSE` 📮 | Fire-and-forget work after the response has been sent. |
+| `ON_ERROR` 🛑 | Fallback error handler when no phase-specific chain matches. |
+| `ON_PRE_TX_BEGIN_ERROR` 🧯 | Handle errors raised during `PRE_TX_BEGIN`. |
+| `ON_START_TX_ERROR` 🧯 | Handle errors raised during `START_TX`. |
+| `ON_PRE_HANDLER_ERROR` 🧯 | Handle errors raised during `PRE_HANDLER`. |
+| `ON_HANDLER_ERROR` 🧯 | Handle errors raised during `HANDLER`. |
+| `ON_POST_HANDLER_ERROR` 🧯 | Handle errors raised during `POST_HANDLER`. |
+| `ON_PRE_COMMIT_ERROR` 🧯 | Handle errors raised during `PRE_COMMIT`. |
+| `ON_END_TX_ERROR` 🧯 | Handle errors raised during `END_TX`. |
+| `ON_POST_COMMIT_ERROR` 🧯 | Handle errors raised during `POST_COMMIT`. |
+| `ON_POST_RESPONSE_ERROR` 🧯 | Handle errors raised during `POST_RESPONSE`. |
+| `ON_ROLLBACK` ↩️ | Run when the transaction rolls back to perform cleanup. |
 
-## Hook Configuration Precedence
-
-Hooks can be registered at the API, model, or operation level. When the
-framework builds the hook chain for an operation, configuration from these
-sources is merged per phase with well-defined precedence:
-
-- **Pre-like phases** (`PRE_TX_BEGIN`, `START_TX`, `PRE_HANDLER`, `PRE_COMMIT`):
-  API hooks run first, then model hooks, and finally op hooks.
-- **Post and error phases** (`POST_HANDLER`, `POST_COMMIT`, `POST_RESPONSE`,
-  and all `ON_*` variants): op hooks execute before model hooks, which run
-  before API hooks.
-
-This ordering lets broad API policies execute before model and op
-customizations on the way in and unwind in reverse for post-processing and
-error handling.
-
-During a successful request the runtime advances through each phase in the
-order shown below. Each step completes before the next begins and hooks may
-extend or short‑circuit the flow.
+### Happy-path flow
 
 ```
-PRE_TX_BEGIN
-   |
-START_TX
-   |
-PRE_HANDLER
-   |
+
+PRE\_TX\_BEGIN
+|
+START\_TX
+|
+PRE\_HANDLER
+|
 HANDLER
-   |
-POST_HANDLER
-   |
-PRE_COMMIT
-   |
-END_TX
-   |
-POST_COMMIT
-   |
-POST_RESPONSE
+|
+POST\_HANDLER
+|
+PRE\_COMMIT
+|
+END\_TX
+|
+POST\_COMMIT
+|
+POST\_RESPONSE
+
 ```
 
 If a phase raises an exception, control transfers to the matching
 `ON_<PHASE>_ERROR` chain or falls back to `ON_ERROR`, with `ON_ROLLBACK`
 executing when the transaction is rolled back.
 
-## Request to Response Flow Examples
-
-The diagrams below illustrate how a request moves through Tigrbl and returns
-a response.
+## Request → Response Flow Examples 🔀
 
 ### REST example
 
 ```
+
 Client
-  |
-  v
+|
+v
 HTTP Request
-  |
-  v
+|
+v
 FastAPI Router
-  |
-  v
+|
+v
 Tigrbl Runtime
-  |
-  v
+|
+v
 Operation Handler
-  |
-  v
+|
+v
 HTTP Response
+
 ```
 
 ### RPC example
 
 ```
-Client
-  |
-  v
-JSON-RPC Request
-  |
-  v
-RPC Dispatcher
-  |
-  v
-Tigrbl Runtime
-  |
-  v
-Operation Handler
-  |
-  v
-JSON-RPC Response
-```
 
-## Hooks
+Client
+|
+v
+JSON-RPC Request
+|
+v
+RPC Dispatcher
+|
+v
+Tigrbl Runtime
+|
+v
+Operation Handler
+|
+v
+JSON-RPC Response
+
+````
+
+## Hooks 🪝
 
 Hooks allow you to plug custom logic into any phase of a verb. Use the
 `hook_ctx` decorator to declare context-only hooks:
@@ -214,7 +199,7 @@ class Item(Base):
     async def validate(cls, ctx):
         if ctx["request"].payload.get("name") == "bad":
             raise ValueError("invalid name")
-```
+````
 
 The function runs during the `PRE_HANDLER` phase of `create`. The
 `ctx` mapping provides request and response objects, a database session,
@@ -231,27 +216,27 @@ class Item(Base):
 ```
 
 Running apps expose a `/system/hookz` route that lists all registered
-hooks.
+hooks. 📋
 
-## Step Types
+## Step Types 🧱
 
 Tigrbl orders work into labeled steps that control how phases run:
 
-- **secdeps** – security dependencies executed before other checks. Downstream
+* **secdeps** 🔐 – security dependencies executed before other checks. Downstream
   applications declare these to enforce auth or policy.
-- **deps** – general dependencies resolved ahead of phase handlers. Downstream
+* **deps** 🧩 – general dependencies resolved ahead of phase handlers. Downstream
   code provides these to inject request context or resources.
-- **sys** – system steps bundled with Tigrbl that drive core behavior.
+* **sys** 🏗️ – system steps bundled with Tigrbl that drive core behavior.
   Maintainers own these and downstream packages should not modify them.
-- **atoms** – built-in runtime units such as schema collectors or wire
+* **atoms** ⚛️ – built-in runtime units such as schema collectors or wire
   validators. These are maintained by the core team.
-- **hooks** – extension points that downstream packages register to customize
+* **hooks** 🪝 – extension points that downstream packages register to customize
   phase behavior.
 
 Only `secdeps`, `deps`, and `hooks` are expected to be configured downstream;
 `sys` and `atom` steps are maintained by the Tigrbl maintainers.
 
-## Kernelz Labeling
+## Kernelz Labeling 🔎
 
 Running apps expose a `/system/kernelz` diagnostics endpoint that returns the
 kernel's phase plan for each model and operation. Every entry is prefixed by
@@ -266,20 +251,18 @@ POST_HANDLER:atom:wire:dump@POST_HANDLER
 
 The token after the phase identifies the step type:
 
-- `secdep` and `dep` list security and general dependencies as
+* `secdep` and `dep` – security and general dependencies as
   `PRE_TX:secdep:<callable>` and `PRE_TX:dep:<callable>`.
-- `hook:sys` labels built-in system hooks shipped with Tigrbl.
-- `hook:wire` is the default label for user hooks and includes the module and
-  function name plus the phase.
-- `atom:{domain}:{subject}` denotes runtime atoms, such as
-  `atom:wire:dump`.
+* `hook:sys` – built-in system hooks shipped with Tigrbl.
+* `hook:wire` – default label for user hooks including module/function name + phase.
+* `atom:{domain}:{subject}` – runtime atoms, e.g. `atom:wire:dump`.
 
 These labels allow downstream services to inspect execution order and debug how
-work is scheduled.
+work is scheduled. 🧭
 
-## Configuration Overview
+## Configuration Overview ⚙️
 
-### Operation Config Precedence
+### Operation Config Precedence 🧮
 
 When merging configuration for a given operation, Tigrbl layers settings in
 increasing order of precedence:
@@ -296,9 +279,9 @@ Later entries override earlier ones, so request overrides win over all other
 sources. This can be summarized as
 `overrides > opspec > colspecs > tabspec > apispec > appspec > defaults`.
 
-### Schema Config Precedence
+### Schema Config Precedence 🧬
 
-Tigrbl merges schema configuration from several scopes.  
+Tigrbl merges schema configuration from several scopes.
 Later layers override earlier ones, with the precedence order:
 
 1. defaults (lowest)
@@ -309,33 +292,37 @@ Later layers override earlier ones, with the precedence order:
 6. op-specific `cfg`
 7. per-request overrides (highest)
 
-This hierarchy ensures that the most specific settings always win.
+This hierarchy ensures that the most specific settings always win. 🥇
 
+### Table-Level 🧾
 
-### Table-Level
-- `__tigrbl_request_extras__` – verb-scoped virtual request fields.
-- `__tigrbl_response_extras__` – verb-scoped virtual response fields.
-- `__tigrbl_register_hooks__` – hook registration entry point.
-- `__tigrbl_nested_paths__` – nested REST path segments.
-- `__tigrbl_allow_anon__` – verbs permitted without auth.
-- `__tigrbl_owner_policy__` / `__tigrbl_tenant_policy__` – server vs client field injection.
-- `__tigrbl_verb_aliases__` & `__tigrbl_verb_alias_policy__` – custom verb names.
+* `__tigrbl_request_extras__` – verb-scoped virtual request fields.
+* `__tigrbl_response_extras__` – verb-scoped virtual response fields.
+* `__tigrbl_register_hooks__` – hook registration entry point.
+* `__tigrbl_nested_paths__` – nested REST path segments.
+* `__tigrbl_allow_anon__` – verbs permitted without auth.
+* `__tigrbl_owner_policy__` / `__tigrbl_tenant_policy__` – server vs client field injection.
+* `__tigrbl_verb_aliases__` & `__tigrbl_verb_alias_policy__` – custom verb names.
 
-### Routing
-- `__tigrbl_nested_paths__` for hierarchical routing.
-- `__tigrbl_verb_aliases__` for custom verbs.
-- `__tigrbl_verb_alias_policy__` to scope alias application.
+### Routing 🧭
 
-### Persistence
-- Mixins such as `Upsertable`, `Bootstrappable`, `GUIDPk`, `Timestamped`.
-- Policies `__tigrbl_owner_policy__` and `__tigrbl_tenant_policy__`.
-- `transactional` decorator for atomic RPC + REST endpoints.
+* `__tigrbl_nested_paths__` for hierarchical routing.
+* `__tigrbl_verb_aliases__` for custom verbs.
+* `__tigrbl_verb_alias_policy__` to scope alias application.
 
-### Security
-- Pluggable `AuthNProvider` interface.
-- `__tigrbl_allow_anon__` to permit anonymous access.
+### Persistence 💾
 
-### Default Precedence
+* Mixins such as `Upsertable`, `Bootstrappable`, `GUIDPk`, `Timestamped`.
+* Policies `__tigrbl_owner_policy__` and `__tigrbl_tenant_policy__`.
+* `transactional` decorator for atomic RPC + REST endpoints.
+
+### Security 🔐
+
+* Pluggable `AuthNProvider` interface.
+* `__tigrbl_allow_anon__` to permit anonymous access.
+
+### Default Precedence 🔧
+
 When assembling values for persistence, defaults are resolved in this order:
 
 1. Client-supplied value
@@ -344,7 +331,8 @@ When assembling values for persistence, defaults are resolved in this order:
 4. Database `server_default`
 5. HTTP 422 if the field is required and still missing
 
-### Database Guards
+### Database Guards 🛡️
+
 Tigrbl executes each phase under database guards that temporarily replace
 `commit` and `flush` on the SQLAlchemy session. Guards prevent writes or
 commits outside their allowed phases and only permit commits when Tigrbl
@@ -357,20 +345,21 @@ allowing validation and hooks to run before any statements hit the
 database. Once the transaction exists, `PRE_HANDLER`, `HANDLER`, and
 `POST_HANDLER` phases permit flushes so pending writes reach the database
 without committing. The workflow concludes in `END_TX`, which performs a
-final flush and commits the transaction when the runtime owns it.
+final flush and commits the transaction when the runtime owns it. ✅
 
-### Response and Template Specs
+### Response and Template Specs 📑
+
 Customize outbound responses with `ResponseSpec` and `TemplateSpec`. These dataclasses
 control headers, status codes, and optional template rendering. See
 [tigrbl/v3/response/README.md](tigrbl/v3/response/README.md) for field descriptions and examples.
 
+### Dependencies 📦
 
-### Dependencies
-- SQLAlchemy for ORM integration.
-- Pydantic for schema generation.
-- FastAPI for routing and dependency injection.
+* SQLAlchemy for ORM integration.
+* Pydantic for schema generation.
+* FastAPI for routing and dependency injection.
 
-### Engine & Provider examples
+### Engine & Provider examples 🛠️
 
 ```python
 from tigrbl.v3.engine.shortcuts import engine_spec, prov
@@ -396,14 +385,14 @@ async with eng.asession() as session:
 provider_pg = Provider(spec_pg)
 ```
 
-### Attaching engine contexts
+### Attaching engine contexts 🔌
 
 `engine_ctx` binds database configuration to different layers. It accepts a
 DSN string, a mapping, an `EngineSpec`, a `Provider`, or an `Engine`. The
 resolver chooses the most specific binding in the order
 `op > table > api > app`.
 
-#### Engine precedence
+#### Engine precedence 🥇
 
 When engine contexts are declared at multiple scopes, Tigrbl resolves them
 with strict precedence:
@@ -415,7 +404,7 @@ with strict precedence:
 
 This ordering ensures that the most specific engine context always wins.
 
-#### Declarative bindings
+#### Declarative bindings 📝
 
 ```python
 from types import SimpleNamespace
@@ -442,7 +431,7 @@ create.__tigrbl_engine_ctx__ = {
 }
 ```
 
-#### Decorative bindings
+#### Decorative bindings 🎛️
 
 ```python
 from tigrbl.v3.engine.decorators import engine_ctx
@@ -465,14 +454,17 @@ async def decorated_create(payload, *, db=None):
     ...
 ```
 
-## Glossary
+## Glossary 📖
+
 1. Tables
 2. Schemas
 3. Schema Overlays (Request Extras)
-3. Phases
-4. Phase Lifecycle
+4. Phases
+5. Phase Lifecycle
 6. Request
 7. Request Ctx
 8. Default Flush
 9. Core
-10. Core_Raw
+10. Core\_Raw
+
+
