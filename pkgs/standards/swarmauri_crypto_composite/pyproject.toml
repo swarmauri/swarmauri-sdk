@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_crypto_composite"
-version = "0.1.1.dev3"
+version = "0.1.1.dev4"
 description = "Algorithm-routing crypto provider for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

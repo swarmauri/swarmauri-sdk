@@ -1,6 +1,6 @@
 [project]
 name = "catoml"
-version = "0.1.3.dev8"
+version = "0.1.3.dev9"
 description = "Swarmauri's Canon Toml"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 license = "Apache-2.0"
