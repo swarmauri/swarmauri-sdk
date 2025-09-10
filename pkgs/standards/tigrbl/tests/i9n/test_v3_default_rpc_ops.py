@@ -4,7 +4,7 @@ from tigrbl.v3.orm.mixins import BulkCapable, Replaceable, Mergeable
 from tigrbl.v3.types import App, Integer, Mapped, String, uuid4
 from httpx import AsyncClient, ASGITransport
 
-from tigrbl.v3.autoapp import AutoApp as Tigrblv3
+from tigrbl.v3 import TigrblApp as Tigrblv3
 from tigrbl.v3.engine.shortcuts import mem
 from tigrbl.v3.orm.tables import Base as Base3
 from tigrbl.v3.specs import F, IO, S, acol

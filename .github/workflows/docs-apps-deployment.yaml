@@ -12,7 +12,7 @@ jobs:
     runs-on: [docs]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 

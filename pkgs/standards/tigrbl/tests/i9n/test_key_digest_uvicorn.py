@@ -6,7 +6,7 @@ import pytest
 import uvicorn
 import pytest_asyncio
 
-from tigrbl.v3 import AutoApp
+from tigrbl.v3 import TigrblApp
 from tigrbl.v3.orm.mixins import (
     GUIDPk,
     Created,
@@ -45,7 +45,7 @@ async def running_app(sync_db_session):
     engine, get_sync_db = sync_db_session
 
     app = App()
-    api = AutoApp(get_db=get_sync_db)
+    api = TigrblApp(get_db=get_sync_db)
     api.include_models([ApiKey])
     await api.initialize()
     app.include_router(api.router)

@@ -1,7 +1,7 @@
 import pytest
 from collections.abc import Iterator
 
-from tigrbl.v3.autoapp import AutoApp
+from tigrbl.v3 import TigrblApp
 from tigrbl.v3.engine import resolver as _resolver
 from tigrbl.v3.engine.shortcuts import mem
 from tigrbl.v3.op import OpSpec
@@ -12,7 +12,7 @@ from tigrbl.v3.types import Session, String, uuid4
 
 
 @pytest.fixture()
-def api_and_session() -> Iterator[tuple[AutoApp, Session]]:
+def api_and_session() -> Iterator[tuple[TigrblApp, Session]]:
     class Widget(Base, GUIDPk, BulkCapable, Replaceable):
         __tablename__ = "widgets_rpc_all_ops"
         __allow_unmapped__ = True
@@ -62,7 +62,7 @@ def api_and_session() -> Iterator[tuple[AutoApp, Session]]:
         )
 
     cfg = mem(async_=False)
-    api = AutoApp(engine=cfg)
+    api = TigrblApp(engine=cfg)
     api.include_model(Widget, mount_router=False)
     api.initialize()
 

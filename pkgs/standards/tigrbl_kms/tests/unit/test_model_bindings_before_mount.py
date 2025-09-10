@@ -3,7 +3,7 @@ import pytest
 
 @pytest.mark.asyncio
 async def test_bindings_before_mount(monkeypatch):
-    from tigrbl.v3.autoapp import AutoApp
+    from tigrbl.v3 import TigrblApp
     from tigrbl.v3.bindings import rest as rest_binding
 
     monkeypatch.setattr(
@@ -24,7 +24,7 @@ async def test_bindings_before_mount(monkeypatch):
 
     from tigrbl_kms.orm import Key
 
-    api = AutoApp()
+    api = TigrblApp()
     api.bind(Key)
 
     result = await Key.rpc.create(

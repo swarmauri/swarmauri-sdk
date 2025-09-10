@@ -3,7 +3,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.testclient import TestClient
 from tigrbl.v3.engine.shortcuts import mem
 
-from tigrbl.v3 import AutoApp, Base, hook_ctx
+from tigrbl.v3 import TigrblApp, Base, hook_ctx
 from tigrbl.v3.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
 from tigrbl.v3.orm.mixins import GUIDPk
 from tigrbl.v3.types.authn_abc import AuthNProvider
@@ -39,7 +39,7 @@ def _build_client_with_auth():
         async def capture(cls, ctx):
             auth.ctx_principal = ctx.get("auth_context")
 
-    api = AutoApp(engine=mem(async_=False))
+    api = TigrblApp(engine=mem(async_=False))
     api.set_auth(authn=auth.get_principal)
     api.include_model(Tenant)
     api.initialize()

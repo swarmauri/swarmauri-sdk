@@ -4,7 +4,7 @@ from typing import Iterator
 from tigrbl.v3.types import App
 from httpx import AsyncClient, ASGITransport
 
-from tigrbl.v3.autoapp import AutoApp
+from tigrbl.v3 import TigrblApp
 from tigrbl.v3.engine.shortcuts import mem
 from tigrbl.v3.orm.tables import Base
 from tigrbl.v3.orm.mixins import GUIDPk, BulkCapable, Replaceable
@@ -23,7 +23,7 @@ async def v3_client() -> Iterator[tuple[AsyncClient, type]]:
         description = Column(String, nullable=True)
 
     app = App()
-    api = AutoApp(engine=mem(async_=False))
+    api = TigrblApp(engine=mem(async_=False))
     api.include_model(Widget)
     api.initialize()
     app.include_router(api.router)
