@@ -1,4 +1,4 @@
-# tigrbl/v3/tigrbl.py
+# tigrbl/v3/api/tigrbl_api.py
 from __future__ import annotations
 
 import copy
@@ -14,11 +14,11 @@ from typing import (
     Tuple,
 )
 
-from .api._api import Api as _Api
-from .engine.engine_spec import EngineCfg
-from .engine import resolver as _resolver
-from .ddl import initialize as _ddl_initialize
-from .bindings.api import (
+from ._api import Api as _Api
+from ..engine.engine_spec import EngineCfg
+from ..engine import resolver as _resolver
+from ..ddl import initialize as _ddl_initialize
+from ..bindings.api import (
     include_model as _include_model,
     include_models as _include_models,
     rpc_call as _rpc_call,
@@ -27,11 +27,11 @@ from .bindings.api import (
     _default_prefix,
     AttrDict,
 )
-from .bindings.model import rebind as _rebind, bind as _bind
-from .bindings.rest import build_router_and_attach as _build_router_and_attach
-from .transport import mount_jsonrpc as _mount_jsonrpc
-from .system import mount_diagnostics as _mount_diagnostics
-from .op import get_registry, OpSpec
+from ..bindings.model import rebind as _rebind, bind as _bind
+from ..bindings.rest import build_router_and_attach as _build_router_and_attach
+from ..transport import mount_jsonrpc as _mount_jsonrpc
+from ..system import mount_diagnostics as _mount_diagnostics
+from ..op import get_registry, OpSpec
 
 
 class TigrblApi(_Api):

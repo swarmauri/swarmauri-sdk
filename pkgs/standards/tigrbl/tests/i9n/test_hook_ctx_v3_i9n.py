@@ -388,5 +388,5 @@ async def test_hook_ctx_system_steps_i9n():
     res = await client.get("/system/kernelz")
     data = res.json()
     steps = data["Item"]["create"]
-    assert "HANDLER:hook:wire:tigrbl:v3:core:crud:ops:create@HANDLER" in steps
+    assert "HANDLER:hook:wire:tigrbl:core:crud:ops:create@HANDLER" in steps
     await client.aclose()

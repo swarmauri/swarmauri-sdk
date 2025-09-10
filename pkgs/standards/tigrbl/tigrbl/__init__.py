@@ -76,8 +76,7 @@ from .ddl import ensure_schemas, register_sqlite_attach, bootstrap_dbschema
 # ── Config constants (defaults used by REST) ───────────────────────────────────
 from .config.constants import DEFAULT_HTTP_METHODS
 from .app.tigrbl_app import TigrblApp
-from .tigrbl import TigrblApi
-from .api._api import Api
+from .api import Api, TigrblApi
 
 from .table import Base
 from .op import Op
