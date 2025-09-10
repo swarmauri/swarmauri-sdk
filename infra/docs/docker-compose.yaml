@@ -1,7 +1,7 @@
 services:
   swarmauri-sdk-docs:
     build:
-      context: ../pkgs/community/docsite_builder
+      context: ../pkgs/community/zdx
       dockerfile: Dockerfile
     container_name: swarmauri-sdk-docs
     ports:
@@ -16,10 +16,10 @@ services:
 
         export UV_PROJECT_ENVIRONMENT=/tmp/.venv
 
-        uv --directory /pkgs/community/docsite_builder sync &&
+        uv --directory /pkgs/community/zdx sync &&
 
-        uv run --package docsite_builder --directory /pkgs/community/docsite_builder \
-          docsite-builder serve --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
+        uv run --package zdx --directory /pkgs/community/zdx \
+          zdx serve --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
       "
     depends_on:
       - nginx-proxy-manager
@@ -28,7 +28,7 @@ services:
 
   peagen-docs:
     build:
-      context: ../pkgs/community/docsite_builder
+      context: ../pkgs/community/zdx
       dockerfile: Dockerfile
     container_name: peagen-docs
     ports:
@@ -43,10 +43,10 @@ services:
 
         export UV_PROJECT_ENVIRONMENT=/tmp/.venv
 
-        uv --directory /pkgs/community/docsite_builder sync &&
+        uv --directory /pkgs/community/zdx sync &&
 
-        uv run --package docsite_builder --directory /pkgs/community/docsite_builder \
-          docsite-builder serve --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
+        uv run --package zdx --directory /pkgs/community/zdx \
+          zdx serve --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
       "
     depends_on:
       - nginx-proxy-manager
@@ -55,7 +55,7 @@ services:
 
   tigrbl-docs:
     build:
-      context: ../pkgs/community/docsite_builder
+      context: ../pkgs/community/zdx
       dockerfile: Dockerfile
     container_name: tigrbl-docs
     ports:
@@ -70,10 +70,10 @@ services:
 
         export UV_PROJECT_ENVIRONMENT=/tmp/.venv
 
-        uv --directory /pkgs/community/docsite_builder sync &&
+        uv --directory /pkgs/community/zdx sync &&
 
-        uv run --package docsite_builder --directory /pkgs/community/docsite_builder \
-          docsite-builder serve --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
+        uv run --package zdx --directory /pkgs/community/zdx \
+          zdx serve --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
       "
     depends_on:
       - nginx-proxy-manager

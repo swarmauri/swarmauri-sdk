@@ -136,7 +136,7 @@ members = [
     "standards/swarmauri_tokens_composite",
     "standards/swarmauri_tokens_remoteoidc",
     "standards/swarmauri_tokens_tlsboundjwt",
-    "community/docsite_builder",
+    "community/zdx",
     "community/swarmauri_certs_csronly",
     "community/swarmauri_certs_azure",
     "standards/swarmauri_certs_remote_ca",
