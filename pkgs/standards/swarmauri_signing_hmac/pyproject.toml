@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_signing_hmac"
-version = "0.2.0.dev1"
+version = "0.3.0.dev1"
 description = "HMAC-based signer for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
