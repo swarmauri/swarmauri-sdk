@@ -92,7 +92,6 @@ members = [
     "standards/swarmauri_gitfilter_gh_release",
     "standards/swarmauri_certs_composite",
     "standards/swarmauri_keyprovider_local",
-    "experimental/swarmauri_keyprovider_pkcs11",
     "standards/swarmauri_keyprovider_remote_jwks",
     "standards/swarmauri_keyprovider_ssh",
     "standards/swarmauri_keyprovider_file",
@@ -215,9 +214,6 @@ members = [
     "community/swarmauri_certservice_scep",
     "community/swarmauri_certservice_ms_adcs",
     "community/swarmauri_certservice_gcpkms",
-    "standards/swarmauri_tool_containernewsession",
-    "standards/swarmauri_tool_containerfeedchars",
-    "standards/swarmauri_tool_containermakepr",
     "standards/swarmauri_tool_githubloader",
     "standards/swarmauri_toolkit_containertoolkit",
     "experimental/swarmauri_workflow_statedriven"
