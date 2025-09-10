@@ -11,5 +11,17 @@ plugins:
             extensions:
               - griffe_typingdoc
   - search
-nav:
-  - Home: index.md
+  - gen-files:
+      scripts:
+        - docs/_gen_readmes.py
+  - literate-nav:
+      nav_file: SUMMARY.md
+
+markdown_extensions:
+  - toc:
+      permalink: true
+  - admonition
+  - footnotes
+  - attr_list
+  - def_list
+  - tables

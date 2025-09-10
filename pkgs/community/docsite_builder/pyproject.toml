@@ -8,6 +8,9 @@ requires-python = ">=3.12,<3.13"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 keywords = ["mkdocs", "documentation", "swarmauri"]
 dependencies = [
+    "mkdocs",
+    "mkdocs-gen-files",
+    "mkdocs-literate-nav",
     "mkdocs-material>=9.6.4,<10.0.0",
     "mkdocstrings[python]>=0.28.1,<0.29.0",
     "mkdocs-autorefs",

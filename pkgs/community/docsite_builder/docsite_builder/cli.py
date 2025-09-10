@@ -39,6 +39,12 @@ def run_mkdocs_serve(
     subprocess.run(cmd, check=True, cwd=docs_dir)
 
 
+def run_gen_readmes(docs_dir: str = ".") -> None:
+    """Run the README generation script."""
+    cmd = [sys.executable, "-m", "docsite_builder.scripts.gen_readmes"]
+    subprocess.run(cmd, check=True, cwd=docs_dir)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(prog="docsite-builder")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -58,6 +64,10 @@ def main() -> None:
             changed_only=args.changed_only,
         )
     )
+
+    readmes = sub.add_parser("readmes", help="Generate documentation from README files")
+    readmes.add_argument("--docs-dir", default=".")
+    readmes.set_defaults(func=lambda args: run_gen_readmes(docs_dir=args.docs_dir))
 
     serve = sub.add_parser("serve", help="Serve the documentation with MkDocs")
     serve.add_argument("--docs-dir", default=".")
