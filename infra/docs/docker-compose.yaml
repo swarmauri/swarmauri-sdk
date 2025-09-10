@@ -21,6 +21,8 @@ services:
         uv run --package docsite_builder --directory /pkgs/community/docsite_builder \
           docsite-builder serve --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
       "
+    depends_on:
+      - nginx-proxy-manager
     networks:
       - dockernet
 
@@ -46,6 +48,8 @@ services:
         uv run --package docsite_builder --directory /pkgs/community/docsite_builder \
           docsite-builder serve --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
       "
+    depends_on:
+      - nginx-proxy-manager
     networks:
       - dockernet
 
@@ -71,16 +75,14 @@ services:
         uv run --package docsite_builder --directory /pkgs/community/docsite_builder \
           docsite-builder serve --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
       "
+    depends_on:
+      - nginx-proxy-manager
     networks:
       - dockernet
 
   nginx-proxy-manager:
     image: jc21/nginx-proxy-manager:latest
     container_name: nginx-proxy-manager
-    depends_on:
-      - swarmauri-sdk-docs
-      - peagen-docs
-      - tigrbl-docs
     ports:
       - "80:80"   # HTTP
       - "443:443" # HTTPS
