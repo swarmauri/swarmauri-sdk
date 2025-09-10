@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_signing_ecdsa"
-version = "0.1.1.dev6"
+version = "0.1.1.dev7"
 description = "ECDSA-based signer for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
