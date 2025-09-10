@@ -4,8 +4,8 @@ repo_url: https://github.com/swarmauri/swarmauri-sdk/tree/mono/dev/pkgs/standard
 repo_name: swarmauri/peagen
 theme:
   name: material
-  logo: assets/swarmauri_logo_dark.jpeg
-  favicon: assets/swarmauri_logo_dark.jpeg
+  logo: assets/peagen_logo.png
+  favicon: assets/peagen_logo.png
   palette:
     - scheme: slate
       toggle:
