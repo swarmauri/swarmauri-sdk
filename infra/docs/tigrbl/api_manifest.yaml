@@ -1,7 +1,7 @@
 targets:
   - name: Tigrbl
     package: tigrbl
-    search_path: ../../../pkgs/standards
+    search_path: /app/pkgs/standards
     include:
       - tigrbl.*
     exclude:
@@ -10,18 +10,18 @@ targets:
 
   - name: Tigrbl_Auth
     package: tigrbl_auth
-    search_path: ../../../pkgs/standards
+    search_path: /app/pkgs/standards
     include:
       - tigrbl_auth.*
 
   - name: Tigrbl_Client
     package: tigrbl_client
-    search_path: ../../../pkgs/standards
+    search_path: /app/pkgs/standards
     include:
       - tigrbl_client.*
 
   - name: Tigrbl_Kms
     package: tigrbl_kms
-    search_path: ../../../pkgs/standards
+    search_path: /app/pkgs/standards
     include:
       - tigrbl_kms.*
