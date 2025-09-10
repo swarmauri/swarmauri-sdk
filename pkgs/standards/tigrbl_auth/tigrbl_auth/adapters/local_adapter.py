@@ -7,9 +7,9 @@ exist in *tigrbl_auth* so that Tigrbl can consume them automatically.
 
 Usage
 -----
->>> from tigrbl.v3 import Tigrbl
+>>> from tigrbl.v3 import TigrblApi
 >>> from tigrbl_auth.adapters import LocalAuthNAdapter
->>> api = Tigrbl(engine=ENGINE, authn=LocalAuthNAdapter())
+>>> api = TigrblApi(engine=ENGINE, authn=LocalAuthNAdapter())
 """
 
 from __future__ import annotations

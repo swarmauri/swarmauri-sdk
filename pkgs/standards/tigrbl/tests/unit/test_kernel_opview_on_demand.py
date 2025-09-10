@@ -1,4 +1,4 @@
-from tigrbl.v3.autoapp import AutoApp
+from tigrbl.v3 import TigrblApp
 from tigrbl.v3.bindings.model import bind
 from tigrbl.v3.runtime.kernel import _default_kernel as K
 from tigrbl.v3.specs import S, IO, acol
@@ -17,7 +17,7 @@ def test_compiles_opview_for_new_model_after_prime():
         )
 
     bind(A)
-    app = AutoApp()
+    app = TigrblApp()
     app.include_model(A, mount_router=False)
     # prime kernel for first model
     K.get_opview(app, A, "read")

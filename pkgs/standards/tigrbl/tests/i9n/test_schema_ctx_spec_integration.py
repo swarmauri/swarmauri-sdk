@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped
 
-from tigrbl.v3.autoapp import AutoApp as Tigrblv3
+from tigrbl.v3 import TigrblApp as Tigrblv3
 from tigrbl.v3.engine import resolver as _resolver
 from tigrbl.v3.engine.shortcuts import mem
 from tigrbl.v3.orm.tables import Base as Base3

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_parser_textblob"
-version = "0.7.6.dev7"
+version = "0.7.6.dev8"
 description = "TextBlob Parser for Swarmauri."
 license = "Apache-2.0"
 readme = "README.md"

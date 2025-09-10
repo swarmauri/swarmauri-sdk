@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Mapped, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from tigrbl.v3.autoapp import AutoApp
+from tigrbl.v3 import TigrblApp
 from tigrbl.v3.engine.shortcuts import engine as engine_factory, mem
 from tigrbl.v3.bindings.model import bind
 from tigrbl.v3.bindings.rest.router import _build_router
@@ -123,7 +123,7 @@ def test_binding_attaches_internal_model_namespaces():
             io=IO(in_verbs=("create",), out_verbs=("read",)),
         )
 
-    api = AutoApp()
+    api = TigrblApp()
     api.include_model(Thing, mount_router=False)
     assert "Thing" in api.models
     assert hasattr(api.schemas, "Thing")
@@ -210,7 +210,7 @@ def test_rest_call_respects_aliases():
             io=IO(in_verbs=("create",), out_verbs=("read",)),
         )
 
-    api = AutoApp(engine=eng)
+    api = TigrblApp(engine=eng)
     api.include_model(Thing)
     Base.metadata.create_all(eng.raw()[0])
     client = TestClient(api)
@@ -271,7 +271,7 @@ async def test_core_crud_helpers_operate():
             io=IO(in_verbs=("create",), out_verbs=("read",)),
         )
 
-    api = AutoApp(engine=eng)
+    api = TigrblApp(engine=eng)
     api.include_model(Thing)
     Base.metadata.create_all(eng.raw()[0])
 

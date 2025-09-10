@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_signing_ed25519"
-version = "0.1.1.dev2"
+version = "0.1.1.dev3"
 description = "Ed25519-based signer for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

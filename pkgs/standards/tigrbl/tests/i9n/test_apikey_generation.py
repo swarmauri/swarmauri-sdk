@@ -2,7 +2,7 @@ import pytest
 from tigrbl.v3.types import App, Mapped, String
 from httpx import ASGITransport, AsyncClient
 
-from tigrbl.v3 import AutoApp
+from tigrbl.v3 import TigrblApp
 from tigrbl.v3.orm.mixins import (
     Created,
     GUIDPk,
@@ -35,7 +35,7 @@ async def test_api_key_creation_requires_valid_payload(sync_db_session):
     _, get_sync_db = sync_db_session
 
     app = App()
-    api = AutoApp(get_db=get_sync_db)
+    api = TigrblApp(get_db=get_sync_db)
     api.include_models([ConcreteApiKey])
     api.initialize()
     app.include_router(api.router)

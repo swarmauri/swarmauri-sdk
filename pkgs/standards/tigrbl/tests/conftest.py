@@ -1,6 +1,6 @@
 import pytest
 import pytest_asyncio
-from tigrbl.v3 import AutoApp, Base
+from tigrbl.v3 import TigrblApp, Base
 from tigrbl.v3.types import App
 from tigrbl.v3.orm.mixins import BulkCapable, GUIDPk
 from tigrbl.v3.specs import F, IO, S, acol
@@ -105,7 +105,7 @@ def create_test_api():
     def _create_api(model_class):
         """Create Tigrbl instance with a single model for testing."""
         Base.metadata.clear()
-        api = AutoApp(engine=mem(async_=False))
+        api = TigrblApp(engine=mem(async_=False))
         api.include_model(model_class)
         api.initialize()
         return api
@@ -119,7 +119,7 @@ async def create_test_api_async():
 
     def _create_api_async(model_class):
         Base.metadata.clear()
-        api = AutoApp(engine=mem())
+        api = TigrblApp(engine=mem())
         api.include_model(model_class)
         return api
 
@@ -180,12 +180,12 @@ async def api_client(db_mode):
     fastapi_app = App()
 
     if db_mode == "async":
-        api = AutoApp(engine=mem())
+        api = TigrblApp(engine=mem())
         api.include_models([Tenant, Item])
         await api.initialize()
 
     else:
-        api = AutoApp(engine=mem(async_=False))
+        api = TigrblApp(engine=mem(async_=False))
         api.include_models([Tenant, Item])
         api.initialize()
 
@@ -258,7 +258,7 @@ async def api_client_v3():
 
     cfg = mem()
     fastapi_app = App()
-    api = AutoApp(engine=cfg)
+    api = TigrblApp(engine=cfg)
     api.include_model(Widget, prefix="")
     api.mount_jsonrpc()
     api.attach_diagnostics()

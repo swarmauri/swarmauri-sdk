@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_certservice_aws_kms"
-version = "0.1.1.dev2"
+version = "0.1.1.dev3"
 description = "AWS KMS backed CertService for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

@@ -5,7 +5,8 @@ Tests all hook phases and their behavior across CRUD, nested CRUD, and RPC opera
 """
 
 import pytest
-from tigrbl.v3 import App, AutoApp, Base
+from fastapi import FastAPI
+from tigrbl.v3 import TigrblApp, Base
 from tigrbl.v3.hook import hook_ctx
 from tigrbl.v3.engine.shortcuts import mem
 from tigrbl.v3.orm.mixins import GUIDPk
@@ -16,14 +17,14 @@ from tigrbl.v3.types import PgUUID
 
 async def setup_client(db_mode, Tenant, Item):
     """Create an Tigrbl client for the provided models."""
-    fastapi_app = App()
+    fastapi_app = FastAPI()
 
     if db_mode == "async":
-        api = AutoApp(engine=mem())
+        api = TigrblApp(engine=mem())
         api.include_models([Tenant, Item])
         await api.initialize()
     else:
-        api = AutoApp(engine=mem(async_=False))
+        api = TigrblApp(engine=mem(async_=False))
         api.include_models([Tenant, Item])
         api.initialize()
 

@@ -19,7 +19,7 @@ import uuid
 
 
 # ─────────── Peagen internals ──────────────────────────────────────────
-from tigrbl.v3 import AutoApp, get_schema
+from tigrbl.v3 import TigrblApp, get_schema
 from tigrbl_auth.adapters import RemoteAuthNAdapter
 from fastapi import Request
 
@@ -154,9 +154,9 @@ sched_log = Logger(
 logging.getLogger("httpx").setLevel("WARNING")
 logging.getLogger("uvicorn.error").setLevel("INFO")
 
-# ─────────── AutoApp initialisation ─────────────────────────
+# ─────────── TigrblApp initialisation ─────────────────────────
 READY: bool = False
-app = AutoApp(
+app = TigrblApp(
     title="Peagen Pool-Manager Gateway",
     engine=ENGINE,
     api_hooks={"PRE_TX_BEGIN": [_shadow_principal]},

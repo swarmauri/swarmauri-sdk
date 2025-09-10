@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tokens_remoteoidc"
-version = "0.1.1.dev2"
+version = "0.1.1.dev3"
 description = "Remote OIDC token verification service"
 license = "Apache-2.0"
 readme = "README.md"

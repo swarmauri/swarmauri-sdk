@@ -15,7 +15,7 @@ Features
 
 from __future__ import annotations
 
-from tigrbl.v3 import AutoApp
+from tigrbl.v3 import TigrblApp
 
 from .routers.surface import surface_api
 from .db import dsn
@@ -32,9 +32,9 @@ import logging
 
 logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 # --------------------------------------------------------------------
-# AutoApp application
+# TigrblApp application
 # --------------------------------------------------------------------
-app = AutoApp(
+app = TigrblApp(
     title="Tigrbl-Auth",
     version="0.1.0",
     openapi_url="/openapi.json",

@@ -40,8 +40,8 @@ services:
       - "443:443" # HTTPS
       - "81:81"   # Admin UI
     volumes:
-      - ./npm/data:/data
-      - ./npm/letsencrypt:/etc/letsencrypt
+      - /mnt/data/npm/data:/data
+      - /mnt/data/npm/letsencrypt:/etc/letsencrypt
     environment:
       DISABLE_IPV6: "true"
     networks:

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_certs_composite"
-version = "0.1.1.dev2"
+version = "0.1.1.dev3"
 description = "Feature-routing certificate service for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

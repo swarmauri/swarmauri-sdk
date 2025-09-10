@@ -1,4 +1,4 @@
-# tigrbl/v3/autoapp.py
+# tigrbl/v3/app/tigrbl_app.py
 from __future__ import annotations
 
 import copy
@@ -14,11 +14,11 @@ from typing import (
     Tuple,
 )
 
-from .app._app import App as _App
-from .engine.engine_spec import EngineCfg
-from .engine import resolver as _resolver
-from .ddl import initialize as _ddl_initialize
-from .bindings.api import (
+from ._app import App as _App
+from ..engine.engine_spec import EngineCfg
+from ..engine import resolver as _resolver
+from ..ddl import initialize as _ddl_initialize
+from ..bindings.api import (
     include_model as _include_model,
     include_models as _include_models,
     rpc_call as _rpc_call,
@@ -27,11 +27,11 @@ from .bindings.api import (
     _default_prefix,
     AttrDict,
 )
-from .bindings.model import rebind as _rebind, bind as _bind
-from .bindings.rest import build_router_and_attach as _build_router_and_attach
-from .transport import mount_jsonrpc as _mount_jsonrpc
-from .system import mount_diagnostics as _mount_diagnostics
-from .op import get_registry, OpSpec
+from ..bindings.model import rebind as _rebind, bind as _bind
+from ..bindings.rest import build_router_and_attach as _build_router_and_attach
+from ..transport import mount_jsonrpc as _mount_jsonrpc
+from ..system import mount_diagnostics as _mount_diagnostics
+from ..op import get_registry, OpSpec
 
 
 # optional compat: legacy transactional decorator
@@ -41,7 +41,7 @@ except Exception:  # pragma: no cover
     _txn_decorator = None
 
 
-class AutoApp(_App):
+class TigrblApp(_App):
     """
     Monolithic facade that owns:
       • containers (models, schemas, handlers, hooks, rpc, rest, routers, columns, table_config, core proxies)
@@ -52,7 +52,7 @@ class AutoApp(_App):
     It composes v3 primitives; you can still use the functions directly if you prefer.
     """
 
-    TITLE = "AutoApp"
+    TITLE = "TigrblApp"
     VERSION = "0.1.0"
     LIFESPAN = None
     MIDDLEWARES: Sequence[Any] = ()
@@ -311,4 +311,4 @@ class AutoApp(_App):
     # ------------------------- repr -------------------------
 
     def __repr__(self) -> str:  # pragma: no cover
-        return f"<AutoApp models={list(self.models)} rpc={list(getattr(self.rpc, '__dict__', {}).keys())}>"
+        return f"<TigrblApp models={list(self.models)} rpc={list(getattr(self.rpc, '__dict__', {}).keys())}>"

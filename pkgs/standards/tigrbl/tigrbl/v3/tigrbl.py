@@ -34,7 +34,7 @@ from .system import mount_diagnostics as _mount_diagnostics
 from .op import get_registry, OpSpec
 
 
-class Tigrbl(_Api):
+class TigrblApi(_Api):
     """
     Canonical router-focused facade that owns:
       • containers (models, schemas, handlers, hooks, rpc, rest, routers, columns, table_config, core proxies)
@@ -174,7 +174,7 @@ class Tigrbl(_Api):
     # ------------------------- extras / mounting -------------------------
 
     def mount_jsonrpc(self, *, prefix: str | None = None) -> Any:
-        """Mount a JSON-RPC router onto this Tigrbl instance."""
+        """Mount a JSON-RPC router onto this TigrblApi instance."""
         px = prefix if prefix is not None else self.jsonrpc_prefix
         prov = _resolver.resolve_provider(api=self)
         get_db = prov.get_db if prov else None
@@ -189,7 +189,7 @@ class Tigrbl(_Api):
     def attach_diagnostics(
         self, *, prefix: str | None = None, app: Any | None = None
     ) -> Any:
-        """Mount a diagnostics router onto this Tigrbl instance or ``app``."""
+        """Mount a diagnostics router onto this TigrblApi instance or ``app``."""
         px = prefix if prefix is not None else self.system_prefix
         prov = _resolver.resolve_provider(api=self)
         get_db = prov.get_db if prov else None
@@ -283,4 +283,4 @@ class Tigrbl(_Api):
         models = list(getattr(self, "models", {}))
         rpc_ns = getattr(self, "rpc", None)
         rpc_keys = list(getattr(rpc_ns, "__dict__", {}).keys()) if rpc_ns else []
-        return f"<Tigrbl models={models} rpc={rpc_keys}>"
+        return f"<TigrblApi models={models} rpc={rpc_keys}>"

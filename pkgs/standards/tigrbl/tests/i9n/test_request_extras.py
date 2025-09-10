@@ -6,7 +6,7 @@ from pydantic import Field
 from sqlalchemy import Column, String
 from uuid import uuid4
 
-from tigrbl.v3 import AutoApp, Base
+from tigrbl.v3 import TigrblApp, Base
 from tigrbl.v3.engine.shortcuts import mem
 from tigrbl.v3.schema import _build_schema
 
@@ -26,11 +26,11 @@ async def api_client_with_extras(db_mode):
         }
 
     if db_mode == "async":
-        api = AutoApp(engine=mem())
+        api = TigrblApp(engine=mem())
         api.include_model(Widget)
         await api.initialize()
     else:
-        api = AutoApp(engine=mem(async_=False))
+        api = TigrblApp(engine=mem(async_=False))
         api.include_model(Widget)
         api.initialize()
 
