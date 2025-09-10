@@ -12,11 +12,11 @@ jobs:
     runs-on: [docs]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Restart mkdocs service
         run: |
-          sudo docker compose -f infra/docs/docker-compose.yml up -d --pull always mkdocs
+          docker compose -f infra/docs/docker-compose.yml up -d --pull always mkdocs
 

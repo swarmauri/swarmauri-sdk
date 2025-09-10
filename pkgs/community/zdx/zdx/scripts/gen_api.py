@@ -4,7 +4,6 @@ import fnmatch
 import hashlib
 import json
 import os
-import sys
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 

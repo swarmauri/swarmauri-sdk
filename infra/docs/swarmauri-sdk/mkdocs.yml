@@ -47,11 +47,11 @@ plugins:
     handlers:
       python:
         paths:
-        - ../pkgs/base
-        - ../pkgs/core
-        - ../pkgs/swarmauri_standard
-        - ../pkgs/standards
-        - ../pkgs/community
+        - ../../pkgs/base
+        - ../../pkgs/core
+        - ../../pkgs/swarmauri_standard
+        - ../../pkgs/standards
+        - ../../pkgs/community
         options:
           extensions:
           - griffe_typingdoc

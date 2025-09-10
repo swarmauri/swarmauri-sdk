@@ -1,0 +1,101 @@
+services:
+  swarmauri-sdk-docs:
+    build:
+      context: ../pkgs/community/zdx
+      dockerfile: Dockerfile
+    container_name: swarmauri-sdk-docs
+    ports:
+      - "8000:8000" # Expose mkdocs on port 8000
+    volumes:
+      - ./swarmauri-sdk:/docs # Mount the swarmauri-sdk docs directory
+      - ../pkgs:/pkgs # Mount the repo pkgs directory
+    working_dir: /docs
+    command: |
+      sh -c "
+        set -euo pipefail
+
+        export UV_PROJECT_ENVIRONMENT=/tmp/.venv
+
+        uv --directory /pkgs/community/zdx sync &&
+
+        uv run --package zdx --directory /pkgs/community/zdx \
+          zdx serve --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
+      "
+    depends_on:
+      - nginx-proxy-manager
+    networks:
+      - dockernet
+
+  peagen-docs:
+    build:
+      context: ../pkgs/community/zdx
+      dockerfile: Dockerfile
+    container_name: peagen-docs
+    ports:
+      - "8001:8000" # Expose mkdocs on port 8001
+    volumes:
+      - ./peagen:/docs # Mount the peagen docs directory
+      - ../pkgs:/pkgs # Mount the repo pkgs directory
+    working_dir: /docs
+    command: |
+      sh -c "
+        set -euo pipefail
+
+        export UV_PROJECT_ENVIRONMENT=/tmp/.venv
+
+        uv --directory /pkgs/community/zdx sync &&
+
+        uv run --package zdx --directory /pkgs/community/zdx \
+          zdx serve --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
+      "
+    depends_on:
+      - nginx-proxy-manager
+    networks:
+      - dockernet
+
+  tigrbl-docs:
+    build:
+      context: ../pkgs/community/zdx
+      dockerfile: Dockerfile
+    container_name: tigrbl-docs
+    ports:
+      - "8002:8000" # Expose mkdocs on port 8002
+    volumes:
+      - ./tigrbl:/docs # Mount the tigrbl docs directory
+      - ../pkgs:/pkgs # Mount the repo pkgs directory
+    working_dir: /docs
+    command: |
+      sh -c "
+        set -euo pipefail
+
+        export UV_PROJECT_ENVIRONMENT=/tmp/.venv
+
+        uv --directory /pkgs/community/zdx sync &&
+
+        uv run --package zdx --directory /pkgs/community/zdx \
+          zdx serve --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
+      "
+    depends_on:
+      - nginx-proxy-manager
+    networks:
+      - dockernet
+
+  nginx-proxy-manager:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: nginx-proxy-manager
+    ports:
+      - "80:80"   # HTTP
+      - "443:443" # HTTPS
+      - "81:81"   # Admin UI
+    volumes:
+      - /mnt/data/npm/data:/data
+      - /mnt/data/npm/letsencrypt:/etc/letsencrypt
+    environment:
+      DISABLE_IPV6: "true"
+    networks:
+      - dockernet
+
+networks:
+  dockernet:
+    driver: bridge
+
