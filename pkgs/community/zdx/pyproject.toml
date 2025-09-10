@@ -6,7 +6,7 @@ readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.12,<3.13"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
-keywords = ["mkdocs", "documentation", "swarmauri"]
+keywords = ["mkdocs", "documentation", "swarmauri", "docs", "doc builder"]
 dependencies = [
     "mkdocs",
     "mkdocs-gen-files",

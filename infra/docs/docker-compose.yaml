@@ -14,7 +14,7 @@ services:
     container_name: swarmauri-sdk-docs
     volumes:
       - ./swarmauri-sdk:/docs   # Mount the swarmauri-sdk docs directory
-      - ../pkgs:/pkgs           # Mount the repo pkgs directory
+      - ../../pkgs:/pkgs           # Mount the repo pkgs directory
     working_dir: /docs
     command: |
       sh -c "
@@ -41,7 +41,7 @@ services:
     container_name: peagen-docs
     volumes:
       - ./peagen:/docs
-      - ../pkgs:/pkgs
+      - ../../pkgs:/pkgs
     working_dir: /docs
     command: |
       sh -c "
@@ -68,7 +68,7 @@ services:
     container_name: tigrbl-docs
     volumes:
       - ./tigrbl:/docs
-      - ../pkgs:/pkgs
+      - ../../pkgs:/pkgs
     working_dir: /docs
     command: |
       sh -c "
