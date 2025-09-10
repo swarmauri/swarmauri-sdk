@@ -12,8 +12,6 @@ services:
       context: ../../ # repo root ⬅️
       dockerfile: pkgs/community/zdx/Dockerfile
     container_name: swarmauri-sdk-docs
-    ports:
-      - "8000:8000" # Expose mkdocs on port 8000
     volumes:
       - ./swarmauri-sdk:/docs   # Mount the swarmauri-sdk docs directory
       - ../pkgs:/pkgs           # Mount the repo pkgs directory
@@ -41,8 +39,6 @@ services:
       context: ../../ # repo root ⬅️
       dockerfile: pkgs/community/zdx/Dockerfile
     container_name: peagen-docs
-    ports:
-      - "8001:8000" # Expose mkdocs on port 8001
     volumes:
       - ./peagen:/docs
       - ../pkgs:/pkgs
@@ -70,8 +66,6 @@ services:
       context: ../../ # repo root ⬅️
       dockerfile: pkgs/community/zdx/Dockerfile
     container_name: tigrbl-docs
-    ports:
-      - "8002:8000" # Expose mkdocs on port 8002
     volumes:
       - ./tigrbl:/docs
       - ../pkgs:/pkgs

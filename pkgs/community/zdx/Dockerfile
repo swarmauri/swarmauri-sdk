@@ -14,6 +14,8 @@ RUN pip install --no-cache-dir -U pip uv
 
 WORKDIR /docs
 
+EXPOSE 8000
+
 # The compose file binds the docs/ directory at runtime.
 # Dependencies are installed via `uv sync` in the service command.
 
