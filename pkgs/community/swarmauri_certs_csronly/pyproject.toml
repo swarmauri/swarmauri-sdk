@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_certs_csronly"
-version = "0.6.2.dev7"
+version = "0.6.2.dev8"
 description = "Community service for generating PKCS#10 CSRs"
 license = "Apache-2.0"
 readme = "README.md"

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_certs_local_ca"
-version = "0.1.1.dev4"
+version = "0.1.1.dev5"
 description = "Local CA certificate service for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

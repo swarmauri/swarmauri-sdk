@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_middleware_ratepolicy"
-version = "0.6.2.dev7"
+version = "0.6.2.dev8"
 description = "A middleware implementing rate policy and retry logic for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

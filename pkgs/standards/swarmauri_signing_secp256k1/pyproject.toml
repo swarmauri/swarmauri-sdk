@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_signing_secp256k1"
-version = "0.1.1.dev4"
+version = "0.1.1.dev5"
 description = "secp256k1-based signer for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

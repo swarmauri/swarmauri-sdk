@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_signing_rsa"
-version = "0.1.1.dev4"
+version = "0.1.1.dev5"
 description = "RSA-based signer for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_embedding_mlm"
-version = "0.7.6.dev9"
+version = "0.7.6.dev10"
 description = "example community package"
 license = "Apache-2.0"
 readme = "README.md"
