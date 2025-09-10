@@ -20,8 +20,6 @@ services:
       sh -c "
         set -euo pipefail
 
-        export UV_PROJECT_ENVIRONMENT=/tmp/.venv
-
         uv --directory /pkgs/community/zdx sync &&
 
         uv run --package zdx --directory /pkgs/community/zdx \
@@ -47,8 +45,6 @@ services:
       sh -c "
         set -euo pipefail
 
-        export UV_PROJECT_ENVIRONMENT=/tmp/.venv
-
         uv --directory /pkgs/community/zdx sync &&
 
         uv run --package zdx --directory /pkgs/community/zdx \
@@ -73,8 +69,6 @@ services:
     command: |
       sh -c "
         set -euo pipefail
-
-        export UV_PROJECT_ENVIRONMENT=/tmp/.venv
 
         uv --directory /pkgs/community/zdx sync &&
 
