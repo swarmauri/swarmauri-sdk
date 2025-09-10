@@ -34,10 +34,10 @@ plugins:
     handlers:
       python:
         paths:
-        - ../../pkgs/standards/tigrbl
-        - ../../pkgs/standards/tigrbl_auth
-        - ../../pkgs/standards/tigrbl_client
-        - ../../pkgs/standards/tigrbl_kms
+        - ../../../pkgs/standards/tigrbl
+        - ../../../pkgs/standards/tigrbl_auth
+        - ../../../pkgs/standards/tigrbl_client
+        - ../../../pkgs/standards/tigrbl_kms
         options:
           extensions:
           - griffe_typingdoc
