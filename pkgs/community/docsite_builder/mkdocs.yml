@@ -1,0 +1,15 @@
+site_name: Docsite Builder
+repo_name: swarmauri/docsite-builder
+repo_url: https://github.com/swarmauri/swarmauri-sdk
+theme:
+  name: material
+plugins:
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            extensions:
+              - griffe_typingdoc
+  - search
+nav:
+  - Home: index.md
