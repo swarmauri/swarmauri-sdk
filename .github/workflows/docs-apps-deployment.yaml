@@ -27,6 +27,6 @@ jobs:
       - name: Restart docs services
         working-directory: infra/docs
         run: |
-          docker compose -f docker-compose.yaml \
+          sudo docker compose -f docker-compose.yaml \
             up -d --build --force-recreate --no-deps \
             swarmauri-sdk-docs peagen-docs tigrbl-docs

@@ -13,5 +13,5 @@ jobs:
 
       - name: Restart docs infra stack
         run: |
-          docker compose -f infra/docs/docker-compose.yaml down || true
-          docker compose -f infra/docs/docker-compose.yaml up -d --pull always
+          sudo docker compose -f infra/docs/docker-compose.yaml down || true
+          sudo docker compose -f infra/docs/docker-compose.yaml up -d --pull always
