@@ -20,10 +20,8 @@ services:
       sh -c "
         set -euo pipefail
 
-        uv --directory /pkgs/community/zdx sync &&
-
-        uv run --package zdx --directory /pkgs/community/zdx \
-          zdx serve --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
+        uv --directory /pkgs/community/zdx sync --system .
+        zdx serve --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
       "
     depends_on:
       - nginx-proxy-manager
@@ -45,10 +43,8 @@ services:
       sh -c "
         set -euo pipefail
 
-        uv --directory /pkgs/community/zdx sync &&
-
-        uv run --package zdx --directory /pkgs/community/zdx \
-          zdx serve --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
+        uv --directory /pkgs/community/zdx sync --system .
+        zdx serve --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
       "
     depends_on:
       - nginx-proxy-manager
@@ -70,10 +66,8 @@ services:
       sh -c "
         set -euo pipefail
 
-        uv --directory /pkgs/community/zdx sync &&
-
-        uv run --package zdx --directory /pkgs/community/zdx \
-          zdx serve --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
+        uv --directory /pkgs/community/zdx sync --system .
+        zdx serve --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
       "
     depends_on:
       - nginx-proxy-manager
