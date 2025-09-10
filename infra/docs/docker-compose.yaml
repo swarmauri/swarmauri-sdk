@@ -1,5 +1,15 @@
+version: "3.9"
+
+x-as-user: &as_user
+  # Run containers as the invoking user (provided by .env)
+  user: "${RUN_UID}:${RUN_GID}"
+  environment:
+    HOME: "/tmp"
+  init: true
+
 services:
   swarmauri-sdk-docs:
+    <<: *as_user
     build:
       context: ../pkgs/community/zdx
       dockerfile: Dockerfile
@@ -7,8 +17,8 @@ services:
     ports:
       - "8000:8000" # Expose mkdocs on port 8000
     volumes:
-      - ./swarmauri-sdk:/docs # Mount the swarmauri-sdk docs directory
-      - ../pkgs:/pkgs # Mount the repo pkgs directory
+      - ./swarmauri-sdk:/docs   # Mount the swarmauri-sdk docs directory
+      - ../pkgs:/pkgs           # Mount the repo pkgs directory
     working_dir: /docs
     command: |
       sh -c "
@@ -25,8 +35,10 @@ services:
       - nginx-proxy-manager
     networks:
       - dockernet
+    restart: unless-stopped
 
   peagen-docs:
+    <<: *as_user
     build:
       context: ../pkgs/community/zdx
       dockerfile: Dockerfile
@@ -34,8 +46,8 @@ services:
     ports:
       - "8001:8000" # Expose mkdocs on port 8001
     volumes:
-      - ./peagen:/docs # Mount the peagen docs directory
-      - ../pkgs:/pkgs # Mount the repo pkgs directory
+      - ./peagen:/docs
+      - ../pkgs:/pkgs
     working_dir: /docs
     command: |
       sh -c "
@@ -52,8 +64,10 @@ services:
       - nginx-proxy-manager
     networks:
       - dockernet
+    restart: unless-stopped
 
   tigrbl-docs:
+    <<: *as_user
     build:
       context: ../pkgs/community/zdx
       dockerfile: Dockerfile
@@ -61,8 +75,8 @@ services:
     ports:
       - "8002:8000" # Expose mkdocs on port 8002
     volumes:
-      - ./tigrbl:/docs # Mount the tigrbl docs directory
-      - ../pkgs:/pkgs # Mount the repo pkgs directory
+      - ./tigrbl:/docs
+      - ../pkgs:/pkgs
     working_dir: /docs
     command: |
       sh -c "
@@ -79,6 +93,7 @@ services:
       - nginx-proxy-manager
     networks:
       - dockernet
+    restart: unless-stopped
 
   nginx-proxy-manager:
     image: jc21/nginx-proxy-manager:latest
@@ -94,8 +109,8 @@ services:
       DISABLE_IPV6: "true"
     networks:
       - dockernet
+    restart: unless-stopped
 
 networks:
   dockernet:
     driver: bridge
-
