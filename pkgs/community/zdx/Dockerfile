@@ -12,6 +12,9 @@ RUN apt-get update \
 
 RUN pip install --no-cache-dir -U pip uv
 
+RUN uv venv /tmp/.venv
+ENV UV_PROJECT_ENVIRONMENT=/tmp/.venv
+
 WORKDIR /docs
 
 EXPOSE 8000

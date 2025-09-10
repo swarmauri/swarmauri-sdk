@@ -20,11 +20,6 @@ services:
       sh -c "
         set -euo pipefail
 
-        export UV_PROJECT_ENVIRONMENT=/tmp/.venv
-
-        # Ensure venv exists and reset if corrupted
-        uv venv /tmp/.venv --clear
-
         # Install the zdx project into the venv
         uv pip install --directory /pkgs/community/zdx . --upgrade
 
@@ -52,12 +47,7 @@ services:
     command: |
       sh -c "
         set -euo pipefail
-
-        export UV_PROJECT_ENVIRONMENT=/tmp/.venv
-
-        # Ensure venv exists and reset if corrupted
-        uv venv /tmp/.venv --clear
-
+        
         # Install the zdx project into the venv
         uv pip install --directory /pkgs/community/zdx . --upgrade
 
@@ -84,11 +74,6 @@ services:
     command: |
       sh -c "
         set -euo pipefail
-
-        export UV_PROJECT_ENVIRONMENT=/tmp/.venv
-
-        # Ensure venv exists and reset if corrupted
-        uv venv /tmp/.venv --clear
 
         # Install the zdx project into the venv
         uv pip install --directory /pkgs/community/zdx . --upgrade
