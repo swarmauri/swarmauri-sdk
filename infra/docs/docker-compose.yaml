@@ -20,9 +20,12 @@ services:
       sh -c "
         set -euo pipefail
 
-        uv pip install --directory /pkgs/community/zdx .
-        zdx serve --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
+        export UV_PROJECT_ENVIRONMENT=/tmp/.venv
+        uv pip install --directory /pkgs/community/zdx . --upgrade
+        uv run --directory /pkgs/community/zdx zdx serve \
+          --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
       "
+
     depends_on:
       - nginx-proxy-manager
     networks:
@@ -43,9 +46,12 @@ services:
       sh -c "
         set -euo pipefail
 
-        uv pip install --directory /pkgs/community/zdx .
-        zdx serve --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
+        export UV_PROJECT_ENVIRONMENT=/tmp/.venv
+        uv pip install --directory /pkgs/community/zdx . --upgrade
+        uv run --directory /pkgs/community/zdx zdx serve \
+          --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
       "
+
     depends_on:
       - nginx-proxy-manager
     networks:
@@ -66,9 +72,12 @@ services:
       sh -c "
         set -euo pipefail
 
-        uv pip install --directory /pkgs/community/zdx .
-        zdx serve --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
+        export UV_PROJECT_ENVIRONMENT=/tmp/.venv
+        uv pip install --directory /pkgs/community/zdx . --upgrade
+        uv run --directory /pkgs/community/zdx zdx serve \
+          --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
       "
+
     depends_on:
       - nginx-proxy-manager
     networks:
