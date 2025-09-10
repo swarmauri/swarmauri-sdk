@@ -1,1 +1,27 @@
-# Placeholder for MkDocs Insiders configuration
+site_name: Docsite Builder
+repo_name: swarmauri/docsite-builder
+repo_url: https://github.com/swarmauri/swarmauri-sdk
+theme:
+  name: material
+plugins:
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            extensions:
+              - griffe_typingdoc
+  - search
+  - gen-files:
+      scripts:
+        - docs/_gen_readmes.py
+  - literate-nav:
+      nav_file: SUMMARY.md
+
+markdown_extensions:
+  - toc:
+      permalink: true
+  - admonition
+  - footnotes
+  - attr_list
+  - def_list
+  - tables
