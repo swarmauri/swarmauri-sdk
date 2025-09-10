@@ -14,7 +14,7 @@ def run_gen_api(
     cmd = [
         sys.executable,
         "-m",
-        "docsite_builder.scripts.gen_api",
+        "zdx.scripts.gen_api",
         "--manifest",
         manifest,
         "--docs-dir",
@@ -41,12 +41,12 @@ def run_mkdocs_serve(
 
 def run_gen_readmes(docs_dir: str = ".") -> None:
     """Run the README generation script."""
-    cmd = [sys.executable, "-m", "docsite_builder.scripts.gen_readmes"]
+    cmd = [sys.executable, "-m", "zdx.scripts.gen_readmes"]
     subprocess.run(cmd, check=True, cwd=docs_dir)
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(prog="docsite-builder")
+    parser = argparse.ArgumentParser(prog="zdx")
     sub = parser.add_subparsers(dest="command", required=True)
 
     gen = sub.add_parser("generate", help="Generate API docs from a manifest")

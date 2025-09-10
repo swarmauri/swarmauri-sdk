@@ -1,5 +1,5 @@
-site_name: Docsite Builder
-repo_name: swarmauri/docsite-builder
+site_name: ZDX
+repo_name: swarmauri/zdx
 repo_url: https://github.com/swarmauri/swarmauri-sdk
 theme:
   name: material
