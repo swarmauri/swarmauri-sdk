@@ -47,11 +47,11 @@ plugins:
     handlers:
       python:
         paths:
-        - ../../pkgs/base
-        - ../../pkgs/core
-        - ../../pkgs/swarmauri_standard
-        - ../../pkgs/standards
-        - ../../pkgs/community
+        - /pkgs/base
+        - /pkgs/core
+        - /pkgs/swarmauri_standard
+        - /pkgs/standards
+        - /pkgs/community
         options:
           extensions:
           - griffe_typingdoc
@@ -783,4 +783,4 @@ nav:
       - GroqVLM: api/standard/swarmauri_standard/vlms/GroqVLM.md
       - HyperbolicVLM: api/standard/swarmauri_standard/vlms/HyperbolicVLM.md
 - Blog: blog/index.md
-- Swarmauri People: people/index.md
+- People: people/index.md

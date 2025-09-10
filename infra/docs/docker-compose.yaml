@@ -14,6 +14,7 @@ services:
     container_name: swarmauri-sdk-docs
     volumes:
       - ./swarmauri-sdk:/docs   # Mount the swarmauri-sdk docs directory
+      - ../../pkgs:/pkgs           # Mount the repo pkgs directory
     depends_on:
       - nginx-proxy-manager
     networks:
@@ -28,6 +29,7 @@ services:
     container_name: peagen-docs
     volumes:
       - ./peagen:/docs
+      - ../../pkgs:/pkgs
     depends_on:
       - nginx-proxy-manager
     networks:
@@ -42,6 +44,7 @@ services:
     container_name: tigrbl-docs
     volumes:
       - ./tigrbl:/docs
+      - ../../pkgs:/pkgs
     depends_on:
       - nginx-proxy-manager
     networks:

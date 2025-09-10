@@ -1,6 +1,7 @@
 site_name: Tigrbl
 repo_url: https://github.com/swarmauri/swarmauri-sdk/tree/mono/dev/pkgs/standards/tigrbl
 repo_name: tigrbl
+copyright: Copyright &copy; 2025 Swarmauri
 theme:
   name: material
   logo: assets/tigrbl_logo.png
@@ -47,10 +48,10 @@ plugins:
     handlers:
       python:
         paths:
-        - ../../../pkgs/standards/tigrbl
-        - ../../../pkgs/standards/tigrbl_auth
-        - ../../../pkgs/standards/tigrbl_client
-        - ../../../pkgs/standards/tigrbl_kms
+        - /pkgs/standards/tigrbl
+        - /pkgs/standards/tigrbl_auth
+        - /pkgs/standards/tigrbl_client
+        - /pkgs/standards/tigrbl_kms
         options:
           extensions:
           - griffe_typingdoc
@@ -96,7 +97,6 @@ extra:
     link: https://twitter.com/swarmauri
   - icon: fontawesome/brands/github
     link: https://github.com/swarmauri/swarmauri-sdk
-copyright: Copyright &copy; 2025 Swarmauri
 nav:
 - Home: index.md
 - API: api/

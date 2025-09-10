@@ -2,6 +2,7 @@
 site_name: Peagen
 repo_url: https://github.com/swarmauri/swarmauri-sdk/tree/mono/dev/pkgs/standards/peagen
 repo_name: swarmauri/peagen
+copyright: Copyright &copy; 2025 Swarmauri
 theme:
   name: material
   logo: assets/peagen_logo.png
@@ -37,7 +38,7 @@ plugins:
       handlers:
         python:
           paths:
-            - ../../../pkgs/standards/peagen
+            - /pkgs/standards/peagen
           options:
             extensions:
               - griffe_typingdoc
@@ -75,6 +76,6 @@ markdown_extensions:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/swarmauri/peagen
+      link: https://github.com/swarmauri/swarmauri-sdk/tree/mono/dev/pkgs/standards/peagen
 nav:
   - Home: index.md
