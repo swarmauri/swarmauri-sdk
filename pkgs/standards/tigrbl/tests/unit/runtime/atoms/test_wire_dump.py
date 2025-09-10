@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from tigrbl.v3.runtime.atoms.wire import dump
+from tigrbl.runtime.atoms.wire import dump
 
 
 def test_dump_applies_alias_and_omits_nulls() -> None:

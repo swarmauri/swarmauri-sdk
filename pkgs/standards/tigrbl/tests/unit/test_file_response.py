@@ -3,10 +3,10 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from tigrbl.v3.op.mro_collect import mro_collect_decorated_ops
-from tigrbl.v3.op import op_ctx
-from tigrbl.v3.response.shortcuts import as_file
-from tigrbl.v3.bindings import (
+from tigrbl.op.mro_collect import mro_collect_decorated_ops
+from tigrbl.op import op_ctx
+from tigrbl.response.shortcuts import as_file
+from tigrbl.bindings import (
     build_hooks,
     build_handlers,
     build_rest,
@@ -14,11 +14,11 @@ from tigrbl.v3.bindings import (
     register_rpc,
     include_model,
 )
-from tigrbl.v3.types import App as FastApp
-from tigrbl.v3.types import Integer, Mapped, mapped_column
-from tigrbl.v3.table import Table
-from tigrbl.v3.api._api import Api
-from tigrbl.v3.app._app import App as BaseApp
+from tigrbl.types import App as FastApp
+from tigrbl.types import Integer, Mapped, mapped_column
+from tigrbl.table import Table
+from tigrbl.api._api import Api
+from tigrbl.app._app import App as BaseApp
 
 
 def _build_model(base: type, file_path: Path, *, bind: bool = True) -> type:

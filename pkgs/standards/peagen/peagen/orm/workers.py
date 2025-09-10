@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.types import (
+from tigrbl.orm.tables import Base
+from tigrbl.types import (
     JSON,
     PgUUID,
     UUID,
@@ -11,10 +11,10 @@ from tigrbl.v3.types import (
     AllowAnonProvider,
     Mapped,
 )
-from tigrbl.v3.orm.mixins import GUIDPk, Timestamped
-from tigrbl.v3.specs import IO, S, acol
-from tigrbl.v3.column.storage_spec import ForeignKeySpec
-from tigrbl.v3 import hook_ctx
+from tigrbl.orm.mixins import GUIDPk, Timestamped
+from tigrbl.specs import IO, S, acol
+from tigrbl.column.storage_spec import ForeignKeySpec
+from tigrbl import hook_ctx
 from peagen.defaults import DEFAULT_POOL_ID, WORKER_KEY, WORKER_TTL
 
 from .pools import Pool

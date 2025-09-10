@@ -1,14 +1,14 @@
 from fastapi.testclient import TestClient
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from tigrbl.v3.engine import resolver as _resolver
-from tigrbl.v3.engine.shortcuts import mem
+from tigrbl.engine import resolver as _resolver
+from tigrbl.engine.shortcuts import mem
 from sqlalchemy.orm import sessionmaker
 
-from tigrbl.v3 import TigrblApp
-from tigrbl.v3.orm.mixins import GUIDPk
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
-from tigrbl.v3.types import (
+from tigrbl import TigrblApp
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.orm.tables import Base
+from tigrbl.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
+from tigrbl.types import (
     AllowAnonProvider,
     App,
     AuthNProvider,

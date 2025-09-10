@@ -2,11 +2,11 @@ import pytest
 import pytest_asyncio
 from typing import Any, Mapping
 
-from tigrbl.v3.types import HTTPException, UUID, Column, Integer, String, uuid4
+from tigrbl.types import HTTPException, UUID, Column, Integer, String, uuid4
 
-from tigrbl.v3 import TigrblApp, Base
-from tigrbl.v3.engine.shortcuts import engine as build_engine, mem
-from tigrbl.v3.orm.mixins import GUIDPk, BulkCapable, Replaceable
+from tigrbl import TigrblApp, Base
+from tigrbl.engine.shortcuts import engine as build_engine, mem
+from tigrbl.orm.mixins import GUIDPk, BulkCapable, Replaceable
 
 
 class CoreTestUser(Base, GUIDPk, BulkCapable, Replaceable):

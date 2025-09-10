@@ -1,6 +1,6 @@
 import pytest
 
-from tigrbl.v3.engine.builders import async_sqlite_engine
+from tigrbl.engine.builders import async_sqlite_engine
 from sqlalchemy.orm import Session as SyncSession
 
 

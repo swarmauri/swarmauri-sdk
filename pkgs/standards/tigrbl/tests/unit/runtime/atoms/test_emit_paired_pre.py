@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 
-from tigrbl.v3.runtime.atoms.emit import paired_pre
-from tigrbl.v3.runtime.kernel import (
+from tigrbl.runtime.atoms.emit import paired_pre
+from tigrbl.runtime.kernel import (
     SchemaIn,
     SchemaOut,
     OpView,

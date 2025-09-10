@@ -3,22 +3,22 @@ from types import SimpleNamespace
 
 from sqlalchemy import String
 
-from tigrbl.v3.engine import resolver as _resolver
-from tigrbl.v3.engine.shortcuts import engine as engine_factory, mem
+from tigrbl.engine import resolver as _resolver
+from tigrbl.engine.shortcuts import engine as engine_factory, mem
 
-from tigrbl.v3.types import uuid4
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.orm.mixins import GUIDPk
-from tigrbl.v3.specs import IO, S, acol
-from tigrbl.v3.bindings import (
+from tigrbl.types import uuid4
+from tigrbl.orm.tables import Base
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.specs import IO, S, acol
+from tigrbl.bindings import (
     bind,
     include_model,
     include_models,
     rpc_call,
     rebind,
 )
-from tigrbl.v3.runtime import build_phase_chains
-from tigrbl.v3.config.constants import TIGRBL_GET_DB_ATTR
+from tigrbl.runtime import build_phase_chains
+from tigrbl.config.constants import TIGRBL_GET_DB_ATTR
 
 
 class Widget(Base, GUIDPk):

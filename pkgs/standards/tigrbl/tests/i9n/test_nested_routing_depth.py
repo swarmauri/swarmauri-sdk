@@ -1,12 +1,12 @@
 import pytest
 import pytest_asyncio
-from tigrbl.v3 import TigrblApp, Base
-from tigrbl.v3.engine.shortcuts import mem
-from tigrbl.v3.orm.mixins import GUIDPk
-from tigrbl.v3.types import App
+from tigrbl import TigrblApp, Base
+from tigrbl.engine.shortcuts import mem
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.types import App
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, ForeignKey, String
-from tigrbl.v3.types import PgUUID
+from tigrbl.types import PgUUID
 
 
 @pytest_asyncio.fixture

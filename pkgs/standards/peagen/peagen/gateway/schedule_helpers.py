@@ -17,8 +17,8 @@ import json
 import time
 from typing import Any, Dict, List, Optional, Protocol
 
-from tigrbl.v3 import get_schema
-from tigrbl.v3.orm.tables.status import Status
+from tigrbl import get_schema
+from tigrbl.orm.tables.status import Status
 from tigrbl_client import TigrblClient
 
 from peagen.defaults import READY_QUEUE, TASK_KEY, TASK_TTL, WORKER_KEY, WORKER_TTL

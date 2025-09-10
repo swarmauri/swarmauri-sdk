@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from tigrbl.v3.orm.tables import User as UserBase
-from tigrbl.v3.orm.mixins import Bootstrappable, Upsertable, uuid_example
-from tigrbl.v3.types import PgUUID, Mapped, uuid4
-from tigrbl.v3.specs import S, F, acol
+from tigrbl.orm.tables import User as UserBase
+from tigrbl.orm.mixins import Bootstrappable, Upsertable, uuid_example
+from tigrbl.types import PgUUID, Mapped, uuid4
+from tigrbl.specs import S, F, acol
 
 
 class User(UserBase, Bootstrappable, Upsertable):

@@ -18,7 +18,7 @@ Both helpers are **framework-thin**: they translate `AuthError` raised by
 from __future__ import annotations
 
 from fastapi import Depends, Header, HTTPException, Request, status
-from tigrbl.v3.engine import HybridSession as AsyncSession
+from tigrbl.engine import HybridSession as AsyncSession
 
 from .backends import (
     ApiKeyBackend,

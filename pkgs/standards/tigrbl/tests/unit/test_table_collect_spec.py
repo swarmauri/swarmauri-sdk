@@ -1,7 +1,7 @@
-from tigrbl.v3.table.mro_collect import mro_collect_table_spec
-from tigrbl.v3.table.shortcuts import defineTableSpec
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.orm.mixins import GUIDPk
+from tigrbl.table.mro_collect import mro_collect_table_spec
+from tigrbl.table.shortcuts import defineTableSpec
+from tigrbl.orm.tables import Base
+from tigrbl.orm.mixins import GUIDPk
 
 
 SpecA = defineTableSpec(

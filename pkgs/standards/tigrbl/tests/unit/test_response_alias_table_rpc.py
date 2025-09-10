@@ -1,13 +1,13 @@
 from __future__ import annotations
 import pytest
-from tigrbl.v3 import alias_ctx
-from tigrbl.v3.response import response_ctx
-from tigrbl.v3.engine.shortcuts import engine as build_engine, mem
-from tigrbl.v3.orm.mixins import GUIDPk
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.specs import IO, S, F, acol as spec_acol
-from tigrbl.v3.types import String
-from tigrbl.v3.tigrbl import TigrblApi
+from tigrbl import alias_ctx
+from tigrbl.response import response_ctx
+from tigrbl.engine.shortcuts import engine as build_engine, mem
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.orm.tables import Base
+from tigrbl.specs import IO, S, F, acol as spec_acol
+from tigrbl.types import String
+from tigrbl.tigrbl import TigrblApi
 
 
 @pytest.mark.asyncio

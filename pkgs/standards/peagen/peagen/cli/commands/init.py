@@ -353,7 +353,7 @@ def remote_init_repo(
     upstream_url = f"https://github.com/{owner}/{name}.git"
 
     # Build RPC params using the GitHub URL
-    from tigrbl.v3 import get_schema
+    from tigrbl import get_schema
 
     SCreate = get_schema(Repository, "create")
     SRead = get_schema(Repository, "read")

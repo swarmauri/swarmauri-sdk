@@ -1,6 +1,6 @@
-from tigrbl.v3.bindings.handlers import build_and_attach
-from tigrbl.v3.op import OpSpec
-from tigrbl.v3 import core as _core
+from tigrbl.bindings.handlers import build_and_attach
+from tigrbl.op import OpSpec
+from tigrbl import core as _core
 
 
 def test_wrap_core_preserves_qualname_and_module():

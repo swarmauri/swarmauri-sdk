@@ -1,14 +1,14 @@
 # tests/test_engine_spec_and_shortcuts.py
 import pytest
 
-from tigrbl.v3.engine.shortcuts import (
+from tigrbl.engine.shortcuts import (
     engine_spec,
     engine,
     mem,
     prov,
     sqlitef,
 )  # :contentReference[oaicite:2]{index=2}
-from tigrbl.v3.engine.engine_spec import (
+from tigrbl.engine.engine_spec import (
     EngineSpec,
 )  # :contentReference[oaicite:3]{index=3}
 

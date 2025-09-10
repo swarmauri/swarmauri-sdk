@@ -1,9 +1,9 @@
 import pytest
-from tigrbl.v3 import TigrblApp, Base
-from tigrbl.v3.engine.shortcuts import mem
-from tigrbl.v3.orm.mixins import GUIDPk
-from tigrbl.v3.specs import F, S, acol
-from tigrbl.v3.types import App, Mapped, String
+from tigrbl import TigrblApp, Base
+from tigrbl.engine.shortcuts import mem
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.specs import F, S, acol
+from tigrbl.types import App, Mapped, String
 from httpx import ASGITransport, AsyncClient
 
 

@@ -1,13 +1,13 @@
 import pytest
 from collections.abc import Iterator
 
-from tigrbl.v3 import TigrblApp
-from tigrbl.v3.orm.mixins import BulkCapable, GUIDPk
-from tigrbl.v3.specs import IO, S, F, acol as spec_acol
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.types import Session, String
-from tigrbl.v3.engine.shortcuts import mem
-from tigrbl.v3.engine import resolver as _resolver
+from tigrbl import TigrblApp
+from tigrbl.orm.mixins import BulkCapable, GUIDPk
+from tigrbl.specs import IO, S, F, acol as spec_acol
+from tigrbl.orm.tables import Base
+from tigrbl.types import Session, String
+from tigrbl.engine.shortcuts import mem
+from tigrbl.engine import resolver as _resolver
 
 
 @pytest.fixture()

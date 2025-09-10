@@ -1,11 +1,11 @@
 from types import SimpleNamespace
 
-from tigrbl.v3.specs import ColumnSpec, F, IO, S, acol
-from tigrbl.v3.runtime.atoms.schema import collect_in, collect_out
-from tigrbl.v3.runtime.atoms.out import masking
-from tigrbl.v3.runtime.kernel import _default_kernel as K
-from tigrbl.v3.core.crud import helpers
-from tigrbl.v3.orm.tables import Base
+from tigrbl.specs import ColumnSpec, F, IO, S, acol
+from tigrbl.runtime.atoms.schema import collect_in, collect_out
+from tigrbl.runtime.atoms.out import masking
+from tigrbl.runtime.kernel import _default_kernel as K
+from tigrbl.core.crud import helpers
+from tigrbl.orm.tables import Base
 from sqlalchemy import Integer
 from sqlalchemy.orm import Mapped
 
@@ -141,7 +141,7 @@ def test_sortable_allows_sorting():
             "unsortable": unsortable_spec,
         }
 
-    from tigrbl.v3.bindings.model import bind
+    from tigrbl.bindings.model import bind
 
     bind(SortModel)
 

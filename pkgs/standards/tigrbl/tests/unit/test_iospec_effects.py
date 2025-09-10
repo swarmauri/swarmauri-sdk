@@ -1,4 +1,4 @@
-from tigrbl.v3.types import (
+from tigrbl.types import (
     App,
     Column,
     InstrumentedAttribute,
@@ -9,23 +9,23 @@ from tigrbl.v3.types import (
 )
 from sqlalchemy.orm import DeclarativeBase
 
-from tigrbl.v3.bindings.model import bind
-from tigrbl.v3.bindings.rest.router import _build_router
-from tigrbl.v3.op import OpSpec
-from tigrbl.v3.runtime.atoms.resolve import assemble
-from tigrbl.v3.runtime.atoms.schema import collect_in, collect_out
-from tigrbl.v3.runtime.kernel import _default_kernel as K
-from tigrbl.v3.schema import _build_list_params
-from tigrbl.v3.specs import ColumnSpec, F, IO, S, acol, vcol
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.orm.mixins import GUIDPk
+from tigrbl.bindings.model import bind
+from tigrbl.bindings.rest.router import _build_router
+from tigrbl.op import OpSpec
+from tigrbl.runtime.atoms.resolve import assemble
+from tigrbl.runtime.atoms.schema import collect_in, collect_out
+from tigrbl.runtime.kernel import _default_kernel as K
+from tigrbl.schema import _build_list_params
+from tigrbl.specs import ColumnSpec, F, IO, S, acol, vcol
+from tigrbl.orm.tables import Base
+from tigrbl.orm.mixins import GUIDPk
 
 
 class _Base(DeclarativeBase):
     """Local base that materializes ColumnSpecs to SQLAlchemy Columns."""
 
     def __init_subclass__(cls, **kw):
-        from tigrbl.v3.orm.tables._base import _materialize_colspecs_to_sqla
+        from tigrbl.orm.tables._base import _materialize_colspecs_to_sqla
 
         _materialize_colspecs_to_sqla(cls)
         super().__init_subclass__(**kw)

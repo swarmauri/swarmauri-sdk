@@ -1,8 +1,8 @@
 import logging
 import time
 
-from tigrbl.v3.column.mro_collect import mro_collect_columns
-from tigrbl.v3.schema.collect import collect_decorated_schemas
+from tigrbl.column.mro_collect import mro_collect_columns
+from tigrbl.schema.collect import collect_decorated_schemas
 
 
 logging.getLogger("uvicorn").setLevel(logging.WARNING)

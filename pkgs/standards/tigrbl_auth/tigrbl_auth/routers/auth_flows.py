@@ -4,7 +4,7 @@ import secrets
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
-from tigrbl.v3.engine import HybridSession as AsyncSession
+from tigrbl.engine import HybridSession as AsyncSession
 
 from ..backends import AuthError
 from ..fastapi_deps import get_db

@@ -6,8 +6,8 @@ import pytest
 import uvicorn
 import pytest_asyncio
 
-from tigrbl.v3 import TigrblApp
-from tigrbl.v3.orm.mixins import (
+from tigrbl import TigrblApp
+from tigrbl.orm.mixins import (
     GUIDPk,
     Created,
     LastUsed,
@@ -16,10 +16,10 @@ from tigrbl.v3.orm.mixins import (
     tzutcnow,
     tzutcnow_plus_day,
 )
-from tigrbl.v3.orm.mixins.utils import CRUD_IO
-from tigrbl.v3.orm.tables._base import Base
-from tigrbl.v3.specs import F, S, acol
-from tigrbl.v3.types import App, Mapped, String
+from tigrbl.orm.mixins.utils import CRUD_IO
+from tigrbl.orm.tables._base import Base
+from tigrbl.specs import F, S, acol
+from tigrbl.types import App, Mapped, String
 from sqlalchemy import inspect
 
 

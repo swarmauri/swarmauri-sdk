@@ -1,17 +1,17 @@
 from __future__ import annotations
 from types import SimpleNamespace
 
-from tigrbl.v3.response import (
+from tigrbl.response import (
     ResponseSpec,
     get_attached_response_spec,
     infer_hints,
     response_ctx,
     resolve_response_spec,
 )
-from tigrbl.v3.api.api_spec import APISpec
-from tigrbl.v3.app.app_spec import AppSpec
-from tigrbl.v3.op.types import OpSpec
-from tigrbl.v3.table.table_spec import TableSpec
+from tigrbl.api.api_spec import APISpec
+from tigrbl.app.app_spec import AppSpec
+from tigrbl.op.types import OpSpec
+from tigrbl.table.table_spec import TableSpec
 
 
 def test_response_ctx_precedence():

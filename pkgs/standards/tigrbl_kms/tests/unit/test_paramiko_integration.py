@@ -5,7 +5,7 @@ import asyncio
 
 import pytest
 from fastapi.testclient import TestClient
-from tigrbl.v3.orm.tables import Base
+from tigrbl.orm.tables import Base
 
 pytestmark = pytest.mark.skip(
     reason="Paramiko integration requires manual key material import"

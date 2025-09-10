@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 import importlib.util
 import sys
 from pathlib import Path
-import tigrbl.v3 as tigrbl_v3
+import tigrbl as tigrbl_v3
 
 
 class DummyTaskModel(BaseModel):

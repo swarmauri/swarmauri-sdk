@@ -1,13 +1,13 @@
 import pytest_asyncio
 import pytest
 from pydantic import BaseModel
-from tigrbl.v3.types import App
+from tigrbl.types import App
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, String
 
-from tigrbl.v3 import TigrblApp, Base, op_ctx, schema_ctx
-from tigrbl.v3.engine.shortcuts import mem
-from tigrbl.v3.orm.mixins import GUIDPk
+from tigrbl import TigrblApp, Base, op_ctx, schema_ctx
+from tigrbl.engine.shortcuts import mem
+from tigrbl.orm.mixins import GUIDPk
 
 
 @pytest_asyncio.fixture

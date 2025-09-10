@@ -3,11 +3,11 @@ from unittest.mock import AsyncMock, patch
 
 from pydantic import BaseModel
 
-from tigrbl.v3 import op_ctx
-from tigrbl.v3.op.mro_collect import mro_collect_decorated_ops
-from tigrbl.v3.schema.decorators import schema_ctx
-from tigrbl.v3.op import resolve
-from tigrbl.v3.bindings import build_schemas, build_hooks, build_handlers, build_rest
+from tigrbl import op_ctx
+from tigrbl.op.mro_collect import mro_collect_decorated_ops
+from tigrbl.schema.decorators import schema_ctx
+from tigrbl.op import resolve
+from tigrbl.bindings import build_schemas, build_hooks, build_handlers, build_rest
 
 
 def _build_all(model):
@@ -52,7 +52,7 @@ def test_op_ctx_canonical_target_uses_core():
     _build_all(Gadget)
 
     ctx = {"path_params": {"id": 1}}
-    with patch("tigrbl.v3.core.read", AsyncMock(return_value={"id": 2})) as core_read:
+    with patch("tigrbl.core.read", AsyncMock(return_value={"id": 2})) as core_read:
         rv = asyncio.run(Gadget.handlers.get.handler(ctx))
     assert rv == {"id": 2}
     assert "called" not in ctx

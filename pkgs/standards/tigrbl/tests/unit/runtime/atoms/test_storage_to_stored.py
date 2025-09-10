@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 
-from tigrbl.v3.runtime.atoms.storage import to_stored
-from tigrbl.v3.runtime.kernel import (
+from tigrbl.runtime.atoms.storage import to_stored
+from tigrbl.runtime.kernel import (
     SchemaIn,
     SchemaOut,
     OpView,

@@ -1,9 +1,9 @@
-from tigrbl.v3.types import App
+from tigrbl.types import App
 
-from tigrbl.v3 import TigrblApp
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.orm.mixins import GUIDPk
-from tigrbl.v3.types import Column, String
+from tigrbl import TigrblApp
+from tigrbl.orm.tables import Base
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.types import Column, String
 
 
 def test_include_models_base_prefix_avoids_duplicate_segments():

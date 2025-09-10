@@ -1,5 +1,5 @@
-from tigrbl.v3 import alias_ctx, alias
-from tigrbl.v3.op import resolve
+from tigrbl import alias_ctx, alias
+from tigrbl.op import resolve
 
 
 def _spec_for(model: type, target: str):

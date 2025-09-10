@@ -3,12 +3,12 @@ import pytest_asyncio
 
 from httpx import ASGITransport, AsyncClient
 
-from tigrbl.v3.types import App, BaseModel, Column, Integer, String
+from tigrbl.types import App, BaseModel, Column, Integer, String
 
-from tigrbl.v3 import TigrblApp, Base, schema_ctx
-from tigrbl.v3.core import crud
-from tigrbl.v3.engine.shortcuts import mem
-from tigrbl.v3.engine import resolver as _resolver
+from tigrbl import TigrblApp, Base, schema_ctx
+from tigrbl.core import crud
+from tigrbl.engine.shortcuts import mem
+from tigrbl.engine import resolver as _resolver
 
 
 @pytest_asyncio.fixture

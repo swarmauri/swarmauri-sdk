@@ -5,8 +5,8 @@ Tests that healthz, methodz and hookz endpoints are properly attached and behave
 """
 
 import pytest
-from tigrbl.v3 import hook_ctx
-from tigrbl.v3.types import SimpleNamespace
+from tigrbl import hook_ctx
+from tigrbl.types import SimpleNamespace
 
 
 @pytest.mark.i9n

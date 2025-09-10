@@ -4,14 +4,14 @@ from __future__ import annotations
 from urllib.parse import urlparse
 from typing import Any, Mapping, Optional, TYPE_CHECKING
 
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.types import (
+from tigrbl.orm.tables import Base
+from tigrbl.types import (
     String,
     UniqueConstraint,
     relationship,
     Mapped,
 )
-from tigrbl.v3.orm.mixins import (
+from tigrbl.orm.mixins import (
     GUIDPk,
     Timestamped,
     TenantBound,
@@ -20,9 +20,9 @@ from tigrbl.v3.orm.mixins import (
     OwnerPolicy,
     StatusColumn,
 )
-from tigrbl.v3.runtime.errors import create_standardized_error
-from tigrbl.v3.specs import F, IO, S, acol, vcol
-from tigrbl.v3 import hook_ctx
+from tigrbl.runtime.errors import create_standardized_error
+from tigrbl.specs import F, IO, S, acol, vcol
+from tigrbl import hook_ctx
 
 if TYPE_CHECKING:  # pragma: no cover
     from .secrets import RepoSecret

@@ -3,7 +3,7 @@ import base64
 import importlib
 
 import pytest
-from tigrbl.v3.orm.tables import Base
+from tigrbl.orm.tables import Base
 from fastapi.testclient import TestClient
 
 

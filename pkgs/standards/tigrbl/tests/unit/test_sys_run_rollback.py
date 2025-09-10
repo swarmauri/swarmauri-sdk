@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from tigrbl.v3.runtime import system
+from tigrbl.runtime import system
 
 
 def test_run_rollback_calls_installed(monkeypatch) -> None:

@@ -1,11 +1,11 @@
 import pytest
 
 
-from tigrbl.v3 import TigrblApp
-from tigrbl.v3.orm.mixins import GUIDPk, BulkCapable, Mergeable
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.op.types import CANON
-from tigrbl.v3.types import Column, String
+from tigrbl import TigrblApp
+from tigrbl.orm.mixins import GUIDPk, BulkCapable, Mergeable
+from tigrbl.orm.tables import Base
+from tigrbl.op.types import CANON
+from tigrbl.types import Column, String
 
 
 def _route_map(router) -> dict[str, tuple[str, set[str]]]:

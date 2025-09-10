@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 
-from tigrbl.v3.runtime.atoms.out import masking
-from tigrbl.v3.runtime.kernel import (
+from tigrbl.runtime.atoms.out import masking
+from tigrbl.runtime.kernel import (
     SchemaIn,
     SchemaOut,
     OpView,

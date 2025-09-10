@@ -1,19 +1,19 @@
 import pytest
 import pytest_asyncio
-from tigrbl.v3.types import App
+from tigrbl.types import App
 from httpx import ASGITransport, AsyncClient
 from pydantic import BaseModel
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped
 
-from tigrbl.v3 import TigrblApp as Tigrblv3
-from tigrbl.v3.engine import resolver as _resolver
-from tigrbl.v3.engine.shortcuts import mem
-from tigrbl.v3.orm.tables import Base as Base3
-from tigrbl.v3.specs import F, IO, S, acol
-from tigrbl.v3.column.storage_spec import StorageTransform
-from tigrbl.v3.schema.decorators import schema_ctx
-from tigrbl.v3.core import crud
+from tigrbl import TigrblApp as Tigrblv3
+from tigrbl.engine import resolver as _resolver
+from tigrbl.engine.shortcuts import mem
+from tigrbl.orm.tables import Base as Base3
+from tigrbl.specs import F, IO, S, acol
+from tigrbl.column.storage_spec import StorageTransform
+from tigrbl.schema.decorators import schema_ctx
+from tigrbl.core import crud
 
 
 @pytest_asyncio.fixture

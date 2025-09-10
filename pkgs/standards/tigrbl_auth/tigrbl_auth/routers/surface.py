@@ -14,7 +14,7 @@ namespaces like ``surface_api.core.User.create`` and
 Notes
 -----
 *   All mix-ins (GUIDPk, Timestamped, TenantBound, etc.) live in
-    *tigrbl.v3.orm.mixins* and are imported by the ORM models.
+    *tigrbl.orm.mixins* and are imported by the ORM models.
 *   Importing this module has the side-effect of importing
     ``tigrbl_auth.orm``, so every model class is registered with the
     declarative base **before** Tigrbl introspects the metadata.
@@ -22,7 +22,7 @@ Notes
 
 from __future__ import annotations
 
-from tigrbl.v3 import TigrblApi
+from tigrbl import TigrblApi
 from tigrbl_auth.orm import (
     Tenant,
     User,

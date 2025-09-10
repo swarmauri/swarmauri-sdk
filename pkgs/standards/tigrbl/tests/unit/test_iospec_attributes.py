@@ -1,5 +1,5 @@
-from tigrbl.v3.specs import IO
-from tigrbl.v3.column.io_spec import Pair
+from tigrbl.specs import IO
+from tigrbl.column.io_spec import Pair
 
 
 def test_in_verbs_attribute() -> None:

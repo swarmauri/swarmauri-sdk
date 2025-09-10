@@ -1,8 +1,8 @@
 import pytest
-from tigrbl.v3 import TigrblApp
-from tigrbl.v3 import Base
-from tigrbl.v3.specs import S, acol
-from tigrbl.v3.engine.shortcuts import mem
+from tigrbl import TigrblApp
+from tigrbl import Base
+from tigrbl.specs import S, acol
+from tigrbl.engine.shortcuts import mem
 from sqlalchemy import Integer
 from sqlalchemy.orm import Mapped
 

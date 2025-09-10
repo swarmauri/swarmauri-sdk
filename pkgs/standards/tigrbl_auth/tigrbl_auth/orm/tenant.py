@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import uuid
 
-from tigrbl.v3.orm.tables import Tenant as TenantBase
-from tigrbl.v3.orm.mixins import Bootstrappable
-from tigrbl.v3.specs import F, IO, S, acol, ColumnSpec
-from tigrbl.v3.types import Mapped, String
+from tigrbl.orm.tables import Tenant as TenantBase
+from tigrbl.orm.mixins import Bootstrappable
+from tigrbl.specs import F, IO, S, acol, ColumnSpec
+from tigrbl.types import Mapped, String
 
 
 class Tenant(TenantBase, Bootstrappable):

@@ -1,18 +1,18 @@
 import json
 
-from tigrbl.v3 import (
+from tigrbl import (
     alias_ctx,
     alias,
     op_ctx,
     schema_ctx,
     SchemaRef,
 )
-from tigrbl.v3.op import resolve
-from tigrbl.v3.op.mro_collect import mro_collect_decorated_ops
-from tigrbl.v3.bindings import build_schemas, build_hooks, build_handlers, build_rest
+from tigrbl.op import resolve
+from tigrbl.op.mro_collect import mro_collect_decorated_ops
+from tigrbl.bindings import build_schemas, build_hooks, build_handlers, build_rest
 
 # REST test client
-from tigrbl.v3.types import App, BaseModel
+from tigrbl.types import App, BaseModel
 from fastapi.testclient import TestClient
 
 

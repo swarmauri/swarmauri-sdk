@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.orm.mixins import Timestamped
-from tigrbl.v3.specs import S, acol
-from tigrbl.v3.types import Mapped, String
-from tigrbl.v3 import op_ctx
+from tigrbl.orm.tables import Base
+from tigrbl.orm.mixins import Timestamped
+from tigrbl.specs import S, acol
+from tigrbl.types import Mapped, String
+from tigrbl import op_ctx
 from fastapi import HTTPException, status
 
 from ..runtime_cfg import settings

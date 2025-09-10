@@ -19,7 +19,7 @@ import uuid
 
 
 # ─────────── Peagen internals ──────────────────────────────────────────
-from tigrbl.v3 import TigrblApp, get_schema
+from tigrbl import TigrblApp, get_schema
 from tigrbl_auth.adapters import RemoteAuthNAdapter
 from fastapi import Request
 

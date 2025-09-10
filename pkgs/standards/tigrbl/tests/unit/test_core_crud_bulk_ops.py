@@ -2,9 +2,9 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base
 
-from tigrbl.v3.core import crud
-from tigrbl.v3.specs import F, IO, S, acol
-from tigrbl.v3.types import Integer, Session, String
+from tigrbl.core import crud
+from tigrbl.specs import F, IO, S, acol
+from tigrbl.types import Integer, Session, String
 
 Base = declarative_base()
 

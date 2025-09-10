@@ -3,7 +3,7 @@ from types import SimpleNamespace
 import json
 import pytest
 
-from tigrbl.v3.bindings import rpc_call
+from tigrbl.bindings import rpc_call
 
 from .response_utils import (
     RESPONSE_KINDS,

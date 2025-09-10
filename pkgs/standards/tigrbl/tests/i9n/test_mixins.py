@@ -6,11 +6,11 @@ Tests all mixins and their expected behavior using individual DummyModel instanc
 
 import pytest
 from datetime import datetime, timedelta, timezone
-from tigrbl.v3.types import String, uuid4
-from tigrbl.v3.column.shortcuts import acol, F, IO, S
+from tigrbl.types import String, uuid4
+from tigrbl.column.shortcuts import acol, F, IO, S
 
-from tigrbl.v3 import Base
-from tigrbl.v3.orm.mixins import (
+from tigrbl import Base
+from tigrbl.orm.mixins import (
     ActiveToggle,
     AsyncCapable,
     Audited,
@@ -33,8 +33,8 @@ from tigrbl.v3.orm.mixins import (
     tzutcnow,
     tzutcnow_plus_day,
 )
-from tigrbl.v3.schema import _build_schema
-from tigrbl.v3.engine import resolver as _resolver
+from tigrbl.schema import _build_schema
+from tigrbl.engine import resolver as _resolver
 
 
 NAME_FIELD = acol(

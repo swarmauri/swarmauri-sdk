@@ -1,4 +1,4 @@
-from tigrbl.v3.types import App, HTTPException, Request, Security
+from tigrbl.types import App, HTTPException, Request, Security
 from typing import Iterable
 
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -7,12 +7,12 @@ import pytest
 import uuid
 from sqlalchemy import Column, String
 
-from tigrbl.v3 import TigrblApp, Base
-from tigrbl.v3.orm.mixins import GUIDPk
-from tigrbl.v3.orm.mixins.ownable import Ownable, OwnerPolicy
-from tigrbl.v3.orm.mixins.tenant_bound import TenantBound, TenantPolicy
-from tigrbl.v3.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
-from tigrbl.v3.types.authn_abc import AuthNProvider
+from tigrbl import TigrblApp, Base
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.orm.mixins.ownable import Ownable, OwnerPolicy
+from tigrbl.orm.mixins.tenant_bound import TenantBound, TenantPolicy
+from tigrbl.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
+from tigrbl.types.authn_abc import AuthNProvider
 
 
 class DummyAuth(AuthNProvider):
@@ -52,9 +52,9 @@ def _client_for_owner(
         name = Column(String, nullable=False)
         __tigrbl_owner_policy__ = policy
 
-    from tigrbl.v3.engine.shortcuts import mem
-    from tigrbl.v3.engine.engine_spec import EngineSpec
-    from tigrbl.v3.engine._engine import Engine
+    from tigrbl.engine.shortcuts import mem
+    from tigrbl.engine.engine_spec import EngineSpec
+    from tigrbl.engine._engine import Engine
 
     engine = Engine(EngineSpec.from_any(mem(async_=False)))
     db_engine, _ = engine.raw()
@@ -122,9 +122,9 @@ def _client_for_tenant(
         name = Column(String, nullable=False)
         __tigrbl_tenant_policy__ = policy
 
-    from tigrbl.v3.engine.shortcuts import mem
-    from tigrbl.v3.engine.engine_spec import EngineSpec
-    from tigrbl.v3.engine._engine import Engine
+    from tigrbl.engine.shortcuts import mem
+    from tigrbl.engine.engine_spec import EngineSpec
+    from tigrbl.engine._engine import Engine
 
     engine = Engine(EngineSpec.from_any(mem(async_=False)))
     db_engine, _ = engine.raw()

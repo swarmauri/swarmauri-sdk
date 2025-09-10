@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.types import JSON, String, Text, UniqueConstraint, Mapped, relationship
-from tigrbl.v3.orm.mixins import GUIDPk, Timestamped, TenantBound, Ownable
-from tigrbl.v3.specs import S, acol
+from tigrbl.orm.tables import Base
+from tigrbl.types import JSON, String, Text, UniqueConstraint, Mapped, relationship
+from tigrbl.orm.mixins import GUIDPk, Timestamped, TenantBound, Ownable
+from tigrbl.specs import S, acol
 
 from .users import User
 

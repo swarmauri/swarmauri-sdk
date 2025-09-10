@@ -1,6 +1,6 @@
-from tigrbl.v3.column import F, S, acol, vcol
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.types import Integer, Mapped, String
+from tigrbl.column import F, S, acol, vcol
+from tigrbl.orm.tables import Base
+from tigrbl.types import Integer, Mapped, String
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 

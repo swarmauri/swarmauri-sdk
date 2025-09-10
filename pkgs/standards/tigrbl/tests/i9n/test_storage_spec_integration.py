@@ -1,6 +1,6 @@
 import pytest
-from tigrbl.v3.core import crud
-from tigrbl.v3.types import String
+from tigrbl.core import crud
+from tigrbl.types import String
 
 
 @pytest.mark.i9n

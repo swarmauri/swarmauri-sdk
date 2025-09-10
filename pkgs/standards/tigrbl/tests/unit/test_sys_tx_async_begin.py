@@ -3,7 +3,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from tigrbl.v3.runtime import system
+from tigrbl.runtime import system
 
 
 class _AsyncBeginSyncCommitDB:

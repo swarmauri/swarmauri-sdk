@@ -1,7 +1,7 @@
 import pytest
 from sqlalchemy import text
 
-from tigrbl.v3.engine.builders import async_postgres_engine
+from tigrbl.engine.builders import async_postgres_engine
 
 
 @pytest.mark.asyncio

@@ -12,7 +12,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict
 
-from tigrbl.v3 import get_schema
+from tigrbl import get_schema
 from peagen.orm import Task
 
 from peagen.core import secrets_core

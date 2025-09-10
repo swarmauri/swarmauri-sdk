@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 
-from tigrbl.v3.bindings.rest.router import _build_router
-from tigrbl.v3.op import OpSpec
-from tigrbl.v3.orm.mixins import GUIDPk
-from tigrbl.v3.orm.tables import Base
+from tigrbl.bindings.rest.router import _build_router
+from tigrbl.op import OpSpec
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.orm.tables import Base
 
 
 class Item(Base, GUIDPk):

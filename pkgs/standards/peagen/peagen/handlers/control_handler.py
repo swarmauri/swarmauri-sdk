@@ -16,8 +16,8 @@ from __future__ import annotations
 
 from typing import Iterable
 
-from tigrbl.v3 import get_schema
-from tigrbl.v3.orm.tables.task import Task  # SQLAlchemy model row
+from tigrbl import get_schema
+from tigrbl.orm.tables.task import Task  # SQLAlchemy model row
 
 from peagen.core import control_core
 from peagen.plugins.queues import QueueBase

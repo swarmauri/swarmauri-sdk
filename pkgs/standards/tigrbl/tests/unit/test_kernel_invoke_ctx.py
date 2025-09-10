@@ -1,6 +1,6 @@
 import pytest
 
-from tigrbl.v3.runtime.kernel import Kernel
+from tigrbl.runtime.kernel import Kernel
 
 
 @pytest.mark.asyncio

@@ -1,8 +1,8 @@
 import time
 import pytest
 
-from tigrbl.v3 import core as _core
-from tigrbl.v3.bindings.handlers.steps import _wrap_core
+from tigrbl import core as _core
+from tigrbl.bindings.handlers.steps import _wrap_core
 
 
 @pytest.mark.asyncio

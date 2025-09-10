@@ -1,10 +1,10 @@
 from typing import get_args, get_origin
 
-from tigrbl.v3.bindings.rest.collection import _make_collection_endpoint
-from tigrbl.v3.orm.mixins import BulkCapable, GUIDPk
-from tigrbl.v3.op import OpSpec
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.types import Column, String
+from tigrbl.bindings.rest.collection import _make_collection_endpoint
+from tigrbl.orm.mixins import BulkCapable, GUIDPk
+from tigrbl.op import OpSpec
+from tigrbl.orm.tables import Base
+from tigrbl.types import Column, String
 
 
 def test_bulk_create_body_annotation_is_list() -> None:

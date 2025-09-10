@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.types import (
+from tigrbl.orm.tables import Base
+from tigrbl.types import (
     JSON,
     String,
     Text,
@@ -10,9 +10,9 @@ from tigrbl.v3.types import (
     Mapped,
     relationship,
 )
-from tigrbl.v3.orm.mixins import GUIDPk, Timestamped, TenantBound, Ownable
-from tigrbl.v3.specs import S, acol
-from tigrbl.v3.column.storage_spec import ForeignKeySpec
+from tigrbl.orm.mixins import GUIDPk, Timestamped, TenantBound, Ownable
+from tigrbl.specs import S, acol
+from tigrbl.column.storage_spec import ForeignKeySpec
 from typing import TYPE_CHECKING
 
 from .users import User

@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from tigrbl.v3.runtime.atoms.emit import paired_post
+from tigrbl.runtime.atoms.emit import paired_post
 
 
 def test_paired_post_emits_and_scrubs() -> None:

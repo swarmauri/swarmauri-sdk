@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from tigrbl.v3.orm.tables import Base
-from tigrbl.v3.orm.mixins import GUIDPk, UserColumn
+from tigrbl.orm.tables import Base
+from tigrbl.orm.mixins import GUIDPk, UserColumn
 
 from .mixins import RepositoryMixin
 

@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 
-from tigrbl.v3.engine.shortcuts import mem, pga, pgs, prov, sqlitef
-from tigrbl.v3.engine import resolver
+from tigrbl.engine.shortcuts import mem, pga, pgs, prov, sqlitef
+from tigrbl.engine import resolver
 
 
 def test_precedence_op_over_model_over_api_over_app(tmp_path):

@@ -4,7 +4,7 @@ from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
-from tigrbl.v3.orm.tables import Base
+from tigrbl.orm.tables import Base
 
 
 @pytest.fixture

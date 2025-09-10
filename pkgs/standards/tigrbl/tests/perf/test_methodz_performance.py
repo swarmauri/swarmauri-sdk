@@ -2,9 +2,9 @@ import pytest
 from types import SimpleNamespace
 from time import perf_counter, sleep
 
-from tigrbl.v3.system.diagnostics import _build_methodz_endpoint
-from tigrbl.v3.system import diagnostics as _diag
-from tigrbl.v3.op import OpSpec
+from tigrbl.system.diagnostics import _build_methodz_endpoint
+from tigrbl.system import diagnostics as _diag
+from tigrbl.op import OpSpec
 
 
 @pytest.mark.asyncio

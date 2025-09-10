@@ -2,7 +2,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from tigrbl.v3.system.diagnostics import _build_hookz_endpoint
+from tigrbl.system.diagnostics import _build_hookz_endpoint
 
 
 @pytest.mark.asyncio

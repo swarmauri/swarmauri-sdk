@@ -2,12 +2,12 @@
 tigrbl_auth.adapters.local_adapter
 ──────────────────
 Concrete implementation of the ``AuthNProvider`` ABC declared by
-``tigrbl.v3.authn_abc``.  It merely **adapts** the public helpers that already
+``tigrbl.authn_abc``.  It merely **adapts** the public helpers that already
 exist in *tigrbl_auth* so that Tigrbl can consume them automatically.
 
 Usage
 -----
->>> from tigrbl.v3 import TigrblApi
+>>> from tigrbl import TigrblApi
 >>> from tigrbl_auth.adapters import LocalAuthNAdapter
 >>> api = TigrblApi(engine=ENGINE, authn=LocalAuthNAdapter())
 """
@@ -16,8 +16,8 @@ from __future__ import annotations
 
 from fastapi import Request
 
-from tigrbl.v3.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
-from tigrbl.v3.types.authn_abc import AuthNProvider
+from tigrbl.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
+from tigrbl.types.authn_abc import AuthNProvider
 from ..fastapi_deps import get_principal
 from ..principal_ctx import principal_var  # noqa: F401  # ensure ContextVar is initialised
 
