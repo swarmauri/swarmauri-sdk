@@ -10,7 +10,8 @@ RUN apt-get update \
         git \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir -U pip uv
+RUN pip install --no-cache-dir -U pip
+RUN pip install --no-cache-dir uv
 
 WORKDIR /docs
 
