@@ -1,6 +1,6 @@
 site_name: Tigrbl
-repo_url: https://github.com/swarmauri/swarmauri-sdk
-repo_name: swarmauri/swarmauri-sdk
+repo_url: https://github.com/swarmauri/swarmauri-sdk/tree/mono/dev/pkgs/standards/tigrbl
+repo_name: tigrbl
 theme:
   name: material
   logo: assets/swarmauri_logo_dark.jpeg

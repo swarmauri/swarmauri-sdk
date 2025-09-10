@@ -1,6 +1,6 @@
 ---
 site_name: Peagen
-repo_url: https://github.com/swarmauri/peagen
+repo_url: https://github.com/swarmauri/swarmauri-sdk/tree/mono/dev/pkgs/standards/peagen
 repo_name: swarmauri/peagen
 theme:
   name: material
