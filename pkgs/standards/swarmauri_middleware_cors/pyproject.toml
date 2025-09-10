@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_middleware_cors"
-version = "0.6.2.dev6"
+version = "0.6.2.dev7"
 description = "Custom CORS Middleware for Swarmauri Framework"
 license = "Apache-2.0"
 readme = "README.md"

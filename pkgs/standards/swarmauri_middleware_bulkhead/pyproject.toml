@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_middleware_bulkhead"
-version = "0.6.2.dev8"
+version = "0.6.2.dev9"
 description = "Bulkhead middleware implementation for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

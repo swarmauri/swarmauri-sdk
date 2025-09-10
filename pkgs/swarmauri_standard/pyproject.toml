@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri-standard"
-version = "0.7.6.dev8"
+version = "0.7.6.dev9"
 description = "This repository includes standard components within the Swarmauri framework."
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" },
