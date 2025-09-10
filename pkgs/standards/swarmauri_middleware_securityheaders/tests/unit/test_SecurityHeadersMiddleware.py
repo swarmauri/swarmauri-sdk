@@ -30,6 +30,7 @@ class TestSecurityHeadersMiddleware:
         assert hasattr(middleware, "app")
         assert middleware.app is mock_app
 
+    @pytest.mark.asyncio
     @pytest.mark.unit
     async def test_dispatch(self, mocker):
         """Test dispatch method of SecurityHeadersMiddleware."""
