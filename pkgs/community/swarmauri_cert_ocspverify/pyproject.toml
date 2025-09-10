@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_cert_ocspverify"
-version = "0.7.6.dev8"
+version = "0.7.6.dev9"
 description = "OCSP certificate verification service for Swarmauri."
 license = "Apache-2.0"
 readme = "README.md"

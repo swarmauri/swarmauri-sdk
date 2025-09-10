@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_embedding_nmf"
-version = "0.7.6.dev8"
+version = "0.7.6.dev9"
 description = "NMF Embedding for Swarmauri."
 license = "Apache-2.0"
 readme = "README.md"

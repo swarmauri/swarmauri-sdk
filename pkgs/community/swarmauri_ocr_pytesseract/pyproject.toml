@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_ocr_pytesseract"
-version = "0.7.6.dev8"
+version = "0.7.6.dev9"
 description = "Swarmauri Tesseract Image to Text Model"
 license = "Apache-2.0"
 readme = "README.md"
