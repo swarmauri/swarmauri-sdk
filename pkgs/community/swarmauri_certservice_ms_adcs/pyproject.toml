@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_certservice_ms_adcs"
-version = "0.1.1.dev4"
+version = "0.1.1.dev5"
 description = "Microsoft AD CS certificate service client for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
