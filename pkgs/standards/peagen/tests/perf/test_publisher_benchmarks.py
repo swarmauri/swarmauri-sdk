@@ -1,9 +1,11 @@
 import os
-import pytest
 
+import pytest
+import redis
+
+from peagen.plugins.publishers.rabbitmq_publisher import RabbitMQPublisher
 from peagen.plugins.publishers.redis_publisher import RedisPublisher
 from peagen.plugins.publishers.webhook_publisher import WebhookPublisher
-from peagen.plugins.publishers.rabbitmq_publisher import RabbitMQPublisher
 
 
 @pytest.mark.perf
@@ -28,4 +30,7 @@ def test_redis_publisher_benchmark(benchmark):
     if not redis_url:
         pytest.skip("REDIS_URL not set")
     pub = RedisPublisher(uri=redis_url)
-    benchmark(pub.publish, "chan", {"msg": "x"})
+    try:
+        benchmark(pub.publish, "chan", {"msg": "x"})
+    except redis.exceptions.RedisError:
+        pytest.skip("Redis not available")
