@@ -37,7 +37,7 @@ plugins:
       handlers:
         python:
           paths:
-            - ../../pkgs/standards/peagen
+            - ../../../pkgs/standards/peagen
           options:
             extensions:
               - griffe_typingdoc
