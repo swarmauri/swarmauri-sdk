@@ -21,6 +21,10 @@ services:
         set -euo pipefail
 
         export UV_PROJECT_ENVIRONMENT=/tmp/.venv
+
+        # Create venv if missing
+        uv venv /tmp/.venv
+
         uv pip install --directory /pkgs/community/zdx . --upgrade
         uv run --directory /pkgs/community/zdx zdx serve \
           --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
@@ -47,6 +51,10 @@ services:
         set -euo pipefail
 
         export UV_PROJECT_ENVIRONMENT=/tmp/.venv
+
+        # Create venv if missing
+        uv venv /tmp/.venv
+
         uv pip install --directory /pkgs/community/zdx . --upgrade
         uv run --directory /pkgs/community/zdx zdx serve \
           --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
@@ -73,6 +81,10 @@ services:
         set -euo pipefail
 
         export UV_PROJECT_ENVIRONMENT=/tmp/.venv
+        
+        # Create venv if missing
+        uv venv /tmp/.venv
+
         uv pip install --directory /pkgs/community/zdx . --upgrade
         uv run --directory /pkgs/community/zdx zdx serve \
           --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
