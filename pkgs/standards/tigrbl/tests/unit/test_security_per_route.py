@@ -1,5 +1,5 @@
 from tigrbl.v3.op import OpSpec
-from tigrbl.v3.autoapp import AutoApp
+from tigrbl.v3 import TigrblApp
 from tigrbl.v3.orm.tables import Base
 from tigrbl.v3.orm.mixins import GUIDPk
 from tigrbl.v3.bindings.rest.router import _build_router
@@ -33,7 +33,7 @@ def test_set_auth_after_include_model_applies_security():
     class Gadget(Base, GUIDPk):
         __tablename__ = "gadgets_security"
 
-    api = AutoApp()
+    api = TigrblApp()
     api.include_model(Gadget)
     api.set_auth(authn=lambda cred=Security(HTTPBearer()): cred, allow_anon=False)
     app = FastAPI()

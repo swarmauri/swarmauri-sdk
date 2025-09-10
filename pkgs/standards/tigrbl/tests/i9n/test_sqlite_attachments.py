@@ -1,5 +1,5 @@
 import pytest
-from tigrbl.v3.autoapp import AutoApp
+from tigrbl.v3 import TigrblApp
 from tigrbl.v3.engine.shortcuts import engine as build_engine, mem
 
 
@@ -12,7 +12,7 @@ def test_initialize_sync_with_sqlite_attachments(tmp_path):
     eng = build_engine(mem(async_=False))
     attach_db = tmp_path / "logs.sqlite"
     attach_db.touch()
-    api = AutoApp(engine=eng)
+    api = TigrblApp(engine=eng)
     api.initialize(sqlite_attachments={"logs": str(attach_db)})
     sql_eng, _ = eng.raw()
     with sql_eng.connect() as conn:
@@ -26,7 +26,7 @@ async def test_initialize_async_with_sqlite_attachments(tmp_path):
     eng = build_engine(mem())
     attach_db = tmp_path / "logs.sqlite"
     attach_db.touch()
-    api = AutoApp(engine=eng)
+    api = TigrblApp(engine=eng)
     await api.initialize(sqlite_attachments={"logs": str(attach_db)})
     sql_eng, _ = eng.raw()
     async with sql_eng.connect() as conn:

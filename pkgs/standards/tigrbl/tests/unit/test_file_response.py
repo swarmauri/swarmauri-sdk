@@ -18,7 +18,7 @@ from tigrbl.v3.types import App as FastApp
 from tigrbl.v3.types import Integer, Mapped, mapped_column
 from tigrbl.v3.table import Table
 from tigrbl.v3.api._api import Api
-from tigrbl.v3.app._app import App as AutoApp
+from tigrbl.v3.app._app import App as BaseApp
 
 
 def _build_model(base: type, file_path: Path, *, bind: bool = True) -> type:
@@ -131,7 +131,7 @@ def test_file_response_app(tmp_path):
     api.get_db = fake_db  # type: ignore[assignment]
     include_model(api, Widget)
 
-    class FilesApp(AutoApp):
+    class FilesApp(BaseApp):
         TITLE = "FilesApp"
         VERSION = "0.1.0"
         LIFESPAN = None

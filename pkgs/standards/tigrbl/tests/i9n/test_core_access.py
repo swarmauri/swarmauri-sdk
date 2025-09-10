@@ -4,7 +4,7 @@ from typing import Any, Mapping
 
 from tigrbl.v3.types import HTTPException, UUID, Column, Integer, String, uuid4
 
-from tigrbl.v3 import AutoApp, Base
+from tigrbl.v3 import TigrblApp, Base
 from tigrbl.v3.engine.shortcuts import engine as build_engine, mem
 from tigrbl.v3.orm.mixins import GUIDPk, BulkCapable, Replaceable
 
@@ -26,7 +26,7 @@ def sync_api():
     """Create a sync Tigrbl instance with CoreTestUser."""
     Base.metadata.clear()
     eng = build_engine(mem(async_=False))
-    api = AutoApp(engine=eng)
+    api = TigrblApp(engine=eng)
     api.include_model(CoreTestUser)
     api.initialize()
     return api, eng
@@ -37,7 +37,7 @@ async def async_api():
     """Create an async Tigrbl instance with CoreTestUser."""
     Base.metadata.clear()
     eng = build_engine(mem(async_=True))
-    api = AutoApp(engine=eng)
+    api = TigrblApp(engine=eng)
     api.include_model(CoreTestUser)
     await api.initialize()
     return api, eng

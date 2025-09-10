@@ -1,6 +1,6 @@
 import pytest
 import pytest_asyncio
-from tigrbl.v3 import AutoApp, Base
+from tigrbl.v3 import TigrblApp, Base
 from tigrbl.v3.engine.shortcuts import mem
 from tigrbl.v3.orm.mixins import GUIDPk
 from tigrbl.v3.types import App
@@ -46,7 +46,7 @@ async def three_level_api_client(db_mode):
     if db_mode == "async":
         pytest.skip("async database mode is currently unsupported")
     else:
-        api = AutoApp(engine=mem(async_=False))
+        api = TigrblApp(engine=mem(async_=False))
         api.include_models([Company, Department, Employee])
         api.initialize()
 

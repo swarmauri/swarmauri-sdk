@@ -7,7 +7,7 @@ import pytest
 import uuid
 from sqlalchemy import Column, String
 
-from tigrbl.v3 import AutoApp, Base
+from tigrbl.v3 import TigrblApp, Base
 from tigrbl.v3.orm.mixins import GUIDPk
 from tigrbl.v3.orm.mixins.ownable import Ownable, OwnerPolicy
 from tigrbl.v3.orm.mixins.tenant_bound import TenantBound, TenantPolicy
@@ -67,7 +67,7 @@ def _client_for_owner(
         session.commit()
 
     authn = DummyAuth(user_id, tenant_id)
-    api = AutoApp(engine=engine)
+    api = TigrblApp(engine=engine)
     api.set_auth(authn=authn.get_principal)
     api.include_models([User, Item])
     app = App()
@@ -137,7 +137,7 @@ def _client_for_tenant(
         session.commit()
 
     authn = DummyAuth(user_id, tenant_id)
-    api = AutoApp(engine=engine)
+    api = TigrblApp(engine=engine)
     api.set_auth(authn=authn.get_principal)
     api.include_models([Tenant, Item])
     app = App()

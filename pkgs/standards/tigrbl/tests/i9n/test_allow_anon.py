@@ -4,7 +4,7 @@ from tigrbl.v3.engine import resolver as _resolver
 from tigrbl.v3.engine.shortcuts import mem
 from sqlalchemy.orm import sessionmaker
 
-from tigrbl.v3.autoapp import AutoApp
+from tigrbl.v3 import TigrblApp
 from tigrbl.v3.orm.mixins import GUIDPk
 from tigrbl.v3.orm.tables import Base
 from tigrbl.v3.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
@@ -62,7 +62,7 @@ def _build_client():
 
     cfg = mem(async_=False)
     auth = DummyAuth()
-    api = AutoApp(engine=cfg)
+    api = TigrblApp(engine=cfg)
     api.set_auth(authn=auth.get_principal)
     api.include_models([Tenant, Item])
     api.initialize()
@@ -93,7 +93,7 @@ def _build_client_attr():
 
     cfg = mem(async_=False)
     auth = DummyAuth()
-    api = AutoApp(engine=cfg)
+    api = TigrblApp(engine=cfg)
     api.set_auth(authn=auth.get_principal)
     api.include_models([Tenant, Item])
     api.initialize()
@@ -155,7 +155,7 @@ def _build_client_create_noauth():
             return {"create", "bulk_create"}
 
     cfg = mem(async_=False)
-    api = AutoApp(engine=cfg)
+    api = TigrblApp(engine=cfg)
     api.include_models([Tenant, Item])
     api.initialize()
     app = App()
@@ -184,7 +184,7 @@ def _build_client_create_attr_noauth():
         __tigrbl_allow_anon__ = {"create", "bulk_create"}
 
     cfg = mem(async_=False)
-    api = AutoApp(engine=cfg)
+    api = TigrblApp(engine=cfg)
     api.include_models([Tenant, Item])
     api.initialize()
     app = App()

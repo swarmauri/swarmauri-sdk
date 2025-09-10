@@ -3,7 +3,7 @@ from tigrbl.v3.types import App
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, String
 
-from tigrbl.v3 import AutoApp, op_ctx
+from tigrbl.v3 import TigrblApp, op_ctx
 from tigrbl.v3.orm.tables import Base
 from tigrbl.v3.orm.mixins import GUIDPk
 from tigrbl.v3.core import crud
@@ -18,7 +18,7 @@ def setup_api(model_cls):
     spec = EngineSpec.from_any(mem(async_=False))
     engine = Engine(spec)
     app = App(engine=engine)
-    api = AutoApp(engine=engine)
+    api = TigrblApp(engine=engine)
     api.include_model(model_cls, prefix="")
     api.initialize()
     app.include_router(api.router)
