@@ -1,7 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from tigrbl.v3 import Tigrbl, alias_ctx
+from tigrbl.v3 import TigrblApi, alias_ctx
 from tigrbl.v3.column import F, IO, S, makeColumn, makeVirtualColumn
 from tigrbl.v3.engine.shortcuts import engine as build_engine, mem
 from tigrbl.v3.orm.tables import Base
@@ -13,7 +13,7 @@ from tigrbl.v3.types import App, Integer, Mapped, String
 
 def _setup_api(model):
     eng = build_engine(mem(async_=False))
-    api = Tigrbl(engine=eng)
+    api = TigrblApi(engine=eng)
     api.include_model(model)
     api.initialize()
 
