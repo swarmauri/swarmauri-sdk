@@ -9,8 +9,8 @@ services:
   swarmauri-sdk-docs:
     <<: *as_user
     build:
-      context: ../pkgs/community/zdx
-      dockerfile: Dockerfile
+      context: ../../ # repo root ⬅️
+      dockerfile: pkgs/community/zdx/Dockerfile
     container_name: swarmauri-sdk-docs
     ports:
       - "8000:8000" # Expose mkdocs on port 8000
@@ -38,8 +38,8 @@ services:
   peagen-docs:
     <<: *as_user
     build:
-      context: ../pkgs/community/zdx
-      dockerfile: Dockerfile
+      context: ../../ # repo root ⬅️
+      dockerfile: pkgs/community/zdx/Dockerfile
     container_name: peagen-docs
     ports:
       - "8001:8000" # Expose mkdocs on port 8001
@@ -67,8 +67,8 @@ services:
   tigrbl-docs:
     <<: *as_user
     build:
-      context: ../pkgs/community/zdx
-      dockerfile: Dockerfile
+      context: ../../ # repo root ⬅️
+      dockerfile: pkgs/community/zdx/Dockerfile
     container_name: tigrbl-docs
     ports:
       - "8002:8000" # Expose mkdocs on port 8002
