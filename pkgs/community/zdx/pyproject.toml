@@ -1,6 +1,6 @@
 [project]
 name = "zdx"
-version = "0.1.0.dev8"
+version = "0.1.0.dev9"
 description = "Z Doc Builder Experience by Swarmauri"
 readme = "README.md"
 license = "Apache-2.0"
