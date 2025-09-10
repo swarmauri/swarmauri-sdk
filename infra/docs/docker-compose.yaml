@@ -22,11 +22,14 @@ services:
 
         export UV_PROJECT_ENVIRONMENT=/tmp/.venv
 
-        # Create venv if missing
-        uv venv /tmp/.venv
+        # Ensure venv exists and reset if corrupted
+        uv venv /tmp/.venv --clear
 
+        # Install the zdx project into the venv
         uv pip install --directory /pkgs/community/zdx . --upgrade
-        uv run --directory /pkgs/community/zdx zdx serve \
+
+        # Run docs server inside the venv
+        uv run zdx serve \
           --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
       "
 
@@ -52,14 +55,16 @@ services:
 
         export UV_PROJECT_ENVIRONMENT=/tmp/.venv
 
-        # Create venv if missing
-        uv venv /tmp/.venv
+        # Ensure venv exists and reset if corrupted
+        uv venv /tmp/.venv --clear
 
+        # Install the zdx project into the venv
         uv pip install --directory /pkgs/community/zdx . --upgrade
-        uv run --directory /pkgs/community/zdx zdx serve \
+
+        # Run docs server inside the venv
+        uv run zdx serve \
           --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
       "
-
     depends_on:
       - nginx-proxy-manager
     networks:
@@ -81,12 +86,15 @@ services:
         set -euo pipefail
 
         export UV_PROJECT_ENVIRONMENT=/tmp/.venv
-        
-        # Create venv if missing
-        uv venv /tmp/.venv
 
+        # Ensure venv exists and reset if corrupted
+        uv venv /tmp/.venv --clear
+
+        # Install the zdx project into the venv
         uv pip install --directory /pkgs/community/zdx . --upgrade
-        uv run --directory /pkgs/community/zdx zdx serve \
+
+        # Run docs server inside the venv
+        uv run zdx serve \
           --generate --docs-dir /docs --manifest api_manifest.yaml --changed-only
       "
 
