@@ -1,0 +1,37 @@
+[project]
+name = "zdx"
+version = "0.1.0"
+description = "Z Doc Builder Experience by Swarmauri"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.12,<3.13"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+keywords = ["mkdocs", "documentation", "swarmauri"]
+dependencies = [
+    "mkdocs",
+    "mkdocs-gen-files",
+    "mkdocs-literate-nav",
+    "mkdocs-material>=9.6.4,<10.0.0",
+    "mkdocstrings[python]>=0.28.1,<0.29.0",
+    "mkdocs-autorefs",
+    "griffe-typingdoc",
+    "pyyaml>=6.0",
+    "ruff>=0.5",
+]
+
+[project.scripts]
+zdx = "zdx.cli:main"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+packages = [{ include = "zdx" }]
+include = [
+    { path = "docs" },
+    { path = "mkdocs.yml" },
+    { path = "mkdocs.insiders.yaml" },
+    { path = "api_manifest.yaml" },
+    { path = "Dockerfile" },
+]
