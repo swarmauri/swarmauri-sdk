@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 
-from tigrbl.v3 import AutoApp
+from tigrbl.v3 import TigrblApp
 from tigrbl.v3.engine import engine as build_engine
 from swarmauri_crypto_paramiko import ParamikoCrypto
 from swarmauri_standard.key_providers import InMemoryKeyProvider
@@ -27,7 +27,7 @@ async def _stash_ctx(ctx):
     ctx["key_provider"] = KEY_PROVIDER
 
 
-app = AutoApp(
+app = TigrblApp(
     title="Tigrbl-KMS",
     version="0.1.0",
     openapi_url="/openapi.json",

@@ -75,18 +75,19 @@ from .ddl import ensure_schemas, register_sqlite_attach, bootstrap_dbschema
 
 # ── Config constants (defaults used by REST) ───────────────────────────────────
 from .config.constants import DEFAULT_HTTP_METHODS
-from .autoapp import AutoApp
+from .app import App, TigrblApp
 from .tigrbl import TigrblApi
 from .api._api import Api
 
 from .table import Base
 from .op import Op
-from .types import App
+
+AutoApp = TigrblApp
 
 
 __all__: list[str] = []
 
-__all__ += ["AutoApp", "TigrblApi", "Api", "Base", "App", "Op"]
+__all__ += ["TigrblApp", "AutoApp", "TigrblApi", "Api", "Base", "App", "Op"]
 
 __all__ += [
     # OpSpec core
