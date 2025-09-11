@@ -11,6 +11,7 @@ concurrency:
 
 jobs:
   deploy:
+    if: ${{ !cancelled() }}
     runs-on: peagenx
     env:
       # --- non-secret values ---

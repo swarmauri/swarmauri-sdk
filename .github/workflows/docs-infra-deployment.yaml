@@ -4,6 +4,7 @@ on:
 
 jobs:
   deploy-infra:
+    if: ${{ !cancelled() }}
     runs-on: [docs]
     steps:
       - name: Checkout repository
