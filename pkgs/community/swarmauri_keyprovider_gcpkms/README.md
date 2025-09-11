@@ -1,3 +1,21 @@
+![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
+
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_keyprovider_gcpkms/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_keyprovider_gcpkms" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_keyprovider_gcpkms/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_keyprovider_gcpkms.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_keyprovider_gcpkms/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_keyprovider_gcpkms" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_keyprovider_gcpkms/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_keyprovider_gcpkms" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_keyprovider_gcpkms/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_keyprovider_gcpkms?label=swarmauri_keyprovider_gcpkms&color=green" alt="PyPI - swarmauri_keyprovider_gcpkms"/></a>
+
+</p>
+
+---
+
 # Swarmauri GCP KMS Key Provider
 
 GCP KMS-backed key provider for the Swarmauri framework. This plugin exposes

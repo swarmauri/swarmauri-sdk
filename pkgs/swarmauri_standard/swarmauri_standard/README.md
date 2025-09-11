@@ -1,3 +1,21 @@
+![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
+
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri-standard/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri-standard" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/swarmauri_standard/swarmauri_standard/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/swarmauri_standard/swarmauri_standard.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri-standard/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri-standard" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri-standard/">
+        <img src="https://img.shields.io/pypi/l/swarmauri-standard" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri-standard/">
+        <img src="https://img.shields.io/pypi/v/swarmauri-standard?label=swarmauri-standard&color=green" alt="PyPI - swarmauri-standard"/></a>
+
+</p>
+
+---
+
 # Standard Library
 
 
