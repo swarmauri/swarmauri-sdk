@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupyterdisplay"
-version = "0.8.0.dev3"
+version = "0.8.0.dev4"
 description = "A tool designed to display rich media and object representations in a Jupyter Notebook using IPython's display functionality."
 license = "Apache-2.0"
 readme = "README.md"

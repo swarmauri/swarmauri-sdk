@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "swarmauri_evaluator_anyusage"
-version = "0.3.0.dev3"
+version = "0.3.0.dev4"
 description = "An evaluator component that detects and penalizes usage of the `Any` type in Python code"
 authors = [
     {name = "SwarmAuri Team", email = "team@swarmauri.com"}
