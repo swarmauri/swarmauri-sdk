@@ -6,6 +6,7 @@ on:
 
 jobs:
   set-matrix:
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
@@ -44,6 +45,7 @@ jobs:
 
   test:
     needs: set-matrix
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     strategy:
       matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}

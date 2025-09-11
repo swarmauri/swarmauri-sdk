@@ -20,6 +20,7 @@ concurrency:
 
 jobs:
   test:
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
@@ -110,7 +111,7 @@ jobs:
     name: Commit Changes
     needs: test
     runs-on: ubuntu-latest
-    if: always()
+    if: ${{ !cancelled() && always() }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -163,7 +164,7 @@ jobs:
   release:
     needs: [commit]
     runs-on: ubuntu-latest
-    if: always()
+    if: ${{ !cancelled() && always() }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
