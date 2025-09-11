@@ -139,13 +139,13 @@ members = [
     "community/swarmauri_certs_csronly",
     "community/swarmauri_certs_azure",
     "standards/swarmauri_certs_remote_ca",
-    "community/swarmauri_cert_cfssl",
+    "community/swarmauri_certs_cfssl",
     "standards/swarmauri_certs_x509",
     "community/swarmauri_middleware_circuitbreaker",
     "community/swarmauri_middleware_ratepolicy",
     "community/swarmauri_keyprovider_aws_kms",
     "community/swarmauri_certservice_stepca",
-    "community/swarmauri_cert_acme",
+    "community/swarmauri_certs_acme",
     "community/swarmauri_certservice_aws_kms",
     "community/swarmauri_vectorstore_redis",
     "community/swarmauri_vectorstore_qdrant",
@@ -210,7 +210,7 @@ members = [
     "community/swarmauri_tool_searchword",
     "community/swarmauri_keyprovider_gcpkms",
     "community/swarmauri_certs_crlverifyservice",
-    "community/swarmauri_cert_ocspverify",
+    "community/swarmauri_certs_ocspverify",
     "community/swarmauri_certservice_scep",
     "community/swarmauri_certservice_ms_adcs",
     "community/swarmauri_certservice_gcpkms",
@@ -294,14 +294,14 @@ swarmauri_mre_crypto_age = { workspace = true }
 swarmauri_mre_crypto_pgp = { workspace = true }
 swarmauri_mre_crypto_ecdh_es_kw = { workspace = true }
 swarmauri_signing_ed25519 = { workspace = true }
-swarmauri_cert_cfssl = { workspace = true }
+swarmauri_certs_cfssl = { workspace = true }
 swarmauri_keyprovider_local = { workspace = true }
 swarmauri_keyprovider_pkcs11 = { workspace = true }
 swarmauri_keyprovider_remote_jwks = { workspace = true }
 swarmauri_keyprovider_ssh = { workspace = true }
 swarmauri_keyprovider_aws_kms = { workspace = true }
 swarmauri_certservice_stepca = { workspace = true }
-swarmauri_cert_acme = { workspace = true }
+swarmauri_certs_acme = { workspace = true }
 swarmauri_keyprovider_file = { workspace = true }
 swarmauri_keyproviders_mirrored = { workspace = true }
 swarmauri_keyprovider_hierarchical = { workspace = true }
@@ -395,7 +395,7 @@ swarmauri_tool_searchword = { workspace = true }
 swarmauri_keyprovider_gcpkms = { workspace = true }
 swarmauri_certs_csronly = { workspace = true }
 swarmauri_certs_azure = { workspace = true }
-swarmauri_cert_ocspverify = { workspace = true }
+swarmauri_certs_ocspverify = { workspace = true }
 swarmauri_tool_containernewsession = { workspace = true }
 swarmauri_tool_containerfeedchars = { workspace = true }
 swarmauri_tool_containermakepr = { workspace = true }
