@@ -31,9 +31,10 @@ class GroqVLM(VLMBase):
 
     api_key: SecretStr
     allowed_models: List[str] = [
-        "llama-3.2-11b-vision-preview",
+        "meta-llama/llama-4-scout-17b-16e-instruct",
+        "meta-llama/llama-4-maverick-17b-128e-instruct",
     ]
-    name: str = "llama-3.2-11b-vision-preview"
+    name: str = "meta-llama/llama-4-scout-17b-16e-instruct"
     type: Literal["GroqVLM"] = "GroqVLM"
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
@@ -41,7 +42,7 @@ class GroqVLM(VLMBase):
         default="https://api.groq.com/openai/v1/chat/completions"
     )
 
-    def __init__(self, **data):
+    def __init__(self, **data: dict[str, Any]):
         """
         Initialize the GroqAIAudio class with the provided data.
 
@@ -392,4 +393,7 @@ class GroqVLM(VLMBase):
         Returns:
             List[str]: List of allowed model names.
         """
-        return ["llama-3.2-90b-vision-preview", "llama-3.2-11b-vision-preview"]
+        return [
+            "meta-llama/llama-4-scout-17b-16e-instruct",
+            "meta-llama/llama-4-maverick-17b-128e-instruct",
+        ]

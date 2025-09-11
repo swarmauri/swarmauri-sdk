@@ -1,0 +1,40 @@
+targets:
+  # Main SDK packages
+  - name: Core
+    package: swarmauri_core
+    search_path: /pkgs/core
+    include:
+      - swarmauri_core.*
+    exclude:
+      - "*.tests.*"
+      - "*.experimental.*"
+
+  - name: Base
+    package: swarmauri_base
+    search_path: /pkgs/base
+    include:
+      - swarmauri_base.*
+
+  - name: Standard
+    package: swarmauri_standard
+    search_path: /pkgs/swarmauri_standard
+    include:
+      - swarmauri_standard.*
+
+  # Discover all packages under standards/community
+  - name: First_Class
+    discover: true
+    search_path: /pkgs/standards
+    include:
+      - "*."  # all modules within discovered packages
+    exclude:
+      - "*.tests.*"
+
+  - name: Second_Class
+    discover: true
+    search_path: /pkgs/community
+    include:
+      - "*."
+    exclude:
+      - "*.tests.*"
+

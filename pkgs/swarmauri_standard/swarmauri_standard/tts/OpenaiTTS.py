@@ -1,7 +1,7 @@
 import asyncio
 import io
 import os
-from typing import AsyncIterator, Dict, Iterator, List, Literal
+from typing import Any, AsyncIterator, Dict, Iterator, List, Literal
 
 import httpx
 from pydantic import PrivateAttr, SecretStr, model_validator
@@ -30,7 +30,7 @@ class OpenaiTTS(TTSBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = ["tts-1", "tts-1-hd"]
+    allowed_models: List[str] = ["tts-1", "tts-1-hd", "gpt-4o-mini-tts"]
 
     allowed_voices: List[str] = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
     name: str = "tts-1"
@@ -39,12 +39,12 @@ class OpenaiTTS(TTSBase):
     _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/audio/speech")
     _headers: Dict[str, str] = PrivateAttr(default=None)
 
-    def __init__(self, **data):
+    def __init__(self, **data: Dict[str, Any]):
         """
         Initialize the OpenaiTTS class with the provided data.
 
         Args:
-            **data: Arbitrary keyword arguments containing initialization data.
+            **data (Dict[str, Any]): Arbitrary keyword arguments containing initialization data.
         """
         super().__init__(**data)
         self._headers = {

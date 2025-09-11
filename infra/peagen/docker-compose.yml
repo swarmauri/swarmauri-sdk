@@ -1,0 +1,268 @@
+x-paths: &paths
+  DATA_ROOT: ${DATA_ROOT:-./data} # override in .env or CI
+  CONFIG_ROOT: ${CONFIG_ROOT:-./config} # idem
+
+services:
+  # ────────────────────────────────────────────────
+  # MinIO
+  # ────────────────────────────────────────────────
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z-cpuv1
+    container_name: minio
+    command: server /data --console-address ":9001"
+    ports:
+      - 9000
+      - 9001
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_CONFIG_DIR: /root/.minio
+      MINIO_BROWSER_REDIRECT_URL: https://msnadm.peagen.com/
+    volumes:
+      - "${DATA_ROOT}/minio/data:/data" # bucket objects
+      - "${CONFIG_ROOT}/minio:/root/.minio" # users / policies
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks: [app_net]
+
+  # ────────────────────────────────────────────────
+  # Redis
+  # ────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    command: >
+      redis-server
+        --requirepass ${REDIS_PASSWORD}
+        --appendonly yes
+        --dir /data
+    volumes:
+      - "${DATA_ROOT}/redis:/data"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks: [app_net]
+
+  # ────────────────────────────────────────────────
+  # PostgreSQL
+  # ────────────────────────────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      PGPORT: 5432
+    ports:
+      - 5432
+    volumes:
+      - "${DATA_ROOT}/postgres:/var/lib/postgresql/data"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks: [app_net]
+
+  # pgAdmin
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - 80
+    volumes:
+      - ${CONFIG_ROOT}/pgadmin:/var/lib/pgadmin:rw
+    restart: unless-stopped
+    networks: [app_net]
+
+  # Nginx Proxy Manager
+  nginx-proxy-manager:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: nginx-proxy-manager
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "80:80" # HTTP
+      - "443:443" # HTTPS
+      - "81:81" # Admin UI
+      - "6379:6379"
+    environment:
+      DB_POSTGRES_HOST: postgres
+      DB_POSTGRES_PORT: 5432
+      DB_POSTGRES_USER: ${POSTGRES_USER}
+      DB_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_POSTGRES_NAME: ${NPM_DB}
+
+    volumes:
+      - "${CONFIG_ROOT}/npm/data:/data"
+      - "${CONFIG_ROOT}/npm/letsencrypt:/etc/letsencrypt"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:81/api/status"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks: [app_net]
+
+  ## ───────────────────────────── Gitea ─────────────────────────────
+  gitea:
+    image: gitea/gitea:1.24.2
+    depends_on: [postgres]
+    restart: unless-stopped
+    container_name: gitea
+    environment:
+      USER_UID: 1000
+      USER_GID: 1000
+
+      # ---- core URLs & ports ----
+      GITEA__server__ROOT_URL: https://git.peagen.com/
+      GITEA__server__DOMAIN: git.peagen.com
+      GITEA__server__SSH_DOMAIN: git.peagen.com
+      GITEA__server__START_SSH_SERVER: "true"
+      GITEA__server__SSH_PORT: "2222"
+      GITEA__server__SSH_LISTEN_PORT: "2222"
+
+      # ---- database ----
+      GITEA__database__DB_TYPE: postgres
+      GITEA__database__HOST: postgres:5432
+      GITEA__database__NAME: ${GIT_DB}
+      GITEA__database__USER: ${POSTGRES_USER}
+      GITEA__database__PASSWD: ${POSTGRES_PASSWORD}
+
+      # (good defaults) disable open-registration, enable LFS, etc.
+      GITEA__service__REGISTER_EMAIL_CONFIRM: "false"
+      GITEA__service__DISABLE_REGISTRATION: "true"
+      GITEA__repository__ENABLE_PUSH_CREATE_USER: "true"
+      GITEA__repository__ENABLE_PUSH_CREATE_ORG: "true"
+
+    volumes:
+      - /mnt/data/gitea:/data # <- all repos & config live here
+    ports:
+      - 3000 # Web / API
+      - "2222:2222" # SSH Git
+    networks: [app_net]
+
+  ## ───────────────────────────── Peagen ────────────────────────────
+  gateway:
+    build:
+      context: ../../ # repo root ⬅️
+      dockerfile: pkgs/standards/peagen/peagen/gateway/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      PG_HOST: postgres
+      PG_PORT: 5432
+      PG_DB: ${PEAGEN_DB}
+      PG_USER: ${POSTGRES_USER}
+      PG_PASS: ${POSTGRES_PASSWORD}
+      PG_DSN: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${PEAGEN_DB}
+      REDIS_HOST: redis
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+      PEAGEN_GIT_SHADOW_PAT: ${PEAGEN_GIT_SHADOW_PAT}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/system/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks: [app_net]
+
+  worker:
+    build:
+      context: ../../
+      dockerfile: pkgs/standards/peagen/peagen/worker/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      gateway:
+        condition: service_healthy
+    environment:
+      PEAGEN_GATEWAY: "http://gateway:8000/rpc"
+      PEAGEN_POOL: "default"
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      MINIO_ENDPOINT: "minio:9000"
+      MINIO_BUCKET: "test"
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/system/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks: [app_net]
+
+  # ────────────────────────────────────────────────
+  # TigrblAuth
+  # ────────────────────────────────────────────────
+  tigrbl_auth:
+    build:
+      context: ../../
+      dockerfile: pkgs/standards/tigrbl_auth/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PG_HOST: postgres
+      PG_PORT: 5432
+      PG_DB: ${TIGRBL_AUTH_DB}
+      PG_USER: ${POSTGRES_USER}
+      PG_PASS: ${POSTGRES_PASSWORD}
+      PG_DSN: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${TIGRBL_AUTH_DB}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/system/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks: [app_net]
+
+  # ────────────────────────────────────────────────
+  # Tigrbl KMS
+  # ────────────────────────────────────────────────
+  tigrbl_kms:
+    build:
+      context: ../../
+      dockerfile: pkgs/standards/tigrbl_kms/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      KMS_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${TIGRBL_KMS_DB}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/system/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks: [app_net]
+
+networks:
+  app_net: { driver: bridge }
+

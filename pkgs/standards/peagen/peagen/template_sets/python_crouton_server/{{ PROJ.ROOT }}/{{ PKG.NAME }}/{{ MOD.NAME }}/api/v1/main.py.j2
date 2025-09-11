@@ -1,0 +1,43 @@
+"""This module defines the main API routes for the application.
+
+Functions:
+    get_routes: Generate and return a list of routers for the application.
+
+Constants:
+    COMPONENTS (list): A list of component names to route objects.
+"""
+
+from fastapi import APIRouter
+
+from app.api.v1.utils import (
+    create_route_objects,
+    create_routers,
+    attach_list_of_routers,
+)
+
+
+COMPONENTS = [
+]
+
+
+def get_routes():
+    """
+    Generate and return a list of routers for the application.
+
+    This function creates route objects from the COMPONENTS, then uses these
+    route objects to create routers of type SQLALCHEMY. Custom routes can be
+    added by extending the routers list with additional route objects.
+
+    Returns:
+        list: A list of router objects.
+    """
+    routes = APIRouter()
+
+    routes_to_create = create_route_objects(COMPONENTS)
+    list_of_routers = create_routers(routes_to_create)
+    attach_list_of_routers(routes, list_of_routers)
+
+    return routes
+
+
+ROUTES = get_routes()

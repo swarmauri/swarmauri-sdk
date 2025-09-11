@@ -1,5 +1,8 @@
 from typing import Annotated, Any, Union, get_args, get_origin
 
+import time
+import pytest
+
 from swarmauri_typing.UnionFactory import UnionFactory, UnionFactoryMetadata
 
 
@@ -149,3 +152,25 @@ def test_add_metadata_to_annotated_type():
     assert args[1].value == "first"
     assert isinstance(args[2], CustomMetadata)
     assert args[2].value == "second"
+
+
+@pytest.mark.perf
+def test_union_factory_performance_happy_path():
+    """Ensure creating unions in happy path performs efficiently"""
+    factory = UnionFactory(get_types_by_class)
+    start = time.perf_counter()
+    for _ in range(1000):
+        factory[A]
+    duration = time.perf_counter() - start
+    assert duration < 0.05
+
+
+@pytest.mark.perf
+def test_union_factory_performance_worst_case():
+    """Ensure creating unions with empty result stays performant"""
+    factory = UnionFactory(get_types_by_class)
+    start = time.perf_counter()
+    for _ in range(1000):
+        factory["empty"]
+    duration = time.perf_counter() - start
+    assert duration < 0.05

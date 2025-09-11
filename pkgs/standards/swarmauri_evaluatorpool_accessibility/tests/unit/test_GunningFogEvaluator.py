@@ -28,7 +28,7 @@ def mock_program():
         MagicMock: A mock program object
     """
     program = MagicMock(spec=Program)
-    program.get_text = MagicMock(return_value="")
+    program.get_source_files.return_value = {"main.txt": ""}
     return program
 
 
@@ -106,7 +106,7 @@ def test_count_complex_words(evaluator):
 @pytest.mark.unit
 def test_compute_score_empty_text(evaluator, mock_program):
     """Test compute_score with empty text."""
-    mock_program.get_text.return_value = ""
+    mock_program.get_source_files.return_value = {"main.txt": ""}
     score, metadata = evaluator._compute_score(mock_program)
 
     assert score == 0.0
@@ -117,7 +117,7 @@ def test_compute_score_empty_text(evaluator, mock_program):
 @pytest.mark.unit
 def test_compute_score_invalid_text(evaluator, mock_program):
     """Test compute_score with invalid text type."""
-    mock_program.get_text.return_value = None
+    mock_program.get_source_files.return_value = {"main.txt": None}
     score, metadata = evaluator._compute_score(mock_program)
 
     assert score == 0.0
@@ -129,7 +129,9 @@ def test_compute_score_invalid_text(evaluator, mock_program):
 def test_compute_score_no_sentences(evaluator, mock_program):
     """Test compute_score with text that has no sentences."""
     # Text with words but no sentence terminators
-    mock_program.get_text.return_value = "words without proper sentence structure"
+    mock_program.get_source_files.return_value = {
+        "main.txt": "words without proper sentence structure"
+    }
 
     # Mock the _count_sentences method to return 0
     with patch.object(evaluator, "_count_sentences", return_value=0):
@@ -144,9 +146,9 @@ def test_compute_score_no_sentences(evaluator, mock_program):
 def test_compute_score_simple_text(evaluator, mock_program):
     """Test compute_score with simple text."""
     # Simple text with known characteristics
-    mock_program.get_text.return_value = (
-        "This is a simple sentence. It has basic words."
-    )
+    mock_program.get_source_files.return_value = {
+        "main.txt": "This is a simple sentence. It has basic words."
+    }
 
     # Mock the counting methods to return controlled values
     with (
@@ -172,9 +174,9 @@ def test_compute_score_simple_text(evaluator, mock_program):
 def test_compute_score_complex_text(evaluator, mock_program):
     """Test compute_score with more complex text."""
     # More complex text with known characteristics
-    mock_program.get_text.return_value = (
-        "The university professor discussed the utilization of computational resources."
-    )
+    mock_program.get_source_files.return_value = {
+        "main.txt": "The university professor discussed the utilization of computational resources."
+    }
 
     # Mock the counting methods to return controlled values
     with (
@@ -200,9 +202,9 @@ def test_compute_score_complex_text(evaluator, mock_program):
 def test_compute_score_very_complex_text(evaluator, mock_program):
     """Test compute_score with text that exceeds the cap."""
     # Very complex text with characteristics that would exceed the cap
-    mock_program.get_text.return_value = (
-        "Antidisestablishmentarianism. Pneumonoultramicroscopicsilicovolcanoconiosis."
-    )
+    mock_program.get_source_files.return_value = {
+        "main.txt": "Antidisestablishmentarianism. Pneumonoultramicroscopicsilicovolcanoconiosis."
+    }
 
     # Mock the counting methods to return values that would exceed the cap
     with (
@@ -231,7 +233,9 @@ def test_logging(evaluator, mock_program, caplog):
     caplog.set_level(logging.DEBUG)
 
     # Set up a valid text
-    mock_program.get_text.return_value = "This is a test. It has two sentences."
+    mock_program.get_source_files.return_value = {
+        "main.txt": "This is a test. It has two sentences."
+    }
 
     evaluator._compute_score(mock_program)
 
@@ -240,7 +244,7 @@ def test_logging(evaluator, mock_program, caplog):
 
     # Test warning for empty text
     caplog.clear()
-    mock_program.get_text.return_value = ""
+    mock_program.get_source_files.return_value = {"main.txt": ""}
 
     evaluator._compute_score(mock_program)
 

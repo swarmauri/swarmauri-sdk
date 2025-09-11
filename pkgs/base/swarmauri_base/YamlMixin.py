@@ -51,5 +51,5 @@ class YamlMixin(BaseModel):
         # Filter the JSON data
         filtered_data = process_fields(json_data, fields_to_exclude)
 
-        # Convert the filtered data into YAML
-        return yaml.dump(filtered_data, default_flow_style=False)
+        # Convert the filtered data into YAML using safe mode
+        return yaml.safe_dump(filtered_data, default_flow_style=False)

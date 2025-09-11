@@ -1,6 +1,6 @@
 import asyncio
 import json
-from typing import AsyncIterator, Dict, Iterator, List, Literal
+from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Optional, Type
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -8,6 +8,7 @@ from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
 
+from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.utils.duration_manager import DurationManager
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
@@ -20,10 +21,11 @@ class CohereModel(LLMBase):
     Cohere's chat endpoints, supporting single messages, streaming, and batch processing.
 
     Attributes:
-        api_key (str): The authentication key for accessing Cohere's API.
+        api_key (SecretStr): The authentication key for accessing Cohere's API.
         allowed_models (List[str]): List of supported Cohere model identifiers.
         name (str): The default model name to use (defaults to "command").
         type (Literal["CohereModel"]): The type identifier for this model class.
+        timeout (float): Timeout for API requests in seconds.
 
     Link to Allowed Models: https://docs.cohere.com/docs/models
     Link to API Key: https://dashboard.cohere.com/api-keys
@@ -36,7 +38,13 @@ class CohereModel(LLMBase):
     allowed_models: List[str] = [
         "command-a-03-2025",
         "command-r7b-12-2024",
+        "command-a-translate-08-2025",
+        "command-a-reasoning-08-2025",
+        "command-a-vision-07-2025",
+        "command-r-plus-04-2024",
         "command-r-plus",
+        "command-r-08-2024",
+        "command-r-03-2024",
         "command-r",
         "command",
         "command-nightly",
@@ -48,12 +56,12 @@ class CohereModel(LLMBase):
 
     timeout: float = 600.0
 
-    def __init__(self, **data):
+    def __init__(self, **data: Dict[str, Any]) -> None:
         """
         Initialize the CohereModel with the provided configuration.
 
         Args:
-            **data: Keyword arguments for model configuration, must include 'api_key'.
+            **data (Dict[str, Any]): Keyword arguments for model configuration, must include 'api_key'.
         """
         super().__init__(**data)
         headers = {
@@ -66,6 +74,12 @@ class CohereModel(LLMBase):
         )
 
     def get_headers(self) -> Dict[str, str]:
+        """
+        Generate the HTTP headers needed for API requests.
+
+        Returns:
+            Dict[str, str]: Headers dictionary with authorization and content type.
+        """
         return {
             "accept": "application/json",
             "content-type": "application/json",
@@ -73,19 +87,19 @@ class CohereModel(LLMBase):
         }
 
     def _format_messages(
-        self, messages: List[MessageBase]
-    ) -> tuple[List[Dict[str, str]], str, str]:
+        self, messages: List[Type[MessageBase]]
+    ) -> tuple[List[Dict[str, str]], Optional[str], Optional[str]]:
         """
         Format a list of messages into Cohere's expected chat format.
 
         Args:
-            messages: List of MessageBase objects containing the conversation history.
+            messages (List[Type[MessageBase]]): List of MessageBase objects containing the conversation history.
 
         Returns:
             tuple containing:
                 - List[Dict[str, str]]: Formatted chat history
-                - str: System message (if any)
-                - str: Latest user message
+                - Optional[str]: System message (if any)
+                - Optional[str]: Latest user message
         """
         chat_history = []
         system_message = None
@@ -114,7 +128,7 @@ class CohereModel(LLMBase):
 
     def _prepare_usage_data(
         self,
-        usage_data: Dict,
+        usage_data: Dict[str, int],
         prompt_time: float,
         completion_time: float,
     ) -> UsageData:
@@ -122,9 +136,9 @@ class CohereModel(LLMBase):
         Prepare usage statistics from API response and timing data.
 
         Args:
-            usage_data: Dictionary containing token usage information from the API
-            prompt_time: Time taken to send the prompt
-            completion_time: Time taken to receive the completion
+            usage_data (Dict[str, int]): Dictionary containing token usage information from the API
+            prompt_time (float): Time taken to send the prompt
+            completion_time (float): Time taken to receive the completion
 
         Returns:
             UsageData: Object containing formatted usage statistics
@@ -146,17 +160,22 @@ class CohereModel(LLMBase):
         return usage
 
     @retry_on_status_codes((429, 529), max_retries=1)
-    def predict(self, conversation, temperature=0.7, max_tokens=256):
+    def predict(
+        self,
+        conversation: Conversation,
+        temperature: float = 0.7,
+        max_tokens: int = 256,
+    ) -> Conversation:
         """
         Generate a single prediction from the model synchronously.
 
         Args:
-            conversation: The conversation object containing message history
+            conversation (Conversation): The conversation object containing message history
             temperature (float, optional): Sampling temperature. Defaults to 0.7
             max_tokens (int, optional): Maximum tokens in response. Defaults to 256
 
         Returns:
-            The updated conversation object with the model's response added
+            Conversation: The updated conversation object with the model's response added
 
         Raises:
             httpx.HTTPError: If the API request fails
@@ -203,17 +222,22 @@ class CohereModel(LLMBase):
         return conversation
 
     @retry_on_status_codes((429, 529), max_retries=1)
-    async def apredict(self, conversation, temperature=0.7, max_tokens=256):
+    async def apredict(
+        self,
+        conversation: Conversation,
+        temperature: float = 0.7,
+        max_tokens: int = 256,
+    ) -> Conversation:
         """
         Generate a single prediction from the model asynchronously.
 
         Args:
-            conversation: The conversation object containing message history
+            conversation (Conversation): The conversation object containing message history
             temperature (float, optional): Sampling temperature. Defaults to 0.7
             max_tokens (int, optional): Maximum tokens in response. Defaults to 256
 
         Returns:
-            The updated conversation object with the model's response added
+            Conversation: The updated conversation object with the model's response added
 
         Raises:
             httpx.HTTPError: If the API request fails
@@ -263,7 +287,12 @@ class CohereModel(LLMBase):
         return conversation
 
     @retry_on_status_codes((429, 529), max_retries=1)
-    def stream(self, conversation, temperature=0.7, max_tokens=256) -> Iterator[str]:
+    def stream(
+        self,
+        conversation: Conversation,
+        temperature: float = 0.7,
+        max_tokens: int = 256,
+    ) -> Iterator[str]:
         """
         Stream responses from the model synchronously, yielding content as it becomes available.
 
@@ -272,7 +301,7 @@ class CohereModel(LLMBase):
         complete response to the conversation history.
 
         Args:
-            conversation: The conversation object containing message history
+            conversation (Conversation): The conversation object containing message history
             temperature (float, optional): Sampling temperature. Controls randomness in the response.
                 Higher values (e.g., 0.8) create more diverse outputs, while lower values (e.g., 0.2)
                 make outputs more deterministic. Defaults to 0.7.
@@ -334,7 +363,10 @@ class CohereModel(LLMBase):
 
     @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
-        self, conversation, temperature=0.7, max_tokens=256
+        self,
+        conversation: Conversation,
+        temperature: float = 0.7,
+        max_tokens: int = 256,
     ) -> AsyncIterator[str]:
         """
         Stream responses from the model asynchronously, yielding content as it becomes available.
@@ -344,7 +376,7 @@ class CohereModel(LLMBase):
         and manages its own AsyncClient instance to prevent event loop issues.
 
         Args:
-            conversation: The conversation object containing message history
+            conversation (Conversation): The conversation object containing message history
             temperature (float, optional): Sampling temperature. Controls randomness in the response.
                 Higher values (e.g., 0.8) create more diverse outputs, while lower values (e.g., 0.2)
                 make outputs more deterministic. Defaults to 0.7.
@@ -414,17 +446,22 @@ class CohereModel(LLMBase):
         else:
             conversation.add_message(AgentMessage(content=message_content))
 
-    def batch(self, conversations: List, temperature=0.7, max_tokens=256) -> List:
+    def batch(
+        self,
+        conversations: List[Conversation],
+        temperature: float = 0.7,
+        max_tokens: int = 256,
+    ) -> List[Conversation]:
         """
         Process multiple conversations synchronously.
 
         Args:
-            conversations: List of conversation objects to process
+            conversations (List[Conversation]): List of conversation objects to process
             temperature (float, optional): Sampling temperature. Defaults to 0.7
             max_tokens (int, optional): Maximum tokens in response. Defaults to 256
 
         Returns:
-            List of updated conversation objects with model responses added
+            List[Conversation]: List of updated conversation objects with model responses added
         """
         return [
             self.predict(conv, temperature=temperature, max_tokens=max_tokens)
@@ -432,23 +469,27 @@ class CohereModel(LLMBase):
         ]
 
     async def abatch(
-        self, conversations: List, temperature=0.7, max_tokens=256, max_concurrent=5
-    ) -> List:
+        self,
+        conversations: List[Conversation],
+        temperature: float = 0.7,
+        max_tokens: int = 256,
+        max_concurrent: int = 5,
+    ) -> List[Conversation]:
         """
         Process multiple conversations asynchronously with concurrency control.
 
         Args:
-            conversations: List of conversation objects to process
+            conversations (List[Conversation]): List of conversation objects to process
             temperature (float, optional): Sampling temperature. Defaults to 0.7
             max_tokens (int, optional): Maximum tokens in response. Defaults to 256
             max_concurrent (int, optional): Maximum number of concurrent requests. Defaults to 5
 
         Returns:
-            List of updated conversation objects with model responses added
+            List[Conversation]: List of updated conversation objects with model responses added
         """
         semaphore = asyncio.Semaphore(max_concurrent)
 
-        async def process_conversation(conv):
+        async def process_conversation(conv: Conversation) -> Conversation:
             async with semaphore:
                 return await self.apredict(
                     conv, temperature=temperature, max_tokens=max_tokens

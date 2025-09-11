@@ -31,6 +31,7 @@ def mock_program():
         MagicMock: A mock Program instance
     """
     program = MagicMock()
+    program.get_source_files.return_value = {"main.txt": ""}
     return program
 
 
@@ -183,7 +184,7 @@ def test_get_program_text(evaluator, mock_program, output, expected_text):
         output: The mock output to test
         expected_text: Expected extracted text
     """
-    mock_program.get_output.return_value = output
+    mock_program.get_source_files.return_value = {"main.txt": output}
     result = evaluator._get_program_text(mock_program)
     assert result == expected_text
 
@@ -199,7 +200,7 @@ def test_compute_score_with_valid_text(evaluator, mock_program):
     """
     # Sample text with known characteristics
     test_text = "This is a simple sentence. It has two sentences with simple words."
-    mock_program.get_output.return_value = test_text
+    mock_program.get_source_files.return_value = {"main.txt": test_text}
 
     score, metadata = evaluator._compute_score(mock_program)
 
@@ -227,7 +228,7 @@ def test_compute_score_with_empty_text(evaluator, mock_program):
         evaluator: The FleschKincaidGradeEvaluator instance
         mock_program: Mock Program object
     """
-    mock_program.get_output.return_value = ""
+    mock_program.get_source_files.return_value = {"main.txt": ""}
 
     score, metadata = evaluator._compute_score(mock_program)
 
@@ -246,7 +247,7 @@ def test_compute_score_with_insufficient_content(evaluator, mock_program):
         mock_program: Mock Program object
     """
     # A string without any sentence terminators or proper structure
-    mock_program.get_output.return_value = "a"
+    mock_program.get_source_files.return_value = {"main.txt": "a"}
 
     score, metadata = evaluator._compute_score(mock_program)
 
@@ -269,7 +270,7 @@ def test_formula_calculation(evaluator, mock_program):
     """
     # Create text with known characteristics for predictable formula calculation
     test_text = "This is a test. This is another test. This is a third test."
-    mock_program.get_output.return_value = test_text
+    mock_program.get_source_files.return_value = {"main.txt": test_text}
 
     score, metadata = evaluator._compute_score(mock_program)
 

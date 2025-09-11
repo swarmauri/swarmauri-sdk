@@ -1,5 +1,5 @@
 import asyncio
-from typing import Dict, List, Literal
+from typing import Any, Dict, List, Literal
 
 import aiofiles
 import httpx
@@ -27,7 +27,11 @@ class OpenaiSTT(STTBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = ["whisper-1"]
+    allowed_models: List[str] = [
+        "whisper-1",
+        "gpt-4o-transcribe",
+        "gpt-4o-mini-transcribe",
+    ]
 
     name: str = "whisper-1"
     type: Literal["OpenaiSTT"] = "OpenaiSTT"
@@ -35,12 +39,12 @@ class OpenaiSTT(STTBase):
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
     _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/audio/")
 
-    def __init__(self, **data):
+    def __init__(self, **data: Dict[str, Any]):
         """
         Initialize the OpenaiSTT class with the provided data.
 
         Args:
-            **data: Arbitrary keyword arguments containing initialization data.
+            **data (Dict[str, Any]): Arbitrary keyword arguments containing initialization data.
         """
         super().__init__(**data)
         self._client = httpx.Client(

@@ -16,6 +16,7 @@ from swarmauri_core.programs.IProgram import IProgram as Program
 logger = logging.getLogger(__name__)
 
 
+# this is only good for python 3.13+
 @ComponentBase.register_model()
 class SubprocessEvaluator(EvaluatorBase):
     """

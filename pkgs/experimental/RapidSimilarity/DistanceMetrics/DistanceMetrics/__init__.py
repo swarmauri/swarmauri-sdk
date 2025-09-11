@@ -1,4 +1,5 @@
-from .euclidean import euclideanfrom .cosine import cosine
+from .euclidean import euclidean
+from .cosine import cosine
 
 __all__ = [
     "euclidean",

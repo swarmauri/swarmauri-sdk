@@ -1,0 +1,11 @@
+version: v2
+meta:
+  name: demo
+baseArtifact: base.yaml
+factors:
+  - name: opt
+    levels:
+      - id: a
+        patchRef: patch.yaml
+        output_path: artifact.yaml
+        patchKind: json-merge

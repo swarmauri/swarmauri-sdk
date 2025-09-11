@@ -8,48 +8,9 @@ Provides mechanisms to retrieve and manage interface classes based on resource n
 """
 
 from typing import Optional, Type, Dict, Any, List
+import importlib
 import logging
 
-# Example imports for interface definitions
-from swarmauri_base.agents.AgentBase import AgentBase
-from swarmauri_base.chains.ChainBase import ChainBase
-from swarmauri_base.chunkers.ChunkerBase import ChunkerBase
-from swarmauri_base.control_panels.ControlPanelBase import ControlPanelBase
-from swarmauri_base.conversations.ConversationBase import ConversationBase
-from swarmauri_base.dataconnectors.DataConnectorBase import DataConnectorBase
-from swarmauri_base.distances.DistanceBase import DistanceBase
-from swarmauri_base.documents.DocumentBase import DocumentBase
-from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase
-from swarmauri_base.factories.FactoryBase import FactoryBase
-from swarmauri_base.image_gens.ImageGenBase import ImageGenBase
-from swarmauri_base.llms.LLMBase import LLMBase
-from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
-from swarmauri_base.tts.TTSBase import TTSBase
-from swarmauri_base.ocrs.OCRBase import OCRBase
-from swarmauri_base.stt.STTBase import STTBase
-from swarmauri_base.vlms.VLMBase import VLMBase
-from swarmauri_base.measurements.MeasurementBase import MeasurementBase
-from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.parsers.ParserBase import ParserBase
-from swarmauri_base.pipelines.PipelineBase import PipelineBase
-from swarmauri_base.prompts.PromptBase import PromptBase
-from swarmauri_base.prompt_templates.PromptTemplateBase import PromptTemplateBase
-from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
-from swarmauri_base.service_registries.ServiceRegistryBase import ServiceRegistryBase
-from swarmauri_base.state.StateBase import StateBase
-from swarmauri_base.swarms.SwarmBase import SwarmBase
-from swarmauri_base.task_mgmt_strategies.TaskMgmtStrategyBase import (
-    TaskMgmtStrategyBase,
-)
-from swarmauri_base.toolkits.ToolkitBase import ToolkitBase
-from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri_base.transports.TransportBase import TransportBase
-from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase
-from swarmauri_base.vectors.VectorBase import VectorBase
-from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
-from swarmauri_base.loggers.LoggerBase import LoggerBase
-from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
-from swarmauri_base.rate_limits.RateLimitBase import RateLimitBase
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -63,50 +24,60 @@ class InterfaceRegistry:
     Provides methods to retrieve and manage interface classes based on resource namespaces.
     """
 
-    # Define the mapping as a class variable
-    INTERFACE_REGISTRY: Dict[str, Optional[Type[Any]]] = {
-        "swarmauri.agents": AgentBase,
-        "swarmauri.chains": ChainBase,
-        "swarmauri.chunkers": ChunkerBase,
-        "swarmauri.control_panels": ControlPanelBase,
-        "swarmauri.conversations": ConversationBase,
-        "swarmauri.dataconnectors": DataConnectorBase,
+    INTERFACE_IMPORT_PATHS: Dict[str, Optional[str]] = {
+        "swarmauri.agents": "swarmauri_base.agents.AgentBase",
+        "swarmauri.chains": "swarmauri_base.chains.ChainBase",
+        "swarmauri.chunkers": "swarmauri_base.chunkers.ChunkerBase",
+        "swarmauri.control_panels": "swarmauri_base.control_panels.ControlPanelBase",
+        "swarmauri.conversations": "swarmauri_base.conversations.ConversationBase",
+        "swarmauri.dataconnectors": "swarmauri_base.dataconnectors.DataConnectorBase",
         "swarmauri.decorators": None,
-        "swarmauri.distances": DistanceBase,
-        "swarmauri.documents": DocumentBase,
-        "swarmauri.embeddings": EmbeddingBase,
+        "swarmauri.distances": "swarmauri_base.distances.DistanceBase",
+        "swarmauri.documents": "swarmauri_base.documents.DocumentBase",
+        "swarmauri.embeddings": "swarmauri_base.embeddings.EmbeddingBase",
         "swarmauri.exceptions": None,
-        "swarmauri.factories": FactoryBase,
-        "swarmauri.image_gens": ImageGenBase,
-        "swarmauri.llms": LLMBase,
-        "swarmauri.tool_llms": ToolLLMBase,
-        "swarmauri.tts": TTSBase,
-        "swarmauri.ocrs": OCRBase,
-        "swarmauri.stt": STTBase,
-        "swarmauri.vlms": VLMBase,
-        "swarmauri.measurements": MeasurementBase,
-        "swarmauri.messages": MessageBase,
-        "swarmauri.parsers": ParserBase,
-        "swarmauri.pipelines": PipelineBase,
-        "swarmauri.prompts": PromptBase,
-        "swarmauri.prompt_templates": PromptTemplateBase,
+        "swarmauri.factories": "swarmauri_base.factories.FactoryBase",
+        "swarmauri.image_gens": "swarmauri_base.image_gens.ImageGenBase",
+        "swarmauri.llms": "swarmauri_base.llms.LLMBase",
+        "swarmauri.tool_llms": "swarmauri_base.tool_llms.ToolLLMBase",
+        "swarmauri.tts": "swarmauri_base.tts.TTSBase",
+        "swarmauri.ocrs": "swarmauri_base.ocrs.OCRBase",
+        "swarmauri.stt": "swarmauri_base.stt.STTBase",
+        "swarmauri.vlms": "swarmauri_base.vlms.VLMBase",
+        "swarmauri.measurements": "swarmauri_base.measurements.MeasurementBase",
+        "swarmauri.messages": "swarmauri_base.messages.MessageBase",
+        "swarmauri.middlewares": "swarmauri_base.middlewares.MiddlewareBase",
+        "swarmauri.parsers": "swarmauri_base.parsers.ParserBase",
+        "swarmauri.pipelines": "swarmauri_base.pipelines.PipelineBase",
+        "swarmauri.prompts": "swarmauri_base.prompts.PromptBase",
+        "swarmauri.prompt_templates": "swarmauri_base.prompt_templates.PromptTemplateBase",
         "swarmauri.plugins": None,
-        "swarmauri.schema_converters": SchemaConverterBase,
-        "swarmauri.service_registries": ServiceRegistryBase,
-        "swarmauri.state": StateBase,
-        "swarmauri.swarms": SwarmBase,
-        "swarmauri.task_mgmt_strategies": TaskMgmtStrategyBase,
-        "swarmauri.toolkits": ToolkitBase,
-        "swarmauri.tools": ToolBase,
+        "swarmauri.schema_converters": "swarmauri_base.schema_converters.SchemaConverterBase",
+        "swarmauri.service_registries": "swarmauri_base.service_registries.ServiceRegistryBase",
+        "swarmauri.state": "swarmauri_base.state.StateBase",
+        "swarmauri.swarms": "swarmauri_base.swarms.SwarmBase",
+        "swarmauri.task_mgmt_strategies": "swarmauri_base.task_mgmt_strategies.TaskMgmtStrategyBase",
+        "swarmauri.toolkits": "swarmauri_base.toolkits.ToolkitBase",
+        "swarmauri.tools": "swarmauri_base.tools.ToolBase",
         "swarmauri.tracing": None,
-        "swarmauri.transports": TransportBase,
+        "swarmauri.transports": "swarmauri_base.transports.TransportBase",
         "swarmauri.utils": None,
-        "swarmauri.vector_stores": VectorStoreBase,
-        "swarmauri.vectors": VectorBase,
-        "swarmauri.logger_formatters": FormatterBase,
-        "swarmauri.loggers": LoggerBase,
-        "swarmauri.logger_handlers": HandlerBase,
-        "swarmauri.rate_limits": RateLimitBase,
+        "swarmauri.vector_stores": "swarmauri_base.vector_stores.VectorStoreBase",
+        "swarmauri.vectors": "swarmauri_base.vectors.VectorBase",
+        "swarmauri.mre_cryptos": "swarmauri_base.mre_crypto.MreCryptoBase",
+        "swarmauri.crypto": "swarmauri_base.crypto.CryptoBase",
+        "swarmauri.signings": "swarmauri_base.signing.SigningBase",
+        "swarmauri.key_providers": "swarmauri_base.keys.KeyProviderBase",
+        "swarmauri.logger_formatters": "swarmauri_base.logger_formatters.FormatterBase",
+        "swarmauri.loggers": "swarmauri_base.loggers.LoggerBase",
+        "swarmauri.logger_handlers": "swarmauri_base.logger_handlers.HandlerBase",
+        "swarmauri.rate_limits": "swarmauri_base.rate_limits.RateLimitBase",
+        "swarmauri.mre_crypto": "swarmauri_base.mre_crypto.MreCryptoBase",
+        "swarmauri.tokens": "swarmauri_base.tokens.TokenServiceBase",
+    }
+
+    INTERFACE_REGISTRY: Dict[str, Optional[Type[Any]]] = {
+        key: None for key in INTERFACE_IMPORT_PATHS
     }
 
     @classmethod
@@ -123,8 +94,14 @@ class InterfaceRegistry:
             raise KeyError(
                 f"No interface registered for resource kind: {resource_kind}"
             )
-
         interface = cls.INTERFACE_REGISTRY[resource_kind]
+        if interface is None and cls.INTERFACE_IMPORT_PATHS.get(resource_kind):
+            module_path = cls.INTERFACE_IMPORT_PATHS[resource_kind]
+            if module_path is not None:
+                class_name = module_path.rsplit(".", 1)[1]
+                module = importlib.import_module(module_path)
+                interface = getattr(module, class_name)
+                cls.INTERFACE_REGISTRY[resource_kind] = interface
         if interface is None:
             logger.warning(
                 f"Resource kind '{resource_kind}' has no associated interface."
@@ -153,10 +130,14 @@ class InterfaceRegistry:
 
         cls.INTERFACE_REGISTRY[resource_kind] = interface_class
         if interface_class:
+            cls.INTERFACE_IMPORT_PATHS[resource_kind] = (
+                f"{interface_class.__module__}.{interface_class.__name__}"
+            )
             logger.info(
                 f"Registered interface '{interface_class.__name__}' for resource kind '{resource_kind}'."
             )
         else:
+            cls.INTERFACE_IMPORT_PATHS[resource_kind] = None
             logger.info(
                 f"Removed interface association for resource kind '{resource_kind}'."
             )

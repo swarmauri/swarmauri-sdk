@@ -1,0 +1,65 @@
+# .gw.peagen.toml
+schemaVersion = "1.0.3"
+
+[workspace]
+org          = "swarmauri"
+workers      = 4
+
+# ────────────────────────── Storage Adapters ───────────────────────────
+# gateway doesn't write to storage
+# this should be delete in the future to ensure we can set no storage_adapter.
+[storage]
+default_storage_adapter = "file"
+
+[storage.adapters.file]
+output_dir = "./peagen_artifacts"
+
+# ───────────────────────────── Publishers ──────────────────────────────
+[publishers]
+default_publisher = "redis"
+
+[publishers.adapters.redis]
+host     = ""
+port     = ""
+db       = 0
+password = ""                   # leave blank if no auth
+
+[publishers.adapters.webhook]
+url = ""
+
+# ─────────────────────────────── Queues ───────────────────────────────
+[queues]
+default_queue = "redis"
+
+[queues.adapters.redis]
+uri = "${REDIS_URL}"
+
+# ─────────────────────────── Result Backends ──────────────────────────
+[result_backends]
+default_backend = "postgres"
+
+[result_backends.adapters.postgres]
+dsn = "${PG_DSN}"
+
+# --- VCS ------------------------------------------------------------
+[vcs]
+
+default_vcs = "git"
+
+
+[vcs.adapters.git]
+mirror_git_url = "${MIRROR_GIT_URL}"
+mirror_git_token = "${MIRROR_GIT_TOKEN}"
+owner = "${OWNER}"
+
+
+[vcs.adapters.git.remotes]
+origin = "${GITEA_REMOTE}"
+upstream = "${GITHUB_REMOTE}"
+
+# ─────────────────────────── Key Providers ─────────────────────────────
+[key_providers]
+default_provider = "InMemoryKeyProvider"
+
+[key_providers.providers.InMemoryKeyProvider]
+# no configuration needed for in-memory provider

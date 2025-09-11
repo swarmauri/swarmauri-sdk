@@ -1,6 +1,6 @@
 import asyncio
 import time
-from typing import Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 import httpx
 from pydantic import Field, PrivateAttr, SecretStr
@@ -103,12 +103,12 @@ class FalAIImgGenModel(ImageGenBase):
     max_retries: int = Field(default=60)  # Maximum number of status check retries
     retry_delay: float = Field(default=1.0)  # Delay between status checks in seconds
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Dict[str, Any]):
         """
         Initializes the model with the specified API key and model name.
 
         Args:
-            **data: Configuration parameters for the model.
+            **kwargs (Dict[str, Any]): Additional keyword arguments, which may includes api_key and allowed_models.
 
         Raises:
             ValueError: If an invalid model name is provided.
@@ -141,13 +141,13 @@ class FalAIImgGenModel(ImageGenBase):
             await self._async_client.aclose()
             self._async_client = None
 
-    def _create_request_payload(self, prompt: str, **kwargs) -> dict:
+    def _create_request_payload(self, prompt: str, **kwargs: Dict[str, Any]) -> dict:
         """
         Creates a payload for the image generation request.
 
         Args:
             prompt (str): The text prompt for image generation.
-            **kwargs: Additional parameters for the request.
+            **kwargs (Dict[str, Any]): Additional parameters for the request.
 
         Returns:
             dict: The request payload.
@@ -155,13 +155,13 @@ class FalAIImgGenModel(ImageGenBase):
         return {"prompt": prompt, **kwargs}
 
     @retry_on_status_codes((429, 529), max_retries=1)
-    def _send_request(self, prompt: str, **kwargs) -> Dict:
+    def _send_request(self, prompt: str, **kwargs: Dict[str, Any]) -> Dict:
         """
         Sends an image generation request to the queue and returns the request ID.
 
         Args:
             prompt (str): The text prompt for image generation.
-            **kwargs: Additional parameters for the request.
+            **kwargs (Dict[str, Any]): Additional parameters for the request.
 
         Returns:
             Dict: The response containing the request ID.
@@ -206,13 +206,13 @@ class FalAIImgGenModel(ImageGenBase):
         return response.json()
 
     @retry_on_status_codes((429, 529), max_retries=1)
-    async def _async_send_request(self, prompt: str, **kwargs) -> Dict:
+    async def _async_send_request(self, prompt: str, **kwargs: Dict[str, Any]) -> Dict:
         """
         Asynchronously sends an image generation request to the queue.
 
         Args:
             prompt (str): The text prompt for image generation.
-            **kwargs: Additional parameters for the request.
+            **kwargs (Dict[str, Any]): Additional parameters for the request.
 
         Returns:
             Dict: The response containing the request ID.
@@ -311,13 +311,13 @@ class FalAIImgGenModel(ImageGenBase):
             f"Request {request_id} did not complete within the timeout period"
         )
 
-    def generate_image(self, prompt: str, **kwargs) -> str:
+    def generate_image(self, prompt: str, **kwargs: Dict[str, Any]) -> str:
         """
         Generates an image based on the prompt and returns the image URL.
 
         Args:
             prompt (str): The text prompt for image generation.
-            **kwargs: Additional parameters for the request.
+            **kwargs (Dict[str, Any]): Additional parameters for the request.
 
         Returns:
             str: The URL of the generated image.
@@ -327,13 +327,13 @@ class FalAIImgGenModel(ImageGenBase):
         final_response = self._wait_for_completion(request_id)
         return final_response["images"][0]["url"]
 
-    async def agenerate_image(self, prompt: str, **kwargs) -> str:
+    async def agenerate_image(self, prompt: str, **kwargs: Dict[str, Any]) -> str:
         """
         Asynchronously generates an image based on the prompt and returns the image URL.
 
         Args:
             prompt (str): The text prompt for image generation
-            **kwargs: Additional parameters to pass to the API
+            **kwargs (Dict[str, Any]): Additional parameters to pass to the API
 
         Returns:
             str: The URL of the generated image
@@ -346,13 +346,13 @@ class FalAIImgGenModel(ImageGenBase):
         finally:
             await self._close_async_client()
 
-    def batch_generate(self, prompts: List[str], **kwargs) -> List[str]:
+    def batch_generate(self, prompts: List[str], **kwargs: Dict[str, Any]) -> List[str]:
         """
         Generates images for a batch of prompts.
 
         Args:
             prompts (List[str]): List of text prompts
-            **kwargs: Additional parameters to pass to the API
+            **kwargs (Dict[str, Any]): Additional parameters to pass to the API
 
         Returns:
             List[str]: List of image URLs
@@ -360,7 +360,7 @@ class FalAIImgGenModel(ImageGenBase):
         return [self.generate_image(prompt, **kwargs) for prompt in prompts]
 
     async def abatch_generate(
-        self, prompts: List[str], max_concurrent: int = 5, **kwargs
+        self, prompts: List[str], max_concurrent: int = 5, **kwargs: Dict[str, Any]
     ) -> List[str]:
         """
         Asynchronously generates images for a batch of prompts.
@@ -368,7 +368,7 @@ class FalAIImgGenModel(ImageGenBase):
         Args:
             prompts (List[str]): List of text prompts
             max_concurrent (int): Maximum number of concurrent requests
-            **kwargs: Additional parameters to pass to the API
+            **kwargs (Dict[str, Any]): Additional parameters to pass to the API
 
         Returns:
             List[str]: List of image URLs

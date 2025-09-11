@@ -1,10 +1,11 @@
-# .peagen.toml
+schemaVersion = "1.0.3"
+
 [workspace]
 org          = "test"
 template_set = "default"
-workers      = 1
+workers      = 4
 
-# ─────────────────────────── LLM (unchanged) ───────────────────────────
+# ─────────────────────────── LLM  ───────────────────────────────────────
 [llm]
 default_provider    = "groq"
 default_model_name  = "deepseek-r1-distill-llama-70b"
@@ -12,32 +13,83 @@ default_temperature = 0.7
 default_max_tokens  = 4096
 
 [llm.groq]
-API_KEY   = "gsk_"
+API_KEY   = "${GROQ_API_KEY}"
 
-# ────────────────────────── Storage Adapters ───────────────────────────
+# ─────────────────────────── Source Packages ───────────────────────────
+[[source_packages]]
+name            = "swarmauri_sdk"
+type            = "git"                # git | local | bundle | uri
+uri             = "testproject"
+ref             = "mono/dev"           # replaces previous --swarmauri-dev flag
+dest            = "swarmauri_sdk"
+expose_to_jinja = true
+
+# ────────────────────────── Git Filters ───────────────────────────
 [storage]
-default_storage_adapter = "minio"
+default_filter = "minio"
 
-[storage.adapters.file]
+[storage.filters.file]
 output_dir = "./peagen_artifacts"
-
-[storage.adapters.minio]
-endpoint          = "localhost:9000"
-# bucket            = "test"
-access_key        = "hyb_"
-secret_key        = "i02_"
-secure = false
+[storage.filters.minio]
+bucket     = "test"
+access_key = "${MINIO_ACCESS_KEY}"
+secret_key = "${MINIO_SECRET_KEY}"
+secure     = false
 
 # ───────────────────────────── Publishers ──────────────────────────────
 [publishers]
 default_publisher = "redis"
 
-[publishers.redis]
-host     = "localhost"
-port     = 6379
-db       = 0
-password = "..."                   # leave blank if no auth
+[publishers.adapters.redis]
+host     = "${REDIS_HOST}"
+port     = "${REDIS_PORT}"
+db       = "${REDIS_DB}"
+password = "${REDIS_PASSWORD}"                   # leave blank if no auth
 
-# ─────────────────────────────── Plugins ───────────────────────────────
-[plugins]
-mode = "switch"
+[publishers.adapters.webhook]
+url = "${WEBHOOK_URL}"
+
+# ─────────────────────────────── Queues ───────────────────────────────
+[queues]
+default_queue = "redis"
+
+[queues.adapters.redis]
+uri = "${REDIS_URL}"
+
+# ───────────────────────────── Result Backends ─────────────────────────
+[result_backends]
+default_backend = "postgres"
+
+[result_backends.adapters.postgres]
+dsn = "${PG_DSN}"
+
+
+# ────────────────────────────── Evaluation ───────────────────────────────
+[evaluation]
+pool = "swarmauri_evaluatorpool_accessibility:AccessibilityEvaluatorPool"
+max_workers = 4
+async = false
+strict = true
+
+[evaluation.evaluators]
+default_evaluator = "ColemanLiauIndexEvaluator"
+
+[evaluation.evaluators.AutomatedReadabilityIndexEvaluator]
+
+[evaluation.evaluators.ColemanLiauIndexEvaluator]
+target_grade_level = 12
+
+[vcs]
+
+default_vcs = "git"
+
+
+[vcs.adapters.git]
+mirror_git_url = "${MIRROR_GIT_URL}"
+mirror_git_token = "${MIRROR_GIT_TOKEN}"
+owner = "${OWNER}"
+
+
+[vcs.adapters.git.remotes]
+origin = "${GITEA_REMOTE}"
+upstream = "${GITHUB_REMOTE}"

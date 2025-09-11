@@ -1,8 +1,0 @@
-[{
-  "PROJECT_ROOT": "pkgs",
-  "RESOURCE_KIND": "parser",
-  "BASE_CLASS_NAME": "ParserBase",
-  "INTERFACE_FILE": "core/swarmauri_core/parsers/IParser.py",
-  "ADDITIONAL_REQUIREMENTS": [],
-  "NEW_RESOURCE_KIND": null
-}]

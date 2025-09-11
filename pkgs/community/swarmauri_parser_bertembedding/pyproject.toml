@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_parser_bertembedding"
-version = "0.7.6.dev3"
+version = "0.8.0.dev4"
 description = "Swarmauri Bert Embedding Parser"
 license = "Apache-2.0"
 readme = "README.md"

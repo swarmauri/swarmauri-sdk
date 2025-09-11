@@ -45,6 +45,7 @@ class HyperbolicVisionModel(LLMBase):
     allowed_models: List[str] = [
         "Qwen/Qwen2.5-VL-72B-Instruct",
         "Qwen/Qwen2.5-VL-7B-Instruct",
+        "mistralai/Pixtral-12B-2409",
     ]
     name: str = "Qwen/Qwen2.5-VL-72B-Instruct"
     type: Literal["HyperbolicVisionModel"] = "HyperbolicVisionModel"

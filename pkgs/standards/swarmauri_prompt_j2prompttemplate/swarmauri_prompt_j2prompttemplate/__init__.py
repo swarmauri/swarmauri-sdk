@@ -1,7 +1,6 @@
-from .J2PromptTemplate import J2PromptTemplate, j2pt
+from .J2PromptTemplate import J2PromptTemplate
 
-
-__all__ = ["J2PromptTemplate", "j2pt"]
+__all__ = ["J2PromptTemplate"]
 
 try:
     # For Python 3.8 and newer

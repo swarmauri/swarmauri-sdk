@@ -10,12 +10,13 @@ from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.schema_converters.SchemaConverterBase import SchemaConverterBase
 from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
 
-from swarmauri_core.conversations.IConversation import IConversation
+from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.messages.FunctionMessage import FunctionMessage
 from swarmauri_standard.schema_converters.GeminiSchemaConverter import (
     GeminiSchemaConverter,
 )
+from swarmauri_standard.toolkits.Toolkit import Toolkit
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 
@@ -71,12 +72,13 @@ class GeminiToolModel(ToolLLMBase):
         ]
     )
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """
         Initializes the GeminiToolModel instance with the provided data.
 
         Args:
-            **data: Arbitrary keyword arguments containing initialization data.
+            *args (Any): Variable length argument list.
+            **kwargs (Any): Arbitrary keyword arguments containing initialization data.
         """
         super().__init__(*args, **kwargs)
         self.allowed_models = self.allowed_models or self.get_allowed_models()
@@ -92,12 +94,14 @@ class GeminiToolModel(ToolLLMBase):
         """
         return GeminiSchemaConverter
 
-    def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
+    def _schema_convert_tools(
+        self, tools: Dict[str, Any]
+    ) -> Dict[str, List[Dict[str, Any]]]:
         """
         Converts toolkit tools into a format compatible with the Gemini schema.
 
         Args:
-            tools (dict): A dictionary of tools to convert.
+            tools (Dict[str, Any]): A dictionary of tools to convert.
 
         Returns:
             Dict[str, List[Dict[str, Any]]]: Dictionary containing converted tool definitions.
@@ -140,17 +144,22 @@ class GeminiToolModel(ToolLLMBase):
 
         return sanitized_messages
 
-    def _process_tool_calls(self, tool_calls, toolkit, messages) -> tuple:
+    def _process_tool_calls(
+        self,
+        tool_calls: List[Dict[str, Any]],
+        toolkit: Toolkit,
+        messages: List[Dict[str, Any]],
+    ) -> tuple[List[Dict[str, Any]], List[FunctionMessage]]:
         """
         Executes tool calls and creates appropriate response messages.
 
         Args:
-            tool_calls (List[Dict]): List of tool calls to process.
-            toolkit: Toolkit instance for handling tools.
-            messages (List): List of messages in the conversation.
+            tool_calls (List[Dict[str, Any]]): List of tool calls to process.
+            toolkit (Toolkit): Toolkit instance for handling tools.
+            messages (List[Dict[str, Any]]): List of messages in the conversation.
 
         Returns:
-            tuple: A tuple containing (updated messages, tool messages for the conversation)
+            tuple[List[Dict[str, Any]], List[FunctionMessage]]: A tuple containing (updated messages, tool messages for the conversation)
         """
         if not toolkit or not tool_calls:
             return messages, []
@@ -219,20 +228,20 @@ class GeminiToolModel(ToolLLMBase):
     @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
         self,
-        conversation: IConversation,
-        toolkit=None,
-        tool_choice=None,  # Not used by Gemini but included for compatibility
+        conversation: Conversation,
+        toolkit: Toolkit = None,
+        tool_choice: Dict[str, Any] = None,
         multiturn: bool = True,
         temperature: float = 0.7,
         max_tokens: int = 1024,
-    ) -> IConversation:
+    ) -> Conversation:
         """
         Generates model responses for a conversation synchronously.
 
         Args:
-            conversation (IConversation): The conversation instance.
-            toolkit: Optional toolkit for handling tools.
-            tool_choice: Tool selection strategy (not used in Gemini but included for API compatibility)
+            conversation (Conversation): The conversation instance.
+            toolkit (Toolkit, optional): Optional toolkit for handling tools.
+            tool_choice (Dict[str, Any], optional): Tool selection strategy (not used in Gemini but included for API compatibility)
             multiturn (bool): Whether to follow up a tool call with another LLM request.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit for generation.
@@ -331,26 +340,26 @@ class GeminiToolModel(ToolLLMBase):
     @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
         self,
-        conversation: IConversation,
-        toolkit=None,
-        tool_choice=None,  # Not used by Gemini but included for compatibility
+        conversation: Conversation,
+        toolkit: Toolkit = None,
+        tool_choice: Dict[str, Any] = None,
         multiturn: bool = True,
         temperature: float = 0.7,
         max_tokens: int = 1024,
-    ) -> IConversation:
+    ) -> Conversation:
         """
         Asynchronously generates model responses for a conversation.
 
         Args:
-            conversation (IConversation): The conversation instance.
-            toolkit: Optional toolkit for handling tools.
-            tool_choice: Tool selection strategy (not used in Gemini but included for API compatibility)
+            conversation (Conversation): The conversation instance.
+            toolkit (Toolkit, optional): Optional toolkit for handling tools.
+            tool_choice (Dict[str, Any], optional): Tool selection strategy (not used in Gemini but included for API compatibility)
             multiturn (bool): Whether to follow up a tool call with another LLM request.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit for generation.
 
         Returns:
-            IConversation: Updated conversation with model response.
+            Conversation: Updated conversation with model response.
         """
         generation_config = {
             "temperature": temperature,
@@ -443,9 +452,9 @@ class GeminiToolModel(ToolLLMBase):
     @retry_on_status_codes((429, 529), max_retries=1)
     def stream(
         self,
-        conversation: IConversation,
-        toolkit=None,
-        tool_choice=None,
+        conversation: Conversation,
+        toolkit: Toolkit = None,
+        tool_choice: Dict[str, Any] = None,
         temperature: float = 0.7,
         max_tokens: int = 1024,
     ) -> Iterator[str]:
@@ -453,9 +462,9 @@ class GeminiToolModel(ToolLLMBase):
         Streams response generation in real-time.
 
         Args:
-            conversation (IConversation): The conversation instance.
-            toolkit: Optional toolkit for handling tools.
-            tool_choice: Tool selection strategy (not used in Gemini but included for API compatibility)
+            conversation (Conversation): The conversation instance.
+            toolkit (Toolkit, optional): Optional toolkit for handling tools.
+            tool_choice (Dict[str, Any], optional): Tool selection strategy (not used in Gemini but included for API compatibility)
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit for generation.
 
@@ -574,9 +583,9 @@ class GeminiToolModel(ToolLLMBase):
     @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
         self,
-        conversation: IConversation,
-        toolkit=None,
-        tool_choice=None,
+        conversation: Conversation,
+        toolkit: Toolkit = None,
+        tool_choice: Dict[str, Any] = None,
         temperature: float = 0.7,
         max_tokens: int = 1024,
     ) -> AsyncIterator[str]:
@@ -584,9 +593,9 @@ class GeminiToolModel(ToolLLMBase):
         Asynchronously streams response generation in real-time.
 
         Args:
-            conversation (IConversation): The conversation instance.
-            toolkit: Optional toolkit for handling tools.
-            tool_choice: Tool selection strategy (not used in Gemini but included for API compatibility)
+            conversation (Conversation): The conversation instance.
+            toolkit (Toolkit, optional): Optional toolkit for handling tools.
+            tool_choice (Dict[str, Any], optional): Tool selection strategy (not used in Gemini but included for API compatibility)
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit for generation.
 
@@ -703,24 +712,24 @@ class GeminiToolModel(ToolLLMBase):
 
     def batch(
         self,
-        conversations: List[IConversation],
-        toolkit=None,
-        tool_choice=None,
+        conversations: List[Conversation],
+        toolkit: Toolkit = None,
+        tool_choice: Dict[str, Any] = None,
         temperature: float = 0.7,
         max_tokens: int = 1024,
-    ) -> List[IConversation]:
+    ) -> List[Conversation]:
         """
         Processes multiple conversations synchronously.
 
         Args:
-            conversations (List[IConversation]): List of conversation instances.
-            toolkit: Optional toolkit for handling tools.
-            tool_choice: Tool selection strategy (not used in Gemini but included for API compatibility)
+            conversations (List[Conversation]): List of conversation instances.
+            toolkit (Toolkit, optional): Optional toolkit for handling tools.
+            tool_choice (Dict[str, Any], optional): Tool selection strategy (not used in Gemini but included for API compatibility)
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit for generation.
 
         Returns:
-            List[IConversation]: List of updated conversations with model responses.
+            List[Conversation]: List of updated conversations with model responses.
         """
         results = []
         for conv in conversations:
@@ -736,30 +745,30 @@ class GeminiToolModel(ToolLLMBase):
 
     async def abatch(
         self,
-        conversations: List[IConversation],
-        toolkit=None,
-        tool_choice=None,  # Not used by Gemini but included for compatibility
+        conversations: List[Conversation],
+        toolkit: Toolkit = None,
+        tool_choice: Dict[str, Any] = None,
         temperature: float = 0.7,
         max_tokens: int = 1024,
         max_concurrent: int = 5,
-    ) -> List[IConversation]:
+    ) -> List[Conversation]:
         """
         Asynchronously processes multiple conversations with concurrency control.
 
         Args:
-            conversations (List[IConversation]): List of conversation instances.
-            toolkit: Optional toolkit for handling tools.
-            tool_choice: Tool selection strategy (not used in Gemini but included for API compatibility)
+            conversations (List[Conversation]): List of conversation instances.
+            toolkit (Toolkit, optional): Optional toolkit for handling tools.
+            tool_choice (Dict[str, Any], optional): Tool selection strategy (not used in Gemini but included for API compatibility)
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit for generation.
             max_concurrent (int): Maximum number of concurrent asynchronous tasks.
 
         Returns:
-            List[IConversation]: List of updated conversations with model responses.
+            List[Conversation]: List of updated conversations with model responses.
         """
         semaphore = asyncio.Semaphore(max_concurrent)
 
-        async def process_conversation(conv) -> IConversation:
+        async def process_conversation(conv: Conversation) -> Conversation:
             async with semaphore:
                 return await self.apredict(
                     conv,

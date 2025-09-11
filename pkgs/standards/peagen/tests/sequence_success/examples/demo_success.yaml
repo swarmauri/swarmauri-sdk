@@ -1,0 +1,12 @@
+command_sets:
+  - batch:
+      name: "project setup"
+      desc: "initialize a project"
+      commands:
+        - ["local", "init", "project", "{tmpdir}/project1"]
+  - batch:
+      name: "remote sort"
+      desc: "run sort remotely and fetch the result"
+      commands:
+        - ["remote", "--gateway-url", "{gateway}", "sort", "tests/examples/projects_payloads/template_two_project.yaml", "--repo", "testproject"]
+        - ["remote", "--gateway-url", "{gateway}", "task", "get", "{task_id}"]

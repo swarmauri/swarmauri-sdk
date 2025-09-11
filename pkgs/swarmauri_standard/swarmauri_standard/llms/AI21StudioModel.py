@@ -1,6 +1,6 @@
 import asyncio
 import json
-from typing import AsyncIterator, Iterator, List, Literal, Type
+from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -33,8 +33,13 @@ class AI21StudioModel(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = ["jamba-1.5-large", "jamba-1.5-mini"]
-    name: str = "jamba-1.5-large"
+    allowed_models: List[str] = [
+        "jamba-large",
+        "jamba-mini",
+        "jamba-large-1.7",
+        "jamba-mini-1.7",
+    ]
+    name: str = "jamba-large"
     type: Literal["AI21StudioModel"] = "AI21StudioModel"
     _client: httpx.Client = PrivateAttr(default=None)
     _async_client: httpx.AsyncClient = PrivateAttr(default=None)
@@ -42,7 +47,7 @@ class AI21StudioModel(LLMBase):
         default="https://api.ai21.com/studio/v1/chat/completions"
     )
 
-    def __init__(self, **data) -> None:
+    def __init__(self, **data: Dict[str, Any]) -> None:
         """
         Initializes the GroqToolModel instance, setting up headers for API requests.
 
@@ -425,4 +430,4 @@ class AI21StudioModel(LLMBase):
         Returns:
             List[str]: List of allowed model names.
         """
-        return ["jamba-1.5-large", "jamba-1.5-mini"]
+        return ["jamba-large", "jamba-mini", "jamba-large-1.7", "jamba-mini-1.7"]

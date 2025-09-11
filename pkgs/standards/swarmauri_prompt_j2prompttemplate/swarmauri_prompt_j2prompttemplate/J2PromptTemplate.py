@@ -223,7 +223,3 @@ class J2PromptTemplate(PromptTemplateBase):
         """
         env = self.get_env()
         env.filters[name] = filter_func
-
-
-# Create a singleton instance for peagen usage with code generation mode enabled
-j2pt = J2PromptTemplate()

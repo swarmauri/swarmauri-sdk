@@ -1,0 +1,102 @@
+site_name: Tigrbl
+repo_url: https://github.com/swarmauri/swarmauri-sdk/tree/mono/dev/pkgs/standards/tigrbl
+repo_name: tigrbl
+copyright: Copyright &copy; 2025 Swarmauri
+theme:
+  name: material
+  logo: assets/tigrbl_logo.png
+  favicon: assets/tigrbl_logo.png
+  palette:
+    - scheme: slate
+      toggle:
+        icon: material/weather-sunny
+        name: Dark mode
+      primary: orange
+      accent: deep purple
+    - scheme: default
+      toggle:
+        icon: material/weather-night
+        name: Light mode
+      primary: orange
+      accent: deep orange
+  features:
+  - announce.dismiss
+  - content.action.edit
+  - content.code.annotate
+  - content.code.copy
+  - content.footnote.tooltips
+  - content.tabs.link
+  - content.tooltips
+  - navigation.footer
+  - navigation.indexes
+  - navigation.instant
+  - navigation.instant.prefetch
+  - navigation.instant.progress
+  - navigation.path
+  - navigation.tabs
+  - navigation.tabs.sticky
+  - navigation.top
+  - navigation.tracking
+  - search.highlight
+  - search.share
+  - search.suggest
+  - toc.follow
+  icon:
+    repo: fontawesome/brands/github
+plugins:
+- mkdocstrings:
+    handlers:
+      python:
+        paths:
+        - /pkgs/standards/tigrbl
+        - /pkgs/standards/tigrbl_auth
+        - /pkgs/standards/tigrbl_client
+        - /pkgs/standards/tigrbl_kms
+        options:
+          extensions:
+          - griffe_typingdoc
+          show_root_heading: true
+          show_if_no_docstring: true
+          inherited_members: true
+          members_order: source
+          separate_signature: true
+          unwrap_annotated: true
+          filters:
+          - '!^_'
+          merge_init_into_class: true
+          docstring_section_style: spacy
+          signature_crossrefs: true
+          show_symbol_type_heading: true
+          show_symbol_type_toc: true
+          show_source: true
+- search: null
+markdown_extensions:
+- admonition
+- pymdownx.details
+- pymdownx.superfences:
+    custom_fences:
+    - name: mermaid
+      class: mermaid
+      format: __PYTHON_TAG_0__
+- pymdownx.tabbed:
+    alternate_style: true
+- abbr
+- attr_list
+- pymdownx.snippets
+- pymdownx.tasklist:
+    custom_checkbox: true
+extra:
+  social:
+  - icon: fontawesome/brands/discord
+    link: https://discord.gg/swarmauri
+  - icon: fontawesome/brands/youtube
+    link: https://youtube.com/@swarmauri
+  - icon: fontawesome/brands/linkedin
+    link: https://www.linkedin.com/company/swarmauri
+  - icon: fontawesome/brands/twitter
+    link: https://twitter.com/swarmauri
+  - icon: fontawesome/brands/github
+    link: https://github.com/swarmauri/swarmauri-sdk
+nav:
+- Home: index.md
+- API: api/

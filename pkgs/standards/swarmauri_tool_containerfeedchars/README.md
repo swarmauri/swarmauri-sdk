@@ -30,6 +30,7 @@ pip install swarmauri_tool_containerfeedchars
 ```python
 from swarmauri_tool_containerfeedchars import ContainerFeedCharsTool
 
-output = ContainerFeedCharsTool()(container_name="my-container", command="ls -al")
+tool = ContainerFeedCharsTool(container_name="my-container")
+output = tool(command="ls -al")
 print(output["stdout"])
 ```

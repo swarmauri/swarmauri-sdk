@@ -1,6 +1,6 @@
 [project]
 name = "peagen"
-version = "0.1.4.dev3"
+version = "0.2.0.dev4"
 description = "Swarmauri's Peagan - An AI-driven contextual, dependency-based scaffolding tool for rapid content generation."
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 license = "Apache-2.0"
@@ -9,27 +9,89 @@ repository = "https://github.com/swarmauri/swarmauri-sdk/pkgs/standards/peagen/p
 requires-python = ">=3.10,<3.13"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
+    "Development Status :: 3 - Alpha",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-    "PyGithub", # this storage adapter needs to be pushed to its own standalone
-    "redis", # this publisher needs to be pushed to its own standalone
-    "minio", # this storage adapter needs to be pushed to its own standalone
-    "python-dotenv",
-    "jinja2>=3.1.6",
+
+    # are servers optional?
+    "httpx[http2]>=0.27", # required
+    "websockets>=12", # need to push out to a standalone with extra
+    "h11>=0.16.0",
+    
+    # are servers optional?
+    "uvicorn[standard]>=0.29",
+    "fastapi>=0.111",
+
+    "python-dotenv", # does this come with standard?
+    "pyyaml", # should come with swarmauri_standard, but we can explicitly mention here
+
     "jsonpatch>=1.33",
-    "inflect",
-    "typer",
-    "colorama",
-    "httpx>=0.27.0",
+    "jsonschema>=4.18.5",
+
+    "jinja2>=3.1.6", # should come with j2prompttemplate, but is it required anywhere else on its own?
+    "inflect", # should come with j2prompttemplate, but is it required anywhere else on its own?
+    "pgpy>=0.6.0",
+    "psutil>=6.0",  # required for IO evaluator
+
+    "typer",   # for cli
+    "colorama",# for cli
+    
+    "textual", # for tui
+    "rich", # for tui
+
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
     "swarmauri",
     "swarmauri_prompt_j2prompttemplate",
-    "pika",
+    "swarmauri_keyprovider_ssh",
+    "swarmauri_storage_file",
+
+    "pydantic-settings>=2.2",
+    "pydantic[email]>=2.7", # why is this necessary?
+
+    # plugins —————————————————————————————————————————————————————————————————————————
+    # result_backends/indexers
+    "sqlalchemy>=2.0",
+    "alembic",
+    "asyncpg>=0.30.0", # need to push out to a standalone with extra
+    "psycopg2-binary", # need to push out to a standalone with extra
+    "aiosqlite>=0.19.0", # needed for the SQLite fallback result backend
+    
+    # brokers (publishers/consumer dependencies)
+    "redis", # this publisher needs to be pushed to its own standalone
+    "redis[hiredis]>=5.0", # provides redis.asyncio
+    "pika", # need to push out to a standalone with extra
+
+    # artifacts
+    "PyGithub", # this storage adapter needs to be pushed to its own standalone
+    "minio", # this storage adapter needs to be pushed to its own standalone
+    "GitPython",
+    "s3fs",
+    "pytest-monitor>=1.6.6",
+    "swarmauri_storage_file",
+    "swarmauri_gitfilter_file",
+
+    #async
+    "anyio",
+
+    # cryptos
+    "python-gnupg",
+    "swarmauri_crypto_paramiko",
+    "swarmauri_crypto_pgp",
+
+
+    #core - repo lock
+    "filelock",
+
+    # db api support
+    "tigrbl",
+    "tigrbl_client",
+    "tigrbl_auth",
+
 ]
 
 
@@ -37,6 +99,15 @@ dependencies = [
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
+tigrbl = { workspace = true }
+tigrbl_client = { workspace = true }
+tigrbl_auth = { workspace = true }
+swarmauri_keyprovider_ssh = { workspace = true }
+swarmauri_crypto_paramiko = { workspace = true }
+swarmauri_crypto_pgp = { workspace = true }
+swarmauri_storage_file = { workspace = true }
+swarmauri_gitfilter_file = { workspace = true }
+
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
@@ -50,6 +121,8 @@ markers = [
     "xfail: Expected failures",
     "acceptance: Acceptance tests",
     "perf: Performance tests that measure execution time and resource usage",
+    "smoke: comprehensive smoke tests against live services",
+    "e2e: end-to-end workflow tests",
 ]
 timeout = 300
 log_cli = true
@@ -77,24 +150,85 @@ dev = [
     "pytest-timeout>=2.3.1",
     "ruff>=0.9.9",
     "pytest-benchmark>=4.0.0",
+    "textual>=3.3.0",
 ]
 
 [project.entry-points."peagen.template_sets"]
-init-project       = "peagen.scaffold.project"
-init-template-set  = "peagen.scaffold.template_set"
-init-doe-spec      = "peagen.scaffold.doe_spec"
-init-ci            = "peagen.scaffold.ci"
+react_atom                            = "peagen.template_sets.react_atom"
+svelte_atom                           = "peagen.template_sets.svelte_atom"
+vue_atom                              = "peagen.template_sets.vue_atom"
+swarmauri_base                        = "peagen.template_sets.swarmauri_base"
+swarmauri_core                        = "peagen.template_sets.swarmauri_core"
+swarmauri_standard                    = "peagen.template_sets.swarmauri_standard"
+swarmauri_standard_standalone         = "peagen.template_sets.swarmauri_standard_standalone"
+swarmauri_community                   = "peagen.template_sets.swarmauri_community"
+python_orm                            = "peagen.template_sets.python_orm"
+rust_python_pkg                       = "peagen.template_sets.rust_python_pkg"
+cpp_python_pkg                        = "peagen.template_sets.cpp_python_pkg"
+init-project                          = "peagen.template_scaffold.project"
+init-template-set                     = "peagen.template_scaffold.template_set"
+init-doe-spec                         = "peagen.template_scaffold.doe_spec"
+init-ci                               = "peagen.template_scaffold.ci"
 
-[project.entry-points."peagen.storage_adapters"]
-minio   = "peagen.storage_adapters.minio_storage_adapter:MinioStorageAdapter"
-file    = "peagen.storage_adapters.file_storage_adapter:FileStorageAdapter"
-github    = "peagen.storage_adapters.github_storage_adapter:GithubStorageAdapter"
-gh_release    = "peagen.storage_adapters.gh_release_storage_adapter:GithubReleaseStorageAdapter"
 
-[project.entry-points."peagen.publishers"]
-redis   = "peagen.publishers.redis_publisher:RedisPublisher"
-webhook = "peagen.publishers.webhook_publisher:WebhookPublisher"
-rabbitmq = "peagen.publishers.rabbitmq_publisher:RabbitMQPublisher"
+[project.entry-points."peagen.plugins.vcs"]
+git = "peagen.plugins.vcs.git_vcs:GitVCS"
+
+[project.entry-points."peagen.plugins.cryptos"]
+paramiko = "swarmauri_crypto_paramiko:ParamikoCrypto"
+pgp = "swarmauri_crypto_pgp:PGPCrypto"
+
+[project.entry-points."peagen.plugins.publishers"]
+redis   = "peagen.plugins.publishers.redis_publisher:RedisPublisher"
+webhook = "peagen.plugins.publishers.webhook_publisher:WebhookPublisher"
+rabbitmq = "peagen.plugins.publishers.rabbitmq_publisher:RabbitMQPublisher"
+
+[project.entry-points."peagen.plugins.result_backends"]
+local_fs = "peagen.plugins.result_backends.localfs_backend:LocalFsResultBackend"
+postgres = "peagen.plugins.result_backends.postgres_backend:PostgresResultBackend"
+in_memory = "peagen.plugins.result_backends.in_memory_backend:InMemoryResultBackend"
+
+[project.entry-points."peagen.plugins.queues"]
+redis = "peagen.plugins.queues.redis_queue:RedisQueue"
+in_memory = "peagen.plugins.queues.in_memory_queue:InMemoryQueue"
+
+[project.entry-points."peagen.plugins.selectors"]
+result_backend = "peagen.plugins.selectors.result_backend_selector:ResultBackendSelector"
+bootstrap = "peagen.plugins.selectors.bootstrap_selector:BootstrapSelector"
+input = "peagen.plugins.selectors.input_selector:InputSelector"
+
+[project.entry-points."peagen.plugins.mutators"]
+default_mutator = "peagen.plugins.mutators.default_mutator:DefaultMutator"
+echo_mutator = "peagen.plugins.mutators.echo_mutator:EchoMutator"
+llm_prompt = "peagen.plugins.mutators.llm_prompt:LlmRewrite"
+llm_prog_rewrite = "peagen.plugins.mutators.llm_prog_rewrite:LlmProgRewrite"
+
+
+[project.entry-points."peagen.plugins.evaluators"]
+psutil_io = "peagen.plugins.evaluators.psutil_io:PsutilIOEvaluator"
+perf_regression = "peagen.plugins.evaluators.pytest_perf_regression:PytestPerfRegressionEvaluator"
+monitor = "peagen.plugins.evaluators.pytest_monitor:PytestMonitorEvaluator"
+memray = "peagen.plugins.evaluators.pytest_memray_evaluator:PytestMemrayEvaluator"
+pytest_profiling = "peagen.plugins.evaluators.pytest_profiling:PytestProfilingEvaluator"
+benchmark = "peagen.plugins.evaluators.benchmark:PytestBenchmarkEvaluator"
+simple_time = "peagen.plugins.evaluators.simple_time:SimpleTimeEvaluator"
+
+[project.entry-points."peagen.plugins.evaluator_pools"]
+default = "peagen.plugins.evaluator_pools.default:DefaultEvaluatorPool"
 
 [tool.setuptools.package-data]
-"peagen.schemas" = ["*.json", "extras/*.json"]
+"peagen.jsonschemas" = ["*.json", "extras/*.json"]
+"peagen" = [
+  "tests/examples/locking_demo/*",
+  "tests/examples/peagen_tomls/*",
+  "tests/examples/2x2Grid/*",
+  "alembic.ini",
+  "migrations/**",
+]
+
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+strict_optional = true
+warn_unused_configs = true
+

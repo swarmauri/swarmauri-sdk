@@ -39,7 +39,7 @@ class OpenAIAudioTTS(LLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = ["tts-1", "tts-1-hd"]
+    allowed_models: List[str] = ["tts-1", "tts-1-hd", "gpt-4o-mini-tts"]
 
     allowed_voices: List[str] = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
     name: str = "tts-1"
