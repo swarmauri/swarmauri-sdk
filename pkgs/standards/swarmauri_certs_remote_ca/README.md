@@ -11,6 +11,17 @@ Features:
 - Designed around X.509 as defined in RFC 5280 and Enrollment over Secure
   Transport (EST) in RFC 7030.
 
+## Configuration
+
+`RemoteCaCertService` accepts the following arguments:
+
+- `endpoint` – Base URL of the remote CA sign endpoint.
+- `auth` – Optional mapping of HTTP headers or an `httpx.Auth` instance for
+  authentication.
+- `timeout_s` – HTTP timeout in seconds (default `10`).
+- `ca_chain` – Optional sequence of cached trust anchors exposed during
+  verification and parsing.
+
 ## Installation
 
 ```bash
@@ -59,3 +70,7 @@ asyncio.run(main())
 The example above mocks a CA using `httpx.MockTransport`.  In real scenarios
 `RemoteCaCertService` posts the CSR to the configured endpoint and returns the
 certificate bytes supplied by the remote CA.
+
+When used against a real service, provide any required authentication headers
+through the `auth` argument and override request or response formats via the
+`opts` parameter of `sign_cert`.
