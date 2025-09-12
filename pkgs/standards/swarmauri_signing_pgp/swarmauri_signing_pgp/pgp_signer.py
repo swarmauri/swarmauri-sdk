@@ -1,15 +1,25 @@
+"""
+pgp_signer.py
+
+OpenPGP signing utilities for the Swarmauri SDK.
+
+This module exposes :class:`PgpEnvelopeSigner`, an implementation capable of
+creating and verifying detached OpenPGP signatures over raw byte payloads or
+structured envelopes that are canonicalized to JSON or, optionally, CBOR.
+"""
+
 from __future__ import annotations
 
-from typing import Iterable, Mapping, Optional, Sequence, Dict, Any, TYPE_CHECKING
 from dataclasses import dataclass
 import json
+from typing import Any, Dict, Iterable, Mapping, Optional, Sequence, TYPE_CHECKING
 
 try:
     from swarmauri_base.signing.SigningBase import SigningBase
 except Exception:  # pragma: no cover
 
     class SigningBase:  # type: ignore[too-many-ancestors]
-        """Fallback SigningBase used when swarmauri_base is unavailable."""
+        """Fallback ``SigningBase`` used when :mod:`swarmauri_base` is missing."""
 
         pass
 
@@ -40,6 +50,12 @@ except Exception:  # pragma: no cover - import guard
 
 
 def _ensure_pgpy() -> None:
+    """Ensure the :mod:`pgpy` dependency is available.
+
+    Raises:
+        RuntimeError: If :mod:`pgpy` is not installed.
+    """
+
     if not _PGP_OK:
         raise RuntimeError(
             "PgpEnvelopeSigner requires 'PGPy'. Install with: pip install pgpy"
@@ -47,12 +63,33 @@ def _ensure_pgpy() -> None:
 
 
 def _canon_json(obj) -> bytes:
+    """Serialize ``obj`` to canonical JSON bytes.
+
+    Args:
+        obj: Object to serialize.
+
+    Returns:
+        bytes: Canonical JSON representation of ``obj``.
+    """
+
     return json.dumps(
         obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False
     ).encode("utf-8")
 
 
 def _canon_cbor(obj) -> bytes:
+    """Serialize ``obj`` to canonical CBOR bytes.
+
+    Args:
+        obj: Object to serialize.
+
+    Returns:
+        bytes: Canonical CBOR representation of ``obj``.
+
+    Raises:
+        RuntimeError: If the :mod:`cbor2` dependency is missing.
+    """
+
     if not _CBOR_OK:
         raise RuntimeError("CBOR canonicalization requires 'cbor2' to be installed.")
     return cbor2.dumps(obj)
@@ -60,6 +97,8 @@ def _canon_cbor(obj) -> bytes:
 
 @dataclass(frozen=True)
 class _Sig:
+    """Lightweight mapping wrapper for signature data."""
+
     data: Dict[str, Any]
 
     def __getitem__(self, k: str) -> object:  # pragma: no cover - simple delegation
@@ -76,9 +115,19 @@ class _Sig:
 
 
 class PgpEnvelopeSigner(SigningBase):
-    """Detached OpenPGP signatures over bytes or canonicalized envelopes."""
+    """Generate and verify detached OpenPGP signatures.
+
+    The signer operates on raw byte payloads or structured envelopes that are
+    canonicalized to JSON or CBOR prior to signing.
+    """
 
     def supports(self) -> Mapping[str, Iterable[str]]:
+        """Describe the algorithms and canonicalizations supported by the signer.
+
+        Returns:
+            Mapping[str, Iterable[str]]: Mapping of capability names to supported values.
+        """
+
         canons = ("json", "cbor") if _CBOR_OK else ("json",)
         return {
             "algs": ("OpenPGP",),
@@ -95,6 +144,23 @@ class PgpEnvelopeSigner(SigningBase):
         alg: Optional[Alg] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
+        """Create a detached OpenPGP signature for raw bytes.
+
+        Args:
+            key (KeyRef): Reference to the private key used for signing.
+            payload (bytes): Data to sign.
+            alg (Optional[Alg]): Requested algorithm, defaults to ``"OpenPGP"``.
+            opts (Optional[Mapping[str, object]]): Additional options such as
+                ``passphrase`` for locked keys.
+
+        Returns:
+            Sequence[Signature]: A list containing the generated signature.
+
+        Raises:
+            RuntimeError: If the private key is locked and no passphrase is provided.
+            ValueError: If an unsupported algorithm is requested.
+        """
+
         _ensure_pgpy()
         if alg not in (None, "OpenPGP"):
             raise ValueError("Unsupported alg for PgpEnvelopeSigner.")
@@ -125,6 +191,23 @@ class PgpEnvelopeSigner(SigningBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
+        """Verify detached OpenPGP signatures against raw bytes.
+
+        Args:
+            payload (bytes): Signed data.
+            signatures (Sequence[Signature]): Signatures to validate.
+            require (Optional[Mapping[str, object]]): Verification requirements such
+                as ``min_signers``.
+            opts (Optional[Mapping[str, object]]): Options containing public keys in
+                ``pubkeys``.
+
+        Returns:
+            bool: ``True`` if the signatures satisfy the requirements, ``False`` otherwise.
+
+        Raises:
+            TypeError: If an unsupported public key is supplied in ``opts``.
+        """
+
         _ensure_pgpy()
         min_signers = int(require.get("min_signers", 1)) if require else 1
 
@@ -170,6 +253,21 @@ class PgpEnvelopeSigner(SigningBase):
         canon: Optional[Canon] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bytes:
+        """Canonicalize an envelope to bytes.
+
+        Args:
+            env (Envelope): Envelope to canonicalize.
+            canon (Optional[Canon]): Canonicalization format, ``"json"`` or ``"cbor"``.
+            opts (Optional[Mapping[str, object]]): Additional options (unused).
+
+        Returns:
+            bytes: Canonical representation of the envelope.
+
+        Raises:
+            ValueError: If an unsupported canonicalization format is provided.
+            RuntimeError: If CBOR canonicalization is requested without ``cbor2``.
+        """
+
         if canon in (None, "json"):
             return _canon_json(env)  # type: ignore[arg-type]
         if canon == "cbor":
@@ -186,6 +284,19 @@ class PgpEnvelopeSigner(SigningBase):
         canon: Optional[Canon] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
+        """Sign a structured envelope after canonicalization.
+
+        Args:
+            key (KeyRef): Private key reference.
+            env (Envelope): Envelope to sign.
+            alg (Optional[Alg]): Requested algorithm, defaults to ``"OpenPGP"``.
+            canon (Optional[Canon]): Canonicalization format.
+            opts (Optional[Mapping[str, object]]): Additional options.
+
+        Returns:
+            Sequence[Signature]: Detached signature over the canonicalized envelope.
+        """
+
         payload = await self.canonicalize_envelope(env, canon=canon, opts=opts)
         return await self.sign_bytes(key, payload, alg="OpenPGP", opts=opts)
 
@@ -198,11 +309,39 @@ class PgpEnvelopeSigner(SigningBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
+        """Verify signatures over a structured envelope.
+
+        Args:
+            env (Envelope): Envelope whose signatures are being verified.
+            signatures (Sequence[Signature]): Signatures to check.
+            canon (Optional[Canon]): Canonicalization format used.
+            require (Optional[Mapping[str, object]]): Verification requirements.
+            opts (Optional[Mapping[str, object]]): Additional options.
+
+        Returns:
+            bool: ``True`` if verification succeeds, ``False`` otherwise.
+        """
+
         payload = await self.canonicalize_envelope(env, canon=canon, opts=opts)
         return await self.verify_bytes(payload, signatures, require=require, opts=opts)
 
     # ---------- internal ----------
-    def _load_private_key(self, key: KeyRef, opts: Optional[Mapping[str, object]]):
+    def _load_private_key(
+        self, key: KeyRef, opts: Optional[Mapping[str, object]]
+    ) -> pgpy.PGPKey:
+        """Load a PGP private key from a key reference.
+
+        Args:
+            key (KeyRef): Key reference containing private key data.
+            opts (Optional[Mapping[str, object]]): Additional options (unused).
+
+        Returns:
+            pgpy.PGPKey: Loaded private key object.
+
+        Raises:
+            TypeError: If the key reference is unsupported.
+        """
+
         if isinstance(key, dict):
             kind = key.get("kind")
             if kind == "pgpy_key" and isinstance(key.get("priv"), pgpy.PGPKey):
