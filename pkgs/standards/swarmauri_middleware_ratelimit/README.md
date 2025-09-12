@@ -22,12 +22,48 @@
 
 # Swarmauri Middleware Ratelimit
 
-Rate limiting middleware for Swarmauri applications
+Flexible rate limiting middleware for Swarmauri applications.
+
+This package provides a drop-in FastAPI middleware that throttles requests
+based on the client IP address or an authentication token. It is useful for
+preventing abuse of public APIs or protecting upstream services from bursts of
+traffic.
+
+## Features
+
+- Configurable request limit and time window.
+- Supports IP-based or token-based identification.
+- Returns `429` responses when the limit is exceeded.
 
 ## Installation
 
 ```bash
 pip install swarmauri_middleware_ratelimit
+```
+
+## Usage
+
+```python
+from fastapi import FastAPI
+from swarmauri_middleware_ratelimit import RateLimitMiddleware
+
+app = FastAPI()
+
+# Allow 100 requests per minute per client IP
+app.add_middleware(RateLimitMiddleware, rate_limit=100, time_window=60)
+```
+
+### Token-based rate limiting
+
+```python
+# Use the value of the `X-Api-Key` header to track clients
+app.add_middleware(
+    RateLimitMiddleware,
+    rate_limit=100,
+    time_window=60,
+    use_token=True,
+    token_header="X-Api-Key",
+)
 ```
 
 ## Want to help?
