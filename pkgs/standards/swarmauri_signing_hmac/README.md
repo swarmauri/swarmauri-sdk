@@ -23,6 +23,12 @@ Features:
 - Optional CBOR canonicalization via `cbor2`
 - Detached signatures using standard library `hmac`
 
+Security notes:
+- Supports HMAC-SHA-256/384/512 only.
+- Keys must be at least 32 bytes (256 bits).
+- Tags default to the hash digest size and may be truncated via
+  `opts["tag_size"]` but not below 16 bytes (128 bits).
+
 ## Installation
 
 ```bash
@@ -40,17 +46,19 @@ from swarmauri_core.crypto.types import JWAAlg
 async def main() -> None:
     signer = HmacEnvelopeSigner()
 
-    # KeyRef with a raw secret; see swarmauri_core for more options
-    key = {"kind": "raw", "key": "secret"}
+    # KeyRef with a raw 32-byte secret; see swarmauri_core for more options
+    key = {"kind": "raw", "key": "a" * 32}
 
     # Sign and verify raw bytes
     payload = b"hello"
-    sigs = await signer.sign_bytes(key, payload, alg=JWAAlg.HS256)
+    sigs = await signer.sign_bytes(key, payload, alg=JWAAlg.HS256, opts={"tag_size": 16})
     assert await signer.verify_bytes(payload, sigs, opts={"keys": [key]})
 
     # Sign and verify a JSON envelope
     env = {"msg": "hello"}
-    sigs_env = await signer.sign_envelope(key, env, alg=JWAAlg.HS256, canon="json")
+    sigs_env = await signer.sign_envelope(
+        key, env, alg=JWAAlg.HS256, canon="json", opts={"tag_size": 16}
+    )
     assert await signer.verify_envelope(env, sigs_env, canon="json", opts={"keys": [key]})
 
 
