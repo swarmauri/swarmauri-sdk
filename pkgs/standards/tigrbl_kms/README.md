@@ -16,14 +16,16 @@
 ---
 
 # Tigrbl KMS
-Tigrbl KMS provides a lightweight key management service built on FastAPI. 
+Tigrbl KMS provides a lightweight key management service built on FastAPI and the Tigrbl engine.
 
-### Deploy
+### Run the built-in app
 
-Run the service with the provided CLI:
+Tigrbl KMS ships a FastAPI application at `tigrbl_kms.app:app`. Configure the database URL if needed (defaults to `sqlite+aiosqlite:///./kms.db`) and launch it with uvicorn:
 
 ```bash
-uv run --package tigrbl_kms --directory pkgs/standards/tigrbl_kms tigrbl-kms --host 127.0.0.1 --port 8000 --no-reload
+export KMS_DATABASE_URL=sqlite+aiosqlite:///./kms.db
+uv run --package tigrbl_kms --directory pkgs/standards/tigrbl_kms \
+  uvicorn tigrbl_kms.app:app --host 127.0.0.1 --port 8000 --reload
 ```
 
 ### Verify
@@ -36,47 +38,43 @@ curl http://127.0.0.1:8000/system/healthz
 
 The endpoint returns `{"ok": true}` when deployment succeeds.
 
+### Build a custom app
+
+You can construct a bespoke Tigrbl KMS service by creating your own `TigrblApp` and adding the KMS resources:
+
+```python
+from tigrbl import TigrblApp
+from tigrbl.engine import engine
+from tigrbl_kms.orm import Key, KeyVersion
+from swarmauri_standard.key_providers import InMemoryKeyProvider
+from swarmauri_crypto_pgp import PgpCrypto  # swap for any swarmauri_crypto_* plugin
+
+db = engine("sqlite+aiosqlite:///./kms.db")
+crypto = PgpCrypto()
+key_provider = InMemoryKeyProvider()
+
+async def add_services(ctx):
+    ctx["crypto"] = crypto
+    ctx["key_provider"] = key_provider
+
+app = TigrblApp(engine=db, api_hooks={"*": {"PRE_TX_BEGIN": [add_services]}})
+app.include_models([Key, KeyVersion], base_prefix="/kms")
+app.mount_jsonrpc(prefix="/kms/rpc")
+app.attach_diagnostics(prefix="/system")
+
+@app.on_event("startup")
+async def startup():
+    await app.initialize()
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="127.0.0.1", port=8000)
+```
+
+The `PgpCrypto` instance above can be replaced with any other `swarmauri_crypto_*` plugin such as `swarmauri_crypto_paramiko` or `swarmauri_crypto_rust`.
+
 ### Create a key and encrypt data
-
-Initialize the SQLite database:
-
-```bash
-uv run --package tigrbl_kms --directory pkgs/standards/tigrbl_kms -- python - <<'PY'
-from tigrbl_kms.app import engine
-from tigrbl.orm.tables import Base
-import asyncio
-
-async def init():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-asyncio.run(init())
-PY
-```
-
-Start a demo server that injects a simple crypto provider:
-
-```bash
-uv run --package tigrbl_kms --directory pkgs/standards/tigrbl_kms -- python - <<'PY'
-import uvicorn
-from tigrbl_kms.app import app
-from types import SimpleNamespace
-
-class DummyCrypto:
-    async def encrypt(self, *, kid, plaintext, alg, aad=None, nonce=None):
-        return SimpleNamespace(nonce=b'n', ct=plaintext[::-1], tag=b't', version=1, alg=alg)
-
-    async def decrypt(self, *, kid, ciphertext, nonce, tag=None, aad=None, alg=None):
-        return ciphertext[::-1]
-
-@app.middleware("http")
-async def add_crypto(request, call_next):
-    request.state.crypto = DummyCrypto()
-    return await call_next(request)
-
-uvicorn.run(app, host="127.0.0.1", port=8000, reload=False)
-PY
-```
 
 In another terminal, create a key:
 

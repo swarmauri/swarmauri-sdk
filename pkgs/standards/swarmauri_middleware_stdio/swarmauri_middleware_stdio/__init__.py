@@ -1,3 +1,5 @@
+"""Expose middleware for logging HTTP requests and responses to stdout."""
+
 from .StdioMiddleware import StdioMiddleware
 
 __all__ = ["StdioMiddleware"]

@@ -1,3 +1,11 @@
+"""Certificate verification against Certificate Revocation Lists (CRLs).
+
+This module provides :class:`CrlVerifyService`, an implementation of
+``CertServiceBase`` that validates X.509 certificates using CRLs. It checks
+basic validity windows, matches issuers, and marks certificates as revoked when
+listed in the supplied CRLs.
+"""
+
 from __future__ import annotations
 
 import datetime
@@ -40,7 +48,26 @@ class CrlVerifyService(CertServiceBase):
         crls: Optional[Sequence[bytes]] = None,
         opts: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
-        """Verify an X.509 certificate against CRLs."""
+        """Verify an X.509 certificate against CRLs.
+
+        Args:
+            cert (bytes): The certificate data in PEM or DER encoding.
+            trust_roots (Optional[Sequence[bytes]]): Trusted root certificates
+                used for chain validation. Defaults to ``None``.
+            intermediates (Optional[Sequence[bytes]]): Intermediate
+                certificates for building the chain. Defaults to ``None``.
+            check_time (Optional[int]): Unix timestamp used to evaluate the
+                certificate validity period. Defaults to current time.
+            check_revocation (bool): Whether to verify revocation status.
+                Defaults to ``True``.
+            crls (Optional[Sequence[bytes]]): CRLs to check for revocation
+                status. Defaults to ``None``.
+            opts (Optional[Dict[str, Any]]): Implementation-specific options.
+
+        Returns:
+            Dict[str, Any]: A dictionary describing the verification result,
+            including validity and revocation status.
+        """
         now = datetime.datetime.utcfromtimestamp(
             check_time or datetime.datetime.utcnow().timestamp()
         )
@@ -84,6 +111,18 @@ class CrlVerifyService(CertServiceBase):
         include_extensions: bool = True,
         opts: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
+        """Parse an X.509 certificate and extract metadata.
+
+        Args:
+            cert (bytes): The certificate data in PEM encoding.
+            include_extensions (bool): Whether to include common extensions in
+                the output. Defaults to ``True``.
+            opts (Optional[Dict[str, Any]]): Additional options for parsing.
+
+        Returns:
+            Dict[str, Any]: Metadata extracted from the certificate such as
+            subject, issuer, validity window, and optional extensions.
+        """
         cert_obj: Certificate = x509.load_pem_x509_certificate(cert, default_backend())
         out: Dict[str, Any] = {
             "serial": cert_obj.serial_number,
