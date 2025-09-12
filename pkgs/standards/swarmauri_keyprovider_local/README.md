@@ -1,8 +1,24 @@
 ![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
 
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_keyprovider_local/"><img src="https://img.shields.io/pypi/dm/swarmauri_keyprovider_local" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_keyprovider_local/"><img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_keyprovider_local.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_keyprovider_local/"><img src="https://img.shields.io/pypi/pyversions/swarmauri_keyprovider_local" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_keyprovider_local/"><img src="https://img.shields.io/pypi/l/swarmauri_keyprovider_local" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_keyprovider_local/"><img src="https://img.shields.io/pypi/v/swarmauri_keyprovider_local?label=swarmauri_keyprovider_local&color=green" alt="PyPI - swarmauri_keyprovider_local"/></a>
+</p>
+
 # Swarmauri Local Key Provider
 
 Provides a simple in-memory key provider for development and testing.
+
+## Features
+
+- Supports AES-256-GCM, Ed25519, X25519, RSA, and ECDSA algorithms.
+- Pure in-memory storage ideal for tests and local development.
+- Import existing keys and rotate through multiple versions.
+- Export public keys as JWK or JWKS documents.
+- Generate random bytes or derive material with HKDF.
 
 ## Installation
 
@@ -38,4 +54,11 @@ async def run_example() -> str:
 
 
 asyncio.run(run_example())
+```
+
+Keys may be rotated and exported as a JWKS:
+
+```python
+rotated = await provider.rotate_key(created.kid)
+jwks = await provider.jwks()
 ```
