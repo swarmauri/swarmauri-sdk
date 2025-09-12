@@ -24,30 +24,50 @@ from swarmauri_core.keys.IKeyProvider import IKeyProvider
 
 
 def _b64u(data: bytes) -> str:
-    """Return URL-safe base64 without padding."""
+    """Encode bytes as URL-safe base64 without padding.
+
+    data (bytes): Bytes to encode.
+    RETURNS (str): Base64url-encoded string without padding.
+    """
     return base64.urlsafe_b64encode(data).rstrip(b"=").decode("ascii")
 
 
 def _b64u_d(s: str) -> bytes:
-    """Decode URL-safe base64 string with added padding."""
+    """Decode URL-safe base64 string with proper padding.
+
+    s (str): Base64url string to decode.
+    RETURNS (bytes): Decoded bytes.
+    """
     pad = (-len(s)) % 4
     return base64.urlsafe_b64decode(s + ("=" * pad))
 
 
 def _now_s() -> int:
-    """Return current time in seconds."""
+    """Get the current time in seconds.
+
+    RETURNS (int): Unix timestamp in seconds.
+    """
     return int(time.time())
 
 
 def _canonical_json(obj: Any) -> bytes:
-    """Return deterministic JSON representation of an object."""
+    """Serialize an object to deterministic JSON bytes.
+
+    obj (Any): Object to serialize.
+    RETURNS (bytes): Canonical JSON representation encoded as UTF-8.
+    """
     return json.dumps(
         obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False
     ).encode("utf-8")
 
 
 def _sig_input(namespace: str, payload_b64u: str) -> bytes:
-    """Return signature input with namespace binding."""
+    """Construct the signature preimage with namespace binding.
+
+    namespace (str): Namespace associated with the token.
+    payload_b64u (str): Base64url-encoded payload.
+    RETURNS (bytes): Bytes used as signing input.
+    """
     return (
         b"sshsig:v1:" + namespace.encode("utf-8") + b":" + payload_b64u.encode("ascii")
     )
@@ -57,7 +77,7 @@ _SUPPORTED = ("ssh-ed25519", "ecdsa-sha2-nistp256")
 
 
 class SshSigTokenService(TokenServiceBase):
-    """SSH-signature token service (compact 3-part format, JWT-like)."""
+    """Token service using SSH signatures in a compact three-part format."""
 
     type: Literal["SshSigTokenService"] = "SshSigTokenService"
 
@@ -68,14 +88,24 @@ class SshSigTokenService(TokenServiceBase):
         default_issuer: Optional[str] = None,
         default_namespace: str = "token",
     ) -> None:
-        """Initialize the service."""
+        """Initialize the token service.
+
+        key_provider (IKeyProvider): Provider used to resolve signing keys.
+        default_issuer (Optional[str]): Issuer claim applied when minting tokens.
+        default_namespace (str): Namespace used when constructing signatures.
+        RETURNS (None): The initialized service.
+        """
         super().__init__()
         self._kp = key_provider
         self._iss = default_issuer
         self._ns = default_namespace
 
     def supports(self) -> Mapping[str, Iterable[str]]:
-        """Return supported formats and algorithms."""
+        """Describe supported token formats and algorithms.
+
+        RETURNS (Mapping[str, Iterable[str]]): Mapping of supported formats and
+            algorithm identifiers.
+        """
         return {"formats": ("SSHSIG",), "algs": _SUPPORTED}
 
     async def mint(
@@ -92,7 +122,20 @@ class SshSigTokenService(TokenServiceBase):
         audience: Optional[str | list[str]] = None,
         scope: Optional[str] = None,
     ) -> str:
-        """Mint a token signed with the given algorithm."""
+        """Mint a signed SSHSIG token.
+
+        claims (Dict[str, Any]): Claims to encode in the payload.
+        alg (str): Identifier of the signing algorithm to use.
+        kid (str | None): Key identifier for the signing key.
+        key_version (int | None): Specific version of the key to use.
+        headers (Optional[Dict[str, Any]]): Additional header values.
+        lifetime_s (Optional[int]): Lifetime of the token in seconds.
+        issuer (Optional[str]): Issuer claim to embed in the token.
+        subject (Optional[str]): Subject claim value.
+        audience (Optional[str | list[str]]): Intended audience claim.
+        scope (Optional[str]): Scope claim for the token.
+        RETURNS (str): Serialized token string.
+        """
         if alg not in _SUPPORTED:
             raise ValueError(f"Unsupported SSH signature alg: {alg}")
 
@@ -155,7 +198,14 @@ class SshSigTokenService(TokenServiceBase):
         audience: Optional[str | list[str]] = None,
         leeway_s: int = 60,
     ) -> Dict[str, Any]:
-        """Verify a token and return its claims."""
+        """Verify a token and return its claims.
+
+        token (str): Token string to verify.
+        issuer (Optional[str]): Expected issuer claim.
+        audience (Optional[str | list[str]]): Expected audience claim.
+        leeway_s (int): Allowed clock skew in seconds when validating times.
+        RETURNS (Dict[str, Any]): Verified claims payload.
+        """
         try:
             hdr_b64, pl_b64, sig_b64 = token.split(".", 2)
         except ValueError as exc:
@@ -234,5 +284,8 @@ class SshSigTokenService(TokenServiceBase):
         return payload
 
     async def jwks(self) -> dict:
-        """Return provider's JWKS."""
+        """Retrieve the provider's JSON Web Key Set.
+
+        RETURNS (dict): JWKS dictionary supplied by the key provider.
+        """
         return await self._kp.jwks()
