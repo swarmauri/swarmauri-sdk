@@ -24,7 +24,6 @@ dependencies = [
 [project.optional-dependencies]
 ntlm = ["requests-ntlm"]
 kerberos = ["requests-kerberos"]
-docs = ["mkdocs"]
 perf = ["pytest-benchmark>=4.0.0"]
 
 [tool.uv.sources]
