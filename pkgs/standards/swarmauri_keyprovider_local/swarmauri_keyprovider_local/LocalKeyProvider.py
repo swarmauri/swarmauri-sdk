@@ -1,3 +1,9 @@
+"""In-memory key provider for symmetric and asymmetric algorithms.
+
+This module offers :class:`LocalKeyProvider` for quick development and testing
+without external dependencies.
+"""
+
 from __future__ import annotations
 
 import base64
@@ -16,11 +22,22 @@ from swarmauri_core.crypto.types import KeyRef
 
 
 def _b64u(b: bytes) -> str:
+    """URL-safe base64 encoding without padding.
+
+    b (bytes): Data to encode.
+    RETURNS (str): Encoded string.
+    """
+
     return base64.urlsafe_b64encode(b).rstrip(b"=").decode("ascii")
 
 
 def _serialize_keypair(priv, spec: KeySpec) -> tuple[bytes, Optional[bytes]]:
-    """Serialize a private key and its public counterpart according to ``spec``."""
+    """Serialize a private key and its public counterpart.
+
+    priv: The private key to serialize.
+    spec (KeySpec): Options controlling the encoding.
+    RETURNS (Tuple[bytes, Optional[bytes]]): Private bytes and public bytes.
+    """
 
     encoding = (
         serialization.Encoding[spec.encoding]
@@ -53,7 +70,17 @@ def _serialize_keypair(priv, spec: KeySpec) -> tuple[bytes, Optional[bytes]]:
 
 
 class LocalKeyProvider(KeyProviderBase):
-    """In-memory key provider for development and testing."""
+    """Store and manage keys entirely in memory.
+
+    create_key(spec) -> KeyRef:
+        Generate a key according to ``spec`` and store it.
+    import_key(spec, material, public=None) -> KeyRef:
+        Register an existing key pair or secret.
+    rotate_key(kid, spec_overrides=None) -> KeyRef:
+        Produce a new version for ``kid``.
+    jwks(prefix_kids=None) -> dict:
+        Export all public keys as a JWKS document.
+    """
 
     type: Literal["LocalKeyProvider"] = "LocalKeyProvider"
 
