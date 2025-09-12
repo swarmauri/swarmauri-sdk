@@ -29,15 +29,23 @@ __all__ = ["RotatingJWTTokenService"]
 
 
 def _now() -> int:
+    """Return the current Unix timestamp.
+
+    RETURNS (int): Seconds elapsed since the Unix epoch.
+    """
+
     return int(time.time())
 
 
 def _parse_kid_ver(header_kid: str) -> Tuple[str, int | None]:
     """Split ``kid.version`` into its components.
 
-    The header ``kid`` convention is ``"kid.version"`` (e.g. ``"abc123.2"``).
-    If no dot is present, return ``(kid, None)``.
+    header_kid (str): Value of the ``kid`` header, optionally suffixed by a
+        version (e.g. ``"abc123.2"``).
+    RETURNS (Tuple[str, int | None]): Base key identifier and version number
+        if present.
     """
+
     if not header_kid:
         return "", None
     parts = header_kid.split(".")
@@ -47,6 +55,12 @@ def _parse_kid_ver(header_kid: str) -> Tuple[str, int | None]:
 
 
 def _b64u_to_bytes(s: str) -> bytes:
+    """Decode a base64url-encoded string.
+
+    s (str): Base64url-encoded data without padding.
+    RETURNS (bytes): The decoded byte sequence.
+    """
+
     pad = "=" * ((4 - (len(s) % 4)) % 4)
     return base64.urlsafe_b64decode(s + pad)
 
@@ -61,7 +75,12 @@ _SIGN_ALGS = {
 
 
 def _default_spec_for_alg(alg: JWAAlg, *, label: Optional[str] = None) -> KeySpec:
-    """Choose a sensible :class:`KeySpec` for creating the initial signing key."""
+    """Choose a sensible :class:`KeySpec` for creating the initial signing key.
+
+    alg (JWAAlg): Desired signing algorithm.
+    label (str | None): Optional label for the created key.
+    RETURNS (KeySpec): Specification describing the key to create.
+    """
     if alg == JWAAlg.HS256:
         return KeySpec(
             klass=KeyClass.symmetric,
@@ -109,8 +128,8 @@ class RotatingJWTTokenService(TokenServiceBase):
     """JWT issuer/verifier that rotates the signing key.
 
     Rotation can be triggered by elapsed time (``rotate_every_s``) or after a
-    maximum number of minted tokens (``max_tokens_per_key``).  Previous key
-    versions are kept for a retention window so that older tokens remain
+    maximum number of minted tokens (``max_tokens_per_key``). Previous key
+    versions are retained for a configurable window so that older tokens remain
     verifiable.
     """
 
@@ -128,6 +147,22 @@ class RotatingJWTTokenService(TokenServiceBase):
         max_tokens_per_key: Optional[int] = None,
         previous_key_ttl_s: int = 86_400,
     ) -> None:
+        """Create a rotating JWT token service.
+
+        key_provider (IKeyProvider): Backend used to store and rotate keys.
+        alg (JWAAlg): Signing algorithm for issued tokens.
+        base_kid (str | None): Existing key identifier to bootstrap from.
+        create_spec (KeySpec | None): Specification for creating the initial
+            key if one does not already exist.
+        default_issuer (str | None): Default ``iss`` claim for minted tokens.
+        rotate_every_s (int | None): Seconds between automatic rotations.
+        max_tokens_per_key (int | None): Maximum tokens minted before forcing
+            rotation.
+        previous_key_ttl_s (int): Time in seconds to retain previous keys for
+            verification.
+        RETURNS (None): This constructor does not return anything.
+        """
+
         super().__init__()
         if alg not in _SIGN_ALGS:
             raise ValueError(f"Unsupported alg: {alg.value}")
@@ -151,6 +186,12 @@ class RotatingJWTTokenService(TokenServiceBase):
     # ITokenService interface
     # ------------------------------------------------------------------
     def supports(self) -> Dict[str, Iterable[JWAAlg]]:
+        """Return the token formats and algorithms supported.
+
+        RETURNS (Dict[str, Iterable[JWAAlg]]): Mapping of supported formats and
+        algorithms.
+        """
+
         return {"formats": ("JWT", "JWS"), "algs": (self._alg,)}
 
     async def mint(
@@ -167,6 +208,22 @@ class RotatingJWTTokenService(TokenServiceBase):
         audience: Optional[str | list[str]] = None,
         scope: Optional[str] = None,
     ) -> str:
+        """Generate a signed JWT.
+
+        claims (Dict[str, object]): Claims to include in the payload.
+        alg (JWAAlg): Algorithm used for signing; must match the service
+            configuration.
+        kid (str | None): Override key identifier to sign with.
+        key_version (int | None): Specific key version to sign with.
+        headers (Dict[str, object] | None): Additional headers to include.
+        lifetime_s (int | None): Lifetime of the token in seconds.
+        issuer (str | None): Issuer claim to set for the token.
+        subject (str | None): Subject claim to include.
+        audience (str | list[str] | None): Audience claim for the token.
+        scope (str | None): Optional scope value.
+        RETURNS (str): Encoded JWT token.
+        """
+
         if alg != self._alg:
             raise ValueError(
                 f"This service is configured for alg={self._alg.value}, got {alg.value}"
@@ -215,6 +272,15 @@ class RotatingJWTTokenService(TokenServiceBase):
         audience: Optional[str | list[str]] = None,
         leeway_s: int = 60,
     ) -> Dict[str, object]:
+        """Validate a JWT and return its claims.
+
+        token (str): Encoded JWT to verify.
+        issuer (str | None): Expected issuer value.
+        audience (str | list[str] | None): Expected audience claim.
+        leeway_s (int): Allowable clock skew in seconds.
+        RETURNS (Dict[str, object]): Verified claims payload.
+        """
+
         try:
             header = jwt.get_unverified_header(token)
         except Exception as exc:  # pragma: no cover - propagating original error
@@ -270,6 +336,11 @@ class RotatingJWTTokenService(TokenServiceBase):
         )
 
     async def jwks(self) -> dict:
+        """Return the JSON Web Key Set for verification.
+
+        RETURNS (dict): JWKS containing current and previous public keys.
+        """
+
         base = await self._kp.jwks()
         seen = {k.get("kid") for k in base.get("keys", []) if isinstance(k, dict)}
         keys = list(base.get("keys", []))
@@ -302,6 +373,11 @@ class RotatingJWTTokenService(TokenServiceBase):
     # Helpers
     # ------------------------------------------------------------------
     def _schedule_next_rotation(self) -> None:
+        """Compute the timestamp for the next rotation.
+
+        RETURNS (None): This method does not return anything.
+        """
+
         self._mint_count = 0
         if self._rotate_every_s:
             self._next_rotate_at = _now() + self._rotate_every_s
@@ -309,6 +385,11 @@ class RotatingJWTTokenService(TokenServiceBase):
             self._next_rotate_at = None
 
     async def _maybe_rotate(self) -> None:
+        """Rotate the signing key if rotation conditions are met.
+
+        RETURNS (None): This method does not return anything.
+        """
+
         due_time = self._next_rotate_at is not None and _now() >= self._next_rotate_at
         due_count = (
             self._max_tokens is not None and self._mint_count >= self._max_tokens
@@ -325,6 +406,13 @@ class RotatingJWTTokenService(TokenServiceBase):
     def _init_signing_key(
         self, base_kid: Optional[str], create_spec: Optional[KeySpec]
     ) -> None:
+        """Initialize the signing key.
+
+        base_kid (str | None): Existing key identifier to reuse.
+        create_spec (KeySpec | None): Specification for creating a new key.
+        RETURNS (None): This method does not return anything.
+        """
+
         if base_kid:
             self._kid = base_kid
             self._ver = 1
@@ -336,6 +424,11 @@ class RotatingJWTTokenService(TokenServiceBase):
         self._schedule_next_rotation()
 
     async def force_rotate(self) -> Tuple[str, int]:
+        """Force immediate key rotation.
+
+        RETURNS (Tuple[str, int]): New key identifier and version.
+        """
+
         await self._maybe_rotate()
         self._prev_versions[self._ver] = _now() + self._prev_ttl
         ref = await self._kp.rotate_key(self._kid)
@@ -345,10 +438,21 @@ class RotatingJWTTokenService(TokenServiceBase):
 
     @property
     def current_signing_key(self) -> Tuple[str, int, JWAAlg]:
+        """Return the current key identifier, version and algorithm.
+
+        RETURNS (Tuple[str, int, JWAAlg]): Details of the active signing key.
+        """
+
         return self._kid, self._ver, self._alg
 
 
 def _jwk_to_key(jwk: dict) -> object:
+    """Convert a JWK dictionary to a cryptography key object.
+
+    jwk (dict): JSON Web Key representation.
+    RETURNS (object): Key object or ``None`` if unsupported.
+    """
+
     kty = jwk.get("kty")
     if kty == "RSA":
         return algorithms.RSAAlgorithm.from_jwk(jwk)
@@ -364,6 +468,12 @@ def _jwk_to_key(jwk: dict) -> object:
 
 
 def _sync_run(coro):
+    """Execute an async coroutine in a synchronous context.
+
+    coro: Awaitable object to execute.
+    RETURNS: Result produced by the coroutine.
+    """
+
     try:
         import asyncio
 

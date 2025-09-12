@@ -21,3 +21,33 @@
 An SSH signature token service for the Swarmauri framework. This service
 implements minting and verifying tokens signed with SSH-compatible
 algorithms such as Ed25519 and ECDSA P-256.
+
+## Features
+
+- Mint and verify compact `SSHSIG` tokens
+- Supports `ssh-ed25519` and `ecdsa-sha2-nistp256`
+- Integrates with the Swarmauri token management framework
+
+## Installation
+
+```bash
+pip install swarmauri_tokens_sshsig
+```
+
+## Usage
+
+```python
+from swarmauri_tokens_sshsig import SshSigTokenService
+from swarmauri_core.keys import IKeyProvider
+
+key_provider: IKeyProvider = ...  # Provide an implementation of IKeyProvider
+svc = SshSigTokenService(key_provider, default_issuer="example.com")
+
+token = await svc.mint({"sub": "alice"}, alg="ssh-ed25519", kid="ed1")
+claims = await svc.verify(token, issuer="example.com")
+```
+
+The token format uses a compact three-part structure similar to JWT but relies
+on SSH signature algorithms. The payload is encoded as deterministic JSON and
+bound to a namespace before signing, providing interoperability with existing
+SSH key infrastructures.

@@ -19,18 +19,14 @@ from swarmauri_core.crypto.types import KeyRef
 
 @ComponentBase.register_type(CertServiceBase, "ScepCertService")
 class ScepCertService(CertServiceBase):
-    """
-    Certificate enrollment via SCEP (Simple Certificate Enrollment Protocol).
+    """Certificate enrollment via SCEP (Simple Certificate Enrollment Protocol).
 
-    Maps :class:`ICertService` flows onto SCEP messages:
-      - create_csr(): build PKCS#10 CSR locally (cryptography.x509).
-      - sign_cert(): send CSR in PKCSReq to SCEP server, receive CertRep (X.509).
-      - verify_cert(): fetch CA/RA certs via GetCACert, build chain, check signature.
-      - parse_cert(): delegate to cryptography.x509.
+    The service maps :class:`~swarmauri_core.certs.ICertService` flows onto the
+    SCEP message exchange so that clients can issue and validate X.509
+    certificates.
 
-    Requirements:
-      * The SCEP server URL (http(s)://host/certsrv/mscep/...) must be configured.
-      * Client authentication (RA challenge password, or TLS client auth) may be required.
+    scep_url (str): Base URL of the SCEP server.
+    challenge_password (str / None): RA challenge password if required.
     """
 
     type: Literal["ScepCertService"] = "ScepCertService"
@@ -38,11 +34,20 @@ class ScepCertService(CertServiceBase):
     def __init__(
         self, scep_url: str, *, challenge_password: Optional[str] = None
     ) -> None:
+        """Initialise the SCEP certificate service.
+
+        scep_url (str): Base URL of the SCEP server.
+        challenge_password (str / None): RA challenge password for enrollment.
+        """
         super().__init__()
         self._url = scep_url.rstrip("/")
         self._challenge = challenge_password
 
     def supports(self) -> Mapping[str, Iterable[str]]:
+        """Return supported algorithms and features.
+
+        RETURNS (Mapping[str, Iterable[str]]): Supported keys, signatures, and features.
+        """
         return {
             "key_algs": ("RSA-2048", "RSA-3072", "EC-P256", "EC-P384"),
             "sig_algs": (
@@ -66,7 +71,18 @@ class ScepCertService(CertServiceBase):
         output_der: bool = False,
         opts: Optional[Dict[str, Any]] = None,
     ) -> CsrBytes:
-        """Build a PKCS#10 CSR using cryptography.x509 (RFC 2986)."""
+        """Build a PKCS#10 certificate signing request.
+
+        key (KeyRef): Private key used to sign the CSR.
+        subject (SubjectSpec): Distinguished name of the subject.
+        san (AltNameSpec / None): Subject alternative names to include.
+        extensions (CertExtensionSpec / None): Additional X.509 extensions.
+        sig_alg (str / None): Signature algorithm to use.
+        challenge_password (str / None): Challenge password embedded in the CSR.
+        output_der (bool): If True, return DER; otherwise PEM.
+        opts (Dict[str, Any] / None): Implementation-specific options.
+        RETURNS (CsrBytes): The serialized CSR.
+        """
         from cryptography import x509
         from cryptography.x509.oid import NameOID
         from cryptography.hazmat.primitives import serialization, hashes
@@ -112,7 +128,21 @@ class ScepCertService(CertServiceBase):
         output_der: bool = False,
         opts: Optional[Dict[str, Any]] = None,
     ) -> CertBytes:
-        """Send CSR to SCEP server (PKIOperation, messageType=PKCSReq)."""
+        """Submit the CSR to the SCEP server and return the issued certificate.
+
+        csr (CsrBytes): Certificate signing request to submit.
+        ca_key (KeyRef): Unused but required by the interface.
+        issuer (SubjectSpec / None): Ignored for SCEP.
+        ca_cert (CertBytes / None): Optional CA certificate.
+        serial (int / None): Preferred serial number for the certificate.
+        not_before (int / None): Desired start of validity period (UNIX time).
+        not_after (int / None): Desired end of validity period (UNIX time).
+        extensions (CertExtensionSpec / None): Extra X.509 extensions.
+        sig_alg (str / None): Signature algorithm to request.
+        output_der (bool): If True, return DER; otherwise PEM.
+        opts (Dict[str, Any] / None): Implementation-specific options.
+        RETURNS (CertBytes): The certificate returned by the server.
+        """
         resp = requests.post(
             f"{self._url}/pkiclient.exe?operation=PKIOperation", data=csr
         )
@@ -129,7 +159,16 @@ class ScepCertService(CertServiceBase):
         check_revocation: bool = False,
         opts: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
-        """Verify an X.509 certificate (RFC 5280)."""
+        """Verify an X.509 certificate.
+
+        cert (CertBytes): Certificate to verify.
+        trust_roots (Sequence[CertBytes] / None): Trusted root certificates.
+        intermediates (Sequence[CertBytes] / None): Intermediate certificates.
+        check_time (int / None): Verification time as UNIX timestamp.
+        check_revocation (bool): Enable revocation checks.
+        opts (Dict[str, Any] / None): Implementation-specific options.
+        RETURNS (Dict[str, Any]): Verification result details.
+        """
         from cryptography import x509
 
         c = (
@@ -161,7 +200,13 @@ class ScepCertService(CertServiceBase):
         include_extensions: bool = True,
         opts: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
-        """Parse an X.509 certificate into a JSON mapping (RFC 5280)."""
+        """Parse an X.509 certificate into a JSON-compatible mapping.
+
+        cert (CertBytes): Certificate to parse.
+        include_extensions (bool): If True, include extensions.
+        opts (Dict[str, Any] / None): Implementation-specific options.
+        RETURNS (Dict[str, Any]): Certificate metadata.
+        """
         from cryptography import x509
 
         c = (
