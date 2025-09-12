@@ -1,3 +1,9 @@
+"""SCEP certificate service plugin for Swarmauri.
+
+Provides the :class:`ScepCertService` for performing certificate enrollment via
+the Simple Certificate Enrollment Protocol.
+"""
+
 from .ScepCertService import ScepCertService
 
 __all__ = ["ScepCertService"]

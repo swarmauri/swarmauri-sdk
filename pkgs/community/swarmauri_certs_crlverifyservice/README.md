@@ -15,4 +15,30 @@
 
 ---
 
-# Swarmauri Certs Crl Verify Service
+# swarmauri_certs_crlverifyservice
+
+CRL-based certificate verification service for the Swarmauri SDK.
+
+This package implements an ``ICertService`` that checks X.509 certificates
+against Certificate Revocation Lists as described in
+[RFC 5280](https://www.rfc-editor.org/rfc/rfc5280). It validates the
+certificate's validity period, issuer, and revocation status.
+
+## Features
+- Verify certificate validity and revocation using provided CRLs.
+- Parse PEM certificates to extract basic metadata and common extensions.
+
+## Installation
+```bash
+pip install swarmauri_certs_crlverifyservice
+```
+
+## Usage
+```python
+from swarmauri_certs_crlverifyservice import CrlVerifyService
+
+svc = CrlVerifyService()
+result = await svc.verify_cert(cert_bytes, crls=[crl_bytes])
+meta = await svc.parse_cert(cert_bytes)
+```
+
