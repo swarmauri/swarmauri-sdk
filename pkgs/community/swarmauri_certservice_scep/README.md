@@ -17,7 +17,14 @@
 
 # Swarmauri Certservice SCEP
 
-A certificate enrollment service implementing the Simple Certificate Enrollment Protocol (SCEP).
+`ScepCertService` implements certificate enrollment using the [Simple Certificate Enrollment Protocol (SCEP)](https://datatracker.ietf.org/doc/html/rfc8894). It maps the generic `ICertService` flows onto SCEP operations so applications can request, receive, and validate X.509 certificates without dealing with protocol details.
+
+## Features
+
+- Build PKCS#10 certificate signing requests.
+- Submit CSRs via SCEP `PKCSReq` and obtain signed certificates.
+- Retrieve CA certificates and validate issued certificates.
+- Parse X.509 certificates into convenient Python dictionaries.
 
 ## Installation
 
@@ -28,10 +35,20 @@ pip install swarmauri_certservice_scep
 ## Usage
 
 ```python
+import asyncio
 from swarmauri_certservice_scep import ScepCertService
 
-service = ScepCertService("https://scep.example.test", challenge_password="secret")
+async def main():
+    service = ScepCertService("https://scep.example.test", challenge_password="secret")
+    csr = await service.create_csr(key, {"CN": "device1"})
+    cert = await service.sign_cert(csr, key)
+    info = await service.verify_cert(cert)
+    print(info)
+
+asyncio.run(main())
 ```
+
+Replace `key` with a `KeyRef` containing the private key material expected by the server.
 
 ## Want to help?
 
