@@ -21,17 +21,17 @@ targets:
     include:
       - swarmauri_standard.*
 
-  # Discover all packages under standards/community
-  - name: First_Class
-    discover: true
+  # Discover all packages under standards
+  - name: Standards
     search_path: /pkgs/standards
     include:
-      - "*."  # all modules within discovered packages
+      - "*.*"  # all modules within discovered packages
+      - swarmauri_certs_composite.*
     exclude:
       - "*.tests.*"
 
-  - name: Second_Class
-    discover: true
+  # Discover all packages under community
+  - name: Community
     search_path: /pkgs/community
     include:
       - "*."

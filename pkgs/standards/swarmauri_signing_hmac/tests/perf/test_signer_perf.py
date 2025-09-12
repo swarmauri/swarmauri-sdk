@@ -8,7 +8,7 @@ from swarmauri_signing_hmac import HmacEnvelopeSigner
 @pytest.mark.perf
 def test_sign_bytes_perf(benchmark):
     signer = HmacEnvelopeSigner()
-    key = {"kind": "raw", "key": "secret"}
+    key = {"kind": "raw", "key": "a" * 32}
     payload = b"perf-test"
 
     async def _sign():
