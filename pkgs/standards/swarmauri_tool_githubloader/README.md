@@ -41,6 +41,43 @@ tool = GithubLoadedTool(
 result = tool(x=1, y=2)
 ```
 
+### Options
+
+Customize how the loader fetches your component:
+
+- **branch** – Branch to read from (defaults to `"main"`).
+- **commit_ref** – Specific commit SHA; overrides `branch` when provided.
+- **token** – GitHub token for private repositories.
+- **use_cache** – Set to `False` to reload the component on every call.
+
+### Advanced examples
+
+Fetch from a branch and pin a commit:
+
+```python
+tool = GithubLoadedTool(
+    owner="myorg",
+    repo="myrepo",
+    path="tools/addition.yaml",
+    branch="develop",
+    commit_ref="0123456789abcdef",
+)
+```
+
+Load from a private repository with caching disabled:
+
+```python
+import os
+
+tool = GithubLoadedTool(
+    owner="myorg",
+    repo="private-repo",
+    path="tools/addition.yaml",
+    token=os.environ["GITHUB_TOKEN"],
+    use_cache=False,
+)
+```
+
 ## Want to help?
 
 If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
