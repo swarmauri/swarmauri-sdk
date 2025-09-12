@@ -44,3 +44,21 @@ uv add swarmauri_tokens_rotatingjwt[ecdsa]
 uv add swarmauri_tokens_rotatingjwt[eddsa]
 uv add swarmauri_tokens_rotatingjwt[hmac]
 ```
+
+## Usage
+
+```python
+from swarmauri_tokens_rotatingjwt import RotatingJWTTokenService
+from swarmauri_keyprovider_inmemory import InMemoryKeyProvider
+from swarmauri_core.crypto.types import JWAAlg
+
+kp = InMemoryKeyProvider()
+service = RotatingJWTTokenService(kp, alg=JWAAlg.RS256)
+
+token = await service.mint({"sub": "alice"}, alg=JWAAlg.RS256)
+claims = await service.verify(token)
+jwks = await service.jwks()
+```
+
+The service handles key rotation based on time or token volume and exposes a
+JWKS endpoint that includes previous keys so existing tokens remain valid.
