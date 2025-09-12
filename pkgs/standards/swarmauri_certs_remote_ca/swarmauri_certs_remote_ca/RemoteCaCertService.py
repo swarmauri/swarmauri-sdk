@@ -21,30 +21,27 @@ from swarmauri_core.crypto.types import KeyRef
 
 
 class RemoteCaCertService(CertServiceBase):
-    """
-    Generic remote CA bridge.
+    """Bridge to a remote Certificate Authority over HTTP.
 
-    Follows X.509 certificate concepts from RFC 5280 and
-    Enrollment over Secure Transport (EST) from RFC 7030.
+    The service forwards certificate signing requests (CSRs) to a remote
+    endpoint and returns the issued certificate. It follows X.509 concepts
+    (RFC 5280) and Enrollment over Secure Transport (EST, RFC 7030).
 
-    Usage model:
-      - POST CSR to a configured endpoint (e.g., /sign, /enroll)
-      - Remote CA returns certificate (PEM or DER, JSON-encoded or raw)
-      - Service normalizes to PEM and hands back CertBytes
-
-    Configuration:
-      :param endpoint:   Base URL of remote CA sign endpoint.
-      :param auth:       Optional auth headers (dict) or httpx.Auth.
-      :param timeout_s:  HTTP timeout (default 10s).
-      :param ca_chain:   Optional cached trust anchors to expose on verify/parse.
+    Args:
+        endpoint (str): Base URL of the remote CA sign endpoint.
+        auth (Mapping[str, str] | httpx.Auth, optional): Authentication headers
+            or an ``httpx.Auth`` instance used for each request.
+        timeout_s (float, optional): HTTP timeout in seconds. Defaults to
+            ``10.0``.
+        ca_chain (Sequence[CertBytes], optional): Cached trust anchors exposed
+            when verifying or parsing certificates.
 
     Notes:
-      - This service does NOT generate CSRs; pair with X509CertService or CsrOnlyService.
-      - It assumes a JSON API by default:
-            { "csr": "<base64-PEM-or-DER>" }
-        and response:
-            { "cert": "<base64-PEM-or-DER>" }
-        You can override request/response mapping via opts.
+        This service does not generate CSRs; pair it with ``X509CertService`` or
+        ``CsrOnlyService``. By default it assumes a JSON API with the request
+        body ``{"csr": "<base64-PEM-or-DER>"}`` and response
+        ``{"cert": "<base64-PEM-or-DER>"}``. These mappings can be overridden
+        via ``opts``.
     """
 
     type: Literal["RemoteCaCertService"] = "RemoteCaCertService"
@@ -67,6 +64,13 @@ class RemoteCaCertService(CertServiceBase):
     # ---------------- capability ----------------
 
     def supports(self) -> Mapping[str, Iterable[str]]:
+        """Describe capabilities advertised by the service.
+
+        Returns:
+            Mapping[str, Iterable[str]]: Supported algorithms, features and
+            profiles.
+        """
+
         return {
             "key_algs": ("RSA-2048", "RSA-3072", "EC-P256", "Ed25519"),
             "sig_algs": ("RSA-PSS-SHA256", "ECDSA-P256-SHA256", "Ed25519"),
@@ -77,6 +81,12 @@ class RemoteCaCertService(CertServiceBase):
     # ---------------- helpers ----------------
 
     async def _get_client(self) -> httpx.AsyncClient:
+        """Return or create the underlying HTTP client.
+
+        Returns:
+            httpx.AsyncClient: Lazy-initialized asynchronous client instance.
+        """
+
         if self._client is None:
             self._client = httpx.AsyncClient(
                 timeout=self._timeout,
@@ -85,6 +95,8 @@ class RemoteCaCertService(CertServiceBase):
         return self._client
 
     async def aclose(self) -> None:
+        """Close the underlying HTTP client if it exists."""
+
         if self._client:
             await self._client.aclose()
             self._client = None
@@ -103,9 +115,23 @@ class RemoteCaCertService(CertServiceBase):
         output_der: bool = False,
         opts: Optional[Dict[str, Any]] = None,
     ) -> CsrBytes:
+        """Unsupported CSR creation operation.
+
+        Raises:
+            NotImplementedError: Always raised since this service cannot create
+                CSRs directly.
+        """
+
         raise NotImplementedError("RemoteCaCertService does not create CSRs directly.")
 
     async def create_self_signed(self, *a, **kw) -> CertBytes:
+        """Unsupported self-signed certificate operation.
+
+        Raises:
+            NotImplementedError: Always raised since this service cannot
+                self-sign certificates.
+        """
+
         raise NotImplementedError(
             "RemoteCaCertService does not self-sign certificates."
         )
@@ -125,6 +151,27 @@ class RemoteCaCertService(CertServiceBase):
         output_der: bool = False,
         opts: Optional[Dict[str, Any]] = None,
     ) -> CertBytes:
+        """Request certificate issuance from the remote CA.
+
+        Args:
+            csr (CsrBytes): CSR bytes to forward to the remote CA.
+            ca_key (KeyRef): Ignored; present for interface compatibility.
+            issuer (SubjectSpec, optional): Ignored.
+            ca_cert (CertBytes, optional): Ignored.
+            serial (int, optional): Ignored.
+            not_before (int, optional): Ignored.
+            not_after (int, optional): Ignored.
+            extensions (CertExtensionSpec, optional): Extension values to merge
+                into the request.
+            sig_alg (str, optional): Signature algorithm hint.
+            output_der (bool, optional): Whether to return DER instead of PEM.
+            opts (Dict[str, Any], optional): Extra request options merged into
+                the JSON body under ``"extra"``.
+
+        Returns:
+            CertBytes: Certificate returned by the remote CA.
+        """
+
         client = await self._get_client()
 
         # Default: POST JSON with base64 PEM
@@ -157,6 +204,23 @@ class RemoteCaCertService(CertServiceBase):
         check_revocation: bool = False,
         opts: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
+        """Stub certificate verification.
+
+        Args:
+            cert (CertBytes): Certificate to verify.
+            trust_roots (Sequence[CertBytes], optional): Trusted root
+                certificates.
+            intermediates (Sequence[CertBytes], optional): Intermediate
+                certificates.
+            check_time (int, optional): Verification time as a UNIX timestamp.
+            check_revocation (bool, optional): Whether to perform revocation
+                checks.
+            opts (Dict[str, Any], optional): Additional verification options.
+
+        Returns:
+            Dict[str, Any]: Always returns an unsupported verification result.
+        """
+
         # For now: defer to X509CertService or external verifier
         # Here we just acknowledge we can't fully verify.
         return {"valid": False, "reason": "verify_not_supported", "active": False}
@@ -168,6 +232,18 @@ class RemoteCaCertService(CertServiceBase):
         include_extensions: bool = True,
         opts: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
+        """Extract minimal information from a certificate.
+
+        Args:
+            cert (CertBytes): Certificate to parse.
+            include_extensions (bool, optional): Whether to include extension
+                data in the result.
+            opts (Dict[str, Any], optional): Reserved for future options.
+
+        Returns:
+            Dict[str, Any]: Length and base64 snippet of the certificate.
+        """
+
         # Minimal parse: just length and base64 snippet
         return {
             "len": len(cert),

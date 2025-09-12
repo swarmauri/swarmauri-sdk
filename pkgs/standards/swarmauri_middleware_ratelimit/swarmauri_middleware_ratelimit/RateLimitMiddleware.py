@@ -13,17 +13,28 @@ logger = logging.getLogger(__name__)
 # Fix: Correct the registration type
 @ComponentBase.register_type(MiddlewareBase, "RateLimitMiddleware")
 class RateLimitMiddleware(MiddlewareBase, ComponentBase):
-    """Middleware to enforce rate limits on incoming requests.
+    """Enforce per-client request limits.
 
-    This middleware tracks the number of requests made by each client IP or token
-    within a given time window and blocks clients that exceed the specified rate limit.
+    The middleware counts requests from each client IP or token within a
+    configurable time window. Requests beyond the configured limit are blocked
+    with an HTTP ``429`` response.
 
-    Attributes:
-        type: Literal["RateLimitMiddleware"] = "RateLimitMiddleware"
-        rate_limit (int): Maximum number of requests allowed within the time window.
-        time_window (int): Time window in seconds during which the rate limit applies.
-        use_token (bool): Whether to use tokens instead of client IP for rate limiting.
-        token_header (str): Header name to extract the token from.
+    Attributes
+    ----------
+    type : Literal["RateLimitMiddleware"]
+        Unique middleware type identifier.
+    rate_limit : int, optional
+        Maximum number of requests allowed within the time window. Defaults to
+        ``100``.
+    time_window : int, optional
+        Time window in seconds during which the rate limit applies. Defaults to
+        ``60`` seconds.
+    use_token : bool, optional
+        If ``True``, use a token from ``token_header`` instead of the client IP to
+        identify callers. Defaults to ``False``.
+    token_header : str, optional
+        Header name used to extract the token when ``use_token`` is ``True``.
+        Defaults to ``"X-Api-Key"``.
     """
 
     # Fix: Add the type attribute
@@ -52,17 +63,24 @@ class RateLimitMiddleware(MiddlewareBase, ComponentBase):
     async def dispatch(
         self, request: Request, call_next: Callable[[Request], Any]
     ) -> Any:
-        """Dispatches the request to the next middleware in the chain while enforcing rate limits.
+        """Process the request while applying rate limits.
 
-        Args:
-            request: The incoming request object to be processed.
-            call_next: A callable that invokes the next middleware in the chain.
+        Parameters
+        ----------
+        request : Request
+            Incoming request object.
+        call_next : Callable[[Request], Any]
+            Callable that invokes the next middleware in the chain.
 
-        Returns:
-            The response object after processing the request.
+        Returns
+        -------
+        Any
+            Response object after processing the request.
 
-        Raises:
-            HTTPException: If the client has exceeded the rate limit.
+        Raises
+        ------
+        HTTPException
+            If the client has exceeded the rate limit.
         """
 
         # Get client identifier (IP or token)
@@ -95,16 +113,20 @@ class RateLimitMiddleware(MiddlewareBase, ComponentBase):
         return await call_next(request)
 
     async def _get_client_identifier(self, request: Request) -> str:
-        """Gets the client identifier for rate limiting.
+        """Return the identifier used for rate limiting.
 
-        If token-based rate limiting is enabled, this method retrieves the token
-        from the specified header. Otherwise, it returns the client's IP address.
+        If token-based rate limiting is enabled, the token is read from the
+        configured header. Otherwise the client's IP address is used.
 
-        Args:
-            request: The incoming request object.
+        Parameters
+        ----------
+        request : Request
+            Incoming request object.
 
-        Returns:
-            str: The client identifier (IP address or token).
+        Returns
+        -------
+        str
+            Client identifier (IP address or token).
         """
         if self.use_token:
             token = request.headers.get(self.token_header)
