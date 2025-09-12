@@ -22,6 +22,19 @@ A standard JWT token service for the Swarmauri framework. This service
 implements minting and verifying JSON Web Tokens and exposes a JWKS
 endpoint for public key discovery.
 
+## Installation
+
+```bash
+pip install swarmauri_tokens_jwt
+```
+
+## Features
+
+- Mint and verify JWS/JWT tokens
+- Supports algorithms like **HS256**, **RS256**, **ES256**, **PS256** and **EdDSA**
+- Integrates with any :class:`~swarmauri_core.keys.IKeyProvider`
+- Publishes a JWKS endpoint for public key discovery
+
 ## Usage
 
 `JWTTokenService` requires an `IKeyProvider` to supply signing material. The
@@ -101,4 +114,6 @@ asyncio.run(main())
 ```
 
 The service also supports asymmetric algorithms such as **RS256**, **ES256** and
-**EdDSA** when the key provider exposes the appropriate keys.
+**EdDSA** when the key provider exposes the appropriate keys. See the
+docstrings in :mod:`swarmauri_tokens_jwt` for additional details on the API
+surface.
