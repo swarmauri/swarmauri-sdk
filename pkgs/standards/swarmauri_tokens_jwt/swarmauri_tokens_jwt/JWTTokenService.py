@@ -1,3 +1,9 @@
+"""JWT token service implementation.
+
+Provides the :class:`JWTTokenService` for minting and verifying JSON Web
+Tokens (JWT) using keys supplied by an :class:`~swarmauri_core.keys.IKeyProvider`.
+"""
+
 from __future__ import annotations
 
 import json
@@ -19,7 +25,17 @@ ALG_MAP_SIGN = {
 
 
 def _ref_to_signing_key(ref: KeyRef, alg: JWAAlg) -> Mapping[str, Any]:
-    """Convert a ``KeyRef`` into a ``JwsSignerVerifier`` key mapping."""
+    """Convert a key reference into a signer/verifier mapping.
+
+    ref (KeyRef): Reference containing the signing material.
+    alg (JWAAlg): Algorithm used to sign the token.
+
+    RETURNS (Mapping[str, Any]): Key specification understood by
+        :class:`~swarmauri_signing_jws.JwsSignerVerifier`.
+
+    RAISES (RuntimeError): If signing material is not available.
+    """
+
     mat = ref.material
     if mat is None:
         raise RuntimeError("key material not available for signing")
@@ -37,19 +53,35 @@ def _ref_to_signing_key(ref: KeyRef, alg: JWAAlg) -> Mapping[str, Any]:
 
 
 class JWTTokenService(TokenServiceBase):
-    """JWS/JWT issuer and verifier backed by an ``IKeyProvider``."""
+    """JWS/JWT issuer and verifier backed by a key provider.
+
+    key_provider (IKeyProvider): Source of signing keys.
+    default_issuer (str): Default issuer claim for minted tokens.
+    """
 
     type: Literal["JWTTokenService"] = "JWTTokenService"
 
     def __init__(
         self, key_provider: IKeyProvider, *, default_issuer: Optional[str] = None
     ) -> None:
+        """Initialize the token service.
+
+        key_provider (IKeyProvider): Provider used to fetch signing keys.
+        default_issuer (str): Optional issuer applied when minting tokens.
+        """
+
         super().__init__()
         self._kp = key_provider
         self._iss = default_issuer
         self._jws = JwsSignerVerifier()
 
     def supports(self) -> Mapping[str, Iterable[JWAAlg]]:
+        """Describe supported formats and algorithms.
+
+        RETURNS (Mapping[str, Iterable[JWAAlg]]): Supported formats and
+            algorithms for minting and verification.
+        """
+
         return {"formats": ("JWT", "JWS"), "algs": tuple(ALG_MAP_SIGN.keys())}
 
     async def mint(
@@ -66,6 +98,25 @@ class JWTTokenService(TokenServiceBase):
         audience: Optional[str | list[str]] = None,
         scope: Optional[str] = None,
     ) -> str:
+        """Mint a signed JWT.
+
+        claims (Dict[str, Any]): Claims to embed in the token.
+        alg (JWAAlg): Signing algorithm.
+        kid (str): Identifier of the signing key.
+        key_version (int): Optional version of the signing key.
+        headers (Dict[str, Any]): Extra protected headers.
+        lifetime_s (int): Token lifetime in seconds.
+        issuer (str): Issuer claim to include.
+        subject (str): Subject claim to include.
+        audience (str or list[str]): Audience claim.
+        scope (str): Scope claim.
+
+        RETURNS (str): Encoded JWT string.
+
+        RAISES (ValueError): If no ``kid`` is provided.
+        RAISES (RuntimeError): If signing key material cannot be exported.
+        """
+
         now = int(time.time())
         payload = dict(claims)
         payload.setdefault("iat", now)
@@ -108,6 +159,18 @@ class JWTTokenService(TokenServiceBase):
         audience: Optional[str | list[str]] = None,
         leeway_s: int = 60,
     ) -> Dict[str, Any]:
+        """Verify a JWT and return its claims.
+
+        token (str): Encoded JWT to verify.
+        issuer (str): Expected issuer claim.
+        audience (str or list[str]): Expected audience claim.
+        leeway_s (int): Allowed clock skew in seconds.
+
+        RETURNS (Dict[str, Any]): Verified token claims.
+
+        RAISES (ValueError): If token is invalid or verification fails.
+        """
+
         jwks = await self._kp.jwks()
 
         def _resolver(kid: str | None, alg: str) -> dict[str, Any] | None:
@@ -145,4 +208,9 @@ class JWTTokenService(TokenServiceBase):
         return payload
 
     async def jwks(self) -> dict:
+        """Return the JSON Web Key Set for public key discovery.
+
+        RETURNS (dict): JWKS document containing available public keys.
+        """
+
         return await self._kp.jwks()
