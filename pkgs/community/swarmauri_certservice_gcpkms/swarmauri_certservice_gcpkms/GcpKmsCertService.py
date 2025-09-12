@@ -1,3 +1,5 @@
+"""Google Cloud KMS backed certificate service."""
+
 from __future__ import annotations
 
 import datetime as _dt
@@ -24,6 +26,12 @@ from cryptography.x509.oid import NameOID
 
 
 def _kms():
+    """Import the Google Cloud KMS client.
+
+    RETURNS (kms_v1): The `google.cloud.kms_v1` module.
+    RAISES (ImportError): If `google-cloud-kms` is not installed.
+    """
+
     try:
         from google.cloud import kms_v1
 
@@ -36,10 +44,23 @@ def _kms():
 
 
 def _now() -> _dt.datetime:
+    """Get the current UTC time.
+
+    RETURNS (_dt.datetime): Current time with UTC timezone.
+    """
+
     return _dt.datetime.utcnow().replace(tzinfo=_dt.timezone.utc)
 
 
 def _secs(ts: Optional[int], default: int) -> _dt.datetime:
+    """Convert an epoch timestamp to datetime.
+
+    ts (Optional[int]): Unix timestamp in seconds.
+    default (int): Number of seconds to add if `ts` is ``None``.
+
+    RETURNS (_dt.datetime): The resulting datetime in UTC.
+    """
+
     return (
         _dt.datetime.utcfromtimestamp(ts).replace(tzinfo=_dt.timezone.utc)
         if ts is not None
@@ -48,6 +69,13 @@ def _secs(ts: Optional[int], default: int) -> _dt.datetime:
 
 
 def _subject_from_spec(spec: SubjectSpec) -> x509.Name:
+    """Create an ``x509.Name`` from a subject specification.
+
+    spec (SubjectSpec): Mapping of distinguished name attributes.
+
+    RETURNS (x509.Name): The constructed subject name.
+    """
+
     rdns: list[x509.NameAttribute] = []
     if "C" in spec:
         rdns.append(x509.NameAttribute(NameOID.COUNTRY_NAME, spec["C"]))
@@ -76,6 +104,16 @@ def _add_san(
     builder: x509.CertificateBuilder | x509.CertificateSigningRequestBuilder,
     san: Optional[AltNameSpec],
 ):
+    """Add a Subject Alternative Name extension to a builder.
+
+    builder (x509.CertificateBuilder | x509.CertificateSigningRequestBuilder):
+        The builder to modify.
+    san (Optional[AltNameSpec]): Specification of alternative names.
+
+    RETURNS (x509.CertificateBuilder | x509.CertificateSigningRequestBuilder):
+        The builder with the extension applied.
+    """
+
     if not san:
         return builder
     names: list[x509.GeneralName] = []
@@ -97,6 +135,17 @@ def _apply_extensions(
     subject_pub: Optional[bytes] = None,
     is_self_signed: bool = False,
 ) -> x509.CertificateBuilder:
+    """Apply certificate extensions.
+
+    builder (x509.CertificateBuilder): Builder to modify.
+    ext (Optional[CertExtensionSpec]): Extension specification.
+    issuer_pub (Optional[bytes]): Issuer public key in PEM format.
+    subject_pub (Optional[bytes]): Subject public key in PEM format.
+    is_self_signed (bool): Whether the certificate is self-signed.
+
+    RETURNS (x509.CertificateBuilder): Builder with extensions applied.
+    """
+
     if not ext:
         return builder.add_extension(
             x509.BasicConstraints(ca=False, path_length=None), critical=True
@@ -127,29 +176,61 @@ def _apply_extensions(
 def _make_kms_private_key(
     client, version_name: str
 ):  # pragma: no cover - patched in tests
+    """Return a private key object backed by KMS.
+
+    client: KMS client instance.
+    version_name (str): Resource name of the key version.
+
+    RETURNS: A private key compatible with ``cryptography``.
+    """
+
     raise NotImplementedError
 
 
 def _key_version_from_keyref(ref: KeyRef) -> str:
+    """Extract the KMS key version from a key reference.
+
+    ref (KeyRef): Key reference containing tagging metadata.
+
+    RETURNS (str): The fully-qualified key version name.
+    """
+
     tags = ref.tags or {}
     return tags.get("gcp_kms_key_version") or tags.get("kms_key_version") or ref.kid
 
 
 @ComponentBase.register_type(CertServiceBase, "GcpKmsCertService")
 class GcpKmsCertService(CertServiceBase):
+    """Certificate service using Google Cloud KMS for key operations."""
+
     resource: Optional[str] = Field(default=ResourceTypes.CRYPTO.value, frozen=True)
     type: Literal["GcpKmsCertService"] = "GcpKmsCertService"
 
     def __init__(self, *, client=None) -> None:
+        """Initialize the service.
+
+        client: Optional KMS client instance.
+        """
+
         super().__init__()
         self._client = client
 
     def _client_or_new(self):
+        """Return an existing client or create a new one.
+
+        RETURNS: ``KeyManagementServiceClient`` instance.
+        """
+
         if self._client is not None:
             return self._client
         return _kms().KeyManagementServiceClient()
 
     def supports(self) -> Mapping[str, Iterable[str]]:
+        """Describe supported algorithms and features.
+
+        RETURNS (Mapping[str, Iterable[str]]): Keys for categories with supported values.
+        """
+
         return {
             "key_algs": ("RSA-2048", "EC-P256", "Ed25519"),
             "sig_algs": ("RSA-PKCS1-SHA256", "ECDSA-P256-SHA256", "Ed25519"),
@@ -168,6 +249,20 @@ class GcpKmsCertService(CertServiceBase):
         output_der: bool = False,
         opts: Optional[Dict[str, Any]] = None,
     ) -> CsrBytes:
+        """Create a certificate signing request.
+
+        key (KeyRef): Reference to the private key in KMS.
+        subject (SubjectSpec): Subject specification for the CSR.
+        san (Optional[AltNameSpec]): Subject alternative names.
+        extensions (Optional[CertExtensionSpec]): Additional certificate extensions.
+        sig_alg (Optional[str]): Signature algorithm to use.
+        challenge_password (Optional[str]): Password to embed in the CSR.
+        output_der (bool): Return DER bytes if ``True``; otherwise PEM.
+        opts (Optional[Dict[str, Any]]): Extra backend options.
+
+        RETURNS (CsrBytes): The generated CSR bytes.
+        """
+
         client = self._client_or_new()
         version = _key_version_from_keyref(key)
         kms_priv = _make_kms_private_key(client, version)
@@ -197,6 +292,21 @@ class GcpKmsCertService(CertServiceBase):
         output_der: bool = False,
         opts: Optional[Dict[str, Any]] = None,
     ) -> CertBytes:
+        """Create a self-signed certificate.
+
+        key (KeyRef): Reference to the private key in KMS.
+        subject (SubjectSpec): Subject specification for the certificate.
+        serial (Optional[int]): Serial number of the certificate.
+        not_before (Optional[int]): Validity start time as a Unix timestamp.
+        not_after (Optional[int]): Validity end time as a Unix timestamp.
+        extensions (Optional[CertExtensionSpec]): Additional certificate extensions.
+        sig_alg (Optional[str]): Signature algorithm to use.
+        output_der (bool): Return DER bytes if ``True``; otherwise PEM.
+        opts (Optional[Dict[str, Any]]): Extra backend options.
+
+        RETURNS (CertBytes): The generated certificate bytes.
+        """
+
         client = self._client_or_new()
         version = _key_version_from_keyref(key)
         kms_priv = _make_kms_private_key(client, version)
@@ -237,6 +347,23 @@ class GcpKmsCertService(CertServiceBase):
         output_der: bool = False,
         opts: Optional[Dict[str, Any]] = None,
     ) -> CertBytes:
+        """Sign a certificate from a CSR.
+
+        csr (CsrBytes): CSR to sign.
+        ca_key (KeyRef): Reference to the CA key in KMS.
+        issuer (Optional[SubjectSpec]): Issuer subject specification.
+        ca_cert (Optional[CertBytes]): CA certificate used for extension defaults.
+        serial (Optional[int]): Serial number of the certificate.
+        not_before (Optional[int]): Validity start time as a Unix timestamp.
+        not_after (Optional[int]): Validity end time as a Unix timestamp.
+        extensions (Optional[CertExtensionSpec]): Additional certificate extensions.
+        sig_alg (Optional[str]): Signature algorithm to use.
+        output_der (bool): Return DER bytes if ``True``; otherwise PEM.
+        opts (Optional[Dict[str, Any]]): Extra backend options.
+
+        RETURNS (CertBytes): The signed certificate bytes.
+        """
+
         client = self._client_or_new()
         version = _key_version_from_keyref(ca_key)
         kms_priv = _make_kms_private_key(client, version)
@@ -279,6 +406,18 @@ class GcpKmsCertService(CertServiceBase):
         check_revocation: bool = False,
         opts: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
+        """Verify a certificate's signature and validity period.
+
+        cert (CertBytes): Certificate to verify.
+        trust_roots (Optional[Sequence[CertBytes]]): Trusted root certificates.
+        intermediates (Optional[Sequence[CertBytes]]): Intermediate certificates.
+        check_time (Optional[int]): Time of verification as Unix timestamp.
+        check_revocation (bool): Whether to check revocation status.
+        opts (Optional[Dict[str, Any]]): Extra backend options.
+
+        RETURNS (Dict[str, Any]): Verification result and certificate metadata.
+        """
+
         crt = x509.load_pem_x509_certificate(cert)
         now = _secs(check_time, 0)
         if now < crt.not_valid_before.replace(
@@ -324,6 +463,15 @@ class GcpKmsCertService(CertServiceBase):
         include_extensions: bool = True,
         opts: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
+        """Parse certificate metadata.
+
+        cert (CertBytes): Certificate to parse.
+        include_extensions (bool): Include extension information if ``True``.
+        opts (Optional[Dict[str, Any]]): Extra backend options.
+
+        RETURNS (Dict[str, Any]): Parsed certificate fields.
+        """
+
         c = x509.load_pem_x509_certificate(cert)
         out: Dict[str, Any] = {
             "tbs_version": c.version.value,

@@ -1,4 +1,4 @@
-"""SSH signature token service plugin."""
+"""Expose the SSH signature token service plugin."""
 
 from .SshSigTokenService import SshSigTokenService
 
