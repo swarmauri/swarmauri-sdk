@@ -4,6 +4,7 @@ import fnmatch
 import hashlib
 import json
 import os
+from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 
@@ -200,6 +201,25 @@ def build_nav_structure(
     return [{top_label: nav}]
 
 
+def _analyze_file(args: Tuple[str, str, str]):
+    """Read a Python file and extract classes along with metadata.
+
+    Returns a tuple of (module, classes, cache_key, mtime, file_hash).
+    """
+
+    fpath, module, docs_root = args
+    try:
+        with open(fpath, "r", encoding="utf-8") as fh:
+            content = fh.read()
+    except Exception:
+        return module, [], os.path.relpath(fpath, docs_root), 0.0, ""
+    classes = extract_classes_from_source(content)
+    mtime = os.path.getmtime(fpath)
+    h = file_hash(content)
+    ckey = os.path.relpath(fpath, docs_root)
+    return module, classes, ckey, mtime, h
+
+
 def load_mkdocs_yml(path: str):
     with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
@@ -268,39 +288,38 @@ def process_target(
     module_classes: Dict[str, List[str]] = {}
     cache.setdefault("files", {})
 
+    top_dir = os.path.join(docs_root, "docs", api_output_dir, target.name.lower())
+    ensure_home_page(top_dir)
+
     for package_name, package_root in packages:
         pkg_dir = os.path.join(package_root, package_name)
         if not os.path.isdir(pkg_dir):
             continue
+        file_entries: List[Tuple[str, str, str]] = []
         for fpath, module in iter_python_files(package_root, package_name):
             if not module_allowed(module, includes, excludes):
                 continue
-            # Ensure the module is importable as a package path; skip otherwise to avoid mkdocstrings errors
             if not is_valid_package_path(package_root, fpath):
                 print(
                     f"Skipping non-package module (missing __init__.py in path): {module}"
                 )
                 continue
-            try:
-                with open(fpath, "r", encoding="utf-8") as fh:
-                    content = fh.read()
-            except Exception:
-                continue
-            classes = extract_classes_from_source(content)
-            module_classes.setdefault(module, []).extend(classes)
+            file_entries.append((fpath, module, docs_root))
 
-            # Cache check
-            mtime = os.path.getmtime(fpath)
-            h = file_hash(content)
-            ckey = os.path.relpath(fpath, docs_root)
+        if not file_entries:
+            continue
+
+        if len(file_entries) > 1:
+            with ProcessPoolExecutor() as executor:
+                results = list(executor.map(_analyze_file, file_entries))
+        else:
+            results = list(map(_analyze_file, file_entries))
+
+        for module, classes, ckey, mtime, h in results:
+            module_classes.setdefault(module, []).extend(classes)
             prev = cache["files"].get(ckey)
             dirty = prev is None or prev.get("mtime") != mtime or prev.get("hash") != h
 
-            # Write pages if needed
-            top_dir = os.path.join(
-                docs_root, "docs", api_output_dir, target.name.lower()
-            )
-            ensure_home_page(top_dir)
             mod_dir = os.path.join(
                 docs_root,
                 "docs",
@@ -309,7 +328,6 @@ def process_target(
                 os.path.dirname(module.replace(".", "/")),
             )
             if not classes:
-                # no class pages to emit
                 cache["files"][ckey] = {"mtime": mtime, "hash": h}
                 continue
             for cls in classes:
@@ -318,7 +336,6 @@ def process_target(
                     write_class_page(out_path, module, cls)
             cache["files"][ckey] = {"mtime": mtime, "hash": h}
 
-    # Deduplicate class lists
     for k, v in list(module_classes.items()):
         module_classes[k] = sorted(set(v))
 
