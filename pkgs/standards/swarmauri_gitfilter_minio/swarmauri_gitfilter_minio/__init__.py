@@ -1,3 +1,5 @@
+"""Expose the :class:`~swarmauri_gitfilter_minio.minio_filter.MinioFilter` plugin."""
+
 from .minio_filter import MinioFilter
 
 __all__ = ["MinioFilter"]
