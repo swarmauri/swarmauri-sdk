@@ -103,6 +103,9 @@ def _resolve_secret(key: KeyRef, *, hash_ctor) -> tuple[bytes, str]:
     else:
         raise TypeError(f"Unsupported HMAC KeyRef kind '{kind}'")
 
+    if len(secret) < 32:
+        raise ValueError("HMAC secret must be at least 256 bits (32 bytes)")
+
     kid = key.get("kid")
     if isinstance(kid, str) and kid:
         return secret, kid
@@ -149,6 +152,17 @@ class HmacEnvelopeSigner(SigningBase):
         hash_ctor = _alg_to_hash(alg_token)
         secret, kid = _resolve_secret(key, hash_ctor=hash_ctor)
         mac = hmac.new(secret, payload, hash_ctor).digest()
+        tag_size = None
+        if opts and "tag_size" in opts and opts["tag_size"] is not None:
+            tag_size = int(opts["tag_size"])  # type: ignore[arg-type]
+            digest_size = hash_ctor().digest_size
+            if tag_size < 16:
+                raise ValueError("tag_size must be at least 16 bytes (128 bits)")
+            if tag_size > digest_size:
+                raise ValueError(
+                    f"tag_size cannot exceed digest size ({digest_size} bytes)"
+                )
+            mac = mac[:tag_size]
         return [_Sig({"alg": alg_token.value, "kid": kid, "sig": mac})]
 
     async def verify_bytes(
@@ -167,7 +181,7 @@ class HmacEnvelopeSigner(SigningBase):
         min_signers = int(req.get("min_signers", 1))
         required_kids = set(req.get("kids") or [])
 
-        keys: list[tuple[JWAAlg, str, bytes]] = []
+        keys: list[tuple[str, bytes]] = []
         key_entries = (opts or {}).get("keys") or []
         if not isinstance(key_entries, (list, tuple)) or not key_entries:
             raise RuntimeError(
@@ -198,6 +212,8 @@ class HmacEnvelopeSigner(SigningBase):
             sig_bytes = sig.get("sig")
             if not isinstance(sig_bytes, (bytes, bytearray)):
                 continue
+            if len(sig_bytes) < 16:
+                continue
             sig_kid = sig.get("kid")
             if required_kids and (
                 not isinstance(sig_kid, str) or sig_kid not in required_kids
@@ -212,7 +228,7 @@ class HmacEnvelopeSigner(SigningBase):
 
             for _, secret in iter_keys:
                 calc = hmac.new(secret, payload, hash_ctor).digest()
-                if hmac.compare_digest(calc, bytes(sig_bytes)):
+                if hmac.compare_digest(calc[: len(sig_bytes)], bytes(sig_bytes)):
                     ok_one = True
                     break
 
