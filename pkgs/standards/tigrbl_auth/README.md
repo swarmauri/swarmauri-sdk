@@ -33,7 +33,7 @@ It provides per-tenant isolation and is designed to scale for SaaS deployments.
 
 - Per-tenant issuer URLs with isolated user and client tables.
 - RSA-based JWT signing with helpers for key rotation.
-- FastAPI and SQLAlchemy 2.0 async stack.
+- Powered by Tigrbl.
 - OIDC discovery endpoints and JWKS generation.
 - Configurable PostgreSQL or SQLite storage with optional Redis support.
 
@@ -56,9 +56,15 @@ pip install tigrbl_auth[sqlite]
 ## Quick Start
 
 ```python
-from tigrbl_auth.app import create_app
+from tigrbl.engine import engine
+from tigrbl import TigrblApp
+from tigrbl_auth.db import dsn
+from tigrbl_auth.routers.surface import surface_api
 
-app = create_app()
+app = TigrblApp(engine=engine(dsn))
+surface_api.mount_jsonrpc(prefix="/rpc")
+surface_api.attach_diagnostics(prefix="/system")
+app.include_router(surface_api)
 ```
 
 The embedded ``surface_api`` exposes resource and flow operations for in-process usage via

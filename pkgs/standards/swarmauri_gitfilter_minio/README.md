@@ -24,16 +24,42 @@
 
 Git filter using MinIO or S3 compatible storage.
 
+`swarmauri_gitfilter_minio` provides a storage adapter and Git filter that
+stores repository objects in a remote MinIO (or any S3 compatible) service.
+It is commonly used by the [`peagen`](https://pypi.org/project/peagen/) tool to
+offload large files from source control, but it can also be integrated directly
+into applications that need simple object storage.
+
 ## Installation
 
 ```bash
 pip install swarmauri_gitfilter_minio
 ```
 
+## Configuration
+
+The filter reads credentials from either a `peagen.toml` configuration file or
+the `MINIO_ACCESS_KEY` and `MINIO_SECRET_KEY` environment variables. The bucket
+specified in the URI will be created automatically if it does not already
+exist.
+
 ## Usage
 
 ```python
 from swarmauri_gitfilter_minio import MinioFilter
 
-filt = MinioFilter.from_uri("minio://localhost:9000/bucket")
+# Create a filter from a connection string. The scheme `minios://` will use
+# HTTPS while `minio://` uses plain HTTP.
+filt = MinioFilter.from_uri("minio://localhost:9000/my-bucket/prefix")
+
+# Upload a file and retrieve its URI
+with open("README.md", "rb") as fh:
+    uri = filt.upload("docs/README.md", fh)
+
+# Download the file back into memory
+buffer = filt.download("docs/README.md")
+data = buffer.read()
 ```
+
+`MinioFilter` also exposes helpers such as `upload_dir` and `download_prefix`
+for working with entire directory trees.

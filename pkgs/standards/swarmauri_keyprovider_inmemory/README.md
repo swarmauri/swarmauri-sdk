@@ -2,7 +2,7 @@
 
 # Swarmauri In‑Memory Key Provider
 
-Volatile, in‑memory key provider for Swarmauri. All key material is kept strictly in process memory (no disk writes). Ideal for testing, CI, and ephemeral gateways.
+Volatile, in‑memory key provider for Swarmauri. All key material is kept strictly in process memory (no disk writes). Ideal for testing, CI, and ephemeral gateways where persistence is not desired. Not intended for long‑term or production storage of secrets.
 
 ## Installation
 
@@ -79,6 +79,12 @@ asyncio.run(main())
 - Features: `create`, `import`, `rotate`, `destroy`, `list_versions`, `get_key`, `random_bytes`, `hkdf`
 - No persistence: data is lost when the process exits
 - Not supported: JWK/JWKS export (will raise `NotImplementedError`)
+
+## Security Considerations
+
+- Keys exist only for the lifetime of the Python process; restarting drops all material.
+- No hardware isolation or disk persistence is provided.
+- Use only for development, CI, or other ephemeral scenarios.
 
 ## Notes
 

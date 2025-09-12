@@ -1,3 +1,21 @@
+![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
+
+<p align="center">
+    <a href="https://pypi.org/project/FastTokenizer/">
+        <img src="https://img.shields.io/pypi/dm/FastTokenizer" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/FastTokenizer/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/FastTokenizer.svg"/></a>
+    <a href="https://pypi.org/project/FastTokenizer/">
+        <img src="https://img.shields.io/pypi/pyversions/FastTokenizer" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/FastTokenizer/">
+        <img src="https://img.shields.io/pypi/l/FastTokenizer" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/FastTokenizer/">
+        <img src="https://img.shields.io/pypi/v/FastTokenizer?label=FastTokenizer&color=green" alt="PyPI - FastTokenizer"/></a>
+
+</p>
+
+---
+
 # `FastTokenizer`
 
 ## Installation

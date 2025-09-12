@@ -1,3 +1,9 @@
+"""High level helpers for JSON Web Encryption.
+
+This module provides compact serialization routines for JWE messages as
+specified by RFC 7516 and RFC 7518.
+"""
+
 from __future__ import annotations
 
 import base64
@@ -189,12 +195,22 @@ JWECompact = str
 
 @dataclass
 class JweDecryptResult:
+    """Return value for :meth:`JweCrypto.decrypt_compact`.
+
+    header (Dict[str, Any]): Parsed JWE header.
+    plaintext (bytes): Decrypted payload bytes.
+    """
+
     header: Dict[str, Any]
     plaintext: bytes
 
 
 class JweCrypto:
-    """Utility class for JSON Web Encryption (RFC 7516, RFC 7518)."""
+    """Utility class for working with JSON Web Encryption.
+
+    The helpers create and parse compact JWE strings. All operations are
+    asynchronous to integrate with async workflows.
+    """
 
     async def encrypt_compact(
         self,
@@ -207,6 +223,19 @@ class JweCrypto:
         header_extra: Optional[Mapping[str, Any]] = None,
         aad: Optional[Union[bytes, str]] = None,
     ) -> JWECompact:
+        """Encrypt a payload into a compact JWE string.
+
+        payload (Union[bytes, str, Mapping[str, Any]]): Data to encrypt. Strings and
+            mappings are encoded as UTF-8 JSON.
+        alg (JWAAlg): Key management algorithm.
+        enc (JWAAlg): Content encryption algorithm.
+        key (Mapping[str, Any]): Key material used for encryption.
+        kid (str): Optional key identifier placed in the protected header.
+        header_extra (Mapping[str, Any]): Additional protected header fields.
+        aad (Union[bytes, str]): Additional authenticated data.
+        RETURNS (JWECompact): Compact JWE representation.
+        """
+
         if isinstance(payload, str):
             pt = payload.encode("utf-8")
         elif isinstance(payload, (bytes, bytearray)):
@@ -318,6 +347,20 @@ class JweCrypto:
         expected_encs: Optional[Iterable[JWAAlg]] = None,
         aad: Optional[Union[bytes, str]] = None,
     ) -> JweDecryptResult:
+        """Decrypt a compact JWE string.
+
+        jwe (JWECompact): Serialized JWE to decode.
+        dir_key (Union[bytes, str]): Symmetric key when ``alg='dir'`` is used.
+        rsa_private_pem (Union[str, bytes]): RSA private key in PEM encoding for
+            RSA-OAEP algorithms.
+        rsa_private_password (Union[str, bytes]): Password for the RSA key.
+        ecdh_private_key (Any): Private key for ECDH-ES.
+        expected_algs (Iterable[JWAAlg]): Allowed algorithm values.
+        expected_encs (Iterable[JWAAlg]): Allowed encryption values.
+        aad (Union[bytes, str]): Additional authenticated data.
+        RETURNS (JweDecryptResult): Header and plaintext of the decrypted token.
+        """
+
         parts = jwe.split(".")
         if len(parts) != 5:
             raise ValueError("Invalid JWE compact: expected 5 dot-separated parts.")

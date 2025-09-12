@@ -1,3 +1,21 @@
+![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
+
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_tokens_rotatingjwt/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_tokens_rotatingjwt" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tokens_rotatingjwt/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tokens_rotatingjwt.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_tokens_rotatingjwt/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_tokens_rotatingjwt" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_tokens_rotatingjwt/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_tokens_rotatingjwt" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_tokens_rotatingjwt/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_tokens_rotatingjwt?label=swarmauri_tokens_rotatingjwt&color=green" alt="PyPI - swarmauri_tokens_rotatingjwt"/></a>
+
+</p>
+
+---
+
 # swarmauri_tokens_rotatingjwt
 
 Rotating JWT token service plugin for Swarmauri.
@@ -26,3 +44,21 @@ uv add swarmauri_tokens_rotatingjwt[ecdsa]
 uv add swarmauri_tokens_rotatingjwt[eddsa]
 uv add swarmauri_tokens_rotatingjwt[hmac]
 ```
+
+## Usage
+
+```python
+from swarmauri_tokens_rotatingjwt import RotatingJWTTokenService
+from swarmauri_keyprovider_inmemory import InMemoryKeyProvider
+from swarmauri_core.crypto.types import JWAAlg
+
+kp = InMemoryKeyProvider()
+service = RotatingJWTTokenService(kp, alg=JWAAlg.RS256)
+
+token = await service.mint({"sub": "alice"}, alg=JWAAlg.RS256)
+claims = await service.verify(token)
+jwks = await service.jwks()
+```
+
+The service handles key rotation based on time or token volume and exposes a
+JWKS endpoint that includes previous keys so existing tokens remain valid.
