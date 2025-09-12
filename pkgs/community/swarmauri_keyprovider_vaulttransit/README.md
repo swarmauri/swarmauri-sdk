@@ -17,7 +17,23 @@
 
 # Swarmauri Vault Transit Key Provider
 
-A HashiCorp Vault Transit engine backed implementation of the Swarmauri key provider interface.
+A HashiCorp Vault Transit engine backed implementation of the Swarmauri key
+provider interface. It allows Swarmauri deployments to manage cryptographic
+keys using Vault's Transit secret engine.
+
+## Features
+
+- Create and rotate symmetric or asymmetric keys
+- Export public keys as JWK or JWKS documents
+- Generate random bytes using Vault's RNG
+- Derive keys with HKDF
+
+## Prerequisites
+
+- [HashiCorp Vault](https://www.vaultproject.io/) with the Transit engine
+  enabled
+- A Vault token with access to the desired mount point
+- Optional: the [`hvac`](https://pypi.org/project/hvac/) client library
 
 ## Installation
 
@@ -28,10 +44,24 @@ pip install swarmauri_keyprovider_vaulttransit
 ## Usage
 
 ```python
-from swarmauri.key_providers.VaultTransitKeyProvider import VaultTransitKeyProvider
+from swarmauri_keyprovider_vaulttransit import VaultTransitKeyProvider
+from swarmauri_core.keys.types import KeySpec, KeyAlg
 
 provider = VaultTransitKeyProvider(url="http://localhost:8200", token="root")
+key = await provider.create_key(KeySpec(alg=KeyAlg.ED25519))
+jwks = await provider.jwks()
 ```
+
+## Configuration
+
+The provider accepts several parameters:
+
+- `url`: Vault server address
+- `token`: authentication token
+- `mount`: Transit engine mount point (default: `transit`)
+- `namespace`: optional Vault namespace
+- `verify`: TLS verification settings
+- `prefer_vault_rng`: favor Vault for random byte generation
 
 ## Want to help?
 
