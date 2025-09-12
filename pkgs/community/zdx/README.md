@@ -8,7 +8,14 @@ Z Doc Builder Experience by Swarmauri. Reusable tooling to build and serve MkDoc
 
 - Material for MkDocs configuration
 - mkdocstrings support for API reference generation
+- README harvesting across workspaces
 - Dockerfile for containerized deployments
+
+## Installation
+
+```bash
+pip install zdx
+```
 
 ## Getting Started
 
@@ -22,6 +29,11 @@ Z Doc Builder Experience by Swarmauri. Reusable tooling to build and serve MkDoc
 ### Generate from a manifest
 ```bash
 zdx generate --docs-dir /path/to/docs --manifest api_manifest.yaml
+```
+
+### Build READMEs into pages
+```bash
+zdx readmes --docs-dir /path/to/docs
 ```
 
 ### Serve the site

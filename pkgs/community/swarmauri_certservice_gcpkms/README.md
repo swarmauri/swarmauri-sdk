@@ -25,6 +25,19 @@ This package exposes a `GcpKmsCertService` component implementing
 issue certificates from CSRs, verify certificates and parse their
 metadata while using keys stored in Google Cloud KMS.
 
+## Features
+
+- Create certificate signing requests using keys stored in KMS
+- Issue self-signed or CA-signed certificates
+- Verify signatures and validity windows
+- Parse certificate metadata including extensions
+
+## Prerequisites
+
+- A Google Cloud project with the Cloud KMS API enabled
+- Credentials available to the application (for example via the
+  `GOOGLE_APPLICATION_CREDENTIALS` environment variable)
+
 ## Installation
 
 ```bash
@@ -36,10 +49,20 @@ The optional `gcp` extra installs the `google-cloud-kms` dependency.
 ## Usage
 
 ```python
+import asyncio
 from swarmauri_certservice_gcpkms import GcpKmsCertService
+from swarmauri_core.crypto.types import KeyRef
 
-service = GcpKmsCertService()
-# ... use service methods
+
+async def main() -> None:
+    service = GcpKmsCertService()
+    key = KeyRef(kid="projects/PROJECT_ID/locations/LOC/keyRings/RING/cryptoKeys/KEY/cryptoKeyVersions/1")
+    subject = {"CN": "example.com"}
+    csr = await service.create_csr(key=key, subject=subject)
+    print(csr.decode())
+
+
+asyncio.run(main())
 ```
 
 ## License

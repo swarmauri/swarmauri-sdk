@@ -37,7 +37,7 @@ PROJECTS:
         EXTRAS:
           AUTHORS:
             - NAME: "Michael Nwogha"
-              EMAIL: "michael@swamauri.com"
+              EMAIL: "michael@swarmauri.com"
           PURPOSE: "Inspects and filters unsafe content."
           DESCRIPTION: "Middleware layer using LlamaGuard for request inspection."
         MODULES:
