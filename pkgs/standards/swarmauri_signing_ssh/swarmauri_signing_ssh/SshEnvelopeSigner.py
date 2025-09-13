@@ -1,3 +1,12 @@
+"""
+OpenSSH-based signing utilities.
+
+This module wraps the ``ssh-keygen -Y`` command to create and verify
+``sshsig`` signatures for raw byte payloads or structured envelopes.
+It also provides helpers for canonicalizing envelopes using JSON or
+optional CBOR canonicalization when ``cbor2`` is installed.
+"""
+
 from __future__ import annotations
 
 import json
@@ -171,9 +180,22 @@ class _Sig:
 
 
 class SshEnvelopeSigner(SigningBase):
-    """Detached signatures using OpenSSH 'ssh-keygen -Y' (ssh-sig format)."""
+    """
+    Create and verify OpenSSH detached signatures.
+
+    This signer invokes ``ssh-keygen -Y`` to produce and validate ``sshsig``
+    signatures for raw byte payloads or canonicalized envelopes.
+    """
 
     def supports(self) -> Mapping[str, Iterable[str]]:
+        """
+        Declare supported algorithms and canonicalization formats.
+
+        Returns:
+            Mapping[str, Iterable[str]]: Supported ``algs``, ``canons`` and
+                feature flags.
+        """
+
         canons = ("json", "cbor") if _CBOR_OK else ("json",)
         algs = (
             "ssh-ed25519",
@@ -194,6 +216,24 @@ class SshEnvelopeSigner(SigningBase):
         alg: Optional[Alg] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
+        """
+        Sign a payload and return detached SSH signatures.
+
+        Args:
+            key (KeyRef): Reference to the private key used for signing.
+            payload (bytes): Raw data to sign.
+            alg (Optional[Alg]): Algorithm override. Defaults to ``None``.
+            opts (Optional[Mapping[str, object]]): Extra options such as
+                ``namespace`` or ``hashalg``. Defaults to ``None``.
+
+        Returns:
+            Sequence[Signature]: The generated signature collection.
+
+        Raises:
+            RuntimeError: If ``ssh-keygen`` is unavailable or signing fails.
+            TypeError: If the key reference is invalid.
+        """
+
         _require_ssh_keygen()
 
         priv_path, identity, keytype = _resolve_privkey_to_path(key)
@@ -245,6 +285,26 @@ class SshEnvelopeSigner(SigningBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
+        """
+        Verify SSH signatures for a payload.
+
+        Args:
+            payload (bytes): Original message that was signed.
+            signatures (Sequence[Signature]): Signatures to verify.
+            require (Optional[Mapping[str, object]]): Verification constraints
+                such as ``min_signers``, ``algs`` or ``kids``. Defaults to ``None``.
+            opts (Optional[Mapping[str, object]]): Options including ``pubkeys``
+                with a list of SSH public key lines and optional ``namespace`` or
+                ``identity``. Defaults to ``None``.
+
+        Returns:
+            bool: ``True`` if verification succeeds, otherwise ``False``.
+
+        Raises:
+            RuntimeError: If required options are missing or verification fails.
+            TypeError: If provided public keys or signatures are malformed.
+        """
+
         _require_ssh_keygen()
 
         req = require or {}
@@ -320,6 +380,23 @@ class SshEnvelopeSigner(SigningBase):
         canon: Optional[Canon] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bytes:
+        """
+        Serialize an envelope to a canonical byte representation.
+
+        Args:
+            env (Envelope): Envelope to canonicalize.
+            canon (Optional[Canon]): Canonicalization format (``"json"`` or
+                ``"cbor"``). Defaults to ``"json"``.
+            opts (Optional[Mapping[str, object]]): Additional options. Defaults
+                to ``None``.
+
+        Returns:
+            bytes: Canonicalized envelope bytes.
+
+        Raises:
+            ValueError: If the requested canonicalization format is unsupported.
+        """
+
         if canon in (None, "json"):
             return _canon_json(env)  # type: ignore[arg-type]
         if canon == "cbor":
@@ -335,6 +412,22 @@ class SshEnvelopeSigner(SigningBase):
         canon: Optional[Canon] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
+        """
+        Sign a structured envelope.
+
+        Args:
+            key (KeyRef): Reference to the private key used for signing.
+            env (Envelope): Envelope to sign.
+            alg (Optional[Alg]): Algorithm override. Defaults to ``None``.
+            canon (Optional[Canon]): Canonicalization format. Defaults to
+                ``"json"``.
+            opts (Optional[Mapping[str, object]]): Extra options forwarded to
+                :meth:`sign_bytes`. Defaults to ``None``.
+
+        Returns:
+            Sequence[Signature]: The generated signature collection.
+        """
+
         payload = await self.canonicalize_envelope(env, canon=canon, opts=opts)
         return await self.sign_bytes(key, payload, alg=alg, opts=opts)
 
@@ -347,5 +440,22 @@ class SshEnvelopeSigner(SigningBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
+        """
+        Verify signatures over a structured envelope.
+
+        Args:
+            env (Envelope): Envelope data to verify.
+            signatures (Sequence[Signature]): Signatures to validate.
+            canon (Optional[Canon]): Canonicalization format. Defaults to
+                ``"json"``.
+            require (Optional[Mapping[str, object]]): Verification constraints as
+                described in :meth:`verify_bytes`. Defaults to ``None``.
+            opts (Optional[Mapping[str, object]]): Extra options forwarded to
+                :meth:`verify_bytes`. Defaults to ``None``.
+
+        Returns:
+            bool: ``True`` if verification succeeds, otherwise ``False``.
+        """
+
         payload = await self.canonicalize_envelope(env, canon=canon, opts=opts)
         return await self.verify_bytes(payload, signatures, require=require, opts=opts)

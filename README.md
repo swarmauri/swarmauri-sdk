@@ -1,24 +1,16 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
+![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pypi.org/project/swarmauri/">
         <img src="https://img.shields.io/pypi/dm/swarmauri" alt="PyPI - Downloads"/></a>
-    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/"><img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk.svg"/></a>
-    <a href="https://github.com/swarmauri/swarmauri-sdk">
-        <img src="https://img.shields.io/github/repo-size/swarmauri/swarmauri-sdk" alt="GitHub Repo Size"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/swarmauri/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/swarmauri.svg"/></a>
     <a href="https://pypi.org/project/swarmauri/">
         <img src="https://img.shields.io/pypi/pyversions/swarmauri" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri/">
         <img src="https://img.shields.io/pypi/l/swarmauri" alt="PyPI - License"/></a>
-    <br />
-    <a href="https://pypi.org/project/swarmauri/">
-        <img src="https://img.shields.io/pypi/v/swarmauri?label=swarmauri_core&color=green" alt="PyPI - swarmauri_core"/></a>
     <a href="https://pypi.org/project/swarmauri/">
         <img src="https://img.shields.io/pypi/v/swarmauri?label=swarmauri&color=green" alt="PyPI - swarmauri"/></a>
-    <a href="https://pypi.org/project/swarmauri/">
-        <img src="https://img.shields.io/pypi/v/swarmauri?label=swarmauri_community&color=yellow" alt="PyPI - swarmauri_community"/></a>
-    <a href="https://pypi.org/project/swarmauri/">
-        <img src="https://img.shields.io/pypi/v/swarmauri?label=swarmauri_experimental&color=yellow" alt="PyPI - swarmauri_experimental"/></a>
 </p>
 
 ---

@@ -1,4 +1,4 @@
-![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
+![Swamauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pypi.org/project/swarmauri_middleware_stdio/">
@@ -22,18 +22,37 @@
 
 # Swarmauri Middleware Stdio
 
-Middleware that logs requests and responses to standard output.
+`swarmauri_middleware_stdio` provides a lightweight FastAPI middleware that
+logs incoming requests and outgoing responses to standard output using
+Python's logging module. It is handy for development and debugging when a
+full logging stack is unnecessary.
+
+## Installation
+
+```bash
+pip install swarmauri_middleware_stdio
+```
 
 ## Usage
 
 ```python
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from swarmauri_middleware_stdio import StdioMiddleware
 
 app = FastAPI()
-app.middleware("http")(StdioMiddleware().dispatch)
+stdio = StdioMiddleware()
+
+@app.middleware("http")
+async def log_to_stdout(request: Request, call_next):
+    return await stdio.dispatch(request, call_next)
 
 @app.get("/")
 async def hello() -> dict[str, str]:
     return {"message": "hello"}
 ```
+
+## How It Works
+
+The middleware reports the HTTP method and path of each request and logs the
+resulting response status code. All messages are emitted at the `INFO` level
+and written to stdout.

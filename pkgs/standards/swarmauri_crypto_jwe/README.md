@@ -1,4 +1,4 @@
-![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
+![Swamauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pypi.org/project/swarmauri_crypto_jwe/"><img src="https://img.shields.io/pypi/dm/swarmauri_crypto_jwe" alt="PyPI - Downloads"/></a>
@@ -14,9 +14,13 @@
 
 JSON Web Encryption (JWE) provider implementing RFC 7516 and RFC 7518 compliant encryption and decryption helpers.
 
-- Supports `dir`, `RSA-OAEP`, `RSA-OAEP-256`, and `ECDH-ES`
-- Supports `A128GCM`, `A192GCM`, and `A256GCM`
-- Optional compression (`zip` = `DEF`) and Additional Authenticated Data (AAD)
+### Features
+
+- Asynchronous API for compact JWE serialization.
+- Supports `dir`, `RSA-OAEP`, `RSA-OAEP-256`, and `ECDH-ES` key management algorithms.
+- Supports `A128GCM`, `A192GCM`, and `A256GCM` content encryption.
+- Optional compression (`zip` = `DEF`) and Additional Authenticated Data (AAD).
+- Registers with the Swarmauri PluginManager via the `swarmauri.cryptos` entry point.
 
 ### Installation
 
@@ -70,6 +74,15 @@ async def main() -> None:
 
 
 asyncio.run(main())
+```
+
+### Loading via PluginManager
+
+```python
+from swarmauri.plugin import PluginManager
+
+pm = PluginManager()
+crypto = pm.load("swarmauri.cryptos", "JweCrypto")
 ```
 
 **Parameters**

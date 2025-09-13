@@ -1,3 +1,21 @@
+![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_tokens_remoteoidc/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_tokens_remoteoidc" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tokens_remoteoidc/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tokens_remoteoidc.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_tokens_remoteoidc/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_tokens_remoteoidc" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_tokens_remoteoidc/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_tokens_remoteoidc" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_tokens_remoteoidc/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_tokens_remoteoidc?label=swarmauri_tokens_remoteoidc&color=green" alt="PyPI - swarmauri_tokens_remoteoidc"/></a>
+
+</p>
+
+---
+
 # swarmauri_tokens_remoteoidc
 
 Remote OIDC token verification service for Swarmauri.

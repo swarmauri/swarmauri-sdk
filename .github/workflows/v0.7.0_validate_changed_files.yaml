@@ -11,6 +11,7 @@ on:
 
 jobs:
   detect-changed-files:
+    if: ${{ !cancelled() }}
     runs-on: [testing]
     outputs:
       matrix: ${{ steps.detect.outputs.matrix }}
@@ -91,7 +92,7 @@ jobs:
   # ─────────────────────────────────────────────────────────────────────────────
   run-tests:
     needs: detect-changed-files
-    if: ${{ needs.detect-changed-files.outputs.matrix != '[]' }}
+    if: ${{ !cancelled() && needs.detect-changed-files.outputs.matrix != '[]' }}
     runs-on: [testing]
     strategy:
       fail-fast: false

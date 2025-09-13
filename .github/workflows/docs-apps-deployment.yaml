@@ -10,6 +10,7 @@ on:
 
 jobs:
   deploy-apps:
+    if: ${{ !cancelled() }}
     runs-on: [docs]
     steps:
       - name: Checkout repository
