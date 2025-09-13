@@ -20,13 +20,14 @@ classifiers = [
 dependencies = [
     "swarmauri_core",
     "swarmauri_base",
-    "pyjwt",
+    "swarmauri_signing_jws",
     "cryptography",
 ]
 
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
+swarmauri_signing_jws = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
