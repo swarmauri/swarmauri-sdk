@@ -67,18 +67,19 @@ def install_manifest_packages(manifest: str) -> None:
         ):
             print(f"Skipping {pkg_dir}: no pyproject.toml or setup.py found")
             continue
-        subprocess.run(
-            [
-                "uv",
-                "pip",
-                "install",
-                "--directory",
-                pkg_dir,
-                "--system",
-                ".",
-            ],
-            check=True,
-        )
+        cmd = [
+            "uv",
+            "pip",
+            "install",
+            "--directory",
+            pkg_dir,
+        ]
+        if os.environ.get("VIRTUAL_ENV") or sys.prefix != sys.base_prefix:
+            cmd.append("--system")
+        else:
+            cmd.append("--user")
+        cmd.append(".")
+        subprocess.run(cmd, check=True)
 
 
 def run_mkdocs_serve(
