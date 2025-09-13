@@ -343,12 +343,6 @@ class Worker(Base, GUIDPk, Timestamped, AllowAnonProvider):
             log.error("failure to _publish_event for: `Worker.update` err: %s", exc)
         log.info("exiting post_worker_update_cache_worker")
 
-    @hook_ctx(ops="list", phase="POST_HANDLER")
-    async def _post_list(cls, ctx):
-        from peagen.gateway import log
-
-        log.info("entering post_workers_list")
-        log.info("exiting post_workers_list")
 
     @hook_ctx(ops="delete", phase="POST_HANDLER")
     async def _post_delete(cls, ctx):
