@@ -16,10 +16,11 @@ WORKDIR /app
 # 1. Copy only dependency-defining files first (better layer caching)
 COPY ./pkgs/ /pkgs
 
-RUN uv pip install --directory /pkgs/community/zdx --system .
+RUN uv pip install --directory /pkgs/community/zdx --system . && \
+    zdx install --manifest /pkgs/community/zdx/api_manifest.yaml
 
 EXPOSE 8000
 
-WORKDIR /docs 
+WORKDIR /docs
 
 CMD ["zdx", "serve", "--generate", "--docs-dir", "/docs", "--manifest", "api_manifest.yaml", "--changed-only"]

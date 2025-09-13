@@ -1,5 +1,21 @@
 ![Swamauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
+
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_signing_jws/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_signing_jws" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_jws/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_jws.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_signing_jws/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_signing_jws" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_signing_jws/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_signing_jws" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_signing_jws/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_signing_jws?label=swarmauri_signing_jws&color=green" alt="PyPI - swarmauri_signing_jws"/></a>
+</p>
+
+---
+
 # Swarmauri Signing JWS
 
 Composite JSON Web Signature (JWS) signer and verifier combining multiple

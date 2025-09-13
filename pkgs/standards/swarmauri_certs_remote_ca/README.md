@@ -1,5 +1,21 @@
 ![Swamauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
+
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_certs_remote_ca/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_certs_remote_ca" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_certs_remote_ca/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_certs_remote_ca.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_certs_remote_ca/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_certs_remote_ca" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_certs_remote_ca/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_certs_remote_ca" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_certs_remote_ca/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_certs_remote_ca?label=swarmauri_certs_remote_ca&color=green" alt="PyPI - swarmauri_certs_remote_ca"/></a>
+</p>
+
+---
+
 # Swarmauri Remote CA Cert Service
 
 A certificate enrollment bridge implementing the `ICertService` interface and
