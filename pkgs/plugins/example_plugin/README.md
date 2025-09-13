@@ -1,4 +1,4 @@
-# Swarmauri Example Plugin
+![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pypi.org/project/swm-example-plugin/">
@@ -14,4 +14,8 @@
 </p>
 
 ---
+
+# Swarmauri Example Plugin
+
+An example plugin for the Swarmauri framework.
 
