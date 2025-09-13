@@ -36,7 +36,7 @@ def load_manifest(path: str) -> List[Target]:
                 search_path=t["search_path"],
                 package=t.get("package"),
                 discover=bool(t.get("discover", False)),
-                include=t.get("include", ["*."]),
+                include=t.get("include", ["*.*"]),
                 exclude=t.get("exclude", []),
             )
         )
@@ -276,13 +276,13 @@ def process_target(
         for entry in discover_packages(search_path):
             pkg_name = os.path.basename(entry[1])  # the inner dir name
             # entry[1] is search_path/<pkg>, package dir is the same basename
-            packages.append((pkg_name, search_path))
+            packages.append((pkg_name, entry[1]))
     else:
         if not target.package:
             return {}
         packages.append((target.package, search_path))
 
-    includes = target.include or ["*."]
+    includes = target.include or ["*.*"]
     excludes = target.exclude or []
 
     module_classes: Dict[str, List[str]] = {}

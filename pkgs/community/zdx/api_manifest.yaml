@@ -1,2 +1,16 @@
-# Default API manifest placeholder
-# Add packages to generate API docs
+# API manifest template for zdx
+#
+# Configure a list of `targets` to control which Python packages are documented.
+# Each target becomes a section under `docs/api/<name>/` and is added to the
+# MkDocs navigation.
+
+targets:
+  - name: Example  # Navigation label and output folder name
+    search_path: /pkgs/example  # Directory containing the source package(s)
+    package: example_pkg  # Root import name when documenting a single package
+    # discover: true  # Uncomment to automatically include all packages under search_path
+    include:
+      - example_pkg.*  # Glob patterns of modules to document
+    exclude:
+      - "*.tests.*"  # Glob patterns of modules to skip
+
