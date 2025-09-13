@@ -67,6 +67,9 @@ def install_manifest_packages(manifest: str) -> None:
         ):
             print(f"Skipping {pkg_dir}: no pyproject.toml or setup.py found")
             continue
+        # Install into the active environment rather than the global system
+        # site-packages. This avoids requiring elevated permissions when
+        # running the docs tooling locally.
         subprocess.run(
             [
                 "uv",
@@ -74,7 +77,6 @@ def install_manifest_packages(manifest: str) -> None:
                 "install",
                 "--directory",
                 pkg_dir,
-                "--system",
                 ".",
             ],
             check=True,
