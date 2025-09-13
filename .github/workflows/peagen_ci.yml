@@ -27,8 +27,8 @@ jobs:
       NPM_DB:         npm
       PEAGEN_DB:      peagen
       GIT_DB:         gitea
-      AUTO_AUTHN_DB: auto_authn
-      AUTO_KMS_DB:   auto_kms
+      TIGRBL_AUTH_DB: tigrbl_auth
+      TIGRBL_KMS_DB:   tigrbl_kms
 
       # --- secrets ---
       MINIO_ROOT_PASSWORD:      ${{ secrets.PEAGEN_MINIO_ROOT_PASSWORD }}
@@ -52,15 +52,15 @@ jobs:
 
           sudo -E docker compose \
             -f infra/peagen/docker-compose.yml \
-            down auto_authn auto_kms gateway worker || true
+            down tigrbl_auth tigrbl_kms gateway worker || true
 
           sudo -E docker compose \
             -f infra/peagen/docker-compose.yml \
-            up -d --build --force-recreate --no-deps auto_authn auto_kms gateway worker
+            up -d --build --force-recreate --no-deps tigrbl_auth tigrbl_kms gateway worker
 
       - name: Verify services
         run: |
-          services="auto_authn auto_kms gateway worker"
+          services="tigrbl_auth tigrbl_kms gateway worker"
           failed=0
           for svc in $services; do
             cid=$(sudo -E docker compose -f infra/peagen/docker-compose.yml ps -q $svc)
@@ -85,12 +85,12 @@ jobs:
       - name: Get container logs on failure
         if: failure()          # <- overrides the implicit success() check
         run: |
-          echo "::group::auto_authn logs"
-          sudo -E docker compose -f infra/peagen/docker-compose.yml logs auto_authn || true
+          echo "::group::tigrbl_auth logs"
+          sudo -E docker compose -f infra/peagen/docker-compose.yml logs tigrbl_auth || true
           echo "::endgroup::"
 
-          echo "::group::auto_kms logs"
-          sudo -E docker compose -f infra/peagen/docker-compose.yml logs auto_kms || true
+          echo "::group::tigrbl_kms logs"
+          sudo -E docker compose -f infra/peagen/docker-compose.yml logs tigrbl_kms || true
           echo "::endgroup::"
 
           echo "::group::gateway logs"
