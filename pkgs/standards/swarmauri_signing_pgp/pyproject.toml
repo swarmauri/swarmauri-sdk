@@ -17,7 +17,7 @@ classifiers = [
     "Topic :: Security :: Cryptography",
     "Intended Audience :: Developers",
 ]
-authors = [{ name = "Swarmauri", email = "opensource@swarmauri.com" }]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "swarmauri_core",
     "swarmauri_base",

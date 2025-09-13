@@ -5,7 +5,7 @@ description = "RFC 7516/7518 compliant JWE crypto provider for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
-authors = [{ name = "Swarmauri", email = "opensource@swarmauri.com" }]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
