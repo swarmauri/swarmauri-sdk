@@ -1,5 +1,21 @@
 # IndexBuilder
 
+<p align="center">
+    <a href="https://pypi.org/project/IndexBuilder/">
+        <img src="https://img.shields.io/pypi/dm/IndexBuilder" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/RapidSimilarity/IndexBuilder/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/RapidSimilarity/IndexBuilder.svg"/></a>
+    <a href="https://pypi.org/project/IndexBuilder/">
+        <img src="https://img.shields.io/pypi/pyversions/IndexBuilder" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/IndexBuilder/">
+        <img src="https://img.shields.io/pypi/l/IndexBuilder" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/IndexBuilder/">
+        <img src="https://img.shields.io/pypi/v/IndexBuilder?label=IndexBuilder&color=green" alt="PyPI - IndexBuilder"/></a>
+</p>
+
+---
+
+
 ## Purpose
 
 The `IndexBuilder` package provides efficient algorithms for building indexes (e.g., tree-based or hash-based structures) to accelerate similarity queries over large datasets.
