@@ -158,6 +158,53 @@ services:
       - "2222:2222" # SSH Git
     networks: [app_net]
 
+
+  # ────────────────────────────────────────────────
+  # TigrblAuth
+  # ────────────────────────────────────────────────
+  tigrbl_auth:
+    build:
+      context: ../../
+      dockerfile: pkgs/standards/tigrbl_auth/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PG_HOST: postgres
+      PG_PORT: 5432
+      PG_DB: ${TIGRBL_AUTH_DB}
+      PG_USER: ${POSTGRES_USER}
+      PG_PASS: ${POSTGRES_PASSWORD}
+      PG_DSN: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${TIGRBL_AUTH_DB}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/system/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks: [app_net]
+
+  # ────────────────────────────────────────────────
+  # Tigrbl KMS
+  # ────────────────────────────────────────────────
+  tigrbl_kms:
+    build:
+      context: ../../
+      dockerfile: pkgs/standards/tigrbl_kms/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      KMS_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${TIGRBL_KMS_DB}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/system/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks: [app_net]
+
+
   ## ───────────────────────────── Peagen ────────────────────────────
   gateway:
     build:
@@ -169,6 +216,10 @@ services:
       redis:
         condition: service_healthy
       minio:
+        condition: service_healthy
+      tigrbl_auth:
+        condition: service_healthy
+      tigrbl_kms:
         condition: service_healthy
     environment:
       PG_HOST: postgres
@@ -200,6 +251,10 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+      tigrbl_auth:
+        condition: service_healthy
+      tigrbl_kms:
+        condition: service_healthy
       gateway:
         condition: service_healthy
     environment:
@@ -211,57 +266,14 @@ services:
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/system/healthz"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-    restart: unless-stopped
-    networks: [app_net]
-
-  # ────────────────────────────────────────────────
-  # TigrblAuth
-  # ────────────────────────────────────────────────
-  tigrbl_auth:
-    build:
-      context: ../../
-      dockerfile: pkgs/standards/tigrbl_auth/Dockerfile
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      PG_HOST: postgres
-      PG_PORT: 5432
-      PG_DB: ${TIGRBL_AUTH_DB}
-      PG_USER: ${POSTGRES_USER}
-      PG_PASS: ${POSTGRES_PASSWORD}
-      PG_DSN: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${TIGRBL_AUTH_DB}
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8002/system/healthz"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-    restart: unless-stopped
-    networks: [app_net]
-
-  # ────────────────────────────────────────────────
-  # Tigrbl KMS
-  # ────────────────────────────────────────────────
-  tigrbl_kms:
-    build:
-      context: ../../
-      dockerfile: pkgs/standards/tigrbl_kms/Dockerfile
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      KMS_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${TIGRBL_KMS_DB}
-    healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/system/healthz"]
       interval: 10s
       timeout: 5s
       retries: 3
     restart: unless-stopped
     networks: [app_net]
+
+
 
 networks:
   app_net: { driver: bridge }
