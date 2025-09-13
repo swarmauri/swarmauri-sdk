@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
+![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/a83a97d9622854b6b7c4372b23af33abdb51f32e/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pypi.org/project/swarmauri/">
