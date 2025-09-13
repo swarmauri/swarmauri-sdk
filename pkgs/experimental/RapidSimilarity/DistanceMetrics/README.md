@@ -1,5 +1,21 @@
 # DistanceMetrics
 
+<p align="center">
+    <a href="https://pypi.org/project/DistanceMetrics/">
+        <img src="https://img.shields.io/pypi/dm/DistanceMetrics" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/RapidSimilarity/DistanceMetrics/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/RapidSimilarity/DistanceMetrics.svg"/></a>
+    <a href="https://pypi.org/project/DistanceMetrics/">
+        <img src="https://img.shields.io/pypi/pyversions/DistanceMetrics" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/DistanceMetrics/">
+        <img src="https://img.shields.io/pypi/l/DistanceMetrics" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/DistanceMetrics/">
+        <img src="https://img.shields.io/pypi/v/DistanceMetrics?label=DistanceMetrics&color=green" alt="PyPI - DistanceMetrics"/></a>
+</p>
+
+---
+
+
 ## Purpose
 The `DistanceMetrics` package provides core distance and similarity measures, including implementations of various distance functions such as Euclidean distance and cosine similarity to evaluate similarity between high-dimensional vectors.
 
