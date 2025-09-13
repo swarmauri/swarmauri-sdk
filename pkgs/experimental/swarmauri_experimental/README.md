@@ -1,4 +1,4 @@
-# Swarmauri Experimental
+![Swamauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pypi.org/project/swarmauri-experimental/">
@@ -14,4 +14,10 @@
 </p>
 
 ---
+
+# Swarmauri Experimental
+
+> ⚠️ **Inactive Package**
+>
+> Experimental packages are now released as standalone distributions. Further support for the `swarmauri-experimental` namespace package is not planned.
 
