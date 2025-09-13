@@ -293,9 +293,11 @@ class DpopSigner(SigningBase):
                         continue
 
                 jti = claims.get("jti")
-                if isinstance(jti, str) and seen and seen(jti):
+                if not isinstance(jti, str) or not jti:
                     continue
-                if isinstance(jti, str) and mark:
+                if seen and seen(jti):
+                    continue
+                if mark:
                     try:
                         mark(jti, max_skew)
                     except Exception:
