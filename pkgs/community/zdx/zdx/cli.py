@@ -53,25 +53,32 @@ def install_manifest_packages(manifest: str) -> None:
     package_dirs = set()
     for t in targets:
         if t.package:
-            package_dirs.add(os.path.join(t.search_path, t.package))
+            package_dirs.add(t.search_path)
         if t.discover:
             for _, pkg_dir in discover_packages(t.search_path):
                 package_dirs.add(pkg_dir)
 
     for pkg_dir in sorted(package_dirs):
-        if os.path.isdir(pkg_dir):
-            subprocess.run(
-                [
-                    "uv",
-                    "pip",
-                    "install",
-                    "--directory",
-                    pkg_dir,
-                    "--system",
-                    ".",
-                ],
-                check=True,
-            )
+        if not os.path.isdir(pkg_dir):
+            continue
+        if not (
+            os.path.isfile(os.path.join(pkg_dir, "pyproject.toml"))
+            or os.path.isfile(os.path.join(pkg_dir, "setup.py"))
+        ):
+            print(f"Skipping {pkg_dir}: no pyproject.toml or setup.py found")
+            continue
+        subprocess.run(
+            [
+                "uv",
+                "pip",
+                "install",
+                "--directory",
+                pkg_dir,
+                "--system",
+                ".",
+            ],
+            check=True,
+        )
 
 
 def run_mkdocs_serve(
