@@ -1,9 +1,12 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run
+# /// script
+# dependencies = ["pip-licenses"]
+# ///
 """Scan project dependencies and validate licences.
 
-This script runs `pip-licenses` to generate a CSV report of all installed
+This script runs ``pip-licenses`` to generate a CSV report of all installed
 packages and their licences. It fails if any package uses a GPL or AGPL
-licence and optionally generates a Trivy SBOM if the `trivy` binary is
+licence and optionally generates a Trivy SBOM if the ``trivy`` binary is
 available on the system.
 """
 
@@ -22,7 +25,9 @@ def run_pip_licenses() -> str:
     try:
         return subprocess.check_output(["pip-licenses", "--format=csv"], text=True)
     except FileNotFoundError as exc:
-        raise RuntimeError("pip-licenses is not installed") from exc
+        raise RuntimeError(
+            "pip-licenses is required; run this script with 'uv run' to install it."
+        ) from exc
 
 
 def check_for_gpl(csv_text: str) -> list[str]:
