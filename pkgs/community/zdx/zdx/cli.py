@@ -1,8 +1,11 @@
 """Command-line helpers for the ZDX documentation toolkit."""
 
 import argparse
+import os
 import subprocess
 import sys
+
+from zdx.scripts.gen_api import discover_packages, load_manifest
 
 
 def run_gen_api(
@@ -37,6 +40,45 @@ def run_gen_api(
     if changed_only:
         cmd.append("--changed-only")
     subprocess.run(cmd, check=True)
+
+
+def install_manifest_packages(manifest: str) -> None:
+    """Install all packages referenced in the API manifest.
+
+    This ensures modules documented via ``mkdocstrings`` can be imported
+    successfully when building or serving the docs.
+    """
+
+    targets = load_manifest(manifest)
+    package_dirs = set()
+    for t in targets:
+        if t.package:
+            package_dirs.add(t.search_path)
+        if t.discover:
+            for _, pkg_dir in discover_packages(t.search_path):
+                package_dirs.add(pkg_dir)
+
+    for pkg_dir in sorted(package_dirs):
+        if not os.path.isdir(pkg_dir):
+            continue
+        if not (
+            os.path.isfile(os.path.join(pkg_dir, "pyproject.toml"))
+            or os.path.isfile(os.path.join(pkg_dir, "setup.py"))
+        ):
+            print(f"Skipping {pkg_dir}: no pyproject.toml or setup.py found")
+            continue
+        subprocess.run(
+            [
+                "uv",
+                "pip",
+                "install",
+                "--directory",
+                pkg_dir,
+                "--system",
+                ".",
+            ],
+            check=True,
+        )
 
 
 def run_mkdocs_serve(
@@ -81,15 +123,18 @@ def main() -> None:
     gen.add_argument("--mkdocs-yml", default="mkdocs.yml")
     gen.add_argument("--api-output-dir", default="api")
     gen.add_argument("--changed-only", action="store_true")
-    gen.set_defaults(
-        func=lambda args: run_gen_api(
+
+    def generate_cmd(args: argparse.Namespace) -> None:
+        install_manifest_packages(args.manifest)
+        run_gen_api(
             manifest=args.manifest,
             docs_dir=args.docs_dir,
             mkdocs_yml=args.mkdocs_yml,
             api_output_dir=args.api_output_dir,
             changed_only=args.changed_only,
         )
-    )
+
+    gen.set_defaults(func=generate_cmd)
 
     readmes = sub.add_parser("readmes", help="Generate documentation from README files")
     readmes.add_argument("--docs-dir", default=".")
@@ -109,6 +154,7 @@ def main() -> None:
     )
 
     def serve_cmd(args: argparse.Namespace) -> None:
+        install_manifest_packages(args.manifest)
         if args.generate:
             run_gen_api(
                 manifest=args.manifest,
@@ -124,6 +170,12 @@ def main() -> None:
         )
 
     serve.set_defaults(func=serve_cmd)
+
+    install = sub.add_parser(
+        "install", help="Install packages referenced in an API manifest"
+    )
+    install.add_argument("--manifest", default="api_manifest.yaml")
+    install.set_defaults(func=lambda args: install_manifest_packages(args.manifest))
 
     args = parser.parse_args()
     args.func(args)
