@@ -48,7 +48,7 @@ Notes:
 - For authorization servers issuing sender-constrained tokens, bind cnf.jkt to
   jwk_thumbprint(proof.header.jwk) at /token time.
 
-Dependencies: PyJWT, cryptography.
+Dependencies: swarmauri_signing_jws, cryptography.
 """
 
 from __future__ import annotations
@@ -60,13 +60,16 @@ import time
 import typing as t
 from dataclasses import dataclass
 
-import jwt
-from jwt import algorithms as jwt_algs
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa, ec, ed25519
+
+from swarmauri_signing_jws import JwsSignerVerifier
 
 # Align with your base / interfaces
 from swarmauri_base.signing.SigningBase import SigningBase
 from swarmauri_core.signing.ISigning import Signature, Envelope, Canon  # types only
+from swarmauri_core.crypto.types import KeyRef, JWAAlg
 
 # ────────────────────────── Helpers: base64url / JWK ──────────────────────────
 
@@ -77,6 +80,11 @@ def _b64url(data: bytes) -> str:
 
 def _sha256_b64url(data: bytes) -> str:
     return _b64url(hashlib.sha256(data).digest())
+
+
+def _b64url_dec(data: str) -> bytes:
+    pad = "=" * ((4 - (len(data) % 4)) % 4)
+    return base64.urlsafe_b64decode(data + pad)
 
 
 def _json_c14n(obj: t.Any) -> bytes:
@@ -111,48 +119,77 @@ def _ath_from_access_token(tok: str) -> str:
 
 @dataclass
 class _KeyMat:
-    priv: t.Any  # PyJWT accepts cryptography key object or PEM string
-    pub_jwk: dict  # public JWK (embedded into DPoP header)
-    alg: str  # JWS alg hint
+    keyref: t.Mapping[str, t.Any]
+    pub_jwk: dict
+    alg: JWAAlg
 
 
-def _derive_public_jwk_from_priv_pem(pem_bytes: bytes, alg: str) -> dict:
+def _derive_public_jwk_from_priv_pem(pem_bytes: bytes) -> dict:
     key = load_pem_private_key(pem_bytes, password=None)
-    jwk = jwt_algs.get_default_algorithms()[alg].to_jwk(key.public_key())
-    return json.loads(jwk)
+    pub = key.public_key()
+    if isinstance(pub, rsa.RSAPublicKey):
+        nums = pub.public_numbers()
+        n = nums.n.to_bytes((nums.n.bit_length() + 7) // 8, "big")
+        e = nums.e.to_bytes((nums.e.bit_length() + 7) // 8, "big")
+        return {"kty": "RSA", "n": _b64url(n), "e": _b64url(e)}
+    if isinstance(pub, ec.EllipticCurvePublicKey):
+        nums = pub.public_numbers()
+        if isinstance(pub.curve, ec.SECP256R1):
+            x = nums.x.to_bytes(32, "big")
+            y = nums.y.to_bytes(32, "big")
+            return {"kty": "EC", "crv": "P-256", "x": _b64url(x), "y": _b64url(y)}
+        raise ValueError("Unsupported EC curve for JWK export")
+    if isinstance(pub, ed25519.Ed25519PublicKey):
+        raw = pub.public_bytes(
+            serialization.Encoding.Raw, serialization.PublicFormat.Raw
+        )
+        return {"kty": "OKP", "crv": "Ed25519", "x": _b64url(raw)}
+    raise ValueError("Unsupported key type for JWK export")
 
 
-def _resolve_keyref(key: dict, alg: t.Optional[str]) -> _KeyMat:
+def _resolve_keyref(key: KeyRef, alg: t.Optional[str]) -> _KeyMat:
     if not isinstance(key, dict):
         raise TypeError("DPoP KeyRef must be a dict")
     kind = key.get("kind")
+    alg_token = JWAAlg(alg or key.get("alg") or "ES256")
     if kind == "pem":
         priv = key.get("priv")
         if isinstance(priv, str):
             priv = priv.encode("utf-8")
         if not isinstance(priv, (bytes, bytearray)):
             raise TypeError("KeyRef['priv'] must be PEM bytes|str for kind='pem'")
-        # Default alg if not provided: ES256 preferred; allow RS256/EdDSA via override
-        the_alg = alg or key.get("alg") or "ES256"
-        pub_jwk = _derive_public_jwk_from_priv_pem(bytes(priv), the_alg)
-        return _KeyMat(priv=bytes(priv), pub_jwk=pub_jwk, alg=the_alg)
+        priv_bytes = bytes(priv)
+        pub_jwk = _derive_public_jwk_from_priv_pem(priv_bytes)
+        if alg_token == JWAAlg.EDDSA:
+            sk = load_pem_private_key(priv_bytes, password=None)
+            if not isinstance(sk, ed25519.Ed25519PrivateKey):
+                raise TypeError("PEM is not an Ed25519 private key")
+            keyref = {"kind": "cryptography_obj", "obj": sk}
+        else:
+            keyref = {"kind": "pem", "priv": priv_bytes}
+        return _KeyMat(keyref=keyref, pub_jwk=pub_jwk, alg=alg_token)
     if kind == "jwk":
         priv_jwk = key.get("priv")
         if not isinstance(priv_jwk, dict):
             raise TypeError("KeyRef['priv'] must be a private JWK dict for kind='jwk'")
-        # alg hint from arg or jwk["alg"] or default ES256
-        the_alg = alg or priv_jwk.get("alg") or "ES256"
-        # Build a public JWK by dropping private params
+        alg_token = JWAAlg(alg or priv_jwk.get("alg") or "ES256")
         pub_jwk = {
             k: v for k, v in priv_jwk.items() if k in ("kty", "crv", "x", "y", "n", "e")
         }
-        return _KeyMat(priv=priv_jwk, pub_jwk=pub_jwk, alg=the_alg)
+        if alg_token == JWAAlg.EDDSA and priv_jwk.get("kty") == "OKP":
+            d = priv_jwk.get("d")
+            if not isinstance(d, str):
+                raise TypeError("Ed25519 JWK requires 'd'")
+            keyref = {"kind": "raw_ed25519_sk", "bytes": _b64url_dec(d)}
+        else:
+            keyref = {"kind": "jwk", "priv": priv_jwk}
+        return _KeyMat(keyref=keyref, pub_jwk=pub_jwk, alg=alg_token)
     raise TypeError(f"Unsupported KeyRef.kind: {kind}")
 
 
 # ─────────────────────────── DPoP proof builder/verifier ──────────────────────
 
-_ALLOWED_ALGS = {"ES256", "RS256", "EdDSA"}
+_ALLOWED_ALGS = {JWAAlg.ES256, JWAAlg.RS256, JWAAlg.EDDSA}
 
 
 def _now() -> int:
@@ -162,9 +199,12 @@ def _now() -> int:
 class DpopSigner(SigningBase):
     """DPoP proof signer/verifier that conforms to the SigningBase/ISigning surface."""
 
+    def __init__(self) -> None:
+        self._jws = JwsSignerVerifier()
+
     def supports(self) -> dict[str, t.Iterable[str]]:
         return {
-            "algs": tuple(sorted(_ALLOWED_ALGS)),
+            "algs": tuple(sorted(a.value for a in _ALLOWED_ALGS)),
             "canons": ("raw", "json"),
             "features": ("detached_only",),
         }
@@ -187,7 +227,7 @@ class DpopSigner(SigningBase):
 
     async def sign_bytes(
         self,
-        key: dict,
+        key: KeyRef,
         payload: bytes,
         *,
         alg: t.Optional[str] = None,
@@ -201,7 +241,7 @@ class DpopSigner(SigningBase):
 
         km = _resolve_keyref(key, alg)
         if km.alg not in _ALLOWED_ALGS:
-            raise ValueError(f"Unsupported alg for DPoP: {km.alg}")
+            raise ValueError(f"Unsupported alg for DPoP: {km.alg.value}")
 
         iat = int(o.get("iat") or _now())
         jti = o.get("jti") or _b64url(
@@ -216,16 +256,22 @@ class DpopSigner(SigningBase):
         if access_token:
             claims["ath"] = _ath_from_access_token(access_token)
 
-        header = {"typ": "dpop+jwt", "alg": km.alg, "jwk": km.pub_jwk}
-
-        token = jwt.encode(
+        header_extra = {"typ": "dpop+jwt", "jwk": km.pub_jwk}
+        token = await self._jws.sign_compact(
             payload=claims,
-            key=km.priv,
-            algorithm=km.alg,
-            headers=header,
+            alg=km.alg,
+            key=km.keyref,
+            header_extra=header_extra,
         )
         jkt = _jwk_thumbprint_b64url(km.pub_jwk)
-        return [{"alg": km.alg, "format": "dpop+jwt", "sig": token, "jkt": jkt}]
+        return [
+            {
+                "alg": km.alg.value,
+                "format": "dpop+jwt",
+                "sig": token,
+                "jkt": jkt,
+            }
+        ]
 
     async def verify_bytes(
         self,
@@ -244,7 +290,10 @@ class DpopSigner(SigningBase):
             raise ValueError("DPoP verify requires require['htm'] and require['htu']")
 
         max_skew = int(req.get("max_skew_s", 300))
-        allowed_algs = set(req.get("algs") or _ALLOWED_ALGS)
+        allowed_algs = {
+            (a if isinstance(a, JWAAlg) else JWAAlg(a))
+            for a in (req.get("algs") or _ALLOWED_ALGS)
+        }
         expect_nonce = req.get("nonce")
         expect_ath = req.get("access_token")
         replay = req.get("replay") or {}
@@ -258,23 +307,24 @@ class DpopSigner(SigningBase):
             if not isinstance(token, str):
                 continue
             try:
-                header = jwt.get_unverified_header(token)
+                parts = token.split(".")
+                if len(parts) != 3:
+                    continue
+                header = json.loads(_b64url_dec(parts[0]))
                 if header.get("typ") != "dpop+jwt":
                     continue
-                alg = header.get("alg")
+                alg_raw = header.get("alg")
                 jwk = header.get("jwk")
-                if alg not in allowed_algs or not isinstance(jwk, dict):
+                alg_enum = JWAAlg(alg_raw)
+                if alg_enum not in allowed_algs or not isinstance(jwk, dict):
                     continue
 
-                key_obj = jwt_algs.get_default_algorithms()[alg].from_jwk(
-                    json.dumps(jwk)
-                )
-                claims = jwt.decode(
+                result = await self._jws.verify_compact(
                     token,
-                    key=key_obj,
-                    algorithms=[alg],
-                    options={"verify_aud": False, "verify_exp": False},
+                    jwks_resolver=lambda _kid, _alg, jwk=jwk: jwk,
+                    alg_allowlist=[alg_enum],
                 )
+                claims = json.loads(result.payload.decode("utf-8"))
 
                 if (claims.get("htm") or "").upper() != method_req:
                     continue
@@ -310,7 +360,7 @@ class DpopSigner(SigningBase):
 
     async def sign_envelope(
         self,
-        key: dict,
+        key: KeyRef,
         env: Envelope,
         *,
         alg: t.Optional[str] = None,

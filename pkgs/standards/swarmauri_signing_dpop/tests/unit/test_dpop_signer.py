@@ -118,3 +118,16 @@ async def test_verify_rejects_proof_missing_jti() -> None:
         [{"sig": token}],
         require={"htm": "GET", "htu": "https://api.example/x"},
     )
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("alg", ["HS256", "HS384", "HS512", "none"])
+async def test_sign_rejects_unsupported_algs(alg: str) -> None:
+    signer = DpopSigner()
+    keyref = {"kind": "jwk", "priv": {"kty": "oct", "k": "secret"}}
+    with pytest.raises(ValueError, match="Unsupported alg"):
+        await signer.sign_bytes(
+            keyref,
+            b"",
+            alg=alg,
+            opts={"htm": "GET", "htu": "https://api.example/x"},
+        )
