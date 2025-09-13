@@ -8,8 +8,8 @@ from swarmauri_core.crypto.types import JWAAlg
 
 async def _run() -> bool:
     jws = JwsSignerVerifier()
-    key1 = {"kind": "raw", "key": "one"}
-    key2 = {"kind": "raw", "key": "two"}
+    key1 = {"kind": "raw", "key": "a" * 32}
+    key2 = {"kind": "raw", "key": "b" * 32}
     payload = {"msg": "func"}
     general = await jws.sign_general_json(
         payload=payload,
