@@ -1,0 +1,22 @@
+<!-- assets/brand.theme.svg -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" preserveAspectRatio="xMidYMid meet">
+  <style>
+    /* Default: light OS → show dark logo for contrast */
+    #logo-light { display: inline; }
+    #logo-dark  { display: none;  }
+
+    /* Dark OS → show light logo */
+    @media (prefers-color-scheme: dark) {
+      #logo-light { display: none;  }
+      #logo-dark  { display: inline; }
+    }
+  </style>
+
+  <!-- Your Cloudinary PNGs -->
+  <image id="logo-light"
+         href="https://res.cloudinary.com/dryedzrlo/image/upload/v1757724629/swarmauri_brand_frag_dark_tzjuja.png"
+         x="0" y="0" width="1200" height="300"/>
+  <image id="logo-dark"
+         href="https://res.cloudinary.com/dryedzrlo/image/upload/v1757724629/swarmauri_brand_frag_light_mg8cmd.png"
+         x="0" y="0" width="1200" height="300"/>
+</svg>
