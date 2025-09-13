@@ -124,6 +124,11 @@ swarmauri_<resource_kind>_<plugin_name>/
         └── <PluginName>_test.py
 ```
 
+The `__init__.py` file should expose a `__version__` attribute using
+`importlib.metadata.version` with a fallback that reads the
+package's `pyproject.toml` when the distribution isn't installed. This keeps
+the runtime version consistent with the project metadata.
+
 3. **Entry Point Registration:**
 
 Swarmauri uses Python's entry points for plugin discovery. In your pyproject.toml, register your plugin:
