@@ -150,8 +150,7 @@ class PromptContextChainBase(IChainDependencyResolver, ChainContextBase, Compone
         Resolve dependencies within a specific sequence of the prompt matrix.
 
         Args:
-            matrix (List[List[Optional[str]]]): The prompt matrix.
-            sequence_index (int): The index of the sequence to resolve dependencies for.
+            sequence (List[Optional[str]]): The sequence of prompts to resolve dependencies for.
 
         Returns:
             List[int]: The execution order of the agents for the given sequence.
