@@ -1,4 +1,3 @@
-<!-- assets/brand.theme.svg -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" preserveAspectRatio="xMidYMid meet">
   <style>
     /* Default: light OS → show dark logo for contrast */
@@ -12,11 +11,10 @@
     }
   </style>
 
-  <!-- Your Cloudinary PNGs -->
   <image id="logo-light"
-         href="https://res.cloudinary.com/dryedzrlo/image/upload/fl_sanitize/v1757724629/swarmauri_brand_frag_dark_tzjuja.png"
+         href="https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/HEAD/assets/swarmauri_brand_frag_dark.png"
          x="0" y="0" width="1200" height="300"/>
   <image id="logo-dark"
-         href="https://res.cloudinary.com/dryedzrlo/image/upload/fl_sanitize/v1757724629/swarmauri_brand_frag_light_mg8cmd.png"
+         href="https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/HEAD/assets/swarmauri_brand_frag_light.png"
          x="0" y="0" width="1200" height="300"/>
 </svg>
