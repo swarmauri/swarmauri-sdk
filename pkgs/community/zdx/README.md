@@ -19,7 +19,7 @@ pip install zdx
 
 ## Getting Started
 
-1. Place your documentation sources in a dedicated directory (e.g., `docs/swarmauri-sdk`).
+1. Place your documentation sources in a dedicated directory (e.g., `docs/swarmauri-sdk`) and keep this location free of executable code.
 2. Customize `mkdocs.yml` and `api_manifest.yaml` for your project.
 3. Install `zdx` and use the `zdx` CLI to build and preview the site.
 
