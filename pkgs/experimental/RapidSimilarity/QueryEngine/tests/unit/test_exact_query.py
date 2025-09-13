@@ -2,6 +2,7 @@ import pytest
 import numpy as np
 from QueryEngine import exact_query
 
+
 @pytest.mark.unit
 def test_exact_nearest_neighbors_single():
     """Test exact nearest neighbors with a single query point."""
@@ -12,6 +13,7 @@ def test_exact_nearest_neighbors_single():
     neighbors = exact_query.exact_nearest_neighbors(dataset, query, k)
     assert list(neighbors) == expected_neighbors
 
+
 @pytest.mark.unit
 def test_exact_nearest_neighbors_multiple():
     """Test exact nearest neighbors with multiple query points."""
@@ -19,13 +21,14 @@ def test_exact_nearest_neighbors_multiple():
     queries = [(3.0, 2), (5.0, 1), (1.0, 3)]
     expected_results = [
         [2, 1],  # Neighbors for query 3.0
-        [4],     # Neighbors for query 5.0
-        [0, 1, 2]  # Neighbors for query 1.0
+        [4],  # Neighbors for query 5.0
+        [0, 1, 2],  # Neighbors for query 1.0
     ]
 
     for (query, k), expected_neighbors in zip(queries, expected_results):
         neighbors = exact_query.exact_nearest_neighbors(dataset, query, k)
         assert list(neighbors) == expected_neighbors
+
 
 @pytest.mark.unit
 def test_exact_nearest_neighbors_empty_dataset():
@@ -35,6 +38,7 @@ def test_exact_nearest_neighbors_empty_dataset():
     k = 2
     with pytest.raises(IndexError):
         exact_query.exact_nearest_neighbors(dataset, query, k)
+
 
 @pytest.mark.unit
 def test_exact_nearest_neighbors_large_k():
@@ -46,12 +50,16 @@ def test_exact_nearest_neighbors_large_k():
     neighbors = exact_query.exact_nearest_neighbors(dataset, query, k)
     assert list(neighbors) == expected_neighbors
 
+
 @pytest.mark.unit
-@pytest.mark.parametrize("dataset,query,k,expected_neighbors", [
-    (np.array([1.0, 2.0, 3.0], dtype=np.float32), 1.5, 1, [0]),
-    (np.array([5.0, 1.0, 3.0, 4.0, 2.0], dtype=np.float32), 3.5, 2, [2, 3]),
-    (np.array([10.0, 20.0, 30.0], dtype=np.float32), 15.0, 2, [1, 0])
-])
+@pytest.mark.parametrize(
+    "dataset,query,k,expected_neighbors",
+    [
+        (np.array([1.0, 2.0, 3.0], dtype=np.float32), 1.5, 1, [0]),
+        (np.array([5.0, 1.0, 3.0, 4.0, 2.0], dtype=np.float32), 3.5, 2, [2, 3]),
+        (np.array([10.0, 20.0, 30.0], dtype=np.float32), 15.0, 2, [1, 0]),
+    ],
+)
 def test_exact_nearest_neighbors_parametrized(dataset, query, k, expected_neighbors):
     """Test exact nearest neighbors with parameterized datasets."""
     neighbors = exact_query.exact_nearest_neighbors(dataset, query, k)
