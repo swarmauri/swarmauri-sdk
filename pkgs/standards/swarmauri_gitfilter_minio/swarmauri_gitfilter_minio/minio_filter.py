@@ -1,3 +1,5 @@
+"""Storage adapter and Git filter backed by a MinIO or S3-compatible service."""
+
 from __future__ import annotations
 
 import io
@@ -18,7 +20,11 @@ from swarmauri_base.git_filters import GitFilterBase
 
 @ComponentBase.register_type(StorageAdapterBase, "MinioFilter")
 class MinioFilter(StorageAdapterBase, GitFilterBase):
-    """Simple wrapper around the MinIO client for use with Peagen."""
+    """Interact with MinIO for storing Git objects.
+
+    Provides helpers to upload and download individual files or directory
+    trees, allowing Peagen to offload repository data to object storage.
+    """
 
     def __init__(
         self,
@@ -31,6 +37,18 @@ class MinioFilter(StorageAdapterBase, GitFilterBase):
         prefix: str = "",
         **kwargs,
     ) -> None:
+        """Create a new MinioFilter instance.
+
+        endpoint (str): Host and port of the MinIO service.
+        access_key (SecretStr): Access key credential.
+        secret_key (SecretStr): Secret key credential.
+        bucket (str): Bucket name to store objects in.
+        secure (bool): Use HTTPS when ``True``.
+        prefix (str): Optional path prefix inside the bucket.
+        **kwargs: Additional options forwarded to ``StorageAdapterBase``.
+
+        RETURNS (None): This method does not return anything.
+        """
         super().__init__(**kwargs)
         self._client = Minio(
             endpoint,
@@ -54,12 +72,24 @@ class MinioFilter(StorageAdapterBase, GitFilterBase):
 
     @property
     def root_uri(self) -> str:
+        """Return the root URI for the configured bucket and prefix.
+
+        RETURNS (str): Base MinIO URI ending with a trailing slash.
+        """
         scheme = "minios" if self._secure else "minio"
         base = f"{scheme}://{self._endpoint}/{self._bucket}"
         uri = f"{base}/{self._prefix.rstrip('/')}" if self._prefix else base
         return uri.rstrip("/") + "/"
 
     def upload(self, key: str, data: BinaryIO) -> str:
+        """Upload a binary stream to the bucket.
+
+        key (str): Destination object key.
+        data (BinaryIO): File-like object containing the data.
+
+        RETURNS (str): URI of the stored object.
+        RAISES (S3Error): If the upload fails.
+        """
         size: Optional[int] = None
         try:
             size = os.fstat(data.fileno()).st_size  # type: ignore[attr-defined]
@@ -79,6 +109,13 @@ class MinioFilter(StorageAdapterBase, GitFilterBase):
         return f"{self.root_uri}{key.lstrip('/')}"
 
     def download(self, key: str) -> BinaryIO:
+        """Retrieve an object from the bucket.
+
+        key (str): Object key to fetch.
+
+        RETURNS (BinaryIO): Buffer containing the object data.
+        RAISES (FileNotFoundError): If the object cannot be found.
+        """
         try:
             resp = self._client.get_object(self._bucket, self._full_key(key))
             buffer = io.BytesIO(resp.read())
@@ -90,6 +127,13 @@ class MinioFilter(StorageAdapterBase, GitFilterBase):
             raise FileNotFoundError(f"{self._bucket}/{key}: {exc}") from exc
 
     def upload_dir(self, src: str | os.PathLike, *, prefix: str = "") -> None:
+        """Upload all files under a directory to the bucket.
+
+        src (str | os.PathLike): Local directory to walk.
+        prefix (str): Optional key prefix to prepend to uploaded objects.
+
+        RETURNS (None): This method does not return anything.
+        """
         base = Path(src)
         for path in base.rglob("*"):
             if path.is_file():
@@ -99,6 +143,12 @@ class MinioFilter(StorageAdapterBase, GitFilterBase):
                     self.upload(key, fh)
 
     def iter_prefix(self, prefix: str):
+        """Iterate over object keys matching a prefix.
+
+        prefix (str): Key prefix to match.
+
+        RETURNS (Iterator[str]): Relative keys under the configured prefix.
+        """
         for obj in self._client.list_objects(
             self._bucket, prefix=prefix, recursive=True
         ):
@@ -108,6 +158,13 @@ class MinioFilter(StorageAdapterBase, GitFilterBase):
             yield key
 
     def download_prefix(self, prefix: str, dest_dir: str | os.PathLike) -> None:
+        """Download all objects beneath a prefix into a directory.
+
+        prefix (str): Key prefix to copy from the bucket.
+        dest_dir (str | os.PathLike): Local directory to populate.
+
+        RETURNS (None): This method does not return anything.
+        """
         dest = Path(dest_dir)
         for rel_key in self.iter_prefix(prefix):
             target = dest / rel_key
@@ -118,6 +175,12 @@ class MinioFilter(StorageAdapterBase, GitFilterBase):
 
     @classmethod
     def from_uri(cls, uri: str) -> "MinioFilter":
+        """Create a MinioFilter from a connection string.
+
+        uri (str): A URI like ``minio://host:port/bucket/prefix``.
+
+        RETURNS (MinioFilter): Configured ``MinioFilter`` instance.
+        """
         from urllib.parse import urlparse
 
         p = urlparse(uri)

@@ -1,4 +1,4 @@
-![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
+![Swamauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 # Swarmauri Remote CA Cert Service
 
@@ -10,6 +10,17 @@ Features:
 - Minimal parsing helpers for certificate snippets.
 - Designed around X.509 as defined in RFC 5280 and Enrollment over Secure
   Transport (EST) in RFC 7030.
+
+## Configuration
+
+`RemoteCaCertService` accepts the following arguments:
+
+- `endpoint` – Base URL of the remote CA sign endpoint.
+- `auth` – Optional mapping of HTTP headers or an `httpx.Auth` instance for
+  authentication.
+- `timeout_s` – HTTP timeout in seconds (default `10`).
+- `ca_chain` – Optional sequence of cached trust anchors exposed during
+  verification and parsing.
 
 ## Installation
 
@@ -59,3 +70,7 @@ asyncio.run(main())
 The example above mocks a CA using `httpx.MockTransport`.  In real scenarios
 `RemoteCaCertService` posts the CSR to the configured endpoint and returns the
 certificate bytes supplied by the remote CA.
+
+When used against a real service, provide any required authentication headers
+through the `auth` argument and override request or response formats via the
+`opts` parameter of `sign_cert`.

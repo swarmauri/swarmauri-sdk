@@ -1,4 +1,4 @@
-![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
+![Swamauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pypi.org/project/swarmauri_crypto_paramiko/">
@@ -17,11 +17,21 @@
 
 ## Swarmauri Crypto Paramiko
 
-Paramiko-backed crypto provider implementing the `ICrypto` contract via `CryptoBase`.
+Paramiko-backed crypto provider implementing the `ICrypto` contract via
+`CryptoBase`. Built on top of [`paramiko`](https://www.paramiko.org/) and
+[`cryptography`](https://cryptography.io/), it exposes an asynchronous API for
+several cryptographic primitives.
+
+### Features
 
 - AES-256-GCM symmetric encrypt/decrypt
 - RSA-OAEP(SHA-256) wrap/unwrap
+- RSA-OAEP(SHA-256) sealing for small payloads
 - Multi-recipient hybrid envelopes using OpenSSH public keys
+
+Keys are represented by `KeyRef` objects. Public keys should be provided in
+OpenSSH format via `KeyRef.public`, while private keys are supplied as
+PEM-encoded bytes in `KeyRef.material`.
 
 ## Installation
 
@@ -81,6 +91,14 @@ recipient = KeyRef(
 
 wrapped = await crypto.wrap(recipient)
 unwrapped = await crypto.unwrap(recipient, wrapped)
+```
+
+### RSA Sealing for Small Payloads
+
+```python
+# Using the `recipient` defined above
+sealed = await crypto.seal(recipient, b"tiny secret")
+plaintext = await crypto.unseal(recipient, sealed)
 ```
 
 ### Hybrid Envelope for Multiple Recipients

@@ -9,6 +9,7 @@ concurrency:
 
 jobs:
   set-matrix:
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
@@ -51,6 +52,7 @@ jobs:
 
   test:
     needs: set-matrix
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     strategy:
       matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
@@ -140,7 +142,7 @@ jobs:
     name: Commit Changes
     needs: test
     runs-on: ubuntu-latest
-    if: always()
+    if: ${{ !cancelled() && always() }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3

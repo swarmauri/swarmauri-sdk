@@ -1,4 +1,4 @@
-![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
+![Swamauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pypi.org/project/swarmauri_signing_pgp/">
@@ -17,7 +17,15 @@
 
 # Swarmauri Signing PGP
 
-OpenPGP envelope signer for Swarmauri. Supports JSON and optional CBOR canonicalization.
+The `swarmauri_signing_pgp` package provides an OpenPGP envelope signer for the
+Swarmauri SDK. It can create and verify detached signatures over raw byte
+payloads or canonicalized envelopes using JSON or optionally CBOR.
+
+## Features
+
+- Detached OpenPGP signatures for bytes and envelopes
+- JSON canonicalization with optional CBOR support
+- Verification of multiple signatures with a minimum signer threshold
 
 ## Installation
 
@@ -34,8 +42,22 @@ pip install swarmauri_signing_pgp[cbor]
 ## Usage
 
 ```python
+from pgpy import PGPKey
 from swarmauri_signing_pgp import PgpEnvelopeSigner
 
+priv_key, _ = PGPKey.from_file("path/to/private.asc")
+pub_key, _ = PGPKey.from_file("path/to/public.asc")
+
 signer = PgpEnvelopeSigner()
-# ... use signer.sign_bytes or signer.sign_envelope
+sig = await signer.sign_bytes({"kind": "pgpy_key", "priv": priv_key}, b"data")
+
+await signer.verify_bytes(
+    b"data",
+    sig,
+    opts={"pubkeys": [pub_key]},
+)
 ```
+
+Replace the key-loading logic with your own. The signer can also operate on
+envelopes by calling `sign_envelope` and `verify_envelope` after choosing a
+canonicalization format.
