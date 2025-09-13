@@ -119,6 +119,7 @@ members = [
     "standards/swarmauri_signing_ecdsa",
     "standards/swarmauri_signing_ca",
     "standards/swarmauri_signing_jws",
+    "standards/swarmauri_signing_dpop",
     "standards/swarmauri_certs_local_ca",
     "standards/swarmauri_certs_self_signed",
     "standards/swarmauri_tokens_jwt",
@@ -311,6 +312,7 @@ swarmauri_signing_ecdsa = { workspace = true }
 swarmauri_signing_ca = { workspace = true }
 swarmauri_certs_remote_ca = { workspace = true }
 swarmauri_signing_jws = { workspace = true }
+swarmauri_signing_dpop = { workspace = true }
 swarmauri_certs_pkcs11 = { workspace = true }
 swarmauri_certs_local_ca = { workspace = true }
 swarmauri_certs_self_signed = { workspace = true }
