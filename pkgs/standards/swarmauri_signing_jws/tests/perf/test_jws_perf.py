@@ -8,7 +8,7 @@ from swarmauri_core.crypto.types import JWAAlg
 @pytest.mark.perf
 def test_sign_compact_perf(benchmark) -> None:
     jws = JwsSignerVerifier()
-    key = {"kind": "raw", "key": "secret"}
+    key = {"kind": "raw", "key": "c" * 32}
     payload = {"msg": "perf"}
 
     async def _sign() -> None:
