@@ -52,6 +52,51 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
+### Nonce handling
+
+Servers may issue a `DPoP-Nonce` header to bind proofs to a specific
+challenge. Pass the nonce through `opts` when signing and require it during
+verification:
+
+```python
+proof = await signer.sign_bytes(
+    key,
+    b"",
+    opts={
+        "htm": "GET",
+        "htu": "https://api.example/x",
+        "nonce": "server-issued-nonce",
+    },
+)
+ok = await signer.verify_bytes(
+    b"",
+    proof,
+    require={
+        "htm": "GET",
+        "htu": "https://api.example/x",
+        "nonce": "server-issued-nonce",
+    },
+)
+assert ok
+```
+
+If no nonce is provided, the signer falls back to creating a proof without the
+`nonce` claim, and verification should omit the requirement:
+
+```python
+proof = await signer.sign_bytes(
+    key,
+    b"",
+    opts={"htm": "GET", "htu": "https://api.example/x"},
+)
+ok = await signer.verify_bytes(
+    b"",
+    proof,
+    require={"htm": "GET", "htu": "https://api.example/x"},
+)
+assert ok
+```
+
 ## Entry Point
 
 The signer registers under the `swarmauri.signings` entry point as `DpopSigner`.
