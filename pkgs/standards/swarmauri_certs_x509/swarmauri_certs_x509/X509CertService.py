@@ -394,8 +394,8 @@ class X509CertService(CertServiceBase):
             .issuer_name(_to_x509_name(subject))
             .public_key(pub)
             .serial_number(serial or x509.random_serial_number())
-            .not_valid_before(datetime.datetime.utcfromtimestamp(nbf))
-            .not_valid_after(datetime.datetime.utcfromtimestamp(naf))
+            .not_valid_before(datetime.datetime.fromtimestamp(nbf, datetime.UTC))
+            .not_valid_after(datetime.datetime.fromtimestamp(naf, datetime.UTC))
         )
 
         if extensions is None:
@@ -464,8 +464,8 @@ class X509CertService(CertServiceBase):
             .issuer_name(issuer_name)
             .public_key(_csr.public_key())
             .serial_number(serial or x509.random_serial_number())
-            .not_valid_before(datetime.datetime.utcfromtimestamp(nbf))
-            .not_valid_after(datetime.datetime.utcfromtimestamp(naf))
+            .not_valid_before(datetime.datetime.fromtimestamp(nbf, datetime.UTC))
+            .not_valid_after(datetime.datetime.fromtimestamp(naf, datetime.UTC))
         )
 
         try:
@@ -508,9 +508,9 @@ class X509CertService(CertServiceBase):
             raise ValueError(f"Invalid certificate: {e}") from e
 
         now = int(time.time()) if check_time is None else int(check_time)
-        if now < int(leaf.not_valid_before.timestamp()):
+        if now < int(leaf.not_valid_before_utc.timestamp()):
             return {"valid": False, "reason": "not_yet_valid"}
-        if now > int(leaf.not_valid_after.timestamp()):
+        if now > int(leaf.not_valid_after_utc.timestamp()):
             return {"valid": False, "reason": "expired"}
 
         if not trust_roots:
@@ -534,8 +534,8 @@ class X509CertService(CertServiceBase):
                     "is_ca": _is_ca(leaf),
                     "issuer": _name_to_str(leaf.issuer),
                     "subject": _name_to_str(leaf.subject),
-                    "not_before": int(leaf.not_valid_before.timestamp()),
-                    "not_after": int(leaf.not_valid_after.timestamp()),
+                    "not_before": int(leaf.not_valid_before_utc.timestamp()),
+                    "not_after": int(leaf.not_valid_after_utc.timestamp()),
                 }
             except Exception:
                 return {"valid": False, "reason": "untrusted_without_roots"}
@@ -565,8 +565,8 @@ class X509CertService(CertServiceBase):
                     "is_ca": _is_ca(leaf),
                     "issuer": _name_to_str(leaf.issuer),
                     "subject": _name_to_str(leaf.subject),
-                    "not_before": int(leaf.not_valid_before.timestamp()),
-                    "not_after": int(leaf.not_valid_after.timestamp()),
+                    "not_before": int(leaf.not_valid_before_utc.timestamp()),
+                    "not_after": int(leaf.not_valid_after_utc.timestamp()),
                     "revocation_checked": False if not check_revocation else False,
                 }
             inter = chain_pool.get(issuer_dn)
@@ -592,8 +592,8 @@ class X509CertService(CertServiceBase):
             else "ed25519",
             "issuer": _name_to_mapping(c.issuer),
             "subject": _name_to_mapping(c.subject),
-            "not_before": int(c.not_valid_before.timestamp()),
-            "not_after": int(c.not_valid_after.timestamp()),
+            "not_before": int(c.not_valid_before_utc.timestamp()),
+            "not_after": int(c.not_valid_after_utc.timestamp()),
             "is_ca": _is_ca(c),
         }
         if include_extensions:
