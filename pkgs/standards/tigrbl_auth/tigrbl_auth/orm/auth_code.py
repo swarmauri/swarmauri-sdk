@@ -9,7 +9,7 @@ from tigrbl.orm.tables import Base
 from tigrbl.orm.mixins import TenantColumn, Timestamped, UserColumn
 from tigrbl.specs import S, acol
 from tigrbl.column.storage_spec import ForeignKeySpec
-from tigrbl.types import JSON, PgUUID, String, TZDateTime, Mapped
+from tigrbl.types import JSON, PgUUID, String, TZDateTime, Mapped, UUID
 from tigrbl import op_ctx
 from fastapi import HTTPException, status
 
@@ -51,9 +51,21 @@ class AuthCode(Base, Timestamped, UserColumn, TenantColumn):
         client_id = payload.get("client_id")
         redirect_uri = payload.get("redirect_uri")
         verifier = payload.get("code_verifier")
+
+        def _normalize(val: str | None) -> str | None:
+            if val is None:
+                return None
+            try:
+                u = UUID(val)
+            except ValueError:
+                u = UUID(hex=val)
+            pg = PgUUID(as_uuid=True)
+            pg.as_uuid = u
+            return pg.hex
+
         if (
             obj is None
-            or str(obj.client_id) != client_id
+            or obj.client_id.hex != _normalize(client_id)
             or obj.redirect_uri != redirect_uri
             or datetime.utcnow() > obj.expires_at
         ):
