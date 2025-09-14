@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
 from uuid import UUID, uuid4
 from urllib.parse import urlencode
@@ -68,7 +68,7 @@ async def authorize(
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, {"error": "login_required"})
     if max_age is not None:
         auth_time = session.get("auth_time")
-        if auth_time is None or datetime.utcnow() - auth_time > timedelta(
+        if auth_time is None or datetime.now(timezone.utc) - auth_time > timedelta(
             seconds=max_age
         ):
             raise HTTPException(
@@ -112,7 +112,7 @@ async def authorize(
             "code_challenge": code_challenge,
             "nonce": nonce,
             "scope": scope_str,
-            "expires_at": datetime.utcnow() + timedelta(minutes=10),
+            "expires_at": datetime.now(timezone.utc) + timedelta(minutes=10),
         }
         if requested_claims:
             payload["claims"] = requested_claims

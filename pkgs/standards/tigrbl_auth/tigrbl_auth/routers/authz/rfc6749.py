@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import secrets
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
 
@@ -147,7 +147,7 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
             auth_code is None
             or str(auth_code.client_id) != parsed.client_id
             or auth_code.redirect_uri != parsed.redirect_uri
-            or datetime.utcnow() > auth_code.expires_at
+            or datetime.now(timezone.utc) > auth_code.expires_at
         ):
             return JSONResponse(
                 {"error": "invalid_grant"}, status_code=status.HTTP_400_BAD_REQUEST
@@ -197,7 +197,7 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
         )
         if not device_obj or str(device_obj.client_id) != parsed.client_id:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_grant"})
-        if datetime.utcnow() > device_obj.expires_at:
+        if datetime.now(timezone.utc) > device_obj.expires_at:
             await DeviceCode.handlers.delete.core({"db": db, "obj": device_obj})
             raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "expired_token"})
         if not device_obj.authorized:
