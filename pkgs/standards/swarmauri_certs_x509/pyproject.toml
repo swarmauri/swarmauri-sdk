@@ -20,13 +20,13 @@ classifiers = [
 dependencies = [
     "swarmauri_core",
     "swarmauri_base",
+    "swarmauri_keyprovider_local",
+    "swarmauri_keyprovider_inmemory",
     "cryptography",
 ]
 
 [project.optional-dependencies]
 pkcs11 = ["python-pkcs11"]
-local = ["swarmauri_keyprovider_local"]
-mem = ["swarmauri_keyprovider_inmemory"]
 
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
