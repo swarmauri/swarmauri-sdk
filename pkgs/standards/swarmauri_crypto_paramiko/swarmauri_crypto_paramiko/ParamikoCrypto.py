@@ -1,17 +1,16 @@
 """Paramiko-backed crypto provider with sealing support.
 
-Implements the ICrypto contract using:
-- AES-256-GCM for symmetric encrypt/decrypt
-- RSA-OAEP(SHA-256) for:
-    • wrapping the session key to many recipients (KEM+AEAD mode)
-    • sealing/unsealing (direct public-key encryption of plaintext) for small payloads
+This module implements the ``ICrypto`` contract using AES-256-GCM for
+symmetric encryption and RSA-OAEP (SHA-256) for key wrapping and direct
+sealing of small payloads.
 
-Notes
------
-- This provider expects RSA public keys in OpenSSH format via ``KeyRef.public``.
-- For unwrap/unseal, a PEM-encoded RSA private key is expected in ``KeyRef.material``.
-- Sealing has a size limit: len(plaintext) <= (modulus_bytes - 2*hash_len - 2).
-  For larger payloads, use AES-GCM + RSA-OAEP key-wrap (encrypt_for_many with enc_alg="AES-256-GCM").
+Notes:
+    - RSA public keys must be supplied in OpenSSH format via ``KeyRef.public``.
+    - For unwrap and unseal operations, ``KeyRef.material`` must contain a
+      PEM-encoded RSA private key.
+    - Sealing is limited to inputs no larger than ``modulus_bytes -
+      2*hash_len - 2``. For larger payloads use
+      ``encrypt_for_many(enc_alg="AES-256-GCM")``.
 """
 
 from __future__ import annotations
@@ -46,17 +45,27 @@ _AEAD_DEFAULT = "AES-256-GCM"
 
 @ComponentBase.register_type(CryptoBase, "ParamikoCrypto")
 class ParamikoCrypto(CryptoBase):
-    """Concrete implementation of the ICrypto contract using AES-GCM and RSA-OAEP."""
+    """Crypto provider backed by Paramiko and cryptography.
+
+    Implements AES-256-GCM for symmetric operations and RSA-OAEP for key
+    wrapping and sealing.
+    """
 
     type: Literal["ParamikoCrypto"] = "ParamikoCrypto"
 
     def supports(self) -> Dict[str, Iterable[Alg]]:
+        """Return the algorithms supported by this provider.
+
+        Returns:
+            Dict[str, Iterable[Alg]]: Mapping of operation names to the
+                algorithms the provider can execute.
+        """
+
         return {
             "encrypt": (_AEAD_DEFAULT,),
             "decrypt": (_AEAD_DEFAULT,),
             "wrap": (_WRAP_ALG,),
             "unwrap": (_WRAP_ALG,),
-            # NEW:
             "seal": (_SEAL_ALG,),
             "unseal": (_SEAL_ALG,),
         }
@@ -104,6 +113,24 @@ class ParamikoCrypto(CryptoBase):
         aad: Optional[bytes] = None,
         nonce: Optional[bytes] = None,
     ) -> AEADCiphertext:
+        """Encrypt plaintext with AES-GCM.
+
+        Args:
+            key (KeyRef): Symmetric key reference containing the key bytes.
+            pt (bytes): Plaintext to encrypt.
+            alg (Optional[Alg]): AEAD algorithm to use. Defaults to
+                ``AES-256-GCM`` when not provided.
+            aad (Optional[bytes]): Additional authenticated data.
+            nonce (Optional[bytes]): Nonce for AES-GCM. Random when omitted.
+
+        Returns:
+            AEADCiphertext: Ciphertext container with nonce and tag.
+
+        Raises:
+            UnsupportedAlgorithm: If an unsupported algorithm is requested.
+            ValueError: If the key material is missing or invalid.
+        """
+
         alg = self._normalize_aead_alg(alg)
         if alg != _AEAD_DEFAULT:
             raise UnsupportedAlgorithm(f"Unsupported AEAD algorithm: {alg}")
@@ -136,6 +163,22 @@ class ParamikoCrypto(CryptoBase):
         *,
         aad: Optional[bytes] = None,
     ) -> bytes:
+        """Decrypt ciphertext produced by :meth:`encrypt`.
+
+        Args:
+            key (KeyRef): Symmetric key reference containing the key bytes.
+            ct (AEADCiphertext): Ciphertext container to decrypt.
+            aad (Optional[bytes]): Additional authenticated data. Defaults to
+                the value stored in ``ct`` when omitted.
+
+        Returns:
+            bytes: Decrypted plaintext.
+
+        Raises:
+            UnsupportedAlgorithm: If an unsupported algorithm is requested.
+            ValueError: If the key material is missing.
+        """
+
         if self._normalize_aead_alg(ct.alg) != _AEAD_DEFAULT:
             raise UnsupportedAlgorithm(f"Unsupported AEAD algorithm: {ct.alg}")
         if key.material is None:
@@ -157,6 +200,24 @@ class ParamikoCrypto(CryptoBase):
         *,
         alg: Optional[Alg] = _SEAL_ALG,
     ) -> bytes:
+        """Seal a small plaintext to a recipient's RSA public key.
+
+        Args:
+            recipient (KeyRef): Recipient key reference with OpenSSH RSA
+                public key bytes in ``KeyRef.public``.
+            pt (bytes): Plaintext to encrypt.
+            alg (Optional[Alg]): Sealing algorithm identifier. Defaults to
+                ``RSA-OAEP-SHA256-SEAL``.
+
+        Returns:
+            bytes: Sealed ciphertext produced by RSA-OAEP.
+
+        Raises:
+            UnsupportedAlgorithm: If an unsupported algorithm is requested.
+            ValueError: If the recipient public key is missing.
+            IntegrityError: If the plaintext exceeds the RSA-OAEP size limit.
+        """
+
         if alg != _SEAL_ALG:
             raise UnsupportedAlgorithm(f"Unsupported seal alg: {alg}")
         if recipient.public is None:
@@ -182,6 +243,23 @@ class ParamikoCrypto(CryptoBase):
         *,
         alg: Optional[Alg] = _SEAL_ALG,
     ) -> bytes:
+        """Unseal ciphertext using the recipient's RSA private key.
+
+        Args:
+            recipient_priv (KeyRef): Recipient key reference containing a
+                PEM-encoded RSA private key in ``KeyRef.material``.
+            sealed (bytes): Ciphertext produced by :meth:`seal`.
+            alg (Optional[Alg]): Sealing algorithm identifier. Defaults to
+                ``RSA-OAEP-SHA256-SEAL``.
+
+        Returns:
+            bytes: Decrypted plaintext.
+
+        Raises:
+            UnsupportedAlgorithm: If an unsupported algorithm is requested.
+            ValueError: If the private key material is missing.
+        """
+
         if alg != _SEAL_ALG:
             raise UnsupportedAlgorithm(f"Unsupported seal alg: {alg}")
         if recipient_priv.material is None:
@@ -211,6 +289,33 @@ class ParamikoCrypto(CryptoBase):
         aad: Optional[bytes] = None,
         nonce: Optional[bytes] = None,
     ) -> MultiRecipientEnvelope:
+        """Encrypt plaintext for multiple recipients.
+
+        Operates in two modes:
+        1. **Sealed**: Each recipient receives an individual RSA-OAEP sealed
+           ciphertext when ``enc_alg`` is ``_SEAL_ALG``.
+        2. **KEM+AEAD**: Generates a shared AES-GCM ciphertext and wraps the
+           session key for each recipient using RSA-OAEP.
+
+        Args:
+            recipients (Iterable[KeyRef]): Sequence of recipients.
+            pt (bytes): Plaintext to encrypt.
+            enc_alg (Optional[Alg]): Encryption algorithm for the shared
+                ciphertext. Defaults to ``AES-256-GCM``.
+            recipient_wrap_alg (Optional[Alg]): Wrapping algorithm for the
+                session key. Defaults to ``RSA-OAEP-SHA256``.
+            aad (Optional[bytes]): Additional authenticated data for AES-GCM.
+            nonce (Optional[bytes]): Nonce for AES-GCM. Random when omitted.
+
+        Returns:
+            MultiRecipientEnvelope: Envelope containing ciphertext and per-
+                recipient wrapped keys.
+
+        Raises:
+            UnsupportedAlgorithm: If an unsupported algorithm is requested.
+            ValueError: If required key material is missing.
+        """
+
         # 1) Sealed-style variant (per-recipient ciphertext; no shared ct)
         if enc_alg == _SEAL_ALG:
             recip_infos: list[RecipientInfo] = []
@@ -305,45 +410,133 @@ class ParamikoCrypto(CryptoBase):
         dek: Optional[bytes] = None,
         wrap_alg: Optional[Alg] = None,
         nonce: Optional[bytes] = None,
+        aad: Optional[bytes] = None,
     ) -> WrappedKey:
-        wrap_alg = wrap_alg or _WRAP_ALG
-        if wrap_alg != _WRAP_ALG:
-            raise UnsupportedAlgorithm(f"Unsupported wrap_alg: {wrap_alg}")
-        if kek.public is None:
-            raise ValueError("KeyRef.public must contain OpenSSH RSA public key bytes")
+        """Wrap a data-encryption key with the given key-encryption key.
 
-        rsa_pub = self._load_rsa_pub_ssh(kek.public)
-        dek = dek or secrets.token_bytes(32)
-        wrapped = rsa_pub.encrypt(
-            dek,
-            padding.OAEP(
-                mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                algorithm=hashes.SHA256(),
-                label=None,
-            ),
-        )
+        Args:
+            kek (KeyRef): Key-encryption key reference. Provide an OpenSSH
+                RSA public key in ``KeyRef.public`` for RSA-OAEP wrapping or
+                symmetric key bytes in ``KeyRef.material`` for AES-GCM.
+            dek (Optional[bytes]): Data-encryption key to wrap. A random key
+                is generated when omitted.
+            wrap_alg (Optional[Alg]): Wrapping algorithm to use. Defaults to
+                ``RSA-OAEP-SHA256``.
+            nonce (Optional[bytes]): Nonce for AES-GCM wrapping. Random when
+                omitted.
+            aad (Optional[bytes]): Additional authenticated data for AES-GCM
+                wrapping.
+
+        Returns:
+            WrappedKey: Container with the wrapped key material.
+
+        Raises:
+            UnsupportedAlgorithm: If an unsupported wrapping algorithm is
+                requested.
+            ValueError: If required key material is missing or invalid.
+        """
+
+        wrap_alg = wrap_alg or _WRAP_ALG
+        if wrap_alg == _WRAP_ALG:
+            if kek.public is None:
+                raise ValueError(
+                    "KeyRef.public must contain OpenSSH RSA public key bytes"
+                )
+            rsa_pub = self._load_rsa_pub_ssh(kek.public)
+            if dek is None:
+                dek = secrets.token_bytes(32)
+            wrapped = rsa_pub.encrypt(
+                dek,
+                padding.OAEP(
+                    mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                    algorithm=hashes.SHA256(),
+                    label=None,
+                ),
+            )
+            return WrappedKey(
+                kek_kid=kek.kid,
+                kek_version=kek.version,
+                wrap_alg=wrap_alg,
+                nonce=nonce,
+                wrapped=wrapped,
+            )
+
+        alg = self._normalize_aead_alg(wrap_alg)
+        if alg != _AEAD_DEFAULT:
+            raise UnsupportedAlgorithm(f"Unsupported wrap_alg: {wrap_alg}")
+        if kek.material is None:
+            raise ValueError(
+                "KeyRef.material must contain symmetric key bytes for AES-GCM wrap"
+            )
+        if len(kek.material) not in (16, 24, 32):
+            raise ValueError("KeyRef.material must be 16/24/32 bytes for AES-GCM")
+        if dek is None:
+            dek = secrets.token_bytes(32)
+        nonce = nonce or secrets.token_bytes(12)
+        aead = AESGCM(kek.material)
+        ct_with_tag = aead.encrypt(nonce, dek, aad)
+        ct, tag = ct_with_tag[:-16], ct_with_tag[-16:]
         return WrappedKey(
             kek_kid=kek.kid,
             kek_version=kek.version,
             wrap_alg=wrap_alg,
             nonce=nonce,
-            wrapped=wrapped,
+            wrapped=ct,
+            tag=tag,
         )
 
-    async def unwrap(self, kek: KeyRef, wrapped: WrappedKey) -> bytes:
-        if wrapped.wrap_alg != _WRAP_ALG:
+    async def unwrap(
+        self,
+        kek: KeyRef,
+        wrapped: WrappedKey,
+        *,
+        aad: Optional[bytes] = None,
+    ) -> bytes:
+        """Unwrap a previously wrapped key.
+
+        Args:
+            kek (KeyRef): Key-encryption key reference. Must contain the RSA
+                private key or symmetric key bytes corresponding to the
+                wrapping algorithm used.
+            wrapped (WrappedKey): Wrapped key to unwrap.
+            aad (Optional[bytes]): Additional authenticated data for AES-GCM
+                unwrapping.
+
+        Returns:
+            bytes: The unwrapped data-encryption key.
+
+        Raises:
+            UnsupportedAlgorithm: If an unsupported wrapping algorithm is
+                requested.
+            ValueError: If key material or required fields are missing.
+        """
+
+        if wrapped.wrap_alg == _WRAP_ALG:
+            if kek.material is None:
+                raise ValueError(
+                    "KeyRef.material must contain PEM-encoded RSA private key bytes"
+                )
+            priv = self._load_rsa_priv_pem(kek.material)
+            return priv.decrypt(
+                wrapped.wrapped,
+                padding.OAEP(
+                    mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                    algorithm=hashes.SHA256(),
+                    label=None,
+                ),
+            )
+
+        alg = self._normalize_aead_alg(wrapped.wrap_alg)
+        if alg != _AEAD_DEFAULT:
             raise UnsupportedAlgorithm(f"Unsupported wrap_alg: {wrapped.wrap_alg}")
         if kek.material is None:
             raise ValueError(
-                "KeyRef.material must contain PEM-encoded RSA private key bytes"
+                "KeyRef.material must contain symmetric key bytes for AES-GCM unwrap"
             )
-
-        priv = self._load_rsa_priv_pem(kek.material)
-        return priv.decrypt(
-            wrapped.wrapped,
-            padding.OAEP(
-                mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                algorithm=hashes.SHA256(),
-                label=None,
-            ),
-        )
+        if wrapped.nonce is None:
+            raise ValueError("WrappedKey.nonce required for AES-GCM unwrap")
+        if wrapped.tag is None:
+            raise ValueError("WrappedKey.tag required for AES-GCM unwrap")
+        aead = AESGCM(kek.material)
+        blob = wrapped.wrapped + wrapped.tag
+        return aead.decrypt(wrapped.nonce, blob, aad)

@@ -10,6 +10,7 @@ import jwt
 from jwt import algorithms
 
 from .JWTTokenService import JWTTokenService
+from swarmauri_core.crypto.types import JWAAlg
 from swarmauri_core.keys.IKeyProvider import IKeyProvider
 
 
@@ -60,6 +61,7 @@ class DPoPBoundJWTTokenService(JWTTokenService):
         dpop_ctx_getter: Optional[Callable[[], Optional[Dict[str, object]]]] = None,
         proof_max_age_s: int = 300,
         replay_check: Optional[Callable[[str], bool]] = None,
+        enforce_proof: bool = True,
     ) -> None:
         super().__init__(key_provider, default_issuer=default_issuer)
         self._get_ctx = dpop_ctx_getter
@@ -67,8 +69,10 @@ class DPoPBoundJWTTokenService(JWTTokenService):
         # replay_check(jti) should return True if JTI is fresh (i.e., not seen before).
         # If None, replay protection is skipped.
         self._replay_check = replay_check
+        # Toggle strict RFC 9449 verification of the DPoP proof.
+        self._enforce = enforce_proof
 
-    def supports(self) -> Mapping[str, Iterable[str]]:
+    def supports(self) -> Mapping[str, Iterable[JWAAlg]]:
         base = super().supports()
         return {"formats": (*base["formats"], "JWT"), "algs": base["algs"]}
 
@@ -76,7 +80,7 @@ class DPoPBoundJWTTokenService(JWTTokenService):
         self,
         claims: Dict[str, object],
         *,
-        alg: str,
+        alg: JWAAlg,
         kid: str | None = None,
         key_version: int | None = None,
         headers: Optional[Dict[str, object]] = None,
@@ -121,8 +125,10 @@ class DPoPBoundJWTTokenService(JWTTokenService):
         )
         cnf = claims.get("cnf") if isinstance(claims, dict) else None
         jkt = cnf.get("jkt") if isinstance(cnf, dict) else None
-        if not jkt:
+        if self._enforce and not jkt:
             raise ValueError("DPoP-bound token missing cnf.jkt")
+        if not self._enforce:
+            return claims
 
         if not self._get_ctx:
             raise ValueError("DPoP verification requires a context getter")
@@ -141,6 +147,8 @@ class DPoPBoundJWTTokenService(JWTTokenService):
 
         # 1) Extract JWK from the DPoP proof header and verify the proof signature
         hdr = jwt.get_unverified_header(proof_jwt)
+        if hdr.get("typ") != "dpop+jwt":
+            raise ValueError("DPoP proof header 'typ' must be 'dpop+jwt'")
         jwk = hdr.get("jwk")
         if not isinstance(jwk, dict):
             raise ValueError("DPoP proof missing 'jwk' in header")
@@ -157,7 +165,10 @@ class DPoPBoundJWTTokenService(JWTTokenService):
         proof_claims = jwt.decode(
             proof_jwt,
             key=key,
-            algorithms=[alg for alg in ("RS256", "PS256", "ES256", "EdDSA")],
+            algorithms=[
+                alg.value
+                for alg in (JWAAlg.RS256, JWAAlg.PS256, JWAAlg.ES256, JWAAlg.EDDSA)
+            ],
             options={"verify_aud": False, "verify_iss": False},
         )
 
@@ -177,12 +188,12 @@ class DPoPBoundJWTTokenService(JWTTokenService):
             raise ValueError("DPoP proof 'iat' out of acceptable window")
         if nonce is not None and proof_claims.get("nonce") != nonce:
             raise ValueError("DPoP proof 'nonce' mismatch")
+        jti = proof_claims.get("jti")
+        if not isinstance(jti, str):
+            raise ValueError("DPoP proof missing 'jti'")
 
         # 4) Replay protection (optional but recommended): require fresh JTI
-        jti = proof_claims.get("jti")
-        if self._replay_check and (
-            not isinstance(jti, str) or not self._replay_check(jti)
-        ):
+        if self._replay_check and not self._replay_check(jti):
             raise ValueError("DPoP proof replay detected")
 
         return claims

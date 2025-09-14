@@ -1,10 +1,7 @@
 from .euclidean import euclidean
 from .cosine import cosine
 
-__all__ = [
-    "euclidean",
-    "cosine"
-]
+__all__ = ["euclidean", "cosine"]
 
 try:
     # For Python 3.8 and newer

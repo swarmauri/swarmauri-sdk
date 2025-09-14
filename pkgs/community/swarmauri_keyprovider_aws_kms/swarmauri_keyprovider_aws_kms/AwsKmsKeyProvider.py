@@ -80,7 +80,7 @@ class AwsKmsKeyProvider(KeyProviderBase):
                 KeyAlg.RSA_PSS_SHA256,
                 KeyAlg.ECDSA_P256_SHA256,
             ),
-            "features": ("rotate", "jwks", "non_exportable"),
+            "features": ("create", "rotate", "jwks", "non_exportable"),
         }
 
     def _gen_kid(self) -> str:

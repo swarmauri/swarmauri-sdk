@@ -1,3 +1,9 @@
+"""Utilities for managing SSH keys with JWK/JWKS support.
+
+Provides :class:`SshKeyProvider` for generating, importing and rotating
+SSH-based keys.
+"""
+
 from __future__ import annotations
 
 import base64
@@ -22,18 +28,42 @@ from swarmauri_core.crypto.types import KeyRef
 
 
 def _b64u(b: bytes) -> str:
+    """URL-safe base64 encoding without padding.
+
+    b (bytes): Data to encode.
+    RETURNS (str): Encoded string.
+    """
+
     return base64.urlsafe_b64encode(b).rstrip(b"=").decode("ascii")
 
 
 def _ssh_pub_bytes(pub) -> bytes:
+    """Serialize a public key in OpenSSH format.
+
+    pub: Public key object.
+    RETURNS (bytes): OpenSSH-formatted bytes.
+    """
+
     return pub.public_bytes(Encoding.OpenSSH, PublicFormat.OpenSSH)
 
 
 def _pem_priv(priv) -> bytes:
+    """Serialize a private key in unencrypted PEM format.
+
+    priv: Private key object.
+    RETURNS (bytes): PKCS#8 encoded PEM bytes.
+    """
+
     return priv.private_bytes(Encoding.PEM, PrivateFormat.PKCS8, NoEncryption())
 
 
 def _fingerprint(ssh_pub: bytes) -> str:
+    """Compute an MD5 fingerprint for an OpenSSH public key.
+
+    ssh_pub (bytes): Public key in OpenSSH format.
+    RETURNS (str): Hexadecimal fingerprint or ``"unknown"``.
+    """
+
     try:
         b64 = ssh_pub.split(None, 2)[1]
         blob = base64.b64decode(b64)
@@ -44,7 +74,17 @@ def _fingerprint(ssh_pub: bytes) -> str:
 
 
 class SshKeyProvider(KeyProviderBase):
-    """SSH-focused key provider with JWK/JWKS export."""
+    """Manage SSH keys and expose them as JWK or JWKS documents.
+
+    create_key(spec) -> KeyRef:
+        Generate a new key pair according to ``spec``.
+    import_key(spec, material, public=None) -> KeyRef:
+        Register an existing key from PEM or OpenSSH data.
+    rotate_key(kid, spec_overrides=None) -> KeyRef:
+        Create a new version for the given ``kid``.
+    jwks(prefix_kids=None) -> dict:
+        Return all managed keys as a JWKS structure.
+    """
 
     type: Literal["SshKeyProvider"] = "SshKeyProvider"
 
@@ -56,7 +96,7 @@ class SshKeyProvider(KeyProviderBase):
         return {
             "class": ("asym",),
             "algs": (KeyAlg.ED25519, KeyAlg.RSA_PSS_SHA256, KeyAlg.ECDSA_P256_SHA256),
-            "features": ("rotate", "import", "jwks", "hkdf", "random"),
+            "features": ("create", "rotate", "import", "jwks", "hkdf", "random"),
         }
 
     async def create_key(self, spec: KeySpec) -> KeyRef:

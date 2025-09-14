@@ -3,7 +3,7 @@ peagen.handlers.migrate_handler
 ───────────────────────────────
 Async entry-point for running Alembic migrations.
 
-Input : TaskRead  – AutoAPI schema for the Task ORM table
+Input : TaskRead  – Tigrbl schema for the Task ORM table
 Output: dict      – result dict from peagen.core.migrate_core
 """
 
@@ -12,7 +12,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict
 
-from autoapi.v2 import get_schema
+from tigrbl import get_schema
 from peagen.orm import Task
 
 from peagen.core.migrate_core import (

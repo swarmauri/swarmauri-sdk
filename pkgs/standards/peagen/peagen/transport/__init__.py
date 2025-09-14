@@ -1,6 +1,6 @@
 """Lightweight utilities for JSON-RPC communication."""
 
-from autoapi_client import AutoAPIClient
+from tigrbl_client import TigrblClient
 from peagen.transport.jsonrpc import RPCDispatcher
 
-__all__ = ["AutoAPIClient", "RPCDispatcher"]
+__all__ = ["TigrblClient", "RPCDispatcher"]

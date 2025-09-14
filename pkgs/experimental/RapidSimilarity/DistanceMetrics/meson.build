@@ -11,10 +11,9 @@ py_dep = py.dependency()
 # Find pybind11
 pybind11_dep = dependency('pybind11', required: true)
 
-# Create Python extension modules
+# Find numpy
 numpy_dep = dependency('numpy', required: true)
-numpy_dep = dependency('numpy', required: true)
-
 
 # Include directory for the main submodule
 subdir('DistanceMetrics')
+

@@ -1,8 +1,39 @@
+![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_tokens_jwt/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_tokens_jwt" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tokens_jwt/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tokens_jwt.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_tokens_jwt/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_tokens_jwt" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_tokens_jwt/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_tokens_jwt" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_tokens_jwt/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_tokens_jwt?label=swarmauri_tokens_jwt&color=green" alt="PyPI - swarmauri_tokens_jwt"/></a>
+
+</p>
+
+---
+
 # swarmauri_tokens_jwt
 
 A standard JWT token service for the Swarmauri framework. This service
 implements minting and verifying JSON Web Tokens and exposes a JWKS
 endpoint for public key discovery.
+
+## Installation
+
+```bash
+pip install swarmauri_tokens_jwt
+```
+
+## Features
+
+- Mint and verify JWS/JWT tokens
+- Supports algorithms like **HS256**, **RS256**, **ES256**, **PS256** and **EdDSA**
+- Integrates with any :class:`~swarmauri_core.keys.IKeyProvider`
+- Publishes a JWKS endpoint for public key discovery
 
 ## Usage
 
@@ -20,7 +51,7 @@ from swarmauri_core.keys import (
     KeyRef,
     KeyUse,
 )
-from swarmauri_core.crypto.types import KeyType
+from swarmauri_core.crypto.types import JWAAlg, KeyType
 
 
 class InMemoryKeyProvider(IKeyProvider):
@@ -74,7 +105,7 @@ class InMemoryKeyProvider(IKeyProvider):
 
 async def main() -> None:
     svc = JWTTokenService(InMemoryKeyProvider(), default_issuer="issuer")
-    token = await svc.mint({"sub": "alice"}, alg="HS256", kid="sym")
+    token = await svc.mint({"sub": "alice"}, alg=JWAAlg.HS256, kid="sym")
     claims = await svc.verify(token, issuer="issuer")
     assert claims["sub"] == "alice"
 
@@ -83,4 +114,6 @@ asyncio.run(main())
 ```
 
 The service also supports asymmetric algorithms such as **RS256**, **ES256** and
-**EdDSA** when the key provider exposes the appropriate keys.
+**EdDSA** when the key provider exposes the appropriate keys. See the
+docstrings in :mod:`swarmauri_tokens_jwt` for additional details on the API
+surface.

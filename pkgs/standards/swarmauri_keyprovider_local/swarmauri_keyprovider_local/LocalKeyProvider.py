@@ -1,3 +1,9 @@
+"""In-memory key provider for symmetric and asymmetric algorithms.
+
+This module offers :class:`LocalKeyProvider` for quick development and testing
+without external dependencies.
+"""
+
 from __future__ import annotations
 
 import base64
@@ -16,26 +22,65 @@ from swarmauri_core.crypto.types import KeyRef
 
 
 def _b64u(b: bytes) -> str:
+    """URL-safe base64 encoding without padding.
+
+    b (bytes): Data to encode.
+    RETURNS (str): Encoded string.
+    """
+
     return base64.urlsafe_b64encode(b).rstrip(b"=").decode("ascii")
 
 
-def _pem_pub(priv) -> bytes:
-    return priv.public_key().public_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo,
-    )
+def _serialize_keypair(priv, spec: KeySpec) -> tuple[bytes, Optional[bytes]]:
+    """Serialize a private key and its public counterpart.
 
+    priv: The private key to serialize.
+    spec (KeySpec): Options controlling the encoding.
+    RETURNS (Tuple[bytes, Optional[bytes]]): Private bytes and public bytes.
+    """
 
-def _pem_priv(priv) -> bytes:
-    return priv.private_bytes(
-        serialization.Encoding.PEM,
-        serialization.PrivateFormat.PKCS8,
-        serialization.NoEncryption(),
+    encoding = (
+        serialization.Encoding[spec.encoding]
+        if spec.encoding
+        else serialization.Encoding.PEM
     )
+    public_format = (
+        serialization.PublicFormat[spec.public_format]
+        if spec.public_format
+        else serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+    public = priv.public_key().public_bytes(encoding=encoding, format=public_format)
+
+    material: Optional[bytes] = None
+    if spec.export_policy != ExportPolicy.PUBLIC_ONLY:
+        private_format = (
+            serialization.PrivateFormat[spec.private_format]
+            if spec.private_format
+            else serialization.PrivateFormat.PKCS8
+        )
+        if spec.encryption and spec.encryption != "NoEncryption":
+            raise ValueError(f"Unsupported encryption: {spec.encryption}")
+        material = priv.private_bytes(
+            encoding,
+            private_format,
+            serialization.NoEncryption(),
+        )
+
+    return material, public
 
 
 class LocalKeyProvider(KeyProviderBase):
-    """In-memory key provider for development and testing."""
+    """Store and manage keys entirely in memory.
+
+    create_key(spec) -> KeyRef:
+        Generate a key according to ``spec`` and store it.
+    import_key(spec, material, public=None) -> KeyRef:
+        Register an existing key pair or secret.
+    rotate_key(kid, spec_overrides=None) -> KeyRef:
+        Produce a new version for ``kid``.
+    jwks(prefix_kids=None) -> dict:
+        Export all public keys as a JWKS document.
+    """
 
     type: Literal["LocalKeyProvider"] = "LocalKeyProvider"
 
@@ -55,7 +100,7 @@ class LocalKeyProvider(KeyProviderBase):
         return {
             "class": ("sym", "asym"),
             "algs": algs,
-            "features": ("rotate", "import", "jwks", "hkdf", "random"),
+            "features": ("create", "rotate", "import", "jwks", "hkdf", "random"),
         }
 
     async def create_key(self, spec: KeySpec) -> KeyRef:
@@ -79,8 +124,7 @@ class LocalKeyProvider(KeyProviderBase):
                 sk = ec.generate_private_key(ec.SECP256R1())
             else:
                 raise ValueError(f"Unsupported asymmetric alg: {spec.alg}")
-            material = _pem_priv(sk)
-            public = _pem_pub(sk)
+            material, public = _serialize_keypair(sk, spec)
 
         ref = KeyRef(
             kid=kid,

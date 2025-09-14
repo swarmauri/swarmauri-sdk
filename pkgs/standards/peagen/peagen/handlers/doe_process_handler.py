@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 import yaml
-from autoapi.v2 import get_schema
+from tigrbl import get_schema
 from peagen.orm import Task, Status, Action
 
 from peagen.defaults import ROOT_DIR

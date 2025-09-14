@@ -1,31 +1,27 @@
 from __future__ import annotations
 
-from autoapi.v2.types import (
-    Column,
-    String,
-    Text,
-    JSON,
-    UniqueConstraint,
-    ForeignKey,
-    PgUUID,
-    relationship,
-)
-from autoapi.v2.tables import Base
-from autoapi.v2.mixins import GUIDPk, Timestamped, TenantBound, Ownable
+from tigrbl.orm.tables import Base
+from tigrbl.types import JSON, String, Text, UniqueConstraint, Mapped, relationship
+from tigrbl.orm.mixins import GUIDPk, Timestamped, TenantBound, Ownable
+from tigrbl.specs import S, acol
 
-from .tenants import Tenant
 from .users import User
 
 
 class EvolveSpec(Base, GUIDPk, Timestamped, TenantBound, Ownable):
     __tablename__ = "evolve_specs"
-    __table_args__= (UniqueConstraint("tenant_id", "name"),{"schema": "peagen"},)
-    name = Column(String, nullable=False)
-    schema_version = Column(String, nullable=False, default="1.0.0")
-    description = Column(Text, nullable=True)
-    spec = Column(JSON, nullable=False)
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "name"),
+        {"schema": "peagen"},
+    )
+    name: Mapped[str] = acol(storage=S(String, nullable=False))
+    schema_version: Mapped[str] = acol(
+        storage=S(String, nullable=False, default="1.0.0")
+    )
+    description: Mapped[str | None] = acol(storage=S(Text, nullable=True))
+    spec: Mapped[dict] = acol(storage=S(JSON, nullable=False))
 
-    owner = relationship(User, lazy="selectin")
+    owner: Mapped[User] = relationship(User, lazy="selectin")
 
 
 __all__ = ["EvolveSpec"]

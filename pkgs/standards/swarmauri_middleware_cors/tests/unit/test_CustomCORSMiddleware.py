@@ -27,6 +27,7 @@ def test_init(middleware):
     assert middleware.max_age == 600
 
 
+@pytest.mark.asyncio
 @pytest.mark.unit
 async def test_dispatch_get_request(middleware):
     """Test dispatch method with a GET request."""
@@ -41,6 +42,7 @@ async def test_dispatch_get_request(middleware):
     assert response is not None
 
 
+@pytest.mark.asyncio
 @pytest.mark.unit
 async def test_is_options_request_true(middleware):
     """Test is_options_request with OPTIONS method."""
@@ -50,6 +52,7 @@ async def test_is_options_request_true(middleware):
     assert await middleware.is_options_request(request) is True
 
 
+@pytest.mark.asyncio
 @pytest.mark.unit
 async def test_is_options_request_false(middleware):
     """Test is_options_request with GET method."""
@@ -59,6 +62,7 @@ async def test_is_options_request_false(middleware):
     assert await middleware.is_options_request(request) is False
 
 
+@pytest.mark.asyncio
 @pytest.mark.unit
 async def test_check_cors_origin_allowed():
     """Test check_cors_origin with allowed origin."""
@@ -67,6 +71,7 @@ async def test_check_cors_origin_allowed():
     assert await middleware.check_cors_origin(origin) is True
 
 
+@pytest.mark.asyncio
 @pytest.mark.unit
 async def test_check_cors_origin_disallowed():
     """Test check_cors_origin with disallowed origin."""
@@ -75,6 +80,7 @@ async def test_check_cors_origin_disallowed():
     assert await middleware.check_cors_origin(origin) is False
 
 
+@pytest.mark.asyncio
 @pytest.mark.unit
 async def test_handle_options_request(middleware):
     """Test handle_options_request method."""
@@ -86,6 +92,7 @@ async def test_handle_options_request(middleware):
     assert "Access-Control-Allow-Origin" in response.headers
 
 
+@pytest.mark.asyncio
 @pytest.mark.unit
 async def test_add_cors_headers(middleware):
     """Test add_cors_headers method."""

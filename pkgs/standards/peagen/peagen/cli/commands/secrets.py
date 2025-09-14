@@ -16,8 +16,8 @@ from pathlib import Path
 from typing import List, Optional
 
 import typer
-from autoapi_client import AutoAPIClient
-from autoapi.v2 import get_schema
+from tigrbl_client import TigrblClient
+from tigrbl import get_schema
 from peagen.orm import RepoSecret
 from peagen.core import secrets_core
 
@@ -28,7 +28,7 @@ remote_secrets_app = typer.Typer(help="Manage secrets on the gateway via JSON-RP
 
 
 # ─────────────────────── helper shortcuts ────────────────────────────
-def _rpc(ctx: typer.Context) -> AutoAPIClient:
+def _rpc(ctx: typer.Context) -> TigrblClient:
     return ctx.obj["rpc"]
 
 

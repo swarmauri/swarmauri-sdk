@@ -10,7 +10,7 @@ class IMeasurement(ABC):
     """
 
     @abstractmethod
-    def __call__(self, **kwargs) -> Any:
+    def __call__(self, **kwargs: dict[str, Any]) -> Any:
         """
         Retrieves the current value of the measurement.
 

@@ -1,10 +1,10 @@
 [project]
 name = "swarmauri_crypto_rust"
-version = "0.1.0"
+version = "0.3.0.dev4"
 description = "Rust-backed crypto provider for Swarmauri using Maturin"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
-authors = [{ name = "Swarmauri", email = "opensource@swarmauri.com" }]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",

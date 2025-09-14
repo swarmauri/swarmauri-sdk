@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_certservice_stepca"
-version = "0.1.0"
+version = "0.3.0.dev4"
 description = "Step-ca backed certificate service for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
@@ -12,7 +12,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-authors = [{ name = "Swarmauri", email = "opensource@swarmauri.com" }]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "httpx>=0.27.0",
     "cryptography",
@@ -22,7 +22,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-docs = ["mkdocs"]
 perf = ["pytest-benchmark>=4.0.0"]
 
 [tool.uv.sources]

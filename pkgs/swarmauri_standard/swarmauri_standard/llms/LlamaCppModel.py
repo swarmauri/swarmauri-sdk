@@ -1,6 +1,6 @@
 import asyncio
 import json
-from typing import AsyncIterator, Dict, Iterator, List
+from typing import Any, AsyncIterator, Dict, Iterator, List, Optional
 
 import httpx
 from pydantic import PrivateAttr
@@ -8,6 +8,7 @@ from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase
 
+from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
@@ -15,25 +16,17 @@ from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 @ComponentBase.register_type(LLMBase, "LlamaCppModel")
 class LlamaCppModel(LLMBase):
     """
-    A class for interacting with DeepInfra's model API for text generation.
+    A class for interacting with LlamaCpp's model API for text generation.
 
     This implementation uses httpx for both synchronous and asynchronous HTTP requests,
     providing support for predictions, streaming responses, and batch processing.
 
     Attributes:
-        api_key (str): DeepInfra API key for authentication
-            Can be obtained from: https://deepinfra.com/dash/api_keys
-
-        allowed_models (List[str]): List of supported model identifiers on DeepInfra
-            Full list available at: https://deepinfra.com/models/text-generation
-
+        api_key (Optional[SecretStr]): API key for authentication (optional for local LlamaCpp)
+        allowed_models (List[str]): List of supported model identifiers
         name (str): The currently selected model name
-            Defaults to "Qwen/Qwen2-72B-Instruct"
-
-        type (Literal["DeepInfraModel"]): Type identifier for the model class
-
-    Link to Allowed Models: https://deepinfra.com/models/text-generation
-    Link to API KEY: https://deepinfra.com/dash/api_keys
+        type (Literal["LlamaCppModel"]): Type identifier for the model class
+        timeout (float): Request timeout in seconds
     """
 
     _BASE_URL: str = PrivateAttr("http://localhost:8080/v1")
@@ -42,11 +35,11 @@ class LlamaCppModel(LLMBase):
 
     def __init__(self, **data):
         """
-        Initializes the DeepInfraModel instance with the provided API key
-        and sets up httpx clients for both sync and async operations.
+        Initializes the LlamaCppModel instance and sets up httpx clients
+        for both sync and async operations.
 
         Args:
-            **data: Keyword arguments for model initialization.
+            **data (Dict[str, Any]): Keyword arguments for model initialization.
         """
         super().__init__(**data)
         if self.api_key:
@@ -90,9 +83,9 @@ class LlamaCppModel(LLMBase):
         temperature: float,
         max_tokens: int,
         enable_json: bool,
-        stop: List[str] = None,
+        stop: Optional[List[str]] = None,
         stream: bool = False,
-    ) -> Dict:
+    ) -> Dict[str, Any]:
         """
         Creates the payload for the API request.
 
@@ -101,11 +94,11 @@ class LlamaCppModel(LLMBase):
             temperature (float): Sampling temperature for the response.
             max_tokens (int): Maximum number of tokens to generate.
             enable_json (bool): Whether to enable JSON response format.
-            stop (List[str], optional): Stop sequences.
+            stop (Optional[List[str]]): Stop sequences.
             stream (bool): Whether to stream the response.
 
         Returns:
-            Dict: Payload for the API request.
+            Dict[str, Any]: Payload for the API request.
         """
         payload = {
             "model": self.name,
@@ -129,24 +122,24 @@ class LlamaCppModel(LLMBase):
     @retry_on_status_codes((429, 529), max_retries=1)
     def predict(
         self,
-        conversation,
-        temperature=0.7,
-        max_tokens=256,
-        enable_json=False,
-        stop: List[str] = None,
-    ):
+        conversation: Conversation,
+        temperature: float = 0.7,
+        max_tokens: int = 256,
+        enable_json: bool = False,
+        stop: Optional[List[str]] = None,
+    ) -> Conversation:
         """
         Sends a synchronous request to generate a response from the model.
 
         Args:
-            conversation: The conversation object containing message history.
+            conversation (Conversation): The conversation object containing message history.
             temperature (float): Sampling temperature for response generation.
             max_tokens (int): Maximum number of tokens to generate.
             enable_json (bool): Flag for enabling JSON response format.
-            stop (List[str], optional): Stop sequences for the response.
+            stop (Optional[List[str]]): Stop sequences for the response.
 
         Returns:
-            Updated conversation with the model's response.
+            Conversation: Updated conversation with the model's response.
         """
         formatted_messages = self._format_messages(conversation.history)
         payload = self._create_request_payload(
@@ -165,24 +158,24 @@ class LlamaCppModel(LLMBase):
     @retry_on_status_codes((429, 529), max_retries=1)
     async def apredict(
         self,
-        conversation,
-        temperature=0.7,
-        max_tokens=256,
-        enable_json=False,
-        stop: List[str] = None,
-    ):
+        conversation: Conversation,
+        temperature: float = 0.7,
+        max_tokens: int = 256,
+        enable_json: bool = False,
+        stop: Optional[List[str]] = None,
+    ) -> Conversation:
         """
         Sends an asynchronous request to generate a response from the model.
 
         Args:
-            conversation: The conversation object containing message history.
+            conversation (Conversation): The conversation object containing message history.
             temperature (float): Sampling temperature for response generation.
             max_tokens (int): Maximum number of tokens to generate.
             enable_json (bool): Flag for enabling JSON response format.
-            stop (List[str], optional): Stop sequences for the response.
+            stop (Optional[List[str]]): Stop sequences for the response.
 
         Returns:
-            Updated conversation with the model's response.
+            Conversation: Updated conversation with the model's response.
         """
         formatted_messages = self._format_messages(conversation.history)
         payload = self._create_request_payload(
@@ -201,19 +194,19 @@ class LlamaCppModel(LLMBase):
     @retry_on_status_codes((429, 529), max_retries=1)
     def stream(
         self,
-        conversation,
-        temperature=0.7,
-        max_tokens=256,
-        stop: List[str] = None,
+        conversation: Conversation,
+        temperature: float = 0.7,
+        max_tokens: int = 256,
+        stop: Optional[List[str]] = None,
     ) -> Iterator[str]:
         """
         Streams response content from the model synchronously.
 
         Args:
-            conversation: The conversation object containing message history.
+            conversation (Conversation): The conversation object containing message history.
             temperature (float): Sampling temperature for response generation.
             max_tokens (int): Maximum number of tokens to generate.
-            stop (List[str], optional): Stop sequences for the response.
+            stop (Optional[List[str]]): Stop sequences for the response.
 
         Yields:
             str: Chunks of content from the model's response.
@@ -247,19 +240,19 @@ class LlamaCppModel(LLMBase):
     @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(
         self,
-        conversation,
-        temperature=0.7,
-        max_tokens=256,
-        stop: List[str] = None,
+        conversation: Conversation,
+        temperature: float = 0.7,
+        max_tokens: int = 256,
+        stop: Optional[List[str]] = None,
     ) -> AsyncIterator[str]:
         """
         Streams response content from the model asynchronously.
 
         Args:
-            conversation: The conversation object containing message history.
+            conversation (Conversation): The conversation object containing message history.
             temperature (float): Sampling temperature for response generation.
             max_tokens (int): Maximum number of tokens to generate.
-            stop (List[str], optional): Stop sequences for the response.
+            stop (Optional[List[str]]): Stop sequences for the response.
 
         Yields:
             str: Chunks of content from the model's response.
@@ -290,24 +283,24 @@ class LlamaCppModel(LLMBase):
 
     def batch(
         self,
-        conversations: List,
-        temperature=0.7,
-        max_tokens=256,
-        enable_json=False,
-        stop: List[str] = None,
-    ) -> List:
+        conversations: List[Conversation],
+        temperature: float = 0.7,
+        max_tokens: int = 256,
+        enable_json: bool = False,
+        stop: Optional[List[str]] = None,
+    ) -> List[Conversation]:
         """
         Processes multiple conversations in batch synchronously.
 
         Args:
-            conversations (List): List of conversation objects.
+            conversations (List[Conversation]): List of conversation objects.
             temperature (float): Sampling temperature for response generation.
             max_tokens (int): Maximum number of tokens to generate.
             enable_json (bool): Flag for enabling JSON response format.
-            stop (List[str], optional): Stop sequences for responses.
+            stop (Optional[List[str]]): Stop sequences for responses.
 
         Returns:
-            List: List of updated conversations with model responses.
+            List[Conversation]: List of updated conversations with model responses.
         """
         return [
             self.predict(
@@ -322,30 +315,30 @@ class LlamaCppModel(LLMBase):
 
     async def abatch(
         self,
-        conversations: List,
-        temperature=0.7,
-        max_tokens=256,
-        enable_json=False,
-        stop: List[str] = None,
-        max_concurrent=5,
-    ) -> List:
+        conversations: List[Conversation],
+        temperature: float = 0.7,
+        max_tokens: int = 256,
+        enable_json: bool = False,
+        stop: Optional[List[str]] = None,
+        max_concurrent: int = 5,
+    ) -> List[Conversation]:
         """
         Processes multiple conversations asynchronously, with concurrency control.
 
         Args:
-            conversations (List): List of conversation objects.
+            conversations (List[Conversation]): List of conversation objects.
             temperature (float): Sampling temperature for response generation.
             max_tokens (int): Maximum number of tokens to generate.
             enable_json (bool): Flag for enabling JSON response format.
-            stop (List[str], optional): Stop sequences for responses.
+            stop (Optional[List[str]]): Stop sequences for responses.
             max_concurrent (int): Maximum number of concurrent tasks.
 
         Returns:
-            List: List of updated conversations with model responses.
+            List[Conversation]: List of updated conversations with model responses.
         """
         semaphore = asyncio.Semaphore(max_concurrent)
 
-        async def process_conversation(conv):
+        async def process_conversation(conv: Conversation) -> Conversation:
             async with semaphore:
                 return await self.apredict(
                     conv,

@@ -1,7 +1,7 @@
 """
 peagen.handlers.control_handler
 ────────────────────────────────
-Pause / resume / cancel / retry helpers that operate on AutoAPI-generated
+Pause / resume / cancel / retry helpers that operate on Tigrbl-generated
 **TaskUpdate** objects.
 
 Key changes
@@ -16,8 +16,8 @@ from __future__ import annotations
 
 from typing import Iterable
 
-from autoapi.v2 import get_schema
-from autoapi.v2.tables.task import Task  # SQLAlchemy model row
+from tigrbl import get_schema
+from tigrbl.orm.tables.task import Task  # SQLAlchemy model row
 
 from peagen.core import control_core
 from peagen.plugins.queues import QueueBase

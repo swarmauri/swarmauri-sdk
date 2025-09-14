@@ -1,5 +1,5 @@
 
-![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
+![Swamauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pypi.org/project/peagen/">
@@ -459,7 +459,7 @@ filters and publishers can be supplied programmatically:
 
 ```python
 from peagen.core import Peagen
-from peagen.plugins.git_filters.minio_filter import MinioFilter
+from swarmauri_gitfilter_minio import MinioFilter
 from peagen.plugins.publishers.webhook_publisher import WebhookPublisher
 
 store = MinioFilter.from_uri("s3://localhost:9000/peagen")

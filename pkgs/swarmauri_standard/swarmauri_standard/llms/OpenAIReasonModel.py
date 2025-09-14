@@ -22,16 +22,25 @@ class OpenAIReasonModel(LLMBase):
     model, receive predictions, and stream responses.
 
     Attributes:
-        api_key (str): API key for authenticating requests to the Groq API.
+        api_key (SecretStr): API key for authenticating requests to the Groq API.
         allowed_models (List[str]): List of allowed model names that can be used.
         name (str): The default model name to use for predictions.
         type (Literal["OpenAIReasonModel"]): The type identifier for this class.
+        timeout (float): Timeout duration for API requests.
+        _BASE_URL (str): Base URL for the OpenAI API.
+        _headers (Dict[str, str]): Headers for API requests.
 
     Provider resources: https://platform.openai.com/docs/models
     """
 
     api_key: SecretStr
     allowed_models: List[str] = [
+        "o3-deep-research-2025-06-26",
+        "o4-mini-deep-research-2025-06-26",
+        "o3-pro-2025-06-10",
+        "o3-2025-04-16",
+        "o4-mini-2025-04-16",
+        "o1-pro-2025-03-19",
         "o1-mini",
         "o1",
         "o1-2024-12-17",
@@ -45,12 +54,12 @@ class OpenAIReasonModel(LLMBase):
     _BASE_URL: str = PrivateAttr(default="https://api.openai.com/v1/chat/completions")
     _headers: Dict[str, str] = PrivateAttr(default=None)
 
-    def __init__(self, **data) -> None:
+    def __init__(self, **data: Dict[str, Any]) -> None:
         """
         Initialize the OpenAIModel class with the provided data.
 
         Args:
-            **data: Arbitrary keyword arguments containing initialization data.
+            **data (Dict[str, Any]): Arbitrary keyword arguments containing initialization data.
         """
         super().__init__(**data)
         self._headers = {
@@ -66,7 +75,7 @@ class OpenAIReasonModel(LLMBase):
         Formats conversation messages into the structure expected by the API.
 
         Args:
-            messages (List[MessageBase]): List of message objects from the conversation history.
+            messages (List[Type[MessageBase]]): List of message objects from the conversation history.
 
         Returns:
             List[Dict[str, Any]]: List of formatted message dictionaries.
@@ -93,7 +102,7 @@ class OpenAIReasonModel(LLMBase):
 
     def _prepare_usage_data(
         self,
-        usage_data,
+        usage_data: UsageData,
         prompt_time: float = 0.0,
         completion_time: float = 0.0,
     ) -> UsageData:
@@ -101,7 +110,7 @@ class OpenAIReasonModel(LLMBase):
         Prepare usage data by combining token counts and timing information.
 
         Args:
-            usage_data: Raw usage data containing token counts.
+            usage_data (UsageData): Raw usage data containing token counts.
             prompt_time (float): Time taken for prompt processing.
             completion_time (float): Time taken for response completion.
 
@@ -201,9 +210,7 @@ class OpenAIReasonModel(LLMBase):
 
         Args:
             conversation (Conversation): Conversation object with message history.
-            temperature (float): Sampling temperature for response diversity.
             max_completion_tokens (int): Maximum tokens for the model's response.
-            top_p (float): Cumulative probability for nucleus sampling.
             enable_json (bool): Whether to format the response as JSON.
             stop (Optional[List[str]]): List of stop sequences for response termination.
 
@@ -263,7 +270,19 @@ class OpenAIReasonModel(LLMBase):
         max_completion_tokens: int = 256,
         enable_json: bool = False,
         stop: Optional[List[str]] = None,
-    ):
+    ) -> None:
+        """
+        Not implemented.
+
+        Args:
+            conversation (Conversation): Conversation object with message history.
+            max_completion_tokens (int): Maximum tokens for the model's response.
+            enable_json (bool): Whether to format the response as JSON.
+            stop (Optional[List[str]]): List of stop sequences for response termination.
+
+        Raises:
+            NotImplementedError: This method is not implemented.
+        """
         raise NotImplementedError
 
     async def astream(
@@ -272,7 +291,19 @@ class OpenAIReasonModel(LLMBase):
         max_completion_tokens: int = 256,
         enable_json: bool = False,
         stop: Optional[List[str]] = None,
-    ):
+    ) -> None:
+        """
+        Not implemented.
+
+        Args:
+            conversation (Conversation): Conversation object with message history.
+            max_completion_tokens (int): Maximum tokens for the model's response.
+            enable_json (bool): Whether to format the response as JSON.
+            stop (Optional[List[str]]): List of stop sequences for response termination.
+
+        Raises:
+            NotImplementedError: This method is not implemented.
+        """
         raise NotImplementedError
 
     def batch(
@@ -281,7 +312,19 @@ class OpenAIReasonModel(LLMBase):
         max_completion_tokens: int = 256,
         enable_json: bool = False,
         stop: Optional[List[str]] = None,
-    ):
+    ) -> None:
+        """
+        Not implemented.
+
+        Args:
+            conversations (List[Conversation]): List of conversations to process.
+            max_completion_tokens (int): Maximum tokens for the model's response.
+            enable_json (bool): Whether to format the response as JSON.
+            stop (Optional[List[str]]): List of stop sequences for response termination.
+
+        Raises:
+            NotImplementedError: This method is not implemented.
+        """
         raise NotImplementedError
 
     async def abatch(
@@ -290,5 +333,17 @@ class OpenAIReasonModel(LLMBase):
         max_completion_tokens: int = 256,
         enable_json: bool = False,
         stop: Optional[List[str]] = None,
-    ):
+    ) -> None:
+        """
+        Not implemented.
+
+        Args:
+            conversations (List[Conversation]): List of conversations to process.
+            max_completion_tokens (int): Maximum tokens for the model's response.
+            enable_json (bool): Whether to format the response as JSON.
+            stop (Optional[List[str]]): List of stop sequences for response termination.
+
+        Raises:
+            NotImplementedError: This method is not implemented.
+        """
         raise NotImplementedError

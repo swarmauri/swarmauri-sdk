@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Iterable
 
 from peagen.orm import Status, Task
-from autoapi.v2 import get_schema
+from tigrbl import get_schema
 
 SUpdate = get_schema(Task, "update")
 

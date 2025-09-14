@@ -35,6 +35,7 @@ class HyperbolicVLM(VLMBase):
     allowed_models: List[str] = [
         "Qwen/Qwen2.5-VL-72B-Instruct",
         "Qwen/Qwen2.5-VL-7B-Instruct",
+        "mistralai/Pixtral-12B-2409",
     ]
     name: str = "Qwen/Qwen2.5-VL-72B-Instruct"
     type: Literal["HyperbolicVisionModel"] = "HyperbolicVisionModel"
@@ -43,7 +44,7 @@ class HyperbolicVLM(VLMBase):
     _client: httpx.Client = PrivateAttr(default=None)
     _BASE_URL: str = PrivateAttr(default="https://api.hyperbolic.xyz/v1/")
 
-    def __init__(self, **data):
+    def __init__(self, **data: dict[str, Any]) -> None:
         """
         Initialize the HyperbolicVisionModel class with the provided data.
 

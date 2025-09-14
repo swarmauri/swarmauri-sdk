@@ -1,3 +1,4 @@
+
 .spyproject
 .spyder
 *.pyc
@@ -21,16 +22,15 @@ pytest_results.json
 pkgs/community/swarmauri_vectorstore_annoy/test_annoy.ann
 /pkgs/standards/ptree_dag/pkgs
 *secrets/*
-!.gitkeep          # keep the empty dir in repo
 peagen_artifacts/
-gateway.db
 pkgs/standards/peagen/peagen.zip
 /pkgs/uv.lock
 pkgs/standards/peagen/.pymon
 *.pem
+gateway.db
 kms.db
-
 *.asc
 *.so
-
+*.db
 target/
+!.gitkeep          # keep the empty dir in repo

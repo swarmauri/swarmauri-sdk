@@ -3,6 +3,7 @@ from typer.testing import CliRunner
 
 from peagen.cli.commands.validate import local_validate_app, remote_validate_app
 from peagen.cli.task_helpers import build_task
+from peagen.orm import Action
 
 
 @pytest.mark.unit
@@ -14,7 +15,7 @@ def test_build_validate_task_payload():
         repo="repo",
         ref="HEAD",
     )
-    assert task.action == "validate"
+    assert task.action == Action.VALIDATE
     assert task.args == {"kind": "config", "path": "foo.toml"}
 
 
@@ -74,4 +75,4 @@ def test_remote_validate_cli_submits_task(monkeypatch):
     )
     assert result.exit_code == 0
     assert "Submitted validation → taskId=t1" in result.stdout
-    assert captured["action"] == "validate"
+    assert captured["action"] == Action.VALIDATE

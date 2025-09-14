@@ -57,3 +57,9 @@ owner = "${OWNER}"
 origin = "${GITEA_REMOTE}"
 upstream = "${GITHUB_REMOTE}"
 
+# ─────────────────────────── Key Providers ─────────────────────────────
+[key_providers]
+default_provider = "InMemoryKeyProvider"
+
+[key_providers.providers.InMemoryKeyProvider]
+# no configuration needed for in-memory provider

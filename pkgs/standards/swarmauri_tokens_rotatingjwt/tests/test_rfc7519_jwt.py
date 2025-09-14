@@ -1,12 +1,15 @@
 import pytest
 
 
+from swarmauri_core.crypto.types import JWAAlg
+
+
 @pytest.mark.unit
 @pytest.mark.asyncio
 async def test_jwt_claims_roundtrip(service) -> None:
     token = await service.mint(
         {"foo": "bar"},
-        alg="HS256",
+        alg=JWAAlg.HS256,
         audience="aud",
         subject="subj",
         issuer="issuer",

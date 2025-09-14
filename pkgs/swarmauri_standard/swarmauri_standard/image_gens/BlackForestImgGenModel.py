@@ -1,7 +1,7 @@
 import asyncio
 import contextlib
 import time
-from typing import Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -30,9 +30,11 @@ class BlackForestImgGenModel(ImageGenBase):
     name: str = "flux-pro-1.1"
     type: Literal["BlackForestImgGenModel"] = "BlackForestImgGenModel"
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Dict[str, Any]):
         """
         Initializes the BlackForestImgGenModel instance with HTTP clients.
+        Args:
+            **kwarg (Dict[str, Any]): Additional arguments including api_key and allowed_models.
         """
         super().__init__(**kwargs)
         self._headers = {
@@ -161,7 +163,7 @@ class BlackForestImgGenModel(ImageGenBase):
 
         raise TimeoutError(f"Image generation timed out after {max_wait_time} seconds")
 
-    async def agenerate_image(self, prompt: str, **kwargs) -> Dict:
+    async def agenerate_image(self, prompt: str, **kwargs: Dict[str, Any]) -> Dict:
         """
         Asynchronously generates an image based on the prompt and waits for the result.
 
@@ -219,13 +221,15 @@ class BlackForestImgGenModel(ImageGenBase):
         finally:
             await self._close_async_client()
 
-    def batch_generate(self, prompts: List[str], **kwargs) -> List[Dict]:
+    def batch_generate(
+        self, prompts: List[str], **kwargs: Dict[str, Any]
+    ) -> List[Dict]:
         """
         Generates images for a batch of prompts synchronously.
 
         Args:
             prompts (List[str]): List of text prompts
-            **kwargs: Additional arguments passed to generate_image
+            **kwargs (Dict[str, Any]): Additional arguments passed to generate_image
 
         Returns:
             List[Dict]: List of result dictionaries
@@ -233,7 +237,7 @@ class BlackForestImgGenModel(ImageGenBase):
         return [self.generate_image(prompt=prompt, **kwargs) for prompt in prompts]
 
     async def abatch_generate(
-        self, prompts: List[str], max_concurrent: int = 5, **kwargs
+        self, prompts: List[str], max_concurrent: int = 5, **kwargs: Dict[str, Any]
     ) -> List[Dict]:
         """
         Asynchronously generates images for a batch of prompts.
@@ -241,7 +245,7 @@ class BlackForestImgGenModel(ImageGenBase):
         Args:
             prompts (List[str]): List of text prompts
             max_concurrent (int): Maximum number of concurrent tasks
-            **kwargs: Additional arguments passed to agenerate_image
+            **kwargs (Dict[str, Any]): Additional arguments passed to agenerate_image
 
         Returns:
             List[Dict]: List of result dictionaries

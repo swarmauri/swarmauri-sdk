@@ -1,11 +1,11 @@
 [project]
 name = "swarmauri_tokens_jwt"
-version = "0.1.0"
+version = "0.3.0.dev4"
 description = "JWT token service for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
-authors = [{ name = "Swarmauri", email = "opensource@swarmauri.com" }]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3.10",
@@ -16,7 +16,7 @@ classifiers = [
 dependencies = [
     "swarmauri_core",
     "swarmauri_base",
-    "pyjwt[crypto]>=2.9.0",
+    "swarmauri_signing_jws",
 ]
 
 [project.optional-dependencies]
@@ -28,6 +28,7 @@ hmac = []
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
+swarmauri_signing_jws = { workspace = true }
 
 [tool.pytest.ini_options]
 markers = [

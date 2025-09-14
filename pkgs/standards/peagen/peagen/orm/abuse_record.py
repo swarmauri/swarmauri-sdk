@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from sqlalchemy import Column, String, Integer, Boolean
-
-from autoapi.v2.tables import Base, User
-from autoapi.v2.mixins import GUIDPk, Timestamped, Ownable
-from sqlalchemy.orm import relationship
+from tigrbl.orm.tables import Base, User
+from tigrbl.types import Boolean, Integer, String, Mapped, relationship
+from tigrbl.orm.mixins import GUIDPk, Timestamped, Ownable
+from tigrbl.specs import S, acol
 
 
 class AbuseRecord(Base, GUIDPk, Timestamped, Ownable):
@@ -17,11 +16,10 @@ class AbuseRecord(Base, GUIDPk, Timestamped, Ownable):
     """
 
     __tablename__ = "abuse_records"
-    __table_args__= ({"schema": "peagen"},)
+    __table_args__ = ({"schema": "peagen"},)
 
-    ip = Column(String, nullable=False, unique=True, index=True)
-    count = Column(Integer, nullable=False, default=0)
-    banned = Column(Boolean, nullable=False, default=False)
+    ip: Mapped[str] = acol(storage=S(String, nullable=False, unique=True, index=True))
+    count: Mapped[int] = acol(storage=S(Integer, nullable=False, default=0))
+    banned: Mapped[bool] = acol(storage=S(Boolean, nullable=False, default=False))
 
-    # relationships
-    owner = relationship(User, lazy="selectin")
+    owner: Mapped[User] = relationship(User, lazy="selectin")

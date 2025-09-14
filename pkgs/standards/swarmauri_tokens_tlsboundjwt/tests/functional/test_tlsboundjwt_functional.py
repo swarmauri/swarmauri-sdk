@@ -2,11 +2,12 @@ import asyncio
 
 import pytest
 
+from swarmauri_core.crypto.types import JWAAlg
 from swarmauri_tokens_tlsboundjwt import TlsBoundJWTTokenService, x5tS256_from_der
 
 
 async def _mint(svc: TlsBoundJWTTokenService) -> str:
-    return await svc.mint({"sub": "bob"}, alg="HS256")
+    return await svc.mint({"sub": "bob"}, alg=JWAAlg.HS256)
 
 
 def test_verify_mismatch_functional():

@@ -13,9 +13,9 @@ from swarmauri_standard.loggers.Logger import Logger
 from peagen.transport import RPCDispatcher
 from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_POOL_ID, DEFAULT_POOL_NAME
 
-# ─── AutoAPI & client ────────────────────────────────────────────────
-from autoapi_client import AutoAPIClient
-from autoapi.v2 import get_schema
+# ─── Tigrbl & client ────────────────────────────────────────────────
+from tigrbl_client import TigrblClient
+from tigrbl import get_schema
 from peagen.orm import Worker, Work, Status  # Status enum for updates
 
 
@@ -42,7 +42,7 @@ def _local_ip() -> str:
 
 class WorkerBase:
     """
-    Minimal worker that registers with an AutoAPI-powered gateway,
+    Minimal worker that registers with an Tigrbl-powered gateway,
     exposes /rpc for `Work.create`, executes the work locally, and
     reports progress via `Work.update`.
     """
@@ -77,7 +77,7 @@ class WorkerBase:
         self.app = FastAPI(title="Peagen Worker")
         self._handlers: Dict[str, Callable[[Dict], Awaitable[Dict]]] = {}
         headers = {"x-api-key": self._api_key} if self._api_key else None
-        self._client = AutoAPIClient(self.gateway, headers=headers)
+        self._client = TigrblClient(self.gateway, headers=headers)
         self._http = httpx.AsyncClient(timeout=10.0)
         self._hb_task: asyncio.Task | None = None
         self._hb_every = heartbeat_interval
@@ -124,7 +124,7 @@ class WorkerBase:
         self._handlers[name] = func
         self.log.info("handler registered: %s", name)
 
-    # ────────────────────── AutoAPI interactions ───────────────────
+    # ────────────────────── Tigrbl interactions ───────────────────
     async def _startup(self) -> None:
         """
         • Create Worker row (Worker.create)

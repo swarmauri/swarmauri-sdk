@@ -3,26 +3,32 @@ from __future__ import annotations
 import json
 from enum import Enum, auto
 
-from autoapi.v2.types import (
+from tigrbl.orm.tables import Base
+from tigrbl.types import (
     JSON,
-    Column,
     String,
     PgEnum,
     PgUUID,
     Integer,
-    ForeignKey,
     relationship,
-    HookProvider,
+    Mapped,
 )
-from autoapi.v2.tables import Base
-from autoapi.v2.mixins import (
+from tigrbl.orm.mixins import (
     GUIDPk,
     Timestamped,
     TenantBound,
     Ownable,
-    StatusMixin,
+    StatusColumn,
 )
+from tigrbl.specs import S, acol
+from tigrbl.column.storage_spec import ForeignKeySpec
+from tigrbl import hook_ctx
+from tigrbl.bindings import build_schemas as _build_schemas
+from typing import TYPE_CHECKING
 from peagen.orm.mixins import RepositoryRefMixin
+
+if TYPE_CHECKING:  # pragma: no cover
+    from .works import Work
 
 
 class Action(str, Enum):
@@ -48,26 +54,35 @@ class Task(
     TenantBound,
     Ownable,
     RepositoryRefMixin,
-    StatusMixin,
-    HookProvider,
+    StatusColumn,
 ):
     __tablename__ = "tasks"
     __table_args__ = ({"schema": "peagen"},)
-    action = Column(PgEnum(Action, name="task_action"), nullable=False)
-    pool_id = Column(
-        PgUUID(as_uuid=True), ForeignKey("peagen.pools.id"), nullable=False
+    action: Mapped[Action] = acol(
+        storage=S(PgEnum(Action, name="task_action"), nullable=False)
     )
-    config_toml = Column(String)
-    spec_kind = Column(PgEnum(SpecKind, name="task_spec_kind"), nullable=True)
-    spec_uuid = Column(PgUUID(as_uuid=True), nullable=True)
-    args = Column(JSON, nullable=False, default=dict)
-    labels = Column(JSON, nullable=False, default=dict)
-    note = Column(String)
-    schema_version = Column(Integer, nullable=False, default=3)
+    pool_id: Mapped[PgUUID] = acol(
+        storage=S(
+            PgUUID(as_uuid=True),
+            fk=ForeignKeySpec("peagen.pools.id"),
+            nullable=False,
+        )
+    )
+    config_toml: Mapped[str | None] = acol(storage=S(String))
+    spec_kind: Mapped[SpecKind | None] = acol(
+        storage=S(PgEnum(SpecKind, name="task_spec_kind"), nullable=True)
+    )
+    spec_uuid: Mapped[PgUUID | None] = acol(
+        storage=S(PgUUID(as_uuid=True), nullable=True)
+    )
+    args: Mapped[dict] = acol(storage=S(JSON, nullable=False, default=dict))
+    labels: Mapped[dict] = acol(storage=S(JSON, nullable=False, default=dict))
+    note: Mapped[str | None] = acol(storage=S(String))
+    schema_version: Mapped[int] = acol(storage=S(Integer, nullable=False, default=3))
 
-    works = relationship("Work", back_populates="task")
+    works: Mapped[list["Work"]] = relationship("Work", back_populates="task")
 
-    @classmethod
+    @hook_ctx(ops="create", phase="PRE_TX_BEGIN")
     async def _pre_create(cls, ctx):
         from peagen.gateway import log, queue
         from peagen.gateway.schedule_helpers import get_live_workers_by_pool
@@ -111,7 +126,7 @@ class Task(
                 log.warning("no worker advertising '%s' found", action)
         ctx["task_in"] = tc
 
-    @classmethod
+    @hook_ctx(ops="create", phase="POST_COMMIT")
     async def _post_create(cls, ctx):
         from peagen.defaults import READY_QUEUE, TASK_TTL
         from peagen.gateway import log, queue
@@ -119,7 +134,9 @@ class Task(
         from peagen.gateway.schedule_helpers import _save_task
 
         log.info("entering post_task_create")
-        created = cls._SRead.model_validate(ctx["result"], from_attributes=True)
+        created = cls.schemas.read.out.model_validate(
+            ctx["result"], from_attributes=True
+        )
         submitted = ctx["task_in"]
         wire = submitted.model_copy(update={"id": created.id})
         await queue.rpush(
@@ -128,11 +145,11 @@ class Task(
         )
         await queue.sadd("pools", wire.pool_id)
         await _publish_queue_length(queue, wire.pool_id)
-        await _save_task(queue, cls._SRead.model_validate(wire.model_dump()))
+        await _save_task(queue, cls.schemas.read.out.model_validate(wire.model_dump()))
         await _publish_task(wire.model_dump())
         log.info("task %s queued in %s (ttl=%s)", created.id, wire.pool_id, TASK_TTL)
 
-    @classmethod
+    @hook_ctx(ops="update", phase="PRE_TX_BEGIN")
     async def _pre_update(cls, ctx):
         from peagen.gateway import log, queue
         from peagen.gateway.schedule_helpers import _load_task
@@ -147,7 +164,7 @@ class Task(
         ctx["cached_task"] = cached
         ctx["changes"] = upd.model_dump(exclude_unset=True)
 
-    @classmethod
+    @hook_ctx(ops="update", phase="POST_COMMIT")
     async def _post_update(cls, ctx):
         from peagen.gateway import log, queue
         from peagen.gateway._publish import _publish_task
@@ -164,7 +181,7 @@ class Task(
                 await _finalize_parent_tasks(queue, cid)
         log.info("task %s updated (%s)", task.id, ", ".join(changes))
 
-    @classmethod
+    @hook_ctx(ops="read", phase="PRE_TX_BEGIN")
     async def _pre_read(cls, ctx):
         from peagen.gateway import log, queue
         from peagen.gateway.schedule_helpers import _load_task
@@ -176,7 +193,7 @@ class Task(
             ctx["cached_task"] = hit
             ctx["skip_db"] = True
 
-    @classmethod
+    @hook_ctx(ops="read", phase="POST_HANDLER")
     async def _post_read(cls, ctx):
         from peagen.gateway import log
 
@@ -184,28 +201,15 @@ class Task(
         if ctx.get("skip_db") and ctx.get("cached_task"):
             ctx["result"] = ctx["cached_task"]
 
-    @classmethod
-    def __autoapi_register_hooks__(cls, api) -> None:
-        from autoapi.v2 import Phase, get_schema
-
-        cls._SCreate = get_schema(cls, "create")
-        cls._SRead = get_schema(cls, "read")
-        cls._SUpdate = get_schema(cls, "update")
-        model_name = cls.__name__
-        api.register_hook(Phase.PRE_TX_BEGIN, model=model_name, op="create")(
-            cls._pre_create
-        )
-        api.register_hook(Phase.PRE_TX_BEGIN, model=model_name, op="update")(
-            cls._pre_update
-        )
-        api.register_hook(Phase.PRE_TX_BEGIN, model=model_name, op="read")(cls._pre_read)
-        api.register_hook(Phase.POST_COMMIT, model=model_name, op="create")(
-            cls._post_create
-        )
-        api.register_hook(Phase.POST_COMMIT, model=model_name, op="update")(
-            cls._post_update
-        )
-        api.register_hook(Phase.POST_HANDLER, model=model_name, op="read")(cls._post_read)
+        # hooks registered via @hook_ctx
 
 
 __all__ = ["Action", "SpecKind", "Task"]
+
+# Ensure the default "read" schemas are available for Task so that
+# consumers referencing ``Task.schemas.read`` do not fail during import.
+# ``Base`` normally builds CRUD schemas automatically, but some execution
+# paths may omit the "read" op which then triggers a KeyError. Rebuilding
+# the schema here guarantees the operation is registered.
+if not hasattr(Task, "schemas") or not hasattr(Task.schemas, "read"):
+    _build_schemas(Task, [], only_keys={"read"})

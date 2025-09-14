@@ -4,7 +4,7 @@ peagen.handlers.fetch_handler
 Async entry-point for the *fetch* pipeline.
 
 • Delegates work to :func:`peagen.core.fetch_core.fetch_many`.
-• Accepts an AutoAPI-generated **TaskRead** object whose ``args`` must contain:
+• Accepts an Tigrbl-generated **TaskRead** object whose ``args`` must contain:
 
     {
         "repos":   [ "<git-url>", … ],   # required – list of clone URLs
@@ -20,7 +20,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from autoapi.v2 import get_schema
+from tigrbl import get_schema
 from peagen.orm import Task
 from peagen.core.fetch_core import fetch_many
 

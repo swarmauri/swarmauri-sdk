@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_middleware_auth"
-version = "0.6.2.dev3"
+version = "0.8.0.dev4"
 description = "Middleware for handling authentication in Swarmauri applications."
 license = "Apache-2.0"
 readme = "README.md"
@@ -24,7 +24,7 @@ dependencies = [
     "swarmauri_base",
     "swarmauri_standard",
     "fastapi",
-    "PyJWT",
+    "swarmauri_signing_jws",
 ]
 
 [tool.uv.sources]

@@ -1,7 +1,7 @@
 """
 peagen.gateway
 ──────────────
-FastAPI + AutoAPI JSON-RPC gateway with schema-driven task scheduling.
+FastAPI + Tigrbl JSON-RPC gateway with schema-driven task scheduling.
 
 This file assumes:
 • Updated ORM (Task v3, Worker heartbeat via Worker.update)
@@ -19,9 +19,9 @@ import uuid
 
 
 # ─────────── Peagen internals ──────────────────────────────────────────
-from autoapi.v2 import AutoAPI, Phase, get_schema
-from auto_authn.v2.providers import RemoteAuthNAdapter
-from fastapi import FastAPI, Request
+from tigrbl import TigrblApp, get_schema
+from tigrbl_auth.adapters import RemoteAuthNAdapter
+from fastapi import Request
 
 from peagen._utils.config_loader import resolve_cfg
 from peagen.core import migrate_core
@@ -33,7 +33,6 @@ from peagen.errors import MigrationFailureError, NoWorkerAvailableError
 
 # peagen/gateway/__init__.py
 from peagen.orm import (
-    Base,
     DeployKey,
     PublicKey,
     GPGKey,
@@ -45,12 +44,12 @@ from peagen.orm import (
     # RoleGrant,
     # RolePerm,
     RepoSecret,
+    Worker,
     Task,
     Tenant,
     User,
     UserRepository,
     Work,
-    Worker,
 )
 from peagen.orm import Status as StatusEnum  # noqa: F401
 from peagen.plugins import PluginManager
@@ -58,57 +57,12 @@ from peagen.plugins.queues import QueueBase
 from swarmauri_standard.loggers.Logger import Logger
 
 from . import _publish, schedule_helpers
-from .db import engine, get_async_db  # same module as before
+from .db import ENGINE
 from .ws_server import router as ws_router
 from sqlalchemy.exc import IntegrityError
 
-# ─────────── logging setup ─────────────────────────────────────────────
-LOG_LEVEL = os.getenv("PEAGEN_LOG_LEVEL", "INFO").upper()
-log = Logger(name="gw", default_level=getattr(logging, LOG_LEVEL, logging.INFO))
-sched_log = Logger(
-    name="scheduler", default_level=getattr(logging, LOG_LEVEL, logging.INFO)
-)
-logging.getLogger("httpx").setLevel("WARNING")
-logging.getLogger("uvicorn.error").setLevel("INFO")
 
-# ─────────── FastAPI & AutoAPI initialisation ─────────────────────────
-READY: bool = False
-app = FastAPI(title="Peagen Pool-Manager Gateway")
-
-authn_adapter = RemoteAuthNAdapter(
-    base_url=settings.authn_base_url,
-    timeout=settings.authn_timeout,
-    cache_ttl=settings.authn_cache_ttl,
-    cache_size=settings.authn_cache_size,
-)
-
-api = AutoAPI(
-    base=Base,
-    include={
-        Tenant,
-        User,
-        Org,
-        # Role,
-        # RoleGrant,
-        # RolePerm,
-        Repository,
-        UserRepository,
-        RepoSecret,
-        DeployKey,
-        PublicKey,
-        GPGKey,
-        Pool,
-        Worker,
-        Task,
-        Work,
-        RawBlob,
-    },
-    get_async_db=get_async_db,
-    authn=authn_adapter,
-)
-
-
-@api.register_hook(Phase.PRE_TX_BEGIN)
+# ─────────── shadow principal hook ─────────────────────────────────────
 async def _shadow_principal(ctx):
     import logging
     from fastapi import HTTPException
@@ -137,13 +91,11 @@ async def _shadow_principal(ctx):
     username = p.get("username") or str(uid)
     db = ctx["db"]
 
-    # Strict typed schemas
-    UReadIn = get_schema(User, op="delete")  # id-only
-    UUpdateIn = get_schema(User, op="update")  # includes id in our setup
+    UReadIn = get_schema(User, op="delete")
+    UUpdateIn = get_schema(User, op="update")
     UCreateIn = get_schema(User, op="create")
 
     def _is_duplicate(exc: Exception) -> bool:
-        # Catch both raw DB conflicts and standardized HTTP 409 from _commit_or_http
         if isinstance(exc, IntegrityError):
             return True
         if isinstance(exc, HTTPException) and getattr(exc, "status_code", None) == 409:
@@ -154,29 +106,25 @@ async def _shadow_principal(ctx):
     def _upsert_sync(s):
         log.info("shadow_principal: upsert start uid=%s tid=%s", uid, tid)
 
-        # 1) Existence check by PK
         exists = False
         try:
-            api.methods.User.read(UReadIn(id=uid), db=s)
+            app.methods.User.read(UReadIn(id=uid), db=s)
             exists = True
             log.info("shadow_principal: user exists uid=%s", uid)
         except Exception as exc:
-            # Not found (or error); reset sync session if needed
             if s.in_transaction():
                 s.rollback()
             log.info("shadow_principal: User.read miss uid=%s (%s)", uid, exc)
 
         if exists:
-            # 2) Update in place (typed)
             upd = UUpdateIn(id=uid, tenant_id=tid, username=username, is_active=True)
             log.info("shadow_principal: updating uid=%s", uid)
-            return api.methods.User.update(upd, db=s)
+            return app.methods.User.update(upd, db=s)
 
-        # 3) Create, but treat duplicate as “already created” and retry update
         try:
             cre = UCreateIn(id=uid, tenant_id=tid, username=username, is_active=True)
             log.info("shadow_principal: creating uid=%s", uid)
-            return api.methods.User.create(cre, db=s)
+            return app.methods.User.create(cre, db=s)
         except Exception as exc:
             if _is_duplicate(exc):
                 if s.in_transaction():
@@ -185,29 +133,71 @@ async def _shadow_principal(ctx):
                 upd = UUpdateIn(
                     id=uid, tenant_id=tid, username=username, is_active=True
                 )
-                return api.methods.User.update(upd, db=s)
-            # unexpected error – re-raise to let outer handler log it
+                return app.methods.User.update(upd, db=s)
             raise
 
     try:
-        if hasattr(db, "run_sync"):  # AsyncSession
+        if hasattr(db, "run_sync"):
             await db.run_sync(_upsert_sync)
-        else:  # plain Session
+        else:
             _upsert_sync(db)
     except Exception as exc:
-        # Soft-fail – don’t break the main RPC; just log what happened
         log.info("shadow_principal: upsert failed uid=%s err=%s", uid, exc)
 
 
-# ensure our hook runs second after the AuthN injection hook
-_pre = api._hook_registry[Phase.PRE_TX_BEGIN][None]
-for idx, fn in enumerate(_pre):
-    if getattr(fn, "__name__", "") == "_shadow_principal":
-        _pre.insert(1, _pre.pop(idx))
-        break
+# ─────────── logging setup ─────────────────────────────────────────────
+LOG_LEVEL = os.getenv("PEAGEN_LOG_LEVEL", "INFO").upper()
+log = Logger(name="gw", default_level=getattr(logging, LOG_LEVEL, logging.INFO))
+sched_log = Logger(
+    name="scheduler", default_level=getattr(logging, LOG_LEVEL, logging.INFO)
+)
+logging.getLogger("httpx").setLevel("WARNING")
+logging.getLogger("uvicorn.error").setLevel("INFO")
 
+# ─────────── TigrblApp initialisation ─────────────────────────
+READY: bool = False
+app = TigrblApp(
+    title="Peagen Pool-Manager Gateway",
+    engine=ENGINE,
+    api_hooks={"PRE_TX_BEGIN": [_shadow_principal]},
+)
+authn_adapter = RemoteAuthNAdapter(
+    base_url=settings.authn_base_url,
+    timeout=settings.authn_timeout,
+    cache_ttl=settings.authn_cache_ttl,
+    cache_size=settings.authn_cache_size,
+)
 
-app.include_router(api.router)
+app.set_auth(
+    authn=authn_adapter.get_principal,
+    optional_authn_dep=authn_adapter.get_principal_optional,
+    allow_anon=False,
+)
+app.include_models(
+    [
+        Tenant,
+        User,
+        Org,
+        # Role,
+        # RoleGrant,
+        # RolePerm,
+        Repository,
+        UserRepository,
+        RepoSecret,
+        DeployKey,
+        PublicKey,
+        GPGKey,
+        Pool,
+        Worker,
+        Task,
+        Work,
+        RawBlob,
+    ]
+)
+
+app.mount_jsonrpc(prefix="/rpc")
+app.attach_diagnostics(prefix="/system")
+
 app.include_router(ws_router)
 
 # ─────────── Plugin-driven queue / result backend ─────────────────────
@@ -315,13 +305,14 @@ async def _startup() -> None:
     log.info("gateway startup …")
 
     # 1 – metadata validation / SQLite convenience mode
-    await api.initialize_async()
+    await app.initialize()
 
     # 2 – run Alembic first so the ORM never creates tables implicitly
-    if engine.url.get_backend_name() != "sqlite":
+    eng, _ = ENGINE.raw()
+    if eng.url.get_backend_name() != "sqlite":
         mig = migrate_core.alembic_upgrade(
             # keep the exact credentials that were used to build the engine
-            db_url=engine.url.render_as_string(hide_password=False)
+            db_url=eng.url.render_as_string(hide_password=False)
         )
         if not mig.get("ok"):
             # expose full stderr in logs for easier debugging
@@ -333,14 +324,11 @@ async def _startup() -> None:
     asyncio.create_task(_backlog_scanner())
     global READY
     READY = True
-    log.info(api.router)
-    log.info(api.rpc)
-    log.info(api._registered_tables)
-    log.info(api._method_ids)
-    log.info(api._schemas)
-    log.info(api._allow_anon)
-    log.info(api.methods)
-    log.info(api.schemas)
+    log.info(app.router)
+    log.info(app.rpc)
+    log.info(app.models)
+    log.info(app.schemas)
+    log.info(app._allow_anon)
 
     log.info("gateway ready")
 
@@ -348,8 +336,11 @@ async def _startup() -> None:
 async def _shutdown() -> None:
     log.info("gateway shutdown …")
     await _flush_state()
-    await engine.dispose()
+    eng, _ = ENGINE.raw()
+    await eng.dispose()
 
 
 app.add_event_handler("startup", _startup)
 app.add_event_handler("shutdown", _shutdown)
+
+__all__ = ["app"]

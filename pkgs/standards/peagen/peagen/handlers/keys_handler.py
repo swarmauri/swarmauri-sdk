@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 import anyio
-from autoapi.v2 import get_schema
+from tigrbl import get_schema
 from peagen.core import keys_core
 from peagen.defaults import DEFAULT_GATEWAY
 from peagen.orm import Task
@@ -46,7 +46,7 @@ class _Fetch(_Base):
 
 _ArgsUnion = _Create | _Upload | _Remove | _Fetch
 
-# schema alias so we don’t import AutoAPI in call-sites
+# schema alias so we don’t import Tigrbl in call-sites
 TaskRead = get_schema(Task, "read")
 
 # ───────────────────────────── dispatcher ───────────────────────────────

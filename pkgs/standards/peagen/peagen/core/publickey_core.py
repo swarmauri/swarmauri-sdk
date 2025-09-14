@@ -1,5 +1,5 @@
 """Helpers for authenticating a user and uploading their public key to a Peagen
-gateway – refactored for AutoAPIClient.
+gateway – refactored for TigrblClient.
 
 The function still:
 
@@ -15,12 +15,12 @@ from typing import Any, Optional
 
 import httpx
 
-from autoapi_client import AutoAPIClient  # ← new client
-from autoapi.v2 import get_schema  # ← schema helper
+from tigrbl_client import TigrblClient  # ← new client
+from tigrbl import get_schema  # ← schema helper
 from peagen.orm import PublicKey  # ORM resource
 
 from peagen.defaults import DEFAULT_GATEWAY, DEFAULT_SUPER_USER_ID
-from peagen.plugins.cryptos import ParamikoCrypto
+from peagen.core import keys_core
 
 __all__ = ["login"]
 
@@ -48,8 +48,8 @@ def login(
         JSON-RPC error returned by the gateway.
     """
     # 1 ─ ensure local SSH key-pair
-    drv = ParamikoCrypto(key_dir=key_dir, passphrase=passphrase)
-    public_key = drv.public_key_str()  # returns single-line OpenSSH key
+    kp = keys_core.create_keypair(key_dir, passphrase)
+    public_key = kp["public_key"]
 
     # 2 ─ build request/response schemas dynamically
     SCreate = _schema("create")
@@ -61,8 +61,8 @@ def login(
         user_id=str(DEFAULT_SUPER_USER_ID),
     )
 
-    # 3 ─ JSON-RPC call via AutoAPIClient
-    with AutoAPIClient(gateway_url, client=httpx.Client(timeout=timeout_s)) as rpc:
+    # 3 ─ JSON-RPC call via TigrblClient
+    with TigrblClient(gateway_url, client=httpx.Client(timeout=timeout_s)) as rpc:
         try:
             result = rpc.call("PublicKeys.create", params=params, out_schema=SRead)
         except (httpx.HTTPError, RuntimeError):

@@ -1,29 +1,34 @@
 from __future__ import annotations
 
-from autoapi.v2.types import (
-    Column,
+from tigrbl.orm.tables import Base
+from tigrbl.types import (
     String,
     UniqueConstraint,
     CheckConstraint,
-    HookProvider,
     relationship,
+    Mapped,
 )
-from autoapi.v2.tables import Base
-from autoapi.v2.mixins import GUIDPk, OrgMixin, Timestamped, UserMixin
+from tigrbl.orm.mixins import GUIDPk, OrgColumn, Timestamped, UserColumn
+from tigrbl.specs import S, acol
+from tigrbl import hook_ctx
+from typing import TYPE_CHECKING
 from peagen.orm.mixins import RepositoryMixin
+
+if TYPE_CHECKING:  # pragma: no cover
+    from .repositories import Repository
 
 
 class _SecretCoreMixin:
-    name = Column(String(128), nullable=False)
-    data = Column(String, nullable=False)
-    desc = Column(String, nullable=True)
+    name: Mapped[str] = acol(storage=S(String(128), nullable=False))
+    data: Mapped[str] = acol(storage=S(String, nullable=False))
+    desc: Mapped[str | None] = acol(storage=S(String, nullable=True))
     __table_args__ = (
         CheckConstraint("length(name) > 0", name="chk_name_nonempty"),
         {"schema": "peagen"},
     )
 
 
-class UserSecret(Base, GUIDPk, _SecretCoreMixin, UserMixin, Timestamped):
+class UserSecret(Base, GUIDPk, _SecretCoreMixin, UserColumn, Timestamped):
     __tablename__ = "user_secrets"
     __table_args__ = (
         UniqueConstraint("user_id", "name"),
@@ -31,7 +36,7 @@ class UserSecret(Base, GUIDPk, _SecretCoreMixin, UserMixin, Timestamped):
     )
 
 
-class OrgSecret(Base, GUIDPk, _SecretCoreMixin, OrgMixin, Timestamped):
+class OrgSecret(Base, GUIDPk, _SecretCoreMixin, OrgColumn, Timestamped):
     __tablename__ = "org_secrets"
     __table_args__ = (
         UniqueConstraint("org_id", "name"),
@@ -39,17 +44,17 @@ class OrgSecret(Base, GUIDPk, _SecretCoreMixin, OrgMixin, Timestamped):
     )
 
 
-class RepoSecret(
-    Base, GUIDPk, _SecretCoreMixin, RepositoryMixin, Timestamped, HookProvider
-):
+class RepoSecret(Base, GUIDPk, _SecretCoreMixin, RepositoryMixin, Timestamped):
     __tablename__ = "repo_secrets"
-    repository = relationship("Repository", back_populates="secrets")
+    repository: Mapped["Repository"] = relationship(
+        "Repository", back_populates="secrets"
+    )
     __table_args__ = (
         UniqueConstraint("repository_id", "name"),
         *_SecretCoreMixin.__table_args__,
     )
 
-    @classmethod
+    @hook_ctx(ops="create", phase="POST_COMMIT")
     async def _post_create(cls, ctx):
         from peagen.gateway import log
 
@@ -58,7 +63,7 @@ class RepoSecret(
         log.info("Secret stored successfully: %s", params.name)
         ctx["result"] = {"ok": True}
 
-    @classmethod
+    @hook_ctx(ops="delete", phase="POST_COMMIT")
     async def _post_delete(cls, ctx):
         from peagen.gateway import log
 
@@ -66,17 +71,7 @@ class RepoSecret(
         params = ctx["env"].params
         log.info("Secret deleted: %s", params.name)
 
-    @classmethod
-    def __autoapi_register_hooks__(cls, api) -> None:
-        from autoapi.v2 import Phase, get_schema
-
-        cls._SRead = get_schema(cls, "read")
-        api.register_hook(Phase.POST_COMMIT, model="RepoSecret", op="create")(
-            cls._post_create
-        )
-        api.register_hook(Phase.POST_COMMIT, model="RepoSecret", op="delete")(
-            cls._post_delete
-        )
+        # hooks registered via @hook_ctx
 
 
 __all__ = ["UserSecret", "OrgSecret", "RepoSecret"]

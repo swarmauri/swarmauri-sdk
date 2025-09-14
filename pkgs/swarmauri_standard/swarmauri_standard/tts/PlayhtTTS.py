@@ -32,6 +32,7 @@ class PlayhtTTS(TTSBase):
     """
 
     allowed_models: List[str] = [
+        "PlayDialog",
         "Play3.0-mini",
         "PlayHT2.0-turbo",
         "PlayHT1.0",

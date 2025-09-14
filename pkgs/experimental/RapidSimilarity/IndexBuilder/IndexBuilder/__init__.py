@@ -1,10 +1,7 @@
 from .tree_index import tree_index
 from .hash_index import hash_index
 
-__all__ = [
-    "tree_index",
-    "hash_index"
-]
+__all__ = ["tree_index", "hash_index"]
 
 try:
     # For Python 3.8 and newer

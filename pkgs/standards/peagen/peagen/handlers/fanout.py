@@ -4,7 +4,7 @@ peagen.handlers.fanout
 Utility that fan-outs a *parent* task into multiple *child* tasks via the
 JSON-RPC gateway.
 
-• Accepts plain dictionaries that already conform to AutoAPI’s Tasks.create
+• Accepts plain dictionaries that already conform to Tigrbl’s Tasks.create
   input schema.
 • Uses httpx.AsyncClient – keeps the coroutine non-blocking.
 """

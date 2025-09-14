@@ -1,4 +1,20 @@
-![Swamauri Logo](https://res.cloudinary.com/dbjmpekvl/image/upload/v1730099724/Swarmauri-logo-lockup-2048x757_hww01w.png)
+![Swamauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+
+
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_middleware_jwksverifier/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_middleware_jwksverifier" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_middleware_jwksverifier/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_middleware_jwksverifier.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_middleware_jwksverifier/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_middleware_jwksverifier" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_middleware_jwksverifier/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_middleware_jwksverifier" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_middleware_jwksverifier/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_middleware_jwksverifier?label=swarmauri_middleware_jwksverifier&color=green" alt="PyPI - swarmauri_middleware_jwksverifier"/></a>
+</p>
+
+---
 
 # Swarmauri Middleware JWKS Verifier
 

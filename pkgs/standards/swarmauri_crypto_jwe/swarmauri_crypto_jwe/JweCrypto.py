@@ -1,3 +1,9 @@
+"""High level helpers for JSON Web Encryption.
+
+This module provides compact serialization routines for JWE messages as
+specified by RFC 7516 and RFC 7518.
+"""
+
 from __future__ import annotations
 
 import base64
@@ -16,6 +22,8 @@ from cryptography.hazmat.primitives.serialization import (
     load_pem_private_key,
 )
 
+from swarmauri_core.crypto.types import JWAAlg
+
 
 def _b64u(b: bytes) -> str:
     return base64.urlsafe_b64encode(b).rstrip(b"=").decode("ascii")
@@ -32,22 +40,22 @@ def _json_dumps(obj: Any) -> bytes:
     ).encode("utf-8")
 
 
-def _cek_len_for_enc(enc: str) -> int:
-    if enc == "A128GCM":
+def _cek_len_for_enc(enc: JWAAlg) -> int:
+    if enc == JWAAlg.A128GCM:
         return 16
-    if enc == "A192GCM":
+    if enc == JWAAlg.A192GCM:
         return 24
-    if enc == "A256GCM":
+    if enc == JWAAlg.A256GCM:
         return 32
-    raise ValueError("Unsupported enc '{enc}'. Use A128GCM/A192GCM/A256GCM.")
+    raise ValueError(f"Unsupported enc '{enc.value}'. Use A128GCM/A192GCM/A256GCM.")
 
 
-def _hash_for_oaep(alg: str):
-    if alg == "RSA-OAEP":
+def _hash_for_oaep(alg: JWAAlg):
+    if alg == JWAAlg.RSA_OAEP:
         return hashes.SHA1()
-    if alg == "RSA-OAEP-256":
+    if alg == JWAAlg.RSA_OAEP_256:
         return hashes.SHA256()
-    raise ValueError(f"Unsupported RSA OAEP alg '{alg}'.")
+    raise ValueError(f"Unsupported RSA OAEP alg '{alg.value}'.")
 
 
 def _rand(n: int) -> bytes:
@@ -162,7 +170,7 @@ def _load_ecdh_recipient_public(jwk_or_pem: Any) -> Tuple[str, Any]:
 
 def _concat_kdf(
     z: bytes,
-    enc: str,
+    enc: JWAAlg,
     hash_alg=hashes.SHA256(),
     apu: Optional[bytes] = None,
     apv: Optional[bytes] = None,
@@ -177,8 +185,8 @@ def _concat_kdf(
     return ckdf.derive(z)
 
 
-def _jwe_alg_id(enc: str) -> bytes:
-    enc_b = enc.encode("ascii")
+def _jwe_alg_id(enc: JWAAlg) -> bytes:
+    enc_b = enc.value.encode("ascii")
     return len(enc_b).to_bytes(4, "big") + enc_b
 
 
@@ -187,24 +195,47 @@ JWECompact = str
 
 @dataclass
 class JweDecryptResult:
+    """Return value for :meth:`JweCrypto.decrypt_compact`.
+
+    header (Dict[str, Any]): Parsed JWE header.
+    plaintext (bytes): Decrypted payload bytes.
+    """
+
     header: Dict[str, Any]
     plaintext: bytes
 
 
 class JweCrypto:
-    """Utility class for JSON Web Encryption (RFC 7516, RFC 7518)."""
+    """Utility class for working with JSON Web Encryption.
+
+    The helpers create and parse compact JWE strings. All operations are
+    asynchronous to integrate with async workflows.
+    """
 
     async def encrypt_compact(
         self,
         *,
         payload: Union[bytes, str, Mapping[str, Any]],
-        alg: str,
-        enc: str,
+        alg: JWAAlg,
+        enc: JWAAlg,
         key: Mapping[str, Any],
         kid: Optional[str] = None,
         header_extra: Optional[Mapping[str, Any]] = None,
         aad: Optional[Union[bytes, str]] = None,
     ) -> JWECompact:
+        """Encrypt a payload into a compact JWE string.
+
+        payload (Union[bytes, str, Mapping[str, Any]]): Data to encrypt. Strings and
+            mappings are encoded as UTF-8 JSON.
+        alg (JWAAlg): Key management algorithm.
+        enc (JWAAlg): Content encryption algorithm.
+        key (Mapping[str, Any]): Key material used for encryption.
+        kid (str): Optional key identifier placed in the protected header.
+        header_extra (Mapping[str, Any]): Additional protected header fields.
+        aad (Union[bytes, str]): Additional authenticated data.
+        RETURNS (JWECompact): Compact JWE representation.
+        """
+
         if isinstance(payload, str):
             pt = payload.encode("utf-8")
         elif isinstance(payload, (bytes, bytearray)):
@@ -212,7 +243,7 @@ class JweCrypto:
         else:
             pt = _json_dumps(payload)
 
-        protected: Dict[str, Any] = {"alg": alg, "enc": enc}
+        protected: Dict[str, Any] = {"alg": alg.value, "enc": enc.value}
         if kid:
             protected["kid"] = kid
         if header_extra:
@@ -225,7 +256,7 @@ class JweCrypto:
         encrypted_key_b64 = ""
         epk_header: Optional[Dict[str, Any]] = None
 
-        if alg == "dir":
+        if alg == JWAAlg.DIR:
             secret = key.get("k")
             secret_b = (
                 secret.encode("utf-8") if isinstance(secret, str) else bytes(secret)
@@ -235,7 +266,7 @@ class JweCrypto:
                     f"'dir' key size must equal enc key size ({_cek_len_for_enc(enc)} bytes)"
                 )
             cek = secret_b
-        elif alg in ("RSA-OAEP", "RSA-OAEP-256"):
+        elif alg in (JWAAlg.RSA_OAEP, JWAAlg.RSA_OAEP_256):
             cek = _rand(_cek_len_for_enc(enc))
             pk = _load_rsa_public(key.get("pub") or key)
             hash_alg = _hash_for_oaep(alg)
@@ -248,7 +279,7 @@ class JweCrypto:
                 ),
             )
             encrypted_key_b64 = _b64u(ekey)
-        elif alg == "ECDH-ES":
+        elif alg == JWAAlg.ECDH_ES:
             crv, rpk = _load_ecdh_recipient_public(key.get("pub") or key)
             if crv == "X25519":
                 esk = x25519.X25519PrivateKey.generate()
@@ -282,7 +313,7 @@ class JweCrypto:
             cek = _concat_kdf(z, enc, hashes.SHA256(), apu_b, apv_b)
             protected["epk"] = epk_header
         else:
-            raise ValueError(f"Unsupported alg '{alg}'")
+            raise ValueError(f"Unsupported alg '{alg.value}'")
 
         iv = _rand(12)
         aadd = _ensure_bytes(aad) if aad is not None else None
@@ -312,24 +343,39 @@ class JweCrypto:
         rsa_private_pem: Optional[Union[str, bytes]] = None,
         rsa_private_password: Optional[Union[str, bytes]] = None,
         ecdh_private_key: Optional[Any] = None,
-        expected_algs: Optional[Iterable[str]] = None,
-        expected_encs: Optional[Iterable[str]] = None,
+        expected_algs: Optional[Iterable[JWAAlg]] = None,
+        expected_encs: Optional[Iterable[JWAAlg]] = None,
         aad: Optional[Union[bytes, str]] = None,
     ) -> JweDecryptResult:
+        """Decrypt a compact JWE string.
+
+        jwe (JWECompact): Serialized JWE to decode.
+        dir_key (Union[bytes, str]): Symmetric key when ``alg='dir'`` is used.
+        rsa_private_pem (Union[str, bytes]): RSA private key in PEM encoding for
+            RSA-OAEP algorithms.
+        rsa_private_password (Union[str, bytes]): Password for the RSA key.
+        ecdh_private_key (Any): Private key for ECDH-ES.
+        expected_algs (Iterable[JWAAlg]): Allowed algorithm values.
+        expected_encs (Iterable[JWAAlg]): Allowed encryption values.
+        aad (Union[bytes, str]): Additional authenticated data.
+        RETURNS (JweDecryptResult): Header and plaintext of the decrypted token.
+        """
+
         parts = jwe.split(".")
         if len(parts) != 5:
             raise ValueError("Invalid JWE compact: expected 5 dot-separated parts.")
         b64_prot, b64_ekey, b64_iv, b64_ct, b64_tag = parts
 
         header = json.loads(_b64u_dec(b64_prot))
-        alg = header.get("alg")
-        enc = header.get("enc")
-        if not isinstance(alg, str) or not isinstance(enc, str):
-            raise ValueError("JWE header missing 'alg' or 'enc'.")
+        try:
+            alg = JWAAlg(header.get("alg"))
+            enc = JWAAlg(header.get("enc"))
+        except Exception as exc:
+            raise ValueError("JWE header missing 'alg' or 'enc'.") from exc
         if expected_algs and alg not in set(expected_algs):
-            raise ValueError(f"Unexpected alg '{alg}'.")
+            raise ValueError(f"Unexpected alg '{alg.value}'.")
         if expected_encs and enc not in set(expected_encs):
-            raise ValueError(f"Unexpected enc '{enc}'.")
+            raise ValueError(f"Unexpected enc '{enc.value}'.")
 
         iv = _b64u_dec(b64_iv)
         if len(iv) != 12:
@@ -339,7 +385,7 @@ class JweCrypto:
         aadd = _ensure_bytes(aad) if aad is not None else None
         aead_aad = _compute_aad(b64_prot, aadd)
 
-        if alg == "dir":
+        if alg == JWAAlg.DIR:
             if dir_key is None:
                 raise ValueError("dir_key is required for alg='dir'.")
             cek = (
@@ -347,7 +393,7 @@ class JweCrypto:
             )
             if len(cek) != _cek_len_for_enc(enc):
                 raise ValueError("dir_key length mismatch for enc.")
-        elif alg in ("RSA-OAEP", "RSA-OAEP-256"):
+        elif alg in (JWAAlg.RSA_OAEP, JWAAlg.RSA_OAEP_256):
             if rsa_private_pem is None:
                 raise ValueError("rsa_private_pem is required for RSA-OAEP decryption.")
             sk = _load_rsa_private(rsa_private_pem, password=rsa_private_password)
@@ -359,7 +405,7 @@ class JweCrypto:
                     mgf=padding.MGF1(algorithm=hash_alg), algorithm=hash_alg, label=None
                 ),
             )
-        elif alg == "ECDH-ES":
+        elif alg == JWAAlg.ECDH_ES:
             if ecdh_private_key is None:
                 raise ValueError("ecdh_private_key is required for ECDH-ES decryption.")
             epk = header.get("epk")
@@ -394,7 +440,7 @@ class JweCrypto:
             apv_b = _b64u_dec(header["apv"]) if "apv" in header else None
             cek = _concat_kdf(z, enc, hashes.SHA256(), apu_b, apv_b)
         else:
-            raise ValueError(f"Unsupported alg '{alg}'")
+            raise ValueError(f"Unsupported alg '{alg.value}'")
 
         aesgcm = AESGCM(cek)
         try:

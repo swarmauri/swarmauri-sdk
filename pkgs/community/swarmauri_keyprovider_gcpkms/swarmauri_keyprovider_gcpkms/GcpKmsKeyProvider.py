@@ -22,7 +22,7 @@ from pydantic import PrivateAttr
 
 from swarmauri_base.keys.KeyProviderBase import KeyProviderBase
 from swarmauri_core.keys.types import ExportPolicy, KeySpec, KeyUse
-from swarmauri_core.crypto.types import KeyRef
+from swarmauri_core.crypto.types import JWAAlg, KeyRef
 
 
 API_ROOT = "https://cloudkms.googleapis.com/v1"
@@ -144,6 +144,7 @@ class GcpKmsKeyProvider(KeyProviderBase):
             "class": ("kms", "asym", "sym"),
             "algs": ("AES", "RSA", "EC"),
             "features": (
+                "create",
                 "encrypt",
                 "decrypt",
                 "sign",
@@ -290,12 +291,16 @@ class GcpKmsKeyProvider(KeyProviderBase):
                     jwk["kid"] = f"{kid}.{int(vname.split('/')[-1])}"
                     if _is_rsa_sign_purpose(algo):
                         jwk["alg"] = (
-                            "PS256" if "PKCS1_PSS" in algo or "PSS" in algo else "RS256"
+                            JWAAlg.PS256.value
+                            if "PKCS1_PSS" in algo or "PSS" in algo
+                            else JWAAlg.RS256.value
                         )
                     elif _is_ec_sign_purpose(algo):
-                        jwk["alg"] = "ES256" if "P256" in algo else "ES384"
+                        jwk["alg"] = (
+                            JWAAlg.ES256.value if "P256" in algo else JWAAlg.ES384.value
+                        )
                     elif _is_rsa_decrypt_purpose(algo):
-                        jwk["alg"] = "RSA-OAEP-256"
+                        jwk["alg"] = JWAAlg.RSA_OAEP_256.value
                     keys_out.append(jwk)
         return {"keys": keys_out}
 

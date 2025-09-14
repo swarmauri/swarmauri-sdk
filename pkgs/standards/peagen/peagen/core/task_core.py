@@ -1,5 +1,5 @@
 """Utility helpers for building, submitting and fetching Task rows
-from an AutoAPI gateway.
+from an Tigrbl gateway.
 """
 
 from __future__ import annotations
@@ -7,8 +7,8 @@ from __future__ import annotations
 import httpx
 from typing import Any, Dict
 
-from autoapi_client import AutoAPIClient
-from autoapi.v2 import get_schema
+from tigrbl_client import TigrblClient
+from tigrbl import get_schema
 from peagen.orm import Task
 
 from peagen.defaults import DEFAULT_GATEWAY, RPC_TIMEOUT
@@ -20,8 +20,8 @@ def _schema(tag: str):
     return get_schema(Task, tag)
 
 
-def _rpc(url: str, *, timeout: float = RPC_TIMEOUT) -> AutoAPIClient:
-    return AutoAPIClient(url, client=httpx.Client(timeout=timeout))
+def _rpc(url: str, *, timeout: float = RPC_TIMEOUT) -> TigrblClient:
+    return TigrblClient(url, client=httpx.Client(timeout=timeout))
 
 
 # ────────────────────────── public helpers ────────────────────────────

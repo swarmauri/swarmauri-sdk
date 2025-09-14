@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_signing_pgp"
-version = "0.1.0"
+version = "0.3.0.dev4"
 description = "OpenPGP envelope signer for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
@@ -17,7 +17,7 @@ classifiers = [
     "Topic :: Security :: Cryptography",
     "Intended Audience :: Developers",
 ]
-authors = [{ name = "Swarmauri", email = "opensource@swarmauri.com" }]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "swarmauri_core",
     "swarmauri_base",

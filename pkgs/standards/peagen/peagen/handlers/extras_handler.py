@@ -25,7 +25,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict, List
 
-from autoapi.v2 import get_schema
+from tigrbl import get_schema
 from peagen.orm import Task
 from peagen.core.extras_core import generate_schemas
 

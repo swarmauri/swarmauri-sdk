@@ -49,12 +49,19 @@ def test_plugin_discovery_runs_once(monkeypatch):
     def fake_entry_points(group: str):
         calls.append(group)
 
+        # determine expected base class for this entry point group
+        base_cls = object
+        for _group, (ep_group, expected) in plugins.GROUPS.items():
+            if ep_group == group:
+                base_cls = expected or object
+                break
+
         class EP:
             name = "dummy"
             module = "peagen.dummy"
 
             def load(self):
-                class Dummy:
+                class Dummy(base_cls):
                     pass
 
                 return Dummy
@@ -74,6 +81,8 @@ def test_ep_paths_use_plugins_namespace():
     for group, (ep_group, _base) in plugins.GROUPS.items():
         if group == "template_sets":
             assert ep_group == "peagen.template_sets"
+        elif group == "key_providers":
+            assert ep_group == "swarmauri.key_providers"
         else:
             assert ep_group.startswith("peagen.plugins."), ep_group
 

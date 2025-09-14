@@ -36,6 +36,10 @@ class KeySpec:
     alg: KeyAlg
     uses: Tuple[KeyUse, ...]
     export_policy: ExportPolicy
+    encoding: Optional[str] = None
+    private_format: Optional[str] = None
+    public_format: Optional[str] = None
+    encryption: Optional[str] = None
     size_bits: Optional[int] = None
     label: Optional[str] = None
     tags: Optional[Dict[str, str]] = None

@@ -3,7 +3,7 @@ name: Peagen CI Deploy
 
 on:
   push:
-    branches: [ "master", "mono/dev", "coby/peagenv2" ]
+    branches: [ "master", "mono/dev", "coby/peagen_v0.3" ]
     paths:
       - "pkgs/standards/peagen/**"
       - "infra/peagen/**"
@@ -15,6 +15,7 @@ concurrency:
 
 jobs:
   deploy:
+    if: ${{ !cancelled() }}
     runs-on: peagenx
     env:
       # --- non-secret values ---
@@ -26,7 +27,8 @@ jobs:
       NPM_DB:         npm
       PEAGEN_DB:      peagen
       GIT_DB:         gitea
-      AUTO_AUTHN_DB: auto_authn
+      TIGRBL_AUTH_DB: tigrbl_auth
+      TIGRBL_KMS_DB:   tigrbl_kms
 
       # --- secrets ---
       MINIO_ROOT_PASSWORD:      ${{ secrets.PEAGEN_MINIO_ROOT_PASSWORD }}
@@ -40,35 +42,61 @@ jobs:
       PEAGEN_GIT_SHADOW_PAT:    ${{ secrets.PEAGEN_GIT_SHADOW_PAT }}
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Deploy with Docker Compose
-      id: deploy
-      run: |
-        # pre build prune always
-        sudo docker system prune -f
+      - name: Deploy with Docker Compose
+        id: deploy
+        run: |
+          # pre build prune always
+          sudo docker system prune -f
 
-        sudo -E docker compose \
-          -f infra/peagen/docker-compose.yml \
-          up -d --build --force-recreate --no-deps auto_authn gateway worker
+          sudo -E docker compose \
+            -f infra/peagen/docker-compose.yml \
+            down tigrbl_auth tigrbl_kms gateway worker || true
+
+          sudo -E docker compose \
+            -f infra/peagen/docker-compose.yml \
+            up -d --build --force-recreate --no-deps tigrbl_auth tigrbl_kms gateway worker
+
+      - name: Verify services
+        run: |
+          services="tigrbl_auth tigrbl_kms gateway worker"
+          failed=0
+          for svc in $services; do
+            cid=$(sudo -E docker compose -f infra/peagen/docker-compose.yml ps -q $svc)
+            status=$(sudo docker inspect -f '{{.State.Status}}' "$cid" 2>/dev/null)
+            if [ "$status" != "running" ]; then
+              log=$(sudo -E docker compose -f infra/peagen/docker-compose.yml logs --tail 10 $svc)
+              log="${log//'%'/'%25'}"
+              log="${log//$'\n'/'%0A'}"
+              log="${log//$'\r'/'%0D'}"
+              echo "::error title=$svc failed::$log"
+              failed=1
+            fi
+          done
+          if [ $failed -eq 0 ]; then
+            echo "::notice title=Services started::All containers are running"
+          else
+            exit 1
+          fi
 
 
+      # Collect logs only when *any* previous step failed (deploy or later)
+      - name: Get container logs on failure
+        if: failure()          # <- overrides the implicit success() check
+        run: |
+          echo "::group::tigrbl_auth logs"
+          sudo -E docker compose -f infra/peagen/docker-compose.yml logs tigrbl_auth || true
+          echo "::endgroup::"
 
+          echo "::group::tigrbl_kms logs"
+          sudo -E docker compose -f infra/peagen/docker-compose.yml logs tigrbl_kms || true
+          echo "::endgroup::"
 
+          echo "::group::gateway logs"
+          sudo -E docker compose -f infra/peagen/docker-compose.yml logs gateway || true
+          echo "::endgroup::"
 
-
-    # Collect logs only when *any* previous step failed (deploy or later)
-    - name: Get container logs on failure
-      if: failure()          # <- overrides the implicit success() check
-      run: |
-        echo "::group::auto_authn logs"
-        sudo -E docker compose -f infra/peagen/docker-compose.yml logs auto_authn || true
-        echo "::endgroup::"
-
-        echo "::group::gateway logs"
-        sudo -E docker compose -f infra/peagen/docker-compose.yml logs gateway || true
-        echo "::endgroup::"
-
-        echo "::group::worker logs"
-        sudo -E docker compose -f infra/peagen/docker-compose.yml logs worker || true
-        echo "::endgroup::"
+          echo "::group::worker logs"
+          sudo -E docker compose -f infra/peagen/docker-compose.yml logs worker || true
+          echo "::endgroup::"

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_certservice_aws_kms"
-version = "0.1.0"
+version = "0.3.0.dev4"
 description = "AWS KMS backed CertService for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
@@ -12,7 +12,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-authors = [{ name = "Swarmauri", email = "opensource@swarmauri.com" }]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "boto3>=1.28.0",
     "asn1crypto",
@@ -23,7 +23,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-docs = ["mkdocs"]
 perf = ["pytest-benchmark>=4.0.0"]
 
 [tool.uv.sources]

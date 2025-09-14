@@ -1,11 +1,11 @@
 [project]
 name = "swarmauri_keyprovider_file"
-version = "0.1.0"
+version = "0.2.0.dev5"
 description = "File-backed key provider for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
-authors = [{ name = "Swarmauri", email = "opensource@swarmauri.com" }]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
@@ -65,3 +65,6 @@ build-backend = "poetry.core.masonry.api"
 
 [project.entry-points.'swarmauri.key_providers']
 FileKeyProvider = "swarmauri_keyprovider_file.FileKeyProvider:FileKeyProvider"
+
+[project.entry-points."peagen.plugins.key_providers"]
+file = "swarmauri_keyprovider_file.FileKeyProvider:FileKeyProvider"

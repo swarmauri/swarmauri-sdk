@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupyterclearoutput"
-version = "0.7.6.dev5"
+version = "0.9.0.dev4"
 description = "A tool designed to clear all outputs from a Jupyter Notebook using nbconvert’s ClearOutputPreprocessor, preparing the notebook for sharing or version control."
 license = "Apache-2.0"
 readme = "README.md"

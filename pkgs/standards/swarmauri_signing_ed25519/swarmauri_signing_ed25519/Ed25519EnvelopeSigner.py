@@ -77,8 +77,6 @@ def _keyref_to_public_from_private(sk: Ed25519PrivateKey) -> Ed25519PublicKey:
     return sk.public_key()
 
 
-
-
 def _keyid_from_public(pk: Ed25519PublicKey) -> str:
     raw = pk.public_bytes(
         encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw

@@ -17,7 +17,7 @@ try:  # pragma: no cover - keyring may be unavailable
 except Exception:  # noqa: BLE001
     keyring = None
 
-from autoapi_client import AutoAPIClient
+from tigrbl_client import TigrblClient
 
 # ─── Banner helper (printed unless –quiet) ────────────────────────────────
 from peagen.cli._banner import _print_banner
@@ -167,11 +167,11 @@ def _global_remote_ctx(  # noqa: D401
 
     if api_key is None and keyring is not None:  # pragma: no branch
         try:
-            api_key = keyring.get_password("auto_authn-api-key", "default")
+            api_key = keyring.get_password("tigrbl_auth-api-key", "default")
         except Exception:  # noqa: BLE001
             api_key = None
 
-    rpc_client = AutoAPIClient(
+    rpc_client = TigrblClient(
         gw_url,
         client=httpx.Client(timeout=defaults.RPC_TIMEOUT),
         api_key=api_key,

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_parser_slate"
-version = "0.1.2.dev5"
+version = "0.2.0.dev4"
 description = "A parser for extracting text from PDFs using Slate."
 license = "Apache-2.0"
 readme = "README.md"
@@ -44,7 +44,7 @@ log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
-[tool.project.entry-points."swarmauri.parsers"]
+[project.entry-points.'swarmauri.parsers']
 SlateParser = "swarmauri_parser_slate.SlateParser:SlateParser"
 
 [build-system]

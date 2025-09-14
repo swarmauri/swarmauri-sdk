@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_searchword"
-version = "0.1.2.dev5"
+version = "0.3.0.dev4"
 description = "A tool for searching a specific word or phrase in a file."
 authors = [{ name = "Vijay Vignesh Prasad Rao", email = "vijayvigneshp02@gmail.com" }]
 license = "Apache-2.0"
@@ -66,5 +66,5 @@ log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
-[tool.project.entry-points."swarmauri.tools"]
+[project.entry-points.'swarmauri.tools']
 SearchWordTool = "swarmauri_tool_searchword:SearchWordTool"

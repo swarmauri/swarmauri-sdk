@@ -4,11 +4,6 @@ import base64
 import json
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple, Literal
 
-try:  # pragma: no cover - optional dependency
-    import jwt  # PyJWT (optional; used only for safe "peek")
-except Exception:  # pragma: no cover
-    jwt = None  # we'll fall back to manual base64url parsing
-
 try:  # pragma: no cover - allow running without core/base packages
     from swarmauri_base.tokens.TokenServiceBase import TokenServiceBase
 except Exception:  # pragma: no cover
@@ -32,20 +27,13 @@ def _b64u_decode(s: str) -> bytes:
 
 
 def _peek_jwt_parts(token: str) -> Tuple[Optional[dict], Optional[dict]]:
-    """
-    Return (unverified_header, unverified_payload) for a compact JWT/JWS.
-    Never raises; returns (None, None) on parse errors.
+    """Return the unverified header and payload for a compact JWT/JWS.
+
+    Parsing is performed manually via base64url decoding so that the
+    implementation does not rely on the external ``PyJWT`` package.  Any
+    parsing error results in ``(None, None)``.
     """
     try:
-        if jwt is not None:  # fast path via PyJWT helpers
-            hdr = jwt.get_unverified_header(token)
-            # payload: decode the middle section without verify
-            parts = token.split(".")
-            if len(parts) != 3:
-                return hdr, None
-            body_b = _b64u_decode(parts[1])
-            return hdr, json.loads(body_b.decode("utf-8"))
-        # Manual fallback
         parts = token.split(".")
         if len(parts) != 3:
             return None, None

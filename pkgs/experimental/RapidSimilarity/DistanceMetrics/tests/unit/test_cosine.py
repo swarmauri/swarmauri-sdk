@@ -2,6 +2,7 @@ import pytest
 import numpy as np
 from DistanceMetrics import cosine
 
+
 @pytest.mark.unit
 def test_cosine_similarity_identical_vectors():
     """Test cosine similarity for identical vectors."""
@@ -10,6 +11,7 @@ def test_cosine_similarity_identical_vectors():
     result = cosine.cosine_similarity(vec1, vec2)
     expected = 1.0
     assert np.isclose(result, expected), f"Expected {expected}, got {result}"
+
 
 @pytest.mark.unit
 def test_cosine_similarity_orthogonal_vectors():
@@ -20,6 +22,7 @@ def test_cosine_similarity_orthogonal_vectors():
     expected = 0.0
     assert np.isclose(result, expected), f"Expected {expected}, got {result}"
 
+
 @pytest.mark.unit
 def test_cosine_similarity_opposite_vectors():
     """Test cosine similarity for opposite vectors."""
@@ -28,6 +31,7 @@ def test_cosine_similarity_opposite_vectors():
     result = cosine.cosine_similarity(vec1, vec2)
     expected = -1.0
     assert np.isclose(result, expected), f"Expected {expected}, got {result}"
+
 
 @pytest.mark.unit
 def test_cosine_similarity_zero_vector():
@@ -38,6 +42,7 @@ def test_cosine_similarity_zero_vector():
     expected = 0.0
     assert np.isclose(result, expected), f"Expected {expected}, got {result}"
 
+
 @pytest.mark.unit
 def test_cosine_similarity_different_lengths():
     """Test cosine similarity for vectors of different lengths."""
@@ -45,6 +50,7 @@ def test_cosine_similarity_different_lengths():
     vec2 = np.array([1.0, 2.0, 3.0])
     with pytest.raises(ValueError, match="Vectors must be of the same length."):
         cosine.cosine_similarity(vec1, vec2)
+
 
 @pytest.mark.unit
 def test_cosine_similarity_non_list_input():

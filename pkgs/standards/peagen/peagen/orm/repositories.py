@@ -2,43 +2,69 @@
 from __future__ import annotations
 
 from urllib.parse import urlparse
-from typing import Any, Dict, Mapping, Optional
+from typing import Any, Mapping, Optional, TYPE_CHECKING
 
-from autoapi.v2.tables import Base
-from autoapi.v2.types import (
-    Column, String, UniqueConstraint, relationship, HookProvider, Field,
+from tigrbl.orm.tables import Base
+from tigrbl.types import (
+    String,
+    UniqueConstraint,
+    relationship,
+    Mapped,
 )
-from autoapi.v2.mixins import (
-    GUIDPk, Timestamped, TenantBound, TenantPolicy, Ownable, OwnerPolicy, StatusMixin,
+from tigrbl.orm.mixins import (
+    GUIDPk,
+    Timestamped,
+    TenantBound,
+    TenantPolicy,
+    Ownable,
+    OwnerPolicy,
+    StatusColumn,
 )
-from autoapi.v2.hooks import Phase
-from autoapi.v2.jsonrpc_models import create_standardized_error
+from tigrbl.runtime.errors import create_standardized_error
+from tigrbl.specs import F, IO, S, acol, vcol
+from tigrbl import hook_ctx
+
+if TYPE_CHECKING:  # pragma: no cover
+    from .secrets import RepoSecret
+    from .keys import DeployKey
+    from .tasks import Task
 
 
-class Repository(
-    Base, GUIDPk, Timestamped, Ownable, TenantBound, StatusMixin, HookProvider
-):
+class Repository(Base, GUIDPk, Timestamped, Ownable, TenantBound, StatusColumn):
     __tablename__ = "repositories"
-    __table_args__ = (UniqueConstraint("url"), {"schema": "peagen"})
+    __table_args__ = (
+        UniqueConstraint("url"),
+        {"schema": "peagen", "extend_existing": True},
+    )
 
-    # Only request-extra we allow: caller's GitHub PAT (write-only)
-    __autoapi_request_extras__ = {
-        "*": {
-            "github_pat": (str | None, Field(default=None, description="GitHub PAT (write-only)")),
-        }
-    }
+    __tigrbl_owner_policy__: OwnerPolicy = OwnerPolicy.STRICT_SERVER
+    __tigrbl_tenant_policy__: TenantPolicy = TenantPolicy.STRICT_SERVER
 
-    __autoapi_owner_policy__: OwnerPolicy = OwnerPolicy.STRICT_SERVER
-    __autoapi_tenant_policy__: TenantPolicy = TenantPolicy.STRICT_SERVER
+    name: Mapped[str] = acol(storage=S(String, nullable=False))
+    url: Mapped[str] = acol(storage=S(String, unique=True, nullable=False))
+    default_branch: Mapped[str] = acol(storage=S(String, default="main"))
+    commit_sha: Mapped[str | None] = acol(storage=S(String(length=40), nullable=True))
+    github_pat: str | None = vcol(
+        field=F(
+            py_type=str | None,
+            constraints={
+                "description": "GitHub PAT (write-only)",
+                "exclude": True,
+            },
+            required_in=("create",),
+        ),
+        io=IO(in_verbs=("create", "update", "replace", "delete")),
+    )
 
-    name = Column(String, nullable=False)
-    url = Column(String, unique=True, nullable=False)
-    default_branch = Column(String, default="main")
-    commit_sha = Column(String(length=40), nullable=True)
-
-    secrets = relationship("RepoSecret", back_populates="repository", cascade="all, delete-orphan")
-    deploy_keys = relationship("DeployKey", back_populates="repository", cascade="all, delete-orphan")
-    tasks = relationship("Task", back_populates="repository", cascade="all, delete-orphan")
+    secrets: Mapped[list["RepoSecret"]] = relationship(
+        "RepoSecret", back_populates="repository", cascade="all, delete-orphan"
+    )
+    deploy_keys: Mapped[list["DeployKey"]] = relationship(
+        "DeployKey", back_populates="repository", cascade="all, delete-orphan"
+    )
+    tasks: Mapped[list["Task"]] = relationship(
+        "Task", back_populates="repository", cascade="all, delete-orphan"
+    )
 
     # ─────────────── helpers ───────────────
 
@@ -77,7 +103,7 @@ class Repository(
 
     # ─────────────── PRE_HANDLER (provision remotes) ───────────────
 
-    @classmethod
+    @hook_ctx(ops="create", phase="PRE_HANDLER")
     async def _pre_handler_provision(cls, ctx):
         """
         Before DB create: ensure both remotes exist and are linked
@@ -90,20 +116,28 @@ class Repository(
         gh_pat = (p.get("github_pat") or "").strip()
 
         if not slug:
-            http_exc, *_ = create_standardized_error(400, message="url must include owner/name")
+            http_exc, *_ = create_standardized_error(
+                400, message="url must include owner/name"
+            )
             raise http_exc
         if not gh_pat:
-            http_exc, *_ = create_standardized_error(400, message="github_pat is required")
+            http_exc, *_ = create_standardized_error(
+                400, message="github_pat is required"
+            )
             raise http_exc
 
         # Optional description from name
         desc = (p.get("name") or "").strip()
 
         try:
-            result = await gsc.ensure_repo_and_mirror(slug=slug, github_pat=gh_pat, description=desc)
+            result = await gsc.ensure_repo_and_mirror(
+                slug=slug, github_pat=gh_pat, description=desc
+            )
         except Exception as exc:
             # Map provisioning failure to 502 (bad upstream)
-            http_exc, *_ = create_standardized_error(502, message=f"remote provisioning failed: {exc}")
+            http_exc, *_ = create_standardized_error(
+                502, message=f"remote provisioning failed: {exc}"
+            )
             raise http_exc
         finally:
             # scrub the PAT as soon as possible
@@ -118,7 +152,7 @@ class Repository(
             "created": result.get("created"),
         }
 
-    @classmethod
+    @hook_ctx(ops="create", phase="POST_RESPONSE")
     async def _post_response_attach(cls, ctx):
         summary = ctx.get("__repo_init__")
         if not summary:
@@ -130,11 +164,7 @@ class Repository(
 
     # ─────────────── register hooks ───────────────
 
-    @classmethod
-    def __autoapi_register_hooks__(cls, api) -> None:
-        # Run provisioning before the DB handler; attach a tiny summary after
-        api.register_hook(Phase.PRE_HANDLER,   model=cls, op="create")(cls._pre_handler_provision)
-        api.register_hook(Phase.POST_RESPONSE, model=cls, op="create")(cls._post_response_attach)
+    # hooks registered via @hook_ctx
 
 
 __all__ = ["Repository"]

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_certservice_ms_adcs"
-version = "0.1.0"
+version = "0.2.0.dev4"
 description = "Microsoft AD CS certificate service client for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
@@ -12,7 +12,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-authors = [{ name = "Swarmauri", email = "opensource@swarmauri.com" }]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "requests>=2.32.3",
     "cryptography",
@@ -24,7 +24,6 @@ dependencies = [
 [project.optional-dependencies]
 ntlm = ["requests-ntlm"]
 kerberos = ["requests-kerberos"]
-docs = ["mkdocs"]
 perf = ["pytest-benchmark>=4.0.0"]
 
 [tool.uv.sources]

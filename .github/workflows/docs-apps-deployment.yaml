@@ -1,0 +1,33 @@
+name: Deploy Docs Apps
+
+on:
+  push:
+    branches: [master, mono/dev]
+    paths:
+      - 'docs/**'
+      - 'pkgs/**'
+  workflow_dispatch:
+
+jobs:
+  deploy-apps:
+    if: ${{ !cancelled() }}
+    runs-on: [docs]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Provide the runner's UID/GID to Compose (consumed by infra/docs/.env)
+      - name: Export runner UID/GID for Compose
+        working-directory: infra/docs
+        run: |
+          printf "RUN_UID=%s\nRUN_GID=%s\n" "$(id -u)" "$(id -g)" > .env
+          echo "Using UID:GID $(id -u):$(id -g)"
+
+      - name: Restart docs services
+        working-directory: infra/docs
+        run: |
+          sudo docker compose -f docker-compose.yaml \
+            up -d --build --force-recreate --no-deps \
+            swarmauri-sdk-docs peagen-docs tigrbl-docs

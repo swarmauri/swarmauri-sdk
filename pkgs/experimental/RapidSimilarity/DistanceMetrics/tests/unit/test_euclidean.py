@@ -2,6 +2,7 @@ import pytest
 import numpy as np
 from DistanceMetrics import euclidean_distance
 
+
 @pytest.mark.unit
 def test_euclidean_distance_identical_vectors():
     """Test Euclidean distance between identical vectors."""
@@ -10,6 +11,7 @@ def test_euclidean_distance_identical_vectors():
     expected = 0.0
     result = euclidean_distance(a, b)
     assert np.isclose(result, expected), f"Expected {expected}, got {result}"
+
 
 @pytest.mark.unit
 def test_euclidean_distance_different_vectors():
@@ -20,6 +22,7 @@ def test_euclidean_distance_different_vectors():
     result = euclidean_distance(a, b)
     assert np.isclose(result, expected), f"Expected {expected}, got {result}"
 
+
 @pytest.mark.unit
 def test_euclidean_distance_empty_vectors():
     """Test Euclidean distance between empty vectors."""
@@ -28,6 +31,7 @@ def test_euclidean_distance_empty_vectors():
     expected = 0.0
     result = euclidean_distance(a, b)
     assert np.isclose(result, expected), f"Expected {expected}, got {result}"
+
 
 @pytest.mark.unit
 def test_euclidean_distance_invalid_shape():

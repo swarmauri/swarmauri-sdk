@@ -20,6 +20,7 @@ from swarmauri_base.DynamicBase import SubclassUnion as SubclassUnion
 from swarmauri_base.LoggerMixin import LoggerMixin
 from swarmauri_base.ServiceMixin import ServiceMixin
 from swarmauri_base.YamlMixin import YamlMixin
+from swarmauri_base.TomlMixin import TomlMixin
 
 ###########################################
 # ComponentBase
@@ -29,7 +30,7 @@ T = TypeVar("T", bound="ComponentBase")
 
 
 @DynamicBase.register_type()
-class ComponentBase(LoggerMixin, YamlMixin, ServiceMixin, DynamicBase):
+class ComponentBase(LoggerMixin, YamlMixin, TomlMixin, ServiceMixin, DynamicBase):
     """
     Base class for all components.
     """
@@ -108,3 +109,19 @@ class ResourceTypes(Enum):
     MIDDLEWARE = "Middleware"
     SECRET_DRIVE = "SecretDrive"
     CRYPTO = "Crypto"
+    AGENT_API = "AgentAPI"
+    SWARM_API = "SwarmAPI"
+    CERT_SERVICE = "CertService"
+    KEY_PROVIDER = "KeyProvider"
+    LOGGER = "Logger"
+    LOGGER_HANDLER = "LoggerHandler"
+    LOGGER_FORMATTER = "LoggerFormatter"
+    MATRIX = "Matrix"
+    MRE_CRYPTO = "MreCrypto"
+    PROMPT_TEMPLATE = "PromptTemplate"
+    SIGNING = "Signing"
+    TRACER = "Tracer"
+    TENSOR = "Tensor"
+    TOKEN_SERVICE = "TokenService"
+    STORAGE_ADAPTER = "StorageAdapter"
+    SST = "SST"

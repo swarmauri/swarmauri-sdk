@@ -33,9 +33,9 @@ members = [
     "swarmauri_standard",
     "swarmauri",
     "typing",
-    "cayaml",
-    "catoml",
-    "jaml",
+    "experimental/cayaml",
+    "experimental/catoml",
+    "experimental/jaml",
     "standards/swarmauri_vectorstore_doc2vec",
     "standards/swarmauri_embedding_doc2vec",
     #"standards/swarmauri_embedding_tfidf",
@@ -44,6 +44,7 @@ members = [
     "standards/swarmauri_tool_containerfeedchars",
     "standards/swarmauri_tool_containernewsession",
     "standards/swarmauri_tool_containermakepr",
+    "standards/swarmauri_tool_httploaded",
     "standards/swarmauri_tokens_rotatingjwt",
     "standards/swarmauri_parser_keywordextractor",
     "standards/swarmauri_parser_beautifulsoupelement",
@@ -64,32 +65,44 @@ members = [
     "standards/swarmauri_middleware_cors",
     "standards/swarmauri_middleware_exceptionhandling",
     "standards/swarmauri_middleware_gzipcompression",
+    "standards/swarmauri_middleware_jwt",
     "standards/swarmauri_middleware_jwksverifier",
     "standards/swarmauri_middleware_llamaguard",
     "standards/swarmauri_middleware_logging",
     "standards/swarmauri_middleware_ratelimit",
     "standards/swarmauri_middleware_securityheaders",
+    "standards/swarmauri_middleware_httpsig",
     "standards/swarmauri_middleware_session",
     "standards/swarmauri_middleware_time",
     "standards/swarmauri_middleware_stdio",
     "standards/swarmauri_middleware_jsonrpc",
     "standards/swarmauri_prompt_j2prompttemplate",
-    "standards/autoapi",
-    "standards/autoapi_client",
+    "standards/tigrbl",
+    "standards/tigrbl_auth",
+    "standards/tigrbl_kms",
+    "standards/tigrbl_client",
     "standards/peagen",
-    "standards/auto_authn",
-    "standards/auto_kms",
+    "standards/swarmauri_storage_file",
+    "standards/swarmauri_storage_github",
+    "standards/swarmauri_storage_github_release",
+    "standards/swarmauri_storage_minio",
+    "standards/swarmauri_gitfilter_file",
+    "standards/swarmauri_gitfilter_s3fs",
+    "standards/swarmauri_gitfilter_minio",
+    "standards/swarmauri_gitfilter_gh_release",
     "standards/swarmauri_certs_composite",
     "standards/swarmauri_keyprovider_local",
-    "standards/swarmauri_keyprovider_pkcs11",
     "standards/swarmauri_keyprovider_remote_jwks",
     "standards/swarmauri_keyprovider_ssh",
     "standards/swarmauri_keyprovider_file",
     "standards/swarmauri_keyproviders_mirrored",
     "standards/swarmauri_keyprovider_hierarchical",
-    "swarmauri_certs_pkcs11",
+    "standards/swarmauri_keyprovider_inmemory",
+    "experimental/swarmauri_certs_pkcs11",
+    "experimental/swarmauri_keyprovider_pkcs11",
     "standards/swarmauri_crypto_paramiko",
     "standards/swarmauri_crypto_pgp",
+    "standards/swarmauri_crypto_rust",
     "standards/swarmauri_crypto_sodium",
     "standards/swarmauri_crypto_nacl_pkcs11",
     "standards/swarmauri_crypto_jwe",
@@ -106,11 +119,12 @@ members = [
     "standards/swarmauri_signing_ecdsa",
     "standards/swarmauri_signing_ca",
     "standards/swarmauri_signing_jws",
-    "swarmauri_certs_local_ca",
+    "standards/swarmauri_signing_dpop",
+    "standards/swarmauri_certs_local_ca",
+    "standards/swarmauri_certs_self_signed",
     "standards/swarmauri_tokens_jwt",
     "standards/swarmauri_tokens_sshsig",
     "standards/swarmauri_tokens_sshcert",
-    "standards/swarmauri_secret_autogpg",
     "standards/swarmauri_tokens_dpopboundjwt",
     "standards/swarmauri_signing_pgp",
     "standards/swarmauri_signing_rsa",
@@ -122,15 +136,17 @@ members = [
     "standards/swarmauri_tokens_composite",
     "standards/swarmauri_tokens_remoteoidc",
     "standards/swarmauri_tokens_tlsboundjwt",
+    "community/zdx",
     "community/swarmauri_certs_csronly",
+    "community/swarmauri_certs_azure",
     "standards/swarmauri_certs_remote_ca",
-    "community/swarmauri_cert_cfssl",
+    "community/swarmauri_certs_cfssl",
     "standards/swarmauri_certs_x509",
     "community/swarmauri_middleware_circuitbreaker",
     "community/swarmauri_middleware_ratepolicy",
     "community/swarmauri_keyprovider_aws_kms",
     "community/swarmauri_certservice_stepca",
-    "community/swarmauri_cert_acme",
+    "community/swarmauri_certs_acme",
     "community/swarmauri_certservice_aws_kms",
     "community/swarmauri_vectorstore_redis",
     "community/swarmauri_vectorstore_qdrant",
@@ -195,13 +211,11 @@ members = [
     "community/swarmauri_tool_searchword",
     "community/swarmauri_keyprovider_gcpkms",
     "community/swarmauri_certs_crlverifyservice",
-    "community/swarmauri_cert_ocspverify",
+    "community/swarmauri_certs_ocspverify",
     "community/swarmauri_certservice_scep",
     "community/swarmauri_certservice_ms_adcs",
     "community/swarmauri_certservice_gcpkms",
-    "standards/swarmauri_tool_containernewsession",
-    "standards/swarmauri_tool_containerfeedchars",
-    "standards/swarmauri_tool_containermakepr",
+    "standards/swarmauri_tool_githubloader",
     "standards/swarmauri_toolkit_containertoolkit",
     "experimental/swarmauri_workflow_statedriven"
 
@@ -240,10 +254,12 @@ swarmauri_middleware_cors = { workspace = true }
 swarmauri_middleware_exceptionhadling = { workspace = true }
 swarmauri_middleware_gzipcompression = { workspace = true }
 swarmauri_middleware_jwksverifier = { workspace = true }
+swarmauri_middleware_jwt = { workspace = true } # ❓
 swarmauri_middleware_llamaguard = { workspace = true }
 swarmauri_middleware_logging = { workspace = true }
 swarmauri_middleware_ratelimit = { workspace = true }
 swarmauri_middleware_sercurityheaders = { workspace = true }
+swarmauri_middleware_httpsig = { workspace = true }
 swarmauri_middleware_session = { workspace = true }
 swarmauri_middleware_time = { workspace = true }
 swarmauri_middleware_stdio = { workspace = true }
@@ -251,15 +267,24 @@ swarmauri_middleware_jsonrpc = { workspace = true }
 swarmauri_middleware_circuitbreaker = { workspace = true }
 swarmauri_middleware_ratepolicy = { workspace = true }
 
-autoapi = { workspace = true }
-autoapi_client = { workspace = true }
-auto_authn = { workspace = true }
+tigrbl = { workspace = true }
+tigrbl_client = { workspace = true }
+tigrbl_auth = { workspace = true }
+tigrbl_kms = { workspace = true }
 peagen = { workspace = true }
-auto_kms = { workspace = true }
 
-swarmauri_secret_autogpg = { workspace = true }
+swarmauri_storage_file = { workspace = true }
+swarmauri_storage_github = { workspace = true }
+swarmauri_storage_github_release = { workspace = true }
+swarmauri_storage_minio = { workspace = true }
+swarmauri_gitfilter_file = { workspace = true }
+swarmauri_gitfilter_s3fs = { workspace = true }
+swarmauri_gitfilter_minio = { workspace = true }
+swarmauri_gitfilter_gh_release = { workspace = true }
+
 swarmauri_crypto_paramiko = { workspace = true }
 swarmauri_crypto_pgp = { workspace = true }
+swarmauri_crypto_rust = { workspace = true }
 swarmauri_crypto_nacl_pkcs11 = { workspace = true }
 swarmauri_crypto_composite = { workspace = true }
 swarmauri_crypto_ecdh_es_a128kw = { workspace = true }
@@ -270,24 +295,27 @@ swarmauri_mre_crypto_age = { workspace = true }
 swarmauri_mre_crypto_pgp = { workspace = true }
 swarmauri_mre_crypto_ecdh_es_kw = { workspace = true }
 swarmauri_signing_ed25519 = { workspace = true }
-swarmauri_cert_cfssl = { workspace = true }
+swarmauri_certs_cfssl = { workspace = true }
 swarmauri_keyprovider_local = { workspace = true }
 swarmauri_keyprovider_pkcs11 = { workspace = true }
 swarmauri_keyprovider_remote_jwks = { workspace = true }
 swarmauri_keyprovider_ssh = { workspace = true }
 swarmauri_keyprovider_aws_kms = { workspace = true }
 swarmauri_certservice_stepca = { workspace = true }
-swarmauri_cert_acme = { workspace = true }
+swarmauri_certs_acme = { workspace = true }
 swarmauri_keyprovider_file = { workspace = true }
 swarmauri_keyproviders_mirrored = { workspace = true }
 swarmauri_keyprovider_hierarchical = { workspace = true }
+swarmauri_keyprovider_inmemory = { workspace = true }
 swarmauri_signing_hmac = { workspace = true }
 swarmauri_signing_ecdsa = { workspace = true }
 swarmauri_signing_ca = { workspace = true }
 swarmauri_certs_remote_ca = { workspace = true }
 swarmauri_signing_jws = { workspace = true }
+swarmauri_signing_dpop = { workspace = true }
 swarmauri_certs_pkcs11 = { workspace = true }
 swarmauri_certs_local_ca = { workspace = true }
+swarmauri_certs_self_signed = { workspace = true }
 swarmauri_tokens_dpopboundjwt = { workspace = true }
 swarmauri_tokens_jwt = { workspace = true }
 swarmauri_tokens_sshsig = { workspace = true }
@@ -342,7 +370,6 @@ swarmauri_tool_entityrecognition = { workspace = true }
 swarmauri_certservice_ms_adcs = { workspace = true }
 swarmauri_keyprovider_vaulttransit = { workspace = true }
 swarmauri_llm_leptonai = { workspace = true }
-swarmauri_standards = { workspace = true }
 swarmauri_vectorstore_annoy = { workspace = true }
 swarmauri_tool_jupyterwritenotebook = { workspace = true }
 swarmauri_tool_jupytervalidatenotebook = { workspace = true }
@@ -369,10 +396,13 @@ swarmauri_parser_slate = { workspace = true }
 swarmauri_tool_searchword = { workspace = true }
 swarmauri_keyprovider_gcpkms = { workspace = true }
 swarmauri_certs_csronly = { workspace = true }
-swarmauri_cert_ocspverify = { workspace = true }
+swarmauri_certs_azure = { workspace = true }
+swarmauri_certs_ocspverify = { workspace = true }
 swarmauri_tool_containernewsession = { workspace = true }
 swarmauri_tool_containerfeedchars = { workspace = true }
 swarmauri_tool_containermakepr = { workspace = true }
+swarmauri_tool_httploaded = { workspace = true }
+swarmauri_tool_githubloader = { workspace = true }
 swarmauri_toolkit_containertoolkit = { workspace = true }
 swarmauri_workflow_statedriven = { workspace = true }
 swarmauri_certservice_gcpkms = { workspace = true }

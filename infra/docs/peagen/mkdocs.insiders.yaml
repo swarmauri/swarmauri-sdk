@@ -1,0 +1,11 @@
+---
+plugins:
+  social:
+    cards_layout_options:
+      logo: assets/peagen_logo.png
+  typeset:
+markdown_extensions:
+  material.extensions.preview:
+    targets:
+      include:
+        - "*"

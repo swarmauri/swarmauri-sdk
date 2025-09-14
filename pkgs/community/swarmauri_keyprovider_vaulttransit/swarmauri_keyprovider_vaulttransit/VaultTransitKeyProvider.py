@@ -1,3 +1,5 @@
+"""HashiCorp Vault Transit key provider."""
+
 from __future__ import annotations
 
 import base64
@@ -23,11 +25,20 @@ __all__ = ["VaultTransitKeyProvider"]
 
 
 def _b64u(b: bytes) -> str:
+    """Encode bytes using URL-safe base64 without padding.
+
+    b (bytes): The byte string to encode.
+    RETURNS (str): The base64url representation.
+    """
     return base64.urlsafe_b64encode(b).rstrip(b"=").decode("ascii")
 
 
 def _pem_to_jwk(pem: bytes) -> dict:
-    """Convert a PEM public key to a JWK dict."""
+    """Convert a PEM public key to a JWK dict.
+
+    pem (bytes): The PEM-encoded public key.
+    RETURNS (dict): The corresponding JWK representation.
+    """
     pub = serialization.load_pem_public_key(pem)
     if isinstance(pub, rsa.RSAPublicKey):
         nums = pub.public_numbers()
@@ -51,7 +62,10 @@ def _pem_to_jwk(pem: bytes) -> dict:
 
 
 class VaultTransitKeyProvider(KeyProviderBase):
-    """Key provider backed by HashiCorp Vault Transit engine."""
+    """Key provider backed by HashiCorp Vault's Transit engine.
+
+    Supports key creation, rotation, listing and JWKS export.
+    """
 
     type: Literal["VaultTransitKeyProvider"] = "VaultTransitKeyProvider"
 
@@ -66,6 +80,16 @@ class VaultTransitKeyProvider(KeyProviderBase):
         prefer_vault_rng: bool = True,
         client: Any | None = None,
     ) -> None:
+        """Initialize the key provider.
+
+        url (str): Base URL of the Vault server.
+        token (str): Authentication token for Vault.
+        mount (str): Path where the Transit engine is mounted.
+        namespace (str or None): Optional Vault namespace.
+        verify (bool or str): TLS verification settings.
+        prefer_vault_rng (bool): Prefer Vault's RNG for random bytes.
+        client (Any or None): Preconfigured hvac client to use.
+        """
         super().__init__()
         if hvac is None and client is None:  # pragma: no cover - runtime guard
             raise ImportError(
@@ -84,6 +108,10 @@ class VaultTransitKeyProvider(KeyProviderBase):
 
     # ------------------------------------------------------------------
     def supports(self) -> Mapping[str, Iterable[str]]:
+        """Describe supported key types, algorithms and features.
+
+        RETURNS (Mapping[str, Iterable[str]]): Supported capabilities.
+        """
         return {
             "class": ("sym", "asym"),
             "algs": (
@@ -93,12 +121,17 @@ class VaultTransitKeyProvider(KeyProviderBase):
                 KeyAlg.ECDSA_P256_SHA256,
                 KeyAlg.ED25519,
             ),
-            "features": ("rotate", "jwks", "non_exportable"),
+            "features": ("create", "rotate", "jwks", "non_exportable"),
         }
 
     # ------------------------------------------------------------------
     @staticmethod
     def _vault_type_for_alg(alg: KeyAlg) -> Tuple[str, str]:
+        """Map a KeyAlg to Vault key type and purpose.
+
+        alg (KeyAlg): The algorithm to map.
+        RETURNS (Tuple[str, str]): Vault key type and purpose.
+        """
         if alg == KeyAlg.AES256_GCM:
             return "aes256-gcm96", "encryption"
         if alg == KeyAlg.RSA_OAEP_SHA256:
@@ -112,6 +145,11 @@ class VaultTransitKeyProvider(KeyProviderBase):
         raise ValueError(f"Unsupported alg: {alg}")
 
     def _export_type_for_purpose(self, purpose: str) -> str:
+        """Resolve Vault export type for a given key purpose.
+
+        purpose (str): Either ``"encryption"`` or ``"signing"``.
+        RETURNS (str): The corresponding export type.
+        """
         if purpose == "encryption":
             return "encryption-key"
         if purpose == "signing":
@@ -119,16 +157,32 @@ class VaultTransitKeyProvider(KeyProviderBase):
         raise ValueError("Unknown purpose")
 
     def _key_status(self, name: str) -> dict:
+        """Fetch metadata for a key from Vault.
+
+        name (str): The Vault key name.
+        RETURNS (dict): Raw key status information.
+        """
         res = self._transit.read_key(name=name, mount_point=self._mount)
         return res["data"]
 
     def _list_key_names(self) -> List[str]:
+        """List all key names in the configured mount.
+
+        RETURNS (List[str]): Available key identifiers.
+        """
         res = self._transit.list_keys(mount_point=self._mount)
         return (res.get("data") or {}).get("keys", []) or []
 
     def _export_public_pem(
         self, name: str, version: Optional[int], purpose: str
     ) -> Optional[bytes]:
+        """Export the PEM-encoded public key from Vault.
+
+        name (str): The Vault key name.
+        version (int or None): Specific key version or latest.
+        purpose (str): Key purpose, ``"signing"`` or ``"encryption"``.
+        RETURNS (bytes or None): The PEM public key if available.
+        """
         export_type = self._export_type_for_purpose(purpose)
         try:
             res = self._transit.export_key(
@@ -165,6 +219,11 @@ class VaultTransitKeyProvider(KeyProviderBase):
 
     # ------------------------------------------------------------------
     async def create_key(self, spec: KeySpec) -> KeyRef:
+        """Create a new key in Vault.
+
+        spec (KeySpec): Desired key specification.
+        RETURNS (KeyRef): Reference to the created key.
+        """
         vtype, purpose = self._vault_type_for_alg(spec.alg)
         name = (
             spec.label or f"k-{hashlib.sha256(os.urandom(16)).hexdigest()[:12]}"
@@ -202,6 +261,15 @@ class VaultTransitKeyProvider(KeyProviderBase):
     async def import_key(
         self, spec: KeySpec, material: bytes, *, public: Optional[bytes] = None
     ) -> KeyRef:
+        """Import a key into Vault.
+
+        This provider does not support importing existing key material.
+
+        spec (KeySpec): Specification of the key to import.
+        material (bytes): Raw key material.
+        public (bytes or None): Optional public portion of the key.
+        RAISES (NotImplementedError): Always raised.
+        """
         raise NotImplementedError(
             "VaultTransitKeyProvider.import_key is intentionally not supported"
         )
@@ -209,6 +277,12 @@ class VaultTransitKeyProvider(KeyProviderBase):
     async def rotate_key(
         self, kid: str, *, spec_overrides: Optional[dict] = None
     ) -> KeyRef:
+        """Rotate an existing key.
+
+        kid (str): Identifier of the key to rotate.
+        spec_overrides (dict or None): Optional override values.
+        RETURNS (KeyRef): Reference to the rotated key version.
+        """
         self._transit.rotate_key(name=kid, mount_point=self._mount)
         status = self._key_status(kid)
         latest = int(status["latest_version"])
@@ -235,6 +309,12 @@ class VaultTransitKeyProvider(KeyProviderBase):
         )
 
     async def destroy_key(self, kid: str, version: Optional[int] = None) -> bool:
+        """Destroy a key or specific key version.
+
+        kid (str): Key identifier.
+        version (int or None): Specific version to destroy or all versions.
+        RETURNS (bool): ``True`` when the operation succeeds.
+        """
         if version is None:
             self._transit.delete_key(name=kid, mount_point=self._mount)
             return True
@@ -246,6 +326,13 @@ class VaultTransitKeyProvider(KeyProviderBase):
     async def get_key(
         self, kid: str, version: Optional[int] = None, *, include_secret: bool = False
     ) -> KeyRef:
+        """Retrieve a key reference from Vault.
+
+        kid (str): Key identifier.
+        version (int or None): Desired version or latest.
+        include_secret (bool): Unused, kept for interface parity.
+        RETURNS (KeyRef): Reference describing the key.
+        """
         status = self._key_status(kid)
         latest = int(status["latest_version"])
         ver = int(version or latest)
@@ -273,11 +360,22 @@ class VaultTransitKeyProvider(KeyProviderBase):
         )
 
     async def list_versions(self, kid: str) -> Tuple[int, ...]:
+        """List available versions for a key.
+
+        kid (str): Key identifier.
+        RETURNS (Tuple[int, ...]): Sorted tuple of version numbers.
+        """
         status = self._key_status(kid)
         keys = status.get("keys") or {}
         return tuple(sorted(int(v) for v in keys.keys()))
 
     async def get_public_jwk(self, kid: str, version: Optional[int] = None) -> dict:
+        """Export a public key in JWK format.
+
+        kid (str): Key identifier.
+        version (int or None): Specific version or latest.
+        RETURNS (dict): JSON Web Key representation.
+        """
         ref = await self.get_key(kid, version)
         if isinstance(ref.public, (bytes, bytearray)):
             jwk = _pem_to_jwk(bytes(ref.public))
@@ -286,6 +384,11 @@ class VaultTransitKeyProvider(KeyProviderBase):
         return {"kty": "oct", "alg": "A256GCM", "kid": f"{ref.kid}.{ref.version}"}
 
     async def jwks(self, *, prefix_kids: Optional[str] = None) -> dict:
+        """Return a JWKS document with all available keys.
+
+        prefix_kids (str or None): Optional prefix filter for key IDs.
+        RETURNS (dict): JWKS containing available public keys.
+        """
         out: List[dict] = []
         try:
             names = self._list_key_names()
@@ -304,6 +407,11 @@ class VaultTransitKeyProvider(KeyProviderBase):
         return {"keys": out}
 
     async def random_bytes(self, n: int) -> bytes:
+        """Generate cryptographically secure random bytes.
+
+        n (int): Number of bytes to generate.
+        RETURNS (bytes): Random byte string.
+        """
         if self._prefer_vault_rng:
             try:
                 res = self._client.sys.generate_random_bytes(n_bytes=n)
@@ -316,6 +424,14 @@ class VaultTransitKeyProvider(KeyProviderBase):
         return os.urandom(n)
 
     async def hkdf(self, ikm: bytes, *, salt: bytes, info: bytes, length: int) -> bytes:
+        """Derive key material using HKDF-SHA256.
+
+        ikm (bytes): Input keying material.
+        salt (bytes): HKDF salt value.
+        info (bytes): Contextual information.
+        length (int): Length of derived key.
+        RETURNS (bytes): Derived key bytes.
+        """
         return HKDF(
             algorithm=hashes.SHA256(), length=length, salt=salt, info=info
         ).derive(ikm)

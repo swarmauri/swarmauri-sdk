@@ -1,11 +1,11 @@
 [project]
 name = "swarmauri_crypto_paramiko"
-version = "0.1.0"
+version = "0.3.0.dev4"
 description = "Paramiko-backed RSA + AES-GCM crypto provider for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
-authors = [{ name = "Swarmauri", email = "opensource@swarmauri.com" }]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
@@ -65,7 +65,7 @@ dev = [
 ParamikoCrypto = "swarmauri_crypto_paramiko:ParamikoCrypto"
 
 [project.entry-points."peagen.plugins.cryptos"]
-paramiko = "swarmauri_crypto_paramiko:ParamikoCrypto"
+paramiko_crypto = "swarmauri_crypto_paramiko:ParamikoCrypto"
 
 
 

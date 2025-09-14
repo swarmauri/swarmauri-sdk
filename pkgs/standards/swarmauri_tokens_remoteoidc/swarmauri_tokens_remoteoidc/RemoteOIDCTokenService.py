@@ -10,6 +10,7 @@ from urllib.request import Request, urlopen
 
 import jwt
 from jwt import algorithms
+from pydantic import PrivateAttr
 
 try:
     from swarmauri_base.tokens.TokenServiceBase import TokenServiceBase
@@ -102,6 +103,7 @@ class RemoteOIDCTokenService(TokenServiceBase):
     """
 
     type: Literal["RemoteOIDCTokenService"] = "RemoteOIDCTokenService"
+    _lock: threading.RLock = PrivateAttr(default_factory=threading.RLock)
 
     def __init__(
         self,
@@ -140,8 +142,6 @@ class RemoteOIDCTokenService(TokenServiceBase):
         self._allowed_algs: Optional[Tuple[str, ...]] = (
             tuple(expected_alg_whitelist) if expected_alg_whitelist else None
         )
-
-        self._lock = threading.RLock()
 
         # Pre-resolve discovery on init (best-effort)
         try:

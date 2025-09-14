@@ -11,6 +11,7 @@ concurrency:
 
 jobs:
   deploy:
+    if: ${{ !cancelled() }}
     runs-on: peagenx
     env:
       # --- non-secret values ---
@@ -22,7 +23,9 @@ jobs:
       NPM_DB:         npm
       PEAGEN_DB:      peagen
       GIT_DB:         gitea
-      AUTO_AUTHN_DB:  auto_authn
+      TIGRBL_AUTH_DB: tigrbl_auth
+      TIGRBL_KMS_DB:   tigrbl_kms
+      
       # --- secrets ---
       MINIO_ROOT_PASSWORD:      ${{ secrets.PEAGEN_MINIO_ROOT_PASSWORD }}
       MINIO_ACCESS_KEY:         ${{ secrets.PEAGEN_MINIO_ACCESS_KEY }}

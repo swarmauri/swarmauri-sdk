@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupytershutdownkernel"
-version = "0.7.6.dev5"
+version = "0.8.0.dev4"
 description = "A tool designed to shut down a running Jupyter kernel programmatically using jupyter_client, releasing all associated resources."
 license = "Apache-2.0"
 readme = "README.md"

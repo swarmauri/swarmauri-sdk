@@ -1,5 +1,21 @@
 # QueryEngine
 
+<p align="center">
+    <a href="https://pypi.org/project/QueryEngine/">
+        <img src="https://img.shields.io/pypi/dm/QueryEngine" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/RapidSimilarity/QueryEngine/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/RapidSimilarity/QueryEngine.svg"/></a>
+    <a href="https://pypi.org/project/QueryEngine/">
+        <img src="https://img.shields.io/pypi/pyversions/QueryEngine" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/QueryEngine/">
+        <img src="https://img.shields.io/pypi/l/QueryEngine" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/QueryEngine/">
+        <img src="https://img.shields.io/pypi/v/QueryEngine?label=QueryEngine&color=green" alt="PyPI - QueryEngine"/></a>
+</p>
+
+---
+
+
 ## Description
 The `QueryEngine` package provides a Python interface for performing both exact and approximate similarity searches on indexes built by the `IndexBuilder`. The underlying implementation leverages C++ optimizations for enhanced speed and efficiency.
 

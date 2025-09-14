@@ -1,15 +1,16 @@
 from __future__ import annotations
 
-from autoapi.v2.tables import Base
-from autoapi.v2.mixins import GUIDPk, UserMixin
+from tigrbl.orm.tables import Base
+from tigrbl.orm.mixins import GUIDPk, UserColumn
 
 from .mixins import RepositoryMixin
 
 
-class UserRepository(Base, GUIDPk, RepositoryMixin, UserMixin):
+class UserRepository(Base, GUIDPk, RepositoryMixin, UserColumn):
     """Edge capturing any per-repository permission or ownership the user may have."""
 
     __tablename__ = "user_repositories"
-    __table_args__= ({"schema": "peagen"},)
+    __table_args__ = ({"schema": "peagen"},)
+
 
 __all__ = ["UserRepository"]

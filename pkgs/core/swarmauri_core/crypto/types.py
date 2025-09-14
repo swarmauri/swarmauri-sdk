@@ -42,6 +42,32 @@ else:  # pragma: no cover - runtime placeholder
 # -----------------------------
 
 
+class JWAAlg(str, Enum):
+    """Registered JWA algorithm names from RFC 7518."""
+
+    HS256 = "HS256"
+    HS384 = "HS384"
+    HS512 = "HS512"
+    RS256 = "RS256"
+    RS384 = "RS384"
+    RS512 = "RS512"
+    PS256 = "PS256"
+    PS384 = "PS384"
+    PS512 = "PS512"
+    ES256 = "ES256"
+    ES384 = "ES384"
+    ES512 = "ES512"
+    ES256K = "ES256K"
+    EDDSA = "EdDSA"
+    RSA_OAEP = "RSA-OAEP"
+    RSA_OAEP_256 = "RSA-OAEP-256"
+    ECDH_ES = "ECDH-ES"
+    DIR = "dir"
+    A128GCM = "A128GCM"
+    A192GCM = "A192GCM"
+    A256GCM = "A256GCM"
+
+
 class KeyType(str, Enum):
     SYMMETRIC = "symmetric"
     RSA = "rsa"
@@ -135,14 +161,16 @@ class KeyRef:
     uses: Tuple[KeyUse, ...]
     export_policy: ExportPolicy
     uri: Optional[str] = None
-    material: Optional[bytes] = None
-    public: Optional[bytes] = None
+    material: Optional[bytes | str] = None
+    public: Optional[bytes | str] = None
     tags: Dict[str, str] | None = None
     fingerprint: Optional[str] = None
 
     def __post_init__(self) -> None:
         if self.fingerprint is None:
             data = self.public or self.material or self.kid.encode("utf-8")
+            if isinstance(data, str):
+                data = data.encode("utf-8")
             object.__setattr__(self, "fingerprint", hashlib.sha256(data).hexdigest())
 
 
@@ -171,6 +199,7 @@ class WrappedKey:
     Result of wrapping a DEK with a KEK.
     - wrap_alg: e.g., "AES-KW" / "AES-KWP" / "RSA-OAEP"
     - nonce: optional for schemes that use IVs (not AES-KW)
+    - tag: optional authentication tag for AEAD-based wrapping
     """
 
     kek_kid: KeyId
@@ -178,6 +207,7 @@ class WrappedKey:
     wrap_alg: Alg
     wrapped: bytes
     nonce: Optional[bytes] = None
+    tag: Optional[bytes] = None
 
 
 # -----------------------------
@@ -243,6 +273,7 @@ __all__ = [
     "KeyVersion",
     "Alg",
     # enums
+    "JWAAlg",
     "KeyType",
     "KeyUse",
     "KeyState",

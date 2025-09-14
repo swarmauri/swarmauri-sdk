@@ -5,7 +5,7 @@ End-to-end CRUD check for the Worker table.
 Requires:
     • A running gateway at http://127.0.0.1:8000/v1
     • pytest
-    • The AutoAPIClient helper shipped with Peagen/AutoAutoAPI
+    • The TigrblClient helper shipped with Peagen/AutoTigrbl
 """
 
 import uuid
@@ -14,10 +14,10 @@ import pytest
 
 # ❶ ------------------------------------------------------------------------
 # Runtime wiring
-from autoapi.v2 import get_schema  # your AutoAutoAPI import
+from tigrbl import get_schema  # your AutoTigrbl import
 from peagen.orm import Worker  # ORM class
 from peagen.defaults import DEFAULT_POOL_ID
-from autoapi_client import AutoAPIClient  # JSON-RPC helper
+from tigrbl_client import TigrblClient  # JSON-RPC helper
 
 # GATEWAY_RPC = "https://gw.peagen.com/rpc"
 GATEWAY_RPC = "http://127.0.0.1:8000/rpc"
@@ -55,7 +55,7 @@ def test_worker_create_and_update():
         advertises={"cpu": 4, "ram_gb": 8},
     )
     print(create_payload)
-    with AutoAPIClient(GATEWAY_RPC) as c:
+    with TigrblClient(GATEWAY_RPC) as c:
         # --- CREATE -------------------------------------------------------
         created = c.call(
             "Worker.create",

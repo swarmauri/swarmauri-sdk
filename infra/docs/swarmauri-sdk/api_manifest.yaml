@@ -1,0 +1,42 @@
+targets:
+  # Main SDK packages
+  - name: Core
+    package: swarmauri_core
+    search_path: /pkgs/core
+    include:
+      - swarmauri_core.*
+    exclude:
+      - "*.tests.*"
+      - "*.experimental.*"
+
+  - name: Base
+    package: swarmauri_base
+    search_path: /pkgs/base
+    include:
+      - swarmauri_base.*
+
+  - name: Standard
+    package: swarmauri_standard
+    search_path: /pkgs/swarmauri_standard
+    include:
+      - swarmauri_standard.*
+
+  # Discover all packages under standards
+  - name: Standards
+    search_path: /pkgs/standards
+    discover: true  # automatically include each package in this directory
+    include:
+      - "*.*"  # all modules within discovered packages
+      - swarmauri_certs_composite.*
+    exclude:
+      - "*.tests.*"
+
+  # Discover all packages under community
+  - name: Community
+    search_path: /pkgs/community
+    discover: true  # ensures docs are generated for all community packages
+    include:
+      - "*.*"
+    exclude:
+      - "*.tests.*"
+

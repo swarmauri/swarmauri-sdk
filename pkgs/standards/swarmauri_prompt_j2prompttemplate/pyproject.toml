@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_prompt_j2prompttemplate"
-version = "0.7.4.dev5"
+version = "0.9.0.dev4"
 description = "Jinja2 Prompt Template for Swarmauri."
 license = "Apache-2.0"
 readme = "README.md"
@@ -45,7 +45,7 @@ log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
-[tool.project.entry-points."swarmauri.prompts"]
+[project.entry-points.'swarmauri.prompts']
 J2PromptTemplate = "swarmauri_prompt_j2prompttemplate:J2PromptTemplate"
 
 [build-system]
