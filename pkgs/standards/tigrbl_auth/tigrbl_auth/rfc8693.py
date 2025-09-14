@@ -11,11 +11,12 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Union
 from enum import Enum
-from fastapi import APIRouter, FastAPI, Form, HTTPException, status
+from fastapi import APIRouter, FastAPI, Form, HTTPException, Request, Header, status
 
 from . import runtime_cfg
 from .rfc7519 import decode_jwt
 from .jwtoken import JWTCoder
+from .rfc9449_dpop import verify_proof
 
 RFC8693_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8693"
 
@@ -222,6 +223,7 @@ def exchange_token(
     *,
     issuer: str,
     client_id: Optional[str] = None,
+    jkt: str | None = None,
 ) -> TokenExchangeResponse:
     """Perform token exchange per RFC 8693.
 
@@ -260,11 +262,15 @@ def exchange_token(
     scope = request.scope or subject_claims.get("scope", "")
 
     # Create new access token
+    extra_claims: Dict[str, Any] = {}
+    if jkt:
+        extra_claims["cnf"] = {"jkt": jkt}
     access_token = jwt_coder.sign(
         sub=subject_id,
         tid=tenant_id,
         scopes=scope.split() if scope else [],
         aud=request.audience,
+        **extra_claims,
     )
 
     # Determine issued token type
@@ -281,6 +287,7 @@ def exchange_token(
 
 @router.post("/token/exchange")
 async def token_exchange_endpoint(
+    request: Request,
     grant_type: str = Form(...),
     subject_token: str = Form(...),
     subject_token_type: str = Form(...),
@@ -288,13 +295,21 @@ async def token_exchange_endpoint(
     actor_token_type: str | None = Form(None),
     audience: str | None = Form(None),
     scope: str | None = Form(None),
+    dpop: str | None = Header(None, alias="DPoP"),
 ):
     """RFC 8693 token exchange endpoint."""
 
     if not runtime_cfg.settings.enable_rfc8693:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "token exchange disabled")
 
-    request = validate_token_exchange_request(
+    jkt: str | None = None
+    if dpop:
+        try:
+            jkt = verify_proof(dpop, request.method, str(request.url))
+        except ValueError as exc:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
+
+    token_request = validate_token_exchange_request(
         grant_type=grant_type,
         subject_token=subject_token,
         subject_token_type=subject_token_type,
@@ -303,7 +318,7 @@ async def token_exchange_endpoint(
         audience=audience,
         scope=scope,
     )
-    response = exchange_token(request, issuer="token-exchange")
+    response = exchange_token(token_request, issuer="token-exchange", jkt=jkt)
     return response.to_dict()
 
 
