@@ -15,16 +15,15 @@ import pytest
 import pytest_asyncio
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
-from tigrbl.engine import HybridSession, async_sqlite_engine
+from tigrbl.engine import Engine, HybridSession
+from tigrbl.engine.engine_spec import EngineSpec
 
 from tigrbl_auth.app import app
-from tigrbl_auth.db import get_db
-from tigrbl_auth.routers.surface import surface_api
-from tigrbl_auth.orm import Base, Tenant, User, Client, ApiKey
 from tigrbl_auth.crypto import hash_pw
+from tigrbl_auth.db import get_db
+from tigrbl_auth.orm import ApiKey, Client, Tenant, User
+from tigrbl_auth.routers.surface import surface_api
 from tigrbl.engine import resolver as engine_resolver
-from tigrbl.engine.engine_spec import EngineSpec
-from tigrbl.engine._engine import Provider
 
 
 # Disable TLS enforcement for tests
@@ -53,53 +52,42 @@ def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
 
 
 @pytest_asyncio.fixture
-async def test_db_engine():
-    """Create a test database engine using tigrbl's engine factory."""
-    engine, maker = async_sqlite_engine(":memory:")
-
-    # Create all tables
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-    yield engine, maker
-
-    # Cleanup
-    await engine.dispose()
+async def test_db_engine() -> AsyncGenerator[Engine, None]:
+    """Create and initialize a test database engine."""
+    spec = EngineSpec.from_any(TEST_DATABASE_URL)
+    engine = Engine(spec)
+    provider = engine.provider
+    original_provider = engine_resolver.resolve_provider(api=surface_api)
+    engine_resolver.register_api(surface_api, provider)
+    setattr(surface_api, "_ddl_executed", False)
+    await surface_api.initialize()
+    try:
+        yield engine
+    finally:
+        raw_engine, _ = provider.ensure()
+        await raw_engine.dispose()
+        engine_resolver.register_api(surface_api, original_provider)
+        setattr(surface_api, "_ddl_executed", False)
 
 
 @pytest_asyncio.fixture
-async def db_session(test_db_engine) -> AsyncGenerator[HybridSession, None]:
+async def db_session(test_db_engine: Engine) -> AsyncGenerator[HybridSession, None]:
     """Provide a database session for tests."""
-    engine, maker = test_db_engine
+    _, maker = test_db_engine.provider.ensure()
     async with maker() as session:
         yield session
         await session.rollback()
 
 
 @pytest.fixture
-def override_get_db(db_session, test_db_engine):
+def override_get_db(test_db_engine: Engine):
     """Override database dependencies and tigrbl engine for tests."""
 
-    engine, maker = test_db_engine
-
-    async def _get_test_db():
-        yield db_session
-
-    app.dependency_overrides[get_db] = _get_test_db
-
-    original_provider = engine_resolver.resolve_provider(api=surface_api)
-    spec = EngineSpec.from_any(TEST_DATABASE_URL)
-    provider = Provider(spec)
-    object.__setattr__(provider, "_engine", engine)
-    object.__setattr__(provider, "_maker", maker)
-    engine_resolver.register_api(surface_api, provider)
-    engine_resolver.resolve_provider(api=surface_api)
+    app.dependency_overrides[get_db] = test_db_engine.provider.get_db
     try:
         yield
     finally:
         app.dependency_overrides.clear()
-        engine_resolver.register_api(surface_api, original_provider)
-        engine_resolver.resolve_provider(api=surface_api)
 
 
 @pytest.fixture
