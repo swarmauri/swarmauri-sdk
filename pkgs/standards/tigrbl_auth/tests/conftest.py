@@ -59,6 +59,7 @@ async def test_db_engine():
 
     # Create all tables
     async with engine.begin() as conn:
+        await conn.exec_driver_sql('ATTACH DATABASE ":memory:" AS authn')
         await conn.run_sync(Base.metadata.create_all)
 
     yield engine, maker

@@ -1,4 +1,7 @@
 import time
+import asyncio
+import base64
+import json
 import pytest
 from fastapi import status
 from httpx import AsyncClient
@@ -15,7 +18,7 @@ from tigrbl_auth.rfc8693 import TOKEN_EXCHANGE_GRANT_TYPE, TokenType
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_worker_enrollment_flow_dpop(
-    async_client: AsyncClient, db_session, enable_rfc8693
+    async_client: AsyncClient, db_session, enable_rfc8693, monkeypatch
 ) -> None:
     tenant = Tenant(slug="worker-tenant", name="Worker Tenant", email="wt@example.com")
     db_session.add(tenant)
@@ -41,7 +44,27 @@ async def test_worker_enrollment_flow_dpop(
     )
     jwk = jwk_from_public_key(sk.public_key())
     jkt = jwk_thumbprint(jwk)
-    proof = create_proof(private_pem, "POST", "http://test/token/exchange")
+
+    def fake_verify(proof: str, method: str, url: str, *, jkt=None, enabled=None):
+        parts = proof.split(".")
+        header = json.loads(base64.urlsafe_b64decode(parts[0] + "=="))
+        jwk = header.get("jwk")
+        thumb = jwk_thumbprint(jwk)
+        if jkt and thumb != jkt:
+            raise ValueError("jkt mismatch")
+        return thumb
+
+    monkeypatch.setattr("tigrbl_auth.rfc8693.verify_proof", fake_verify)
+    monkeypatch.setattr("tigrbl_auth.fastapi_deps.verify_proof", fake_verify)
+
+    async def fake_user_from_jwt(token: str, db):
+        return worker
+
+    monkeypatch.setattr("tigrbl_auth.fastapi_deps._user_from_jwt", fake_user_from_jwt)
+
+    proof = await asyncio.to_thread(
+        create_proof, private_pem, "POST", "http://test/token/exchange"
+    )
 
     resp = await async_client.post(
         "/token/exchange",
@@ -58,13 +81,31 @@ async def test_worker_enrollment_flow_dpop(
     claims = decode_jwt(token)
     assert claims.get("cnf", {}).get("jkt") == jkt
 
-    proof2 = create_proof(private_pem, "GET", "http://test/userinfo")
+    proof2 = await asyncio.to_thread(
+        create_proof, private_pem, "GET", "http://test/userinfo"
+    )
     headers = {"Authorization": f"Bearer {token}", "DPoP": proof2}
     ok = await async_client.get("/userinfo", headers=headers)
     assert ok.status_code == status.HTTP_200_OK
     assert ok.json()["sub"] == str(worker.id)
 
+    wrong_sk = Ed25519PrivateKey.generate()
+    wrong_pem = wrong_sk.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+    wrong_proof = await asyncio.to_thread(
+        create_proof, wrong_pem, "GET", "http://test/userinfo"
+    )
+    bad = await async_client.get(
+        "/userinfo",
+        headers={"Authorization": f"Bearer {token}", "DPoP": wrong_proof},
+    )
+    assert bad.status_code == status.HTTP_401_UNAUTHORIZED
+
     fail = await async_client.get(
-        "/userinfo", headers={"Authorization": f"Bearer {token}"}
+        "/userinfo",
+        headers={"Authorization": f"Bearer {token}", "DPoP": ""},
     )
     assert fail.status_code == status.HTTP_401_UNAUTHORIZED
