@@ -22,8 +22,13 @@ from pathlib import Path
 
 def run_pip_licenses() -> str:
     """Return CSV output from ``pip-licenses``."""
+    python = Path(shutil.which("pip") or sys.executable).with_name("python")
+    # ``pip-licenses`` runs in a minimal uv environment; point it at the
+    # system Python so installed packages are detected.
     try:
-        return subprocess.check_output(["pip-licenses", "--format=csv"], text=True)
+        return subprocess.check_output(
+            ["pip-licenses", "--format=csv", "--python", str(python)], text=True
+        )
     except FileNotFoundError as exc:
         raise RuntimeError(
             "pip-licenses is required; run this script with 'uv run' to install it."
