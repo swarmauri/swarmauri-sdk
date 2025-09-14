@@ -156,11 +156,14 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
         except ValidationError as exc:
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, exc.errors())
         auth_code = await db.get(AuthCode, UUID(parsed.code))
+        expires_at = auth_code.expires_at if auth_code else None
+        if expires_at and expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
         if (
             auth_code is None
             or str(auth_code.client_id) != parsed.client_id
             or auth_code.redirect_uri != parsed.redirect_uri
-            or datetime.now(timezone.utc) > auth_code.expires_at
+            or datetime.now(timezone.utc) > (expires_at or datetime.now(timezone.utc))
         ):
             return JSONResponse(
                 {"error": "invalid_grant"}, status_code=status.HTTP_400_BAD_REQUEST
@@ -198,7 +201,8 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
             issuer=ISSUER,
             **extra_claims,
         )
-        await AuthCode.handlers.exchange.core({"db": db, "obj": auth_code})
+        await db.delete(auth_code)
+        await db.commit()
         return TokenPair(access_token=access, refresh_token=refresh, id_token=id_token)
     if grant_type == "urn:ietf:params:oauth:grant-type:device_code":
         try:
@@ -210,7 +214,10 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
         )
         if not device_obj or str(device_obj.client_id) != parsed.client_id:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_grant"})
-        if datetime.now(timezone.utc) > device_obj.expires_at:
+        expires_at = device_obj.expires_at
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        if datetime.now(timezone.utc) > expires_at:
             await DeviceCode.handlers.delete.core({"db": db, "obj": device_obj})
             raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "expired_token"})
         if not device_obj.authorized:
