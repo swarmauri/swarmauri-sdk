@@ -63,11 +63,14 @@ class AuthCode(Base, Timestamped, UserColumn, TenantColumn):
             pg.as_uuid = u
             return pg.hex
 
+        expires_at = obj.expires_at if obj else None
+        if expires_at and expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
         if (
             obj is None
             or obj.client_id.hex != _normalize(client_id)
             or obj.redirect_uri != redirect_uri
-            or datetime.now(timezone.utc) > obj.expires_at
+            or datetime.now(timezone.utc) > (expires_at or datetime.now(timezone.utc))
         ):
             raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_grant"})
         if obj.code_challenge and not (
@@ -100,7 +103,7 @@ class AuthCode(Base, Timestamped, UserColumn, TenantColumn):
             issuer=ISSUER,
             **extra_claims,
         )
-        await cls.handlers.delete.core({"db": db, "obj": obj})
+        await cls.handlers.delete.core({"db": db, "obj": obj, "obj_id": obj.code})
         return {
             "access_token": access,
             "refresh_token": refresh,
