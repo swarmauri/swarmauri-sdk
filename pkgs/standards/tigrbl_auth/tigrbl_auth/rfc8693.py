@@ -11,11 +11,13 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Union
 from enum import Enum
-from fastapi import APIRouter, FastAPI, Form, HTTPException, status
+from fastapi import APIRouter, FastAPI, Form, HTTPException, Header, Request, status
+import asyncio
 
 from . import runtime_cfg
 from .rfc7519 import decode_jwt
 from .jwtoken import JWTCoder
+from .rfc9449_dpop import verify_proof
 
 RFC8693_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8693"
 
@@ -222,6 +224,7 @@ def exchange_token(
     *,
     issuer: str,
     client_id: Optional[str] = None,
+    jkt: str | None = None,
 ) -> TokenExchangeResponse:
     """Perform token exchange per RFC 8693.
 
@@ -259,13 +262,26 @@ def exchange_token(
     # Determine scope - use requested scope or inherit from subject token
     scope = request.scope or subject_claims.get("scope", "")
 
-    # Create new access token
-    access_token = jwt_coder.sign(
-        sub=subject_id,
-        tid=tenant_id,
-        scopes=scope.split() if scope else [],
-        aud=request.audience,
-    )
+    extra: Dict[str, Any] = {}
+    if request.audience is not None:
+        extra["aud"] = request.audience
+    if scope:
+        extra["scopes"] = scope.split()
+
+    if jkt:
+        extra["cnf"] = {"jkt": jkt}
+        access_token, refresh_token = jwt_coder.sign_pair(
+            sub=subject_id,
+            tid=tenant_id,
+            **extra,
+        )
+    else:
+        access_token = jwt_coder.sign(
+            sub=subject_id,
+            tid=tenant_id,
+            **extra,
+        )
+        refresh_token = None
 
     # Determine issued token type
     issued_token_type = request.requested_token_type or TokenType.ACCESS_TOKEN.value
@@ -274,6 +290,7 @@ def exchange_token(
         access_token=access_token,
         token_type="Bearer",
         expires_in=3600,  # 1 hour default
+        refresh_token=refresh_token,
         scope=scope,
         issued_token_type=issued_token_type,
     )
@@ -281,6 +298,7 @@ def exchange_token(
 
 @router.post("/token/exchange")
 async def token_exchange_endpoint(
+    request: Request,
     grant_type: str = Form(...),
     subject_token: str = Form(...),
     subject_token_type: str = Form(...),
@@ -288,13 +306,21 @@ async def token_exchange_endpoint(
     actor_token_type: str | None = Form(None),
     audience: str | None = Form(None),
     scope: str | None = Form(None),
+    dpop: str | None = Header(None, alias="DPoP"),
 ):
     """RFC 8693 token exchange endpoint."""
 
     if not runtime_cfg.settings.enable_rfc8693:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "token exchange disabled")
 
-    request = validate_token_exchange_request(
+    jkt = None
+    if dpop:
+        try:
+            jkt = await asyncio.to_thread(verify_proof, dpop, "POST", str(request.url))
+        except ValueError:
+            raise HTTPException(status.HTTP_401_UNAUTHORIZED, "invalid DPoP proof")
+
+    request_obj = validate_token_exchange_request(
         grant_type=grant_type,
         subject_token=subject_token,
         subject_token_type=subject_token_type,
@@ -303,7 +329,7 @@ async def token_exchange_endpoint(
         audience=audience,
         scope=scope,
     )
-    response = exchange_token(request, issuer="token-exchange")
+    response = exchange_token(request_obj, issuer="token-exchange", jkt=jkt)
     return response.to_dict()
 
 
