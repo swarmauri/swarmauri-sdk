@@ -1,0 +1,51 @@
+# .github/workflows/license-scan.yml
+name: License Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  license-scan:
+    runs-on: ubuntu-latest
+    steps:
+      # Step: Check out repository
+      - uses: actions/checkout@v4
+
+      # Step: Install uv
+      - uses: astral-sh/setup-uv@v3
+
+      # Step: Run license scan
+      - name: Run license scan
+        id: scan
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          ./scripts/license_scan.py | tee license_report.log
+
+      # Step: Upload license report
+      - name: Upload license report
+        uses: actions/upload-artifact@v4
+        with:
+          name: license-report
+          path: license_report.log
+
+      # Step: Summarize and annotate
+      - name: Summarize and annotate
+        if: always()
+        run: |
+          echo "## License Scan Report" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          cat license_report.log >> "$GITHUB_STEP_SUMMARY"
+          if [[ "${{ steps.scan.outcome }}" == "failure" ]]; then
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "### Disallowed licences" >> "$GITHUB_STEP_SUMMARY"
+            grep '^  - ' license_report.log >> "$GITHUB_STEP_SUMMARY"
+            grep '^  - ' license_report.log | while read -r line; do
+              pkg=$(echo "$line" | sed 's/  - //')
+              echo "::error title=Disallowed license::$pkg"
+            done
+            exit 1
+          fi
+        shell: bash
