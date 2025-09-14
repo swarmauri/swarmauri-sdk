@@ -100,6 +100,14 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
             return JSONResponse(
                 {"error": "invalid_target"}, status_code=status.HTTP_400_BAD_REQUEST
             )
+    if grant_type == "client_credentials":
+        jwt_kwargs: dict[str, Any] = {"aud": aud} if aud else {}
+        if scope := data.get("scope"):
+            jwt_kwargs["scope"] = scope
+        access, refresh = await _jwt.async_sign_pair(
+            sub=client_id, tid=str(client.tenant_id), **jwt_kwargs
+        )
+        return TokenPair(access_token=access, refresh_token=refresh)
     if grant_type == "password":
         try:
             enforce_password_grant(data)
