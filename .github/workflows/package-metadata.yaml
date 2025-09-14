@@ -7,11 +7,6 @@ on:
       - "pkgs/**"
       - "scripts/verify_package_metadata.py"
       - ".github/workflows/package-metadata.yaml"
-  push:
-    paths:
-      - "pkgs/**"
-      - "scripts/verify_package_metadata.py"
-      - ".github/workflows/package-metadata.yaml"
   workflow_dispatch:
 
 jobs:
