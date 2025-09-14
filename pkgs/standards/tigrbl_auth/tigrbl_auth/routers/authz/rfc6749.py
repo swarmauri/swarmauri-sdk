@@ -4,6 +4,7 @@ import secrets
 
 from datetime import datetime
 from typing import Any
+from uuid import UUID
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
@@ -99,6 +100,14 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
             return JSONResponse(
                 {"error": "invalid_target"}, status_code=status.HTTP_400_BAD_REQUEST
             )
+    if grant_type == "client_credentials":
+        jwt_kwargs: dict[str, Any] = {"aud": aud} if aud else {}
+        if scope := data.get("scope"):
+            jwt_kwargs["scope"] = scope
+        access, refresh = await _jwt.async_sign_pair(
+            sub=client_id, tid=str(client.tenant_id), **jwt_kwargs
+        )
+        return TokenPair(access_token=access, refresh_token=refresh)
     if grant_type == "password":
         try:
             enforce_password_grant(data)
@@ -131,7 +140,9 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
             parsed = AuthorizationCodeGrantForm(**data)
         except ValidationError as exc:
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, exc.errors())
-        auth_code = await AuthCode.handlers.read.core({"db": db, "obj_id": parsed.code})
+        auth_code = await AuthCode.handlers.read.core(
+            {"db": db, "obj_id": UUID(parsed.code)}
+        )
         if (
             auth_code is None
             or str(auth_code.client_id) != parsed.client_id

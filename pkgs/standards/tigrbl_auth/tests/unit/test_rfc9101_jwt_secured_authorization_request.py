@@ -29,5 +29,5 @@ def test_feature_toggle_disabled(monkeypatch):
     monkeypatch.setattr(runtime_cfg.settings, "enable_rfc9101", False)
     with pytest.raises(RuntimeError):
         asyncio.run(
-            rfc9101.create_request_object({"client_id": "abc"}, secret="secret")
+            rfc9101.create_request_object({"client_id": "abc"}, secret="0" * 32)
         )
