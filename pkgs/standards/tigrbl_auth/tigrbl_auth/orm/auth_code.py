@@ -42,7 +42,7 @@ class AuthCode(Base, Timestamped, UserColumn, TenantColumn):
     @op_ctx(alias="exchange", target="delete", arity="member")
     async def exchange(cls, ctx, obj):
         import secrets
-        from datetime import datetime
+        from datetime import datetime, timezone
 
         request = ctx.get("request")
         _require_tls(request)
@@ -67,7 +67,7 @@ class AuthCode(Base, Timestamped, UserColumn, TenantColumn):
             obj is None
             or obj.client_id.hex != _normalize(client_id)
             or obj.redirect_uri != redirect_uri
-            or datetime.utcnow() > obj.expires_at
+            or datetime.now(timezone.utc) > obj.expires_at
         ):
             raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_grant"})
         if obj.code_challenge and not (

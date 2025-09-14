@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 
 import pytest
@@ -23,7 +23,7 @@ async def test_exchange_accepts_hex_client_id(monkeypatch):
         code_challenge=challenge,
         nonce=None,
         scope=None,
-        expires_at=datetime.utcnow() + timedelta(minutes=5),
+        expires_at=datetime.now(timezone.utc) + timedelta(minutes=5),
         claims=None,
         user_id=uuid.uuid4(),
         tenant_id=uuid.uuid4(),
