@@ -59,6 +59,7 @@ import json
 import time
 import typing as t
 from dataclasses import dataclass
+from uuid import uuid4
 
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from cryptography.hazmat.primitives import serialization
@@ -244,9 +245,7 @@ class DpopSigner(SigningBase):
             raise ValueError(f"Unsupported alg for DPoP: {km.alg.value}")
 
         iat = int(o.get("iat") or _now())
-        jti = o.get("jti") or _b64url(
-            hashlib.sha256(f"{iat}:{htm}:{htu}".encode()).digest()
-        )
+        jti = o.get("jti") or str(uuid4())
         nonce = o.get("nonce")
         access_token = o.get("access_token")
 
