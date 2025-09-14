@@ -32,6 +32,15 @@ def test_cnf_claim_round_trip():
 
 
 @pytest.mark.unit
+def test_cnf_claim_mismatch_rejected():
+    """verify_proof_of_possession fails when jkt does not match."""
+    payload = add_cnf_claim({"sub": "carol"}, JWK)
+    other_jwk = {"kty": "oct", "k": "GawgguFyGrWKav7AX4VKUg"}
+    assert jwk_thumbprint(other_jwk) != payload["cnf"]["jkt"]
+    assert not verify_proof_of_possession(payload, other_jwk, enabled=True)
+
+
+@pytest.mark.unit
 def test_feature_toggle(monkeypatch):
     """When disabled, verification always passes."""
     payload = {"sub": "bob"}
