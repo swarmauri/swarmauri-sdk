@@ -8,6 +8,6 @@ Follow these high-level steps when updating this repository:
 - **Pull Requests** – ensure commits are well described and reference related issues if applicable.
 
 Changes to the **peagen** package require additional validation steps detailed in
-`pkgs/standards/peagen/AGENTS.md`. When modifying plugin code, ensure all
-plugins are loaded via the ``PluginManager`` rather than direct imports.
+`pkgs/standards/peagen/AGENTS.md`. Plugins should be instantiated directly;
+avoid using the ``PluginManager`` unless explicitly directed otherwise.
 
