@@ -31,6 +31,8 @@ from tigrbl_auth.orm import (
     Service,
     ServiceKey,
     AuthSession,
+    PushedAuthorizationRequest,
+    AuthCode,
 )
 from ..db import dsn
 from .auth_flows import router as flows_router
@@ -41,7 +43,17 @@ from .auth_flows import router as flows_router
 surface_api = TigrblApi(engine=dsn)
 
 surface_api.include_models(
-    [Tenant, User, Client, ApiKey, Service, ServiceKey, AuthSession]
+    [
+        Tenant,
+        User,
+        Client,
+        ApiKey,
+        Service,
+        ServiceKey,
+        AuthSession,
+        AuthCode,
+        PushedAuthorizationRequest,
+    ]
 )
 
 surface_api.include_router(flows_router)

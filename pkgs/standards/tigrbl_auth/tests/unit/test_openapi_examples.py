@@ -13,6 +13,8 @@ ORM_MODELS = [
     "Service",
     "ServiceKey",
     "AuthSession",
+    "AuthCode",
+    "PushedAuthorizationRequest",
 ]
 
 

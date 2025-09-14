@@ -64,14 +64,24 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
     else:
         client_id = data.get("client_id")
         client_secret = data.get("client_secret")
-    if not client_id or not client_secret:
+    if not client_id:
         return JSONResponse(
             {"error": "invalid_client"},
             status_code=status.HTTP_401_UNAUTHORIZED,
             headers={"WWW-Authenticate": "Basic"},
         )
-    client = await db.scalar(select(Client).where(Client.id == client_id))
-    if not client or not client.verify_secret(client_secret):
+    try:
+        client_key = UUID(client_id)
+    except ValueError:
+        client_key = client_id
+    client = await db.scalar(select(Client).where(Client.id == client_key))
+    if not client:
+        return JSONResponse(
+            {"error": "invalid_client"},
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    if client_secret and not client.verify_secret(client_secret):
         return JSONResponse(
             {"error": "invalid_client"},
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -140,9 +150,7 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
             parsed = AuthorizationCodeGrantForm(**data)
         except ValidationError as exc:
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, exc.errors())
-        auth_code = await AuthCode.handlers.read.core(
-            {"db": db, "obj_id": UUID(parsed.code)}
-        )
+        auth_code = await db.get(AuthCode, UUID(parsed.code))
         if (
             auth_code is None
             or str(auth_code.client_id) != parsed.client_id

@@ -117,6 +117,7 @@ async def authorize(
         if requested_claims:
             payload["claims"] = requested_claims
         await AuthCode.handlers.create.core({"db": db, "payload": payload})
+        await db.commit()
         AUTH_CODES[str(code)] = payload
         params.append(("code", str(code)))
     if "token" in rts:
