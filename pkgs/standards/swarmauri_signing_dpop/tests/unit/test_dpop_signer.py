@@ -1,14 +1,15 @@
 import base64
+import json
 import time
 from uuid import uuid4
 
-import jwt
 import pytest
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519
 
 from swarmauri_signing_dpop import DpopSigner
-from swarmauri_signing_dpop.DpopSigner import _jwk_thumbprint_b64url
+from swarmauri_signing_dpop.DpopSigner import _b64url_dec, _jwk_thumbprint_b64url
+from swarmauri_signing_jws import JwsSignerVerifier
 
 
 @pytest.mark.asyncio
@@ -52,14 +53,15 @@ async def test_proof_contains_required_header_and_claims() -> None:
         opts={"htm": "POST", "htu": "https://api.example/resource"},
     )
     token = sigs[0]["sig"]
-    header = jwt.get_unverified_header(token)
+    header = json.loads(_b64url_dec(token.split(".")[0]).decode())
     assert header["typ"] == "dpop+jwt"
-    claims = jwt.decode(
+    jws = JwsSignerVerifier()
+    result = await jws.verify_compact(
         token,
-        priv.public_key(),
-        algorithms=["EdDSA"],
-        options={"verify_aud": False, "verify_exp": False},
+        jwks_resolver=lambda _kid, _alg, jwk=header["jwk"]: jwk,
+        alg_allowlist=["EdDSA"],
     )
+    claims = json.loads(result.payload.decode())
     for field in ("htm", "htu", "iat", "jti"):
         assert field in claims
     assert claims["htm"] == "POST"
@@ -80,11 +82,13 @@ async def test_verify_rejects_proof_with_wrong_typ() -> None:
         "iat": int(time.time()),
         "jti": str(uuid4()),
     }
-    token = jwt.encode(
-        payload,
-        priv,
-        algorithm="EdDSA",
-        headers={"typ": "JWT", "jwk": jwk},
+    jws = JwsSignerVerifier()
+    token = await jws.sign_compact(
+        payload=payload,
+        alg="EdDSA",
+        key={"kind": "cryptography_obj", "obj": priv},
+        header_extra={"jwk": jwk},
+        typ="JWT",
     )
     signer = DpopSigner()
     assert not await signer.verify_bytes(
@@ -106,11 +110,13 @@ async def test_verify_rejects_proof_missing_jti() -> None:
         "htu": "https://api.example/x",
         "iat": int(time.time()),
     }  # missing jti
-    token = jwt.encode(
-        payload,
-        priv,
-        algorithm="EdDSA",
-        headers={"typ": "dpop+jwt", "jwk": jwk},
+    jws = JwsSignerVerifier()
+    token = await jws.sign_compact(
+        payload=payload,
+        alg="EdDSA",
+        key={"kind": "cryptography_obj", "obj": priv},
+        header_extra={"jwk": jwk},
+        typ="dpop+jwt",
     )
     signer = DpopSigner()
     assert not await signer.verify_bytes(
@@ -119,8 +125,9 @@ async def test_verify_rejects_proof_missing_jti() -> None:
         require={"htm": "GET", "htu": "https://api.example/x"},
     )
 
+
 @pytest.mark.asyncio
-@pytest.mark.parametrize("alg", ["HS256", "HS384", "HS512", "none"])
+@pytest.mark.parametrize("alg", ["HS256", "HS384", "HS512"])
 async def test_sign_rejects_unsupported_algs(alg: str) -> None:
     signer = DpopSigner()
     keyref = {"kind": "jwk", "priv": {"kty": "oct", "k": "secret"}}
@@ -129,5 +136,18 @@ async def test_sign_rejects_unsupported_algs(alg: str) -> None:
             keyref,
             b"",
             alg=alg,
+            opts={"htm": "GET", "htu": "https://api.example/x"},
+        )
+
+
+@pytest.mark.asyncio
+async def test_sign_rejects_none_alg() -> None:
+    signer = DpopSigner()
+    keyref = {"kind": "jwk", "priv": {"kty": "oct", "k": "secret"}}
+    with pytest.raises(ValueError, match="not a valid JWAAlg"):
+        await signer.sign_bytes(
+            keyref,
+            b"",
+            alg="none",
             opts={"htm": "GET", "htu": "https://api.example/x"},
         )
