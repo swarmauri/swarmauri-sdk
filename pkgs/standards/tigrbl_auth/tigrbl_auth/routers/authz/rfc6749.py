@@ -4,6 +4,7 @@ import secrets
 
 from datetime import datetime, timezone
 from typing import Any
+import inspect
 from uuid import UUID
 
 from fastapi import Depends, HTTPException, Request, status
@@ -81,12 +82,16 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
             status_code=status.HTTP_401_UNAUTHORIZED,
             headers={"WWW-Authenticate": "Basic"},
         )
-    if client_secret and not client.verify_secret(client_secret):
-        return JSONResponse(
-            {"error": "invalid_client"},
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            headers={"WWW-Authenticate": "Basic"},
-        )
+    if client_secret:
+        valid = client.verify_secret(client_secret)
+        if inspect.isawaitable(valid):
+            valid = await valid
+        if not valid:
+            return JSONResponse(
+                {"error": "invalid_client"},
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                headers={"WWW-Authenticate": "Basic"},
+            )
     if data.get("client_id") and data["client_id"] != client_id:
         return JSONResponse(
             {"error": "invalid_client"},
