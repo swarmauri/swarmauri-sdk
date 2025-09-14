@@ -1,17 +1,16 @@
 import pytest
 from httpx import AsyncClient
-from urllib.parse import urlparse, parse_qs
-from sqlalchemy.ext.asyncio import AsyncSession
+from urllib.parse import parse_qs, urlparse
 
-from tigrbl_auth.orm import Tenant, User, Client
+from tigrbl.engine import HybridSession
 from tigrbl_auth.crypto import hash_pw
-from tigrbl_auth.rfc7636_pkce import create_code_verifier, create_code_challenge
+from tigrbl_auth.orm import Client, Tenant, User
+from tigrbl_auth.rfc7636_pkce import create_code_challenge, create_code_verifier
 
 
-@pytest.mark.integration
 @pytest.mark.asyncio
 async def test_authorization_code_pkce_flow(
-    async_client: AsyncClient, db_session: AsyncSession
+    async_client: AsyncClient, db_session: HybridSession
 ):
     tenant = Tenant(slug="t1", name="T1", email="t1@example.com")
     db_session.add(tenant)

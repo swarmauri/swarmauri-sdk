@@ -15,8 +15,7 @@ import pytest
 import pytest_asyncio
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.pool import StaticPool
+from tigrbl.engine import HybridSession, async_sqlite_engine
 
 from tigrbl_auth.app import app
 from tigrbl_auth.db import get_db
@@ -55,36 +54,33 @@ def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
 
 @pytest_asyncio.fixture
 async def test_db_engine():
-    """Create a test database engine."""
-    engine = create_async_engine(
-        TEST_DATABASE_URL,
-        poolclass=StaticPool,
-        connect_args={"check_same_thread": False},
-        echo=False,
-        execution_options={"schema_translate_map": {"authn": None}},
-    )
+    """Create a test database engine using tigrbl's engine factory."""
+    engine, maker = async_sqlite_engine(":memory:")
 
     # Create all tables
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    yield engine
+    yield engine, maker
 
     # Cleanup
     await engine.dispose()
 
 
 @pytest_asyncio.fixture
-async def db_session(test_db_engine) -> AsyncGenerator[AsyncSession, None]:
+async def db_session(test_db_engine) -> AsyncGenerator[HybridSession, None]:
     """Provide a database session for tests."""
-    async with AsyncSession(test_db_engine) as session:
+    engine, maker = test_db_engine
+    async with maker() as session:
         yield session
         await session.rollback()
 
 
 @pytest.fixture
 def override_get_db(db_session, test_db_engine):
-    """Override database dependencies and Tigrbl engine for tests."""
+    """Override database dependencies and tigrbl engine for tests."""
+
+    engine, maker = test_db_engine
 
     async def _get_test_db():
         yield db_session
@@ -94,10 +90,7 @@ def override_get_db(db_session, test_db_engine):
     original_provider = engine_resolver.resolve_provider(api=surface_api)
     spec = EngineSpec.from_any(TEST_DATABASE_URL)
     provider = Provider(spec)
-    object.__setattr__(provider, "_engine", test_db_engine)
-    maker = async_sessionmaker(
-        test_db_engine, expire_on_commit=False, class_=AsyncSession
-    )
+    object.__setattr__(provider, "_engine", engine)
     object.__setattr__(provider, "_maker", maker)
     engine_resolver.register_api(surface_api, provider)
     engine_resolver.resolve_provider(api=surface_api)
@@ -306,7 +299,7 @@ def sample_api_key_data():
 
 # Database object fixtures
 @pytest_asyncio.fixture
-async def test_tenant(db_session: AsyncSession):
+async def test_tenant(db_session: HybridSession):
     """Create a test tenant in the database."""
     tenant = Tenant(slug="test-tenant", name="Test Tenant", is_active=True)
     db_session.add(tenant)
@@ -315,7 +308,7 @@ async def test_tenant(db_session: AsyncSession):
 
 
 @pytest_asyncio.fixture
-async def test_user(db_session: AsyncSession, test_tenant: Tenant):
+async def test_user(db_session: HybridSession, test_tenant: Tenant):
     """Create a test user in the database."""
     user = User(
         tenant_id=test_tenant.id,
@@ -330,7 +323,7 @@ async def test_user(db_session: AsyncSession, test_tenant: Tenant):
 
 
 @pytest_asyncio.fixture
-async def test_client_obj(db_session: AsyncSession, test_tenant: Tenant):
+async def test_client_obj(db_session: HybridSession, test_tenant: Tenant):
     """Create a test OAuth client in the database."""
     client = Client.new(
         tenant_id=test_tenant.id,
@@ -344,7 +337,7 @@ async def test_client_obj(db_session: AsyncSession, test_tenant: Tenant):
 
 
 @pytest_asyncio.fixture
-async def test_api_key(db_session: AsyncSession, test_user: User):
+async def test_api_key(db_session: HybridSession, test_user: User):
     """Create a test API key in the database."""
     raw_key = "test-api-key-12345"
     api_key = ApiKey(user_id=test_user.id, label="Test API Key")
@@ -357,7 +350,7 @@ async def test_api_key(db_session: AsyncSession, test_user: User):
 
 
 @pytest_asyncio.fixture
-async def expired_api_key(db_session: AsyncSession, test_user: User):
+async def expired_api_key(db_session: HybridSession, test_user: User):
     """Create an expired API key in the database."""
     raw_key = "expired-api-key-12345"
     api_key = ApiKey(

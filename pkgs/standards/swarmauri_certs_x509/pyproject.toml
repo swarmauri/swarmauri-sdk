@@ -25,10 +25,14 @@ dependencies = [
 
 [project.optional-dependencies]
 pkcs11 = ["python-pkcs11"]
+local = ["swarmauri_keyprovider_local"]
+mem = ["swarmauri_keyprovider_inmemory"]
 
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
+swarmauri_keyprovider_local = { workspace = true }
+swarmauri_keyprovider_inmemory = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
