@@ -4,6 +4,7 @@ import secrets
 
 from datetime import datetime
 from typing import Any
+from uuid import UUID
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
@@ -131,7 +132,9 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
             parsed = AuthorizationCodeGrantForm(**data)
         except ValidationError as exc:
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, exc.errors())
-        auth_code = await AuthCode.handlers.read.core({"db": db, "obj_id": parsed.code})
+        auth_code = await AuthCode.handlers.read.core(
+            {"db": db, "obj_id": UUID(parsed.code)}
+        )
         if (
             auth_code is None
             or str(auth_code.client_id) != parsed.client_id

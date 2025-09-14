@@ -24,7 +24,7 @@ class AuthCode(Base, Timestamped, UserColumn, TenantColumn):
     __tablename__ = "auth_codes"
     __table_args__ = ({"schema": "authn"},)
 
-    code: Mapped[str] = acol(storage=S(String(128), primary_key=True))
+    code: Mapped[uuid.UUID] = acol(storage=S(PgUUID(as_uuid=True), primary_key=True))
     client_id: Mapped[uuid.UUID] = acol(
         storage=S(
             PgUUID(as_uuid=True),
