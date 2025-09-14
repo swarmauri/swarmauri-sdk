@@ -108,7 +108,7 @@ class Settings(BaseSettings):
         description="Enable Proof-of-Possession semantics per RFC 7800",
     )
     enforce_rfc8252: bool = Field(
-        default=os.environ.get("TIGRBL_AUTH_ENFORCE_RFC8252", "true").lower()
+        default=os.environ.get("TIGRBL_AUTH_ENFORCE_RFC8252", "false").lower()
         in {"1", "true", "yes"},
         description="Validate redirect URIs according to RFC 8252",
     )
