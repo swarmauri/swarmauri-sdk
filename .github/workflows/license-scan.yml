@@ -22,14 +22,17 @@ jobs:
         continue-on-error: true
         run: |
           set -o pipefail
-          ./scripts/license_scan.py | tee license_report.log
+          ./scripts/license_scan.py
 
       # Step: Upload license report
       - name: Upload license report
         uses: actions/upload-artifact@v4
         with:
           name: license-report
-          path: license_report.log
+          path: |
+            license_report.md
+            license_report.csv
+            sbom.spdx
 
       # Step: Summarize and annotate
       - name: Summarize and annotate
@@ -37,13 +40,13 @@ jobs:
         run: |
           echo "## License Scan Report" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          cat license_report.log >> "$GITHUB_STEP_SUMMARY"
+          cat license_report.md >> "$GITHUB_STEP_SUMMARY"
           if [[ "${{ steps.scan.outcome }}" == "failure" ]]; then
             echo "" >> "$GITHUB_STEP_SUMMARY"
             echo "### Disallowed licences" >> "$GITHUB_STEP_SUMMARY"
-            grep '^  - ' license_report.log >> "$GITHUB_STEP_SUMMARY"
-            grep '^  - ' license_report.log | while read -r line; do
-              pkg=$(echo "$line" | sed 's/  - //')
+            grep '^-' license_report.md >> "$GITHUB_STEP_SUMMARY"
+            grep '^-' license_report.md | while read -r line; do
+              pkg=$(echo "$line" | sed 's/- //')
               echo "::error title=Disallowed license::$pkg"
             done
             exit 1
