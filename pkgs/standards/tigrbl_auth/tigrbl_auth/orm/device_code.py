@@ -56,7 +56,7 @@ class DeviceCode(Base, Timestamped):
 
     @op_ctx(alias="device_authorization", target="create", arity="collection")
     async def device_authorization(cls, ctx):
-        from datetime import datetime, timedelta
+        from datetime import datetime, timedelta, timezone
         from uuid import uuid4
 
         if not settings.enable_rfc8628:
@@ -72,7 +72,9 @@ class DeviceCode(Base, Timestamped):
         user_code = uuid4().hex[:8]
         verification_uri = DEVICE_VERIFICATION_URI
         verification_uri_complete = f"{verification_uri}?user_code={user_code}"
-        expires_at = datetime.utcnow() + timedelta(seconds=DEVICE_CODE_EXPIRES_IN)
+        expires_at = datetime.now(timezone.utc) + timedelta(
+            seconds=DEVICE_CODE_EXPIRES_IN
+        )
         await cls.handlers.create.core(
             {
                 "db": db,
