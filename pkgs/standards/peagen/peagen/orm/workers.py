@@ -116,25 +116,40 @@ class Worker(Base, GUIDPk, Timestamped, AllowAnonProvider):
             return (pool.policy if pool else {}, count)
 
         policy, count = await ctx["db"].run_sync(_get_policy_and_count)
+        log.info(
+            "loaded pool policy %s with %s existing workers for pool %s",
+            policy,
+            count,
+            pool_id,
+        )
         cls._check_pool_policy(policy or {}, ip, count)
+        log.info("exiting pre_worker_create_policy_gate")
 
     @hook_ctx(ops="create", phase="POST_RESPONSE")
     async def _post_create_cache_pool(cls, ctx):
         from peagen.gateway import log, queue
 
+        log.info("entering post_worker_create_cache_pool")
         created = cls.schemas.read.out.model_validate(
             ctx["result"], from_attributes=True
         )
         log.info("worker %s joined pool_id %s", created.id, created.pool_id)
         try:
             await queue.sadd(f"pool_id:{created.pool_id}:members", str(created.id))
+            log.info(
+                "cached worker %s as member of pool %s",
+                created.id,
+                created.pool_id,
+            )
         except Exception as exc:  # noqa: BLE001
             log.error("failure to add member to pool queue. err: %s", exc)
+        log.info("exiting post_worker_create_cache_pool")
 
     @hook_ctx(ops="create", phase="POST_RESPONSE")
     async def _post_create_cache_worker(cls, ctx):
         from peagen.gateway import log, queue
 
+        log.info("entering post_worker_create_cache_worker")
         created = cls.schemas.read.out.model_validate(
             ctx["result"], from_attributes=True
         )
@@ -149,13 +164,16 @@ class Worker(Base, GUIDPk, Timestamped, AllowAnonProvider):
             from peagen.gateway._publish import _publish_event
 
             await _publish_event(queue, "Worker.create", created)
+            log.info("published Worker.create event for %s", created.id)
         except Exception as exc:  # noqa: BLE001
             log.error("failure to _publish_event for: `Worker.create` err: %s", exc)
+        log.info("exiting post_worker_create_cache_worker")
 
     @hook_ctx(ops="create", phase="POST_COMMIT")
     async def _post_create_auto_register(cls, ctx):
         from peagen.gateway import authn_adapter, log
 
+        log.info("entering post_worker_create_auto_register")
         created = cls.schemas.read.out.model_validate(
             ctx["result"], from_attributes=True
         )
@@ -184,9 +202,11 @@ class Worker(Base, GUIDPk, Timestamped, AllowAnonProvider):
             key_resp.raise_for_status()
             body = key_resp.json()
             ctx["raw_worker_key"] = body.get("api_key")
+            log.info("auto-registration succeeded for worker %s", created.id)
         except Exception as exc:  # pragma: no cover
             log.error("auto-registration failed: %s", exc)
             ctx["raw_worker_key"] = None
+        log.info("exiting post_worker_create_auto_register")
 
     @hook_ctx(ops="create", phase="POST_RESPONSE")
     async def _post_create_inject_key(cls, ctx):
@@ -195,10 +215,12 @@ class Worker(Base, GUIDPk, Timestamped, AllowAnonProvider):
         log.info("entering post_worker_create_inject_key")
         raw = ctx.get("raw_worker_key")
         if not raw:
+            log.info("no worker key to inject; exiting post_worker_create_inject_key")
             return
 
         res = ctx.get("result")
         if res is None:
+            log.info("no result payload; exiting post_worker_create_inject_key")
             return
 
         # Normalize ctx["result"] -> plain dict
@@ -213,11 +235,13 @@ class Worker(Base, GUIDPk, Timestamped, AllowAnonProvider):
 
         # Inject the key into the response payload only (not persisted)
         out["api_key"] = raw
+        log.info("injected worker key into response for worker %s", out.get("id"))
 
         ctx["result"] = out
         resp = ctx.get("response")
         if resp is not None:
             resp.result = out
+        log.info("exiting post_worker_create_inject_key")
 
     @hook_ctx(ops="update", phase="PRE_TX_BEGIN")
     async def _pre_update_policy_gate(cls, ctx):
@@ -242,7 +266,14 @@ class Worker(Base, GUIDPk, Timestamped, AllowAnonProvider):
             return (pool.policy if pool else {}, count)
 
         policy, count = await ctx["db"].run_sync(_get_policy_and_count)
+        log.info(
+            "loaded pool policy %s with %s existing workers for pool %s",
+            policy,
+            count,
+            pool_id,
+        )
         cls._check_pool_policy(policy or {}, ip, count)
+        log.info("exiting pre_worker_update_policy_gate")
 
     @hook_ctx(ops="update", phase="PRE_TX_BEGIN")
     async def _pre_update(cls, ctx):
@@ -254,21 +285,30 @@ class Worker(Base, GUIDPk, Timestamped, AllowAnonProvider):
         worker_id = str(wu["id"] or wu["item_id"])
         cached = await queue.exists(WORKER_KEY.format(worker_id))
         if not cached and wu["pool_id"] is None:
+            log.info(
+                "worker %s not cached and no pool_id provided; raising RPCException",
+                worker_id,
+            )
             raise RPCException(code=-32602, message="unknown worker; pool_id required")
         ctx["worker_id"] = worker_id
+        log.info("exiting pre_worker_update")
 
     @hook_ctx(ops="update", phase="POST_RESPONSE")
     async def _post_update_cache_pool(cls, ctx):
         from peagen.gateway import log, queue
 
+        log.info("entering post_worker_update_cache_pool")
         worker_id = ctx["worker_id"]
+        updated = None
         try:
             updated = cls.schemas.read.out.model_validate(
                 ctx["result"], from_attributes=True
             )
             if updated.pool_id:
                 await queue.sadd(f"pool_id:{updated.pool_id}:members", worker_id)
-            log.info("cached member `%s` in `%s`", worker_id, updated.pool_id)
+                log.info("cached member `%s` in `%s`", worker_id, updated.pool_id)
+            else:
+                log.info("worker %s has no pool_id to cache", worker_id)
         except Exception as exc:  # noqa: BLE001
             log.info(
                 "pool member `%s` failed to cache in `%s` err: %s",
@@ -276,13 +316,16 @@ class Worker(Base, GUIDPk, Timestamped, AllowAnonProvider):
                 getattr(updated, "pool_id", ""),
                 exc,
             )
+        log.info("exiting post_worker_update_cache_pool")
 
     @hook_ctx(ops="update", phase="POST_RESPONSE")
     async def _post_update_cache_worker(cls, ctx):
         from peagen.gateway import log, queue
         from peagen.gateway._publish import _publish_event
 
+        log.info("entering post_worker_update_cache_worker")
         worker_id = ctx["worker_id"]
+        updated = None
         try:
             updated = cls.schemas.read.out.model_validate(
                 ctx["result"], from_attributes=True
@@ -295,20 +338,18 @@ class Worker(Base, GUIDPk, Timestamped, AllowAnonProvider):
             log.info("cached failed for worker: `%s` err: %s", worker_id, exc)
         try:
             await _publish_event(queue, "Worker.update", updated)
+            log.info("published Worker.update event for %s", worker_id)
         except Exception as exc:  # noqa: BLE001
             log.error("failure to _publish_event for: `Worker.update` err: %s", exc)
+        log.info("exiting post_worker_update_cache_worker")
 
-    @hook_ctx(ops="list", phase="POST_HANDLER")
-    async def _post_list(cls, ctx):
-        from peagen.gateway import log
-
-        log.info("entering post_workers_list")
 
     @hook_ctx(ops="delete", phase="POST_HANDLER")
     async def _post_delete(cls, ctx):
         from peagen.gateway import log, queue
         from peagen.gateway._publish import _publish_event
 
+        log.info("entering post_worker_delete")
         wu = ctx["env"].params
         worker_id = str(wu["id"] or wu["item_id"])
         try:
@@ -318,8 +359,10 @@ class Worker(Base, GUIDPk, Timestamped, AllowAnonProvider):
             log.info("worker expiration op failed: `%s` err: %s", worker_id, exc)
         try:
             await _publish_event(queue, "Worker.delete", {"id": worker_id})
+            log.info("published Worker.delete event for %s", worker_id)
         except Exception as exc:  # noqa: BLE001
             log.info("failure to _publish_event for: `Worker.delete` err: %s", exc)
+        log.info("exiting post_worker_delete")
 
         # hooks registered via @hook_ctx
 
