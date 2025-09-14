@@ -3,7 +3,7 @@ name: License Scan
 
 on:
   push:
-    branches: [main]
+    branches: [master, mono/dev]
   pull_request:
 
 jobs:
