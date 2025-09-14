@@ -6,24 +6,18 @@ import asyncio
 import base64
 import hashlib
 import json
-import time
-from datetime import datetime, timezone
 from typing import Dict, Final
-from uuid import uuid4
-
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric.ed25519 import (
-    Ed25519PrivateKey,
-    Ed25519PublicKey,
-)
-from .deps import JWAAlg, JwsSignerVerifier
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+from swarmauri_signing_dpop import DpopSigner
+from .deps import JWAAlg
 
 from .runtime_cfg import settings
 
 RFC9449_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc9449"
 _ALG = JWAAlg.EDDSA
 _ALLOWED_SKEW = 300  # seconds
-_signer = JwsSignerVerifier()
+_signer = DpopSigner()
 
 
 def _b64url(data: bytes) -> str:
@@ -63,25 +57,17 @@ def create_proof(
         enabled = settings.enable_rfc9449
     if not enabled:
         return ""
-    sk = serialization.load_pem_private_key(private_pem, password=None)
-    if not isinstance(sk, Ed25519PrivateKey):
-        raise TypeError("private key must be Ed25519")
-    jwk = jwk_from_public_key(sk.public_key())
-    headers = {"typ": "dpop+jwt", "jwk": jwk}
-    payload = {
-        "htm": method.upper(),
-        "htu": url,
-        "iat": int(datetime.now(timezone.utc).timestamp()),
-        "jti": str(uuid4()),
-    }
-    return asyncio.run(
-        _signer.sign_compact(
-            payload=payload,
-            alg=_ALG,
-            key={"kind": "cryptography_obj", "obj": sk},
-            header_extra=headers,
+    # Resolve the key and delegate signing to ``DpopSigner``.
+    keyref = {"kind": "pem", "priv": private_pem}
+    sigs = asyncio.run(
+        _signer.sign_bytes(
+            keyref,
+            b"",
+            alg=_ALG.value,
+            opts={"htm": method.upper(), "htu": url},
         )
     )
+    return sigs[0]["sig"]
 
 
 def verify_proof(
@@ -96,6 +82,7 @@ def verify_proof(
         enabled = settings.enable_rfc9449
     if not enabled:
         return ""
+    # Decode header to derive JWK thumbprint for caller.
     parts = proof.split(".")
     if len(parts) != 3:
         raise ValueError(f"malformed DPoP proof: {RFC9449_SPEC_URL}")
@@ -103,18 +90,22 @@ def verify_proof(
     jwk = header.get("jwk")
     if not jwk:
         raise ValueError(f"missing jwk in DPoP header: {RFC9449_SPEC_URL}")
-    pub = base64.urlsafe_b64decode(jwk["x"] + "==")
-    result = asyncio.run(_signer.verify_compact(proof, ed_pubkeys=[pub]))
-    payload = json.loads(result.payload.decode())
-    if payload.get("htm") != method.upper():
-        raise ValueError(f"htm mismatch: {RFC9449_SPEC_URL}")
-    if payload.get("htu") != url:
-        raise ValueError(f"htu mismatch: {RFC9449_SPEC_URL}")
-    now = int(time.time())
-    iat = int(payload.get("iat", 0))
-    if abs(now - iat) > _ALLOWED_SKEW:
-        raise ValueError(f"iat out of range: {RFC9449_SPEC_URL}")
     thumb = jwk_thumbprint(jwk)
+
+    valid = asyncio.run(
+        _signer.verify_bytes(
+            b"",
+            [{"sig": proof}],
+            require={
+                "htm": method.upper(),
+                "htu": url,
+                "algs": [_ALG.value],
+                "max_skew_s": _ALLOWED_SKEW,
+            },
+        )
+    )
+    if not valid:
+        raise ValueError(f"invalid DPoP proof: {RFC9449_SPEC_URL}")
     if jkt and thumb != jkt:
         raise ValueError(f"jkt mismatch: {RFC9449_SPEC_URL}")
     return thumb

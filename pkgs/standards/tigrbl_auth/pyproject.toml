@@ -21,6 +21,7 @@ dependencies = [
     "swarmauri_tokens_jwt",
     "swarmauri_signing_jws",
     "swarmauri_signing_ed25519",
+    "swarmauri_signing_dpop",
     "swarmauri_crypto_jwe",
     "swarmauri_keyprovider_file",
     "swarmauri_keyprovider_local",
@@ -48,6 +49,7 @@ swarmauri_crypto_jwe  = { workspace = true }
 swarmauri_tokens_jwt = { workspace = true }
 swarmauri_signing_jws  = { workspace = true }
 swarmauri_signing_ed25519  = { workspace = true }
+swarmauri_signing_dpop  = { workspace = true }
 swarmauri_keyprovider_file  = { workspace = true }
 swarmauri_keyprovider_local  = { workspace = true }
 
