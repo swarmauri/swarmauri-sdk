@@ -1,4 +1,4 @@
-![Tigrbl Logo](../../../assets/tigrbl_full_logo.png)
+![Tigrbl Logo](../../../assets/tigrbl.brand.theme.svg)
 
 <p align="center">
     <a href="https://pypi.org/project/tigrbl_auth/">
