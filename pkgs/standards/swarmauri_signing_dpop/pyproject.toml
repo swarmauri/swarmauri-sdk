@@ -28,7 +28,6 @@ dependencies = [
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_signing_jws = { workspace = true }
-swarmauri_tests_loc_tersity = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
@@ -57,7 +56,6 @@ dev = [
     "pytest-benchmark>=4.0.0",
     "flake8>=7.0",
     "ruff>=0.9.9",
-    "swarmauri_tests_loc_tersity",
 ]
 
 [build-system]
