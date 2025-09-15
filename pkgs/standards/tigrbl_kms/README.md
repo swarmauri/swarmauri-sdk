@@ -1,4 +1,4 @@
-![Tigrbl Logo](../../../assets/tigrbl.brand.theme.svg)
+![Tigrbl Logo](https://github.com/swarmauri/swarmauri-sdk/blob/a170683ecda8ca1c4f912c966d4499649ffb8224/assets/tigrbl.brand.theme.svg)
 
 <p align="center">
     <a href="https://pypi.org/project/tigrbl_kms/">
