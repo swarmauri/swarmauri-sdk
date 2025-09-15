@@ -1,0 +1,37 @@
+[project]
+name = "swarmauri_tests_pylicense"
+version = "0.1.0.dev0"
+description = "Pytest plugin reporting dependency licenses"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+license = "Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/swarmauri/swarmauri-sdk/pkgs/experimental/swarmauri_tests_pylicense"
+requires-python = ">=3.10,<3.13"
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "License :: OSI Approved :: Apache Software License",
+    "Framework :: Pytest",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+[project.entry-points.pytest11]
+swarmauri_tests_pylicense = "swarmauri_tests_pylicense"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-xdist>=3.6.1",
+    "pytest-json-report>=1.5.0",
+    "python-dotenv",
+    "pytest-timeout>=2.3.1",
+    "ruff>=0.9.9",
+    "pytest-benchmark>=4.0.0",
+]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
