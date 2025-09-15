@@ -40,7 +40,7 @@ def disable_tls_requirement():
 
 
 # Test database configuration
-TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
+TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:?cache=shared"
 
 
 @pytest.fixture(scope="session")
@@ -168,20 +168,20 @@ def enable_rfc8414():
         settings.enable_rfc8414 = original
 
 
-@pytest.fixture
-def enable_rfc9126(db_session):
+@pytest_asyncio.fixture
+async def enable_rfc9126(db_session):
     """Enable RFC 9126 pushed authorization requests for tests."""
     from tigrbl_auth.runtime_cfg import settings
-    from tigrbl_auth.rfc.rfc9126 import reset_par_store
+    from tigrbl_auth.orm.pushed_authorization_request import PushedAuthorizationRequest
 
     original = settings.enable_rfc9126
     settings.enable_rfc9126 = True
-    asyncio.get_event_loop().run_until_complete(reset_par_store(db_session))
+    await PushedAuthorizationRequest.handlers.clear.core({"db": db_session})
     try:
         yield
     finally:
         settings.enable_rfc9126 = original
-        asyncio.get_event_loop().run_until_complete(reset_par_store(db_session))
+        await PushedAuthorizationRequest.handlers.clear.core({"db": db_session})
 
 
 @pytest.fixture
