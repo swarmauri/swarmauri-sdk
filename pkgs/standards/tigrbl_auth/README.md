@@ -15,29 +15,31 @@
 
 ---
 
-# Tigrbl Auth
+# Tigrbl Auth 🔐
 
-### Terminology
+Secure, multi-tenant identity services for the Tigrbl ecosystem.
 
-- **Tenant** – a namespace used to group related resources such as repositories or clients.
-- **Principal** – an owner of resources, for example an individual user or an organization.
+## Terminology 📚
+
+- **Tenant** 🏢 – a namespace used to group related resources such as repositories or clients.
+- **Principal** 👤 – an owner of resources, for example an individual user or an organization.
 
 ---
 
-# Auto Authn: Multi-Tenant OpenID Connect Provider
+## Auto Authn: Multi-Tenant OpenID Connect Provider 🚦
 
 `Auto Authn` is an async, SQL-backed Identity Provider for OpenID Connect 1.0 and OAuth 2.1.
 It provides per-tenant isolation and is designed to scale for SaaS deployments.
 
-## Features
+### Features ✨
 
-- Per-tenant issuer URLs with isolated user and client tables.
-- RSA-based JWT signing with helpers for key rotation.
-- Powered by Tigrbl.
-- OIDC discovery endpoints and JWKS generation.
-- Configurable PostgreSQL or SQLite storage with optional Redis support.
+- 🏢 Per-tenant issuer URLs with isolated user and client tables.
+- 🔐 RSA-based JWT signing with helpers for key rotation.
+- 🐅 Powered by Tigrbl.
+- 🔎 OIDC discovery endpoints and JWKS generation.
+- 🛡️ Configurable PostgreSQL or SQLite storage with optional Redis support.
 
-## Installation
+### Installation 📦
 
 ```bash
 pip install tigrbl_auth
@@ -53,7 +55,7 @@ pip install tigrbl_auth[postgres]
 pip install tigrbl_auth[sqlite]
 ```
 
-## Quick Start
+### Quick Start 🚀
 
 ```python
 from tigrbl.engine import engine
@@ -82,7 +84,7 @@ The service exposes an OpenID Connect discovery document at
 `/.well-known/openid-configuration` and publishes its JSON Web Key Set at
 `/.well-known/jwks.json`.
 
-## Configuration
+### Configuration ⚙️
 
 `Auto Authn` reads settings from environment variables. Common options include:
 
@@ -92,7 +94,7 @@ The service exposes an OpenID Connect discovery document at
   storage (optional).
 - `JWT_SECRET` for token signing and `LOG_LEVEL` to control logging verbosity.
 
-## Docker
+### Docker 🐳
 
 A lightweight Dockerfile is provided. Build and run the service with:
 
@@ -103,12 +105,12 @@ docker run -p 8000:8000 tigrbl-auth
 
 Visit `http://localhost:8000/docs` to explore the interactive API documentation.
 
-## Contributing
+### Contributing 🤝
 
 Contributions are welcome! Please open an issue or submit a pull request to
 discuss improvements.
 
-## License
+### License 📜
 
 Apache-2.0
 
