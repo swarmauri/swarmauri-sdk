@@ -1,29 +1,33 @@
 ![Swamauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
-    <a href="https://pypi.org/project/swarmauri-signing-hmac/">
-        <img src="https://img.shields.io/pypi/dm/swarmauri-signing-hmac" alt="PyPI - Downloads"/></a>
+    <a href="https://pypi.org/project/swarmauri_signing_hmac/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_signing_hmac" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_hmac/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_hmac.svg"/></a>
-    <a href="https://pypi.org/project/swarmauri-signing-hmac/">
-        <img src="https://img.shields.io/pypi/pyversions/swarmauri-signing-hmac" alt="PyPI - Python Version"/></a>
-    <a href="https://pypi.org/project/swarmauri-signing-hmac/">
-        <img src="https://img.shields.io/pypi/l/swarmauri-signing-hmac" alt="PyPI - License"/></a>
-    <a href="https://pypi.org/project/swarmauri-signing-hmac/">
-        <img src="https://img.shields.io/pypi/v/swarmauri-signing-hmac?label=swarmauri-signing-hmac&color=green" alt="PyPI - swarmauri-signing-hmac"/></a>
+    <a href="https://pypi.org/project/swarmauri_signing_hmac/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_signing_hmac" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_signing_hmac/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_signing_hmac" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_signing_hmac/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_signing_hmac?label=swarmauri_signing_hmac&color=green" alt="PyPI - swarmauri_signing_hmac"/></a>
 </p>
+
+---
 
 # Swarmauri Signing HMAC
 
 An HMAC-based signer implementing the `ISigning` interface for detached
 signatures over raw bytes and canonicalized envelopes.
 
-Features:
+## Features
+
 - JSON canonicalization (always available)
 - Optional CBOR canonicalization via `cbor2`
 - Detached signatures using standard library `hmac`
 
-Security notes:
+## Security Notes
+
 - Supports HMAC-SHA-256/384/512 only.
 - Keys must be at least 32 bytes (256 bits).
 - Tags default to the hash digest size and may be truncated via
