@@ -34,20 +34,22 @@ pyopenssl = ["pyopenssl>=23.2.0"]
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
 swarmauri_typing = { workspace = true }
+swarmauri_tests_pylicense = { workspace = true }
 
 [dependency-groups]
 dev = [
-"toml>=0.10.2",
-"pytest>=8.0.0",
-"pytest-xdist>=3.6.1",
-"pytest-asyncio>=0.24.0",
-"pytest-timeout>=2.3.1",
-"pytest-json-report>=1.5.0",
-"python-dotenv>=1.0.0",
-"pytest-mock>=3.14.0",
-"jsonschema>=4.18.5",
-"ruff>=0.9.9",
-"pytest-benchmark>=4.0.0",
+    "toml>=0.10.2",
+    "pytest>=8.0.0",
+    "pytest-xdist>=3.6.1",
+    "pytest-asyncio>=0.24.0",
+    "pytest-timeout>=2.3.1",
+    "pytest-json-report>=1.5.0",
+    "python-dotenv>=1.0.0",
+    "pytest-mock>=3.14.0",
+    "jsonschema>=4.18.5",
+    "ruff>=0.9.9",
+    "pytest-benchmark>=4.0.0",
+    "swarmauri_tests_pylicense",
 ]
 
 [tool.pytest.ini_options]
