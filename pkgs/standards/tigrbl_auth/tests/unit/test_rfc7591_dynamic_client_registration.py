@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 import pytest
 
-from tigrbl_auth import rfc7591
+from tigrbl_auth.rfc import rfc7591
 
 
 def test_register_client_when_enabled() -> None:
