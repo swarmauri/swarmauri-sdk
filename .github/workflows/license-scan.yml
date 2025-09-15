@@ -2,10 +2,8 @@
 name: License Scan
 
 on:
-  push:
-    branches: [master, mono/dev]
   pull_request:
-
+    branches: [master, mono/dev]
 jobs:
   license-scan:
     runs-on: ubuntu-latest

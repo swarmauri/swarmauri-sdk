@@ -86,7 +86,10 @@ async def get_par_request(request_uri: str, db: AsyncSession) -> Dict[str, Any] 
     obj = await db.get(PushedAuthorizationRequest, request_uri)
     if not obj:
         return None
-    if datetime.now(tz=timezone.utc) > obj.expires_at:
+    expires_at = obj.expires_at
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if datetime.now(tz=timezone.utc) > expires_at:
         await PushedAuthorizationRequest.handlers.delete.core({"db": db, "obj": obj})
         return None
     return obj.params
