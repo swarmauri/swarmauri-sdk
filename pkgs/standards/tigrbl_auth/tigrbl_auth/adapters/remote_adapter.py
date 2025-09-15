@@ -11,22 +11,10 @@ from tigrbl_auth.deps import (
     Security,
     status,
     APIKeyHeader,
-    TIGRBL_AUTH_CONTEXT_ATTR,
     AuthNProvider,
 )
 from ..principal_ctx import principal_var
-
-
-def _set_auth_context(request: Request, principal: dict | None) -> None:
-    ctx: dict[str, str] = {}
-    if principal:
-        tid = principal.get("tid") or principal.get("tenant_id")
-        uid = principal.get("sub") or principal.get("user_id")
-        if tid is not None:
-            ctx["tenant_id"] = tid
-        if uid is not None:
-            ctx["user_id"] = uid
-    setattr(request.state, TIGRBL_AUTH_CONTEXT_ATTR, ctx)
+from .auth_context import set_auth_context
 
 
 # OpenAPI-advertised security scheme (header-based API key)
@@ -100,7 +88,7 @@ class RemoteAuthNAdapter(AuthNProvider):
 
         request.state.principal = principal
         principal_var.set(principal)
-        _set_auth_context(request, principal)
+        set_auth_context(request, principal)
         return principal
 
     async def get_principal_optional(  # optional: header may be absent
@@ -117,7 +105,7 @@ class RemoteAuthNAdapter(AuthNProvider):
         if not api_key:
             request.state.principal = None
             principal_var.set(None)
-            _set_auth_context(request, None)
+            set_auth_context(request, None)
             return None
 
         principal = self._cache_get(api_key)
@@ -127,13 +115,13 @@ class RemoteAuthNAdapter(AuthNProvider):
                 # For optional auth we do not raise; return None to allow anon flows.
                 request.state.principal = None
                 principal_var.set(None)
-                _set_auth_context(request, None)
+                set_auth_context(request, None)
                 return None
             self._cache_put(api_key, principal)
 
         request.state.principal = principal
         principal_var.set(principal)
-        _set_auth_context(request, principal)
+        set_auth_context(request, principal)
         return principal
 
     # ------------------------------------------------------------------ #

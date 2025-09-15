@@ -1,18 +1,12 @@
 from __future__ import annotations
 
-import secrets
 
-from tigrbl_auth.deps import Depends, HTTPException, Request, status, JSONResponse
-from tigrbl_auth.deps import AsyncSession
+from tigrbl_auth.deps import AsyncSession, Depends, Request
 
-from ..backends import AuthError
 from ..fastapi_deps import get_db
-from ..oidc_id_token import mint_id_token
 from ..orm.auth_session import AuthSession
 from ..routers.schemas import CredsIn, TokenPair
-from ..rfc.rfc8414_metadata import ISSUER
-from .authz import api
-from .shared import _jwt, _pwd_backend, AUTH_CODES, SESSIONS
+from .authz import router as router
 
 
 @api.post("/login", response_model=TokenPair)
@@ -21,40 +15,12 @@ async def login(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
-    try:
-        user = await _pwd_backend.authenticate(db, creds.identifier, creds.password)
-    except AuthError:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "invalid credentials")
-    session_id = secrets.token_urlsafe(16)
-    payload = {
-        "id": session_id,
-        "user_id": user.id,
-        "tenant_id": user.tenant_id,
-        "username": user.username,
+    ctx = {
+        "db": db,
+        "payload": {"username": creds.identifier, "password": creds.password},
+        "request": request,
     }
-    session = await AuthSession.handlers.create.core({"db": db, "payload": payload})
-    access, refresh = await _jwt.async_sign_pair(
-        sub=str(user.id), tid=str(user.tenant_id), scope="openid profile email"
-    )
-    SESSIONS[session.id] = {
-        "sub": str(user.id),
-        "tid": str(user.tenant_id),
-        "username": user.username,
-        "auth_time": session.auth_time,
-    }
-    id_token = await mint_id_token(
-        sub=str(user.id),
-        aud=ISSUER,
-        nonce=secrets.token_urlsafe(8),
-        issuer=ISSUER,
-        sid=session.id,
-    )
-    pair = {"access_token": access, "refresh_token": refresh, "id_token": id_token}
-    response = JSONResponse(pair)
-    response.set_cookie("sid", session.id, httponly=True, samesite="lax")
-    return response
+    return await AuthSession.handlers.login.core(ctx)
 
 
-router = api
-
-__all__ = ["api", "router", "_jwt", "_pwd_backend", "AUTH_CODES", "SESSIONS"]
+__all__ = ["router"]

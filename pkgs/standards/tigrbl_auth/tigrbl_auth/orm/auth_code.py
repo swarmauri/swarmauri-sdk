@@ -101,7 +101,7 @@ class AuthCode(Base, Timestamped, UserColumn, TenantColumn):
             "at_hash": oidc_hash(access),
         }
         if obj.claims and "id_token" in obj.claims:
-            user_obj = await db.get(User, obj.user_id)
+            user_obj = await User.handlers.read.core({"db": db, "obj_id": obj.user_id})
             idc = obj.claims["id_token"]
             if "email" in idc:
                 extra_claims["email"] = user_obj.email if user_obj else ""
