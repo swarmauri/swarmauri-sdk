@@ -1,4 +1,4 @@
-
+pytest_plugins = ["pytester"]
 
 
 def _make_files(tmp_path):
