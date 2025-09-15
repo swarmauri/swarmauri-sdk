@@ -20,7 +20,6 @@ from tigrbl_auth.deps import (
     HTTPException,
     Request,
     status,
-    delete,
     AsyncSession,
 )
 
@@ -89,7 +88,9 @@ async def get_par_request(request_uri: str, db: AsyncSession) -> Dict[str, Any] 
 
     from ..orm import PushedAuthorizationRequest
 
-    obj = await db.get(PushedAuthorizationRequest, request_uri)
+    obj = await PushedAuthorizationRequest.handlers.read.core(
+        {"db": db, "obj_id": request_uri}
+    )
     if not obj:
         return None
     expires_at = obj.expires_at
@@ -106,8 +107,7 @@ async def reset_par_store(db: AsyncSession) -> None:
 
     from ..orm import PushedAuthorizationRequest
 
-    await db.execute(delete(PushedAuthorizationRequest))
-    await db.commit()
+    await PushedAuthorizationRequest.handlers.clear.core({"db": db})
 
 
 __all__ = [

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
 
 from tigrbl_auth.deps import HTTPException, Request, status
 
@@ -14,9 +13,6 @@ _pwd_backend = PasswordBackend()
 _ALLOWED_GRANT_TYPES = {"password", "authorization_code", "client_credentials"}
 if settings.enable_rfc8628:
     _ALLOWED_GRANT_TYPES.add("urn:ietf:params:oauth:grant-type:device_code")
-
-AUTH_CODES: dict[str, dict[str, Any]] = {}
-SESSIONS: dict[str, dict[str, Any]] = {}
 
 
 def _require_tls(request: Request) -> None:
