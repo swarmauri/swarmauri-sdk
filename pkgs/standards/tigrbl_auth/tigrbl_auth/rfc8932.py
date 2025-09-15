@@ -207,7 +207,11 @@ def get_enhanced_authorization_server_metadata() -> Dict[str, Any]:
     return result
 
 
-@router.get("/.well-known/oauth-authorization-server-enhanced", include_in_schema=False)
+@router.get(
+    "/.well-known/oauth-authorization-server-enhanced",
+    include_in_schema=False,
+    tags=[".well-known"],
+)
 async def enhanced_authorization_server_metadata():
     """Return enhanced OAuth 2.0 Authorization Server Metadata.
 
