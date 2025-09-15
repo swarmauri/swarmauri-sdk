@@ -14,21 +14,10 @@ Usage
 
 from __future__ import annotations
 
-from tigrbl_auth.deps import Request, TIGRBL_AUTH_CONTEXT_ATTR, AuthNProvider
+from tigrbl_auth.deps import AuthNProvider, Request
 from ..fastapi_deps import get_principal
 from ..principal_ctx import principal_var  # noqa: F401  # ensure ContextVar is initialised
-
-
-def _set_auth_context(request: Request, principal: dict) -> None:
-    """Populate request.state with the auth context expected by Tigrbl."""
-    ctx: dict[str, str] = {}
-    tid = principal.get("tid") or principal.get("tenant_id")
-    uid = principal.get("sub") or principal.get("user_id")
-    if tid is not None:
-        ctx["tenant_id"] = tid
-    if uid is not None:
-        ctx["user_id"] = uid
-    setattr(request.state, TIGRBL_AUTH_CONTEXT_ATTR, ctx)
+from .auth_context import set_auth_context
 
 
 class LocalAuthNAdapter(AuthNProvider):
@@ -51,7 +40,7 @@ class LocalAuthNAdapter(AuthNProvider):
             If the API‑key / bearer token is invalid or expired.
         """
         principal = await get_principal(request)  # type: ignore[arg-type]
-        _set_auth_context(request, principal)
+        set_auth_context(request, principal)
         return principal
 
 
