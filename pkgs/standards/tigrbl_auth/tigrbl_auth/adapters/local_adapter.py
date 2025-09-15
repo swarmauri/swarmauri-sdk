@@ -14,10 +14,7 @@ Usage
 
 from __future__ import annotations
 
-from fastapi import Request
-
-from tigrbl.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
-from tigrbl.types.authn_abc import AuthNProvider
+from tigrbl_auth.deps import Request, TIGRBL_AUTH_CONTEXT_ATTR, AuthNProvider
 from ..fastapi_deps import get_principal
 from ..principal_ctx import principal_var  # noqa: F401  # ensure ContextVar is initialised
 
