@@ -42,9 +42,10 @@ class AuthSession(Base, Timestamped, UserColumn, TenantColumn):
         from .user import User
 
         payload = ctx.get("payload") or {}
+        temp = ctx.get("temp") or {}
         db = ctx.get("db")
         username = payload.get("username")
-        password = payload.get("password")
+        password = payload.get("password") or temp.get("password")
         if db is None or not username or not password:
             raise HTTPException(status_code=400, detail="missing credentials")
 

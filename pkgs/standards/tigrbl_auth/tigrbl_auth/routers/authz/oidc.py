@@ -22,7 +22,7 @@ from ...oidc_id_token import mint_id_token, oidc_hash
 from ...rfc.rfc8414_metadata import ISSUER
 from ...rfc.rfc8252 import is_native_redirect_uri
 from ..shared import _require_tls
-from . import router
+from . import api
 
 
 @api.get("/authorize")
