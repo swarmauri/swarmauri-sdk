@@ -1,8 +1,8 @@
 """
-tigrbl_authn.app
-=================
+tigrbl_auth.app
+===============
 
-FastAPI application factory for the **tigrbl-authn** service.
+FastAPI application factory for the **tigrbl-auth** service.
 
 Features
 --------

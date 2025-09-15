@@ -1,8 +1,12 @@
-"""ORM-backed API surface for the authentication service.
+"""
+tigrbl_auth.routers.surface
+===========================
+
+ORM-backed API surface for the authentication service.
 
 Exports
 -------
-Base       : Declarative base for all models in **tigrbl_authn**.
+Base       : Declarative base for all models in **tigrbl_auth**.
 metadata   : Shared SQLAlchemy ``MetaData`` with a sane naming-convention.
 router     : FastAPI router combining Tigrbl resources and auth flows.
 tigrbl    : The ``TigrblApi`` instance used to produce *router*.
