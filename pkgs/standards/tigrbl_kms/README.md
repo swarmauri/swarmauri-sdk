@@ -15,8 +15,18 @@
 
 ---
 
-# Tigrbl KMS
-Tigrbl KMS provides a lightweight key management service built on FastAPI and the Tigrbl engine.
+# Tigrbl KMS 🔐
+
+> A lightweight key management service powered by FastAPI and the Tigrbl engine.
+
+## ✨ Features
+
+- 🔑 Manage symmetric keys with versioning and rotation.
+- 🚀 Ships with a ready-to-run FastAPI application.
+- 🤖 Extensible through `swarmauri_crypto_*` plugins.
+- 📦 Backed by SQLAlchemy and Pydantic models.
+
+## 🚀 Quick Start
 
 ### Run the built-in app
 
@@ -38,7 +48,7 @@ curl http://127.0.0.1:8000/system/healthz
 
 The endpoint returns `{"ok": true}` when deployment succeeds.
 
-### Build a custom app
+## 🛠️ Build a custom app
 
 You can construct a bespoke Tigrbl KMS service by creating your own `TigrblApp` and adding the KMS resources:
 
@@ -74,7 +84,7 @@ if __name__ == "__main__":
 
 The `PgpCrypto` instance above can be replaced with any other `swarmauri_crypto_*` plugin such as `swarmauri_crypto_paramiko` or `swarmauri_crypto_rust`.
 
-### Create a key and encrypt data
+## 🔒 Create a key and encrypt data
 
 In another terminal, create a key:
 
@@ -86,7 +96,7 @@ curl -s -X POST http://127.0.0.1:8000/kms/Key \
 
 Example response:
 
-```
+```json
 {"id":"5e454eb6-7739-453b-9aee-21d60032a773","name":"demo","algorithm":"AES256_GCM","status":"enabled","primary_version":1}
 ```
 
@@ -101,8 +111,12 @@ curl -s -X POST http://127.0.0.1:8000/kms/Key/5e454eb6-7739-453b-9aee-21d60032a7
 
 Sample output:
 
-```
+```json
 {"kid":"5e454eb6-7739-453b-9aee-21d60032a773","version":1,"alg":"AES256_GCM","nonce_b64":"bg==","ciphertext_b64":"ZGxyb3cgb2xsZWg=","tag_b64":"dA=="}
 ```
 
 The ciphertext is base64 encoded and can be decrypted with the corresponding `decrypt` endpoint.
+
+## 📄 License
+
+This project is licensed under the terms of the [Apache 2.0](LICENSE) license.
