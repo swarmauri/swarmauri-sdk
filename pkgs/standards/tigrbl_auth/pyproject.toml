@@ -44,6 +44,7 @@ keywords = ["oidc", "oauth2", "fastapi", "identity-provider", "jwks", "jwt"]
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
+tigrbl = { workspace = true }
 
 swarmauri_crypto_jwe  = { workspace = true }
 swarmauri_tokens_jwt = { workspace = true }

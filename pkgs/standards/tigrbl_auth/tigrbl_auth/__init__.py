@@ -23,6 +23,7 @@ from .rfc.rfc9396 import (
 )
 
 from .rfc.rfc6750 import extract_bearer_token
+from .rfc import rfc7662, rfc7591, rfc7592, rfc9101
 from .rfc.rfc7662 import introspect_token, register_token, reset_tokens
 from .rfc.rfc9207 import RFC9207_SPEC_URL, extract_issuer
 from .rfc.rfc8932 import RFC8932_SPEC_URL, enforce_encrypted_dns
@@ -204,6 +205,10 @@ __all__ = [
     "validate_metadata_consistency",
     "get_capability_matrix",
     "RFC8932_SPEC_URL",
+    "rfc7591",
+    "rfc7592",
+    "rfc7662",
+    "rfc9101",
     "mint_id_token",
     "verify_id_token",
 ]

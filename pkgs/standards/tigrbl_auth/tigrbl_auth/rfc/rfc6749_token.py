@@ -1,48 +1,53 @@
 from __future__ import annotations
 
+import inspect
 import secrets
-
 from datetime import datetime, timezone
 from typing import Any
-import inspect
 from uuid import UUID
 
 from tigrbl_auth.deps import (
+    APIRouter,
+    AsyncSession,
     Depends,
     HTTPException,
-    Request,
-    status,
     JSONResponse,
-    select,
-    AsyncSession,
+    Request,
     ValidationError,
+    select,
+    status,
 )
 
-from ...backends import AuthError
-from ...fastapi_deps import get_db
-from ...orm import AuthCode, Client, DeviceCode, User
-from ...rfc8707 import extract_resource
-from ...runtime_cfg import settings
-from ...rfc6749 import (
+from ..backends import AuthError
+from ..fastapi_deps import get_db
+from ..oidc_id_token import mint_id_token, oidc_hash
+from ..orm import AuthCode, Client, DeviceCode, User
+from ..rfc.rfc8414_metadata import ISSUER
+from ..rfc.rfc8707 import extract_resource
+from ..rfc.rfc6749 import (
     RFC6749Error,
     enforce_authorization_code_grant,
     enforce_grant_type,
     enforce_password_grant,
     is_enabled as rfc6749_enabled,
 )
-from ...rfc7636_pkce import verify_code_challenge
-from ...rfc8628 import DeviceGrantForm
-from ...oidc_id_token import mint_id_token, oidc_hash
-from ...rfc8414_metadata import ISSUER
-
-from ..schemas import (
+from ..rfc.rfc7636_pkce import verify_code_challenge
+from ..rfc.rfc8628 import DeviceGrantForm
+from ..routers.schemas import (
     AuthorizationCodeGrantForm,
     PasswordGrantForm,
     RefreshIn,
     TokenPair,
 )
-from ..shared import _require_tls, _jwt, _pwd_backend, _ALLOWED_GRANT_TYPES
-from . import router
+from ..routers.shared import (
+    _ALLOWED_GRANT_TYPES,
+    _jwt,
+    _pwd_backend,
+    _require_tls,
+)
+from ..runtime_cfg import settings
+
+router = APIRouter()
 
 
 @router.post("/token", response_model=TokenPair)
