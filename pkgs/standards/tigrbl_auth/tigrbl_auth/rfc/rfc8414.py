@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import Final
 
-from tigrbl_auth.deps import APIRouter, FastAPI, HTTPException, status
+from tigrbl_auth.deps import APIRouter, TigrblApp, HTTPException, status
 
 from ..runtime_cfg import settings
 from ..oidc_discovery import (
@@ -43,7 +43,7 @@ async def authorization_server_metadata():
     return _cached_openid_config(_settings_signature())
 
 
-def include_rfc8414(app: FastAPI) -> None:
+def include_rfc8414(app: TigrblApp) -> None:
     """Attach discovery routes to *app* if enabled."""
     if settings.enable_rfc8414 and not any(
         route.path == "/.well-known/oauth-authorization-server" for route in app.routes
