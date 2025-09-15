@@ -10,12 +10,12 @@ import pytest
 
 from tigrbl_auth.rfc.rfc7952 import (
     RFC7952_SPEC_URL,
-    create_security_event_token,
+    makeSecurityEventToken,
     validate_security_event_token,
     extract_event_data,
     get_set_subject_identifiers,
-    create_account_disabled_set,
-    create_session_revoked_set,
+    makeAccountDisabledSet,
+    makeSessionRevokedSet,
     SET_EVENT_TYPES,
 )
 from tigrbl_auth.runtime_cfg import settings
@@ -23,10 +23,10 @@ from tigrbl_auth.rfc.rfc7519 import decode_jwt
 
 
 @pytest.mark.unit
-def test_create_security_event_token_basic():
+def test_make_security_event_token_basic():
     """RFC 7952: Create basic Security Event Token."""
     with patch.object(settings, "enable_rfc7952", True):
-        set_token = create_security_event_token(
+        set_token = makeSecurityEventToken(
             issuer="https://auth.example.com",
             audience="https://rp.example.com",
             event_type="https://example.com/event-type/account-disabled",
@@ -55,11 +55,11 @@ def test_create_security_event_token_basic():
 
 
 @pytest.mark.unit
-def test_create_security_event_token_multiple_audiences():
+def test_make_security_event_token_multiple_audiences():
     """RFC 7952: Create SET with multiple audiences."""
     with patch.object(settings, "enable_rfc7952", True):
         audiences = ["https://rp1.example.com", "https://rp2.example.com"]
-        set_token = create_security_event_token(
+        set_token = makeSecurityEventToken(
             issuer="https://auth.example.com",
             audience=audiences,
             event_type="https://example.com/event-type/session-revoked",
@@ -71,11 +71,11 @@ def test_create_security_event_token_multiple_audiences():
 
 
 @pytest.mark.unit
-def test_create_security_event_token_missing_event_type():
+def test_make_security_event_token_missing_event_type():
     """RFC 7952: Missing event_type should raise ValueError."""
     with patch.object(settings, "enable_rfc7952", True):
         with pytest.raises(ValueError, match="event_type is required"):
-            create_security_event_token(
+            makeSecurityEventToken(
                 issuer="https://auth.example.com",
                 audience="https://rp.example.com",
                 event_type="",  # Empty event type
@@ -84,11 +84,11 @@ def test_create_security_event_token_missing_event_type():
 
 
 @pytest.mark.unit
-def test_create_security_event_token_missing_subject():
+def test_make_security_event_token_missing_subject():
     """RFC 7952: Missing subject should raise ValueError."""
     with patch.object(settings, "enable_rfc7952", True):
         with pytest.raises(ValueError, match="subject is required"):
-            create_security_event_token(
+            makeSecurityEventToken(
                 issuer="https://auth.example.com",
                 audience="https://rp.example.com",
                 event_type="https://example.com/event-type/account-disabled",
@@ -97,11 +97,11 @@ def test_create_security_event_token_missing_subject():
 
 
 @pytest.mark.unit
-def test_create_security_event_token_disabled():
+def test_make_security_event_token_disabled():
     """RFC 7952: Creating SET when disabled should raise RuntimeError."""
     with patch.object(settings, "enable_rfc7952", False):
         with pytest.raises(RuntimeError, match="RFC 7952 support disabled"):
-            create_security_event_token(
+            makeSecurityEventToken(
                 issuer="https://auth.example.com",
                 audience="https://rp.example.com",
                 event_type="https://example.com/event-type/account-disabled",
@@ -114,7 +114,7 @@ def test_validate_security_event_token_success():
     """RFC 7952: Validate valid Security Event Token."""
     with patch.object(settings, "enable_rfc7952", True):
         # Create a SET first
-        set_token = create_security_event_token(
+        set_token = makeSecurityEventToken(
             issuer="https://auth.example.com",
             audience="https://rp.example.com",
             event_type="https://example.com/event-type/account-disabled",
@@ -137,7 +137,7 @@ def test_validate_security_event_token_success():
 def test_validate_security_event_token_wrong_issuer():
     """RFC 7952: Wrong issuer should raise ValueError."""
     with patch.object(settings, "enable_rfc7952", True):
-        set_token = create_security_event_token(
+        set_token = makeSecurityEventToken(
             issuer="https://auth.example.com",
             audience="https://rp.example.com",
             event_type="https://example.com/event-type/account-disabled",
@@ -155,7 +155,7 @@ def test_validate_security_event_token_wrong_issuer():
 def test_validate_security_event_token_wrong_audience():
     """RFC 7952: Wrong audience should raise ValueError."""
     with patch.object(settings, "enable_rfc7952", True):
-        set_token = create_security_event_token(
+        set_token = makeSecurityEventToken(
             issuer="https://auth.example.com",
             audience="https://rp.example.com",
             event_type="https://example.com/event-type/account-disabled",
@@ -174,7 +174,7 @@ def test_validate_security_event_token_expired():
     """RFC 7952: Expired SET should raise ValueError."""
     with patch.object(settings, "enable_rfc7952", True):
         # Create SET with very short expiry
-        set_token = create_security_event_token(
+        set_token = makeSecurityEventToken(
             issuer="https://auth.example.com",
             audience="https://rp.example.com",
             event_type="https://example.com/event-type/account-disabled",
@@ -201,7 +201,7 @@ def test_validate_security_event_token_disabled():
 def test_extract_event_data():
     """RFC 7952: Extract event data from SET claims."""
     with patch.object(settings, "enable_rfc7952", True):
-        set_token = create_security_event_token(
+        set_token = makeSecurityEventToken(
             issuer="https://auth.example.com",
             audience="https://rp.example.com",
             event_type="https://example.com/event-type/account-disabled",
@@ -226,7 +226,7 @@ def test_extract_event_data():
 def test_extract_event_data_nonexistent():
     """RFC 7952: Extract non-existent event data should return None."""
     with patch.object(settings, "enable_rfc7952", True):
-        set_token = create_security_event_token(
+        set_token = makeSecurityEventToken(
             issuer="https://auth.example.com",
             audience="https://rp.example.com",
             event_type="https://example.com/event-type/account-disabled",
@@ -246,7 +246,7 @@ def test_get_set_subject_identifiers():
     """RFC 7952: Get subject identifiers from SET claims."""
     with patch.object(settings, "enable_rfc7952", True):
         subject = {"format": "opaque", "id": "user123", "email": "user@example.com"}
-        set_token = create_security_event_token(
+        set_token = makeSecurityEventToken(
             issuer="https://auth.example.com",
             audience="https://rp.example.com",
             event_type="https://example.com/event-type/account-disabled",
@@ -260,10 +260,10 @@ def test_get_set_subject_identifiers():
 
 
 @pytest.mark.unit
-def test_create_account_disabled_set():
+def test_make_account_disabled_set():
     """RFC 7952: Create account disabled SET using helper function."""
     with patch.object(settings, "enable_rfc7952", True):
-        set_token = create_account_disabled_set(
+        set_token = makeAccountDisabledSet(
             issuer="https://auth.example.com",
             audience="https://rp.example.com",
             subject_id="user123",
@@ -279,10 +279,10 @@ def test_create_account_disabled_set():
 
 
 @pytest.mark.unit
-def test_create_session_revoked_set():
+def test_make_session_revoked_set():
     """RFC 7952: Create session revoked SET using helper function."""
     with patch.object(settings, "enable_rfc7952", True):
-        set_token = create_session_revoked_set(
+        set_token = makeSessionRevokedSet(
             issuer="https://auth.example.com",
             audience="https://rp.example.com",
             subject_id="user123",

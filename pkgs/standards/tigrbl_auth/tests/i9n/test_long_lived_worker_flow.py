@@ -15,7 +15,7 @@ from tigrbl_auth import encode_jwt, decode_jwt
 from tigrbl_auth.crypto import hash_pw
 from tigrbl_auth.orm import Tenant, User
 from tigrbl_auth.rfc.rfc9449_dpop import (
-    create_proof,
+    makeProof,
     jwk_from_public_key,
     jwk_thumbprint,
 )
@@ -53,7 +53,7 @@ async def test_worker_enrollment_flow_dpop(
     ref = await kp.create_key(spec)
     jwk = jwk_from_public_key(ref.public or b"")
     jkt = jwk_thumbprint(jwk)
-    proof = create_proof(ref, "POST", "http://test/token/exchange")
+    proof = makeProof(ref, "POST", "http://test/token/exchange")
 
     resp = await async_client.post(
         "/token/exchange",
@@ -70,7 +70,7 @@ async def test_worker_enrollment_flow_dpop(
     claims = decode_jwt(token)
     assert claims.get("cnf", {}).get("jkt") == jkt
 
-    proof2 = create_proof(ref, "GET", "http://test/userinfo")
+    proof2 = makeProof(ref, "GET", "http://test/userinfo")
     headers = {"Authorization": f"Bearer {token}", "DPoP": proof2}
     ok = await async_client.get("/userinfo", headers=headers)
     assert ok.status_code == status.HTTP_200_OK

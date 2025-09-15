@@ -7,6 +7,7 @@ import base64
 import hashlib
 import json
 from typing import Any, Dict, Final
+import warnings
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 from cryptography.hazmat.primitives import serialization
 from swarmauri_signing_dpop import DpopSigner
@@ -50,7 +51,7 @@ def jwk_thumbprint(jwk: Dict[str, str]) -> str:
 # ---------------------------------------------------------------------------
 
 
-def create_proof(
+def makeProof(
     keyref: Any, method: str, url: str, *, enabled: bool | None = None
 ) -> str:
     """Create a DPoP proof for *method* and *url* using *keyref*.
@@ -78,6 +79,17 @@ def create_proof(
         )
     )
     return sigs[0]["sig"]
+
+
+def create_proof(
+    keyref: Any, method: str, url: str, *, enabled: bool | None = None
+) -> str:
+    warnings.warn(
+        "create_proof is deprecated, use makeProof",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return makeProof(keyref, method, url, enabled=enabled)
 
 
 def verify_proof(
@@ -123,8 +135,9 @@ def verify_proof(
 
 __all__ = [
     "RFC9449_SPEC_URL",
-    "create_proof",
+    "makeProof",
     "verify_proof",
     "jwk_from_public_key",
     "jwk_thumbprint",
+    "create_proof",
 ]
