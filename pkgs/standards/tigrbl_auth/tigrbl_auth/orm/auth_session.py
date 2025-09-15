@@ -51,7 +51,7 @@ class AuthSession(Base, Timestamped, UserColumn, TenantColumn):
     @op_ctx(alias="login", target="create", arity="collection")
     async def login(cls, ctx):
         import secrets
-        from ..rfc8414_metadata import ISSUER
+        from ..rfc.rfc8414_metadata import ISSUER
         from ..oidc_id_token import mint_id_token
         from ..routers.shared import (
             _jwt,
@@ -95,7 +95,7 @@ class AuthSession(Base, Timestamped, UserColumn, TenantColumn):
 
     @op_ctx(alias="logout", target="delete", arity="collection")
     async def logout(cls, ctx):
-        from ..rfc8414_metadata import ISSUER
+        from ..rfc.rfc8414_metadata import ISSUER
         from ..oidc_id_token import verify_id_token
         from ..routers.shared import (
             _require_tls,

@@ -18,7 +18,7 @@ import uuid
 import pytest
 
 from tigrbl_auth import runtime_cfg
-from tigrbl_auth.rfc8252 import is_native_redirect_uri, validate_native_redirect_uri
+from tigrbl_auth.rfc.rfc8252 import is_native_redirect_uri, validate_native_redirect_uri
 from tigrbl_auth.orm import Client
 
 RFC8252_SPEC = (

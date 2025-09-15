@@ -99,7 +99,7 @@ class User(UserBase):
     )
     async def register(cls, ctx):
         import secrets
-        from ..rfc8414_metadata import ISSUER
+        from ..rfc.rfc8414_metadata import ISSUER
         from ..oidc_id_token import mint_id_token
         from ..routers.shared import _jwt, _require_tls, SESSIONS
         from .auth_session import AuthSession

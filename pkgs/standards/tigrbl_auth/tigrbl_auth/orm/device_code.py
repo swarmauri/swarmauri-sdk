@@ -14,7 +14,7 @@ from tigrbl import op_ctx
 from fastapi import HTTPException, status
 
 from ..runtime_cfg import settings
-from ..rfc8628 import (
+from ..rfc.rfc8628 import (
     DEVICE_CODE_EXPIRES_IN,
     DEVICE_CODE_INTERVAL,
     DEVICE_VERIFICATION_URI,

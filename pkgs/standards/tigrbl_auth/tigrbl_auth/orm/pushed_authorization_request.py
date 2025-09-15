@@ -12,7 +12,7 @@ from tigrbl import op_ctx
 from fastapi import HTTPException, status
 
 from ..runtime_cfg import settings
-from ..rfc9126 import DEFAULT_PAR_EXPIRY
+from ..rfc.rfc9126 import DEFAULT_PAR_EXPIRY
 
 
 class PushedAuthorizationRequest(Base, Timestamped):

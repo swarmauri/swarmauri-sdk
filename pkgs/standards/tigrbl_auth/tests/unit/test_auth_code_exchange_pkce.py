@@ -6,7 +6,7 @@ import pytest
 from fastapi import Request
 
 from tigrbl_auth.orm import AuthCode
-from tigrbl_auth.rfc7636_pkce import create_code_challenge, create_code_verifier
+from tigrbl_auth.rfc.rfc7636_pkce import create_code_challenge, create_code_verifier
 
 
 @pytest.mark.unit

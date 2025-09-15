@@ -4,7 +4,7 @@ import pytest_asyncio
 
 from tigrbl_auth.app import app
 from tigrbl_auth.routers.surface import surface_api
-from tigrbl_auth.rfc8414_metadata import JWKS_PATH
+from tigrbl_auth.rfc.rfc8414_metadata import JWKS_PATH
 
 
 @pytest_asyncio.fixture()

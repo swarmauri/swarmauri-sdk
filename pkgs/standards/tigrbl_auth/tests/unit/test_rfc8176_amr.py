@@ -1,12 +1,12 @@
 """Tests for Authentication Method Reference validation (RFC 8176).
 
-The :func:`tigrbl_auth.rfc8176.validate_amr_claim` helper ensures that
+The :func:`tigrbl_auth.rfc.rfc8176.validate_amr_claim` helper ensures that
 ``amr`` claim values adhere to the registry defined in :rfc:`8176`.
 """
 
 import pytest
 
-from tigrbl_auth.rfc8176 import RFC8176_SPEC_URL, validate_amr_claim
+from tigrbl_auth.rfc.rfc8176 import RFC8176_SPEC_URL, validate_amr_claim
 from tigrbl_auth.runtime_cfg import settings
 
 

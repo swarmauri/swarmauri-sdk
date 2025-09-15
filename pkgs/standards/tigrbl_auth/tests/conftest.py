@@ -123,7 +123,7 @@ def enable_rfc7662():
 def enable_rfc7009():
     """Enable RFC 7009 token revocation for tests."""
     from tigrbl_auth.runtime_cfg import settings
-    from tigrbl_auth.rfc7009 import include_rfc7009, reset_revocations
+    from tigrbl_auth.rfc.rfc7009 import include_rfc7009, reset_revocations
 
     original = settings.enable_rfc7009
     settings.enable_rfc7009 = True
@@ -140,7 +140,7 @@ def enable_rfc7009():
 def enable_rfc8693():
     """Enable RFC 8693 token exchange for tests."""
     from tigrbl_auth.runtime_cfg import settings
-    from tigrbl_auth.rfc8693 import include_rfc8693
+    from tigrbl_auth.rfc.rfc8693 import include_rfc8693
 
     original = settings.enable_rfc8693
     settings.enable_rfc8693 = True
@@ -155,7 +155,7 @@ def enable_rfc8693():
 def enable_rfc8414():
     """Enable RFC 8414 authorization server metadata for tests."""
     from tigrbl_auth.runtime_cfg import settings
-    from tigrbl_auth.rfc8414 import include_rfc8414
+    from tigrbl_auth.rfc.rfc8414 import include_rfc8414
     from tigrbl_auth.oidc_discovery import include_oidc_discovery
 
     original = settings.enable_rfc8414
@@ -172,7 +172,7 @@ def enable_rfc8414():
 def enable_rfc9126(db_session):
     """Enable RFC 9126 pushed authorization requests for tests."""
     from tigrbl_auth.runtime_cfg import settings
-    from tigrbl_auth.rfc9126 import reset_par_store
+    from tigrbl_auth.rfc.rfc9126 import reset_par_store
 
     original = settings.enable_rfc9126
     settings.enable_rfc9126 = True

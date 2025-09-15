@@ -8,7 +8,7 @@ import pytest
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
-from tigrbl_auth.rfc9449_dpop import (
+from tigrbl_auth.rfc.rfc9449_dpop import (
     RFC9449_SPEC_URL,
     create_proof,
     verify_proof,

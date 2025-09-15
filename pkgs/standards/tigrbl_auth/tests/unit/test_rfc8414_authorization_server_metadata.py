@@ -4,7 +4,7 @@ import pytest
 from fastapi import FastAPI, status
 from httpx import ASGITransport, AsyncClient
 
-from tigrbl_auth.rfc8414 import router
+from tigrbl_auth.rfc.rfc8414 import router
 from tigrbl_auth.runtime_cfg import settings
 
 # RFC 8414 specification excerpt for reference within tests

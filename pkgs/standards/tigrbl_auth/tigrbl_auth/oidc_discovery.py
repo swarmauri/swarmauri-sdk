@@ -13,7 +13,7 @@ from typing import Any
 
 from fastapi import APIRouter, FastAPI
 
-from .rfc8414_metadata import ISSUER, JWKS_PATH
+from .rfc.rfc8414_metadata import ISSUER, JWKS_PATH
 from .runtime_cfg import settings
 
 router = APIRouter()

@@ -29,8 +29,8 @@ from .db import get_db
 from .jwtoken import JWTCoder, InvalidTokenError
 from .orm import User
 from .principal_ctx import principal_var
-from .rfc6750 import extract_bearer_token
-from .rfc9449_dpop import verify_proof
+from .rfc.rfc6750 import extract_bearer_token
+from .rfc.rfc9449_dpop import verify_proof
 from .runtime_cfg import settings
 from .typing import Principal
 

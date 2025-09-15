@@ -10,7 +10,7 @@ from tigrbl import op_ctx
 from fastapi import HTTPException, status
 
 from ..runtime_cfg import settings
-from ..rfc7009 import revoke_token as _cache_revoke
+from ..rfc.rfc7009 import revoke_token as _cache_revoke
 
 
 class RevokedToken(Base, Timestamped):
