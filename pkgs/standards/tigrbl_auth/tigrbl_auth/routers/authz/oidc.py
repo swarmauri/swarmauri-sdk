@@ -25,7 +25,7 @@ from ..shared import _require_tls
 from . import router
 
 
-@api.get("/authorize")
+@router.get("/authorize")
 async def authorize(
     response_type: str,
     client_id: str,
