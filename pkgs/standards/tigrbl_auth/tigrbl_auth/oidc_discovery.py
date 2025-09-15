@@ -11,12 +11,13 @@ import json
 from functools import lru_cache
 from typing import Any
 
-from tigrbl_auth.deps import APIRouter, TigrblApp
+from tigrbl_auth.deps import TigrblApi, TigrblApp
 
 from .rfc.rfc8414_metadata import ISSUER, JWKS_PATH
 from .runtime_cfg import settings
 
-router = APIRouter()
+api = TigrblApi()
+router = api
 
 
 # ---------------------------------------------------------------------------
@@ -91,13 +92,13 @@ def refresh_discovery_cache() -> None:
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
-@router.get("/.well-known/openid-configuration", tags=[".well-known"])
+@api.get("/.well-known/openid-configuration", tags=[".well-known"])
 async def openid_configuration():
     """Return OpenID Connect discovery metadata."""
     return _cached_openid_config(_settings_signature())
 
 
-@router.get(JWKS_PATH, tags=[".well-known"])
+@api.get(JWKS_PATH, tags=[".well-known"])
 async def jwks():
     """Publish all public keys in RFC 7517 JWKS format."""
     from .oidc_id_token import ensure_rsa_jwt_key, rsa_key_provider
@@ -121,10 +122,11 @@ def include_oidc_discovery(app: TigrblApp) -> None:
     if not any(
         route.path == "/.well-known/openid-configuration" for route in app.routes
     ):
-        app.include_router(router)
+        app.include_router(api)
 
 
 __all__ = [
+    "api",
     "router",
     "JWKS_PATH",
     "ISSUER",
