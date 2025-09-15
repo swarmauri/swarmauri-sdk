@@ -5,6 +5,7 @@ RFC 7636 (PKCE), RFC 8705 (mutual-TLS client authentication), and RFC 9396
 (Rich Authorization Requests).
 """
 
+from .rfc import rfc7591, rfc7592, rfc7662, rfc9101
 from .rfc.rfc7636_pkce import (
     create_code_challenge,
     create_code_verifier,
@@ -206,4 +207,8 @@ __all__ = [
     "RFC8932_SPEC_URL",
     "mint_id_token",
     "verify_id_token",
+    "rfc7591",
+    "rfc7592",
+    "rfc7662",
+    "rfc9101",
 ]

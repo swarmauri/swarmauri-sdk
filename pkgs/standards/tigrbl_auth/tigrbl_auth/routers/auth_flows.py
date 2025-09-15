@@ -11,7 +11,7 @@ from ..fastapi_deps import get_db
 from ..oidc_id_token import mint_id_token
 from ..orm.auth_session import AuthSession
 from ..routers.schemas import CredsIn, TokenPair
-from ..rfc8414_metadata import ISSUER
+from ..rfc.rfc8414_metadata import ISSUER
 from .authz import router as router
 from .shared import _jwt, _pwd_backend, AUTH_CODES, SESSIONS
 

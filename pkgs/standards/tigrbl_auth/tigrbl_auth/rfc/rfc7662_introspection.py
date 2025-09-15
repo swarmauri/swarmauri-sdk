@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from fastapi import HTTPException, Request, status
 
-from ...runtime_cfg import settings
-from ..schemas import IntrospectOut
-from ..shared import _require_tls
-from ...rfc7662 import introspect_token
+from ..runtime_cfg import settings
+from ..routers.schemas import IntrospectOut
+from ..routers.shared import _require_tls
+from .rfc7662 import introspect_token
 
-from . import router
+from ..routers.authz import router
 
 
 @router.post("/introspect", response_model=IntrospectOut)
