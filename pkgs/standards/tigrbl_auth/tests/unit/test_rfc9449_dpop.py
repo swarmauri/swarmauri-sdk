@@ -16,7 +16,7 @@ from tigrbl_auth.deps import (
 )
 from tigrbl_auth.rfc.rfc9449_dpop import (
     RFC9449_SPEC_URL,
-    create_proof,
+    makeProof,
     verify_proof,
     jwk_from_public_key,
     jwk_thumbprint,
@@ -36,7 +36,7 @@ def test_dpop_proof_verification():
     ref = asyncio.run(kp.create_key(spec))
     jwk = jwk_from_public_key(ref.public or b"")
     jkt = jwk_thumbprint(jwk)
-    proof = create_proof(ref, "POST", "https://rs.example.com/resource")
+    proof = makeProof(ref, "POST", "https://rs.example.com/resource")
     assert (
         verify_proof(proof, "POST", "https://rs.example.com/resource", jkt=jkt) == jkt
     )
@@ -53,7 +53,7 @@ def test_mismatched_method_rejected():
         export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
     )
     ref = asyncio.run(kp.create_key(spec))
-    proof = create_proof(ref, "GET", "https://rs.example.com/data")
+    proof = makeProof(ref, "GET", "https://rs.example.com/data")
     with pytest.raises(ValueError):
         verify_proof(proof, "POST", "https://rs.example.com/data")
 
@@ -69,7 +69,7 @@ def test_feature_toggle_disabled():
         export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
     )
     ref = asyncio.run(kp.create_key(spec))
-    proof = create_proof(ref, "GET", "https://rs.example.com/data", enabled=False)
+    proof = makeProof(ref, "GET", "https://rs.example.com/data", enabled=False)
     assert proof == ""
     assert verify_proof("", "GET", "https://rs.example.com/data", enabled=False) == ""
 
