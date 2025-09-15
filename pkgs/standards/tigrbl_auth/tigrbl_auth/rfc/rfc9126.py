@@ -1,4 +1,6 @@
-"""Pushed Authorization Requests support (RFC 9126)."""
+"""RFC 9126 specification reference."""
+
+from __future__ import annotations
 
 from typing import Final
 

@@ -2,7 +2,7 @@
 
 ## Router Endpoint Modules
 - `rfc7591.py` – client registration endpoint
-- `rfc9126.py` – pushed authorization request endpoint
+- `rfc9126.py` – pushed authorization request spec
 - `rfc8628.py` – device authorization endpoint
 - `rfc8932.py` – enhanced authorization server metadata endpoint
 - `rfc8414.py` – OAuth 2.0 authorization server metadata endpoint
@@ -69,7 +69,7 @@
 | `POST /token` | `pre_read`/`post_create` → `_pwd_backend.verify`, `_jwt.encode` | Validate client secrets and sign issued tokens |
 | `POST /revoke` | `pre_create` → `store_revoked_token` | Persist revoked tokens to `RevokedToken` table |
 | `POST /device_authorization` | `pre_create`/`post_create` → `issue_device_code`, `notify_user_agent` | Generate and optionally persist device/user codes |
-| `POST /par` | `pre_create` → `persist_par_request` | Store pushed authorization request |
+| `POST /pushedauthorizationrequest` | `pre_create` → `persist_par_request` | Store pushed authorization request |
 | `POST /token/exchange` | `post_create` → `_jwt.encode` | Sign exchanged tokens |
 | `GET /userinfo` | `post_read` → `_jwt.encode` (optional) | Optionally sign the userinfo response |
 

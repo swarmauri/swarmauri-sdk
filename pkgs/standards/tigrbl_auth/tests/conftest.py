@@ -57,8 +57,10 @@ async def test_db_engine() -> AsyncGenerator[Engine, None]:
     spec = EngineSpec.from_any(TEST_DATABASE_URL)
     engine = Engine(spec)
     provider = engine.provider
-    original_provider = engine_resolver.resolve_provider(api=surface_api)
+    original_surface = engine_resolver.resolve_provider(api=surface_api)
+    original_app = engine_resolver.resolve_provider(api=app)
     engine_resolver.register_api(surface_api, provider)
+    engine_resolver.register_api(app, provider)
     setattr(surface_api, "_ddl_executed", False)
     await surface_api.initialize()
     try:
@@ -66,7 +68,8 @@ async def test_db_engine() -> AsyncGenerator[Engine, None]:
     finally:
         raw_engine, _ = provider.ensure()
         await raw_engine.dispose()
-        engine_resolver.register_api(surface_api, original_provider)
+        engine_resolver.register_api(surface_api, original_surface)
+        engine_resolver.register_api(app, original_app)
         setattr(surface_api, "_ddl_executed", False)
 
 
@@ -172,16 +175,13 @@ def enable_rfc8414():
 async def enable_rfc9126(db_session):
     """Enable RFC 9126 pushed authorization requests for tests."""
     from tigrbl_auth.runtime_cfg import settings
-    from tigrbl_auth.orm.pushed_authorization_request import PushedAuthorizationRequest
 
     original = settings.enable_rfc9126
     settings.enable_rfc9126 = True
-    await PushedAuthorizationRequest.handlers.clear.core({"db": db_session})
     try:
         yield
     finally:
         settings.enable_rfc9126 = original
-        await PushedAuthorizationRequest.handlers.clear.core({"db": db_session})
 
 
 @pytest.fixture

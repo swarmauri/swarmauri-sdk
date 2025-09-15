@@ -156,7 +156,9 @@ def get_enhanced_authorization_server_metadata() -> Dict[str, Any]:
 
     # RFC 9126 - Pushed Authorization Requests
     if settings.enable_rfc9126:
-        enhanced_metadata["pushed_authorization_request_endpoint"] = f"{ISSUER}/par"
+        enhanced_metadata["pushed_authorization_request_endpoint"] = (
+            f"{ISSUER}/pushedauthorizationrequest"
+        )
         enhanced_metadata["require_pushed_authorization_requests"] = False
 
     # RFC 9449 - DPoP (Demonstrating Proof-of-Possession)
@@ -318,7 +320,9 @@ def get_capability_matrix() -> Dict[str, Dict[str, Any]]:
         "rfc9126": {
             "name": "Pushed Authorization Requests",
             "enabled": settings.enable_rfc9126,
-            "endpoints": ["/par"] if settings.enable_rfc9126 else [],
+            "endpoints": ["/pushedauthorizationrequest"]
+            if settings.enable_rfc9126
+            else [],
         },
         "rfc9449": {
             "name": "DPoP",
