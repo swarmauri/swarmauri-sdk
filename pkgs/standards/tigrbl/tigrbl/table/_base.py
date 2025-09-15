@@ -121,7 +121,12 @@ def _materialize_colspecs_to_sqla(cls) -> None:
     for name, spec in specs.items():
         storage = getattr(spec, "storage", None)
         if not storage:
-            # Virtual (wire-only) column – no DB column
+            # Virtual (wire-only) column – ensure no DB column is mapped.
+            try:
+                if hasattr(cls, name):
+                    delattr(cls, name)
+            except Exception:
+                pass
             continue
 
         dtype = getattr(storage, "type_", None)
