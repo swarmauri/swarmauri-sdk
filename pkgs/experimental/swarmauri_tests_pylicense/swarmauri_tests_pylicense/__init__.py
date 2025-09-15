@@ -18,6 +18,44 @@ except ModuleNotFoundError:  # pragma: no cover - Python 3.10
 
 PLUGIN_NAME = __name__.split(".")[0]
 
+# Known SPDX license names treated as standard for pass conditions.
+STANDARD_LICENSES = {
+    "mit",
+    "mit license",
+    "apache-2.0",
+    "apache license",
+    "apache license 2.0",
+    "bsd",
+    "bsd license",
+    "bsd-2-clause",
+    "bsd-3-clause",
+    "bsd 2-clause license",
+    "bsd 3-clause license",
+    "bsd-3-clause license",
+    "python software foundation license",
+    "gpl",
+    "gnu general public license",
+    "lgpl",
+    "gnu lesser general public license",
+    "mpl",
+    "mozilla public license",
+    "mpl-2.0",
+    "isc license",
+    "apache software license",
+    "dual license",
+}
+
+LICENSE_PATTERNS = [
+    "MIT License",
+    "Apache License",
+    "BSD",
+    "Python Software Foundation License",
+    "GNU General Public License",
+    "GNU Lesser General Public License",
+    "Mozilla Public License",
+    "ISC License",
+]
+
 
 def pytest_addoption(parser: pytest.Parser) -> None:
     """Register command-line options for license scanning."""
@@ -46,6 +84,12 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         action="store",
         default=None,
         help="Comma-separated list of forbidden license names.",
+    )
+    group.addoption(
+        "--pylicense-accept-deps",
+        action="store",
+        default=None,
+        help="Comma-separated list of dependency names to accept regardless of license.",
     )
 
 
@@ -81,6 +125,11 @@ class DependencyPath:
 def _license_from_dist(dist) -> str:
     meta = dist.metadata
     license_str = meta.get("License", "").strip()
+    if license_str and ("\n" in license_str or len(license_str) > 100):
+        for pattern in LICENSE_PATTERNS:
+            if pattern.lower() in license_str.lower():
+                license_str = pattern
+                break
     if not license_str or license_str == "UNKNOWN":
         classifiers = [
             c for c in meta.get_all("Classifier", []) if c.startswith("License ::")
@@ -95,16 +144,7 @@ def _license_from_dist(dist) -> str:
                     text = file.locate().read_text(encoding="utf-8")
                 except Exception:  # pragma: no cover - best effort
                     continue
-                for pattern in [
-                    "MIT License",
-                    "Apache License",
-                    "BSD",
-                    "Python Software Foundation License",
-                    "GNU General Public License",
-                    "GNU Lesser General Public License",
-                    "Mozilla Public License",
-                    "ISC License",
-                ]:
+                for pattern in LICENSE_PATTERNS:
                     if pattern.lower() in text.lower():
                         license_str = pattern
                         break
@@ -145,10 +185,18 @@ def _collect_dependency_paths(pkg: str) -> List[DependencyPath]:
 
 def _collect_licenses(pkg: str) -> Dict[str, PackageLicense]:
     paths = _collect_dependency_paths(pkg)
-    return {
+    licenses = {
         canonicalize_name(p.path[-1]): PackageLicense(p.license, p.version)
         for p in paths
     }
+    try:
+        dist = distribution(pkg)
+        licenses[canonicalize_name(pkg)] = PackageLicense(
+            _license_from_dist(dist), dist.version
+        )
+    except PackageNotFoundError:
+        pass
+    return licenses
 
 
 class LicenseItem(pytest.Item):
@@ -168,10 +216,19 @@ class LicenseItem(pytest.Item):
     def runtest(self) -> None:  # pragma: no cover - simple assertion
         allow: Set[str] = getattr(self.config, "_pylicense_allow", set())
         disallow: Set[str] = getattr(self.config, "_pylicense_disallow", set())
+        accepted: Set[str] = getattr(self.config, "_pylicense_accept_deps", set())
+        dep_canon = canonicalize_name(self.dep)
         lic = self.license
+        if dep_canon in accepted:
+            return
         if lic == "UNKNOWN":
             pytest.fail(
                 f"{self.dep}=={self.version} has unknown license", pytrace=False
+            )
+        if lic.lower() not in STANDARD_LICENSES:
+            pytest.fail(
+                f"{self.dep}=={self.version} uses non-standard license {lic}",
+                pytrace=False,
             )
         if disallow and lic in disallow:
             pytest.fail(
@@ -202,12 +259,18 @@ class LicenseAggregateItem(pytest.Item):
     def runtest(self) -> None:  # pragma: no cover - simple aggregation
         allow: Set[str] = getattr(self.config, "_pylicense_allow", set())
         disallow: Set[str] = getattr(self.config, "_pylicense_disallow", set())
+        accepted: Set[str] = getattr(self.config, "_pylicense_accept_deps", set())
         failures = []
         for dep, info in self.licenses.items():
+            canon = canonicalize_name(dep)
+            if canon in accepted:
+                continue
             lic = info.license
             ver = info.version
             if lic == "UNKNOWN":
                 failures.append(f"{dep}=={ver} has unknown license")
+            elif lic.lower() not in STANDARD_LICENSES:
+                failures.append(f"{dep}=={ver} uses non-standard license {lic}")
             elif disallow and lic in disallow:
                 failures.append(f"{dep}=={ver} uses forbidden license {lic}")
             elif allow and lic not in allow:
@@ -236,8 +299,15 @@ def pytest_configure(config: pytest.Config) -> None:
     disallow = _parse_list(
         config.getoption("--pylicense-disallow-list"), "PYLICENSE_DISALLOW_LIST"
     )
+    accept_deps = {
+        canonicalize_name(d)
+        for d in _parse_list(
+            config.getoption("--pylicense-accept-deps"), "PYLICENSE_ACCEPT_DEPS"
+        )
+    }
     config._pylicense_allow = allow
     config._pylicense_disallow = disallow
+    config._pylicense_accept_deps = accept_deps
 
 
 def pytest_collection_modifyitems(
