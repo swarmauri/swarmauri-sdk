@@ -5,77 +5,78 @@ RFC 7636 (PKCE), RFC 8705 (mutual-TLS client authentication), and RFC 9396
 (Rich Authorization Requests).
 """
 
-from .rfc7636_pkce import (
+from .rfc.rfc7636_pkce import (
     create_code_challenge,
     create_code_verifier,
     verify_code_challenge,
 )
-from .rfc8628 import (
+from .rfc.rfc8628 import (
     generate_device_code,
     generate_user_code,
     validate_user_code,
     RFC8628_SPEC_URL,
 )
-from .rfc9396 import (
+from .rfc.rfc9396 import (
     AuthorizationDetail,
     parse_authorization_details,
     RFC9396_SPEC_URL,
 )
 
-from .rfc6750 import extract_bearer_token
-from .rfc7662 import introspect_token, register_token, reset_tokens
-from .rfc9207 import RFC9207_SPEC_URL, extract_issuer
-from .rfc8932 import RFC8932_SPEC_URL, enforce_encrypted_dns
-from .rfc9126 import store_par_request, get_par_request, reset_par_store
-from .rfc8707 import extract_resource, RFC8707_SPEC_URL
-from .rfc8705 import (
+from .rfc.rfc6750 import extract_bearer_token
+from .rfc import rfc7662, rfc7591, rfc7592, rfc9101
+from .rfc.rfc7662 import introspect_token, register_token, reset_tokens
+from .rfc.rfc9207 import RFC9207_SPEC_URL, extract_issuer
+from .rfc.rfc8932 import RFC8932_SPEC_URL, enforce_encrypted_dns
+from .rfc.rfc9126 import store_par_request, get_par_request, reset_par_store
+from .rfc.rfc8707 import extract_resource, RFC8707_SPEC_URL
+from .rfc.rfc8705 import (
     RFC8705_SPEC_URL,
     thumbprint_from_cert_pem,
     validate_certificate_binding,
 )
-from .rfc8252 import is_native_redirect_uri, validate_native_redirect_uri
-from .rfc7638 import jwk_thumbprint, verify_jwk_thumbprint
-from .rfc7800 import add_cnf_claim, verify_proof_of_possession
-from .rfc8291 import encrypt_push_message, decrypt_push_message, RFC8291_SPEC_URL
-from .rfc8812 import (
+from .rfc.rfc8252 import is_native_redirect_uri, validate_native_redirect_uri
+from .rfc.rfc7638 import jwk_thumbprint, verify_jwk_thumbprint
+from .rfc.rfc7800 import add_cnf_claim, verify_proof_of_possession
+from .rfc.rfc8291 import encrypt_push_message, decrypt_push_message, RFC8291_SPEC_URL
+from .rfc.rfc8812 import (
     is_webauthn_algorithm,
     WEBAUTHN_ALGORITHMS,
     RFC8812_SPEC_URL,
 )
-from .rfc9068 import add_rfc9068_claims, validate_rfc9068_claims
-from .rfc8037 import sign_eddsa, verify_eddsa, RFC8037_SPEC_URL
-from .rfc8176 import (
+from .rfc.rfc9068 import add_rfc9068_claims, validate_rfc9068_claims
+from .rfc.rfc8037 import sign_eddsa, verify_eddsa, RFC8037_SPEC_URL
+from .rfc.rfc8176 import (
     validate_amr_claim,
     AMR_VALUES,
     RFC8176_SPEC_URL,
 )
 
-from .rfc7515 import sign_jws, verify_jws
-from .rfc7516 import encrypt_jwe, decrypt_jwe
-from .rfc7517 import load_signing_jwk, load_public_jwk
-from .rfc7518 import supported_algorithms
-from .rfc7519 import encode_jwt, decode_jwt
+from .rfc.rfc7515 import sign_jws, verify_jws
+from .rfc.rfc7516 import encrypt_jwe, decrypt_jwe
+from .rfc.rfc7517 import load_signing_jwk, load_public_jwk
+from .rfc.rfc7518 import supported_algorithms
+from .rfc.rfc7519 import encode_jwt, decode_jwt
 
-from .rfc7520 import jws_then_jwe, jwe_then_jws, RFC7520_SPEC_URL
-from .rfc7591 import (
+from .rfc.rfc7520 import jws_then_jwe, jwe_then_jws, RFC7520_SPEC_URL
+from .rfc.rfc7591 import (
     register_client,
     get_client,
     reset_client_registry,
     RFC7591_SPEC_URL,
 )
-from .rfc7592 import update_client, delete_client, RFC7592_SPEC_URL
+from .rfc.rfc7592 import update_client, delete_client, RFC7592_SPEC_URL
 
-from .rfc7521 import validate_jwt_assertion, RFC7521_SPEC_URL
-from .rfc7523 import validate_client_jwt_bearer, RFC7523_SPEC_URL
+from .rfc.rfc7521 import validate_jwt_assertion, RFC7521_SPEC_URL
+from .rfc.rfc7523 import validate_client_jwt_bearer, RFC7523_SPEC_URL
 
 # New RFC implementations
-from .rfc8523 import (
+from .rfc.rfc8523 import (
     validate_enhanced_jwt_bearer,
     create_client_assertion_jwt,
     is_jwt_replay,
     RFC8523_SPEC_URL,
 )
-from .rfc7952 import (
+from .rfc.rfc7952 import (
     create_security_event_token,
     validate_security_event_token,
     extract_event_data,
@@ -85,7 +86,7 @@ from .rfc7952 import (
     SET_EVENT_TYPES,
     RFC7952_SPEC_URL,
 )
-from .rfc8693 import (
+from .rfc.rfc8693 import (
     TokenExchangeRequest,
     TokenExchangeResponse,
     TokenType,
@@ -98,7 +99,7 @@ from .rfc8693 import (
     RFC8693_SPEC_URL,
     include_rfc8693,
 )
-from .rfc8932 import (
+from .rfc.rfc8932 import (
     get_enhanced_authorization_server_metadata,
     validate_metadata_consistency,
     get_capability_matrix,
@@ -204,6 +205,10 @@ __all__ = [
     "validate_metadata_consistency",
     "get_capability_matrix",
     "RFC8932_SPEC_URL",
+    "rfc7591",
+    "rfc7592",
+    "rfc7662",
+    "rfc9101",
     "mint_id_token",
     "verify_id_token",
 ]

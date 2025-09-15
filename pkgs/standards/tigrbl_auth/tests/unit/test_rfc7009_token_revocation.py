@@ -5,7 +5,7 @@ from fastapi import status
 from httpx import AsyncClient
 
 from tigrbl_auth.runtime_cfg import settings
-from tigrbl_auth.rfc7009 import is_revoked, reset_revocations
+from tigrbl_auth.rfc.rfc7009 import is_revoked, reset_revocations
 
 # RFC 7009 specification excerpt for reference within tests
 RFC7009_SPEC = """

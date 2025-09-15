@@ -4,11 +4,17 @@ These tests verify DPoP proof creation and validation per RFC 9449 and ensure
 that the helper functions respect the ``enable_rfc9449`` feature flag.
 """
 
+import asyncio
 import pytest
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
-
-from tigrbl_auth.rfc9449_dpop import (
+from tigrbl_auth.deps import (
+    LocalKeyProvider,
+    KeySpec,
+    KeyAlg,
+    KeyClass,
+    KeyUse,
+    ExportPolicy,
+)
+from tigrbl_auth.rfc.rfc9449_dpop import (
     RFC9449_SPEC_URL,
     create_proof,
     verify_proof,
@@ -20,16 +26,17 @@ from tigrbl_auth.rfc9449_dpop import (
 @pytest.mark.unit
 def test_dpop_proof_verification():
     """DPoP proof must match HTTP method and URL and bind to the access token."""
-    private_key = Ed25519PrivateKey.generate()
-    public_key = private_key.public_key()
-    private_pem = private_key.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption(),
+    kp = LocalKeyProvider()
+    spec = KeySpec(
+        klass=KeyClass.asymmetric,
+        alg=KeyAlg.ED25519,
+        uses=(KeyUse.SIGN,),
+        export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
     )
-    jwk = jwk_from_public_key(public_key)
+    ref = asyncio.run(kp.create_key(spec))
+    jwk = jwk_from_public_key(ref.public or b"")
     jkt = jwk_thumbprint(jwk)
-    proof = create_proof(private_pem, "POST", "https://rs.example.com/resource")
+    proof = create_proof(ref, "POST", "https://rs.example.com/resource")
     assert (
         verify_proof(proof, "POST", "https://rs.example.com/resource", jkt=jkt) == jkt
     )
@@ -38,13 +45,15 @@ def test_dpop_proof_verification():
 @pytest.mark.unit
 def test_mismatched_method_rejected():
     """Verification fails when HTTP method does not match proof."""
-    private_key = Ed25519PrivateKey.generate()
-    private_pem = private_key.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption(),
+    kp = LocalKeyProvider()
+    spec = KeySpec(
+        klass=KeyClass.asymmetric,
+        alg=KeyAlg.ED25519,
+        uses=(KeyUse.SIGN,),
+        export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
     )
-    proof = create_proof(private_pem, "GET", "https://rs.example.com/data")
+    ref = asyncio.run(kp.create_key(spec))
+    proof = create_proof(ref, "GET", "https://rs.example.com/data")
     with pytest.raises(ValueError):
         verify_proof(proof, "POST", "https://rs.example.com/data")
 
@@ -52,15 +61,15 @@ def test_mismatched_method_rejected():
 @pytest.mark.unit
 def test_feature_toggle_disabled():
     """When disabled, proof verification returns empty string."""
-    private_key = Ed25519PrivateKey.generate()
-    private_pem = private_key.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption(),
+    kp = LocalKeyProvider()
+    spec = KeySpec(
+        klass=KeyClass.asymmetric,
+        alg=KeyAlg.ED25519,
+        uses=(KeyUse.SIGN,),
+        export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
     )
-    proof = create_proof(
-        private_pem, "GET", "https://rs.example.com/data", enabled=False
-    )
+    ref = asyncio.run(kp.create_key(spec))
+    proof = create_proof(ref, "GET", "https://rs.example.com/data", enabled=False)
     assert proof == ""
     assert verify_proof("", "GET", "https://rs.example.com/data", enabled=False) == ""
 

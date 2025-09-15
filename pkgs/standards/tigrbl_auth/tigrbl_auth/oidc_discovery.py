@@ -11,9 +11,9 @@ import json
 from functools import lru_cache
 from typing import Any
 
-from fastapi import APIRouter, FastAPI
+from tigrbl_auth.deps import APIRouter, FastAPI
 
-from .rfc8414_metadata import ISSUER, JWKS_PATH
+from .rfc.rfc8414_metadata import ISSUER, JWKS_PATH
 from .runtime_cfg import settings
 
 router = APIRouter()

@@ -17,8 +17,15 @@ Both helpers are **framework-thin**: they translate `AuthError` raised by
 
 from __future__ import annotations
 
-from fastapi import Depends, Header, HTTPException, Request, status
-from tigrbl.engine import HybridSession as AsyncSession
+from tigrbl_auth.deps import (
+    Depends,
+    Header,
+    HTTPException,
+    Request,
+    status,
+    AsyncSession,
+    select,
+)
 
 from .backends import (
     ApiKeyBackend,
@@ -29,8 +36,8 @@ from .db import get_db
 from .jwtoken import JWTCoder, InvalidTokenError
 from .orm import User
 from .principal_ctx import principal_var
-from .rfc6750 import extract_bearer_token
-from .rfc9449_dpop import verify_proof
+from .rfc.rfc6750 import extract_bearer_token
+from .rfc.rfc9449_dpop import verify_proof
 from .runtime_cfg import settings
 from .typing import Principal
 
@@ -50,9 +57,6 @@ async def _user_from_jwt(token: str, db: AsyncSession) -> User | None:
         payload = await _jwt_coder.async_decode(token)
     except InvalidTokenError:
         return None
-
-    # Lazy import to avoid cycle explosions
-    from sqlalchemy import select
 
     stmt = select(User).where(User.id == payload["sub"], User.is_active.is_(True))
     return await db.scalar(stmt)

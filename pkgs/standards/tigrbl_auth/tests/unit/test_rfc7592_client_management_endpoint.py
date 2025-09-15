@@ -4,7 +4,7 @@ import pytest
 from fastapi import FastAPI, status
 from httpx import ASGITransport, AsyncClient
 
-from tigrbl_auth.rfc7591 import include_rfc7591
+from tigrbl_auth.rfc.rfc7591 import include_rfc7591
 from tigrbl_auth.runtime_cfg import settings
 
 

@@ -1,15 +1,25 @@
 import time
 import pytest
-from fastapi import status
 from httpx import AsyncClient
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
-from cryptography.hazmat.primitives import serialization
+from tigrbl_auth.deps import (
+    status,
+    LocalKeyProvider,
+    KeySpec,
+    KeyAlg,
+    KeyClass,
+    KeyUse,
+    ExportPolicy,
+)
 
 from tigrbl_auth import encode_jwt, decode_jwt
 from tigrbl_auth.crypto import hash_pw
 from tigrbl_auth.orm import Tenant, User
-from tigrbl_auth.rfc9449_dpop import create_proof, jwk_from_public_key, jwk_thumbprint
-from tigrbl_auth.rfc8693 import TOKEN_EXCHANGE_GRANT_TYPE, TokenType
+from tigrbl_auth.rfc.rfc9449_dpop import (
+    create_proof,
+    jwk_from_public_key,
+    jwk_thumbprint,
+)
+from tigrbl_auth.rfc.rfc8693 import TOKEN_EXCHANGE_GRANT_TYPE, TokenType
 
 
 @pytest.mark.integration
@@ -33,15 +43,17 @@ async def test_worker_enrollment_flow_dpop(
         sub=str(worker.id), tid=str(tenant.id), exp=int(time.time()) + 3600
     )
 
-    sk = Ed25519PrivateKey.generate()
-    private_pem = sk.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption(),
+    kp = LocalKeyProvider()
+    spec = KeySpec(
+        klass=KeyClass.asymmetric,
+        alg=KeyAlg.ED25519,
+        uses=(KeyUse.SIGN,),
+        export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
     )
-    jwk = jwk_from_public_key(sk.public_key())
+    ref = await kp.create_key(spec)
+    jwk = jwk_from_public_key(ref.public or b"")
     jkt = jwk_thumbprint(jwk)
-    proof = create_proof(private_pem, "POST", "http://test/token/exchange")
+    proof = create_proof(ref, "POST", "http://test/token/exchange")
 
     resp = await async_client.post(
         "/token/exchange",
@@ -58,7 +70,7 @@ async def test_worker_enrollment_flow_dpop(
     claims = decode_jwt(token)
     assert claims.get("cnf", {}).get("jkt") == jkt
 
-    proof2 = create_proof(private_pem, "GET", "http://test/userinfo")
+    proof2 = create_proof(ref, "GET", "http://test/userinfo")
     headers = {"Authorization": f"Bearer {token}", "DPoP": proof2}
     ok = await async_client.get("/userinfo", headers=headers)
     assert ok.status_code == status.HTTP_200_OK

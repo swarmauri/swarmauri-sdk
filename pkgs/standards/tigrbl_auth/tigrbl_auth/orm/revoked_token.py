@@ -2,15 +2,20 @@
 
 from __future__ import annotations
 
-from tigrbl.orm.tables import Base
-from tigrbl.orm.mixins import Timestamped
-from tigrbl.specs import S, acol
-from tigrbl.types import Mapped, String
-from tigrbl import op_ctx
-from fastapi import HTTPException, status
+from tigrbl_auth.deps import (
+    Base,
+    Timestamped,
+    S,
+    acol,
+    Mapped,
+    String,
+    op_ctx,
+    HTTPException,
+    status,
+)
 
 from ..runtime_cfg import settings
-from ..rfc7009 import revoke_token as _cache_revoke
+from ..rfc.rfc7009 import revoke_token as _cache_revoke
 
 
 class RevokedToken(Base, Timestamped):

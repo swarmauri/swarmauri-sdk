@@ -2,7 +2,7 @@
 
 import pytest
 
-from tigrbl_auth.rfc6749 import (
+from tigrbl_auth.rfc.rfc6749 import (
     RFC6749Error,
     enforce_grant_type,
     enforce_password_grant,

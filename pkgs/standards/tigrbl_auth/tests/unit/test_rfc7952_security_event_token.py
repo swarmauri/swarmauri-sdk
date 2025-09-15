@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 import pytest
 
-from tigrbl_auth.rfc7952 import (
+from tigrbl_auth.rfc.rfc7952 import (
     RFC7952_SPEC_URL,
     create_security_event_token,
     validate_security_event_token,
@@ -19,7 +19,7 @@ from tigrbl_auth.rfc7952 import (
     SET_EVENT_TYPES,
 )
 from tigrbl_auth.runtime_cfg import settings
-from tigrbl_auth.rfc7519 import decode_jwt
+from tigrbl_auth.rfc.rfc7519 import decode_jwt
 
 
 @pytest.mark.unit
@@ -321,7 +321,7 @@ def test_rfc7952_spec_url():
 def test_validate_security_event_token_empty_events():
     """RFC 7952: Empty events claim should raise ValueError."""
     with patch.object(settings, "enable_rfc7952", True):
-        from tigrbl_auth.rfc7519 import encode_jwt
+        from tigrbl_auth.rfc.rfc7519 import encode_jwt
 
         # Create invalid SET with empty events
         invalid_set = encode_jwt(

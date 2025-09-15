@@ -9,14 +9,14 @@ from unittest.mock import patch
 import pytest
 
 from tigrbl_auth.errors import InvalidTokenError
-from tigrbl_auth.rfc8523 import (
+from tigrbl_auth.rfc.rfc8523 import (
     RFC8523_SPEC_URL,
     validate_enhanced_jwt_bearer,
     create_client_assertion_jwt,
     is_jwt_replay,
 )
 from tigrbl_auth.runtime_cfg import settings
-from tigrbl_auth.rfc7519 import encode_jwt
+from tigrbl_auth.rfc.rfc7519 import encode_jwt
 
 
 @pytest.mark.unit
@@ -137,7 +137,7 @@ def test_create_client_assertion_jwt():
         )
 
         # Decode and verify the created token
-        from tigrbl_auth.rfc7519 import decode_jwt
+        from tigrbl_auth.rfc.rfc7519 import decode_jwt
 
         claims = decode_jwt(jwt_token)
 
@@ -160,7 +160,7 @@ def test_create_client_assertion_jwt_with_additional_claims():
             additional_claims=additional,
         )
 
-        from tigrbl_auth.rfc7519 import decode_jwt
+        from tigrbl_auth.rfc.rfc7519 import decode_jwt
 
         claims = decode_jwt(jwt_token)
 

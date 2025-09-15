@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Literal, Optional
 
-from pydantic import BaseModel, EmailStr, Field, constr
+from tigrbl_auth.deps import BaseModel, EmailStr, Field, constr
 
 from ..typing import StrUUID
 

@@ -24,10 +24,10 @@ from .deps import (
     KeyUse,
 )
 from .runtime_cfg import settings
-from .rfc8705 import validate_certificate_binding
+from .rfc.rfc8705 import validate_certificate_binding
 from .crypto import _DEFAULT_KEY_PATH, _provider
-from .rfc7009 import is_revoked
-from .rfc7662 import register_token
+from .rfc.rfc7009 import is_revoked
+from .rfc.rfc7662 import register_token
 
 _ACCESS_TTL = timedelta(minutes=60)
 _REFRESH_TTL = timedelta(days=7)
@@ -165,7 +165,7 @@ class JWTCoder:
                 raise ValueError(
                     "issuer and audience required when RFC 9068 support is enabled",
                 )
-            from .rfc9068 import add_rfc9068_claims
+            from .rfc.rfc9068 import add_rfc9068_claims
 
             payload = add_rfc9068_claims(payload, issuer=issuer, audience=audience)
         token = await self._svc.mint(
@@ -271,7 +271,7 @@ class JWTCoder:
                 raise ValueError(
                     "issuer and audience required for JWT access tokens per RFC 9068",
                 )
-            from .rfc9068 import validate_rfc9068_claims
+            from .rfc.rfc9068 import validate_rfc9068_claims
 
             validate_rfc9068_claims(payload, issuer=issuer, audience=audience)
         return payload

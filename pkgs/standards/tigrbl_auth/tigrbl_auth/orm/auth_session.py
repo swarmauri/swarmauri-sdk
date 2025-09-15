@@ -4,13 +4,23 @@ from __future__ import annotations
 
 import datetime as dt
 
-from tigrbl.orm.tables import Base
-from tigrbl.orm.mixins import TenantColumn, Timestamped, UserColumn
-from tigrbl.specs import S, acol
-from tigrbl.types import Mapped, String, TZDateTime
-from tigrbl import hook_ctx, op_ctx
-from fastapi import HTTPException, status
-from fastapi.responses import JSONResponse, Response
+from tigrbl_auth.deps import (
+    Base,
+    TenantColumn,
+    Timestamped,
+    UserColumn,
+    S,
+    acol,
+    Mapped,
+    String,
+    TZDateTime,
+    hook_ctx,
+    op_ctx,
+    HTTPException,
+    status,
+    JSONResponse,
+    Response,
+)
 
 
 class AuthSession(Base, Timestamped, UserColumn, TenantColumn):
@@ -51,7 +61,7 @@ class AuthSession(Base, Timestamped, UserColumn, TenantColumn):
     @op_ctx(alias="login", target="create", arity="collection")
     async def login(cls, ctx):
         import secrets
-        from ..rfc8414_metadata import ISSUER
+        from ..rfc.rfc8414_metadata import ISSUER
         from ..oidc_id_token import mint_id_token
         from ..routers.shared import (
             _jwt,
@@ -95,7 +105,7 @@ class AuthSession(Base, Timestamped, UserColumn, TenantColumn):
 
     @op_ctx(alias="logout", target="delete", arity="collection")
     async def logout(cls, ctx):
-        from ..rfc8414_metadata import ISSUER
+        from ..rfc.rfc8414_metadata import ISSUER
         from ..oidc_id_token import verify_id_token
         from ..routers.shared import (
             _require_tls,

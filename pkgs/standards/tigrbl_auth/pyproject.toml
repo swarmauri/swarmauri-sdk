@@ -23,6 +23,7 @@ dependencies = [
     "swarmauri_signing_ed25519",
     "swarmauri_signing_dpop",
     "swarmauri_crypto_jwe",
+    "swarmauri_crypto_paramiko",
     "swarmauri_keyprovider_file",
     "swarmauri_keyprovider_local",
     "python-multipart>=0.0.9",
@@ -44,8 +45,10 @@ keywords = ["oidc", "oauth2", "fastapi", "identity-provider", "jwks", "jwt"]
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
+tigrbl = { workspace = true }
 
 swarmauri_crypto_jwe  = { workspace = true }
+swarmauri_crypto_paramiko  = { workspace = true }
 swarmauri_tokens_jwt = { workspace = true }
 swarmauri_signing_jws  = { workspace = true }
 swarmauri_signing_ed25519  = { workspace = true }
