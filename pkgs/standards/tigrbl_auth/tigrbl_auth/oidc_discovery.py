@@ -11,7 +11,7 @@ import json
 from functools import lru_cache
 from typing import Any
 
-from tigrbl_auth.deps import APIRouter, FastAPI
+from tigrbl_auth.deps import APIRouter, TigrblApp
 
 from .rfc.rfc8414_metadata import ISSUER, JWKS_PATH
 from .runtime_cfg import settings
@@ -116,7 +116,7 @@ async def jwks():
 # ---------------------------------------------------------------------------
 
 
-def include_oidc_discovery(app: FastAPI) -> None:
+def include_oidc_discovery(app: TigrblApp) -> None:
     """Attach OIDC discovery routes to *app* if not already present."""
     if not any(
         route.path == "/.well-known/openid-configuration" for route in app.routes

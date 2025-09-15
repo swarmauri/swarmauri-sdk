@@ -14,7 +14,7 @@ from __future__ import annotations
 from tigrbl_auth.deps import (
     APIRouter,
     Depends,
-    FastAPI,
+    TigrblApp,
     HTTPException,
     Request,
     Response,
@@ -78,7 +78,7 @@ async def userinfo(
 # ---------------------------------------------------------------------------
 
 
-def include_oidc_userinfo(app: FastAPI) -> None:
+def include_oidc_userinfo(app: TigrblApp) -> None:
     """Attach the UserInfo endpoint to *app* if not already present."""
 
     if not any(route.path == "/userinfo" for route in app.routes):

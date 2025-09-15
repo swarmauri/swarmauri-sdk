@@ -15,7 +15,7 @@ from urllib.parse import urlparse
 
 from tigrbl_auth.deps import (
     APIRouter,
-    FastAPI,
+    TigrblApp,
     HTTPException,
     status,
     AnyHttpUrl,
@@ -116,7 +116,7 @@ def reset_client_registry() -> None:
     _CLIENT_REGISTRY.clear()
 
 
-def include_rfc7591(app: FastAPI) -> None:
+def include_rfc7591(app: TigrblApp) -> None:
     """Attach the RFC 7591 router to *app* if enabled."""
 
     if settings.enable_rfc7591 and not any(

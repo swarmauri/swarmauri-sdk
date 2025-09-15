@@ -14,7 +14,7 @@ from enum import Enum
 import warnings
 from tigrbl_auth.deps import (
     APIRouter,
-    FastAPI,
+    TigrblApp,
     Form,
     HTTPException,
     Request,
@@ -35,7 +35,7 @@ TOKEN_EXCHANGE_GRANT_TYPE = "urn:ietf:params:oauth:grant-type:token-exchange"
 router = APIRouter()
 
 
-def include_rfc8693(app: FastAPI) -> None:
+def include_rfc8693(app: TigrblApp) -> None:
     """Attach the RFC 8693 router to *app* if enabled."""
 
     if runtime_cfg.settings.enable_rfc8693 and not any(
