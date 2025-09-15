@@ -15,7 +15,10 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Development Status :: 3 - Alpha"
 ]
-authors = [{name = "Jacob Stewart", email = "jacob@swarmauri.com"}]
+authors = [
+{name = "Jacob Stewart", email = "jacob@swarmauri.com"},
+{name = "Michael Nwogha", email = "michael@swarmauri.com"}
+]
 dependencies = [
     "fastapi",
     "swarmauri_core",

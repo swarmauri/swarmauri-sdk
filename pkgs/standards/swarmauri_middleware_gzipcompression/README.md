@@ -24,9 +24,6 @@ Middleware for adding gzip compression to FastAPI responses.
 
 This package provides a middleware that automatically compresses outgoing responses using gzip encoding. It ensures that responses are only compressed when supported by the client and when the content type is appropriate for compression.
 
-## Authors
-
-- **Michael Nwogha** - [michael@swarmauri.com](mailto:michael@swarmauri.com)
 
 ## Installation
 
