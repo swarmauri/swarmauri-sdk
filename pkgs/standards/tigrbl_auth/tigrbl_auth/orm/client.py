@@ -7,7 +7,21 @@ import uuid
 from typing import Final
 from urllib.parse import urlparse
 
-from tigrbl_auth.deps import hook_ctx, ClientBase, relationship
+from tigrbl_auth.deps import (
+    hook_ctx,
+    op_ctx,
+    ClientBase,
+    relationship,
+    HTTPException,
+    status,
+    Mapped,
+    String,
+    ColumnSpec,
+    F,
+    IO,
+    S,
+    acol,
+)
 
 from ..crypto import hash_pw
 from ..rfc.rfc8252 import (
@@ -25,12 +39,43 @@ class Client(ClientBase):
 
     tenant = relationship("Tenant", back_populates="clients")
 
-    @hook_ctx(ops=("create", "update"), phase="PRE_HANDLER")
+    grant_types: Mapped[str] = acol(
+        spec=ColumnSpec(
+            storage=S(String, nullable=False, default="authorization_code"),
+            field=F(),
+            io=IO(),
+        )
+    )
+    response_types: Mapped[str] = acol(
+        spec=ColumnSpec(
+            storage=S(String, nullable=False, default="code"),
+            field=F(),
+            io=IO(),
+        )
+    )
+
+    @hook_ctx(ops=("create", "update", "register"), phase="PRE_HANDLER")
     async def _hash_secret(cls, ctx):
         payload = ctx.get("payload") or {}
         secret = payload.pop("client_secret", None)
         if secret:
             payload["client_secret_hash"] = hash_pw(secret)
+
+    @hook_ctx(ops=("create", "update", "register"), phase="PRE_HANDLER")
+    async def _resolve_tenant_slug(cls, ctx):
+        payload = ctx.get("payload") or {}
+        slug = payload.pop("tenant_slug", None)
+        if slug:
+            from .tenant import Tenant
+
+            db = ctx.get("db")
+            tenants = await Tenant.handlers.list.core(
+                {"db": db, "payload": {"filters": {"slug": slug}}}
+            )
+            tenant = tenants.items[0] if getattr(tenants, "items", None) else None
+            if tenant is None:
+                raise HTTPException(status.HTTP_404_NOT_FOUND, "tenant not found")
+            payload["tenant_id"] = tenant.id
 
     @classmethod
     def new(
@@ -62,6 +107,56 @@ class Client(ClientBase):
             client_secret_hash=secret_hash,
             redirect_uris=" ".join(redirects),
         )
+
+    @op_ctx(
+        alias="register",
+        target="create",
+        arity="collection",
+        status_code=status.HTTP_201_CREATED,
+    )
+    async def register(cls, ctx):
+        import secrets
+
+        from urllib.parse import urlparse
+
+        db = ctx.get("db")
+        payload = ctx.get("payload") or {}
+        redirects = payload.get("redirect_uris") or []
+        if isinstance(redirects, list):
+            for uri in redirects:
+                parsed = urlparse(uri)
+                if parsed.scheme != "https" and parsed.hostname not in {
+                    "localhost",
+                    "127.0.0.1",
+                    "::1",
+                }:
+                    raise HTTPException(
+                        status.HTTP_400_BAD_REQUEST,
+                        "redirect URIs must use https scheme",
+                    )
+            payload["redirect_uris"] = " ".join(redirects)
+        grant_types = payload.get("grant_types")
+        if isinstance(grant_types, list):
+            payload["grant_types"] = " ".join(grant_types)
+        else:
+            payload.setdefault("grant_types", "authorization_code")
+        response_types = payload.get("response_types")
+        if isinstance(response_types, list):
+            payload["response_types"] = " ".join(response_types)
+        else:
+            payload.setdefault("response_types", "code")
+        client_id = payload.get("client_id") or secrets.token_urlsafe(16)
+        payload["id"] = client_id
+        secret = payload.get("client_secret") or secrets.token_urlsafe(32)
+        payload["client_secret"] = secret
+        obj = await cls.handlers.create.core({"db": db, "payload": payload})
+        return {
+            "client_id": str(obj.id),
+            "client_secret": secret,
+            "redirect_uris": obj.redirect_uris.split(),
+            "grant_types": obj.grant_types.split(),
+            "response_types": obj.response_types.split(),
+        }
 
     def verify_secret(self, plain: str) -> bool:
         from ..crypto import verify_pw  # local import to avoid cycle

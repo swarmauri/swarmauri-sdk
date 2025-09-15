@@ -1,31 +1,61 @@
-"""Unit tests for OAuth 2.0 Dynamic Client Registration Protocol (RFC 7591).
+"""Tests for RFC 7591 dynamic client registration via HTTP server."""
 
-These tests verify that the minimal client registration helpers behave as
-specified when RFC 7591 support is toggled on or off.
-"""
+import asyncio
 
-from unittest.mock import patch
-
+import httpx
 import pytest
+import uvicorn
+import conftest
 
 from tigrbl_auth import rfc7591
 
 
-def test_register_client_when_enabled() -> None:
-    """Registration succeeds and client is stored when RFC 7591 is enabled."""
+async def _wait_for_app(base_url: str) -> None:
+    async with httpx.AsyncClient() as client:
+        for _ in range(50):
+            try:
+                resp = await client.get(f"{base_url}/system/healthz")
+                if resp.status_code == 200:
+                    return
+            except Exception:
+                pass
+            await asyncio.sleep(0.1)
+    raise RuntimeError("server not ready")
 
-    with patch.object(rfc7591.settings, "enable_rfc7591", True):
-        rfc7591.reset_client_registry()
-        client = rfc7591.register_client({"redirect_uris": ["https://a.example/cb"]})
-        assert "client_id" in client
-        stored = rfc7591.get_client(client["client_id"])
-        assert stored is not None
-        assert stored["redirect_uris"] == ["https://a.example/cb"]
+
+@pytest.fixture()
+async def running_app(override_get_db):
+    cfg = uvicorn.Config(
+        "tigrbl_auth.app:app", host="127.0.0.1", port=8002, log_level="warning"
+    )
+    server = uvicorn.Server(cfg)
+    task = asyncio.create_task(server.serve())
+    await _wait_for_app("http://127.0.0.1:8002")
+    try:
+        yield "http://127.0.0.1:8002"
+    finally:
+        server.should_exit = True
+        await task
 
 
-def test_register_client_disabled_raises() -> None:
-    """Registration is rejected when RFC 7591 support is disabled."""
+def test_rfc7591_spec_url() -> None:
+    """Module exports the specification URL."""
+    assert rfc7591.RFC7591_SPEC_URL.endswith("7591")
 
-    with patch.object(rfc7591.settings, "enable_rfc7591", False):
-        with pytest.raises(RuntimeError):
-            rfc7591.register_client({})
+
+@pytest.mark.asyncio
+async def test_register_client_via_server(running_app):
+    """Client can register through the running server."""
+    base = running_app
+    async with httpx.AsyncClient() as client:
+        with conftest.disable_tls_requirement():
+            resp = await client.post(
+                f"{base}/client/register",
+                json={
+                    "tenant_slug": "public",
+                    "redirect_uris": ["https://a.example/cb"],
+                },
+            )
+    assert resp.status_code == 201
+    data = resp.json()
+    assert "client_id" in data and "client_secret" in data
