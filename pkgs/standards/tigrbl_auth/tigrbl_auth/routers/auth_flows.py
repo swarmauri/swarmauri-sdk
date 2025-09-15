@@ -8,8 +8,10 @@ from ..orm.auth_session import AuthSession
 from ..routers.schemas import CredsIn, TokenPair
 from .authz import router as router
 
+api = router
 
-@api.post("/login", response_model=TokenPair)
+
+@router.post("/login", response_model=TokenPair)
 async def login(
     creds: CredsIn,
     request: Request,
@@ -17,10 +19,11 @@ async def login(
 ):
     ctx = {
         "db": db,
-        "payload": {"username": creds.identifier, "password": creds.password},
+        "payload": {"username": creds.identifier},
+        "temp": {"password": creds.password},
         "request": request,
     }
     return await AuthSession.handlers.login.core(ctx)
 
 
-__all__ = ["router"]
+__all__ = ["router", "api"]

@@ -12,7 +12,8 @@ from fastapi import FastAPI, status
 from httpx import ASGITransport, AsyncClient
 
 from tigrbl_auth.runtime_cfg import settings
-from tigrbl_auth.routers.auth_flows import router, _jwt
+from tigrbl_auth.routers.auth_flows import router
+from tigrbl_auth.routers.shared import _jwt
 from tigrbl_auth.fastapi_deps import get_db
 
 
@@ -25,7 +26,7 @@ async def test_token_includes_aud_when_resource_provided(monkeypatch):
     mock_user = MagicMock(id="user", tenant_id="tenant")
     monkeypatch.setattr(settings, "rfc8707_enabled", True)
     monkeypatch.setattr(
-        "tigrbl_auth.routers.auth_flows._pwd_backend.authenticate",
+        "tigrbl_auth.routers.shared._pwd_backend.authenticate",
         AsyncMock(return_value=mock_user),
     )
     app.dependency_overrides[get_db] = lambda: AsyncMock()
@@ -81,7 +82,7 @@ async def test_multiple_resources_uses_first(monkeypatch):
     mock_user = MagicMock(id="user", tenant_id="tenant")
     monkeypatch.setattr(settings, "rfc8707_enabled", True)
     monkeypatch.setattr(
-        "tigrbl_auth.routers.auth_flows._pwd_backend.authenticate",
+        "tigrbl_auth.routers.shared._pwd_backend.authenticate",
         AsyncMock(return_value=mock_user),
     )
     app.dependency_overrides[get_db] = lambda: AsyncMock()
@@ -137,7 +138,7 @@ async def test_feature_flag_disables_resource(monkeypatch):
     mock_user = MagicMock(id="user", tenant_id="tenant")
     monkeypatch.setattr(settings, "rfc8707_enabled", False)
     monkeypatch.setattr(
-        "tigrbl_auth.routers.auth_flows._pwd_backend.authenticate",
+        "tigrbl_auth.routers.shared._pwd_backend.authenticate",
         AsyncMock(return_value=mock_user),
     )
     app.dependency_overrides[get_db] = lambda: AsyncMock()
