@@ -49,6 +49,7 @@ dev = [
 
 [tool.pytest.ini_options]
 timeout = 300
+addopts = "--pylicense-accept-deps=numpy"
 
 markers = [
     "test: standard test",

@@ -80,3 +80,23 @@ def test_allow_disallow_lists(pytester, monkeypatch):
         "--pylicense-disallow-list=GPL",
     )
     result.assert_outcomes(failed=1)
+
+
+def test_nonstandard_acceptance(pytester, monkeypatch):
+    monkeypatch.setattr(
+        "swarmauri_tests_pylicense._collect_dependency_paths",
+        lambda pkg: [DependencyPath(("dummy", "dep"), "Custom", "1.0")],
+    )
+    result = pytester.runpytest(
+        "-p",
+        "swarmauri_tests_pylicense",
+        "--pylicense-package=dummy",
+    )
+    result.assert_outcomes(failed=1)
+    result = pytester.runpytest(
+        "-p",
+        "swarmauri_tests_pylicense",
+        "--pylicense-package=dummy",
+        "--pylicense-accept-deps=dep",
+    )
+    result.assert_outcomes(passed=1)

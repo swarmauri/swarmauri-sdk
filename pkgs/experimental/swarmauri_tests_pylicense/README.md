@@ -21,7 +21,8 @@
 scans a package's full dependency tree and ensures each dependency declares a
 license. The plugin resolves dependencies recursively, checking every
 transitive requirement. It inspects both the `License` metadata field and
-any `Classifier` entries that declare a license.
+any `Classifier` entries that declare a license. Dependencies with
+non‑standard licenses cause the test to fail unless explicitly accepted.
 
 By default, the plugin runs in *parameterized* mode which creates one test per
 dependency. An *aggregate* mode is also available that reports all missing
@@ -84,6 +85,18 @@ pytest --pylicense-package=<your-package>
 If both are provided, any license not in the allow list or explicitly present
 in the disallow list will cause a test failure. By default, all licenses are
 allowed and none are disallowed.
+
+### Accepting Specific Dependencies
+
+To allow a dependency with a non-standard license, list it via
+`--pylicense-accept-deps` or the `PYLICENSE_ACCEPT_DEPS` environment
+variable:
+
+```bash
+pytest --pylicense-package=<your-package> --pylicense-accept-deps=foo,bar
+```
+
+These dependencies will be ignored by the non-standard license check.
 
 ## License
 
