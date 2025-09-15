@@ -7,7 +7,8 @@ is disabled.
 
 import pytest
 
-from tigrbl_auth import runtime_cfg, supported_algorithms
+from tigrbl_auth import runtime_cfg
+from tigrbl_auth.rfc.rfc7518 import supported_algorithms
 from tigrbl_auth.rfc.rfc8812 import WEBAUTHN_ALGORITHMS, is_webauthn_algorithm
 
 EXPECTED_ALGORITHMS = {

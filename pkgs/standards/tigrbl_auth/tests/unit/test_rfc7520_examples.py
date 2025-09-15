@@ -13,7 +13,7 @@ import asyncio
 import pytest
 
 import tigrbl_auth.rfc.rfc7520 as rfc7520
-from tigrbl_auth import (
+from tigrbl_auth.rfc.rfc7520 import (
     RFC7520_SPEC_URL,
     jws_then_jwe,
     jwe_then_jws,

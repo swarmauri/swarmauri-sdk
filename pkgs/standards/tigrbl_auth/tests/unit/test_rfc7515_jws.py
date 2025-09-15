@@ -4,7 +4,7 @@ import base64
 import secrets
 import asyncio
 
-from tigrbl_auth import sign_jws, verify_jws
+from tigrbl_auth.rfc.rfc7515 import sign_jws, verify_jws
 
 
 def test_sign_and_verify_jws() -> None:

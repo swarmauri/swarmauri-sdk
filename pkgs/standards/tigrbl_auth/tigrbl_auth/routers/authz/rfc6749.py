@@ -16,19 +16,19 @@ from pydantic import ValidationError
 from ...backends import AuthError
 from ...fastapi_deps import get_db
 from ...orm import AuthCode, Client, DeviceCode, User
-from ...rfc8707 import extract_resource
+from ...rfc.rfc8707 import extract_resource
 from ...runtime_cfg import settings
-from ...rfc6749 import (
+from ...rfc.rfc6749 import (
     RFC6749Error,
     enforce_authorization_code_grant,
     enforce_grant_type,
     enforce_password_grant,
     is_enabled as rfc6749_enabled,
 )
-from ...rfc7636_pkce import verify_code_challenge
-from ...rfc8628 import DeviceGrantForm
+from ...rfc.rfc7636_pkce import verify_code_challenge
+from ...rfc.rfc8628 import DeviceGrantForm
 from ...oidc_id_token import mint_id_token, oidc_hash
-from ...rfc8414_metadata import ISSUER
+from ...rfc.rfc8414_metadata import ISSUER
 
 from ..schemas import (
     AuthorizationCodeGrantForm,

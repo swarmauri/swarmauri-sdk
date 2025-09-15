@@ -9,7 +9,8 @@ feature is disabled.
 import asyncio
 import pytest
 
-from tigrbl_auth import runtime_cfg, rfc9101
+from tigrbl_auth import runtime_cfg
+from tigrbl_auth.rfc import rfc9101
 
 
 @pytest.mark.unit

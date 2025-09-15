@@ -13,8 +13,8 @@ from tigrbl.engine import HybridSession as AsyncSession
 from ...fastapi_deps import get_db
 from ...orm import AuthCode, Client, User
 from ...oidc_id_token import mint_id_token, oidc_hash
-from ...rfc8414_metadata import ISSUER
-from ...rfc8252 import is_native_redirect_uri
+from ...rfc.rfc8414_metadata import ISSUER
+from ...rfc.rfc8252 import is_native_redirect_uri
 from ..shared import _require_tls, SESSIONS, AUTH_CODES
 from . import router
 

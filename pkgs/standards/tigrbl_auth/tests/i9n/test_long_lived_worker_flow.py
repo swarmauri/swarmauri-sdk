@@ -5,7 +5,7 @@ from httpx import AsyncClient
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from cryptography.hazmat.primitives import serialization
 
-from tigrbl_auth import encode_jwt, decode_jwt
+from tigrbl_auth.rfc.rfc7519 import encode_jwt, decode_jwt
 from tigrbl_auth.crypto import hash_pw
 from tigrbl_auth.orm import Tenant, User
 from tigrbl_auth.rfc.rfc9449_dpop import (

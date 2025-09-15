@@ -13,7 +13,7 @@ validate the stated requirements.
 
 import pytest
 
-from tigrbl_auth import RFC9207_SPEC_URL, extract_issuer
+from tigrbl_auth.rfc.rfc9207 import RFC9207_SPEC_URL, extract_issuer
 from tigrbl_auth.runtime_cfg import settings
 
 

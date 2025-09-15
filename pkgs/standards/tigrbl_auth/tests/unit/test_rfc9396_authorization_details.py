@@ -13,7 +13,7 @@ conditionally enabled or disabled via runtime configuration.
 
 import pytest
 
-from tigrbl_auth import (
+from tigrbl_auth.rfc.rfc9396 import (
     AuthorizationDetail,
     RFC9396_SPEC_URL,
     parse_authorization_details,

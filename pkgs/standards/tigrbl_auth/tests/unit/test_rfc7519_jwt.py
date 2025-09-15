@@ -1,6 +1,6 @@
 """Tests for RFC 7519: JSON Web Token (JWT)."""
 
-from tigrbl_auth import encode_jwt, decode_jwt
+from tigrbl_auth.rfc.rfc7519 import encode_jwt, decode_jwt
 
 
 def test_encode_and_decode_jwt() -> None:

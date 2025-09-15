@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 import pytest
 
-from tigrbl_auth import rfc7591, rfc7592
+from tigrbl_auth.rfc import rfc7591, rfc7592
 
 
 def test_update_and_delete_client_when_enabled() -> None:

@@ -3,7 +3,7 @@
 import asyncio
 from secrets import token_bytes
 
-from tigrbl_auth import decrypt_jwe, encrypt_jwe
+from tigrbl_auth.rfc.rfc7516 import decrypt_jwe, encrypt_jwe
 
 
 def test_encrypt_and_decrypt_jwe() -> None:

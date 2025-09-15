@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 import pytest
 
-from tigrbl_auth import encode_jwt
+from tigrbl_auth.rfc.rfc7519 import encode_jwt
 from tigrbl_auth.errors import InvalidTokenError
 from tigrbl_auth.rfc.rfc7521 import (
     RFC7521_SPEC_URL,

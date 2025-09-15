@@ -12,7 +12,7 @@ with a minimum length of 43 characters and a maximum length of 128 characters.
 
 import pytest
 
-from tigrbl_auth import (
+from tigrbl_auth.rfc.rfc7636_pkce import (
     create_code_challenge,
     create_code_verifier,
     verify_code_challenge,

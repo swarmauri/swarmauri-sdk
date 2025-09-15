@@ -5,7 +5,7 @@ import time
 import pytest
 from httpx import AsyncClient
 
-from tigrbl_auth import encode_jwt, decode_jwt
+from tigrbl_auth.rfc.rfc7519 import encode_jwt, decode_jwt
 from tigrbl_auth.rfc.rfc8693 import TOKEN_EXCHANGE_GRANT_TYPE, TokenType
 
 

@@ -9,7 +9,7 @@ digits.
 
 import pytest
 
-from tigrbl_auth import (
+from tigrbl_auth.rfc.rfc8628 import (
     RFC8628_SPEC_URL,
     generate_device_code,
     generate_user_code,
