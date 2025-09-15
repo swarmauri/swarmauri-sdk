@@ -29,7 +29,11 @@ router = APIRouter()
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
-@router.get("/.well-known/oauth-authorization-server", include_in_schema=False)
+@router.get(
+    "/.well-known/oauth-authorization-server",
+    include_in_schema=False,
+    tags=[".well-known"],
+)
 async def authorization_server_metadata():
     """Return OAuth 2.0 Authorization Server Metadata per RFC 8414."""
     if not settings.enable_rfc8414:
