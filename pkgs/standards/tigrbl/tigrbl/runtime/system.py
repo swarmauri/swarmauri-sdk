@@ -88,8 +88,23 @@ def _sys_tx_begin(_obj: Optional[object], ctx: Any) -> None:
             INSTALLED.begin(ctx)
             log.debug("system: begin_tx executed.")
         else:
-            log.debug("system: begin_tx no-op (no adapter installed).")
-    except Exception as e:  # escalate as typed error
+            # Fallback: if a DB is present and supports transactions, try to open one.
+            db = getattr(ctx, "db", None)
+            begin = getattr(db, "begin", None)
+            if callable(begin):
+                try:
+                    rv = begin()
+                    if inspect.isawaitable(rv):
+                        # Let the executor await this via _wrap_atom
+                        return rv  # type: ignore[return-value]
+                    # Mark that we opened a transaction so commit runs later
+                    ctx.temp["__sys_tx_open__"] = True
+                    log.debug("system: begin_tx fallback opened transaction.")
+                except Exception as _e:  # best-effort; do not escalate
+                    log.debug("system: begin_tx fallback failed: %s", _e)
+            else:
+                log.debug("system: begin_tx no-op (no adapter installed).")
+    except Exception as e:  # escalate only for installed begin failures
         ctx.temp["__sys_tx_open__"] = False
         raise _err.SystemStepError("Failed to begin transaction.", cause=e)
     finally:

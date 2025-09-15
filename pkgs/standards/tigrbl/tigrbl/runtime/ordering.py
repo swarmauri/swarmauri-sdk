@@ -30,6 +30,7 @@ _PREF: Dict[str, Tuple[str, ...]] = {
         "wire:dump",
         "out:masking",
         "response:negotiate",
+        "response:headers_from_payload",
         "response:render",
         "response:template",
     ),

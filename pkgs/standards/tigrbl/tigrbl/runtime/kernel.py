@@ -155,7 +155,9 @@ def _make_label(anchor: str, run: _AtomRun) -> Optional[str]:
 
 def _wrap_atom(run: _AtomRun, *, anchor: str) -> StepFn:
     async def _step(ctx: Any) -> Any:
-        rv = run(None, ctx)
+        # Pass the latest ctx.result (e.g., model instance from HANDLER) to atoms.
+        obj = getattr(ctx, "get", lambda *a, **k: None)("result")  # type: ignore
+        rv = run(obj, ctx)
         if hasattr(rv, "__await__"):
             return await cast(Any, rv)
         return rv

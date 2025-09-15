@@ -5,12 +5,14 @@ from ... import events as _ev
 from .template import run as _template
 from .negotiate import run as _negotiate
 from .render import run as _render
+from .headers_from_payload import run as _headers_from_payload
 
 RunFn = Callable[[Optional[object], Any], Any]
 
 REGISTRY: Dict[Tuple[str, str], Tuple[str, RunFn]] = {
     ("response", "template"): (_ev.OUT_DUMP, _template),
     ("response", "negotiate"): (_ev.OUT_DUMP, _negotiate),
+    ("response", "headers_from_payload"): (_ev.OUT_DUMP, _headers_from_payload),
     ("response", "render"): (_ev.OUT_DUMP, _render),
 }
 
