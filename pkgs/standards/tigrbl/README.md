@@ -18,6 +18,14 @@
 # Tigrbl 🐅🐂
 A high-leverage meta-framework that turns plain SQLAlchemy models into a fully-featured REST+RPC surface with near-zero boilerplate. 🚀
 
+## Features ✨
+
+- ⚡ Zero-boilerplate CRUD for SQLAlchemy models
+- 🔌 Unified REST and RPC endpoints from a single definition
+- 🪝 Hookable phase system for deep customization
+- 🧩 Pluggable engine and provider abstractions
+- 🚀 Built on FastAPI and Pydantic for modern Python web apps
+
 ## Terminology 📚
 
 - **Tenant** 🏢 – a namespace used to group related resources.
