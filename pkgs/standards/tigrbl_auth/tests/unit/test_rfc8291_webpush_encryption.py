@@ -17,51 +17,57 @@ from tigrbl_auth.runtime_cfg import settings
 
 
 @pytest.mark.unit
-def test_encrypt_decrypt_round_trip():
+@pytest.mark.asyncio
+async def test_encrypt_decrypt_round_trip():
     """Encryption and decryption work when the feature is enabled."""
     key = os.urandom(16)
     nonce = os.urandom(12)
     plaintext = b"hello"
-    ciphertext = encrypt_push_message(plaintext, key, nonce, enabled=True)
+    ciphertext = await encrypt_push_message(plaintext, key, nonce, enabled=True)
     assert ciphertext != plaintext
-    assert decrypt_push_message(ciphertext, key, nonce, enabled=True) == plaintext
+    assert await decrypt_push_message(ciphertext, key, nonce, enabled=True) == plaintext
 
 
 @pytest.mark.unit
-def test_disabled_returns_plain():
+@pytest.mark.asyncio
+async def test_disabled_returns_plain():
     """When disabled, messages are left unencrypted."""
     key = os.urandom(16)
     nonce = os.urandom(12)
     plaintext = b"data"
-    ciphertext = encrypt_push_message(plaintext, key, nonce, enabled=False)
+    ciphertext = await encrypt_push_message(plaintext, key, nonce, enabled=False)
     assert ciphertext == plaintext
-    assert decrypt_push_message(ciphertext, key, nonce, enabled=False) == ciphertext
+    assert (
+        await decrypt_push_message(ciphertext, key, nonce, enabled=False) == ciphertext
+    )
 
 
 @pytest.mark.unit
-def test_respects_runtime_setting(monkeypatch):
+@pytest.mark.asyncio
+async def test_respects_runtime_setting(monkeypatch):
     """Default behaviour follows the runtime configuration toggle."""
     key = os.urandom(16)
     nonce = os.urandom(12)
     plaintext = b"hello"
     monkeypatch.setattr(settings, "enable_rfc8291", False)
-    assert encrypt_push_message(plaintext, key, nonce) == plaintext
+    assert await encrypt_push_message(plaintext, key, nonce) == plaintext
     monkeypatch.setattr(settings, "enable_rfc8291", True)
-    ciphertext = encrypt_push_message(plaintext, key, nonce)
-    assert decrypt_push_message(ciphertext, key, nonce) == plaintext
+    ciphertext = await encrypt_push_message(plaintext, key, nonce)
+    assert await decrypt_push_message(ciphertext, key, nonce) == plaintext
 
 
 @pytest.mark.unit
-def test_invalid_key_or_nonce_length():
+@pytest.mark.asyncio
+async def test_invalid_key_or_nonce_length():
     """Incorrect key or nonce lengths raise errors when enabled."""
     key = os.urandom(15)
     nonce = os.urandom(12)
     with pytest.raises(ValueError):
-        encrypt_push_message(b"data", key, nonce, enabled=True)
+        await encrypt_push_message(b"data", key, nonce, enabled=True)
     key = os.urandom(16)
     nonce = os.urandom(11)
     with pytest.raises(ValueError):
-        decrypt_push_message(b"data", key, nonce, enabled=True)
+        await decrypt_push_message(b"data", key, nonce, enabled=True)
 
 
 @pytest.mark.unit
