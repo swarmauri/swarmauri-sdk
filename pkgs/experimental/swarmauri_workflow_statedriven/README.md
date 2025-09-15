@@ -1,3 +1,4 @@
+![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pypi.org/project/swarmauri_workflow_statedriven/">
@@ -14,3 +15,24 @@
 
 ---
 
+# Swarmauri Workflow Statedriven
+
+An experimental state-driven workflow engine for building graph-based processes using nodes and transitions. It supports conditions, join strategies, merge strategies and input modes to control execution flow.
+
+## Installation
+
+```bash
+pip install swarmauri_workflow_statedriven
+```
+
+## Usage
+
+```python
+from swarmauri_workflow_statedriven.graph import WorkflowGraph
+
+workflow = WorkflowGraph()
+# Define nodes and transitions...
+result = workflow.execute(start="start", initial_input={})
+```
+
+For more details, see the `docs` directory.
