@@ -17,7 +17,7 @@ from tigrbl_auth import (
     create_code_verifier,
     verify_code_challenge,
 )
-import tigrbl_auth.rfc7636_pkce as pkce_mod
+import tigrbl_auth.rfc.rfc7636_pkce as pkce_mod
 
 
 @pytest.mark.unit

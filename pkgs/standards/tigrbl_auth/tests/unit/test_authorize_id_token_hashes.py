@@ -7,7 +7,7 @@ from fastapi import status
 from tigrbl_auth.crypto import hash_pw
 from tigrbl_auth.orm import Client, Tenant, User
 from tigrbl_auth.oidc_id_token import oidc_hash, verify_id_token
-from tigrbl_auth.rfc8414_metadata import ISSUER
+from tigrbl_auth.rfc.rfc8414_metadata import ISSUER
 from tigrbl_auth.routers.auth_flows import AUTH_CODES
 
 

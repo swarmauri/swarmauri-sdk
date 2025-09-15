@@ -10,7 +10,7 @@ from fastapi import status
 from httpx import AsyncClient
 
 from tigrbl_auth import encode_jwt
-from tigrbl_auth.rfc8693 import TOKEN_EXCHANGE_GRANT_TYPE, TokenType
+from tigrbl_auth.rfc.rfc8693 import TOKEN_EXCHANGE_GRANT_TYPE, TokenType
 
 
 @pytest.mark.integration

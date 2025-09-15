@@ -18,7 +18,7 @@ from tigrbl_auth.errors import InvalidTokenError
 
 import tigrbl_auth.runtime_cfg as runtime_cfg
 from tigrbl_auth.jwtoken import JWTCoder
-from tigrbl_auth.rfc8705 import (
+from tigrbl_auth.rfc.rfc8705 import (
     RFC8705_SPEC_URL,
     thumbprint_from_cert_pem,
     validate_certificate_binding,

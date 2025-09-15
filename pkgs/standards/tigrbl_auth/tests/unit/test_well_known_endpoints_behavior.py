@@ -9,7 +9,7 @@ async def test_openid_configuration_values(async_client) -> None:
     resp = await async_client.get("/.well-known/openid-configuration")
     assert resp.status_code == status.HTTP_200_OK
     data = resp.json()
-    from tigrbl_auth.rfc8414_metadata import JWKS_PATH, ISSUER
+    from tigrbl_auth.rfc.rfc8414_metadata import JWKS_PATH, ISSUER
 
     assert data["issuer"] == ISSUER
     assert data["jwks_uri"].endswith(JWKS_PATH)

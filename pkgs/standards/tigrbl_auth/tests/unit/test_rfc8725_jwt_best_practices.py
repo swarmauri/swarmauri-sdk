@@ -11,7 +11,7 @@ import pytest
 
 from tigrbl_auth.errors import InvalidTokenError
 from tigrbl_auth.jwtoken import JWTCoder
-from tigrbl_auth.rfc8725 import RFC8725_SPEC_URL, validate_jwt_best_practices
+from tigrbl_auth.rfc.rfc8725 import RFC8725_SPEC_URL, validate_jwt_best_practices
 from tigrbl_auth.runtime_cfg import settings
 
 

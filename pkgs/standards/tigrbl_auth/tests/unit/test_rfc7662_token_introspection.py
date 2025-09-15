@@ -6,7 +6,7 @@ from httpx import ASGITransport, AsyncClient
 
 from tigrbl_auth.routers.auth_flows import router
 from tigrbl_auth.fastapi_deps import get_db
-from tigrbl_auth.rfc7662 import register_token, reset_tokens
+from tigrbl_auth.rfc.rfc7662 import register_token, reset_tokens
 
 
 # RFC 7662 specification excerpt for reference within tests

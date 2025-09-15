@@ -13,9 +13,9 @@ from tigrbl.types import JSON, PgUUID, String, TZDateTime, Mapped, UUID
 from tigrbl import op_ctx
 from fastapi import HTTPException, status
 
-from ..rfc8414_metadata import ISSUER
+from ..rfc.rfc8414_metadata import ISSUER
 from ..oidc_id_token import mint_id_token, oidc_hash
-from ..rfc7636_pkce import verify_code_challenge
+from ..rfc.rfc7636_pkce import verify_code_challenge
 from ..routers.shared import _jwt, _require_tls
 from .user import User
 

@@ -10,7 +10,7 @@ import pytest
 
 from tigrbl_auth import encode_jwt
 from tigrbl_auth.errors import InvalidTokenError
-from tigrbl_auth.rfc7521 import (
+from tigrbl_auth.rfc.rfc7521 import (
     RFC7521_SPEC_URL,
     validate_jwt_assertion,
 )
