@@ -100,6 +100,7 @@ members = [
     "standards/swarmauri_keyprovider_inmemory",
     "experimental/swarmauri_certs_pkcs11",
     "experimental/swarmauri_keyprovider_pkcs11",
+    "experimental/swarmauri_tests_loc_tersity",
     "standards/swarmauri_crypto_paramiko",
     "standards/swarmauri_crypto_pgp",
     "standards/swarmauri_crypto_rust",
