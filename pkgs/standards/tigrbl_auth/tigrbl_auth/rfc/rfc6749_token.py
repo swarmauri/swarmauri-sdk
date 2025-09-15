@@ -85,7 +85,7 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
         client_key = UUID(client_id)
     except ValueError:
         client_key = client_id
-    client = await Client.handlers.read.core({"obj_id": client_key})
+    client = await Client.handlers.read.core({"payload": {"id": client_key}})
     if not client:
         return JSONResponse(
             {"error": "invalid_client"},
@@ -165,7 +165,9 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
             parsed = AuthorizationCodeGrantForm(**data)
         except ValidationError as exc:
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, exc.errors())
-        auth_code = await AuthCode.handlers.read.core({"obj_id": UUID(parsed.code)})
+        auth_code = await AuthCode.handlers.read.core(
+            {"payload": {"id": UUID(parsed.code)}}
+        )
         expires_at = auth_code.expires_at if auth_code else None
         if expires_at and expires_at.tzinfo is None:
             expires_at = expires_at.replace(tzinfo=timezone.utc)
@@ -198,7 +200,9 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
             "at_hash": oidc_hash(access),
         }
         if auth_code.claims and "id_token" in auth_code.claims:
-            user_obj = await User.handlers.read.core({"obj_id": auth_code.user_id})
+            user_obj = await User.handlers.read.core(
+                {"payload": {"id": auth_code.user_id}}
+            )
             idc = auth_code.claims["id_token"]
             if "email" in idc:
                 extra_claims["email"] = user_obj.email if user_obj else ""
@@ -240,7 +244,7 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
             tid=str(device_obj.tenant_id or "device-tenant"),
             **jwt_kwargs,
         )
-        await DeviceCode.handlers.delete.core({"db": db, "obj": device_obj})
+        await DeviceCode.handlers.delete.core({"obj": device_obj})
         return TokenPair(access_token=access, refresh_token=refresh)
     if rfc6749_enabled():
         return JSONResponse(

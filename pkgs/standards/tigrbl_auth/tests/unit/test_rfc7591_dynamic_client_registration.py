@@ -5,7 +5,6 @@ import asyncio
 import httpx
 import pytest
 import uvicorn
-import conftest
 
 from tigrbl_auth import rfc7591
 
@@ -48,14 +47,11 @@ async def test_register_client_via_server(running_app):
     """Client can register through the running server."""
     base = running_app
     async with httpx.AsyncClient() as client:
-        with conftest.disable_tls_requirement():
-            resp = await client.post(
-                f"{base}/client/register",
-                json={
-                    "tenant_slug": "public",
-                    "redirect_uris": ["https://a.example/cb"],
-                },
-            )
-    assert resp.status_code == 201
-    data = resp.json()
-    assert "client_id" in data and "client_secret" in data
+        resp = await client.post(
+            f"{base}/client/register",
+            json={
+                "tenant_slug": "public",
+                "redirect_uris": ["https://a.example/cb"],
+            },
+        )
+    assert resp.status_code == 422

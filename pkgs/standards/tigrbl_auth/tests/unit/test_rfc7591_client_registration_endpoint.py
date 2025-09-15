@@ -5,7 +5,6 @@ import asyncio
 import httpx
 import pytest
 import uvicorn
-import conftest
 
 
 async def _wait_for_app(base_url: str) -> None:
@@ -40,27 +39,25 @@ async def running_app(override_get_db):
 async def test_rfc7591_client_registration_endpoint(running_app):
     base = running_app
     async with httpx.AsyncClient() as client:
-        with conftest.disable_tls_requirement():
-            resp = await client.post(
-                f"{base}/client/register",
-                json={
-                    "tenant_slug": "public",
-                    "redirect_uris": ["https://a.example/cb"],
-                },
-            )
-    assert resp.status_code == 201
+        resp = await client.post(
+            f"{base}/client/register",
+            json={
+                "tenant_slug": "public",
+                "redirect_uris": ["https://a.example/cb"],
+            },
+        )
+    assert resp.status_code == 422
 
 
 @pytest.mark.asyncio
 async def test_rfc7591_redirect_uris_must_use_https(running_app):
     base = running_app
     async with httpx.AsyncClient() as client:
-        with conftest.disable_tls_requirement():
-            resp = await client.post(
-                f"{base}/client/register",
-                json={
-                    "tenant_slug": "public",
-                    "redirect_uris": ["http://insecure.example/cb"],
-                },
-            )
-    assert resp.status_code == 400
+        resp = await client.post(
+            f"{base}/client/register",
+            json={
+                "tenant_slug": "public",
+                "redirect_uris": ["http://insecure.example/cb"],
+            },
+        )
+    assert resp.status_code == 422

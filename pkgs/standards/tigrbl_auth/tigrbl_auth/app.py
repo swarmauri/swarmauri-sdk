@@ -16,6 +16,7 @@ Features
 from __future__ import annotations
 
 from tigrbl_auth.deps import TigrblApp
+import inspect
 
 from .routers.surface import surface_api
 from .db import dsn
@@ -61,7 +62,9 @@ async def _startup() -> None:
     # so schema-qualified tables like "authn.tenants" work.
     # this should work without sqlite_attachments, if sqlite_attachments are required use:
     # > await surface_api.initialize(sqlite_attachments={"authn": "./authn.db"})
-    await surface_api.initialize()
+    init = surface_api.initialize()
+    if inspect.isawaitable(init):
+        await init
 
 
 app.add_event_handler("startup", _startup)

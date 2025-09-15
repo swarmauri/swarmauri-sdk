@@ -109,7 +109,7 @@ class AuthCode(Base, GUIDPk, Timestamped, UserColumn, TenantColumn):
             "at_hash": oidc_hash(access),
         }
         if obj.claims and "id_token" in obj.claims:
-            user_obj = await User.handlers.read.core({"obj_id": obj.user_id})
+            user_obj = await User.handlers.read.core({"payload": {"id": obj.user_id}})
             idc = obj.claims["id_token"]
             if "email" in idc:
                 extra_claims["email"] = user_obj.email if user_obj else ""
@@ -122,7 +122,7 @@ class AuthCode(Base, GUIDPk, Timestamped, UserColumn, TenantColumn):
             issuer=ISSUER,
             **extra_claims,
         )
-        await cls.handlers.delete.core({"obj": obj, "obj_id": obj.id})
+        await cls.handlers.delete.core({"obj": obj})
         return {
             "access_token": access,
             "refresh_token": refresh,
