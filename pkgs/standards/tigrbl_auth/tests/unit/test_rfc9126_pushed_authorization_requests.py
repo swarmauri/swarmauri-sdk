@@ -7,8 +7,6 @@ from tigrbl_auth.orm.pushed_authorization_request import (
 )
 from tigrbl_auth.deps import HTTPException
 from tigrbl_auth.runtime_cfg import settings
-
-
 class _Req:
     def __init__(self, form):
         self._form = form
@@ -25,7 +23,6 @@ async def test_par_returns_request_uri_and_expires(enable_rfc9126, db_session):
     )
     assert obj.request_uri.startswith("urn:ietf:params:oauth:request_uri:")
     assert obj.expires_in == DEFAULT_PAR_EXPIRY
-
 
 @pytest.mark.unit
 @pytest.mark.asyncio

@@ -42,6 +42,8 @@ def _default_expires_at() -> datetime:
 
 
 class PushedAuthorizationRequest(Base, GUIDPk, Timestamped):
+    """ORM model backing RFC 9126 pushed authorization requests."""
+
     __tablename__ = "par_requests"
     __table_args__ = ({"schema": "authn"},)
 

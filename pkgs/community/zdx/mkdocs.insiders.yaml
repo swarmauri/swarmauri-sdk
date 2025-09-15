@@ -13,7 +13,7 @@ plugins:
   - search
   - gen-files:
       scripts:
-        - docs/_gen_readmes.py
+        - zdx/scripts/gen_readmes.py
   - literate-nav:
       nav_file: SUMMARY.md
 
