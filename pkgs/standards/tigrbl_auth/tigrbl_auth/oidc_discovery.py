@@ -91,13 +91,13 @@ def refresh_discovery_cache() -> None:
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
-@router.get("/.well-known/openid-configuration")
+@router.get("/.well-known/openid-configuration", tags=[".well-known"])
 async def openid_configuration():
     """Return OpenID Connect discovery metadata."""
     return _cached_openid_config(_settings_signature())
 
 
-@router.get(JWKS_PATH)
+@router.get(JWKS_PATH, tags=[".well-known"])
 async def jwks():
     """Publish all public keys in RFC 7517 JWKS format."""
     from .oidc_id_token import ensure_rsa_jwt_key, rsa_key_provider
