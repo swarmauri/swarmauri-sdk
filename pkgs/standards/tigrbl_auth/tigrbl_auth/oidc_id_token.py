@@ -29,7 +29,7 @@ from .deps import (
 )
 from .errors import InvalidTokenError
 from .runtime_cfg import settings
-from .rfc7516 import encrypt_jwe, decrypt_jwe
+from .rfc.rfc7516 import encrypt_jwe, decrypt_jwe
 
 # ---------------------------------------------------------------------------
 # Signing key management

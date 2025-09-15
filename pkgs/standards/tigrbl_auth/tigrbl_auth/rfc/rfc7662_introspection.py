@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from tigrbl_auth.deps import HTTPException, Request, status
+from tigrbl_auth.deps import APIRouter, HTTPException, Request, status
 
-from ...runtime_cfg import settings
-from ..schemas import IntrospectOut
-from ..shared import _require_tls
-from ...rfc7662 import introspect_token
+from ..runtime_cfg import settings
+from ..routers.schemas import IntrospectOut
+from ..routers.shared import _require_tls
+from ..rfc.rfc7662 import introspect_token
 
-from . import router
+router = APIRouter()
 
 
 @router.post("/introspect", response_model=IntrospectOut)
