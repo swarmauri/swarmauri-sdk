@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 DEFAULT_MAX_LINES = 400
+PLUGIN_NAME = __name__.split(".")[0]
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
@@ -91,11 +92,17 @@ def pytest_collection_modifyitems(
     if mode == "parameterized":
         for file in files:
             item = LocItem.from_parent(
-                session, name=f"loc:{file}", path=file, max_lines=max_lines
+                session,
+                name=f"{PLUGIN_NAME}:loc::{file}",
+                path=file,
+                max_lines=max_lines,
             )
             items.append(item)
     else:
         item = LocAggregateItem.from_parent(
-            session, name="loc-aggregate", files=files, max_lines=max_lines
+            session,
+            name=f"{PLUGIN_NAME}:loc-aggregate",
+            files=files,
+            max_lines=max_lines,
         )
         items.append(item)
