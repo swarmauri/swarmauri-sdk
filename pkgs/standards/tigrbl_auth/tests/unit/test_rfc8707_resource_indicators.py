@@ -15,6 +15,18 @@ from tigrbl_auth.runtime_cfg import settings
 from tigrbl_auth.routers.auth_flows import router
 from tigrbl_auth.routers.shared import _jwt
 from tigrbl_auth.fastapi_deps import get_db
+from tigrbl_auth.orm import Client
+
+
+CLIENT_ID = "00000000-0000-0000-0000-000000000000"
+
+
+class DummyClient:
+    id = CLIENT_ID
+    tenant_id = "tenant"
+
+    def verify_secret(self, secret: str) -> bool:  # pragma: no cover - trivial
+        return secret == "secret"
 
 
 @pytest.mark.unit
@@ -29,6 +41,11 @@ async def test_token_includes_aud_when_resource_provided(monkeypatch):
         "tigrbl_auth.routers.shared._pwd_backend.authenticate",
         AsyncMock(return_value=mock_user),
     )
+    monkeypatch.setattr(
+        Client.handlers.read,
+        "core",
+        AsyncMock(return_value=DummyClient()),
+    )
     app.dependency_overrides[get_db] = lambda: AsyncMock()
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -38,7 +55,7 @@ async def test_token_includes_aud_when_resource_provided(monkeypatch):
                 "grant_type": "password",
                 "username": "u",
                 "password": "p",
-                "client_id": "client",
+                "client_id": CLIENT_ID,
                 "client_secret": "secret",
                 "resource": "https://rs.example",
             },
@@ -55,6 +72,11 @@ async def test_invalid_resource_returns_error(monkeypatch):
     app = FastAPI()
     app.include_router(router)
     monkeypatch.setattr(settings, "rfc8707_enabled", True)
+    monkeypatch.setattr(
+        Client.handlers.read,
+        "core",
+        AsyncMock(return_value=DummyClient()),
+    )
     app.dependency_overrides[get_db] = lambda: AsyncMock()
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -64,7 +86,7 @@ async def test_invalid_resource_returns_error(monkeypatch):
                 "grant_type": "password",
                 "username": "u",
                 "password": "p",
-                "client_id": "client",
+                "client_id": CLIENT_ID,
                 "client_secret": "secret",
                 "resource": "not-a-uri",
             },
@@ -85,6 +107,11 @@ async def test_multiple_resources_uses_first(monkeypatch):
         "tigrbl_auth.routers.shared._pwd_backend.authenticate",
         AsyncMock(return_value=mock_user),
     )
+    monkeypatch.setattr(
+        Client.handlers.read,
+        "core",
+        AsyncMock(return_value=DummyClient()),
+    )
     app.dependency_overrides[get_db] = lambda: AsyncMock()
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -94,7 +121,7 @@ async def test_multiple_resources_uses_first(monkeypatch):
                 "grant_type": "password",
                 "username": "u",
                 "password": "p",
-                "client_id": "client",
+                "client_id": CLIENT_ID,
                 "client_secret": "secret",
                 "resource": ["https://rs.example", "https://api.example"],
             },
@@ -111,6 +138,11 @@ async def test_multiple_resources_with_invalid_returns_error(monkeypatch):
     app = FastAPI()
     app.include_router(router)
     monkeypatch.setattr(settings, "rfc8707_enabled", True)
+    monkeypatch.setattr(
+        Client.handlers.read,
+        "core",
+        AsyncMock(return_value=DummyClient()),
+    )
     app.dependency_overrides[get_db] = lambda: AsyncMock()
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -120,7 +152,7 @@ async def test_multiple_resources_with_invalid_returns_error(monkeypatch):
                 "grant_type": "password",
                 "username": "u",
                 "password": "p",
-                "client_id": "client",
+                "client_id": CLIENT_ID,
                 "client_secret": "secret",
                 "resource": ["https://rs.example", "not-a-uri"],
             },
@@ -141,6 +173,11 @@ async def test_feature_flag_disables_resource(monkeypatch):
         "tigrbl_auth.routers.shared._pwd_backend.authenticate",
         AsyncMock(return_value=mock_user),
     )
+    monkeypatch.setattr(
+        Client.handlers.read,
+        "core",
+        AsyncMock(return_value=DummyClient()),
+    )
     app.dependency_overrides[get_db] = lambda: AsyncMock()
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -150,7 +187,7 @@ async def test_feature_flag_disables_resource(monkeypatch):
                 "grant_type": "password",
                 "username": "u",
                 "password": "p",
-                "client_id": "client",
+                "client_id": CLIENT_ID,
                 "client_secret": "secret",
                 "resource": "https://rs.example",
             },

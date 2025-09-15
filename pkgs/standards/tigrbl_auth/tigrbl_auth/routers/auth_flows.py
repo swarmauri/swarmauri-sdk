@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 
-from tigrbl_auth.deps import AsyncSession, Depends, Request
-
-from ..fastapi_deps import get_db
+from tigrbl_auth.deps import Request
 from ..orm.auth_session import AuthSession
 from ..routers.schemas import CredsIn, TokenPair
 from .authz import router as router
@@ -15,10 +13,8 @@ api = router
 async def login(
     creds: CredsIn,
     request: Request,
-    db: AsyncSession = Depends(get_db),
 ):
     ctx = {
-        "db": db,
         "payload": {"username": creds.identifier},
         "temp": {"password": creds.password},
         "request": request,

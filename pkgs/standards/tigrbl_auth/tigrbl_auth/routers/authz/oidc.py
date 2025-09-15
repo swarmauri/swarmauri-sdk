@@ -55,14 +55,16 @@ async def authorize(
         client_uuid = UUID(client_id)
     except ValueError:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
-    client = await Client.handlers.read.core({"obj_id": client_uuid})
+    client = await Client.handlers.read.core({"payload": {"id": client_uuid}})
     if client is None or redirect_uri not in (client.redirect_uris or "").split():
         raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
 
     prompts = set(prompt.split()) if prompt else set()
     sid = request.cookies.get("sid")
     session = (
-        await AuthSession.handlers.read.core({"obj_id": UUID(sid)}) if sid else None
+        await AuthSession.handlers.read.core({"payload": {"id": UUID(sid)}})
+        if sid
+        else None
     )
     if login_hint and session and session.username != login_hint:
         session = None
@@ -131,7 +133,9 @@ async def authorize(
     if "id_token" in rts:
         extra_claims: dict[str, Any] = {"tid": tenant_id, "typ": "id"}
         if requested_claims and "id_token" in requested_claims:
-            user_obj = await User.handlers.read.core({"obj_id": UUID(user_sub)})
+            user_obj = await User.handlers.read.core(
+                {"payload": {"id": UUID(user_sub)}}
+            )
             idc = requested_claims["id_token"]
             if "email" in idc:
                 extra_claims["email"] = user_obj.email if user_obj else ""

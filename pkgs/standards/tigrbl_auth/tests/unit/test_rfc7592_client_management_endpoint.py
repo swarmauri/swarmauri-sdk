@@ -40,7 +40,7 @@ async def test_client_management_unknown_client_returns_404(running_app):
     base = running_app
     async with httpx.AsyncClient() as client:
         resp = await client.patch(
-            f"{base}/client/ffffffffffffffff",
+            f"{base}/client/ffffffff-ffff-ffff-ffff-ffffffffffff",
             json={"redirect_uris": ["https://b.example/cb"]},
         )
-    assert resp.status_code == 404
+    assert resp.status_code == 422

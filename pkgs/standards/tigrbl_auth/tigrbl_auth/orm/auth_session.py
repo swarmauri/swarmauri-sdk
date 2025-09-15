@@ -128,7 +128,7 @@ class AuthSession(Base, GUIDPk, Timestamped, UserColumn, TenantColumn):
             ) from exc
         sid = claims.get("sid")
         if sid:
-            session = await cls.handlers.read.core({"obj_id": UUID(sid)})
+            session = await cls.handlers.read.core({"payload": {"id": UUID(sid)}})
             if session:
                 await cls.handlers.delete.core({"obj": session})
             await _front_channel_logout(sid)
