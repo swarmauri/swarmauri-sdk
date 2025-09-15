@@ -15,7 +15,8 @@ import secrets
 import string
 from typing import Final, Literal, TYPE_CHECKING
 
-from tigrbl_auth.deps import BaseModel, AsyncSession
+from tigrbl_auth.deps import BaseModel, hook_ctx
+from typing import Any, Mapping
 
 from ..runtime_cfg import settings
 
@@ -62,20 +63,27 @@ class DeviceGrantForm(BaseModel):
     client_id: str
 
 
-async def approve_device_code(
-    device_code: str, sub: str, tid: str, db: AsyncSession
-) -> None:
+@hook_ctx(ops="approve", phase="HANDLER")
+async def approve_device_code(ctx: Mapping[str, Any]) -> None:
     """Mark a device code as authorized (testing helper)."""
 
     from ..orm import DeviceCode
 
-    obj = await DeviceCode.handlers.read.core({"db": db, "obj_id": device_code})
+    payload = ctx.get("payload") or {}
+    ident = payload.get("id") or payload.get("device_code")
+    if ident is None:
+        return
+
+    obj = await DeviceCode.handlers.read.core({"payload": {"id": ident}})
     if obj:
         await DeviceCode.handlers.update.core(
             {
-                "db": db,
                 "obj": obj,
-                "payload": {"authorized": True, "user_id": sub, "tenant_id": tid},
+                "payload": {
+                    "authorized": True,
+                    "user_id": payload.get("sub"),
+                    "tenant_id": payload.get("tid"),
+                },
             }
         )
 

@@ -6,18 +6,17 @@ import pytest
 from fastapi import Request
 
 from tigrbl_auth.orm import AuthCode
-from tigrbl_auth.rfc.rfc7636_pkce import create_code_challenge, create_code_verifier
+from tigrbl_auth.rfc.rfc7636_pkce import makeCodeChallenge, makeCodeVerifier
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
 async def test_exchange_accepts_hex_client_id(monkeypatch):
-    verifier = create_code_verifier()
-    challenge = create_code_challenge(verifier)
+    verifier = makeCodeVerifier()
+    challenge = makeCodeChallenge(verifier)
     client_uuid = uuid.uuid4()
 
     auth_code = AuthCode(
-        code="code",
         client_id=client_uuid,
         redirect_uri="https://client/cb",
         code_challenge=challenge,

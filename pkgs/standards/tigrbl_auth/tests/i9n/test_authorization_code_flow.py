@@ -6,7 +6,7 @@ from uuid import UUID, uuid4
 from tigrbl.engine import HybridSession
 from tigrbl_auth.crypto import hash_pw
 from tigrbl_auth.orm import Client, Tenant, User
-from tigrbl_auth.rfc.rfc7636_pkce import create_code_challenge, create_code_verifier
+from tigrbl_auth.rfc.rfc7636_pkce import makeCodeChallenge, makeCodeVerifier
 
 
 @pytest.mark.asyncio
@@ -42,8 +42,8 @@ async def test_authorization_code_pkce_flow(
     )
     assert login_resp.status_code == 200
 
-    verifier = create_code_verifier()
-    challenge = create_code_challenge(verifier)
+    verifier = makeCodeVerifier()
+    challenge = makeCodeChallenge(verifier)
     params = {
         "response_type": "code",
         "client_id": client_id,
@@ -106,8 +106,8 @@ async def test_authorization_code_pkce_invalid_verifier(
     )
     assert login_resp.status_code == 200
 
-    verifier = create_code_verifier()
-    challenge = create_code_challenge(verifier)
+    verifier = makeCodeVerifier()
+    challenge = makeCodeChallenge(verifier)
     params = {
         "response_type": "code",
         "client_id": client_id,

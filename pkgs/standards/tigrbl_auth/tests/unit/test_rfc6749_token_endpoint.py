@@ -4,17 +4,20 @@ import pytest
 import pytest_asyncio
 from fastapi import FastAPI, status
 from httpx import ASGITransport, AsyncClient, BasicAuth
+from unittest.mock import AsyncMock
 
 from tigrbl_auth.fastapi_deps import get_db
 from tigrbl_auth.routers.auth_flows import router
 from tigrbl_auth.runtime_cfg import settings
+from tigrbl_auth.orm import Client
 
 
-AUTH = BasicAuth("abc", "secret")
+CLIENT_ID = "00000000-0000-0000-0000-000000000000"
+AUTH = BasicAuth(CLIENT_ID, "secret")
 
 
 class DummyClient:
-    id = "abc"
+    id = CLIENT_ID
     tenant_id = "tenant"
 
     def verify_secret(self, secret: str) -> bool:  # pragma: no cover - trivial
@@ -31,10 +34,15 @@ async def _override_db():
 
 
 @pytest_asyncio.fixture()
-async def client():
+async def client(monkeypatch):
     app = FastAPI()
     app.include_router(router)
     app.dependency_overrides[get_db] = _override_db
+    monkeypatch.setattr(
+        Client.handlers.read,
+        "core",
+        AsyncMock(return_value=DummyClient()),
+    )
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as c:
         yield c
@@ -99,7 +107,7 @@ async def test_authorization_code_grant_requires_code(client, enable_rfc6749):
     data = {
         "grant_type": "authorization_code",
         "redirect_uri": "https://c",
-        "client_id": "abc",
+        "client_id": CLIENT_ID,
     }
     resp = await client.post("/token", data=data, auth=AUTH)
     assert resp.status_code == status.HTTP_400_BAD_REQUEST

@@ -10,6 +10,7 @@ See RFC 8523: https://www.rfc-editor.org/rfc/rfc8523
 from __future__ import annotations
 
 import time
+import warnings
 from typing import Any, Dict, Iterable, Optional, Set, Union
 
 from ..errors import InvalidTokenError
@@ -85,7 +86,7 @@ def validate_enhanced_jwt_bearer(
     return claims
 
 
-def create_client_assertion_jwt(
+def makeClientAssertionJwt(
     client_id: str,
     audience: str,
     *,
@@ -128,6 +129,26 @@ def create_client_assertion_jwt(
     return encode_jwt(**claims)
 
 
+def create_client_assertion_jwt(
+    client_id: str,
+    audience: str,
+    *,
+    expires_in: int = 300,
+    additional_claims: Optional[Dict[str, Any]] = None,
+) -> str:
+    warnings.warn(
+        "create_client_assertion_jwt is deprecated, use makeClientAssertionJwt",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return makeClientAssertionJwt(
+        client_id,
+        audience,
+        expires_in=expires_in,
+        additional_claims=additional_claims,
+    )
+
+
 def is_jwt_replay(jti: str, iat: int, max_age_seconds: int = 300) -> bool:
     """Check if a JWT ID indicates a replay attack.
 
@@ -149,7 +170,8 @@ def is_jwt_replay(jti: str, iat: int, max_age_seconds: int = 300) -> bool:
 
 __all__ = [
     "validate_enhanced_jwt_bearer",
-    "create_client_assertion_jwt",
+    "makeClientAssertionJwt",
     "is_jwt_replay",
     "RFC8523_SPEC_URL",
+    "create_client_assertion_jwt",
 ]

@@ -35,7 +35,7 @@ async def test_device_authorization_endpoint(async_client: AsyncClient) -> None:
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_device_token_polling(async_client: AsyncClient, db_session) -> None:
+async def test_device_token_polling(async_client: AsyncClient) -> None:
     """Token endpoint should poll until the device code is approved."""
     auth_resp = await async_client.post(
         "/device_codes/device_authorization", data={"client_id": "test-client"}
@@ -52,7 +52,9 @@ async def test_device_token_polling(async_client: AsyncClient, db_session) -> No
 
     from tigrbl_auth.rfc.rfc8628 import approve_device_code
 
-    await approve_device_code(device_code, sub="user", tid="tenant", db=db_session)
+    await approve_device_code.__wrapped__(
+        {"payload": {"id": device_code, "sub": "user", "tid": "tenant"}}
+    )
     success = await async_client.post("/token", data=payload)
     assert success.status_code == status.HTTP_200_OK
     data = success.json()

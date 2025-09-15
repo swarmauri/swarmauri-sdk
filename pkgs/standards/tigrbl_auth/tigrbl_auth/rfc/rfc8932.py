@@ -14,14 +14,15 @@ from __future__ import annotations
 
 
 from typing import Any, Dict, List
-from tigrbl_auth.deps import APIRouter, HTTPException, status
+from tigrbl_auth.deps import TigrblApi, HTTPException, status
 
 from ..runtime_cfg import settings
 from .rfc8414_metadata import ISSUER, JWKS_PATH
 
 RFC8932_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8932"
 
-router = APIRouter()
+api = TigrblApi()
+router = api
 
 # Supported encrypted DNS transports per RFC 8932 recommendations
 ENCRYPTED_DNS_TRANSPORTS = {"DoT", "DoH"}
@@ -155,7 +156,9 @@ def get_enhanced_authorization_server_metadata() -> Dict[str, Any]:
 
     # RFC 9126 - Pushed Authorization Requests
     if settings.enable_rfc9126:
-        enhanced_metadata["pushed_authorization_request_endpoint"] = f"{ISSUER}/par"
+        enhanced_metadata["pushed_authorization_request_endpoint"] = (
+            f"{ISSUER}/pushedauthorizationrequest"
+        )
         enhanced_metadata["require_pushed_authorization_requests"] = False
 
     # RFC 9449 - DPoP (Demonstrating Proof-of-Possession)
@@ -207,7 +210,7 @@ def get_enhanced_authorization_server_metadata() -> Dict[str, Any]:
     return result
 
 
-@router.get(
+@api.get(
     "/.well-known/oauth-authorization-server-enhanced",
     include_in_schema=False,
     tags=[".well-known"],
@@ -317,7 +320,9 @@ def get_capability_matrix() -> Dict[str, Dict[str, Any]]:
         "rfc9126": {
             "name": "Pushed Authorization Requests",
             "enabled": settings.enable_rfc9126,
-            "endpoints": ["/par"] if settings.enable_rfc9126 else [],
+            "endpoints": ["/pushedauthorizationrequest"]
+            if settings.enable_rfc9126
+            else [],
         },
         "rfc9449": {
             "name": "DPoP",
@@ -333,6 +338,7 @@ __all__ = [
     "enhanced_authorization_server_metadata",
     "validate_metadata_consistency",
     "get_capability_matrix",
+    "api",
     "router",
     "RFC8932_SPEC_URL",
     "enforce_encrypted_dns",

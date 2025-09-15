@@ -11,9 +11,10 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Union
 from enum import Enum
+import warnings
 from tigrbl_auth.deps import (
-    APIRouter,
-    FastAPI,
+    TigrblApi,
+    TigrblApp,
     Form,
     HTTPException,
     Request,
@@ -31,16 +32,17 @@ RFC8693_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8693"
 # Token Exchange Grant Type
 TOKEN_EXCHANGE_GRANT_TYPE = "urn:ietf:params:oauth:grant-type:token-exchange"
 
-router = APIRouter()
+api = TigrblApi()
+router = api
 
 
-def include_rfc8693(app: FastAPI) -> None:
+def include_rfc8693(app: TigrblApp) -> None:
     """Attach the RFC 8693 router to *app* if enabled."""
 
     if runtime_cfg.settings.enable_rfc8693 and not any(
         route.path == "/token/exchange" for route in app.routes
     ):
-        app.include_router(router)
+        app.include_router(api)
 
 
 # Standard Token Type URIs per RFC 8693 Section 3
@@ -293,7 +295,7 @@ def exchange_token(
     )
 
 
-@router.post("/token/exchange")
+@api.post("/token/exchange")
 async def token_exchange_endpoint(
     request: Request,
     grant_type: str = Form(...),
@@ -330,7 +332,7 @@ async def token_exchange_endpoint(
     return response.to_dict()
 
 
-def create_impersonation_token(
+def makeImpersonationToken(
     subject_token: str,
     actor_token: str,
     *,
@@ -365,7 +367,7 @@ def create_impersonation_token(
     return exchange_token(request, issuer="impersonation-service")
 
 
-def create_delegation_token(
+def makeDelegationToken(
     subject_token: str,
     *,
     audience: Optional[str] = None,
@@ -396,6 +398,44 @@ def create_delegation_token(
     return exchange_token(request, issuer="delegation-service")
 
 
+def create_impersonation_token(
+    subject_token: str,
+    actor_token: str,
+    *,
+    audience: Optional[str] = None,
+    scope: Optional[str] = None,
+) -> TokenExchangeResponse:
+    warnings.warn(
+        "create_impersonation_token is deprecated, use makeImpersonationToken",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return makeImpersonationToken(
+        subject_token,
+        actor_token,
+        audience=audience,
+        scope=scope,
+    )
+
+
+def create_delegation_token(
+    subject_token: str,
+    *,
+    audience: Optional[str] = None,
+    scope: Optional[str] = None,
+) -> TokenExchangeResponse:
+    warnings.warn(
+        "create_delegation_token is deprecated, use makeDelegationToken",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return makeDelegationToken(
+        subject_token,
+        audience=audience,
+        scope=scope,
+    )
+
+
 __all__ = [
     "TokenExchangeRequest",
     "TokenExchangeResponse",
@@ -403,10 +443,13 @@ __all__ = [
     "validate_token_exchange_request",
     "validate_subject_token",
     "exchange_token",
+    "makeImpersonationToken",
+    "makeDelegationToken",
     "create_impersonation_token",
     "create_delegation_token",
     "TOKEN_EXCHANGE_GRANT_TYPE",
     "RFC8693_SPEC_URL",
     "include_rfc8693",
+    "api",
     "router",
 ]

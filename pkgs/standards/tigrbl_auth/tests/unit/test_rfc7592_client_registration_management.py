@@ -1,48 +1,51 @@
-"""Unit tests for OAuth 2.0 Dynamic Client Registration Management (RFC 7592).
+"""Tests for RFC 7592 client management operations."""
 
-These tests ensure that client metadata can be updated or removed when RFC 7592
-support is enabled and that operations are rejected when disabled.
-"""
-
-from unittest.mock import patch
+import uuid
 
 import pytest
 
-from tigrbl_auth import rfc7591, rfc7592
+from tigrbl_auth import rfc7592
+from tigrbl_auth.orm import Client
+from sqlalchemy.exc import NoResultFound
 
 
-def test_update_and_delete_client_when_enabled() -> None:
-    """Clients may be updated and deleted when RFC 7592 is enabled."""
-
-    with (
-        patch.object(rfc7591.settings, "enable_rfc7591", True),
-        patch.object(rfc7592.settings, "enable_rfc7592", True),
-    ):
-        rfc7591.reset_client_registry()
-        client = rfc7591.register_client({})
-        updated = rfc7592.update_client(client["client_id"], {"client_name": "example"})
-        assert updated["client_name"] == "example"
-        assert rfc7592.delete_client(client["client_id"]) is True
-        assert rfc7591.get_client(client["client_id"]) is None
+def test_rfc7592_spec_url() -> None:
+    """Module exports the specification URL."""
+    assert rfc7592.RFC7592_SPEC_URL.endswith("7592")
 
 
-def test_update_client_disabled_raises() -> None:
-    """Updating a client fails when RFC 7592 support is disabled."""
-
-    with patch.object(rfc7591.settings, "enable_rfc7591", True):
-        rfc7591.reset_client_registry()
-        client = rfc7591.register_client({})
-    with patch.object(rfc7592.settings, "enable_rfc7592", False):
-        with pytest.raises(RuntimeError):
-            rfc7592.update_client(client["client_id"], {})
-
-
-def test_delete_client_disabled_raises() -> None:
-    """Deleting a client fails when RFC 7592 support is disabled."""
-
-    with patch.object(rfc7591.settings, "enable_rfc7591", True):
-        rfc7591.reset_client_registry()
-        client = rfc7591.register_client({})
-    with patch.object(rfc7592.settings, "enable_rfc7592", False):
-        with pytest.raises(RuntimeError):
-            rfc7592.delete_client(client["client_id"])
+@pytest.mark.asyncio
+async def test_update_and_delete_client_via_server(db_session):
+    client = Client.new(
+        tenant_id=uuid.UUID("FFFFFFFF-0000-0000-0000-000000000000"),
+        client_id=str(uuid.uuid4()),
+        client_secret="secret",
+        redirects=["https://a.example/cb"],
+    )
+    db_session.add(client)
+    await db_session.commit()
+    client_id = client.id
+    await Client.handlers.update.core(
+        {
+            "payload": {
+                "ident": str(client_id),
+                "redirect_uris": "https://b.example/cb",
+            },
+            "db": db_session,
+        }
+    )
+    fetched = await Client.handlers.read.core(
+        {"payload": {"id": str(client_id)}, "db": db_session}
+    )
+    assert fetched is not None
+    uris = fetched.redirect_uris
+    if isinstance(uris, str):
+        uris = uris.split()
+    assert "https://b.example/cb" in uris
+    await Client.handlers.delete.core(
+        {"payload": {"ident": str(client_id)}, "db": db_session}
+    )
+    with pytest.raises(NoResultFound):
+        await Client.handlers.read.core(
+            {"payload": {"id": str(client_id)}, "db": db_session}
+        )

@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import time
 import uuid
+import warnings
 from typing import Dict, Any, Optional, List, Union
 
 
@@ -36,7 +37,7 @@ SET_EVENT_TYPES = {
 }
 
 
-def create_security_event_token(
+def makeSecurityEventToken(
     issuer: str,
     audience: Union[str, List[str]],
     event_type: str,
@@ -202,7 +203,7 @@ def get_set_subject_identifiers(set_claims: Dict[str, Any]) -> Dict[str, Any]:
     return set_claims.get("sub", {})
 
 
-def create_account_disabled_set(
+def makeAccountDisabledSet(
     issuer: str,
     audience: Union[str, List[str]],
     subject_id: str,
@@ -224,7 +225,7 @@ def create_account_disabled_set(
     subject = {"format": "opaque", "id": subject_id}
     event_data = {"reason": reason} if reason else {}
 
-    return create_security_event_token(
+    return makeSecurityEventToken(
         issuer=issuer,
         audience=audience,
         event_type=SET_EVENT_TYPES["account-disabled"],
@@ -234,7 +235,7 @@ def create_account_disabled_set(
     )
 
 
-def create_session_revoked_set(
+def makeSessionRevokedSet(
     issuer: str,
     audience: Union[str, List[str]],
     subject_id: str,
@@ -256,7 +257,7 @@ def create_session_revoked_set(
     subject = {"format": "opaque", "id": subject_id}
     event_data = {"session_id": session_id} if session_id else {}
 
-    return create_security_event_token(
+    return makeSecurityEventToken(
         issuer=issuer,
         audience=audience,
         event_type=SET_EVENT_TYPES["session-revoked"],
@@ -266,13 +267,84 @@ def create_session_revoked_set(
     )
 
 
+def create_security_event_token(
+    issuer: str,
+    audience: Union[str, List[str]],
+    event_type: str,
+    subject: Dict[str, Any],
+    *,
+    event_data: Optional[Dict[str, Any]] = None,
+    expires_in: int = 3600,
+    additional_claims: Optional[Dict[str, Any]] = None,
+) -> str:
+    warnings.warn(
+        "create_security_event_token is deprecated, use makeSecurityEventToken",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return makeSecurityEventToken(
+        issuer,
+        audience,
+        event_type,
+        subject,
+        event_data=event_data,
+        expires_in=expires_in,
+        additional_claims=additional_claims,
+    )
+
+
+def create_account_disabled_set(
+    issuer: str,
+    audience: Union[str, List[str]],
+    subject_id: str,
+    reason: Optional[str] = None,
+    **kwargs,
+) -> str:
+    warnings.warn(
+        "create_account_disabled_set is deprecated, use makeAccountDisabledSet",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return makeAccountDisabledSet(
+        issuer,
+        audience,
+        subject_id,
+        reason=reason,
+        **kwargs,
+    )
+
+
+def create_session_revoked_set(
+    issuer: str,
+    audience: Union[str, List[str]],
+    subject_id: str,
+    session_id: Optional[str] = None,
+    **kwargs,
+) -> str:
+    warnings.warn(
+        "create_session_revoked_set is deprecated, use makeSessionRevokedSet",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return makeSessionRevokedSet(
+        issuer,
+        audience,
+        subject_id,
+        session_id=session_id,
+        **kwargs,
+    )
+
+
 __all__ = [
-    "create_security_event_token",
+    "makeSecurityEventToken",
     "validate_security_event_token",
     "extract_event_data",
     "get_set_subject_identifiers",
-    "create_account_disabled_set",
-    "create_session_revoked_set",
+    "makeAccountDisabledSet",
+    "makeSessionRevokedSet",
     "SET_EVENT_TYPES",
     "RFC7952_SPEC_URL",
+    "create_security_event_token",
+    "create_account_disabled_set",
+    "create_session_revoked_set",
 ]

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import uuid
+from typing import TYPE_CHECKING
 
 from tigrbl_auth.deps import (
     UserBase,
@@ -19,11 +20,8 @@ from tigrbl_auth.deps import (
     ColumnSpec,
     HTTPException,
     status,
-    JSONResponse,
-    select,
 )
 from ..routers.schemas import RegisterIn, TokenPair
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover
     pass
@@ -77,8 +75,10 @@ class User(UserBase):
         if slug:
             from .tenant import Tenant
 
-            db = ctx.get("db")
-            tenant = await db.scalar(select(Tenant).where(Tenant.slug == slug).limit(1))
+            tenants = await Tenant.handlers.list.core(
+                {"payload": {"filters": {"slug": slug}}}
+            )
+            tenant = tenants.items[0] if getattr(tenants, "items", None) else None
             if tenant is None:
                 raise HTTPException(status.HTTP_404_NOT_FOUND, "tenant not found")
             payload["tenant_id"] = tenant.id
@@ -108,40 +108,34 @@ class User(UserBase):
         response_schema=TokenPair,
     )
     async def register(cls, ctx):
-        import secrets
-        from ..rfc.rfc8414_metadata import ISSUER
-        from ..oidc_id_token import mint_id_token
-        from ..routers.shared import _jwt, _require_tls, SESSIONS
+        from ..routers.shared import _require_tls
         from .auth_session import AuthSession
         from .tenant import Tenant
         from tigrbl_auth.deps import IntegrityError
 
         request = ctx.get("request")
         _require_tls(request)
-        db = ctx.get("db")
         payload = ctx.get("payload") or {}
         plain_pw = payload.get("password")
         try:
             tenant_slug = payload.pop("tenant_slug")
-            tenant = await db.scalar(
-                select(Tenant).where(Tenant.slug == tenant_slug).limit(1)
+            tenants = await Tenant.handlers.list.core(
+                {"payload": {"filters": {"slug": tenant_slug}}}
             )
+            tenant = tenants.items[0] if getattr(tenants, "items", None) else None
             if tenant is None:
                 raise HTTPException(status.HTTP_404_NOT_FOUND, "tenant not found")
             payload["tenant_id"] = tenant.id
 
-            await cls.handlers.create.core({"db": db, "payload": payload})
-            session_id = secrets.token_urlsafe(16)
-            session = await AuthSession.handlers.login.core(
-                {
-                    "db": db,
-                    "payload": {
-                        "id": session_id,
-                        "username": payload["username"],
-                        "password": plain_pw,
-                    },
-                }
-            )
+            await cls.handlers.create.core({"payload": payload})
+            ctx_login = {
+                "payload": {
+                    "username": payload["username"],
+                    "password": plain_pw,
+                },
+                "request": request,
+            }
+            return await AuthSession.handlers.login.core(ctx_login)
         except HTTPException:
             raise
         except Exception as exc:  # pragma: no cover - passthrough
@@ -150,33 +144,6 @@ class User(UserBase):
             raise HTTPException(
                 status.HTTP_500_INTERNAL_SERVER_ERROR, "database error"
             ) from exc
-
-        access, refresh = await _jwt.async_sign_pair(
-            sub=str(session.user_id),
-            tid=str(session.tenant_id),
-            scope="openid profile email",
-        )
-        SESSIONS[session.id] = {
-            "sub": str(session.user_id),
-            "tid": str(session.tenant_id),
-            "username": session.username,
-            "auth_time": session.auth_time,
-        }
-        id_token = await mint_id_token(
-            sub=str(session.user_id),
-            aud=ISSUER,
-            nonce=secrets.token_urlsafe(8),
-            issuer=ISSUER,
-            sid=session.id,
-        )
-        pair = {
-            "access_token": access,
-            "refresh_token": refresh,
-            "id_token": id_token,
-        }
-        response = JSONResponse(pair)
-        response.set_cookie("sid", session.id, httponly=True, samesite="lax")
-        return response
 
     @classmethod
     def new(cls, tenant_id: uuid.UUID, username: str, email: str, password: str):

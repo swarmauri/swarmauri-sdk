@@ -1,6 +1,6 @@
 """
-tigrbl_authn.backends
-======================
+tigrbl_auth.backends
+====================
 
 Framework-agnostic credential verification helpers.
 

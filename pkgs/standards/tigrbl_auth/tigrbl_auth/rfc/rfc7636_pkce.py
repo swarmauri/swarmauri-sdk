@@ -15,6 +15,7 @@ import base64
 import hashlib
 import re
 import secrets
+import warnings
 from typing import Final
 
 from ..runtime_cfg import settings
@@ -30,7 +31,7 @@ _VERIFIER_CHARSET: Final = (
 _VERIFIER_RE: Final = re.compile(r"^[A-Za-z0-9\-._~]{43,128}$")
 
 
-def create_code_verifier(length: int = 43) -> str:
+def makeCodeVerifier(length: int = 43) -> str:
     """Return a high-entropy ``code_verifier`` string.
 
     RFC 7636 §4.1 specifies that a ``code_verifier`` MUST be between 43 and
@@ -43,7 +44,7 @@ def create_code_verifier(length: int = 43) -> str:
     return "".join(secrets.choice(_VERIFIER_CHARSET) for _ in range(length))
 
 
-def create_code_challenge(verifier: str) -> str:
+def makeCodeChallenge(verifier: str) -> str:
     """Derive an ``S256`` ``code_challenge`` from *verifier*.
 
     The verifier is first validated against the RFC 7636 §4.1 character and
@@ -72,15 +73,35 @@ def verify_code_challenge(
     if not enabled:
         return True
     try:
-        expected = create_code_challenge(verifier)
+        expected = makeCodeChallenge(verifier)
     except ValueError:
         return False
     return secrets.compare_digest(expected, challenge)
 
 
+def create_code_verifier(length: int = 43) -> str:
+    warnings.warn(
+        "create_code_verifier is deprecated, use makeCodeVerifier",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return makeCodeVerifier(length)
+
+
+def create_code_challenge(verifier: str) -> str:
+    warnings.warn(
+        "create_code_challenge is deprecated, use makeCodeChallenge",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return makeCodeChallenge(verifier)
+
+
 __all__ = [
-    "create_code_verifier",
-    "create_code_challenge",
+    "makeCodeVerifier",
+    "makeCodeChallenge",
     "verify_code_challenge",
     "RFC7636_SPEC_URL",
+    "create_code_verifier",
+    "create_code_challenge",
 ]

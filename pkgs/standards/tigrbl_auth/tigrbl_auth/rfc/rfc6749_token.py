@@ -7,14 +7,13 @@ from typing import Any
 from uuid import UUID
 
 from tigrbl_auth.deps import (
-    APIRouter,
+    TigrblApi,
     AsyncSession,
     Depends,
     HTTPException,
     JSONResponse,
     Request,
     ValidationError,
-    select,
     status,
 )
 
@@ -47,10 +46,11 @@ from ..routers.shared import (
 )
 from ..runtime_cfg import settings
 
-router = APIRouter()
+api = TigrblApi()
+router = api
 
 
-@router.post("/token", response_model=TokenPair)
+@api.post("/token", response_model=TokenPair)
 async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPair:
     _require_tls(request)
     form = await request.form()
@@ -85,7 +85,7 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
         client_key = UUID(client_id)
     except ValueError:
         client_key = client_id
-    client = await db.scalar(select(Client).where(Client.id == client_key))
+    client = await Client.handlers.read.core({"db": db, "payload": {"id": client_key}})
     if not client:
         return JSONResponse(
             {"error": "invalid_client"},
@@ -165,7 +165,9 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
             parsed = AuthorizationCodeGrantForm(**data)
         except ValidationError as exc:
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, exc.errors())
-        auth_code = await db.get(AuthCode, UUID(parsed.code))
+        auth_code = await AuthCode.handlers.read.core(
+            {"db": db, "payload": {"id": UUID(parsed.code)}}
+        )
         expires_at = auth_code.expires_at if auth_code else None
         if expires_at and expires_at.tzinfo is None:
             expires_at = expires_at.replace(tzinfo=timezone.utc)
@@ -198,7 +200,9 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
             "at_hash": oidc_hash(access),
         }
         if auth_code.claims and "id_token" in auth_code.claims:
-            user_obj = await db.get(User, auth_code.user_id)
+            user_obj = await User.handlers.read.core(
+                {"db": db, "payload": {"id": auth_code.user_id}}
+            )
             idc = auth_code.claims["id_token"]
             if "email" in idc:
                 extra_claims["email"] = user_obj.email if user_obj else ""
@@ -211,24 +215,26 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
             issuer=ISSUER,
             **extra_claims,
         )
-        await db.delete(auth_code)
-        await db.commit()
+        await AuthCode.handlers.delete.core({"db": db, "payload": {"id": auth_code.id}})
         return TokenPair(access_token=access, refresh_token=refresh, id_token=id_token)
     if grant_type == "urn:ietf:params:oauth:grant-type:device_code":
         try:
             parsed = DeviceGrantForm(**data)
         except ValidationError as exc:
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, exc.errors())
-        device_obj = await DeviceCode.handlers.read.core(
-            {"db": db, "obj_id": parsed.device_code}
+        devices = await DeviceCode.handlers.list.core(
+            {"db": db, "payload": {"filters": {"device_code": parsed.device_code}}}
         )
+        device_obj = devices.items[0] if getattr(devices, "items", None) else None
         if not device_obj or str(device_obj.client_id) != parsed.client_id:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_grant"})
         expires_at = device_obj.expires_at
         if expires_at.tzinfo is None:
             expires_at = expires_at.replace(tzinfo=timezone.utc)
         if datetime.now(timezone.utc) > expires_at:
-            await DeviceCode.handlers.delete.core({"db": db, "obj": device_obj})
+            await DeviceCode.handlers.delete.core(
+                {"db": db, "payload": {"id": device_obj.id}}
+            )
             raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "expired_token"})
         if not device_obj.authorized:
             raise HTTPException(
@@ -240,7 +246,9 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
             tid=str(device_obj.tenant_id or "device-tenant"),
             **jwt_kwargs,
         )
-        await DeviceCode.handlers.delete.core({"db": db, "obj": device_obj})
+        await DeviceCode.handlers.delete.core(
+            {"db": db, "payload": {"id": device_obj.id}}
+        )
         return TokenPair(access_token=access, refresh_token=refresh)
     if rfc6749_enabled():
         return JSONResponse(
@@ -259,7 +267,7 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
     )
 
 
-@router.post("/token/refresh", response_model=TokenPair)
+@api.post("/token/refresh", response_model=TokenPair)
 async def refresh(body: RefreshIn, request: Request):
     _require_tls(request)
     try:
