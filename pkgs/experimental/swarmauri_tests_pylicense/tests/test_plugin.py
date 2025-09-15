@@ -1,17 +1,15 @@
 from email.message import Message
 from importlib.metadata import PackageNotFoundError
 
-
-
-from swarmauri_tests_pylicense import PackageLicense, _collect_licenses
+from swarmauri_tests_pylicense import DependencyPath, _collect_licenses
 
 pytest_plugins = ["pytester"]
 
 
 def test_parameterized_mode(pytester, monkeypatch):
     monkeypatch.setattr(
-        "swarmauri_tests_pylicense._collect_licenses",
-        lambda pkg: {"dep": PackageLicense("MIT", "1.0")},
+        "swarmauri_tests_pylicense._collect_dependency_paths",
+        lambda pkg: [DependencyPath(("dummy", "dep"), "MIT", "1.0")],
     )
     result = pytester.runpytest(
         "-p",
@@ -19,16 +17,19 @@ def test_parameterized_mode(pytester, monkeypatch):
         "--pylicense-package=dummy",
     )
     result.assert_outcomes(passed=1)
-    assert "swarmauri_tests_pylicense:license::dep==1.0" in result.stdout.str()
+    assert (
+        "swarmauri_tests_pylicense:license::dummy::dep==1.0 [MIT]"
+        in result.stdout.str()
+    )
 
 
 def test_aggregate_mode(pytester, monkeypatch):
     monkeypatch.setattr(
-        "swarmauri_tests_pylicense._collect_licenses",
-        lambda pkg: {
-            "dep": PackageLicense("MIT", "1.0"),
-            "dep2": PackageLicense("Apache-2.0", "2.0"),
-        },
+        "swarmauri_tests_pylicense._collect_dependency_paths",
+        lambda pkg: [
+            DependencyPath(("dummy", "dep"), "MIT", "1.0"),
+            DependencyPath(("dummy", "dep2"), "Apache-2.0", "2.0"),
+        ],
     )
     result = pytester.runpytest(
         "-p",
@@ -62,8 +63,8 @@ def test_classifier_fallback(monkeypatch):
 
 def test_allow_disallow_lists(pytester, monkeypatch):
     monkeypatch.setattr(
-        "swarmauri_tests_pylicense._collect_licenses",
-        lambda pkg: {"dep": PackageLicense("GPL", "1.0")},
+        "swarmauri_tests_pylicense._collect_dependency_paths",
+        lambda pkg: [DependencyPath(("dummy", "dep"), "GPL", "1.0")],
     )
     result = pytester.runpytest(
         "-p",

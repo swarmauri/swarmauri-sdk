@@ -45,6 +45,13 @@ Run `pytest` with the package name to scan its dependency licenses:
 pytest --pylicense-package=<your-package>
 ```
 
+Each generated test encodes the full dependency path, the resolved version,
+and the detected license of the terminal package. For example:
+
+```
+swarmauri_tests_pylicense:license::pkg::depA::depB==1.2.3 [Apache-2.0]
+```
+
 ### Aggregate
 
 Use the `--pylicense-mode=aggregate` flag to consolidate checks into one test:

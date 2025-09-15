@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import deque
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Set
+from typing import Dict, List, Set, Tuple
 
 import os
 import pytest
@@ -71,39 +71,70 @@ class PackageLicense:
     version: str
 
 
-def _collect_licenses(pkg: str) -> Dict[str, PackageLicense]:
-    """Return mapping of dependency names to their license info."""
-    licenses: Dict[str, PackageLicense] = {}
-    queue: deque[str] = deque([pkg])
+@dataclass
+class DependencyPath:
+    path: Tuple[str, ...]
+    license: str
+    version: str
+
+
+def _license_from_metadata(meta) -> str:
+    license_str = meta.get("License", "").strip()
+    if not license_str or license_str == "UNKNOWN":
+        classifiers = [
+            c for c in meta.get_all("Classifier", []) if c.startswith("License ::")
+        ]
+        if classifiers:
+            license_str = " / ".join(c.split("::")[-1].strip() for c in classifiers)
+        else:
+            license_str = "UNKNOWN"
+    return license_str
+
+
+def _collect_dependency_paths(pkg: str) -> List[DependencyPath]:
+    paths: List[DependencyPath] = []
+    queue: deque[Tuple[str, Tuple[str, ...]]] = deque([(pkg, (pkg,))])
+    seen: Set[str] = set()
     while queue:
-        name = queue.popleft()
+        name, path = queue.popleft()
         canon = canonicalize_name(name)
-        if canon in licenses:
+        if canon in seen:
             continue
+        seen.add(canon)
         try:
             dist = distribution(name)
         except PackageNotFoundError:
-            licenses[canon] = PackageLicense("UNKNOWN", "UNKNOWN")
-            continue
-        meta = dist.metadata
-        license_str = meta.get("License", "").strip()
-        if not license_str or license_str == "UNKNOWN":
-            classifiers = [
-                c for c in meta.get_all("Classifier", []) if c.startswith("License ::")
-            ]
-            if classifiers:
-                license_str = " / ".join(c.split("::")[-1].strip() for c in classifiers)
-            else:
-                license_str = "UNKNOWN"
-        licenses[canon] = PackageLicense(license_str, dist.version)
-        for req in dist.requires or []:
-            queue.append(Requirement(req).name)
-    return licenses
+            lic = "UNKNOWN"
+            ver = "UNKNOWN"
+            dist = None
+        else:
+            lic = _license_from_metadata(dist.metadata)
+            ver = dist.version
+        if len(path) > 1:
+            paths.append(DependencyPath(path, lic, ver))
+        if dist:
+            for req in dist.requires or []:
+                dep_name = Requirement(req).name
+                queue.append((dep_name, path + (dep_name,)))
+    return paths
+
+
+def _collect_licenses(pkg: str) -> Dict[str, PackageLicense]:
+    paths = _collect_dependency_paths(pkg)
+    return {
+        canonicalize_name(p.path[-1]): PackageLicense(p.license, p.version)
+        for p in paths
+    }
 
 
 class LicenseItem(pytest.Item):
     def __init__(
-        self, name: str, parent: pytest.Collector, dep: str, version: str, license: str
+        self,
+        name: str,
+        parent: pytest.Collector,
+        dep: str,
+        version: str,
+        license: str,
     ):
         super().__init__(name, parent)
         self.dep = dep
@@ -130,7 +161,11 @@ class LicenseItem(pytest.Item):
             )
 
     def reportinfo(self) -> tuple[Path, None, str]:
-        return Path.cwd(), None, f"license check for {self.dep}=={self.version}"
+        return (
+            Path.cwd(),
+            None,
+            f"license check for {self.dep}=={self.version} [{self.license}]",
+        )
 
 
 class LicenseAggregateItem(pytest.Item):
@@ -165,7 +200,12 @@ def pytest_configure(config: pytest.Config) -> None:
     config.addinivalue_line("markers", "pylicense: dependency license checks")
     pkg = _default_package(config)
     config._pylicense_pkg = pkg
-    config._pylicense_licenses = _collect_licenses(pkg)
+    paths = _collect_dependency_paths(pkg)
+    config._pylicense_paths = paths
+    config._pylicense_licenses = {
+        canonicalize_name(p.path[-1]): PackageLicense(p.license, p.version)
+        for p in paths
+    }
     allow = _parse_list(
         config.getoption("--pylicense-allow-list"), "PYLICENSE_ALLOW_LIST"
     )
@@ -182,23 +222,24 @@ def pytest_collection_modifyitems(
     if getattr(config, "_pylicense_items_added", False):
         return
     config._pylicense_items_added = True
-    licenses: Dict[str, PackageLicense] = config._pylicense_licenses
     mode: str = config.getoption("--pylicense-mode")
     if mode == "parameterized":
-        for dep, info in sorted(licenses.items()):
+        paths: List[DependencyPath] = config._pylicense_paths
+        for dp in sorted(paths, key=lambda p: p.path):
+            path_str = "::".join(dp.path)
             item = LicenseItem.from_parent(
                 session,
-                name=f"{PLUGIN_NAME}:license::{dep}=={info.version}",
-                dep=dep,
-                version=info.version,
-                license=info.license,
+                name=f"{PLUGIN_NAME}:license::{path_str}=={dp.version} [{dp.license}]",
+                dep=dp.path[-1],
+                version=dp.version,
+                license=dp.license,
             )
             items.append(item)
     else:
         item = LicenseAggregateItem.from_parent(
             session,
             name=f"{PLUGIN_NAME}:license-aggregate::{config._pylicense_pkg}",
-            licenses=licenses,
+            licenses=config._pylicense_licenses,
         )
         items.append(item)
 
@@ -210,4 +251,9 @@ def _parse_list(value: str | None, env: str) -> Set[str]:
     return {v.strip() for v in val.split(",") if v.strip()}
 
 
-__all__ = ["_collect_licenses", "PackageLicense"]
+__all__ = [
+    "_collect_licenses",
+    "_collect_dependency_paths",
+    "PackageLicense",
+    "DependencyPath",
+]
