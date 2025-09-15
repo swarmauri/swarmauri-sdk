@@ -11,32 +11,35 @@ from typing import (
     Dict,
     Mapping,
     Sequence,
+)
+from typing import (
     List as _List,
+)
+from typing import (
     Union as _Union,
 )
 
+from ...runtime.executor.types import _Ctx
 from .common import (
     TIGRBL_AUTH_CONTEXT_ATTR,
     BaseModel,
     Body,
     Depends,
-    Response,
     OpSpec,
     Path,
     Request,
+    Response,
     _coerce_parent_kw,
+    _executor,
     _get_phase_chains,
     _make_list_query_dep,
     _request_model_for,
     _serialize_output,
+    _status_for,
     _validate_body,
     _validate_query,
-    _executor,
-    _status_for,
 )
-
-from ...runtime.executor.types import _Ctx
-
+from .io_headers import _make_header_dep
 
 logging.getLogger("uvicorn").debug("Loaded module v3/bindings/rest/collection")
 
@@ -106,11 +109,13 @@ def _make_collection_endpoint(
 
     if target in {"list", "clear"}:
         list_dep = _make_list_query_dep(model, alias) if target == "list" else None
+        hdr_dep = _make_header_dep(model, alias)
 
         async def _endpoint(
             request: Request,
             db: Any = Depends(db_dep),
             q: Mapping[str, Any] | None = None,
+            h: Mapping[str, Any] | None = None,
             **kw: Any,
         ):
             parent_kw = {k: kw[k] for k in nested_vars if k in kw}
@@ -120,6 +125,8 @@ def _make_collection_endpoint(
                 payload = _validate_query(model, alias, target, query)
             else:
                 payload = dict(parent_kw)
+            if isinstance(h, Mapping):
+                payload = {**payload, **dict(h)}
             ctx = _ctx(model, alias, target, request, db, payload, parent_kw, api)
             ctx["response_serializer"] = lambda r: _serialize_output(
                 model, alias, target, sp, r
@@ -165,6 +172,15 @@ def _make_collection_endpoint(
                     annotation=Annotated[Mapping[str, Any], Depends(list_dep)],
                 ),
             )
+        # Header dep parameter
+        params.insert(
+            len(nested_vars) + (1 if target == "list" else 0) + 1,
+            inspect.Parameter(
+                "h",
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                annotation=Annotated[Mapping[str, Any], Depends(hdr_dep)],
+            ),
+        )
         _endpoint.__signature__ = inspect.Signature(params)
     else:
         body_model = _request_model_for(sp, model)
@@ -189,10 +205,13 @@ def _make_collection_endpoint(
         else:
             body_annotation = base
 
+        hdr_dep = _make_header_dep(model, alias)
+
         async def _endpoint(
             request: Request,
             db: Any = Depends(db_dep),
             body=Body(...),
+            h: Mapping[str, Any] | None = None,
             **kw: Any,
         ):
             parent_kw = {k: kw[k] for k in nested_vars if k in kw}
@@ -210,6 +229,11 @@ def _make_collection_endpoint(
                     payload = {**payload, **parent_kw}
                 else:
                     payload = [{**dict(item), **parent_kw} for item in payload]
+            if isinstance(h, Mapping):
+                if isinstance(payload, Mapping):
+                    payload = {**payload, **dict(h)}
+                else:
+                    payload = [{**dict(item), **dict(h)} for item in payload]
             ctx = _ctx(
                 model, exec_alias, exec_target, request, db, payload, parent_kw, api
             )
@@ -252,6 +276,11 @@ def _make_collection_endpoint(
                     "body",
                     inspect.Parameter.POSITIONAL_OR_KEYWORD,
                     annotation=Annotated[body_annotation, Body(...)],
+                ),
+                inspect.Parameter(
+                    "h",
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Annotated[Mapping[str, Any], Depends(hdr_dep)],
                 ),
             ],
         )
