@@ -12,7 +12,7 @@ from tigrbl.orm.tables import Client as ClientBase
 from tigrbl.types import relationship
 
 from ..crypto import hash_pw
-from ..rfc8252 import (
+from ..rfc.rfc8252 import (
     RFC8252_SPEC_URL,
     is_native_redirect_uri,
     validate_native_redirect_uri,

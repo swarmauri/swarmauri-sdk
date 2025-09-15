@@ -20,12 +20,12 @@ from tigrbl import TigrblApp
 from .routers.surface import surface_api
 from .db import dsn
 from .runtime_cfg import settings
-from .rfc8414 import include_rfc8414
+from .rfc.rfc8414 import include_rfc8414
 from .oidc_discovery import include_oidc_discovery
-from .rfc8693 import include_rfc8693
-from .rfc7591 import include_rfc7591
+from .rfc.rfc8693 import include_rfc8693
+from .rfc.rfc7591 import include_rfc7591
 from .oidc_userinfo import include_oidc_userinfo
-from .rfc7009 import include_rfc7009
+from .rfc.rfc7009 import include_rfc7009
 
 
 import logging

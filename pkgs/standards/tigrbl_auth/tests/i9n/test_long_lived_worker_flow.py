@@ -8,8 +8,12 @@ from cryptography.hazmat.primitives import serialization
 from tigrbl_auth import encode_jwt, decode_jwt
 from tigrbl_auth.crypto import hash_pw
 from tigrbl_auth.orm import Tenant, User
-from tigrbl_auth.rfc9449_dpop import create_proof, jwk_from_public_key, jwk_thumbprint
-from tigrbl_auth.rfc8693 import TOKEN_EXCHANGE_GRANT_TYPE, TokenType
+from tigrbl_auth.rfc.rfc9449_dpop import (
+    create_proof,
+    jwk_from_public_key,
+    jwk_thumbprint,
+)
+from tigrbl_auth.rfc.rfc8693 import TOKEN_EXCHANGE_GRANT_TYPE, TokenType
 
 
 @pytest.mark.integration

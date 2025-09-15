@@ -8,7 +8,7 @@ import os
 
 import pytest
 
-from tigrbl_auth.rfc8291 import (
+from tigrbl_auth.rfc.rfc8291 import (
     RFC8291_SPEC_URL,
     decrypt_push_message,
     encrypt_push_message,

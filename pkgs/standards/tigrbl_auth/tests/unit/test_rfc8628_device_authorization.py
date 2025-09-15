@@ -15,7 +15,7 @@ from tigrbl_auth import (
     generate_user_code,
     validate_user_code,
 )
-import tigrbl_auth.rfc8628 as rfc8628_mod
+import tigrbl_auth.rfc.rfc8628 as rfc8628_mod
 
 
 @pytest.mark.unit
