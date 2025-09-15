@@ -60,12 +60,15 @@ class TestJWTUserResolution:
         mock_user.id = uuid.uuid4()
         mock_user.username = "testuser"
 
-        # Create mock database session
         mock_db = AsyncMock(spec=AsyncSession)
-        mock_db.scalar.return_value = mock_user
 
-        # Create a valid JWT payload
-        with patch("tigrbl_auth.fastapi_deps._jwt_coder") as mock_coder:
+        with (
+            patch("tigrbl_auth.fastapi_deps._jwt_coder") as mock_coder,
+            patch(
+                "tigrbl_auth.fastapi_deps.User.handlers.list.core",
+                AsyncMock(return_value=MagicMock(items=[mock_user])),
+            ) as mock_list,
+        ):
             mock_coder.async_decode = AsyncMock(
                 return_value={
                     "sub": str(mock_user.id),
@@ -76,17 +79,21 @@ class TestJWTUserResolution:
 
             user = await _user_from_jwt("valid.jwt.token", mock_db)
 
-            assert user is not None
-            assert user.id == mock_user.id
-            assert user.username == mock_user.username
-            mock_db.scalar.assert_called_once()
+            assert user is mock_user
+            ctx_called = mock_list.call_args.args[0]
+            assert ctx_called["db"] is mock_db
 
     @pytest.mark.asyncio
     async def test_user_from_jwt_with_invalid_token(self):
         """Test user resolution with invalid JWT token."""
         mock_db = AsyncMock(spec=AsyncSession)
 
-        with patch("tigrbl_auth.fastapi_deps._jwt_coder") as mock_coder:
+        with (
+            patch("tigrbl_auth.fastapi_deps._jwt_coder") as mock_coder,
+            patch(
+                "tigrbl_auth.fastapi_deps.User.handlers.list.core", AsyncMock()
+            ) as mock_list,
+        ):
             mock_coder.async_decode = AsyncMock(
                 side_effect=InvalidTokenError("Invalid token")
             )
@@ -94,36 +101,20 @@ class TestJWTUserResolution:
             user = await _user_from_jwt("invalid.jwt.token", mock_db)
 
             assert user is None
-            # Database should not be called for invalid tokens
-            mock_db.scalar.assert_not_called()
+            mock_list.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_user_from_jwt_with_nonexistent_user(self):
         """Test user resolution when JWT contains ID of nonexistent user."""
         mock_db = AsyncMock(spec=AsyncSession)
-        mock_db.scalar.return_value = None  # User not found
 
-        with patch("tigrbl_auth.fastapi_deps._jwt_coder") as mock_coder:
-            mock_coder.async_decode = AsyncMock(
-                return_value={
-                    "sub": str(uuid.uuid4()),  # Random non-existent user ID
-                    "iat": 1234567890,
-                    "exp": 9999999999,
-                }
-            )
-
-            user = await _user_from_jwt("valid.jwt.token", mock_db)
-
-            assert user is None
-            mock_db.scalar.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_user_from_jwt_with_inactive_user(self):
-        """Test user resolution when user exists but is inactive."""
-        mock_db = AsyncMock(spec=AsyncSession)
-        mock_db.scalar.return_value = None  # Inactive user filtered out by query
-
-        with patch("tigrbl_auth.fastapi_deps._jwt_coder") as mock_coder:
+        with (
+            patch(
+                "tigrbl_auth.fastapi_deps.User.handlers.list.core",
+                AsyncMock(return_value=MagicMock(items=[])),
+            ) as mock_list,
+            patch("tigrbl_auth.fastapi_deps._jwt_coder") as mock_coder,
+        ):
             mock_coder.async_decode = AsyncMock(
                 return_value={
                     "sub": str(uuid.uuid4()),
@@ -135,14 +126,46 @@ class TestJWTUserResolution:
             user = await _user_from_jwt("valid.jwt.token", mock_db)
 
             assert user is None
-            mock_db.scalar.assert_called_once()
+            ctx_called = mock_list.call_args.args[0]
+            assert ctx_called["db"] is mock_db
+
+    @pytest.mark.asyncio
+    async def test_user_from_jwt_with_inactive_user(self):
+        """Test user resolution when user exists but is inactive."""
+        mock_db = AsyncMock(spec=AsyncSession)
+
+        with (
+            patch(
+                "tigrbl_auth.fastapi_deps.User.handlers.list.core",
+                AsyncMock(return_value=MagicMock(items=[])),
+            ) as mock_list,
+            patch("tigrbl_auth.fastapi_deps._jwt_coder") as mock_coder,
+        ):
+            mock_coder.async_decode = AsyncMock(
+                return_value={
+                    "sub": str(uuid.uuid4()),
+                    "iat": 1234567890,
+                    "exp": 9999999999,
+                }
+            )
+
+            user = await _user_from_jwt("valid.jwt.token", mock_db)
+
+            assert user is None
+            ctx_called = mock_list.call_args.args[0]
+            assert ctx_called["db"] is mock_db
 
     @pytest.mark.asyncio
     async def test_user_from_jwt_missing_sub_claim(self):
         """Test JWT payload missing required 'sub' claim raises KeyError."""
         mock_db = AsyncMock(spec=AsyncSession)
 
-        with patch("tigrbl_auth.fastapi_deps._jwt_coder") as mock_coder:
+        with (
+            patch("tigrbl_auth.fastapi_deps._jwt_coder") as mock_coder,
+            patch(
+                "tigrbl_auth.fastapi_deps.User.handlers.list.core", AsyncMock()
+            ) as mock_list,
+        ):
             mock_coder.async_decode = AsyncMock(
                 return_value={
                     "iat": 1234567890,
@@ -152,6 +175,7 @@ class TestJWTUserResolution:
 
             with pytest.raises(KeyError):
                 await _user_from_jwt("malformed.jwt.token", mock_db)
+            mock_list.assert_not_called()
 
 
 @pytest.mark.unit
@@ -585,9 +609,14 @@ class TestFastAPIDepsIntegration:
     async def test_database_error_handling(self):
         """Test handling of database errors in dependencies."""
         mock_db = AsyncMock(spec=AsyncSession)
-        mock_db.scalar.side_effect = Exception("Database error")
 
-        with patch("tigrbl_auth.fastapi_deps._jwt_coder") as mock_coder:
+        with (
+            patch("tigrbl_auth.fastapi_deps._jwt_coder") as mock_coder,
+            patch(
+                "tigrbl_auth.fastapi_deps.User.handlers.list.core",
+                AsyncMock(side_effect=Exception("Database error")),
+            ),
+        ):
             mock_coder.async_decode = AsyncMock(
                 return_value={
                     "sub": str(uuid.uuid4()),
@@ -596,7 +625,6 @@ class TestFastAPIDepsIntegration:
                 }
             )
 
-            # Should handle database errors gracefully
             with pytest.raises(Exception, match="Database error"):
                 await _user_from_jwt("valid.jwt.token", mock_db)
 
