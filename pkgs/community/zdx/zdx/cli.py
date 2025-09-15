@@ -94,6 +94,8 @@ def run_mkdocs_serve(
     dev_addr (str): Address and port for the server to bind to.
     RETURNS (None): The server runs until interrupted.
     """
+    # Ensure the docs directory exists so MkDocs has a working tree.
+    os.makedirs(os.path.join(docs_dir, "docs"), exist_ok=True)
     cmd = ["mkdocs", "serve", "-f", mkdocs_yml, "-a", dev_addr]
     subprocess.run(cmd, check=True, cwd=docs_dir)
 
@@ -104,6 +106,8 @@ def run_gen_readmes(docs_dir: str = ".") -> None:
     docs_dir (str): Root directory containing project documentation.
     RETURNS (None): This function operates via side effects.
     """
+    # Ensure the target docs directory exists before generating content.
+    os.makedirs(os.path.join(docs_dir, "docs"), exist_ok=True)
     cmd = [sys.executable, "-m", "zdx.scripts.gen_readmes"]
     subprocess.run(cmd, check=True, cwd=docs_dir)
 
