@@ -12,7 +12,11 @@ from tigrbl_auth.deps import (
     status,
     HTMLResponse,
     RedirectResponse,
+    AsyncSession,
+    Depends,
 )
+
+from ...db import get_db
 
 from ...orm import AuthCode, AuthSession, Client, User
 from ...oidc_id_token import mint_id_token, oidc_hash
@@ -38,6 +42,7 @@ async def authorize(
     max_age: Optional[int] = None,
     login_hint: Optional[str] = None,
     claims: Optional[str] = None,
+    db: AsyncSession = Depends(get_db),
 ):
     _require_tls(request)
     rts = set(response_type.split())
@@ -55,14 +60,14 @@ async def authorize(
         client_uuid = UUID(client_id)
     except ValueError:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
-    client = await Client.handlers.read.core({"payload": {"id": client_uuid}})
+    client = await Client.handlers.read.core({"payload": {"id": client_uuid}, "db": db})
     if client is None or redirect_uri not in (client.redirect_uris or "").split():
         raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
 
     prompts = set(prompt.split()) if prompt else set()
     sid = request.cookies.get("sid")
     session = (
-        await AuthSession.handlers.read.core({"payload": {"id": UUID(sid)}})
+        await AuthSession.handlers.read.core({"payload": {"id": UUID(sid)}, "db": db})
         if sid
         else None
     )
@@ -74,6 +79,8 @@ async def authorize(
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, {"error": "login_required"})
     if max_age is not None:
         auth_time = session.auth_time
+        if auth_time is not None and auth_time.tzinfo is None:
+            auth_time = auth_time.replace(tzinfo=timezone.utc)
         if auth_time is None or datetime.now(timezone.utc) - auth_time > timedelta(
             seconds=max_age
         ):
@@ -122,7 +129,8 @@ async def authorize(
         }
         if requested_claims:
             payload["claims"] = requested_claims
-        await AuthCode.handlers.create.core({"payload": payload})
+        await AuthCode.handlers.create.core({"payload": payload, "db": db})
+        await db.commit()
         params.append(("code", str(code)))
     if "token" in rts:
         from ..shared import _jwt
@@ -134,7 +142,7 @@ async def authorize(
         extra_claims: dict[str, Any] = {"tid": tenant_id, "typ": "id"}
         if requested_claims and "id_token" in requested_claims:
             user_obj = await User.handlers.read.core(
-                {"payload": {"id": UUID(user_sub)}}
+                {"payload": {"id": UUID(user_sub)}, "db": db}
             )
             idc = requested_claims["id_token"]
             if "email" in idc:

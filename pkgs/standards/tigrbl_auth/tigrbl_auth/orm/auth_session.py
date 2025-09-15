@@ -51,9 +51,12 @@ class AuthSession(Base, GUIDPk, Timestamped, UserColumn, TenantColumn):
             raise HTTPException(status_code=400, detail="missing credentials")
 
         users = await User.handlers.list.core(
-            {"payload": {"filters": {"username": username}}}
+            {"payload": {"filters": {"username": username}}, "db": ctx.get("db")}
         )
-        user = users.items[0] if getattr(users, "items", None) else None
+        if isinstance(users, list):
+            user = users[0] if users else None
+        else:
+            user = users.items[0] if getattr(users, "items", None) else None
         if user is None or not user.verify_password(password):
             raise HTTPException(status_code=400, detail="invalid credentials")
 
@@ -78,7 +81,9 @@ class AuthSession(Base, GUIDPk, Timestamped, UserColumn, TenantColumn):
         request = ctx.get("request")
         _require_tls(request)
         payload = ctx.get("payload") or {}
-        session = await cls.handlers.create.core({"payload": payload})
+        session = await cls.handlers.create.core(
+            {"payload": payload, "db": ctx.get("db")}
+        )
         access, refresh = await _jwt.async_sign_pair(
             sub=str(session.user_id),
             tid=str(session.tenant_id),
