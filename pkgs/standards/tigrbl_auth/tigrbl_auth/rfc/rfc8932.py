@@ -14,14 +14,15 @@ from __future__ import annotations
 
 
 from typing import Any, Dict, List
-from tigrbl_auth.deps import APIRouter, HTTPException, status
+from tigrbl_auth.deps import TigrblApi, HTTPException, status
 
 from ..runtime_cfg import settings
 from .rfc8414_metadata import ISSUER, JWKS_PATH
 
 RFC8932_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8932"
 
-router = APIRouter()
+api = TigrblApi()
+router = api
 
 # Supported encrypted DNS transports per RFC 8932 recommendations
 ENCRYPTED_DNS_TRANSPORTS = {"DoT", "DoH"}
@@ -207,7 +208,7 @@ def get_enhanced_authorization_server_metadata() -> Dict[str, Any]:
     return result
 
 
-@router.get(
+@api.get(
     "/.well-known/oauth-authorization-server-enhanced",
     include_in_schema=False,
     tags=[".well-known"],
@@ -333,6 +334,7 @@ __all__ = [
     "enhanced_authorization_server_metadata",
     "validate_metadata_consistency",
     "get_capability_matrix",
+    "api",
     "router",
     "RFC8932_SPEC_URL",
     "enforce_encrypted_dns",

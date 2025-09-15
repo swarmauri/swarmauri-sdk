@@ -7,7 +7,7 @@ from typing import Any
 from uuid import UUID
 
 from tigrbl_auth.deps import (
-    APIRouter,
+    TigrblApi,
     AsyncSession,
     Depends,
     HTTPException,
@@ -46,10 +46,11 @@ from ..routers.shared import (
 )
 from ..runtime_cfg import settings
 
-router = APIRouter()
+api = TigrblApi()
+router = api
 
 
-@router.post("/token", response_model=TokenPair)
+@api.post("/token", response_model=TokenPair)
 async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPair:
     _require_tls(request)
     form = await request.form()
@@ -261,7 +262,7 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
     )
 
 
-@router.post("/token/refresh", response_model=TokenPair)
+@api.post("/token/refresh", response_model=TokenPair)
 async def refresh(body: RefreshIn, request: Request):
     _require_tls(request)
     try:

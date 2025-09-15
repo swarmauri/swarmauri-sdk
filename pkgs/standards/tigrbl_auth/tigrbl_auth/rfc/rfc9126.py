@@ -15,7 +15,7 @@ from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING, Any, Dict, Final
 
 from tigrbl_auth.deps import (
-    APIRouter,
+    TigrblApi,
     Depends,
     HTTPException,
     Request,
@@ -34,10 +34,11 @@ DEFAULT_PAR_EXPIRY = 90  # seconds
 RFC9126_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc9126"
 
 
-router = APIRouter()
+api = TigrblApi()
+router = api
 
 
-@router.post("/par", status_code=status.HTTP_201_CREATED)
+@api.post("/par", status_code=status.HTTP_201_CREATED)
 async def pushed_authorization_request(
     request: Request,
     db: AsyncSession = Depends(get_db),
@@ -116,5 +117,6 @@ __all__ = [
     "reset_par_store",
     "DEFAULT_PAR_EXPIRY",
     "RFC9126_SPEC_URL",
+    "api",
     "router",
 ]

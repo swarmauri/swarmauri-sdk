@@ -11,13 +11,14 @@ from __future__ import annotations
 
 from typing import Final, Set
 
-from tigrbl_auth.deps import APIRouter, TigrblApp, Form, HTTPException, status
+from tigrbl_auth.deps import TigrblApi, TigrblApp, Form, HTTPException, status
 
 from ..runtime_cfg import settings
 
 RFC7009_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc7009"
 
-router = APIRouter()
+api = TigrblApi()
+router = api
 
 # In-memory set storing revoked tokens for demonstration and testing purposes
 _REVOKED_TOKENS: Set[str] = set()
@@ -54,7 +55,7 @@ def reset_revocations() -> None:
     _REVOKED_TOKENS.clear()
 
 
-@router.post("/revoked_tokens/revoke")
+@api.post("/revoked_tokens/revoke")
 async def revoke(token: str = Form(...)) -> dict[str, str]:
     """RFC 7009 token revocation endpoint."""
     if not settings.enable_rfc7009:
@@ -70,7 +71,7 @@ def include_rfc7009(app: TigrblApp) -> None:
     if settings.enable_rfc7009 and not any(
         route.path == "/revoked_tokens/revoke" for route in app.routes
     ):
-        app.include_router(router)
+        app.include_router(api)
 
 
 __all__ = [
@@ -78,6 +79,7 @@ __all__ = [
     "is_revoked",
     "reset_revocations",
     "include_rfc7009",
+    "api",
     "router",
     "RFC7009_SPEC_URL",
 ]

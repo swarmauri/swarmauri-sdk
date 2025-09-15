@@ -12,8 +12,8 @@ omitted from the response.
 from __future__ import annotations
 
 from tigrbl_auth.deps import (
-    APIRouter,
     Depends,
+    TigrblApi,
     TigrblApp,
     HTTPException,
     Request,
@@ -27,10 +27,11 @@ from .orm import User
 from .rfc.rfc6750 import extract_bearer_token
 from .deps import JWAAlg
 
-router = APIRouter()
+api = TigrblApi()
+router = api
 
 
-@router.get("/userinfo", response_model=None)
+@api.get("/userinfo", response_model=None)
 async def userinfo(
     request: Request, user: User = Depends(get_current_principal)
 ) -> Response | dict[str, str]:
@@ -82,7 +83,7 @@ def include_oidc_userinfo(app: TigrblApp) -> None:
     """Attach the UserInfo endpoint to *app* if not already present."""
 
     if not any(route.path == "/userinfo" for route in app.routes):
-        app.include_router(router)
+        app.include_router(api)
 
 
-__all__ = ["router", "include_oidc_userinfo"]
+__all__ = ["api", "router", "include_oidc_userinfo"]

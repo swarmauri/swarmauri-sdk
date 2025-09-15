@@ -9,7 +9,7 @@ from ..routers.schemas import CredsIn, TokenPair
 from .authz import router as router
 
 
-@router.post("/login", response_model=TokenPair)
+@api.post("/login", response_model=TokenPair)
 async def login(
     creds: CredsIn,
     request: Request,

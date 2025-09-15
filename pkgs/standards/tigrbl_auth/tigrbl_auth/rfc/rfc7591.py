@@ -14,7 +14,7 @@ from typing import Dict, Final
 from urllib.parse import urlparse
 
 from tigrbl_auth.deps import (
-    APIRouter,
+    TigrblApi,
     TigrblApp,
     HTTPException,
     status,
@@ -30,8 +30,9 @@ from ..runtime_cfg import settings
 # In-memory registry of dynamically registered clients
 _CLIENT_REGISTRY: Dict[str, dict] = {}
 
-# FastAPI router for the registration endpoint
-router = APIRouter()
+# Tigrbl API instance for the registration endpoint
+api = TigrblApi()
+router = api
 
 # Public URL for the RFC specification
 RFC7591_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc7591"
@@ -94,7 +95,7 @@ def register_client(metadata: dict, *, enabled: bool | None = None) -> dict:
     return data
 
 
-@router.post("/register", status_code=status.HTTP_201_CREATED)
+@api.post("/register", status_code=status.HTTP_201_CREATED)
 async def register_client_endpoint(body: ClientMetadata) -> dict:
     """HTTP endpoint implementing OAuth 2.0 Dynamic Client Registration."""
 
@@ -122,7 +123,7 @@ def include_rfc7591(app: TigrblApp) -> None:
     if settings.enable_rfc7591 and not any(
         route.path == "/register" for route in app.routes
     ):
-        app.include_router(router)
+        app.include_router(api)
 
 
 __all__ = [
@@ -132,4 +133,6 @@ __all__ = [
     "RFC7591_SPEC_URL",
     "register_client_endpoint",
     "include_rfc7591",
+    "api",
+    "router",
 ]
