@@ -34,6 +34,7 @@ from .common import (
     _status,
     _status_for,
 )
+from .io_headers import _make_header_dep
 
 from ...runtime.executor.types import _Ctx
 
@@ -61,16 +62,20 @@ def _make_member_endpoint(
 
     # --- No body on GET read / DELETE delete ---
     if target in {"read", "delete"}:
+        hdr_dep = _make_header_dep(model, alias)
 
         async def _endpoint(
             item_id: Any,
             request: Request,
             db: Any = Depends(db_dep),
+            h: Mapping[str, Any] | None = None,
             **kw: Any,
         ):
             parent_kw = {k: kw[k] for k in nested_vars if k in kw}
             _coerce_parent_kw(model, parent_kw)
             payload: Mapping[str, Any] = dict(parent_kw)
+            if isinstance(h, Mapping):
+                payload = {**payload, **dict(h)}
             path_params = {real_pk: item_id, pk_param: item_id, **parent_kw}
             ctx: Dict[str, Any] = {
                 "request": request,
@@ -142,6 +147,11 @@ def _make_member_endpoint(
                     inspect.Parameter.POSITIONAL_OR_KEYWORD,
                     annotation=Annotated[Any, Depends(db_dep)],
                 ),
+                inspect.Parameter(
+                    "h",
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Annotated[Mapping[str, Any], Depends(hdr_dep)],
+                ),
             ]
         )
         _endpoint.__signature__ = inspect.Signature(params)
@@ -156,16 +166,20 @@ def _make_member_endpoint(
 
     body_model = _request_model_for(sp, model)
     if body_model is None and sp.request_model is None and target == "custom":
+        hdr_dep = _make_header_dep(model, alias)
 
         async def _endpoint(
             item_id: Any,
             request: Request,
             db: Any = Depends(db_dep),
+            h: Mapping[str, Any] | None = None,
             **kw: Any,
         ):
             parent_kw = {k: kw[k] for k in nested_vars if k in kw}
             _coerce_parent_kw(model, parent_kw)
             payload: Mapping[str, Any] = dict(parent_kw)
+            if isinstance(h, Mapping):
+                payload = {**payload, **dict(h)}
             path_params = {real_pk: item_id, pk_param: item_id, **parent_kw}
             ctx: Dict[str, Any] = {
                 "request": request,
@@ -233,6 +247,11 @@ def _make_member_endpoint(
                     inspect.Parameter.POSITIONAL_OR_KEYWORD,
                     annotation=Annotated[Any, Depends(db_dep)],
                 ),
+                inspect.Parameter(
+                    "h",
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Annotated[Mapping[str, Any], Depends(hdr_dep)],
+                ),
             ]
         )
         _endpoint.__signature__ = inspect.Signature(params)
@@ -253,11 +272,14 @@ def _make_member_endpoint(
         body_annotation = body_model
         body_default = Body(...)
 
+    hdr_dep = _make_header_dep(model, alias)
+
     async def _endpoint(
         item_id: Any,
         request: Request,
         db: Any = Depends(db_dep),
         body=body_default,
+        h: Mapping[str, Any] | None = None,
         **kw: Any,
     ):
         parent_kw = {k: kw[k] for k in nested_vars if k in kw}
@@ -276,6 +298,8 @@ def _make_member_endpoint(
         payload.pop(pk_param, None)
         if parent_kw:
             payload.update(parent_kw)
+        if isinstance(h, Mapping):
+            payload.update(dict(h))
 
         path_params = {real_pk: item_id, pk_param: item_id, **parent_kw}
 
@@ -355,6 +379,11 @@ def _make_member_endpoint(
                 inspect.Parameter.POSITIONAL_OR_KEYWORD,
                 annotation=body_annotation,
                 default=body_default,
+            ),
+            inspect.Parameter(
+                "h",
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                annotation=Annotated[Mapping[str, Any], Depends(hdr_dep)],
             ),
         ]
     )
