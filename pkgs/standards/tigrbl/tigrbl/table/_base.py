@@ -121,12 +121,49 @@ def _materialize_colspecs_to_sqla(cls) -> None:
     for name, spec in specs.items():
         storage = getattr(spec, "storage", None)
         if not storage:
-            # Virtual (wire-only) column – ensure no DB column is mapped.
+            # Virtual (wire-only) column.
+            # If the attribute is a Column descriptor (i.e. declared via vcol/acol),
+            # materialize a SQLAlchemy mapped column using the inferred Python type
+            # so the ORM instruments it and the table metadata contains the column.
             try:
-                if hasattr(cls, name):
-                    delattr(cls, name)
+                from tigrbl.column._column import Column as _TigrblColumn
             except Exception:
-                pass
+                _TigrblColumn = None  # type: ignore
+
+            orig_attr = getattr(cls, name, None)
+            if _TigrblColumn is not None and isinstance(orig_attr, _TigrblColumn):
+                try:
+                    # Infer a Python type, then pick a reasonable SQLAlchemy dtype.
+                    py_type = _infer_py_type(cls, name, spec)
+                    # Plan an SA type from the python type and field constraints
+                    try:
+                        from tigrbl.column.infer.core import infer as _infer_sa
+                        plan = _infer_sa(py_type)
+                        # Resolve SA type class from exported types module when possible
+                        from tigrbl import types as _types
+                        dtype_cls = getattr(_types, plan.sa.name, None)
+                    except Exception:
+                        dtype_cls = None
+
+                    # Fallbacks if inference is unavailable
+                    if dtype_cls is None:
+                        try:
+                            from sqlalchemy.types import String as _SAString
+                            dtype_cls = _SAString
+                        except Exception:
+                            dtype_cls = None
+
+                    if dtype_cls is not None:
+                        dtype_inst = _instantiate_dtype(
+                            dtype_cls, py_type, spec, cls.__name__, name
+                        )
+                        mc = mapped_column(dtype_inst, nullable=True)
+                        setattr(cls, name, mc)
+                except Exception:
+                    # Best-effort only; leave attribute as-is if anything fails
+                    pass
+            # If it is a bare ColumnSpec attribute (e.g., declared on Table for namespacing),
+            # do not delete or materialize it; leave it available via cls.columns and attribute.
             continue
 
         dtype = getattr(storage, "type_", None)

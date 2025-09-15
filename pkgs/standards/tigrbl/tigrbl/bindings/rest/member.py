@@ -147,13 +147,16 @@ def _make_member_endpoint(
                     inspect.Parameter.POSITIONAL_OR_KEYWORD,
                     annotation=Annotated[Any, Depends(db_dep)],
                 ),
+            ]
+        )
+        if getattr(hdr_dep, "__tigrbl_has_headers__", False):
+            params.append(
                 inspect.Parameter(
                     "h",
                     inspect.Parameter.POSITIONAL_OR_KEYWORD,
                     annotation=Annotated[Mapping[str, Any], Depends(hdr_dep)],
-                ),
-            ]
-        )
+                )
+            )
         _endpoint.__signature__ = inspect.Signature(params)
 
         _endpoint.__name__ = f"rest_{model.__name__}_{alias}_member"
@@ -247,13 +250,16 @@ def _make_member_endpoint(
                     inspect.Parameter.POSITIONAL_OR_KEYWORD,
                     annotation=Annotated[Any, Depends(db_dep)],
                 ),
+            ]
+        )
+        if getattr(hdr_dep, "__tigrbl_has_headers__", False):
+            params.append(
                 inspect.Parameter(
                     "h",
                     inspect.Parameter.POSITIONAL_OR_KEYWORD,
                     annotation=Annotated[Mapping[str, Any], Depends(hdr_dep)],
-                ),
-            ]
-        )
+                )
+            )
         _endpoint.__signature__ = inspect.Signature(params)
 
         _endpoint.__name__ = f"rest_{model.__name__}_{alias}_member"
@@ -374,18 +380,23 @@ def _make_member_endpoint(
                 inspect.Parameter.POSITIONAL_OR_KEYWORD,
                 annotation=Annotated[Any, Depends(db_dep)],
             ),
+        ]
+    )
+    if getattr(hdr_dep, "__tigrbl_has_headers__", False):
+        params.append(
             inspect.Parameter(
                 "h",
                 inspect.Parameter.POSITIONAL_OR_KEYWORD,
                 annotation=Annotated[Mapping[str, Any], Depends(hdr_dep)],
-            ),
-            inspect.Parameter(
-                "body",
-                inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                annotation=body_annotation,
-                default=body_default,
-            ),
-        ]
+            )
+        )
+    params.append(
+        inspect.Parameter(
+            "body",
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            annotation=body_annotation,
+            default=body_default,
+        )
     )
     _endpoint.__signature__ = inspect.Signature(params)
 

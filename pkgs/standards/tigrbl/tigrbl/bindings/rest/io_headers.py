@@ -41,6 +41,7 @@ def _make_header_dep(model: type, alias: str):
             return {}
 
         _empty_dep.__name__ = f"headers_{model.__name__}_{alias}__empty"
+        setattr(_empty_dep, "__tigrbl_has_headers__", False)
         return _empty_dep
 
     async def _dep(**kw: Any) -> Mapping[str, Any]:
@@ -70,8 +71,8 @@ def _make_header_dep(model: type, alias: str):
         )
     _dep.__signature__ = inspect.Signature(parameters=params, return_annotation=Mapping[str, Any])
     _dep.__name__ = f"headers_{model.__name__}_{alias}"
+    setattr(_dep, "__tigrbl_has_headers__", True)
     return _dep
 
 
 __all__ = ["_make_header_dep"]
-

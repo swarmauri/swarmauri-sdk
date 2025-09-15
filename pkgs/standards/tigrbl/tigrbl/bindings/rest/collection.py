@@ -172,15 +172,16 @@ def _make_collection_endpoint(
                     annotation=Annotated[Mapping[str, Any], Depends(list_dep)],
                 ),
             )
-        # Header dep parameter
-        params.insert(
-            len(nested_vars) + (1 if target == "list" else 0) + 1,
-            inspect.Parameter(
-                "h",
-                inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                annotation=Annotated[Mapping[str, Any], Depends(hdr_dep)],
-            ),
-        )
+        # Header dep parameter – only include when model declares header-bound fields
+        if getattr(hdr_dep, "__tigrbl_has_headers__", False):
+            params.insert(
+                len(nested_vars) + (1 if target == "list" else 0) + 1,
+                inspect.Parameter(
+                    "h",
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Annotated[Mapping[str, Any], Depends(hdr_dep)],
+                ),
+            )
         _endpoint.__signature__ = inspect.Signature(params)
     else:
         body_model = _request_model_for(sp, model)
@@ -259,31 +260,34 @@ def _make_collection_endpoint(
                 return result
             return result
 
-        _endpoint.__signature__ = _sig(
-            nested_vars,
-            [
-                inspect.Parameter(
-                    "request",
-                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                    annotation=Request,
-                ),
-                inspect.Parameter(
-                    "db",
-                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                    annotation=Annotated[Any, Depends(db_dep)],
-                ),
+        extra_params = [
+            inspect.Parameter(
+                "request",
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                annotation=Request,
+            ),
+            inspect.Parameter(
+                "db",
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                annotation=Annotated[Any, Depends(db_dep)],
+            ),
+        ]
+        if getattr(hdr_dep, "__tigrbl_has_headers__", False):
+            extra_params.append(
                 inspect.Parameter(
                     "h",
                     inspect.Parameter.POSITIONAL_OR_KEYWORD,
                     annotation=Annotated[Mapping[str, Any], Depends(hdr_dep)],
-                ),
-                inspect.Parameter(
-                    "body",
-                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                    annotation=Annotated[body_annotation, Body(...)],
-                ),
-            ],
+                )
+            )
+        extra_params.append(
+            inspect.Parameter(
+                "body",
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                annotation=Annotated[body_annotation, Body(...)],
+            )
         )
+        _endpoint.__signature__ = _sig(nested_vars, extra_params)
         _endpoint.__annotations__["body"] = body_annotation
 
     _endpoint.__name__ = f"rest_{model.__name__}_{alias}_collection"
