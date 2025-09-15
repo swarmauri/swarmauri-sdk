@@ -17,6 +17,7 @@ from tigrbl_auth.deps import (
     TZDateTime,
     hook_ctx,
     op_ctx,
+    engine_ctx,
     HTTPException,
     status,
     JSONResponse,
@@ -27,6 +28,7 @@ from tigrbl_auth.deps import (
 from ..routers.schemas import CredsIn, LogoutIn, TokenPair
 
 
+@engine_ctx(kind="sqlite", mode="memory")
 class AuthSession(Base, GUIDPk, Timestamped, UserColumn, TenantColumn):
     __tablename__ = "sessions"
     __table_args__ = ({"schema": "authn"},)
@@ -72,17 +74,13 @@ class AuthSession(Base, GUIDPk, Timestamped, UserColumn, TenantColumn):
         import secrets
         from ..rfc.rfc8414_metadata import ISSUER
         from ..oidc_id_token import mint_id_token
-        from ..routers.shared import SESSIONS, _jwt, _require_tls
+        from ..routers.shared import _jwt, _require_tls
 
         request = ctx.get("request")
         _require_tls(request)
         db = ctx.get("db")
         payload = ctx.get("payload") or {}
         session = await cls.handlers.create.core({"db": db, "payload": payload})
-        SESSIONS[str(session.id)] = {
-            "auth_time": session.auth_time,
-            "username": session.username,
-        }
         access, refresh = await _jwt.async_sign_pair(
             sub=str(session.user_id),
             tid=str(session.tenant_id),
@@ -115,7 +113,6 @@ class AuthSession(Base, GUIDPk, Timestamped, UserColumn, TenantColumn):
         from ..rfc.rfc8414_metadata import ISSUER
         from ..oidc_id_token import verify_id_token
         from ..routers.shared import (
-            SESSIONS,
             _require_tls,
             _front_channel_logout,
             _back_channel_logout,
@@ -137,7 +134,6 @@ class AuthSession(Base, GUIDPk, Timestamped, UserColumn, TenantColumn):
             session = await cls.handlers.read.core({"db": db, "obj_id": UUID(sid)})
             if session:
                 await cls.handlers.delete.core({"db": db, "obj": session})
-            SESSIONS.pop(sid, None)
             await _front_channel_logout(sid)
             await _back_channel_logout(sid)
         response = Response(status_code=status.HTTP_204_NO_CONTENT)

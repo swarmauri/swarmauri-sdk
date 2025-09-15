@@ -21,7 +21,7 @@ from ...orm import AuthCode, AuthSession, Client, User
 from ...oidc_id_token import mint_id_token, oidc_hash
 from ...rfc.rfc8414_metadata import ISSUER
 from ...rfc.rfc8252 import is_native_redirect_uri
-from ..shared import AUTH_CODES, _require_tls
+from ..shared import _require_tls
 from . import router
 
 
@@ -129,7 +129,6 @@ async def authorize(
         if requested_claims:
             payload["claims"] = requested_claims
         await AuthCode.handlers.create.core({"db": db, "payload": payload})
-        AUTH_CODES[str(code)] = payload
         params.append(("code", str(code)))
     if "token" in rts:
         from ..shared import _jwt

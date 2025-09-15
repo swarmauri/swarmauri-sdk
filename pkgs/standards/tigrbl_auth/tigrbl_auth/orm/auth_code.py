@@ -21,6 +21,7 @@ from tigrbl_auth.deps import (
     Mapped,
     UUID,
     op_ctx,
+    engine_ctx,
     HTTPException,
     status,
 )
@@ -32,6 +33,7 @@ from ..routers.shared import _jwt, _require_tls
 from .user import User
 
 
+@engine_ctx(kind="sqlite", mode="memory")
 class AuthCode(Base, GUIDPk, Timestamped, UserColumn, TenantColumn):
     __tablename__ = "auth_codes"
     __table_args__ = ({"schema": "authn"},)

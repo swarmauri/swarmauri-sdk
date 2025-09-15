@@ -7,7 +7,7 @@ from ..fastapi_deps import get_db
 from ..orm.auth_session import AuthSession
 from ..routers.schemas import CredsIn
 from .authz import router as router
-from .shared import AUTH_CODES, SESSIONS, _jwt, _pwd_backend
+from .shared import _jwt, _pwd_backend
 
 api = router
 
@@ -31,4 +31,4 @@ async def login(
     return await AuthSession.handlers.login.core(ctx)
 
 
-__all__ = ["api", "router", "AUTH_CODES", "SESSIONS", "_jwt", "_pwd_backend"]
+__all__ = ["api", "router", "_jwt", "_pwd_backend"]

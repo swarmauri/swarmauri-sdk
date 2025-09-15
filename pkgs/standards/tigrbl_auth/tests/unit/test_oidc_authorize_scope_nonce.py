@@ -7,10 +7,9 @@ import pytest
 from fastapi import status
 
 from tigrbl_auth.crypto import hash_pw
-from tigrbl_auth.orm import Client, Tenant, User
+from tigrbl_auth.orm import AuthCode, AuthSession, Client, Tenant, User
 from tigrbl_auth.oidc_discovery import ISSUER
 from tigrbl_auth.oidc_id_token import verify_id_token
-from tigrbl_auth.routers.auth_flows import AUTH_CODES, SESSIONS
 
 
 @pytest.mark.usefixtures("temp_key_file")
@@ -90,10 +89,11 @@ async def test_authorize_persists_nonce(async_client, db_session):
     assert resp.status_code == status.HTTP_307_TEMPORARY_REDIRECT
     query = parse_qs(urlparse(resp.headers["location"]).query)
     code = query["code"][0]
-    try:
-        assert AUTH_CODES[code]["nonce"] == "n-0S6_WzA2Mj"
-    finally:
-        AUTH_CODES.clear()
+    codes = await AuthCode.handlers.list.core(
+        {"db": db_session, "payload": {"filters": {"code": uuid.UUID(code)}}}
+    )
+    stored = codes.items[0] if getattr(codes, "items", None) else None
+    assert stored is not None and stored.nonce == "n-0S6_WzA2Mj"
 
 
 @pytest.mark.usefixtures("temp_key_file")
@@ -246,8 +246,12 @@ async def test_authorize_max_age_requires_recent_login(async_client, db_session)
         "/login", json={"identifier": "dave", "password": "password"}
     )
     sid = resp.cookies.get("sid")
-    assert sid in SESSIONS
-    SESSIONS[sid]["auth_time"] = datetime.now(timezone.utc) - timedelta(seconds=31)
+    session = await AuthSession.handlers.read.core(
+        {"db": db_session, "obj_id": uuid.UUID(sid)}
+    )
+    assert session is not None
+    session.auth_time = datetime.now(timezone.utc) - timedelta(seconds=31)
+    await db_session.commit()
 
     params = {
         "response_type": "code",

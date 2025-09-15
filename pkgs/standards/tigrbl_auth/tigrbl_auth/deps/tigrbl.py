@@ -1,5 +1,6 @@
 from tigrbl import TigrblApp, TigrblApi, op_ctx, hook_ctx
 from tigrbl.engine import HybridSession as AsyncSession, engine as build_engine
+from tigrbl.engine.decorators import engine_ctx
 from tigrbl.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
 from tigrbl.types.authn_abc import AuthNProvider
 from tigrbl.column.storage_spec import ForeignKeySpec
@@ -44,6 +45,7 @@ __all__ = [
     "hook_ctx",
     "AsyncSession",
     "build_engine",
+    "engine_ctx",
     "TIGRBL_AUTH_CONTEXT_ATTR",
     "AuthNProvider",
     "ForeignKeySpec",
