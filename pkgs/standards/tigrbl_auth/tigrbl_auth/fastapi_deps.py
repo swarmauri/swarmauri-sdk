@@ -24,7 +24,6 @@ from tigrbl_auth.deps import (
     Request,
     status,
     AsyncSession,
-    select,
 )
 
 from .backends import (
@@ -58,8 +57,13 @@ async def _user_from_jwt(token: str, db: AsyncSession) -> User | None:
     except InvalidTokenError:
         return None
 
-    stmt = select(User).where(User.id == payload["sub"], User.is_active.is_(True))
-    return await db.scalar(stmt)
+    users = await User.handlers.list.core(
+        {
+            "db": db,
+            "payload": {"filters": {"id": payload["sub"], "is_active": True}},
+        }
+    )
+    return users.items[0] if getattr(users, "items", None) else None
 
 
 async def _user_from_api_key(raw_key: str, db: AsyncSession) -> Principal | None:

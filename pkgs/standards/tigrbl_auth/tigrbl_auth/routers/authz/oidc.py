@@ -17,12 +17,12 @@ from tigrbl_auth.deps import (
 )
 
 from ...fastapi_deps import get_db
-from ...orm import AuthCode, Client, User
+from ...orm import AuthCode, AuthSession, Client, User
 from ...oidc_id_token import mint_id_token, oidc_hash
 from ...rfc.rfc8414_metadata import ISSUER
 from ...rfc.rfc8252 import is_native_redirect_uri
-from ..shared import _require_tls, SESSIONS, AUTH_CODES
-from . import api
+from ..shared import _require_tls
+from . import router
 
 
 @api.get("/authorize")
@@ -59,29 +59,31 @@ async def authorize(
         client_uuid = UUID(client_id)
     except ValueError:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
-    client = await db.get(Client, client_uuid)
+    client = await Client.handlers.read.core({"db": db, "obj_id": client_uuid})
     if client is None or redirect_uri not in (client.redirect_uris or "").split():
         raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
 
     prompts = set(prompt.split()) if prompt else set()
     sid = request.cookies.get("sid")
-    session = SESSIONS.get(sid) if sid else None
-    if login_hint and session and session.get("username") != login_hint:
+    session = (
+        await AuthSession.handlers.read.core({"db": db, "obj_id": sid}) if sid else None
+    )
+    if login_hint and session and session.username != login_hint:
         session = None
     if "login" in prompts:
         session = None
     if session is None:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, {"error": "login_required"})
     if max_age is not None:
-        auth_time = session.get("auth_time")
+        auth_time = session.auth_time
         if auth_time is None or datetime.now(timezone.utc) - auth_time > timedelta(
             seconds=max_age
         ):
             raise HTTPException(
                 status.HTTP_401_UNAUTHORIZED, {"error": "login_required"}
             )
-    user_sub = session["sub"]
-    tenant_id = session["tid"]
+    user_sub = str(session.user_id)
+    tenant_id = str(session.tenant_id)
 
     if is_native_redirect_uri(redirect_uri) and not code_challenge:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
@@ -123,8 +125,6 @@ async def authorize(
         if requested_claims:
             payload["claims"] = requested_claims
         await AuthCode.handlers.create.core({"db": db, "payload": payload})
-        await db.commit()
-        AUTH_CODES[str(code)] = payload
         params.append(("code", str(code)))
     if "token" in rts:
         from ..shared import _jwt
@@ -135,12 +135,14 @@ async def authorize(
     if "id_token" in rts:
         extra_claims: dict[str, Any] = {"tid": tenant_id, "typ": "id"}
         if requested_claims and "id_token" in requested_claims:
-            user_obj = await db.get(User, UUID(user_sub))
+            user_obj = await User.handlers.read.core(
+                {"db": db, "obj_id": UUID(user_sub)}
+            )
             idc = requested_claims["id_token"]
             if "email" in idc:
                 extra_claims["email"] = user_obj.email if user_obj else ""
             if any(k in idc for k in ("name", "preferred_username")):
-                extra_claims["name"] = session.get("username")
+                extra_claims["name"] = session.username
         if access:
             extra_claims["at_hash"] = oidc_hash(access)
         if code:
