@@ -7,6 +7,7 @@ import uuid
 
 from tigrbl_auth.deps import (
     Base,
+    GUIDPk,
     Timestamped,
     S,
     acol,
@@ -30,11 +31,13 @@ from ..rfc.rfc8628 import (
 )
 
 
-class DeviceCode(Base, Timestamped):
+class DeviceCode(Base, GUIDPk, Timestamped):
     __tablename__ = "device_codes"
     __table_args__ = ({"schema": "authn"},)
 
-    device_code: Mapped[str] = acol(storage=S(String(128), primary_key=True))
+    device_code: Mapped[str] = acol(
+        storage=S(String(128), nullable=False, unique=True, index=True)
+    )
     user_code: Mapped[str] = acol(storage=S(String(32), nullable=False, index=True))
     client_id: Mapped[uuid.UUID] = acol(
         storage=S(

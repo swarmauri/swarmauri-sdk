@@ -69,7 +69,9 @@ async def approve_device_code(
 
     from ..orm import DeviceCode
 
-    obj = await DeviceCode.handlers.read.core({"db": db, "obj_id": device_code})
+    obj = await DeviceCode.handlers.read.core(
+        {"db": db, "payload": {"filters": {"device_code": device_code}}}
+    )
     if obj:
         await DeviceCode.handlers.update.core(
             {

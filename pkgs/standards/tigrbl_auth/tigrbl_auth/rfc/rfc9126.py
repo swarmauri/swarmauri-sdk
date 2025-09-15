@@ -90,7 +90,7 @@ async def get_par_request(request_uri: str, db: AsyncSession) -> Dict[str, Any] 
     from ..orm import PushedAuthorizationRequest
 
     obj = await PushedAuthorizationRequest.handlers.read.core(
-        {"db": db, "obj_id": request_uri}
+        {"db": db, "payload": {"filters": {"request_uri": request_uri}}}
     )
     if not obj:
         return None

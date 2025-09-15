@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from tigrbl_auth.deps import (
     Base,
+    GUIDPk,
     Timestamped,
     S,
     acol,
@@ -18,11 +19,13 @@ from ..runtime_cfg import settings
 from ..rfc.rfc7009 import revoke_token as _cache_revoke
 
 
-class RevokedToken(Base, Timestamped):
+class RevokedToken(Base, GUIDPk, Timestamped):
     __tablename__ = "revoked_tokens"
     __table_args__ = ({"schema": "authn"},)
 
-    token: Mapped[str] = acol(storage=S(String(512), primary_key=True))
+    token: Mapped[str] = acol(
+        storage=S(String(512), nullable=False, unique=True, index=True)
+    )
 
     @op_ctx(alias="revoke", target="create", arity="collection")
     async def revoke(cls, ctx):

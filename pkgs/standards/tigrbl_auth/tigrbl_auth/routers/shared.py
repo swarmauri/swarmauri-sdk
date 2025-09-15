@@ -10,6 +10,9 @@ from ..runtime_cfg import settings
 _jwt = JWTCoder.default()
 _pwd_backend = PasswordBackend()
 
+AUTH_CODES: dict[str, dict] = {}
+SESSIONS: dict[str, dict] = {}
+
 _ALLOWED_GRANT_TYPES = {"password", "authorization_code", "client_credentials"}
 if settings.enable_rfc8628:
     _ALLOWED_GRANT_TYPES.add("urn:ietf:params:oauth:grant-type:device_code")

@@ -166,7 +166,7 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
         except ValidationError as exc:
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, exc.errors())
         auth_code = await AuthCode.handlers.read.core(
-            {"db": db, "obj_id": UUID(parsed.code)}
+            {"db": db, "payload": {"filters": {"code": UUID(parsed.code)}}}
         )
         expires_at = auth_code.expires_at if auth_code else None
         if expires_at and expires_at.tzinfo is None:
@@ -223,7 +223,7 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
         except ValidationError as exc:
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, exc.errors())
         device_obj = await DeviceCode.handlers.read.core(
-            {"db": db, "obj_id": parsed.device_code}
+            {"db": db, "payload": {"filters": {"device_code": parsed.device_code}}}
         )
         if not device_obj or str(device_obj.client_id) != parsed.client_id:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_grant"})

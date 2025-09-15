@@ -7,6 +7,7 @@ import uuid
 
 from tigrbl_auth.deps import (
     Base,
+    GUIDPk,
     TenantColumn,
     Timestamped,
     UserColumn,
@@ -31,11 +32,13 @@ from ..routers.shared import _jwt, _require_tls
 from .user import User
 
 
-class AuthCode(Base, Timestamped, UserColumn, TenantColumn):
+class AuthCode(Base, GUIDPk, Timestamped, UserColumn, TenantColumn):
     __tablename__ = "auth_codes"
     __table_args__ = ({"schema": "authn"},)
 
-    code: Mapped[uuid.UUID] = acol(storage=S(PgUUID(as_uuid=True), primary_key=True))
+    code: Mapped[uuid.UUID] = acol(
+        storage=S(PgUUID(as_uuid=True), nullable=False, unique=True, index=True)
+    )
     client_id: Mapped[uuid.UUID] = acol(
         storage=S(
             PgUUID(as_uuid=True),
@@ -114,7 +117,7 @@ class AuthCode(Base, Timestamped, UserColumn, TenantColumn):
             issuer=ISSUER,
             **extra_claims,
         )
-        await cls.handlers.delete.core({"db": db, "obj": obj, "obj_id": obj.code})
+        await cls.handlers.delete.core({"db": db, "obj": obj})
         return {
             "access_token": access,
             "refresh_token": refresh,

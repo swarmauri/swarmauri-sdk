@@ -6,6 +6,7 @@ import datetime as dt
 
 from tigrbl_auth.deps import (
     Base,
+    GUIDPk,
     Timestamped,
     S,
     acol,
@@ -22,11 +23,13 @@ from ..runtime_cfg import settings
 from ..rfc.rfc9126 import DEFAULT_PAR_EXPIRY
 
 
-class PushedAuthorizationRequest(Base, Timestamped):
+class PushedAuthorizationRequest(Base, GUIDPk, Timestamped):
     __tablename__ = "par_requests"
     __table_args__ = ({"schema": "authn"},)
 
-    request_uri: Mapped[str] = acol(storage=S(String(255), primary_key=True))
+    request_uri: Mapped[str] = acol(
+        storage=S(String(255), nullable=False, unique=True, index=True)
+    )
     params: Mapped[dict] = acol(storage=S(JSON, nullable=False))
     expires_at: Mapped[dt.datetime] = acol(storage=S(TZDateTime, nullable=False))
 

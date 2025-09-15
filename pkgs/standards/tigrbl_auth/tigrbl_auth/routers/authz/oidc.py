@@ -21,11 +21,11 @@ from ...orm import AuthCode, AuthSession, Client, User
 from ...oidc_id_token import mint_id_token, oidc_hash
 from ...rfc.rfc8414_metadata import ISSUER
 from ...rfc.rfc8252 import is_native_redirect_uri
-from ..shared import _require_tls
+from ..shared import AUTH_CODES, _require_tls
 from . import router
 
 
-@api.get("/authorize")
+@router.get("/authorize")
 async def authorize(
     response_type: str,
     client_id: str,
@@ -59,14 +59,18 @@ async def authorize(
         client_uuid = UUID(client_id)
     except ValueError:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
-    client = await Client.handlers.read.core({"db": db, "obj_id": client_uuid})
+    client = await Client.handlers.read.core(
+        {"db": db, "payload": {"filters": {"id": client_uuid}}}
+    )
     if client is None or redirect_uri not in (client.redirect_uris or "").split():
         raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
 
     prompts = set(prompt.split()) if prompt else set()
     sid = request.cookies.get("sid")
     session = (
-        await AuthSession.handlers.read.core({"db": db, "obj_id": sid}) if sid else None
+        await AuthSession.handlers.read.core({"db": db, "obj_id": UUID(sid)})
+        if sid
+        else None
     )
     if login_hint and session and session.username != login_hint:
         session = None
@@ -125,6 +129,7 @@ async def authorize(
         if requested_claims:
             payload["claims"] = requested_claims
         await AuthCode.handlers.create.core({"db": db, "payload": payload})
+        AUTH_CODES[str(code)] = payload
         params.append(("code", str(code)))
     if "token" in rts:
         from ..shared import _jwt

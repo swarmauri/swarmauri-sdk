@@ -6,6 +6,7 @@ import datetime as dt
 
 from tigrbl_auth.deps import (
     Base,
+    GUIDPk,
     TenantColumn,
     Timestamped,
     UserColumn,
@@ -20,16 +21,16 @@ from tigrbl_auth.deps import (
     status,
     JSONResponse,
     Response,
+    UUID,
 )
 
 from ..routers.schemas import CredsIn, LogoutIn, TokenPair
 
 
-class AuthSession(Base, Timestamped, UserColumn, TenantColumn):
+class AuthSession(Base, GUIDPk, Timestamped, UserColumn, TenantColumn):
     __tablename__ = "sessions"
     __table_args__ = ({"schema": "authn"},)
 
-    id: Mapped[str] = acol(storage=S(String(64), primary_key=True))
     username: Mapped[str] = acol(storage=S(String(120), nullable=False))
     auth_time: Mapped[dt.datetime] = acol(
         storage=S(
@@ -71,15 +72,17 @@ class AuthSession(Base, Timestamped, UserColumn, TenantColumn):
         import secrets
         from ..rfc.rfc8414_metadata import ISSUER
         from ..oidc_id_token import mint_id_token
-        from ..routers.shared import _jwt, _require_tls
+        from ..routers.shared import SESSIONS, _jwt, _require_tls
 
         request = ctx.get("request")
         _require_tls(request)
         db = ctx.get("db")
         payload = ctx.get("payload") or {}
-        session_id = payload.get("id") or secrets.token_urlsafe(16)
-        payload["id"] = session_id
         session = await cls.handlers.create.core({"db": db, "payload": payload})
+        SESSIONS[str(session.id)] = {
+            "auth_time": session.auth_time,
+            "username": session.username,
+        }
         access, refresh = await _jwt.async_sign_pair(
             sub=str(session.user_id),
             tid=str(session.tenant_id),
@@ -90,7 +93,7 @@ class AuthSession(Base, Timestamped, UserColumn, TenantColumn):
             aud=ISSUER,
             nonce=secrets.token_urlsafe(8),
             issuer=ISSUER,
-            sid=session.id,
+            sid=str(session.id),
         )
         pair = {
             "access_token": access,
@@ -98,7 +101,7 @@ class AuthSession(Base, Timestamped, UserColumn, TenantColumn):
             "id_token": id_token,
         }
         response = JSONResponse(pair)
-        response.set_cookie("sid", session.id, httponly=True, samesite="lax")
+        response.set_cookie("sid", str(session.id), httponly=True, samesite="lax")
         return response
 
     @op_ctx(
@@ -112,6 +115,7 @@ class AuthSession(Base, Timestamped, UserColumn, TenantColumn):
         from ..rfc.rfc8414_metadata import ISSUER
         from ..oidc_id_token import verify_id_token
         from ..routers.shared import (
+            SESSIONS,
             _require_tls,
             _front_channel_logout,
             _back_channel_logout,
@@ -130,9 +134,10 @@ class AuthSession(Base, Timestamped, UserColumn, TenantColumn):
             ) from exc
         sid = claims.get("sid")
         if sid:
-            session = await cls.handlers.read.core({"db": db, "obj_id": sid})
+            session = await cls.handlers.read.core({"db": db, "obj_id": UUID(sid)})
             if session:
                 await cls.handlers.delete.core({"db": db, "obj": session})
+            SESSIONS.pop(sid, None)
             await _front_channel_logout(sid)
             await _back_channel_logout(sid)
         response = Response(status_code=status.HTTP_204_NO_CONTENT)
