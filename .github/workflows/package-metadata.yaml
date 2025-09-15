@@ -1,0 +1,30 @@
+# .github/workflows/package-metadata.yaml
+name: Verify Package Metadata
+
+on:
+  pull_request:
+    paths:
+      - "pkgs/**"
+      - "scripts/verify_package_metadata.py"
+      - ".github/workflows/package-metadata.yaml"
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run package verification
+        id: verify
+        continue-on-error: true
+        run: |
+          python scripts/verify_package_metadata.py | tee report.md
+      - name: Append report to summary
+        if: always()
+        run: cat report.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Fail if verification failed
+        if: steps.verify.outcome == 'failure'
+        run: exit 1

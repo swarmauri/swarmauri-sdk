@@ -5,12 +5,18 @@ from __future__ import annotations
 import re
 import uuid
 from typing import Final
+from urllib.parse import urlparse
 
-from tigrbl.orm.tables import Client as ClientBase
 from tigrbl import hook_ctx
+from tigrbl.orm.tables import Client as ClientBase
+from tigrbl.types import relationship
 
 from ..crypto import hash_pw
-from ..rfc8252 import validate_native_redirect_uri
+from ..rfc8252 import (
+    RFC8252_SPEC_URL,
+    is_native_redirect_uri,
+    validate_native_redirect_uri,
+)
 from ..runtime_cfg import settings
 
 _CLIENT_ID_RE: Final[re.Pattern[str]] = re.compile(r"^[A-Za-z0-9\-_]{8,64}$")
@@ -18,6 +24,8 @@ _CLIENT_ID_RE: Final[re.Pattern[str]] = re.compile(r"^[A-Za-z0-9\-_]{8,64}$")
 
 class Client(ClientBase):
     __table_args__ = ({"schema": "authn"},)
+
+    tenant = relationship("Tenant", back_populates="clients")
 
     @hook_ctx(ops=("create", "update"), phase="PRE_HANDLER")
     async def _hash_secret(cls, ctx):
@@ -38,11 +46,21 @@ class Client(ClientBase):
             raise ValueError("invalid client_id format")
         if settings.enforce_rfc8252:
             for uri in redirects:
-                validate_native_redirect_uri(uri)
+                parsed = urlparse(uri)
+                if is_native_redirect_uri(uri):
+                    validate_native_redirect_uri(uri)
+                elif parsed.scheme == "http":
+                    raise ValueError(
+                        f"redirect URI not permitted for native apps per RFC 8252: {RFC8252_SPEC_URL}"
+                    )
         secret_hash = hash_pw(client_secret)
+        try:
+            obj_id: uuid.UUID | str = uuid.UUID(client_id)
+        except ValueError:
+            obj_id = client_id
         return cls(
             tenant_id=tenant_id,
-            id=client_id,
+            id=obj_id,
             client_secret_hash=secret_hash,
             redirect_uris=" ".join(redirects),
         )

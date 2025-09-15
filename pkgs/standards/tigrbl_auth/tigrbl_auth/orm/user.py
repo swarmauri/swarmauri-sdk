@@ -58,6 +58,7 @@ class User(UserBase):
         back_populates="_user",
         cascade="all, delete-orphan",
     )
+    tenant = relationship("Tenant", back_populates="users")
 
     @hook_ctx(ops=("create", "update", "register"), phase="PRE_HANDLER")
     async def _resolve_tenant_slug(cls, ctx):

@@ -20,6 +20,8 @@ classifiers = [
 dependencies = [
     "swarmauri_core",
     "swarmauri_base",
+    "swarmauri_keyprovider_local",
+    "swarmauri_keyprovider_inmemory",
     "cryptography",
 ]
 
@@ -29,6 +31,8 @@ pkcs11 = ["python-pkcs11"]
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
+swarmauri_keyprovider_local = { workspace = true }
+swarmauri_keyprovider_inmemory = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]

@@ -15,6 +15,7 @@ AUTH = BasicAuth("abc", "secret")
 
 class DummyClient:
     id = "abc"
+    tenant_id = "tenant"
 
     def verify_secret(self, secret: str) -> bool:  # pragma: no cover - trivial
         return secret == "secret"
@@ -66,7 +67,7 @@ async def test_unsupported_grant_type_returns_error(client, enable_rfc6749):
     data = {
         "username": "user",
         "password": "pass",
-        "grant_type": "client_credentials",
+        "grant_type": "unknown",
     }
     resp = await client.post("/token", data=data, auth=AUTH)
     assert resp.status_code == status.HTTP_400_BAD_REQUEST
@@ -115,7 +116,7 @@ async def test_unsupported_grant_type_when_disabled(client):
         data = {
             "username": "user",
             "password": "pass",
-            "grant_type": "client_credentials",
+            "grant_type": "unknown",
         }
         resp = await client.post("/token", data=data, auth=AUTH)
     finally:
@@ -123,6 +124,19 @@ async def test_unsupported_grant_type_when_disabled(client):
     assert resp.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
     detail = resp.json()["detail"]
     assert detail[0]["loc"][-1] == "grant_type"
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_client_credentials_grant_returns_token(client, enable_rfc6749):
+    """Client credentials grant should return tokens when valid."""
+    data = {"grant_type": "client_credentials"}
+    resp = await client.post("/token", data=data, auth=AUTH)
+    assert resp.status_code == status.HTTP_200_OK
+    body = resp.json()
+    assert "access_token" in body
+    assert "refresh_token" in body
+    assert body["token_type"] == "bearer"
 
 
 @pytest.mark.unit

@@ -9,7 +9,7 @@ from tigrbl.orm.tables import Base
 from tigrbl.orm.mixins import TenantColumn, Timestamped, UserColumn
 from tigrbl.specs import S, acol
 from tigrbl.column.storage_spec import ForeignKeySpec
-from tigrbl.types import JSON, PgUUID, String, TZDateTime, Mapped
+from tigrbl.types import JSON, PgUUID, String, TZDateTime, Mapped, UUID
 from tigrbl import op_ctx
 from fastapi import HTTPException, status
 
@@ -24,7 +24,7 @@ class AuthCode(Base, Timestamped, UserColumn, TenantColumn):
     __tablename__ = "auth_codes"
     __table_args__ = ({"schema": "authn"},)
 
-    code: Mapped[str] = acol(storage=S(String(128), primary_key=True))
+    code: Mapped[uuid.UUID] = acol(storage=S(PgUUID(as_uuid=True), primary_key=True))
     client_id: Mapped[uuid.UUID] = acol(
         storage=S(
             PgUUID(as_uuid=True),
@@ -42,7 +42,7 @@ class AuthCode(Base, Timestamped, UserColumn, TenantColumn):
     @op_ctx(alias="exchange", target="delete", arity="member")
     async def exchange(cls, ctx, obj):
         import secrets
-        from datetime import datetime
+        from datetime import datetime, timezone
 
         request = ctx.get("request")
         _require_tls(request)
@@ -51,11 +51,26 @@ class AuthCode(Base, Timestamped, UserColumn, TenantColumn):
         client_id = payload.get("client_id")
         redirect_uri = payload.get("redirect_uri")
         verifier = payload.get("code_verifier")
+
+        def _normalize(val: str | None) -> str | None:
+            if val is None:
+                return None
+            try:
+                u = UUID(val)
+            except ValueError:
+                u = UUID(hex=val)
+            pg = PgUUID(as_uuid=True)
+            pg.as_uuid = u
+            return pg.hex
+
+        expires_at = obj.expires_at if obj else None
+        if expires_at and expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
         if (
             obj is None
-            or str(obj.client_id) != client_id
+            or obj.client_id.hex != _normalize(client_id)
             or obj.redirect_uri != redirect_uri
-            or datetime.utcnow() > obj.expires_at
+            or datetime.now(timezone.utc) > (expires_at or datetime.now(timezone.utc))
         ):
             raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_grant"})
         if obj.code_challenge and not (
@@ -88,7 +103,7 @@ class AuthCode(Base, Timestamped, UserColumn, TenantColumn):
             issuer=ISSUER,
             **extra_claims,
         )
-        await cls.handlers.delete.core({"db": db, "obj": obj})
+        await cls.handlers.delete.core({"db": db, "obj": obj, "obj_id": obj.code})
         return {
             "access_token": access,
             "refresh_token": refresh,

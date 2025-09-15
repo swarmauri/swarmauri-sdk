@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import json
-import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
-from uuid import UUID
+from uuid import UUID, uuid4
 from urllib.parse import urlencode
 
 from fastapi import Depends, HTTPException, Request, status
@@ -69,7 +68,7 @@ async def authorize(
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, {"error": "login_required"})
     if max_age is not None:
         auth_time = session.get("auth_time")
-        if auth_time is None or datetime.utcnow() - auth_time > timedelta(
+        if auth_time is None or datetime.now(timezone.utc) - auth_time > timedelta(
             seconds=max_age
         ):
             raise HTTPException(
@@ -103,7 +102,7 @@ async def authorize(
                 status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"}
             )
     if "code" in rts:
-        code = secrets.token_urlsafe(32)
+        code = uuid4()
         payload = {
             "code": code,
             "user_id": UUID(user_sub),
@@ -113,13 +112,14 @@ async def authorize(
             "code_challenge": code_challenge,
             "nonce": nonce,
             "scope": scope_str,
-            "expires_at": datetime.utcnow() + timedelta(minutes=10),
+            "expires_at": datetime.now(timezone.utc) + timedelta(minutes=10),
         }
         if requested_claims:
             payload["claims"] = requested_claims
         await AuthCode.handlers.create.core({"db": db, "payload": payload})
-        AUTH_CODES[code] = payload
-        params.append(("code", code))
+        await db.commit()
+        AUTH_CODES[str(code)] = payload
+        params.append(("code", str(code)))
     if "token" in rts:
         from ..shared import _jwt
 
@@ -138,7 +138,7 @@ async def authorize(
         if access:
             extra_claims["at_hash"] = oidc_hash(access)
         if code:
-            extra_claims["c_hash"] = oidc_hash(code)
+            extra_claims["c_hash"] = oidc_hash(str(code))
         id_token = await mint_id_token(
             sub=user_sub,
             aud=client_id,

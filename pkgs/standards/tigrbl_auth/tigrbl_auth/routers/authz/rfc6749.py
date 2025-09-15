@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import secrets
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
+import inspect
+from uuid import UUID
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
@@ -63,19 +65,33 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
     else:
         client_id = data.get("client_id")
         client_secret = data.get("client_secret")
-    if not client_id or not client_secret:
+    if not client_id:
         return JSONResponse(
             {"error": "invalid_client"},
             status_code=status.HTTP_401_UNAUTHORIZED,
             headers={"WWW-Authenticate": "Basic"},
         )
-    client = await db.scalar(select(Client).where(Client.id == client_id))
-    if not client or not client.verify_secret(client_secret):
+    try:
+        client_key = UUID(client_id)
+    except ValueError:
+        client_key = client_id
+    client = await db.scalar(select(Client).where(Client.id == client_key))
+    if not client:
         return JSONResponse(
             {"error": "invalid_client"},
             status_code=status.HTTP_401_UNAUTHORIZED,
             headers={"WWW-Authenticate": "Basic"},
         )
+    if client_secret:
+        valid = client.verify_secret(client_secret)
+        if inspect.isawaitable(valid):
+            valid = await valid
+        if not valid:
+            return JSONResponse(
+                {"error": "invalid_client"},
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                headers={"WWW-Authenticate": "Basic"},
+            )
     if data.get("client_id") and data["client_id"] != client_id:
         return JSONResponse(
             {"error": "invalid_client"},
@@ -99,6 +115,14 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
             return JSONResponse(
                 {"error": "invalid_target"}, status_code=status.HTTP_400_BAD_REQUEST
             )
+    if grant_type == "client_credentials":
+        jwt_kwargs: dict[str, Any] = {"aud": aud} if aud else {}
+        if scope := data.get("scope"):
+            jwt_kwargs["scope"] = scope
+        access, refresh = await _jwt.async_sign_pair(
+            sub=client_id, tid=str(client.tenant_id), **jwt_kwargs
+        )
+        return TokenPair(access_token=access, refresh_token=refresh)
     if grant_type == "password":
         try:
             enforce_password_grant(data)
@@ -131,12 +155,15 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
             parsed = AuthorizationCodeGrantForm(**data)
         except ValidationError as exc:
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, exc.errors())
-        auth_code = await AuthCode.handlers.read.core({"db": db, "obj_id": parsed.code})
+        auth_code = await db.get(AuthCode, UUID(parsed.code))
+        expires_at = auth_code.expires_at if auth_code else None
+        if expires_at and expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
         if (
             auth_code is None
             or str(auth_code.client_id) != parsed.client_id
             or auth_code.redirect_uri != parsed.redirect_uri
-            or datetime.utcnow() > auth_code.expires_at
+            or datetime.now(timezone.utc) > (expires_at or datetime.now(timezone.utc))
         ):
             return JSONResponse(
                 {"error": "invalid_grant"}, status_code=status.HTTP_400_BAD_REQUEST
@@ -174,7 +201,8 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
             issuer=ISSUER,
             **extra_claims,
         )
-        await AuthCode.handlers.exchange.core({"db": db, "obj": auth_code})
+        await db.delete(auth_code)
+        await db.commit()
         return TokenPair(access_token=access, refresh_token=refresh, id_token=id_token)
     if grant_type == "urn:ietf:params:oauth:grant-type:device_code":
         try:
@@ -186,7 +214,10 @@ async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPa
         )
         if not device_obj or str(device_obj.client_id) != parsed.client_id:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_grant"})
-        if datetime.utcnow() > device_obj.expires_at:
+        expires_at = device_obj.expires_at
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        if datetime.now(timezone.utc) > expires_at:
             await DeviceCode.handlers.delete.core({"db": db, "obj": device_obj})
             raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "expired_token"})
         if not device_obj.authorized:

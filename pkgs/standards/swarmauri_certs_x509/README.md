@@ -32,40 +32,37 @@ X.509 certificate service plugin for Swarmauri using the `cryptography` library.
 
 ## Usage
 
-The snippet below demonstrates creating a certificate authority (CA), issuing a
-leaf certificate, and verifying the resulting chain.
+Install with optional key providers:
+
+```bash
+pip install swarmauri_certs_x509[local]  # for LocalKeyProvider
+pip install swarmauri_certs_x509[mem]    # for InMemoryKeyProvider
+```
+
+The example below uses ``LocalKeyProvider`` to create a certificate
+authority (CA), issue a leaf certificate, and verify the chain.
 
 ```python
 import asyncio
 from swarmauri_certs_x509 import X509CertService
-from swarmauri_core.crypto.types import KeyRef, KeyType, KeyUse, ExportPolicy
-from cryptography.hazmat.primitives.asymmetric import ed25519
-from cryptography.hazmat.primitives import serialization
+from swarmauri_keyprovider_local import LocalKeyProvider
+from swarmauri_core.keys.types import KeySpec, KeyAlg, KeyClass
+from swarmauri_core.crypto.types import KeyUse, ExportPolicy
 
 svc = X509CertService()
+kp = LocalKeyProvider()
 
-def make_key() -> KeyRef:
-    sk = ed25519.Ed25519PrivateKey.generate()
-    pem = sk.private_bytes(
-        serialization.Encoding.PEM,
-        serialization.PrivateFormat.PKCS8,
-        serialization.NoEncryption(),
-    )
-    return KeyRef(
-        kid="k1",
-        version=1,
-        type=KeyType.ED25519,
-        uses=(KeyUse.SIGN,),
-        export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
-        material=pem,
-        public=None,
-        tags={},
-    )
+spec = KeySpec(
+    klass=KeyClass.asymmetric,
+    alg=KeyAlg.ED25519,
+    uses=(KeyUse.SIGN,),
+    export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
+)
 
-ca_key = make_key()
+ca_key = asyncio.run(kp.create_key(spec))
 ca_cert = asyncio.run(svc.create_self_signed(ca_key, {"CN": "Example CA"}))
 
-leaf_key = make_key()
+leaf_key = asyncio.run(kp.create_key(spec))
 csr = asyncio.run(svc.create_csr(leaf_key, {"CN": "example.org"}))
 leaf_cert = asyncio.run(svc.sign_cert(csr, ca_key, ca_cert=ca_cert))
 result = asyncio.run(svc.verify_cert(leaf_cert, trust_roots=[ca_cert]))

@@ -7,7 +7,7 @@ import uuid
 from tigrbl.orm.tables import Tenant as TenantBase
 from tigrbl.orm.mixins import Bootstrappable
 from tigrbl.specs import F, IO, S, acol, ColumnSpec
-from tigrbl.types import Mapped, String
+from tigrbl.types import Mapped, String, relationship
 
 
 class Tenant(TenantBase, Bootstrappable):
@@ -41,6 +41,11 @@ class Tenant(TenantBase, Bootstrappable):
             ),
         )
     )
+    users = relationship("User", back_populates="tenant", cascade="all, delete-orphan")
+    clients = relationship(
+        "Client", back_populates="tenant", cascade="all, delete-orphan"
+    )
+
     DEFAULT_ROWS = [
         {
             "id": uuid.UUID("FFFFFFFF-0000-0000-0000-000000000000"),

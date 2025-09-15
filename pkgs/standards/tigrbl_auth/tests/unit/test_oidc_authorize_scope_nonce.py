@@ -1,6 +1,6 @@
 import json
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from urllib.parse import parse_qs, urlparse
 
 import pytest
@@ -247,7 +247,7 @@ async def test_authorize_max_age_requires_recent_login(async_client, db_session)
     )
     sid = resp.cookies.get("sid")
     assert sid in SESSIONS
-    SESSIONS[sid]["auth_time"] = datetime.utcnow() - timedelta(seconds=31)
+    SESSIONS[sid]["auth_time"] = datetime.now(timezone.utc) - timedelta(seconds=31)
 
     params = {
         "response_type": "code",

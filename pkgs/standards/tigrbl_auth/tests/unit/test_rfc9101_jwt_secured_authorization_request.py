@@ -17,7 +17,7 @@ def test_jwt_request_round_trip(monkeypatch):
     """RFC 9101 \u00a72.1 round-trips parameters through a Request Object."""
     monkeypatch.setattr(runtime_cfg.settings, "enable_rfc9101", True)
     params = {"client_id": "abc", "scope": "read", "response_type": "code"}
-    secret = "0" * 32
+    secret = "s" * 32
     token = asyncio.run(rfc9101.create_request_object(params, secret=secret))
     decoded = asyncio.run(rfc9101.parse_request_object(token, secret=secret))
     assert decoded == params
