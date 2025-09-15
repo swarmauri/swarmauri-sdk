@@ -57,6 +57,9 @@ class IOSpec:
     mutable_verbs: Tuple[str, ...] = ()
     alias_in: str | None = None
     alias_out: str | None = None
+    header_in: str | None = None  # e.g., "X-Worker-Key"
+    header_out: str | None = None  # e.g., "ETag"
+    header_required_in: bool = False
     sensitive: bool = False
     redact_last: int | None = None
     filter_ops: Tuple[str, ...] = ()
