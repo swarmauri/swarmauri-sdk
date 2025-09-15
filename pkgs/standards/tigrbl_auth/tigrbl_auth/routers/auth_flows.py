@@ -11,11 +11,11 @@ from ..oidc_id_token import mint_id_token
 from ..orm.auth_session import AuthSession
 from ..routers.schemas import CredsIn, TokenPair
 from ..rfc.rfc8414_metadata import ISSUER
-from .authz import router as router
+from .authz import api
 from .shared import _jwt, _pwd_backend, AUTH_CODES, SESSIONS
 
 
-@router.post("/login", response_model=TokenPair)
+@api.post("/login", response_model=TokenPair)
 async def login(
     creds: CredsIn,
     request: Request,
@@ -55,4 +55,6 @@ async def login(
     return response
 
 
-__all__ = ["router", "_jwt", "_pwd_backend", "AUTH_CODES", "SESSIONS"]
+router = api
+
+__all__ = ["api", "router", "_jwt", "_pwd_backend", "AUTH_CODES", "SESSIONS"]
