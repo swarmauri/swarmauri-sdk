@@ -23,7 +23,6 @@ from .runtime_cfg import settings
 from .rfc.rfc8414 import include_rfc8414
 from .oidc_discovery import include_oidc_discovery
 from .rfc.rfc8693 import include_rfc8693
-from .rfc.rfc7591 import include_rfc7591
 from .oidc_userinfo import include_oidc_userinfo
 from .rfc.rfc7009 import include_rfc7009
 
@@ -48,8 +47,6 @@ surface_api.attach_diagnostics(prefix="/system")
 app.include_router(surface_api)  # /authn/<model> resources & flows
 if settings.enable_rfc8693:
     include_rfc8693(app)
-if settings.enable_rfc7591:
-    include_rfc7591(app)
 include_oidc_userinfo(app)
 if settings.enable_rfc7009:
     include_rfc7009(app)
@@ -64,7 +61,8 @@ async def _startup() -> None:
     # so schema-qualified tables like "authn.tenants" work.
     # this should work without sqlite_attachments, if sqlite_attachments are required use:
     # > await surface_api.initialize(sqlite_attachments={"authn": "./authn.db"})
-    await surface_api.initialize()
+    if not getattr(surface_api, "_ddl_executed", False):
+        await surface_api.initialize()
 
 
 app.add_event_handler("startup", _startup)

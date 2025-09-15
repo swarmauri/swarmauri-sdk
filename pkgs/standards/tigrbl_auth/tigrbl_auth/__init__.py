@@ -60,13 +60,8 @@ from .rfc.rfc7518 import supported_algorithms
 from .rfc.rfc7519 import encode_jwt, decode_jwt
 
 from .rfc.rfc7520 import jws_then_jwe, jwe_then_jws, RFC7520_SPEC_URL
-from .rfc.rfc7591 import (
-    register_client,
-    get_client,
-    reset_client_registry,
-    RFC7591_SPEC_URL,
-)
-from .rfc.rfc7592 import update_client, delete_client, RFC7592_SPEC_URL
+from .rfc.rfc7591 import RFC7591_SPEC_URL
+from .rfc.rfc7592 import RFC7592_SPEC_URL
 
 from .rfc.rfc7521 import validate_jwt_assertion, RFC7521_SPEC_URL
 from .rfc.rfc7523 import validate_client_jwt_bearer, RFC7523_SPEC_URL
@@ -159,12 +154,7 @@ __all__ = [
     "decode_jwt",
     "jws_then_jwe",
     "jwe_then_jws",
-    "register_client",
-    "get_client",
-    "reset_client_registry",
     "RFC7591_SPEC_URL",
-    "update_client",
-    "delete_client",
     "RFC7592_SPEC_URL",
     "jwk_thumbprint",
     "verify_jwk_thumbprint",

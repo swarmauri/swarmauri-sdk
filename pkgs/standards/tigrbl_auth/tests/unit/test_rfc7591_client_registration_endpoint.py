@@ -1,55 +1,86 @@
-"""Tests for OAuth2 Dynamic Client Registration endpoint (RFC 7591)."""
+"""RFC 7591 dynamic client registration tests using a live server."""
 
+from __future__ import annotations
+
+import asyncio
+from uuid import UUID
+
+import httpx
 import pytest
-from fastapi import FastAPI, status
-from httpx import ASGITransport, AsyncClient
+import uvicorn
 
-from tigrbl_auth.rfc.rfc7591 import include_rfc7591
-from tigrbl_auth.runtime_cfg import settings
+TENANT_ID = UUID("FFFFFFFF-0000-0000-0000-000000000000")
+
+
+async def _wait_for_app(base_url: str) -> None:
+    """Poll ``/system/healthz`` until the server responds."""
+    async with httpx.AsyncClient() as client:
+        for _ in range(50):
+            try:
+                resp = await client.get(f"{base_url}/system/healthz")
+                if resp.status_code == 200:
+                    return
+            except Exception:
+                pass
+            await asyncio.sleep(0.1)
+    raise RuntimeError("server not ready")
+
+
+@pytest.fixture()
+async def running_app(override_get_db):
+    from tigrbl_auth.runtime_cfg import settings
+
+    original_tls = settings.require_tls
+    settings.require_tls = False
+    cfg = uvicorn.Config(
+        "tigrbl_auth.app:app", host="127.0.0.1", port=8000, log_level="warning"
+    )
+    server = uvicorn.Server(cfg)
+    task = asyncio.create_task(server.serve())
+    await _wait_for_app("http://127.0.0.1:8000")
+    try:
+        yield "http://127.0.0.1:8000"
+    finally:
+        server.should_exit = True
+        await task
+        settings.require_tls = original_tls
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_rfc7591_client_registration_endpoint(monkeypatch) -> None:
-    """Posting RFC 7591 client metadata to `/register` registers the client."""
-    app = FastAPI()
-    monkeypatch.setattr(settings, "enable_rfc7591", True)
-    include_rfc7591(app)
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        payload = {"redirect_uris": ["https://client.example/cb"]}
-        resp = await client.post("/register", json=payload)
-    assert resp.status_code == status.HTTP_201_CREATED
-    data = resp.json()
-    assert data["redirect_uris"] == payload["redirect_uris"]
-    assert "client_id" in data and "client_secret" in data
-    assert data["grant_types"] == ["authorization_code"]
-    assert data["response_types"] == ["code"]
+async def test_client_update_available(running_app):
+    """Clients can be registered and updated via the service."""
+    base = running_app
+    async with httpx.AsyncClient() as client:
+        reg_resp = await client.post(
+            f"{base}/user/register",
+            json={
+                "tenant_slug": "public",
+                "username": "alice",
+                "email": "alice@example.com",
+                "password": "Password123!",
+            },
+        )
+        assert reg_resp.status_code == 200
+        tokens = reg_resp.json()
+        headers = {"Authorization": f"Bearer {tokens['access_token']}"}
 
+        create_resp = await client.post(
+            f"{base}/client/register",
+            json={
+                "tenant_id": str(TENANT_ID),
+                "client_secret": "secret",
+                "redirect_uris": ["https://app.example.com/callback"],
+            },
+            headers=headers,
+        )
+        assert create_resp.status_code == 201
+        client_id = create_resp.json()["id"]
 
-@pytest.mark.unit
-@pytest.mark.asyncio
-async def test_rfc7591_client_registration_disabled(monkeypatch) -> None:
-    """When disabled, the registration endpoint is unavailable."""
-    app = FastAPI()
-    monkeypatch.setattr(settings, "enable_rfc7591", False)
-    include_rfc7591(app)
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        payload = {"redirect_uris": ["https://client.example/cb"]}
-        resp = await client.post("/register", json=payload)
-    assert resp.status_code == status.HTTP_404_NOT_FOUND
-
-
-@pytest.mark.unit
-@pytest.mark.asyncio
-async def test_rfc7591_redirect_uris_must_use_https(monkeypatch) -> None:
-    """Non-HTTPS redirect URIs for non-localhost are rejected."""
-    app = FastAPI()
-    monkeypatch.setattr(settings, "enable_rfc7591", True)
-    include_rfc7591(app)
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        payload = {"redirect_uris": ["http://evil.example/cb"]}
-        resp = await client.post("/register", json=payload)
-    assert resp.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        update_resp = await client.patch(
+            f"{base}/client/{client_id}",
+            json={"grant_types": ["client_credentials"]},
+            headers=headers,
+        )
+        assert update_resp.status_code == 200
+        assert update_resp.json()["grant_types"] == ["client_credentials"]

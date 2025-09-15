@@ -7,7 +7,7 @@ import uuid
 from typing import Final
 from urllib.parse import urlparse
 
-from tigrbl_auth.deps import hook_ctx, ClientBase, relationship
+from tigrbl_auth.deps import hook_ctx, op_ctx, ClientBase, relationship
 
 from ..crypto import hash_pw
 from ..rfc.rfc8252 import (
@@ -39,6 +39,8 @@ class Client(ClientBase):
         client_id: str,
         client_secret: str,
         redirects: list[str],
+        grant_types: list[str] | None = None,
+        response_types: list[str] | None = None,
     ):
         if not _CLIENT_ID_RE.fullmatch(client_id):
             raise ValueError("invalid client_id format")
@@ -56,12 +58,20 @@ class Client(ClientBase):
             obj_id: uuid.UUID | str = uuid.UUID(client_id)
         except ValueError:
             obj_id = client_id
+        grant_types = grant_types or ["authorization_code"]
+        response_types = response_types or ["code"]
         return cls(
             tenant_id=tenant_id,
             id=obj_id,
             client_secret_hash=secret_hash,
             redirect_uris=" ".join(redirects),
+            grant_types=grant_types,
+            response_types=response_types,
         )
+
+    @op_ctx(alias="register", target="create", arity="collection")
+    async def register(cls, ctx):  # pragma: no cover - op_ctx handles creation
+        pass
 
     def verify_secret(self, plain: str) -> bool:
         from ..crypto import verify_pw  # local import to avoid cycle
