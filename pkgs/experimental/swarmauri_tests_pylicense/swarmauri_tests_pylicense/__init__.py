@@ -10,6 +10,7 @@ import pytest
 from importlib.metadata import PackageNotFoundError, distribution
 from packaging.requirements import Requirement
 from packaging.utils import canonicalize_name
+from license_expression import ExpressionError, get_spdx_licensing
 
 try:  # Python 3.11+
     import tomllib
@@ -17,6 +18,16 @@ except ModuleNotFoundError:  # pragma: no cover - Python 3.10
     import tomli as tomllib  # type: ignore
 
 PLUGIN_NAME = __name__.split(".")[0]
+
+SPDX = get_spdx_licensing()
+
+
+def _is_standard_license(license_str: str) -> bool:
+    try:
+        SPDX.parse(license_str, validate=True)
+    except ExpressionError:
+        return False
+    return True
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
@@ -46,6 +57,12 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         action="store",
         default=None,
         help="Comma-separated list of forbidden license names.",
+    )
+    group.addoption(
+        "--pylicense-accept-dependencies",
+        action="store",
+        default=None,
+        help="Comma-separated list of dependencies to accept regardless of license.",
     )
 
 
@@ -168,10 +185,19 @@ class LicenseItem(pytest.Item):
     def runtest(self) -> None:  # pragma: no cover - simple assertion
         allow: Set[str] = getattr(self.config, "_pylicense_allow", set())
         disallow: Set[str] = getattr(self.config, "_pylicense_disallow", set())
+        accept: Set[str] = getattr(self.config, "_pylicense_accept_deps", set())
         lic = self.license
+        dep = canonicalize_name(self.dep)
+        if dep in accept:
+            return
         if lic == "UNKNOWN":
             pytest.fail(
                 f"{self.dep}=={self.version} has unknown license", pytrace=False
+            )
+        if not _is_standard_license(lic):
+            pytest.fail(
+                f"{self.dep}=={self.version} has non-standard license {lic}",
+                pytrace=False,
             )
         if disallow and lic in disallow:
             pytest.fail(
@@ -202,12 +228,17 @@ class LicenseAggregateItem(pytest.Item):
     def runtest(self) -> None:  # pragma: no cover - simple aggregation
         allow: Set[str] = getattr(self.config, "_pylicense_allow", set())
         disallow: Set[str] = getattr(self.config, "_pylicense_disallow", set())
+        accept: Set[str] = getattr(self.config, "_pylicense_accept_deps", set())
         failures = []
         for dep, info in self.licenses.items():
             lic = info.license
             ver = info.version
+            if canonicalize_name(dep) in accept:
+                continue
             if lic == "UNKNOWN":
                 failures.append(f"{dep}=={ver} has unknown license")
+            elif not _is_standard_license(lic):
+                failures.append(f"{dep}=={ver} has non-standard license {lic}")
             elif disallow and lic in disallow:
                 failures.append(f"{dep}=={ver} uses forbidden license {lic}")
             elif allow and lic not in allow:
@@ -236,8 +267,16 @@ def pytest_configure(config: pytest.Config) -> None:
     disallow = _parse_list(
         config.getoption("--pylicense-disallow-list"), "PYLICENSE_DISALLOW_LIST"
     )
+    accept = {
+        canonicalize_name(v)
+        for v in _parse_list(
+            config.getoption("--pylicense-accept-dependencies"),
+            "PYLICENSE_ACCEPT_DEPENDENCIES",
+        )
+    }
     config._pylicense_allow = allow
     config._pylicense_disallow = disallow
+    config._pylicense_accept_deps = accept
 
 
 def pytest_collection_modifyitems(

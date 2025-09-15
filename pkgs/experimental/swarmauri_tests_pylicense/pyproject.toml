@@ -16,6 +16,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
+dependencies = ["license-expression>=30.4.4"]
 
 [project.entry-points.pytest11]
 swarmauri_tests_pylicense = "swarmauri_tests_pylicense"

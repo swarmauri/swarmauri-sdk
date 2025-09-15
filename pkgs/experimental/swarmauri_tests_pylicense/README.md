@@ -85,6 +85,20 @@ If both are provided, any license not in the allow list or explicitly present
 in the disallow list will cause a test failure. By default, all licenses are
 allowed and none are disallowed.
 
+### Accept Specific Dependencies
+
+Sometimes a dependency reports a non-standard license string. Provide a
+comma-separated list of dependency names to accept without validation using
+the `--pylicense-accept-dependencies` option or the
+`PYLICENSE_ACCEPT_DEPENDENCIES` environment variable:
+
+```bash
+pytest --pylicense-package=<your-package> --pylicense-accept-dependencies=numpy
+
+export PYLICENSE_ACCEPT_DEPENDENCIES="dep1,dep2"
+pytest --pylicense-package=<your-package>
+```
+
 ## License
 
 Licensed under the [Apache 2.0 License](LICENSE).
