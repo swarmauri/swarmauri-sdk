@@ -11,7 +11,7 @@ See RFC 6750: https://www.rfc-editor.org/rfc/rfc6750
 
 from __future__ import annotations
 
-from fastapi import Request
+from ..deps import Request
 from typing import Final
 
 from ..runtime_cfg import settings

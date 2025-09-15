@@ -14,7 +14,7 @@ from __future__ import annotations
 
 
 from typing import Any, Dict, List
-from fastapi import APIRouter, HTTPException, status
+from ..deps import APIRouter, HTTPException, status
 
 from ..runtime_cfg import settings
 from .rfc8414_metadata import ISSUER, JWKS_PATH

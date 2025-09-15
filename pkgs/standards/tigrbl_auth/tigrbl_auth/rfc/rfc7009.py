@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import Final, Set
 
-from fastapi import APIRouter, FastAPI, Form, HTTPException, status
+from ..deps import APIRouter, FastAPI, Form, HTTPException, status
 
 from ..runtime_cfg import settings
 

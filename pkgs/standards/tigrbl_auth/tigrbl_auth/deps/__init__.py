@@ -18,6 +18,16 @@ from swarmauri_crypto_jwe import JweCrypto
 from swarmauri_core.crypto.types import JWAAlg, KeyUse, ExportPolicy
 from swarmauri_core.keys.types import KeyAlg, KeyClass, KeySpec
 
+from . import pydantic as _pydantic
+from . import fastapi as _fastapi
+from . import sqlalchemy as _sqlalchemy
+from . import tigrbl as _tigrbl
+
+from .pydantic import *  # noqa: F401,F403
+from .fastapi import *  # noqa: F401,F403
+from .sqlalchemy import *  # noqa: F401,F403
+from .tigrbl import *  # noqa: F401,F403
+
 __all__ = [
     "FileKeyProvider",
     "LocalKeyProvider",
@@ -31,4 +41,8 @@ __all__ = [
     "KeyAlg",
     "KeyClass",
     "KeySpec",
+    *(_pydantic.__all__),
+    *(_fastapi.__all__),
+    *(_sqlalchemy.__all__),
+    *(_tigrbl.__all__),
 ]

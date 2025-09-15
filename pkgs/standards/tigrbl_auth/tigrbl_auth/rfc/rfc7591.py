@@ -13,8 +13,17 @@ import secrets
 from typing import Dict, Final
 from urllib.parse import urlparse
 
-from fastapi import APIRouter, FastAPI, HTTPException, status
-from pydantic import AnyHttpUrl, BaseModel, ConfigDict, Field, field_validator
+from ..deps import (
+    APIRouter,
+    FastAPI,
+    HTTPException,
+    status,
+    AnyHttpUrl,
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_validator,
+)
 
 from ..runtime_cfg import settings
 

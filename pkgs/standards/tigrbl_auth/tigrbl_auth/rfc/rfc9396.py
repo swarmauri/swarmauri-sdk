@@ -13,7 +13,7 @@ from __future__ import annotations
 from typing import Any, List
 import json
 
-from pydantic import BaseModel, ValidationError
+from ..deps import BaseModel, ValidationError
 
 from ..runtime_cfg import settings
 

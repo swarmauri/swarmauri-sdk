@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import HTTPException, Request, status
+from ..deps import HTTPException, Request, status
 
 from ..jwtoken import JWTCoder
 from ..backends import PasswordBackend

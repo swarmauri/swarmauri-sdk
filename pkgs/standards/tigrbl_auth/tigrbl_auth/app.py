@@ -15,7 +15,7 @@ Features
 
 from __future__ import annotations
 
-from tigrbl import TigrblApp
+from .deps import TigrblApp
 
 from .routers.surface import surface_api
 from .db import dsn

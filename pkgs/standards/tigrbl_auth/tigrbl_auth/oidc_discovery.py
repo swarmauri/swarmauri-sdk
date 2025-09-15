@@ -11,7 +11,7 @@ import json
 from functools import lru_cache
 from typing import Any
 
-from fastapi import APIRouter, FastAPI
+from .deps import APIRouter, FastAPI
 
 from .rfc.rfc8414_metadata import ISSUER, JWKS_PATH
 from .runtime_cfg import settings

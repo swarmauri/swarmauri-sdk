@@ -22,7 +22,7 @@ Notes
 
 from __future__ import annotations
 
-from tigrbl import TigrblApi
+from ..deps import TigrblApi
 from tigrbl_auth.orm import (
     Tenant,
     User,

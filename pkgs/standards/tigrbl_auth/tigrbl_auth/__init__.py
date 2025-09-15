@@ -104,6 +104,10 @@ from .rfc.rfc8932 import (
     get_capability_matrix,
 )
 
+from importlib import import_module
+from pkgutil import iter_modules
+from pathlib import Path
+
 from .oidc_id_token import mint_id_token, verify_id_token
 
 __all__ = [
@@ -207,3 +211,9 @@ __all__ = [
     "mint_id_token",
     "verify_id_token",
 ]
+
+# Dynamically expose all RFC modules at the package root for backwards compatibility
+for _m in iter_modules([Path(__file__).with_name("rfc")]):
+    _module = import_module(f".rfc.{_m.name}", __name__)
+    globals()[_m.name] = _module
+    __all__.append(_m.name)

@@ -7,9 +7,7 @@ import uuid
 from typing import Final
 from urllib.parse import urlparse
 
-from tigrbl import hook_ctx
-from tigrbl.orm.tables import Client as ClientBase
-from tigrbl.types import relationship
+from ..deps import hook_ctx, ClientBase, relationship
 
 from ..crypto import hash_pw
 from ..rfc.rfc8252 import (

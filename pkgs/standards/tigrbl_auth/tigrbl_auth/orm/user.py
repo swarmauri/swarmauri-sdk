@@ -4,16 +4,26 @@ from __future__ import annotations
 
 import uuid
 
-from tigrbl.orm.tables import User as UserBase
-from tigrbl import hook_ctx, op_ctx
+from ..deps import (
+    UserBase,
+    hook_ctx,
+    op_ctx,
+    LargeBinary,
+    Mapped,
+    String,
+    relationship,
+    F,
+    IO,
+    S,
+    acol,
+    ColumnSpec,
+    HTTPException,
+    status,
+    JSONResponse,
+    select,
+)
 from ..routers.schemas import RegisterIn, TokenPair
-from tigrbl.types import LargeBinary, Mapped, String, relationship
-from tigrbl.specs import F, IO, S, acol, ColumnSpec
 from typing import TYPE_CHECKING
-
-from fastapi import HTTPException, status
-from fastapi.responses import JSONResponse
-from sqlalchemy import select
 
 if TYPE_CHECKING:  # pragma: no cover
     pass
@@ -104,7 +114,6 @@ class User(UserBase):
         from ..routers.shared import _jwt, _require_tls, SESSIONS
         from .auth_session import AuthSession
         from .tenant import Tenant
-        from tigrbl.error import IntegrityError
 
         request = ctx.get("request")
         _require_tls(request)
@@ -135,8 +144,6 @@ class User(UserBase):
         except HTTPException:
             raise
         except Exception as exc:  # pragma: no cover - passthrough
-            if isinstance(exc, IntegrityError):
-                raise HTTPException(status.HTTP_409_CONFLICT, "duplicate key") from exc
             raise HTTPException(
                 status.HTTP_500_INTERNAL_SERVER_ERROR, "database error"
             ) from exc

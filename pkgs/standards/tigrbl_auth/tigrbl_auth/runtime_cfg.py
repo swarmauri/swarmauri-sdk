@@ -2,9 +2,9 @@
 
 import os
 from dotenv import load_dotenv
-from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import Field
 from typing import Optional
+
+from .deps import BaseSettings, Field, SettingsConfigDict
 
 # ─── Load environment variables from a .env file (if present) ─────────────────────
 load_dotenv()

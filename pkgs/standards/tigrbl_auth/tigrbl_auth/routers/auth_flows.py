@@ -2,16 +2,14 @@ from __future__ import annotations
 
 import secrets
 
-from fastapi import Depends, HTTPException, Request, status
-from fastapi.responses import JSONResponse
-from tigrbl.engine import HybridSession as AsyncSession
+from ..deps import Depends, HTTPException, Request, status, JSONResponse, AsyncSession
 
 from ..backends import AuthError
 from ..fastapi_deps import get_db
 from ..oidc_id_token import mint_id_token
 from ..orm.auth_session import AuthSession
 from ..routers.schemas import CredsIn, TokenPair
-from ..rfc8414_metadata import ISSUER
+from ..rfc.rfc8414_metadata import ISSUER
 from .authz import router as router
 from .shared import _jwt, _pwd_backend, AUTH_CODES, SESSIONS
 

@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from fastapi import HTTPException, Request, status
+from ...deps import HTTPException, Request, status
 
 from ...runtime_cfg import settings
 from ..schemas import IntrospectOut
 from ..shared import _require_tls
-from ...rfc7662 import introspect_token
+from ...rfc.rfc7662 import introspect_token
 
 from . import router
 
