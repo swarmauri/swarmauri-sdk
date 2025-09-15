@@ -1,6 +1,6 @@
 """
-tigrbl_authn.fastapi_deps
-==========================
+tigrbl_auth.fastapi_deps
+========================
 
 FastAPI dependency helpers used by the AuthN service itself
 and by *any* downstream service that wishes to rely on AuthN’s
