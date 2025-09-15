@@ -11,7 +11,7 @@ omitted from the response.
 
 from __future__ import annotations
 
-from fastapi import (
+from tigrbl_auth.deps import (
     APIRouter,
     Depends,
     FastAPI,

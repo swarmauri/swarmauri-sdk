@@ -5,13 +5,22 @@ from __future__ import annotations
 import datetime as dt
 import uuid
 
-from tigrbl.orm.tables import Base
-from tigrbl.orm.mixins import Timestamped
-from tigrbl.specs import S, acol
-from tigrbl.column.storage_spec import ForeignKeySpec
-from tigrbl.types import Boolean, Integer, Mapped, PgUUID, String, TZDateTime
-from tigrbl import op_ctx
-from fastapi import HTTPException, status
+from tigrbl_auth.deps import (
+    Base,
+    Timestamped,
+    S,
+    acol,
+    ForeignKeySpec,
+    Boolean,
+    Integer,
+    Mapped,
+    PgUUID,
+    String,
+    TZDateTime,
+    op_ctx,
+    HTTPException,
+    status,
+)
 
 from ..runtime_cfg import settings
 from ..rfc.rfc8628 import (

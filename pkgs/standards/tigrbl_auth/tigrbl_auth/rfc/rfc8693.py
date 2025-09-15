@@ -11,7 +11,15 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Union
 from enum import Enum
-from fastapi import APIRouter, FastAPI, Form, HTTPException, Request, Header, status
+from tigrbl_auth.deps import (
+    APIRouter,
+    FastAPI,
+    Form,
+    HTTPException,
+    Request,
+    Header,
+    status,
+)
 
 from .. import runtime_cfg
 from .rfc7519 import decode_jwt

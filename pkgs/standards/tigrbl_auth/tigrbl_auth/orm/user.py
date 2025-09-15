@@ -4,16 +4,26 @@ from __future__ import annotations
 
 import uuid
 
-from tigrbl.orm.tables import User as UserBase
-from tigrbl import hook_ctx, op_ctx
+from tigrbl_auth.deps import (
+    UserBase,
+    hook_ctx,
+    op_ctx,
+    LargeBinary,
+    Mapped,
+    String,
+    relationship,
+    F,
+    IO,
+    S,
+    acol,
+    ColumnSpec,
+    HTTPException,
+    status,
+    JSONResponse,
+    select,
+)
 from ..routers.schemas import RegisterIn, TokenPair
-from tigrbl.types import LargeBinary, Mapped, String, relationship
-from tigrbl.specs import F, IO, S, acol, ColumnSpec
 from typing import TYPE_CHECKING
-
-from fastapi import HTTPException, status
-from fastapi.responses import JSONResponse
-from sqlalchemy import select
 
 if TYPE_CHECKING:  # pragma: no cover
     pass
