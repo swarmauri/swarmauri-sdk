@@ -7,7 +7,7 @@ from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped
 from tigrbl import Base, TigrblApp
 from tigrbl.engine.shortcuts import mem
-from tigrbl.specs import IO, F, S, acol, vcol
+from tigrbl.specs import IO, F, S, acol
 from tigrbl.types import App
 
 

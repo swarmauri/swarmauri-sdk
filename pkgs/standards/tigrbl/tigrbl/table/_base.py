@@ -138,9 +138,11 @@ def _materialize_colspecs_to_sqla(cls) -> None:
                     # Plan an SA type from the python type and field constraints
                     try:
                         from tigrbl.column.infer.core import infer as _infer_sa
+
                         plan = _infer_sa(py_type)
                         # Resolve SA type class from exported types module when possible
                         from tigrbl import types as _types
+
                         dtype_cls = getattr(_types, plan.sa.name, None)
                     except Exception:
                         dtype_cls = None
@@ -149,6 +151,7 @@ def _materialize_colspecs_to_sqla(cls) -> None:
                     if dtype_cls is None:
                         try:
                             from sqlalchemy.types import String as _SAString
+
                             dtype_cls = _SAString
                         except Exception:
                             dtype_cls = None

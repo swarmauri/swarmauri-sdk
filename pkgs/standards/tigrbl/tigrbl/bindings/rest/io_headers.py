@@ -69,7 +69,9 @@ def _make_header_dep(model: type, alias: str):
                 annotation=str | None,
             )
         )
-    _dep.__signature__ = inspect.Signature(parameters=params, return_annotation=Mapping[str, Any])
+    _dep.__signature__ = inspect.Signature(
+        parameters=params, return_annotation=Mapping[str, Any]
+    )
     _dep.__name__ = f"headers_{model.__name__}_{alias}"
     setattr(_dep, "__tigrbl_has_headers__", True)
     return _dep

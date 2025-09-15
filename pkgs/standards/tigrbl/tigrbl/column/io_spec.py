@@ -67,7 +67,7 @@ class IOSpec:
     _assemble: _AssembleCfg | None = None
     _readtime_aliases: Tuple[_ReadtimeAlias, ...] = ()
     # Header I/O (REST): inbound and outbound header names
-    header_in: str | None = None   # e.g., "X-Worker-Key"
+    header_in: str | None = None  # e.g., "X-Worker-Key"
     header_out: str | None = None  # e.g., "ETag"
 
     def assemble(self, sources, fn):

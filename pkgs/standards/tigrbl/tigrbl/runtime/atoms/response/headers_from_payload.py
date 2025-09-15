@@ -4,7 +4,7 @@ from typing import Any, Mapping, Optional
 
 from ... import events as _ev
 from .renderer import ResponseHints
-from ..kernel import get_cached_specs
+from ...kernel import get_cached_specs
 
 # Run after payload is prepared and before render. Other response atoms
 # (negotiate/template/render) also bind to OUT_DUMP.
@@ -83,10 +83,8 @@ def run(_: Optional[object], ctx: Any) -> None:
             continue
         if field_name in payload:
             value = payload[field_name]
-            if value is not None:
-                # Ensure string headers
-                hints.headers[header_name] = str(value)
+            # Emit header whenever field is exposed; coerce None -> empty string
+            hints.headers[header_name] = "" if value is None else str(value)
 
 
 __all__ = ["ANCHOR", "run"]
-
