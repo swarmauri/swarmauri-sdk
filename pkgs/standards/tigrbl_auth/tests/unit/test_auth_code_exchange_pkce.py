@@ -17,7 +17,7 @@ async def test_exchange_accepts_hex_client_id(monkeypatch):
     client_uuid = uuid.uuid4()
 
     auth_code = AuthCode(
-        code="code",
+        id=uuid.uuid4(),
         client_id=client_uuid,
         redirect_uri="https://client/cb",
         code_challenge=challenge,
