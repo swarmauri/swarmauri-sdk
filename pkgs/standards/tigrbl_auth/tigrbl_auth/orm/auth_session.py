@@ -16,20 +16,22 @@ from tigrbl_auth.deps import (
     TZDateTime,
     hook_ctx,
     op_ctx,
+    engine_ctx,
+    GUIDPk,
     HTTPException,
     status,
     JSONResponse,
     Response,
+    UUID,
 )
 
 from ..routers.schemas import CredsIn, LogoutIn, TokenPair
 
 
-class AuthSession(Base, Timestamped, UserColumn, TenantColumn):
+@engine_ctx(kind="sqlite", mode="memory")
+class AuthSession(Base, GUIDPk, Timestamped, UserColumn, TenantColumn):
     __tablename__ = "sessions"
     __table_args__ = ({"schema": "authn"},)
-
-    id: Mapped[str] = acol(storage=S(String(64), primary_key=True))
     username: Mapped[str] = acol(storage=S(String(120), nullable=False))
     auth_time: Mapped[dt.datetime] = acol(
         storage=S(
@@ -42,14 +44,14 @@ class AuthSession(Base, Timestamped, UserColumn, TenantColumn):
         from .user import User
 
         payload = ctx.get("payload") or {}
-        db = ctx.get("db")
+        temp = ctx.get("temp") or {}
         username = payload.get("username")
-        password = payload.get("password")
-        if db is None or not username or not password:
+        password = payload.get("password") or temp.get("password")
+        if not username or not password:
             raise HTTPException(status_code=400, detail="missing credentials")
 
         users = await User.handlers.list.core(
-            {"db": db, "payload": {"filters": {"username": username}}}
+            {"payload": {"filters": {"username": username}}}
         )
         user = users.items[0] if getattr(users, "items", None) else None
         if user is None or not user.verify_password(password):
@@ -75,11 +77,8 @@ class AuthSession(Base, Timestamped, UserColumn, TenantColumn):
 
         request = ctx.get("request")
         _require_tls(request)
-        db = ctx.get("db")
         payload = ctx.get("payload") or {}
-        session_id = payload.get("id") or secrets.token_urlsafe(16)
-        payload["id"] = session_id
-        session = await cls.handlers.create.core({"db": db, "payload": payload})
+        session = await cls.handlers.create.core({"payload": payload})
         access, refresh = await _jwt.async_sign_pair(
             sub=str(session.user_id),
             tid=str(session.tenant_id),
@@ -90,7 +89,7 @@ class AuthSession(Base, Timestamped, UserColumn, TenantColumn):
             aud=ISSUER,
             nonce=secrets.token_urlsafe(8),
             issuer=ISSUER,
-            sid=session.id,
+            sid=str(session.id),
         )
         pair = {
             "access_token": access,
@@ -98,7 +97,7 @@ class AuthSession(Base, Timestamped, UserColumn, TenantColumn):
             "id_token": id_token,
         }
         response = JSONResponse(pair)
-        response.set_cookie("sid", session.id, httponly=True, samesite="lax")
+        response.set_cookie("sid", str(session.id), httponly=True, samesite="lax")
         return response
 
     @op_ctx(
@@ -119,7 +118,6 @@ class AuthSession(Base, Timestamped, UserColumn, TenantColumn):
 
         request = ctx.get("request")
         _require_tls(request)
-        db = ctx.get("db")
         payload = ctx.get("payload") or {}
         id_hint = payload.get("id_token_hint")
         try:
@@ -130,9 +128,9 @@ class AuthSession(Base, Timestamped, UserColumn, TenantColumn):
             ) from exc
         sid = claims.get("sid")
         if sid:
-            session = await cls.handlers.read.core({"db": db, "obj_id": sid})
+            session = await cls.handlers.read.core({"payload": {"id": UUID(sid)}})
             if session:
-                await cls.handlers.delete.core({"db": db, "obj": session})
+                await cls.handlers.delete.core({"obj": session})
             await _front_channel_logout(sid)
             await _back_channel_logout(sid)
         response = Response(status_code=status.HTTP_204_NO_CONTENT)

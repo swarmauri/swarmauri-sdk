@@ -1,4 +1,4 @@
-from tigrbl import TigrblApp, TigrblApi, op_ctx, hook_ctx
+from tigrbl import TigrblApp, TigrblApi, op_ctx, hook_ctx, engine_ctx
 from tigrbl.engine import HybridSession as AsyncSession, engine as build_engine
 from tigrbl.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
 from tigrbl.types.authn_abc import AuthNProvider
@@ -42,6 +42,7 @@ __all__ = [
     "TigrblApi",
     "op_ctx",
     "hook_ctx",
+    "engine_ctx",
     "AsyncSession",
     "build_engine",
     "TIGRBL_AUTH_CONTEXT_ATTR",

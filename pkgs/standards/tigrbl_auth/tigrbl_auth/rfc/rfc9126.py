@@ -16,14 +16,10 @@ from typing import TYPE_CHECKING, Any, Dict, Final
 
 from tigrbl_auth.deps import (
     TigrblApi,
-    Depends,
     HTTPException,
     Request,
     status,
-    AsyncSession,
 )
-
-from ..db import get_db
 from ..runtime_cfg import settings
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -39,10 +35,7 @@ router = api
 
 
 @api.post("/par", status_code=status.HTTP_201_CREATED)
-async def pushed_authorization_request(
-    request: Request,
-    db: AsyncSession = Depends(get_db),
-) -> Dict[str, Any]:
+async def pushed_authorization_request(request: Request) -> Dict[str, Any]:
     """Handle Pushed Authorization Requests.
 
     Stores the incoming parameters and returns a ``request_uri`` pointing to the
@@ -53,16 +46,12 @@ async def pushed_authorization_request(
     if not settings.enable_rfc9126:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "PAR disabled")
     params = dict(await request.form())
-    if db is None:
-        request_uri = f"urn:ietf:params:oauth:request_uri:{uuid.uuid4()}"
-    else:
-        request_uri = await store_par_request(params, db, DEFAULT_PAR_EXPIRY)
+    request_uri = await store_par_request(params, DEFAULT_PAR_EXPIRY)
     return {"request_uri": request_uri, "expires_in": DEFAULT_PAR_EXPIRY}
 
 
 async def store_par_request(
     params: Dict[str, Any],
-    db: AsyncSession,
     expires_in: int = DEFAULT_PAR_EXPIRY,
 ) -> str:
     """Store *params* and return a unique ``request_uri``."""
@@ -73,42 +62,42 @@ async def store_par_request(
     expires_at = datetime.now(tz=timezone.utc) + timedelta(seconds=expires_in)
     await PushedAuthorizationRequest.handlers.par.core(
         {
-            "db": db,
             "payload": {
                 "request_uri": request_uri,
                 "params": params,
                 "expires_at": expires_at,
-            },
+            }
         }
     )
     return request_uri
 
 
-async def get_par_request(request_uri: str, db: AsyncSession) -> Dict[str, Any] | None:
+async def get_par_request(request_uri: str) -> Dict[str, Any] | None:
     """Retrieve parameters for *request_uri* if present and not expired."""
 
     from ..orm import PushedAuthorizationRequest
 
-    obj = await PushedAuthorizationRequest.handlers.read.core(
-        {"db": db, "obj_id": request_uri}
+    objs = await PushedAuthorizationRequest.handlers.list.core(
+        {"payload": {"filters": {"request_uri": request_uri}}}
     )
+    obj = objs.items[0] if getattr(objs, "items", None) else None
     if not obj:
         return None
     expires_at = obj.expires_at
     if expires_at.tzinfo is None:
         expires_at = expires_at.replace(tzinfo=timezone.utc)
     if datetime.now(tz=timezone.utc) > expires_at:
-        await PushedAuthorizationRequest.handlers.delete.core({"db": db, "obj": obj})
+        await PushedAuthorizationRequest.handlers.delete.core({"obj": obj})
         return None
     return obj.params
 
 
-async def reset_par_store(db: AsyncSession) -> None:
+async def reset_par_store() -> None:
     """Clear stored pushed authorization requests (test helper)."""
 
     from ..orm import PushedAuthorizationRequest
 
-    await PushedAuthorizationRequest.handlers.clear.core({"db": db})
+    await PushedAuthorizationRequest.handlers.clear.core({})
 
 
 __all__ = [

@@ -75,9 +75,8 @@ class User(UserBase):
         if slug:
             from .tenant import Tenant
 
-            db = ctx.get("db")
             tenants = await Tenant.handlers.list.core(
-                {"db": db, "payload": {"filters": {"slug": slug}}}
+                {"payload": {"filters": {"slug": slug}}}
             )
             tenant = tenants.items[0] if getattr(tenants, "items", None) else None
             if tenant is None:
@@ -116,22 +115,20 @@ class User(UserBase):
 
         request = ctx.get("request")
         _require_tls(request)
-        db = ctx.get("db")
         payload = ctx.get("payload") or {}
         plain_pw = payload.get("password")
         try:
             tenant_slug = payload.pop("tenant_slug")
             tenants = await Tenant.handlers.list.core(
-                {"db": db, "payload": {"filters": {"slug": tenant_slug}}}
+                {"payload": {"filters": {"slug": tenant_slug}}}
             )
             tenant = tenants.items[0] if getattr(tenants, "items", None) else None
             if tenant is None:
                 raise HTTPException(status.HTTP_404_NOT_FOUND, "tenant not found")
             payload["tenant_id"] = tenant.id
 
-            await cls.handlers.create.core({"db": db, "payload": payload})
+            await cls.handlers.create.core({"payload": payload})
             ctx_login = {
-                "db": db,
                 "payload": {
                     "username": payload["username"],
                     "password": plain_pw,

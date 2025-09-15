@@ -8,7 +8,6 @@ from tigrbl_auth.crypto import hash_pw
 from tigrbl_auth.orm import Client, Tenant, User
 from tigrbl_auth.oidc_id_token import oidc_hash, verify_id_token
 from tigrbl_auth.rfc.rfc8414_metadata import ISSUER
-from tigrbl_auth.routers.auth_flows import AUTH_CODES
 
 
 @pytest.mark.usefixtures("temp_key_file")
@@ -97,4 +96,3 @@ async def test_authorize_includes_c_hash(async_client, db_session):
     id_token = query["id_token"][0]
     claims = await verify_id_token(id_token, issuer=ISSUER, audience=str(client_id))
     assert claims["c_hash"] == oidc_hash(code)
-    AUTH_CODES.clear()

@@ -58,10 +58,7 @@ async def _user_from_jwt(token: str, db: AsyncSession) -> User | None:
         return None
 
     users = await User.handlers.list.core(
-        {
-            "db": db,
-            "payload": {"filters": {"id": payload["sub"], "is_active": True}},
-        }
+        {"payload": {"filters": {"id": payload["sub"], "is_active": True}}}
     )
     return users.items[0] if getattr(users, "items", None) else None
 

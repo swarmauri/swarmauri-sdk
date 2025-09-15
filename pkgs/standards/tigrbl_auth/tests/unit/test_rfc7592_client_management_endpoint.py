@@ -1,21 +1,46 @@
-"""Tests for missing OAuth2 Client Management endpoints (RFC 7592)."""
+"""Endpoint availability tests for RFC 7592 client management."""
 
+import asyncio
+
+import httpx
 import pytest
-from fastapi import FastAPI, status
-from httpx import ASGITransport, AsyncClient
-
-from tigrbl_auth.rfc.rfc7591 import include_rfc7591
-from tigrbl_auth.runtime_cfg import settings
+import uvicorn
 
 
-@pytest.mark.unit
+async def _wait_for_app(base_url: str) -> None:
+    async with httpx.AsyncClient() as client:
+        for _ in range(50):
+            try:
+                resp = await client.get(f"{base_url}/system/healthz")
+                if resp.status_code == 200:
+                    return
+            except Exception:
+                pass
+            await asyncio.sleep(0.1)
+    raise RuntimeError("server not ready")
+
+
+@pytest.fixture()
+async def running_app(override_get_db):
+    cfg = uvicorn.Config(
+        "tigrbl_auth.app:app", host="127.0.0.1", port=8005, log_level="warning"
+    )
+    server = uvicorn.Server(cfg)
+    task = asyncio.create_task(server.serve())
+    await _wait_for_app("http://127.0.0.1:8005")
+    try:
+        yield "http://127.0.0.1:8005"
+    finally:
+        server.should_exit = True
+        await task
+
+
 @pytest.mark.asyncio
-async def test_rfc7592_client_management_not_implemented(monkeypatch) -> None:
-    """Attempts to manage clients return 404 as the endpoints are absent."""
-    app = FastAPI()
-    monkeypatch.setattr(settings, "enable_rfc7591", True)
-    include_rfc7591(app)
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        resp = await client.get("/register/some-client-id")
-    assert resp.status_code == status.HTTP_404_NOT_FOUND
+async def test_client_management_unknown_client_returns_404(running_app):
+    base = running_app
+    async with httpx.AsyncClient() as client:
+        resp = await client.patch(
+            f"{base}/client/ffffffff-ffff-ffff-ffff-ffffffffffff",
+            json={"redirect_uris": ["https://b.example/cb"]},
+        )
+    assert resp.status_code == 422

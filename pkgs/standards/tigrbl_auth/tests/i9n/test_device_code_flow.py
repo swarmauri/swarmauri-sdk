@@ -9,7 +9,7 @@ from tigrbl_auth.rfc.rfc8628 import approve_device_code
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_device_code_flow(async_client: AsyncClient, db_session) -> None:
+async def test_device_code_flow(async_client: AsyncClient) -> None:
     """Device code flow should exchange a code for an access token after approval."""
     auth_resp = await async_client.post(
         "/device_codes/device_authorization",
@@ -29,7 +29,9 @@ async def test_device_code_flow(async_client: AsyncClient, db_session) -> None:
     assert pending.status_code == status.HTTP_400_BAD_REQUEST
     assert pending.json()["error"] == "authorization_pending"
 
-    await approve_device_code(device_code, sub="user", tid="tenant", db=db_session)
+    await approve_device_code.__wrapped__(
+        {"payload": {"id": device_code, "sub": "user", "tid": "tenant"}}
+    )
     success = await async_client.post("/token", data=payload)
     assert success.status_code == status.HTTP_200_OK
     token_data = success.json()
