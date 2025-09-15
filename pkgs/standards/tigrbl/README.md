@@ -1,4 +1,4 @@
-![Tigrbl Logo](../../../assets/tigrbl_full_logo.png)
+![Tigrbl Logo](https://github.com/swarmauri/swarmauri-sdk/blob/a170683ecda8ca1c4f912c966d4499649ffb8224/assets/tigrbl.brand.theme.svg)
 
 <p align="center">
     <a href="https://pypi.org/project/tigrbl/">
@@ -17,6 +17,14 @@
 
 # Tigrbl 🐅🐂
 A high-leverage meta-framework that turns plain SQLAlchemy models into a fully-featured REST+RPC surface with near-zero boilerplate. 🚀
+
+## Features ✨
+
+- ⚡ Zero-boilerplate CRUD for SQLAlchemy models
+- 🔌 Unified REST and RPC endpoints from a single definition
+- 🪝 Hookable phase system for deep customization
+- 🧩 Pluggable engine and provider abstractions
+- 🚀 Built on FastAPI and Pydantic for modern Python web apps
 
 ## Terminology 📚
 

@@ -46,7 +46,7 @@ def add_badges(pkg_dir: Path) -> bool:
 
     insert_idx = 0
     for i, line in enumerate(lines):
-        if line.startswith("![") or "Swamauri Logo" in line:
+        if line.startswith("![") or "Swarmauri Logo" in line:
             insert_idx = i + 1
             while insert_idx < len(lines) and lines[insert_idx].strip() == "":
                 insert_idx += 1
