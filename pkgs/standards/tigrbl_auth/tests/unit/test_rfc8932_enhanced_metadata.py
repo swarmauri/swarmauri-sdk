@@ -126,7 +126,9 @@ def test_get_enhanced_authorization_server_metadata_par():
         metadata = get_enhanced_authorization_server_metadata()
 
         assert "pushed_authorization_request_endpoint" in metadata
-        assert metadata["pushed_authorization_request_endpoint"].endswith("/par")
+        assert metadata["pushed_authorization_request_endpoint"].endswith(
+            "/pushedauthorizationrequest"
+        )
         assert "require_pushed_authorization_requests" in metadata
 
 
