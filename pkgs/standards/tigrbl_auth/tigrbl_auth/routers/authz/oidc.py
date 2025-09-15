@@ -22,10 +22,10 @@ from ...oidc_id_token import mint_id_token, oidc_hash
 from ...rfc.rfc8414_metadata import ISSUER
 from ...rfc.rfc8252 import is_native_redirect_uri
 from ..shared import _require_tls, SESSIONS, AUTH_CODES
-from . import router
+from . import api
 
 
-@router.get("/authorize")
+@api.get("/authorize")
 async def authorize(
     response_type: str,
     client_id: str,
