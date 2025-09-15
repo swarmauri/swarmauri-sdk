@@ -1,11 +1,14 @@
-"""ORM-backed API surface for the authentication service.
+"""
+tigrbl_auth.routers.surface
+===========================
+
+ORM-backed API surface for the authentication service.
 
 Exports
 -------
-Base       : Declarative base for all models in **tigrbl_authn**.
-metadata   : Shared SQLAlchemy ``MetaData`` with a sane naming-convention.
-router     : FastAPI router combining Tigrbl resources and auth flows.
-tigrbl    : The ``TigrblApi`` instance used to produce *router*.
+Base        : Declarative base for all models in **tigrbl_authn**.
+metadata    : Shared SQLAlchemy ``MetaData`` with a sane naming-convention.
+surface_api : ``TigrblApi`` combining Tigrbl resources and auth flows.
 
 The resulting ``surface_api`` exposes a symmetrical REST/RPC surface under
 namespaces like ``surface_api.core.User.create`` and
@@ -35,7 +38,7 @@ from tigrbl_auth.orm import (
     AuthCode,
 )
 from ..db import dsn
-from .auth_flows import router as flows_router
+from .auth_flows import api as flows_api
 
 # ----------------------------------------------------------------------
 # 3.  Build Tigrbl instance & router
@@ -56,6 +59,6 @@ surface_api.include_models(
     ]
 )
 
-surface_api.include_router(flows_router)
+surface_api.include_router(flows_api)
 
 __all__ = ["surface_api"]

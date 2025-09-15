@@ -12,7 +12,7 @@ from tigrbl_auth.errors import InvalidTokenError
 from tigrbl_auth.rfc.rfc8523 import (
     RFC8523_SPEC_URL,
     validate_enhanced_jwt_bearer,
-    create_client_assertion_jwt,
+    makeClientAssertionJwt,
     is_jwt_replay,
 )
 from tigrbl_auth.runtime_cfg import settings
@@ -127,10 +127,10 @@ def test_validate_enhanced_jwt_bearer_empty_jti():
 
 
 @pytest.mark.unit
-def test_create_client_assertion_jwt():
+def test_make_client_assertion_jwt():
     """RFC 8523: Create valid client assertion JWT."""
     with patch.object(settings, "enable_rfc8523", True):
-        jwt_token = create_client_assertion_jwt(
+        jwt_token = makeClientAssertionJwt(
             client_id="test-client",
             audience="https://auth.example.com/token",
             expires_in=300,
@@ -150,11 +150,11 @@ def test_create_client_assertion_jwt():
 
 
 @pytest.mark.unit
-def test_create_client_assertion_jwt_with_additional_claims():
+def test_make_client_assertion_jwt_with_additional_claims():
     """RFC 8523: Create JWT with additional claims."""
     with patch.object(settings, "enable_rfc8523", True):
         additional = {"custom_claim": "custom_value", "scope": "read write"}
-        jwt_token = create_client_assertion_jwt(
+        jwt_token = makeClientAssertionJwt(
             client_id="test-client",
             audience="https://auth.example.com/token",
             additional_claims=additional,
@@ -169,11 +169,11 @@ def test_create_client_assertion_jwt_with_additional_claims():
 
 
 @pytest.mark.unit
-def test_create_client_assertion_jwt_disabled():
+def test_make_client_assertion_jwt_disabled():
     """RFC 8523: Creating JWT when disabled should raise RuntimeError."""
     with patch.object(settings, "enable_rfc8523", False):
         with pytest.raises(RuntimeError, match="RFC 8523 support disabled"):
-            create_client_assertion_jwt(
+            makeClientAssertionJwt(
                 client_id="test-client",
                 audience="https://auth.example.com/token",
             )
