@@ -14,6 +14,7 @@ from tigrbl_auth.deps import (
     String,
     TZDateTime,
     op_ctx,
+    GUIDPk,
     HTTPException,
     status,
 )
@@ -22,11 +23,11 @@ from ..runtime_cfg import settings
 from ..rfc.rfc9126 import DEFAULT_PAR_EXPIRY
 
 
-class PushedAuthorizationRequest(Base, Timestamped):
+class PushedAuthorizationRequest(Base, GUIDPk, Timestamped):
     __tablename__ = "par_requests"
     __table_args__ = ({"schema": "authn"},)
 
-    request_uri: Mapped[str] = acol(storage=S(String(255), primary_key=True))
+    request_uri: Mapped[str] = acol(storage=S(String(255), nullable=False, unique=True))
     params: Mapped[dict] = acol(storage=S(JSON, nullable=False))
     expires_at: Mapped[dt.datetime] = acol(storage=S(TZDateTime, nullable=False))
 
@@ -37,7 +38,6 @@ class PushedAuthorizationRequest(Base, Timestamped):
 
         if not settings.enable_rfc9126:
             raise HTTPException(status.HTTP_404_NOT_FOUND, "PAR disabled")
-        db = ctx.get("db")
         request = ctx.get("request")
         form = await request.form() if request else {}
         params = dict(form)
@@ -47,7 +47,6 @@ class PushedAuthorizationRequest(Base, Timestamped):
         )
         await cls.handlers.create.core(
             {
-                "db": db,
                 "payload": {
                     "request_uri": request_uri,
                     "params": params,

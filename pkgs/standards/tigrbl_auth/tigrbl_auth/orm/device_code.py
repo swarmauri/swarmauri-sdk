@@ -18,6 +18,7 @@ from tigrbl_auth.deps import (
     String,
     TZDateTime,
     op_ctx,
+    GUIDPk,
     HTTPException,
     status,
 )
@@ -30,11 +31,11 @@ from ..rfc.rfc8628 import (
 )
 
 
-class DeviceCode(Base, Timestamped):
+class DeviceCode(Base, GUIDPk, Timestamped):
     __tablename__ = "device_codes"
     __table_args__ = ({"schema": "authn"},)
 
-    device_code: Mapped[str] = acol(storage=S(String(128), primary_key=True))
+    device_code: Mapped[str] = acol(storage=S(String(128), nullable=False, unique=True))
     user_code: Mapped[str] = acol(storage=S(String(32), nullable=False, index=True))
     client_id: Mapped[uuid.UUID] = acol(
         storage=S(
@@ -72,7 +73,6 @@ class DeviceCode(Base, Timestamped):
             raise HTTPException(
                 status.HTTP_404_NOT_FOUND, "device authorization disabled"
             )
-        db = ctx.get("db")
         payload = ctx.get("payload") or {}
         client_id = payload.get("client_id")
         if not client_id:
@@ -86,7 +86,6 @@ class DeviceCode(Base, Timestamped):
         )
         await cls.handlers.create.core(
             {
-                "db": db,
                 "payload": {
                     "device_code": device_code,
                     "user_code": user_code,

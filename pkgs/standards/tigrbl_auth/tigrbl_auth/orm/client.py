@@ -68,9 +68,8 @@ class Client(ClientBase):
         if slug:
             from .tenant import Tenant
 
-            db = ctx.get("db")
             tenants = await Tenant.handlers.list.core(
-                {"db": db, "payload": {"filters": {"slug": slug}}}
+                {"payload": {"filters": {"slug": slug}}}
             )
             tenant = tenants.items[0] if getattr(tenants, "items", None) else None
             if tenant is None:
@@ -119,7 +118,6 @@ class Client(ClientBase):
 
         from urllib.parse import urlparse
 
-        db = ctx.get("db")
         payload = ctx.get("payload") or {}
         redirects = payload.get("redirect_uris") or []
         if isinstance(redirects, list):
@@ -149,7 +147,7 @@ class Client(ClientBase):
         payload["id"] = client_id
         secret = payload.get("client_secret") or secrets.token_urlsafe(32)
         payload["client_secret"] = secret
-        obj = await cls.handlers.create.core({"db": db, "payload": payload})
+        obj = await cls.handlers.create.core({"payload": payload})
         return {
             "client_id": str(obj.id),
             "client_secret": secret,
