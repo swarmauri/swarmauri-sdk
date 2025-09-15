@@ -18,7 +18,8 @@ def test_parameterized_mode(pytester):
         str(pkg),
     )
     result.assert_outcomes(passed=1, failed=1)
-    assert "swarmauri_tests_loc_tersity:loc::" in result.stdout.str()
+    out = result.stdout.str()
+    assert "::swarmauri_tests_loc_tersity:loc::bad.py" in out
 
 
 def test_aggregate_mode(pytester):
