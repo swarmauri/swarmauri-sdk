@@ -24,6 +24,8 @@ def run_gen_api(
     changed_only (bool): Only rebuild pages for changed sources.
     RETURNS (None): This function operates via side effects.
     """
+    os.makedirs(docs_dir, exist_ok=True)
+
     cmd = [
         sys.executable,
         "-m",
@@ -94,6 +96,8 @@ def run_mkdocs_serve(
     dev_addr (str): Address and port for the server to bind to.
     RETURNS (None): The server runs until interrupted.
     """
+    os.makedirs(docs_dir, exist_ok=True)
+
     cmd = ["mkdocs", "serve", "-f", mkdocs_yml, "-a", dev_addr]
     subprocess.run(cmd, check=True, cwd=docs_dir)
 
@@ -104,6 +108,8 @@ def run_gen_readmes(docs_dir: str = ".") -> None:
     docs_dir (str): Root directory containing project documentation.
     RETURNS (None): This function operates via side effects.
     """
+    os.makedirs(docs_dir, exist_ok=True)
+
     cmd = [sys.executable, "-m", "zdx.scripts.gen_readmes"]
     subprocess.run(cmd, check=True, cwd=docs_dir)
 
