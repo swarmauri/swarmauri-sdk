@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import datetime as dt
-import uuid
 
 from tigrbl_auth.deps import (
     Base,
@@ -20,6 +19,9 @@ from tigrbl_auth.deps import (
     Mapped,
     UUID,
     op_ctx,
+    hook_ctx,
+    engine_ctx,
+    GUIDPk,
     HTTPException,
     status,
 )
@@ -31,12 +33,12 @@ from ..routers.shared import _jwt, _require_tls
 from .user import User
 
 
-class AuthCode(Base, Timestamped, UserColumn, TenantColumn):
+@engine_ctx(kind="sqlite", mode="memory")
+class AuthCode(Base, GUIDPk, Timestamped, UserColumn, TenantColumn):
     __tablename__ = "auth_codes"
     __table_args__ = ({"schema": "authn"},)
 
-    code: Mapped[uuid.UUID] = acol(storage=S(PgUUID(as_uuid=True), primary_key=True))
-    client_id: Mapped[uuid.UUID] = acol(
+    client_id: Mapped[UUID] = acol(
         storage=S(
             PgUUID(as_uuid=True),
             fk=ForeignKeySpec(target="authn.clients.id"),
@@ -50,6 +52,18 @@ class AuthCode(Base, Timestamped, UserColumn, TenantColumn):
     expires_at: Mapped[dt.datetime] = acol(storage=S(TZDateTime, nullable=False))
     claims: Mapped[dict | None] = acol(storage=S(JSON, nullable=True))
 
+    @hook_ctx(ops="exchange", phase="PRE_HANDLER")
+    async def _verify_pkce(cls, ctx):
+        obj = ctx.get("obj")
+        payload = ctx.get("payload") or {}
+        verifier = payload.get("code_verifier")
+        if (
+            obj
+            and obj.code_challenge
+            and not (verifier and verify_code_challenge(verifier, obj.code_challenge))
+        ):
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_grant"})
+
     @op_ctx(alias="exchange", target="delete", arity="member")
     async def exchange(cls, ctx, obj):
         import secrets
@@ -57,11 +71,9 @@ class AuthCode(Base, Timestamped, UserColumn, TenantColumn):
 
         request = ctx.get("request")
         _require_tls(request)
-        db = ctx.get("db")
         payload = ctx.get("payload") or {}
         client_id = payload.get("client_id")
         redirect_uri = payload.get("redirect_uri")
-        verifier = payload.get("code_verifier")
 
         def _normalize(val: str | None) -> str | None:
             if val is None:
@@ -84,10 +96,6 @@ class AuthCode(Base, Timestamped, UserColumn, TenantColumn):
             or datetime.now(timezone.utc) > (expires_at or datetime.now(timezone.utc))
         ):
             raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_grant"})
-        if obj.code_challenge and not (
-            verifier and verify_code_challenge(verifier, obj.code_challenge)
-        ):
-            raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_grant"})
         jwt_kwargs: dict[str, str] = {}
         if obj.scope:
             jwt_kwargs["scope"] = obj.scope
@@ -101,7 +109,7 @@ class AuthCode(Base, Timestamped, UserColumn, TenantColumn):
             "at_hash": oidc_hash(access),
         }
         if obj.claims and "id_token" in obj.claims:
-            user_obj = await User.handlers.read.core({"db": db, "obj_id": obj.user_id})
+            user_obj = await User.handlers.read.core({"obj_id": obj.user_id})
             idc = obj.claims["id_token"]
             if "email" in idc:
                 extra_claims["email"] = user_obj.email if user_obj else ""
@@ -114,7 +122,7 @@ class AuthCode(Base, Timestamped, UserColumn, TenantColumn):
             issuer=ISSUER,
             **extra_claims,
         )
-        await cls.handlers.delete.core({"db": db, "obj": obj, "obj_id": obj.code})
+        await cls.handlers.delete.core({"obj": obj, "obj_id": obj.id})
         return {
             "access_token": access,
             "refresh_token": refresh,
