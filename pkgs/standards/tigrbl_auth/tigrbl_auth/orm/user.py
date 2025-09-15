@@ -114,7 +114,7 @@ class User(UserBase):
         from ..routers.shared import _jwt, _require_tls, SESSIONS
         from .auth_session import AuthSession
         from .tenant import Tenant
-        from tigrbl.error import IntegrityError
+        from tigrbl_auth.deps import IntegrityError
 
         request = ctx.get("request")
         _require_tls(request)

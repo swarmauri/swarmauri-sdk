@@ -6,7 +6,9 @@ import asyncio
 import base64
 import hashlib
 import json
-from typing import Dict, Final
+from typing import Any, Dict, Final
+from cryptography.hazmat.primitives.serialization import load_pem_public_key
+from cryptography.hazmat.primitives import serialization
 from swarmauri_signing_dpop import DpopSigner
 from ..deps import JWAAlg
 
@@ -28,6 +30,11 @@ def _b64url(data: bytes) -> str:
 
 
 def jwk_from_public_key(public_key: bytes) -> Dict[str, str]:
+    if public_key.startswith(b"-----BEGIN"):
+        pub_obj = load_pem_public_key(public_key)
+        public_key = pub_obj.public_bytes(
+            serialization.Encoding.Raw, serialization.PublicFormat.Raw
+        )
     x = _b64url(public_key)
     return {"kty": "OKP", "crv": "Ed25519", "x": x}
 
@@ -44,17 +51,27 @@ def jwk_thumbprint(jwk: Dict[str, str]) -> str:
 
 
 def create_proof(
-    private_pem: bytes, method: str, url: str, *, enabled: bool | None = None
+    keyref: Any, method: str, url: str, *, enabled: bool | None = None
 ) -> str:
+    """Create a DPoP proof for *method* and *url* using *keyref*.
+
+    ``keyref`` is the :class:`~swarmauri_core.crypto.types.KeyRef` returned by a
+    Swarmauri key provider such as :class:`~tigrbl_auth.deps.LocalKeyProvider` or
+    ``InMemoryKeyProvider``. The private key material from the provider is
+    passed to :class:`~swarmauri_signing_dpop.DpopSigner` for signing, avoiding
+    direct usage of ``cryptography`` within this module.
+    """
+
     if enabled is None:
         enabled = settings.enable_rfc9449
     if not enabled:
         return ""
-    # Resolve the key and delegate signing to ``DpopSigner``.
-    keyref = {"kind": "pem", "priv": private_pem}
+    priv = keyref.material or b""
+    if isinstance(priv, str):
+        priv = priv.encode()
     sigs = asyncio.run(
         _signer.sign_bytes(
-            keyref,
+            {"kind": "pem", "priv": priv},
             b"",
             alg=_ALG.value,
             opts={"htm": method.upper(), "htu": url},

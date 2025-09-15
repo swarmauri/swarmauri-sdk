@@ -30,14 +30,13 @@ def test_dpop_proof_verification():
     spec = KeySpec(
         klass=KeyClass.asymmetric,
         alg=KeyAlg.ED25519,
-        uses=(KeyUse.sign,),
-        export_policy=ExportPolicy.KEYPAIR,
+        uses=(KeyUse.SIGN,),
+        export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
     )
     ref = asyncio.run(kp.create_key(spec))
-    private_pem = ref.material or b""
     jwk = jwk_from_public_key(ref.public or b"")
     jkt = jwk_thumbprint(jwk)
-    proof = create_proof(private_pem, "POST", "https://rs.example.com/resource")
+    proof = create_proof(ref, "POST", "https://rs.example.com/resource")
     assert (
         verify_proof(proof, "POST", "https://rs.example.com/resource", jkt=jkt) == jkt
     )
@@ -50,12 +49,11 @@ def test_mismatched_method_rejected():
     spec = KeySpec(
         klass=KeyClass.asymmetric,
         alg=KeyAlg.ED25519,
-        uses=(KeyUse.sign,),
-        export_policy=ExportPolicy.KEYPAIR,
+        uses=(KeyUse.SIGN,),
+        export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
     )
     ref = asyncio.run(kp.create_key(spec))
-    private_pem = ref.material or b""
-    proof = create_proof(private_pem, "GET", "https://rs.example.com/data")
+    proof = create_proof(ref, "GET", "https://rs.example.com/data")
     with pytest.raises(ValueError):
         verify_proof(proof, "POST", "https://rs.example.com/data")
 
@@ -67,14 +65,11 @@ def test_feature_toggle_disabled():
     spec = KeySpec(
         klass=KeyClass.asymmetric,
         alg=KeyAlg.ED25519,
-        uses=(KeyUse.sign,),
-        export_policy=ExportPolicy.KEYPAIR,
+        uses=(KeyUse.SIGN,),
+        export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
     )
     ref = asyncio.run(kp.create_key(spec))
-    private_pem = ref.material or b""
-    proof = create_proof(
-        private_pem, "GET", "https://rs.example.com/data", enabled=False
-    )
+    proof = create_proof(ref, "GET", "https://rs.example.com/data", enabled=False)
     assert proof == ""
     assert verify_proof("", "GET", "https://rs.example.com/data", enabled=False) == ""
 

@@ -28,7 +28,7 @@ from .fastapi import (
     RedirectResponse,
     APIKeyHeader,
 )
-from .sqlalchemy import Select, select, or_, delete
+from .sqlalchemy import IntegrityError, Select, select, or_, delete
 from .tigrbl import (
     TigrblApp,
     TigrblApi,
@@ -38,7 +38,6 @@ from .tigrbl import (
     build_engine,
     TIGRBL_AUTH_CONTEXT_ATTR,
     AuthNProvider,
-    IntegrityError,
     ForeignKeySpec,
     UserBase,
     TenantBase,
@@ -111,6 +110,7 @@ __all__ = [
     "select",
     "or_",
     "delete",
+    "IntegrityError",
     # tigrbl
     "TigrblApp",
     "TigrblApi",
@@ -120,7 +120,6 @@ __all__ = [
     "build_engine",
     "TIGRBL_AUTH_CONTEXT_ATTR",
     "AuthNProvider",
-    "IntegrityError",
     "ForeignKeySpec",
     "UserBase",
     "TenantBase",

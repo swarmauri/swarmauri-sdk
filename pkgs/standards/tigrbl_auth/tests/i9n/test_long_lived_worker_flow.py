@@ -47,14 +47,13 @@ async def test_worker_enrollment_flow_dpop(
     spec = KeySpec(
         klass=KeyClass.asymmetric,
         alg=KeyAlg.ED25519,
-        uses=(KeyUse.sign,),
-        export_policy=ExportPolicy.KEYPAIR,
+        uses=(KeyUse.SIGN,),
+        export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
     )
     ref = await kp.create_key(spec)
-    private_pem = ref.material or b""
     jwk = jwk_from_public_key(ref.public or b"")
     jkt = jwk_thumbprint(jwk)
-    proof = create_proof(private_pem, "POST", "http://test/token/exchange")
+    proof = create_proof(ref, "POST", "http://test/token/exchange")
 
     resp = await async_client.post(
         "/token/exchange",
@@ -71,7 +70,7 @@ async def test_worker_enrollment_flow_dpop(
     claims = decode_jwt(token)
     assert claims.get("cnf", {}).get("jkt") == jkt
 
-    proof2 = create_proof(private_pem, "GET", "http://test/userinfo")
+    proof2 = create_proof(ref, "GET", "http://test/userinfo")
     headers = {"Authorization": f"Bearer {token}", "DPoP": proof2}
     ok = await async_client.get("/userinfo", headers=headers)
     assert ok.status_code == status.HTTP_200_OK
