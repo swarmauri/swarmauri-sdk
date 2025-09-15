@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import Final, Set
 
-from tigrbl_auth.deps import APIRouter, FastAPI, Form, HTTPException, status
+from tigrbl_auth.deps import APIRouter, TigrblApp, Form, HTTPException, status
 
 from ..runtime_cfg import settings
 
@@ -65,7 +65,7 @@ async def revoke(token: str = Form(...)) -> dict[str, str]:
     return {}
 
 
-def include_rfc7009(app: FastAPI) -> None:
+def include_rfc7009(app: TigrblApp) -> None:
     """Attach revocation routes to *app* if enabled."""
     if settings.enable_rfc7009 and not any(
         route.path == "/revoked_tokens/revoke" for route in app.routes
