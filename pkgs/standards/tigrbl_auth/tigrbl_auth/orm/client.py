@@ -7,12 +7,10 @@ import uuid
 from typing import Final
 from urllib.parse import urlparse
 
-from tigrbl import hook_ctx
-from tigrbl.orm.tables import Client as ClientBase
-from tigrbl.types import relationship
+from tigrbl_auth.deps import hook_ctx, ClientBase, relationship
 
 from ..crypto import hash_pw
-from ..rfc8252 import (
+from ..rfc.rfc8252 import (
     RFC8252_SPEC_URL,
     is_native_redirect_uri,
     validate_native_redirect_uri,

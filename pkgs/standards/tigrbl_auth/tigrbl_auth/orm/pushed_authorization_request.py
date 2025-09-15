@@ -4,15 +4,22 @@ from __future__ import annotations
 
 import datetime as dt
 
-from tigrbl.orm.tables import Base
-from tigrbl.orm.mixins import Timestamped
-from tigrbl.specs import S, acol
-from tigrbl.types import JSON, Mapped, String, TZDateTime
-from tigrbl import op_ctx
-from fastapi import HTTPException, status
+from tigrbl_auth.deps import (
+    Base,
+    Timestamped,
+    S,
+    acol,
+    JSON,
+    Mapped,
+    String,
+    TZDateTime,
+    op_ctx,
+    HTTPException,
+    status,
+)
 
 from ..runtime_cfg import settings
-from ..rfc9126 import DEFAULT_PAR_EXPIRY
+from ..rfc.rfc9126 import DEFAULT_PAR_EXPIRY
 
 
 class PushedAuthorizationRequest(Base, Timestamped):

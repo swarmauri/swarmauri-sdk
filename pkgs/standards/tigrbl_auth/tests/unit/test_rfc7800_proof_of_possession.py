@@ -7,8 +7,8 @@ via ``runtime_cfg.Settings.enable_rfc7800``.
 
 import pytest
 
-from tigrbl_auth.rfc7638 import jwk_thumbprint
-from tigrbl_auth.rfc7800 import (
+from tigrbl_auth.rfc.rfc7638 import jwk_thumbprint
+from tigrbl_auth.rfc.rfc7800 import (
     RFC7800_SPEC_URL,
     add_cnf_claim,
     verify_proof_of_possession,

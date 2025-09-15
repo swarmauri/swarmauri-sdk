@@ -4,7 +4,7 @@ import pytest
 from fastapi import FastAPI, status
 from httpx import ASGITransport, AsyncClient
 
-from tigrbl_auth.rfc9126 import DEFAULT_PAR_EXPIRY, router
+from tigrbl_auth.rfc.rfc9126 import DEFAULT_PAR_EXPIRY, router
 from tigrbl_auth.fastapi_deps import get_db
 
 # RFC 9126 specification excerpt for reference within tests

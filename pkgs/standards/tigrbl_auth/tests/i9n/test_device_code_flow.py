@@ -4,7 +4,7 @@ import pytest
 from fastapi import status
 from httpx import AsyncClient
 
-from tigrbl_auth.rfc8628 import approve_device_code
+from tigrbl_auth.rfc.rfc8628 import approve_device_code
 
 
 @pytest.mark.integration

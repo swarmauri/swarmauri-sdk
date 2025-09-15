@@ -11,7 +11,7 @@ omitted from the response.
 
 from __future__ import annotations
 
-from fastapi import (
+from tigrbl_auth.deps import (
     APIRouter,
     Depends,
     FastAPI,
@@ -24,7 +24,7 @@ from fastapi import (
 from .fastapi_deps import get_current_principal
 from .jwtoken import JWTCoder, InvalidTokenError, _svc
 from .orm import User
-from .rfc6750 import extract_bearer_token
+from .rfc.rfc6750 import extract_bearer_token
 from .deps import JWAAlg
 
 router = APIRouter()

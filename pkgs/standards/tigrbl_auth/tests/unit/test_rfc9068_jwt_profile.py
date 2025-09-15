@@ -13,7 +13,7 @@ from cryptography.hazmat.primitives.asymmetric import ed25519
 from tigrbl_auth import runtime_cfg
 from tigrbl_auth.errors import InvalidTokenError
 from tigrbl_auth.jwtoken import JWTCoder
-from tigrbl_auth.rfc9068 import add_rfc9068_claims, validate_rfc9068_claims
+from tigrbl_auth.rfc.rfc9068 import add_rfc9068_claims, validate_rfc9068_claims
 
 
 @pytest.mark.unit
