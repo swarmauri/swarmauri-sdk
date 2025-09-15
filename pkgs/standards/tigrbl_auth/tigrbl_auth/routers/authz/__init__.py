@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from tigrbl_auth.deps import APIRouter
 
 router = APIRouter()
 

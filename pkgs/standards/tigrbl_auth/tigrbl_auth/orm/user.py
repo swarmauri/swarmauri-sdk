@@ -4,16 +4,24 @@ from __future__ import annotations
 
 import uuid
 
-from tigrbl.orm.tables import User as UserBase
-from tigrbl import hook_ctx, op_ctx
+from tigrbl_auth.deps import (
+    ColumnSpec,
+    F,
+    IO,
+    LargeBinary,
+    Mapped,
+    S,
+    String,
+    UserBase,
+    acol,
+    hook_ctx,
+    op_ctx,
+    relationship,
+)
 from ..routers.schemas import RegisterIn, TokenPair
-from tigrbl.types import LargeBinary, Mapped, String, relationship
-from tigrbl.specs import F, IO, S, acol, ColumnSpec
 from typing import TYPE_CHECKING
 
-from fastapi import HTTPException, status
-from fastapi.responses import JSONResponse
-from sqlalchemy import select
+from tigrbl_auth.deps import HTTPException, JSONResponse, select, status
 
 if TYPE_CHECKING:  # pragma: no cover
     pass
@@ -104,7 +112,7 @@ class User(UserBase):
         from ..routers.shared import _jwt, _require_tls, SESSIONS
         from .auth_session import AuthSession
         from .tenant import Tenant
-        from tigrbl.error import IntegrityError
+        from tigrbl_auth.deps import IntegrityError
 
         request = ctx.get("request")
         _require_tls(request)

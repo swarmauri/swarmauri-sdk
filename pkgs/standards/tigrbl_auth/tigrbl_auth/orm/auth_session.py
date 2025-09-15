@@ -4,13 +4,23 @@ from __future__ import annotations
 
 import datetime as dt
 
-from tigrbl.orm.tables import Base
-from tigrbl.orm.mixins import TenantColumn, Timestamped, UserColumn
-from tigrbl.specs import S, acol
-from tigrbl.types import Mapped, String, TZDateTime
-from tigrbl import hook_ctx, op_ctx
-from fastapi import HTTPException, status
-from fastapi.responses import JSONResponse, Response
+from tigrbl_auth.deps import (
+    Base,
+    HTTPException,
+    JSONResponse,
+    Mapped,
+    S,
+    String,
+    TZDateTime,
+    TenantColumn,
+    Timestamped,
+    UserColumn,
+    acol,
+    hook_ctx,
+    op_ctx,
+    Response,
+    status,
+)
 
 
 class AuthSession(Base, Timestamped, UserColumn, TenantColumn):

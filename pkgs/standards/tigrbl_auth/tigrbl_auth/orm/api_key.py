@@ -2,17 +2,21 @@
 
 from __future__ import annotations
 
-from tigrbl.orm.mixins import (
+from tigrbl_auth.deps import (
+    Base,
     Created,
+    F,
     GUIDPk,
     KeyDigest,
     LastUsed,
+    Mapped,
+    S,
+    String,
     UserColumn,
     ValidityWindow,
+    acol,
+    relationship,
 )
-from tigrbl.orm.tables._base import Base
-from tigrbl.specs import F, S, acol
-from tigrbl.types import Mapped, String, relationship
 
 
 class ApiKey(Base, GUIDPk, Created, LastUsed, ValidityWindow, UserColumn, KeyDigest):

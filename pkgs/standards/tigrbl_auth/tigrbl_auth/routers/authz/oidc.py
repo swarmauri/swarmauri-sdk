@@ -6,9 +6,15 @@ from typing import Any, Optional
 from uuid import UUID, uuid4
 from urllib.parse import urlencode
 
-from fastapi import Depends, HTTPException, Request, status
-from fastapi.responses import HTMLResponse, RedirectResponse
-from tigrbl.engine import HybridSession as AsyncSession
+from tigrbl_auth.deps import (
+    AsyncSession,
+    Depends,
+    HTMLResponse,
+    HTTPException,
+    RedirectResponse,
+    Request,
+    status,
+)
 
 from ...fastapi_deps import get_db
 from ...orm import AuthCode, Client, User

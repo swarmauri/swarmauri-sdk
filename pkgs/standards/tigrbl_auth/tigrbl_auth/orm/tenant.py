@@ -4,10 +4,18 @@ from __future__ import annotations
 
 import uuid
 
-from tigrbl.orm.tables import Tenant as TenantBase
-from tigrbl.orm.mixins import Bootstrappable
-from tigrbl.specs import F, IO, S, acol, ColumnSpec
-from tigrbl.types import Mapped, String, relationship
+from tigrbl_auth.deps import (
+    Bootstrappable,
+    ColumnSpec,
+    F,
+    IO,
+    Mapped,
+    S,
+    String,
+    TenantBase,
+    acol,
+    relationship,
+)
 
 
 class Tenant(TenantBase, Bootstrappable):

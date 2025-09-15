@@ -5,13 +5,23 @@ from __future__ import annotations
 import datetime as dt
 import uuid
 
-from tigrbl.orm.tables import Base
-from tigrbl.orm.mixins import TenantColumn, Timestamped, UserColumn
-from tigrbl.specs import S, acol
-from tigrbl.column.storage_spec import ForeignKeySpec
-from tigrbl.types import JSON, PgUUID, String, TZDateTime, Mapped, UUID
-from tigrbl import op_ctx
-from fastapi import HTTPException, status
+from tigrbl_auth.deps import (
+    Base,
+    ForeignKeySpec,
+    JSON,
+    Mapped,
+    PgUUID,
+    S,
+    String,
+    TZDateTime,
+    TenantColumn,
+    Timestamped,
+    UUID,
+    UserColumn,
+    acol,
+    op_ctx,
+)
+from tigrbl_auth.deps import HTTPException, status
 
 from ..rfc.rfc8414_metadata import ISSUER
 from ..oidc_id_token import mint_id_token, oidc_hash

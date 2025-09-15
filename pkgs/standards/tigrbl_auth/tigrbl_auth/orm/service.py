@@ -2,16 +2,22 @@
 
 from __future__ import annotations
 
-from tigrbl.orm.tables import Base
-from tigrbl.orm.mixins import (
-    GUIDPk,
-    Timestamped,
-    TenantBound,
-    Principal,
+from tigrbl_auth.deps import (
     ActiveToggle,
+    Base,
+    ColumnSpec,
+    F,
+    GUIDPk,
+    IO,
+    Mapped,
+    S,
+    String,
+    TenantBound,
+    Timestamped,
+    acol,
+    relationship,
+    Principal,
 )
-from tigrbl.types import Mapped, String, relationship
-from tigrbl.specs import F, IO, S, acol, ColumnSpec
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover

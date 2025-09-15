@@ -7,10 +7,16 @@ import base64
 import hashlib
 import json
 from typing import Dict, Final
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from swarmauri_signing_dpop import DpopSigner
-from ..deps import JWAAlg
+from tigrbl_auth.deps import (
+    ExportPolicy,
+    JWAAlg,
+    KeyAlg,
+    KeyClass,
+    KeySpec,
+    KeyUse,
+    LocalKeyProvider,
+)
 
 from ..runtime_cfg import settings
 
@@ -29,14 +35,17 @@ def _b64url(data: bytes) -> str:
 # ---------------------------------------------------------------------------
 
 
-def jwk_from_public_key(public_key: Ed25519PublicKey) -> Dict[str, str]:
-    x = _b64url(
-        public_key.public_bytes(
-            encoding=serialization.Encoding.Raw,
-            format=serialization.PublicFormat.Raw,
-        )
+def jwk_from_public_key(public_pem: bytes) -> Dict[str, str]:
+    provider = LocalKeyProvider()
+    spec = KeySpec(
+        klass=KeyClass.asymmetric,
+        alg=KeyAlg.ED25519,
+        uses=(KeyUse.SIGN,),
+        export_policy=ExportPolicy.PUBLIC_ONLY,
     )
-    return {"kty": "OKP", "crv": "Ed25519", "x": x}
+    asyncio.run(provider.import_key(spec, b"0" * 32, public=public_pem))
+    jwks = asyncio.run(provider.jwks())
+    return jwks["keys"][0]
 
 
 def jwk_thumbprint(jwk: Dict[str, str]) -> str:
