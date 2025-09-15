@@ -1,6 +1,6 @@
 """
-tigrbl_authn.typing
-====================
+tigrbl_auth.typing
+==================
 
 Pure-typing utilities for the AuthN service.
 No runtime dependencies outside stdlib.

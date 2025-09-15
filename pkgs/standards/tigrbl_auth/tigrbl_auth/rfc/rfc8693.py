@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Union
 from enum import Enum
+import warnings
 from tigrbl_auth.deps import (
     TigrblApi,
     TigrblApp,
@@ -331,7 +332,7 @@ async def token_exchange_endpoint(
     return response.to_dict()
 
 
-def create_impersonation_token(
+def makeImpersonationToken(
     subject_token: str,
     actor_token: str,
     *,
@@ -366,7 +367,7 @@ def create_impersonation_token(
     return exchange_token(request, issuer="impersonation-service")
 
 
-def create_delegation_token(
+def makeDelegationToken(
     subject_token: str,
     *,
     audience: Optional[str] = None,
@@ -397,6 +398,44 @@ def create_delegation_token(
     return exchange_token(request, issuer="delegation-service")
 
 
+def create_impersonation_token(
+    subject_token: str,
+    actor_token: str,
+    *,
+    audience: Optional[str] = None,
+    scope: Optional[str] = None,
+) -> TokenExchangeResponse:
+    warnings.warn(
+        "create_impersonation_token is deprecated, use makeImpersonationToken",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return makeImpersonationToken(
+        subject_token,
+        actor_token,
+        audience=audience,
+        scope=scope,
+    )
+
+
+def create_delegation_token(
+    subject_token: str,
+    *,
+    audience: Optional[str] = None,
+    scope: Optional[str] = None,
+) -> TokenExchangeResponse:
+    warnings.warn(
+        "create_delegation_token is deprecated, use makeDelegationToken",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return makeDelegationToken(
+        subject_token,
+        audience=audience,
+        scope=scope,
+    )
+
+
 __all__ = [
     "TokenExchangeRequest",
     "TokenExchangeResponse",
@@ -404,6 +443,8 @@ __all__ = [
     "validate_token_exchange_request",
     "validate_subject_token",
     "exchange_token",
+    "makeImpersonationToken",
+    "makeDelegationToken",
     "create_impersonation_token",
     "create_delegation_token",
     "TOKEN_EXCHANGE_GRANT_TYPE",

@@ -13,8 +13,8 @@ with a minimum length of 43 characters and a maximum length of 128 characters.
 import pytest
 
 from tigrbl_auth import (
-    create_code_challenge,
-    create_code_verifier,
+    makeCodeChallenge,
+    makeCodeVerifier,
     verify_code_challenge,
 )
 import tigrbl_auth.rfc.rfc7636_pkce as pkce_mod
@@ -24,7 +24,7 @@ import tigrbl_auth.rfc.rfc7636_pkce as pkce_mod
 def test_code_verifier_meets_rfc7636_requirements():
     """Generated verifier satisfies RFC 7636 §4.1."""
 
-    verifier = create_code_verifier()
+    verifier = makeCodeVerifier()
     assert 43 <= len(verifier) <= 128
     allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~"
     assert all(ch in allowed for ch in verifier)
@@ -36,15 +36,15 @@ def test_code_challenge_s256_matches_known_example():
 
     verifier = "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
     expected = "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
-    assert create_code_challenge(verifier) == expected
+    assert makeCodeChallenge(verifier) == expected
 
 
 @pytest.mark.unit
 def test_verify_code_challenge_round_trip():
     """Challenge derived from verifier validates correctly."""
 
-    verifier = create_code_verifier(60)
-    challenge = create_code_challenge(verifier)
+    verifier = makeCodeVerifier(60)
+    challenge = makeCodeChallenge(verifier)
     assert verify_code_challenge(verifier, challenge)
 
 
@@ -52,8 +52,8 @@ def test_verify_code_challenge_round_trip():
 def test_verify_code_challenge_mismatch_fails():
     """Mismatched challenge fails when RFC 7636 is enabled."""
 
-    verifier = create_code_verifier()
-    other = create_code_challenge(create_code_verifier())
+    verifier = makeCodeVerifier()
+    other = makeCodeChallenge(makeCodeVerifier())
     assert not verify_code_challenge(verifier, other)
 
 
@@ -62,7 +62,7 @@ def test_invalid_verifier_rejected():
     """Invalid verifier raises ValueError."""
 
     with pytest.raises(ValueError):
-        create_code_challenge("short")
+        makeCodeChallenge("short")
 
 
 @pytest.mark.unit

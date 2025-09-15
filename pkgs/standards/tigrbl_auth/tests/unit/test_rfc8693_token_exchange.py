@@ -16,8 +16,8 @@ from tigrbl_auth.rfc.rfc8693 import (
     validate_token_exchange_request,
     validate_subject_token,
     exchange_token,
-    create_impersonation_token,
-    create_delegation_token,
+    makeImpersonationToken,
+    makeDelegationToken,
     TOKEN_EXCHANGE_GRANT_TYPE,
     include_rfc8693,
 )
@@ -292,7 +292,7 @@ def test_exchange_token_with_actor():
 
 
 @pytest.mark.unit
-def test_create_impersonation_token():
+def test_make_impersonation_token():
     """RFC 8693: Create impersonation token."""
     subject_jwt = encode_jwt(sub="user123", tid="tenant-1", exp=int(time.time()) + 3600)
     actor_jwt = encode_jwt(sub="admin456", tid="tenant-1", exp=int(time.time()) + 3600)
@@ -301,7 +301,7 @@ def test_create_impersonation_token():
         mock_response = TokenExchangeResponse(access_token="impersonation-token")
         mock_exchange.return_value = mock_response
 
-        response = create_impersonation_token(
+        response = makeImpersonationToken(
             subject_token=subject_jwt,
             actor_token=actor_jwt,
             audience="https://api.example.com",
@@ -320,7 +320,7 @@ def test_create_impersonation_token():
 
 
 @pytest.mark.unit
-def test_create_delegation_token():
+def test_make_delegation_token():
     """RFC 8693: Create delegation token."""
     subject_jwt = encode_jwt(
         sub="user123",
@@ -335,7 +335,7 @@ def test_create_delegation_token():
         )
         mock_exchange.return_value = mock_response
 
-        response = create_delegation_token(
+        response = makeDelegationToken(
             subject_token=subject_jwt,
             audience="https://api.example.com",
             scope="read",  # Narrower scope for delegation
@@ -366,27 +366,27 @@ def test_exchange_token_disabled():
 
 
 @pytest.mark.unit
-def test_create_impersonation_token_disabled():
-    """RFC 8693: create_impersonation_token should honor feature flag."""
+def test_make_impersonation_token_disabled():
+    """RFC 8693: makeImpersonationToken should honor feature flag."""
     subject_jwt = encode_jwt(sub="user123", tid="tenant-1", exp=int(time.time()) + 3600)
     actor_jwt = encode_jwt(sub="admin456", tid="tenant-1", exp=int(time.time()) + 3600)
 
     with patch.object(settings, "enable_rfc8693", False):
         with pytest.raises(RuntimeError, match="RFC 8693 support disabled"):
-            create_impersonation_token(
+            makeImpersonationToken(
                 subject_token=subject_jwt,
                 actor_token=actor_jwt,
             )
 
 
 @pytest.mark.unit
-def test_create_delegation_token_disabled():
-    """RFC 8693: create_delegation_token should honor feature flag."""
+def test_make_delegation_token_disabled():
+    """RFC 8693: makeDelegationToken should honor feature flag."""
     subject_jwt = encode_jwt(sub="user123", tid="tenant-1", exp=int(time.time()) + 3600)
 
     with patch.object(settings, "enable_rfc8693", False):
         with pytest.raises(RuntimeError, match="RFC 8693 support disabled"):
-            create_delegation_token(subject_token=subject_jwt)
+            makeDelegationToken(subject_token=subject_jwt)
 
 
 @pytest.mark.unit

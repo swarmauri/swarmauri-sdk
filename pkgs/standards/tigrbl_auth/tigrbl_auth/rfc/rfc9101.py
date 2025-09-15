@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, Final, Iterable
 import json
+import warnings
 
 from ..deps import JWAAlg, JwsSignerVerifier
 
@@ -20,7 +21,7 @@ RFC9101_SPEC_URL: Final = "https://www.rfc-editor.org/rfc/rfc9101"
 _signer = JwsSignerVerifier()
 
 
-async def create_request_object(
+async def makeRequestObject(
     params: Dict[str, Any], *, secret: str, algorithm: str = "HS256"
 ) -> str:
     """Return a JWT request object representing ``params``.
@@ -35,6 +36,17 @@ async def create_request_object(
     alg = JWAAlg(algorithm)
     key = {"kind": "raw", "key": secret.encode()}
     return await _signer.sign_compact(payload=params, alg=alg, key=key, typ="JWT")
+
+
+async def create_request_object(
+    params: Dict[str, Any], *, secret: str, algorithm: str = "HS256"
+) -> str:
+    warnings.warn(
+        "create_request_object is deprecated, use makeRequestObject",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return await makeRequestObject(params, secret=secret, algorithm=algorithm)
 
 
 async def parse_request_object(
@@ -61,4 +73,9 @@ async def parse_request_object(
     return json.loads(result.payload.decode())
 
 
-__all__ = ["create_request_object", "parse_request_object", "RFC9101_SPEC_URL"]
+__all__ = [
+    "makeRequestObject",
+    "parse_request_object",
+    "RFC9101_SPEC_URL",
+    "create_request_object",
+]

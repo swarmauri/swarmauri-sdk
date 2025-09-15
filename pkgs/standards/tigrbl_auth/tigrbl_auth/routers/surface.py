@@ -1,4 +1,8 @@
-"""ORM-backed API surface for the authentication service.
+"""
+tigrbl_auth.routers.surface
+===========================
+
+ORM-backed API surface for the authentication service.
 
 Exports
 -------
