@@ -29,7 +29,6 @@ from .rfc import rfc7662, rfc7591, rfc7592, rfc9101
 from .rfc.rfc7662 import introspect_token, register_token, reset_tokens
 from .rfc.rfc9207 import RFC9207_SPEC_URL, extract_issuer
 from .rfc.rfc8932 import RFC8932_SPEC_URL, enforce_encrypted_dns
-from .rfc.rfc9126 import store_par_request, get_par_request, reset_par_store
 from .rfc.rfc8707 import extract_resource, RFC8707_SPEC_URL
 from .rfc.rfc8705 import (
     RFC8705_SPEC_URL,
@@ -134,9 +133,6 @@ __all__ = [
     "introspect_token",
     "register_token",
     "reset_tokens",
-    "store_par_request",
-    "get_par_request",
-    "reset_par_store",
     "thumbprint_from_cert_pem",
     "validate_certificate_binding",
     "add_rfc9068_claims",

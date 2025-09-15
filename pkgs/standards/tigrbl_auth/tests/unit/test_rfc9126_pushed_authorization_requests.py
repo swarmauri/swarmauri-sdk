@@ -1,11 +1,9 @@
 """Tests for OAuth 2.0 Pushed Authorization Requests compliance with RFC 9126."""
 
 import pytest
-from fastapi import FastAPI, status
-from httpx import ASGITransport, AsyncClient
+from fastapi import status
 
-from tigrbl_auth.rfc.rfc9126 import DEFAULT_PAR_EXPIRY, router
-from tigrbl_auth.fastapi_deps import get_db
+from tigrbl_auth.orm.pushed_authorization_request import DEFAULT_PAR_EXPIRY
 
 # RFC 9126 specification excerpt for reference within tests
 RFC9126_SPEC = """
@@ -19,21 +17,12 @@ RFC 9126 - OAuth 2.0 Pushed Authorization Requests
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_par_returns_request_uri_and_expires(enable_rfc9126, monkeypatch):
+async def test_par_returns_request_uri_and_expires(enable_rfc9126, async_client):
     """RFC 9126 §3.1: Response includes request_uri and expires_in."""
-    app = FastAPI()
-    app.include_router(router)
-
-    async def override_db():
-        yield None
-
-    app.dependency_overrides[get_db] = override_db
-
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        resp = await client.post(
-            "/par", data={"client_id": "abc", "response_type": "code"}
-        )
+    resp = await async_client.post(
+        "/pushedauthorizationrequest/par",
+        data={"client_id": "abc", "response_type": "code"},
+    )
     assert resp.status_code == status.HTTP_201_CREATED
     body = resp.json()
     assert "request_uri" in body
@@ -42,24 +31,14 @@ async def test_par_returns_request_uri_and_expires(enable_rfc9126, monkeypatch):
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_par_disabled_returns_404(monkeypatch):
+async def test_par_disabled_returns_404(async_client):
     """RFC 9126 §3.1: Endpoint returns 404 when PAR is disabled."""
     from tigrbl_auth.runtime_cfg import settings
-
-    app = FastAPI()
-    app.include_router(router)
-
-    async def override_db():
-        yield None
-
-    app.dependency_overrides[get_db] = override_db
 
     original = settings.enable_rfc9126
     settings.enable_rfc9126 = False
     try:
-        transport = ASGITransport(app=app)
-        async with AsyncClient(transport=transport, base_url="http://test") as client:
-            resp = await client.post("/par", data={})
+        resp = await async_client.post("/pushedauthorizationrequest/par", data={})
         assert resp.status_code == status.HTTP_404_NOT_FOUND
     finally:
         settings.enable_rfc9126 = original
