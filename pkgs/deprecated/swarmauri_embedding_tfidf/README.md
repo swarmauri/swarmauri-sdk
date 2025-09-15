@@ -4,8 +4,8 @@
 <p align="center">
     <a href="https://pypi.org/project/swarmauri_embedding_tfidf/">
         <img src="https://img.shields.io/pypi/dm/swarmauri_embedding_tfidf" alt="PyPI - Downloads"/></a>
-    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_embedding_tfidf/">
-        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_embedding_tfidf.svg"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/deprecated/swarmauri_embedding_tfidf/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/deprecated/swarmauri_embedding_tfidf.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_embedding_tfidf/">
         <img src="https://img.shields.io/pypi/pyversions/swarmauri_embedding_tfidf" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_embedding_tfidf/">
@@ -17,6 +17,8 @@
 ---
 
 # Swarmauri Embedding TFIDF
+
+> **⚠️ Deprecated:** This package is maintained for backward compatibility. Consider using a supported embedding implementation from the Swarmauri SDK for new projects.
 
 A TF-IDF (Term Frequency-Inverse Document Frequency) embedding implementation for the Swarmauri SDK, providing document vectorization capabilities.
 
