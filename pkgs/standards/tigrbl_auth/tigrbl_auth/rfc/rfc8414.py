@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import Final
 
-from fastapi import APIRouter, FastAPI, HTTPException, status
+from tigrbl_auth.deps import APIRouter, FastAPI, HTTPException, status
 
 from ..runtime_cfg import settings
 from ..oidc_discovery import (

@@ -7,8 +7,6 @@ import base64
 import hashlib
 import json
 from typing import Dict, Final
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from swarmauri_signing_dpop import DpopSigner
 from ..deps import JWAAlg
 
@@ -29,13 +27,8 @@ def _b64url(data: bytes) -> str:
 # ---------------------------------------------------------------------------
 
 
-def jwk_from_public_key(public_key: Ed25519PublicKey) -> Dict[str, str]:
-    x = _b64url(
-        public_key.public_bytes(
-            encoding=serialization.Encoding.Raw,
-            format=serialization.PublicFormat.Raw,
-        )
-    )
+def jwk_from_public_key(public_key: bytes) -> Dict[str, str]:
+    x = _b64url(public_key)
     return {"kty": "OKP", "crv": "Ed25519", "x": x}
 
 

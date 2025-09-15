@@ -1,9 +1,15 @@
 import time
 import pytest
-from fastapi import status
 from httpx import AsyncClient
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
-from cryptography.hazmat.primitives import serialization
+from tigrbl_auth.deps import (
+    status,
+    LocalKeyProvider,
+    KeySpec,
+    KeyAlg,
+    KeyClass,
+    KeyUse,
+    ExportPolicy,
+)
 
 from tigrbl_auth import encode_jwt, decode_jwt
 from tigrbl_auth.crypto import hash_pw
@@ -37,13 +43,16 @@ async def test_worker_enrollment_flow_dpop(
         sub=str(worker.id), tid=str(tenant.id), exp=int(time.time()) + 3600
     )
 
-    sk = Ed25519PrivateKey.generate()
-    private_pem = sk.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption(),
+    kp = LocalKeyProvider()
+    spec = KeySpec(
+        klass=KeyClass.asymmetric,
+        alg=KeyAlg.ED25519,
+        uses=(KeyUse.sign,),
+        export_policy=ExportPolicy.KEYPAIR,
     )
-    jwk = jwk_from_public_key(sk.public_key())
+    ref = await kp.create_key(spec)
+    private_pem = ref.material or b""
+    jwk = jwk_from_public_key(ref.public or b"")
     jkt = jwk_thumbprint(jwk)
     proof = create_proof(private_pem, "POST", "http://test/token/exchange")
 
