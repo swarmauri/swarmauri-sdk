@@ -273,14 +273,14 @@ def _make_collection_endpoint(
                     annotation=Annotated[Any, Depends(db_dep)],
                 ),
                 inspect.Parameter(
-                    "body",
-                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                    annotation=Annotated[body_annotation, Body(...)],
-                ),
-                inspect.Parameter(
                     "h",
                     inspect.Parameter.POSITIONAL_OR_KEYWORD,
                     annotation=Annotated[Mapping[str, Any], Depends(hdr_dep)],
+                ),
+                inspect.Parameter(
+                    "body",
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Annotated[body_annotation, Body(...)],
                 ),
             ],
         )

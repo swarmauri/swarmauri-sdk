@@ -375,15 +375,15 @@ def _make_member_endpoint(
                 annotation=Annotated[Any, Depends(db_dep)],
             ),
             inspect.Parameter(
+                "h",
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                annotation=Annotated[Mapping[str, Any], Depends(hdr_dep)],
+            ),
+            inspect.Parameter(
                 "body",
                 inspect.Parameter.POSITIONAL_OR_KEYWORD,
                 annotation=body_annotation,
                 default=body_default,
-            ),
-            inspect.Parameter(
-                "h",
-                inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                annotation=Annotated[Mapping[str, Any], Depends(hdr_dep)],
             ),
         ]
     )
