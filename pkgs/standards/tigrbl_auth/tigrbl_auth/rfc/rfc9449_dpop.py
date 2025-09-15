@@ -7,10 +7,18 @@ import base64
 import hashlib
 import json
 from typing import Dict, Final
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+
 from swarmauri_signing_dpop import DpopSigner
-from ..deps import JWAAlg
+from ..deps import (
+    InMemoryKeyProvider,
+    JWAAlg,
+    KeyAlg,
+    KeyClass,
+    KeySpec,
+    KeyUse,
+    LocalKeyProvider,
+    ExportPolicy,
+)
 
 from ..runtime_cfg import settings
 
@@ -29,14 +37,24 @@ def _b64url(data: bytes) -> str:
 # ---------------------------------------------------------------------------
 
 
-def jwk_from_public_key(public_key: Ed25519PublicKey) -> Dict[str, str]:
-    x = _b64url(
-        public_key.public_bytes(
-            encoding=serialization.Encoding.Raw,
-            format=serialization.PublicFormat.Raw,
+def jwk_from_public_key(public_key: bytes) -> Dict[str, str]:
+    """Convert raw Ed25519 public *public_key* bytes to a JWK."""
+
+    async def _convert() -> Dict[str, str]:
+        kp = InMemoryKeyProvider()
+        spec = KeySpec(
+            klass=KeyClass.asymmetric,
+            alg=KeyAlg.ED25519,
+            uses=(KeyUse.VERIFY,),
+            export_policy=ExportPolicy.PUBLIC_ONLY,
+            label="dpop_pub",
         )
-    )
-    return {"kty": "OKP", "crv": "Ed25519", "x": x}
+        ref = await kp.import_key(spec, material=b"", public=public_key)
+        jwks = await kp.jwks(prefix_kids=ref.kid)
+        keys = jwks.get("keys", [])
+        return keys[0] if keys else {}
+
+    return asyncio.run(_convert())
 
 
 def jwk_thumbprint(jwk: Dict[str, str]) -> str:
@@ -51,14 +69,22 @@ def jwk_thumbprint(jwk: Dict[str, str]) -> str:
 
 
 def create_proof(
-    private_pem: bytes, method: str, url: str, *, enabled: bool | None = None
+    key_provider: LocalKeyProvider | InMemoryKeyProvider,
+    kid: str,
+    method: str,
+    url: str,
+    *,
+    enabled: bool | None = None,
 ) -> str:
+    """Create a DPoP proof using *key_provider* and key *kid*."""
+
     if enabled is None:
         enabled = settings.enable_rfc9449
     if not enabled:
         return ""
-    # Resolve the key and delegate signing to ``DpopSigner``.
-    keyref = {"kind": "pem", "priv": private_pem}
+
+    ref = asyncio.run(key_provider.get_key(kid, include_secret=True))
+    keyref = {"kind": "pem", "priv": ref.material}
     sigs = asyncio.run(
         _signer.sign_bytes(
             keyref,

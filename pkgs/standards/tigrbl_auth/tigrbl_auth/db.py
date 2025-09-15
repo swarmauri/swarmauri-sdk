@@ -1,4 +1,4 @@
-from tigrbl.engine import engine as build_engine
+from .deps import build_engine
 from .runtime_cfg import settings
 
 if settings.pg_dsn_env or (settings.pg_host and settings.pg_db and settings.pg_user):

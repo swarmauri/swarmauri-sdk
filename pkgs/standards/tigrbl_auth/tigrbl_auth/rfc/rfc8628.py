@@ -15,8 +15,7 @@ import secrets
 import string
 from typing import Final, Literal, TYPE_CHECKING
 
-from pydantic import BaseModel
-from tigrbl.engine import HybridSession as AsyncSession
+from ..deps import AsyncSession, BaseModel
 
 from ..runtime_cfg import settings
 

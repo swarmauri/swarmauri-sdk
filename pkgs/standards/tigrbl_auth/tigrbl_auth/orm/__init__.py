@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from tigrbl.orm.tables import Base
+from ..deps import Base
 
 from ..runtime_cfg import settings
 from .api_key import ApiKey

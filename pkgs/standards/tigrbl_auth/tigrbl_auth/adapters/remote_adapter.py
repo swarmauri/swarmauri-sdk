@@ -5,11 +5,15 @@ import time
 from typing import Final
 
 import httpx
-from fastapi import HTTPException, Request, Security, status
-from fastapi.security import APIKeyHeader
-
-from tigrbl.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
-from tigrbl.types.authn_abc import AuthNProvider
+from ..deps import (
+    APIKeyHeader,
+    AuthNProvider,
+    HTTPException,
+    Request,
+    Security,
+    TIGRBL_AUTH_CONTEXT_ATTR,
+    status,
+)
 from ..principal_ctx import principal_var
 
 

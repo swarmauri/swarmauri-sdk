@@ -4,17 +4,23 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from tigrbl.column.storage_spec import ForeignKeySpec
-from tigrbl.orm.mixins import (
+from ..deps import (
+    Base,
     Created,
+    F,
     GUIDPk,
+    IO,
     KeyDigest,
     LastUsed,
+    Mapped,
+    PgUUID,
+    S,
+    String,
     ValidityWindow,
+    acol,
+    relationship,
+    ForeignKeySpec,
 )
-from tigrbl.orm.tables._base import Base
-from tigrbl.specs import F, IO, S, acol
-from tigrbl.types import Mapped, PgUUID, String, relationship
 
 
 class ServiceKey(Base, GUIDPk, Created, LastUsed, ValidityWindow, KeyDigest):

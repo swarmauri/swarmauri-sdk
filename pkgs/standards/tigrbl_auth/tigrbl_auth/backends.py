@@ -26,8 +26,7 @@ from typing import Iterable, Optional
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Select, or_, select
-from tigrbl.engine import HybridSession as AsyncSession
+from .deps import AsyncSession, Select, or_, select
 
 from .crypto import verify_pw
 from .typing import Principal

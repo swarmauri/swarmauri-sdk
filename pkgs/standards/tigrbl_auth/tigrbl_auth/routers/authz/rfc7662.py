@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import HTTPException, Request, status
+from ...deps import HTTPException, Request, status
 
 from ...runtime_cfg import settings
 from ..schemas import IntrospectOut
