@@ -17,27 +17,47 @@
 
 ## Swarmauri Certs Composite
 
-Routing certificate service delegating to child providers based on requested features.
+`CompositeCertService` is a lightweight router that coordinates multiple
+certificate providers behind a single facade. Configure it with the services
+you already have (self-signed, ACME, Vault, PKCS#11, etc.) and the composite
+chooses the right backend based on the feature you request.
+
+### Highlights
+
+- Compose any `ICertService` implementations into one entry point.
+- Route automatically by declared capability or override explicitly per call.
+- Inspect supported features at runtime to drive UI/UX decisions.
+- Ship as the default `swarmauri.certs` plugin named `CompositeCertService`.
 
 ## Installation
 
+Choose the tool that matches your workflow:
+
 ```bash
+# pip
 pip install swarmauri_certs_composite
+
+# Poetry
+poetry add swarmauri_certs_composite
+
+# uv
+uv add swarmauri_certs_composite
 ```
 
-## Usage
+## Quickstart
 
 The composite accepts a sequence of certificate service implementations and
 routes each call to the first provider that advertises a matching capability.
-Below is a minimal example using two toy providers:
+Below is a self-contained example that you can run with `python quickstart.py`.
 
 ```python
+import asyncio
+
 from swarmauri_certs_composite import CompositeCertService
 from swarmauri_base.certs.CertServiceBase import CertServiceBase
 
 
 class SelfSignedOnly(CertServiceBase):
-
     def supports(self):
         return {"features": ("self_signed",)}
 
@@ -45,26 +65,62 @@ class SelfSignedOnly(CertServiceBase):
         return b"self-signed-cert"
 
 
-class CsrOnly(CertServiceBase):
-
+class PrimaryCSR(CertServiceBase):
     def supports(self):
         return {"features": ("csr",)}
 
     async def create_csr(self, key, subject, **kw):
-        return b"csr-data"
+        return b"primary-csr"
 
 
-svc = CompositeCertService([SelfSignedOnly(), CsrOnly()])
+class SecondaryCSR(CertServiceBase):
+    def supports(self):
+        return {"features": ("csr",)}
 
-# create a self-signed certificate - routed to SelfSignedOnly
-cert = await svc.create_self_signed("key", {"CN": "example"})
+    async def create_csr(self, key, subject, **kw):
+        return b"secondary-csr"
 
-# create a CSR and explicitly route to the second provider by class name
-csr = await svc.create_csr("key", {"CN": "example"}, opts={"backend": "CsrOnly"})
+
+async def main():
+    svc = CompositeCertService([SelfSignedOnly(), PrimaryCSR(), SecondaryCSR()])
+
+    features = svc.supports()["features"]
+    print("Advertised features:", sorted(features))
+
+    cert = await svc.create_self_signed("key", {"CN": "example"})
+    print("Self-signed cert:", cert)
+
+    csr = await svc.create_csr("key", {"CN": "example"})
+    print("CSR from primary provider:", csr)
+
+    csr_override = await svc.create_csr(
+        "key", {"CN": "example"}, opts={"backend": "SecondaryCSR"}
+    )
+    print("CSR via explicit backend override:", csr_override)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
-`supports()` aggregates the advertised features of all child providers,
-allowing callers to inspect available capabilities before invoking them.
+`supports()` aggregates the advertised features of all child providers so callers
+can inspect available capabilities before invoking them. Passing
+`opts={"backend": "ProviderType"}` overrides the automatic routing when you
+need to target a specific provider.
+
+## For Contributors
+
+If you want to contribute to `swarmauri_certs_composite`, please read our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+and
+[style guide](https://github.com/swarmauri/swarmauri-sdk/blob/master/STYLE_GUIDE.md)
+to get started.
+
+## License
+
+`swarmauri_certs_composite` is licensed under the Apache License 2.0. See the
+[LICENSE](https://github.com/swarmauri/swarmauri-sdk/blob/master/LICENSE) file
+for details.
 
 ## Entry point
 
