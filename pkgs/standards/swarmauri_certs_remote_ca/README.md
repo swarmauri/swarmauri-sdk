@@ -21,11 +21,28 @@
 A certificate enrollment bridge implementing the `ICertService` interface and
 forwarding CSRs to a remote Certificate Authority.
 
-Features:
+## Features
+
 - Posts CSRs to a remote endpoint and returns issued certificates.
 - Minimal parsing helpers for certificate snippets.
 - Designed around X.509 as defined in RFC 5280 and Enrollment over Secure
   Transport (EST) in RFC 7030.
+
+## Installation
+
+Install the package with your preferred Python packaging tool:
+
+```bash
+pip install swarmauri_certs_remote_ca
+```
+
+```bash
+poetry add swarmauri_certs_remote_ca
+```
+
+```bash
+uv pip install swarmauri_certs_remote_ca
+```
 
 ## Configuration
 
@@ -37,12 +54,6 @@ Features:
 - `timeout_s` – HTTP timeout in seconds (default `10`).
 - `ca_chain` – Optional sequence of cached trust anchors exposed during
   verification and parsing.
-
-## Installation
-
-```bash
-pip install swarmauri_certs_remote_ca
-```
 
 ## Entry Point
 
@@ -59,7 +70,9 @@ CSR to receive the issued certificate:
 import asyncio
 import base64
 import json
+
 import httpx
+
 from swarmauri_certs_remote_ca import RemoteCaCertService
 
 csr = b"example-csr"
@@ -70,14 +83,17 @@ async def main() -> None:
     async def handler(request: httpx.Request) -> httpx.Response:
         data = json.loads(request.content)
         assert base64.b64decode(data["csr"]) == csr
-        return httpx.Response(200, json={"cert": base64.b64encode(cert_bytes).decode()})
+        return httpx.Response(
+            200,
+            json={"cert": base64.b64encode(cert_bytes).decode("ascii")},
+        )
 
-    transport = httpx.MockTransport(handler)
     svc = RemoteCaCertService("https://ca.example/sign")
-    svc._client = httpx.AsyncClient(transport=transport)
 
-    cert = await svc.sign_cert(csr, {"kind": "dummy"})
-    print(cert)
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+        svc._client = client  # Inject mock transport for the example.
+        certificate = await svc.sign_cert(csr, {"kind": "dummy"})
+        print(certificate)
 
 
 asyncio.run(main())
