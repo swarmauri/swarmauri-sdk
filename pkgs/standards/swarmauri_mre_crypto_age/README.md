@@ -19,14 +19,24 @@
 
 Age-based multi-recipient encryption provider implementing the `IMreCrypto` contract.
 
-- Sealed-per-recipient X25519 stanzas
-- ChaCha20-Poly1305 payload encryption
+- Sealed-per-recipient X25519 stanzas (`mode="sealed_per_recipient"` and `recipient_alg="X25519-SEAL"`)
+- ChaCha20-Poly1305 payload encryption for each recipient header
 - Deterministic recipient identifiers via SHA-256 public key fingerprints
+- Rewrapping support for adding or removing recipients when provided the original plaintext or an opening identity
 
 ### Installation
 
+Choose the installer that matches your project workflow:
+
 ```bash
+# pip
 pip install swarmauri_mre_crypto_age
+
+# Poetry
+poetry add swarmauri_mre_crypto_age
+
+# uv
+uv add swarmauri_mre_crypto_age
 ```
 
 ### Usage
@@ -61,6 +71,13 @@ env = await crypto.encrypt_for_many(recipients, b"secret")
 pt = await crypto.open_for({"kind": "cryptography_obj", "obj": sk1}, env)
 assert pt == b"secret"
 ```
+
+The helper accepts multiple `KeyRef` formats, including dictionaries with
+`kind="cryptography_obj"` (for `X25519PublicKey` / `X25519PrivateKey` objects)
+and raw byte references such as `kind="raw_x25519_pk"` or `kind="age_x25519_pk"`.
+When rewrapping an existing envelope to add recipients, pass the plaintext via
+`opts["pt"]` or provide an identity through `opts["open_with"]` so the payload
+can be resealed for the new recipients.
 
 ## Entry point
 
