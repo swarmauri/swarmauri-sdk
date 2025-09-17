@@ -31,40 +31,87 @@ traffic.
 
 ## Features
 
-- Configurable request limit and time window.
-- Supports IP-based or token-based identification.
-- Returns `429` responses when the limit is exceeded.
+- Configurable request limit and time window that defaults to ``100`` requests
+  per ``60`` seconds.
+- Tracks callers by IP address or a custom authentication token header.
+- Maintains in-memory counters that reset automatically after the configured
+  time window.
+- Returns FastAPI ``Response`` objects with HTTP ``429`` status codes when the
+  limit is exceeded.
 
 ## Installation
 
+Choose the tool that matches your workflow:
+
 ```bash
+# pip
 pip install swarmauri_middleware_ratelimit
+
+# Poetry
+poetry add swarmauri_middleware_ratelimit
+
+# uv
+uv add swarmauri_middleware_ratelimit
 ```
 
 ## Usage
 
+### Basic IP-based limiting
+
 ```python
 from fastapi import FastAPI
+from fastapi.testclient import TestClient
 from swarmauri_middleware_ratelimit import RateLimitMiddleware
 
 app = FastAPI()
+rate_limiter = RateLimitMiddleware(rate_limit=2, time_window=60)
 
-# Allow 100 requests per minute per client IP
-app.add_middleware(RateLimitMiddleware, rate_limit=100, time_window=60)
+
+@app.middleware("http")
+async def limit_requests(request, call_next):
+    return await rate_limiter.dispatch(request, call_next)
+
+
+@app.get("/ping")
+async def ping():
+    return {"status": "ok"}
+
+
+client = TestClient(app)
+
+assert client.get("/ping").status_code == 200
+assert client.get("/ping").status_code == 200
+assert client.get("/ping").status_code == 429
 ```
+
+In this example the first two requests succeed because they fall inside the
+allowed limit. A third request within the same 60-second window exceeds the
+threshold and the middleware immediately returns a ``429`` response with the
+body ``"Rate limit exceeded"``. The middleware instance keeps request counters
+in memory, so you should create one instance per application process.
 
 ### Token-based rate limiting
 
 ```python
-# Use the value of the `X-Api-Key` header to track clients
-app.add_middleware(
-    RateLimitMiddleware,
+# Use the value of the `X-Api-Key` header to track clients instead of IP
+rate_limiter = RateLimitMiddleware(
     rate_limit=100,
     time_window=60,
     use_token=True,
     token_header="X-Api-Key",
 )
+
+
+@app.middleware("http")
+async def limit_requests(request, call_next):
+    return await rate_limiter.dispatch(request, call_next)
 ```
+
+When ``use_token`` is ``True`` the middleware looks for the configured header on
+every request and raises a ``ValueError`` if it is missing. This makes it safe
+to enforce API key or bearer token quotas even when requests are routed through
+shared proxies. Reuse the same middleware instance across requests to ensure
+counters continue to accumulate across calls.
 
 ## Want to help?
 
