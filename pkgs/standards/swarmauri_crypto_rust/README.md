@@ -19,24 +19,49 @@
 
 High-performance Rust-backed crypto provider implementing the `ICrypto` contract via `CryptoBase` using the [ring](https://github.com/briansmith/ring) cryptography library.
 
-- **ChaCha20-Poly1305** symmetric encrypt/decrypt (AEAD)
-- **X25519** key agreement and sealed boxes (simplified implementation)
-- **Multi-recipient envelopes** using ChaCha20-Poly1305 + ECDH key wrapping
-- **Native Rust performance** with Python convenience via Maturin/PyO3
+- **ChaCha20-Poly1305** authenticated encryption exposed through the async Swarmauri crypto interface
+- **Key wrapping helpers** that demonstrate envelope creation for multiple recipients
+- **Sealed payload helpers** that reuse the AEAD primitive for simple sender-to-recipient encryption flows
+- **Native Rust performance** for the core symmetric operations with Python ergonomics provided via Maturin/PyO3
 
 ## Features
 
-✨ **High Performance**: Native Rust implementation using the battle-tested `ring` crate  
-🔒 **Memory Safe**: Rust's memory safety guarantees prevent common crypto vulnerabilities  
-🚀 **Zero-Copy Operations**: Efficient data handling between Python and Rust  
-🎯 **Modern Algorithms**: ChaCha20-Poly1305 AEAD and X25519 elliptic curves  
-📦 **Self-Contained**: No external C library dependencies  
+✨ **Rust-powered AEAD**: ChaCha20-Poly1305 encrypt/decrypt is implemented in Rust via the `ring` crate
+🔒 **Memory Safe**: Rust's memory safety guarantees prevent common crypto vulnerabilities
+🧰 **Utility Primitives**: Helper methods wrap keys and build multi-recipient envelopes on top of the AEAD primitive
+📦 **Self-Contained**: No external C library dependencies are required
 🐍 **Python Integration**: Seamless integration with existing Python crypto workflows
 
 ## Installation
 
+Pre-built wheels are published for common platforms. The Python facade requires the compiled Rust extension – if the wheel
+cannot be loaded the import will raise an `ImportError`, so be sure to install from PyPI or build the project locally before
+using `RustCrypto`.
+
+### pip
+
 ```bash
 pip install swarmauri_crypto_rust
+```
+
+### Poetry
+
+```bash
+poetry add swarmauri_crypto_rust
+```
+
+### uv
+
+If you manage dependencies with [uv](https://docs.astral.sh/uv/), add the package to your project manifest:
+
+```bash
+uv add swarmauri_crypto_rust
+```
+
+For ad-hoc usage you can also install directly into the current environment:
+
+```bash
+uv pip install swarmauri_crypto_rust
 ```
 
 ### Building from Source
@@ -59,6 +84,10 @@ maturin build --release
 ```
 
 ## Usage
+
+The provider implements the asynchronous `ICrypto` contract, so you can await the core operations directly from Python. The
+example below generates a symmetric key, performs an encrypt/decrypt round-trip, and inspects the version metadata published by
+the Rust backend:
 
 ```python
 from swarmauri_crypto_rust import RustCrypto
@@ -97,20 +126,27 @@ asyncio.run(main())
 
 ## Algorithms Supported
 
-| Operation            | Algorithm         | Description                     |
-| -------------------- | ----------------- | ------------------------------- |
-| Symmetric Encryption | ChaCha20-Poly1305 | AEAD cipher with 256-bit keys   |
-| Key Wrapping         | ECDH-ES+A256KW    | Simplified ECDH key agreement   |
-| Sealed Boxes         | X25519-SEAL       | Anonymous public key encryption |
+| Operation            | Algorithm         | Description                                                      |
+| -------------------- | ----------------- | ---------------------------------------------------------------- |
+| Symmetric Encryption | ChaCha20-Poly1305 | AEAD cipher with 256-bit keys implemented in Rust via `ring`     |
+| Key Wrapping         | ECDH-ES+A256KW    | Demonstration helper that pads the DEK instead of performing ECDH |
+| Sealed Boxes         | X25519-SEAL       | Simplified helper that serialises AEAD output for recipients      |
+
+> **Note:** The wrapping, unwrapping, sealing, and multi-recipient helpers are intentionally simple demonstrations. They reuse
+> the ChaCha20-Poly1305 primitive and do not implement authenticated X25519 key exchange. Treat them as examples rather than
+> production-grade cryptography.
 
 ## Performance
 
-The Rust implementation provides significant performance benefits:
+The AEAD primitive is executed inside compiled Rust code, so ChaCha20-Poly1305 operations benefit from the optimisations that
+`ring` provides:
 
 - **Native Speed**: Compiled Rust code runs at near C-level performance
-- **Memory Efficiency**: Zero-copy operations where possible
-- **CPU Optimization**: SIMD and hardware acceleration via `ring`
-- **Parallel Processing**: Rust's fearless concurrency for batch operations
+- **Memory Efficiency**: The PyO3 bindings avoid unnecessary copies for common workloads
+- **CPU Optimisation**: `ring` enables SIMD and hardware acceleration where available
+
+The helper methods (`wrap`, `unwrap`, `seal`, and `encrypt_for_many`) are intentionally lightweight Python demonstrations and
+do not provide additional performance characteristics beyond what the AEAD primitive already offers.
 
 ## Architecture
 
@@ -145,19 +181,19 @@ The Rust implementation provides significant performance benefits:
 
 - **Side-Channel Resistance**: The `ring` library implements constant-time operations to prevent timing attacks
 
+> ⚠️ The helper methods for wrapping, sealing, and envelope creation are illustrative and intentionally omit a full X25519 key
+> agreement. Do not rely on them for production key exchange without hardening the implementation.
+
 ## Development
 
 ### Testing
 
 ```bash
-# Run tests
-python -m pytest tests/ -v
+# Run the full test suite from the package root
+uv run --directory . --package swarmauri_crypto_rust pytest -v
 
-# Run with coverage
-python -m pytest tests/ --cov=swarmauri_crypto_rust
-
-# Benchmark tests
-python -m pytest tests/ -m perf
+# Execute only example-backed documentation tests
+uv run --directory . --package swarmauri_crypto_rust pytest -m example -v
 ```
 
 ### Building
