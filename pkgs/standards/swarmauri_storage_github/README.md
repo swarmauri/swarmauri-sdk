@@ -18,20 +18,52 @@
 
 # Swarmauri GitHub Storage Adapter
 
-Simplified storage adapter for Peagen that records uploads as `github://` URIs.
+`GithubStorageAdapter` is a lightweight placeholder storage adapter for Peagen.
+It returns deterministic `github://` URIs for uploaded objects without making
+any network calls to GitHub. The class is useful for demos, tests, and for
+validating code paths that rely on the storage adapter interface.
 
 ## Installation
 
+Choose the tool that matches your workflow:
+
 ```bash
-# pip install swarmauri_storage_github (when published)
+# pip
+pip install swarmauri_storage_github
+
+# Poetry
+poetry add swarmauri_storage_github
+
+# uv
+uv add swarmauri_storage_github
 ```
 
-## Usage
+## Quickstart
+
+`GithubStorageAdapter.upload()` accepts a key and a binary file-like object. It
+returns the key formatted as a `github://` URI so callers can wire the adapter
+into pipelines that expect GitHub-backed storage without performing any remote
+I/O.
 
 ```python
+from io import BytesIO
+
 from swarmauri_storage_github import GithubStorageAdapter
 
+
 adapter = GithubStorageAdapter()
-uri = adapter.upload("README.md", "my-org/my-repo/README.md")
-print(uri)
+
+# The adapter only inspects the key, so any binary stream is acceptable.
+payload = BytesIO(b"# Example README\nThis payload would be uploaded to GitHub.")
+uri = adapter.upload("my-org/my-repo/README.md", payload)
+
+print(uri)  # github://my-org/my-repo/README.md
 ```
+
+### Behavior and limitations
+
+- `upload()` does not persist data—it simply echoes the key back as a
+  `github://` URI.
+- `download()`, `upload_dir()`, and `download_dir()` raise
+  `NotImplementedError` to signal that full GitHub support is intentionally out
+  of scope for this stub.
