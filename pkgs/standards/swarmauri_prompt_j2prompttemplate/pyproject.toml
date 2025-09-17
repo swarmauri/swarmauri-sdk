@@ -30,6 +30,7 @@ norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",
     "unit: Unit tests",
+    "example: Documentation examples",
     "i9n: Integration tests",
     "r8n: Regression tests",
     "timeout: mark test to timeout after X seconds",
