@@ -38,6 +38,7 @@ markers = [
     "test: standard test",
     "unit: Unit tests",
     "i9n: Integration tests",
+    "example: Documentation-backed usage examples",
     "r8n: Regression tests",
     "timeout: mark test to timeout after X seconds",
     "xpass: Expected passes",
