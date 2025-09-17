@@ -40,6 +40,7 @@ markers = [
     "r8n: Regression tests",
     "acceptance: Acceptance tests",
     "perf: Performance tests",
+    "example: Example usage tests",
 ]
 timeout = 300
 log_cli = true
