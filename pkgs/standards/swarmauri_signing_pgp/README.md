@@ -17,47 +17,127 @@
 
 # Swarmauri Signing PGP
 
-The `swarmauri_signing_pgp` package provides an OpenPGP envelope signer for the
-Swarmauri SDK. It can create and verify detached signatures over raw byte
-payloads or canonicalized envelopes using JSON or optionally CBOR.
+The `swarmauri_signing_pgp` package provides an OpenPGP signer for the Swarmauri
+SDK. It creates and verifies detached signatures over raw byte payloads or
+structured envelopes that are canonicalized to JSON or, optionally, CBOR.
 
 ## Features
 
 - Detached OpenPGP signatures for bytes and envelopes
-- JSON canonicalization with optional CBOR support
-- Verification of multiple signatures with a minimum signer threshold
+- JSON canonicalization with optional CBOR support via `cbor2`
+- Multi-signer verification with configurable minimum signer requirements
+- Private key loading from in-memory `pgpy` objects or ASCII-armored blobs
+- Passphrase handling for locked private keys
 
 ## Installation
+
+Install the package with your preferred Python packaging tool:
 
 ```bash
 pip install swarmauri_signing_pgp
 ```
 
-To enable CBOR canonicalization:
+```bash
+poetry add swarmauri_signing_pgp
+```
 
 ```bash
-pip install swarmauri_signing_pgp[cbor]
+uv pip install swarmauri_signing_pgp
+```
+
+### Optional CBOR support
+
+Enable canonicalization to CBOR by installing the optional dependency group:
+
+```bash
+pip install "swarmauri_signing_pgp[cbor]"
+```
+
+```bash
+poetry add swarmauri_signing_pgp -E cbor
+```
+
+```bash
+uv pip install "swarmauri_signing_pgp[cbor]"
 ```
 
 ## Usage
 
+The signer exposes asynchronous methods from the Swarmauri signing base class.
+Key references are dictionaries describing how to load private keys. For `pgpy`
+objects, the signer expects a mapping such as `{"kind": "pgpy_key", "priv":
+pgpy_key}`. Verification requires the corresponding public keys supplied in the
+`opts={"pubkeys": [...]}` argument.
+
+### Sign and verify raw bytes
+
 ```python
-from pgpy import PGPKey
+import asyncio
+
+from pgpy import PGPKey, PGPUID
+from pgpy.constants import (
+    CompressionAlgorithm,
+    HashAlgorithm,
+    KeyFlags,
+    PubKeyAlgorithm,
+    SymmetricKeyAlgorithm,
+)
+
 from swarmauri_signing_pgp import PgpEnvelopeSigner
 
-priv_key, _ = PGPKey.from_file("path/to/private.asc")
-pub_key, _ = PGPKey.from_file("path/to/public.asc")
 
-signer = PgpEnvelopeSigner()
-sig = await signer.sign_bytes({"kind": "pgpy_key", "priv": priv_key}, b"data")
+def make_demo_key() -> PGPKey:
+    key = PGPKey.new(PubKeyAlgorithm.RSAEncryptOrSign, 2048)
+    uid = PGPUID.new("Example User", email="user@example.com")
+    key.add_uid(
+        uid,
+        usage={KeyFlags.Sign},
+        hashes=[HashAlgorithm.SHA256],
+        ciphers=[SymmetricKeyAlgorithm.AES256],
+        compression=[CompressionAlgorithm.ZLIB],
+    )
+    return key
 
-await signer.verify_bytes(
-    b"data",
-    sig,
-    opts={"pubkeys": [pub_key]},
+
+async def main() -> None:
+    signer = PgpEnvelopeSigner()
+    key = make_demo_key()
+    key_ref = {"kind": "pgpy_key", "priv": key}
+    payload = b"openpgp demo"
+
+    signatures = await signer.sign_bytes(key_ref, payload)
+    verified = await signer.verify_bytes(
+        payload,
+        signatures,
+        opts={"pubkeys": [key.pubkey]},
+    )
+    print("Verified:", verified)
+
+
+asyncio.run(main())
+```
+
+The signer returns detached signatures that include both binary and ASCII-armored
+representations. Passphrases for locked private keys can be supplied through
+`opts={"passphrase": "secret"}`.
+
+### Sign envelopes
+
+Envelopes are canonicalized before signing. JSON canonicalization is always
+available and CBOR becomes available when the optional dependency group is
+installed:
+
+```python
+envelope = {"subject": "demo", "body": "hello"}
+signatures = await signer.sign_envelope(key_ref, envelope, canon="json")
+await signer.verify_envelope(
+    envelope,
+    signatures,
+    canon="json",
+    opts={"pubkeys": [key.pubkey]},
 )
 ```
 
-Replace the key-loading logic with your own. The signer can also operate on
-envelopes by calling `sign_envelope` and `verify_envelope` after choosing a
-canonicalization format.
+Use `canon="cbor"` to opt into CBOR canonicalization. The `supports()` helper
+exposes the available algorithms, canonicalization formats, and feature flags at
+runtime.
