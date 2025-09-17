@@ -18,35 +18,54 @@
 
 # Swarmauri Embedding Doc2vec
 
-A Gensim-based Doc2Vec implementation for document embedding in the Swarmauri ecosystem. This package provides document vectorization capabilities using the Doc2Vec algorithm.
+A [Gensim](https://radimrehurek.com/gensim/)-powered Doc2Vec implementation for document
+embeddings in the Swarmauri ecosystem. The component registers as
+`Doc2VecEmbedding` and returns vectors as `swarmauri_standard.vectors.Vector`
+instances.
 
 ## Installation
+
+Install the package with your preferred Python packaging tool:
 
 ```bash
 pip install swarmauri_embedding_doc2vec
 ```
 
+```bash
+poetry add swarmauri_embedding_doc2vec
+```
+
+```bash
+uv pip install swarmauri_embedding_doc2vec
+```
+
 ## Usage
 
 ```python
-from swarmauri.embeddings.Doc2VecEmbedding import Doc2VecEmbedding
+from swarmauri_embedding_doc2vec import Doc2VecEmbedding
 
-# Initialize the embedder
-embedder = Doc2VecEmbedding(vector_size=3000)
+documents = [
+    "This is the first document.",
+    "Here is another document.",
+    "And a third one.",
+]
 
-# Prepare your documents
-documents = ["This is the first document.", "Here is another document.", "And a third one"]
+# Initialize the embedder. Adjust parameters to match your dataset size.
+embedder = Doc2VecEmbedding(vector_size=300, window=10, min_count=1, workers=1)
 
-# Fit and transform documents
+# Fit and transform documents into Vector objects.
 vectors = embedder.fit_transform(documents)
 
-# Transform new documents
-new_doc = "This is a new document"
-vector = embedder.transform([new_doc])
+# Access the raw embedding values via the Vector.value attribute.
+first_vector = vectors[0].value
 
-# Save and load the model
-embedder.save_model("doc2vec.model")
-embedder.load_model("doc2vec.model")
+# Transform new documents (the result is also a Vector).
+new_vector = embedder.transform(["This is a new document."])[0]
+
+# Save and load the underlying Doc2Vec model.
+model_path = "doc2vec.model"
+embedder.save_model(model_path)
+embedder.load_model(model_path)
 ```
 
 ## Want to help?
