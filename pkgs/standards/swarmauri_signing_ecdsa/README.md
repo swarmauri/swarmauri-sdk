@@ -18,29 +18,97 @@
 
 # Swarmauri Signing ECDSA
 
-An ECDSA-based signer implementing the `ISigning` interface for detached
-signatures over raw bytes and canonicalized envelopes.
+An asynchronous ECDSA-based signer that implements the `ISigning` interface for
+detached signatures over raw bytes and canonicalized envelopes.
 
-Features:
-- JSON canonicalization (always available)
-- Optional CBOR canonicalization via `cbor2`
-- Supports curves P-256, P-384, P-521 with `cryptography`
+## Features
+
+- JSON canonicalization built in, with optional CBOR canonicalization via
+  [`cbor2`](https://pypi.org/project/cbor2/)
+- Supports the `ECDSA-P256-SHA256`, `ECDSA-P384-SHA384`, and
+  `ECDSA-P521-SHA512` curves provided by
+  [`cryptography`](https://pypi.org/project/cryptography/)
+- Multi-signature aware verification with opt-in algorithm restrictions through
+  the `require` mapping
+- Detached signature generation for both raw byte payloads and Swarmauri
+  envelopes
 
 ## Installation
 
+### pip
+
 ```bash
 pip install swarmauri_signing_ecdsa
+# Optional CBOR support
+pip install "swarmauri_signing_ecdsa[cbor]"
+```
+
+### Poetry
+
+```bash
+poetry add swarmauri_signing_ecdsa
+# Optional CBOR support
+poetry add "swarmauri_signing_ecdsa[cbor]"
+```
+
+### uv
+
+```bash
+# Install uv if it is not already available on your system
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install the signer package
+uv pip install swarmauri_signing_ecdsa
+# Optional CBOR support
+uv pip install "swarmauri_signing_ecdsa[cbor]"
 ```
 
 ## Usage
 
+The signer operates asynchronously and expects private keys to be supplied via
+the `KeyRef` mappings defined in `swarmauri_core`. When verifying, provide the
+corresponding public keys through the `opts={"pubkeys": [...]}` option.
+
 ```python
+import asyncio
+from cryptography.hazmat.primitives.asymmetric import ec
+
 from swarmauri_signing_ecdsa import EcdsaEnvelopeSigner
 
-signer = EcdsaEnvelopeSigner()
-# create a KeyRef for an EC private key; see swarmauri_core for details
+
+async def main() -> None:
+    signer = EcdsaEnvelopeSigner()
+
+    # Provide the private key as a KeyRef understood by swarmauri_core
+    private_key = ec.generate_private_key(ec.SECP256R1())
+    key_ref = {"kind": "cryptography_obj", "obj": private_key}
+
+    envelope = {
+        "headers": {"kid": "example"},
+        "payload": {"message": "signed hello"},
+    }
+
+    signatures = await signer.sign_envelope(
+        key_ref,
+        envelope,
+        canon="json",
+    )
+
+    is_valid = await signer.verify_envelope(
+        envelope,
+        signatures,
+        canon="json",
+        opts={"pubkeys": [private_key.public_key()]},
+    )
+
+    print(f"Signature valid? {is_valid}")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
 ## Entry Point
 
-The signer registers under the `swarmauri.signings` entry point as `EcdsaEnvelopeSigner`.
+The signer registers under the `swarmauri.signings` entry point as
+`EcdsaEnvelopeSigner`.
