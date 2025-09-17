@@ -22,30 +22,108 @@
 
 # Swarmauri Middleware LlamaGuard
 
-A FastAPI middleware that integrates LlamaGuard for comprehensive content inspection and filtering, ensuring requests and responses are free from unsafe or malicious content.
+A FastAPI middleware that wraps Groq's ``llama-guard-3-8b`` model to provide end-to-end content inspection for both inbound requests and outbound responses. The middleware is designed to slot into any FastAPI application and enforce safety policies before your handlers are invoked.
 
 ## Features
 
-- Real-time scanning of incoming and outgoing payloads.
-- Configurable safety policies and thresholds.
-- Seamless drop-in middleware for any FastAPI application.
+- Real-time scanning of incoming request bodies and outgoing responses (including streaming responses).
+- Configurable language model injection – provide your own :class:`~swarmauri_standard.llms.GroqModel` or let the middleware create one for you.
+- Graceful degradation when no model is configured (traffic is allowed but logged).
+
+## Middleware behavior
+
+``LlamaGuardMiddleware`` inspects content by default with Groq's ``llama-guard-3-8b`` model. Provide an API key via the ``api_key`` argument or the ``GROQ_API_KEY`` environment variable to enable enforcement. When no model is available the middleware logs a warning and treats all content as safe so that applications can continue to function while you configure credentials.
+
+Both JSON responses and streaming responses are inspected. Unsafe content results in an HTTP 400 response with a descriptive error payload.
 
 ## Installation
 
-```bash
-pip install swarmauri_middleware_llamaguard
-```
+Choose the workflow that matches your project tooling:
 
-## Usage
+- **pip**
+
+  ```bash
+  pip install swarmauri_middleware_llamaguard
+  ```
+
+- **poetry**
+
+  ```bash
+  poetry add swarmauri_middleware_llamaguard
+  ```
+
+- **uv**
+
+  ```bash
+  uv add swarmauri_middleware_llamaguard
+  ```
+
+## Quickstart
+
+1. Configure your Groq API key (either export ``GROQ_API_KEY`` or pass ``api_key`` when constructing the middleware).
+2. Attach the middleware to your FastAPI application:
 
 ```python
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+
 from swarmauri_middleware_llamaguard import LlamaGuardMiddleware
 
 app = FastAPI()
+middleware = LlamaGuardMiddleware()  # Uses GROQ_API_KEY from the environment
 
-# Add LlamaGuard with default settings
-app.add_middleware(LlamaGuardMiddleware)
+
+@app.middleware("http")
+async def llama_guard(request: Request, call_next):
+    return await middleware.dispatch(request, call_next)
+
+
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
+```
+
+The middleware will block requests or responses when ``llama-guard-3-8b`` labels the payload as ``unsafe``.
+
+## Example: Local safety checks without Groq
+
+The middleware also accepts a custom language model implementation. The following self-contained example demonstrates how to supply a stub model for local development or tests while still benefiting from end-to-end request inspection.
+
+```python
+# README Example: Basic request filtering
+from fastapi import FastAPI, Request
+from fastapi.testclient import TestClient
+
+from swarmauri_middleware_llamaguard import LlamaGuardMiddleware
+from swarmauri_standard.messages.AgentMessage import AgentMessage
+
+
+class StubGuardModel:
+    def predict(self, conversation, *args, **kwargs):
+        latest = str(conversation.get_last().content).lower()
+        verdict = "unsafe" if "malicious" in latest else "safe"
+        conversation.add_message(AgentMessage(content=verdict))
+
+
+app = FastAPI()
+middleware = LlamaGuardMiddleware(llm=StubGuardModel())
+
+
+@app.middleware("http")
+async def llama_guard(request: Request, call_next):
+    return await middleware.dispatch(request, call_next)
+
+
+@app.post("/echo")
+def echo(payload: dict) -> dict:
+    return payload
+
+
+with TestClient(app) as client:
+    assert client.post("/echo", json={"message": "hello"}).status_code == 200
+    assert (
+        client.post("/echo", json={"message": "malicious content"}).status_code
+        == 400
+    )
 ```
 
 ## Want to help?
