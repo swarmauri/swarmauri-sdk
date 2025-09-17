@@ -29,22 +29,39 @@ full logging stack is unnecessary.
 
 ## Installation
 
+Pick the tool that matches your workflow:
+
 ```bash
+# pip
 pip install swarmauri_middleware_stdio
+
+# Poetry
+poetry add swarmauri_middleware_stdio
+
+# uv
+pip install uv  # install uv if it's not already available
+uv add swarmauri_middleware_stdio
 ```
 
 ## Usage
 
 ```python
+import logging
+import sys
+
 from fastapi import FastAPI, Request
 from swarmauri_middleware_stdio import StdioMiddleware
+
+logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
 app = FastAPI()
 stdio = StdioMiddleware()
 
+
 @app.middleware("http")
 async def log_to_stdout(request: Request, call_next):
     return await stdio.dispatch(request, call_next)
+
 
 @app.get("/")
 async def hello() -> dict[str, str]:
@@ -53,6 +70,15 @@ async def hello() -> dict[str, str]:
 
 ## How It Works
 
-The middleware reports the HTTP method and path of each request and logs the
-resulting response status code. All messages are emitted at the `INFO` level
-and written to stdout.
+`StdioMiddleware` uses Python's logging facilities under the logger name
+`swarmauri_middleware_stdio.StdioMiddleware`. Each request produces an `INFO`
+record before the downstream handler runs, and the matching response status is
+logged afterwards. Configure logging (as in the example above) to route those
+messages to stdout or another destination appropriate for your deployment.
+
+When the middleware is active you should see output similar to:
+
+```
+INFO swarmauri_middleware_stdio.StdioMiddleware STDIO Request: GET /
+INFO swarmauri_middleware_stdio.StdioMiddleware STDIO Response: 200
+```
