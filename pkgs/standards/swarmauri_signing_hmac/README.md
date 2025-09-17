@@ -25,6 +25,7 @@ signatures over raw bytes and canonicalized envelopes.
 - JSON canonicalization (always available)
 - Optional CBOR canonicalization via `cbor2`
 - Detached signatures using standard library `hmac`
+- Supports raw, hex, environment, and HKDF-derived `KeyRef` secrets.
 
 ## Security Notes
 
@@ -32,11 +33,28 @@ signatures over raw bytes and canonicalized envelopes.
 - Keys must be at least 32 bytes (256 bits).
 - Tags default to the hash digest size and may be truncated via
   `opts["tag_size"]` but not below 16 bytes (128 bits).
+- Secrets shorter than 32 bytes are rejected even when using a longer digest.
 
 ## Installation
 
+Install the package with your preferred Python packaging tool:
+
 ```bash
 pip install swarmauri_signing_hmac
+```
+
+```bash
+poetry add swarmauri_signing_hmac
+```
+
+```bash
+uv pip install swarmauri_signing_hmac
+```
+
+Install `cbor2` to enable CBOR canonicalization:
+
+```bash
+pip install cbor2
 ```
 
 ## Usage
@@ -70,6 +88,20 @@ asyncio.run(main())
 ```
 
 Verification requires providing one or more keys via `opts["keys"]`.
+
+### Key references
+
+`HmacEnvelopeSigner` accepts multiple `KeyRef` forms:
+
+- `{"kind": "raw", "key": <bytes-or-str>}` – direct secret material.
+- `{"kind": "hex", "key": <hex str>}` – hex encoded secret.
+- `{"kind": "env", "name": <ENV_NAME>}` – loads the secret from an environment
+  variable.
+- `{"kind": "derived", "key": <bytes-or-str>, "hkdf": {"salt": ..., "info": ...}}`
+  – derives the signing secret with HKDF.
+
+Provide an optional `"kid"` to control the key identifier or specify
+`"alg"` when verifying to override the default `HS256` digest for a key entry.
 
 ## Entry Point
 
