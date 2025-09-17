@@ -22,8 +22,19 @@ Volatile, in‑memory key provider for Swarmauri. All key material is kept stric
 
 ## Installation
 
+Install the package with your preferred Python tooling:
+
 ```bash
 pip install swarmauri_keyprovider_inmemory
+```
+
+```bash
+poetry add swarmauri_keyprovider_inmemory
+```
+
+```bash
+pip install uv
+uv pip install swarmauri_keyprovider_inmemory
 ```
 
 ## Usage
@@ -48,7 +59,7 @@ async def main() -> None:
     # Create a symmetric key kept only in memory
     spec = KeySpec(
         klass=KeyClass.symmetric,
-        alg=KeyAlg.AES256,                # optional hint – not strictly enforced
+        alg=KeyAlg.AES256_GCM,             # optional hint – not strictly enforced
         uses=(KeyUse.ENCRYPT, KeyUse.DECRYPT),
         export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,  # material may be present
         label="session-key",
