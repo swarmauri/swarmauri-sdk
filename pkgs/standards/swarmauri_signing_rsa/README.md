@@ -18,30 +18,85 @@
 
 # Swarmauri Signing RSA
 
-An RSA-based signer implementing the `ISigning` interface for detached
+An asynchronous RSA signer implementing the `ISigning` interface for detached
 signatures over raw bytes and canonicalized envelopes.
 
-Features:
-- JSON canonicalization (always available)
-- Optional CBOR canonicalization via `cbor2`
-- Detached signatures using `cryptography`'s RSA primitives
-- Supports `RSA-PSS-SHA256` (recommended) and `RS256`
+## Capabilities
+
+- Detached signatures for byte payloads as well as canonicalized envelopes
+- JSON canonicalization is built in; CBOR canonicalization is available when
+  [`cbor2`](https://pypi.org/project/cbor2/) is installed
+- RSA-PSS-SHA256 (default) and RS256 signature algorithms powered by
+  [`cryptography`](https://pypi.org/project/cryptography/)
+- Verification requires the expected RSA public keys to be provided through
+  `opts["pubkeys"]`, enabling multi-signer verification scenarios
+- Private and public keys can be supplied as PEM strings, filesystem paths,
+  RFC 7517 JWKs, or raw `cryptography` key objects via Swarmauri `KeyRef`
+  dictionaries
 
 ## Installation
 
+Pick the tool that matches your workflow:
+
 ```bash
+# pip
 pip install swarmauri_signing_rsa
+
+# Poetry
+poetry add swarmauri_signing_rsa
+
+# uv
+uv add swarmauri_signing_rsa
 ```
 
-## Usage
+## Quickstart
+
+The example below generates an RSA key, signs a JSON envelope, and then verifies
+the detached signature using the corresponding public key. The same pattern
+applies to raw byte payloads via `sign_bytes`/`verify_bytes`.
 
 ```python
+import asyncio
+
+from cryptography.hazmat.primitives.asymmetric import rsa
+
 from swarmauri_signing_rsa import RSAEnvelopeSigner
 
-signer = RSAEnvelopeSigner()
-# create a KeyRef for an RSA private key; see swarmauri_core for details
+
+def key_ref_from_private(private_key):
+    return {"kind": "cryptography_obj", "obj": private_key}
+
+
+def key_ref_from_public(public_key):
+    return {"kind": "cryptography_obj", "obj": public_key}
+
+
+async def main() -> None:
+    signer = RSAEnvelopeSigner()
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+
+    envelope = {"payload": {"msg": "hello"}, "headers": {"alg": "RSA-PSS-SHA256"}}
+
+    signatures = await signer.sign_envelope(
+        key_ref_from_private(private_key),
+        envelope,
+        canon="json",
+        alg="RSA-PSS-SHA256",
+    )
+
+    is_valid = await signer.verify_envelope(
+        envelope,
+        signatures,
+        opts={"pubkeys": [key_ref_from_public(private_key.public_key())]},
+    )
+
+    assert is_valid
+
+
+asyncio.run(main())
 ```
 
 ## Entry Point
 
-The signer registers under the `swarmauri.signings` entry point as `RSAEnvelopeSigner`.
+The signer registers under the `swarmauri.signings` entry point as
+`RSAEnvelopeSigner` and exposes the same name for the Peagen plugin registry.
