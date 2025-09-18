@@ -96,9 +96,8 @@ result = asyncio.run(svc.verify_cert(leaf_cert, trust_roots=[ca_cert]))
 assert result["valid"]
 ```
 
-## Testing
-Run unit, performance, and functional tests with:
+## Want to help?
 
-```bash
-uv run --package swarmauri_certs_x509 --directory standards/swarmauri_certs_x509 pytest
-```
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

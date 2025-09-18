@@ -126,3 +126,9 @@ or no matching trust root is provided, the service returns
 
 The service registers under the `swarmauri.certs` entry point as
 `X509VerifyService` and under `peagen.plugins.certs` as `x509verify`.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

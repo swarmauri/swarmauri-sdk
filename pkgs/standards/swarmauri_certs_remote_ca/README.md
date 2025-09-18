@@ -106,3 +106,9 @@ certificate bytes supplied by the remote CA.
 When used against a real service, provide any required authentication headers
 through the `auth` argument and override request or response formats via the
 `opts` parameter of `sign_cert`.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

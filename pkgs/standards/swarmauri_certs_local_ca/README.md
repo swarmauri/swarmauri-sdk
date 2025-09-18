@@ -115,3 +115,9 @@ inspect serial numbers, validity windows, and extension object identifiers.
 ## Entry Point
 
 The service registers under the `swarmauri.cert_services` entry point as `LocalCaCertService`.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

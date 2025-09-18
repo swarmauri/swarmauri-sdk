@@ -119,3 +119,9 @@ if __name__ == "__main__":
 ## Entry point
 
 The provider is registered under the `swarmauri.cryptos` entry-point as `CompositeCrypto`.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

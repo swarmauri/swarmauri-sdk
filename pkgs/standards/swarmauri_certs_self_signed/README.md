@@ -88,3 +88,9 @@ The builder automatically mirrors the TLS server defaults: the subject common na
 ## Entry Point
 
 This package registers `SelfSignedCertificate` under both the `swarmauri.cert_services` and `peagen.plugins.cert_services` entry points.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

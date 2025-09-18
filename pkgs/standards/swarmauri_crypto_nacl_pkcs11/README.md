@@ -81,3 +81,9 @@ asyncio.run(main())
 ### PKCS#11-backed key wrapping
 
 `wrap` and `unwrap` require a key-encryption-key (KEK) stored in the configured PKCS#11 slot. Supply connection details through `KeyRef.tags` or environment variables as described above. The wrapped material is returned as a `WrappedKey` using the `AES-KW` algorithm.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.
