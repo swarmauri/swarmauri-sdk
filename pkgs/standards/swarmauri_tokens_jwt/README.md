@@ -142,3 +142,9 @@ The service also supports asymmetric algorithms such as **RS256**, **ES256** and
 **EdDSA** when the key provider exposes the appropriate keys. See the
 docstrings in :mod:`swarmauri_tokens_jwt` for additional details on the API
 surface.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

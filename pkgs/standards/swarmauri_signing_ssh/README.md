@@ -153,3 +153,9 @@ the key reference or `opts`. All signatures are detached (`features` include
 
 The signer registers under the `swarmauri.signings` entry point as
 `SshEnvelopeSigner`.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

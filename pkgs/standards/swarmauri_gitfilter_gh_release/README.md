@@ -95,3 +95,9 @@ The example above resolves the release (creating it if necessary) and prints the
 - `download_prefix(prefix, dest_dir)` restores a tree of assets into a target directory on disk.
 
 Combine these helpers to move trained models, prompts, or configuration bundles between local development and persistent release storage while keeping file layouts consistent.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

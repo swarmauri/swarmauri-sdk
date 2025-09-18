@@ -152,3 +152,9 @@ incomplete.py:4 -> Method 'area' in abstract class 'InvalidShape' should be deco
 The evaluator reports both compliant and non-compliant methods in
 `metadata["issues"]`, allowing you to surface violations while still retaining
 context about classes that already satisfy the contract.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

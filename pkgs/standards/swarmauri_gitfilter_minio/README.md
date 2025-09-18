@@ -86,6 +86,8 @@ data = buffer.read()
 `MinioFilter` also exposes helpers such as `upload_dir`, `iter_prefix`, and
 `download_prefix` for working with entire directory trees.
 
-## License
+## Want to help?
 
-Licensed under the [Apache License, Version 2.0](LICENSE).
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

@@ -67,3 +67,9 @@ print(uri)  # github://my-org/my-repo/README.md
 - `download()`, `upload_dir()`, and `download_dir()` raise
   `NotImplementedError` to signal that full GitHub support is intentionally out
   of scope for this stub.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

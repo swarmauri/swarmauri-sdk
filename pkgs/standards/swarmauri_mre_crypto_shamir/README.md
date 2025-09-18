@@ -100,6 +100,8 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-## License
+## Want to help?
 
-Apache-2.0
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

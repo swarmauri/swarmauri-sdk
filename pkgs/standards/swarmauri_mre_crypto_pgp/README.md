@@ -142,3 +142,8 @@ not match the expected values.
 Providers are registered under the `swarmauri.mre_cryptos` entry point as
 `PGPSealMreCrypto`, `PGPSealedCekMreCrypto`, and `PGPMreCrypto`.
 
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

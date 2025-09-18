@@ -100,3 +100,9 @@ await provider.destroy_key(created.kid)
 random_bytes = await provider.random_bytes(32)
 derived = await provider.hkdf(b"ikm", salt=b"salt", info=b"context", length=32)
 ```
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

@@ -145,3 +145,9 @@ The constructor accepts additional keyword arguments to fine tune release
 creation, including `release_name`, `message`, `draft`, and `prerelease`. These
 parameters map directly to GitHub's release settings, allowing you to reuse the
 adapter for production, staging, or nightly build workflows.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

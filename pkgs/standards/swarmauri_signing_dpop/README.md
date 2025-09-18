@@ -129,3 +129,9 @@ For Ed25519 material, both formats are supported; the signer derives and embeds 
 ## Entry Point
 
 The signer registers under the `swarmauri.signings` entry point as `DpopSigner`.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

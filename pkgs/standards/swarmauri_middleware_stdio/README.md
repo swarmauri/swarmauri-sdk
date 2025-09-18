@@ -82,3 +82,9 @@ When the middleware is active you should see output similar to:
 INFO swarmauri_middleware_stdio.StdioMiddleware STDIO Request: GET /
 INFO swarmauri_middleware_stdio.StdioMiddleware STDIO Response: 200
 ```
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

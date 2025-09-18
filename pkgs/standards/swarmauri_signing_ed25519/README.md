@@ -120,3 +120,9 @@ print(f"Signature verified? {verified}")
 
 The signer registers under the `swarmauri.signings` entry point as
 `Ed25519EnvelopeSigner`.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

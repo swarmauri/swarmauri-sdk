@@ -174,3 +174,9 @@ removes the cached entry.
 Use the `randomness_provider` and `derivation_provider` keyword arguments to
 pin those helper methods to a specific child. If they are omitted the first
 registered provider is used for both random bytes and HKDF requests.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

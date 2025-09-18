@@ -105,3 +105,9 @@ publisher.publish(
 - `pika.BasicProperties` is called with `delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE`.
 - If RabbitMQ closes the channel or the connection drops, the publisher closes the connection, recreates it with the original URI, re-declares the exchange, and retries the publish once.
 - When the publisher instance is garbage-collected it closes the open connection if it is still active.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

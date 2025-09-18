@@ -128,3 +128,9 @@ so PEM-encoded keys or `KeyRef.tags["crypto_obj"]` objects both work seamlessly.
 The signer registers under the `swarmauri.signings` entry point as `CASigner` and
 can be resolved through the Swarmauri plugin manager alongside other signing
 implementations.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

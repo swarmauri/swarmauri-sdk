@@ -175,3 +175,9 @@ The service performs JWKS discovery or fetch, validates the token
 signature and issuer, and returns the decoded claims when verification
 succeeds. Cache entries refresh automatically based on `cache_ttl_s` or
 manually via `refresh(force=True)`.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

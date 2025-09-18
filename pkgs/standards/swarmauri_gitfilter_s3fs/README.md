@@ -109,3 +109,9 @@ with patch("swarmauri_gitfilter_s3fs.s3fs_filter.s3fs.S3FileSystem") as fs_cls:
 In a production workflow you do not need to patch ``s3fs`` – instantiate the
 filter with your credentials and bucket, then use ``clean``/``smudge`` or
 ``upload``/``download`` to move artifacts between git and S3.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

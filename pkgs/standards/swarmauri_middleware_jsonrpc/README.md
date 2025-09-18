@@ -75,3 +75,9 @@ handlers.
   message `Invalid JSON`.
 - JSON objects missing the `jsonrpc` key are rejected with a `400` response and
   the message `Missing jsonrpc field`.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

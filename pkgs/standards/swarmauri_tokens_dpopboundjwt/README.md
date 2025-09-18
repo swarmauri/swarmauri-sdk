@@ -219,3 +219,9 @@ if __name__ == "__main__":
 The service registers under the `swarmauri.tokens` entry point as `DPoPBoundJWTTokenService`.
 
 A plain `JWTTokenService` is also exported for cases where DPoP binding is not required.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

@@ -92,3 +92,9 @@ tools that understand ``file://`` locations.
   prefix) which is useful for inventory or cleanup tasks.
 - ``from_uri`` rebuilds an adapter from a ``file://`` URI previously emitted by
   ``root_uri`` or ``upload``.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

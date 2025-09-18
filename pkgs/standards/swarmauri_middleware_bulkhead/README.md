@@ -93,7 +93,8 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-## For Contributors
+## Want to help?
 
-If you want to contribute to `swarmauri_middleware_bulkhead`, please read our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md) and [style guide](https://github.com/swarmauri/swarmauri-sdk/blob/master/STYLE_GUIDE.md).
-
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

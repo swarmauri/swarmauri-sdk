@@ -146,3 +146,9 @@ When aggregating multiple runs, `aggregate_scores` adds `reason_counts`,
 `timeout_rate`, `success_rate`, and `total_executions` to the combined
 metadata so callers can evaluate fleet-wide behavior.
 
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

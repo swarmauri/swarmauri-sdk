@@ -234,3 +234,9 @@ backed by a hardware security module.
 The package exposes `PasetoV4TokenService` under the `swarmauri.tokens`
 setuptools entry point group, making it discoverable by other Swarmauri
 components.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

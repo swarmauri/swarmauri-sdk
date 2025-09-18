@@ -137,3 +137,9 @@ primary errors immediately.
 
 The provider registers under the `swarmauri.key_providers` entry point as
 `MirroredKeyProvider`.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

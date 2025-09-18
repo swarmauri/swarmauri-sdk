@@ -117,3 +117,9 @@ asyncio.run(main())
 
 - Exported `KeyRef.material` presence depends on the `ExportPolicy`. Use `ExportPolicy.NONE` to prevent material from being surfaced to callers.
 - For gateways, set this provider as the default to keep keys off disk in development and CI.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

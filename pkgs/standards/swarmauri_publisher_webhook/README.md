@@ -55,3 +55,9 @@ publisher.publish(
 The publisher posts a JSON object shaped as `{"channel": ..., "payload": ...}`
 to the configured URL. Wrap calls to `publish` in your own error handling if you
 need to catch connectivity or webhook-side failures.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

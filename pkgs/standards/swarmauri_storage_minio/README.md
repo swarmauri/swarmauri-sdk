@@ -92,3 +92,9 @@ from swarmauri_storage_minio import MinioStorageAdapter
 adapter = MinioStorageAdapter.from_uri("minio://localhost:9000/peagen/examples/")
 print(adapter.root_uri)
 ```
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

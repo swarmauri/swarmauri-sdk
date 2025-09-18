@@ -67,3 +67,9 @@ with tempfile.TemporaryDirectory() as tmpdir:
 
 The returned object identifier includes the `sha256:` prefix, matching the
 digest used to deduplicate objects on disk.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.
