@@ -7,6 +7,7 @@ from ..deps.fastapi import APIRouter as ApiRouter
 from ..engine.engine_spec import EngineCfg
 from ..engine import install_from_objects
 from ..engine import resolver as _resolver
+from ..app._model_registry import initialize_model_registry
 from .api_spec import APISpec
 
 
@@ -41,7 +42,9 @@ class Api(APISpec, ApiRouter):
         self.deps = tuple(getattr(self, "DEPS", ()))
         self.response = getattr(self, "RESPONSE", None)
         # ``models`` is expected to be a dict at runtime for registry lookups.
-        self.models: dict[str, type] = {}
+        self.models: dict[str, type] = initialize_model_registry(
+            getattr(self, "MODELS", ())
+        )
 
         ApiRouter.__init__(
             self,

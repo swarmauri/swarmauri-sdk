@@ -93,7 +93,7 @@ class TigrblApp(_App):
         self.system_prefix = system_prefix
 
         # public containers (mirrors used by bindings.api)
-        self.models: Dict[str, type] = {}
+        self.models: Dict[str, type] = dict(self.models)
         self.schemas = SimpleNamespace()
         self.handlers = SimpleNamespace()
         self.hooks = SimpleNamespace()
