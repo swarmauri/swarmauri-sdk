@@ -6,6 +6,7 @@ from ..deps.fastapi import FastAPI
 from ..engine.engine_spec import EngineCfg
 from ..engine import resolver as _resolver
 from ..engine import install_from_objects
+from ..ddl import initialize as _ddl_initialize
 from .app_spec import AppSpec
 from ._model_registry import initialize_model_registry
 
@@ -61,3 +62,16 @@ class App(AppSpec, FastAPI):
                 install_from_objects(app=self, api=a, models=models)
         else:
             install_from_objects(app=self, api=None, models=models)
+
+    def _collect_tables(self) -> list[Any]:
+        """Return the unique SQLAlchemy tables for registered models."""
+        seen: set[Any] = set()
+        tables: list[Any] = []
+        for model in getattr(self, "models", {}).values():
+            table = getattr(model, "__table__", None)
+            if table is not None and table not in seen:
+                seen.add(table)
+                tables.append(table)
+        return tables
+
+    initialize = _ddl_initialize
