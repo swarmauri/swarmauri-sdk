@@ -7,6 +7,7 @@ from ..deps.fastapi import APIRouter as ApiRouter
 from ..engine.engine_spec import EngineCfg
 from ..engine import install_from_objects
 from ..engine import resolver as _resolver
+from ..ddl import initialize as _ddl_initialize
 from ..app._model_registry import initialize_model_registry
 from .api_spec import APISpec
 
@@ -73,3 +74,16 @@ class Api(APISpec, ApiRouter):
                 install_from_objects(app=self, api=a, models=models)
         else:
             install_from_objects(app=self, api=None, models=models)
+
+    def _collect_tables(self) -> list[Any]:
+        """Return the unique SQLAlchemy tables for registered models."""
+        seen: set[Any] = set()
+        tables: list[Any] = []
+        for model in getattr(self, "models", {}).values():
+            table = getattr(model, "__table__", None)
+            if table is not None and table not in seen:
+                seen.add(table)
+                tables.append(table)
+        return tables
+
+    initialize = _ddl_initialize
