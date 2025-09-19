@@ -10,20 +10,34 @@
 
 # Swarmauri SSH Key Provider
 
-Interfaces with local SSH keys to generate and manage signing keys.
+An asynchronous `KeyProviderBase` implementation that keeps SSH key material in
+memory and bridges it to Swarmauri's signing abstractions.
 
 ## Features
 
-- Generate Ed25519, RSA-PSS, and ECDSA P-256 key pairs.
-- Import existing keys from PEM or OpenSSH formats.
-- Rotate keys and track key versions.
-- Export public keys as JWK or JWKS documents.
-- Produce random bytes or derive material via HKDF.
+- Generate new Ed25519, RSA-PSS (SHA-256), or ECDSA P-256 key pairs on demand.
+- Import existing private keys (PEM) or public keys (OpenSSH) while respecting
+  each key's `ExportPolicy`.
+- Rotate keys, enumerate versions, and optionally destroy specific versions or
+  entire key identifiers.
+- Export public keys as RFC 7517-compliant JWKs/JWKS with OpenSSH fingerprints
+  embedded in the `tags` metadata.
+- Produce random bytes and derive keying material using the HKDF construction
+  (RFC 5869).
 
 ## Installation
 
+Choose the tool that matches your workflow:
+
 ```bash
+# pip
 pip install swarmauri_keyprovider_ssh
+
+# Poetry
+poetry add swarmauri_keyprovider_ssh
+
+# uv
+uv add swarmauri_keyprovider_ssh
 ```
 
 ## Usage
@@ -68,6 +82,10 @@ await provider.rotate_key(ref.kid)
 assert await provider.list_versions(ref.kid) == (1, 2)
 ```
 
+Use `destroy_key()` to remove an entire key identifier or just a single
+version, and `jwks(prefix_kids=...)` when you need to emit a filtered JWKS for
+downstream consumers.
+
 Existing keys can be imported from PEM or OpenSSH data and exposed via JWKS:
 
 ```python
@@ -77,3 +95,9 @@ pem = Path("id_ed25519").read_bytes()
 ref = await provider.import_key(spec, pem)
 jwks = await provider.jwks()
 ```
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

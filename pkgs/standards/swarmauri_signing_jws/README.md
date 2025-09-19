@@ -18,37 +18,94 @@
 
 # Swarmauri Signing JWS
 
-Composite JSON Web Signature (JWS) signer and verifier combining multiple
-Swarmauri signing providers.
+Composite JSON Web Signature (JWS) signer and verifier that orchestrates
+multiple Swarmauri signing providers behind a single asynchronous API.
 
-Features:
-- Supports compact and general JWS serialization
-- Routes algorithms to existing HMAC, RSA, ECDSA, Ed25519, and optional
-  secp256k1 signers
-- Optional CBOR canonicalization via `cbor2`
+## Features
+
+- Async helpers for both compact and general JSON JWS serialization
+- Algorithm routing across HMAC (HS256/384/512), RSA (RS*/PS*), ECDSA
+  (ES256/384/512), Ed25519 (EdDSA), and optional secp256k1 (ES256K when the
+  `secp256k1` extra is installed)
+- Works with direct key material, Swarmauri signer objects, or a JWKS resolver
+  while returning the protected header and payload via `JwsResult`
 
 ## Installation
+
+### pip
 
 ```bash
 pip install swarmauri_signing_jws
 ```
 
+### Poetry
+
+```bash
+poetry add swarmauri_signing_jws
+```
+
+### uv
+
+To add the dependency to a `pyproject.toml` managed by `uv`:
+
+```bash
+uv add swarmauri_signing_jws
+```
+
+Or install it into the active environment:
+
+```bash
+uv pip install swarmauri_signing_jws
+```
+
+Optional extras:
+
+- `secp256k1` enables ES256K support through `swarmauri_signing_secp256k1`
+
 ## Usage
 
 ```python
+import asyncio
 from swarmauri_signing_jws import JwsSignerVerifier
 
-verifier = JwsSignerVerifier()
-compact = await verifier.sign_compact(
-    payload={"msg": "hi"},
-    alg="HS256",
-    key={"kind": "raw", "key": "0" * 32},
-)
-result = await verifier.verify_compact(
-    compact,
-    hmac_keys=[{"kind": "raw", "key": "0" * 32}],
-)
+
+async def main() -> None:
+    signer = JwsSignerVerifier()
+    key = {"kind": "raw", "key": "0" * 32}
+
+    compact = await signer.sign_compact(
+        payload={"msg": "hi"},
+        alg="HS256",
+        key=key,
+    )
+
+    result = await signer.verify_compact(
+        compact,
+        hmac_keys=[key],
+    )
+
+    print(result.payload.decode("utf-8"))
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
+
+The public methods accept either raw strings or `JWAAlg` enum values for the
+`alg` parameter. Compact verification returns a `JwsResult` dataclass containing
+the parsed header and payload bytes so applications can safely forward or decode
+the authenticated message.
+
+## API highlights
+
+- `sign_compact(...)` / `verify_compact(...)` wrap the standard compact
+  serialization, including optional allowlists and JWKS resolvers.
+- `sign_general_json(...)` / `verify_general_json(...)` operate on the general
+  JSON serialization and support multi-signer verification with `min_signers`
+  thresholds.
+- Each algorithm family accepts dedicated key collections (`hmac_keys`,
+  `rsa_pubkeys`, `ec_pubkeys`, `ed_pubkeys`, `k1_pubkeys`) or a `jwks_resolver`
+  callback for dynamic key retrieval.
 
 ## HMAC key requirements
 
@@ -72,3 +129,9 @@ Rationale:
 
 The signer registers under the `swarmauri.signings` entry point as
 `JwsSignerVerifier`.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

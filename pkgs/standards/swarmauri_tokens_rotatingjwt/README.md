@@ -62,3 +62,9 @@ jwks = await service.jwks()
 
 The service handles key rotation based on time or token volume and exposes a
 JWKS endpoint that includes previous keys so existing tokens remain valid.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

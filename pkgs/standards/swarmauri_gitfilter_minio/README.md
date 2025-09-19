@@ -22,26 +22,48 @@
 
 # Swarmauri Git Filter Minio
 
-Git filter using MinIO or S3 compatible storage.
+`swarmauri_gitfilter_minio` packages the `MinioFilter` plugin used by
+[`peagen`](https://pypi.org/project/peagen/) and other Swarmauri tooling to keep
+large Git objects in MinIO (or any S3-compatible) storage instead of the local
+repository. The filter implements both `StorageAdapterBase` and
+`GitFilterBase`, so you can call it directly from Python code or register it as
+a Git clean/smudge filter.
 
-`swarmauri_gitfilter_minio` provides a storage adapter and Git filter that
-stores repository objects in a remote MinIO (or any S3 compatible) service.
-It is commonly used by the [`peagen`](https://pypi.org/project/peagen/) tool to
-offload large files from source control, but it can also be integrated directly
-into applications that need simple object storage.
+### Highlights
+
+- Accepts `minio://` (HTTP) and `minios://` (HTTPS) URIs and automatically
+  ensures the referenced bucket exists.
+- Inherits `GitFilterBase`, giving you `clean` and `smudge` helpers that hash
+  content, upload it to remote storage, and hydrate it back into your working
+  tree on checkout.
+- Provides convenience methods such as `upload_dir`, `iter_prefix`, and
+  `download_prefix` for whole directory trees in addition to single-file
+  transfers.
+- Surfaces a `root_uri` property that reflects the bucket and optional prefix
+  derived from the connection string.
 
 ## Installation
 
+Choose the workflow that matches your project:
+
 ```bash
+# pip
 pip install swarmauri_gitfilter_minio
+
+# Poetry
+poetry add swarmauri_gitfilter_minio
+
+# uv
+uv add swarmauri_gitfilter_minio
 ```
 
 ## Configuration
 
-The filter reads credentials from either a `peagen.toml` configuration file or
-the `MINIO_ACCESS_KEY` and `MINIO_SECRET_KEY` environment variables. The bucket
-specified in the URI will be created automatically if it does not already
-exist.
+`MinioFilter.from_uri()` consults `peagen.toml` for credentials under
+`[storage.filters.minio]` and falls back to the `MINIO_ACCESS_KEY` and
+`MINIO_SECRET_KEY` environment variables when the configuration is absent. When
+instantiated, the filter lazily creates the bucket identified by the URI and
+stores objects beneath an optional prefix.
 
 ## Usage
 
@@ -61,5 +83,11 @@ buffer = filt.download("docs/README.md")
 data = buffer.read()
 ```
 
-`MinioFilter` also exposes helpers such as `upload_dir` and `download_prefix`
-for working with entire directory trees.
+`MinioFilter` also exposes helpers such as `upload_dir`, `iter_prefix`, and
+`download_prefix` for working with entire directory trees.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

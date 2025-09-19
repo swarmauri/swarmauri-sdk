@@ -42,6 +42,7 @@ markers = [
     "xfail: Expected failures",
     "acceptance: Acceptance tests",
     "perf: Performance tests that measure execution time and resource usage",
+    "example: Documentation examples",
 ]
 timeout = 300
 log_cli = true
