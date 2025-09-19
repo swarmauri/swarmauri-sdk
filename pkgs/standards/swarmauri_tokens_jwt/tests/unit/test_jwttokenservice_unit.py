@@ -15,7 +15,7 @@ from swarmauri_core.keys import IKeyProvider
 
 class DummyKeyProvider(IKeyProvider):
     def __init__(self) -> None:
-        self.secret = b"secret"
+        self.secret = b"0123456789abcdef" * 2
         self.kid = "sym"
         self.version = 1
 
