@@ -18,19 +18,44 @@
 
 # Swarmauri Distance Minkowski
 
-A Python package implementing Minkowski distance metric for vector comparison. This distance metric is a generalization that includes both Euclidean and Manhattan distances.
+A Python package implementing the Minkowski distance metric for vector
+comparison within the Swarmauri ecosystem.  The metric generalizes common
+distances such as Euclidean (`p = 2`) and Manhattan (`p = 1`).
+
+The distribution issues a `DeprecationWarning` announcing removal in
+`v0.10.0`.  Consume the distance through Swarmauri's plugin interfaces or
+switch to an alternative implementation before that release.
+
+## Features
+
+- Computes Minkowski distance between vectors using `scipy.spatial.distance`.
+- Enforces matching vector dimensionality and raises `ValueError` when shapes
+  differ.
+- Offers a tunable `p` value along with batch helpers (`distances`,
+  `similarities`).
+- Derives a similarity score from distance as `1 / (1 + distance)`.
 
 ## Installation
+
+Install the package with your preferred Python packaging tool:
 
 ```bash
 pip install swarmauri_distance_minkowski
 ```
 
+```bash
+poetry add swarmauri_distance_minkowski
+```
+
+```bash
+uv pip install swarmauri_distance_minkowski
+```
+
 ## Usage
 
 ```python
-from swarmauri.distances.MinkowskiDistance import MinkowskiDistance
-from swarmauri.vectors.Vector import Vector
+from swarmauri_distance_minkowski import MinkowskiDistance
+from swarmauri_standard.vectors.Vector import Vector
 
 # Create vectors for comparison
 vector_a = Vector(value=[1, 2])
@@ -41,12 +66,22 @@ distance_calculator = MinkowskiDistance()
 
 # Calculate distance between vectors
 distance = distance_calculator.distance(vector_a, vector_b)
-print(f"Distance: {distance}")  # Output: Distance: 0.0
+print(f"Distance: {distance}")
 
 # Calculate similarity between vectors
 similarity = distance_calculator.similarity(vector_a, vector_b)
-print(f"Similarity: {similarity}")  # Output: Similarity: 1.0
+print(f"Similarity: {similarity}")
 ```
+
+Running the example prints:
+
+```
+Distance: 0.0
+Similarity: 1.0
+```
+
+Customize the `p` value to select different Minkowski norms, or supply a
+sequence of vectors to `distances` / `similarities` for batch comparisons.
 
 ## Want to help?
 

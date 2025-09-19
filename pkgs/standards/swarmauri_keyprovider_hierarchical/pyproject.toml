@@ -40,6 +40,7 @@ markers = [
     "perf: Performance tests",
     "func: Functional tests",
     "rfc: RFC compliance tests",
+    "example: Documentation examples",
 ]
 benchmark_min_rounds = 1
 timeout = 300

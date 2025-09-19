@@ -46,3 +46,9 @@ await svc.mint({"sub": "alice"}, alg=JWAAlg.HS256)
 
 The service registers under the `swarmauri.tokens` entry point as
 `TlsBoundJWTTokenService`.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

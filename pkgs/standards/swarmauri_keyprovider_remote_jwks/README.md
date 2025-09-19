@@ -20,10 +20,33 @@
 
 Key provider backed by a remote JWKS endpoint with local key management.
 
+## Features
+
+- Accepts either a direct JWKS URL or an OpenID Connect issuer and resolves the
+  discovery document automatically.
+- Caches the remote JWKS in memory with TTL support, conditional requests, and
+  thread-safe refreshes through `refresh(force=True)`.
+- Supports versioned key identifiers such as `kid.version` when discovering
+  remote public keys.
+- Embeds the standard `LocalKeyProvider` so that services can create, rotate,
+  import, and destroy local keys without leaving memory.
+- Exposes convenience helpers like `random_bytes()` and `hkdf()` for local
+  cryptographic operations alongside the remote verification flow.
+
 ## Installation
+
+Install the package with your preferred Python packaging tool:
 
 ```bash
 pip install swarmauri_keyprovider_remote_jwks
+```
+
+```bash
+poetry add swarmauri_keyprovider_remote_jwks
+```
+
+```bash
+uv pip install swarmauri_keyprovider_remote_jwks
 ```
 
 ## Usage
@@ -163,3 +186,9 @@ provider = RemoteJwksKeyProvider(
 # Block until the JWKS has been refreshed
 provider.refresh(force=True)
 ```
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

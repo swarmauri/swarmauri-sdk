@@ -29,6 +29,7 @@ swarmauri_standard = { workspace = true }
 norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",
+    "example: Documentation examples",
     "unit: Unit tests",
     "i9n: Integration tests",
     "r8n: Regression tests",

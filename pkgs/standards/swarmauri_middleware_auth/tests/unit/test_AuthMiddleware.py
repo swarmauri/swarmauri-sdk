@@ -96,7 +96,10 @@ def invalid_signature_token(secret_key):
         "role": "user",
     }
     # Use a different secret key to create invalid signature
-    return _make_token(payload, "wrong-secret-key")
+    return _make_token(
+        payload,
+        "wrong-secret-key-with-a-length-of-at-least-thirty-two-bytes",
+    )
 
 
 @pytest.fixture

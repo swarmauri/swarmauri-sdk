@@ -21,23 +21,50 @@
 X.509 certificate service plugin for Swarmauri using the `cryptography` library.
 
 ## Features
-- Create CSRs
-- Issue self-signed certificates
-- Sign certificates with a CA
-- Verify certificate chains
+- Create standards-compliant CSRs
+- Issue self-signed leaf or CA certificates
+- Sign CSRs with an external CA key
+- Verify certificate chains with optional intermediates
+- Parse certificates to extract subject, issuer, validity, and extension metadata
 
 ## RFC References
 - [RFC 2986](https://datatracker.ietf.org/doc/html/rfc2986) – PKCS #10 Certification Request Syntax
 - [RFC 5280](https://datatracker.ietf.org/doc/html/rfc5280) – Internet X.509 Public Key Infrastructure Certificate and CRL Profile
 
-## Usage
+## Installation
 
-Install with optional key providers:
+The package bundles both the local and in-memory key providers, so no
+additional extras are required for the example below. Optional PKCS#11
+support can be enabled when you need to integrate with hardware modules.
+
+### pip
 
 ```bash
-pip install swarmauri_certs_x509[local]  # for LocalKeyProvider
-pip install swarmauri_certs_x509[mem]    # for InMemoryKeyProvider
+pip install swarmauri_certs_x509
+# with PKCS#11 support
+pip install 'swarmauri_certs_x509[pkcs11]'
 ```
+
+### uv
+
+```bash
+uv pip install swarmauri_certs_x509
+# or add to pyproject.toml and install dependencies
+uv add swarmauri_certs_x509
+uv sync
+# enable PKCS#11
+uv pip install 'swarmauri_certs_x509[pkcs11]'
+```
+
+### Poetry
+
+```bash
+poetry add swarmauri_certs_x509
+# enable PKCS#11
+poetry add swarmauri_certs_x509 --extras pkcs11
+```
+
+## Usage
 
 The example below uses ``LocalKeyProvider`` to create a certificate
 authority (CA), issue a leaf certificate, and verify the chain.
@@ -69,9 +96,8 @@ result = asyncio.run(svc.verify_cert(leaf_cert, trust_roots=[ca_cert]))
 assert result["valid"]
 ```
 
-## Testing
-Run unit, performance, and functional tests with:
+## Want to help?
 
-```bash
-uv run --package swarmauri_certs_x509 --directory standards/swarmauri_certs_x509 pytest
-```
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

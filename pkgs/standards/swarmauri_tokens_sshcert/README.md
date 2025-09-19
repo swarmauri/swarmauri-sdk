@@ -104,3 +104,9 @@ if __name__ == "__main__":
 The example above mints a certificate for a generated key and verifies it for
 the principal `alice`. The service requires the `ssh-keygen` command to be
 available on the system path.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.
