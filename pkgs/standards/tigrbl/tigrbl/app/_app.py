@@ -7,6 +7,7 @@ from ..engine.engine_spec import EngineCfg
 from ..engine import resolver as _resolver
 from ..engine import install_from_objects
 from .app_spec import AppSpec
+from ._model_registry import initialize_model_registry
 
 
 class App(AppSpec, FastAPI):
@@ -21,9 +22,10 @@ class App(AppSpec, FastAPI):
         self.engine = engine if engine is not None else getattr(self, "ENGINE", None)
         self.apis = tuple(getattr(self, "APIS", ()))
         self.ops = tuple(getattr(self, "OPS", ()))
-        # Runtime registries use mutable containers (dict/namespace), but the
-        # dataclass fields expect sequences. Storing a dict here satisfies both.
-        self.models = {}
+        declared_models = getattr(self, "MODELS", ())
+        # Runtime registries use mutable containers (dict/namespace); initialize
+        # them with any models declared on the spec for convenient defaults.
+        self.models = initialize_model_registry(declared_models)
         self.schemas = tuple(getattr(self, "SCHEMAS", ()))
         self.hooks = tuple(getattr(self, "HOOKS", ()))
         self.security_deps = tuple(getattr(self, "SECURITY_DEPS", ()))

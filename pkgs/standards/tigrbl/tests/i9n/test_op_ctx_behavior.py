@@ -165,6 +165,43 @@ def test_op_ctx_openapi_json(sync_db_session):
     assert "post" in spec["paths"]["/widget/ping"]
 
 
+def test_op_ctx_alias_name_mismatch_still_in_docs(sync_db_session):
+    _, get_sync_db = sync_db_session
+
+    class Widget(Base, GUIDPk):
+        __tablename__ = "widgets"
+        __resource__ = "widget"
+        name = Column(String)
+
+        @op_ctx(alias="heartbeat", target="custom", arity="collection")
+        def ping(cls, ctx):  # alias intentionally differs from function name
+            return {}
+
+    app, _ = setup_api(Widget, get_sync_db)
+    spec = app.openapi()
+    assert "/widget/heartbeat" in spec["paths"]
+    assert "post" in spec["paths"]["/widget/heartbeat"]
+
+
+@pytest.mark.i9n
+def test_op_ctx_custom_alias_openapi_json(sync_db_session):
+    _, get_sync_db = sync_db_session
+
+    class Widget(Base, GUIDPk):
+        __tablename__ = "widgets"
+        __resource__ = "widget"
+        name = Column(String)
+
+        @op_ctx(alias="custom", target="custom", arity="collection")
+        def custom(cls, ctx):
+            return {}
+
+    app, _ = setup_api(Widget, get_sync_db)
+    spec = app.openapi()
+    assert "/widget/custom" in spec["paths"]
+    assert "post" in spec["paths"]["/widget/custom"]
+
+
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_op_ctx_preserves_canon_schemas(sync_db_session):

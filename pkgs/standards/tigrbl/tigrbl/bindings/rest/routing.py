@@ -79,9 +79,9 @@ _DEFAULT_METHODS: Dict[str, Tuple[str, ...]] = {
 def _default_path_suffix(sp: OpSpec) -> str | None:
     if sp.target.startswith("bulk_"):
         return None
-    if sp.alias != sp.target and (
-        sp.target in {"create", "custom"} or sp.target not in CANON
-    ):
+    if sp.target == "custom":
+        return f"/{sp.alias}"
+    if sp.alias != sp.target and (sp.target == "create" or sp.target not in CANON):
         return f"/{sp.alias}"
     return None
 
