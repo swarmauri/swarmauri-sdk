@@ -76,10 +76,7 @@ class Column(ColumnSpec, MappedColumn):
                 **kw,
             )
         else:
-            # Virtual column (no storage): do not register a SQLAlchemy column.
-            # Leave MappedColumn uninitialized so SQLAlchemy does not create a DB column.
-            # Runtime will still see this as a ColumnSpec via attributes below.
-            pass
+            MappedColumn.__init__(self, **kw)
 
         self.storage = s
         self.field = field if field is not None else F()
