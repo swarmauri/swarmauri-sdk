@@ -22,9 +22,7 @@ def test_readme_usage_example() -> None:
 
     async def main() -> bytes:
         svc = RemoteCaCertService("https://ca.example/sign")
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             svc._client = client
             return await svc.sign_cert(csr, {"kind": "dummy"})
 

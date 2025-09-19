@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_mre_crypto_keyring"
-version = "0.3.0.dev4"
+version = "0.3.0.dev5"
 description = "Keyring-backed multi-recipient encryption provider for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
