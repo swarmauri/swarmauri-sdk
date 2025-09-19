@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_certs_acme"
-version = "0.3.0.dev4"
+version = "0.3.0.dev5"
 description = "ACME certificate service for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_middleware_cachecontrol"
-version = "0.8.0.dev5"
+version = "0.8.0.dev6"
 description = "Middleware for managing HTTP cache headers and client-side caching behavior."
 license = "Apache-2.0"
 readme = "README.md"
