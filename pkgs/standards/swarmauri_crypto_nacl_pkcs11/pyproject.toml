@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_crypto_nacl_pkcs11"
-version = "0.3.0.dev4"
+version = "0.3.0.dev5"
 description = "NaCl + PKCS#11 crypto provider for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
@@ -38,6 +38,7 @@ markers = [
     "r8n: Regression tests",
     "acceptance: Acceptance tests",
     "perf: Performance tests",
+    "example: README backed examples",
 ]
 timeout = 300
 log_cli = true

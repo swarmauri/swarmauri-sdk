@@ -16,17 +16,26 @@ JSON Web Encryption (JWE) provider implementing RFC 7516 and RFC 7518 compliant 
 
 ### Features
 
-- Asynchronous API for compact JWE serialization.
+- Asynchronous API for compact JWE serialization returning strings.
+- Accepts `JWAAlg` enums from [`swarmauri_core.crypto.types`](https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/core/swarmauri_core/crypto/types.py) for algorithms.
 - Supports `dir`, `RSA-OAEP`, `RSA-OAEP-256`, and `ECDH-ES` key management algorithms.
 - Supports `A128GCM`, `A192GCM`, and `A256GCM` content encryption.
 - Optional compression (`zip` = `DEF`) and Additional Authenticated Data (AAD).
+- Returns structured decrypt results that include both the protected header and plaintext.
 - Registers with the Swarmauri PluginManager via the `swarmauri.cryptos` entry point.
 
 ### Installation
 
 ```bash
 pip install swarmauri_crypto_jwe
+# or
+poetry add swarmauri_crypto_jwe
+# or, with uv
+uv add swarmauri_crypto_jwe
 ```
+
+> [!TIP]
+> `uv` can be installed with `pip install uv` or by following the instructions at [astral.sh/uv](https://docs.astral.sh/uv/). Once installed, run `uv add swarmauri_crypto_jwe` from your project directory to add the dependency.
 
 ### Usage
 
@@ -43,6 +52,7 @@ decrypted back into their original plaintext. A typical flow is:
 import asyncio
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
+from swarmauri_core.crypto.types import JWAAlg
 from swarmauri_crypto_jwe import JweCrypto
 
 
@@ -57,8 +67,8 @@ async def main() -> None:
 
     jwe = await crypto.encrypt_compact(
         payload=b"secret",
-        alg="RSA-OAEP-256",
-        enc="A256GCM",
+        alg=JWAAlg.RSA_OAEP_256,
+        enc=JWAAlg.A256GCM,
         key={"pub": pk_pem},
     )
 
@@ -87,13 +97,22 @@ crypto = pm.load("swarmauri.cryptos", "JweCrypto")
 
 **Parameters**
 
-- `alg` – key management algorithm such as `RSA-OAEP-256` or `dir`.
-- `enc` – content encryption algorithm like `A256GCM`.
-- `key` – mapping containing the public key or direct symmetric key
-  material.
-- Decryption requires the matching private key via `rsa_private_pem`,
-  `dir_key`, or `ecdh_private_key`.
+- `alg` – `JWAAlg` member describing the key management algorithm (`JWAAlg.RSA_OAEP_256`, `JWAAlg.DIR`, etc.).
+- `enc` – `JWAAlg` member describing the content encryption algorithm (`JWAAlg.A256GCM`, `JWAAlg.A128GCM`, etc.).
+- `key` – mapping containing the key material used for encryption:
+  - `{"k": bytes}` for direct symmetric keys (`dir`).
+  - `{"pub": rsa_public_key}` for RSA OAEP, where the public key may be PEM bytes or an `RSAPublicKey` instance.
+  - `{"pub": ec_public_key}` for ECDH-ES with PEM, JWK, or key objects.
+- Optional `header_extra` values are merged into the protected header (use `zip="DEF"` to enable compression).
+- Decryption requires the matching private key via `dir_key`, `rsa_private_pem`/`rsa_private_password`, or `ecdh_private_key`.
+- `expected_algs` and `expected_encs` constrain acceptable algorithms during decryption, and `aad` must match the authenticated data provided at encryption time.
 
 ## Entry point
 
 The provider is registered under the `swarmauri.cryptos` entry point as `JweCrypto`.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

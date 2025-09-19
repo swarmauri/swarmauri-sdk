@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_middleware_jwksverifier"
-version = "0.3.0.dev4"
+version = "0.3.0.dev5"
 description = "JWKS-based JWT verification middleware for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
@@ -44,6 +44,7 @@ markers = [
     "r8n: Regression tests",
     "acceptance: Acceptance tests",
     "perf: Performance tests",
+    "example: Documentation-backed examples",
 ]
 timeout = 300
 log_cli = true

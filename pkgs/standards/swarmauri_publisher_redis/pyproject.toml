@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_publisher_redis"
-version = "0.3.0.dev4"
+version = "0.3.0.dev5"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 
 description = "A Redis publisher implementation for Swarmauri."
@@ -40,6 +40,7 @@ markers = [
     "xfail: Expected failures",
     "acceptance: Acceptance tests",
     "perf: Performance tests that measure execution time and resource usage",
+    "example: README and documentation-backed examples",
 ]
 timeout = 300
 log_cli = true

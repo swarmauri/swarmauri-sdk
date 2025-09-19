@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_storage_github_release"
-version = "0.3.0.dev4"
+version = "0.3.0.dev5"
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" }
 ]
@@ -44,6 +44,7 @@ markers = [
     "unit: Unit tests",
     "i9n: Integration tests",
     "r8n: Regression tests",
+    "example: Documentation examples",
     "timeout: mark test to timeout after X seconds",
     "xpass: Expected passes",
     "xfail: Expected failures",

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_crypto_composite"
-version = "0.2.0.dev4"
+version = "0.2.0.dev5"
 description = "Algorithm-routing crypto provider for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
@@ -35,6 +35,7 @@ markers = [
     "r8n: Regression tests",
     "acceptance: Acceptance tests",
     "perf: Performance tests",
+    "example: README-backed usage examples",
 ]
 timeout = 300
 log_cli = true

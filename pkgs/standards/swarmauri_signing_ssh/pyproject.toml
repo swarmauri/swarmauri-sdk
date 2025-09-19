@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_signing_ssh"
-version = "0.3.0.dev4"
+version = "0.3.0.dev5"
 description = "OpenSSH-based signer for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
@@ -38,6 +38,7 @@ markers = [
     "r8n: Regression tests",
     "acceptance: Acceptance tests",
     "perf: Performance tests",
+    "example: README-backed usage tests",
 ]
 timeout = 300
 log_cli = true

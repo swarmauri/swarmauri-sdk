@@ -24,22 +24,37 @@ endpoint for public key discovery.
 
 ## Installation
 
+Install the service with your preferred Python packaging tool:
+
 ```bash
 pip install swarmauri_tokens_jwt
 ```
 
+```bash
+poetry add swarmauri_tokens_jwt
+```
+
+```bash
+uv pip install swarmauri_tokens_jwt
+```
+
 ## Features
 
-- Mint and verify JWS/JWT tokens
+- Mint and verify JWS/JWT tokens backed by any :class:`~swarmauri_core.keys.IKeyProvider`
 - Supports algorithms like **HS256**, **RS256**, **ES256**, **PS256** and **EdDSA**
-- Integrates with any :class:`~swarmauri_core.keys.IKeyProvider`
-- Publishes a JWKS endpoint for public key discovery
+- Adds standard temporal claims (`iat`, `nbf`, and optional `exp`) plus issuer,
+  subject, audience and scope defaults when minting tokens
+- Validates expiration, not-before, issuer and audience claims during
+  verification
+- Publishes a JWKS endpoint for public key discovery through your key provider
+- Install the optional ``cryptography`` dependency to enable RSA, ECDSA and
+  EdDSA signing keys
 
 ## Usage
 
-`JWTTokenService` requires an `IKeyProvider` to supply signing material. The
-example below shows how to mint and verify a symmetric **HS256** token using a
-minimal in‑memory key provider.
+`JWTTokenService` requires an asynchronous `IKeyProvider` to supply signing
+material. The example below shows how to mint and verify a symmetric **HS256**
+token using a minimal in-memory key provider.
 
 ```python
 import asyncio
@@ -105,7 +120,12 @@ class InMemoryKeyProvider(IKeyProvider):
 
 async def main() -> None:
     svc = JWTTokenService(InMemoryKeyProvider(), default_issuer="issuer")
-    token = await svc.mint({"sub": "alice"}, alg=JWAAlg.HS256, kid="sym")
+    token = await svc.mint(
+        {"sub": "alice"},
+        alg=JWAAlg.HS256,
+        kid="sym",
+        lifetime_s=600,  # override the default one-hour lifetime if needed
+    )
     claims = await svc.verify(token, issuer="issuer")
     assert claims["sub"] == "alice"
 
@@ -113,7 +133,18 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
+`verify` retrieves the JSON Web Key Set from the provider and enforces
+expiration, not-before, issuer and audience checks before returning the decoded
+claims. Expose the service's :meth:`jwks` coroutine to publish the active public
+keys from your provider.
+
 The service also supports asymmetric algorithms such as **RS256**, **ES256** and
 **EdDSA** when the key provider exposes the appropriate keys. See the
 docstrings in :mod:`swarmauri_tokens_jwt` for additional details on the API
 surface.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

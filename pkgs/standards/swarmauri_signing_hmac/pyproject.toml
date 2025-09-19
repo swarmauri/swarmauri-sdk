@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_signing_hmac"
-version = "0.3.0.dev5"
+version = "0.3.0.dev6"
 description = "HMAC-based signer for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
@@ -38,6 +38,7 @@ markers = [
     "r8n: Regression tests",
     "acceptance: Acceptance tests",
     "perf: Performance tests",
+    "example: Documentation-backed usage examples",
 ]
 timeout = 300
 log_cli = true

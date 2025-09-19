@@ -51,3 +51,9 @@ The token format uses a compact three-part structure similar to JWT but relies
 on SSH signature algorithms. The payload is encoded as deterministic JSON and
 bound to a namespace before signing, providing interoperability with existing
 SSH key infrastructures.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

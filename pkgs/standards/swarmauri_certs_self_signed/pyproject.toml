@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_certs_self_signed"
-version = "0.2.0.dev4"
+version = "0.2.0.dev5"
 description = "Self-signed certificate builder for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
@@ -37,6 +37,7 @@ markers = [
     "r8n: Regression tests",
     "acceptance: Acceptance tests",
     "perf: Performance tests",
+    "example: Documentation-backed usage examples",
 ]
 timeout = 300
 log_cli = true

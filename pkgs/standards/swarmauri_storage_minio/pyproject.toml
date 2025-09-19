@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_storage_minio"
-version = "0.2.0.dev4"
+version = "0.2.0.dev5"
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" }
 ]
@@ -49,6 +49,7 @@ markers = [
     "xfail: Expected failures",
     "acceptance: Acceptance tests",
     "perf: Performance tests that measure execution time and resource usage",
+    "example: README-backed usage examples",
 ]
 timeout = 300
 log_cli = true

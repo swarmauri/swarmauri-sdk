@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_keyprovider_hierarchical"
-version = "0.3.0.dev4"
+version = "0.3.0.dev5"
 description = "Hierarchical key provider for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
@@ -40,6 +40,7 @@ markers = [
     "perf: Performance tests",
     "func: Functional tests",
     "rfc: RFC compliance tests",
+    "example: Documentation examples",
 ]
 benchmark_min_rounds = 1
 timeout = 300

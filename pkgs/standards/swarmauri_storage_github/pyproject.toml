@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_storage_github"
-version = "0.2.0.dev4"
+version = "0.2.0.dev5"
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" }
 ]
@@ -41,6 +41,7 @@ norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",
     "unit: Unit tests",
+    "example: Example usage tests",
     "i9n: Integration tests",
     "r8n: Regression tests",
     "timeout: mark test to timeout after X seconds",

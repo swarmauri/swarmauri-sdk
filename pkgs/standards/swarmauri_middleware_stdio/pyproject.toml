@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_middleware_stdio"
-version = "0.8.0.dev5"
+version = "0.8.0.dev6"
 description = "Middleware that logs requests and responses to standard output"
 license = "Apache-2.0"
 readme = "README.md"
@@ -34,6 +34,7 @@ markers = [
     "test: standard test",
     "unit: Unit tests",
     "i9n: Integration tests",
+    "example: Example usage tests",
     "r8n: Regression tests",
     "timeout: mark test to timeout after X seconds",
     "xpass: Expected passes",

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_middleware_auth"
-version = "0.8.0.dev4"
+version = "0.8.0.dev5"
 description = "Middleware for handling authentication in Swarmauri applications."
 license = "Apache-2.0"
 readme = "README.md"
@@ -38,6 +38,7 @@ markers = [
     "test: standard test",
     "unit: Unit tests",
     "i9n: Integration tests",
+    "example: Documentation-backed usage examples",
     "r8n: Regression tests",
     "timeout: mark test to timeout after X seconds",
     "xpass: Expected passes",

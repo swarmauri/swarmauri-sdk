@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_middleware_exceptionhandling"
-version = "0.7.0.dev5"
+version = "0.7.0.dev6"
 description = "Custom Exception Handling Middleware for Swarmauri Framework"
 license = "Apache-2.0"
 readme = "README.md"
@@ -31,6 +31,7 @@ swarmauri_standard = {workspace = true}
 norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",
+    "example: Example usage tests",
     "unit: Unit tests",
     "i9n: Integration tests",
     "r8n: Regression tests",

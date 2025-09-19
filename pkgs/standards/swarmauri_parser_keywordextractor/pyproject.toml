@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_parser_keywordextractor"
-version = "0.9.0.dev4"
+version = "0.9.0.dev5"
 description = "Keyword Extractor Parser for Swarmauri."
 license = "Apache-2.0"
 readme = "README.md"
@@ -37,6 +37,7 @@ markers = [
     "xfail: Expected failures",
     "acceptance: Acceptance tests",
     "perf: Performance tests that measure execution time and resource usage",
+    "example: Example usage tests",
 ]
 timeout = 300
 log_cli = true

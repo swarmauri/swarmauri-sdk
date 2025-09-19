@@ -24,22 +24,72 @@
 
 Centralized exception and error handling for Swarmauri applications built on FastAPI.
 
+## Features
+
+- Wraps unhandled exceptions in a consistent JSON payload with the error type,
+  message, and a UTC timestamp.
+- Logs request metadata (method, path, and headers) alongside the stack trace to
+  simplify troubleshooting.
+- Registers through the Swarmauri component system and can be attached to any
+  FastAPI application via `app.middleware("http")`.
+
 ## Installation
+
+Pick the workflow that matches your project:
 
 ```bash
 pip install swarmauri_middleware_exceptionhandling
 ```
 
+```bash
+poetry add swarmauri_middleware_exceptionhandling
+```
+
+```bash
+uv pip install swarmauri_middleware_exceptionhandling
+# or, inside a uv project
+uv add swarmauri_middleware_exceptionhandling
+```
+
 ## Usage
+
+Attach the middleware to convert uncaught exceptions into the structured error
+response returned by Swarmauri services.
 
 ```python
 from fastapi import FastAPI
+from fastapi.testclient import TestClient
+
 from swarmauri_middleware_exceptionhandling import ExceptionHandlingMiddleware
 
 app = FastAPI()
 app.middleware("http")(ExceptionHandlingMiddleware())
+
+
+@app.get("/boom")
+async def boom():
+    raise RuntimeError("Boom!")
+
+
+client = TestClient(app)
+response = client.get("/boom")
+assert response.status_code == 500
+print(response.json())
+```
+
+The JSON payload produced by the middleware includes the error type, message,
+and a timestamp similar to the following:
+
+```json
+{
+  "error": {
+    "type": "Unhandled Exception",
+    "message": "Boom!",
+    "timestamp": "2024-05-01T12:34:56.789012"
+  }
+}
 ```
 
 ## Want to help?
 
-If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
+If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md) that will help you get started.

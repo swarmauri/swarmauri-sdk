@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "swarmauri_evaluator_anyusage"
-version = "0.3.0.dev4"
+version = "0.3.0.dev5"
 description = "An evaluator component that detects and penalizes usage of the `Any` type in Python code"
 authors = [
     {name = "SwarmAuri Team", email = "team@swarmauri.com"}
@@ -60,6 +60,7 @@ markers = [
     "xfail: Expected failures",
     "acceptance: Acceptance tests",
     "perf: Performance tests that measure execution time and resource usage",
+    "example: Example usage tests",
 ]
 timeout = 300
 log_cli = true

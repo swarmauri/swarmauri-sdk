@@ -33,3 +33,9 @@ from swarmauri_tool_containermakepr import ContainerMakePrTool
 tool = ContainerMakePrTool(container_name="my-container")
 tool(title="Update", body="PR body")
 ```
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

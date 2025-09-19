@@ -18,13 +18,36 @@
 
 # Swarmauri File Key Provider
 
-A file-backed key provider implementing the `KeyProviderBase` interface.
-It manages symmetric and asymmetric keys on disk and exports public material via JWK/JWKS.
+`FileKeyProvider` is a file-backed implementation of the `KeyProviderBase`
+interface. It persists each key beneath a `keys/<kid>/v<version>/` directory,
+captures metadata in `meta.json`, and exports public material in PEM or JWK
+form. The provider supports the same lifecycle semantics as the in-memory
+providers, but every operation is durable on disk.
+
+## Highlights
+
+- Generate symmetric AES-256-GCM keys and asymmetric Ed25519, X25519, RSA
+  (OAEP/PSS), or ECDSA (P-256) key material.
+- Import existing keys while preserving private material when allowed by the
+  selected `ExportPolicy`.
+- Rotate versions in-place, destroy versions or entire keys, and list
+  historical versions stored on disk.
+- Publish public material as individual JWKs or aggregate JWKS documents and
+  expose HKDF and random byte helpers.
 
 ## Installation
 
+Choose the tool that matches your workflow:
+
 ```bash
+# pip
 pip install swarmauri_keyprovider_file
+
+# Poetry
+poetry add swarmauri_keyprovider_file
+
+# uv
+uv add swarmauri_keyprovider_file
 ```
 
 ## Usage
@@ -61,6 +84,16 @@ async def run_example() -> str:
 asyncio.run(run_example())
 ```
 
+`FileKeyProvider` is asynchronous—every lifecycle method returns a
+`KeyRef`. Use `include_secret=True` when retrieving keys that allow private
+material export so symmetric key bytes are loaded from disk.
+
 ## Entry Point
 
 The provider registers under the `swarmauri.key_providers` entry point as `FileKeyProvider`.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

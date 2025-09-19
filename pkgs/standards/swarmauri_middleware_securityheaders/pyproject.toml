@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_middleware_securityheaders"
-version = "0.8.0.dev4"
+version = "0.8.0.dev5"
 description = "Middleware for adding security headers to HTTP responses"
 license = "Apache-2.0"
 readme = "README.md"
@@ -34,6 +34,7 @@ markers = [
     "test: standard test",
     "unit: Unit tests",
     "i9n: Integration tests",
+    "example: Documentation-backed examples",
     "r8n: Regression tests",
     "timeout: mark test to timeout after X seconds",
     "xpass: Expected passes",

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_gitfilter_file"
-version = "0.3.0.dev4"
+version = "0.3.0.dev5"
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" }
 ]
@@ -44,6 +44,7 @@ markers = [
     "test: standard test",
     "unit: Unit tests",
     "i9n: Integration tests",
+    "example: Example usage tests",
     "r8n: Regression tests",
     "timeout: mark test to timeout after X seconds",
     "xpass: Expected passes",

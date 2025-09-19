@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_keyproviders_mirrored"
-version = "0.2.0.dev4"
+version = "0.2.0.dev5"
 description = "Mirrored key provider for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
@@ -37,6 +37,7 @@ norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",
     "unit: Unit tests",
+    "example: Example usage tests",
     "i9n: Integration tests",
     "r8n: Regression tests",
     "acceptance: Acceptance tests",

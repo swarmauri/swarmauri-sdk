@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_certs_x509verify"
-version = "0.3.0.dev4"
+version = "0.3.0.dev5"
 description = "X.509 certificate verification service for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
@@ -39,6 +39,7 @@ markers = [
     "r8n: Regression tests",
     "acceptance: Acceptance tests",
     "perf: Performance tests",
+    "example: Example usage tests",
 ]
 timeout = 300
 log_cli = true

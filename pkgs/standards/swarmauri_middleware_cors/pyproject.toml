@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_middleware_cors"
-version = "0.8.0.dev4"
+version = "0.8.0.dev5"
 description = "Custom CORS Middleware for Swarmauri Framework"
 license = "Apache-2.0"
 readme = "README.md"
@@ -40,6 +40,7 @@ markers = [
     "xfail: Expected failures",
     "acceptance: Acceptance tests",
     "perf: Performance tests that measure execution time and resource usage",
+    "example: Example tests that execute documentation snippets",
 ]
 timeout = 300
 log_cli = true

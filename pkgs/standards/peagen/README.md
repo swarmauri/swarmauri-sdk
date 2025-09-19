@@ -47,8 +47,8 @@
 ### Interactive Iteration  
 - Quickly regenerate after tweaking templates or YAML with a single shell command—faster than editing and running a Python script.
 
-### CI/CD Enforcement  
-- Embed `peagen sort` and `peagen process` in pipelines (GitHub Actions, Jenkins, etc.) to ensure generated artifacts stay up to date. Exit codes and verbosity flags integrate seamlessly with automation tools.
+### CI/CD Enforcement
+- Embed `peagen local sort` and `peagen local process` in pipelines (GitHub Actions, Jenkins, etc.) to ensure generated artifacts stay up to date. Exit codes and verbosity flags integrate seamlessly with automation tools.
 
 ### Polyglot & Minimal Overhead  
 - Teams in Java, Rust, Go, or any language can use Peagen by installing and invoking the CLI—no Python API import paths to manage.
@@ -57,38 +57,20 @@
 #### Core Concepts
 > Peagen is a template‑driven orchestration engine that transforms high‑level project definitions into concrete files - statically rendered or LLM‑generated - while respecting inter‑file dependencies.
 
-At its heart sits the Peagen class (core.py, class Peagen), which encapsulates:
+Peagen’s orchestration layer now lives in the handler modules that back each CLI command. Rather than instantiating a `Peagen` class, the CLI builds `peagen.orm.Task` models and forwards them to functions such as `peagen.handlers.process_handler.process_handler`. Those handlers manage the Git work-tree supplied in `task.args["worktree"]`, resolve configuration via `PluginManager`, and delegate to helper routines in `peagen.core`.
 
-Project Loading
-- Reads one or more YAML payloads describing packages, modules, and template locations, turning them into in‑memory project objects.
+Key primitives you will encounter in the codebase are:
 
-Template Rendering
-- Uses Jinja2 to render each package's ptree.yaml.j2 into a flat list of file records, complete with metadata (path, mode, dependencies).
-Dependency Graph Construction
-= Builds a directed acyclic graph (DAG) of file records based on declared DEPEDNENCIES fields, ensuring correct ordering.
-Topological / Transitive Sorting
-- Offers both strict topological sort and a transitive variant to include indirect dependencies via the --transitive flag.
-File Processing
-- Iterates the sorted list of file records and either:
-  - Renders static COPY templates, or
-  - Fills an agent‑prompt template and invokes the LLM for GENERATE mode.
+- `load_projects_payload(projects_payload)`
+  Parses YAML (or an already loaded document) into a list of project dictionaries and validates it against the current schema.
+- `process_all_projects(projects_payload, cfg, transitive=False)`
+  Renders every project inside the Git work-tree referenced by `cfg["worktree"]`.
+- `process_single_project(project, cfg, start_idx=0, start_file=None, transitive=False)`
+  Executes the render → dependency sort → file processing pipeline for a single project and returns both the processed records and the next index.
+- `sort_file_records(file_records, *, start_idx=0, start_file=None, transitive=False)`
+  Implements the deterministic topological ordering used by both the CLI and worker processes. Dependencies are expressed via `record["EXTRAS"]["DEPENDENCIES"]`.
 
-#### Resume Support
-Allows resuming from any file index or template.
-
-#### Key Public Methods
-All methods below belong to core.py, class Peagen:
-
-- `load_projects()`
-Loads and validates the YAML payload(s), returning a list of project dictionaries enriched with template paths and metadata.
-
-- `process_all_projects()`
-For each loaded project, runs the full render → graph → sort → process pipeline, returning a mapping of project names to processed file records.
-
-- `process_single_project(project: Dict, start_idx: int = 0, start_file: Optional[str] = None)`
-Executes the pipeline for one project, optionally resuming at start_idx or at a specific file path, and returns the sorted records plus the final index processed.
-
-Each of these methods is invoked by the CLI commands in cli.py (e.g. process() calls Peagen.load_projects() then Peagen.process_single_project()). By understanding these core components, you can both use the CLI effectively and extend Peagen programmatically.
+Every call into `process_core` expects a configuration dictionary containing a `pathlib.Path` under `cfg["worktree"]`. That path is where copy templates are materialised, generated files are written, and—if a `GitVCS` instance is available—commits are staged and pushed. Understanding these functions is the quickest way to extend Peagen programmatically because the CLI is a thin wrapper over them.
 
 ---
 
@@ -99,6 +81,15 @@ Each of these methods is invoked by the CLI commands in cli.py (e.g. process() c
 ```bash
 # From PyPI (recommended)
 pip install peagen
+
+# With Poetry
+poetry add peagen
+
+# With uv managing pyproject dependencies
+uv add peagen
+
+# Install the CLI globally with uv
+uv tool install peagen
 
 # From source (latest development)
 git clone https://github.com/swarmauri/swarmauri-sdk.git
@@ -190,95 +181,145 @@ PROJECTS:
 
 ## CLI Entry Point Overview
 
-### `peagen process`
+Peagen’s CLI is organised into four top-level groups:
 
-Render and/or generate files for one or more projects.
+* `peagen fetch` – materialise workspaces and template sets on the local machine.
+* `peagen local …` – run handlers directly against the current environment.
+* `peagen remote …` – submit tasks to a JSON-RPC gateway.
+* `peagen tui` – launch the textual dashboard.
+
+### `peagen fetch`
+
+Synchronise workspaces locally (optionally cloning source packages and installing template sets).
 
 ```bash
-peagen process <PROJECTS_YAML> \
-  [--project-name <NAME>] \
-  [--include-swarmauri | --swarmauri-dev] \
-  [--transitive] \
-  [--provider <PROVIDER>] \
-  [--model-name <MODEL>] \
-  [-v | -vv]
+peagen fetch [WORKSPACE_URI ...] \
+  [--no-source/--with-source] \
+  [--install-template-sets/--no-install-template-sets] \
+  [--repo <GIT_URL>] \
+  [--ref <REF>]
 ```
-    
+
+### `peagen local process`
+
+Render and/or generate files for one or more projects inside an existing Git work-tree.
+
+```bash
+peagen local process <PROJECTS_YAML> \
+  --repo <PATH_OR_URL> \
+  [--ref <REF>] \
+  [--project-name <NAME>] \
+  [--start-idx <NUM>] \
+  [--start-file <PATH>] \
+  [--transitive/--no-transitive] \
+  [--agent-env '{"provider": "openai", "model_name": "gpt-4"}'] \
+  [--output-base <PATH>]
+```
+
+Pass `--repo $(pwd)` when operating on a local checkout so the handler can construct the work-tree that `process_core` expects.
+
 ![image](https://github.com/user-attachments/assets/1f52f066-8caa-4070-ab63-63350f95b0ee)
 
-### `peagen sort`
+### `peagen remote process`
 
-Show the planned file‑generation order without making changes.
+Submit a processing task to a Peagen gateway.
 
 ```bash
-peagen sort <PROJECTS_YAML> \
+peagen remote process <PROJECTS_YAML> \
+  --repo <GIT_URL> \
+  [--ref <REF>] \
   [--project-name <NAME>] \
-  [--transitive] \
-  [-v | -vv]
+  [--start-idx <NUM>] \
+  [--start-file <PATH>] \
+  [--transitive/--no-transitive] \
+  [--agent-env <JSON>] \
+  [--output-base <PATH>] \
+  [--watch/-w] \
+  [--interval/-i <SECONDS>]
+```
+
+### `peagen local sort`
+
+Inspect the dependency order without writing files.
+
+```bash
+peagen local sort <PROJECTS_YAML> \
+  [--repo <PATH_OR_URL>] \
+  [--ref <REF>] \
+  [--project-name <NAME>] \
+  [--start-idx <NUM>] \
+  [--start-file <PATH>] \
+  [--transitive/--no-transitive] \
+  [--show-dependencies]
 ```
 
 ![image](https://github.com/user-attachments/assets/216369fb-b9e9-4ab9-84ca-5f13f7dfbc88)
 
-### `peagen templates`
+### `peagen remote sort`
+
+```bash
+peagen remote sort <PROJECTS_YAML> \
+  --repo <GIT_URL> \
+  [--ref <REF>] \
+  [--project-name <NAME>] \
+  [--start-idx <NUM>] \
+  [--start-file <PATH>] \
+  [--transitive/--no-transitive] \
+  [--show-dependencies] \
+  [--watch/-w] \
+  [--interval/-i <SECONDS>]
+```
+
+### `peagen local template-set list`
 
 List available template sets and their directories:
 
 ```bash
-peagen templates
+peagen local template-set list
 ```
 
 ![image](https://github.com/user-attachments/assets/d0757543-87df-45d5-8962-e7580bd3738a)
 
+Remote equivalents (`peagen remote template-set …`) provide the same operations via the gateway.
 
-### `peagen doe gen`
+### `peagen local doe gen`
 
 Expand a Design-of-Experiments spec into a `project_payloads.yaml` bundle.
 
 ```bash
-peagen doe gen <DOE_SPEC_YML> <TEMPLATE_PROJECT> \
+peagen local doe gen <DOE_SPEC_YML> <TEMPLATE_PROJECT> \
   [--output project_payloads.yaml] \
   [-c PATH | --config PATH] \
-  [--dry-run] [--force]
+  [--dry-run] \
+  [--force]
 ```
 
-Craft `doe_spec.yml` using the scaffold created by `peagen init doe-spec`. Follow the
-editing guidelines in [`peagen/scaffold/doe_spec/README.md`](peagen/scaffold/doe_spec/README.md):
-update factor levels, run `peagen validate doe-spec doe_spec.yml`, bump the version in
-`spec.yaml`, and never mutate published versions.
+Craft `doe_spec.yml` using the scaffold created by `peagen init doe-spec`. Follow the editing guidelines in [`peagen/scaffold/doe_spec/README.md`](peagen/scaffold/doe_spec/README.md): update factor levels, run `peagen validate doe-spec doe_spec.yml`, bump the version in `spec.yaml`, and never mutate published versions. Remote execution is available via `peagen remote doe gen` with the same flags plus `--repo/--ref` when targeting a gateway.
 
-For reference implementations, see the sample specs under
-[`tests/examples/doe_specs`](tests/examples/doe_specs) which demonstrate basic, composite,
-and evaluator-pool variations.
+### `peagen local db upgrade`
 
-
-### `peagen db upgrade`
-
-Apply Alembic migrations to the latest version. Run this command before
-starting the gateway to ensure the database schema is current.
+Apply Alembic migrations to the latest version. Run this command before starting the gateway to ensure the database schema is current.
 
 ```bash
-peagen db upgrade
+peagen local db upgrade
 ```
 
 Run migrations on a gateway instance:
 
 ```bash
-peagen remote --gateway-url http://localhost:8000/rpc db upgrade
+peagen remote db upgrade
 ```
 
 ### Remote Processing with Multi-Tenancy
 
 ```bash
-peagen remote --gateway-url http://localhost:8000/rpc \
-  --pool acme-lab process projects.yaml
+peagen remote process projects.yaml \
+  --gateway-url http://localhost:8000/rpc \
+  --pool acme-lab \
+  --repo https://example.com/org/repo.git
 ```
 
-Pass `--pool` to target a specific tenant or workspace when submitting
-tasks to the gateway.
-
-All handlers now accept `--repo` and `--ref` parameters so workflows can
-operate on any GitHub repository and reference. This enables consistent
-multi-tenant processing across the CLI.
+Pass `--pool` to target a specific tenant or workspace when submitting tasks to the gateway. The shared handler surfaces `--repo` and `--ref` so workflows can operate on any Git repository and reference.
 
 ---
 
@@ -287,10 +328,10 @@ multi-tenant processing across the CLI.
 ### Single‑Project Processing Example
 
 ```bash
-peagen process projects.yaml \
+peagen local process projects.yaml \
+  --repo $(pwd) \
   --project-name MyProject \
-  --provider openai \
-  --model-name gpt-4 \
+  --agent-env '{"provider": "openai", "model_name": "gpt-4"}' \
   -v
 ```
 
@@ -302,9 +343,9 @@ peagen process projects.yaml \
 ### Batch Processing All Projects
 
 ```bash
-peagen process projects.yaml \
-  --provider openai \
-  --model-name gpt-4 \
+peagen local process projects.yaml \
+  --repo $(pwd) \
+  --agent-env '{"provider": "openai", "model_name": "gpt-4"}' \
   -vv
 ```
 
@@ -315,7 +356,8 @@ peagen process projects.yaml \
 ### Transitive Dependency Sorting with Resumption
 
 ```bash
-peagen process projects.yaml \
+peagen local process projects.yaml \
+  --repo $(pwd) \
   --project-name AnalyticsService \
   --transitive \
   --start-file services/data_pipeline.py \
@@ -325,6 +367,31 @@ peagen process projects.yaml \
 * Builds full DAG including indirect dependencies.
 * Topologically sorts all records.
 * Skips ahead to `services/data_pipeline.py` and processes from there.
+
+### Python API: dependency ordering
+
+```python
+from peagen.core.sort_core import sort_file_records
+
+file_records = [
+    {
+        "RENDERED_FILE_NAME": "components/db.py",
+        "EXTRAS": {"DEPENDENCIES": ["README.md"]},
+    },
+    {
+        "RENDERED_FILE_NAME": "README.md",
+        "EXTRAS": {"DEPENDENCIES": []},
+    },
+    {
+        "RENDERED_FILE_NAME": "components/service.py",
+        "EXTRAS": {"DEPENDENCIES": ["components/db.py"]},
+    },
+]
+
+ordered, next_idx = sort_file_records(file_records=file_records)
+print([rec["RENDERED_FILE_NAME"] for rec in ordered])
+print(next_idx)
+```
 
 ---
 
@@ -338,10 +405,10 @@ peagen process projects.yaml \
 ### Custom Agent‑Prompt Templates
 
 ```bash
-peagen process projects.yaml \
-  --agent-prompt-template-file ./custom_prompts/my_agent.j2 \
-  --provider openai \
-  --model-name gpt-4
+peagen local process projects.yaml \
+  --repo $(pwd) \
+  --agent-env '{"provider": "openai", "model_name": "gpt-4"}' \
+  --agent-prompt-template-file ./custom_prompts/my_agent.j2
 ```
 
 ### Integrating into CI/CD Pipelines
@@ -370,9 +437,9 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          peagen process projects.yaml \
-            --provider openai \
-            --model-name gpt-4 \
+          peagen local process projects.yaml \
+            --repo "$GITHUB_WORKSPACE" \
+            --agent-env '{"provider": "openai", "model_name": "gpt-4"}' \
             --transitive \
             -v
       - name: Commit changes
@@ -439,7 +506,9 @@ Peagen's artifact output and event publishing are pluggable. Use the `git_filter
 For the event schema and routing key conventions, see [docs/eda_protocol.md](docs/eda_protocol.md). Events can also be emitted directly from the CLI using `--notify`:
 
 ```bash
-peagen process projects.yaml --notify redis://localhost:6379/0/custom.events
+peagen local process projects.yaml \
+  --repo $(pwd) \
+  --notify redis://localhost:6379/0/custom.events
 ```
 
 For a walkthrough of encrypted secrets and key management, see

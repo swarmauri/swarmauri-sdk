@@ -20,18 +20,47 @@
 
 Multi-recipient encryption provider using external keyrings/HSMs.
 
+## Features
+
+- Uses asynchronous keyring clients that implement `id`, `wrap_cek`, and
+  `unwrap_cek` to delegate CEK storage and policy enforcement to external
+  systems.
+- Encrypts payloads with AES-256-GCM by default and automatically enables
+  XChaCha20-Poly1305 when the `cryptography` dependency exposes the
+  implementation.
+- Accepts additional authenticated data (AAD) during encryption and enforces a
+  configurable quorum (`opts['quorum_k']`) before releasing the payload.
+- Supports `rewrap` operations to add or revoke keyrings and can rotate the
+  payload CEK when deauthorizing recipients.
+- Requires the `cryptography` package at runtime, which is installed alongside
+  this provider.
+
 ## Installation
+
+Install the package with your preferred Python packaging tool:
 
 ```bash
 pip install swarmauri_mre_crypto_keyring
+```
+
+```bash
+poetry add swarmauri_mre_crypto_keyring
+```
+
+```bash
+uv pip install swarmauri_mre_crypto_keyring
 ```
 
 ## Usage
 
 `KeyringMreCrypto` delegates CEK (content-encryption key) management to
 user-provided keyring clients. Each client must implement `id`,
-`wrap_cek`, and `unwrap_cek`. The example below shows how to register an
-in-memory keyring and use it to encrypt and decrypt a payload.
+`wrap_cek`, and `unwrap_cek`. Key references supplied to the provider should use
+the shape `{"kind": "keyring_client", "client": <client>, "context": {...}}`,
+where `context` is an optional mapping of `str` to `bytes` shared with the
+client during wrapping and unwrapping. The example below registers an in-memory
+keyring and uses it to encrypt and decrypt a payload while the default quorum of
+`1` is satisfied.
 
 ```python
 import asyncio

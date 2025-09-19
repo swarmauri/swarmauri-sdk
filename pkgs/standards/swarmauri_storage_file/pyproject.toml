@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_storage_file"
-version = "0.3.0.dev4"
+version = "0.3.0.dev5"
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" }
 ]
@@ -49,6 +49,7 @@ markers = [
     "xfail: Expected failures",
     "acceptance: Acceptance tests",
     "perf: Performance tests that measure execution time and resource usage",
+    "example: Example usage tests",
 ]
 timeout = 300
 log_cli = true

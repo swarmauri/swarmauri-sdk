@@ -18,19 +18,42 @@
 
 # Swarmauri Certs Local CA
 
-A local certificate authority implementing the `ICertService` interface for issuing and verifying X.509 certificates. Useful for development and testing environments.
+A local certificate authority implementing the `ICertService` interface for issuing and verifying X.509 certificates. Useful for development and testing environments where you need to bootstrap a private PKI quickly.
 
-Features:
-- CSR generation with subject alternative names
-- Self-signed certificate issuance
-- Signing CSRs to produce leaf certificates
-- Basic certificate verification and parsing
-- Optional IDNA support for internationalized DNS names
+## Features
+
+- Generate CSRs with optional subject alternative names and certificate extensions.
+- Create self-signed CA certificates with sensible defaults (1-year validity, CA basic constraints).
+- Sign CSRs to produce leaf certificates, returning PEM or DER output.
+- Perform basic certificate verification that ensures the certificate is currently valid and reports issuer/subject metadata.
+- Parse certificates to extract key metadata and extension object identifiers.
+
+> **Note:** `verify_cert` only evaluates validity windows; it does not build trust chains or check revocation lists.
+
+## Supported algorithms
+
+`LocalCaCertService.supports()` reports the following capabilities:
+
+- **Key algorithms:** `RSA-2048`, `RSA-3072`, `EC-P256`, `Ed25519`
+- **Signature algorithms:** `RSA-PSS-SHA256`, `ECDSA-P256-SHA256`, `Ed25519`
+- **Features:** CSR creation, self-signed issuance, CSR signing, verification, and parsing
 
 ## Installation
 
+Install the package with your preferred Python packaging tool:
+
 ```bash
 pip install swarmauri_certs_local_ca
+```
+
+```bash
+poetry add swarmauri_certs_local_ca
+```
+
+If you use [uv](https://docs.astral.sh/uv/), install it first (for example with `pip install uv`) and then add the package:
+
+```bash
+uv pip install swarmauri_certs_local_ca
 ```
 
 ## Usage
@@ -78,12 +101,23 @@ async def main() -> None:
 
     # Verify the newly issued certificate.
     result = await svc.verify_cert(cert)
-    print(result["valid"])  # True
+    print(result["valid"], result["subject"], result["issuer"])
 
 
 asyncio.run(main())
 ```
 
+`verify_cert` returns a dictionary containing the validity flag plus the RFC 4514
+representations of the subject and issuer.  For CA bootstrapping you can call
+`create_self_signed` to generate a root certificate and use `parse_cert` to
+inspect serial numbers, validity windows, and extension object identifiers.
+
 ## Entry Point
 
 The service registers under the `swarmauri.cert_services` entry point as `LocalCaCertService`.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.

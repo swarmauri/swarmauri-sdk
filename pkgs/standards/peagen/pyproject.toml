@@ -123,6 +123,7 @@ markers = [
     "perf: Performance tests that measure execution time and resource usage",
     "smoke: comprehensive smoke tests against live services",
     "e2e: end-to-end workflow tests",
+    "example: README-backed documentation examples",
 ]
 timeout = 300
 log_cli = true
