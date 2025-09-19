@@ -102,6 +102,7 @@ members = [
     "experimental/swarmauri_keyprovider_pkcs11",
     "experimental/swarmauri_tests_loc_tersity",
     "experimental/swarmauri_tests_pylicense",
+    "experimental/swarmauri_tests_readme_examples",
     "standards/swarmauri_crypto_paramiko",
     "standards/swarmauri_crypto_pgp",
     "standards/swarmauri_crypto_rust",
