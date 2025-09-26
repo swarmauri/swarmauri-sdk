@@ -1,4 +1,3 @@
-
 ![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
@@ -16,72 +15,63 @@
 
 ---
 
-# Swarmauri Tool Jupyterexecutenotebookwithparameters
+# Swarmauri Tool Jupyter Execute Notebook With Parameters
 
-## Overview
+Runs a Jupyter notebook with injected parameters using Papermill-style execution.
 
-This package provides a tool for executing Jupyter notebooks with custom parameters, leveraging the power of papermill. With the incorporated parameter injection, you can modify variables and data sources without manually editing your notebooks.
+## Features
+
+- Parameterizes notebooks via Papermill and executes them end-to-end.
+- Saves the executed notebook to an output path of your choice.
+- Returns a dict containing `executed_notebook` on success or `error`/`message` when execution fails.
+
+## Prerequisites
+
+- Python 3.10 or newer.
+- Papermill, nbformat, nbconvert, swarmauri base/core packages (installed automatically).
+- Notebook dependencies must be available in the runtime environment.
 
 ## Installation
 
-This package is published on the Python Package Index (PyPI). You can install it with:
+```bash
+# pip
+pip install swarmauri_tool_jupyterexecutenotebookwithparameters
 
-    pip install swarmauri_tool_jupyterexecutenotebookwithparameters
+# poetry
+poetry add swarmauri_tool_jupyterexecutenotebookwithparameters
 
-### Dependencies
+# uv (pyproject-based projects)
+uv add swarmauri_tool_jupyterexecutenotebookwithparameters
+```
 
-• papermill  
-• swarmauri_core >= 0.6.0.dev1  
-• swarmauri_base >= 0.6.0.dev1  
+## Quickstart
 
-These dependencies will be automatically installed when you install this package from PyPI.
+```python
+from swarmauri_tool_jupyterexecutenotebookwithparameters import JupyterExecuteNotebookWithParametersTool
 
-## Usage
+executor = JupyterExecuteNotebookWithParametersTool()
+response = executor(
+    notebook_path="templates/report.ipynb",
+    output_notebook_path="outputs/report-filled.ipynb",
+    params={
+        "input_data_path": "data/input.csv",
+        "run_mode": "production",
+    },
+    timeout=600,
+)
 
-After installing, import the tool in your Python project:
+if "executed_notebook" in response:
+    print("Notebook executed:", response["executed_notebook"])
+else:
+    print("Error:", response["error"], response.get("message"))
+```
 
-    from swarmauri_tool_jupyterexecutenotebookwithparameters import JupyterExecuteNotebookWithParametersTool
+## Tips
 
-### Basic Example
+- Parameters can be any JSON-serializable values used inside the notebook (strings, numbers, dictionaries, etc.).
+- Increase `timeout` for notebooks with lengthy cells.
+- Combine with Swarmauri notebook cleaning/conversion tools for full pipelines (execute → clear outputs → convert to PDF/HTML).
 
-Create an instance of the tool and call it with the required arguments:
+## Want to help?
 
-    # Example usage in a script or notebook
-
-    # Instantiate the tool
-    tool_instance = JupyterExecuteNotebookWithParametersTool()
-
-    # Execute a Jupyter notebook
-    result = tool_instance(
-        notebook_path="example_notebook.ipynb",
-        output_notebook_path="example_output.ipynb",
-        params={
-            "input_data_path": "data/input.csv",
-            "run_mode": "production"
-        }
-    )
-
-    # Check for success or error
-    if "executed_notebook" in result:
-        print(f"Notebook executed successfully. Output saved at: {result['executed_notebook']}")
-    else:
-        print(f"Error executing notebook: {result['error']}")
-
-In this example:
-• notebook_path points to the original .ipynb file.  
-• output_notebook_path is the output file that papermill writes after parameter injection and execution.  
-• params contains key-value pairs injected into the notebook as variables.
-
-### Advanced Usage
-
-• Catching Exceptions: The tool automatically returns a dictionary containing "error" if any exceptions occur during execution, allowing for programmatic error handling in CI/CD pipelines or other automated processes.  
-
-• Parameter Injection: You can pass in any number of parameters to the params dictionary. For instance, toggling debug flags or updating dataset paths dynamically is straightforward with this mechanism.  
-
-• Integration: This tool is designed to be used standalone or within the Swarmauri framework. When integrated into a pipeline, different notebooks can share the same or overridden parameter sets for consistent processing across multiple steps.  
-
----
-
-## Further Development
-
-This tool follows PEP 8 style guidelines, includes docstrings for all classes and methods, and utilizes type hints for better readability and maintainability. It’s designed to fit seamlessly into your Python projects, enabling powerful, parameterized notebook executions with minimal boilerplate.
+If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
