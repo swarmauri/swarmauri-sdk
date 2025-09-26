@@ -1,4 +1,3 @@
-
 ![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
@@ -16,103 +15,64 @@
 
 ---
 
-# Swarmauri Tool Jupyter Export Html
+# Swarmauri Tool Jupyter Export HTML
 
-The purpose of this package is to provide a flexible tool for converting Jupyter Notebook content into HTML format using nbconvert’s HTMLExporter. This enables easy presentation, sharing, or embedding of Jupyter Notebook content into various workflows or web applications.
+Converts a Jupyter notebook (passed in as JSON) to HTML using nbconvert’s `HTMLExporter` with optional custom templates, CSS, and JavaScript.
+
+## Features
+
+- Accepts notebook data as a JSON string (e.g., from `json.dumps(nbformat.read(...))`).
+- Supports optional template, inline CSS, and inline JS injection.
+- Returns a dict containing `exported_html` or `error` when conversion fails.
+
+## Prerequisites
+
+- Python 3.10 or newer.
+- `nbconvert`, `nbformat`, and Swarmauri base/core packages (installed automatically).
 
 ## Installation
 
-Since this package is published for Python 3.10 to 3.13, you will need a recent version of Python. To install:
+```bash
+# pip
+pip install swarmauri_tool_jupyterexporthtml
 
-1. Ensure you have the required dependencies, including nbconvert, installed.  
-2. Run the following command in your preferred Python environment to install from PyPI:
+# poetry
+poetry add swarmauri_tool_jupyterexporthtml
 
-   pip install swarmauri_tool_jupyterexporthtml
+# uv (pyproject-based projects)
+uv add swarmauri_tool_jupyterexporthtml
+```
 
-3. You’re ready to begin using the JupyterExportHTMLTool in your projects.
+## Quickstart
 
-### Dependencies
-• nbconvert (for converting Notebook content into HTML)  
-• swarmauri_core, swarmauri_base (for Swarmauri framework integration)
-
-These are automatically installed when you install this package.
-
-## Usage 
-
-Below is a short guide showing how to import and use the tool in your own Python code. The JupyterExportHTMLTool accepts a JSON-formatted string representing the notebook data, plus optional template, CSS, and JavaScript parameters.
-
-Example usage:
-
---------------------------------------------------------------------------------
-
+```python
+import json
+import nbformat
 from swarmauri_tool_jupyterexporthtml import JupyterExportHTMLTool
 
-# Example Notebook JSON (this would typically be read from a file or other source)
-notebook_json_str = '''
-{
-    "cells": [
-        {
-            "cell_type": "markdown",
-            "metadata": {},
-            "source": [
-                "# Hello World\\n",
-                "This is a sample notebook cell."
-            ]
-        }
-    ],
-    "metadata": {},
-    "nbformat": 4,
-    "nbformat_minor": 5
-}
-'''
+notebook = nbformat.read("notebooks/example.ipynb", as_version=4)
+notebook_json = json.dumps(notebook)
 
-# Create an instance of the exporter
 exporter = JupyterExportHTMLTool()
-
-# Call the exporter with optional parameters
-result = exporter(
-    notebook_json=notebook_json_str,
-    template_file=None,  # or specify a path to a custom template
-    extra_css="body { font-family: Arial, sans-serif; }",
-    extra_js="console.log('HTML Export Ready!');"
+response = exporter(
+    notebook_json=notebook_json,
+    template_file=None,
+    extra_css="body { font-family: Arial; }",
+    extra_js="console.log('Export complete');",
 )
 
-# Check for success
-if "exported_html" in result:
-    # Save or process the HTML output
-    html_content = result["exported_html"]
-    print("Notebook conversion to HTML was successful. Length of output:", len(html_content))
+if "exported_html" in response:
+    Path("notebooks/example.html").write_text(response["exported_html"], encoding="utf-8")
 else:
-    # Handle any error messages
-    print("Error during export:", result.get("error"))
+    print("Error:", response["error"])
+```
 
---------------------------------------------------------------------------------
+## Tips
 
-### Method Summary
+- nbconvert templates let you customize the layout; pass a `.tpl` file to `template_file`.
+- Keep `extra_css`/`extra_js` lightweight to avoid bloating the HTML output.
+- Combine with notebook execution tools (execute → export → publish) for end-to-end pipelines.
 
-The JupyterExportHTMLTool class implements a callable interface, expecting parameters such as:  
-• notebook_json (required): A string containing Jupyter Notebook data in valid JSON format.  
-• template_file (optional): Path to an nbconvert-compatible template.  
-• extra_css (optional): Inline styles you wish to embed into the resulting HTML.  
-• extra_js (optional): Inline JavaScript you wish to embed before the closing body tag.  
+## Want to help?
 
-It returns a dictionary containing either “exported_html” with the final HTML string or “error” with a message describing any failure.
-
-## Advanced Usage
-
-Use a custom template to further influence how the notebook is rendered. For instance, with an nbconvert template:
-
-result = exporter(
-    notebook_json=notebook_json_str,
-    template_file="custom_template.tpl",
-    extra_css="header { color: blue; }",
-    extra_js="alert('Notebook Conversion Complete!');"
-)
-
-The extra_css parameter is injected inside a <style> tag, and extra_js is injected in a <script> tag at the end of the file. This allows you to easily tailor styling or behavior without manually editing the exported HTML.
-
---------------------------------------------------------------------------------
-
-For further details, please refer to the code docstrings in JupyterExportHTMLTool.py. This README should be enough to get you started with installation, configuration, and usage in your own environment.
-
-Happy exporting!
+If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
