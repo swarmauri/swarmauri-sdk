@@ -1,4 +1,3 @@
-
 ![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
@@ -18,33 +17,64 @@
 
 # Swarmauri Parser TextBlob
 
-A parser package that leverages TextBlob for natural language processing tasks such as sentence parsing and noun phrase extraction.
+TextBlob-backed parsers for Swarmauri that split text into sentences or extract noun phrases. Ships two components: `TextBlobSentenceParser` and `TextBlobNounParser`.
+
+## Features
+
+- Sentence parser returns a `Document` per sentence with metadata identifying the parser.
+- Noun phrase parser returns the original text plus `metadata['noun_phrases']` containing the phrases discovered by TextBlob.
+- Auto-downloads required NLTK corpora (`punkt_tab`) during initialization.
+
+## Prerequisites
+
+- Python 3.10 or newer.
+- [TextBlob](https://textblob.readthedocs.io/) and its NLTK dependencies (installed automatically).
+- Internet access on first run so NLTK can download tokenizer data (or pre-download via `python -m textblob.download_corpora`).
 
 ## Installation
 
 ```bash
+# pip
 pip install swarmauri_parser_textblob
+
+# poetry
+poetry add swarmauri_parser_textblob
+
+# uv (pyproject-based projects)
+uv add swarmauri_parser_textblob
 ```
 
-## Usage
-Basic usage examples with code snippets
-```python
-from swarmauri.parsers.TextBlobSentenceParser import TextBlobSentenceParser
-from swarmauri.parsers.TextBlobNounParser import TextBlobNounParser
+## Sentence Parsing
 
-# Example usage of TextBlobSentenceParser
-sentence_parser = TextBlobSentenceParser()
-sentences = sentence_parser.parse("One more large chapula please.")
+```python
+from swarmauri_parser_textblob import TextBlobSentenceParser
+
+parser = TextBlobSentenceParser()
+text = "One more large chapula please. It should be extra spicy!"
+
+sentences = parser.parse(text)
 for doc in sentences:
     print(doc.content)
+```
 
-# Example usage of TextBlobNounParser
-noun_parser = TextBlobNounParser()
-documents = noun_parser.parse("One more large chapula please.")
-for doc in documents:
+## Noun Phrase Extraction
+
+```python
+from swarmauri_parser_textblob import TextBlobNounParser
+
+parser = TextBlobNounParser()
+docs = parser.parse("One more large chapula please.")
+
+for doc in docs:
     print(doc.content)
     print(doc.metadata["noun_phrases"])
 ```
+
+## Tips
+
+- TextBlob uses simple heuristics—it works well for general English text but may struggle with domain-specific jargon.
+- Download corpora once in CI/CD or container builds (`python -m textblob.download_corpora`) to avoid runtime downloads.
+- Combine sentence and noun parsers to build structured representations of documents before vectorization or downstream NLP tasks.
 
 ## Want to help?
 

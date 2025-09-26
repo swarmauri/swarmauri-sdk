@@ -1,4 +1,3 @@
-
 ![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
@@ -18,26 +17,69 @@
 
 # Swarmauri Parser PyPDFTK
 
-A parser for reading and extracting data fields from PDF files using PyPDFTK.
+Form-field parser for Swarmauri built on [PyPDFTK](https://pypi.org/project/pypdftk/). Extracts PDF AcroForm field metadata and returns it as Swarmauri `Document` content.
+
+## Features
+
+- Calls `pypdftk.dump_data_fields` to extract field key/value pairs.
+- Emits a single `Document` with newline-delimited `key: value` text and `metadata['source']` set to the PDF path.
+- Returns an empty list when no form fields exist or when parsing fails (logs the error).
+
+## Prerequisites
+
+- Python 3.10 or newer.
+- PyPDFTK plus the `pdftk`/`pdftk-java` binary available on the system path. Install operating-system packages: e.g., `apt install pdftk-java` or download `pdftk` for macOS/Windows.
+- Read access to the PDF file path you provide.
 
 ## Installation
 
 ```bash
+# pip
 pip install swarmauri_parser_pypdftk
+
+# poetry
+poetry add swarmauri_parser_pypdftk
+
+# uv (pyproject-based projects)
+uv add swarmauri_parser_pypdftk
 ```
 
-## Usage
-Basic usage example with code snippet:
+## Quickstart
+
 ```python
-from swarmauri.parsers.PyPDFTKParser import PyPDFTKParser
+from swarmauri_parser_pypdftk import PyPDFTKParser
 
 parser = PyPDFTKParser()
-file_path = "path/to/your/pdf_file.pdf"
-documents = parser.parse(file_path)
+documents = parser.parse("forms/enrollment.pdf")
 
-for document in documents:
-    print(document.content)
+for doc in documents:
+    print(doc.metadata["source"])
+    print(doc.content)
 ```
+
+Example output:
+```
+source: forms/enrollment.pdf
+GivenName: John
+FamilyName: Doe
+BirthDate: 1990-01-01
+```
+
+## Handling Missing Fields
+
+```python
+parser = PyPDFTKParser()
+docs = parser.parse("forms/plain.pdf")
+
+if not docs:
+    print("No form fields detected or parsing failed.")
+```
+
+## Tips
+
+- Ensure `pdftk` is installed and available on `PATH`; PyPDFTK delegates to the binary.
+- For encrypted PDFs, remove or provide the password before parsing; `pdftk` cannot dump fields from password-protected documents without credentials.
+- Combine with other Swarmauri parsers to extract both structured form data (`PyPDFTKParser`) and free-form text (`PyPDF2Parser` or `FitzPdfParser`).
 
 ## Want to help?
 

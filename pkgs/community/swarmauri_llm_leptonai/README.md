@@ -1,4 +1,3 @@
-
 ![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
@@ -18,47 +17,110 @@
 
 # Swarmauri LLM LeptonAI
 
-This package provides integration with Lepton AI's text and image generation models.
+Integration package for calling Lepton AI's hosted language and image generation models from Swarmauri agents. Ships LLM and image-gen adapters with synchronous, streaming, and asynchronous workflows that match Swarmauri conventions.
+
+## Features
+
+- Chat completion support for Lepton AI models (e.g., `llama3-8b`, `mixtral-8x7b`) with automatic usage tracking.
+- Streaming and async token generation for latency-sensitive experiences.
+- SDXL-based image generation with convenience helpers to save or display returned bytes.
+- Single configuration surface for model name, base URL, and API key; reuse the same credential for both text and image endpoints.
+
+## Prerequisites
+
+- Python 3.10 or newer.
+- A Lepton AI API key stored outside source control (environment variables or secret stores recommended).
+- Network access to `*.lepton.run` endpoints; the `openai` Python client is installed automatically as a dependency.
 
 ## Installation
 
 ```bash
+# pip
 pip install swarmauri_llm_leptonai
+
+# poetry
+poetry add swarmauri_llm_leptonai
+
+# uv (pyproject-based projects)
+uv add swarmauri_llm_leptonai
 ```
 
-## Usage
-Basic usage examples with code snippets
+## Quickstart: Chat Completions
 
-#### Text Generation
 ```python
-from swarmauri.llms.LeptonAIModel import LeptonAIModel
+import os
+from swarmauri_llm_leptonai import LeptonAIModel
+from swarmauri_standard.conversations.Conversation import Conversation
+from swarmauri_standard.messages.HumanMessage import HumanMessage
 
-# Initialize the model
-model = LeptonAIModel(api_key="your_api_key")
+api_key = os.environ["LEPTON_API_KEY"]
 
-# Generate text
 conversation = Conversation()
-conversation.add_message(HumanMessage(content="Hello, how are you?"))
+conversation.add_message(HumanMessage(content="Summarize Swarmauri in two sentences."))
+
+model = LeptonAIModel(api_key=api_key, name="llama3-8b")
 response = model.predict(conversation=conversation)
+
 print(response.get_last().content)
+print("Tokens used", response.get_last().usage.total_tokens)
 ```
 
+### Async and Streaming
 
-#### Image Generation
 ```python
-from swarmauri.image_gens.LeptonAIImgGenModel import LeptonAIImgGenModel
+import asyncio
+import os
+from swarmauri_llm_leptonai import LeptonAIModel
+from swarmauri_standard.conversations.Conversation import Conversation
+from swarmauri_standard.messages.HumanMessage import HumanMessage
 
-# Initialize the model
-img_model = LeptonAIImgGenModel(api_key="your_api_key")
+async def ask_async(prompt: str) -> None:
+    convo = Conversation()
+    convo.add_message(HumanMessage(content=prompt))
 
-# Generate an image
-prompt = "A cute cat playing with a ball of yarn"
-image_bytes = img_model.generate_image(prompt=prompt)
+    model = LeptonAIModel(api_key=os.environ["LEPTON_API_KEY"], name="mixtral-8x7b")
+    result = await model.apredict(conversation=convo)
+    print(result.get_last().content)
 
-# Save the image
-with open("generated_image.png", "wb") as img_file:
-    img_file.write(image_bytes)
+def stream_story(prompt: str) -> None:
+    convo = Conversation()
+    convo.add_message(HumanMessage(content=prompt))
+
+    model = LeptonAIModel(api_key=os.environ["LEPTON_API_KEY"])
+    for token in model.stream(conversation=convo):
+        print(token, end="", flush=True)
+
+# asyncio.run(ask_async("Draft a product announcement."))
+# stream_story("Write a haiku about distributed agents.")
 ```
+
+## Generate Images with SDXL
+
+```python
+import os
+from pathlib import Path
+from swarmauri_llm_leptonai import LeptonAIImgGenModel
+
+img_model = LeptonAIImgGenModel(api_key=os.environ["LEPTON_API_KEY"], model_name="sdxl")
+
+prompt = "A cyberpunk skyline at blue hour in watercolor style"
+image_bytes = img_model.generate_image(prompt=prompt, width=768, height=512)
+
+output = Path("leptonai_cyberpunk.png")
+img_model.save_image(image_bytes, output.as_posix())
+
+# Display in a notebook or desktop environment
+# img_model.display_image(image_bytes)
+```
+
+## Operational Tips
+
+- Models are invoked via `https://<model>.lepton.run/api/v1/`; updating `name` on `LeptonAIModel` switches endpoints without altering the client setup.
+- Streaming responses emit usage data at stream completion; consume the generator fully before inspecting `conversation.get_last().usage`.
+- Respect Lepton AI rate limits—add retries with exponential backoff or queue requests during traffic spikes.
+- Store API keys securely and rotate them regularly; avoid hard-coding credentials in notebooks or scripts.
+- Large image generations may take longer and consume more credits; adjust `width`, `height`, `steps`, and `guidance_scale` to balance quality versus latency.
+
 ## Want to help?
 
 If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
