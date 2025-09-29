@@ -1,0 +1,76 @@
+![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/master/assets/swarmauri.brand.theme.svg)
+
+<p align="center">
+    <a href="https://pypi.org/project/swarmauri_cipher_xades/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_cipher_xades" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_cipher_xades/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_cipher_xades.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_cipher_xades/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_cipher_xades" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_cipher_xades/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_cipher_xades" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_cipher_xades/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_cipher_xades?label=swarmauri_cipher_xades&color=green" alt="PyPI - swarmauri_cipher_xades"/></a>
+</p>
+
+---
+
+# Swarmauri Cipher Xades
+
+XAdES signing suite scaffolding with canonicalization defaults.
+
+## Installation
+
+### pip
+
+```bash
+pip install swarmauri_cipher_xades
+```
+
+### Poetry
+
+```bash
+poetry add swarmauri_cipher_xades
+```
+
+### uv
+
+To add the dependency to a `pyproject.toml` managed by `uv`:
+
+```bash
+uv add swarmauri_cipher_xades
+```
+
+Or install it into the active environment:
+
+```bash
+uv pip install swarmauri_cipher_xades
+```
+
+## Usage
+
+```python
+from swarmauri_cipher_xades import XadesCipherSuite
+
+suite = XadesCipherSuite(name="demo-xades")
+
+# Inspect the available operations and defaults
+print(suite.features()["ops"].keys())
+
+# Normalize an operation
+descriptor = suite.normalize(op=list(suite.supports().keys())[0])
+print(descriptor["alg"], descriptor["params"])
+```
+
+The suite returns normalized descriptors that include canonical algorithm names,
+per-dialect mappings, and policy metadata so providers can focus on execution.
+
+## Entry Point
+
+The suite registers under the `swarmauri.cipher_suites` entry point as `XadesCipherSuite`.
+
+## Contributing
+
+If you want to contribute to swarmauri-sdk, read up on our
+[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
+that will help you get started.
