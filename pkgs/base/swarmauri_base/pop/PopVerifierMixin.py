@@ -1,16 +1,18 @@
+"""Mixin providing shared verification helpers for PoP verifiers."""
+
 from __future__ import annotations
-from dataclasses import dataclass
+
 from datetime import datetime, timezone
 from typing import Iterable, Mapping, Optional
-from uuid import uuid4
+
+from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
 
 from swarmauri_core.pop import (
     BindType,
     CnfBinding,
     Feature,
     HttpParts,
-    IPoPSigner,
-    IPoPVerifier,
+    IPoPVerifier as IPopVerifier,
     KeyResolver,
     PoPBindingError,
     PoPParseError,
@@ -19,83 +21,24 @@ from swarmauri_core.pop import (
     ReplayHooks,
     VerifyPolicy,
 )
+from swarmauri_base import register_model
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
+from .PopSignerMixin import RequestContext
 from .binding import normalize_cnf
 from .util import canon_htm_htu, sha256_b64u
 
 
-@dataclass(frozen=True)
-class RequestContext:
-    method: str
-    htu: str
-    policy: VerifyPolicy
+@register_model()
+class PopVerifierMixin(BaseModel, IPopVerifier):
+    """Provide default behaviours for IPoPVerifier implementations."""
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
-class PopSignerBase(IPoPSigner):
-    """Common helpers for PoP signers."""
-
-    def __init__(
-        self, *, kind: PoPKind, header_name: str, include_query: bool = False
-    ) -> None:
-        self._kind = kind
-        self._header_name = header_name
-        self._include_query = include_query
-
-    @property
-    def kind(self) -> PoPKind:
-        return self._kind
-
-    def header_name(self) -> str:
-        return self._header_name
-
-    def _canon(self, method: str, url: str) -> tuple[str, str]:
-        return canon_htm_htu(method, url, include_query=self._include_query)
-
-    def _now(self) -> int:
-        return int(datetime.now(timezone.utc).timestamp())
-
-    def _new_jti(self) -> str:
-        return uuid4().hex
-
-    def _base_claims(
-        self,
-        method: str,
-        url: str,
-        *,
-        jti: Optional[str],
-        ath_b64u: Optional[str],
-    ) -> dict[str, object]:
-        htm, htu = self._canon(method, url)
-        claims: dict[str, object] = {
-            "htm": htm,
-            "htu": htu,
-            "iat": self._now(),
-            "jti": jti or self._new_jti(),
-        }
-        if ath_b64u is not None:
-            claims["ath"] = ath_b64u
-        return claims
-
-    def _merge_claims(
-        self,
-        base_claims: Mapping[str, object],
-        extra_claims: Mapping[str, object] | None,
-    ) -> dict[str, object]:
-        merged = dict(base_claims)
-        if extra_claims:
-            merged.update(extra_claims)
-        return merged
-
-    def ath_from_token(self, token: bytes | str) -> str:
-        if isinstance(token, str):
-            token_bytes = token.encode("utf-8")
-        else:
-            token_bytes = token
-        return sha256_b64u(token_bytes)
-
-
-class PopVerifierBase(IPoPVerifier):
-    """Base class providing shared verification helpers."""
+    _kind: PoPKind = PrivateAttr()
+    _header_name: str = PrivateAttr()
+    _features: Feature = PrivateAttr()
+    _algorithms: tuple[str, ...] = PrivateAttr()
 
     def __init__(
         self,
@@ -104,7 +47,9 @@ class PopVerifierBase(IPoPVerifier):
         header_name: str,
         features: Feature,
         algorithms: Iterable[str],
+        **data,
     ) -> None:
+        super().__init__(**data)
         self._kind = kind
         self._header_name = header_name
         self._features = features
@@ -173,7 +118,11 @@ class PopVerifierBase(IPoPVerifier):
             raise PoPVerificationError(f"Algorithm {alg} not permitted")
 
     def _enforce_bind_type(
-        self, cnf: CnfBinding, policy: VerifyPolicy, *, expected: BindType | None = None
+        self,
+        cnf: CnfBinding,
+        policy: VerifyPolicy,
+        *,
+        expected: BindType | None = None,
     ) -> None:
         if policy.require_bind and cnf.bind_type is not policy.require_bind:
             raise PoPBindingError(
@@ -236,3 +185,15 @@ class PopVerifierBase(IPoPVerifier):
 
     def _load_cnf(self, cnf_claim: Mapping[str, object]) -> CnfBinding:
         return normalize_cnf(cnf_claim)
+
+
+@ComponentBase.register_model()
+class PopVerifierBase(PopVerifierMixin, ComponentBase):
+    """Component base for PoP verifiers."""
+
+    resource: Optional[str] = Field(default=ResourceTypes.CRYPTO.value, frozen=True)
+    type: str = "PopVerifierBase"
+
+
+# Backwards compatibility alias
+PopVerifier = PopVerifierBase
