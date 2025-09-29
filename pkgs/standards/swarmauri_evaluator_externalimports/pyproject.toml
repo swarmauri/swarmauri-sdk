@@ -14,9 +14,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Development Status :: 3 - Alpha"
 ]
-authors = [
-    {name = "SwarmAuri Team", email = "info@swarmauri.com"}
-]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 keywords = [
     "swarmauri",
     "evaluator",
