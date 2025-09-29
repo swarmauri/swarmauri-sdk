@@ -36,7 +36,8 @@ Notes
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Iterable, Mapping, Optional, Sequence, Union
+from collections.abc import AsyncIterable, Iterable
+from typing import Mapping, Optional, Sequence, Union
 
 from ..crypto.types import Alg, KeyRef
 from ..crypto.types import AEADCiphertext  # single‑recipient envelope
@@ -50,6 +51,8 @@ Canon = str
 
 Envelope = Union[AEADCiphertext, MultiRecipientEnvelope, Mapping[str, object]]
 
+ByteStream = Union[bytes, bytearray, Iterable[bytes], AsyncIterable[bytes]]
+
 
 class ISigning(ABC):
     @abstractmethod
@@ -60,6 +63,15 @@ class ISigning(ABC):
         Keys (omit if unsupported):
           - "algs": iterable of signature algorithms (e.g., "Ed25519", "RSA-PSS-SHA256", "OpenPGP").
           - "canons": iterable of canonicalization identifiers (e.g., "json", "cbor", "json-c14n").
+          - "signs": iterable describing supported signing surfaces. Expected tokens include
+                • "bytes"    → :meth:`sign_bytes`
+                • "digest"   → :meth:`sign_digest`
+                • "envelope" → :meth:`sign_envelope`
+                • "stream"   → :meth:`sign_stream`
+          - "verifies": iterable describing supported verification surfaces using the
+            same tokens as "signs".
+          - "envelopes": iterable describing supported envelope shapes (e.g.,
+            "mapping", "aead_ciphertext", "multi_recipient").
           - "features": optional iterable of flags, e.g.:
                 • "multi"          → optimized for multi‑signature sets
                 • "detached_only"  → only detached signatures (default)
@@ -88,6 +100,23 @@ class ISigning(ABC):
         ...
 
     @abstractmethod
+    async def sign_digest(
+        self,
+        key: KeyRef,
+        digest: bytes,
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        """
+        Produce one or more detached signatures over a pre-computed digest.
+
+        Implementations MAY require the caller to supply digest metadata inside
+        ``opts`` (e.g., ``{"hash_alg": "sha256"}``).
+        """
+        ...
+
+    @abstractmethod
     async def verify_bytes(
         self,
         payload: bytes,
@@ -105,6 +134,40 @@ class ISigning(ABC):
 
         Returns:
           True if the verification criteria are met, False otherwise.
+        """
+        ...
+
+    # ────────────────────────────────── Streams ──────────────────────────────────
+
+    @abstractmethod
+    async def sign_stream(
+        self,
+        key: KeyRef,
+        payload: ByteStream,
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        """
+        Produce detached signatures over streaming byte payloads.
+
+        Implementations MAY buffer the stream to reuse :meth:`sign_bytes`.
+        """
+        ...
+
+    @abstractmethod
+    async def verify_stream(
+        self,
+        payload: ByteStream,
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> bool:
+        """
+        Verify detached signatures for streaming byte payloads.
+
+        Implementations MAY buffer the stream to reuse :meth:`verify_bytes`.
         """
         ...
 
@@ -157,4 +220,18 @@ class ISigning(ABC):
         'require' can express policy such as:
           {"min_signers": 2, "algs": ["Ed25519", "RSA-PSS-SHA256"], "kids": ["..."]}
         """
+        ...
+
+    # ────────────────────────────────── Digests ──────────────────────────────────
+
+    @abstractmethod
+    async def verify_digest(
+        self,
+        digest: bytes,
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> bool:
+        """Verify detached signatures produced over a pre-computed digest."""
         ...
