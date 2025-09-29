@@ -16,8 +16,9 @@ from swarmauri_core.pop import (
     PoPVerificationError,
     PoPKind,
 )
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.pop import (
-    PopSignerBase,
+    PopSigningBase,
     PopVerifierBase,
     RequestContext,
     sha256_b64u,
@@ -51,6 +52,7 @@ def _resolve_kid(kid: Optional[str]) -> Optional[bytes]:
     return kid.encode("utf-8")
 
 
+@ComponentBase.register_type(PopVerifierBase, "DPoPVerifier")
 class DPoPVerifier(PopVerifierBase):
     """Verifier for RFC 9449 DPoP proofs."""
 
@@ -164,7 +166,8 @@ class DPoPVerifier(PopVerifierBase):
         )
 
 
-class DPoPSigner(PopSignerBase):
+@ComponentBase.register_type(PopSigningBase, "DPoPSigner")
+class DPoPSigner(PopSigningBase):
     """Signer that emits `dpop+jwt` proofs."""
 
     def __init__(
