@@ -6,7 +6,7 @@ from typing import Iterable, Mapping, Optional, Sequence
 
 from pydantic import Field
 
-from swarmauri_core.signing.ISigning import ISigning, Canon, Envelope
+from swarmauri_core.signing.ISigning import ISigning, Canon, Envelope, StreamLike
 from swarmauri_core.signing.types import Signature
 from swarmauri_core.crypto.types import Alg, KeyRef
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
@@ -35,6 +35,17 @@ class SigningBase(ISigning, ComponentBase):
         raise NotImplementedError("sign_bytes() must be implemented by subclass")
 
     # ------------------------------------------------------------------
+    async def sign_digest(
+        self,
+        key: KeyRef,
+        digest: bytes,
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        raise NotImplementedError("sign_digest() must be implemented by subclass")
+
+    # ------------------------------------------------------------------
     async def verify_bytes(
         self,
         payload: bytes,
@@ -44,6 +55,17 @@ class SigningBase(ISigning, ComponentBase):
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
         raise NotImplementedError("verify_bytes() must be implemented by subclass")
+
+    # ------------------------------------------------------------------
+    async def verify_digest(
+        self,
+        digest: bytes,
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> bool:
+        raise NotImplementedError("verify_digest() must be implemented by subclass")
 
     # ------------------------------------------------------------------
     async def canonicalize_envelope(
@@ -70,6 +92,17 @@ class SigningBase(ISigning, ComponentBase):
         raise NotImplementedError("sign_envelope() must be implemented by subclass")
 
     # ------------------------------------------------------------------
+    async def sign_stream(
+        self,
+        key: KeyRef,
+        payload: StreamLike,
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        raise NotImplementedError("sign_stream() must be implemented by subclass")
+
+    # ------------------------------------------------------------------
     async def verify_envelope(
         self,
         env: Envelope,
@@ -80,3 +113,14 @@ class SigningBase(ISigning, ComponentBase):
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
         raise NotImplementedError("verify_envelope() must be implemented by subclass")
+
+    # ------------------------------------------------------------------
+    async def verify_stream(
+        self,
+        payload: StreamLike,
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> bool:
+        raise NotImplementedError("verify_stream() must be implemented by subclass")

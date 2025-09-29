@@ -8,7 +8,7 @@ from swarmauri_base import register_type
 from swarmauri_base.signing.SigningBase import SigningBase
 from swarmauri_core.crypto.types import Alg, KeyRef
 from swarmauri_core.keys.IKeyProvider import IKeyProvider
-from swarmauri_core.signing.ISigning import Canon, Envelope
+from swarmauri_core.signing.ISigning import Canon, Envelope, StreamLike
 from swarmauri_core.signing.types import Signature
 
 
@@ -24,9 +24,13 @@ class JWSSigner(SigningBase):
 
     def supports(self, key_ref: Optional[str] = None) -> Mapping[str, Iterable[str]]:
         base_caps: Mapping[str, Iterable[str]] = {
+            "signs": ("bytes", "digest", "envelope", "stream"),
+            "verifies": ("bytes", "digest", "envelope", "stream"),
+            "envelopes": ("jws", "json"),
             "algs": ("PS256", "ES256", "EdDSA"),
             "canons": ("json",),
             "features": ("detached", "attached"),
+            "status": ("stub", "not-implemented"),
         }
         if key_ref is None:
             return base_caps
@@ -42,6 +46,16 @@ class JWSSigner(SigningBase):
     ) -> Sequence[Signature]:
         raise NotImplementedError("JWSSigner.sign_bytes is not implemented yet")
 
+    async def sign_digest(
+        self,
+        key: KeyRef,
+        digest: bytes,
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        raise NotImplementedError("JWSSigner.sign_digest is not implemented yet")
+
     async def verify_bytes(
         self,
         payload: bytes,
@@ -51,6 +65,16 @@ class JWSSigner(SigningBase):
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
         raise NotImplementedError("JWSSigner.verify_bytes is not implemented yet")
+
+    async def verify_digest(
+        self,
+        digest: bytes,
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> bool:
+        raise NotImplementedError("JWSSigner.verify_digest is not implemented yet")
 
     async def canonicalize_envelope(
         self,
@@ -74,6 +98,16 @@ class JWSSigner(SigningBase):
     ) -> Sequence[Signature]:
         raise NotImplementedError("JWSSigner.sign_envelope is not implemented yet")
 
+    async def sign_stream(
+        self,
+        key: KeyRef,
+        payload: StreamLike,
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        raise NotImplementedError("JWSSigner.sign_stream is not implemented yet")
+
     async def verify_envelope(
         self,
         env: Envelope,
@@ -84,3 +118,13 @@ class JWSSigner(SigningBase):
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
         raise NotImplementedError("JWSSigner.verify_envelope is not implemented yet")
+
+    async def verify_stream(
+        self,
+        payload: StreamLike,
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> bool:
+        raise NotImplementedError("JWSSigner.verify_stream is not implemented yet")

@@ -1,7 +1,7 @@
 [project]
-name = "swarmauri_signer_cms"
+name = "swarmauri_signing_openpgp"
 version = "0.1.0.dev0"
-description = "CMS signer stub registered on the Swarmauri SigningBase registry"
+description = "OpenPGP signer stub registered on the Swarmauri SigningBase registry"
 license = "Apache-2.0"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"

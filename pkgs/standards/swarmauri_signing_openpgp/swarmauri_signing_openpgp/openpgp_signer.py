@@ -8,7 +8,7 @@ from swarmauri_base import register_type
 from swarmauri_base.signing.SigningBase import SigningBase
 from swarmauri_core.crypto.types import Alg, KeyRef
 from swarmauri_core.keys.IKeyProvider import IKeyProvider
-from swarmauri_core.signing.ISigning import Canon, Envelope
+from swarmauri_core.signing.ISigning import Canon, Envelope, StreamLike
 from swarmauri_core.signing.types import Signature
 
 
@@ -24,9 +24,13 @@ class OpenPGPSigner(SigningBase):
 
     def supports(self, key_ref: Optional[str] = None) -> Mapping[str, Iterable[str]]:
         base_caps: Mapping[str, Iterable[str]] = {
+            "signs": ("bytes", "digest", "envelope", "stream"),
+            "verifies": ("bytes", "digest", "envelope", "stream"),
+            "envelopes": ("openpgp", "rfc4880"),
             "algs": ("openpgp",),
             "canons": ("rfc4880",),
             "features": ("detached", "attached"),
+            "status": ("stub", "not-implemented"),
         }
         if key_ref is None:
             return base_caps
@@ -42,6 +46,16 @@ class OpenPGPSigner(SigningBase):
     ) -> Sequence[Signature]:
         raise NotImplementedError("OpenPGPSigner.sign_bytes is not implemented yet")
 
+    async def sign_digest(
+        self,
+        key: KeyRef,
+        digest: bytes,
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        raise NotImplementedError("OpenPGPSigner.sign_digest is not implemented yet")
+
     async def verify_bytes(
         self,
         payload: bytes,
@@ -51,6 +65,16 @@ class OpenPGPSigner(SigningBase):
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
         raise NotImplementedError("OpenPGPSigner.verify_bytes is not implemented yet")
+
+    async def verify_digest(
+        self,
+        digest: bytes,
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> bool:
+        raise NotImplementedError("OpenPGPSigner.verify_digest is not implemented yet")
 
     async def canonicalize_envelope(
         self,
@@ -74,6 +98,16 @@ class OpenPGPSigner(SigningBase):
     ) -> Sequence[Signature]:
         raise NotImplementedError("OpenPGPSigner.sign_envelope is not implemented yet")
 
+    async def sign_stream(
+        self,
+        key: KeyRef,
+        payload: StreamLike,
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        raise NotImplementedError("OpenPGPSigner.sign_stream is not implemented yet")
+
     async def verify_envelope(
         self,
         env: Envelope,
@@ -86,3 +120,13 @@ class OpenPGPSigner(SigningBase):
         raise NotImplementedError(
             "OpenPGPSigner.verify_envelope is not implemented yet"
         )
+
+    async def verify_stream(
+        self,
+        payload: StreamLike,
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> bool:
+        raise NotImplementedError("OpenPGPSigner.verify_stream is not implemented yet")
