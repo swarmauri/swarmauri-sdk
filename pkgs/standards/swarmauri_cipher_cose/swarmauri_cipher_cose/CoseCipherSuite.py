@@ -1,94 +1,86 @@
 from __future__ import annotations
 
-from typing import Dict, Iterable, Mapping, Optional
+from typing import Iterable, Mapping, Optional
 
-from swarmauri_core.crypto.types import Alg, KeyRef
 from swarmauri_base.cipher_suites import CipherSuiteBase
+from swarmauri_core.cipher_suites import (
+    Alg,
+    CipherOp,
+    Features,
+    KeyRef,
+    NormalizedDescriptor,
+    ParamMapping,
+)
 
-_COSE_ALGS: Dict[str, tuple[int, ...]] = {
-    "sign": (-8, -7, -35, -36, -37, -38, -39),
-    "verify": (-8, -7, -35, -36, -37, -38, -39),
-    "encrypt": (1, 2, 3),
-    "decrypt": (1, 2, 3),
-    "wrap": (1, 2, 3),
-    "unwrap": (1, 2, 3),
-}
-
-_COSE_TO_JWA: Dict[int, str] = {
-    -8: "EdDSA",
-    -7: "ES256",
-    -35: "ES384",
-    -36: "ES512",
-    -37: "PS256",
-    -38: "PS384",
-    -39: "PS512",
-    1: "A128GCM",
-    2: "A192GCM",
-    3: "A256GCM",
-}
+_COSE_SIGN = (-8, -7, -35, -36, -37, -38, -39)
+_COSE_AEAD = (1, 2, 3)
 
 
 class CoseCipherSuite(CipherSuiteBase):
-    """COSE dialect cipher suite."""
+    """COSE algorithm registry surface."""
 
     type = "CoseCipherSuite"
 
     def suite_id(self) -> str:
         return "cose"
 
-    def supports(self) -> Mapping[str, Iterable[Alg]]:
-        return {op: tuple(str(v) for v in values) for op, values in _COSE_ALGS.items()}
-
-    def default_alg(self, op: str, *, for_key: Optional[KeyRef] = None) -> Alg:
-        defaults = {
-            "sign": "-8",
-            "verify": "-8",
-            "encrypt": "3",
-            "decrypt": "3",
-            "wrap": "3",
-            "unwrap": "3",
+    def supports(self) -> Mapping[CipherOp, Iterable[Alg]]:
+        return {
+            "sign": tuple(str(value) for value in _COSE_SIGN),
+            "verify": tuple(str(value) for value in _COSE_SIGN),
+            "encrypt": tuple(str(value) for value in _COSE_AEAD),
+            "decrypt": tuple(str(value) for value in _COSE_AEAD),
         }
-        return defaults.get(op, "3")
 
-    def policy(self) -> Mapping[str, object]:
-        return {"fips": False}
+    def default_alg(self, op: CipherOp, *, for_key: Optional[KeyRef] = None) -> Alg:
+        return {"sign": "-8", "encrypt": "3"}.get(op, "3")
+
+    def features(self) -> Features:
+        return {
+            "suite": "cose",
+            "version": 1,
+            "dialects": {
+                "cose": list({*self.supports()["sign"], *self.supports()["encrypt"]})
+            },
+            "ops": {
+                "sign": {"default": "-8", "allowed": list(self.supports()["sign"])},
+                "encrypt": {
+                    "default": "3",
+                    "allowed": list(self.supports()["encrypt"]),
+                },
+            },
+            "constraints": {"aead": {"tagBits": 128, "nonceLen": 12}},
+            "compliance": {"fips": False},
+        }
 
     def normalize(
         self,
         *,
-        op: str,
+        op: CipherOp,
         alg: Optional[Alg] = None,
         key: Optional[KeyRef] = None,
-        params: Optional[Mapping[str, object]] = None,
+        params: Optional[ParamMapping] = None,
         dialect: Optional[str] = None,
-    ) -> Mapping[str, object]:
-        supported = {
-            operation: {str(v) for v in values}
-            for operation, values in self.supports().items()
-        }
-        chosen = alg if alg is not None else self.default_alg(op, for_key=key)
-        chosen_str = str(chosen)
-        if chosen_str not in supported.get(op, set()):
-            raise ValueError(
-                f"Unsupported algorithm '{chosen_str}' for operation '{op}'"
-            )
+    ) -> NormalizedDescriptor:
+        allowed = set(self.supports().get(op, ()))
+        chosen = str(alg or self.default_alg(op, for_key=key))
+        if chosen not in allowed:
+            raise ValueError(f"{chosen=} not supported for {op=}")
 
-        resolved_params: Dict[str, object] = dict(params or {})
-        if int(chosen_str) in (1, 2, 3):
-            resolved_params.setdefault("tagBits", 128)
-
-        cose_int = int(chosen_str)
+        resolved = dict(params or {})
+        if chosen in {"1", "2", "3"}:
+            resolved.setdefault("tagBits", 128)
+            resolved.setdefault("nonceLen", 12)
         mapped = {
-            "cose": cose_int,
-            "jwa": _COSE_TO_JWA.get(cose_int),
-            "provider": chosen_str,
+            "cose": int(chosen),
+            "provider": chosen,
         }
-        descriptor: Dict[str, object] = {
+        return {
             "op": op,
-            "alg": chosen_str,
-            "dialect": dialect or "cose",
+            "alg": chosen,
+            "dialect": "cose" if dialect is None else dialect,
             "mapped": mapped,
-            "params": resolved_params,
+            "params": resolved,
             "constraints": {},
+            "policy": self.policy(),
         }
-        return descriptor

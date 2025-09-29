@@ -26,13 +26,13 @@ _JWA_TO_COSE = {
 }
 
 
-class JwaCipherSuite(CipherSuiteBase):
-    """JSON Web Algorithm policy surface."""
+class JwsCipherSuite(CipherSuiteBase):
+    """JSON Web Signature-focused cipher suite."""
 
-    type = "JwaCipherSuite"
+    type = "JwsCipherSuite"
 
     def suite_id(self) -> str:
-        return "jwa"
+        return "jws"
 
     def supports(self) -> Mapping[CipherOp, Iterable[Alg]]:
         return {
@@ -45,18 +45,15 @@ class JwaCipherSuite(CipherSuiteBase):
         }
 
     def default_alg(self, op: CipherOp, *, for_key: Optional[KeyRef] = None) -> Alg:
-        defaults = {
-            "sign": "EdDSA",
-            "encrypt": "A256GCM",
-            "wrap": "RSA-OAEP-256",
-        }
-        return defaults.get(op, "A256GCM")
+        return {"sign": "EdDSA", "encrypt": "A256GCM", "wrap": "RSA-OAEP-256"}.get(
+            op, "A256GCM"
+        )
 
     def features(self) -> Features:
         allowed = self.supports()
         flat = sorted({alg for values in allowed.values() for alg in values})
         return {
-            "suite": "jwa",
+            "suite": "jws",
             "version": 1,
             "dialects": {
                 "jwa": flat,
@@ -103,7 +100,7 @@ class JwaCipherSuite(CipherSuiteBase):
         return {
             "op": op,
             "alg": chosen,
-            "dialect": "jwa" if dialect is None else dialect,  # allow caller override
+            "dialect": "jwa" if dialect is None else dialect,
             "mapped": mapped,
             "params": resolved,
             "constraints": {"minKeyBits": 0},

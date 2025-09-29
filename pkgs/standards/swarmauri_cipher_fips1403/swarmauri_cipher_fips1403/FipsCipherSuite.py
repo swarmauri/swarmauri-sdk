@@ -1,24 +1,31 @@
 from __future__ import annotations
 
-from typing import Dict, Iterable, Mapping, Optional
+from typing import Iterable, Mapping, Optional
 
-from swarmauri_core.crypto.types import Alg, KeyRef
 from swarmauri_base.cipher_suites import CipherSuiteBase
+from swarmauri_core.cipher_suites import (
+    Alg,
+    CipherOp,
+    Features,
+    KeyRef,
+    NormalizedDescriptor,
+    ParamMapping,
+)
 
-_ALLOWED_SIGN = ("PS256", "PS384", "PS512", "ES256", "ES384")
+_ALLOWED_SIGN = ("PS256", "PS384", "ES256", "ES384")
 _ALLOWED_ENC = ("A256GCM",)
-_ALLOWED_WRAP = ("RSA-OAEP-256", "AES-KW")
+_ALLOWED_WRAP = ("RSA-OAEP-256", "A256KW")
 
 
 class FipsCipherSuite(CipherSuiteBase):
-    """FIPS 140-3 policy enforcing cipher suite."""
+    """FIPS 140-3 compliant algorithm surface."""
 
     type = "FipsCipherSuite"
 
     def suite_id(self) -> str:
         return "fips140-3"
 
-    def supports(self) -> Mapping[str, Iterable[Alg]]:
+    def supports(self) -> Mapping[CipherOp, Iterable[Alg]]:
         return {
             "sign": _ALLOWED_SIGN,
             "verify": _ALLOWED_SIGN,
@@ -28,16 +35,12 @@ class FipsCipherSuite(CipherSuiteBase):
             "unwrap": _ALLOWED_WRAP,
         }
 
-    def default_alg(self, op: str, *, for_key: Optional[KeyRef] = None) -> Alg:
-        defaults = {
+    def default_alg(self, op: CipherOp, *, for_key: Optional[KeyRef] = None) -> Alg:
+        return {
             "sign": "PS256",
-            "verify": "PS256",
             "encrypt": "A256GCM",
-            "decrypt": "A256GCM",
             "wrap": "RSA-OAEP-256",
-            "unwrap": "RSA-OAEP-256",
-        }
-        return defaults.get(op, "A256GCM")
+        }.get(op, "A256GCM")
 
     def policy(self) -> Mapping[str, object]:
         return {
@@ -48,50 +51,66 @@ class FipsCipherSuite(CipherSuiteBase):
             "aead_tag_bits": 128,
         }
 
+    def features(self) -> Features:
+        return {
+            "suite": "fips140-3",
+            "version": 1,
+            "dialects": {
+                "jwa": list(
+                    {
+                        *self.supports()["sign"],
+                        *self.supports()["encrypt"],
+                        *self.supports()["wrap"],
+                    }
+                ),
+            },
+            "ops": {
+                "sign": {"default": "PS256", "allowed": list(_ALLOWED_SIGN)},
+                "encrypt": {"default": "A256GCM", "allowed": list(_ALLOWED_ENC)},
+                "wrap": {"default": "RSA-OAEP-256", "allowed": list(_ALLOWED_WRAP)},
+            },
+            "constraints": {
+                "min_rsa_bits": 2048,
+                "allowed_curves": ["P-256", "P-384"],
+                "aead": {"tagBits": 128, "nonceLen": 12},
+            },
+            "compliance": {"fips": True},
+        }
+
     def normalize(
         self,
         *,
-        op: str,
+        op: CipherOp,
         alg: Optional[Alg] = None,
         key: Optional[KeyRef] = None,
-        params: Optional[Mapping[str, object]] = None,
+        params: Optional[ParamMapping] = None,
         dialect: Optional[str] = None,
-    ) -> Mapping[str, object]:
-        supported = {
-            operation: {str(v) for v in values}
-            for operation, values in self.supports().items()
-        }
-        chosen = str(alg or self.default_alg(op, for_key=key))
-        if chosen not in supported.get(op, set()):
-            raise ValueError(
-                f"Algorithm '{chosen}' is not approved for '{op}' in FIPS mode"
-            )
+    ) -> NormalizedDescriptor:
+        allowed = set(self.supports().get(op, ()))
+        chosen = alg or self.default_alg(op, for_key=key)
+        if chosen not in allowed:
+            raise ValueError(f"{chosen=} not allowed by FIPS 140-3 for {op=}")
 
-        resolved_params: Dict[str, object] = dict(params or {})
-        if chosen.startswith("PS"):
-            resolved_params.setdefault("saltBits", int(chosen[-3:]))
-            resolved_params.setdefault("hash", "SHA" + chosen[-3:])
+        resolved = dict(params or {})
         if chosen.endswith("GCM"):
-            resolved_params.setdefault("tagBits", self.policy()["aead_tag_bits"])
+            resolved.setdefault("tagBits", self.policy()["aead_tag_bits"])
+            resolved.setdefault("nonceLen", 12)
+        if chosen.startswith("PS"):
+            resolved.setdefault("saltBits", int(chosen[-3:]))
+            resolved.setdefault("hash", "SHA" + chosen[-3:])
         if chosen.startswith("ES"):
-            resolved_params.setdefault("hash", "SHA" + chosen[-3:])
+            resolved.setdefault("hash", "SHA" + chosen[-3:])
 
-        mapped = {
-            "jwa": chosen,
-            "cose": None,
-            "provider": chosen,
-        }
-        constraints = {
-            "minKeyBits": self.policy()["min_rsa_bits"],
-            "curves": self.policy()["allowed_curves"],
-            "hashes": self.policy()["hashes"],
-        }
-        descriptor: Dict[str, object] = {
+        return {
             "op": op,
             "alg": chosen,
-            "dialect": dialect or "jwa",
-            "mapped": mapped,
-            "params": resolved_params,
-            "constraints": constraints,
+            "dialect": "jwa" if dialect is None else dialect,
+            "mapped": {"jwa": chosen, "provider": chosen},
+            "params": resolved,
+            "constraints": {
+                "minKeyBits": self.policy()["min_rsa_bits"],
+                "curves": self.policy()["allowed_curves"],
+                "hashes": self.policy()["hashes"],
+            },
+            "policy": self.policy(),
         }
-        return descriptor
