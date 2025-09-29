@@ -30,7 +30,7 @@ from .util import canon_htm_htu, sha256_b64u
 
 
 @register_model()
-class PopVerifierMixin(BaseModel, IPopVerifier):
+class PopVerifierMixin(IPopVerifier, BaseModel):
     """Provide default behaviours for IPoPVerifier implementations."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
