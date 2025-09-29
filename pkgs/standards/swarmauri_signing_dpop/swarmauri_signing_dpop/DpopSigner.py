@@ -207,6 +207,9 @@ class DpopSigner(SigningBase):
         return {
             "algs": tuple(sorted(a.value for a in _ALLOWED_ALGS)),
             "canons": ("raw", "json"),
+            "signs": ("bytes", "envelope"),
+            "verifies": ("bytes", "envelope"),
+            "envelopes": ("raw", "mapping"),
             "features": ("detached_only",),
         }
 

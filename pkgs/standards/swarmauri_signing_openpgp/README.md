@@ -3,17 +3,17 @@
 </p>
 
 <p align="center">
-    <a href="https://pypi.org/project/swarmauri_signer_openpgp/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_signer_openpgp?label=swarmauri_signer_openpgp&color=2563eb" alt="PyPI Version" />
+    <a href="https://pypi.org/project/swarmauri_signing_openpgp/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_signing_openpgp?label=swarmauri_signing_openpgp&color=2563eb" alt="PyPI Version" />
     </a>
-    <a href="https://pypi.org/project/swarmauri_signer_openpgp/">
-        <img src="https://img.shields.io/pypi/pyversions/swarmauri_signer_openpgp" alt="Python Versions" />
+    <a href="https://pypi.org/project/swarmauri_signing_openpgp/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_signing_openpgp" alt="Python Versions" />
     </a>
-    <a href="https://pypi.org/project/swarmauri_signer_openpgp/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_signer_openpgp" alt="License" />
+    <a href="https://pypi.org/project/swarmauri_signing_openpgp/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_signing_openpgp" alt="License" />
     </a>
-    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signer_openpgp/">
-        <img src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signer_openpgp.svg" alt="Repo views" />
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_openpgp/">
+        <img src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_openpgp.svg" alt="Repo views" />
     </a>
 </p>
 
@@ -30,26 +30,26 @@ metadata needed by the shared `Signer` façade.
 ### pip
 
 ```bash
-pip install swarmauri_signer_openpgp
+pip install swarmauri_signing_openpgp
 ```
 
 ### uv
 
 ```bash
-uv add swarmauri_signer_openpgp
+uv add swarmauri_signing_openpgp
 ```
 
 Install into the current environment:
 
 ```bash
-uv pip install swarmauri_signer_openpgp
+uv pip install swarmauri_signing_openpgp
 ```
 
 ## Usage
 
 ```python
 import asyncio
-from swarmauri_signer_openpgp import OpenPGPSigner
+from swarmauri_signing_openpgp import OpenPGPSigner
 
 
 async def main() -> None:

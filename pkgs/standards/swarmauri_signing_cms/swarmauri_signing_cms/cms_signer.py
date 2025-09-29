@@ -1,4 +1,4 @@
-"""Stub PAdES signer registered with the Swarmauri registry."""
+"""Stub CMS signer registered with the Swarmauri registry."""
 
 from __future__ import annotations
 
@@ -12,25 +12,33 @@ from swarmauri_core.signing.ISigning import Canon, Envelope
 from swarmauri_core.signing.types import Signature
 
 
-@register_type(resource_type=SigningBase, type_name="pades")
-class PadesSigner(SigningBase):
-    """Placeholder PAdES signer that advertises attached PDF signature support."""
+@register_type(resource_type=SigningBase, type_name="cms")
+class CMSSigner(SigningBase):
+    """Placeholder CMS signer that advertises CMS support in the registry."""
 
     def __init__(self, key_provider: Optional[IKeyProvider] = None) -> None:
         self._key_provider = key_provider
 
     def set_key_provider(self, provider: IKeyProvider) -> None:
+        """Inject the key provider after instantiation."""
+
         self._key_provider = provider
 
     def supports(self, key_ref: Optional[str] = None) -> Mapping[str, Iterable[str]]:
         base_caps: Mapping[str, Iterable[str]] = {
-            "algs": ("ecdsa", "rsa-pss"),
-            "canons": ("pdf",),
-            "features": ("attached",),
+            "algs": ("rsa-pss", "rsa-pkcs1", "ecdsa"),
+            "canons": ("der", "ber"),
+            "signs": ("bytes", "envelope"),
+            "verifies": ("bytes", "envelope"),
+            "envelopes": ("cms",),
+            "features": ("detached", "attached"),
         }
         if key_ref is None:
             return base_caps
-        return {**base_caps, "key_refs": (key_ref,)}
+        return {
+            **base_caps,
+            "key_refs": (key_ref,),
+        }
 
     async def sign_bytes(
         self,
@@ -40,7 +48,7 @@ class PadesSigner(SigningBase):
         alg: Optional[Alg] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
-        raise NotImplementedError("PadesSigner.sign_bytes is not implemented yet")
+        raise NotImplementedError("CMSSigner.sign_bytes is not implemented yet")
 
     async def verify_bytes(
         self,
@@ -50,7 +58,7 @@ class PadesSigner(SigningBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
-        raise NotImplementedError("PadesSigner.verify_bytes is not implemented yet")
+        raise NotImplementedError("CMSSigner.verify_bytes is not implemented yet")
 
     async def canonicalize_envelope(
         self,
@@ -60,7 +68,7 @@ class PadesSigner(SigningBase):
         opts: Optional[Mapping[str, object]] = None,
     ) -> bytes:
         raise NotImplementedError(
-            "PadesSigner.canonicalize_envelope is not implemented yet"
+            "CMSSigner.canonicalize_envelope is not implemented yet"
         )
 
     async def sign_envelope(
@@ -72,7 +80,7 @@ class PadesSigner(SigningBase):
         canon: Optional[Canon] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
-        raise NotImplementedError("PadesSigner.sign_envelope is not implemented yet")
+        raise NotImplementedError("CMSSigner.sign_envelope is not implemented yet")
 
     async def verify_envelope(
         self,
@@ -83,4 +91,4 @@ class PadesSigner(SigningBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
-        raise NotImplementedError("PadesSigner.verify_envelope is not implemented yet")
+        raise NotImplementedError("CMSSigner.verify_envelope is not implemented yet")

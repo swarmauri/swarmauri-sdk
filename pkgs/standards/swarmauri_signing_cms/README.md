@@ -3,17 +3,17 @@
 </p>
 
 <p align="center">
-    <a href="https://pypi.org/project/swarmauri_signer_cms/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_signer_cms?label=swarmauri_signer_cms&color=0d9488" alt="PyPI Version" />
+    <a href="https://pypi.org/project/swarmauri_signing_cms/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_signing_cms?label=swarmauri_signing_cms&color=0d9488" alt="PyPI Version" />
     </a>
-    <a href="https://pypi.org/project/swarmauri_signer_cms/">
-        <img src="https://img.shields.io/pypi/pyversions/swarmauri_signer_cms" alt="Python Versions" />
+    <a href="https://pypi.org/project/swarmauri_signing_cms/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_signing_cms" alt="Python Versions" />
     </a>
-    <a href="https://pypi.org/project/swarmauri_signer_cms/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_signer_cms" alt="License" />
+    <a href="https://pypi.org/project/swarmauri_signing_cms/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_signing_cms" alt="License" />
     </a>
-    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signer_cms/">
-        <img src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signer_cms.svg" alt="Repo views" />
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_cms/">
+        <img src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_cms.svg" alt="Repo views" />
     </a>
 </p>
 
@@ -35,7 +35,7 @@ and accepts an optional key provider for dependency injection.
 ### pip
 
 ```bash
-pip install swarmauri_signer_cms
+pip install swarmauri_signing_cms
 ```
 
 ### uv
@@ -43,20 +43,20 @@ pip install swarmauri_signer_cms
 Add it to your managed project:
 
 ```bash
-uv add swarmauri_signer_cms
+uv add swarmauri_signing_cms
 ```
 
 Or install directly into the active environment:
 
 ```bash
-uv pip install swarmauri_signer_cms
+uv pip install swarmauri_signing_cms
 ```
 
 ## Usage
 
 ```python
 import asyncio
-from swarmauri_signer_cms import CMSSigner
+from swarmauri_signing_cms import CMSSigner
 
 
 async def main() -> None:
@@ -71,7 +71,7 @@ if __name__ == "__main__":
 
 The class automatically registers itself under the `SigningBase` registry using
 `type_name="cms"`. When the shared `Signer` façade from
-`swarmauri_standards.signing` is constructed it discovers this plugin and can
+`swarmauri_standard.signing` is constructed it discovers this plugin and can
 route CMS signing requests to it.
 
 ## Contributing

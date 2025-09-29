@@ -3,17 +3,17 @@
 </p>
 
 <p align="center">
-    <a href="https://pypi.org/project/swarmauri_signer_pades/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_signer_pades?label=swarmauri_signer_pades&color=f97316" alt="PyPI Version" />
+    <a href="https://pypi.org/project/swarmauri_signing_pades/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_signing_pades?label=swarmauri_signing_pades&color=f97316" alt="PyPI Version" />
     </a>
-    <a href="https://pypi.org/project/swarmauri_signer_pades/">
-        <img src="https://img.shields.io/pypi/pyversions/swarmauri_signer_pades" alt="Python Versions" />
+    <a href="https://pypi.org/project/swarmauri_signing_pades/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_signing_pades" alt="Python Versions" />
     </a>
-    <a href="https://pypi.org/project/swarmauri_signer_pades/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_signer_pades" alt="License" />
+    <a href="https://pypi.org/project/swarmauri_signing_pades/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_signing_pades" alt="License" />
     </a>
-    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signer_pades/">
-        <img src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signer_pades.svg" alt="Repo views" />
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_pades/">
+        <img src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_pades.svg" alt="Repo views" />
     </a>
 </p>
 
@@ -31,26 +31,26 @@ implemented.
 ### pip
 
 ```bash
-pip install swarmauri_signer_pades
+pip install swarmauri_signing_pades
 ```
 
 ### uv
 
 ```bash
-uv add swarmauri_signer_pades
+uv add swarmauri_signing_pades
 ```
 
 To install directly:
 
 ```bash
-uv pip install swarmauri_signer_pades
+uv pip install swarmauri_signing_pades
 ```
 
 ## Usage
 
 ```python
 import asyncio
-from swarmauri_signer_pades import PadesSigner
+from swarmauri_signing_pades import PadesSigner
 
 
 async def main() -> None:

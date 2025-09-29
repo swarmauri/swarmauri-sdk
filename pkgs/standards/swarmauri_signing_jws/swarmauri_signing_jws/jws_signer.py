@@ -1,4 +1,4 @@
-"""Stub CMS signer registered with the Swarmauri registry."""
+"""Stub JWS signer registered with the Swarmauri registry."""
 
 from __future__ import annotations
 
@@ -12,30 +12,28 @@ from swarmauri_core.signing.ISigning import Canon, Envelope
 from swarmauri_core.signing.types import Signature
 
 
-@register_type(resource_type=SigningBase, type_name="cms")
-class CMSSigner(SigningBase):
-    """Placeholder CMS signer that advertises CMS support in the registry."""
+@register_type(resource_type=SigningBase, type_name="jws")
+class JWSSigner(SigningBase):
+    """Placeholder JWS signer that will be fleshed out in future revisions."""
 
     def __init__(self, key_provider: Optional[IKeyProvider] = None) -> None:
         self._key_provider = key_provider
 
     def set_key_provider(self, provider: IKeyProvider) -> None:
-        """Inject the key provider after instantiation."""
-
         self._key_provider = provider
 
     def supports(self, key_ref: Optional[str] = None) -> Mapping[str, Iterable[str]]:
         base_caps: Mapping[str, Iterable[str]] = {
-            "algs": ("rsa-pss", "rsa-pkcs1", "ecdsa"),
-            "canons": ("der", "ber"),
+            "algs": ("PS256", "ES256", "EdDSA"),
+            "canons": ("json",),
+            "signs": (),
+            "verifies": (),
+            "envelopes": ("compact", "json"),
             "features": ("detached", "attached"),
         }
         if key_ref is None:
             return base_caps
-        return {
-            **base_caps,
-            "key_refs": (key_ref,),
-        }
+        return {**base_caps, "key_refs": (key_ref,)}
 
     async def sign_bytes(
         self,
@@ -45,7 +43,7 @@ class CMSSigner(SigningBase):
         alg: Optional[Alg] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
-        raise NotImplementedError("CMSSigner.sign_bytes is not implemented yet")
+        raise NotImplementedError("JWSSigner.sign_bytes is not implemented yet")
 
     async def verify_bytes(
         self,
@@ -55,7 +53,7 @@ class CMSSigner(SigningBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
-        raise NotImplementedError("CMSSigner.verify_bytes is not implemented yet")
+        raise NotImplementedError("JWSSigner.verify_bytes is not implemented yet")
 
     async def canonicalize_envelope(
         self,
@@ -65,7 +63,7 @@ class CMSSigner(SigningBase):
         opts: Optional[Mapping[str, object]] = None,
     ) -> bytes:
         raise NotImplementedError(
-            "CMSSigner.canonicalize_envelope is not implemented yet"
+            "JWSSigner.canonicalize_envelope is not implemented yet"
         )
 
     async def sign_envelope(
@@ -77,7 +75,7 @@ class CMSSigner(SigningBase):
         canon: Optional[Canon] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
-        raise NotImplementedError("CMSSigner.sign_envelope is not implemented yet")
+        raise NotImplementedError("JWSSigner.sign_envelope is not implemented yet")
 
     async def verify_envelope(
         self,
@@ -88,4 +86,4 @@ class CMSSigner(SigningBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
-        raise NotImplementedError("CMSSigner.verify_envelope is not implemented yet")
+        raise NotImplementedError("JWSSigner.verify_envelope is not implemented yet")

@@ -206,7 +206,14 @@ class SshEnvelopeSigner(SigningBase):
             "ecdsa-sha2-nistp384",
             "ecdsa-sha2-nistp521",
         )
-        return {"algs": algs, "canons": canons, "features": ("multi", "detached_only")}
+        return {
+            "algs": algs,
+            "canons": canons,
+            "signs": ("bytes", "envelope"),
+            "verifies": ("bytes", "envelope"),
+            "envelopes": ("mapping",),
+            "features": ("multi", "detached_only"),
+        }
 
     async def sign_bytes(
         self,

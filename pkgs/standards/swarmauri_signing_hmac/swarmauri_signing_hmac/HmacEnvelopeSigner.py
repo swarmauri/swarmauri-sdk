@@ -132,11 +132,14 @@ class _Sig:
 class HmacEnvelopeSigner(SigningBase):
     """Detached HMAC signatures over bytes and canonicalized envelopes."""
 
-    def supports(self) -> Mapping[str, Iterable[JWAAlg]]:
+    def supports(self) -> Mapping[str, Iterable[JWAAlg | str]]:
         canons = ("json", "cbor") if _CBOR_OK else ("json",)
         return {
             "algs": (JWAAlg.HS256, JWAAlg.HS384, JWAAlg.HS512),
             "canons": canons,
+            "signs": ("bytes", "envelope"),
+            "verifies": ("bytes", "envelope"),
+            "envelopes": ("mapping",),
             "features": ("multi", "detached_only"),
         }
 

@@ -108,7 +108,14 @@ class Ed25519EnvelopeSigner(SigningBase):
     def supports(self) -> Mapping[str, Iterable[str]]:
         algs = ("Ed25519",)
         canons = ("json", "cbor") if _CBOR_OK else ("json",)
-        return {"algs": algs, "canons": canons, "features": ("multi", "detached_only")}
+        return {
+            "algs": algs,
+            "canons": canons,
+            "signs": ("bytes", "envelope"),
+            "verifies": ("bytes", "envelope"),
+            "envelopes": ("mapping",),
+            "features": ("multi", "detached_only"),
+        }
 
     # ------------------------------------------------------------------
     async def sign_bytes(

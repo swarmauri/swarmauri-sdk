@@ -1,4 +1,4 @@
-"""Stub OpenPGP signer registered with the Swarmauri registry."""
+"""Stub PAdES signer registered with the Swarmauri registry."""
 
 from __future__ import annotations
 
@@ -12,9 +12,9 @@ from swarmauri_core.signing.ISigning import Canon, Envelope
 from swarmauri_core.signing.types import Signature
 
 
-@register_type(resource_type=SigningBase, type_name="openpgp")
-class OpenPGPSigner(SigningBase):
-    """Placeholder OpenPGP signer exposing registry metadata."""
+@register_type(resource_type=SigningBase, type_name="pades")
+class PadesSigner(SigningBase):
+    """Placeholder PAdES signer that advertises attached PDF signature support."""
 
     def __init__(self, key_provider: Optional[IKeyProvider] = None) -> None:
         self._key_provider = key_provider
@@ -24,9 +24,12 @@ class OpenPGPSigner(SigningBase):
 
     def supports(self, key_ref: Optional[str] = None) -> Mapping[str, Iterable[str]]:
         base_caps: Mapping[str, Iterable[str]] = {
-            "algs": ("openpgp",),
-            "canons": ("rfc4880",),
-            "features": ("detached", "attached"),
+            "algs": ("ecdsa", "rsa-pss"),
+            "canons": ("pdf",),
+            "signs": ("envelope",),
+            "verifies": ("envelope",),
+            "envelopes": ("pdf",),
+            "features": ("attached",),
         }
         if key_ref is None:
             return base_caps
@@ -40,7 +43,7 @@ class OpenPGPSigner(SigningBase):
         alg: Optional[Alg] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
-        raise NotImplementedError("OpenPGPSigner.sign_bytes is not implemented yet")
+        raise NotImplementedError("PadesSigner.sign_bytes is not implemented yet")
 
     async def verify_bytes(
         self,
@@ -50,7 +53,7 @@ class OpenPGPSigner(SigningBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
-        raise NotImplementedError("OpenPGPSigner.verify_bytes is not implemented yet")
+        raise NotImplementedError("PadesSigner.verify_bytes is not implemented yet")
 
     async def canonicalize_envelope(
         self,
@@ -60,7 +63,7 @@ class OpenPGPSigner(SigningBase):
         opts: Optional[Mapping[str, object]] = None,
     ) -> bytes:
         raise NotImplementedError(
-            "OpenPGPSigner.canonicalize_envelope is not implemented yet"
+            "PadesSigner.canonicalize_envelope is not implemented yet"
         )
 
     async def sign_envelope(
@@ -72,7 +75,7 @@ class OpenPGPSigner(SigningBase):
         canon: Optional[Canon] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
-        raise NotImplementedError("OpenPGPSigner.sign_envelope is not implemented yet")
+        raise NotImplementedError("PadesSigner.sign_envelope is not implemented yet")
 
     async def verify_envelope(
         self,
@@ -83,6 +86,4 @@ class OpenPGPSigner(SigningBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
-        raise NotImplementedError(
-            "OpenPGPSigner.verify_envelope is not implemented yet"
-        )
+        raise NotImplementedError("PadesSigner.verify_envelope is not implemented yet")

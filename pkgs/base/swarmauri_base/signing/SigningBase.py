@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Iterable, Mapping, Optional, Sequence
+from typing import AsyncIterable, Iterable, Mapping, Optional, Sequence, Union
 
 from pydantic import Field
 
@@ -56,6 +56,50 @@ class SigningBase(ISigning, ComponentBase):
         raise NotImplementedError(
             "canonicalize_envelope() must be implemented by subclass"
         )
+
+    # ------------------------------------------------------------------
+    async def sign_digest(
+        self,
+        key: KeyRef,
+        digest: bytes,
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        raise NotImplementedError("sign_digest() must be implemented by subclass")
+
+    # ------------------------------------------------------------------
+    async def verify_digest(
+        self,
+        digest: bytes,
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> bool:
+        raise NotImplementedError("verify_digest() must be implemented by subclass")
+
+    # ------------------------------------------------------------------
+    async def sign_stream(
+        self,
+        key: KeyRef,
+        chunks: Union[Iterable[bytes], AsyncIterable[bytes]],
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        raise NotImplementedError("sign_stream() must be implemented by subclass")
+
+    # ------------------------------------------------------------------
+    async def verify_stream(
+        self,
+        chunks: Union[Iterable[bytes], AsyncIterable[bytes]],
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> bool:
+        raise NotImplementedError("verify_stream() must be implemented by subclass")
 
     # ------------------------------------------------------------------
     async def sign_envelope(

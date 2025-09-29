@@ -36,7 +36,7 @@ Notes
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Iterable, Mapping, Optional, Sequence, Union
+from typing import AsyncIterable, Iterable, Mapping, Optional, Sequence, Union
 
 from ..crypto.types import Alg, KeyRef
 from ..crypto.types import AEADCiphertext  # single‑recipient envelope
@@ -60,6 +60,11 @@ class ISigning(ABC):
         Keys (omit if unsupported):
           - "algs": iterable of signature algorithms (e.g., "Ed25519", "RSA-PSS-SHA256", "OpenPGP").
           - "canons": iterable of canonicalization identifiers (e.g., "json", "cbor", "json-c14n").
+          - "signs": iterable describing supported signing surfaces, such as
+            "bytes", "digest", "envelope", or "stream".
+          - "verifies": iterable describing supported verification surfaces.
+          - "envelopes": optional iterable naming compatible envelope families,
+            e.g. "mapping", "aead", "mre".
           - "features": optional iterable of flags, e.g.:
                 • "multi"          → optimized for multi‑signature sets
                 • "detached_only"  → only detached signatures (default)
@@ -107,6 +112,54 @@ class ISigning(ABC):
           True if the verification criteria are met, False otherwise.
         """
         ...
+
+    # ────────────────────────────────── Digests ─────────────────────────────────
+
+    @abstractmethod
+    async def sign_digest(
+        self,
+        key: KeyRef,
+        digest: bytes,
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        """Produce signatures over a pre-computed digest."""
+
+    @abstractmethod
+    async def verify_digest(
+        self,
+        digest: bytes,
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> bool:
+        """Validate signatures that were produced from a pre-computed digest."""
+
+    # ────────────────────────────────── Streams ──────────────────────────────────
+
+    @abstractmethod
+    async def sign_stream(
+        self,
+        key: KeyRef,
+        chunks: Union[Iterable[bytes], AsyncIterable[bytes]],
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        """Sign a sequence or async sequence of byte chunks."""
+
+    @abstractmethod
+    async def verify_stream(
+        self,
+        chunks: Union[Iterable[bytes], AsyncIterable[bytes]],
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> bool:
+        """Verify signatures produced from streamed byte chunks."""
 
     # ────────────────────────────────── Envelopes ──────────────────────────────────
 
