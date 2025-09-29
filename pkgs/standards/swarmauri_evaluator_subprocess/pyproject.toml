@@ -18,7 +18,7 @@ classifiers = [
     "Topic :: Software Development :: Testing",
     "Topic :: System :: Monitoring",
 ]
-authors = [{ name = "SwarmAuri Team", email = "info@swarmauri.com" }]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 keywords = [
     "subprocess",
     "evaluation",

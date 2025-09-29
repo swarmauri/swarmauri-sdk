@@ -12,7 +12,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-authors = [{ name = "Vijay Vignesh", email = "vijayvigneshp02@gmail.com" }]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "slate3k>=0.5",
     "swarmauri_core",
