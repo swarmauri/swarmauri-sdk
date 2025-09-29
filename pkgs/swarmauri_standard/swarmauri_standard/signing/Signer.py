@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Iterable, Mapping, MutableMapping, Optional, Sequence
+from typing import AsyncIterable, Iterable, Mapping, MutableMapping, Optional, Sequence
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.signing.SigningBase import SigningBase
@@ -10,23 +10,25 @@ from swarmauri_core.crypto.types import Alg, KeyRef
 from swarmauri_core.keys.IKeyProvider import IKeyProvider
 from swarmauri_core.signing.types import Signature
 
+StreamPayload = AsyncIterable[bytes] | Iterable[bytes]
+
 try:  # Pragmatic optional imports so plugins self-register when available.
-    import swarmauri_signer_cms  # noqa: F401
+    import swarmauri_signing_cms  # noqa: F401
 except Exception:  # pragma: no cover - plugin optional
     pass
 
 try:
-    import swarmauri_signer_jws  # noqa: F401
+    import swarmauri_signing_jws  # noqa: F401
 except Exception:  # pragma: no cover - plugin optional
     pass
 
 try:
-    import swarmauri_signer_openpgp  # noqa: F401
+    import swarmauri_signing_openpgp  # noqa: F401
 except Exception:  # pragma: no cover - plugin optional
     pass
 
 try:
-    import swarmauri_signer_pades  # noqa: F401
+    import swarmauri_signing_pades  # noqa: F401
 except Exception:  # pragma: no cover - plugin optional
     pass
 
@@ -83,6 +85,17 @@ class Signer(ComponentBase):
     ) -> Sequence[Signature]:
         return await self._resolve(fmt).sign_bytes(key, payload, alg=alg, opts=opts)
 
+    async def sign_digest(
+        self,
+        fmt: str,
+        key: KeyRef,
+        digest: bytes,
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        return await self._resolve(fmt).sign_digest(key, digest, alg=alg, opts=opts)
+
     async def verify_bytes(
         self,
         fmt: str,
@@ -94,6 +107,19 @@ class Signer(ComponentBase):
     ) -> bool:
         return await self._resolve(fmt).verify_bytes(
             payload, signatures, require=require, opts=opts
+        )
+
+    async def verify_digest(
+        self,
+        fmt: str,
+        digest: bytes,
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> bool:
+        return await self._resolve(fmt).verify_digest(
+            digest, signatures, require=require, opts=opts
         )
 
     async def canonicalize_envelope(
@@ -122,6 +148,17 @@ class Signer(ComponentBase):
             key, env, alg=alg, canon=canon, opts=opts
         )
 
+    async def sign_stream(
+        self,
+        fmt: str,
+        key: KeyRef,
+        payload: StreamPayload,
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        return await self._resolve(fmt).sign_stream(key, payload, alg=alg, opts=opts)
+
     async def verify_envelope(
         self,
         fmt: str,
@@ -134,6 +171,19 @@ class Signer(ComponentBase):
     ) -> bool:
         return await self._resolve(fmt).verify_envelope(
             env, signatures, canon=canon, require=require, opts=opts
+        )
+
+    async def verify_stream(
+        self,
+        fmt: str,
+        payload: StreamPayload,
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> bool:
+        return await self._resolve(fmt).verify_stream(
+            payload, signatures, require=require, opts=opts
         )
 
     # ------------------------------------------------------------------

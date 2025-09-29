@@ -2,6 +2,6 @@
 
 from __future__ import annotations
 
-from .signer import Signer
+from .Signer import Signer
 
 __all__ = ["Signer"]
