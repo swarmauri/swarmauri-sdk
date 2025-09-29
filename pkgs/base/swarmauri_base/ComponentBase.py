@@ -120,6 +120,7 @@ class ResourceTypes(Enum):
     MRE_CRYPTO = "MreCrypto"
     PROMPT_TEMPLATE = "PromptTemplate"
     SIGNING = "Signing"
+    CIPHER_SUITE = "CipherSuite"
     TRACER = "Tracer"
     TENSOR = "Tensor"
     TOKEN_SERVICE = "TokenService"
