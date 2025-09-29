@@ -16,7 +16,7 @@ from .util import canon_htm_htu, sha256_b64u
 
 
 @register_model()
-class PopSignerMixin(BaseModel, IPopSigning):
+class PopSignerMixin(IPopSigning, BaseModel):
     """Common helpers for `IPopSigning` implementations."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
