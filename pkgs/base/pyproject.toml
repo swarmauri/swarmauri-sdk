@@ -34,6 +34,8 @@ swarmauri_tests_pylicense = { workspace = true }
 [dependency-groups]
 dev = [
     "toml>=0.10.2",
+    "fastapi>=0.110.0",
+    "httpx>=0.27.0",
     "pytest>=8.0.0",
     "pytest-xdist>=3.6.1",
     "pytest-asyncio>=0.24.0",
