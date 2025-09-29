@@ -1,0 +1,41 @@
+[project]
+name = "swarmauri_xmp_pdf"
+version = "0.1.0"
+description = "PDF handler scaffold for embedding and extracting XMP packets in Swarmauri runtimes."
+license = "Apache-2.0"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Development Status :: 2 - Pre-Alpha",
+]
+authors = [{ name = "Swarmauri" }]
+dependencies = [
+    "swarmauri_core",
+    "swarmauri_base",
+]
+
+[project.urls]
+Homepage = "https://github.com/swarmauri/swarmauri-sdk"
+
+[project.entry-points.'swarmauri.xmp_handlers']
+PDFXMP = "swarmauri_xmp_pdf:PDFXMP"
+
+[tool.uv.sources]
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.9",
+]
