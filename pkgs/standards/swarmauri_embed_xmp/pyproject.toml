@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_embed_xmp"
 version = "0.1.0"
-description = "Dynamic orchestrator that discovers Swarmauri XMP handlers at runtime."
+description = "Dynamic manager that discovers Swarmauri XMP handlers at runtime."
 license = "Apache-2.0"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
@@ -14,7 +14,7 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Development Status :: 3 - Alpha",
 ]
-authors = [{ name = "Swarmauri" }]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "swarmauri_core",
     "swarmauri_base",

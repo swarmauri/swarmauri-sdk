@@ -1,4 +1,4 @@
-"""Dynamic EmbedXMP orchestrator for Swarmauri standards."""
+"""Dynamic EmbedXMP manager for Swarmauri standards."""
 
 from __future__ import annotations
 
