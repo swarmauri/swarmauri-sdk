@@ -24,13 +24,13 @@ from swarmauri_core.pop import (
 from swarmauri_base import register_model
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
-from .PopSigningBase import RequestContext
+from .PopSignerMixin import RequestContext
 from .binding import normalize_cnf
 from .util import canon_htm_htu, sha256_b64u
 
 
 @register_model()
-class PopVerifierMixin(BaseModel, IPopVerifier):
+class PopVerifierMixin(IPopVerifier, BaseModel):
     """Provide default behaviours for IPoPVerifier implementations."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
