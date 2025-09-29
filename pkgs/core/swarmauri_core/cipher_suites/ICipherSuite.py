@@ -1,54 +1,67 @@
-"""Abstract cipher suite contract for algorithm normalization and policy."""
-
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Iterable, Mapping, Optional
+from typing import Any, Iterable, Mapping, Optional, Sequence
 
-from swarmauri_core.crypto.types import Alg, KeyRef
-
-ParamMapping = Mapping[str, object]
+from .types import (
+    Alg,
+    CipherOp,
+    Features,
+    KeyRef,
+    NormalizedDescriptor,
+    ParamMapping,
+)
 
 
 class ICipherSuite(ABC):
-    """Translate cryptographic operations into normalized descriptors.
-
-    Cipher suites are responsible for:
-    - Declaring algorithm support across the common crypto/signing operations.
-    - Normalizing identifiers for different dialects (JWA, COSE, provider-specific).
-    - Enforcing policy such as key length, allowed curves, or algorithm allow-lists.
-    - Providing defaults for operations when the caller omits an explicit algorithm.
-    """
+    """Resolution and policy contract for cipher suite descriptors."""
 
     @abstractmethod
     def suite_id(self) -> str:
-        """Return a stable identifier for the suite (e.g. ``"jwa"``)."""
+        """Return the stable identifier for the suite."""
 
     @abstractmethod
-    def supports(self) -> Mapping[str, Iterable[Alg]]:
-        """Return supported algorithms grouped by operation."""
+    def supports(self) -> Mapping[CipherOp, Iterable[Alg]]:
+        """Return the allow-list of algorithms grouped by operation."""
+
+    @abstractmethod
+    def default_alg(self, op: CipherOp, *, for_key: Optional[KeyRef] = None) -> Alg:
+        """Return the default algorithm for ``op`` under the current policy."""
 
     @abstractmethod
     def normalize(
         self,
         *,
-        op: str,
+        op: CipherOp,
         alg: Optional[Alg] = None,
         key: Optional[KeyRef] = None,
         params: Optional[ParamMapping] = None,
         dialect: Optional[str] = None,
-    ) -> Mapping[str, object]:
-        """Produce a normalized descriptor for an operation.
-
-        Implementations should raise :class:`ValueError` when the requested
-        operation, algorithm, or parameters are not supported under the suite's
-        policy.
-        """
+    ) -> NormalizedDescriptor:
+        """Return a normalized descriptor for the requested operation."""
 
     @abstractmethod
-    def default_alg(self, op: str, *, for_key: Optional[KeyRef] = None) -> Alg:
-        """Return the default algorithm for ``op`` optionally scoped to ``for_key``."""
+    def policy(self) -> Mapping[str, Any]:
+        """Return the effective policy toggles for the suite."""
 
     @abstractmethod
-    def policy(self) -> Mapping[str, object]:
-        """Return policy metadata describing enforcement rules for the suite."""
+    def features(self) -> Features:
+        """Return descriptive metadata describing the suite capabilities."""
+
+    def lint(self) -> Sequence[str]:
+        """Return linter warnings about misconfiguration or policy conflicts."""
+
+        issues: list[str] = []
+        supported = self.supports()
+        for op, allowed in supported.items():
+            try:
+                default = self.default_alg(op)
+            except Exception as exc:  # pragma: no cover - defensive path
+                issues.append(f"default_alg({op}) raised: {exc!r}")
+                continue
+
+            if default not in set(allowed):
+                issues.append(
+                    f"default_alg({op})={default} not in supports()[{op}]",
+                )
+        return issues
