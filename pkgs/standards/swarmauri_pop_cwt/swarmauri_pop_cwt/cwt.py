@@ -30,8 +30,9 @@ from swarmauri_core.pop import (
     PoPVerificationError,
     PoPKind,
 )
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.pop import (
-    PopSignerBase,
+    PopSigningBase,
     PopVerifierBase,
     RequestContext,
     sha256_b64u,
@@ -82,6 +83,7 @@ def _alg_name(alg_obj: SignatureAlg) -> str:
     return alg_obj.name if hasattr(alg_obj, "name") else str(alg_obj)
 
 
+@ComponentBase.register_type(PopVerifierBase, "CwtPoPVerifier")
 class CwtPoPVerifier(PopVerifierBase):
     """Verifier for COSE Sign1-based PoP proofs."""
 
@@ -186,7 +188,8 @@ class CwtPoPVerifier(PopVerifierBase):
         )
 
 
-class CwtPoPSigner(PopSignerBase):
+@ComponentBase.register_type(PopSigningBase, "CwtPoPSigner")
+class CwtPoPSigner(PopSigningBase):
     """Signer that emits COSE Sign1 PoP proofs."""
 
     def __init__(

@@ -10,9 +10,11 @@ from swarmauri_core.pop import (
     PoPParseError,
     PoPKind,
 )
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.pop import PopVerifierBase, RequestContext, sha256_b64u
 
 
+@ComponentBase.register_type(PopVerifierBase, "X509PoPVerifier")
 class X509PoPVerifier(PopVerifierBase):
     """Verifier for TLS client-certificate proof-of-possession."""
 
