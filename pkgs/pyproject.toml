@@ -233,7 +233,8 @@ members = [
     "community/swarmauri_certservice_gcpkms",
     "standards/swarmauri_tool_githubloader",
     "standards/swarmauri_toolkit_containertoolkit",
-    "experimental/swarmauri_workflow_statedriven"
+    "experimental/swarmauri_workflow_statedriven",
+    "plugins/SignerNameTBD"
 
 ]
 
@@ -246,6 +247,9 @@ typing = { workspace = true }
 cayaml = { workspace = true }
 catoml = { workspace = true }
 jaml = { workspace = true }
+
+
+"swm-signernametbd" = { workspace = true }
 
 
 swarmauri_vectorstore_doc2vec = { workspace = true }
@@ -339,6 +343,9 @@ swarmauri_tokens_sshcert = { workspace = true }
 swarmauri_signing_pgp = { workspace = true }
 swarmauri_signing_rsa = { workspace = true }
 swarmauri_signing_ssh = { workspace = true }
+swarmauri_cipher_suite_cades = { workspace = true }
+swarmauri_cipher_suite_jws = { workspace = true }
+swarmauri_cipher_suite_pades = { workspace = true }
 swarmauri_certs_x509verify = { workspace = true }
 
 swarmauri_tokens_introspection = { workspace = true }

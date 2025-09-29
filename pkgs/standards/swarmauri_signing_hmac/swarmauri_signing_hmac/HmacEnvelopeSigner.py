@@ -137,6 +137,9 @@ class HmacEnvelopeSigner(SigningBase):
         return {
             "algs": (JWAAlg.HS256, JWAAlg.HS384, JWAAlg.HS512),
             "canons": canons,
+            "signs": ("bytes", "digest", "envelope", "stream"),
+            "verifies": ("bytes", "digest", "envelope", "stream"),
+            "envelopes": ("mapping",),
             "features": ("multi", "detached_only"),
         }
 
