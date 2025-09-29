@@ -1,4 +1,4 @@
-"""Stub JWS signer registered with the Swarmauri registry."""
+"""Stub OpenPGP signer registered with the Swarmauri registry."""
 
 from __future__ import annotations
 
@@ -12,9 +12,9 @@ from swarmauri_core.signing.ISigning import Canon, Envelope
 from swarmauri_core.signing.types import Signature
 
 
-@register_type(resource_type=SigningBase, type_name="jws")
-class JWSSigner(SigningBase):
-    """Placeholder JWS signer that will be fleshed out in future revisions."""
+@register_type(resource_type=SigningBase, type_name="openpgp")
+class OpenPGPSigner(SigningBase):
+    """Placeholder OpenPGP signer exposing registry metadata."""
 
     def __init__(self, key_provider: Optional[IKeyProvider] = None) -> None:
         self._key_provider = key_provider
@@ -24,8 +24,11 @@ class JWSSigner(SigningBase):
 
     def supports(self, key_ref: Optional[str] = None) -> Mapping[str, Iterable[str]]:
         base_caps: Mapping[str, Iterable[str]] = {
-            "algs": ("PS256", "ES256", "EdDSA"),
-            "canons": ("json",),
+            "algs": ("openpgp",),
+            "canons": ("rfc4880",),
+            "signs": ("bytes", "digest", "envelope"),
+            "verifies": ("bytes", "digest", "envelope"),
+            "envelopes": ("openpgp-binary", "openpgp-armored"),
             "features": ("detached", "attached"),
         }
         if key_ref is None:
@@ -40,7 +43,7 @@ class JWSSigner(SigningBase):
         alg: Optional[Alg] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
-        raise NotImplementedError("JWSSigner.sign_bytes is not implemented yet")
+        raise NotImplementedError("OpenPGPSigner.sign_bytes is not implemented yet")
 
     async def verify_bytes(
         self,
@@ -50,7 +53,7 @@ class JWSSigner(SigningBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
-        raise NotImplementedError("JWSSigner.verify_bytes is not implemented yet")
+        raise NotImplementedError("OpenPGPSigner.verify_bytes is not implemented yet")
 
     async def canonicalize_envelope(
         self,
@@ -60,7 +63,7 @@ class JWSSigner(SigningBase):
         opts: Optional[Mapping[str, object]] = None,
     ) -> bytes:
         raise NotImplementedError(
-            "JWSSigner.canonicalize_envelope is not implemented yet"
+            "OpenPGPSigner.canonicalize_envelope is not implemented yet"
         )
 
     async def sign_envelope(
@@ -72,7 +75,7 @@ class JWSSigner(SigningBase):
         canon: Optional[Canon] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
-        raise NotImplementedError("JWSSigner.sign_envelope is not implemented yet")
+        raise NotImplementedError("OpenPGPSigner.sign_envelope is not implemented yet")
 
     async def verify_envelope(
         self,
@@ -83,4 +86,6 @@ class JWSSigner(SigningBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
-        raise NotImplementedError("JWSSigner.verify_envelope is not implemented yet")
+        raise NotImplementedError(
+            "OpenPGPSigner.verify_envelope is not implemented yet"
+        )

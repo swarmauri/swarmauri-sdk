@@ -26,6 +26,9 @@ class PadesSigner(SigningBase):
         base_caps: Mapping[str, Iterable[str]] = {
             "algs": ("ecdsa", "rsa-pss"),
             "canons": ("pdf",),
+            "signs": ("bytes", "digest", "envelope"),
+            "verifies": ("bytes", "digest", "envelope"),
+            "envelopes": ("pdf-detached", "pdf-attached"),
             "features": ("attached",),
         }
         if key_ref is None:

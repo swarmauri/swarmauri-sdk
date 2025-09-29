@@ -121,7 +121,7 @@ class PgpEnvelopeSigner(SigningBase):
     canonicalized to JSON or CBOR prior to signing.
     """
 
-    def supports(self) -> Mapping[str, Iterable[str]]:
+    def supports(self, key_ref: Optional[str] = None) -> Mapping[str, Iterable[str]]:
         """Describe the algorithms and canonicalizations supported by the signer.
 
         Returns:
@@ -129,11 +129,20 @@ class PgpEnvelopeSigner(SigningBase):
         """
 
         canons = ("json", "cbor") if _CBOR_OK else ("json",)
-        return {
+        envelopes = (
+            ("detached-json", "detached-cbor") if _CBOR_OK else ("detached-json",)
+        )
+        base_caps: Mapping[str, Iterable[str]] = {
             "algs": ("OpenPGP",),
             "canons": canons,
+            "signs": ("bytes", "envelope"),
+            "verifies": ("bytes", "envelope"),
+            "envelopes": envelopes,
             "features": ("multi", "detached_only"),
         }
+        if key_ref is None:
+            return base_caps
+        return {**base_caps, "key_refs": (key_ref,)}
 
     # ---------- bytes ----------
     async def sign_bytes(

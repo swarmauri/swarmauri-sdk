@@ -105,10 +105,22 @@ class Ed25519EnvelopeSigner(SigningBase):
     """Detached signatures over bytes and envelopes using Ed25519."""
 
     # ------------------------------------------------------------------
-    def supports(self) -> Mapping[str, Iterable[str]]:
-        algs = ("Ed25519",)
+    def supports(self, key_ref: Optional[str] = None) -> Mapping[str, Iterable[str]]:
         canons = ("json", "cbor") if _CBOR_OK else ("json",)
-        return {"algs": algs, "canons": canons, "features": ("multi", "detached_only")}
+        envelopes = (
+            ("detached-json", "detached-cbor") if _CBOR_OK else ("detached-json",)
+        )
+        base_caps: Mapping[str, Iterable[str]] = {
+            "algs": ("Ed25519",),
+            "canons": canons,
+            "signs": ("bytes", "envelope"),
+            "verifies": ("bytes", "envelope"),
+            "envelopes": envelopes,
+            "features": ("multi", "detached_only"),
+        }
+        if key_ref is None:
+            return base_caps
+        return {**base_caps, "key_refs": (key_ref,)}
 
     # ------------------------------------------------------------------
     async def sign_bytes(

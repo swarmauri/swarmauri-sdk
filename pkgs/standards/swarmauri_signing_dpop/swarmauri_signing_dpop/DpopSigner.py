@@ -203,12 +203,18 @@ class DpopSigner(SigningBase):
     def __init__(self) -> None:
         self._jws = JwsSignerVerifier()
 
-    def supports(self) -> dict[str, t.Iterable[str]]:
-        return {
+    def supports(self, key_ref: t.Optional[str] = None) -> dict[str, t.Iterable[str]]:
+        base_caps: dict[str, t.Iterable[str]] = {
             "algs": tuple(sorted(a.value for a in _ALLOWED_ALGS)),
             "canons": ("raw", "json"),
+            "signs": ("bytes", "envelope"),
+            "verifies": ("bytes", "envelope"),
+            "envelopes": ("dpop-proof",),
             "features": ("detached_only",),
         }
+        if key_ref is None:
+            return base_caps
+        return {**base_caps, "key_refs": (key_ref,)}
 
     async def canonicalize_envelope(
         self,

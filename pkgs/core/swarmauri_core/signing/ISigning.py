@@ -36,7 +36,7 @@ Notes
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Iterable, Mapping, Optional, Sequence, Union
+from typing import AsyncIterable, Iterable, Mapping, Optional, Sequence, Union
 
 from ..crypto.types import Alg, KeyRef
 from ..crypto.types import AEADCiphertext  # single‑recipient envelope
@@ -49,21 +49,28 @@ from .types import Signature
 Canon = str
 
 Envelope = Union[AEADCiphertext, MultiRecipientEnvelope, Mapping[str, object]]
+Digest = bytes
+ByteStream = Union[Iterable[bytes], AsyncIterable[bytes]]
 
 
 class ISigning(ABC):
     @abstractmethod
-    def supports(self) -> Mapping[str, Iterable[str]]:
+    def supports(self, key_ref: Optional[str] = None) -> Mapping[str, Iterable[str]]:
         """
         Return capability information.
 
         Keys (omit if unsupported):
           - "algs": iterable of signature algorithms (e.g., "Ed25519", "RSA-PSS-SHA256", "OpenPGP").
           - "canons": iterable of canonicalization identifiers (e.g., "json", "cbor", "json-c14n").
+          - "signs": iterable of supported signing operations (e.g., "bytes", "digest", "stream", "envelope").
+          - "verifies": iterable of supported verification operations (e.g., "bytes", "digest", "stream", "envelope").
+          - "envelopes": iterable describing supported envelope encodings or profiles (e.g., "cms-detached").
           - "features": optional iterable of flags, e.g.:
                 • "multi"          → optimized for multi‑signature sets
                 • "detached_only"  → only detached signatures (default)
                 • "attest"         → can include attestation chains in Signature["chain"]
+
+        When ``key_ref`` is provided the result MAY be specialized for that key.
         """
         ...
 
@@ -105,6 +112,72 @@ class ISigning(ABC):
 
         Returns:
           True if the verification criteria are met, False otherwise.
+        """
+        ...
+
+    # ───────────────────────────────── Digest ─────────────────────────────────
+
+    @abstractmethod
+    async def sign_digest(
+        self,
+        key: KeyRef,
+        digest: Digest,
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        """
+        Sign a pre-computed message digest.
+
+        Implementations SHOULD document the digest algorithms supported and how
+        they map to signature algorithms.
+        """
+        ...
+
+    @abstractmethod
+    async def verify_digest(
+        self,
+        digest: Digest,
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> bool:
+        """
+        Verify detached signatures against a pre-computed message digest.
+        """
+        ...
+
+    # ───────────────────────────────── Streams ────────────────────────────────
+
+    @abstractmethod
+    async def sign_stream(
+        self,
+        key: KeyRef,
+        stream: ByteStream,
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        """
+        Incrementally sign a byte stream without loading it entirely into memory.
+
+        ``stream`` MAY be synchronous or asynchronous and yields chunks of
+        ``bytes``.
+        """
+        ...
+
+    @abstractmethod
+    async def verify_stream(
+        self,
+        stream: ByteStream,
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> bool:
+        """
+        Verify detached signatures while streaming the payload.
         """
         ...
 

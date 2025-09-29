@@ -187,7 +187,7 @@ class SshEnvelopeSigner(SigningBase):
     signatures for raw byte payloads or canonicalized envelopes.
     """
 
-    def supports(self) -> Mapping[str, Iterable[str]]:
+    def supports(self, key_ref: Optional[str] = None) -> Mapping[str, Iterable[str]]:
         """
         Declare supported algorithms and canonicalization formats.
 
@@ -206,7 +206,17 @@ class SshEnvelopeSigner(SigningBase):
             "ecdsa-sha2-nistp384",
             "ecdsa-sha2-nistp521",
         )
-        return {"algs": algs, "canons": canons, "features": ("multi", "detached_only")}
+        base_caps: Mapping[str, Iterable[str]] = {
+            "algs": algs,
+            "canons": canons,
+            "signs": ("bytes", "envelope"),
+            "verifies": ("bytes", "envelope"),
+            "envelopes": ("ssh-envelope",),
+            "features": ("multi", "detached_only"),
+        }
+        if key_ref is None:
+            return base_caps
+        return {**base_caps, "key_refs": (key_ref,)}
 
     async def sign_bytes(
         self,
