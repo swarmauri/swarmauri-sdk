@@ -18,7 +18,7 @@
 
 # swarmauri_embed_xmp
 
-`swarmauri_embed_xmp` ships the orchestrator responsible for discovering every installed `EmbedXmpBase` implementation. It offers a single entry point to embed, read, or remove XMP packets without hard-coding individual container handlers.
+`swarmauri_embed_xmp` ships the manager responsible for discovering every installed `EmbedXmpBase` implementation. It offers a single entry point to embed, read, or remove XMP packets without hard-coding individual container handlers.
 
 ## Features
 
@@ -63,9 +63,9 @@ clean_bytes = remove(updated_bytes, path=str(image_path))
 
 ### Why it works
 
-- **Registry alignment** – by subclassing `EmbedXmpBase`, the orchestrator shares the same lifecycle as container-specific handlers.
+- **Registry alignment** – by subclassing `EmbedXmpBase`, the manager shares the same lifecycle as container-specific handlers.
 - **Predictable dispatch** – `_select` compares headers and extensions to choose the appropriate handler, raising when none match.
-- **Friendly ergonomics** – the helpers accept raw bytes, making the orchestrator trivial to integrate into existing pipelines.
+- **Friendly ergonomics** – the helpers accept raw bytes, making the manager trivial to integrate into existing pipelines.
 
 ## Project Resources
 

@@ -1,4 +1,4 @@
-"""Plugin package that re-exports the standard EmbedXMP orchestrator."""
+"""Plugin package that re-exports the standard EmbedXMP manager."""
 
 from __future__ import annotations
 

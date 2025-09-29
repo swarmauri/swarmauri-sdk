@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = []
 
 [tool.pytest.ini_options]

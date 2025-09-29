@@ -18,7 +18,7 @@
 
 # EmbedXMP
 
-`EmbedXMP` collects every installed `EmbedXmpBase` implementation, discovers them via Swarmauri's dynamic registry, and exposes a single orchestrator that can embed, read, or remove XMP packets without worrying about container formats.
+`EmbedXMP` collects every installed `EmbedXmpBase` implementation, discovers them via Swarmauri's dynamic registry, and exposes a single manager that can embed, read, or remove XMP packets without worrying about container formats.
 
 ## Features
 
@@ -43,15 +43,15 @@ from pathlib import Path
 
 from EmbedXMP import EmbedXMP, embed, embed_file, read, read_file_xmp
 
-orchestrator = EmbedXMP()
+manager = EmbedXMP()
 image = Path("example.png")
 packet = """<x:xmpmeta xmlns:x='adobe:ns:meta/'><rdf:RDF>...</rdf:RDF></x:xmpmeta>"""
 
 # Embed into the file in-place
 embed_file(image, packet)
 
-# Inspect metadata via the orchestrator API
-xmp_text = orchestrator.read(image.read_bytes(), str(image))
+# Inspect metadata via the manager API
+xmp_text = manager.read(image.read_bytes(), str(image))
 print(xmp_text)
 ```
 
