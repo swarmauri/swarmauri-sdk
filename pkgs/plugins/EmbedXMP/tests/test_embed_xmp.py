@@ -5,8 +5,8 @@ from __future__ import annotations
 import binascii
 import zlib
 
-import swarmauri_embed_xmp as manager
-from swarmauri_embed_xmp import EmbedXMP
+import EmbedXMP as manager
+from EmbedXMP import EmbedXMP
 from swarmauri_xmp_png import PNGXMP
 
 
