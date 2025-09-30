@@ -8,6 +8,10 @@ on:
       - 'pkgs/**'
   workflow_dispatch:
 
+concurrency:
+  group: docs-deploy
+  cancel-in-progress: true
+
 jobs:
   deploy-apps:
     if: ${{ !cancelled() }}
