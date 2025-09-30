@@ -20,11 +20,6 @@ from swarmauri_core.crypto.types import (
     KeyUse,
 )
 from swarmauri_core.keys.IKeyProvider import IKeyProvider
-from swarmauri_base.keys.loaders import (
-    load_der_private_key_and_chain,
-    load_pem_private_key_and_chain,
-    load_pfx_key_and_chain,
-)
 
 
 class KeyProviderBase(IKeyProvider, ComponentBase):
@@ -49,56 +44,12 @@ class KeyProviderBase(IKeyProvider, ComponentBase):
         *,
         include_secret: bool = False,
     ) -> KeyRef:
-        """Resolve simple URI-style key references into :class:`KeyRef` objects."""
+        """Resolve simple URI-style key references into :class:`KeyRef` objects.
 
-        if not key_ref:
-            raise ValueError("key_ref must be a non-empty string")
+        Subclasses must implement provider-specific resolution logic.
+        """
 
-        if key_ref.startswith("file:pem:"):
-            path, params = self._split_path_params(key_ref[len("file:pem:") :])
-            password = self._resolve_password(params.get("password"))
-            key, chain = load_pem_private_key_and_chain(path.read_bytes(), password)
-            return self._build_keyref_from_private(
-                key,
-                chain,
-                include_secret=include_secret,
-                tags={"source": "file", "format": "pem", "path": os.fspath(path)},
-            )
-
-        if key_ref.startswith("file:der:"):
-            path, params = self._split_path_params(key_ref[len("file:der:") :])
-            password = self._resolve_password(params.get("password"))
-            key, chain = load_der_private_key_and_chain(path.read_bytes(), password)
-            return self._build_keyref_from_private(
-                key,
-                chain,
-                include_secret=include_secret,
-                tags={"source": "file", "format": "der", "path": os.fspath(path)},
-            )
-
-        if key_ref.startswith("pfx:file:"):
-            path, params = self._split_path_params(key_ref[len("pfx:file:") :])
-            password = self._resolve_password(params.get("password"))
-            key, chain = load_pfx_key_and_chain(path.read_bytes(), password)
-            return self._build_keyref_from_private(
-                key,
-                chain,
-                include_secret=include_secret,
-                tags={"source": "file", "format": "pfx", "path": os.fspath(path)},
-            )
-
-        if key_ref.startswith("jwk:inline:"):
-            jwk_json = key_ref[len("jwk:inline:") :]
-            jwk = json.loads(jwk_json)
-            return self._build_keyref_from_jwk(jwk, include_secret=include_secret)
-
-        if key_ref.startswith("jwk:b64:"):
-            payload = key_ref[len("jwk:b64:") :]
-            jwk_json = base64.urlsafe_b64decode(payload + "==").decode("utf-8")
-            jwk = json.loads(jwk_json)
-            return self._build_keyref_from_jwk(jwk, include_secret=include_secret)
-
-        raise NotImplementedError(f"Unsupported key reference scheme: {key_ref}")
+        raise NotImplementedError("get_key_by_ref must be implemented by subclasses")
 
     # ------------------------------------------------------------------
     def _split_path_params(self, spec: str) -> Tuple[Path, Dict[str, str]]:
