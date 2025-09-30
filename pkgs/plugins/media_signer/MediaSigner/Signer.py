@@ -28,7 +28,12 @@ except Exception:  # pragma: no cover - plugin optional
     pass
 
 try:
-    import swarmauri_signing_pades  # noqa: F401
+    import swarmauri_signing_pdf  # noqa: F401
+except Exception:  # pragma: no cover - plugin optional
+    pass
+
+try:
+    import swarmauri_signing_xmld  # noqa: F401
 except Exception:  # pragma: no cover - plugin optional
     pass
 
@@ -37,7 +42,7 @@ class Signer(ComponentBase):
     """High-level async facade that routes signing calls to registered plugins."""
 
     resource: Optional[str] = ResourceTypes.SIGNING.value
-    type: str = "Signer"
+    type: str = "MediaSigner"
 
     def __init__(self, key_provider: Optional[IKeyProvider] = None) -> None:
         super().__init__()
