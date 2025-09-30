@@ -19,7 +19,7 @@ _DIG = ("SHA256", "SHA384")
 class PadesCipherSuite(CipherSuiteBase):
     """Skeleton suite for PAdES policy."""
 
-    type = "PadesCipherSuite"
+    type: str = "PadesCipherSuite"
 
     def suite_id(self) -> str:
         return "pades"
