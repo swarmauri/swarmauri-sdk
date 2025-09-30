@@ -74,10 +74,10 @@ def install_manifest_packages(manifest: str) -> None:
             "--directory",
             pkg_dir,
         ]
-        if os.environ.get("VIRTUAL_ENV") or sys.prefix != sys.base_prefix:
-            cmd.append("--system")
-        else:
-            cmd.append("--user")
+        # if os.environ.get("VIRTUAL_ENV") or sys.prefix != sys.base_prefix:
+        #     cmd.append("--system")
+        # else:
+        #     cmd.append("--user")
         cmd.append(".")
         subprocess.run(cmd, check=True)
 
