@@ -19,7 +19,7 @@ _ENC = ("A256GCM",)
 class Cnsa20CipherSuite(CipherSuiteBase):
     """Skeleton suite for CNSA 2.0 policy."""
 
-    type = "Cnsa20CipherSuite"
+    type: str = "Cnsa20CipherSuite"
 
     def suite_id(self) -> str:
         return "cnsa-2.0"
