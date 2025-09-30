@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_certs_csronly"
-version = "0.8.0.dev5"
+version = "0.8.0.dev6"
 description = "Community service for generating PKCS#10 CSRs"
 license = "Apache-2.0"
 readme = "README.md"
@@ -12,7 +12,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-authors = [{name = "Community Contributor", email = "community@swarmauri.com"}]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = ["swarmauri_core", "swarmauri_base", "cryptography>=41"]
 
 [project.optional-dependencies]

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_parser_slate"
-version = "0.2.0.dev5"
+version = "0.2.0.dev6"
 description = "A parser for extracting text from PDFs using Slate."
 license = "Apache-2.0"
 readme = "README.md"
@@ -12,7 +12,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-authors = [{ name = "Vijay Vignesh", email = "vijayvigneshp02@gmail.com" }]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "slate3k>=0.5",
     "swarmauri_core",

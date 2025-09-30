@@ -361,6 +361,50 @@ Customize outbound responses with `ResponseSpec` and `TemplateSpec`. These datac
 control headers, status codes, and optional template rendering. See
 [tigrbl/v3/response/README.md](tigrbl/v3/response/README.md) for field descriptions and examples.
 
+### Server-Sent Events Streams 📡
+
+Tigrbl supports native Server-Sent Events (SSE) streams using the same operation
+machinery that powers traditional verbs. Declare a collection-level alias and
+mark the response as a streaming payload:
+
+```python
+from tigrbl import Base, ResponseSpec, as_stream, op_ctx
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    @op_ctx(
+        alias="events",
+        target="custom",
+        arity="collection",
+        persist="read",
+        response=ResponseSpec(kind="stream", media_type="text/event-stream"),
+    )
+    async def events(cls, ctx):
+        async def generator():
+            while True:
+                payload = await ctx["request"].deps["event_bus"].next_event()
+                yield f"data: {payload}\n\n".encode()
+
+        return as_stream(generator(), media_type="text/event-stream")
+```
+
+Key details:
+
+- `target="custom"` exposes the handler as a `GET /{resource}/events` route without
+  colliding with built-in verbs.
+- `arity="collection"` omits item IDs from the path, matching the shape of a
+  broadcast event stream.
+- `persist="read"` (or `persist="skip"`) prevents Tigrbl from opening a long-lived
+  write transaction while the stream is active.
+- Returning `as_stream(...)` hands FastAPI a `StreamingResponse`, so events are
+  flushed to clients as soon as they are yielded.
+
+Handlers can also `yield` byte chunks directly instead of returning a response
+object; Tigrbl forwards the async iterator to the underlying framework unchanged.
+Use standard SSE formatting (`data: ...\n\n`) to ensure browsers and EventSource
+clients process each message correctly.
+
 ### Dependencies 📦
 
 * SQLAlchemy for ORM integration.

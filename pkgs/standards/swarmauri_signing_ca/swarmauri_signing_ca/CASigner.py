@@ -239,7 +239,11 @@ class CASigner(SigningBase):
     type: Literal["CASigner"] = "CASigner"
 
     def supports(self) -> Mapping[str, Iterable[str]]:
+        envelopes = ("detached-bytes", "x509-csr", "structured-json")
         return {
+            "signs": ("bytes", "envelope"),
+            "verifies": ("bytes", "envelope"),
+            "envelopes": envelopes,
             "algs": (
                 "Ed25519",
                 "ECDSA-P256-SHA256",
@@ -248,6 +252,9 @@ class CASigner(SigningBase):
                 "RS256",
             ),
             "canons": ("json",),
+            "signs": ("bytes", "digest", "envelope", "stream"),
+            "verifies": ("bytes", "digest", "envelope", "stream"),
+            "envelopes": ("mapping",),
             "features": ("multi", "detached_only", "x509"),
         }
 

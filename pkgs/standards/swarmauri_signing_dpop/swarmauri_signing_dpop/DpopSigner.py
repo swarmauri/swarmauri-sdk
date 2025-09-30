@@ -204,9 +204,16 @@ class DpopSigner(SigningBase):
         self._jws = JwsSignerVerifier()
 
     def supports(self) -> dict[str, t.Iterable[str]]:
+        envelopes = ("detached-bytes", "dpop-http-request", "structured-json")
         return {
+            "signs": ("bytes", "envelope"),
+            "verifies": ("bytes", "envelope"),
+            "envelopes": envelopes,
             "algs": tuple(sorted(a.value for a in _ALLOWED_ALGS)),
             "canons": ("raw", "json"),
+            "signs": ("bytes", "digest", "envelope", "stream"),
+            "verifies": ("bytes", "digest", "envelope", "stream"),
+            "envelopes": ("raw", "mapping"),
             "features": ("detached_only",),
         }
 

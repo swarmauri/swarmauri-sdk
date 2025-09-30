@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_evaluator_constanttime"
-version = "0.3.0.dev6"
+version = "0.3.0.dev7"
 description = "Evaluator that detects timing side channels using fixed-vs-random test"
 license = "Apache-2.0"
 readme = "README.md"
@@ -14,9 +14,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Development Status :: 3 - Alpha",
 ]
-authors = [
-    {name = "SwarmAuri Team", email = "info@swarmauri.com"},
-]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 keywords = [
     "swarmauri",
     "evaluator",

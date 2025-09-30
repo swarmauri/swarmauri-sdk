@@ -1,0 +1,31 @@
+[project]
+name = "swarmauri_pop_dpop"
+version = "0.1.0"
+description = "DPoP proof-of-possession verifier and signer"
+license = "Apache-2.0"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+authors = [{ name = "Swarmauri SDK Team", email = "support@swarmauri.com" }]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Intended Audience :: Developers",
+    "Topic :: Security :: Cryptography",
+]
+dependencies = [
+    "swarmauri_core",
+    "swarmauri-base",
+    "pyjwt>=2.8",
+    "cryptography>=41",
+]
+
+[tool.uv.sources]
+swarmauri_core = { workspace = true }
+swarmauri-base = { workspace = true }
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

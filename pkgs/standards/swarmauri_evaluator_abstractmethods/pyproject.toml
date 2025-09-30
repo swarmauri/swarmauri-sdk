@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_evaluator_abstractmethods"
-version = "0.3.0.dev5"
+version = "0.3.0.dev6"
 description = "An evaluator that verifies all methods in abstract base classes are properly marked as abstract"
 license = "Apache-2.0"
 readme = "README.md"
@@ -14,7 +14,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Development Status :: 3 - Alpha"
 ]
-authors = [{ name = "SwarmAuri Team", email = "info@swarmauri.com" }]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 keywords = [
     "abstract methods",
     "code quality",

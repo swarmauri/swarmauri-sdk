@@ -129,9 +129,18 @@ class PgpEnvelopeSigner(SigningBase):
         """
 
         canons = ("json", "cbor") if _CBOR_OK else ("json",)
+        envelopes = ("detached-bytes",) + tuple(
+            f"structured-{canon}" for canon in canons
+        )
         return {
+            "signs": ("bytes", "envelope"),
+            "verifies": ("bytes", "envelope"),
+            "envelopes": envelopes,
             "algs": ("OpenPGP",),
             "canons": canons,
+            "signs": ("bytes", "digest", "envelope", "stream"),
+            "verifies": ("bytes", "digest", "envelope", "stream"),
+            "envelopes": ("mapping",),
             "features": ("multi", "detached_only"),
         }
 

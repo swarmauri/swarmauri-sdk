@@ -17,9 +17,7 @@ classifiers = [
     "Topic :: Text Processing :: Linguistic",
     "Topic :: Software Development :: Quality Assurance"
 ]
-authors = [
-    { name = "SwarmAuri Team", email = "info@swarmauri.com" }
-]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 keywords = [
     "accessibility",
     "readability",
