@@ -20,7 +20,7 @@ _IPSEC_DH = ("group14", "group19", "group20", "group31")
 class IpsecCipherSuite(CipherSuiteBase):
     """Skeleton suite for IKE/IPsec policy."""
 
-    type = "IpsecCipherSuite"
+    type: str = "IpsecCipherSuite"
 
     def suite_id(self) -> str:
         return "ipsec"
