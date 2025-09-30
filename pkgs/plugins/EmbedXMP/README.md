@@ -29,10 +29,9 @@
 ## Installation
 
 ```bash
-# pip
 pip install EmbedXMP
 
-# uv
+# or with uv
 uv add EmbedXMP
 ```
 
