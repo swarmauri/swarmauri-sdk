@@ -29,7 +29,6 @@ dependencies = [
 "typing_extensions",
 "swarmauri_core",
 "swarmauri_base",
-
 ]
 
 
