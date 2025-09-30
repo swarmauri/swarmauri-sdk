@@ -55,6 +55,18 @@ class IKeyProvider(ABC):
     ) -> KeyRef:
         """Fetch a :class:`KeyRef` for the given key id/version."""
 
+    async def get_key_by_ref(
+        self,
+        key_ref: str,
+        *,
+        include_secret: bool = False,
+    ) -> KeyRef:
+        """Resolve an opaque key reference into a :class:`KeyRef` instance."""
+
+        raise NotImplementedError(
+            "get_key_by_ref() is not implemented for this provider"
+        )
+
     @abstractmethod
     async def list_versions(self, kid: str) -> Tuple[int, ...]:
         """Return available versions for a key."""
