@@ -1,4 +1,4 @@
-"""Tests for the EmbedXMP plugin re-exports."""
+"""Tests for the EmbedXMP plugin exports."""
 
 from __future__ import annotations
 
@@ -6,8 +6,7 @@ import binascii
 import zlib
 
 import EmbedXMP as plugin
-import swarmauri_embed_xmp as standard
-from swarmauri_embed_xmp import EmbedXMP
+from EmbedXMP import EmbedXMP
 from swarmauri_xmp_png import PNGXMP
 
 
@@ -36,16 +35,23 @@ def _minimal_png() -> bytes:
     )
 
 
-def test_plugin_symbols_match_standard() -> None:
-    assert plugin.EmbedXMP is standard.EmbedXMP
-    assert plugin.embed is standard.embed
-    assert plugin.read is standard.read
-    assert plugin.remove is standard.remove
+def test_plugin_exports_expected_symbols() -> None:
+    for name in [
+        "EmbedXMP",
+        "embed",
+        "read",
+        "remove",
+        "embed_file",
+        "read_file_xmp",
+        "remove_file_xmp",
+    ]:
+        assert hasattr(plugin, name)
+    assert plugin.EmbedXMP is EmbedXMP
 
 
 def test_plugin_helpers_respect_custom_default() -> None:
-    original = standard._default_embed
-    standard._default_embed = EmbedXMP(handlers=[PNGXMP], eager_import=False)
+    original = plugin._default_embed
+    plugin._default_embed = EmbedXMP(handlers=[PNGXMP], eager_import=False)
     data = _minimal_png()
     xmp = "<x:xmpmeta><rdf:RDF/></x:xmpmeta>"
     try:
@@ -53,4 +59,4 @@ def test_plugin_helpers_respect_custom_default() -> None:
         assert plugin.read(written, path="example.png") == xmp
         assert plugin.read(plugin.remove(written, path="example.png")) is None
     finally:
-        standard._default_embed = original
+        plugin._default_embed = original
