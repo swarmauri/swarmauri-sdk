@@ -1,7 +1,7 @@
-"""Signing facades and plugin stubs for the Swarmauri standards library."""
+"""Signing facade export for backwards compatibility with the legacy location."""
 
 from __future__ import annotations
 
-from .Signer import Signer
+from MediaSigner import Signer
 
 __all__ = ["Signer"]
