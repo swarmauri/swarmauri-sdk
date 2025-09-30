@@ -131,6 +131,8 @@ members = [
     "standards/swarmauri_cipher_suite_tls13",
     "standards/swarmauri_cipher_suite_webauthn",
     "standards/swarmauri_cipher_suite_xades",
+    "standards/swarmauri_cipher_suites_yubikey",
+    "standards/swarmauri_cipher_suites_yubikey_fips",
     "standards/swarmauri_mre_crypto_shamir",
     "standards/swarmauri_mre_crypto_keyring",
     "standards/swarmauri_mre_crypto_age",
