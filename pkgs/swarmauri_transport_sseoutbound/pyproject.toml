@@ -1,0 +1,44 @@
+[project]
+name = "swarmauri-transport-sseoutbound"
+version = "0.1.0"
+description = "Server-Sent Events broadcaster transport for Swarmauri agents." 
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+license = { file = "LICENSE" }
+dependencies = [
+    "swarmauri-base",
+    "swarmauri-core",
+]
+keywords = [
+    "swarmauri",
+    "transport",
+    "sse",
+    "events",
+    "broadcast",
+    "streaming",
+    "http",
+    "asyncio",
+    "realtime",
+]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+]
+
+[project.urls]
+Homepage = "https://github.com/swarmauri/swarmauri-sdk"
+Repository = "https://github.com/swarmauri/swarmauri-sdk"
+
+[build-system]
+requires = ["poetry-core>=1.8.0"]
+build-backend = "poetry.core.masonry.api"
