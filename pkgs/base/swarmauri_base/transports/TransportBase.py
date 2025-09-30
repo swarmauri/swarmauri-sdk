@@ -65,9 +65,8 @@ class TransportBase(ComponentBase, ITransport):
     ) -> AbstractAsyncContextManager["TransportBase"]:
         """Create a context manager that starts the transport's server side."""
 
-        caps = self.supports()
+        self.supports()
         self._server_bind_kwargs = dict(bind_kwargs)
-        _require_caps(caps, casts={Cast.UNICAST})
         transport = self
 
         class _ServerCtx(AbstractAsyncContextManager[TransportBase]):
@@ -85,9 +84,8 @@ class TransportBase(ComponentBase, ITransport):
     ) -> AbstractAsyncContextManager["TransportBase"]:
         """Create a context manager that opens the transport's client side."""
 
-        caps = self.supports()
+        self.supports()
         self._client_connect_kwargs = dict(connect_kwargs)
-        _require_caps(caps, casts={Cast.UNICAST})
         transport = self
 
         class _ClientCtx(AbstractAsyncContextManager[TransportBase]):
