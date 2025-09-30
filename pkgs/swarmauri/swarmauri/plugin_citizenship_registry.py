@@ -62,7 +62,6 @@ class PluginCitizenshipRegistry:
         "swarmauri.cipher_suites.JwaCipherSuite": "swarmauri_cipher_suite_jwa.JwaCipherSuite",
         "swarmauri.cipher_suites.CoseCipherSuite": "swarmauri_cipher_suite_cose.CoseCipherSuite",
         "swarmauri.cipher_suites.FipsCipherSuite": "swarmauri_cipher_suite_fips1403.FipsCipherSuite",
-        "swarmauri.cipher_suites.JwsCipherSuite": "swarmauri_cipher_suite_jws.JwsCipherSuite",
         "swarmauri.cipher_suites.Tls13CipherSuite": "swarmauri_cipher_suite_tls13.Tls13CipherSuite",
         "swarmauri.cipher_suites.WebAuthnCipherSuite": "swarmauri_cipher_suite_webauthn.WebAuthnCipherSuite",
         "swarmauri.cipher_suites.SigstoreCipherSuite": "swarmauri_cipher_suite_sigstore.SigstoreCipherSuite",
