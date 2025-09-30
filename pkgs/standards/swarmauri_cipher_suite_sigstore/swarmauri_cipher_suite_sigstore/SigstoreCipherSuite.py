@@ -18,7 +18,7 @@ _SIG_ALGS = ("ES256", "EdDSA", "PS256")
 class SigstoreCipherSuite(CipherSuiteBase):
     """Sigstore / Cosign policy bundle."""
 
-    type = "SigstoreCipherSuite"
+    type: str = "SigstoreCipherSuite"
 
     def suite_id(self) -> str:
         return "sigstore"
