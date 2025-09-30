@@ -16,7 +16,7 @@ dependencies = []
 
 [project.optional-dependencies]
 cms = ["swarmauri_signing_ca", "swarmauri_cipher_suite_cades"]
-jws = ["swarmauri_signing_jws", "swarmauri_cipher_suite_jws"]
+jws = ["swarmauri_signing_jws", "swarmauri_cipher_suite_jwa"]
 openpgp = ["swarmauri_signing_pgp"]
 pades = ["swarmauri_signing_rsa", "swarmauri_cipher_suite_pades"]
 
