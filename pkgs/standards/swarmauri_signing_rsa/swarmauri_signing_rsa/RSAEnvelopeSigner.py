@@ -244,15 +244,12 @@ class RSAEnvelopeSigner(SigningBase):
     def supports(self) -> Mapping[str, Iterable[str]]:
         algs = ("RSA-PSS-SHA256", "RS256")
         canons = ("json", "cbor") if _CBOR_OK else ("json",)
-        envelopes = ("detached-bytes",) + tuple(
-            f"structured-{canon}" for canon in canons
-        )
         return {
-            "signs": ("bytes", "envelope"),
-            "verifies": ("bytes", "envelope"),
-            "envelopes": envelopes,
             "algs": algs,
             "canons": canons,
+            "signs": ("bytes", "digest", "envelope", "stream"),
+            "verifies": ("bytes", "digest", "envelope", "stream"),
+            "envelopes": ("mapping",),
             "features": ("multi", "detached_only"),
         }
 

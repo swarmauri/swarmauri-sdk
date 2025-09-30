@@ -296,7 +296,14 @@ class Secp256k1EnvelopeSigner(ISigning):
     def supports(self) -> Mapping[str, Iterable[str]]:
         algs = ("ES256K", "ECDSA-SHA256")
         canons = ("json", "cbor") if _CBOR_OK else ("json",)
-        return {"algs": algs, "canons": canons, "features": ("multi", "detached_only")}
+        return {
+            "algs": algs,
+            "canons": canons,
+            "signs": ("bytes", "digest", "envelope", "stream"),
+            "verifies": ("bytes", "digest", "envelope", "stream"),
+            "envelopes": ("mapping",),
+            "features": ("multi", "detached_only"),
+        }
 
     # ── bytes ────────────────────────────────────────────────────────────────
 

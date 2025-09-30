@@ -211,6 +211,9 @@ class DpopSigner(SigningBase):
             "envelopes": envelopes,
             "algs": tuple(sorted(a.value for a in _ALLOWED_ALGS)),
             "canons": ("raw", "json"),
+            "signs": ("bytes", "digest", "envelope", "stream"),
+            "verifies": ("bytes", "digest", "envelope", "stream"),
+            "envelopes": ("raw", "mapping"),
             "features": ("detached_only",),
         }
 

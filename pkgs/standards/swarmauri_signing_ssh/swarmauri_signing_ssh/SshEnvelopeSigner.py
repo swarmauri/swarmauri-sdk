@@ -204,11 +204,11 @@ class SshEnvelopeSigner(SigningBase):
             "ecdsa-sha2-nistp521",
         )
         return {
-            "signs": ("bytes", "envelope"),
-            "verifies": ("bytes", "envelope"),
-            "envelopes": envelopes,
             "algs": algs,
             "canons": canons,
+            "signs": ("bytes", "digest", "envelope", "stream"),
+            "verifies": ("bytes", "digest", "envelope", "stream"),
+            "envelopes": ("mapping",),
             "features": ("multi", "detached_only"),
         }
 

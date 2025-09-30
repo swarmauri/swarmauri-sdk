@@ -47,6 +47,7 @@ Notes
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import AsyncIterable, Iterable
 from typing import AsyncIterable, Iterable, Mapping, Optional, Sequence, Union
 
 from ..crypto.types import Alg, KeyRef
@@ -62,6 +63,8 @@ Canon = str
 Envelope = Union[AEADCiphertext, MultiRecipientEnvelope, Mapping[str, object]]
 StreamLike = Union[Iterable[bytes], AsyncIterable[bytes]]
 
+ByteStream = Union[bytes, bytearray, Iterable[bytes], AsyncIterable[bytes]]
+
 
 class ISigning(ABC):
     @abstractmethod
@@ -72,6 +75,15 @@ class ISigning(ABC):
         Keys (omit if unsupported):
           - "algs": iterable of signature algorithms (e.g., "Ed25519", "RSA-PSS-SHA256", "OpenPGP").
           - "canons": iterable of canonicalization identifiers (e.g., "json", "cbor", "json-c14n").
+          - "signs": iterable describing supported signing surfaces. Expected tokens include
+                • "bytes"    → :meth:`sign_bytes`
+                • "digest"   → :meth:`sign_digest`
+                • "envelope" → :meth:`sign_envelope`
+                • "stream"   → :meth:`sign_stream`
+          - "verifies": iterable describing supported verification surfaces using the
+            same tokens as "signs".
+          - "envelopes": iterable describing supported envelope shapes (e.g.,
+            "mapping", "aead_ciphertext", "multi_recipient").
           - "features": optional iterable of flags, e.g.:
                 • "multi"          → optimized for multi‑signature sets
                 • "detached_only"  → only detached signatures (default)
@@ -132,16 +144,33 @@ class ISigning(ABC):
         """
         ...
 
+    # ────────────────────────────────── Streams ──────────────────────────────────
+
     @abstractmethod
-    async def verify_digest(
+    async def sign_stream(
         self,
-        digest: bytes,
+        key: KeyRef,
+        payload: ByteStream,
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        """
+        Produce detached signatures over streaming byte payloads.
+
+        Implementations MAY buffer the stream to reuse :meth:`sign_bytes`.
+        """
+        ...
+
+    @abstractmethod
+    async def verify_stream(
+        self,
+        payload: ByteStream,
         signatures: Sequence[Signature],
         *,
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
-        """Verify detached signatures that were created over a message digest."""
         ...
 
     # ────────────────────────────────── Envelopes ──────────────────────────────────
@@ -207,14 +236,16 @@ class ISigning(ABC):
         """
         ...
 
+    # ────────────────────────────────── Digests ──────────────────────────────────
+
     @abstractmethod
-    async def verify_stream(
+    async def verify_digest(
         self,
-        payload: StreamLike,
+        digest: bytes,
         signatures: Sequence[Signature],
         *,
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
-        """Verify signatures produced over stream-based signing operations."""
+        """Verify detached signatures produced over a pre-computed digest."""
         ...

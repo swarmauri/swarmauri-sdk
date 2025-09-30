@@ -252,6 +252,9 @@ class CASigner(SigningBase):
                 "RS256",
             ),
             "canons": ("json",),
+            "signs": ("bytes", "digest", "envelope", "stream"),
+            "verifies": ("bytes", "digest", "envelope", "stream"),
+            "envelopes": ("mapping",),
             "features": ("multi", "detached_only", "x509"),
         }
 

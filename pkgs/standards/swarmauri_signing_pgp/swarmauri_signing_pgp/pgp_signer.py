@@ -138,6 +138,9 @@ class PgpEnvelopeSigner(SigningBase):
             "envelopes": envelopes,
             "algs": ("OpenPGP",),
             "canons": canons,
+            "signs": ("bytes", "digest", "envelope", "stream"),
+            "verifies": ("bytes", "digest", "envelope", "stream"),
+            "envelopes": ("mapping",),
             "features": ("multi", "detached_only"),
         }
 
