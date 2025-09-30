@@ -33,6 +33,7 @@ members = [
     "swarmauri_standard",
     "swarmauri",
     "typing",
+    "plugins/media_signer",
     "experimental/cayaml",
     "experimental/catoml",
     "experimental/jaml",
@@ -124,8 +125,8 @@ members = [
     "standards/swarmauri_cipher_suite_cades",
     "standards/swarmauri_cipher_suite_cnsa20",
     "standards/swarmauri_cipher_suite_ipsec",
-    "standards/swarmauri_cipher_suite_jws",
     "standards/swarmauri_cipher_suite_pades",
+    "standards/swarmauri_cipher_suite_pep458",
     "standards/swarmauri_cipher_suite_sigstore",
     "standards/swarmauri_cipher_suite_ssh",
     "standards/swarmauri_cipher_suite_tls13",
@@ -145,6 +146,7 @@ members = [
     "standards/swarmauri_signing_ca",
     "standards/swarmauri_signing_jws",
     "standards/swarmauri_signing_dpop",
+    "standards/swarmauri_signing_dsse",
     "standards/swarmauri_certs_local_ca",
     "standards/swarmauri_certs_self_signed",
     "standards/swarmauri_tokens_jwt",
@@ -153,10 +155,15 @@ members = [
     "standards/swarmauri_tokens_dpopboundjwt",
     "standards/swarmauri_signing_pgp",
     "standards/swarmauri_signing_rsa",
+    "standards/swarmauri_signing_cms",
+    "standards/swarmauri_signing_openpgp",
+    "standards/swarmauri_signing_pep458",
+    "standards/swarmauri_signing_pdf",
+    "standards/swarmauri_signing_xmld",
+    "swarmauri_standards",
     "standards/swarmauri_signing_ssh",
     "standards/swarmauri_certs_x509verify",
     "plugins/EmbedXMP",
-    "standards/swarmauri_embed_xmp",
     "standards/swarmauri_xmp_gif",
     "standards/swarmauri_xmp_jpeg",
     "standards/swarmauri_xmp_mp4",
@@ -352,6 +359,7 @@ swarmauri_signing_ca = { workspace = true }
 swarmauri_certs_remote_ca = { workspace = true }
 swarmauri_signing_jws = { workspace = true }
 swarmauri_signing_dpop = { workspace = true }
+swarmauri_signing_dsse = { workspace = true }
 swarmauri_certs_pkcs11 = { workspace = true }
 swarmauri_certs_local_ca = { workspace = true }
 swarmauri_certs_self_signed = { workspace = true }
@@ -362,8 +370,8 @@ swarmauri_tokens_sshcert = { workspace = true }
 swarmauri_signing_pgp = { workspace = true }
 swarmauri_signing_rsa = { workspace = true }
 swarmauri_signing_ssh = { workspace = true }
+swarmauri_cipher_suite_jwa = { workspace = true }
 swarmauri_cipher_suite_cades = { workspace = true }
-swarmauri_cipher_suite_jws = { workspace = true }
 swarmauri_cipher_suite_pades = { workspace = true }
 swarmauri_certs_x509verify = { workspace = true }
 

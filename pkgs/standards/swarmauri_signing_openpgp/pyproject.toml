@@ -1,0 +1,21 @@
+[project]
+name = "swarmauri_signing_openpgp"
+version = "0.1.0.dev0"
+description = "OpenPGP signer stub registered on the Swarmauri SigningBase registry"
+license = "Apache-2.0"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+dependencies = [
+    "swarmauri_base",
+    "swarmauri_core",
+    "pgpy>=0.6.0",
+]
+
+[tool.uv.sources]
+swarmauri_base = { workspace = true }
+swarmauri_core = { workspace = true }
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

@@ -106,7 +106,9 @@ def pytest_configure(config: pytest.Config) -> None:
 
     examples: list[ReadmeExample] = []
     for path in files:
-        examples.extend(_extract_examples(path, languages, skip_markers, allow_untagged))
+        examples.extend(
+            _extract_examples(path, languages, skip_markers, allow_untagged)
+        )
 
     config._readme_examples = examples
     config._readme_mode = _resolve_mode(config)
@@ -161,7 +163,9 @@ class ReadmeExampleItem(pytest.Item):
 
 
 class ReadmeAggregateItem(pytest.Item):
-    def __init__(self, name: str, parent: pytest.Collector, examples: Sequence[ReadmeExample]):
+    def __init__(
+        self, name: str, parent: pytest.Collector, examples: Sequence[ReadmeExample]
+    ):
         super().__init__(name, parent)
         self.examples = list(examples)
 
@@ -364,12 +368,9 @@ def _execute_example(example: ReadmeExample) -> str | None:
         with redirect_stdout(stdout):
             exec(code_object, namespace, namespace)
     except Exception as exc:  # pragma: no cover - verified via plugin tests
-        summary = "".join(
-            traceback.format_exception_only(exc.__class__, exc)
-        ).strip()
+        summary = "".join(traceback.format_exception_only(exc.__class__, exc)).strip()
         return (
-            f"{example.path}:{example.line} ({example.display_name}) "
-            f"raised {summary}"
+            f"{example.path}:{example.line} ({example.display_name}) raised {summary}"
         )
     return None
 

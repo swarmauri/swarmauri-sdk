@@ -5,6 +5,8 @@ Design goals
 ------------
 - One interface that cleanly supports:
   • Signing/verification of raw bytes.
+  • Signing/verification of pre-hashed digests.
+  • Signing/verification of stream-friendly iterables of bytes.
   • Signing/verification of structured envelopes (AEAD or MRE) via canonicalization.
 - No encryption here (kept in ICrypto/IMreCrypto).
 - Multi‑signer friendly: return one or more detached signatures; verification
@@ -23,6 +25,15 @@ Typical flows
     sigs = await signer.sign_bytes(my_key, b"payload", alg="Ed25519")
     ok = await signer.verify_bytes(b"payload", sigs)
 
+- Digest:
+    digest = hashlib.sha256(b"payload").digest()
+    sigs = await signer.sign_digest(my_key, digest, alg="Ed25519")
+    ok = await signer.verify_digest(digest, sigs)
+
+- Stream:
+    sigs = await signer.sign_stream(my_key, payload_iter, alg="Ed25519")
+    ok = await signer.verify_stream(payload_iter, sigs)
+
 - Envelopes (AEAD or MRE):
     sigs = await signer.sign_envelope(my_key, env, alg="Ed25519", canon="json")
     ok = await signer.verify_envelope(env, sigs, canon="json")
@@ -37,7 +48,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import AsyncIterable, Iterable
-from typing import Mapping, Optional, Sequence, Union
+from typing import AsyncIterable, Iterable, Mapping, Optional, Sequence, Union
 
 from ..crypto.types import Alg, KeyRef
 from ..crypto.types import AEADCiphertext  # single‑recipient envelope
@@ -50,6 +61,7 @@ from .types import Signature
 Canon = str
 
 Envelope = Union[AEADCiphertext, MultiRecipientEnvelope, Mapping[str, object]]
+StreamLike = Union[Iterable[bytes], AsyncIterable[bytes]]
 
 ByteStream = Union[bytes, bytearray, Iterable[bytes], AsyncIterable[bytes]]
 
@@ -108,12 +120,7 @@ class ISigning(ABC):
         alg: Optional[Alg] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
-        """
-        Produce one or more detached signatures over a pre-computed digest.
-
-        Implementations MAY require the caller to supply digest metadata inside
-        ``opts`` (e.g., ``{"hash_alg": "sha256"}``).
-        """
+        """Produce detached signatures over a pre-computed message digest."""
         ...
 
     @abstractmethod
@@ -164,11 +171,6 @@ class ISigning(ABC):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
-        """
-        Verify detached signatures for streaming byte payloads.
-
-        Implementations MAY buffer the stream to reuse :meth:`verify_bytes`.
-        """
         ...
 
     # ────────────────────────────────── Envelopes ──────────────────────────────────
@@ -202,6 +204,18 @@ class ISigning(ABC):
         """
         Produce one or more detached signatures over a canonicalized envelope.
         """
+        ...
+
+    @abstractmethod
+    async def sign_stream(
+        self,
+        key: KeyRef,
+        payload: StreamLike,
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        """Produce signatures while reading from an iterable or async iterable of bytes."""
         ...
 
     @abstractmethod

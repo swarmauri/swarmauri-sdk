@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from collections.abc import Mapping, Iterator
-from typing import Optional, Dict, Any
+from dataclasses import dataclass, field
+from collections.abc import Iterator, Mapping, Sequence
+from typing import Any, Mapping as TypingMapping, Optional
 
 # Local scalar aliases to avoid circular imports
 KeyId = str
@@ -12,15 +12,32 @@ Alg = str
 
 @dataclass(frozen=True)
 class Signature(Mapping[str, object]):
-    """Simple signature record used by signing providers."""
+    """Universal signature record supporting attached and detached modes."""
 
-    kid: KeyId
-    version: KeyVersion
+    kid: Optional[KeyId]
+    version: Optional[KeyVersion]
+    format: str
+    mode: str
     alg: Alg
-    sig: bytes
-    ts: Optional[int] = None
-    chain: Optional[bytes] = None
-    meta: Optional[Dict[str, Any]] = None
+    artifact: bytes
+    hash_alg: Optional[str] = None
+    cert_chain_der: Optional[Sequence[bytes]] = None
+    headers: Optional[TypingMapping[str, Any]] = None
+    meta: Optional[TypingMapping[str, Any]] = None
+    ts: Optional[float] = None
+    sig: Optional[bytes] = field(default=None, repr=False)
+    chain: Optional[object] = field(default=None, repr=False)
+
+    def __post_init__(self) -> None:
+        if self.sig is None and self.mode == "detached":
+            object.__setattr__(self, "sig", self.artifact)
+        if self.chain is None and self.cert_chain_der:
+            chain_value: object
+            if len(self.cert_chain_der) == 1:
+                chain_value = self.cert_chain_der[0]
+            else:
+                chain_value = tuple(self.cert_chain_der)
+            object.__setattr__(self, "chain", chain_value)
 
     def __getitem__(self, k: str) -> object:  # type: ignore[override]
         return getattr(self, k)
@@ -30,16 +47,22 @@ class Signature(Mapping[str, object]):
             (
                 "kid",
                 "version",
+                "format",
+                "mode",
                 "alg",
-                "sig",
-                "ts",
-                "chain",
+                "artifact",
+                "hash_alg",
+                "cert_chain_der",
+                "headers",
                 "meta",
+                "ts",
+                "sig",
+                "chain",
             )
         )
 
     def __len__(self) -> int:  # type: ignore[override]
-        return 7
+        return 13
 
 
 __all__ = ["Signature", "KeyId", "KeyVersion", "Alg"]

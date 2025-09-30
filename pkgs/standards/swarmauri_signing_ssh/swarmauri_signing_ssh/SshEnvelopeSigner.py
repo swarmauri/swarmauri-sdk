@@ -188,15 +188,12 @@ class SshEnvelopeSigner(SigningBase):
     """
 
     def supports(self) -> Mapping[str, Iterable[str]]:
-        """
-        Declare supported algorithms and canonicalization formats.
-
-        Returns:
-            Mapping[str, Iterable[str]]: Supported ``algs``, ``canons`` and
-                feature flags.
-        """
+        """Declare supported algorithms and canonicalization formats."""
 
         canons = ("json", "cbor") if _CBOR_OK else ("json",)
+        envelopes = ("detached-bytes", "ssh-signed-envelope") + tuple(
+            f"structured-{canon}" for canon in canons
+        )
         algs = (
             "ssh-ed25519",
             "ssh-rsa",

@@ -21,6 +21,9 @@ Normalization-centric cipher suite that maps JSON Web Algorithm (JWA) names
 into provider-friendly descriptors for Swarmauri crypto and signing
 implementations.
 
+Implements the algorithm profiles defined in
+[RFC 7518: JSON Web Algorithms (JWA)](https://datatracker.ietf.org/doc/html/rfc7518).
+
 ## Features
 
 - Centralizes JWA algorithm allow-lists for signing, encryption, and key
