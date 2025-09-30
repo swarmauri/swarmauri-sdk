@@ -32,9 +32,25 @@ dependencies = [
 
 ]
 
+[project.optional-dependencies]
+signer-cms = ["swarmauri_signer_cms"]
+signer-jws = ["swarmauri_signer_jws"]
+signer-openpgp = ["swarmauri_signer_openpgp"]
+signer-pades = ["swarmauri_signer_pades"]
+signers-all = [
+    "swarmauri_signer_cms",
+    "swarmauri_signer_jws",
+    "swarmauri_signer_openpgp",
+    "swarmauri_signer_pades",
+]
+
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
+swarmauri_signer_cms = { workspace = true }
+swarmauri_signer_jws = { workspace = true }
+swarmauri_signer_openpgp = { workspace = true }
+swarmauri_signer_pades = { workspace = true }
 
 
 

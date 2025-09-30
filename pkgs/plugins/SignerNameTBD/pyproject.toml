@@ -1,0 +1,20 @@
+[project]
+name = "signer-name-tbd"
+version = "0.1.0.dev0"
+description = "Swarmauri signing facade packaged as a plugin"
+license = "Apache-2.0"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+authors = [{ name = "Swarmauri", email = "hello@swarmauri.com" }]
+dependencies = [
+    "swarmauri_base",
+    "swarmauri_core",
+]
+
+[tool.uv.sources]
+swarmauri_base = { workspace = true }
+swarmauri_core = { workspace = true }
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

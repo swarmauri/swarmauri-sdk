@@ -198,6 +198,7 @@ members = [
     "community/swarmauri_parser_entityrecognition",
     "community/swarmauri_parser_bertembedding",
     "community/swarmauri_parser_pypdf2",
+    "plugins/SignerNameTBD",
     "community/swarmauri_parser_pypdftk",
     "community/swarmauri_measurement_mutualinformation",
     "community/swarmauri_measurement_tokencountestimator",

@@ -8,11 +8,11 @@ from swarmauri_base import register_type
 from swarmauri_base.signing.SigningBase import SigningBase
 from swarmauri_core.crypto.types import Alg, KeyRef
 from swarmauri_core.keys.IKeyProvider import IKeyProvider
-from swarmauri_core.signing.ISigning import Canon, Envelope
+from swarmauri_core.signing.ISigning import ByteStream, Canon, Envelope
 from swarmauri_core.signing.types import Signature
 
 
-@register_type(resource_type=SigningBase, type_name="pades")
+@register_type(resource_type=SigningBase)
 class PadesSigner(SigningBase):
     """Placeholder PAdES signer that advertises attached PDF signature support."""
 
@@ -26,7 +26,12 @@ class PadesSigner(SigningBase):
         base_caps: Mapping[str, Iterable[str]] = {
             "algs": ("ecdsa", "rsa-pss"),
             "canons": ("pdf",),
+            "formats": ("pades", "pdf-signature", self.__class__.__name__),
+            "envelopes": ("pades",),
+            "signs": ("bytes", "digest", "stream", "envelope"),
+            "verifies": ("bytes", "digest", "stream", "envelope"),
             "features": ("attached",),
+            "notes": ("Implementation pending",),
         }
         if key_ref is None:
             return base_caps
@@ -42,6 +47,26 @@ class PadesSigner(SigningBase):
     ) -> Sequence[Signature]:
         raise NotImplementedError("PadesSigner.sign_bytes is not implemented yet")
 
+    async def sign_digest(
+        self,
+        key: KeyRef,
+        digest: bytes,
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        raise NotImplementedError("PadesSigner.sign_digest is not implemented yet")
+
+    async def sign_stream(
+        self,
+        key: KeyRef,
+        stream: ByteStream,
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        raise NotImplementedError("PadesSigner.sign_stream is not implemented yet")
+
     async def verify_bytes(
         self,
         payload: bytes,
@@ -51,6 +76,26 @@ class PadesSigner(SigningBase):
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
         raise NotImplementedError("PadesSigner.verify_bytes is not implemented yet")
+
+    async def verify_digest(
+        self,
+        digest: bytes,
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> bool:
+        raise NotImplementedError("PadesSigner.verify_digest is not implemented yet")
+
+    async def verify_stream(
+        self,
+        stream: ByteStream,
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> bool:
+        raise NotImplementedError("PadesSigner.verify_stream is not implemented yet")
 
     async def canonicalize_envelope(
         self,

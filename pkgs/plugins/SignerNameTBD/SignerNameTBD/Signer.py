@@ -2,7 +2,15 @@
 
 from __future__ import annotations
 
-from typing import Iterable, Mapping, MutableMapping, Optional, Sequence
+from typing import (
+    AsyncIterable,
+    Iterable,
+    Mapping,
+    MutableMapping,
+    Optional,
+    Sequence,
+    Union,
+)
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.signing.SigningBase import SigningBase
@@ -48,11 +56,9 @@ class Signer(ComponentBase):
         registry_entry = self.__class__._registry.get("SigningBase", {})
         subtypes = registry_entry.get("subtypes", {})
         for type_name, cls in subtypes.items():
-            if type_name in self._plugins:
-                continue
             plugin = self._instantiate(cls)
             if plugin is not None:
-                self._plugins[type_name] = plugin
+                self._register_plugin(type_name, plugin)
 
     def _instantiate(self, cls: type[SigningBase]) -> Optional[SigningBase]:
         try:
@@ -62,6 +68,27 @@ class Signer(ComponentBase):
         if self._key_provider and hasattr(plugin, "set_key_provider"):
             plugin.set_key_provider(self._key_provider)
         return plugin
+
+    def _register_plugin(self, registry_name: str, plugin: SigningBase) -> None:
+        if registry_name not in self._plugins:
+            self._plugins[registry_name] = plugin
+
+        # Always expose a lowercase variant for convenience.
+        lower = registry_name.lower()
+        if lower not in self._plugins:
+            self._plugins[lower] = plugin
+
+        try:
+            capabilities = plugin.supports()  # type: ignore[arg-type]
+        except TypeError:  # pragma: no cover - legacy signature
+            return
+
+        for key in ("formats", "aliases"):
+            for alias in capabilities.get(key, ()):
+                if not isinstance(alias, str):
+                    continue
+                if alias not in self._plugins:
+                    self._plugins[alias] = plugin
 
     def _resolve(self, fmt: str) -> SigningBase:
         try:
@@ -83,6 +110,28 @@ class Signer(ComponentBase):
     ) -> Sequence[Signature]:
         return await self._resolve(fmt).sign_bytes(key, payload, alg=alg, opts=opts)
 
+    async def sign_digest(
+        self,
+        fmt: str,
+        key: KeyRef,
+        digest: bytes,
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        return await self._resolve(fmt).sign_digest(key, digest, alg=alg, opts=opts)
+
+    async def sign_stream(
+        self,
+        fmt: str,
+        key: KeyRef,
+        stream: Union[Iterable[bytes], AsyncIterable[bytes]],
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        return await self._resolve(fmt).sign_stream(key, stream, alg=alg, opts=opts)
+
     async def verify_bytes(
         self,
         fmt: str,
@@ -94,6 +143,32 @@ class Signer(ComponentBase):
     ) -> bool:
         return await self._resolve(fmt).verify_bytes(
             payload, signatures, require=require, opts=opts
+        )
+
+    async def verify_digest(
+        self,
+        fmt: str,
+        digest: bytes,
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> bool:
+        return await self._resolve(fmt).verify_digest(
+            digest, signatures, require=require, opts=opts
+        )
+
+    async def verify_stream(
+        self,
+        fmt: str,
+        stream: Union[Iterable[bytes], AsyncIterable[bytes]],
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> bool:
+        return await self._resolve(fmt).verify_stream(
+            stream, signatures, require=require, opts=opts
         )
 
     async def canonicalize_envelope(
@@ -138,7 +213,7 @@ class Signer(ComponentBase):
 
     # ------------------------------------------------------------------
     def supported_formats(self) -> Iterable[str]:
-        return tuple(self._plugins.keys())
+        return tuple(sorted(self._plugins.keys()))
 
     def supports(
         self, fmt: str, *, key_ref: Optional[str] = None

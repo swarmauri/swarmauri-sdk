@@ -36,7 +36,7 @@ Notes
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Iterable, Mapping, Optional, Sequence, Union
+from typing import AsyncIterable, Iterable, Mapping, Optional, Sequence, Union
 
 from ..crypto.types import Alg, KeyRef
 from ..crypto.types import AEADCiphertext  # single‑recipient envelope
@@ -49,17 +49,22 @@ from .types import Signature
 Canon = str
 
 Envelope = Union[AEADCiphertext, MultiRecipientEnvelope, Mapping[str, object]]
+ByteStream = Union[Iterable[bytes], AsyncIterable[bytes]]
 
 
 class ISigning(ABC):
     @abstractmethod
-    def supports(self) -> Mapping[str, Iterable[str]]:
+    def supports(self, key_ref: Optional[str] = None) -> Mapping[str, Iterable[str]]:
         """
         Return capability information.
 
         Keys (omit if unsupported):
           - "algs": iterable of signature algorithms (e.g., "Ed25519", "RSA-PSS-SHA256", "OpenPGP").
           - "canons": iterable of canonicalization identifiers (e.g., "json", "cbor", "json-c14n").
+          - "signs": iterable describing supported signing entrypoints ("bytes", "digest", "stream", "envelope").
+          - "verifies": iterable describing supported verification entrypoints.
+          - "envelopes": iterable of supported envelope encodings or profiles (e.g., "cms", "pades").
+          - "formats": iterable of human-friendly aliases that the facade should expose.
           - "features": optional iterable of flags, e.g.:
                 • "multi"          → optimized for multi‑signature sets
                 • "detached_only"  → only detached signatures (default)
@@ -88,6 +93,40 @@ class ISigning(ABC):
         ...
 
     @abstractmethod
+    async def sign_digest(
+        self,
+        key: KeyRef,
+        digest: bytes,
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        """
+        Produce detached signatures over a caller-supplied message digest.
+
+        Implementations SHOULD document the digest algorithm expectations and
+        whether domain separation is required to avoid cross-protocol issues.
+        """
+        ...
+
+    @abstractmethod
+    async def sign_stream(
+        self,
+        key: KeyRef,
+        stream: ByteStream,
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        """
+        Produce detached signatures while consuming a streaming payload.
+
+        Providers may buffer internally or perform incremental signing depending
+        on their capabilities.
+        """
+        ...
+
+    @abstractmethod
     async def verify_bytes(
         self,
         payload: bytes,
@@ -105,6 +144,34 @@ class ISigning(ABC):
 
         Returns:
           True if the verification criteria are met, False otherwise.
+        """
+        ...
+
+    @abstractmethod
+    async def verify_digest(
+        self,
+        digest: bytes,
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> bool:
+        """
+        Verify detached signatures produced over a digest.
+        """
+        ...
+
+    @abstractmethod
+    async def verify_stream(
+        self,
+        stream: ByteStream,
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> bool:
+        """
+        Verify detached signatures for streamed byte content.
         """
         ...
 
