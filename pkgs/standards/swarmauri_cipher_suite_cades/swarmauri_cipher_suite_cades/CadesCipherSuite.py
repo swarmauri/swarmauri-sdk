@@ -18,7 +18,7 @@ _SIG = ("RSA-PSS-SHA256", "ECDSA-SHA256", "EdDSA")
 class CadesCipherSuite(CipherSuiteBase):
     """Skeleton suite for CAdES policy."""
 
-    type = "CadesCipherSuite"
+    type: str = "CadesCipherSuite"
 
     def suite_id(self) -> str:
         return "cades"
