@@ -223,6 +223,7 @@ members = [
     "community/swarmauri_measurement_mutualinformation",
     "community/swarmauri_measurement_tokencountestimator",
     "community/swarmauri_ocr_pytesseract",
+    "community/swarmauri_tests_griffe",
     "community/swarmauri_embedding_mlm",
     "community/swarmauri_tool_entityrecognition",
     "community/swarmauri_llm_leptonai",
@@ -415,6 +416,7 @@ swarmauri_parser_pypdftk = { workspace = true }
 swarmauri_measurement_mutualinformation = { workspace = true }
 swarmauri_measurement_tokencountestimator = { workspace = true }
 swarmauri_ocr_pytesseract = { workspace = true }
+swarmauri_tests_griffe = { workspace = true }
 swarmauri_embedding_mlm = { workspace = true }
 swarmauri_tool_entityrecognition = { workspace = true }
 swarmauri_certservice_ms_adcs = { workspace = true }
