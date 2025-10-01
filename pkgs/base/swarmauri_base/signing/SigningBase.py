@@ -91,6 +91,13 @@ class SigningBase(ISigning, ComponentBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
+        return await self.verify_bytes(
+            digest,
+            signatures,
+            require=require,
+            opts=opts,
+        )
+
     # ------------------------------------------------------------------
     async def sign_stream(
         self,
@@ -140,17 +147,6 @@ class SigningBase(ISigning, ComponentBase):
         raise NotImplementedError("sign_envelope() must be implemented by subclass")
 
     # ------------------------------------------------------------------
-    async def sign_stream(
-        self,
-        key: KeyRef,
-        payload: StreamLike,
-        *,
-        alg: Optional[Alg] = None,
-        opts: Optional[Mapping[str, object]] = None,
-    ) -> Sequence[Signature]:
-        raise NotImplementedError("sign_stream() must be implemented by subclass")
-
-    # ------------------------------------------------------------------
     async def verify_envelope(
         self,
         env: Envelope,
@@ -161,14 +157,3 @@ class SigningBase(ISigning, ComponentBase):
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
         raise NotImplementedError("verify_envelope() must be implemented by subclass")
-
-    # ------------------------------------------------------------------
-    async def verify_stream(
-        self,
-        payload: StreamLike,
-        signatures: Sequence[Signature],
-        *,
-        require: Optional[Mapping[str, object]] = None,
-        opts: Optional[Mapping[str, object]] = None,
-    ) -> bool:
-        raise NotImplementedError("verify_stream() must be implemented by subclass")
