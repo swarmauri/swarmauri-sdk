@@ -20,6 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
+      approval_matrix: ${{ steps.get-matrix.outputs.approval_matrix }}
+      approval_required: ${{ steps.get-matrix.outputs.approval_required }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -37,7 +39,11 @@ jobs:
         run: |
           cd pkgs
           python - <<'EOF'
-          import toml, json, os
+          import json
+          import os
+          import toml
+          import urllib.error
+          import urllib.request
           # Open the root pyproject.toml file
           with open("pyproject.toml", "r") as f:
               config = toml.load(f)
@@ -45,12 +51,43 @@ jobs:
           members = config.get("tool", {}).get("uv", {}).get("workspace", {}).get("members", [])
           if not isinstance(members, list):
               raise Exception("The 'members' entry is not a list.")
-          # Build a matrix with one entry per member
-          matrix = {"include": [{"member": member} for member in members]}
+          matrix_entries = []
+          approval_entries = []
+          for member in members:
+              project_path = os.path.join(member, "pyproject.toml")
+              with open(project_path, "r") as member_file:
+                  member_config = toml.load(member_file)
+              package_name = member_config.get("project", {}).get("name")
+              if not package_name:
+                  raise RuntimeError(f"Unable to determine package name for member '{member}'.")
+              requires_approval = True
+              try:
+                  with urllib.request.urlopen(f"https://pypi.org/pypi/{package_name}/json") as response:
+                      requires_approval = response.status != 200
+              except urllib.error.HTTPError as exc:
+                  if exc.code == 404:
+                      requires_approval = True
+                  else:
+                      raise
+              entry = {
+                  "member": member,
+                  "package_name": package_name,
+                  "requires_approval": "true" if requires_approval else "false",
+              }
+              matrix_entries.append(entry)
+              if requires_approval:
+                  approval_entries.append(entry)
+          matrix = {"include": matrix_entries}
+          approval_matrix = {"include": approval_entries}
+          approval_required = "true" if approval_entries else "false"
           print(f"Matrix: {json.dumps(matrix)}")
+          print(f"Approval matrix: {json.dumps(approval_matrix)}")
+          print(f"Approval required: {approval_required}")
           # Write the matrix JSON to the GitHub Actions output
           with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
               print(f"matrix={json.dumps(matrix)}", file=fh)
+              print(f"approval_matrix={json.dumps(approval_matrix)}", file=fh)
+              print(f"approval_required={approval_required}", file=fh)
           EOF
 
   test:
@@ -77,8 +114,7 @@ jobs:
         run: |
           MEMBER="${{ matrix.member }}"
           echo "Running tests for workspace member: $MEMBER"
-          # Read the package name from the member's pyproject.toml
-          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
+          PACKAGE_NAME="${{ matrix.package_name }}"
           echo "Package name: $PACKAGE_NAME"
           
           # Determine whether to use bump or set based on inputs
@@ -95,8 +131,7 @@ jobs:
           cd pkgs
           MEMBER="${{ matrix.member }}"
           echo "Running tests for workspace member: $MEMBER"
-          # Read the package name from the member's pyproject.toml
-          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
+          PACKAGE_NAME="${{ matrix.package_name }}"
           echo "Package name: $PACKAGE_NAME"
           # Run the test command with uv
           uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff format .
@@ -106,8 +141,7 @@ jobs:
           cd pkgs
           MEMBER="${{ matrix.member }}"
           echo "Running tests for workspace member: $MEMBER"
-          # Read the package name from the member's pyproject.toml
-          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
+          PACKAGE_NAME="${{ matrix.package_name }}"
           echo "Package name: $PACKAGE_NAME"
           # Run the test command with uv
           uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff check . --fix
@@ -117,8 +151,7 @@ jobs:
           cd pkgs
           MEMBER="${{ matrix.member }}"
           echo "Running tests for workspace member: $MEMBER"
-          # Read the package name from the member's pyproject.toml
-          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
+          PACKAGE_NAME="${{ matrix.package_name }}"
           echo "Package name: $PACKAGE_NAME"
           # Run the test command with uv
           uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active pytest -vvv
@@ -204,8 +237,38 @@ jobs:
           fi
 
 
+  new-package-approval:
+    needs: set-matrix
+    if: ${{ !cancelled() && needs.set-matrix.outputs.approval_required == 'true' }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.set-matrix.outputs.approval_matrix) }}
+      fail-fast: false
+    environment:
+      # Requesting deployment to a protected environment triggers GitHub's
+      # built-in manual approval gate for reviewers configured on the
+      # "pypi-new-package-approval" environment.
+      name: pypi-new-package-approval
+      url: https://pypi.org/project/${{ matrix.package_name }}/
+    steps:
+      - name: Document manual approval instructions
+        run: |
+          cat <<'EOF' >> "$GITHUB_STEP_SUMMARY"
+          ## Manual approval required for ${{ matrix.package_name }}
+
+          This workflow requested deployment to the protected **pypi-new-package-approval** environment. GitHub surfaces a **Review deployments** banner on the run page and in the **Deployments** tab of the workflow run. To continue:
+
+          1. Open the **Review deployments** prompt for `${{ matrix.package_name }}`.
+          2. Click **Approve and deploy** once you have confirmed the package may be published.
+
+          The publish stage will resume automatically after approval.
+          EOF
+
+      - name: Await approval for ${{ matrix.package_name }}
+        run: echo "Approval granted for publishing new package ${{ matrix.package_name }}."
+
   release:
-    needs: [commit, set-matrix]
+    needs: [commit, set-matrix, new-package-approval]
     runs-on: ubuntu-latest
     if: ${{ !cancelled() && always() }}
     strategy:
@@ -233,8 +296,7 @@ jobs:
           cd pkgs
           MEMBER="${{ matrix.member }}"
           echo "Running tests for workspace member: $MEMBER"
-          # Read the package name from the member's pyproject.toml
-          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
+          PACKAGE_NAME="${{ matrix.package_name }}"
           echo "Package name: $PACKAGE_NAME"
           # Command
           uv build --directory "$MEMBER" --package "$PACKAGE_NAME" -o distout
@@ -245,8 +307,7 @@ jobs:
           cd pkgs
           MEMBER="${{ matrix.member }}"
           echo "Running tests for workspace member: $MEMBER"
-          # Read the package name from the member's pyproject.toml
-          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
+          PACKAGE_NAME="${{ matrix.package_name }}"
           echo "Package name: $PACKAGE_NAME"
           # Command
           uv publish --directory "$MEMBER" distout/* --token "${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}"
@@ -256,8 +317,8 @@ jobs:
         id: prepare_release
         run: |
           cd pkgs/${{ matrix.member }}
-          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${{ matrix.member }}/pyproject.toml')['project']['name'])")
-          VERSION=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${{ matrix.member }}/pyproject.toml')['project']['version'])")
+          PACKAGE_NAME="${{ matrix.package_name }}"
+          VERSION=$(python -c "import toml; print(toml.load('pyproject.toml')['project']['version'])")
           TAG="${PACKAGE_NAME}==${VERSION}"
           # If bump_type is 'finalize' OR the version does not contain ".dev", create a normal release.
           if [ "${{ github.event.inputs.bump_type }}" = "finalize" ] || [[ "$VERSION" != *".dev"* ]]; then
