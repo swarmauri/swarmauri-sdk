@@ -266,6 +266,7 @@ def process_target(
     target: Target,
     cache: Dict,
     changed_only: bool,
+    skip_packages: set[str] | None = None,
 ):
     # Resolve search_path relative to docs_root
     search_path = os.path.normpath(os.path.join(docs_root, target.search_path))
@@ -285,8 +286,14 @@ def process_target(
     includes = target.include or ["*.*"]
     excludes = target.exclude or []
 
+    skip = skip_packages or set()
+    packages = [(name, root) for name, root in packages if name not in skip]
+
     module_classes: Dict[str, List[str]] = {}
     cache.setdefault("files", {})
+
+    if not packages:
+        return module_classes
 
     top_dir = os.path.join(docs_root, "docs", api_output_dir, target.name.lower())
     ensure_home_page(top_dir)
@@ -367,6 +374,13 @@ def main():
         action="store_true",
         help="Only rewrite pages for changed sources",
     )
+    parser.add_argument(
+        "--skip-package",
+        dest="skip_packages",
+        action="append",
+        default=[],
+        help="Package name to omit from API generation (may be repeated)",
+    )
     args = parser.parse_args()
 
     docs_root = os.path.abspath(args.docs_dir)
@@ -377,6 +391,7 @@ def main():
     cache = read_cache(os.path.join(docs_root, CACHE_FILE))
 
     accumulated_nav_sections = []
+    skip_packages = set(args.skip_packages or [])
 
     for tgt in targets:
         module_classes = process_target(
@@ -385,6 +400,7 @@ def main():
             target=tgt,
             cache=cache,
             changed_only=args.changed_only,
+            skip_packages=skip_packages,
         )
         if module_classes:
             nav_section = build_nav_structure(
