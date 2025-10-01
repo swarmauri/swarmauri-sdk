@@ -1,3 +1,5 @@
+pytest_plugins = ["swarmauri_tests_griffe"]
+
 import pytest
 
 
