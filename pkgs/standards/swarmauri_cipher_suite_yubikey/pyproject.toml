@@ -1,5 +1,5 @@
 [project]
-name = "swarmauri_cipher_suites_yubikey"
+name = "swarmauri_cipher_suite_yubikey"
 version = "0.1.0.dev0"
 description = "YubiKey-backed cipher suite for Swarmauri PIV signing and key transport"
 keywords = ["yubikey", "piv", "cipher-suite", "rsa-pss", "ecdsa", "attestation"]
@@ -62,4 +62,4 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [project.entry-points.'swarmauri.cipher_suites']
-YubiKeyCipherSuite = "swarmauri_cipher_suites_yubikey:YubiKeyCipherSuite"
+YubiKeyCipherSuite = "swarmauri_cipher_suite_yubikey:YubiKeyCipherSuite"

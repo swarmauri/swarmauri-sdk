@@ -1,5 +1,5 @@
 [project]
-name = "swarmauri_cipher_suites_yubikey_fips"
+name = "swarmauri_cipher_suite_yubikey_fips"
 version = "0.1.0.dev0"
 description = "FIPS-constrained YubiKey cipher suite for Swarmauri PIV operations"
 keywords = ["yubikey", "piv", "cipher-suite", "fips", "rsa-pss", "ecdsa"]
@@ -62,4 +62,4 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [project.entry-points.'swarmauri.cipher_suites']
-YubiKeyFipsCipherSuite = "swarmauri_cipher_suites_yubikey_fips:YubiKeyFipsCipherSuite"
+YubiKeyFipsCipherSuite = "swarmauri_cipher_suite_yubikey_fips:YubiKeyFipsCipherSuite"

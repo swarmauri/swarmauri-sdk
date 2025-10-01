@@ -1,16 +1,16 @@
 ![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
-    <a href="https://pypi.org/project/swarmauri_cipher_suites_yubikey_fips/">
-        <img src="https://img.shields.io/pypi/dm/swarmauri_cipher_suites_yubikey_fips" alt="PyPI - Downloads"/></a>
-    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_cipher_suites_yubikey_fips/">
-        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_cipher_suites_yubikey_fips.svg"/></a>
-    <a href="https://pypi.org/project/swarmauri_cipher_suites_yubikey_fips/">
-        <img src="https://img.shields.io/pypi/pyversions/swarmauri_cipher_suites_yubikey_fips" alt="PyPI - Python Version"/></a>
-    <a href="https://pypi.org/project/swarmauri_cipher_suites_yubikey_fips/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_cipher_suites_yubikey_fips" alt="PyPI - License"/></a>
-    <a href="https://pypi.org/project/swarmauri_cipher_suites_yubikey_fips/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_cipher_suites_yubikey_fips?label=swarmauri_cipher_suites_yubikey_fips&color=green" alt="PyPI - swarmauri_cipher_suites_yubikey_fips"/></a>
+    <a href="https://pypi.org/project/swarmauri_cipher_suite_yubikey_fips/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_cipher_suite_yubikey_fips" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_cipher_suite_yubikey_fips/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_cipher_suite_yubikey_fips.svg"/></a>
+    <a href="https://pypi.org/project/swarmauri_cipher_suite_yubikey_fips/">
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_cipher_suite_yubikey_fips" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/swarmauri_cipher_suite_yubikey_fips/">
+        <img src="https://img.shields.io/pypi/l/swarmauri_cipher_suite_yubikey_fips" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/swarmauri_cipher_suite_yubikey_fips/">
+        <img src="https://img.shields.io/pypi/v/swarmauri_cipher_suite_yubikey_fips?label=swarmauri_cipher_suite_yubikey_fips&color=green" alt="PyPI - swarmauri_cipher_suite_yubikey_fips"/></a>
 </p>
 
 ---
@@ -37,19 +37,19 @@ environments.
 ### pip
 
 ```bash
-pip install swarmauri_cipher_suites_yubikey_fips
+pip install swarmauri_cipher_suite_yubikey_fips
 ```
 
 ### uv (dependency)
 
 ```bash
-uv add swarmauri_cipher_suites_yubikey_fips
+uv add swarmauri_cipher_suite_yubikey_fips
 ```
 
 ### uv (environment)
 
 ```bash
-uv pip install swarmauri_cipher_suites_yubikey_fips
+uv pip install swarmauri_cipher_suite_yubikey_fips
 ```
 
 ## Usage
@@ -57,7 +57,7 @@ uv pip install swarmauri_cipher_suites_yubikey_fips
 ### 1. Instantiate the suite with a descriptive name
 
 ```python
-from swarmauri_cipher_suites_yubikey_fips import YubiKeyFipsCipherSuite
+from swarmauri_cipher_suite_yubikey_fips import YubiKeyFipsCipherSuite
 
 suite = YubiKeyFipsCipherSuite(name="piv-fips")
 ```
