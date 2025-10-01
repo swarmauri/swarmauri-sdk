@@ -38,7 +38,7 @@ except Exception:  # pragma: no cover - plugin optional
     pass
 
 
-class Signer(ComponentBase):
+class MediaSigner(ComponentBase):
     """High-level async facade that routes signing calls to registered plugins."""
 
     resource: Optional[str] = ResourceTypes.SIGNING.value

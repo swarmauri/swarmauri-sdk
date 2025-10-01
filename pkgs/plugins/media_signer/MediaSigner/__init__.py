@@ -1,7 +1,7 @@
-"""Swarmauri signing facade plugin that re-exports the :class:`Signer`."""
+"""Swarmauri signing facade plugin that re-exports the :class:`MediaSigner`."""
 
 from __future__ import annotations
 
-from .Signer import Signer
+from .signer import MediaSigner
 
-__all__ = ["Signer"]
+__all__ = ["MediaSigner"]
