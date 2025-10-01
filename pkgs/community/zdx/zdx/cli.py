@@ -93,6 +93,7 @@ def run_gen_api(
     mkdocs_yml: str = "mkdocs.yml",
     api_output_dir: str = "api",
     changed_only: bool = False,
+    skip_packages: Sequence[str] | None = None,
     failure_mode: FailureMode = FailureMode.FAIL,
 ) -> None:
     """Run the API docs generation script.
@@ -102,6 +103,8 @@ def run_gen_api(
     mkdocs_yml (str): Path to the MkDocs configuration file.
     api_output_dir (str): Relative output directory for API pages.
     changed_only (bool): Only rebuild pages for changed sources.
+    skip_packages (Sequence[str] | None): Package names to skip when
+        generating API stubs.
     failure_mode (FailureMode): Strategy for handling subprocess failures.
     RETURNS (None): This function operates via side effects.
     """
@@ -120,6 +123,8 @@ def run_gen_api(
     ]
     if changed_only:
         cmd.append("--changed-only")
+    for pkg in sorted(set(skip_packages or [])):
+        cmd.extend(["--skip-package", pkg])
     _run_command(cmd, failure_mode=failure_mode)
 
 
@@ -166,11 +171,16 @@ def _resolve_workspace_directory(manifest_path: Path) -> Path | None:
 
 def install_manifest_packages(
     manifest: str, failure_mode: FailureMode = FailureMode.FAIL
-) -> None:
+) -> set[str]:
     """Install all packages referenced in the API manifest.
 
     This ensures modules documented via ``mkdocstrings`` can be imported
     successfully when building or serving the docs.
+
+    Returns a set of package names that failed to install. When
+    ``failure_mode`` is :class:`FailureMode.FAIL` the function will raise on
+    the first failure, so the returned set is empty. Callers using ``WARN`` or
+    ``IGNORE`` can use the set to omit API generation for missing packages.
 
     failure_mode (FailureMode): Strategy for handling installation errors.
     """
@@ -197,34 +207,25 @@ def install_manifest_packages(
         )
 
     targets = load_manifest(manifest)
-    package_dirs = set()
-    for t in targets:
-        if t.package:
-            package_dirs.add(t.search_path)
-        if t.discover:
-            for _, pkg_dir in discover_packages(t.search_path):
-                package_dirs.add(pkg_dir)
-
     manifest_parent = manifest_path.parent
     workspace_success = (
         workspace_result is not None and workspace_result.returncode == 0
     )
 
-    for pkg_dir in sorted(package_dirs):
-        pkg_path = Path(pkg_dir)
-        if not pkg_path.is_absolute():
-            pkg_path = (manifest_parent / pkg_path).resolve()
+    failed_packages: set[str] = set()
 
+    def _install_path(pkg_name: str, pkg_path: Path) -> None:
         if workspace_success and workspace_dir is not None:
             if pkg_path.is_relative_to(workspace_dir):
-                continue
+                return
         if not pkg_path.is_dir():
-            continue
+            return
         if not (
             (pkg_path / "pyproject.toml").is_file() or (pkg_path / "setup.py").is_file()
         ):
             print(f"Skipping {pkg_path}: no pyproject.toml or setup.py found")
-            continue
+            return
+
         cmd = [
             "uv",
             "pip",
@@ -235,11 +236,28 @@ def install_manifest_packages(
         if not (os.environ.get("VIRTUAL_ENV") or sys.prefix != sys.base_prefix):
             cmd.append("--system")
         cmd.append(".")
-        _run_command(
+        result = _run_command(
             cmd,
             failure_mode=failure_mode,
             description=f"uv pip install --directory {pkg_path}",
         )
+        if result.returncode != 0:
+            failed_packages.add(pkg_name)
+
+    for target in targets:
+        base_path = Path(target.search_path)
+        if not base_path.is_absolute():
+            base_path = (manifest_parent / base_path).resolve()
+
+        if target.discover:
+            for package_name, package_dir in discover_packages(str(base_path)):
+                _install_path(package_name, Path(package_dir))
+        else:
+            if not target.package:
+                continue
+            _install_path(target.package, base_path)
+
+    return failed_packages
 
 
 def run_mkdocs_build(
@@ -332,13 +350,19 @@ def main() -> None:
 
     def generate_cmd(args: argparse.Namespace) -> None:
         failure_mode = FailureMode.from_value(args.on_error)
-        install_manifest_packages(args.manifest, failure_mode=failure_mode)
+        failed = install_manifest_packages(args.manifest, failure_mode=failure_mode)
+        if failed:
+            print(
+                "WARNING: Skipping API generation for packages that failed to "
+                f"install: {', '.join(sorted(failed))}"
+            )
         run_gen_api(
             manifest=args.manifest,
             docs_dir=args.docs_dir,
             mkdocs_yml=args.mkdocs_yml,
             api_output_dir=args.api_output_dir,
             changed_only=args.changed_only,
+            skip_packages=failed,
             failure_mode=failure_mode,
         )
 
@@ -372,7 +396,12 @@ def main() -> None:
 
     def serve_cmd(args: argparse.Namespace) -> None:
         failure_mode = FailureMode.from_value(args.on_error)
-        install_manifest_packages(args.manifest, failure_mode=failure_mode)
+        failed = install_manifest_packages(args.manifest, failure_mode=failure_mode)
+        if failed:
+            print(
+                "WARNING: Skipping API generation for packages that failed to "
+                f"install: {', '.join(sorted(failed))}"
+            )
         if args.generate:
             run_gen_api(
                 manifest=args.manifest,
@@ -380,6 +409,7 @@ def main() -> None:
                 mkdocs_yml=args.mkdocs_yml,
                 api_output_dir=args.api_output_dir,
                 changed_only=args.changed_only,
+                skip_packages=failed,
                 failure_mode=failure_mode,
             )
         run_mkdocs_serve(
