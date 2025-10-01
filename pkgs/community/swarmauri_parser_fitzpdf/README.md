@@ -1,4 +1,3 @@
-
 ![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
@@ -18,27 +17,65 @@
 
 # Swarmauri Parser Fitz PDF
 
-A parser to extract text from PDF files using PyMuPDF.
+PDF-to-text parser for Swarmauri built on [PyMuPDF (`pymupdf`)](https://pymupdf.readthedocs.io/). Extracts text from every page of a PDF and returns a `Document` object with the aggregated content and source metadata.
+
+## Features
+
+- Opens PDFs via PyMuPDF and collects text per page.
+- Emits a single `Document` with `content` containing the combined text and `metadata['source']` holding the file path.
+- Raises a clear error if the input is not a file path string; returns an empty list if PyMuPDF encounters parsing failures.
+
+## Prerequisites
+
+- Python 3.10 or newer.
+- PyMuPDF (`pymupdf`) along with system dependencies (X11 libraries on Linux, poppler on some distros). Install OS packages listed in [PyMuPDF docs](https://pymupdf.readthedocs.io/en/latest/installation.html) before pip installing if needed.
+- Read access to the PDF files you plan to parse.
 
 ## Installation
 
 ```bash
+# pip
 pip install swarmauri_parser_fitzpdf
+
+# poetry
+poetry add swarmauri_parser_fitzpdf
+
+# uv (pyproject-based projects)
+uv add swarmauri_parser_fitzpdf
 ```
 
-## Usage
-Basic usage examples with code snippets
+## Quickstart
+
 ```python
-from swarmauri.parsers.FitzPdfParser import PDFtoTextParser
+from swarmauri_parser_fitzpdf import FitzPdfParser
 
-parser = PDFtoTextParser()
-file_path = "path/to/your/pdf/file.pdf"
-documents = parser.parse(file_path)
+parser = FitzPdfParser()
+documents = parser.parse("reports/quarterly.pdf")
 
-for document in documents:
-    print(document.content)
-    print(document.metadata)
+for doc in documents:
+    print(doc.metadata["source"])
+    print(doc.content[:500])
 ```
+
+## Handling Errors
+
+```python
+from swarmauri_parser_fitzpdf import FitzPdfParser
+
+parser = FitzPdfParser()
+try:
+    docs = parser.parse("missing.pdf")
+    if not docs:
+        print("Parsing failed or returned no content.")
+except ValueError as exc:
+    print(f"Bad input: {exc}")
+```
+
+## Tips
+
+- Pre-process PDFs (deskew, OCR) before parsing if they contain scanned pages without embedded text; PyMuPDF only extracts existing text objects.
+- For multi-document pipelines, pair this parser with Swarmauri token-count measurements or summarizers to chunk large PDFs.
+- Cache parsed output if the same PDF is accessed frequently—parsing large documents repeatedly is expensive.
 
 ## Want to help?
 

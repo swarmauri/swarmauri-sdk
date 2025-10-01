@@ -1,4 +1,3 @@
-
 ![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
@@ -18,124 +17,53 @@
 
 # Swarmauri Tool Jupyter Export Python
 
-A Python package that provides an easy way to export Jupyter Notebook files to Python scripts using the nbconvert library. This tool smoothly integrates with the Swarmauri tool architecture, enabling consistent logging, error handling, and flexible usage options.
+Exports a Jupyter `NotebookNode` to a Python script using nbconvert’s `PythonExporter` with optional custom templates.
+
+## Features
+
+- Accepts a notebook object (`nbformat.NotebookNode`) and returns the rendered `.py` source.
+- Supports passing an nbconvert template for custom formatting.
+- Returns `{"exported_script": ...}` on success or `{"error": ...}` on failure.
+
+## Prerequisites
+
+- Python 3.10 or newer.
+- nbconvert/nbformat installed (pulled automatically).
 
 ## Installation
 
-swarmauri_tool_jupyterexportpython requires Python 3.10 or higher, along with nbconvert. The easiest way to install it is via PyPI:
+```bash
+# pip
+pip install swarmauri_tool_jupyterexportpython
 
-1. Make sure you have Python 3.10 or newer.
-2. Install the package using pip:
+# poetry
+poetry add swarmauri_tool_jupyterexportpython
 
-    pip install swarmauri_tool_jupyterexportpython
+# uv (pyproject-based projects)
+uv add swarmauri_tool_jupyterexportpython
+```
 
-Or, if you’re using Poetry for your project:
+## Quickstart
 
-    poetry add swarmauri_tool_jupyterexportpython
-
-This will automatically install the required dependencies, including nbconvert. Because swarmauri_tool_jupyterexportpython is part of the Swarmauri ecosystem, you may also want to ensure you have a compatible version of the “swarmauri_base” and “swarmauri_core” libraries installed.
-
-Once installed, you will have access to the JupyterExportPythonTool class, which can export your notebooks to Python scripts with optional custom templates.
-
-## Usage
-
-Below is a description of how to use the JupyterExportPythonTool in your Python code. For example, you can create an instance of the tool, then call it with your Jupyter notebook object (NotebookNode) and optional template path.
-
-### Simple Example
-
-----------------------------------
-from nbformat import read, NO_CONVERT
+```python
+import nbformat
 from swarmauri_tool_jupyterexportpython import JupyterExportPythonTool
 
-# Suppose you've loaded a Jupyter notebook file.
+notebook = nbformat.read("notebooks/example.ipynb", as_version=4)
+exporter = JupyterExportPythonTool()
+result = exporter(notebook, template_file=None)
 
-def load_notebook(file_path: str):
-    """
-    Helper function to load a local .ipynb file into a NotebookNode object.
-    """
-    with open(file_path, 'r', encoding='utf-8') as f:
-        notebook_node = read(f, NO_CONVERT)
-    return notebook_node
+if "exported_script" in result:
+    Path("notebooks/example.py").write_text(result["exported_script"], encoding="utf-8")
+else:
+    print("Error:", result["error"])
+```
 
-def main():
-    # Instantiate an instance of the JupyterExportPythonTool
-    export_tool = JupyterExportPythonTool()
+## Tips
 
-    # Load a notebook from file
-    nb_node = load_notebook("example_notebook.ipynb")
+- Use custom templates to control cell separators or code comments—pass a `.tpl` file via `template_file`.
+- Pair with notebook execution tools (execute → export to .py) to operationalize notebooks as Python scripts.
 
-    # Call the tool to export the notebook to a Python script
-    result = export_tool(nb_node)
+## Want to help?
 
-    if 'exported_script' in result:
-        # Write the exported Python script to a file or process it as required
-        with open("output_script.py", "w", encoding="utf-8") as file_out:
-            file_out.write(result['exported_script'])
-        print("Notebook was successfully exported to output_script.py!")
-    else:
-        # If there's an error, it's included in result['error']
-        print(f"Failed to export notebook: {result['error']}")
-
-if __name__ == "__main__":
-    main()
-----------------------------------
-
-### Advanced Example (Using a Custom Template)
-
-----------------------------------
-from nbformat import read, NO_CONVERT
-from swarmauri_tool_jupyterexportpython import JupyterExportPythonTool
-
-def load_notebook(file_path: str):
-    """
-    Helper function to load a local .ipynb file into a NotebookNode object.
-    """
-    with open(file_path, 'r', encoding='utf-8') as f:
-        notebook_node = read(f, NO_CONVERT)
-    return notebook_node
-
-def main():
-    # Instantiate the export tool
-    export_tool = JupyterExportPythonTool()
-
-    # Load a notebook from file
-    nb_node = load_notebook("example_with_template.ipynb")
-
-    # Specify a custom template to control the structure of the exported script
-    custom_template_path = "templates/my_python_export_template.tpl"
-
-    # Call the tool with the custom template
-    result = export_tool(nb_node, template_file=custom_template_path)
-
-    if 'exported_script' in result:
-        # Write to a file
-        with open("custom_export_script.py", "w", encoding="utf-8") as script_file:
-            script_file.write(result['exported_script'])
-        print("Notebook exported using a custom template!")
-    else:
-        print(f"Failed to export notebook with template: {result['error']}")
-
-if __name__ == "__main__":
-    main()
-----------------------------------
-
-In both examples above, JupyterExportPythonTool converts the notebook to a string containing valid Python source code. You can do additional processing on this code before writing it to a file.
-
-## Dependencies
-
-This package has the following primary dependencies:
-
-• nbconvert: used for converting Jupyter Notebook files to Python scripts  
-• swarmauri_core: provides shared base classes and decorators in the Swarmauri ecosystem  
-• swarmauri_base: provides additional helpful classes and structures required by tools  
-
-You must have Python ≥3.10,<3.13 installed to ensure compatibility with these libraries.
-
-## Contributing
-
-We welcome improvements and suggestions via normal development workflows. While this README is focused on helping you get the tools running smoothly, feel free to explore the code and contribute to its development. We recommend using a consistent code style and testing any modifications thoroughly prior to deployment.
-
----
-
-© 2023 Swarmauri Inc. All rights reserved. Licensed under the Apache License, Version 2.0.  
-For more information and usage examples, explore our official documentation or see our other Swarmauri packages.
+If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.

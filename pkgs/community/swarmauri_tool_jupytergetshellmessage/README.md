@@ -1,4 +1,3 @@
-
 ![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
@@ -18,69 +17,54 @@
 
 # Swarmauri Tool Jupyter Get Shell Message
 
-A dedicated Python package providing a tool to retrieve shell messages from a running Jupyter kernel using jupyter_client. Built on the swarmauri framework, JupyterGetShellMessageTool is suitable for debugging, logging, and diagnostic purposes.
+Retrieves shell-channel messages from a running Jupyter kernel using `jupyter_client`.
 
----
+## Features
+
+- Listens on the Jupyter kernel shell channel and captures raw message dicts.
+- Returns a dict containing `messages` or an `error` key.
+- Helpful for debugging live kernel communication during automated notebook workflows.
+
+## Prerequisites
+
+- Python 3.10 or newer.
+- Access to a running Jupyter kernel (Notebook server, JupyterLab, etc.).
+- `jupyter_client` and `websocket-client` (installed automatically).
 
 ## Installation
 
-To install this package from PyPI, use the following command:
+```bash
+# pip
+pip install swarmauri_tool_jupytergetshellmessage
 
-    pip install swarmauri_tool_jupytergetshellmessage
+# poetry
+poetry add swarmauri_tool_jupytergetshellmessage
 
-If you are using Poetry for dependency management, add it to your project by specifying the package name in your pyproject.toml under [tool.poetry.dependencies]:
+# uv (pyproject-based projects)
+uv add swarmauri_tool_jupytergetshellmessage
+```
 
-    [tool.poetry.dependencies]
-    swarmauri_tool_jupytergetshellmessage = "^0.1.0.dev1"
+## Quickstart
 
-Once installed, the package automatically brings in its required dependencies:
-• swarmauri_core  
-• swarmauri_base  
-• jupyter_client  
+```python
+from swarmauri_tool_jupytergetshellmessage import JupyterGetShellMessageTool
 
-No specialized steps beyond a standard Python environment with pip or Poetry are necessary.
+channels_url = "ws://localhost:8888/api/kernels/<kernel-id>/channels"
+result = JupyterGetIOPubMessageTool()(channels_url, timeout=5.0)
 
----
+if "messages" in result:
+    for msg in result["messages"]:
+        print(msg)
+else:
+    print("Error:", result.get("error"))
+```
 
-## Usage
+## Tips
 
-Below is a simple example illustrating how to retrieve shell messages from a currently running Jupyter kernel. Make sure you have an active Jupyter kernel in the environment you are running this code from (for instance, a notebook server launched via "jupyter notebook" or "jupyter lab").
+- Ensure you pass the correct kernel channels URL (including security tokens/cookies if your server requires them).
+- Increase `timeout` if you expect long-running cells before shell replies are sent.
+- Combine with notebook execution tools to capture both SHELL and IOPub messages for full observability.
 
-1. Import JupyterGetShellMessageTool:
+## Want to help?
 
-    from swarmauri_tool_jupytergetshellmessage import JupyterGetShellMessageTool
-
-2. Instantiate the tool and call it:
-
-    tool = JupyterGetShellMessageTool()
-    result = tool(timeout=10.0)  # Wait up to 10 seconds for shell messages
-
-3. Inspect the result:
-
-    if "messages" in result:
-        for msg in result["messages"]:
-            print("Shell Message:", msg)
-    else:
-        print("No messages or error:", result.get("error", "No details"))
-
-The tool attempts to connect to the active Jupyter kernel, retrieve available shell messages, and return them in a structured dictionary. If no messages are found within the specified timeout, it returns an error message indicating the timeout event.
-
----
-
-## Dependencies
-
-• swarmauri_core and swarmauri_base provide the core classes (ComponentBase, ToolBase) for building and integrating tools across the swarmauri ecosystem.  
-• jupyter_client is leveraged to interface with the running Jupyter kernel, enabling retrieval of shell-based IPC messages.  
-
-These dependencies are automatically installed when installing this package via pip or Poetry.
-
----
-
-## Contributing
-
-Issues and feature requests for swarmauri_tool_jupytergetshellmessage are always welcome. Although direct repository interaction details are not included here, feel free to suggest improvements or report problems using the relevant issue tracker.
-
----
-
-© 2023 Swarmauri. Licensed under the Apache License, Version 2.0.  
-See the LICENSE file for details.
+If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.

@@ -1,4 +1,3 @@
-
 ![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
@@ -16,68 +15,55 @@
 
 ---
 
-# Swarmauri Tool Jupyter Get IO PubMessage
+# Swarmauri Tool Jupyter Get IOPub Message
 
-A Python tool designed to retrieve messages from the IOPub channel of a Jupyter kernel using jupyter_client, capturing cell outputs, logging information, and errors.
+Listens to a Jupyter kernel’s IOPub channel and collects stdout/stderr/log messages for downstream processing.
+
+## Features
+
+- Connects to `/api/kernels/{id}/channels` via websocket.
+- Returns a dict containing captured `stdout`, `stderr`, `logs`, `execution_results`, and a `timeout_exceeded` flag.
+- Built on `jupyter_client` with Swarmauri tool registration.
+
+## Prerequisites
+
+- Python 3.10 or newer.
+- `jupyter_client`, `websocket-client` installed (pulled automatically).
+- Access to a running Jupyter kernel (e.g., Notebook server).
 
 ## Installation
 
-To install swarmauri_tool_jupytergetiopubmessage, make sure you have Python 3.10 or later. You can install the latest release from PyPI using:
+```bash
+# pip
+pip install swarmauri_tool_jupytergetiopubmessage
 
-  pip install swarmauri_tool_jupytergetiopubmessage
+# poetry
+poetry add swarmauri_tool_jupytergetiopubmessage
 
-Verify the installation by opening a Python shell and importing the module:
+# uv (pyproject-based projects)
+uv add swarmauri_tool_jupytergetiopubmessage
+```
 
-  python
-  >>> import swarmauri_tool_jupytergetiopubmessage
-  >>> print(swarmauri_tool_jupytergetiopubmessage.__version__)
-  '0.1.0.dev1'
+## Quickstart
 
-If you see a valid version number, the package is installed and ready to use.
-
-## Usage
-
-Below is a brief example of how to use ``JupyterGetIOPubMessageTool`` to capture
-messages from an active Jupyter kernel. The tool expects the WebSocket URL for
-the kernel's ``/api/kernels/{id}/channels`` endpoint.
-
---------------------------------------------------------------------------------
-Example usage:
-
+```python
 from swarmauri_tool_jupytergetiopubmessage import JupyterGetIOPubMessageTool
 
-# URL to the running kernel's channels endpoint
-channels_url = "ws://localhost:8888/api/kernels/12345/channels"
+channels_url = "ws://localhost:8888/api/kernels/<kernel-id>/channels"
+result = JupyterGetIOPubMessageTool()(channels_url, timeout=3.0)
 
-# Initialize and use the tool
-tool = JupyterGetIOPubMessageTool()
-result = tool(channels_url, timeout=3.0)
+print("stdout:", result["stdout"])
+print("stderr:", result["stderr"])
+print("logs:", result["logs"])
+print("timeout?", result["timeout_exceeded"])
+```
 
-print("Captured stdout:", result["stdout"])
-print("Captured stderr:", result["stderr"])
-print("Captured logs:", result["logs"])
-print("Execution results:", result["execution_results"])
-print("Did timeout occur?:", result["timeout_exceeded"])
+## Tips
 
+- Use alongside execution tools to capture live output during automated notebook runs.
+- Ensure your environment handles Jupyter tokens/cookies if the server requires authentication.
+- Increase `timeout` for longer-running cells to collect all outputs before returning.
 
---------------------------------------------------------------------------------
+## Want to help?
 
-This usage example demonstrates how to retrieve stdout messages, stderr messages, logs (including certain non-stream messages), and results from executed cells. The timeout parameter controls how long the tool waits for IOPub messages before returning. If the time is exceeded, "timeout_exceeded" will be True.
-
-## Dependencies
-
-• Python 3.10 to 3.13
-• websocket-client
-• jupyter_client
-• swarmauri_core (for component registration)
-• swarmauri_base (for the base tool functionality)
-
-Additional development dependencies (e.g., flake8, pytest) are specified in the pyproject.toml file but not required for basic usage.
-
-## Building & Testing
-
-This package uses Poetry for its build system. You may use any standard Python tooling to install and test in your environment. See above Installation instructions for installing into your project.
-
----
-
-© 2023 Swarmauri. All rights reserved. This project is licensed under the Apache-2.0 License. Use of this tool is governed by the license conditions included in the repository.
+If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
