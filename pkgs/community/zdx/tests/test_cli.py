@@ -69,6 +69,86 @@ def test_install_packages_fail_raises(monkeypatch, tmp_path):
         install_manifest_packages(str(manifest), failure_mode=FailureMode.FAIL)
 
 
+def test_install_packages_workspace(monkeypatch, tmp_path):
+    workspace = tmp_path / "repo"
+    package_dir = workspace / "pkg_one"
+    workspace.mkdir()
+    package_dir.mkdir(parents=True)
+    (workspace / "pyproject.toml").write_text("")
+    (package_dir / "pyproject.toml").write_text("")
+
+    manifest = tmp_path / "api_manifest.yaml"
+    manifest.write_text(
+        yaml.safe_dump(
+            {
+                "workspace": {"pyproject": str(workspace / "pyproject.toml")},
+                "targets": [
+                    {
+                        "name": "One",
+                        "search_path": str(package_dir),
+                        "package": "pkg_one",
+                    }
+                ],
+            }
+        )
+    )
+
+    calls = []
+
+    def fake_run(cmd, cwd=None, check=False):
+        calls.append(cmd)
+        return subprocess.CompletedProcess(cmd, 0)
+
+    monkeypatch.setattr("zdx.cli.subprocess.run", fake_run)
+
+    install_manifest_packages(str(manifest), failure_mode=FailureMode.FAIL)
+
+    assert len(calls) == 1
+    assert calls[0][:4] == ["uv", "pip", "install", "--directory"]
+    assert str(workspace) == calls[0][4]
+    assert calls[0][-1] == "."
+
+
+def test_install_packages_workspace_warn_runs_package(monkeypatch, tmp_path):
+    workspace = tmp_path / "repo"
+    package_dir = workspace / "pkg_one"
+    workspace.mkdir()
+    package_dir.mkdir(parents=True)
+    (workspace / "pyproject.toml").write_text("")
+    (package_dir / "pyproject.toml").write_text("")
+
+    manifest = tmp_path / "api_manifest.yaml"
+    manifest.write_text(
+        yaml.safe_dump(
+            {
+                "workspace": {"root": str(workspace)},
+                "targets": [
+                    {
+                        "name": "One",
+                        "search_path": str(package_dir),
+                        "package": "pkg_one",
+                    }
+                ],
+            }
+        )
+    )
+
+    calls = []
+
+    def fake_run(cmd, cwd=None, check=False):
+        returncode = 1 if not calls else 0
+        calls.append(cmd)
+        return subprocess.CompletedProcess(cmd, returncode)
+
+    monkeypatch.setattr("zdx.cli.subprocess.run", fake_run)
+
+    install_manifest_packages(str(manifest), failure_mode=FailureMode.WARN)
+
+    assert len(calls) == 2
+    assert calls[0][:4] == ["uv", "pip", "install", "--directory"]
+    assert calls[1][:4] == ["uv", "pip", "install", "--directory"]
+
+
 def test_run_gen_api_ignore_suppresses_warning(monkeypatch, capsys):
     calls = []
 

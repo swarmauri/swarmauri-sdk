@@ -7,6 +7,9 @@ import subprocess
 import sys
 from enum import Enum
 from typing import Sequence
+from pathlib import Path
+
+import yaml
 
 from zdx.scripts.gen_api import discover_packages, load_manifest
 
@@ -120,6 +123,47 @@ def run_gen_api(
     _run_command(cmd, failure_mode=failure_mode)
 
 
+def _resolve_workspace_directory(manifest_path: Path) -> Path | None:
+    """Return the workspace root defined in the manifest, if any."""
+
+    try:
+        data = yaml.safe_load(manifest_path.read_text(encoding="utf-8")) or {}
+    except FileNotFoundError:
+        return None
+
+    workspace_cfg = data.get("workspace")
+    if not workspace_cfg:
+        return None
+
+    def _make_path(value: str) -> Path:
+        candidate = Path(value)
+        if not candidate.is_absolute():
+            candidate = (manifest_path.parent / candidate).resolve()
+        return candidate
+
+    workspace_dir: Path | None = None
+    if isinstance(workspace_cfg, str):
+        workspace_dir = _make_path(workspace_cfg)
+    elif isinstance(workspace_cfg, dict):
+        if "pyproject" in workspace_cfg:
+            pyproject_path = _make_path(workspace_cfg["pyproject"])
+            workspace_dir = pyproject_path.parent
+        elif "root" in workspace_cfg:
+            workspace_dir = _make_path(workspace_cfg["root"])
+
+    if not workspace_dir:
+        return None
+
+    if workspace_dir.is_file():
+        workspace_dir = workspace_dir.parent
+
+    pyproject = workspace_dir / "pyproject.toml"
+    if not pyproject.is_file():
+        return None
+
+    return workspace_dir
+
+
 def install_manifest_packages(
     manifest: str, failure_mode: FailureMode = FailureMode.FAIL
 ) -> None:
@@ -131,6 +175,27 @@ def install_manifest_packages(
     failure_mode (FailureMode): Strategy for handling installation errors.
     """
 
+    manifest_path = Path(manifest).resolve()
+    workspace_dir = _resolve_workspace_directory(manifest_path)
+
+    workspace_result: subprocess.CompletedProcess[bytes] | None = None
+    if workspace_dir is not None:
+        cmd = [
+            "uv",
+            "pip",
+            "install",
+            "--directory",
+            str(workspace_dir),
+        ]
+        if not (os.environ.get("VIRTUAL_ENV") or sys.prefix != sys.base_prefix):
+            cmd.append("--system")
+        cmd.append(".")
+        workspace_result = _run_command(
+            cmd,
+            failure_mode=failure_mode,
+            description=f"uv pip install --directory {workspace_dir}",
+        )
+
     targets = load_manifest(manifest)
     package_dirs = set()
     for t in targets:
@@ -140,21 +205,32 @@ def install_manifest_packages(
             for _, pkg_dir in discover_packages(t.search_path):
                 package_dirs.add(pkg_dir)
 
+    manifest_parent = manifest_path.parent
+    workspace_success = (
+        workspace_result is not None and workspace_result.returncode == 0
+    )
+
     for pkg_dir in sorted(package_dirs):
-        if not os.path.isdir(pkg_dir):
+        pkg_path = Path(pkg_dir)
+        if not pkg_path.is_absolute():
+            pkg_path = (manifest_parent / pkg_path).resolve()
+
+        if workspace_success and workspace_dir is not None:
+            if pkg_path.is_relative_to(workspace_dir):
+                continue
+        if not pkg_path.is_dir():
             continue
         if not (
-            os.path.isfile(os.path.join(pkg_dir, "pyproject.toml"))
-            or os.path.isfile(os.path.join(pkg_dir, "setup.py"))
+            (pkg_path / "pyproject.toml").is_file() or (pkg_path / "setup.py").is_file()
         ):
-            print(f"Skipping {pkg_dir}: no pyproject.toml or setup.py found")
+            print(f"Skipping {pkg_path}: no pyproject.toml or setup.py found")
             continue
         cmd = [
             "uv",
             "pip",
             "install",
             "--directory",
-            pkg_dir,
+            str(pkg_path),
         ]
         if not (os.environ.get("VIRTUAL_ENV") or sys.prefix != sys.base_prefix):
             cmd.append("--system")
@@ -162,7 +238,7 @@ def install_manifest_packages(
         _run_command(
             cmd,
             failure_mode=failure_mode,
-            description=f"uv pip install --directory {pkg_dir}",
+            description=f"uv pip install --directory {pkg_path}",
         )
 
 
