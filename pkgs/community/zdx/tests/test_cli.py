@@ -44,9 +44,10 @@ def test_install_packages_warn_continues(monkeypatch, tmp_path, capsys):
 
     monkeypatch.setattr("zdx.cli.subprocess.run", fake_run)
 
-    install_manifest_packages(str(manifest), failure_mode=FailureMode.WARN)
+    failed = install_manifest_packages(str(manifest), failure_mode=FailureMode.WARN)
 
     assert len(calls) == 2
+    assert failed == {"pkg_one"}
     output = capsys.readouterr().out
     assert "WARNING" in output
 
@@ -101,12 +102,13 @@ def test_install_packages_workspace(monkeypatch, tmp_path):
 
     monkeypatch.setattr("zdx.cli.subprocess.run", fake_run)
 
-    install_manifest_packages(str(manifest), failure_mode=FailureMode.FAIL)
+    failed = install_manifest_packages(str(manifest), failure_mode=FailureMode.FAIL)
 
     assert len(calls) == 1
     assert calls[0][:4] == ["uv", "pip", "install", "--directory"]
     assert str(workspace) == calls[0][4]
     assert calls[0][-1] == "."
+    assert failed == set()
 
 
 def test_install_packages_workspace_warn_runs_package(monkeypatch, tmp_path):
@@ -142,11 +144,12 @@ def test_install_packages_workspace_warn_runs_package(monkeypatch, tmp_path):
 
     monkeypatch.setattr("zdx.cli.subprocess.run", fake_run)
 
-    install_manifest_packages(str(manifest), failure_mode=FailureMode.WARN)
+    failed = install_manifest_packages(str(manifest), failure_mode=FailureMode.WARN)
 
     assert len(calls) == 2
     assert calls[0][:4] == ["uv", "pip", "install", "--directory"]
     assert calls[1][:4] == ["uv", "pip", "install", "--directory"]
+    assert failed == set()
 
 
 def test_run_gen_api_ignore_suppresses_warning(monkeypatch, capsys):

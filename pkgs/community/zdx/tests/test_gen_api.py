@@ -37,3 +37,34 @@ def test_process_target_discovers_packages(tmp_path):
     assert "test_pkg.mod" in module_classes
     doc_file = docs_root / "docs" / "api" / "community" / "test_pkg" / "MyClass.md"
     assert doc_file.is_file()
+
+
+def test_process_target_skips_requested_packages(tmp_path):
+    docs_root = tmp_path
+    for name in ("keep_pkg", "skip_pkg"):
+        pkg_root = docs_root / "pkgs" / "community" / name / name
+        pkg_root.mkdir(parents=True)
+        (pkg_root / "__init__.py").write_text("")
+        (pkg_root / "mod.py").write_text("class Thing:\n    pass\n")
+
+    target = Target(
+        name="Community",
+        search_path="pkgs/community",
+        discover=True,
+        include=["*.*"],
+        exclude=[],
+    )
+    cache: dict = {}
+    module_classes = process_target(
+        docs_root=str(docs_root),
+        api_output_dir="api",
+        target=target,
+        cache=cache,
+        changed_only=False,
+        skip_packages={"skip_pkg"},
+    )
+
+    assert "keep_pkg.mod" in module_classes
+    assert "skip_pkg.mod" not in module_classes
+    skipped_file = docs_root / "docs" / "api" / "community" / "skip_pkg" / "Thing.md"
+    assert not skipped_file.exists()
