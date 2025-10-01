@@ -1,6 +1,21 @@
-pytest_plugins = ["swarmauri_tests_griffe"]
+from __future__ import annotations
+
+from pathlib import Path
 
 import pytest
+
+
+def _should_load_griffe_plugin() -> bool:
+    plugin_root = (Path(__file__).resolve().parent / "community" / "swarmauri_tests_griffe").resolve()
+    try:
+        cwd = Path.cwd().resolve()
+    except FileNotFoundError:
+        # Fall back to loading the plugin if the current working directory was removed.
+        return True
+    return plugin_root not in {cwd, *cwd.parents}
+
+
+pytest_plugins = ["swarmauri_tests_griffe"] if _should_load_griffe_plugin() else []
 
 
 def pytest_configure(config):
