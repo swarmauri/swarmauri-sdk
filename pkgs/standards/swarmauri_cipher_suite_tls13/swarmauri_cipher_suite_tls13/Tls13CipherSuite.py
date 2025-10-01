@@ -22,7 +22,7 @@ _TLS13 = (
 class Tls13CipherSuite(CipherSuiteBase):
     """TLS 1.3 record protection algorithms."""
 
-    type = "Tls13CipherSuite"
+    type: str = "Tls13CipherSuite"
 
     def suite_id(self) -> str:
         return "tls13"

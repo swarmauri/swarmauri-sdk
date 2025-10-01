@@ -17,7 +17,7 @@ _WRAP: tuple[Alg, ...] = ("RSA-OAEP-256",)
 
 
 class YubiKeyCipherSuite(CipherSuiteBase):
-    type = "YubiKeyCipherSuite"
+    type: str = "YubiKeyCipherSuite"
 
     def suite_id(self) -> str:
         return "yubikey"

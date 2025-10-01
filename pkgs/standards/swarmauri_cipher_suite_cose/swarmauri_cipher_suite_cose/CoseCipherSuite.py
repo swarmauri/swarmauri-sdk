@@ -19,7 +19,7 @@ _COSE_AEAD = (1, 2, 3)
 class CoseCipherSuite(CipherSuiteBase):
     """COSE algorithm registry surface."""
 
-    type = "CoseCipherSuite"
+    type: str = "CoseCipherSuite"
 
     def suite_id(self) -> str:
         return "cose"

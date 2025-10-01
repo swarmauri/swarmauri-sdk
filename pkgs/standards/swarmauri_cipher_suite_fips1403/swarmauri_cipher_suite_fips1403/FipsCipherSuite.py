@@ -20,7 +20,7 @@ _ALLOWED_WRAP = ("RSA-OAEP-256", "A256KW")
 class FipsCipherSuite(CipherSuiteBase):
     """FIPS 140-3 compliant algorithm surface."""
 
-    type = "FipsCipherSuite"
+    type: str = "FipsCipherSuite"
 
     def suite_id(self) -> str:
         return "fips140-3"
