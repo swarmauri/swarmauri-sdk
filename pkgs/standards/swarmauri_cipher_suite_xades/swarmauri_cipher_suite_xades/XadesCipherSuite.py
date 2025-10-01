@@ -22,7 +22,7 @@ _C14N = (
 class XadesCipherSuite(CipherSuiteBase):
     """Skeleton suite for XAdES policy."""
 
-    type = "XadesCipherSuite"
+    type: str = "XadesCipherSuite"
 
     def suite_id(self) -> str:
         return "xades"

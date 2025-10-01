@@ -96,8 +96,8 @@ def parse_pyproject(pkg_dir: Path) -> tuple[str, bool, bool]:
 
 def build_report(rows: list[dict]) -> str:
     header = (
-        "| Package | LICENSE | NOTICE | README | Author | Pyproject License |\n"
-        "|---|---|---|---|---|---|\n"
+        "| Package | Directory | LICENSE | NOTICE | README | Author | Pyproject License |\n"
+        "|---|---|---|---|---|---|---|\n"
     )
     lines = []
     for r in rows:
@@ -106,8 +106,9 @@ def build_report(rows: list[dict]) -> str:
             return "✅" if ok else "❌"
 
         lines.append(
-            f"| {r['package']} | {mark(r['license_file'])} | {mark(r['notice_file'])} | "
-            f"{mark(r['readme'])} | {mark(r['author'])} | {mark(r['license_pyproject'])} |"
+            f"| {r['name']} | {r['directory']} | {mark(r['license_file'])} | "
+            f"{mark(r['notice_file'])} | {mark(r['readme'])} | {mark(r['author'])} | "
+            f"{mark(r['license_pyproject'])} |"
         )
     return header + "\n".join(lines) + "\n"
 
@@ -119,7 +120,8 @@ def main() -> None:
     for pkg in packages:
         name, author_ok, license_pyproject_ok = parse_pyproject(pkg)
         row = {
-            "package": pkg.relative_to(REPO_ROOT).as_posix(),
+            "name": name,
+            "directory": pkg.relative_to(REPO_ROOT).as_posix(),
             "license_file": has_apache_license(pkg),
             "notice_file": has_notice(pkg),
             "readme": readme_has_header_and_badges(pkg, name),

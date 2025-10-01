@@ -3,6 +3,7 @@ x-as-user: &as_user
   user: "${RUN_UID}:${RUN_GID}"
   environment:
     HOME: "/tmp"
+    ZDX_FAILURE_MODE: "${ZDX_FAILURE_MODE:-warn}"
   init: true
 
 services:
