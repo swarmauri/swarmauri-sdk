@@ -1,6 +1,6 @@
 import pytest
 
-from swarmauri_cipher_suites_yubikey_fips import YubiKeyFipsCipherSuite
+from swarmauri_cipher_suite_yubikey_fips import YubiKeyFipsCipherSuite
 
 
 @pytest.fixture
