@@ -1,6 +1,8 @@
 # ───────────────────────── base image ──────────────────────────────
 FROM python:3.12-slim
 
+ARG ZDX_FAILURE_MODE=warn
+
 # ─────────────────── system deps + uv package manager ──────────────
 RUN apt-get update && \
     apt-get install --yes --no-install-recommends build-essential git python3-venv && \
@@ -13,6 +15,7 @@ RUN apt-get update && \
 
 ENV VIRTUAL_ENV=/opt/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+ENV ZDX_FAILURE_MODE=${ZDX_FAILURE_MODE}
 
 # Ensure non-root users can install additional dependencies at runtime.
 RUN chmod -R a+rwX /opt/venv
@@ -24,7 +27,7 @@ WORKDIR /app
 COPY ./pkgs/ /pkgs
 
 RUN uv pip install --directory /pkgs/community/zdx . && \
-    zdx install --manifest /pkgs/community/zdx/api_manifest.yaml
+    zdx install --manifest /pkgs/community/zdx/api_manifest.yaml --on-error ${ZDX_FAILURE_MODE}
 
 EXPOSE 8000
 
