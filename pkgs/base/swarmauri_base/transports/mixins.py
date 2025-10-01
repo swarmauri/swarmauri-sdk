@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict
 from swarmauri_core.transports.i_anycast import IAnycastTransport
 from swarmauri_core.transports.i_broadcast import IBroadcastTransport
 from swarmauri_core.transports.i_multicast import IMulticastTransport
-from swarmauri_core.transports.i_multiplex import IMultiplexTransport
+from swarmauri_core.transports.i_multiplex import ChannelHandle, IMultiplexTransport
 from swarmauri_core.transports.i_peer import IPeerTransport
 from swarmauri_core.transports.i_unicast import IUnicastTransport
 
@@ -40,3 +40,14 @@ class PeerTransportMixin(IPeerTransport, _TransportModel):
 
 class MultiplexTransportMixin(IMultiplexTransport, _TransportModel):
     """Mixin for transports exposing multiplexed channel semantics."""
+
+
+__all__ = [
+    "AnycastTransportMixin",
+    "BroadcastTransportMixin",
+    "MulticastTransportMixin",
+    "MultiplexTransportMixin",
+    "PeerTransportMixin",
+    "UnicastTransportMixin",
+    "ChannelHandle",
+]

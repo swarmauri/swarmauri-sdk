@@ -13,6 +13,11 @@ class Protocol(Enum):
     UDS = auto()
     TLS = auto()
     QUIC = auto()
+    HTTP1 = auto()
+    H2 = auto()
+    WS = auto()
+    MTLS = auto()
+    STDIO = auto()
 
 
 class IOModel(Enum):
@@ -41,6 +46,7 @@ class Feature(Enum):
     MUTUAL_AUTH = auto()
     LOCAL_ONLY = auto()
     MULTIPLEX = auto()
+    TERMINATED_AT_SIDECAR = auto()
 
 
 class SecurityMode(Enum):
@@ -49,6 +55,8 @@ class SecurityMode(Enum):
     NONE = auto()
     TLS = auto()
     MTLS = auto()
+    SSH = auto()
+    MESH_MTLS = auto()
 
 
 class AddressScheme(Enum):
@@ -59,3 +67,8 @@ class AddressScheme(Enum):
     UDS = auto()
     TLS = auto()
     QUIC = auto()
+    HTTP = auto()
+    HTTPS = auto()
+    H2C = auto()
+    MTLS = auto()
+    STDIO = auto()

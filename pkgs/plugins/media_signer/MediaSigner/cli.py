@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 from typing import Any, Mapping, MutableMapping, Sequence
 
-from .Signer import Signer
+from .signer import MediaSigner
 
 BytesLike = bytes | bytearray
 
