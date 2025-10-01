@@ -3,7 +3,14 @@ import subprocess
 import pytest
 import yaml
 
-from zdx.cli import FailureMode, install_manifest_packages, run_gen_api
+from zdx.cli import (
+    FailureMode,
+    install_manifest_packages,
+    run_gen_api,
+    run_gen_readmes,
+    run_mkdocs_build,
+    run_mkdocs_serve,
+)
 
 
 def _write_manifest(tmp_path, targets):
@@ -76,3 +83,72 @@ def test_run_gen_api_ignore_suppresses_warning(monkeypatch, capsys):
     assert len(calls) == 1
     output = capsys.readouterr().out
     assert "WARNING" not in output
+
+
+def test_run_gen_readmes_warn_reports_but_continues(monkeypatch, tmp_path, capsys):
+    def fake_run(cmd, cwd=None, check=False):
+        assert cwd == str(tmp_path)
+        return subprocess.CompletedProcess(cmd, 1)
+
+    monkeypatch.setattr("zdx.cli.subprocess.run", fake_run)
+
+    run_gen_readmes(docs_dir=str(tmp_path), failure_mode=FailureMode.WARN)
+
+    output = capsys.readouterr().out
+    assert "WARNING" in output
+
+
+def test_run_gen_readmes_fail_raises(monkeypatch, tmp_path):
+    def fake_run(cmd, cwd=None, check=False):
+        return subprocess.CompletedProcess(cmd, 1)
+
+    monkeypatch.setattr("zdx.cli.subprocess.run", fake_run)
+
+    with pytest.raises(subprocess.CalledProcessError):
+        run_gen_readmes(docs_dir=str(tmp_path), failure_mode=FailureMode.FAIL)
+
+
+def test_run_mkdocs_build_warn_reports_but_continues(monkeypatch, tmp_path, capsys):
+    def fake_run(cmd, cwd=None, check=False):
+        assert cwd == str(tmp_path)
+        return subprocess.CompletedProcess(cmd, 1)
+
+    monkeypatch.setattr("zdx.cli.subprocess.run", fake_run)
+
+    run_mkdocs_build(docs_dir=str(tmp_path), failure_mode=FailureMode.WARN)
+
+    output = capsys.readouterr().out
+    assert "WARNING" in output
+
+
+def test_run_mkdocs_build_fail_raises(monkeypatch, tmp_path):
+    def fake_run(cmd, cwd=None, check=False):
+        return subprocess.CompletedProcess(cmd, 1)
+
+    monkeypatch.setattr("zdx.cli.subprocess.run", fake_run)
+
+    with pytest.raises(subprocess.CalledProcessError):
+        run_mkdocs_build(docs_dir=str(tmp_path), failure_mode=FailureMode.FAIL)
+
+
+def test_run_mkdocs_serve_warn_reports_but_continues(monkeypatch, tmp_path, capsys):
+    def fake_run(cmd, cwd=None, check=False):
+        assert cwd == str(tmp_path)
+        return subprocess.CompletedProcess(cmd, 1)
+
+    monkeypatch.setattr("zdx.cli.subprocess.run", fake_run)
+
+    run_mkdocs_serve(docs_dir=str(tmp_path), failure_mode=FailureMode.WARN)
+
+    output = capsys.readouterr().out
+    assert "WARNING" in output
+
+
+def test_run_mkdocs_serve_fail_raises(monkeypatch, tmp_path):
+    def fake_run(cmd, cwd=None, check=False):
+        return subprocess.CompletedProcess(cmd, 1)
+
+    monkeypatch.setattr("zdx.cli.subprocess.run", fake_run)
+
+    with pytest.raises(subprocess.CalledProcessError):
+        run_mkdocs_serve(docs_dir=str(tmp_path), failure_mode=FailureMode.FAIL)

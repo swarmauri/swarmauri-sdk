@@ -166,25 +166,60 @@ def install_manifest_packages(
         )
 
 
+def run_mkdocs_build(
+    docs_dir: str = ".",
+    mkdocs_yml: str = "mkdocs.yml",
+    *,
+    failure_mode: FailureMode = FailureMode.FAIL,
+) -> None:
+    """Build the documentation site with MkDocs.
+
+    docs_dir (str): Directory containing documentation sources.
+    mkdocs_yml (str): Path to the MkDocs configuration file.
+    failure_mode (FailureMode): Strategy for handling mkdocs failures.
+    RETURNS (None): The build completes or continues based on the failure mode.
+    """
+    os.makedirs(os.path.join(docs_dir, "docs"), exist_ok=True)
+    cmd = ["mkdocs", "build", "-f", mkdocs_yml]
+    _run_command(
+        cmd,
+        cwd=docs_dir,
+        failure_mode=failure_mode,
+        description=f"mkdocs build -f {mkdocs_yml}",
+    )
+
+
 def run_mkdocs_serve(
     docs_dir: str = ".",
     mkdocs_yml: str = "mkdocs.yml",
     dev_addr: str = "0.0.0.0:8000",
+    *,
+    failure_mode: FailureMode = FailureMode.FAIL,
 ) -> None:
     """Launch a MkDocs development server.
 
     docs_dir (str): Directory containing documentation sources.
     mkdocs_yml (str): Path to the MkDocs configuration file.
     dev_addr (str): Address and port for the server to bind to.
+    failure_mode (FailureMode): Strategy for handling mkdocs failures.
     RETURNS (None): The server runs until interrupted.
     """
     # Ensure the docs directory exists so MkDocs has a working tree.
     os.makedirs(os.path.join(docs_dir, "docs"), exist_ok=True)
     cmd = ["mkdocs", "serve", "-f", mkdocs_yml, "-a", dev_addr]
-    subprocess.run(cmd, check=True, cwd=docs_dir)
+    _run_command(
+        cmd,
+        cwd=docs_dir,
+        failure_mode=failure_mode,
+        description=f"mkdocs serve -f {mkdocs_yml} -a {dev_addr}",
+    )
 
 
-def run_gen_readmes(docs_dir: str = ".") -> None:
+def run_gen_readmes(
+    docs_dir: str = ".",
+    *,
+    failure_mode: FailureMode = FailureMode.FAIL,
+) -> None:
     """Run the README generation script.
 
     docs_dir (str): Root directory containing project documentation.
@@ -193,7 +228,12 @@ def run_gen_readmes(docs_dir: str = ".") -> None:
     # Ensure the target docs directory exists before generating content.
     os.makedirs(os.path.join(docs_dir, "docs"), exist_ok=True)
     cmd = [sys.executable, "-m", "zdx.scripts.gen_readmes"]
-    subprocess.run(cmd, check=True, cwd=docs_dir)
+    _run_command(
+        cmd,
+        cwd=docs_dir,
+        failure_mode=failure_mode,
+        description="python -m zdx.scripts.gen_readmes",
+    )
 
 
 def main() -> None:
@@ -230,7 +270,15 @@ def main() -> None:
 
     readmes = sub.add_parser("readmes", help="Generate documentation from README files")
     readmes.add_argument("--docs-dir", default=".")
-    readmes.set_defaults(func=lambda args: run_gen_readmes(docs_dir=args.docs_dir))
+    _add_failure_mode_argument(readmes)
+
+    def readmes_cmd(args: argparse.Namespace) -> None:
+        run_gen_readmes(
+            docs_dir=args.docs_dir,
+            failure_mode=FailureMode.from_value(args.on_error),
+        )
+
+    readmes.set_defaults(func=readmes_cmd)
 
     serve = sub.add_parser("serve", help="Serve the documentation with MkDocs")
     serve.add_argument("--docs-dir", default=".")
@@ -262,6 +310,7 @@ def main() -> None:
             docs_dir=args.docs_dir,
             mkdocs_yml=args.mkdocs_yml,
             dev_addr=args.dev_addr,
+            failure_mode=failure_mode,
         )
 
     serve.set_defaults(func=serve_cmd)
