@@ -6,6 +6,7 @@ import yaml
 from zdx.cli import (
     FailureMode,
     install_manifest_packages,
+    _prune_failed_package_docs,
     run_gen_api,
     run_gen_readmes,
     run_mkdocs_build,
@@ -235,3 +236,42 @@ def test_run_mkdocs_serve_fail_raises(monkeypatch, tmp_path):
 
     with pytest.raises(subprocess.CalledProcessError):
         run_mkdocs_serve(docs_dir=str(tmp_path), failure_mode=FailureMode.FAIL)
+
+
+def test_prune_failed_package_docs_removes_directories_and_nav(tmp_path):
+    docs_dir = tmp_path
+    api_dir = docs_dir / "docs" / "api" / "base" / "swarmauri_base"
+    api_dir.mkdir(parents=True)
+    (api_dir / "SigningBase.md").write_text("")
+
+    mkdocs_cfg = {
+        "nav": [
+            {
+                "API Documentation": [
+                    "api/index.md",
+                    {
+                        "Base": [
+                            {
+                                "Signing": "api/base/swarmauri_base/signing/SigningBase.md"
+                            }
+                        ]
+                    },
+                    {"Core": [{"Home": "api/core/index.md"}]},
+                ]
+            }
+        ]
+    }
+    mkdocs_path = docs_dir / "mkdocs.yml"
+    mkdocs_path.write_text(yaml.safe_dump(mkdocs_cfg))
+
+    _prune_failed_package_docs(
+        docs_dir=str(docs_dir),
+        api_output_dir="api",
+        mkdocs_yml="mkdocs.yml",
+        failed_packages={"swarmauri_base"},
+    )
+
+    assert not api_dir.exists()
+    updated = yaml.safe_load(mkdocs_path.read_text())
+    api_nav = updated["nav"][0]["API Documentation"]
+    assert all("Base" not in entry for entry in api_nav if isinstance(entry, dict))
