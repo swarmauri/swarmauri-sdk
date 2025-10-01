@@ -9,6 +9,7 @@ from .util import canon_htm_htu, sha256_b64u
 __all__ = [
     "PopSignerMixin",
     "PopSigningBase",
+    "PopSignerBase",
     "PopVerifierMixin",
     "PopVerifierBase",
     "RequestContext",
