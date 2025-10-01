@@ -42,13 +42,13 @@ installs the CMS, JWS, OpenPGP, PDF, and XMLDSig providers alongside the facade.
 ## Usage
 
 ```python
-from MediaSigner import Signer
+from MediaSigner import MediaSigner
 from swarmauri_core.keys.IKeyProvider import IKeyProvider
 
 # Optionally pass a key provider so plugins receive a shared source for
 # retrieving signing material.
 key_provider: IKeyProvider | None = None
-signer = Signer(key_provider=key_provider)
+signer = MediaSigner(key_provider=key_provider)
 
 # The Signer facade inspects the registry to discover installed plugins. Once a
 # plugin is available you can address it by its registered format token.
