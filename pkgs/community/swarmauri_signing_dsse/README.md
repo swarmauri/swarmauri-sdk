@@ -3,8 +3,8 @@
 <p align="center">
     <a href="https://pypi.org/project/swarmauri_signing_dsse/">
         <img src="https://img.shields.io/pypi/dm/swarmauri_signing_dsse" alt="PyPI - Downloads"/></a>
-    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_dsse/">
-        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_dsse.svg"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_signing_dsse/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_signing_dsse.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_dsse/">
         <img src="https://img.shields.io/pypi/pyversions/swarmauri_signing_dsse" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_signing_dsse/">

@@ -208,7 +208,7 @@ class SshEnvelopeSigner(SigningBase):
             "canons": canons,
             "signs": ("bytes", "digest", "envelope", "stream"),
             "verifies": ("bytes", "digest", "envelope", "stream"),
-            "envelopes": ("mapping",),
+            "envelopes": ("mapping", *envelopes),
             "features": ("multi", "detached_only"),
         }
 
@@ -376,6 +376,26 @@ class SshEnvelopeSigner(SigningBase):
             return False
         finally:
             os.remove(allowed_path)
+
+    async def sign_digest(
+        self,
+        key: KeyRef,
+        digest: bytes,
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        return await self.sign_bytes(key, digest, alg=alg, opts=opts)
+
+    async def verify_digest(
+        self,
+        digest: bytes,
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> bool:
+        return await self.verify_bytes(digest, signatures, require=require, opts=opts)
 
     async def canonicalize_envelope(
         self,

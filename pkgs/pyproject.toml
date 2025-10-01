@@ -146,7 +146,7 @@ members = [
     "standards/swarmauri_signing_ca",
     "standards/swarmauri_signing_jws",
     "standards/swarmauri_signing_dpop",
-    "standards/swarmauri_signing_dsse",
+    "community/swarmauri_signing_dsse",
     "standards/swarmauri_certs_local_ca",
     "standards/swarmauri_certs_self_signed",
     "standards/swarmauri_tokens_jwt",

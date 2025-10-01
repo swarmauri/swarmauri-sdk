@@ -135,6 +135,17 @@ class Ed25519EnvelopeSigner(SigningBase):
         return [_Sig({"alg": "Ed25519", "kid": kid, "sig": sig})]
 
     # ------------------------------------------------------------------
+    async def sign_digest(
+        self,
+        key: KeyRef,
+        digest: bytes,
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        return await self.sign_bytes(key, digest, alg=alg, opts=opts)
+
+    # ------------------------------------------------------------------
     async def verify_bytes(
         self,
         payload: bytes,
@@ -182,6 +193,17 @@ class Ed25519EnvelopeSigner(SigningBase):
             if accepted >= min_signers:
                 return True
         return False
+
+    # ------------------------------------------------------------------
+    async def verify_digest(
+        self,
+        digest: bytes,
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> bool:
+        return await self.verify_bytes(digest, signatures, require=require, opts=opts)
 
     # ------------------------------------------------------------------
     async def canonicalize_envelope(
