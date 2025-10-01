@@ -2,6 +2,6 @@
 
 from __future__ import annotations
 
-from .signer import MediaSigner
+from .Signer import MediaSigner
 
 __all__ = ["MediaSigner"]
