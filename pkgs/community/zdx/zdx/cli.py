@@ -2,10 +2,86 @@
 
 import argparse
 import os
+import shlex
 import subprocess
 import sys
+from enum import Enum
+from typing import Sequence
 
 from zdx.scripts.gen_api import discover_packages, load_manifest
+
+
+class FailureMode(Enum):
+    """Strategies for handling subprocess failures."""
+
+    FAIL = "fail"
+    WARN = "warn"
+    IGNORE = "ignore"
+
+    @classmethod
+    def from_value(cls, value: str) -> "FailureMode":
+        """Return a :class:`FailureMode` from user input."""
+
+        try:
+            return cls(value.lower())
+        except ValueError as exc:  # pragma: no cover - defensive guard
+            raise argparse.ArgumentTypeError(
+                f"Unsupported failure mode '{value}'."
+            ) from exc
+
+
+def _default_failure_mode_from_env() -> FailureMode:
+    """Derive the default failure mode from ``ZDX_FAILURE_MODE``."""
+
+    env_value = os.environ.get("ZDX_FAILURE_MODE")
+    if not env_value:
+        return FailureMode.FAIL
+    try:
+        return FailureMode(env_value.lower())
+    except ValueError:
+        print(
+            "WARNING: Ignoring unknown ZDX_FAILURE_MODE="
+            f"{env_value!r}; defaulting to 'fail'."
+        )
+        return FailureMode.FAIL
+
+
+def _run_command(
+    cmd: Sequence[str],
+    *,
+    cwd: str | None = None,
+    failure_mode: FailureMode,
+    description: str | None = None,
+) -> subprocess.CompletedProcess[bytes]:
+    """Execute ``cmd`` honouring the requested ``failure_mode``."""
+
+    result = subprocess.run(cmd, cwd=cwd, check=False)
+    if result.returncode == 0:
+        return result
+
+    cmd_str = description or shlex.join(cmd)
+    message = f"Command '{cmd_str}' exited with code {result.returncode}."
+
+    if failure_mode is FailureMode.FAIL:
+        raise subprocess.CalledProcessError(result.returncode, cmd)
+    if failure_mode is FailureMode.WARN:
+        print(f"WARNING: {message}")
+    return result
+
+
+def _add_failure_mode_argument(parser: argparse.ArgumentParser) -> None:
+    """Attach the ``--on-error`` argument to a sub-parser."""
+
+    default_mode = _default_failure_mode_from_env()
+    parser.add_argument(
+        "--on-error",
+        choices=[mode.value for mode in FailureMode],
+        default=default_mode.value,
+        help=(
+            "Control how zdx reacts when a subprocess fails. "
+            "Defaults to the value of ZDX_FAILURE_MODE (if set) or 'fail'."
+        ),
+    )
 
 
 def run_gen_api(
@@ -14,6 +90,7 @@ def run_gen_api(
     mkdocs_yml: str = "mkdocs.yml",
     api_output_dir: str = "api",
     changed_only: bool = False,
+    failure_mode: FailureMode = FailureMode.FAIL,
 ) -> None:
     """Run the API docs generation script.
 
@@ -22,6 +99,7 @@ def run_gen_api(
     mkdocs_yml (str): Path to the MkDocs configuration file.
     api_output_dir (str): Relative output directory for API pages.
     changed_only (bool): Only rebuild pages for changed sources.
+    failure_mode (FailureMode): Strategy for handling subprocess failures.
     RETURNS (None): This function operates via side effects.
     """
     cmd = [
@@ -39,14 +117,18 @@ def run_gen_api(
     ]
     if changed_only:
         cmd.append("--changed-only")
-    subprocess.run(cmd, check=True)
+    _run_command(cmd, failure_mode=failure_mode)
 
 
-def install_manifest_packages(manifest: str) -> None:
+def install_manifest_packages(
+    manifest: str, failure_mode: FailureMode = FailureMode.FAIL
+) -> None:
     """Install all packages referenced in the API manifest.
 
     This ensures modules documented via ``mkdocstrings`` can be imported
     successfully when building or serving the docs.
+
+    failure_mode (FailureMode): Strategy for handling installation errors.
     """
 
     targets = load_manifest(manifest)
@@ -77,7 +159,11 @@ def install_manifest_packages(manifest: str) -> None:
         if not (os.environ.get("VIRTUAL_ENV") or sys.prefix != sys.base_prefix):
             cmd.append("--system")
         cmd.append(".")
-        subprocess.run(cmd, check=True)
+        _run_command(
+            cmd,
+            failure_mode=failure_mode,
+            description=f"uv pip install --directory {pkg_dir}",
+        )
 
 
 def run_mkdocs_serve(
@@ -126,15 +212,18 @@ def main() -> None:
     gen.add_argument("--mkdocs-yml", default="mkdocs.yml")
     gen.add_argument("--api-output-dir", default="api")
     gen.add_argument("--changed-only", action="store_true")
+    _add_failure_mode_argument(gen)
 
     def generate_cmd(args: argparse.Namespace) -> None:
-        install_manifest_packages(args.manifest)
+        failure_mode = FailureMode.from_value(args.on_error)
+        install_manifest_packages(args.manifest, failure_mode=failure_mode)
         run_gen_api(
             manifest=args.manifest,
             docs_dir=args.docs_dir,
             mkdocs_yml=args.mkdocs_yml,
             api_output_dir=args.api_output_dir,
             changed_only=args.changed_only,
+            failure_mode=failure_mode,
         )
 
     gen.set_defaults(func=generate_cmd)
@@ -155,9 +244,11 @@ def main() -> None:
         action="store_true",
         help="Generate API docs before serving",
     )
+    _add_failure_mode_argument(serve)
 
     def serve_cmd(args: argparse.Namespace) -> None:
-        install_manifest_packages(args.manifest)
+        failure_mode = FailureMode.from_value(args.on_error)
+        install_manifest_packages(args.manifest, failure_mode=failure_mode)
         if args.generate:
             run_gen_api(
                 manifest=args.manifest,
@@ -165,6 +256,7 @@ def main() -> None:
                 mkdocs_yml=args.mkdocs_yml,
                 api_output_dir=args.api_output_dir,
                 changed_only=args.changed_only,
+                failure_mode=failure_mode,
             )
         run_mkdocs_serve(
             docs_dir=args.docs_dir,
@@ -178,7 +270,13 @@ def main() -> None:
         "install", help="Install packages referenced in an API manifest"
     )
     install.add_argument("--manifest", default="api_manifest.yaml")
-    install.set_defaults(func=lambda args: install_manifest_packages(args.manifest))
+    _add_failure_mode_argument(install)
+
+    install.set_defaults(
+        func=lambda args: install_manifest_packages(
+            args.manifest, failure_mode=FailureMode.from_value(args.on_error)
+        )
+    )
 
     args = parser.parse_args()
     args.func(args)
