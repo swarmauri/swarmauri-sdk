@@ -8,7 +8,8 @@ import pytest
 from swarmauri_core.signing.types import Signature
 
 import MediaSigner.cli as cli
-from MediaSigner.Signer import MediaSigner, SigningBase
+from MediaSigner import MediaSigner
+from swarmauri_base.signing.SigningBase import SigningBase
 
 
 FORMATS = ("cms", "jws", "openpgp", "pdf", "xmld")
