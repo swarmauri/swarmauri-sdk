@@ -76,7 +76,12 @@ def test_install_packages_workspace(monkeypatch, tmp_path):
     package_dir = workspace / "pkg_one"
     workspace.mkdir()
     package_dir.mkdir(parents=True)
-    (workspace / "pyproject.toml").write_text("")
+    (workspace / "pyproject.toml").write_text(
+        """
+[tool.uv.workspace]
+members = ["pkg_one"]
+"""
+    )
     (package_dir / "pyproject.toml").write_text("")
 
     manifest = tmp_path / "api_manifest.yaml"
@@ -106,9 +111,12 @@ def test_install_packages_workspace(monkeypatch, tmp_path):
     failed = install_manifest_packages(str(manifest), failure_mode=FailureMode.FAIL)
 
     assert len(calls) == 1
-    assert calls[0][:4] == ["uv", "pip", "install", "--directory"]
-    assert str(workspace) == calls[0][4]
-    assert calls[0][-1] == "."
+    assert calls[0][:3] == ["uv", "pip", "install"]
+    assert calls[0][-2:] == ["--editable", str(package_dir)]
+    if len(calls[0]) == 5:
+        assert calls[0][3:] == ["--editable", str(package_dir)]
+    else:
+        assert calls[0][3] == "--system"
     assert failed == set()
 
 
@@ -117,7 +125,12 @@ def test_install_packages_workspace_warn_runs_package(monkeypatch, tmp_path):
     package_dir = workspace / "pkg_one"
     workspace.mkdir()
     package_dir.mkdir(parents=True)
-    (workspace / "pyproject.toml").write_text("")
+    (workspace / "pyproject.toml").write_text(
+        """
+[tool.uv.workspace]
+members = ["pkg_one"]
+"""
+    )
     (package_dir / "pyproject.toml").write_text("")
 
     manifest = tmp_path / "api_manifest.yaml"
@@ -148,8 +161,25 @@ def test_install_packages_workspace_warn_runs_package(monkeypatch, tmp_path):
     failed = install_manifest_packages(str(manifest), failure_mode=FailureMode.WARN)
 
     assert len(calls) == 2
-    assert calls[0][:4] == ["uv", "pip", "install", "--directory"]
-    assert calls[1][:4] == ["uv", "pip", "install", "--directory"]
+    assert calls[0][:3] == ["uv", "pip", "install"]
+    assert calls[0][-2:] == ["--editable", str(package_dir)]
+    if len(calls[0]) == 5:
+        assert calls[0][3:] == ["--editable", str(package_dir)]
+    else:
+        assert calls[0][3] == "--system"
+
+    assert calls[1][:5] == [
+        "uv",
+        "pip",
+        "install",
+        "--directory",
+        str(package_dir),
+    ]
+    assert calls[1][-1] == "."
+    if len(calls[1]) == 6:
+        assert calls[1][-1] == "."
+    else:
+        assert calls[1][5] == "--system"
     assert failed == set()
 
 
