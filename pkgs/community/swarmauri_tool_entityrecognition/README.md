@@ -1,4 +1,3 @@
-
 ![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
@@ -18,33 +17,57 @@
 
 # Swarmauri Tool Entity Recognition
 
-A Swarmauri tool that extracts named entities from text using a pre-trained NLP model.
+Named-entity recognition tool for Swarmauri based on Hugging Face transformers. Uses the default `pipeline("ner")` model to detect tokens labeled as PERSON, ORG, LOC, etc., and returns a JSON-encoded dictionary of entities grouped by label.
+
+## Features
+
+- Wraps the transformers NER pipeline in a Swarmauri `ToolBase` component.
+- Auto-downloads the default model on first run (usually `dslim/bert-base-NER`).
+- Aggregates entity tokens by label and returns them as a JSON string in the `entities` key.
+
+## Prerequisites
+
+- Python 3.10 or newer.
+- `transformers`, `torch`, and associated dependencies (installed automatically). Ensure GPU/CPU compatibility for PyTorch according to your environment.
+- Internet access on first run to download model weights.
 
 ## Installation
 
 ```bash
+# pip
 pip install swarmauri_tool_entityrecognition
+
+# poetry
+poetry add swarmauri_tool_entityrecognition
+
+# uv (pyproject-based projects)
+uv add swarmauri_tool_entityrecognition
 ```
 
-## Usage
-
-Here's a basic example of how to use the Entity Recognition Tool:
+## Quickstart
 
 ```python
-from swarmauri.tools.EntityRecognitionTool import EntityRecognitionTool
+import json
+from swarmauri_tool_entityrecognition import EntityRecognitionTool
 
-# Initialize the tool
-tool = EntityRecognitionTool()
-
-# Example text for entity recognition
 text = "Apple Inc. is an American multinational technology company."
-
-# Get entities from the text
+tool = EntityRecognitionTool()
 result = tool(text=text)
 
-# The result will contain entities in JSON format
-print(result["entities"])
+entities = json.loads(result["entities"])
+print(entities)
 ```
+
+Example output:
+```
+{"B-ORG": ["Apple", "Inc."], "B-MISC": ["American"], "I-MISC": ["multinational"], ...}
+```
+
+## Tips
+
+- The default pipeline tokenizes into subwords; reconstruct phrases by joining consecutive tokens with the same label when needed.
+- Specify a different model by subclassing and passing `pipeline("ner", model="<model>")` if you require language-specific NER.
+- Cache Hugging Face models (`HF_HOME`) in CI or container builds to avoid repeated downloads.
 
 ## Want to help?
 

@@ -1,4 +1,3 @@
-
 ![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
@@ -18,48 +17,57 @@
 
 # Swarmauri Tool Jupyter Display
 
-The `JupyterDisplayTool` is a component that leverages IPython display functionality to render data with a variety of rich representations. It inherits from `ToolBase` and integrates with the Swarmauri framework's tool architecture.
+Tool for displaying text, HTML, images, or LaTeX in a Jupyter notebook using IPython's rich display helpers.
 
-## Description
+## Features
 
-`JupyterDisplayTool` is a tool that displays data in a Jupyter environment using IPython's rich display capabilities. It supports multiple data formats, including plain text, HTML, images, and LaTeX.
+- Accepts `data` and optional `data_format` (`auto`, `text`, `html`, `image`, `latex`).
+- Uses `IPython.display` to render the appropriate representation.
+- Returns a status dictionary indicating success or failure.
 
-### Attributes
+## Prerequisites
 
-- **version (str)**: The version of the JupyterDisplayTool.
-- **parameters (List[Parameter])**: A list of parameters defining the expected inputs.
-- **name (str)**: The name of the tool.
-- **description (str)**: A brief description of the tool's functionality.
-- **type (Literal["JupyterDisplayTool"])**: The type identifier for the tool.
+- Python 3.10 or newer.
+- Running inside a Jupyter notebook or environment that supports IPython display.
+- `IPython` installed (pulled in automatically).
 
-### Usage
+## Installation
 
-The tool can be used to render various types of data in a Jupyter notebook. Below is an example of how to use the `JupyterDisplayTool`:
+```bash
+# pip
+pip install swarmauri_tool_jupyterdisplay
 
-```python
-display_tool = JupyterDisplayTool()
-display_tool("<b>Hello, world!</b>", "html")
+# poetry
+poetry add swarmauri_tool_jupyterdisplay
+
+# uv (pyproject-based projects)
+uv add swarmauri_tool_jupyterdisplay
 ```
 
-This will display the provided HTML content in the Jupyter notebook.
-
-### Methods
-
-- `__call__(self, data: str, data_format: str = "auto") -> Dict[str, str]`: Renders the provided data in the Jupyter environment using IPython's display.
-
-#### Arguments
-
-- `data (str)`: The data to be displayed. Could be text, HTML, a path to an image, or LaTeX.
-- `data_format (str, optional)`: The format of the data. Defaults to 'auto'. Supported values are 'text', 'html', 'image', and 'latex'.
-
-#### Returns
-
-- `Dict[str, str]`: A dictionary containing the status of the operation ("success" or "error") and a corresponding message.
-
-Example:
+## Quickstart
 
 ```python
+from swarmauri_tool_jupyterdisplay import JupyterDisplayTool
+
 display_tool = JupyterDisplayTool()
-result = display_tool("<b>Hello, world!</b>", "html")
-print(result)  # {'status': 'success', 'message': 'Data displayed successfully.'}
+print(display_tool("<b>Hello, world!</b>", data_format="html"))
 ```
+
+## Displaying Images
+
+```python
+from swarmauri_tool_jupyterdisplay import JupyterDisplayTool
+
+image_path = "plots/chart.png"
+JupyterDisplayTool()(image_path, data_format="image")
+```
+
+## Tips
+
+- Use `data_format="auto"` (default) to treat the data as Markdown text.
+- Provide absolute or notebook-relative paths for images when using `data_format="image"`.
+- Wrap calls in Swarmauri tool chains to render results (e.g., charts, HTML reports) inline during agent runs.
+
+## Want to help?
+
+If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.

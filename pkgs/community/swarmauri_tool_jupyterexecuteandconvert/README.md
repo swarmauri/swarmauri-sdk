@@ -1,4 +1,3 @@
-
 ![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
@@ -16,104 +15,61 @@
 
 ---
 
-# Swarmauri Tool Jupyterexecuteandconvert
+# Swarmauri Tool Jupyter Execute & Convert
 
-This package provides functionality to programmatically execute a Jupyter Notebook and convert it to a variety of output formats using nbconvert, enabling automated workflows within the Swarmauri framework.
+Executes a Jupyter notebook and converts the output to HTML or PDF using nbconvert—packaged as a Swarmauri tool.
 
----
+## Features
+
+- Runs notebooks with configurable execution timeout.
+- Converts executed notebooks to `html` or `pdf` via nbconvert.
+- Returns a status dictionary with the converted file path or error details.
+
+## Prerequisites
+
+- Python 3.10 or newer.
+- `nbconvert`, `nbformat`, and Jupyter runtime (installed automatically).
+- Notebook dependencies must be available in the execution environment.
 
 ## Installation
 
-swarmauri_tool_jupyterexecuteandconvert supports Python 3.10 to 3.13. To install from PyPI, use:
-
+```bash
+# pip
 pip install swarmauri_tool_jupyterexecuteandconvert
 
-Once installed, the JupyterExecuteAndConvertTool becomes available, offering notebook execution and conversion features via the nbconvert CLI.
+# poetry
+poetry add swarmauri_tool_jupyterexecuteandconvert
 
----
+# uv (pyproject-based projects)
+uv add swarmauri_tool_jupyterexecuteandconvert
+```
 
-## Usage
+## Quickstart
 
-Below is a detailed example of how to utilize the JupyterExecuteAndConvertTool in your environment. The tool exposes a callable class that you can directly instantiate and use in your Python code.
-
-1. Import the tool into your code:
-   
-   from swarmauri_tool_jupyterexecuteandconvert import JupyterExecuteAndConvertTool
-
-2. Create an instance of the tool:
-   
-   notebook_tool = JupyterExecuteAndConvertTool()
-
-3. Invoke the tool to execute and convert a notebook:
-   
-   result = notebook_tool(
-       notebook_path="path/to/your_notebook.ipynb",
-       output_format="pdf",         # can also be "html"
-       execution_timeout=600        # optional, defaults to 600 seconds
-   )
-
-4. Process the returned dictionary:
-   
-   if "status" in result and result["status"] == "success":
-       print(f"Successfully converted notebook to: {result['converted_file']}")
-   else:
-       print(f"Error: {result.get('error')} - {result.get('message')}")
-
-The result dictionary can contain:
-• "converted_file": A string representing the output file name.  
-• "status": "success" if execution and conversion succeeded.  
-• "error" and "message": In the event of any errors during execution or conversion.  
-
-Here is a short illustration:
-
----------------------------------------------------------------------------------------
+```python
 from swarmauri_tool_jupyterexecuteandconvert import JupyterExecuteAndConvertTool
 
-# Create the tool instance
 tool = JupyterExecuteAndConvertTool()
-
-# Execute and convert a Jupyter notebook to PDF with a 5-minute timeout
 response = tool(
-    notebook_path="analysis.ipynb",
+    notebook_path="notebooks/analysis.ipynb",
     output_format="pdf",
-    execution_timeout=300
+    execution_timeout=600,
 )
 
 if response.get("status") == "success":
-    print(f"Notebook converted: {response['converted_file']}")
+    print("Converted file:", response["converted_file"])
 else:
-    print(f"Error type: {response.get('error')}")
-    print(f"Error message: {response.get('message')}")
----------------------------------------------------------------------------------------
+    print("Error:", response.get("error"))
+    print("Message:", response.get("message"))
+```
 
----
+## Tips
 
-## Dependencies
+- Set `execution_timeout` high enough for long-running notebooks; nbconvert defaults to 600 seconds.
+- Ensure notebooks run headlessly: avoid widgets or interactive inputs that pause execution.
+- Install LaTeX (`tectonic`, `texlive`) if exporting to PDF on systems where nbconvert requires it.
+- Combine with `JupyterClearOutputTool` to strip outputs after conversion if you want clean notebooks and rich artifacts.
 
-• nbconvert: Used for executing and converting Jupyter notebooks to the desired output format.  
-• swarmauri_core, swarmauri_base: Required dependencies from the Swarmauri framework, providing essential base classes and utilities.  
-• Python 3.10 or above.  
+## Want to help?
 
-The tool automatically integrates into the Swarmauri ecosystem by inheriting from ToolBase and registering itself with ComponentBase.
-
----
-
-### About JupyterExecuteAndConvertTool
-
-The JupyterExecuteAndConvertTool is defined in JupyterExecuteAndConvertTool.py. It inherits from ToolBase and uses the @ComponentBase.register_type decorator, making it seamlessly integrable as a Swarmauri tool. It logs notebook execution progress and handles any errors or timeouts. Once the notebook is executed, nbconvert is used again to convert the resultant executed notebook to the specified format (HTML or PDF).
-
-Key attributes within the tool:
-• version: A string indicating the current version of the tool.  
-• parameters: A list of Parameter objects describing inputs such as notebook_path, output_format, and execution_timeout.  
-• __call__: A method accepting notebook_path, output_format, and execution_timeout, returning a dictionary with information about the process result or any encountered errors.  
-
----
-
-## Contributing
-
-Thank you for your interest in swarmauri_tool_jupyterexecuteandconvert. Pull requests and bug reports are welcome. Please see our issue tracker for existing requests and open issues.
-
----
-
-© 2023 Swarmauri – Licensed under the Apache License, Version 2.0.  
-Happy notebook converting!
+If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.

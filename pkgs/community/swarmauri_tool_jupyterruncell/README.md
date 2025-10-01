@@ -1,4 +1,3 @@
-
 ![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
@@ -18,71 +17,52 @@
 
 # Swarmauri Tool Jupyter Run Cell
 
-This package provides a specialized tool for executing Python code cells interactively, capturing output and errors, and optionally applying timeouts. It is designed to integrate seamlessly with the broader Swarmauri tool ecosystem.
+Executes a code string inside the current IPython kernel and captures stdout/stderr/error text.
+
+## Features
+
+- Runs arbitrary Python snippets with optional timeout.
+- Returns `success`, `cell_output`, and `error_output` keys.
+- Designed for use inside running notebooks or IPython sessions.
+
+## Prerequisites
+
+- Python 3.10 or newer.
+- Running within IPython/Jupyter environment.
 
 ## Installation
 
-To install the package from PyPI:
+```bash
+# pip
+pip install swarmauri_tool_jupyterruncell
 
-1. Make sure you have Python 3.10 or newer.
-2. Install using pip:
+# poetry
+poetry add swarmauri_tool_jupyterruncell
 
-   pip install swarmauri_tool_jupyterruncell
+# uv (pyproject-based projects)
+uv add swarmauri_tool_jupyterruncell
+```
 
-3. Once installed, you can import and use the tool in your Python scripts or Jupyter notebooks.
+## Quickstart
 
-If you prefer using Poetry, add the dependency to your pyproject.toml and install accordingly.
-
-## Usage
-
-Below is a simple example of how to utilize the JupyterRunCellTool in your Python code. This tool inherits from the Swarmauri base classes, ensuring it integrates into your existing Swarmauri-based projects.
-
-Example of usage in a Python script or Jupyter notebook:
-
---------------------------------------------------------------------------------
-
+```python
 from swarmauri_tool_jupyterruncell import JupyterRunCellTool
 
-# Instantiate the tool
-tool = JupyterRunCellTool()
-
-# Simple code execution
-result = tool(code="print('Hello from JupyterRunCellTool!')", timeout=5)
+runner = JupyterRunCellTool()
+result = runner(code="print('Hello from Swarmauri!')", timeout=5)
 
 if result["success"]:
-    print("Cell Output:", result["cell_output"])
-    print("No errors captured.")
+    print("stdout:", result["cell_output"])
 else:
-    print("Cell Output:", result["cell_output"])
-    print("Error Output:", result["error_output"])
+    print("error:", result["error_output"])
+```
 
---------------------------------------------------------------------------------
+## Tips
 
-In this example:
-• code: The Python code to run (as a string).  
-• timeout: Optional parameter specifying the maximum number of seconds allowed for execution. Set to 0 or omit to disable timeouts.
+- Set `timeout=0` (or omit) to disable execution timeouts.
+- Capture `error_output` to diagnose exceptions raised by the executed code.
+- Use alongside other notebook automation tools (execute, export, etc.) to build richer pipelines.
 
-The returned dictionary includes:
-• cell_output: The captured stdout from the executed cell.  
-• error_output: Any error messages or exceptions encountered.  
-• success: A boolean indicating if execution was completed without unhandled exceptions.
+## Want to help?
 
-## Additional Information
-
-• The tool is designed to work within an active IPython session.  
-• If no IPython session is detected, the tool will report an error.  
-• Use the timeout feature to prevent indefinite execution of code blocks.  
-
-## Dependencies
-
-This package depends on:
-• Python 3.10 or newer.  
-• IPython for interactive cell execution.  
-• swarmauri_core and swarmauri_base for Swarmauri integration.  
-
-These dependencies are automatically installed when you install this package from PyPI, so no additional manual steps are required.  
-
----
-
-Maintained by the Swarmauri team under the Apache-2.0 License.  
-Please visit our PyPI page for the latest releases and updates.
+If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.
