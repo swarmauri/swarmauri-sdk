@@ -25,7 +25,7 @@ dependencies = [
 
 [project.urls]
 Repository = "https://github.com/swarmauri/swarmauri-sdk"
-Documentation = "https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_signing_dsse"
+Documentation = "https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_signing_dsse"
 
 [project.entry-points.'swarmauri.signings']
 DSSESigner = "swarmauri_signing_dsse:DSSESigner"

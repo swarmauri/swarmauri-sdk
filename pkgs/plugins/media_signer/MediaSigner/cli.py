@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 from typing import Any, Mapping, MutableMapping, Sequence
 
-from .signer import MediaSigner
+from . import MediaSigner
 
 BytesLike = bytes | bytearray
 
@@ -127,21 +127,21 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 async def _cmd_list(args: argparse.Namespace) -> int:
-    signer = Signer()
+    signer = MediaSigner()
     for fmt in sorted(signer.supported_formats()):
         print(fmt)
     return 0
 
 
 async def _cmd_supports(args: argparse.Namespace) -> int:
-    signer = Signer()
+    signer = MediaSigner()
     info = signer.supports(args.format, key_ref=args.key_ref)
     print(json.dumps(info, indent=2, sort_keys=True))
     return 0
 
 
 async def _cmd_sign_bytes(args: argparse.Namespace) -> int:
-    signer = Signer()
+    signer = MediaSigner()
     key_data = _load_json_file(args.key)
     if not isinstance(key_data, Mapping):
         raise SystemExit("--key must reference a JSON object")
@@ -156,7 +156,7 @@ async def _cmd_sign_bytes(args: argparse.Namespace) -> int:
 
 
 async def _cmd_verify_bytes(args: argparse.Namespace) -> int:
-    signer = Signer()
+    signer = MediaSigner()
     payload = _read_bytes(args.input)
     sig_payload = _load_json_file(args.sigs)
     if not isinstance(sig_payload, list):

@@ -70,7 +70,7 @@ from swarmauri_signing_jws import JwsSignerVerifier
 # Align with your base / interfaces
 from swarmauri_base.signing.SigningBase import SigningBase
 from swarmauri_core.signing.ISigning import Signature, Envelope, Canon  # types only
-from swarmauri_core.crypto.types import KeyRef, JWAAlg
+from swarmauri_core.crypto.types import Alg, KeyRef, JWAAlg
 
 # ────────────────────────── Helpers: base64url / JWK ──────────────────────────
 
@@ -204,16 +204,13 @@ class DpopSigner(SigningBase):
         self._jws = JwsSignerVerifier()
 
     def supports(self) -> dict[str, t.Iterable[str]]:
-        envelopes = ("detached-bytes", "dpop-http-request", "structured-json")
+        structured = ("detached-bytes", "dpop-http-request", "structured-json")
         return {
-            "signs": ("bytes", "envelope"),
-            "verifies": ("bytes", "envelope"),
-            "envelopes": envelopes,
-            "algs": tuple(sorted(a.value for a in _ALLOWED_ALGS)),
-            "canons": ("raw", "json"),
             "signs": ("bytes", "digest", "envelope", "stream"),
             "verifies": ("bytes", "digest", "envelope", "stream"),
-            "envelopes": ("raw", "mapping"),
+            "envelopes": ("raw", "mapping", *structured),
+            "algs": tuple(sorted(a.value for a in _ALLOWED_ALGS)),
+            "canons": ("raw", "json"),
             "features": ("detached_only",),
         }
 
@@ -363,6 +360,26 @@ class DpopSigner(SigningBase):
             except Exception:
                 continue
         return False
+
+    async def sign_digest(
+        self,
+        key: KeyRef,
+        digest: bytes,
+        *,
+        alg: t.Optional[Alg] = None,
+        opts: t.Optional[t.Mapping[str, t.Any]] = None,
+    ) -> t.Sequence[Signature]:
+        return await self.sign_bytes(key, digest, alg=alg, opts=opts)
+
+    async def verify_digest(
+        self,
+        digest: bytes,
+        signatures: t.Sequence[Signature],
+        *,
+        require: t.Optional[t.Mapping[str, t.Any]] = None,
+        opts: t.Optional[t.Mapping[str, t.Any]] = None,
+    ) -> bool:
+        return await self.verify_bytes(digest, signatures, require=require, opts=opts)
 
     async def sign_envelope(
         self,

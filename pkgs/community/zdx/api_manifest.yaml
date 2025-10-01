@@ -3,6 +3,14 @@
 # Configure a list of `targets` to control which Python packages are documented.
 # Each target becomes a section under `docs/api/<name>/` and is added to the
 # MkDocs navigation.
+#
+# If your documentation pulls code from a uv workspace (such as this monorepo),
+# add a ``workspace`` entry so ``zdx install`` performs a single ``uv pip
+# install`` against the workspace root instead of installing each package
+# individually. Example:
+#
+# workspace:
+#   pyproject: ../../pyproject.toml
 
 targets:
   - name: Example  # Navigation label and output folder name
