@@ -2,6 +2,7 @@
 
 import argparse
 import os
+import shutil
 import shlex
 import subprocess
 import sys
@@ -11,7 +12,12 @@ from pathlib import Path
 
 import yaml
 
-from zdx.scripts.gen_api import discover_packages, load_manifest
+from zdx.scripts.gen_api import (
+    discover_packages,
+    load_manifest,
+    load_mkdocs_yml,
+    save_mkdocs_yml,
+)
 
 
 class FailureMode(Enum):
@@ -70,6 +76,93 @@ def _run_command(
     if failure_mode is FailureMode.WARN:
         print(f"WARNING: {message}")
     return result
+
+
+def _normalize_api_path(value: str) -> str:
+    """Return a normalized API path for comparisons."""
+
+    return value.replace("\\", "/").lstrip("./")
+
+
+def _prune_nav_entries(node: object, prefixes: set[str]) -> object | None:
+    """Remove nav entries that point into any of ``prefixes``."""
+
+    if isinstance(node, list):
+        pruned_list = []
+        for item in node:
+            cleaned = _prune_nav_entries(item, prefixes)
+            if cleaned is not None:
+                pruned_list.append(cleaned)
+        return pruned_list or None
+
+    if isinstance(node, dict):
+        pruned_dict: dict[str, object] = {}
+        for key, value in node.items():
+            cleaned = _prune_nav_entries(value, prefixes)
+            if cleaned is not None:
+                pruned_dict[key] = cleaned
+        return pruned_dict or None
+
+    if isinstance(node, str):
+        normalized = _normalize_api_path(node)
+        for prefix in prefixes:
+            if normalized == prefix or normalized.startswith(prefix + "/"):
+                return None
+        return node
+
+    return node
+
+
+def _prune_failed_package_docs(
+    *,
+    docs_dir: str,
+    api_output_dir: str,
+    mkdocs_yml: str,
+    failed_packages: set[str],
+) -> None:
+    """Remove generated API docs and nav entries for failed packages."""
+
+    if not failed_packages:
+        return
+
+    docs_root = Path(docs_dir)
+    api_root = docs_root / "docs" / api_output_dir
+    if not api_root.exists():
+        return
+
+    removed_prefixes: set[str] = set()
+
+    for target_dir in api_root.iterdir():
+        if not target_dir.is_dir():
+            continue
+        for pkg in failed_packages:
+            candidate = target_dir / pkg
+            if candidate.exists():
+                shutil.rmtree(candidate)
+                removed_prefixes.add(
+                    _normalize_api_path(
+                        os.path.join(api_output_dir, target_dir.name, pkg)
+                    )
+                )
+
+    if not removed_prefixes:
+        return
+
+    mkdocs_path = docs_root / mkdocs_yml
+    if not mkdocs_path.exists():
+        return
+
+    cfg = load_mkdocs_yml(str(mkdocs_path))
+    if not isinstance(cfg, dict) or "nav" not in cfg:
+        return
+
+    pruned_nav = _prune_nav_entries(cfg["nav"], removed_prefixes)
+    if pruned_nav is None:
+        cfg.pop("nav", None)
+    else:
+        cfg["nav"] = pruned_nav
+
+    save_mkdocs_yml(str(mkdocs_path), cfg)
 
 
 def _add_failure_mode_argument(parser: argparse.ArgumentParser) -> None:
@@ -356,6 +449,12 @@ def main() -> None:
                 "WARNING: Skipping API generation for packages that failed to "
                 f"install: {', '.join(sorted(failed))}"
             )
+            _prune_failed_package_docs(
+                docs_dir=args.docs_dir,
+                api_output_dir=args.api_output_dir,
+                mkdocs_yml=args.mkdocs_yml,
+                failed_packages=failed,
+            )
         run_gen_api(
             manifest=args.manifest,
             docs_dir=args.docs_dir,
@@ -401,6 +500,12 @@ def main() -> None:
             print(
                 "WARNING: Skipping API generation for packages that failed to "
                 f"install: {', '.join(sorted(failed))}"
+            )
+            _prune_failed_package_docs(
+                docs_dir=args.docs_dir,
+                api_output_dir=args.api_output_dir,
+                mkdocs_yml=args.mkdocs_yml,
+                failed_packages=failed,
             )
         if args.generate:
             run_gen_api(
