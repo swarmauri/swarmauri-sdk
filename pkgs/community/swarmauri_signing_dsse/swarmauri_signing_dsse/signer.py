@@ -5,10 +5,12 @@ from __future__ import annotations
 import base64
 from typing import Iterable, Mapping, Optional, Sequence
 
+from pydantic import Field
+
 from swarmauri_core.crypto.types import Alg, KeyRef
 from swarmauri_core.signing.ISigning import ByteStream, Canon, Envelope
 from swarmauri_core.signing.types import Signature
-from swarmauri_base.ComponentBase import ResourceTypes
+from swarmauri_base.ComponentBase import ResourceTypes, SubclassUnion
 from swarmauri_base.signing.SigningBase import SigningBase
 
 from .codec_json import DSSEJsonCodec
@@ -53,20 +55,21 @@ class DSSESigner(SigningBase):
     type: str = "DSSESigner"
     resource: Optional[str] = ResourceTypes.CRYPTO.value
 
+    inner: SubclassUnion[SigningBase]
+    codec: DSSEJsonCodec = Field(default_factory=DSSEJsonCodec)
+
     def __init__(
-        self, inner: SigningBase, *, codec: Optional[DSSEJsonCodec] = None
+        self, inner: SigningBase, *, codec: Optional[DSSEJsonCodec] = None, **data
     ) -> None:
         """Initialize the adapter with an inner signer and optional codec."""
 
-        super().__init__()
-        self._inner = inner
-        self._codec = codec or DSSEJsonCodec()
+        super().__init__(inner=inner, codec=codec or DSSEJsonCodec(), **data)
 
     # --------------------------- Capability surface ---------------------------
     def supports(self) -> Mapping[str, Iterable[str]]:
         """Return the merged capability matrix from the inner signer and DSSE."""
 
-        inner = self._inner.supports()
+        inner = self.inner.supports()
         return {
             "algs": inner.get("algs", ()),
             "canons": tuple(set(inner.get("canons", ())) | {"dsse-pae"}),
@@ -94,7 +97,7 @@ class DSSESigner(SigningBase):
     ) -> Sequence[Signature]:
         """Delegate raw byte signing to the wrapped signer."""
 
-        return await self._inner.sign_bytes(key, payload, alg=alg, opts=opts)
+        return await self.inner.sign_bytes(key, payload, alg=alg, opts=opts)
 
     async def sign_digest(
         self,
@@ -106,7 +109,7 @@ class DSSESigner(SigningBase):
     ) -> Sequence[Signature]:
         """Delegate digest signing to the wrapped signer."""
 
-        return await self._inner.sign_digest(key, digest, alg=alg, opts=opts)
+        return await self.inner.sign_digest(key, digest, alg=alg, opts=opts)
 
     async def verify_bytes(
         self,
@@ -118,8 +121,22 @@ class DSSESigner(SigningBase):
     ) -> bool:
         """Delegate byte verification to the wrapped signer."""
 
-        return await self._inner.verify_bytes(
+        return await self.inner.verify_bytes(
             payload, signatures, require=require, opts=opts
+        )
+
+    async def verify_digest(
+        self,
+        digest: bytes,
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> bool:
+        """Delegate digest verification to the wrapped signer."""
+
+        return await self.inner.verify_digest(
+            digest, signatures, require=require, opts=opts
         )
 
     async def sign_stream(
@@ -132,7 +149,7 @@ class DSSESigner(SigningBase):
     ) -> Sequence[Signature]:
         """Delegate stream signing to the wrapped signer."""
 
-        return await self._inner.sign_stream(key, payload, alg=alg, opts=opts)
+        return await self.inner.sign_stream(key, payload, alg=alg, opts=opts)
 
     async def verify_stream(
         self,
@@ -144,7 +161,7 @@ class DSSESigner(SigningBase):
     ) -> bool:
         """Delegate stream verification to the wrapped signer."""
 
-        return await self._inner.verify_stream(
+        return await self.inner.verify_stream(
             payload, signatures, require=require, opts=opts
         )
 
@@ -159,7 +176,7 @@ class DSSESigner(SigningBase):
         """Canonicalize an envelope using DSSE PAE when requested."""
 
         if canon not in (None, "dsse-pae"):
-            return await self._inner.canonicalize_envelope(env, canon=canon, opts=opts)
+            return await self.inner.canonicalize_envelope(env, canon=canon, opts=opts)
 
         envelope = self.decode_envelope(env)
         payload = _b64d(envelope.payload_b64)
@@ -179,7 +196,7 @@ class DSSESigner(SigningBase):
         pae = await self.canonicalize_envelope(
             env, canon=canon or "dsse-pae", opts=opts
         )
-        return await self._inner.sign_bytes(key, pae, alg=alg, opts=opts)
+        return await self.inner.sign_bytes(key, pae, alg=alg, opts=opts)
 
     async def verify_envelope(
         self,
@@ -195,7 +212,7 @@ class DSSESigner(SigningBase):
         pae = await self.canonicalize_envelope(
             env, canon=canon or "dsse-pae", opts=opts
         )
-        return await self._inner.verify_bytes(
+        return await self.inner.verify_bytes(
             pae, signatures, require=require, opts=opts
         )
 
@@ -203,7 +220,7 @@ class DSSESigner(SigningBase):
     def encode_envelope(self, envelope: DSSEEnvelope | Mapping[str, object]) -> bytes:
         """Encode an envelope (object or mapping) into JSON bytes."""
 
-        return self._codec.encode(self.decode_envelope(envelope))
+        return self.codec.encode(self.decode_envelope(envelope))
 
     def decode_envelope(
         self,
@@ -211,7 +228,7 @@ class DSSESigner(SigningBase):
     ) -> DSSEEnvelope:
         """Decode envelope inputs into a :class:`DSSEEnvelope` instance."""
 
-        return self._codec.decode(blob)
+        return self.codec.decode(blob)
 
 
 __all__ = ["DSSESigner", "DSSEEnvelope", "dsse_pae"]

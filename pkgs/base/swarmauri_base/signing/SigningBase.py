@@ -69,6 +69,13 @@ class SigningBase(ISigning, ComponentBase):
         alg: Optional[Alg] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
+        """Default digest handling routes through :meth:`sign_bytes`.
+
+        Subclasses that override :meth:`sign_bytes` to call :meth:`sign_digest`
+        must also provide their own :meth:`sign_digest` implementation to avoid
+        creating a mutual recursion.
+        """
+
         return await self.sign_bytes(key, digest, alg=alg, opts=opts)
 
     # ------------------------------------------------------------------
@@ -91,6 +98,13 @@ class SigningBase(ISigning, ComponentBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
+        """Default digest verification routes through :meth:`verify_bytes`.
+
+        As with :meth:`sign_digest`, subclasses that redirect
+        :meth:`verify_bytes` to :meth:`verify_digest` should override this
+        method directly to avoid recursion.
+        """
+
         return await self.verify_bytes(
             digest,
             signatures,
