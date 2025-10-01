@@ -6,10 +6,12 @@ import shutil
 import shlex
 import subprocess
 import sys
+from dataclasses import dataclass
 from enum import Enum
-from typing import Sequence
 from pathlib import Path
+from typing import Sequence
 
+import tomllib
 import yaml
 
 from zdx.scripts.gen_api import (
@@ -221,8 +223,16 @@ def run_gen_api(
     _run_command(cmd, failure_mode=failure_mode)
 
 
-def _resolve_workspace_directory(manifest_path: Path) -> Path | None:
-    """Return the workspace root defined in the manifest, if any."""
+@dataclass(frozen=True)
+class WorkspaceSpec:
+    """Details for a documentation workspace defined in a manifest."""
+
+    root: Path
+    pyproject: Path
+
+
+def _resolve_workspace_directory(manifest_path: Path) -> WorkspaceSpec | None:
+    """Return the workspace specification defined in the manifest, if any."""
 
     try:
         data = yaml.safe_load(manifest_path.read_text(encoding="utf-8")) or {}
@@ -239,27 +249,60 @@ def _resolve_workspace_directory(manifest_path: Path) -> Path | None:
             candidate = (manifest_path.parent / candidate).resolve()
         return candidate
 
-    workspace_dir: Path | None = None
+    root: Path | None = None
+    pyproject: Path | None = None
+
     if isinstance(workspace_cfg, str):
-        workspace_dir = _make_path(workspace_cfg)
+        candidate = _make_path(workspace_cfg)
+        if candidate.is_file():
+            pyproject = candidate
+            root = candidate.parent
+        else:
+            root = candidate
+            pyproject = candidate / "pyproject.toml"
     elif isinstance(workspace_cfg, dict):
         if "pyproject" in workspace_cfg:
-            pyproject_path = _make_path(workspace_cfg["pyproject"])
-            workspace_dir = pyproject_path.parent
+            pyproject = _make_path(workspace_cfg["pyproject"])
+            root = pyproject.parent
         elif "root" in workspace_cfg:
-            workspace_dir = _make_path(workspace_cfg["root"])
+            root = _make_path(workspace_cfg["root"])
+            pyproject = root / "pyproject.toml"
 
-    if not workspace_dir:
+    if not root or not pyproject:
         return None
 
-    if workspace_dir.is_file():
-        workspace_dir = workspace_dir.parent
+    if pyproject.is_dir():
+        pyproject = pyproject / "pyproject.toml"
 
-    pyproject = workspace_dir / "pyproject.toml"
     if not pyproject.is_file():
         return None
 
-    return workspace_dir
+    return WorkspaceSpec(root=root, pyproject=pyproject)
+
+
+def _load_workspace_members(spec: WorkspaceSpec) -> list[Path]:
+    """Load workspace members defined in ``spec``'s ``pyproject.toml``."""
+
+    try:
+        data = tomllib.loads(spec.pyproject.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return []
+    except tomllib.TOMLDecodeError:
+        return []
+
+    workspace_cfg = data.get("tool", {}).get("uv", {}).get("workspace", {})
+    members = (
+        workspace_cfg.get("members", []) if isinstance(workspace_cfg, dict) else []
+    )
+
+    resolved: list[Path] = []
+    for entry in members:
+        if not isinstance(entry, str):
+            continue
+        candidate = (spec.root / entry).resolve()
+        if candidate.is_dir():
+            resolved.append(candidate)
+    return resolved
 
 
 def install_manifest_packages(
@@ -279,28 +322,64 @@ def install_manifest_packages(
     """
 
     manifest_path = Path(manifest).resolve()
-    workspace_dir = _resolve_workspace_directory(manifest_path)
-
-    workspace_result: subprocess.CompletedProcess[bytes] | None = None
-    if workspace_dir is not None:
-        cmd = [
-            "uv",
-            "pip",
-            "install",
-            "--directory",
-            str(workspace_dir),
-        ]
-        if not (os.environ.get("VIRTUAL_ENV") or sys.prefix != sys.base_prefix):
-            cmd.append("--system")
-        cmd.append(".")
-        workspace_result = _run_command(
-            cmd,
-            failure_mode=failure_mode,
-            description=f"uv pip install --directory {workspace_dir}",
-        )
-
     targets = load_manifest(manifest)
     manifest_parent = manifest_path.parent
+
+    workspace_spec = _resolve_workspace_directory(manifest_path)
+    workspace_result: subprocess.CompletedProcess[bytes] | None = None
+    installed_members: set[Path] = set()
+
+    if workspace_spec is not None:
+        member_paths = _load_workspace_members(workspace_spec)
+        target_paths: list[Path] = []
+        for target in targets:
+            base_path = Path(target.search_path)
+            if not base_path.is_absolute():
+                base_path = (manifest_parent / base_path).resolve()
+            target_paths.append(base_path)
+
+        desired_members: list[Path] = []
+        for member in member_paths:
+            for base_path in target_paths:
+                if member == base_path or member.is_relative_to(base_path):
+                    desired_members.append(member)
+                    break
+                if base_path.is_relative_to(member):
+                    desired_members.append(member)
+                    break
+
+        if desired_members:
+            cmd = ["uv", "pip", "install"]
+            if not (os.environ.get("VIRTUAL_ENV") or sys.prefix != sys.base_prefix):
+                cmd.append("--system")
+            for member in desired_members:
+                cmd.extend(["--editable", str(member)])
+            workspace_result = _run_command(
+                cmd,
+                failure_mode=failure_mode,
+                description="uv pip install (workspace members)",
+            )
+            if workspace_result.returncode == 0:
+                installed_members = {member.resolve() for member in desired_members}
+        else:
+            cmd = [
+                "uv",
+                "pip",
+                "install",
+                "--directory",
+                str(workspace_spec.root),
+            ]
+            if not (os.environ.get("VIRTUAL_ENV") or sys.prefix != sys.base_prefix):
+                cmd.append("--system")
+            cmd.append(".")
+            workspace_result = _run_command(
+                cmd,
+                failure_mode=failure_mode,
+                description=f"uv pip install --directory {workspace_spec.root}",
+            )
+            if workspace_result.returncode == 0:
+                installed_members = {workspace_spec.root.resolve()}
+
     workspace_success = (
         workspace_result is not None and workspace_result.returncode == 0
     )
@@ -308,9 +387,10 @@ def install_manifest_packages(
     failed_packages: set[str] = set()
 
     def _install_path(pkg_name: str, pkg_path: Path) -> None:
-        if workspace_success and workspace_dir is not None:
-            if pkg_path.is_relative_to(workspace_dir):
-                return
+        if workspace_success and installed_members:
+            for member in installed_members:
+                if pkg_path.is_relative_to(member):
+                    return
         if not pkg_path.is_dir():
             return
         if not (
