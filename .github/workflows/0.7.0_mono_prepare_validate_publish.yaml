@@ -10,9 +10,14 @@ on:
       set_version:
         description: "Version (e.g. 0.2.0 or 0.2.0.dev1)"
         required: false
+
 concurrency:
   group: dev-branch-prepare-workflow
   cancel-in-progress: false
+
+permissions:
+  contents: write       # for pushing commits/tags and creating releases
+  deployments: write    # for environment approval gates
 
 jobs:
   set-matrix:
@@ -133,7 +138,6 @@ jobs:
           echo "Running tests for workspace member: $MEMBER"
           PACKAGE_NAME="${{ matrix.package_name }}"
           echo "Package name: $PACKAGE_NAME"
-          # Run the test command with uv
           uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff format .
 
       - name: Ruff lint check & fix
@@ -143,7 +147,6 @@ jobs:
           echo "Running tests for workspace member: $MEMBER"
           PACKAGE_NAME="${{ matrix.package_name }}"
           echo "Package name: $PACKAGE_NAME"
-          # Run the test command with uv
           uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff check . --fix
 
       - name: Run tests for member ${{ matrix.member }}
@@ -153,17 +156,15 @@ jobs:
           echo "Running tests for workspace member: $MEMBER"
           PACKAGE_NAME="${{ matrix.package_name }}"
           echo "Package name: $PACKAGE_NAME"
-          # Run the test command with uv
           uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active pytest -vvv
 
-      ## Patches 
+      # Patches 
       - name: Create patch for changes
         if: always()
         run: |
           mkdir -p patches
           MEMBER="${{ matrix.member }}"
           SAFE_MEMBER=$(echo "$MEMBER" | tr '/' '-')
-          # Generate a patch relative to the repository root for the member directory
           git diff HEAD -- pkgs/"$MEMBER" > patches/patch_${SAFE_MEMBER}.patch
 
       - name: Set safe member variable
@@ -202,7 +203,7 @@ jobs:
           path: patches
 
       - name: List downloaded artifacts
-        run: ls -R patches
+        run: ls -R patches || true
 
       - name: Apply patches
         run: |
@@ -217,11 +218,8 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          # Add GitHub to known hosts to prevent interactive verification
           ssh-keyscan github.com >> ~/.ssh/known_hosts
-          # Change remote URL to SSH so that git push uses the deploy key
           git remote set-url origin git@github.com:${{ github.repository }}.git
-
 
       - name: Git Commit and Push
         run: |
@@ -236,41 +234,29 @@ jobs:
             echo "No changes to commit."
           fi
 
-
-  new-package-approval:
+  # ---- Environment-gated approval for publishing NEW packages ----
+  pypi_approval_gate:
     needs: set-matrix
     if: ${{ !cancelled() && needs.set-matrix.outputs.approval_required == 'true' }}
     runs-on: ubuntu-latest
     strategy:
       matrix: ${{ fromJson(needs.set-matrix.outputs.approval_matrix) }}
       fail-fast: false
+      max-parallel: 1
+    timeout-minutes: 4320  # up to 3 days for manual approval
     environment:
-      # Requesting deployment to a protected environment triggers GitHub's
-      # built-in manual approval gate for reviewers configured on the
-      # "pypi-new-package-approval" environment.
       name: pypi-new-package-approval
       url: https://pypi.org/project/${{ matrix.package_name }}/
     steps:
-      - name: Document manual approval instructions
+      - name: Await manual approval in the environment gate
         run: |
-          cat <<'EOF' >> "$GITHUB_STEP_SUMMARY"
-          ## Manual approval required for ${{ matrix.package_name }}
-
-          This workflow requested deployment to the protected **pypi-new-package-approval** environment. GitHub surfaces a **Review deployments** banner on the run page and in the **Deployments** tab of the workflow run. To continue:
-
-          1. Open the **Review deployments** prompt for `${{ matrix.package_name }}`.
-          2. Click **Approve and deploy** once you have confirmed the package may be published.
-
-          The publish stage will resume automatically after approval.
-          EOF
-
-      - name: Await approval for ${{ matrix.package_name }}
-        run: echo "Approval granted for publishing new package ${{ matrix.package_name }}."
+          echo "::notice::Approval gate for '${{ matrix.package_name }}'. Use the 'Review deployments' banner to Approve and deploy."
 
   release:
-    needs: [commit, set-matrix, new-package-approval]
+    needs: [commit, set-matrix, pypi_approval_gate]
     runs-on: ubuntu-latest
-    if: ${{ !cancelled() && always() }}
+    # Run if no approval is required OR the approval gate succeeded.
+    if: ${{ !cancelled() && always() && (needs.set-matrix.outputs.approval_required != 'true' || needs.pypi_approval_gate.result == 'success') }}
     strategy:
       matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
       fail-fast: false
@@ -287,7 +273,7 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Install dependencies for testing
+      - name: Install build tooling
         run: pip install uv pytest toml
 
       ## Build
@@ -295,10 +281,9 @@ jobs:
         run: |
           cd pkgs
           MEMBER="${{ matrix.member }}"
-          echo "Running tests for workspace member: $MEMBER"
+          echo "Building workspace member: $MEMBER"
           PACKAGE_NAME="${{ matrix.package_name }}"
           echo "Package name: $PACKAGE_NAME"
-          # Command
           uv build --directory "$MEMBER" --package "$PACKAGE_NAME" -o distout
 
       ## Publish
@@ -306,10 +291,9 @@ jobs:
         run: |
           cd pkgs
           MEMBER="${{ matrix.member }}"
-          echo "Running tests for workspace member: $MEMBER"
+          echo "Publishing workspace member: $MEMBER"
           PACKAGE_NAME="${{ matrix.package_name }}"
           echo "Package name: $PACKAGE_NAME"
-          # Command
           uv publish --directory "$MEMBER" distout/* --token "${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}"
 
       ## --- Release Steps: Auto-tag, generate release notes, zip artifacts, create release ---
@@ -320,7 +304,6 @@ jobs:
           PACKAGE_NAME="${{ matrix.package_name }}"
           VERSION=$(python -c "import toml; print(toml.load('pyproject.toml')['project']['version'])")
           TAG="${PACKAGE_NAME}==${VERSION}"
-          # If bump_type is 'finalize' OR the version does not contain ".dev", create a normal release.
           if [ "${{ github.event.inputs.bump_type }}" = "finalize" ] || [[ "$VERSION" != *".dev"* ]]; then
             PRERELEASE_FLAG=false
           else
@@ -332,16 +315,23 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Computed tag: $TAG, prerelease: $PRERELEASE_FLAG"
 
+      - name: Create Git Tag
+        run: |
+          cd pkgs/${{ matrix.member }}
+          git tag "${{ steps.prepare_release.outputs.tag }}"
+          git push origin "${{ steps.prepare_release.outputs.tag }}"
+
       - name: Generate Release Notes
         id: generate_release_notes
         run: |
           cd pkgs/${{ matrix.member }}
           CURRENT_TAG="${{ steps.prepare_release.outputs.tag }}"
           # Find the most recent tag for this package excluding the current tag
-          PREVIOUS_TAG=$(git tag --list "${{ steps.prepare_release.outputs.package_name }}==*" --sort=-v:refname | grep -v "$CURRENT_TAG" | head -n1)
+          PREVIOUS_TAG=$(git tag --list "${{ steps.prepare_release.outputs.package_name }}==*" --sort=-v:refname | grep -v "^${CURRENT_TAG}$" | head -n1)
           echo "Previous tag: $PREVIOUS_TAG"
           if [ -n "$PREVIOUS_TAG" ]; then
-            RELEASE_NOTES=$(git log "$PREVIOUS_TAG" -- "$CURRENT_TAG" --pretty=format:"* %s" --reverse)
+            # Notes limited to changes in this member's directory
+            RELEASE_NOTES=$(git log "${PREVIOUS_TAG}..${CURRENT_TAG}" -- . --pretty=format:"* %s" --reverse)
           else
             RELEASE_NOTES="Initial release."
           fi
@@ -349,18 +339,12 @@ jobs:
           echo "$RELEASE_NOTES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Create Git Tag
-        run: |
-          cd pkgs/${{ matrix.member }}
-          git tag "${{ steps.prepare_release.outputs.tag }}"
-          git push origin "${{ steps.prepare_release.outputs.tag }}"
-
       - name: Zip distribution artifacts
         run: |
           cd pkgs/${{ matrix.member }}
           mkdir -p release_artifacts
           ZIP_PATH=release_artifacts/${{ steps.prepare_release.outputs.package_name }}-${{ steps.prepare_release.outputs.version }}.zip
-          zip -j $ZIP_PATH distout/*.whl distout/*.tar.gz
+          zip -j "$ZIP_PATH" distout/*.whl distout/*.tar.gz
           echo "Artifacts zipped to: $ZIP_PATH"
 
       - name: Create GitHub Release
