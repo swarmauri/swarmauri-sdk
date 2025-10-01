@@ -29,7 +29,7 @@ _JWA_TO_COSE = {
 class JwaCipherSuite(CipherSuiteBase):
     """JSON Web Algorithm policy surface (RFC 7518)."""
 
-    type = "JwaCipherSuite"
+    type: str = "JwaCipherSuite"
 
     def suite_id(self) -> str:
         return "jwa"

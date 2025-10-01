@@ -18,7 +18,7 @@ _FIDO_COSE = ("-7", "-8", "-257")
 class WebAuthnCipherSuite(CipherSuiteBase):
     """COSE subset tailored for WebAuthn / FIDO2."""
 
-    type = "WebAuthnCipherSuite"
+    type: str = "WebAuthnCipherSuite"
 
     def suite_id(self) -> str:
         return "webauthn"

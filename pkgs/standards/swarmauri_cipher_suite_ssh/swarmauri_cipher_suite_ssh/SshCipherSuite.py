@@ -21,7 +21,7 @@ _SSH_MAC = ("hmac-sha2-256",)
 class SshCipherSuite(CipherSuiteBase):
     """Skeleton suite for OpenSSH policy."""
 
-    type = "SshCipherSuite"
+    type: str = "SshCipherSuite"
 
     def suite_id(self) -> str:
         return "ssh"
