@@ -1,3 +1,6 @@
+workspace:
+  pyproject: /pkgs/pyproject.toml
+
 targets:
   # Main SDK packages
   - name: Core
