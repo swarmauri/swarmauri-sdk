@@ -4,8 +4,13 @@ import argparse
 import os
 import subprocess
 import sys
+from typing import Any, Dict, Iterable, List, Set
 
-from zdx.scripts.gen_api import discover_packages, load_manifest
+import tomllib
+
+import yaml
+
+from zdx.scripts.gen_api import Target, discover_packages, load_manifest
 
 
 def run_gen_api(
@@ -42,23 +47,101 @@ def run_gen_api(
     subprocess.run(cmd, check=True)
 
 
-def install_manifest_packages(manifest: str) -> None:
-    """Install all packages referenced in the API manifest.
+def _load_manifest_data(manifest: str) -> Dict[str, Any]:
+    try:
+        with open(manifest, "r", encoding="utf-8") as fh:
+            data = yaml.safe_load(fh) or {}
+    except FileNotFoundError:
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    return data
 
-    This ensures modules documented via ``mkdocstrings`` can be imported
-    successfully when building or serving the docs.
-    """
 
-    targets = load_manifest(manifest)
-    package_dirs = set()
+def _resolve_manifest_path(manifest: str, value: str) -> str:
+    if os.path.isabs(value):
+        return value
+    manifest_dir = os.path.dirname(os.path.abspath(manifest))
+    return os.path.normpath(os.path.join(manifest_dir, value))
+
+
+def _install_workspace_members(pyproject_path: str) -> Set[str]:
+    try:
+        with open(pyproject_path, "rb") as fh:
+            data = tomllib.load(fh)
+    except FileNotFoundError:
+        return set()
+    except tomllib.TOMLDecodeError:
+        return set()
+
+    workspace = (
+        data.get("tool", {}).get("uv", {}).get("workspace", {}).get("members", [])
+    )
+    if not isinstance(workspace, list):
+        return set()
+
+    project_root = os.path.dirname(os.path.abspath(pyproject_path))
+    editable_args: List[str] = []
+    installed_dirs: Set[str] = set()
+
+    for member in workspace:
+        if not isinstance(member, str):
+            continue
+        member_path = os.path.abspath(os.path.join(project_root, member))
+        if member_path in installed_dirs:
+            continue
+        if not os.path.isdir(member_path):
+            continue
+        if not (
+            os.path.isfile(os.path.join(member_path, "pyproject.toml"))
+            or os.path.isfile(os.path.join(member_path, "setup.py"))
+        ):
+            continue
+        editable_args.extend(["--editable", member_path])
+        installed_dirs.add(member_path)
+
+    if not editable_args:
+        return set()
+
+    cmd: List[str] = ["uv", "pip", "install"]
+    if not (os.environ.get("VIRTUAL_ENV") or sys.prefix != sys.base_prefix):
+        cmd.append("--system")
+    cmd.extend(editable_args)
+    subprocess.run(cmd, check=True)
+    return installed_dirs
+
+
+def _iter_package_dirs(targets: Iterable[Target]) -> Set[str]:
+    package_dirs: Set[str] = set()
     for t in targets:
         if t.package:
-            package_dirs.add(t.search_path)
+            package_dirs.add(os.path.abspath(t.search_path))
         if t.discover:
             for _, pkg_dir in discover_packages(t.search_path):
-                package_dirs.add(pkg_dir)
+                package_dirs.add(os.path.abspath(pkg_dir))
+    return package_dirs
 
-    for pkg_dir in sorted(package_dirs):
+
+def install_manifest_packages(manifest: str) -> None:
+    """Install packages referenced in the manifest.
+
+    If ``workspace_pyproject`` is specified in the manifest, install all
+    workspace members defined there in a single ``uv pip install`` invocation.
+    Remaining packages fall back to per-directory installation.
+    """
+
+    manifest_data = _load_manifest_data(manifest)
+    workspace_pyproject = manifest_data.get("workspace_pyproject")
+    installed_dirs: Set[str] = set()
+
+    if isinstance(workspace_pyproject, str):
+        resolved = _resolve_manifest_path(manifest, workspace_pyproject)
+        installed_dirs = _install_workspace_members(resolved)
+
+    targets = load_manifest(manifest)
+    package_dirs = _iter_package_dirs(targets)
+
+    for pkg_dir in sorted(package_dirs - installed_dirs):
         if not os.path.isdir(pkg_dir):
             continue
         if not (
