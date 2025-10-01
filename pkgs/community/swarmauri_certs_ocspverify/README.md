@@ -31,15 +31,87 @@ remaining compatible with X.509 certificate guidelines from
 - Verify certificate status via OCSP responders advertised in the certificate's
   Authority Information Access extension.
 
+## Prerequisites
+- Python 3.10 or newer.
+- Leaf certificate PEM to inspect and validate.
+- Issuer (intermediate) certificate PEM required to build the OCSP request.
+- Network access to the OCSP responder URLs exposed in the certificate's Authority Information Access extension.
+- Optional: trust root bundle if performing additional validation on issuer metadata alongside OCSP results.
+
 ## Installation
+
 ```bash
+# pip
 pip install swarmauri_certs_ocspverify
+
+# poetry
+poetry add swarmauri_certs_ocspverify
+
+# uv (pyproject-based projects)
+uv add swarmauri_certs_ocspverify
 ```
 
 ## Usage
+
+Perform an OCSP status check for a leaf certificate using its issuer certificate:
+
 ```python
+import asyncio
+from pathlib import Path
+
 from swarmauri_certs_ocspverify import OcspVerifyService
 
-svc = OcspVerifyService()
-# verify and parse certificates using svc.verify_cert(...) and svc.parse_cert(...)
+
+async def main() -> None:
+    service = OcspVerifyService()
+
+    leaf_cert = Path("leaf.pem").read_bytes()
+    issuer_cert = Path("issuer.pem").read_bytes()
+
+    verification = await service.verify_cert(
+        cert=leaf_cert,
+        intermediates=[issuer_cert],
+        check_revocation=True,
+    )
+
+    if verification["valid"]:
+        print("Certificate status: GOOD")
+    else:
+        print("Certificate status:", verification["reason"])
+    print("Next update:", verification.get("next_update"))
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
+
+## Parsing OCSP Metadata
+
+Use `parse_cert` to confirm which OCSP responder URLs are embedded and to inspect the validity window:
+
+```python
+import asyncio
+from pathlib import Path
+
+from swarmauri_certs_ocspverify import OcspVerifyService
+
+
+async def describe() -> None:
+    service = OcspVerifyService()
+    leaf_cert = Path("leaf.pem").read_bytes()
+
+    metadata = await service.parse_cert(leaf_cert)
+    print("Subject:", metadata["subject"])
+    print("Issuer:", metadata["issuer"])
+    print("OCSP URLs:", metadata.get("ocsp_urls", []))
+
+
+if __name__ == "__main__":
+    asyncio.run(describe())
+```
+
+## Best Practices
+- Cache issuer certificates alongside leaf certificates so OCSP requests can be constructed quickly.
+- Respect OCSP responder rate limits; consider backoff and caching GOOD responses until `next_update`.
+- Combine OCSP checks with CRL fallbacks for authorities that support multiple revocation mechanisms.
+- Log `reason` and timestamp fields from the verification output to aid in incident response and compliance reporting.

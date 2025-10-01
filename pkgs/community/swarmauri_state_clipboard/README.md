@@ -1,4 +1,3 @@
-
 ![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
@@ -18,43 +17,68 @@
 
 # Swarmauri State Clipboard
 
-A concrete implementation of StateBase that uses the system clipboard to store and retrieve state data.
+`ClipboardState` implements Swarmauri's `StateBase` interface using the system clipboard as storage. Useful for quick demos or sharing state between desktop tools without running an external datastore.
+
+## Features
+
+- Reads/writes clipboard contents via platform commands (`clip`, `pbcopy`/`pbpaste`, `xclip`).
+- Stores JSON-like dictionaries as string representations; uses `ast.literal_eval` when reading.
+- Provides `write`, `read`, `update`, `reset`, and `deep_copy` helpers.
+
+## Prerequisites
+
+- Python 3.10 or newer.
+- OS clipboard utilities available:
+  - Windows: `clip` (built-in) and PowerShell `Get-Clipboard`.
+  - macOS: `pbcopy`/`pbpaste` (built-in).
+  - Linux: `xclip` installed (`apt install xclip` or equivalent).
 
 ## Installation
 
 ```bash
+# pip
 pip install swarmauri_state_clipboard
+
+# poetry
+poetry add swarmauri_state_clipboard
+
+# uv (pyproject-based projects)
+uv add swarmauri_state_clipboard
 ```
 
-## Usage
-Basic usage examples with code snippets
+## Quickstart
+
 ```python
-from swarmauri.states.ClipboardState import ClipboardState
+from swarmauri_state_clipboard import ClipboardState
 
-# Create an instance of ClipboardState
-clipboard_state = ClipboardState()
+state = ClipboardState()
+state.write({"key1": "value1", "counter": 42})
+print(state.read())
 
-# Write data to the clipboard
-clipboard_state.write({"key1": "value1", "key2": 42})
+state.update({"counter": 43})
+print(state.read())
 
-# Read data from the clipboard
-data = clipboard_state.read()
-print(data)  # Output: {'key1': 'value1', 'key2': 42}
-
-# Update data on the clipboard
-clipboard_state.update({"key3": "value3"})
-
-# Read updated data from the clipboard
-updated_data = clipboard_state.read()
-print(updated_data)  # Output: {'key1': 'value1', 'key2': 42, 'key3': 'value3'}
-
-# Reset the clipboard state
-clipboard_state.reset()
-
-# Verify the clipboard is reset
-reset_data = clipboard_state.read()
-print(reset_data)  # Output: {}
+state.reset()
+print(state.read())  # {}
 ```
+
+## Deep Copy
+
+```python
+state = ClipboardState()
+state.write({"session": "abc123"})
+clone = state.deep_copy()
+clone.update({"session": "xyz789"})
+
+print(state.read())   # {'session': 'abc123'}
+print(clone.read())    # {'session': 'xyz789'}
+```
+
+## Tips
+
+- Clipboard overwrites are global; avoid using this state provider in multi-user or production environments where clipboard privacy matters.
+- Contents are stored as Python literal strings—avoid writing untrusted data to the clipboard to prevent evaluation issues (though `ast.literal_eval` mitigates code execution risks).
+- Ensure required system commands exist before running in CI or containers (install `xclip` for Linux builds).
 
 ## Want to help?
 
