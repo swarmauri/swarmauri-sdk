@@ -34,9 +34,9 @@ dependencies = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/swarmauri/swarmauri-sdk"
-"Source" = "https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/standards/swarmauri_signing_pep458"
-"Documentation" = "https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/standards/swarmauri_signing_pep458#readme"
+Homepage = "https://github.com/swarmauri/swarmauri-sdk"
+Source = "https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/standards/swarmauri_signing_pep458"
+Documentation = "https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/standards/swarmauri_signing_pep458#readme"
 
 [tool.uv.sources]
 swarmauri_core = { workspace = true }

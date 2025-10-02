@@ -6,14 +6,22 @@ license = "Apache-2.0"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+keywords = [
+    "swarmauri",
+    "signing",
+    "ssh",
+    "public-key",
+    "secure-shell",
+]
 classifiers = [
+    "Development Status :: 1 - Planning",
     "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Development Status :: 3 - Alpha",
     "Topic :: Security :: Cryptography",
     "Intended Audience :: Developers",
 ]
@@ -21,6 +29,11 @@ dependencies = [
     "swarmauri_core",
     "swarmauri_base",
 ]
+
+[project.urls]
+Homepage = "https://github.com/swarmauri/swarmauri-sdk"
+Source = "https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/standards/swarmauri_signing_ssh"
+Documentation = "https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/standards/swarmauri_signing_ssh#readme"
 
 [project.optional-dependencies]
 cbor = ["cbor2"]
