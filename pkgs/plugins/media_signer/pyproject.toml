@@ -40,14 +40,23 @@ swarmauri_signing_jws = { workspace = true }
 swarmauri_signing_openpgp = { workspace = true }
 swarmauri_signing_pdf = { workspace = true }
 swarmauri_signing_xmld = { workspace = true }
+swarmauri_keyprovider_inmemory = { workspace = true }
 
 [dependency-groups]
 dev = [
+    "cryptography>=43.0.0",
     "pytest>=8.0.0",
     "pytest-asyncio>=0.24.0",
     "pytest-xdist>=3.6.1",
     "pytest-json-report>=1.5.0",
     "python-dotenv>=1.0.0",
+    "pgpy>=0.6.0",
+    "swarmauri_keyprovider_inmemory",
+    "swarmauri_signing_cms",
+    "swarmauri_signing_jws",
+    "swarmauri_signing_openpgp",
+    "swarmauri_signing_pdf",
+    "swarmauri_signing_xmld",
     "ruff>=0.9.9",
 ]
 

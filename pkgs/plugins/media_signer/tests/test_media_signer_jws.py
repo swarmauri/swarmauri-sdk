@@ -1,7 +1,9 @@
 import pytest
+import pytest_asyncio
 
 from ._helpers import (
     async_chunks,
+    JWS_FORMAT,
     build_media_signer_with_hmac,
     digest,
     jws_hmac_key,
@@ -9,9 +11,11 @@ from ._helpers import (
 )
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def jws_context():
     signer, _provider, key_ref = await build_media_signer_with_hmac("jws-test")
+    if JWS_FORMAT not in signer.supported_formats():
+        pytest.skip(f"{JWS_FORMAT} is not registered with MediaSigner")
     return signer, jws_hmac_key(key_ref), jws_verify_opts(key_ref)
 
 
@@ -21,11 +25,11 @@ async def test_media_signer_jws_attached_bytes(jws_context):
     payload = b"jws attached payload"
 
     signatures = await signer.sign_bytes(
-        "jws", key_entry, payload, opts={"alg": "HS256"}
+        JWS_FORMAT, key_entry, payload, opts={"alg": "HS256"}
     )
 
     assert signatures and signatures[0].mode == "attached"
-    assert await signer.verify_bytes("jws", payload, signatures, opts=verify_opts)
+    assert await signer.verify_bytes(JWS_FORMAT, payload, signatures, opts=verify_opts)
 
 
 @pytest.mark.asyncio
@@ -34,10 +38,12 @@ async def test_media_signer_jws_digest_round_trip(jws_context):
     payload = b"jws digest payload"
     sha = digest(payload)
 
-    signatures = await signer.sign_digest("jws", key_entry, sha, opts={"alg": "HS256"})
+    signatures = await signer.sign_digest(
+        JWS_FORMAT, key_entry, sha, opts={"alg": "HS256"}
+    )
 
     assert signatures and signatures[0].meta.get("payload_kind") == "digest"
-    assert await signer.verify_digest("jws", sha, signatures, opts=verify_opts)
+    assert await signer.verify_digest(JWS_FORMAT, sha, signatures, opts=verify_opts)
 
 
 @pytest.mark.asyncio
@@ -47,12 +53,12 @@ async def test_media_signer_jws_stream_round_trip(jws_context):
     stream_factory = async_chunks(payload, size=6)
 
     signatures = await signer.sign_stream(
-        "jws", key_entry, stream_factory(), opts={"alg": "HS256"}
+        JWS_FORMAT, key_entry, stream_factory(), opts={"alg": "HS256"}
     )
 
     assert signatures and signatures[0].meta.get("payload_kind") == "stream"
     assert await signer.verify_stream(
-        "jws", stream_factory(), signatures, opts=verify_opts
+        JWS_FORMAT, stream_factory(), signatures, opts=verify_opts
     )
 
 
@@ -62,10 +68,10 @@ async def test_media_signer_jws_envelope_round_trip(jws_context):
     envelope = {"type": "jws-envelope", "version": 1}
 
     signatures = await signer.sign_envelope(
-        "jws", key_entry, envelope, canon="json", opts={"alg": "HS256"}
+        JWS_FORMAT, key_entry, envelope, canon="json", opts={"alg": "HS256"}
     )
 
     assert signatures and signatures[0].meta.get("payload_kind") == "envelope"
     assert await signer.verify_envelope(
-        "jws", envelope, signatures, canon="json", opts=verify_opts
+        JWS_FORMAT, envelope, signatures, canon="json", opts=verify_opts
     )

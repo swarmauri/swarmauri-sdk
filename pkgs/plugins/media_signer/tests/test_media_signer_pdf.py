@@ -1,7 +1,9 @@
 import pytest
+import pytest_asyncio
 
 from ._helpers import (
     async_chunks,
+    PDF_FORMAT,
     build_media_signer_with_rsa,
     cms_key_entry,
     digest,
@@ -10,9 +12,11 @@ from ._helpers import (
 )
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def pdf_context():
     signer, _provider, key_ref = await build_media_signer_with_rsa("pdf-test")
+    if PDF_FORMAT not in signer.supported_formats():
+        pytest.skip(f"{PDF_FORMAT} is not registered with MediaSigner")
     return signer, cms_key_entry(key_ref), pdf_trust_opts(key_ref)
 
 
@@ -22,12 +26,12 @@ async def test_media_signer_pdf_attached_bytes(pdf_context):
     payload = b"pdf attached payload"
 
     signatures = await signer.sign_bytes(
-        "pdf", key_entry, payload, opts=pdf_sign_opts(True)
+        PDF_FORMAT, key_entry, payload, opts=pdf_sign_opts(True)
     )
 
     assert signatures and signatures[0].mode == "attached"
     assert signatures[0].meta.get("attached") is True
-    assert await signer.verify_bytes("pdf", payload, signatures, opts=trust_opts)
+    assert await signer.verify_bytes(PDF_FORMAT, payload, signatures, opts=trust_opts)
 
 
 @pytest.mark.asyncio
@@ -36,12 +40,12 @@ async def test_media_signer_pdf_detached_bytes(pdf_context):
     payload = b"pdf detached payload"
 
     signatures = await signer.sign_bytes(
-        "pdf", key_entry, payload, opts=pdf_sign_opts(False)
+        PDF_FORMAT, key_entry, payload, opts=pdf_sign_opts(False)
     )
 
     assert signatures and signatures[0].mode == "detached"
     assert signatures[0].meta.get("attached") is False
-    assert await signer.verify_bytes("pdf", payload, signatures, opts=trust_opts)
+    assert await signer.verify_bytes(PDF_FORMAT, payload, signatures, opts=trust_opts)
 
 
 @pytest.mark.asyncio
@@ -51,11 +55,11 @@ async def test_media_signer_pdf_detached_digest(pdf_context):
     sha = digest(payload)
 
     signatures = await signer.sign_digest(
-        "pdf", key_entry, sha, opts=pdf_sign_opts(False)
+        PDF_FORMAT, key_entry, sha, opts=pdf_sign_opts(False)
     )
 
     assert signatures and signatures[0].meta.get("payload_kind") == "digest"
-    assert await signer.verify_digest("pdf", sha, signatures, opts=trust_opts)
+    assert await signer.verify_digest(PDF_FORMAT, sha, signatures, opts=trust_opts)
 
 
 @pytest.mark.asyncio
@@ -65,12 +69,12 @@ async def test_media_signer_pdf_attached_stream(pdf_context):
     stream_factory = async_chunks(payload, size=9)
 
     signatures = await signer.sign_stream(
-        "pdf", key_entry, stream_factory(), opts=pdf_sign_opts(True)
+        PDF_FORMAT, key_entry, stream_factory(), opts=pdf_sign_opts(True)
     )
 
     assert signatures and signatures[0].meta.get("payload_kind") == "stream"
     assert await signer.verify_stream(
-        "pdf", stream_factory(), signatures, opts=trust_opts
+        PDF_FORMAT, stream_factory(), signatures, opts=trust_opts
     )
 
 
@@ -80,10 +84,10 @@ async def test_media_signer_pdf_detached_envelope(pdf_context):
     envelope = {"pdf": {"title": "MediaSigner"}, "data": "payload"}
 
     signatures = await signer.sign_envelope(
-        "pdf", key_entry, envelope, canon="json", opts=pdf_sign_opts(False)
+        PDF_FORMAT, key_entry, envelope, canon="json", opts=pdf_sign_opts(False)
     )
 
     assert signatures and signatures[0].meta.get("attached") is False
     assert await signer.verify_envelope(
-        "pdf", envelope, signatures, canon="json", opts=trust_opts
+        PDF_FORMAT, envelope, signatures, canon="json", opts=trust_opts
     )

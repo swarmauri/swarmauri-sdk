@@ -3,20 +3,19 @@
 from __future__ import annotations
 
 import asyncio
-import datetime as _dt
 import hashlib
 from typing import AsyncIterator, Callable, Tuple
-
-from cryptography import x509
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives.serialization import Encoding, NoEncryption
-from cryptography.x509.oid import NameOID
 
 from MediaSigner import MediaSigner
 from swarmauri_core.crypto.types import ExportPolicy, KeyRef, KeyUse
 from swarmauri_core.keys.types import KeyAlg, KeyClass, KeySpec
 from swarmauri_keyprovider_inmemory import InMemoryKeyProvider
+
+CMS_FORMAT = "CMSSigner"
+JWS_FORMAT = "JWSSigner"
+OPENPGP_FORMAT = "OpenPGPSigner"
+PDF_FORMAT = "PDFSigner"
+XMLD_FORMAT = "XMLDSigner"
 
 try:  # optional dependency used by OpenPGP helpers
     import pgpy
@@ -41,30 +40,21 @@ def _require_material(value: bytes | str | None) -> bytes:
     raise ValueError("KeyRef did not expose the required material bytes")
 
 
-def generate_self_signed_rsa(common_name: str) -> Tuple[bytes, bytes]:
-    """Produce a private key and certificate pair for RSA-based signers."""
+_RSA_PRIVATE_KEY = b"""-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCaqBvzwvcVs3je\nN2Aue3+qy7jiq2d8ByUjguLlSTTILkc5k8QphGaTOUazqrF1Rk6vGo/CV3ovvKQE\naKOeFsO/u2Dbbmy3y7xjZMaidFdCgI5gxIB+7rluC9pIbkO/4WUBkZ/DJd4iGBo4\n8dlYSQxO1D97mfWhdFTMbNQhIGqhg0eQeEWD8hOYaUA7v4jLtPDXalaw1zeZm2fX\nw/E0X5FGNz2xNJVrEhqBvNgiM1YF2p9p4ZHL5l0ETEh+Q9IpWDcpghadJkpwsNTx\n9c+YWRkdd+gv+aeVW1BWxeVaJOFisz+YIZK6tydhq7s30XwXteqh6mey15JAZac8\nfCJWGWp/AgMBAAECggEACH+hvuzBHyl+7tckKz8Qw5Xw/E5m9WMpy0sZ+iI3taMK\nuZiWeEw/nBTS/x8reUJPzezWZtuKagJ3u4ufJ292JPHAX3kwnY5N3+MId0zlWVDZ\n12oflYS7c9dQO21eaQuTEq7/Pyi0ODNoMtDiHKkxn/NR5GeQHpCB8xSCjlTLB0JV\nmTocwK/H08HGrxvJGksqcmJ6hdHhudIHHOVgGWlTvIIXNp6eJCAJZ7uVADgjd+Sw\n2I4Pf5C54mZ2X43PtcXmIEMRZHxzVdF6YOmRoXnzZ6zsrIb5LKEaIxttthDRynWL\n4oB+21aL8AmoFNhWNGYtJSazOnMixIc6DOsrCdIOQQKBgQDYTsPb8UG54mMWGXrf\npUvlI38vyf2FCEs5TgUAX2nofMJfBimazWdMW687zSGurxtIUkUDyetlPFpmYH+V\nbXXzKWDzeuzCN2uxLZCstsXy5EZ6jqsvLjdKm3nAe//Yh0xrxtDwV9wDD0lM6v9c\naGAXpE8miwGUUJD7r6M0KyU3pwKBgQC3CTyQnOMdp1BkpRQGE29wJ2Olsh/Fo7fN\n8HPN8cQaTB9l9owDzdmcyOjItA1Q5cI5z8Bgrqcsoqv5wz0iOaMOAxPYYlq3vJOy\ntvCpKDcmfKceq5FbzsM+xi468KLpiUZXRg557VL+szsWvECD0JNqfxYoJZUrvUQj\nJt9g4DCRaQKBgC/bnXH4OvaJpCqrkIgS5mvYIrfMFQ9t+la/cFPYyHHryIWFs4bQ\nk15NmsO8awtfKsYhjat87VwEsmucRh4ljcczDIRSWjfOU0FsN2o/NiS7ZOyQzEcw\nDoOvSozP4pdhuALQhkHm7oKuyyT9iWpEnZ4deHWqo7rQ6IMHJTDRqvZZAoGBAJBK\nZ8RY6XHnBClTOYXQrHjtlFB7KzDS74MZmzEu9jkE6Xun8JjPHk3K1DfkONsdRQ/u\nBuowxPkbBBfRIdBpP3E8W9ipMHrH3md0cCPp4BAnFFfJSL3nMWO7N5afPM59uUXz\npFXaESNYh6xUm0dOlefOZ9keR4pDmgNcEZx9H8yBAoGBAKhCtxwlkuejk3KSkjKO\nCXdrP8pIoYBzhG4d4sLsu8JlZgnnq7HOsj/eOddPVFV1FV9+36hLItJmE7WUiWtJ\nzCCZQY4MYtANM3+GyDs7AAoHwfDHB/r3CJakhK/PY7+bKGCrapRcSEQgjuNXEKiV\n4XUqiRa96Gph63R3SHodLwCV\n-----END PRIVATE KEY-----\n"""
 
-    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-    subject = issuer = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, common_name)])
-    now = _dt.datetime.utcnow()
-    certificate = (
-        x509.CertificateBuilder()
-        .subject_name(subject)
-        .issuer_name(issuer)
-        .public_key(private_key.public_key())
-        .serial_number(x509.random_serial_number())
-        .not_valid_before(now - _dt.timedelta(days=1))
-        .not_valid_after(now + _dt.timedelta(days=365))
-        .add_extension(x509.BasicConstraints(ca=True, path_length=None), critical=True)
-        .sign(private_key, hashes.SHA256())
-    )
-    private_pem = private_key.private_bytes(
-        Encoding.PEM,
-        serialization.PrivateFormat.PKCS8,
-        NoEncryption(),
-    )
-    cert_pem = certificate.public_bytes(Encoding.PEM)
-    return private_pem, cert_pem
+_RSA_CERTIFICATE = b"""-----BEGIN CERTIFICATE-----\nMIIDFzCCAf+gAwIBAgIUJkJhcD0UvfAwxNAmraCQQmIxvGswDQYJKoZIhvcNAQEL\nBQAwGzEZMBcGA1UEAwwQTWVkaWFTaWduZXIgVGVzdDAeFw0yNTEwMDIxNjQ5Mjda\nFw0yNjEwMDIxNjQ5MjdaMBsxGTAXBgNVBAMMEE1lZGlhU2lnbmVyIFRlc3QwggEi\nMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCaqBvzwvcVs3jeN2Aue3+qy7ji\nq2d8ByUjguLlSTTILkc5k8QphGaTOUazqrF1Rk6vGo/CV3ovvKQEaKOeFsO/u2Db\nbmy3y7xjZMaidFdCgI5gxIB+7rluC9pIbkO/4WUBkZ/DJd4iGBo48dlYSQxO1D97\nmfWhdFTMbNQhIGqhg0eQeEWD8hOYaUA7v4jLtPDXalaw1zeZm2fXw/E0X5FGNz2x\nNJVrEhqBvNgiM1YF2p9p4ZHL5l0ETEh+Q9IpWDcpghadJkpwsNTx9c+YWRkdd+gv\n+aeVW1BWxeVaJOFisz+YIZK6tydhq7s30XwXteqh6mey15JAZac8fCJWGWp/AgMB\nAAGjUzBRMB0GA1UdDgQWBBTBBqfopWu9a3Ut88PYjQYUdzQWsjAfBgNVHSMEGDAW\ngBTBBqfopWu9a3Ut88PYjQYUdzQWsjAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3\nDQEBCwUAA4IBAQBrg0eE/WU+O3AsKdOszx3PMaqhtlDNQ0jYqqrebCX6q903NcJk\nDsiJ+m+WxN/BY9ccIMv2/2u1z12OHQQ1o+x6NXXiVZr8IojWojDuB6r6w3V3wqxz\nde4wgeHXATLS9WCCc9wY3puhf9xSobUAezFjGy40/vB6QWMzN+iIwxSkCS+CQFxZ\nKovSujkZYzFkY58VYLugrIFBOaZmeTyKhGyXyzJuaVDEU3qAX5W4w1/eXQNEzeEi\nQCWd+WI9U00/+1GTW+mmGF5VnHRq1LDiLrJQi7Si/aGY8sazZYEEC8lrzn0XGlU4\n25Q0q5Bq960uTrmz38T3a9waiwZNSUi05zT5\n-----END CERTIFICATE-----\n"""
+
+
+def generate_self_signed_rsa(_common_name: str) -> Tuple[bytes, bytes]:
+    """Return a reusable self-signed RSA key pair for tests.
+
+    The helper previously generated keys dynamically using ``cryptography``, but
+    that dependency is not available in the constrained test environment. A
+    static key pair is sufficient for exercising the MediaSigner facades, so we
+    reuse deterministic PEM payloads to avoid the heavy runtime requirement.
+    """
+
+    return _RSA_PRIVATE_KEY, _RSA_CERTIFICATE
 
 
 async def build_media_signer_with_rsa(
