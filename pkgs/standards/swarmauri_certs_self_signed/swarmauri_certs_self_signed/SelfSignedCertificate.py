@@ -1,24 +1,24 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from typing import Optional, Sequence
+from typing import Any, Dict, Iterable, Mapping, Optional, Sequence
 
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import ed25519, ed448
-from cryptography.x509.oid import NameOID, ExtendedKeyUsageOID
-
-from swarmauri_core.crypto.types import KeyRef
+from cryptography.hazmat.primitives.asymmetric import ed448, ed25519
+from cryptography.x509.oid import ExtendedKeyUsageOID, NameOID
+from pydantic import Field
+from swarmauri_base.certs.CertServiceBase import CertServiceBase
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.certs.ICertService import (
-    SubjectSpec,
     AltNameSpec,
-    CertExtensionSpec,
-    KeyUsageSpec,
-    ExtendedKeyUsageSpec,
     BasicConstraintsSpec,
+    CertExtensionSpec,
+    ExtendedKeyUsageSpec,
+    KeyUsageSpec,
+    SubjectSpec,
 )
-
+from swarmauri_core.crypto.types import KeyRef
 
 _OID_MAP = {
     "serverAuth": ExtendedKeyUsageOID.SERVER_AUTH,
@@ -125,11 +125,13 @@ def _choose_sig_hash(private_key) -> Optional[hashes.HashAlgorithm]:
     return hashes.SHA256()
 
 
-@dataclass
-class SelfSignedCertificate:
-    """Minimal builder for self-signed X.509 certificates."""
+@ComponentBase.register_type(CertServiceBase, "SelfSignedCertificate")
+class SelfSignedCertificate(CertServiceBase):
+    """Minimal self-signed certificate builder exposed as a cert service."""
 
-    subject: SubjectSpec = field(default_factory=lambda: SubjectSpec(CN="localhost"))  # type: ignore[call-arg]
+    subject: SubjectSpec = Field(
+        default_factory=lambda: SubjectSpec(CN="localhost")
+    )
     san: Optional[AltNameSpec] = None
     extensions: Optional[CertExtensionSpec] = None
     not_before: Optional[int] = None
@@ -139,12 +141,34 @@ class SelfSignedCertificate:
     output_der: bool = False
     password: Optional[bytes] = None
 
-    def issue(self, key: KeyRef) -> bytes:
+    def supports(self) -> Mapping[str, Iterable[str]]:
+        return {
+            "features": ("self_signed",),
+            "key_algs": ("RSA", "ECDSA", "Ed25519", "Ed448"),
+            "sig_algs": ("RSA-SHA256", "ECDSA-SHA256", "Ed25519", "Ed448"),
+            "formats": ("PEM", "DER"),
+        }
+
+    def issue(
+        self,
+        key: KeyRef,
+        *,
+        subject: Optional[SubjectSpec] = None,
+        san: Optional[AltNameSpec] = None,
+        extensions: Optional[CertExtensionSpec] = None,
+        not_before: Optional[int] = None,
+        not_after: Optional[int] = None,
+        lifetime_days: Optional[int] = None,
+        serial: Optional[int] = None,
+        output_der: Optional[bool] = None,
+        password: Optional[bytes] = None,
+    ) -> bytes:
         if key.material is None:
             raise ValueError(
                 "Self-signed issuance requires a private key in KeyRef.material (PEM)."
             )
-        pwd = self.password
+
+        pwd = password if password is not None else self.password
         if (
             pwd is None
             and key.tags
@@ -158,61 +182,69 @@ class SelfSignedCertificate:
 
         private_key = serialization.load_pem_private_key(key.material, password=pwd)
         public_key = private_key.public_key()
-        subj = _name_from_subject(self.subject)
+
+        subject_spec = subject or self.subject
+        subj = _name_from_subject(subject_spec)
         issuer = subj
 
-        if self.not_before is not None and self.not_after is not None:
-            nb = datetime.fromtimestamp(int(self.not_before), tz=timezone.utc)
-            na = datetime.fromtimestamp(int(self.not_after), tz=timezone.utc)
+        nb_epoch = not_before if not_before is not None else self.not_before
+        na_epoch = not_after if not_after is not None else self.not_after
+
+        if nb_epoch is not None:
+            nb = datetime.fromtimestamp(int(nb_epoch), tz=timezone.utc)
         else:
             nb = _now_utc() - timedelta(seconds=300)
-            na = nb + timedelta(days=int(self.lifetime_days))
 
-        serial = self.serial if self.serial is not None else x509.random_serial_number()
+        if na_epoch is not None:
+            na = datetime.fromtimestamp(int(na_epoch), tz=timezone.utc)
+        else:
+            life = lifetime_days if lifetime_days is not None else self.lifetime_days
+            na = nb + timedelta(days=int(life))
+
+        serial_number = (
+            serial if serial is not None else self.serial or x509.random_serial_number()
+        )
 
         builder = (
             x509.CertificateBuilder()
             .subject_name(subj)
             .issuer_name(issuer)
             .public_key(public_key)
-            .serial_number(serial)
+            .serial_number(serial_number)
             .not_valid_before(nb)
             .not_valid_after(na)
         )
 
-        bc = _bc_from_spec(
-            self.extensions.get("basic_constraints") if self.extensions else None
-        )
+        ext_spec = extensions if extensions is not None else self.extensions
+
+        bc = _bc_from_spec(ext_spec.get("basic_constraints")) if ext_spec else None
         if bc:
             builder = builder.add_extension(bc, critical=True)
 
-        ku = _ku_from_spec(
-            self.extensions.get("key_usage") if self.extensions else None
-        )
+        ku = _ku_from_spec(ext_spec.get("key_usage")) if ext_spec else None
         if ku:
             builder = builder.add_extension(ku, critical=True)
 
-        eku = _eku_from_spec(
-            self.extensions.get("extended_key_usage") if self.extensions else None
-        )
+        eku = _eku_from_spec(ext_spec.get("extended_key_usage")) if ext_spec else None
         if eku:
             builder = builder.add_extension(eku, critical=False)
 
-        san = _san_from_spec(
-            self.extensions.get("subject_alt_name")
-            if self.extensions and self.extensions.get("subject_alt_name")
-            else self.san
+        san_spec = (
+            ext_spec.get("subject_alt_name")
+            if ext_spec and ext_spec.get("subject_alt_name")
+            else san or self.san
         )
-        if san:
-            builder = builder.add_extension(san, critical=False)
+        san_ext = _san_from_spec(san_spec)
+        if san_ext:
+            builder = builder.add_extension(san_ext, critical=False)
 
         skid = x509.SubjectKeyIdentifier.from_public_key(public_key)
         builder = builder.add_extension(skid, critical=False)
         akid = x509.AuthorityKeyIdentifier.from_issuer_public_key(public_key)
         builder = builder.add_extension(akid, critical=False)
 
-        if self.extensions and self.extensions.get("name_constraints"):
-            nc = self.extensions["name_constraints"]
+        if ext_spec and ext_spec.get("name_constraints"):
+            nc = ext_spec["name_constraints"]
             permitted_dns = [x509.DNSName(d) for d in (nc.get("permitted_dns") or [])]
             excluded_dns = [x509.DNSName(d) for d in (nc.get("excluded_dns") or [])]
             permitted_ip = [
@@ -255,9 +287,43 @@ class SelfSignedCertificate:
         sig_hash = _choose_sig_hash(private_key)
         cert = builder.sign(private_key=private_key, algorithm=sig_hash)
 
-        if self.output_der:
-            return cert.public_bytes(serialization.Encoding.DER)
-        return cert.public_bytes(serialization.Encoding.PEM)
+        encoding = (
+            serialization.Encoding.DER
+            if (output_der if output_der is not None else self.output_der)
+            else serialization.Encoding.PEM
+        )
+        return cert.public_bytes(encoding)
+
+    async def create_self_signed(
+        self,
+        key: KeyRef,
+        subject: SubjectSpec,
+        *,
+        serial: Optional[int] = None,
+        not_before: Optional[int] = None,
+        not_after: Optional[int] = None,
+        extensions: Optional[CertExtensionSpec] = None,
+        sig_alg: Optional[str] = None,
+        output_der: bool = False,
+        opts: Optional[Dict[str, Any]] = None,
+    ) -> bytes:
+        san_override = opts.get("san") if opts else None
+        lifetime_override = opts.get("lifetime_days") if opts else None
+        password_override = opts.get("password") if opts else None
+        if isinstance(password_override, str):
+            password_override = password_override.encode()
+        return self.issue(
+            key,
+            subject=subject,
+            san=san_override,
+            extensions=extensions,
+            not_before=not_before,
+            not_after=not_after,
+            lifetime_days=lifetime_override,
+            serial=serial,
+            output_der=output_der,
+            password=password_override,
+        )
 
     @classmethod
     def tls_server(
@@ -266,7 +332,7 @@ class SelfSignedCertificate:
         dns_names: Sequence[str] = (),
         ip_addrs: Sequence[str] = (),
         lifetime_days: int = 397,
-    ) -> SelfSignedCertificate:
+    ) -> "SelfSignedCertificate":
         subject: SubjectSpec = SubjectSpec(CN=common_name)  # type: ignore[call-arg]
         san = AltNameSpec(dns=list(dns_names), ip=list(ip_addrs))  # type: ignore[call-arg]
         ext: CertExtensionSpec = CertExtensionSpec(  # type: ignore[call-arg]
@@ -295,7 +361,7 @@ class SelfSignedCertificate:
         common_name: str,
         emails: Sequence[str] = (),
         lifetime_days: int = 365,
-    ) -> SelfSignedCertificate:
+    ) -> "SelfSignedCertificate":
         subject: SubjectSpec = SubjectSpec(CN=common_name)  # type: ignore[call-arg]
         san = AltNameSpec(email=list(emails))  # type: ignore[call-arg]
         ext: CertExtensionSpec = CertExtensionSpec(  # type: ignore[call-arg]
