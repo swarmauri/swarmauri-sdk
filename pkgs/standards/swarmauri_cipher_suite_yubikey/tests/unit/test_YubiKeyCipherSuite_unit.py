@@ -40,7 +40,14 @@ def test_suite_identifier(cipher_suite: YubiKeyCipherSuite) -> None:
 def test_supports_expected_algorithms(cipher_suite: YubiKeyCipherSuite) -> None:
     supports = cipher_suite.supports()
     assert set(supports.keys()) == {"sign", "verify", "wrap", "unwrap"}
-    assert set(supports["sign"]) == {"PS256", "PS384", "PS512", "ES256", "ES384", "EdDSA"}
+    assert set(supports["sign"]) == {
+        "PS256",
+        "PS384",
+        "PS512",
+        "ES256",
+        "ES384",
+        "EdDSA",
+    }
     assert supports["sign"] == supports["verify"]
     assert supports["wrap"] == supports["unwrap"]
 
@@ -55,7 +62,9 @@ def test_supports_expected_algorithms(cipher_suite: YubiKeyCipherSuite) -> None:
         ("unwrap", "ES256"),
     ],
 )
-def test_default_alg(cipher_suite: YubiKeyCipherSuite, operation: str, expected: str) -> None:
+def test_default_alg(
+    cipher_suite: YubiKeyCipherSuite, operation: str, expected: str
+) -> None:
     assert cipher_suite.default_alg(operation) == expected
 
 
@@ -66,7 +75,9 @@ def test_features_descriptor(cipher_suite: YubiKeyCipherSuite) -> None:
 
     assert features["suite"] == "yubikey"
     assert features["version"] == 1
-    assert set(features["dialects"]["jwa"]) == set({*supports["sign"], *supports["wrap"]})
+    assert set(features["dialects"]["jwa"]) == set(
+        {*supports["sign"], *supports["wrap"]}
+    )
     assert features["dialects"]["provider"] == ["piv"]
     assert features["ops"]["sign"]["default"] == "ES256"
     assert features["ops"]["wrap"]["default"] == "RSA-OAEP-256"
@@ -98,7 +109,9 @@ def test_normalize_ecdsa_defaults(cipher_suite: YubiKeyCipherSuite) -> None:
 
 
 @pytest.mark.unit
-def test_normalize_provider_mapping_without_slot(cipher_suite: YubiKeyCipherSuite) -> None:
+def test_normalize_provider_mapping_without_slot(
+    cipher_suite: YubiKeyCipherSuite,
+) -> None:
     descriptor = cipher_suite.normalize(op="wrap", alg="RSA-OAEP-256")
 
     assert descriptor["mapped"]["provider"] == "piv:RSA-OAEP-256"
@@ -115,7 +128,10 @@ def test_normalize_provider_mapping_with_slot(cipher_suite: YubiKeyCipherSuite) 
 def test_normalize_constraints(cipher_suite: YubiKeyCipherSuite) -> None:
     descriptor = cipher_suite.normalize(op="sign")
 
-    assert descriptor["constraints"] == {"minKeyBits": 2048, "curves": ("P-256", "P-384")}
+    assert descriptor["constraints"] == {
+        "minKeyBits": 2048,
+        "curves": ("P-256", "P-384"),
+    }
 
 
 @pytest.mark.unit

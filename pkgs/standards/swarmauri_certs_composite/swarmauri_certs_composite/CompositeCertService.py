@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-from typing import Iterable, Mapping, Optional, Sequence, Dict, Any, Literal
+from typing import Any, Dict, Iterable, Mapping, Optional, Sequence
 
-from swarmauri_core.certs.ICertService import ICertService
 from swarmauri_base.certs.CertServiceBase import CertServiceBase
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_core.certs.ICertService import ICertService
 from swarmauri_core.crypto.types import KeyRef
 
 
+@ComponentBase.register_type(CertServiceBase, "CompositeCertService")
 class CompositeCertService(CertServiceBase):
     """
     Router that delegates ICertService operations to one of several providers.
@@ -24,8 +26,6 @@ class CompositeCertService(CertServiceBase):
 
     Callers can override routing by passing opts={"backend":"ProviderType"}.
     """
-
-    type: Literal["CompositeCertService"] = "CompositeCertService"
 
     def __init__(self, providers: Sequence[ICertService]) -> None:
         super().__init__()

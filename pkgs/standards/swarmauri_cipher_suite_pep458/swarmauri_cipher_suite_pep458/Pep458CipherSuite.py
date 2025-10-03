@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any, Dict, Iterable, Mapping, Optional
 
 from swarmauri_base.cipher_suites import CipherSuiteBase
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.cipher_suites import (
     Alg,
     CipherOp,
@@ -32,10 +33,9 @@ def _infer_alg_from_key(key: Optional[KeyRef]) -> Optional[Alg]:
     return None
 
 
+@ComponentBase.register_type(CipherSuiteBase, "Pep458CipherSuite")
 class Pep458CipherSuite(CipherSuiteBase):
     """Metadata policy and algorithm registry for PEP 458 repositories."""
-
-    type = "Pep458CipherSuite"
 
     def suite_id(self) -> str:
         return "pep458"
