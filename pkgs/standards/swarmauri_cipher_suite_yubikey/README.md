@@ -69,8 +69,10 @@ if you run different tokens.
 ### 2. Normalize a signing request
 
 ```python
+from swarmauri_cipher_suite_yubikey import YubiKeyCipherSuite
 from swarmauri_core.cipher_suites.types import KeyRef
 
+suite = YubiKeyCipherSuite(name="piv-default")
 key = KeyRef(kid="sig-slot-9c", slot="9c")
 descriptor = suite.normalize(op="sign", alg="ES256", key=key)
 
@@ -86,6 +88,9 @@ YubiKey-specific logic.
 ### 3. Wrap a key for transport
 
 ```python
+from swarmauri_cipher_suite_yubikey import YubiKeyCipherSuite
+
+suite = YubiKeyCipherSuite(name="piv-default")
 transport_descriptor = suite.normalize(op="wrap")
 print(transport_descriptor["mapped"]["provider"])  # -> "piv:RSA-OAEP-256"
 print(transport_descriptor["params"])              # -> {"mgf1Hash": "SHA256"}
@@ -97,6 +102,10 @@ signing, `RSA-OAEP-256` for key wrap) while still respecting the policy limits.
 ### 4. Inspect supported algorithms and features
 
 ```python
+from swarmauri_cipher_suite_yubikey import YubiKeyCipherSuite
+
+suite = YubiKeyCipherSuite(name="piv-default")
+
 for op, algs in suite.supports().items():
     print(op, sorted(algs))
 
