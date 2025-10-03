@@ -129,9 +129,7 @@ def _choose_sig_hash(private_key) -> Optional[hashes.HashAlgorithm]:
 class SelfSignedCertificate(CertServiceBase):
     """Minimal self-signed certificate builder exposed as a cert service."""
 
-    subject: SubjectSpec = Field(
-        default_factory=lambda: SubjectSpec(CN="localhost")
-    )
+    subject: SubjectSpec = Field(default_factory=lambda: SubjectSpec(CN="localhost"))
     san: Optional[AltNameSpec] = None
     extensions: Optional[CertExtensionSpec] = None
     not_before: Optional[int] = None
