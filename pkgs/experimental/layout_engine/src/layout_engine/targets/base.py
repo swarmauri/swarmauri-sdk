@@ -1,15 +1,21 @@
 from __future__ import annotations
-from typing import Protocol, Any
+from abc import ABC, abstractmethod, Any
 from ..manifest.spec import Manifest
 
-class ITarget(Protocol):
+class ITarget(ABC):
     """Abstract rendering/export target."""
-    def render(self, manifest: Manifest, *, out: str | None = None) -> Any: ...
+    @abstractmethod
+    def render(self, manifest: Manifest, *, out: str | None = None) -> Any:
+        raise NotImplementedError
 
-class IWebGuiTarget(ITarget, Protocol):
+class IWebGuiTarget(ITarget, ABC):
     """Web GUI page shells (SSR HTML) for hosts to hydrate."""
-    def render(self, manifest: Manifest, *, out: str | None = None) -> str: ...
+    @abstractmethod
+    def render(self, manifest: Manifest, *, out: str | None = None) -> str:
+        raise NotImplementedError
 
-class IMediaTarget(ITarget, Protocol):
+class IMediaTarget(ITarget, ABC):
     """Offline artifact exporters (PDF/SVG/HTML/Code)."""
-    def export(self, manifest: Manifest, *, out: str) -> str: ...
+    @abstractmethod
+    def export(self, manifest: Manifest, *, out: str) -> str:
+        raise NotImplementedError

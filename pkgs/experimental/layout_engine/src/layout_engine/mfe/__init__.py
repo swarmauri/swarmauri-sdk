@@ -20,3 +20,6 @@ __all__ = [
     "to_dict", "from_dict", "registry_to_dict", "registry_from_dict", "to_import_map", "to_import_map_json",
     "script_tag", "modulepreload_html",
 ]
+
+from .decorators import remote_ctx
+__all__ = list(set([*(globals().get("__all__", [])), "remote_ctx"]))

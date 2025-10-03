@@ -1,5 +1,6 @@
+from pydantic import BaseModel, Field, validator
 from __future__ import annotations
-from dataclasses import dataclass, field
+from pydantic import BaseModel, Field, validator, field
 from typing import Mapping, Any, Tuple, Pattern, Dict, Optional
 import re
 
@@ -48,14 +49,12 @@ def compile_route_pattern(route: str) -> tuple[Pattern[str], tuple[str, ...]]:
 
 # ---- specs ----
 
-@dataclass(frozen=True)
-class SlotSpec:
+class SlotSpec(BaseModel):
     name: str
     role: str
     remote: str | None = None
 
-@dataclass(frozen=True)
-class PageSpec:
+class PageSpec(BaseModel):
     id: str
     route: str
     title: str
@@ -70,34 +69,7 @@ class PageSpec:
         if not m: return None
         return {k: v for k, v in m.groupdict().items() if v is not None}
 
-@dataclass(frozen=True)
-class SiteSpec:
+class SiteSpec(BaseModel):
     base_path: str = "/"
     pages: Tuple[PageSpec, ...] = ()
 
-    def __post_init__(self):
-        object.__setattr__(self, "base_path", normalize_base_path(self.base_path))
-
-    def routes(self) -> tuple[str, ...]:
-        return tuple(p.route for p in self.pages)
-
-    def resolve(self, path: str) -> "RouteMatch | None":
-        """Resolve a path to (page, params) after stripping base_path."""
-        root = normalize_base_path(self.base_path)
-        # strip base prefix
-        if root != "/" and path.startswith(root):
-            rel = path[len(root):] or "/"
-        else:
-            rel = path
-        for p in self.pages:
-            params = p.match(rel)
-            if params is not None:
-                return RouteMatch(page=p, params=params, absolute_path=path, relative_path=rel)
-        return None
-
-@dataclass(frozen=True)
-class RouteMatch:
-    page: PageSpec
-    params: Dict[str, str]
-    absolute_path: str
-    relative_path: str

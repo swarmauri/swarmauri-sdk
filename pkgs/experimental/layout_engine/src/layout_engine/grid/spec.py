@@ -1,15 +1,14 @@
+from pydantic import BaseModel, Field, validator
 from __future__ import annotations
-from dataclasses import dataclass
+from pydantic import BaseModel, Field, validator
 from typing import Optional
 from ..core.size import Size
 
-@dataclass(frozen=True)
-class GridTrack:
+class GridTrack(BaseModel):
     """A single grid column track with a Size (px|%|fr)."""
     size: Size
 
-@dataclass(frozen=True)
-class GridSpec:
+class GridSpec(BaseModel):
     """Explicit grid container description.
 
     - columns: list of GridTrack defining the column sizing scheme
@@ -24,8 +23,7 @@ class GridSpec:
     gap_y: int = 12
     breakpoints: list[tuple[int, list[GridTrack]]] = ()
 
-@dataclass(frozen=True)
-class GridTile:
+class GridTile(BaseModel):
     """A tile placement within the grid."
     """
     tile_id: str

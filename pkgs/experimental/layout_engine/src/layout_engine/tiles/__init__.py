@@ -23,3 +23,7 @@ __all__ = [
     "tile","validate_spec",
     "to_dict","from_dict","tile_to_dict","tile_from_dict",
 ]
+
+from .shortcuts import define_tile, derive_tile, make_tile
+from .decorators import tile_ctx
+__all__ = list(set([*(globals().get("__all__", [])), "define_tile", "derive_tile", "make_tile", "tile_ctx"]))

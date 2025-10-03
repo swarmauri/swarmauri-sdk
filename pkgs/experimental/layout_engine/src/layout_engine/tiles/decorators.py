@@ -3,11 +3,11 @@ from functools import wraps
 from typing import Mapping, Any
 from .spec import TileSpec
 
-def tile(*, id: str, role: str = "generic", **kwargs):
+def tile_ctx(*, id: str, role: str = "generic", **kwargs):
     """Decorator to attach a TileSpec to a factory function.
 
     Example:
-        @tile(id="kpi_revenue", role="kpi", min_w=240)
+        @tile_ctx(id="kpi_revenue", role="kpi", min_w=240)
         def revenue_tile(): return {"source": "metrics.revenue"}
     """
     spec = TileSpec(id=id, role=role, **kwargs)

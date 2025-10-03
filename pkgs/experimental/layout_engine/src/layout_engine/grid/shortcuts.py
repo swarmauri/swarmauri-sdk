@@ -23,3 +23,22 @@ def make_gridspec_from_tokens(tokens: list[SizeToken], *, row_height: int = 180,
 
 def place(tile_id: str, col: int, row: int, *, col_span: int = 1, row_span: int = 1) -> GridTile:
     return GridTile(tile_id, col, row, col_span, row_span)
+
+# -- define/derive/make for Grid --
+from .default import Grid
+from .spec import GridSpec
+
+def define_gridspec(*, columns: list[GridTrack] | None = None, row_height: int = 180, gap_x: int = 12, gap_y: int = 12, breakpoints=None) -> GridSpec:
+    return GridSpec(columns=columns or [], row_height=row_height, gap_x=gap_x, gap_y=gap_y, breakpoints=breakpoints or ())
+
+def derive_gridspec(base: GridSpec, **overrides) -> GridSpec:
+    return GridSpec(
+        columns=overrides.get("columns", base.columns),
+        row_height=overrides.get("row_height", base.row_height),
+        gap_x=overrides.get("gap_x", base.gap_x),
+        gap_y=overrides.get("gap_y", base.gap_y),
+        breakpoints=overrides.get("breakpoints", base.breakpoints),
+    )
+
+def make_grid(spec: GridSpec) -> Grid:
+    return Grid(spec=spec)

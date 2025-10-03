@@ -274,7 +274,6 @@ def _build_router(
         if (
             sp.alias != sp.target
             and sp.target in CANON
-            and sp.target != "custom"
             and sp.alias != getattr(sp.handler, "__name__", sp.alias)
         ):
             route_kwargs["include_in_schema"] = False

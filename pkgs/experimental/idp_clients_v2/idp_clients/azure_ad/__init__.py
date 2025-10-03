@@ -1,0 +1,3 @@
+from .azure_ad_oidc10_user_login import AzureOIDC10Login
+from .azure_ad_oauth20_user_login import AzureOAuth20Login
+from .azure_ad_oauth21_user_login import AzureOAuth21Login

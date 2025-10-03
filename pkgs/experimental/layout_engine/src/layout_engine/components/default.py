@@ -61,3 +61,52 @@ class ComponentRegistry:
                 spec = spec.with_overrides(role=role)
             # upsert semantics
             self._by_role[role] = spec
+
+
+    # --- context manager support ---
+    def __enter__(self):
+        return self
+    def __exit__(self, exc_type, exc, tb):
+        return False
+    async def __aenter__(self):
+        return self
+    async def __aexit__(self, exc_type, exc, tb):
+        return False
+
+class Component:
+    """Default runtime wrapper around ComponentSpec.
+
+    Provides ergonomic accessors and merged props resolution.
+    """
+    def __init__(self, spec: ComponentSpec):
+        self.spec = spec
+
+    @property
+    def role(self) -> str:
+        return self.spec.role
+
+    @property
+    def module(self) -> str:
+        return self.spec.module
+
+    @property
+    def export(self) -> str:
+        return self.spec.export
+
+    @property
+    def version(self) -> str:
+        return self.spec.version
+
+    def resolve_props(self, overrides: Mapping[str, Any] | None = None) -> dict:
+        """Return props merged with registry defaults (spec.defaults ⊕ overrides)."""
+        return merge_props(self.spec.defaults, overrides or {})
+
+    # --- context manager support ---
+    def __enter__(self):
+        return self
+    def __exit__(self, exc_type, exc, tb):
+        return False
+    async def __aenter__(self):
+        return self
+    async def __aexit__(self, exc_type, exc, tb):
+        return False

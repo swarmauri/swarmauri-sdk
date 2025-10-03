@@ -1,0 +1,19 @@
+[project]
+name = "idp-clients"
+version = "0.1.0"
+description = "Production-ready OAuth2/OIDC app clients and user login modules for Google Identity Services and AWS IAM Workforce"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{name="Your Team", email="dev@example.com"}]
+license = {text = "Apache-2.0"}
+dependencies = [
+  "httpx>=0.27.0",
+  "PyJWT[crypto]>=2.8.0",
+  "cryptography>=41.0.0",
+  "boto3>=1.34.0",
+  "typing-extensions>=4.9.0"
+]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
