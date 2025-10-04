@@ -119,14 +119,33 @@ constraints, and validates `ath` hashes when bearer tokens are provided.
 
 ## Compatibility
 
-- Supports Python 3.10, 3.11, and 3.12
-- Depends on `swarmauri_core` and `swarmauri-base` from the Swarmauri SDK
-- Uses `pyjwt>=2.8` and `cryptography>=41` for JOSE processing
+- Python 3.10, 3.11, and 3.12
+- Asynchronous contexts that can dispatch `HttpParts` instances from
+  `swarmauri_core`
+- Intended for OAuth 2.0 servers, API gateways, and microservices that need to
+  accept Demonstration of Proof-of-Possession headers
 
 ## Related Packages
 
-- [swarmauri_pop_cwt](https://pypi.org/project/swarmauri_pop_cwt/) for COSE/CBOR PoP tokens
-- [swarmauri_pop_x509](https://pypi.org/project/swarmauri_pop_x509/) for mutual TLS confirmation
+- [`swarmauri_pop_cwt`](../swarmauri_pop_cwt) for COSE-based confirmation
+- [`swarmauri_pop_x509`](../swarmauri_pop_x509) to validate mutual TLS
+  thumbprints using the same `cnf` contract
+- [`swarmauri_core`](../../core) which defines the PoP primitives consumed by all
+  Swarmauri proof strategies
+
+## Contributing
+
+Please contribute improvements through the
+[Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk). Ensure
+tests, formatting, and linting match the root instructions and describe your
+changes clearly in pull requests so reviewers understand the intended impact.
+
+## Support
+
+Need help integrating DPoP in Swarmauri? File an
+[issue on GitHub](https://github.com/swarmauri/swarmauri-sdk/issues) with
+implementation details and reproduction steps. For security disclosures, use the
+contact information listed in the repository security policy.
 
 ## License
 

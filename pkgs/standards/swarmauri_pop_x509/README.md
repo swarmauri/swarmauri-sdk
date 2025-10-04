@@ -79,14 +79,33 @@ mirroring the behaviour of OAuth 2.0 mutual TLS confirmation.
 
 ## Compatibility
 
-- Supports Python 3.10, 3.11, and 3.12
-- Depends on `swarmauri_core` and `swarmauri-base` from the Swarmauri SDK
-- Designed for deployments where mutual TLS is already enforced by the network perimeter
+- Python 3.10, 3.11, and 3.12
+- Works with TLS termination layers that can forward peer certificates into the
+  verification context
+- Built on the same asynchronous verification contract exposed by
+  `swarmauri_core`
 
 ## Related Packages
 
-- [swarmauri_pop_cwt](https://pypi.org/project/swarmauri_pop_cwt/) for COSE/CBOR PoP bindings
-- [swarmauri_pop_dpop](https://pypi.org/project/swarmauri_pop_dpop/) for HTTP proof-of-possession headers
+- [`swarmauri_pop_cwt`](../swarmauri_pop_cwt) for COSE Sign1 confirmation
+- [`swarmauri_pop_dpop`](../swarmauri_pop_dpop) for Demonstrating Proof-of-
+  Possession JWT headers
+- [`swarmauri_core`](../../core) for the PoP abstractions and helpers that power
+  all verification implementations
+
+## Contributing
+
+Changes and documentation updates should be proposed through the
+[Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk). Run the
+formatting, linting, and targeted tests outlined in the repository guides before
+submitting pull requests.
+
+## Support
+
+For integration questions or bug reports, open an
+[issue on GitHub](https://github.com/swarmauri/swarmauri-sdk/issues). Sensitive
+security matters should follow the disclosure guidance referenced in the
+repository security policy.
 
 ## License
 

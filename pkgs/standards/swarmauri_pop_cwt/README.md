@@ -118,14 +118,36 @@ the same replay and nonce strategies shared across Swarmauri PoP strategies.
 
 ## Compatibility
 
-- Supports Python 3.10, 3.11, and 3.12
-- Depends on `swarmauri_core` and `swarmauri-base` from the Swarmauri SDK
-- Uses `cose>=0.9.dev8` and `cbor2>=5.5.0` for COSE Sign1 handling
+- Python 3.10, 3.11, and 3.12
+- Works alongside the shared `swarmauri_core.pop` abstractions and any
+  asynchronous framework that can supply an `HttpParts` payload
+- Designed to operate with HTTP gateways that forward method, URL, and header
+  information for downstream validation
 
 ## Related Packages
 
-- [swarmauri_pop_dpop](https://pypi.org/project/swarmauri_pop_dpop/) for RFC 9449 DPoP proofs
-- [swarmauri_pop_x509](https://pypi.org/project/swarmauri_pop_x509/) for mutual TLS PoP verification
+- [`swarmauri_pop_dpop`](../swarmauri_pop_dpop) for JWT-based Demonstration of
+  Proof-of-Possession headers
+- [`swarmauri_pop_x509`](../swarmauri_pop_x509) when mutual TLS confirmation is
+  required
+- [`swarmauri_core`](../../core) for the shared PoP contract, HTTP primitives,
+  and error hierarchy leveraged by all PoP implementations
+
+## Contributing
+
+Contributions are welcome through the
+[Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk). Follow
+the project style guide, run the formatting and linting commands noted in the
+root `AGENTS.md`, and open pull requests with focused commits that describe the
+improvement.
+
+## Support
+
+If you encounter issues integrating Swarmauri PoP CWT flows, please open a
+[GitHub issue](https://github.com/swarmauri/swarmauri-sdk/issues) with details
+about your environment and the expected versus observed behaviour. Security
+concerns should be responsibly disclosed via the contact details in the
+repository security policy.
 
 ## License
 
