@@ -71,7 +71,10 @@ def test_normalize_with_explicit_alg(cipher_suite: PadesCipherSuite) -> None:
     assert descriptor["op"] == "sign"
     assert descriptor["alg"] == "ECDSA-SHA256"
     assert descriptor["dialect"] == "pdfsig"
-    assert descriptor["mapped"] == {"pdfsig": "ECDSA-SHA256", "provider": "ECDSA-SHA256"}
+    assert descriptor["mapped"] == {
+        "pdfsig": "ECDSA-SHA256",
+        "provider": "ECDSA-SHA256",
+    }
     assert descriptor["params"] == {"tsa_required": True}
     assert descriptor["constraints"] == {}
 

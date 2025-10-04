@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_parser_entityrecognition"
-version = "0.8.0.dev6"
+version = "0.8.0.dev7"
 description = "Entity Recognition Parser for Swarmauri."
 license = "Apache-2.0"
 readme = "README.md"

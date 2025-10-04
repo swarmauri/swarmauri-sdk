@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_cipher_suite_yubikey"
-version = "0.1.0.dev0"
+version = "0.1.0.dev1"
 description = "YubiKey-backed cipher suite for Swarmauri PIV signing and key transport"
 keywords = ["yubikey", "piv", "cipher-suite", "rsa-pss", "ecdsa", "attestation"]
 license = "Apache-2.0"

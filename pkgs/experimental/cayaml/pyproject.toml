@@ -1,6 +1,6 @@
 [project]
 name = "cayaml"
-version = "0.3.0.dev6"
+version = "0.3.0.dev7"
 description = "Swarmauri's Canon Yaml Handler"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 license = "Apache-2.0"
