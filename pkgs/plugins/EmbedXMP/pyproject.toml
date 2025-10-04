@@ -26,6 +26,7 @@ Homepage = "https://github.com/swarmauri/swarmauri-sdk"
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
+swarmauri_tests_pylicense = { workspace = true }
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -35,7 +36,11 @@ build-backend = "poetry.core.masonry.api"
 dev = [
     "pytest>=8.0",
     "ruff>=0.9",
+    "swarmauri_tests_pylicense",
 ]
+
+[tool.pytest.ini_options]
+addopts = "--pylicense-package=EmbedXMP --pylicense-mode=parameterized"
 
 [tool.poetry]
 packages = [
