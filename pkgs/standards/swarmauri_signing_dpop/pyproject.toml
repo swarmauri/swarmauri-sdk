@@ -15,6 +15,10 @@ keywords = [
     "sdk",
     "standards",
     "cryptography",
+    "http-signature",
+    "sender-constraining",
+    "jwk",
+    "token-format",
 ]
 classifiers = [
     "Development Status :: 1 - Planning",

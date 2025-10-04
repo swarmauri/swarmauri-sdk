@@ -21,6 +21,10 @@ keywords = [
     "standards",
     "pop",
     "authentication",
+    "http-signature",
+    "sender-constraining",
+    "jwk",
+    "token-format",
 ]
 classifiers = [
     "Development Status :: 1 - Planning",

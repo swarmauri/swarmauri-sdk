@@ -16,6 +16,10 @@ keywords = [
     "standards",
     "ca",
     "cryptography",
+    "certificate-signing",
+    "csr",
+    "digital-signature",
+    "trust-chain",
 ]
 classifiers = [
     "Development Status :: 1 - Planning",

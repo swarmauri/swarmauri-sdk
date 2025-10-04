@@ -32,6 +32,10 @@ keywords = [
     'self',
     'signed',
     'certificates',
+    'self-signed-certificates',
+    'certificate-builder',
+    'development-certificates',
+    'x509-format',
 ]
 
 [project.optional-dependencies]

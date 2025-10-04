@@ -21,6 +21,10 @@ keywords = [
     "standards",
     "pop",
     "authentication",
+    "tls-handshake",
+    "client-authentication",
+    "certificate-format",
+    "mtls-profile",
 ]
 classifiers = [
     "Development Status :: 1 - Planning",

@@ -21,6 +21,10 @@ keywords = [
     "standards",
     "pop",
     "authentication",
+    "cbor-codec",
+    "sign1",
+    "token-format",
+    "iot-security",
 ]
 classifiers = [
     "Development Status :: 1 - Planning",

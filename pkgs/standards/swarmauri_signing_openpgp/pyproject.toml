@@ -15,6 +15,11 @@ keywords = [
     "sdk",
     "standards",
     "cryptography",
+    "digital-signature",
+    "pgp-keys",
+    "ascii-armor",
+    "message-codec",
+    "openpgp-format",
 ]
 classifiers = [
     "Development Status :: 1 - Planning",

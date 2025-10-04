@@ -14,6 +14,10 @@ keywords = [
     "cryptography",
     "sdk",
     "standards",
+    "digital-signature",
+    "pkcs1",
+    "signature-algorithm",
+    "key-formats",
 ]
 classifiers = [
     "Development Status :: 1 - Planning",
