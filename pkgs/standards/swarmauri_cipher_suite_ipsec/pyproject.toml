@@ -32,6 +32,19 @@ keywords = [
     'suite',
     'ipsec',
     'cryptography',
+    'IPsec',
+    'IKEv2',
+    'RFC 8247',
+    'RFC 4106',
+    'RFC 7634',
+    'AES-GCM-16',
+    'ChaCha20-Poly1305',
+    'HMAC-SHA2-256',
+    'HMAC-SHA2-384',
+    'Diffie-Hellman group14',
+    'Diffie-Hellman group19',
+    'Diffie-Hellman group20',
+    'Diffie-Hellman group31',
 ]
 
 [tool.uv.sources]

@@ -2,7 +2,33 @@
 name = "swarmauri_cipher_suite_yubikey"
 version = "0.1.0.dev1"
 description = "YubiKey-backed cipher suite for Swarmauri PIV signing and key transport"
-keywords = ["yubikey", "piv", "cipher-suite", "rsa-pss", "ecdsa", "attestation", "swarmauri", "sdk", "standards", "cipher", "suite", "cryptography"]
+keywords = [
+    "yubikey",
+    "YubiKey",
+    "piv",
+    "cipher-suite",
+    "rsa-pss",
+    "ecdsa",
+    "attestation",
+    "swarmauri",
+    "sdk",
+    "standards",
+    "cipher",
+    "suite",
+    "cryptography",
+    "EdDSA",
+    "PS256",
+    "PS384",
+    "PS512",
+    "ES256",
+    "ES384",
+    "RSA-OAEP-256",
+    "P-256",
+    "P-384",
+    "FIPS 201-3",
+    "NIST SP 800-73",
+    "NIST SP 800-78-5",
+]
 license = "Apache-2.0"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"

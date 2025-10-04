@@ -32,6 +32,15 @@ keywords = [
     'suite',
     'sigstore',
     'cryptography',
+    'Sigstore',
+    'Cosign',
+    'Rekor',
+    'Fulcio',
+    'ES256',
+    'EdDSA',
+    'PS256',
+    'RFC 3161',
+    'RFC 6962',
 ]
 
 [tool.uv.sources]

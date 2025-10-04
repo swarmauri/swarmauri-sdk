@@ -32,6 +32,13 @@ keywords = [
     'suite',
     'cades',
     'cryptography',
+    'CAdES',
+    'CMS',
+    'ETSI EN 319 122',
+    'ETSI EN 319 132',
+    'RSA-PSS-SHA256',
+    'ECDSA-SHA256',
+    'EdDSA',
 ]
 
 [tool.uv.sources]
