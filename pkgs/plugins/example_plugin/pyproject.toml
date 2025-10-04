@@ -7,13 +7,35 @@ license = "Apache-2.0"
 readme = { file = "README.md", content-type = "text/markdown" }
 repository = "http://github.com/swarmauri/swarmauri-sdk"
 classifiers = [
+    "Development Status :: 1 - Planning",
     "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries",
 ]
 requires-python = ">=3.10,<3.13"
 dependencies = []
+
+keywords = [
+    "swarmauri",
+    "plugin",
+    "example",
+    "agents",
+    "entry-points",
+    "sdk",
+]
+
+[project.urls]
+Homepage = "https://github.com/swarmauri/swarmauri-sdk"
+Source = "https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/example_plugin"
+Documentation = "https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/example_plugin#readme"
+Issues = "https://github.com/swarmauri/swarmauri-sdk/issues"
+Changelog = "https://github.com/swarmauri/swarmauri-sdk/releases"
 
 [tool.uv.sources]
 swarmauri_tests_pylicense = { workspace = true }

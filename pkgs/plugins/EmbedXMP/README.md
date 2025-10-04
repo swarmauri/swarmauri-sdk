@@ -28,11 +28,16 @@
 
 ## Installation
 
+### Using `uv`
+
+```bash
+uv add EmbedXMP
+```
+
+### Using `pip`
+
 ```bash
 pip install EmbedXMP
-
-# or with uv
-uv add EmbedXMP
 ```
 
 ## Usage
@@ -62,5 +67,7 @@ print(xmp_text)
 
 ## Project Resources
 
-- Source: <https://github.com/swarmauri/swarmauri-sdk>
-- License: Apache 2.0
+- Source: <https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/EmbedXMP>
+- Documentation: <https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/EmbedXMP#readme>
+- Issues: <https://github.com/swarmauri/swarmauri-sdk/issues>
+- Releases: <https://github.com/swarmauri/swarmauri-sdk/releases>
