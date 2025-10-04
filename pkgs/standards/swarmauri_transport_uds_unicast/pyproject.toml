@@ -18,10 +18,12 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
+    "swarmauri-base",
     "swarmauri_core",
 ]
 
 [tool.uv.sources]
+swarmauri-base = { workspace = true }
 swarmauri_core = { workspace = true }
 
 [build-system]
