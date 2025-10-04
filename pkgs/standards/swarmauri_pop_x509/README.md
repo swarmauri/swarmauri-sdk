@@ -77,6 +77,17 @@ asyncio.run(main())
 supplies the evidence. Only the certificate thumbprint comparison is performed,
 mirroring the behaviour of OAuth 2.0 mutual TLS confirmation.
 
+## Compatibility
+
+- Supports Python 3.10, 3.11, and 3.12
+- Depends on `swarmauri_core` and `swarmauri-base` from the Swarmauri SDK
+- Designed for deployments where mutual TLS is already enforced by the network perimeter
+
+## Related Packages
+
+- [swarmauri_pop_cwt](https://pypi.org/project/swarmauri_pop_cwt/) for COSE/CBOR PoP bindings
+- [swarmauri_pop_dpop](https://pypi.org/project/swarmauri_pop_dpop/) for HTTP proof-of-possession headers
+
 ## License
 
 Apache License 2.0. See the [LICENSE](./LICENSE) file for details.

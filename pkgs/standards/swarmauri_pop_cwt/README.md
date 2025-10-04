@@ -116,6 +116,17 @@ asyncio.run(verify_request(cwp_header, signer.cnf_binding(), "opaque-access-toke
 The verifier enforces COSE key thumbprints against the `cnf` binding and applies
 the same replay and nonce strategies shared across Swarmauri PoP strategies.
 
+## Compatibility
+
+- Supports Python 3.10, 3.11, and 3.12
+- Depends on `swarmauri_core` and `swarmauri-base` from the Swarmauri SDK
+- Uses `cose>=0.9.dev8` and `cbor2>=5.5.0` for COSE Sign1 handling
+
+## Related Packages
+
+- [swarmauri_pop_dpop](https://pypi.org/project/swarmauri_pop_dpop/) for RFC 9449 DPoP proofs
+- [swarmauri_pop_x509](https://pypi.org/project/swarmauri_pop_x509/) for mutual TLS PoP verification
+
 ## License
 
 Apache License 2.0. See the [LICENSE](./LICENSE) file for details.

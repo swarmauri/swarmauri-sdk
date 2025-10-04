@@ -117,6 +117,17 @@ asyncio.run(verify_request({"DPoP": dpop_header}, signer.cnf_binding(), "opaque-
 The verifier enforces thumbprints for the provided JWK, checks nonce and replay
 constraints, and validates `ath` hashes when bearer tokens are provided.
 
+## Compatibility
+
+- Supports Python 3.10, 3.11, and 3.12
+- Depends on `swarmauri_core` and `swarmauri-base` from the Swarmauri SDK
+- Uses `pyjwt>=2.8` and `cryptography>=41` for JOSE processing
+
+## Related Packages
+
+- [swarmauri_pop_cwt](https://pypi.org/project/swarmauri_pop_cwt/) for COSE/CBOR PoP tokens
+- [swarmauri_pop_x509](https://pypi.org/project/swarmauri_pop_x509/) for mutual TLS confirmation
+
 ## License
 
 Apache License 2.0. See the [LICENSE](./LICENSE) file for details.
