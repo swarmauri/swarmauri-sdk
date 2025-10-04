@@ -45,6 +45,14 @@ keywords = [
     "python-library",
     "async-discovery",
     "plugin-discovery",
+    "png",
+    "gif",
+    "jpeg",
+    "svg",
+    "webp",
+    "tiff",
+    "pdf",
+    "mp4",
 ]
 
 [project.urls]

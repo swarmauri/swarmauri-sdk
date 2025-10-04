@@ -50,6 +50,13 @@ keywords = [
     "verification",
     "digital-asset-security",
     "media-compliance",
+    "cms",
+    "pkcs7",
+    "cades",
+    "jws",
+    "openpgp",
+    "pdf-signatures",
+    "xmldsig",
 ]
 
 [project.urls]

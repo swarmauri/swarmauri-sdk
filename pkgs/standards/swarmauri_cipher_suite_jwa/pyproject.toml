@@ -32,6 +32,23 @@ keywords = [
     'suite',
     'jwa',
     'cryptography',
+    'JSON Web Algorithms',
+    'RFC 7518',
+    'JWS',
+    'JWE',
+    'EdDSA',
+    'PS256',
+    'PS384',
+    'PS512',
+    'ES256',
+    'ES384',
+    'ES512',
+    'A128GCM',
+    'A192GCM',
+    'A256GCM',
+    'RSA-OAEP',
+    'RSA-OAEP-256',
+    'A256KW',
 ]
 
 [tool.uv.sources]

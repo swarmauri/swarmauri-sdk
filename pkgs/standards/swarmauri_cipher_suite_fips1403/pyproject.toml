@@ -32,6 +32,21 @@ keywords = [
     'suite',
     'fips1403',
     'cryptography',
+    'FIPS 140-3',
+    'NIST SP 800-38D',
+    'FIPS 186-5',
+    'RFC 7518',
+    'PS256',
+    'PS384',
+    'ES256',
+    'ES384',
+    'A256GCM',
+    'RSA-OAEP-256',
+    'A256KW',
+    'P-256',
+    'P-384',
+    'SHA256',
+    'SHA384',
 ]
 
 [tool.uv.sources]

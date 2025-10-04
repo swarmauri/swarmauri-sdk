@@ -32,6 +32,15 @@ keywords = [
     'suite',
     'xades',
     'cryptography',
+    'XAdES',
+    'XMLDSig',
+    'ETSI EN 319 132',
+    'ETSI EN 319 122',
+    'XML Canonicalization',
+    'Exclusive XML Canonicalization',
+    'RSA-PSS-SHA256',
+    'ECDSA-SHA256',
+    'EdDSA',
 ]
 
 [tool.uv.sources]
