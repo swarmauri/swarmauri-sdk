@@ -1,0 +1,40 @@
+[build-system]
+requires = ["poetry-core>=1.8.0"]
+build-backend = "poetry.core.masonry.api"
+
+[project]
+name = "tigrbl-spiffe"
+version = "0.1.0"
+description = "SPIFFE/SPIRE plugin for Tigrbl — table/op-centric with UDS + HTTP(S) transports"
+readme = "README.md"
+license = { file = "LICENSE-APACHE" }
+requires-python = ">=3.11"
+authors = [{ name = "Tigrbl Contributors" }]
+keywords = ["tigrbl", "spiffe", "spire", "mtls", "identity", "jwt", "cwt"]
+classifiers = [
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.11",
+  "Topic :: Security",
+  "Topic :: Internet",
+]
+
+dependencies = [
+  "httpx>=0.27",
+  "py-spiffe>=0.15",
+]
+
+[project.optional-dependencies]
+grpc = ["grpcio>=1.64"]
+
+[project.entry-points."tigrbl.plugins"]
+spiffe = "tigrbl_spiffe.plugin:TigrblSpiffePlugin"
+
+[tool.uv]
+index-url = "https://pypi.org/simple"
+dev-dependencies = [
+  "pytest>=8.2",
+  "pytest-asyncio>=0.23",
+  "ruff>=0.5",
+]

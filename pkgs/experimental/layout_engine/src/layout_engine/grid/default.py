@@ -66,3 +66,23 @@ class ExplicitGridResolver(IGridResolver):
             if vp.width <= max_w:
                 return cols
         return spec.columns
+
+
+class Grid:
+    """Default grid runtime wrapper that pairs a GridSpec with a resolver."""
+    def __init__(self, spec: GridSpec, resolver: IGridResolver | None = None):
+        self.spec = spec
+        self.resolver = resolver or ExplicitGridResolver()
+
+    def frames(self, vp: Viewport, placements: list[GridTile]) -> dict[str, Frame]:
+        return self.resolver.frames(self.spec, vp, placements)
+
+    # --- context manager support ---
+    def __enter__(self):
+        return self
+    def __exit__(self, exc_type, exc, tb):
+        return False
+    async def __aenter__(self):
+        return self
+    async def __aexit__(self, exc_type, exc, tb):
+        return False

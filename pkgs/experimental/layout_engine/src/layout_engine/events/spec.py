@@ -1,5 +1,6 @@
+from pydantic import BaseModel, Field, validator
 from __future__ import annotations
-from dataclasses import dataclass
+from pydantic import BaseModel, Field, validator
 from typing import Literal, Any, Mapping
 from datetime import datetime, timezone
 
@@ -9,8 +10,7 @@ def utc_now_iso() -> str:
     """UTC timestamp in RFC3339/ISO8601 with 'Z'."""
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
-@dataclass(frozen=True)
-class EventEnvelope:
+class EventEnvelope(BaseModel):
     scope: Scope
     type: str
     page_id: str | None
@@ -23,8 +23,7 @@ class EventEnvelope:
 
 # Optional server responses
 
-@dataclass(frozen=True)
-class Ack:
+class Ack(BaseModel):
     ok: bool
     request_id: str
     code: str = "ok"
@@ -33,8 +32,7 @@ class Ack:
 def make_ack(request_id: str, message: str = "") -> Ack:
     return Ack(ok=True, request_id=request_id, code="ok", message=message)
 
-@dataclass(frozen=True)
-class ErrorAck:
+class ErrorAck(BaseModel):
     ok: bool
     request_id: str
     code: str

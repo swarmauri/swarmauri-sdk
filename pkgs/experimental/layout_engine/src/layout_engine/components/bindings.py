@@ -23,7 +23,7 @@ def from_dict(obj: Mapping[str, Any]) -> ComponentSpec:
     )
 
 def registry_to_dict(registry) -> dict[str, dict]:
-    return registry.to_dict()
+    return registry.dict()
 
 def registry_from_dict(registry, data: Mapping[str, Mapping[str, Any]]) -> None:
     registry.update_from_dict(data)

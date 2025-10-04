@@ -6,9 +6,7 @@ from ..deps.fastapi import FastAPI
 from ..engine.engine_spec import EngineCfg
 from ..engine import resolver as _resolver
 from ..engine import install_from_objects
-from ..ddl import initialize as _ddl_initialize
 from .app_spec import AppSpec
-from ._model_registry import initialize_model_registry
 
 
 class App(AppSpec, FastAPI):
@@ -23,10 +21,9 @@ class App(AppSpec, FastAPI):
         self.engine = engine if engine is not None else getattr(self, "ENGINE", None)
         self.apis = tuple(getattr(self, "APIS", ()))
         self.ops = tuple(getattr(self, "OPS", ()))
-        declared_models = getattr(self, "MODELS", ())
-        # Runtime registries use mutable containers (dict/namespace); initialize
-        # them with any models declared on the spec for convenient defaults.
-        self.models = initialize_model_registry(declared_models)
+        # Runtime registries use mutable containers (dict/namespace), but the
+        # dataclass fields expect sequences. Storing a dict here satisfies both.
+        self.models = {}
         self.schemas = tuple(getattr(self, "SCHEMAS", ()))
         self.hooks = tuple(getattr(self, "HOOKS", ()))
         self.security_deps = tuple(getattr(self, "SECURITY_DEPS", ()))
@@ -62,16 +59,3 @@ class App(AppSpec, FastAPI):
                 install_from_objects(app=self, api=a, models=models)
         else:
             install_from_objects(app=self, api=None, models=models)
-
-    def _collect_tables(self) -> list[Any]:
-        """Return the unique SQLAlchemy tables for registered models."""
-        seen: set[Any] = set()
-        tables: list[Any] = []
-        for model in getattr(self, "models", {}).values():
-            table = getattr(model, "__table__", None)
-            if table is not None and table not in seen:
-                seen.add(table)
-                tables.append(table)
-        return tables
-
-    initialize = _ddl_initialize

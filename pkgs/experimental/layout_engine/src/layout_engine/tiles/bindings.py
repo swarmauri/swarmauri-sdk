@@ -6,17 +6,7 @@ from .default import Tile
 # ---- Spec JSON (de)serialization ----
 
 def to_dict(spec: TileSpec) -> dict:
-    return {
-        "id": spec.id,
-        "role": spec.role,
-        "min_w": spec.min_w, "min_h": spec.min_h,
-        "max_w": spec.max_w, "max_h": spec.max_h,
-        "aspect": spec.aspect,
-        "props": dict(spec.props),
-        "meta": dict(spec.meta),
-    }
-
-def from_dict(obj: Mapping[str, Any]) -> TileSpec:
+    return obj.dict() if hasattr(obj, 'dict') else dict(obj)def from_dict(obj: Mapping[str, Any]) -> TileSpec:
     return TileSpec(
         id=str(obj["id"]),
         role=str(obj.get("role", "generic")),

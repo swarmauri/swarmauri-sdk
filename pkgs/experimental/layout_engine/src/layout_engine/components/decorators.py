@@ -4,13 +4,13 @@ from typing import Mapping, Any
 from .default import ComponentRegistry
 from .spec import ComponentSpec
 
-def component(*, role: str, module: str, export: str = "default",
+def component_ctx(*, role: str, module: str, export: str = "default",
               version: str = "1.0.0", defaults: Mapping[str, Any] | None = None,
               registry: ComponentRegistry | None = None):
-    """Decorator to declare and optionally register a component specification.
+    """Decorator to declare and optionally register a component_ctx specification.
 
     Example:
-        @component(role="kpi", module="@app/widgets/Kpi.svelte", defaults={"format":"currency"}, registry=REG)
+        @component_ctx(role="kpi", module="@app/widgets/Kpi.svelte", defaults={"format":"currency"}, registry=REG)
         def kpi(): pass
     """
     def deco(fn):

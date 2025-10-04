@@ -1,10 +1,10 @@
+from pydantic import BaseModel, Field, validator
 from __future__ import annotations
-from dataclasses import dataclass
+from pydantic import BaseModel, Field, validator
 from typing import Tuple
 from ..core.size import SizeToken
 
-@dataclass(frozen=True)
-class Block:
+class Block(BaseModel):
     """Atomic content unit to be placed in a column.
 
     - tile_id: unique identifier of the tile to render
@@ -14,8 +14,7 @@ class Block:
     col_span: int = 1
     row_span: int = 1
 
-@dataclass(frozen=True)
-class Column:
+class Column(BaseModel):
     """Column within a Row with a semantic size token (xxs..xxl)."""
     size: SizeToken
     blocks: Tuple[Block, ...] = ()
@@ -23,8 +22,7 @@ class Column:
     def is_empty(self) -> bool:
         return len(self.blocks) == 0
 
-@dataclass(frozen=True)
-class Row:
+class Row(BaseModel):
     """Row contains one or more Columns.
 
     - height_rows: minimal row-span the row should occupy (used as a floor
@@ -36,8 +34,7 @@ class Row:
     def column_count(self) -> int:
         return len(self.columns)
 
-@dataclass(frozen=True)
-class Table:
+class Table(BaseModel):
     """High-level authoring artifact composed of Rows → Columns → Blocks.
 
     The GridBuilder compiles this into an explicit GridSpec + GridTile placements.
