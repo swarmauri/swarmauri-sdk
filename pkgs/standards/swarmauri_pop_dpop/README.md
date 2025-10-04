@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/master/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pypi.org/project/swarmauri_pop_dpop/">
@@ -13,33 +13,38 @@
         <img src="https://img.shields.io/pypi/v/swarmauri_pop_dpop?label=swarmauri_pop_dpop&color=green" alt="PyPI - swarmauri_pop_dpop"/></a>
 </p>
 
+---
+
 # Swarmauri PoP DPoP
 
-`DPoPVerifier` and `DPoPSigner` provide RFC 9449 proof-of-possession for HTTP requests. The verifier enforces `htm`/`htu` bindings, supports nonce and replay hooks, and validates `ath` claims against server-provided access tokens.
+`swarmauri_pop_dpop` enables RFC 9449 Demonstrating Proof-of-Possession flows for
+Swarmauri services. The signer and verifier reuse the shared Swarmauri PoP
+contract so applications can mix DPoP, CWT, and X.509 strategies interchangeably.
+
+## Features
+
+- Implements `DPoPSigner` and `DPoPVerifier` with consistent Swarmauri PoP
+  semantics, including `cnf` generation and verification hooks
+- Normalises HTTP method and URI handling to align with the DPoP
+  specification, including support for query strings and ports
+- Provides nonce and replay integration points so you can plug in
+  application-specific storage to enforce single-use proofs
+- Validates `ath` hashes for OAuth access tokens to ensure request binding when
+  PoP is layered on bearer credentials
 
 ## Installation
-
-### pip
 
 ```bash
 pip install swarmauri_pop_dpop
 ```
 
-### uv
-
 ```bash
 uv add swarmauri_pop_dpop
 ```
 
-### Poetry
-
-```bash
-poetry add swarmauri_pop_dpop
-```
-
 ## Usage
 
-### Signing a request
+### Signing an outgoing HTTP request
 
 ```python
 from cryptography.hazmat.primitives import serialization
@@ -109,4 +114,9 @@ async def verify_request(headers: Mapping[str, str], cnf: CnfBinding, access_tok
 asyncio.run(verify_request({"DPoP": dpop_header}, signer.cnf_binding(), "opaque-access-token"))
 ```
 
-The verifier automatically enforces the JWK thumbprint against the `cnf` value from the access token and uses the provided replay hook to reject reused `jti` values within the configured skew window.
+The verifier enforces thumbprints for the provided JWK, checks nonce and replay
+constraints, and validates `ath` hashes when bearer tokens are provided.
+
+## License
+
+Apache License 2.0. See the [LICENSE](./LICENSE) file for details.
