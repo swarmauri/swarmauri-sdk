@@ -12,6 +12,10 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Natural Language :: English",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
@@ -39,6 +43,17 @@ dependencies = [
     "swarmauri_tool_jupyterstartkernel",
     "swarmauri_tool_jupytervalidatenotebook",
     "swarmauri_tool_jupyterwritenotebook",
+]
+keywords = [
+    "swarmauri",
+    "toolkit",
+    "jupytertoolkit",
+    "unified",
+    "aggregating",
+    "standalone",
+    "jupyter",
+    "notebook",
+    "tools",
 ]
 
 [tool.uv.sources]

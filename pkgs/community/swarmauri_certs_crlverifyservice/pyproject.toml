@@ -11,11 +11,24 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Natural Language :: English",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "cryptography>=41.0.0",
     "swarmauri-base",
+]
+keywords = [
+    "swarmauri",
+    "certs",
+    "crlverifyservice",
+    "certificate",
+    "verification",
+    "against",
+    "crls",
 ]
 
 [tool.uv.sources]
