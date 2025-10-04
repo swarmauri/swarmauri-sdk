@@ -8,7 +8,7 @@ Async entry-point for the *fetch* pipeline.
 
     {
         "repos":   [ "<git-url>", … ],   # required – list of clone URLs
-        "ref":     "main",               # optional – branch/tag/SHA (default "HEAD")
+        "ref":     "master",             # optional – branch/tag/SHA (default "HEAD")
         "out_dir": "<path>"              # optional – base directory for work-trees
     }
 

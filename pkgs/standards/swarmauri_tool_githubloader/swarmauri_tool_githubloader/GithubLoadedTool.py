@@ -20,7 +20,7 @@ class GithubLoadedTool(ToolBase):
     owner: str
     repo: str
     path: str
-    branch: str = "main"
+    branch: str = "master"
     commit_ref: Optional[str] = None
     token: Optional[str] = None
     use_cache: bool = True

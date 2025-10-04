@@ -21,7 +21,7 @@ async def test_fetch_handler_passes_args(monkeypatch):
     args = {
         "repos": ["git+repo1", "git+repo2"],
         "out_dir": "~/out",
-        "ref": "main",
+        "ref": "master",
     }
 
     task = build_task(
@@ -29,11 +29,11 @@ async def test_fetch_handler_passes_args(monkeypatch):
         args=args,
         pool_id="p",
         repo="repo",
-        ref="main",
+        ref="master",
     )
     result = await handler.fetch_handler(task)
 
     assert result == {"count": 2}
     assert captured["repos"] == ["git+repo1", "git+repo2"]
-    assert captured["ref"] == "main"
+    assert captured["ref"] == "master"
     assert captured["out_dir"] == Path("~/out").expanduser()

@@ -37,7 +37,7 @@ async def mutate_handler(task: TaskRead) -> Dict[str, Any]:
 
         {
             "repo":         "<git-url>",          # required
-            "ref":          "main",               # optional (default HEAD)
+            "ref":          "master",             # optional (default HEAD)
             "target_file":  "src/foo.py",         # required – relative to repo root
             "import_path":  "pkg.module",         # required
             "entry_fn":     "benchmark",          # required

@@ -42,7 +42,7 @@ def test_local_validate_cli_invokes_handler(monkeypatch, tmp_path):
             "--repo",
             "repo",
             "--ref",
-            "main",
+            "master",
         ],
     )
     assert result.exit_code == 0
@@ -69,7 +69,7 @@ def test_remote_validate_cli_submits_task(monkeypatch):
             "--repo",
             "repo",
             "--ref",
-            "main",
+            "master",
         ],
         obj={"rpc": object(), "pool": "default"},
     )
