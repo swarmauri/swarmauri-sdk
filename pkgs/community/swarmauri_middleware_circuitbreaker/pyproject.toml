@@ -15,7 +15,7 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "Topic :: Software Development :: Libraries :: Application Frameworks"
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 dependencies = [
     "fastapi",
@@ -23,6 +23,13 @@ dependencies = [
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard"
+]
+keywords = [
+    "swarmauri",
+    "middleware",
+    "circuitbreaker",
+    "circuit",
+    "breaker",
 ]
 
 [tool.uv.sources]

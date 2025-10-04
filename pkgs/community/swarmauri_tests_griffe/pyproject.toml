@@ -17,6 +17,10 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Development Status :: 3 - Alpha",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 keywords = [
     "swarmauri",
@@ -25,6 +29,15 @@ keywords = [
     "static analysis",
     "developer experience",
     "quality gates",
+    "tests",
+    "plugin",
+    "turns",
+    "inspection",
+    "warnings",
+    "failing",
+    "quality",
+    "gates",
+    "packages",
 ]
 dependencies = [
     "pytest>=8.0",

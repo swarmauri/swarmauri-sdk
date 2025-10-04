@@ -12,6 +12,10 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Natural Language :: English",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
@@ -19,6 +23,23 @@ dependencies = [
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
+]
+keywords = [
+    "swarmauri",
+    "tool",
+    "jupytershutdownkernel",
+    "designed",
+    "shut",
+    "down",
+    "running",
+    "jupyter",
+    "kernel",
+    "programmatically",
+    "client",
+    "releasing",
+    "all",
+    "associated",
+    "resources",
 ]
 
 [tool.uv.sources]
