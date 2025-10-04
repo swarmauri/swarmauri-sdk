@@ -59,7 +59,7 @@ def test_serialization(github_commit_tool):
                 "file_path": "path/to/file.txt",
                 "message": "Test Commit",
                 "content": "File content",
-                "branch": "main",
+                "branch": "master",
             },
             "create_commit",
         ),
@@ -67,7 +67,7 @@ def test_serialization(github_commit_tool):
         ("get_commit", {"repo_name": "test-repo", "sha": "abcdef"}, "get_commit"),
         (
             "compare_commits",
-            {"repo_name": "test-repo", "base": "main", "head": "feature"},
+            {"repo_name": "test-repo", "base": "master", "head": "feature"},
             "compare_commits",
         ),
         # Invalid action

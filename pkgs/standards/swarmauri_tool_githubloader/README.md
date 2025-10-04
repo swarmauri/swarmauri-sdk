@@ -45,7 +45,7 @@ result = tool(x=1, y=2)
 
 Customize how the loader fetches your component:
 
-- **branch** – Branch to read from (defaults to `"main"`).
+- **branch** – Branch to read from (defaults to `"master"`).
 - **commit_ref** – Specific commit SHA; overrides `branch` when provided.
 - **token** – GitHub token for private repositories.
 - **use_cache** – Set to `False` to reload the component on every call.

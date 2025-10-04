@@ -30,7 +30,7 @@ def test_extras_cli_generates_schemas(monkeypatch, tmp_path):
             "--repo",
             "repo",
             "--ref",
-            "main",
+            "master",
             "--templates-root",
             str(templates),
             "--schemas-dir",
@@ -44,7 +44,7 @@ def test_extras_cli_generates_schemas(monkeypatch, tmp_path):
     assert called["args"]["templates_root"] == str(templates)
     assert called["args"]["schemas_dir"] == str(schemas)
     assert called["args"]["repo"] == "repo"
-    assert called["args"]["ref"] == "main"
+    assert called["args"]["ref"] == "master"
     assert called["pool"] == "default"
     assert called["task"] == "TASK"
     assert "\u2705 Wrote" in result.stdout

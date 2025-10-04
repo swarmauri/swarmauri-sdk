@@ -42,7 +42,7 @@ class Repository(Base, GUIDPk, Timestamped, Ownable, TenantBound, StatusColumn):
 
     name: Mapped[str] = acol(storage=S(String, nullable=False))
     url: Mapped[str] = acol(storage=S(String, unique=True, nullable=False))
-    default_branch: Mapped[str] = acol(storage=S(String, default="main"))
+    default_branch: Mapped[str] = acol(storage=S(String, default="master"))
     commit_sha: Mapped[str | None] = acol(storage=S(String(length=40), nullable=True))
     github_pat: str | None = vcol(
         field=F(

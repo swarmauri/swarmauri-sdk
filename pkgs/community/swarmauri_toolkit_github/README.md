@@ -95,7 +95,7 @@ toolkit.github_branch_tool(
     action="create_branch",
     repo_name="owner/service",
     new_branch="release/v1.4.0",
-    source_branch="main"
+    source_branch="master"
 )
 
 # Cut a changelog commit
@@ -123,7 +123,7 @@ registry.register(toolkit.github_issue_tool)
 registry.register(toolkit.github_pr_tool)
 
 agent = Agent(tool_registry=registry)
-response = agent.run(HumanMessage(content="Open a PR from feature/auth to main"))
+response = agent.run(HumanMessage(content="Open a PR from feature/auth to master"))
 print(response)
 ```
 

@@ -331,7 +331,7 @@ def remote_init_repo(
     repo: str = typer.Argument(..., help="owner/name"),
     pat: str = typer.Option(..., envvar="GITHUB_PAT"),
     path: str = typer.Option(".", "--path", help="Local repository path"),
-    default_branch: str = typer.Option("main", "--default-branch"),
+    default_branch: str = typer.Option("master", "--default-branch"),
 ) -> None:
     """
     Register *repo* with the gateway (provisions origin on git-shadow and mirror on GitHub),

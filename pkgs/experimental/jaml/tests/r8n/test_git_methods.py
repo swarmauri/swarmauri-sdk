@@ -8,7 +8,7 @@ def test_git_embed_method():
     # Test using the .embed() method to include raw content
     jml = """
 [scripts]
-deploy = git(url = "https://github.com/user/scripts", branch = "main").embed("deploy.sh")
+deploy = git(url = "https://github.com/user/scripts", branch = "master").embed("deploy.sh")
 readme = git(url = "https://github.com/user/docs", tag = "v1.0").embed("README.md")
     """.strip()
 
