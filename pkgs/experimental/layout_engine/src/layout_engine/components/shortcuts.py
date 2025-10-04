@@ -1,17 +1,20 @@
 from __future__ import annotations
 from typing import Mapping, Any
-from .spec import ComponentSpec, merge_props
-from .default import ComponentRegistry
+from .spec import ComponentSpec
+from .default import Component
+from .registry import ComponentRegistry  # if present; otherwise import from __init__
 
-def define_component(registry: ComponentRegistry, *, role: str, module: str,
-                     export: str = "default", version: str = "1.0.0",
-                     defaults: Mapping[str, Any] | None = None) -> ComponentSpec:
-    spec = ComponentSpec(role=role, module=module, export=export, version=version, defaults=defaults or {})
-    registry.register(spec)
-    return spec
+def define_component(*, role: str, module: str, export: str = "default",
+                     version: str | None = None, defaults: Mapping[str, Any] | None = None) -> ComponentSpec:
+    """Return a ComponentSpec (no registration side-effects)."""
+    return ComponentSpec(role=role, module=module, export=export, version=version, defaults=defaults or {})
 
-def use_component(registry: ComponentRegistry, role: str) -> ComponentSpec:
-    return registry.get(role)
+def derive_component(base: ComponentSpec, **overrides) -> ComponentSpec:
+    """Immutable copy of a ComponentSpec with field overrides."""
+    data = base.dict()
+    data.update(overrides)
+    return ComponentSpec(**data)
 
-def apply_defaults(spec: ComponentSpec, overrides: Mapping[str, Any] | None = None) -> dict:
-    return merge_props(spec.defaults, overrides or {})
+def make_component(spec: ComponentSpec) -> Component:
+    """Instantiate a default Component from a spec."""
+    return Component(spec=spec)

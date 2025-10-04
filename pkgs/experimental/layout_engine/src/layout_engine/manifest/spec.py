@@ -1,9 +1,9 @@
+from pydantic import BaseModel, Field, validator
 from __future__ import annotations
-from dataclasses import dataclass
+from pydantic import BaseModel, Field, validator
 from typing import Any, Mapping, Sequence
 
-@dataclass(frozen=True)
-class Manifest:
+class Manifest(BaseModel):
     """Canonical page manifest.
 
     Fields:

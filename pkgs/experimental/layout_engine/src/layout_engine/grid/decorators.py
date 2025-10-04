@@ -4,7 +4,7 @@ from typing import Iterable
 from .spec import GridSpec, GridTrack
 from ..core.size import Size, parse_size
 
-def with_breakpoints(*breakpoints: tuple[int, list[str | float | int | Size | GridTrack]]):  # (max_w, columns)
+def with_breakpoints_ctx(*breakpoints: tuple[int, list[str | float | int | Size | GridTrack]]):  # (max_w, columns)
     """Decorator to attach breakpoints to a GridSpec factory.
 
     Each breakpoint is a tuple: (max_width_px, columns), where `columns` is a list of
@@ -13,7 +13,7 @@ def with_breakpoints(*breakpoints: tuple[int, list[str | float | int | Size | Gr
     - size expressions ('1fr', '200px', '33%') / numbers (px).
 
     Example:
-        @with_breakpoints(
+        @with_breakpoints_ctx(
             (768,  ['1fr']),               # <=768px: single column
             (1280, ['1fr','1fr','1fr']),   # <=1280px: 3 cols
         )

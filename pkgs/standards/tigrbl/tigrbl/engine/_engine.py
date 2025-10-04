@@ -27,6 +27,13 @@ if TYPE_CHECKING:  # pragma: no cover - for type checkers only
 
 @dataclass(frozen=True)
 class Provider:
+    # supports() exposes engine capabilities for compatibility checks
+    def supports(self) -> dict:
+        try:
+            return self.spec.supports()
+        except Exception:
+            return {"engine": self.spec.kind or "unknown"}
+
     """Lazily builds an engine + sessionmaker from an :class:`EngineSpec`."""
 
     spec: "EngineSpec"
@@ -87,6 +94,13 @@ class Provider:
 
 @dataclass
 class Engine:
+    # Delegate to provider/spec for capability reporting
+    def supports(self) -> dict:
+        try:
+            return self.provider.supports()
+        except Exception:
+            return {"engine": self.spec.kind or "unknown"}
+
     """Thin façade over an :class:`EngineSpec` with convenient (a)context managers."""
 
     spec: "EngineSpec"
