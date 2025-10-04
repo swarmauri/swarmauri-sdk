@@ -173,6 +173,7 @@ members = [
     "standards/swarmauri_xmp_tiff",
     "standards/swarmauri_xmp_webp",
     "plugins/embedded_signer",
+    "plugins/example_plugin",
 
     "standards/swarmauri_tokens_introspection",
     "standards/swarmauri_tokens_paseto_v4",

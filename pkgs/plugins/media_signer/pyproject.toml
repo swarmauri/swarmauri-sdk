@@ -48,6 +48,7 @@ swarmauri_signing_jws = { workspace = true }
 swarmauri_signing_openpgp = { workspace = true }
 swarmauri_signing_pdf = { workspace = true }
 swarmauri_signing_xmld = { workspace = true }
+swarmauri_tests_pylicense = { workspace = true }
 
 [dependency-groups]
 dev = [
@@ -57,6 +58,7 @@ dev = [
     "pytest-json-report>=1.5.0",
     "python-dotenv>=1.0.0",
     "ruff>=0.9.9",
+    "swarmauri_tests_pylicense",
 ]
 
 [tool.pytest.ini_options]
@@ -65,6 +67,9 @@ log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
+# Accept the cffi dependency that ships with cryptography's binary wheels until
+# its license metadata is normalized in upstream packages.
+addopts = "--pylicense-mode=parameterized --pylicense-accept-deps=cffi"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

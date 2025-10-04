@@ -85,6 +85,20 @@ If both are provided, any license not in the allow list or explicitly present
 in the disallow list will cause a test failure. By default, all licenses are
 allowed and none are disallowed.
 
+### Accepting Specific Dependencies
+
+Some transitive dependencies bundle compiled extensions or dual-license their
+artifacts in ways that obscure the canonical SPDX identifier. Use the
+`--pylicense-accept-deps` option (or `PYLICENSE_ACCEPT_DEPS` environment
+variable) to explicitly permit those packages while continuing to enforce
+licenses for everything else.
+
+For example, the `cryptography` wheel distributes pre-built binaries that rely
+on `cffi`. The wheel metadata only references its bundled licensing notices, so
+the dependency can appear as "UNKNOWN" during static inspection. Adding
+`--pylicense-accept-deps=cffi` tells the plugin to treat that particular
+package as trusted and continue evaluating the rest of the dependency graph.
+
 ## License
 
 Licensed under the [Apache 2.0 License](LICENSE).

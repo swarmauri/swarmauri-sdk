@@ -27,7 +27,11 @@ dev = [
     "python-dotenv>=1.0.0",
     "requests>=2.32.3",
     "ruff>=0.9.9",
+    "swarmauri_tests_pylicense",
 ]
+
+[tool.uv.sources]
+swarmauri_tests_pylicense = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
@@ -43,6 +47,7 @@ log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
+addopts = "--pylicense-mode=parameterized"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

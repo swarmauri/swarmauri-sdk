@@ -124,6 +124,7 @@ swarmauri_signing_jws = { workspace = true }
 swarmauri_signing_openpgp = { workspace = true }
 swarmauri_signing_pdf = { workspace = true }
 swarmauri_signing_xmld = { workspace = true }
+swarmauri_tests_pylicense = { workspace = true }
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -143,7 +144,13 @@ dev = [
     "swarmauri_xmp_tiff",
     "swarmauri_xmp_webp",
     "ruff>=0.9",
+    "swarmauri_tests_pylicense",
 ]
+
+[tool.pytest.ini_options]
+# Accept the transitive cffi dependency required by cryptography which
+# embeds multiple licensing notices that pylicense cannot fully resolve yet.
+addopts = "--pylicense-mode=parameterized --pylicense-accept-deps=cffi"
 
 [tool.poetry]
 packages = [
