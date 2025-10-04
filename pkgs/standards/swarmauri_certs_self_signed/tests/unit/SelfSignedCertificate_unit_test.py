@@ -1,10 +1,45 @@
+import json
+
 import pytest
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography import x509
 
 from swarmauri_certs_self_signed import SelfSignedCertificate
-from swarmauri_core.crypto.types import KeyRef, KeyType, KeyUse, ExportPolicy
+from swarmauri_core.crypto.types import ExportPolicy, KeyRef, KeyType, KeyUse
+
+
+@pytest.fixture
+def self_signed_cert():
+    return SelfSignedCertificate()
+
+
+@pytest.mark.unit
+def test_ubc_resource(self_signed_cert):
+    assert self_signed_cert.resource == "Crypto"
+
+
+@pytest.mark.unit
+def test_ubc_type(self_signed_cert):
+    assert self_signed_cert.type == "SelfSignedCertificate"
+
+
+@pytest.mark.unit
+def test_initialization(self_signed_cert):
+    assert isinstance(self_signed_cert.id, str)
+    assert self_signed_cert.id
+
+
+@pytest.mark.unit
+def test_serialization(self_signed_cert):
+    serialized = self_signed_cert.model_dump_json()
+    data = json.loads(serialized)
+
+    restored = SelfSignedCertificate.model_construct(**data)
+
+    assert restored.id == self_signed_cert.id
+    assert restored.resource == self_signed_cert.resource
+    assert restored.type == self_signed_cert.type
 
 
 @pytest.mark.test

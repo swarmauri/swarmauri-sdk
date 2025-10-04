@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Iterable, Mapping, Optional
 
 from swarmauri_base.cipher_suites import CipherSuiteBase
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.cipher_suites import (
     Alg,
     CipherOp,
@@ -16,10 +17,9 @@ _SIGN = ("ES384", "PS384")
 _ENC = ("A256GCM",)
 
 
+@ComponentBase.register_type(CipherSuiteBase, "Cnsa20CipherSuite")
 class Cnsa20CipherSuite(CipherSuiteBase):
     """Skeleton suite for CNSA 2.0 policy."""
-
-    type: str = "Cnsa20CipherSuite"
 
     def suite_id(self) -> str:
         return "cnsa-2.0"

@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Iterable, Mapping, Optional
 
 from swarmauri_base.cipher_suites import CipherSuiteBase
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.cipher_suites import (
     Alg,
     CipherOp,
@@ -15,10 +16,9 @@ from swarmauri_core.cipher_suites import (
 _FIDO_COSE = ("-7", "-8", "-257")
 
 
+@ComponentBase.register_type(CipherSuiteBase, "WebAuthnCipherSuite")
 class WebAuthnCipherSuite(CipherSuiteBase):
     """COSE subset tailored for WebAuthn / FIDO2."""
-
-    type: str = "WebAuthnCipherSuite"
 
     def suite_id(self) -> str:
         return "webauthn"

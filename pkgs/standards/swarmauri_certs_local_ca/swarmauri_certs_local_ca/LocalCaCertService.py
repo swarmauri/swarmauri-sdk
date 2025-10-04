@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import datetime
 import secrets
-from typing import Any, Dict, Iterable, Literal, Optional, Sequence
+from typing import Any, Dict, Iterable, Optional, Sequence
 
 from cryptography import x509
-from cryptography.x509.oid import ExtendedKeyUsageOID, NameOID
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519
-
+from cryptography.x509.oid import ExtendedKeyUsageOID, NameOID
 from swarmauri_base.certs.CertServiceBase import CertServiceBase
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.certs.ICertService import (
     AltNameSpec,
     CertBytes,
@@ -94,10 +94,9 @@ def _apply_extensions(
     return builder
 
 
+@ComponentBase.register_type(CertServiceBase, "LocalCaCertService")
 class LocalCaCertService(CertServiceBase):
     """Local CA that can create a CA cert, sign CSRs, and verify certificates."""
-
-    type: Literal["LocalCaCertService"] = "LocalCaCertService"
 
     def supports(self) -> Dict[str, Iterable[str]]:
         return {
