@@ -48,7 +48,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import AsyncIterable, Iterable
-from typing import AsyncIterable, Iterable, Mapping, Optional, Sequence, Union
+from typing import Mapping, Optional, Sequence, Union
 
 from ..crypto.types import Alg, KeyRef
 from ..crypto.types import AEADCiphertext  # single‑recipient envelope
@@ -170,8 +170,7 @@ class ISigning(ABC):
         *,
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
-    ) -> bool:
-        ...
+    ) -> bool: ...
 
     # ────────────────────────────────── Envelopes ──────────────────────────────────
 
@@ -204,18 +203,6 @@ class ISigning(ABC):
         """
         Produce one or more detached signatures over a canonicalized envelope.
         """
-        ...
-
-    @abstractmethod
-    async def sign_stream(
-        self,
-        key: KeyRef,
-        payload: StreamLike,
-        *,
-        alg: Optional[Alg] = None,
-        opts: Optional[Mapping[str, object]] = None,
-    ) -> Sequence[Signature]:
-        """Produce signatures while reading from an iterable or async iterable of bytes."""
         ...
 
     @abstractmethod
