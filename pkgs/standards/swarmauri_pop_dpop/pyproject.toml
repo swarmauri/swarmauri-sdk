@@ -12,16 +12,29 @@ keywords = [
     "dpop",
     "oauth",
     "http",
+    "oauth2",
+    "jwt",
+    "token-binding",
+    "cnf",
+    "access-token",
 ]
 classifiers = [
     "Development Status :: 1 - Planning",
     "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
     "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Framework :: AsyncIO",
     "Topic :: Internet :: WWW/HTTP",
     "Topic :: Security :: Cryptography",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Headers",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Typing :: Typed",
 ]
 dependencies = [
     "swarmauri_core",
@@ -34,6 +47,8 @@ dependencies = [
 Homepage = "https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_pop_dpop"
 Documentation = "https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_pop_dpop"
 Source = "https://github.com/swarmauri/swarmauri-sdk"
+"Issue Tracker" = "https://github.com/swarmauri/swarmauri-sdk/issues"
+Changelog = "https://github.com/swarmauri/swarmauri-sdk/releases"
 
 [tool.uv.sources]
 swarmauri_core = { workspace = true }

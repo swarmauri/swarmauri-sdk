@@ -117,6 +117,36 @@ asyncio.run(verify_request({"DPoP": dpop_header}, signer.cnf_binding(), "opaque-
 The verifier enforces thumbprints for the provided JWK, checks nonce and replay
 constraints, and validates `ath` hashes when bearer tokens are provided.
 
+## Compatibility
+
+- Python 3.10, 3.11, and 3.12
+- Asynchronous contexts that can dispatch `HttpParts` instances from
+  `swarmauri_core`
+- Intended for OAuth 2.0 servers, API gateways, and microservices that need to
+  accept Demonstration of Proof-of-Possession headers
+
+## Related Packages
+
+- [`swarmauri_pop_cwt`](../swarmauri_pop_cwt) for COSE-based confirmation
+- [`swarmauri_pop_x509`](../swarmauri_pop_x509) to validate mutual TLS
+  thumbprints using the same `cnf` contract
+- [`swarmauri_core`](../../core) which defines the PoP primitives consumed by all
+  Swarmauri proof strategies
+
+## Contributing
+
+Please contribute improvements through the
+[Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk). Ensure
+tests, formatting, and linting match the root instructions and describe your
+changes clearly in pull requests so reviewers understand the intended impact.
+
+## Support
+
+Need help integrating DPoP in Swarmauri? File an
+[issue on GitHub](https://github.com/swarmauri/swarmauri-sdk/issues) with
+implementation details and reproduction steps. For security disclosures, use the
+contact information listed in the repository security policy.
+
 ## License
 
 Apache License 2.0. See the [LICENSE](./LICENSE) file for details.
