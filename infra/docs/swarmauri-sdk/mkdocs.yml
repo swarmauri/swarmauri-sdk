@@ -156,8 +156,6 @@ nav:
       - IChainStep: api/core/swarmauri_core/chains/IChainStep.md
     - Chunkers:
       - IChunker: api/core/swarmauri_core/chunkers/IChunker.md
-    - Control Panels:
-      - IControlPlane: api/core/swarmauri_core/control_panels/IControlPlane.md
     - Conversations:
       - IConversation: api/core/swarmauri_core/conversations/IConversation.md
       - IMaxSize: api/core/swarmauri_core/conversations/IMaxSize.md
@@ -355,8 +353,6 @@ nav:
     - Componentbase:
       - ComponentBase: api/base/swarmauri_base/ComponentBase.md
       - ResourceTypes: api/base/swarmauri_base/ResourceTypes.md
-    - Control Panels:
-      - ControlPanelBase: api/base/swarmauri_base/control_panels/ControlPanelBase.md
     - Conversations:
       - ConversationBase: api/base/swarmauri_base/conversations/ConversationBase.md
       - ConversationSystemContextMixin: api/base/swarmauri_base/conversations/ConversationSystemContextMixin.md
@@ -519,8 +515,6 @@ nav:
       - MdSnippetChunker: api/standard/swarmauri_standard/chunkers/MdSnippetChunker.md
       - SentenceChunker: api/standard/swarmauri_standard/chunkers/SentenceChunker.md
       - SlidingWindowChunker: api/standard/swarmauri_standard/chunkers/SlidingWindowChunker.md
-    - Control Panels:
-      - ControlPanel: api/standard/swarmauri_standard/control_panels/ControlPanel.md
     - Conversations:
       - Conversation: api/standard/swarmauri_standard/conversations/Conversation.md
       - MaxSizeConversation: api/standard/swarmauri_standard/conversations/MaxSizeConversation.md
