@@ -15,6 +15,13 @@ classifiers = [
 dependencies = [
     "swarmauri_core",
     "swarmauri_base",
+    "swarmauri_keyprovider_inmemory",
+    "cryptography>=42.0.0",
+    "swarmauri_signing_cms",
+    "swarmauri_signing_jws",
+    "swarmauri_signing_openpgp",
+    "swarmauri_signing_pdf",
+    "swarmauri_signing_xmld",
 ]
 
 [project.scripts]
@@ -35,6 +42,7 @@ packages = [{ include = "MediaSigner" }]
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
+swarmauri_keyprovider_inmemory = { workspace = true }
 swarmauri_signing_cms = { workspace = true }
 swarmauri_signing_jws = { workspace = true }
 swarmauri_signing_openpgp = { workspace = true }

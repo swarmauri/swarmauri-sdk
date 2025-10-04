@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Iterable, Mapping, Optional
 
 from swarmauri_base.cipher_suites import CipherSuiteBase
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.cipher_suites import (
     Alg,
     CipherOp,
@@ -15,10 +16,9 @@ from swarmauri_core.cipher_suites import (
 _SIG = ("RSA-PSS-SHA256", "ECDSA-SHA256", "EdDSA")
 
 
+@ComponentBase.register_type(CipherSuiteBase, "CadesCipherSuite")
 class CadesCipherSuite(CipherSuiteBase):
     """Skeleton suite for CAdES policy."""
-
-    type: str = "CadesCipherSuite"
 
     def suite_id(self) -> str:
         return "cades"

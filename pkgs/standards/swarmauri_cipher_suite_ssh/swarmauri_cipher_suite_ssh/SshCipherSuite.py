@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Iterable, Mapping, Optional
 
 from swarmauri_base.cipher_suites import CipherSuiteBase
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.cipher_suites import (
     Alg,
     CipherOp,
@@ -18,10 +19,9 @@ _SSH_CIPHER = ("chacha20-poly1305@openssh.com", "aes256-gcm@openssh.com")
 _SSH_MAC = ("hmac-sha2-256",)
 
 
+@ComponentBase.register_type(CipherSuiteBase, "SshCipherSuite")
 class SshCipherSuite(CipherSuiteBase):
     """Skeleton suite for OpenSSH policy."""
-
-    type: str = "SshCipherSuite"
 
     def suite_id(self) -> str:
         return "ssh"

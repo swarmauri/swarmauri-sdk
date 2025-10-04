@@ -65,8 +65,10 @@ suite = YubiKeyFipsCipherSuite(name="piv-fips")
 ### 2. Normalize a FIPS-compliant signing request
 
 ```python
+from swarmauri_cipher_suite_yubikey_fips import YubiKeyFipsCipherSuite
 from swarmauri_core.cipher_suites.types import KeyRef
 
+suite = YubiKeyFipsCipherSuite(name="piv-fips")
 key = KeyRef(kid="fips-slot-9a", slot="9a")
 descriptor = suite.normalize(op="sign", alg="PS256", key=key)
 
@@ -80,6 +82,9 @@ All responses include the policy metadata, making it easy to enforce controls
 ### 3. Route wrap/unwrap requests
 
 ```python
+from swarmauri_cipher_suite_yubikey_fips import YubiKeyFipsCipherSuite
+
+suite = YubiKeyFipsCipherSuite(name="piv-fips")
 wrap_descriptor = suite.normalize(op="wrap")
 unwrap_descriptor = suite.normalize(op="unwrap", alg="RSA-OAEP-256")
 
@@ -93,6 +98,9 @@ RSA-OAEP-256 configuration expected by PIV.
 ### 4. Discover compliance metadata
 
 ```python
+from swarmauri_cipher_suite_yubikey_fips import YubiKeyFipsCipherSuite
+
+suite = YubiKeyFipsCipherSuite(name="piv-fips")
 features = suite.features()
 print(features["compliance"]["fips"])      # -> True
 print(features["constraints"]["hashes"])   # -> ["SHA256", "SHA384"]
