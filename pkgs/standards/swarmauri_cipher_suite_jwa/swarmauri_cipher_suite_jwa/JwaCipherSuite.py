@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Iterable, Mapping, Optional
 
 from swarmauri_base.cipher_suites import CipherSuiteBase
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.cipher_suites import (
     Alg,
     CipherOp,
@@ -26,10 +27,9 @@ _JWA_TO_COSE = {
 }
 
 
+@ComponentBase.register_type(CipherSuiteBase, "JwaCipherSuite")
 class JwaCipherSuite(CipherSuiteBase):
     """JSON Web Algorithm policy surface (RFC 7518)."""
-
-    type: str = "JwaCipherSuite"
 
     def suite_id(self) -> str:
         return "jwa"

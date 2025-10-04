@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Iterable, Mapping, Optional
 
 from swarmauri_base.cipher_suites import CipherSuiteBase
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.cipher_suites import (
     Alg,
     CipherOp,
@@ -15,10 +16,9 @@ from swarmauri_core.cipher_suites import (
 _SIG_ALGS = ("ES256", "EdDSA", "PS256")
 
 
+@ComponentBase.register_type(CipherSuiteBase, "SigstoreCipherSuite")
 class SigstoreCipherSuite(CipherSuiteBase):
     """Sigstore / Cosign policy bundle."""
-
-    type: str = "SigstoreCipherSuite"
 
     def suite_id(self) -> str:
         return "sigstore"

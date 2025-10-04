@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import json
 
 import pytest
 from cryptography.hazmat.primitives import hashes
@@ -8,8 +9,41 @@ from cryptography.hazmat.primitives.serialization import Encoding
 from cryptography.x509 import Name, NameAttribute
 from cryptography.x509.oid import NameOID
 
-from swarmauri_certs_x509verify import X509VerifyService
 from cryptography import x509
+from swarmauri_certs_x509verify import X509VerifyService
+
+
+@pytest.fixture
+def x509_verify_service():
+    return X509VerifyService()
+
+
+@pytest.mark.unit
+def test_ubc_resource(x509_verify_service):
+    assert x509_verify_service.resource == "Crypto"
+
+
+@pytest.mark.unit
+def test_ubc_type(x509_verify_service):
+    assert x509_verify_service.type == "X509VerifyService"
+
+
+@pytest.mark.unit
+def test_initialization(x509_verify_service):
+    assert isinstance(x509_verify_service.id, str)
+    assert x509_verify_service.id
+
+
+@pytest.mark.unit
+def test_serialization(x509_verify_service):
+    serialized = x509_verify_service.model_dump_json()
+    data = json.loads(serialized)
+
+    restored = X509VerifyService.model_construct(**data)
+
+    assert restored.id == x509_verify_service.id
+    assert restored.resource == x509_verify_service.resource
+    assert restored.type == x509_verify_service.type
 
 
 def _create_self_signed() -> bytes:

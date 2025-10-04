@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Iterable, Mapping, Optional
 
 from swarmauri_base.cipher_suites import CipherSuiteBase
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.cipher_suites import (
     Alg,
     CipherOp,
@@ -17,10 +18,9 @@ _IPSEC_PRF = ("HMAC-SHA2-256", "HMAC-SHA2-384")
 _IPSEC_DH = ("group14", "group19", "group20", "group31")
 
 
+@ComponentBase.register_type(CipherSuiteBase, "IpsecCipherSuite")
 class IpsecCipherSuite(CipherSuiteBase):
     """Skeleton suite for IKE/IPsec policy."""
-
-    type: str = "IpsecCipherSuite"
 
     def suite_id(self) -> str:
         return "ipsec"

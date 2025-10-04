@@ -12,7 +12,7 @@ from swarmauri_core.keys.IKeyProvider import IKeyProvider
 from swarmauri_core.signing.ISigning import Canon, Envelope, StreamLike
 from swarmauri_core.signing.types import Signature
 
-from swarmauri_signing_cms.swarmauri_signing_cms.cms_signer import CMSSigner
+from swarmauri_signing_cms import CMSSigner
 
 
 def _canon_json(obj: Mapping[str, object]) -> bytes:
@@ -213,8 +213,12 @@ class PDFSigner(SigningBase):
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
         canonical = await self.canonicalize_envelope(env, canon=canon, opts=opts)
-        return await self._cms.verify_bytes(
-            canonical, signatures, require=require, opts=opts
+        return await self._cms.verify_envelope(
+            canonical,
+            signatures,
+            canon="raw",
+            require=require,
+            opts=opts,
         )
 
     # ------------------------------------------------------------------

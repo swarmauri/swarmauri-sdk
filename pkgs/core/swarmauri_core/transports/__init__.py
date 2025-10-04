@@ -1,16 +1,4 @@
-"""Transport interfaces and shared exports for Swarmauri."""
-
-from swarmauri_base.transports import (
-    AnycastTransportMixin,
-    BroadcastTransportMixin,
-    CapabilityError,
-    MulticastTransportMixin,
-    MultiplexTransportMixin,
-    PeerTransportMixin,
-    TransportBase,
-    UnicastTransportMixin,
-    _require_caps,
-)
+"""Transport interfaces and shared exports for Swarmauri core."""
 
 from .ITransport import ITransport
 from .enums import AddressScheme, Cast, Feature, IOModel, Protocol, SecurityMode
@@ -24,9 +12,6 @@ from .capabilities import TransportCapabilities
 
 __all__ = [
     "AddressScheme",
-    "AnycastTransportMixin",
-    "BroadcastTransportMixin",
-    "CapabilityError",
     "Cast",
     "ChannelHandle",
     "Feature",
@@ -38,13 +23,7 @@ __all__ = [
     "IOModel",
     "IPeerTransport",
     "IUnicastTransport",
-    "MulticastTransportMixin",
-    "MultiplexTransportMixin",
-    "PeerTransportMixin",
     "Protocol",
     "SecurityMode",
-    "TransportBase",
     "TransportCapabilities",
-    "UnicastTransportMixin",
-    "_require_caps",
 ]

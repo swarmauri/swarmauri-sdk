@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Iterable, Mapping, Optional
 
 from swarmauri_base.cipher_suites import CipherSuiteBase
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.cipher_suites import (
     Alg,
     CipherOp,
@@ -19,10 +20,9 @@ _TLS13 = (
 )
 
 
+@ComponentBase.register_type(CipherSuiteBase, "Tls13CipherSuite")
 class Tls13CipherSuite(CipherSuiteBase):
     """TLS 1.3 record protection algorithms."""
-
-    type: str = "Tls13CipherSuite"
 
     def suite_id(self) -> str:
         return "tls13"
