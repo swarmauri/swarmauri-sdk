@@ -4,12 +4,7 @@ import json
 from .spec import Remote
 
 def to_dict(r: Remote) -> dict:
-    return {
-        "id": r.id, "framework": r.framework, "entry": r.entry,
-        "exposed": r.exposed, "integrity": r.integrity,
-    }
-
-def from_dict(obj: Mapping[str, Any]) -> Remote:
+    return obj.dict() if hasattr(obj, 'dict') else dict(obj)def from_dict(obj: Mapping[str, Any]) -> Remote:
     return Remote(
         id=str(obj["id"]),
         framework=str(obj["framework"]),  # validated in Remote.__post_init__
@@ -19,7 +14,7 @@ def from_dict(obj: Mapping[str, Any]) -> Remote:
     )
 
 def registry_to_dict(registry) -> dict[str, dict]:
-    return registry.to_dict()
+    return registry.dict()
 
 def registry_from_dict(registry, data: Mapping[str, Mapping[str, Any]]) -> None:
     registry.update_from_dict(data)  # upsert

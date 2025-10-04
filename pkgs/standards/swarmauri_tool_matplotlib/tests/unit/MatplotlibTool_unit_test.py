@@ -4,7 +4,7 @@ import pytest
 from swarmauri_tool_matplotlib.MatplotlibTool import MatplotlibTool as Tool
 
 
-@pytest.fixture
+@pytest.fixture(name="tool")
 def matplotlib_tool():
     return Tool()
 

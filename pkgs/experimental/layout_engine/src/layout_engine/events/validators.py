@@ -66,7 +66,9 @@ def _wildcards(scope: str) -> list[str]:
         ]
     return []
 
-class ValidationError(Exception): ...
+class ValidationError(Exception):
+    """Raised when an event envelope fails validation."""
+    pass
 
 def is_allowed(scope: str, etype: str) -> bool:
     # Exact

@@ -1,5 +1,6 @@
+from pydantic import BaseModel, Field, validator
 from __future__ import annotations
-from dataclasses import dataclass, field, replace
+from pydantic import BaseModel, Field, validator, field, replace
 from typing import Any, Mapping
 import re
 
@@ -24,8 +25,7 @@ def merge_props(defaults: Mapping[str, Any], overrides: Mapping[str, Any] | None
         out.update(overrides)
     return out
 
-@dataclass(frozen=True)
-class ComponentSpec:
+class ComponentSpec(BaseModel):
     """Declarative mapping for a tile role to a client module/export.
 
     - role: semantic name used by tiles (e.g., 'kpi','timeseries','map','table')
@@ -40,15 +40,3 @@ class ComponentSpec:
     version: str = "1.0.0"
     defaults: Mapping[str, Any] = field(default_factory=dict)
 
-    def __post_init__(self):
-        # validate
-        validate_role(self.role)
-        validate_module(self.module)
-
-    def with_overrides(self, **fields: Any) -> "ComponentSpec":
-        """Return a new ComponentSpec with specific fields replaced."""
-        return replace(self, **fields)
-
-    def props(self, overrides: Mapping[str, Any] | None = None) -> dict:
-        """Return merged props (defaults ⊕ overrides)."""
-        return merge_props(self.defaults, overrides or {})

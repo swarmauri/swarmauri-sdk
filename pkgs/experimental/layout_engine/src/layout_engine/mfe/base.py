@@ -1,17 +1,21 @@
 from __future__ import annotations
-from typing import Protocol, Iterable, Mapping
+from abc import ABC, abstractmethod, Iterable, Mapping
 from .spec import Remote
 
-class IRemoteRegistry(Protocol):
-    def register(self, remote: Remote) -> None: ...
-    def register_many(self, remotes: Iterable[Remote]) -> None: ...
-    def get(self, id: str) -> Remote: ...
-    def try_get(self, id: str) -> Remote | None: ...
-    def remove(self, id: str) -> None: ...
-    def all(self) -> Iterable[Remote]: ...
-    def to_dict(self) -> dict[str, dict]: ...
-    def update_from_dict(self, data: Mapping[str, Mapping]) -> None: ...
-
-class IImportMapBuilder(Protocol):
-    def build(self, registry: IRemoteRegistry, *, extra_imports: dict[str,str] | None = None,
-              scopes: dict[str, dict[str,str]] | None = None) -> dict: ...
+class IRemoteRegistry(ABC):
+    @abstractmethod
+    def register(self, remote: Remote) -> None: raise NotImplementedError
+    @abstractmethod
+    def register_many(self, remotes: Iterable[Remote]) -> None: raise NotImplementedError
+    @abstractmethod
+    def get(self, id: str) -> Remote: raise NotImplementedError
+    @abstractmethod
+    def try_get(self, id: str) -> Remote | None: raise NotImplementedError
+    @abstractmethod
+    def remove(self, id: str) -> None: raise NotImplementedError
+    @abstractmethod
+    def all(self) -> Iterable[Remote]: raise NotImplementedError
+    @abstractmethod
+    def to_dict(self) -> dict[str, dict]: raise NotImplementedError
+    @abstractmethod
+    def update_from_dict(self, data: Mapping[str, Mapping]) -> None: raise NotImplementedError

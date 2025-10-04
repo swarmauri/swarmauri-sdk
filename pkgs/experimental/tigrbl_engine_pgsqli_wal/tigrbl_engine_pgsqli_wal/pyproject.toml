@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tigrbl_engine_pgsqli_wal"
+version = "0.1.0"
+description = "PostgreSQL and SQLite WAL engine plugin for Tigrbl (auto-registered via entry points)."
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Your Team", email = "dev@example.org" }]
+classifiers = [
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Environment :: Plugins",
+  "Intended Audience :: Developers",
+]
+
+dependencies = [
+  "SQLAlchemy>=2.0,<3.0",
+  "psycopg[binary]>=3.1,<4.0",  # PostgreSQL driver
+]
+
+[project.urls]
+Homepage = "https://example.org/tigrbl_engine_pgsqli_wal"
+
+[project.entry-points."tigrbl.engine"]
+pgsqli_wal = "tigrbl_engine_pgsqli_wal:register"
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_xmp_pdf"
-version = "0.1.1.dev1"
+version = "0.1.1.dev2"
 description = "PDF handler scaffold for embedding and extracting XMP packets in Swarmauri runtimes."
 license = "Apache-2.0"
 readme = "README.md"

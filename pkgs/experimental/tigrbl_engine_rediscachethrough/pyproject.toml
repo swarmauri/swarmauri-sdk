@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling>=1.25.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "tigrbl_engine_rediscachethrough"
+version = "0.1.0"
+description = "Redis/Postgres cache-through engine plugin for tigrbl."
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Swarmauri Team", email = "team@swarmauri.com" }]
+requires-python = ">=3.10"
+dependencies = [
+  "tigrbl>=0.3.0",
+  "redis>=5.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/swarmauri/swarmauri-sdk"
+
+[project.entry-points."tigrbl.engine"]
+rediscachethrough = "tigrbl_engine_rediscachethrough:register"

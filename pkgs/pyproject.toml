@@ -172,6 +172,7 @@ members = [
     "standards/swarmauri_xmp_svg",
     "standards/swarmauri_xmp_tiff",
     "standards/swarmauri_xmp_webp",
+    "plugins/embedded_signer",
 
     "standards/swarmauri_tokens_introspection",
     "standards/swarmauri_tokens_paseto_v4",
@@ -261,7 +262,6 @@ members = [
     "standards/swarmauri_tool_githubloader",
     "standards/swarmauri_toolkit_containertoolkit",
     "experimental/swarmauri_workflow_statedriven",
-    "plugins/SignerNameTBD"
 
 ]
 
@@ -274,9 +274,6 @@ typing = { workspace = true }
 cayaml = { workspace = true }
 catoml = { workspace = true }
 jaml = { workspace = true }
-
-
-"swm-signernametbd" = { workspace = true }
 
 
 swarmauri_vectorstore_doc2vec = { workspace = true }

@@ -1,26 +1,87 @@
 from __future__ import annotations
 from pathlib import Path
+from typing import Iterable, Mapping, Any
 from ..base import IMediaTarget
 from ...manifest.spec import Manifest
 
-_MIN_CSS = """html,body{margin:0} .page{position:relative;min-height:100vh}
-.tile{position:absolute;border:1px solid #ddd;border-radius:2px;box-sizing:border-box}
+_MIN_CSS = """html,body{margin:0;padding:0}
+.page{position:relative;min-height:100vh}
+.tile{position:absolute;box-sizing:border-box}
 """
 
 class HtmlExporter(IMediaTarget):
+    """
+    Styled HTML exporter with optional CSS links and inline CSS.
+    - Maintains class name and interface: export(manifest, out=...)->str
+    - Adds styling controls via constructor, but defaults are backward compatible.
+    """
+    def __init__(
+        self,
+        *,
+        title: str | None = None,
+        css_links: Iterable[str] | None = None,
+        inline_css: str | None = None,
+        include_min_css: bool = True,
+        lang: str = "en",
+        dir: str = "ltr",
+        extra_head: str | None = None,
+        body_attrs: Mapping[str, Any] | None = None,
+    ) -> None:
+        self.title = title or "Layout"
+        self.css_links = list(css_links or [])
+        self.inline_css = inline_css or ""
+        self.include_min_css = include_min_css
+        self.lang = lang
+        self.dir = dir
+        self.extra_head = extra_head or ""
+        self.body_attrs = dict(body_attrs or {})
+
     def export(self, manifest: Manifest, *, out: str) -> str:
         Path(out).parent.mkdir(parents=True, exist_ok=True)
         vw = int(manifest.viewport.get("width", 1280))
         vh = int(manifest.viewport.get("height", 800))
-        parts = ["<!doctype html><html><head><meta charset='utf-8'>"]
-        parts.append(f"<meta name='viewport' content='width=device-width, initial-scale=1'>")
-        parts.append(f"<title>export {manifest.version} :: {manifest.etag[:8]}</title>")
-        parts.append("<style>" + _MIN_CSS + "</style></head><body>")
-        parts.append(f"<div class='page' style='width:{vw}px;height:{vh}px'>")
+
+        head_parts: list[str] = [
+            "<meta charset='utf-8'>",
+            "<meta name='viewport' content='width=device-width, initial-scale=1'>",
+            f"<title>{self.title}</title>",
+        ]
+        for href in self.css_links:
+            head_parts.append(f"<link rel='stylesheet' href='{href}'>")
+
+        css_chunks = []
+        if self.include_min_css:
+            css_chunks.append(_MIN_CSS)
+        if self.inline_css:
+            css_chunks.append(self.inline_css)
+
+        if css_chunks:
+            head_parts.append("<style>" + "".join(css_chunks) + "</style>")
+
+        if self.extra_head:
+            head_parts.append(self.extra_head)
+
+        # Body attributes
+        body_attr_str = " ".join(f"{k}='{str(v).replace("'", '&#39;')}'" for k,v in self.body_attrs.items())
+
+        # Tiles
+        tiles_html = []
         for t in manifest.tiles:
-            f = t.frame
-            style = f"left:{int(f['x'])}px;top:{int(f['y'])}px;width:{int(f['w'])}px;height:{int(f['h'])}px;"
-            parts.append(f"<div class='tile' data-tile='{t.id}' style='{style}'></div>")
-        parts.append("</div></body></html>")
-        Path(out).write_text("".join(parts), encoding="utf-8")
-        return out
+            fr = t.frame  # dict-like
+            x, y, w, h = int(fr["x"]), int(fr["y"]), int(fr["w"]), int(fr["h"])
+            tid = getattr(t, "id", None) or (t.get("id") if isinstance(t, dict) else None) or ""
+            # Allow a subtle default border to make areas visible; leave style hook for external CSS.
+            style = f"left:{x}px;top:{y}px;width:{w}px;height:{h}px;"
+            tiles_html.append(f"<div class='tile' data-tile='{tid}' style='{style}'></div>")
+
+        html = (
+            "<!doctype html>"
+            f"<html lang='{self.lang}' dir='{self.dir}'>"
+            "<head>" + "".join(head_parts) + "</head>"
+            f"<body {body_attr_str}>"
+            f"<div class='page' style='width:{vw}px;height:{vh}px'>"
+            + "".join(tiles_html) +
+            "</div></body></html>"
+        )
+        Path(out).write_text(html, encoding="utf-8")
+        return str(out)

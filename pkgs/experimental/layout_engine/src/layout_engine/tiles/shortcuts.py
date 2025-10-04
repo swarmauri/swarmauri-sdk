@@ -1,20 +1,20 @@
 from __future__ import annotations
-from typing import Mapping, Any
-from .default import Tile
+from typing import Any
 from .spec import TileSpec
+from .default import Tile
 
-def tile_spec(**kwargs) -> TileSpec:
-    """Create a TileSpec with validation."""
+def define_tile(**kwargs) -> TileSpec:
+    """Return a TileSpec from kwargs."""
     return TileSpec(**kwargs)
 
-def make_tile(**kwargs) -> Tile:
-    """Convenience factory for Tile(TileSpec(**kwargs))."""
-    return Tile(TileSpec(**kwargs))
-
-def define_tile(spec: TileSpec) -> Tile:
-    """Wrap an existing TileSpec in a Tile object."""
-    return Tile(spec)
-
 def derive_tile(base: TileSpec, **overrides: Any) -> TileSpec:
-    """Immutable copy with overrides."""
-    return base.with_overrides(**overrides)
+    """Immutable copy of a TileSpec with overrides."""
+    data = base.__dict__.copy()
+    data.update(overrides)
+    return TileSpec(**data)
+
+def make_tile(spec: TileSpec | None = None, **kwargs) -> Tile:
+    """Return a Tile instance from a spec or kwargs."""
+    if spec is None:
+        spec = TileSpec(**kwargs)
+    return Tile(spec=spec)

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_signing_dsse"
-version = "0.1.0.dev0"
+version = "0.1.0.dev1"
 description = "Composable DSSE envelope adapter that layers Pre-Authentication Encoding onto Swarmauri signing providers"
 readme = "README.md"
 license = "Apache-2.0"
@@ -8,13 +8,14 @@ requires-python = ">=3.10,<3.13"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 keywords = ["swarmauri", "signing", "dsse", "sigstore", "supply-chain", "pae"]
 classifiers = [
+    "Development Status :: 1 - Planning",
     "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Development Status :: 1 - Planning",
     "Topic :: Security :: Cryptography",
     "Intended Audience :: Developers",
 ]

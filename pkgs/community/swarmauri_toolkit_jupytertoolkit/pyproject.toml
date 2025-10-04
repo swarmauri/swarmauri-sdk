@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_toolkit_jupytertoolkit"
-version = "0.3.0.dev6"
+version = "0.3.0.dev7"
 description = "A unified toolkit for aggregating standalone jupyter notebook tools."
 license = "Apache-2.0"
 readme = "README.md"

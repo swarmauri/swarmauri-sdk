@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupytervalidatenotebook"
-version = "0.9.0.dev6"
+version = "0.9.0.dev7"
 description = "A tool that validates a NotebookNode object against the Jupyter Notebook schema using nbformat, ensuring structural correctness."
 license = "Apache-2.0"
 readme = "README.md"

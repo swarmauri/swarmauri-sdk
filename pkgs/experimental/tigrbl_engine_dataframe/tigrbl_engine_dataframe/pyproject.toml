@@ -1,0 +1,25 @@
+[build-system]
+requires = ["hatchling>=1.20"]
+build-backend = "hatchling.build"
+
+[project]
+name = "tigrbl_engine_dataframe"
+version = "0.1.0"
+description = "Tigrbl engine plugin: transactional pandas DataFrame engine/session"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Tigrbl Team", email = "engineering@example.com" }]
+requires-python = ">=3.10"
+dependencies = [
+  "pandas>=2.0",
+  "tigrbl",
+]
+
+[project.urls]
+Homepage = "https://example.com/tigrbl_engine_dataframe"
+
+[project.entry-points."tigrbl.engine"]
+dataframe = "tigrbl_engine_dataframe:register"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/tigrbl_engine_dataframe"]

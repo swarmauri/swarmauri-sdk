@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupyterexportpython"
-version = "0.9.0.dev6"
+version = "0.9.0.dev7"
 description = "A tool that exports a Jupyter Notebook to a Python script using nbconvert’s PythonExporter, facilitating code extraction."
 license = "Apache-2.0"
 readme = "README.md"

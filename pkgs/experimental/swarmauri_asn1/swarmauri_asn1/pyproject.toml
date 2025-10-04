@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "swarmauri-asn1"
+version = "0.1.0"
+description = "Grammar-driven ASN.1 (X.680/X.690 DER subset) parser plugin for swarmauri-sdk using Lark Earley."
+authors = [{name = "Your Team"}]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["lark>=1.1.9"]
+
+[tool.setuptools.packages.find]
+include = ["swarmauri_asn1*"]
+
+[tool.setuptools.package-data]
+swarmauri_asn1 = ["grammar/*.lark"]
+
+[project.entry-points."swarmauri.parsers"]
+ASN1Parser = "swarmauri_asn1.parser:ASN1Parser"
+
+[project.entry-points."swarmauri.tools"]
+ASN1EncodeTool = "swarmauri_asn1.tool:ASN1EncodeTool"

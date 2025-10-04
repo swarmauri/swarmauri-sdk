@@ -62,7 +62,12 @@ def test_features_descriptor(cipher_suite: IpsecCipherSuite) -> None:
     }
     assert set(features["dialects"]["ike"]) == {"AES-GCM-16", "CHACHA20-POLY1305"}
     assert tuple(features["constraints"]["prf"]) == ("HMAC-SHA2-256", "HMAC-SHA2-384")
-    assert tuple(features["constraints"]["dh"]) == ("group14", "group19", "group20", "group31")
+    assert tuple(features["constraints"]["dh"]) == (
+        "group14",
+        "group19",
+        "group20",
+        "group31",
+    )
     assert features["constraints"]["pfs"] is True
     assert features["compliance"]["fips"] is False
 

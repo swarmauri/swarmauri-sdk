@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_cipher_suite_yubikey_fips"
-version = "0.1.0.dev0"
+version = "0.1.0.dev1"
 description = "FIPS-constrained YubiKey cipher suite for Swarmauri PIV operations"
 keywords = ["yubikey", "piv", "cipher-suite", "fips", "rsa-pss", "ecdsa"]
 license = "Apache-2.0"

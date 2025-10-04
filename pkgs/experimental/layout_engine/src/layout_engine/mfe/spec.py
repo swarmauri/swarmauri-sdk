@@ -1,5 +1,6 @@
+from pydantic import BaseModel, Field, validator
 from __future__ import annotations
-from dataclasses import dataclass
+from pydantic import BaseModel, Field, validator
 from typing import Literal
 import re
 
@@ -33,20 +34,10 @@ def validate_exposed(exposed: str) -> str:
         exposed = "./" + exposed
     return exposed
 
-@dataclass(frozen=True)
-class Remote:
+class Remote(BaseModel):
     id: str
     framework: Framework
     entry: str            # ESM URL or MF remote entry
     exposed: str          # exposed module (e.g., "./App")
     integrity: str | None = None
 
-    def __post_init__(self):
-        validate_id(self.id)
-        validate_framework(self.framework)
-        validate_entry(self.entry)
-        validate_exposed(self.exposed)
-
-    # Import-map entry for this remote
-    def as_import(self) -> tuple[str, str]:
-        return (self.id, self.entry)

@@ -1,0 +1,119 @@
+// asn1.lark — pragmatic ASN.1 grammar (subset of ITU‑T X.680)
+// Designed for Lark's Earley parser (MIT-only usage). No standalone LALR.
+
+/* -------------------------
+   Lexer: whitespace & comments
+   ------------------------- */
+%import common.WS
+%ignore WS
+COMMENT: /--[^\n]*/        // ASN.1 line comment from `--` to end-of-line
+%ignore COMMENT
+
+// Ignore IMPORTS/EXPORTS blocks entirely (until the next ';')
+IMPORTS_BLOCK: /IMPORTS\b[^;]*;/
+EXPORTS_BLOCK: /EXPORTS\b[^;]*;/
+%ignore IMPORTS_BLOCK
+%ignore EXPORTS_BLOCK
+
+/* -------------------------
+   Entry point
+   ------------------------- */
+start: module+
+
+module: UIDENT "DEFINITIONS" "::=" "BEGIN" module_body "END"
+
+module_body: (assignment | ";")*
+
+/* -------------------------
+   Assignments
+   ------------------------- */
+assignment: type_assignment | value_assignment
+
+type_assignment: UIDENT "::=" type
+value_assignment: LIDENT type "::=" value    -> value_assign
+
+/* -------------------------
+   Types (core)
+   ------------------------- */
+?type: builtin_type
+     | type_ref
+     | "SEQUENCE" "{" field_list "}"         -> seq_type
+     | "SEQUENCE" "OF" type                  -> seqof_type
+     | "SET" "{" field_list "}"              -> set_type
+     | "SET" "OF" type                       -> setof_type
+     | "CHOICE" "{" alt_list "}"             -> choice_type
+     | tagged_type
+     | constrained_type
+
+// Carry constraints as separate nodes (chaining allowed in transformer)
+constrained_type: type constraint
+
+constraint: "(" constraint_body ")"
+constraint_body: constraint_term ("," constraint_term)*
+constraint_term: size_constraint | value_range
+
+size_constraint: "SIZE" "(" (int_value | size_range) ")"
+size_range: int_value ".." int_value
+value_range: int_value ".." int_value
+int_value: INT
+
+tagged_type: "[" tagclass? INT "]" ("IMPLICIT" | "EXPLICIT")? type
+tagclass: "UNIVERSAL" | "APPLICATION" | "PRIVATE" | "CONTEXT" | "CONTEXT-SPECIFIC"
+
+/* -------------------------
+   Built-in types (commonly used)
+   ------------------------- */
+builtin_type: "BOOLEAN"                           -> t_boolean
+            | "INTEGER" enum_spec?                -> t_integer
+            | "ENUMERATED" "{" enum_list "}"      -> t_enumerated
+            | "BIT" "STRING"                      -> t_bitstring
+            | "OCTET" "STRING"                    -> t_octetstring
+            | "NULL"                              -> t_null
+            | "OBJECT" "IDENTIFIER"               -> t_oid
+            | "IA5String"                         -> t_ia5
+            | "UTF8String"                        -> t_utf8
+            | "PrintableString"                   -> t_printable
+            | "UTCTime"                           -> t_utctime
+            | "GeneralizedTime"                   -> t_gentime
+
+enum_spec: "{" enum_list "}"
+enum_list: enum_item ("," enum_item)*
+enum_item: UIDENT ("(" INT ")")?
+
+type_ref: UIDENT
+
+/* -------------------------
+   SEQUENCE/SET fields & CHOICE alts
+   ------------------------- */
+field_list: (field ("," field)*)? ("," "...")?
+field: LIDENT type field_opts?
+field_opts: "OPTIONAL"
+          | "DEFAULT" value
+
+alt_list: alt ("," alt)*
+alt: UIDENT type
+
+/* -------------------------
+   Values (practical subset)
+   ------------------------- */
+value: NUMBER
+     | STRING
+     | oid_value
+     | "NULL"
+     | "TRUE"
+     | "FALSE"
+
+oid_value: "{" oid_components "}"
+oid_components: oid_comp+
+oid_comp: INT
+        | UIDENT
+        | UIDENT "(" INT ")"
+
+/* -------------------------
+   Tokens
+   ------------------------- */
+UIDENT: /[A-Z][A-Za-z0-9-]*/
+LIDENT: /[a-z][A-Za-z0-9-]*/
+INT: /[0-9]+/
+NUMBER: /-?[0-9]+/
+STRING: /'(?:\\.|[^'])*'|"(?:\\.|[^"])*"/

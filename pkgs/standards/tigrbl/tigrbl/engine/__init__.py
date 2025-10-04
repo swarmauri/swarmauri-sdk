@@ -24,3 +24,22 @@ __all__ = [
     "Engine",
     "engine",
 ]
+
+
+# Optional engine plugin support
+from .plugins import load_engine_plugins
+from .registry import register_engine, known_engine_kinds, get_engine_registration
+
+# Load external engines automatically on import (idempotent)
+try:
+    load_engine_plugins()
+except Exception:
+    # Import-time plugin load should never fail the package import
+    pass
+
+__all__ += [
+    "load_engine_plugins",
+    "register_engine",
+    "known_engine_kinds",
+    "get_engine_registration",
+]
