@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict
 
-from .i_http_client import IHttpClient
+from swarmauri_core.transports.i_http_client import IHttpClient
 
 
 class HttpClientMixin(IHttpClient, BaseModel):

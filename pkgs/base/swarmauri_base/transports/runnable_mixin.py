@@ -6,7 +6,7 @@ from typing import Any, Optional
 
 from pydantic import BaseModel, ConfigDict
 
-from .i_runnable import Handler, IRunnable, Role
+from swarmauri_core.transports.i_runnable import Handler, IRunnable, Role
 
 
 class RunnableMixin(IRunnable, BaseModel):
