@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/master/assets/swarmauri.brand.theme.svg)
+![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pypi.org/project/swarmauri_pop_cwt/">
@@ -13,33 +13,41 @@
         <img src="https://img.shields.io/pypi/v/swarmauri_pop_cwt?label=swarmauri_pop_cwt&color=green" alt="PyPI - swarmauri_pop_cwt"/></a>
 </p>
 
+---
+
 # Swarmauri PoP CWT
 
-`CwtPoPVerifier` and `CwtPoPSigner` provide COSE Sign1 proof-of-possession aligned with RFC 8392/9449 semantics. They reuse the shared Swarmauri PoP contract so that server code can validate JWT- and COSE-based schemes identically.
+`swarmauri_pop_cwt` delivers COSE Sign1 proof-of-possession helpers that align with
+RFC 8392 and RFC 9449. The signer and verifier share the same Swarmauri PoP
+contract so services can mix CWT- and JWT-backed access tokens without changing
+validation logic.
+
+## Features
+
+- Provides `CwtPoPSigner` and `CwtPoPVerifier` implementations that honour the
+  shared Swarmauri PoP contract
+- Accepts asynchronous key resolution hooks for COSE thumbprint matching and
+  supports nonce/replay protections consistent with the DPoP workflow
+- Generates `cnf` bindings that can be embedded into OAuth access tokens or
+  session metadata to enable downstream verification
+- Normalises HTTP request parts before signing or verifying to ensure
+  interoperable coverage across services and languages
 
 ## Installation
 
-### pip
+Install the package with your preferred tooling:
 
 ```bash
 pip install swarmauri_pop_cwt
 ```
 
-### uv
-
 ```bash
 uv add swarmauri_pop_cwt
 ```
 
-### Poetry
-
-```bash
-poetry add swarmauri_pop_cwt
-```
-
 ## Usage
 
-### Signing a request
+### Signing an outgoing HTTP request
 
 ```python
 import base64
@@ -48,9 +56,9 @@ from cose.keys import CoseKey
 from swarmauri_pop_cwt import CwtPoPSigner
 
 private_key = CoseKey.from_dict({
-    1: 1,               # OKP
-    -1: 6,              # Ed25519
-    -2: base64.urlsafe_b64decode("11qYAYafhZMrrZ8Zgo5u1g==")
+    1: 1,  # OKP
+    -1: 6,  # Ed25519
+    -2: base64.urlsafe_b64decode("11qYAYafhZMrrZ8Zgo5u1g=="),
 })
 public_key = CoseKey.from_dict({
     1: 1,
@@ -105,4 +113,9 @@ async def verify_request(header: str, cnf: CnfBinding, access_token: str) -> Non
 asyncio.run(verify_request(cwp_header, signer.cnf_binding(), "opaque-access-token"))
 ```
 
-The verifier enforces the COSE key thumbprint against the `cnf` claim and reuses the same replay/nonced handling controls defined for the JWT-based DPoP verifier.
+The verifier enforces COSE key thumbprints against the `cnf` binding and applies
+the same replay and nonce strategies shared across Swarmauri PoP strategies.
+
+## License
+
+Apache License 2.0. See the [LICENSE](./LICENSE) file for details.

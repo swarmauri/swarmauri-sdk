@@ -39,7 +39,7 @@ class TransportBase(ComponentBase, ITransport):
     allowed_protocols: list[str] = []
     resource: str = Field(default=ResourceTypes.TRANSPORT.value, frozen=True)
     type: Literal["TransportBase"] = "TransportBase"
-    model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
+    model_config = ConfigDict(extra="allow", arbitrary_types_allowed=True)
 
     _server_bind_kwargs: dict[str, Any] = PrivateAttr(default_factory=dict)
     _client_connect_kwargs: dict[str, Any] = PrivateAttr(default_factory=dict)

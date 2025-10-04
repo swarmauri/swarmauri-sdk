@@ -4,7 +4,7 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
 
-from .i_appserver import HttpApp, IAppServer
+from swarmauri_core.transports.i_appserver import HttpApp, IAppServer
 
 
 class AppServerMixin(IAppServer, BaseModel):
