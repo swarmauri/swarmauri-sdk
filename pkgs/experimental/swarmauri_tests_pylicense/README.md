@@ -85,6 +85,21 @@ If both are provided, any license not in the allow list or explicitly present
 in the disallow list will cause a test failure. By default, all licenses are
 allowed and none are disallowed.
 
+### Accepting Specific Dependencies
+
+Some transitive dependencies may ship with unusual or proprietary licenses that
+are acceptable for your project. Use `--pylicense-accept-deps` (or the
+`PYLICENSE_ACCEPT_DEPS` environment variable) with a comma-separated list to
+explicitly bypass those packages. For example:
+
+```bash
+pytest --pylicense-package=<your-package> --pylicense-accept-deps=cffi
+```
+
+This tells the plugin to treat `cffi` as pre-approved. Any license issues for
+`cffi`—including unknown or non-standard licenses—are ignored while other
+dependencies continue to be validated normally.
+
 ## License
 
 Licensed under the [Apache 2.0 License](LICENSE).

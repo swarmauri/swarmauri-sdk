@@ -164,6 +164,7 @@ members = [
     "standards/swarmauri_signing_ssh",
     "standards/swarmauri_certs_x509verify",
     "plugins/EmbedXMP",
+    "plugins/example_plugin",
     "standards/swarmauri_xmp_gif",
     "standards/swarmauri_xmp_jpeg",
     "standards/swarmauri_xmp_mp4",
