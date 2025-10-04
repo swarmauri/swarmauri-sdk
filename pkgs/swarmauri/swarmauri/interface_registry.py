@@ -28,7 +28,6 @@ class InterfaceRegistry:
         "swarmauri.agents": "swarmauri_base.agents.AgentBase",
         "swarmauri.chains": "swarmauri_base.chains.ChainBase",
         "swarmauri.chunkers": "swarmauri_base.chunkers.ChunkerBase",
-        "swarmauri.control_panels": "swarmauri_base.control_panels.ControlPanelBase",
         "swarmauri.conversations": "swarmauri_base.conversations.ConversationBase",
         "swarmauri.dataconnectors": "swarmauri_base.dataconnectors.DataConnectorBase",
         "swarmauri.decorators": None,
