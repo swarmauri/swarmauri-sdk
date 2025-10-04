@@ -57,6 +57,13 @@ keywords = [
     "asyncio",
     "plugin",
     "digital-asset-workflows",
+    "cms",
+    "pkcs7",
+    "cades",
+    "jws",
+    "openpgp",
+    "pdf-signatures",
+    "xmldsig",
 ]
 
 [project.urls]
