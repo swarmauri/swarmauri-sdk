@@ -32,6 +32,15 @@ keywords = [
     'suite',
     'webauthn',
     'cryptography',
+    'WebAuthn',
+    'FIDO2',
+    'CTAP2',
+    'W3C Web Authentication',
+    'FIDO Alliance',
+    'ES256',
+    'EdDSA',
+    'RS256',
+    'RFC 9052',
 ]
 
 [tool.uv.sources]

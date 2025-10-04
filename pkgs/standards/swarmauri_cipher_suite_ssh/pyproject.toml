@@ -32,6 +32,18 @@ keywords = [
     'suite',
     'ssh',
     'cryptography',
+    'OpenSSH',
+    'RFC 4253',
+    'RFC 5656',
+    'RFC 8439',
+    'RFC 8709',
+    'curve25519-sha256',
+    'ecdh-sha2-nistp256',
+    'ssh-ed25519',
+    'rsa-sha2-256',
+    'chacha20-poly1305@openssh.com',
+    'aes256-gcm@openssh.com',
+    'hmac-sha2-256',
 ]
 
 [tool.uv.sources]

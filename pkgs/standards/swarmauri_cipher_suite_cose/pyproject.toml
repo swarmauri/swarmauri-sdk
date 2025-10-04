@@ -32,6 +32,20 @@ keywords = [
     'suite',
     'cose',
     'cryptography',
+    'COSE',
+    'RFC 9052',
+    'RFC 8152',
+    'CBOR',
+    'EdDSA',
+    'ES256',
+    'ES384',
+    'ES512',
+    'PS256',
+    'PS384',
+    'PS512',
+    'A128GCM',
+    'A192GCM',
+    'A256GCM',
 ]
 
 [tool.uv.sources]

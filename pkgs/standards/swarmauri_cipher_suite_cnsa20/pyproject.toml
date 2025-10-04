@@ -32,6 +32,16 @@ keywords = [
     'suite',
     'cnsa20',
     'cryptography',
+    'CNSA 2.0',
+    'Commercial National Security Algorithm Suite',
+    'CNSS Advisory 02-23',
+    'NSA',
+    'ES384',
+    'PS384',
+    'A256GCM',
+    'RFC 7518',
+    'NIST SP 800-38D',
+    'FIPS 197',
 ]
 
 [tool.uv.sources]
