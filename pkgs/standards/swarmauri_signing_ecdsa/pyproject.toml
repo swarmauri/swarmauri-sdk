@@ -14,6 +14,10 @@ keywords = [
     "cryptography",
     "sdk",
     "standards",
+    "digital-signature",
+    "signature-algorithm",
+    "nist-curves",
+    "key-formats",
 ]
 classifiers = [
     "Development Status :: 1 - Planning",

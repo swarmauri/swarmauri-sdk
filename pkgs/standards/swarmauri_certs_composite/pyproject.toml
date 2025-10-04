@@ -31,6 +31,10 @@ keywords = [
     'certs',
     'composite',
     'certificates',
+    'certificate-bundle',
+    'trust-chain',
+    'pkix',
+    'x509-format',
 ]
 
 [project.optional-dependencies]

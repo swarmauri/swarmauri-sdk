@@ -15,6 +15,10 @@ keywords = [
     "sdk",
     "standards",
     "cryptography",
+    "message-integrity",
+    "keyed-hash",
+    "token-signing",
+    "mac-algorithm",
 ]
 classifiers = [
     "Development Status :: 1 - Planning",

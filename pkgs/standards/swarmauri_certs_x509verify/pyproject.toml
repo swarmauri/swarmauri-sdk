@@ -32,6 +32,10 @@ keywords = [
     'certs',
     'x509verify',
     'certificates',
+    'certificate-validation',
+    'path-validation',
+    'pkix',
+    'trust-chain',
 ]
 
 [project.optional-dependencies]

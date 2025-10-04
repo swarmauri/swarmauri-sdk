@@ -15,6 +15,11 @@ keywords = [
     "sdk",
     "standards",
     "cryptography",
+    "pdf-signature",
+    "document-format",
+    "pades",
+    "media-type",
+    "adobe",
 ]
 classifiers = [
     "Development Status :: 1 - Planning",

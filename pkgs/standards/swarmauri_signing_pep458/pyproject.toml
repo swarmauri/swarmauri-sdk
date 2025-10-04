@@ -14,6 +14,11 @@ keywords = [
     "sdk",
     "standards",
     "cryptography",
+    "metadata-signing",
+    "repository-metadata",
+    "detached-signature",
+    "signature-format",
+    "supply-chain-security",
 ]
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" },

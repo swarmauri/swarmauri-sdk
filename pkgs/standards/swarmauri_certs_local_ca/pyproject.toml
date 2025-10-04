@@ -33,6 +33,10 @@ keywords = [
     'local',
     'ca',
     'certificates',
+    'certificate-authority',
+    'trust-anchor',
+    'certificate-issuance',
+    'x509-format',
 ]
 
 [project.optional-dependencies]
