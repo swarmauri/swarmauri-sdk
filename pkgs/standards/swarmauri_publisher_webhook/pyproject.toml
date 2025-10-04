@@ -16,12 +16,21 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 
 dependencies = [
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
+]
+keywords = [
+    'swarmauri',
+    'sdk',
+    'standards',
+    'publisher',
+    'webhook',
 ]
 
 [tool.uv.sources]

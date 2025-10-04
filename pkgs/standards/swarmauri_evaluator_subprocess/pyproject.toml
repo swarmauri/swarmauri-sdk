@@ -17,6 +17,9 @@ classifiers = [
     "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Testing",
     "Topic :: System :: Monitoring",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 keywords = [
@@ -31,6 +34,9 @@ keywords = [
     "swarm",
     "ai",
     "swarmauri",
+    "sdk",
+    "standards",
+    "evaluator",
 ]
 dependencies = ["swarmauri_core", "swarmauri_base"]
 

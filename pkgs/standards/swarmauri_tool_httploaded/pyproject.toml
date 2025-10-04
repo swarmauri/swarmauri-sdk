@@ -11,6 +11,9 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
@@ -19,6 +22,14 @@ dependencies = [
     "swarmauri_standard",
     "httpx>=0.27.0",
     "pyyaml>=6.0",
+]
+keywords = [
+    'swarmauri',
+    'sdk',
+    'standards',
+    'tool',
+    'httploaded',
+    'tooling',
 ]
 
 [tool.uv.sources]

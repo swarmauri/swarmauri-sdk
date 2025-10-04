@@ -17,6 +17,10 @@ keywords = [
     "token-binding",
     "cnf",
     "access-token",
+    "sdk",
+    "standards",
+    "pop",
+    "authentication",
 ]
 classifiers = [
     "Development Status :: 1 - Planning",
@@ -35,6 +39,7 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP :: HTTP Headers",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Typing :: Typed",
+    "Programming Language :: Python",
 ]
 dependencies = [
     "swarmauri_core",

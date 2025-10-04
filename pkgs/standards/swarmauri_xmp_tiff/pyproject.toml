@@ -13,11 +13,21 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Development Status :: 2 - Pre-Alpha",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "swarmauri_core",
     "swarmauri_base",
+]
+keywords = [
+    'swarmauri',
+    'sdk',
+    'standards',
+    'xmp',
+    'tiff',
 ]
 
 [project.urls]

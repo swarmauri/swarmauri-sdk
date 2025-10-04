@@ -21,6 +21,8 @@ keywords = [
     "unicast",
     "agents",
     "microservices",
+    "standards",
+    "tcpunicast",
 ]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",

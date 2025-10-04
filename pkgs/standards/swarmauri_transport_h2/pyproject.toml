@@ -21,6 +21,7 @@ keywords = [
     "server",
     "sdk",
     "microservices",
+    "standards",
 ]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",

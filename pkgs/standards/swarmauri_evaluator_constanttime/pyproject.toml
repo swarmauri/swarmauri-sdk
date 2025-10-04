@@ -13,6 +13,9 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Development Status :: 3 - Alpha",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 keywords = [
@@ -21,6 +24,10 @@ keywords = [
     "constant time",
     "side channel",
     "timing",
+    "sdk",
+    "standards",
+    "constanttime",
+    "evaluation",
 ]
 dependencies = [
     "swarmauri_core",

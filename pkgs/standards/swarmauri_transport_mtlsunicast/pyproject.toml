@@ -21,6 +21,8 @@ keywords = [
     "sdk",
     "authentication",
     "encryption",
+    "standards",
+    "mtlsunicast",
 ]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",

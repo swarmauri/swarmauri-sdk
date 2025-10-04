@@ -15,7 +15,10 @@ classifiers = [
     "Intended Audience :: Developers",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Text Processing :: Linguistic",
-    "Topic :: Software Development :: Quality Assurance"
+    "Topic :: Software Development :: Quality Assurance",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only"
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 keywords = [
@@ -29,7 +32,11 @@ keywords = [
     "automated-readability-index",
     "flesch-reading-ease",
     "text-analysis",
-    "nlp"
+    "nlp",
+    "sdk",
+    "standards",
+    "evaluatorpool",
+    "evaluation"
 ]
 dependencies = [
     "swarmauri_core",

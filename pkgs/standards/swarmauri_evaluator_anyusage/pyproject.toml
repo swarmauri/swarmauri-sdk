@@ -20,6 +20,8 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Software Development :: Quality Assurance",
     "Topic :: Software Development :: Testing",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 keywords = [
     "swarmauri",
@@ -31,7 +33,11 @@ keywords = [
     "type checking",
     "type hints",
     "code evaluation",
-    "python"
+    "python",
+    "sdk",
+    "standards",
+    "anyusage",
+    "evaluation"
 ]
 dependencies = [
     "swarmauri_core",
