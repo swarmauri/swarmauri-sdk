@@ -6,6 +6,8 @@ from swarmauri_tool_matplotlib.MatplotlibTool import MatplotlibTool as Tool
 
 @pytest.fixture(name="tool")
 def matplotlib_tool():
+    """Provide a MatplotlibTool instance for the unit tests."""
+
     return Tool()
 
 
