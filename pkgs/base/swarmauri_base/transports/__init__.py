@@ -4,9 +4,9 @@ from .TransportBase import CapabilityError, TransportBase, _require_caps
 from .appserver_mixin import AppServerMixin
 from .http_client_mixin import HttpClientMixin
 from .http_server_mixin import HttpServerMixin
-from .i_appserver import HttpApp, IAppServer
-from .i_http_client import IHttpClient
-from .i_runnable import Handler, IRunnable, Role
+from swarmauri_core.transports.i_appserver import HttpApp, IAppServer
+from swarmauri_core.transports.i_http_client import IHttpClient
+from swarmauri_core.transports.i_runnable import Handler, IRunnable, Role
 from .mixins import (
     AnycastTransportMixin,
     BroadcastTransportMixin,

@@ -12,7 +12,7 @@ from swarmauri_base.transports.multiplex_mixin import (
 )
 from swarmauri_base.transports.peer_mixin import PeerTransportMixin
 from swarmauri_base.transports.runnable_mixin import RunnableMixin
-from swarmauri_base.transports.transport_base import TransportBase
+from swarmauri_base.transports.TransportBase import TransportBase
 from swarmauri_core.transports.capabilities import TransportCapabilities
 from swarmauri_core.transports.enums import (
     AddressScheme,
