@@ -8,19 +8,21 @@ from typing import AsyncIterator, Optional, Tuple
 
 from pydantic import PrivateAttr
 
+from swarmauri_base.transports import (
+    MultiplexTransportMixin,
+    PeerTransportMixin,
+    TransportBase,
+    UnicastTransportMixin,
+)
 from swarmauri_core.transports import (
     AddressScheme,
     Cast,
     ChannelHandle,
     Feature,
     IOModel,
-    MultiplexTransportMixin,
-    PeerTransportMixin,
     Protocol,
     SecurityMode,
-    TransportBase,
     TransportCapabilities,
-    UnicastTransportMixin,
 )
 
 

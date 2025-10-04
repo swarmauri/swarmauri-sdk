@@ -1,16 +1,13 @@
 import asyncio
-import os
-import stat
 from types import SimpleNamespace
 
 import pytest
 
 import swarmauri_core.transports as transports
+from swarmauri_transport_uds_unicast import UdsUnicastTransport
 
 transports.UnicastTransportMixin = type("UnicastTransportMixin", (), {})
 transports.PeerTransportMixin = type("PeerTransportMixin", (), {})
-
-from swarmauri_transport_uds_unicast import UdsUnicastTransport
 
 
 def test_supports_declares_expected_capabilities() -> None:

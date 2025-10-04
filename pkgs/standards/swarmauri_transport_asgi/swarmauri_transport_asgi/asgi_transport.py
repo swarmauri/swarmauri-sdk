@@ -5,7 +5,7 @@ from typing import Awaitable, Callable, Optional
 
 from swarmauri_base.transports.http_server_mixin import HttpServerMixin
 from swarmauri_base.transports.runnable_mixin import RunnableMixin
-from swarmauri_base.transports.transport_base import TransportBase
+from swarmauri_base.transports import TransportBase
 from swarmauri_core.transports.capabilities import TransportCapabilities
 from swarmauri_core.transports.enums import (
     AddressScheme,

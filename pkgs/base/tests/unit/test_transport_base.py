@@ -1,6 +1,7 @@
 import asyncio
 
 import pytest
+from pydantic import PrivateAttr
 
 from swarmauri_base.transports import CapabilityError, TransportBase, _require_caps
 from swarmauri_core.transports import (
@@ -15,12 +16,37 @@ from swarmauri_core.transports import (
 
 
 class DummyTransport(TransportBase):
+    _started: list[dict[str, object]] = PrivateAttr(default_factory=list)
+    _stopped: int = PrivateAttr(default=0)
+    _opened: list[dict[str, object]] = PrivateAttr(default_factory=list)
+    _closed: int = PrivateAttr(default=0)
+
     def __init__(self) -> None:
         super().__init__(name="dummy")
-        self.started: list[dict[str, object]] = []
-        self.stopped = 0
-        self.opened: list[dict[str, object]] = []
-        self.closed = 0
+
+    @property
+    def started(self) -> list[dict[str, object]]:
+        return self._started
+
+    @property
+    def stopped(self) -> int:
+        return self._stopped
+
+    @stopped.setter
+    def stopped(self, value: int) -> None:
+        self._stopped = value
+
+    @property
+    def opened(self) -> list[dict[str, object]]:
+        return self._opened
+
+    @property
+    def closed(self) -> int:
+        return self._closed
+
+    @closed.setter
+    def closed(self, value: int) -> None:
+        self._closed = value
 
     def supports(self) -> TransportCapabilities:
         return TransportCapabilities(
