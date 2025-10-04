@@ -16,6 +16,8 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Framework :: AsyncIO",
+    "Operating System :: OS Independent",
     "Intended Audience :: Developers",
     "Topic :: Software Development :: Libraries",
     "Topic :: Education",
@@ -34,6 +36,9 @@ keywords = [
     "template",
     "tutorial",
     "packaging",
+    "asyncio",
+    "extension-points",
+    "media-workflows",
 ]
 
 [project.urls]

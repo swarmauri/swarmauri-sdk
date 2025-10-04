@@ -19,6 +19,9 @@ classifiers = [
     "Intended Audience :: Developers",
     "Framework :: AsyncIO",
     "Topic :: Security :: Cryptography",
+    "Operating System :: OS Independent",
+    "Topic :: Multimedia :: Graphics",
+    "Topic :: Multimedia :: Video",
     "Topic :: Software Development :: Libraries",
 ]
 dependencies = [
@@ -45,6 +48,8 @@ keywords = [
     "workflow-automation",
     "key-management",
     "verification",
+    "digital-asset-security",
+    "media-compliance",
 ]
 
 [project.urls]
