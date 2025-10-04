@@ -17,6 +17,9 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Framework :: AsyncIO",
     "Topic :: Security :: Cryptography",
+    "Operating System :: OS Independent",
+    "Topic :: Multimedia :: Graphics",
+    "Topic :: Multimedia :: Video",
     "Intended Audience :: Developers",
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
@@ -51,6 +54,9 @@ keywords = [
     "metadata-signing",
     "workflow-automation",
     "plugin-orchestration",
+    "asyncio",
+    "plugin",
+    "digital-asset-workflows",
 ]
 
 [project.urls]
