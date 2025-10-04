@@ -154,3 +154,4 @@ materials matching the selected plugin.
 - Documentation: <https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/media_signer#readme>
 - Issues: <https://github.com/swarmauri/swarmauri-sdk/issues>
 - Releases: <https://github.com/swarmauri/swarmauri-sdk/releases>
+- Discussions: <https://github.com/orgs/swarmauri/discussions>
