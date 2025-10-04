@@ -5,43 +5,60 @@
 <h1 align="center">MediaSigner</h1>
 
 <p align="center">
-  <a href="https://img.shields.io/badge/status-experimental-ff6f61?style=for-the-badge"><img src="https://img.shields.io/badge/status-experimental-ff6f61?style=for-the-badge" alt="Status: experimental" /></a>
-  <a href="https://img.shields.io/badge/license-Apache--2.0-0a6ebd?style=for-the-badge"><img src="https://img.shields.io/badge/license-Apache--2.0-0a6ebd?style=for-the-badge" alt="License: Apache-2.0" /></a>
-  <a href="https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12-4b8bbe?style=for-the-badge"><img src="https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12-4b8bbe?style=for-the-badge" alt="Python versions" /></a>
+  <a href="https://pypi.org/project/MediaSigner/"><img src="https://img.shields.io/pypi/dm/MediaSigner?style=for-the-badge" alt="PyPI - Downloads" /></a>
+  <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/media_signer/"><img src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/media_signer.svg?style=for-the-badge" alt="Repository views" /></a>
+  <a href="https://pypi.org/project/MediaSigner/"><img src="https://img.shields.io/pypi/pyversions/MediaSigner?style=for-the-badge" alt="Supported Python versions" /></a>
+  <a href="https://pypi.org/project/MediaSigner/"><img src="https://img.shields.io/pypi/l/MediaSigner?style=for-the-badge" alt="License" /></a>
+  <a href="https://pypi.org/project/MediaSigner/"><img src="https://img.shields.io/pypi/v/MediaSigner?style=for-the-badge&label=MediaSigner" alt="Latest release" /></a>
 </p>
+
+---
 
 MediaSigner packages the asynchronous `Signer` facade that orchestrates registered
 `SigningBase` providers. Moving the facade into a standalone plugin keeps the
 core standards library lightweight while still enabling drop-in discovery of
 specialised signers such as CMS, JWS, OpenPGP, PDF, and XMLDSig providers.
 
+## Features
+
+- **Unified signing façade** – talk to every installed `SigningBase` through a
+  single async API that automatically discovers entry-point contributions.
+- **Format-aware routing** – delegates signing and verification to the provider
+  registered for a format token such as `jws`, `pdf`, or `xmld`.
+- **Optional plugin bundles** – install curated extras (e.g. `[plugins]`) to
+  bring in all available signer backends in one step.
+- **Key-provider integration** – share Swarmauri key providers with the facade
+  so opaque key references resolve before signature creation.
+- **Production-ready CLI** – inspect capabilities, sign payloads, and verify
+  results directly from the command line for fast automation.
+
 ## Installation
 
 ### Using `uv`
 
 ```bash
-uv pip install MediaSigner
+uv add MediaSigner
+
+# install every optional backend
+uv add "MediaSigner[plugins]"
 ```
 
-The `uv` installer resolves workspace dependencies automatically. Add the
-`[plugins]` extra to bring in every optional signer at once:
-
-```bash
-uv pip install "MediaSigner[plugins]"
-```
+The `[plugins]` extra pulls in CMS, JWS, OpenPGP, PDF, and XMLDSig signers.
 
 ### Using `pip`
 
 ```bash
 pip install MediaSigner
-```
 
-Extras mirror the `uv` workflow, so `pip install "MediaSigner[plugins]"`
-installs the CMS, JWS, OpenPGP, PDF, and XMLDSig providers alongside the facade.
+# with every optional backend
+pip install "MediaSigner[plugins]"
+```
 
 ## Usage
 
 ```python
+import asyncio
+
 from MediaSigner import MediaSigner
 from swarmauri_core.keys.IKeyProvider import IKeyProvider
 
@@ -50,14 +67,53 @@ from swarmauri_core.keys.IKeyProvider import IKeyProvider
 key_provider: IKeyProvider | None = None
 signer = MediaSigner(key_provider=key_provider)
 
-# The Signer facade inspects the registry to discover installed plugins. Once a
-# plugin is available you can address it by its registered format token.
+
 async def sign_payload(payload: bytes) -> None:
     signatures = await signer.sign_bytes("jws", key="my-key", payload=payload)
     assert signatures, "At least one signature should be returned"
+    print(signer.supports("jws"))
 
-# Capability queries surface exactly which operations each plugin supports.
-print(signer.supports("jws"))
+
+asyncio.run(sign_payload(b"payload"))
+```
+
+### Integrating a key provider
+
+Any Swarmauri key provider can be shared with the facade so backends receive
+ready-to-use key material:
+
+```python
+import asyncio
+
+from MediaSigner import MediaSigner
+from swarmauri_keyprovider_inmemory import InMemoryKeyProvider
+
+provider = InMemoryKeyProvider(keys={"local://demo": b"secret"})
+signer = MediaSigner(key_provider=provider)
+
+
+async def main() -> None:
+    signatures = await signer.sign_bytes(
+        "jws",
+        key="local://demo",
+        payload=b"demo",
+        alg="HS256",
+        opts={"kid": "demo"},
+    )
+    print(signatures[0].mode)
+
+
+asyncio.run(main())
+```
+
+### Discover installed plugins
+
+Use the facade to list installed signers and inspect their capabilities:
+
+```python
+for format_name in signer.supported_formats():
+    capabilities = signer.supports(format_name)
+    print(format_name, list(capabilities))
 ```
 
 ### Why this structure?
@@ -91,3 +147,10 @@ media-signer verify-bytes jws \
 
 The CLI expects JSON files describing `KeyRef` objects and verification
 materials matching the selected plugin.
+
+## Project Resources
+
+- Source: <https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/media_signer>
+- Documentation: <https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/media_signer#readme>
+- Issues: <https://github.com/swarmauri/swarmauri-sdk/issues>
+- Releases: <https://github.com/swarmauri/swarmauri-sdk/releases>
