@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Iterable, Mapping, Optional
 
 from swarmauri_base.cipher_suites.CipherSuiteBase import CipherSuiteBase
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.cipher_suites.types import (
     Alg,
     CipherOp,
@@ -16,9 +17,8 @@ _SIGN: tuple[Alg, ...] = ("PS256", "PS384", "ES256", "ES384")
 _WRAP: tuple[Alg, ...] = ("RSA-OAEP-256",)
 
 
+@ComponentBase.register_type(CipherSuiteBase, "YubiKeyFipsCipherSuite")
 class YubiKeyFipsCipherSuite(CipherSuiteBase):
-    type: str = "YubiKeyFipsCipherSuite"
-
     def suite_id(self) -> str:
         return "yubikey-fips"
 

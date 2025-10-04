@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import base64
-from typing import Any, Dict, Iterable, Literal, Mapping, Optional, Sequence
+from typing import Any, Dict, Iterable, Mapping, Optional, Sequence
 
 try:
     import httpx
@@ -11,6 +11,7 @@ except Exception as e:  # pragma: no cover
     ) from e
 
 from swarmauri_base.certs.CertServiceBase import CertServiceBase
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.certs.ICertService import (
     CertBytes,
     CertExtensionSpec,
@@ -20,6 +21,7 @@ from swarmauri_core.certs.ICertService import (
 from swarmauri_core.crypto.types import KeyRef
 
 
+@ComponentBase.register_type(CertServiceBase, "RemoteCaCertService")
 class RemoteCaCertService(CertServiceBase):
     """Bridge to a remote Certificate Authority over HTTP.
 
@@ -43,8 +45,6 @@ class RemoteCaCertService(CertServiceBase):
         ``{"cert": "<base64-PEM-or-DER>"}``. These mappings can be overridden
         via ``opts``.
     """
-
-    type: Literal["RemoteCaCertService"] = "RemoteCaCertService"
 
     def __init__(
         self,

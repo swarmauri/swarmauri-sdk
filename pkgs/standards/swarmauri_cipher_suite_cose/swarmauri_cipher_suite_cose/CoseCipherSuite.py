@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Iterable, Mapping, Optional
 
 from swarmauri_base.cipher_suites import CipherSuiteBase
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.cipher_suites import (
     Alg,
     CipherOp,
@@ -16,10 +17,9 @@ _COSE_SIGN = (-8, -7, -35, -36, -37, -38, -39)
 _COSE_AEAD = (1, 2, 3)
 
 
+@ComponentBase.register_type(CipherSuiteBase, "CoseCipherSuite")
 class CoseCipherSuite(CipherSuiteBase):
     """COSE algorithm registry surface."""
-
-    type: str = "CoseCipherSuite"
 
     def suite_id(self) -> str:
         return "cose"

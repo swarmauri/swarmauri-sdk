@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Iterable, Mapping, Optional
 
 from swarmauri_base.cipher_suites import CipherSuiteBase
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.cipher_suites import (
     Alg,
     CipherOp,
@@ -17,10 +18,9 @@ _ALLOWED_ENC = ("A256GCM",)
 _ALLOWED_WRAP = ("RSA-OAEP-256", "A256KW")
 
 
+@ComponentBase.register_type(CipherSuiteBase, "FipsCipherSuite")
 class FipsCipherSuite(CipherSuiteBase):
     """FIPS 140-3 compliant algorithm surface."""
-
-    type: str = "FipsCipherSuite"
 
     def suite_id(self) -> str:
         return "fips140-3"

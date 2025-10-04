@@ -10,24 +10,23 @@ and development environments rather than production PKI validation.
 from __future__ import annotations
 
 import datetime
-from typing import Any, Dict, Iterable, Literal, Mapping, Optional, Sequence
+from typing import Any, Dict, Iterable, Mapping, Optional, Sequence
 
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import ec, padding, rsa
 from cryptography.x509.base import Certificate
-
 from swarmauri_base.certs.CertServiceBase import CertServiceBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 
+@ComponentBase.register_type(CertServiceBase, "X509VerifyService")
 class X509VerifyService(CertServiceBase):
     """Verify and parse X.509 certificates.
 
     Attributes:
         type: Component type identifier.
     """
-
-    type: Literal["X509VerifyService"] = "X509VerifyService"
 
     def supports(self) -> Mapping[str, Iterable[str]]:
         """Return supported algorithms and features."""
