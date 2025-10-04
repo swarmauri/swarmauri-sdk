@@ -11,9 +11,11 @@ classifiers = [
     "Natural Language :: English",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Framework :: AsyncIO",
     "Topic :: Security :: Cryptography",
     "Intended Audience :: Developers",
 ]
@@ -45,6 +47,10 @@ keywords = [
     "tiff",
     "pdf",
     "mp4",
+    "digital-asset-security",
+    "metadata-signing",
+    "workflow-automation",
+    "plugin-orchestration",
 ]
 
 [project.urls]
@@ -53,6 +59,7 @@ Source = "https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/embe
 Documentation = "https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/embedded_signer#readme"
 Issues = "https://github.com/swarmauri/swarmauri-sdk/issues"
 Changelog = "https://github.com/swarmauri/swarmauri-sdk/releases"
+Discussions = "https://github.com/orgs/swarmauri/discussions"
 
 [project.scripts]
 embedded-signer = "EmbeddedSigner.cli:main"

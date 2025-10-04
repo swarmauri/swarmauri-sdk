@@ -12,11 +12,14 @@ classifiers = [
     "Natural Language :: English",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Intended Audience :: Developers",
+    "Framework :: AsyncIO",
     "Topic :: Security :: Cryptography",
+    "Topic :: Software Development :: Libraries",
 ]
 dependencies = [
     "swarmauri_core",
@@ -38,6 +41,10 @@ keywords = [
     "plugin",
     "orchestration",
     "asyncio",
+    "signature-aggregation",
+    "workflow-automation",
+    "key-management",
+    "verification",
 ]
 
 [project.urls]
@@ -46,6 +53,7 @@ Source = "https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/medi
 Documentation = "https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/media_signer#readme"
 Issues = "https://github.com/swarmauri/swarmauri-sdk/issues"
 Changelog = "https://github.com/swarmauri/swarmauri-sdk/releases"
+Discussions = "https://github.com/orgs/swarmauri/discussions"
 
 [project.scripts]
 media-signer = "MediaSigner.cli:main"

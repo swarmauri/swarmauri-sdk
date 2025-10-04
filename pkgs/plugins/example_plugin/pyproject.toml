@@ -12,11 +12,13 @@ classifiers = [
     "Natural Language :: English",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Intended Audience :: Developers",
     "Topic :: Software Development :: Libraries",
+    "Topic :: Education",
 ]
 requires-python = ">=3.10,<3.13"
 dependencies = []
@@ -28,6 +30,10 @@ keywords = [
     "agents",
     "entry-points",
     "sdk",
+    "scaffolding",
+    "template",
+    "tutorial",
+    "packaging",
 ]
 
 [project.urls]
@@ -36,6 +42,7 @@ Source = "https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/exam
 Documentation = "https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/example_plugin#readme"
 Issues = "https://github.com/swarmauri/swarmauri-sdk/issues"
 Changelog = "https://github.com/swarmauri/swarmauri-sdk/releases"
+Discussions = "https://github.com/orgs/swarmauri/discussions"
 
 [tool.uv.sources]
 swarmauri_tests_pylicense = { workspace = true }
