@@ -11,10 +11,12 @@ classifiers = [
     "Natural Language :: English",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Intended Audience :: Developers",
+    "Framework :: AsyncIO",
     "Topic :: Multimedia :: Graphics",
     "Topic :: Software Development :: Libraries",
 ]
@@ -30,9 +32,14 @@ keywords = [
     "metadata",
     "embedding",
     "digital-asset-management",
+    "digital-asset-workflows",
+    "metadata-pipelines",
     "media-workflows",
     "metadata-extraction",
+    "metadata-synchronization",
     "python-library",
+    "async-discovery",
+    "plugin-discovery",
 ]
 
 [project.urls]
@@ -41,6 +48,7 @@ Source = "https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/Embe
 Documentation = "https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/EmbedXMP#readme"
 Issues = "https://github.com/swarmauri/swarmauri-sdk/issues"
 Changelog = "https://github.com/swarmauri/swarmauri-sdk/releases"
+Discussions = "https://github.com/orgs/swarmauri/discussions"
 
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
