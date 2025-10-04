@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
+import shutil
+import subprocess
+import tempfile
 from pathlib import Path
 from typing import (
     Any,
@@ -31,8 +35,10 @@ try:  # pragma: no cover - optional dependency
     )
 
     _CRYPTO_OK = True
+    _HAS_PKCS7_SIGNED_LOADER = hasattr(pkcs7, "load_der_pkcs7_signed_data")
 except Exception:  # pragma: no cover - runtime check
     _CRYPTO_OK = False
+    _HAS_PKCS7_SIGNED_LOADER = False
 
 
 def _ensure_crypto() -> None:
@@ -157,10 +163,84 @@ def _serialize_signature(
 
 def _load_pkcs7(data: bytes) -> pkcs7.PKCS7Signature:
     _ensure_crypto()
+    if not _HAS_PKCS7_SIGNED_LOADER:
+        raise RuntimeError("cryptography does not expose PKCS7 signed data loaders")
     try:
         return pkcs7.load_der_pkcs7_signed_data(data)
     except ValueError:
         return pkcs7.load_pem_pkcs7_signed_data(data)
+
+
+def _is_pem_signature(data: bytes) -> bool:
+    return data.lstrip().startswith(b"-----BEGIN")
+
+
+def _serialize_certs(certs: list[x509.Certificate]) -> bytes:
+    return b"".join(cert.public_bytes(serialization.Encoding.PEM) for cert in certs)
+
+
+def _openssl_verify(
+    payload: bytes,
+    artifact: bytes,
+    *,
+    attached: bool,
+    trusted: list[x509.Certificate],
+) -> bool:
+    if not trusted:
+        return False
+    openssl_bin = shutil.which("openssl")
+    if not openssl_bin:
+        raise RuntimeError("OpenSSL binary is required for CMS verification")
+    fmt = "pem" if _is_pem_signature(artifact) else "der"
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_path = Path(tmpdir)
+        sig_path = tmp_path / ("signature.pem" if fmt == "pem" else "signature.der")
+        sig_path.write_bytes(artifact)
+        trust_path = tmp_path / "trust.pem"
+        trust_path.write_bytes(_serialize_certs(trusted))
+        cmd = [
+            openssl_bin,
+            "smime",
+            "-verify",
+            "-inform",
+            fmt,
+            "-in",
+            str(sig_path),
+            "-CAfile",
+            str(trust_path),
+        ]
+        if not attached:
+            data_path = tmp_path / "payload.bin"
+            data_path.write_bytes(payload)
+            cmd.extend(["-content", str(data_path)])
+        proc = subprocess.run(cmd, capture_output=True)
+        if proc.returncode != 0:
+            return False
+        if attached:
+            return proc.stdout == payload
+        return True
+
+
+async def _verify_pkcs7(
+    payload: bytes,
+    artifact: bytes,
+    *,
+    attached: bool,
+    trusted: list[x509.Certificate],
+) -> bool:
+    if _HAS_PKCS7_SIGNED_LOADER:
+        signed = _load_pkcs7(artifact)
+        options = [] if attached else [pkcs7.PKCS7Options.DetachedSignature]
+        data = None if attached else payload
+        signed.verify(trusted or None, trusted or None, data, options)
+        return True
+    return await asyncio.to_thread(
+        _openssl_verify,
+        payload,
+        artifact,
+        attached=attached,
+        trusted=trusted,
+    )
 
 
 def _min_signers(require: Optional[Mapping[str, object]]) -> int:
@@ -366,6 +446,8 @@ class CMSSigner(SigningBase):
         hash_alg = _hash_from_alg(alg or (opts or {}).get("hash_alg"))
         builder = pkcs7.PKCS7SignatureBuilder().set_data(payload)
         builder = builder.add_signer(cert, private_key, hash_alg)
+        for extra in extras:
+            builder = builder.add_certificate(extra)
         attached = bool((opts or {}).get("attached", False))
         encoding = str((opts or {}).get("encoding", "der")).lower()
         if encoding == "pem":
@@ -375,7 +457,7 @@ class CMSSigner(SigningBase):
         else:
             raise ValueError("encoding must be 'der' or 'pem'")
         options = [] if attached else [pkcs7.PKCS7Options.DetachedSignature]
-        artifact = builder.sign(enc, options, additional_certs=list(extras))
+        artifact = builder.sign(enc, options)
         return [
             _serialize_signature(
                 artifact,
@@ -415,16 +497,20 @@ class CMSSigner(SigningBase):
                 artifact_bytes = bytes(artifact)
             else:
                 continue
+            attached = (
+                bool(meta.get("attached")) if isinstance(meta, Mapping) else False
+            )
             try:
-                signed = _load_pkcs7(artifact_bytes)
-                attached = (
-                    bool(meta.get("attached")) if isinstance(meta, Mapping) else False
+                ok = await _verify_pkcs7(
+                    payload,
+                    artifact_bytes,
+                    attached=attached,
+                    trusted=trusted,
                 )
-                options = [] if attached else [pkcs7.PKCS7Options.DetachedSignature]
-                signed.verify(trusted or None, trusted or None, payload, options)
             except Exception:
                 continue
-            accepted += 1
-            if accepted >= min_ok:
-                return True
+            if ok:
+                accepted += 1
+                if accepted >= min_ok:
+                    return True
         return False

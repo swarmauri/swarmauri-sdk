@@ -369,9 +369,9 @@ class OpenPGPSigner(SigningBase):
     ) -> Sequence[Signature]:
         pgp_key = _load_private_key(key)
         hash_alg = _hash_from_alg(alg or (opts or {}).get("hash_alg"))
-        message = pgpy.PGPMessage.new(payload, file=True)
+        data = bytes(payload)
         sig = pgp_key.sign(
-            message,
+            data,
             detached=True,
             hash=hash_alg,
             signature_type=SignatureType.BinaryDocument,
@@ -399,10 +399,10 @@ class OpenPGPSigner(SigningBase):
     ) -> bool:
         if not signatures:
             return False
+        payload_bytes = bytes(payload)
         keys = _load_public_keys((opts or {}).get("pubkeys"))
         if not keys:
             raise RuntimeError("OpenPGP verification requires opts['pubkeys'] entries")
-        message = pgpy.PGPMessage.new(payload, file=True)
         min_ok = _min_signers(require)
         accepted = 0
         for sig in signatures:
@@ -412,7 +412,7 @@ class OpenPGPSigner(SigningBase):
                 continue
             pgp_sig = _load_signature(sig)
             for key in keys:
-                if key.verify(message, pgp_sig):
+                if key.verify(payload_bytes, pgp_sig):
                     accepted += 1
                     break
             if accepted >= min_ok:
