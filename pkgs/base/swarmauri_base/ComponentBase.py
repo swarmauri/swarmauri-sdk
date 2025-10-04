@@ -88,7 +88,6 @@ class ResourceTypes(Enum):
     FACTORY = "Factory"
     PIPELINE = "Pipeline"
     SERVICE_REGISTRY = "ServiceRegistry"
-    CONTROL_PANEL = "ControlPanel"
     TASK_MGMT_STRATEGY = "TaskMgmtStrategy"
     TOOL_LLM = "ToolLLM"
     TTS = "TTS"

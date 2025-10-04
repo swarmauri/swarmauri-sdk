@@ -51,9 +51,6 @@ The AI Kit provides a collection of tools and components for building intelligen
 - [SentenceChunker.py](swarmauri_standard/chunkers/SentenceChunker.py): Splits text into sentences.
 - [SlidingWindowChunker.py](swarmauri_standard/chunkers/SlidingWindowChunker.py): Splits text using a sliding window approach.
 
-### Control Panels
-- [ControlPanel.py](swarmauri_standard/control_panels/ControlPanel.py): Manages control panel operations.
-
 ### Conversations
 - [Conversation.py](swarmauri_standard/conversations/Conversation.py): Manages conversation state and flow.
 - [MaxSizeConversation.py](swarmauri_standard/conversations/MaxSizeConversation.py): Implements a conversation with a maximum size limit.

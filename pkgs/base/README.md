@@ -61,9 +61,6 @@ class MyConcreteClass(LLMBase):
 ### chunkers
 - [`ChunkerBase.py`](./swarmauri_base/chunkers/ChunkerBase.py): Base class for chunkers.
 
-### control_panels
-- [`ControlPanelBase.py`](./swarmauri_base/control_panels/ControlPanelBase.py): Base class for control panels.
-
 ### conversations
 - [`ConversationBase.py`](./swarmauri_base/conversations/ConversationBase.py): Base class for conversations.
 - [`ConversationSystemContextMixin.py`](./swarmauri_base/conversations/ConversationSystemContextMixin.py): Mixin for system context in conversations.
