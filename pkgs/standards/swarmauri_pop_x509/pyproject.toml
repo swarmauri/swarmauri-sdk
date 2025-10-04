@@ -1,24 +1,52 @@
 [project]
 name = "swarmauri_pop_x509"
 version = "0.1.0"
-description = "X.509 mTLS PoP verifier"
-license = "Apache-2.0"
+description = "X.509 mutual TLS proof-of-possession verifier for Swarmauri"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
-authors = [{ name = "Swarmauri SDK Team", email = "support@swarmauri.com" }]
+license = { file = "LICENSE" }
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+keywords = [
+    "swarmauri",
+    "proof-of-possession",
+    "x509",
+    "mtls",
+    "oauth",
+    "oauth2",
+    "certificate-binding",
+    "cnf",
+    "mutual-tls",
+    "http",
+]
 classifiers = [
+    "Development Status :: 1 - Planning",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
     "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Intended Audience :: Developers",
+    "Framework :: AsyncIO",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Headers",
     "Topic :: Security :: Cryptography",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Typing :: Typed",
 ]
 dependencies = [
     "swarmauri_core",
     "swarmauri-base",
 ]
+
+[project.urls]
+Homepage = "https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_pop_x509"
+Documentation = "https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_pop_x509"
+Source = "https://github.com/swarmauri/swarmauri-sdk"
+"Issue Tracker" = "https://github.com/swarmauri/swarmauri-sdk/issues"
+Changelog = "https://github.com/swarmauri/swarmauri-sdk/releases"
 
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
@@ -27,3 +55,17 @@ swarmauri-base = { workspace = true }
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-xdist>=3.6.1",
+    "pytest-json-report>=1.5.0",
+    "python-dotenv",
+    "requests>=2.32.3",
+    "flake8>=7.0",
+    "pytest-timeout>=2.3.1",
+    "ruff>=0.9.9",
+    "pytest-benchmark>=4.0.0",
+]

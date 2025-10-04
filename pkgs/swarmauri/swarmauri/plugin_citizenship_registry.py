@@ -101,7 +101,6 @@ class PluginCitizenshipRegistry:
         "swarmauri.chunkers.MdSnippetChunker": "swarmauri_standard.chunkers.MdSnippetChunker",
         "swarmauri.chunkers.SentenceChunker": "swarmauri_standard.chunkers.SentenceChunker",
         "swarmauri.chunkers.SlidingWindowChunker": "swarmauri_standard.chunkers.SlidingWindowChunker",
-        "swarmauri.control_panels.ControlPanel": "swarmauri_standard.control_panels.ControlPanel",
         "swarmauri.conversations.Conversation": "swarmauri_standard.conversations.Conversation",
         "swarmauri.conversations.MaxSizeConversation": "swarmauri_standard.conversations.MaxSizeConversation",
         "swarmauri.conversations.MaxSystemContextConversation": "swarmauri_standard.conversations.MaxSystemContextConversation",
