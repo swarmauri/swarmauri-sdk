@@ -76,3 +76,4 @@ custom functionality into the Swarmauri plugin registry.
 - Documentation: <https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/example_plugin#readme>
 - Issues: <https://github.com/swarmauri/swarmauri-sdk/issues>
 - Releases: <https://github.com/swarmauri/swarmauri-sdk/releases>
+- Discussions: <https://github.com/orgs/swarmauri/discussions>

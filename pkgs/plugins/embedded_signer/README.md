@@ -45,20 +45,20 @@ produced.
 ### Using `uv`
 
 ```bash
-uv pip install EmbeddedSigner
+uv add EmbeddedSigner
 ```
 
 Optional dependencies align with the available key providers, EmbedXMP handlers,
 and MediaSigner backends:
 
 ```bash
-uv pip install "EmbeddedSigner[local]"      # enable LocalKeyProvider resolution
-uv pip install "EmbeddedSigner[memory]"     # enable InMemoryKeyProvider resolution
-uv pip install "EmbeddedSigner[xmp_png]"    # add PNG embedding support
-uv pip install "EmbeddedSigner[xmp_all]"    # install every EmbedXMP handler
-uv pip install "EmbeddedSigner[signing_pdf]"  # enable PDF signer backend
-uv pip install "EmbeddedSigner[signing_all]"  # install every MediaSigner backend
-uv pip install "EmbeddedSigner[full]"       # bring in all extras and key providers
+uv add "EmbeddedSigner[local]"      # enable LocalKeyProvider resolution
+uv add "EmbeddedSigner[memory]"     # enable InMemoryKeyProvider resolution
+uv add "EmbeddedSigner[xmp_png]"    # add PNG embedding support
+uv add "EmbeddedSigner[xmp_all]"    # install every EmbedXMP handler
+uv add "EmbeddedSigner[signing_pdf]"  # enable PDF signer backend
+uv add "EmbeddedSigner[signing_all]"  # install every MediaSigner backend
+uv add "EmbeddedSigner[full]"       # bring in all extras and key providers
 ```
 
 ### Using `pip`
@@ -219,6 +219,14 @@ embedded-signer embed-sign example.png \
    ```bash
    uv run --package EmbeddedSigner --directory plugins/embedded_signer pytest
    ```
+
+## Project Resources
+
+- Source: <https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/embedded_signer>
+- Documentation: <https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/embedded_signer#readme>
+- Issues: <https://github.com/swarmauri/swarmauri-sdk/issues>
+- Releases: <https://github.com/swarmauri/swarmauri-sdk/releases>
+- Discussions: <https://github.com/orgs/swarmauri/discussions>
 
 ## License
 

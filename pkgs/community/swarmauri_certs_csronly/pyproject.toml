@@ -11,9 +11,23 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Natural Language :: English",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = ["swarmauri_core", "swarmauri_base", "cryptography>=41"]
+keywords = [
+    "swarmauri",
+    "certs",
+    "csronly",
+    "community",
+    "service",
+    "generating",
+    "pkcs",
+    "csrs",
+]
 
 [project.optional-dependencies]
 tests = [
