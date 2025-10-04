@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any, Mapping, MutableMapping, Sequence
 
 from . import MediaSigner
+from swarmauri_core.signing.types import Signature
 
 BytesLike = bytes | bytearray
 
@@ -161,7 +162,8 @@ async def _cmd_verify_bytes(args: argparse.Namespace) -> int:
     sig_payload = _load_json_file(args.sigs)
     if not isinstance(sig_payload, list):
         raise SystemExit("--sigs must point to a JSON array")
-    signature_entries = [_signature_from_json(entry) for entry in sig_payload]
+    signature_payloads = [_signature_from_json(entry) for entry in sig_payload]
+    signature_entries = [Signature(**dict(entry)) for entry in signature_payloads]
     opts = _load_json_file(args.opts)
     require = _load_json_file(args.require)
     ok = await signer.verify_bytes(

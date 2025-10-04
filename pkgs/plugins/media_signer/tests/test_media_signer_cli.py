@@ -75,10 +75,9 @@ class _BaseStubSigner(SigningBase):
         if not signatures:
             return False
         first = signatures[0]
-        if isinstance(first, Signature):
-            artifact = first.artifact
-        else:
-            artifact = first.get("artifact")
+        if not isinstance(first, Signature):
+            raise TypeError("signatures must be Signature instances")
+        artifact = first.artifact
         self.verify_inputs.append(
             {
                 "payload": payload,
