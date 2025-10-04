@@ -6,7 +6,23 @@ readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10,<3.13"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
-keywords = ["swarmauri", "signing", "dsse", "sigstore", "supply-chain", "pae"]
+keywords = [
+    "swarmauri",
+    "signing",
+    "dsse",
+    "sigstore",
+    "supply-chain",
+    "pae",
+    "composable",
+    "envelope",
+    "adapter",
+    "layers",
+    "pre",
+    "authentication",
+    "encoding",
+    "onto",
+    "providers",
+]
 classifiers = [
     "Development Status :: 1 - Planning",
     "License :: OSI Approved :: Apache Software License",
@@ -18,6 +34,8 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Security :: Cryptography",
     "Intended Audience :: Developers",
+    "Development Status :: 3 - Alpha",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 dependencies = [
     "swarmauri_core",

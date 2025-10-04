@@ -6,7 +6,17 @@ readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.12,<3.13"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
-keywords = ["mkdocs", "documentation", "swarmauri", "docs", "doc builder"]
+keywords = [
+    "mkdocs",
+    "documentation",
+    "swarmauri",
+    "docs",
+    "doc builder",
+    "zdx",
+    "doc",
+    "builder",
+    "experience",
+]
 dependencies = [
     "mkdocs",
     "mkdocs-gen-files",
@@ -17,6 +27,16 @@ dependencies = [
     "griffe-typingdoc",
     "pyyaml>=6.0",
     "ruff>=0.5",
+]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 
 [project.scripts]

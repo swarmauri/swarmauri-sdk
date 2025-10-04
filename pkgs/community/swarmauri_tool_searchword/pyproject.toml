@@ -12,9 +12,23 @@ classifiers = [
     "Natural Language :: English",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
-    "Development Status :: 3 - Alpha"
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3.12",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
-keywords = ["search", "tool", "word", "phrase", "file", "highlight", "swarmauri"]
+keywords = [
+    "search",
+    "tool",
+    "word",
+    "phrase",
+    "file",
+    "highlight",
+    "swarmauri",
+    "searchword",
+    "searching",
+    "specific",
+]
 
 # Dependencies
 dependencies = [
