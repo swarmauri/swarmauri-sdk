@@ -18,6 +18,9 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
     "Topic :: Internet :: WWW/HTTP :: Middleware",
     "Intended Audience :: Developers",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 dependencies = [
     "swarmauri_core",
@@ -25,6 +28,13 @@ dependencies = [
     "swarmauri_standard",
     "fastapi",
     "swarmauri_signing_jws",
+]
+keywords = [
+    'swarmauri',
+    'sdk',
+    'standards',
+    'middleware',
+    'auth',
 ]
 
 [tool.uv.sources]

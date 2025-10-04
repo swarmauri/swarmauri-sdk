@@ -20,6 +20,9 @@ keywords = [
     "http",
     "asyncio",
     "realtime",
+    "sdk",
+    "standards",
+    "sseoutbound",
 ]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",

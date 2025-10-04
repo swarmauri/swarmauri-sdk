@@ -12,6 +12,11 @@ keywords = [
     "policy",
     "cipher-suite",
     "swarmauri",
+    "sdk",
+    "standards",
+    "cipher",
+    "suite",
+    "cryptography",
 ]
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" },
@@ -27,6 +32,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Security :: Cryptography",
     "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 dependencies = [
     "swarmauri_core",

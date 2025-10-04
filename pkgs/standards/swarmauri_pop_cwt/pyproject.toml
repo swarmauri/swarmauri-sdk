@@ -17,6 +17,10 @@ keywords = [
     "token-binding",
     "confirmation-method",
     "http",
+    "sdk",
+    "standards",
+    "pop",
+    "authentication",
 ]
 classifiers = [
     "Development Status :: 1 - Planning",
@@ -35,6 +39,7 @@ classifiers = [
     "Topic :: Security :: Cryptography",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Typing :: Typed",
+    "Programming Language :: Python",
 ]
 dependencies = [
     "swarmauri_core",

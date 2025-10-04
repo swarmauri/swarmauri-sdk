@@ -19,6 +19,9 @@ keywords = [
     "asyncio",
     "realtime",
     "browser",
+    "sdk",
+    "standards",
+    "wsjsonrpcmux",
 ]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",

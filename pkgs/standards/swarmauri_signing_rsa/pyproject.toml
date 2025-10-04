@@ -12,6 +12,8 @@ keywords = [
     "rsa",
     "public-key",
     "cryptography",
+    "sdk",
+    "standards",
 ]
 classifiers = [
     "Development Status :: 1 - Planning",
@@ -24,6 +26,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Security :: Cryptography",
     "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 dependencies = [
     "swarmauri_core",

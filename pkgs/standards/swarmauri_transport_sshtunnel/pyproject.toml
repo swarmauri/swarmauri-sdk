@@ -19,6 +19,9 @@ keywords = [
     "proxy",
     "asyncio",
     "networking",
+    "sdk",
+    "standards",
+    "sshtunnel",
 ]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",

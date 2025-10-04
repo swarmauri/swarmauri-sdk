@@ -16,12 +16,23 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "Topic :: Security :: Cryptography",
     "Intended Audience :: Developers",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 dependencies = [
     "swarmauri_core",
     "swarmauri_base",
     "pyjwt>=2.8.0",
     "cryptography",
+]
+keywords = [
+    'swarmauri',
+    'sdk',
+    'standards',
+    'tokens',
+    'remoteoidc',
+    'authentication',
 ]
 
 [project.optional-dependencies]

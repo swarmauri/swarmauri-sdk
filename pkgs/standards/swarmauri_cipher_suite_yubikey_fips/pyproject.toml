@@ -2,7 +2,7 @@
 name = "swarmauri_cipher_suite_yubikey_fips"
 version = "0.1.0.dev1"
 description = "FIPS-constrained YubiKey cipher suite for Swarmauri PIV operations"
-keywords = ["yubikey", "piv", "cipher-suite", "fips", "rsa-pss", "ecdsa"]
+keywords = ["yubikey", "piv", "cipher-suite", "fips", "rsa-pss", "ecdsa", "swarmauri", "sdk", "standards", "cipher", "suite", "cryptography"]
 license = "Apache-2.0"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
@@ -17,6 +17,9 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Intended Audience :: Developers",
     "Topic :: Security :: Cryptography",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 dependencies = [
     "swarmauri_core",

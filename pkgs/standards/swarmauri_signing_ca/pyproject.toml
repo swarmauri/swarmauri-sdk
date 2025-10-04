@@ -12,6 +12,10 @@ keywords = [
     "certificate-authority",
     "pki",
     "x509",
+    "sdk",
+    "standards",
+    "ca",
+    "cryptography",
 ]
 classifiers = [
     "Development Status :: 1 - Planning",
@@ -24,6 +28,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Security :: Cryptography",
     "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 dependencies = [
     "swarmauri_core",

@@ -16,11 +16,25 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "Topic :: Security :: Cryptography",
     "Intended Audience :: Developers",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 dependencies = [
     "swarmauri_core",
     "swarmauri_base",
     "cryptography>=41",
+]
+keywords = [
+    'swarmauri',
+    'sdk',
+    'standards',
+    'mre',
+    'crypto',
+    'ecdh',
+    'es',
+    'kw',
+    'cryptography',
 ]
 
 [project.optional-dependencies]

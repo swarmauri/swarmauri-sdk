@@ -16,6 +16,9 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Topic :: Security :: Cryptography",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 dependencies = [
     "swarmauri_core",
@@ -23,6 +26,14 @@ dependencies = [
     "swarmauri_keyprovider_local",
     "swarmauri_keyprovider_inmemory",
     "cryptography",
+]
+keywords = [
+    'swarmauri',
+    'sdk',
+    'standards',
+    'certs',
+    'x509',
+    'certificates',
 ]
 
 [project.optional-dependencies]

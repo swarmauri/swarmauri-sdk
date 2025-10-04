@@ -16,6 +16,9 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "Topic :: Security :: Cryptography",
     "Intended Audience :: Developers",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 dependencies = [
     "swarmauri_core",
@@ -23,6 +26,15 @@ dependencies = [
     "swarmauri_keyprovider_local",
     "cryptography",
     "pydantic",
+]
+keywords = [
+    'swarmauri',
+    'sdk',
+    'standards',
+    'keyprovider',
+    'remote',
+    'jwks',
+    'key-management',
 ]
 
 [tool.uv.sources]
