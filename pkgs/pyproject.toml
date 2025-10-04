@@ -262,7 +262,6 @@ members = [
     "standards/swarmauri_tool_githubloader",
     "standards/swarmauri_toolkit_containertoolkit",
     "experimental/swarmauri_workflow_statedriven",
-    "plugins/SignerNameTBD"
 
 ]
 
@@ -275,9 +274,6 @@ typing = { workspace = true }
 cayaml = { workspace = true }
 catoml = { workspace = true }
 jaml = { workspace = true }
-
-
-"swm-signernametbd" = { workspace = true }
 
 
 swarmauri_vectorstore_doc2vec = { workspace = true }
