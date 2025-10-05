@@ -64,6 +64,8 @@ members = [
     "standards/swarmauri_transport_quic",
     #"standards/swarmauri_vectorstore_tfidf",
     "standards/swarmauri_distance_minkowski",
+    "standards/swarmauri_metric_hamming",
+    "standards/swarmauri_matrix_hamming74",
     "standards/swarmauri_middleware_auth",
     "standards/swarmauri_middleware_bulkhead",
     "standards/swarmauri_middleware_cachecontrol",
@@ -292,6 +294,8 @@ swarmauri_evaluator_subprocess = { workspace = true }
 swarmauri_evaluatorpool_accessibility = { workspace = true }
 #swarmauri_vectorstore_tfidf = { workspace = true } # We have a tfidf with built-in formula now, this can move to community support with minor rename
 swarmauri_distance_minkowski = { workspace = true }
+swarmauri_metric_hamming = { workspace = true }
+swarmauri_matrix_hamming74 = { workspace = true }
 swarmauri_middleware_auth = { workspace = true }
 swarmauri_middleware_bulkhead = { workspace = true }
 swarmauri_middleware_cachecontrol = { workspace = true }
