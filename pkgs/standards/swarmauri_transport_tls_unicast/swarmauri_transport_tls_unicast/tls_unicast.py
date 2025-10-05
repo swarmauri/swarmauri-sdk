@@ -4,23 +4,25 @@ from __future__ import annotations
 
 import asyncio
 import ssl
-from typing import Optional
+from typing import AsyncIterator, Optional, Tuple
 
+from swarmauri_base.transports import (
+    PeerTransportMixin,
+    TransportBase,
+    UnicastTransportMixin,
+)
 from swarmauri_core.transports import (
     AddressScheme,
     Cast,
     Feature,
     IOModel,
-    PeerTransportMixin,
     Protocol,
     SecurityMode,
-    TransportBase,
     TransportCapabilities,
-    UnicastTransportMixin,
 )
 
 
-class TlsUnicastTransport(TransportBase, UnicastTransportMixin, PeerTransportMixin):
+class TlsUnicastTransport(TransportBase, PeerTransportMixin, UnicastTransportMixin):
     """TLS-secured unicast transport built on top of asyncio streams."""
 
     def __init__(self, ssl_ctx: ssl.SSLContext, sni: Optional[str] = None):
@@ -30,6 +32,9 @@ class TlsUnicastTransport(TransportBase, UnicastTransportMixin, PeerTransportMix
         self._server: asyncio.AbstractServer | None = None
         self._reader: asyncio.StreamReader | None = None
         self._writer: asyncio.StreamWriter | None = None
+        self._accept_queue: asyncio.Queue[
+            Tuple[asyncio.StreamReader, asyncio.StreamWriter]
+        ] = asyncio.Queue()
 
     def supports(self) -> TransportCapabilities:
         security = (
@@ -58,7 +63,7 @@ class TlsUnicastTransport(TransportBase, UnicastTransportMixin, PeerTransportMix
         async def _handler(
             reader: asyncio.StreamReader, writer: asyncio.StreamWriter
         ) -> None:
-            self._reader, self._writer = reader, writer
+            await self._accept_queue.put((reader, writer))
 
         self._server = await asyncio.start_server(
             _handler, host, port, ssl=self._ssl_ctx
@@ -69,6 +74,7 @@ class TlsUnicastTransport(TransportBase, UnicastTransportMixin, PeerTransportMix
             self._server.close()
             await self._server.wait_closed()
             self._server = None
+        self._accept_queue = asyncio.Queue()
 
     async def _open_client(self, host: str = "127.0.0.1", port: int = 8443) -> None:
         self._reader, self._writer = await asyncio.open_connection(
@@ -82,11 +88,15 @@ class TlsUnicastTransport(TransportBase, UnicastTransportMixin, PeerTransportMix
         self._reader = None
         self._writer = None
 
-    async def accept(self):
+    async def accept(
+        self,
+    ) -> AsyncIterator[Tuple[asyncio.StreamReader, asyncio.StreamWriter]]:
         if not self._server:
             raise RuntimeError("server not started")
         while True:
-            await asyncio.sleep(3600)
+            reader, writer = await self._accept_queue.get()
+            self._reader, self._writer = reader, writer
+            yield reader, writer
 
     async def send(
         self, target: str, data: bytes, *, timeout: Optional[float] = None
