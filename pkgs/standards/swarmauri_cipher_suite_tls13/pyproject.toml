@@ -1,0 +1,84 @@
+[project]
+name = "swarmauri_cipher_suite_tls13"
+version = "0.1.0.dev1"
+description = "TLS 1.3 cipher suite policy for Swarmauri"
+license = "Apache-2.0"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Development Status :: 3 - Alpha",
+    "Topic :: Security :: Cryptography",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+]
+dependencies = [
+    "swarmauri_core",
+    "swarmauri_base",
+]
+keywords = [
+    'swarmauri',
+    'sdk',
+    'standards',
+    'cipher',
+    'suite',
+    'tls13',
+    'cryptography',
+    'TLS 1.3',
+    'RFC 8446',
+    'NIST SP 800-52r2',
+    'TLS_AES_128_GCM_SHA256',
+    'TLS_AES_256_GCM_SHA384',
+    'TLS_CHACHA20_POLY1305_SHA256',
+    'AES-GCM',
+    'ChaCha20-Poly1305',
+]
+
+[tool.uv.sources]
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+
+[tool.pytest.ini_options]
+norecursedirs = ["combined", "scripts"]
+markers = [
+    "test: standard test",
+    "unit: Unit tests",
+    "i9n: Integration tests",
+    "r8n: Regression tests",
+    "acceptance: Acceptance tests",
+    "perf: Performance tests",
+    "example: README-backed usage examples",
+]
+timeout = 300
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+asyncio_default_fixture_loop_scope = "function"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-xdist>=3.6.1",
+    "pytest-json-report>=1.5.0",
+    "pytest-timeout>=2.3.1",
+    "pytest-benchmark>=4.0.0",
+    "flake8>=7.0",
+    "ruff>=0.9.9",
+]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[project.entry-points.'swarmauri.cipher_suites']
+Tls13CipherSuite = "swarmauri_cipher_suite_tls13:Tls13CipherSuite"

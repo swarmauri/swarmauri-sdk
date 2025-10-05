@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_state_clipboard"
-version = "0.8.0.dev5"
+version = "0.8.0.dev7"
 description = "Swarmauri Community Clipboard State"
 license = "Apache-2.0"
 readme = "README.md"
@@ -11,9 +11,19 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Natural Language :: English",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = ["swarmauri_core", "swarmauri_base"]
+keywords = [
+    "swarmauri",
+    "state",
+    "clipboard",
+    "community",
+]
 
 [tool.uv.sources]
 swarmauri_core = { workspace = true }

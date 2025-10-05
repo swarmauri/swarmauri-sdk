@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_middleware_jwt"
-version = "0.8.0.dev5"
+version = "0.8.0.dev7"
 description = "JWT validation middleware for Swarmauri applications."
 license = "Apache-2.0"
 readme = "README.md"
@@ -14,6 +14,9 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Development Status :: 3 - Alpha",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 dependencies = [
     "fastapi",
@@ -21,6 +24,13 @@ dependencies = [
     "swarmauri_base",
     "swarmauri_standard",
     "PyJWT",
+]
+keywords = [
+    'swarmauri',
+    'sdk',
+    'standards',
+    'middleware',
+    'jwt',
 ]
 
 [tool.uv.sources]

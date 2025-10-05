@@ -244,7 +244,14 @@ class RSAEnvelopeSigner(SigningBase):
     def supports(self) -> Mapping[str, Iterable[str]]:
         algs = ("RSA-PSS-SHA256", "RS256")
         canons = ("json", "cbor") if _CBOR_OK else ("json",)
-        return {"algs": algs, "canons": canons, "features": ("multi", "detached_only")}
+        return {
+            "algs": algs,
+            "canons": canons,
+            "signs": ("bytes", "digest", "envelope", "stream"),
+            "verifies": ("bytes", "digest", "envelope", "stream"),
+            "envelopes": ("mapping",),
+            "features": ("multi", "detached_only"),
+        }
 
     async def sign_bytes(
         self,
@@ -338,6 +345,26 @@ class RSAEnvelopeSigner(SigningBase):
                     return True
 
         return False
+
+    async def sign_digest(
+        self,
+        key: KeyRef,
+        digest: bytes,
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        return await self.sign_bytes(key, digest, alg=alg, opts=opts)
+
+    async def verify_digest(
+        self,
+        digest: bytes,
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> bool:
+        return await self.verify_bytes(digest, signatures, require=require, opts=opts)
 
     async def canonicalize_envelope(
         self,

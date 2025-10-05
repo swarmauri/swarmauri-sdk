@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_keyprovider_remote_jwks"
-version = "0.2.0.dev6"
+version = "0.2.0.dev8"
 description = "Remote JWKS-backed key provider for verification-only use"
 license = "Apache-2.0"
 readme = "README.md"
@@ -16,6 +16,9 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "Topic :: Security :: Cryptography",
     "Intended Audience :: Developers",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 dependencies = [
     "swarmauri_core",
@@ -23,6 +26,15 @@ dependencies = [
     "swarmauri_keyprovider_local",
     "cryptography",
     "pydantic",
+]
+keywords = [
+    'swarmauri',
+    'sdk',
+    'standards',
+    'keyprovider',
+    'remote',
+    'jwks',
+    'key-management',
 ]
 
 [tool.uv.sources]

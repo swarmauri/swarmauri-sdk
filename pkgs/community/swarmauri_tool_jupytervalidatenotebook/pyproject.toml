@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupytervalidatenotebook"
-version = "0.9.0.dev5"
+version = "0.9.0.dev7"
 description = "A tool that validates a NotebookNode object against the Jupyter Notebook schema using nbformat, ensuring structural correctness."
 license = "Apache-2.0"
 readme = "README.md"
@@ -12,6 +12,10 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Natural Language :: English",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
@@ -21,6 +25,22 @@ dependencies = [
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
+]
+keywords = [
+    "swarmauri",
+    "tool",
+    "jupytervalidatenotebook",
+    "validates",
+    "notebooknode",
+    "object",
+    "against",
+    "jupyter",
+    "notebook",
+    "schema",
+    "nbformat",
+    "ensuring",
+    "structural",
+    "correctness",
 ]
 
 [tool.uv.sources]

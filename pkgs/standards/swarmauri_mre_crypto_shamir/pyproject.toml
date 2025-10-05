@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_mre_crypto_shamir"
-version = "0.2.0.dev6"
+version = "0.2.0.dev8"
 description = "Shamir secret sharing based MRE crypto provider for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
@@ -16,11 +16,23 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "Topic :: Security :: Cryptography",
     "Intended Audience :: Developers",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 dependencies = [
     "swarmauri_core",
     "swarmauri_base",
     "cryptography",
+]
+keywords = [
+    'swarmauri',
+    'sdk',
+    'standards',
+    'mre',
+    'crypto',
+    'shamir',
+    'cryptography',
 ]
 
 [project.optional-dependencies]

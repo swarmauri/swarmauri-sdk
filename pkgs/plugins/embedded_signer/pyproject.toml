@@ -1,0 +1,181 @@
+[project]
+name = "EmbeddedSigner"
+version = "0.1.1.dev1"
+description = "Embed XMP metadata and sign media assets using Swarmauri plugins."
+license = "Apache-2.0"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Framework :: AsyncIO",
+    "Topic :: Security :: Cryptography",
+    "Operating System :: OS Independent",
+    "Topic :: Multimedia :: Graphics",
+    "Topic :: Multimedia :: Video",
+    "Intended Audience :: Developers",
+]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+dependencies = [
+    "EmbedXMP",
+    "MediaSigner",
+    "swarmauri_core",
+    "swarmauri_base",
+]
+keywords = [
+    "xmp",
+    "signing",
+    "swarmauri",
+    "metadata",
+    "security",
+    "digital-rights-management",
+    "drm",
+    "license-rights",
+    "embedded-licensing",
+    "tamper-proofing",
+    "tamper-evidence",
+    "content-protection",
+    "png",
+    "gif",
+    "jpeg",
+    "svg",
+    "webp",
+    "tiff",
+    "pdf",
+    "mp4",
+    "digital-asset-security",
+    "metadata-signing",
+    "workflow-automation",
+    "plugin-orchestration",
+    "asyncio",
+    "plugin",
+    "digital-asset-workflows",
+    "cms",
+    "pkcs7",
+    "cades",
+    "jws",
+    "openpgp",
+    "pdf-signatures",
+    "xmldsig",
+]
+
+[project.urls]
+Homepage = "https://github.com/swarmauri/swarmauri-sdk"
+Source = "https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/embedded_signer"
+Documentation = "https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/embedded_signer#readme"
+Issues = "https://github.com/swarmauri/swarmauri-sdk/issues"
+Changelog = "https://github.com/swarmauri/swarmauri-sdk/releases"
+Discussions = "https://github.com/orgs/swarmauri/discussions"
+
+[project.scripts]
+embedded-signer = "EmbeddedSigner.cli:main"
+
+[project.optional-dependencies]
+local = ["swarmauri_keyprovider_local"]
+memory = ["swarmauri_keyprovider_inmemory"]
+xmp_gif = ["swarmauri_xmp_gif"]
+xmp_jpeg = ["swarmauri_xmp_jpeg"]
+xmp_mp4 = ["swarmauri_xmp_mp4"]
+xmp_pdf = ["swarmauri_xmp_pdf"]
+xmp_png = ["swarmauri_xmp_png"]
+xmp_svg = ["swarmauri_xmp_svg"]
+xmp_tiff = ["swarmauri_xmp_tiff"]
+xmp_webp = ["swarmauri_xmp_webp"]
+xmp_all = [
+    "swarmauri_xmp_gif",
+    "swarmauri_xmp_jpeg",
+    "swarmauri_xmp_mp4",
+    "swarmauri_xmp_pdf",
+    "swarmauri_xmp_png",
+    "swarmauri_xmp_svg",
+    "swarmauri_xmp_tiff",
+    "swarmauri_xmp_webp",
+]
+signing_cms = ["swarmauri_signing_cms"]
+signing_jws = ["swarmauri_signing_jws"]
+signing_openpgp = ["swarmauri_signing_openpgp"]
+signing_pdf = ["swarmauri_signing_pdf"]
+signing_xmld = ["swarmauri_signing_xmld"]
+signing_all = [
+    "swarmauri_signing_cms",
+    "swarmauri_signing_jws",
+    "swarmauri_signing_openpgp",
+    "swarmauri_signing_pdf",
+    "swarmauri_signing_xmld",
+]
+full = [
+    "swarmauri_keyprovider_local",
+    "swarmauri_keyprovider_inmemory",
+    "swarmauri_xmp_gif",
+    "swarmauri_xmp_jpeg",
+    "swarmauri_xmp_mp4",
+    "swarmauri_xmp_pdf",
+    "swarmauri_xmp_png",
+    "swarmauri_xmp_svg",
+    "swarmauri_xmp_tiff",
+    "swarmauri_xmp_webp",
+    "swarmauri_signing_cms",
+    "swarmauri_signing_jws",
+    "swarmauri_signing_openpgp",
+    "swarmauri_signing_pdf",
+    "swarmauri_signing_xmld",
+]
+
+[tool.uv.sources]
+embedxmp = { workspace = true }
+mediasigner = { workspace = true }
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+swarmauri_keyprovider_local = { workspace = true }
+swarmauri_keyprovider_inmemory = { workspace = true }
+swarmauri_tests_griffe = { workspace = true }
+swarmauri_xmp_gif = { workspace = true }
+swarmauri_xmp_jpeg = { workspace = true }
+swarmauri_xmp_mp4 = { workspace = true }
+swarmauri_xmp_pdf = { workspace = true }
+swarmauri_xmp_png = { workspace = true }
+swarmauri_xmp_svg = { workspace = true }
+swarmauri_xmp_tiff = { workspace = true }
+swarmauri_xmp_webp = { workspace = true }
+swarmauri_signing_cms = { workspace = true }
+swarmauri_signing_jws = { workspace = true }
+swarmauri_signing_openpgp = { workspace = true }
+swarmauri_signing_pdf = { workspace = true }
+swarmauri_signing_xmld = { workspace = true }
+swarmauri_tests_pylicense = { workspace = true }
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
+    "swarmauri_tests_griffe",
+    "swarmauri_xmp_gif",
+    "swarmauri_xmp_jpeg",
+    "swarmauri_xmp_mp4",
+    "swarmauri_xmp_pdf",
+    "swarmauri_xmp_png",
+    "swarmauri_xmp_svg",
+    "swarmauri_xmp_tiff",
+    "swarmauri_xmp_webp",
+    "ruff>=0.9",
+    "swarmauri_tests_pylicense",
+]
+
+[tool.pytest.ini_options]
+addopts = "--pylicense-package=EmbeddedSigner --pylicense-mode=parameterized --pylicense-accept-deps=cffi"
+
+[tool.poetry]
+packages = [
+    { include = "EmbeddedSigner" },
+]

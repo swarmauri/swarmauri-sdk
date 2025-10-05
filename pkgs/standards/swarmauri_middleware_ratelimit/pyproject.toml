@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_middleware_ratelimit"
-version = "0.7.0.dev6"
+version = "0.7.0.dev8"
 description = "Rate limiting middleware for Swarmauri applications"
 license = "Apache-2.0"
 readme = "README.md"
@@ -13,7 +13,10 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
-    "Development Status :: 3 - Alpha"
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only"
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
@@ -21,6 +24,13 @@ dependencies = [
     "swarmauri_base",
     "swarmauri_standard",
     "fastapi"
+]
+keywords = [
+    'swarmauri',
+    'sdk',
+    'standards',
+    'middleware',
+    'ratelimit',
 ]
 
 [tool.uv.sources]

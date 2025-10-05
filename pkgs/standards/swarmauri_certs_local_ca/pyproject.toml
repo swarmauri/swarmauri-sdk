@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_certs_local_ca"
-version = "0.3.0.dev5"
+version = "0.3.0.dev7"
 description = "Local CA certificate service for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
@@ -16,11 +16,27 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "Topic :: Security :: Cryptography",
     "Intended Audience :: Developers",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 dependencies = [
     "swarmauri_core",
     "swarmauri_base",
     "cryptography",
+]
+keywords = [
+    'swarmauri',
+    'sdk',
+    'standards',
+    'certs',
+    'local',
+    'ca',
+    'certificates',
+    'certificate-authority',
+    'trust-anchor',
+    'certificate-issuance',
+    'x509-format',
 ]
 
 [project.optional-dependencies]

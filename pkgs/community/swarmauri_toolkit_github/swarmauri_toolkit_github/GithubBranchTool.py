@@ -71,7 +71,7 @@ class GithubBranchTool(ToolBase):
 
     # Branch Management Methods
     def create_branch(
-        self, repo_name: str, branch_name: str, source: str = "main"
+        self, repo_name: str, branch_name: str, source: str = "master"
     ) -> str:
         try:
             repo = self._github.get_repo(repo_name)

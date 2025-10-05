@@ -12,8 +12,11 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
 ]
-authors = [{ name = "Swarmauri Team", email = "support@swarmauri.com" }]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "swarmauri_core",
     "swarmauri_base",
@@ -39,7 +42,7 @@ dependencies = [
     "httpx>=0.27",
     "tigrbl",
 ]
-keywords = ["oidc", "oauth2", "fastapi", "identity-provider", "jwks", "jwt"]
+keywords = ["oidc", "oauth2", "fastapi", "identity-provider", "jwks", "jwt", "tigrbl", "sdk", "standards", "auth", "authentication"]
 
 [tool.uv.sources]
 swarmauri_core = { workspace = true }

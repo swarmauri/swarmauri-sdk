@@ -1,28 +1,33 @@
 import os
+
 import pytest
 from swarmauri_tool_matplotlib.MatplotlibTool import MatplotlibTool as Tool
 
 
+@pytest.fixture(name="tool")
+def matplotlib_tool():
+    """Provide a MatplotlibTool instance for the unit tests."""
+
+    return Tool()
+
+
 @pytest.mark.unit
-def test_ubc_resource():
-    tool = Tool()
+def test_ubc_resource(tool):
     assert tool.resource == "Tool"
 
 
 @pytest.mark.unit
-def test_ubc_type():
-    assert Tool().type == "MatplotlibTool"
+def test_ubc_type(tool):
+    assert tool.type == "MatplotlibTool"
 
 
 @pytest.mark.unit
-def test_initialization():
-    tool = Tool()
+def test_initialization(tool):
     assert type(tool.id) is str
 
 
 @pytest.mark.unit
-def test_serialization():
-    tool = Tool()
+def test_serialization(tool):
     assert tool.id == Tool.model_validate_json(tool.model_dump_json()).id
 
 
@@ -59,8 +64,7 @@ def test_serialization():
     ],
 )
 @pytest.mark.unit
-def test_call(plot_type, x_data, y_data, title, x_label, y_label, save_path):
-    tool = Tool()
+def test_call(plot_type, x_data, y_data, title, x_label, y_label, save_path, tool):
     expected_keys = {"img_path", "img_base64", "data"}
 
     result = tool(plot_type, x_data, y_data, title, x_label, y_label, save_path)

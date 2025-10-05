@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_containerfeedchars"
-version = "0.9.0.dev5"
+version = "0.9.0.dev7"
 description = "Execute commands in Docker or Kubernetes containers."
 license = "Apache-2.0"
 readme = "README.md"
@@ -11,12 +11,23 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
+]
+keywords = [
+    'swarmauri',
+    'sdk',
+    'standards',
+    'tool',
+    'containerfeedchars',
+    'tooling',
 ]
 
 [tool.uv.sources]

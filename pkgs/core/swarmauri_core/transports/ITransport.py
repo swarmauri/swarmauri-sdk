@@ -1,29 +1,43 @@
+"""Base transport interface shared across all concrete transports."""
+
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from typing import Any, List
+from contextlib import AbstractAsyncContextManager
+from typing import Any
+
+from .capabilities import TransportCapabilities
 
 
 class ITransport(ABC):
-    """
-    Interface defining standard transportation methods for agent interactions
-    """
+    """Capability-aware transport interface."""
 
     @abstractmethod
-    def send(self, sender: str, recipient: str, message: Any) -> None:
-        """
-        Send a message to a specific recipient
-        """
-        pass
+    def supports(self) -> TransportCapabilities:
+        """Return the capability set advertised by the transport."""
 
     @abstractmethod
-    def broadcast(self, sender: str, message: Any) -> None:
-        """
-        Broadcast a message to all agents
-        """
-        pass
+    def server(self, **bind_kwargs: Any) -> AbstractAsyncContextManager["ITransport"]:
+        """Return a context manager that starts the transport's server side."""
 
     @abstractmethod
-    def multicast(self, sender: str, recipients: List[str], message: Any) -> None:
-        """
-        Send a message to multiple specific recipients
-        """
-        pass
+    def client(
+        self, **connect_kwargs: Any
+    ) -> AbstractAsyncContextManager["ITransport"]:
+        """Return a context manager that opens the transport's client side."""
+
+    @abstractmethod
+    async def _start_server(self, **bind_kwargs: Any) -> None:
+        """Hook invoked when the server context is entered."""
+
+    @abstractmethod
+    async def _stop_server(self) -> None:
+        """Hook invoked when the server context exits."""
+
+    @abstractmethod
+    async def _open_client(self, **connect_kwargs: Any) -> None:
+        """Hook invoked when the client context is entered."""
+
+    @abstractmethod
+    async def _close_client(self) -> None:
+        """Hook invoked when the client context exits."""

@@ -1,6 +1,6 @@
 [project]
 name = "tigrbl-kms"
-version = "0.3.0.dev5"
+version = "0.3.0.dev6"
 description = "A Tigrbl key management service for Swarmauri."
 license = "Apache-2.0"
 readme = "README.md"
@@ -12,8 +12,11 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
 ]
-authors = [{ name = "Swarmauri Team", email = "team@swarmauri.com" }]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "swarmauri_core",
     "swarmauri_base",
@@ -26,6 +29,12 @@ dependencies = [
     "sqlalchemy[asyncio]>=2.0.0",
     "asyncpg>=0.29,<1.0",
     "swarmauri_crypto_paramiko"
+]
+keywords = [
+    'tigrbl',
+    'sdk',
+    'standards',
+    'kms',
 ]
 
 [tool.uv.sources]

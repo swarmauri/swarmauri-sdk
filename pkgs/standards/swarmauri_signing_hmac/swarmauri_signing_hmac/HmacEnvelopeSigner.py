@@ -9,7 +9,7 @@ from typing import Any, Iterable, Mapping, Optional, Sequence
 
 from swarmauri_base.signing.SigningBase import SigningBase
 from swarmauri_core.signing.ISigning import Signature, Envelope, Canon
-from swarmauri_core.crypto.types import JWAAlg, KeyRef
+from swarmauri_core.crypto.types import Alg, JWAAlg, KeyRef
 
 try:  # pragma: no cover - optional canonicalization
     import cbor2
@@ -132,10 +132,16 @@ class _Sig:
 class HmacEnvelopeSigner(SigningBase):
     """Detached HMAC signatures over bytes and canonicalized envelopes."""
 
-    def supports(self) -> Mapping[str, Iterable[JWAAlg]]:
+    def supports(self) -> Mapping[str, Iterable[str]]:
         canons = ("json", "cbor") if _CBOR_OK else ("json",)
+        structured = tuple(f"structured-{canon}" for canon in canons)
         return {
-            "algs": (JWAAlg.HS256, JWAAlg.HS384, JWAAlg.HS512),
+            "signs": ("bytes", "digest", "envelope", "stream"),
+            "verifies": ("bytes", "digest", "envelope", "stream"),
+            "envelopes": ("mapping", "detached-bytes", *structured),
+            "algs": tuple(
+                alg.value for alg in (JWAAlg.HS256, JWAAlg.HS384, JWAAlg.HS512)
+            ),
             "canons": canons,
             "features": ("multi", "detached_only"),
         }
@@ -238,6 +244,26 @@ class HmacEnvelopeSigner(SigningBase):
                     return True
 
         return False
+
+    async def sign_digest(
+        self,
+        key: KeyRef,
+        digest: bytes,
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        return await self.sign_bytes(key, digest, alg=alg, opts=opts)
+
+    async def verify_digest(
+        self,
+        digest: bytes,
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> bool:
+        return await self.verify_bytes(digest, signatures, require=require, opts=opts)
 
     async def canonicalize_envelope(
         self,

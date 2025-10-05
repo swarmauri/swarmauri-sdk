@@ -18,8 +18,68 @@ concurrency:
   group: dev-branch-prepare-workflow
   cancel-in-progress: false
 
+permissions:
+  contents: write       # push commits/tags, create releases
+  deployments: write    # environment approval gates
+
 jobs:
+  package-info:
+    runs-on: ubuntu-latest
+    outputs:
+      package_name: ${{ steps.package_metadata.outputs.package_name }}
+      requires_approval: ${{ steps.package_metadata.outputs.requires_approval }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Gather package metadata
+        id: package_metadata
+        env:
+          MEMBER: ${{ github.event.inputs.member }}
+        run: |
+          python - <<'PY'
+          import os
+          import pathlib
+          import urllib.error
+          import urllib.request
+          import tomllib
+
+          member = os.environ["MEMBER"]
+          pyproject = pathlib.Path("pkgs") / member / "pyproject.toml"
+          if not pyproject.is_file():
+              raise FileNotFoundError(f"Unable to locate pyproject.toml for member '{member}'.")
+          with pyproject.open("rb") as fh:
+              config = tomllib.load(fh)
+
+          package_name = config.get("project", {}).get("name")
+          if not package_name:
+              raise RuntimeError(f"Unable to determine package name for member '{member}'.")
+
+          requires_approval = "true"
+          try:
+              with urllib.request.urlopen(f"https://pypi.org/pypi/{package_name}/json") as response:
+                  requires_approval = "false" if response.status == 200 else "true"
+          except urllib.error.HTTPError as exc:
+              if exc.code == 404:
+                  requires_approval = "true"
+              else:
+                  raise
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as gh_out:
+              print(f"package_name={package_name}", file=gh_out)
+              print(f"requires_approval={requires_approval}", file=gh_out)
+
+          print(f"::notice::Package name detected: {package_name}")
+          print(f"::notice::Approval required: {requires_approval}")
+          PY
+
   test:
+    needs: package-info
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     continue-on-error: true
@@ -38,18 +98,15 @@ jobs:
       - name: Bump Version Placeholder
         run: |
           MEMBER="${{ github.event.inputs.member }}"
-
           echo "::notice::Running bump version process for workspace member: $MEMBER"
-          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
+          PACKAGE_NAME="${{ needs.package-info.outputs.package_name }}"
           echo "::notice::Package name detected: $PACKAGE_NAME"
 
-          # Determine whether to use bump or set based on inputs
           if [ -n "${{ github.event.inputs.set_version }}" ]; then
             VERSION_ARG="--set ${{ github.event.inputs.set_version }}"
           else
             VERSION_ARG="--bump ${{ github.event.inputs.bump_type }}"
           fi
-
 
           uv run --active scripts/bump_pyproject_version.py $VERSION_ARG ${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml
 
@@ -57,16 +114,15 @@ jobs:
         run: |
           cd pkgs
           MEMBER="${{ github.event.inputs.member }}"
+          PACKAGE_NAME="${{ needs.package-info.outputs.package_name }}"
           echo "::notice::Running Ruff format on $MEMBER"
-          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
           uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff format .
 
       - name: Ruff lint check & fix
         run: |
           cd pkgs
           MEMBER="${{ github.event.inputs.member }}"
-          echo "::notice::Running tests for workspace member: $MEMBER"
-          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
+          PACKAGE_NAME="${{ needs.package-info.outputs.package_name }}"
           echo "::notice::Running Ruff lint check & fix on $MEMBER"
           uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff check . --fix
 
@@ -74,11 +130,10 @@ jobs:
         run: |
           cd pkgs
           MEMBER="${{ github.event.inputs.member }}"
-          echo "::notice::Package name: $PACKAGE_NAME"
-          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
+          PACKAGE_NAME="${{ needs.package-info.outputs.package_name }}"
+          echo "::notice::Running pytest for package: $PACKAGE_NAME"
           uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active pytest -vvv
 
-      # Patches
       - name: Create patch for changes
         if: always()
         run: |
@@ -87,7 +142,6 @@ jobs:
           SAFE_MEMBER=$(echo "$MEMBER" | tr '/' '-')
           echo "::notice::Creating patch file for changed files in $MEMBER..."
           git diff HEAD -- pkgs/"$MEMBER" > patches/patch_${SAFE_MEMBER}.patch
-
           if [ ! -s "patches/patch_${SAFE_MEMBER}.patch" ]; then
             echo "::warning::No changes detected for $MEMBER, the patch file is empty."
           fi
@@ -129,7 +183,7 @@ jobs:
           path: patches
 
       - name: List downloaded artifacts
-        run: ls -R patches
+        run: ls -R patches || true
 
       - name: Apply patches
         run: |
@@ -161,10 +215,25 @@ jobs:
             echo "::notice::No changes to commit."
           fi
 
-  release:
-    needs: [commit]
+  # Environment-gated approval for publishing NEW packages
+  pypi_approval_gate:
+    needs: [commit, package-info]
+    if: ${{ !cancelled() && needs.package-info.outputs.requires_approval == 'true' }}
     runs-on: ubuntu-latest
-    if: ${{ !cancelled() && always() }}
+    timeout-minutes: 4320   # up to 3 days for manual approval
+    environment:
+      name: pypi-new-package-approval
+      url: https://pypi.org/project/${{ needs.package-info.outputs.package_name }}/
+    steps:
+      - name: Await manual approval in the environment gate
+        run: |
+          echo "::notice::Approval gate for '${{ needs.package-info.outputs.package_name }}'. Use the 'Review deployments' banner to Approve and deploy."
+
+  release:
+    needs: [commit, package-info, pypi_approval_gate]
+    runs-on: ubuntu-latest
+    # Proceed only if commit succeeded AND (no approval required OR gate succeeded)
+    if: ${{ !cancelled() && needs.commit.result == 'success' && (needs.package-info.outputs.requires_approval != 'true' || needs.pypi_approval_gate.result == 'success') }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -177,7 +246,7 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Install dependencies
+      - name: Install build tooling
         run: pip install uv pytest toml
 
       # Build
@@ -185,8 +254,8 @@ jobs:
         run: |
           cd pkgs
           MEMBER="${{ github.event.inputs.member }}"
-          echo "::notice::Building workspace member: $MEMBER"
-          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
+          PACKAGE_NAME="${{ needs.package-info.outputs.package_name }}"
+          echo "::notice::Building: $PACKAGE_NAME ($MEMBER)"
           uv build --directory "$MEMBER" --package "$PACKAGE_NAME" -o distout
 
       # Publish
@@ -194,8 +263,8 @@ jobs:
         run: |
           cd pkgs
           MEMBER="${{ github.event.inputs.member }}"
-          echo "::notice::Publishing workspace member: $MEMBER"
-          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
+          PACKAGE_NAME="${{ needs.package-info.outputs.package_name }}"
+          echo "::notice::Publishing: $PACKAGE_NAME ($MEMBER)"
           uv publish --directory "$MEMBER" distout/* --token "${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}"
 
       # Release Steps
@@ -203,10 +272,9 @@ jobs:
         id: prepare_release
         run: |
           cd pkgs/${{ github.event.inputs.member }}
-          PACKAGE_NAME=$(python -c "import toml; print(toml.load('pyproject.toml')['project']['name'])")
+          PACKAGE_NAME="${{ needs.package-info.outputs.package_name }}"
           VERSION=$(python -c "import toml; print(toml.load('pyproject.toml')['project']['version'])")
           TAG="${PACKAGE_NAME}==${VERSION}"
-          # If bump_type is 'finalize' OR the version has no '.dev', treat this as a final release
           if [ "${{ github.event.inputs.bump_type }}" = "finalize" ] || [[ "$VERSION" != *".dev"* ]]; then
             PRERELEASE_FLAG=false
           else
@@ -216,18 +284,18 @@ jobs:
           echo "prerelease=$PRERELEASE_FLAG" >> $GITHUB_OUTPUT
           echo "package_name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Computed tag: $TAG, prerelease: $PRERELEASE_FLAG"
+          echo "::notice::Computed tag: $TAG (prerelease=$PRERELEASE_FLAG)"
 
       - name: Generate Release Notes
         id: generate_release_notes
         run: |
           cd pkgs/${{ github.event.inputs.member }}
           CURRENT_TAG="${{ steps.prepare_release.outputs.tag }}"
-          # Find the most recent tag for this package excluding the current tag
-          PREVIOUS_TAG=$(git tag --list "${{ steps.prepare_release.outputs.package_name }}==*" --sort=-v:refname | grep -v "$CURRENT_TAG" | head -n1)
-          echo "::notice::Previous tag: $PREVIOUS_TAG"
+          PREVIOUS_TAG=$(git tag --list "${{ steps.prepare_release.outputs.package_name }}==*" --sort=-v:refname | grep -v "^${CURRENT_TAG}$" | head -n1)
+          echo "::notice::Previous tag: ${PREVIOUS_TAG:-<none>}"
           if [ -n "$PREVIOUS_TAG" ]; then
-            RELEASE_NOTES=$(git log "$PREVIOUS_TAG" -- "$CURRENT_TAG" --pretty=format:"* %s" --reverse)
+            # Changes affecting this member since the previous tag
+            RELEASE_NOTES=$(git log "${PREVIOUS_TAG}..HEAD" -- . --pretty=format:"* %s" --reverse)
           else
             RELEASE_NOTES="Initial release."
           fi
@@ -246,11 +314,10 @@ jobs:
           cd pkgs/${{ github.event.inputs.member }}
           mkdir -p release_artifacts
           ZIP_PATH=release_artifacts/${{ steps.prepare_release.outputs.package_name }}-${{ steps.prepare_release.outputs.version }}.zip
-          zip -j $ZIP_PATH distout/*.whl distout/*.tar.gz
-          echo "Artifacts zipped to: $ZIP_PATH"
+          zip -j "$ZIP_PATH" distout/*.whl distout/*.tar.gz
+          echo "::notice::Artifacts zipped to: $ZIP_PATH"
 
       - name: Create GitHub Release
-        id: create_release
         uses: softprops/action-gh-release@v2.2.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

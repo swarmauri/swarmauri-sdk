@@ -1,0 +1,117 @@
+[project]
+name = "MediaSigner"
+version = "0.6.2.dev4"
+description = "Swarmauri signing facade plugin that aggregates registered SigningBase providers."
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+license = "Apache-2.0"
+readme = { file = "README.md", content-type = "text/markdown" }
+requires-python = ">=3.10,<3.13"
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Intended Audience :: Developers",
+    "Framework :: AsyncIO",
+    "Topic :: Security :: Cryptography",
+    "Operating System :: OS Independent",
+    "Topic :: Multimedia :: Graphics",
+    "Topic :: Multimedia :: Video",
+    "Topic :: Software Development :: Libraries",
+]
+dependencies = [
+    "swarmauri_core",
+    "swarmauri_base",
+    "swarmauri_keyprovider_inmemory",
+    "cryptography>=42.0.0",
+    "swarmauri_signing_cms",
+    "swarmauri_signing_jws",
+    "swarmauri_signing_openpgp",
+    "swarmauri_signing_pdf",
+    "swarmauri_signing_xmld",
+]
+
+keywords = [
+    "swarmauri",
+    "digital-signatures",
+    "media",
+    "cryptography",
+    "plugin",
+    "orchestration",
+    "asyncio",
+    "signature-aggregation",
+    "workflow-automation",
+    "key-management",
+    "verification",
+    "digital-asset-security",
+    "media-compliance",
+    "cms",
+    "pkcs7",
+    "cades",
+    "jws",
+    "openpgp",
+    "pdf-signatures",
+    "xmldsig",
+]
+
+[project.urls]
+Homepage = "https://github.com/swarmauri/swarmauri-sdk"
+Source = "https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/media_signer"
+Documentation = "https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/media_signer#readme"
+Issues = "https://github.com/swarmauri/swarmauri-sdk/issues"
+Changelog = "https://github.com/swarmauri/swarmauri-sdk/releases"
+Discussions = "https://github.com/orgs/swarmauri/discussions"
+
+[project.scripts]
+media-signer = "MediaSigner.cli:main"
+
+[project.optional-dependencies]
+plugins = [
+    "swarmauri_signing_cms",
+    "swarmauri_signing_jws",
+    "swarmauri_signing_openpgp",
+    "swarmauri_signing_pdf",
+    "swarmauri_signing_xmld",
+]
+
+[tool.poetry]
+packages = [{ include = "MediaSigner" }]
+
+[tool.uv.sources]
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+swarmauri_keyprovider_inmemory = { workspace = true }
+swarmauri_signing_cms = { workspace = true }
+swarmauri_signing_jws = { workspace = true }
+swarmauri_signing_openpgp = { workspace = true }
+swarmauri_signing_pdf = { workspace = true }
+swarmauri_signing_xmld = { workspace = true }
+swarmauri_tests_pylicense = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-xdist>=3.6.1",
+    "pytest-json-report>=1.5.0",
+    "python-dotenv>=1.0.0",
+    "ruff>=0.9.9",
+    "swarmauri_tests_pylicense",
+]
+
+[tool.pytest.ini_options]
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+asyncio_default_fixture_loop_scope = "function"
+addopts = "--pylicense-package=MediaSigner --pylicense-mode=parameterized --pylicense-accept-deps=cffi"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

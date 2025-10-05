@@ -1,27 +1,47 @@
 [project]
 name = "swarmauri_signing_ed25519"
-version = "0.2.0.dev5"
+version = "0.2.0.dev6"
 description = "Ed25519-based signer for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+keywords = [
+    "swarmauri",
+    "signing",
+    "ed25519",
+    "elliptic-curve",
+    "cryptography",
+    "sdk",
+    "standards",
+    "digital-signature",
+    "signature-algorithm",
+    "edwards-curve",
+    "key-formats",
+]
 classifiers = [
+    "Development Status :: 1 - Planning",
     "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Development Status :: 3 - Alpha",
     "Topic :: Security :: Cryptography",
     "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 dependencies = [
     "swarmauri_core",
     "swarmauri_base",
     "cryptography",
 ]
+
+[project.urls]
+Homepage = "https://github.com/swarmauri/swarmauri-sdk"
+Source = "https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/standards/swarmauri_signing_ed25519"
+Documentation = "https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/standards/swarmauri_signing_ed25519#readme"
 
 [project.optional-dependencies]
 cbor = ["cbor2"]

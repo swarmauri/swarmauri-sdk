@@ -108,7 +108,14 @@ class Ed25519EnvelopeSigner(SigningBase):
     def supports(self) -> Mapping[str, Iterable[str]]:
         algs = ("Ed25519",)
         canons = ("json", "cbor") if _CBOR_OK else ("json",)
-        return {"algs": algs, "canons": canons, "features": ("multi", "detached_only")}
+        return {
+            "algs": algs,
+            "canons": canons,
+            "signs": ("bytes", "digest", "envelope", "stream"),
+            "verifies": ("bytes", "digest", "envelope", "stream"),
+            "envelopes": ("mapping",),
+            "features": ("multi", "detached_only"),
+        }
 
     # ------------------------------------------------------------------
     async def sign_bytes(
@@ -126,6 +133,17 @@ class Ed25519EnvelopeSigner(SigningBase):
         sig = sk.sign(payload)
         kid = _keyid_from_public(_keyref_to_public_from_private(sk))
         return [_Sig({"alg": "Ed25519", "kid": kid, "sig": sig})]
+
+    # ------------------------------------------------------------------
+    async def sign_digest(
+        self,
+        key: KeyRef,
+        digest: bytes,
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        return await self.sign_bytes(key, digest, alg=alg, opts=opts)
 
     # ------------------------------------------------------------------
     async def verify_bytes(
@@ -175,6 +193,17 @@ class Ed25519EnvelopeSigner(SigningBase):
             if accepted >= min_signers:
                 return True
         return False
+
+    # ------------------------------------------------------------------
+    async def verify_digest(
+        self,
+        digest: bytes,
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> bool:
+        return await self.verify_bytes(digest, signatures, require=require, opts=opts)
 
     # ------------------------------------------------------------------
     async def canonicalize_envelope(

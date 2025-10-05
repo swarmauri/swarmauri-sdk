@@ -1,0 +1,8 @@
+Foo DEFINITIONS ::= BEGIN
+
+Question ::= SEQUENCE {
+  id        INTEGER,
+  question  IA5String
+}
+
+END

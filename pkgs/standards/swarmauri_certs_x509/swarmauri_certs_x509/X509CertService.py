@@ -8,7 +8,6 @@ from typing import (
     Any,
     Dict,
     Iterable,
-    Literal,
     Mapping,
     Optional,
     Sequence,
@@ -18,10 +17,10 @@ from typing import (
 
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import ec, ed25519, rsa, padding
-from cryptography.x509.oid import NameOID, ExtendedKeyUsageOID, ObjectIdentifier
-
+from cryptography.hazmat.primitives.asymmetric import ec, ed25519, padding, rsa
+from cryptography.x509.oid import ExtendedKeyUsageOID, NameOID, ObjectIdentifier
 from swarmauri_base.certs.CertServiceBase import CertServiceBase
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.certs.ICertService import (
     AltNameSpec,
     BasicConstraintsSpec,
@@ -34,7 +33,6 @@ from swarmauri_core.certs.ICertService import (
     SubjectSpec,
 )
 from swarmauri_core.crypto.types import KeyRef
-
 
 # helpers: names & algorithms
 
@@ -270,45 +268,9 @@ def _mk_san(san: Optional[AltNameSpec]) -> Optional[x509.SubjectAlternativeName]
     return x509.SubjectAlternativeName(gns) if gns else None
 
 
+@ComponentBase.register_type(CertServiceBase, "X509CertService")
 class X509CertService(CertServiceBase):
-    """CSR/X.509 issuance & verification using ``cryptography``.
-
-    Example:
-        >>> import asyncio
-        >>> from swarmauri_certs_x509 import X509CertService
-        >>> from swarmauri_keyprovider_local import LocalKeyProvider
-        >>> from swarmauri_core.keys.types import (
-        ...     KeyAlg,
-        ...     KeyClass,
-        ...     KeySpec,
-        ... )
-        >>> from swarmauri_core.crypto.types import KeyUse, ExportPolicy
-        >>> svc = X509CertService()
-        >>> kp = LocalKeyProvider()
-        >>> spec = KeySpec(
-        ...     klass=KeyClass.asymmetric,
-        ...     alg=KeyAlg.ED25519,
-        ...     uses=(KeyUse.SIGN,),
-        ...     export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
-        ... )
-        >>> ca_key = asyncio.run(kp.create_key(spec))
-        >>> ca_cert = asyncio.run(
-        ...     svc.create_self_signed(ca_key, {"CN": "Example CA"})
-        ... )
-        >>> leaf_key = asyncio.run(kp.create_key(spec))
-        >>> csr = asyncio.run(
-        ...     svc.create_csr(leaf_key, {"CN": "example.org"})
-        ... )
-        >>> leaf_cert = asyncio.run(
-        ...     svc.sign_cert(csr, ca_key, ca_cert=ca_cert)
-        ... )
-        >>> asyncio.run(
-        ...     svc.verify_cert(leaf_cert, trust_roots=[ca_cert])
-        ... )["valid"]
-        True
-    """
-
-    type: Literal["X509CertService"] = "X509CertService"
+    """CSR/X.509 issuance & verification using ``cryptography``"""
 
     def supports(self) -> Mapping[str, Iterable[str]]:
         return {

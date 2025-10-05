@@ -12,6 +12,9 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 authors = [{ name = "Swarmauri Team", email = "team@swarmauri.com" }]
 dependencies = [
@@ -25,6 +28,11 @@ dependencies = [
     "httpx>=0.27.0",
     "greenlet>=3.2.3",
     "uvicorn", 
+]
+keywords = [
+    'tigrbl',
+    'sdk',
+    'standards',
 ]
 
 [project.optional-dependencies]

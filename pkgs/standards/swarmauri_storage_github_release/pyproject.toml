@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_storage_github_release"
-version = "0.3.0.dev5"
+version = "0.3.0.dev7"
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" }
 ]
@@ -16,6 +16,8 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 dependencies = [
     "peagen",
@@ -23,6 +25,14 @@ dependencies = [
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
+]
+keywords = [
+    'swarmauri',
+    'sdk',
+    'standards',
+    'storage',
+    'github',
+    'release',
 ]
 
 [tool.uv.sources]

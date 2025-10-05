@@ -1,4 +1,3 @@
-
 ![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
@@ -18,69 +17,60 @@
 
 # Swarmauri Tool Jupyter Execute Notebook
 
-The swarmauri_tool_jupyterexecutenotebook package provides a tool for executing all cells in a Jupyter notebook in sequence, capturing outputs and returning the fully updated NotebookNode object. It leverages the Swarmauri framework's base and core components.
+Executes all cells of a Jupyter notebook using nbclient and returns the executed `NotebookNode` with captured outputs.
+
+## Features
+
+- Runs notebooks programmatically via the Swarmauri tool interface.
+- Accepts optional per-cell timeout (default 30 seconds) and continues on cell errors.
+- Returns the executed notebook object so downstream tools can inspect outputs or save it.
+
+## Prerequisites
+
+- Python 3.10 or newer.
+- Jupyter/nbconvert stack available (`nbclient`, `nbformat`, `ipykernel`, etc.—installed automatically).
+- Notebook dependencies must be installed in the environment where the tool runs.
 
 ## Installation
 
-To install swarmauri_tool_jupyterexecutenotebook, make sure you have Python 3.10 or later:
+```bash
+# pip
+pip install swarmauri_tool_jupyterexecutenotebook
 
-1. Using pip:
-   • (Recommended) Create and activate a virtual environment.  
-   • Run:  
-     pip install swarmauri_tool_jupyterexecutenotebook
+# poetry
+poetry add swarmauri_tool_jupyterexecutenotebook
 
-2. Using Poetry in an existing project:
-   • poetry add swarmauri_tool_jupyterexecutenotebook
+# uv (pyproject-based projects)
+uv add swarmauri_tool_jupyterexecutenotebook
+```
 
-This will automatically install all dependencies required to run the JupyterExecuteNotebookTool.
+## Quickstart
 
-## Usage
-
-The principal component of this package is the JupyterExecuteNotebookTool, which executes a given notebook, capturing cell outputs and errors. Below is a quick reference for using the tool programmatically in your Python code.
-
-Example usage:
-
----------------------------------------------------------------------------------
+```python
 from swarmauri_tool_jupyterexecutenotebook import JupyterExecuteNotebookTool
 
-def execute_my_notebook():
-    """
-    Demonstrates how to instantiate and use the JupyterExecuteNotebookTool to
-    execute a Jupyter notebook file. This includes capturing outputs and
-    error messages.
-    """
-    # Create an instance of the tool
-    tool = JupyterExecuteNotebookTool()
+executor = JupyterExecuteNotebookTool()
+executed_nb = executor(
+    notebook_path="notebooks/example.ipynb",
+    timeout=120,
+)
 
-    # Execute the Jupyter notebook; specify the path to your notebook
-    executed_notebook = tool(
-        notebook_path="my_notebook.ipynb",
-        timeout=60  # Optional: defaults to 30 if not provided
-    )
+# Save the executed notebook
+import nbformat, json
+from pathlib import Path
 
-    # The returned `executed_notebook` is a NotebookNode with outputs captured
-    return executed_notebook
+Path("notebooks/example-executed.ipynb").write_text(
+    nbformat.writes(executed_nb),
+    encoding="utf-8",
+)
+```
 
-if __name__ == "__main__":
-    result_notebook = execute_my_notebook()
-    # You can further analyze 'result_notebook' outputs here
----------------------------------------------------------------------------------
+## Tips
 
-In this example:
-• The notebook_path parameter is a required string referencing the target notebook file.  
-• The optional timeout parameter defines how long each cell can take to run before throwing an error (default is 30 seconds).  
+- Increase `timeout` for notebooks with long-running cells to avoid `CellTimeoutError`.
+- Set `allow_errors=True` (default in the tool) so execution continues after a failing cell while error traces are still recorded.
+- Combine with `JupyterClearOutputTool` or conversion tools to build end-to-end notebook pipelines.
 
-The executed NotebookNode object will contain both new outputs and any error messages generated during execution.
+## Want to help?
 
-## Dependencies
-
-This package relies on:
-• swarmauri_core for base components.  
-• swarmauri_base for the ToolBase class.  
-• nbconvert, nbformat, and nbclient for handling and executing Jupyter notebooks.  
-
-When you install swarmauri_tool_jupyterexecutenotebook via pip or Poetry, these dependencies are automatically handled for you. Refer to the project's pyproject.toml for the full list of dependencies and version requirements.
-
----
-
-This README is provided as part of the swarmauri_tool_jupyterexecutenotebook package. If you have any questions or issues, please consult our documentation or open a support request. Thank you for using Swarmauri!
+If you want to contribute to swarmauri-sdk, read up on our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md) that will help you get started.

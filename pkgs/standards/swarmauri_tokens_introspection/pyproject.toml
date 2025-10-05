@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tokens_introspection"
-version = "0.3.0.dev5"
+version = "0.3.0.dev7"
 description = "OAuth 2.0 Token Introspection service for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
@@ -16,11 +16,22 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "Topic :: Internet :: WWW/HTTP",
     "Intended Audience :: Developers",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 dependencies = [
     "swarmauri_core",
     "swarmauri_base",
     "httpx",
+]
+keywords = [
+    'swarmauri',
+    'sdk',
+    'standards',
+    'tokens',
+    'introspection',
+    'authentication',
 ]
 
 [project.optional-dependencies]

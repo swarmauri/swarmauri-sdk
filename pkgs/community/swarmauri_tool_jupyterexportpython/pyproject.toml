@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupyterexportpython"
-version = "0.9.0.dev5"
+version = "0.9.0.dev7"
 description = "A tool that exports a Jupyter Notebook to a Python script using nbconvert’s PythonExporter, facilitating code extraction."
 license = "Apache-2.0"
 readme = "README.md"
@@ -12,6 +12,10 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Natural Language :: English",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
@@ -19,6 +23,21 @@ dependencies = [
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
+]
+keywords = [
+    "swarmauri",
+    "tool",
+    "jupyterexportpython",
+    "exports",
+    "jupyter",
+    "notebook",
+    "script",
+    "nbconvert",
+    "pythonexporter",
+    "facilitating",
+    "code",
+    "extraction",
+    "python",
 ]
 
 [tool.uv.sources]

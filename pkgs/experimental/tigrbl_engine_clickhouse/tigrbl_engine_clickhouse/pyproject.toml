@@ -1,0 +1,26 @@
+[project]
+name = "tigrbl_engine_clickhouse"
+version = "0.1.0"
+description = "Tigrbl engine plugin for ClickHouse."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10,<3.13"
+authors = [{ name = "Swarmauri Team", email = "team@swarmauri.com" }]
+dependencies = [
+  "tigrbl>=0.3.0",
+  "clickhouse-connect>=0.6.0",
+]
+
+[project.entry-points."tigrbl.engine"]
+clickhouse = "tigrbl_engine_clickhouse:register"
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["tigrbl_engine_clickhouse*"]

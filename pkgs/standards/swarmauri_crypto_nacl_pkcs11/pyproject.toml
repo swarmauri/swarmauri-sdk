@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_crypto_nacl_pkcs11"
-version = "0.3.0.dev5"
+version = "0.3.0.dev7"
 description = "NaCl + PKCS#11 crypto provider for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
@@ -16,6 +16,9 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "Topic :: Security :: Cryptography",
     "Intended Audience :: Developers",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 dependencies = [
     "swarmauri_core",
@@ -23,6 +26,15 @@ dependencies = [
     "PyNaCl>=1.5",
     "cryptography>=41",
     "python-pkcs11>=0.7.0",
+]
+keywords = [
+    'swarmauri',
+    'sdk',
+    'standards',
+    'crypto',
+    'nacl',
+    'pkcs11',
+    'cryptography',
 ]
 
 [tool.uv.sources]

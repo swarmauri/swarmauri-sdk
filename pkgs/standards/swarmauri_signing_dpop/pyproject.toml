@@ -6,16 +6,32 @@ license = "Apache-2.0"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+keywords = [
+    "swarmauri",
+    "signing",
+    "dpop",
+    "oauth",
+    "proof-of-possession",
+    "sdk",
+    "standards",
+    "cryptography",
+    "http-signature",
+    "sender-constraining",
+    "jwk",
+    "token-format",
+]
 classifiers = [
+    "Development Status :: 1 - Planning",
     "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Development Status :: 3 - Alpha",
     "Topic :: Security :: Cryptography",
     "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 dependencies = [
     "swarmauri_core",
@@ -23,6 +39,11 @@ dependencies = [
     "swarmauri_signing_jws",
     "cryptography",
 ]
+
+[project.urls]
+Homepage = "https://github.com/swarmauri/swarmauri-sdk"
+Source = "https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/standards/swarmauri_signing_dpop"
+Documentation = "https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/standards/swarmauri_signing_dpop#readme"
 
 [tool.uv.sources]
 swarmauri_core = { workspace = true }

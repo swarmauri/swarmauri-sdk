@@ -4,11 +4,9 @@ build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "swarmauri_evaluator_anyusage"
-version = "0.3.0.dev5"
+version = "0.3.0.dev7"
 description = "An evaluator component that detects and penalizes usage of the `Any` type in Python code"
-authors = [
-    {name = "SwarmAuri Team", email = "team@swarmauri.com"}
-]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 readme = "README.md"
 license = {text = "Apache-2.0"}
 requires-python = ">=3.10,<3.13"
@@ -22,6 +20,8 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Software Development :: Quality Assurance",
     "Topic :: Software Development :: Testing",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 keywords = [
     "swarmauri",
@@ -33,7 +33,11 @@ keywords = [
     "type checking",
     "type hints",
     "code evaluation",
-    "python"
+    "python",
+    "sdk",
+    "standards",
+    "anyusage",
+    "evaluation"
 ]
 dependencies = [
     "swarmauri_core",

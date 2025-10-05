@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupyterexporthtml"
-version = "0.8.0.dev5"
+version = "0.8.0.dev7"
 description = "A tool that exports a Jupyter Notebook to HTML format using nbconvert’s HTMLExporter, enabling web-based presentation of notebooks."
 license = "Apache-2.0"
 readme = "README.md"
@@ -12,6 +12,10 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Natural Language :: English",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
@@ -19,6 +23,23 @@ dependencies = [
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
+]
+keywords = [
+    "swarmauri",
+    "tool",
+    "jupyterexporthtml",
+    "exports",
+    "jupyter",
+    "notebook",
+    "html",
+    "format",
+    "nbconvert",
+    "htmlexporter",
+    "enabling",
+    "web",
+    "based",
+    "presentation",
+    "notebooks",
 ]
 
 [tool.uv.sources]

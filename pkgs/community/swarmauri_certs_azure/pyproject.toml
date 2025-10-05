@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_certs_azure"
-version = "0.3.0.dev5"
+version = "0.3.0.dev7"
 description = "Azure Key Vault certificate utilities for the Swarmauri ecosystem"
 license = "Apache-2.0"
 readme = "README.md"
@@ -11,8 +11,12 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Natural Language :: English",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
-authors = [{name = "Community"}]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "swarmauri_core",
     "swarmauri_base",
@@ -20,6 +24,16 @@ dependencies = [
     "azure-keyvault-keys",
     "cryptography",
     "asn1crypto",
+]
+keywords = [
+    "swarmauri",
+    "certs",
+    "azure",
+    "key",
+    "vault",
+    "certificate",
+    "utilities",
+    "ecosystem",
 ]
 
 [project.optional-dependencies]

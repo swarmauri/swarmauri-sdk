@@ -1,0 +1,40 @@
+[project]
+name = "swarmauri_tests_readme_examples"
+version = "0.1.0.dev2"
+description = "Pytest plugin that executes README code examples."
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+license = "Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/swarmauri/swarmauri-sdk/pkgs/experimental/swarmauri_tests_readme_examples"
+requires-python = ">=3.10,<3.13"
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "License :: OSI Approved :: Apache Software License",
+    "Framework :: Pytest",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+[project.entry-points.pytest11]
+swarmauri_tests_readme_examples = "swarmauri_tests_readme_examples"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-xdist>=3.6.1",
+    "pytest-json-report>=1.5.0",
+    "python-dotenv",
+    "pytest-timeout>=2.3.1",
+    "ruff>=0.9.9",
+    "pytest-benchmark>=4.0.0",
+]
+
+[tool.pytest.ini_options]
+addopts = ""
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

@@ -56,9 +56,12 @@ def _normalize(ctx: Optional[EngineCfg] = None, **kw: Any) -> EngineCfg:
             if k in kw:
                 m[k] = kw[k]
     else:
-        raise ValueError("kind must be 'sqlite' or 'postgres'")
-
+    # Allow external engine kinds; pass mapping through unchanged.
+    # Keep provided keys as-is so external builders can interpret them.
+    m.update({k:v for k,v in kw.items() if k not in m})
     return m
+
+return m
 
 
 def engine_ctx(ctx: Optional[EngineCfg] = None, **kw: Any):

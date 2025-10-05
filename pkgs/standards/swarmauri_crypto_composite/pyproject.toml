@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_crypto_composite"
-version = "0.2.0.dev5"
+version = "0.2.0.dev7"
 description = "Algorithm-routing crypto provider for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
@@ -16,10 +16,21 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "Topic :: Security :: Cryptography",
     "Intended Audience :: Developers",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 dependencies = [
     "swarmauri_core",
     "swarmauri_base",
+]
+keywords = [
+    'swarmauri',
+    'sdk',
+    'standards',
+    'crypto',
+    'composite',
+    'cryptography',
 ]
 
 [tool.uv.sources]

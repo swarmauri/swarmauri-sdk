@@ -3,7 +3,7 @@ from tomlkit import parse, dumps, inline_table
 from urllib.parse import urljoin
 
 
-def fetch_remote_pyproject_version(git_url, branch="main", subdirectory=""):
+def fetch_remote_pyproject_version(git_url, branch="master", subdirectory=""):
     """
     Fetch the version from a remote pyproject.toml file in a GitHub repository.
 
@@ -63,7 +63,7 @@ def update_pyproject_with_versions(file_path):
             # Check if the dependency is a table (dict-like) with a 'git' key.
             if isinstance(details, dict) and "git" in details:
                 git_url = details["git"]
-                branch = details.get("branch", "main")
+                branch = details.get("branch", "master")
                 subdirectory = details.get("subdirectory", "")
 
                 print(f"Updating dependency: {dep_name}")

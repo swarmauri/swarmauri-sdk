@@ -11,6 +11,10 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Natural Language :: English",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
@@ -20,6 +24,13 @@ dependencies = [
     "transformers>=4.49.0",
     "tensorflow>=2.16.2",
     "tf-keras"
+]
+keywords = [
+    "swarmauri",
+    "tool",
+    "sentimentanalysis",
+    "sentiment",
+    "analysis",
 ]
 
 [tool.uv.sources]

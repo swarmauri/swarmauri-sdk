@@ -8,7 +8,7 @@ def test_git_named_parameters_basic():
     # Test basic usage with named parameters
     jml = """
 [config]
-repo = git(url = "https://github.com/user/project", branch = "main")
+repo = git(url = "https://github.com/user/project", branch = "master")
 release = git(url = "https://github.com/user/release", tag = "v1.0")
 fixed = git(url = "https://github.com/user/fix", commit = "abc123")
     """.strip()
@@ -19,7 +19,7 @@ fixed = git(url = "https://github.com/user/fix", commit = "abc123")
 
     # Validate structured git references
     assert data["config"]["repo"]["url"] == "https://github.com/user/project"
-    assert data["config"]["repo"]["branch"] == "main"
+    assert data["config"]["repo"]["branch"] == "master"
     assert data["config"]["release"]["tag"] == "v1.0"
     assert data["config"]["fixed"]["commit"] == "abc123"
 
@@ -30,7 +30,7 @@ def test_git_named_parameters_with_embed():
     # Test embedding raw content from a git repository
     jml = """
 [script]
-deploy = git(url = "https://github.com/user/scripts", branch = "main").embed("deploy.sh")
+deploy = git(url = "https://github.com/user/scripts", branch = "master").embed("deploy.sh")
     """.strip()
 
     ast = round_trip_loads(jml)

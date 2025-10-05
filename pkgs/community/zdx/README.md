@@ -62,6 +62,25 @@ zdx serve --docs-dir /path/to/docs
 zdx serve --generate --docs-dir /path/to/docs --manifest api_manifest.yaml
 ```
 
+### Control failure handling
+
+Use the `--on-error` flag with any command that installs packages or generates
+documentation to decide how strictly `zdx` reacts to subprocess failures:
+
+```bash
+zdx generate --on-error warn
+```
+
+Valid values are:
+
+* `fail` – stop immediately if a package installation or API build fails
+* `warn` – print a warning but keep going
+* `ignore` – suppress warnings and continue
+
+You can also define the `ZDX_FAILURE_MODE` environment variable to set the
+default for every invocation. For example, the provided Docker assets default to
+`warn` so that optional packages do not abort a deployment.
+
 ## API Manifest
 
 `zdx` uses a YAML manifest to decide which Python packages to document and how

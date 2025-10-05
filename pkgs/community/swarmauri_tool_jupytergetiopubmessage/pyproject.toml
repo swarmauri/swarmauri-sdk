@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupytergetiopubmessage"
-version = "0.8.0.dev5"
+version = "0.8.0.dev7"
 description = "A tool designed to retrieve messages from the IOPub channel of a Jupyter kernel using jupyter_client, capturing cell outputs and logs."
 license = "Apache-2.0"
 readme = "README.md"
@@ -12,6 +12,10 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Natural Language :: English",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
@@ -20,6 +24,23 @@ dependencies = [
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
+]
+keywords = [
+    "swarmauri",
+    "tool",
+    "jupytergetiopubmessage",
+    "designed",
+    "retrieve",
+    "messages",
+    "iopub",
+    "channel",
+    "jupyter",
+    "kernel",
+    "client",
+    "capturing",
+    "cell",
+    "outputs",
+    "logs",
 ]
 
 [tool.uv.sources]

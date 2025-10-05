@@ -7,13 +7,50 @@ license = "Apache-2.0"
 readme = { file = "README.md", content-type = "text/markdown" }
 repository = "http://github.com/swarmauri/swarmauri-sdk"
 classifiers = [
+    "Development Status :: 1 - Planning",
     "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Framework :: AsyncIO",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Education",
 ]
 requires-python = ">=3.10,<3.13"
 dependencies = []
+
+keywords = [
+    "swarmauri",
+    "plugin",
+    "example",
+    "agents",
+    "entry-points",
+    "sdk",
+    "scaffolding",
+    "template",
+    "tutorial",
+    "packaging",
+    "asyncio",
+    "extension-points",
+    "media-workflows",
+]
+
+[project.urls]
+Homepage = "https://github.com/swarmauri/swarmauri-sdk"
+Source = "https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/example_plugin"
+Documentation = "https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/example_plugin#readme"
+Issues = "https://github.com/swarmauri/swarmauri-sdk/issues"
+Changelog = "https://github.com/swarmauri/swarmauri-sdk/releases"
+Discussions = "https://github.com/orgs/swarmauri/discussions"
+
+[tool.uv.sources]
+swarmauri_tests_pylicense = { workspace = true }
 
 [project.entry-points."swarmauri.plugins"]
 example_agent = "swm_example_plugin.agents:ExampleAgent"
@@ -27,6 +64,7 @@ dev = [
     "python-dotenv>=1.0.0",
     "requests>=2.32.3",
     "ruff>=0.9.9",
+    "swarmauri_tests_pylicense",
 ]
 
 [tool.pytest.ini_options]
@@ -43,6 +81,7 @@ log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
+addopts = "--pylicense-package=swm-example-plugin --pylicense-mode=parameterized"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

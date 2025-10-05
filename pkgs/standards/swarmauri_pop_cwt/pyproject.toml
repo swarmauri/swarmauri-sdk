@@ -1,0 +1,82 @@
+[project]
+name = "swarmauri_pop_cwt"
+version = "0.1.0"
+description = "COSE Sign1 proof-of-possession helpers for Swarmauri"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+license = { file = "LICENSE" }
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+keywords = [
+    "swarmauri",
+    "proof-of-possession",
+    "cose",
+    "cwt",
+    "oauth",
+    "oauth2",
+    "jwt",
+    "token-binding",
+    "confirmation-method",
+    "http",
+    "sdk",
+    "standards",
+    "pop",
+    "authentication",
+    "cbor-codec",
+    "sign1",
+    "token-format",
+    "iot-security",
+]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Framework :: AsyncIO",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Headers",
+    "Topic :: Security :: Cryptography",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Typing :: Typed",
+    "Programming Language :: Python",
+]
+dependencies = [
+    "swarmauri_core",
+    "swarmauri-base",
+    "cose>=0.9.dev8",
+    "cbor2>=5.5.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_pop_cwt"
+Documentation = "https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_pop_cwt"
+Source = "https://github.com/swarmauri/swarmauri-sdk"
+"Issue Tracker" = "https://github.com/swarmauri/swarmauri-sdk/issues"
+Changelog = "https://github.com/swarmauri/swarmauri-sdk/releases"
+
+[tool.uv.sources]
+swarmauri_core = { workspace = true }
+swarmauri-base = { workspace = true }
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-xdist>=3.6.1",
+    "pytest-json-report>=1.5.0",
+    "python-dotenv",
+    "requests>=2.32.3",
+    "flake8>=7.0",
+    "pytest-timeout>=2.3.1",
+    "ruff>=0.9.9",
+    "pytest-benchmark>=4.0.0",
+]

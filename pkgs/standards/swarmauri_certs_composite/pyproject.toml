@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_certs_composite"
-version = "0.3.0.dev6"
+version = "0.3.0.dev8"
 description = "Feature-routing certificate service for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
@@ -16,10 +16,25 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "Topic :: Security :: Cryptography",
     "Intended Audience :: Developers",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 dependencies = [
     "swarmauri_core",
     "swarmauri_base",
+]
+keywords = [
+    'swarmauri',
+    'sdk',
+    'standards',
+    'certs',
+    'composite',
+    'certificates',
+    'certificate-bundle',
+    'trust-chain',
+    'pkix',
+    'x509-format',
 ]
 
 [project.optional-dependencies]

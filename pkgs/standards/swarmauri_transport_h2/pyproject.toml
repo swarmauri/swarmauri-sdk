@@ -1,0 +1,46 @@
+[project]
+name = "swarmauri-transport-h2"
+version = "0.1.0"
+description = "HTTP/2 transport adapter built on the Swarmauri H2 mux." 
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+license = { file = "LICENSE" }
+dependencies = [
+    "swarmauri-base",
+    "swarmauri-core",
+]
+keywords = [
+    "swarmauri",
+    "transport",
+    "http2",
+    "h2",
+    "mux",
+    "asyncio",
+    "client",
+    "server",
+    "sdk",
+    "microservices",
+    "standards",
+]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+]
+
+[project.urls]
+Homepage = "https://github.com/swarmauri/swarmauri-sdk"
+Repository = "https://github.com/swarmauri/swarmauri-sdk"
+
+[build-system]
+requires = ["poetry-core>=1.8.0"]
+build-backend = "poetry.core.masonry.api"

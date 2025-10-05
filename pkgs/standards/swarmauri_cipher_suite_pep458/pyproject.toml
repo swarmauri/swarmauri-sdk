@@ -1,0 +1,84 @@
+[project]
+name = "swarmauri_cipher_suite_pep458"
+version = "0.1.0.dev0"
+description = "PEP 458 policy and algorithm definitions for Swarmauri cipher suites"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+license = "Apache-2.0"
+keywords = [
+    "supply-chain",
+    "tuf",
+    "pep458",
+    "policy",
+    "cipher-suite",
+    "swarmauri",
+    "sdk",
+    "standards",
+    "cipher", 
+    "suite", 
+    "cryptography", 
+    "PEP 458",
+    "TUF 1.x",
+    "The Update Framework",
+    "Ed25519",
+    "RSA-PSS-SHA256",
+    "RFC 8032",
+    "RFC 8017",
+]
+authors = [
+    { name = "Jacob Stewart", email = "jacob@swarmauri.com" },
+]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security :: Cryptography",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3 :: Only",
+]
+dependencies = [
+    "swarmauri_core",
+    "swarmauri_base",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/swarmauri/swarmauri-sdk"
+"Source" = "https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/standards/swarmauri_cipher_suite_pep458"
+"Documentation" = "https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/standards/swarmauri_cipher_suite_pep458#readme"
+
+[tool.uv.sources]
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+
+[tool.pytest.ini_options]
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+markers = [
+    "test: standard test",
+    "unit: Unit tests",
+    "i9n: Integration tests",
+    "r8n: Regression tests",
+    "timeout: mark test to timeout after X seconds",
+    "acceptance: Acceptance tests",
+    "perf: Performance tests",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-timeout>=2.3.1",
+    "pytest-xdist>=3.6.1",
+    "ruff>=0.9.9",
+]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

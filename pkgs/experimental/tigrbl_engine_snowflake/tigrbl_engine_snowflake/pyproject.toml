@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tigrbl_engine_snowflake"
+version = "0.1.0"
+description = "Snowflake engine plugin for Tigrbl, auto-registered via entry points."
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Your Team", email = "dev@example.org" }]
+classifiers = [
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Environment :: Plugins",
+  "Intended Audience :: Developers",
+]
+
+dependencies = [
+  "SQLAlchemy>=2.0,<3.0",
+  "snowflake-sqlalchemy>=1.5,<2.0",
+  "snowflake-connector-python>=3.0,<4.0",
+]
+
+[project.urls]
+Homepage = "https://example.org/tigrbl_engine_snowflake"
+
+# Auto-registration with Tigrbl
+[project.entry-points."tigrbl.engine"]
+snowflake = "tigrbl_engine_snowflake:register"
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.setuptools.packages.find]
+where = ["src"]

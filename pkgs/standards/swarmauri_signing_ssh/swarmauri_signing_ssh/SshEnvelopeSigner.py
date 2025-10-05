@@ -188,15 +188,12 @@ class SshEnvelopeSigner(SigningBase):
     """
 
     def supports(self) -> Mapping[str, Iterable[str]]:
-        """
-        Declare supported algorithms and canonicalization formats.
-
-        Returns:
-            Mapping[str, Iterable[str]]: Supported ``algs``, ``canons`` and
-                feature flags.
-        """
+        """Declare supported algorithms and canonicalization formats."""
 
         canons = ("json", "cbor") if _CBOR_OK else ("json",)
+        envelopes = ("detached-bytes", "ssh-signed-envelope") + tuple(
+            f"structured-{canon}" for canon in canons
+        )
         algs = (
             "ssh-ed25519",
             "ssh-rsa",
@@ -206,7 +203,14 @@ class SshEnvelopeSigner(SigningBase):
             "ecdsa-sha2-nistp384",
             "ecdsa-sha2-nistp521",
         )
-        return {"algs": algs, "canons": canons, "features": ("multi", "detached_only")}
+        return {
+            "algs": algs,
+            "canons": canons,
+            "signs": ("bytes", "digest", "envelope", "stream"),
+            "verifies": ("bytes", "digest", "envelope", "stream"),
+            "envelopes": ("mapping", *envelopes),
+            "features": ("multi", "detached_only"),
+        }
 
     async def sign_bytes(
         self,
@@ -372,6 +376,26 @@ class SshEnvelopeSigner(SigningBase):
             return False
         finally:
             os.remove(allowed_path)
+
+    async def sign_digest(
+        self,
+        key: KeyRef,
+        digest: bytes,
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        return await self.sign_bytes(key, digest, alg=alg, opts=opts)
+
+    async def verify_digest(
+        self,
+        digest: bytes,
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> bool:
+        return await self.verify_bytes(digest, signatures, require=require, opts=opts)
 
     async def canonicalize_envelope(
         self,

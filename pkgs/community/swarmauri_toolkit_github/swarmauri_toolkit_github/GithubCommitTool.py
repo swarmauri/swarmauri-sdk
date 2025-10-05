@@ -106,7 +106,7 @@ class GithubCommitTool(ToolBase):
         file_path: str,
         message: str,
         content: str,
-        branch: str = "main",
+        branch: str = "master",
     ) -> str:
         try:
             repo = self._github.get_repo(repo_name)

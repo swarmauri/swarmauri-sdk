@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_evaluator_subprocess"
-version = "0.3.0.dev5"
+version = "0.3.0.dev7"
 description = "A subprocess-based evaluator for executing and measuring program performance in isolated subprocesses"
 license = "Apache-2.0"
 readme = "README.md"
@@ -17,8 +17,11 @@ classifiers = [
     "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Testing",
     "Topic :: System :: Monitoring",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
 ]
-authors = [{ name = "SwarmAuri Team", email = "info@swarmauri.com" }]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 keywords = [
     "subprocess",
     "evaluation",
@@ -31,6 +34,9 @@ keywords = [
     "swarm",
     "ai",
     "swarmauri",
+    "sdk",
+    "standards",
+    "evaluator",
 ]
 dependencies = ["swarmauri_core", "swarmauri_base"]
 

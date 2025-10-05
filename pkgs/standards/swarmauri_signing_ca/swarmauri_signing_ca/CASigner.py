@@ -239,7 +239,11 @@ class CASigner(SigningBase):
     type: Literal["CASigner"] = "CASigner"
 
     def supports(self) -> Mapping[str, Iterable[str]]:
+        envelopes = ("detached-bytes", "x509-csr", "structured-json")
         return {
+            "signs": ("bytes", "digest", "envelope", "stream"),
+            "verifies": ("bytes", "digest", "envelope", "stream"),
+            "envelopes": ("mapping", *envelopes),
             "algs": (
                 "Ed25519",
                 "ECDSA-P256-SHA256",
@@ -323,6 +327,26 @@ class CASigner(SigningBase):
             if accepted >= min_signers:
                 return True
         return False
+
+    async def sign_digest(
+        self,
+        key: KeyRef,
+        digest: bytes,
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        return await self.sign_bytes(key, digest, alg=alg, opts=opts)
+
+    async def verify_digest(
+        self,
+        digest: bytes,
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> bool:
+        return await self.verify_bytes(digest, signatures, require=require, opts=opts)
 
     async def canonicalize_envelope(
         self,

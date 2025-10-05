@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_middleware_stdio"
-version = "0.8.0.dev6"
+version = "0.8.0.dev8"
 description = "Middleware that logs requests and responses to standard output"
 license = "Apache-2.0"
 readme = "README.md"
@@ -14,6 +14,9 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Development Status :: 3 - Alpha",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
@@ -21,6 +24,13 @@ dependencies = [
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
+]
+keywords = [
+    'swarmauri',
+    'sdk',
+    'standards',
+    'middleware',
+    'stdio',
 ]
 
 [tool.uv.sources]

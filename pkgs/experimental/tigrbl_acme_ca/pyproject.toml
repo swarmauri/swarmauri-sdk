@@ -1,0 +1,14 @@
+[project]
+name = "tigrbl-acme-ca"
+version = "0.1.0"
+description = "ACME v2 CA tables for Tigrbl"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["tigrbl>=3.0.0"]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["tigrbl_acme_ca"]

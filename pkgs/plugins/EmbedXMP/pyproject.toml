@@ -1,0 +1,88 @@
+[project]
+name = "EmbedXMP"
+version = "0.1.0"
+description = "Dynamic XMP embed/read/remove orchestration for Swarmauri handlers."
+license = "Apache-2.0"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Intended Audience :: Developers",
+    "Framework :: AsyncIO",
+    "Operating System :: OS Independent",
+    "Topic :: Multimedia :: Graphics",
+    "Topic :: Multimedia :: Video",
+    "Topic :: Software Development :: Libraries",
+]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+dependencies = [
+    "swarmauri_core",
+    "swarmauri_base",
+]
+
+keywords = [
+    "swarmauri",
+    "xmp",
+    "metadata",
+    "embedding",
+    "plugin",
+    "digital-asset-management",
+    "digital-asset-workflows",
+    "metadata-pipelines",
+    "media-workflows",
+    "metadata-extraction",
+    "metadata-synchronization",
+    "asyncio",
+    "media-metadata",
+    "python-library",
+    "async-discovery",
+    "plugin-discovery",
+    "png",
+    "gif",
+    "jpeg",
+    "svg",
+    "webp",
+    "tiff",
+    "pdf",
+    "mp4",
+]
+
+[project.urls]
+Homepage = "https://github.com/swarmauri/swarmauri-sdk"
+Source = "https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/EmbedXMP"
+Documentation = "https://github.com/swarmauri/swarmauri-sdk/tree/main/pkgs/plugins/EmbedXMP#readme"
+Issues = "https://github.com/swarmauri/swarmauri-sdk/issues"
+Changelog = "https://github.com/swarmauri/swarmauri-sdk/releases"
+Discussions = "https://github.com/orgs/swarmauri/discussions"
+
+[tool.uv.sources]
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+swarmauri_tests_pylicense = { workspace = true }
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.9",
+    "swarmauri_tests_pylicense",
+]
+
+[tool.pytest.ini_options]
+addopts = "--pylicense-package=EmbedXMP --pylicense-mode=parameterized"
+
+[tool.poetry]
+packages = [
+    { include = "EmbedXMP" },
+]

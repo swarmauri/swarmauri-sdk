@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_publisher_redis"
-version = "0.3.0.dev5"
+version = "0.3.0.dev7"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 
 description = "A Redis publisher implementation for Swarmauri."
@@ -15,12 +15,21 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 dependencies = [
     "redis>=4.6.0",
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
+]
+keywords = [
+    'swarmauri',
+    'sdk',
+    'standards',
+    'publisher',
+    'redis',
 ]
 
 [tool.uv.sources]

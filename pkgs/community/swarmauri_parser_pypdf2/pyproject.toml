@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_parser_pypdf2"
-version = "0.8.0.dev5"
+version = "0.8.0.dev7"
 description = "PyPDF2 Parser for Swarmauri."
 license = "Apache-2.0"
 readme = "README.md"
@@ -11,6 +11,10 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Natural Language :: English",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
@@ -18,6 +22,11 @@ dependencies = [
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
+]
+keywords = [
+    "swarmauri",
+    "parser",
+    "pypdf2",
 ]
 
 [tool.uv.sources]

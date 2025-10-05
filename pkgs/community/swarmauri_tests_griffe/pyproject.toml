@@ -1,0 +1,59 @@
+[project]
+name = "swarmauri_tests_griffe"
+version = "0.1.1.dev2"
+description = "Pytest plugin that turns Griffe inspection warnings into failing quality gates for Swarmauri packages."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [
+    { name = "Jacob Stewart", email = "jacob@swarmauri.com" },
+]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Framework :: Pytest",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Quality Assurance",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Development Status :: 3 - Alpha",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+]
+keywords = [
+    "swarmauri",
+    "pytest",
+    "griffe",
+    "static analysis",
+    "developer experience",
+    "quality gates",
+    "tests",
+    "plugin",
+    "turns",
+    "inspection",
+    "warnings",
+    "failing",
+    "quality",
+    "gates",
+    "packages",
+]
+dependencies = [
+    "pytest>=8.0",
+    "griffe>=0.48",
+    "tomli; python_version < '3.11'",
+]
+
+[project.entry-points."pytest11"]
+swarmauri_tests_griffe = "swarmauri_tests_griffe"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.9.9",
+]

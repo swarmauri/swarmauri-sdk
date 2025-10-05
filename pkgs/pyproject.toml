@@ -33,6 +33,7 @@ members = [
     "swarmauri_standard",
     "swarmauri",
     "typing",
+    "plugins/media_signer",
     "experimental/cayaml",
     "experimental/catoml",
     "experimental/jaml",
@@ -57,6 +58,10 @@ members = [
     "standards/swarmauri_publisher_rabbitmq",
     "standards/swarmauri_publisher_redis",
     "standards/swarmauri_publisher_webhook",
+    "standards/swarmauri_transport_tls_unicast",
+    "standards/swarmauri_transport_udp",
+    "standards/swarmauri_transport_uds_unicast",
+    "standards/swarmauri_transport_quic",
     #"standards/swarmauri_vectorstore_tfidf",
     "standards/swarmauri_distance_minkowski",
     "standards/swarmauri_middleware_auth",
@@ -76,6 +81,9 @@ members = [
     "standards/swarmauri_middleware_time",
     "standards/swarmauri_middleware_stdio",
     "standards/swarmauri_middleware_jsonrpc",
+    "standards/swarmauri_pop_cwt",
+    "standards/swarmauri_pop_dpop",
+    "standards/swarmauri_pop_x509",
     "standards/swarmauri_prompt_j2prompttemplate",
     "standards/tigrbl",
     "standards/tigrbl_auth",
@@ -102,6 +110,7 @@ members = [
     "experimental/swarmauri_keyprovider_pkcs11",
     "experimental/swarmauri_tests_loc_tersity",
     "experimental/swarmauri_tests_pylicense",
+    "experimental/swarmauri_tests_readme_examples",
     "standards/swarmauri_crypto_paramiko",
     "standards/swarmauri_crypto_pgp",
     "standards/swarmauri_crypto_rust",
@@ -110,6 +119,21 @@ members = [
     "standards/swarmauri_crypto_jwe",
     "standards/swarmauri_crypto_composite",
     "standards/swarmauri_crypto_ecdh_es_a128kw",
+    "standards/swarmauri_cipher_suite_jwa",
+    "standards/swarmauri_cipher_suite_cose",
+    "standards/swarmauri_cipher_suite_fips1403",
+    "standards/swarmauri_cipher_suite_cades",
+    "standards/swarmauri_cipher_suite_cnsa20",
+    "standards/swarmauri_cipher_suite_ipsec",
+    "standards/swarmauri_cipher_suite_pades",
+    "standards/swarmauri_cipher_suite_pep458",
+    "standards/swarmauri_cipher_suite_sigstore",
+    "standards/swarmauri_cipher_suite_ssh",
+    "standards/swarmauri_cipher_suite_tls13",
+    "standards/swarmauri_cipher_suite_webauthn",
+    "standards/swarmauri_cipher_suite_xades",
+    "standards/swarmauri_cipher_suite_yubikey",
+    "standards/swarmauri_cipher_suite_yubikey_fips",
     "standards/swarmauri_mre_crypto_shamir",
     "standards/swarmauri_mre_crypto_keyring",
     "standards/swarmauri_mre_crypto_age",
@@ -122,6 +146,7 @@ members = [
     "standards/swarmauri_signing_ca",
     "standards/swarmauri_signing_jws",
     "standards/swarmauri_signing_dpop",
+    "community/swarmauri_signing_dsse",
     "standards/swarmauri_certs_local_ca",
     "standards/swarmauri_certs_self_signed",
     "standards/swarmauri_tokens_jwt",
@@ -130,8 +155,25 @@ members = [
     "standards/swarmauri_tokens_dpopboundjwt",
     "standards/swarmauri_signing_pgp",
     "standards/swarmauri_signing_rsa",
+    "standards/swarmauri_signing_cms",
+    "standards/swarmauri_signing_openpgp",
+    "standards/swarmauri_signing_pep458",
+    "standards/swarmauri_signing_pdf",
+    "standards/swarmauri_signing_xmld",
+    "swarmauri_standards",
     "standards/swarmauri_signing_ssh",
     "standards/swarmauri_certs_x509verify",
+    "plugins/EmbedXMP",
+    "plugins/example_plugin",
+    "standards/swarmauri_xmp_gif",
+    "standards/swarmauri_xmp_jpeg",
+    "standards/swarmauri_xmp_mp4",
+    "standards/swarmauri_xmp_pdf",
+    "standards/swarmauri_xmp_png",
+    "standards/swarmauri_xmp_svg",
+    "standards/swarmauri_xmp_tiff",
+    "standards/swarmauri_xmp_webp",
+    "plugins/embedded_signer",
 
     "standards/swarmauri_tokens_introspection",
     "standards/swarmauri_tokens_paseto_v4",
@@ -183,6 +225,7 @@ members = [
     "community/swarmauri_measurement_mutualinformation",
     "community/swarmauri_measurement_tokencountestimator",
     "community/swarmauri_ocr_pytesseract",
+    "community/swarmauri_tests_griffe",
     "community/swarmauri_embedding_mlm",
     "community/swarmauri_tool_entityrecognition",
     "community/swarmauri_llm_leptonai",
@@ -219,7 +262,7 @@ members = [
     "community/swarmauri_certservice_gcpkms",
     "standards/swarmauri_tool_githubloader",
     "standards/swarmauri_toolkit_containertoolkit",
-    "experimental/swarmauri_workflow_statedriven"
+    "experimental/swarmauri_workflow_statedriven",
 
 ]
 
@@ -315,6 +358,7 @@ swarmauri_signing_ca = { workspace = true }
 swarmauri_certs_remote_ca = { workspace = true }
 swarmauri_signing_jws = { workspace = true }
 swarmauri_signing_dpop = { workspace = true }
+swarmauri_signing_dsse = { workspace = true }
 swarmauri_certs_pkcs11 = { workspace = true }
 swarmauri_certs_local_ca = { workspace = true }
 swarmauri_certs_self_signed = { workspace = true }
@@ -325,6 +369,9 @@ swarmauri_tokens_sshcert = { workspace = true }
 swarmauri_signing_pgp = { workspace = true }
 swarmauri_signing_rsa = { workspace = true }
 swarmauri_signing_ssh = { workspace = true }
+swarmauri_cipher_suite_jwa = { workspace = true }
+swarmauri_cipher_suite_cades = { workspace = true }
+swarmauri_cipher_suite_pades = { workspace = true }
 swarmauri_certs_x509verify = { workspace = true }
 
 swarmauri_tokens_introspection = { workspace = true }
@@ -367,6 +414,7 @@ swarmauri_parser_pypdftk = { workspace = true }
 swarmauri_measurement_mutualinformation = { workspace = true }
 swarmauri_measurement_tokencountestimator = { workspace = true }
 swarmauri_ocr_pytesseract = { workspace = true }
+swarmauri_tests_griffe = { workspace = true }
 swarmauri_embedding_mlm = { workspace = true }
 swarmauri_tool_entityrecognition = { workspace = true }
 swarmauri_certservice_ms_adcs = { workspace = true }

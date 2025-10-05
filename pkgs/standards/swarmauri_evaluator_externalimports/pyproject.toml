@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_evaluator_externalimports"
-version = "0.3.0.dev5"
+version = "0.3.0.dev7"
 description = "Evaluator that detects and penalizes non-built-in Python imports in source files"
 license = "Apache-2.0"
 readme = "README.md"
@@ -12,11 +12,12 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Development Status :: 3 - Alpha"
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only"
 ]
-authors = [
-    {name = "SwarmAuri Team", email = "info@swarmauri.com"}
-]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 keywords = [
     "swarmauri",
     "evaluator",
@@ -25,7 +26,11 @@ keywords = [
     "static analysis",
     "code quality",
     "external modules",
-    "standard library"
+    "standard library",
+    "sdk",
+    "standards",
+    "externalimports",
+    "evaluation"
 ]
 dependencies = [
     "swarmauri_core",

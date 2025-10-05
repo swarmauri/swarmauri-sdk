@@ -41,7 +41,7 @@ class RepositoryRefMixin:
     )  # e.g. "github.com/acme/app"
     ref: Mapped[str] = acol(
         storage=S(String, nullable=False)
-    )  # e.g. "main" / SHA / tag
+    )  # e.g. "master" / SHA / tag
 
     @declared_attr
     def repository(cls):
