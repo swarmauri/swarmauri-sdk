@@ -26,7 +26,28 @@ authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "swarmauri_core",
     "swarmauri_base",
+    "swarmauri_xmp_png",
 ]
+
+[project.optional-dependencies]
+all = [
+    "swarmauri_xmp_gif",
+    "swarmauri_xmp_jpeg",
+    "swarmauri_xmp_mp4",
+    "swarmauri_xmp_pdf",
+    "swarmauri_xmp_png",
+    "swarmauri_xmp_svg",
+    "swarmauri_xmp_tiff",
+    "swarmauri_xmp_webp",
+]
+gif = ["swarmauri_xmp_gif"]
+jpeg = ["swarmauri_xmp_jpeg"]
+mp4 = ["swarmauri_xmp_mp4"]
+pdf = ["swarmauri_xmp_pdf"]
+png = ["swarmauri_xmp_png"]
+svg = ["swarmauri_xmp_svg"]
+tiff = ["swarmauri_xmp_tiff"]
+webp = ["swarmauri_xmp_webp"]
 
 keywords = [
     "swarmauri",
@@ -66,6 +87,14 @@ Discussions = "https://github.com/orgs/swarmauri/discussions"
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
+swarmauri_xmp_png = { workspace = true }
+swarmauri_xmp_gif = { workspace = true }
+swarmauri_xmp_jpeg = { workspace = true }
+swarmauri_xmp_mp4 = { workspace = true }
+swarmauri_xmp_pdf = { workspace = true }
+swarmauri_xmp_svg = { workspace = true }
+swarmauri_xmp_tiff = { workspace = true }
+swarmauri_xmp_webp = { workspace = true }
 swarmauri_tests_pylicense = { workspace = true }
 
 [build-system]
