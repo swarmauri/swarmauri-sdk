@@ -32,5 +32,10 @@ async def test_create_csr_rfc2986() -> None:
     csr = x509.load_pem_x509_csr(csr_bytes)
     cn = csr.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
     assert cn == "example.com"
-    attr = csr.get_attribute_for_oid(x509.oid.AttributeOID.CHALLENGE_PASSWORD)
-    assert attr == b"pass"
+    challenge_attrs = [
+        attr.value
+        for attr in csr.attributes
+        if attr.oid == x509.oid.AttributeOID.CHALLENGE_PASSWORD
+    ]
+    assert challenge_attrs, "challenge password attribute should be present"
+    assert challenge_attrs[0] == b"pass"

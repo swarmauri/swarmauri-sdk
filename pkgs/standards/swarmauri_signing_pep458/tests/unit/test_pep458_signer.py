@@ -40,7 +40,7 @@ async def test_rsa_pss_sign_and_verify_round_trip():
 
 
 @pytest.mark.asyncio
-async def test_verify_respects_min_signers_and_threshold():
+async def test_verify_respects_min_signers_requirement():
     signer = Pep458Signer()
     ed_private = ed25519.Ed25519PrivateKey.generate()
     rsa_private = rsa.generate_private_key(public_exponent=65537, key_size=2048)
@@ -53,13 +53,24 @@ async def test_verify_respects_min_signers_and_threshold():
         {"kind": "cryptography_obj", "obj": rsa_private, "alg": "RSA-PSS-SHA256"},
         payload,
     )
-    signatures = [*ed_sig, *rsa_sig]
 
     assert await signer.verify_bytes(
         payload,
-        signatures,
+        [*ed_sig, *rsa_sig],
         require={"min_signers": 2},
         opts={"pubkeys": [ed_private.public_key(), rsa_private.public_key()]},
+    )
+
+
+@pytest.mark.asyncio
+async def test_verify_fails_when_min_signers_not_met():
+    signer = Pep458Signer()
+    ed_private = ed25519.Ed25519PrivateKey.generate()
+    rsa_private = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+
+    payload = b"pep458-threshold"
+    ed_sig = await signer.sign_bytes(
+        {"kind": "cryptography_obj", "obj": ed_private}, payload
     )
 
     assert not await signer.verify_bytes(
