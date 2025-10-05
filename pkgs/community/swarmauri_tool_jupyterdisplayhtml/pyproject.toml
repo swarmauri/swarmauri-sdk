@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupyterdisplayhtml"
-version = "0.9.0.dev7"
+version = "0.9.0.dev8"
 description = "A tool designed to render HTML content within a Jupyter Notebook using IPython's HTML display method."
 license = "Apache-2.0"
 readme = "README.md"

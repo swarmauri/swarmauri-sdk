@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_middleware_session"
-version = "0.8.0.dev7"
+version = "0.8.0.dev8"
 description = "Session middleware for maintaining session state across requests."
 license = "Apache-2.0"
 readme = "README.md"

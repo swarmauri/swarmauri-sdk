@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_parser_beautifulsoupelement"
-version = "0.9.0.dev7"
+version = "0.9.0.dev8"
 description = "BeautifulSoup Element Parser for Swarmauri."
 license = "Apache-2.0"
 readme = "README.md"
