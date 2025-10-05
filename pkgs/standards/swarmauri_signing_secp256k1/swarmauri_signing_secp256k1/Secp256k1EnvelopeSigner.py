@@ -2,10 +2,17 @@ from __future__ import annotations
 
 import json
 import hashlib
+from collections.abc import AsyncIterable, Iterable as IterableABC
 from dataclasses import dataclass
 from typing import Any, Dict, Iterable, Mapping, Optional, Sequence, Union
 
-from swarmauri_core.signing.ISigning import ISigning, Signature, Envelope, Canon
+from swarmauri_core.signing.ISigning import (
+    ISigning,
+    Signature,
+    Envelope,
+    Canon,
+    ByteStream,
+)
 from swarmauri_core.crypto.types import KeyRef, Alg
 
 try:
@@ -17,6 +24,7 @@ try:
     )
     from cryptography.exceptions import InvalidSignature
     from cryptography.hazmat.primitives.asymmetric.utils import (
+        Prehashed,
         decode_dss_signature,
         encode_dss_signature,
     )
@@ -263,6 +271,35 @@ class _Sig:
         return self.data.get(k, default)
 
 
+# ───────────────────────── Stream helpers ─────────────────────────
+
+
+def _coerce_chunk(chunk: object) -> bytes:
+    if isinstance(chunk, (bytes, bytearray)):
+        return bytes(chunk)
+    if isinstance(chunk, memoryview):  # pragma: no cover - defensive
+        return chunk.tobytes()
+    raise TypeError("Stream payload chunks must be bytes-like objects.")
+
+
+async def _stream_to_bytes(payload: ByteStream) -> bytes:
+    if isinstance(payload, (bytes, bytearray)):
+        return bytes(payload)
+    if isinstance(payload, AsyncIterable):
+        buf = bytearray()
+        async for chunk in payload:
+            buf.extend(_coerce_chunk(chunk))
+        return bytes(buf)
+    if isinstance(payload, IterableABC):
+        buf = bytearray()
+        for chunk in payload:
+            buf.extend(_coerce_chunk(chunk))
+        return bytes(buf)
+    raise TypeError(
+        "Stream payload must be bytes, bytearray, or an (async) iterable of bytes-like objects."
+    )
+
+
 # ───────────────────────── Concrete signer ─────────────────────────
 
 
@@ -293,8 +330,69 @@ class Secp256k1EnvelopeSigner(ISigning):
       - JOSE raw r||s: pass opts={"format":"RAW"} to sign/verify.
     """
 
+    _SUPPORTED_ALGS: tuple[str, ...] = ("ES256K", "ECDSA-SHA256")
+
+    @staticmethod
+    def _maybe_mapping(
+        obj: Optional[Mapping[str, object]] | object,
+    ) -> Mapping[str, object]:
+        if isinstance(obj, Mapping):
+            return obj
+        return {}
+
+    def _validate_alg(self, alg: Optional[Alg]) -> None:
+        if alg not in (None, *self._SUPPORTED_ALGS):
+            raise ValueError(
+                "Unsupported alg for Secp256k1EnvelopeSigner. Use 'ES256K'."
+            )
+
+    def _load_private_key(
+        self, key: KeyRef, opts: Optional[Mapping[str, object]] | object
+    ) -> ec.EllipticCurvePrivateKey:
+        opts_map = self._maybe_mapping(opts)
+        sk = _keyref_to_private(key, passphrase=opts_map.get("passphrase"))
+        if not isinstance(sk.curve, ec.SECP256K1):
+            raise TypeError("Private key curve must be secp256k1.")
+        return sk
+
+    def _finalize_signature(
+        self,
+        sk: ec.EllipticCurvePrivateKey,
+        der_sig: bytes,
+        opts: Optional[Mapping[str, object]] | object,
+    ) -> Sequence[Signature]:
+        opts_map = self._maybe_mapping(opts)
+        fmt_opt = opts_map.get("format", "DER")
+        sig_bytes = der_sig
+        fmt_value = "DER"
+        if isinstance(fmt_opt, str) and fmt_opt.upper() == "RAW":
+            r, s = decode_dss_signature(der_sig)
+            size_bytes = (sk.curve.key_size + 7) // 8
+            sig_bytes = r.to_bytes(size_bytes, "big") + s.to_bytes(size_bytes, "big")
+            fmt_value = "RAW"
+
+        kid_hint = opts_map.get("kid_jwk_hint")
+        kid_hint_mapping = kid_hint if isinstance(kid_hint, Mapping) else None
+        kid = _kid_from_public(sk.public_key(), kid_hint_mapping)
+
+        return [
+            _Sig(
+                {
+                    "alg": "ES256K",
+                    "kid": kid,
+                    "sig": sig_bytes,
+                    "fmt": fmt_value,
+                }
+            )
+        ]
+
+    @staticmethod
+    def _ensure_digest_length(digest: bytes) -> None:
+        if len(digest) != hashes.SHA256().digest_size:
+            raise ValueError("Digest must be exactly 32 bytes for SHA-256.")
+
     def supports(self) -> Mapping[str, Iterable[str]]:
-        algs = ("ES256K", "ECDSA-SHA256")
+        algs = self._SUPPORTED_ALGS
         canons = ("json", "cbor") if _CBOR_OK else ("json",)
         return {
             "algs": algs,
@@ -316,36 +414,25 @@ class Secp256k1EnvelopeSigner(ISigning):
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
         _ensure_crypto()
-        if alg not in (None, "ES256K", "ECDSA-SHA256"):
-            raise ValueError(
-                "Unsupported alg for Secp256k1EnvelopeSigner. Use 'ES256K'."
-            )
-        sk = _keyref_to_private(key, passphrase=(opts or {}).get("passphrase"))
-        if not isinstance(sk.curve, ec.SECP256K1):
-            raise TypeError("Private key curve must be secp256k1.")
+        self._validate_alg(alg)
+        sk = self._load_private_key(key, opts)
         der_sig = sk.sign(payload, ec.ECDSA(hashes.SHA256()))
+        return self._finalize_signature(sk, der_sig, opts)
 
-        fmt = (opts or {}).get("format", "DER")
-        sig_bytes = der_sig
-        if isinstance(fmt, str) and fmt.upper() == "RAW":
-            r, s = decode_dss_signature(der_sig)
-            size_bytes = (sk.curve.key_size + 7) // 8
-            sig_bytes = r.to_bytes(size_bytes, "big") + s.to_bytes(size_bytes, "big")
-
-        kid = _kid_from_public(
-            sk.public_key(),
-            (opts or {}).get("kid_jwk_hint") if isinstance(opts, Mapping) else None,
-        )
-        return [
-            _Sig(
-                {
-                    "alg": "ES256K",
-                    "kid": kid,
-                    "sig": sig_bytes,
-                    "fmt": "RAW" if fmt == "RAW" else "DER",
-                }
-            )
-        ]
+    async def sign_digest(
+        self,
+        key: KeyRef,
+        digest: bytes,
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        _ensure_crypto()
+        self._validate_alg(alg)
+        self._ensure_digest_length(digest)
+        sk = self._load_private_key(key, opts)
+        der_sig = sk.sign(digest, ec.ECDSA(Prehashed(hashes.SHA256())))
+        return self._finalize_signature(sk, der_sig, opts)
 
     async def verify_bytes(
         self,
@@ -355,17 +442,86 @@ class Secp256k1EnvelopeSigner(ISigning):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
-        _ensure_crypto()
-        min_signers = int((require or {}).get("min_signers", 1))
-        allowed_algs = set((require or {}).get("algs", ("ES256K", "ECDSA-SHA256")))
-        fmt_pref = (opts or {}).get("format", "DER")
+        return self._verify_signatures(
+            payload,
+            signatures,
+            require=require,
+            opts=opts,
+            prehashed=False,
+        )
 
-        if not (opts and "pubkeys" in opts):
+    async def verify_digest(
+        self,
+        digest: bytes,
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> bool:
+        self._ensure_digest_length(digest)
+        return self._verify_signatures(
+            digest,
+            signatures,
+            require=require,
+            opts=opts,
+            prehashed=True,
+        )
+
+    async def sign_stream(
+        self,
+        key: KeyRef,
+        payload: ByteStream,
+        *,
+        alg: Optional[Alg] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> Sequence[Signature]:
+        data = await _stream_to_bytes(payload)
+        return await self.sign_bytes(key, data, alg=alg, opts=opts)
+
+    async def verify_stream(
+        self,
+        payload: ByteStream,
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+    ) -> bool:
+        data = await _stream_to_bytes(payload)
+        return await self.verify_bytes(data, signatures, require=require, opts=opts)
+
+    def _verify_signatures(
+        self,
+        data: bytes,
+        signatures: Sequence[Signature],
+        *,
+        require: Optional[Mapping[str, object]] = None,
+        opts: Optional[Mapping[str, object]] = None,
+        prehashed: bool,
+    ) -> bool:
+        _ensure_crypto()
+        require_map = self._maybe_mapping(require)
+        opts_map = self._maybe_mapping(opts)
+
+        min_signers = int(require_map.get("min_signers", 1))
+        algs_opt = require_map.get("algs", self._SUPPORTED_ALGS)
+        if isinstance(algs_opt, IterableABC) and not isinstance(
+            algs_opt, (str, bytes, bytearray)
+        ):
+            allowed_algs = {str(a) for a in algs_opt}
+        elif algs_opt is None:
+            allowed_algs = set(self._SUPPORTED_ALGS)
+        else:
+            allowed_algs = {str(algs_opt)}
+
+        fmt_pref = opts_map.get("format", "DER")
+
+        pub_entries = opts_map.get("pubkeys")
+        if not isinstance(pub_entries, IterableABC):
             raise ValueError(
                 "verify_bytes requires opts['pubkeys'] with one or more secp256k1 public keys."
             )
         pubs: list[ec.EllipticCurvePublicKey] = []
-        for entry in opts["pubkeys"]:  # type: ignore[index]
+        for entry in pub_entries:
             pk = _keyref_to_public(entry)
             if not isinstance(pk.curve, ec.SECP256K1):
                 raise TypeError("All verification public keys must be secp256k1.")
@@ -383,6 +539,11 @@ class Secp256k1EnvelopeSigner(ISigning):
             any_verified = False
             for pk in pubs:
                 try:
+                    verify_algorithm = (
+                        ec.ECDSA(Prehashed(hashes.SHA256()))
+                        if prehashed
+                        else ec.ECDSA(hashes.SHA256())
+                    )
                     if (isinstance(fmt_pref, str) and fmt_pref.upper() == "RAW") or (
                         isinstance(sig.get("fmt"), str)
                         and sig.get("fmt").upper() == "RAW"
@@ -395,9 +556,9 @@ class Secp256k1EnvelopeSigner(ISigning):
                         r = int.from_bytes(sig_bytes[:size_bytes], "big")
                         s = int.from_bytes(sig_bytes[size_bytes:], "big")
                         der = encode_dss_signature(r, s)
-                        pk.verify(der, payload, ec.ECDSA(hashes.SHA256()))
+                        pk.verify(der, data, verify_algorithm)
                     else:
-                        pk.verify(bytes(sig_bytes), payload, ec.ECDSA(hashes.SHA256()))
+                        pk.verify(bytes(sig_bytes), data, verify_algorithm)
                     any_verified = True
                     break
                 except InvalidSignature:
