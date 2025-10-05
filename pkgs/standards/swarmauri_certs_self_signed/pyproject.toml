@@ -22,6 +22,7 @@ classifiers = [
 ]
 dependencies = [
     "swarmauri_core",
+    "swarmauri_base",
     "cryptography",
 ]
 keywords = [
@@ -43,6 +44,7 @@ ocsp = ["pyopenssl"]
 
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
