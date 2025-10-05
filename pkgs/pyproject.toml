@@ -224,6 +224,8 @@ members = [
     "community/swarmauri_parser_pypdftk",
     "community/swarmauri_measurement_mutualinformation",
     "community/swarmauri_measurement_tokencountestimator",
+    "community/swarmauri_metric_hamming",
+    "community/swarmauri_matrix_hamming74",
     "community/swarmauri_ocr_pytesseract",
     "community/swarmauri_tests_griffe",
     "community/swarmauri_embedding_mlm",
@@ -413,6 +415,8 @@ swarmauri_parser_pypdf2 = { workspace = true }
 swarmauri_parser_pypdftk = { workspace = true }
 swarmauri_measurement_mutualinformation = { workspace = true }
 swarmauri_measurement_tokencountestimator = { workspace = true }
+swarmauri_metric_hamming = { workspace = true }
+swarmauri_matrix_hamming74 = { workspace = true }
 swarmauri_ocr_pytesseract = { workspace = true }
 swarmauri_tests_griffe = { workspace = true }
 swarmauri_embedding_mlm = { workspace = true }
