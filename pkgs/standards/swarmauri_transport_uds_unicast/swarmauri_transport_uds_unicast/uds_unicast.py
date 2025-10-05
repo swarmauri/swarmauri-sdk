@@ -6,6 +6,7 @@ import asyncio
 import os
 from typing import Optional
 
+from swarmauri_base.transports.TransportBase import TransportBase
 from swarmauri_core.transports import (
     AddressScheme,
     Cast,
@@ -14,7 +15,6 @@ from swarmauri_core.transports import (
     PeerTransportMixin,
     Protocol,
     SecurityMode,
-    TransportBase,
     TransportCapabilities,
     UnicastTransportMixin,
 )
