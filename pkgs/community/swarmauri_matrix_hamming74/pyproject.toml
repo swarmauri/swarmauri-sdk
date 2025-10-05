@@ -1,0 +1,79 @@
+[project]
+name = "swarmauri_matrix_hamming74"
+version = "0.9.0.dev8"
+description = "Swarmauri Hamming (7,4) matrix community package."
+license = "Apache-2.0"
+readme = "README.md"
+repository = "http://github.com/swarmauri/swarmauri-sdk"
+requires-python = ">=3.10,<3.13"
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Natural Language :: English",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+dependencies = [
+    "numpy>=1.26",
+    "swarmauri_metric_hamming",
+    "swarmauri_core",
+    "swarmauri_base",
+]
+keywords = [
+    "swarmauri",
+    "matrix",
+    "hamming",
+    "error-correcting",
+    "community",
+    "package",
+]
+
+[tool.uv.sources]
+swarmauri_metric_hamming = { workspace = true }
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+
+[tool.pytest.ini_options]
+norecursedirs = ["combined", "scripts"]
+markers = [
+    "test: standard test",
+    "unit: Unit tests",
+    "i9n: Integration tests",
+    "r8n: Regression tests",
+    "timeout: mark test to timeout after X seconds",
+    "xpass: Expected passes",
+    "xfail: Expected failures",
+    "acceptance: Acceptance tests",
+    "perf: Performance tests that measure execution time and resource usage",
+]
+timeout = 300
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+asyncio_default_fixture_loop_scope = "function"
+
+[project.entry-points.'swarmauri.matrices']
+Hamming74Matrix = "swarmauri_matrix_hamming74.Hamming74Matrix:Hamming74Matrix"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-xdist>=3.6.1",
+    "pytest-json-report>=1.5.0",
+    "python-dotenv",
+    "requests>=2.32.3",
+    "flake8>=7.0",
+    "pytest-timeout>=2.3.1",
+    "ruff>=0.9.9",
+    "pytest-benchmark>=4.0.0",
+]
