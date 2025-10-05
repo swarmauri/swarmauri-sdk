@@ -6,22 +6,17 @@ import asyncio
 from dataclasses import dataclass
 from typing import AsyncIterator, Optional, Tuple
 
-from pydantic import PrivateAttr
-
-from swarmauri_core.transports import (
+from swarmauri_base.transports.TransportBase import TransportBase
+from swarmauri_core.transports.capabilities import TransportCapabilities
+from swarmauri_core.transports.enums import (
     AddressScheme,
     Cast,
-    ChannelHandle,
     Feature,
     IOModel,
-    MultiplexTransportMixin,
-    PeerTransportMixin,
     Protocol,
     SecurityMode,
-    TransportBase,
-    TransportCapabilities,
-    UnicastTransportMixin,
 )
+from swarmauri_core.transports.i_multiplex import ChannelHandle
 
 
 @dataclass
@@ -47,32 +42,23 @@ class _QuicDatagramProtocol(asyncio.DatagramProtocol):
         self._handler(data, addr)
 
 
-class QuicTransport(
-    TransportBase,
-    UnicastTransportMixin,
-    PeerTransportMixin,
-    MultiplexTransportMixin,
-):
+class QuicTransport(TransportBase):
     """QUIC-like transport built on asyncio UDP primitives."""
-
-    _server_transport: asyncio.DatagramTransport | None = PrivateAttr(default=None)
-    _client_transport: asyncio.DatagramTransport | None = PrivateAttr(default=None)
-    _server_protocol: _QuicDatagramProtocol | None = PrivateAttr(default=None)
-    _client_protocol: _QuicDatagramProtocol | None = PrivateAttr(default=None)
-    _default_queue: asyncio.Queue[bytes] = PrivateAttr(default_factory=asyncio.Queue)
-    _channels: dict[int, _QuicChannel] = PrivateAttr(default_factory=dict)
-    _next_channel: int = PrivateAttr(default=1)
-    _peer_addr: Tuple[str, int] | None = PrivateAttr(default=None)
-    _default_remote: Tuple[str, int] | None = PrivateAttr(default=None)
-    _peer_queue: asyncio.Queue[Tuple[str, int]] = PrivateAttr(
-        default_factory=asyncio.Queue
-    )
-    _known_peers: set[Tuple[str, int]] = PrivateAttr(default_factory=set)
-    _config: dict[str, object] = PrivateAttr(default_factory=dict)
 
     def __init__(self, **config: object) -> None:
         super().__init__(name="QUIC")
-        self._config = dict(config)
+        self._config: dict[str, object] = dict(config)
+        self._server_transport: asyncio.DatagramTransport | None = None
+        self._client_transport: asyncio.DatagramTransport | None = None
+        self._server_protocol: _QuicDatagramProtocol | None = None
+        self._client_protocol: _QuicDatagramProtocol | None = None
+        self._default_queue: asyncio.Queue[bytes] = asyncio.Queue()
+        self._channels: dict[int, _QuicChannel] = {}
+        self._next_channel: int = 1
+        self._peer_addr: Tuple[str, int] | None = None
+        self._default_remote: Tuple[str, int] | None = None
+        self._peer_queue: asyncio.Queue[Tuple[str, int]] = asyncio.Queue()
+        self._known_peers: set[Tuple[str, int]] = set()
         self._reset_state()
 
     def _reset_state(self) -> None:
