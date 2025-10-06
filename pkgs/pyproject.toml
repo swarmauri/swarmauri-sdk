@@ -37,6 +37,7 @@ members = [
     "experimental/cayaml",
     "experimental/catoml",
     "experimental/jaml",
+    "standards/swarmauri_auth_idp_aws",
     "standards/swarmauri_auth_idp_apple",
     "standards/swarmauri_vectorstore_doc2vec",
     "standards/swarmauri_embedding_doc2vec",

@@ -99,6 +99,8 @@ class PluginCitizenshipRegistry:
         "swarmauri.auth_idp.AppleOAuth20AppClient": "swarmauri_auth_idp_apple.AppleOAuth20AppClient",
         "swarmauri.auth_idp.AppleOAuth21AppClient": "swarmauri_auth_idp_apple.AppleOAuth21AppClient",
         "swarmauri.auth_idp.AppleOIDC10AppClient": "swarmauri_auth_idp_apple.AppleOIDC10AppClient",
+        "swarmauri.auth_idp.AwsOAuth20Login": "swarmauri_auth_idp_aws.AwsOAuth20Login",
+        "swarmauri.auth_idp.AwsOAuth21Login": "swarmauri_auth_idp_aws.AwsOAuth21Login",
         ###
         # key providers
         ###
