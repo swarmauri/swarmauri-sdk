@@ -21,6 +21,12 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP :: Session",
     "Topic :: Security :: Cryptography",
 ]
+dependencies = [
+    "swarmauri_core",
+    "swarmauri_base",
+    "httpx",
+    "pyjwt[crypto]>=2.8",
+]
 keywords = [
     "swarmauri",
     "sdk",
@@ -32,12 +38,6 @@ keywords = [
     "apple",
     "pkce",
     "idp",
-]
-dependencies = [
-    "swarmauri_core",
-    "swarmauri_base",
-    "httpx>=0.27",
-    "pyjwt[crypto]>=2.8",
 ]
 
 [tool.uv.sources]

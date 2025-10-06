@@ -376,6 +376,7 @@ swarmauri_cipher_suite_jwa = { workspace = true }
 swarmauri_cipher_suite_cades = { workspace = true }
 swarmauri_cipher_suite_pades = { workspace = true }
 swarmauri_certs_x509verify = { workspace = true }
+swarmauri_auth_idp_apple = { workspace = true }
 
 swarmauri_tokens_introspection = { workspace = true }
 swarmauri_tokens_paseto_v4 = { workspace = true }
