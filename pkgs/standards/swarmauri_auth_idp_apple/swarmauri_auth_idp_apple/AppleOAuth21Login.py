@@ -2,25 +2,24 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal, Mapping, Optional
+from typing import Any, Mapping, Optional
 
 from pydantic import Field, PrivateAttr, SecretBytes
-
 from swarmauri_base.auth_idp import OAuth21LoginBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 from .internal import (
-    AppleLoginMixin,
     DISCOVERY_URL,
+    AppleLoginMixin,
     make_nonce,
     make_pkce_pair,
     sign_state,
 )
 
 
+@ComponentBase.register_type(OAuth21LoginBase, "AppleOAuth21Login")
 class AppleOAuth21Login(AppleLoginMixin, OAuth21LoginBase):
     """Apple OAuth 2.1 Authorization Code flow using OIDC discovery."""
-
-    type: Literal["AppleOAuth21Login"] = "AppleOAuth21Login"
 
     team_id: str
     key_id: str

@@ -2,25 +2,24 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal, Mapping, Optional
+from typing import Any, Mapping, Optional
 
 from pydantic import Field, PrivateAttr, SecretBytes
-
 from swarmauri_base.auth_idp import OIDC10LoginBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 from .internal import (
-    AppleLoginMixin,
     DISCOVERY_URL,
+    AppleLoginMixin,
     make_nonce,
     make_pkce_pair,
     sign_state,
 )
 
 
+@ComponentBase.register_type(OIDC10LoginBase, "AppleOIDC10Login")
 class AppleOIDC10Login(AppleLoginMixin, OIDC10LoginBase):
     """Apple OpenID Connect 1.0 Authorization Code flow."""
-
-    type: Literal["AppleOIDC10Login"] = "AppleOIDC10Login"
 
     team_id: str
     key_id: str
