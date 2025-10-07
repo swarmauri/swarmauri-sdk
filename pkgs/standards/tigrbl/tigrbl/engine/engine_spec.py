@@ -1,8 +1,7 @@
-
 # tigrbl/v3/engine/engine_spec.py
 from __future__ import annotations
 
-from dataclasses import dataclass, field, fields
+from dataclasses import dataclass, field
 from typing import Optional, Mapping, Union, Any, Tuple
 from urllib.parse import urlsplit
 
@@ -37,7 +36,7 @@ class EngineSpec:
     """
 
     # normalized
-    kind: Optional[str] = None                # "sqlite" | "postgres" | <external>
+    kind: Optional[str] = None  # "sqlite" | "postgres" | <external>
     async_: bool = False
 
     # canonical DSN (optional) and raw mapping (for external engines)
@@ -45,7 +44,7 @@ class EngineSpec:
     mapping: Optional[Mapping[str, object]] = None
 
     # sqlite
-    path: Optional[str] = None                # file path (None → memory)
+    path: Optional[str] = None  # file path (None → memory)
     memory: bool = False
 
     # postgres
@@ -82,19 +81,27 @@ class EngineSpec:
                 path = s.split("sqlite+aiosqlite://")[-1]
                 path = path.lstrip("/") or None
                 mem = (path is None) or (path == ":memory:")
-                return EngineSpec(kind="sqlite", async_=True, path=path, memory=mem, dsn=s)
+                return EngineSpec(
+                    kind="sqlite", async_=True, path=path, memory=mem, dsn=s
+                )
             # sqlite sync
             if s.startswith("sqlite://") or s.startswith("sqlite:"):
                 # handle sqlite://:memory: and sqlite:///file.db
                 if s.startswith("sqlite://:memory:") or s.endswith(":memory:"):
-                    return EngineSpec(kind="sqlite", async_=False, path=None, memory=True, dsn=s)
+                    return EngineSpec(
+                        kind="sqlite", async_=False, path=None, memory=True, dsn=s
+                    )
                 # Take the path part after scheme; urlsplit handles both sqlite:// and sqlite:/// forms
                 p = urlsplit(s).path.lstrip("/") or None
-                mem = (p is None)
-                return EngineSpec(kind="sqlite", async_=False, path=p, memory=mem, dsn=s)
+                mem = p is None
+                return EngineSpec(
+                    kind="sqlite", async_=False, path=p, memory=mem, dsn=s
+                )
 
             # postgres async
-            if s.startswith("postgresql+asyncpg://") or s.startswith("postgres+asyncpg://"):
+            if s.startswith("postgresql+asyncpg://") or s.startswith(
+                "postgres+asyncpg://"
+            ):
                 u = urlsplit(s)
                 # Extract netloc parts user:pwd@host:port
                 user = u.username or None
@@ -102,7 +109,16 @@ class EngineSpec:
                 host = u.hostname or None
                 port = u.port or None
                 name = (u.path or "/").lstrip("/") or None
-                return EngineSpec(kind="postgres", async_=True, dsn=s, user=user, pwd=pwd, host=host, port=port, name=name)
+                return EngineSpec(
+                    kind="postgres",
+                    async_=True,
+                    dsn=s,
+                    user=user,
+                    pwd=pwd,
+                    host=host,
+                    port=port,
+                    name=name,
+                )
             # postgres sync
             if s.startswith("postgresql://") or s.startswith("postgres://"):
                 u = urlsplit(s)
@@ -111,7 +127,16 @@ class EngineSpec:
                 host = u.hostname or None
                 port = u.port or None
                 name = (u.path or "/").lstrip("/") or None
-                return EngineSpec(kind="postgres", async_=False, dsn=s, user=user, pwd=pwd, host=host, port=port, name=name)
+                return EngineSpec(
+                    kind="postgres",
+                    async_=False,
+                    dsn=s,
+                    user=user,
+                    pwd=pwd,
+                    host=host,
+                    port=port,
+                    name=name,
+                )
 
             raise ValueError(f"Unsupported DSN: {s}")
 
@@ -125,13 +150,17 @@ class EngineSpec:
                     return bool(m[k])  # type: ignore[index]
             return default
 
-        def _get_str(key: str, *aliases: str, default: Optional[str] = None) -> Optional[str]:
+        def _get_str(
+            key: str, *aliases: str, default: Optional[str] = None
+        ) -> Optional[str]:
             for k in (key, *aliases):
                 if k in m and m[k] is not None:
                     return str(m[k])  # type: ignore[index]
             return default
 
-        def _get_int(key: str, *aliases: str, default: Optional[int] = None) -> Optional[int]:
+        def _get_int(
+            key: str, *aliases: str, default: Optional[int] = None
+        ) -> Optional[int]:
             for k in (key, *aliases):
                 if k in m and m[k] is not None:
                     try:
@@ -144,7 +173,11 @@ class EngineSpec:
         if k == "sqlite":
             async_ = _get_bool("async", "async_", default=False)
             path = _get_str("path")
-            memory = _get_bool("memory", default=False) or (str(m.get("mode", "")).lower() == "memory") or (path is None)
+            memory = (
+                _get_bool("memory", default=False)
+                or (str(m.get("mode", "")).lower() == "memory")
+                or (path is None)
+            )
             return EngineSpec(
                 kind="sqlite",
                 async_=async_,
@@ -219,6 +252,7 @@ class EngineSpec:
         try:
             from .plugins import load_engine_plugins
             from .registry import get_engine_registration, known_engine_kinds
+
             load_engine_plugins()
             reg = get_engine_registration(self.kind or "")
         except Exception:
@@ -230,6 +264,7 @@ class EngineSpec:
         # No registration found: helpful error
         try:
             from .registry import known_engine_kinds  # re-import defensive
+
             kinds = ", ".join(known_engine_kinds()) or "(none)"
         except Exception:
             kinds = "(unknown)"
@@ -247,12 +282,14 @@ def supports(self) -> dict[str, Any]:
     if self.kind == "sqlite":
         try:
             from .capabilities import sqlite_capabilities
+
             return sqlite_capabilities(async_=self.async_, memory=self.memory)
         except Exception:
             pass
     if self.kind == "postgres":
         try:
             from .capabilities import postgres_capabilities
+
             return postgres_capabilities(async_=self.async_)
         except Exception:
             pass
@@ -260,6 +297,7 @@ def supports(self) -> dict[str, Any]:
     try:
         from .plugins import load_engine_plugins
         from .registry import get_engine_registration
+
         load_engine_plugins()
         reg = get_engine_registration(self.kind or "")
     except Exception:

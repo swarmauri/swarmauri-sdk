@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import asyncio
@@ -91,7 +90,9 @@ class TigrblSessionBase(SessionABC):
 
     async def flush(self) -> None:
         if self._pending:
-            done, _ = await asyncio.wait(self._pending, return_when=asyncio.ALL_COMPLETED)
+            done, _ = await asyncio.wait(
+                self._pending, return_when=asyncio.ALL_COMPLETED
+            )
             self._pending = []
             # surface any exception
             for t in done:
@@ -138,7 +139,9 @@ class TigrblSessionBase(SessionABC):
     async def _refresh_impl(self, obj: Any) -> None:  # pragma: no cover - abstract hook
         return
 
-    async def _get_impl(self, model: type, ident: Any) -> Any | None:  # pragma: no cover
+    async def _get_impl(
+        self, model: type, ident: Any
+    ) -> Any | None:  # pragma: no cover
         raise NotImplementedError
 
     async def _execute_impl(self, stmt: Any) -> Any:  # pragma: no cover - abstract hook

@@ -1,10 +1,10 @@
-
 from __future__ import annotations
 
 from dataclasses import dataclass, fields
 from typing import Any, Mapping, MutableMapping, Optional, Union
 
 SessionCfg = Union["SessionSpec", Mapping[str, Any], None]
+
 
 @dataclass(frozen=True)
 class SessionSpec:
@@ -15,8 +15,11 @@ class SessionSpec:
     validate and apply them where supported; critical ones (like isolation and
     read_only) SHOULD be validated and enforced.
     """
+
     # Transaction policy
-    isolation: Optional[str] = None            # "read_committed" | "repeatable_read" | "snapshot" | "serializable"
+    isolation: Optional[str] = (
+        None  # "read_committed" | "repeatable_read" | "snapshot" | "serializable"
+    )
     read_only: Optional[bool] = None
     autobegin: Optional[bool] = True
     expire_on_commit: Optional[bool] = None
@@ -36,7 +39,7 @@ class SessionSpec:
     # Consistency coordinates
     min_lsn: Optional[str] = None
     as_of_ts: Optional[str] = None
-    consistency: Optional[str] = None          # "strong" | "bounded_staleness" | "eventual"
+    consistency: Optional[str] = None  # "strong" | "bounded_staleness" | "eventual"
     staleness_ms: Optional[int] = None
 
     # Tenancy & security
@@ -74,7 +77,9 @@ class SessionSpec:
         h = higher if isinstance(higher, SessionSpec) else SessionSpec.from_any(higher)
         if h is None:
             return self
-        vals: MutableMapping[str, Any] = {f.name: getattr(self, f.name) for f in fields(SessionSpec)}
+        vals: MutableMapping[str, Any] = {
+            f.name: getattr(self, f.name) for f in fields(SessionSpec)
+        }
         for f in fields(SessionSpec):
             hv = getattr(h, f.name)
             if hv is not None:
@@ -83,7 +88,11 @@ class SessionSpec:
 
     def to_kwargs(self) -> dict[str, Any]:
         """Return only non-None items as a plain dict (adapters can **kwargs this)."""
-        return {f.name: getattr(self, f.name) for f in fields(SessionSpec) if getattr(self, f.name) is not None}
+        return {
+            f.name: getattr(self, f.name)
+            for f in fields(SessionSpec)
+            if getattr(self, f.name) is not None
+        }
 
     @staticmethod
     def from_any(x: SessionCfg) -> Optional["SessionSpec"]:

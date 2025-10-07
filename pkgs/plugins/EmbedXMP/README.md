@@ -60,6 +60,11 @@ print(xmp_text)
 manager.remove(image.read_bytes(), str(image))
 ```
 
+> **Note**
+> You can provide either a `path` or a `hint` keyword argument when calling
+> `embed`, `read`, or `remove` to help the manager pick the correct handler. The
+> values are interchangeable as long as they match when both are supplied.
+
 ### Async orchestration
 
 EmbedXMP's manager can be shared inside asynchronous workflows by deferring media-aware work to plugin hooks:

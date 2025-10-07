@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import inspect
@@ -72,7 +71,9 @@ class DefaultSession(TigrblSessionBase):
     async def _delete_impl(self, obj: Any) -> None:
         fn = getattr(self._u, "delete", None)
         if not callable(fn):
-            raise NotImplementedError("underlying session does not implement delete(obj)")
+            raise NotImplementedError(
+                "underlying session does not implement delete(obj)"
+            )
         rv = fn(obj)
         if inspect.isawaitable(rv):
             await rv
@@ -94,14 +95,18 @@ class DefaultSession(TigrblSessionBase):
     async def _get_impl(self, model: type, ident: Any) -> Any | None:
         fn = getattr(self._u, "get", None)
         if not callable(fn):
-            raise NotImplementedError("underlying session does not implement get(model, ident)")
+            raise NotImplementedError(
+                "underlying session does not implement get(model, ident)"
+            )
         rv = fn(model, ident)
         return await rv if inspect.isawaitable(rv) else rv
 
     async def _execute_impl(self, stmt: Any) -> Any:
         fn = getattr(self._u, "execute", None)
         if not callable(fn):
-            raise NotImplementedError("underlying session does not implement execute(stmt)")
+            raise NotImplementedError(
+                "underlying session does not implement execute(stmt)"
+            )
         rv = fn(stmt)
         return await rv if inspect.isawaitable(rv) else rv
 
