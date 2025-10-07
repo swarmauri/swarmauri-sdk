@@ -3,6 +3,7 @@ from functools import wraps
 from typing import Callable
 from .spec import Table
 
+
 def table_defaults(*, gap_x: int | None = None, gap_y: int | None = None):
     """Decorator to enforce/override default gaps on a Table factory.
 
@@ -10,6 +11,7 @@ def table_defaults(*, gap_x: int | None = None, gap_y: int | None = None):
         @table_defaults(gap_x=16, gap_y=12)
         def dashboard() -> Table: ...
     """
+
     def deco(fn: Callable[..., Table]):
         @wraps(fn)
         def wrapper(*a, **kw) -> Table:
@@ -20,12 +22,22 @@ def table_defaults(*, gap_x: int | None = None, gap_y: int | None = None):
                 return t
             # return a new table with same rows but overridden gaps
             return Table(rows=t.rows, gap_x=gx, gap_y=gy)
+
         return wrapper
+
     return deco
+
 
 def derive_policy(fn: Callable[..., Table]):
     """Placeholder policy decorator retained for backward compatibility."""
+
     @wraps(fn)
     def wrapper(*a, **kw) -> Table:
         return fn(*a, **kw)
+
     return wrapper
+
+
+def table_ctx(*, gap_x: int | None = None, gap_y: int | None = None):
+    """Backward compatible alias mirroring :func:`table_defaults`."""
+    return table_defaults(gap_x=gap_x, gap_y=gap_y)

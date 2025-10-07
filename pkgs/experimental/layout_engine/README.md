@@ -48,31 +48,59 @@ pip install "layout-engine[pdf]"
 ## Quick Start
 
 ```python
-from layout_engine.site import Site, Page
-from layout_engine.grid import GridSpec
-from layout_engine.tiles import TileSpec, make_tile
-from layout_engine.components import ComponentRegistry
-from layout_engine.manifest import ManifestBuilder
+from layout_engine import (
+    ComponentRegistry,
+    ComponentSpec,
+    SizeToken,
+    TileSpec,
+    Viewport,
+    block,
+    col,
+    quick_manifest_from_table,
+    row,
+    table,
+)
 from layout_engine.targets.media import HtmlExporter
 
-# Configure components
 components = ComponentRegistry()
-components.register_many([
-    # ComponentSpec(role="kpi", defaults={...}),
-])
+components.register(ComponentSpec(role="stat", module="@demo/metric"))
 
-# Author the grid
-tiles = [TileSpec(id="kpi_revenue", role="kpi", min_w=240)]
-grid = GridSpec(cols=12, gap_x=16, gap_y=12, tiles=tiles)
-page = Page(id="dashboard", grid=grid)
-site = Site(id="marketing", pages=[page])
+tiles = [
+    TileSpec(id="stat_revenue", role="stat", props={"label": "Revenue", "value": "$1.2M"}),
+    TileSpec(id="stat_growth", role="stat", props={"label": "Growth", "value": "18%"}),
+]
 
-# Build manifest and render (SSR)
-builder = ManifestBuilder(components=components)
-manifest = builder.build({"site": site})
-html = HtmlExporter().render(manifest)
-print(html[:200])
+layout = table(
+    row(
+        col(block("stat_revenue"), size=SizeToken.m),
+        col(block("stat_growth"), size=SizeToken.m),
+    )
+)
+
+manifest = quick_manifest_from_table(
+    layout,
+    Viewport(width=960, height=540),
+    tiles,
+    components_registry=components,
+)
+
+HtmlExporter(title="Stats Overview").export(manifest, out="stats.html")
 ```
+
+The manifest merges component defaults with any props provided on `TileSpec`
+instances, so runtime components receive fully-prepared payloads.
+
+### Examples
+
+A runnable end-to-end script lives in [`examples/dashboard.py`](./examples/dashboard.py).
+Execute it with:
+
+```bash
+uv run --directory experimental/layout_engine --package layout-engine python examples/dashboard.py
+```
+
+The script prints the compiled manifest summary and writes a styled HTML preview
+next to the script for quick visual inspection.
 
 ## Core Concepts
 

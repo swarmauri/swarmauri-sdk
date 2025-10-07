@@ -4,6 +4,7 @@ from ..base import IMediaTarget
 from ...manifest.spec import Manifest
 import json
 
+
 class CodeExporter(IMediaTarget):
     def export(self, manifest: Manifest, *, out: str) -> str:
         """Emit a portable page description (JSON) suitable for generating Svelte/Vue/React pages."""
@@ -16,5 +17,7 @@ class CodeExporter(IMediaTarget):
             "etag": manifest.etag,
         }
         Path(out).parent.mkdir(parents=True, exist_ok=True)
-        Path(out).write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+        Path(out).write_text(
+            json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8"
+        )
         return out
