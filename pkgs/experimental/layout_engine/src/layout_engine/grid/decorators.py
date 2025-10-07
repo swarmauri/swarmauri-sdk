@@ -1,10 +1,12 @@
 from __future__ import annotations
 from functools import wraps
-from typing import Iterable
 from .spec import GridSpec, GridTrack
 from ..core.size import Size, parse_size
 
-def with_breakpoints_ctx(*breakpoints: tuple[int, list[str | float | int | Size | GridTrack]]):  # (max_w, columns)
+
+def with_breakpoints_ctx(
+    *breakpoints: tuple[int, list[str | float | int | Size | GridTrack]],
+):  # (max_w, columns)
     """Decorator to attach breakpoints to a GridSpec factory.
 
     Each breakpoint is a tuple: (max_width_px, columns), where `columns` is a list of
@@ -20,6 +22,7 @@ def with_breakpoints_ctx(*breakpoints: tuple[int, list[str | float | int | Size 
         def build_spec() -> GridSpec:
             return make_gridspec([1,1,1,1])  # default (>=1280px): 4 cols
     """
+
     def deco(fn):
         @wraps(fn)
         def wrapper(*a, **kw) -> GridSpec:
@@ -41,8 +44,11 @@ def with_breakpoints_ctx(*breakpoints: tuple[int, list[str | float | int | Size 
             # attach (replace/extend) breakpoints
             gs.breakpoints = tuple(sorted(bps, key=lambda x: x[0]))  # type: ignore[attr-defined]
             return gs
+
         return wrapper
+
     return deco
+
 
 def stable(fn):
     """No-op decorator placeholder to mark stable grid factories (policy hook)."""

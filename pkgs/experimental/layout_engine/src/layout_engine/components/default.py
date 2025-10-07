@@ -2,8 +2,10 @@ from __future__ import annotations
 from typing import Iterable, Mapping, Any, Optional
 from .spec import ComponentSpec, merge_props
 
+
 class ComponentRegistry:
     """In-memory registry keyed by role (case-sensitive)."""
+
     def __init__(self):
         self._by_role: dict[str, ComponentSpec] = {}
 
@@ -15,7 +17,8 @@ class ComponentRegistry:
         self._by_role[role] = spec
 
     def register_many(self, specs: Iterable[ComponentSpec]) -> None:
-        for s in specs: self.register(s)
+        for s in specs:
+            self.register(s)
 
     def override(self, role: str, **fields: Any) -> ComponentSpec:
         try:
@@ -43,17 +46,21 @@ class ComponentRegistry:
         return list(self._by_role.values())
 
     # --- Resolution ---
-    def resolve_props(self, role: str, overrides: Mapping[str, Any] | None = None) -> dict:
+    def resolve_props(
+        self, role: str, overrides: Mapping[str, Any] | None = None
+    ) -> dict:
         spec = self.get(role)
         return merge_props(spec.defaults, overrides)
 
     # --- (De)serialization ---
     def to_dict(self) -> dict[str, dict]:
         from .bindings import to_dict as _to
+
         return {role: _to(spec) for role, spec in self._by_role.items()}
 
     def update_from_dict(self, data: Mapping[str, Mapping[str, Any]]) -> None:
         from .bindings import from_dict as _from
+
         for role, specd in data.items():
             spec = _from(specd)
             if role != spec.role:
@@ -62,22 +69,26 @@ class ComponentRegistry:
             # upsert semantics
             self._by_role[role] = spec
 
-
     # --- context manager support ---
     def __enter__(self):
         return self
+
     def __exit__(self, exc_type, exc, tb):
         return False
+
     async def __aenter__(self):
         return self
+
     async def __aexit__(self, exc_type, exc, tb):
         return False
+
 
 class Component:
     """Default runtime wrapper around ComponentSpec.
 
     Provides ergonomic accessors and merged props resolution.
     """
+
     def __init__(self, spec: ComponentSpec):
         self.spec = spec
 
@@ -104,9 +115,12 @@ class Component:
     # --- context manager support ---
     def __enter__(self):
         return self
+
     def __exit__(self, exc_type, exc, tb):
         return False
+
     async def __aenter__(self):
         return self
+
     async def __aexit__(self, exc_type, exc, tb):
         return False

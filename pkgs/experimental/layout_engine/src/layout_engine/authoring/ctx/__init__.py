@@ -14,10 +14,16 @@ Usage:
 
   html = render_table(t)  # SSR page HTML
 """
+
 from .builder import TableCtx, RowCtx, ColCtx
 from .runtime import compile_table, render_table, export_table, serve_table
 
 __all__ = [
-    "TableCtx","RowCtx","ColCtx",
-    "compile_table","render_table","export_table","serve_table",
+    "TableCtx",
+    "RowCtx",
+    "ColCtx",
+    "compile_table",
+    "render_table",
+    "export_table",
+    "serve_table",
 ]

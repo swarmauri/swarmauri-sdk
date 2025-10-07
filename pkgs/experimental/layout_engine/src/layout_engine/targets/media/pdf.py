@@ -1,15 +1,16 @@
 from __future__ import annotations
+
 from pathlib import Path
-from typing import Mapping, Any
+from typing import Any, Mapping
+
 from ..base import IMediaTarget
 from ...manifest.spec import Manifest
 from .html import HtmlExporter
 
+
 class PdfExporter(IMediaTarget):
-    """
-    CSS-aware PDF export using Playwright (headless Chromium).
-    Produces an HTML sidecar with HtmlExporter, then prints to PDF.
-    """
+    """CSS-aware PDF export using Playwright (headless Chromium)."""
+
     def __init__(
         self,
         *,
@@ -17,10 +18,10 @@ class PdfExporter(IMediaTarget):
         print_background: bool = True,
         prefer_css_page_size: bool = True,
         timeout_ms: int = 30000,
-        scale: float | None = None,                   # 0.1..2.0
-        margin: Mapping[str, str] | None = None,     # {"top":"12mm", "right":"12mm", ...}
-        format: str | None = None,                   # e.g., "A4", "Letter"
-        width: str | None = None,                    # overrides format if provided (e.g., "1280px")
+        scale: float | None = None,
+        margin: Mapping[str, str] | None = None,
+        format: str | None = None,
+        width: str | None = None,
         height: str | None = None,
         html_title: str | None = None,
         css_links: list[str] | None = None,
@@ -35,7 +36,6 @@ class PdfExporter(IMediaTarget):
         self.format = format
         self.width = width
         self.height = height
-        # Styling forwarded to HtmlExporter
         self.html_title = html_title
         self.css_links = list(css_links or [])
         self.inline_css = inline_css or ""
@@ -44,7 +44,6 @@ class PdfExporter(IMediaTarget):
         out_path = Path(out)
         out_path.parent.mkdir(parents=True, exist_ok=True)
 
-        # 1) Emit HTML next to target PDF
         html_path = out_path.with_suffix(".html")
         HtmlExporter(
             title=self.html_title or f"{manifest.kind}",
@@ -52,24 +51,22 @@ class PdfExporter(IMediaTarget):
             inline_css=self.inline_css,
         ).export(manifest, out=str(html_path))
 
-        # 2) Convert HTML → PDF with Playwright
         try:
             from playwright.sync_api import sync_playwright
-        except Exception as e:
+        except Exception as e:  # pragma: no cover - optional dependency
             raise RuntimeError(
-                "Playwright is required for PdfExporter. Install with:
-"
-                "  uv add playwright
-"
-                "and run one-time:
-"
+                "Playwright is required for PdfExporter. Install with:\n"
+                "  uv add playwright\n"
+                "and run one-time:\n"
                 "  uv run playwright install chromium"
             ) from e
 
         with sync_playwright() as p:
             browser = p.chromium.launch()
             page = browser.new_page()
-            page.goto(html_path.as_uri(), wait_until=self.wait_until, timeout=self.timeout_ms)
+            page.goto(
+                html_path.as_uri(), wait_until=self.wait_until, timeout=self.timeout_ms
+            )
 
             pdf_kwargs: dict[str, Any] = {
                 "path": str(out_path),
