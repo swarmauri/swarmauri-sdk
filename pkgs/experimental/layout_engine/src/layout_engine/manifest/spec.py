@@ -1,7 +1,9 @@
-from pydantic import BaseModel, Field, validator
 from __future__ import annotations
-from pydantic import BaseModel, Field, validator
-from typing import Any, Mapping, Sequence
+
+from typing import Any, Mapping
+
+from pydantic import BaseModel
+
 
 class Manifest(BaseModel):
     """Canonical page manifest.
@@ -15,6 +17,7 @@ class Manifest(BaseModel):
                          { id: str, role: str, frame: {x,y,w,h}, props: {...}, component?: {...} }
       - etag:            content hash for cache/patch validation
     """
+
     kind: str
     version: str
     viewport: Mapping[str, Any]

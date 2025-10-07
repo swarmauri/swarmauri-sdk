@@ -1,75 +1,126 @@
+![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+
+<p align="center">
+    <a href="https://pypi.org/project/layout-engine/">
+        <img src="https://img.shields.io/pypi/dm/layout-engine" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/layout_engine/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/layout_engine.svg"/></a>
+    <a href="https://pypi.org/project/layout-engine/">
+        <img src="https://img.shields.io/pypi/pyversions/layout-engine" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/layout-engine/">
+        <img src="https://img.shields.io/pypi/l/layout-engine" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/layout-engine/">
+        <img src="https://img.shields.io/pypi/v/layout-engine?label=layout-engine&color=green" alt="PyPI - layout-engine"/></a>
+</p>
+
+---
+
 # Layout Engine (Core)
 
-**Swiss Grid Design–inspired, format‑agnostic layout engine for SSR + SSG with atomic component & MFE registries.**
+`layout-engine` is a Swiss Grid design inspired, format-agnostic rendering engine that powers Server-Side Rendering (SSR), Static Site Generation (SSG), and offline exports from a unified component model. The package provides strongly-typed contracts for sites, pages, grids, tiles, and component registries so downstream applications can orchestrate layouts without being tied to a specific UI framework.
 
-This is the core package. It is intentionally framework‑agnostic and designed to be extended by downstream consumers.
+> **Python compatibility:** officially supports Python 3.10, 3.11, and 3.12.
 
-## Concepts
+## Features
 
-- **First‑class objects**: `site`, `page`, `slot`, `grid`, `tile`, `component`, `remote`.
-- **Contracts**: every first‑class object participates in *one or more* of the following contracts:
-  - `.render(...)` — server render (SSR shells for Web GUI / host hydration).
-  - `.export(...)` — offline artifact export (PDF/SVG/HTML/code).
-  - `.server(...)` — (optional) endpoints/routers (e.g., WS bridge, import maps, `manifest.json` route).
-- **Registries**:
-  - **Atomic Component Registry** — role → component spec with defaults and prop merging.
-  - **MFE Registry** — import‑map aware micro‑frontend remotes.
+- **Contract-driven architecture** – abstract base classes define the interfaces for rendering, exporting, and serving layout primitives.
+- **Atomic component & micro-frontend registries** – manage SSR-ready components and remote module manifests with predictable defaults.
+- **Format agnostic targets** – render HTML, SVG, PDF, and code artifacts using interchangeable exporters.
+- **Extensible site composition** – compose grids, tiles, and slots declaratively with Pydantic specs for validation and serialization.
+- **Optional realtime bridge** – opt into FastAPI, Uvicorn, and WebSocket extras for live preview or event streaming.
 
-## Architecture Principles
+## Installation
 
-- **Core vs Implementation** — core stays small, with clear ABCs/specs; downstream projects supply implementations.
-- **Format‑agnostic** — targets `svg`, `html`, `pdf`, plus `vue`, `svelte`, `react` shells.
-- **SSR websocket** — optional event bridge for in‑browser refreshing.
-- **MPA + SPA** supported; SSR shells work for either.
-- **No legacy shims** — do not add backwards‑compatibility layers.
+Choose the workflow that matches your tooling. Extras are available for realtime server capabilities (`server`) and PDF generation (`pdf`).
 
-## Package Layout
+```bash
+# uv
+uv add layout-engine
+uv add layout-engine[server]  # for FastAPI/WebSocket extras
+uv add layout-engine[pdf]     # for Playwright-powered exports
 
-Each first‑class object has its own module folder with at least:
-- `spec.py`, `default.py`, `base.py`, `shortcuts.py`, `decorators.py`
-- Some also include: `bindings.py`, `resolver.py`
-
-## Minimal Example (downstream consumer)
-
-```python
-from layout_engine.site import Site, Page
-from layout_engine.grid import GridSpec
-from layout_engine.tiles import TileSpec, make_tile
-from layout_engine.components import ComponentRegistry
-from layout_engine.manifest import ManifestBuilder
-from layout_engine.targets.media import HtmlExporter
-
-# Configure components
-components = ComponentRegistry()
-components.register_many([
-    # ComponentSpec(role="kpi", defaults={...}), ...
-])
-
-# Author
-tiles = [TileSpec(id="kpi_revenue", role="kpi", min_w=240)]
-grid = GridSpec(cols=12, gap_x=16, gap_y=12, tiles=[...])
-page = Page(id="dashboard", grid=grid)
-
-# Build manifest and render (SSR)
-builder = ManifestBuilder(components=components)
-manifest = builder.build({"page": page})
-html = HtmlExporter().render(manifest)
+# pip
+pip install layout-engine
+pip install "layout-engine[server]"
+pip install "layout-engine[pdf]"
 ```
 
-## Contracts in Code
+## Quick Start
 
-- **ABCs** in `*/base.py` define the interfaces (`@abstractmethod`) used across the engine.
-- **Defaults** in `*/default.py` provide concrete, production‑ready implementations with low boilerplate.
-- **Specs** are Pydantic models — serializable, easy to validate, and stable over the wire.
+```python
+from layout_engine import (
+    ComponentRegistry,
+    ComponentSpec,
+    SizeToken,
+    TileSpec,
+    Viewport,
+    block,
+    col,
+    quick_manifest_from_table,
+    row,
+    table,
+)
+from layout_engine.targets.media import HtmlExporter
+
+components = ComponentRegistry()
+components.register(ComponentSpec(role="stat", module="@demo/metric"))
+
+tiles = [
+    TileSpec(id="stat_revenue", role="stat", props={"label": "Revenue", "value": "$1.2M"}),
+    TileSpec(id="stat_growth", role="stat", props={"label": "Growth", "value": "18%"}),
+]
+
+layout = table(
+    row(
+        col(block("stat_revenue"), size=SizeToken.m),
+        col(block("stat_growth"), size=SizeToken.m),
+    )
+)
+
+manifest = quick_manifest_from_table(
+    layout,
+    Viewport(width=960, height=540),
+    tiles,
+    components_registry=components,
+)
+
+HtmlExporter(title="Stats Overview").export(manifest, out="stats.html")
+```
+
+The manifest merges component defaults with any props provided on `TileSpec`
+instances, so runtime components receive fully-prepared payloads.
+
+### Examples
+
+- [`examples/basic_usage.py`](./examples/basic_usage.py) – minimal quick-start
+  script that writes a manifest JSON file and exports an HTML preview.
+- [`examples/dashboard.py`](./examples/dashboard.py) – larger end-to-end demo
+  showcasing multiple roles and a custom theme.
+
+Run either script with:
+
+```bash
+uv run --directory experimental/layout_engine --package layout-engine python examples/basic_usage.py
+uv run --directory experimental/layout_engine --package layout-engine python examples/dashboard.py
+```
+
+Both scripts print their output locations so you can open the generated
+artifacts directly from the repository.
+
+## Core Concepts
+
+- **First-class objects** – `site`, `page`, `slot`, `grid`, `tile`, `component`, and `remote` provide the building blocks for any layout.
+- **Contracts** – objects expose `.render(...)`, `.export(...)`, and optional `.server(...)` methods to support SSR, SSG, and service endpoints.
+- **Registries** – manage atomic component defaults and micro-frontend remotes with predictable merge semantics.
 
 ## Development
 
 ```bash
 uv sync --all-extras
-uv run ruff check .
-uv run pytest -q
+uv run --directory experimental/layout_engine --package layout-engine ruff check .
+uv run --directory experimental/layout_engine --package layout-engine pytest -q
 ```
 
 ## License
 
-Apache 2.0 — see `LICENSE`.
+Apache License 2.0. See [LICENSE](./LICENSE) for full terms.

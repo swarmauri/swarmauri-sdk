@@ -4,6 +4,7 @@ from typing import Iterable
 from .spec import Remote
 from .base import IRemoteRegistry, IImportMapBuilder
 
+
 class RemoteRegistry(IRemoteRegistry):
     def __init__(self, remotes: Iterable[Remote] = ()):
         self._r: dict[str, Remote] = {}
@@ -16,7 +17,8 @@ class RemoteRegistry(IRemoteRegistry):
         self._r[remote.id] = remote
 
     def register_many(self, remotes: Iterable[Remote]) -> None:
-        for r in remotes: self.register(r)
+        for r in remotes:
+            self.register(r)
 
     def get(self, id: str) -> Remote:
         try:
@@ -35,21 +37,35 @@ class RemoteRegistry(IRemoteRegistry):
 
     def to_dict(self) -> dict[str, dict]:
         from .bindings import to_dict as _to
+
         return {rid: _to(r) for rid, r in self._r.items()}
 
     def update_from_dict(self, data: dict[str, dict]) -> None:
         from .bindings import from_dict as _from
+
         for rid, obj in data.items():
             r = _from(obj)
             # ensure key and dataclass id aligned (use dict key as authority)
             if rid != r.id:
-                r = Remote(id=rid, framework=r.framework, entry=r.entry, exposed=r.exposed, integrity=r.integrity)
+                r = Remote(
+                    id=rid,
+                    framework=r.framework,
+                    entry=r.entry,
+                    exposed=r.exposed,
+                    integrity=r.integrity,
+                )
             # upsert
             self._r[rid] = r
 
+
 class ImportMapBuilder(IImportMapBuilder):
-    def build(self, registry: IRemoteRegistry, *, extra_imports: dict[str,str] | None = None,
-              scopes: dict[str, dict[str,str]] | None = None) -> dict:
+    def build(
+        self,
+        registry: IRemoteRegistry,
+        *,
+        extra_imports: dict[str, str] | None = None,
+        scopes: dict[str, dict[str, str]] | None = None,
+    ) -> dict:
         imports = {rid: r.entry for rid, r in registry.to_dict().items()}
         if extra_imports:
             imports.update(extra_imports)

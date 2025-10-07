@@ -4,6 +4,7 @@ from .spec import ComponentSpec
 
 # -------- JSON (de)serialization --------
 
+
 def to_dict(spec: ComponentSpec) -> dict:
     return {
         "role": spec.role,
@@ -12,6 +13,7 @@ def to_dict(spec: ComponentSpec) -> dict:
         "version": spec.version,
         "defaults": dict(spec.defaults),
     }
+
 
 def from_dict(obj: Mapping[str, Any]) -> ComponentSpec:
     return ComponentSpec(
@@ -22,17 +24,21 @@ def from_dict(obj: Mapping[str, Any]) -> ComponentSpec:
         defaults=dict(obj.get("defaults", {})),
     )
 
+
 def registry_to_dict(registry) -> dict[str, dict]:
     return registry.dict()
 
+
 def registry_from_dict(registry, data: Mapping[str, Mapping[str, Any]]) -> None:
     registry.update_from_dict(data)
+
 
 # -------- Optional server render bindings (SSR partials) --------
 
 Renderer = Callable[[Mapping[str, Any]], str]
 HTMLRenderer = Renderer
 SVGRenderer = Renderer
+
 
 class ServerBindings:
     """Container for server-side renderers by (role, target).
@@ -42,6 +48,7 @@ class ServerBindings:
         bindings.register("kpi", "html", lambda props: f"<div>{props['value']}</div>")
         html = bindings.render("kpi", "html", {"value": 123})
     """
+
     def __init__(self):
         self._map: Dict[str, Dict[str, Renderer]] = {}
 

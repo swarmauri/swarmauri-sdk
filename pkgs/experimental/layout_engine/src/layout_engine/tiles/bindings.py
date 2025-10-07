@@ -5,8 +5,16 @@ from .default import Tile
 
 # ---- Spec JSON (de)serialization ----
 
+
 def to_dict(spec: TileSpec) -> dict:
-    return obj.dict() if hasattr(obj, 'dict') else dict(obj)def from_dict(obj: Mapping[str, Any]) -> TileSpec:
+    if hasattr(spec, "model_dump"):
+        return spec.model_dump()
+    if hasattr(spec, "dict"):
+        return spec.dict()
+    return dict(spec)
+
+
+def from_dict(obj: Mapping[str, Any]) -> TileSpec:
     return TileSpec(
         id=str(obj["id"]),
         role=str(obj.get("role", "generic")),
@@ -19,10 +27,13 @@ def to_dict(spec: TileSpec) -> dict:
         meta=dict(obj.get("meta", {})),
     )
 
+
 # ---- Tile JSON (de)serialization ----
+
 
 def tile_to_dict(t: Tile) -> dict:
     return {"spec": to_dict(t.spec)}
 
+
 def tile_from_dict(d: Mapping[str, Any]) -> Tile:
-    return Tile(from_dict(d["spec"]))
+    return Tile(spec=from_dict(d["spec"]))
