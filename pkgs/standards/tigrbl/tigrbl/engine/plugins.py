@@ -1,10 +1,8 @@
-
 from __future__ import annotations
-from typing import Any
 
-from .registry import register_engine  # re-exported for convenience
 
 _loaded = False
+
 
 def load_engine_plugins() -> None:
     """Discover and load external engine plugins via entry points.
@@ -18,14 +16,24 @@ def load_engine_plugins() -> None:
     eps = None
     try:
         from importlib.metadata import entry_points  # Python >= 3.10
+
         eps = entry_points()
         # New API: .select(group="tigrbl.engine")
-        selected = eps.select(group="tigrbl.engine") if hasattr(eps, "select") else eps.get("tigrbl.engine", [])
+        selected = (
+            eps.select(group="tigrbl.engine")
+            if hasattr(eps, "select")
+            else eps.get("tigrbl.engine", [])
+        )
     except Exception:
         try:
             from importlib_metadata import entry_points as entry_points_backport
+
             eps = entry_points_backport()
-            selected = eps.select(group="tigrbl.engine") if hasattr(eps, "select") else eps.get("tigrbl.engine", [])
+            selected = (
+                eps.select(group="tigrbl.engine")
+                if hasattr(eps, "select")
+                else eps.get("tigrbl.engine", [])
+            )
         except Exception:
             selected = []
 

@@ -56,12 +56,11 @@ def _normalize(ctx: Optional[EngineCfg] = None, **kw: Any) -> EngineCfg:
             if k in kw:
                 m[k] = kw[k]
     else:
-    # Allow external engine kinds; pass mapping through unchanged.
-    # Keep provided keys as-is so external builders can interpret them.
-    m.update({k:v for k,v in kw.items() if k not in m})
-    return m
+        # Allow external engine kinds; pass mapping through unchanged.
+        # Keep provided keys as-is so external builders can interpret them.
+        m.update({k: v for k, v in kw.items() if k not in m})
 
-return m
+    return m
 
 
 def engine_ctx(ctx: Optional[EngineCfg] = None, **kw: Any):
