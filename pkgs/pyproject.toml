@@ -40,6 +40,7 @@ members = [
     "standards/swarmauri_auth_idp_aws",
     "standards/swarmauri_auth_idp_apple",
     "standards/swarmauri_auth_idp_azure",
+    "standards/swarmauri_auth_idp_facebook",
     "standards/swarmauri_vectorstore_doc2vec",
     "standards/swarmauri_embedding_doc2vec",
     #"standards/swarmauri_embedding_tfidf",
@@ -114,6 +115,8 @@ members = [
     "experimental/swarmauri_tests_loc_tersity",
     "experimental/swarmauri_tests_pylicense",
     "experimental/swarmauri_tests_readme_examples",
+    "experimental/swarmauri_auth_idp_cognito",
+    "experimental/swarmauri_auth_idp_gitea",
     "standards/swarmauri_crypto_paramiko",
     "standards/swarmauri_crypto_pgp",
     "standards/swarmauri_crypto_rust",
@@ -381,6 +384,8 @@ swarmauri_cipher_suite_cades = { workspace = true }
 swarmauri_cipher_suite_pades = { workspace = true }
 swarmauri_certs_x509verify = { workspace = true }
 swarmauri_auth_idp_apple = { workspace = true }
+swarmauri_auth_idp_cognito = { workspace = true }
+swarmauri_auth_idp_gitea = { workspace = true }
 
 swarmauri_tokens_introspection = { workspace = true }
 swarmauri_tokens_paseto_v4 = { workspace = true }
