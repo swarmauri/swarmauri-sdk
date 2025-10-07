@@ -29,26 +29,6 @@ dependencies = [
     "swarmauri_xmp_png",
 ]
 
-[project.optional-dependencies]
-all = [
-    "swarmauri_xmp_gif",
-    "swarmauri_xmp_jpeg",
-    "swarmauri_xmp_mp4",
-    "swarmauri_xmp_pdf",
-    "swarmauri_xmp_png",
-    "swarmauri_xmp_svg",
-    "swarmauri_xmp_tiff",
-    "swarmauri_xmp_webp",
-]
-gif = ["swarmauri_xmp_gif"]
-jpeg = ["swarmauri_xmp_jpeg"]
-mp4 = ["swarmauri_xmp_mp4"]
-pdf = ["swarmauri_xmp_pdf"]
-png = ["swarmauri_xmp_png"]
-svg = ["swarmauri_xmp_svg"]
-tiff = ["swarmauri_xmp_tiff"]
-webp = ["swarmauri_xmp_webp"]
-
 keywords = [
     "swarmauri",
     "xmp",
@@ -75,6 +55,26 @@ keywords = [
     "pdf",
     "mp4",
 ]
+
+[project.optional-dependencies]
+all = [
+    "swarmauri_xmp_gif",
+    "swarmauri_xmp_jpeg",
+    "swarmauri_xmp_mp4",
+    "swarmauri_xmp_pdf",
+    "swarmauri_xmp_png",
+    "swarmauri_xmp_svg",
+    "swarmauri_xmp_tiff",
+    "swarmauri_xmp_webp",
+]
+gif = ["swarmauri_xmp_gif"]
+jpeg = ["swarmauri_xmp_jpeg"]
+mp4 = ["swarmauri_xmp_mp4"]
+pdf = ["swarmauri_xmp_pdf"]
+png = ["swarmauri_xmp_png"]
+svg = ["swarmauri_xmp_svg"]
+tiff = ["swarmauri_xmp_tiff"]
+webp = ["swarmauri_xmp_webp"]
 
 [project.urls]
 Homepage = "https://github.com/swarmauri/swarmauri-sdk"
