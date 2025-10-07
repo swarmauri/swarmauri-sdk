@@ -17,7 +17,7 @@
 
 # Swarmauri Auth IDP AWS
 
-AWS IAM Identity Center (Workforce) OAuth 2.0 / 2.1 logins packaged for Swarmauri deployments.
+AWS IAM Identity Center OAuth 2.0 / 2.1 logins packaged for Swarmauri deployments.
 
 ## Features
 
@@ -25,7 +25,7 @@ AWS IAM Identity Center (Workforce) OAuth 2.0 / 2.1 logins packaged for Swarmaur
 - Token exchange helpers that return normalized payloads for downstream services.
 - Optional identity resolver that hydrates user details via AWS Identity Store.
 - ComponentBase-compatible models that register under `swarmauri.auth_idp` entry points.
-- Retry-aware HTTP client tuned for AWS Workforce endpoints.
+- Retry-aware HTTP client tuned for AWS IAM Identity Center endpoints.
 
 ## Installation
 
@@ -51,10 +51,10 @@ uv pip install swarmauri_auth_idp_aws
 
 ```python
 import asyncio
-from swarmauri_auth_idp_aws import AwsWorkforceOAuth21Login
+from swarmauri_auth_idp_aws import AwsOAuth21Login
 from pydantic import SecretStr
 
-login = AwsWorkforceOAuth21Login(
+login = AwsOAuth21Login(
     authorization_endpoint="https://example.awsapps.com/start/oauth2/authorize",
     token_endpoint="https://example.awsapps.com/start/oauth2/token",
     client_id="client-id",
@@ -76,12 +76,12 @@ asyncio.run(flow())
 1. Call `auth_url()` and redirect the browser to the returned URL.
 2. Persist the `state` and compare it when handling the callback.
 3. Exchange the authorization code via `exchange_and_identity()` to obtain tokens.
-4. Optionally use `AwsWorkforceIdentityResolver` to enrich identity details for the session.
+4. Optionally use `AwsIdentityResolver` to enrich identity details for the session.
 
 ## Entry Points
 
-- `swarmauri.auth_idp:AwsWorkforceOAuth20Login`
-- `swarmauri.auth_idp:AwsWorkforceOAuth21Login`
+- `swarmauri.auth_idp:AwsOAuth20Login`
+- `swarmauri.auth_idp:AwsOAuth21Login`
 
 ## Contributing
 

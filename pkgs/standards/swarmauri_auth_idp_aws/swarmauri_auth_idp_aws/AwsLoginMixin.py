@@ -1,44 +1,18 @@
-"""Shared helpers for AWS Workforce OAuth login implementations."""
+"""Shared helpers for AWS OAuth login implementations."""
 
 from __future__ import annotations
 
-import asyncio
 import base64
 import hashlib
 import hmac
 import json
-import random
 import secrets
 import time
 from typing import Any, Callable, Dict, Mapping, Tuple
 
-import httpx
 from pydantic import ConfigDict, Field, PrivateAttr, SecretStr
 
-
-class RetryingAsyncClient(httpx.AsyncClient):
-    """Async HTTP client with exponential backoff and jitter."""
-
-    def __init__(self, *, timeout_sec: float | None = None, **kwargs) -> None:
-        timeout = httpx.Timeout(timeout_sec or 30.0)
-        super().__init__(timeout=timeout, **kwargs)
-
-    async def _sleep(
-        self, attempt: int, *, base: float = 0.25, cap: float = 4.0
-    ) -> None:
-        delay = min(cap, base * (2**attempt)) * (1.0 + 0.1 * random.random())
-        await asyncio.sleep(delay)
-
-    async def post_retry(
-        self, url: str, *, max_retries: int = 4, **kwargs
-    ) -> httpx.Response:
-        for attempt in range(max_retries + 1):
-            response = await self.post(url, **kwargs)
-            if response.status_code < 500 and response.status_code not in (429,):
-                return response
-            await self._sleep(attempt)
-        response.raise_for_status()
-        return response
+from swarmauri_base.auth_idp import RetryingAsyncClient
 
 
 def _b64u(data: bytes) -> str:
@@ -81,7 +55,7 @@ def verify_state(secret: bytes, state: str) -> Dict[str, Any]:
 
 
 class AwsLoginMixin:
-    """Common PKCE/state/token helpers shared across Workforce logins."""
+    """Common PKCE/state/token helpers shared across AWS logins."""
 
     model_config = ConfigDict(extra="forbid")
 

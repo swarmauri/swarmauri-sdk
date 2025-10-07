@@ -1,4 +1,4 @@
-"""HTTP utilities for resilient Apple identity provider requests."""
+"""HTTP utilities shared across auth identity provider implementations."""
 
 from __future__ import annotations
 
@@ -51,3 +51,6 @@ class RetryingAsyncClient(httpx.AsyncClient):
             await self._sleep(attempt)
         response.raise_for_status()
         return response
+
+
+__all__ = ["RetryingAsyncClient"]

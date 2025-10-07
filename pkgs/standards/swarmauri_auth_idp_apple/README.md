@@ -54,25 +54,21 @@ contracts. Instantiate them with your Apple developer credentials, persist the `
 returned by `auth_url`, and provide it back during the exchange step.
 
 ```python
-import asyncio
+from pydantic import SecretBytes
 from swarmauri_auth_idp_apple import AppleOAuth21Login
 
 login = AppleOAuth21Login(
     team_id="ABCD123456",
     key_id="XYZ7890",
     client_id="com.example.web",
-    private_key_pem=open("AuthKey_XYZ7890.p8", "rb").read(),
+    private_key_pem=SecretBytes(b"""-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"""),
     redirect_uri="https://example.com/callback",
-    state_secret=b"super-secret-state-key",
+    state_secret=SecretBytes(b"super-secret-state-key"),
 )
 
-async def flow() -> None:
-    auth = await login.auth_url()
-    # Redirect the user to auth["url"], then receive the callback with code/state.
-    identity = await login.exchange_and_identity(code="authorization-code", state=auth["state"])
-    print(identity)
-
-asyncio.run(flow())
+# In your application, call `await login.auth_url()` to initiate the flow and
+# `await login.exchange_and_identity(...)` inside an async context.
+print(login.client_id)
 ```
 
 ### Expected Workflow

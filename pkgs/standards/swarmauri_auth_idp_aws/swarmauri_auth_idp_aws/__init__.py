@@ -1,4 +1,4 @@
-"""AWS Workforce identity provider implementations."""
+"""AWS IAM Identity Center identity provider implementations."""
 
 from .AwsIdentityResolver import AwsIdentityResolver
 from .AwsOAuth20Login import AwsOAuth20Login

@@ -6,6 +6,7 @@ from .OAuth21AppClientBase import OAuth21AppClientBase
 from .OAuth21LoginBase import OAuth21LoginBase
 from .OIDC10AppClientBase import OIDC10AppClientBase
 from .OIDC10LoginBase import OIDC10LoginBase
+from .http import RetryingAsyncClient
 
 __all__ = [
     "OAuth20AppClientBase",
@@ -14,4 +15,5 @@ __all__ = [
     "OAuth21LoginBase",
     "OIDC10AppClientBase",
     "OIDC10LoginBase",
+    "RetryingAsyncClient",
 ]

@@ -11,4 +11,5 @@ from .internal import AppleAppClientMixin
 @ComponentBase.register_type(OAuth20AppClientBase, "AppleOAuth20AppClient")
 class AppleOAuth20AppClient(AppleAppClientMixin, OAuth20AppClientBase):
     """Document the lack of Apple OAuth 2.0 client credentials support."""
+
     ...

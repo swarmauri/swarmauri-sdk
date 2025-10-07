@@ -1,4 +1,4 @@
-"""AWS Workforce OAuth 2.0 Authorization Code login."""
+"""AWS IAM Identity Center OAuth 2.0 Authorization Code login."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from .AwsLoginMixin import AwsLoginMixin
 
 
 class AwsOAuth20Login(AwsLoginMixin, OAuth20LoginBase):
-    """Implement the AWS IAM Identity Center Workforce OAuth 2.0 flow."""
+    """Implement the AWS IAM Identity Center OAuth 2.0 flow."""
 
     type: Literal["AwsOAuth20Login"] = "AwsOAuth20Login"
 

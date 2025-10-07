@@ -1,4 +1,4 @@
-"""AWS Workforce OAuth 2.1 Authorization Code login."""
+"""AWS IAM Identity Center OAuth 2.1 Authorization Code login."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from .AwsLoginMixin import AwsLoginMixin, make_pkce_pair, sign_state
 
 
 class AwsOAuth21Login(AwsLoginMixin, OAuth21LoginBase):
-    """Implement the AWS IAM Identity Center Workforce OAuth 2.1 flow."""
+    """Implement the AWS IAM Identity Center OAuth 2.1 flow."""
 
     type: Literal["AwsOAuth21Login"] = "AwsOAuth21Login"
 

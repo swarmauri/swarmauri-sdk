@@ -7,7 +7,7 @@ from typing import Any, Callable, Dict, Mapping, Optional
 import jwt
 from pydantic import ConfigDict, PrivateAttr
 
-from .http import RetryingAsyncClient
+from swarmauri_base.auth_idp import RetryingAsyncClient
 from .utils import verify_state
 
 APPLE_ISSUER = "https://appleid.apple.com"

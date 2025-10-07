@@ -1,4 +1,4 @@
-"""Helper for resolving Workforce identity details using AWS APIs."""
+"""Helper for resolving IAM Identity Center identity details using AWS APIs."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import requests
 
 
 class AwsIdentityResolver:
-    """Resolve Workforce identities via AWS IAM Identity Center APIs."""
+    """Resolve IAM Identity Center identities via AWS APIs."""
 
     def __init__(
         self,
