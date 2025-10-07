@@ -5,15 +5,12 @@ from __future__ import annotations
 from typing import Any, Mapping, Optional
 
 from pydantic import Field, PrivateAttr, SecretBytes
-from swarmauri_base.auth_idp import OIDC10LoginBase
+from swarmauri_base.auth_idp import OIDC10LoginBase, make_pkce_pair, sign_state, make_nonce
 from swarmauri_base.ComponentBase import ComponentBase
 
 from .internal import (
     DISCOVERY_URL,
     AppleLoginMixin,
-    make_nonce,
-    make_pkce_pair,
-    sign_state,
 )
 
 

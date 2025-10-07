@@ -8,7 +8,7 @@ import jwt
 from pydantic import ConfigDict, PrivateAttr
 
 from swarmauri_base.auth_idp import RetryingAsyncClient
-from .utils import verify_state
+from swarmauri_base.auth_idp.utils import verify_state
 
 APPLE_ISSUER = "https://appleid.apple.com"
 DISCOVERY_URL = "https://appleid.apple.com/.well-known/openid-configuration"

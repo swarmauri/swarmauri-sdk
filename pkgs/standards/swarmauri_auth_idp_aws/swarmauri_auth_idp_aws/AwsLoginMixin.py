@@ -2,56 +2,16 @@
 
 from __future__ import annotations
 
-import base64
-import hashlib
-import hmac
-import json
-import secrets
-import time
-from typing import Any, Callable, Dict, Mapping, Tuple
+from typing import Any, Callable, Dict, Mapping
 
 from pydantic import ConfigDict, Field, PrivateAttr, SecretStr
 
-from swarmauri_base.auth_idp import RetryingAsyncClient
-
-
-def _b64u(data: bytes) -> str:
-    return base64.urlsafe_b64encode(data).decode("ascii").rstrip("=")
-
-
-def make_pkce_pair() -> Tuple[str, str]:
-    """Generate a PKCE verifier and challenge pair."""
-
-    verifier = _b64u(secrets.token_bytes(32))
-    challenge = _b64u(hashlib.sha256(verifier.encode("ascii")).digest())
-    return verifier, challenge
-
-
-def sign_state(secret: bytes, payload: Dict[str, Any], ttl_sec: int = 600) -> str:
-    """Sign and encode OAuth state to protect PKCE verifier."""
-
-    body = _b64u(
-        json.dumps({**payload, "exp": int(time.time()) + ttl_sec}).encode("utf-8")
-    )
-    digest = hmac.new(secret, body.encode("ascii"), hashlib.sha256).digest()
-    mac = _b64u(digest)
-    return f"{body}.{mac}"
-
-
-def verify_state(secret: bytes, state: str) -> Dict[str, Any]:
-    """Validate a signed state structure and return its payload."""
-
-    try:
-        body, mac = state.split(".", 1)
-    except ValueError as exc:  # pragma: no cover - defensive path
-        raise ValueError("invalid state format") from exc
-    expected = _b64u(hmac.new(secret, body.encode("ascii"), hashlib.sha256).digest())
-    if not hmac.compare_digest(mac, expected):
-        raise ValueError("bad-mac")
-    payload = json.loads(base64.urlsafe_b64decode(body + "=="))
-    if payload.get("exp", 0) < time.time():
-        raise ValueError("expired")
-    return payload
+from swarmauri_base.auth_idp import (
+    RetryingAsyncClient,
+    make_pkce_pair,
+    sign_state,
+    verify_state,
+)
 
 
 class AwsLoginMixin:
