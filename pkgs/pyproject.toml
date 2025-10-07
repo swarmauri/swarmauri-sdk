@@ -37,10 +37,19 @@ members = [
     "experimental/cayaml",
     "experimental/catoml",
     "experimental/jaml",
+    "experimental/swarmauri_auth_idp_github",
+    "experimental/swarmauri_auth_idp_gitlab",
+    "experimental/swarmauri_auth_idp_google",
+    "experimental/swarmauri_auth_idp_okta",
+    "experimental/swarmauri_auth_idp_keycloak",
+    "experimental/swarmauri_auth_idp_salesforce",
     "standards/swarmauri_auth_idp_aws",
     "standards/swarmauri_auth_idp_apple",
     "standards/swarmauri_auth_idp_azure",
     "standards/swarmauri_auth_idp_facebook",
+    "standards/swarmauri_auth_idp_cognito",
+    "standards/swarmauri_auth_idp_gitea",
+    "standards/swarmauri_auth_idp_github",
     "standards/swarmauri_vectorstore_doc2vec",
     "standards/swarmauri_embedding_doc2vec",
     #"standards/swarmauri_embedding_tfidf",
@@ -115,8 +124,7 @@ members = [
     "experimental/swarmauri_tests_loc_tersity",
     "experimental/swarmauri_tests_pylicense",
     "experimental/swarmauri_tests_readme_examples",
-    "experimental/swarmauri_auth_idp_cognito",
-    "experimental/swarmauri_auth_idp_gitea",
+
     "standards/swarmauri_crypto_paramiko",
     "standards/swarmauri_crypto_pgp",
     "standards/swarmauri_crypto_rust",
@@ -386,6 +394,15 @@ swarmauri_certs_x509verify = { workspace = true }
 swarmauri_auth_idp_apple = { workspace = true }
 swarmauri_auth_idp_cognito = { workspace = true }
 swarmauri_auth_idp_gitea = { workspace = true }
+swarmauri_auth_idp_github = { workspace = true }
+swarmauri_auth_idp_gitlab = { workspace = true }
+swarmauri_auth_idp_google = { workspace = true }
+swarmauri_auth_idp_okta = { workspace = true }
+swarmauri_auth_idp_keycloak = { workspace = true }
+swarmauri_auth_idp_salesforce = { workspace = true }
+swarmauri_auth_idp_azure = { workspace = true }
+swarmauri_auth_idp_aws = { workspace = true }
+swarmauri_auth_idp_facebook = { workspace = true }
 
 swarmauri_tokens_introspection = { workspace = true }
 swarmauri_tokens_paseto_v4 = { workspace = true }
