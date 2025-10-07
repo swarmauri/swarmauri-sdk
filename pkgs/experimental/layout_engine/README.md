@@ -92,15 +92,20 @@ instances, so runtime components receive fully-prepared payloads.
 
 ### Examples
 
-A runnable end-to-end script lives in [`examples/dashboard.py`](./examples/dashboard.py).
-Execute it with:
+- [`examples/basic_usage.py`](./examples/basic_usage.py) – minimal quick-start
+  script that writes a manifest JSON file and exports an HTML preview.
+- [`examples/dashboard.py`](./examples/dashboard.py) – larger end-to-end demo
+  showcasing multiple roles and a custom theme.
+
+Run either script with:
 
 ```bash
+uv run --directory experimental/layout_engine --package layout-engine python examples/basic_usage.py
 uv run --directory experimental/layout_engine --package layout-engine python examples/dashboard.py
 ```
 
-The script prints the compiled manifest summary and writes a styled HTML preview
-next to the script for quick visual inspection.
+Both scripts print their output locations so you can open the generated
+artifacts directly from the repository.
 
 ## Core Concepts
 
