@@ -19,8 +19,8 @@ from swarmauri_base.DynamicBase import DynamicBase
 from swarmauri_base.DynamicBase import SubclassUnion as SubclassUnion
 from swarmauri_base.LoggerMixin import LoggerMixin
 from swarmauri_base.ServiceMixin import ServiceMixin
-from swarmauri_base.YamlMixin import YamlMixin
 from swarmauri_base.TomlMixin import TomlMixin
+from swarmauri_base.YamlMixin import YamlMixin
 
 ###########################################
 # ComponentBase
@@ -125,3 +125,9 @@ class ResourceTypes(Enum):
     TOKEN_SERVICE = "TokenService"
     STORAGE_ADAPTER = "StorageAdapter"
     SST = "SST"
+    OAuth20AppClient = "OAuth20AppClient"
+    OAuth20Login = "OAuth20Login"
+    OAuth21AppClient = "OAuth21AppClient"
+    OAuth21Login = "OAuth21Login"
+    OIDC10AppClient = "OIDC10AppClient"
+    OIDC10Login = "OIDC10Login"
