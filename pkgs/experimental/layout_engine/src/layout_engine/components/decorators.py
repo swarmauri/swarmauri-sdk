@@ -4,17 +4,31 @@ from typing import Mapping, Any
 from .default import ComponentRegistry
 from .spec import ComponentSpec
 
-def component_ctx(*, role: str, module: str, export: str = "default",
-              version: str = "1.0.0", defaults: Mapping[str, Any] | None = None,
-              registry: ComponentRegistry | None = None):
+
+def component_ctx(
+    *,
+    role: str,
+    module: str,
+    export: str = "default",
+    version: str = "1.0.0",
+    defaults: Mapping[str, Any] | None = None,
+    registry: ComponentRegistry | None = None,
+):
     """Decorator to declare and optionally register a component_ctx specification.
 
     Example:
         @component_ctx(role="kpi", module="@app/widgets/Kpi.svelte", defaults={"format":"currency"}, registry=REG)
         def kpi(): pass
     """
+
     def deco(fn):
-        spec = ComponentSpec(role=role, module=module, export=export, version=version, defaults=defaults or {})
+        spec = ComponentSpec(
+            role=role,
+            module=module,
+            export=export,
+            version=version,
+            defaults=defaults or {},
+        )
         setattr(fn, "__component_spec__", spec)
         if registry is not None:
             registry.register(spec)
@@ -22,8 +36,31 @@ def component_ctx(*, role: str, module: str, export: str = "default",
         @wraps(fn)
         def wrapper(*a, **kw):
             return fn(*a, **kw)
+
         return wrapper
+
     return deco
+
+
+def component(
+    *,
+    role: str,
+    module: str,
+    export: str = "default",
+    version: str = "1.0.0",
+    defaults: Mapping[str, Any] | None = None,
+    registry: ComponentRegistry | None = None,
+):
+    """Backward compatible alias for :func:`component_ctx`."""
+    return component_ctx(
+        role=role,
+        module=module,
+        export=export,
+        version=version,
+        defaults=defaults,
+        registry=registry,
+    )
+
 
 def validate_props(schema: Mapping[str, Any] | None = None):
     """No-op validation decorator placeholder.
@@ -31,10 +68,13 @@ def validate_props(schema: Mapping[str, Any] | None = None):
     Hook point for adding runtime schema validation (pydantic/jsonschema) in apps that need it,
     while keeping core package free of heavy deps.
     """
+
     def deco(fn):
         @wraps(fn)
         def wrapper(*a, **kw):
             # place to validate kw against schema if provided
             return fn(*a, **kw)
+
         return wrapper
+
     return deco

@@ -9,12 +9,14 @@ _MIN_CSS = """html,body{margin:0;padding:0}
 .tile{position:absolute;box-sizing:border-box}
 """
 
+
 class HtmlExporter(IMediaTarget):
     """
     Styled HTML exporter with optional CSS links and inline CSS.
     - Maintains class name and interface: export(manifest, out=...)->str
     - Adds styling controls via constructor, but defaults are backward compatible.
     """
+
     def __init__(
         self,
         *,
@@ -61,18 +63,35 @@ class HtmlExporter(IMediaTarget):
         if self.extra_head:
             head_parts.append(self.extra_head)
 
-        # Body attributes
-        body_attr_str = " ".join(f"{k}='{str(v).replace("'", '&#39;')}'" for k,v in self.body_attrs.items())
+        body_attr_parts: list[str] = []
+        for key, value in self.body_attrs.items():
+            safe_value = str(value).replace("'", "&#39;")
+            body_attr_parts.append(f"{key}='{safe_value}'")
+        body_attr_str = " ".join(body_attr_parts)
 
         # Tiles
         tiles_html = []
         for t in manifest.tiles:
-            fr = t.frame  # dict-like
-            x, y, w, h = int(fr["x"]), int(fr["y"]), int(fr["w"]), int(fr["h"])
-            tid = getattr(t, "id", None) or (t.get("id") if isinstance(t, dict) else None) or ""
+            if isinstance(t, Mapping):
+                frame_data = t.get("frame", {})
+                tid = t.get("id", "")
+            else:
+                frame_obj = getattr(t, "frame", {})
+                frame_data = (
+                    frame_obj.to_dict()
+                    if hasattr(frame_obj, "to_dict")
+                    else dict(frame_obj)
+                )
+                tid = getattr(t, "id", "")
+            x = int(frame_data.get("x", 0))
+            y = int(frame_data.get("y", 0))
+            w = int(frame_data.get("w", 0))
+            h = int(frame_data.get("h", 0))
             # Allow a subtle default border to make areas visible; leave style hook for external CSS.
             style = f"left:{x}px;top:{y}px;width:{w}px;height:{h}px;"
-            tiles_html.append(f"<div class='tile' data-tile='{tid}' style='{style}'></div>")
+            tiles_html.append(
+                f"<div class='tile' data-tile='{tid}' style='{style}'></div>"
+            )
 
         html = (
             "<!doctype html>"
@@ -80,8 +99,8 @@ class HtmlExporter(IMediaTarget):
             "<head>" + "".join(head_parts) + "</head>"
             f"<body {body_attr_str}>"
             f"<div class='page' style='width:{vw}px;height:{vh}px'>"
-            + "".join(tiles_html) +
-            "</div></body></html>"
+            + "".join(tiles_html)
+            + "</div></body></html>"
         )
         Path(out).write_text(html, encoding="utf-8")
         return str(out)

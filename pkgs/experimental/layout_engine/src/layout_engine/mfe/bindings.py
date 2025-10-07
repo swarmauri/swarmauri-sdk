@@ -1,46 +1,77 @@
 from __future__ import annotations
-from typing import Mapping, Any
+
 import json
+from typing import Any, Mapping
+
 from .spec import Remote
 
-def to_dict(r: Remote) -> dict:
-    return obj.dict() if hasattr(obj, 'dict') else dict(obj)def from_dict(obj: Mapping[str, Any]) -> Remote:
+
+def to_dict(remote: Remote) -> dict:
+    if hasattr(remote, "model_dump"):
+        return remote.model_dump()
+    if hasattr(remote, "dict"):
+        return remote.dict()
+    return {
+        "id": remote.id,
+        "framework": remote.framework,
+        "entry": remote.entry,
+        "exposed": remote.exposed,
+        "integrity": remote.integrity,
+    }
+
+
+def from_dict(obj: Mapping[str, Any]) -> Remote:
     return Remote(
         id=str(obj["id"]),
-        framework=str(obj["framework"]),  # validated in Remote.__post_init__
+        framework=str(obj["framework"]),
         entry=str(obj["entry"]),
-        exposed=str(obj["exposed"]),
+        exposed=str(obj.get("exposed", "./App")),
         integrity=(str(obj["integrity"]) if obj.get("integrity") else None),
     )
 
+
 def registry_to_dict(registry) -> dict[str, dict]:
-    return registry.dict()
+    if hasattr(registry, "to_dict"):
+        return registry.to_dict()
+    return {}
+
 
 def registry_from_dict(registry, data: Mapping[str, Mapping[str, Any]]) -> None:
-    registry.update_from_dict(data)  # upsert
+    if hasattr(registry, "update_from_dict"):
+        registry.update_from_dict(data)
 
-# -------- Import map helpers --------
 
-def to_import_map(registry, *, extra_imports: dict[str,str] | None = None,
-                  scopes: dict[str, dict[str,str]] | None = None) -> dict:
-    imports = {rid: r["entry"] for rid, r in registry_to_dict(registry).items()}
+def to_import_map(
+    registry,
+    *,
+    extra_imports: dict[str, str] | None = None,
+    scopes: dict[str, dict[str, str]] | None = None,
+) -> dict:
+    imports = {rid: info["entry"] for rid, info in registry_to_dict(registry).items()}
     if extra_imports:
         imports.update(extra_imports)
-    imap = {"imports": imports}
+    out = {"imports": imports}
     if scopes:
-        imap["scopes"] = scopes
-    return imap
+        out["scopes"] = scopes
+    return out
 
-def to_import_map_json(registry, *, extra_imports: dict[str,str] | None = None,
-                       scopes: dict[str, dict[str,str]] | None = None, indent: int | None = None) -> str:
+
+def to_import_map_json(
+    registry,
+    *,
+    extra_imports: dict[str, str] | None = None,
+    scopes: dict[str, dict[str, str]] | None = None,
+    indent: int | None = None,
+) -> str:
     imap = to_import_map(registry, extra_imports=extra_imports, scopes=scopes)
     return json.dumps(imap, indent=indent, sort_keys=True)
 
-def script_tag(import_map: dict, *, indent: int | None = 2) -> str:
+
+def script_tag(import_map: Mapping[str, Any], *, indent: int | None = 2) -> str:
     js = json.dumps(import_map, indent=indent, sort_keys=True)
     return f'<script type="importmap">{js}</script>'
 
+
 def modulepreload_html(import_map: Mapping[str, Any]) -> str:
-    """Return a string with <link rel="modulepreload"> tags for top-level imports."""
     imports = list(import_map.get("imports", {}).values())
     return "\n".join(f'<link rel="modulepreload" href="{href}">' for href in imports)

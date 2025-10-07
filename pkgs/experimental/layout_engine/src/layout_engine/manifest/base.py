@@ -2,6 +2,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod, Mapping, Any
 from .spec import Manifest
 
+
 class IManifestBuilder(ABC):
     @abstractmethod
     def build(self, view_model: Mapping[str, Any]) -> Manifest:
