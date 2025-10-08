@@ -48,6 +48,7 @@ GitLabOAuth21AppClient = "swarmauri_auth_idp_gitlab:GitLabOAuth21AppClient"
 GitLabOIDC10AppClient = "swarmauri_auth_idp_gitlab:GitLabOIDC10AppClient"
 
 [tool.uv.sources]
+swarmauri_tests_pylicense = { workspace = true }
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 
@@ -78,6 +79,7 @@ dev = [
     "pytest-timeout>=2.3.1",
     "pytest-benchmark>=4.0.0",
     "ruff>=0.9.9",
+    "swarmauri_tests_pylicense",
 ]
 
 [build-system]

@@ -21,7 +21,9 @@ class GiteaOAuth21Login(GiteaOAuthLoginMixin, OAuth21LoginBase):
     async def exchange_and_identity(self, code: str, state: str) -> Mapping[str, Any]:
         tokens = await self._exchange_tokens(code, state)
         profile = await self._fetch_profile(tokens["access_token"])
-        name = profile.get("full_name") or profile.get("username") or profile.get("login")
+        name = (
+            profile.get("full_name") or profile.get("username") or profile.get("login")
+        )
         return {
             "issuer": "gitea-oauth21",
             "sub": str(profile.get("id")),
