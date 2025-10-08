@@ -8,7 +8,12 @@ import jwt
 from pydantic import ConfigDict, Field, PrivateAttr, SecretBytes, SecretStr
 
 from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_base.auth_idp import OIDC10LoginBase, make_pkce_pair, sign_state, verify_state
+from swarmauri_base.auth_idp import (
+    OIDC10LoginBase,
+    make_pkce_pair,
+    sign_state,
+    verify_state,
+)
 from swarmauri_base.auth_idp.http import RetryingAsyncClient
 
 
@@ -121,7 +126,9 @@ class GiteaOIDC10Login(OIDC10LoginBase):
         kid = header.get("kid")
         if not kid:
             raise ValueError("missing kid in id_token header")
-        key_entry = next((entry for entry in jwks.get("keys", []) if entry.get("kid") == kid), None)
+        key_entry = next(
+            (entry for entry in jwks.get("keys", []) if entry.get("kid") == kid), None
+        )
         if not key_entry:
             raise ValueError("signing key not found")
         algorithm = header.get("alg", "RS256")
