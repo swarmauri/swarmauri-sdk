@@ -3,6 +3,8 @@ from __future__ import annotations
 from enum import Enum
 from typing import Optional, Tuple
 
+import httpx
+
 from tigrbl import engine_ctx, op_ctx, hook_ctx
 import tigrbl.core as core
 from tigrbl.orm.tables import Base
@@ -16,9 +18,12 @@ from tigrbl.types import (
     HTTPException,
 )
 
+from ..workload_client import WorkloadClientError, fetch_remote_svid
+
 try:
     from ..types import SvidKind as _SvidKind
 except Exception:  # fallback if types module isn't present yet
+
     class _SvidKind(str, Enum):
         x509 = "x509"
         jwt = "jwt"
@@ -47,40 +52,69 @@ class Svid(Base):
     kind = acol(
         storage=S(type_=SAEnum(_SvidKind, name="svid_kind"), nullable=False),
         field=F(py_type=_SvidKind),
-        io=IO(in_verbs=("create", "update", "replace", "merge"), out_verbs=("read", "list"), filter_ops=("eq",)),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+            filter_ops=("eq",),
+        ),
     )
 
     # Version + lifecycle
     version = acol(
         storage=S(type_=Integer, nullable=False, default=1),
         field=F(py_type=int),
-        io=IO(in_verbs=("update", "replace", "merge"), out_verbs=("read", "list"), sortable=True),
+        io=IO(
+            in_verbs=("update", "replace", "merge"),
+            out_verbs=("read", "list"),
+            sortable=True,
+        ),
     )
 
     status = acol(
-        storage=S(type_=SAEnum(SvidStatus, name="svid_status"), nullable=False, default=SvidStatus.active),
+        storage=S(
+            type_=SAEnum(SvidStatus, name="svid_status"),
+            nullable=False,
+            default=SvidStatus.active,
+        ),
         field=F(py_type=SvidStatus),
-        io=IO(in_verbs=("update", "replace", "merge"), out_verbs=("read", "list"), filter_ops=("eq",)),
+        io=IO(
+            in_verbs=("update", "replace", "merge"),
+            out_verbs=("read", "list"),
+            filter_ops=("eq",),
+        ),
     )
 
     # Validity window (epoch seconds)
     not_before = acol(
         storage=S(type_=Integer, nullable=False),
         field=F(py_type=int, required_in=("create",)),
-        io=IO(in_verbs=("create", "update", "replace", "merge"), out_verbs=("read", "list"), sortable=True, filter_ops=("ge","le","gt","lt","eq")),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+            sortable=True,
+            filter_ops=("ge", "le", "gt", "lt", "eq"),
+        ),
     )
 
     not_after = acol(
         storage=S(type_=Integer, nullable=False),
         field=F(py_type=int, required_in=("create",)),
-        io=IO(in_verbs=("create", "update", "replace", "merge"), out_verbs=("read", "list"), sortable=True, filter_ops=("ge","le","gt","lt","eq")),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+            sortable=True,
+            filter_ops=("ge", "le", "gt", "lt", "eq"),
+        ),
     )
 
     # Audiences (JWT/CWT) or x509 EKUs/URI SANs mapping if needed
     audiences = acol(
         storage=S(type_=JSON, nullable=True),
         field=F(py_type=Tuple[str, ...]),
-        io=IO(in_verbs=("create", "update", "replace", "merge"), out_verbs=("read", "list")),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     # Material: DER chain for x509; UTF-8 token for JWT/CWT. Store as bytes to keep single storage type.
@@ -94,18 +128,26 @@ class Svid(Base):
     bundle_id = acol(
         storage=S(type_=String(255), nullable=True, index=True),
         field=F(py_type=str),
-        io=IO(in_verbs=("create", "update", "replace", "merge"), out_verbs=("read", "list"), filter_ops=("eq",)),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+            filter_ops=("eq",),
+        ),
     )
 
     # Expose convenience views
     token: Optional[str] = vcol(
         io=IO(out_verbs=("read",)),
-        read_producer=lambda obj, ctx: obj.material.decode("utf-8") if getattr(obj, "kind", "jwt") in ("jwt", "cwt") else None,
+        read_producer=lambda obj, ctx: obj.material.decode("utf-8")
+        if getattr(obj, "kind", "jwt") in ("jwt", "cwt")
+        else None,
     )
 
     chain_der_hex: Optional[str] = vcol(
         io=IO(out_verbs=("read",)),
-        read_producer=lambda obj, ctx: obj.material.hex() if getattr(obj, "kind", "x509") == "x509" else None,
+        read_producer=lambda obj, ctx: obj.material.hex()
+        if getattr(obj, "kind", "x509") == "x509"
+        else None,
     )
 
     @hook_ctx(ops=("create", "merge", "replace"), phase="PRE_HANDLER")
@@ -129,7 +171,9 @@ class Svid(Base):
             try:
                 material_bytes = material.encode("utf-8")
             except Exception:
-                raise HTTPException(status_code=400, detail="material must be bytes or utf-8 string")
+                raise HTTPException(
+                    status_code=400, detail="material must be bytes or utf-8 string"
+                )
         else:
             material_bytes = material
 
@@ -139,7 +183,9 @@ class Svid(Base):
             return
 
         # Delegate to provided validator; must raise HTTPException on failure
-        await validator.validate(kind=kind, material=material_bytes, bundle_id=data.get("bundle_id"), ctx=ctx)
+        await validator.validate(
+            kind=kind, material=material_bytes, bundle_id=data.get("bundle_id"), ctx=ctx
+        )
 
     @op_ctx(alias="rotate", target="custom", arity="member", persist="write")
     async def rotate(cls, ctx):
@@ -152,7 +198,9 @@ class Svid(Base):
         if db is None:
             raise HTTPException(status_code=500, detail="DB session missing")
 
-        ident = (ctx.get("path_params") or {}).get("id") or (ctx.get("payload") or {}).get("id")
+        ident = (ctx.get("path_params") or {}).get("id") or (
+            ctx.get("payload") or {}
+        ).get("id")
         if ident is None:
             raise HTTPException(status_code=400, detail="Missing item id for rotation")
 
@@ -168,8 +216,10 @@ class Svid(Base):
         # Compute next SVID material via policy (returns dict fields to merge)
         # Expected keys: material (bytes), not_before(int), not_after(int), audiences(tuple[str,...]) optional
         patch = await policy.rotate(current=obj, ctx=ctx)
-        if not isinstance(patch, dict) or b"" is None:
-            raise HTTPException(status_code=500, detail="Invalid rotation policy result")
+        if not isinstance(patch, dict) or b"" == None:
+            raise HTTPException(
+                status_code=500, detail="Invalid rotation policy result"
+            )
 
         # Merge in-place (version++, status->active)
         data = {
@@ -177,7 +227,9 @@ class Svid(Base):
             "material": patch.get("material", getattr(obj, "material")),
             "not_before": patch.get("not_before", getattr(obj, "not_before")),
             "not_after": patch.get("not_after", getattr(obj, "not_after")),
-            "audiences": tuple(patch.get("audiences", getattr(obj, "audiences", ()) or ())),
+            "audiences": tuple(
+                patch.get("audiences", getattr(obj, "audiences", ()) or ())
+            ),
             "status": SvidStatus.active,
         }
         result = await core.merge(cls, ident, data=data, db=db)
@@ -193,70 +245,42 @@ class Svid(Base):
 
         """
         payload = ctx.get("payload") or {}
-        if not payload.get("remote") :
+        if not payload.get("remote"):
             # Default: core read/list behavior
             ident = (ctx.get("path_params") or {}).get("id")
             db = ctx.get("db")
             if ident is None:
                 # collection read
-                return await core.list(cls, db=db, filters=(payload.get("filters") or {}), sort=payload.get("sort"))
+                return await core.list(
+                    cls,
+                    db=db,
+                    filters=(payload.get("filters") or {}),
+                    sort=payload.get("sort"),
+                )
             return await core.read(cls, ident, db=db)
 
         # Remote delegation (no DB writes) via adapter provided by middleware
         adapter = ctx.get("spiffe_adapter")
         cfg = ctx.get("spiffe_config")
         if adapter is None or cfg is None:
-            raise HTTPException(status_code=500, detail="SPIFFE adapter/config missing for remote read")
+            raise HTTPException(
+                status_code=500, detail="SPIFFE adapter/config missing for remote read"
+            )
 
         kind = payload.get("kind") or "x509"
-        aud = payload.get("aud") or ()
+        aud = tuple(payload.get("aud") or ())
         tx = await adapter.for_endpoint(cfg.workload_endpoint)
+        try:
+            remote = await fetch_remote_svid(tx, kind=kind, audiences=aud)
+        except WorkloadClientError as exc:
+            raise HTTPException(status_code=500, detail=str(exc)) from exc
+        except httpx.HTTPError as exc:
+            raise HTTPException(
+                status_code=502, detail="Workload endpoint request failed"
+            ) from exc
 
-        if kind == "x509" and tx.kind == "uds":
-            from pyspiffe.workloadapi.default_workload_api_client import DefaultWorkloadApiClient
-            client = DefaultWorkloadApiClient(socket_path=tx.uds_path)
-            try:
-                svid = client.fetch_x509_svid()
-                chain_der = b"".join(c.public_bytes() for c in svid.cert_chain)  # type: ignore[attr-defined]
-                return {
-                    "spiffe_id": str(svid.spiffe_id()),
-                    "kind": "x509",
-                    "version": 1,
-                    "status": "active",
-                    "not_before": int(svid.expires_at.timestamp()) - 3600,  # conservative
-                    "not_after": int(svid.expires_at.timestamp()),
-                    "audiences": tuple(aud),
-                    "material": chain_der,
-                }
-            finally:
-                client.close()
-        # HTTP/HTTPS path or other kinds
-        if kind == "jwt":
-            resp = await tx.http.post("/workload/jwtsvid", json={"aud": list(aud)})
-            data = resp.json()
-            return {
-                "spiffe_id": data["spiffe_id"],
-                "kind": "jwt",
-                "version": 1,
-                "status": "active",
-                "not_before": data.get("nbf", 0),
-                "not_after": data.get("exp", 0),
-                "audiences": tuple(data.get("aud", [])),
-                "material": data["jwt"].encode("utf-8"),
-                "bundle_id": data.get("bundle_id"),
-            }
-        if kind == "cwt":
-            resp = await tx.http.post("/workload/cwtsvid", json={"aud": list(aud)})
-            data = resp.json()
-            return {
-                "spiffe_id": data["spiffe_id"],
-                "kind": "cwt",
-                "version": 1,
-                "status": "active",
-                "not_before": data.get("nbf", 0),
-                "not_after": data.get("exp", 0),
-                "audiences": tuple(data.get("aud", [])),
-                "material": data["cwt"].encode("utf-8"),
-                "bundle_id": data.get("bundle_id"),
-            }
-        raise HTTPException(status_code=400, detail=f"Unsupported kind for remote read: {kind}")
+        return {
+            **remote,
+            "version": 1,
+            "status": "active",
+        }
