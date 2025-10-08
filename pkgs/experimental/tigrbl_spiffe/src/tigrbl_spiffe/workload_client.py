@@ -114,6 +114,10 @@ async def fetch_remote_svid(
         response = await tx.http.post(path, json={"aud": list(audiences)})
         response.raise_for_status()
         data = response.json()
+        spiffe_id = data.get("spiffe_id")
+        if not spiffe_id:
+            raise WorkloadClientError("Missing spiffe_id in workload response")
+
         token_key = "jwt" if kind == "jwt" else "cwt"
         token = data.get(token_key)
         if not token:
@@ -121,7 +125,7 @@ async def fetch_remote_svid(
                 f"Missing {token_key} payload in workload response"
             )
         return {
-            "spiffe_id": data["spiffe_id"],
+            "spiffe_id": spiffe_id,
             "kind": kind,
             "not_before": data.get("nbf", 0),
             "not_after": data.get("exp", data.get("expires_at", 0)),

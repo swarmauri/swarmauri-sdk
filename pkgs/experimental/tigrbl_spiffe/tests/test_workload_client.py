@@ -59,3 +59,18 @@ async def test_fetch_remote_svid_missing_token_raises():
             await fetch_remote_svid(txn, kind="jwt", audiences=())
     finally:
         await client.aclose()
+
+
+@pytest.mark.asyncio
+async def test_fetch_remote_svid_missing_spiffe_id_raises():
+    def responder(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"jwt": "token-value"})
+
+    transport = httpx.MockTransport(responder)
+    client = httpx.AsyncClient(transport=transport, base_url="http://agent.test")
+    txn = Txn(kind="http", http=client)
+    try:
+        with pytest.raises(WorkloadClientError):
+            await fetch_remote_svid(txn, kind="jwt", audiences=())
+    finally:
+        await client.aclose()
