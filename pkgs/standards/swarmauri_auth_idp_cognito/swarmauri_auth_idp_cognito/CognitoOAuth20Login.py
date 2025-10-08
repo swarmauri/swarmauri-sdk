@@ -58,11 +58,7 @@ class CognitoOAuth20Login(CognitoLoginMixin, OAuth20LoginBase):
         userinfo_json = await self._http_get(
             userinfo_endpoint, headers=userinfo_headers
         )
-        name = (
-            userinfo_json.get("name")
-            or userinfo_json.get("given_name")
-            or "Unknown"
-        )
+        name = userinfo_json.get("name") or userinfo_json.get("given_name") or "Unknown"
         return {
             "issuer": "cognito-oauth2",
             "sub": userinfo_json.get("sub"),

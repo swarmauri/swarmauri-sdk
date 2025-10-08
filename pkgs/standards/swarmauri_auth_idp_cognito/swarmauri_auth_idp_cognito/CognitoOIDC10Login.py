@@ -60,7 +60,9 @@ class CognitoOIDC10Login(CognitoLoginMixin, OIDC10LoginBase):
                 "Authorization": f"Bearer {token_json['access_token']}",
                 "Accept": "application/json",
             }
-            userinfo_json = await self._http_get(metadata["userinfo_endpoint"], headers=headers)
+            userinfo_json = await self._http_get(
+                metadata["userinfo_endpoint"], headers=headers
+            )
             email = userinfo_json.get("email") or email
             name = userinfo_json.get("name") or name
         return {

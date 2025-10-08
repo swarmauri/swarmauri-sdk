@@ -77,7 +77,10 @@ class GiteaOAuthLoginMixin:
             return response.json()
 
     async def _fetch_profile(self, access_token: str) -> Mapping[str, Any]:
-        headers = {"Authorization": f"Bearer {access_token}", "Accept": "application/json"}
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Accept": "application/json",
+        }
         api_base = self._api_base_url()
         async with self._http_client_factory() as client:
             response = await client.get_retry(f"{api_base}/user", headers=headers)

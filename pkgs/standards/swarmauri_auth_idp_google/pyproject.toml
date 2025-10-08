@@ -45,6 +45,7 @@ GoogleOAuth21Login = "swarmauri_auth_idp_google:GoogleOAuth21Login"
 GoogleOIDC10Login = "swarmauri_auth_idp_google:GoogleOIDC10Login"
 
 [tool.uv.sources]
+swarmauri_tests_pylicense = { workspace = true }
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 
@@ -75,6 +76,7 @@ dev = [
     "pytest-timeout>=2.3.1",
     "pytest-benchmark>=4.0.0",
     "ruff>=0.9.9",
+    "swarmauri_tests_pylicense",
 ]
 
 [build-system]

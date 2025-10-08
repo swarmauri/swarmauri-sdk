@@ -61,7 +61,9 @@ class GiteaOAuth21AppClient(OAuth21AppClientBase):
         headers: Dict[str, str] = {}
         if kid := self.private_key_jwk.get("kid"):
             headers["kid"] = kid
-        assertion = jwt.encode(payload, key=key, algorithm=algorithm, headers=headers or None)
+        assertion = jwt.encode(
+            payload, key=key, algorithm=algorithm, headers=headers or None
+        )
         return {
             "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
             "client_assertion": assertion,
