@@ -43,6 +43,9 @@ dependencies = [
 KeycloakOAuth20Login = "swarmauri_auth_idp_keycloak:KeycloakOAuth20Login"
 KeycloakOAuth21Login = "swarmauri_auth_idp_keycloak:KeycloakOAuth21Login"
 KeycloakOIDC10Login = "swarmauri_auth_idp_keycloak:KeycloakOIDC10Login"
+KeycloakOAuth20AppClient = "swarmauri_auth_idp_keycloak:KeycloakOAuth20AppClient"
+KeycloakOAuth21AppClient = "swarmauri_auth_idp_keycloak:KeycloakOAuth21AppClient"
+KeycloakOIDC10AppClient = "swarmauri_auth_idp_keycloak:KeycloakOIDC10AppClient"
 
 [tool.uv.sources]
 swarmauri_tests_pylicense = { workspace = true }
