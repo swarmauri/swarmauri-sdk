@@ -22,6 +22,7 @@ Salesforce OAuth 2.0 / OAuth 2.1 / OIDC 1.0 identity providers packaged for Swar
 ## Features
 
 - PKCE-enabled Authorization Code flows that integrate with Salesforce authorization servers.
+- JWT bearer app clients for Salesforce OAuth 2.0, OAuth 2.1, and OIDC 1.0 machine identities.
 - Discovery-driven OAuth 2.1/OIDC login that verifies ID tokens against Salesforce JWKS.
 - UserInfo and Identity URL fallbacks for normalized profile payloads.
 - Retry-aware HTTP integration tuned for Salesforce REST endpoints.
@@ -48,6 +49,8 @@ uv pip install swarmauri_auth_idp_salesforce
 ```
 
 ## Usage
+
+### Authorization Code logins
 
 ```python
 import asyncio
@@ -84,10 +87,38 @@ asyncio.run(run_flow())
 2. Persist the `state` and verify it during the callback handler.
 3. Exchange the authorization code through `exchange_and_identity()` to obtain tokens and profile metadata.
 
+### Server-to-server JWT bearer tokens
+
+```python
+import asyncio
+from pydantic import SecretStr
+from swarmauri_auth_idp_salesforce import SalesforceOAuth20AppClient
+
+client = SalesforceOAuth20AppClient(
+    token_endpoint="https://login.salesforce.com/services/oauth2/token",
+    client_id="connected-app-id",
+    user="integration.user@example.com",
+    private_key_pem=SecretStr("-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"),
+)
+
+async def fetch_token() -> None:
+    access_token = await client.access_token()
+    print(access_token)
+
+asyncio.run(fetch_token())
+```
+
+Use `SalesforceOAuth21AppClient` when your integration manages keys as JWKs, or
+`SalesforceOIDC10AppClient` to discover tenant-specific endpoints before
+requesting JWT bearer tokens.
+
 ## Entry Points
 
+- `swarmauri.auth_idp:SalesforceOAuth20AppClient`
 - `swarmauri.auth_idp:SalesforceOAuth20Login`
+- `swarmauri.auth_idp:SalesforceOAuth21AppClient`
 - `swarmauri.auth_idp:SalesforceOAuth21Login`
+- `swarmauri.auth_idp:SalesforceOIDC10AppClient`
 - `swarmauri.auth_idp:SalesforceOIDC10Login`
 
 ## Contributing
