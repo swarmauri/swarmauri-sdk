@@ -1,17 +1,13 @@
 from __future__ import annotations
 
-import time
+import json
 from importlib import import_module
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import pytest
 from pydantic import SecretStr
 
-from swarmauri_auth_idp_okta import (
-    OktaOIDC10AppClient,
-    OktaOAuth20AppClient,
-    OktaOAuth21AppClient,
-)
+from swarmauri_auth_idp_okta import OktaOAuth21AppClient
 
 
 okta_oauth21_module = import_module("swarmauri_auth_idp_okta.OktaOAuth21AppClient")
@@ -55,73 +51,43 @@ class DummyClient:
         payload = self._factory.post_payloads.pop(0)
         return DummyResponse(payload)
 
-    async def get_retry(
-        self,
-        url: str,
-        headers: Optional[Dict[str, str]] = None,
-    ) -> DummyResponse:
-        self._factory.get_calls += 1
-        self._factory.last_get_kwargs = {
-            "url": url,
-            "headers": dict(headers or {}),
-        }
-        payload = self._factory.get_payloads.pop(0)
-        return DummyResponse(payload)
-
 
 class DummyClientFactory:
-    def __init__(
-        self,
-        *,
-        post_payloads: Optional[List[Dict[str, Any]]] = None,
-        get_payloads: Optional[List[Dict[str, Any]]] = None,
-    ):
+    def __init__(self, *, post_payloads: Optional[list[Dict[str, Any]]] = None):
         self.post_payloads = list(post_payloads or [])
-        self.get_payloads = list(get_payloads or [])
         self.post_calls = 0
-        self.get_calls = 0
         self.last_post_kwargs: Dict[str, Any] | None = None
-        self.last_get_kwargs: Dict[str, Any] | None = None
 
     def __call__(self) -> DummyClient:
         return DummyClient(self)
 
 
-@pytest.mark.unit
-@pytest.mark.asyncio
-async def test_okta_oauth20_uses_cache() -> None:
-    client = OktaOAuth20AppClient(
+@pytest.fixture
+def client() -> OktaOAuth21AppClient:
+    return OktaOAuth21AppClient(
         issuer="https://example.okta.com/oauth2/default",
         client_id="client",
         client_secret=SecretStr("secret"),
     )
-    client._cached_token = ("cached-token", time.time() + 120)
-    token = await client.access_token()
-    assert token == "cached-token"
 
 
 @pytest.mark.unit
-@pytest.mark.asyncio
-async def test_okta_oauth20_fetches_and_caches() -> None:
-    factory = DummyClientFactory(
-        post_payloads=[{"access_token": "fresh", "expires_in": 90}]
-    )
-    client = OktaOAuth20AppClient(
-        issuer="https://example.okta.com/oauth2/default",
-        client_id="client",
-        client_secret=SecretStr("secret"),
-        http_client_factory=factory,
-    )
+def test_resource(client: OktaOAuth21AppClient) -> None:
+    assert client.resource == "OAuth21AppClient"
 
-    token = await client.access_token(scope="api.scope")
-    assert token == "fresh"
-    assert factory.post_calls == 1
-    assert factory.last_post_kwargs["data"]["scope"] == "api.scope"
-    assert factory.last_post_kwargs["auth"] == ("client", "secret")
 
-    token_again = await client.access_token()
-    assert token_again == "fresh"
-    assert factory.post_calls == 1  # cached
+@pytest.mark.unit
+def test_type(client: OktaOAuth21AppClient) -> None:
+    assert client.type == "OktaOAuth21AppClient"
+
+
+@pytest.mark.unit
+def test_serialization(client: OktaOAuth21AppClient) -> None:
+    dumped = json.loads(client.model_dump_json())
+    cloned = OktaOAuth21AppClient.model_construct(**dumped)
+    cloned.client_secret = client.client_secret
+    assert cloned.id == client.id
+    assert cloned.client_id == client.client_id
 
 
 @pytest.mark.unit
@@ -188,32 +154,3 @@ async def test_okta_oauth21_private_key_jwt(monkeypatch) -> None:
     assert factory.last_post_kwargs["auth"] is None
     assert factory.last_post_kwargs["data"]["client_assertion"] == "assertion"
     assert factory.last_post_kwargs["data"]["scope"] == "okta.scope"
-
-
-@pytest.mark.unit
-@pytest.mark.asyncio
-async def test_okta_oidc10_discovery_cached() -> None:
-    factory = DummyClientFactory(
-        get_payloads=[
-            {
-                "token_endpoint": "https://example.okta.com/oauth2/default/v1/token",
-            }
-        ],
-        post_payloads=[{"access_token": "oidc-token", "expires_in": 120}],
-    )
-    client = OktaOIDC10AppClient(
-        issuer="https://example.okta.com/oauth2/default",
-        client_id="client",
-        client_secret=SecretStr("secret"),
-        http_client_factory=factory,
-    )
-
-    token = await client.access_token(scope="scope1")
-    assert token == "oidc-token"
-    assert factory.get_calls == 1
-    assert factory.post_calls == 1
-    assert factory.last_post_kwargs["auth"] == ("client", "secret")
-
-    token_again = await client.access_token()
-    assert token_again == "oidc-token"
-    assert factory.post_calls == 1  # cached token reused
