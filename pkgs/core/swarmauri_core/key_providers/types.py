@@ -14,6 +14,7 @@ class KeyClass(str, Enum):
 
     symmetric = "sym"
     asymmetric = "asym"
+    opaque = "opaque"
 
 
 class KeyAlg(str, Enum):
