@@ -22,6 +22,7 @@ Okta OAuth 2.0 / OAuth 2.1 / OIDC 1.0 identity providers packaged for Swarmauri 
 ## Features
 
 - PKCE-enabled Authorization Code flows that integrate with Okta authorization servers.
+- Machine-to-machine app clients for Okta OAuth 2.0, OAuth 2.1 (private key JWT), and OIDC 1.0.
 - Discovery-driven OAuth 2.1/OIDC login that verifies ID tokens using Okta JWKS.
 - UserInfo enrichment for deployments that require full user profile hydration.
 - Retry-aware HTTP integration tuned for Okta endpoints.
@@ -77,10 +78,37 @@ asyncio.run(run_flow())
 2. Persist the `state` and verify it during the callback handler.
 3. Exchange the authorization code through `exchange_and_identity()` to obtain tokens and profile metadata.
 
+### Server-to-server client credentials
+
+```python
+import asyncio
+from pydantic import SecretStr
+from swarmauri_auth_idp_okta import OktaOAuth20AppClient
+
+client = OktaOAuth20AppClient(
+    issuer="https://example.okta.com/oauth2/default",
+    client_id="machine-client-id",
+    client_secret=SecretStr("machine-client-secret"),
+)
+
+async def fetch_token() -> None:
+    token = await client.access_token(scope="customScope")
+    print(token)
+
+asyncio.run(fetch_token())
+```
+
+Use `OktaOAuth21AppClient` when the integration should authenticate with
+`private_key_jwt`, or `OktaOIDC10AppClient` to rely on discovery metadata for
+tenant-specific token endpoints.
+
 ## Entry Points
 
+- `swarmauri.auth_idp:OktaOAuth20AppClient`
 - `swarmauri.auth_idp:OktaOAuth20Login`
+- `swarmauri.auth_idp:OktaOAuth21AppClient`
 - `swarmauri.auth_idp:OktaOAuth21Login`
+- `swarmauri.auth_idp:OktaOIDC10AppClient`
 - `swarmauri.auth_idp:OktaOIDC10Login`
 
 ## Contributing

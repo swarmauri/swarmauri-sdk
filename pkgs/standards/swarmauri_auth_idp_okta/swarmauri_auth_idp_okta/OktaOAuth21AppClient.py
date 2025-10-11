@@ -1,4 +1,4 @@
-"""Gitea OAuth 2.1 client credentials app client implementation."""
+"""Okta OAuth 2.1 client credentials app client implementation."""
 
 from __future__ import annotations
 
@@ -10,29 +10,32 @@ import jwt
 from pydantic import ConfigDict, Field, PrivateAttr, SecretStr
 
 from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_base.auth_idp import OAuth21AppClientBase
-from swarmauri_base.auth_idp.http import RetryingAsyncClient
+from swarmauri_base.auth_idp import OAuth21AppClientBase, RetryingAsyncClient
 
 
-@ComponentBase.register_type(OAuth21AppClientBase, "GiteaOAuth21AppClient")
-class GiteaOAuth21AppClient(OAuth21AppClientBase):
-    """Request OAuth 2.1 tokens from Gitea using secrets or JWT assertions."""
+ASSERTION_TYPE = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
 
-    model_config = ConfigDict(extra="forbid")
 
-    base_url: str
+@ComponentBase.register_type(OAuth21AppClientBase, "OktaOAuth21AppClient")
+class OktaOAuth21AppClient(OAuth21AppClientBase):
+    """Request OAuth 2.1 tokens from Okta using secrets or private key JWT assertions."""
+
+    model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
+
+    issuer: str
     client_id: str
     client_secret: Optional[SecretStr] = None
     private_key_jwk: Optional[Dict[str, Any]] = None
     cache_skew_seconds: int = Field(default=30, ge=0)
-
-    _http_client_factory: Callable[[], RetryingAsyncClient] = PrivateAttr(
-        default=RetryingAsyncClient
+    assertion_lifetime_seconds: int = Field(default=300, ge=60)
+    http_client_factory: Callable[[], RetryingAsyncClient] = Field(
+        default=RetryingAsyncClient, exclude=True, repr=False
     )
+
     _cached_token: Optional[Tuple[str, float]] = PrivateAttr(default=None)
 
     def _token_endpoint(self) -> str:
-        return f"{self.base_url.rstrip('/')}/login/oauth/access_token"
+        return f"{self.issuer.rstrip('/')}/v1/token"
 
     def _client_secret_value(self) -> Optional[str]:
         return self.client_secret.get_secret_value() if self.client_secret else None
@@ -42,6 +45,8 @@ class GiteaOAuth21AppClient(OAuth21AppClientBase):
         serialized = json.dumps(jwk_payload)
         if algorithm.upper().startswith("ES"):
             return jwt.algorithms.ECAlgorithm.from_jwk(serialized)
+        if algorithm.upper().startswith("PS"):
+            return jwt.algorithms.RSAAlgorithm.from_jwk(serialized)
         return jwt.algorithms.RSAAlgorithm.from_jwk(serialized)
 
     def _client_assertion_body(self) -> Dict[str, str]:
@@ -55,8 +60,8 @@ class GiteaOAuth21AppClient(OAuth21AppClientBase):
             "sub": self.client_id,
             "aud": self._token_endpoint(),
             "iat": now,
-            "exp": now + 300,
-            "jti": str(now),
+            "exp": now + self.assertion_lifetime_seconds,
+            "jti": f"{self.client_id}-{now}",
         }
         headers: Dict[str, str] = {}
         if kid := self.private_key_jwk.get("kid"):
@@ -65,7 +70,8 @@ class GiteaOAuth21AppClient(OAuth21AppClientBase):
             payload, key=key, algorithm=algorithm, headers=headers or None
         )
         return {
-            "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+            "client_id": self.client_id,
+            "client_assertion_type": ASSERTION_TYPE,
             "client_assertion": assertion,
         }
 
@@ -76,14 +82,14 @@ class GiteaOAuth21AppClient(OAuth21AppClientBase):
         body = self._client_assertion_body()
         auth = None
         if body:
-            form["client_id"] = self.client_id
+            payload = {**form, **body}
         else:
             secret = self._client_secret_value()
             if not secret:
                 raise ValueError("client_secret or private_key_jwk must be provided")
             auth = (self.client_id, secret)
-        payload = {**form, **body}
-        async with self._http_client_factory() as client:
+            payload = form
+        async with self.http_client_factory() as client:
             response = await client.post_retry(
                 self._token_endpoint(),
                 data=payload,
@@ -92,8 +98,11 @@ class GiteaOAuth21AppClient(OAuth21AppClientBase):
             )
             response.raise_for_status()
             data = response.json()
+        token = data.get("access_token")
+        if not token:
+            raise ValueError("access_token missing from Okta response")
         expires_at = time.time() + int(data.get("expires_in", 3600))
-        return data["access_token"], expires_at
+        return token, expires_at
 
     async def access_token(self, scope: Optional[str] = None) -> str:
         cached = self._cached_token
@@ -103,3 +112,6 @@ class GiteaOAuth21AppClient(OAuth21AppClientBase):
         token, expires_at = await self._fetch_token(scope)
         self._cached_token = (token, expires_at)
         return token
+
+
+__all__ = ["OktaOAuth21AppClient"]

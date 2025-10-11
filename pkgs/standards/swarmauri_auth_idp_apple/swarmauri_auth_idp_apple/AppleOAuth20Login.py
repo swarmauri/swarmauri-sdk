@@ -5,10 +5,16 @@ from __future__ import annotations
 from typing import Any, Mapping
 
 from pydantic import Field, SecretBytes
-from swarmauri_base.auth_idp import OAuth20LoginBase, make_pkce_pair, sign_state, make_nonce
+from swarmauri_base.auth_idp import (
+    OAuth20LoginBase,
+    make_pkce_pair,
+    sign_state,
+    make_nonce,
+)
 from swarmauri_base.ComponentBase import ComponentBase
 
 from .internal import AppleLoginMixin
+
 
 @ComponentBase.register_type(OAuth20LoginBase, "AppleOAuth20Login")
 class AppleOAuth20Login(AppleLoginMixin, OAuth20LoginBase):

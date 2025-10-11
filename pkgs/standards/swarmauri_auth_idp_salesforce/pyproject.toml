@@ -40,11 +40,15 @@ dependencies = [
 ]
 
 [project.entry-points.'swarmauri.auth_idp']
+SalesforceOAuth20AppClient = "swarmauri_auth_idp_salesforce:SalesforceOAuth20AppClient"
 SalesforceOAuth20Login = "swarmauri_auth_idp_salesforce:SalesforceOAuth20Login"
+SalesforceOAuth21AppClient = "swarmauri_auth_idp_salesforce:SalesforceOAuth21AppClient"
 SalesforceOAuth21Login = "swarmauri_auth_idp_salesforce:SalesforceOAuth21Login"
+SalesforceOIDC10AppClient = "swarmauri_auth_idp_salesforce:SalesforceOIDC10AppClient"
 SalesforceOIDC10Login = "swarmauri_auth_idp_salesforce:SalesforceOIDC10Login"
 
 [tool.uv.sources]
+swarmauri_tests_pylicense = { workspace = true }
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 
@@ -75,6 +79,7 @@ dev = [
     "pytest-timeout>=2.3.1",
     "pytest-benchmark>=4.0.0",
     "ruff>=0.9.9",
+    "swarmauri_tests_pylicense",
 ]
 
 [build-system]

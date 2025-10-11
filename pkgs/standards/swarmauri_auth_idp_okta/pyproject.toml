@@ -40,11 +40,15 @@ dependencies = [
 ]
 
 [project.entry-points.'swarmauri.auth_idp']
+OktaOAuth20AppClient = "swarmauri_auth_idp_okta:OktaOAuth20AppClient"
 OktaOAuth20Login = "swarmauri_auth_idp_okta:OktaOAuth20Login"
+OktaOAuth21AppClient = "swarmauri_auth_idp_okta:OktaOAuth21AppClient"
 OktaOAuth21Login = "swarmauri_auth_idp_okta:OktaOAuth21Login"
+OktaOIDC10AppClient = "swarmauri_auth_idp_okta:OktaOIDC10AppClient"
 OktaOIDC10Login = "swarmauri_auth_idp_okta:OktaOIDC10Login"
 
 [tool.uv.sources]
+swarmauri_tests_pylicense = { workspace = true }
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 
@@ -75,6 +79,7 @@ dev = [
     "pytest-timeout>=2.3.1",
     "pytest-benchmark>=4.0.0",
     "ruff>=0.9.9",
+    "swarmauri_tests_pylicense",
 ]
 
 [build-system]
