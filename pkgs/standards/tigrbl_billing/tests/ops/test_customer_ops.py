@@ -10,7 +10,7 @@ async def test_create_or_link_customer_normalizes_tax_exempt(recording_model):
     result = await customer_ops.create_or_link_customer(
         email="user@example.com",
         name="User",
-        stripe_customer_id="cus_1",
+        external_id="cus_1",
         default_payment_method_ref="pm_1",
         tax_exempt="reverse",
         metadata={"segment": "beta"},
@@ -23,6 +23,7 @@ async def test_create_or_link_customer_normalizes_tax_exempt(recording_model):
     call_ctx = recording_model.handlers.merge.calls[0]
     assert call_ctx["payload"]["tax_exempt"] == "REVERSE"
     assert call_ctx["payload"]["active"] is False
+    assert call_ctx["payload"]["external_id"] == "cus_1"
 
 
 @pytest.mark.asyncio

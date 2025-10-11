@@ -74,7 +74,7 @@ async def run_subscription_billing_flow(app: TigrblApp | None = None) -> Dict[st
         transport=transport, base_url="http://subscription-billing.test"
     ) as client:
         product_payload = {
-            "stripe_product_id": "prod_atlas_workspace",
+            "external_id": "prod_atlas_workspace",
             "name": "Atlas Workspace",
             "description": "Collaboration suite with analytics and automation",
             "metadata": {"department": "product"},
@@ -116,7 +116,7 @@ async def run_subscription_billing_flow(app: TigrblApp | None = None) -> Dict[st
 
         price_definitions = {
             "free": {
-                "stripe_price_id": "price_atlas_free",
+                "external_id": "price_atlas_free",
                 "currency": "usd",
                 "billing_scheme": "flat",
                 "unit_amount": 0,
@@ -131,7 +131,7 @@ async def run_subscription_billing_flow(app: TigrblApp | None = None) -> Dict[st
                 },
             },
             "basic": {
-                "stripe_price_id": "price_atlas_basic",
+                "external_id": "price_atlas_basic",
                 "currency": "usd",
                 "billing_scheme": "flat",
                 "unit_amount": 2900,
@@ -146,7 +146,7 @@ async def run_subscription_billing_flow(app: TigrblApp | None = None) -> Dict[st
                 },
             },
             "pro": {
-                "stripe_price_id": "price_atlas_pro",
+                "external_id": "price_atlas_pro",
                 "currency": "usd",
                 "billing_scheme": "flat",
                 "unit_amount": 5900,
@@ -161,7 +161,7 @@ async def run_subscription_billing_flow(app: TigrblApp | None = None) -> Dict[st
                 },
             },
             "premium": {
-                "stripe_price_id": "price_atlas_premium",
+                "external_id": "price_atlas_premium",
                 "currency": "usd",
                 "billing_scheme": "flat",
                 "unit_amount": 12900,
@@ -247,7 +247,7 @@ async def run_subscription_billing_flow(app: TigrblApp | None = None) -> Dict[st
             entitlement_records.append(entitlement_record.json())
 
         customer_payload = {
-            "stripe_customer_id": "cus_atlas_labs",
+            "external_id": "cus_atlas_labs",
             "email": "billing@atlaslabs.example",
             "name": "Atlas Labs Inc.",
             "default_payment_method_ref": "pm_visa_corporate",
@@ -257,7 +257,7 @@ async def run_subscription_billing_flow(app: TigrblApp | None = None) -> Dict[st
         customer_id = customer_response.json()["data"]["id"]
 
         subscription_payload = {
-            "stripe_subscription_id": "sub_atlas_premium",
+            "external_id": "sub_atlas_premium",
             "customer_id": customer_id,
             "status": "trialing",
             "start_date": now.isoformat(),
@@ -277,7 +277,7 @@ async def run_subscription_billing_flow(app: TigrblApp | None = None) -> Dict[st
         subscription_item_payload = {
             "subscription_id": subscription_id,
             "price_id": price_ids["premium"],
-            "stripe_subscription_item_id": "si_atlas_premium_core",
+            "external_id": "si_atlas_premium_core",
             "quantity": 25,
             "metadata": {"seats_purchased": 25},
         }
@@ -319,7 +319,7 @@ async def run_subscription_billing_flow(app: TigrblApp | None = None) -> Dict[st
         usage_event_id = usage_response.json()["data"]["id"]
 
         payment_intent_payload = {
-            "stripe_payment_intent_id": "pi_atlas_initial_invoice",
+            "external_id": "pi_atlas_initial_invoice",
             "customer_id": customer_id,
             "currency": "usd",
             "amount": 12900,
@@ -337,7 +337,7 @@ async def run_subscription_billing_flow(app: TigrblApp | None = None) -> Dict[st
         payment_intent_id = payment_intent_response.json()["data"]["id"]
 
         refund_payload = {
-            "stripe_refund_id": "re_atlas_seat_adjustment",
+            "external_id": "re_atlas_seat_adjustment",
             "payment_intent_id": payment_intent_id,
             "amount": 12900 // 5,
             "status": "succeeded",
