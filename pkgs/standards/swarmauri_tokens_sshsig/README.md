@@ -38,7 +38,7 @@ pip install swarmauri_tokens_sshsig
 
 ```python
 from swarmauri_tokens_sshsig import SshSigTokenService
-from swarmauri_core.keys import IKeyProvider
+from swarmauri_core.key_providers import IKeyProvider
 
 key_provider: IKeyProvider = ...  # Provide an implementation of IKeyProvider
 svc = SshSigTokenService(key_provider, default_issuer="example.com")

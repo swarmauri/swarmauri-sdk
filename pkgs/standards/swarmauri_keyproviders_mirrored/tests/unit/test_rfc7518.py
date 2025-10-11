@@ -1,6 +1,6 @@
 import pytest
 
-from swarmauri_core.keys.types import KeyAlg
+from swarmauri_core.key_providers.types import KeyAlg
 from swarmauri_keyprovider_local import LocalKeyProvider
 from swarmauri_keyproviders_mirrored import MirroredKeyProvider
 

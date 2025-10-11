@@ -16,8 +16,8 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives.asymmetric import rsa, ec, ed25519
 
-from swarmauri_base.keys.KeyProviderBase import KeyProviderBase
-from swarmauri_core.keys.types import KeyAlg, KeySpec, ExportPolicy
+from swarmauri_base.key_providers.KeyProviderBase import KeyProviderBase
+from swarmauri_core.key_providers.types import KeyAlg, KeySpec, ExportPolicy
 from swarmauri_core.crypto.types import KeyRef
 
 

@@ -18,7 +18,7 @@ from typing import (
 )
 
 from swarmauri_base.tokens.TokenServiceBase import TokenServiceBase
-from swarmauri_core.keys.IKeyProvider import IKeyProvider
+from swarmauri_core.key_providers.IKeyProvider import IKeyProvider
 
 
 @dataclass(frozen=True)

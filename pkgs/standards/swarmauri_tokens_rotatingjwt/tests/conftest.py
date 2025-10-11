@@ -3,7 +3,7 @@ import secrets
 import pytest
 
 from swarmauri_core.crypto.types import JWAAlg, KeyRef, KeyType
-from swarmauri_core.keys.types import ExportPolicy, KeyUse, KeyAlg, KeySpec
+from swarmauri_core.key_providers.types import ExportPolicy, KeyUse, KeyAlg, KeySpec
 from swarmauri_tokens_rotatingjwt import RotatingJWTTokenService
 
 

@@ -11,7 +11,7 @@ from jwt import algorithms
 
 from .JWTTokenService import JWTTokenService
 from swarmauri_core.crypto.types import JWAAlg
-from swarmauri_core.keys.IKeyProvider import IKeyProvider
+from swarmauri_core.key_providers.IKeyProvider import IKeyProvider
 
 
 def _b64u(b: bytes) -> str:

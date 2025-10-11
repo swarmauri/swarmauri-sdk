@@ -22,7 +22,7 @@ from typing import (
 from swarmauri_base import register_type
 from swarmauri_base.signing.SigningBase import SigningBase
 from swarmauri_core.crypto.types import Alg, KeyRef
-from swarmauri_core.keys.IKeyProvider import IKeyProvider
+from swarmauri_core.key_providers.IKeyProvider import IKeyProvider
 from swarmauri_core.signing.ISigning import Canon, Envelope, StreamLike
 from swarmauri_core.signing.types import Signature
 

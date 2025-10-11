@@ -73,7 +73,7 @@ authority (CA), issue a leaf certificate, and verify the chain.
 import asyncio
 from swarmauri_certs_x509 import X509CertService
 from swarmauri_keyprovider_local import LocalKeyProvider
-from swarmauri_core.keys.types import KeySpec, KeyAlg, KeyClass
+from swarmauri_core.key_providers.types import KeySpec, KeyAlg, KeyClass
 from swarmauri_core.crypto.types import KeyUse, ExportPolicy
 
 svc = X509CertService()

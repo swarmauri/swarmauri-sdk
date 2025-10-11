@@ -27,7 +27,7 @@ from peagen.defaults import DEFAULT_GATEWAY
 from peagen.orm import DeployKey
 from peagen.plugins import PluginManager
 
-from swarmauri_core.keys.types import KeyAlg, KeyClass, KeySpec, ExportPolicy
+from swarmauri_core.key_providers.types import KeyAlg, KeyClass, KeySpec, ExportPolicy
 from swarmauri_core.crypto.types import KeyUse
 
 

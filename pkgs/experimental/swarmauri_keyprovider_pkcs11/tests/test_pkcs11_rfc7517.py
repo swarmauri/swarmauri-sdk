@@ -2,7 +2,7 @@ import pytest
 
 from swarmauri_keyprovider_pkcs11 import Pkcs11KeyProvider
 from swarmauri_keyprovider_pkcs11.Pkcs11KeyProvider import _IndexEntry
-from swarmauri_core.keys.types import KeyAlg, KeyClass
+from swarmauri_core.key_providers.types import KeyAlg, KeyClass
 
 
 @pytest.mark.unit

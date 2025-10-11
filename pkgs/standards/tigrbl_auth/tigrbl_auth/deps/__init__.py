@@ -79,7 +79,7 @@ from swarmauri_signing_ed25519 import Ed25519EnvelopeSigner
 from swarmauri_signing_jws import JwsSignerVerifier
 from swarmauri_crypto_jwe import JweCrypto
 from swarmauri_core.crypto.types import JWAAlg, KeyUse, ExportPolicy
-from swarmauri_core.keys.types import KeyAlg, KeyClass, KeySpec
+from swarmauri_core.key_providers.types import KeyAlg, KeyClass, KeySpec
 
 __all__ = [
     # pydantic
