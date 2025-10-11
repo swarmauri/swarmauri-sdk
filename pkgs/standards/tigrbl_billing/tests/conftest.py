@@ -1,11 +1,22 @@
+import asyncio
+import contextlib
+import inspect
+import functools
+import re
+import socket
 import sys
+import threading
 import types
 import uuid
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, Iterable, List
+from types import SimpleNamespace
+from typing import Any, Callable, Dict, Iterable, List, Mapping, Sequence
 
+import httpx
 import pytest
+import uvicorn
+from fastapi import APIRouter, Body, FastAPI, HTTPException
 
 PACKAGE_DIR = Path(__file__).resolve().parents[1]
 SRC_DIR = PACKAGE_DIR / "src"
@@ -16,11 +27,62 @@ if str(SRC_DIR) not in sys.path:
 # Minimal tigrbl stubs (decorator + typing aliases)
 # ----------------------------------------------------------------------------
 
+_REGISTERED_API_OPS: Dict[type, List[Dict[str, Any]]] = {}
+
 
 def _op_ctx_decorator(**metadata):
     def decorator(func):
-        setattr(func, "_tigrbl_ctx", metadata)
-        return func
+        meta = dict(metadata)
+        setattr(func, "_tigrbl_ctx", meta)
+        bind = meta.get("bind")
+        module_name = func.__module__ or ""
+        is_api_wrapper = ".api." in module_name
+        if bind is not None and isinstance(bind, type) and is_api_wrapper:
+            ops = _REGISTERED_API_OPS.setdefault(bind, [])
+            alias = meta.get("alias")
+            if alias and not any(
+                entry["alias"] == alias and entry["module"] == func.__module__
+                for entry in ops
+            ):
+                ops.append(
+                    {
+                        "alias": alias,
+                        "func": func,
+                        "module": func.__module__,
+                    }
+                )
+        if is_api_wrapper:
+            return func
+
+        # Adapter for ops-layer functions so they behave like their decorated counterparts.
+        is_async = inspect.iscoroutinefunction(func)
+
+        if is_async:
+
+            @functools.wraps(func)
+            async def async_adapter(
+                ctx=None, engine_ctx=None, schema_ctx=None, **payload
+            ):
+                payload = dict(payload)
+                actual_ctx = ctx if isinstance(ctx, dict) else payload.pop("ctx", None)
+                if actual_ctx is None:
+                    actual_ctx = {}
+                model = payload.pop("model", None) or bind
+                result = await func(model=model, ctx=actual_ctx, **payload)
+                return result
+
+            return async_adapter
+
+        @functools.wraps(func)
+        def adapter(ctx=None, engine_ctx=None, schema_ctx=None, **payload):
+            payload = dict(payload)
+            actual_ctx = ctx if isinstance(ctx, dict) else payload.pop("ctx", None)
+            if actual_ctx is None:
+                actual_ctx = {}
+            model = payload.pop("model", None) or bind
+            return func(model=model, ctx=actual_ctx, **payload)
+
+        return adapter
 
     return decorator
 
@@ -28,6 +90,24 @@ def _op_ctx_decorator(**metadata):
 tigrbl_module = types.ModuleType("tigrbl")
 tigrbl_module.op_ctx = _op_ctx_decorator
 sys.modules.setdefault("tigrbl", tigrbl_module)
+
+tigrbl_engine_module = types.ModuleType("tigrbl.engine")
+tigrbl_engine_shortcuts = types.ModuleType("tigrbl.engine.shortcuts")
+sys.modules.setdefault("tigrbl.engine", tigrbl_engine_module)
+sys.modules.setdefault("tigrbl.engine.shortcuts", tigrbl_engine_shortcuts)
+tigrbl_engine_module.shortcuts = tigrbl_engine_shortcuts  # type: ignore[attr-defined]
+
+
+def _stub_build_engine(cfg: Mapping[str, Any] | None = None, **_) -> Mapping[str, Any]:
+    return dict(cfg or {})
+
+
+def _stub_mem(async_: bool = True) -> Mapping[str, Any]:
+    return {"kind": "sqlite", "async": bool(async_)}
+
+
+tigrbl_engine_shortcuts.engine = _stub_build_engine  # type: ignore[attr-defined]
+tigrbl_engine_shortcuts.mem = _stub_mem  # type: ignore[attr-defined]
 
 tigrbl_types_module = types.ModuleType("tigrbl.types")
 tigrbl_types_module.Session = object
@@ -154,6 +234,259 @@ def make_model(name: str, columns: Iterable[str]):
     _REGISTERED_MODELS.append(model_cls)
     return model_cls
 
+
+def _resource_name(model: type) -> str:
+    return re.sub(r"(?<!^)(?=[A-Z])", "_", model.__name__).lower()
+
+
+def _serialize_instance(obj: Any) -> Dict[str, Any]:
+    return {k: v for k, v in vars(obj).items() if not k.startswith("_")}
+
+
+def _ensure_model_handlers(model: type) -> None:
+    if getattr(model, "handlers", None) is not None:
+        return
+
+    storage: List[Any] = getattr(model, "_storage", None)
+    if storage is None:
+        storage = []
+        setattr(model, "_storage", storage)
+
+    resource = _resource_name(model)
+    alias_field = f"{resource}_id"
+
+    def _resolve_identifier(
+        ctx: Mapping[str, Any] | None, payload: Mapping[str, Any]
+    ) -> tuple[Any | None, set[str]]:
+        identifier: Any | None = None
+        keys: set[str] = set()
+        ctx_map: Mapping[str, Any] = ctx or {}
+        path_params = ctx_map.get("path_params") or {}
+        if isinstance(path_params, Mapping):
+            for key, value in path_params.items():
+                keys.add(key)
+                if identifier is None and value is not None:
+                    identifier = value
+        for key in ("id", alias_field):
+            if identifier is not None:
+                break
+            value = payload.get(key)
+            if value is not None:
+                identifier = value
+                keys.add(key)
+        if identifier is None:
+            for key, value in payload.items():
+                if key.endswith("_id") and value is not None:
+                    identifier = value
+                    keys.add(key)
+                    break
+        return identifier, keys
+
+    def _candidate_keys(keys: Iterable[str], payload: Mapping[str, Any]) -> set[str]:
+        candidates = {"id", alias_field}
+        candidates.update(keys)
+        candidates.update(
+            {k for k, v in payload.items() if k.endswith("_id") and v is not None}
+        )
+        candidates.update({k for k in ("stripe_customer_id", "email") if k in payload})
+        return candidates
+
+    def _find_by_identifier(
+        identifier: Any | None, keys: Iterable[str], payload: Mapping[str, Any]
+    ) -> Any | None:
+        if identifier is None:
+            return None
+        candidates = _candidate_keys(keys, payload)
+        for obj in storage:
+            for key in candidates:
+                if getattr(obj, key, None) == identifier:
+                    return obj
+        return None
+
+    def _find_by_payload(payload: Mapping[str, Any]) -> Any | None:
+        if not payload:
+            return None
+        priority_keys = [
+            key
+            for key in payload
+            if key.endswith("_id") or key in {"stripe_customer_id", "email"}
+        ]
+        for obj in storage:
+            if any(
+                payload.get(key) is not None
+                and getattr(obj, key, None) == payload.get(key)
+                for key in priority_keys
+            ):
+                return obj
+        return None
+
+    class _Handler:
+        def __init__(self, action: str):
+            self.action = action
+            self.calls: List[Dict[str, Any]] = []
+
+        async def handler(self, ctx: Mapping[str, Any] | None):
+            ctx_map: Dict[str, Any] = dict(ctx or {})
+            payload: Dict[str, Any] = dict(ctx_map.get("payload") or {})
+            path_params: Dict[str, Any] = dict(ctx_map.get("path_params") or {})
+            self.calls.append(
+                {"payload": payload.copy(), "path_params": path_params.copy()}
+            )
+
+            if self.action == "create":
+                obj = model(**payload)
+                if not getattr(obj, alias_field, None):
+                    setattr(obj, alias_field, getattr(obj, "id", None))
+                for key, value in payload.items():
+                    if key.endswith("_id") and value is not None:
+                        setattr(obj, key, value)
+                storage.append(obj)
+                return {"status": "ok", "data": _serialize_instance(obj)}
+
+            if self.action == "list":
+                return {"items": [_serialize_instance(obj) for obj in storage]}
+
+            if self.action == "read":
+                identifier, keys = _resolve_identifier(ctx_map, payload)
+                target = _find_by_identifier(identifier, keys, payload)
+                if target is None:
+                    raise HTTPException(status_code=404, detail="Item not found")
+                return _serialize_instance(target)
+
+            if self.action in {"update", "replace"}:
+                identifier, keys = _resolve_identifier(ctx_map, payload)
+                target = _find_by_identifier(identifier, keys, payload)
+                if target is None:
+                    raise HTTPException(status_code=404, detail="Item not found")
+                for key, value in payload.items():
+                    setattr(target, key, value)
+                return {"status": "ok", "data": _serialize_instance(target)}
+
+            if self.action == "merge":
+                identifier, keys = _resolve_identifier(ctx_map, payload)
+                target = _find_by_identifier(identifier, keys, payload)
+                if target is None:
+                    target = _find_by_payload(payload)
+                if target is None:
+                    target = model(**payload)
+                    if not getattr(target, alias_field, None):
+                        setattr(target, alias_field, getattr(target, "id", None))
+                    storage.append(target)
+                for key, value in payload.items():
+                    setattr(target, key, value)
+                return {"status": "ok", "data": _serialize_instance(target)}
+
+            if self.action == "delete":
+                identifier, keys = _resolve_identifier(ctx_map, payload)
+                target = _find_by_identifier(identifier, keys, payload)
+                if target is None:
+                    raise HTTPException(status_code=404, detail="Item not found")
+                storage.remove(target)
+                return {"status": "ok"}
+
+            return {"status": "ok"}
+
+    model.handlers = SimpleNamespace(
+        create=_Handler("create"),
+        list=_Handler("list"),
+        read=_Handler("read"),
+        update=_Handler("update"),
+        replace=_Handler("replace"),
+        merge=_Handler("merge"),
+        delete=_Handler("delete"),
+    )
+
+
+class TigrblApp(FastAPI):
+    def __init__(self, *, engine: Mapping[str, Any] | None = None, **kwargs: Any):
+        super().__init__(**kwargs)
+        self.engine = engine
+
+    def include_model(
+        self, model: type, *, prefix: str | None = None, mount_router: bool = True
+    ) -> tuple[type, APIRouter]:
+        router = self._register_model(
+            model, base_prefix=prefix, mount_router=mount_router
+        )
+        return model, router
+
+    def include_models(
+        self,
+        models: Sequence[type],
+        *,
+        base_prefix: str | None = None,
+        mount_router: bool = True,
+    ) -> Dict[str, APIRouter]:
+        registered: Dict[str, APIRouter] = {}
+        for model in models:
+            registered[model.__name__] = self._register_model(
+                model, base_prefix=base_prefix, mount_router=mount_router
+            )
+        return registered
+
+    def _register_model(
+        self, model: type, *, base_prefix: str | None = None, mount_router: bool = True
+    ) -> APIRouter:
+        _ensure_model_handlers(model)
+        resource = _resource_name(model)
+        base = ""
+        if base_prefix:
+            base = "/" + base_prefix.strip("/")
+        prefix = re.sub(r"/{2,}", "/", f"{base}/{resource}") or f"/{resource}"
+        router = APIRouter(prefix=prefix)
+
+        @router.post("")
+        async def create_item(
+            payload: Mapping[str, Any] = Body(default={}),
+        ):  # pragma: no cover - dynamic
+            ctx = {"payload": dict(payload or {})}
+            return await model.handlers.create.handler(ctx)
+
+        @router.get("")
+        async def list_items():  # pragma: no cover - dynamic
+            return await model.handlers.list.handler({})
+
+        @router.get("/{item_id}")
+        async def read_item(item_id: str):  # pragma: no cover - dynamic
+            ctx = {"path_params": {"item_id": item_id}}
+            return await model.handlers.read.handler(ctx)
+
+        @router.patch("/{item_id}")
+        async def update_item(
+            item_id: str, payload: Mapping[str, Any] = Body(default={})
+        ):  # pragma: no cover - dynamic
+            ctx = {"path_params": {"item_id": item_id}, "payload": dict(payload or {})}
+            return await model.handlers.update.handler(ctx)
+
+        @router.delete("/{item_id}")
+        async def delete_item(item_id: str):  # pragma: no cover - dynamic
+            ctx = {"path_params": {"item_id": item_id}}
+            return await model.handlers.delete.handler(ctx)
+
+        for entry in _REGISTERED_API_OPS.get(model, []):
+            alias = entry.get("alias")
+            func = entry.get("func")
+            if not alias or func is None:
+                continue
+
+            @router.post(f"/{alias}")
+            async def _custom_op(
+                payload: Mapping[str, Any] = Body(default={}),
+                _func: Callable[..., Any] = func,
+            ):  # pragma: no cover - dynamic
+                ctx = {"payload": dict(payload or {})}
+                result = _func(model, ctx)
+                if inspect.isawaitable(result):
+                    result = await result
+                return result
+
+        if mount_router:
+            self.include_router(router)
+        model.rest = SimpleNamespace(router=router)
+        return router
+
+
+tigrbl_module.TigrblApp = TigrblApp
 
 # ----------------------------------------------------------------------------
 # Stub table modules
@@ -318,6 +651,20 @@ ConnectedAccount = make_model(
     "ConnectedAccount", ["stripe_account_id", "details_submitted"]
 )
 Transfer = make_model("Transfer", ["stripe_transfer_id", "amount", "currency"])
+Feature = make_model("Feature", ["feature_key", "name", "description"])
+PriceFeatureEntitlement = make_model(
+    "PriceFeatureEntitlement", ["price_id", "feature_id", "entitlement"]
+)
+CheckoutSession = make_model(
+    "CheckoutSession", ["stripe_checkout_session_id", "status"]
+)
+CustomerAccountLink = make_model(
+    "CustomerAccountLink", ["customer_id", "connected_account_id"]
+)
+SplitRule = make_model("SplitRule", ["name", "percentage"])
+WebhookEndpoint = make_model("WebhookEndpoint", ["url", "description"])
+CreditUsagePolicy = make_model("CreditUsagePolicy", ["policy_key", "limit"])
+CreditLedger = make_model("CreditLedger", ["balance_id", "delta"])
 
 _register_module(
     "tigrbl_billing.tables.balance_top_off",
@@ -330,7 +677,11 @@ _register_module(
     "tigrbl_billing.tables.customer_balance", CustomerBalance=CustomerBalance
 )
 _register_module("tigrbl_billing.tables.application_fee", ApplicationFee=ApplicationFee)
-_register_module("tigrbl_billing.tables.credit_ledger", LedgerDirection=LedgerDirection)
+_register_module(
+    "tigrbl_billing.tables.credit_ledger",
+    CreditLedger=CreditLedger,
+    LedgerDirection=LedgerDirection,
+)
 _register_module("tigrbl_billing.tables.usage_event", UsageEvent=UsageEvent)
 _register_module(
     "tigrbl_billing.tables.credit_grant",
@@ -364,6 +715,11 @@ _register_module("tigrbl_billing.tables.product", Product=Product)
 _register_module("tigrbl_billing.tables.price", Price=Price)
 _register_module("tigrbl_billing.tables.price_tier", PriceTier=PriceTier)
 _register_module("tigrbl_billing.tables.customer", Customer=Customer)
+_register_module("tigrbl_billing.tables.feature", Feature=Feature)
+_register_module(
+    "tigrbl_billing.tables.price_feature_entitlement",
+    PriceFeatureEntitlement=PriceFeatureEntitlement,
+)
 _register_module(
     "tigrbl_billing.tables.invoice_line_item", InvoiceLineItem=InvoiceLineItem
 )
@@ -371,7 +727,12 @@ _register_module("tigrbl_billing.tables.refund", Refund=Refund)
 _register_module(
     "tigrbl_billing.tables.connected_account", ConnectedAccount=ConnectedAccount
 )
+_register_module(
+    "tigrbl_billing.tables.customer_account_link",
+    CustomerAccountLink=CustomerAccountLink,
+)
 _register_module("tigrbl_billing.tables.transfer", Transfer=Transfer)
+_register_module("tigrbl_billing.tables.split_rule", SplitRule=SplitRule)
 _register_module(
     "tigrbl_billing.tables.usage_rollup",
     UsageRollup=UsageRollup,
@@ -381,11 +742,63 @@ _register_module(
     StripeEventLog=StripeEventLog,
     EventProcessStatus=EventProcessStatus,
 )
+_register_module(
+    "tigrbl_billing.tables.checkout_session", CheckoutSession=CheckoutSession
+)
+_register_module(
+    "tigrbl_billing.tables.webhook_endpoint", WebhookEndpoint=WebhookEndpoint
+)
+_register_module(
+    "tigrbl_billing.tables.credit_usage_policy", CreditUsagePolicy=CreditUsagePolicy
+)
 
 
 # ----------------------------------------------------------------------------
 # Shared helpers for tests
 # ----------------------------------------------------------------------------
+
+
+def _get_free_port() -> int:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.bind(("127.0.0.1", 0))
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        return int(sock.getsockname()[1])
+
+
+@contextlib.asynccontextmanager
+async def run_uvicorn_app(app: FastAPI):
+    port = _get_free_port()
+    config = uvicorn.Config(
+        app,
+        host="127.0.0.1",
+        port=port,
+        loop="asyncio",
+        lifespan="on",
+        log_level="warning",
+    )
+    server = uvicorn.Server(config)
+    thread = threading.Thread(target=server.run, daemon=True)
+    thread.start()
+
+    try:
+        for _ in range(100):
+            if server.started:
+                break
+            await asyncio.sleep(0.05)
+        else:
+            raise RuntimeError("uvicorn server did not start")
+
+        async with httpx.AsyncClient(base_url=f"http://127.0.0.1:{port}") as client:
+            yield client
+    finally:
+        server.should_exit = True
+        if thread.is_alive():
+            thread.join(timeout=5)
+
+
+@pytest.fixture
+def uvicorn_client():
+    return run_uvicorn_app
 
 
 @pytest.fixture(autouse=True)
