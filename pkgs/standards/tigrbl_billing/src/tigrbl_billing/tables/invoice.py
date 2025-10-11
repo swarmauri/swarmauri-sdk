@@ -6,7 +6,7 @@ from enum import Enum
 
 from tigrbl.table import Base
 from tigrbl.orm.mixins import GUIDPk, Timestamped
-from tigrbl.specs import ColumnSpec, F, IO, S, acol
+from tigrbl.specs import F, IO, S, acol
 from tigrbl.specs.storage_spec import ForeignKeySpec
 from tigrbl.types import (
     Mapped,
@@ -39,165 +39,137 @@ class Invoice(Base, GUIDPk, Timestamped):
     __tablename__ = "invoices"
 
     stripe_invoice_id: Mapped[str | None] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=String, nullable=True),
-            field=F(py_type=str | None, constraints={"examples": ["in_123"]}),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=String, nullable=True),
+        field=F(py_type=str | None, constraints={"examples": ["in_123"]}),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     customer_id: Mapped[UUID] = acol(
-        spec=ColumnSpec(
-            storage=S(
-                type_=PgUUID(as_uuid=True),
-                fk=ForeignKeySpec(target="customers.id"),
-                nullable=False,
-            ),
-            field=F(py_type=UUID),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(
+            type_=PgUUID(as_uuid=True),
+            fk=ForeignKeySpec(target="customers.id"),
+            nullable=False,
+        ),
+        field=F(py_type=UUID),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     subscription_id: Mapped[UUID | None] = acol(
-        spec=ColumnSpec(
-            storage=S(
-                type_=PgUUID(as_uuid=True),
-                fk=ForeignKeySpec(target="subscriptions.id"),
-                nullable=True,
-            ),
-            field=F(py_type=UUID | None),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(
+            type_=PgUUID(as_uuid=True),
+            fk=ForeignKeySpec(target="subscriptions.id"),
+            nullable=True,
+        ),
+        field=F(py_type=UUID | None),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     status: Mapped[InvoiceStatus] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=SAEnum, nullable=False),
-            field=F(py_type=InvoiceStatus),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=SAEnum, nullable=False),
+        field=F(py_type=InvoiceStatus),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     number: Mapped[str | None] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=String, nullable=True),
-            field=F(py_type=str | None),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=String, nullable=True),
+        field=F(py_type=str | None),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     currency: Mapped[str] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=String, nullable=False),
-            field=F(py_type=str, constraints={"max_length": 8}),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=String, nullable=False),
+        field=F(py_type=str, constraints={"max_length": 8}),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     total: Mapped[int] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=Integer, nullable=False),
-            field=F(py_type=int, constraints={"ge": 0}),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=Integer, nullable=False),
+        field=F(py_type=int, constraints={"ge": 0}),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     amount_due: Mapped[int] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=Integer, nullable=False),
-            field=F(py_type=int, constraints={"ge": 0}),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=Integer, nullable=False),
+        field=F(py_type=int, constraints={"ge": 0}),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     amount_paid: Mapped[int] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=Integer, nullable=False),
-            field=F(py_type=int, constraints={"ge": 0}),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=Integer, nullable=False),
+        field=F(py_type=int, constraints={"ge": 0}),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     amount_remaining: Mapped[int] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=Integer, nullable=False),
-            field=F(py_type=int, constraints={"ge": 0}),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=Integer, nullable=False),
+        field=F(py_type=int, constraints={"ge": 0}),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     due_date: Mapped[object | None] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=TZDateTime, nullable=True),
-            field=F(py_type=object | None),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=TZDateTime, nullable=True),
+        field=F(py_type=object | None),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     hosted_invoice_url: Mapped[str | None] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=String, nullable=True),
-            field=F(py_type=str | None),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=String, nullable=True),
+        field=F(py_type=str | None),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     collection_method: Mapped[CollectionMethod] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=SAEnum, nullable=False),
-            field=F(py_type=CollectionMethod),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=SAEnum, nullable=False),
+        field=F(py_type=CollectionMethod),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     metadata: Mapped[dict] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=JSONB, default=dict, nullable=False),
-            field=F(py_type=dict),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=JSONB, default=dict, nullable=False),
+        field=F(py_type=dict),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     __table_args__ = (

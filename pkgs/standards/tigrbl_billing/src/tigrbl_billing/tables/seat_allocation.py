@@ -7,7 +7,7 @@ from enum import Enum
 
 from tigrbl.table import Base
 from tigrbl.orm.mixins import GUIDPk, Timestamped
-from tigrbl.specs import ColumnSpec, F, IO, S, acol
+from tigrbl.specs import F, IO, S, acol
 from tigrbl.specs.storage_spec import ForeignKeySpec
 from tigrbl.types import (
     Mapped,
@@ -30,74 +30,62 @@ class SeatAllocation(Base, GUIDPk, Timestamped):
     __tablename__ = "seat_allocations"
 
     subscription_item_id: Mapped[UUID] = acol(
-        spec=ColumnSpec(
-            storage=S(
-                type_=PgUUID(as_uuid=True),
-                fk=ForeignKeySpec(target="subscription_items.id"),
-                nullable=False,
-                index=True,
-            ),
-            field=F(py_type=UUID),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(
+            type_=PgUUID(as_uuid=True),
+            fk=ForeignKeySpec(target="subscription_items.id"),
+            nullable=False,
+            index=True,
+        ),
+        field=F(py_type=UUID),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     subject_ref: Mapped[str] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=String, nullable=False, index=True),
-            field=F(py_type=str, constraints={"examples": ["user:123", "team:alpha"]}),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=String, nullable=False, index=True),
+        field=F(py_type=str, constraints={"examples": ["user:123", "team:alpha"]}),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     role: Mapped[str | None] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=String, nullable=True),
-            field=F(py_type=str | None),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=String, nullable=True),
+        field=F(py_type=str | None),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     state: Mapped[SeatState] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=SAEnum, default=SeatState.ACTIVE, nullable=False),
-            field=F(py_type=SeatState),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=SAEnum, default=SeatState.ACTIVE, nullable=False),
+        field=F(py_type=SeatState),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     assigned_at: Mapped[dt.datetime] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=TZDateTime, nullable=False),
-            field=F(py_type=dt.datetime),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=TZDateTime, nullable=False),
+        field=F(py_type=dt.datetime),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     released_at: Mapped[dt.datetime | None] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=TZDateTime, nullable=True),
-            field=F(py_type=dt.datetime | None),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=TZDateTime, nullable=True),
+        field=F(py_type=dt.datetime | None),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     __table_args__ = UniqueConstraint(
