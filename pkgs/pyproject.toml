@@ -101,6 +101,7 @@ members = [
     "standards/tigrbl_auth",
     "standards/tigrbl_kms",
     "standards/tigrbl_client",
+    "standards/tigrbl_billing",
     "standards/peagen",
     "standards/swarmauri_storage_file",
     "standards/swarmauri_storage_github",
@@ -332,6 +333,7 @@ tigrbl = { workspace = true }
 tigrbl_client = { workspace = true }
 tigrbl_auth = { workspace = true }
 tigrbl_kms = { workspace = true }
+tigrbl_billing = { workspace = true }
 peagen = { workspace = true }
 
 swarmauri_storage_file = { workspace = true }
