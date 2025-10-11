@@ -1,6 +1,8 @@
 # tigrbl/v3/mixins/upsertable.py
 from __future__ import annotations
 
+import warnings
+
 from typing import Any, Mapping, Sequence, Optional, Tuple
 from sqlalchemy import and_, inspect as sa_inspect
 from tigrbl.types import Session
@@ -18,6 +20,11 @@ class Upsertable:
 
     def __init_subclass__(cls, **kw):
         super().__init_subclass__(**kw)
+        warnings.warn(
+            "Upsertable is deprecated and will be removed in a future release.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         cls._install_upsertable_hooks()
 
     @classmethod
