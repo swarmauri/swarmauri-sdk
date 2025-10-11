@@ -11,7 +11,9 @@ from tigrbl_billing.examples.subscription_tiers_app import (
 @pytest.mark.example
 async def test_build_subscription_tiers_app_registers_routes():
     app = build_subscription_tiers_app(async_mode=True)
-    registered_paths = {route.path for route in app.routes if isinstance(route, APIRoute)}
+    registered_paths = {
+        route.path for route in app.routes if isinstance(route, APIRoute)
+    }
 
     expected_paths = {
         "/product",
@@ -41,7 +43,9 @@ async def test_run_subscription_tiers_flow_sets_entitlements_per_tier():
     assert result["entitlements"]["premium"]["projects"]["limit_per_period"] == 20
 
     assert result["entitlements"]["basic"]["api_requests"]["limit_per_period"] == 5000
-    assert result["entitlements"]["premium"]["api_requests"]["overage_unit_amount"] == 10
+    assert (
+        result["entitlements"]["premium"]["api_requests"]["overage_unit_amount"] == 10
+    )
 
 
 @pytest.mark.asyncio

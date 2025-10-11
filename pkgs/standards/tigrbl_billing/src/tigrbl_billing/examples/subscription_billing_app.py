@@ -10,6 +10,7 @@ import httpx
 from tigrbl import TigrblApp
 from tigrbl.engine.shortcuts import engine as build_engine, mem
 
+from tigrbl_billing import ops as billing_ops
 from tigrbl_billing.tables.customer import Customer
 from tigrbl_billing.tables.feature import Feature
 from tigrbl_billing.tables.payment_intent import PaymentIntent
@@ -21,6 +22,20 @@ from tigrbl_billing.tables.seat_allocation import SeatAllocation
 from tigrbl_billing.tables.subscription import Subscription
 from tigrbl_billing.tables.subscription_item import SubscriptionItem
 from tigrbl_billing.tables.usage_event import UsageEvent
+
+_REQUIRED_OPS = (
+    billing_ops.start_subscription,
+    billing_ops.cancel_subscription,
+    billing_ops.pause_subscription,
+    billing_ops.resume_subscription,
+    billing_ops.trial_start,
+    billing_ops.trial_end,
+    billing_ops.seat_assign,
+    billing_ops.seat_release,
+    billing_ops.seat_suspend,
+    billing_ops.rollup_usage_periodic,
+    billing_ops.sync_objects,
+)
 
 
 def build_subscription_billing_app(async_mode: bool = True) -> TigrblApp:
