@@ -7,6 +7,7 @@ specified by RFC 7516 and RFC 7518.
 from __future__ import annotations
 
 import base64
+import binascii
 import json
 import os
 import zlib
@@ -21,6 +22,8 @@ from cryptography.hazmat.primitives.serialization import (
     load_pem_public_key,
     load_pem_private_key,
 )
+
+from pqcrypto.kem import kyber768
 
 from swarmauri_core.crypto.types import JWAAlg
 
@@ -168,6 +171,38 @@ def _load_ecdh_recipient_public(jwk_or_pem: Any) -> Tuple[str, Any]:
     raise TypeError("Unsupported recipient public key format for ECDH-ES.")
 
 
+def _bytes_from_any(value: Any, *, allow_mapping_key: str | None = None) -> bytes:
+    if allow_mapping_key and isinstance(value, Mapping):
+        if allow_mapping_key not in value:
+            raise ValueError(
+                f"Mapping is missing required key '{allow_mapping_key}' for ML-KEM-768"
+            )
+        return _bytes_from_any(value[allow_mapping_key])
+    if isinstance(value, (bytes, bytearray)):
+        return bytes(value)
+    if isinstance(value, str):
+        decoders = (_b64u_dec, lambda s: base64.b64decode(s, validate=False))
+        for decoder in decoders:
+            try:
+                return decoder(value)
+            except (binascii.Error, ValueError):
+                continue
+        raise ValueError("Failed to decode ML-KEM key material from string.")
+    raise TypeError("Unsupported key material type; expected bytes or str.")
+
+
+def _load_mlkem768_public(value: Any) -> bytes:
+    if value is None:
+        raise ValueError("ML-KEM-768 public key is required for hybrid encryption.")
+    return _bytes_from_any(value, allow_mapping_key="pub")
+
+
+def _load_mlkem768_private(value: Any) -> bytes:
+    if value is None:
+        raise ValueError("ML-KEM-768 private key is required for hybrid decryption.")
+    return _bytes_from_any(value, allow_mapping_key="priv")
+
+
 def _concat_kdf(
     z: bytes,
     enc: JWAAlg,
@@ -312,6 +347,54 @@ class JweCrypto:
                 )
             cek = _concat_kdf(z, enc, hashes.SHA256(), apu_b, apv_b)
             protected["epk"] = epk_header
+        elif alg == JWAAlg.ECDH_ES_X25519_MLKEM768:
+            x25519_info = key.get("x25519")
+            if x25519_info is None:
+                raise ValueError(
+                    "Hybrid alg requires 'x25519' entry containing recipient public key."
+                )
+            crv, rpk = _load_ecdh_recipient_public(x25519_info)
+            if crv != "X25519":
+                raise ValueError(
+                    "Hybrid alg requires an X25519 recipient public key for the classical component."
+                )
+            esk = x25519.X25519PrivateKey.generate()
+            epk = esk.public_key()
+            z_classical = esk.exchange(rpk)  # type: ignore[arg-type]
+            epk_header = _x25519_jwk_from_public_key(epk)
+
+            mlkem_pub = _load_mlkem768_public(
+                key.get("mlkem768")
+                or key.get("mlkem768_pub")
+                or key.get("pqc")
+                or key.get("mlkem")
+            )
+            pqc_ciphertext, pqc_secret = kyber768.encapsulate(mlkem_pub)
+
+            apu_b = None
+            apv_b = None
+            if "apu" in (header_extra or {}):
+                apu_b = (
+                    _b64u_dec(header_extra["apu"])
+                    if isinstance(header_extra["apu"], str)
+                    else header_extra["apu"]
+                )
+            if "apv" in (header_extra or {}):
+                apv_b = (
+                    _b64u_dec(header_extra["apv"])
+                    if isinstance(header_extra["apv"], str)
+                    else header_extra["apv"]
+                )
+
+            cek = _concat_kdf(
+                z_classical + pqc_secret, enc, hashes.SHA256(), apu_b, apv_b
+            )
+            protected["epk"] = epk_header
+            protected["pqc"] = {
+                "kty": "ML-KEM",
+                "kem": "ML-KEM-768",
+                "ct": _b64u(pqc_ciphertext),
+            }
         else:
             raise ValueError(f"Unsupported alg '{alg.value}'")
 
@@ -343,6 +426,7 @@ class JweCrypto:
         rsa_private_pem: Optional[Union[str, bytes]] = None,
         rsa_private_password: Optional[Union[str, bytes]] = None,
         ecdh_private_key: Optional[Any] = None,
+        mlkem_private_key: Optional[Any] = None,
         expected_algs: Optional[Iterable[JWAAlg]] = None,
         expected_encs: Optional[Iterable[JWAAlg]] = None,
         aad: Optional[Union[bytes, str]] = None,
@@ -355,6 +439,8 @@ class JweCrypto:
             RSA-OAEP algorithms.
         rsa_private_password (Union[str, bytes]): Password for the RSA key.
         ecdh_private_key (Any): Private key for ECDH-ES.
+        mlkem_private_key (Any): Private key for ML-KEM-768 when using the hybrid
+            algorithm.
         expected_algs (Iterable[JWAAlg]): Allowed algorithm values.
         expected_encs (Iterable[JWAAlg]): Allowed encryption values.
         aad (Union[bytes, str]): Additional authenticated data.
@@ -439,6 +525,39 @@ class JweCrypto:
             apu_b = _b64u_dec(header["apu"]) if "apu" in header else None
             apv_b = _b64u_dec(header["apv"]) if "apv" in header else None
             cek = _concat_kdf(z, enc, hashes.SHA256(), apu_b, apv_b)
+        elif alg == JWAAlg.ECDH_ES_X25519_MLKEM768:
+            if not isinstance(ecdh_private_key, x25519.X25519PrivateKey):
+                raise TypeError(
+                    "Hybrid alg requires an X25519PrivateKey for the classical component."
+                )
+            if mlkem_private_key is None:
+                raise ValueError(
+                    "mlkem_private_key is required for hybrid ECDH-ES+X25519MLKEM768 decryption."
+                )
+            epk = header.get("epk")
+            if not (isinstance(epk, Mapping) and epk.get("kty") == "OKP"):
+                raise ValueError("Missing/invalid 'epk' for hybrid ECDH-ES header.")
+            if epk.get("crv") != "X25519":
+                raise ValueError("Hybrid 'epk' must declare crv='X25519'.")
+            z_classical = ecdh_private_key.exchange(
+                x25519.X25519PublicKey.from_public_bytes(_b64u_dec(epk["x"]))
+            )
+
+            pqc_info = header.get("pqc")
+            if not isinstance(pqc_info, Mapping):
+                raise ValueError("Missing 'pqc' object in hybrid header.")
+            ct_b64 = pqc_info.get("ct")
+            if not isinstance(ct_b64, str):
+                raise ValueError("Hybrid header 'pqc.ct' must be a base64url string.")
+            pqc_ciphertext = _b64u_dec(ct_b64)
+            mlkem_sk = _load_mlkem768_private(mlkem_private_key)
+            pqc_secret = kyber768.decapsulate(pqc_ciphertext, mlkem_sk)
+
+            apu_b = _b64u_dec(header["apu"]) if "apu" in header else None
+            apv_b = _b64u_dec(header["apv"]) if "apv" in header else None
+            cek = _concat_kdf(
+                z_classical + pqc_secret, enc, hashes.SHA256(), apu_b, apv_b
+            )
         else:
             raise ValueError(f"Unsupported alg '{alg.value}'")
 
