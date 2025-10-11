@@ -1,18 +1,13 @@
-from tigrbl import TigrblApp, op_ctx
+from tigrbl import TigrblApp
 from tigrbl.engine.shortcuts import engine as build_engine, mem
+
+from tigrbl_billing import ops
 from tigrbl_billing.tables.credit_grant import CreditGrant
 from tigrbl_billing.tables.credit_ledger import CreditLedger
-from tigrbl_billing.ops import apply_grant, revoke_grant
 
-
-@op_ctx(alias="apply_grant", target="custom", arity="collection", bind=CreditGrant)
-def grants__apply(cls, ctx):
-    return apply_grant(ctx, None, None, **(ctx.get("payload") or {}))
-
-
-@op_ctx(alias="revoke_grant", target="custom", arity="collection", bind=CreditGrant)
-def grants__revoke(cls, ctx):
-    return revoke_grant(ctx, None, None, **(ctx.get("payload") or {}))
+# Ensure only the grant-specific operations are registered for this API.
+ops.apply_grant
+ops.revoke_grant
 
 
 def build_app(async_mode: bool = True) -> TigrblApp:
