@@ -18,17 +18,20 @@ from tigrbl.types import (
     UUID,
 )
 
+from ._mixins.extref import StripeExtRef
 
-class Transfer(Base, GUIDPk, Timestamped):
+
+class Transfer(Base, GUIDPk, Timestamped, StripeExtRef):
     __tablename__ = "transfers"
 
-    stripe_transfer_id: Mapped[str | None] = acol(
+    external_id: Mapped[str | None] = acol(
         storage=S(type_=String, nullable=True),
         field=F(py_type=str | None, constraints={"examples": ["tr_123"]}),
         io=IO(
             in_verbs=("create", "update", "replace", "merge"),
             out_verbs=("read", "list"),
         ),
+        name="stripe_transfer_id",
     )
 
     payment_intent_id: Mapped[UUID | None] = acol(
