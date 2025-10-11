@@ -25,8 +25,8 @@ single distribution so you can drop billing primitives into any Tigrbl deploymen
 ## Features ✨
 
 - 🗃️ **Unified schema** for products, prices, tiers, usage events, invoices, webhooks, and Stripe entities.
-- 🔁 **Lifecycle operations** for subscriptions, invoicing, seat management, grants, and credit charging via
-  `@op_ctx` bindings.
+- 🔁 **Lifecycle operations** for subscriptions, invoicing, seat management, grants, and credit charging backed by
+  lazily imported ``tigrbl_billing.ops`` helpers.
 - 📈 **Analytics-ready views** for ARR, MRR, ARPU, retention cohorts, dunning funnels, revenue attribution, and more.
 - 🔌 **Gateway helpers** that assemble multiple metered, tiered, and checkout API apps in a single call.
 - ☁️ **Stripe synchronization utilities** to keep local records aligned with upstream events and connected accounts.
@@ -91,6 +91,36 @@ pre-built lifecycle handlers.
 
 Pair these operations with the gateway factory to expose separated micro-apps for product pricing, tiered plans, seat
 tracking, or checkout experiences.
+
+## API Construction Best Practices 🧩
+
+When composing bespoke billing APIs, import only the operations you need. The
+``tigrbl_billing.ops`` package now exposes a lazy loader so operations register
+with their bound models only after an API touches them. This keeps global state
+clean and avoids double registration.
+
+```python
+from tigrbl import TigrblApp
+from tigrbl.engine.shortcuts import engine as build_engine, mem
+
+from tigrbl_billing import ops
+from tigrbl_billing.tables.subscription import Subscription
+
+# Touch the exact helpers required by this API.
+ops.start_subscription
+ops.cancel_subscription
+
+
+def build_app(async_mode: bool = True) -> TigrblApp:
+    app = TigrblApp(engine=build_engine(mem(async_=async_mode)))
+    app.include_models([Subscription])
+    return app
+```
+
+Avoid wrapping these helpers with new ``@op_ctx`` decorators—doing so would
+rebind the already decorated operations and can lead to duplicate aliases. Load
+the helpers, include the relevant models, and the bound operations will be ready
+to serve.
 
 ## Analytics Views 📊
 
