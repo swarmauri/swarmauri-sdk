@@ -1,7 +1,7 @@
 [project]
-name = "swarmauri_cipher_suite_cnsa20"
-version = "0.2.0.dev1"
-description = "CNSA 2.0 policy cipher suite with classical and post-quantum algorithms"
+name = "swarmauri_cipher_suite_fips204"
+version = "0.1.0.dev1"
+description = "FIPS 204 ML-DSA cipher suite bindings for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
@@ -25,26 +25,17 @@ dependencies = [
     "swarmauri_base",
 ]
 keywords = [
-    'swarmauri',
-    'sdk',
-    'standards',
-    'cipher',
-    'suite',
-    'cnsa20',
-    'cryptography',
-    'CNSA 2.0',
-    'Commercial National Security Algorithm Suite',
-    'CNSS Advisory 02-23',
-    'NSA',
-    'ES384',
-    'PS384',
-    'ML-DSA',
-    'SLH-DSA',
-    'ML-KEM',
-    'A256GCM',
-    'RFC 7518',
-    'NIST SP 800-38D',
-    'FIPS 197',
+    "swarmauri",
+    "sdk",
+    "standards",
+    "cipher",
+    "suite",
+    "fips",
+    "fips204",
+    "ml-dsa",
+    "dilithium",
+    "post-quantum",
+    "cryptography",
 ]
 
 [tool.uv.sources]
@@ -86,4 +77,4 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [project.entry-points.'swarmauri.cipher_suites']
-Cnsa20CipherSuite = "swarmauri_cipher_suite_cnsa20:Cnsa20CipherSuite"
+Fips204CipherSuite = "swarmauri_cipher_suite_fips204:Fips204CipherSuite"
