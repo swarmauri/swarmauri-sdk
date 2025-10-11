@@ -40,8 +40,11 @@ dependencies = [
 ]
 
 [project.entry-points.'swarmauri.auth_idp']
+OktaOAuth20AppClient = "swarmauri_auth_idp_okta:OktaOAuth20AppClient"
 OktaOAuth20Login = "swarmauri_auth_idp_okta:OktaOAuth20Login"
+OktaOAuth21AppClient = "swarmauri_auth_idp_okta:OktaOAuth21AppClient"
 OktaOAuth21Login = "swarmauri_auth_idp_okta:OktaOAuth21Login"
+OktaOIDC10AppClient = "swarmauri_auth_idp_okta:OktaOIDC10AppClient"
 OktaOIDC10Login = "swarmauri_auth_idp_okta:OktaOIDC10Login"
 
 [tool.uv.sources]
