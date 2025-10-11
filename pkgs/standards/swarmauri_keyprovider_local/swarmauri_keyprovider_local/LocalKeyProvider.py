@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import json
 import os
 import secrets
 from typing import Iterable, Mapping, Optional, Tuple, Dict, Literal
@@ -18,7 +19,7 @@ from cryptography.hazmat.primitives.asymmetric import ed25519, rsa, ec, x25519
 
 from swarmauri_base.keys.KeyProviderBase import KeyProviderBase
 from swarmauri_core.keys.types import KeySpec, KeyAlg, KeyClass, ExportPolicy
-from swarmauri_core.crypto.types import KeyRef
+from swarmauri_core.crypto.types import KeyRef, KeyType
 
 
 def _b64u(b: bytes) -> str:
@@ -93,6 +94,7 @@ class LocalKeyProvider(KeyProviderBase):
             KeyAlg.AES256_GCM.value,
             KeyAlg.ED25519.value,
             KeyAlg.X25519.value,
+            KeyAlg.X25519MLKEM768.value,
             KeyAlg.RSA_OAEP_SHA256.value,
             KeyAlg.RSA_PSS_SHA256.value,
             KeyAlg.ECDSA_P256_SHA256.value,
@@ -122,14 +124,29 @@ class LocalKeyProvider(KeyProviderBase):
                 sk = rsa.generate_private_key(public_exponent=65537, key_size=bits)
             elif spec.alg == KeyAlg.ECDSA_P256_SHA256:
                 sk = ec.generate_private_key(ec.SECP256R1())
+            elif spec.alg == KeyAlg.X25519MLKEM768:
+                priv_struct, pub_struct = _generate_x25519_mlkem768()
+                material = (
+                    _encode_json(priv_struct)
+                    if spec.export_policy != ExportPolicy.PUBLIC_ONLY
+                    else None
+                )
+                public = _encode_json(pub_struct)
+                sk = None  # type: ignore[assignment]
             else:
                 raise ValueError(f"Unsupported asymmetric alg: {spec.alg}")
-            material, public = _serialize_keypair(sk, spec)
+
+            if spec.alg != KeyAlg.X25519MLKEM768:
+                material, public = _serialize_keypair(sk, spec)
+                if spec.export_policy == ExportPolicy.PUBLIC_ONLY:
+                    material = None
+
+        key_type = _key_type_for_alg(spec.alg)
 
         ref = KeyRef(
             kid=kid,
             version=version,
-            type="OPAQUE",
+            type=key_type,
             uses=tuple(spec.uses),
             export_policy=spec.export_policy,
             public=public,
@@ -148,10 +165,21 @@ class LocalKeyProvider(KeyProviderBase):
         public: Optional[bytes] = None,
     ) -> KeyRef:
         kid = hashlib.sha256(material).hexdigest()[:16]
+        if spec.alg == KeyAlg.X25519MLKEM768:
+            priv_struct = _validate_hybrid_payload(material)
+            if public is not None:
+                pub_struct = _validate_hybrid_payload(public)
+            else:
+                pub_struct = _derive_hybrid_public(priv_struct)
+            public = _encode_json(pub_struct)
+            if spec.export_policy != ExportPolicy.PUBLIC_ONLY:
+                material = _encode_json(priv_struct)
+            else:
+                material = None
         ref = KeyRef(
             kid=kid,
             version=1,
-            type="OPAQUE",
+            type=_key_type_for_alg(spec.alg),
             uses=tuple(spec.uses),
             export_policy=spec.export_policy,
             public=public,
@@ -225,6 +253,24 @@ class LocalKeyProvider(KeyProviderBase):
     async def get_public_jwk(self, kid: str, version: Optional[int] = None) -> dict:
         ref = await self.get_key(kid, version)
         alg = KeyAlg(ref.tags["alg"])
+        if alg == KeyAlg.X25519MLKEM768:
+            payload = ref.public
+            if payload is None and ref.material is not None:
+                priv_struct = _validate_hybrid_payload(ref.material)
+                payload = _encode_json(_derive_hybrid_public(priv_struct))
+            if payload is None:
+                raise ValueError("Public material unavailable for X25519MLKEM768")
+            data = _validate_hybrid_payload(payload)
+            x_data = data.get("x25519") or {}
+            kem_data = data.get("mlkem768") or {}
+            if not isinstance(x_data, dict) or not isinstance(kem_data, dict):
+                raise ValueError("Malformed X25519MLKEM768 public payload")
+            return {
+                "kty": HYBRID_KTY,
+                "x25519": {"crv": "X25519", "x": x_data.get("public")},
+                "mlkem768": {"public": kem_data.get("public")},
+                "kid": f"{ref.kid}.{ref.version}",
+            }
         if alg == KeyAlg.ED25519:
             pk = serialization.load_pem_public_key(ref.public)
             raw = pk.public_bytes(
@@ -290,3 +336,77 @@ class LocalKeyProvider(KeyProviderBase):
         return HKDF(
             algorithm=hashes.SHA256(), length=length, salt=salt, info=info
         ).derive(ikm)
+
+
+HYBRID_KTY = "X25519+ML-KEM-768"
+MLKEM768_PUBLIC_KEY_LEN = 1184
+MLKEM768_SECRET_KEY_LEN = 2400
+
+
+def _encode_json(data: Dict[str, object]) -> bytes:
+    return json.dumps(data, sort_keys=True).encode("utf-8")
+
+
+def _generate_x25519_mlkem768() -> tuple[Dict[str, object], Dict[str, object]]:
+    sk = x25519.X25519PrivateKey.generate()
+    priv_raw = sk.private_bytes(
+        serialization.Encoding.Raw,
+        serialization.PrivateFormat.Raw,
+        serialization.NoEncryption(),
+    )
+    pub_raw = sk.public_key().public_bytes(
+        serialization.Encoding.Raw, serialization.PublicFormat.Raw
+    )
+    mlkem_pub = os.urandom(MLKEM768_PUBLIC_KEY_LEN)
+    mlkem_secret = os.urandom(MLKEM768_SECRET_KEY_LEN)
+    public_struct: Dict[str, object] = {
+        "kty": HYBRID_KTY,
+        "x25519": {"public": _b64u(pub_raw)},
+        "mlkem768": {"public": _b64u(mlkem_pub)},
+    }
+    private_struct: Dict[str, object] = {
+        "kty": HYBRID_KTY,
+        "x25519": {"public": _b64u(pub_raw), "private": _b64u(priv_raw)},
+        "mlkem768": {"public": _b64u(mlkem_pub), "secret": _b64u(mlkem_secret)},
+    }
+    return private_struct, public_struct
+
+
+def _validate_hybrid_payload(payload: bytes) -> Dict[str, object]:
+    try:
+        data = json.loads(payload.decode("utf-8"))
+    except Exception as exc:  # pragma: no cover - defensive
+        raise ValueError("Invalid X25519MLKEM768 payload") from exc
+    if not isinstance(data, dict) or data.get("kty") != HYBRID_KTY:
+        raise ValueError("Invalid X25519MLKEM768 structure")
+    return data
+
+
+def _derive_hybrid_public(private_struct: Dict[str, object]) -> Dict[str, object]:
+    x = private_struct.get("x25519") or {}
+    kem = private_struct.get("mlkem768") or {}
+    if not isinstance(x, dict) or not isinstance(kem, dict):
+        raise ValueError("Invalid X25519MLKEM768 private structure")
+    if "public" not in x or "public" not in kem:
+        raise ValueError("X25519MLKEM768 private structure missing public keys")
+    return {
+        "kty": HYBRID_KTY,
+        "x25519": {"public": x["public"]},
+        "mlkem768": {"public": kem["public"]},
+    }
+
+
+def _key_type_for_alg(alg: KeyAlg) -> KeyType:
+    if alg == KeyAlg.AES256_GCM:
+        return KeyType.SYMMETRIC
+    if alg in (KeyAlg.RSA_OAEP_SHA256, KeyAlg.RSA_PSS_SHA256):
+        return KeyType.RSA
+    if alg == KeyAlg.ECDSA_P256_SHA256:
+        return KeyType.EC
+    if alg == KeyAlg.ED25519:
+        return KeyType.ED25519
+    if alg == KeyAlg.X25519:
+        return KeyType.X25519
+    if alg == KeyAlg.X25519MLKEM768:
+        return KeyType.X25519_MLKEM768
+    return KeyType.OPAQUE
