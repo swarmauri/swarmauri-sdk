@@ -110,10 +110,11 @@ class CreditLedger(Base, GUIDPk, Timestamped):
         io=IO(in_verbs=("create", "update", "replace"), out_verbs=("read", "list")),
     )
 
-    metadata: Mapped[dict | None] = acol(
+    metadata_: Mapped[dict | None] = acol(
         storage=S(type_=JSONB, nullable=True),
         field=F(py_type=dict | None),
         io=IO(in_verbs=("create", "update", "replace"), out_verbs=("read", "list")),
+        name="metadata",
     )
 
 
