@@ -9,12 +9,23 @@ requires-python = ">=3.10,<3.13"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Environment :: Console",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Office/Business :: Financial",
+    "Topic :: Office/Business :: Financial :: Accounting",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Database",
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
@@ -28,6 +39,20 @@ keywords = [
     "stripe",
     "subscriptions",
     "invoicing",
+    "finance",
+    "payments",
+    "pricing",
+    "analytics",
+    "metered-billing",
+    "usage-based-pricing",
+    "revenue-operations",
+    "invoice-management",
+    "subscription-management",
+    "reconciliation",
+    "monetization",
+    "tigrbl-platform",
+    "billing-automation",
+    "customer-lifecycle",
 ]
 
 [tool.uv.sources]
