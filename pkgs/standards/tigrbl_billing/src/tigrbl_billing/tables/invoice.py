@@ -21,6 +21,8 @@ from tigrbl.types import (
     TZDateTime,
 )
 
+from ._extref import StripeExtRef, stripe_external_id_spec
+
 
 class InvoiceStatus(Enum):
     DRAFT = "draft"
@@ -35,16 +37,18 @@ class CollectionMethod(Enum):
     SEND_INVOICE = "send_invoice"
 
 
-class Invoice(Base, GUIDPk, Timestamped):
+class Invoice(Base, GUIDPk, Timestamped, StripeExtRef):
     __tablename__ = "invoices"
 
-    stripe_invoice_id: Mapped[str | None] = acol(
-        storage=S(type_=String, nullable=True),
-        field=F(py_type=str | None, constraints={"examples": ["in_123"]}),
-        io=IO(
-            in_verbs=("create", "update", "replace", "merge"),
-            out_verbs=("read", "list"),
-        ),
+    stripe_invoice_id: Mapped[str | None]
+    __extref_external_id_attr__ = "stripe_invoice_id"
+    __extref_external_id_column__ = "stripe_invoice_id"
+    __extref_external_id_spec__ = stripe_external_id_spec(
+        nullable=True,
+        unique=True,
+        in_verbs=("create", "update", "replace", "merge"),
+        out_verbs=("read", "list"),
+        mutable_verbs=("update", "replace", "merge"),
     )
 
     customer_id: Mapped[UUID] = acol(

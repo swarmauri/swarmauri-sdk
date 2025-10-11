@@ -7,7 +7,9 @@ from enum import Enum
 from tigrbl.table import Base
 from tigrbl.orm.mixins import GUIDPk, Timestamped
 from tigrbl.specs import F, IO, S, acol
-from tigrbl.types import Mapped, String, JSONB, Boolean, SAEnum, UniqueConstraint
+from tigrbl.types import Mapped, JSONB, Boolean, SAEnum, UniqueConstraint
+
+from ._extref import StripeExtRef, stripe_external_id_spec
 
 
 class ConnectedType(Enum):
@@ -16,16 +18,17 @@ class ConnectedType(Enum):
     CUSTOM = "custom"
 
 
-class ConnectedAccount(Base, GUIDPk, Timestamped):
+class ConnectedAccount(Base, GUIDPk, Timestamped, StripeExtRef):
     __tablename__ = "connected_accounts"
 
-    stripe_account_id: Mapped[str | None] = acol(
-        storage=S(type_=String, nullable=True, unique=True, index=True),
-        field=F(py_type=str | None),
-        io=IO(
-            in_verbs=("create", "update", "replace", "merge"),
-            out_verbs=("read", "list"),
-        ),
+    stripe_account_id: Mapped[str | None]
+    __extref_external_id_attr__ = "stripe_account_id"
+    __extref_external_id_column__ = "stripe_account_id"
+    __extref_external_id_spec__ = stripe_external_id_spec(
+        nullable=True,
+        in_verbs=("create", "update", "replace", "merge"),
+        out_verbs=("read", "list"),
+        mutable_verbs=("update", "replace", "merge"),
     )
 
     type: Mapped[ConnectedType] = acol(

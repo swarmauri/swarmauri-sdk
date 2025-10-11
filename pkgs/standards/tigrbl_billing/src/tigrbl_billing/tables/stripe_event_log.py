@@ -9,6 +9,8 @@ from tigrbl.orm.mixins import GUIDPk, Timestamped
 from tigrbl.specs import F, IO, S, acol
 from tigrbl.types import Mapped, String, JSONB, SAEnum, UniqueConstraint, TZDateTime
 
+from ._extref import StripeExtRef, stripe_external_id_spec
+
 
 class EventProcessStatus(Enum):
     RECEIVED = "received"
@@ -16,7 +18,7 @@ class EventProcessStatus(Enum):
     FAILED = "failed"
 
 
-class StripeEventLog(Base, GUIDPk, Timestamped):
+class StripeEventLog(Base, GUIDPk, Timestamped, StripeExtRef):
     """Persist every Stripe webhook event once for audit + idempotent handling.
 
     Notes:
@@ -29,13 +31,14 @@ class StripeEventLog(Base, GUIDPk, Timestamped):
 
     __tablename__ = "stripe_event_logs"
 
-    stripe_event_id: Mapped[str] = acol(
-        storage=S(type_=String, nullable=False),
-        field=F(py_type=str),
-        io=IO(
-            in_verbs=("create", "update", "replace", "merge"),
-            out_verbs=("read", "list"),
-        ),
+    stripe_event_id: Mapped[str]
+    __extref_external_id_attr__ = "stripe_event_id"
+    __extref_external_id_column__ = "stripe_event_id"
+    __extref_external_id_spec__ = stripe_external_id_spec(
+        nullable=False,
+        in_verbs=("create", "update", "replace", "merge"),
+        out_verbs=("read", "list"),
+        mutable_verbs=("update", "replace", "merge"),
     )
 
     event_type: Mapped[str] = acol(

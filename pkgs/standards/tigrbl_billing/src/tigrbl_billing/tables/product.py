@@ -7,19 +7,20 @@ from tigrbl.orm.mixins import GUIDPk, Timestamped, ActiveToggle
 from tigrbl.specs import F, IO, S, acol
 from tigrbl.types import String, Text, JSONB, Mapped
 
+from ._extref import StripeExtRef, stripe_external_id_spec
 
-class Product(Base, GUIDPk, Timestamped, ActiveToggle):
+
+class Product(Base, GUIDPk, Timestamped, ActiveToggle, StripeExtRef):
     __tablename__ = "billing_products"
 
-    # Stripe product id (e.g., "prod_...")
-    stripe_product_id: Mapped[str] = acol(
-        storage=S(type_=String(64), unique=True, index=True, nullable=False),
-        field=F(py_type=str, constraints={"max_length": 64}),
-        io=IO(
-            in_verbs=("create"),
-            out_verbs=("read", "list"),
-            mutable_verbs=("update"),
-        ),
+    stripe_product_id: Mapped[str]
+    __extref_external_id_attr__ = "stripe_product_id"
+    __extref_external_id_column__ = "stripe_product_id"
+    __extref_external_id_spec__ = stripe_external_id_spec(
+        nullable=False,
+        in_verbs=("create",),
+        out_verbs=("read", "list"),
+        mutable_verbs=("update",),
     )
 
     name: Mapped[str] = acol(

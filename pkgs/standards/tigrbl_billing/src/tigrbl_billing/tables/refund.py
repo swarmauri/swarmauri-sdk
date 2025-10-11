@@ -20,6 +20,8 @@ from tigrbl.types import (
     UUID,
 )
 
+from ._extref import StripeExtRef, stripe_external_id_spec
+
 
 class RefundStatus(Enum):
     PENDING = "pending"
@@ -28,16 +30,17 @@ class RefundStatus(Enum):
     CANCELED = "canceled"
 
 
-class Refund(Base, GUIDPk, Timestamped):
+class Refund(Base, GUIDPk, Timestamped, StripeExtRef):
     __tablename__ = "refunds"
 
-    stripe_refund_id: Mapped[str | None] = acol(
-        storage=S(type_=String, nullable=True),
-        field=F(py_type=str | None, constraints={"examples": ["re_123"]}),
-        io=IO(
-            in_verbs=("create", "update", "replace", "merge"),
-            out_verbs=("read", "list"),
-        ),
+    stripe_refund_id: Mapped[str | None]
+    __extref_external_id_attr__ = "stripe_refund_id"
+    __extref_external_id_column__ = "stripe_refund_id"
+    __extref_external_id_spec__ = stripe_external_id_spec(
+        nullable=True,
+        in_verbs=("create", "update", "replace", "merge"),
+        out_verbs=("read", "list"),
+        mutable_verbs=("update", "replace", "merge"),
     )
 
     payment_intent_id: Mapped[UUID] = acol(

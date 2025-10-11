@@ -7,17 +7,20 @@ from tigrbl.orm.mixins import GUIDPk, Timestamped
 from tigrbl.specs import F, IO, S, acol
 from tigrbl.types import Mapped, String, JSONB, Boolean, UniqueConstraint
 
+from ._extref import StripeExtRef, stripe_external_id_spec
 
-class Customer(Base, GUIDPk, Timestamped):
+
+class Customer(Base, GUIDPk, Timestamped, StripeExtRef):
     __tablename__ = "customers"
 
-    stripe_customer_id: Mapped[str | None] = acol(
-        storage=S(type_=String, nullable=True, unique=True, index=True),
-        field=F(py_type=str | None),
-        io=IO(
-            in_verbs=("create", "update", "replace", "merge"),
-            out_verbs=("read", "list"),
-        ),
+    stripe_customer_id: Mapped[str | None]
+    __extref_external_id_attr__ = "stripe_customer_id"
+    __extref_external_id_column__ = "stripe_customer_id"
+    __extref_external_id_spec__ = stripe_external_id_spec(
+        nullable=True,
+        in_verbs=("create", "update", "replace", "merge"),
+        out_verbs=("read", "list"),
+        mutable_verbs=("update", "replace", "merge"),
     )
 
     email: Mapped[str | None] = acol(
