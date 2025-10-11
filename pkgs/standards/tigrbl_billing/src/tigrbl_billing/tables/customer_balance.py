@@ -18,13 +18,15 @@ from tigrbl.types import (
     PgUUID,
 )
 
+from ._extref import StripeExtRef, stripe_external_id_spec
+
 
 class TopOffMode(str, Enum):
     MANUAL = "manual"
     AUTO = "auto"
 
 
-class CustomerBalance(Base, GUIDPk, Timestamped, ActiveToggle):
+class CustomerBalance(Base, GUIDPk, Timestamped, ActiveToggle, StripeExtRef):
     __tablename__ = "customer_balances"
 
     customer_id: Mapped[UUID] = acol(
@@ -113,13 +115,16 @@ class CustomerBalance(Base, GUIDPk, Timestamped, ActiveToggle):
         ),
     )
 
-    stripe_customer_id: Mapped[str | None] = acol(
-        storage=S(type_=String(128), nullable=True, index=True),
-        field=F(py_type=str | None),
-        io=IO(
-            in_verbs=("create", "update", "replace", "merge"),
-            out_verbs=("read", "list"),
-        ),
+    stripe_customer_id: Mapped[str | None]
+    __extref_external_id_attr__ = "stripe_customer_id"
+    __extref_external_id_column__ = "stripe_customer_id"
+    __extref_external_id_spec__ = stripe_external_id_spec(
+        length=128,
+        unique=False,
+        nullable=True,
+        in_verbs=("create", "update", "replace", "merge"),
+        out_verbs=("read", "list"),
+        mutable_verbs=("update", "replace", "merge"),
     )
 
     metadata_: Mapped[dict | None] = acol(

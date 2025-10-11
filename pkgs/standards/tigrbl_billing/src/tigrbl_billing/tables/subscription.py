@@ -11,7 +11,6 @@ from tigrbl.specs import F, IO, S, acol
 from tigrbl.specs.storage_spec import ForeignKeySpec
 from tigrbl.types import (
     Mapped,
-    String,
     Integer,
     JSONB,
     Boolean,
@@ -22,6 +21,8 @@ from tigrbl.types import (
     PgUUID,
     UUID,
 )
+
+from ._extref import StripeExtRef, stripe_external_id_spec
 
 
 class SubscriptionStatus(Enum):
@@ -38,16 +39,17 @@ class CollectionMethod(Enum):
     SEND_INVOICE = "send_invoice"
 
 
-class Subscription(Base, GUIDPk, Timestamped):
+class Subscription(Base, GUIDPk, Timestamped, StripeExtRef):
     __tablename__ = "subscriptions"
 
-    stripe_subscription_id: Mapped[str | None] = acol(
-        storage=S(type_=String, nullable=True, unique=True, index=True),
-        field=F(py_type=str | None),
-        io=IO(
-            in_verbs=("create", "update", "replace", "merge"),
-            out_verbs=("read", "list"),
-        ),
+    stripe_subscription_id: Mapped[str | None]
+    __extref_external_id_attr__ = "stripe_subscription_id"
+    __extref_external_id_column__ = "stripe_subscription_id"
+    __extref_external_id_spec__ = stripe_external_id_spec(
+        nullable=True,
+        in_verbs=("create", "update", "replace", "merge"),
+        out_verbs=("read", "list"),
+        mutable_verbs=("update", "replace", "merge"),
     )
 
     customer_id: Mapped[UUID] = acol(

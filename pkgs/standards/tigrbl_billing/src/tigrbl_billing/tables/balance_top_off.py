@@ -18,6 +18,8 @@ from tigrbl.types import (
     TZDateTime,
 )
 
+from ._extref import StripeExtRef, stripe_external_id_spec
+
 
 class TopOffTrigger(str, Enum):
     MANUAL = "manual"
@@ -37,7 +39,7 @@ class TopOffStatus(str, Enum):
     FAILED = "failed"
 
 
-class BalanceTopOff(Base, GUIDPk, Timestamped):
+class BalanceTopOff(Base, GUIDPk, Timestamped, StripeExtRef):
     __tablename__ = "balance_top_offs"
 
     balance_id: Mapped[UUID] = acol(
@@ -85,10 +87,16 @@ class BalanceTopOff(Base, GUIDPk, Timestamped):
         io=IO(in_verbs=("create", "update", "replace"), out_verbs=("read", "list")),
     )
 
-    stripe_payment_intent_id: Mapped[str | None] = acol(
-        storage=S(type_=String(128), nullable=True),
-        field=F(py_type=str | None),
-        io=IO(in_verbs=("create", "update", "replace"), out_verbs=("read", "list")),
+    stripe_payment_intent_id: Mapped[str | None]
+    __extref_external_id_attr__ = "stripe_payment_intent_id"
+    __extref_external_id_column__ = "stripe_payment_intent_id"
+    __extref_external_id_spec__ = stripe_external_id_spec(
+        length=128,
+        unique=False,
+        nullable=True,
+        in_verbs=("create", "update", "replace"),
+        out_verbs=("read", "list"),
+        mutable_verbs=("update", "replace"),
     )
 
     processed_at: Mapped[dt.datetime | None] = acol(

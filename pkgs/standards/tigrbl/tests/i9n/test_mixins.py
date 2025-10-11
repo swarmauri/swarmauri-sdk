@@ -7,7 +7,7 @@ Tests all mixins and their expected behavior using individual DummyModel instanc
 import pytest
 from datetime import datetime, timedelta, timezone
 from tigrbl.types import String, uuid4
-from tigrbl.column.shortcuts import acol, F, IO, S
+from tigrbl.column.shortcuts import ColumnSpec, acol, F, IO, S
 
 from tigrbl import Base
 from tigrbl.orm.mixins import (
@@ -144,6 +144,27 @@ class DummyModelExtRef(Base, GUIDPk, ExtRef):
     """Test model for ExtRef mixin."""
 
     __tablename__ = "dummy_ext_ref"
+    name = NAME_FIELD
+
+
+class DummyModelExtRefAliased(Base, GUIDPk, ExtRef):
+    """ExtRef mixin with renamed external id/provider columns."""
+
+    __tablename__ = "dummy_ext_ref_aliased"
+    __extref_external_id_attr__ = "stripe_resource_id"
+    __extref_external_id_column__ = "stripe_resource_id"
+    __extref_external_id_spec__ = ColumnSpec(
+        storage=S(type_=String(64), nullable=False, unique=True),
+        field=F(py_type=str, constraints={"max_length": 64}),
+        io=IO(in_verbs=("create",), out_verbs=("read", "list")),
+    )
+    __extref_provider_attr__ = "stripe_provider"
+    __extref_provider_column__ = "stripe_provider"
+    __extref_provider_spec__ = ColumnSpec(
+        storage=S(type_=String(16), default="stripe", nullable=False),
+        field=F(py_type=str, constraints={"max_length": 16}),
+        io=IO(out_verbs=("read", "list")),
+    )
     name = NAME_FIELD
 
 
@@ -444,6 +465,32 @@ async def test_ext_ref_mixin(create_test_api):
     # external_id should be in schemas
     assert "external_id" in create_schema.model_fields
     assert "external_id" in read_schema.model_fields
+
+
+@pytest.mark.i9n
+@pytest.mark.asyncio
+async def test_ext_ref_mixin_aliases(create_test_api):
+    """ExtRef mixin supports renaming external id/provider columns."""
+
+    create_test_api(DummyModelExtRefAliased)
+
+    create_schema = _build_schema(DummyModelExtRefAliased, verb="create")
+    read_schema = _build_schema(DummyModelExtRefAliased, verb="read")
+
+    assert "stripe_resource_id" in create_schema.model_fields
+    assert "stripe_resource_id" in read_schema.model_fields
+    assert "stripe_provider" in read_schema.model_fields
+    assert "external_id" in read_schema.model_fields
+
+    instance = DummyModelExtRefAliased(name="alias", stripe_resource_id="res_123")
+    assert instance.stripe_resource_id == "res_123"
+    assert instance.external_id == "res_123"
+
+    instance.external_id = "res_456"
+    assert instance.stripe_resource_id == "res_456"
+
+    assert "stripe_resource_id" in DummyModelExtRefAliased.__table__.c
+    assert "stripe_provider" in DummyModelExtRefAliased.__table__.c
 
 
 @pytest.mark.i9n
