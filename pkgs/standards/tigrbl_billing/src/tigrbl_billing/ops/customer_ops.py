@@ -16,6 +16,7 @@ async def create_or_link_customer(
     *,
     email: Optional[str] = None,
     name: Optional[str] = None,
+    external_id: Optional[str] = None,
     stripe_customer_id: Optional[str] = None,
     default_payment_method_ref: Optional[str] = None,
     tax_exempt: str = "none",
@@ -29,7 +30,7 @@ async def create_or_link_customer(
     """Upsert-like behavior via the model's bound handlers.
     We do NOT touch DB or sessions directly.
     Strategy:
-      - prefer merge() so unique keys on model handle linkage (e.g., stripe_customer_id or email)
+      - prefer merge() so unique keys on model handle linkage (e.g., external_id or email)
       - payload only; no *_ctx in signature
     """
     te = (tax_exempt or "none").upper()
@@ -37,7 +38,7 @@ async def create_or_link_customer(
     ctx["payload"] = {
         "email": email,
         "name": name,
-        "stripe_customer_id": stripe_customer_id,
+        "external_id": external_id or stripe_customer_id,
         "default_payment_method_ref": default_payment_method_ref,
         "tax_exempt": te_enum,
         "metadata": metadata or {},

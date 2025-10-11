@@ -8,7 +8,7 @@ async def test_refund_application_fee_marks_refunded(uvicorn_client):
     async with uvicorn_client(api_payment_splitting.app) as client:
         fee = await client.post(
             "/application_fee",
-            json={"stripe_application_fee_id": "fee_123", "refunded": False},
+            json={"external_id": "fee_123", "refunded": False},
         )
         fee_id = fee.json()["data"]["id"]
 

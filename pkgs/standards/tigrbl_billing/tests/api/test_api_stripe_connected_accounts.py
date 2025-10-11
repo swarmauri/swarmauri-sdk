@@ -8,7 +8,7 @@ async def test_create_connected_account_and_link(uvicorn_client):
     async with uvicorn_client(api_stripe_connected_accounts.app) as client:
         account = await client.post(
             "/connected_account",
-            json={"stripe_account_id": "acct_123", "details_submitted": False},
+            json={"external_id": "acct_123", "details_submitted": False},
         )
         assert account.status_code == 200
         account_id = account.json()["data"]["id"]

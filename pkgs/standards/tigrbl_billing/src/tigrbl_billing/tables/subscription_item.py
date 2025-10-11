@@ -17,8 +17,10 @@ from tigrbl.types import (
     UUID,
 )
 
+from ._mixins.extref import StripeExtRef
 
-class SubscriptionItem(Base, GUIDPk, Timestamped):
+
+class SubscriptionItem(Base, GUIDPk, Timestamped, StripeExtRef):
     __tablename__ = "subscription_items"
 
     subscription_id: Mapped[UUID] = acol(
@@ -49,13 +51,14 @@ class SubscriptionItem(Base, GUIDPk, Timestamped):
         ),
     )
 
-    stripe_subscription_item_id: Mapped[str | None] = acol(
+    external_id: Mapped[str | None] = acol(
         storage=S(type_=String, nullable=True, unique=True, index=True),
         field=F(py_type=str | None),
         io=IO(
             in_verbs=("create", "update", "replace", "merge"),
             out_verbs=("read", "list"),
         ),
+        name="stripe_subscription_item_id",
     )
 
     quantity: Mapped[int | None] = acol(

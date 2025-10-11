@@ -54,7 +54,7 @@ async def run_product_billing_flow(app: TigrblApp | None = None) -> Dict[str, An
         transport=transport, base_url="http://product-billing.test"
     ) as client:
         product_payload = {
-            "stripe_product_id": "prod_simple_suite",
+            "external_id": "prod_simple_suite",
             "name": "Simple Suite",
             "description": "Bundled productivity features",
             "metadata": {"segment": "smb"},
@@ -63,7 +63,7 @@ async def run_product_billing_flow(app: TigrblApp | None = None) -> Dict[str, An
         product_id = product_response.json()["data"]["id"]
 
         price_payload = {
-            "stripe_price_id": "price_simple_suite_monthly",
+            "external_id": "price_simple_suite_monthly",
             "product_id": product_id,
             "currency": "usd",
             "billing_scheme": "flat",
@@ -77,7 +77,7 @@ async def run_product_billing_flow(app: TigrblApp | None = None) -> Dict[str, An
         price_id = price_response.json()["data"]["id"]
 
         customer_payload = {
-            "stripe_customer_id": "cus_simple_suite",
+            "external_id": "cus_simple_suite",
             "email": "owner@example.com",
             "name": "Simple Suite Owner",
             "metadata": {"company": "Simple Suite LLC"},
@@ -86,7 +86,7 @@ async def run_product_billing_flow(app: TigrblApp | None = None) -> Dict[str, An
         customer_id = customer_response.json()["data"]["id"]
 
         checkout_payload = {
-            "stripe_checkout_session_id": "cs_simple_suite_trial",
+            "external_id": "cs_simple_suite_trial",
             "mode": "subscription",
             "customer_id": customer_id,
             "status": "open",
@@ -109,7 +109,7 @@ async def run_product_billing_flow(app: TigrblApp | None = None) -> Dict[str, An
         checkout_id = checkout_response.json()["data"]["id"]
 
         payment_intent_payload = {
-            "stripe_payment_intent_id": "pi_simple_suite",
+            "external_id": "pi_simple_suite",
             "customer_id": customer_id,
             "currency": "usd",
             "amount": 4999,
@@ -124,7 +124,7 @@ async def run_product_billing_flow(app: TigrblApp | None = None) -> Dict[str, An
         payment_intent_id = payment_intent_response.json()["data"]["id"]
 
         refund_payload = {
-            "stripe_refund_id": "re_simple_suite_partial",
+            "external_id": "re_simple_suite_partial",
             "payment_intent_id": payment_intent_id,
             "amount": 1999,
             "status": "succeeded",

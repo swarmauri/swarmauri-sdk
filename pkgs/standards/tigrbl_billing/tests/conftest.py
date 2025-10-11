@@ -288,7 +288,7 @@ def _ensure_model_handlers(model: type) -> None:
         candidates.update(
             {k for k, v in payload.items() if k.endswith("_id") and v is not None}
         )
-        candidates.update({k for k in ("stripe_customer_id", "email") if k in payload})
+        candidates.update({k for k in ("external_id", "email") if k in payload})
         return candidates
 
     def _find_by_identifier(
@@ -309,7 +309,7 @@ def _ensure_model_handlers(model: type) -> None:
         priority_keys = [
             key
             for key in payload
-            if key.endswith("_id") or key in {"stripe_customer_id", "email"}
+            if key.endswith("_id") or key in {"external_id", "email"}
         ]
         for obj in storage:
             if any(
@@ -560,7 +560,7 @@ BalanceTopOff = make_model(
     "BalanceTopOff", ["status", "metadata", "processed_at", "failure_reason"]
 )
 CustomerBalance = make_model("CustomerBalance", ["balance_id"])
-ApplicationFee = make_model("ApplicationFee", ["stripe_application_fee_id", "refunded"])
+ApplicationFee = make_model("ApplicationFee", ["external_id", "refunded"])
 UsageEvent = make_model(
     "UsageEvent",
     [
@@ -591,7 +591,7 @@ Subscription = make_model(
         "trial_end",
         "collection_method",
         "days_until_due",
-        "stripe_subscription_id",
+        "external_id",
         "metadata",
         "items",
     ],
@@ -609,7 +609,7 @@ UsageRollup = make_model(
 StripeEventLog = make_model(
     "StripeEventLog",
     [
-        "stripe_event_id",
+        "external_id",
         "event_type",
         "api_version",
         "event_created_ts",
@@ -621,17 +621,15 @@ StripeEventLog = make_model(
         "stripe_request_id",
     ],
 )
-Product = make_model(
-    "Product", ["stripe_product_id", "name", "description", "metadata"]
-)
-Price = make_model("Price", ["stripe_price_id", "unit_amount"])
+Product = make_model("Product", ["external_id", "name", "description", "metadata"])
+Price = make_model("Price", ["external_id", "unit_amount"])
 PriceTier = make_model("PriceTier", ["price_id", "up_to", "unit_amount"])
 Customer = make_model(
     "Customer",
     [
         "email",
         "name",
-        "stripe_customer_id",
+        "external_id",
         "default_payment_method_ref",
         "tax_exempt",
         "metadata",
@@ -640,24 +638,20 @@ Customer = make_model(
 )
 SubscriptionItem = make_model(
     "SubscriptionItem",
-    ["subscription_id", "stripe_subscription_item_id", "quantity", "price_id"],
+    ["subscription_id", "external_id", "quantity", "price_id"],
 )
 InvoiceLineItem = make_model(
     "InvoiceLineItem",
     ["invoice_id", "stripe_invoice_line_item_id", "amount", "description"],
 )
-Refund = make_model("Refund", ["stripe_refund_id", "amount"])
-ConnectedAccount = make_model(
-    "ConnectedAccount", ["stripe_account_id", "details_submitted"]
-)
-Transfer = make_model("Transfer", ["stripe_transfer_id", "amount", "currency"])
+Refund = make_model("Refund", ["external_id", "amount"])
+ConnectedAccount = make_model("ConnectedAccount", ["external_id", "details_submitted"])
+Transfer = make_model("Transfer", ["external_id", "amount", "currency"])
 Feature = make_model("Feature", ["feature_key", "name", "description"])
 PriceFeatureEntitlement = make_model(
     "PriceFeatureEntitlement", ["price_id", "feature_id", "entitlement"]
 )
-CheckoutSession = make_model(
-    "CheckoutSession", ["stripe_checkout_session_id", "status"]
-)
+CheckoutSession = make_model("CheckoutSession", ["external_id", "status"])
 CustomerAccountLink = make_model(
     "CustomerAccountLink", ["customer_id", "connected_account_id"]
 )

@@ -91,7 +91,7 @@ async def run_subscription_tiers_flow(app: TigrblApp | None = None) -> Dict[str,
             features[payload["key"]] = response.json()["data"]
 
         product_payload = {
-            "stripe_product_id": "prod_collaboration_hub",
+            "external_id": "prod_collaboration_hub",
             "name": "Collaboration Hub",
             "description": "Team work management platform",
             "metadata": {"segment": "b2b"},
@@ -101,7 +101,7 @@ async def run_subscription_tiers_flow(app: TigrblApp | None = None) -> Dict[str,
 
         price_definitions = {
             "free": {
-                "stripe_price_id": "price_collab_free",
+                "external_id": "price_collab_free",
                 "currency": "usd",
                 "billing_scheme": "flat",
                 "unit_amount": 0,
@@ -112,7 +112,7 @@ async def run_subscription_tiers_flow(app: TigrblApp | None = None) -> Dict[str,
                 "metadata": {"tier": "free"},
             },
             "basic": {
-                "stripe_price_id": "price_collab_basic",
+                "external_id": "price_collab_basic",
                 "currency": "usd",
                 "billing_scheme": "flat",
                 "unit_amount": 2900,
@@ -123,7 +123,7 @@ async def run_subscription_tiers_flow(app: TigrblApp | None = None) -> Dict[str,
                 "metadata": {"tier": "basic"},
             },
             "premium": {
-                "stripe_price_id": "price_collab_premium",
+                "external_id": "price_collab_premium",
                 "currency": "usd",
                 "billing_scheme": "flat",
                 "unit_amount": 7900,
@@ -196,7 +196,7 @@ async def run_subscription_tiers_flow(app: TigrblApp | None = None) -> Dict[str,
                 entitlements[tier][feature_key] = response.json()["data"]
 
         customer_payload = {
-            "stripe_customer_id": "cus_collab_acme",
+            "external_id": "cus_collab_acme",
             "email": "billing@acme.io",
             "name": "Acme Collaboration Team",
             "metadata": {"account_tier": "basic"},
@@ -209,7 +209,7 @@ async def run_subscription_tiers_flow(app: TigrblApp | None = None) -> Dict[str,
         period_end = period_start + dt.timedelta(days=30)
 
         subscription_payload = {
-            "stripe_subscription_id": "sub_collab_basic",
+            "external_id": "sub_collab_basic",
             "customer_id": customer["id"],
             "status": "active",
             "start_date": now.isoformat(),
@@ -229,7 +229,7 @@ async def run_subscription_tiers_flow(app: TigrblApp | None = None) -> Dict[str,
         subscription_item_payload = {
             "subscription_id": subscription["id"],
             "price_id": prices["basic"]["id"],
-            "stripe_subscription_item_id": "si_collab_basic",
+            "external_id": "si_collab_basic",
             "quantity": 10,
             "metadata": {"tier": "basic"},
         }
@@ -265,7 +265,7 @@ async def run_subscription_tiers_flow(app: TigrblApp | None = None) -> Dict[str,
         usage_rollup = usage_rollup_response.json()["data"]
 
         payment_intent_payload = {
-            "stripe_payment_intent_id": "pi_collab_basic_apr",
+            "external_id": "pi_collab_basic_apr",
             "customer_id": customer["id"],
             "currency": "usd",
             "amount": prices["basic"]["unit_amount"],
@@ -283,7 +283,7 @@ async def run_subscription_tiers_flow(app: TigrblApp | None = None) -> Dict[str,
         payment_intent = payment_intent_response.json()["data"]
 
         refund_payload = {
-            "stripe_refund_id": "re_collab_basic_credit",
+            "external_id": "re_collab_basic_credit",
             "payment_intent_id": payment_intent["id"],
             "amount": 900,
             "status": "succeeded",

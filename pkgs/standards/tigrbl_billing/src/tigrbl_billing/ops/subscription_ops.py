@@ -18,6 +18,7 @@ async def start_subscription(
     collection_method: str = "charge_automatically",
     days_until_due: Optional[int] = None,
     trial_end: Optional[object] = None,
+    external_id: Optional[str] = None,
     stripe_subscription_id: Optional[str] = None,
     metadata: Optional[dict] = None,
     model=None,
@@ -37,7 +38,7 @@ async def start_subscription(
         "trial_end": trial_end,
         "collection_method": collection_method,
         "days_until_due": days_until_due,
-        "stripe_subscription_id": stripe_subscription_id,
+        "external_id": external_id or stripe_subscription_id,
         "metadata": metadata or {},
         "items": list(items),
     }
