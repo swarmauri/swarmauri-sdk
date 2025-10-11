@@ -42,7 +42,7 @@ class Product(Base, GUIDPk, Timestamped, ActiveToggle):
         ),
     )
 
-    metadata: Mapped[dict | None] = acol(
+    metadata_: Mapped[dict | None] = acol(
         storage=S(type_=JSONB, nullable=True),
         field=F(py_type=dict),
         io=IO(
@@ -50,6 +50,7 @@ class Product(Base, GUIDPk, Timestamped, ActiveToggle):
             out_verbs=("read", "list"),
             mutable_verbs=("update", "replace"),
         ),
+        name="metadata",
     )
 
 

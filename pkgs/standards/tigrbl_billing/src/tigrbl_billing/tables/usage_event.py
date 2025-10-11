@@ -96,13 +96,14 @@ class UsageEvent(Base, GUIDPk, Timestamped):
         ),
     )
 
-    metadata: Mapped[dict] = acol(
+    metadata_: Mapped[dict] = acol(
         storage=S(type_=JSONB, default=dict, nullable=False),
         field=F(py_type=dict),
         io=IO(
             in_verbs=("create", "update", "replace", "merge"),
             out_verbs=("read", "list"),
         ),
+        name="metadata",
     )
 
     __table_args__ = UniqueConstraint(
