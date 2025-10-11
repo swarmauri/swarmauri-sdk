@@ -6,7 +6,7 @@ from enum import Enum
 
 from tigrbl.table import Base
 from tigrbl.orm.mixins import GUIDPk, Timestamped
-from tigrbl.specs import ColumnSpec, F, IO, S, acol
+from tigrbl.specs import F, IO, S, acol
 from tigrbl.types import Mapped, String, JSONB, Boolean, SAEnum, UniqueConstraint
 
 
@@ -20,69 +20,57 @@ class ConnectedAccount(Base, GUIDPk, Timestamped):
     __tablename__ = "connected_accounts"
 
     stripe_account_id: Mapped[str | None] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=String, nullable=True, unique=True, index=True),
-            field=F(py_type=str | None),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=String, nullable=True, unique=True, index=True),
+        field=F(py_type=str | None),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     type: Mapped[ConnectedType] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=SAEnum, nullable=False),
-            field=F(py_type=ConnectedType),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=SAEnum, nullable=False),
+        field=F(py_type=ConnectedType),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     payouts_enabled: Mapped[bool] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=Boolean, default=False, nullable=False),
-            field=F(py_type=bool),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=Boolean, default=False, nullable=False),
+        field=F(py_type=bool),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     charges_enabled: Mapped[bool] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=Boolean, default=False, nullable=False),
-            field=F(py_type=bool),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=Boolean, default=False, nullable=False),
+        field=F(py_type=bool),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     capabilities: Mapped[dict] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=JSONB, default=dict, nullable=False),
-            field=F(py_type=dict),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=JSONB, default=dict, nullable=False),
+        field=F(py_type=dict),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     metadata: Mapped[dict] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=JSONB, default=dict, nullable=False),
-            field=F(py_type=dict),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=JSONB, default=dict, nullable=False),
+        field=F(py_type=dict),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     __table_args__ = UniqueConstraint(

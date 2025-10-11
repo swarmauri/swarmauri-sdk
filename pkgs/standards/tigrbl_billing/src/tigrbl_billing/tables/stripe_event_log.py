@@ -6,7 +6,7 @@ from enum import Enum
 
 from tigrbl.table import Base
 from tigrbl.orm.mixins import GUIDPk, Timestamped
-from tigrbl.specs import ColumnSpec, F, IO, S, acol
+from tigrbl.specs import F, IO, S, acol
 from tigrbl.types import Mapped, String, JSONB, SAEnum, UniqueConstraint, TZDateTime
 
 
@@ -30,115 +30,93 @@ class StripeEventLog(Base, GUIDPk, Timestamped):
     __tablename__ = "stripe_event_logs"
 
     stripe_event_id: Mapped[str] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=String, nullable=False),
-            field=F(py_type=str),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=String, nullable=False),
+        field=F(py_type=str),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     event_type: Mapped[str] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=String, nullable=False),
-            field=F(py_type=str),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=String, nullable=False),
+        field=F(py_type=str),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     api_version: Mapped[str | None] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=String, nullable=True),
-            field=F(py_type=str | None),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=String, nullable=True),
+        field=F(py_type=str | None),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     event_created_ts: Mapped[object | None] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=TZDateTime, nullable=True),
-            field=F(py_type=object | None),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=TZDateTime, nullable=True),
+        field=F(py_type=object | None),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     account: Mapped[str | None] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=String, nullable=True),
-            field=F(py_type=str | None, constraints={"examples": ["acct_123"]}),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=String, nullable=True),
+        field=F(py_type=str | None, constraints={"examples": ["acct_123"]}),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     payload: Mapped[dict] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=JSONB, nullable=False, default=dict),
-            field=F(py_type=dict),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=JSONB, nullable=False, default=dict),
+        field=F(py_type=dict),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     status: Mapped[EventProcessStatus] = acol(
-        spec=ColumnSpec(
-            storage=S(
-                type_=SAEnum, default=EventProcessStatus.RECEIVED, nullable=False
-            ),
-            field=F(py_type=EventProcessStatus),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=SAEnum, default=EventProcessStatus.RECEIVED, nullable=False),
+        field=F(py_type=EventProcessStatus),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     processed_at: Mapped[object | None] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=TZDateTime, nullable=True),
-            field=F(py_type=object | None),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=TZDateTime, nullable=True),
+        field=F(py_type=object | None),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     error_message: Mapped[str | None] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=String, nullable=True),
-            field=F(py_type=str | None),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=String, nullable=True),
+        field=F(py_type=str | None),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     stripe_request_id: Mapped[str | None] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=String, nullable=True),
-            field=F(py_type=str | None),
-            io=IO(
-                in_verbs=("create", "update", "replace", "merge"),
-                out_verbs=("read", "list"),
-            ),
-        )
+        storage=S(type_=String, nullable=True),
+        field=F(py_type=str | None),
+        io=IO(
+            in_verbs=("create", "update", "replace", "merge"),
+            out_verbs=("read", "list"),
+        ),
     )
 
     __table_args__ = UniqueConstraint(
