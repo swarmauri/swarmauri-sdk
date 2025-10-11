@@ -136,6 +136,7 @@ members = [
     "standards/swarmauri_cipher_suite_jwa",
     "standards/swarmauri_cipher_suite_cose",
     "standards/swarmauri_cipher_suite_fips1403",
+    "standards/swarmauri_cipher_suite_fips205",
     "standards/swarmauri_cipher_suite_cades",
     "standards/swarmauri_cipher_suite_cnsa20",
     "standards/swarmauri_cipher_suite_ipsec",
