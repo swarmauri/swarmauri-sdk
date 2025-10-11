@@ -74,6 +74,7 @@ class KeyType(str, Enum):
     EC = "ec"
     ED25519 = "ed25519"
     X25519 = "x25519"
+    MLKEM = "mlkem"
     OPAQUE = "opaque"  # e.g., HSM handle only / non-extractable materials
 
 

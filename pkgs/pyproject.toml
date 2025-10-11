@@ -130,6 +130,7 @@ members = [
     "standards/swarmauri_crypto_rust",
     "standards/swarmauri_crypto_sodium",
     "standards/swarmauri_crypto_nacl_pkcs11",
+    "standards/swarmauri_crypto_mlkem",
     "standards/swarmauri_crypto_jwe",
     "standards/swarmauri_crypto_composite",
     "standards/swarmauri_crypto_ecdh_es_a128kw",
