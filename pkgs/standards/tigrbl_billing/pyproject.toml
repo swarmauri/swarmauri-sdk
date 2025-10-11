@@ -23,6 +23,8 @@ classifiers = [
     "Programming Language :: Python :: 3 :: Only",
     "Topic :: Office/Business :: Financial",
     "Topic :: Office/Business :: Financial :: Accounting",
+    "Topic :: Office/Business :: Financial :: Point-Of-Sale",
+    "Topic :: Office/Business :: Financial :: Reporting",
     "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Topic :: Database",
@@ -53,6 +55,16 @@ keywords = [
     "tigrbl-platform",
     "billing-automation",
     "customer-lifecycle",
+    "billing-operations",
+    "financial-analytics",
+    "financial-modeling",
+    "governance-risk-compliance",
+    "invoice-reconciliation",
+    "payment-orchestration",
+    "revenue-assurance",
+    "revenue-recognition",
+    "subscription-analytics",
+    "subscription-finance",
 ]
 
 [tool.uv.sources]
