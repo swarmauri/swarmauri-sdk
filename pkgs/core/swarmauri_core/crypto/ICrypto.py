@@ -41,7 +41,7 @@ Notes
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Dict, Iterable, Optional
+from typing import Dict, Iterable, Optional, Tuple
 
 from .types import (
     AEADCiphertext,
@@ -61,6 +61,7 @@ class ICrypto(ABC):
           - "encrypt" / "decrypt": AEAD algorithms for each direction
           - "wrap" / "unwrap": key-wrapping algorithms
           - "seal" / "unseal": sealed-box style algorithms
+          - "encaps" / "decaps": key-encapsulation mechanism algorithms
 
         Example::
 
@@ -71,6 +72,8 @@ class ICrypto(ABC):
                 "unwrap": ("AES-KW", "RSA-OAEP-SHA256"),
                 "seal": ("X25519-SEALEDBOX",),
                 "unseal": ("X25519-SEALEDBOX",),
+                "encaps": ("ML-KEM-768",),
+                "decaps": ("ML-KEM-768",),
             }
         """
         ...
@@ -209,6 +212,45 @@ class ICrypto(ABC):
 
         Returns:
           bytes: plaintext.
+
+        Raises on authentication/decryption failure.
+        """
+        ...
+
+    # ─────────────────────────── Encaps / Decaps ─────────────────────────
+
+    @abstractmethod
+    async def encaps(
+        self,
+        recipient: KeyRef,
+        *,
+        alg: Optional[Alg] = None,
+    ) -> Tuple[bytes, bytes]:
+        """
+        Perform a key encapsulation for 'recipient'.
+
+        Returns:
+          Tuple[bytes, bytes]: (shared_secret, encapsulated_key) pair.
+
+        Notes:
+          - Shared secret bytes are suitable for direct KDF input.
+          - Encapsulated key MUST be provided to :meth:`decaps` for recovery.
+        """
+        ...
+
+    @abstractmethod
+    async def decaps(
+        self,
+        recipient_priv: KeyRef,
+        encapsulated_key: bytes,
+        *,
+        alg: Optional[Alg] = None,
+    ) -> bytes:
+        """
+        Recover the shared secret from 'encapsulated_key' using 'recipient_priv'.
+
+        Returns:
+          bytes: shared secret produced by the encapsulation mechanism.
 
         Raises on authentication/decryption failure.
         """

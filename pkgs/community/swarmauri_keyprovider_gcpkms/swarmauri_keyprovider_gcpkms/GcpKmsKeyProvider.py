@@ -20,8 +20,8 @@ import secrets
 
 from pydantic import PrivateAttr
 
-from swarmauri_base.keys.KeyProviderBase import KeyProviderBase
-from swarmauri_core.keys.types import ExportPolicy, KeySpec, KeyUse
+from swarmauri_base.key_providers.KeyProviderBase import KeyProviderBase
+from swarmauri_core.key_providers.types import ExportPolicy, KeySpec, KeyUse
 from swarmauri_core.crypto.types import JWAAlg, KeyRef
 
 

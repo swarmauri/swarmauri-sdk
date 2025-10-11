@@ -89,7 +89,7 @@ import asyncio
 
 from swarmauri_keyprovider_hierarchical import HierarchicalKeyProvider, CreateRule
 from swarmauri_keyprovider_local import LocalKeyProvider
-from swarmauri_core.keys.types import (
+from swarmauri_core.key_providers.types import (
     ExportPolicy,
     KeyAlg,
     KeyClass,

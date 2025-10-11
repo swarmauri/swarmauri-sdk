@@ -104,8 +104,8 @@ class PluginCitizenshipRegistry:
         ###
         # key providers
         ###
-        "swarmauri.key_providers.IKeyProvider": "swarmauri_core.keys.IKeyProvider",
-        "swarmauri.key_providers.KeyProviderBase": "swarmauri_base.keys.KeyProviderBase",
+        "swarmauri.key_providers.IKeyProvider": "swarmauri_core.key_providers.IKeyProvider",
+        "swarmauri.key_providers.KeyProviderBase": "swarmauri_base.key_providers.KeyProviderBase",
         "swarmauri.key_providers.InMemoryKeyProvider": "swarmauri_standard.key_providers.InMemoryKeyProvider",
         "swarmauri.agents.ExampleAgent": "swm_example_package.ExampleAgent",
         "swarmauri.agents.QAAgent": "swarmauri_standard.agents.QAAgent",

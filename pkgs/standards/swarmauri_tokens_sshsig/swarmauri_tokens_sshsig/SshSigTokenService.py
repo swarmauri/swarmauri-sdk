@@ -20,7 +20,7 @@ from cryptography.hazmat.primitives.serialization import (
 )
 
 from swarmauri_base.tokens.TokenServiceBase import TokenServiceBase
-from swarmauri_core.keys.IKeyProvider import IKeyProvider
+from swarmauri_core.key_providers.IKeyProvider import IKeyProvider
 
 
 def _b64u(data: bytes) -> str:

@@ -7,7 +7,7 @@ import asyncio
 from tempfile import TemporaryDirectory
 
 from swarmauri_keyprovider_file import FileKeyProvider
-from swarmauri_core.keys.types import (
+from swarmauri_core.key_providers.types import (
     ExportPolicy,
     KeyAlg,
     KeyClass,

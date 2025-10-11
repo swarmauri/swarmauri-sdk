@@ -14,9 +14,9 @@ from typing import (
     Literal,
 )
 
-from swarmauri_base.keys.KeyProviderBase import KeyProviderBase
-from swarmauri_core.keys.IKeyProvider import IKeyProvider
-from swarmauri_core.keys.types import KeySpec, KeyAlg, KeyClass, ExportPolicy, KeyUse
+from swarmauri_base.key_providers.KeyProviderBase import KeyProviderBase
+from swarmauri_core.key_providers.IKeyProvider import IKeyProvider
+from swarmauri_core.key_providers.types import KeySpec, KeyAlg, KeyClass, ExportPolicy, KeyUse
 from swarmauri_core.crypto.types import KeyRef
 
 

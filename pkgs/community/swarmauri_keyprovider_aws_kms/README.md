@@ -53,7 +53,7 @@ uv add swarmauri_keyprovider_aws_kms
 ```python
 import asyncio
 from swarmauri_keyprovider_aws_kms import AwsKmsKeyProvider
-from swarmauri_core.keys.types import KeyAlg, KeyClass, KeySpec, ExportPolicy
+from swarmauri_core.key_providers.types import KeyAlg, KeyClass, KeySpec, ExportPolicy
 
 
 async def main() -> None:
