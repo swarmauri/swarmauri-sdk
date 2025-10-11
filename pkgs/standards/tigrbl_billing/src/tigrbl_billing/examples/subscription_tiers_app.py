@@ -10,6 +10,7 @@ import httpx
 from tigrbl import TigrblApp
 from tigrbl.engine.shortcuts import engine as build_engine, mem
 
+from tigrbl_billing import ops as billing_ops
 from tigrbl_billing.tables.customer import Customer
 from tigrbl_billing.tables.feature import Feature
 from tigrbl_billing.tables.payment_intent import PaymentIntent
@@ -21,6 +22,17 @@ from tigrbl_billing.tables.subscription import Subscription
 from tigrbl_billing.tables.subscription_item import SubscriptionItem
 from tigrbl_billing.tables.usage_event import UsageEvent
 from tigrbl_billing.tables.usage_rollup import UsageRollup
+
+_REQUIRED_OPS = (
+    billing_ops.start_subscription,
+    billing_ops.cancel_subscription,
+    billing_ops.resume_subscription,
+    billing_ops.pause_subscription,
+    billing_ops.trial_start,
+    billing_ops.trial_end,
+    billing_ops.rollup_usage_periodic,
+    billing_ops.sync_objects,
+)
 
 
 def build_subscription_tiers_app(async_mode: bool = True) -> TigrblApp:
@@ -165,7 +177,11 @@ async def run_subscription_tiers_flow(app: TigrblApp | None = None) -> Dict[str,
             },
         }
 
-        entitlements: Dict[str, Dict[str, Any]] = {"free": {}, "basic": {}, "premium": {}}
+        entitlements: Dict[str, Dict[str, Any]] = {
+            "free": {},
+            "basic": {},
+            "premium": {},
+        }
         for tier, feature_limits in entitlement_matrix.items():
             for feature_key, limits in feature_limits.items():
                 payload = {
@@ -176,9 +192,7 @@ async def run_subscription_tiers_flow(app: TigrblApp | None = None) -> Dict[str,
                     "period": limits.get("period"),
                     "metering_window": "calendar",
                 }
-                response = await client.post(
-                    "/price_feature_entitlement", json=payload
-                )
+                response = await client.post("/price_feature_entitlement", json=payload)
                 entitlements[tier][feature_key] = response.json()["data"]
 
         customer_payload = {
@@ -215,7 +229,7 @@ async def run_subscription_tiers_flow(app: TigrblApp | None = None) -> Dict[str,
         subscription_item_payload = {
             "subscription_id": subscription["id"],
             "price_id": prices["basic"]["id"],
-            "stripe_subscription_item_id": "si_collab_basic", 
+            "stripe_subscription_item_id": "si_collab_basic",
             "quantity": 10,
             "metadata": {"tier": "basic"},
         }

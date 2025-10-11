@@ -9,12 +9,22 @@ import httpx
 from tigrbl import TigrblApp
 from tigrbl.engine.shortcuts import engine as build_engine, mem
 
+from tigrbl_billing import ops as billing_ops
 from tigrbl_billing.tables.checkout_session import CheckoutSession
 from tigrbl_billing.tables.customer import Customer
 from tigrbl_billing.tables.payment_intent import PaymentIntent
 from tigrbl_billing.tables.price import Price
 from tigrbl_billing.tables.product import Product
 from tigrbl_billing.tables.refund import Refund
+
+_REQUIRED_OPS = (
+    billing_ops.create_or_link_customer,
+    billing_ops.attach_payment_method,
+    billing_ops.capture_payment_intent,
+    billing_ops.cancel_payment_intent,
+    billing_ops.refund_application_fee,
+    billing_ops.sync_objects,
+)
 
 
 def build_product_billing_app(async_mode: bool = True) -> TigrblApp:
