@@ -1,20 +1,39 @@
 from __future__ import annotations
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 from tigrbl.table import Base
-from tigrbl.specs import ColumnSpec, F, IO, S, vcol
+from tigrbl.specs import ColumnSpec, F, IO, vcol
 from tigrbl.types import (
-    Mapped, String, Integer, JSONB, SAEnum, PgUUID, UUID, TZDateTime)
+    Mapped,
+)
+
 
 class VwARPUMonthly(Base):
     """Average Revenue Per User (customer) by month (read-only)."""
+
     __tablename__ = "vw_arpu_monthly"
     __allow_unmapped__ = True
 
-    month: Mapped[object] = vcol(ColumnSpec(storage=None, field=F(py_type=object), io=IO(out_verbs=("read","list"))))
-    revenue_cents: Mapped[int] = vcol(ColumnSpec(storage=None, field=F(py_type=int), io=IO(out_verbs=("read","list"))))
-    paying_customers: Mapped[int] = vcol(ColumnSpec(storage=None, field=F(py_type=int), io=IO(out_verbs=("read","list"))))
-    arpu_cents: Mapped[int] = vcol(ColumnSpec(storage=None, field=F(py_type=int), io=IO(out_verbs=("read","list"))))
+    month: Mapped[object] = vcol(
+        ColumnSpec(
+            storage=None, field=F(py_type=object), io=IO(out_verbs=("read", "list"))
+        )
+    )
+    revenue_cents: Mapped[int] = vcol(
+        ColumnSpec(
+            storage=None, field=F(py_type=int), io=IO(out_verbs=("read", "list"))
+        )
+    )
+    paying_customers: Mapped[int] = vcol(
+        ColumnSpec(
+            storage=None, field=F(py_type=int), io=IO(out_verbs=("read", "list"))
+        )
+    )
+    arpu_cents: Mapped[int] = vcol(
+        ColumnSpec(
+            storage=None, field=F(py_type=int), io=IO(out_verbs=("read", "list"))
+        )
+    )
 
     @classmethod
     def sql(cls) -> str:
@@ -34,7 +53,9 @@ class VwARPUMonthly(Base):
         """
 
     @classmethod
-    def fetch(cls, engine_ctx, *, date_from: Any | None = None, date_to: Any | None = None) -> List[Dict[str, Any]]:
+    def fetch(
+        cls, engine_ctx, *, date_from: Any | None = None, date_to: Any | None = None
+    ) -> List[Dict[str, Any]]:
         params = {"date_from": date_from, "date_to": date_to}
         with engine_ctx.ro_cursor() as cur:
             cur.execute(cls.sql(), params)

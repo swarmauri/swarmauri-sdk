@@ -2,26 +2,36 @@ from __future__ import annotations
 from typing import Any, Dict, List, Tuple
 
 from tigrbl.table import Base
-from tigrbl.specs import ColumnSpec, F, IO, S, vcol
+from tigrbl.specs import ColumnSpec, F, IO, vcol
 from tigrbl.types import (
-    Mapped, String, Integer, JSONB, SAEnum, PgUUID, UUID, TZDateTime)
+    Mapped,
+    UUID,
+)
+
 
 class VwMRRSubscription(Base):
     """Monthly Recurring Revenue per subscription (read-only view).
 
     Output shape: subscription_id, month, mrr_cents
     """
+
     __tablename__ = "vw_mrr_subscription"
     __allow_unmapped__ = True  # virtual/view columns
 
     subscription_id: Mapped[UUID] = vcol(
-        ColumnSpec(storage=None, field=F(py_type=UUID), io=IO(out_verbs=("read","list")))
+        ColumnSpec(
+            storage=None, field=F(py_type=UUID), io=IO(out_verbs=("read", "list"))
+        )
     )
     month: Mapped[object] = vcol(
-        ColumnSpec(storage=None, field=F(py_type=object), io=IO(out_verbs=("read","list")))
+        ColumnSpec(
+            storage=None, field=F(py_type=object), io=IO(out_verbs=("read", "list"))
+        )
     )
     mrr_cents: Mapped[int] = vcol(
-        ColumnSpec(storage=None, field=F(py_type=int), io=IO(out_verbs=("read","list")))
+        ColumnSpec(
+            storage=None, field=F(py_type=int), io=IO(out_verbs=("read", "list"))
+        )
     )
 
     @classmethod
@@ -46,7 +56,14 @@ class VwMRRSubscription(Base):
         """
 
     @classmethod
-    def fetch(cls, engine_ctx, *, subscription_id: str | None = None, asof: Any | None = None, include_statuses: Tuple[str, ...] = ("paid","open")) -> List[Dict[str, Any]]:
+    def fetch(
+        cls,
+        engine_ctx,
+        *,
+        subscription_id: str | None = None,
+        asof: Any | None = None,
+        include_statuses: Tuple[str, ...] = ("paid", "open"),
+    ) -> List[Dict[str, Any]]:
         params = {
             "subscription_id": subscription_id,
             "asof": asof,
