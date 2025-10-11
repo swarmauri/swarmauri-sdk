@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tigrbl_billing"
+version = "0.0.0"
+description = "Unified Tigrbl billing package (merged)"
+authors = [{name="Tigrbl Maintainers"}]
+requires-python = ">=3.10"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["tigrbl_billing*"]
