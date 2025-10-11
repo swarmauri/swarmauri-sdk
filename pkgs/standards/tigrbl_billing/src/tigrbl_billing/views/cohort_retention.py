@@ -2,19 +2,38 @@ from __future__ import annotations
 from typing import Any, Dict, List, Tuple
 
 from tigrbl.table import Base
-from tigrbl.specs import ColumnSpec, F, IO, S, vcol
+from tigrbl.specs import ColumnSpec, F, IO, vcol
 from tigrbl.types import (
-    Mapped, String, Integer, JSONB, SAEnum, PgUUID, UUID, TZDateTime)
+    Mapped,
+)
+
 
 class VwCohortRetention(Base):
     """Cohort retention snapshot by subscription start month (read-only)."""
+
     __tablename__ = "vw_cohort_retention"
     __allow_unmapped__ = True
 
-    cohort_month: Mapped[object] = vcol(ColumnSpec(storage=None, field=F(py_type=object), io=IO(out_verbs=("read","list"))))
-    cohort_size: Mapped[int] = vcol(ColumnSpec(storage=None, field=F(py_type=int), io=IO(out_verbs=("read","list"))))
-    active_now: Mapped[int] = vcol(ColumnSpec(storage=None, field=F(py_type=int), io=IO(out_verbs=("read","list"))))
-    retention_rate_now_pct: Mapped[object] = vcol(ColumnSpec(storage=None, field=F(py_type=object), io=IO(out_verbs=("read","list"))))
+    cohort_month: Mapped[object] = vcol(
+        ColumnSpec(
+            storage=None, field=F(py_type=object), io=IO(out_verbs=("read", "list"))
+        )
+    )
+    cohort_size: Mapped[int] = vcol(
+        ColumnSpec(
+            storage=None, field=F(py_type=int), io=IO(out_verbs=("read", "list"))
+        )
+    )
+    active_now: Mapped[int] = vcol(
+        ColumnSpec(
+            storage=None, field=F(py_type=int), io=IO(out_verbs=("read", "list"))
+        )
+    )
+    retention_rate_now_pct: Mapped[object] = vcol(
+        ColumnSpec(
+            storage=None, field=F(py_type=object), io=IO(out_verbs=("read", "list"))
+        )
+    )
 
     @classmethod
     def sql(cls) -> str:
@@ -38,7 +57,19 @@ class VwCohortRetention(Base):
         """
 
     @classmethod
-    def fetch(cls, engine_ctx, *, asof: Any | None = None, activeish: Tuple[str, ...] = ("incomplete","trialing","active","past_due","unpaid")) -> List[Dict[str, Any]]:
+    def fetch(
+        cls,
+        engine_ctx,
+        *,
+        asof: Any | None = None,
+        activeish: Tuple[str, ...] = (
+            "incomplete",
+            "trialing",
+            "active",
+            "past_due",
+            "unpaid",
+        ),
+    ) -> List[Dict[str, Any]]:
         params = {
             "asof": asof,
             "activeish": list(activeish),

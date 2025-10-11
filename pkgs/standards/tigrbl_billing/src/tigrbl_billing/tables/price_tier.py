@@ -17,32 +17,43 @@ class PriceTier(Base, GUIDPk, Timestamped):
         spec=ColumnSpec(
             storage=S(
                 type_=str,
-                fk=ForeignKeySpec(target=lambda cls: f"{_infer_schema(cls)}.billing_prices.id"),
+                fk=ForeignKeySpec(
+                    target=lambda cls: f"{_infer_schema(cls)}.billing_prices.id"
+                ),
                 nullable=False,
-                index=True),
+                index=True,
+            ),
             field=F(py_type=str),
-            io=IO(in_verbs=("create", "update", "replace"), out_verbs=("read","list")))
+            io=IO(in_verbs=("create", "update", "replace"), out_verbs=("read", "list")),
+        )
     )
 
     up_to: Mapped[int | None] = acol(
         spec=ColumnSpec(
             storage=S(type_=Integer, nullable=True, index=True),
             field=F(py_type=int),
-            io=IO(in_verbs=("create", "update", "replace"), out_verbs=("read","list")))
+            io=IO(in_verbs=("create", "update", "replace"), out_verbs=("read", "list")),
+        )
     )
 
     flat_amount: Mapped[int | None] = acol(
         spec=ColumnSpec(
             storage=S(type_=Integer, nullable=True),
             field=F(py_type=int),
-            io=IO(in_verbs=("create", "update", "replace"), out_verbs=("read","list")))
+            io=IO(in_verbs=("create", "update", "replace"), out_verbs=("read", "list")),
+        )
     )
 
     unit_amount: Mapped[int | None] = acol(
         spec=ColumnSpec(
-            storage=S(type_=Integer, nullable=True, check="NOT (flat_amount IS NULL AND unit_amount IS NULL)"),
+            storage=S(
+                type_=Integer,
+                nullable=True,
+                check="NOT (flat_amount IS NULL AND unit_amount IS NULL)",
+            ),
             field=F(py_type=int),
-            io=IO(in_verbs=("create", "update", "replace"), out_verbs=("read","list")))
+            io=IO(in_verbs=("create", "update", "replace"), out_verbs=("read", "list")),
+        )
     )
 
 

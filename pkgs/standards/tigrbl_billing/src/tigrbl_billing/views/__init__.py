@@ -1,4 +1,3 @@
-
 # tigrbl_billing.views – ORM-like, table-bound OLAP views (read-only)
 from __future__ import annotations
 
@@ -20,6 +19,7 @@ __all__ = [
     "VwUsageCoverageRatio",
 ]
 
+
 def all_views():
     return (
         VwMRRSubscription,
@@ -28,7 +28,9 @@ def all_views():
         VwCohortRetention,
         VwARPUMonthly,
         VwDunningFunnel,
-        VwUsageCoverageRatio)
+        VwUsageCoverageRatio,
+    )
+
 
 def __dir__():
     return sorted(__all__)

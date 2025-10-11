@@ -29,54 +29,70 @@ class PriceFeatureEntitlement(Base, GUIDPk, Timestamped):
         spec=ColumnSpec(
             storage=S(
                 type_=str,
-                fk=ForeignKeySpec(target=lambda cls: f"{_infer_schema(cls)}.billing_prices.id"),
+                fk=ForeignKeySpec(
+                    target=lambda cls: f"{_infer_schema(cls)}.billing_prices.id"
+                ),
                 nullable=False,
-                index=True),
+                index=True,
+            ),
             field=F(py_type=str),
-            io=IO(in_verbs=("create","update","replace"), out_verbs=("read","list")))
+            io=IO(in_verbs=("create", "update", "replace"), out_verbs=("read", "list")),
+        )
     )
 
     feature_id: Mapped[str] = acol(
         spec=ColumnSpec(
             storage=S(
                 type_=str,
-                fk=ForeignKeySpec(target=lambda cls: f"{_infer_schema(cls)}.billing_features.id"),
+                fk=ForeignKeySpec(
+                    target=lambda cls: f"{_infer_schema(cls)}.billing_features.id"
+                ),
                 nullable=False,
-                index=True),
+                index=True,
+            ),
             field=F(py_type=str),
-            io=IO(in_verbs=("create","update","replace"), out_verbs=("read","list")))
+            io=IO(in_verbs=("create", "update", "replace"), out_verbs=("read", "list")),
+        )
     )
 
     limit_per_period: Mapped[int | None] = acol(
         spec=ColumnSpec(
             storage=S(type_=Integer, nullable=True),
             field=F(py_type=int),
-            io=IO(in_verbs=("create","update","replace"), out_verbs=("read","list")))
+            io=IO(in_verbs=("create", "update", "replace"), out_verbs=("read", "list")),
+        )
     )
 
     overage_unit_amount: Mapped[int | None] = acol(
         spec=ColumnSpec(
             storage=S(type_=Integer, nullable=True),
             field=F(py_type=int),
-            io=IO(in_verbs=("create","update","replace"), out_verbs=("read","list")))
+            io=IO(in_verbs=("create", "update", "replace"), out_verbs=("read", "list")),
+        )
     )
 
     period: Mapped[EntitlementPeriod | None] = acol(
         spec=ColumnSpec(
-            storage=S(type_=SAEnum(EntitlementPeriod, name="entitlement_period"), nullable=True),
+            storage=S(
+                type_=SAEnum(EntitlementPeriod, name="entitlement_period"),
+                nullable=True,
+            ),
             field=F(py_type=EntitlementPeriod),
-            io=IO(in_verbs=("create","update","replace"), out_verbs=("read","list")))
+            io=IO(in_verbs=("create", "update", "replace"), out_verbs=("read", "list")),
+        )
     )
 
     metering_window: Mapped[MeteringWindow | None] = acol(
         spec=ColumnSpec(
-            storage=S(type_=SAEnum(MeteringWindow, name="metering_window"), nullable=True),
+            storage=S(
+                type_=SAEnum(MeteringWindow, name="metering_window"), nullable=True
+            ),
             field=F(py_type=MeteringWindow),
-            io=IO(in_verbs=("create","update","replace"), out_verbs=("read","list")))
+            io=IO(in_verbs=("create", "update", "replace"), out_verbs=("read", "list")),
+        )
     )
 
-    __table_args__ = (
-        UniqueConstraint("price_id", "feature_id", name="uq_price_feature"))
+    __table_args__ = UniqueConstraint("price_id", "feature_id", name="uq_price_feature")
 
 
 __all__ = ["PriceFeatureEntitlement", "EntitlementPeriod", "MeteringWindow"]

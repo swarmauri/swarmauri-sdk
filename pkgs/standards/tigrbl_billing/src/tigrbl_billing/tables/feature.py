@@ -22,42 +22,50 @@ class Feature(Base, GUIDPk, Timestamped, ActiveToggle):
         spec=ColumnSpec(
             storage=S(type_=String(100), unique=True, index=True, nullable=False),
             field=F(py_type=str, constraints={"max_length": 100}),
-            io=IO(in_verbs=("create","update","replace"), out_verbs=("read","list")))
+            io=IO(in_verbs=("create", "update", "replace"), out_verbs=("read", "list")),
+        )
     )
 
     name: Mapped[str] = acol(
         spec=ColumnSpec(
             storage=S(type_=String(255), nullable=False, index=True),
             field=F(py_type=str, constraints={"max_length": 255}),
-            io=IO(in_verbs=("create","update","replace"), out_verbs=("read","list")))
+            io=IO(in_verbs=("create", "update", "replace"), out_verbs=("read", "list")),
+        )
     )
 
     description: Mapped[str | None] = acol(
         spec=ColumnSpec(
             storage=S(type_=Text, nullable=True),
             field=F(py_type=str),
-            io=IO(in_verbs=("create","update","replace"), out_verbs=("read","list")))
+            io=IO(in_verbs=("create", "update", "replace"), out_verbs=("read", "list")),
+        )
     )
 
     metering: Mapped[MeteringKind] = acol(
         spec=ColumnSpec(
-            storage=S(type_=SAEnum(MeteringKind, name="feature_metering_kind"), nullable=False),
+            storage=S(
+                type_=SAEnum(MeteringKind, name="feature_metering_kind"), nullable=False
+            ),
             field=F(py_type=MeteringKind),
-            io=IO(in_verbs=("create","update","replace"), out_verbs=("read","list")))
+            io=IO(in_verbs=("create", "update", "replace"), out_verbs=("read", "list")),
+        )
     )
 
     unit_label: Mapped[str | None] = acol(
         spec=ColumnSpec(
             storage=S(type_=String(32), nullable=True),
             field=F(py_type=str, constraints={"max_length": 32}),
-            io=IO(in_verbs=("create","update","replace"), out_verbs=("read","list")))
+            io=IO(in_verbs=("create", "update", "replace"), out_verbs=("read", "list")),
+        )
     )
 
     metadata: Mapped[dict | None] = acol(
         spec=ColumnSpec(
             storage=S(type_=JSONB, nullable=True),
             field=F(py_type=dict),
-            io=IO(in_verbs=("create","update","replace"), out_verbs=("read","list")))
+            io=IO(in_verbs=("create", "update", "replace"), out_verbs=("read", "list")),
+        )
     )
 
 
