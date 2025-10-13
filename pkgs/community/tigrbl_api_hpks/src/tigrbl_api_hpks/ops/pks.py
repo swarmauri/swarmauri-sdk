@@ -57,6 +57,33 @@ def _coerce_datetime(value: str) -> dt.datetime:
     return dt_obj
 
 
+def _coerce_bits(value: Any) -> int | None:
+    """Normalize key-size data from PGPy into a numeric bit count."""
+
+    if value is None:
+        return None
+
+    # Try direct integer conversion first for simple types.
+    try:
+        coerced = int(value)
+    except (TypeError, ValueError):
+        coerced = None
+    else:
+        return coerced
+
+    # Fall back to inspecting common attributes exposed by enum-like objects.
+    for attr in ("key_size", "size"):
+        candidate = getattr(value, attr, None)
+        if candidate is None:
+            continue
+        try:
+            return int(candidate)
+        except (TypeError, ValueError):
+            continue
+
+    return None
+
+
 def _ensure_tzaware(value: dt.datetime | None) -> dt.datetime | None:
     if value is None:
         return None
@@ -120,7 +147,7 @@ def _parse_blob(blob: bytes) -> list[ParsedKey]:
         if getattr(key, "key_algorithm", None) is not None:
             algo = key.key_algorithm
             algorithm = getattr(algo, "name", str(algo))
-        bits = getattr(key, "key_size", None)
+        bits = _coerce_bits(getattr(key, "key_size", None))
         primary_uid = (
             str(key.primary_uid)
             if getattr(key, "primary_uid", None)
@@ -147,7 +174,7 @@ def _parse_blob(blob: bytes) -> list[ParsedKey]:
                 revoked=revoked,
                 revoked_at=revoked_at,
                 algorithm=algorithm,
-                bits=int(bits) if bits else None,
+                bits=bits,
                 primary_uid=primary_uid,
                 version=version,
             )
@@ -328,7 +355,7 @@ async def merge_json_payload(
         revoked = flags.get("revoked")
     revoked_at_raw = payload.get("revoked_at") or flags.get("revoked_at")
     algorithm = payload.get("algo") or payload.get("algorithm") or flags.get("algo")
-    bits_value = payload.get("bits") or flags.get("bits")
+    bits_value = _coerce_bits(payload.get("bits") or flags.get("bits"))
     primary_uid = payload.get("primary_uid") or flags.get("primary_uid")
     merged_payload: dict[str, Any] = {
         "fingerprint": existing.fingerprint,
@@ -348,7 +375,7 @@ async def merge_json_payload(
             _coerce_datetime(revoked_at_raw) if revoked_at_raw else existing.revoked_at
         ),
         "algorithm": algorithm or existing.algorithm,
-        "bits": int(bits_value) if bits_value is not None else existing.bits,
+        "bits": bits_value if bits_value is not None else existing.bits,
         "primary_uid": primary_uid or existing.primary_uid,
         "version": payload.get("version") or existing.version,
     }
