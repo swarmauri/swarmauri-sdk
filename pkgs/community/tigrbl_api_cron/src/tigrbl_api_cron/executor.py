@@ -153,7 +153,6 @@ async def execute_due_jobs(
         filter_payload = {
             "filters": {
                 "valid_from__lte": current_time,
-                "valid_to__gte": current_time,
             },
             "sort": [
                 {"field": "created_at", "direction": "asc"},
