@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import binascii
 import datetime as dt
 import hashlib
 import inspect
@@ -172,32 +173,78 @@ def _ensure_tzaware(value: dt.datetime | None) -> dt.datetime | None:
     return value
 
 
-def _collect_keys(blob: bytes) -> list[pgpy.PGPKey]:
-    remaining: bytes | str = blob
-    keys: list[pgpy.PGPKey] = []
+def _coerce_rest(rest: Any) -> bytes | None:
+    if rest is None:
+        return None
+    if isinstance(rest, (bytes, bytearray, memoryview)):
+        return bytes(rest)
+    if isinstance(rest, str):
+        return rest.encode("utf-8")
+    try:
+        return bytes(rest)
+    except (TypeError, ValueError):
+        return None
+
+
+def _slice_consumed(remaining: bytes, rest: bytes | None) -> bytes:
+    if not remaining:
+        return b""
+    if not rest:
+        return bytes(remaining)
+    if len(rest) >= len(remaining):
+        return bytes(remaining)
+    consumed_len = len(remaining) - len(rest)
+    return bytes(remaining[:consumed_len])
+
+
+def _looks_ascii_armored(blob: bytes) -> bool:
+    return blob.lstrip().startswith(b"-----BEGIN ")
+
+
+def _decode_ascii_armor(blob: bytes) -> bytes:
+    text = blob.decode("utf-8")
+    lines = text.splitlines()
+    body_lines: list[str] = []
+    collecting = False
+    for line in lines:
+        if line.startswith("-----BEGIN "):
+            collecting = False
+            continue
+        if line.startswith("-----END "):
+            break
+        if not collecting:
+            if line.strip() == "":
+                collecting = True
+            continue
+        stripped = line.strip()
+        if not stripped:
+            continue
+        body_lines.append(stripped)
+    if body_lines and body_lines[-1].startswith("="):
+        body_lines.pop()
+    payload = "".join(body_lines)
+    if not payload:
+        return b""
+    return base64.b64decode(payload)
+
+
+def _collect_keys(blob: bytes) -> list[tuple[pgpy.PGPKey, bytes]]:
+    remaining: bytes = bytes(blob)
+    keys: list[tuple[pgpy.PGPKey, bytes]] = []
     while remaining:
         key, rest = pgpy.PGPKey.from_blob(remaining)
         if key is None:
             break
         if getattr(key, "is_public", False) is False and getattr(key, "pubkey", None):
             key = key.pubkey
-        keys.append(key)
-        if not rest:
+        rest_bytes = _coerce_rest(rest)
+        consumed = _slice_consumed(remaining, rest_bytes)
+        keys.append((key, consumed))
+        if not rest_bytes:
             break
-        if not isinstance(rest, (bytes, bytearray, str)):
-            # Some pgpy versions return mapping-like objects when no trailing
-            # payload remains. Treat this as termination.
+        if rest_bytes == remaining:
             break
-        if isinstance(rest, str):
-            rest = rest.encode("utf-8")
-        if (
-            isinstance(remaining, bytes)
-            and isinstance(rest, (bytes, bytearray))
-            and bytes(rest) == remaining
-        ):
-            # Safety guard – avoid infinite loops on unexpected parser behavior.
-            break
-        remaining = bytes(rest)
+        remaining = rest_bytes
     return keys
 
 
@@ -208,12 +255,24 @@ def _parse_blob(blob: bytes) -> list[ParsedKey]:
         raise ValueError(f"Failed to parse OpenPGP material: {exc}") from exc
 
     parsed: list[ParsedKey] = []
-    for key in keys:
+    for key, raw_blob in keys:
         fingerprint = _normalize_fingerprint(key.fingerprint)
         key_id = fingerprint[-16:]
         prefix = fingerprint[:16]
-        ascii_armored = str(key)
-        binary_blob = bytes(key)
+        ascii_armored: str
+        binary_blob: bytes
+        if raw_blob and _looks_ascii_armored(raw_blob):
+            try:
+                ascii_armored = raw_blob.decode("utf-8")
+            except UnicodeDecodeError:
+                ascii_armored = str(key)
+            try:
+                binary_blob = _decode_ascii_armor(raw_blob)
+            except (binascii.Error, ValueError):
+                binary_blob = bytes(key)
+        else:
+            ascii_armored = str(key)
+            binary_blob = bytes(raw_blob) if raw_blob else bytes(key)
         uids = _stable_unique(_format_userid(uid) for uid in key.userids)
         emails = _stable_unique(
             _normalize_email(getattr(uid, "email", ""))
