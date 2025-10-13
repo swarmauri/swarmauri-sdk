@@ -1,10 +1,46 @@
+import base64
 import datetime as dt
+import inspect
 
+import httpx
 import pytest
 from pgpy import PGPKey
 from pgpy.constants import RevocationReason
 
+from tigrbl_api_hpks.api import build_app
+
 pytestmark = pytest.mark.asyncio
+
+
+GPG_ASCII = """-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+mQENBGjteNEBCAC3kz7GoeRyKbOJUbjMcFlnljOQPMITodkHi5mHKfNvekbqrhxU
+773B4SXVEQLGyQKgzvA79ENL95Ak9HjPk6Op8DuzeergIoBgq1SK18Lg8Rc3uPI/
+f+ATJx6sRSSxvDR+acHNHFZL1hkaSwnr2CwWsdO4X5kMZfGDKh16GMdNIU+TQl00
+WvkAcSBes8jha9YBXfZbNw4X2YI51qp1Y+gmrGWtLQ4+iodGgTQLzGvtKogMmJuZ
+5Seu7zWTZiL0K2JfFfipOKYLLFqHiPku/05VrWMRc4H5Y5WTI3arot40IkcopKTU
++RCXuMsgRXuohzfCpLgySoW8g4JagfJlOIXHABEBAAG0JEhQS1MgU0RLIFRlc3Qg
+PGhwa3Mtc2RrQGV4YW1wbGUuY29tPokBUgQTAQoAPBYhBASQP7RnDQ4LC90hT68D
+qmkO8gvXBQJo7XjRAxsvBAULCQgHAgIiAgYVCgkICwIEFgIDAQIeBwIXgAAKCRCv
+A6ppDvIL10HtB/9O9to0c9b/sj3CFqvvBVjtutaOV/4KMC8DdGVdIzPD2c/OqGzq
+pMxNpIdEQZlSNcXglPckEMfKLZ3uSXVaFap4CLgrOQnIDD3lSiyvzuekGfp8Atzq
+67qh2Oh+vnidNvXsWQI0lPOno9ntcfRsz1SKNR9YkmHAE/uNIYXydz0YKKbg6CKS
+sdijOin15zbv+tOUHeybsinoeRd/l7Hch7aPcpJ/DxDRZ25tZ8YcqBa9R0yXO8TW
+TgmuhYwS0nE7m0Ba/PBFAj0QQENj6IgkrJRvbv9eT4KMxZnl9B6mr5vGrt+wW4D6
+Ic6hZKg7irQLOe8O+yFfRMQ3wrYKcq12wy6V
+=1xC3
+-----END PGP PUBLIC KEY BLOCK-----
+"""
+
+GPG_BINARY = base64.b64decode(
+    "mQENBGjteNEBCAC3kz7GoeRyKbOJUbjMcFlnljOQPMITodkHi5mHKfNvekbqrhxU773B4SXVEQLGyQKgzvA79ENL95Ak9HjPk6Op8DuzeergIoBgq1SK18Lg8Rc3uPI/"
+    "f+ATJx6sRSSxvDR+acHNHFZL1hkaSwnr2CwWsdO4X5kMZfGDKh16GMdNIU+TQl00WvkAcSBes8jha9YBXfZbNw4X2YI51qp1Y+gmrGWtLQ4+iodGgTQLzGvtKogMmJuZ"
+    "5Seu7zWTZiL0K2JfFfipOKYLLFqHiPku/05VrWMRc4H5Y5WTI3arot40IkcopKTU+RCXuMsgRXuohzfCpLgySoW8g4JagfJlOIXHABEBAAG0JEhQS1MgU0RLIFRlc3Qg"
+    "PGhwa3Mtc2RrQGV4YW1wbGUuY29tPokBUgQTAQoAPBYhBASQP7RnDQ4LC90hT68DqmkO8gvXBQJo7XjRAxsvBAULCQgHAgIiAgYVCgkICwIEFgIDAQIeBwIXgAAKCRCv"
+    "A6ppDvIL10HtB/9O9to0c9b/sj3CFqvvBVjtutaOV/4KMC8DdGVdIzPD2c/OqGzqpMxNpIdEQZlSNcXglPckEMfKLZ3uSXVaFap4CLgrOQnIDD3lSiyvzuekGfp8Atzq"
+    "67qh2Oh+vnidNvXsWQI0lPOno9ntcfRsz1SKNR9YkmHAE/uNIYXydz0YKKbg6CKSsdijOin15zbv+tOUHeybsinoeRd/l7Hch7aPcpJ/DxDRZ25tZ8YcqBa9R0yXO8TW"
+    "TgmuhYwS0nE7m0Ba/PBFAj0QQENj6IgkrJRvbv9eT4KMxZnl9B6mr5vGrt+wW4D6Ic6hZKg7irQLOe8O+yFfRMQ3wrYKcq12wy6V"
+)
 
 
 async def test_v2_index_json_contract_and_cors(seeded_client, sample_key):
@@ -32,6 +68,35 @@ async def test_v2_vfpget_returns_binary_bundle(seeded_client, sample_key):
     assert "application/pgp-keys" in ctype and "encoding=binary" in ctype
     assert resp.content.startswith(b"-----") is False
 
+
+async def test_v2_vfpget_preserves_original_gpg_bundle():
+    app = build_app()
+    init_result = app.initialize()
+    if inspect.isawaitable(init_result):
+        await init_result
+
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://testserver"
+    ) as local_client:
+        resp = await local_client.post(
+            "/pks/add",
+            data={"keytext": GPG_ASCII},
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+        assert resp.status_code == 200
+
+        key, _ = PGPKey.from_blob(GPG_ASCII)
+        fingerprint = key.fingerprint.replace(" ", "").upper()
+
+        binary_resp = await local_client.get(f"/pks/v2/vfpget/{fingerprint}")
+        assert binary_resp.status_code == 200
+        assert binary_resp.content == GPG_BINARY
+
+        lookup_resp = await local_client.get(
+            f"/pks/lookup?op=get&search={fingerprint}"
+        )
+        assert lookup_resp.status_code == 200
+        assert lookup_resp.text.strip() == GPG_ASCII.strip()
 
 async def test_v2_add_binary_submission_contract(client, sample_key):
     resp = await client.post(
