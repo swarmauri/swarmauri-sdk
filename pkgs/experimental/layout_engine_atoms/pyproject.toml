@@ -1,0 +1,45 @@
+[project]
+name = "layout-engine-atoms"
+version = "0.1.0"
+description = "Curated atom presets and registries for layout-engine."
+authors = [
+    { name = "Jacob Stewart", email = "jacob@swarmauri.com" },
+]
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10,<3.13"
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries",
+]
+dependencies = [
+    "layout-engine>=0.1.1",
+]
+keywords = [
+    "layout",
+    "uix",
+    "atoms",
+    "registry",
+    "presets",
+    "swarmauri",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.2",
+    "ruff>=0.6",
+]
+
+[build-system]
+requires = ["poetry-core>=1.9.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.uv.sources]
+layout-engine = { path = "../layout_engine" }

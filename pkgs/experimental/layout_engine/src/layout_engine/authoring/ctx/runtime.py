@@ -1,6 +1,6 @@
 from __future__ import annotations
 import json
-from typing import Dict, Any, Iterable
+from typing import Dict, Any, Iterable, Mapping
 from wsgiref.simple_server import make_server
 
 from ...core.size import SizeToken
@@ -24,6 +24,7 @@ from ... import (
     CodeExporter,
 )
 from ..widgets import _Base as _WidgetBase
+from ...atoms import AtomSpec
 from ...contrib.presets import DEFAULT_ATOMS
 from .builder import TableCtx
 
@@ -36,22 +37,32 @@ def _to_token(size: str) -> SizeToken:
 
 
 def _build_registry(
-    roles: Iterable[str], *, presets: Dict[str, Dict[str, Any]] | None = None
+    roles: Iterable[str], *, presets: Mapping[str, Any] | None = None
 ) -> AtomRegistry:
     reg = AtomRegistry()
     mapping = presets or DEFAULT_ATOMS
     for role in sorted(set(roles)):
-        atom = mapping.get(role)
-        if not atom:
+        preset = mapping.get(role)
+        if preset is None:
             raise KeyError(f"No preset mapping for role {role!r}")
-        spec = define_atom(
-            role=role,
-            module=atom["module"],
-            export=atom.get("export", "default"),
-            defaults=atom.get("defaults", {}),
-        )
-        reg.register(spec)
+        reg.register(_coerce_spec(role, preset))
     return reg
+
+
+def _coerce_spec(role: str, atom: Any) -> AtomSpec:
+    if isinstance(atom, AtomSpec):
+        return atom
+    if hasattr(atom, "to_spec"):
+        return atom.to_spec()
+    if isinstance(atom, Mapping):
+        return define_atom(
+            role=role,
+            module=str(atom["module"]),
+            export=str(atom.get("export", "default")),
+            version=str(atom.get("version", "1.0.0")),
+            defaults=dict(atom.get("defaults", {})),
+        )
+    raise TypeError(f"Unsupported atom preset entry for role {role!r}: {atom!r}")
 
 
 def compile_table(
@@ -59,7 +70,7 @@ def compile_table(
     *,
     width: int = 1280,
     height: int = 800,
-    presets: Dict[str, Dict[str, Any]] | None = None,
+    presets: Mapping[str, Any] | None = None,
 ):
     roles = []
     specs_by_id: Dict[str, Any] = {}
@@ -96,7 +107,7 @@ def render_table(
     *,
     width: int = 1280,
     height: int = 800,
-    presets: Dict[str, Dict[str, Any]] | None = None,
+    presets: Mapping[str, Any] | None = None,
 ) -> str:
     m = compile_table(table, width=width, height=height, presets=presets)
     return HtmlShell().render(m)
@@ -109,7 +120,7 @@ def export_table(
     format: str = "html",
     width: int = 1280,
     height: int = 800,
-    presets: Dict[str, Dict[str, Any]] | None = None,
+    presets: Mapping[str, Any] | None = None,
 ) -> str:
     m = compile_table(table, width=width, height=height, presets=presets)
     match format:
@@ -132,7 +143,7 @@ def serve_table(
     port: int = 8789,
     width: int = 1280,
     height: int = 800,
-    presets: Dict[str, Dict[str, Any]] | None = None,
+    presets: Mapping[str, Any] | None = None,
 ):
     m = compile_table(table, width=width, height=height, presets=presets)
     html = HtmlShell().render(m)

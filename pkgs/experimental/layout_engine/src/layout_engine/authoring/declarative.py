@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, Iterable, Tuple
+from typing import Any, Dict, Iterable, Mapping, Tuple
 
 from ..authoring.widgets import _Base as _WidgetBase
 from ..atoms import AtomRegistry, AtomSpec
@@ -54,22 +54,32 @@ class SiteD:
 
 def _build_registry(
     roles: Iterable[str],
-    presets: Dict[str, Dict[str, Any]] | None = None,
+    presets: Mapping[str, Any] | None = None,
 ) -> AtomRegistry:
     registry = AtomRegistry()
     mapping = presets or DEFAULT_ATOMS
     for role in sorted(set(roles)):
-        atom = mapping.get(role)
-        if not atom:
+        spec = mapping.get(role)
+        if spec is None:
             raise KeyError(f"No preset mapping for role {role!r}")
-        spec = AtomSpec(
-            role=role,
-            module=atom["module"],
-            export=atom.get("export", "default"),
-            defaults=atom.get("defaults", {}),
-        )
-        registry.register(spec)
+        registry.register(_coerce_spec(role, spec))
     return registry
+
+
+def _coerce_spec(role: str, atom: Any) -> AtomSpec:
+    if isinstance(atom, AtomSpec):
+        return atom
+    if hasattr(atom, "to_spec"):
+        return atom.to_spec()
+    if isinstance(atom, Mapping):
+        return AtomSpec(
+            role=role,
+            module=str(atom["module"]),
+            export=str(atom.get("export", "default")),
+            version=str(atom.get("version", "1.0.0")),
+            defaults=dict(atom.get("defaults", {})),
+        )
+    raise TypeError(f"Unsupported atom preset entry for role {role!r}: {atom!r}")
 
 
 def render(
