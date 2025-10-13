@@ -29,14 +29,27 @@ def _json_default(value: Any) -> Any:
 try:
     import orjson as _orjson
 
+    _ORJSON_OPTIONS = (
+        getattr(_orjson, "OPT_NON_STR_KEYS", 0)
+        | getattr(_orjson, "OPT_SERIALIZE_NUMPY", 0)
+        | getattr(_orjson, "OPT_SERIALIZE_BYTES", 0)
+    )
+
     def _dumps(obj: Any) -> bytes:
-        return _orjson.dumps(
-            obj,
-            option=_orjson.OPT_NON_STR_KEYS
-            | _orjson.OPT_SERIALIZE_NUMPY
-            | _orjson.OPT_SERIALIZE_BYTES,
-            default=_json_default,
-        )
+        try:
+            return _orjson.dumps(
+                obj,
+                option=_ORJSON_OPTIONS,
+                default=_json_default,
+            )
+        except TypeError:
+            # Fallback for older orjson builds missing optional flags
+            return json.dumps(
+                obj,
+                separators=(",", ":"),
+                ensure_ascii=False,
+                default=_json_default,
+            ).encode("utf-8")
 except Exception:  # pragma: no cover - fallback
 
     def _dumps(obj: Any) -> bytes:
