@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from importlib import import_module
+from inspect import Parameter, signature
 from pathlib import Path
 from typing import Iterable, Optional
 
@@ -60,6 +61,28 @@ def pytest_configure(config: pytest.Config) -> None:
     )
 
 
+def _is_zero_arg_factory(obj: object) -> bool:
+    if not callable(obj):
+        return False
+    try:
+        sig = signature(obj)
+    except (TypeError, ValueError):
+        return False
+    for parameter in sig.parameters.values():
+        if parameter.kind in (
+            Parameter.POSITIONAL_ONLY,
+            Parameter.POSITIONAL_OR_KEYWORD,
+        ):
+            if parameter.default is Parameter.empty:
+                return False
+        elif (
+            parameter.kind == Parameter.KEYWORD_ONLY
+            and parameter.default is Parameter.empty
+        ):
+            return False
+    return True
+
+
 def _load_asgi_app(import_paths: Iterable[str]) -> Optional[object]:
     for import_path in import_paths:
         try:
@@ -71,7 +94,7 @@ def _load_asgi_app(import_paths: Iterable[str]) -> Optional[object]:
             target = getattr(module, attribute)
         except Exception:
             continue
-        app = target() if callable(target) else target
+        app = target() if _is_zero_arg_factory(target) else target
         if app is not None:
             return app
     return None
