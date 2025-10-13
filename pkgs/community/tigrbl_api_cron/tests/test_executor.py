@@ -168,3 +168,57 @@ async def test_execute_respects_limit(cron_app, cron_client):
         statuses.append(stored.json()["last_status"])
 
     assert statuses.count("success") == 1
+
+
+@pytest.mark.asyncio
+async def test_execute_includes_open_ended_jobs(cron_app, cron_client):
+    now = dt.datetime(2024, 1, 1, 13, 0, 0, tzinfo=dt.timezone.utc)
+
+    @register_cron_job("open.ended")
+    async def _handler(
+        *, job, session, scheduled_for, now
+    ):  # pragma: no cover - executed indirectly
+        return {
+            "job": job.pkg_uid,
+            "scheduled_for": scheduled_for.isoformat(),
+            "now": now.isoformat(),
+        }
+
+    create_payload = {
+        "pkg_uid": "open.ended",
+        "cron_expression": "* * * * *",
+        "valid_from": (now - dt.timedelta(minutes=5)).isoformat(),
+    }
+    created = await cron_client.post("/cron/cronjob", json=create_payload)
+    created.raise_for_status()
+
+    results = await execute_due_jobs(cron_app, now=now)
+    assert [record.status for record in results] == ["success"]
+    assert results[0].result_payload["job"] == "open.ended"
+
+
+@pytest.mark.asyncio
+async def test_execute_skips_expired_jobs(cron_app, cron_client):
+    now = dt.datetime(2024, 1, 1, 14, 0, 0, tzinfo=dt.timezone.utc)
+
+    @register_cron_job("expired.job")
+    async def _handler(
+        *, job, session, scheduled_for, now
+    ):  # pragma: no cover - executed indirectly
+        return True
+
+    create_payload = {
+        "pkg_uid": "expired.job",
+        "cron_expression": "* * * * *",
+        "valid_from": (now - dt.timedelta(minutes=10)).isoformat(),
+        "valid_to": (now - dt.timedelta(minutes=1)).isoformat(),
+    }
+    created = await cron_client.post("/cron/cronjob", json=create_payload)
+    created.raise_for_status()
+
+    results = await execute_due_jobs(cron_app, now=now)
+    assert results == []
+
+    stored = await cron_client.get(f"/cron/cronjob/{created.json()['id']}")
+    stored.raise_for_status()
+    assert stored.json()["last_run_at"] is None
