@@ -165,6 +165,7 @@ members = [
     "standards/swarmauri_signing_dpop",
     "community/swarmauri_signing_dsse",
     "community/tigrbl_api_cron",
+    "community/tigrbl_api_hpks",
     "standards/swarmauri_certs_local_ca",
     "standards/swarmauri_certs_self_signed",
     "standards/swarmauri_tokens_jwt",
