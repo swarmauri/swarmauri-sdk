@@ -119,6 +119,7 @@ members = [
     "standards/swarmauri_keyproviders_mirrored",
     "standards/swarmauri_keyprovider_hierarchical",
     "standards/swarmauri_keyprovider_inmemory",
+    "experimental/openpgp_hkps_pytest",
     "experimental/swarmauri_certs_pkcs11",
     "experimental/swarmauri_keyprovider_pkcs11",
     "experimental/swarmauri_tests_loc_tersity",
