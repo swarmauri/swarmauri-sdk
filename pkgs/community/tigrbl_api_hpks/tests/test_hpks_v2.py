@@ -1,6 +1,8 @@
 import datetime as dt
 
 import pytest
+from pgpy import PGPKey
+from pgpy.constants import RevocationReason
 
 pytestmark = pytest.mark.asyncio
 
@@ -84,3 +86,89 @@ async def test_v2_unknown_query_strings_are_ignored(seeded_client, sample_key):
         f"/pks/v2/index/{sample_key.email}?x-ignore=1&y-ignore=2"
     )
     assert resp.status_code == 200
+
+
+async def test_republishing_key_does_not_duplicate_uids(seeded_client, sample_key):
+    for _ in range(3):
+        resp = await seeded_client.post(
+            "/pks/v2/add",
+            content=sample_key.binary,
+            headers={"Content-Type": "application/pgp-keys; encoding=binary"},
+        )
+        assert resp.status_code in (200, 202)
+
+    resp = await seeded_client.get(f"/pks/v2/index/{sample_key.fingerprint}")
+    assert resp.status_code == 200
+    payload = resp.json()
+    assert payload and len(payload[0]["uids"]) == 1
+    assert payload[0]["uids"][0].endswith("<user@example.com>")
+
+
+async def test_republishing_revoked_key_updates_status(client, sample_key):
+    resp = await client.post(
+        "/pks/v2/add",
+        content=sample_key.binary,
+        headers={"Content-Type": "application/pgp-keys; encoding=binary"},
+    )
+    assert resp.status_code in (200, 202)
+
+    key, _ = PGPKey.from_blob(sample_key.armored)
+    pubkey = key.pubkey
+    with key.unlock(None):
+        revoke_sig = key.revoke(pubkey, reason=RevocationReason.Retired)
+    pubkey |= revoke_sig
+
+    resp = await client.post(
+        "/pks/v2/add",
+        content=bytes(pubkey),
+        headers={"Content-Type": "application/pgp-keys; encoding=binary"},
+    )
+    assert resp.status_code in (200, 202)
+
+    resp = await client.get(f"/pks/v2/index/{sample_key.fingerprint}")
+    assert resp.status_code == 200
+    payload = resp.json()
+    assert payload and payload[0]["revoked"] is True
+    assert payload[0]["revoked_at"] is not None
+
+
+async def test_stale_material_does_not_restore_revocation(client, sample_key):
+    resp = await client.post(
+        "/pks/v2/add",
+        content=sample_key.binary,
+        headers={"Content-Type": "application/pgp-keys; encoding=binary"},
+    )
+    assert resp.status_code in (200, 202)
+
+    key, _ = PGPKey.from_blob(sample_key.armored)
+    pubkey = key.pubkey
+    with key.unlock(None):
+        revoke_sig = key.revoke(pubkey, reason=RevocationReason.Retired)
+    pubkey |= revoke_sig
+
+    resp = await client.post(
+        "/pks/v2/add",
+        content=bytes(pubkey),
+        headers={"Content-Type": "application/pgp-keys; encoding=binary"},
+    )
+    assert resp.status_code in (200, 202)
+
+    resp = await client.get(f"/pks/v2/index/{sample_key.fingerprint}")
+    assert resp.status_code == 200
+    payload = resp.json()
+    assert payload and payload[0]["revoked"] is True
+    revoked_at = payload[0]["revoked_at"]
+    assert revoked_at is not None
+
+    resp = await client.post(
+        "/pks/v2/add",
+        content=sample_key.binary,
+        headers={"Content-Type": "application/pgp-keys; encoding=binary"},
+    )
+    assert resp.status_code in (200, 202)
+
+    resp = await client.get(f"/pks/v2/index/{sample_key.fingerprint}")
+    assert resp.status_code == 200
+    payload = resp.json()
+    assert payload and payload[0]["revoked"] is True
+    assert payload[0]["revoked_at"] == revoked_at

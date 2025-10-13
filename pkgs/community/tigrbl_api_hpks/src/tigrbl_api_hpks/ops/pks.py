@@ -7,12 +7,88 @@ import datetime as dt
 import hashlib
 import inspect
 from dataclasses import dataclass
-from typing import Any, Iterable, Mapping, Sequence
+from typing import Any, Iterable, Iterator, Mapping, Sequence
 
 import pgpy
 from tigrbl import op_ctx
 
 from ..tables import OpenPGPKey
+
+
+def _stable_unique(values: Iterable[str]) -> list[str]:
+    """Return a list containing the first occurrence of each non-empty value."""
+
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for value in values:
+        if not value:
+            continue
+        if value in seen:
+            continue
+        seen.add(value)
+        ordered.append(value)
+    return ordered
+
+
+def _format_userid(uid: Any) -> str:
+    """Render a :class:`PGPUID` into a canonical string representation."""
+
+    name = getattr(uid, "name", None)
+    comment = getattr(uid, "comment", None)
+    email = getattr(uid, "email", None)
+    parts: list[str] = []
+    if name:
+        parts.append(str(name))
+    if comment:
+        parts.append(f"({comment})")
+    if email:
+        parts.append(f"<{email}>")
+    if parts:
+        return " ".join(parts)
+    fallback = getattr(uid, "userid", None)
+    if fallback:
+        return str(fallback)
+    return str(uid)
+
+
+def _iter_revocation_signatures(key: Any) -> Iterator[Any]:
+    """Safely iterate over revocation signatures exposed by a key object."""
+
+    revocations = getattr(key, "revocation_signatures", None)
+    if revocations is None:
+        return iter(())
+    if isinstance(revocations, Iterator):
+        return revocations
+    try:
+        return iter(revocations)
+    except TypeError:
+        return iter(())
+
+
+def _extract_revocation_state(key: Any) -> tuple[bool, dt.datetime | None]:
+    """Determine the revocation status and timestamp for a parsed key."""
+
+    revoked = bool(getattr(key, "is_revoked", False))
+    revoked_at = _ensure_tzaware(getattr(key, "revocation_date", None))
+    if revoked and revoked_at is not None:
+        return revoked, revoked_at
+
+    latest: dt.datetime | None = revoked_at
+    for signature in list(_iter_revocation_signatures(key)):
+        if signature is None:
+            continue
+        revoked = True
+        created = getattr(signature, "created", None) or getattr(
+            signature, "creation_time", None
+        )
+        if created is None:
+            continue
+        created_dt = _ensure_tzaware(created)
+        if created_dt is None:
+            continue
+        if latest is None or created_dt > latest:
+            latest = created_dt
+    return revoked, latest
 
 
 @dataclass(slots=True)
@@ -134,15 +210,14 @@ def _parse_blob(blob: bytes) -> list[ParsedKey]:
         prefix = fingerprint[:16]
         ascii_armored = str(key)
         binary_blob = bytes(key)
-        uids = [str(uid) for uid in key.userids]
-        emails: list[str] = []
-        for uid in key.userids:
-            email = getattr(uid, "email", None)
-            if email:
-                emails.append(_normalize_email(email))
+        uids = _stable_unique(_format_userid(uid) for uid in key.userids)
+        emails = _stable_unique(
+            _normalize_email(getattr(uid, "email", ""))
+            for uid in key.userids
+            if getattr(uid, "email", None)
+        )
         email_hashes = sorted({_hash_email(email) for email in emails})
-        revoked = bool(getattr(key, "is_revoked", False))
-        revoked_at = _ensure_tzaware(getattr(key, "revocation_date", None))
+        revoked, revoked_at = _extract_revocation_state(key)
         algorithm = None
         if getattr(key, "key_algorithm", None) is not None:
             algo = key.key_algorithm
@@ -263,15 +338,22 @@ async def _merge_parsed_key(*, db: Any, parsed: ParsedKey) -> OpenPGPKey:
         "version": parsed.version,
     }
     if existing is not None:
-        payload["uids"] = _merge_lists(existing.uids, parsed.uids)
-        payload["emails"] = _merge_lists(existing.emails, parsed.emails)
-        payload["email_hashes"] = _merge_lists(
-            existing.email_hashes, parsed.email_hashes
+        payload["uids"] = parsed.uids or _stable_unique(existing.uids or [])
+        payload["emails"] = parsed.emails or _stable_unique(existing.emails or [])
+        payload["email_hashes"] = parsed.email_hashes or _stable_unique(
+            existing.email_hashes or []
         )
         payload["ascii_armored"] = parsed.ascii_armored or existing.ascii_armored
         payload["binary"] = parsed.binary or existing.binary
-        payload["revoked"] = parsed.revoked or existing.revoked
-        payload["revoked_at"] = parsed.revoked_at or existing.revoked_at
+        if existing.revoked:
+            payload["revoked"] = True
+            payload["revoked_at"] = existing.revoked_at
+        elif parsed.revoked:
+            payload["revoked"] = True
+            payload["revoked_at"] = parsed.revoked_at or existing.revoked_at
+        else:
+            payload["revoked"] = False
+            payload["revoked_at"] = None
         payload["algorithm"] = parsed.algorithm or existing.algorithm
         payload["bits"] = parsed.bits or existing.bits
         payload["primary_uid"] = parsed.primary_uid or existing.primary_uid
