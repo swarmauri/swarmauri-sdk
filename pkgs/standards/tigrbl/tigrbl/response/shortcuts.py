@@ -5,6 +5,7 @@ from pathlib import Path
 import json
 import os
 import mimetypes
+import base64
 
 from ..deps.starlette import (
     JSONResponse,
@@ -16,12 +17,25 @@ from ..deps.starlette import (
     Response,
 )
 
+
+def _json_default(value: Any) -> Any:
+    if isinstance(value, (bytes, bytearray, memoryview)):
+        return base64.b64encode(bytes(value)).decode("ascii")
+    if isinstance(value, Path):
+        return str(value)
+    return str(value)
+
+
 try:
     import orjson as _orjson
 
     def _dumps(obj: Any) -> bytes:
         return _orjson.dumps(
-            obj, option=_orjson.OPT_NON_STR_KEYS | _orjson.OPT_SERIALIZE_NUMPY
+            obj,
+            option=_orjson.OPT_NON_STR_KEYS
+            | _orjson.OPT_SERIALIZE_NUMPY
+            | _orjson.OPT_SERIALIZE_BYTES,
+            default=_json_default,
         )
 except Exception:  # pragma: no cover - fallback
 
@@ -30,7 +44,7 @@ except Exception:  # pragma: no cover - fallback
             obj,
             separators=(",", ":"),
             ensure_ascii=False,
-            default=str,
+            default=_json_default,
         ).encode("utf-8")
 
 
