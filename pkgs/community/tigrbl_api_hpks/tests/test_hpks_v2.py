@@ -16,6 +16,14 @@ async def test_v2_index_json_contract_and_cors(seeded_client, sample_key):
     assert data and data[0]["fingerprint"] == sample_key.fingerprint
 
 
+async def test_v2_index_marks_unrevoked_keys_active(seeded_client, sample_key):
+    resp = await seeded_client.get(f"/pks/v2/index/{sample_key.fingerprint}")
+    assert resp.status_code == 200
+    payload = resp.json()
+    assert payload and payload[0]["revoked"] is False
+    assert payload[0]["revoked_at"] is None
+
+
 async def test_v2_vfpget_returns_binary_bundle(seeded_client, sample_key):
     resp = await seeded_client.get(f"/pks/v2/vfpget/{sample_key.fingerprint}")
     assert resp.status_code == 200

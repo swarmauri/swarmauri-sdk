@@ -68,12 +68,16 @@ def _iter_revocation_signatures(key: Any) -> Iterator[Any]:
 def _extract_revocation_state(key: Any) -> tuple[bool, dt.datetime | None]:
     """Determine the revocation status and timestamp for a parsed key."""
 
-    revoked = bool(getattr(key, "is_revoked", False))
+    raw_revoked = getattr(key, "is_revoked", False)
+    revoked = raw_revoked is True if isinstance(raw_revoked, bool) else False
     revoked_at = _ensure_tzaware(getattr(key, "revocation_date", None))
+    if revoked_at is not None and not revoked:
+        revoked = True
+
+    latest: dt.datetime | None = revoked_at if revoked_at is not None else None
     if revoked and revoked_at is not None:
         return revoked, revoked_at
 
-    latest: dt.datetime | None = revoked_at
     for signature in list(_iter_revocation_signatures(key)):
         if signature is None:
             continue
