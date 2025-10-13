@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, Iterable, Tuple
 
 from ..authoring.widgets import _Base as _WidgetBase
-from ..components import ComponentRegistry, ComponentSpec
+from ..atoms import AtomRegistry, AtomSpec
 from ..contrib.presets import DEFAULT_ATOMS
 from ..core.size import SizeToken
 from ..tiles import tile_spec as _tile_spec
@@ -55,14 +55,14 @@ class SiteD:
 def _build_registry(
     roles: Iterable[str],
     presets: Dict[str, Dict[str, Any]] | None = None,
-) -> ComponentRegistry:
-    registry = ComponentRegistry()
+) -> AtomRegistry:
+    registry = AtomRegistry()
     mapping = presets or DEFAULT_ATOMS
     for role in sorted(set(roles)):
         atom = mapping.get(role)
         if not atom:
             raise KeyError(f"No preset mapping for role {role!r}")
-        spec = ComponentSpec(
+        spec = AtomSpec(
             role=role,
             module=atom["module"],
             export=atom.get("export", "default"),
@@ -111,7 +111,7 @@ def render(
         viewport,
         frames_map,
         list(specs_by_id.values()),
-        components_registry=registry,
+        atoms_registry=registry,
     )
     manifest = build_manifest(view_model)
     return HtmlShell().render(manifest)

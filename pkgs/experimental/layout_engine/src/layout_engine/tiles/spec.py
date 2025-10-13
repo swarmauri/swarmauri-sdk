@@ -31,11 +31,11 @@ class TileSpec(BaseModel):
     Fields
     ------
     id:        unique identifier for the tile (stable across reflows)
-    role:      semantic role (e.g., 'kpi', 'table', 'timeseries', ...) used to resolve the UI component
+    role:      semantic role (e.g., 'kpi', 'table', 'timeseries', ...) used to resolve the UI atom
     min_w/h:   minimal pixel footprint
     max_w/h:   optional clamps (>= min)
     aspect:    optional width/height ratio hint (purely informative at this layer)
-    props:     authoring-time properties (merged later with component defaults)
+    props:     authoring-time properties (merged later with atom defaults)
     meta:      free-form metadata (owner, tags, testids, etc.)
     """
 

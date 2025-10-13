@@ -4,7 +4,7 @@ version = "0.1.1"
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" },
 ]
-description = "Swiss-grid inspired, format-agnostic layout engine with SSR+SSG, atomic component & MFE registries."
+description = "Swiss-grid inspired, format-agnostic layout engine with SSR+SSG, atom & MFE registries."
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10,<3.13"
@@ -28,7 +28,7 @@ keywords = [
     "ssr",
     "ssg",
     "grid",
-    "components",
+    "atoms",
     "mfe",
     "python",
 ]

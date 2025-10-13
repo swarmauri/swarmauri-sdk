@@ -14,7 +14,7 @@ class Manifest(BaseModel):
       - viewport:        {"width": int, "height": int}
       - grid:            mapping with row_height/gaps/columns (binding-level shape)
       - tiles:           list of tile payloads:
-                         { id: str, role: str, frame: {x,y,w,h}, props: {...}, component?: {...} }
+                         { id: str, role: str, frame: {x,y,w,h}, props: {...}, atom?: {...} }
       - etag:            content hash for cache/patch validation
     """
 

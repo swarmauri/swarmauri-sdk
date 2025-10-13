@@ -14,9 +14,9 @@ from ... import (
     LayoutCompiler,
     Viewport,
     build_manifest,
-    # components + targets
-    ComponentRegistry,
-    define_component,
+    # atoms + targets
+    AtomRegistry,
+    define_atom,
     HtmlShell,
     HtmlExporter,
     SvgExporter,
@@ -37,20 +37,20 @@ def _to_token(size: str) -> SizeToken:
 
 def _build_registry(
     roles: Iterable[str], *, presets: Dict[str, Dict[str, Any]] | None = None
-) -> ComponentRegistry:
-    reg = ComponentRegistry()
+) -> AtomRegistry:
+    reg = AtomRegistry()
     mapping = presets or DEFAULT_ATOMS
     for role in sorted(set(roles)):
         atom = mapping.get(role)
         if not atom:
             raise KeyError(f"No preset mapping for role {role!r}")
-        define_component(
-            reg,
+        spec = define_atom(
             role=role,
             module=atom["module"],
-            export=atom["export"],
-            defaults=atom["defaults"],
+            export=atom.get("export", "default"),
+            defaults=atom.get("defaults", {}),
         )
+        reg.register(spec)
     return reg
 
 
@@ -86,7 +86,7 @@ def compile_table(
     gs, placements, frames = compiler.frames_from_structure(tbl, vp)
     reg = _build_registry(roles, presets=presets)
     vm = compiler.view_model(
-        gs, vp, frames, list(specs_by_id.values()), components_registry=reg
+        gs, vp, frames, list(specs_by_id.values()), atoms_registry=reg
     )
     return build_manifest(vm)
 

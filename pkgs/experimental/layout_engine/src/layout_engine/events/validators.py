@@ -56,7 +56,7 @@ TILE: Set[str] = {
     "tile:drop",
     "tile:dragend",
 }
-COMPONENT: Set[str] = {
+ATOM: Set[str] = {
     # pointer*
     "pointerdown",
     "pointerup",
@@ -132,7 +132,7 @@ ALLOW = {
     "page": PAGE,
     "grid": GRID,
     "tile": TILE,
-    "component": COMPONENT,
+    "atom": ATOM,
 }
 
 
@@ -146,7 +146,7 @@ def _wildcards(scope: str) -> list[str]:
         return ["grid:tile:rearrange:"]
     if scope == "tile":
         return ["tile:drag"]
-    if scope == "component":
+    if scope == "atom":
         return [
             "pointer",  # pointer*
             "composition",  # composition*
@@ -219,7 +219,7 @@ def route_topic(ev: EventEnvelope) -> str:
         return f"grid:{ev.page_id}"
     if ev.scope == "tile":
         return f"tile:{ev.page_id}:{ev.tile_id}"
-    if ev.scope == "component":
+    if ev.scope == "atom":
         key = (ev.target or {}).get("key", "_")
-        return f"component:{ev.page_id}:{ev.tile_id}:{key}"
+        return f"atom:{ev.page_id}:{ev.tile_id}:{key}"
     raise ValidationError("unroutable")
