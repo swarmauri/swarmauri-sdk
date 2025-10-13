@@ -29,12 +29,15 @@ def _json_default(value: Any) -> Any:
 try:
     import orjson as _orjson
 
+    _ORJSON_OPTIONS = _orjson.OPT_NON_STR_KEYS | _orjson.OPT_SERIALIZE_NUMPY
+    _OPT_SERIALIZE_BYTES = getattr(_orjson, "OPT_SERIALIZE_BYTES", None)
+    if _OPT_SERIALIZE_BYTES is not None:
+        _ORJSON_OPTIONS |= _OPT_SERIALIZE_BYTES
+
     def _dumps(obj: Any) -> bytes:
         return _orjson.dumps(
             obj,
-            option=_orjson.OPT_NON_STR_KEYS
-            | _orjson.OPT_SERIALIZE_NUMPY
-            | _orjson.OPT_SERIALIZE_BYTES,
+            option=_ORJSON_OPTIONS,
             default=_json_default,
         )
 except Exception:  # pragma: no cover - fallback
