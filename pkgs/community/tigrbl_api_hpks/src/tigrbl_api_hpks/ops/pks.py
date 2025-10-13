@@ -345,12 +345,15 @@ async def _merge_parsed_key(*, db: Any, parsed: ParsedKey) -> OpenPGPKey:
         )
         payload["ascii_armored"] = parsed.ascii_armored or existing.ascii_armored
         payload["binary"] = parsed.binary or existing.binary
-        payload["revoked"] = parsed.revoked
-        payload["revoked_at"] = (
-            parsed.revoked_at
-            if parsed.revoked_at is not None
-            else (existing.revoked_at if parsed.revoked else None)
-        )
+        if existing.revoked:
+            payload["revoked"] = True
+            payload["revoked_at"] = existing.revoked_at
+        elif parsed.revoked:
+            payload["revoked"] = True
+            payload["revoked_at"] = parsed.revoked_at or existing.revoked_at
+        else:
+            payload["revoked"] = False
+            payload["revoked_at"] = None
         payload["algorithm"] = parsed.algorithm or existing.algorithm
         payload["bits"] = parsed.bits or existing.bits
         payload["primary_uid"] = parsed.primary_uid or existing.primary_uid
