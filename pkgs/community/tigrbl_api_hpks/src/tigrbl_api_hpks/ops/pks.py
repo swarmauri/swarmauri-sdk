@@ -116,6 +116,15 @@ class ParsedKey:
     version: int | None
 
 
+_HEX_CHARS = set("0123456789ABCDEF")
+
+
+def _is_hex(value: str) -> bool:
+    if not value:
+        return False
+    return all(ch in _HEX_CHARS for ch in value)
+
+
 def _normalize_fingerprint(value: str) -> str:
     stripped = value.strip().replace(" ", "")
     if stripped.lower().startswith("0x"):
@@ -261,18 +270,25 @@ def _parse_blob(blob: bytes) -> list[ParsedKey]:
         prefix = fingerprint[:16]
         ascii_armored: str
         binary_blob: bytes
+        ascii_candidate: str | None = None
         if raw_blob and _looks_ascii_armored(raw_blob):
             try:
-                ascii_armored = raw_blob.decode("utf-8")
+                ascii_candidate = raw_blob.decode("utf-8")
             except UnicodeDecodeError:
-                ascii_armored = str(key)
+                ascii_candidate = None
+
+        if (
+            ascii_candidate
+            and "-----BEGIN PGP PUBLIC KEY BLOCK-----" in ascii_candidate
+        ):
+            ascii_armored = ascii_candidate
             try:
                 binary_blob = _decode_ascii_armor(raw_blob)
             except (binascii.Error, ValueError):
                 binary_blob = bytes(key)
         else:
             ascii_armored = str(key)
-            binary_blob = bytes(raw_blob) if raw_blob else bytes(key)
+            binary_blob = bytes(key)
         uids = _stable_unique(_format_userid(uid) for uid in key.userids)
         emails = _stable_unique(
             _normalize_email(getattr(uid, "email", ""))
@@ -327,14 +343,14 @@ async def _list_all(db: Any) -> list[OpenPGPKey]:
 
 async def lookup_by_fingerprint(*, db: Any, fingerprint: str) -> OpenPGPKey | None:
     normalized = _normalize_fingerprint(fingerprint)
-    ctx = {"db": db, "payload": {"filters": {"fingerprint": normalized}}}
+    ctx = {"db": db, "payload": {"fingerprint__eq": normalized}}
     rows = await OpenPGPKey.handlers.list.core(ctx)
     return rows[0] if rows else None
 
 
 async def lookup_by_keyid(*, db: Any, key_id: str) -> OpenPGPKey | None:
     normalized = _normalize_fingerprint(key_id)[-16:]
-    ctx = {"db": db, "payload": {"filters": {"key_id": normalized}}}
+    ctx = {"db": db, "payload": {"key_id__eq": normalized}}
     rows = await OpenPGPKey.handlers.list.core(ctx)
     return rows[0] if rows else None
 
@@ -354,10 +370,10 @@ async def search_index(*, db: Any, search: str) -> list[OpenPGPKey]:
         return []
     normalized = _normalize_fingerprint(query)
     # Prefer exact fingerprint or key ID matches.
-    if len(normalized) in (40, 64):
+    if len(normalized) in (40, 64) and _is_hex(normalized):
         match = await lookup_by_fingerprint(db=db, fingerprint=normalized)
         return [match] if match else []
-    if len(normalized) == 16:
+    if len(normalized) == 16 and _is_hex(normalized):
         match = await lookup_by_keyid(db=db, key_id=normalized)
         return [match] if match else []
 

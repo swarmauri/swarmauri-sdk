@@ -4,8 +4,15 @@ import inspect
 
 import httpx
 import pytest
-from pgpy import PGPKey
-from pgpy.constants import RevocationReason
+from pgpy import PGPKey, PGPUID
+from pgpy.constants import (
+    CompressionAlgorithm,
+    HashAlgorithm,
+    KeyFlags,
+    PubKeyAlgorithm,
+    RevocationReason,
+    SymmetricKeyAlgorithm,
+)
 
 from tigrbl_api_hpks.api import build_app
 
@@ -41,6 +48,20 @@ GPG_BINARY = base64.b64decode(
     "67qh2Oh+vnidNvXsWQI0lPOno9ntcfRsz1SKNR9YkmHAE/uNIYXydz0YKKbg6CKSsdijOin15zbv+tOUHeybsinoeRd/l7Hch7aPcpJ/DxDRZ25tZ8YcqBa9R0yXO8TW"
     "TgmuhYwS0nE7m0Ba/PBFAj0QQENj6IgkrJRvbv9eT4KMxZnl9B6mr5vGrt+wW4D6Ic6hZKg7irQLOe8O+yFfRMQ3wrYKcq12wy6V"
 )
+
+
+def _make_key(email: str) -> tuple[str, bytes, str]:
+    key = PGPKey.new(PubKeyAlgorithm.RSAEncryptOrSign, 2048)
+    uid = PGPUID.new(f"HPKS Example {email}", email=email)
+    key.add_uid(
+        uid,
+        usage={KeyFlags.Sign},
+        hashes=[HashAlgorithm.SHA256],
+        ciphers=[SymmetricKeyAlgorithm.AES256],
+        compression=[CompressionAlgorithm.ZLIB],
+    )
+    fingerprint = key.fingerprint.replace(" ", "").upper()
+    return str(key), bytes(key), fingerprint
 
 
 async def test_v2_index_json_contract_and_cors(seeded_client, sample_key):
@@ -92,11 +113,34 @@ async def test_v2_vfpget_preserves_original_gpg_bundle():
         assert binary_resp.status_code == 200
         assert binary_resp.content == GPG_BINARY
 
-        lookup_resp = await local_client.get(
-            f"/pks/lookup?op=get&search={fingerprint}"
-        )
+        lookup_resp = await local_client.get(f"/pks/lookup?op=get&search={fingerprint}")
         assert lookup_resp.status_code == 200
         assert lookup_resp.text.strip() == GPG_ASCII.strip()
+
+
+async def test_v2_vfpget_returns_requested_key_when_multiple_present(client):
+    first_armored, _, first_fp = _make_key("one@example.com")
+    second_armored, _, second_fp = _make_key("two@example.com")
+
+    for payload in (first_armored, second_armored):
+        resp = await client.post(
+            "/pks/add",
+            data={"keytext": payload},
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+        assert resp.status_code == 200
+
+    first_resp = await client.get(f"/pks/v2/vfpget/{first_fp}")
+    assert first_resp.status_code == 200
+    first_key, _ = PGPKey.from_blob(first_resp.content)
+    assert first_key.fingerprint.replace(" ", "").upper() == first_fp
+
+    second_resp = await client.get(f"/pks/v2/vfpget/{second_fp}")
+    assert second_resp.status_code == 200
+    second_key, _ = PGPKey.from_blob(second_resp.content)
+    assert second_key.fingerprint.replace(" ", "").upper() == second_fp
+    assert first_resp.content != second_resp.content
+
 
 async def test_v2_add_binary_submission_contract(client, sample_key):
     resp = await client.post(
