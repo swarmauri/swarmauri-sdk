@@ -22,7 +22,7 @@ def _normalize_tile(tile: Mapping[str, Any]) -> dict:
     role = str(t.get("role"))
     frame = dict(t.get("frame") or {})
     props = dict(t.get("props") or {})
-    component = t.get("component")
+    atom = t.get("atom")
     base = {
         "id": tid,
         "role": role,
@@ -34,13 +34,13 @@ def _normalize_tile(tile: Mapping[str, Any]) -> dict:
         },
         "props": props,
     }
-    if component is not None:
-        c = dict(component)
-        base["component"] = {
-            "module": str(c.get("module", "")),
-            "export": str(c.get("export", "default")),
-            "version": str(c.get("version", "1.0.0")),
-            "defaults": dict(c.get("defaults", {})),
+    if atom is not None:
+        a = dict(atom)
+        base["atom"] = {
+            "module": str(a.get("module", "")),
+            "export": str(a.get("export", "default")),
+            "version": str(a.get("version", "1.0.0")),
+            "defaults": dict(a.get("defaults", {})),
         }
     for k in sorted(t.keys()):
         if k not in base:
@@ -159,7 +159,7 @@ def schema() -> dict:
                             },
                         },
                         "props": {"type": "object"},
-                        "component": {
+                        "atom": {
                             "type": "object",
                             "properties": {
                                 "module": {"type": "string"},
