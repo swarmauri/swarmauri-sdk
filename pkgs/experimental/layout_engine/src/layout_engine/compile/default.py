@@ -7,7 +7,7 @@ from ..grid.default import ExplicitGridResolver
 from ..grid.base import IGridResolver
 from ..grid.spec import GridSpec, GridTile
 from ..tiles.spec import TileSpec
-from ..components.base import IComponentRegistry
+from ..atoms.base import IAtomRegistry
 
 # --------- Core compiler ---------
 
@@ -52,12 +52,12 @@ class LayoutCompiler:
         vp: Viewport,
         frames_map: dict[str, Frame],
         tiles: Iterable[TileSpec],
-        components_registry: IComponentRegistry | None = None,
+        atoms_registry: IAtomRegistry | None = None,
     ) -> dict:
         """Build a minimal view-model dict expected by `manifest.build_manifest`.
 
         - Adds viewport, serialized grid, and a tile list with frames.
-        - Optionally includes component mapping (module/export/version/defaults) from a registry.
+        - Optionally includes atom mapping (module/export/version/defaults) from a registry.
         """
         from ..grid.bindings import gridspec_to_dict
 
@@ -74,20 +74,20 @@ class LayoutCompiler:
                 "props": base_props,
                 "frame": frame,
             }
-            if components_registry is not None:
+            if atoms_registry is not None:
                 try:
-                    comp = components_registry.get(t.role)  # type: ignore[attr-defined]
+                    atom = atoms_registry.get(t.role)  # type: ignore[attr-defined]
                 except Exception:
-                    # unknown role; leave component mapping absent
+                    # unknown role; leave atom mapping absent
                     pass
                 else:
-                    defaults = dict(getattr(comp, "defaults", {}))
+                    defaults = dict(getattr(atom, "defaults", {}))
                     merged_props = dict(defaults)
                     merged_props.update(base_props)
-                    entry["component"] = {
-                        "module": comp.module,
-                        "export": comp.export,
-                        "version": comp.version,
+                    entry["atom"] = {
+                        "module": atom.module,
+                        "export": atom.export,
+                        "version": atom.version,
                         "defaults": defaults,
                     }
                     # Defaults merge underneath author-specified props
@@ -108,15 +108,13 @@ class LayoutCompiler:
         tiles: Iterable[TileSpec],
         *,
         row_height: int = 180,
-        components_registry: IComponentRegistry | None = None,
+        atoms_registry: IAtomRegistry | None = None,
     ) -> dict:
         """End-to-end convenience: Table/Row/Col/Block → Frames → view-model dict."""
         gs, placements, frames_map = self.frames_from_structure(
             tbl, vp, row_height=row_height
         )
-        return self.view_model(
-            gs, vp, frames_map, tiles, components_registry=components_registry
-        )
+        return self.view_model(gs, vp, frames_map, tiles, atoms_registry=atoms_registry)
 
     # --------- Standalone helpers (pure functions) ---------
 

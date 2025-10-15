@@ -12,7 +12,7 @@ This package provides:
   • Targets: WebGUI SSR shell helpers and Media exporters (HTML/SVG/PDF/Code)
 
 Ergonomics:
-  • quick_view_model_from_table(...) — authoring DSL → view-model (with optional components registry)
+  • quick_view_model_from_table(...) — authoring DSL → view-model (with optional atoms registry)
   • quick_manifest_from_table(...)  — authoring DSL → manifest
 """
 
@@ -26,13 +26,13 @@ from .core.frame import Frame
 # ---- Tiles ----
 from .tiles import TileSpec, Tile, tile_spec, make_tile
 
-# ---- Components ----
-from .components import (
-    ComponentSpec,
-    ComponentRegistry,
-    define_component,
-    use_component,
-    apply_defaults,
+# ---- Atoms ----
+from .atoms import (
+    AtomSpec,
+    AtomRegistry,
+    define_atom,
+    use_atom,
+    apply_atom_defaults,
 )
 
 # ---- Grid ----
@@ -149,7 +149,7 @@ from .targets import (
 
 
 def quick_view_model_from_table(
-    tbl, vp: Viewport, tiles, *, row_height: int = 180, components_registry=None
+    tbl, vp: Viewport, tiles, *, row_height: int = 180, atoms_registry=None
 ) -> dict:
     """Authoring DSL → (Frames →) view-model suitable for manifest building.
 
@@ -158,14 +158,14 @@ def quick_view_model_from_table(
       vp:  core.Viewport
       tiles: Iterable[tiles.TileSpec]
       row_height: baseline grid row height (px)
-      components_registry: optional components registry for role→module mapping
+      atoms_registry: optional atoms registry for role→module mapping
 
     Returns:
       dict view-model with keys: { viewport, grid, tiles }
     """
     compiler = LayoutCompiler()
     return compiler.view_model_from_structure(
-        tbl, vp, tiles, row_height=row_height, components_registry=components_registry
+        tbl, vp, tiles, row_height=row_height, atoms_registry=atoms_registry
     )
 
 
@@ -175,12 +175,12 @@ def quick_manifest_from_table(
     tiles,
     *,
     row_height: int = 180,
-    components_registry=None,
+    atoms_registry=None,
     version: str = "2025.10",
 ) -> Manifest:
     """Authoring DSL → manifest (one call convenience)."""
     vm = quick_view_model_from_table(
-        tbl, vp, tiles, row_height=row_height, components_registry=components_registry
+        tbl, vp, tiles, row_height=row_height, atoms_registry=atoms_registry
     )
     return build_manifest(vm, version=version)
 
@@ -198,12 +198,12 @@ __all__ = [
     "Tile",
     "tile_spec",
     "make_tile",
-    # components
-    "ComponentSpec",
-    "ComponentRegistry",
-    "define_component",
-    "use_component",
-    "apply_defaults",
+    # atoms
+    "AtomSpec",
+    "AtomRegistry",
+    "define_atom",
+    "use_atom",
+    "apply_atom_defaults",
     # grid
     "GridTrack",
     "GridSpec",

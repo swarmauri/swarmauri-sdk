@@ -1,10 +1,10 @@
 [project]
-name = "layout-engine"
-version = "0.1.1"
+name = "layout-engine-atoms"
+version = "0.1.0"
+description = "Curated atom presets and registries for layout-engine."
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" },
 ]
-description = "Swiss-grid inspired, format-agnostic layout engine with SSR+SSG, atom & MFE registries."
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10,<3.13"
@@ -20,42 +20,26 @@ classifiers = [
     "Topic :: Software Development :: Libraries",
 ]
 dependencies = [
-    "jinja2>=3.1",
-    "pydantic>=2.6",
+    "layout-engine>=0.1.1",
 ]
 keywords = [
     "layout",
-    "ssr",
-    "ssg",
-    "grid",
+    "uix",
     "atoms",
-    "mfe",
-    "python",
+    "registry",
+    "presets",
+    "swarmauri",
 ]
-
-[project.optional-dependencies]
-pdf = [
-    "playwright>=1.46",
-]
-server = [
-    "fastapi>=0.115",
-    "orjson>=3.9",
-    "uvicorn>=0.30",
-    "websockets>=12.0",
-]
-
-[project.urls]
-Homepage = "https://github.com/swarmauri/swarmauri-sdk"
-Repository = "https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/layout_engine"
 
 [dependency-groups]
 dev = [
-    "mypy>=1.10",
     "pytest>=8.2",
     "ruff>=0.6",
-    "typing-extensions>=4.12",
 ]
 
 [build-system]
 requires = ["poetry-core>=1.9.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.uv.sources]
+layout-engine = { path = "../layout_engine" }

@@ -1,48 +1,50 @@
 from __future__ import annotations
-from typing import Iterable, Mapping, Any, Optional
-from .spec import ComponentSpec, merge_props
+
+from typing import Any, Iterable, Mapping, Optional
+
+from .spec import AtomSpec, merge_atom_props
 
 
-class ComponentRegistry:
-    """In-memory registry keyed by role (case-sensitive)."""
+class AtomRegistry:
+    """In-memory registry keyed by atom role (case-sensitive)."""
 
     def __init__(self):
-        self._by_role: dict[str, ComponentSpec] = {}
+        self._by_role: dict[str, AtomSpec] = {}
 
     # --- CRUD ---
-    def register(self, spec: ComponentSpec) -> None:
+    def register(self, spec: AtomSpec) -> None:
         role = spec.role
         if role in self._by_role:
-            raise ValueError(f"Component role already registered: {role}")
+            raise ValueError(f"Atom role already registered: {role}")
         self._by_role[role] = spec
 
-    def register_many(self, specs: Iterable[ComponentSpec]) -> None:
+    def register_many(self, specs: Iterable[AtomSpec]) -> None:
         for s in specs:
             self.register(s)
 
-    def override(self, role: str, **fields: Any) -> ComponentSpec:
+    def override(self, role: str, **fields: Any) -> AtomSpec:
         try:
             base = self._by_role[role]
         except KeyError:
-            raise KeyError(f"Unknown component role: {role}")
+            raise KeyError(f"Unknown atom role: {role}")
         new_spec = base.with_overrides(**fields)
         self._by_role[role] = new_spec
         return new_spec
 
     # --- Query ---
-    def get(self, role: str) -> ComponentSpec:
+    def get(self, role: str) -> AtomSpec:
         try:
             return self._by_role[role]
         except KeyError:
-            raise KeyError(f"Unknown component role: {role}")
+            raise KeyError(f"Unknown atom role: {role}")
 
-    def try_get(self, role: str) -> Optional[ComponentSpec]:
+    def try_get(self, role: str) -> Optional[AtomSpec]:
         return self._by_role.get(role)
 
     def has(self, role: str) -> bool:
         return role in self._by_role
 
-    def list(self) -> Iterable[ComponentSpec]:
+    def list(self) -> Iterable[AtomSpec]:
         return list(self._by_role.values())
 
     # --- Resolution ---
@@ -50,16 +52,16 @@ class ComponentRegistry:
         self, role: str, overrides: Mapping[str, Any] | None = None
     ) -> dict:
         spec = self.get(role)
-        return merge_props(spec.defaults, overrides)
+        return merge_atom_props(spec.defaults, overrides)
 
     # --- (De)serialization ---
     def to_dict(self) -> dict[str, dict]:
-        from .bindings import to_dict as _to
+        from .bindings import atom_to_dict as _to
 
         return {role: _to(spec) for role, spec in self._by_role.items()}
 
     def update_from_dict(self, data: Mapping[str, Mapping[str, Any]]) -> None:
-        from .bindings import from_dict as _from
+        from .bindings import atom_from_dict as _from
 
         for role, specd in data.items():
             spec = _from(specd)
@@ -68,6 +70,10 @@ class ComponentRegistry:
                 spec = spec.with_overrides(role=role)
             # upsert semantics
             self._by_role[role] = spec
+
+    def dict(self) -> dict[str, dict]:
+        """Dict-style alias for serialization helpers."""
+        return self.to_dict()
 
     # --- context manager support ---
     def __enter__(self):
@@ -83,13 +89,13 @@ class ComponentRegistry:
         return False
 
 
-class Component:
-    """Default runtime wrapper around ComponentSpec.
+class Atom:
+    """Default runtime wrapper around AtomSpec.
 
     Provides ergonomic accessors and merged props resolution.
     """
 
-    def __init__(self, spec: ComponentSpec):
+    def __init__(self, spec: AtomSpec):
         self.spec = spec
 
     @property
@@ -110,7 +116,7 @@ class Component:
 
     def resolve_props(self, overrides: Mapping[str, Any] | None = None) -> dict:
         """Return props merged with registry defaults (spec.defaults ⊕ overrides)."""
-        return merge_props(self.spec.defaults, overrides or {})
+        return merge_atom_props(self.spec.defaults, overrides)
 
     # --- context manager support ---
     def __enter__(self):

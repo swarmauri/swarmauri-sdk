@@ -3,7 +3,7 @@
 Run with:
     uv run --directory experimental/layout_engine --package layout-engine python examples/basic_usage.py
 
-The script assembles a component registry, builds a small layout, generates a
+The script assembles an atom registry, builds a small layout, generates a
 manifest JSON file, and emits an HTML preview next to the script.
 """
 
@@ -12,8 +12,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from layout_engine import (
-    ComponentRegistry,
-    ComponentSpec,
+    AtomRegistry,
+    AtomSpec,
     SizeToken,
     TileSpec,
     Viewport,
@@ -30,17 +30,17 @@ OUTPUT_JSON = Path(__file__).with_suffix(".json")
 OUTPUT_HTML = Path(__file__).with_suffix(".html")
 
 
-def build_registry() -> ComponentRegistry:
+def build_registry() -> AtomRegistry:
     """Register semantic roles with demo front-end modules."""
-    registry = ComponentRegistry()
+    registry = AtomRegistry()
     registry.register_many(
         [
-            ComponentSpec(
+            AtomSpec(
                 role="stat",
                 module="@demo/metric",  # maps to a remote module in a real app
                 defaults={"format": "compact"},
             ),
-            ComponentSpec(
+            AtomSpec(
                 role="timeseries",
                 module="@demo/timeseries",
                 defaults={"interval": "1h"},
@@ -103,7 +103,7 @@ def main() -> int:
         viewport,
         tiles,
         row_height=180,
-        components_registry=registry,
+        atoms_registry=registry,
     )
 
     OUTPUT_JSON.write_text(manifest_to_json(manifest, indent=2))

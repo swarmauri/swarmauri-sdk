@@ -1,11 +1,12 @@
 from __future__ import annotations
-from typing import Callable, Mapping, Any, Dict
-from .spec import ComponentSpec
+from typing import Any, Callable, Dict, Mapping
+
+from .spec import AtomSpec
 
 # -------- JSON (de)serialization --------
 
 
-def to_dict(spec: ComponentSpec) -> dict:
+def atom_to_dict(spec: AtomSpec) -> dict:
     return {
         "role": spec.role,
         "module": spec.module,
@@ -15,8 +16,8 @@ def to_dict(spec: ComponentSpec) -> dict:
     }
 
 
-def from_dict(obj: Mapping[str, Any]) -> ComponentSpec:
-    return ComponentSpec(
+def atom_from_dict(obj: Mapping[str, Any]) -> AtomSpec:
+    return AtomSpec(
         role=str(obj["role"]),
         module=str(obj["module"]),
         export=str(obj.get("export", "default")),

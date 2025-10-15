@@ -1,35 +1,36 @@
 from __future__ import annotations
 from functools import wraps
-from typing import Mapping, Any
-from .default import ComponentRegistry
-from .spec import ComponentSpec
+from typing import Any, Mapping
+
+from .default import AtomRegistry
+from .spec import AtomSpec
 
 
-def component_ctx(
+def atom_ctx(
     *,
     role: str,
     module: str,
     export: str = "default",
     version: str = "1.0.0",
     defaults: Mapping[str, Any] | None = None,
-    registry: ComponentRegistry | None = None,
+    registry: AtomRegistry | None = None,
 ):
-    """Decorator to declare and optionally register a component_ctx specification.
+    """Decorator to declare and optionally register an atom specification.
 
     Example:
-        @component_ctx(role="kpi", module="@app/widgets/Kpi.svelte", defaults={"format":"currency"}, registry=REG)
+        @atom_ctx(role="kpi", module="@app/widgets/Kpi.svelte", defaults={"format":"currency"}, registry=REG)
         def kpi(): pass
     """
 
     def deco(fn):
-        spec = ComponentSpec(
+        spec = AtomSpec(
             role=role,
             module=module,
             export=export,
             version=version,
             defaults=defaults or {},
         )
-        setattr(fn, "__component_spec__", spec)
+        setattr(fn, "__atom_spec__", spec)
         if registry is not None:
             registry.register(spec)
 
@@ -42,17 +43,17 @@ def component_ctx(
     return deco
 
 
-def component(
+def atom(
     *,
     role: str,
     module: str,
     export: str = "default",
     version: str = "1.0.0",
     defaults: Mapping[str, Any] | None = None,
-    registry: ComponentRegistry | None = None,
+    registry: AtomRegistry | None = None,
 ):
-    """Backward compatible alias for :func:`component_ctx`."""
-    return component_ctx(
+    """Decorator alias to register atoms inline."""
+    return atom_ctx(
         role=role,
         module=module,
         export=export,

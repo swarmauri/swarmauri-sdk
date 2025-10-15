@@ -1,33 +1,32 @@
 from __future__ import annotations
-from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from typing import Any, Iterable, Mapping, Optional
 
-from .spec import ComponentSpec
+from .spec import AtomSpec
 
 
-class IComponentRegistry(ABC):
-    """ABC for storing and resolving ComponentSpec entries by role."""
+class IAtomRegistry(ABC):
+    """ABC for storing and resolving AtomSpec entries by role."""
 
     @abstractmethod
-    def register(self, spec: ComponentSpec) -> None:
+    def register(self, spec: AtomSpec) -> None:
         raise NotImplementedError
 
     @abstractmethod
-    def register_many(self, specs: Iterable[ComponentSpec]) -> None:
+    def register_many(self, specs: Iterable[AtomSpec]) -> None:
         raise NotImplementedError
 
     @abstractmethod
-    def override(self, role: str, **fields: Any) -> ComponentSpec:
+    def override(self, role: str, **fields: Any) -> AtomSpec:
         raise NotImplementedError
 
     @abstractmethod
-    def get(self, role: str) -> ComponentSpec:
+    def get(self, role: str) -> AtomSpec:
         raise NotImplementedError
 
     @abstractmethod
-    def try_get(self, role: str) -> Optional[ComponentSpec]:
+    def try_get(self, role: str) -> Optional[AtomSpec]:
         raise NotImplementedError
 
     @abstractmethod
@@ -35,7 +34,7 @@ class IComponentRegistry(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def list(self) -> Iterable[ComponentSpec]:
+    def list(self) -> Iterable[AtomSpec]:
         raise NotImplementedError
 
     @abstractmethod

@@ -17,14 +17,14 @@
 
 # Layout Engine (Core)
 
-`layout-engine` is a Swiss Grid design inspired, format-agnostic rendering engine that powers Server-Side Rendering (SSR), Static Site Generation (SSG), and offline exports from a unified component model. The package provides strongly-typed contracts for sites, pages, grids, tiles, and component registries so downstream applications can orchestrate layouts without being tied to a specific UI framework.
+`layout-engine` is a Swiss Grid design inspired, format-agnostic rendering engine that powers Server-Side Rendering (SSR), Static Site Generation (SSG), and offline exports from a unified atom model. The package provides strongly-typed contracts for sites, pages, grids, tiles, and atom registries so downstream applications can orchestrate layouts without being tied to a specific UI framework.
 
 > **Python compatibility:** officially supports Python 3.10, 3.11, and 3.12.
 
 ## Features
 
 - **Contract-driven architecture** – abstract base classes define the interfaces for rendering, exporting, and serving layout primitives.
-- **Atomic component & micro-frontend registries** – manage SSR-ready components and remote module manifests with predictable defaults.
+- **Atom & micro-frontend registries** – manage SSR-ready atoms and remote module manifests with predictable defaults.
 - **Format agnostic targets** – render HTML, SVG, PDF, and code artifacts using interchangeable exporters.
 - **Extensible site composition** – compose grids, tiles, and slots declaratively with Pydantic specs for validation and serialization.
 - **Optional realtime bridge** – opt into FastAPI, Uvicorn, and WebSocket extras for live preview or event streaming.
@@ -49,8 +49,8 @@ pip install "layout-engine[pdf]"
 
 ```python
 from layout_engine import (
-    ComponentRegistry,
-    ComponentSpec,
+    AtomRegistry,
+    AtomSpec,
     SizeToken,
     TileSpec,
     Viewport,
@@ -62,8 +62,8 @@ from layout_engine import (
 )
 from layout_engine.targets.media import HtmlExporter
 
-components = ComponentRegistry()
-components.register(ComponentSpec(role="stat", module="@demo/metric"))
+atoms = AtomRegistry()
+atoms.register(AtomSpec(role="stat", module="@demo/metric"))
 
 tiles = [
     TileSpec(id="stat_revenue", role="stat", props={"label": "Revenue", "value": "$1.2M"}),
@@ -81,14 +81,14 @@ manifest = quick_manifest_from_table(
     layout,
     Viewport(width=960, height=540),
     tiles,
-    components_registry=components,
+    atoms_registry=atoms,
 )
 
 HtmlExporter(title="Stats Overview").export(manifest, out="stats.html")
 ```
 
-The manifest merges component defaults with any props provided on `TileSpec`
-instances, so runtime components receive fully-prepared payloads.
+The manifest merges atom defaults with any props provided on `TileSpec`
+instances, so runtime atoms receive fully-prepared payloads.
 
 ### Examples
 
@@ -109,9 +109,9 @@ artifacts directly from the repository.
 
 ## Core Concepts
 
-- **First-class objects** – `site`, `page`, `slot`, `grid`, `tile`, `component`, and `remote` provide the building blocks for any layout.
+- **First-class objects** – `site`, `page`, `slot`, `grid`, `tile`, `atom`, and `remote` provide the building blocks for any layout.
 - **Contracts** – objects expose `.render(...)`, `.export(...)`, and optional `.server(...)` methods to support SSR, SSG, and service endpoints.
-- **Registries** – manage atomic component defaults and micro-frontend remotes with predictable merge semantics.
+- **Registries** – manage atom defaults and micro-frontend remotes with predictable merge semantics.
 - **Site-aware routing helpers** – `layout_engine.targets.SiteRouter` produces SSR HTML shells, manifest JSON payloads, and ESM
   import maps you can bind directly to FastAPI, Starlette, or any HTTP framework route handlers.
 
@@ -131,31 +131,31 @@ parameters, and streams tile-level events over a multiplexed WebSocket transport
 
 ### 1. Compose registries and site metadata
 
-Start by defining the component registry (for local role → module mappings) and the remote registry
-that powers the import map consumed by Vue's module loader. Defaults defined on each component are
-merged with tile props every time a manifest is built, so downstream components always receive a
+Start by defining the atom registry (for local role → module mappings) and the remote registry
+that powers the import map consumed by Vue's module loader. Defaults defined on each atom are
+merged with tile props every time a manifest is built, so downstream atoms always receive a
 complete prop payload.
 
 ```python
-from layout_engine import ComponentRegistry, ComponentSpec
+from layout_engine import AtomRegistry, AtomSpec
 from layout_engine.mfe.default import RemoteRegistry
 from layout_engine.mfe.spec import Remote
 from layout_engine.site.spec import PageSpec, SiteSpec, SlotSpec
 
-components = ComponentRegistry()
-components.register(
-    ComponentSpec(
+atoms = AtomRegistry()
+atoms.register(
+    AtomSpec(
         role="dashboard.hero",
-        module="@layout-app/components",
+        module="@layout-app/atoms",
         export="HeroCard",
         version="2.1.0",
         defaults={"accent": "indigo", "density": "comfortable"},
     )
 )
-components.register(
-    ComponentSpec(
+atoms.register(
+    AtomSpec(
         role="catalog.item",
-        module="@layout-app/components",
+        module="@layout-app/atoms",
         export="CatalogTile",
         defaults={"showPrice": True, "badgeStyle": "pill"},
     )
@@ -308,12 +308,12 @@ def build_manifest(page: PageSpec, ctx: Mapping[str, Any]) -> Manifest:
         layout,
         Viewport(width=1440, height=900),
         tiles,
-        components_registry=components,
+        atoms_registry=atoms,
     )
     return manifest
 ```
 
-The snippet shows how component defaults (`showPrice`, `badgeStyle`) are merged with dynamic props
+The snippet shows how atom defaults (`showPrice`, `badgeStyle`) are merged with dynamic props
 (`isActive`, `filters`) before the manifest reaches the client. State changes (for example selecting
 an item or refining a search query) happen entirely in the context step—no Vue-specific logic is
 required on the server to keep props synchronized.
@@ -390,7 +390,7 @@ This wiring enables:
 - **SPA manifest** – `GET /spa/manifest.json?status=paused` updates dashboard props while keeping a
   single HTML shell.
 - **MPA manifests** – each catalog page calls `/catalog/…/manifest.json` so static HTML routes can
-  hydrate independently, while still sharing component defaults from the registry.
+  hydrate independently, while still sharing atom defaults from the registry.
 - **Import maps** – Vue clients can consume the generated map before calling `createApp` to ensure
   micro-frontend remotes resolve correctly.
 
@@ -441,7 +441,7 @@ server will deliver props for the requested `itemId`.
 
 Install the optional server extras (`layout-engine[server]`) plus the WebSocket JSON-RPC transport
 (`swarmauri-transport-wsjsonrpcmux`). The transport acts as the mux that fans events in/out of the
-`layout_engine.events` router, giving Vue components a consistent channel for publishing or
+`layout_engine.events` router, giving Vue atoms a consistent channel for publishing or
 subscribing to tile state changes.
 
 ```python
@@ -511,8 +511,8 @@ export function publishTileEvent(slot: string, tileId: string, payload: Record<s
 }
 ```
 
-When components invoke `publishTileEvent`, the event router validates the envelope, publishes to the
-topic derived from `scope/page/slot/tile`, and any subscribed Vue components receive real-time
+When atoms invoke `publishTileEvent`, the event router validates the envelope, publishes to the
+topic derived from `scope/page/slot/tile`, and any subscribed Vue atoms receive real-time
 updates. Because `EventRouter.dispatch` accepts the same context that `SiteRouter` uses to build
 manifests, the manifest props and WebSocket events stay aligned.
 
@@ -521,7 +521,7 @@ manifests, the manifest props and WebSocket events stay aligned.
 1. **Render shells** for each SPA/MPA page with `SiteRouter.render_shell(...)`.
 2. **Serve manifests** via `manifest_json(...)` (SPA) and `manifest_json_for_path(...)` (MPA) so
    Vue can hydrate tiles with merged defaults, props, and query-derived state.
-3. **Distribute import maps** generated from the `RemoteRegistry` so component modules resolve
+3. **Distribute import maps** generated from the `RemoteRegistry` so atom modules resolve
    consistently across pages.
 4. **Leverage context** (`route.params`, `route.query`, `page_vm`) inside the manifest builder to
    support list filtering, `item_id` lookups, and other state transitions.
@@ -530,7 +530,7 @@ manifests, the manifest props and WebSocket events stay aligned.
 
 With these pieces in place, a Vue frontend can seamlessly navigate between SPA and MPA routes, reuse
 the same manifest-driven layout definitions, and react instantly to query parameter changes or
-WebSocket events without duplicating component metadata on the client.
+WebSocket events without duplicating atom metadata on the client.
 
 ## Development
 
