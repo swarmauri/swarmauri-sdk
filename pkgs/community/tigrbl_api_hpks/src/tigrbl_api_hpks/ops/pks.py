@@ -3,16 +3,97 @@
 from __future__ import annotations
 
 import base64
+import binascii
 import datetime as dt
 import hashlib
 import inspect
 from dataclasses import dataclass
-from typing import Any, Iterable, Mapping, Sequence
+from typing import Any, Iterable, Iterator, Mapping, Sequence
 
 import pgpy
 from tigrbl import op_ctx
 
 from ..tables import OpenPGPKey
+
+
+def _stable_unique(values: Iterable[str]) -> list[str]:
+    """Return a list containing the first occurrence of each non-empty value."""
+
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for value in values:
+        if not value:
+            continue
+        if value in seen:
+            continue
+        seen.add(value)
+        ordered.append(value)
+    return ordered
+
+
+def _format_userid(uid: Any) -> str:
+    """Render a :class:`PGPUID` into a canonical string representation."""
+
+    name = getattr(uid, "name", None)
+    comment = getattr(uid, "comment", None)
+    email = getattr(uid, "email", None)
+    parts: list[str] = []
+    if name:
+        parts.append(str(name))
+    if comment:
+        parts.append(f"({comment})")
+    if email:
+        parts.append(f"<{email}>")
+    if parts:
+        return " ".join(parts)
+    fallback = getattr(uid, "userid", None)
+    if fallback:
+        return str(fallback)
+    return str(uid)
+
+
+def _iter_revocation_signatures(key: Any) -> Iterator[Any]:
+    """Safely iterate over revocation signatures exposed by a key object."""
+
+    revocations = getattr(key, "revocation_signatures", None)
+    if revocations is None:
+        return iter(())
+    if isinstance(revocations, Iterator):
+        return revocations
+    try:
+        return iter(revocations)
+    except TypeError:
+        return iter(())
+
+
+def _extract_revocation_state(key: Any) -> tuple[bool, dt.datetime | None]:
+    """Determine the revocation status and timestamp for a parsed key."""
+
+    raw_revoked = getattr(key, "is_revoked", False)
+    revoked = raw_revoked is True if isinstance(raw_revoked, bool) else False
+    revoked_at = _ensure_tzaware(getattr(key, "revocation_date", None))
+    if revoked_at is not None and not revoked:
+        revoked = True
+
+    latest: dt.datetime | None = revoked_at if revoked_at is not None else None
+    if revoked and revoked_at is not None:
+        return revoked, revoked_at
+
+    for signature in list(_iter_revocation_signatures(key)):
+        if signature is None:
+            continue
+        revoked = True
+        created = getattr(signature, "created", None) or getattr(
+            signature, "creation_time", None
+        )
+        if created is None:
+            continue
+        created_dt = _ensure_tzaware(created)
+        if created_dt is None:
+            continue
+        if latest is None or created_dt > latest:
+            latest = created_dt
+    return revoked, latest
 
 
 @dataclass(slots=True)
@@ -33,6 +114,15 @@ class ParsedKey:
     bits: int | None
     primary_uid: str | None
     version: int | None
+
+
+_HEX_CHARS = set("0123456789ABCDEF")
+
+
+def _is_hex(value: str) -> bool:
+    if not value:
+        return False
+    return all(ch in _HEX_CHARS for ch in value)
 
 
 def _normalize_fingerprint(value: str) -> str:
@@ -92,32 +182,78 @@ def _ensure_tzaware(value: dt.datetime | None) -> dt.datetime | None:
     return value
 
 
-def _collect_keys(blob: bytes) -> list[pgpy.PGPKey]:
-    remaining: bytes | str = blob
-    keys: list[pgpy.PGPKey] = []
+def _coerce_rest(rest: Any) -> bytes | None:
+    if rest is None:
+        return None
+    if isinstance(rest, (bytes, bytearray, memoryview)):
+        return bytes(rest)
+    if isinstance(rest, str):
+        return rest.encode("utf-8")
+    try:
+        return bytes(rest)
+    except (TypeError, ValueError):
+        return None
+
+
+def _slice_consumed(remaining: bytes, rest: bytes | None) -> bytes:
+    if not remaining:
+        return b""
+    if not rest:
+        return bytes(remaining)
+    if len(rest) >= len(remaining):
+        return bytes(remaining)
+    consumed_len = len(remaining) - len(rest)
+    return bytes(remaining[:consumed_len])
+
+
+def _looks_ascii_armored(blob: bytes) -> bool:
+    return blob.lstrip().startswith(b"-----BEGIN ")
+
+
+def _decode_ascii_armor(blob: bytes) -> bytes:
+    text = blob.decode("utf-8")
+    lines = text.splitlines()
+    body_lines: list[str] = []
+    collecting = False
+    for line in lines:
+        if line.startswith("-----BEGIN "):
+            collecting = False
+            continue
+        if line.startswith("-----END "):
+            break
+        if not collecting:
+            if line.strip() == "":
+                collecting = True
+            continue
+        stripped = line.strip()
+        if not stripped:
+            continue
+        body_lines.append(stripped)
+    if body_lines and body_lines[-1].startswith("="):
+        body_lines.pop()
+    payload = "".join(body_lines)
+    if not payload:
+        return b""
+    return base64.b64decode(payload)
+
+
+def _collect_keys(blob: bytes) -> list[tuple[pgpy.PGPKey, bytes]]:
+    remaining: bytes = bytes(blob)
+    keys: list[tuple[pgpy.PGPKey, bytes]] = []
     while remaining:
         key, rest = pgpy.PGPKey.from_blob(remaining)
         if key is None:
             break
         if getattr(key, "is_public", False) is False and getattr(key, "pubkey", None):
             key = key.pubkey
-        keys.append(key)
-        if not rest:
+        rest_bytes = _coerce_rest(rest)
+        consumed = _slice_consumed(remaining, rest_bytes)
+        keys.append((key, consumed))
+        if not rest_bytes:
             break
-        if not isinstance(rest, (bytes, bytearray, str)):
-            # Some pgpy versions return mapping-like objects when no trailing
-            # payload remains. Treat this as termination.
+        if rest_bytes == remaining:
             break
-        if isinstance(rest, str):
-            rest = rest.encode("utf-8")
-        if (
-            isinstance(remaining, bytes)
-            and isinstance(rest, (bytes, bytearray))
-            and bytes(rest) == remaining
-        ):
-            # Safety guard – avoid infinite loops on unexpected parser behavior.
-            break
-        remaining = bytes(rest)
+        remaining = rest_bytes
     return keys
 
 
@@ -128,21 +264,39 @@ def _parse_blob(blob: bytes) -> list[ParsedKey]:
         raise ValueError(f"Failed to parse OpenPGP material: {exc}") from exc
 
     parsed: list[ParsedKey] = []
-    for key in keys:
+    for key, raw_blob in keys:
         fingerprint = _normalize_fingerprint(key.fingerprint)
         key_id = fingerprint[-16:]
         prefix = fingerprint[:16]
-        ascii_armored = str(key)
-        binary_blob = bytes(key)
-        uids = [str(uid) for uid in key.userids]
-        emails: list[str] = []
-        for uid in key.userids:
-            email = getattr(uid, "email", None)
-            if email:
-                emails.append(_normalize_email(email))
+        ascii_armored: str
+        binary_blob: bytes
+        ascii_candidate: str | None = None
+        if raw_blob and _looks_ascii_armored(raw_blob):
+            try:
+                ascii_candidate = raw_blob.decode("utf-8")
+            except UnicodeDecodeError:
+                ascii_candidate = None
+
+        if (
+            ascii_candidate
+            and "-----BEGIN PGP PUBLIC KEY BLOCK-----" in ascii_candidate
+        ):
+            ascii_armored = ascii_candidate
+            try:
+                binary_blob = _decode_ascii_armor(raw_blob)
+            except (binascii.Error, ValueError):
+                binary_blob = bytes(key)
+        else:
+            ascii_armored = str(key)
+            binary_blob = bytes(key)
+        uids = _stable_unique(_format_userid(uid) for uid in key.userids)
+        emails = _stable_unique(
+            _normalize_email(getattr(uid, "email", ""))
+            for uid in key.userids
+            if getattr(uid, "email", None)
+        )
         email_hashes = sorted({_hash_email(email) for email in emails})
-        revoked = bool(getattr(key, "is_revoked", False))
-        revoked_at = _ensure_tzaware(getattr(key, "revocation_date", None))
+        revoked, revoked_at = _extract_revocation_state(key)
         algorithm = None
         if getattr(key, "key_algorithm", None) is not None:
             algo = key.key_algorithm
@@ -189,14 +343,14 @@ async def _list_all(db: Any) -> list[OpenPGPKey]:
 
 async def lookup_by_fingerprint(*, db: Any, fingerprint: str) -> OpenPGPKey | None:
     normalized = _normalize_fingerprint(fingerprint)
-    ctx = {"db": db, "payload": {"filters": {"fingerprint": normalized}}}
+    ctx = {"db": db, "payload": {"fingerprint__eq": normalized}}
     rows = await OpenPGPKey.handlers.list.core(ctx)
     return rows[0] if rows else None
 
 
 async def lookup_by_keyid(*, db: Any, key_id: str) -> OpenPGPKey | None:
     normalized = _normalize_fingerprint(key_id)[-16:]
-    ctx = {"db": db, "payload": {"filters": {"key_id": normalized}}}
+    ctx = {"db": db, "payload": {"key_id__eq": normalized}}
     rows = await OpenPGPKey.handlers.list.core(ctx)
     return rows[0] if rows else None
 
@@ -216,10 +370,10 @@ async def search_index(*, db: Any, search: str) -> list[OpenPGPKey]:
         return []
     normalized = _normalize_fingerprint(query)
     # Prefer exact fingerprint or key ID matches.
-    if len(normalized) in (40, 64):
+    if len(normalized) in (40, 64) and _is_hex(normalized):
         match = await lookup_by_fingerprint(db=db, fingerprint=normalized)
         return [match] if match else []
-    if len(normalized) == 16:
+    if len(normalized) == 16 and _is_hex(normalized):
         match = await lookup_by_keyid(db=db, key_id=normalized)
         return [match] if match else []
 
@@ -263,15 +417,22 @@ async def _merge_parsed_key(*, db: Any, parsed: ParsedKey) -> OpenPGPKey:
         "version": parsed.version,
     }
     if existing is not None:
-        payload["uids"] = _merge_lists(existing.uids, parsed.uids)
-        payload["emails"] = _merge_lists(existing.emails, parsed.emails)
-        payload["email_hashes"] = _merge_lists(
-            existing.email_hashes, parsed.email_hashes
+        payload["uids"] = parsed.uids or _stable_unique(existing.uids or [])
+        payload["emails"] = parsed.emails or _stable_unique(existing.emails or [])
+        payload["email_hashes"] = parsed.email_hashes or _stable_unique(
+            existing.email_hashes or []
         )
         payload["ascii_armored"] = parsed.ascii_armored or existing.ascii_armored
         payload["binary"] = parsed.binary or existing.binary
-        payload["revoked"] = parsed.revoked or existing.revoked
-        payload["revoked_at"] = parsed.revoked_at or existing.revoked_at
+        if existing.revoked:
+            payload["revoked"] = True
+            payload["revoked_at"] = existing.revoked_at
+        elif parsed.revoked:
+            payload["revoked"] = True
+            payload["revoked_at"] = parsed.revoked_at or existing.revoked_at
+        else:
+            payload["revoked"] = False
+            payload["revoked_at"] = None
         payload["algorithm"] = parsed.algorithm or existing.algorithm
         payload["bits"] = parsed.bits or existing.bits
         payload["primary_uid"] = parsed.primary_uid or existing.primary_uid
