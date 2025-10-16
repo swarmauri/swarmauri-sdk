@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping, cast
+from abc import abstractmethod
+from typing import Any, Mapping
 
-from swarmauri_core.billing import ISubscriptions, Operation
+from swarmauri_core.billing import ISubscriptions
 from swarmauri_core.billing.protos import SubscriptionSpecProto
 
 from .OperationDispatcherMixin import OperationDispatcherMixin
@@ -17,21 +18,24 @@ class SubscriptionsMixin(OperationDispatcherMixin, ISubscriptions):
         self, spec: SubscriptionSpecProto, *, idempotency_key: str
     ) -> Mapping[str, Any]:
         self._require_idempotency(idempotency_key)
-        result = self._op(
-            Operation.CREATE_SUBSCRIPTION,
-            {"spec": spec},
-            idempotency_key=idempotency_key,
-        )
-        return cast(Mapping[str, Any], result)
+        return self._create_subscription(spec, idempotency_key=idempotency_key)
 
     def cancel_subscription(
         self, subscription_id: str, *, at_period_end: bool = True
     ) -> Mapping[str, Any]:
-        result = self._op(
-            Operation.CANCEL_SUBSCRIPTION,
-            {"subscription_id": subscription_id, "at_period_end": at_period_end},
-        )
-        return cast(Mapping[str, Any], result)
+        return self._cancel_subscription(subscription_id, at_period_end=at_period_end)
+
+    @abstractmethod
+    def _create_subscription(
+        self, spec: SubscriptionSpecProto, *, idempotency_key: str
+    ) -> Mapping[str, Any]:
+        """Create a subscription in the provider system."""
+
+    @abstractmethod
+    def _cancel_subscription(
+        self, subscription_id: str, *, at_period_end: bool = True
+    ) -> Mapping[str, Any]:
+        """Cancel the subscription as requested."""
 
 
 __all__ = ["SubscriptionsMixin"]

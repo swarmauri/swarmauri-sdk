@@ -2,27 +2,29 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping, cast
+from abc import abstractmethod
+from typing import Any, Mapping
 
-from swarmauri_core.billing import IReports, Operation
+from swarmauri_core.billing import IReports
 from swarmauri_core.billing.protos import ReportReqProto
 
 from .OperationDispatcherMixin import OperationDispatcherMixin
 
 
 class ReportsMixin(OperationDispatcherMixin, IReports):
-    """Delegates report generation to ``_op``."""
+    """Helper utilities for generating provider reports."""
 
     def create_report(
         self, req: ReportReqProto, *, idempotency_key: str
     ) -> Mapping[str, Any]:
         self._require_idempotency(idempotency_key)
-        result = self._op(
-            Operation.CREATE_REPORT,
-            {"req": req},
-            idempotency_key=idempotency_key,
-        )
-        return cast(Mapping[str, Any], result)
+        return self._create_report(req, idempotency_key=idempotency_key)
+
+    @abstractmethod
+    def _create_report(
+        self, req: ReportReqProto, *, idempotency_key: str
+    ) -> Mapping[str, Any]:
+        """Trigger report generation with the provider."""
 
 
 __all__ = ["ReportsMixin"]

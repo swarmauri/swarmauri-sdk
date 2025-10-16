@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from abc import abstractmethod
 from typing import Any, Mapping, cast
 
-from swarmauri_core.billing import ICustomers, Operation
+from swarmauri_core.billing import ICustomers
 from swarmauri_core.billing.protos import (
     CustomerRefProto,
     CustomerSpecProto,
@@ -22,11 +23,7 @@ class CustomersMixin(OperationDispatcherMixin, ICustomers):
         self, spec: CustomerSpecProto, *, idempotency_key: str
     ) -> CustomerRefProto:
         self._require_idempotency(idempotency_key)
-        result = self._op(
-            Operation.CREATE_CUSTOMER,
-            {"spec": spec},
-            idempotency_key=idempotency_key,
-        )
+        result = self._create_customer(spec, idempotency_key=idempotency_key)
         if isinstance(result, CustomerRefProto):
             return result
         raw = cast(Mapping[str, Any], result)
@@ -38,7 +35,7 @@ class CustomersMixin(OperationDispatcherMixin, ICustomers):
         )
 
     def get_customer(self, customer_id: str) -> CustomerRefProto:
-        result = self._op(Operation.GET_CUSTOMER, {"customer_id": customer_id})
+        result = self._get_customer(customer_id)
         if isinstance(result, CustomerRefProto):
             return result
         raw = cast(Mapping[str, Any], result)
@@ -52,11 +49,24 @@ class CustomersMixin(OperationDispatcherMixin, ICustomers):
     def attach_payment_method_to_customer(
         self, customer: CustomerRefProto, pm: PaymentMethodRefProto
     ) -> Mapping[str, Any]:
-        result = self._op(
-            Operation.ATTACH_PM_TO_CUSTOMER,
-            {"customer": customer, "payment_method": pm},
-        )
+        result = self._attach_payment_method_to_customer(customer, pm)
         return cast(Mapping[str, Any], result)
+
+    @abstractmethod
+    def _create_customer(
+        self, spec: CustomerSpecProto, *, idempotency_key: str
+    ) -> CustomerRefProto | Mapping[str, Any]:
+        """Create a customer via the provider and return its reference."""
+
+    @abstractmethod
+    def _get_customer(self, customer_id: str) -> CustomerRefProto | Mapping[str, Any]:
+        """Return provider data for the requested customer."""
+
+    @abstractmethod
+    def _attach_payment_method_to_customer(
+        self, customer: CustomerRefProto, pm: PaymentMethodRefProto
+    ) -> Mapping[str, Any]:
+        """Associate a payment method with the given customer."""
 
 
 __all__ = ["CustomersMixin"]

@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from abc import abstractmethod
 from typing import Any, Mapping, Optional, cast
 
-from swarmauri_core.billing import IOnlinePayments, Operation
+from swarmauri_core.billing import IOnlinePayments
 from swarmauri_core.billing.protos import PaymentIntentReqProto, PaymentRefProto
 
 from .OperationDispatcherMixin import OperationDispatcherMixin, extract_raw_payload
@@ -12,10 +13,10 @@ from .refs import PaymentRef
 
 
 class OnlinePaymentsMixin(OperationDispatcherMixin, IOnlinePayments):
-    """Delegates payment intents and capture operations via ``_op``."""
+    """Utility methods for common payment intent workflows."""
 
     def create_payment_intent(self, req: PaymentIntentReqProto) -> PaymentRefProto:
-        result = self._op(Operation.CREATE_PAYMENT_INTENT, {"req": req})
+        result = self._create_payment_intent(req)
         if isinstance(result, PaymentRefProto):
             return result
         raw = cast(Mapping[str, Any], result)
@@ -30,11 +31,7 @@ class OnlinePaymentsMixin(OperationDispatcherMixin, IOnlinePayments):
     def capture_payment(
         self, payment_id: str, *, idempotency_key: Optional[str] = None
     ) -> PaymentRefProto:
-        result = self._op(
-            Operation.CAPTURE_PAYMENT,
-            {"payment_id": payment_id},
-            idempotency_key=idempotency_key,
-        )
+        result = self._capture_payment(payment_id, idempotency_key=idempotency_key)
         if isinstance(result, PaymentRefProto):
             return result
         raw = cast(Mapping[str, Any], result)
@@ -53,10 +50,8 @@ class OnlinePaymentsMixin(OperationDispatcherMixin, IOnlinePayments):
         reason: Optional[str] = None,
         idempotency_key: Optional[str] = None,
     ) -> PaymentRefProto:
-        result = self._op(
-            Operation.CANCEL_PAYMENT,
-            {"payment_id": payment_id, "reason": reason},
-            idempotency_key=idempotency_key,
+        result = self._cancel_payment(
+            payment_id, reason=reason, idempotency_key=idempotency_key
         )
         if isinstance(result, PaymentRefProto):
             return result
@@ -68,6 +63,28 @@ class OnlinePaymentsMixin(OperationDispatcherMixin, IOnlinePayments):
             provider=str(raw.get("provider", "")),
             raw=payload,
         )
+
+    @abstractmethod
+    def _create_payment_intent(
+        self, req: PaymentIntentReqProto
+    ) -> PaymentRefProto | Mapping[str, Any]:
+        """Create a payment intent with the provider."""
+
+    @abstractmethod
+    def _capture_payment(
+        self, payment_id: str, *, idempotency_key: Optional[str] = None
+    ) -> PaymentRefProto | Mapping[str, Any]:
+        """Capture a previously authorized payment."""
+
+    @abstractmethod
+    def _cancel_payment(
+        self,
+        payment_id: str,
+        *,
+        reason: Optional[str] = None,
+        idempotency_key: Optional[str] = None,
+    ) -> PaymentRefProto | Mapping[str, Any]:
+        """Cancel or void a payment intent."""
 
 
 __all__ = ["OnlinePaymentsMixin"]

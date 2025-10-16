@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping, cast
+from abc import abstractmethod
+from typing import Any, Mapping
 
-from swarmauri_core.billing import IMarketplace, Operation
+from swarmauri_core.billing import IMarketplace
 from swarmauri_core.billing.protos import SplitSpecProto
 
 from .OperationDispatcherMixin import OperationDispatcherMixin
@@ -17,12 +18,7 @@ class MarketplaceMixin(OperationDispatcherMixin, IMarketplace):
         self, spec: SplitSpecProto, *, idempotency_key: str
     ) -> Mapping[str, Any]:
         self._require_idempotency(idempotency_key)
-        result = self._op(
-            Operation.CREATE_SPLIT,
-            {"spec": spec},
-            idempotency_key=idempotency_key,
-        )
-        return cast(Mapping[str, Any], result)
+        return self._create_split(spec, idempotency_key=idempotency_key)
 
     def charge_with_split(
         self,
@@ -33,17 +29,29 @@ class MarketplaceMixin(OperationDispatcherMixin, IMarketplace):
         idempotency_key: str,
     ) -> Mapping[str, Any]:
         self._require_idempotency(idempotency_key)
-        payload = {
-            "amount_minor": amount_minor,
-            "currency": currency,
-            "split": split_code_or_params,
-        }
-        result = self._op(
-            Operation.CHARGE_WITH_SPLIT,
-            payload,
+        return self._charge_with_split(
+            amount_minor,
+            currency,
+            split_code_or_params=split_code_or_params,
             idempotency_key=idempotency_key,
         )
-        return cast(Mapping[str, Any], result)
+
+    @abstractmethod
+    def _create_split(
+        self, spec: SplitSpecProto, *, idempotency_key: str
+    ) -> Mapping[str, Any]:
+        """Create a split configuration with the provider."""
+
+    @abstractmethod
+    def _charge_with_split(
+        self,
+        amount_minor: int,
+        currency: str,
+        *,
+        split_code_or_params: Mapping[str, Any],
+        idempotency_key: str,
+    ) -> Mapping[str, Any]:
+        """Execute a marketplace charge with split parameters."""
 
 
 __all__ = ["MarketplaceMixin"]

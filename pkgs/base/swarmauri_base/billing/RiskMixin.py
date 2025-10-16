@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from abc import abstractmethod
 from typing import Any, Mapping, Sequence, cast
 
-from swarmauri_core.billing import IRisk, Operation
+from swarmauri_core.billing import IRisk
 
 from .OperationDispatcherMixin import OperationDispatcherMixin
 
@@ -15,19 +16,28 @@ class RiskMixin(OperationDispatcherMixin, IRisk):
     def verify_webhook_signature(
         self, raw_body: bytes, headers: Mapping[str, str], secret: str
     ) -> bool:
-        result = self._op(
-            Operation.VERIFY_WEBHOOK_SIGNATURE,
-            {"raw_body": raw_body, "headers": headers, "secret": secret},
-        )
+        result = self._verify_webhook_signature(raw_body, headers, secret)
         return bool(result)
 
     def list_disputes(self, *, limit: int = 50) -> Sequence[Mapping[str, Any]]:
-        result = self._op(Operation.LIST_DISPUTES, {"limit": limit})
+        result = self._list_disputes(limit=limit)
         if isinstance(result, Sequence):
             return cast(Sequence[Mapping[str, Any]], result)
         if result is None:
             return tuple()
         return (cast(Mapping[str, Any], result),)
+
+    @abstractmethod
+    def _verify_webhook_signature(
+        self, raw_body: bytes, headers: Mapping[str, str], secret: str
+    ) -> bool | Mapping[str, Any]:
+        """Validate a webhook signature using the provider's algorithm."""
+
+    @abstractmethod
+    def _list_disputes(
+        self, *, limit: int = 50
+    ) -> Sequence[Mapping[str, Any]] | Mapping[str, Any] | None:
+        """Return a collection of disputes from the provider."""
 
 
 __all__ = ["RiskMixin"]

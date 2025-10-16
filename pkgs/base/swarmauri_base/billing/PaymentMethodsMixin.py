@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from abc import abstractmethod
 from typing import Any, Mapping, Optional, Sequence, Tuple, cast
 
-from swarmauri_core.billing import IPaymentMethods, Operation
+from swarmauri_core.billing import IPaymentMethods
 from swarmauri_core.billing.protos import (
     CustomerRefProto,
     PaymentMethodRefProto,
@@ -22,11 +23,7 @@ class PaymentMethodsMixin(OperationDispatcherMixin, IPaymentMethods):
         self, spec: PaymentMethodSpecProto, *, idempotency_key: str
     ) -> PaymentMethodRefProto:
         self._require_idempotency(idempotency_key)
-        result = self._op(
-            Operation.CREATE_PAYMENT_METHOD,
-            {"spec": spec},
-            idempotency_key=idempotency_key,
-        )
+        result = self._create_payment_method(spec, idempotency_key=idempotency_key)
         if isinstance(result, PaymentMethodRefProto):
             return result
         raw = cast(Mapping[str, Any], result)
@@ -38,11 +35,7 @@ class PaymentMethodsMixin(OperationDispatcherMixin, IPaymentMethods):
         )
 
     def detach_payment_method(self, payment_method_id: str) -> Mapping[str, Any]:
-        result = self._op(
-            Operation.DETACH_PAYMENT_METHOD,
-            {"payment_method_id": payment_method_id},
-        )
-        return cast(Mapping[str, Any], result)
+        return self._detach_payment_method(payment_method_id)
 
     def list_payment_methods(
         self,
@@ -51,10 +44,7 @@ class PaymentMethodsMixin(OperationDispatcherMixin, IPaymentMethods):
         type: Optional[str] = None,
         limit: int = 10,
     ) -> Sequence[PaymentMethodRefProto]:
-        result = self._op(
-            Operation.LIST_PAYMENT_METHODS,
-            {"customer": customer, "type": type, "limit": limit},
-        )
+        result = self._list_payment_methods(customer, type=type, limit=limit)
         if isinstance(result, Sequence):
             items: Sequence[Any] = result
         else:
@@ -70,6 +60,31 @@ class PaymentMethodsMixin(OperationDispatcherMixin, IPaymentMethods):
             for item in items
         )
         return refs
+
+    @abstractmethod
+    def _create_payment_method(
+        self, spec: PaymentMethodSpecProto, *, idempotency_key: str
+    ) -> PaymentMethodRefProto | Mapping[str, Any]:
+        """Create a new payment method with the provider."""
+
+    @abstractmethod
+    def _detach_payment_method(self, payment_method_id: str) -> Mapping[str, Any]:
+        """Detach the given payment method from its customer."""
+
+    @abstractmethod
+    def _list_payment_methods(
+        self,
+        customer: CustomerRefProto,
+        *,
+        type: Optional[str] = None,
+        limit: int = 10,
+    ) -> (
+        Sequence[PaymentMethodRefProto]
+        | Sequence[Mapping[str, Any]]
+        | Mapping[str, Any]
+        | None
+    ):
+        """List payment methods for the provided customer."""
 
 
 __all__ = ["PaymentMethodsMixin"]

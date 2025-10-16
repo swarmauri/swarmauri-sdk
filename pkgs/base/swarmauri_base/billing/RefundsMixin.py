@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping, cast
+from abc import abstractmethod
+from typing import Any, Mapping
 
-from swarmauri_core.billing import IRefunds, Operation
+from swarmauri_core.billing import IRefunds
 from swarmauri_core.billing.protos import PaymentRefProto, RefundReqProto
 
 from .OperationDispatcherMixin import OperationDispatcherMixin
@@ -17,16 +18,20 @@ class RefundsMixin(OperationDispatcherMixin, IRefunds):
         self, payment: PaymentRefProto, req: RefundReqProto, *, idempotency_key: str
     ) -> Mapping[str, Any]:
         self._require_idempotency(idempotency_key)
-        result = self._op(
-            Operation.CREATE_REFUND,
-            {"payment": payment, "req": req},
-            idempotency_key=idempotency_key,
-        )
-        return cast(Mapping[str, Any], result)
+        return self._create_refund(payment, req, idempotency_key=idempotency_key)
 
     def get_refund(self, refund_id: str) -> Mapping[str, Any]:
-        result = self._op(Operation.GET_REFUND, {"refund_id": refund_id})
-        return cast(Mapping[str, Any], result)
+        return self._get_refund(refund_id)
+
+    @abstractmethod
+    def _create_refund(
+        self, payment: PaymentRefProto, req: RefundReqProto, *, idempotency_key: str
+    ) -> Mapping[str, Any]:
+        """Create a refund using the provider API."""
+
+    @abstractmethod
+    def _get_refund(self, refund_id: str) -> Mapping[str, Any]:
+        """Return provider data for the refund."""
 
 
 __all__ = ["RefundsMixin"]

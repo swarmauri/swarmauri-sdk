@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping, cast
+from abc import abstractmethod
+from typing import Any, Mapping
 
-from swarmauri_core.billing import IPayouts, Operation
+from swarmauri_core.billing import IPayouts
 from swarmauri_core.billing.protos import PayoutReqProto
 
 from .OperationDispatcherMixin import OperationDispatcherMixin
@@ -17,12 +18,13 @@ class PayoutsMixin(OperationDispatcherMixin, IPayouts):
         self, req: PayoutReqProto, *, idempotency_key: str
     ) -> Mapping[str, Any]:
         self._require_idempotency(idempotency_key)
-        result = self._op(
-            Operation.CREATE_PAYOUT,
-            {"req": req},
-            idempotency_key=idempotency_key,
-        )
-        return cast(Mapping[str, Any], result)
+        return self._create_payout(req, idempotency_key=idempotency_key)
+
+    @abstractmethod
+    def _create_payout(
+        self, req: PayoutReqProto, *, idempotency_key: str
+    ) -> Mapping[str, Any]:
+        """Initiate a payout using the provider API."""
 
 
 __all__ = ["PayoutsMixin"]
