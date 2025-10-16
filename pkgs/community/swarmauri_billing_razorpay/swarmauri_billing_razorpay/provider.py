@@ -11,20 +11,35 @@ from swarmauri_base.billing import (
     BillingSpec,
     CheckoutIntentRef,
     CheckoutRequest,
-    InvoiceSpec,
+    HostedCheckoutMixin,
+    InvoicingMixin,
+    MarketplaceMixin,
+    OnlinePaymentsMixin,
     PaymentIntentRequest,
     PaymentRef,
     PriceRef,
     PriceSpec,
     ProductRef,
     ProductSpec,
+    ProductsPricesMixin,
+    RiskMixin,
     SplitSpec,
     SubscriptionSpec,
+    SubscriptionsMixin,
 )
 from swarmauri_core.billing import Operation
 
 
-class RazorpayBillingProvider(BillingProviderBase):
+class RazorpayBillingProvider(
+    ProductsPricesMixin,
+    HostedCheckoutMixin,
+    OnlinePaymentsMixin,
+    SubscriptionsMixin,
+    InvoicingMixin,
+    MarketplaceMixin,
+    RiskMixin,
+    BillingProviderBase,
+):
     """Billing provider backed by the Razorpay Python SDK."""
 
     component_name: str = "razorpay"
