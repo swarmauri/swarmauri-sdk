@@ -1,0 +1,58 @@
+[project]
+name = "swarmauri_billing_adyen"
+version = "0.1.0.dev0"
+authors = [
+    { name = "Jacob Stewart", email = "jacob@swarmauri.com" }
+]
+description = "Adyen billing provider built on Swarmauri billing abstractions"
+readme = "README.md"
+license = "Apache-2.0"
+repository = "http://github.com/swarmauri/swarmauri-sdk"
+requires-python = ">=3.10,<3.13"
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Development Status :: 3 - Alpha",
+]
+dependencies = [
+    "swarmauri_core",
+    "swarmauri_base",
+]
+keywords = [
+    "swarmauri",
+    "sdk",
+    "billing",
+    "adyen",
+    "payments",
+]
+
+[tool.uv.sources]
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+
+[build-system]
+requires = ["poetry-core>=1.8.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-xdist>=3.6.1",
+    "pytest-json-report>=1.5.0",
+    "pytest-timeout>=2.3.1",
+    "python-dotenv",
+    "ruff>=0.9.9",
+]
