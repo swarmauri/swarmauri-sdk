@@ -30,6 +30,7 @@ class InterfaceRegistry:
         "swarmauri.chunkers": "swarmauri_base.chunkers.ChunkerBase",
         "swarmauri.conversations": "swarmauri_base.conversations.ConversationBase",
         "swarmauri.dataconnectors": "swarmauri_base.dataconnectors.DataConnectorBase",
+        "swarmauri.billing_providers": "swarmauri_base.billing.BillingProviderBase",
         "swarmauri.decorators": None,
         "swarmauri.distances": "swarmauri_base.distances.DistanceBase",
         "swarmauri.documents": "swarmauri_base.documents.DocumentBase",
