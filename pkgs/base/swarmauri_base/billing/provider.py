@@ -92,7 +92,25 @@ class BillingProviderBase(
         *,
         idempotency_key: Optional[str] = None,
     ) -> Any:
-        return self._dispatch(operation, payload, idempotency_key=idempotency_key)
+        self._pre(operation.value, payload=payload, idempotency_key=idempotency_key)
+        result = self._dispatch(operation, payload, idempotency_key=idempotency_key)
+        self._post(operation.value, result)
+        return result
+
+    # Hooks -----------------------------------------------------------------
+    def _pre(self, action: str, **metadata: Any) -> None:
+        """Hook executed before delegating to ``_dispatch``."""
+
+        logger = getattr(self, "logger", None)
+        if logger is not None:
+            logger.debug("billing.%s.pre", action, extra={"payload": metadata})
+
+    def _post(self, action: str, response: Any) -> None:
+        """Hook executed after ``_dispatch`` returns."""
+
+        logger = getattr(self, "logger", None)
+        if logger is not None:
+            logger.debug("billing.%s.post", action, extra={"response": response})
 
     @property
     def capabilities(self) -> FrozenSet[Capability]:
