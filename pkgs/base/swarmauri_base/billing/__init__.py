@@ -18,7 +18,7 @@ from .mixins import (  # noqa: F401
     SubscriptionsMixin,
     WebhooksMixin,
 )
-from .provider import BillingProviderBase  # noqa: F401
+from .BillingProviderBase import BillingProviderBase  # noqa: F401
 from .refs import (  # noqa: F401
     BalanceRef,
     CheckoutIntentRef,
