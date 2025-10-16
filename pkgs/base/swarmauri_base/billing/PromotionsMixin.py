@@ -13,7 +13,7 @@ from swarmauri_core.billing.protos import CouponSpecProto, PromotionSpecProto
 from .utils import require_idempotency
 
 
-class PromotionsMixin(BaseModel, IPromotions):
+class PromotionsMixin(IPromotions, BaseModel):
     """Delegates promotional resource creation."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")

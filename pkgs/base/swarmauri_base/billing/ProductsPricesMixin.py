@@ -19,7 +19,7 @@ from .utils import extract_raw_payload, require_idempotency
 from .refs import PriceRef, ProductRef
 
 
-class ProductsPricesMixin(BaseModel, IProductsPrices):
+class ProductsPricesMixin(IProductsPrices, BaseModel):
     """Common helpers for product and price lifecycle operations."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")

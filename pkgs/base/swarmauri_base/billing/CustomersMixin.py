@@ -18,7 +18,7 @@ from .utils import extract_raw_payload, require_idempotency
 from .refs import CustomerRef
 
 
-class CustomersMixin(BaseModel, ICustomers):
+class CustomersMixin(ICustomers, BaseModel):
     """Delegates customer CRUD operations."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")

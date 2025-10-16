@@ -13,7 +13,7 @@ from swarmauri_core.billing.protos import PayoutReqProto
 from .utils import require_idempotency
 
 
-class PayoutsMixin(BaseModel, IPayouts):
+class PayoutsMixin(IPayouts, BaseModel):
     """Delegates payout creation to the provider implementation."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")

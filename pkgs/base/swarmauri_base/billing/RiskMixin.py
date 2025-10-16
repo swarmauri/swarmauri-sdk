@@ -10,7 +10,7 @@ from pydantic import BaseModel, ConfigDict
 from swarmauri_core.billing import IRisk
 
 
-class RiskMixin(BaseModel, IRisk):
+class RiskMixin(IRisk, BaseModel):
     """Delegates webhook verification and dispute listing."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")

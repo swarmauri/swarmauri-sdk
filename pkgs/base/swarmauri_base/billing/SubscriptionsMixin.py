@@ -13,7 +13,7 @@ from swarmauri_core.billing.protos import SubscriptionSpecProto
 from .utils import require_idempotency
 
 
-class SubscriptionsMixin(BaseModel, ISubscriptions):
+class SubscriptionsMixin(ISubscriptions, BaseModel):
     """Delegates subscription operations to the provider implementation."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")

@@ -13,7 +13,7 @@ from swarmauri_core.billing.protos import SplitSpecProto
 from .utils import require_idempotency
 
 
-class MarketplaceMixin(BaseModel, IMarketplace):
+class MarketplaceMixin(IMarketplace, BaseModel):
     """Provides split creation and marketplace charge helpers."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")

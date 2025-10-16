@@ -14,7 +14,7 @@ from .utils import extract_raw_payload
 from .refs import PaymentRef
 
 
-class OnlinePaymentsMixin(BaseModel, IOnlinePayments):
+class OnlinePaymentsMixin(IOnlinePayments, BaseModel):
     """Utility methods for common payment intent workflows."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")

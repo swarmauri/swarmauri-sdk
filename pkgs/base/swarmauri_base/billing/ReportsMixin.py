@@ -13,7 +13,7 @@ from swarmauri_core.billing.protos import ReportReqProto
 from .utils import require_idempotency
 
 
-class ReportsMixin(BaseModel, IReports):
+class ReportsMixin(IReports, BaseModel):
     """Helper utilities for generating provider reports."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
