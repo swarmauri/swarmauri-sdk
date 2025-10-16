@@ -22,8 +22,8 @@ function computeGridPlacement(frame, grid, viewport) {
   const stepX = averageColumnWidth + grid.gap_x;
   const stepY = grid.row_height + grid.gap_y;
 
-  const columnStart = Math.floor(frame.x / stepX) + 1;
-  const rowStart = Math.floor(frame.y / stepY) + 1;
+  const columnStart = Math.round(frame.x / stepX) + 1;
+  const rowStart = Math.round(frame.y / stepY) + 1;
   const columnSpan = Math.max(
     1,
     Math.min(
@@ -38,6 +38,13 @@ function computeGridPlacement(frame, grid, viewport) {
     gridColumn: `${columnStart} / span ${columnSpan}`,
     gridRow: `${rowStart} / span ${rowSpan}`,
   };
+}
+
+function resolveManifestUrl() {
+  if (window.__LE_MANIFEST_URL__) {
+    return window.__LE_MANIFEST_URL__;
+  }
+  return new URL("manifest.json", window.location.href).toString();
 }
 
 const TileHost = defineComponent({
@@ -80,7 +87,7 @@ const DashboardApp = defineComponent({
 
     async function fetchManifest() {
       try {
-        const response = await fetch("./dashboard.manifest.json");
+        const response = await fetch(resolveManifestUrl());
         if (!response.ok) {
           throw new Error(`Failed to load manifest: ${response.statusText}`);
         }

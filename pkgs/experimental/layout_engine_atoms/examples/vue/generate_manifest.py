@@ -1,8 +1,8 @@
-"""Build the dashboard manifest consumed by the Vue example.
+"""Build and optionally persist the dashboard manifest used by the Vue example.
 
 Run with:
-    uv run --directory pkgs/experimental/layout_engine --package layout-engine \\
-        python examples/vue-example/generate_manifest.py
+    uv run --directory pkgs/experimental/layout_engine_atoms --package layout-engine-atoms \\
+        python examples/vue/generate_manifest.py
 """
 
 from __future__ import annotations
@@ -10,15 +10,15 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-
 CURRENT_DIR = Path(__file__).resolve().parent
-REPO_ROOT = CURRENT_DIR.parents[5]
+REPO_ROOT = CURRENT_DIR.parents[4]
 
 # Ensure local packages are importable when running the script directly.
 sys.path.insert(0, str(REPO_ROOT / "pkgs/experimental/layout_engine/src"))
 sys.path.insert(0, str(REPO_ROOT / "pkgs/experimental/layout_engine_atoms/src"))
 
 from layout_engine import (  # noqa: E402  (deferred import)
+    Manifest,
     SizeToken,
     TileSpec,
     Viewport,
@@ -32,15 +32,13 @@ from layout_engine import (  # noqa: E402  (deferred import)
 from layout_engine_atoms import build_default_registry  # noqa: E402
 
 
-def build_manifest_path() -> Path:
+def manifest_output_path() -> Path:
     return CURRENT_DIR / "dashboard.manifest.json"
 
 
-def build_dashboard_manifest() -> str:
-    """Compose a simple revenue dashboard manifest."""
+def create_manifest() -> Manifest:
+    """Compose a sample revenue dashboard manifest."""
     registry = build_default_registry()
-
-    # Adjust a few presets to match our demo needs.
     registry.override(
         "viz:metric:kpi",
         defaults={"format": "currency_compact", "sparkline": True},
@@ -70,7 +68,7 @@ def build_dashboard_manifest() -> str:
             role="viz:metric:kpi",
             props={
                 "label": "Net Revenue",
-                "value": 12400000,
+                "value": 12_400_000,
                 "delta": 0.18,
                 "trend": "up",
                 "period": "QTD",
@@ -81,7 +79,7 @@ def build_dashboard_manifest() -> str:
             role="viz:metric:kpi",
             props={
                 "label": "Active Workspaces",
-                "value": 48200,
+                "value": 48_200,
                 "delta": 0.12,
                 "trend": "up",
                 "period": "Trailing 30d",
@@ -172,7 +170,7 @@ def build_dashboard_manifest() -> str:
         ),
     ]
 
-    manifest = quick_manifest_from_table(
+    return quick_manifest_from_table(
         layout,
         Viewport(width=1280, height=960),
         tiles,
@@ -180,14 +178,18 @@ def build_dashboard_manifest() -> str:
         version="2025.10",
     )
 
-    return manifest_to_json(manifest, indent=2)
+
+def write_manifest(manifest: Manifest) -> Path:
+    serialized = manifest_to_json(manifest, indent=2)
+    output_path = manifest_output_path()
+    output_path.write_text(serialized + "\n", encoding="utf-8")
+    return output_path
 
 
 def main() -> None:
-    manifest_json = build_dashboard_manifest()
-    output_path = build_manifest_path()
-    output_path.write_text(manifest_json + "\n", encoding="utf-8")
-    relative_output = output_path.relative_to(REPO_ROOT)
+    manifest = create_manifest()
+    output = write_manifest(manifest)
+    relative_output = output.relative_to(REPO_ROOT)
     print(f"Dashboard manifest written to {relative_output}")
 
 

@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+from typing import Iterable, Mapping
+
 from layout_engine import AtomRegistry, AtomSpec
 
-from .spec import AtomPreset
-from .shortcuts import build_registry
+from ..spec import AtomPreset
+from ..shortcuts import build_registry as build_registry_from_presets
 
 
 DEFAULT_PRESETS: dict[str, AtomPreset] = {
@@ -117,7 +119,18 @@ DEFAULT_ATOMS: dict[str, AtomSpec] = {
     role: preset.to_spec() for role, preset in DEFAULT_PRESETS.items()
 }
 
+PRESET_VERSION = "0.1.0"
+
 
 def build_default_registry() -> AtomRegistry:
     """Return an :class:`AtomRegistry` populated with the default presets."""
-    return build_registry(DEFAULT_PRESETS.values())
+    return build_registry_from_presets(DEFAULT_PRESETS.values())
+
+
+def build_registry(
+    presets: Iterable[AtomPreset] | Mapping[str, AtomPreset] | None = None,
+) -> AtomRegistry:
+    """Create an :class:`AtomRegistry` populated with the provided presets."""
+    if presets is None:
+        presets = DEFAULT_PRESETS.values()
+    return build_registry_from_presets(presets)
