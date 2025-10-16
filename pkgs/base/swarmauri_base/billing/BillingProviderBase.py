@@ -6,7 +6,7 @@ from typing import ClassVar, FrozenSet
 
 from pydantic import ConfigDict, Field
 
-from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.billing import ALL_CAPABILITIES, Capability, IBillingProvider
 
 
@@ -29,7 +29,7 @@ class BillingProviderBase(IBillingProvider, ComponentBase):
         description="Timeout in seconds for provider requests.",
     )
 
-    resource: str = Field(default="BillingProvider")
+    resource: str = Field(default=ResourceTypes.BILLING_PROVIDER.value)
 
     @property
     def capabilities(self) -> FrozenSet[Capability]:

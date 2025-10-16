@@ -112,6 +112,7 @@ class ResourceTypes(Enum):
     SWARM_API = "SwarmAPI"
     CERT_SERVICE = "CertService"
     KEY_PROVIDER = "KeyProvider"
+    BILLING_PROVIDER = "BillingProvider"
     LOGGER = "Logger"
     LOGGER_HANDLER = "LoggerHandler"
     LOGGER_FORMATTER = "LoggerFormatter"

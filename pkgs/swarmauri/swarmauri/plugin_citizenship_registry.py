@@ -45,11 +45,7 @@ class PluginCitizenshipRegistry:
 
     # Class variables for registries
     FIRST_CLASS_REGISTRY: Dict[str, str] = {
-        "swarmauri.crypto.ICrypto": "swarmauri_core.crypto.ICrypto",
-        "swarmauri.crypto.CryptoBase": "swarmauri_base.crypto.CryptoBase",
         "swarmauri.signings.Ed25519EnvelopeSigner": "swarmauri_signing_ed25519.Ed25519EnvelopeSigner",
-        "swarmauri.signing.ISigning": "swarmauri_core.signing.ISigning",
-        "swarmauri.signing.SigningBase": "swarmauri_base.signing.SigningBase",
         "swarmauri.signings.PgpEnvelopeSigner": "swarmauri_signing_pgp.PgpEnvelopeSigner",
         "swarmauri.signings.Secp256k1EnvelopeSigner": "swarmauri_signing_secp256k1.Secp256k1EnvelopeSigner",
         "swarmauri.signings.HmacEnvelopeSigner": "swarmauri_signing_hmac.HmacEnvelopeSigner",
@@ -57,8 +53,6 @@ class PluginCitizenshipRegistry:
         "swarmauri.signings.RSAEnvelopeSigner": "swarmauri_signing_rsa.RSAEnvelopeSigner",
         "swarmauri.signings.SshEnvelopeSigner": "swarmauri_signing_ssh.SshEnvelopeSigner",
         "swarmauri.signings.JwsSignerVerifier": "swarmauri_signing_jws.JwsSignerVerifier",
-        "swarmauri.cipher_suites.ICipherSuite": "swarmauri_core.cipher_suites.ICipherSuite",
-        "swarmauri.cipher_suites.CipherSuiteBase": "swarmauri_base.cipher_suites.CipherSuiteBase",
         "swarmauri.cipher_suites.JwaCipherSuite": "swarmauri_cipher_suite_jwa.JwaCipherSuite",
         "swarmauri.cipher_suites.CoseCipherSuite": "swarmauri_cipher_suite_cose.CoseCipherSuite",
         "swarmauri.cipher_suites.FipsCipherSuite": "swarmauri_cipher_suite_fips1403.FipsCipherSuite",
@@ -81,18 +75,6 @@ class PluginCitizenshipRegistry:
         "swarmauri.tokens.DPoPBoundJWTTokenService": "swarmauri_tokens_dpopboundjwt.DPoPBoundJWTTokenService",
         "swarmauri.tokens.RotatingJWTTokenService": "swarmauri_tokens_rotatingjwt.RotatingJWTTokenService",
         "swarmauri.tokens.TlsBoundJWTTokenService": "swarmauri_tokens_tlsboundjwt.TlsBoundJWTTokenService",
-        "swarmauri.auth_idp.IOAuth20Login": "swarmauri_core.auth_idp.IOAuth20Login",
-        "swarmauri.auth_idp.IOAuth21Login": "swarmauri_core.auth_idp.IOAuth21Login",
-        "swarmauri.auth_idp.IOIDC10Login": "swarmauri_core.auth_idp.IOIDC10Login",
-        "swarmauri.auth_idp.IOAuth20AppClient": "swarmauri_core.auth_idp.IOAuth20AppClient",
-        "swarmauri.auth_idp.IOAuth21AppClient": "swarmauri_core.auth_idp.IOAuth21AppClient",
-        "swarmauri.auth_idp.IOIDC10AppClient": "swarmauri_core.auth_idp.IOIDC10AppClient",
-        "swarmauri.auth_idp.OAuth20LoginBase": "swarmauri_base.auth_idp.OAuth20LoginBase",
-        "swarmauri.auth_idp.OAuth21LoginBase": "swarmauri_base.auth_idp.OAuth21LoginBase",
-        "swarmauri.auth_idp.OIDC10LoginBase": "swarmauri_base.auth_idp.OIDC10LoginBase",
-        "swarmauri.auth_idp.OAuth20AppClientBase": "swarmauri_base.auth_idp.OAuth20AppClientBase",
-        "swarmauri.auth_idp.OAuth21AppClientBase": "swarmauri_base.auth_idp.OAuth21AppClientBase",
-        "swarmauri.auth_idp.OIDC10AppClientBase": "swarmauri_base.auth_idp.OIDC10AppClientBase",
         "swarmauri.auth_idp.AppleOAuth20Login": "swarmauri_auth_idp_apple.AppleOAuth20Login",
         "swarmauri.auth_idp.AppleOAuth21Login": "swarmauri_auth_idp_apple.AppleOAuth21Login",
         "swarmauri.auth_idp.AppleOIDC10Login": "swarmauri_auth_idp_apple.AppleOIDC10Login",
@@ -104,8 +86,6 @@ class PluginCitizenshipRegistry:
         ###
         # key providers
         ###
-        "swarmauri.key_providers.IKeyProvider": "swarmauri_core.key_providers.IKeyProvider",
-        "swarmauri.key_providers.KeyProviderBase": "swarmauri_base.key_providers.KeyProviderBase",
         "swarmauri.key_providers.InMemoryKeyProvider": "swarmauri_standard.key_providers.InMemoryKeyProvider",
         "swarmauri.agents.ExampleAgent": "swm_example_package.ExampleAgent",
         "swarmauri.agents.QAAgent": "swarmauri_standard.agents.QAAgent",
