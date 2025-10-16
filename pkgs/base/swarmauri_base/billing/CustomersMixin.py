@@ -5,6 +5,8 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import Any, Mapping, cast
 
+from pydantic import BaseModel, ConfigDict
+
 from swarmauri_core.billing import ICustomers
 from swarmauri_core.billing.protos import (
     CustomerRefProto,
@@ -12,17 +14,19 @@ from swarmauri_core.billing.protos import (
     PaymentMethodRefProto,
 )
 
-from .OperationDispatcherMixin import OperationDispatcherMixin, extract_raw_payload
+from .utils import extract_raw_payload, require_idempotency
 from .refs import CustomerRef
 
 
-class CustomersMixin(OperationDispatcherMixin, ICustomers):
+class CustomersMixin(BaseModel, ICustomers):
     """Delegates customer CRUD operations."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
     def create_customer(
         self, spec: CustomerSpecProto, *, idempotency_key: str
     ) -> CustomerRefProto:
-        self._require_idempotency(idempotency_key)
+        require_idempotency(idempotency_key)
         result = self._create_customer(spec, idempotency_key=idempotency_key)
         if isinstance(result, CustomerRefProto):
             return result

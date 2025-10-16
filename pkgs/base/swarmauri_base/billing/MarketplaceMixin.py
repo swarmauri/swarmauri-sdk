@@ -5,19 +5,23 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import Any, Mapping
 
+from pydantic import BaseModel, ConfigDict
+
 from swarmauri_core.billing import IMarketplace
 from swarmauri_core.billing.protos import SplitSpecProto
 
-from .OperationDispatcherMixin import OperationDispatcherMixin
+from .utils import require_idempotency
 
 
-class MarketplaceMixin(OperationDispatcherMixin, IMarketplace):
+class MarketplaceMixin(BaseModel, IMarketplace):
     """Provides split creation and marketplace charge helpers."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
     def create_split(
         self, spec: SplitSpecProto, *, idempotency_key: str
     ) -> Mapping[str, Any]:
-        self._require_idempotency(idempotency_key)
+        require_idempotency(idempotency_key)
         return self._create_split(spec, idempotency_key=idempotency_key)
 
     def charge_with_split(
@@ -28,7 +32,7 @@ class MarketplaceMixin(OperationDispatcherMixin, IMarketplace):
         split_code_or_params: Mapping[str, Any],
         idempotency_key: str,
     ) -> Mapping[str, Any]:
-        self._require_idempotency(idempotency_key)
+        require_idempotency(idempotency_key)
         return self._charge_with_split(
             amount_minor,
             currency,

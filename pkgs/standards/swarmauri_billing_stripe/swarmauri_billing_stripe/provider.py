@@ -66,12 +66,6 @@ class StripeBillingProvider(
     def _create_product(
         self, product_spec: ProductSpec, *, idempotency_key: str
     ) -> ProductRef:
-        self._pre(
-            "create_product",
-            provider=self.component_name,
-            spec=product_spec.model_dump(mode="json"),
-            idempotency_key=idempotency_key,
-        )
         stripe = self._client()
         name = self._require(product_spec, "name")
         product = stripe.Product.create(
@@ -88,7 +82,6 @@ class StripeBillingProvider(
             metadata=product.get("metadata"),
             raw=product,
         )
-        self._post("create_product", ref)
         return ref
 
     def _create_price(
@@ -98,13 +91,6 @@ class StripeBillingProvider(
         *,
         idempotency_key: str,
     ) -> PriceRef:
-        self._pre(
-            "create_price",
-            provider=self.component_name,
-            product_id=product.id,
-            spec=price_spec.model_dump(mode="json"),
-            idempotency_key=idempotency_key,
-        )
         stripe = self._client()
         currency = self._require(price_spec, "currency")
         amount = int(self._require(price_spec, "unit_amount_minor"))
@@ -124,19 +110,12 @@ class StripeBillingProvider(
             provider=self.component_name,
             raw=price,
         )
-        self._post("create_price", ref)
         return ref
 
     # ---------------------------------------------------------------- Hosted Checkout
     def _create_checkout(
         self, price: PriceRef, request: CheckoutRequest
     ) -> CheckoutIntentRef:
-        self._pre(
-            "create_checkout",
-            provider=self.component_name,
-            price_id=price.id,
-            request=request.model_dump(mode="json"),
-        )
         stripe = self._client()
         success_url = self._require(request, "success_url")
         cancel_url = request.resolve("cancel_url") or success_url
@@ -155,16 +134,10 @@ class StripeBillingProvider(
             provider=self.component_name,
             raw=session,
         )
-        self._post("create_checkout", intent)
         return intent
 
     # ---------------------------------------------------------------- Online Payments
     def _create_payment_intent(self, req: PaymentIntentRequest) -> PaymentRef:
-        self._pre(
-            "create_payment_intent",
-            provider=self.component_name,
-            request=req.model_dump(mode="json"),
-        )
         stripe = self._client()
         amount = int(self._require(req, "amount_minor"))
         currency = self._require(req, "currency")
@@ -185,18 +158,11 @@ class StripeBillingProvider(
             provider=self.component_name,
             raw=pi,
         )
-        self._post("create_payment_intent", ref)
         return ref
 
     def _capture_payment(
         self, payment_id: str, *, idempotency_key: Optional[str] = None
     ) -> PaymentRef:
-        self._pre(
-            "capture_payment",
-            provider=self.component_name,
-            payment_id=payment_id,
-            idempotency_key=idempotency_key,
-        )
         stripe = self._client()
         pi = stripe.PaymentIntent.capture(
             payment_id,
@@ -210,7 +176,6 @@ class StripeBillingProvider(
             provider=self.component_name,
             raw=pi,
         )
-        self._post("capture_payment", ref)
         return ref
 
     def _cancel_payment(
@@ -220,13 +185,6 @@ class StripeBillingProvider(
         reason: Optional[str] = None,
         idempotency_key: Optional[str] = None,
     ) -> PaymentRef:
-        self._pre(
-            "cancel_payment",
-            provider=self.component_name,
-            payment_id=payment_id,
-            reason=reason,
-            idempotency_key=idempotency_key,
-        )
         stripe = self._client()
         pi = stripe.PaymentIntent.cancel(
             payment_id,
@@ -241,19 +199,12 @@ class StripeBillingProvider(
             provider=self.component_name,
             raw=pi,
         )
-        self._post("cancel_payment", ref)
         return ref
 
     # ---------------------------------------------------------------- Subscriptions
     def _create_subscription(
         self, spec: SubscriptionSpec, *, idempotency_key: str
     ) -> Mapping[str, Any]:
-        self._pre(
-            "create_subscription",
-            provider=self.component_name,
-            spec=spec.model_dump(mode="json"),
-            idempotency_key=idempotency_key,
-        )
         stripe = self._client()
         customer_id = self._require(spec, "customer_id")
         items = [
@@ -275,18 +226,11 @@ class StripeBillingProvider(
             "provider": self.component_name,
             "raw": sub,
         }
-        self._post("create_subscription", result)
         return result
 
     def _cancel_subscription(
         self, subscription_id: str, *, at_period_end: bool = True
     ) -> Mapping[str, Any]:
-        self._pre(
-            "cancel_subscription",
-            provider=self.component_name,
-            subscription_id=subscription_id,
-            at_period_end=at_period_end,
-        )
         stripe = self._client()
         if at_period_end:
             sub = stripe.Subscription.modify(
@@ -301,19 +245,12 @@ class StripeBillingProvider(
             "provider": self.component_name,
             "raw": sub,
         }
-        self._post("cancel_subscription", result)
         return result
 
     # ---------------------------------------------------------------- Invoicing
     def _create_invoice(
         self, spec: InvoiceSpec, *, idempotency_key: str
     ) -> Mapping[str, Any]:
-        self._pre(
-            "create_invoice",
-            provider=self.component_name,
-            spec=spec.model_dump(mode="json"),
-            idempotency_key=idempotency_key,
-        )
         stripe = self._client()
         customer_id = self._require(spec, "customer_id")
         for item in spec.line_items:
@@ -344,15 +281,9 @@ class StripeBillingProvider(
             "provider": self.component_name,
             "raw": invoice,
         }
-        self._post("create_invoice", result)
         return result
 
     def _finalize_invoice(self, invoice_id: str) -> Mapping[str, Any]:
-        self._pre(
-            "finalize_invoice",
-            provider=self.component_name,
-            invoice_id=invoice_id,
-        )
         stripe = self._client()
         invoice = stripe.Invoice.finalize_invoice(invoice_id)
         result = {
@@ -361,15 +292,9 @@ class StripeBillingProvider(
             "provider": self.component_name,
             "raw": invoice,
         }
-        self._post("finalize_invoice", result)
         return result
 
     def _void_invoice(self, invoice_id: str) -> Mapping[str, Any]:
-        self._pre(
-            "void_invoice",
-            provider=self.component_name,
-            invoice_id=invoice_id,
-        )
         stripe = self._client()
         invoice = stripe.Invoice.void_invoice(invoice_id)
         result = {
@@ -378,15 +303,9 @@ class StripeBillingProvider(
             "provider": self.component_name,
             "raw": invoice,
         }
-        self._post("void_invoice", result)
         return result
 
     def _mark_uncollectible(self, invoice_id: str) -> Mapping[str, Any]:
-        self._pre(
-            "mark_uncollectible",
-            provider=self.component_name,
-            invoice_id=invoice_id,
-        )
         stripe = self._client()
         invoice = stripe.Invoice.mark_uncollectible(invoice_id)
         result = {
@@ -395,24 +314,16 @@ class StripeBillingProvider(
             "provider": self.component_name,
             "raw": invoice,
         }
-        self._post("mark_uncollectible", result)
         return result
 
     # ---------------------------------------------------------------- Marketplace
     def _create_split(
         self, spec: SplitSpec, *, idempotency_key: str
     ) -> Mapping[str, Any]:
-        self._pre(
-            "create_split",
-            provider=self.component_name,
-            spec=spec.model_dump(mode="json"),
-            idempotency_key=idempotency_key,
-        )
         result = {
             "split": spec.model_dump(mode="json"),
             "provider": self.component_name,
         }
-        self._post("create_split", result)
         return result
 
     def _charge_with_split(
@@ -423,14 +334,6 @@ class StripeBillingProvider(
         split_code_or_params: Mapping[str, Any],
         idempotency_key: str,
     ) -> Mapping[str, Any]:
-        self._pre(
-            "charge_with_split",
-            provider=self.component_name,
-            amount_minor=amount_minor,
-            currency=currency,
-            split=split_code_or_params,
-            idempotency_key=idempotency_key,
-        )
         stripe = self._client()
         pi = stripe.PaymentIntent.create(
             amount=amount_minor,
@@ -445,18 +348,12 @@ class StripeBillingProvider(
             "provider": self.component_name,
             "raw": pi,
         }
-        self._post("charge_with_split", result)
         return result
 
     # ---------------------------------------------------------------- Risk
     def _verify_webhook_signature(
         self, raw_body: bytes, headers: Mapping[str, str], secret: str
     ) -> bool:
-        self._pre(
-            "verify_webhook_signature",
-            provider=self.component_name,
-            has_headers=bool(headers),
-        )
         webhook = self._client().Webhook
         try:
             webhook.construct_event(
@@ -467,17 +364,10 @@ class StripeBillingProvider(
             result = True
         except Exception:  # pragma: no cover - Stripe raises rich subclasses
             result = False
-        self._post("verify_webhook_signature", result)
         return result
 
     def _list_disputes(self, *, limit: int = 50) -> Sequence[Mapping[str, Any]]:
-        self._pre(
-            "list_disputes",
-            provider=self.component_name,
-            limit=limit,
-        )
         stripe = self._client()
         disputes = stripe.Dispute.list(limit=limit)
         data = disputes.get("data", []) if isinstance(disputes, Mapping) else []
-        self._post("list_disputes", data)
         return cast(Sequence[Mapping[str, Any]], data)

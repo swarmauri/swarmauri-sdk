@@ -12,7 +12,6 @@ from .HostedCheckoutMixin import HostedCheckoutMixin
 from .InvoicingMixin import InvoicingMixin
 from .MarketplaceMixin import MarketplaceMixin
 from .OnlinePaymentsMixin import OnlinePaymentsMixin
-from .OperationDispatcherMixin import OperationDispatcherMixin
 from .PaymentMethodsMixin import PaymentMethodsMixin
 from .PayoutsMixin import PayoutsMixin
 from .ProductsPricesMixin import ProductsPricesMixin
@@ -50,7 +49,6 @@ __all__ = [
     "InvoicingMixin",
     "MarketplaceMixin",
     "OnlinePaymentsMixin",
-    "OperationDispatcherMixin",
     "PaymentMethodsMixin",
     "PayoutsMixin",
     "ProductsPricesMixin",

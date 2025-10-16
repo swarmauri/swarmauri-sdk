@@ -5,6 +5,8 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import Any, Mapping, cast
 
+from pydantic import BaseModel, ConfigDict
+
 from swarmauri_core.billing import IProductsPrices
 from swarmauri_core.billing.protos import (
     PriceRefProto,
@@ -13,17 +15,19 @@ from swarmauri_core.billing.protos import (
     ProductSpecProto,
 )
 
-from .OperationDispatcherMixin import OperationDispatcherMixin, extract_raw_payload
+from .utils import extract_raw_payload, require_idempotency
 from .refs import PriceRef, ProductRef
 
 
-class ProductsPricesMixin(OperationDispatcherMixin, IProductsPrices):
+class ProductsPricesMixin(BaseModel, IProductsPrices):
     """Common helpers for product and price lifecycle operations."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
     def create_product(
         self, product_spec: ProductSpecProto, *, idempotency_key: str
     ) -> ProductRefProto:
-        self._require_idempotency(idempotency_key)
+        require_idempotency(idempotency_key)
         result = self._create_product(product_spec, idempotency_key=idempotency_key)
         if isinstance(result, ProductRefProto):
             return result
@@ -42,7 +46,7 @@ class ProductsPricesMixin(OperationDispatcherMixin, IProductsPrices):
         *,
         idempotency_key: str,
     ) -> PriceRefProto:
-        self._require_idempotency(idempotency_key)
+        require_idempotency(idempotency_key)
         result = self._create_price(
             product, price_spec, idempotency_key=idempotency_key
         )

@@ -5,15 +5,19 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import Any, Mapping, Optional, cast
 
+from pydantic import BaseModel, ConfigDict
+
 from swarmauri_core.billing import IOnlinePayments
 from swarmauri_core.billing.protos import PaymentIntentReqProto, PaymentRefProto
 
-from .OperationDispatcherMixin import OperationDispatcherMixin, extract_raw_payload
+from .utils import extract_raw_payload
 from .refs import PaymentRef
 
 
-class OnlinePaymentsMixin(OperationDispatcherMixin, IOnlinePayments):
+class OnlinePaymentsMixin(BaseModel, IOnlinePayments):
     """Utility methods for common payment intent workflows."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
     def create_payment_intent(self, req: PaymentIntentReqProto) -> PaymentRefProto:
         result = self._create_payment_intent(req)

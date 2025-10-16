@@ -5,6 +5,8 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import Any, Mapping, cast
 
+from pydantic import BaseModel, ConfigDict
+
 from swarmauri_core.billing import IHostedCheckout
 from swarmauri_core.billing.protos import (
     CheckoutIntentProto,
@@ -12,12 +14,14 @@ from swarmauri_core.billing.protos import (
     PriceRefProto,
 )
 
-from .OperationDispatcherMixin import OperationDispatcherMixin, extract_raw_payload
+from .utils import extract_raw_payload
 from .refs import CheckoutIntentRef
 
 
-class HostedCheckoutMixin(OperationDispatcherMixin, IHostedCheckout):
+class HostedCheckoutMixin(BaseModel, IHostedCheckout):
     """Implements ``IHostedCheckout`` via provider-specific hooks."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
     def create_checkout(
         self, price: PriceRefProto, request: CheckoutReqProto
