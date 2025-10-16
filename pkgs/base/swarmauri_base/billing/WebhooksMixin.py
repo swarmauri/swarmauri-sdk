@@ -5,15 +5,19 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import Any, Mapping, cast
 
+from pydantic import BaseModel, ConfigDict
+
 from swarmauri_core.billing import IWebhooks
 from swarmauri_core.billing.protos import WebhookEventProto
 
-from .OperationDispatcherMixin import OperationDispatcherMixin, extract_raw_payload
+from .utils import extract_raw_payload
 from .refs import WebhookEventRef
 
 
-class WebhooksMixin(OperationDispatcherMixin, IWebhooks):
+class WebhooksMixin(BaseModel, IWebhooks):
     """Delegates webhook parsing to the provider implementation."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
     def parse_event(
         self, raw_body: bytes, headers: Mapping[str, str]

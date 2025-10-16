@@ -5,19 +5,23 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import Any, Mapping
 
+from pydantic import BaseModel, ConfigDict
+
 from swarmauri_core.billing import IInvoicing
 from swarmauri_core.billing.protos import InvoiceSpecProto
 
-from .OperationDispatcherMixin import OperationDispatcherMixin
+from .utils import require_idempotency
 
 
-class InvoicingMixin(OperationDispatcherMixin, IInvoicing):
+class InvoicingMixin(BaseModel, IInvoicing):
     """Shared invoice lifecycle helpers backed by provider hooks."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
     def create_invoice(
         self, spec: InvoiceSpecProto, *, idempotency_key: str
     ) -> Mapping[str, Any]:
-        self._require_idempotency(idempotency_key)
+        require_idempotency(idempotency_key)
         return self._create_invoice(spec, idempotency_key=idempotency_key)
 
     def finalize_invoice(self, invoice_id: str) -> Mapping[str, Any]:

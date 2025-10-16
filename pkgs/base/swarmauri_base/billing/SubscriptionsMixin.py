@@ -5,19 +5,23 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import Any, Mapping
 
+from pydantic import BaseModel, ConfigDict
+
 from swarmauri_core.billing import ISubscriptions
 from swarmauri_core.billing.protos import SubscriptionSpecProto
 
-from .OperationDispatcherMixin import OperationDispatcherMixin
+from .utils import require_idempotency
 
 
-class SubscriptionsMixin(OperationDispatcherMixin, ISubscriptions):
+class SubscriptionsMixin(BaseModel, ISubscriptions):
     """Delegates subscription operations to the provider implementation."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
     def create_subscription(
         self, spec: SubscriptionSpecProto, *, idempotency_key: str
     ) -> Mapping[str, Any]:
-        self._require_idempotency(idempotency_key)
+        require_idempotency(idempotency_key)
         return self._create_subscription(spec, idempotency_key=idempotency_key)
 
     def cancel_subscription(

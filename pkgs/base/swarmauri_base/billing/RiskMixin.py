@@ -5,13 +5,15 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import Any, Mapping, Sequence, cast
 
+from pydantic import BaseModel, ConfigDict
+
 from swarmauri_core.billing import IRisk
 
-from .OperationDispatcherMixin import OperationDispatcherMixin
 
-
-class RiskMixin(OperationDispatcherMixin, IRisk):
+class RiskMixin(BaseModel, IRisk):
     """Delegates webhook verification and dispute listing."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
     def verify_webhook_signature(
         self, raw_body: bytes, headers: Mapping[str, str], secret: str

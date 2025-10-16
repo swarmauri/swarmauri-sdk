@@ -5,6 +5,8 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import Any, Mapping, Optional, Sequence, Tuple, cast
 
+from pydantic import BaseModel, ConfigDict
+
 from swarmauri_core.billing import IPaymentMethods
 from swarmauri_core.billing.protos import (
     CustomerRefProto,
@@ -12,17 +14,19 @@ from swarmauri_core.billing.protos import (
     PaymentMethodSpecProto,
 )
 
-from .OperationDispatcherMixin import OperationDispatcherMixin, extract_raw_payload
+from .utils import extract_raw_payload, require_idempotency
 from .refs import PaymentMethodRef
 
 
-class PaymentMethodsMixin(OperationDispatcherMixin, IPaymentMethods):
+class PaymentMethodsMixin(BaseModel, IPaymentMethods):
     """Delegates payment method management operations."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
     def create_payment_method(
         self, spec: PaymentMethodSpecProto, *, idempotency_key: str
     ) -> PaymentMethodRefProto:
-        self._require_idempotency(idempotency_key)
+        require_idempotency(idempotency_key)
         result = self._create_payment_method(spec, idempotency_key=idempotency_key)
         if isinstance(result, PaymentMethodRefProto):
             return result

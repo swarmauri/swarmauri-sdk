@@ -5,15 +5,19 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import Any, Mapping, cast
 
+from pydantic import BaseModel, ConfigDict
+
 from swarmauri_core.billing import IBalanceTransfers
 from swarmauri_core.billing.protos import BalanceRefProto, TransferReqProto
 
-from .OperationDispatcherMixin import OperationDispatcherMixin, extract_raw_payload
+from .utils import extract_raw_payload, require_idempotency
 from .refs import BalanceRef
 
 
-class BalanceTransfersMixin(OperationDispatcherMixin, IBalanceTransfers):
+class BalanceTransfersMixin(BaseModel, IBalanceTransfers):
     """Provides helpers for balance retrieval and transfers."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
     def get_balance(self) -> BalanceRefProto:
         result = self._get_balance()
@@ -30,7 +34,7 @@ class BalanceTransfersMixin(OperationDispatcherMixin, IBalanceTransfers):
     def create_transfer(
         self, req: TransferReqProto, *, idempotency_key: str
     ) -> Mapping[str, Any]:
-        self._require_idempotency(idempotency_key)
+        require_idempotency(idempotency_key)
         result = self._create_transfer(req, idempotency_key=idempotency_key)
         return cast(Mapping[str, Any], result)
 
