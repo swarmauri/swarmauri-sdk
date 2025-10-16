@@ -18,7 +18,7 @@ from .utils import extract_raw_payload, require_idempotency
 from .refs import PaymentMethodRef
 
 
-class PaymentMethodsMixin(BaseModel, IPaymentMethods):
+class PaymentMethodsMixin(IPaymentMethods, BaseModel):
     """Delegates payment method management operations."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")

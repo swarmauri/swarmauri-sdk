@@ -10,7 +10,7 @@ from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.billing import ALL_CAPABILITIES, Capability, IBillingProvider
 
 
-class BillingProviderBase(ComponentBase, IBillingProvider):
+class BillingProviderBase(IBillingProvider, ComponentBase):
     """Base class for billing providers shared across concrete implementations."""
 
     CAPABILITIES: ClassVar[FrozenSet[Capability]] = ALL_CAPABILITIES

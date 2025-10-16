@@ -13,7 +13,7 @@ from swarmauri_core.billing.protos import InvoiceSpecProto
 from .utils import require_idempotency
 
 
-class InvoicingMixin(BaseModel, IInvoicing):
+class InvoicingMixin(IInvoicing, BaseModel):
     """Shared invoice lifecycle helpers backed by provider hooks."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")

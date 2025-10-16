@@ -14,7 +14,7 @@ from .utils import extract_raw_payload
 from .refs import WebhookEventRef
 
 
-class WebhooksMixin(BaseModel, IWebhooks):
+class WebhooksMixin(IWebhooks, BaseModel):
     """Delegates webhook parsing to the provider implementation."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")

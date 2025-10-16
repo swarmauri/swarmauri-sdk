@@ -13,7 +13,7 @@ from swarmauri_core.billing.protos import PaymentRefProto, RefundReqProto
 from .utils import require_idempotency
 
 
-class RefundsMixin(BaseModel, IRefunds):
+class RefundsMixin(IRefunds, BaseModel):
     """Delegates refund creation and retrieval."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")

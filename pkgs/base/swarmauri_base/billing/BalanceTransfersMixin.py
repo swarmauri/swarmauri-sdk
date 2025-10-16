@@ -14,7 +14,7 @@ from .utils import extract_raw_payload, require_idempotency
 from .refs import BalanceRef
 
 
-class BalanceTransfersMixin(BaseModel, IBalanceTransfers):
+class BalanceTransfersMixin(IBalanceTransfers, BaseModel):
     """Provides helpers for balance retrieval and transfers."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")

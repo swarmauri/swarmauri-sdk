@@ -18,7 +18,7 @@ from .utils import extract_raw_payload
 from .refs import CheckoutIntentRef
 
 
-class HostedCheckoutMixin(BaseModel, IHostedCheckout):
+class HostedCheckoutMixin(IHostedCheckout, BaseModel):
     """Implements ``IHostedCheckout`` via provider-specific hooks."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
