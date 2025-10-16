@@ -7,12 +7,19 @@ readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
 requires-python = ">=3.10,<3.13"
 classifiers = [
+    "Development Status :: 1 - Planning",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
     "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content :: E-Commerce",
+    "Topic :: Office/Business :: Financial :: Point-Of-Sale",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
@@ -26,6 +33,12 @@ keywords = [
     "billing",
     "razorpay",
     "community",
+    "payments",
+    "payment gateway",
+    "recurring billing",
+    "subscription management",
+    "merchant services",
+    "e-commerce integration",
 ]
 
 [tool.uv.sources]
