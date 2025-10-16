@@ -28,7 +28,6 @@ from swarmauri_base.billing import (
     SubscriptionSpec,
     SubscriptionsMixin,
 )
-from swarmauri_core.billing import Operation
 
 
 class StripeBillingProvider(
@@ -63,281 +62,422 @@ class StripeBillingProvider(
             raise ValueError(f"{field} is required for {spec.__class__.__name__}")
         return value
 
-    # ---------------------------------------------------------------- Dispatch
-    def _dispatch(
-        self,
-        operation: Operation,
-        payload: Mapping[str, Any],
-        *,
-        idempotency_key: Optional[str],
-    ) -> Any:
+    # ---------------------------------------------------------------- Products & Prices
+    def _create_product(
+        self, product_spec: ProductSpec, *, idempotency_key: str
+    ) -> ProductRef:
+        self._pre(
+            "create_product",
+            provider=self.component_name,
+            spec=product_spec.model_dump(mode="json"),
+            idempotency_key=idempotency_key,
+        )
         stripe = self._client()
+        name = self._require(product_spec, "name")
+        product = stripe.Product.create(
+            name=name,
+            description=product_spec.resolve("description") or None,
+            metadata=product_spec.resolve("metadata") or None,
+            idempotency_key=idempotency_key,
+        )
+        ref = ProductRef(
+            id=product["id"],
+            provider=self.component_name,
+            name=product.get("name"),
+            description=product.get("description"),
+            metadata=product.get("metadata"),
+            raw=product,
+        )
+        self._post("create_product", ref)
+        return ref
 
-        if operation is Operation.CREATE_PRODUCT:
-            spec = cast(ProductSpec, payload["product_spec"])
-            name = self._require(spec, "name")
-            description = spec.resolve("description") or None
-            metadata = spec.resolve("metadata") or None
-            product = stripe.Product.create(
-                name=name,
-                description=description,
-                metadata=metadata,
-                idempotency_key=idempotency_key,
-            )
-            return ProductRef(
-                id=product["id"],
-                provider=self.component_name,
-                name=product.get("name"),
-                description=product.get("description"),
-                metadata=product.get("metadata"),
-                raw=product,
-            )
+    def _create_price(
+        self,
+        product: ProductRef,
+        price_spec: PriceSpec,
+        *,
+        idempotency_key: str,
+    ) -> PriceRef:
+        self._pre(
+            "create_price",
+            provider=self.component_name,
+            product_id=product.id,
+            spec=price_spec.model_dump(mode="json"),
+            idempotency_key=idempotency_key,
+        )
+        stripe = self._client()
+        currency = self._require(price_spec, "currency")
+        amount = int(self._require(price_spec, "unit_amount_minor"))
+        price = stripe.Price.create(
+            product=product.id,
+            currency=str(currency).lower(),
+            unit_amount=amount,
+            nickname=price_spec.resolve("nickname"),
+            metadata=price_spec.resolve("metadata") or None,
+            idempotency_key=idempotency_key,
+        )
+        ref = PriceRef(
+            id=price["id"],
+            product_id=price.get("product"),
+            currency=price.get("currency"),
+            unit_amount_minor=price.get("unit_amount"),
+            provider=self.component_name,
+            raw=price,
+        )
+        self._post("create_price", ref)
+        return ref
 
-        if operation is Operation.CREATE_PRICE:
-            product_ref = cast(ProductRef, payload["product"])
-            spec = cast(PriceSpec, payload["price_spec"])
-            currency = self._require(spec, "currency")
-            amount = int(self._require(spec, "unit_amount_minor"))
-            price = stripe.Price.create(
-                product=product_ref.id,
-                currency=str(currency).lower(),
-                unit_amount=amount,
-                nickname=spec.resolve("nickname"),
-                metadata=spec.resolve("metadata") or None,
-                idempotency_key=idempotency_key,
-            )
-            return PriceRef(
-                id=price["id"],
-                product_id=price.get("product"),
-                currency=price.get("currency"),
-                unit_amount_minor=price.get("unit_amount"),
-                provider=self.component_name,
-                raw=price,
-            )
+    # ---------------------------------------------------------------- Hosted Checkout
+    def _create_checkout(
+        self, price: PriceRef, request: CheckoutRequest
+    ) -> CheckoutIntentRef:
+        self._pre(
+            "create_checkout",
+            provider=self.component_name,
+            price_id=price.id,
+            request=request.model_dump(mode="json"),
+        )
+        stripe = self._client()
+        success_url = self._require(request, "success_url")
+        cancel_url = request.resolve("cancel_url") or success_url
+        session = stripe.checkout.Session.create(
+            mode="payment",
+            line_items=[{"price": price.id, "quantity": request.quantity}],
+            success_url=success_url,
+            cancel_url=cancel_url,
+            customer_email=request.resolve("customer_email"),
+            metadata=request.resolve("metadata") or None,
+            idempotency_key=request.resolve("idempotency_key"),
+        )
+        intent = CheckoutIntentRef(
+            id=session["id"],
+            url=session.get("url"),
+            provider=self.component_name,
+            raw=session,
+        )
+        self._post("create_checkout", intent)
+        return intent
 
-        if operation is Operation.CREATE_CHECKOUT:
-            price = cast(PriceRef, payload["price"])
-            request = cast(CheckoutRequest, payload["request"])
-            success_url = self._require(request, "success_url")
-            cancel_url = request.resolve("cancel_url") or success_url
-            metadata = request.resolve("metadata") or None
-            session = stripe.checkout.Session.create(
-                mode="payment",
-                line_items=[{"price": price.id, "quantity": request.quantity}],
-                success_url=success_url,
-                cancel_url=cancel_url,
-                customer_email=request.resolve("customer_email"),
-                metadata=metadata,
-                idempotency_key=request.resolve("idempotency_key"),
-            )
-            return CheckoutIntentRef(
-                id=session["id"],
-                url=session.get("url"),
-                provider=self.component_name,
-                raw=session,
-            )
+    # ---------------------------------------------------------------- Online Payments
+    def _create_payment_intent(self, req: PaymentIntentRequest) -> PaymentRef:
+        self._pre(
+            "create_payment_intent",
+            provider=self.component_name,
+            request=req.model_dump(mode="json"),
+        )
+        stripe = self._client()
+        amount = int(self._require(req, "amount_minor"))
+        currency = self._require(req, "currency")
+        pi = stripe.PaymentIntent.create(
+            amount=amount,
+            currency=str(currency).lower(),
+            payment_method=req.resolve("payment_method_id"),
+            confirm=req.confirm,
+            capture_method="automatic" if req.capture else "manual",
+            metadata=req.resolve("metadata") or None,
+            idempotency_key=req.resolve("idempotency_key"),
+        )
+        ref = PaymentRef(
+            id=pi["id"],
+            status=pi.get("status"),
+            amount_minor=pi.get("amount"),
+            currency=pi.get("currency"),
+            provider=self.component_name,
+            raw=pi,
+        )
+        self._post("create_payment_intent", ref)
+        return ref
 
-        if operation is Operation.CREATE_PAYMENT_INTENT:
-            req = cast(PaymentIntentRequest, payload["req"])
-            amount = int(self._require(req, "amount_minor"))
-            currency = self._require(req, "currency")
-            pi = stripe.PaymentIntent.create(
-                amount=amount,
-                currency=str(currency).lower(),
-                payment_method=req.resolve("payment_method_id"),
-                confirm=req.confirm,
-                capture_method="automatic" if req.capture else "manual",
-                metadata=req.resolve("metadata") or None,
-                idempotency_key=req.resolve("idempotency_key"),
-            )
-            return PaymentRef(
-                id=pi["id"],
-                status=pi.get("status"),
-                amount_minor=pi.get("amount"),
-                currency=pi.get("currency"),
-                provider=self.component_name,
-                raw=pi,
-            )
+    def _capture_payment(
+        self, payment_id: str, *, idempotency_key: Optional[str] = None
+    ) -> PaymentRef:
+        self._pre(
+            "capture_payment",
+            provider=self.component_name,
+            payment_id=payment_id,
+            idempotency_key=idempotency_key,
+        )
+        stripe = self._client()
+        pi = stripe.PaymentIntent.capture(
+            payment_id,
+            idempotency_key=idempotency_key,
+        )
+        ref = PaymentRef(
+            id=pi["id"],
+            status=pi.get("status"),
+            amount_minor=pi.get("amount_received"),
+            currency=pi.get("currency"),
+            provider=self.component_name,
+            raw=pi,
+        )
+        self._post("capture_payment", ref)
+        return ref
 
-        if operation is Operation.CAPTURE_PAYMENT:
-            payment_id = cast(str, payload["payment_id"])
-            pi = stripe.PaymentIntent.capture(
-                payment_id,
-                idempotency_key=idempotency_key,
-            )
-            return PaymentRef(
-                id=pi["id"],
-                status=pi.get("status"),
-                amount_minor=pi.get("amount_received"),
-                currency=pi.get("currency"),
-                provider=self.component_name,
-                raw=pi,
-            )
+    def _cancel_payment(
+        self,
+        payment_id: str,
+        *,
+        reason: Optional[str] = None,
+        idempotency_key: Optional[str] = None,
+    ) -> PaymentRef:
+        self._pre(
+            "cancel_payment",
+            provider=self.component_name,
+            payment_id=payment_id,
+            reason=reason,
+            idempotency_key=idempotency_key,
+        )
+        stripe = self._client()
+        pi = stripe.PaymentIntent.cancel(
+            payment_id,
+            cancellation_reason=reason or None,
+            idempotency_key=idempotency_key,
+        )
+        ref = PaymentRef(
+            id=pi["id"],
+            status=pi.get("status"),
+            amount_minor=pi.get("amount"),
+            currency=pi.get("currency"),
+            provider=self.component_name,
+            raw=pi,
+        )
+        self._post("cancel_payment", ref)
+        return ref
 
-        if operation is Operation.CANCEL_PAYMENT:
-            payment_id = cast(str, payload["payment_id"])
-            pi = stripe.PaymentIntent.cancel(
-                payment_id,
-                cancellation_reason=payload.get("reason") or None,
-                idempotency_key=idempotency_key,
-            )
-            return PaymentRef(
-                id=pi["id"],
-                status=pi.get("status"),
-                amount_minor=pi.get("amount"),
-                currency=pi.get("currency"),
-                provider=self.component_name,
-                raw=pi,
-            )
+    # ---------------------------------------------------------------- Subscriptions
+    def _create_subscription(
+        self, spec: SubscriptionSpec, *, idempotency_key: str
+    ) -> Mapping[str, Any]:
+        self._pre(
+            "create_subscription",
+            provider=self.component_name,
+            spec=spec.model_dump(mode="json"),
+            idempotency_key=idempotency_key,
+        )
+        stripe = self._client()
+        customer_id = self._require(spec, "customer_id")
+        items = [
+            {"price": item.price_id, "quantity": item.quantity} for item in spec.items
+        ]
+        if not items:
+            raise ValueError("SubscriptionSpec.items must contain at least one item")
+        sub = stripe.Subscription.create(
+            customer=customer_id,
+            items=items,
+            trial_end=spec.resolve("trial_end"),
+            collection_method=spec.resolve("collection_method"),
+            metadata=spec.resolve("metadata") or None,
+            idempotency_key=idempotency_key,
+        )
+        result = {
+            "subscription_id": sub["id"],
+            "status": sub.get("status"),
+            "provider": self.component_name,
+            "raw": sub,
+        }
+        self._post("create_subscription", result)
+        return result
 
-        if operation is Operation.CREATE_SUBSCRIPTION:
-            spec = cast(SubscriptionSpec, payload["spec"])
-            customer_id = self._require(spec, "customer_id")
-            items = [
-                {"price": item.price_id, "quantity": item.quantity}
-                for item in spec.items
-            ]
-            if not items:
-                raise ValueError(
-                    "SubscriptionSpec.items must contain at least one item"
-                )
-            sub = stripe.Subscription.create(
-                customer=customer_id,
-                items=items,
-                trial_end=spec.resolve("trial_end"),
-                collection_method=spec.resolve("collection_method"),
-                metadata=spec.resolve("metadata") or None,
-                idempotency_key=idempotency_key,
+    def _cancel_subscription(
+        self, subscription_id: str, *, at_period_end: bool = True
+    ) -> Mapping[str, Any]:
+        self._pre(
+            "cancel_subscription",
+            provider=self.component_name,
+            subscription_id=subscription_id,
+            at_period_end=at_period_end,
+        )
+        stripe = self._client()
+        if at_period_end:
+            sub = stripe.Subscription.modify(
+                subscription_id,
+                cancel_at_period_end=True,
             )
-            return {
-                "subscription_id": sub["id"],
-                "status": sub.get("status"),
-                "provider": self.component_name,
-                "raw": sub,
-            }
+        else:
+            sub = stripe.Subscription.delete(subscription_id)
+        result = {
+            "subscription_id": subscription_id,
+            "status": sub.get("status"),
+            "provider": self.component_name,
+            "raw": sub,
+        }
+        self._post("cancel_subscription", result)
+        return result
 
-        if operation is Operation.CANCEL_SUBSCRIPTION:
-            subscription_id = cast(str, payload["subscription_id"])
-            at_period_end = bool(payload.get("at_period_end", True))
-            if at_period_end:
-                sub = stripe.Subscription.modify(
-                    subscription_id,
-                    cancel_at_period_end=True,
+    # ---------------------------------------------------------------- Invoicing
+    def _create_invoice(
+        self, spec: InvoiceSpec, *, idempotency_key: str
+    ) -> Mapping[str, Any]:
+        self._pre(
+            "create_invoice",
+            provider=self.component_name,
+            spec=spec.model_dump(mode="json"),
+            idempotency_key=idempotency_key,
+        )
+        stripe = self._client()
+        customer_id = self._require(spec, "customer_id")
+        for item in spec.line_items:
+            if item.price_id:
+                stripe.InvoiceItem.create(
+                    customer=customer_id,
+                    price=item.price_id,
+                    quantity=item.quantity,
                 )
             else:
-                sub = stripe.Subscription.delete(subscription_id)
-            return {
-                "subscription_id": subscription_id,
-                "status": sub.get("status"),
-                "provider": self.component_name,
-                "raw": sub,
-            }
-
-        if operation is Operation.CREATE_INVOICE:
-            spec = cast(InvoiceSpec, payload["spec"])
-            customer_id = self._require(spec, "customer_id")
-            for item in spec.line_items:
-                if item.price_id:
-                    stripe.InvoiceItem.create(
-                        customer=customer_id,
-                        price=item.price_id,
-                        quantity=item.quantity,
-                    )
-                else:
-                    stripe.InvoiceItem.create(
-                        customer=customer_id,
-                        amount=item.amount_minor or 0,
-                        currency=(item.currency or "usd").lower(),
-                        description=item.description or "",
-                        quantity=item.quantity,
-                    )
-            invoice = stripe.Invoice.create(
-                customer=customer_id,
-                collection_method=spec.resolve("collection_method"),
-                days_until_due=spec.resolve("days_until_due"),
-                metadata=spec.resolve("metadata") or None,
-                idempotency_key=idempotency_key,
-            )
-            return {
-                "invoice_id": invoice["id"],
-                "status": invoice.get("status"),
-                "provider": self.component_name,
-                "raw": invoice,
-            }
-
-        if operation is Operation.FINALIZE_INVOICE:
-            invoice_id = cast(str, payload["invoice_id"])
-            invoice = stripe.Invoice.finalize_invoice(invoice_id)
-            return {
-                "invoice_id": invoice["id"],
-                "status": invoice.get("status"),
-                "provider": self.component_name,
-                "raw": invoice,
-            }
-
-        if operation is Operation.VOID_INVOICE:
-            invoice_id = cast(str, payload["invoice_id"])
-            invoice = stripe.Invoice.void_invoice(invoice_id)
-            return {
-                "invoice_id": invoice["id"],
-                "status": invoice.get("status"),
-                "provider": self.component_name,
-                "raw": invoice,
-            }
-
-        if operation is Operation.MARK_UNCOLLECTIBLE:
-            invoice_id = cast(str, payload["invoice_id"])
-            invoice = stripe.Invoice.mark_uncollectible(invoice_id)
-            return {
-                "invoice_id": invoice["id"],
-                "status": invoice.get("status"),
-                "provider": self.component_name,
-                "raw": invoice,
-            }
-
-        if operation is Operation.CREATE_SPLIT:
-            spec = cast(SplitSpec, payload["spec"])
-            return {
-                "split": spec.model_dump(mode="json"),
-                "provider": self.component_name,
-            }
-
-        if operation is Operation.CHARGE_WITH_SPLIT:
-            amount_minor = int(payload["amount_minor"])
-            currency = cast(str, payload["currency"])
-            split_params = cast(Mapping[str, Any], payload["split"])
-            pi = stripe.PaymentIntent.create(
-                amount=amount_minor,
-                currency=currency.lower(),
-                transfer_data={"destination": split_params["destination"]},
-                application_fee_amount=split_params["application_fee_amount"],
-                idempotency_key=idempotency_key,
-            )
-            return {
-                "payment_intent_id": pi["id"],
-                "status": pi.get("status"),
-                "provider": self.component_name,
-                "raw": pi,
-            }
-
-        if operation is Operation.VERIFY_WEBHOOK_SIGNATURE:
-            raw_body = cast(bytes, payload["raw_body"])
-            headers = cast(Mapping[str, str], payload["headers"])
-            secret = cast(str, payload["secret"])
-            webhook = self._client().Webhook
-            try:
-                webhook.construct_event(
-                    payload=raw_body,
-                    sig_header=headers.get("Stripe-Signature", ""),
-                    secret=secret,
+                stripe.InvoiceItem.create(
+                    customer=customer_id,
+                    amount=item.amount_minor or 0,
+                    currency=(item.currency or "usd").lower(),
+                    description=item.description or "",
+                    quantity=item.quantity,
                 )
-                return True
-            except Exception:  # pragma: no cover - Stripe raises rich subclasses
-                return False
+        invoice = stripe.Invoice.create(
+            customer=customer_id,
+            collection_method=spec.resolve("collection_method"),
+            days_until_due=spec.resolve("days_until_due"),
+            metadata=spec.resolve("metadata") or None,
+            idempotency_key=idempotency_key,
+        )
+        result = {
+            "invoice_id": invoice["id"],
+            "status": invoice.get("status"),
+            "provider": self.component_name,
+            "raw": invoice,
+        }
+        self._post("create_invoice", result)
+        return result
 
-        if operation is Operation.LIST_DISPUTES:
-            disputes = stripe.Dispute.list(limit=payload.get("limit", 50))
-            data = disputes.get("data", []) if isinstance(disputes, Mapping) else []
-            return cast(Sequence[Mapping[str, Any]], data)
+    def _finalize_invoice(self, invoice_id: str) -> Mapping[str, Any]:
+        self._pre(
+            "finalize_invoice",
+            provider=self.component_name,
+            invoice_id=invoice_id,
+        )
+        stripe = self._client()
+        invoice = stripe.Invoice.finalize_invoice(invoice_id)
+        result = {
+            "invoice_id": invoice["id"],
+            "status": invoice.get("status"),
+            "provider": self.component_name,
+            "raw": invoice,
+        }
+        self._post("finalize_invoice", result)
+        return result
 
-        raise NotImplementedError(f"Operation {operation} is not supported by Stripe")
+    def _void_invoice(self, invoice_id: str) -> Mapping[str, Any]:
+        self._pre(
+            "void_invoice",
+            provider=self.component_name,
+            invoice_id=invoice_id,
+        )
+        stripe = self._client()
+        invoice = stripe.Invoice.void_invoice(invoice_id)
+        result = {
+            "invoice_id": invoice["id"],
+            "status": invoice.get("status"),
+            "provider": self.component_name,
+            "raw": invoice,
+        }
+        self._post("void_invoice", result)
+        return result
+
+    def _mark_uncollectible(self, invoice_id: str) -> Mapping[str, Any]:
+        self._pre(
+            "mark_uncollectible",
+            provider=self.component_name,
+            invoice_id=invoice_id,
+        )
+        stripe = self._client()
+        invoice = stripe.Invoice.mark_uncollectible(invoice_id)
+        result = {
+            "invoice_id": invoice["id"],
+            "status": invoice.get("status"),
+            "provider": self.component_name,
+            "raw": invoice,
+        }
+        self._post("mark_uncollectible", result)
+        return result
+
+    # ---------------------------------------------------------------- Marketplace
+    def _create_split(
+        self, spec: SplitSpec, *, idempotency_key: str
+    ) -> Mapping[str, Any]:
+        self._pre(
+            "create_split",
+            provider=self.component_name,
+            spec=spec.model_dump(mode="json"),
+            idempotency_key=idempotency_key,
+        )
+        result = {
+            "split": spec.model_dump(mode="json"),
+            "provider": self.component_name,
+        }
+        self._post("create_split", result)
+        return result
+
+    def _charge_with_split(
+        self,
+        amount_minor: int,
+        currency: str,
+        *,
+        split_code_or_params: Mapping[str, Any],
+        idempotency_key: str,
+    ) -> Mapping[str, Any]:
+        self._pre(
+            "charge_with_split",
+            provider=self.component_name,
+            amount_minor=amount_minor,
+            currency=currency,
+            split=split_code_or_params,
+            idempotency_key=idempotency_key,
+        )
+        stripe = self._client()
+        pi = stripe.PaymentIntent.create(
+            amount=amount_minor,
+            currency=currency.lower(),
+            transfer_data={"destination": split_code_or_params["destination"]},
+            application_fee_amount=split_code_or_params["application_fee_amount"],
+            idempotency_key=idempotency_key,
+        )
+        result = {
+            "payment_intent_id": pi["id"],
+            "status": pi.get("status"),
+            "provider": self.component_name,
+            "raw": pi,
+        }
+        self._post("charge_with_split", result)
+        return result
+
+    # ---------------------------------------------------------------- Risk
+    def _verify_webhook_signature(
+        self, raw_body: bytes, headers: Mapping[str, str], secret: str
+    ) -> bool:
+        self._pre(
+            "verify_webhook_signature",
+            provider=self.component_name,
+            has_headers=bool(headers),
+        )
+        webhook = self._client().Webhook
+        try:
+            webhook.construct_event(
+                payload=raw_body,
+                sig_header=headers.get("Stripe-Signature", ""),
+                secret=secret,
+            )
+            result = True
+        except Exception:  # pragma: no cover - Stripe raises rich subclasses
+            result = False
+        self._post("verify_webhook_signature", result)
+        return result
+
+    def _list_disputes(self, *, limit: int = 50) -> Sequence[Mapping[str, Any]]:
+        self._pre(
+            "list_disputes",
+            provider=self.component_name,
+            limit=limit,
+        )
+        stripe = self._client()
+        disputes = stripe.Dispute.list(limit=limit)
+        data = disputes.get("data", []) if isinstance(disputes, Mapping) else []
+        self._post("list_disputes", data)
+        return cast(Sequence[Mapping[str, Any]], data)

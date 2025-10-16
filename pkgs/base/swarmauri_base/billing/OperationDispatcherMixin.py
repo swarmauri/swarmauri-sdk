@@ -2,28 +2,15 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 from typing import Any, Mapping, Optional
 
 from pydantic import BaseModel, ConfigDict
 
-from swarmauri_core.billing import Operation
 
-
-class OperationDispatcherMixin(BaseModel, ABC):
-    """Base class for mixins that delegate operations to a provider."""
+class OperationDispatcherMixin(BaseModel):
+    """Base class for mixins that validates common billing inputs."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
-
-    @abstractmethod
-    def _op(
-        self,
-        operation: Operation,
-        payload: Mapping[str, Any],
-        *,
-        idempotency_key: Optional[str] = None,
-    ) -> Any:
-        """Dispatch ``operation`` to the underlying provider implementation."""
 
     def _require_idempotency(self, key: Optional[str]) -> None:
         """Ensure that the provided idempotency key is a non-empty string."""
