@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from abc import abstractmethod
 from typing import Any, Mapping, cast
 
-from swarmauri_core.billing import IBalanceTransfers, Operation
+from swarmauri_core.billing import IBalanceTransfers
 from swarmauri_core.billing.protos import BalanceRefProto, TransferReqProto
 
 from .OperationDispatcherMixin import OperationDispatcherMixin, extract_raw_payload
@@ -15,7 +16,7 @@ class BalanceTransfersMixin(OperationDispatcherMixin, IBalanceTransfers):
     """Provides helpers for balance retrieval and transfers."""
 
     def get_balance(self) -> BalanceRefProto:
-        result = self._op(Operation.GET_BALANCE, {})
+        result = self._get_balance()
         if isinstance(result, BalanceRefProto):
             return result
         raw = cast(Mapping[str, Any], result)
@@ -30,12 +31,18 @@ class BalanceTransfersMixin(OperationDispatcherMixin, IBalanceTransfers):
         self, req: TransferReqProto, *, idempotency_key: str
     ) -> Mapping[str, Any]:
         self._require_idempotency(idempotency_key)
-        result = self._op(
-            Operation.CREATE_TRANSFER,
-            {"req": req},
-            idempotency_key=idempotency_key,
-        )
+        result = self._create_transfer(req, idempotency_key=idempotency_key)
         return cast(Mapping[str, Any], result)
+
+    @abstractmethod
+    def _get_balance(self) -> BalanceRefProto | Mapping[str, Any]:
+        """Return the provider-specific balance payload."""
+
+    @abstractmethod
+    def _create_transfer(
+        self, req: TransferReqProto, *, idempotency_key: str
+    ) -> Mapping[str, Any]:
+        """Create a transfer using the underlying provider API."""
 
 
 __all__ = ["BalanceTransfersMixin"]

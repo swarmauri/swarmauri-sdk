@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from abc import abstractmethod
 from typing import Any, Mapping, cast
 
-from swarmauri_core.billing import IWebhooks, Operation
+from swarmauri_core.billing import IWebhooks
 from swarmauri_core.billing.protos import WebhookEventProto
 
 from .OperationDispatcherMixin import OperationDispatcherMixin, extract_raw_payload
@@ -17,10 +18,7 @@ class WebhooksMixin(OperationDispatcherMixin, IWebhooks):
     def parse_event(
         self, raw_body: bytes, headers: Mapping[str, str]
     ) -> WebhookEventProto:
-        result = self._op(
-            Operation.PARSE_EVENT,
-            {"raw_body": raw_body, "headers": headers},
-        )
+        result = self._parse_event(raw_body, headers)
         if isinstance(result, WebhookEventProto):
             return result
         raw = cast(Mapping[str, Any], result)
@@ -33,6 +31,12 @@ class WebhooksMixin(OperationDispatcherMixin, IWebhooks):
             ),
             raw=payload,
         )
+
+    @abstractmethod
+    def _parse_event(
+        self, raw_body: bytes, headers: Mapping[str, str]
+    ) -> WebhookEventProto | Mapping[str, Any]:
+        """Parse the incoming webhook payload."""
 
 
 __all__ = ["WebhooksMixin"]

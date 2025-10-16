@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from abc import abstractmethod
 from typing import Any, Mapping, cast
 
-from swarmauri_core.billing import IHostedCheckout, Operation
+from swarmauri_core.billing import IHostedCheckout
 from swarmauri_core.billing.protos import (
     CheckoutIntentProto,
     CheckoutReqProto,
@@ -16,15 +17,12 @@ from .refs import CheckoutIntentRef
 
 
 class HostedCheckoutMixin(OperationDispatcherMixin, IHostedCheckout):
-    """Implements ``IHostedCheckout`` via ``_op`` delegation."""
+    """Implements ``IHostedCheckout`` via provider-specific hooks."""
 
     def create_checkout(
         self, price: PriceRefProto, request: CheckoutReqProto
     ) -> CheckoutIntentProto:
-        result = self._op(
-            Operation.CREATE_CHECKOUT,
-            {"price": price, "request": request},
-        )
+        result = self._create_checkout(price, request)
         if isinstance(result, CheckoutIntentProto):
             return result
         raw = cast(Mapping[str, Any], result)
@@ -39,6 +37,12 @@ class HostedCheckoutMixin(OperationDispatcherMixin, IHostedCheckout):
             ),
             raw=payload,
         )
+
+    @abstractmethod
+    def _create_checkout(
+        self, price: PriceRefProto, request: CheckoutReqProto
+    ) -> CheckoutIntentProto | Mapping[str, Any]:
+        """Create a provider-specific checkout session."""
 
 
 __all__ = ["HostedCheckoutMixin"]
