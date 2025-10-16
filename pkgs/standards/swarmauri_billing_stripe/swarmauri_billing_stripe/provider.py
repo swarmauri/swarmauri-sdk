@@ -11,20 +11,36 @@ from swarmauri_base.billing import (
     BillingSpec,
     CheckoutIntentRef,
     CheckoutRequest,
+    HostedCheckoutMixin,
+    InvoicingMixin,
     InvoiceSpec,
+    MarketplaceMixin,
+    OnlinePaymentsMixin,
     PaymentIntentRequest,
     PaymentRef,
     PriceRef,
     PriceSpec,
     ProductRef,
     ProductSpec,
+    ProductsPricesMixin,
+    RiskMixin,
     SplitSpec,
     SubscriptionSpec,
+    SubscriptionsMixin,
 )
 from swarmauri_core.billing import Operation
 
 
-class StripeBillingProvider(BillingProviderBase):
+class StripeBillingProvider(
+    ProductsPricesMixin,
+    HostedCheckoutMixin,
+    OnlinePaymentsMixin,
+    SubscriptionsMixin,
+    InvoicingMixin,
+    MarketplaceMixin,
+    RiskMixin,
+    BillingProviderBase,
+):
     """Stripe billing provider backed by the official Stripe SDK."""
 
     component_name: str = "stripe"

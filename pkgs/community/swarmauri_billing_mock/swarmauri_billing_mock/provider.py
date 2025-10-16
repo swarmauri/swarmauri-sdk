@@ -4,11 +4,45 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Optional
 
-from swarmauri_base.billing import BillingProviderBase
+from swarmauri_base.billing import (
+    BalanceTransfersMixin,
+    BillingProviderBase,
+    CustomersMixin,
+    HostedCheckoutMixin,
+    InvoicingMixin,
+    MarketplaceMixin,
+    OnlinePaymentsMixin,
+    PaymentMethodsMixin,
+    PayoutsMixin,
+    ProductsPricesMixin,
+    PromotionsMixin,
+    RefundsMixin,
+    ReportsMixin,
+    RiskMixin,
+    SubscriptionsMixin,
+    WebhooksMixin,
+)
 from swarmauri_core.billing import ALL_CAPABILITIES, Operation
 
 
-class MockBillingProvider(BillingProviderBase):
+class MockBillingProvider(
+    ProductsPricesMixin,
+    HostedCheckoutMixin,
+    OnlinePaymentsMixin,
+    SubscriptionsMixin,
+    InvoicingMixin,
+    MarketplaceMixin,
+    RiskMixin,
+    RefundsMixin,
+    CustomersMixin,
+    PaymentMethodsMixin,
+    PayoutsMixin,
+    BalanceTransfersMixin,
+    ReportsMixin,
+    WebhooksMixin,
+    PromotionsMixin,
+    BillingProviderBase,
+):
     """Deterministic mock provider suitable for unit tests."""
 
     CAPABILITIES = ALL_CAPABILITIES

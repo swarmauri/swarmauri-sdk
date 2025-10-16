@@ -1,4 +1,4 @@
-"""Base provider implementation composing all billing mixins."""
+"""Base provider implementation shared by all billing providers."""
 
 from __future__ import annotations
 
@@ -16,41 +16,8 @@ from swarmauri_core.billing import (
     Operation,
 )
 
-from .mixins import (
-    BalanceTransfersMixin,
-    CustomersMixin,
-    HostedCheckoutMixin,
-    InvoicingMixin,
-    MarketplaceMixin,
-    OnlinePaymentsMixin,
-    PaymentMethodsMixin,
-    PayoutsMixin,
-    ProductsPricesMixin,
-    PromotionsMixin,
-    RefundsMixin,
-    ReportsMixin,
-    RiskMixin,
-    SubscriptionsMixin,
-    WebhooksMixin,
-)
-
 
 class BillingProviderBase(
-    ProductsPricesMixin,
-    HostedCheckoutMixin,
-    OnlinePaymentsMixin,
-    SubscriptionsMixin,
-    InvoicingMixin,
-    MarketplaceMixin,
-    RiskMixin,
-    RefundsMixin,
-    CustomersMixin,
-    PaymentMethodsMixin,
-    PayoutsMixin,
-    BalanceTransfersMixin,
-    ReportsMixin,
-    WebhooksMixin,
-    PromotionsMixin,
     ComponentBase,
     IBillingProvider,
     ABC,

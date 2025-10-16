@@ -5,11 +5,45 @@ from __future__ import annotations
 from typing import Any, Mapping, Optional
 from uuid import uuid4
 
-from swarmauri_base.billing import BillingProviderBase
+from swarmauri_base.billing import (
+    BalanceTransfersMixin,
+    BillingProviderBase,
+    CustomersMixin,
+    HostedCheckoutMixin,
+    InvoicingMixin,
+    MarketplaceMixin,
+    OnlinePaymentsMixin,
+    PaymentMethodsMixin,
+    PayoutsMixin,
+    ProductsPricesMixin,
+    PromotionsMixin,
+    RefundsMixin,
+    ReportsMixin,
+    RiskMixin,
+    SubscriptionsMixin,
+    WebhooksMixin,
+)
 from swarmauri_core.billing import ALL_CAPABILITIES, Operation
 
 
-class AdyenBillingProvider(BillingProviderBase):
+class AdyenBillingProvider(
+    ProductsPricesMixin,
+    HostedCheckoutMixin,
+    OnlinePaymentsMixin,
+    SubscriptionsMixin,
+    InvoicingMixin,
+    MarketplaceMixin,
+    RiskMixin,
+    RefundsMixin,
+    CustomersMixin,
+    PaymentMethodsMixin,
+    PayoutsMixin,
+    BalanceTransfersMixin,
+    ReportsMixin,
+    WebhooksMixin,
+    PromotionsMixin,
+    BillingProviderBase,
+):
     """Example Adyen provider; replace ``_dispatch`` with real HTTP calls."""
 
     CAPABILITIES = ALL_CAPABILITIES

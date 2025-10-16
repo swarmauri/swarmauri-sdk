@@ -10,20 +10,36 @@ from swarmauri_base.billing import (
     BillingProviderBase,
     CheckoutIntentRef,
     CheckoutRequest,
+    HostedCheckoutMixin,
+    InvoicingMixin,
     InvoiceSpec,
+    MarketplaceMixin,
+    OnlinePaymentsMixin,
     PaymentIntentRequest,
     PaymentRef,
     PriceRef,
     PriceSpec,
     ProductRef,
     ProductSpec,
+    ProductsPricesMixin,
+    RiskMixin,
     SplitSpec,
     SubscriptionSpec,
+    SubscriptionsMixin,
 )
 from swarmauri_core.billing import Operation
 
 
-class PaystackBillingProvider(BillingProviderBase):
+class PaystackBillingProvider(
+    ProductsPricesMixin,
+    HostedCheckoutMixin,
+    OnlinePaymentsMixin,
+    SubscriptionsMixin,
+    InvoicingMixin,
+    MarketplaceMixin,
+    RiskMixin,
+    BillingProviderBase,
+):
     """Billing provider built on the ``paystackapi`` client."""
 
     component_name: str = "paystack"
