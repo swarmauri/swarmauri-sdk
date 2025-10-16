@@ -166,7 +166,7 @@ members = [
     "standards/swarmauri_signing_dpop",
     "community/swarmauri_signing_dsse",
     "community/swarmauri_billing_adyen",
-    "community/swarmauri_billing_mock",
+    "standards/swarmauri_billing_mock",
     "community/swarmauri_billing_square",
     "community/swarmauri_billing_razorpay",
     "community/swarmauri_billing_paystack",

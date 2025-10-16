@@ -3,8 +3,8 @@
 <p align="center">
     <a href="https://pypi.org/project/swarmauri_billing_mock/">
         <img src="https://img.shields.io/pypi/dm/swarmauri_billing_mock" alt="PyPI - Downloads"/></a>
-    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_billing_mock/">
-        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_billing_mock.svg"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_billing_mock/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_billing_mock.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_billing_mock/">
         <img src="https://img.shields.io/pypi/pyversions/swarmauri_billing_mock" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_billing_mock/">
