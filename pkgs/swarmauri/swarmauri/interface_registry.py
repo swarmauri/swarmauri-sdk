@@ -66,6 +66,7 @@ class InterfaceRegistry:
         "swarmauri.vectors": "swarmauri_base.vectors.VectorBase",
         "swarmauri.mre_cryptos": "swarmauri_base.mre_crypto.MreCryptoBase",
         "swarmauri.crypto": "swarmauri_base.crypto.CryptoBase",
+        "swarmauri.cipher_suites": "swarmauri_base.cipher_suites.CipherSuiteBase",
         "swarmauri.signings": "swarmauri_base.signing.SigningBase",
         "swarmauri.key_providers": "swarmauri_base.key_providers.KeyProviderBase",
         "swarmauri.logger_formatters": "swarmauri_base.logger_formatters.FormatterBase",
