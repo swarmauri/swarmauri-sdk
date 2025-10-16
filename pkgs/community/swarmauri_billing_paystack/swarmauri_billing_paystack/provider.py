@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping, Optional, Sequence, cast
+from typing import Any, Mapping, Optional, Sequence
 
 from pydantic import Field, PrivateAttr, SecretStr
 
@@ -27,7 +27,6 @@ from swarmauri_base.billing import (
     SubscriptionSpec,
     SubscriptionsMixin,
 )
-from swarmauri_core.billing import Operation
 
 
 class PaystackBillingProvider(
@@ -40,7 +39,7 @@ class PaystackBillingProvider(
     RiskMixin,
     BillingProviderBase,
 ):
-    """Billing provider built on the ``paystackapi`` client."""
+    """Billing provider backed by the Paystack Python SDK."""
 
     component_name: str = "paystack"
     secret_key: SecretStr = Field(repr=False)
@@ -50,299 +49,403 @@ class PaystackBillingProvider(
     _invoice: Any = PrivateAttr(default=None)
     _split: Any = PrivateAttr(default=None)
 
-    # ------------------------------------------------------------------ Client
     def _ensure(self) -> None:
-        if self._tx is not None:
-            return
-        from paystackapi.invoice import Invoice
-        from paystackapi.paystack import Paystack
-        from paystackapi.product import Product
-        from paystackapi.split import Split
-        from paystackapi.subscription import Subscription
-        from paystackapi.transaction import Transaction
+        if self._tx is None:
+            from paystackapi.invoice import Invoice
+            from paystackapi.paystack import Paystack
+            from paystackapi.product import Product
+            from paystackapi.split import Split
+            from paystackapi.subscription import Subscription
+            from paystackapi.transaction import Transaction
 
-        Paystack.SECRET_KEY = self.secret_key.get_secret_value()
-        self._tx = Transaction
-        self._product = Product
-        self._sub = Subscription
-        self._invoice = Invoice
-        self._split = Split
+            Paystack.SECRET_KEY = self.secret_key.get_secret_value()
+            self._tx, self._product, self._sub, self._invoice, self._split = (
+                Transaction,
+                Product,
+                Subscription,
+                Invoice,
+                Split,
+            )
 
-    @staticmethod
-    def _require(spec: Any, field: str) -> Any:
-        resolver = getattr(spec, "resolve", None)
-        value = resolver(field) if callable(resolver) else getattr(spec, field, None)
-        if value is None or (isinstance(value, str) and not value):
-            raise ValueError(f"{field} is required for {spec.__class__.__name__}")
-        return value
-
-    # ---------------------------------------------------------------- Dispatch
-    def _dispatch(
-        self,
-        operation: Operation,
-        payload: Mapping[str, Any],
-        *,
-        idempotency_key: Optional[str],
-    ) -> Any:
+    # ---------------------------------------------------------------- Products & Prices
+    def _create_product(
+        self, product_spec: ProductSpec, *, idempotency_key: str
+    ) -> ProductRef:
         self._ensure()
+        self._pre(
+            "create_product",
+            provider=self.component_name,
+            spec=product_spec.model_dump(mode="json"),
+            idempotency_key=idempotency_key,
+        )
+        resp = self._product.create(
+            name=product_spec.name,
+            description=product_spec.description or "",
+            price=0,
+            currency="NGN",
+        )
+        if not resp.get("status"):
+            raise RuntimeError(resp.get("message", "product create failed"))
+        ref = ProductRef(
+            id=str(resp["data"]["id"]),
+            provider=self.component_name,
+            raw=resp,
+        )
+        self._post("create_product", ref)
+        return ref
 
-        if operation is Operation.CREATE_PRODUCT:
-            spec = cast(ProductSpec, payload["product_spec"])
-            name = spec.resolve("name") or "Unnamed Product"
-            description = spec.resolve("description") or ""
-            resp = self._product.create(
-                name=name,
-                description=description,
-                price=0,
-                currency="NGN",
-            )
-            if not resp.get("status"):
-                raise RuntimeError(resp.get("message", "product create failed"))
-            data = resp["data"]
-            return ProductRef(
-                id=str(data["id"]),
-                provider=self.component_name,
-                name=data.get("name"),
-                description=data.get("description"),
-                raw=resp,
-            )
+    def _create_price(
+        self,
+        product: ProductRef,
+        price_spec: PriceSpec,
+        *,
+        idempotency_key: str,
+    ) -> PriceRef:
+        self._ensure()
+        self._pre(
+            "create_price",
+            provider=self.component_name,
+            product_id=product.id,
+            spec=price_spec.model_dump(mode="json"),
+            idempotency_key=idempotency_key,
+        )
+        resp = self._product.create(
+            name=f"{product.id}-sku",
+            description=price_spec.nickname or "",
+            price=price_spec.unit_amount_minor,
+            currency=price_spec.currency.upper(),
+        )
+        if not resp.get("status"):
+            raise RuntimeError(resp.get("message", "price create failed"))
+        data = resp["data"]
+        ref = PriceRef(
+            id=data.get("product_code") or str(data.get("id")),
+            product_id=product.id,
+            currency=data.get("currency"),
+            unit_amount_minor=data.get("price"),
+            provider=self.component_name,
+            raw=resp,
+        )
+        self._post("create_price", ref)
+        return ref
 
-        if operation is Operation.CREATE_PRICE:
-            product = cast(ProductRef, payload["product"])
-            spec = cast(PriceSpec, payload["price_spec"])
-            amount = int(spec.resolve("unit_amount_minor") or 0)
-            currency = str(spec.resolve("currency") or "NGN").upper()
-            nickname = spec.resolve("nickname") or f"{product.id}-sku"
-            resp = self._product.create(
-                name=nickname,
-                description=nickname,
-                price=amount,
-                currency=currency,
-            )
-            if not resp.get("status"):
-                raise RuntimeError(resp.get("message", "price create failed"))
-            data = resp["data"]
-            price_id = data.get("product_code") or str(data.get("id"))
-            return PriceRef(
-                id=price_id,
-                product_id=product.id,
-                currency=data.get("currency"),
-                unit_amount_minor=data.get("price"),
-                provider=self.component_name,
-                raw=resp,
-            )
+    # ---------------------------------------------------------------- Hosted Checkout
+    def _create_checkout(
+        self, price: PriceRef, request: CheckoutRequest
+    ) -> CheckoutIntentRef:
+        self._ensure()
+        self._pre(
+            "create_checkout",
+            provider=self.component_name,
+            price_id=price.id,
+            request=request.model_dump(mode="json"),
+        )
+        init = self._tx.initialize(
+            reference=request.idempotency_key or f"chk-{price.id}",
+            amount=price.raw["data"]["price"],
+            currency=price.raw["data"]["currency"],
+            email=request.customer_email or "buyer@example.com",
+            metadata={"product_id": price.product_id, "price_code": price.id},
+            callback_url=request.success_url,
+        )
+        if not init.get("status"):
+            raise RuntimeError(init.get("message", "init failed"))
+        intent = CheckoutIntentRef(
+            id=init["data"]["reference"],
+            url=init["data"]["authorization_url"],
+            provider=self.component_name,
+            raw=init,
+        )
+        self._post("create_checkout", intent)
+        return intent
 
-        if operation is Operation.CREATE_CHECKOUT:
-            price = cast(PriceRef, payload["price"])
-            request = cast(CheckoutRequest, payload["request"])
-            amount = price.unit_amount_minor or price.raw["data"].get("price")
-            currency = price.currency or price.raw["data"].get("currency", "NGN")
-            init = self._tx.initialize(
-                reference=request.resolve("idempotency_key") or f"chk-{price.id}",
-                amount=amount,
-                currency=currency,
-                email=request.resolve("customer_email") or "buyer@example.com",
-                metadata={
-                    "product_id": price.product_id,
-                    "price_code": price.id,
-                },
-                callback_url=self._require(request, "success_url"),
-            )
-            if not init.get("status"):
-                raise RuntimeError(init.get("message", "checkout init failed"))
-            data = init["data"]
-            return CheckoutIntentRef(
-                id=data.get("reference"),
-                url=data.get("authorization_url"),
-                provider=self.component_name,
-                raw=init,
-            )
+    # ---------------------------------------------------------------- Online Payments
+    def _create_payment_intent(self, req: PaymentIntentRequest) -> PaymentRef:
+        self._ensure()
+        self._pre(
+            "create_payment_intent",
+            provider=self.component_name,
+            request=req.model_dump(mode="json"),
+        )
+        init = self._tx.initialize(
+            reference=req.idempotency_key or "ref",
+            amount=req.amount_minor,
+            currency=req.currency.upper(),
+            email="buyer@example.com",
+            metadata=req.metadata,
+        )
+        if not init.get("status"):
+            raise RuntimeError(init.get("message", "init failed"))
+        ref = PaymentRef(
+            id=init["data"]["reference"],
+            status="initialized",
+            provider=self.component_name,
+            raw=init,
+        )
+        self._post("create_payment_intent", ref)
+        return ref
 
-        if operation is Operation.CREATE_PAYMENT_INTENT:
-            req = cast(PaymentIntentRequest, payload["req"])
-            amount = int(req.resolve("amount_minor") or 0)
-            currency = str(req.resolve("currency") or "NGN").upper()
-            init = self._tx.initialize(
-                reference=req.resolve("idempotency_key") or "ref",
-                amount=amount,
-                currency=currency,
-                email="buyer@example.com",
-                metadata=req.resolve("metadata") or {},
-            )
-            if not init.get("status"):
-                raise RuntimeError(init.get("message", "payment init failed"))
-            data = init["data"]
-            return PaymentRef(
-                id=data.get("reference"),
-                status="initialized",
-                amount_minor=amount,
-                currency=currency,
-                provider=self.component_name,
-                raw=init,
-            )
+    def _capture_payment(
+        self, payment_id: str, *, idempotency_key: Optional[str] = None
+    ) -> PaymentRef:
+        self._pre(
+            "capture_payment",
+            provider=self.component_name,
+            payment_id=payment_id,
+            idempotency_key=idempotency_key,
+        )
+        ref = PaymentRef(
+            id=payment_id,
+            status="not_applicable",
+            provider=self.component_name,
+            raw=None,
+        )
+        self._post("capture_payment", ref)
+        return ref
 
-        if operation is Operation.CAPTURE_PAYMENT:
-            payment_id = cast(str, payload["payment_id"])
-            return PaymentRef(
-                id=payment_id,
-                status="not_applicable",
-                provider=self.component_name,
-                raw=None,
-            )
+    def _cancel_payment(
+        self,
+        payment_id: str,
+        *,
+        reason: Optional[str] = None,
+        idempotency_key: Optional[str] = None,
+    ) -> PaymentRef:
+        self._pre(
+            "cancel_payment",
+            provider=self.component_name,
+            payment_id=payment_id,
+            reason=reason,
+            idempotency_key=idempotency_key,
+        )
+        ref = PaymentRef(
+            id=payment_id,
+            status="canceled_requested",
+            provider=self.component_name,
+            raw=None,
+        )
+        self._post("cancel_payment", ref)
+        return ref
 
-        if operation is Operation.CANCEL_PAYMENT:
-            payment_id = cast(str, payload["payment_id"])
-            return PaymentRef(
-                id=payment_id,
-                status="canceled_requested",
-                provider=self.component_name,
-                raw=None,
-            )
+    # ---------------------------------------------------------------- Subscriptions
+    def _create_subscription(
+        self, spec: SubscriptionSpec, *, idempotency_key: str
+    ) -> Mapping[str, Any]:
+        self._ensure()
+        self._pre(
+            "create_subscription",
+            provider=self.component_name,
+            spec=spec.model_dump(mode="json"),
+            idempotency_key=idempotency_key,
+        )
+        authorization = spec.metadata.get("authorization")
+        sub = self._sub.create(
+            customer=spec.customer_id,
+            plan=spec.items[0].price_id,
+            authorization=authorization,
+        )
+        if not sub.get("status"):
+            raise RuntimeError(sub.get("message", "subscription failed"))
+        result = {
+            "subscription_code": sub["data"]["subscription_code"],
+            "status": sub["message"],
+            "provider": self.component_name,
+            "raw": sub,
+        }
+        self._post("create_subscription", result)
+        return result
 
-        if operation is Operation.CREATE_SUBSCRIPTION:
-            spec = cast(SubscriptionSpec, payload["spec"])
-            if not spec.items:
-                raise ValueError(
-                    "SubscriptionSpec.items must contain at least one entry"
-                )
-            authorization = spec.resolve("metadata", {}).get("authorization")
-            sub = self._sub.create(
-                customer=spec.resolve("customer_id"),
-                plan=spec.items[0].price_id,
-                authorization=authorization,
-            )
-            if not sub.get("status"):
-                raise RuntimeError(sub.get("message", "subscription failed"))
-            data = sub["data"]
-            return {
-                "subscription_code": data.get("subscription_code"),
-                "status": sub.get("message"),
-                "provider": self.component_name,
-                "raw": sub,
-            }
+    def _cancel_subscription(
+        self, subscription_id: str, *, at_period_end: bool = True
+    ) -> Mapping[str, Any]:
+        self._ensure()
+        self._pre(
+            "cancel_subscription",
+            provider=self.component_name,
+            subscription_code=subscription_id,
+            at_period_end=at_period_end,
+        )
+        res = self._sub.disable(code=subscription_id, token=None)
+        result = {
+            "subscription_code": subscription_id,
+            "status": res.get("message", "disabled"),
+            "provider": self.component_name,
+            "raw": res,
+        }
+        self._post("cancel_subscription", result)
+        return result
 
-        if operation is Operation.CANCEL_SUBSCRIPTION:
-            subscription_id = cast(str, payload["subscription_id"])
-            res = self._sub.disable(code=subscription_id, token=None)
-            return {
-                "subscription_code": subscription_id,
-                "status": res.get("message", "disabled"),
-                "provider": self.component_name,
-                "raw": res,
-            }
+    # ---------------------------------------------------------------- Invoicing
+    def _create_invoice(
+        self, spec: InvoiceSpec, *, idempotency_key: str
+    ) -> Mapping[str, Any]:
+        self._ensure()
+        self._pre(
+            "create_invoice",
+            provider=self.component_name,
+            spec=spec.model_dump(mode="json"),
+            idempotency_key=idempotency_key,
+        )
+        amount = sum((line.amount_minor or 0) for line in spec.line_items)
+        inv = self._invoice.create(
+            customer=spec.customer_id,
+            amount=amount,
+            currency="NGN",
+            due_date=None,
+            description="Invoice",
+        )
+        if not inv.get("status"):
+            raise RuntimeError(inv.get("message", "invoice create failed"))
+        result = {
+            "invoice_id": inv["data"]["invoice_code"],
+            "status": "created",
+            "provider": self.component_name,
+            "raw": inv,
+        }
+        self._post("create_invoice", result)
+        return result
 
-        if operation is Operation.CREATE_INVOICE:
-            spec = cast(InvoiceSpec, payload["spec"])
-            total_amount = sum((item.amount_minor or 0) for item in spec.line_items)
-            inv = self._invoice.create(
-                customer=spec.resolve("customer_id"),
-                amount=total_amount,
-                currency="NGN",
-                due_date=None,
-                description="Invoice",
-            )
-            if not inv.get("status"):
-                raise RuntimeError(inv.get("message", "invoice create failed"))
-            data = inv["data"]
-            return {
-                "invoice_id": data.get("invoice_code"),
-                "status": "created",
-                "provider": self.component_name,
-                "raw": inv,
-            }
+    def _finalize_invoice(self, invoice_id: str) -> Mapping[str, Any]:
+        self._pre(
+            "finalize_invoice",
+            provider=self.component_name,
+            invoice_id=invoice_id,
+        )
+        result = {
+            "invoice_id": invoice_id,
+            "status": "finalized",
+            "provider": self.component_name,
+            "raw": None,
+        }
+        self._post("finalize_invoice", result)
+        return result
 
-        if operation is Operation.FINALIZE_INVOICE:
-            invoice_id = cast(str, payload["invoice_id"])
-            return {
-                "invoice_id": invoice_id,
-                "status": "finalized",
-                "provider": self.component_name,
-                "raw": None,
-            }
+    def _void_invoice(self, invoice_id: str) -> Mapping[str, Any]:
+        self._ensure()
+        self._pre(
+            "void_invoice",
+            provider=self.component_name,
+            invoice_id=invoice_id,
+        )
+        res = self._invoice.notify(invoice_code=invoice_id)
+        result = {
+            "invoice_id": invoice_id,
+            "status": "void_requested",
+            "provider": self.component_name,
+            "raw": res,
+        }
+        self._post("void_invoice", result)
+        return result
 
-        if operation is Operation.VOID_INVOICE:
-            invoice_id = cast(str, payload["invoice_id"])
-            res = self._invoice.notify(invoice_code=invoice_id)
-            return {
-                "invoice_id": invoice_id,
-                "status": "void_requested",
-                "provider": self.component_name,
-                "raw": res,
-            }
+    def _mark_uncollectible(self, invoice_id: str) -> Mapping[str, Any]:
+        self._pre(
+            "mark_uncollectible",
+            provider=self.component_name,
+            invoice_id=invoice_id,
+        )
+        result = {
+            "invoice_id": invoice_id,
+            "status": "uncollectible",
+            "provider": self.component_name,
+            "raw": None,
+        }
+        self._post("mark_uncollectible", result)
+        return result
 
-        if operation is Operation.MARK_UNCOLLECTIBLE:
-            invoice_id = cast(str, payload["invoice_id"])
-            return {
-                "invoice_id": invoice_id,
-                "status": "uncollectible",
-                "provider": self.component_name,
-                "raw": None,
-            }
+    # ---------------------------------------------------------------- Marketplace
+    def _create_split(
+        self, spec: SplitSpec, *, idempotency_key: str
+    ) -> Mapping[str, Any]:
+        self._ensure()
+        self._pre(
+            "create_split",
+            provider=self.component_name,
+            spec=spec.model_dump(mode="json"),
+            idempotency_key=idempotency_key,
+        )
+        entries = [{"subaccount": e.account, "share": e.share} for e in spec.entries]
+        sp = self._split.create(
+            name=spec.name,
+            type=spec.type,
+            currency=spec.currency.upper(),
+            subaccounts=entries,
+            bearer_type="account",
+            bearer_subaccount=None,
+        )
+        if not sp.get("status"):
+            raise RuntimeError(sp.get("message", "split create failed"))
+        result = {
+            "split_code": sp["data"]["split_code"],
+            "provider": self.component_name,
+            "raw": sp,
+        }
+        self._post("create_split", result)
+        return result
 
-        if operation is Operation.CREATE_SPLIT:
-            spec = cast(SplitSpec, payload["spec"])
-            entries = [
-                {"subaccount": entry.account, "share": entry.share}
-                for entry in spec.entries
-            ]
-            sp = self._split.create(
-                name=spec.resolve("name") or "Split",
-                type=spec.resolve("type") or "percentage",
-                currency=str(spec.resolve("currency") or "NGN").upper(),
-                subaccounts=entries,
-                bearer_type="account",
-                bearer_subaccount=None,
-            )
-            if not sp.get("status"):
-                raise RuntimeError(sp.get("message", "split create failed"))
-            data = sp["data"]
-            return {
-                "split_code": data.get("split_code"),
-                "provider": self.component_name,
-                "raw": sp,
-            }
+    def _charge_with_split(
+        self,
+        amount_minor: int,
+        currency: str,
+        *,
+        split_code_or_params: Mapping[str, Any],
+        idempotency_key: str,
+    ) -> Mapping[str, Any]:
+        self._ensure()
+        self._pre(
+            "charge_with_split",
+            provider=self.component_name,
+            amount_minor=amount_minor,
+            currency=currency,
+            split=split_code_or_params,
+            idempotency_key=idempotency_key,
+        )
+        init = self._tx.initialize(
+            reference=idempotency_key,
+            amount=amount_minor,
+            currency=currency.upper(),
+            email="buyer@example.com",
+            split_code=split_code_or_params["split_code"],
+        )
+        if not init.get("status"):
+            raise RuntimeError(init.get("message", "init failed"))
+        result = {
+            "reference": init["data"]["reference"],
+            "authorization_url": init["data"]["authorization_url"],
+            "provider": self.component_name,
+            "raw": init,
+        }
+        self._post("charge_with_split", result)
+        return result
 
-        if operation is Operation.CHARGE_WITH_SPLIT:
-            amount_minor = int(payload["amount_minor"])
-            currency = str(payload["currency"] or "NGN").upper()
-            split = cast(Mapping[str, Any], payload["split"])
-            init = self._tx.initialize(
-                reference=idempotency_key,
-                amount=amount_minor,
-                currency=currency,
-                email="buyer@example.com",
-                split_code=split["split_code"],
-            )
-            if not init.get("status"):
-                raise RuntimeError(init.get("message", "split charge failed"))
-            data = init["data"]
-            return {
-                "reference": data.get("reference"),
-                "authorization_url": data.get("authorization_url"),
-                "provider": self.component_name,
-                "raw": init,
-            }
+    # ---------------------------------------------------------------- Risk
+    def _verify_webhook_signature(
+        self, raw_body: bytes, headers: Mapping[str, str], secret: str
+    ) -> bool:
+        self._pre(
+            "verify_webhook_signature",
+            provider=self.component_name,
+            has_headers=bool(headers),
+        )
+        import hashlib
+        import hmac
 
-        if operation is Operation.VERIFY_WEBHOOK_SIGNATURE:
-            import hashlib
-            import hmac
+        signature = headers.get("X-Paystack-Signature", "")
+        digest = hmac.new(secret.encode(), raw_body, hashlib.sha512).hexdigest()
+        result = hmac.compare_digest(digest, signature)
+        self._post("verify_webhook_signature", result)
+        return result
 
-            raw_body = cast(bytes, payload["raw_body"])
-            headers = cast(Mapping[str, str], payload["headers"])
-            secret = cast(str, payload["secret"])
-            signature = headers.get("X-Paystack-Signature", "")
-            digest = hmac.new(secret.encode(), raw_body, hashlib.sha512).hexdigest()
-            return hmac.compare_digest(digest, signature)
+    def _list_disputes(self, *, limit: int = 50) -> Sequence[Mapping[str, Any]]:
+        from paystackapi.dispute import Dispute
 
-        if operation is Operation.LIST_DISPUTES:
-            from paystackapi.dispute import Dispute
-
-            res = Dispute.list()
-            if isinstance(res, Mapping):
-                return cast(Sequence[Mapping[str, Any]], res.get("data", []))
-            return tuple()
-
-        raise NotImplementedError(f"Operation {operation} is not supported by Paystack")
+        self._pre(
+            "list_disputes",
+            provider=self.component_name,
+            limit=limit,
+        )
+        res = Dispute.list()
+        data = res.get("data", []) if isinstance(res, dict) else []
+        self._post("list_disputes", data)
+        return data
 
 
 __all__ = ["PaystackBillingProvider"]
