@@ -90,6 +90,92 @@ createLayoutApp({
 });
 ```
 
+### Realtime manifest streaming
+
+Enable the realtime bridge by providing an `events` option. The runtime derives
+the WebSocket endpoint from `manifestUrl` (defaulting to `/events` beside
+`manifest.json`) and automatically reconnects when the transport drops.
+
+```javascript
+const controller = createLayoutApp({
+  manifestUrl,
+  events: {
+    // Optional overrides
+    url: "wss://demo.example.com/dashboard/events",
+    autoReconnect: true,
+    onManifest(manifest) {
+      console.debug("streamed manifest", manifest.version);
+    },
+  },
+});
+
+// Send client events back to the server
+controller.sendEvent({
+  type: "site:navigate",
+  request_id: crypto.randomUUID(),
+  ts: new Date().toISOString(),
+});
+```
+
+The controller exposes `controller.events.state` for connection status tracking,
+plus helper methods `sendEvent`, `reconnectEvents`, and `disconnectEvents`.
+
+### Server-side event handlers
+
+`ManifestEventsConfig` accepts callbacks so the server can acknowledge or mutate
+tile state when client events arrive. For example:
+
+```python
+from layout_engine.events.ws import EventRouter, InProcEventBus
+from layout_engine_atoms.runtime.vue import ManifestApp, ManifestEventsConfig
+
+bus = InProcEventBus()
+router = EventRouter(bus)
+
+async def on_client_event(payload, ws):
+    # Acknowledge tile actions.
+    if payload.get("topic") == "tiles" and payload.get("payload", {}).get("ack"):
+        ack = payload["payload"]
+        bus.publish("tiles/acks", {"tile_id": ack["tile_id"], "status": "ok"})
+        return True
+
+    # Apply a lightweight tile mutation.
+    if payload.get("type") == "tile:patch" and payload.get("payload"):
+        bus.publish(
+            "manifest",
+            {"type": "manifest.patch", "patch": {"tiles": payload["payload"]}},
+            retain=True,
+        )
+        return True
+    return False
+
+app = ManifestApp(
+    manifest_builder=build_manifest,
+    mount_path="/dashboard",
+    events=ManifestEventsConfig(
+        bus=bus,
+        router=router,
+        topics=("manifest", "tiles/acks"),
+        on_client_event=on_client_event,
+    ),
+)
+```
+
+Client code can stream acknowledgements or mutations through the bus and patch
+local state without a full refresh:
+
+```javascript
+controller.sendEvent({
+  topic: "tiles",
+  payload: { ack: true, tile_id: "tile_ops" },
+});
+
+controller.sendEvent({
+  type: "tile:patch",
+  payload: [{ id: "tile_revenue", props: { value: 12_750_000 } }],
+});
+```
+
 ### Page selection
 
 Manifests that contain a `pages` collection can be controlled through

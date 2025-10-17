@@ -1,4 +1,5 @@
 import { createAtomRenderers } from "./atom-renderers.js";
+import { createEventBridge, deriveEventsUrl } from "./event-bridge.js";
 
 function normalizeTheme(input = {}) {
   if (!input) {
@@ -25,6 +26,47 @@ function mergeTheme(base, patch) {
   Object.assign(output.style, addition.style);
   Object.assign(output.tokens, addition.tokens);
   return output;
+}
+
+function isPlainObject(value) {
+  return Object.prototype.toString.call(value) === "[object Object]";
+}
+
+function deepMerge(target, patch) {
+  if (!isPlainObject(target) || !isPlainObject(patch)) {
+    return patch;
+  }
+  const result = { ...target };
+  for (const [key, value] of Object.entries(patch)) {
+    if (isPlainObject(value) && isPlainObject(result[key])) {
+      result[key] = deepMerge(result[key], value);
+    } else if (Array.isArray(value)) {
+      result[key] = value.slice();
+    } else {
+      result[key] = value;
+    }
+  }
+  return result;
+}
+
+function manifestFromPayload(payload) {
+  if (!payload || typeof payload !== "object") {
+    return null;
+  }
+  if (payload.manifest && typeof payload.manifest === "object") {
+    return payload.manifest;
+  }
+  if (payload.kind === "layout_manifest") {
+    return payload;
+  }
+  if (
+    payload.payload &&
+    typeof payload.payload === "object" &&
+    payload.payload.kind === "layout_manifest"
+  ) {
+    return payload.payload;
+  }
+  return null;
 }
 
 function matchesPageId(page, identifier) {
@@ -109,8 +151,18 @@ export function createRuntime(vue, options = {}) {
     reactive,
     ref,
     watch,
+    onBeforeUnmount,
   } = vue;
-  if (!computed || !createApp || !defineComponent || !h || !reactive || !ref || !watch) {
+  if (
+    !computed ||
+    !createApp ||
+    !defineComponent ||
+    !h ||
+    !reactive ||
+    !ref ||
+    !watch ||
+    !onBeforeUnmount
+  ) {
     throw new Error("createRuntime requires Vue composition API exports");
   }
 
@@ -201,6 +253,10 @@ export function createRuntime(vue, options = {}) {
         type: Function,
         default: null,
       },
+      events: {
+        type: [Boolean, String, Object],
+        default: null,
+      },
     },
     setup(props, { expose }) {
       const state = reactive({
@@ -280,6 +336,293 @@ export function createRuntime(vue, options = {}) {
           );
         }
         return "manifest.json";
+      });
+
+      const eventsOptions = computed(() => {
+        const raw = props.events;
+        if (raw === undefined || raw === null || raw === false) {
+          return null;
+        }
+        if (raw === true) {
+          return {};
+        }
+        if (typeof raw === "string") {
+          return { url: raw };
+        }
+        if (isPlainObject(raw)) {
+          return { ...raw };
+        }
+        return null;
+      });
+
+      const eventsState = reactive({
+        enabled: false,
+        status: "idle",
+        url: null,
+        connected: false,
+        attempts: 0,
+        lastError: null,
+      });
+
+      let eventBridge = null;
+      const bridgeSubscriptions = [];
+
+      function recordEventError(message) {
+        eventsState.lastError = message;
+      }
+
+      function resetEventsState() {
+        eventsState.status = "idle";
+        eventsState.connected = false;
+        eventsState.attempts = 0;
+      }
+
+      function teardownBridge() {
+        while (bridgeSubscriptions.length) {
+          const unsub = bridgeSubscriptions.pop();
+          try {
+            unsub?.();
+          } catch {
+            // ignore cleanup errors
+          }
+        }
+        if (eventBridge) {
+          eventBridge.close();
+          eventBridge = null;
+        }
+        resetEventsState();
+      }
+
+      function ensureBridge(options) {
+        if (eventBridge) {
+          return eventBridge;
+        }
+        const reconnect =
+          options?.autoReconnect === undefined
+            ? true
+            : Boolean(options.autoReconnect);
+        eventBridge = createEventBridge({
+          autoConnect: false,
+          autoReconnect: reconnect,
+          reconnectDelay: options?.reconnectDelay ?? 2000,
+          protocols: options?.protocols,
+          windowRef: typeof window !== "undefined" ? window : null,
+        });
+        bridgeSubscriptions.push(
+          eventBridge.on("status", (detail) => {
+            if (!detail) {
+              return;
+            }
+            if (detail.type === "connecting") {
+              eventsState.status = "connecting";
+              eventsState.connected = false;
+              eventsState.attempts =
+                typeof detail.attempts === "number"
+                  ? detail.attempts
+                  : eventsState.attempts + 1;
+            } else if (detail.type === "open") {
+              eventsState.status = "open";
+              eventsState.connected = true;
+              eventsState.attempts = 0;
+            } else if (detail.type === "closed") {
+              eventsState.status = "closed";
+              eventsState.connected = false;
+            } else if (detail.type === "url") {
+              eventsState.url = detail.url ?? eventsState.url;
+            }
+          }),
+          eventBridge.on("open", () => {
+            eventsState.status = "open";
+            eventsState.connected = true;
+            recordEventError(null);
+          }),
+          eventBridge.on("close", () => {
+            eventsState.connected = false;
+          }),
+          eventBridge.on("error", (event) => {
+            eventsState.status = "error";
+            eventsState.connected = false;
+            recordEventError(
+              event instanceof Error
+                ? event.message
+                : event?.message ?? "WebSocket error",
+            );
+          }),
+          eventBridge.on("message", handleBridgeMessage),
+        );
+        return eventBridge;
+      }
+
+      function handleBridgeMessage(event) {
+        const raw = event?.data ?? event;
+        if (raw === undefined || raw === null) {
+          return;
+        }
+
+        let payload = null;
+        if (typeof raw === "string") {
+          try {
+            payload = JSON.parse(raw);
+          } catch {
+            return;
+          }
+        } else if (raw instanceof ArrayBuffer) {
+          try {
+            const text = new TextDecoder("utf-8").decode(raw);
+            payload = JSON.parse(text);
+          } catch {
+            return;
+          }
+        } else if (raw?.text && typeof raw.text === "function") {
+          raw
+            .text()
+            .then((text) => {
+              try {
+                handleBridgeMessage({ data: JSON.parse(text) });
+              } catch {
+                // ignore invalid JSON payloads
+              }
+            })
+            .catch(() => {
+              /* ignore blob read errors */
+            });
+          return;
+        } else if (typeof raw === "object") {
+          payload = raw;
+        }
+
+        if (!payload || typeof payload !== "object") {
+          return;
+        }
+
+        const opts = eventsOptions.value ?? {};
+        const topic = payload.topic ?? null;
+        const body = payload.payload ?? payload;
+        const manifestTopic = opts.topic ?? "manifest";
+        let handled = false;
+
+        const manifest = manifestFromPayload(body);
+        if (manifest && (!topic || topic === manifestTopic)) {
+          state.manifest = manifest;
+          state.error = null;
+          syncPage(manifest);
+          opts.onManifest?.(manifest);
+          handled = true;
+        } else {
+          const eventType = body?.type ?? payload?.type ?? null;
+          if (eventType === "manifest.refresh") {
+            fetchManifest();
+            handled = true;
+          } else if (eventType === "manifest.patch" && isPlainObject(body?.patch)) {
+            const merged = deepMerge(state.manifest ?? {}, body.patch);
+            state.manifest = merged;
+            state.error = null;
+            syncPage(merged);
+            opts.onManifest?.(merged);
+            handled = true;
+          } else if (eventType === "manifest.replace" && manifest) {
+            state.manifest = manifest;
+            state.error = null;
+            syncPage(manifest);
+            opts.onManifest?.(manifest);
+            handled = true;
+          }
+        }
+
+        if (handled) {
+          recordEventError(null);
+        } else if (typeof opts.onMessage === "function") {
+          try {
+            opts.onMessage(payload, { topic, payload: body });
+          } catch (error) {
+            console.error("[layout-engine-vue] events.onMessage error", error);
+          }
+        }
+      }
+
+      function sendEvent(message) {
+        if (!eventBridge) {
+          recordEventError("WebSocket not connected");
+          return false;
+        }
+        let payload = message;
+        if (
+          typeof payload !== "string" &&
+          !(payload instanceof ArrayBuffer) &&
+          !ArrayBuffer.isView(payload)
+        ) {
+          try {
+            payload = JSON.stringify(payload);
+          } catch (error) {
+            recordEventError(
+              error instanceof Error ? error.message : String(error),
+            );
+            return false;
+          }
+        }
+        const sent = eventBridge.send(payload);
+        if (!sent) {
+          recordEventError("WebSocket not open");
+        }
+        return sent;
+      }
+
+      function reconnectEvents() {
+        if (eventBridge) {
+          eventBridge.connect();
+        }
+      }
+
+      function disconnectEvents() {
+        if (eventBridge) {
+          eventBridge.close();
+        }
+      }
+
+      watch(
+        [resolvedManifestUrl, eventsOptions],
+        ([manifestUrl, options]) => {
+          if (!options) {
+            eventsState.enabled = false;
+            eventsState.url = null;
+            teardownBridge();
+            return;
+          }
+          if (options.enabled === false) {
+            eventsState.enabled = false;
+            eventsState.url = null;
+            teardownBridge();
+            return;
+          }
+          if (typeof window === "undefined") {
+            eventsState.enabled = false;
+            eventsState.url = null;
+            return;
+          }
+
+          const derivedUrl = deriveEventsUrl({
+            manifestUrl,
+            explicitUrl: options.url ?? options.eventsUrl ?? null,
+            windowRef: window,
+          });
+          if (!derivedUrl) {
+            eventsState.enabled = false;
+            eventsState.url = null;
+            teardownBridge();
+            return;
+          }
+
+          eventsState.enabled = true;
+          eventsState.url = derivedUrl;
+          const bridge = ensureBridge(options);
+          bridge.setUrl(derivedUrl);
+          bridge.connect();
+        },
+        { immediate: true },
+      );
+
+      onBeforeUnmount(() => {
+        teardownBridge();
       });
 
       function syncPage(manifest) {
@@ -457,6 +800,12 @@ export function createRuntime(vue, options = {}) {
         setPage,
         setTheme,
         theme: themeState,
+        events: {
+          state: eventsState,
+          send: sendEvent,
+          reconnect: reconnectEvents,
+          disconnect: disconnectEvents,
+        },
       });
 
       return {
@@ -470,6 +819,10 @@ export function createRuntime(vue, options = {}) {
         runtimeTheme,
         setPage,
         setTheme,
+        eventsState,
+        sendEvent,
+        reconnectEvents,
+        disconnectEvents,
       };
     },
     template: `
@@ -533,6 +886,7 @@ export function createRuntime(vue, options = {}) {
     const initialPageId = userOptions.initialPageId ?? null;
     const controlledPageId = userOptions.pageId ?? null;
     const themeOption = userOptions.theme ?? null;
+    const eventsOption = userOptions.events ?? null;
 
     const combinedComponents = {
       ...baseRenderers,
@@ -553,6 +907,7 @@ export function createRuntime(vue, options = {}) {
       onError,
       onReady,
       onPageChange,
+      events: eventsOption,
     };
 
     const app = createApp(DashboardApp, props);
@@ -588,6 +943,29 @@ export function createRuntime(vue, options = {}) {
       },
       get theme() {
         return vm.runtimeTheme;
+      },
+      sendEvent(message) {
+        return vm.sendEvent?.(message) ?? false;
+      },
+      reconnectEvents() {
+        vm.reconnectEvents?.();
+      },
+      disconnectEvents() {
+        vm.disconnectEvents?.();
+      },
+      events: {
+        get state() {
+          return vm.eventsState ?? null;
+        },
+        reconnect() {
+          vm.reconnectEvents?.();
+        },
+        disconnect() {
+          vm.disconnectEvents?.();
+        },
+        send(message) {
+          return vm.sendEvent?.(message) ?? false;
+        },
       },
       unmount() {
         app.unmount();

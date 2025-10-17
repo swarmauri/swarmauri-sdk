@@ -6,6 +6,7 @@ import {
   reactive,
   ref,
   watch,
+  onBeforeUnmount,
 } from "vue";
 import { createAtomRenderers } from "./atom-renderers.js";
 import { createRuntime } from "./runtime-core.js";
@@ -13,7 +14,7 @@ import { createRuntime } from "./runtime-core.js";
 const atomRenderers = createAtomRenderers({ computed, defineComponent, h });
 
 const runtime = createRuntime(
-  { computed, createApp, defineComponent, h, reactive, ref, watch },
+  { computed, createApp, defineComponent, h, reactive, ref, watch, onBeforeUnmount },
   { atomRenderers },
 );
 
