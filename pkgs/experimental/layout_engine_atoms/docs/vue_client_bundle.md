@@ -90,6 +90,46 @@ createLayoutApp({
 });
 ```
 
+### Page selection
+
+Manifests that contain a `pages` collection can be controlled through
+`initialPageId`, `pageId`, or via the returned controller:
+
+```javascript
+const controller = createLayoutApp({
+  manifestUrl,
+  initialPageId: "overview",
+  resolvePage: (manifest, requested) => requested ?? manifest.pages?.[0]?.id,
+  onPageChange: (pageId, page) => console.log("active page", pageId, page?.label),
+});
+
+// Switch pages at runtime
+controller.setPage("details");
+```
+
+### Theme tokens and styling
+
+Themes can be layered via `theme.className`, `theme.style`, and `theme.tokens`
+(which map to CSS variables prefixed with `--le-`). You can also patch them
+later using `controller.setTheme`:
+
+```javascript
+const controller = createLayoutApp({
+  manifestUrl,
+  theme: {
+    className: "dashboard-theme",
+    tokens: { accent: "#57b3ff" },
+    style: { background: "#02030a" },
+  },
+});
+
+// Merge additional overrides without remounting
+controller.setTheme({ tokens: { accent: "#ff7a45" } });
+
+// Replace the theme completely
+controller.setTheme({ className: "light-theme" }, { replace: true });
+```
+
 ## Developing locally
 
 Use Vite's dev server to iterate on the client bundle with hot reload:

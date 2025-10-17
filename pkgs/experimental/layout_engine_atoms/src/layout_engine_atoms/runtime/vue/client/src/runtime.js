@@ -4,6 +4,7 @@ import {
   defineComponent,
   h,
   reactive,
+  ref,
   watch,
 } from "vue";
 import { createAtomRenderers } from "./atom-renderers.js";
@@ -12,7 +13,7 @@ import { createRuntime } from "./runtime-core.js";
 const atomRenderers = createAtomRenderers({ computed, defineComponent, h });
 
 const runtime = createRuntime(
-  { computed, createApp, defineComponent, h, reactive, watch },
+  { computed, createApp, defineComponent, h, reactive, ref, watch },
   { atomRenderers },
 );
 

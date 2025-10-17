@@ -185,7 +185,9 @@ class ManifestApp:
             path = scope.get("path", "")
             # Support mount path without trailing slash (e.g., /dashboard)
             if path == self.mount_path.rstrip("/") and not path.endswith("/"):
-                redirect_headers = [(b"location", f"{self.mount_path}".encode("latin-1"))]
+                redirect_headers = [
+                    (b"location", f"{self.mount_path}".encode("latin-1"))
+                ]
                 await send(
                     {
                         "type": "http.response.start",

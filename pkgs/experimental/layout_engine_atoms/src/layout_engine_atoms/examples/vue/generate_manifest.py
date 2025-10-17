@@ -2,7 +2,7 @@
 
 Run with:
     uv run --directory pkgs/experimental/layout_engine_atoms --package layout-engine-atoms \\
-        python examples/vue/generate_manifest.py
+        python -m layout_engine_atoms.examples.vue.generate_manifest
 """
 
 from __future__ import annotations
