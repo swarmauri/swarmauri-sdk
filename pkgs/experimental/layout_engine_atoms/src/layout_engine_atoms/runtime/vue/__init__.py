@@ -45,14 +45,24 @@ def _guess_mimetype(filename: str) -> str:
 
 def load_client_assets(root: Path | None = None) -> dict[str, bytes]:
     """Return packaged client assets for the Vue runtime."""
-    base = root or Path(__file__).resolve().parent / "client"
+    client_root = Path(__file__).resolve().parent / "client"
+    sources: list[Path] = []
+    if root is not None:
+        sources.append(root)
+    else:
+        dist_root = client_root / "dist"
+        if dist_root.exists():
+            sources.append(dist_root)
+        sources.append(client_root)
+
     assets: dict[str, bytes] = {}
-    if not base.exists():
-        return assets
-    for path in base.rglob("*"):
-        if path.is_file():
-            relative_key = path.relative_to(base).as_posix()
-            assets[relative_key] = path.read_bytes()
+    for base in sources:
+        if not base.exists():
+            continue
+        for path in base.rglob("*"):
+            if path.is_file():
+                relative_key = path.relative_to(base).as_posix()
+                assets.setdefault(relative_key, path.read_bytes())
     return assets
 
 
@@ -173,6 +183,25 @@ class ManifestApp:
                 return
 
             path = scope.get("path", "")
+            # Support mount path without trailing slash (e.g., /dashboard)
+            if path == self.mount_path.rstrip("/") and not path.endswith("/"):
+                redirect_headers = [(b"location", f"{self.mount_path}".encode("latin-1"))]
+                await send(
+                    {
+                        "type": "http.response.start",
+                        "status": 307,
+                        "headers": redirect_headers,
+                    }
+                )
+                await send(
+                    {
+                        "type": "http.response.body",
+                        "body": b"",
+                        "more_body": False,
+                    }
+                )
+                return
+
             if path == self.manifest_route:
                 status, headers, body = self._manifest_response()
             elif path.startswith(self.mount_path):
