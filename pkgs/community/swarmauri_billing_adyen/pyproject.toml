@@ -1,58 +1,48 @@
 [project]
-name = "tigrbl_api_hpks"
-version = "0.1.0.dev0"
-description = "High-trust OpenPGP keyserver APIs built on the Tigrbl application engine."
-license = { file = "LICENSE" }
-readme = { file = "README.md", content-type = "text/markdown" }
+name = "swarmauri_billing_adyen"
+version = "0.9.0.dev8"
+description = "Adyen billing provider for the Swarmauri SDK."
+license = "Apache-2.0"
+readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
 requires-python = ">=3.10,<3.13"
 classifiers = [
-    "License :: OSI Approved :: Apache Software License",
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 1 - Planning",
     "Intended Audience :: Developers",
-    "Intended Audience :: System Administrators",
-    "Natural Language :: English",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
-    "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Topic :: Security :: Cryptography",
-    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content :: E-Commerce",
+    "Topic :: Office/Business :: Financial :: Point-Of-Sale",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
-    "pgpy>=0.6.0",
-    "python-multipart>=0.0.7",
-    "tigrbl",
+    "swarmauri_core",
+    "swarmauri_base",
 ]
 keywords = [
-    "tigrbl",
-    "openpgp",
-    "hpks",
-    "hkp",
-    "keyserver",
-    "api",
-    "pki",
-]
-
-[project.urls]
-Homepage = "https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/tigrbl_api_hpks"
-Repository = "https://github.com/swarmauri/swarmauri-sdk"
-Documentation = "https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/tigrbl_api_hpks"
-"Issue Tracker" = "https://github.com/swarmauri/swarmauri-sdk/issues"
-Changelog = "https://github.com/swarmauri/swarmauri-sdk/releases"
-
-[project.optional-dependencies]
-server = [
-    "uvicorn[standard]>=0.30",
+    "swarmauri",
+    "sdk",
+    "billing",
+    "adyen",
+    "community",
+    "payments",
+    "payment gateway",
+    "recurring billing",
+    "subscription management",
+    "merchant services",
+    "e-commerce integration",
 ]
 
 [tool.uv.sources]
-tigrbl = { workspace = true }
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
@@ -73,14 +63,13 @@ log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
-asyncio_mode = "auto"
+
+[project.entry-points.'swarmauri.billing_providers']
+AdyenBillingProvider = "swarmauri_billing_adyen.provider:AdyenBillingProvider"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
-
-[tool.poetry]
-packages = [{ include = "tigrbl_api_hpks", from = "src" }]
 
 [dependency-groups]
 dev = [
@@ -94,5 +83,4 @@ dev = [
     "pytest-timeout>=2.3.1",
     "ruff>=0.9.9",
     "pytest-benchmark>=4.0.0",
-    "httpx>=0.27",
 ]
