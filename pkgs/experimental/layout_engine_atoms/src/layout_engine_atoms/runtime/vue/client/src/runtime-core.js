@@ -49,6 +49,54 @@ function deepMerge(target, patch) {
   return result;
 }
 
+function createDocumentThemeApplier() {
+  if (typeof document === "undefined") {
+    return () => {};
+  }
+  const rootEl = document.documentElement;
+  const bodyEl = document.body;
+  const appliedTokens = new Set();
+
+  return function apply(theme) {
+    const normalized = normalizeTheme(theme);
+    const tokens = normalized.tokens ?? {};
+    const style = normalized.style ?? {};
+
+    for (const token of appliedTokens) {
+      if (!(token in tokens)) {
+        rootEl.style.removeProperty(`--le-${token}`);
+        bodyEl.style.removeProperty(`--le-${token}`);
+      }
+    }
+    appliedTokens.clear();
+
+    for (const [token, value] of Object.entries(tokens)) {
+      const cssVar = `--le-${token}`;
+      rootEl.style.setProperty(cssVar, String(value));
+      bodyEl.style.setProperty(cssVar, String(value));
+      appliedTokens.add(token);
+    }
+
+    if (tokens["color-surface"]) {
+      bodyEl.style.backgroundColor = String(tokens["color-surface"]);
+    }
+    if (style.background || style.backgroundColor) {
+      const background = style.background ?? style.backgroundColor;
+      bodyEl.style.background = String(background);
+    }
+    if (style.color) {
+      bodyEl.style.color = String(style.color);
+    } else if (tokens["color-text-primary"]) {
+      bodyEl.style.color = String(tokens["color-text-primary"]);
+    }
+    const colorScheme =
+      style["color-scheme"] ?? style.colorScheme ?? tokens["color-scheme"];
+    if (colorScheme) {
+      rootEl.style.setProperty("color-scheme", String(colorScheme));
+    }
+  };
+}
+
 function manifestFromPayload(payload) {
   if (!payload || typeof payload !== "object") {
     return null;
@@ -194,6 +242,8 @@ export function createRuntime(vue, options = {}) {
     ref,
     watch,
     onBeforeUnmount,
+    provide,
+    inject,
   } = vue;
   if (
     !computed ||
@@ -203,12 +253,21 @@ export function createRuntime(vue, options = {}) {
     !reactive ||
     !ref ||
     !watch ||
-    !onBeforeUnmount
+    !onBeforeUnmount ||
+    !provide ||
+    !inject
   ) {
-    throw new Error("createRuntime requires Vue composition API exports");
+    throw new Error(
+      "createRuntime requires Vue composition API exports including provide/inject",
+    );
   }
 
-  const defaultRenderers = createAtomRenderers({ computed, defineComponent, h });
+  const defaultRenderers = createAtomRenderers({
+    computed,
+    defineComponent,
+    h,
+    inject,
+  });
   const rendererOverrides = options.atomRenderers ?? {};
   const baseRenderers = {
     ...defaultRenderers,
@@ -788,9 +847,43 @@ export function createRuntime(vue, options = {}) {
         };
       });
 
+      const dashboardTitle = computed(() => {
+        const page = view.value.page;
+        if (page?.label) {
+          return page.label;
+        }
+        if (page?.title) {
+          return page.title;
+        }
+        const manifest = state.manifest;
+        if (manifest?.title) {
+          return manifest.title;
+        }
+        if (manifest?.label) {
+          return manifest.label;
+        }
+        return "Dashboard";
+      });
+
       const runtimeTheme = computed(() => {
         const base = normalizeTheme(themeState);
         return mergeTheme(base, view.value.page?.theme);
+      });
+
+      const applyDocumentTheme = createDocumentThemeApplier();
+
+      watch(
+        runtimeTheme,
+        (next) => {
+          applyDocumentTheme(next);
+        },
+        { immediate: true, deep: true },
+      );
+
+      provide("layout-engine-context", {
+        setPage,
+        sendEvent,
+        refresh: fetchManifest,
       });
 
       const rootClass = computed(() => {
@@ -900,13 +993,14 @@ export function createRuntime(vue, options = {}) {
         sendEvent,
         reconnectEvents,
         disconnectEvents,
+        dashboardTitle,
       };
     },
     template: `
       <div :class="rootClass" :style="rootStyle">
         <header class="dashboard__header">
           <div>
-            <h1 class="dashboard__title">Revenue Operations Overview</h1>
+            <h1 class="dashboard__title">{{ dashboardTitle }}</h1>
             <p class="dashboard__meta">
               <span>Manifest v{{ state.manifest?.version ?? "—" }}</span>
               <span aria-hidden="true">•</span>

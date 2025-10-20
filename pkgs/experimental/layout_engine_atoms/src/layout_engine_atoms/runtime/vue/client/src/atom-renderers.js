@@ -1,10 +1,13 @@
 export function createAtomRenderers(vue) {
-  const { computed, defineComponent, h } = vue;
-  if (!computed || !defineComponent || !h) {
-    throw new Error("createAtomRenderers requires Vue's computed, defineComponent, and h");
+  const { computed, defineComponent, h, inject } = vue;
+  if (!computed || !defineComponent || !h || !inject) {
+    throw new Error(
+      "createAtomRenderers requires Vue's computed, defineComponent, h, and inject",
+    );
   }
 
   const palette = ["#57b3ff", "#a385ff", "#59d6a4", "#f6c177"];
+  const layoutContextKey = "layout-engine-context";
 
   function formatPrimaryValue(value, format) {
     if (format === "currency_compact" && typeof value === "number") {
@@ -40,6 +43,70 @@ export function createAtomRenderers(vue) {
 
   function pickColor(index) {
     return palette[index % palette.length];
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function markdownToHtml(markdown) {
+    if (!markdown) {
+      return "";
+    }
+
+    const lines = String(markdown).split(/\r?\n/);
+    const html = [];
+    let inList = false;
+
+    const closeList = () => {
+      if (inList) {
+        html.push("</ul>");
+        inList = false;
+      }
+    };
+
+    for (const raw of lines) {
+      const line = raw.trim();
+      if (!line) {
+        closeList();
+        continue;
+      }
+
+      if (line.startsWith("### ")) {
+        closeList();
+        html.push(`<h3>${escapeHtml(line.slice(4).trim())}</h3>`);
+        continue;
+      }
+      if (line.startsWith("## ")) {
+        closeList();
+        html.push(`<h2>${escapeHtml(line.slice(3).trim())}</h2>`);
+        continue;
+      }
+      if (line.startsWith("# ")) {
+        closeList();
+        html.push(`<h1>${escapeHtml(line.slice(2).trim())}</h1>`);
+        continue;
+      }
+      if (line.startsWith("- ") || line.startsWith("* ")) {
+        if (!inList) {
+          html.push("<ul>");
+          inList = true;
+        }
+        html.push(`<li>${escapeHtml(line.slice(2).trim())}</li>`);
+        continue;
+      }
+
+      closeList();
+      html.push(`<p>${escapeHtml(line)}</p>`);
+    }
+
+    closeList();
+    return html.join("");
   }
 
   const MetricCard = defineComponent({
@@ -81,6 +148,164 @@ export function createAtomRenderers(vue) {
         </div>
         <div class="metric-card__footnote">vs {{ tile.props.period }}</div>
       </div>
+    `,
+  });
+
+  const MarkdownPanel = defineComponent({
+    name: "MarkdownPanel",
+    props: {
+      tile: { type: Object, required: true },
+    },
+    setup(props) {
+      const title = computed(() => props.tile?.props?.title ?? "");
+      const bodyHtml = computed(() =>
+        markdownToHtml(props.tile?.props?.body ?? ""),
+      );
+
+      return {
+        title,
+        bodyHtml,
+      };
+    },
+    template: `
+      <div class="markdown-panel">
+        <h3 v-if="title" class="markdown-panel__title">{{ title }}</h3>
+        <div class="markdown-panel__body" v-html="bodyHtml"></div>
+      </div>
+    `,
+  });
+
+  function normalizeBarSeries(series) {
+    const entries = Array.isArray(series) ? series : [];
+    const normalized = entries
+      .map((entry, idx) => {
+        const rawValue =
+          typeof entry === "number"
+            ? entry
+            : Number(entry?.value ?? entry?.amount ?? entry?.count ?? NaN);
+        if (!Number.isFinite(rawValue)) {
+          return null;
+        }
+        const label =
+          (entry && (entry.label ?? entry.name ?? entry.segment)) ??
+          `Item ${idx + 1}`;
+        const annotation =
+          entry && (entry.annotation ?? entry.caption ?? entry.note ?? null);
+        return { label, value: rawValue, annotation };
+      })
+      .filter(Boolean);
+    if (!normalized.length) {
+      return [];
+    }
+    const maxMagnitude = Math.max(
+      ...normalized.map((item) => Math.abs(item.value)),
+    );
+    return normalized.map((item) => {
+      const percent =
+        maxMagnitude <= 0 ? 0 : Math.min(100, (Math.abs(item.value) / maxMagnitude) * 100);
+      const valueLabel = new Intl.NumberFormat("en-US", {
+        maximumFractionDigits: Math.abs(item.value) >= 100 ? 0 : 1,
+      }).format(item.value);
+      return {
+        label: item.label,
+        value: item.value,
+        annotation: item.annotation,
+        percent,
+        valueLabel,
+      };
+    });
+  }
+
+  const HorizontalBarCard = defineComponent({
+    name: "HorizontalBarCard",
+    props: {
+      tile: { type: Object, required: true },
+    },
+    setup(props) {
+      const heading = computed(() => props.tile?.props?.label ?? "");
+      const items = computed(() =>
+        normalizeBarSeries(props.tile?.props?.series ?? []),
+      );
+      return {
+        heading,
+        items,
+      };
+    },
+    template: `
+      <div class="bar-card">
+        <h3 v-if="heading" class="bar-card__title">{{ heading }}</h3>
+        <div v-for="item in items" :key="item.label" class="bar-card__row">
+          <div class="bar-card__row-header">
+            <span class="bar-card__label">{{ item.label }}</span>
+            <span class="bar-card__value">{{ item.valueLabel }}</span>
+          </div>
+          <div class="bar-card__bar">
+            <div class="bar-card__bar-fill" :style="{ width: item.percent + '%' }"></div>
+          </div>
+          <p v-if="item.annotation" class="bar-card__annotation">{{ item.annotation }}</p>
+        </div>
+        <p v-if="!items.length" class="bar-card__empty">No segment data available.</p>
+      </div>
+    `,
+  });
+
+  const NavButton = defineComponent({
+    name: "LayoutNavButton",
+    props: {
+      tile: { type: Object, required: true },
+    },
+    setup(props) {
+      const layoutCtx = inject(layoutContextKey, null);
+      const roleVariant = computed(() =>
+        (props.tile?.role ?? "").endsWith("secondary") ? "secondary" : null,
+      );
+      const variant = computed(
+        () => props.tile?.props?.variant ?? roleVariant.value ?? "primary",
+      );
+      const label = computed(() => props.tile?.props?.label ?? "Navigate");
+      const caption = computed(() => props.tile?.props?.caption ?? "");
+
+      function handleClick(event) {
+        event?.preventDefault?.();
+        const targetPage =
+          props.tile?.props?.targetPage ?? props.tile?.props?.page ?? null;
+        if (targetPage && layoutCtx?.setPage) {
+          layoutCtx.setPage(targetPage);
+        }
+        const href = props.tile?.props?.href ?? null;
+        if (href) {
+          const target = props.tile?.props?.target ?? "_blank";
+          if (typeof window !== "undefined" && window.open) {
+            window.open(href, target);
+          }
+        }
+        if (layoutCtx?.sendEvent) {
+          layoutCtx.sendEvent({
+            type: "ui:button.click",
+            tile_id: props.tile?.id,
+            target_page: targetPage,
+            href,
+          });
+        }
+      }
+
+      const buttonClasses = computed(() => ({
+        "nav-button": true,
+        "nav-button--secondary": variant.value === "secondary",
+      }));
+
+      return {
+        handleClick,
+        buttonClasses,
+        label,
+        caption,
+      };
+    },
+    template: `
+      <button class="nav-button" :class="buttonClasses" type="button" @click="handleClick">
+        <span class="nav-button__label">{{ label }}</span>
+        <span v-if="caption" class="nav-button__caption">{{ caption }}</span>
+      </button>
     `,
   });
 
@@ -238,8 +463,12 @@ export function createAtomRenderers(vue) {
 
   return {
     "viz:metric:kpi": MetricCard,
+    "viz:panel:markdown": MarkdownPanel,
+    "viz:bar:horizontal": HorizontalBarCard,
     "viz:timeseries:line": LineChartCard,
     "viz:table:basic": TableCard,
+    "ui:button:primary": NavButton,
+    "ui:button:secondary": NavButton,
     default: PlaceholderCard,
   };
 }

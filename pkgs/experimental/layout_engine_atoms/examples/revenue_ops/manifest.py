@@ -4,18 +4,19 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 from random import Random
-from typing import Iterable
+from typing import Any, Iterable, Mapping
 
 from layout_engine import (
-    Manifest,
     SizeToken,
     TileSpec,
     Viewport,
     block,
     col,
+    compute_etag,
     quick_manifest_from_table,
     row,
     table,
+    to_plain_dict,
 )
 from layout_engine_atoms import build_default_registry
 
@@ -45,7 +46,7 @@ def _trend_points(seed: int, count: int = 8) -> Iterable[dict[str, float | str]]
         }
 
 
-def create_manifest() -> Manifest:
+def create_manifest() -> Mapping[str, Any]:
     registry = build_default_registry()
 
     # Customise default atoms for the command center.
@@ -54,7 +55,11 @@ def create_manifest() -> Manifest:
         defaults={
             "sparkline": False,
             "format": "currency",
-            "theme": {"tokens": {"accent": "#5ab1ff"}},
+            "theme": {
+                "tokens": {
+                    "accent": "#ff6b6b",
+                }
+            },
         },
     )
 
@@ -145,22 +150,57 @@ def create_manifest() -> Manifest:
         ),
     ]
 
-    return quick_manifest_from_table(
+    manifest = quick_manifest_from_table(
         layout,
         Viewport(width=1280, height=960),
         tiles,
         atoms_registry=registry,
         version="2025.05",
-        theme={
-            "tokens": {
-                "color-surface": "#050a18",
-                "color-accent": "#5ab1ff",
-            },
-            "style": {
-                "background": "radial-gradient(circle at top, #0b1936, #050812 65%)"
-            },
-        },
     )
+    payload = to_plain_dict(manifest)
+
+    page_theme = {
+        "tokens": {
+            "color-surface": "#f5f1ff",
+            "color-surface-elevated": "#ffffff",
+            "color-surface-muted": "#f8f5ff",
+            "color-border": "#f3d3d3",
+            "color-border-strong": "#edbcbc",
+            "color-text-primary": "#1f1a3d",
+            "color-text-subtle": "#3c356d",
+            "color-text-muted": "#5a4f91",
+            "color-accent": "#ff6b6b",
+            "color-accent-soft": "#ffd4d4",
+            "density": 0.92,
+        },
+        "style": {
+            "background": "radial-gradient(circle at top, #ffe1c3, #f0f3ff 70%)",
+            "color-scheme": "light",
+            "color": "var(--le-color-text-primary)",
+        },
+    }
+
+    payload["pages"] = [
+        {
+            "id": "revenue-ops",
+            "label": "Revenue Ops Command Center",
+            "slug": "revenue-ops",
+            "viewport": dict(payload["viewport"]),
+            "grid": dict(payload["grid"]),
+            "tiles": list(payload["tiles"]),
+            "theme": page_theme,
+        }
+    ]
+    payload["theme"] = {
+        "tokens": dict(page_theme["tokens"]),
+        "style": dict(page_theme["style"]),
+    }
+
+    payload_without_etag = dict(payload)
+    payload_without_etag.pop("etag", None)
+    payload["etag"] = compute_etag(payload_without_etag)
+
+    return payload
 
 
 __all__ = ["create_manifest"]
