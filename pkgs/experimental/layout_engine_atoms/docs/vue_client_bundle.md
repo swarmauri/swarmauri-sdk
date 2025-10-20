@@ -176,6 +176,38 @@ controller.sendEvent({
 });
 ```
 
+### Design tokens & theming
+
+The runtime exposes design tokens as CSS custom properties prefixed with
+`--le-`. Defaults cover Swiss-grid spacing, typography, and palette, and you can
+override them via the `theme.tokens` option or by patching the theme after
+mounting. Key tokens include:
+
+- `color-surface`, `color-surface-elevated`, `color-text-primary`,
+  `color-accent`
+- `font-family-sans`, `font-size-base`, `font-size-xl`,
+  `line-height-base`, `font-weight-semibold`
+- `space-1…space-8`, `density` (scales spacing via multipliers)
+- `grid-max-width`, `grid-column-min`, `viewport-padding-x`
+
+```javascript
+const controller = createLayoutApp({
+  manifestUrl,
+  theme: {
+    tokens: {
+      "color-surface": "#ffffff",
+      "color-text-primary": "#1b1d29",
+      "font-family-sans": "'General Sans', system-ui, sans-serif",
+      "space-5": "1.25rem",
+      density: 0.9,
+    },
+  },
+});
+
+// Adjust density at runtime
+controller.setTheme({ tokens: { density: 1.1 } });
+```
+
 ### Page selection
 
 Manifests that contain a `pages` collection can be controlled through
