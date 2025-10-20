@@ -69,6 +69,48 @@ function manifestFromPayload(payload) {
   return null;
 }
 
+function createPluginManager(initial = []) {
+  const plugins = new Set();
+  for (const plugin of initial) {
+    if (plugin && typeof plugin === "object") {
+      plugins.add(plugin);
+    }
+  }
+
+  function runHook(name, context) {
+    for (const plugin of plugins) {
+      const handler = plugin?.[name];
+      if (typeof handler === "function") {
+        try {
+          handler(context);
+        } catch (error) {
+          console.error(
+            `[layout-engine-vue] plugin hook "${name}" failed`,
+            error,
+          );
+        }
+      }
+    }
+  }
+
+  return {
+    register(plugin) {
+      if (plugin && typeof plugin === "object") {
+        plugins.add(plugin);
+      }
+    },
+    unregister(plugin) {
+      if (plugin && typeof plugin === "object") {
+        plugins.delete(plugin);
+      }
+    },
+    list() {
+      return Array.from(plugins);
+    },
+    runHook,
+  };
+}
+
 function matchesPageId(page, identifier) {
   if (identifier === undefined || identifier === null) {
     return false;
@@ -177,6 +219,9 @@ export function createRuntime(vue, options = {}) {
   }
 
   const defaultTheme = normalizeTheme(options.theme);
+  const basePluginList = Array.isArray(options.plugins)
+    ? options.plugins.filter(Boolean)
+    : [];
 
   const TileHost = defineComponent({
     name: "LayoutEngineTileHost",
@@ -224,6 +269,10 @@ export function createRuntime(vue, options = {}) {
       components: {
         type: Object,
         default: () => ({}),
+      },
+      plugins: {
+        type: Object,
+        default: () => null,
       },
       theme: {
         type: Object,
@@ -794,6 +843,34 @@ export function createRuntime(vue, options = {}) {
         applyThemePatch(patch, options);
       }
 
+      const pluginManager = props.plugins?.manager ?? null;
+
+      const pluginContext = {
+        get state() {
+          return state;
+        },
+        get view() {
+          return view.value;
+        },
+        get events() {
+          return eventsState;
+        },
+        refresh: fetchManifest,
+        setPage,
+        setTheme,
+        sendEvent,
+      };
+
+      pluginManager?.runHook("beforeRender", pluginContext);
+
+      watch(
+        () => [state.manifest, view.value, eventsState.status],
+        () => {
+          pluginManager?.runHook("afterUpdate", pluginContext);
+        },
+        { flush: "post" },
+      );
+
       expose({
         refresh: fetchManifest,
         state,
@@ -887,19 +964,19 @@ export function createRuntime(vue, options = {}) {
     const controlledPageId = userOptions.pageId ?? null;
     const themeOption = userOptions.theme ?? null;
     const eventsOption = userOptions.events ?? null;
+    const runtimePlugins = Array.isArray(userOptions.plugins)
+      ? userOptions.plugins.filter(Boolean)
+      : [];
 
-    const combinedComponents = {
-      ...baseRenderers,
-      ...componentsOverride,
-    };
-    if (!combinedComponents.default && baseRenderers.default) {
-      combinedComponents.default = baseRenderers.default;
-    }
+    const registeredComponents = reactive({ ...componentsOverride });
+    const pluginManager = createPluginManager(basePluginList);
+    runtimePlugins.forEach((plugin) => pluginManager.register(plugin));
 
     const props = {
       manifestUrl,
       fetchOptions,
-      components: combinedComponents,
+      components: registeredComponents,
+      plugins: { manager: pluginManager },
       theme: themeOption,
       initialPageId,
       pageId: controlledPageId,
@@ -927,6 +1004,17 @@ export function createRuntime(vue, options = {}) {
 
     const vm = app.mount(mountTarget);
 
+    function registerAtomRenderer(role, component) {
+      if (typeof role !== "string" || !role) {
+        return;
+      }
+      if (component === undefined || component === null) {
+        delete registeredComponents[role];
+        return;
+      }
+      registeredComponents[role] = component;
+    }
+
     return {
       app,
       refresh() {
@@ -937,6 +1025,13 @@ export function createRuntime(vue, options = {}) {
       },
       setTheme(patch, opts) {
         vm.setTheme?.(patch, opts);
+      },
+      registerAtomRenderer,
+      unregisterAtomRenderer(role) {
+        if (typeof role !== "string" || !role) {
+          return;
+        }
+        delete registeredComponents[role];
       },
       get state() {
         return vm.state;
@@ -952,6 +1047,19 @@ export function createRuntime(vue, options = {}) {
       },
       disconnectEvents() {
         vm.disconnectEvents?.();
+      },
+      registerPlugin(plugin) {
+        pluginManager.register(plugin);
+      },
+      unregisterPlugin(plugin) {
+        pluginManager.unregister(plugin);
+      },
+      get plugins() {
+        return {
+          list: () => pluginManager.list(),
+          register: (plugin) => pluginManager.register(plugin),
+          unregister: (plugin) => pluginManager.unregister(plugin),
+        };
       },
       events: {
         get state() {

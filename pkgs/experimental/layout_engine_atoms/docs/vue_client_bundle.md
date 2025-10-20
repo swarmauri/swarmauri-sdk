@@ -208,6 +208,41 @@ const controller = createLayoutApp({
 controller.setTheme({ tokens: { density: 1.1 } });
 ```
 
+### Extension hooks
+
+Runtime instances expose helpers for dynamic atom registration and plugin
+lifecycle events:
+
+- `controller.registerAtomRenderer(role, component)` and
+  `controller.unregisterAtomRenderer(role)` adjust the renderer registry after
+  mount. Registered components override the shipped presets immediately.
+- `controller.registerPlugin(plugin)` adds a plugin object that can implement
+  `beforeRender(ctx)` and `afterUpdate(ctx)` hooks; use
+  `controller.unregisterPlugin(plugin)` or `controller.plugins.unregister(...)`
+  to remove it.
+
+```javascript
+const controller = createLayoutApp({ manifestUrl, components: { custom: Foo } });
+
+controller.registerAtomRenderer("viz:metric:kpi", MyLiveMetric);
+
+controller.registerPlugin({
+  beforeRender(ctx) {
+    console.info("dashboard rendering", ctx.state.manifest?.version);
+  },
+  afterUpdate(ctx) {
+    analytics.track("manifest:update", {
+      tiles: ctx.view.tiles.length,
+      status: ctx.events.status,
+    });
+  },
+});
+```
+
+The plugin context (`ctx`) provides the reactive dashboard `state`, derived
+`view`, `events` status, and helper methods (`refresh`, `setPage`, `setTheme`,
+`sendEvent`).
+
 ### Page selection
 
 Manifests that contain a `pages` collection can be controlled through
