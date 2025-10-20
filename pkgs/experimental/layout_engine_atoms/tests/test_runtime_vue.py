@@ -6,7 +6,7 @@ from typing import Any, Tuple
 
 import pytest
 
-from layout_engine_atoms.runtime.vue import ManifestApp
+from layout_engine_atoms.runtime.vue import ManifestApp, load_client_assets
 
 
 async def _make_request(
@@ -112,3 +112,28 @@ def test_head_request_has_empty_body(manifest_app):
 def test_build_manifest_payload_from_mapping(manifest_app):
     payload = manifest_app.build_manifest_payload()
     assert payload["kind"] == "layout_manifest"
+
+
+def test_load_client_assets_includes_dist_bundle():
+    assets = load_client_assets()
+    bundle_names = set(assets)
+    assert any(
+        name.endswith("layout-engine-vue.es.js") for name in bundle_names
+    ), "expected ESM bundle in packaged client assets"
+
+
+def test_manifest_app_serves_packaged_bundle():
+    manifest = {"kind": "layout_manifest", "version": "bundle-test"}
+
+    app = ManifestApp(
+        manifest_builder=lambda: manifest,
+        mount_path="/dashboard",
+    ).asgi_app()
+
+    status, headers, body = _request(
+        app, "/dashboard/layout-engine-vue.es.js"
+    )
+    assert status == 200
+    header_map = dict(headers)
+    assert header_map.get("content-type", "").startswith("application/javascript")
+    assert b"createLayoutApp" in body
