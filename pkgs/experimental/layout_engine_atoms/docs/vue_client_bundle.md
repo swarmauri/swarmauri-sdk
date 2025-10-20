@@ -243,6 +243,10 @@ The plugin context (`ctx`) provides the reactive dashboard `state`, derived
 `view`, `events` status, and helper methods (`refresh`, `setPage`, `setTheme`,
 `sendEvent`).
 
+Refer to the [Revenue Ops Command Center walkthrough](./vue_embedding_guide.md)
+for an end-to-end example combining realtime incidents, theme overrides, and
+dynamic atom registration.
+
 ### Page selection
 
 Manifests that contain a `pages` collection can be controlled through
