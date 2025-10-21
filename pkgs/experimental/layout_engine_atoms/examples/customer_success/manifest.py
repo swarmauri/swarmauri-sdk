@@ -133,12 +133,14 @@ def _overview_tiles() -> list[TileSpec]:
             2_450_000,
             0.12,
             format="currency_compact",
+            period="Last 30 days",
         ),
         _kpi_tile(
             "tile_retention",
             "Renewal Confidence",
             0.93,
             0.03,
+            period="Next 90 days",
         ),
         TileSpec(
             id="tile_trend",
@@ -152,10 +154,7 @@ def _overview_tiles() -> list[TileSpec]:
                     },
                     {
                         "label": "Target %",
-                        "points": [
-                            {"x": point["x"], "y": 92.0}
-                            for point in _trend_points(1, 12)
-                        ],
+                        "points": list(_trend_points(seed=1000)),
                     },
                 ],
             },

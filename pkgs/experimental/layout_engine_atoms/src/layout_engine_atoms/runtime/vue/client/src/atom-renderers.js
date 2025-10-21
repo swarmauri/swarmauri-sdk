@@ -54,6 +54,14 @@ export function createAtomRenderers(vue) {
       .replace(/'/g, "&#39;");
   }
 
+  function formatInline(text) {
+    const escaped = escapeHtml(text);
+    return escaped
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*(.+?)\*/g, "<em>$1</em>")
+      .replace(/`([^`]+)`/g, "<code>$1</code>");
+  }
+
   function markdownToHtml(markdown) {
     if (!markdown) {
       return "";
@@ -79,17 +87,17 @@ export function createAtomRenderers(vue) {
 
       if (line.startsWith("### ")) {
         closeList();
-        html.push(`<h3>${escapeHtml(line.slice(4).trim())}</h3>`);
+        html.push(`<h3>${formatInline(line.slice(4).trim())}</h3>`);
         continue;
       }
       if (line.startsWith("## ")) {
         closeList();
-        html.push(`<h2>${escapeHtml(line.slice(3).trim())}</h2>`);
+        html.push(`<h2>${formatInline(line.slice(3).trim())}</h2>`);
         continue;
       }
       if (line.startsWith("# ")) {
         closeList();
-        html.push(`<h1>${escapeHtml(line.slice(2).trim())}</h1>`);
+        html.push(`<h1>${formatInline(line.slice(2).trim())}</h1>`);
         continue;
       }
       if (line.startsWith("- ") || line.startsWith("* ")) {
@@ -97,12 +105,12 @@ export function createAtomRenderers(vue) {
           html.push("<ul>");
           inList = true;
         }
-        html.push(`<li>${escapeHtml(line.slice(2).trim())}</li>`);
+        html.push(`<li>${formatInline(line.slice(2).trim())}</li>`);
         continue;
       }
 
       closeList();
-      html.push(`<p>${escapeHtml(line)}</p>`);
+      html.push(`<p>${formatInline(line)}</p>`);
     }
 
     closeList();
