@@ -26,11 +26,7 @@ function upgradeToWebSocket(urlLike, windowRef) {
   }
 }
 
-export function deriveEventsUrl({
-  manifestUrl,
-  explicitUrl,
-  windowRef,
-} = {}) {
+export function deriveEventsUrl({ manifestUrl, explicitUrl, windowRef } = {}) {
   const win =
     windowRef !== undefined
       ? windowRef
@@ -38,7 +34,6 @@ export function deriveEventsUrl({
         ? window
         : null;
 
-  // Highest precedence: explicit override then global override.
   const preferred = explicitUrl ?? win?.__LE_EVENTS_URL__ ?? null;
   if (preferred) {
     return upgradeToWebSocket(preferred, win);
@@ -138,7 +133,7 @@ export function createEventBridge(options = {}) {
     try {
       socket.close(1000, "reconnect");
     } catch {
-      // swallow errors from browsers that disallow closing here
+      // ignore
     }
     socket = null;
   }
@@ -199,64 +194,56 @@ export function createEventBridge(options = {}) {
       attempts,
     });
 
-    ws.addEventListener("open", () => {
+    ws.onopen = () => {
       attempts = 0;
       emit(handlers, "open", { url: targetUrl });
       emit(handlers, "status", { type: "open", url: targetUrl });
-    });
+    };
 
-    ws.addEventListener("message", (event) => {
-      emit(handlers, "message", event);
-    });
+    ws.onerror = (event) => {
+      emit(handlers, "error", event instanceof Event ? new Error("WebSocket error") : event);
+    };
 
-    ws.addEventListener("error", (event) => {
-      emit(handlers, "error", event);
-    });
-
-    ws.addEventListener("close", (event) => {
-      socket = null;
+    ws.onclose = (event) => {
       emit(handlers, "close", event);
-      emit(handlers, "status", {
-        type: "closed",
-        url: targetUrl,
-        code: event.code,
-        reason: event.reason,
-        wasClean: event.wasClean,
-      });
+      emit(handlers, "status", { type: "closed", url: targetUrl, event });
+      socket = null;
       scheduleReconnect();
-    });
+    };
+
+    ws.onmessage = (event) => {
+      emit(handlers, "message", event.data);
+    };
   }
 
-  function close(code = 1000, reason = "client close") {
-    disposed = true;
+  function disconnect() {
+    cleanupSocket();
     if (reconnectTimer) {
       clearTimeout(reconnectTimer);
       reconnectTimer = null;
     }
-    if (socket) {
-      try {
-        socket.close(code, reason);
-      } catch {
-        // ignore close errors
-      }
-      socket = null;
-    }
   }
 
-  function send(payload) {
+  function setUrl(url) {
+    currentUrl = url ?? null;
+  }
+
+  function dispose() {
+    disposed = true;
+    disconnect();
+    handlers.clear();
+  }
+
+  function send(data) {
     if (!socket || socket.readyState !== WebSocket.OPEN) {
       return false;
     }
-    socket.send(payload);
-    return true;
-  }
-
-  function setUrl(url, { reconnect = true } = {}) {
-    currentUrl = url ? upgradeToWebSocket(url, windowRef) ?? url : null;
-    emit(handlers, "status", { type: "url", url: currentUrl });
-    cleanupSocket();
-    if (reconnect && currentUrl) {
-      connect();
+    try {
+      socket.send(data);
+      return true;
+    } catch (error) {
+      emit(handlers, "error", error);
+      return false;
     }
   }
 
@@ -264,23 +251,42 @@ export function createEventBridge(options = {}) {
     return addHandler(handlers, event, handler);
   }
 
-  if (currentUrl) {
-    currentUrl = upgradeToWebSocket(currentUrl, windowRef) ?? currentUrl;
-  }
-  if (autoConnect && currentUrl) {
-    setTimeout(connect, 0);
+  if (autoConnect && options.url) {
+    setUrl(options.url);
+    connect();
   }
 
   return {
-    connect,
-    close,
-    send,
-    on,
+    connect() {
+      if (!currentUrl) {
+        currentUrl = options.url ?? null;
+      }
+      if (!currentUrl) {
+        emit(handlers, "error", new Error("WebSocket URL is not set"));
+        return;
+      }
+      connect();
+    },
+    disconnect,
+    dispose,
+    reconnect() {
+      disconnect();
+      connect();
+    },
     setUrl,
-    getUrl() {
+    setProtocols(nextProtocols) {
+      options.protocols = nextProtocols;
+    },
+    on,
+    off(event, handler) {
+      handlers.get(event)?.delete(handler);
+    },
+    send,
+    get url() {
       return currentUrl;
+    },
+    get connected() {
+      return socket?.readyState === WebSocket.OPEN;
     },
   };
 }
-
-export default createEventBridge;

@@ -1,236 +1,18 @@
 import { createAtomRenderers } from "./atom-renderers.js";
-import { createEventBridge, deriveEventsUrl } from "./event-bridge.js";
+import {
+  createRuntimeState,
+  createThemeController,
+  mergeTheme,
+  normalizeTheme,
+  createPluginManager,
+  manifestFromPayload,
+  createEventBridge,
+  deriveEventsUrl,
+  isPlainObject,
+  computeGridPlacement,
+  createDocumentThemeApplier,
+} from "../core/index.js";
 
-function normalizeTheme(input = {}) {
-  if (!input) {
-    return { className: "", style: {}, tokens: {} };
-  }
-  return {
-    className: input.className ?? "",
-    style: { ...(input.style ?? {}) },
-    tokens: { ...(input.tokens ?? {}) },
-  };
-}
-
-function mergeTheme(base, patch) {
-  const output = normalizeTheme(base);
-  if (!patch) {
-    return output;
-  }
-  const addition = normalizeTheme(patch);
-  if (addition.className) {
-    output.className = [output.className, addition.className]
-      .filter(Boolean)
-      .join(" ");
-  }
-  Object.assign(output.style, addition.style);
-  Object.assign(output.tokens, addition.tokens);
-  return output;
-}
-
-function isPlainObject(value) {
-  return Object.prototype.toString.call(value) === "[object Object]";
-}
-
-function deepMerge(target, patch) {
-  if (!isPlainObject(target) || !isPlainObject(patch)) {
-    return patch;
-  }
-  const result = { ...target };
-  for (const [key, value] of Object.entries(patch)) {
-    if (isPlainObject(value) && isPlainObject(result[key])) {
-      result[key] = deepMerge(result[key], value);
-    } else if (Array.isArray(value)) {
-      result[key] = value.slice();
-    } else {
-      result[key] = value;
-    }
-  }
-  return result;
-}
-
-function createDocumentThemeApplier() {
-  if (typeof document === "undefined") {
-    return () => {};
-  }
-  const rootEl = document.documentElement;
-  const bodyEl = document.body;
-  const appliedTokens = new Set();
-
-  return function apply(theme) {
-    const normalized = normalizeTheme(theme);
-    const tokens = normalized.tokens ?? {};
-    const style = normalized.style ?? {};
-
-    for (const token of appliedTokens) {
-      if (!(token in tokens)) {
-        rootEl.style.removeProperty(`--le-${token}`);
-        bodyEl.style.removeProperty(`--le-${token}`);
-      }
-    }
-    appliedTokens.clear();
-
-    for (const [token, value] of Object.entries(tokens)) {
-      const cssVar = `--le-${token}`;
-      rootEl.style.setProperty(cssVar, String(value));
-      bodyEl.style.setProperty(cssVar, String(value));
-      appliedTokens.add(token);
-    }
-
-    if (tokens["color-surface"]) {
-      bodyEl.style.backgroundColor = String(tokens["color-surface"]);
-    }
-    if (style.background || style.backgroundColor) {
-      const background = style.background ?? style.backgroundColor;
-      bodyEl.style.background = String(background);
-    }
-    if (style.color) {
-      bodyEl.style.color = String(style.color);
-    } else if (tokens["color-text-primary"]) {
-      bodyEl.style.color = String(tokens["color-text-primary"]);
-    }
-    const colorScheme =
-      style["color-scheme"] ?? style.colorScheme ?? tokens["color-scheme"];
-    if (colorScheme) {
-      rootEl.style.setProperty("color-scheme", String(colorScheme));
-    }
-  };
-}
-
-function manifestFromPayload(payload) {
-  if (!payload || typeof payload !== "object") {
-    return null;
-  }
-  if (payload.manifest && typeof payload.manifest === "object") {
-    return payload.manifest;
-  }
-  if (payload.kind === "layout_manifest") {
-    return payload;
-  }
-  if (
-    payload.payload &&
-    typeof payload.payload === "object" &&
-    payload.payload.kind === "layout_manifest"
-  ) {
-    return payload.payload;
-  }
-  return null;
-}
-
-function createPluginManager(initial = []) {
-  const plugins = new Set();
-  for (const plugin of initial) {
-    if (plugin && typeof plugin === "object") {
-      plugins.add(plugin);
-    }
-  }
-
-  function runHook(name, context) {
-    for (const plugin of plugins) {
-      const handler = plugin?.[name];
-      if (typeof handler === "function") {
-        try {
-          handler(context);
-        } catch (error) {
-          console.error(
-            `[layout-engine-vue] plugin hook "${name}" failed`,
-            error,
-          );
-        }
-      }
-    }
-  }
-
-  return {
-    register(plugin) {
-      if (plugin && typeof plugin === "object") {
-        plugins.add(plugin);
-      }
-    },
-    unregister(plugin) {
-      if (plugin && typeof plugin === "object") {
-        plugins.delete(plugin);
-      }
-    },
-    list() {
-      return Array.from(plugins);
-    },
-    runHook,
-  };
-}
-
-function matchesPageId(page, identifier) {
-  if (identifier === undefined || identifier === null) {
-    return false;
-  }
-  const id = page?.id ?? page?.slug ?? page?.name;
-  return id !== undefined && String(id) === String(identifier);
-}
-
-function resolveManifestPage(manifest, requestedId, resolver) {
-  const pages = Array.isArray(manifest?.pages) ? manifest.pages : [];
-  if (!pages.length) {
-    return null;
-  }
-
-  const attempt = (candidate) => {
-    if (candidate === undefined || candidate === null) {
-      return null;
-    }
-    if (typeof candidate === "string" || typeof candidate === "number") {
-      return pages.find((page) => matchesPageId(page, candidate)) ?? null;
-    }
-    if (typeof candidate === "object") {
-      if (candidate.id !== undefined || candidate.slug !== undefined) {
-        return attempt(candidate.id ?? candidate.slug);
-      }
-      return candidate;
-    }
-    return null;
-  };
-
-  const fromResolver = resolver ? attempt(resolver(manifest, requestedId)) : null;
-  if (fromResolver) {
-    return fromResolver;
-  }
-
-  const fromRequested = attempt(requestedId);
-  if (fromRequested) {
-    return fromRequested;
-  }
-
-  return pages[0] ?? null;
-}
-
-function computeGridPlacement(frame, grid, viewport) {
-  if (!grid || !frame) {
-    return {};
-  }
-
-  const columnCount = grid.columns?.length ?? 1;
-  const totalGap = grid.gap_x * Math.max(columnCount - 1, 0);
-  const averageColumnWidth =
-    columnCount > 0 ? (viewport.width - totalGap) / columnCount : viewport.width;
-  const stepX = averageColumnWidth + grid.gap_x;
-  const stepY = grid.row_height + grid.gap_y;
-
-  const columnStart = Math.round(frame.x / stepX) + 1;
-  const rowStart = Math.round(frame.y / stepY) + 1;
-  const columnSpan = Math.max(
-    1,
-    Math.min(
-      columnCount,
-      Math.round(frame.w / stepX) || 1,
-      columnCount - columnStart + 1,
-    ),
-  );
-  const rowSpan = Math.max(1, Math.round(frame.h / grid.row_height) || 1);
-
-  return {
-    gridColumn: `${columnStart} / span ${columnSpan}`,
-    gridRow: `${rowStart} / span ${rowSpan}`,
-  };
-}
 
 export function createRuntime(vue, options = {}) {
   const {
@@ -367,59 +149,64 @@ export function createRuntime(vue, options = {}) {
       },
     },
     setup(props, { expose }) {
+      const runtimeState = createRuntimeState({
+        manifestUrl: props.manifestUrl ?? null,
+        initialPageId: props.pageId ?? props.initialPageId ?? null,
+        resolvePage: props.resolvePage,
+        initiallyLoading: true,
+      });
+
+      runtimeState.setFetcher(async (url, overrideOptions) => {
+        const response = await fetch(url, {
+          ...(props.fetchOptions ?? {}),
+          ...(overrideOptions ?? {}),
+        });
+        return response;
+      });
+
       const state = reactive({
-        manifest: null,
-        loading: true,
-        error: null,
+        manifest: runtimeState.state.manifest,
+        loading: runtimeState.state.loading,
+        error: runtimeState.state.error,
+        pageId: runtimeState.state.pageId,
+        view: runtimeState.state.view,
       });
 
-      const pageState = reactive({
-        id: props.pageId ?? props.initialPageId ?? null,
+      runtimeState.subscribe((next) => {
+        state.manifest = next.manifest;
+        state.loading = next.loading;
+        state.error = next.error;
+        state.pageId = next.pageId;
+        state.view = next.view;
       });
-      const pendingPageId = ref(pageState.id);
 
-      const themeState = reactive(normalizeTheme(defaultTheme));
+      const themeController = createThemeController(defaultTheme);
+      const themeState = reactive(themeController.state);
 
-      function resetTheme(base = defaultTheme) {
-        const normalized = normalizeTheme(base);
-        themeState.className = normalized.className;
-
-        for (const key of Object.keys(themeState.style)) {
-          delete themeState.style[key];
-        }
-        Object.assign(themeState.style, normalized.style);
-
-        for (const key of Object.keys(themeState.tokens)) {
-          delete themeState.tokens[key];
-        }
-        Object.assign(themeState.tokens, normalized.tokens);
+      function applyTheme(patch, options) {
+        themeController.apply(patch, options);
       }
 
-      function applyThemePatch(patch, { replace = false } = {}) {
-        if (replace || patch?.reset) {
-          resetTheme();
-        }
-        if (!patch) {
-          return themeState;
-        }
-        if (patch.className !== undefined) {
-          themeState.className = patch.className ?? "";
-        }
-        if (patch.style) {
-          Object.assign(themeState.style, patch.style);
-        }
-        if (patch.tokens) {
-          Object.assign(themeState.tokens, patch.tokens);
-        }
-        return themeState;
-      }
-
-      applyThemePatch(props.theme, { replace: true });
+      applyTheme(props.theme, { replace: true });
 
       watch(
         () => props.theme,
         (next) => {
-          applyThemePatch(next, { replace: true });
+          applyTheme(next, { replace: true });
+        },
+        { deep: true }
+      );
+
+      watch(
+        () => props.fetchOptions,
+        () => {
+          runtimeState.setFetcher(async (url, overrideOptions) => {
+            const response = await fetch(url, {
+              ...(props.fetchOptions ?? {}),
+              ...(overrideOptions ?? {}),
+            });
+            return response;
+          });
         },
         { deep: true }
       );
@@ -432,6 +219,13 @@ export function createRuntime(vue, options = {}) {
         }
         return combined;
       });
+
+      watch(
+        () => props.resolvePage,
+        (next) => {
+          runtimeState.setResolvePage(next);
+        },
+      );
 
       const resolvedManifestUrl = computed(() => {
         if (props.manifestUrl) {
@@ -611,9 +405,7 @@ export function createRuntime(vue, options = {}) {
 
         const manifest = manifestFromPayload(body);
         if (manifest && (!topic || topic === manifestTopic)) {
-          state.manifest = manifest;
-          state.error = null;
-          syncPage(manifest);
+          runtimeState.setManifest(manifest);
           opts.onManifest?.(manifest);
           handled = true;
         } else {
@@ -622,16 +414,11 @@ export function createRuntime(vue, options = {}) {
             fetchManifest();
             handled = true;
           } else if (eventType === "manifest.patch" && isPlainObject(body?.patch)) {
-            const merged = deepMerge(state.manifest ?? {}, body.patch);
-            state.manifest = merged;
-            state.error = null;
-            syncPage(merged);
-            opts.onManifest?.(merged);
+            const merged = runtimeState.applyPatch(body.patch);
+            opts.onManifest?.(merged ?? runtimeState.state.manifest);
             handled = true;
           } else if (eventType === "manifest.replace" && manifest) {
-            state.manifest = manifest;
-            state.error = null;
-            syncPage(manifest);
+            runtimeState.setManifest(manifest);
             opts.onManifest?.(manifest);
             handled = true;
           }
@@ -733,98 +520,53 @@ export function createRuntime(vue, options = {}) {
         teardownBridge();
       });
 
-      function syncPage(manifest) {
-        const nextPage = resolveManifestPage(
-          manifest,
-          pendingPageId.value ?? pageState.id ?? props.pageId ?? props.initialPageId,
-          props.resolvePage,
-        );
-        if (nextPage) {
-          pageState.id = nextPage.id ?? nextPage.slug ?? nextPage.name ?? null;
-          pendingPageId.value = pageState.id;
-          props.onPageChange?.(pageState.id, nextPage);
-        } else {
-          pageState.id = null;
-          pendingPageId.value = null;
-          props.onPageChange?.(null, null);
+      let lastEmittedPageKey = null;
+      let lastEmittedPageRef = null;
+
+      function emitPageChange(page) {
+        const key = page?.id ?? page?.slug ?? page?.name ?? null;
+        if (key === lastEmittedPageKey && page === lastEmittedPageRef) {
+          return;
         }
+        lastEmittedPageKey = key;
+        lastEmittedPageRef = page ?? null;
+        props.onPageChange?.(key, page ?? null);
       }
 
-      async function fetchManifest() {
-        state.loading = true;
+      const view = computed(() => state.view);
+
+      async function fetchManifest(url = resolvedManifestUrl.value) {
+        if (!url) {
+          runtimeState.setManifestUrl(null);
+          runtimeState.setLoading(false);
+          return null;
+        }
+        runtimeState.setManifestUrl(url);
         try {
-          const response = await fetch(
-            resolvedManifestUrl.value,
-            props.fetchOptions ?? {},
-          );
-          if (!response.ok) {
-            throw new Error(
-              `Failed to fetch manifest (${response.status} ${response.statusText})`,
-            );
-          }
-          const payload = await response.json();
-          state.manifest = payload;
-          state.error = null;
-          syncPage(payload);
-          props.onReady?.(payload);
+          const manifest = await runtimeState.fetchManifest(url);
+          props.onReady?.(manifest);
+          return manifest;
         } catch (error) {
           const err =
             error instanceof Error ? error : new Error(String(error));
-          state.error = err;
+          console.error("[layout-engine-vue] fetchManifest failed", err);
           props.onError?.(err);
-        } finally {
-          state.loading = false;
+          return null;
         }
       }
 
       function setPage(nextPageId) {
-        pendingPageId.value = nextPageId ?? null;
-        if (!state.manifest) {
-          return null;
-        }
-        const nextPage = resolveManifestPage(
-          state.manifest,
-          pendingPageId.value,
-          props.resolvePage,
-        );
-        if (nextPage) {
-          pageState.id = nextPage.id ?? nextPage.slug ?? nextPage.name ?? null;
-          pendingPageId.value = pageState.id;
-          props.onPageChange?.(pageState.id, nextPage);
-          return nextPage;
-        }
-        pageState.id = null;
-        props.onPageChange?.(null, null);
-        return null;
+        const page = runtimeState.setPage(nextPageId);
+        emitPageChange(page ?? runtimeState.state.view.page);
+        return page;
       }
 
-      const view = computed(() => {
-        const manifest = state.manifest;
-        if (!manifest) {
-          return {
-            grid: null,
-            tiles: [],
-            viewport: null,
-            page: null,
-            pages: [],
-          };
-        }
-        const page = resolveManifestPage(
-          manifest,
-          pageState.id ?? pendingPageId.value,
-          props.resolvePage,
-        );
-        const tiles = (page?.tiles ?? manifest.tiles ?? []).slice();
-        const grid = page?.grid ?? manifest.grid ?? null;
-        const viewport = page?.viewport ?? manifest.viewport ?? null;
-        return {
-          grid,
-          tiles,
-          viewport,
-          page: page ?? null,
-          pages: Array.isArray(manifest.pages) ? manifest.pages : [],
-        };
-      });
+      watch(
+        () => state.view.page,
+        (page) => {
+          emitPageChange(page);
+        },
+      );
 
       const gridStyle = computed(() => {
         const grid = view.value.grid;
@@ -865,10 +607,7 @@ export function createRuntime(vue, options = {}) {
         return "Dashboard";
       });
 
-      const runtimeTheme = computed(() => {
-        const base = normalizeTheme(themeState);
-        return mergeTheme(base, view.value.page?.theme);
-      });
+      const runtimeTheme = computed(() => mergeTheme(themeState, view.value.page?.theme));
 
       const applyDocumentTheme = createDocumentThemeApplier();
 
@@ -918,7 +657,7 @@ export function createRuntime(vue, options = {}) {
       watch(
         () => props.initialPageId,
         (next) => {
-          if (!pageState.id && next !== undefined && next !== null) {
+          if (!state.view.page && next !== undefined && next !== null) {
             setPage(next);
           }
         },
@@ -926,14 +665,17 @@ export function createRuntime(vue, options = {}) {
 
       watch(
         resolvedManifestUrl,
-        () => {
-          fetchManifest();
+        (url) => {
+          runtimeState.setManifestUrl(url ?? null);
+          if (url) {
+            fetchManifest(url);
+          }
         },
         { immediate: true },
       );
 
       function setTheme(patch, options) {
-        applyThemePatch(patch, options);
+        applyTheme(patch, options);
       }
 
       const pluginManager = props.plugins?.manager ?? null;

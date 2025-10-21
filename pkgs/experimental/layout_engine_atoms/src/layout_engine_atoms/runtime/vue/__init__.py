@@ -168,6 +168,7 @@ def load_client_assets(root: Path | None = None) -> dict[str, bytes]:
     """Return packaged client assets for the Vue runtime."""
 
     client_root = Path(__file__).resolve().parent / "client"
+    core_root = client_root.parent.parent / "core"
     sources: list[Path] = []
     if root is not None:
         sources.append(root)
@@ -185,6 +186,13 @@ def load_client_assets(root: Path | None = None) -> dict[str, bytes]:
             if path.is_file():
                 relative_key = path.relative_to(base).as_posix()
                 assets.setdefault(relative_key, path.read_bytes())
+
+    if core_root.exists():
+        for path in core_root.rglob("*.js"):
+            if path.is_file():
+                relative_key = Path("core") / path.relative_to(core_root)
+                assets.setdefault(relative_key.as_posix(), path.read_bytes())
+
     return assets
 
 

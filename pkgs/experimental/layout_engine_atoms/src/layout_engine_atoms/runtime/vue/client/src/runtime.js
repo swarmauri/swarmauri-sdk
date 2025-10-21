@@ -31,6 +31,7 @@ const runtime = createRuntime(
     watch,
     onBeforeUnmount,
     provide,
+    inject,
   },
   { atomRenderers },
 );

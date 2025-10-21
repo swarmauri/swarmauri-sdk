@@ -120,6 +120,9 @@ def test_load_client_assets_includes_dist_bundle():
     assert any(name.endswith("layout-engine-vue.es.js") for name in bundle_names), (
         "expected ESM bundle in packaged client assets"
     )
+    assert "core/index.js" in bundle_names, (
+        "expected core module entry exposed for browser runtime"
+    )
 
 
 def test_manifest_app_serves_packaged_bundle():
@@ -135,3 +138,6 @@ def test_manifest_app_serves_packaged_bundle():
     header_map = dict(headers)
     assert header_map.get("content-type", "").startswith("application/javascript")
     assert b"createLayoutApp" in body
+
+    status_core, _, _ = _request(app, "/dashboard/core/index.js")
+    assert status_core == 200
