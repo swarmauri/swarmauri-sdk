@@ -247,9 +247,30 @@ export function createRuntime(vue, options = {}) {
         return "manifest.json";
       });
 
+      function resolveGlobalEventsOptions() {
+        if (typeof window === "undefined") {
+          return null;
+        }
+        if (!window.__LE_EVENTS_ENABLED__) {
+          return null;
+        }
+        const globalOptions = window.__LE_EVENTS_OPTIONS__;
+        if (isPlainObject(globalOptions)) {
+          return { ...globalOptions };
+        }
+        const url = window.__LE_EVENTS_URL__;
+        if (typeof url === "string" && url) {
+          return { url };
+        }
+        return {};
+      }
+
       const eventsOptions = computed(() => {
         const raw = props.events;
-        if (raw === undefined || raw === null || raw === false) {
+        if (raw === undefined || raw === null) {
+          return resolveGlobalEventsOptions();
+        }
+        if (raw === false) {
           return null;
         }
         if (raw === true) {

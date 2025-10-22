@@ -6,8 +6,11 @@ from typing import Any, Tuple
 
 import pytest
 
+from layout_engine.events.ws import InProcEventBus
+
 from layout_engine_atoms.runtime.vue import (
     ManifestApp,
+    ManifestEventsConfig,
     create_layout_app,
     load_client_assets,
 )
@@ -89,6 +92,21 @@ def test_static_index_served_at_mount_root(manifest_app):
     assert status == 200
     assert ("content-type", "text/html; charset=utf-8") in headers
     assert body.startswith(b"<html>")
+
+
+def test_index_injects_events_bootstrap():
+    manifest = {"kind": "layout_manifest", "version": "inject-test"}
+    bus = InProcEventBus()
+    app = ManifestApp(
+        manifest_builder=lambda: manifest,
+        mount_path="/dashboard",
+        events=ManifestEventsConfig(bus=bus, topics=("manifest",)),
+    ).asgi_app()
+
+    status, _, body = _request(app, "/dashboard/")
+    assert status == 200
+    assert b"__LE_EVENTS_ENABLED__" in body
+    assert b"__LE_EVENTS_URL__" in body
 
 
 def test_static_asset_served(manifest_app):

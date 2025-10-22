@@ -72,17 +72,27 @@ class ManifestWebSocket:
         self.accepted = True
 
     async def receive(self) -> str | bytes | None:
-        message = await self._receive()
-        mtype = message.get("type")
-        if mtype == "websocket.receive":
-            if message.get("text") is not None:
-                return message["text"]
-            return message.get("bytes")
-        if mtype == "websocket.disconnect":
-            self.closed = True
-            self.close_code = message.get("code")
+        """Return the next payload or ``None`` if the client closed the socket."""
+
+        while True:
+            message = await self._receive()
+            mtype = message.get("type")
+
+            if mtype == "websocket.receive":
+                if message.get("text") is not None:
+                    return message["text"]
+                return message.get("bytes")
+
+            if mtype == "websocket.disconnect":
+                self.closed = True
+                self.close_code = message.get("code")
+                return None
+
+            if mtype == "websocket.connect":
+                # Drain the initial connect event; uvicorn delivers it even after accept.
+                continue
+
             return None
-        return None
 
     async def receive_json(self) -> Any:
         payload = await self.receive()
@@ -261,12 +271,33 @@ class ManifestApp:
         asset_path = asset_path or self.index_asset
         if asset_path not in assets:
             return 404, [("content-type", "text/plain; charset=utf-8")], b"Not Found"
+        body = assets[asset_path]
+
+        if self.events and asset_path in {"", self.index_asset}:
+            try:
+                html = body.decode("utf-8")
+            except UnicodeDecodeError:
+                html = None
+            if html and "__LE_EVENTS_ENABLED__" not in html:
+                route = json.dumps(self.events.route or "")
+                injection = (
+                    "<script>"
+                    "window.__LE_EVENTS_ENABLED__=true;"
+                    f"window.__LE_EVENTS_URL__={route};"
+                    "</script>"
+                )
+                if "</head>" in html:
+                    html = html.replace("</head>", f"{injection}</head>", 1)
+                else:
+                    html += injection
+                body = html.encode("utf-8")
+
         headers = [
             ("content-type", _guess_mimetype(asset_path)),
             ("cache-control", "no-cache, no-store, must-revalidate"),
         ]
         headers.extend((k.lower(), v) for k, v in self.extra_headers)
-        return 200, headers, assets[asset_path]
+        return 200, headers, body
 
     async def _handle_websocket(self, scope, receive, send) -> None:
         events_cfg = self.events

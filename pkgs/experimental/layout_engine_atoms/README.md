@@ -140,6 +140,9 @@ interactive controls without rewriting runtime logic.
 - **Customer Success Command Center** – demonstrates multi-page manifests and
   realtime incident streaming via websocket patches
   (`pkgs/experimental/layout_engine_atoms/examples/customer_success`).
+- **Hybrid SPA/MPA Demo** – mounts both a single-page and multi-page runtime in
+  one FastAPI app, showcasing realtime updates
+  (`pkgs/experimental/layout_engine_atoms/examples/hybrid_demo`).
 - **Revenue Ops Command Center** – richer stream routing and manifest patches
   (`pkgs/experimental/layout_engine_atoms/examples/revenue_ops`).
 
