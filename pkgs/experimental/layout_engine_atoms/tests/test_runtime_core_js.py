@@ -169,3 +169,19 @@ def test_derive_events_url():
     assert data["derived"].endswith("/dashboard/events")
     assert data["derived"].startswith("wss://demo.example.com/")
     assert data["explicit"] == "wss://api.example.com/events"
+
+
+def test_swiss_grid_theme_export():
+    core_path = (CORE_DIR / "index.js").as_uri()
+    script = textwrap.dedent(
+        f"""
+        import {{ SWISS_GRID_THEME }} from "{core_path}";
+
+        console.log(JSON.stringify(SWISS_GRID_THEME));
+        """
+    )
+    data = run_node(script)
+    tokens = data.get("tokens", {})
+    assert data.get("className") == "le-theme-swiss-grid"
+    assert tokens.get("space-4") == "1rem"
+    assert tokens.get("font-size-base")

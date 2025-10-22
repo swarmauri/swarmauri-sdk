@@ -6,7 +6,11 @@ from typing import Any, Tuple
 
 import pytest
 
-from layout_engine_atoms.runtime.vue import ManifestApp, load_client_assets
+from layout_engine_atoms.runtime.vue import (
+    ManifestApp,
+    create_layout_app,
+    load_client_assets,
+)
 
 
 async def _make_request(
@@ -141,3 +145,19 @@ def test_manifest_app_serves_packaged_bundle():
 
     status_core, _, _ = _request(app, "/dashboard/core/index.js")
     assert status_core == 200
+
+
+def test_create_layout_app_helper_wraps_manifest_app():
+    manifest = {"kind": "layout_manifest", "version": "from-helper"}
+
+    helper_app = create_layout_app(
+        manifest_builder=lambda: manifest,
+        mount_path="/helper",
+    )
+    assert isinstance(helper_app, ManifestApp)
+
+    app = helper_app.asgi_app()
+    status, _, body = _request(app, "/helper/manifest.json")
+    assert status == 200
+    payload = json.loads(body.decode())
+    assert payload["version"] == "from-helper"

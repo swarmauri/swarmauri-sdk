@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite --config vite.config.js",
     "build": "vite build --config vite.config.js",
+    "build:prod": "npm run build",
     "preview": "vite preview --config vite.config.js"
   },
   "dependencies": {

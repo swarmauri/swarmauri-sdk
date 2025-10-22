@@ -24,14 +24,12 @@ runtime/vue/client/
 From the repository root:
 
 ```bash
-# install dependencies (once per environment)
-npm install --prefix pkgs/experimental/layout_engine_atoms/src/layout_engine_atoms/runtime/vue/client
-
-# produce ESM + UMD bundles in client/dist/
-npm run --prefix pkgs/experimental/layout_engine_atoms/src/layout_engine_atoms/runtime/vue/client build
+# install dependencies + emit production bundles
+./scripts/build_vue_runtime.sh
 ```
 
-The build writes `layout-engine-vue.es.js` and `layout-engine-vue.umd.js` into
+The script runs `npm install` inside `runtime/vue/client/` and invokes the Vite
+library build. The output (including the Vue runtime) is written to
 `client/dist/`. `ManifestApp` automatically serves the `dist/` directory when it
 exists, falling back to the raw source modules otherwise.
 

@@ -11,7 +11,7 @@ whether you render on the client only or perform server-side rendering (SSR).
 npm install --save layout-engine-atoms
 
 # optional: rebuild the client bundle (ESM + UMD) if you plan to publish
-npm run --prefix node_modules/layout-engine-atoms/runtime/vue/client build
+./scripts/build_vue_runtime.sh  # from the repository root
 ```
 
 > The published package already ships the `/dist` artifacts under
@@ -42,7 +42,7 @@ controller.registerAtomRenderer("viz:metric:kpi", MyMetricComponent);
 When hydrating on the server, render a shell HTML page that matches the slot
 layout, then hydrate with the wrapper:
 
-1. Use `ManifestApp` (or your web framework) to serve:
+1. Use `create_layout_app` (or `ManifestApp` directly) to serve:
    - `/dashboard/manifest.json`
    - `/dashboard/index.html` (the shell or SSR output)
    - `/dashboard/layout-engine-vue.es.js` (the ESM bundle)

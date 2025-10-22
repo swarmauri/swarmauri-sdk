@@ -15,18 +15,32 @@
 
 ---
 
-# Layout Engine Atoms
+# Layout Engine Atoms & Vue Runtime
 
-`layout-engine-atoms` packages Swarmauri's canonical UI atom presets for the [`layout-engine`](../layout_engine) runtime. Each preset maps a semantic role to a front-end module, export, version, and default props so downstream applications can bootstrap view-models without hand-curating every mapping.
+`layout-engine-atoms` packages Swarmauri's canonical UI atoms **and** ships the
+official Vue thin wrapper for [`layout-engine`](../layout_engine). With this
+package you can:
 
-> **Python compatibility:** officially supports Python 3.10, 3.11, and 3.12.
+- prime manifest builders with curated atom presets, and
+- mount a production-ready Vue dashboard that renders multi-page manifests, theme
+  tokens, and websocket event streams without writing custom front-end plumbing.
 
-## Features
+> **Python compatibility**: Python 3.10–3.12
 
-- **Curated presets** – ships ready-to-use role mappings covering common KPI, chart, data, and layout atoms.
-- **Typed contracts** – builds on `layout-engine`'s `AtomSpec` models to validate module, export, and default prop shapes.
-- **Composable registries** – helper utilities load presets into `AtomRegistry` instances or dictionaries for manifest pipelines.
-- **Configurable overrides** – extend or replace built-ins by layering custom atoms on top of the defaults.
+## Highlights
+
+- **Curated atom registry** – every semantic role maps to an importable module,
+  default props, and version metadata so manifests can stay declarative.
+- **Vue thin wrapper** – bundled `createLayoutApp` helper exposes a drop-in
+  dashboard with grid layout, shared theme tokens, plugin hooks, and optional
+  realtime updates.
+- **Swiss grid defaults** – spacing, typography, and layout tokens follow Swiss
+  graphic design ratios for consistent output across HTML, PDF, or SVG targets.
+- **Realtime ready** – websocket bridge understands `manifest.replace`,
+  `manifest.patch`, and `manifest.refresh` payloads and can broadcast custom
+  messages to connected clients.
+
+---
 
 ## Installation
 
@@ -38,7 +52,13 @@ uv add layout-engine-atoms
 pip install layout-engine-atoms
 ```
 
-## Usage
+The published wheel already includes the pre-built Vue assets under
+`layout_engine_atoms/runtime/vue/client/dist/`. Only rebuild if you are
+maintaining the bundle locally (see [Development](#development)).
+
+---
+
+## Python: Working with Atom Presets
 
 ```python
 from layout_engine_atoms import DEFAULT_ATOMS, build_registry
@@ -50,23 +70,111 @@ for role, spec in DEFAULT_ATOMS.items():
 # Create a registry that layout-engine can consume
 registry = build_registry()
 
-# Register an override before passing to layout_engine
+# Override a role before passing it to layout_engine
 registry.override(
-    "dashboard.hero",
+    "viz:metric:kpi",
     module="@layout-app/atoms",
     defaults={"accent": "violet"},
 )
 ```
 
-See [`examples/basic_usage.py`](../layout_engine/examples/basic_usage.py) for how manifests consume registries to merge props with layout metadata.
+The registry output can be fed directly into `layout-engine` manifest pipelines
+when composing payloads for the runtime. See
+[`examples/basic_usage.py`](../layout_engine/examples/basic_usage.py) for a
+complete manifest construction flow.
+
+---
+
+## Vue Thin Wrapper
+
+The Vue runtime lives under `layout_engine_atoms.runtime.vue` and ships both the
+server-side helper and the browser bundle.
+
+### 1. Serve the bundle + manifest
+
+```python
+from fastapi import FastAPI
+from layout_engine_atoms.runtime.vue import create_layout_app
+from my_manifests import build_manifest
+
+app = FastAPI()
+vue_app = create_layout_app(
+    manifest_builder=build_manifest,
+    mount_path="/dashboard",
+)
+app.mount("/dashboard", vue_app.asgi_app())
+```
+
+Optional websocket streaming can be enabled by passing a `ManifestEventsConfig`
+(see [runtime README](src/layout_engine_atoms/runtime/vue/README.md)).
+
+### 2. Mount in the browser
+
+```html
+<div id="app"></div>
+<script type="module">
+  import { createLayoutApp } from "/dashboard/layout-engine-vue.es.js";
+
+  const controller = createLayoutApp({
+    manifestUrl: "/dashboard/manifest.json",
+    target: "#app",
+    events: true,
+    onReady: (manifest) => console.debug("loaded", manifest.version),
+    onError: (err) => console.error("manifest", err),
+  });
+
+  // optional helpers
+  controller.registerAtomRenderer("viz:metric:kpi", MyMetricComponent);
+  controller.setTheme({ tokens: { "color-accent": "#ff8a4c" } });
+</script>
+```
+
+The returned controller exposes methods (`refresh`, `setPage`, `setTheme`,
+`registerAtomRenderer`, `events.send`, etc.) so applications can integrate
+interactive controls without rewriting runtime logic.
+
+---
+
+## Examples
+
+- **Customer Success Command Center** – demonstrates multi-page manifests and
+  realtime incident streaming via websocket patches
+  (`pkgs/experimental/layout_engine_atoms/examples/customer_success`).
+- **Revenue Ops Command Center** – richer stream routing and manifest patches
+  (`pkgs/experimental/layout_engine_atoms/examples/revenue_ops`).
+
+You can run any example directly with `uvicorn`:
+
+```bash
+uv run --directory pkgs/experimental/layout_engine_atoms \
+  --package layout-engine-atoms \
+  uvicorn examples.customer_success.server:app --reload
+```
+
+---
+
+## Documentation
+
+- [Embedding guide](docs/vue_embedding_guide.md)
+- [Runtime README](src/layout_engine_atoms/runtime/vue/README.md)
+- [Swiss grid theme tokens](docs/swiss_grid_theme.md)
+- [Bundle guide](docs/vue_client_bundle.md)
+
+---
 
 ## Development
 
 ```bash
 uv sync --all-extras
-uv run --directory experimental/layout_engine_atoms --package layout-engine-atoms ruff check .
-uv run --directory experimental/layout_engine_atoms --package layout-engine-atoms pytest -q
+# Python quality gates
+uv run --directory pkgs/experimental/layout_engine_atoms --package layout-engine-atoms ruff check .
+uv run --directory pkgs/experimental/layout_engine_atoms --package layout-engine-atoms pytest
+
+# Rebuild the Vue bundle (requires Node/npm)
+./scripts/build_vue_runtime.sh
 ```
+
+---
 
 ## License
 

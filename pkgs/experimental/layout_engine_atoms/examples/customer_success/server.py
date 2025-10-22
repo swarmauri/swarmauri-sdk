@@ -7,13 +7,13 @@ from typing import Any
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
-from layout_engine_atoms.runtime.vue import ManifestApp
+from layout_engine_atoms.runtime.vue import create_layout_app
 
 from .manifest import create_manifest
 
 
 def create_app() -> FastAPI:
-    manifest_app = ManifestApp(
+    manifest_app = create_layout_app(
         manifest_builder=create_manifest,
         mount_path="/customer-success",
     )

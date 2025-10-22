@@ -480,10 +480,34 @@ class ManifestApp:
         return app
 
 
+def create_layout_app(
+    *,
+    manifest_builder: ManifestBuilder,
+    mount_path: str = "/",
+    **options: Any,
+) -> ManifestApp:
+    """Create a :class:`ManifestApp` pre-configured with bundled Vue assets.
+
+    Parameters
+    ----------
+    manifest_builder:
+        Callable that returns a layout manifest (dict or ``layout_engine.Manifest``).
+    mount_path:
+        Base path where the app should be served (defaults to ``"/"``).
+    **options:
+        Additional keyword arguments forwarded to :class:`ManifestApp`.
+    """
+
+    return ManifestApp(
+        manifest_builder=manifest_builder, mount_path=mount_path, **options
+    )
+
+
 __all__ = [
     "ManifestApp",
     "ManifestBuilder",
     "ManifestEventsConfig",
     "ManifestWebSocket",
+    "create_layout_app",
     "load_client_assets",
 ]

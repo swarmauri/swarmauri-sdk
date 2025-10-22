@@ -3,7 +3,6 @@ import {
   createRuntimeState,
   createThemeController,
   mergeTheme,
-  normalizeTheme,
   createPluginManager,
   manifestFromPayload,
   createEventBridge,
@@ -11,6 +10,7 @@ import {
   isPlainObject,
   computeGridPlacement,
   createDocumentThemeApplier,
+  SWISS_GRID_THEME,
 } from "../core/index.js";
 
 
@@ -59,7 +59,7 @@ export function createRuntime(vue, options = {}) {
     baseRenderers.default = defaultRenderers.default;
   }
 
-  const defaultTheme = normalizeTheme(options.theme);
+  const defaultTheme = mergeTheme(SWISS_GRID_THEME, options.theme);
   const basePluginList = Array.isArray(options.plugins)
     ? options.plugins.filter(Boolean)
     : [];
@@ -184,10 +184,17 @@ export function createRuntime(vue, options = {}) {
       const themeState = reactive(themeController.state);
 
       function applyTheme(patch, options) {
-        themeController.apply(patch, options);
+        if (options?.replace) {
+          themeController.reset(defaultTheme);
+        }
+        if (patch) {
+          themeController.apply(patch);
+        }
       }
 
-      applyTheme(props.theme, { replace: true });
+      if (props.theme) {
+        applyTheme(props.theme, { replace: true });
+      }
 
       watch(
         () => props.theme,

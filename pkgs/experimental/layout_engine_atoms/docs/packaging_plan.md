@@ -64,13 +64,14 @@ For the first iteration we will focus on Vue:
 - Python API sketch:
 
   ```python
-  from layout_engine_atoms.runtime.vue import ManifestApp
+  from layout_engine_atoms.runtime.vue import create_layout_app
 
-  app = ManifestApp(
+  vue_app = create_layout_app(
       manifest_builder=...,              # callable returning Manifest or dict
-      catalog="vue",                     # default preset catalog
-      static_mount_path="/dashboard",    # where to serve the Vue bundle
-  ).asgi_app()
+      mount_path="/dashboard",           # where to serve the Vue bundle
+  )
+
+  app = vue_app.asgi_app()
   ```
 
 - Bundle layout: `runtime/vue/client/` will host the pre-built JS/CSS assets for

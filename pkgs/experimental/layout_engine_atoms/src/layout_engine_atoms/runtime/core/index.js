@@ -19,3 +19,4 @@ export {
   markdownToHtml,
   normalizeBarSeries,
 } from "./formatters.js";
+export { SWISS_GRID_THEME } from "./theme-tokens.js";

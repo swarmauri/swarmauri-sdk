@@ -15,16 +15,18 @@ export default defineConfig(() => ({
       fileName: (format) => `layout-engine-vue.${format}.js`,
       formats: ["es", "umd"],
     },
-    rollupOptions: {
-      external: ["vue"],
-      output: {
-        globals: {
-          vue: "Vue",
-        },
-      },
-    },
+    // Vue is bundled into the library output so downstream consumers do not need
+    // to provide it separately when serving the prebuilt assets.
   },
   server: {
     open: "/index.html",
+  },
+  resolve: {
+    alias: [
+      {
+        find: "../core/index.js",
+        replacement: resolve(rootDir, "../../core/index.js"),
+      },
+    ],
   },
 }));
