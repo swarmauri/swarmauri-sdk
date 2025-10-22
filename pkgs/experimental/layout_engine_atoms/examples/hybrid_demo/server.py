@@ -5,9 +5,8 @@ from __future__ import annotations
 import asyncio
 import contextlib
 from collections import deque
-from copy import deepcopy
 from itertools import cycle
-from typing import Any, Callable, Deque, Dict, Iterable, List
+from typing import Any, Callable, Deque, Dict, Iterable
 
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
@@ -16,49 +15,7 @@ from layout_engine.events.ws import EventRouter, InProcEventBus
 from layout_engine_atoms.runtime.vue import ManifestEventsConfig, create_layout_app
 
 from .manifest import SEED_INCIDENTS, create_mpa_manifest, create_spa_manifest
-
-
-class PatchBuilder:
-    """Build manifest patches for the incidents tile."""
-
-    def __init__(self, manifest_factory: Callable[[], Dict[str, Any]]):
-        manifest = manifest_factory()
-        tiles = manifest.get("tiles", [])
-        incidents = next(tile for tile in tiles if tile.get("id") == "tile_incidents")
-        self.tile_template = deepcopy(incidents)
-
-    def build_patch(self, rows: List[Dict[str, str]]) -> Dict[str, Any]:
-        tile = deepcopy(self.tile_template)
-        tile.setdefault("props", {})["rows"] = rows
-        return {"tiles": [tile]}
-
-
-class MpaPatchBuilder(PatchBuilder):
-    def __init__(self, manifest_factory: Callable[[], Dict[str, Any]]):
-        manifest = manifest_factory()
-        page = next(
-            page for page in manifest.get("pages", []) if page.get("id") == "incidents"
-        )
-        page_tile = next(
-            tile for tile in page.get("tiles", []) if tile.get("id") == "tile_incidents"
-        )
-        self.tile_template = deepcopy(page_tile)
-        self.page_tile_template = deepcopy(page_tile)
-
-    def build_patch(self, rows: List[Dict[str, str]]) -> Dict[str, Any]:
-        tile = deepcopy(self.tile_template)
-        tile.setdefault("props", {})["rows"] = rows
-        page_tile = deepcopy(self.page_tile_template)
-        page_tile.setdefault("props", {})["rows"] = rows
-        return {
-            "tiles": [tile],
-            "pages": [
-                {
-                    "id": "incidents",
-                    "tiles": [page_tile],
-                }
-            ],
-        }
+from .patches import MpaPatchBuilder, PatchBuilder
 
 
 class RuntimeApp:
