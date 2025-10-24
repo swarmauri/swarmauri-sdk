@@ -1,0 +1,6 @@
+/* Placeholder stylesheet. Final styles will mirror the Vue runtime's CSS. */
+
+:root {
+  --le-placeholder-color: hsl(210 50% 60%);
+}
+
