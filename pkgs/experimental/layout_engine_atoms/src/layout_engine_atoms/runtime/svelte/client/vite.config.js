@@ -38,6 +38,10 @@ export default defineConfig(() => ({
         find: "../core/index.js",
         replacement: resolve(rootDir, "../../core/index.js"),
       },
+      {
+        find: "../../core/index.js",
+        replacement: resolve(rootDir, "../../core/index.js"),
+      },
     ],
   },
 }));

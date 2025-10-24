@@ -7,12 +7,12 @@ framework with consistent expectations.
 ## Available scripts
 
 - `npm run dev` – Launch Vite with the Svelte plugin for local development.
-- `npm run build` – Emit library bundles under `dist/`:
-  - `layout-engine-svelte.es.js`
-  - `layout-engine-svelte.umd.js`
+- `npm run build` – Emit library bundles under `dist/` (`layout-engine-svelte.es.js`, `layout-engine-svelte.umd.js`).
 - `npm run preview` – Preview the production build using Vite's preview server.
 - `npm test` – Placeholder script until runtime tests are added.
 
 The Vite configuration (`vite.config.js`) resolves shared helpers from
 `runtime/core/` and keeps the output structure aligned with the Vue package so
-that publishing workflows remain uniform.
+that publishing workflows remain uniform. The generated bundle exports
+`createLayoutApp`, `LayoutEngineDashboard`, `DashboardApp` (alias),
+`TileHost`, and `computeGridPlacement` for host applications.
