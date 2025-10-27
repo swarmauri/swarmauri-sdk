@@ -34,3 +34,5 @@ kms.db
 *.db
 target/
 !.gitkeep          # keep the empty dir in repo
+
+node_modules/

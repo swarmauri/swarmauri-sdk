@@ -14,7 +14,7 @@
     createDocumentThemeApplier,
   } from "../../core/index.js";
 
-  export let runtime;
+  export let runtime = { baseRenderers: {}, defaultTheme: {} };
   export let manifestUrl = "";
   export let fetchOptions = {};
   export let components = {};
@@ -27,6 +27,7 @@
   export let onReady = null;
   export let onPageChange = null;
   export let events = null;
+
 
   const runtimeState = createRuntimeState({
     manifestUrl: manifestUrl ?? null,

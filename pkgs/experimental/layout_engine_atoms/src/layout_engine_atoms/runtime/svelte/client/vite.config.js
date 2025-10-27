@@ -9,8 +9,13 @@ export default defineConfig(() => ({
   root: rootDir,
   plugins: [
     svelte({
+      emitCss: false,
       compilerOptions: {
         dev: false,
+        css: "injected",
+        compatibility: {
+          componentApi: 4,
+        },
       },
     }),
   ],
