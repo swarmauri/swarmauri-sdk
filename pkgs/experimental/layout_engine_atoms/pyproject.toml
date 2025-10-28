@@ -21,6 +21,8 @@ classifiers = [
 ]
 dependencies = [
     "layout-engine>=0.1.1",
+    "fastapi",
+    "uvicorn[standard]",
 ]
 keywords = [
     "layout",
