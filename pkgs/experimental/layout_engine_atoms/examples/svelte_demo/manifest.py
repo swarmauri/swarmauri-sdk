@@ -157,4 +157,3 @@ def create_manifest() -> Mapping[str, Any]:
     payload.setdefault("label", "Svelte Runtime Demo")
     payload.setdefault("title", "Svelte Runtime Demo")
     return payload
-

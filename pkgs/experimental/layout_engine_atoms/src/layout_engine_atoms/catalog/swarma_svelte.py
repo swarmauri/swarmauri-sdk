@@ -1,15 +1,114 @@
 from __future__ import annotations
 
+import re
 from typing import Iterable, Mapping
 
 from layout_engine import AtomRegistry, AtomSpec
 
-from ..swarma import SwarmaAtom, SVELTE_BUTTON
+from ..swarma import AtomProps, SwarmaAtom
 
 FRAMEWORK = "svelte"
+SWARMAKIT_MODULE = "@swarmakit/svelte"
+SWARMAKIT_VERSION = "0.0.22"
+PRESET_VERSION = SWARMAKIT_VERSION
+
+_COMPONENT_EXPORTS: tuple[str, ...] = (
+    "CheckList",
+    "Accordion",
+    "ActionableList",
+    "ActivityIndicators",
+    "AudioPlayer",
+    "AudioPlayerAdvanced",
+    "AudioWaveformDisplay",
+    "Badge",
+    "BadgeWithCounts",
+    "BatteryLevelIndicator",
+    "Button",
+    "Captcha",
+    "CardbasedList",
+    "Carousel",
+    "Checkbox",
+    "CollapsibleMenuList",
+    "ColorPicker",
+    "ContextualList",
+    "CountdownTimer",
+    "DataGrid",
+    "DateAndTimePicker",
+    "DatePicker",
+    "ThreeSixtyDegreeImageViewer",
+    "DragAndDropFileArea",
+    "EmbeddedMediaIframe",
+    "ExpandableList",
+    "FavoritesList",
+    "FileInputWithPreview",
+    "FileUpload",
+    "FilterableList",
+    "GroupedList",
+    "IconButton",
+    "ImageSlider",
+    "InteractivePollResults",
+    "LoadingBarsWithSteps",
+    "LoadingSpinner",
+    "LoadmorebuttoninList",
+    "MultiselectList",
+    "NotificationBellIcon",
+    "NumberedList",
+    "NumberInputWithIncrement",
+    "Pagination",
+    "PasswordConfirmationField",
+    "PinnedList",
+    "ProgressBar",
+    "ProgressCircle",
+    "RadioButton",
+    "RangeSlider",
+    "RatingStars",
+    "ScrollableList",
+    "SearchBar",
+    "SearchInputWithFilterOptions",
+    "SelectableListWithItemDetails",
+    "SignalStrengthIndicator",
+    "Slider",
+    "SortableList",
+    "SortableTable",
+    "StatusDots",
+    "Stepper",
+    "SystemAlertGlobalNotificationBar",
+    "Tabs",
+    "TaskCompletionCheckList",
+    "Textarea",
+    "TimelineList",
+    "Toast",
+    "ToggleSwitch",
+    "TreeviewList",
+    "Upload",
+    "ValidationMessages",
+    "VirtualizedList",
+    "VisualCueForAccessibilityFocusIndicator",
+)
+
+
+def _slugify(name: str) -> str:
+    text = re.sub(r"([a-z0-9])([A-Z])", r"\1-\2", name)
+    text = re.sub(r"([A-Z])([A-Z][a-z])", r"\1-\2", text)
+    return text.replace("_", "-").lower()
+
+
+def _make_atom(name: str) -> SwarmaAtom:
+    role = f"swarmakit:svelte:{_slugify(name)}"
+    spec = AtomSpec(
+        role=role,
+        module=SWARMAKIT_MODULE,
+        export=name,
+        version=SWARMAKIT_VERSION,
+        defaults={},
+    )
+    return SwarmaAtom(spec=spec, props_schema=AtomProps)
+
+
+_DEFAULT_ATOMS = tuple(_make_atom(name) for name in _COMPONENT_EXPORTS)
 
 DEFAULT_PRESETS: dict[str, SwarmaAtom] = {
-    SVELTE_BUTTON.spec.role: SVELTE_BUTTON,
+    atom.spec.role: atom for atom in _DEFAULT_ATOMS
 }
 
 DEFAULT_ATOMS: dict[str, AtomSpec] = {
@@ -55,4 +154,20 @@ def build_registry(
     return registry
 
 
-__all__ = ["FRAMEWORK", "DEFAULT_PRESETS", "DEFAULT_ATOMS", "ATOM_TABLE", "build_registry"]
+def build_default_registry() -> AtomRegistry:
+    """Return an AtomRegistry populated with the default SwarmaKit Svelte presets."""
+
+    return build_registry()
+
+
+__all__ = [
+    "FRAMEWORK",
+    "SWARMAKIT_MODULE",
+    "SWARMAKIT_VERSION",
+    "PRESET_VERSION",
+    "DEFAULT_PRESETS",
+    "DEFAULT_ATOMS",
+    "ATOM_TABLE",
+    "build_registry",
+    "build_default_registry",
+]

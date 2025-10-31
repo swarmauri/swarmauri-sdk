@@ -124,6 +124,7 @@ PRESET_VERSION = "0.1.0"
 
 def build_default_registry() -> AtomRegistry:
     """Return an :class:`AtomRegistry` populated with the default presets."""
+
     return build_registry_from_presets(DEFAULT_PRESETS.values())
 
 
@@ -131,6 +132,16 @@ def build_registry(
     presets: Iterable[AtomPreset] | Mapping[str, AtomPreset] | None = None,
 ) -> AtomRegistry:
     """Create an :class:`AtomRegistry` populated with the provided presets."""
+
     if presets is None:
         presets = DEFAULT_PRESETS.values()
     return build_registry_from_presets(presets)
+
+
+__all__ = [
+    "DEFAULT_PRESETS",
+    "DEFAULT_ATOMS",
+    "PRESET_VERSION",
+    "build_default_registry",
+    "build_registry",
+]
