@@ -269,6 +269,9 @@ export function createEventBridge(options = {}) {
     },
     disconnect,
     dispose,
+    close() {
+      dispose();
+    },
     reconnect() {
       disconnect();
       connect();

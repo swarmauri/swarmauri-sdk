@@ -17,6 +17,7 @@ from layout_engine import (
     table,
     to_plain_dict,
 )
+from layout_engine_atoms.catalog import swarma_svelte
 
 
 def _kpi(tile_id: str, label: str, value: float, delta: float) -> TileSpec:
@@ -45,6 +46,8 @@ def _series(seed: int, count: int = 8) -> Iterable[dict[str, float | str]]:
 
 
 def create_manifest() -> Mapping[str, Any]:
+    registry = swarma_svelte.build_registry()
+
     layout = table(
         row(
             col(block("tile_net_new"), size=SizeToken.m),
@@ -59,6 +62,11 @@ def create_manifest() -> Mapping[str, Any]:
         row(
             col(block("tile_incidents"), size=SizeToken.l),
             col(block("tile_nav_command_center"), size=SizeToken.s),
+        ),
+        row(
+            col(block("tile_swarmakit_button"), size=SizeToken.s),
+            col(block("tile_swarmakit_badge"), size=SizeToken.s),
+            col(block("tile_swarmakit_toggle"), size=SizeToken.s),
         ),
     )
 
@@ -145,12 +153,28 @@ def create_manifest() -> Mapping[str, Any]:
                 "target": "_blank",
             },
         ),
+        TileSpec(
+            id="tile_swarmakit_button",
+            role="swarmakit:svelte:button",
+            props={"label": "Request Demo", "type": "primary"},
+        ),
+        TileSpec(
+            id="tile_swarmakit_badge",
+            role="swarmakit:svelte:badge",
+            props={"label": "Realtime", "type": "status"},
+        ),
+        TileSpec(
+            id="tile_swarmakit_toggle",
+            role="swarmakit:svelte:toggle-switch",
+            props={"checked": True},
+        ),
     ]
 
     manifest = quick_manifest_from_table(
         layout,
         Viewport(width=1280, height=960),
         tiles,
+        atoms_registry=registry,
         version="2025.06",
     )
     payload = to_plain_dict(manifest)

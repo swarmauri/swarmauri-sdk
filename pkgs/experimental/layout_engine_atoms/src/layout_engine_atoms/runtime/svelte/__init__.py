@@ -23,21 +23,35 @@ def load_client_assets(root: Path | None = None) -> dict[str, bytes]:
 
     client_root = Path(__file__).resolve().parent / "client"
     core_root = client_root.parent.parent / "core"
-    sources: list[Path] = []
+    dist_root = client_root / "dist"
+
+    candidate_sources: list[Path] = []
     if root is not None:
-        sources.append(root)
+        candidate_sources.append(root)
+    elif dist_root.exists():
+        candidate_sources.append(dist_root)
     else:
-        dist_root = client_root / "dist"
-        if dist_root.exists():
-            sources.append(dist_root)
-        sources.append(client_root)
+        candidate_sources.append(client_root)
 
     assets: dict[str, bytes] = {}
-    for base in sources:
+
+    dist_root_resolved = dist_root.resolve()
+
+    def _should_include(path: Path, base: Path) -> bool:
+        if base.resolve() == dist_root_resolved:
+            return True
+        relative = path.relative_to(base)
+        if "node_modules" in relative.parts:
+            return False
+        return relative.suffix in {".js", ".mjs", ".cjs", ".css", ".html", ".json"}
+
+    for base in candidate_sources:
         if not base.exists():
             continue
         for path in base.rglob("*"):
             if path.is_file():
+                if not _should_include(path, base):
+                    continue
                 relative_key = path.relative_to(base).as_posix()
                 assets.setdefault(relative_key, path.read_bytes())
 
@@ -61,6 +75,44 @@ class ManifestApp(_VueManifestApp):
         if self.static_assets is not None:
             return self.static_assets
         return load_client_assets()
+
+    def _asset_response(  # type: ignore[override]
+        self, asset_path: str
+    ) -> tuple[int, list[tuple[str, str]], bytes]:
+        status, headers, body = super()._asset_response(asset_path)
+        if status != 200 or not body:
+            return status, headers, body
+
+        try:
+            html = body.decode("utf-8")
+        except UnicodeDecodeError:
+            return status, headers, body
+
+        if asset_path and asset_path != self.index_asset:
+            return status, headers, body
+
+        styles: list[str] = []
+        for key, blob in self.assets.items():
+            if not key.lower().endswith(".css"):
+                continue
+            try:
+                styles.append(blob.decode("utf-8"))
+            except UnicodeDecodeError:
+                continue
+
+        if not styles:
+            return status, headers, body
+
+        style_tag = "<style>\n" + "\n\n".join(styles) + "\n</style>"
+        if "</head>" in html:
+            html = html.replace("</head>", f"  {style_tag}\n</head>", 1)
+        else:
+            html = f"{style_tag}\n" + html
+
+        updated_body = html.encode("utf-8")
+        headers = [(k, v) for k, v in headers if k.lower() != "content-length"]
+        headers.append(("content-length", str(len(updated_body))))
+        return status, headers, updated_body
 
 
 def create_layout_app(

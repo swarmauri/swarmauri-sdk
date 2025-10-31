@@ -3,17 +3,18 @@ import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { resolve, dirname } from "node:path";
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import postcssImport from "postcss-import";
 
 const rootDir = dirname(fileURLToPath(import.meta.url));
 const sdkRoot = resolve(rootDir, "../../../../../../");
 const swarmakitRoot = resolve(sdkRoot, "swarmakit");
 
-const useSourceBuild = process.env.SWARMKIT_BUNDLE_MODE === "src";
+const preferDistBuild = process.env.SWARMKIT_BUNDLE_MODE === "dist";
 
 function pickSwarmakitPath(sourceRelative, distRelative) {
   const sourcePath = resolve(swarmakitRoot, sourceRelative);
   const distPath = resolve(swarmakitRoot, distRelative);
-  if (!useSourceBuild && existsSync(distPath)) {
+  if (preferDistBuild && existsSync(distPath)) {
     return distPath;
   }
   return sourcePath;
@@ -25,17 +26,27 @@ const swarmakitPaths = {
   react: pickSwarmakitPath("libs/react/src", "libs/react/dist/index.es.js"),
 };
 
+const svelteRuntime = resolve(rootDir, "node_modules/svelte/src/index-client.js");
+const svelteStoreRuntime = resolve(
+  rootDir,
+  "node_modules/svelte/src/store/index-client.js",
+);
+
 export default defineConfig(() => ({
   root: rootDir,
   plugins: [
     svelte({
-      emitCss: false,
       compilerOptions: {
         dev: false,
-        css: "injected",
         compatibility: {
           componentApi: 4,
         },
+      },
+      onwarn(warning, handler) {
+        if (warning.code === "unused-export-let") {
+          return;
+        }
+        handler(warning);
       },
     }),
   ],
@@ -52,10 +63,18 @@ export default defineConfig(() => ({
     rollupOptions: {
       // Keep bundled output self-contained like the Vue runtime.
       external: [],
+      output: {
+        exports: "named",
+      },
     },
   },
   server: {
     open: "/index.html",
+  },
+  css: {
+    postcss: {
+      plugins: [postcssImport()]
+    }
   },
   resolve: {
     alias: [
@@ -66,6 +85,14 @@ export default defineConfig(() => ({
       {
         find: "../../core/index.js",
         replacement: resolve(rootDir, "../../core/index.js"),
+      },
+      {
+        find: /^svelte\/store$/,
+        replacement: svelteStoreRuntime,
+      },
+      {
+        find: /^svelte$/,
+        replacement: svelteRuntime,
       },
       {
         find: "@swarmakit/vue",

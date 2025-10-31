@@ -287,7 +287,11 @@
     });
     bridgeSubscriptions = [];
     if (eventBridge) {
-      eventBridge.close();
+      if (typeof eventBridge.close === "function") {
+        eventBridge.close();
+      } else if (typeof eventBridge.disconnect === "function") {
+        eventBridge.disconnect();
+      }
       eventBridge = null;
     }
     resetEventsState();
@@ -474,11 +478,14 @@
   }
 
   function runtimeReconnectEvents() {
-    eventBridge?.connect();
+    if (!mounted) {
+      return;
+    }
+    configureEvents(resolvedManifestUrl, eventsOptions);
   }
 
   function runtimeDisconnectEvents() {
-    eventBridge?.close();
+    teardownBridge();
   }
 
   function configureEvents(manifestUrlValue, options) {
