@@ -13,6 +13,72 @@ import {
   SWISS_GRID_THEME,
 } from "../core/index.js";
 
+const componentCache = new Map();
+const dynamicLoaders = {
+  "@swarmakit/vue": () => import("@swarmakit/vue"),
+};
+
+function cacheKey(atom) {
+  if (!atom) {
+    return null;
+  }
+  const module = atom.module ?? "";
+  const exportName = atom.export ?? "default";
+  if (!module) {
+    return null;
+  }
+  return `${module}::${exportName}`;
+}
+
+async function loadDynamicComponent(atom) {
+  const key = cacheKey(atom);
+  if (!key) {
+    return null;
+  }
+
+  const cached = componentCache.get(key);
+  if (cached) {
+    if (typeof cached.then === "function") {
+      return cached;
+    }
+    return cached;
+  }
+
+  const loaderFn = dynamicLoaders?.[atom.module];
+  if (!loaderFn) {
+    componentCache.set(key, null);
+    return null;
+  }
+
+  const loader = (async () => {
+    try {
+      const mod = await loaderFn();
+      const exportName = atom.export ?? "default";
+      let candidate = mod?.[exportName];
+      if (!candidate && mod?.default) {
+        if (exportName === "default") {
+          candidate = mod.default;
+        } else if (mod.default?.[exportName]) {
+          candidate = mod.default[exportName];
+        }
+      }
+      componentCache.set(key, candidate ?? null);
+      return candidate ?? null;
+    } catch (error) {
+      console.warn(
+        "[layout-engine-vue] failed to dynamically import atom module",
+        atom.module,
+        error,
+      );
+      componentCache.set(key, null);
+      return null;
+    }
+  })();
+
+  componentCache.set(key, loader);
+  return loader;
+}
+
 
 export function createRuntime(vue, options = {}) {
   const {
@@ -26,6 +92,7 @@ export function createRuntime(vue, options = {}) {
     onBeforeUnmount,
     provide,
     inject,
+    shallowRef,
   } = vue;
   if (
     !computed ||
@@ -37,10 +104,11 @@ export function createRuntime(vue, options = {}) {
     !watch ||
     !onBeforeUnmount ||
     !provide ||
-    !inject
+    !inject ||
+    !shallowRef
   ) {
     throw new Error(
-      "createRuntime requires Vue composition API exports including provide/inject",
+      "createRuntime requires Vue composition API exports including provide/inject/shallowRef",
     );
   }
 
@@ -73,27 +141,64 @@ export function createRuntime(vue, options = {}) {
       components: { type: Object, required: true },
     },
     setup(props) {
-      const renderer = computed(() => {
-        const registry = props.components ?? baseRenderers;
-        return (
-          registry[props.tile.role] ??
-          registry.default ??
-          baseRenderers.default
-        );
-      });
+      const resolvedRenderer = shallowRef(baseRenderers.default);
+      let loadToken = 0;
+
+      watch(
+        () => ({
+          tile: props.tile,
+          components: props.components,
+        }),
+        async () => {
+          const registry = props.components ?? baseRenderers;
+          const manualRenderer =
+            registry?.[props.tile?.role] ?? baseRenderers[props.tile?.role];
+          const fallbackRenderer =
+            registry?.default ?? baseRenderers.default ?? null;
+
+          if (manualRenderer) {
+            resolvedRenderer.value = manualRenderer;
+            return;
+          }
+
+          const atom = props.tile?.atom;
+          if (!atom?.module) {
+            resolvedRenderer.value = fallbackRenderer;
+            return;
+          }
+
+          const token = ++loadToken;
+          resolvedRenderer.value = fallbackRenderer;
+          try {
+            const component = await loadDynamicComponent(atom);
+            if (token === loadToken && component) {
+              resolvedRenderer.value = component;
+            }
+          } catch {
+            // ignore failed loader attempts; fallback remains
+          }
+        },
+        { immediate: true, deep: false },
+      );
 
       const placement = computed(() =>
         computeGridPlacement(props.tile.frame, props.grid, props.viewport),
       );
 
       return {
-        renderer,
+        resolvedRenderer,
         placement,
       };
     },
     template: `
       <div class="tile" :style="placement">
-        <component :is="renderer" :tile="tile" />
+        <component
+          v-if="resolvedRenderer"
+          :is="resolvedRenderer"
+          v-bind="tile?.props || {}"
+          :tile="tile"
+        />
+        <div v-else class="tile__fallback">No renderer registered for role {{ tile?.role }}</div>
       </div>
     `,
   });

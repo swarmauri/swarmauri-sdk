@@ -1,3 +1,7 @@
+import "@swarmakit/vue/dist/style.css";
+import "quill/dist/quill.core.css";
+import "quill/dist/quill.bubble.css";
+import "quill/dist/quill.snow.css";
 import {
   computed,
   createApp,
@@ -9,6 +13,7 @@ import {
   onBeforeUnmount,
   provide,
   inject,
+  shallowRef,
 } from "vue";
 import { createAtomRenderers } from "./atom-renderers.js";
 import { createRuntime } from "./runtime-core.js";
@@ -32,6 +37,7 @@ const runtime = createRuntime(
     onBeforeUnmount,
     provide,
     inject,
+    shallowRef,
   },
   { atomRenderers },
 );
