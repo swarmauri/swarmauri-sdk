@@ -13,7 +13,7 @@ from ..shortcuts import (
     load_catalog as load_catalog_from_data,
 )
 
-SUPPORTED_CATALOGS = ("vue",)
+SUPPORTED_CATALOGS = ("vue", "svelte")
 
 
 def _import_catalog(name: str) -> ModuleType:
