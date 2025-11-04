@@ -11,26 +11,27 @@ from layout_engine_atoms.catalog import swarma_svelte, swarma_vue
 
 def test_default_presets_are_registered() -> None:
     assert DEFAULT_PRESETS, "expected non-empty preset catalog"
-    assert "ui:button:primary" in DEFAULT_PRESETS
-    assert isinstance(DEFAULT_PRESETS["ui:button:primary"], AtomPreset)
+    assert "swarmakit:vue:button" in DEFAULT_PRESETS
+    button_preset = DEFAULT_PRESETS["swarmakit:vue:button"]
+    assert isinstance(button_preset, AtomPreset)
+    assert button_preset.module == "@swarmakit/vue"
 
 
 def test_default_atoms_match_presets() -> None:
     assert set(DEFAULT_ATOMS) == set(DEFAULT_PRESETS)
-    spec = DEFAULT_ATOMS["viz:metric:kpi"]
-    assert spec.module == "@swarmauri/atoms/Metrics"
-    assert spec.export == "KpiCard"
+    spec = DEFAULT_ATOMS["swarmakit:vue:button"]
+    assert spec.module == "@swarmakit/vue"
+    assert spec.export == "Button"
 
 
 def test_build_default_registry() -> None:
     registry = build_default_registry()
     assert isinstance(registry, AtomRegistry)
-    spec = registry.get("viz:metric:kpi")
-    assert spec.defaults["format"] == "compact"
+    spec = registry.get("swarmakit:vue:button")
+    assert spec.module == "@swarmakit/vue"
 
-    merged = registry.resolve_props("input:date-range", {"presets": ["today"]})
-    assert merged["presets"] == ["today"]
-    assert "presets" in merged
+    merged = registry.resolve_props("swarmakit:vue:button", {"size": "lg"})
+    assert merged["size"] == "lg"
 
 
 def test_swarma_vue_presets_cover_swarmakit_components() -> None:

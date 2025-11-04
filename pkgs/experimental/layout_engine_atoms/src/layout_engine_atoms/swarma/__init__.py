@@ -1,5 +1,5 @@
 """SwarmaKit atom helpers."""
 
-from .base import AtomProps, SwarmaAtom
+from .base import AtomProps, SwarmaAtomCatalog
 
-__all__ = ["AtomProps", "SwarmaAtom"]
+__all__ = ["AtomProps", "SwarmaAtomCatalog"]

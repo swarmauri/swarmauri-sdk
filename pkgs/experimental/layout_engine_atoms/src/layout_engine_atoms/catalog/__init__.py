@@ -15,13 +15,19 @@ from ..shortcuts import (
 
 SUPPORTED_CATALOGS = ("vue", "svelte")
 
+_CATALOG_MODULES = {
+    "vue": "swarma_vue",
+    "svelte": "swarma_svelte",
+}
+
 
 def _import_catalog(name: str) -> ModuleType:
-    if name not in SUPPORTED_CATALOGS:
+    if name not in _CATALOG_MODULES:
         raise KeyError(
             f"Unknown atom catalog '{name}' (supported: {SUPPORTED_CATALOGS})"
         )
-    return importlib.import_module(f"{__name__}.{name}")
+    module_name = _CATALOG_MODULES[name]
+    return importlib.import_module(f"{__name__}.{module_name}")
 
 
 def get_default_presets(name: str = "vue") -> Mapping[str, AtomPreset]:

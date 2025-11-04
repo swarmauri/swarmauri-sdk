@@ -1,9 +1,12 @@
 from __future__ import annotations
 
-from typing import Any, Mapping, Type
+from typing import Any, Iterable, Mapping, Type
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from layout_engine import AtomSpec
+
+from ..default import AtomPresetCatalog
+from ..spec import AtomPreset
 
 
 class AtomProps(BaseModel):
@@ -12,21 +15,81 @@ class AtomProps(BaseModel):
     model_config = {"extra": "allow"}
 
 
-class SwarmaAtom(BaseModel):
-    """Typed wrapper around AtomSpec with prop/state helpers."""
+class SwarmaAtomCatalog(AtomPresetCatalog):
+    """Catalog adapter that adds Swarma-specific helpers on top of presets."""
 
-    spec: AtomSpec
-    props_schema: Type[AtomProps] = AtomProps
-    state_defaults: Mapping[str, Any] = Field(default_factory=dict)
+    def __init__(
+        self,
+        presets: Mapping[str, AtomPreset | AtomSpec] | Iterable[AtomPreset | AtomSpec],
+        *,
+        props_schema: Type[AtomProps] = AtomProps,
+    ):
+        self._props_schema = props_schema
+        normalized = self._normalize_presets(presets)
+        super().__init__(normalized)
 
-    def to_spec(self) -> AtomSpec:
-        return self.spec
+    @property
+    def props_schema(self) -> Type[AtomProps]:
+        return self._props_schema
 
-    def merge_props(self, overrides: Mapping[str, Any] | None = None) -> dict:
-        merged = {**self.spec.defaults, **(overrides or {})}
-        return self.props_schema(**merged).model_dump()
+    def get_spec(self, role: str) -> AtomSpec:
+        return self.get(role).to_spec()
 
-    def with_overrides(self, **patch: Any) -> "SwarmaAtom":
-        """Return a copy with spec fields patched (e.g., new defaults/version)."""
+    def merge_props(
+        self, role: str, overrides: Mapping[str, Any] | None = None
+    ) -> dict[str, Any]:
+        preset = self.get(role)
+        merged = {**dict(preset.defaults), **(overrides or {})}
+        return self._props_schema(**merged).model_dump()
 
-        return self.model_copy(update={"spec": self.spec.with_overrides(**patch)})
+    def with_overrides(self, role: str, **patch: Any) -> "SwarmaAtomCatalog":
+        """Return a new catalog with the given role patched (e.g., defaults/version)."""
+
+        if role not in self._presets:
+            raise KeyError(f"Unknown Swarma atom role: {role}")
+
+        updated = self._presets[role].model_copy(update=patch)
+        presets = dict(self._presets)
+        presets[role] = updated
+        return self.__class__(presets, props_schema=self._props_schema)
+
+    def with_extra_presets(
+        self,
+        extra_presets: Mapping[str, AtomPreset | AtomSpec]
+        | Iterable[AtomPreset | AtomSpec],
+    ) -> "SwarmaAtomCatalog":
+        presets = dict(self._presets)
+        updates = self._normalize_presets(extra_presets)
+        presets.update(updates)
+        return self.__class__(presets, props_schema=self._props_schema)
+
+    @staticmethod
+    def _ensure_preset(value: AtomPreset | AtomSpec) -> AtomPreset:
+        if isinstance(value, AtomPreset):
+            return value
+        if isinstance(value, AtomSpec):
+            return AtomPreset(
+                role=value.role,
+                module=value.module,
+                export=value.export,
+                version=value.version,
+                defaults=dict(value.defaults),
+            )
+        raise TypeError(f"Unsupported preset payload type: {type(value)!r}")
+
+    @classmethod
+    def _normalize_presets(
+        cls,
+        data: Mapping[str, AtomPreset | AtomSpec] | Iterable[AtomPreset | AtomSpec],
+    ) -> dict[str, AtomPreset]:
+        if isinstance(data, Mapping):
+            normalized: dict[str, AtomPreset] = {}
+            for candidate in data.values():
+                preset = cls._ensure_preset(candidate)
+                normalized[preset.role] = preset
+            return normalized
+        normalized: dict[str, AtomPreset] = {}
+        for candidate in data:
+            preset = cls._ensure_preset(candidate)
+            normalized[preset.role] = preset
+        return normalized

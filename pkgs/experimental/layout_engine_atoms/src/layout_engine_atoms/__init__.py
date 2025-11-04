@@ -1,7 +1,7 @@
 """Swarmauri atom presets for layout-engine."""
 
 from .spec import AtomPreset
-from .default import AtomPresetCatalog
+from .default import IAtomCatalog, AtomPresetCatalog
 from .shortcuts import (
     build_registry as build_registry_from_presets,
     load_catalog as load_catalog_from_data,
@@ -23,6 +23,7 @@ from .catalog import (
 
 __all__ = [
     "AtomPreset",
+    "IAtomCatalog",
     "AtomPresetCatalog",
     "DEFAULT_ATOMS",
     "DEFAULT_PRESETS",

@@ -5,7 +5,8 @@ from typing import Iterable, Mapping
 
 from layout_engine import AtomRegistry, AtomSpec
 
-from ..swarma import AtomProps, SwarmaAtom
+from ..spec import AtomPreset
+from ..swarma import AtomProps, SwarmaAtomCatalog
 
 FRAMEWORK = "vue"
 SWARMAKIT_MODULE = "@swarmakit/vue"
@@ -179,65 +180,61 @@ def _slugify(name: str) -> str:
     return text.replace("_", "-").lower()
 
 
-def _make_atom(name: str) -> SwarmaAtom:
+def _make_preset(name: str) -> AtomPreset:
     role = f"swarmakit:vue:{_slugify(name)}"
-    spec = AtomSpec(
+    return AtomPreset(
         role=role,
         module=SWARMAKIT_MODULE,
         export=name,
         version=SWARMAKIT_VERSION,
         defaults={},
     )
-    return SwarmaAtom(spec=spec, props_schema=AtomProps)
 
 
-_DEFAULT_ATOMS = tuple(_make_atom(name) for name in _COMPONENT_EXPORTS)
+_DEFAULT_PRESETS = tuple(_make_preset(name) for name in _COMPONENT_EXPORTS)
 
-DEFAULT_PRESETS: dict[str, SwarmaAtom] = {
-    atom.spec.role: atom for atom in _DEFAULT_ATOMS
+DEFAULT_PRESETS: dict[str, AtomPreset] = {
+    preset.role: preset for preset in _DEFAULT_PRESETS
 }
 
 DEFAULT_ATOMS: dict[str, AtomSpec] = {
-    role: atom.to_spec() for role, atom in DEFAULT_PRESETS.items()
+    role: preset.to_spec() for role, preset in DEFAULT_PRESETS.items()
 }
 
 ATOM_TABLE = [
     {
-        "role": atom.spec.role,
+        "role": preset.role,
         "framework": FRAMEWORK,
-        "module": atom.spec.module,
-        "export": atom.spec.export,
-        "version": atom.spec.version,
-        "defaults": dict(atom.spec.defaults),
+        "module": preset.module,
+        "export": preset.export,
+        "version": preset.version,
+        "defaults": dict(preset.defaults),
     }
-    for atom in DEFAULT_PRESETS.values()
+    for preset in DEFAULT_PRESETS.values()
 ]
 
 
 def build_registry(
     *,
-    extra_presets: Iterable[SwarmaAtom] | Mapping[str, SwarmaAtom] | None = None,
+    extra_presets: Iterable[AtomPreset | AtomSpec]
+    | Mapping[str, AtomPreset | AtomSpec]
+    | None = None,
     overrides: Mapping[str, Mapping[str, object]] | None = None,
 ) -> AtomRegistry:
     """Create an AtomRegistry populated with SwarmaKit Vue presets."""
 
-    presets: dict[str, SwarmaAtom] = dict(DEFAULT_PRESETS)
+    catalog = SwarmaAtomCatalog(DEFAULT_PRESETS, props_schema=AtomProps)
 
     if extra_presets:
-        if isinstance(extra_presets, Mapping):
-            presets.update(extra_presets)
-        else:
-            presets.update({atom.spec.role: atom for atom in extra_presets})
-
+        catalog = catalog.with_extra_presets(extra_presets)
     if overrides:
         for role, patch in overrides.items():
-            if role not in presets:
+            try:
+                catalog = catalog.with_overrides(role, **patch)
+            except KeyError:
                 continue
-            presets[role] = presets[role].with_overrides(**patch)
 
-    registry = AtomRegistry()
-    registry.register_many(atom.to_spec() for atom in presets.values())
-    return registry
+    return catalog.build_registry()
 
 
 def build_default_registry() -> AtomRegistry:
