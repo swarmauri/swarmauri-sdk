@@ -1,45 +1,33 @@
-"""Minimal example showing how to use layout_engine_atoms presets with layout-engine."""
+"""Minimal example showing how to use layout_engine_atoms manifest helpers."""
 
 from __future__ import annotations
 
 import json
 
-from layout_engine import LayoutCompiler, ManifestBuilder, TileSpec, Viewport
-from layout_engine.core.size import Size
-from layout_engine.grid.spec import GridSpec, GridTile, GridTrack
-from layout_engine_atoms import build_registry
+from layout_engine.structure import block, col, row, table
+
+from layout_engine_atoms.manifest import (
+    create_registry,
+    quick_manifest_from_table,
+    tile,
+)
 
 
 def build_manifest_dict() -> dict:
     """Return a manifest dictionary ready to be served as JSON."""
 
-    atoms = build_registry(name="vue")
-    atoms.override("swarmakit:vue:cardbased-list", defaults={})
+    registry = create_registry(catalog="vue")
 
-    grid = GridSpec(
-        columns=[
-            GridTrack(size=Size(1, "fr")),
-            GridTrack(size=Size(1, "fr")),
-        ],
-        row_height=220,
-        tokens={"columns": "sgd:columns:2"},
+    layout = table(
+        row(col(block("hero")), col(block("progress")), height_rows=2),
+        row(col(block("summary")), col(block("activity"))),
+        row(col(block("status")), col(block("actions"))),
     )
-    viewport = Viewport(width=1280, height=960)
-    placements = [
-        GridTile(tile_id="hero", col=0, row=0, col_span=2),
-        GridTile(tile_id="summary", col=0, row=1),
-        GridTile(tile_id="activity", col=1, row=1),
-        GridTile(tile_id="progress", col=0, row=2, col_span=2),
-        GridTile(tile_id="status", col=0, row=3),
-        GridTile(tile_id="actions", col=1, row=3),
-    ]
 
-    compiler = LayoutCompiler()
-    frames = compiler.frames(grid, viewport, placements)
     tiles = [
-        TileSpec(
-            id="hero",
-            role="swarmakit:vue:cardbased-list",
+        tile(
+            "hero",
+            "swarmakit:vue:cardbased-list",
             props={
                 "style": {
                     "color": "#e2e8f0",
@@ -64,47 +52,60 @@ def build_manifest_dict() -> dict:
                 ],
             },
         ),
-        TileSpec(
-            id="summary",
-            role="swarmakit:vue:data-summary",
+        tile(
+            "summary",
+            "swarmakit:vue:data-summary",
+            span="half",
             props={
                 "style": {
+                    "backgroundColor": "rgba(56, 189, 248, 0.12)",
+                    "color": "#e0f2fe",
                     "--summary-bg": "rgba(56, 189, 248, 0.12)",
                     "--summary-border-color": "rgba(148, 163, 184, 0.45)",
+                    "boxShadow": "0 0 0 1px rgba(56, 189, 248, 0.25)",
                 },
                 "data": [120, 135, 142, 138, 149, 162, 158, 171],
             },
         ),
-        TileSpec(
-            id="activity",
-            role="swarmakit:vue:activity-indicators",
+        tile(
+            "activity",
+            "swarmakit:vue:activity-indicators",
+            span="half",
             props={
                 "type": "success",
                 "message": "All runtimes healthy · last sync 2m ago",
                 "style": {
+                    "backgroundColor": "rgba(56, 189, 248, 0.18)",
+                    "color": "#e0f2fe",
                     "--success-bg-color": "rgba(56, 189, 248, 0.18)",
                     "--success-text-color": "#e0f2fe",
                     "--padding": "18px",
                 },
             },
         ),
-        TileSpec(
-            id="progress",
-            role="swarmakit:vue:progress-bar",
+        tile(
+            "progress",
+            "swarmakit:vue:progress-bar",
             props={
-                "progress": 52,
+                "progress": 72,
             },
         ),
-        TileSpec(
-            id="status",
-            role="swarmakit:vue:status-dots",
+        tile(
+            "status",
+            "swarmakit:vue:status-dots",
+            span="half",
             props={
                 "status": "online",
+                "style": {
+                    "fontSize": "1.1rem",
+                    "gap": "12px",
+                },
             },
         ),
-        TileSpec(
-            id="actions",
-            role="swarmakit:vue:actionable-list",
+        tile(
+            "actions",
+            "swarmakit:vue:actionable-list",
+            span="half",
             props={
                 "items": [
                     {"label": "Review staging publish", "actionLabel": "Open"},
@@ -122,29 +123,16 @@ def build_manifest_dict() -> dict:
             },
         ),
     ]
-    view_model = compiler.view_model(
-        grid,
-        viewport,
-        frames,
+
+    manifest = quick_manifest_from_table(
+        layout,
         tiles,
-        atoms_registry=atoms,
+        registry=registry,
+        row_height=220,
         channels=[{"id": "ui.events", "scope": "page", "topic": "page:{page_id}:ui"}],
         ws_routes=[{"path": "/ws/ui", "channels": ["ui.events"]}],
     )
-
-    manifest = ManifestBuilder().build(view_model)
-    payload = manifest.model_dump()
-
-    for tile in payload.get("tiles", []):
-        atom = tile.get("atom")
-        if not atom:
-            continue
-        atom.setdefault("role", tile.get("role"))
-        if atom.get("module") == "@swarmakit/vue":
-            atom.setdefault("family", "swarmakit")
-            atom.setdefault("package", "@swarmakit/vue")
-
-    return payload
+    return manifest.model_dump()
 
 
 def build_manifest_json(indent: int | None = 2) -> str:

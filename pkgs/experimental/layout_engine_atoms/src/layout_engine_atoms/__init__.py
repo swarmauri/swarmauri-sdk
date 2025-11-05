@@ -1,5 +1,16 @@
 """Swarmauri atom presets for layout-engine."""
 
+# Manifest helpers
+from .manifest import (
+    Tile as ManifestTile,
+    build_manifest_from_tiles,
+    build_manifest_from_table,
+    create_registry as create_manifest_registry,
+    quick_manifest,
+    quick_manifest_from_table,
+    tile as manifest_tile,
+)
+
 from .spec import AtomPreset
 from .default import IAtomCatalog, AtomPresetCatalog
 from .shortcuts import (
@@ -39,4 +50,11 @@ __all__ = [
     "build_registry_from_presets",
     "load_catalog_from_data",
     "presets_from_specs",
+    "ManifestTile",
+    "manifest_tile",
+    "create_manifest_registry",
+    "quick_manifest",
+    "build_manifest_from_tiles",
+    "quick_manifest_from_table",
+    "build_manifest_from_table",
 ]

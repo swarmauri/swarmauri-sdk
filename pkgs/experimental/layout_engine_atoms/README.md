@@ -83,6 +83,32 @@ when composing payloads for the runtime. See
 [`examples/basic_usage.py`](../layout_engine/examples/basic_usage.py) for a
 complete manifest construction flow.
 
+### Quick manifest builder
+
+To skip the lower-level layout primitives entirely, use the bundled helpers:
+
+```python
+from layout_engine_atoms.manifest import create_registry, quick_manifest, tile
+
+registry = create_registry()
+manifest = quick_manifest(
+    [
+        tile("hero", "swarmakit:vue:cardbased-list", span="full", props={"cards": [...]}),
+        tile("summary", "swarmakit:vue:data-summary", span="half", props={"data": [...]}),
+        tile("activity", "swarmakit:vue:activity-indicators", span="half", props={"type": "success"}),
+    ],
+    registry=registry,
+)
+
+manifest_json = manifest.model_dump()
+```
+
+Tiles auto-place into a responsive grid (`full`, `half`, or explicit spans), the
+viewport is inferred, and registry defaults merge into each tile's props.
+
+If you prefer the authoring DSL, build a `table`/`row`/`col` structure and call
+`quick_manifest_from_table(layout, tiles, ...)` for the same result.
+
 ---
 
 ## Vue Thin Wrapper
