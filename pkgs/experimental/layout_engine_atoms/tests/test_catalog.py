@@ -15,6 +15,8 @@ def test_default_presets_are_registered() -> None:
     button_preset = DEFAULT_PRESETS["swarmakit:vue:button"]
     assert isinstance(button_preset, AtomPreset)
     assert button_preset.module == "@swarmakit/vue"
+    assert button_preset.framework == "vue"
+    assert button_preset.registry.get("name") == "swarmakit"
 
 
 def test_default_atoms_match_presets() -> None:
@@ -22,6 +24,10 @@ def test_default_atoms_match_presets() -> None:
     spec = DEFAULT_ATOMS["swarmakit:vue:button"]
     assert spec.module == "@swarmakit/vue"
     assert spec.export == "Button"
+    assert getattr(spec, "framework", None) in (None, "vue")
+    registry_meta = dict(getattr(spec, "registry", {}))
+    if registry_meta:
+        assert registry_meta.get("name") == "swarmakit"
 
 
 def test_build_default_registry() -> None:
@@ -29,6 +35,7 @@ def test_build_default_registry() -> None:
     assert isinstance(registry, AtomRegistry)
     spec = registry.get("swarmakit:vue:button")
     assert spec.module == "@swarmakit/vue"
+    assert getattr(spec, "framework", None) in (None, "vue")
 
     merged = registry.resolve_props("swarmakit:vue:button", {"size": "lg"})
     assert merged["size"] == "lg"

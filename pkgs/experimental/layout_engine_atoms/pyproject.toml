@@ -1,6 +1,6 @@
 [project]
 name = "layout-engine-atoms"
-version = "0.1.0"
+version = "0.1.0.dev1"
 description = "Curated atom presets and registries for layout-engine."
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" },
@@ -20,7 +20,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries",
 ]
 dependencies = [
-    "layout-engine>=0.1.1",
+    "layout-engine",
     "fastapi",
     "uvicorn[standard]",
 ]
@@ -32,6 +32,16 @@ keywords = [
     "presets",
     "swarmauri",
 ]
+
+[tool.setuptools.package-data]
+layout_engine_atoms = [
+    "runtime/vue/assets/layout-engine-vue/*.js",
+    "runtime/vue/assets/swarma-vue/*.js",
+    "runtime/vue/assets/swarma-vue/*.css",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [dependency-groups]
 dev = [

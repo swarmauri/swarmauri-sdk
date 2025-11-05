@@ -51,6 +51,11 @@ class AtomSpec(BaseModel):
     export: str = "default"
     version: str = "1.0.0"
     defaults: Mapping[str, Any] = Field(default_factory=dict)
+    family: str | None = None
+    framework: str | None = None
+    package: str | None = None
+    tokens: Mapping[str, Any] = Field(default_factory=dict)
+    registry: Mapping[str, Any] = Field(default_factory=dict)
 
     @field_validator("role")
     @classmethod
@@ -65,6 +70,11 @@ class AtomSpec(BaseModel):
     @field_validator("defaults", mode="before")
     @classmethod
     def _coerce_defaults(cls, value: Mapping[str, Any] | None) -> Mapping[str, Any]:
+        return dict(value or {})
+
+    @field_validator("tokens", "registry", mode="before")
+    @classmethod
+    def _coerce_mapping(cls, value: Mapping[str, Any] | None) -> Mapping[str, Any]:
         return dict(value or {})
 
     def with_overrides(self, **fields: Any) -> AtomSpec:

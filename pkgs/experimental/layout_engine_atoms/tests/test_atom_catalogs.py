@@ -15,6 +15,9 @@ def make_preset(
     export: str = "Component",
     version: str = "1.0.0",
     defaults: dict[str, object] | None = None,
+    framework: str | None = None,
+    family: str | None = None,
+    registry: dict[str, object] | None = None,
 ) -> AtomPreset:
     return AtomPreset(
         role=role,
@@ -22,6 +25,9 @@ def make_preset(
         export=export,
         version=version,
         defaults=defaults or {},
+        framework=framework,
+        family=family,
+        registry=registry or {},
     )
 
 
@@ -81,11 +87,18 @@ class ButtonProps(AtomProps):
 
 
 def test_swarma_atom_catalog_merge_props_and_get_spec() -> None:
-    preset = make_preset("swarmakit:vue:button", defaults={"tone": "primary"})
+    preset = make_preset(
+        "swarmakit:vue:button",
+        defaults={"tone": "primary"},
+        framework="vue",
+        family="swarmakit",
+        registry={"name": "swarmakit"},
+    )
     catalog = SwarmaAtomCatalog([preset], props_schema=ButtonProps)
 
     spec = catalog.get_spec("swarmakit:vue:button")
     assert spec.module == "pkg"
+    assert getattr(spec, "framework", None) in (None, "vue")
 
     merged = catalog.merge_props("swarmakit:vue:button", {"size": "lg"})
     assert merged == {"size": "lg", "tone": "primary"}

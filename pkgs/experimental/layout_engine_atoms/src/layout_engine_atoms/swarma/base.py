@@ -74,6 +74,11 @@ class SwarmaAtomCatalog(AtomPresetCatalog):
                 export=value.export,
                 version=value.version,
                 defaults=dict(value.defaults),
+                family=getattr(value, "family", None),
+                framework=getattr(value, "framework", None),
+                package=getattr(value, "package", None),
+                tokens=dict(getattr(value, "tokens", {}) or {}),
+                registry=dict(getattr(value, "registry", {}) or {}),
             )
         raise TypeError(f"Unsupported preset payload type: {type(value)!r}")
 

@@ -188,6 +188,15 @@ def _make_preset(name: str) -> AtomPreset:
         export=name,
         version=SWARMAKIT_VERSION,
         defaults={},
+        framework=FRAMEWORK,
+        package=SWARMAKIT_MODULE,
+        family="swarmakit",
+        registry={
+            "name": "swarmakit",
+            "framework": FRAMEWORK,
+            "package": SWARMAKIT_MODULE,
+            "version": SWARMAKIT_VERSION,
+        },
     )
 
 

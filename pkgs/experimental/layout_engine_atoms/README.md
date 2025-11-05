@@ -31,9 +31,9 @@ package you can:
 
 - **Curated atom registry** – every semantic role maps to an importable module,
   default props, and version metadata so manifests can stay declarative.
-- **Vue thin wrapper** – bundled `createLayoutApp` helper exposes a drop-in
+- **Vue thin wrapper** – packaged `mount_layout_app` helper mounts a drop-in
   dashboard with grid layout, shared theme tokens, plugin hooks, and optional
-  realtime updates.
+  realtime updates straight from FastAPI.
 - **Swiss grid defaults** – spacing, typography, and layout tokens follow Swiss
   graphic design ratios for consistent output across HTML, PDF, or SVG targets.
 - **Realtime ready** – websocket bridge understands `manifest.replace`,
@@ -90,53 +90,33 @@ complete manifest construction flow.
 The Vue runtime lives under `layout_engine_atoms.runtime.vue` and ships both the
 server-side helper and the browser bundle.
 
-### 1. Serve the bundle + manifest
+### One-line FastAPI mount
 
 ```python
 from fastapi import FastAPI
-from layout_engine_atoms.runtime.vue import create_layout_app
+from layout_engine_atoms.runtime.vue import mount_layout_app
 from my_manifests import build_manifest
 
 app = FastAPI()
-vue_app = create_layout_app(
+
+mount_layout_app(
+    app,
     manifest_builder=build_manifest,
-    mount_path="/dashboard",
+    base_path="/dashboard",
+    title="My Layout Engine Dashboard",
 )
-app.mount("/dashboard", vue_app.asgi_app())
 ```
 
-Optional websocket streaming can be enabled by passing a `ManifestEventsConfig`
-(see [runtime README](src/layout_engine_atoms/runtime/vue/README.md)).
-
-### 2. Mount in the browser
-
-```html
-<div id="app"></div>
-<script type="module">
-  import { createLayoutApp } from "/dashboard/layout-engine-vue.es.js";
-
-  const controller = createLayoutApp({
-    manifestUrl: "/dashboard/manifest.json",
-    target: "#app",
-    events: true,
-    onReady: (manifest) => console.debug("loaded", manifest.version),
-    onError: (err) => console.error("manifest", err),
-  });
-
-  // optional helpers
-  controller.registerAtomRenderer("viz:metric:kpi", MyMetricComponent);
-  controller.setTheme({ tokens: { "color-accent": "#ff8a4c" } });
-</script>
-```
-
-The returned controller exposes methods (`refresh`, `setPage`, `setTheme`,
-`registerAtomRenderer`, `events.send`, etc.) so applications can integrate
-interactive controls without rewriting runtime logic.
+The helper ships the HTML shell, import map, and static bundles. Once mounted,
+opening `/dashboard/` loads the packaged Vue runtime which automatically
+fetches `/dashboard/manifest.json`.
 
 ---
 
 ## Examples
 
+- **Simple manifest** – minimal script that builds a SwarmaKit manifest with
+  layout-engine (`pkgs/experimental/layout_engine_atoms/examples/simple_demo`).
 - **Customer Success Command Center** – demonstrates multi-page manifests and
   realtime incident streaming via websocket patches
   (`pkgs/experimental/layout_engine_atoms/examples/customer_success`).
@@ -147,6 +127,16 @@ interactive controls without rewriting runtime logic.
   (`pkgs/experimental/layout_engine_atoms/examples/revenue_ops`).
 
 You can run any example directly with `uvicorn`:
+
+```bash
+uv run --directory pkgs/experimental/layout_engine_atoms \
+  --package layout-engine-atoms \
+  uvicorn layout_engine_atoms.examples.simple_demo.server:app --reload
+```
+
+This demo mounts the packaged Vue shell and manifest under `/`. Run it with
+`uvicorn layout_engine_atoms.examples.simple_demo.server:app --reload` and visit
+`http://127.0.0.1:8000/` to view the dashboard.
 
 ```bash
 uv run --directory pkgs/experimental/layout_engine_atoms \

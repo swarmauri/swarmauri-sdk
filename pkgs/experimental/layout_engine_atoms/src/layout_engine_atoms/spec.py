@@ -22,6 +22,10 @@ class AtomPreset(BaseModel):
     defaults: Mapping[str, Any] = Field(default_factory=dict)
     family: str | None = None
     description: str | None = None
+    framework: str | None = None
+    package: str | None = None
+    tokens: Mapping[str, Any] = Field(default_factory=dict)
+    registry: Mapping[str, Any] = Field(default_factory=dict)
 
     def to_spec(self) -> AtomSpec:
         """Convert the preset into a concrete :class:`AtomSpec`."""
@@ -31,4 +35,9 @@ class AtomPreset(BaseModel):
             export=self.export,
             version=self.version,
             defaults=dict(self.defaults),
+            family=self.family,
+            framework=self.framework,
+            package=self.package,
+            tokens=dict(self.tokens),
+            registry=dict(self.registry),
         )

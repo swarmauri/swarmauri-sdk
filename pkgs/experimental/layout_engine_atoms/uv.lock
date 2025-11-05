@@ -162,7 +162,7 @@ wheels = [
 
 [[package]]
 name = "layout-engine"
-version = "0.1.1"
+version = "0.1.1.dev1"
 source = { directory = "../layout_engine" }
 dependencies = [
     { name = "jinja2" },
@@ -191,7 +191,7 @@ dev = [
 
 [[package]]
 name = "layout-engine-atoms"
-version = "0.1.0"
+version = "0.1.0.dev1"
 source = { editable = "." }
 dependencies = [
     { name = "fastapi" },

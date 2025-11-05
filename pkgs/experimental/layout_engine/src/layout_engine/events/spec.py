@@ -23,6 +23,7 @@ class EventEnvelope(BaseModel):
     request_id: str
     target: dict[str, Any] | None
     payload: dict[str, Any] | None
+    channel: str | None = None
 
 
 # Optional server responses

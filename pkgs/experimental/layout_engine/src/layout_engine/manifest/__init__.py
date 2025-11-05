@@ -8,7 +8,7 @@ Exports:
 - Patching: `diff(old, new)`, `apply_patch(base, patch)`
 """
 
-from .spec import Manifest
+from .spec import Manifest, SiteManifest, ChannelManifest, WsRouteManifest
 from .default import ManifestBuilder
 from .utils import (
     build_manifest,
@@ -32,6 +32,10 @@ from .utils import (
 
 __all__ = [
     "Manifest",
+    "SiteManifest",
+    "ChannelManifest",
+    "WsRouteManifest",
+    "SiteManifest",
     "ManifestBuilder",
     "build_manifest",
     "etag_of",
