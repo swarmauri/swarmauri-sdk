@@ -1,0 +1,38 @@
+:root {
+  --button-primary-bg: #007bff;
+  --button-secondary-bg: #6c757d;
+  --button-disabled-bg: #d6d6d6;
+  --button-text-color: #ffffff;
+  --button-hover-opacity: 0.8;
+  --button-active-opacity: 0.6;
+}
+
+.button {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  color: var(--button-text-color);
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.3s;
+}
+
+.button.primary {
+  background-color: var(--button-primary-bg);
+}
+
+.button.secondary {
+  background-color: var(--button-secondary-bg);
+}
+
+.button:disabled {
+  background-color: var(--button-disabled-bg);
+  cursor: not-allowed;
+}
+
+.button:hover:not(:disabled) {
+  opacity: var(--button-hover-opacity);
+}
+
+.button:active:not(:disabled) {
+  opacity: var(--button-active-opacity);
+}

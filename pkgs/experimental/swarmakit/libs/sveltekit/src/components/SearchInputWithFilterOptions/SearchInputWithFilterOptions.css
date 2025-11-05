@@ -1,0 +1,53 @@
+:root {
+  --input-border-color: #ccc;
+  --input-focus-border-color: #007bff;
+  --button-bg-color: #f0f0f0;
+  --button-active-bg-color: #007bff;
+  --button-text-color: #000;
+  --button-active-text-color: #fff;
+}
+
+.search-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.search-input {
+  padding: 8px;
+  border: 1px solid var(--input-border-color);
+  border-radius: 4px;
+  font-size: 16px;
+  width: 100%;
+}
+
+.search-input:focus {
+  border-color: var(--input-focus-border-color);
+  outline: none;
+}
+
+.filter-options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-button {
+  padding: 8px 12px;
+  background-color: var(--button-bg-color);
+  color: var(--button-text-color);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.filter-button.active {
+  background-color: var(--button-active-bg-color);
+  color: var(--button-active-text-color);
+}
+
+.filter-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

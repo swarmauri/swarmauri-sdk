@@ -1,0 +1,23 @@
+:root {
+  --tabs-border: 1px solid #ccc;
+  --tab-bg: #fff;
+  --tab-active-bg: #007bff;
+  --tab-disabled-bg: #f5f5f5;
+  --tab-hover-bg: #e7e7e7;
+}
+
+@media (max-width: 480px) {
+  /* small mobile styles */
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  /* large mobile styles */
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* tablet styles */
+}
+
+@media (min-width: 1025px) {
+  /* desktop styles */
+}

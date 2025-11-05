@@ -1,0 +1,24 @@
+:root {
+  --slider-padding: 8px;
+  --slider-margin: 8px 0;
+  --slider-input-margin-right: 8px;
+  --slider-accent-color: #007bff;
+  --slider-value-font-size: 14px;
+  --slider-value-color: #333;
+}
+
+@media (max-width: 480px) {
+  /* small mobile styles */
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  /* large mobile styles */
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* tablet styles */
+}
+
+@media (min-width: 1025px) {
+  /* desktop styles */
+}

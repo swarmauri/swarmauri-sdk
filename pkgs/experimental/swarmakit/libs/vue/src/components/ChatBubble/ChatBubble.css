@@ -1,0 +1,38 @@
+:root {
+  --chat-bubble-padding: 10px;
+  --chat-bubble-radius: 8px;
+  --chat-bubble-bg-color: #f1f1f1;
+  --chat-bubble-text-color: #333;
+  --chat-bubble-read-bg-color: #e0e0e0;
+  --chat-bubble-unread-bg-color: #cce5ff;
+  --chat-bubble-hover-bg-color: #b3d9ff;
+  --chat-bubble-active-bg-color: #99ccff;
+}
+
+@media (max-width: 480px) {
+  :root {
+    --chat-bubble-padding: 8px;
+    --chat-bubble-radius: 6px;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  :root {
+    --chat-bubble-padding: 9px;
+    --chat-bubble-radius: 7px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  :root {
+    --chat-bubble-padding: 10px;
+    --chat-bubble-radius: 8px;
+  }
+}
+
+@media (min-width: 1025px) {
+  :root {
+    --chat-bubble-padding: 12px;
+    --chat-bubble-radius: 10px;
+  }
+}

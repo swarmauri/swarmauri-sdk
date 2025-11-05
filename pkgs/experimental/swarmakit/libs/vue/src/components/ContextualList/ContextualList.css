@@ -1,0 +1,23 @@
+:root {
+  --list-item-margin-bottom: 10px;
+  --list-item-padding: 10px;
+  --list-item-background: #fff;
+  --list-item-border: 1px solid #ccc;
+  --action-triggered-background: #e0f7fa;
+}
+
+@media (max-width: 480px) {
+  /* small mobile styles */
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  /* large mobile styles */
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* tablet styles */
+}
+
+@media (min-width: 1025px) {
+  /* desktop styles */
+}

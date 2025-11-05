@@ -1,0 +1,33 @@
+:root {
+  --toggle-bg-color: #f0f0f0;
+  --toggle-radius: 50%;
+  --toggle-focus-color: #000;
+}
+
+[data-theme='dark'] {
+  --toggle-bg-color: #333;
+}
+
+@media (max-width: 480px) {
+  :root {
+    --toggle-radius: 40%;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  :root {
+    --toggle-radius: 45%;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  :root {
+    --toggle-radius: 50%;
+  }
+}
+
+@media (min-width: 1025px) {
+  :root {
+    --toggle-radius: 55%;
+  }
+}

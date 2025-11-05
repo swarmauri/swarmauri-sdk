@@ -1,0 +1,25 @@
+:root {
+  --border-color: #ccc;
+  --option-border-color: #ddd;
+  --option-bg: #f9f9f9;
+  --selected-bg-color: #e0f7fa;
+  --result-percentage-color: #555;
+}
+
+@media (max-width: 600px) {
+  .option {
+    font-size: 0.9rem;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 768px) {
+  .option {
+    font-size: 1rem;
+  }
+}
+
+@media (min-width: 769px) {
+  .option {
+    font-size: 1.1rem;
+  }
+}

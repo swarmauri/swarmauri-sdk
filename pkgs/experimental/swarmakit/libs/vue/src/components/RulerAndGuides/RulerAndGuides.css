@@ -1,0 +1,28 @@
+:root {
+  --ruler-bg: #e0e0e0;
+  --guide-color: #ff5722;
+}
+
+@media (max-width: 480px) {
+  .ruler-and-guides {
+    /* Styles for small mobile devices */
+  }
+}
+
+@media (min-width: 481px) and (max-width: 767px) {
+  .ruler-and-guides {
+    /* Styles for large mobile devices */
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .ruler-and-guides {
+    /* Styles for tablets */
+  }
+}
+
+@media (min-width: 1025px) {
+  .ruler-and-guides {
+    /* Styles for desktops */
+  }
+}

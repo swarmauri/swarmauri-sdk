@@ -1,0 +1,25 @@
+:root {
+  --border-color: #ccc;
+  --selected-border-color: #007bff;
+}
+
+@media (max-width: 600px) {
+  .option-image {
+    width: 80px;
+    height: 80px;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 768px) {
+  .option-image {
+    width: 90px;
+    height: 90px;
+  }
+}
+
+@media (min-width: 769px) {
+  .option-image {
+    width: 100px;
+    height: 100px;
+  }
+}

@@ -1,0 +1,24 @@
+:root {
+  --bell-icon-size: 24px;
+  --bell-icon-color: #000;
+  --bell-icon-notification-color: #ff0000;
+  --bell-icon-dismissed-color: #ccc;
+  --notification-dot-size: 8px;
+  --notification-dot-color: #ff0000;
+}
+
+@media (max-width: 480px) {
+  /* small mobile styles */
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  /* large mobile styles */
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* tablet styles */
+}
+
+@media (min-width: 1025px) {
+  /* desktop styles */
+}

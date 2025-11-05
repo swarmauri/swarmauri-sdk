@@ -1,0 +1,33 @@
+:root {
+  --search-bar-padding: 0.5rem 1rem;
+  --search-bar-margin: 0.5rem;
+  --search-bar-border-radius: 4px;
+  --search-bar-font-size: 1rem;
+  --search-bar-bg: #fff;
+  --search-bar-color: #333;
+  --search-bar-border: 1px solid #ccc;
+  --search-bar-border-focused: 1px solid #007bff;
+  --search-bar-border-disabled: 1px solid #ddd;
+  --search-bar-bg-disabled: #f5f5f5;
+}
+
+.search-bar {
+  padding: var(--search-bar-padding);
+  margin: var(--search-bar-margin);
+  border-radius: var(--search-bar-border-radius);
+  font-size: var(--search-bar-font-size);
+  background-color: var(--search-bar-bg);
+  color: var(--search-bar-color);
+  border: var(--search-bar-border);
+  transition: border 0.3s ease;
+}
+
+.search-bar.is-focused {
+  border: var(--search-bar-border-focused);
+}
+
+.search-bar:disabled {
+  background-color: var(--search-bar-bg-disabled);
+  border: var(--search-bar-border-disabled);
+  cursor: not-allowed;
+}

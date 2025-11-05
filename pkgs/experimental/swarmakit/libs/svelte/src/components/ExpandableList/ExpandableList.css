@@ -1,0 +1,42 @@
+:root {
+  --list-border: #ccc;
+  --list-item-bg: #fff;
+  --list-item-hover-bg: #f0f0f0;
+  --list-item-selected-bg: #e0e0e0;
+  --list-item-expanded-bg: #f9f9f9;
+  --list-color: #333;
+}
+
+.expandable-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.list-item {
+  border-bottom: 1px solid var(--list-border);
+  padding: 10px;
+  background-color: var(--list-item-bg);
+  cursor: pointer;
+}
+
+.list-item:hover {
+  background-color: var(--list-item-hover-bg);
+}
+
+.item-label {
+  font-weight: bold;
+}
+
+.item-content {
+  margin-top: 5px;
+  padding-left: 15px;
+}
+
+.expanded {
+  background-color: var(--list-item-expanded-bg) !important;
+}
+
+.selected {
+  background-color: var(--list-item-selected-bg) !important;
+}

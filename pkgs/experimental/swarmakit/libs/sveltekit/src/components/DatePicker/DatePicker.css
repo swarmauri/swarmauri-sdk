@@ -1,0 +1,24 @@
+:root {
+  --date-picker-border: #ccc;
+  --date-picker-disabled-bg: #e0e0e0;
+  --date-picker-font-color: #333;
+}
+
+.date-picker-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+input[type='date'],
+input[type='time'] {
+  border: 1px solid var(--date-picker-border);
+  padding: 0.5rem;
+  font-size: 1rem;
+  color: var(--date-picker-font-color);
+}
+
+input[type='date']:disabled,
+input[type='time']:disabled {
+  background-color: var(--date-picker-disabled-bg);
+}

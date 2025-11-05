@@ -1,0 +1,27 @@
+:root {
+  --badge-border-radius: 0.25em;
+  --badge-font-size: 0.875rem;
+  --badge-font-weight: 600;
+  --default-background: #e0e0e0;
+  --default-text: #606060;
+  --notification-background: #007bff;
+  --notification-text: #ffffff;
+  --status-background: #28a745;
+  --status-text: #ffffff;
+}
+
+@media (max-width: 480px) {
+  /* small mobile styles */
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  /* large mobile styles */
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* tablet styles */
+}
+
+@media (min-width: 1025px) {
+  /* desktop styles */
+}

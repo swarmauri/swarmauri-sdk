@@ -1,0 +1,31 @@
+:root {
+  --hand-card-gap: 10px;
+  --hand-padding: 10px;
+  --hand-bg-color: #f0f0f0;
+  --hand-border-radius: 5px;
+  --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  --card-border-radius: 5px;
+  --card-selected-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  --hand-full-bg-color: #d4edda;
+  --limit-notification-color: #ff6f61;
+  --limit-notification-font-size: 14px;
+  --limit-notification-margin-left: 10px;
+}
+
+@media (max-width: 600px) {
+  :root {
+    --hand-card-gap: 5px;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+  :root {
+    --hand-card-gap: 8px;
+  }
+}
+
+@media (min-width: 901px) {
+  :root {
+    --hand-card-gap: 10px;
+  }
+}

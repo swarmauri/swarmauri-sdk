@@ -1,0 +1,41 @@
+:root {
+  --slider-gap: 10px;
+  --slider-margin: 20px 0;
+  --input-width: 60px;
+  --input-padding: 5px;
+  --input-font-size: 16px;
+  --feedback-color: red;
+  --feedback-font-size: 14px;
+}
+
+@media (max-width: 600px) {
+  :root {
+    --input-width: 50px;
+    --input-font-size: 14px;
+    --feedback-font-size: 12px;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+  :root {
+    --input-width: 55px;
+    --input-font-size: 15px;
+    --feedback-font-size: 13px;
+  }
+}
+
+@media (min-width: 901px) and (max-width: 1200px) {
+  :root {
+    --input-width: 60px;
+    --input-font-size: 16px;
+    --feedback-font-size: 14px;
+  }
+}
+
+@media (min-width: 1201px) {
+  :root {
+    --input-width: 65px;
+    --input-font-size: 18px;
+    --feedback-font-size: 15px;
+  }
+}

@@ -1,0 +1,32 @@
+:root {
+  --loading-bg-color: #e0e0e0;
+  --success-bg-color: #d4edda;
+  --error-bg-color: #f8d7da;
+  --loading-text-color: #6c757d;
+  --success-text-color: #155724;
+  --error-text-color: #721c24;
+  --padding: 1rem;
+  --border-radius: 4px;
+}
+
+.activity-indicator {
+  padding: var(--padding);
+  border-radius: var(--border-radius);
+  margin: 0.5rem 0;
+  display: inline-block;
+}
+
+.activity-indicator.loading {
+  background-color: var(--loading-bg-color);
+  color: var(--loading-text-color);
+}
+
+.activity-indicator.success {
+  background-color: var(--success-bg-color);
+  color: var(--success-text-color);
+}
+
+.activity-indicator.error {
+  background-color: var(--error-bg-color);
+  color: var(--error-text-color);
+}

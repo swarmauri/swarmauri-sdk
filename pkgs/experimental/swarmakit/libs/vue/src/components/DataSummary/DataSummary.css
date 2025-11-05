@@ -1,0 +1,17 @@
+:root {
+  --summary-border-color: #dddddd;
+  --summary-bg: #ffffff;
+  --error-color: #ff0000;
+}
+
+.data-summary {
+  padding: 16px;
+  border: 1px solid var(--summary-border-color);
+  border-radius: 8px;
+  background-color: var(--summary-bg);
+}
+
+.error-message {
+  color: var(--error-color);
+  font-weight: bold;
+}

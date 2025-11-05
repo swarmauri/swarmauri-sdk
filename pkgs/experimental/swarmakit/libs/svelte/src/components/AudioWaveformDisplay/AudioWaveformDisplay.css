@@ -1,0 +1,15 @@
+.audio-waveform-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+canvas {
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+}
+
+button {
+  padding: 5px 10px;
+  cursor: pointer;
+}

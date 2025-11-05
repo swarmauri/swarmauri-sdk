@@ -1,0 +1,43 @@
+:root {
+  --list-bg: #ffffff;
+  --list-border: #ccc;
+  --list-item-hover-bg: #f0f0f0;
+  --list-action-bg: #d0f0c0;
+  --list-color: #333;
+}
+
+.contextual-list {
+  list-style: none;
+  padding: 0;
+  border: 1px solid var(--list-border);
+  background: var(--list-bg);
+}
+
+.list-item {
+  padding: 10px;
+  cursor: pointer;
+  transition: background 0.3s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.list-item:hover {
+  background: var(--list-item-hover-bg);
+}
+
+.list-item.action-triggered {
+  background: var(--list-action-bg);
+}
+
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--list-color);
+  padding: 5px 10px;
+}
+
+button:hover {
+  text-decoration: underline;
+}

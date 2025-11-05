@@ -1,0 +1,44 @@
+.carousel {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  margin: auto;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+img {
+  width: 100%;
+  display: none;
+  transition: opacity 0.5s ease;
+}
+
+img.selected {
+  display: block;
+  opacity: 1;
+}
+
+button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  z-index: 1;
+}
+
+button:focus {
+  outline: 2px solid #fff;
+}
+
+button[aria-label="Previous slide"] {
+  left: 10px;
+}
+
+button[aria-label="Next slide"] {
+  right: 10px;
+}

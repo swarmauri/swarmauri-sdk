@@ -1,0 +1,24 @@
+:root {
+  --focus-indicator-padding: 8px;
+  --focus-indicator-border-radius: 4px;
+  --focus-indicator-margin-bottom: 8px;
+  --focus-indicator-focused-shadow: 0 0 0 3px #007bff;
+  --focus-indicator-focused-bg: #f0f8ff;
+  --focus-indicator-unfocused-bg: #ffffff;
+}
+
+@media (max-width: 480px) {
+  /* small mobile styles */
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  /* large mobile styles */
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* tablet styles */
+}
+
+@media (min-width: 1025px) {
+  /* desktop styles */
+}

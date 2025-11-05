@@ -1,0 +1,33 @@
+:root {
+  --star-color: #e0e0e0;
+  --star-filled-color: #ffc107;
+  --star-hover-color: #ffeb3b;
+  --star-selected-color: #fdd835;
+}
+
+.rating-stars {
+  display: inline-flex;
+  gap: 0.5rem;
+}
+
+.star {
+  font-size: 2rem;
+  color: var(--star-color);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.star.filled {
+  color: var(--star-filled-color);
+}
+
+[data-state='hover'] .star:hover,
+[data-state='hover'] .star:hover ~ .star {
+  color: var(--star-hover-color);
+}
+
+[data-state='selected'] .star.filled {
+  color: var(--star-selected-color);
+}

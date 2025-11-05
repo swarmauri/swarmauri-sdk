@@ -1,0 +1,40 @@
+:root {
+  --chip-gap: 8px;
+  --chip-padding: 8px 12px;
+  --chip-radius: 16px;
+  --chip-bg-color: #e0e0e0;
+  --chip-text-color: #333;
+  --chip-hover-bg-color: #d0d0d0;
+  --chip-selected-bg-color: #b0b0b0;
+  --chip-remove-margin: 8px;
+  --chip-remove-color: #666;
+  --chip-remove-hover-color: #333;
+}
+
+@media (max-width: 480px) {
+  :root {
+    --chip-padding: 6px 10px;
+    --chip-radius: 14px;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  :root {
+    --chip-padding: 7px 11px;
+    --chip-radius: 15px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  :root {
+    --chip-padding: 8px 12px;
+    --chip-radius: 16px;
+  }
+}
+
+@media (min-width: 1025px) {
+  :root {
+    --chip-padding: 9px 13px;
+    --chip-radius: 18px;
+  }
+}

@@ -1,0 +1,25 @@
+:root {
+  --item-margin: 5px 0;
+  --item-padding: 10px;
+  --item-border: 1px solid #ccc;
+  --hover-background-color: #f0f0f0;
+  --selected-background-color: #e0e0e0;
+  --item-header-font-weight: bold;
+  --star-button-font-size: 1.5em;
+}
+
+@media (max-width: 480px) {
+  /* small mobile styles */
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  /* large mobile styles */
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* tablet styles */
+}
+
+@media (min-width: 1025px) {
+  /* desktop styles */
+}

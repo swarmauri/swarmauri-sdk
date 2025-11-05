@@ -1,0 +1,63 @@
+:root {
+  --input-border: #ccc;
+  --input-focus-border: #007bff;
+  --button-bg: #007bff;
+  --button-color: #fff;
+  --button-hover-bg: #0056b3;
+  --list-border: #ccc;
+  --list-item-bg: #fff;
+  --list-color: #333;
+}
+
+.filterable-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+input[type="text"] {
+  padding: 8px;
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  outline: none;
+}
+
+input[type="text"]:focus {
+  border-color: var(--input-focus-border);
+}
+
+button {
+  padding: 8px 12px;
+  background-color: var(--button-bg);
+  color: var(--button-color);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: var(--button-hover-bg);
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border: 1px solid var(--list-border);
+  border-radius: 4px;
+}
+
+li {
+  padding: 10px;
+  border-bottom: 1px solid var(--list-border);
+  background-color: var(--list-item-bg);
+}
+
+li:last-child {
+  border-bottom: none;
+}
+
+li.no-results {
+  text-align: center;
+  color: var(--list-color);
+}

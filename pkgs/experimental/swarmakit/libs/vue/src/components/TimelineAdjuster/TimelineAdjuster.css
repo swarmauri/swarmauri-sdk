@@ -1,0 +1,87 @@
+:root {
+  --adjuster-bg-color: #f8f9fa;
+  --adjuster-text-color: #212529;
+  --button-bg-color: #28a745;
+  --button-text-color: #ffffff;
+  --timeline-bg-color: #e9ecef;
+  --feedback-bg-color: #d1ecf1;
+  --feedback-text-color: #0c5460;
+}
+
+.timeline-adjuster {
+  background-color: var(--adjuster-bg-color);
+  color: var(--adjuster-text-color);
+  padding: 1rem;
+}
+
+.zoom-controls {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.timeline-container {
+  background-color: var(--timeline-bg-color);
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+  height: 50px;
+  margin-bottom: 1rem;
+}
+
+.timeline {
+  display: flex;
+  transition: transform 0.3s ease;
+}
+
+.time-slot {
+  width: 100px;
+  text-align: center;
+  line-height: 50px;
+  border-right: 1px solid #ccc;
+}
+
+.navigation {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+button {
+  background-color: var(--button-bg-color);
+  color: var(--button-text-color);
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.feedback {
+  background-color: var(--feedback-bg-color);
+  color: var(--feedback-text-color);
+  padding: 0.5rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 600px) {
+  .timeline-container {
+    /* styles for small mobile */
+  }
+}
+
+@media (min-width: 601px) and (max-width: 768px) {
+  .timeline-container {
+    /* styles for large mobile */
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .timeline-container {
+    /* styles for tablet */
+  }
+}
+
+@media (min-width: 1025px) {
+  .timeline-container {
+    /* styles for desktop */
+  }
+}

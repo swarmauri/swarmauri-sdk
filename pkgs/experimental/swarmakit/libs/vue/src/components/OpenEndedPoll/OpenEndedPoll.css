@@ -1,0 +1,24 @@
+:root {
+  --border-color: #ccc;
+  --input-border-color: #ddd;
+  --button-bg-color: #007bff;
+  --button-disabled-bg-color: #ccc;
+}
+
+@media (max-width: 600px) {
+  .response-input {
+    font-size: 0.9rem;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 768px) {
+  .response-input {
+    font-size: 1rem;
+  }
+}
+
+@media (min-width: 769px) {
+  .response-input {
+    font-size: 1.1rem;
+  }
+}

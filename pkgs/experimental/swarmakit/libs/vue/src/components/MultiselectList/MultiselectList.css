@@ -1,0 +1,25 @@
+:root {
+  --list-item-padding: 8px;
+  --list-item-border: 1px solid #ccc;
+  --selected-bg: #d1e7dd;
+  --selected-color: #0f5132;
+  --disabled-bg: #f8f9fa;
+  --disabled-color: #6c757d;
+  --hover-bg: #e2e6ea;
+}
+
+@media (max-width: 480px) {
+  /* small mobile styles */
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  /* large mobile styles */
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* tablet styles */
+}
+
+@media (min-width: 1025px) {
+  /* desktop styles */
+}

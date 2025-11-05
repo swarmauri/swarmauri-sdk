@@ -1,0 +1,46 @@
+:root {
+  --notification-padding: 1rem;
+  --notification-border-radius: 4px;
+  --success-bg-color: #d4edda;
+  --success-text-color: #155724;
+  --error-bg-color: #f8d7da;
+  --error-text-color: #721c24;
+  --warning-bg-color: #fff3cd;
+  --warning-text-color: #856404;
+  --info-bg-color: #d1ecf1;
+  --info-text-color: #0c5460;
+}
+
+.notification-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--notification-padding);
+  border-radius: var(--notification-border-radius);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.notification-message {
+  font-size: 1rem;
+}
+
+[data-type='success'] {
+  background-color: var(--success-bg-color);
+  color: var(--success-text-color);
+}
+
+[data-type='error'] {
+  background-color: var(--error-bg-color);
+  color: var(--error-text-color);
+}
+
+[data-type='warning'] {
+  background-color: var(--warning-bg-color);
+  color: var(--warning-text-color);
+}
+
+[data-type='info'] {
+  background-color: var(--info-bg-color);
+  color: var(--info-text-color);
+}

@@ -1,0 +1,30 @@
+:root {
+  --viewer-border-color: #ccc;
+  --loading-color: #888;
+  --button-bg-color: #007bff;
+  --button-text-color: #fff;
+}
+
+@media (max-width: 480px) {
+  .image-viewer {
+    max-width: 100%;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .image-viewer {
+    max-width: 400px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .image-viewer {
+    max-width: 500px;
+  }
+}
+
+@media (min-width: 1025px) {
+  .image-viewer {
+    max-width: 600px;
+  }
+}

@@ -1,0 +1,24 @@
+:root {
+  --list-item-padding: 10px 15px;
+  --list-border-radius: 4px;
+  --pinned-bg: #ffc107;
+  --selected-bg: #007bff;
+  --selected-color: #fff;
+  --hover-bg: #e9ecef;
+}
+
+@media (max-width: 480px) {
+  /* small mobile styles */
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  /* large mobile styles */
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* tablet styles */
+}
+
+@media (min-width: 1025px) {
+  /* desktop styles */
+}

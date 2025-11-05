@@ -1,0 +1,27 @@
+:root {
+  --textarea-border-color: #ccc;
+  --textarea-focus-border-color: #007bff;
+  --textarea-bg-color: #fff;
+  --textarea-disabled-bg-color: #f7f7f7;
+}
+
+.textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--textarea-border-color);
+  border-radius: 4px;
+  background-color: var(--textarea-bg-color);
+  font-size: 16px;
+  resize: vertical;
+}
+
+.textarea:focus {
+  border-color: var(--textarea-focus-border-color);
+  outline: none;
+}
+
+.textarea:disabled {
+  background-color: var(--textarea-disabled-bg-color);
+  opacity: 0.7;
+  cursor: not-allowed;
+}

@@ -1,0 +1,29 @@
+:root {
+  --button-bg: #f0f0f0;
+  --button-text-color: #333;
+  --zoom-text-color: #2196f3;
+}
+
+@media (max-width: 480px) {
+  .zoom-tool {
+    /* Styles for small mobile devices */
+  }
+}
+
+@media (min-width: 481px) and (max-width: 767px) {
+  .zoom-tool {
+    /* Styles for large mobile devices */
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .zoom-tool {
+    /* Styles for tablets */
+  }
+}
+
+@media (min-width: 1025px) {
+  .zoom-tool {
+    /* Styles for desktops */
+  }
+}

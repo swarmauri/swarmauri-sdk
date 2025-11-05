@@ -1,0 +1,63 @@
+:root {
+  --button-bg: #f8f9fa;
+  --button-border: #adb5bd;
+  --button-color: #495057;
+  --input-border: #ced4da;
+  --input-bg: #ffffff;
+  --input-color: #495057;
+  --button-disabled-bg: #e9ecef;
+  --button-disabled-color: #6c757d;
+}
+
+.number-input-container {
+  display: flex;
+  align-items: center;
+}
+
+button {
+  background-color: var(--button-bg);
+  border: 1px solid var(--button-border);
+  color: var(--button-color);
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+button:disabled {
+  background-color: var(--button-disabled-bg);
+  color: var(--button-disabled-color);
+  cursor: not-allowed;
+}
+
+input[type="number"] {
+  width: 3rem;
+  padding: 0.5rem;
+  border: 1px solid var(--input-border);
+  background-color: var(--input-bg);
+  color: var(--input-color);
+  text-align: center;
+}
+
+@media (max-width: 576px) {
+  .number-input-container {
+    flex-direction: column;
+  }
+}
+
+@media (min-width: 577px) and (max-width: 768px) {
+  .number-input-container {
+    flex-direction: row;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 992px) {
+  .number-input-container {
+    flex-direction: row;
+  }
+}
+
+@media (min-width: 993px) {
+  .number-input-container {
+    flex-direction: row;
+  }
+}

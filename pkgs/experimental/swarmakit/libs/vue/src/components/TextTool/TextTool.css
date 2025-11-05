@@ -1,0 +1,30 @@
+:root {
+  --button-bg: #f0f0f0;
+  --button-text-color: #333;
+  --button-active-bg: #2196f3;
+  --label-text-color: #555;
+}
+
+@media (max-width: 480px) {
+  .text-tool {
+    /* Styles for small mobile devices */
+  }
+}
+
+@media (min-width: 481px) and (max-width: 767px) {
+  .text-tool {
+    /* Styles for large mobile devices */
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .text-tool {
+    /* Styles for tablets */
+  }
+}
+
+@media (min-width: 1025px) {
+  .text-tool {
+    /* Styles for desktops */
+  }
+}

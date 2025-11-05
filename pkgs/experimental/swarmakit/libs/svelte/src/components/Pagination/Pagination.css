@@ -1,0 +1,40 @@
+:root {
+  --button-bg: #fff;
+  --button-hover-bg: #f0f0f0;
+  --button-active-bg: #007bff;
+  --button-disabled-bg: #e0e0e0;
+  --text-color: #333;
+  --active-text-color: #fff;
+  --border-color: #ccc;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+}
+
+.page-button {
+  padding: 8px 12px;
+  background-color: var(--button-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.page-button:hover {
+  background-color: var(--button-hover-bg);
+}
+
+.page-button.active {
+  background-color: var(--button-active-bg);
+  color: var(--active-text-color);
+}
+
+.page-button[disabled],
+.page-button[aria-disabled="true"] {
+  background-color: var(--button-disabled-bg);
+  cursor: not-allowed;
+}

@@ -1,0 +1,16 @@
+:root {
+  --spacing-md: 16px;
+  --spacing-sm: 8px;
+  --color-background: #fff;
+  --color-border: #ddd;
+  --image-size: 40px;
+  --icon-size: 24px;
+  --border-radius: 8px;
+  --font-size-lg: 18px;
+  --font-size-md: 14px;
+  --color-text-secondary: #666;
+}
+
+.card-header:hover {
+  background-color: var(--color-background-hover);
+}

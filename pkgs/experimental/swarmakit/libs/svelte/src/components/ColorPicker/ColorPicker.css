@@ -1,0 +1,27 @@
+:root {
+  --color-picker-border: #ccc;
+  --color-picker-disabled-bg: #e0e0e0;
+  --color-picker-value-text: #333;
+}
+
+.color-picker-container {
+  display: flex;
+  align-items: center;
+}
+
+input[type='color'] {
+  border: 1px solid var(--color-picker-border);
+  width: 36px;
+  height: 36px;
+  margin-right: 0.5rem;
+  padding: 0;
+}
+
+input[type='color']:disabled {
+  background-color: var(--color-picker-disabled-bg);
+}
+
+.color-value {
+  color: var(--color-picker-value-text);
+  font-size: 1rem;
+}

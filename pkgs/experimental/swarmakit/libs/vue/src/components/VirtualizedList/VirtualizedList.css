@@ -1,0 +1,29 @@
+:root {
+  --list-border-color: #ccc;
+  --item-border-color: #ddd;
+  --indicator-color: #888;
+}
+
+@media (max-width: 480px) {
+  .virtualized-list {
+    height: 300px;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .virtualized-list {
+    height: 350px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .virtualized-list {
+    height: 400px;
+  }
+}
+
+@media (min-width: 1025px) {
+  .virtualized-list {
+    height: 500px;
+  }
+}

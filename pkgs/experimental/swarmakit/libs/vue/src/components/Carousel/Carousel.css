@@ -1,0 +1,29 @@
+:root {
+  --carousel-bg-color: #f0f0f0;
+  --control-bg-color: rgba(0, 0, 0, 0.5);
+  --control-text-color: #fff;
+}
+
+@media (max-width: 480px) {
+  .carousel-control {
+    font-size: 1.5rem;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .carousel-control {
+    font-size: 2rem;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .carousel-control {
+    font-size: 2.5rem;
+  }
+}
+
+@media (min-width: 1025px) {
+  .carousel-control {
+    font-size: 3rem;
+  }
+}

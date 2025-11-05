@@ -1,0 +1,33 @@
+:root {
+  --font-size: 16px;
+  --breadcrumb-color: #333;
+  --breadcrumb-link-color: #007bff;
+  --breadcrumb-separator: 10px;
+  --dropdown-bg: #fff;
+  --dropdown-border-color: #ccc;
+  --dropdown-hover-bg: #f1f1f1;
+}
+
+@media (max-width: 480px) {
+  .breadcrumb {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .breadcrumb {
+    font-size: 15px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .breadcrumb {
+    font-size: 16px;
+  }
+}
+
+@media (min-width: 1025px) {
+  .breadcrumb {
+    font-size: 18px;
+  }
+}

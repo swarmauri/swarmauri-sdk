@@ -1,0 +1,49 @@
+:root {
+  --menu-bg: #ffffff;
+  --menu-hover-bg: #f0f0f0;
+  --menu-expanded-bg: #d0e0f0;
+  --menu-active-bg: #a0c0f0;
+  --menu-border: #ccc;
+  --menu-color: #333;
+}
+
+.collapsible-menu {
+  list-style: none;
+  padding: 0;
+}
+
+.menu-item {
+  cursor: pointer;
+  background: var(--menu-bg);
+  border: 1px solid var(--menu-border);
+  margin-bottom: 5px;
+  transition: background 0.3s;
+}
+
+.menu-item:hover {
+  background: var(--menu-hover-bg);
+}
+
+.menu-item.expanded {
+  background: var(--menu-expanded-bg);
+}
+
+.menu-item.active {
+  background: var(--menu-active-bg);
+}
+
+.menu-label {
+  padding: 10px;
+  color: var(--menu-color);
+}
+
+.submenu {
+  list-style: none;
+  padding: 0 10px;
+  background: var(--menu-expanded-bg);
+}
+
+.submenu li {
+  padding: 5px 0;
+  color: var(--menu-color);
+}

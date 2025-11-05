@@ -1,0 +1,31 @@
+:root {
+  --success-bg-color: #d4edda;
+  --success-text-color: #155724;
+  --error-bg-color: #f8d7da;
+  --error-text-color: #721c24;
+  --warning-bg-color: #fff3cd;
+  --warning-text-color: #856404;
+  --padding: 1rem;
+  --border-radius: 4px;
+}
+
+.validation-message {
+  padding: var(--padding);
+  border-radius: var(--border-radius);
+  margin: 0.5rem 0;
+}
+
+.validation-message.success {
+  background-color: var(--success-bg-color);
+  color: var(--success-text-color);
+}
+
+.validation-message.error {
+  background-color: var(--error-bg-color);
+  color: var(--error-text-color);
+}
+
+.validation-message.warning {
+  background-color: var(--warning-bg-color);
+  color: var(--warning-text-color);
+}

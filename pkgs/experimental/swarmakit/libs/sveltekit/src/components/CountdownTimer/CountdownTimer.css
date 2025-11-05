@@ -1,0 +1,42 @@
+:root {
+  --timer-border-color: #333333;
+  --background-color: #ffffff;
+  --text-color: #000000;
+  --button-background: #4caf50;
+  --button-text-color: #ffffff;
+  --button-border-radius: 4px;
+  --timer-font-size: 24px;
+  --button-font-size: 16px;
+  --button-padding: 8px 16px;
+}
+
+.countdown-timer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 2px solid var(--timer-border-color);
+  background-color: var(--background-color);
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.time-display {
+  font-size: var(--timer-font-size);
+  color: var(--text-color);
+  margin-bottom: 16px;
+}
+
+button {
+  background-color: var(--button-background);
+  color: var(--button-text-color);
+  border: none;
+  border-radius: var(--button-border-radius);
+  padding: var(--button-padding);
+  margin: 4px;
+  cursor: pointer;
+  font-size: var(--button-font-size);
+}
+
+button:hover {
+  background-color: darken(var(--button-background), 10%);
+}

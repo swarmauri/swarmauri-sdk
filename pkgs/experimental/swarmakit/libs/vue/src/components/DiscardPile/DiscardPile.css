@@ -1,0 +1,34 @@
+:root {
+  --pile-width: 150px;
+  --pile-height: 200px;
+  --pile-border: 2px dashed #ccc;
+  --pile-border-radius: 5px;
+  --pile-bg-color: #f9f9f9;
+  --card-border-radius: 5px;
+  --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  --pile-hover-border-color: #007bff;
+  --pile-hover-bg-color: #e6f7ff;
+  --notification-color: #ff6f61;
+  --notification-font-size: 14px;
+}
+
+@media (max-width: 600px) {
+  :root {
+    --pile-width: 120px;
+    --pile-height: 160px;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+  :root {
+    --pile-width: 130px;
+    --pile-height: 180px;
+  }
+}
+
+@media (min-width: 901px) {
+  :root {
+    --pile-width: 150px;
+    --pile-height: 200px;
+  }
+}

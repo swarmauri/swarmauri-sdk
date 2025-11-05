@@ -1,0 +1,36 @@
+:root {
+  --card-bg: #ffffff;
+  --card-hover-bg: #f0f0f0;
+  --card-selected-bg: #d0f0d0;
+  --card-disabled-bg: #e0e0e0;
+  --card-border: #ccc;
+  --card-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.cardbased-list {
+  display: grid;
+  gap: 10px;
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 4px;
+  box-shadow: var(--card-shadow);
+  padding: 15px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.card:hover {
+  background: var(--card-hover-bg);
+}
+
+.card.selected {
+  background: var(--card-selected-bg);
+}
+
+.card.disabled {
+  background: var(--card-disabled-bg);
+  cursor: not-allowed;
+}

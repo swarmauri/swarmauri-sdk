@@ -1,0 +1,4 @@
+:root {
+  --card-back-pattern: url('/path-to-back-pattern-image');
+  --card-front-pattern: white;
+}

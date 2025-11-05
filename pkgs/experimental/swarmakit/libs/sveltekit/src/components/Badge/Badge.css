@@ -1,0 +1,32 @@
+:root {
+  --default-bg-color: #e0e0e0;
+  --notification-bg-color: #ff5733;
+  --status-bg-color: #28a745;
+  --text-color: #ffffff;
+  --padding: 0.5rem;
+  --border-radius: 12px;
+  --font-size: 0.875rem;
+}
+
+.badge {
+  padding: var(--padding);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size);
+  color: var(--text-color);
+  display: inline-block;
+  text-align: center;
+  min-width: 2rem;
+  line-height: 1.5;
+}
+
+.badge.default {
+  background-color: var(--default-bg-color);
+}
+
+.badge.notification {
+  background-color: var(--notification-bg-color);
+}
+
+.badge.status {
+  background-color: var(--status-bg-color);
+}

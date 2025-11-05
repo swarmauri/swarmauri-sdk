@@ -1,0 +1,29 @@
+:root {
+  --gallery-bg-color: #f0f0f0;
+  --button-bg-color: #444;
+  --button-text-color: #fff;
+}
+
+@media (max-width: 480px) {
+  .media-gallery {
+    padding: 1rem;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .media-gallery {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .media-gallery {
+    padding: 2rem;
+  }
+}
+
+@media (min-width: 1025px) {
+  .media-gallery {
+    padding: 2.5rem;
+  }
+}

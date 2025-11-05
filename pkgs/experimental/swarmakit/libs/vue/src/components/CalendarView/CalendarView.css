@@ -1,0 +1,27 @@
+:root {
+  --calendar-bg-color: #fff;
+  --calendar-header-color: #333;
+  --calendar-border-color: #ccc;
+}
+
+.calendar-view {
+  display: flex;
+  flex-direction: column;
+  --calendar-bg-color: #fff;
+  --calendar-header-color: #333;
+  --calendar-border-color: #ccc;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--calendar-bg-color);
+  color: var(--calendar-header-color);
+  padding: 1rem;
+  border-bottom: 1px solid var(--calendar-border-color);
+}
+
+.calendar-content {
+  flex-grow: 1;
+}

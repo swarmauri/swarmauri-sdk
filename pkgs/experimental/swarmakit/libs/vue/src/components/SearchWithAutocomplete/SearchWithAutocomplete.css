@@ -1,0 +1,30 @@
+:root {
+  --results-bg: white;
+  --results-border: #ccc;
+  --results-hover-bg: #f0f0f0;
+  --no-results-color: #ff0000;
+}
+
+@media (max-width: 480px) {
+  .search-autocomplete {
+    max-width: 100%;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .search-autocomplete {
+    max-width: 300px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .search-autocomplete {
+    max-width: 350px;
+  }
+}
+
+@media (min-width: 1025px) {
+  .search-autocomplete {
+    max-width: 400px;
+  }
+}

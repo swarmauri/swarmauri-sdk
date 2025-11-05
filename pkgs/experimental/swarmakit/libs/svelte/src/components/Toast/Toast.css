@@ -1,0 +1,58 @@
+:root {
+  --toast-padding: 1rem;
+  --toast-margin: 0.5rem;
+  --toast-border-radius: 4px;
+  --toast-font-size: 1rem;
+  --toast-success-bg: #d4edda;
+  --toast-error-bg: #f8d7da;
+  --toast-warning-bg: #fff3cd;
+  --toast-info-bg: #d1ecf1;
+  --toast-color: #333;
+  --toast-button-color: #999;
+}
+
+.toast {
+  position: fixed;
+  bottom: var(--toast-margin);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: var(--toast-padding);
+  border-radius: var(--toast-border-radius);
+  font-size: var(--toast-font-size);
+  color: var(--toast-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: calc(100% - 2 * var(--toast-margin));
+  max-width: 500px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.toast p {
+  margin: 0;
+  flex-grow: 1;
+}
+
+.toast button {
+  background: none;
+  border: none;
+  color: var(--toast-button-color);
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+
+.toast--success {
+  background-color: var(--toast-success-bg);
+}
+
+.toast--error {
+  background-color: var(--toast-error-bg);
+}
+
+.toast--warning {
+  background-color: var(--toast-warning-bg);
+}
+
+.toast--info {
+  background-color: var(--toast-info-bg);
+}

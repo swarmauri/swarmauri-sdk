@@ -1,0 +1,29 @@
+:root {
+  --button-size: 50px;
+  --button-background: radial-gradient(circle, metallic effect here);
+  --button-hover-background: radial-gradient(circle, glossy effect here);
+  --button-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  --transition-duration: 0.3s;
+  --move-duration: 0.5s;
+}
+
+@media (max-width: 480px) {
+  .dealer-button {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .dealer-button {
+    width: 45px;
+    height: 45px;
+  }
+}
+
+@media (min-width: 769px) {
+  .dealer-button {
+    width: 50px;
+    height: 50px;
+  }
+}

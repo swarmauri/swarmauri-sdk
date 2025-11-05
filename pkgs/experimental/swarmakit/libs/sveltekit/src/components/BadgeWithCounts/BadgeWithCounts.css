@@ -1,0 +1,27 @@
+:root {
+  --zero-bg-color: #e0e0e0;
+  --active-bg-color: #ff5733;
+  --text-color: #ffffff;
+  --padding: 0.5rem;
+  --border-radius: 12px;
+  --font-size: 0.875rem;
+}
+
+.badge {
+  padding: var(--padding);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size);
+  color: var(--text-color);
+  display: inline-block;
+  text-align: center;
+  min-width: 2rem;
+  line-height: 1.5;
+}
+
+.badge.zero {
+  background-color: var(--zero-bg-color);
+}
+
+.badge.active {
+  background-color: var(--active-bg-color);
+}

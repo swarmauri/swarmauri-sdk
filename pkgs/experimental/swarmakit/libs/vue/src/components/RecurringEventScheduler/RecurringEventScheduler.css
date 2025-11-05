@@ -1,0 +1,61 @@
+:root {
+  --scheduler-bg-color: #ffffff;
+  --scheduler-text-color: #333333;
+  --button-bg-color: #007bff;
+  --button-text-color: #ffffff;
+  --input-border-color: #dddddd;
+  --feedback-bg-color: #e2e3e5;
+  --feedback-text-color: #383d41;
+}
+
+.recurring-event-scheduler {
+  background-color: var(--scheduler-bg-color);
+  color: var(--scheduler-text-color);
+  padding: 1rem;
+}
+
+.recurrence-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+button {
+  background-color: var(--button-bg-color);
+  color: var(--button-text-color);
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.feedback {
+  background-color: var(--feedback-bg-color);
+  color: var(--feedback-text-color);
+  padding: 0.5rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 600px) {
+  .recurrence-settings {
+    /* styles for small mobile */
+  }
+}
+
+@media (min-width: 601px) and (max-width: 768px) {
+  .recurrence-settings {
+    /* styles for large mobile */
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .recurrence-settings {
+    /* styles for tablet */
+  }
+}
+
+@media (min-width: 1025px) {
+  .recurrence-settings {
+    /* styles for desktop */
+  }
+}

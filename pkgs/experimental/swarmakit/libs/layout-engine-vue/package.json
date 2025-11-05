@@ -1,0 +1,34 @@
+{
+  "name": "@swarmakit/layout-engine-vue",
+  "version": "0.0.1",
+  "description": "Thin Vue wrapper for Layout Engine manifests and SwarmaKit atoms.",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
+    "dev": "tsup src/index.ts --format esm,cjs --dts --watch",
+    "lint": "eslint \"src/**/*.{ts,tsx}\"",
+    "format": "prettier --write \"src/**/*.{ts,tsx,vue}\"",
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "@swarmakit/vue": ">=0.0.22",
+    "vue": "^3.4.0"
+  },
+  "dependencies": {
+    "eventemitter3": "^5.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "eslint": "^9.9.0",
+    "prettier": "^3.3.3",
+    "tsup": "^8.2.4",
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.4"
+  }
+}

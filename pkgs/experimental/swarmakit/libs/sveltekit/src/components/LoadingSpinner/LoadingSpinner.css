@@ -1,0 +1,28 @@
+:root {
+  --spinner-size: 50px;
+  --spinner-border-width: 5px;
+  --spinner-color: #3498db;
+  --spinner-background-color: #f3f3f3;
+}
+
+.loading-spinner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--spinner-size);
+  height: var(--spinner-size);
+}
+
+.spinner {
+  border: var(--spinner-border-width) solid var(--spinner-background-color);
+  border-top: var(--spinner-border-width) solid var(--spinner-color);
+  border-radius: 50%;
+  width: 100%;
+  height: 100%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

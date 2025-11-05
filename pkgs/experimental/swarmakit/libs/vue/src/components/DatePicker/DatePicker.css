@@ -1,0 +1,58 @@
+:root {
+  --date-picker-border: #adb5bd;
+  --date-picker-disabled-border: #ced4da;
+  --date-picker-bg: #f8f9fa;
+}
+
+.date-picker-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+input[type="date"],
+input[type="time"] {
+  border: 1px solid var(--date-picker-border);
+  border-radius: 0.25rem;
+  padding: 0.5rem;
+  background-color: var(--date-picker-bg);
+  cursor: pointer;
+}
+
+input[type="date"]:disabled,
+input[type="time"]:disabled {
+  border-color: var(--date-picker-disabled-border);
+  cursor: not-allowed;
+}
+
+@media (max-width: 576px) {
+  input[type="date"],
+  input[type="time"] {
+    width: 100%;
+    font-size: 0.875rem;
+  }
+}
+
+@media (min-width: 577px) and (max-width: 768px) {
+  input[type="date"],
+  input[type="time"] {
+    width: 95%;
+    font-size: 0.9375rem;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 992px) {
+  input[type="date"],
+  input[type="time"] {
+    width: 90%;
+    font-size: 1rem;
+  }
+}
+
+@media (min-width: 993px) {
+  input[type="date"],
+  input[type="time"] {
+    width: 85%;
+    font-size: 1.125rem;
+  }
+}

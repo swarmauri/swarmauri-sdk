@@ -1,0 +1,30 @@
+:root {
+  --chip-size: 40px;
+  --chip-margin: 4px;
+  --chip-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  --transition-duration: 0.3s;
+  --move-duration: 0.5s;
+  --bet-duration: 0.5s;
+  --shake-duration: 0.3s;
+}
+
+@media (max-width: 480px) {
+  .chip {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .chip {
+    width: 35px;
+    height: 35px;
+  }
+}
+
+@media (min-width: 769px) {
+  .chip {
+    width: 40px;
+    height: 40px;
+  }
+}

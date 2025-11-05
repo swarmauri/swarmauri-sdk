@@ -1,0 +1,27 @@
+:root {
+  --flip-card-width: 300px;
+  --flip-card-height: 200px;
+  --flip-card-border-radius: 10px;
+  --flip-card-bg-color: #f0f0f0;
+}
+
+@media (max-width: 600px) {
+  :root {
+    --flip-card-width: 100%;
+    --flip-card-height: 150px;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+  :root {
+    --flip-card-width: 90%;
+    --flip-card-height: 180px;
+  }
+}
+
+@media (min-width: 901px) {
+  :root {
+    --flip-card-width: 300px;
+    --flip-card-height: 200px;
+  }
+}

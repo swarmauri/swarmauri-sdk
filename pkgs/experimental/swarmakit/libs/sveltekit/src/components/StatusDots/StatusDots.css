@@ -1,0 +1,33 @@
+:root {
+  --dot-size: 1rem;
+  --dot-online-color: #4caf50;
+  --dot-offline-color: #f44336;
+  --dot-busy-color: #ff9800;
+  --dot-idle-color: #9e9e9e;
+}
+
+.status-dots {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dot {
+  width: var(--dot-size);
+  height: var(--dot-size);
+  border-radius: 50%;
+  background-color: var(--dot-offline-color);
+  transition: background-color 0.3s;
+}
+
+[data-status='online'] .dot {
+  background-color: var(--dot-online-color);
+}
+
+[data-status='busy'] .dot {
+  background-color: var(--dot-busy-color);
+}
+
+[data-status='idle'] .dot {
+  background-color: var(--dot-idle-color);
+}

@@ -1,0 +1,36 @@
+:root {
+  --notification-success-bg: #d4edda;
+  --notification-success-color: #155724;
+  --notification-error-bg: #f8d7da;
+  --notification-error-color: #721c24;
+  --notification-warning-bg: #fff3cd;
+  --notification-warning-color: #856404;
+}
+
+@media (max-width: 480px) {
+  .notification {
+    padding: 10px;
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .notification {
+    padding: 12px;
+    font-size: 15px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .notification {
+    padding: 14px;
+    font-size: 16px;
+  }
+}
+
+@media (min-width: 1025px) {
+  .notification {
+    padding: 15px;
+    font-size: 16px;
+  }
+}

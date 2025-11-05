@@ -1,0 +1,14 @@
+.audio-player {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+button {
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+input[type="range"] {
+  width: 100px;
+}
