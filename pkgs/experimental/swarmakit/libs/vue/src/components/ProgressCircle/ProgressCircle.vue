@@ -6,6 +6,7 @@
     aria-valuemin="0"
     aria-valuemax="100"
     :aria-label="`Progress: ${progress}%`"
+    :status="status"
   >
     <svg viewBox="0 0 36 36" class="circular-chart">
       <path

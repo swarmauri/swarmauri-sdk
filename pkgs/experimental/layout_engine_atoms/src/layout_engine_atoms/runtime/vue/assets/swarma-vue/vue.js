@@ -5420,7 +5420,8 @@ function eb(t, e, s, r, i, a) {
     "aria-valuenow": t.progress,
     "aria-valuemin": "0",
     "aria-valuemax": "100",
-    "aria-label": `Progress: ${t.progress}%`
+    "aria-label": `Progress: ${t.progress}%`,
+    status: t.status
   }, [
     (d(), c("svg", Jv, [
       e[0] || (e[0] = f("path", {

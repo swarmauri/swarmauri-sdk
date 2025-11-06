@@ -24,9 +24,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, ref, PropType } from 'vue';
 
-interface ListItem {
+export interface ActionableListItem {
   label: string;
   actionLabel: string;
   disabled?: boolean;
@@ -37,7 +37,7 @@ export default defineComponent({
   name: 'ActionableList',
   props: {
     items: {
-      type: Array as () => ListItem[],
+      type: Array as PropType<ActionableListItem[]>,
       required: true,
     },
   },
