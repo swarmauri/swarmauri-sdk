@@ -31,7 +31,7 @@ that view.
 | File | Purpose |
 | ---- | ------- |
 | `manifests.py` | Builds the SwarmaKit atom registry, authoring layouts, and manifest payloads (with site metadata and styling hints). |
-| `server.py` | FastAPI shim serving the Vue runtime assets, HTML shell, and page-specific manifests. |
+| `server.py` | Uses the enhanced `mount_layout_app` helper to serve static assets, apply theming, and configure multi-page navigation without hand-written HTML. |
 | `README.md` | You are here. |
 
 Feel free to remix the page definitions or extend the manifest helpers to plug

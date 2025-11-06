@@ -464,6 +464,7 @@ export {
   createLayoutEngineApp,
   createLayoutEnginePlugin,
   createMuxContext,
+  loadManifest,
   useAtomRegistry,
   useLayoutManifest,
   useMux,

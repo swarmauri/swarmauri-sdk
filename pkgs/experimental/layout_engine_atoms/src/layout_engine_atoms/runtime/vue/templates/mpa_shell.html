@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <link rel="stylesheet" href="./static/swarma-vue/style.css" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E" />
+{extra_style_tags}
+    <style>
+      :root {{
+{css_variables}
+      }}
+      body {{
+        margin: 0;
+        font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        background: radial-gradient(circle at 18% -12%, rgba(56, 189, 248, 0.42), rgba(2, 6, 23, 1) 60%);
+        color: var(--le-text, #e2e8f0);
+        min-height: 100vh;
+      }}
+      main.le-shell {{
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 2.5rem 2rem 4rem;
+      }}
+      .le-shell__card {{
+        position: relative;
+        background: var(--le-panel, rgba(15, 23, 42, 0.92));
+        border-radius: 28px;
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        padding: 2.4rem 2.6rem 3rem;
+        box-shadow: 0 46px 140px rgba(2, 6, 23, 0.78);
+        overflow: hidden;
+        backdrop-filter: blur(30px);
+      }}
+    </style>
+    <script type="importmap">
+{import_map_json}
+    </script>
+{pre_boot_scripts}
+  </head>
+  <body>
+    <main class="le-shell">
+      <section class="le-shell__card">
+        <div id="le-app"></div>
+      </section>
+    </main>
+    <script id="le-shell-config" type="application/json">
+{config_json}
+    </script>
+    <script type="module" src="{bootstrap_module}"></script>
+  </body>
+</html>

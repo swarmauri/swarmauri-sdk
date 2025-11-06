@@ -38,6 +38,7 @@ layout_engine_atoms = [
     "runtime/vue/assets/layout-engine-vue/*.js",
     "runtime/vue/assets/swarma-vue/*.js",
     "runtime/vue/assets/swarma-vue/*.css",
+    "runtime/vue/templates/*.html",
 ]
 
 [tool.setuptools.packages.find]
