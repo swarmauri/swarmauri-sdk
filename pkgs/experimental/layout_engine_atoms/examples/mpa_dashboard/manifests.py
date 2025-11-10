@@ -54,27 +54,6 @@ ACTION_STYLE = {
     "background": "radial-gradient(circle at 20% 20%, rgba(56,189,248,0.28), rgba(15,23,42,0.92))",
 }
 
-MISSION_EVENTS_CHANNEL = "mission.events"
-
-CHANNELS = [
-    {
-        "id": MISSION_EVENTS_CHANNEL,
-        "scope": "site",
-        "topic": "mission-control:events",
-        "description": "Broadcasts live mission control pulses rendered in the overview banner.",
-        "meta": {"demo": True},
-    }
-]
-
-WS_ROUTES = [
-    {
-        "path": "/ws/events",
-        "channels": [MISSION_EVENTS_CHANNEL],
-        "description": "Demo websocket endpoint that streams mission pulse updates.",
-        "meta": {"demo": True},
-    }
-]
-
 
 @dataclass(frozen=True)
 class PageDefinition:
@@ -597,8 +576,6 @@ def build_manifest(page_id: str) -> Manifest:
         row_height=ROW_HEIGHT,
         viewport=VIEWPORT,
         version=VERSION,
-        channels=CHANNELS,
-        ws_routes=WS_ROUTES,
     )
 
     manifest_dict = to_dict(manifest)

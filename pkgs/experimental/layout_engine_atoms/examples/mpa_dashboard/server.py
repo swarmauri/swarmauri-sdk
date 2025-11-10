@@ -1,12 +1,10 @@
 from __future__ import annotations
 
 import asyncio
-import contextlib
 import random
 from datetime import datetime
-from typing import Any
 
-from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Request
 
 from layout_engine_atoms.runtime.vue.app import (
     LayoutOptions,
@@ -14,68 +12,26 @@ from layout_engine_atoms.runtime.vue.app import (
     UIHooks,
     mount_layout_app,
 )
+from layout_engine_atoms.runtime.vue.realtime import (
+    RealtimeBinding,
+    RealtimeChannel,
+    RealtimeOptions,
+    WebsocketMuxHub,
+)
 
-from .manifests import DEFAULT_PAGE_ID, MISSION_EVENTS_CHANNEL, build_manifest
+from .manifests import DEFAULT_PAGE_ID, build_manifest
 
 APP_TITLE = "Swarmauri Mission Control"
 
 app = FastAPI(title="Layout Engine MPA Demo", docs_url=None)
 
-
-class EventHub:
-    """Minimal mux-compatible broadcast hub for demo websocket events."""
-
-    def __init__(self) -> None:
-        self._subscriptions: dict[WebSocket, set[str]] = {}
-        self._lock = asyncio.Lock()
-
-    async def connect(self, websocket: WebSocket) -> None:
-        await websocket.accept()
-        async with self._lock:
-            self._subscriptions[websocket] = set()
-
-    async def disconnect(self, websocket: WebSocket) -> None:
-        async with self._lock:
-            self._subscriptions.pop(websocket, None)
-
-    async def subscribe(self, websocket: WebSocket, channel: str) -> None:
-        async with self._lock:
-            if websocket not in self._subscriptions:
-                self._subscriptions[websocket] = {channel}
-            else:
-                self._subscriptions[websocket].add(channel)
-
-    async def unsubscribe(self, websocket: WebSocket, channel: str) -> None:
-        async with self._lock:
-            channels = self._subscriptions.get(websocket)
-            if not channels:
-                return
-            channels.discard(channel)
-            if not channels:
-                self._subscriptions.pop(websocket, None)
-
-    async def broadcast(self, channel: str, payload: dict[str, Any]) -> None:
-        message = {"channel": channel, "payload": payload}
-        async with self._lock:
-            targets = [
-                websocket
-                for websocket, channels in self._subscriptions.items()
-                if channel in channels
-            ]
-        stale: list[WebSocket] = []
-        for websocket in targets:
-            try:
-                await websocket.send_json(message)
-            except Exception:
-                stale.append(websocket)
-        for websocket in stale:
-            await self.disconnect(websocket)
-
-    async def disconnect_all(self) -> None:
-        async with self._lock:
-            websockets = list(self._subscriptions.keys())
-        for websocket in websockets:
-            await self.disconnect(websocket)
+MISSION_EVENTS_CHANNEL = RealtimeChannel(
+    id="mission.events",
+    scope="site",
+    topic="mission-control:events",
+    description="Broadcasts live mission control pulses rendered in the overview banner.",
+    meta={"demo": True},
+)
 
 
 def _manifest_builder(request: Request):
@@ -87,7 +43,7 @@ def _manifest_builder(request: Request):
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
-async def _pulse_stream(hub: EventHub) -> None:
+async def mission_pulse_publisher(hub: WebsocketMuxHub) -> None:
     """Emit rotating mission control pulses to demonstrate realtime updates."""
 
     messages = [
@@ -105,48 +61,8 @@ async def _pulse_stream(hub: EventHub) -> None:
             "message": message,
             "timestamp": datetime.utcnow().isoformat() + "Z",
         }
-        await hub.broadcast(MISSION_EVENTS_CHANNEL, payload)
+        await hub.broadcast(MISSION_EVENTS_CHANNEL.id, payload)
         await asyncio.sleep(random.uniform(4.0, 7.0))
-
-
-@app.on_event("startup")
-async def _startup_events() -> None:
-    hub = EventHub()
-    app.state.event_hub = hub
-    app.state.pulse_task = asyncio.create_task(_pulse_stream(hub))
-
-
-@app.on_event("shutdown")
-async def _shutdown_events() -> None:
-    task = getattr(app.state, "pulse_task", None)
-    if task:
-        task.cancel()
-        with contextlib.suppress(asyncio.CancelledError):
-            await task
-    hub: EventHub | None = getattr(app.state, "event_hub", None)
-    if hub:
-        await hub.disconnect_all()
-
-
-@app.websocket("/ws/events")
-async def events_mux(websocket: WebSocket) -> None:
-    hub: EventHub = app.state.event_hub
-    await hub.connect(websocket)
-    try:
-        while True:
-            message = await websocket.receive_json()
-            action = message.get("action")
-            channel = message.get("channel")
-            if action == "subscribe" and isinstance(channel, str):
-                await hub.subscribe(websocket, channel)
-            elif action == "unsubscribe" and isinstance(channel, str):
-                await hub.unsubscribe(websocket, channel)
-            elif action == "publish" and isinstance(channel, str):
-                payload = message.get("payload") or {}
-                if isinstance(payload, dict):
-                    await hub.broadcast(channel, payload)
-    except WebSocketDisconnect:
-        await hub.disconnect(websocket)
 
 
 EXTRA_STYLES = [
@@ -348,61 +264,6 @@ ui_hooks = UIHooks(
         </template>
       </LayoutEngineShell>
     """,
-    client_setup="""
-      (() => {
-        const manifest = context.manifest;
-        const channelId = "mission.events";
-        const getTiles = () => Array.isArray(manifest.tiles) ? manifest.tiles : [];
-
-        const updatePulseTile = (payload = {}) => {
-          const tiles = getTiles();
-          const target = tiles.find((tile) => tile.id === "overview_pulses");
-          if (!target || !target.props) return;
-          target.props = {
-            ...target.props,
-            message: payload.message ?? target.props.message,
-            type: payload.level ?? target.props.type ?? "info",
-            timestamp: payload.timestamp ?? target.props.timestamp,
-          };
-        };
-
-        const connect = () => {
-          const scheme = window.location.protocol === "https:" ? "wss" : "ws";
-          const url = `${scheme}://${window.location.host}/ws/events`;
-          const socket = new WebSocket(url);
-          window.__missionMux = socket;
-
-          socket.addEventListener("open", () => {
-            console.info("[mission-control] websocket connected");
-            socket.send(JSON.stringify({ action: "subscribe", channel: channelId }));
-          });
-
-          const handlePayload = (raw) => {
-            try {
-              const data = JSON.parse(raw);
-              if (data.channel !== channelId) return;
-              updatePulseTile(data.payload ?? data);
-            } catch (error) {
-              console.warn("[mission-control] malformed mux payload", error);
-            }
-          };
-
-          socket.addEventListener("message", (event) => handlePayload(event.data));
-
-          socket.addEventListener("close", () => {
-            console.info("[mission-control] websocket closed, retrying…");
-            setTimeout(connect, 2000);
-          });
-
-          socket.addEventListener("error", (error) => {
-            console.error("[mission-control] websocket error", error);
-            socket.close();
-          });
-        };
-
-        connect();
-      })();
-    """,
 )
 
 mount_layout_app(
@@ -411,4 +272,20 @@ mount_layout_app(
     base_path="/",
     layout_options=layout_options,
     ui_hooks=ui_hooks,
+    realtime=RealtimeOptions(
+        path="/ws/events",
+        channels=(MISSION_EVENTS_CHANNEL,),
+        publishers=(mission_pulse_publisher,),
+        bindings=(
+            RealtimeBinding(
+                channel=MISSION_EVENTS_CHANNEL.id,
+                tile_id="overview_pulses",
+                fields={
+                    "message": "message",
+                    "type": "level",
+                    "timestamp": "timestamp",
+                },
+            ),
+        ),
+    ),
 )

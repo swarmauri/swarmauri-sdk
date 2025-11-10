@@ -53,6 +53,8 @@ function parseShellConfig() {
   }
 }
 
+const REALTIME_EVENT = "layout-engine:channel";
+
 const shellConfig = parseShellConfig();
 const routerConfig = {
   manifestUrl: shellConfig.router?.manifestUrl ?? "./manifest.json",
@@ -64,7 +66,21 @@ const routerConfig = {
   enableMultipage: shellConfig.router?.enableMultipage ?? false,
 };
 
+const realtimeConfig = normalizeRealtimeConfig(shellConfig.realtime);
+
 const basePalette = shellConfig.theme?.accentPalette ?? {};
+
+function normalizeRealtimeConfig(raw) {
+  if (!raw || typeof raw !== "object") {
+    return { enabled: false, channels: [] };
+  }
+  return {
+    enabled: Boolean(raw.enabled && raw.path),
+    path: raw.path ?? "",
+    autoSubscribe: raw.autoSubscribe ?? true,
+    channels: Array.isArray(raw.channels) ? raw.channels : [],
+  };
+}
 
 function applyPalette(palette) {
   const root = document.documentElement;
@@ -183,6 +199,81 @@ function updateRegistry(target, source) {
   });
 }
 
+function resolveWsUrl(path) {
+  if (!path) {
+    return null;
+  }
+  if (path.startsWith("ws://") || path.startsWith("wss://")) {
+    return path;
+  }
+  const scheme = window.location.protocol === "https:" ? "wss" : "ws";
+  const suffix = path.startsWith("/") ? path : `/${path}`;
+  return `${scheme}://${window.location.host}${suffix}`;
+}
+
+function setupRealtimeBridge(config) {
+  if (!config?.enabled) {
+    return null;
+  }
+  const url = resolveWsUrl(config.path);
+  if (!url) {
+    return null;
+  }
+  let socket;
+  let reconnectTimer = null;
+
+  const connect = () => {
+    socket = new WebSocket(url);
+    window.__leRealtime = socket;
+
+    socket.addEventListener("open", () => {
+      if (config.autoSubscribe && Array.isArray(config.channels)) {
+        for (const channelId of config.channels) {
+          socket.send(JSON.stringify({ action: "subscribe", channel: channelId }));
+        }
+      }
+    });
+
+    socket.addEventListener("message", (event) => {
+      try {
+        const data = JSON.parse(String(event.data));
+        window.dispatchEvent(
+          new CustomEvent(REALTIME_EVENT, {
+            detail: {
+              channel: data.channel ?? null,
+              payload: data.payload ?? null,
+            },
+          }),
+        );
+      } catch (error) {
+        console.warn("Unable to parse realtime payload", error);
+      }
+    });
+
+    socket.addEventListener("close", () => {
+      reconnectTimer = window.setTimeout(connect, 2000);
+    });
+
+    socket.addEventListener("error", (error) => {
+      console.error("Realtime websocket error", error);
+      socket.close();
+    });
+  };
+
+  connect();
+
+  return () => {
+    if (reconnectTimer) {
+      window.clearTimeout(reconnectTimer);
+      reconnectTimer = null;
+    }
+    if (socket) {
+      socket.close();
+      socket = null;
+    }
+  };
+}
+
 const initialPageId = currentPageFromLocation() || routerConfig.defaultPageId;
 const initialManifestData = await fetchManifestForPage(initialPageId);
 
@@ -192,6 +283,10 @@ const manifestState = reactive(initialManifestData.manifest);
 const registryState = new Map(initialManifestData.components);
 
 const layoutPlugin = createLayoutEnginePlugin(manifestState, registryState);
+const teardownRealtime = setupRealtimeBridge(realtimeConfig);
+if (teardownRealtime) {
+  window.addEventListener("beforeunload", () => teardownRealtime());
+}
 
 if (shellConfig.clientSetup) {
   try {

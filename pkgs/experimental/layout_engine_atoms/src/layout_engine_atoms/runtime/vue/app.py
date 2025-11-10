@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import inspect
+import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Literal, Mapping, MutableMapping, Sequence
@@ -10,6 +11,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from .template import render_shell
+from .realtime import RealtimeBinding, RealtimeOptions, WebsocketMuxHub
 
 ManifestBuilder = Callable[[], Mapping[str, Any] | MutableMapping[str, Any] | Any]
 
@@ -77,6 +79,7 @@ def mount_layout_app(
     title: str = DEFAULT_TITLE,
     layout_options: LayoutOptions | None = None,
     ui_hooks: UIHooks | None = None,
+    realtime: RealtimeOptions | None = None,
 ) -> None:
     """Mount the layout engine Vue runtime on an existing FastAPI app."""
 
@@ -99,6 +102,26 @@ def mount_layout_app(
         _render_script(spec) for spec in layout_options.extra_scripts or []
     ]
 
+    norm_base = _normalize_base_path(base_path)
+    realtime_payload = {"enabled": False}
+    ws_route: str | None = None
+    hub: WebsocketMuxHub | None = None
+    if realtime:
+        ws_route = _join_paths(norm_base, realtime.path)
+        hub = WebsocketMuxHub(path=realtime.path)
+        realtime_payload = {
+            "enabled": True,
+            "path": ws_route,
+            "channels": [channel.id for channel in realtime.channels],
+            "autoSubscribe": realtime.auto_subscribe,
+        }
+        binding_script = _render_binding_script(realtime.bindings)
+        if binding_script:
+            if ui_hooks.client_setup:
+                ui_hooks.client_setup = f"{ui_hooks.client_setup}\n{binding_script}"
+            else:
+                ui_hooks.client_setup = binding_script
+
     config_payload = {
         "title": resolved_title,
         "theme": {
@@ -119,6 +142,7 @@ def mount_layout_app(
             "footerSlot": ui_hooks.footer_slot,
         },
         "clientSetup": ui_hooks.client_setup,
+        "realtime": realtime_payload,
     }
 
     shell_html = render_shell(
@@ -131,8 +155,13 @@ def mount_layout_app(
         pre_boot_scripts=pre_boot_scripts,
     )
 
-    norm_base = _normalize_base_path(base_path)
-    router = _create_layout_router(manifest_builder, shell_html, router_options)
+    router = _create_layout_router(
+        manifest_builder,
+        shell_html,
+        router_options,
+        realtime=realtime,
+        ws_route=ws_route,
+    )
     app.include_router(router, prefix=norm_base if norm_base != "/" else "")
 
     static_prefix = "" if norm_base == "/" else norm_base
@@ -146,12 +175,28 @@ def mount_layout_app(
         StaticFiles(directory=_SWARMA_VUE_DIST, html=False),
         name="swarma-vue",
     )
+    if realtime and hub and ws_route:
+        hub.mount(app, ws_route)
+
+        async def _start_realtime() -> None:  # noqa: D401
+            await hub.start_publishers(realtime.publishers)
+
+        async def _stop_realtime() -> None:  # noqa: D401
+            await hub.stop_publishers()
+            await hub.disconnect_all()
+
+        app.add_event_handler("startup", _start_realtime)
+        app.add_event_handler("shutdown", _stop_realtime)
+        app.state.layout_engine_realtime = hub
 
 
 def _create_layout_router(
     manifest_builder: ManifestBuilder,
     shell_html: str,
     router_options: RouterOptions,
+    *,
+    realtime: RealtimeOptions | None,
+    ws_route: str | None,
 ) -> APIRouter:
     router = APIRouter()
 
@@ -169,6 +214,7 @@ def _create_layout_router(
                 payload.setdefault("meta", {}).setdefault("page", {})["requested"] = (
                     requested
                 )
+        _inject_realtime_metadata(payload, realtime, ws_route)
         return JSONResponse(content=payload)
 
     return router
@@ -182,6 +228,18 @@ def _normalize_base_path(base_path: str) -> str:
     if base_path != "/" and base_path.endswith("/"):
         base_path = base_path[:-1]
     return base_path or "/"
+
+
+def _join_paths(base_path: str, suffix: str) -> str:
+    if not suffix:
+        return base_path or "/"
+    if not suffix.startswith("/"):
+        suffix = "/" + suffix
+    if base_path in ("", "/"):
+        return suffix
+    if suffix == "/":
+        return base_path
+    return f"{base_path}{suffix}"
 
 
 async def _call_builder(
@@ -203,10 +261,90 @@ def _normalize_manifest(manifest: Any) -> Mapping[str, Any]:
     if hasattr(manifest, "model_dump_json"):
         return manifest.model_dump()
     if isinstance(manifest, Mapping):
-        return manifest  # type: ignore[return-value]
+        return dict(manifest)
     raise TypeError(
         "Manifest builder must return a Mapping or pydantic model; got "
         f"{type(manifest)!r}"
+    )
+
+
+def _inject_realtime_metadata(
+    payload: MutableMapping[str, Any],
+    realtime: RealtimeOptions | None,
+    ws_route: str | None,
+) -> None:
+    if not realtime or not ws_route:
+        return
+    rt_channels = payload.setdefault("channels", [])
+    existing_ids = {
+        entry.get("id")
+        for entry in rt_channels
+        if isinstance(entry, Mapping) and isinstance(entry.get("id"), str)
+    }
+    for channel in realtime.channels:
+        if channel.id in existing_ids:
+            continue
+        rt_channels.append(channel.as_manifest())
+
+    ws_routes = payload.setdefault("ws_routes", [])
+    existing_paths = {
+        entry.get("path")
+        for entry in ws_routes
+        if isinstance(entry, Mapping) and isinstance(entry.get("path"), str)
+    }
+    if ws_route not in existing_paths:
+        ws_routes.append(
+            {
+                "path": ws_route,
+                "channels": [channel.id for channel in realtime.channels],
+            }
+        )
+
+
+def _render_binding_script(bindings: Sequence[RealtimeBinding]) -> str:
+    if not bindings:
+        return ""
+    payload = json.dumps(
+        [binding.as_payload() for binding in bindings], separators=(",", ":")
+    )
+    return (
+        "(function realtimeBindingBootstrap() {\n"
+        "  if (!context || !context.manifest) {\n"
+        "    console.warn('[layout-engine] realtime bindings require manifest context.');\n"
+        "    return;\n"
+        "  }\n"
+        "  const manifest = context.manifest;\n"
+        f"  const bindings = {payload};\n"
+        "  const EVENT_NAME = 'layout-engine:channel';\n"
+        "  const getValue = (payload, path) => {\n"
+        "    if (!path) return payload;\n"
+        "    return path.split('.').reduce((acc, key) => {\n"
+        "      if (acc === undefined || acc === null) return undefined;\n"
+        "      const next = acc[key];\n"
+        "      return next === undefined ? undefined : next;\n"
+        "    }, payload);\n"
+        "  };\n"
+        "  const applyBinding = (binding, payload) => {\n"
+        "    const tiles = Array.isArray(manifest.tiles) ? manifest.tiles : [];\n"
+        "    const target = tiles.find((tile) => tile.id === binding.tileId);\n"
+        "    if (!target) return;\n"
+        "    target.props = target.props && typeof target.props === 'object' ? target.props : {};\n"
+        "    for (const [prop, path] of Object.entries(binding.fields || {})) {\n"
+        "      const value = getValue(payload, path);\n"
+        "      if (value !== undefined) {\n"
+        "        target.props[prop] = value;\n"
+        "      }\n"
+        "    }\n"
+        "  };\n"
+        "  const handler = (event) => {\n"
+        "    const detail = event.detail || {};\n"
+        "    for (const binding of bindings) {\n"
+        "      if (binding.channel !== detail.channel) continue;\n"
+        "      applyBinding(binding, detail.payload || {});\n"
+        "    }\n"
+        "  };\n"
+        "  window.addEventListener(EVENT_NAME, handler);\n"
+        "})();\n"
     )
 
 
