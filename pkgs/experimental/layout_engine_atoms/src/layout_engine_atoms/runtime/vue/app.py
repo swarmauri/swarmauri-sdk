@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import inspect
 from dataclasses import dataclass
-from typing import Any, Callable, Iterable, Literal, Mapping, MutableMapping, Sequence
+from pathlib import Path
+from typing import Any, Callable, Literal, Mapping, MutableMapping, Sequence
 
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -62,8 +63,6 @@ DEFAULT_PALETTE = {
     "surface": "rgba(2, 6, 23, 1)",
     "text": "#e2e8f0",
 }
-
-from pathlib import Path
 
 _ASSETS_ROOT = Path(__file__).resolve().parent / "assets"
 _LAYOUT_ENGINE_DIST = _ASSETS_ROOT / "layout-engine-vue"
@@ -167,7 +166,9 @@ def _create_layout_router(
         if router_options.enable_multipage and router_options.page_param:
             requested = request.query_params.get(router_options.page_param)
             if requested:
-                payload.setdefault("meta", {}).setdefault("page", {})["requested"] = requested
+                payload.setdefault("meta", {}).setdefault("page", {})["requested"] = (
+                    requested
+                )
         return JSONResponse(content=payload)
 
     return router
@@ -183,7 +184,9 @@ def _normalize_base_path(base_path: str) -> str:
     return base_path or "/"
 
 
-async def _call_builder(builder: ManifestBuilder, request: Request | None = None) -> Any:
+async def _call_builder(
+    builder: ManifestBuilder, request: Request | None = None
+) -> Any:
     if request is None:
         raise RuntimeError("manifest builder requires request context")
     result = builder(request)

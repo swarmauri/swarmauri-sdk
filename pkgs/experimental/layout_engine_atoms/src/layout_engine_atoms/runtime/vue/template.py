@@ -47,7 +47,9 @@ def _build_pre_boot_scripts(scripts: Iterable[str] | None) -> str:
 def _build_css_variables(palette: dict[str, str]) -> str:
     if not palette:
         return "        --le-accent: rgba(56, 189, 248, 0.75);"
-    lines = [f"--le-{key.replace('_', '-')}: {value};" for key, value in palette.items()]
+    lines = [
+        f"--le-{key.replace('_', '-')}: {value};" for key, value in palette.items()
+    ]
     return _indent("\n".join(lines), 8)
 
 

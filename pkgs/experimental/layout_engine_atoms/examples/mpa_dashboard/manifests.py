@@ -54,6 +54,27 @@ ACTION_STYLE = {
     "background": "radial-gradient(circle at 20% 20%, rgba(56,189,248,0.28), rgba(15,23,42,0.92))",
 }
 
+MISSION_EVENTS_CHANNEL = "mission.events"
+
+CHANNELS = [
+    {
+        "id": MISSION_EVENTS_CHANNEL,
+        "scope": "site",
+        "topic": "mission-control:events",
+        "description": "Broadcasts live mission control pulses rendered in the overview banner.",
+        "meta": {"demo": True},
+    }
+]
+
+WS_ROUTES = [
+    {
+        "path": "/ws/events",
+        "channels": [MISSION_EVENTS_CHANNEL],
+        "description": "Demo websocket endpoint that streams mission pulse updates.",
+        "meta": {"demo": True},
+    }
+]
+
 
 @dataclass(frozen=True)
 class PageDefinition:
@@ -330,7 +351,7 @@ def _revenue_page() -> tuple:
         row(
             col(block("revenue_forecast"), size=SizeToken.m),
             col(block("revenue_actions"), size=SizeToken.m),
-            col(block("revenue_wins"), size=SizeToken.m)
+            col(block("revenue_wins"), size=SizeToken.m),
         ),
         gap_x=24,
         gap_y=24,
@@ -482,14 +503,14 @@ DEFAULT_PAGE_ID = PAGE_SEQUENCE[0].id
 
 def _apply_atom_metadata(manifest: Manifest, registry) -> None:
     tiles = manifest.tiles if isinstance(manifest.tiles, list) else list(manifest.tiles)
-    for tile in tiles:
-        if not isinstance(tile, dict):
+    for entry in tiles:
+        if not isinstance(entry, dict):
             continue
         try:
-            spec = registry.get(tile["role"])
+            spec = registry.get(entry["role"])
         except Exception:  # noqa: BLE001
             continue
-        atom_data = dict(tile.get("atom") or {})
+        atom_data = dict(entry.get("atom") or {})
         atom_data.setdefault("role", spec.role)
         atom_data.setdefault("module", spec.module)
         atom_data.setdefault("export", spec.export)
@@ -508,7 +529,7 @@ def _apply_atom_metadata(manifest: Manifest, registry) -> None:
         registry_meta = getattr(spec, "registry", None)
         if registry_meta and not atom_data.get("registry"):
             atom_data["registry"] = dict(registry_meta)
-        tile["atom"] = atom_data
+        entry["atom"] = atom_data
 
 
 def _ensure_viewport_bounds(payload: dict[str, object]) -> None:
@@ -576,6 +597,8 @@ def build_manifest(page_id: str) -> Manifest:
         row_height=ROW_HEIGHT,
         viewport=VIEWPORT,
         version=VERSION,
+        channels=CHANNELS,
+        ws_routes=WS_ROUTES,
     )
 
     manifest_dict = to_dict(manifest)

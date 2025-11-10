@@ -15,9 +15,21 @@ def test_quick_manifest_builds_manifest() -> None:
 
     manifest = quick_manifest(
         [
-            tile("hero", "swarmakit:vue:cardbased-list", span="full", props={"cards": []}),
-            tile("summary", "swarmakit:vue:data-summary", span="half", props={"data": [1, 2, 3]}),
-            tile("activity", "swarmakit:vue:activity-indicators", span="half", props={"type": "success"}),
+            tile(
+                "hero", "swarmakit:vue:cardbased-list", span="full", props={"cards": []}
+            ),
+            tile(
+                "summary",
+                "swarmakit:vue:data-summary",
+                span="half",
+                props={"data": [1, 2, 3]},
+            ),
+            tile(
+                "activity",
+                "swarmakit:vue:activity-indicators",
+                span="half",
+                props={"type": "success"},
+            ),
         ],
         registry=registry,
         columns=2,
