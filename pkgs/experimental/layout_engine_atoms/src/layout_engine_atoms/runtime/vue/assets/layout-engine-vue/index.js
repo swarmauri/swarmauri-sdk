@@ -384,7 +384,8 @@ var LayoutEngineView_default = defineComponent({
           style: {
             position: "relative",
             width: viewportWidth ? `${viewportWidth}px` : "100%",
-            minHeight: viewportHeight ? `${viewportHeight}px` : "auto"
+            minHeight: viewportHeight ? `${viewportHeight}px` : "auto",
+            margin: "0 auto"
           }
         },
         renderTiles()

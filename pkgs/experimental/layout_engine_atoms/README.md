@@ -191,6 +191,9 @@ uv run --directory pkgs/experimental/layout_engine_atoms --package layout-engine
 
 # Rebuild the Vue bundle (requires Node/npm)
 ./scripts/build_vue_runtime.sh
+
+# Rebuild the Svelte runtime + SwarmaKit bundle (requires pnpm)
+./scripts/build_svelte_runtime.sh
 ```
 
 ---

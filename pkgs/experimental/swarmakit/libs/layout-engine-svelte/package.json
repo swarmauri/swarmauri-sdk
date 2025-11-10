@@ -1,0 +1,43 @@
+{
+  "name": "@swarmakit/layout-engine-svelte",
+  "version": "0.0.1",
+  "description": "Thin Svelte runtime for Layout Engine manifests and SwarmaKit atoms.",
+  "type": "module",
+  "svelte": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "svelte": "./src/index.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "svelte-check --tsconfig tsconfig.json && tsc -p tsconfig.json --emitDeclarationOnly --declarationMap false && vite build && vite build --config vite.bootstrap.config.ts",
+    "dev": "vite dev",
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "format": "prettier --write \"src/**/*.{ts,svelte}\"",
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "@swarmakit/svelte": ">=0.0.22",
+    "svelte": "^4.2.0"
+  },
+  "dependencies": {
+    "eventemitter3": "^5.0.1"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^3.0.0",
+    "@types/node": "^20.12.7",
+    "jsdom": "^23.0.0",
+    "prettier": "^3.3.3",
+    "svelte": "^4.2.0",
+    "svelte-check": "^4.0.0",
+    "tslib": "^2.6.3",
+    "typescript": "^5.5.4",
+    "vite": "^5.2.0",
+    "vitest": "^2.0.4"
+  }
+}

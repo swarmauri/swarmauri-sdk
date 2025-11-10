@@ -23,6 +23,7 @@ dependencies = [
     "layout-engine",
     "fastapi",
     "uvicorn[standard]",
+    "httpx>=0.27",
 ]
 keywords = [
     "layout",
@@ -39,6 +40,11 @@ layout_engine_atoms = [
     "runtime/vue/assets/swarma-vue/*.js",
     "runtime/vue/assets/swarma-vue/*.css",
     "runtime/vue/templates/*.html",
+    "runtime/svelte/assets/layout-engine-svelte/*.js",
+    "runtime/svelte/assets/layout-engine-svelte/*.css",
+    "runtime/svelte/templates/*.html",
+    "runtime/svelte/assets/swarma-svelte/*.js",
+    "runtime/svelte/assets/swarma-svelte/*.css",
 ]
 
 [tool.setuptools.packages.find]

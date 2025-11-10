@@ -11,6 +11,7 @@ export { default as LayoutEngineShell } from "./components/LayoutEngineShell";
 export { default as LayoutEngineNavLink } from "./components/NavLink";
 export { createMuxContext, useMux } from "./events";
 export { WSMuxClient } from "./mux";
+export { loadManifest } from "./loader";
 export type {
   LayoutManifest,
   LayoutTile,
