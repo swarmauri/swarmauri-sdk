@@ -37,12 +37,28 @@ def _normalize_tile(tile: Mapping[str, Any]) -> dict:
     }
     if atom is not None:
         a = dict(atom)
-        base["atom"] = {
+        atom_payload = {
             "module": str(a.get("module", "")),
             "export": str(a.get("export", "default")),
             "version": str(a.get("version", "1.0.0")),
             "defaults": dict(a.get("defaults", {})),
         }
+        optional_fields = (
+            "role",
+            "family",
+            "framework",
+            "package",
+            "tokens",
+            "registry",
+        )
+        for field in optional_fields:
+            if field not in a or a[field] is None:
+                continue
+            if field in {"tokens", "registry"}:
+                atom_payload[field] = dict(a.get(field, {}))
+            else:
+                atom_payload[field] = a[field]
+        base["atom"] = atom_payload
     for k in sorted(t.keys()):
         if k not in base:
             base[k] = t[k]
