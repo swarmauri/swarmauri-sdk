@@ -57,8 +57,16 @@ def _overview_page() -> tuple:
             props={
                 "style": CARD_STYLE,
                 "cards": [
-                    {"title": "Svelte Runtime", "description": "Layout engine demo powered by mount_svelte_app."},
-                    {"title": "Realtime events", "description": "Hero pulse updates via websocket."},
+                    {
+                        "id": 1,
+                        "title": "Svelte Runtime",
+                        "description": "Layout engine demo powered by mount_svelte_app.",
+                    },
+                    {
+                        "id": 2,
+                        "title": "Realtime events",
+                        "description": "Hero pulse updates via websocket.",
+                    },
                 ],
             },
         ),
@@ -99,14 +107,32 @@ DEFAULT_PAGE_ID = PAGE_SEQUENCE[0].id
 SITE_SPEC = SiteSpec(
     base_path="/",
     pages=tuple(
-        PageSpec(id=page.id, route=page.route, title=page.title) for page in PAGE_SEQUENCE
+        PageSpec(id=page.id, route=page.route, title=page.title)
+        for page in PAGE_SEQUENCE
     ),
 )
 
 
 @lru_cache(maxsize=1)
 def get_registry():
-    return create_registry(catalog="svelte")
+    widget_overrides = {
+        "swarmakit:svelte:cardbased-list": {
+            "module": "@layout-engine/svelte-widgets",
+            "export": "CardbasedList",
+            "defaults": {},
+        },
+        "swarmakit:svelte:activity-indicators": {
+            "module": "@layout-engine/svelte-widgets",
+            "export": "ActivityIndicators",
+            "defaults": {},
+        },
+        "swarmakit:svelte:data-summary": {
+            "module": "@layout-engine/svelte-widgets",
+            "export": "DataSummary",
+            "defaults": {},
+        },
+    }
+    return create_registry(catalog="svelte", overrides=widget_overrides)
 
 
 def build_manifest(page_id: str) -> Manifest:

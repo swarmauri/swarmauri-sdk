@@ -88,9 +88,10 @@ def mount_svelte_app(
     accent_palette = {**DEFAULT_PALETTE, **(layout_options.accent_palette or {})}
 
     import_map = {
-        "svelte": "https://cdn.jsdelivr.net/npm/svelte@4.2.0",
+        "svelte": "https://cdn.jsdelivr.net/npm/svelte@4.2.18/+esm",
         "@swarmakit/layout-engine-svelte": "./static/layout-engine-svelte/index.js",
         "@swarmakit/svelte": "./static/swarma-svelte/svelte.js",
+        "@layout-engine/svelte-widgets": "./static/layout-engine-svelte/widgets.js",
     }
     if layout_options.import_map_overrides:
         import_map.update(layout_options.import_map_overrides)
@@ -98,6 +99,11 @@ def mount_svelte_app(
     pre_boot_scripts = [
         _render_script(spec) for spec in layout_options.extra_scripts or []
     ]
+    fallback_script = SvelteScriptSpec(
+        src="./static/layout-engine-svelte/fallback.js",
+        type="module",
+    )
+    pre_boot_scripts.append(_render_script(fallback_script))
 
     norm_base = _normalize_base_path(base_path)
     realtime_payload = {"enabled": False}
@@ -147,7 +153,7 @@ def mount_svelte_app(
         import_map=import_map,
         config_payload=config_payload,
         palette=accent_palette,
-        bootstrap_module="./static/layout-engine-svelte/mpa-bootstrap.js",
+        bootstrap_module="./static/layout-engine-svelte/bootstrap-lite.js",
         extra_styles=layout_options.extra_styles,
         pre_boot_scripts=pre_boot_scripts,
     )
