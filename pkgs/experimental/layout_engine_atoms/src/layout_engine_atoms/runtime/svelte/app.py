@@ -88,7 +88,7 @@ def mount_svelte_app(
     accent_palette = {**DEFAULT_PALETTE, **(layout_options.accent_palette or {})}
 
     import_map = {
-        "svelte": "https://cdn.jsdelivr.net/npm/svelte@4.2.0",
+        "svelte": "https://cdn.jsdelivr.net/npm/svelte@5/+esm",
         "@swarmakit/layout-engine-svelte": "./static/layout-engine-svelte/index.js",
         "@swarmakit/svelte": "./static/swarma-svelte/svelte.js",
     }
@@ -98,6 +98,11 @@ def mount_svelte_app(
     pre_boot_scripts = [
         _render_script(spec) for spec in layout_options.extra_scripts or []
     ]
+    fallback_script = SvelteScriptSpec(
+        src="./static/layout-engine-svelte/fallback.js",
+        type="module",
+    )
+    pre_boot_scripts.append(_render_script(fallback_script))
 
     norm_base = _normalize_base_path(base_path)
     realtime_payload = {"enabled": False}

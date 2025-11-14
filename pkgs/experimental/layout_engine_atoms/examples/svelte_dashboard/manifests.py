@@ -57,8 +57,14 @@ def _overview_page() -> tuple:
             props={
                 "style": CARD_STYLE,
                 "cards": [
-                    {"title": "Svelte Runtime", "description": "Layout engine demo powered by mount_svelte_app."},
-                    {"title": "Realtime events", "description": "Hero pulse updates via websocket."},
+                    {
+                        "title": "Svelte Runtime",
+                        "description": "Layout engine demo powered by mount_svelte_app.",
+                    },
+                    {
+                        "title": "Realtime events",
+                        "description": "Hero pulse updates via websocket.",
+                    },
                 ],
             },
         ),
@@ -99,7 +105,8 @@ DEFAULT_PAGE_ID = PAGE_SEQUENCE[0].id
 SITE_SPEC = SiteSpec(
     base_path="/",
     pages=tuple(
-        PageSpec(id=page.id, route=page.route, title=page.title) for page in PAGE_SEQUENCE
+        PageSpec(id=page.id, route=page.route, title=page.title)
+        for page in PAGE_SEQUENCE
     ),
 )
 
