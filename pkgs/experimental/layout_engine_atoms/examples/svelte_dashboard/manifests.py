@@ -58,12 +58,10 @@ def _overview_page() -> tuple:
                 "style": CARD_STYLE,
                 "cards": [
                     {
-                        "id": 1,
                         "title": "Svelte Runtime",
                         "description": "Layout engine demo powered by mount_svelte_app.",
                     },
                     {
-                        "id": 2,
                         "title": "Realtime events",
                         "description": "Hero pulse updates via websocket.",
                     },
