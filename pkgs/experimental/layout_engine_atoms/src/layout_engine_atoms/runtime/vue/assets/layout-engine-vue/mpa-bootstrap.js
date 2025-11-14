@@ -12,6 +12,7 @@ import {
   LayoutEngineShell,
   useSiteNavigation,
   loadManifest,
+  WSMuxClient,
 } from "./index.js";
 
 const CONFIG_ELEMENT_ID = "le-shell-config";
@@ -67,6 +68,7 @@ const routerConfig = {
 };
 
 const realtimeConfig = normalizeRealtimeConfig(shellConfig.realtime);
+const eventsConfig = normalizeEventsConfig(shellConfig.events);
 
 const basePalette = shellConfig.theme?.accentPalette ?? {};
 
@@ -79,6 +81,19 @@ function normalizeRealtimeConfig(raw) {
     path: raw.path ?? "",
     autoSubscribe: raw.autoSubscribe ?? true,
     channels: Array.isArray(raw.channels) ? raw.channels : [],
+  };
+}
+
+function normalizeEventsConfig(raw) {
+  if (!raw || typeof raw !== "object") {
+    return { enabled: false, baseUrl: "", items: [] };
+  }
+  const baseUrl = typeof raw.baseUrl === "string" ? raw.baseUrl : "";
+  const items = Array.isArray(raw.items) ? raw.items.filter((entry) => entry && typeof entry.id === "string") : [];
+  return {
+    enabled: Boolean(raw.enabled && baseUrl),
+    baseUrl,
+    items,
   };
 }
 
@@ -211,66 +226,121 @@ function resolveWsUrl(path) {
   return `${scheme}://${window.location.host}${suffix}`;
 }
 
-function setupRealtimeBridge(config) {
+function dispatchRealtimeEvent(channel, payload) {
+  window.dispatchEvent(
+    new CustomEvent(REALTIME_EVENT, {
+      detail: {
+        channel: channel ?? null,
+        payload: payload ?? null,
+      },
+    }),
+  );
+}
+
+function createRealtimeMuxBridge(config) {
   if (!config?.enabled) {
-    return null;
+    return { mux: null, teardown: null };
   }
   const url = resolveWsUrl(config.path);
   if (!url) {
+    return { mux: null, teardown: null };
+  }
+  const client = new WSMuxClient({ url });
+  client.connect();
+  window.__leRealtime = client;
+  const subscriptions = [];
+  if (config.autoSubscribe && Array.isArray(config.channels)) {
+    for (const channelId of config.channels) {
+      const unsubscribe = client.subscribe(channelId, (message) => {
+        dispatchRealtimeEvent(message.channel ?? channelId, message.payload);
+      });
+      subscriptions.push(unsubscribe);
+    }
+  } else {
+    client.on("message", (message) => {
+      dispatchRealtimeEvent(message.channel, message.payload);
+    });
+  }
+  client.on("error", (error) => {
+    console.error("Realtime mux error", error);
+  });
+  const teardown = () => {
+    subscriptions.forEach((unsubscribe) => {
+      try {
+        unsubscribe();
+      } catch {
+        /* noop */
+      }
+    });
+    client.disconnect();
+  };
+  return {
+    mux: { client, channels: config.channels ?? [] },
+    teardown,
+  };
+}
+
+function createEventsContext(config) {
+  if (!config?.enabled || !config.baseUrl) {
     return null;
   }
-  let socket;
-  let reconnectTimer = null;
-
-  const connect = () => {
-    socket = new WebSocket(url);
-    window.__leRealtime = socket;
-
-    socket.addEventListener("open", () => {
-      if (config.autoSubscribe && Array.isArray(config.channels)) {
-        for (const channelId of config.channels) {
-          socket.send(JSON.stringify({ action: "subscribe", channel: channelId }));
-        }
-      }
-    });
-
-    socket.addEventListener("message", (event) => {
-      try {
-        const data = JSON.parse(String(event.data));
-        window.dispatchEvent(
-          new CustomEvent(REALTIME_EVENT, {
-            detail: {
-              channel: data.channel ?? null,
-              payload: data.payload ?? null,
-            },
-          }),
+  const normalizedBase = config.baseUrl.endsWith("/")
+    ? config.baseUrl.slice(0, -1)
+    : config.baseUrl;
+  const descriptors = new Map();
+  for (const entry of config.items ?? []) {
+    descriptors.set(entry.id, entry);
+  }
+  const buildUrl = (eventId) => `${normalizedBase}/${encodeURIComponent(eventId)}`;
+  const invoke = async (eventId, options = {}) => {
+    if (!eventId) {
+      throw new Error("Event id is required");
+    }
+    const descriptor = descriptors.get(eventId);
+    const method = (options.method ?? descriptor?.method ?? "POST").toUpperCase();
+    const payload = { ...(options.payload ?? {}) };
+    if (options.context) {
+      const existingContext = typeof payload.context === "object" ? payload.context : {};
+      payload.context = { ...existingContext, ...options.context };
+    }
+    let target = buildUrl(eventId);
+    const fetchOptions = {
+      method,
+      headers: { ...(options.headers ?? {}) },
+    };
+    if (method === "GET") {
+      const url = new URL(target, window.location.origin);
+      Object.entries(payload).forEach(([key, value]) => {
+        if (value === undefined || value === null) return;
+        url.searchParams.set(
+          key,
+          typeof value === "object" ? JSON.stringify(value) : String(value),
         );
-      } catch (error) {
-        console.warn("Unable to parse realtime payload", error);
-      }
-    });
-
-    socket.addEventListener("close", () => {
-      reconnectTimer = window.setTimeout(connect, 2000);
-    });
-
-    socket.addEventListener("error", (error) => {
-      console.error("Realtime websocket error", error);
-      socket.close();
-    });
+      });
+      target = `${url.pathname}${url.search}`;
+    } else {
+      fetchOptions.headers["content-type"] = "application/json";
+      fetchOptions.body = JSON.stringify(payload);
+    }
+    const response = await fetch(target, fetchOptions);
+    let body = null;
+    try {
+      body = await response.json();
+    } catch {
+      body = null;
+    }
+    if (!response.ok) {
+      const error = new Error(body?.detail ?? "Event request failed");
+      error.status = response.status;
+      error.body = body;
+      throw error;
+    }
+    return { status: response.status, body };
   };
-
-  connect();
-
-  return () => {
-    if (reconnectTimer) {
-      window.clearTimeout(reconnectTimer);
-      reconnectTimer = null;
-    }
-    if (socket) {
-      socket.close();
-      socket = null;
-    }
+  return {
+    enabled: true,
+    invoke,
+    describe: (eventId) => descriptors.get(eventId) ?? null,
   };
 }
 
@@ -282,8 +352,14 @@ mergeThemeFromManifest(initialManifestData.manifest);
 const manifestState = reactive(initialManifestData.manifest);
 const registryState = new Map(initialManifestData.components);
 
-const layoutPlugin = createLayoutEnginePlugin(manifestState, registryState);
-const teardownRealtime = setupRealtimeBridge(realtimeConfig);
+const { mux: muxContext, teardown: teardownRealtime } =
+  createRealtimeMuxBridge(realtimeConfig);
+const eventsContext = createEventsContext(eventsConfig);
+window.__leEvents = eventsContext;
+const layoutPlugin = createLayoutEnginePlugin(manifestState, registryState, {
+  mux: muxContext,
+  events: eventsContext,
+});
 if (teardownRealtime) {
   window.addEventListener("beforeunload", () => teardownRealtime());
 }

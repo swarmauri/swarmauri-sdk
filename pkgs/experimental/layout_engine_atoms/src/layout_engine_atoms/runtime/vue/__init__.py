@@ -7,6 +7,7 @@ from .app import (
     UIHooks,
     mount_layout_app,
 )
+from .events import UiEvent, UiEventResult
 from .realtime import RealtimeBinding, RealtimeChannel, RealtimeOptions
 
 __all__ = [
@@ -14,6 +15,8 @@ __all__ = [
     "RouterOptions",
     "ScriptSpec",
     "UIHooks",
+    "UiEvent",
+    "UiEventResult",
     "RealtimeBinding",
     "RealtimeChannel",
     "RealtimeOptions",

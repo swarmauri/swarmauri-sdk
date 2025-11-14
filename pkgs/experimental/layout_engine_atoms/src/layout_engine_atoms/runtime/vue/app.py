@@ -6,11 +6,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Literal, Mapping, MutableMapping, Sequence
 
-from fastapi import APIRouter, FastAPI, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import APIRouter, FastAPI, HTTPException, Request
+from fastapi.responses import HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from .template import render_shell
+from .events import UiEvent, UiEventResult
 from .realtime import RealtimeBinding, RealtimeOptions, WebsocketMuxHub
 
 ManifestBuilder = Callable[[], Mapping[str, Any] | MutableMapping[str, Any] | Any]
@@ -80,6 +81,7 @@ def mount_layout_app(
     layout_options: LayoutOptions | None = None,
     ui_hooks: UIHooks | None = None,
     realtime: RealtimeOptions | None = None,
+    events: Sequence[UiEvent] | Mapping[str, UiEvent] | None = None,
 ) -> None:
     """Mount the layout engine Vue runtime on an existing FastAPI app."""
 
@@ -103,6 +105,12 @@ def mount_layout_app(
     ]
 
     norm_base = _normalize_base_path(base_path)
+    event_registry = _normalize_events(events)
+    events_payload = {
+        "enabled": bool(event_registry),
+        "baseUrl": _join_paths(norm_base, "/events"),
+        "items": [entry.describe() for entry in event_registry.values()],
+    }
     realtime_payload = {"enabled": False}
     ws_route: str | None = None
     hub: WebsocketMuxHub | None = None
@@ -143,6 +151,7 @@ def mount_layout_app(
         },
         "clientSetup": ui_hooks.client_setup,
         "realtime": realtime_payload,
+        "events": events_payload,
     }
 
     shell_html = render_shell(
@@ -161,8 +170,13 @@ def mount_layout_app(
         router_options,
         realtime=realtime,
         ws_route=ws_route,
+        events=event_registry,
     )
     app.include_router(router, prefix=norm_base if norm_base != "/" else "")
+    if event_registry:
+        app.state.layout_engine_events = event_registry
+    if realtime and hub:
+        app.state.layout_engine_realtime = hub
 
     static_prefix = "" if norm_base == "/" else norm_base
     app.mount(
@@ -187,7 +201,6 @@ def mount_layout_app(
 
         app.add_event_handler("startup", _start_realtime)
         app.add_event_handler("shutdown", _stop_realtime)
-        app.state.layout_engine_realtime = hub
 
 
 def _create_layout_router(
@@ -197,8 +210,11 @@ def _create_layout_router(
     *,
     realtime: RealtimeOptions | None,
     ws_route: str | None,
+    events: Mapping[str, UiEvent] | None,
 ) -> APIRouter:
     router = APIRouter()
+    event_registry = events or {}
+    router.layout_engine_events = event_registry  # type: ignore[attr-defined]
 
     @router.get("/", response_class=HTMLResponse)
     async def layout_index(_: Request) -> HTMLResponse:  # noqa: D401
@@ -216,6 +232,63 @@ def _create_layout_router(
                 )
         _inject_realtime_metadata(payload, realtime, ws_route)
         return JSONResponse(content=payload)
+
+    if event_registry:
+
+        @router.api_route(
+            "/events/{event_id}",
+            methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+            response_class=JSONResponse,
+        )
+        async def handle_event(
+            event_id: str,
+            request: Request,
+        ) -> Response:
+            event = event_registry.get(event_id)
+            if not event:
+                raise HTTPException(status_code=404, detail="Unknown event id")
+
+            if request.method != event.method:
+                raise HTTPException(
+                    status_code=405,
+                    detail=f"Method {request.method} not allowed for event {event.id}",
+                )
+
+            payload = {}
+            if request.method in {"POST", "PUT", "PATCH"}:
+                try:
+                    payload = await request.json()
+                except Exception:
+                    payload = {}
+            elif request.method == "GET":
+                payload = dict(request.query_params)
+
+            handler_output = event.handler(request, payload)
+            if inspect.isawaitable(handler_output):
+                handler_output = await handler_output
+
+            result: UiEventResult
+            if isinstance(handler_output, UiEventResult):
+                result = handler_output
+            elif handler_output is None:
+                result = UiEventResult()
+            elif isinstance(handler_output, Mapping):
+                result = UiEventResult(body=handler_output)
+            else:
+                raise TypeError(
+                    "UiEvent handler must return UiEventResult, Mapping, or None; "
+                    f"received {type(handler_output)!r}"
+                )
+
+            hub = getattr(request.app.state, "layout_engine_realtime", None)
+            if hub and result.channel and result.payload:
+                await hub.broadcast(result.channel, result.payload)
+
+            return JSONResponse(
+                content=result.http_body(),
+                status_code=result.status_code,
+                headers=result.headers,
+            )
 
     return router
 
@@ -240,6 +313,31 @@ def _join_paths(base_path: str, suffix: str) -> str:
     if suffix == "/":
         return base_path
     return f"{base_path}{suffix}"
+
+
+def _normalize_events(
+    events: Sequence[UiEvent] | Mapping[str, UiEvent] | None,
+) -> dict[str, UiEvent]:
+    if not events:
+        return {}
+    registry: dict[str, UiEvent] = {}
+    if isinstance(events, Mapping):
+        items = events.values()
+    else:
+        items = events
+    for entry in items:
+        if not isinstance(entry, UiEvent):
+            raise TypeError(
+                "events collection must contain UiEvent instances; "
+                f"received {type(entry)!r}"
+            )
+        event_id = entry.id
+        if not event_id:
+            raise ValueError("UiEvent.id must be a non-empty string")
+        if event_id in registry:
+            raise ValueError(f"Duplicate UiEvent id detected: {event_id!r}")
+        registry[event_id] = entry
+    return registry
 
 
 async def _call_builder(

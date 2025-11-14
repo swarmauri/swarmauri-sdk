@@ -58,13 +58,17 @@ import { inject } from "vue";
 var MANIFEST_KEY = Symbol("layout-engine:manifest");
 var REGISTRY_KEY = Symbol("layout-engine:registry");
 var MUX_KEY = Symbol("layout-engine:mux");
-function createLayoutEnginePlugin(manifest, registry, mux) {
+var EVENTS_KEY = Symbol("layout-engine:events");
+function createLayoutEnginePlugin(manifest, registry, options = {}) {
   return {
     install(app) {
       app.provide(MANIFEST_KEY, manifest);
       app.provide(REGISTRY_KEY, registry);
-      if (mux) {
-        app.provide(MUX_KEY, mux);
+      if (options.mux) {
+        app.provide(MUX_KEY, options.mux);
+      }
+      if (options.events) {
+        app.provide(EVENTS_KEY, options.events);
       }
     }
   };
@@ -89,6 +93,13 @@ function useMuxContext() {
     throw new Error("Mux context not provided; pass a 'mux' option to createLayoutEngineApp.");
   }
   return mux;
+}
+function useEventContext(optional = true) {
+  const events = inject(EVENTS_KEY, null);
+  if (!events && !optional) {
+    throw new Error("Event context not provided; ensure events are enabled in the shell.");
+  }
+  return events;
 }
 
 // src/events.ts
@@ -272,7 +283,7 @@ async function createLayoutEngineApp(options) {
   const manifestRef = ref2(manifest);
   const registryRef = ref2(components);
   const tiles = computed(() => manifestRef.value.tiles);
-  const plugin = createLayoutEnginePlugin(manifestRef.value, registryRef.value, mux);
+  const plugin = createLayoutEnginePlugin(manifestRef.value, registryRef.value, { mux });
   return {
     plugin,
     manifest: manifestRef,
@@ -328,12 +339,170 @@ function useSiteNavigation(manifest) {
 
 // src/components/LayoutEngineView.ts
 import { defineComponent, h } from "vue";
+var EVENT_LISTENER_ALIASES = {
+  click: "onClick",
+  submit: "onSubmit",
+  change: "onChange",
+  input: "onInput"
+};
+var DEFAULT_EVENT_METHOD = "POST";
+function cloneTileProps(props) {
+  if (props && typeof props === "object") {
+    return { ...props };
+  }
+  return {};
+}
+function resolveListenerProp(trigger) {
+  if (!trigger) {
+    return null;
+  }
+  if (trigger.startsWith("on")) {
+    return trigger;
+  }
+  const normalized = trigger.toLowerCase();
+  if (EVENT_LISTENER_ALIASES[normalized]) {
+    return EVENT_LISTENER_ALIASES[normalized];
+  }
+  return `on${normalized.charAt(0).toUpperCase()}${normalized.slice(1)}`;
+}
+function ensureTileEventEntry(tile, key, eventId) {
+  if (!tile?.props || typeof tile.props !== "object") {
+    return null;
+  }
+  const events = tile.props.events;
+  if (!events || typeof events !== "object") {
+    tile.props.events = {};
+  }
+  const store = tile.props.events;
+  let current = store[key];
+  if (!current || typeof current !== "object") {
+    current = { id: eventId };
+    store[key] = current;
+  }
+  if (!current.state) {
+    current.state = {};
+  }
+  return current;
+}
+function setEventPendingState(tile, binding, isPending) {
+  const entry = ensureTileEventEntry(tile, binding.key, binding.id);
+  if (entry) {
+    entry.state.pending = isPending;
+    if (isPending) {
+      entry.state.error = null;
+    }
+  }
+  if (binding.loadingProp && tile?.props) {
+    tile.props[binding.loadingProp] = isPending;
+  }
+  if (binding.disabledProp && tile?.props) {
+    tile.props[binding.disabledProp] = isPending;
+  }
+}
+function recordEventResult(tile, binding, result) {
+  const entry = ensureTileEventEntry(tile, binding.key, binding.id);
+  if (entry) {
+    entry.state.lastResult = result;
+    entry.state.error = null;
+  }
+}
+function recordEventError(tile, binding, error) {
+  const entry = ensureTileEventEntry(tile, binding.key, binding.id);
+  if (entry) {
+    entry.state.error = error;
+  }
+}
+function normalizeTileEventBinding(tile, key, raw, eventsContext) {
+  if (!raw) return null;
+  const spec = typeof raw === "string" ? { id: raw } : { ...raw };
+  const eventId = spec.id ?? spec.event ?? spec.eventId ?? null;
+  if (!eventId) {
+    return null;
+  }
+  ensureTileEventEntry(tile, key, eventId);
+  const descriptor = eventsContext?.describe ? eventsContext.describe(eventId) : null;
+  const trigger = spec.trigger ?? spec.listener ?? key;
+  const listener = resolveListenerProp(trigger);
+  if (!listener) return null;
+  const method = (spec.method ?? descriptor?.method ?? DEFAULT_EVENT_METHOD).toUpperCase();
+  return {
+    key,
+    id: eventId,
+    trigger,
+    listener,
+    method,
+    payload: spec.payload ?? {},
+    context: spec.context ?? {},
+    loadingProp: spec.loadingProp ?? descriptor?.loadingProp,
+    disabledProp: spec.disabledProp ?? descriptor?.disabledProp,
+    preventDefault: spec.preventDefault ?? trigger === "submit",
+    stopPropagation: spec.stopPropagation ?? false
+  };
+}
+function createTileEventHandler(tile, binding, eventsContext) {
+  if (!eventsContext?.invoke) {
+    return null;
+  }
+  return async (domEvent) => {
+    if (binding.preventDefault && domEvent?.preventDefault) {
+      domEvent.preventDefault();
+    }
+    if (binding.stopPropagation && domEvent?.stopPropagation) {
+      domEvent.stopPropagation();
+    }
+    setEventPendingState(tile, binding, true);
+    try {
+      const payload = { ...(binding.payload ?? {}) };
+      const context = {
+        tileId: tile.id,
+        role: tile.role,
+        ...binding.context
+      };
+      const result = await eventsContext.invoke(binding.id, {
+        method: binding.method,
+        payload,
+        context
+      });
+      recordEventResult(tile, binding, result?.body ?? result);
+      return result;
+    } catch (error) {
+      recordEventError(tile, binding, error?.body ?? { message: error?.message ?? "Event failed" });
+      throw error;
+    } finally {
+      setEventPendingState(tile, binding, false);
+    }
+  };
+}
+function attachTileEventHandlers(tile, props, eventsContext) {
+  if (!eventsContext || !props || typeof props !== "object") {
+    return props;
+  }
+  const eventDefs = tile?.props?.events;
+  if (!eventDefs || typeof eventDefs !== "object") {
+    return props;
+  }
+  const handlers = {};
+  for (const [key, raw] of Object.entries(eventDefs)) {
+    const binding = normalizeTileEventBinding(tile, key, raw, eventsContext);
+    if (!binding) continue;
+    const handler = createTileEventHandler(tile, binding, eventsContext);
+    if (handler && binding.listener) {
+      handlers[binding.listener] = handler;
+    }
+  }
+  if (Object.keys(handlers).length) {
+    Object.assign(props, handlers);
+    delete props.events;
+  }
+  return props;
+}
 var LayoutEngineView_default = defineComponent({
   name: "LayoutEngineView",
   setup(_, { slots }) {
     const manifest = useLayoutManifest();
     const registry = useAtomRegistry();
     const site = useSiteNavigation(manifest);
+    const eventsContext = useEventContext(true);
     const renderTiles = () => {
       if (!manifest.tiles.length) {
         return [];
@@ -356,11 +525,16 @@ var LayoutEngineView_default = defineComponent({
           padding: "12px",
           display: "flex"
         };
+        const componentProps = attachTileEventHandlers(
+          tile,
+          cloneTileProps(tile.props),
+          eventsContext
+        );
         nodes.push(
           h(
             "div",
             { key: tile.id, class: "layout-engine-tile", style },
-            [h(entry.component, { ...tile.props })]
+            [h(entry.component, componentProps)]
           )
         );
       }
@@ -467,6 +641,7 @@ export {
   createMuxContext,
   loadManifest,
   useAtomRegistry,
+  useEventContext,
   useLayoutManifest,
   useMux,
   useMuxContext,

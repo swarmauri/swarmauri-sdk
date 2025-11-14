@@ -202,8 +202,51 @@ def _make_preset(name: str) -> AtomPreset:
 
 _DEFAULT_PRESETS = tuple(_make_preset(name) for name in _COMPONENT_EXPORTS)
 
+def _with_event_mappings(preset: AtomPreset) -> AtomPreset:
+    """Attach event-aware prop hints to specific atoms."""
+
+    event_maps: dict[str, dict[str, object]] = {
+        "swarmakit:vue:button": {
+            "events": {
+                "primary": {
+                    "listener": "onClick",
+                    "loadingProp": "loading",
+                    "disabledProp": "disabled",
+                },
+            }
+        },
+        "swarmakit:vue:cardbased-list": {
+            "events": {
+                "select": {"listener": "onSelect"},
+                "action": {"listener": "onAction"},
+            }
+        },
+        "swarmakit:vue:actionable-list": {
+            "events": {
+                "primary": {"listener": "onPrimaryAction"},
+                "secondary": {"listener": "onSecondaryAction"},
+            }
+        },
+    }
+    mapping = event_maps.get(preset.role)
+    if not mapping:
+        return preset
+    merged_defaults = {**preset.defaults, **mapping}
+    return AtomPreset(
+        role=preset.role,
+        module=preset.module,
+        export=preset.export,
+        version=preset.version,
+        defaults=merged_defaults,
+        framework=preset.framework,
+        package=preset.package,
+        family=preset.family,
+        registry=preset.registry,
+    )
+
+
 DEFAULT_PRESETS: dict[str, AtomPreset] = {
-    preset.role: preset for preset in _DEFAULT_PRESETS
+    preset.role: _with_event_mappings(preset) for preset in _DEFAULT_PRESETS
 }
 
 DEFAULT_ATOMS: dict[str, AtomSpec] = {
