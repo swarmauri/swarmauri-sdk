@@ -215,7 +215,13 @@ function renderTiles(manifest) {
   return grid;
 }
 
+let fallbackInvoked = false;
+
 async function handleFallback() {
+  if (fallbackInvoked) {
+    return;
+  }
+  fallbackInvoked = true;
   try {
     ensureStyles();
     const config = parseConfig();
@@ -240,6 +246,11 @@ function install() {
     return;
   }
   window.addEventListener(FALLBACK_EVENT, handleFallback, { once: true });
+  window.addEventListener("load", () => {
+    if (!fallbackInvoked) {
+      handleFallback();
+    }
+  });
 }
 
 install();

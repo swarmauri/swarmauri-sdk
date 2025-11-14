@@ -88,7 +88,7 @@ def mount_svelte_app(
     accent_palette = {**DEFAULT_PALETTE, **(layout_options.accent_palette or {})}
 
     import_map = {
-        "svelte": "https://cdn.jsdelivr.net/npm/svelte@5/+esm",
+        "svelte": "https://cdn.jsdelivr.net/npm/svelte@4.2.18/+esm",
         "@swarmakit/layout-engine-svelte": "./static/layout-engine-svelte/index.js",
         "@swarmakit/svelte": "./static/swarma-svelte/svelte.js",
         "@layout-engine/svelte-widgets": "./static/layout-engine-svelte/widgets.js",
