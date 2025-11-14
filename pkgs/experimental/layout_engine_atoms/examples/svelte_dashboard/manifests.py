@@ -113,7 +113,24 @@ SITE_SPEC = SiteSpec(
 
 @lru_cache(maxsize=1)
 def get_registry():
-    return create_registry(catalog="svelte")
+    widget_overrides = {
+        "swarmakit:svelte:cardbased-list": {
+            "module": "@layout-engine/svelte-widgets",
+            "export": "CardbasedList",
+            "defaults": {},
+        },
+        "swarmakit:svelte:activity-indicators": {
+            "module": "@layout-engine/svelte-widgets",
+            "export": "ActivityIndicators",
+            "defaults": {},
+        },
+        "swarmakit:svelte:data-summary": {
+            "module": "@layout-engine/svelte-widgets",
+            "export": "DataSummary",
+            "defaults": {},
+        },
+    }
+    return create_registry(catalog="svelte", overrides=widget_overrides)
 
 
 def build_manifest(page_id: str) -> Manifest:

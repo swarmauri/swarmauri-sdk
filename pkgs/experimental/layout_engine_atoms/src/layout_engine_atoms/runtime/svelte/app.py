@@ -91,6 +91,7 @@ def mount_svelte_app(
         "svelte": "https://cdn.jsdelivr.net/npm/svelte@5/+esm",
         "@swarmakit/layout-engine-svelte": "./static/layout-engine-svelte/index.js",
         "@swarmakit/svelte": "./static/swarma-svelte/svelte.js",
+        "@layout-engine/svelte-widgets": "./static/layout-engine-svelte/widgets.js",
     }
     if layout_options.import_map_overrides:
         import_map.update(layout_options.import_map_overrides)
@@ -152,7 +153,7 @@ def mount_svelte_app(
         import_map=import_map,
         config_payload=config_payload,
         palette=accent_palette,
-        bootstrap_module="./static/layout-engine-svelte/mpa-bootstrap.js",
+        bootstrap_module="./static/layout-engine-svelte/bootstrap-lite.js",
         extra_styles=layout_options.extra_styles,
         pre_boot_scripts=pre_boot_scripts,
     )
