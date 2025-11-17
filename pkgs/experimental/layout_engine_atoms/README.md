@@ -143,6 +143,12 @@ fetches `/dashboard/manifest.json`.
 
 - **Simple manifest** – minimal script that builds a SwarmaKit manifest with
   layout-engine (`pkgs/experimental/layout_engine_atoms/examples/simple_demo`).
+- **UiEvent Counter Demo** – showcases a single button triggering a Python
+  handler and realtime counter patches
+  (`pkgs/experimental/layout_engine_atoms/examples/events_demo`).
+- **UiEvents Command Center** – richer control deck with multiple UiEvents,
+  realtime bindings, and action logs
+  (`pkgs/experimental/layout_engine_atoms/examples/event_hub_demo`).
 - **Customer Success Command Center** – demonstrates multi-page manifests and
   realtime incident streaming via websocket patches
   (`pkgs/experimental/layout_engine_atoms/examples/customer_success`).

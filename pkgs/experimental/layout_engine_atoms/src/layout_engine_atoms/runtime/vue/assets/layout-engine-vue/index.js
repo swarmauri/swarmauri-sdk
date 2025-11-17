@@ -341,16 +341,36 @@ function useSiteNavigation(manifest) {
 import { defineComponent, h } from "vue";
 var EVENT_LISTENER_ALIASES = {
   click: "onClick",
+  primary: "onClick",
+  secondary: "onClick",
   submit: "onSubmit",
   change: "onChange",
-  input: "onInput"
+  input: "onInput",
+  action: "onAction",
+  select: "onSelect",
+  broadcast: "onBroadcast",
+  increment: "onIncrement",
+  primaryaction: "onPrimaryAction",
+  secondaryaction: "onSecondaryAction"
 };
 var DEFAULT_EVENT_METHOD = "POST";
-function cloneTileProps(props) {
-  if (props && typeof props === "object") {
-    return { ...props };
+function ensureTileProps(tile) {
+  if (!tile.props || typeof tile.props !== "object") {
+    tile.props = {};
   }
-  return {};
+  return tile.props;
+}
+function resolveSlotContent(tile, props) {
+  const label =
+    (typeof props.label === "string" && props.label) ||
+    (typeof tile?.props?.label === "string" && tile.props.label);
+  const text =
+    (typeof props.text === "string" && props.text) ||
+    (typeof tile?.props?.text === "string" && tile.props.text);
+  const children =
+    (typeof props.children === "string" && props.children) ||
+    (typeof tile?.props?.children === "string" && tile.props.children);
+  return label || text || children || null;
 }
 function resolveListenerProp(trigger) {
   if (!trigger) {
@@ -363,7 +383,8 @@ function resolveListenerProp(trigger) {
   if (EVENT_LISTENER_ALIASES[normalized]) {
     return EVENT_LISTENER_ALIASES[normalized];
   }
-  return `on${normalized.charAt(0).toUpperCase()}${normalized.slice(1)}`;
+  const fallback = `on${normalized.charAt(0).toUpperCase()}${normalized.slice(1)}`;
+  return fallback || "onClick";
 }
 function ensureTileEventEntry(tile, key, eventId) {
   if (!tile?.props || typeof tile.props !== "object") {
@@ -433,13 +454,14 @@ function normalizeTileEventBinding(tile, key, raw, eventsContext) {
     method,
     payload: spec.payload ?? {},
     context: spec.context ?? {},
+    stateProp: spec.stateProp ?? spec.prop ?? descriptor?.stateProp,
     loadingProp: spec.loadingProp ?? descriptor?.loadingProp,
     disabledProp: spec.disabledProp ?? descriptor?.disabledProp,
     preventDefault: spec.preventDefault ?? trigger === "submit",
     stopPropagation: spec.stopPropagation ?? false
   };
 }
-function createTileEventHandler(tile, binding, eventsContext) {
+function createTileEventHandler(tile, binding, eventsContext, componentProps) {
   if (!eventsContext?.invoke) {
     return null;
   }
@@ -453,6 +475,35 @@ function createTileEventHandler(tile, binding, eventsContext) {
     setEventPendingState(tile, binding, true);
     try {
       const payload = { ...(binding.payload ?? {}) };
+      const eventValue =
+        domEvent && typeof domEvent === "object" && "detail" in domEvent
+          ? domEvent.detail
+          : domEvent;
+      if (typeof eventValue === "boolean") {
+        payload.checked = eventValue;
+        if (binding.stateProp) {
+          if (tile?.props) {
+            tile.props[binding.stateProp] = eventValue;
+          }
+          if (componentProps && typeof componentProps === "object") {
+            componentProps[binding.stateProp] = eventValue;
+          }
+        }
+      } else if (
+        eventValue &&
+        typeof eventValue === "object" &&
+        !Array.isArray(eventValue)
+      ) {
+        Object.assign(payload, eventValue);
+        if (binding.stateProp && binding.stateProp in eventValue) {
+          if (tile?.props) {
+            tile.props[binding.stateProp] = eventValue[binding.stateProp];
+          }
+          if (componentProps && typeof componentProps === "object") {
+            componentProps[binding.stateProp] = eventValue[binding.stateProp];
+          }
+        }
+      }
       const context = {
         tileId: tile.id,
         role: tile.role,
@@ -485,7 +536,7 @@ function attachTileEventHandlers(tile, props, eventsContext) {
   for (const [key, raw] of Object.entries(eventDefs)) {
     const binding = normalizeTileEventBinding(tile, key, raw, eventsContext);
     if (!binding) continue;
-    const handler = createTileEventHandler(tile, binding, eventsContext);
+    const handler = createTileEventHandler(tile, binding, eventsContext, props);
     if (handler && binding.listener) {
       handlers[binding.listener] = handler;
     }
@@ -525,16 +576,23 @@ var LayoutEngineView_default = defineComponent({
           padding: "12px",
           display: "flex"
         };
-        const componentProps = attachTileEventHandlers(
+        const componentProps = ensureTileProps(tile);
+        const preparedProps = attachTileEventHandlers(
           tile,
-          cloneTileProps(tile.props),
+          componentProps,
           eventsContext
         );
+        const slotContent = resolveSlotContent(tile, componentProps);
+        const slotPayload = slotContent
+          ? {
+              default: () => slotContent,
+            }
+          : void 0;
         nodes.push(
           h(
             "div",
             { key: tile.id, class: "layout-engine-tile", style },
-            [h(entry.component, componentProps)]
+            [h(entry.component, preparedProps, slotPayload)]
           )
         );
       }

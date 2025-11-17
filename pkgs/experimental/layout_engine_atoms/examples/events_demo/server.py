@@ -43,6 +43,7 @@ increment_event = UiEvent(
     id="ui.increment",
     handler=_increment_event,
     description="Increment the server-side counter and broadcast the latest value.",
+    default_channel="demo.counter",
 )
 
 realtime = RealtimeOptions(

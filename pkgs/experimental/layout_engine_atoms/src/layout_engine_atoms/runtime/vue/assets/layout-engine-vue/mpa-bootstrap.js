@@ -335,6 +335,13 @@ function createEventsContext(config) {
       error.body = body;
       throw error;
     }
+    const resolvedChannel =
+      body?.channel ?? descriptor?.defaultChannel ?? null;
+    const resolvedPayload =
+      body?.payload ?? (typeof body === "object" ? body : null);
+    if (resolvedChannel && resolvedPayload) {
+      dispatchRealtimeEvent(resolvedChannel, resolvedPayload);
+    }
     return { status: response.status, body };
   };
   return {

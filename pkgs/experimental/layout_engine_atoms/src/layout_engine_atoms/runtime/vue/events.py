@@ -20,7 +20,7 @@ def _normalize_payload(payload: Mapping[str, Any] | SupportsDict | None) -> dict
     if payload is None:
         return {}
     if isinstance(payload, dict):
-        return payload
+        return dict(payload)
     if hasattr(payload, "model_dump"):
         return dict(payload.model_dump())
     if hasattr(payload, "dict"):
