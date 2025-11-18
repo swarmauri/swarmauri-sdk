@@ -547,6 +547,55 @@ function attachTileEventHandlers(tile, props, eventsContext) {
   }
   return props;
 }
+
+function attachCardActionHandlers(tile, props, eventsContext) {
+  if (!eventsContext || !props || typeof props !== "object") {
+    return props;
+  }
+  if (tile?.role !== "swarmakit:vue:card-actions") {
+    return props;
+  }
+  const actions = props.actions;
+  if (!Array.isArray(actions)) {
+    return props;
+  }
+  actions.forEach((action, actionIndex) => {
+    if (!action || typeof action !== "object") {
+      return;
+    }
+    const rawEvents = action.events;
+    if (!rawEvents) {
+      return;
+    }
+    const candidates = Array.isArray(rawEvents) ? rawEvents : [rawEvents];
+    const handlers = [];
+    candidates.forEach((raw, eventIndex) => {
+      const binding = normalizeTileEventBinding(
+        tile,
+        `card-action:${actionIndex}:${eventIndex}`,
+        raw,
+        eventsContext
+      );
+      if (!binding) {
+        return;
+      }
+      const handler = createTileEventHandler(tile, binding, eventsContext, props);
+      if (handler) {
+        handlers.push(handler);
+      }
+    });
+    if (!handlers.length) {
+      return;
+    }
+    action.onClick = async (event) => {
+      for (const handler of handlers) {
+        await handler(event);
+      }
+    };
+    delete action.events;
+  });
+  return props;
+}
 var LayoutEngineView_default = defineComponent({
   name: "LayoutEngineView",
   setup(_, { slots }) {
@@ -582,17 +631,22 @@ var LayoutEngineView_default = defineComponent({
           componentProps,
           eventsContext
         );
-        const slotContent = resolveSlotContent(tile, componentProps);
+        const finalProps = attachCardActionHandlers(
+          tile,
+          preparedProps,
+          eventsContext
+        );
+        const slotContent = resolveSlotContent(tile, finalProps);
         const slotPayload = slotContent
           ? {
-              default: () => slotContent,
-            }
+            default: () => slotContent,
+          }
           : void 0;
         nodes.push(
           h(
             "div",
             { key: tile.id, class: "layout-engine-tile", style },
-            [h(entry.component, preparedProps, slotPayload)]
+            [h(entry.component, finalProps, slotPayload)]
           )
         );
       }
@@ -609,19 +663,22 @@ var LayoutEngineView_default = defineComponent({
           components: registry
         });
       }
-      return h(
-        "div",
-        {
-          class: "layout-engine-view",
-          style: {
-            position: "relative",
-            width: viewportWidth ? `${viewportWidth}px` : "100%",
-            minHeight: viewportHeight ? `${viewportHeight}px` : "auto",
-            margin: "0 auto"
-          }
-        },
-        renderTiles()
-      );
+        return h(
+          "div",
+          {
+            class: "layout-engine-view",
+            style: {
+              position: "relative",
+              width: viewportWidth ? `${viewportWidth}px` : "100%",
+              minHeight: viewportHeight ? `${viewportHeight}px` : "auto",
+              margin: "0 auto",
+              overflowY: "auto",
+              maxHeight: "100vh",
+              paddingBottom: "48px"
+            }
+          },
+          renderTiles()
+        );
     };
   }
 });
