@@ -32,6 +32,20 @@ from .catalog import (
     load_catalog,
 )
 
+# Runtime exports
+from .runtime.vue import (
+    mount_layout_app,
+    UiEvent,
+    UiEventResult,
+    LayoutOptions,
+    RouterOptions,
+    ScriptSpec,
+    UIHooks,
+    RealtimeOptions,
+    RealtimeChannel,
+    RealtimeBinding,
+)
+
 __all__ = [
     "AtomPreset",
     "IAtomCatalog",
@@ -57,4 +71,15 @@ __all__ = [
     "build_manifest_from_tiles",
     "quick_manifest_from_table",
     "build_manifest_from_table",
+    # Runtime
+    "mount_layout_app",
+    "UiEvent",
+    "UiEventResult",
+    "LayoutOptions",
+    "RouterOptions",
+    "ScriptSpec",
+    "UIHooks",
+    "RealtimeOptions",
+    "RealtimeChannel",
+    "RealtimeBinding",
 ]

@@ -67,9 +67,7 @@ def test_ui_event_invokes_handler_and_broadcasts_payload():
     assert response.status_code == 200
     assert response.json()["payload"]["value"] == 5
     assert call_log == [{"value": 5}]
-    assert app.state.layout_engine_realtime.messages == [
-        ("demo.channel", {"value": 5})
-    ]
+    assert app.state.layout_engine_realtime.messages == [("demo.channel", {"value": 5})]
 
 
 def test_event_route_supports_get_queries():

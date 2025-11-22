@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import inspect
 import json
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Literal, Mapping, MutableMapping, Sequence
@@ -13,6 +14,10 @@ from fastapi.staticfiles import StaticFiles
 from .template import render_shell
 from .events import UiEvent, UiEventResult
 from .realtime import RealtimeBinding, RealtimeOptions, WebsocketMuxHub
+from .validation import validate_client_setup_code, validate_event_payload
+from .rate_limit import InMemoryRateLimiter
+
+logger = logging.getLogger(__name__)
 
 ManifestBuilder = Callable[[], Mapping[str, Any] | MutableMapping[str, Any] | Any]
 
@@ -47,6 +52,9 @@ class LayoutOptions:
     extra_styles: Sequence[str] | None = None
     extra_scripts: Sequence[ScriptSpec] | None = None
     router: RouterOptions | None = None
+    enable_rate_limiting: bool = False
+    rate_limit_requests: int = 60
+    rate_limit_window: int = 60
 
 
 @dataclass(slots=True)
@@ -88,6 +96,16 @@ def mount_layout_app(
     layout_options = layout_options or LayoutOptions()
     ui_hooks = ui_hooks or UIHooks()
 
+    # Validate client_setup code for security issues
+    if ui_hooks.client_setup:
+        try:
+            validate_client_setup_code(ui_hooks.client_setup)
+        except ValueError as e:
+            logger.error(f"Client setup validation failed: {e}")
+            raise ValueError(
+                f"Security validation failed for client_setup: {e}"
+            ) from e
+
     resolved_title = layout_options.title or title
     router_options = layout_options.router or RouterOptions()
     accent_palette = {**DEFAULT_PALETTE, **(layout_options.accent_palette or {})}
@@ -111,12 +129,25 @@ def mount_layout_app(
         "baseUrl": _join_paths(norm_base, "/events"),
         "items": [entry.describe() for entry in event_registry.values()],
     }
+
+    # Setup rate limiter if enabled
+    rate_limiter: InMemoryRateLimiter | None = None
+    if layout_options.enable_rate_limiting:
+        rate_limiter = InMemoryRateLimiter(
+            max_requests=layout_options.rate_limit_requests,
+            window_seconds=layout_options.rate_limit_window,
+        )
+        rate_limiter.start_cleanup()
     realtime_payload = {"enabled": False}
     ws_route: str | None = None
     hub: WebsocketMuxHub | None = None
     if realtime:
         ws_route = _join_paths(norm_base, realtime.path)
-        hub = WebsocketMuxHub(path=realtime.path)
+        hub = WebsocketMuxHub(
+            path=realtime.path,
+            auth_handler=realtime.auth_handler,
+            max_subscriptions_per_client=realtime.max_subscriptions_per_client,
+        )
         realtime_payload = {
             "enabled": True,
             "path": ws_route,
@@ -171,12 +202,15 @@ def mount_layout_app(
         realtime=realtime,
         ws_route=ws_route,
         events=event_registry,
+        rate_limiter=rate_limiter,
     )
     app.include_router(router, prefix=norm_base if norm_base != "/" else "")
     if event_registry:
         app.state.layout_engine_events = event_registry
     if realtime and hub:
         app.state.layout_engine_realtime = hub
+    if rate_limiter:
+        app.state.layout_engine_rate_limiter = rate_limiter
 
     static_prefix = "" if norm_base == "/" else norm_base
     app.mount(
@@ -202,6 +236,14 @@ def mount_layout_app(
         app.add_event_handler("startup", _start_realtime)
         app.add_event_handler("shutdown", _stop_realtime)
 
+    # Cleanup rate limiter on shutdown
+    if rate_limiter:
+
+        async def _stop_rate_limiter() -> None:  # noqa: D401
+            await rate_limiter.stop_cleanup()
+
+        app.add_event_handler("shutdown", _stop_rate_limiter)
+
 
 def _create_layout_router(
     manifest_builder: ManifestBuilder,
@@ -211,6 +253,7 @@ def _create_layout_router(
     realtime: RealtimeOptions | None,
     ws_route: str | None,
     events: Mapping[str, UiEvent] | None,
+    rate_limiter: InMemoryRateLimiter | None = None,
 ) -> APIRouter:
     router = APIRouter()
     event_registry = events or {}
@@ -244,6 +287,10 @@ def _create_layout_router(
             event_id: str,
             request: Request,
         ) -> Response:
+            # Apply rate limiting if enabled
+            if rate_limiter:
+                await rate_limiter.check_rate_limit(request)
+
             event = event_registry.get(event_id)
             if not event:
                 raise HTTPException(status_code=404, detail="Unknown event id")
@@ -258,31 +305,78 @@ def _create_layout_router(
             if request.method in {"POST", "PUT", "PATCH"}:
                 try:
                     payload = await request.json()
-                except Exception:
-                    payload = {}
+                except (json.JSONDecodeError, ValueError) as e:
+                    logger.warning(
+                        f"Invalid JSON payload for event '{event_id}': {e}"
+                    )
+                    raise HTTPException(
+                        status_code=400,
+                        detail="Invalid JSON payload"
+                    ) from e
             elif request.method == "GET":
                 payload = dict(request.query_params)
 
-            handler_output = event.handler(request, payload)
-            if inspect.isawaitable(handler_output):
-                handler_output = await handler_output
+            # Validate payload against schema if provided
+            if event.payload_schema:
+                validate_event_payload(event_id, payload, event.payload_schema)
 
-            result: UiEventResult
-            if isinstance(handler_output, UiEventResult):
-                result = handler_output
-            elif handler_output is None:
-                result = UiEventResult()
-            elif isinstance(handler_output, Mapping):
-                result = UiEventResult(body=handler_output)
-            else:
-                raise TypeError(
-                    "UiEvent handler must return UiEventResult, Mapping, or None; "
-                    f"received {type(handler_output)!r}"
+            # Execute event handler with error handling
+            try:
+                handler_output = event.handler(request, payload)
+                if inspect.isawaitable(handler_output):
+                    handler_output = await handler_output
+
+                result: UiEventResult
+                if isinstance(handler_output, UiEventResult):
+                    result = handler_output
+                elif handler_output is None:
+                    result = UiEventResult()
+                elif isinstance(handler_output, Mapping):
+                    result = UiEventResult(body=handler_output)
+                else:
+                    # Handler returned invalid type
+                    logger.error(
+                        f"Event handler '{event_id}' returned invalid type: "
+                        f"{type(handler_output)!r}"
+                    )
+                    raise HTTPException(
+                        status_code=500,
+                        detail="Event handler returned invalid response type"
+                    )
+
+            except HTTPException:
+                # Re-raise HTTP exceptions (already handled)
+                raise
+            except Exception as e:
+                # Log handler exceptions with context
+                logger.error(
+                    f"Event handler '{event_id}' failed",
+                    extra={
+                        "event_id": event_id,
+                        "method": request.method,
+                        "client": str(request.client) if request.client else "unknown",
+                        "error_type": type(e).__name__,
+                        "error": str(e),
+                    },
+                    exc_info=True
+                )
+                raise HTTPException(
+                    status_code=500,
+                    detail="Internal server error while processing event"
                 )
 
+            # Broadcast to WebSocket if configured
             hub = getattr(request.app.state, "layout_engine_realtime", None)
             if hub and result.channel and result.payload:
-                await hub.broadcast(result.channel, result.payload)
+                try:
+                    await hub.broadcast(result.channel, result.payload)
+                except Exception as e:
+                    # Log broadcast failures but don't fail the request
+                    logger.error(
+                        f"Failed to broadcast event '{event_id}' to channel "
+                        f"'{result.channel}': {e}",
+                        exc_info=True
+                    )
 
             return JSONResponse(
                 content=result.http_body(),

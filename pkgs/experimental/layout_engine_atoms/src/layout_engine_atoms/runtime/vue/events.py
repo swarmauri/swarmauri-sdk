@@ -5,18 +5,21 @@ from typing import Any, Awaitable, Literal, Mapping, MutableMapping, Protocol
 
 
 class SupportsDict(Protocol):
-    def dict(self) -> Mapping[str, Any]:
-        ...
+    def dict(self) -> Mapping[str, Any]: ...
 
 
 class EventHandler(Protocol):
     def __call__(
         self, request: Any, payload: Mapping[str, Any] | None = ...
-    ) -> Awaitable["UiEventResult | Mapping[str, Any] | None"] | "UiEventResult | Mapping[str, Any] | None":
-        ...
+    ) -> (
+        Awaitable["UiEventResult | Mapping[str, Any] | None"]
+        | "UiEventResult | Mapping[str, Any] | None"
+    ): ...
 
 
-def _normalize_payload(payload: Mapping[str, Any] | SupportsDict | None) -> dict[str, Any]:
+def _normalize_payload(
+    payload: Mapping[str, Any] | SupportsDict | None,
+) -> dict[str, Any]:
     if payload is None:
         return {}
     if isinstance(payload, dict):

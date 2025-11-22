@@ -202,6 +202,7 @@ def _make_preset(name: str) -> AtomPreset:
 
 _DEFAULT_PRESETS = tuple(_make_preset(name) for name in _COMPONENT_EXPORTS)
 
+
 def _with_event_mappings(preset: AtomPreset) -> AtomPreset:
     """Attach event-aware prop hints to specific atoms."""
 

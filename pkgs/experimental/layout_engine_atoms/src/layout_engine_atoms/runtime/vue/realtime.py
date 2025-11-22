@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from dataclasses import dataclass, field
 from typing import Any, Awaitable, Callable, Mapping, MutableMapping, Sequence
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
+logger = logging.getLogger(__name__)
 
 RealtimePublisher = Callable[["WebsocketMuxHub"], Awaitable[None]]
+WebSocketAuthHandler = Callable[[WebSocket], Awaitable[bool]]
 
 
 @dataclass(slots=True)
@@ -45,21 +48,65 @@ class RealtimeOptions:
     publishers: Sequence[RealtimePublisher] = ()
     auto_subscribe: bool = True
     bindings: Sequence["RealtimeBinding"] = ()
+    auth_handler: WebSocketAuthHandler | None = None
+    max_subscriptions_per_client: int = 100
 
 
 class WebsocketMuxHub:
-    """Minimal mux-compatible hub that manages websocket subscribers."""
+    """Minimal mux-compatible hub that manages websocket subscribers.
 
-    def __init__(self, *, path: str) -> None:
+    Args:
+        path: WebSocket endpoint path
+        auth_handler: Optional async function to authenticate WebSocket connections.
+            Should return True to allow connection, False to reject.
+        max_subscriptions_per_client: Maximum number of channels a single client
+            can subscribe to (default: 100)
+    """
+
+    def __init__(
+        self,
+        *,
+        path: str,
+        auth_handler: WebSocketAuthHandler | None = None,
+        max_subscriptions_per_client: int = 100,
+    ) -> None:
         self.path = path
+        self.auth_handler = auth_handler
+        self.max_subscriptions_per_client = max_subscriptions_per_client
         self._subscriptions: dict[WebSocket, set[str]] = {}
         self._lock = asyncio.Lock()
         self._publisher_tasks: list[asyncio.Task[Any]] = []
 
     async def connect(self, websocket: WebSocket) -> None:
+        """Connect a WebSocket client with optional authentication.
+
+        Args:
+            websocket: The WebSocket connection to authenticate and accept
+
+        Raises:
+            WebSocketDisconnect: If authentication fails
+        """
+        # Authenticate if handler is provided
+        if self.auth_handler:
+            try:
+                is_authorized = await self.auth_handler(websocket)
+                if not is_authorized:
+                    logger.warning(
+                        f"WebSocket authentication failed for client: "
+                        f"{websocket.client}"
+                    )
+                    await websocket.close(code=1008, reason="Unauthorized")
+                    raise WebSocketDisconnect(code=1008, reason="Unauthorized")
+            except Exception as e:
+                logger.error(f"Authentication error: {e}", exc_info=True)
+                await websocket.close(code=1011, reason="Authentication error")
+                raise WebSocketDisconnect(code=1011, reason="Authentication error")
+
         await websocket.accept()
         async with self._lock:
             self._subscriptions[websocket] = set()
+
+        logger.info(f"WebSocket connected: {websocket.client}")
 
     async def disconnect(self, websocket: WebSocket) -> None:
         async with self._lock:
@@ -72,11 +119,34 @@ class WebsocketMuxHub:
             await self.disconnect(websocket)
 
     async def subscribe(self, websocket: WebSocket, channel: str) -> None:
+        """Subscribe a WebSocket client to a channel.
+
+        Args:
+            websocket: The WebSocket connection
+            channel: The channel ID to subscribe to
+
+        Raises:
+            ValueError: If subscription limit is exceeded
+        """
         async with self._lock:
             if websocket not in self._subscriptions:
                 self._subscriptions[websocket] = {channel}
             else:
-                self._subscriptions[websocket].add(channel)
+                current_subs = self._subscriptions[websocket]
+                if len(current_subs) >= self.max_subscriptions_per_client:
+                    logger.warning(
+                        f"Client {websocket.client} exceeded subscription limit "
+                        f"({self.max_subscriptions_per_client})"
+                    )
+                    # Send error message to client
+                    await websocket.send_json({
+                        "error": "Subscription limit exceeded",
+                        "limit": self.max_subscriptions_per_client
+                    })
+                    return
+                current_subs.add(channel)
+
+        logger.debug(f"Client {websocket.client} subscribed to channel: {channel}")
 
     async def unsubscribe(self, websocket: WebSocket, channel: str) -> None:
         async with self._lock:
@@ -99,7 +169,13 @@ class WebsocketMuxHub:
         for websocket in targets:
             try:
                 await websocket.send_json(message)
-            except Exception:
+            except WebSocketDisconnect:
+                logger.info(f"WebSocket disconnected during broadcast: {websocket.client}")
+                stale.append(websocket)
+            except Exception as e:
+                logger.error(
+                    f"Failed to send message to WebSocket {websocket.client}: {e}"
+                )
                 stale.append(websocket)
         for websocket in stale:
             await self.disconnect(websocket)
