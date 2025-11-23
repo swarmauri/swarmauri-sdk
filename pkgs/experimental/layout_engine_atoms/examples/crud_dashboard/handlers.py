@@ -23,15 +23,15 @@ def get_stats_for_badges(stats: dict) -> dict:
         stats: Dict with keys: total, active, inactive, by_role
 
     Returns:
-        Dict with individual count fields for each badge
+        Dict with individual count fields for each badge (as strings for Vue components)
     """
     return {
-        "stat_total_count": stats["total"],
-        "stat_active_count": stats["active"],
-        "stat_inactive_count": stats["inactive"],
-        "stat_admin_count": stats["by_role"]["admin"],
-        "stat_user_count": stats["by_role"]["user"],
-        "stat_guest_count": stats["by_role"]["guest"],
+        "stat_total_count": str(stats["total"]),
+        "stat_active_count": str(stats["active"]),
+        "stat_inactive_count": str(stats["inactive"]),
+        "stat_admin_count": str(stats["by_role"]["admin"]),
+        "stat_user_count": str(stats["by_role"]["user"]),
+        "stat_guest_count": str(stats["by_role"]["guest"]),
     }
 
 
@@ -78,10 +78,10 @@ async def create_user(request: Request, payload: dict):
 
     return {
         "users": [u.model_dump(mode='json') for u in db.get_all_users()],
-        "total_count": stats["total"],
-        "user_count": stats["by_role"]["user"],
-        "admin_count": stats["by_role"]["admin"],
-        "guest_count": stats["by_role"]["guest"],
+        "total_count": str(stats["total"]),
+        "user_count": str(stats["by_role"]["user"]),
+        "admin_count": str(stats["by_role"]["admin"]),
+        "guest_count": str(stats["by_role"]["guest"]),
         **get_stats_for_badges(stats),
         "items": [{"label": log, "actionLabel": ""} for log in db.get_activity_log()],
         "message": f"User '{user.name}' created successfully",
@@ -115,10 +115,10 @@ async def update_user(request: Request, payload: UpdateUserPayload):
 
     return {
         "users": [u.model_dump(mode='json') for u in db.get_all_users()],
-        "total_count": stats["total"],
-        "user_count": stats["by_role"]["user"],
-        "admin_count": stats["by_role"]["admin"],
-        "guest_count": stats["by_role"]["guest"],
+        "total_count": str(stats["total"]),
+        "user_count": str(stats["by_role"]["user"]),
+        "admin_count": str(stats["by_role"]["admin"]),
+        "guest_count": str(stats["by_role"]["guest"]),
         **get_stats_for_badges(stats),
         "items": [{"label": log, "actionLabel": ""} for log in db.get_activity_log()],
         "message": f"User '{user.name}' updated successfully",
@@ -150,10 +150,10 @@ async def delete_user(request: Request, payload: DeleteUserPayload):
 
     return {
         "users": [u.model_dump(mode='json') for u in db.get_all_users()],
-        "total_count": stats["total"],
-        "user_count": stats["by_role"]["user"],
-        "admin_count": stats["by_role"]["admin"],
-        "guest_count": stats["by_role"]["guest"],
+        "total_count": str(stats["total"]),
+        "user_count": str(stats["by_role"]["user"]),
+        "admin_count": str(stats["by_role"]["admin"]),
+        "guest_count": str(stats["by_role"]["guest"]),
         **get_stats_for_badges(stats),
         "items": [{"label": log, "actionLabel": ""} for log in db.get_activity_log()],
         "message": f"User '{user_name}' deleted successfully",
@@ -179,10 +179,10 @@ async def toggle_user_active(request: Request, payload: ToggleUserPayload):
 
     return {
         "users": [u.model_dump(mode='json') for u in db.get_all_users()],
-        "total_count": stats["total"],
-        "user_count": stats["by_role"]["user"],
-        "admin_count": stats["by_role"]["admin"],
-        "guest_count": stats["by_role"]["guest"],
+        "total_count": str(stats["total"]),
+        "user_count": str(stats["by_role"]["user"]),
+        "admin_count": str(stats["by_role"]["admin"]),
+        "guest_count": str(stats["by_role"]["guest"]),
         **get_stats_for_badges(stats),
         "message": f"User '{user.name}' is now {'active' if user.active else 'inactive'}",
         "message_type": "success",
@@ -235,22 +235,9 @@ async def filter_users(request: Request, payload: FilterUsersPayload):
 
     return {
         "users": [u.model_dump(mode='json') for u in users],
-        "total_count": len(db.users),
+        "total_count": str(len(db.users)),
         "message": f"Showing {len(users)} users (filters: {filter_desc})",
         "message_type": "info",
-    }
-
-
-@ui_event
-@returns_update("stat_total_badge", "stat_active_badge", "stat_inactive_badge", "stat_admin_badge", "stat_user_badge", "stat_guest_badge")
-async def refresh_stats(request: Request, payload: dict | None = None):
-    """Refresh statistics."""
-    stats = db.get_stats()
-
-    return {
-        **get_stats_for_badges(stats),
-        "message": "Statistics refreshed",
-        "message_type": "success",
     }
 
 
@@ -263,10 +250,10 @@ async def clear_filters(request: Request, payload: dict | None = None):
 
     return {
         "users": [u.model_dump(mode='json') for u in users],
-        "total_count": stats["total"],
-        "user_count": stats["by_role"]["user"],
-        "admin_count": stats["by_role"]["admin"],
-        "guest_count": stats["by_role"]["guest"],
+        "total_count": str(stats["total"]),
+        "user_count": str(stats["by_role"]["user"]),
+        "admin_count": str(stats["by_role"]["admin"]),
+        "guest_count": str(stats["by_role"]["guest"]),
         **get_stats_for_badges(stats),
         "message": "Filters cleared - showing all users",
         "message_type": "info",
@@ -285,10 +272,10 @@ async def load_initial_data(request: Request, payload: dict | None = None):
 
     return {
         "users": [u.model_dump(mode='json') for u in users],
-        "total_count": stats["total"],
-        "user_count": stats["by_role"]["user"],
-        "admin_count": stats["by_role"]["admin"],
-        "guest_count": stats["by_role"]["guest"],
+        "total_count": str(stats["total"]),
+        "user_count": str(stats["by_role"]["user"]),
+        "admin_count": str(stats["by_role"]["admin"]),
+        "guest_count": str(stats["by_role"]["guest"]),
         **get_stats_for_badges(stats),
         "items": [{"label": log, "actionLabel": ""} for log in db.get_activity_log()],
         "message": f"Loaded {len(users)} users",
@@ -327,10 +314,10 @@ async def create_admin(request: Request, payload: dict | None = None):
 
     return {
         "users": [u.model_dump(mode='json') for u in db.get_all_users()],
-        "total_count": stats["total"],
-        "user_count": stats["by_role"]["user"],
-        "admin_count": stats["by_role"]["admin"],
-        "guest_count": stats["by_role"]["guest"],
+        "total_count": str(stats["total"]),
+        "user_count": str(stats["by_role"]["user"]),
+        "admin_count": str(stats["by_role"]["admin"]),
+        "guest_count": str(stats["by_role"]["guest"]),
         **get_stats_for_badges(stats),
         "items": [{"label": log, "actionLabel": ""} for log in db.get_activity_log()],
         "message": f"Admin '{user.name}' created successfully",
@@ -356,10 +343,10 @@ async def create_guest(request: Request, payload: dict | None = None):
 
     return {
         "users": [u.model_dump(mode='json') for u in db.get_all_users()],
-        "total_count": stats["total"],
-        "user_count": stats["by_role"]["user"],
-        "admin_count": stats["by_role"]["admin"],
-        "guest_count": stats["by_role"]["guest"],
+        "total_count": str(stats["total"]),
+        "user_count": str(stats["by_role"]["user"]),
+        "admin_count": str(stats["by_role"]["admin"]),
+        "guest_count": str(stats["by_role"]["guest"]),
         **get_stats_for_badges(stats),
         "items": [{"label": log, "actionLabel": ""} for log in db.get_activity_log()],
         "message": f"Guest '{user.name}' created successfully",

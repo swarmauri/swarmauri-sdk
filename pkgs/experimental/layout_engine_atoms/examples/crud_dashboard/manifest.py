@@ -32,7 +32,16 @@ def build_manifest(_request: "Request"):
             },
         ),
 
-        # === STATS BADGES SECTION (4 tiles) ===
+        # === STATS BADGES SECTION (5 tiles: 1 header + 4 badges) ===
+        tile(
+            "stats_section_header",
+            "swarmakit:vue:card-header",
+            span="full",
+            props={
+                "title": "Dashboard Statistics",
+                "subtitle": "Real-time user metrics and counts",
+            },
+        ),
         tile(
             "total_users_badge",
             "swarmakit:vue:card-header",
@@ -70,33 +79,27 @@ def build_manifest(_request: "Request"):
             },
         ),
 
-        # === ACTION BUTTONS ROW 1 (2 tiles) ===
+        # === ACTION BUTTONS SECTION (3 tiles: 1 header + 2 buttons) ===
+        tile(
+            "actions_section_header",
+            "swarmakit:vue:card-header",
+            span="full",
+            props={
+                "title": "Data Actions",
+                "subtitle": "Reload and update dashboard data",
+            },
+        ),
         tile(
             "refresh_btn",
             "swarmakit:vue:button",
-            span="half",
+            span="full",
             props={
-                "label": "Refresh",
-                "variant": "secondary",
+                "label": "Refresh Dashboard",
+                "variant": "primary",
                 "icon": "refresh-cw",
                 "events": {
                     "primary": {
                         "id": "load_initial_data",
-                    }
-                },
-            },
-        ),
-        tile(
-            "refresh_stats_btn",
-            "swarmakit:vue:button",
-            span="half",
-            props={
-                "label": "Update Stats",
-                "variant": "outline",
-                "icon": "bar-chart",
-                "events": {
-                    "primary": {
-                        "id": "refresh_stats",
                     }
                 },
             },
@@ -239,7 +242,16 @@ def build_manifest(_request: "Request"):
             },
         ),
 
-        # === MAIN DATA TABLE (1 large tile) ===
+        # === MAIN DATA TABLE (2 tiles: 1 header + 1 table) ===
+        tile(
+            "table_section_header",
+            "swarmakit:vue:card-header",
+            span="full",
+            props={
+                "title": "User Directory",
+                "subtitle": "Browse, search, and manage all users",
+            },
+        ),
         tile(
             "users_table",
             "swarmakit:vue:data-grid",
@@ -267,7 +279,11 @@ def build_manifest(_request: "Request"):
                 "data": [],
                 "selectable": True,
                 "paginator": True,
-                "rows": 10,
+                "rows": 20,
+                "style": {
+                    "minHeight": "450px",
+                    "height": "100%",
+                },
                 "events": {
                     "rowSelect": {
                         "id": "update_user",
@@ -379,7 +395,8 @@ def build_manifest(_request: "Request"):
         # Header (full width)
         row(col(block("page_header")), height_rows=1),
 
-        # Stats badges (4 columns)
+        # Stats section
+        row(col(block("stats_section_header")), height_rows=1),
         row(
             col(block("total_users_badge")),
             col(block("users_count_badge")),
@@ -388,12 +405,9 @@ def build_manifest(_request: "Request"):
             height_rows=1,
         ),
 
-        # Action buttons
-        row(
-            col(block("refresh_btn")),
-            col(block("refresh_stats_btn")),
-            height_rows=1,
-        ),
+        # Action buttons section
+        row(col(block("actions_section_header")), height_rows=1),
+        row(col(block("refresh_btn")), height_rows=1),
 
         # Filter section
         row(col(block("filter_header")), height_rows=1),
@@ -412,8 +426,9 @@ def build_manifest(_request: "Request"):
         row(col(block("search_bar")), height_rows=1),
         row(col(block("filter_reset_btn")), height_rows=1),
 
-        # Main data table (full width, taller)
-        row(col(block("users_table")), height_rows=3),
+        # User directory section
+        row(col(block("table_section_header")), height_rows=1),
+        row(col(block("users_table")), height_rows=6),
 
         # Quick actions section
         row(col(block("quick_actions_header")), height_rows=1),

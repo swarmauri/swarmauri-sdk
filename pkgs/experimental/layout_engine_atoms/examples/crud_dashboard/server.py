@@ -62,10 +62,6 @@ mount_with_auto_events(
                 description="User filter updates",
             ),
             RealtimeChannel(
-                id="events.refresh_stats",
-                description="Statistics refresh",
-            ),
-            RealtimeChannel(
                 id="events.clear_filters",
                 description="Clear filters notification",
             ),
@@ -131,6 +127,11 @@ mount_with_auto_events(
             ),
             RealtimeBinding(
                 channel="events.create_admin",
+                tile_id="admin_count_badge",
+                fields={"title": "admin_count"},
+            ),
+            RealtimeBinding(
+                channel="events.create_admin",
                 tile_id="stats_panel",
                 fields={"items": "stats"},
             ),
@@ -157,6 +158,16 @@ mount_with_auto_events(
             ),
             RealtimeBinding(
                 channel="events.create_guest",
+                tile_id="admin_count_badge",
+                fields={"title": "admin_count"},
+            ),
+            RealtimeBinding(
+                channel="events.create_guest",
+                tile_id="guest_count_badge",
+                fields={"title": "guest_count"},
+            ),
+            RealtimeBinding(
+                channel="events.create_guest",
                 tile_id="stats_panel",
                 fields={"items": "stats"},
             ),
@@ -182,6 +193,11 @@ mount_with_auto_events(
             ),
             RealtimeBinding(
                 channel="events.update_user",
+                tile_id="admin_count_badge",
+                fields={"title": "admin_count"},
+            ),
+            RealtimeBinding(
+                channel="events.update_user",
                 tile_id="stats_panel",
                 fields={"items": "stats"},
             ),
@@ -202,6 +218,11 @@ mount_with_auto_events(
             ),
             RealtimeBinding(
                 channel="events.delete_user",
+                tile_id="admin_count_badge",
+                fields={"title": "admin_count"},
+            ),
+            RealtimeBinding(
+                channel="events.delete_user",
                 tile_id="stats_panel",
                 fields={"items": "stats"},
             ),
@@ -214,6 +235,11 @@ mount_with_auto_events(
                 channel="events.toggle_user_active",
                 tile_id="users_count_badge",
                 fields={"title": "user_count"},
+            ),
+            RealtimeBinding(
+                channel="events.toggle_user_active",
+                tile_id="admin_count_badge",
+                fields={"title": "admin_count"},
             ),
             RealtimeBinding(
                 channel="events.toggle_user_active",
@@ -231,11 +257,6 @@ mount_with_auto_events(
                 fields={"title": "guest_count"},
             ),
             RealtimeBinding(
-                channel="events.refresh_stats",
-                tile_id="stats_panel",
-                fields={"items": "stats"},
-            ),
-            RealtimeBinding(
                 channel="events.clear_filters",
                 tile_id="users_table",
                 fields={"data": "users"},
@@ -249,6 +270,11 @@ mount_with_auto_events(
                 channel="events.clear_filters",
                 tile_id="users_count_badge",
                 fields={"title": "user_count"},
+            ),
+            RealtimeBinding(
+                channel="events.clear_filters",
+                tile_id="admin_count_badge",
+                fields={"title": "admin_count"},
             ),
             RealtimeBinding(
                 channel="events.clear_filters",
@@ -274,6 +300,11 @@ mount_with_auto_events(
                 channel="events.load_initial_data",
                 tile_id="users_count_badge",
                 fields={"title": "user_count"},
+            ),
+            RealtimeBinding(
+                channel="events.load_initial_data",
+                tile_id="admin_count_badge",
+                fields={"title": "admin_count"},
             ),
             RealtimeBinding(
                 channel="events.load_initial_data",
