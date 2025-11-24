@@ -34,5 +34,5 @@ kms.db
 *.db
 target/
 !.gitkeep          # keep the empty dir in repo
-
+pkgs/experimental/swarmakit/libs/svelte/.vscode/extensions.json
 node_modules/
