@@ -77,7 +77,6 @@ DEFAULT_PALETTE = {
 
 _ASSETS_ROOT = Path(__file__).resolve().parent / "assets"
 _LAYOUT_ENGINE_DIST = _ASSETS_ROOT / "layout-engine-vue"
-_SWARMA_VUE_DIST = _ASSETS_ROOT / "swarma-vue"
 
 
 def mount_layout_app(
@@ -113,7 +112,7 @@ def mount_layout_app(
     import_map = {
         "vue": "https://cdn.jsdelivr.net/npm/vue@3/dist/vue.esm-browser.js",
         "eventemitter3": "https://cdn.jsdelivr.net/npm/eventemitter3@5/dist/eventemitter3.esm.js",
-        "@swarmakit/vue": "./static/swarma-vue/vue.js",
+        "@swarmakit/vue": "https://unpkg.com/@swarmakit/vue@0.0.22/dist/vue.js",
     }
     if layout_options.import_map_overrides:
         import_map.update(layout_options.import_map_overrides)
@@ -217,11 +216,6 @@ def mount_layout_app(
         f"{static_prefix}/static/layout-engine-vue",
         StaticFiles(directory=_LAYOUT_ENGINE_DIST, html=False),
         name="layout-engine-vue",
-    )
-    app.mount(
-        f"{static_prefix}/static/swarma-vue",
-        StaticFiles(directory=_SWARMA_VUE_DIST, html=False),
-        name="swarma-vue",
     )
     if realtime and hub and ws_route:
         hub.mount(app, ws_route)

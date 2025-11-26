@@ -37,8 +37,6 @@ keywords = [
 [tool.setuptools.package-data]
 layout_engine_atoms = [
     "runtime/vue/assets/layout-engine-vue/*.js",
-    "runtime/vue/assets/swarma-vue/*.js",
-    "runtime/vue/assets/swarma-vue/*.css",
     "runtime/vue/templates/*.html",
     "runtime/svelte/assets/layout-engine-svelte/*.js",
     "runtime/svelte/assets/layout-engine-svelte/*.css",

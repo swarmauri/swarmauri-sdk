@@ -52,9 +52,9 @@ uv add layout-engine-atoms
 pip install layout-engine-atoms
 ```
 
-The published wheel already includes the pre-built Vue assets under
-`layout_engine_atoms/runtime/vue/client/dist/`. Only rebuild if you are
-maintaining the bundle locally (see [Development](#development)).
+SwarmaKit Vue components are loaded from unpkg.com CDN at runtime.
+An internet connection is required when the dashboard loads.
+To use a different CDN or self-hosted assets, use `import_map_overrides` in `LayoutOptions`.
 
 ---
 
@@ -194,13 +194,9 @@ uv sync --all-extras
 # Python quality gates
 uv run --directory pkgs/experimental/layout_engine_atoms --package layout-engine-atoms ruff check .
 uv run --directory pkgs/experimental/layout_engine_atoms --package layout-engine-atoms pytest
-
-# Rebuild the Vue bundle (requires Node/npm)
-./scripts/build_vue_runtime.sh
-
-# Rebuild the Svelte runtime + SwarmaKit bundle (requires pnpm)
-./scripts/build_svelte_runtime.sh
 ```
+
+**Note**: SwarmaKit components are loaded from CDN. No build step required for Vue assets.
 
 ---
 
