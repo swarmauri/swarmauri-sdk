@@ -7,13 +7,6 @@ from .vue import (
     UIHooks,
     mount_layout_app,
 )
-from .svelte import (
-    SvelteLayoutOptions,
-    SvelteRouterOptions,
-    SvelteScriptSpec,
-    SvelteUIHooks,
-    mount_svelte_app,
-)
 
 __all__ = [
     "LayoutOptions",
@@ -21,9 +14,4 @@ __all__ = [
     "ScriptSpec",
     "UIHooks",
     "mount_layout_app",
-    "SvelteLayoutOptions",
-    "SvelteRouterOptions",
-    "SvelteScriptSpec",
-    "SvelteUIHooks",
-    "mount_svelte_app",
 ]
