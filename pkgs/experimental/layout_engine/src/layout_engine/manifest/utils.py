@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import json
 import hashlib
-from typing import Any, Mapping
+from typing import Any, Mapping, MutableMapping
 
-from .spec import Manifest
+from .spec import ChannelManifest, Manifest, SiteManifest, WsRouteManifest
+from ..events.validators import ALLOW
 from ..compile.utils import frame_diff
 from ..core.frame import Frame
 
@@ -36,16 +37,83 @@ def _normalize_tile(tile: Mapping[str, Any]) -> dict:
     }
     if atom is not None:
         a = dict(atom)
-        base["atom"] = {
+        atom_payload = {
             "module": str(a.get("module", "")),
             "export": str(a.get("export", "default")),
             "version": str(a.get("version", "1.0.0")),
             "defaults": dict(a.get("defaults", {})),
         }
+        optional_fields = (
+            "role",
+            "family",
+            "framework",
+            "package",
+            "tokens",
+            "registry",
+        )
+        for field in optional_fields:
+            if field not in a or a[field] is None:
+                continue
+            if field in {"tokens", "registry"}:
+                atom_payload[field] = dict(a.get(field, {}))
+            else:
+                atom_payload[field] = a[field]
+        base["atom"] = atom_payload
     for k in sorted(t.keys()):
         if k not in base:
             base[k] = t[k]
     return base
+
+
+def _normalize_site(
+    site: Mapping[str, Any] | SiteManifest | None,
+) -> SiteManifest | None:
+    if site is None:
+        return None
+    if isinstance(site, SiteManifest):
+        return site
+    pages = site.get("pages") or []
+    active = site.get("active_page") if "active_page" in site else site.get("active")
+    navigation = dict(site.get("navigation") or {})
+    return SiteManifest(pages=list(pages), active_page=active, navigation=navigation)
+
+
+def _normalize_channels(
+    channels: Mapping[str, Any] | ChannelManifest | list[Mapping[str, Any]] | None,
+) -> list[dict[str, Any]]:
+    if not channels:
+        return []
+    payload: list[dict[str, Any]] = []
+    items = channels
+    if isinstance(channels, Mapping) and not isinstance(channels, ChannelManifest):
+        items = channels.values()
+    if isinstance(items, ChannelManifest):
+        items = [items]
+    for entry in items:  # type: ignore[assignment]
+        if isinstance(entry, ChannelManifest):
+            payload.append(entry.model_dump())
+        else:
+            payload.append(ChannelManifest.model_validate(entry).model_dump())
+    return payload
+
+
+def _normalize_ws_routes(
+    routes: Mapping[str, Any] | WsRouteManifest | list[Mapping[str, Any]] | None,
+) -> list[dict[str, Any]]:
+    if not routes:
+        return []
+    payload: list[dict[str, Any]] = []
+    items = routes
+    if isinstance(routes, Mapping) and not isinstance(routes, WsRouteManifest):
+        items = routes.values()
+    if isinstance(items, WsRouteManifest):
+        items = [items]
+    for entry in items:  # type: ignore[assignment]
+        if isinstance(entry, WsRouteManifest):
+            payload.append(entry.model_dump())
+        else:
+            payload.append(WsRouteManifest.model_validate(entry).model_dump())
+    return payload
 
 
 def _normalize_view_model(data: Mapping[str, Any]) -> dict:
@@ -54,6 +122,9 @@ def _normalize_view_model(data: Mapping[str, Any]) -> dict:
     viewport = dict(data.get("viewport") or {})
     grid = data.get("grid") or {}
     tiles = [_normalize_tile(t) for t in data.get("tiles", [])]
+    site = _normalize_site(data.get("site"))
+    channels = _normalize_channels(data.get("channels"))
+    ws_routes = _normalize_ws_routes(data.get("ws_routes"))
     return {
         "kind": kind,
         "version": version,
@@ -63,6 +134,9 @@ def _normalize_view_model(data: Mapping[str, Any]) -> dict:
         },
         "grid": dict(grid),
         "tiles": tiles,
+        "site": site.model_dump() if site else None,
+        "channels": channels,
+        "ws_routes": ws_routes,
     }
 
 
@@ -72,11 +146,20 @@ def build_manifest(
     payload = _normalize_view_model(view_model)
     if version is not None:
         payload["version"] = version
-    return Manifest(**payload, etag=etag_of(payload))
+    etag_payload: MutableMapping[str, Any] = dict(payload)
+    manifest = Manifest(**payload, etag=etag_of(etag_payload))
+    if manifest.channels:
+        try:
+            from ..events.validators import register_channels as _register_channels
+        except ImportError:
+            pass
+        else:
+            _register_channels([channel.model_dump() for channel in manifest.channels])
+    return manifest
 
 
 def to_dict(manifest: Manifest) -> dict:
-    return {
+    data = {
         "kind": manifest.kind,
         "version": manifest.version,
         "viewport": dict(manifest.viewport),
@@ -84,6 +167,13 @@ def to_dict(manifest: Manifest) -> dict:
         "tiles": [dict(t) for t in manifest.tiles],
         "etag": manifest.etag,
     }
+    if manifest.site is not None:
+        data["site"] = manifest.site.model_dump()
+    if manifest.channels:
+        data["channels"] = [channel.model_dump() for channel in manifest.channels]
+    if manifest.ws_routes:
+        data["ws_routes"] = [route.model_dump() for route in manifest.ws_routes]
+    return data
 
 
 def from_dict(data: Mapping[str, Any]) -> Manifest:
@@ -120,6 +210,44 @@ def validate(manifest: Manifest) -> None:
         for k in ("x", "y", "w", "h"):
             if k not in f or not isinstance(f[k], int):
                 raise ValueError(f"tile {t['id']} frame.{k} must be int")
+    if manifest.site is not None:
+        ids: set[str] = set()
+        for page in manifest.site.pages:
+            pid = str(page.get("id"))
+            route = str(page.get("route"))
+            title = page.get("title")
+            if not pid:
+                raise ValueError("site.pages entries require an 'id'")
+            if pid in ids:
+                raise ValueError(f"duplicate site page id: {pid}")
+            ids.add(pid)
+            if not route.startswith("/"):
+                raise ValueError(
+                    f"site page '{pid}' route must start with '/': {route}"
+                )
+            if title is None:
+                raise ValueError(f"site page '{pid}' missing title")
+    if manifest.channels:
+        channel_ids: set[str] = set()
+        for ch in manifest.channels:
+            if ch.id in channel_ids:
+                raise ValueError(f"duplicate channel id: {ch.id}")
+            channel_ids.add(ch.id)
+            if ch.scope not in ALLOW:
+                raise ValueError(f"channel '{ch.id}' has unknown scope '{ch.scope}'")
+            if not ch.topic:
+                raise ValueError(f"channel '{ch.id}' requires a topic")
+    if manifest.ws_routes:
+        for route in manifest.ws_routes:
+            if not route.path.startswith("/"):
+                raise ValueError(f"ws route path must start with '/': {route.path}")
+            for channel_id in route.channels:
+                if manifest.channels and channel_id not in {
+                    c.id for c in manifest.channels
+                }:
+                    raise ValueError(
+                        f"ws route '{route.path}' references unknown channel '{channel_id}'"
+                    )
 
 
 def schema() -> dict:
@@ -172,6 +300,58 @@ def schema() -> dict:
                 },
             },
             "etag": {"type": "string"},
+            "site": {
+                "type": ["object", "null"],
+                "properties": {
+                    "pages": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": ["id", "route", "title"],
+                            "properties": {
+                                "id": {"type": "string"},
+                                "route": {"type": "string"},
+                                "title": {"type": "string"},
+                                "slots": {"type": "array"},
+                                "meta": {"type": "object"},
+                            },
+                        },
+                    },
+                    "active_page": {"type": ["string", "null"]},
+                    "navigation": {"type": "object"},
+                },
+            },
+            "channels": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "required": ["id", "scope", "topic"],
+                    "properties": {
+                        "id": {"type": "string"},
+                        "scope": {"type": "string"},
+                        "topic": {"type": "string"},
+                        "description": {"type": "string"},
+                        "payload_schema": {"type": "object"},
+                        "meta": {"type": "object"},
+                    },
+                },
+            },
+            "ws_routes": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "required": ["path"],
+                    "properties": {
+                        "path": {"type": "string"},
+                        "channels": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                        },
+                        "description": {"type": "string"},
+                        "meta": {"type": "object"},
+                    },
+                },
+            },
         },
         "additionalProperties": False,
     }

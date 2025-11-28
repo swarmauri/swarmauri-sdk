@@ -1,13 +1,36 @@
 from __future__ import annotations
 
-from typing import Iterable, Mapping
+from abc import ABC, abstractmethod
+from typing import Iterable, Mapping, TypeVar, Type
 
 from layout_engine import AtomRegistry, AtomSpec
 
 from .spec import AtomPreset
 
 
-class AtomPresetCatalog:
+class IAtomCatalog(ABC):
+    """Core interface for atom preset catalogs."""
+
+    @abstractmethod
+    def presets(self) -> Iterable[AtomPreset]:
+        """Return the presets provided by the catalog."""
+        raise NotImplementedError
+
+    def as_specs(self) -> dict[str, AtomSpec]:
+        """Materialize presets as a ``role -> AtomSpec`` mapping."""
+        return {preset.role: preset.to_spec() for preset in self.presets()}
+
+    def build_registry(self) -> AtomRegistry:
+        """Create an :class:`AtomRegistry` primed with the catalog presets."""
+        registry = AtomRegistry()
+        registry.register_many(self.as_specs().values())
+        return registry
+
+
+CatalogT = TypeVar("CatalogT", bound="AtomPresetCatalog")
+
+
+class AtomPresetCatalog(IAtomCatalog):
     """In-memory catalog backed by a mapping or iterable of presets."""
 
     def __init__(self, presets: Mapping[str, AtomPreset] | Iterable[AtomPreset]):
@@ -28,7 +51,17 @@ class AtomPresetCatalog:
     def as_specs(self) -> dict[str, AtomSpec]:
         return {role: preset.to_spec() for role, preset in self._presets.items()}
 
-    def build_registry(self) -> AtomRegistry:
-        registry = AtomRegistry()
-        registry.register_many(self.as_specs().values())
-        return registry
+    @classmethod
+    def from_specs(cls: Type[CatalogT], specs: Iterable[AtomSpec]) -> CatalogT:
+        """Instantiate a catalog from raw :class:`AtomSpec` entries."""
+        presets = {
+            spec.role: AtomPreset(
+                role=spec.role,
+                module=spec.module,
+                export=spec.export,
+                version=spec.version,
+                defaults=dict(spec.defaults),
+            )
+            for spec in specs
+        }
+        return cls(presets)

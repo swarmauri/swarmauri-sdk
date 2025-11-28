@@ -7,13 +7,24 @@ from .spec import AtomSpec
 
 
 def atom_to_dict(spec: AtomSpec) -> dict:
-    return {
+    data = {
         "role": spec.role,
         "module": spec.module,
         "export": spec.export,
         "version": spec.version,
         "defaults": dict(spec.defaults),
     }
+    if spec.family is not None:
+        data["family"] = spec.family
+    if spec.framework is not None:
+        data["framework"] = spec.framework
+    if spec.package is not None:
+        data["package"] = spec.package
+    if spec.tokens:
+        data["tokens"] = dict(spec.tokens)
+    if spec.registry:
+        data["registry"] = dict(spec.registry)
+    return data
 
 
 def atom_from_dict(obj: Mapping[str, Any]) -> AtomSpec:
@@ -23,6 +34,11 @@ def atom_from_dict(obj: Mapping[str, Any]) -> AtomSpec:
         export=str(obj.get("export", "default")),
         version=str(obj.get("version", "1.0.0")),
         defaults=dict(obj.get("defaults", {})),
+        family=obj.get("family"),
+        framework=obj.get("framework"),
+        package=obj.get("package"),
+        tokens=dict(obj.get("tokens", {})),
+        registry=dict(obj.get("registry", {})),
     )
 
 

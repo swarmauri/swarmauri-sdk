@@ -115,6 +115,79 @@ artifacts directly from the repository.
 - **Site-aware routing helpers** – `layout_engine.targets.SiteRouter` produces SSR HTML shells, manifest JSON payloads, and ESM
   import maps you can bind directly to FastAPI, Starlette, or any HTTP framework route handlers.
 
+### Unified manifest schema
+
+Every manifest emitted by Layout Engine adheres to the following structure:
+
+```json
+{
+  "kind": "layout_manifest",
+  "version": "2025.10",
+  "viewport": {"width": 1280, "height": 720},
+  "grid": {
+    "row_height": 160,
+    "gap_x": 24,
+    "gap_y": 24,
+    "columns": [{"size": {"value": 1, "unit": "fr", "min_px": 72}}],
+    "baseline_unit": 12,
+    "tokens": {"columns": "sgd:columns:12", "baseline": "sgd:baseline:12"}
+  },
+  "tiles": [
+    {
+      "id": "hero",
+      "role": "swarmakit:vue:hero-card",
+      "frame": {"x": 0, "y": 0, "w": 1280, "h": 320},
+      "props": {"title": "Quarterly Highlights", "accent": "indigo", "size": "lg"},
+      "atom": {
+        "role": "swarmakit:vue:hero-card",
+        "module": "@swarmakit/vue",
+        "export": "HeroCard",
+        "framework": "vue",
+        "package": "@swarmakit/vue",
+        "family": "swarmakit",
+        "version": "0.0.22",
+        "defaults": {"size": "md"},
+        "tokens": {"variant": "hero"},
+        "registry": {
+          "name": "swarmakit",
+          "framework": "vue",
+          "version": "0.0.22"
+        }
+      }
+    }
+  ],
+  "site": {
+    "active_page": "dashboard",
+    "navigation": {"base_path": "/"},
+    "pages": [
+      {"id": "dashboard", "route": "/", "title": "Dashboard"},
+      {"id": "catalog", "route": "/catalog", "title": "Catalog"}
+    ]
+  },
+  "channels": [
+    {
+      "id": "ui.events",
+      "scope": "page",
+      "topic": "page:{page_id}:ui",
+      "description": "UI event bus",
+      "payload_schema": {"type": "object"},
+      "meta": {"transport": "ws"}
+    }
+  ],
+  "ws_routes": [
+    {"path": "/ws/ui", "channels": ["ui.events"], "description": "Multiplexed UI events"}
+  ],
+  "etag": "61d6d0d0b6f3c5f5..."
+}
+```
+
+Key highlights:
+
+- **Grid tokens** capture Swiss-grid presets so wrappers can align columns/gaps/baselines without recomputing measurements.
+- **Atom metadata** preserves registry origin and package details, enabling thin wrappers (Vue, Svelte, React) to auto-import `@swarmakit/{framework}` modules with no bespoke glue.
+- **Site block** embeds page navigation so multi-page experiences hydrate from a single manifest.
+- **Channels & websocket routes** describe mux topics so runtime shells subscribe automatically.
+
 ### Serving manifests and import maps
 
 `SiteRouter` centralizes the endpoints required by single-page and multi-page applications. Use
@@ -135,6 +208,24 @@ Start by defining the atom registry (for local role → module mappings) and the
 that powers the import map consumed by Vue's module loader. Defaults defined on each atom are
 merged with tile props every time a manifest is built, so downstream atoms always receive a
 complete prop payload.
+
+#### Registering SwarmaKit atoms
+
+`layout-engine` does not automatically install SwarmaKit presets. When `layout_engine_atoms` is
+available you can populate an `AtomRegistry` using the helper introduced in v0.1.0:
+
+```python
+from layout_engine import AtomRegistry, register_swarma_atoms
+
+atoms = register_swarma_atoms(AtomRegistry(), catalog="vue")
+
+# optional overrides — merged instead of replaced
+atoms.override("swarmakit:vue:button", defaults={"size": "lg"})
+```
+
+The helper lazily imports `layout_engine_atoms.catalog` so projects without SwarmaKit remain
+functional. Overrides use additive merges (defaults/tokens/registry) to avoid clobbering preset
+values.
 
 ```python
 from layout_engine import AtomRegistry, AtomSpec
@@ -436,6 +527,11 @@ bootstrap();
 MPA pages perform the same fetch using their page-specific manifest endpoint, so the detail view can
 call `loadManifest(`/catalog/${itemId}/manifest.json`, new URLSearchParams(location.search))` and the
 server will deliver props for the requested `itemId`.
+
+Thin wrappers for React or Svelte follow identical steps: fetch the manifest, honour `manifest.grid.tokens`
+when computing breakpoints, and import atoms using the `module`/`export` values stored in each tile's
+`atom` block. Because registry metadata travels with the manifest, no framework-specific glue or
+per-role switch statements are necessary.
 
 ### 5. Event handling with multiplexed WebSockets
 

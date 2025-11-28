@@ -19,9 +19,18 @@ Ergonomics:
 __version__ = "0.1.0"
 
 # ---- Core ----
-from .core.size import Size, SizeToken, DEFAULT_TOKEN_WEIGHTS
-from .core.viewport import Viewport
-from .core.frame import Frame
+from .core import (
+    Size,
+    SizeToken,
+    DEFAULT_TOKEN_WEIGHTS,
+    Viewport,
+    Frame,
+    SWISS_GRID_COLUMNS,
+    SWISS_GRID_GUTTERS,
+    SWISS_BASELINE_UNITS,
+    DEFAULT_BASELINE_MULTIPLIER,
+    resolve_grid_tokens,
+)
 
 # ---- Tiles ----
 from .tiles import TileSpec, Tile, tile_spec, make_tile
@@ -64,6 +73,13 @@ from .structure import (
     gridify,
 )
 
+# ---- Authoring helpers ----
+from .authoring import (
+    register_swarma_atoms,
+    grid_token_snapshot,
+    build_site_manifest,
+)
+
 # ---- Compile ----
 from .compile import (
     LayoutCompiler,
@@ -76,6 +92,9 @@ from .compile import (
 
 # ---- Manifest ----
 from .manifest import (
+    ChannelManifest,
+    WsRouteManifest,
+    SiteManifest,
     Manifest,
     ManifestBuilder,
     build_manifest,
@@ -193,6 +212,11 @@ __all__ = [
     "DEFAULT_TOKEN_WEIGHTS",
     "Viewport",
     "Frame",
+    "SWISS_GRID_COLUMNS",
+    "SWISS_GRID_GUTTERS",
+    "SWISS_BASELINE_UNITS",
+    "DEFAULT_BASELINE_MULTIPLIER",
+    "resolve_grid_tokens",
     # tiles
     "TileSpec",
     "Tile",
@@ -227,6 +251,9 @@ __all__ = [
     "table",
     "build_grid",
     "gridify",
+    "register_swarma_atoms",
+    "grid_token_snapshot",
+    "build_site_manifest",
     # compile
     "LayoutCompiler",
     "frame_map_from_placements",
@@ -235,6 +262,9 @@ __all__ = [
     "ordering_by_topleft",
     "ordering_diff",
     # manifest
+    "SiteManifest",
+    "ChannelManifest",
+    "WsRouteManifest",
     "Manifest",
     "ManifestBuilder",
     "build_manifest",

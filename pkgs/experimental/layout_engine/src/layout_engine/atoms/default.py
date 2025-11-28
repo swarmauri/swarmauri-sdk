@@ -22,12 +22,34 @@ class AtomRegistry:
         for s in specs:
             self.register(s)
 
-    def override(self, role: str, **fields: Any) -> AtomSpec:
+    def override(self, role: str, /, **fields: Any) -> AtomSpec:
         try:
             base = self._by_role[role]
         except KeyError:
             raise KeyError(f"Unknown atom role: {role}")
-        new_spec = base.with_overrides(**fields)
+
+        patch = dict(fields)
+
+        merged_fields: dict[str, Any] = {}
+
+        if "defaults" in patch:
+            merged = dict(base.defaults)
+            merged.update(dict(patch.pop("defaults") or {}))
+            merged_fields["defaults"] = merged
+
+        if "tokens" in patch:
+            merged_tokens = dict(base.tokens)
+            merged_tokens.update(dict(patch.pop("tokens") or {}))
+            merged_fields["tokens"] = merged_tokens
+
+        if "registry" in patch:
+            merged_registry = dict(base.registry)
+            merged_registry.update(dict(patch.pop("registry") or {}))
+            merged_fields["registry"] = merged_registry
+
+        merged_fields.update(patch)
+
+        new_spec = base.with_overrides(**merged_fields)
         self._by_role[role] = new_spec
         return new_spec
 

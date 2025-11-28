@@ -24,6 +24,9 @@ from .validators import (
     GRID,
     TILE,
     ATOM,
+    register_channels,
+    clear_channels,
+    get_channel,
 )
 from .ws import InProcEventBus, EventRouter
 
@@ -41,6 +44,9 @@ __all__ = [
     "GRID",
     "TILE",
     "ATOM",
+    "register_channels",
+    "clear_channels",
+    "get_channel",
     "InProcEventBus",
     "EventRouter",
     "utc_now_iso",
