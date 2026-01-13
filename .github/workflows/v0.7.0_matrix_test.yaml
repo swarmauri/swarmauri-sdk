@@ -4,14 +4,12 @@ name: 0.7.0 - Mono (Test)
 on:
   workflow_dispatch:
 
-permissions:
-  actions: write
-  contents: read
-
 jobs:
-  dispatch-members:
+  set-matrix:
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.get-matrix.outputs.matrix }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -21,60 +19,57 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Collect workspace members
-        id: members
+      - name: Install dependencies for matrix generation
+        run: pip install toml
+
+      - name: Get workspace members
+        id: get-matrix
         run: |
-          python - <<'PY'
-          import json
-          import os
-          import tomllib
-
-          with open("pkgs/pyproject.toml", "rb") as fh:
-              config = tomllib.load(fh)
-
+          cd pkgs
+          python - <<'EOF'
+          import toml, json, os
+          # Open the root pyproject.toml file
+          with open("pyproject.toml", "r") as f:
+              config = toml.load(f)
+          # Extract the workspace members from tool.uv.workspace.members
           members = config.get("tool", {}).get("uv", {}).get("workspace", {}).get("members", [])
           if not isinstance(members, list):
-              raise RuntimeError("The 'members' entry is not a list.")
+              raise Exception("The 'members' entry is not a list.")
+          # Build a matrix with one entry per member
+          matrix = {"include": [{"member": member} for member in members]}
+          print(f"Matrix: {json.dumps(matrix)}")
+          # Write the matrix JSON to the GitHub Actions output
+          with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+              print(f"matrix={json.dumps(matrix)}", file=fh)
+          EOF
 
-          members = list(dict.fromkeys(members))
-          print(f"::notice::Found {len(members)} workspace members.")
-          with open(os.environ["GITHUB_OUTPUT"], "a") as gh_out:
-              print(f"members={json.dumps(members)}", file=gh_out)
-          PY
+  test:
+    needs: set-matrix
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
+      fail-fast: false
+      max-parallel: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Dispatch single-member test workflows
-        env:
-          MEMBERS: ${{ steps.members.outputs.members }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          REF: ${{ github.ref }}
-          WORKFLOW_FILE: v0.7.3_single_prepare_validate.yaml
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies for testing
+        run: pip install uv pytest toml
+
+      - name: Run tests for member ${{ matrix.member }}
         run: |
-          python - <<'PY'
-          import json
-          import os
-          import urllib.request
-
-          members = json.loads(os.environ["MEMBERS"])
-          token = os.environ["GH_TOKEN"]
-          repo = os.environ["REPO"]
-          ref = os.environ["REF"]
-          workflow = os.environ["WORKFLOW_FILE"]
-
-          for member in members:
-              payload = json.dumps({"ref": ref, "inputs": {"member": member}}).encode("utf-8")
-              request = urllib.request.Request(
-                  f"https://api.github.com/repos/{repo}/actions/workflows/{workflow}/dispatches",
-                  data=payload,
-                  headers={
-                      "Authorization": f"Bearer {token}",
-                      "Accept": "application/vnd.github+json",
-                  },
-                  method="POST",
-              )
-              with urllib.request.urlopen(request) as response:
-                  print(
-                      f"::notice::Dispatched '{member}' to '{workflow}' "
-                      f"(status {response.status})."
-                  )
-          PY
+          cd pkgs
+          MEMBER="${{ matrix.member }}"
+          echo "Running tests for workspace member: $MEMBER"
+          # Read the package name from the member's pyproject.toml
+          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
+          echo "Package name: $PACKAGE_NAME"
+          # Run the test command with uv
+          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active pytest -vvv
