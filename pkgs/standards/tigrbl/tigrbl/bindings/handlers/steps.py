@@ -4,7 +4,7 @@ import logging
 
 import inspect
 from functools import lru_cache
-from typing import Any, Callable, Mapping, Optional
+from typing import Any, Callable, Mapping, Optional, Sequence
 
 from ... import core as _core
 from ...op import OpSpec
@@ -24,10 +24,56 @@ async def _call_list_core(
     payload: Mapping[str, Any],
     ctx: Mapping[str, Any],
 ):
-    filters = dict(payload) if isinstance(payload, Mapping) else {}
-    skip = filters.pop("skip", None)
-    limit = filters.pop("limit", None)
-    filters_arg = filters if filters else None
+    params = dict(payload) if isinstance(payload, Mapping) else {}
+    skip = params.pop("skip", None)
+    limit = params.pop("limit", None)
+    raw_sort = params.pop("sort", None)
+
+    raw_filters = params.pop("filters", None)
+    filters_arg: Any = None
+
+    if isinstance(raw_filters, Mapping):
+        filters_arg = dict(raw_filters)
+    elif raw_filters is not None:
+        filters_arg = raw_filters
+
+    if params:
+        extras = dict(params)
+        if isinstance(filters_arg, Mapping):
+            merged = dict(filters_arg)
+            merged.update(extras)
+            filters_arg = merged
+        elif filters_arg is None:
+            filters_arg = extras
+
+    if isinstance(filters_arg, Mapping) and not filters_arg:
+        filters_arg = None
+
+    def _normalize_sort_entry(value: Any) -> str | None:
+        if isinstance(value, Mapping):
+            field = value.get("field")
+            if not field:
+                return None
+            direction = str(value.get("direction", "")).strip().lower()
+            if direction in ("desc", "descending", "-1"):
+                return f"{field}:desc"
+            if direction in ("asc", "ascending", "1", ""):
+                return str(field)
+            return str(field)
+        if isinstance(value, str):
+            return value
+        return None
+
+    sort_arg: Any = None
+    if isinstance(raw_sort, Mapping):
+        sort_arg = _normalize_sort_entry(raw_sort)
+    elif isinstance(raw_sort, Sequence) and not isinstance(
+        raw_sort, (str, bytes, bytearray)
+    ):
+        tokens = [token for item in raw_sort if (token := _normalize_sort_entry(item))]
+        sort_arg = tokens if tokens else None
+    elif raw_sort is not None:
+        sort_arg = raw_sort
 
     db = _ctx_db(ctx)
     req = _ctx_request(ctx)
@@ -54,6 +100,8 @@ async def _call_list_core(
                 kwargs["skip"] = skip
             if limit is not None:
                 kwargs["limit"] = limit
+        if sort_arg is not None:
+            kwargs["sort"] = sort_arg
         candidates.append((args, kwargs))
 
     add_candidate(False, False, True, True)
