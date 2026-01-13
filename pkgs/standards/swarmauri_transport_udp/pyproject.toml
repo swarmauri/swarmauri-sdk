@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_transport_udp"
-version = "0.1.0.dev0"
+version = "0.1.0.dev1"
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" }
 ]
