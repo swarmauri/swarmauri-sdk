@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_billing_braintree"
-version = "0.1.0.dev0"
+version = "0.1.0.dev1"
 description = "Braintree billing provider for the Swarmauri SDK."
 license = "Apache-2.0"
 readme = "README.md"
