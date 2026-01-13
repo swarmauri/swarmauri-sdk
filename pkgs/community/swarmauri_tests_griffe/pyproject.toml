@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tests_griffe"
-version = "0.1.1.dev3"
+version = "0.1.1.dev4"
 description = "Pytest plugin that turns Griffe inspection warnings into failing quality gates for Swarmauri packages."
 readme = "README.md"
 requires-python = ">=3.10"
