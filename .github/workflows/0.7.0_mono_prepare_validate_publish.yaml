@@ -67,6 +67,8 @@ jobs:
           python - <<'PY'
           import json
           import os
+          import time
+          import urllib.error
           import urllib.request
 
           members = json.loads(os.environ["MEMBERS"])
@@ -77,8 +79,15 @@ jobs:
           bump_type = os.environ.get("BUMP_TYPE") or ""
           set_version = os.environ.get("SET_VERSION") or ""
 
-          for member in members:
-              inputs = {"member": member}
+          max_attempts = int(os.environ.get("MAX_ATTEMPTS", "5"))
+          initial_backoff = float(os.environ.get("INITIAL_BACKOFF_SECONDS", "1.0"))
+          max_backoff = float(os.environ.get("MAX_BACKOFF_SECONDS", "16.0"))
+          throttle_seconds = float(os.environ.get("THROTTLE_SECONDS", "0.5"))
+
+          failures = []
+
+          def dispatch_member(member_name):
+              inputs = {"member": member_name}
               if bump_type:
                   inputs["bump_type"] = bump_type
               if set_version:
@@ -96,7 +105,58 @@ jobs:
               )
               with urllib.request.urlopen(request) as response:
                   print(
-                      f"::notice::Dispatched '{member}' to '{workflow}' "
+                      f"::notice::Dispatched '{member_name}' to '{workflow}' "
                       f"(status {response.status})."
                   )
+
+          for member in members:
+              attempt = 0
+              backoff = initial_backoff
+              while True:
+                  try:
+                      dispatch_member(member)
+                      break
+                  except urllib.error.HTTPError as exc:
+                      attempt += 1
+                      if exc.code and 400 <= exc.code < 500 and exc.code != 429:
+                          print(
+                              f"::error::Failed to dispatch '{member}' to '{workflow}' "
+                              f"(status {exc.code})."
+                          )
+                          failures.append((member, exc.code))
+                          break
+                      if attempt >= max_attempts:
+                          print(
+                              f"::error::Failed to dispatch '{member}' to '{workflow}' "
+                              f"after {attempt} attempts (status {exc.code})."
+                          )
+                          failures.append((member, exc.code))
+                          break
+                      print(
+                          f"::warning::Dispatch failed for '{member}' with status {exc.code}; "
+                          f"retrying in {backoff:.1f}s (attempt {attempt}/{max_attempts})."
+                      )
+                      time.sleep(backoff)
+                      backoff = min(backoff * 2, max_backoff)
+                  except urllib.error.URLError as exc:
+                      attempt += 1
+                      if attempt >= max_attempts:
+                          print(
+                              f"::error::Failed to dispatch '{member}' to '{workflow}' "
+                              f"after {attempt} attempts ({exc})."
+                          )
+                          failures.append((member, "url_error"))
+                          break
+                      print(
+                          f"::warning::Dispatch failed for '{member}' ({exc}); "
+                          f"retrying in {backoff:.1f}s (attempt {attempt}/{max_attempts})."
+                      )
+                      time.sleep(backoff)
+                      backoff = min(backoff * 2, max_backoff)
+              time.sleep(throttle_seconds)
+
+          if failures:
+              print("::warning::Some dispatches failed:")
+              for member, reason in failures:
+                  print(f"::warning::- {member}: {reason}")
           PY
