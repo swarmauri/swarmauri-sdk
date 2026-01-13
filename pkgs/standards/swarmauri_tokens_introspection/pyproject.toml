@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tokens_introspection"
-version = "0.3.0.dev8"
+version = "0.3.0.dev9"
 description = "OAuth 2.0 Token Introspection service for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
