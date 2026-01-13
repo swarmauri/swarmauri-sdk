@@ -3,7 +3,6 @@ import json
 from typing import Mapping, Optional
 
 
-
 import jwt
 import pytest
 from cryptography.hazmat.primitives.asymmetric import ec
