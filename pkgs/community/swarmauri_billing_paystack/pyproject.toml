@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_billing_paystack"
-version = "0.9.0.dev1"
+version = "0.9.0.dev2"
 description = "Paystack billing provider for the Swarmauri SDK."
 license = "Apache-2.0"
 readme = "README.md"

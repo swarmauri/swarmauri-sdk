@@ -1,6 +1,6 @@
 [project]
 name = "EmbeddedSigner"
-version = "0.1.1.dev2"
+version = "0.1.1.dev3"
 description = "Embed XMP metadata and sign media assets using Swarmauri plugins."
 license = "Apache-2.0"
 readme = "README.md"
