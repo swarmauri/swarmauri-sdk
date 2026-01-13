@@ -1,6 +1,6 @@
 [project]
 name = "tigrbl-auth"
-version = "0.3.0.dev5"
+version = "0.3.0.dev6"
 description = "A Tigrbl Multi‑tenant OpenID‑Connect / OAuth2 Identity‑Provider server by Swarmauri."
 license = "Apache-2.0"
 readme = "README.md"
