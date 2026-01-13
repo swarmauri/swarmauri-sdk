@@ -15,7 +15,7 @@ on:
         required: true
 
 concurrency:
-  group: dev-branch-prepare-workflow
+  group: dev-branch-prepare-workflow-${{ github.event.inputs.member }}
   cancel-in-progress: false
 
 permissions:
