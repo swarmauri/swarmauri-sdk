@@ -6,10 +6,14 @@ from ..deps.fastapi import FastAPI
 from ..engine.engine_spec import EngineCfg
 from ..engine import resolver as _resolver
 from ..engine import install_from_objects
+from ..ddl import initialize as _ddl_initialize
 from .app_spec import AppSpec
+from ._model_registry import initialize_model_registry
 
 
 class App(AppSpec, FastAPI):
+    initialize = _ddl_initialize
+
     def __init__(
         self, *, engine: EngineCfg | None = None, **fastapi_kwargs: Any
     ) -> None:
@@ -23,7 +27,7 @@ class App(AppSpec, FastAPI):
         self.ops = tuple(getattr(self, "OPS", ()))
         # Runtime registries use mutable containers (dict/namespace), but the
         # dataclass fields expect sequences. Storing a dict here satisfies both.
-        self.models = {}
+        self.models = initialize_model_registry(getattr(self, "MODELS", ()))
         self.schemas = tuple(getattr(self, "SCHEMAS", ()))
         self.hooks = tuple(getattr(self, "HOOKS", ()))
         self.security_deps = tuple(getattr(self, "SECURITY_DEPS", ()))
@@ -59,3 +63,13 @@ class App(AppSpec, FastAPI):
                 install_from_objects(app=self, api=a, models=models)
         else:
             install_from_objects(app=self, api=None, models=models)
+
+    def _collect_tables(self) -> list[Any]:
+        seen: set[Any] = set()
+        tables: list[Any] = []
+        for model in getattr(self, "models", {}).values():
+            table = getattr(model, "__table__", None)
+            if table is not None and table not in seen:
+                seen.add(table)
+                tables.append(table)
+        return tables
