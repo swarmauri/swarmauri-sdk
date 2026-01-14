@@ -35,6 +35,8 @@ from .common import (
     _status_for,
 )
 
+from .io_headers import _make_header_dep
+
 from ...runtime.executor.types import _Ctx
 
 
@@ -58,6 +60,8 @@ def _make_member_endpoint(
     real_pk = _pk_name(model)
     pk_names = _pk_names(model)
     nested_vars = list(nested_vars or [])
+    hdr_dep = _make_header_dep(model, alias)
+
     # --- No body on GET read / DELETE delete ---
     if target in {"read", "delete"}:
 
@@ -65,11 +69,14 @@ def _make_member_endpoint(
             item_id: Any,
             request: Request,
             db: Any = Depends(db_dep),
+            h: Mapping[str, Any] = Depends(hdr_dep),
             **kw: Any,
         ):
             parent_kw = {k: kw[k] for k in nested_vars if k in kw}
             _coerce_parent_kw(model, parent_kw)
             payload: Mapping[str, Any] = dict(parent_kw)
+            if isinstance(h, Mapping):
+                payload = {**payload, **dict(h)}
             path_params = {real_pk: item_id, pk_param: item_id, **parent_kw}
             ctx: Dict[str, Any] = {
                 "request": request,
@@ -140,6 +147,11 @@ def _make_member_endpoint(
                     "db",
                     inspect.Parameter.POSITIONAL_OR_KEYWORD,
                     annotation=Annotated[Any, Depends(db_dep)],
+                ),
+                inspect.Parameter(
+                    "h",
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Annotated[Mapping[str, Any], Depends(hdr_dep)],
                 ),
             ]
         )
@@ -256,12 +268,15 @@ def _make_member_endpoint(
         item_id: Any,
         request: Request,
         db: Any = Depends(db_dep),
+        h: Mapping[str, Any] = Depends(hdr_dep),
         body=body_default,
         **kw: Any,
     ):
         parent_kw = {k: kw[k] for k in nested_vars if k in kw}
         _coerce_parent_kw(model, parent_kw)
         payload = _validate_body(model, alias, target, body)
+        if isinstance(h, Mapping):
+            payload = {**payload, **dict(h)}
 
         # Enforce path-PK canonicality. If body echoes PK: drop if equal, 409 if mismatch.
         for k in pk_names:
@@ -348,6 +363,11 @@ def _make_member_endpoint(
                 "db",
                 inspect.Parameter.POSITIONAL_OR_KEYWORD,
                 annotation=Annotated[Any, Depends(db_dep)],
+            ),
+            inspect.Parameter(
+                "h",
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                annotation=Annotated[Mapping[str, Any], Depends(hdr_dep)],
             ),
             inspect.Parameter(
                 "body",

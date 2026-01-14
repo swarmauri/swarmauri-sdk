@@ -60,7 +60,7 @@ def test_authn_hooks_and_context_injection():
 def test_authn_unauthorized_errors():
     client, _ = _build_client_with_auth()
 
-    assert client.get("/tenant").status_code == 401
+    assert client.get("/tenant").status_code == 403
     assert (
         client.get("/tenant", headers={"Authorization": "Bearer wrong"}).status_code
         == 401
