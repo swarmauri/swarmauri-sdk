@@ -93,6 +93,10 @@ class PgUUID(_PgUUID):
     def hex(self):
         return self.as_uuid.hex
 
+class JSONList(JSON):
+    @property
+    def python_type(self):  # type: ignore[override]
+        return list
 
 # ── Public Re-exports (Backwards Compatibility) ──────────────────────────
 __all__: list[str] = [
@@ -110,6 +114,8 @@ __all__: list[str] = [
     "list_request_extras_providers",
     "list_response_extras_providers",
     "OpConfigProvider",
+    # add ons
+    "JSONList",
     # builtin types
     "MethodType",
     "SimpleNamespace",
