@@ -7,9 +7,7 @@ from ..deps.fastapi import APIRouter as ApiRouter
 from ..engine.engine_spec import EngineCfg
 from ..engine import install_from_objects
 from ..engine import resolver as _resolver
-from ..ddl import initialize as _ddl_initialize
 from .api_spec import APISpec
-from ..app._model_registry import initialize_model_registry
 
 
 class Api(APISpec, ApiRouter):
@@ -17,7 +15,6 @@ class Api(APISpec, ApiRouter):
 
     MODELS: tuple[Any, ...] = ()
     TABLES: tuple[Any, ...] = ()
-    initialize = _ddl_initialize
 
     # dataclass inheritance makes instances unhashable; use identity semantics
     # for both hashing and equality so objects can participate in sets/dicts
@@ -44,7 +41,7 @@ class Api(APISpec, ApiRouter):
         self.deps = tuple(getattr(self, "DEPS", ()))
         self.response = getattr(self, "RESPONSE", None)
         # ``models`` is expected to be a dict at runtime for registry lookups.
-        self.models = initialize_model_registry(getattr(self, "MODELS", ()))
+        self.models: dict[str, type] = {}
 
         ApiRouter.__init__(
             self,
@@ -73,13 +70,3 @@ class Api(APISpec, ApiRouter):
                 install_from_objects(app=self, api=a, models=models)
         else:
             install_from_objects(app=self, api=None, models=models)
-
-    def _collect_tables(self) -> list[Any]:
-        seen: set[Any] = set()
-        tables: list[Any] = []
-        for model in getattr(self, "models", {}).values():
-            table = getattr(model, "__table__", None)
-            if table is not None and table not in seen:
-                seen.add(table)
-                tables.append(table)
-        return tables

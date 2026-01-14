@@ -35,6 +35,8 @@ from .common import (
     _status_for,
 )
 
+from .io_headers import _make_header_dep
+
 from ...runtime.executor.types import _Ctx
 
 
@@ -103,12 +105,15 @@ def _make_collection_endpoint(
 ) -> Callable[..., Awaitable[Any]]:
     alias, target, nested_vars = sp.alias, sp.target, list(nested_vars or [])
     status_code = _status_for(sp)
+    hdr_dep = _make_header_dep(model, alias)
+
     if target in {"list", "clear"}:
         list_dep = _make_list_query_dep(model, alias) if target == "list" else None
 
         async def _endpoint(
             request: Request,
             db: Any = Depends(db_dep),
+            h: Mapping[str, Any] = Depends(hdr_dep),
             q: Mapping[str, Any] | None = None,
             **kw: Any,
         ):
@@ -119,6 +124,8 @@ def _make_collection_endpoint(
                 payload = _validate_query(model, alias, target, query)
             else:
                 payload = dict(parent_kw)
+            if isinstance(h, Mapping):
+                payload = {**payload, **dict(h)}
             ctx = _ctx(model, alias, target, request, db, payload, parent_kw, api)
             ctx["response_serializer"] = lambda r: _serialize_output(
                 model, alias, target, sp, r
@@ -152,6 +159,11 @@ def _make_collection_endpoint(
                     "db",
                     inspect.Parameter.POSITIONAL_OR_KEYWORD,
                     annotation=Annotated[Any, Depends(db_dep)],
+                ),
+                inspect.Parameter(
+                    "h",
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Annotated[Mapping[str, Any], Depends(hdr_dep)],
                 ),
             ]
         )
@@ -190,12 +202,18 @@ def _make_collection_endpoint(
         async def _endpoint(
             request: Request,
             db: Any = Depends(db_dep),
+            h: Mapping[str, Any] = Depends(hdr_dep),
             body=Body(...),
             **kw: Any,
         ):
             parent_kw = {k: kw[k] for k in nested_vars if k in kw}
             _coerce_parent_kw(model, parent_kw)
             payload = _validate_body(model, alias, target, body)
+            if isinstance(h, Mapping):
+                if isinstance(payload, Mapping):
+                    payload = {**payload, **dict(h)}
+                else:
+                    payload = [{**dict(item), **dict(h)} for item in payload]
             is_seq = (
                 target in {"create", "update", "replace", "merge"}
                 and isinstance(payload, Sequence)
@@ -245,6 +263,11 @@ def _make_collection_endpoint(
                     "db",
                     inspect.Parameter.POSITIONAL_OR_KEYWORD,
                     annotation=Annotated[Any, Depends(db_dep)],
+                ),
+                inspect.Parameter(
+                    "h",
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=Annotated[Mapping[str, Any], Depends(hdr_dep)],
                 ),
                 inspect.Parameter(
                     "body",

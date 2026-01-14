@@ -49,8 +49,7 @@ class IOSpec:
     ``filter_ops``/``sortable`` flag whether the field can be used in query
     filters or ordering. Advanced helpers like :meth:`assemble`,
     :meth:`paired`, and :meth:`alias_readtime` derive values or expose extra
-    read-time aliases. HTTP header IO is handled by middleware, so IOSpec
-    only models payload fields.
+    read-time aliases.
     """
 
     in_verbs: Tuple[str, ...] = ()
@@ -58,6 +57,9 @@ class IOSpec:
     mutable_verbs: Tuple[str, ...] = ()
     alias_in: str | None = None
     alias_out: str | None = None
+    header_in: str | None = None  # e.g., "X-Worker-Key"
+    header_out: str | None = None  # e.g., "ETag"
+    header_required_in: bool = False
     sensitive: bool = False
     redact_last: int | None = None
     filter_ops: Tuple[str, ...] = ()
