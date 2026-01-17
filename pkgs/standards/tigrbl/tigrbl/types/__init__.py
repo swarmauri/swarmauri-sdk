@@ -25,7 +25,6 @@ from ..deps.sqlalchemy import (
     ARRAY,
     PgEnum,
     JSONB,
-    _PgUUID,
     TSVECTOR,
     # ORM
     Mapped,
@@ -67,6 +66,7 @@ from ..deps.fastapi import (
 
 # ── Local Package ─────────────────────────────────────────────────────────
 from .op import _Op, _SchemaVerb
+from .uuid import PgUUID, SqliteUUID
 from .authn_abc import AuthNProvider
 from .table_config_provider import TableConfigProvider
 from .nested_path_provider import NestedPathProvider
@@ -88,16 +88,6 @@ DateTime = _DateTime(timezone=False)
 TZDateTime = _DateTime(timezone=True)
 
 
-class PgUUID(_PgUUID):
-    @property
-    def hex(self):
-        return self.as_uuid.hex
-
-class JSONList(JSON):
-    @property
-    def python_type(self):  # type: ignore[override]
-        return list
-
 # ── Public Re-exports (Backwards Compatibility) ──────────────────────────
 __all__: list[str] = [
     # local
@@ -115,7 +105,7 @@ __all__: list[str] = [
     "list_response_extras_providers",
     "OpConfigProvider",
     # add ons
-    "JSONList",
+    "SqliteUUID",
     # builtin types
     "MethodType",
     "SimpleNamespace",
