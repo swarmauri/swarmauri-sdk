@@ -18,6 +18,13 @@ from typing import AsyncIterator, Iterator
 import asyncio
 
 
+def _reset_tigrbl_state() -> None:
+    """Reset shared tigrbl state between test modules and tests."""
+    Base.metadata.clear()
+    v3_builder._SchemaCache.clear()
+    runtime_kernel._default_kernel = runtime_kernel.Kernel()
+
+
 @pytest.fixture(scope="session")
 def event_loop():
     # pytest-asyncio < 0.21 compatibility pattern; adjust if you use the newer plugin configs
@@ -29,13 +36,15 @@ def event_loop():
 @pytest.fixture(autouse=True)
 def _reset_state():
     """Ensure clean metadata and caches around each test."""
-    Base.metadata.clear()
-    v3_builder._SchemaCache.clear()
-    runtime_kernel._default_kernel = runtime_kernel.Kernel()
+    _reset_tigrbl_state()
     yield
-    Base.metadata.clear()
-    v3_builder._SchemaCache.clear()
-    runtime_kernel._default_kernel = runtime_kernel.Kernel()
+    _reset_tigrbl_state()
+
+
+def pytest_collect_file(file_path, parent):
+    if file_path.suffix == ".py" and file_path.name.startswith("test_"):
+        _reset_tigrbl_state()
+    return None
 
 
 def pytest_addoption(parser):
