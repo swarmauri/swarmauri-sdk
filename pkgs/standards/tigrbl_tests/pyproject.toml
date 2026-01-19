@@ -1,14 +1,15 @@
 [project]
-name = "tigrbl"
+name = "tigrbl-tests"
 version = "0.3.0.dev4"
-description = "Automatic API generation tools by Swarmauri."
+description = "Test suite and fixtures for the Tigrbl framework."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
 requires-python = ">=3.10,<3.13"
 classifiers = [
+    "Development Status :: 1 - Planning",
     "License :: OSI Approved :: Apache Software License",
-    "Development Status :: 3 - Alpha",
+    "Natural Language :: English",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -16,42 +17,33 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
 ]
-authors = [{ name = "Swarmauri Team", email = "team@swarmauri.com" }]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
-    "swarmauri_core",
-    "swarmauri_base",
-    "swarmauri_standard",
-    "fastapi>=0.100.0",
-    "pydantic>=2.0.0",
-    "sqlalchemy>=2.0",
-    "aiosqlite>=0.19.0",
-    "httpx>=0.27.0",
-    "greenlet>=3.2.3",
-    "uvicorn", 
+    "tigrbl",
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-xdist>=3.6.1",
+    "pytest-json-report>=1.5.0",
+    "python-dotenv",
+    "requests>=2.32.3",
+    "flake8>=7.0",
+    "pytest-timeout>=2.3.1",
+    "ruff>=0.9.9",
+    "pytest-benchmark>=4.0.0",
 ]
 keywords = [
-    'tigrbl',
-    'sdk',
-    'standards',
-]
-
-[project.optional-dependencies]
-postgres = [
-    "asyncpg>=0.30.0",
-    "psycopg2-binary>=2.9.9",
-]
-templates = [
-    "jinja2>=3.1.4",
-]
-tests = [
-    "tigrbl-tests",
+    "tigrbl",
+    "tests",
+    "sdk",
+    "standards",
+    "pytest",
+    "fixtures",
+    "integration",
+    "performance",
 ]
 
 [tool.uv.sources]
-swarmauri_core = { workspace = true }
-swarmauri_base = { workspace = true }
-swarmauri_standard = { workspace = true }
-tigrbl-tests = { workspace = true }
+tigrbl = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
@@ -79,21 +71,5 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 packages = [
-    { include = "tigrbl" },
-]
-
-[dependency-groups]
-dev = [
-    "pytest>=8.0",
-    "pytest-asyncio>=0.24.0",
-    "pytest-xdist>=3.6.1",
-    "pytest-json-report>=1.5.0",
-    "python-dotenv",
-    "requests>=2.32.3",
-    "flake8>=7.0",
-    "pytest-timeout>=2.3.1",
-    "ruff>=0.9.9",
-    "pytest-benchmark>=4.0.0",
-    "asyncpg>=0.30.0",
-    "psycopg2-binary>=2.9.9",
+    { include = "tests" },
 ]
