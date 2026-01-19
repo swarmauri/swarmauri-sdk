@@ -6,7 +6,9 @@ from types import SimpleNamespace
 from ..deps.fastapi import APIRouter as ApiRouter
 from ..engine.engine_spec import EngineCfg
 from ..engine import install_from_objects
+from ..ddl import initialize as _ddl_initialize
 from ..engine import resolver as _resolver
+from ..app._model_registry import initialize_model_registry
 from .api_spec import APISpec
 
 
@@ -41,7 +43,7 @@ class Api(APISpec, ApiRouter):
         self.deps = tuple(getattr(self, "DEPS", ()))
         self.response = getattr(self, "RESPONSE", None)
         # ``models`` is expected to be a dict at runtime for registry lookups.
-        self.models: dict[str, type] = {}
+        self.models = initialize_model_registry(getattr(self, "MODELS", ()))
 
         ApiRouter.__init__(
             self,
@@ -70,3 +72,26 @@ class Api(APISpec, ApiRouter):
                 install_from_objects(app=self, api=a, models=models)
         else:
             install_from_objects(app=self, api=None, models=models)
+
+    def _collect_tables(self) -> list[Any]:
+        seen = set()
+        tables = []
+        for model in self.models.values():
+            if not hasattr(model, "__table__"):
+                try:  # pragma: no cover - defensive remap
+                    from ..table import Base
+                    from ..table._base import _materialize_colspecs_to_sqla
+
+                    _materialize_colspecs_to_sqla(model)
+                    Base.registry.map_declaratively(model)
+                except Exception:
+                    pass
+            table = getattr(model, "__table__", None)
+            if table is not None and not table.columns:
+                continue
+            if table is not None and table not in seen:
+                seen.add(table)
+                tables.append(table)
+        return tables
+
+    initialize = _ddl_initialize

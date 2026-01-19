@@ -1,11 +1,13 @@
 from __future__ import annotations
+import inspect
 import logging
 
 from types import SimpleNamespace
 from typing import Any, Dict, Optional, Sequence, Tuple
 
 
-from .fastapi import Depends, Security, _status
+from fastapi.security import HTTPBearer
+from .fastapi import Depends, HTTPException, Request, Security, _status
 from ...op import OpSpec
 from ...op.types import CANON
 
@@ -33,6 +35,24 @@ def _normalize_secdeps(secdeps: Optional[Sequence[Any]]) -> list[Any]:
         is_dep_obj = getattr(d, "dependency", None) is not None
         out.append(d if is_dep_obj else Security(d))
     return out
+
+
+def _requires_auth_header(auth_dep: Any) -> bool:
+    try:
+        sig = inspect.signature(auth_dep)
+    except (TypeError, ValueError):
+        return False
+    for param in sig.parameters.values():
+        default = param.default
+        dep = getattr(default, "dependency", None)
+        if isinstance(dep, HTTPBearer) and getattr(dep, "auto_error", True):
+            return True
+    return False
+
+
+def _require_auth_header(request: Request) -> None:
+    if not request.headers.get("Authorization"):
+        raise HTTPException(status_code=_status.HTTP_403_FORBIDDEN, detail="Forbidden")
 
 
 def _status_for(sp: OpSpec) -> int:

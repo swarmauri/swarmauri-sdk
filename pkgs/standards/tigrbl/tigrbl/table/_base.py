@@ -174,18 +174,41 @@ class Base(DeclarativeBase):
     __allow_unmapped__ = True
 
     def __init_subclass__(cls, **kw):
-        # 0) Remove any previously registered class with the same name.
+        # 0) Remove any previously registered class with the same module path.
         try:
             reg = Base.registry._class_registry
-            keys = [cls.__name__, f"{cls.__module__}.{cls.__name__}"]
-            existing = next((reg.get(k) for k in keys if reg.get(k) is not None), None)
+            key = f"{cls.__module__}.{cls.__name__}"
+            existing = reg.get(key)
             if existing is not None:
                 try:
                     Base.registry._dispose_cls(existing)
                 except Exception:
                     pass
-                for k in keys:
-                    reg.pop(k, None)
+                reg.pop(key, None)
+                if reg.get(cls.__name__) is existing:
+                    reg.pop(cls.__name__, None)
+        except Exception:
+            pass
+
+        # 0.5) If a table with the same name already exists, allow this class
+        # to extend it instead of raising duplicate-table errors.
+        try:
+            table_name = getattr(cls, "__tablename__", None)
+            if table_name and table_name in Base.metadata.tables:
+                table_args = getattr(cls, "__table_args__", None)
+                if table_args is None:
+                    cls.__table_args__ = {"extend_existing": True}
+                elif isinstance(table_args, dict):
+                    table_args = dict(table_args)
+                    table_args["extend_existing"] = True
+                    cls.__table_args__ = table_args
+                elif isinstance(table_args, tuple):
+                    if table_args and isinstance(table_args[-1], dict):
+                        table_dict = dict(table_args[-1])
+                        table_dict["extend_existing"] = True
+                        cls.__table_args__ = (*table_args[:-1], table_dict)
+                    else:
+                        cls.__table_args__ = (*table_args, {"extend_existing": True})
         except Exception:
             pass
 

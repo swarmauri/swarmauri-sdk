@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Optional, Mapping, Union, Any, Tuple
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, urlunsplit
 
 from ._engine import Engine, Provider, SessionFactory
 from .builders import (
@@ -102,41 +102,10 @@ class EngineSpec:
             if s.startswith("postgresql+asyncpg://") or s.startswith(
                 "postgres+asyncpg://"
             ):
-                u = urlsplit(s)
-                # Extract netloc parts user:pwd@host:port
-                user = u.username or None
-                pwd = u.password or None
-                host = u.hostname or None
-                port = u.port or None
-                name = (u.path or "/").lstrip("/") or None
-                return EngineSpec(
-                    kind="postgres",
-                    async_=True,
-                    dsn=s,
-                    user=user,
-                    pwd=pwd,
-                    host=host,
-                    port=port,
-                    name=name,
-                )
+                return EngineSpec(kind="postgres", async_=True, dsn=s)
             # postgres sync
             if s.startswith("postgresql://") or s.startswith("postgres://"):
-                u = urlsplit(s)
-                user = u.username or None
-                pwd = u.password or None
-                host = u.hostname or None
-                port = u.port or None
-                name = (u.path or "/").lstrip("/") or None
-                return EngineSpec(
-                    kind="postgres",
-                    async_=False,
-                    dsn=s,
-                    user=user,
-                    pwd=pwd,
-                    host=host,
-                    port=port,
-                    name=name,
-                )
+                return EngineSpec(kind="postgres", async_=False, dsn=s)
 
             raise ValueError(f"Unsupported DSN: {s}")
 
@@ -273,55 +242,103 @@ class EngineSpec:
             f"If this is an optional extension, install its package (e.g., 'pip install tigrbl_engine_{self.kind}')."
         )
 
-
-def supports(self) -> dict[str, Any]:
-    """Return capability dictionary for this engine spec.
-    For external kinds, consult the plugin registry if available.
-    """
-    # Built-ins
-    if self.kind == "sqlite":
-        try:
-            from .capabilities import sqlite_capabilities
-
-            return sqlite_capabilities(async_=self.async_, memory=self.memory)
-        except Exception:
-            pass
-    if self.kind == "postgres":
-        try:
-            from .capabilities import postgres_capabilities
-
-            return postgres_capabilities(async_=self.async_)
-        except Exception:
-            pass
-    # External/registered engines
-    try:
-        from .plugins import load_engine_plugins
-        from .registry import get_engine_registration
-
-        load_engine_plugins()
-        reg = get_engine_registration(self.kind or "")
-    except Exception:
-        reg = None
-    if reg and getattr(reg, "capabilities", None):
-        try:
-            # Try flexible signature: capabilities(spec=..., mapping=...)
-            return reg.capabilities(spec=self, mapping=self.mapping)
-        except TypeError:
+    def supports(self) -> dict[str, Any]:
+        """Return capability dictionary for this engine spec.
+        For external kinds, consult the plugin registry if available.
+        """
+        # Built-ins
+        if self.kind == "sqlite":
             try:
-                return reg.capabilities()
+                from .capabilities import sqlite_capabilities
+
+                return sqlite_capabilities(async_=self.async_, memory=self.memory)
             except Exception:
                 pass
+        if self.kind == "postgres":
+            try:
+                from .capabilities import postgres_capabilities
+
+                return postgres_capabilities(async_=self.async_)
+            except Exception:
+                pass
+        # External/registered engines
+        try:
+            from .plugins import load_engine_plugins
+            from .registry import get_engine_registration
+
+            load_engine_plugins()
+            reg = get_engine_registration(self.kind or "")
         except Exception:
-            pass
-    # Fallback minimal shape
-    return {
-        "transactional": False,
-        "async_native": bool(self.async_),
-        "isolation_levels": set(),
-        "read_only_enforced": False,
-        "engine": self.kind or "unknown",
-    }
+            reg = None
+        if reg and getattr(reg, "capabilities", None):
+            try:
+                # Try flexible signature: capabilities(spec=..., mapping=...)
+                return reg.capabilities(spec=self, mapping=self.mapping)
+            except TypeError:
+                try:
+                    return reg.capabilities()
+                except Exception:
+                    pass
+            except Exception:
+                pass
+        # Fallback minimal shape
+        return {
+            "transactional": False,
+            "async_native": bool(self.async_),
+            "isolation_levels": set(),
+            "read_only_enforced": False,
+            "engine": self.kind or "unknown",
+        }
 
     def to_provider(self) -> Provider:
         """Materialize a lazy :class:`Provider` for this spec."""
         return Provider(self)
+
+    def __repr__(self) -> str:  # pragma: no cover - deterministic output
+        def _redact_dsn(dsn: Optional[str]) -> Optional[str]:
+            if not dsn:
+                return dsn
+            try:
+                parts = urlsplit(dsn)
+            except Exception:
+                return dsn
+            if not parts.scheme or parts.password is None:
+                return dsn
+            user = parts.username or ""
+            userinfo = f"{user}:***" if user else "***"
+            host = parts.hostname or ""
+            netloc = f"{userinfo}@{host}" if host else userinfo
+            if parts.port is not None:
+                netloc = f"{netloc}:{parts.port}"
+            return urlunsplit(
+                (parts.scheme, netloc, parts.path, parts.query, parts.fragment)
+            )
+
+        def _redact_mapping(
+            mapping: Optional[Mapping[str, object]],
+        ) -> Optional[dict[str, object]]:
+            if mapping is None:
+                return None
+            redacted: dict[str, object] = {}
+            for key, value in mapping.items():
+                if str(key).lower() in {"pwd", "password", "pass", "secret"}:
+                    redacted[key] = "***"
+                else:
+                    redacted[key] = value
+            return redacted
+
+        fields = [
+            ("kind", self.kind),
+            ("async_", self.async_),
+            ("dsn", _redact_dsn(self.dsn)),
+            ("mapping", _redact_mapping(self.mapping)),
+            ("path", self.path),
+            ("memory", self.memory),
+            ("user", self.user),
+            ("host", self.host),
+            ("port", self.port),
+            ("name", self.name),
+            ("pool_size", self.pool_size),
+            ("max", self.max),
+        ]
+        return "EngineSpec(" + ", ".join(f"{k}={v!r}" for k, v in fields) + ")"
