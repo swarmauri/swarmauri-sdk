@@ -55,6 +55,7 @@ tigrbl-tests = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
+testpaths = ["../tigrbl_tests/tests"]
 markers = [
     "test: standard test",
     "unit: Unit tests",
