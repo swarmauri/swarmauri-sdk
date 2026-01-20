@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_auth_idp_aws"
-version = "0.1.0.dev0"
+version = "0.1.0.dev1"
 description = "AWS IAM Identity Center OAuth 2.0 / 2.1 login implementations for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

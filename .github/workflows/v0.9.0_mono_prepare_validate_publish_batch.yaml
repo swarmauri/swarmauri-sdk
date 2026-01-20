@@ -1,0 +1,360 @@
+name: v0.9.0 - Mono (Prepare, Validate, Publish) [Batch]
+
+on:
+  workflow_dispatch:
+    inputs:
+      members_json:
+        description: "JSON array of workspace members to process"
+        required: true
+      batch_index:
+        description: "Batch index for logging"
+        required: false
+      bump_type:
+        description: "Bump type {major,minor,patch,finalize}"
+        required: false
+        default: "patch"
+      set_version:
+        description: "Version (e.g. 0.2.0 or 0.2.0.dev1)"
+        required: false
+
+concurrency:
+  group: v0.9.0-mono-prepare-validate-publish-batch-${{ github.run_id }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  deployments: write
+
+jobs:
+  set-matrix:
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.get-matrix.outputs.matrix }}
+      approval_matrix: ${{ steps.get-matrix.outputs.approval_matrix }}
+      approval_required: ${{ steps.get-matrix.outputs.approval_required }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies for matrix generation
+        run: pip install toml
+
+      - name: Get workspace members
+        id: get-matrix
+        env:
+          MEMBERS_JSON: ${{ github.event.inputs.members_json }}
+        run: |
+          cd pkgs
+          python - <<'PY'
+          import json
+          import os
+          import toml
+          import urllib.error
+          import urllib.request
+
+          members = json.loads(os.environ["MEMBERS_JSON"])
+          if not isinstance(members, list):
+              raise RuntimeError("members_json must be a JSON list.")
+
+          members = list(dict.fromkeys(members))
+          matrix_entries = []
+          approval_entries = []
+
+          for member in members:
+              project_path = os.path.join(member, "pyproject.toml")
+              with open(project_path, "r") as member_file:
+                  member_config = toml.load(member_file)
+              package_name = member_config.get("project", {}).get("name")
+              if not package_name:
+                  raise RuntimeError(f"Unable to determine package name for member '{member}'.")
+              requires_approval = True
+              try:
+                  with urllib.request.urlopen(f"https://pypi.org/pypi/{package_name}/json") as response:
+                      requires_approval = response.status != 200
+              except urllib.error.HTTPError as exc:
+                  if exc.code == 404:
+                      requires_approval = True
+                  else:
+                      raise
+              entry = {
+                  "member": member,
+                  "package_name": package_name,
+                  "requires_approval": "true" if requires_approval else "false",
+              }
+              matrix_entries.append(entry)
+              if requires_approval:
+                  approval_entries.append(entry)
+
+          matrix = {"include": matrix_entries}
+          approval_matrix = {"include": approval_entries}
+          approval_required = "true" if approval_entries else "false"
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+              print(f"matrix={json.dumps(matrix)}", file=fh)
+              print(f"approval_matrix={json.dumps(approval_matrix)}", file=fh)
+              print(f"approval_required={approval_required}", file=fh)
+
+          print(f"Prepared matrix for {len(members)} members.")
+          PY
+
+  test:
+    needs: set-matrix
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
+      fail-fast: false
+    continue-on-error: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies for testing
+        run: pip install uv pytest toml
+
+      - name: Bump Version Placeholder
+        run: |
+          MEMBER="${{ matrix.member }}"
+          echo "Running tests for workspace member: $MEMBER"
+          PACKAGE_NAME="${{ matrix.package_name }}"
+          echo "Package name: $PACKAGE_NAME"
+
+          if [ -n "${{ github.event.inputs.set_version }}" ]; then
+            VERSION_ARG="--set ${{ github.event.inputs.set_version }}"
+          else
+            VERSION_ARG="--bump ${{ github.event.inputs.bump_type }}"
+          fi
+
+          uv run --active scripts/bump_pyproject_version.py $VERSION_ARG ${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml
+
+      - name: Ruff format
+        run: |
+          cd pkgs
+          MEMBER="${{ matrix.member }}"
+          echo "Running tests for workspace member: $MEMBER"
+          PACKAGE_NAME="${{ matrix.package_name }}"
+          echo "Package name: $PACKAGE_NAME"
+          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff format .
+
+      - name: Ruff lint check & fix
+        run: |
+          cd pkgs
+          MEMBER="${{ matrix.member }}"
+          echo "Running tests for workspace member: $MEMBER"
+          PACKAGE_NAME="${{ matrix.package_name }}"
+          echo "Package name: $PACKAGE_NAME"
+          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff check . --fix
+
+      - name: Run tests for member ${{ matrix.member }}
+        run: |
+          cd pkgs
+          MEMBER="${{ matrix.member }}"
+          echo "Running tests for workspace member: $MEMBER"
+          PACKAGE_NAME="${{ matrix.package_name }}"
+          echo "Package name: $PACKAGE_NAME"
+          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active pytest -vvv
+
+      - name: Create patch for changes
+        if: always()
+        run: |
+          mkdir -p patches
+          MEMBER="${{ matrix.member }}"
+          SAFE_MEMBER=$(echo "$MEMBER" | tr '/' '-')
+          git diff HEAD -- pkgs/"$MEMBER" > patches/patch_${SAFE_MEMBER}.patch
+
+      - name: Set safe member variable
+        if: always()
+        id: set_safe_member
+        run: |
+          echo "SAFE_MEMBER=$(echo '${{ matrix.member }}' | tr '/' '-')" >> $GITHUB_OUTPUT
+
+      - name: Upload patch artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: patch-${{ steps.set_safe_member.outputs.SAFE_MEMBER }}
+          path: patches/patch_${{ steps.set_safe_member.outputs.SAFE_MEMBER }}.patch
+          if-no-files-found: warn
+
+  commit:
+    name: Commit Changes
+    needs: test
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() && always() }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Download patch artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: patches
+
+      - name: List downloaded artifacts
+        run: ls -R patches || true
+
+      - name: Apply patches
+        run: |
+          find patches -type f -name "*.patch" | while read patch; do
+            echo "Applying patch $patch"
+            git apply -p1 "$patch" || echo "Warning: Patch $patch failed, continuing..."
+          done
+          rm -rf patches
+
+      - name: Configure SSH for deploy key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          git remote set-url origin git@github.com:${{ github.repository }}.git
+
+      - name: Git Commit and Push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          if ! git diff-index --quiet HEAD; then
+            git commit -m "chore: apply automatic formatting and lint fixes"
+            git pull --rebase origin "${{ github.ref }}"
+            git push origin HEAD:"${{ github.ref }}" --force
+          else
+            echo "No changes to commit."
+          fi
+
+  pypi_approval_gate:
+    needs: set-matrix
+    if: ${{ !cancelled() && needs.set-matrix.outputs.approval_required == 'true' }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.set-matrix.outputs.approval_matrix) }}
+      fail-fast: false
+      max-parallel: 1
+    timeout-minutes: 4320
+    environment:
+      name: pypi-new-package-approval
+      url: https://pypi.org/project/${{ matrix.package_name }}/
+    steps:
+      - name: Await manual approval in the environment gate
+        run: |
+          echo "::notice::Approval gate for '${{ matrix.package_name }}'. Use the 'Review deployments' banner to Approve and deploy."
+
+  release:
+    needs: [commit, set-matrix, pypi_approval_gate]
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() && always() && (needs.set-matrix.outputs.approval_required != 'true' || needs.pypi_approval_gate.result == 'success') }}
+    strategy:
+      matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
+      fail-fast: false
+      max-parallel: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install build tooling
+        run: pip install uv pytest toml
+
+      - name: Build
+        run: |
+          cd pkgs
+          MEMBER="${{ matrix.member }}"
+          echo "Building workspace member: $MEMBER"
+          PACKAGE_NAME="${{ matrix.package_name }}"
+          echo "Package name: $PACKAGE_NAME"
+          uv build --directory "$MEMBER" --package "$PACKAGE_NAME" -o distout
+
+      - name: Publish
+        run: |
+          cd pkgs
+          MEMBER="${{ matrix.member }}"
+          echo "Publishing workspace member: $MEMBER"
+          PACKAGE_NAME="${{ matrix.package_name }}"
+          echo "Package name: $PACKAGE_NAME"
+          uv publish --directory "$MEMBER" distout/* --token "${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}"
+
+      - name: Prepare release variables
+        id: prepare_release
+        run: |
+          cd pkgs/${{ matrix.member }}
+          PACKAGE_NAME="${{ matrix.package_name }}"
+          VERSION=$(python -c "import toml; print(toml.load('pyproject.toml')['project']['version'])")
+          TAG="${PACKAGE_NAME}==${VERSION}"
+          if [ "${{ github.event.inputs.bump_type }}" = "finalize" ] || [[ "$VERSION" != *".dev"* ]]; then
+            PRERELEASE_FLAG=false
+          else
+            PRERELEASE_FLAG=true
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "prerelease=$PRERELEASE_FLAG" >> $GITHUB_OUTPUT
+          echo "package_name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Computed tag: $TAG, prerelease: $PRERELEASE_FLAG"
+
+      - name: Create Git Tag
+        run: |
+          cd pkgs/${{ matrix.member }}
+          git tag "${{ steps.prepare_release.outputs.tag }}"
+          git push origin "${{ steps.prepare_release.outputs.tag }}"
+
+      - name: Generate Release Notes
+        id: generate_release_notes
+        run: |
+          cd pkgs/${{ matrix.member }}
+          CURRENT_TAG="${{ steps.prepare_release.outputs.tag }}"
+          PREVIOUS_TAG=$(git tag --list "${{ steps.prepare_release.outputs.package_name }}==*" --sort=-v:refname | grep -v "^${CURRENT_TAG}$" | head -n1)
+          echo "Previous tag: $PREVIOUS_TAG"
+          if [ -n "$PREVIOUS_TAG" ]; then
+            RELEASE_NOTES=$(git log "${PREVIOUS_TAG}..${CURRENT_TAG}" -- . --pretty=format:"* %s" --reverse)
+          else
+            RELEASE_NOTES="Initial release."
+          fi
+          echo "release_notes<<EOF" >> $GITHUB_OUTPUT
+          echo "$RELEASE_NOTES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Zip distribution artifacts
+        run: |
+          cd pkgs/${{ matrix.member }}
+          mkdir -p release_artifacts
+          ZIP_PATH=release_artifacts/${{ steps.prepare_release.outputs.package_name }}-${{ steps.prepare_release.outputs.version }}.zip
+          zip -j "$ZIP_PATH" distout/*.whl distout/*.tar.gz
+          echo "Artifacts zipped to: $ZIP_PATH"
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v2.2.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.prepare_release.outputs.tag }}
+          name: ${{ steps.prepare_release.outputs.tag }}
+          body: ${{ steps.generate_release_notes.outputs.release_notes }}
+          prerelease: ${{ steps.prepare_release.outputs.prerelease }}
+          files: |
+            pkgs/${{ matrix.member }}/release_artifacts/${{ steps.prepare_release.outputs.package_name }}-${{ steps.prepare_release.outputs.version }}.zip

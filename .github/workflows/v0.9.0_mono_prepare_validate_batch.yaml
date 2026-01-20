@@ -1,0 +1,186 @@
+name: v0.9.0 - Mono (Prepare, Validate) [Batch]
+
+on:
+  workflow_dispatch:
+    inputs:
+      members_json:
+        description: "JSON array of workspace members to process"
+        required: true
+      batch_index:
+        description: "Batch index for logging"
+        required: false
+
+concurrency:
+  group: v0.9.0-mono-prepare-validate-batch-${{ github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  set-matrix:
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.get-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies for matrix generation
+        run: pip install toml
+
+      - name: Get workspace members from input
+        id: get-matrix
+        env:
+          MEMBERS_JSON: ${{ github.event.inputs.members_json }}
+        run: |
+          cd pkgs
+          python - <<'PY'
+          import json
+          import os
+
+          members = json.loads(os.environ["MEMBERS_JSON"])
+          if not isinstance(members, list):
+              raise RuntimeError("members_json must be a JSON list.")
+
+          members = list(dict.fromkeys(members))
+          matrix = {"include": [{"member": member} for member in members]}
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+              print(f"matrix={json.dumps(matrix)}", file=fh)
+
+          print(f"Prepared matrix for {len(members)} members.")
+          PY
+
+  test:
+    needs: set-matrix
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
+      fail-fast: false
+    continue-on-error: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies for testing
+        run: pip install uv pytest toml
+
+      - name: Bump Version Placeholder
+        run: |
+          MEMBER="${{ matrix.member }}"
+          echo "Running tests for workspace member: $MEMBER"
+          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
+          echo "Package name: $PACKAGE_NAME"
+
+          uv run --active scripts/bump_pyproject_version.py --bump patch ${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml
+
+      - name: Ruff format
+        run: |
+          cd pkgs
+          MEMBER="${{ matrix.member }}"
+          echo "Running tests for workspace member: $MEMBER"
+          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
+          echo "Package name: $PACKAGE_NAME"
+          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff format .
+
+      - name: Ruff lint check & fix
+        run: |
+          cd pkgs
+          MEMBER="${{ matrix.member }}"
+          echo "Running tests for workspace member: $MEMBER"
+          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
+          echo "Package name: $PACKAGE_NAME"
+          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff check . --fix
+
+      - name: Run tests for member ${{ matrix.member }}
+        run: |
+          cd pkgs
+          MEMBER="${{ matrix.member }}"
+          echo "Running tests for workspace member: $MEMBER"
+          PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
+          echo "Package name: $PACKAGE_NAME"
+          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active pytest -vvv
+
+      - name: Create patch for changes
+        if: always()
+        run: |
+          mkdir -p patches
+          MEMBER="${{ matrix.member }}"
+          SAFE_MEMBER=$(echo "$MEMBER" | tr '/' '-')
+          git diff HEAD -- pkgs/"$MEMBER" > patches/patch_${SAFE_MEMBER}.patch
+
+      - name: Set safe member variable
+        id: set_safe_member
+        run: |
+          echo "SAFE_MEMBER=$(echo '${{ matrix.member }}' | tr '/' '-')" >> $GITHUB_OUTPUT
+
+      - name: Upload patch artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: patch-${{ steps.set_safe_member.outputs.SAFE_MEMBER }}
+          path: patches/patch_${{ steps.set_safe_member.outputs.SAFE_MEMBER }}.patch
+          if-no-files-found: warn
+
+  commit:
+    name: Commit Changes
+    needs: test
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() && always() }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Download patch artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: patches
+
+      - name: List downloaded artifacts
+        run: ls -R patches
+
+      - name: Apply patches
+        run: |
+          find patches -type f -name "*.patch" | while read patch; do
+            echo "Applying patch $patch"
+            git apply -p1 "$patch"
+          done
+          rm -rf patches
+
+      - name: Configure SSH for deploy key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          git remote set-url origin git@github.com:${{ github.repository }}.git
+
+      - name: Git Commit and Push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          if ! git diff-index --quiet HEAD; then
+            git commit -m "chore: apply automatic formatting and lint fixes"
+            git pull --rebase origin "${{ github.ref }}"
+            git push origin HEAD:"${{ github.ref }}" --force
+          else
+            echo "No changes to commit."
+          fi

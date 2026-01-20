@@ -1,6 +1,6 @@
 [project]
 name = "MediaSigner"
-version = "0.6.2.dev5"
+version = "0.6.2.dev6"
 description = "Swarmauri signing facade plugin that aggregates registered SigningBase providers."
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 license = "Apache-2.0"
