@@ -78,9 +78,14 @@ class EngineSpec:
             s = x.strip()
             # sqlite async
             if s.startswith("sqlite+aiosqlite://") or s.startswith("sqlite+aiosqlite:"):
-                path = s.split("sqlite+aiosqlite://")[-1]
-                path = path.lstrip("/") or None
-                mem = (path is None) or (path == ":memory:")
+                path = urlsplit(s).path or ""
+                if s.startswith("sqlite+aiosqlite:////"):
+                    if path.startswith("//"):
+                        path = path[1:]
+                    path = path or None
+                else:
+                    path = path.lstrip("/") or None
+                mem = path in {None, ":memory:", "/:memory:"} or s.endswith(":memory:")
                 return EngineSpec(
                     kind="sqlite", async_=True, path=path, memory=mem, dsn=s
                 )
@@ -92,7 +97,13 @@ class EngineSpec:
                         kind="sqlite", async_=False, path=None, memory=True, dsn=s
                     )
                 # Take the path part after scheme; urlsplit handles both sqlite:// and sqlite:/// forms
-                p = urlsplit(s).path.lstrip("/") or None
+                p = urlsplit(s).path or ""
+                if s.startswith("sqlite:////"):
+                    if p.startswith("//"):
+                        p = p[1:]
+                    p = p or None
+                else:
+                    p = p.lstrip("/") or None
                 mem = p is None
                 return EngineSpec(
                     kind="sqlite", async_=False, path=p, memory=mem, dsn=s
