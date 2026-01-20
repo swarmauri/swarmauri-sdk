@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupytergetiopubmessage"
-version = "0.8.0.dev9"
+version = "0.8.0.dev10"
 description = "A tool designed to retrieve messages from the IOPub channel of a Jupyter kernel using jupyter_client, capturing cell outputs and logs."
 license = "Apache-2.0"
 readme = "README.md"
