@@ -1,10 +1,19 @@
-from typing import Dict, Any, List, Set, Literal
+from typing import Any, Dict, List, Optional, Set, Literal
 import asyncio
 import uuid
 
 from pydantic import PrivateAttr
-from swarmauri_base.transports.TransportBase import TransportBase, TransportProtocol
+from swarmauri_base.transports.TransportBase import TransportBase
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_core.transports.capabilities import TransportCapabilities
+from swarmauri_core.transports.enums import (
+    AddressScheme,
+    Cast,
+    Feature,
+    IOModel,
+    Protocol,
+    SecurityMode,
+)
 
 
 @ComponentBase.register_type(TransportBase, "PubSubTransport")
@@ -17,6 +26,28 @@ class PubSubTransport(TransportBase):
         super().__init__(**kwargs)
         self._topics = {}
         self._messages = {}
+
+    def supports(self) -> TransportCapabilities:
+        return TransportCapabilities(
+            protocols=frozenset({Protocol.STDIO}),
+            io=IOModel.DATAGRAM,
+            casts=frozenset({Cast.BROADCAST, Cast.MULTICAST}),
+            features=frozenset({Feature.RELIABLE, Feature.ORDERED, Feature.LOCAL_ONLY}),
+            security=SecurityMode.NONE,
+            schemes=frozenset({AddressScheme.STDIO}),
+        )
+
+    async def _start_server(self, **bind_kwargs: Any) -> None:
+        return None
+
+    async def _stop_server(self) -> None:
+        return None
+
+    async def _open_client(self, **connect_kwargs: Any) -> None:
+        return None
+
+    async def _close_client(self) -> None:
+        return None
 
     async def subscribe(self, topic: str) -> str:
         """Subscribe to a topic and return subscriber ID."""
@@ -56,5 +87,10 @@ class PubSubTransport(TransportBase):
         for topic in topics:
             await self.publish(topic, message)
 
-    def send(self, message: Any, protocol: TransportProtocol) -> None:
-        raise NotImplementedError("send method is not supported for PubSubTransport.")
+    async def send(
+        self, target: str, data: bytes, *, timeout: Optional[float] = None
+    ) -> None:
+        raise NotImplementedError("send is not supported for PubSubTransport.")
+
+    async def recv(self, *, timeout: Optional[float] = None) -> bytes:
+        raise NotImplementedError("recv is not supported for PubSubTransport.")
