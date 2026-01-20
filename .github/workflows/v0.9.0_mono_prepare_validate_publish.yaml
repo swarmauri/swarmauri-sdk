@@ -23,7 +23,7 @@ jobs:
   generate-chunks:
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
     outputs:
       chunk_matrix: ${{ steps.chunk-members.outputs.chunk_matrix }}
     steps:
@@ -74,7 +74,7 @@ jobs:
     needs: generate-chunks
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
     strategy:
       matrix: ${{ fromJson(needs.generate-chunks.outputs.chunk_matrix) }}
       fail-fast: false
