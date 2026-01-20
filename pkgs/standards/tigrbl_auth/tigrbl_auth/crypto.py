@@ -20,11 +20,19 @@ from .deps import FileKeyProvider, ExportPolicy, KeyAlg, KeyClass, KeySpec, KeyU
 # Password hashing helpers
 # ---------------------------------------------------------------------
 _BCRYPT_ROUNDS = 12
+_BCRYPT_MAX_BYTES = 72
+
+
+def _bcrypt_bytes(plain: str) -> bytes:
+    data = plain.encode()
+    if len(data) > _BCRYPT_MAX_BYTES:
+        return data[:_BCRYPT_MAX_BYTES]
+    return data
 
 
 def hash_pw(plain: str) -> bytes:
     """Return bcrypt hash of *plain* (UTF-8 encoded)."""
-    return bcrypt.hashpw(plain.encode(), bcrypt.gensalt(_BCRYPT_ROUNDS))
+    return bcrypt.hashpw(_bcrypt_bytes(plain), bcrypt.gensalt(_BCRYPT_ROUNDS))
 
 
 def verify_pw(plain: str, hashed: bytes) -> bool:
@@ -32,7 +40,7 @@ def verify_pw(plain: str, hashed: bytes) -> bool:
     if hashed is None:
         return False
     try:
-        return bcrypt.checkpw(plain.encode(), hashed)
+        return bcrypt.checkpw(_bcrypt_bytes(plain), hashed)
     except (ValueError, TypeError):
         return False
 
