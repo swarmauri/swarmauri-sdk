@@ -5,21 +5,58 @@ build-backend = "hatchling.build"
 [project]
 name = "tigrbl_engine_dataframe"
 version = "0.1.0"
-description = "Tigrbl engine plugin: transactional pandas DataFrame engine/session"
+description = "Tigrbl engine plugin providing transactional pandas DataFrame sessions."
 readme = "README.md"
 license = { file = "LICENSE" }
-authors = [{ name = "Tigrbl Team", email = "engineering@example.com" }]
-requires-python = ">=3.10"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+requires-python = ">=3.10,<3.13"
+classifiers = [
+  "Development Status :: 1 - Planning",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Environment :: Plugins",
+  "Intended Audience :: Developers",
+  "Topic :: Database",
+  "Topic :: Software Development :: Libraries",
+]
+keywords = [
+  "tigrbl",
+  "engine",
+  "plugin",
+  "dataframe",
+  "pandas",
+  "database",
+]
 dependencies = [
   "pandas>=2.0",
   "tigrbl",
 ]
 
 [project.urls]
-Homepage = "https://example.com/tigrbl_engine_dataframe"
+Homepage = "https://github.com/swarmauri/swarmauri-sdk"
+Repository = "https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/tigrbl_engine_dataframe"
 
 [project.entry-points."tigrbl.engine"]
 dataframe = "tigrbl_engine_dataframe:register"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/tigrbl_engine_dataframe"]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.0",
+  "pytest-asyncio>=0.24.0",
+  "pytest-xdist>=3.6.1",
+  "pytest-json-report>=1.5.0",
+  "python-dotenv",
+  "requests>=2.32.3",
+  "flake8>=7.0",
+  "pytest-timeout>=2.3.1",
+  "ruff>=0.9.9",
+  "pytest-benchmark>=4.0.0",
+]

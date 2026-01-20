@@ -4,12 +4,14 @@ from typing import Any, Callable, Tuple, Mapping, Optional
 from tigrbl.engine._engine import Engine  # first-class engine façade
 from .session import ClickHouseSession
 
+
 class ClickHouseEngine(Engine):
     """Thin handle for ClickHouse connectivity parameters.
 
     Subclasses tigrbl's first-class :class:`Engine` for parity with built-ins.
     The session owns the actual driver client.
     """
+
     def __init__(
         self,
         *,
@@ -33,24 +35,25 @@ class ClickHouseEngine(Engine):
         self.verify = bool(verify) if verify is not None else True
         self.kwargs = dict(kwargs)
 
+
 def clickhouse_engine(
     *,
     mapping: Optional[Mapping[str, object]] = None,
     spec: Any = None,
     dsn: Optional[str] = None,
-    **kwargs: Any
+    **kwargs: Any,
 ) -> Tuple[ClickHouseEngine, Callable[[], Any]]:
     """Builder used by tigrbl to construct (engine, session_factory)."""
     m = dict(mapping or {})
     engine = ClickHouseEngine(
-        url = dsn or m.get("url") or kwargs.get("url"),
-        host = m.get("host") or kwargs.get("host"),
-        port = m.get("port") or kwargs.get("port"),
-        username = m.get("username") or kwargs.get("username"),
-        password = m.get("password") or kwargs.get("password"),
-        database = m.get("database") or kwargs.get("database"),
-        secure = m.get("secure") or kwargs.get("secure"),
-        verify = m.get("verify") or kwargs.get("verify"),
+        url=dsn or m.get("url") or kwargs.get("url"),
+        host=m.get("host") or kwargs.get("host"),
+        port=m.get("port") or kwargs.get("port"),
+        username=m.get("username") or kwargs.get("username"),
+        password=m.get("password") or kwargs.get("password"),
+        database=m.get("database") or kwargs.get("database"),
+        secure=m.get("secure") or kwargs.get("secure"),
+        verify=m.get("verify") or kwargs.get("verify"),
         **kwargs,
     )
 

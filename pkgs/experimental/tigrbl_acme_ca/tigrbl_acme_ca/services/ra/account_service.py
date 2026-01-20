@@ -6,6 +6,7 @@ from typing import Sequence, Optional
 from fastapi import HTTPException
 from tigrbl.op import op_ctx
 from tigrbl.hook import hook_ctx
+
 try:
     from tigrbl.config.constants import CTX_SKIP_PERSIST_FLAG
 except Exception:
@@ -14,7 +15,6 @@ except Exception:
 from tigrbl_acme_ca.tables.accounts import Account
 from tigrbl_acme_ca.tables.tos_agreements import TosAgreement
 
-from fastapi import HTTPException
 
 def _h(ctx, name: str):
     handlers = ctx.get("handlers") or {}
@@ -23,11 +23,14 @@ def _h(ctx, name: str):
         raise HTTPException(status_code=500, detail=f"handler_unavailable:{name}")
     return fn
 
+
 def _id(obj):
     return obj.get("id") if isinstance(obj, dict) else getattr(obj, "id", None)
 
+
 def _field(obj, name: str):
     return obj.get(name) if isinstance(obj, dict) else getattr(obj, name, None)
+
 
 @op_ctx(
     alias="new_account",
@@ -80,11 +83,15 @@ async def _record_tos(cls, ctx):
     if not obj:
         return
     create = _h(ctx, "table.create")
-    await create(table=TosAgreement, values={
-        "account_id": _id(obj),
-        "agreed": True,
-        "at": datetime.now(timezone.utc),
-    })
+    await create(
+        table=TosAgreement,
+        values={
+            "account_id": _id(obj),
+            "agreed": True,
+            "at": datetime.now(timezone.utc),
+        },
+    )
+
 
 setattr(Account, "new_account", new_account)
 setattr(Account, "_idempotent_by_thumbprint", _idempotent_by_thumbprint)

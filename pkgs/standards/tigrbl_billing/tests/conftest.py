@@ -36,8 +36,7 @@ def _op_ctx_decorator(**metadata):
         setattr(func, "_tigrbl_ctx", meta)
         bind = meta.get("bind")
         module_name = func.__module__ or ""
-        is_api_wrapper = ".api." in module_name
-        if bind is not None and isinstance(bind, type) and is_api_wrapper:
+        if bind is not None and isinstance(bind, type):
             ops = _REGISTERED_API_OPS.setdefault(bind, [])
             alias = meta.get("alias")
             if alias and not any(
@@ -51,7 +50,12 @@ def _op_ctx_decorator(**metadata):
                         "module": func.__module__,
                     }
                 )
+        is_api_wrapper = ".api." in module_name
         if is_api_wrapper:
+            return func
+
+        signature = inspect.signature(func)
+        if "op_ctx" in signature.parameters:
             return func
 
         # Adapter for ops-layer functions so they behave like their decorated counterparts.
@@ -474,8 +478,15 @@ class TigrblApp(FastAPI):
                 payload: Mapping[str, Any] = Body(default={}),
                 _func: Callable[..., Any] = func,
             ):  # pragma: no cover - dynamic
-                ctx = {"payload": dict(payload or {})}
-                result = _func(model, ctx)
+                payload_dict = dict(payload or {})
+                ctx = {"payload": payload_dict}
+                signature = inspect.signature(_func)
+                if "op_ctx" in signature.parameters:
+                    meta = getattr(_func, "_tigrbl_ctx", {})
+                    op_ctx = SimpleNamespace(**meta)
+                    result = _func(op_ctx, None, None, **payload_dict)
+                else:
+                    result = _func(model=model, ctx=ctx, **payload_dict)
                 if inspect.isawaitable(result):
                     result = await result
                 return result

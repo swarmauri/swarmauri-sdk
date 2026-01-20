@@ -32,6 +32,7 @@ from ..bindings.rest import build_router_and_attach as _build_router_and_attach
 from ..transport import mount_jsonrpc as _mount_jsonrpc
 from ..system import mount_diagnostics as _mount_diagnostics
 from ..op import get_registry, OpSpec
+from ..app._model_registry import initialize_model_registry
 
 
 class TigrblApi(_Api):
@@ -73,7 +74,7 @@ class TigrblApi(_Api):
         self.system_prefix = system_prefix
 
         # public containers (mirrors used by bindings.api)
-        self.models: Dict[str, type] = {}
+        self.models = initialize_model_registry(getattr(self, "MODELS", ()))
         self.schemas = SimpleNamespace()
         self.handlers = SimpleNamespace()
         self.hooks = SimpleNamespace()
@@ -231,6 +232,8 @@ class TigrblApi(_Api):
     ) -> None:
         if authn is not None:
             self._authn = authn
+            if allow_anon is None:
+                allow_anon = False
         if allow_anon is not None:
             self._allow_anon = bool(allow_anon)
         if authorize is not None:
@@ -270,6 +273,8 @@ class TigrblApi(_Api):
         tables = []
         for m in self.models.values():
             t = getattr(m, "__table__", None)
+            if t is not None and not t.columns:
+                continue
             if t is not None and t not in seen:
                 seen.add(t)
                 tables.append(t)

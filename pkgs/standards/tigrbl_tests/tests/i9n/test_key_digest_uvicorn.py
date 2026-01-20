@@ -1,9 +1,7 @@
 from uuid import uuid4
 
-import asyncio
 import httpx
 import pytest
-import uvicorn
 import pytest_asyncio
 
 from tigrbl import TigrblApp
@@ -21,6 +19,8 @@ from tigrbl.orm.tables._base import Base
 from tigrbl.specs import F, S, acol
 from tigrbl.types import App, Mapped, String
 from sqlalchemy import inspect
+
+from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server
 
 
 class ApiKey(Base, GUIDPk, Created, LastUsed, ValidityWindow, KeyDigest):
@@ -50,16 +50,11 @@ async def running_app(sync_db_session):
     await api.initialize()
     app.include_router(api.router)
 
-    cfg = uvicorn.Config(app, host="127.0.0.1", port=8000, log_level="warning")
-    server = uvicorn.Server(cfg)
-    task = asyncio.create_task(server.serve())
-    while not server.started:
-        await asyncio.sleep(0.1)
+    base_url, server, task = await run_uvicorn_in_task(app)
     try:
-        yield ("http://127.0.0.1:8000", engine)
+        yield (base_url, engine)
     finally:
-        server.should_exit = True
-        await task
+        await stop_uvicorn_server(server, task)
 
 
 def _payload() -> dict:

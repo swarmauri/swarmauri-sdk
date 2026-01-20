@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from typing import Optional
+
+from fastapi import HTTPException
 
 # Optional cryptography imports; if unavailable, fall back to cached bytes
 try:
@@ -26,9 +27,6 @@ class OcspCacheItem:
     updated_at: datetime
 
 
-
-from fastapi import HTTPException
-
 def _h(ctx, name: str):
     handlers = ctx.get("handlers") or {}
     fn = handlers.get(name)
@@ -36,11 +34,15 @@ def _h(ctx, name: str):
         raise HTTPException(status_code=500, detail=f"handler_unavailable:{name}")
     return fn
 
+
 def _id(obj):
     return obj.get("id") if isinstance(obj, dict) else getattr(obj, "id", None)
 
+
 def _field(obj, name: str):
     return obj.get(name) if isinstance(obj, dict) else getattr(obj, name, None)
+
+
 class InMemoryOcspResponder:
     """A minimal OCSP responder that can refresh per-certificate responses.
 
@@ -57,30 +59,41 @@ class InMemoryOcspResponder:
         if x509 is None or ocsp is None:
             # Fallback: store a simple JSON payload as bytes
             import json
+
             payload = {
                 "certificate_id": certificate_id,
                 "status": "unknown",
                 "updated_at": datetime.now(timezone.utc).isoformat(),
             }
-            data = json.dumps(payload, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
+            data = json.dumps(payload, separators=(",", ":"), ensure_ascii=True).encode(
+                "utf-8"
+            )
             self._cache[certificate_id] = OcspCacheItem(
-                certificate_id=certificate_id, response_der=data, updated_at=datetime.now(timezone.utc)
+                certificate_id=certificate_id,
+                response_der=data,
+                updated_at=datetime.now(timezone.utc),
             )
             return data
 
-        # With cryptography: build a "good" OCSP response by default
-        # use handlers instead of direct DB
+        # With cryptography: build a "good" OCSP response by default.
+        # Use handlers instead of direct DB.
+        db = ctx.get("db")
         if db is None:
-            # Can't load certs without DB in this simple implementation
+            # Can't load certs without DB in this simple implementation.
             return b""
 
-        # Load leaf certificate PEM from DB
-                from tigrbl_acme_ca.tables.certificates import Certificate
+        # Load leaf certificate PEM from DB.
+        from tigrbl_acme_ca.tables.certificates import Certificate
+
         read_by_id = _h(ctx, "table.read.by_id")
         cert_row = await read_by_id(table=Certificate, id=certificate_id)
         if not cert_row:
             return b""
-        cert_pem = cert_row.get("pem") if isinstance(cert_row, dict) else getattr(cert_row, "pem", None)
+        cert_pem = (
+            cert_row.get("pem")
+            if isinstance(cert_row, dict)
+            else getattr(cert_row, "pem", None)
+        )
         if not cert_pem:
             return b""
         try:
@@ -100,20 +113,8 @@ class InMemoryOcspResponder:
         except Exception:
             return b""
 
-        builder = ocsp.OCSPResponseBuilder()
-        # Build a single response entry
-        single = ocsp.OCSPResponseBuilder().add_response(
-            cert=cert,
-            issuer=issuer,
-            algorithm=hashes.SHA256(),
-            cert_status=ocsp.OCSPCertStatus.GOOD,
-            this_update=datetime.now(timezone.utc),
-            next_update=datetime.now(timezone.utc) + timedelta(hours=4),
-            revocation_time=None,
-            revocation_reason=None,
-        )
-        # cryptography's API requires building through OCSPResponseBuilder on the entry
-        # Workaround: use ocsp.OCSPResponseBuilder.add_response directly on a fresh builder
+        # cryptography's API requires building through OCSPResponseBuilder on the entry.
+        # Workaround: use ocsp.OCSPResponseBuilder.add_response directly on a fresh builder.
         builder = ocsp.OCSPResponseBuilder()
         builder = builder.add_response(
             cert=cert,
@@ -126,7 +127,9 @@ class InMemoryOcspResponder:
             revocation_reason=None,
         )
         try:
-            response = builder.responder_id(ocsp.OCSPResponderEncoding.HASH, issuer.subject).sign(
+            response = builder.responder_id(
+                ocsp.OCSPResponderEncoding.HASH, issuer.subject
+            ).sign(
                 private_key=issuer_key,
                 algorithm=hashes.SHA256(),
             )
@@ -135,7 +138,11 @@ class InMemoryOcspResponder:
             # On failure, return empty bytes to avoid poisoning cache
             return b""
 
-        item = OcspCacheItem(certificate_id=certificate_id, response_der=data, updated_at=datetime.now(timezone.utc))
+        item = OcspCacheItem(
+            certificate_id=certificate_id,
+            response_der=data,
+            updated_at=datetime.now(timezone.utc),
+        )
         self._cache[certificate_id] = item
         return data
 

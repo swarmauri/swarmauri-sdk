@@ -99,6 +99,7 @@ members = [
     "standards/swarmauri_pop_x509",
     "standards/swarmauri_prompt_j2prompttemplate",
     "standards/tigrbl",
+    "standards/tigrbl_tests",
     "standards/tigrbl_auth",
     "standards/tigrbl_kms",
     "standards/tigrbl_client",
@@ -343,6 +344,7 @@ swarmauri_middleware_circuitbreaker = { workspace = true }
 swarmauri_middleware_ratepolicy = { workspace = true }
 
 tigrbl = { workspace = true }
+tigrbl-tests = { workspace = true }
 tigrbl_client = { workspace = true }
 tigrbl_auth = { workspace = true }
 tigrbl_kms = { workspace = true }

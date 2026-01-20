@@ -6,7 +6,7 @@ from tigrbl_billing.tables.customer import Customer
 
 
 @op_ctx(
-    alias="create_or_link_customer",
+    alias="create_or_link",
     target="custom",
     arity="collection",
     bind=Customer,

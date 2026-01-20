@@ -1,6 +1,7 @@
 """Usage ops – record events and roll up to billing windows."""
 
 from __future__ import annotations
+from tigrbl import op_ctx
 from tigrbl.types import UUID
 from tigrbl_billing.tables.usage_event import UsageEvent
 from tigrbl_billing.tables.usage_rollup import UsageRollup
@@ -28,6 +29,13 @@ def _session_for(model, op_ctx):
         release()
 
 
+@op_ctx(
+    alias="rollup_periodic",
+    target="custom",
+    arity="collection",
+    bind=UsageRollup,
+    persist="default",
+)
 def rollup_usage_periodic(
     op_ctx,
     engine_ctx,

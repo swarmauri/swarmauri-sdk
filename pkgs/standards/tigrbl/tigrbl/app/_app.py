@@ -6,6 +6,8 @@ from ..deps.fastapi import FastAPI
 from ..engine.engine_spec import EngineCfg
 from ..engine import resolver as _resolver
 from ..engine import install_from_objects
+from ..ddl import initialize as _ddl_initialize
+from ._model_registry import initialize_model_registry
 from .app_spec import AppSpec
 
 
@@ -23,7 +25,7 @@ class App(AppSpec, FastAPI):
         self.ops = tuple(getattr(self, "OPS", ()))
         # Runtime registries use mutable containers (dict/namespace), but the
         # dataclass fields expect sequences. Storing a dict here satisfies both.
-        self.models = {}
+        self.models = initialize_model_registry(getattr(self, "MODELS", ()))
         self.schemas = tuple(getattr(self, "SCHEMAS", ()))
         self.hooks = tuple(getattr(self, "HOOKS", ()))
         self.security_deps = tuple(getattr(self, "SECURITY_DEPS", ()))
@@ -59,3 +61,26 @@ class App(AppSpec, FastAPI):
                 install_from_objects(app=self, api=a, models=models)
         else:
             install_from_objects(app=self, api=None, models=models)
+
+    def _collect_tables(self) -> list[Any]:
+        seen = set()
+        tables = []
+        for model in self.models.values():
+            if not hasattr(model, "__table__"):
+                try:  # pragma: no cover - defensive remap
+                    from ..table import Base
+                    from ..table._base import _materialize_colspecs_to_sqla
+
+                    _materialize_colspecs_to_sqla(model)
+                    Base.registry.map_declaratively(model)
+                except Exception:
+                    pass
+            table = getattr(model, "__table__", None)
+            if table is not None and not table.columns:
+                continue
+            if table is not None and table not in seen:
+                seen.add(table)
+                tables.append(table)
+        return tables
+
+    initialize = _ddl_initialize

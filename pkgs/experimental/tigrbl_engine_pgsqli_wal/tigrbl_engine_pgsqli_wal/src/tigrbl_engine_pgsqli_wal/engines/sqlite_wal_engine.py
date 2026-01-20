@@ -8,6 +8,7 @@ from sqlalchemy.orm import sessionmaker
 
 SessionFactory = sessionmaker
 
+
 def _sqlite_url(mapping: Mapping[str, Any] | None, dsn: str | None) -> str:
     if dsn:
         return dsn
@@ -15,16 +16,22 @@ def _sqlite_url(mapping: Mapping[str, Any] | None, dsn: str | None) -> str:
         raise ValueError("sqlite_wal requires either a DSN or a mapping.")
     path = str(mapping.get("path") or "").strip()
     if not path:
-        raise ValueError("sqlite_wal mapping requires 'path' to a file-backed database for WAL.")
+        raise ValueError(
+            "sqlite_wal mapping requires 'path' to a file-backed database for WAL."
+        )
     # Ensure parent directory exists (does not create the DB yet)
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     return f"sqlite+pysqlite:///{path}"
 
-def build_sqlite_wal_engine(*, mapping: Mapping[str, Any] | None = None, spec: Any | None = None,
-                            dsn: str | None = None, **_) -> Tuple[Any, SessionFactory]:
-    url = _sqlite_url(mapping, dsn)
-    pool_size = int((mapping or {}).get("pool_size") or getattr(spec, "pool_size", 5) or 5)
 
+def build_sqlite_wal_engine(
+    *,
+    mapping: Mapping[str, Any] | None = None,
+    spec: Any | None = None,
+    dsn: str | None = None,
+    **_,
+) -> Tuple[Any, SessionFactory]:
+    url = _sqlite_url(mapping, dsn)
     # For SQLite, SQLAlchemy ignores pool_size for pysqlite's default NullPool; keep simple defaults.
     eng = create_engine(
         url,
@@ -44,6 +51,7 @@ def build_sqlite_wal_engine(*, mapping: Mapping[str, Any] | None = None, spec: A
             cur.close()
 
     return eng, sessionmaker(bind=eng, expire_on_commit=False)
+
 
 def sqlite_wal_capabilities() -> dict[str, Any]:
     return {
