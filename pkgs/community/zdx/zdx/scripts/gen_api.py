@@ -204,7 +204,7 @@ def build_nav_structure(
 def _analyze_file(args: Tuple[str, str, str]):
     """Read a Python file and extract classes along with metadata.
 
-    Returns a tuple of (module, classes, cache_key, mtime, file_hash).
+    Returns a tuple of (module, classes, cache_key, mtime, size, file_hash).
     """
 
     fpath, module, docs_root = args
@@ -212,12 +212,17 @@ def _analyze_file(args: Tuple[str, str, str]):
         with open(fpath, "r", encoding="utf-8") as fh:
             content = fh.read()
     except Exception:
-        return module, [], os.path.relpath(fpath, docs_root), 0.0, ""
+        return module, [], os.path.relpath(fpath, docs_root), 0.0, 0, ""
+    try:
+        stat = os.stat(fpath)
+    except OSError:
+        return module, [], os.path.relpath(fpath, docs_root), 0.0, 0, ""
     classes = extract_classes_from_source(content)
-    mtime = os.path.getmtime(fpath)
+    mtime = stat.st_mtime
+    size = stat.st_size
     h = file_hash(content)
     ckey = os.path.relpath(fpath, docs_root)
-    return module, classes, ckey, mtime, h
+    return module, classes, ckey, mtime, size, h
 
 
 def load_mkdocs_yml(path: str):
@@ -311,6 +316,35 @@ def process_target(
                     f"Skipping non-package module (missing __init__.py in path): {module}"
                 )
                 continue
+            ckey = os.path.relpath(fpath, docs_root)
+            try:
+                stat = os.stat(fpath)
+            except OSError:
+                file_entries.append((fpath, module, docs_root))
+                continue
+            prev = cache["files"].get(ckey)
+            if (
+                prev
+                and prev.get("mtime") == stat.st_mtime
+                and prev.get("size") == stat.st_size
+                and "classes" in prev
+            ):
+                classes = prev.get("classes", [])
+                module_classes.setdefault(module, []).extend(classes)
+                mod_dir = os.path.join(
+                    docs_root,
+                    "docs",
+                    api_output_dir,
+                    target.name.lower(),
+                    os.path.dirname(module.replace(".", "/")),
+                )
+                if not classes:
+                    continue
+                for cls in classes:
+                    out_path = os.path.join(mod_dir, f"{cls}.md")
+                    if (not changed_only) or (not os.path.exists(out_path)):
+                        write_class_page(out_path, module, cls)
+                continue
             file_entries.append((fpath, module, docs_root))
 
         if not file_entries:
@@ -322,7 +356,7 @@ def process_target(
         else:
             results = list(map(_analyze_file, file_entries))
 
-        for module, classes, ckey, mtime, h in results:
+        for module, classes, ckey, mtime, size, h in results:
             module_classes.setdefault(module, []).extend(classes)
             prev = cache["files"].get(ckey)
             dirty = prev is None or prev.get("mtime") != mtime or prev.get("hash") != h
@@ -335,13 +369,23 @@ def process_target(
                 os.path.dirname(module.replace(".", "/")),
             )
             if not classes:
-                cache["files"][ckey] = {"mtime": mtime, "hash": h}
+                cache["files"][ckey] = {
+                    "mtime": mtime,
+                    "size": size,
+                    "hash": h,
+                    "classes": [],
+                }
                 continue
             for cls in classes:
                 out_path = os.path.join(mod_dir, f"{cls}.md")
                 if (not changed_only) or dirty or (not os.path.exists(out_path)):
                     write_class_page(out_path, module, cls)
-            cache["files"][ckey] = {"mtime": mtime, "hash": h}
+            cache["files"][ckey] = {
+                "mtime": mtime,
+                "size": size,
+                "hash": h,
+                "classes": classes,
+            }
 
     for k, v in list(module_classes.items()):
         module_classes[k] = sorted(set(v))
