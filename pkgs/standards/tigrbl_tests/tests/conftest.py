@@ -30,6 +30,11 @@ def event_loop():
     # pytest-asyncio < 0.21 compatibility pattern; adjust if you use the newer plugin configs
     loop = asyncio.new_event_loop()
     yield loop
+    pending = asyncio.all_tasks(loop)
+    for task in pending:
+        task.cancel()
+    if pending:
+        loop.run_until_complete(asyncio.gather(*pending, return_exceptions=True))
     loop.close()
 
 
