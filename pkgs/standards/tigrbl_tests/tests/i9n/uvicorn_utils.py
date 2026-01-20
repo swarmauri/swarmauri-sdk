@@ -30,6 +30,10 @@ async def run_uvicorn_in_task(
         server.should_exit = True
         if not task.done():
             task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
         raise
 
     return f"http://{host}:{port}", server, task
@@ -39,6 +43,13 @@ async def stop_uvicorn_server(server: uvicorn.Server, task: asyncio.Task) -> Non
     """Stop a uvicorn server started with run_uvicorn_in_task."""
     server.should_exit = True
     try:
-        await task
+        await asyncio.wait_for(task, timeout=5)
+    except asyncio.TimeoutError:
+        server.force_exit = True
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            return
     except asyncio.CancelledError:
         return
