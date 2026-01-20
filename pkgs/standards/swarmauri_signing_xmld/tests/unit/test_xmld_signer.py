@@ -136,13 +136,21 @@ def test_canon_xml_c14n11_from_str() -> None:
 
     canonical = _canon_xml(xml, canon="c14n11")
 
-    expected = etree.tostring(
-        etree.fromstring(xml.encode("utf-8")),
-        method="c14n",
-        exclusive=False,
-        with_comments=False,
-        c14n_version=1.1,
-    )
+    try:
+        expected = etree.tostring(
+            etree.fromstring(xml.encode("utf-8")),
+            method="c14n",
+            exclusive=False,
+            with_comments=False,
+            c14n_version=1.1,
+        )
+    except TypeError:
+        expected = etree.tostring(
+            etree.fromstring(xml.encode("utf-8")),
+            method="c14n",
+            exclusive=False,
+            with_comments=False,
+        )
     assert canonical == expected
 
 
