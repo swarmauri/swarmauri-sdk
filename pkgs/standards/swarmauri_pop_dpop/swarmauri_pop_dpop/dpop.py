@@ -54,6 +54,28 @@ def _resolve_kid(kid: Optional[str]) -> Optional[bytes]:
     return kid.encode("utf-8")
 
 
+def _parse_unverified_header(proof: str) -> Mapping[str, object]:
+    try:
+        parts = proof.split(".", maxsplit=2)
+    except (AttributeError, ValueError) as exc:
+        raise PoPParseError("DPoP header could not be parsed") from exc
+
+    if len(parts) != 3:
+        raise PoPParseError("DPoP header could not be parsed")
+
+    header_segment = parts[0]
+
+    try:
+        header_bytes = base64url_decode(header_segment.encode("utf-8"))
+        header = json.loads(header_bytes)
+    except (TypeError, binascii.Error, json.JSONDecodeError) as exc:
+        raise PoPParseError("DPoP header could not be parsed") from exc
+
+    if not isinstance(header, Mapping):
+        raise PoPParseError("DPoP header could not be parsed")
+    return header
+
+
 @ComponentBase.register_type(PopVerifierBase, "DPoPVerifier")
 class DPoPVerifier(PopVerifierBase):
     """Verifier for RFC 9449 DPoP proofs."""
@@ -130,7 +152,7 @@ class DPoPVerifier(PopVerifierBase):
             "verify_exp": False,
             "verify_iat": False,
             "verify_iss": False,
-            "require": ["htm", "htu", "iat", "jti"],
+            "require": ["htm", "htu", "iat"],
         }
 
         try:
