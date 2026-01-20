@@ -5,7 +5,7 @@ import json
 from typing import Mapping, Optional
 
 import jwt
-from jwt import InvalidTokenError
+from jwt import InvalidTokenError, MissingRequiredClaimError
 from jwt.algorithms import get_default_algorithms
 from jwt.utils import base64url_decode
 
@@ -100,7 +100,17 @@ class DPoPVerifier(PopVerifierBase):
     ) -> None:
         self._enforce_bind_type(cnf, context.policy, expected=BindType.JKT)
 
-        header = _parse_unverified_header(proof)
+        try:
+            segments = proof.split(".")
+            if len(segments) != 3:
+                raise ValueError("Invalid DPoP proof format")
+            header_segment = segments[0].encode("utf-8")
+            header_payload = base64url_decode(header_segment)
+            header = json.loads(header_payload)
+            if not isinstance(header, dict):
+                raise ValueError("Invalid DPoP header")
+        except (ValueError, TypeError, json.JSONDecodeError, binascii.Error) as exc:
+            raise PoPParseError("DPoP header could not be parsed") from exc
 
         alg = header.get("alg")
         if not isinstance(alg, str):
@@ -147,6 +157,10 @@ class DPoPVerifier(PopVerifierBase):
 
         try:
             payload = jwt.decode(proof, key_obj, algorithms=[alg], options=options)
+        except MissingRequiredClaimError as exc:
+            if exc.claim == "jti":
+                raise PoPParseError("Missing jti claim") from exc
+            raise PoPParseError(f"Missing {exc.claim} claim") from exc
         except InvalidTokenError as exc:
             raise PoPVerificationError("DPoP signature verification failed") from exc
 
