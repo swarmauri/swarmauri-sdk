@@ -1,9 +1,31 @@
 [project]
 name = "tigrbl-acme-ca"
 version = "0.1.0"
-description = "ACME v2 CA tables for Tigrbl"
+description = "ACME v2 CA tables for Tigrbl."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.13"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+classifiers = [
+  "Development Status :: 1 - Planning",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Intended Audience :: Developers",
+  "Topic :: Security",
+  "Topic :: Software Development :: Libraries",
+]
+keywords = [
+  "tigrbl",
+  "acme",
+  "certificate",
+  "ca",
+  "security",
+]
 dependencies = ["tigrbl>=0.3.0.dev4"]
 
 [build-system]
@@ -12,3 +34,17 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["tigrbl_acme_ca"]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.0",
+  "pytest-asyncio>=0.24.0",
+  "pytest-xdist>=3.6.1",
+  "pytest-json-report>=1.5.0",
+  "python-dotenv",
+  "requests>=2.32.3",
+  "flake8>=7.0",
+  "pytest-timeout>=2.3.1",
+  "ruff>=0.9.9",
+  "pytest-benchmark>=4.0.0",
+]
