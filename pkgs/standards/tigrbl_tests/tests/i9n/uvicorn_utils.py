@@ -3,6 +3,7 @@ import socket
 from typing import Tuple
 
 import uvicorn
+from tigrbl.system import stop_uvicorn_server as stop_uvicorn_server_impl
 
 
 async def run_uvicorn_in_task(
@@ -37,8 +38,4 @@ async def run_uvicorn_in_task(
 
 async def stop_uvicorn_server(server: uvicorn.Server, task: asyncio.Task) -> None:
     """Stop a uvicorn server started with run_uvicorn_in_task."""
-    server.should_exit = True
-    try:
-        await task
-    except asyncio.CancelledError:
-        return
+    await stop_uvicorn_server_impl(server, task)
