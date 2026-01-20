@@ -220,7 +220,7 @@ jobs:
     needs: [commit, package-info]
     if: ${{ !cancelled() && needs.package-info.outputs.requires_approval == 'true' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 4320   # up to 3 days for manual approval
+    timeout-minutes: 15   # up to 15 minutes for manual approval
     environment:
       name: pypi-new-package-approval
       url: https://pypi.org/project/${{ needs.package-info.outputs.package_name }}/
