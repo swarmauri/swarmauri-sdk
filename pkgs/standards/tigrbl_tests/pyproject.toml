@@ -20,6 +20,7 @@ classifiers = [
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "tigrbl",
+    "asyncpg>=0.30.0",
     "pytest>=8.0",
     "pytest-asyncio>=0.24.0",
     "pytest-xdist>=3.6.1",
