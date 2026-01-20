@@ -7,7 +7,7 @@ license = "Apache-2.0"
 requires-python = ">=3.10,<3.13"
 authors = [{ name = "Swarmauri Team", email = "team@swarmauri.com" }]
 dependencies = [
-  "tigrbl>=0.3.0",
+  "tigrbl>=0.3.0.dev4",
   "clickhouse-connect>=0.6.0",
 ]
 

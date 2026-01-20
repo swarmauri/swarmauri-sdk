@@ -1,6 +1,7 @@
 from .engine import BigQueryEngine, bigquery_engine
 from .session import BigQuerySession
 
+
 def register() -> None:
     """Entry point hook invoked by tigrbl to register the engine kind."""
     try:
@@ -11,6 +12,7 @@ def register() -> None:
         from tigrbl.engine import register_engine  # type: ignore
     # Register the builder under kind='bigquery'
     register_engine("bigquery", bigquery_engine)
+
 
 __all__ = [
     "BigQueryEngine",

@@ -6,7 +6,6 @@ from fastapi import HTTPException
 from tigrbl_acme_ca.tables.accounts import Account
 from tigrbl_acme_ca.tables.tos_agreements import TosAgreement
 
-from fastapi import HTTPException
 
 def _h(ctx, name: str):
     handlers = ctx.get("handlers") or {}
@@ -15,11 +14,14 @@ def _h(ctx, name: str):
         raise HTTPException(status_code=500, detail=f"handler_unavailable:{name}")
     return fn
 
+
 def _id(obj):
     return obj.get("id") if isinstance(obj, dict) else getattr(obj, "id", None)
 
+
 def _field(obj, name: str):
     return obj.get(name) if isinstance(obj, dict) else getattr(obj, name, None)
+
 
 async def new_account(ctx) -> Dict[str, Any]:
     p = ctx.get("payload") or {}
@@ -41,13 +43,18 @@ async def new_account(ctx) -> Dict[str, Any]:
         return existing
 
     now = datetime.now(timezone.utc)
-    acct = await create(table=Account, values={
-        "key_thumbprint": key_thumbprint,
-        "status": "valid",
-        "contacts": list(contacts),
-        "external_binding": external_binding,
-        "created_at": now,
-        "deactivated_at": None,
-    })
-    await create(table=TosAgreement, values={"account_id": _id(acct), "agreed": True, "at": now})
+    acct = await create(
+        table=Account,
+        values={
+            "key_thumbprint": key_thumbprint,
+            "status": "valid",
+            "contacts": list(contacts),
+            "external_binding": external_binding,
+            "created_at": now,
+            "deactivated_at": None,
+        },
+    )
+    await create(
+        table=TosAgreement, values={"account_id": _id(acct), "agreed": True, "at": now}
+    )
     return acct

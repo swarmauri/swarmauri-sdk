@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+
 async def validate_http01(ctx, domain: str, token: str, key_authorization: str) -> bool:
     http = ctx.get("http_client")
     if http is None:

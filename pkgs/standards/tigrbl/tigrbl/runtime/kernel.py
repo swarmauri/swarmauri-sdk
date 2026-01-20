@@ -11,6 +11,7 @@ from types import SimpleNamespace
 from typing import (
     Any,
     Callable,
+    ClassVar,
     Dict,
     Iterable,
     List,
@@ -262,15 +263,12 @@ class Kernel:
     Auto-primed under the hood. Downstream users never touch this.
     """
 
-    _singleton: Optional["Kernel"] = None
+    _instance: ClassVar["Kernel | None"] = None
 
     def __new__(cls, *args: Any, **kwargs: Any) -> "Kernel":
-        atoms = kwargs.get("atoms")
-        if atoms is None:
-            if cls._singleton is None:
-                cls._singleton = super().__new__(cls)
-            return cls._singleton
-        return super().__new__(cls)
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
 
     def __init__(self, atoms: Optional[Sequence[_DiscoveredAtom]] = None):
         if atoms is None and getattr(self, "_singleton_initialized", False):

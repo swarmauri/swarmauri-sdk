@@ -3,6 +3,7 @@ from typing import Any, Optional
 
 from tigrbl.session.base import TigrblSessionBase  # first-class session base
 
+
 class ClickHouseSession(TigrblSessionBase):
     """A Tigrbl session backed by clickhouse-connect (sync client).
 
@@ -10,6 +11,7 @@ class ClickHouseSession(TigrblSessionBase):
     :class:`TigrblSessionBase`. ClickHouse does not provide general-purpose
     transactions; the tx hooks are treated as no-ops.
     """
+
     def __init__(self, engine: Any, *, url: Optional[str] = None) -> None:
         super().__init__()
         self._engine = engine
@@ -23,11 +25,15 @@ class ClickHouseSession(TigrblSessionBase):
             try:
                 import clickhouse_connect
             except Exception as e:  # pragma: no cover
-                raise RuntimeError("clickhouse-connect is required for ClickHouseSession") from e
+                raise RuntimeError(
+                    "clickhouse-connect is required for ClickHouseSession"
+                ) from e
 
             if self._url_override or self._engine.url:
                 # clickhouse-connect supports URL form
-                self._client = clickhouse_connect.get_client(url=self._url_override or self._engine.url)
+                self._client = clickhouse_connect.get_client(
+                    url=self._url_override or self._engine.url
+                )
             else:
                 self._client = clickhouse_connect.get_client(
                     host=self._engine.host,
@@ -52,10 +58,14 @@ class ClickHouseSession(TigrblSessionBase):
         return None
 
     def _add_impl(self, obj: Any) -> Any:
-        raise NotImplementedError("ClickHouseSession.add is not supported; use _execute_impl with INSERT")
+        raise NotImplementedError(
+            "ClickHouseSession.add is not supported; use _execute_impl with INSERT"
+        )
 
     async def _delete_impl(self, obj: Any) -> None:
-        raise NotImplementedError("ClickHouseSession.delete is not supported; use _execute_impl with DELETE")
+        raise NotImplementedError(
+            "ClickHouseSession.delete is not supported; use _execute_impl with DELETE"
+        )
 
     async def _flush_impl(self) -> None:
         # No buffering by default
@@ -79,7 +89,9 @@ class ClickHouseSession(TigrblSessionBase):
             return stmt(self.client)
 
         if not isinstance(stmt, str):
-            raise NotImplementedError(f"Unsupported stmt type: {type(stmt)}; expected SQL string or callable")
+            raise NotImplementedError(
+                f"Unsupported stmt type: {type(stmt)}; expected SQL string or callable"
+            )
 
         sql = stmt.strip()
         # Heuristic: treat SELECT/SHOW/DESCRIBE/EXPLAIN as queries
