@@ -8,5 +8,6 @@ Tigrbl v3 – System/Diagnostics helpers.
 from __future__ import annotations
 
 from .diagnostics import mount_diagnostics
+from .uvicorn import stop_uvicorn_server
 
-__all__ = ["mount_diagnostics"]
+__all__ = ["mount_diagnostics", "stop_uvicorn_server"]
