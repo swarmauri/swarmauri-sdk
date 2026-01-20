@@ -6,6 +6,7 @@ from redis import Redis
 from sqlalchemy.orm import Session as SASession
 from tigrbl.session import TigrblSessionBase, SessionSpec
 
+
 class CacheThroughSession(TigrblSessionBase):
     """A Tigrbl session that wraps a SQLAlchemy Session plus a Redis client.
 
@@ -48,7 +49,7 @@ class CacheThroughSession(TigrblSessionBase):
 
     async def _delete_impl(self, obj: Any) -> None:
         # Best-effort invalidation if PK is available
-        pk = getattr(obj, 'id', None)
+        pk = getattr(obj, "id", None)
         if pk is not None:
             key = self._cache_key(type(obj), pk)
             try:
@@ -83,7 +84,9 @@ class CacheThroughSession(TigrblSessionBase):
         obj = self._sa.get(model, ident)
         if obj is not None:
             try:
-                self._r.setex(key, self._ttl, pickle.dumps(obj, protocol=pickle.HIGHEST_PROTOCOL))
+                self._r.setex(
+                    key, self._ttl, pickle.dumps(obj, protocol=pickle.HIGHEST_PROTOCOL)
+                )
             except Exception:
                 # Cache is best-effort
                 pass
@@ -99,7 +102,7 @@ class CacheThroughSession(TigrblSessionBase):
         finally:
             try:
                 # Redis >= 4
-                close = getattr(self._r, 'close', None)
+                close = getattr(self._r, "close", None)
                 if callable(close):
                     close()
             except Exception:

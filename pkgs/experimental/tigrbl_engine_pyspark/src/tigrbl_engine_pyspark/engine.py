@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import Any, Callable, Tuple, Optional, Dict
 from pyspark.sql import SparkSession
 
+
 def pyspark_engine(
     app_name: str = "tigrbl-pyspark",
     conf: Optional[Dict[str, str]] = None,
@@ -15,11 +16,14 @@ def pyspark_engine(
 
     class _SessionHandle:
         """Thin wrapper exposing .close() and delegating to SparkSession."""
+
         def __init__(self, spark_session: SparkSession) -> None:
             self.spark = spark_session
+
         def close(self) -> None:
             # No-op by default; allow the application to manage lifecycle.
             pass
+
         def __getattr__(self, name: str) -> Any:
             return getattr(self.spark, name)
 
@@ -27,6 +31,7 @@ def pyspark_engine(
         return _SessionHandle(spark)
 
     return spark, session_factory
+
 
 def pyspark_capabilities() -> dict:
     return {

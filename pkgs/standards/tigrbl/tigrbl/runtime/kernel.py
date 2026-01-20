@@ -11,6 +11,7 @@ from types import SimpleNamespace
 from typing import (
     Any,
     Callable,
+    ClassVar,
     Dict,
     Iterable,
     List,
@@ -261,6 +262,13 @@ class Kernel:
     SSoT for runtime scheduling. One Kernel per App (not per API).
     Auto-primed under the hood. Downstream users never touch this.
     """
+
+    _instance: ClassVar["Kernel | None"] = None
+
+    def __new__(cls, *args: Any, **kwargs: Any) -> "Kernel":
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
 
     def __init__(self, atoms: Optional[Sequence[_DiscoveredAtom]] = None):
         self._atoms_cache: Optional[list[_DiscoveredAtom]] = (

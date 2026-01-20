@@ -10,6 +10,7 @@ except Exception:  # pragma: no cover
     hashes = None
     Prehashed = None
 
+
 @dataclass
 class KmsClientAdapter:
     """A minimal in-memory KMS-like adapter interface.
@@ -17,9 +18,12 @@ class KmsClientAdapter:
     This is NOT a secure KMS. It exists so the rest of the system has a working
     implementation in dev environments. Production should provide a real client.
     """
+
     keys: Dict[str, Any]
 
-    async def sign(self, *, key_id: str, message: bytes, algorithm: str = "SHA256") -> bytes:
+    async def sign(
+        self, *, key_id: str, message: bytes, algorithm: str = "SHA256"
+    ) -> bytes:
         key = self.keys.get(key_id)
         if key is None:
             raise KeyError(f"unknown key_id: {key_id}")
@@ -35,8 +39,10 @@ class KmsClientAdapter:
             except Exception:
                 # Fallback to direct hash if Prehashed not supported
                 from cryptography.hazmat.primitives.asymmetric import padding
+
                 return key.sign(message, padding.PKCS1v15(), h)
         raise TypeError("provided key does not support .sign()")
+
 
 def from_config(config: dict) -> Optional[KmsClientAdapter]:
     # For dev: allow wiring a preloaded key dict via runtime; default is None.

@@ -1,10 +1,12 @@
 from __future__ import annotations
 
-from typing import Dict, Tuple, List, Any
+from typing import Dict, Tuple, List
+
 
 def _get_accept(ctx) -> str:
     hdrs = ctx.get("request_headers") or {}
-    return (hdrs.get("accept") or hdrs.get("Accept") or "*/*")
+    return hdrs.get("accept") or hdrs.get("Accept") or "*/*"
+
 
 def attach_replay_nonce(ctx, value: str) -> None:
     try:
@@ -13,7 +15,10 @@ def attach_replay_nonce(ctx, value: str) -> None:
     except Exception:
         pass
 
-def negotiate_cert_response(ctx, pem: str, chain: List[str] | None = None) -> Tuple[int, Dict[str, str], bytes]:
+
+def negotiate_cert_response(
+    ctx, pem: str, chain: List[str] | None = None
+) -> Tuple[int, Dict[str, str], bytes]:
     """Negotiate certificate download format based on Accept header.
     application/pem-certificate-chain: full chain as concatenated PEMs
     application/pem-certificate: leaf only

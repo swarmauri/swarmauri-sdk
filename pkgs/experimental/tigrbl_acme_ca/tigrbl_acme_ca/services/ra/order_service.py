@@ -12,7 +12,6 @@ from tigrbl_acme_ca.tables.orders import Order
 from tigrbl_acme_ca.tables.authorizations import Authorization
 from tigrbl_acme_ca.tables.challenges import Challenge
 
-from fastapi import HTTPException
 
 def _h(ctx, name: str):
     handlers = ctx.get("handlers") or {}
@@ -21,13 +20,17 @@ def _h(ctx, name: str):
         raise HTTPException(status_code=500, detail=f"handler_unavailable:{name}")
     return fn
 
+
 def _id(obj):
     return obj.get("id") if isinstance(obj, dict) else getattr(obj, "id", None)
+
 
 def _field(obj, name: str):
     return obj.get(name) if isinstance(obj, dict) else getattr(obj, name, None)
 
+
 _ORDER_TTL_SECONDS = 7 * 24 * 3600
+
 
 @op_ctx(
     alias="new_order",
@@ -75,31 +78,41 @@ async def _provision_authzs_and_challenges(cls, ctx):
 
     for name in identifiers:
         is_wild = name.startswith("*.")
-        authz = await create(table=Authorization, values={
-            "order_id": order_id,
-            "identifier": name,
-            "status": "pending",
-            "expires_at": expires_at,
-            "wildcard": is_wild,
-        })
+        authz = await create(
+            table=Authorization,
+            values={
+                "order_id": order_id,
+                "identifier": name,
+                "status": "pending",
+                "expires_at": expires_at,
+                "wildcard": is_wild,
+            },
+        )
         authz_id = _id(authz)
         if is_wild:
-            await create(table=Challenge, values={
-                "authorization_id": authz_id,
-                "type": "dns-01",
-                "status": "pending",
-                "token": _token(),
-                "validated_at": None,
-            })
-        else:
-            for ctype in ("http-01", "dns-01"):
-                await create(table=Challenge, values={
+            await create(
+                table=Challenge,
+                values={
                     "authorization_id": authz_id,
-                    "type": ctype,
+                    "type": "dns-01",
                     "status": "pending",
                     "token": _token(),
                     "validated_at": None,
-                })
+                },
+            )
+        else:
+            for ctype in ("http-01", "dns-01"):
+                await create(
+                    table=Challenge,
+                    values={
+                        "authorization_id": authz_id,
+                        "type": ctype,
+                        "status": "pending",
+                        "token": _token(),
+                        "validated_at": None,
+                    },
+                )
+
 
 setattr(Order, "new_order", new_order)
 setattr(Order, "_provision_authzs_and_challenges", _provision_authzs_and_challenges)

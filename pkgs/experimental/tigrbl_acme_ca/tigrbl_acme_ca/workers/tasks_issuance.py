@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-import base64, secrets
+import base64
+import secrets
 from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException
 
@@ -8,7 +9,6 @@ from tigrbl_acme_ca.tables.orders import Order
 from tigrbl_acme_ca.tables.authorizations import Authorization
 from tigrbl_acme_ca.tables.certificates import Certificate
 
-from fastapi import HTTPException
 
 def _h(ctx, name: str):
     handlers = ctx.get("handlers") or {}
@@ -17,15 +17,19 @@ def _h(ctx, name: str):
         raise HTTPException(status_code=500, detail=f"handler_unavailable:{name}")
     return fn
 
+
 def _id(obj):
     return obj.get("id") if isinstance(obj, dict) else getattr(obj, "id", None)
+
 
 def _field(obj, name: str):
     return obj.get(name) if isinstance(obj, dict) else getattr(obj, name, None)
 
+
 def _b64url_to_bytes(data: str) -> bytes:
-    pad = '=' * (-len(data) % 4)
+    pad = "=" * (-len(data) % 4)
     return base64.urlsafe_b64decode(data + pad)
+
 
 async def ensure_certificate_task(ctx, *, order_id: str) -> dict:
     read_by_id = _h(ctx, "table.read.by_id")
@@ -38,7 +42,11 @@ async def ensure_certificate_task(ctx, *, order_id: str) -> dict:
         raise HTTPException(status_code=404, detail="order_not_found")
 
     if _field(order, "certificate_id"):
-        return {"order_id": order_id, "status": _field(order, "status"), "certificate_id": str(_field(order, "certificate_id"))}
+        return {
+            "order_id": order_id,
+            "status": _field(order, "status"),
+            "certificate_id": str(_field(order, "certificate_id")),
+        }
 
     if _field(order, "status") not in ("ready", "processing"):
         raise HTTPException(status_code=409, detail="order_not_in_processing")
@@ -57,7 +65,9 @@ async def ensure_certificate_task(ctx, *, order_id: str) -> dict:
     engine = ctx.get("signing_engine")
     now = datetime.now(timezone.utc)
     not_before = now
-    not_after = now + timedelta(days=int((ctx.get("config") or {}).get("acme.validity_days", 90)))
+    not_after = now + timedelta(
+        days=int((ctx.get("config") or {}).get("acme.validity_days", 90))
+    )
 
     if engine is not None and hasattr(engine, "issue_certificate"):
         issued = await engine.issue_certificate(csr_der=csr_der, sans=sans)
@@ -70,8 +80,22 @@ async def ensure_certificate_task(ctx, *, order_id: str) -> dict:
         serial_hex = secrets.token_hex(16)
         nb, na = not_before, not_after
 
-    cert = await create(table=Certificate, values={"account_id": _field(order, "account_id"), "order_id": order_id, "serial_hex": serial_hex, "not_before": nb, "not_after": na, "pem": pem})
-    await update(table=Order, id=order_id, values={"certificate_id": _id(cert), "status": "valid"})
+    cert = await create(
+        table=Certificate,
+        values={
+            "account_id": _field(order, "account_id"),
+            "order_id": order_id,
+            "serial_hex": serial_hex,
+            "not_before": nb,
+            "not_after": na,
+            "pem": pem,
+        },
+    )
+    await update(
+        table=Order,
+        id=order_id,
+        values={"certificate_id": _id(cert), "status": "valid"},
+    )
 
     ct = ctx.get("ct_client")
     if ct:
@@ -82,10 +106,12 @@ async def ensure_certificate_task(ctx, *, order_id: str) -> dict:
 
     return {"order_id": order_id, "certificate_id": str(_id(cert))}
 
+
 async def publish_ct_for_certificate_task(ctx, *, certificate_id: str) -> dict:
     read_by_id = _h(ctx, "table.read.by_id")
 
     from tigrbl_acme_ca.tables.certificates import Certificate
+
     cert = await read_by_id(table=Certificate, id=certificate_id)
     if not cert:
         raise HTTPException(status_code=404, detail="certificate_not_found")

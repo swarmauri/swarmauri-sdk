@@ -1,5 +1,6 @@
 from __future__ import annotations
-from typing import Any, Optional
+from typing import Any
+
 
 class BigQuerySession:
     """Represents a logical unit of work against BigQuery.
@@ -12,6 +13,7 @@ class BigQuerySession:
     >>> s = BigQuerySession(engine)
     >>> # rows = s.query("SELECT 1")   # requires google-cloud-bigquery installed & configured
     """
+
     def __init__(self, engine: Any) -> None:
         self.engine = engine
         self._client = None  # lazy
@@ -28,7 +30,10 @@ class BigQuerySession:
         """Lazily create a BigQuery client when first used."""
         if self._client is None:
             from google.cloud import bigquery  # heavy import delayed
-            self._client = bigquery.Client(project=self.engine.project, **self.engine.kwargs)
+
+            self._client = bigquery.Client(
+                project=self.engine.project, **self.engine.kwargs
+            )
         return self._client
 
     def query(self, sql: str, **job_config_kwargs):
@@ -40,7 +45,10 @@ class BigQuerySession:
           should add schemas, timeouts, and retries as appropriate.
         """
         from google.cloud import bigquery
-        job_config = bigquery.QueryJobConfig(**job_config_kwargs) if job_config_kwargs else None
+
+        job_config = (
+            bigquery.QueryJobConfig(**job_config_kwargs) if job_config_kwargs else None
+        )
         job = self.client.query(sql, job_config=job_config)
         return job.result()
 
