@@ -262,18 +262,30 @@ class Kernel:
     Auto-primed under the hood. Downstream users never touch this.
     """
 
+    _singleton: Optional["Kernel"] = None
+
+    def __new__(cls, *args: Any, **kwargs: Any) -> "Kernel":
+        atoms = kwargs.get("atoms")
+        if atoms is None:
+            if cls._singleton is None:
+                cls._singleton = super().__new__(cls)
+            return cls._singleton
+        return super().__new__(cls)
+
     def __init__(self, atoms: Optional[Sequence[_DiscoveredAtom]] = None):
-        self._atoms_cache: Optional[list[_DiscoveredAtom]] = (
-            list(atoms) if atoms else None
-        )
+        if atoms is None and getattr(self, "_singleton_initialized", False):
+            self._reset(atoms)
+            return
+        self._reset(atoms)
+        if atoms is None:
+            self._singleton_initialized = True
+
+    def _reset(self, atoms: Optional[Sequence[_DiscoveredAtom]] = None) -> None:
+        self._atoms_cache = list(atoms) if atoms else None
         self._specs_cache = _SpecsOnceCache()
-        self._opviews: _WeakMaybeDict[Any, Dict[Tuple[type, str], OpView]] = (
-            _WeakMaybeDict()
-        )
-        self._kernelz_payload: _WeakMaybeDict[Any, Dict[str, Dict[str, List[str]]]] = (
-            _WeakMaybeDict()
-        )
-        self._primed: _WeakMaybeDict[Any, bool] = _WeakMaybeDict()
+        self._opviews = _WeakMaybeDict()
+        self._kernelz_payload = _WeakMaybeDict()
+        self._primed = _WeakMaybeDict()
         self._lock = threading.Lock()
 
     # ——— atoms ———
@@ -396,9 +408,15 @@ class Kernel:
 
     def get_opview(self, app: Any, model: type, alias: str) -> OpView:
         """Return OpView for (model, alias); compile on-demand if missing."""
+        ov_map = self._opviews.get(app)
+        if isinstance(ov_map, dict):
+            ov = ov_map.get((model, alias))
+            if ov is not None:
+                return ov
+
         self.ensure_primed(app)
 
-        ov_map: Dict[Tuple[type, str], OpView] = self._opviews.setdefault(app, {})
+        ov_map = self._opviews.setdefault(app, {})
         ov = ov_map.get((model, alias))
         if ov is not None:
             return ov
