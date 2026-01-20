@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_parser_slate"
-version = "0.2.0.dev10"
+version = "0.2.0.dev11"
 description = "A parser for extracting text from PDFs using Slate."
 license = "Apache-2.0"
 readme = "README.md"
