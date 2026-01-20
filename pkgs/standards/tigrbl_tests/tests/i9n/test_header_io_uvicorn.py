@@ -1,14 +1,14 @@
-import asyncio
 import httpx
 import pytest
 import pytest_asyncio
-import uvicorn
 
 from tigrbl import TigrblApp
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables._base import Base
 from tigrbl.specs import F, S, IO, acol
 from tigrbl.types import App, Mapped, String
+
+from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server
 
 
 class Item(Base, GUIDPk):
@@ -47,16 +47,11 @@ async def running_app(sync_db_session):
     await api.initialize()
     app.include_router(api.router)
 
-    cfg = uvicorn.Config(app, host="127.0.0.1", port=8000, log_level="warning")
-    server = uvicorn.Server(cfg)
-    task = asyncio.create_task(server.serve())
-    while not server.started:
-        await asyncio.sleep(0.1)
+    base_url, server, task = await run_uvicorn_in_task(app)
     try:
-        yield "http://127.0.0.1:8000"
+        yield base_url
     finally:
-        server.should_exit = True
-        await task
+        await stop_uvicorn_server(server, task)
 
 
 @pytest.mark.i9n
