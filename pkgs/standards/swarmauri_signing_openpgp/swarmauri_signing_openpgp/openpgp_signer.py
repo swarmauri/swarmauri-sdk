@@ -121,7 +121,7 @@ def _load_public_keys(entries: Optional[Iterable[Any]]) -> list[pgpy.PGPKey]:
 def _hash_from_alg(alg: Optional[Alg]) -> HashAlgorithm:
     if alg is None:
         return HashAlgorithm.SHA256
-    normalized = str(alg).replace("-", "_").upper()
+    normalized = str(alg).replace("-", "").replace("_", "").upper()
     try:
         return HashAlgorithm[normalized]
     except KeyError as exc:

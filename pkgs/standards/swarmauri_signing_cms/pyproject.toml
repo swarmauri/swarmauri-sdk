@@ -37,6 +37,7 @@ classifiers = [
 dependencies = [
     "swarmauri_base",
     "swarmauri_core",
+    "cryptography",
 ]
 
 [project.urls]
