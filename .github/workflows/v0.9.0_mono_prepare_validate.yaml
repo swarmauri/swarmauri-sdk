@@ -1,0 +1,90 @@
+name: v0.9.0 - Mono (Prepare, Validate) [Dispatcher]
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: v0.9.0-mono-prepare-validate-dispatch
+  cancel-in-progress: false
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  generate-chunks:
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    outputs:
+      chunk_matrix: ${{ steps.chunk-members.outputs.chunk_matrix }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies for chunking
+        run: pip install toml
+
+      - name: Chunk workspace members
+        id: chunk-members
+        run: |
+          cd pkgs
+          python - <<'PY'
+          import json
+          import os
+          import toml
+
+          chunk_size = 248
+          with open("pyproject.toml", "r") as f:
+              config = toml.load(f)
+
+          members = config.get("tool", {}).get("uv", {}).get("workspace", {}).get("members", [])
+          if not isinstance(members, list):
+              raise RuntimeError("The 'members' entry is not a list.")
+
+          members = list(dict.fromkeys(members))
+          chunks = [members[i : i + chunk_size] for i in range(0, len(members), chunk_size)]
+          matrix = {
+              "include": [
+                  {"index": index, "members": chunk}
+                  for index, chunk in enumerate(chunks)
+              ]
+          }
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+              print(f"chunk_matrix={json.dumps(matrix)}", file=fh)
+
+          print(f"Chunked {len(members)} members into {len(chunks)} batches.")
+          PY
+
+  dispatch-batches:
+    needs: generate-chunks
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.generate-chunks.outputs.chunk_matrix) }}
+      fail-fast: false
+    steps:
+      - name: Dispatch batch workflow
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const members = ${{ toJson(matrix.members) }};
+            const batchIndex = '${{ matrix.index }}';
+
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'v0.9.0_mono_prepare_validate_batch.yaml',
+              ref: context.ref,
+              inputs: {
+                members_json: JSON.stringify(members),
+                batch_index: batchIndex,
+              },
+            });
+
+            core.info(`Dispatched batch ${batchIndex} with ${members.length} members.`);
