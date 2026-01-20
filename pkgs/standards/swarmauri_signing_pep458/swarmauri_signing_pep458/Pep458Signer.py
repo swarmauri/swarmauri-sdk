@@ -5,7 +5,18 @@ from __future__ import annotations
 import base64
 import json
 from dataclasses import dataclass
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Set, Tuple
+from typing import (
+    Any,
+    ClassVar,
+    Dict,
+    Iterable,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+)
 
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import hashes, serialization
@@ -81,7 +92,7 @@ class _Sig:
 class Pep458Signer(SigningBase):
     """Detached signer aligned with the TUF/PEP 458 metadata format."""
 
-    type = "Pep458Signer"
+    type: ClassVar[str] = "Pep458Signer"
 
     # ------------------------------------------------------------------
     def supports(self) -> Mapping[str, Iterable[str]]:
