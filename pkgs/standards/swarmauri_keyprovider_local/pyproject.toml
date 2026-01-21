@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_keyprovider_local"
-version = "0.2.0.dev10"
+version = "0.2.0.dev11"
 description = "In-memory key provider for development and testing"
 license = "Apache-2.0"
 readme = "README.md"

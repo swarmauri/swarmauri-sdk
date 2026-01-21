@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_signing_pep458"
-version = "0.1.0.dev1"
+version = "0.1.0.dev2"
 description = "PEP 458 compatible detached signing provider for Swarmauri"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"

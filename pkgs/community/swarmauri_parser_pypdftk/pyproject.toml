@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_parser_pypdftk"
-version = "0.8.0.dev9"
+version = "0.8.0.dev10"
 description = "A parser for extracting text from PDFs using PyPDFTK."
 license = "Apache-2.0"
 readme = "README.md"

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_storage_github"
-version = "0.2.0.dev11"
+version = "0.2.0.dev12"
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" }
 ]
