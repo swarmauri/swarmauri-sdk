@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_workflow_statedriven"
-version = "0.2.0.dev13"
+version = "0.2.0.dev14"
 description = "Swarmauri's StateDrivenWorkflow"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 license = "Apache-2.0"
