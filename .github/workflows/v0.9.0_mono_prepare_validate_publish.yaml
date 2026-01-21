@@ -56,7 +56,33 @@ jobs:
               raise RuntimeError("The 'members' entry is not a list.")
 
           members = list(dict.fromkeys(members))
-          chunks = [members[i : i + chunk_size] for i in range(0, len(members), chunk_size)]
+          priority_core_base_standards = [
+              member
+              for member in members
+              if member in {"core", "base"} or member.startswith("standards/")
+          ]
+          priority_community_experimental = [
+              member
+              for member in members
+              if member.startswith("community/") or member.startswith("experimental/")
+          ]
+          priority_members = [
+              *priority_core_base_standards,
+              *priority_community_experimental,
+          ]
+          remaining = [member for member in members if member not in priority_members]
+
+          chunks = []
+          if priority_core_base_standards:
+              chunks.append(priority_core_base_standards)
+          if priority_community_experimental:
+              chunks.append(priority_community_experimental)
+          chunks.extend(
+              [
+                  remaining[i : i + chunk_size]
+                  for i in range(0, len(remaining), chunk_size)
+              ]
+          )
           matrix = {
               "include": [
                   {"index": index, "members": chunk}
