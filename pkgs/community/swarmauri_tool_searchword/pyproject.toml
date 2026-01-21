@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_searchword"
-version = "0.3.0.dev14"
+version = "0.3.0.dev15"
 description = "A tool for searching a specific word or phrase in a file."
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 license = "Apache-2.0"

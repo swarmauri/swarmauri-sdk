@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_certs_crlverifyservice"
-version = "0.1.0.dev13"
+version = "0.1.0.dev14"
 description = "Certificate verification against CRLs"
 license = "Apache-2.0"
 readme = "README.md"
