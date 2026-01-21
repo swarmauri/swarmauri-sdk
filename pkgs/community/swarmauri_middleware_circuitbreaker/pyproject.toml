@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_middleware_circuitbreaker"
-version = "0.7.0.dev11"
+version = "0.7.0.dev12"
 description = "Circuit Breaker Middleware for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
