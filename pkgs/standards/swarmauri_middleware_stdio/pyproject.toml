@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_middleware_stdio"
-version = "0.8.0.dev12"
+version = "0.8.0.dev13"
 description = "Middleware that logs requests and responses to standard output"
 license = "Apache-2.0"
 readme = "README.md"

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_signing_cms"
-version = "0.1.0.dev1"
+version = "0.1.0.dev2"
 description = "CMS signer stub registered on the Swarmauri SigningBase registry"
 license = "Apache-2.0"
 readme = "README.md"
