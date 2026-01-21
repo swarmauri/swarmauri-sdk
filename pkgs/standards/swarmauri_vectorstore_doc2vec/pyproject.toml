@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_vectorstore_doc2vec"
-version = "0.9.0.dev13"
+version = "0.9.0.dev14"
 description = "A Doc2Vec based Vector Store and Doc2Vec Based Embedding Model."
 license = "Apache-2.0"
 readme = "README.md"

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_xmp_gif"
-version = "0.1.1.dev6"
+version = "0.1.1.dev7"
 description = "GIF handler for embedding and extracting XMP packets in Swarmauri runtimes."
 license = "Apache-2.0"
 readme = "README.md"

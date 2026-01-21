@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_evaluator_constanttime"
-version = "0.3.0.dev13"
+version = "0.3.0.dev14"
 description = "Evaluator that detects timing side channels using fixed-vs-random test"
 license = "Apache-2.0"
 readme = "README.md"
