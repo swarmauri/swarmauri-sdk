@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_publisher_redis"
-version = "0.3.0.dev9"
+version = "0.3.0.dev12"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 
 description = "A Redis publisher implementation for Swarmauri."

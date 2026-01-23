@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_auth_idp_azure"
-version = "0.1.0.dev3"
+version = "0.1.0.dev6"
 description = "Azure Active Directory OAuth 2.0 / 2.1 / OIDC 1.0 login implementations for Swarmauri deployments"
 license = "Apache-2.0"
 readme = "README.md"

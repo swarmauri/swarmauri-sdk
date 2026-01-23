@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_lexicaldensity"
-version = "0.9.0.dev10"
+version = "0.9.0.dev13"
 description = "Lexical Density Tool for Swarmauri."
 license = "Apache-2.0"
 readme = "README.md"

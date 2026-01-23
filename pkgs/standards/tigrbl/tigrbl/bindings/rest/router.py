@@ -25,6 +25,8 @@ from .common import (
     _normalize_secdeps,
     _optionalize_list_in_model,
     _path_for_spec,
+    _require_auth_header,
+    _requires_auth_header,
     _req_state_db,
     _resource_name,
     _status,
@@ -265,6 +267,8 @@ def _build_router(
 
         secdeps: list[Any] = []
         if auth_dep and sp.alias not in allow_anon and sp.target not in allow_anon:
+            if _requires_auth_header(auth_dep):
+                secdeps.append(_require_auth_header)
             secdeps.append(auth_dep)
         secdeps.extend(getattr(sp, "secdeps", ()))
         route_secdeps = _normalize_secdeps(secdeps)

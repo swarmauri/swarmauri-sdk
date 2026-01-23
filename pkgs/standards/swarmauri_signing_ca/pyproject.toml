@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_signing_ca"
-version = "0.3.0.dev9"
+version = "0.3.0.dev12"
 description = "Certificate authority style signer for Swarmauri envelopes"
 license = "Apache-2.0"
 readme = "README.md"

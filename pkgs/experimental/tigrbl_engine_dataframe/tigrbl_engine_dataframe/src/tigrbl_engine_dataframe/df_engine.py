@@ -11,12 +11,15 @@ from .df_session import TransactionalDataFrameSession
 
 # ---- Engine object: in-memory catalog of DataFrames + versions ----
 
+
 @dataclass
 class DataFrameCatalog:
-    tables: Dict[str, pd.DataFrame] = field(default_factory=dict)   # name -> live frame
-    pks: Dict[str, str] = field(default_factory=dict)               # name -> primary-key column
-    table_ver: Dict[str, int] = field(default_factory=dict)         # name -> monotonic version
-    lock: threading.RLock = field(default_factory=threading.RLock)  # atomic apply on commit
+    tables: Dict[str, pd.DataFrame] = field(default_factory=dict)  # name -> live frame
+    pks: Dict[str, str] = field(default_factory=dict)  # name -> primary-key column
+    table_ver: Dict[str, int] = field(default_factory=dict)  # name -> monotonic version
+    lock: threading.RLock = field(
+        default_factory=threading.RLock
+    )  # atomic apply on commit
 
     def get_live(self, name: str) -> pd.DataFrame:
         if name not in self.tables:
@@ -30,6 +33,7 @@ class DataFrameCatalog:
 
 
 # ---- Builder expected by Tigrbl EngineSpec (kind='dataframe') ----
+
 
 def dataframe_engine(
     *,
@@ -55,7 +59,10 @@ def dataframe_engine(
         raise TypeError("mapping['pks'] must be a dict[str, str]")
 
     # Defensive copy of tables
-    tables = {k: (v.copy() if isinstance(v, pd.DataFrame) else v) for k, v in initial_tables.items()}
+    tables = {
+        k: (v.copy() if isinstance(v, pd.DataFrame) else v)
+        for k, v in initial_tables.items()
+    }
     cat = DataFrameCatalog(tables=tables, pks=dict(pks))
 
     def mk() -> TransactionalDataFrameSession:
@@ -68,10 +75,16 @@ def dataframe_engine(
 
 # ---- Capabilities (optional but useful for validation) ----
 
+
 def dataframe_capabilities() -> dict[str, object]:
     """Report capabilities for the 'dataframe' engine."""
     return {
         "transactional": True,
         "read_only_enforced": True,
-        "isolation_levels": {"read_committed", "repeatable_read", "snapshot", "serializable"},
+        "isolation_levels": {
+            "read_committed",
+            "repeatable_read",
+            "snapshot",
+            "serializable",
+        },
     }

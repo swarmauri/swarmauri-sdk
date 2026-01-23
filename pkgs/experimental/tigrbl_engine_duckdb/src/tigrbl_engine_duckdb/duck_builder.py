@@ -8,15 +8,16 @@ from .duck_session import DuckDBSession
 
 SessionFactory = Callable[[], Any]
 
+
 def duckdb_engine(
     *,
-    path: Optional[str] = None,                 # None or ":memory:" → in-memory
+    path: Optional[str] = None,  # None or ":memory:" → in-memory
     read_only: bool = False,
     threads: Optional[int] = None,
     pragmas: Optional[Mapping[str, Any]] = None,
     mapping: Optional[Mapping[str, Any]] = None,  # accepted but not required
-    spec: Optional[Any] = None,                   # accepted for signature parity
-    dsn: Optional[str] = None,                    # accepted for signature parity
+    spec: Optional[Any] = None,  # accepted for signature parity
+    dsn: Optional[str] = None,  # accepted for signature parity
 ) -> Tuple[Any, SessionFactory]:
     """
     Build a DuckDB 'engine' and a session factory that yields DuckDBSession.
@@ -40,6 +41,7 @@ def duckdb_engine(
 
     engine_handle = {"kind": "duckdb", "path": db_path, "read_only": read_only}
     return engine_handle, mk_session
+
 
 def duckdb_capabilities() -> dict[str, Any]:
     """

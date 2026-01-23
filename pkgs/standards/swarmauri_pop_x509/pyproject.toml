@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_pop_x509"
-version = "0.1.1.dev1"
+version = "0.1.1.dev4"
 description = "X.509 mutual TLS proof-of-possession verifier for Swarmauri"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
