@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_zapierhook"
-version = "0.8.0.dev12"
+version = "0.8.0.dev13"
 description = "Zapier Hook Tool"
 license = "Apache-2.0"
 readme = "README.md"

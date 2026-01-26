@@ -1,6 +1,6 @@
 [project]
 name = "tigrbl_api_cron"
-version = "0.1.0.dev1"
+version = "0.1.0.dev2"
 description = "Cron job storage, execution, and result tracking built on the Tigrbl engine."
 license = "Apache-2.0"
 readme = "README.md"

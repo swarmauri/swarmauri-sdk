@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_signing_dsse"
-version = "0.1.0.dev6"
+version = "0.1.0.dev7"
 description = "Composable DSSE envelope adapter that layers Pre-Authentication Encoding onto Swarmauri signing providers"
 readme = "README.md"
 license = "Apache-2.0"
