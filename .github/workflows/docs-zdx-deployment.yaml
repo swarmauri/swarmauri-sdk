@@ -4,15 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       docs_target:
-        description: "Which docs site to deploy"
+        description: "Which docs site to deploy (all, swarmauri-sdk, tigrbl, peagen)"
         required: true
         default: "all"
-        type: choice
-        options:
-          - all
-          - swarmauri-sdk
-          - tigrbl
-          - peagen
 
 concurrency:
   group: docs-zdx-deploy
