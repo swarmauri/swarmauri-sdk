@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_crypto_rust"
-version = "0.3.0.dev15"
+version = "0.3.0.dev16"
 description = "Rust-backed crypto provider for Swarmauri using Maturin"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"

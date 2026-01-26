@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_cipher_suite_yubikey"
-version = "0.1.0.dev10"
+version = "0.1.0.dev11"
 description = "YubiKey-backed cipher suite for Swarmauri PIV signing and key transport"
 keywords = [
     "yubikey",
