@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_certs_remote_ca"
-version = "0.3.0.dev12"
+version = "0.3.0.dev13"
 description = "Remote CA certificate service for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_middleware_jwksverifier"
-version = "0.3.0.dev13"
+version = "0.3.0.dev14"
 description = "JWKS-based JWT verification middleware for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
