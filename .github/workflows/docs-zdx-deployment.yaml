@@ -1,0 +1,89 @@
+name: Deploy Docs (ZDX)
+
+on:
+  workflow_dispatch:
+    inputs:
+      docs_target:
+        description: "Which docs site to deploy"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - swarmauri-sdk
+          - tigrbl
+          - peagen
+
+concurrency:
+  group: docs-zdx-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy-swarmauri-sdk:
+    if: ${{ github.actor == 'cobycloud' && (github.event.inputs.docs_target == 'swarmauri-sdk' || github.event.inputs.docs_target == 'all') }}
+    runs-on: [docs]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Export runner UID/GID for Compose
+        working-directory: infra/docs
+        run: |
+          printf "RUN_UID=%s\nRUN_GID=%s\n" "$(id -u)" "$(id -g)" > .env
+          echo "Using UID:GID $(id -u):$(id -g)"
+
+      - name: Restart swarmauri-sdk docs service
+        working-directory: infra/docs
+        run: |
+          sudo docker system prune -f
+          sudo docker compose -f docker-compose.yaml \
+            up -d --build --force-recreate --no-deps \
+            swarmauri-sdk-docs
+
+  deploy-tigrbl:
+    if: ${{ github.actor == 'cobycloud' && (github.event.inputs.docs_target == 'tigrbl' || github.event.inputs.docs_target == 'all') }}
+    runs-on: [docs]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Export runner UID/GID for Compose
+        working-directory: infra/docs
+        run: |
+          printf "RUN_UID=%s\nRUN_GID=%s\n" "$(id -u)" "$(id -g)" > .env
+          echo "Using UID:GID $(id -u):$(id -g)"
+
+      - name: Restart tigrbl docs service
+        working-directory: infra/docs
+        run: |
+          sudo docker system prune -f
+          sudo docker compose -f docker-compose.yaml \
+            up -d --build --force-recreate --no-deps \
+            tigrbl-docs
+
+  deploy-peagen:
+    if: ${{ github.actor == 'cobycloud' && (github.event.inputs.docs_target == 'peagen' || github.event.inputs.docs_target == 'all') }}
+    runs-on: [docs]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Export runner UID/GID for Compose
+        working-directory: infra/docs
+        run: |
+          printf "RUN_UID=%s\nRUN_GID=%s\n" "$(id -u)" "$(id -g)" > .env
+          echo "Using UID:GID $(id -u):$(id -g)"
+
+      - name: Restart peagen docs service
+        working-directory: infra/docs
+        run: |
+          sudo docker system prune -f
+          sudo docker compose -f docker-compose.yaml \
+            up -d --build --force-recreate --no-deps \
+            peagen-docs
