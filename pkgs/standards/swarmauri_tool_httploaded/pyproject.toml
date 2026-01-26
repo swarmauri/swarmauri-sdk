@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_httploaded"
-version = "0.9.0.dev14"
+version = "0.9.0.dev15"
 description = "Load components from a YAML manifest over HTTP."
 license = "Apache-2.0"
 readme = "README.md"

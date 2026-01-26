@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_middleware_gzipcompression"
-version = "0.8.0.dev15"
+version = "0.8.0.dev16"
 description = "Gzip compression middleware for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

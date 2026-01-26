@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_publisher_rabbitmq"
-version = "0.3.0.dev16"
+version = "0.3.0.dev17"
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" }
 ]
