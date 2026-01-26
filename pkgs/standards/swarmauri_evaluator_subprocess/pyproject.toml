@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_evaluator_subprocess"
-version = "0.3.0.dev15"
+version = "0.3.0.dev16"
 description = "A subprocess-based evaluator for executing and measuring program performance in isolated subprocesses"
 license = "Apache-2.0"
 readme = "README.md"

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_cipher_suite_ipsec"
-version = "0.1.0.dev7"
+version = "0.1.0.dev8"
 description = "IPsec / IKE cipher suite skeleton for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

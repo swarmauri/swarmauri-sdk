@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_cipher_suite_webauthn"
-version = "0.1.0.dev7"
+version = "0.1.0.dev8"
 description = "WebAuthn and FIDO2 cipher suite for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

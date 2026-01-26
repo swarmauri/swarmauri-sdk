@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_xmp_webp"
-version = "0.1.1.dev9"
+version = "0.1.1.dev10"
 description = "WebP handler scaffold for embedding and extracting XMP packets in Swarmauri runtimes."
 license = "Apache-2.0"
 readme = "README.md"

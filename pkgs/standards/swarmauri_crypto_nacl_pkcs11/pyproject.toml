@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_crypto_nacl_pkcs11"
-version = "0.3.0.dev13"
+version = "0.3.0.dev14"
 description = "NaCl + PKCS#11 crypto provider for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

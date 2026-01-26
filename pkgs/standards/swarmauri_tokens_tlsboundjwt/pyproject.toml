@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tokens_tlsboundjwt"
-version = "0.2.0.dev14"
+version = "0.2.0.dev15"
 description = "mTLS-bound JWT token service for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
