@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_certservice_stepca"
-version = "0.3.0.dev15"
+version = "0.3.0.dev16"
 description = "Step-ca backed certificate service for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
