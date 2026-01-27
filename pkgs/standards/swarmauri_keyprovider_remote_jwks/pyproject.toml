@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_keyprovider_remote_jwks"
-version = "0.2.0.dev8"
+version = "0.2.0.dev9"
 description = "Remote JWKS-backed key provider for verification-only use"
 license = "Apache-2.0"
 readme = "README.md"

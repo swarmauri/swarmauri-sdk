@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_certs_x509"
-version = "0.2.0.dev7"
+version = "0.2.0.dev8"
 description = "X.509 certificate service for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
