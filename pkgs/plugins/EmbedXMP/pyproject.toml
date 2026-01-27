@@ -1,6 +1,6 @@
 [project]
 name = "EmbedXMP"
-version = "0.1.1.dev13"
+version = "0.1.1.dev14"
 description = "Dynamic XMP embed/read/remove orchestration for Swarmauri handlers."
 license = "Apache-2.0"
 readme = "README.md"
