@@ -66,7 +66,11 @@ def test_serialization(github_branch_tool):
             "delete_branch",
         ),
         ("list_branches", {"repo_name": "test-repo"}, "list_branches"),
-        ("get_branch", {"repo_name": "test-repo", "branch_name": "master"}, "get_branch"),
+        (
+            "get_branch",
+            {"repo_name": "test-repo", "branch_name": "master"},
+            "get_branch",
+        ),
         # Invalid action
         ("invalid_action", {}, None),
     ],
