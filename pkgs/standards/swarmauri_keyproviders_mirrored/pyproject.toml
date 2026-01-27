@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_keyproviders_mirrored"
-version = "0.2.0.dev17"
+version = "0.2.0.dev23"
 description = "Mirrored key provider for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_parser_keywordextractor"
-version = "0.9.0.dev17"
+version = "0.9.0.dev23"
 description = "Keyword Extractor Parser for Swarmauri."
 license = "Apache-2.0"
 readme = "README.md"

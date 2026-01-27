@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_middleware_httpsig"
-version = "0.8.0.dev17"
+version = "0.8.0.dev23"
 description = "HTTP signature verification middleware for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

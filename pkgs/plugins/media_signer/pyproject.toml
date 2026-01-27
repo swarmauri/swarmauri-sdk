@@ -1,6 +1,6 @@
 [project]
 name = "MediaSigner"
-version = "0.6.2.dev8"
+version = "0.6.2.dev10"
 description = "Swarmauri signing facade plugin that aggregates registered SigningBase providers."
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 license = "Apache-2.0"
@@ -110,7 +110,7 @@ log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
-addopts = "--pylicense-package=MediaSigner --pylicense-mode=parameterized --pylicense-accept-deps=cffi"
+addopts = "--pylicense-package=MediaSigner --pylicense-mode=parameterized --pylicense-accept-deps=cffi,pycparser"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

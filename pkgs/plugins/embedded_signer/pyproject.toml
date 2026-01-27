@@ -1,6 +1,6 @@
 [project]
 name = "EmbeddedSigner"
-version = "0.1.1.dev6"
+version = "0.1.1.dev10"
 description = "Embed XMP metadata and sign media assets using Swarmauri plugins."
 license = "Apache-2.0"
 readme = "README.md"
@@ -173,7 +173,7 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "--pylicense-package=EmbeddedSigner --pylicense-mode=parameterized --pylicense-accept-deps=cffi"
+addopts = "--pylicense-package=EmbeddedSigner --pylicense-mode=parameterized --pylicense-accept-deps=cffi,pycparser"
 
 [tool.poetry]
 packages = [

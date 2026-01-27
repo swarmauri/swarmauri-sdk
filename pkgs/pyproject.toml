@@ -105,6 +105,7 @@ members = [
     "standards/tigrbl_client",
     "standards/tigrbl_billing",
     "standards/peagen",
+    "standards/peagen_templset_vue",
     "standards/swarmauri_storage_file",
     "standards/swarmauri_storage_github",
     "standards/swarmauri_storage_github_release",
@@ -189,8 +190,8 @@ members = [
     "standards/swarmauri_signing_pep458",
     "standards/swarmauri_signing_pdf",
     "standards/swarmauri_signing_xmld",
-    "swarmauri_standards",
     "standards/swarmauri_signing_ssh",
+    
     "standards/swarmauri_certs_x509verify",
     "plugins/EmbedXMP",
     "plugins/example_plugin",
@@ -209,7 +210,7 @@ members = [
     "standards/swarmauri_tokens_composite",
     "standards/swarmauri_tokens_remoteoidc",
     "standards/swarmauri_tokens_tlsboundjwt",
-    "community/zdx",
+    "plugins/zdx",
     "community/swarmauri_certs_csronly",
     "community/swarmauri_certs_azure",
     "standards/swarmauri_certs_remote_ca",
@@ -350,6 +351,7 @@ tigrbl_auth = { workspace = true }
 tigrbl_kms = { workspace = true }
 tigrbl_billing = { workspace = true }
 peagen = { workspace = true }
+peagen_templset_vue  = { workspace = true }
 
 swarmauri_storage_file = { workspace = true }
 swarmauri_storage_github = { workspace = true }

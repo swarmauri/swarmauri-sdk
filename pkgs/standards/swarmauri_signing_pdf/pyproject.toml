@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_signing_pdf"
-version = "0.1.0.dev7"
+version = "0.1.0.dev13"
 description = "PDF signer built atop the Swarmauri CMS implementation"
 license = "Apache-2.0"
 readme = "README.md"

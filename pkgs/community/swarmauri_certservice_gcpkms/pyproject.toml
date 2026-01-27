@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_certservice_gcpkms"
-version = "0.2.0.dev18"
+version = "0.2.0.dev24"
 description = "Google Cloud KMS Certificate Service for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
