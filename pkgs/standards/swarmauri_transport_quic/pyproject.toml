@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_transport_quic"
-version = "0.1.0.dev9"
+version = "0.1.0.dev10"
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" }
 ]

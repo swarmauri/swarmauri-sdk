@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_keyprovider_pkcs11"
-version = "0.3.0.dev16"
+version = "0.3.0.dev17"
 description = "PKCS#11 hardware-backed key provider for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
