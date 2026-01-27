@@ -189,8 +189,8 @@ members = [
     "standards/swarmauri_signing_pep458",
     "standards/swarmauri_signing_pdf",
     "standards/swarmauri_signing_xmld",
-    "swarmauri_standards",
     "standards/swarmauri_signing_ssh",
+    
     "standards/swarmauri_certs_x509verify",
     "plugins/EmbedXMP",
     "plugins/example_plugin",
