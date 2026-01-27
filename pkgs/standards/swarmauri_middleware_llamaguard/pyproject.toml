@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_middleware_llamaguard"
-version = "0.7.0.dev21"
+version = "0.7.0.dev22"
 description = "Middleware for inspecting and filtering unsafe content using LlamaGuard"
 license = "Apache-2.0"
 readme = "README.md"

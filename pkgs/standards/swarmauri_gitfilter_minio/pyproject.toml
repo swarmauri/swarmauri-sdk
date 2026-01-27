@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_gitfilter_minio"
-version = "0.3.0.dev23"
+version = "0.3.0.dev24"
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" }
 ]

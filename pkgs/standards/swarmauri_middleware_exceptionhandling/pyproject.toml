@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_middleware_exceptionhandling"
-version = "0.7.0.dev23"
+version = "0.7.0.dev24"
 description = "Custom Exception Handling Middleware for Swarmauri Framework"
 license = "Apache-2.0"
 readme = "README.md"

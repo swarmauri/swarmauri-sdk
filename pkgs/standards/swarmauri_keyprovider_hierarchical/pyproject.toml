@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_keyprovider_hierarchical"
-version = "0.3.0.dev21"
+version = "0.3.0.dev22"
 description = "Hierarchical key provider for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

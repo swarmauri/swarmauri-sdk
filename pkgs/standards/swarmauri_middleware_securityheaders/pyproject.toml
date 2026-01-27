@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_middleware_securityheaders"
-version = "0.8.0.dev22"
+version = "0.8.0.dev23"
 description = "Middleware for adding security headers to HTTP responses"
 license = "Apache-2.0"
 readme = "README.md"

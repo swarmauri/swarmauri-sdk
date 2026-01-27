@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tokens_sshsig"
-version = "0.3.0.dev22"
+version = "0.3.0.dev23"
 description = "SSH signature token service for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
