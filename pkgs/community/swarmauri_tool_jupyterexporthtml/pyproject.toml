@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupyterexporthtml"
-version = "0.8.0.dev19"
+version = "0.8.0.dev20"
 description = "A tool that exports a Jupyter Notebook to HTML format using nbconvert’s HTMLExporter, enabling web-based presentation of notebooks."
 license = "Apache-2.0"
 readme = "README.md"
