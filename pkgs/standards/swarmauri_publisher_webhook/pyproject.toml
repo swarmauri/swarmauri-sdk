@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_publisher_webhook"
-version = "0.3.0.dev20"
+version = "0.3.0.dev21"
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" }
 ]

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_transport_uds_unicast"
-version = "0.1.0.dev12"
+version = "0.1.0.dev13"
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" }
 ]

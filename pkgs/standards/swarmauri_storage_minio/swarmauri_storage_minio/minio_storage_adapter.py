@@ -18,6 +18,7 @@ from minio import Minio
 from minio.error import S3Error
 from pydantic import SecretStr
 
+
 @ComponentBase.register_type(StorageAdapterBase, "MinioStorageAdapter")
 class MinioStorageAdapter(StorageAdapterBase):
     """Simple wrapper around the MinIO client for use with Peagen."""
@@ -144,8 +145,8 @@ class MinioStorageAdapter(StorageAdapterBase):
         bucket, *rest = p.path.lstrip("/").split("/", 1)
         prefix = rest[0] if rest else ""
 
-        access_key =  os.getenv("MINIO_ACCESS_KEY", "")
-        secret_key =  os.getenv("MINIO_SECRET_KEY", "")
+        access_key = os.getenv("MINIO_ACCESS_KEY", "")
+        secret_key = os.getenv("MINIO_SECRET_KEY", "")
 
         return cls(
             endpoint=endpoint,

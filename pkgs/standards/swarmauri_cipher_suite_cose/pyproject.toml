@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_cipher_suite_cose"
-version = "0.1.0.dev15"
+version = "0.1.0.dev16"
 description = "COSE-aware cipher suite for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

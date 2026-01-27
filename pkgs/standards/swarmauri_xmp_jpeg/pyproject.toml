@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_xmp_jpeg"
-version = "0.1.1.dev15"
+version = "0.1.1.dev16"
 description = "JPEG handler for embedding and extracting XMP packets in Swarmauri runtimes."
 license = "Apache-2.0"
 readme = "README.md"
