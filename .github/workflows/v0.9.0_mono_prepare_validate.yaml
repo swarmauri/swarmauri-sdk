@@ -50,15 +50,51 @@ jobs:
           first_batch = [
               member
               for member in members
-              if member in {"swarmauri_core", "swarmauri_base", "swarmauri_standard"}
+              if member in {"core", "base", "swarmauri_standard", "swarmauri", "typing"}
           ]
           remaining = [member for member in members if member not in first_batch]
-          second_batch = [member for member in remaining if member.startswith("standards/")]
+          second_batch = [
+              member
+              for member in remaining
+              if member.startswith("standards/")
+              and os.path.basename(member).startswith("swarmauri_")
+          ]
           remaining = [member for member in remaining if member not in second_batch]
-          third_batch = [member for member in remaining if member.startswith("community/")]
+          third_batch = [
+              member
+              for member in remaining
+              if member.startswith("community/")
+              and os.path.basename(member).startswith("swarmauri_")
+          ]
           remaining = [member for member in remaining if member not in third_batch]
-          fourth_batch = remaining
-          chunks = [batch for batch in [first_batch, second_batch, third_batch, fourth_batch] if batch]
+          fourth_batch = [
+              member
+              for member in remaining
+              if os.path.basename(member).startswith("tigrbl")
+          ]
+          remaining = [member for member in remaining if member not in fourth_batch]
+          fifth_batch = [
+              member
+              for member in remaining
+              if os.path.basename(member).startswith("peagen")
+          ]
+          remaining = [member for member in remaining if member not in fifth_batch]
+          sixth_batch = [member for member in remaining if not member.startswith("experimental/")]
+          remaining = [member for member in remaining if member not in sixth_batch]
+          seventh_batch = remaining
+          chunks = [
+              batch
+              for batch in [
+                  first_batch,
+                  second_batch,
+                  third_batch,
+                  fourth_batch,
+                  fifth_batch,
+                  sixth_batch,
+                  seventh_batch,
+              ]
+              if batch
+          ]
           matrix = {
               "include": [
                   {"index": index, "members": chunk}
