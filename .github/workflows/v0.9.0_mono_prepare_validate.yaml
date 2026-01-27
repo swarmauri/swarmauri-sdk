@@ -39,7 +39,6 @@ jobs:
           import os
           import toml
 
-          chunk_size = 248
           with open("pyproject.toml", "r") as f:
               config = toml.load(f)
 
@@ -48,33 +47,18 @@ jobs:
               raise RuntimeError("The 'members' entry is not a list.")
 
           members = list(dict.fromkeys(members))
-          priority_core_base_standards = [
+          first_batch = [
               member
               for member in members
-              if member in {"core", "base"} or member.startswith("standards/")
+              if member in {"swarmauri_core", "swarmauri_base", "swarmauri_standard"}
           ]
-          priority_community_experimental = [
-              member
-              for member in members
-              if member.startswith("community/") or member.startswith("experimental/")
-          ]
-          priority_members = [
-              *priority_core_base_standards,
-              *priority_community_experimental,
-          ]
-          remaining = [member for member in members if member not in priority_members]
-
-          chunks = []
-          if priority_core_base_standards:
-              chunks.append(priority_core_base_standards)
-          if priority_community_experimental:
-              chunks.append(priority_community_experimental)
-          chunks.extend(
-              [
-                  remaining[i : i + chunk_size]
-                  for i in range(0, len(remaining), chunk_size)
-              ]
-          )
+          remaining = [member for member in members if member not in first_batch]
+          second_batch = [member for member in remaining if member.startswith("standards/")]
+          remaining = [member for member in remaining if member not in second_batch]
+          third_batch = [member for member in remaining if member.startswith("community/")]
+          remaining = [member for member in remaining if member not in third_batch]
+          fourth_batch = remaining
+          chunks = [batch for batch in [first_batch, second_batch, third_batch, fourth_batch] if batch]
           matrix = {
               "include": [
                   {"index": index, "members": chunk}

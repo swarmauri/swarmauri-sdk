@@ -1,31 +1,20 @@
-name: Deploy ZDX Docs
+name: Deploy Docs (ZDX)
 
 on:
   workflow_dispatch:
     inputs:
       docs_target:
-        description: "Docs site to deploy (swarmauri-sdk, tigrbl, peagen, all)"
+        description: "Which docs site to deploy (all, swarmauri-sdk, tigrbl, peagen)"
         required: true
         default: "all"
-        type: choice
-        options:
-          - all
-          - swarmauri-sdk
-          - tigrbl
-          - peagen
 
 concurrency:
-  group: zdx-docs-deploy-${{ github.event.inputs.docs_target || 'all' }}
+  group: docs-zdx-deploy
   cancel-in-progress: true
 
 jobs:
   deploy-swarmauri-sdk:
-    if: >-
-      ${
-        github.actor == 'cobycloud' &&
-        (github.event.inputs.docs_target == 'swarmauri-sdk' ||
-          github.event.inputs.docs_target == 'all')
-      }
+    if: ${{ github.actor == 'cobycloud' && (github.event.inputs.docs_target == 'swarmauri-sdk' || github.event.inputs.docs_target == 'all') }}
     runs-on: [docs]
     steps:
       - name: Checkout repository
@@ -39,7 +28,7 @@ jobs:
           printf "RUN_UID=%s\nRUN_GID=%s\n" "$(id -u)" "$(id -g)" > .env
           echo "Using UID:GID $(id -u):$(id -g)"
 
-      - name: Deploy swarmauri-sdk docs
+      - name: Restart swarmauri-sdk docs service
         working-directory: infra/docs
         run: |
           sudo docker system prune -f
@@ -48,12 +37,7 @@ jobs:
             swarmauri-sdk-docs
 
   deploy-tigrbl:
-    if: >-
-      ${
-        github.actor == 'cobycloud' &&
-        (github.event.inputs.docs_target == 'tigrbl' ||
-          github.event.inputs.docs_target == 'all')
-      }
+    if: ${{ github.actor == 'cobycloud' && (github.event.inputs.docs_target == 'tigrbl' || github.event.inputs.docs_target == 'all') }}
     runs-on: [docs]
     steps:
       - name: Checkout repository
@@ -67,7 +51,7 @@ jobs:
           printf "RUN_UID=%s\nRUN_GID=%s\n" "$(id -u)" "$(id -g)" > .env
           echo "Using UID:GID $(id -u):$(id -g)"
 
-      - name: Deploy tigrbl docs
+      - name: Restart tigrbl docs service
         working-directory: infra/docs
         run: |
           sudo docker system prune -f
@@ -76,12 +60,7 @@ jobs:
             tigrbl-docs
 
   deploy-peagen:
-    if: >-
-      ${
-        github.actor == 'cobycloud' &&
-        (github.event.inputs.docs_target == 'peagen' ||
-          github.event.inputs.docs_target == 'all')
-      }
+    if: ${{ github.actor == 'cobycloud' && (github.event.inputs.docs_target == 'peagen' || github.event.inputs.docs_target == 'all') }}
     runs-on: [docs]
     steps:
       - name: Checkout repository
@@ -95,7 +74,7 @@ jobs:
           printf "RUN_UID=%s\nRUN_GID=%s\n" "$(id -u)" "$(id -g)" > .env
           echo "Using UID:GID $(id -u):$(id -g)"
 
-      - name: Deploy peagen docs
+      - name: Restart peagen docs service
         working-directory: infra/docs
         run: |
           sudo docker system prune -f
