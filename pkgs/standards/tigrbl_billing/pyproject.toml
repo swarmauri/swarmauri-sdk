@@ -23,7 +23,6 @@ classifiers = [
     "Programming Language :: Python :: 3 :: Only",
     "Topic :: Office/Business :: Financial",
     "Topic :: Office/Business :: Financial :: Accounting",
-    "Topic :: Office/Business :: Financial :: Billing",
     "Topic :: Office/Business :: Financial :: Point-Of-Sale",
     "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
