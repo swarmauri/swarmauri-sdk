@@ -19,6 +19,15 @@
 
 CNSA 2.0-aligned cipher suite skeleton for high-assurance deployments.
 
+## Features
+
+- Enumerates classical (ES384/PS384) and post-quantum (ML-DSA, SLH-DSA, ML-KEM)
+  selections from the CNSA 2.0 profile
+- Surfaces NIST security level metadata for ML-DSA, SLH-DSA, and ML-KEM
+  algorithms to support downstream policy checks
+- Provides consistent normalization across signing, encryption, and key
+  encapsulation operations with JWA and provider dialect mappings
+
 ## Installation
 
 ### pip
@@ -57,9 +66,9 @@ suite = Cnsa20CipherSuite(name="demo-cnsa20")
 # Inspect the available operations and defaults
 print(suite.features()["ops"].keys())
 
-# Normalize an operation
-descriptor = suite.normalize(op=list(suite.supports().keys())[0])
-print(descriptor["alg"], descriptor["params"])
+# Normalize a post-quantum signing request
+descriptor = suite.normalize(op="sign", alg="ML-DSA-65")
+print(descriptor["alg"], descriptor["constraints"]["nistLevel"])  # -> 3
 ```
 
 The suite returns normalized descriptors that include canonical algorithm names,

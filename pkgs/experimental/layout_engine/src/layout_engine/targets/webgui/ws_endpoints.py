@@ -1,9 +1,9 @@
 from __future__ import annotations
-from typing import Callable, Any, Tuple
-import json
+from typing import Callable, Tuple
 
 from ...events.ws import InProcEventBus
-from ...events.validators import validate_envelope, route_topic, ValidationError
+from ...events.validators import validate_envelope, route_topic
+
 
 class InProcWSBridge:
     """A minimal WS-like bridge you can use in tests or simple apps.
@@ -14,6 +14,7 @@ class InProcWSBridge:
         ws.on_receive_json({...event...})  # validates; publishes to derived topic
         unsub = ws.subscribe("page:dash", lambda msg: print(msg))
     """
+
     def __init__(self, bus: InProcEventBus):
         self.bus = bus
 
@@ -25,7 +26,9 @@ class InProcWSBridge:
         return topic, delivered
 
     # -- server -> client (send) --
-    def subscribe(self, topic: str, callback: Callable[[dict], None]) -> Callable[[], None]:
+    def subscribe(
+        self, topic: str, callback: Callable[[dict], None]
+    ) -> Callable[[], None]:
         return self.bus.subscribe(topic, callback)
 
     def send_json(self, topic: str, payload: dict) -> int:

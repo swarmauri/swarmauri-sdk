@@ -1,0 +1,115 @@
+[project]
+name = "tigrbl-billing"
+version = "0.1.0.dev7"
+description = "Canonical billing models, lifecycle operations, and analytics for the Tigrbl platform."
+license = "Apache-2.0"
+readme = "README.md"
+repository = "http://github.com/swarmauri/swarmauri-sdk"
+requires-python = ">=3.10,<3.13"
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Environment :: Console",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Office/Business :: Financial",
+    "Topic :: Office/Business :: Financial :: Accounting",
+    "Topic :: Office/Business :: Financial :: Billing",
+    "Topic :: Office/Business :: Financial :: Point-Of-Sale",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Database",
+]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+dependencies = [
+    "tigrbl",
+]
+keywords = [
+    "tigrbl",
+    "sdk",
+    "standards",
+    "billing",
+    "stripe",
+    "subscriptions",
+    "invoicing",
+    "finance",
+    "payments",
+    "payment-processing",
+    "pricing",
+    "analytics",
+    "metered-billing",
+    "usage-based-pricing",
+    "revenue-operations",
+    "revenue-management",
+    "invoice-management",
+    "subscription-management",
+    "reconciliation",
+    "monetization",
+    "financial-operations",
+    "tigrbl-platform",
+    "billing-automation",
+    "customer-lifecycle",
+    "customer-billing",
+    "billing-analytics",
+    "billing-platform",
+    "finance-automation",
+    "usage-metrics",
+    "tigrbl-billing",
+]
+
+[tool.uv.sources]
+tigrbl = { workspace = true }
+
+[tool.pytest.ini_options]
+norecursedirs = ["combined", "scripts"]
+markers = [
+    "test: standard test",
+    "unit: Unit tests",
+    "i9n: Integration tests",
+    "r8n: Regression tests",
+    "timeout: mark test to timeout after X seconds",
+    "xpass: Expected passes",
+    "xfail: Expected failures",
+    "acceptance: Acceptance tests",
+    "perf: Performance tests that measure execution time and resource usage",
+    "example: Usage examples from documentation",
+]
+timeout = 300
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+asyncio_default_fixture_loop_scope = "function"
+asyncio_mode = "auto"
+addopts = "-m 'not integration'"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+packages = [{ include = "tigrbl_billing", from = "src" }]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-xdist>=3.6.1",
+    "pytest-json-report>=1.5.0",
+    "python-dotenv",
+    "requests>=2.32.3",
+    "flake8>=7.0",
+    "pytest-timeout>=2.3.1",
+    "ruff>=0.9.9",
+    "pytest-benchmark>=4.0.0",
+]

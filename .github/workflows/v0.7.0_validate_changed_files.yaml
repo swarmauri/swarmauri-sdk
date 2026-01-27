@@ -13,6 +13,7 @@ jobs:
   detect-changed-files:
     if: ${{ !cancelled() }}
     runs-on: [testing]
+    timeout-minutes: 10
     outputs:
       matrix: ${{ steps.detect.outputs.matrix }}
 
@@ -94,6 +95,7 @@ jobs:
     needs: detect-changed-files
     if: ${{ !cancelled() && needs.detect-changed-files.outputs.matrix != '[]' }}
     runs-on: [testing]
+    timeout-minutes: 5
     strategy:
       fail-fast: false
       matrix:

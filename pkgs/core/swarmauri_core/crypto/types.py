@@ -84,6 +84,8 @@ class KeyUse(str, Enum):
     VERIFY = "verify"
     WRAP = "wrap"
     UNWRAP = "unwrap"
+    ENCAPS = "encaps"
+    DECAPS = "decaps"
 
 
 class KeyState(str, Enum):

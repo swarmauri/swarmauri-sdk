@@ -1,6 +1,6 @@
 [project]
 name = "tigrbl"
-version = "0.3.0.dev4"
+version = "0.3.0.dev8"
 description = "Automatic API generation tools by Swarmauri."
 license = "Apache-2.0"
 readme = "README.md"
@@ -43,14 +43,19 @@ postgres = [
 templates = [
     "jinja2>=3.1.4",
 ]
+tests = [
+    "tigrbl-tests",
+]
 
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
+tigrbl-tests = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
+testpaths = ["../tigrbl_tests/tests"]
 markers = [
     "test: standard test",
     "unit: Unit tests",
@@ -72,6 +77,11 @@ asyncio_default_fixture_loop_scope = "function"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+packages = [
+    { include = "tigrbl" },
+]
 
 [dependency-groups]
 dev = [

@@ -1,9 +1,10 @@
 from __future__ import annotations
-from typing import Any, Callable, Tuple, Optional, Dict
+from typing import Any, Callable, Tuple
 
 from redis import Redis
 from tigrbl.engine.builders import blocking_postgres_engine
 from .session import CacheThroughSession
+
 
 def rediscachethrough_engine(
     dsn: str | None = None,
@@ -42,6 +43,7 @@ def rediscachethrough_engine(
         "redis": r,
     }
     return engine_handles, session_factory
+
 
 def rediscachethrough_capabilities() -> dict:
     return {

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tokens_jwt"
-version = "0.3.0.dev8"
+version = "0.3.0.dev15"
 description = "JWT token service for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

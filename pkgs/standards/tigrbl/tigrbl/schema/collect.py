@@ -9,6 +9,7 @@ from typing import Dict
 from ..config.constants import TIGRBL_SCHEMA_DECLS_ATTR
 
 from .decorators import _SchemaDecl
+from pydantic import BaseModel, create_model
 
 logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
@@ -19,6 +20,24 @@ def collect_decorated_schemas(model: type) -> Dict[str, Dict[str, type]]:
     """Gather schema declarations for ``model`` across its MRO."""
     logger.info("Collecting decorated schemas for %s", model.__name__)
     out: Dict[str, Dict[str, type]] = {}
+
+    def _promote_schema(schema_cls: type) -> type:
+        if issubclass(schema_cls, BaseModel):
+            return schema_cls
+        annotations = getattr(schema_cls, "__annotations__", {}) or {}
+        fields = {}
+        for name, anno in annotations.items():
+            default = getattr(schema_cls, name, ...)
+            fields[name] = (anno, default)
+        promoted = create_model(  # type: ignore[call-arg]
+            schema_cls.__name__,
+            __base__=BaseModel,
+            **fields,
+        )
+        promoted.__module__ = schema_cls.__module__
+        promoted.__qualname__ = schema_cls.__qualname__
+        promoted.__doc__ = schema_cls.__doc__
+        return promoted
 
     # Explicit registrations (MRO-merged)
     for base in reversed(model.__mro__):
@@ -31,7 +50,12 @@ def collect_decorated_schemas(model: type) -> Dict[str, Dict[str, type]]:
             )
         for alias, kinds in mapping.items():
             bucket = out.setdefault(alias, {})
-            bucket.update(kinds or {})
+            bucket.update(
+                {
+                    kind: _promote_schema(schema)
+                    for kind, schema in (kinds or {}).items()
+                }
+            )
 
     # Nested classes with __tigrbl_schema_decl__
     for base in reversed(model.__mro__):
@@ -46,7 +70,7 @@ def collect_decorated_schemas(model: type) -> Dict[str, Dict[str, type]]:
                 )
                 continue
             bucket = out.setdefault(decl.alias, {})
-            bucket[decl.kind] = obj
+            bucket[decl.kind] = _promote_schema(obj)
 
     logger.debug("Collected schema aliases: %s", list(out.keys()))
     return out

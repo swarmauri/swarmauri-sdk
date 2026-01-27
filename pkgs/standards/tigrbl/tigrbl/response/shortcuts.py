@@ -5,6 +5,7 @@ from pathlib import Path
 import json
 import os
 import mimetypes
+import base64
 
 from ..deps.starlette import (
     JSONResponse,
@@ -16,13 +17,39 @@ from ..deps.starlette import (
     Response,
 )
 
+
+def _json_default(value: Any) -> Any:
+    if isinstance(value, (bytes, bytearray, memoryview)):
+        return base64.b64encode(bytes(value)).decode("ascii")
+    if isinstance(value, Path):
+        return str(value)
+    return str(value)
+
+
 try:
     import orjson as _orjson
 
+    _ORJSON_OPTIONS = (
+        getattr(_orjson, "OPT_NON_STR_KEYS", 0)
+        | getattr(_orjson, "OPT_SERIALIZE_NUMPY", 0)
+        | getattr(_orjson, "OPT_SERIALIZE_BYTES", 0)
+    )
+
     def _dumps(obj: Any) -> bytes:
-        return _orjson.dumps(
-            obj, option=_orjson.OPT_NON_STR_KEYS | _orjson.OPT_SERIALIZE_NUMPY
-        )
+        try:
+            return _orjson.dumps(
+                obj,
+                option=_ORJSON_OPTIONS,
+                default=_json_default,
+            )
+        except TypeError:
+            # Fallback for older orjson builds missing optional flags
+            return json.dumps(
+                obj,
+                separators=(",", ":"),
+                ensure_ascii=False,
+                default=_json_default,
+            ).encode("utf-8")
 except Exception:  # pragma: no cover - fallback
 
     def _dumps(obj: Any) -> bytes:
@@ -30,7 +57,7 @@ except Exception:  # pragma: no cover - fallback
             obj,
             separators=(",", ":"),
             ensure_ascii=False,
-            default=str,
+            default=_json_default,
         ).encode("utf-8")
 
 

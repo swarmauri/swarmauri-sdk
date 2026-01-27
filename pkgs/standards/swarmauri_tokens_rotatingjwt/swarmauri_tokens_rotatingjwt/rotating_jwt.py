@@ -20,8 +20,14 @@ from jwt import algorithms
 
 from abc import ABC
 
-from swarmauri_core.keys.IKeyProvider import IKeyProvider
-from swarmauri_core.keys.types import KeySpec, KeyAlg, KeyClass, ExportPolicy, KeyUse
+from swarmauri_core.key_providers.IKeyProvider import IKeyProvider
+from swarmauri_core.key_providers.types import (
+    KeySpec,
+    KeyAlg,
+    KeyClass,
+    ExportPolicy,
+    KeyUse,
+)
 from swarmauri_core.crypto.types import JWAAlg
 
 

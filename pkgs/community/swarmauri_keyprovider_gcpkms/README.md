@@ -61,7 +61,7 @@ pip install "swarmauri_keyprovider_gcpkms[cbor]"
 ```python
 import asyncio
 from swarmauri_keyprovider_gcpkms import GcpKmsKeyProvider
-from swarmauri_core.keys.types import KeySpec, KeyUse
+from swarmauri_core.key_providers.types import KeySpec, KeyUse
 
 
 async def main() -> None:

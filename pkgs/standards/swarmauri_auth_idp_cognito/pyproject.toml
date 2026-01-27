@@ -1,0 +1,88 @@
+[project]
+name = "swarmauri_auth_idp_cognito"
+version = "0.1.0.dev9"
+description = "AWS Cognito OAuth 2.0 / OAuth 2.1 / OIDC 1.0 identity provider implementations for Swarmauri"
+license = "Apache-2.0"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+repository = "https://github.com/swarmauri/swarmauri-sdk"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP :: Session",
+    "Topic :: Security :: Cryptography",
+]
+dependencies = [
+    "swarmauri_core",
+    "swarmauri_base",
+    "httpx",
+    "pyjwt[crypto]>=2.8",
+]
+keywords = [
+    "swarmauri",
+    "sdk",
+    "experimental",
+    "identity",
+    "oauth2",
+    "oauth21",
+    "oidc",
+    "cognito",
+    "aws",
+    "idp",
+]
+
+[tool.uv.sources]
+swarmauri_tests_pylicense = { workspace = true }
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+
+[tool.pytest.ini_options]
+markers = [
+    "test: standard test",
+    "unit: Unit tests",
+    "i9n: Integration tests",
+    "r8n: Regression tests",
+    "acceptance: Acceptance tests",
+    "perf: Performance tests",
+    "example: Documentation examples",
+]
+timeout = 300
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+asyncio_default_fixture_loop_scope = "function"
+addopts = "--pylicense-accept-deps=sniffio"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-xdist>=3.6.1",
+    "pytest-json-report>=1.5.0",
+    "pytest-timeout>=2.3.1",
+    "pytest-benchmark>=4.0.0",
+    "ruff>=0.9.9",
+    "swarmauri_tests_pylicense",
+]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[project.entry-points.'swarmauri.auth_idp']
+CognitoOAuth20Login = "swarmauri_auth_idp_cognito:CognitoOAuth20Login"
+CognitoOAuth21Login = "swarmauri_auth_idp_cognito:CognitoOAuth21Login"
+CognitoOIDC10Login = "swarmauri_auth_idp_cognito:CognitoOIDC10Login"
+CognitoOAuth20AppClient = "swarmauri_auth_idp_cognito:CognitoOAuth20AppClient"
+CognitoOAuth21AppClient = "swarmauri_auth_idp_cognito:CognitoOAuth21AppClient"
+CognitoOIDC10AppClient = "swarmauri_auth_idp_cognito:CognitoOIDC10AppClient"

@@ -20,7 +20,11 @@ from tigrbl.types import (
     Mapped,
 )
 from swarmauri_core.crypto.types import ExportPolicy, KeyUse
-from swarmauri_core.keys.types import KeySpec, KeyClass, KeyAlg as ProviderKeyAlg
+from swarmauri_core.key_providers.types import (
+    KeySpec,
+    KeyClass,
+    KeyAlg as ProviderKeyAlg,
+)
 
 from ..utils import b64d
 from .key import Key, KeyAlg

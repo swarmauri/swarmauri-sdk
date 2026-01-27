@@ -1,7 +1,7 @@
 from __future__ import annotations
 from functools import wraps
-from typing import Mapping, Any
 from .spec import TileSpec
+
 
 def tile_ctx(*, id: str, role: str = "generic", **kwargs):
     """Decorator to attach a TileSpec to a factory function.
@@ -11,13 +11,23 @@ def tile_ctx(*, id: str, role: str = "generic", **kwargs):
         def revenue_tile(): return {"source": "metrics.revenue"}
     """
     spec = TileSpec(id=id, role=role, **kwargs)
+
     def deco(fn):
         setattr(fn, "__tile_spec__", spec)
+
         @wraps(fn)
         def wrapper(*a, **kw):
             return fn(*a, **kw)
+
         return wrapper
+
     return deco
+
+
+def tile(*, id: str, role: str = "generic", **kwargs):
+    """Backward compatible alias for :func:`tile_ctx`."""
+    return tile_ctx(id=id, role=role, **kwargs)
+
 
 def validate_spec(fn):
     """Placeholder decorator to validate function-provided specs at call-time.
@@ -25,6 +35,7 @@ def validate_spec(fn):
     If the function returns a dict with 'id'/'role', attempt to build a TileSpec for validation.
     Otherwise, pass-through.
     """
+
     @wraps(fn)
     def wrapper(*a, **kw):
         out = fn(*a, **kw)
@@ -33,4 +44,5 @@ def validate_spec(fn):
             if "id" in out and "role" in out:
                 TileSpec(**out)  # will raise on invalid
         return out
+
     return wrapper

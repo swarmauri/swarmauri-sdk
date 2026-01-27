@@ -2,49 +2,67 @@
 requires = ["poetry-core>=1.9.0"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.poetry]
+[project]
 name = "wcag-pdf-pytest"
 version = "0.2.0"
-description = "Pytest plugin for WCAG 2.1 A/AA/AAA compliance checks on PDFs; ships one test per SC applicable to PDFs."
-authors = ["Example Org <dev@example.org>"]
-license = "Apache-2.0"
+description = "Pytest plugin for WCAG 2.1 A/AA/AAA compliance checks on PDFs."
 readme = "README.md"
-packages = [{ include = "wcag_pdf_pytest", from = "src" }]
-keywords = ["pytest", "wcag", "accessibility", "pdf", "wcag2.1"]
+license = "Apache-2.0"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+requires-python = ">=3.10,<3.13"
+keywords = [
+    "pytest",
+    "wcag",
+    "accessibility",
+    "pdf",
+    "wcag2.1",
+    "pdf-accessibility",
+    "compliance",
+    "testing",
+]
 classifiers = [
-  "Framework :: Pytest",
-  "License :: OSI Approved :: Apache Software License",
-  "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3 :: Only",
-  "Operating System :: OS Independent"
+    "Development Status :: 1 - Planning",
+    "Framework :: Pytest",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Testing",
+]
+dependencies = [
+    "pytest>=8.2",
 ]
 
-[tool.poetry.dependencies]
-python = ">=3.9,<3.13"
-pytest = ">=8.2"
-pypdf = {version = ">=3.17", optional = true}
+[project.optional-dependencies]
+pdf = ["pypdf>=3.17"]
 
-[tool.poetry.extras]
-pdf = ["pypdf"]
-
-[tool.poetry.plugins."pytest11"]
+[project.entry-points."pytest11"]
 wcag_pdf = "wcag_pdf_pytest.plugin"
 
-[tool.pytest.ini_options]
-testpaths = ["src/wcag_pdf_pytest/criteria"]
-addopts = "-q"
-markers = [
-  "A: WCAG 2.1 Level A criteria.",
-  "AA: WCAG 2.1 Level AA criteria.",
-  "AAA: WCAG 2.1 Level AAA criteria.",
-  "wcag21: All WCAG 2.1 criteria generated from the spreadsheet."
+[project.urls]
+Homepage = "https://github.com/swarmauri/swarmauri-sdk"
+Source = "https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/wcag_pdf_pytest"
+Documentation = "https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/wcag_pdf_pytest#readme"
+Issues = "https://github.com/swarmauri/swarmauri-sdk/issues"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.2",
+    "ruff>=0.6.0",
 ]
 
-# uv reads configuration from pyproject.toml (no uv.toml used)
-[tool.uv]
-dev-dependencies = [
-  "pytest>=8.2",
-  "ruff>=0.6.0"
+[tool.pytest.ini_options]
+testpaths = ["wcag_pdf_pytest/criteria"]
+addopts = "-q"
+markers = [
+    "A: WCAG 2.1 Level A criteria.",
+    "AA: WCAG 2.1 Level AA criteria.",
+    "AAA: WCAG 2.1 Level AAA criteria.",
+    "wcag21: All WCAG 2.1 criteria generated from the spreadsheet.",
 ]
 
 [tool.ruff]
@@ -53,4 +71,8 @@ line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
-fix = true
+
+[tool.poetry]
+packages = [
+    { include = "wcag_pdf_pytest" },
+]

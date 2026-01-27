@@ -5,6 +5,7 @@ from __future__ import annotations
 import binascii
 import zlib
 
+import pytest
 import EmbedXMP as manager
 from EmbedXMP import EmbedXMP
 from swarmauri_xmp_png import PNGXMP
@@ -56,3 +57,33 @@ def test_module_helpers_use_cached_instance() -> None:
         assert manager.read(manager.remove(written, path="example.png")) is None
     finally:
         manager._default_embed = original
+
+
+def test_hint_keyword_aliases_path_for_manager() -> None:
+    handler = EmbedXMP(handlers=[PNGXMP], eager_import=False)
+    data = _minimal_png()
+    xmp = "<x:xmpmeta><rdf:RDF/></x:xmpmeta>"
+
+    written = handler.embed(data, xmp, hint="example.png")
+    assert handler.read(written, hint="example.png") == xmp
+
+
+def test_hint_keyword_aliases_path_for_module() -> None:
+    original = manager._default_embed
+    manager._default_embed = EmbedXMP(handlers=[PNGXMP], eager_import=False)
+    data = _minimal_png()
+    xmp = "<x:xmpmeta><rdf:RDF/></x:xmpmeta>"
+    try:
+        written = manager.embed(data, xmp, hint="example.png")
+        assert manager.read(written, hint="example.png") == xmp
+    finally:
+        manager._default_embed = original
+
+
+def test_conflicting_path_and_hint_raise_value_error() -> None:
+    handler = EmbedXMP(handlers=[PNGXMP], eager_import=False)
+    data = _minimal_png()
+    xmp = "<x:xmpmeta><rdf:RDF/></x:xmpmeta>"
+
+    with pytest.raises(ValueError):
+        handler.embed(data, xmp, path="one.png", hint="two.png")

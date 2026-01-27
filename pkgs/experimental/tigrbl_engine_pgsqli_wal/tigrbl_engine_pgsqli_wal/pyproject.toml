@@ -9,15 +9,28 @@ description = "PostgreSQL and SQLite WAL engine plugin for Tigrbl (auto-register
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
 license = { text = "Apache-2.0" }
-authors = [{ name = "Your Team", email = "dev@example.org" }]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 classifiers = [
+  "Development Status :: 1 - Planning",
   "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Environment :: Plugins",
   "Intended Audience :: Developers",
+  "Topic :: Database",
+  "Topic :: Software Development :: Libraries",
+]
+keywords = [
+  "tigrbl",
+  "engine",
+  "plugin",
+  "postgres",
+  "sqlite",
+  "wal",
 ]
 
 dependencies = [
@@ -26,7 +39,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://example.org/tigrbl_engine_pgsqli_wal"
+Homepage = "https://github.com/swarmauri/swarmauri-sdk"
+Repository = "https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/tigrbl_engine_pgsqli_wal"
 
 [project.entry-points."tigrbl.engine"]
 pgsqli_wal = "tigrbl_engine_pgsqli_wal:register"
@@ -36,3 +50,17 @@ pgsqli_wal = "tigrbl_engine_pgsqli_wal:register"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.0",
+  "pytest-asyncio>=0.24.0",
+  "pytest-xdist>=3.6.1",
+  "pytest-json-report>=1.5.0",
+  "python-dotenv",
+  "requests>=2.32.3",
+  "flake8>=7.0",
+  "pytest-timeout>=2.3.1",
+  "ruff>=0.9.9",
+  "pytest-benchmark>=4.0.0",
+]

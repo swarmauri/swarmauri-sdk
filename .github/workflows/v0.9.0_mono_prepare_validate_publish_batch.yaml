@@ -29,6 +29,7 @@ jobs:
   set-matrix:
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     outputs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
       approval_matrix: ${{ steps.get-matrix.outputs.approval_matrix }}
@@ -107,6 +108,7 @@ jobs:
     needs: set-matrix
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
       matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
       fail-fast: false
@@ -192,6 +194,7 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     if: ${{ !cancelled() && always() }}
+    timeout-minutes: 15
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -248,7 +251,7 @@ jobs:
       matrix: ${{ fromJson(needs.set-matrix.outputs.approval_matrix) }}
       fail-fast: false
       max-parallel: 1
-    timeout-minutes: 4320
+    timeout-minutes: 15
     environment:
       name: pypi-new-package-approval
       url: https://pypi.org/project/${{ matrix.package_name }}/
@@ -261,6 +264,7 @@ jobs:
     needs: [commit, set-matrix, pypi_approval_gate]
     runs-on: ubuntu-latest
     if: ${{ !cancelled() && always() && (needs.set-matrix.outputs.approval_required != 'true' || needs.pypi_approval_gate.result == 'success') }}
+    timeout-minutes: 15
     strategy:
       matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
       fail-fast: false

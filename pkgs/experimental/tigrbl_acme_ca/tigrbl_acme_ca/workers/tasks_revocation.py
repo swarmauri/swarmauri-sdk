@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from fastapi import HTTPException
 from sqlalchemy import select
 
 from tigrbl_acme_ca.tables.revocations import Revocation
-from tigrbl_acme_ca.tables.certificates import Certificate
+
 
 async def rebuild_crl_task(ctx) -> dict:
     """Trigger CRL rebuild via ctx-injected CRL builder/publisher."""
@@ -23,6 +21,7 @@ async def rebuild_crl_task(ctx) -> dict:
         return {"reissued": True}
     except Exception:
         return {"reissued": False}
+
 
 async def ocsp_refresh_task(ctx, *, certificate_ids: list[str] | None = None) -> dict:
     responder = ctx.get("ocsp_responder")

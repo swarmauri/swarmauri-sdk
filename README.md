@@ -32,7 +32,11 @@ For a full-featured experience with all standard components:
 pip install swarmauri
 
 # Install the main namespace package with extra standard components
-pip install swarmauri[full]
+pip install "swarmauri[full]"
+
+# Or with uv for faster installation
+uv pip install swarmauri
+uv pip install "swarmauri[full]"
 ```
 
 ### Option 2: Core Only
@@ -41,18 +45,12 @@ For a minimal installation with just the core interfaces:
 ```bash
 # Install only the core components
 pip install swarmauri_core
+
+# Or with uv for faster installation
+uv pip install swarmauri_core
 ```
 
-### Option 3: Experimental Components
-
-Add additional experimental components:
-```bash
-
-# Add experimental features (optional)
-pip install swarmauri_experimental
-```
-
-### Option 4: Standalone Packages
+### Option 3: Standalone Packages
 
 Install specific packages for targeted functionality:
 
@@ -63,6 +61,11 @@ pip install swarmauri_vectorstore_annoy
 
 # Install specific tools
 pip install swarmauri_tool_jupyterexportlatex
+
+# Or with uv for faster installation
+uv pip install swarmauri_vectorstore_pinecone
+uv pip install swarmauri_vectorstore_annoy
+uv pip install swarmauri_tool_jupyterexportlatex
 ```
 
 ### Development Installation
@@ -131,7 +134,8 @@ The Swarmauri SDK is organized into several key packages:
 - `swarmauri_base`: Abstract base classes for extensibility
 - `swarmauri_standard`: Standard implementations of common components
 - `swarmauri`: Main namespace package that unifies all components
-- `swarmauri_experimental`: Experimental features under development
+- `pkgs/community`: Community-maintained packages and integrations
+- `pkgs/deprecated`: Retired packages that remain for historical reference
 
 Individual components follow these naming conventions:
 
@@ -161,5 +165,4 @@ class YourVectorStore(VectorStoreBase):
 
 ## License
 The Swarmauri SDK is licensed under the Apache License 2.0. See the [LICENSE](https://github.com/swarmauri/swarmauri-sdk/blob/master/LICENSE) file for details.
-
 

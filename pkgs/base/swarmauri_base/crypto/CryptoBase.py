@@ -6,7 +6,7 @@ concrete providers only need to implement what they support.
 
 from __future__ import annotations
 
-from typing import Dict, Iterable, Literal, Optional
+from typing import Dict, Iterable, Literal, Optional, Tuple
 
 from pydantic import Field
 
@@ -77,3 +77,21 @@ class CryptoBase(ICrypto, ComponentBase):
         alg: Optional[Alg] = None,
     ) -> bytes:
         raise NotImplementedError("unseal() must be implemented by subclass")
+
+    # ─────────────────────────── encaps / decaps ─────────────────────────
+    async def encaps(
+        self,
+        recipient: KeyRef,
+        *,
+        alg: Optional[Alg] = None,
+    ) -> Tuple[bytes, bytes]:
+        raise NotImplementedError("encaps() must be implemented by subclass")
+
+    async def decaps(
+        self,
+        recipient_priv: KeyRef,
+        encapsulated_key: bytes,
+        *,
+        alg: Optional[Alg] = None,
+    ) -> bytes:
+        raise NotImplementedError("decaps() must be implemented by subclass")

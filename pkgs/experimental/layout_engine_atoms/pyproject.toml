@@ -1,0 +1,63 @@
+[project]
+name = "layout-engine-atoms"
+version = "0.1.0.dev1"
+description = "Curated atom presets and registries for layout-engine."
+authors = [
+    { name = "Jacob Stewart", email = "jacob@swarmauri.com" },
+]
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10,<3.13"
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries",
+]
+dependencies = [
+    "layout-engine",
+    "fastapi",
+    "uvicorn[standard]",
+    "httpx>=0.27",
+]
+keywords = [
+    "layout",
+    "uix",
+    "atoms",
+    "registry",
+    "presets",
+    "swarmauri",
+]
+
+[tool.setuptools.package-data]
+layout_engine_atoms = [
+    "runtime/vue/assets/layout-engine-vue/*.js",
+    "runtime/vue/templates/*.html",
+    "runtime/svelte/assets/layout-engine-svelte/*.js",
+    "runtime/svelte/assets/layout-engine-svelte/*.css",
+    "runtime/svelte/templates/*.html",
+    "runtime/svelte/assets/swarma-svelte/*.js",
+    "runtime/svelte/assets/swarma-svelte/*.css",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.2",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.6",
+]
+
+[build-system]
+requires = ["poetry-core>=1.9.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.uv.sources]
+layout-engine = { path = "../layout_engine" }

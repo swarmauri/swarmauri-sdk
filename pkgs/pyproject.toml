@@ -37,6 +37,18 @@ members = [
     "experimental/cayaml",
     "experimental/catoml",
     "experimental/jaml",
+    "standards/swarmauri_auth_idp_aws",
+    "standards/swarmauri_auth_idp_apple",
+    "standards/swarmauri_auth_idp_azure",
+    "standards/swarmauri_auth_idp_cognito",
+    "standards/swarmauri_auth_idp_facebook",
+    "standards/swarmauri_auth_idp_gitea",
+    "standards/swarmauri_auth_idp_github",
+    "standards/swarmauri_auth_idp_gitlab",
+    "standards/swarmauri_auth_idp_google",
+    "standards/swarmauri_auth_idp_keycloak",
+    "standards/swarmauri_auth_idp_okta",
+    "standards/swarmauri_auth_idp_salesforce",
     "standards/swarmauri_vectorstore_doc2vec",
     "standards/swarmauri_embedding_doc2vec",
     #"standards/swarmauri_embedding_tfidf",
@@ -58,6 +70,7 @@ members = [
     "standards/swarmauri_publisher_rabbitmq",
     "standards/swarmauri_publisher_redis",
     "standards/swarmauri_publisher_webhook",
+    "standards/swarmauri_billing_stripe",
     "standards/swarmauri_transport_tls_unicast",
     "standards/swarmauri_transport_udp",
     "standards/swarmauri_transport_uds_unicast",
@@ -86,9 +99,11 @@ members = [
     "standards/swarmauri_pop_x509",
     "standards/swarmauri_prompt_j2prompttemplate",
     "standards/tigrbl",
+    "standards/tigrbl_tests",
     "standards/tigrbl_auth",
     "standards/tigrbl_kms",
     "standards/tigrbl_client",
+    "standards/tigrbl_billing",
     "standards/peagen",
     "standards/swarmauri_storage_file",
     "standards/swarmauri_storage_github",
@@ -111,6 +126,7 @@ members = [
     "experimental/swarmauri_tests_loc_tersity",
     "experimental/swarmauri_tests_pylicense",
     "experimental/swarmauri_tests_readme_examples",
+
     "standards/swarmauri_crypto_paramiko",
     "standards/swarmauri_crypto_pgp",
     "standards/swarmauri_crypto_rust",
@@ -122,6 +138,8 @@ members = [
     "standards/swarmauri_cipher_suite_jwa",
     "standards/swarmauri_cipher_suite_cose",
     "standards/swarmauri_cipher_suite_fips1403",
+    "standards/swarmauri_cipher_suite_fips204",
+    "standards/swarmauri_cipher_suite_fips205",
     "standards/swarmauri_cipher_suite_cades",
     "standards/swarmauri_cipher_suite_cnsa20",
     "standards/swarmauri_cipher_suite_ipsec",
@@ -142,11 +160,22 @@ members = [
     "standards/swarmauri_signing_ed25519",
     "standards/swarmauri_signing_secp256k1",
     "standards/swarmauri_signing_hmac",
+    "standards/swarmauri_signing_sigv4",
     "standards/swarmauri_signing_ecdsa",
     "standards/swarmauri_signing_ca",
     "standards/swarmauri_signing_jws",
     "standards/swarmauri_signing_dpop",
     "community/swarmauri_signing_dsse",
+    "community/swarmauri_billing_adyen",
+    "community/swarmauri_billing_authorize_net",
+    "community/swarmauri_billing_braintree",
+    "community/swarmauri_billing_paypal",
+    "standards/swarmauri_billing_mock",
+    "community/swarmauri_billing_square",
+    "community/swarmauri_billing_razorpay",
+    "community/swarmauri_billing_paystack",
+    "community/tigrbl_api_cron",
+    "community/tigrbl_api_hpks",
     "standards/swarmauri_certs_local_ca",
     "standards/swarmauri_certs_self_signed",
     "standards/swarmauri_tokens_jwt",
@@ -224,6 +253,8 @@ members = [
     "community/swarmauri_parser_pypdftk",
     "community/swarmauri_measurement_mutualinformation",
     "community/swarmauri_measurement_tokencountestimator",
+    "community/swarmauri_metric_hamming",
+    "community/swarmauri_matrix_hamming74",
     "community/swarmauri_ocr_pytesseract",
     "community/swarmauri_tests_griffe",
     "community/swarmauri_embedding_mlm",
@@ -313,9 +344,11 @@ swarmauri_middleware_circuitbreaker = { workspace = true }
 swarmauri_middleware_ratepolicy = { workspace = true }
 
 tigrbl = { workspace = true }
+tigrbl-tests = { workspace = true }
 tigrbl_client = { workspace = true }
 tigrbl_auth = { workspace = true }
 tigrbl_kms = { workspace = true }
+tigrbl_billing = { workspace = true }
 peagen = { workspace = true }
 
 swarmauri_storage_file = { workspace = true }
@@ -353,6 +386,7 @@ swarmauri_keyproviders_mirrored = { workspace = true }
 swarmauri_keyprovider_hierarchical = { workspace = true }
 swarmauri_keyprovider_inmemory = { workspace = true }
 swarmauri_signing_hmac = { workspace = true }
+swarmauri_signing_sigv4 = { workspace = true }
 swarmauri_signing_ecdsa = { workspace = true }
 swarmauri_signing_ca = { workspace = true }
 swarmauri_certs_remote_ca = { workspace = true }
@@ -373,6 +407,18 @@ swarmauri_cipher_suite_jwa = { workspace = true }
 swarmauri_cipher_suite_cades = { workspace = true }
 swarmauri_cipher_suite_pades = { workspace = true }
 swarmauri_certs_x509verify = { workspace = true }
+swarmauri_auth_idp_apple = { workspace = true }
+swarmauri_auth_idp_cognito = { workspace = true }
+swarmauri_auth_idp_gitea = { workspace = true }
+swarmauri_auth_idp_github = { workspace = true }
+swarmauri_auth_idp_gitlab = { workspace = true }
+swarmauri_auth_idp_google = { workspace = true }
+swarmauri_auth_idp_okta = { workspace = true }
+swarmauri_auth_idp_keycloak = { workspace = true }
+swarmauri_auth_idp_salesforce = { workspace = true }
+swarmauri_auth_idp_azure = { workspace = true }
+swarmauri_auth_idp_aws = { workspace = true }
+swarmauri_auth_idp_facebook = { workspace = true }
 
 swarmauri_tokens_introspection = { workspace = true }
 swarmauri_tokens_paseto_v4 = { workspace = true }
@@ -413,6 +459,8 @@ swarmauri_parser_pypdf2 = { workspace = true }
 swarmauri_parser_pypdftk = { workspace = true }
 swarmauri_measurement_mutualinformation = { workspace = true }
 swarmauri_measurement_tokencountestimator = { workspace = true }
+swarmauri_metric_hamming = { workspace = true }
+swarmauri_matrix_hamming74 = { workspace = true }
 swarmauri_ocr_pytesseract = { workspace = true }
 swarmauri_tests_griffe = { workspace = true }
 swarmauri_embedding_mlm = { workspace = true }

@@ -1,6 +1,11 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Tuple
+from typing import Any
+
+import httpx
+
+from ..workload_client import WorkloadClientError, fetch_remote_svid
+
 
 class RotationPolicy:
     """Computes the next material for an SVID.
@@ -12,41 +17,19 @@ class RotationPolicy:
         adapter = ctx.get("spiffe_adapter")
         cfg = ctx.get("spiffe_config")
         if adapter and cfg:
-            # Prefer remote fetch for fresh SVIDs
             tx = await adapter.for_endpoint(cfg.workload_endpoint)
             kind = getattr(current, "kind", "x509")
-            if kind == "x509" and tx.kind == "uds":
-                from pyspiffe.workloadapi.default_workload_api_client import DefaultWorkloadApiClient
-                client = DefaultWorkloadApiClient(socket_path=tx.uds_path)
-                try:
-                    svid = client.fetch_x509_svid()
-                    chain_der = b"".join(c.public_bytes() for c in svid.cert_chain)  # type: ignore[attr-defined]
-                    exp = int(svid.expires_at.timestamp())
-                    return {
-                        "material": chain_der,
-                        "not_before": exp - 3600,
-                        "not_after": exp,
-                        "audiences": tuple(getattr(current, "audiences", ()) or ()),
-                    }
-                finally:
-                    client.close()
-
-            if kind == "jwt" and tx.http is not None:
-                data = (await tx.http.post("/workload/jwtsvid", json={"aud": list(getattr(current, "audiences", ())) })).json()
+            audiences = tuple(getattr(current, "audiences", ()) or ())
+            try:
+                remote = await fetch_remote_svid(tx, kind=kind, audiences=audiences)
+            except (WorkloadClientError, httpx.HTTPError):
+                remote = None
+            if remote:
                 return {
-                    "material": data["jwt"].encode("utf-8"),
-                    "not_before": data.get("nbf", 0),
-                    "not_after": data.get("exp", 0),
-                    "audiences": tuple(data.get("aud", [])),
-                }
-
-            if kind == "cwt" and tx.http is not None:
-                data = (await tx.http.post("/workload/cwtsvid", json={"aud": list(getattr(current, "audiences", ())) })).json()
-                return {
-                    "material": data["cwt"].encode("utf-8"),
-                    "not_before": data.get("nbf", 0),
-                    "not_after": data.get("exp", 0),
-                    "audiences": tuple(data.get("aud", [])),
+                    "material": remote["material"],
+                    "not_before": remote["not_before"],
+                    "not_after": remote["not_after"],
+                    "audiences": tuple(remote.get("audiences", audiences)),
                 }
 
         # Fallback: return current material (no change). A real policy might fail closed.

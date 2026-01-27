@@ -4,7 +4,8 @@ from .base import IGridResolver
 from .spec import GridSpec, GridTile, GridTrack
 from ..core.viewport import Viewport
 from ..core.frame import Frame
-from ..core.size import Size, resolve_column_widths
+from ..core.size import resolve_column_widths
+
 
 class ExplicitGridResolver(IGridResolver):
     """Deterministic resolver for explicit grids.
@@ -21,7 +22,10 @@ class ExplicitGridResolver(IGridResolver):
       3) Compute column x-offsets.
       4) For each GridTile, create a Frame; validate bounds.
     """
-    def frames(self, spec: GridSpec, vp: Viewport, tiles: list[GridTile]) -> dict[str, Frame]:
+
+    def frames(
+        self, spec: GridSpec, vp: Viewport, tiles: list[GridTile]
+    ) -> dict[str, Frame]:
         cols = self._columns_for_viewport(spec, vp)
         n = len(cols)
         if n == 0:
@@ -33,14 +37,22 @@ class ExplicitGridResolver(IGridResolver):
         frames: dict[str, Frame] = {}
         for gt in tiles:
             if gt.col < 0 or gt.col >= n:
-                raise ValueError(f"tile '{gt.tile_id}' col out of range: {gt.col} in [0,{n-1}]")
+                raise ValueError(
+                    f"tile '{gt.tile_id}' col out of range: {gt.col} in [0,{n - 1}]"
+                )
             if gt.col_span < 1 or gt.col + gt.col_span > n:
-                raise ValueError(f"tile '{gt.tile_id}' col_span invalid: start={gt.col} span={gt.col_span} with {n} columns")
+                raise ValueError(
+                    f"tile '{gt.tile_id}' col_span invalid: start={gt.col} span={gt.col_span} with {n} columns"
+                )
             if gt.row < 0 or gt.row_span < 1:
-                raise ValueError(f"tile '{gt.tile_id}' row/row_span invalid: row={gt.row} row_span={gt.row_span}")
+                raise ValueError(
+                    f"tile '{gt.tile_id}' row/row_span invalid: row={gt.row} row_span={gt.row_span}"
+                )
 
             x = xoffs[gt.col]
-            w = sum(widths[gt.col : gt.col + gt.col_span]) + spec.gap_x * (gt.col_span - 1)
+            w = sum(widths[gt.col : gt.col + gt.col_span]) + spec.gap_x * (
+                gt.col_span - 1
+            )
             y = gt.row * (spec.row_height + spec.gap_y)
             h = gt.row_span * spec.row_height + spec.gap_y * (gt.row_span - 1)
             frames[gt.tile_id] = Frame(x=x, y=y, w=w, h=h)
@@ -70,6 +82,7 @@ class ExplicitGridResolver(IGridResolver):
 
 class Grid:
     """Default grid runtime wrapper that pairs a GridSpec with a resolver."""
+
     def __init__(self, spec: GridSpec, resolver: IGridResolver | None = None):
         self.spec = spec
         self.resolver = resolver or ExplicitGridResolver()
@@ -80,9 +93,12 @@ class Grid:
     # --- context manager support ---
     def __enter__(self):
         return self
+
     def __exit__(self, exc_type, exc, tb):
         return False
+
     async def __aenter__(self):
         return self
+
     async def __aexit__(self, exc_type, exc, tb):
         return False

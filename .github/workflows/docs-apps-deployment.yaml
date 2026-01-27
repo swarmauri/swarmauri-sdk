@@ -2,7 +2,7 @@ name: Deploy Docs Apps
 
 on:
   push:
-    branches: [master, mono/dev]
+    branches: [master]
     paths:
       - 'docs/**'
       - 'pkgs/**'

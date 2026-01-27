@@ -1,7 +1,7 @@
 """Events subsystem: envelope, validation, topic routing, and in-proc bus.
 
 Scopes:
-  - site | slot | page | grid | tile | component
+  - site | slot | page | grid | tile | atom
 
 Use:
   from layout_engine.events import (
@@ -9,17 +9,47 @@ Use:
       route_topic, InProcEventBus, EventRouter, utc_now_iso, make_ack, make_error
   )
 """
+
 from .spec import EventEnvelope, utc_now_iso, make_ack, make_error
 from .validators import (
-    ValidationError, validate_envelope, route_topic, is_allowed, allowed_types_for,
-    ALLOW, SITE, SLOT, PAGE, GRID, TILE, COMPONENT
+    ValidationError,
+    validate_envelope,
+    route_topic,
+    is_allowed,
+    allowed_types_for,
+    ALLOW,
+    SITE,
+    SLOT,
+    PAGE,
+    GRID,
+    TILE,
+    ATOM,
+    register_channels,
+    clear_channels,
+    get_channel,
 )
 from .ws import InProcEventBus, EventRouter
 
 __all__ = [
-    "EventEnvelope", "ValidationError",
-    "validate_envelope", "route_topic", "is_allowed", "allowed_types_for",
-    "ALLOW", "SITE", "SLOT", "PAGE", "GRID", "TILE", "COMPONENT",
-    "InProcEventBus", "EventRouter",
-    "utc_now_iso", "make_ack", "make_error",
+    "EventEnvelope",
+    "ValidationError",
+    "validate_envelope",
+    "route_topic",
+    "is_allowed",
+    "allowed_types_for",
+    "ALLOW",
+    "SITE",
+    "SLOT",
+    "PAGE",
+    "GRID",
+    "TILE",
+    "ATOM",
+    "register_channels",
+    "clear_channels",
+    "get_channel",
+    "InProcEventBus",
+    "EventRouter",
+    "utc_now_iso",
+    "make_ack",
+    "make_error",
 ]

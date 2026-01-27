@@ -68,3 +68,46 @@ def test_process_target_skips_requested_packages(tmp_path):
     assert "skip_pkg.mod" not in module_classes
     skipped_file = docs_root / "docs" / "api" / "community" / "skip_pkg" / "Thing.md"
     assert not skipped_file.exists()
+
+
+def test_process_target_reuses_cached_classes(tmp_path, monkeypatch):
+    docs_root = tmp_path
+    pkg_root = docs_root / "pkgs" / "community" / "cached_pkg" / "cached_pkg"
+    pkg_root.mkdir(parents=True)
+    (pkg_root / "__init__.py").write_text("")
+    mod_file = pkg_root / "mod.py"
+    mod_file.write_text("class Cached:\n    pass\n")
+
+    target = Target(
+        name="Community",
+        search_path="pkgs/community",
+        discover=True,
+        include=["*.*"],
+        exclude=[],
+    )
+    cache: dict = {}
+    process_target(
+        docs_root=str(docs_root),
+        api_output_dir="api",
+        target=target,
+        cache=cache,
+        changed_only=False,
+    )
+
+    cache_key = str(mod_file.relative_to(docs_root))
+    cached_entry = cache["files"][cache_key]
+    assert cached_entry["classes"] == ["Cached"]
+    assert cached_entry["size"] == mod_file.stat().st_size
+
+    def _boom(*args, **kwargs):
+        raise AssertionError("analyze should not run for cached entries")
+
+    monkeypatch.setattr("zdx.scripts.gen_api._analyze_file", _boom)
+
+    process_target(
+        docs_root=str(docs_root),
+        api_output_dir="api",
+        target=target,
+        cache=cache,
+        changed_only=False,
+    )

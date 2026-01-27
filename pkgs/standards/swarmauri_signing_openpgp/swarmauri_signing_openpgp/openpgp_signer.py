@@ -17,7 +17,7 @@ from typing import (
 from swarmauri_base import register_type
 from swarmauri_base.signing.SigningBase import SigningBase
 from swarmauri_core.crypto.types import Alg, KeyRef
-from swarmauri_core.keys.IKeyProvider import IKeyProvider
+from swarmauri_core.key_providers.IKeyProvider import IKeyProvider
 from swarmauri_core.signing.ISigning import Canon, Envelope, StreamLike
 from swarmauri_core.signing.types import Signature
 
@@ -121,7 +121,7 @@ def _load_public_keys(entries: Optional[Iterable[Any]]) -> list[pgpy.PGPKey]:
 def _hash_from_alg(alg: Optional[Alg]) -> HashAlgorithm:
     if alg is None:
         return HashAlgorithm.SHA256
-    normalized = str(alg).replace("-", "_").upper()
+    normalized = str(alg).replace("-", "").replace("_", "").upper()
     try:
         return HashAlgorithm[normalized]
     except KeyError as exc:

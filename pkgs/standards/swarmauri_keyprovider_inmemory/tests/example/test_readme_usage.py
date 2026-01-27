@@ -4,7 +4,7 @@ import pytest
 
 from swarmauri_keyprovider_inmemory import InMemoryKeyProvider
 from swarmauri_core.crypto.types import ExportPolicy
-from swarmauri_core.keys.types import KeyAlg, KeyClass, KeySpec, KeyUse
+from swarmauri_core.key_providers.types import KeyAlg, KeyClass, KeySpec, KeyUse
 
 
 @pytest.mark.example

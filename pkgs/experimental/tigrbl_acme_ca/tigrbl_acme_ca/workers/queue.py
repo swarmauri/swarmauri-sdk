@@ -2,15 +2,19 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
-from typing import Any, Optional, Callable, Awaitable
+from typing import Optional
+
 
 @dataclass
 class TaskQueueAdapter:
-    """Abstract queue adapter. Runtime should provide a concrete instance in ctx.">
+    """Abstract queue adapter. Runtime should provide a concrete instance in ctx."""
+
     async def enqueue(self, item: dict) -> None:
         raise NotImplementedError
+
     async def dequeue(self, *, timeout: Optional[float] = None) -> Optional[dict]:
         raise NotImplementedError
+
 
 class InMemoryAsyncQueue(TaskQueueAdapter):
     def __init__(self) -> None:
@@ -26,6 +30,7 @@ class InMemoryAsyncQueue(TaskQueueAdapter):
             return await asyncio.wait_for(self._q.get(), timeout=timeout)
         except asyncio.TimeoutError:
             return None
+
 
 def from_ctx(ctx) -> TaskQueueAdapter:
     q = ctx.get("task_queue")

@@ -78,7 +78,7 @@ import asyncio
 
 from swarmauri_keyproviders_mirrored import MirroredKeyProvider
 from swarmauri_keyprovider_local import LocalKeyProvider
-from swarmauri_core.keys.types import KeySpec, KeyAlg, KeyClass, ExportPolicy
+from swarmauri_core.key_providers.types import KeySpec, KeyAlg, KeyClass, ExportPolicy
 from swarmauri_core.crypto.types import KeyUse
 
 

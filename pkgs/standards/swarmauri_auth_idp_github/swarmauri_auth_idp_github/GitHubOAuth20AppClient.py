@@ -1,0 +1,22 @@
+"""GitHub App installation client producing OAuth 2.0 compatible tokens."""
+
+from __future__ import annotations
+
+from typing import Optional
+
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.auth_idp import OAuth20AppClientBase
+
+from .GitHubAppClientMixin import GitHubAppClientMixin
+
+
+@ComponentBase.register_type(OAuth20AppClientBase, "GitHubOAuth20AppClient")
+class GitHubOAuth20AppClient(GitHubAppClientMixin, OAuth20AppClientBase):
+    """Fetch GitHub App installation access tokens."""
+
+    async def access_token(self, scope: Optional[str] = None) -> str:
+        if scope:
+            raise ValueError(
+                "GitHub installation tokens do not support scope overrides"
+            )
+        return await self._cached_access_token()

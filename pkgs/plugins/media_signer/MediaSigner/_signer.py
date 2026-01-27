@@ -7,7 +7,7 @@ from typing import AsyncIterable, Iterable, Mapping, MutableMapping, Optional, S
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.signing.SigningBase import SigningBase
 from swarmauri_core.crypto.types import Alg, KeyRef
-from swarmauri_core.keys.IKeyProvider import IKeyProvider
+from swarmauri_core.key_providers.IKeyProvider import IKeyProvider
 from swarmauri_core.signing.types import Signature
 
 StreamPayload = AsyncIterable[bytes] | Iterable[bytes]

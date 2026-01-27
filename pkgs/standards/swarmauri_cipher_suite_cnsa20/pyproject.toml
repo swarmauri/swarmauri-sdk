@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_cipher_suite_cnsa20"
-version = "0.1.0.dev3"
-description = "CNSA 2.0 policy cipher suite skeleton for Swarmauri"
+version = "0.2.0.dev1"
+description = "CNSA 2.0 policy cipher suite with classical and post-quantum algorithms"
 license = "Apache-2.0"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
@@ -38,6 +38,9 @@ keywords = [
     'NSA',
     'ES384',
     'PS384',
+    'ML-DSA',
+    'SLH-DSA',
+    'ML-KEM',
     'A256GCM',
     'RFC 7518',
     'NIST SP 800-38D',

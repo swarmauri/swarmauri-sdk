@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_measurement_mutualinformation"
-version = "0.9.0.dev9"
+version = "0.9.0.dev15"
 description = "Swarmauri Mutual Information Measurement Community Package."
 license = "Apache-2.0"
 readme = "README.md"

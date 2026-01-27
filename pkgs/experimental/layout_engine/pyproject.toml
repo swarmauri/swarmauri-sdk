@@ -1,44 +1,61 @@
+[project]
+name = "layout-engine"
+version = "0.1.1.dev1"
+authors = [
+    { name = "Jacob Stewart", email = "jacob@swarmauri.com" },
+]
+description = "Swiss-grid inspired, format-agnostic layout engine with SSR+SSG, atom & MFE registries."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10,<3.13"
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries",
+]
+dependencies = [
+    "jinja2>=3.1",
+    "pydantic>=2.6",
+]
+keywords = [
+    "layout",
+    "ssr",
+    "ssg",
+    "grid",
+    "atoms",
+    "mfe",
+    "python",
+]
+
+[project.optional-dependencies]
+pdf = [
+    "playwright>=1.46",
+]
+server = [
+    "fastapi>=0.115",
+    "orjson>=3.9",
+    "uvicorn>=0.30",
+    "websockets>=12.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/swarmauri/swarmauri-sdk"
+Repository = "https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/layout_engine"
+
+[dependency-groups]
+dev = [
+    "mypy>=1.10",
+    "pytest>=8.2",
+    "ruff>=0.6",
+    "typing-extensions>=4.12",
+]
+
 [build-system]
 requires = ["poetry-core>=1.9.0"]
 build-backend = "poetry.core.masonry.api"
-
-[tool.poetry]
-name = "layout-engine"
-version = "0.1.1"
-description = "Swiss-grid inspired, format-agnostic layout engine with SSR+SSG, atomic component & MFE registries."
-authors = ["Layout Engine Contributors <contributors@example.com>"]
-license = "Apache-2.0"
-readme = "README.md"
-packages = [{ include = "layout_engine", from = "src" }]
-homepage = "https://example.com/layout-engine"
-repository = "https://example.com/layout-engine/repo"
-keywords = ["layout", "ssr", "ssg", "grid", "components", "mfe", "python"]
-classifiers = [
-  "Programming Language :: Python :: 3",
-  "License :: OSI Approved :: Apache Software License",
-  "Topic :: Software Development :: Libraries",
-]
-
-[tool.poetry.dependencies]
-python = ">=3.10,<3.14"
-pydantic = ">=2.6"
-jinja2 = ">=3.1"
-websockets = {version=">=12.0", optional=true}
-fastapi = {version=">=0.115", optional=true}
-uvicorn = {version=">=0.30", optional=true}
-orjson = {version=">=3.9", optional=true}
-playwright = {version=">=1.46", optional=true}
-
-[tool.poetry.extras]
-server = ["fastapi", "uvicorn", "websockets", "orjson"]
-pdf = ["playwright"]
-
-[tool.uv]
-# uv respects Poetry tables; this section documents defaults for contributors.
-default-groups = ["dev"]
-
-[tool.poetry.group.dev.dependencies]
-pytest = ">=8.2"
-ruff = ">=0.6"
-mypy = ">=1.10"
-typing-extensions = ">=4.12"

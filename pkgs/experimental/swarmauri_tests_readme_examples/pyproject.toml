@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tests_readme_examples"
-version = "0.1.0.dev4"
+version = "0.1.0.dev11"
 description = "Pytest plugin that executes README code examples."
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 license = "Apache-2.0"

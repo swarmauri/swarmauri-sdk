@@ -1,75 +1,641 @@
+![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
+
+<p align="center">
+    <a href="https://pypi.org/project/layout-engine/">
+        <img src="https://img.shields.io/pypi/dm/layout-engine" alt="PyPI - Downloads"/></a>
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/layout_engine/">
+        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/layout_engine.svg"/></a>
+    <a href="https://pypi.org/project/layout-engine/">
+        <img src="https://img.shields.io/pypi/pyversions/layout-engine" alt="PyPI - Python Version"/></a>
+    <a href="https://pypi.org/project/layout-engine/">
+        <img src="https://img.shields.io/pypi/l/layout-engine" alt="PyPI - License"/></a>
+    <a href="https://pypi.org/project/layout-engine/">
+        <img src="https://img.shields.io/pypi/v/layout-engine?label=layout-engine&color=green" alt="PyPI - layout-engine"/></a>
+</p>
+
+---
+
 # Layout Engine (Core)
 
-**Swiss Grid Design–inspired, format‑agnostic layout engine for SSR + SSG with atomic component & MFE registries.**
+`layout-engine` is a Swiss Grid design inspired, format-agnostic rendering engine that powers Server-Side Rendering (SSR), Static Site Generation (SSG), and offline exports from a unified atom model. The package provides strongly-typed contracts for sites, pages, grids, tiles, and atom registries so downstream applications can orchestrate layouts without being tied to a specific UI framework.
 
-This is the core package. It is intentionally framework‑agnostic and designed to be extended by downstream consumers.
+> **Python compatibility:** officially supports Python 3.10, 3.11, and 3.12.
 
-## Concepts
+## Features
 
-- **First‑class objects**: `site`, `page`, `slot`, `grid`, `tile`, `component`, `remote`.
-- **Contracts**: every first‑class object participates in *one or more* of the following contracts:
-  - `.render(...)` — server render (SSR shells for Web GUI / host hydration).
-  - `.export(...)` — offline artifact export (PDF/SVG/HTML/code).
-  - `.server(...)` — (optional) endpoints/routers (e.g., WS bridge, import maps, `manifest.json` route).
-- **Registries**:
-  - **Atomic Component Registry** — role → component spec with defaults and prop merging.
-  - **MFE Registry** — import‑map aware micro‑frontend remotes.
+- **Contract-driven architecture** – abstract base classes define the interfaces for rendering, exporting, and serving layout primitives.
+- **Atom & micro-frontend registries** – manage SSR-ready atoms and remote module manifests with predictable defaults.
+- **Format agnostic targets** – render HTML, SVG, PDF, and code artifacts using interchangeable exporters.
+- **Extensible site composition** – compose grids, tiles, and slots declaratively with Pydantic specs for validation and serialization.
+- **Optional realtime bridge** – opt into FastAPI, Uvicorn, and WebSocket extras for live preview or event streaming.
 
-## Architecture Principles
+## Installation
 
-- **Core vs Implementation** — core stays small, with clear ABCs/specs; downstream projects supply implementations.
-- **Format‑agnostic** — targets `svg`, `html`, `pdf`, plus `vue`, `svelte`, `react` shells.
-- **SSR websocket** — optional event bridge for in‑browser refreshing.
-- **MPA + SPA** supported; SSR shells work for either.
-- **No legacy shims** — do not add backwards‑compatibility layers.
+Choose the workflow that matches your tooling. Extras are available for realtime server capabilities (`server`) and PDF generation (`pdf`).
 
-## Package Layout
+```bash
+# uv
+uv add layout-engine
+uv add layout-engine[server]  # for FastAPI/WebSocket extras
+uv add layout-engine[pdf]     # for Playwright-powered exports
 
-Each first‑class object has its own module folder with at least:
-- `spec.py`, `default.py`, `base.py`, `shortcuts.py`, `decorators.py`
-- Some also include: `bindings.py`, `resolver.py`
-
-## Minimal Example (downstream consumer)
-
-```python
-from layout_engine.site import Site, Page
-from layout_engine.grid import GridSpec
-from layout_engine.tiles import TileSpec, make_tile
-from layout_engine.components import ComponentRegistry
-from layout_engine.manifest import ManifestBuilder
-from layout_engine.targets.media import HtmlExporter
-
-# Configure components
-components = ComponentRegistry()
-components.register_many([
-    # ComponentSpec(role="kpi", defaults={...}), ...
-])
-
-# Author
-tiles = [TileSpec(id="kpi_revenue", role="kpi", min_w=240)]
-grid = GridSpec(cols=12, gap_x=16, gap_y=12, tiles=[...])
-page = Page(id="dashboard", grid=grid)
-
-# Build manifest and render (SSR)
-builder = ManifestBuilder(components=components)
-manifest = builder.build({"page": page})
-html = HtmlExporter().render(manifest)
+# pip
+pip install layout-engine
+pip install "layout-engine[server]"
+pip install "layout-engine[pdf]"
 ```
 
-## Contracts in Code
+## Quick Start
 
-- **ABCs** in `*/base.py` define the interfaces (`@abstractmethod`) used across the engine.
-- **Defaults** in `*/default.py` provide concrete, production‑ready implementations with low boilerplate.
-- **Specs** are Pydantic models — serializable, easy to validate, and stable over the wire.
+```python
+from layout_engine import (
+    AtomRegistry,
+    AtomSpec,
+    SizeToken,
+    TileSpec,
+    Viewport,
+    block,
+    col,
+    quick_manifest_from_table,
+    row,
+    table,
+)
+from layout_engine.targets.media import HtmlExporter
+
+atoms = AtomRegistry()
+atoms.register(AtomSpec(role="stat", module="@demo/metric"))
+
+tiles = [
+    TileSpec(id="stat_revenue", role="stat", props={"label": "Revenue", "value": "$1.2M"}),
+    TileSpec(id="stat_growth", role="stat", props={"label": "Growth", "value": "18%"}),
+]
+
+layout = table(
+    row(
+        col(block("stat_revenue"), size=SizeToken.m),
+        col(block("stat_growth"), size=SizeToken.m),
+    )
+)
+
+manifest = quick_manifest_from_table(
+    layout,
+    Viewport(width=960, height=540),
+    tiles,
+    atoms_registry=atoms,
+)
+
+HtmlExporter(title="Stats Overview").export(manifest, out="stats.html")
+```
+
+The manifest merges atom defaults with any props provided on `TileSpec`
+instances, so runtime atoms receive fully-prepared payloads.
+
+### Examples
+
+- [`examples/basic_usage.py`](./examples/basic_usage.py) – minimal quick-start
+  script that writes a manifest JSON file and exports an HTML preview.
+- [`examples/dashboard.py`](./examples/dashboard.py) – larger end-to-end demo
+  showcasing multiple roles and a custom theme.
+
+Run either script with:
+
+```bash
+uv run --directory experimental/layout_engine --package layout-engine python examples/basic_usage.py
+uv run --directory experimental/layout_engine --package layout-engine python examples/dashboard.py
+```
+
+Both scripts print their output locations so you can open the generated
+artifacts directly from the repository.
+
+## Core Concepts
+
+- **First-class objects** – `site`, `page`, `slot`, `grid`, `tile`, `atom`, and `remote` provide the building blocks for any layout.
+- **Contracts** – objects expose `.render(...)`, `.export(...)`, and optional `.server(...)` methods to support SSR, SSG, and service endpoints.
+- **Registries** – manage atom defaults and micro-frontend remotes with predictable merge semantics.
+- **Site-aware routing helpers** – `layout_engine.targets.SiteRouter` produces SSR HTML shells, manifest JSON payloads, and ESM
+  import maps you can bind directly to FastAPI, Starlette, or any HTTP framework route handlers.
+
+### Unified manifest schema
+
+Every manifest emitted by Layout Engine adheres to the following structure:
+
+```json
+{
+  "kind": "layout_manifest",
+  "version": "2025.10",
+  "viewport": {"width": 1280, "height": 720},
+  "grid": {
+    "row_height": 160,
+    "gap_x": 24,
+    "gap_y": 24,
+    "columns": [{"size": {"value": 1, "unit": "fr", "min_px": 72}}],
+    "baseline_unit": 12,
+    "tokens": {"columns": "sgd:columns:12", "baseline": "sgd:baseline:12"}
+  },
+  "tiles": [
+    {
+      "id": "hero",
+      "role": "swarmakit:vue:hero-card",
+      "frame": {"x": 0, "y": 0, "w": 1280, "h": 320},
+      "props": {"title": "Quarterly Highlights", "accent": "indigo", "size": "lg"},
+      "atom": {
+        "role": "swarmakit:vue:hero-card",
+        "module": "@swarmakit/vue",
+        "export": "HeroCard",
+        "framework": "vue",
+        "package": "@swarmakit/vue",
+        "family": "swarmakit",
+        "version": "0.0.22",
+        "defaults": {"size": "md"},
+        "tokens": {"variant": "hero"},
+        "registry": {
+          "name": "swarmakit",
+          "framework": "vue",
+          "version": "0.0.22"
+        }
+      }
+    }
+  ],
+  "site": {
+    "active_page": "dashboard",
+    "navigation": {"base_path": "/"},
+    "pages": [
+      {"id": "dashboard", "route": "/", "title": "Dashboard"},
+      {"id": "catalog", "route": "/catalog", "title": "Catalog"}
+    ]
+  },
+  "channels": [
+    {
+      "id": "ui.events",
+      "scope": "page",
+      "topic": "page:{page_id}:ui",
+      "description": "UI event bus",
+      "payload_schema": {"type": "object"},
+      "meta": {"transport": "ws"}
+    }
+  ],
+  "ws_routes": [
+    {"path": "/ws/ui", "channels": ["ui.events"], "description": "Multiplexed UI events"}
+  ],
+  "etag": "61d6d0d0b6f3c5f5..."
+}
+```
+
+Key highlights:
+
+- **Grid tokens** capture Swiss-grid presets so wrappers can align columns/gaps/baselines without recomputing measurements.
+- **Atom metadata** preserves registry origin and package details, enabling thin wrappers (Vue, Svelte, React) to auto-import `@swarmakit/{framework}` modules with no bespoke glue.
+- **Site block** embeds page navigation so multi-page experiences hydrate from a single manifest.
+- **Channels & websocket routes** describe mux topics so runtime shells subscribe automatically.
+
+### Serving manifests and import maps
+
+`SiteRouter` centralizes the endpoints required by single-page and multi-page applications. Use
+`SiteRouter.manifest_json(...)` to return the manifest for a page, and
+`SiteRouter.import_map(...)` to build an import map from a `RemoteRegistry`. Because the router is
+framework-agnostic, you can wire these helpers into whichever ASGI/WSGI stack you prefer without
+additional adapters.
+
+## End-to-end Vue SPA + MPA integration
+
+The following walkthrough shows how to create a Vue codebase that consumes both single-page and
+multi-page manifests generated by `layout-engine`, serves an import-map aware shell, reacts to query
+parameters, and streams tile-level events over a multiplexed WebSocket transport.
+
+### 1. Compose registries and site metadata
+
+Start by defining the atom registry (for local role → module mappings) and the remote registry
+that powers the import map consumed by Vue's module loader. Defaults defined on each atom are
+merged with tile props every time a manifest is built, so downstream atoms always receive a
+complete prop payload.
+
+#### Registering SwarmaKit atoms
+
+`layout-engine` does not automatically install SwarmaKit presets. When `layout_engine_atoms` is
+available you can populate an `AtomRegistry` using the helper introduced in v0.1.0:
+
+```python
+from layout_engine import AtomRegistry, register_swarma_atoms
+
+atoms = register_swarma_atoms(AtomRegistry(), catalog="vue")
+
+# optional overrides — merged instead of replaced
+atoms.override("swarmakit:vue:button", defaults={"size": "lg"})
+```
+
+The helper lazily imports `layout_engine_atoms.catalog` so projects without SwarmaKit remain
+functional. Overrides use additive merges (defaults/tokens/registry) to avoid clobbering preset
+values.
+
+```python
+from layout_engine import AtomRegistry, AtomSpec
+from layout_engine.mfe.default import RemoteRegistry
+from layout_engine.mfe.spec import Remote
+from layout_engine.site.spec import PageSpec, SiteSpec, SlotSpec
+
+atoms = AtomRegistry()
+atoms.register(
+    AtomSpec(
+        role="dashboard.hero",
+        module="@layout-app/atoms",
+        export="HeroCard",
+        version="2.1.0",
+        defaults={"accent": "indigo", "density": "comfortable"},
+    )
+)
+atoms.register(
+    AtomSpec(
+        role="catalog.item",
+        module="@layout-app/atoms",
+        export="CatalogTile",
+        defaults={"showPrice": True, "badgeStyle": "pill"},
+    )
+)
+
+remotes = RemoteRegistry(
+    (
+        Remote(
+            id="spa-shell",
+            framework="vue",
+            entry="https://cdn.example.com/spa/entry.js",
+            exposed="./App",
+        ),
+        Remote(
+            id="mpa-shell",
+            framework="vue",
+            entry="https://cdn.example.com/mpa/entry.js",
+            exposed="./Page",
+        ),
+    )
+)
+
+site = SiteSpec(
+    base_path="/",
+    pages=(
+        PageSpec(
+            id="spa-dashboard",
+            route="/",
+            title="Realtime Dashboard",
+            slots=(SlotSpec(name="root", role="dashboard.hero", remote="spa-shell"),),
+            page_vm={"state": {"filters": {"status": "active"}}},
+        ),
+        PageSpec(
+            id="catalog-list",
+            route="/catalog",
+            title="Product Catalog",
+            slots=(SlotSpec(name="root", role="catalog.item", remote="mpa-shell"),),
+        ),
+        PageSpec(
+            id="catalog-detail",
+            route="/catalog/:item_id",
+            title="Product Detail",
+            slots=(SlotSpec(name="root", role="catalog.item", remote="mpa-shell"),),
+        ),
+    ),
+)
+```
+
+### 2. Build manifests that react to SPA and MPA context
+
+Use the authoring DSL to convert structured layouts into manifests. The manifest builder receives a
+`PageSpec` plus a context assembled by `SiteRouter`, which includes route params, query parameters,
+and any `page_vm` defaults. This is the hook for computing stateful props (selected items, applied
+filters, etc.) before merging with the registry defaults.
+
+```python
+from typing import Mapping, Any
+
+from layout_engine import (
+    SizeToken,
+    TileSpec,
+    Viewport,
+    block,
+    col,
+    quick_manifest_from_table,
+    row,
+    table,
+)
+from layout_engine.manifest.spec import Manifest
+
+catalog_source = {
+    "items": [
+        {"id": "sku-001", "name": "Synthwave Jacket", "price": 180},
+        {"id": "sku-002", "name": "Neon Sneakers", "price": 120},
+        {"id": "sku-003", "name": "Retro Shades", "price": 60},
+    ]
+}
+
+
+def build_manifest(page: PageSpec, ctx: Mapping[str, Any]) -> Manifest:
+    route = ctx["route"]
+    query = route.get("query", {})
+    params = route.get("params", {})
+    base_state = dict(ctx.get("state", {}))
+    # Merge defaults with incoming query params to derive view state
+    active_filters = {
+        **base_state.get("filters", {}),
+        **{k: v for k, v in query.items() if k in {"status", "search", "page"}},
+    }
+
+    if page.id == "spa-dashboard":
+        tiles = [
+            TileSpec(
+                id="hero",
+                role="dashboard.hero",
+                props={
+                    "filters": active_filters,
+                    "headline": "Realtime sales",
+                    "kpi": {"value": "$1.8M", "trend": +12},
+                },
+            ),
+        ]
+    elif page.id == "catalog-list":
+        # Apply search filter from query params for list rendering
+        search_term = (query.get("search") or "").lower()
+        filtered = [
+            item
+            for item in catalog_source["items"]
+            if search_term in item["name"].lower()
+        ]
+        tiles = [
+            TileSpec(
+                id=item["id"],
+                role="catalog.item",
+                props={
+                    "itemId": item["id"],
+                    "name": item["name"],
+                    "price": item["price"],
+                    "isActive": False,
+                },
+            )
+            for item in filtered
+        ]
+    else:
+        # Detail view resolves the selected item id from params
+        item_id = params.get("item_id")
+        item = next(
+            (item for item in catalog_source["items"] if item["id"] == item_id),
+            None,
+        )
+        tiles = [
+            TileSpec(
+                id="detail",
+                role="catalog.item",
+                props={
+                    "itemId": item_id,
+                    "name": item.get("name") if item else "Missing",
+                    "price": item.get("price") if item else 0,
+                    "isActive": True,
+                },
+            )
+        ]
+
+    layout = table(
+        row(
+            *(col(block(tile.id), size=SizeToken.l) for tile in tiles)
+        )
+    )
+    manifest = quick_manifest_from_table(
+        layout,
+        Viewport(width=1440, height=900),
+        tiles,
+        atoms_registry=atoms,
+    )
+    return manifest
+```
+
+The snippet shows how atom defaults (`showPrice`, `badgeStyle`) are merged with dynamic props
+(`isActive`, `filters`) before the manifest reaches the client. State changes (for example selecting
+an item or refining a search query) happen entirely in the context step—no Vue-specific logic is
+required on the server to keep props synchronized.
+
+### 3. Serve shells, manifests, and import maps with `SiteRouter`
+
+Bind the manifest builder to a `SiteRouter` so both SPA and MPA routes can be served from the same
+FastAPI (or Starlette) application. The SPA fetches a single manifest keyed by `PageSpec`, whereas
+the MPA endpoints use `manifest_json_for_path` so each HTML page can request its own manifest.
+
+```python
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse, JSONResponse
+
+from layout_engine.site.default import bind_page_builder
+from layout_engine.targets.webgui.router import SiteRouter
+
+router = SiteRouter(site=site, page_manifest_fn=bind_page_builder(build_manifest))
+
+app = FastAPI()
+
+
+@app.get("/", response_class=HTMLResponse)
+async def spa_shell() -> str:
+    return router.render_shell(site.pages[0])
+
+
+@app.get("/spa/manifest.json")
+async def spa_manifest(request: Request) -> JSONResponse:
+    data = router.manifest_json(
+        site.pages[0],
+        query=dict(request.query_params),
+    )
+    return JSONResponse(content=data)
+
+
+@app.get("/catalog", response_class=HTMLResponse)
+async def catalog_shell() -> str:
+    page = site.pages[1]
+    return router.render_shell(page)
+
+
+@app.get("/catalog/manifest.json")
+async def catalog_manifest(request: Request) -> JSONResponse:
+    data = router.manifest_json_for_path(
+        "/catalog",
+        query=dict(request.query_params),
+    )
+    return JSONResponse(content=data)
+
+
+@app.get("/catalog/{item_id}", response_class=HTMLResponse)
+async def catalog_detail_shell(item_id: str) -> str:
+    page = site.pages[2]
+    return router.render_shell(page, params={"item_id": item_id})
+
+
+@app.get("/catalog/{item_id}/manifest.json")
+async def catalog_detail_manifest(item_id: str, request: Request) -> JSONResponse:
+    data = router.manifest_json_for_path(
+        f"/catalog/{item_id}",
+        query=dict(request.query_params),
+    )
+    return JSONResponse(content=data)
+
+
+@app.get("/import-map.json")
+async def import_map() -> JSONResponse:
+    return JSONResponse(router.import_map(remotes))
+```
+
+This wiring enables:
+
+- **SPA manifest** – `GET /spa/manifest.json?status=paused` updates dashboard props while keeping a
+  single HTML shell.
+- **MPA manifests** – each catalog page calls `/catalog/…/manifest.json` so static HTML routes can
+  hydrate independently, while still sharing atom defaults from the registry.
+- **Import maps** – Vue clients can consume the generated map before calling `createApp` to ensure
+  micro-frontend remotes resolve correctly.
+
+### 4. Vue client consumption with query params and navigation
+
+In the Vue SPA entry point, request the manifest and import map, register slots, and watch the URL's
+query parameters to re-fetch manifests whenever filters change. For the MPA flows, the same manifest
+loader runs on each page load, so a full navigation to `/catalog/sku-001` will resolve the detail
+manifest that already includes the requested item.
+
+```ts
+// spa/main.ts
+import { createApp, ref } from "vue";
+import App from "./App.vue";
+
+async function loadManifest(endpoint: string, query: URLSearchParams) {
+  const res = await fetch(`${endpoint}?${query.toString()}`);
+  return res.json();
+}
+
+async function bootstrap() {
+  const importMap = await (await fetch("/import-map.json")).json();
+  const script = document.createElement("script");
+  script.type = "importmap";
+  script.textContent = JSON.stringify(importMap);
+  document.head.appendChild(script);
+
+  const query = new URLSearchParams(window.location.search);
+  const manifest = ref(await loadManifest("/spa/manifest.json", query));
+
+  const app = createApp(App, { manifest });
+  app.mount("#app");
+
+  window.addEventListener("popstate", async () => {
+    const nextQuery = new URLSearchParams(window.location.search);
+    manifest.value = await loadManifest("/spa/manifest.json", nextQuery);
+  });
+}
+
+bootstrap();
+```
+
+MPA pages perform the same fetch using their page-specific manifest endpoint, so the detail view can
+call `loadManifest(`/catalog/${itemId}/manifest.json`, new URLSearchParams(location.search))` and the
+server will deliver props for the requested `itemId`.
+
+Thin wrappers for React or Svelte follow identical steps: fetch the manifest, honour `manifest.grid.tokens`
+when computing breakpoints, and import atoms using the `module`/`export` values stored in each tile's
+`atom` block. Because registry metadata travels with the manifest, no framework-specific glue or
+per-role switch statements are necessary.
+
+### 5. Event handling with multiplexed WebSockets
+
+Install the optional server extras (`layout-engine[server]`) plus the WebSocket JSON-RPC transport
+(`swarmauri-transport-wsjsonrpcmux`). The transport acts as the mux that fans events in/out of the
+`layout_engine.events` router, giving Vue atoms a consistent channel for publishing or
+subscribing to tile state changes.
+
+```python
+import asyncio
+from swarmauri_transport_wsjsonrpcmux import WsJsonrpcMuxTransport
+from layout_engine.events.ws import EventRouter, InProcEventBus
+
+event_bus = InProcEventBus()
+events = EventRouter(event_bus)
+
+
+async def rpc_handler(method: str, params: dict):
+    if method == "layout.publish":
+        topic, delivered = events.dispatch(params)
+        return {"topic": topic, "delivered": delivered}
+    if method == "layout.subscribe":
+        # In a production system forward the subscription request to a broker.
+        # Here we eagerly replay the last event if available.
+        topic = params["topic"]
+        last = event_bus.last(topic)
+        return {"topic": topic, "last": last}
+    raise ValueError(f"Unknown method: {method}")
+
+
+async def start_mux():
+    transport = WsJsonrpcMuxTransport()
+    transport.set_rpc_handler(rpc_handler)
+    async with transport.server(host="0.0.0.0", port=8765):
+        await asyncio.Future()
+
+
+# Run alongside FastAPI via asyncio.create_task(start_mux()) in your startup event.
+```
+
+Vue clients connect using the matching mux client:
+
+```ts
+// spa/events.ts
+const socket = new WebSocket("ws://localhost:8765");
+
+socket.addEventListener("open", () => {
+  socket.send(
+    JSON.stringify({
+      jsonrpc: "2.0",
+      id: "init",
+      method: "layout.subscribe",
+      params: { topic: `site:${window.location.pathname}` },
+    })
+  );
+});
+
+export function publishTileEvent(slot: string, tileId: string, payload: Record<string, any>) {
+  socket.send(
+    JSON.stringify({
+      jsonrpc: "2.0",
+      id: crypto.randomUUID(),
+      method: "layout.publish",
+      params: {
+        scope: "site",
+        page: window.location.pathname,
+        slot,
+        tile: tileId,
+        event: payload,
+      },
+    })
+  );
+}
+```
+
+When atoms invoke `publishTileEvent`, the event router validates the envelope, publishes to the
+topic derived from `scope/page/slot/tile`, and any subscribed Vue atoms receive real-time
+updates. Because `EventRouter.dispatch` accepts the same context that `SiteRouter` uses to build
+manifests, the manifest props and WebSocket events stay aligned.
+
+### 6. Putting it together
+
+1. **Render shells** for each SPA/MPA page with `SiteRouter.render_shell(...)`.
+2. **Serve manifests** via `manifest_json(...)` (SPA) and `manifest_json_for_path(...)` (MPA) so
+   Vue can hydrate tiles with merged defaults, props, and query-derived state.
+3. **Distribute import maps** generated from the `RemoteRegistry` so atom modules resolve
+   consistently across pages.
+4. **Leverage context** (`route.params`, `route.query`, `page_vm`) inside the manifest builder to
+   support list filtering, `item_id` lookups, and other state transitions.
+5. **Stream events** through the muxed WebSocket transport to coordinate user interactions or live
+   telemetry across SPA and MPA boundaries.
+
+With these pieces in place, a Vue frontend can seamlessly navigate between SPA and MPA routes, reuse
+the same manifest-driven layout definitions, and react instantly to query parameter changes or
+WebSocket events without duplicating atom metadata on the client.
 
 ## Development
 
 ```bash
 uv sync --all-extras
-uv run ruff check .
-uv run pytest -q
+uv run --directory experimental/layout_engine --package layout-engine ruff check .
+uv run --directory experimental/layout_engine --package layout-engine pytest -q
 ```
 
 ## License
 
-Apache 2.0 — see `LICENSE`.
+Apache License 2.0. See [LICENSE](./LICENSE) for full terms.
