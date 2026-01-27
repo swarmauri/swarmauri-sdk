@@ -62,14 +62,20 @@ class PubSubTransport(TransportBase):
         """Remove subscriber from topic."""
         if topic in self._topics:
             self._topics[topic].discard(subscriber_id)
-            if subscriber_id in self._messages:
-                del self._messages[subscriber_id]
+            if not self._topics[topic]:
+                del self._topics[topic]
+        if not any(
+            subscriber_id in subscribers for subscribers in self._topics.values()
+        ):
+            self._messages.pop(subscriber_id, None)
 
     async def publish(self, topic: str, message: Any) -> None:
         """Publish message to topic subscribers."""
         if topic in self._topics:
             for subscriber_id in self._topics[topic]:
-                await self._messages[subscriber_id].put(message)
+                queue = self._messages.get(subscriber_id)
+                if queue is not None:
+                    await queue.put(message)
 
     async def receive(self, subscriber_id: str) -> Any:
         """Receive message for subscriber."""
