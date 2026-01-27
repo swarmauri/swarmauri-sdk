@@ -144,7 +144,6 @@ class MinioStorageAdapter(StorageAdapterBase):
         bucket, *rest = p.path.lstrip("/").split("/", 1)
         prefix = rest[0] if rest else ""
 
-        cfg = load_peagen_toml()
         minio_cfg = cfg.get("storage", {}).get("adapters", {}).get("minio", {})
 
         access_key = minio_cfg.get("access_key") or os.getenv("MINIO_ACCESS_KEY", "")
