@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_vectorstore_mlm"
-version = "0.9.0.dev19"
+version = "0.9.0.dev20"
 description = "Swarmauri MLM Vector Store"
 license = "Apache-2.0"
 readme = "README.md"

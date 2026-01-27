@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_matrix_hamming74"
-version = "0.9.0.dev20"
+version = "0.9.0.dev21"
 description = "Swarmauri Hamming (7,4) matrix community package."
 license = "Apache-2.0"
 readme = "README.md"
