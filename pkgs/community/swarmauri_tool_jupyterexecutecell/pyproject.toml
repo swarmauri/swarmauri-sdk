@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupyterexecutecell"
-version = "0.9.0.dev18"
+version = "0.9.0.dev19"
 description = "A tool designed to execute a single code cell in a running Jupyter kernel using jupyter_client, capturing its output and errors."
 license = "Apache-2.0"
 readme = "README.md"
