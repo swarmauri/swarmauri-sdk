@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_embedding_doc2vec"
-version = "0.9.0.dev18"
+version = "0.9.0.dev20"
 description = "A Doc2Vec based Embedding Model."
 license = "Apache-2.0"
 readme = "README.md"

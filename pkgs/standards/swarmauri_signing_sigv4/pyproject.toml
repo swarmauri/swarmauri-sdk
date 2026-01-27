@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_signing_sigv4"
-version = "0.1.1.dev9"
+version = "0.1.1.dev11"
 description = "AWS Signature Version 4 signer for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

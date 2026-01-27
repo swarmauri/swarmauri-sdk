@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_middleware_time"
-version = "0.8.0.dev18"
+version = "0.8.0.dev20"
 description = "Middleware for tracking request processing time in Swarmauri applications"
 license = "Apache-2.0"
 readme = "README.md"

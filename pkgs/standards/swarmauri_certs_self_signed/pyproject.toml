@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_certs_self_signed"
-version = "0.2.0.dev17"
+version = "0.2.0.dev19"
 description = "Self-signed certificate builder for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

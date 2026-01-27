@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri-typing"
-version = "0.9.0.dev18"
+version = "0.9.0.dev20"
 
 description = "This repository includes typing used in the Swarmauri framework."
 authors = [
