@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_middleware_auth"
-version = "0.8.0.dev19"
+version = "0.8.0.dev20"
 description = "Middleware for handling authentication in Swarmauri applications."
 license = "Apache-2.0"
 readme = "README.md"

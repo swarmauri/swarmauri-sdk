@@ -1,6 +1,6 @@
 [project]
 name = "tigrbl_api_hpks"
-version = "0.1.0.dev7"
+version = "0.1.0.dev8"
 description = "High-trust OpenPGP keyserver APIs built on the Tigrbl application engine."
 license = { file = "LICENSE" }
 readme = { file = "README.md", content-type = "text/markdown" }
