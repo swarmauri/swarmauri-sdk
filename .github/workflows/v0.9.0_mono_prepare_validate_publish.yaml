@@ -58,8 +58,9 @@ jobs:
           first_batch = [
               member
               for member in members
-              if member in {"swarmauri_core", "swarmauri_base", "swarmauri_standard"}
+              if member in {"core", "base", "swarmauri_standard", "swarmauri", "typing"}
           ]
+          remaining = [member for member in members if member not in first_batch]
           remaining = [member for member in members if member not in first_batch]
           second_batch = [member for member in remaining if member.startswith("standards/")]
           remaining = [member for member in remaining if member not in second_batch]
