@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_containernewsession"
-version = "0.9.0.dev17"
+version = "0.9.0.dev18"
 description = "Create a new Docker or Kubernetes session."
 license = "Apache-2.0"
 readme = "README.md"

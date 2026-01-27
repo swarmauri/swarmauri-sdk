@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_mre_crypto_age"
-version = "0.3.0.dev17"
+version = "0.3.0.dev18"
 description = "Age-style X25519 sealed-per-recipient MRE provider for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

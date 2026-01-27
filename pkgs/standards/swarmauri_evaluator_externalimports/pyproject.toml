@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_evaluator_externalimports"
-version = "0.3.0.dev17"
+version = "0.3.0.dev18"
 description = "Evaluator that detects and penalizes non-built-in Python imports in source files"
 license = "Apache-2.0"
 readme = "README.md"

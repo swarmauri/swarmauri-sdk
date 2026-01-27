@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_cipher_suite_sigstore"
-version = "0.1.0.dev12"
+version = "0.1.0.dev13"
 description = "Sigstore / Cosign signing policy suite for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

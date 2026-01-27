@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_storage_file"
-version = "0.3.0.dev18"
+version = "0.3.0.dev19"
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" }
 ]

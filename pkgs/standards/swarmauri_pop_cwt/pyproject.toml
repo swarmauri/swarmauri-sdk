@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_pop_cwt"
-version = "0.1.1.dev10"
+version = "0.1.1.dev11"
 description = "COSE Sign1 proof-of-possession helpers for Swarmauri"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
