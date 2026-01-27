@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_signing_xmld"
-version = "0.1.0.dev8"
+version = "0.1.0.dev9"
 description = "XML Digital Signature implementation for the Swarmauri SigningBase registry"
 license = "Apache-2.0"
 readme = "README.md"
