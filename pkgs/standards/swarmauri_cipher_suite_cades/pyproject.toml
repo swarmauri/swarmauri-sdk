@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_cipher_suite_cades"
-version = "0.1.0.dev13"
+version = "0.1.0.dev14"
 description = "CAdES signing cipher suite skeleton for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

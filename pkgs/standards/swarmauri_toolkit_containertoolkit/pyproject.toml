@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_toolkit_containertoolkit"
-version = "0.8.0.dev20"
+version = "0.8.0.dev21"
 description = "Toolkit bundling container management tools."
 license = "Apache-2.0"
 readme = "README.md"

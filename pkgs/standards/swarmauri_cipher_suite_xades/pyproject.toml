@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_cipher_suite_xades"
-version = "0.1.0.dev12"
+version = "0.1.0.dev13"
 description = "XAdES signing cipher suite skeleton for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

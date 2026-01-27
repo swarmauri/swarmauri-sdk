@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_auth_idp_apple"
-version = "0.1.0.dev12"
+version = "0.1.0.dev13"
 description = "Apple OAuth 2.0 / OAuth 2.1 / OIDC 1.0 identity provider implementations for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"

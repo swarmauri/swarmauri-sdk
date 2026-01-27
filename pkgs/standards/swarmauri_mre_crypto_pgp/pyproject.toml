@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_mre_crypto_pgp"
-version = "0.3.0.dev18"
+version = "0.3.0.dev19"
 description = "OpenPGP sealed-per-recipient MRE provider for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
