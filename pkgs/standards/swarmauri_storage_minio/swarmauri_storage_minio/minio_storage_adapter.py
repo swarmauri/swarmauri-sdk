@@ -144,10 +144,8 @@ class MinioStorageAdapter(StorageAdapterBase):
         bucket, *rest = p.path.lstrip("/").split("/", 1)
         prefix = rest[0] if rest else ""
 
-        minio_cfg = cfg.get("storage", {}).get("adapters", {}).get("minio", {})
-
-        access_key = minio_cfg.get("access_key") or os.getenv("MINIO_ACCESS_KEY", "")
-        secret_key = minio_cfg.get("secret_key") or os.getenv("MINIO_SECRET_KEY", "")
+        access_key =  os.getenv("MINIO_ACCESS_KEY", "")
+        secret_key =  os.getenv("MINIO_SECRET_KEY", "")
 
         return cls(
             endpoint=endpoint,
