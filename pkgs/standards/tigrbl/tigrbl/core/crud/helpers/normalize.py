@@ -6,7 +6,6 @@ import logging
 
 from . import AsyncSession, Session
 
-logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 
 

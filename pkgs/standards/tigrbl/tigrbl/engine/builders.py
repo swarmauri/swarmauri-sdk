@@ -9,7 +9,6 @@ from sqlalchemy.orm import sessionmaker
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 
 
