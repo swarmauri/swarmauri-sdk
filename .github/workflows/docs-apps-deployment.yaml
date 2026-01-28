@@ -1,11 +1,6 @@
 name: Deploy Docs Apps
 
 on:
-  push:
-    branches: [master]
-    paths:
-      - 'docs/**'
-      - 'pkgs/**'
   workflow_dispatch:
 
 concurrency:
