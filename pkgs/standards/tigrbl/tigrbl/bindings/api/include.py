@@ -29,6 +29,19 @@ logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/api/include")
 
 
+def _coerce_model_columns(columns: Any) -> Tuple[str, ...]:
+    if isinstance(columns, SimpleNamespace):
+        return tuple(columns.__dict__.keys())
+    if isinstance(columns, dict):
+        return tuple(columns.keys())
+    if isinstance(columns, str):
+        return (columns,)
+    try:
+        return tuple(columns)
+    except TypeError:
+        return ()
+
+
 # --- keep as helper, no behavior change to transports/kernel ---
 def _seed_security_and_deps(api: Any, model: type) -> None:
     """
@@ -132,7 +145,7 @@ def _attach_to_api(api: ApiLike, model: type) -> None:
     )
 
     # Table metadata (introspection only)
-    api.columns[mname] = tuple(getattr(model, "columns", ()))
+    api.columns[mname] = _coerce_model_columns(getattr(model, "columns", ()))
     api.table_config[mname] = dict(getattr(model, "table_config", {}) or {})
 
     # Core helper proxies (now aware of API for DB resolution precedence)
