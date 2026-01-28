@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri-core"
-version = "0.9.0.dev23"
+version = "0.9.0"
 description = "This repository includes core interfaces for the Swarmauri framework."
 authors = [
 	{ name = "Jacob Stewart", email = "jacob@swarmauri.com" },

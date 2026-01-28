@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri"
-version = "0.8.0.dev22"
+version = "0.8.0"
 description = "Namespace package for components, packages, and plugins within the Swarmauri framework."
 license = "Apache-2.0"
 readme = "README.md"
