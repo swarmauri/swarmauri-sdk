@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupyterwritenotebook"
-version = "0.8.0"
+version = "0.8.1.dev1"
 description = "A tool that writes a NotebookNode object to a file in JSON format, preserving the notebook structure."
 license = "Apache-2.0"
 readme = "README.md"
