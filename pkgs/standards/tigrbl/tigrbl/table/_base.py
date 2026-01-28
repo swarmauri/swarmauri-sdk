@@ -99,6 +99,10 @@ def _materialize_colspecs_to_sqla(cls) -> None:
         from tigrbl.column.column_spec import ColumnSpec
     except Exception:
         return
+    try:
+        from sqlalchemy.orm import InstrumentedAttribute
+    except Exception:  # pragma: no cover - defensive for minimal SQLA envs
+        InstrumentedAttribute = None
 
     # Prefer explicit registry if present; otherwise collect specs from the
     # entire MRO so mixins contribute their ColumnSpec definitions.
@@ -122,6 +126,13 @@ def _materialize_colspecs_to_sqla(cls) -> None:
         storage = getattr(spec, "storage", None)
         if not storage:
             # Virtual (wire-only) column – no DB column
+            continue
+        existing_attr = getattr(cls, name, None)
+        if InstrumentedAttribute is not None and isinstance(
+            existing_attr, InstrumentedAttribute
+        ):
+            # Column already mapped on a base class; avoid duplicating columns
+            # that trigger SQLAlchemy implicit combination warnings.
             continue
 
         dtype = getattr(storage, "type_", None)
