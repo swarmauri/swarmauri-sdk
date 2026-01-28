@@ -24,40 +24,40 @@ def _ensure_model_namespaces(model: type) -> None:
     """Create top-level namespaces on the model class if missing."""
 
     # op indexes & metadata
-    if not hasattr(model, "ops"):
-        if hasattr(model, "opspecs"):
+    if "ops" not in model.__dict__:
+        if "opspecs" in model.__dict__:
             model.ops = model.opspecs
         else:
             model.ops = SimpleNamespace(all=(), by_key={}, by_alias={})
     # Backwards compatibility: older code may still expect `model.opspecs`
     model.opspecs = model.ops
     # pydantic schemas: .<alias>.in_ / .<alias>.out
-    if not hasattr(model, "schemas"):
+    if "schemas" not in model.__dict__:
         model.schemas = SimpleNamespace()
     # hooks: phase chains & raw hook descriptors if you want to expose them
-    if not hasattr(model, "hooks"):
+    if "hooks" not in model.__dict__:
         model.hooks = SimpleNamespace()
     # handlers: .<alias>.raw (core/custom), .<alias>.handler (HANDLER chain entry point)
-    if not hasattr(model, "handlers"):
+    if "handlers" not in model.__dict__:
         model.handlers = SimpleNamespace()
     # rpc: callables to be registered/mounted elsewhere as JSON-RPC methods
-    if not hasattr(model, "rpc"):
+    if "rpc" not in model.__dict__:
         model.rpc = SimpleNamespace()
     # rest: .router (FastAPI Router or compatible) – built in rest binding
-    if not hasattr(model, "rest"):
+    if "rest" not in model.__dict__:
         model.rest = SimpleNamespace(router=None)
     # basic table metadata for convenience (introspective only; NEVER used for HTTP paths)
-    if not hasattr(model, "columns"):
+    if "columns" not in model.__dict__:
         table = getattr(model, "__table__", None)
         cols = tuple(getattr(table, "columns", ()) or ())
         model.columns = tuple(
             getattr(c, "name", None) for c in cols if getattr(c, "name", None)
         )
-    if not hasattr(model, "table_config"):
+    if "table_config" not in model.__dict__:
         table = getattr(model, "__table__", None)
         model.table_config = dict(getattr(table, "kwargs", {}) or {})
     # ensure raw hook store exists for decorator merges
-    if not hasattr(model, "__tigrbl_hooks__"):
+    if "__tigrbl_hooks__" not in model.__dict__:
         setattr(model, "__tigrbl_hooks__", {})
 
 
