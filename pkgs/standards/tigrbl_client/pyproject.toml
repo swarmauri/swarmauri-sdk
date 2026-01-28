@@ -1,6 +1,6 @@
 [project]
 name = "tigrbl-client"
-version = "0.2.0.dev23"
+version = "0.2.0"
 description = "A client for Tigrbl servers by Swarmauri."
 license = "Apache-2.0"
 readme = "README.md"
