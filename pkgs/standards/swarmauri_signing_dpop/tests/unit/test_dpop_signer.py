@@ -127,6 +127,113 @@ async def test_verify_rejects_proof_missing_jti() -> None:
 
 
 @pytest.mark.asyncio
+async def test_verify_rejects_wrong_method_or_url() -> None:
+    priv = ed25519.Ed25519PrivateKey.generate()
+    pem = priv.private_bytes(
+        serialization.Encoding.PEM,
+        serialization.PrivateFormat.PKCS8,
+        serialization.NoEncryption(),
+    )
+    signer = DpopSigner()
+    sigs = await signer.sign_bytes(
+        {"kind": "pem", "priv": pem, "alg": "EdDSA"},
+        b"",
+        opts={"htm": "GET", "htu": "https://api.example/x"},
+    )
+    assert not await signer.verify_bytes(
+        b"",
+        sigs,
+        require={"htm": "POST", "htu": "https://api.example/x"},
+    )
+    assert not await signer.verify_bytes(
+        b"",
+        sigs,
+        require={"htm": "GET", "htu": "https://api.example/y"},
+    )
+
+
+@pytest.mark.asyncio
+async def test_verify_rejects_skewed_iat() -> None:
+    priv = ed25519.Ed25519PrivateKey.generate()
+    pem = priv.private_bytes(
+        serialization.Encoding.PEM,
+        serialization.PrivateFormat.PKCS8,
+        serialization.NoEncryption(),
+    )
+    signer = DpopSigner()
+    skewed_time = int(time.time()) - 400
+    sigs = await signer.sign_bytes(
+        {"kind": "pem", "priv": pem, "alg": "EdDSA"},
+        b"",
+        opts={"htm": "GET", "htu": "https://api.example/x", "iat": skewed_time},
+    )
+    assert not await signer.verify_bytes(
+        b"",
+        sigs,
+        require={"htm": "GET", "htu": "https://api.example/x", "max_skew_s": 300},
+    )
+
+
+@pytest.mark.asyncio
+async def test_verify_requires_expected_nonce() -> None:
+    priv = ed25519.Ed25519PrivateKey.generate()
+    pem = priv.private_bytes(
+        serialization.Encoding.PEM,
+        serialization.PrivateFormat.PKCS8,
+        serialization.NoEncryption(),
+    )
+    signer = DpopSigner()
+    sigs = await signer.sign_bytes(
+        {"kind": "pem", "priv": pem, "alg": "EdDSA"},
+        b"",
+        opts={
+            "htm": "GET",
+            "htu": "https://api.example/x",
+            "nonce": "nonce-123",
+        },
+    )
+    assert not await signer.verify_bytes(
+        b"",
+        sigs,
+        require={
+            "htm": "GET",
+            "htu": "https://api.example/x",
+            "nonce": "nonce-456",
+        },
+    )
+    assert await signer.verify_bytes(
+        b"",
+        sigs,
+        require={
+            "htm": "GET",
+            "htu": "https://api.example/x",
+            "nonce": "nonce-123",
+        },
+    )
+
+
+@pytest.mark.asyncio
+async def test_verify_rejects_unapproved_alg() -> None:
+    priv = ed25519.Ed25519PrivateKey.generate()
+    pem = priv.private_bytes(
+        serialization.Encoding.PEM,
+        serialization.PrivateFormat.PKCS8,
+        serialization.NoEncryption(),
+    )
+    signer = DpopSigner()
+    sigs = await signer.sign_bytes(
+        {"kind": "pem", "priv": pem, "alg": "EdDSA"},
+        b"",
+        opts={"htm": "GET", "htu": "https://api.example/x"},
+    )
+    assert not await signer.verify_bytes(
+        b"",
+        sigs,
+        require={"htm": "GET", "htu": "https://api.example/x", "algs": ["ES256"]},
+    )
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize("alg", ["HS256", "HS384", "HS512"])
 async def test_sign_rejects_unsupported_algs(alg: str) -> None:
     signer = DpopSigner()
