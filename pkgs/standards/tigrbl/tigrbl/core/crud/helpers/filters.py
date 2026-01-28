@@ -7,7 +7,6 @@ import logging
 from . import select, and_, asc, desc
 from .model import _model_columns, _colspecs
 
-logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 
 _CANON_OPS = {

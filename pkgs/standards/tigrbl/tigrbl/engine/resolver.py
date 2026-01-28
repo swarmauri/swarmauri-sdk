@@ -10,7 +10,6 @@ from typing import Any, Callable, Optional
 from ._engine import AsyncSession, Engine, Provider, Session
 from .engine_spec import EngineSpec, EngineCfg
 
-logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 
 # Registry with strict precedence: op > model > api > app

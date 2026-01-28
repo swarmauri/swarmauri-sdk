@@ -8,7 +8,6 @@ from .common import ApiLike, _ensure_api_ns
 from ...engine import resolver as _resolver
 from ...core.crud.helpers.model import _single_pk_name
 
-logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/api/rpc")
 

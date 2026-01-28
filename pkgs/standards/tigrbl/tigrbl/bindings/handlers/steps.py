@@ -13,7 +13,6 @@ from ...runtime.executor import _Ctx
 from .ctx import _ctx_db, _ctx_payload, _ctx_request
 from .identifiers import _resolve_ident
 
-logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/handlers/steps")
 

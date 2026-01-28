@@ -7,7 +7,6 @@ from typing import Any, Mapping, Optional
 
 from .ctx import _ctx_payload, _ctx_path_params
 
-logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/handlers/identifiers")
 

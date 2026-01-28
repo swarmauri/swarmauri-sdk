@@ -11,7 +11,6 @@ from ..config.constants import TIGRBL_SCHEMA_DECLS_ATTR
 from .decorators import _SchemaDecl
 from pydantic import BaseModel, create_model
 
-logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 
 

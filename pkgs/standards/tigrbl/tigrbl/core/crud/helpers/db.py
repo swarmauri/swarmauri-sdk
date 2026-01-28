@@ -7,7 +7,6 @@ import logging
 from . import AsyncSession, Session
 from .model import _model_columns, _single_pk_name
 
-logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 
 
