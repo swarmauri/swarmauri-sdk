@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tests_pylicense"
-version = "0.1.1.dev1"
+version = "0.1.1"
 description = "Pytest plugin reporting dependency licenses"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 license = "Apache-2.0"
