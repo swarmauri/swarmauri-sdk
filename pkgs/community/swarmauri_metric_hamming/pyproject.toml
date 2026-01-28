@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_metric_hamming"
-version = "0.9.0.dev9"
+version = "0.9.0"
 description = "Swarmauri Hamming distance metric community package."
 license = "Apache-2.0"
 readme = "README.md"

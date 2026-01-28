@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_billing_authorize_net"
-version = "0.1.0.dev1"
+version = "0.1.0"
 description = "Authorize.Net billing provider for the Swarmauri SDK."
 license = "Apache-2.0"
 readme = "README.md"
