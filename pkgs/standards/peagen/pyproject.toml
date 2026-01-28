@@ -1,6 +1,6 @@
 [project]
 name = "peagen"
-version = "0.2.0.dev6"
+version = "0.2.0"
 description = "Swarmauri's Peagan - An AI-driven contextual, dependency-based scaffolding tool for rapid content generation."
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 license = "Apache-2.0"
