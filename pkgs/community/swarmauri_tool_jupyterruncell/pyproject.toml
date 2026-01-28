@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupyterruncell"
-version = "0.9.1.dev1"
+version = "0.9.1"
 description = "A tool designed to execute a single code cell in an IPython interactive shell, mimicking notebook cell execution."
 license = "Apache-2.0"
 readme = "README.md"

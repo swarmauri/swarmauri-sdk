@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_smogindex"
-version = "0.9.1.dev1"
+version = "0.9.1"
 description = "Swarmauri Smog Index Tool."
 license = "Apache-2.0"
 readme = "README.md"
