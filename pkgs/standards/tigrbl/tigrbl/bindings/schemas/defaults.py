@@ -19,7 +19,6 @@ from ...schema import (
 )
 from .utils import _pk_info
 
-logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/schemas/defaults")
 

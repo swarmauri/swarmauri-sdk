@@ -6,7 +6,6 @@ import logging
 
 from ....column.mro_collect import mro_collect_columns
 
-logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 
 

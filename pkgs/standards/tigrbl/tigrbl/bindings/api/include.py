@@ -24,7 +24,6 @@ from ...config.constants import (
 )
 from ...engine import resolver as _resolver
 
-logging.getLogger("uvicorn").setLevel(logging.DEBUG)
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/api/include")
 
