@@ -66,3 +66,17 @@ Use pytest selectors to focus on specific suites:
 pytest standards/tigrbl_tests/tests/unit
 ```
 
+## Examples Curriculum 📚
+
+The `examples/` directory contains downstream-facing pytest lessons that
+demonstrate how to implement Tigrbl in real applications. These lessons are
+organized as a multi-module curriculum with uvicorn-backed usage examples and
+system diagnostics validation. See the full curriculum plan for the learning
+sequence and module descriptions.[^tigrbl-examples]
+Run the examples from the `pkgs` directory:
+
+```bash
+uv run --package tigrbl-tests --directory standards/tigrbl_tests pytest examples
+```
+
+[^tigrbl-examples]: examples/README.md
