@@ -1,4 +1,8 @@
-from .decorators import response_ctx, get_attached_response_spec
+from .decorators import (
+    response_ctx,
+    get_attached_response_spec,
+    get_attached_response_alias,
+)
 from .types import (
     Response,
     ResponseKind,
@@ -14,6 +18,7 @@ from ..runtime.atoms.response.templates import render_template
 __all__ = [
     "response_ctx",
     "get_attached_response_spec",
+    "get_attached_response_alias",
     "ResponseSpec",
     "ResponseKind",
     "TemplateSpec",
