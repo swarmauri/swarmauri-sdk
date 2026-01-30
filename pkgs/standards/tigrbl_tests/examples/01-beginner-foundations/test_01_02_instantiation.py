@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ..lesson_support import make_widget_model
+from examples.lesson_support import make_widget_model
 
 
 def test_model_instantiation_assigns_fields() -> None:

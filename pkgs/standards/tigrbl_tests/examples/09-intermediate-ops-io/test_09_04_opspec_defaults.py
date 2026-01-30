@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from tigrbl import bind
 
-from ..lesson_support import make_widget_model
+from examples.lesson_support import make_widget_model
 
 
 def test_default_opspecs_include_list_and_read() -> None:

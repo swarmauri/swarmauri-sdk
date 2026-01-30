@@ -8,7 +8,7 @@ from tigrbl.engine.shortcuts import mem
 from tigrbl.specs import F, IO, S, acol
 from tigrbl.types import App, Integer, Mapped, String
 
-from ..uvicorn_support import run_uvicorn_in_task, stop_uvicorn_server
+from examples.uvicorn_support import run_uvicorn_in_task, stop_uvicorn_server
 
 
 @pytest.mark.asyncio
