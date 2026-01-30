@@ -3,6 +3,7 @@ from examples._support import build_simple_api, build_widget_model
 
 
 def test_custom_op_hooks_register():
+    """Test custom op hooks register."""
     Widget = build_widget_model("LessonCustomHook")
 
     @op_ctx(alias="report", target="custom", arity="collection")

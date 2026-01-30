@@ -13,6 +13,7 @@ from examples._support import (
 
 @pytest.mark.asyncio
 async def test_openapi_schema_contains_widget_paths():
+    """Test openapi schema contains widget paths."""
     Widget = build_widget_model("LessonOpenAPI")
     app, _ = build_app_with_jsonrpc_and_diagnostics(Widget)
     port = pick_unused_port()

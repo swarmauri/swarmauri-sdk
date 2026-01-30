@@ -13,6 +13,8 @@ from examples._support import (
 
 @pytest.mark.asyncio
 async def test_diagnostics_hookz_reports_hooks():
+    """Test diagnostics hookz reports hooks."""
+
     @hook_ctx(ops="create", phase="POST_COMMIT")
     def audit(cls, ctx):
         return None

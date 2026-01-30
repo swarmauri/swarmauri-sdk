@@ -3,6 +3,8 @@ from examples._support import build_simple_api, build_widget_model
 
 
 def test_model_hooks_bind_on_rebind():
+    """Test model hooks bind on rebind."""
+
     @hook_ctx(ops="create", phase="POST_COMMIT")
     def notify(cls, ctx):
         return None

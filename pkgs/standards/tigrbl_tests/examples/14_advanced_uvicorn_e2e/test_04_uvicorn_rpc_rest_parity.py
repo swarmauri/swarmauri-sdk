@@ -15,6 +15,7 @@ from examples._support import (
 
 @pytest.mark.asyncio
 async def test_rpc_and_rest_parity_with_uvicorn():
+    """Test rpc and rest parity with uvicorn."""
     Widget = build_widget_model("LessonParity")
     app, _ = build_app_with_jsonrpc_and_diagnostics(Widget)
     port = pick_unused_port()

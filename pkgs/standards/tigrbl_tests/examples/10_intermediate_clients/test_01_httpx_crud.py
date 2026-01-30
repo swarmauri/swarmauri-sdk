@@ -14,6 +14,7 @@ from examples._support import (
 
 @pytest.mark.asyncio
 async def test_httpx_crud_roundtrip():
+    """Test httpx crud roundtrip."""
     Widget = build_widget_model("LessonHttpx")
     app, _ = build_app_with_jsonrpc_and_diagnostics(Widget)
     port = pick_unused_port()

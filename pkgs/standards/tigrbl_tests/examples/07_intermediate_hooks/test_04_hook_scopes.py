@@ -3,6 +3,8 @@ from examples._support import build_simple_api, build_widget_model
 
 
 def test_hook_scopes_apply_to_specific_ops():
+    """Test hook scopes apply to specific ops."""
+
     @hook_ctx(ops=("read", "update"), phase="POST_RESPONSE")
     def audit(cls, ctx):
         return None

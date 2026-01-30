@@ -5,6 +5,8 @@ from tigrbl.types import Column, String
 
 
 def test_mapped_column_specs_still_materialize_columns():
+    """Test mapped column specs still materialize columns."""
+
     class Widget(Base, GUIDPk):
         __tablename__ = "mapped_specs"
         __allow_unmapped__ = True

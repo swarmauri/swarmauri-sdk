@@ -12,6 +12,7 @@ from examples._support import (
 
 @pytest.mark.asyncio
 async def test_diagnostics_methodz_lists_operations():
+    """Test diagnostics methodz lists operations."""
     Widget = build_widget_model("LessonMethodz")
     app, _ = build_app_with_jsonrpc_and_diagnostics(Widget)
     port = pick_unused_port()
