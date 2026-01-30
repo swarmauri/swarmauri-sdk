@@ -36,9 +36,8 @@ async def test_rpc_parity_with_httpx() -> None:
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)
     try:
-        client = TigrblClient(f"{base_url}/rpc")
-
-        rpc_result = client.call("Widget.create", params={"name": "RPC"})
+        async with TigrblClient(f"{base_url}/rpc") as client:
+            rpc_result = await client.acall("Widget.create", params={"name": "RPC"})
 
         async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as http_client:
             payload = {

@@ -40,8 +40,8 @@ async def test_rest_and_rpc_ids_align() -> None:
             rest = await http_client.post("/widget", json={"name": "Mix"})
         rest_id = rest.json()["id"]
 
-        client = TigrblClient(f"{base_url}/rpc")
-        rpc = client.call("Widget.read", params={"id": rest_id})
+        async with TigrblClient(f"{base_url}/rpc") as client:
+            rpc = await client.acall("Widget.read", params={"id": rest_id})
 
         assert rpc["id"] == rest_id
     finally:
