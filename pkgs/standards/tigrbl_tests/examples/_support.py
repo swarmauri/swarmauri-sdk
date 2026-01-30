@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import inspect
 import socket
 from dataclasses import dataclass
 from typing import Any, Callable, Iterable
@@ -63,7 +64,10 @@ def build_widget_model(
     if use_specs:
         attrs["name"] = acol(
             storage=S(type_=String, nullable=False),
-            field=F(py_type=str, description="Display name"),
+            field=F(
+                py_type=str,
+                constraints={"description": "Display name"},
+            ),
             io=IO(in_verbs=("create", "update"), out_verbs=("read", "list")),
         )
     else:
@@ -104,7 +108,7 @@ def build_type_gallery_model() -> type:
 def build_simple_api(model: type) -> TigrblApp:
     api = TigrblApp(engine=mem(async_=False))
     api.include_model(model)
-    api.initialize()
+    _initialize_api(api)
     return api
 
 
@@ -133,11 +137,22 @@ def build_app_with_jsonrpc_and_diagnostics(
 ) -> tuple[App, TigrblApp]:
     api = TigrblApp(engine=mem(async_=False), system_prefix=system_prefix)
     api.include_model(model)
-    api.initialize()
+    _initialize_api(api)
     api.mount_jsonrpc(prefix=jsonrpc_prefix)
     app = build_fastapi_app(api)
     api.attach_diagnostics(prefix=system_prefix, app=app)
     return app, api
+
+
+def _initialize_api(api: TigrblApp) -> None:
+    init_result = api.initialize()
+    if inspect.isawaitable(init_result):
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            asyncio.run(init_result)
+        else:
+            loop.create_task(init_result)
 
 
 async def run_uvicorn_app(app: App, *, port: int) -> UvicornHandle:
