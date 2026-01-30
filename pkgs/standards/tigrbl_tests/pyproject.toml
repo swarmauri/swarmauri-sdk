@@ -47,6 +47,7 @@ keywords = [
 
 [tool.uv.sources]
 tigrbl = { workspace = true }
+tigrbl-client = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
