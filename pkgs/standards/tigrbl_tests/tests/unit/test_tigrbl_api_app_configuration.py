@@ -56,7 +56,7 @@ def test_tigrbl_api_app_constructor_configuration_applies_metadata() -> None:
     assert api.system_prefix == "/systemx"
     assert app.TITLE == "Iota App"
     assert app.VERSION == "9.9.9"
-    assert app.apis == (api,)
+    assert app.apis == [api]
 
 
 @pytest.mark.unit

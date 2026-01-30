@@ -39,4 +39,4 @@ def test_tigrbl_api_app_instantiation_sets_composed_state() -> None:
     assert "models" in api_dir
     assert api.models["Theta"] is Theta
     assert "apis" in app_dir
-    assert app.apis == (api,)
+    assert app.apis == [api]
