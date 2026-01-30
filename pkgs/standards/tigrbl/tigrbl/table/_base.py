@@ -244,10 +244,17 @@ class Base(DeclarativeBase):
         # 1) BEFORE SQLAlchemy maps: turn ColumnSpecs into real mapped_column(...)
         _materialize_colspecs_to_sqla(cls)
 
+        if _should_skip_mapping(cls):
+            cls.__abstract__ = True
+            return
+
         # 2) Let SQLAlchemy map the class (PK now exists)
         if "__abstract__" not in cls.__dict__ and not _has_declared_columns(cls):
             cls.__abstract__ = True
         super().__init_subclass__(**kw)
+
+        if getattr(cls, "__abstract__", False):
+            return
 
         # 3) Seed model namespaces / index specs (ops/hooks/etc.) – idempotent
         try:
