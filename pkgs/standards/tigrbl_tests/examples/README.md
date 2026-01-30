@@ -17,7 +17,7 @@ uv run --package tigrbl-tests --directory standards/tigrbl_tests pytest standard
 
 ## Curriculum Overview
 
-The curriculum is organized into **15 modules** (beginner → intermediate →
+The curriculum is organized into **20 modules** (beginner → intermediate →
 advanced). Each module has four lessons, and each lesson maps to a single
 pytest file. The lesson files are indexed to preserve ordering when browsing.
 
@@ -105,12 +105,30 @@ pytest file. The lesson files are indexed to preserve ordering when browsing.
     - 03_diagnostics_hookz: Validate `/hookz` output.
     - 04_diagnostics_kernel_payload: Inspect kernel payloads.
 
-### Expert Modules (Planned)
+### Expert Modules (16-20)
 
-These expert lessons are intentionally placeholders for future expansion:
-
-- **16_expert_scalability** (placeholder)
-- **17_expert_multi_tenant** (placeholder)
-- **18_expert_extensibility** (placeholder)
-- **19_expert_observability** (placeholder)
-- **20_expert_security** (placeholder)
+16. **16_expert_table_bindings**
+    - 01_table_registry: Register table bindings on the API facade.
+    - 02_table_models: Verify table models are tracked in the registry.
+    - 03_table_router_binding: Attach REST routers for bound tables.
+    - 04_table_config_binding: Bind table-level engine configuration.
+17. **17_expert_column_bindings**
+    - 01_column_specs: Bind ColumnSpec maps on the model.
+    - 02_sqla_columns: Materialize ColumnSpecs into SQLAlchemy columns.
+    - 03_column_namespace: Expose column specs via the table namespace.
+    - 04_mixin_columns: Ensure mixin column specs stay bound.
+18. **18_expert_api_bindings**
+    - 01_api_namespaces: Attach schemas and handlers to API containers.
+    - 02_api_bulk_include: Include multiple models in one API.
+    - 03_api_jsonrpc_mount: Mount JSON-RPC routes on the API facade.
+    - 04_api_diagnostics_mount: Attach diagnostics routes on the API facade.
+19. **19_expert_app_bindings**
+    - 01_app_model_router: Attach model routers on the app.
+    - 02_app_bulk_include: Include multiple models in one app.
+    - 03_app_jsonrpc_mount: Mount JSON-RPC routes on the app.
+    - 04_app_diagnostics_mount: Attach diagnostics routes on the app.
+20. **20_expert_hook_op_engine_bindings**
+    - 01_model_hook_binding: Bind hook_ctx hooks into phase chains.
+    - 02_api_hook_binding: Merge API hook bindings into model hooks.
+    - 03_custom_op_binding: Register custom op bindings.
+    - 04_engine_ctx_binding: Bind engine_ctx to ops and tables.
