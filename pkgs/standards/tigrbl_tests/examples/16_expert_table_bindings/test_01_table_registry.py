@@ -7,15 +7,22 @@ tables aligned and makes it easy to reference the SQLAlchemy table object
 directly from the API layer.
 """
 
-from tigrbl import TigrblApi
+from tigrbl import Base, TigrblApi
 from tigrbl.engine.shortcuts import mem
-
-from examples._support import build_widget_model
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.types import Column, String
 
 
 def test_table_binding_registers_table_on_api():
     """The API table registry should map model names to SQLAlchemy tables."""
-    Widget = build_widget_model("LessonTableRegistry")
+
+    class LessonTableRegistry(Base, GUIDPk):
+        __tablename__ = "lessontableregistrys"
+        __allow_unmapped__ = True
+
+        name = Column(String, nullable=False)
+
+    Widget = LessonTableRegistry
     api = TigrblApi(engine=mem(async_=False))
 
     api.include_model(Widget)
@@ -25,7 +32,14 @@ def test_table_binding_registers_table_on_api():
 
 def test_table_registry_respects_model_identity():
     """The table registry keeps a stable reference for each model's table."""
-    Widget = build_widget_model("LessonTableRegistryIdentity")
+
+    class LessonTableRegistryIdentity(Base, GUIDPk):
+        __tablename__ = "lessontableregistryidentitys"
+        __allow_unmapped__ = True
+
+        name = Column(String, nullable=False)
+
+    Widget = LessonTableRegistryIdentity
     api = TigrblApi(engine=mem(async_=False))
 
     api.include_model(Widget)

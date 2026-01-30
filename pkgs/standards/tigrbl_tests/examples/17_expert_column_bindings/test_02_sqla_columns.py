@@ -6,12 +6,26 @@ aligned with the declarative column specs, which is the preferred pattern for
 keeping persistence and schema layers in sync.
 """
 
-from examples._support import build_widget_model
+from tigrbl import Base
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.specs import F, IO, S, acol
+from tigrbl.types import String
 
 
 def test_column_specs_materialize_sqla_columns():
     """Column specs should produce SQLAlchemy columns on the mapped table."""
-    Widget = build_widget_model("LessonColumnTable", use_specs=True)
+
+    class LessonColumnTable(Base, GUIDPk):
+        __tablename__ = "lessoncolumntables"
+        __allow_unmapped__ = True
+
+        name = acol(
+            storage=S(type_=String, nullable=False),
+            field=F(py_type=str, constraints={"description": "Display name"}),
+            io=IO(in_verbs=("create", "update"), out_verbs=("read", "list")),
+        )
+
+    Widget = LessonColumnTable
 
     column_names = set(Widget.__table__.columns.keys())
     assert {"id", "name"}.issubset(column_names)
@@ -19,6 +33,17 @@ def test_column_specs_materialize_sqla_columns():
 
 def test_materialized_columns_preserve_table_name():
     """The model's SQLAlchemy table retains the declared table name."""
-    Widget = build_widget_model("LessonColumnTableName", use_specs=True)
+
+    class LessonColumnTableName(Base, GUIDPk):
+        __tablename__ = "lessoncolumntablenames"
+        __allow_unmapped__ = True
+
+        name = acol(
+            storage=S(type_=String, nullable=False),
+            field=F(py_type=str, constraints={"description": "Display name"}),
+            io=IO(in_verbs=("create", "update"), out_verbs=("read", "list")),
+        )
+
+    Widget = LessonColumnTableName
 
     assert Widget.__table__.name == "lessoncolumntablenames"

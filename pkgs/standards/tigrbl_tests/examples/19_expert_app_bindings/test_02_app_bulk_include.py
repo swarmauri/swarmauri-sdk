@@ -5,16 +5,29 @@ populated before startup. This is the preferred pattern for bootstrapping
 larger apps because it keeps model configuration centralized.
 """
 
-from tigrbl import TigrblApp
+from tigrbl import Base, TigrblApp
 from tigrbl.engine.shortcuts import mem
-
-from examples._support import build_widget_model
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.types import Column, String
 
 
 def test_app_binding_includes_multiple_models():
     """Bulk inclusion registers each model on the app registry."""
-    Widget = build_widget_model("LessonAppBulkWidget")
-    Gadget = build_widget_model("LessonAppBulkGadget")
+
+    class LessonAppBulkWidget(Base, GUIDPk):
+        __tablename__ = "lessonappbulkwidgets"
+        __allow_unmapped__ = True
+
+        name = Column(String, nullable=False)
+
+    class LessonAppBulkGadget(Base, GUIDPk):
+        __tablename__ = "lessonappbulkgadgets"
+        __allow_unmapped__ = True
+
+        name = Column(String, nullable=False)
+
+    Widget = LessonAppBulkWidget
+    Gadget = LessonAppBulkGadget
     app = TigrblApp(engine=mem(async_=False))
 
     app.include_models([Widget, Gadget])
@@ -24,8 +37,21 @@ def test_app_binding_includes_multiple_models():
 
 def test_app_model_registry_exposes_named_entries():
     """The model registry retains a direct mapping from name to class."""
-    Widget = build_widget_model("LessonAppBulkWidgetName")
-    Gadget = build_widget_model("LessonAppBulkGadgetName")
+
+    class LessonAppBulkWidgetName(Base, GUIDPk):
+        __tablename__ = "lessonappbulkwidgetnames"
+        __allow_unmapped__ = True
+
+        name = Column(String, nullable=False)
+
+    class LessonAppBulkGadgetName(Base, GUIDPk):
+        __tablename__ = "lessonappbulkgadgetnames"
+        __allow_unmapped__ = True
+
+        name = Column(String, nullable=False)
+
+    Widget = LessonAppBulkWidgetName
+    Gadget = LessonAppBulkGadgetName
     app = TigrblApp(engine=mem(async_=False))
 
     app.include_models([Widget, Gadget])

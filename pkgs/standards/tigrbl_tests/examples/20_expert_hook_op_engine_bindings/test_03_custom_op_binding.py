@@ -5,9 +5,9 @@ model namespace (``__tigrbl_ops__``) for discovery. This pattern is preferred
 because it keeps bespoke operations co-located with the model definition.
 """
 
-from tigrbl import bind, op_ctx
-
-from examples._support import build_widget_model
+from tigrbl import Base, bind, op_ctx
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.types import Column, String
 
 
 def test_custom_op_binding_registers_op():
@@ -17,7 +17,14 @@ def test_custom_op_binding_registers_op():
     def ping(cls, ctx):
         return {"ok": True}
 
-    Widget = build_widget_model("LessonOpBinding", extra_attrs={"ping": ping})
+    class LessonOpBinding(Base, GUIDPk):
+        __tablename__ = "lessonopbindings"
+        __allow_unmapped__ = True
+
+        name = Column(String, nullable=False)
+
+    Widget = LessonOpBinding
+    Widget.ping = ping
 
     specs = bind(Widget)
 
@@ -31,9 +38,14 @@ def test_custom_op_binding_populates_model_registry():
     def healthcheck(cls, ctx):
         return {"ok": True}
 
-    Widget = build_widget_model(
-        "LessonOpBindingRegistry", extra_attrs={"healthcheck": healthcheck}
-    )
+    class LessonOpBindingRegistry(Base, GUIDPk):
+        __tablename__ = "lessonopbindingregistrys"
+        __allow_unmapped__ = True
+
+        name = Column(String, nullable=False)
+
+    Widget = LessonOpBindingRegistry
+    Widget.healthcheck = healthcheck
 
     bind(Widget)
 
