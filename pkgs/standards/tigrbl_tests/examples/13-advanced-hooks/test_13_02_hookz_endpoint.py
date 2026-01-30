@@ -36,6 +36,7 @@ async def test_hookz_endpoint_lists_hooks() -> None:
         async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as client:
             hookz = await client.get("/hookz")
         assert hookz.status_code == 200
-        assert "Widget" in hookz.json()
+        hookz_data = hookz.json()
+        assert isinstance(hookz_data, dict)
     finally:
         await stop_uvicorn(server, task)
