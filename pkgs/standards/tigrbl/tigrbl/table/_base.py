@@ -252,16 +252,27 @@ class Base(DeclarativeBase):
         # 0) Remove any previously registered class with the same module path.
         try:
             reg = Base.registry._class_registry
-            key = f"{cls.__module__}.{cls.__name__}"
-            existing = reg.get(key)
+            name = cls.__name__
+            existing = reg.get(name)
             if existing is not None:
                 try:
                     Base.registry._dispose_cls(existing)
                 except Exception:
                     pass
-                reg.pop(key, None)
-                if reg.get(cls.__name__) is existing:
-                    reg.pop(cls.__name__, None)
+                reg.pop(name, None)
+            module_reg = reg.get("_sa_module_registry")
+            if module_reg is not None:
+                marker = module_reg
+                for part in cls.__module__.split("."):
+                    contents = getattr(marker, "contents", None)
+                    if not isinstance(contents, dict) or part not in contents:
+                        marker = None
+                        break
+                    marker = contents.get(part)
+                if marker is not None and isinstance(
+                    getattr(marker, "contents", None), dict
+                ):
+                    marker.contents.pop(name, None)
         except Exception:
             pass
 
