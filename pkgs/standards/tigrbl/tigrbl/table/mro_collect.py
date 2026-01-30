@@ -26,15 +26,30 @@ def mro_collect_table_spec(model: type) -> TableSpec:
 
     Merges common spec attributes (OPS, COLUMNS, SCHEMAS, HOOKS, SECURITY_DEPS,
     DEPS) declared on the class or any mixins. Engine bindings declared via
-    ``table_config`` use the same precedence: earlier classes in the MRO
-    override later ones.
+    ``table_config`` prefer the last inherited binding in the MRO (from
+    wrapper classes) and otherwise fall back to the first direct binding.
     """
 
     logger.info("Collecting table spec for %s", model.__name__)
 
-    engine: Any | None = None
+    direct_engine: Any | None = None
+    inherited_engine: Any | None = None
     for base in model.__mro__:
-        cfg = base.__dict__.get("table_config")
+        if "table_config" in base.__dict__:
+            cfg = base.__dict__.get("table_config")
+            if isinstance(cfg, Mapping):
+                eng = (
+                    cfg.get("engine")
+                    or cfg.get("db")
+                    or cfg.get("database")
+                    or cfg.get("engine_provider")
+                    or cfg.get("db_provider")
+                )
+                if eng is not None and direct_engine is None:
+                    direct_engine = eng
+            continue
+
+        cfg = getattr(base, "table_config", None)
         if isinstance(cfg, Mapping):
             eng = (
                 cfg.get("engine")
@@ -43,8 +58,10 @@ def mro_collect_table_spec(model: type) -> TableSpec:
                 or cfg.get("engine_provider")
                 or cfg.get("db_provider")
             )
-            if eng is not None and engine is None:
-                engine = eng
+            if eng is not None:
+                inherited_engine = eng
+
+    engine = inherited_engine if inherited_engine is not None else direct_engine
 
     spec = TableSpec(
         model=model,
