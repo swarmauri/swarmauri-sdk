@@ -26,8 +26,8 @@ def mro_collect_table_spec(model: type) -> TableSpec:
 
     Merges common spec attributes (OPS, COLUMNS, SCHEMAS, HOOKS, SECURITY_DEPS,
     DEPS) declared on the class or any mixins. Engine bindings declared via
-    ``table_config`` use the same precedence: later classes in the MRO override
-    earlier ones.
+    ``table_config`` use the same precedence: earlier classes in the MRO
+    override later ones.
     """
 
     logger.info("Collecting table spec for %s", model.__name__)
@@ -43,7 +43,7 @@ def mro_collect_table_spec(model: type) -> TableSpec:
                 or cfg.get("engine_provider")
                 or cfg.get("db_provider")
             )
-            if eng is not None:
+            if eng is not None and engine is None:
                 engine = eng
 
     spec = TableSpec(

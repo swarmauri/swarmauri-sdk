@@ -34,10 +34,10 @@ async def test_async_client_get() -> None:
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)
     try:
-        async with TigrblClient(base_url) as client:
-            created = await client.apost("/widget", data={"name": "Async"})
-            item_id = created["id"]
-            response = await client.aget(f"/widget/{item_id}")
-            assert response["name"] == "Async"
+        client = TigrblClient(base_url)
+        created = await client.apost("/widget", data={"name": "Async"})
+        item_id = created["id"]
+        response = await client.aget(f"/widget/{item_id}")
+        assert response["name"] == "Async"
     finally:
         await stop_uvicorn(server, task)

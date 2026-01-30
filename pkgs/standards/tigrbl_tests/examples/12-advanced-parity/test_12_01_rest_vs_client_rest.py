@@ -35,16 +35,15 @@ async def test_rest_and_client_rest_match() -> None:
     port = pick_unique_port()
     base_url, server, task = await start_uvicorn(app, port=port)
     try:
-        async with TigrblClient(base_url) as client:
-            async with httpx.AsyncClient(
-                base_url=base_url, timeout=10.0
-            ) as http_client:
-                rest = await http_client.post(
-                    "/widget",
-                    json={"name": "Parity"},
-                )
-            assert rest.status_code == 201
-            client_result = await client.apost("/widget", data={"name": "Parity"})
+        client = TigrblClient(base_url)
+
+        async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as http_client:
+            rest = await http_client.post(
+                "/widget",
+                json={"name": "Parity"},
+            )
+        assert rest.status_code == 201
+        client_result = await client.apost("/widget", data={"name": "Parity"})
         assert client_result["name"] == "Parity"
     finally:
         await stop_uvicorn(server, task)
