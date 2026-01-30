@@ -7,6 +7,7 @@ from examples._support import (
 
 
 def test_app_router_registers_routes():
+    """Test app router registers routes."""
     Widget = build_widget_model("LessonRouter")
     api = build_simple_api(Widget)
     app = build_fastapi_app(api)

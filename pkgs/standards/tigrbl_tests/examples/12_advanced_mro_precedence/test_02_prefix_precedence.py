@@ -2,6 +2,8 @@ from tigrbl.app.mro_collect import mro_collect_app_spec
 
 
 def test_prefix_precedence_overrides_parent():
+    """Test prefix precedence overrides parent."""
+
     class BaseConfig:
         SYSTEM_PREFIX = "/system"
 

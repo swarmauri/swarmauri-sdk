@@ -5,6 +5,8 @@ from tigrbl.types import String
 
 
 def test_acol_creates_storage_and_field_specs():
+    """Test acol creates storage and field specs."""
+
     class LessonWidget(Base, GUIDPk):
         __tablename__ = "acol_widgets"
         __allow_unmapped__ = True

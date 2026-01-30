@@ -4,6 +4,8 @@ from tigrbl.types import Column, Integer, Mapped, String, mapped_column
 
 
 def test_mapped_and_nonmapped_columns_coexist():
+    """Test mapped and nonmapped columns coexist."""
+
     class MappedWidget(Base, GUIDPk):
         __tablename__ = "mapped_widgets"
         __allow_unmapped__ = True

@@ -4,6 +4,8 @@ from tigrbl.types import Column, Integer, String
 
 
 def test_column_defaults_apply_on_instantiation():
+    """Test column defaults apply on instantiation."""
+
     class DefaultWidget(Base, GUIDPk):
         __tablename__ = "default_widgets"
         __allow_unmapped__ = True

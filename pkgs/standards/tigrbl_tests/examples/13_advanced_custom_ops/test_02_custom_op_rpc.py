@@ -13,6 +13,7 @@ from examples._support import (
 
 @pytest.mark.asyncio
 async def test_custom_op_via_rpc():
+    """Test custom op via rpc."""
     Widget = build_widget_model("LessonCustomRpc")
 
     @op_ctx(alias="ping", target="custom", arity="collection")

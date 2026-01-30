@@ -3,6 +3,8 @@ from tigrbl.engine.shortcuts import mem
 
 
 def test_engine_precedence_resolves_latest():
+    """Test engine precedence resolves latest."""
+
     class BaseConfig:
         ENGINE = mem(async_=False)
 

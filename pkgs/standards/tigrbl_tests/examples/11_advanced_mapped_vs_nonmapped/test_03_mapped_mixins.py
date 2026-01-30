@@ -4,6 +4,8 @@ from tigrbl.types import Column, Integer, Mapped, String, mapped_column
 
 
 def test_mapped_mixins_extend_base_model():
+    """Test mapped mixins extend base model."""
+
     class Widget(Base, GUIDPk):
         __tablename__ = "mapped_mixins"
         __allow_unmapped__ = True
