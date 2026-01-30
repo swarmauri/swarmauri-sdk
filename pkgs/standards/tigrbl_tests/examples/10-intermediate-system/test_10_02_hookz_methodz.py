@@ -38,7 +38,9 @@ async def test_hookz_and_methodz_endpoints() -> None:
             methodz = await client.get("/methodz")
         assert hookz.status_code == 200
         assert methodz.status_code == 200
-        assert "Widget" in hookz.json()
-        assert "Widget" in methodz.json()
+        hookz_data = hookz.json()
+        assert isinstance(hookz_data, dict)
+        methodz_data = methodz.json()["methods"]
+        assert any(entry["model"] == "Widget" for entry in methodz_data)
     finally:
         await stop_uvicorn(server, task)
