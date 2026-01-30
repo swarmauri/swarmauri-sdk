@@ -1,5 +1,6 @@
 # ── Standard Library ─────────────────────────────────────────────────────
 from types import MethodType, SimpleNamespace
+import warnings
 from uuid import uuid4, UUID
 
 # ── Third-party Dependencies (via deps module) ───────────────────────────
@@ -31,7 +32,7 @@ from ..deps.sqlalchemy import (
     declarative_mixin,
     declared_attr,
     foreign,
-    mapped_column,
+    mapped_column as _sa_mapped_column,
     relationship,
     remote,
     column_property,
@@ -168,3 +169,22 @@ __all__: list[str] = [
     "Body",
     "HTTPException",
 ]
+
+
+def mapped_column(*args, **kwargs):
+    """Create a SQLAlchemy mapped column with a best-practice warning.
+
+    Tigrbl supports ``mapped_column`` for compatibility with SQLAlchemy 2.x
+    annotations, but it is not the preferred teaching path. Favor
+    ``Column(...)``, ``ColumnSpec``, ``acol``, or ``vcol`` for clearer model
+    definitions and long-term consistency. ``mapped_column`` is not deprecated,
+    yet long-term support may waver as schema-first patterns evolve.
+    """
+    warnings.warn(
+        "mapped_column is supported but not a best practice in Tigrbl. Prefer "
+        "Column(...), ColumnSpec, acol, or vcol instead. mapped_column is not "
+        "deprecated, but long-term support may waver.",
+        UserWarning,
+        stacklevel=2,
+    )
+    return _sa_mapped_column(*args, **kwargs)

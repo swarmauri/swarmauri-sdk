@@ -1,5 +1,6 @@
-from tigrbl import App, TigrblApi
+from tigrbl import TigrblApi
 from tigrbl.engine.shortcuts import mem
+from tigrbl.types import App
 
 from examples._support import build_widget_model
 

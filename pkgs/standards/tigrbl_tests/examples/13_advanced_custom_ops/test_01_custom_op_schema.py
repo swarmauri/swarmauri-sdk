@@ -1,10 +1,17 @@
-from tigrbl import op_ctx, SchemaRef
-from examples._support import build_simple_api, build_widget_model, get_op_spec
+from tigrbl import Base, SchemaRef, TigrblApp, op_ctx
+from tigrbl.engine.shortcuts import mem
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.types import Column, String
 
 
 def test_custom_op_declares_schema_refs():
     """Test custom op declares schema refs."""
-    Widget = build_widget_model("LessonSchema")
+
+    # Setup: define a model to host a custom collection op.
+    class Widget(Base, GUIDPk):
+        __tablename__ = "lessonschema"
+        __allow_unmapped__ = True
+        name = Column(String, nullable=False)
 
     @op_ctx(
         alias="summarize",
@@ -16,8 +23,14 @@ def test_custom_op_declares_schema_refs():
     def summarize(cls, ctx):
         return [{"name": "summary"}]
 
+    # Deployment: attach the custom op to the model class.
     Widget.summarize = summarize
 
-    api = build_simple_api(Widget)
-    op = get_op_spec(api, Widget, "summarize")
+    # Deployment: include the model on a Tigrbl API and initialize.
+    api = TigrblApp(engine=mem(async_=False))
+    api.include_model(Widget)
+    api.initialize()
+    # Exercise: locate the summarized operation in the bound ops.
+    op = next(spec for spec in api.bind(Widget) if spec.alias == "summarize")
+    # Assertion: request schemas are resolved for the op.
     assert op.request_model is not None
