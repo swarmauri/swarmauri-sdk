@@ -64,10 +64,20 @@ def makeVirtualColumn(
 ) -> Column:
     """Convenience for wire-only virtual columns."""
     if spec is not None:
-        if any(
-            x is not None for x in (field, io, default_factory, producer, read_producer)
-        ):
+        if any(x is not None for x in (field, io, default_factory)):
             raise ValueError("Provide either spec or individual components, not both.")
+        if producer is not None and read_producer is not None:
+            raise ValueError(
+                "Provide only one of producer= or read_producer=, not both."
+            )
+        if producer is not None or read_producer is not None:
+            spec = ColumnSpec(
+                storage=spec.storage,
+                field=spec.field,
+                io=spec.io,
+                default_factory=spec.default_factory,
+                read_producer=read_producer or producer,
+            )
         return Column(spec=spec, **kw)
     if producer is not None and read_producer is not None:
         raise ValueError("Provide only one of producer= or read_producer=, not both.")

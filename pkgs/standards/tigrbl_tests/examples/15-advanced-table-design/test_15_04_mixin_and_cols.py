@@ -21,5 +21,5 @@ def test_mixin_and_custom_columns() -> None:
         )
         __tigrbl_cols__ = {"id": id, "name": name, "is_active": ActiveToggle.is_active}
 
-    assert Feature.is_active.storage is not None
+    assert Feature.__tigrbl_cols__["is_active"].storage is not None
     assert "is_active" in Feature.__tigrbl_cols__
