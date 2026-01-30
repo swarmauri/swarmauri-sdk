@@ -1,5 +1,6 @@
 # ── Standard Library ─────────────────────────────────────────────────────
 from types import MethodType, SimpleNamespace
+import warnings
 from uuid import uuid4, UUID
 
 # ── Third-party Dependencies (via deps module) ───────────────────────────
@@ -31,7 +32,7 @@ from ..deps.sqlalchemy import (
     declarative_mixin,
     declared_attr,
     foreign,
-    mapped_column,
+    mapped_column as _mapped_column,
     relationship,
     remote,
     column_property,
@@ -86,6 +87,34 @@ from .op_config_provider import OpConfigProvider
 # ── Generics / Extensions ─────────────────────────────────────────────────
 DateTime = _DateTime(timezone=False)
 TZDateTime = _DateTime(timezone=True)
+
+
+def mapped_column(*args, **kwargs):
+    """Create a SQLAlchemy mapped column (discouraged in Tigrbl codebases).
+
+    Warning:
+        Tigrbl prefers explicit ``Column(...)`` or declarative specs like
+        ``ColumnSpec``/``acol``/``vcol`` because they keep schema intent obvious
+        and consistent across the toolkit. ``mapped_column`` remains available
+        for compatibility, but it is not the recommended pattern.
+
+    Guidance:
+        - Prefer ``Column(...)`` for direct SQLAlchemy usage.
+        - Prefer ``ColumnSpec`` with ``acol``/``vcol`` when using Tigrbl specs.
+
+    Support note:
+        ``mapped_column`` is not deprecated, but its long-term support may
+        waver in favor of the column-spec based APIs.
+    """
+
+    warnings.warn(
+        "tigrbl.types.mapped_column is available for compatibility, but it is "
+        "not best practice. Prefer Column(...), ColumnSpec, acol, or vcol "
+        "instead. It is not deprecated, but long-term support may waver.",
+        UserWarning,
+        stacklevel=2,
+    )
+    return _mapped_column(*args, **kwargs)
 
 
 # ── Public Re-exports (Backwards Compatibility) ──────────────────────────

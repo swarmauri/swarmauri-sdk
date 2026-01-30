@@ -63,7 +63,10 @@ def build_widget_model(
     if use_specs:
         attrs["name"] = acol(
             storage=S(type_=String, nullable=False),
-            field=F(py_type=str, description="Display name"),
+            field=F(
+                py_type=str,
+                constraints={"description": "Display name"},
+            ),
             io=IO(in_verbs=("create", "update"), out_verbs=("read", "list")),
         )
     else:
