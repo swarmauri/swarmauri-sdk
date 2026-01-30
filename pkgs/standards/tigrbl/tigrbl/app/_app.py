@@ -12,12 +12,36 @@ from .app_spec import AppSpec
 
 
 class App(AppSpec, FastAPI):
+    TITLE = "Tigrbl"
+    VERSION = "0.1.0"
+    LIFESPAN = None
+    MIDDLEWARES = ()
+    APIS = ()
+    OPS = ()
+    MODELS = ()
+    SCHEMAS = ()
+    HOOKS = ()
+    SECURITY_DEPS = ()
+    DEPS = ()
+    RESPONSE = None
+    JSONRPC_PREFIX = "/rpc"
+    SYSTEM_PREFIX = "/system"
+
     def __init__(
         self, *, engine: EngineCfg | None = None, **fastapi_kwargs: Any
     ) -> None:
         # Manually mirror ``AppSpec`` fields so the dataclass-generated ``repr``
         # and friends have expected attributes while runtime structures remain
         # mutable dictionaries or lists as needed.
+        title = fastapi_kwargs.pop("title", None)
+        if title is not None:
+            self.TITLE = title
+        version = fastapi_kwargs.pop("version", None)
+        if version is not None:
+            self.VERSION = version
+        lifespan = fastapi_kwargs.pop("lifespan", None)
+        if lifespan is not None:
+            self.LIFESPAN = lifespan
         self.title = self.TITLE
         self.version = self.VERSION
         self.engine = engine if engine is not None else getattr(self, "ENGINE", None)
