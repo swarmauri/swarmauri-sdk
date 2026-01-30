@@ -5,15 +5,22 @@ their construction. The design keeps diagnostic routes colocated with app
 configuration and avoids manual router wiring.
 """
 
-from tigrbl import App, TigrblApp
+from tigrbl import App, Base, TigrblApp
 from tigrbl.engine.shortcuts import mem
-
-from examples._support import build_widget_model
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.types import Column, String
 
 
 def test_app_binding_mounts_diagnostics_router():
     """attach_diagnostics returns the diagnostics router for mounting."""
-    Widget = build_widget_model("LessonAppDiagnostics")
+
+    class LessonAppDiagnostics(Base, GUIDPk):
+        __tablename__ = "lessonappdiagnosticss"
+        __allow_unmapped__ = True
+
+        name = Column(String, nullable=False)
+
+    Widget = LessonAppDiagnostics
     app = TigrblApp(engine=mem(async_=False))
     app.include_model(Widget)
 
@@ -25,7 +32,14 @@ def test_app_binding_mounts_diagnostics_router():
 
 def test_app_diagnostics_attach_to_host_routes():
     """Diagnostics routing should be attached to the host FastAPI app."""
-    Widget = build_widget_model("LessonAppDiagnosticsHost")
+
+    class LessonAppDiagnosticsHost(Base, GUIDPk):
+        __tablename__ = "lessonappdiagnosticshosts"
+        __allow_unmapped__ = True
+
+        name = Column(String, nullable=False)
+
+    Widget = LessonAppDiagnosticsHost
     app = TigrblApp(engine=mem(async_=False))
     app.include_model(Widget)
 

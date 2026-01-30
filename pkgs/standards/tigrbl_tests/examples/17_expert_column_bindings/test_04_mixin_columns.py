@@ -5,14 +5,26 @@ registry. This keeps shared schema rules centralized in mixins, which is the
 preferred design for reusable identifiers like primary keys.
 """
 
-from tigrbl import bind
-
-from examples._support import build_widget_model
+from tigrbl import Base, bind
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.specs import F, IO, S, acol
+from tigrbl.types import String
 
 
 def test_column_binding_includes_mixin_specs():
     """Mixin-provided ColumnSpecs appear in the model's column registry."""
-    Widget = build_widget_model("LessonColumnMixin", use_specs=True)
+
+    class LessonColumnMixin(Base, GUIDPk):
+        __tablename__ = "lessoncolumnmixins"
+        __allow_unmapped__ = True
+
+        name = acol(
+            storage=S(type_=String, nullable=False),
+            field=F(py_type=str, constraints={"description": "Display name"}),
+            io=IO(in_verbs=("create", "update"), out_verbs=("read", "list")),
+        )
+
+    Widget = LessonColumnMixin
 
     bind(Widget)
 
@@ -22,7 +34,18 @@ def test_column_binding_includes_mixin_specs():
 
 def test_mixin_column_spec_matches_table_column():
     """Mixin specs should align with the mapped table's primary key column."""
-    Widget = build_widget_model("LessonColumnMixinTable", use_specs=True)
+
+    class LessonColumnMixinTable(Base, GUIDPk):
+        __tablename__ = "lessoncolumnmixintables"
+        __allow_unmapped__ = True
+
+        name = acol(
+            storage=S(type_=String, nullable=False),
+            field=F(py_type=str, constraints={"description": "Display name"}),
+            io=IO(in_verbs=("create", "update"), out_verbs=("read", "list")),
+        )
+
+    Widget = LessonColumnMixinTable
 
     bind(Widget)
 

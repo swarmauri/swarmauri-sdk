@@ -6,15 +6,22 @@ pattern is preferred because it keeps generated bindings grouped by model name
 and avoids leaking implementation details into unrelated modules.
 """
 
-from tigrbl import TigrblApi
+from tigrbl import Base, TigrblApi
 from tigrbl.engine.shortcuts import mem
-
-from examples._support import build_widget_model
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.types import Column, String
 
 
 def test_api_binding_attaches_namespaces():
     """Including a model exposes schema and handler namespaces on the API."""
-    Widget = build_widget_model("LessonApiNamespaces")
+
+    class LessonApiNamespaces(Base, GUIDPk):
+        __tablename__ = "lessonapinamesspacess"
+        __allow_unmapped__ = True
+
+        name = Column(String, nullable=False)
+
+    Widget = LessonApiNamespaces
     api = TigrblApi(engine=mem(async_=False))
 
     api.include_model(Widget)
@@ -25,7 +32,14 @@ def test_api_binding_attaches_namespaces():
 
 def test_api_namespace_entries_are_model_scoped():
     """Namespace attributes are keyed by model name for clear introspection."""
-    Widget = build_widget_model("LessonApiNamespacesScoped")
+
+    class LessonApiNamespacesScoped(Base, GUIDPk):
+        __tablename__ = "lessonapinamesspacesscoped"
+        __allow_unmapped__ = True
+
+        name = Column(String, nullable=False)
+
+    Widget = LessonApiNamespacesScoped
     api = TigrblApi(engine=mem(async_=False))
 
     api.include_model(Widget)

@@ -6,15 +6,22 @@ The router registry is the preferred pattern because it centralizes routing
 metadata with the API configuration.
 """
 
-from tigrbl import TigrblApi
+from tigrbl import Base, TigrblApi
 from tigrbl.engine.shortcuts import mem
-
-from examples._support import build_widget_model
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.types import Column, String
 
 
 def test_table_binding_attaches_rest_router():
     """REST routers returned by include_model are stored on the API namespace."""
-    Widget = build_widget_model("LessonTableRouter")
+
+    class LessonTableRouter(Base, GUIDPk):
+        __tablename__ = "lessontablerouters"
+        __allow_unmapped__ = True
+
+        name = Column(String, nullable=False)
+
+    Widget = LessonTableRouter
     api = TigrblApi(engine=mem(async_=False))
 
     _, router = api.include_model(Widget)
@@ -25,7 +32,14 @@ def test_table_binding_attaches_rest_router():
 
 def test_router_registry_tracks_model_alias():
     """The router registry can be queried by model name for routing metadata."""
-    Widget = build_widget_model("LessonTableRouterRegistry")
+
+    class LessonTableRouterRegistry(Base, GUIDPk):
+        __tablename__ = "lessontablerouterregistrys"
+        __allow_unmapped__ = True
+
+        name = Column(String, nullable=False)
+
+    Widget = LessonTableRouterRegistry
     api = TigrblApi(engine=mem(async_=False))
 
     _, router = api.include_model(Widget)

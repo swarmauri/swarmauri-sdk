@@ -1,11 +1,13 @@
+import inspect
+
+import httpx
 import pytest
-from tigrbl import op_ctx
+from tigrbl import Base, TigrblApp, op_ctx
+from tigrbl.engine.shortcuts import mem
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.types import App, Column, String
 
 from examples._support import (
-    build_app_with_jsonrpc_and_diagnostics,
-    build_async_client,
-    build_widget_model,
-    model_route,
     pick_unused_port,
     run_uvicorn_app,
     stop_server,
@@ -15,7 +17,14 @@ from examples._support import (
 @pytest.mark.asyncio
 async def test_custom_op_exposed_on_rest_routes():
     """Test custom op exposed on rest routes."""
-    Widget = build_widget_model("LessonCustomRest")
+
+    class LessonCustomRest(Base, GUIDPk):
+        __tablename__ = "lessoncustomrests"
+        __allow_unmapped__ = True
+
+        name = Column(String, nullable=False)
+
+    Widget = LessonCustomRest
 
     @op_ctx(alias="status", target="custom", arity="collection")
     def status(cls, ctx):
@@ -23,12 +32,20 @@ async def test_custom_op_exposed_on_rest_routes():
 
     Widget.status = status
 
-    app, _ = build_app_with_jsonrpc_and_diagnostics(Widget)
+    api = TigrblApp(engine=mem(async_=False))
+    api.include_model(Widget)
+    init_result = api.initialize()
+    if inspect.isawaitable(init_result):
+        await init_result
+    api.mount_jsonrpc(prefix="/rpc")
+    app = App()
+    app.include_router(api.router)
+    api.attach_diagnostics(prefix="", app=app)
     port = pick_unused_port()
     handle = await run_uvicorn_app(app, port=port)
-    async with build_async_client(handle.base_url) as client:
+    async with httpx.AsyncClient(base_url=handle.base_url, timeout=10.0) as client:
         response = await client.post(
-            f"{model_route(Widget)}/status",
+            f"/{Widget.__name__.lower()}/status",
             json={},
         )
         assert response.status_code == 200

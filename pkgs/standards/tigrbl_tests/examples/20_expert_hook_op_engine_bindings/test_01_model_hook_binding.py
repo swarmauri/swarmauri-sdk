@@ -6,9 +6,9 @@ preferred because it keeps hook discovery close to the model definition and
 makes ordering explicit.
 """
 
-from tigrbl import bind, hook_ctx
-
-from examples._support import build_widget_model
+from tigrbl import Base, bind, hook_ctx
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.types import Column, String
 
 
 def test_model_hook_binding_populates_phase_chain():
@@ -18,7 +18,14 @@ def test_model_hook_binding_populates_phase_chain():
     def notify(cls, ctx):
         return None
 
-    Widget = build_widget_model("LessonHookBinding", extra_attrs={"notify": notify})
+    class LessonHookBinding(Base, GUIDPk):
+        __tablename__ = "lessonhookbindings"
+        __allow_unmapped__ = True
+
+        name = Column(String, nullable=False)
+
+    Widget = LessonHookBinding
+    Widget.notify = notify
 
     bind(Widget)
 
@@ -33,7 +40,14 @@ def test_model_hook_namespace_exposes_phase_lists():
     def audit(cls, ctx):
         return None
 
-    Widget = build_widget_model("LessonHookBindingPhase", extra_attrs={"audit": audit})
+    class LessonHookBindingPhase(Base, GUIDPk):
+        __tablename__ = "lessonhookbindingphases"
+        __allow_unmapped__ = True
+
+        name = Column(String, nullable=False)
+
+    Widget = LessonHookBindingPhase
+    Widget.audit = audit
 
     bind(Widget)
 

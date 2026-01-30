@@ -1,10 +1,13 @@
+import inspect
+
 import pytest
-from tigrbl import op_ctx
+from tigrbl import Base, TigrblApp, op_ctx
+from tigrbl.engine.shortcuts import mem
+from tigrbl.orm.mixins import GUIDPk
 from tigrbl_client import TigrblClient
+from tigrbl.types import App, Column, String
 
 from examples._support import (
-    build_app_with_jsonrpc_and_diagnostics,
-    build_widget_model,
     pick_unused_port,
     run_uvicorn_app,
     stop_server,
@@ -14,7 +17,14 @@ from examples._support import (
 @pytest.mark.asyncio
 async def test_custom_op_via_rpc():
     """Test custom op via rpc."""
-    Widget = build_widget_model("LessonCustomRpc")
+
+    class LessonCustomRpc(Base, GUIDPk):
+        __tablename__ = "lessoncustomrpcs"
+        __allow_unmapped__ = True
+
+        name = Column(String, nullable=False)
+
+    Widget = LessonCustomRpc
 
     @op_ctx(alias="ping", target="custom", arity="collection")
     def ping(cls, ctx):
@@ -22,7 +32,15 @@ async def test_custom_op_via_rpc():
 
     Widget.ping = ping
 
-    app, _ = build_app_with_jsonrpc_and_diagnostics(Widget)
+    api = TigrblApp(engine=mem(async_=False))
+    api.include_model(Widget)
+    init_result = api.initialize()
+    if inspect.isawaitable(init_result):
+        await init_result
+    api.mount_jsonrpc(prefix="/rpc")
+    app = App()
+    app.include_router(api.router)
+    api.attach_diagnostics(prefix="", app=app)
     port = pick_unused_port()
     handle = await run_uvicorn_app(app, port=port)
 
