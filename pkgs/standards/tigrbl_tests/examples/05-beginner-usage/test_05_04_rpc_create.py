@@ -35,7 +35,7 @@ async def test_rpc_create_via_client() -> None:
     base_url, server, task = await start_uvicorn(app, port=port)
     try:
         client = TigrblClient(f"{base_url}/rpc")
-        result = client.call("Widget.create", params={"name": "Bravo"})
+        result = await client.acall("Widget.create", params={"name": "Bravo"})
         assert result["name"] == "Bravo"
     finally:
         await stop_uvicorn(server, task)

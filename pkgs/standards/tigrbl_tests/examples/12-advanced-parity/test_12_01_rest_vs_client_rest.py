@@ -43,7 +43,7 @@ async def test_rest_and_client_rest_match() -> None:
                 json={"name": "Parity"},
             )
         assert rest.status_code == 201
-        client_result = client.post("/widget", data={"name": "Parity"})
+        client_result = await client.apost("/widget", data={"name": "Parity"})
         assert client_result["name"] == "Parity"
     finally:
         await stop_uvicorn(server, task)

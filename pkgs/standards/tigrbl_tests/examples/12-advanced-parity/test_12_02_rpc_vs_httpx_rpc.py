@@ -38,7 +38,7 @@ async def test_rpc_parity_with_httpx() -> None:
     try:
         client = TigrblClient(f"{base_url}/rpc")
 
-        rpc_result = client.call("Widget.create", params={"name": "RPC"})
+        rpc_result = await client.acall("Widget.create", params={"name": "RPC"})
 
         async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as http_client:
             payload = {

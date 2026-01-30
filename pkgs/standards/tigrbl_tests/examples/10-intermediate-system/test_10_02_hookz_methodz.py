@@ -6,7 +6,7 @@ import httpx
 import pytest
 
 from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl import Base, TigrblApp
+from tigrbl import Base, TigrblApp, hook_ctx
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import App, Column, String
@@ -19,6 +19,10 @@ async def test_hookz_and_methodz_endpoints() -> None:
         __allow_unmapped__ = True
 
         name = Column(String, nullable=False)
+
+        @hook_ctx(ops="create", phase="POST_COMMIT")
+        def audit(cls, ctx):
+            return None
 
     api = TigrblApp(engine=mem(async_=False))
     api.include_model(Widget)
@@ -38,7 +42,9 @@ async def test_hookz_and_methodz_endpoints() -> None:
             methodz = await client.get("/methodz")
         assert hookz.status_code == 200
         assert methodz.status_code == 200
-        assert "Widget" in hookz.json()
-        assert "Widget" in methodz.json()
+        hookz_payload = hookz.json()
+        assert Widget.__name__ in hookz_payload
+        methods = {entry["method"] for entry in methodz.json()["methods"]}
+        assert f"{Widget.__name__}.list" in methods
     finally:
         await stop_uvicorn(server, task)
