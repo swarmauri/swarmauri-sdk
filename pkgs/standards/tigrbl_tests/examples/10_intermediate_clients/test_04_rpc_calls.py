@@ -12,6 +12,7 @@ from examples._support import (
 
 @pytest.mark.asyncio
 async def test_rpc_call_works_over_jsonrpc():
+    """Test rpc call works over jsonrpc."""
     Widget = build_widget_model("LessonRPCClient")
     app, _ = build_app_with_jsonrpc_and_diagnostics(Widget)
     port = pick_unused_port()

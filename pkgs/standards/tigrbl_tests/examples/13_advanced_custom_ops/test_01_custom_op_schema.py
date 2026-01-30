@@ -3,6 +3,7 @@ from examples._support import build_simple_api, build_widget_model, get_op_spec
 
 
 def test_custom_op_declares_schema_refs():
+    """Test custom op declares schema refs."""
     Widget = build_widget_model("LessonSchema")
 
     @op_ctx(

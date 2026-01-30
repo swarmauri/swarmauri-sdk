@@ -2,6 +2,7 @@ from examples._support import build_simple_api, build_widget_model
 
 
 def test_default_ops_register_core_verbs():
+    """Test default ops register core verbs."""
     Widget = build_widget_model("LessonOps")
     api = build_simple_api(Widget)
     verbs = {spec.alias for spec in api.bind(Widget)}

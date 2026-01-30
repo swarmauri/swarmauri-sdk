@@ -13,6 +13,7 @@ from examples._support import (
 
 @pytest.mark.asyncio
 async def test_uvicorn_systemz_route():
+    """Test uvicorn systemz route."""
     Widget = build_widget_model("LessonSystem")
     api = build_simple_api(Widget)
     app = App()

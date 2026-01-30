@@ -12,6 +12,7 @@ from examples._support import (
 
 @pytest.mark.asyncio
 async def test_diagnostics_show_in_openapi_schema():
+    """Test diagnostics show in openapi schema."""
     Widget = build_widget_model("LessonDiagOpenAPI")
     app, _ = build_app_with_jsonrpc_and_diagnostics(Widget)
     port = pick_unused_port()

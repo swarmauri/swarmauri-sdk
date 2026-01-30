@@ -3,6 +3,8 @@ from examples._support import build_simple_api, build_widget_model
 
 
 def test_hook_order_collects_multiple_hooks():
+    """Test hook order collects multiple hooks."""
+
     @hook_ctx(ops="create", phase="PRE_HANDLER")
     def first(cls, ctx):
         return None

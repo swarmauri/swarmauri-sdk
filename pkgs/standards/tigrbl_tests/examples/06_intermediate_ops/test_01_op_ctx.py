@@ -3,6 +3,7 @@ from examples._support import build_simple_api, build_widget_model, collect_alia
 
 
 def test_custom_op_ctx_registers_alias():
+    """Test custom op ctx registers alias."""
     Widget = build_widget_model("LessonOp")
 
     @op_ctx(alias="search", target="custom", arity="collection")

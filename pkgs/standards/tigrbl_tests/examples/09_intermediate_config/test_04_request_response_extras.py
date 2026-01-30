@@ -7,6 +7,8 @@ from tigrbl.types import (
 
 
 def test_request_and_response_extras_providers_register():
+    """Test request and response extras providers register."""
+
     class LessonRequest(RequestExtrasProvider):
         pass
 

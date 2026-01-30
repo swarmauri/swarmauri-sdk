@@ -14,6 +14,7 @@ from examples._support import (
 
 @pytest.mark.asyncio
 async def test_custom_op_exposed_on_rest_routes():
+    """Test custom op exposed on rest routes."""
     Widget = build_widget_model("LessonCustomRest")
 
     @op_ctx(alias="status", target="custom", arity="collection")

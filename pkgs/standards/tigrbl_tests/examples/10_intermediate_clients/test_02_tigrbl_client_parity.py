@@ -15,6 +15,7 @@ from examples._support import (
 
 @pytest.mark.asyncio
 async def test_tigrbl_client_matches_httpx_response():
+    """Test tigrbl client matches httpx response."""
     Widget = build_widget_model("LessonClient")
     app, _ = build_app_with_jsonrpc_and_diagnostics(Widget)
     port = pick_unused_port()

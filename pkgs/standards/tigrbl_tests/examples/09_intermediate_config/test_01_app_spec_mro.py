@@ -2,6 +2,8 @@ from tigrbl.app.mro_collect import mro_collect_app_spec
 
 
 def test_app_spec_mro_prefers_subclass():
+    """Test app spec mro prefers subclass."""
+
     class BaseConfig:
         TITLE = "Base"
         JSONRPC_PREFIX = "/rpc"

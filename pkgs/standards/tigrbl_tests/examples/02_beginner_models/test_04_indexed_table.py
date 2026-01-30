@@ -3,6 +3,7 @@ from examples._support import build_widget_model
 
 
 def test_table_args_support_indexes():
+    """Test table args support indexes."""
     Widget = build_widget_model(
         "LessonIndex", with_table_args=[Index("ix_widget_name", "name")]
     )
