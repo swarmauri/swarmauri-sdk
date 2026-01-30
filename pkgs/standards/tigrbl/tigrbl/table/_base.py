@@ -90,7 +90,7 @@ def _instantiate_dtype(
             return dtype
 
 
-def _materialize_colspecs_to_sqla(cls) -> None:
+def _materialize_colspecs_to_sqla(cls, *, map_columns: bool = True) -> None:
     """
     Replace ColumnSpec attributes with sqlalchemy.orm.mapped_column(...) BEFORE mapping.
     Keep the original specs in __tigrbl_cols__ for downstream builders.
@@ -100,9 +100,10 @@ def _materialize_colspecs_to_sqla(cls) -> None:
     except Exception:
         return
     try:
-        from sqlalchemy.orm import InstrumentedAttribute
+        from sqlalchemy.orm import InstrumentedAttribute, MappedColumn
     except Exception:  # pragma: no cover - defensive for minimal SQLA envs
         InstrumentedAttribute = None
+        MappedColumn = None
 
     # Prefer explicit registry if present; otherwise collect specs from the
     # entire MRO so mixins contribute their ColumnSpec definitions.
@@ -119,61 +120,124 @@ def _materialize_colspecs_to_sqla(cls) -> None:
     if not specs:
         return
 
+    if map_columns:
+        for name, spec in specs.items():
+            storage = getattr(spec, "storage", None)
+            if not storage:
+                # Virtual (wire-only) column – ensure SQLAlchemy ignores it.
+                if MappedColumn is not None and isinstance(spec, MappedColumn):
+                    annotations = getattr(cls, "__annotations__", {}) or {}
+                    if name not in annotations:
+                        replacement = ColumnSpec(
+                            storage=None,
+                            field=getattr(spec, "field", None),
+                            io=getattr(spec, "io", None),
+                            default_factory=getattr(spec, "default_factory", None),
+                            read_producer=getattr(spec, "read_producer", None),
+                        )
+                        setattr(cls, name, replacement)
+                        specs[name] = replacement
+                continue
+            existing_attr = getattr(cls, name, None)
+            if InstrumentedAttribute is not None and isinstance(
+                existing_attr, InstrumentedAttribute
+            ):
+                # Column already mapped on a base class; avoid duplicating columns
+                # that trigger SQLAlchemy implicit combination warnings.
+                continue
+
+            dtype = getattr(storage, "type_", None)
+            if not dtype:
+                # No SA dtype specified – cannot materialize
+                continue
+
+            py_type = _infer_py_type(cls, name, spec)
+            dtype_inst = _instantiate_dtype(dtype, py_type, spec, cls.__name__, name)
+
+            # Foreign key (if any)
+            fk = getattr(storage, "fk", None)
+            fk_arg = None
+            if fk is not None:
+                # ForeignKeySpec: target="table(col)", on_delete/on_update: "CASCADE"/...
+                fk_arg = ForeignKey(
+                    fk.target, ondelete=fk.on_delete, onupdate=fk.on_update
+                )
+
+            check = getattr(storage, "check", None)
+            args: list[Any] = []
+            if fk_arg is not None:
+                args.append(fk_arg)
+            if check is not None:
+                cname = f"ck_{cls.__name__.lower()}_{name}"
+                args.append(CheckConstraint(check, name=cname))
+
+            # Build mapped_column from StorageSpec flags
+            mc = mapped_column(
+                dtype_inst,
+                *args,
+                primary_key=getattr(storage, "primary_key", False),
+                nullable=getattr(storage, "nullable", True),
+                unique=getattr(storage, "unique", False),
+                index=getattr(storage, "index", False),
+                default=getattr(storage, "default", None),
+                onupdate=getattr(storage, "onupdate", None),
+                server_default=getattr(storage, "server_default", None),
+                comment=getattr(storage, "comment", None),
+                autoincrement=getattr(storage, "autoincrement", None),
+            )
+
+            setattr(cls, name, mc)
+
     # Ensure downstream code can find the spec map
     setattr(cls, "__tigrbl_cols__", dict(specs))
 
-    for name, spec in specs.items():
-        storage = getattr(spec, "storage", None)
-        if not storage:
-            # Virtual (wire-only) column – no DB column
-            continue
-        existing_attr = getattr(cls, name, None)
-        if InstrumentedAttribute is not None and isinstance(
-            existing_attr, InstrumentedAttribute
-        ):
-            # Column already mapped on a base class; avoid duplicating columns
-            # that trigger SQLAlchemy implicit combination warnings.
-            continue
 
-        dtype = getattr(storage, "type_", None)
-        if not dtype:
-            # No SA dtype specified – cannot materialize
-            continue
+def _ensure_instrumented_attr_accessors() -> None:
+    """Expose ColumnSpec metadata on SQLAlchemy InstrumentedAttribute objects."""
+    try:
+        from sqlalchemy.orm.attributes import InstrumentedAttribute
+    except Exception:  # pragma: no cover - defensive for minimal SQLA envs
+        return
 
-        py_type = _infer_py_type(cls, name, spec)
-        dtype_inst = _instantiate_dtype(dtype, py_type, spec, cls.__name__, name)
+    if not hasattr(InstrumentedAttribute, "storage"):
 
-        # Foreign key (if any)
-        fk = getattr(storage, "fk", None)
-        fk_arg = None
-        if fk is not None:
-            # ForeignKeySpec: target="table(col)", on_delete/on_update: "CASCADE"/...
-            fk_arg = ForeignKey(fk.target, ondelete=fk.on_delete, onupdate=fk.on_update)
+        def _storage(self):  # type: ignore[no-untyped-def]
+            spec = getattr(self.class_, "__tigrbl_cols__", {}).get(self.key)
+            return getattr(spec, "storage", None)
 
-        check = getattr(storage, "check", None)
-        args: list[Any] = []
-        if fk_arg is not None:
-            args.append(fk_arg)
-        if check is not None:
-            cname = f"ck_{cls.__name__.lower()}_{name}"
-            args.append(CheckConstraint(check, name=cname))
+        InstrumentedAttribute.storage = property(_storage)  # type: ignore[attr-defined]
 
-        # Build mapped_column from StorageSpec flags
-        mc = mapped_column(
-            dtype_inst,
-            *args,
-            primary_key=getattr(storage, "primary_key", False),
-            nullable=getattr(storage, "nullable", True),
-            unique=getattr(storage, "unique", False),
-            index=getattr(storage, "index", False),
-            default=getattr(storage, "default", None),
-            onupdate=getattr(storage, "onupdate", None),
-            server_default=getattr(storage, "server_default", None),
-            comment=getattr(storage, "comment", None),
-            autoincrement=getattr(storage, "autoincrement", None),
-        )
+    if not hasattr(InstrumentedAttribute, "field"):
 
-        setattr(cls, name, mc)
+        def _field(self):  # type: ignore[no-untyped-def]
+            spec = getattr(self.class_, "__tigrbl_cols__", {}).get(self.key)
+            return getattr(spec, "field", None)
+
+        InstrumentedAttribute.field = property(_field)  # type: ignore[attr-defined]
+
+    if not hasattr(InstrumentedAttribute, "io"):
+
+        def _io(self):  # type: ignore[no-untyped-def]
+            spec = getattr(self.class_, "__tigrbl_cols__", {}).get(self.key)
+            return getattr(spec, "io", None)
+
+        InstrumentedAttribute.io = property(_io)  # type: ignore[attr-defined]
+
+    if not hasattr(InstrumentedAttribute, "default_factory"):
+
+        def _default_factory(self):  # type: ignore[no-untyped-def]
+            spec = getattr(self.class_, "__tigrbl_cols__", {}).get(self.key)
+            return getattr(spec, "default_factory", None)
+
+        InstrumentedAttribute.default_factory = property(_default_factory)  # type: ignore[attr-defined]
+
+    if not hasattr(InstrumentedAttribute, "read_producer"):
+
+        def _read_producer(self):  # type: ignore[no-untyped-def]
+            spec = getattr(self.class_, "__tigrbl_cols__", {}).get(self.key)
+            return getattr(spec, "read_producer", None)
+
+        InstrumentedAttribute.read_producer = property(_read_producer)  # type: ignore[attr-defined]
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -223,11 +287,104 @@ class Base(DeclarativeBase):
         except Exception:
             pass
 
-        # 1) BEFORE SQLAlchemy maps: turn ColumnSpecs into real mapped_column(...)
-        _materialize_colspecs_to_sqla(cls)
+        # 1) Determine whether this class should be mapped.
+        try:
+            from sqlalchemy import Column as _SAColumn
+            from sqlalchemy.orm import MappedColumn as _MappedColumn
+        except Exception:  # pragma: no cover - defensive
+            _SAColumn = None
+            _MappedColumn = None
+
+        def _has_mappable_columns() -> bool:
+            for base in cls.__mro__:
+                for attr in getattr(base, "__dict__", {}).values():
+                    if _SAColumn is not None and isinstance(attr, _SAColumn):
+                        return True
+                    if _MappedColumn is not None and isinstance(attr, _MappedColumn):
+                        return True
+                    storage = getattr(attr, "storage", None)
+                    if storage is not None:
+                        return True
+                mapping = getattr(base, "__tigrbl_cols__", None)
+                if isinstance(mapping, dict):
+                    for spec in mapping.values():
+                        if _MappedColumn is not None and isinstance(
+                            spec, _MappedColumn
+                        ):
+                            return True
+                        storage = getattr(spec, "storage", None)
+                        if storage is not None:
+                            return True
+            return False
+
+        def _has_primary_key() -> bool:
+            mapper_args = getattr(cls, "__mapper_args__", None)
+            if isinstance(mapper_args, dict) and mapper_args.get("primary_key"):
+                return True
+            for base in cls.__mro__:
+                for attr in getattr(base, "__dict__", {}).values():
+                    if _SAColumn is not None and isinstance(attr, _SAColumn):
+                        if getattr(attr, "primary_key", False):
+                            return True
+                    if _MappedColumn is not None and isinstance(attr, _MappedColumn):
+                        if getattr(attr, "primary_key", False):
+                            return True
+                    storage = getattr(attr, "storage", None)
+                    if storage is not None and getattr(storage, "primary_key", False):
+                        return True
+                mapping = getattr(base, "__tigrbl_cols__", None)
+                if isinstance(mapping, dict):
+                    for spec in mapping.values():
+                        storage = getattr(spec, "storage", None)
+                        if storage is not None and getattr(
+                            storage, "primary_key", False
+                        ):
+                            return True
+            return False
+
+        explicit_abstract = "__abstract__" in cls.__dict__
+        if not explicit_abstract:
+            if not _has_mappable_columns() or not _has_primary_key():
+                cls.__abstract__ = True
+            else:
+                cls.__abstract__ = False
+
+        should_map = not getattr(cls, "__abstract__", False)
+
+        # 1.5) BEFORE SQLAlchemy maps: turn ColumnSpecs into real mapped_column(...)
+        _materialize_colspecs_to_sqla(cls, map_columns=should_map)
+        _ensure_instrumented_attr_accessors()
 
         # 2) Let SQLAlchemy map the class (PK now exists)
         super().__init_subclass__(**kw)
+
+        # 2.5) Surface ctx-only op declarations for lightweight introspection.
+        if not hasattr(cls, "__tigrbl_ops__"):
+            for attr in cls.__dict__.values():
+                target = getattr(attr, "__func__", attr)
+                if getattr(target, "__tigrbl_op_decl__", None) is not None:
+                    cls.__tigrbl_ops__ = tuple()
+                    break
+
+        # 2.6) Collect response specs declared via @response_ctx
+        try:
+            from tigrbl.response import (
+                get_attached_response_spec,
+                get_attached_response_alias,
+            )
+
+            responses = {}
+            for name, obj in cls.__dict__.items():
+                spec = get_attached_response_spec(obj)
+                if spec is None:
+                    continue
+                alias = get_attached_response_alias(obj) or name
+                responses[alias] = spec
+            if responses:
+                cls.responses = responses
+                cls.response = next(iter(responses.values()))
+        except Exception:
+            pass
 
         # 3) Seed model namespaces / index specs (ops/hooks/etc.) – idempotent
         try:

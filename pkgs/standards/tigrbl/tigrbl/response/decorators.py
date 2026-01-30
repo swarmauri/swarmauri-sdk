@@ -5,6 +5,7 @@ from .types import ResponseSpec
 
 T = TypeVar("T")
 _ATTR = "__tigrbl_response_spec__"
+_ALIAS_ATTR = "__tigrbl_response_alias__"
 
 
 def _to_spec(spec: Optional[ResponseSpec] = None, **kwargs: Any) -> ResponseSpec:
@@ -24,10 +25,13 @@ def response_ctx(**kwargs: Any) -> Callable[[T], T]: ...
 
 
 def response_ctx(*args: Any, **kwargs: Any) -> Callable[[T], T]:
+    alias = kwargs.pop("alias", None)
     spec = _to_spec(*args, **kwargs)
 
     def decorator(target: T) -> T:
         setattr(target, _ATTR, spec)
+        if alias is not None:
+            setattr(target, _ALIAS_ATTR, alias)
         return target
 
     return decorator
@@ -35,3 +39,7 @@ def response_ctx(*args: Any, **kwargs: Any) -> Callable[[T], T]:
 
 def get_attached_response_spec(obj: Any) -> Optional[ResponseSpec]:
     return getattr(obj, _ATTR, None)
+
+
+def get_attached_response_alias(obj: Any) -> Optional[str]:
+    return getattr(obj, _ALIAS_ATTR, None)

@@ -134,7 +134,7 @@ def _make_member_endpoint(
         params.extend(
             [
                 inspect.Parameter(
-                    "item_id",
+                    pk_param,
                     inspect.Parameter.POSITIONAL_OR_KEYWORD,
                     annotation=Annotated[Any, Path(...)],
                 ),
@@ -230,7 +230,7 @@ def _make_member_endpoint(
         params.extend(
             [
                 inspect.Parameter(
-                    "item_id",
+                    pk_param,
                     inspect.Parameter.POSITIONAL_OR_KEYWORD,
                     annotation=Annotated[Any, Path(...)],
                 ),
@@ -350,7 +350,7 @@ def _make_member_endpoint(
     params.extend(
         [
             inspect.Parameter(
-                "item_id",
+                pk_param,
                 inspect.Parameter.POSITIONAL_OR_KEYWORD,
                 annotation=Annotated[Any, Path(...)],
             ),
