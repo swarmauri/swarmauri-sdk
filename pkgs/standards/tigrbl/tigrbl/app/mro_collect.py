@@ -9,10 +9,22 @@ from .app_spec import AppSpec
 logger = logging.getLogger("uvicorn")
 
 
-def _merge_seq_attr(app: type, attr: str) -> Tuple[Any, ...]:
+def _merge_seq_attr(
+    app: type,
+    attr: str,
+    *,
+    include_inherited: bool = False,
+    reverse: bool = False,
+) -> Tuple[Any, ...]:
     values: list[Any] = []
-    for base in app.__mro__:
-        seq = base.__dict__.get(attr, ()) or ()
+    mro = reversed(app.__mro__) if reverse else app.__mro__
+    for base in mro:
+        if include_inherited:
+            if not hasattr(base, attr):
+                continue
+            seq = getattr(base, attr) or ()
+        else:
+            seq = base.__dict__.get(attr, ()) or ()
         try:
             values.extend(seq)
         except TypeError:  # non-iterable
@@ -65,11 +77,17 @@ def mro_collect_app_spec(app: type) -> AppSpec:
     if lifespan is sentinel:
         lifespan = None
 
+    include_inherited_apis = "APIS" not in app.__dict__
     spec = AppSpec(
         title=title,
         version=version,
         engine=engine,
-        apis=_merge_seq_attr(app, "APIS"),
+        apis=_merge_seq_attr(
+            app,
+            "APIS",
+            include_inherited=include_inherited_apis,
+            reverse=include_inherited_apis,
+        ),
         ops=_merge_seq_attr(app, "OPS"),
         models=_merge_seq_attr(app, "MODELS"),
         schemas=_merge_seq_attr(app, "SCHEMAS"),
