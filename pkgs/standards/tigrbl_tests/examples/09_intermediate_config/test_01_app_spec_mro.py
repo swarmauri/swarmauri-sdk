@@ -1,16 +1,23 @@
-from tigrbl.app.mro_collect import mro_collect_app_spec
+from tigrbl import App
+from tigrbl.app.shortcuts import defineAppSpec
 
 
 def test_app_spec_mro_prefers_subclass():
     """Test app spec mro prefers subclass."""
 
-    class BaseConfig:
-        TITLE = "Base"
-        JSONRPC_PREFIX = "/rpc"
+    # Setup: define a base app spec with defaults.
+    class BaseConfig(defineAppSpec(title="Base", jsonrpc_prefix="/rpc")):
+        pass
 
-    class ChildConfig(BaseConfig):
-        TITLE = "Child"
+    # Setup: override only the title in a child spec.
+    class ChildConfig(defineAppSpec(title="Child"), BaseConfig):
+        pass
 
-    spec = mro_collect_app_spec(ChildConfig)
-    assert spec.title == "Child"
-    assert spec.jsonrpc_prefix == "/rpc"
+    # Deployment: instantiate an App that inherits from the child spec.
+    class ChildApp(ChildConfig, App):
+        pass
+
+    app = ChildApp()
+    # Assertion: subclass values take precedence, while base values persist.
+    assert app.title == "Child"
+    assert app.jsonrpc_prefix == "/rpc"

@@ -7,6 +7,7 @@ configuration and avoids manual router wiring.
 
 from tigrbl import App, TigrblApp
 from tigrbl.engine.shortcuts import mem
+from tigrbl.types import App
 
 from examples._support import build_widget_model
 
