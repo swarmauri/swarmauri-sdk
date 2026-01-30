@@ -27,11 +27,8 @@ def _serialize_output(
     """
 
     from ...types import Response as _Response  # local import to avoid cycles
-    from ...deps.starlette import Response as _StarletteResponse
 
-    if isinstance(result, _Response) or (
-        _StarletteResponse is not None and isinstance(result, _StarletteResponse)
-    ):
+    if isinstance(result, _Response):
         return result
 
     def _final(val: Any) -> Any:

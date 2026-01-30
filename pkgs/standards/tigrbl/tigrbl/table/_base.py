@@ -176,36 +176,6 @@ def _materialize_colspecs_to_sqla(cls) -> None:
         setattr(cls, name, mc)
 
 
-def _has_primary_key_decl(cls) -> bool:
-    specs = getattr(cls, "__tigrbl_cols__", None)
-    if isinstance(specs, dict):
-        for spec in specs.values():
-            storage = getattr(spec, "storage", None)
-            if getattr(storage, "primary_key", False):
-                return True
-
-    for base in cls.__mro__:
-        for attr in getattr(base, "__dict__", {}).values():
-            if getattr(attr, "primary_key", False):
-                return True
-            column = getattr(attr, "column", None)
-            if getattr(column, "primary_key", False):
-                return True
-
-    return False
-
-
-def _should_skip_mapping(cls) -> bool:
-    if getattr(cls, "__abstract__", False):
-        return True
-
-    mapper_args = getattr(cls, "__mapper_args__", {}) or {}
-    if mapper_args.get("primary_key"):
-        return False
-
-    return not _has_primary_key_decl(cls)
-
-
 # ──────────────────────────────────────────────────────────────────────────────
 # Declarative Base
 # ──────────────────────────────────────────────────────────────────────────────
@@ -256,15 +226,8 @@ class Base(DeclarativeBase):
         # 1) BEFORE SQLAlchemy maps: turn ColumnSpecs into real mapped_column(...)
         _materialize_colspecs_to_sqla(cls)
 
-        if _should_skip_mapping(cls):
-            cls.__abstract__ = True
-            return
-
         # 2) Let SQLAlchemy map the class (PK now exists)
         super().__init_subclass__(**kw)
-
-        if getattr(cls, "__abstract__", False):
-            return
 
         # 3) Seed model namespaces / index specs (ops/hooks/etc.) – idempotent
         try:
