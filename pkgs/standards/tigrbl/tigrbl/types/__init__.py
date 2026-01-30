@@ -31,7 +31,7 @@ from ..deps.sqlalchemy import (
     declarative_mixin,
     declared_attr,
     foreign,
-    mapped_column as _mapped_column,
+    mapped_column,
     relationship,
     remote,
     column_property,
