@@ -1,6 +1,7 @@
 # tigrbl/v3/app/tigrbl_app.py
 from __future__ import annotations
 
+import asyncio
 import copy
 import inspect
 from types import SimpleNamespace
@@ -259,7 +260,13 @@ class TigrblApp(_App):
                 if inspect.isawaitable(item):
                     await item
 
-        return _inner()
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            asyncio.run(_inner())
+            return None
+
+        return loop.create_task(_inner())
 
     async def rpc_call(
         self,
