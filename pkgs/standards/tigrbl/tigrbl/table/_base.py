@@ -5,8 +5,12 @@ from typing import Any, Optional, Union, get_args, get_origin
 from enum import Enum as PyEnum
 
 from sqlalchemy.orm import DeclarativeBase, declared_attr, mapped_column
-from sqlalchemy import CheckConstraint, ForeignKey, MetaData
+from sqlalchemy import CheckConstraint, Column, ForeignKey, MetaData
 from sqlalchemy.types import Enum as SAEnum, String
+
+from tigrbl.bindings.model_helpers import _ensure_model_namespaces
+from tigrbl.column.column_spec import ColumnSpec
+from tigrbl.config.constants import CANON, HOOK_DECLS_ATTR
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Helpers – type inference & SA type instantiation
@@ -176,6 +180,18 @@ def _materialize_colspecs_to_sqla(cls) -> None:
         setattr(cls, name, mc)
 
 
+def _has_declared_columns(cls: type) -> bool:
+    for base in cls.__mro__:
+        if "__table__" in base.__dict__:
+            return True
+        for attr in base.__dict__.values():
+            if isinstance(attr, ColumnSpec):
+                return True
+            if isinstance(attr, Column):
+                return True
+    return False
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Declarative Base
 # ──────────────────────────────────────────────────────────────────────────────
@@ -185,6 +201,8 @@ class Base(DeclarativeBase):
     __allow_unmapped__ = True
 
     def __init_subclass__(cls, **kw):
+        _ensure_model_namespaces(cls)
+
         # 0) Remove any previously registered class with the same module path.
         try:
             reg = Base.registry._class_registry
@@ -227,6 +245,8 @@ class Base(DeclarativeBase):
         _materialize_colspecs_to_sqla(cls)
 
         # 2) Let SQLAlchemy map the class (PK now exists)
+        if "__abstract__" not in cls.__dict__ and not _has_declared_columns(cls):
+            cls.__abstract__ = True
         super().__init_subclass__(**kw)
 
         # 3) Seed model namespaces / index specs (ops/hooks/etc.) – idempotent
@@ -236,6 +256,29 @@ class Base(DeclarativeBase):
             _model_bind.bind(cls)
         except Exception:
             pass
+
+        hooks = getattr(cls, "__tigrbl_hooks__", {}) or {}
+        canon = tuple(CANON.keys() if hasattr(CANON, "keys") else CANON)
+
+        for base in cls.__mro__:
+            for _name, attr in base.__dict__.items():
+                fn = getattr(attr, "__func__", attr)
+                decls = getattr(fn, HOOK_DECLS_ATTR, None)
+                if not decls:
+                    continue
+                for decl in decls:
+                    ops = decl.ops
+                    if ops == "*":
+                        op_list = canon
+                    elif isinstance(ops, str):
+                        op_list = (ops,)
+                    else:
+                        op_list = tuple(ops)
+                    for op in op_list:
+                        phases = hooks.setdefault(op, {})
+                        phases.setdefault(decl.phase, [])
+
+        cls.__tigrbl_hooks__ = hooks
 
         # 3) AUTO-BUILD CRUD schemas from ColumnSpecs so /docs has them
         try:

@@ -23,6 +23,8 @@ def _key(sp: OpSpec) -> _Key:
 def _ensure_model_namespaces(model: type) -> None:
     """Create top-level namespaces on the model class if missing."""
 
+    if "__tigrbl_ops__" not in model.__dict__:
+        setattr(model, "__tigrbl_ops__", ())
     # op indexes & metadata
     if "ops" not in model.__dict__:
         if "opspecs" in model.__dict__:
@@ -34,6 +36,10 @@ def _ensure_model_namespaces(model: type) -> None:
     # pydantic schemas: .<alias>.in_ / .<alias>.out
     if "schemas" not in model.__dict__:
         model.schemas = SimpleNamespace()
+    if "response" not in model.__dict__:
+        model.response = None
+    if "responses" not in model.__dict__:
+        model.responses = SimpleNamespace()
     # hooks: phase chains & raw hook descriptors if you want to expose them
     if "hooks" not in model.__dict__:
         model.hooks = SimpleNamespace()

@@ -24,10 +24,13 @@ def response_ctx(**kwargs: Any) -> Callable[[T], T]: ...
 
 
 def response_ctx(*args: Any, **kwargs: Any) -> Callable[[T], T]:
+    alias = kwargs.pop("alias", None)
     spec = _to_spec(*args, **kwargs)
 
     def decorator(target: T) -> T:
         setattr(target, _ATTR, spec)
+        if alias is not None:
+            setattr(target, "__tigrbl_response_alias__", alias)
         return target
 
     return decorator
