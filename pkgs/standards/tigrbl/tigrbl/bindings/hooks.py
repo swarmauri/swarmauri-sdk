@@ -193,7 +193,8 @@ def _to_phase_map_for_alias(source: Any, alias: str) -> Dict[str, List[StepFn]]:
 
     if isinstance(maybe, Mapping):
         for ph, items in (maybe or {}).items():
-            steps = out.setdefault(str(ph), [])
+            phase = "PRE_HANDLER" if str(ph) == "PRE_HANDLE" else str(ph)
+            steps = out.setdefault(phase, [])
             if isinstance(items, Iterable):
                 for fn in items:
                     if callable(fn):
@@ -287,6 +288,9 @@ def _attach_one(model: type, sp: OpSpec) -> None:
             merged = [_mark_skip_persist()] + merged
 
         setattr(ns, ph, merged)
+
+    if hasattr(ns, "PRE_HANDLER"):
+        setattr(ns, "PRE_HANDLE", getattr(ns, "PRE_HANDLER"))
 
     logger.debug("hooks: %s.%s merged (persist=%s)", model.__name__, alias, sp.persist)
 
