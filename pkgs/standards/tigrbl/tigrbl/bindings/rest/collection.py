@@ -245,6 +245,12 @@ def _make_collection_endpoint(
             return _endpoint
 
         base = body_model or Mapping[str, Any]
+        body_required = target in {
+            "create",
+            "update",
+            "replace",
+            "merge",
+        } or target.startswith("bulk_")
         if target.startswith("bulk_"):
             alias_ns = getattr(
                 getattr(model, "schemas", None) or SimpleNamespace(), alias, None
@@ -263,13 +269,13 @@ def _make_collection_endpoint(
                 _list_ann(Mapping[str, Any]),
             )
         else:
-            body_annotation = base
+            body_annotation = _union(base, type(None)) if not body_required else base
 
         async def _endpoint(
             request: Request,
             db: Any = Depends(db_dep),
             h: Mapping[str, Any] = Depends(hdr_dep),
-            body=Body(...),
+            body=None,
             **kw: Any,
         ):
             parent_kw = {k: kw[k] for k in nested_vars if k in kw}
@@ -317,6 +323,7 @@ def _make_collection_endpoint(
                 return result
             return result
 
+        body_default = ... if body_required else None
         _endpoint.__signature__ = _sig(
             nested_vars,
             [
@@ -338,7 +345,8 @@ def _make_collection_endpoint(
                 inspect.Parameter(
                     "body",
                     inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                    annotation=Annotated[body_annotation, Body(...)],
+                    annotation=Annotated[body_annotation, Body()],
+                    default=body_default,
                 ),
             ],
         )
