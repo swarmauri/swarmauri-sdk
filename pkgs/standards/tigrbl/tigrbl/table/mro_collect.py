@@ -43,7 +43,7 @@ def mro_collect_table_spec(model: type) -> TableSpec:
                 or cfg.get("engine_provider")
                 or cfg.get("db_provider")
             )
-            if eng is not None and engine is None:
+            if eng is not None:
                 engine = eng
 
     spec = TableSpec(
