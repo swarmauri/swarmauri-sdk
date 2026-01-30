@@ -15,16 +15,17 @@ class FieldSpec:
     ``py_type`` denotes the expected Python type and may be omitted when the
     model attribute is annotated; the type will then be inferred. ``constraints``
     mirrors arguments accepted by :func:`pydantic.Field` and participates in
-    schema generation. ``required_in`` and ``allow_null_in`` govern which API
-    verbs must supply the value or may explicitly send ``null`` in requests.
-    Responses rely on Pydantic's built-in encoders based solely on the
-    declared type.
+    schema generation. ``description`` provides a convenience field for schema
+    metadata. ``required_in`` and ``allow_null_in`` govern which API verbs must
+    supply the value or may explicitly send ``null`` in requests. Responses rely
+    on Pydantic's built-in encoders based solely on the declared type.
     """
 
     py_type: Any = Any
 
     # For request/response schema generation (+ pydantic.Field)
     constraints: Dict[str, Any] = dc_field(default_factory=dict)
+    description: str | None = None
 
     # Request policy (DB nullability lives in StorageSpec.nullable)
     required_in: Tuple[str, ...] = ()
