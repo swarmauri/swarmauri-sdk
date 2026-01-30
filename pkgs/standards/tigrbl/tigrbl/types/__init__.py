@@ -21,7 +21,7 @@ from ..deps.sqlalchemy import (
     CheckConstraint,
     create_engine,
     event,
-    # PostgreSQL dialect 
+    # PostgreSQL dialect
     ARRAY,
     PgEnum,
     JSONB,
@@ -87,7 +87,6 @@ from .op_config_provider import OpConfigProvider
 # ── Generics / Extensions ─────────────────────────────────────────────────
 DateTime = _DateTime(timezone=False)
 TZDateTime = _DateTime(timezone=True)
-
 
 
 # ── Public Re-exports (Backwards Compatibility) ──────────────────────────
