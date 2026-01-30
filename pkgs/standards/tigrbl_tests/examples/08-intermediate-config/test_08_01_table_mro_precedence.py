@@ -17,4 +17,4 @@ def test_table_mro_engine_precedence() -> None:
         __tablename__ = "mro_widgets"
 
     spec = mro_collect_table_spec(Widget)
-    assert spec.engine == mem(async_=True)
+    assert spec.engine == mem(async_=False)

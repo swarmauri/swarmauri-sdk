@@ -5,19 +5,24 @@ pattern is preferred because it keeps engine configuration discoverable from
 the class namespace and ensures per-method overrides remain explicit.
 """
 
-from tigrbl import bind, engine_ctx
-
-from examples._support import build_widget_model
+from tigrbl import Base, bind, engine_ctx
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.types import Column, String
 
 
 def test_engine_ctx_binding_sets_op_and_table_config():
     """Engine metadata should populate both model and method namespaces."""
 
-    @engine_ctx(kind="sqlite", mode="memory", async_=False)
-    def ping(cls, ctx):
-        return {"ok": True}
+    class Widget(Base, GUIDPk):
+        __tablename__ = "lesson_engine_binding"
+        __allow_unmapped__ = True
 
-    Widget = build_widget_model("LessonEngineBinding", extra_attrs={"ping": ping})
+        name = Column(String, nullable=False)
+
+        @engine_ctx(kind="sqlite", mode="memory", async_=False)
+        def ping(cls, ctx):
+            return {"ok": True}
+
     engine_ctx(kind="sqlite", mode="memory", async_=False)(Widget)
 
     bind(Widget)
@@ -29,13 +34,16 @@ def test_engine_ctx_binding_sets_op_and_table_config():
 def test_engine_ctx_binding_preserves_method_metadata():
     """The engine context should remain attached to the decorated callable."""
 
-    @engine_ctx(kind="sqlite", mode="memory", async_=False)
-    def audit(cls, ctx):
-        return {"ok": True}
+    class Widget(Base, GUIDPk):
+        __tablename__ = "lesson_engine_binding_method"
+        __allow_unmapped__ = True
 
-    Widget = build_widget_model(
-        "LessonEngineBindingMethod", extra_attrs={"audit": audit}
-    )
+        name = Column(String, nullable=False)
+
+        @engine_ctx(kind="sqlite", mode="memory", async_=False)
+        def audit(cls, ctx):
+            return {"ok": True}
+
     engine_ctx(kind="sqlite", mode="memory", async_=False)(Widget)
 
     bind(Widget)

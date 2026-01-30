@@ -5,7 +5,7 @@ import inspect
 import pytest
 from tigrbl_client import TigrblClient
 
-from examples._support import pick_unused_port, run_uvicorn_app, stop_server
+from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 from tigrbl import Base, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
@@ -40,17 +40,17 @@ async def test_rpc_call_works_over_jsonrpc():
     app.include_router(api.router)
     api.attach_diagnostics(prefix="", app=app)
 
-    port = pick_unused_port()
-    handle = await run_uvicorn_app(app, port=port)
+    port = pick_unique_port()
+    base_url, server, task = await start_uvicorn(app, port=port)
 
     # Test: invoke the list method over JSON-RPC.
-    client = TigrblClient(handle.base_url + "/rpc")
+    client = TigrblClient(base_url + "/rpc")
     result = await client.acall(f"{LessonRPCClient.__name__}.list", params={})
 
     # Assertion: the call returns a list payload.
     assert isinstance(result, list)
     await client.aclose()
-    await stop_server(handle)
+    await stop_uvicorn(server, task)
 
 
 @pytest.mark.asyncio
@@ -80,11 +80,11 @@ async def test_rpc_list_reflects_rest_creates():
     app.include_router(api.router)
     api.attach_diagnostics(prefix="", app=app)
 
-    port = pick_unused_port()
-    handle = await run_uvicorn_app(app, port=port)
+    port = pick_unique_port()
+    base_url, server, task = await start_uvicorn(app, port=port)
 
     # Test: create a record via REST so RPC can read it back.
-    async with httpx.AsyncClient(base_url=handle.base_url, timeout=10.0) as client:
+    async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as client:
         response = await client.post(
             f"/{LessonRPCClientList.__name__.lower()}",
             json={"name": "delta"},
@@ -94,10 +94,10 @@ async def test_rpc_list_reflects_rest_creates():
         assert response.status_code in {200, 201}
 
     # Test: list via JSON-RPC.
-    client = TigrblClient(handle.base_url + "/rpc")
+    client = TigrblClient(base_url + "/rpc")
     result = await client.acall(f"{LessonRPCClientList.__name__}.list", params={})
 
     # Assertion: the RPC list contains the REST-created record.
     assert any(item["name"] == "delta" for item in result)
     await client.aclose()
-    await stop_server(handle)
+    await stop_uvicorn(server, task)

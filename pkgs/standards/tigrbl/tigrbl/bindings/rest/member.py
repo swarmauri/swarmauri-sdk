@@ -19,10 +19,10 @@ from .common import (
     Body,
     Depends,
     HTTPException,
+    Response,
     Path,
     Request,
     OpSpec,
-    _is_response,
     _coerce_parent_kw,
     _get_phase_chains,
     _pk_name,
@@ -117,7 +117,7 @@ def _make_member_endpoint(
                 phases=phases,
                 ctx=ctx,
             )
-            if _is_response(result):
+            if isinstance(result, Response):
                 if sp.status_code is not None or result.status_code == 200:
                     result.status_code = status_code
                 return result
@@ -134,7 +134,7 @@ def _make_member_endpoint(
         params.extend(
             [
                 inspect.Parameter(
-                    "item_id",
+                    pk_param,
                     inspect.Parameter.POSITIONAL_OR_KEYWORD,
                     annotation=Annotated[Any, Path(...)],
                 ),
@@ -230,7 +230,7 @@ def _make_member_endpoint(
         params.extend(
             [
                 inspect.Parameter(
-                    "item_id",
+                    pk_param,
                     inspect.Parameter.POSITIONAL_OR_KEYWORD,
                     annotation=Annotated[Any, Path(...)],
                 ),
@@ -333,7 +333,7 @@ def _make_member_endpoint(
             ctx=ctx,
         )
 
-        if _is_response(result):
+        if isinstance(result, Response):
             if sp.status_code is not None or result.status_code == 200:
                 result.status_code = status_code
             return result
@@ -350,7 +350,7 @@ def _make_member_endpoint(
     params.extend(
         [
             inspect.Parameter(
-                "item_id",
+                pk_param,
                 inspect.Parameter.POSITIONAL_OR_KEYWORD,
                 annotation=Annotated[Any, Path(...)],
             ),

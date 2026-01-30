@@ -21,7 +21,6 @@ from .fastapi import (
     Security,
     _status,
 )
-from ...deps.starlette import Response as StarletteResponse
 from .helpers import (
     _Key,
     _coerce_parent_kw,
@@ -69,15 +68,6 @@ from ...schema.builder import _strip_parent_fields
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/rest/common")
 
-
-def _is_response(obj: object) -> bool:
-    if isinstance(obj, Response):
-        return True
-    if StarletteResponse is not None and isinstance(obj, StarletteResponse):
-        return True
-    return False
-
-
 __all__ = [
     "Body",
     "Depends",
@@ -90,7 +80,6 @@ __all__ = [
     "Security",
     "_status",
     "BaseModel",
-    "_is_response",
     "OpSpec",
     "CANON",
     "PHASES",

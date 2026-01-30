@@ -43,8 +43,7 @@ def build_hookz_endpoint(api: Any):
                         phase_map[ph] = [_label_callable(fn) for fn in steps]
                 if phase_map:
                     model_map[alias] = phase_map
-            if model_map:
-                out[mname] = model_map
+            out[mname] = model_map
         cache = out
         return cache
 

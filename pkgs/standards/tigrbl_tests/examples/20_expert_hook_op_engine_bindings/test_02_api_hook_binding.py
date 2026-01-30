@@ -5,10 +5,10 @@ are included. This pattern is preferred because it enables cross-cutting
 behavior (like auditing) to be configured once at the API layer.
 """
 
-from tigrbl import TigrblApi
+from tigrbl import Base, TigrblApi
 from tigrbl.engine.shortcuts import mem
-
-from examples._support import build_widget_model
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.types import Column, String
 
 
 def test_api_hook_binding_merges_into_model():
@@ -19,7 +19,12 @@ def test_api_hook_binding_merges_into_model():
 
     api_hooks = {"*": {"PRE_HANDLER": [audit]}}
     api = TigrblApi(engine=mem(async_=False), api_hooks=api_hooks)
-    Widget = build_widget_model("LessonApiHookBinding")
+
+    class Widget(Base, GUIDPk):
+        __tablename__ = "lesson_api_hook_binding"
+        __allow_unmapped__ = True
+
+        name = Column(String, nullable=False)
 
     api.include_model(Widget)
 
@@ -35,7 +40,12 @@ def test_api_hook_binding_respects_alias_namespace():
 
     api_hooks = {"*": {"PRE_HANDLER": [audit]}}
     api = TigrblApi(engine=mem(async_=False), api_hooks=api_hooks)
-    Widget = build_widget_model("LessonApiHookAliasBinding")
+
+    class Widget(Base, GUIDPk):
+        __tablename__ = "lesson_api_hook_alias_binding"
+        __allow_unmapped__ = True
+
+        name = Column(String, nullable=False)
 
     api.include_model(Widget)
 

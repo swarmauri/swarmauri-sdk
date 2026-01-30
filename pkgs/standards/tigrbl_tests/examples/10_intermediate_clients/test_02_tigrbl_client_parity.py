@@ -5,7 +5,7 @@ import inspect
 import pytest
 from tigrbl_client import TigrblClient
 
-from examples._support import pick_unused_port, run_uvicorn_app, stop_server
+from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 from tigrbl import Base, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
@@ -41,11 +41,11 @@ async def test_tigrbl_client_matches_httpx_response():
     app.include_router(api.router)
     api.attach_diagnostics(prefix="", app=app)
 
-    port = pick_unused_port()
-    handle = await run_uvicorn_app(app, port=port)
+    port = pick_unique_port()
+    base_url, server, task = await start_uvicorn(app, port=port)
 
     # Test: create a resource using raw httpx.
-    async with httpx.AsyncClient(base_url=handle.base_url, timeout=10.0) as client:
+    async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as client:
         response = await client.post(
             f"/{LessonClient.__name__.lower()}",
             json={"name": "beta"},
@@ -55,7 +55,7 @@ async def test_tigrbl_client_matches_httpx_response():
         assert response.status_code in {200, 201}
 
     # Test: create a resource using the higher-level TigrblClient.
-    client = TigrblClient(handle.base_url)
+    client = TigrblClient(base_url)
     rest_response = await client.apost(
         f"/{LessonClient.__name__.lower()}",
         data={"name": "beta"},
@@ -64,7 +64,7 @@ async def test_tigrbl_client_matches_httpx_response():
     # Assertion: TigrblClient returns the expected payload shape.
     assert rest_response["name"] == "beta"
     await client.aclose()
-    await stop_server(handle)
+    await stop_uvicorn(server, task)
 
 
 @pytest.mark.asyncio
@@ -94,13 +94,11 @@ async def test_tigrbl_client_list_returns_created_items():
     app.include_router(api.router)
     api.attach_diagnostics(prefix="", app=app)
 
-    port = pick_unused_port()
-    handle = await run_uvicorn_app(app, port=port)
+    port = pick_unique_port()
+    base_url, server, task = await start_uvicorn(app, port=port)
 
     # Test: create a record with httpx so list has data.
-    async with httpx.AsyncClient(
-        base_url=handle.base_url, timeout=10.0
-    ) as httpx_client:
+    async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as httpx_client:
         response = await httpx_client.post(
             f"/{LessonClientList.__name__.lower()}",
             json={"name": "gamma"},
@@ -110,10 +108,10 @@ async def test_tigrbl_client_list_returns_created_items():
         assert response.status_code in {200, 201}
 
     # Test: list via TigrblClient for parity with REST.
-    client = TigrblClient(handle.base_url)
+    client = TigrblClient(base_url)
     items = await client.aget(f"/{LessonClientList.__name__.lower()}")
 
     # Assertion: the created item appears in the list.
     assert any(item["name"] == "gamma" for item in items)
     await client.aclose()
-    await stop_server(handle)
+    await stop_uvicorn(server, task)

@@ -32,7 +32,7 @@ class Model(SpecA, SpecB, Base, GUIDPk):
 def test_collect_table_spec_merges_mro():
     spec = mro_collect_table_spec(Model)
     assert spec.model is Model
-    assert spec.engine == "db_b"
+    assert spec.engine == "db_a"
     assert spec.ops == ("a", "b")
     assert spec.columns == ("col_a", "col_b")
     assert spec.schemas == ("SchemaA", "SchemaB")

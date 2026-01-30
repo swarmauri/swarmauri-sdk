@@ -20,10 +20,10 @@ from .common import (
     BaseModel,
     Body,
     Depends,
+    Response,
     OpSpec,
     Path,
     Request,
-    _is_response,
     _coerce_parent_kw,
     _get_phase_chains,
     _make_list_query_dep,
@@ -134,7 +134,7 @@ def _make_collection_endpoint(
             result = await _executor._invoke(
                 request=request, db=db, phases=phases, ctx=ctx
             )
-            if _is_response(result):
+            if isinstance(result, Response):
                 if sp.status_code is not None or result.status_code == 200:
                     result.status_code = status_code
                 return result
@@ -178,7 +178,79 @@ def _make_collection_endpoint(
         _endpoint.__signature__ = inspect.Signature(params)
     else:
         body_model = _request_model_for(sp, model)
+        if body_model is None and sp.request_model is None and target == "custom":
+
+            async def _endpoint(
+                request: Request,
+                db: Any = Depends(db_dep),
+                h: Mapping[str, Any] = Depends(hdr_dep),
+                **kw: Any,
+            ):
+                parent_kw = {k: kw[k] for k in nested_vars if k in kw}
+                _coerce_parent_kw(model, parent_kw)
+                payload: Mapping[str, Any] = dict(parent_kw)
+                if isinstance(h, Mapping):
+                    payload = {**payload, **dict(h)}
+                ctx = _ctx(model, alias, target, request, db, payload, parent_kw, api)
+
+                def _serializer(r, _ctx=ctx):
+                    out = _serialize_output(model, alias, target, sp, r)
+                    temp = (
+                        getattr(_ctx, "temp", {}) if isinstance(_ctx, Mapping) else {}
+                    )
+                    extras = (
+                        temp.get("response_extras", {})
+                        if isinstance(temp, Mapping)
+                        else {}
+                    )
+                    if isinstance(out, dict) and isinstance(extras, dict):
+                        out.update(extras)
+                    return out
+
+                ctx["response_serializer"] = _serializer
+                phases = _get_phase_chains(model, alias)
+                result = await _executor._invoke(
+                    request=request,
+                    db=db,
+                    phases=phases,
+                    ctx=ctx,
+                )
+                return result
+
+            _endpoint.__signature__ = _sig(
+                nested_vars,
+                [
+                    inspect.Parameter(
+                        "request",
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=Request,
+                    ),
+                    inspect.Parameter(
+                        "db",
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=Annotated[Any, Depends(db_dep)],
+                    ),
+                    inspect.Parameter(
+                        "h",
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=Annotated[Mapping[str, Any], Depends(hdr_dep)],
+                    ),
+                ],
+            )
+            _endpoint.__name__ = f"rest_{model.__name__}_{alias}_collection"
+            _endpoint.__qualname__ = _endpoint.__name__
+            _endpoint.__doc__ = (
+                f"REST collection endpoint for {model.__name__}.{alias} ({target})"
+            )
+            return _endpoint
+
         base = body_model or Mapping[str, Any]
+        body_required = target in {
+            "create",
+            "update",
+            "replace",
+            "merge",
+        } or target.startswith("bulk_")
         if target.startswith("bulk_"):
             alias_ns = getattr(
                 getattr(model, "schemas", None) or SimpleNamespace(), alias, None
@@ -197,13 +269,13 @@ def _make_collection_endpoint(
                 _list_ann(Mapping[str, Any]),
             )
         else:
-            body_annotation = base
+            body_annotation = _union(base, type(None)) if not body_required else base
 
         async def _endpoint(
             request: Request,
             db: Any = Depends(db_dep),
             h: Mapping[str, Any] = Depends(hdr_dep),
-            body=Body(...),
+            body=None,
             **kw: Any,
         ):
             parent_kw = {k: kw[k] for k in nested_vars if k in kw}
@@ -245,12 +317,13 @@ def _make_collection_endpoint(
             result = await _executor._invoke(
                 request=request, db=db, phases=phases, ctx=ctx
             )
-            if _is_response(result):
+            if isinstance(result, Response):
                 if sp.status_code is not None or result.status_code == 200:
                     result.status_code = status_code
                 return result
             return result
 
+        body_default = ... if body_required else None
         _endpoint.__signature__ = _sig(
             nested_vars,
             [
@@ -272,7 +345,8 @@ def _make_collection_endpoint(
                 inspect.Parameter(
                     "body",
                     inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                    annotation=Annotated[body_annotation, Body(...)],
+                    annotation=Annotated[body_annotation, Body()],
+                    default=body_default,
                 ),
             ],
         )

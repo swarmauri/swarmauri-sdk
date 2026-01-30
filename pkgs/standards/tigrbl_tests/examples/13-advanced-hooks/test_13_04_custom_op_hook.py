@@ -8,7 +8,7 @@ from tigrbl.engine.shortcuts import mem
 from tigrbl.specs import F, IO, S, acol
 from tigrbl.types import App, Integer, Mapped, String
 
-from examples.uvicorn_support import run_uvicorn_in_task, stop_uvicorn_server
+from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 
 
 @pytest.mark.asyncio
@@ -42,11 +42,12 @@ async def test_custom_op_with_hook() -> None:
     await api.initialize()
     app.include_router(api.router)
 
-    base_url, server, task = await run_uvicorn_in_task(app)
+    port = pick_unique_port()
+    base_url, server, task = await start_uvicorn(app, port=port)
     try:
         async with httpx.AsyncClient() as client:
             response = await client.post(f"{base_url}/widget/ping")
         assert response.status_code == 200
         assert response.json()["meta"] == "hooked"
     finally:
-        await stop_uvicorn_server(server, task)
+        await stop_uvicorn(server, task)
