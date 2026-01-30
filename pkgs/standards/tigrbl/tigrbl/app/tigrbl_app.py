@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import copy
+import inspect
 from types import SimpleNamespace
 from typing import (
     Any,
@@ -71,6 +72,7 @@ class TigrblApp(_App):
         self,
         *,
         engine: EngineCfg | None = None,
+        apis: Sequence[Any] | None = None,
         jsonrpc_prefix: str = "/rpc",
         system_prefix: str = "/system",
         api_hooks: Mapping[str, Iterable[Callable]]
@@ -106,9 +108,13 @@ class TigrblApp(_App):
         self.table_config: Dict[str, Dict[str, Any]] = {}
         self.core = SimpleNamespace()
         self.core_raw = SimpleNamespace()
+        self.apis = list(getattr(self, "APIS", ()))
 
         # API-level hooks map (merged into each model at include-time; precedence handled in bindings.hooks)
         self._api_hooks_map = copy.deepcopy(api_hooks) if api_hooks else None
+        if apis:
+            self.apis.extend(list(apis))
+            self.include_apis(self.apis)
 
     # ------------------------- internal helpers -------------------------
 
@@ -174,6 +180,86 @@ class TigrblApp(_App):
             base_prefix=base_prefix,
             mount_router=mount_router,
         )
+
+    def include_api(
+        self,
+        api: Any,
+        *,
+        prefix: str | None = None,
+        mount_router: bool = True,
+    ) -> Any:
+        """Mount a Tigrbl API router onto this app and track it."""
+        if api not in self.apis:
+            self.apis.append(api)
+        if not mount_router:
+            return api
+        router = getattr(api, "router", api)
+        if hasattr(self, "include_router"):
+            self.include_router(router, prefix=prefix or "")
+        return api
+
+    def include_router(self, router: Any, *args: Any, **kwargs: Any) -> None:
+        """Extend FastAPI include_router to track Tigrbl APIs."""
+        if hasattr(router, "models") and hasattr(router, "initialize"):
+            self.include_api(
+                router,
+                prefix=kwargs.get("prefix"),
+                mount_router=False,
+            )
+        super().include_router(router, *args, **kwargs)
+
+    def include_apis(self, apis: Sequence[Any]) -> None:
+        """Mount multiple APIs, supporting optional per-item prefixes."""
+        for entry in apis:
+            prefix = None
+            api = entry
+            if isinstance(entry, tuple) and entry:
+                api = entry[0]
+                if len(entry) > 1:
+                    value = entry[1]
+                    if isinstance(value, dict):
+                        prefix = value.get("prefix")
+                    elif isinstance(value, str):
+                        prefix = value
+            self.include_api(api, prefix=prefix)
+
+    def initialize(
+        self,
+        *,
+        schemas: Iterable[str] | None = None,
+        sqlite_attachments: Mapping[str, str] | None = None,
+        tables: Iterable[Any] | None = None,
+    ):
+        """Initialize DDL for the app and any attached APIs."""
+        result = _ddl_initialize(
+            self,
+            schemas=schemas,
+            sqlite_attachments=sqlite_attachments,
+            tables=tables,
+        )
+
+        api_results = []
+        for api in self.apis:
+            init = getattr(api, "initialize", None)
+            if callable(init):
+                api_results.append(
+                    init(
+                        schemas=schemas,
+                        sqlite_attachments=sqlite_attachments,
+                        tables=tables,
+                    )
+                )
+
+        awaitables = [r for r in [result, *api_results] if inspect.isawaitable(r)]
+        if not awaitables:
+            return None
+
+        async def _inner():
+            for item in [result, *api_results]:
+                if inspect.isawaitable(item):
+                    await item
+
+        return _inner()
 
     async def rpc_call(
         self,
@@ -310,8 +396,6 @@ class TigrblApp(_App):
                 seen.add(t)
                 tables.append(t)
         return tables
-
-    initialize = _ddl_initialize
 
     # ------------------------- repr -------------------------
 

@@ -62,6 +62,8 @@ class TigrblApi(_Api):
         self,
         *,
         engine: EngineCfg | None = None,
+        models: Sequence[type] | None = None,
+        prefix: str | None = None,
         jsonrpc_prefix: str = "/rpc",
         system_prefix: str = "/system",
         api_hooks: Mapping[str, Iterable[Callable]]
@@ -69,6 +71,8 @@ class TigrblApi(_Api):
         | None = None,
         **router_kwargs: Any,
     ) -> None:
+        if prefix is not None:
+            self.PREFIX = prefix
         _Api.__init__(self, engine=engine, **router_kwargs)
         self.jsonrpc_prefix = jsonrpc_prefix
         self.system_prefix = system_prefix
@@ -89,6 +93,8 @@ class TigrblApi(_Api):
 
         # API-level hooks map (merged into each model at include-time; precedence handled in bindings.hooks)
         self._api_hooks_map = copy.deepcopy(api_hooks) if api_hooks else None
+        if models:
+            self.include_models(list(models))
 
     # ------------------------- internal helpers -------------------------
 
