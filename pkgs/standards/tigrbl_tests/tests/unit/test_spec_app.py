@@ -15,7 +15,7 @@ def test_app_spec_defaults_and_merge():
     spec = mro_collect_app_spec(ChildApp)
     assert spec.title == "Base"
     assert spec.version == "1.0"
-    assert spec.apis == ("base", "base", "child")
+    assert spec.apis == ("base", "child")
     assert spec.ops == ("read",)
     assert spec.models == ()
     assert spec.schemas == ()

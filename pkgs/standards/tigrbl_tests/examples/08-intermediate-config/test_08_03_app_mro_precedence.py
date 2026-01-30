@@ -16,4 +16,4 @@ def test_app_mro_precedence() -> None:
 
     spec = mro_collect_app_spec(AppCls)
     assert spec.title == "Override"
-    assert spec.apis == ("base", "base", "extra", "extra", "extra")
+    assert spec.apis == ("base", "extra")

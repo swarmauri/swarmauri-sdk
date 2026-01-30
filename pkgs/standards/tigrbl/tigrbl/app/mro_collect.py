@@ -12,7 +12,9 @@ logger = logging.getLogger("uvicorn")
 def _merge_seq_attr(app: type, attr: str) -> Tuple[Any, ...]:
     values: list[Any] = []
     for base in reversed(app.__mro__):
-        seq = getattr(base, attr, ()) or ()
+        if attr not in base.__dict__:
+            continue
+        seq = base.__dict__[attr] or ()
         try:
             values.extend(seq)
         except TypeError:  # non-iterable
