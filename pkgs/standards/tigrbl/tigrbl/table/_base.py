@@ -192,6 +192,15 @@ def _has_declared_columns(cls: type) -> bool:
     return False
 
 
+def _should_skip_mapping(cls: type) -> bool:
+    """Determine whether SQLAlchemy mapping should be skipped for this class."""
+    if cls.__dict__.get("__abstract__", False):
+        return True
+    if cls.__dict__.get("__tigrbl_skip_mapping__", False):
+        return True
+    return False
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Declarative Base
 # ──────────────────────────────────────────────────────────────────────────────
