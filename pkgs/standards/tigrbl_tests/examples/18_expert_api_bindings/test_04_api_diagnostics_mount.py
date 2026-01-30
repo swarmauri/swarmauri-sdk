@@ -7,7 +7,6 @@ responsible for its own diagnostic endpoints.
 
 from tigrbl import App, TigrblApi
 from tigrbl.engine.shortcuts import mem
-from tigrbl.types import App
 
 from examples._support import build_widget_model
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ..lesson_support import make_widget_model
+from examples.lesson_support import make_widget_model
 
 
 def test_mapped_and_virtual_columns() -> None:

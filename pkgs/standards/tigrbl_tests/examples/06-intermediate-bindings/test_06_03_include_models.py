@@ -5,7 +5,7 @@ import pytest
 from tigrbl import TigrblApp
 from tigrbl.engine.shortcuts import mem
 
-from ..lesson_support import make_widget_model
+from examples.lesson_support import make_widget_model
 
 
 @pytest.mark.asyncio
