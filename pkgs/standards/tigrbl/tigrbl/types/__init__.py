@@ -1,6 +1,5 @@
 # ── Standard Library ─────────────────────────────────────────────────────
 from types import MethodType, SimpleNamespace
-import warnings
 from uuid import uuid4, UUID
 
 # ── Third-party Dependencies (via deps module) ───────────────────────────
@@ -22,7 +21,7 @@ from ..deps.sqlalchemy import (
     CheckConstraint,
     create_engine,
     event,
-    # PostgreSQL dialect
+    # PostgreSQL dialect 
     ARRAY,
     PgEnum,
     JSONB,
@@ -89,23 +88,6 @@ from .op_config_provider import OpConfigProvider
 DateTime = _DateTime(timezone=False)
 TZDateTime = _DateTime(timezone=True)
 
-
-def mapped_column(*args, **kwargs):
-    """Return SQLAlchemy ``mapped_column`` with guidance for preferred patterns.
-
-    Warning: ``mapped_column`` is not best practice in Tigrbl's style guide.
-    Prefer ``Column(...)``, ``ColumnSpec``, ``acol``, or ``vcol`` for model
-    definitions. This helper remains available, but long-term support may
-    waver and it is not a recommended default.
-    """
-    warnings.warn(
-        "tigrbl.types.mapped_column is available but not best practice. Prefer "
-        "Column(...), ColumnSpec, acol, or vcol. It is not deprecated, but "
-        "long-term support may waver.",
-        UserWarning,
-        stacklevel=2,
-    )
-    return _mapped_column(*args, **kwargs)
 
 
 # ── Public Re-exports (Backwards Compatibility) ──────────────────────────
