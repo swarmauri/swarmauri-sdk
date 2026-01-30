@@ -20,10 +20,10 @@ from .common import (
     BaseModel,
     Body,
     Depends,
-    Response,
     OpSpec,
     Path,
     Request,
+    _is_response,
     _coerce_parent_kw,
     _get_phase_chains,
     _make_list_query_dep,
@@ -134,7 +134,7 @@ def _make_collection_endpoint(
             result = await _executor._invoke(
                 request=request, db=db, phases=phases, ctx=ctx
             )
-            if isinstance(result, Response):
+            if _is_response(result):
                 if sp.status_code is not None or result.status_code == 200:
                     result.status_code = status_code
                 return result
@@ -245,7 +245,7 @@ def _make_collection_endpoint(
             result = await _executor._invoke(
                 request=request, db=db, phases=phases, ctx=ctx
             )
-            if isinstance(result, Response):
+            if _is_response(result):
                 if sp.status_code is not None or result.status_code == 200:
                     result.status_code = status_code
                 return result
