@@ -1,21 +1,49 @@
 from __future__ import annotations
 
+import inspect
+
 import httpx
 import pytest
 
 from tigrbl_client import TigrblClient
 
+from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
+from tigrbl import Base, TigrblApp
+from tigrbl.engine.shortcuts import mem
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.types import App, Column, String
+
 
 @pytest.mark.asyncio
-async def test_rest_and_client_rest_match(running_widget_app: str) -> None:
-    base_url = running_widget_app
-    client = TigrblClient(base_url)
+async def test_rest_and_client_rest_match() -> None:
+    class Widget(Base, GUIDPk):
+        __tablename__ = "lesson_parity_widget"
+        __allow_unmapped__ = True
 
-    async with httpx.AsyncClient() as http_client:
-        rest = await http_client.post(
-            f"{base_url}/widget",
-            json={"name": "Parity"},
-        )
-    assert rest.status_code == 201
-    client_result = client.post("/widget", data={"name": "Parity"})
-    assert client_result["name"] == "Parity"
+        name = Column(String, nullable=False)
+
+    api = TigrblApp(engine=mem(async_=False))
+    api.include_model(Widget)
+    init_result = api.initialize()
+    if inspect.isawaitable(init_result):
+        await init_result
+
+    app = App()
+    app.include_router(api.router)
+    api.attach_diagnostics(prefix="", app=app)
+
+    port = pick_unique_port()
+    base_url, server, task = await start_uvicorn(app, port=port)
+    try:
+        client = TigrblClient(base_url)
+
+        async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as http_client:
+            rest = await http_client.post(
+                "/widget",
+                json={"name": "Parity"},
+            )
+        assert rest.status_code == 201
+        client_result = client.post("/widget", data={"name": "Parity"})
+        assert client_result["name"] == "Parity"
+    finally:
+        await stop_uvicorn(server, task)

@@ -5,15 +5,21 @@ retrieved from the API instance and mounted on a host app, keeping the API
 responsible for its own diagnostic endpoints.
 """
 
-from tigrbl import App, TigrblApi
+from tigrbl import App, Base, TigrblApi
 from tigrbl.engine.shortcuts import mem
-
-from examples._support import build_widget_model
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.types import Column, String
 
 
 def test_api_binding_mounts_diagnostics_router():
     """attach_diagnostics returns a router that can be mounted on an app."""
-    Widget = build_widget_model("LessonApiDiagnostics")
+
+    class Widget(Base, GUIDPk):
+        __tablename__ = "lesson_api_diagnostics"
+        __allow_unmapped__ = True
+
+        name = Column(String, nullable=False)
+
     api = TigrblApi(engine=mem(async_=False))
     api.include_model(Widget)
 
@@ -25,7 +31,13 @@ def test_api_binding_mounts_diagnostics_router():
 
 def test_api_diagnostics_mounts_on_app_namespace():
     """Diagnostics mounting should attach routes to the host app."""
-    Widget = build_widget_model("LessonApiDiagnosticsHost")
+
+    class Widget(Base, GUIDPk):
+        __tablename__ = "lesson_api_diagnostics_host"
+        __allow_unmapped__ = True
+
+        name = Column(String, nullable=False)
+
     api = TigrblApi(engine=mem(async_=False))
     api.include_model(Widget)
 

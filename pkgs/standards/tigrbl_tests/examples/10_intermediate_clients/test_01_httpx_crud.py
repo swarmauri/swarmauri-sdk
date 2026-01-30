@@ -4,7 +4,7 @@ import httpx
 import inspect
 import pytest
 
-from examples._support import pick_unused_port, run_uvicorn_app, stop_server
+from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 from tigrbl import Base, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
@@ -39,11 +39,11 @@ async def test_httpx_crud_roundtrip():
     app.include_router(api.router)
     api.attach_diagnostics(prefix="", app=app)
 
-    port = pick_unused_port()
-    handle = await run_uvicorn_app(app, port=port)
+    port = pick_unique_port()
+    base_url, server, task = await start_uvicorn(app, port=port)
 
     # Test: perform a REST create with httpx against the running server.
-    async with httpx.AsyncClient(base_url=handle.base_url, timeout=10.0) as client:
+    async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as client:
         response = await client.post(
             f"/{LessonHttpx.__name__.lower()}",
             json={"name": "alpha"},
@@ -52,7 +52,7 @@ async def test_httpx_crud_roundtrip():
         # Assertion: the create endpoint accepts the payload.
         assert response.status_code in {200, 201}
 
-    await stop_server(handle)
+    await stop_uvicorn(server, task)
 
 
 @pytest.mark.asyncio
@@ -82,11 +82,11 @@ async def test_httpx_list_returns_collection():
     app.include_router(api.router)
     api.attach_diagnostics(prefix="", app=app)
 
-    port = pick_unused_port()
-    handle = await run_uvicorn_app(app, port=port)
+    port = pick_unique_port()
+    base_url, server, task = await start_uvicorn(app, port=port)
 
     # Test: create then list the collection via httpx.
-    async with httpx.AsyncClient(base_url=handle.base_url, timeout=10.0) as client:
+    async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as client:
         create_response = await client.post(
             f"/{LessonHttpxList.__name__.lower()}",
             json={"name": "alpha"},
@@ -101,4 +101,4 @@ async def test_httpx_list_returns_collection():
         assert list_response.status_code == 200
         assert isinstance(list_response.json(), list)
 
-    await stop_server(handle)
+    await stop_uvicorn(server, task)

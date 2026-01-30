@@ -1,31 +1,44 @@
-import pytest
-from tigrbl import hook_ctx
+import inspect
 
-from examples._support import (
-    build_app_with_jsonrpc_and_diagnostics,
-    build_async_client,
-    build_widget_model,
-    pick_unused_port,
-    run_uvicorn_app,
-    stop_server,
-)
+import httpx
+import pytest
+from tigrbl import Base, TigrblApp, hook_ctx
+
+from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
+from tigrbl.engine.shortcuts import mem
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.types import App, Column, String
 
 
 @pytest.mark.asyncio
 async def test_diagnostics_hookz_reports_hooks():
     """Test diagnostics hookz reports hooks."""
 
-    @hook_ctx(ops="create", phase="POST_COMMIT")
-    def audit(cls, ctx):
-        return None
+    class Widget(Base, GUIDPk):
+        __tablename__ = "lesson_hookz"
+        __allow_unmapped__ = True
 
-    Widget = build_widget_model("LessonHookz", extra_attrs={"audit": audit})
+        name = Column(String, nullable=False)
 
-    app, api = build_app_with_jsonrpc_and_diagnostics(Widget)
+        @hook_ctx(ops="create", phase="POST_COMMIT")
+        def audit(cls, ctx):
+            return None
+
+    api = TigrblApp(engine=mem(async_=False))
+    api.include_model(Widget)
+    init_result = api.initialize()
+    if inspect.isawaitable(init_result):
+        await init_result
+    api.mount_jsonrpc(prefix="/rpc")
+
+    app = App()
+    app.include_router(api.router)
+    api.attach_diagnostics(prefix="", app=app)
+
     api.bind(Widget)
-    port = pick_unused_port()
-    handle = await run_uvicorn_app(app, port=port)
-    async with build_async_client(handle.base_url) as client:
+    port = pick_unique_port()
+    base_url, server, task = await start_uvicorn(app, port=port)
+    async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as client:
         response = await client.get("/hookz")
         assert response.status_code == 200
-    await stop_server(handle)
+    await stop_uvicorn(server, task)

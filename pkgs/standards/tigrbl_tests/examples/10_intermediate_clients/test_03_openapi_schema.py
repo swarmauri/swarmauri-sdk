@@ -4,7 +4,7 @@ import httpx
 import inspect
 import pytest
 
-from examples._support import pick_unused_port, run_uvicorn_app, stop_server
+from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 from tigrbl import Base, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
@@ -39,18 +39,18 @@ async def test_openapi_schema_contains_widget_paths():
     app.include_router(api.router)
     api.attach_diagnostics(prefix="", app=app)
 
-    port = pick_unused_port()
-    handle = await run_uvicorn_app(app, port=port)
+    port = pick_unique_port()
+    base_url, server, task = await start_uvicorn(app, port=port)
 
     # Test: fetch the OpenAPI schema via httpx.
-    async with httpx.AsyncClient(base_url=handle.base_url, timeout=10.0) as client:
+    async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as client:
         response = await client.get("/openapi.json")
 
         # Assertion: OpenAPI returns successfully and includes model paths.
         assert response.status_code == 200
         assert f"/{LessonOpenAPI.__name__.lower()}" in response.json()["paths"]
 
-    await stop_server(handle)
+    await stop_uvicorn(server, task)
 
 
 @pytest.mark.asyncio
@@ -80,11 +80,11 @@ async def test_openapi_schema_includes_get_and_post():
     app.include_router(api.router)
     api.attach_diagnostics(prefix="", app=app)
 
-    port = pick_unused_port()
-    handle = await run_uvicorn_app(app, port=port)
+    port = pick_unique_port()
+    base_url, server, task = await start_uvicorn(app, port=port)
 
     # Test: inspect the OpenAPI paths for the model.
-    async with httpx.AsyncClient(base_url=handle.base_url, timeout=10.0) as client:
+    async with httpx.AsyncClient(base_url=base_url, timeout=10.0) as client:
         response = await client.get("/openapi.json")
         paths = response.json()["paths"]
         methods = paths[f"/{LessonOpenAPIPaths.__name__.lower()}"].keys()
@@ -93,4 +93,4 @@ async def test_openapi_schema_includes_get_and_post():
         assert "get" in methods
         assert "post" in methods
 
-    await stop_server(handle)
+    await stop_uvicorn(server, task)

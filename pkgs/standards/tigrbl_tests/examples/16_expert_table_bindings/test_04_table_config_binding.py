@@ -6,15 +6,21 @@ model, providing a structured way to inspect runtime metadata without
 searching the class hierarchy manually.
 """
 
-from tigrbl import TigrblApi, engine_ctx
+from tigrbl import Base, TigrblApi, engine_ctx
 from tigrbl.engine.shortcuts import mem
-
-from examples._support import build_widget_model
+from tigrbl.orm.mixins import GUIDPk
+from tigrbl.types import Column, String
 
 
 def test_table_binding_reads_table_config():
     """Engine configuration stored on a model appears in the API table config."""
-    Widget = build_widget_model("LessonTableConfig")
+
+    class Widget(Base, GUIDPk):
+        __tablename__ = "lesson_table_config"
+        __allow_unmapped__ = True
+
+        name = Column(String, nullable=False)
+
     engine_ctx(kind="sqlite", mode="memory", async_=False)(Widget)
 
     api = TigrblApi(engine=mem(async_=False))
@@ -26,10 +32,21 @@ def test_table_binding_reads_table_config():
 
 def test_table_config_registry_is_model_specific():
     """Each model keeps its own configuration entry in the registry."""
-    Widget = build_widget_model("LessonTableConfigPrimary")
+
+    class Widget(Base, GUIDPk):
+        __tablename__ = "lesson_table_config_primary"
+        __allow_unmapped__ = True
+
+        name = Column(String, nullable=False)
+
     engine_ctx(kind="sqlite", mode="memory", async_=False)(Widget)
 
-    Gadget = build_widget_model("LessonTableConfigSecondary")
+    class Gadget(Base, GUIDPk):
+        __tablename__ = "lesson_table_config_secondary"
+        __allow_unmapped__ = True
+
+        name = Column(String, nullable=False)
+
     engine_ctx(kind="sqlite", mode="memory", async_=False)(Gadget)
 
     api = TigrblApi(engine=mem(async_=False))
