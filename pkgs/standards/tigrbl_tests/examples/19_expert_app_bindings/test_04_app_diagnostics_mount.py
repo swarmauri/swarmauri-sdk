@@ -1,11 +1,4 @@
-"""Lesson 19: diagnostics router mounting for apps.
-
-Diagnostics endpoints are mounted on a host app while the TigrblApp manages
-their construction. The design keeps diagnostic routes colocated with app
-configuration and avoids manual router wiring.
-"""
-
-from tigrbl import App, TigrblApp
+from tigrbl import TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.types import App
 

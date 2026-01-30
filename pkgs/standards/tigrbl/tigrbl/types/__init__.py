@@ -92,17 +92,27 @@ TZDateTime = _DateTime(timezone=True)
 
 
 def mapped_column(*args, **kwargs):
-    """Return SQLAlchemy ``mapped_column`` with guidance for preferred patterns.
+    """Create a SQLAlchemy mapped column (discouraged in Tigrbl codebases).
 
-    Warning: ``mapped_column`` is not best practice in Tigrbl's style guide.
-    Prefer ``Column(...)``, ``ColumnSpec``, ``acol``, or ``vcol`` for model
-    definitions. This helper remains available, but long-term support may
-    waver and it is not a recommended default.
+    Warning:
+        Tigrbl prefers explicit ``Column(...)`` or declarative specs like
+        ``ColumnSpec``/``acol``/``vcol`` because they keep schema intent obvious
+        and consistent across the toolkit. ``mapped_column`` remains available
+        for compatibility, but it is not the recommended pattern.
+
+    Guidance:
+        - Prefer ``Column(...)`` for direct SQLAlchemy usage.
+        - Prefer ``ColumnSpec`` with ``acol``/``vcol`` when using Tigrbl specs.
+
+    Support note:
+        ``mapped_column`` is not deprecated, but its long-term support may
+        waver in favor of the column-spec based APIs.
     """
+
     warnings.warn(
-        "tigrbl.types.mapped_column is available but not best practice. Prefer "
-        "Column(...), ColumnSpec, acol, or vcol. It is not deprecated, but "
-        "long-term support may waver.",
+        "tigrbl.types.mapped_column is available for compatibility, but it is "
+        "not best practice. Prefer Column(...), ColumnSpec, acol, or vcol "
+        "instead. It is not deprecated, but long-term support may waver.",
         UserWarning,
         stacklevel=2,
     )

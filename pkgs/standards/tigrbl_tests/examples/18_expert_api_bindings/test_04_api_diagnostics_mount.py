@@ -1,11 +1,4 @@
-"""Lesson 18: diagnostics router mounting.
-
-Diagnostics routers provide operational visibility for an API. The router is
-retrieved from the API instance and mounted on a host app, keeping the API
-responsible for its own diagnostic endpoints.
-"""
-
-from tigrbl import App, TigrblApi
+from tigrbl import TigrblApi
 from tigrbl.engine.shortcuts import mem
 from tigrbl.types import App
 
