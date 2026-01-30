@@ -68,16 +68,15 @@ pytest standards/tigrbl_tests/tests/unit
 
 ## Examples Curriculum 📚
 
-The `examples/` directory contains pytest-driven lessons that demonstrate how
-to implement Tigrbl in real services. The curriculum is designed for downstream
-implementers and includes uvicorn-based, end-to-end examples with REST, JSON-RPC,
-and diagnostics validation.[^examples-readme]
-
-Run the lesson suite from the monorepo `pkgs` directory:
+The `examples/` directory contains downstream-facing pytest lessons that
+demonstrate how to implement Tigrbl in real applications. These lessons are
+organized as a multi-module curriculum with uvicorn-backed usage examples and
+system diagnostics validation. See the full curriculum plan for the learning
+sequence and module descriptions.[^tigrbl-examples]
+Run the examples from the `pkgs` directory:
 
 ```bash
-cd /workspace/swarmauri-sdk/pkgs
-uv run --package tigrbl-tests --directory standards/tigrbl_tests pytest standards/tigrbl_tests/examples
+uv run --package tigrbl-tests --directory standards/tigrbl_tests pytest examples
 ```
 
-[^examples-readme]: ./examples/README.md
+[^tigrbl-examples]: examples/README.md
