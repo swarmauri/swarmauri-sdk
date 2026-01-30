@@ -26,6 +26,11 @@ class Api(APISpec, ApiRouter):
     def __eq__(self, other: object) -> bool:  # pragma: no cover - identity compare
         return self is other
 
+    @property
+    def router(self) -> "Api":  # pragma: no cover - simple alias
+        """Mirror FastAPI-style router access for API instances."""
+        return self
+
     def __init__(
         self, *, engine: EngineCfg | None = None, **router_kwargs: Any
     ) -> None:
