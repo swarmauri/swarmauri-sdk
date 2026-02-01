@@ -27,7 +27,7 @@ from __future__ import annotations
 from typing import Any, Callable, Optional, Sequence
 
 # JSON-RPC transport
-from .jsonrpc import build_jsonrpc_router
+from .jsonrpc import build_jsonrpc_router, build_openrpc_spec
 
 # REST transport (aggregator over per-model routers)
 from .rest import build_rest_router, mount_rest
@@ -67,6 +67,7 @@ def mount_jsonrpc(
 __all__ = [
     # JSON-RPC
     "build_jsonrpc_router",
+    "build_openrpc_spec",
     "mount_jsonrpc",
     # REST
     "build_rest_router",
