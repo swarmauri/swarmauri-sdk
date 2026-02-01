@@ -57,13 +57,12 @@ from ..deps.fastapi import (
     Router,
     Security,
     Depends,
-    Request,
-    Response,
     Path,
     Body,
     HTTPException,
     App,
 )
+from ..deps.starlette import Request, Response
 
 # ── Local Package ─────────────────────────────────────────────────────────
 from .op import _Op, _SchemaVerb

@@ -8,23 +8,17 @@ from typing import (
     Mapping,
     MutableMapping,
     Optional,
+    Protocol,
     Sequence,
     Union,
-    Protocol,
     runtime_checkable,
 )
 
-try:
-    from fastapi import Request  # type: ignore
-except Exception:  # pragma: no cover
-    Request = Any  # type: ignore
+from ...deps.starlette import Request as StarletteRequest
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
-try:
-    from sqlalchemy.orm import Session  # type: ignore
-    from sqlalchemy.ext.asyncio import AsyncSession  # type: ignore
-except Exception:  # pragma: no cover
-    Session = Any  # type: ignore
-    AsyncSession = Any  # type: ignore
+Request = StarletteRequest if StarletteRequest is not None else Any  # type: ignore
 
 
 @runtime_checkable

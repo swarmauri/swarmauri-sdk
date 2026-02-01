@@ -1,7 +1,8 @@
 # tigrbl/v3/types/authn_abc.py
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from fastapi import Request
+
+from ..deps.starlette import Request
 
 
 class AuthNProvider(ABC):
