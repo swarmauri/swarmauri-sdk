@@ -1,7 +1,7 @@
 import asyncio
 
 import pytest
-from tigrbl.types import App
+from tigrbl import TigrblApp
 from sqlalchemy import String, create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -121,7 +121,7 @@ def test_internal_model_opspec_binding():
 def test_openapi_includes_path():
     _ensure_tables()
     bind(Gadget)
-    app = App()
+    app = TigrblApp()
     app.include_router(Gadget.rest.router)
     schema = app.openapi()
     assert "/gadget" in schema["paths"]
@@ -147,7 +147,7 @@ def test_rest_routes_bound():
 
     Gadget.__tigrbl_get_db__ = staticmethod(get_db)  # type: ignore[attr-defined]
     bind(Gadget)
-    app = App()
+    app = TigrblApp()
     app.include_router(Gadget.rest.router)
     paths = {route.path for route in app.router.routes}
     assert "/gadget" in paths

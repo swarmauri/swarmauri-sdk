@@ -6,7 +6,7 @@ import pytest
 from tigrbl import Base, TigrblApp, hook_ctx, op_ctx
 from tigrbl.engine.shortcuts import mem
 from tigrbl.specs import F, IO, S, acol
-from tigrbl.types import App, Integer, Mapped, String
+from tigrbl.types import Integer, Mapped, String
 
 from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 
@@ -36,7 +36,7 @@ async def test_custom_op_with_hook() -> None:
         async def add_meta(cls, ctx):
             ctx["result"]["meta"] = "hooked"
 
-    app = App()
+    app = TigrblApp()
     api = TigrblApp(engine=mem(async_=False))
     api.include_model(Widget, prefix="")
     await api.initialize()

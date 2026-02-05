@@ -1,12 +1,12 @@
 import pytest
 from httpx import ASGITransport, Client
 
-from tigrbl.types import App, SimpleNamespace
+from tigrbl import TigrblApp
+from tigrbl.types import SimpleNamespace
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Mapped, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from tigrbl import TigrblApp
 from tigrbl.engine.shortcuts import engine as engine_factory, mem
 from tigrbl.bindings.model import bind
 from tigrbl.bindings.rest.router import _build_router
@@ -145,7 +145,7 @@ def test_openapi_reflects_io_verbs():
     sp_create = OpSpec(alias="create", target="create")
     sp_read = OpSpec(alias="read", target="read")
     router = _build_router(Widget, [sp_create, sp_read])
-    app = App()
+    app = TigrblApp()
     app.include_router(router)
     spec = app.openapi()
 

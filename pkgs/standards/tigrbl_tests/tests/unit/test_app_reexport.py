@@ -1,6 +1,6 @@
-from tigrbl import App
+from tigrbl import TigrblApp
 from tigrbl.app._app import App as InternalApp
 
 
 def test_app_reexport():
-    assert App is InternalApp
+    assert issubclass(TigrblApp, InternalApp)

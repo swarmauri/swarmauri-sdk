@@ -1,4 +1,4 @@
-from tigrbl import App
+from tigrbl import TigrblApp
 from tigrbl.app.shortcuts import defineAppSpec
 from tigrbl.engine.shortcuts import mem
 
@@ -18,7 +18,7 @@ def test_engine_precedence_resolves_latest():
         pass
 
     # Deployment: instantiate the App from the child spec.
-    class ChildApp(ChildConfig, App):
+    class ChildApp(ChildConfig, TigrblApp):
         pass
 
     app = ChildApp()

@@ -1,7 +1,6 @@
 import pytest
 import pytest_asyncio
 from tigrbl import TigrblApp, Base
-from tigrbl.types import App
 from tigrbl.orm.mixins import BulkCapable, GUIDPk
 from tigrbl.specs import F, IO, S, acol
 from tigrbl.column.storage_spec import StorageTransform
@@ -192,7 +191,7 @@ async def api_client(db_mode):
         def __tigrbl_nested_paths__(cls):
             return "/tenant/{tenant_id}/item"
 
-    fastapi_app = App()
+    fastapi_app = TigrblApp()
 
     if db_mode == "async":
         api = TigrblApp(engine=mem())
@@ -272,7 +271,7 @@ async def api_client_v3():
         }
 
     cfg = mem()
-    fastapi_app = App()
+    fastapi_app = TigrblApp()
     api = TigrblApp(engine=cfg)
     api.include_model(Widget, prefix="")
     api.mount_jsonrpc()

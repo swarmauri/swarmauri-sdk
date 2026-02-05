@@ -3,7 +3,6 @@ import pytest_asyncio
 from tigrbl import TigrblApp, Base
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.types import App
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, ForeignKey, String
 from tigrbl.types import PgUUID
@@ -50,7 +49,7 @@ async def three_level_api_client(db_mode):
         api.include_models([Company, Department, Employee])
         api.initialize()
 
-    app = App()
+    app = TigrblApp()
     app.include_router(api.router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")

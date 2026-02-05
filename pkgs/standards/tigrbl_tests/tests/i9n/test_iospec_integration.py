@@ -10,7 +10,7 @@ from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.tables import Base
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import IO, S, acol
-from tigrbl.types import App, String, UUID
+from tigrbl.types import String, UUID
 from tigrbl.core import crud
 from tigrbl.runtime.atoms.resolve import assemble
 
@@ -35,7 +35,7 @@ class Widget(Base, GUIDPk):
 
 @pytest_asyncio.fixture
 async def widget_setup():
-    app = App()
+    app = TigrblApp()
     api = TigrblApp(engine=mem(async_=False))
     api.include_model(Widget, prefix="/widget")
     api.mount_jsonrpc(prefix="/rpc")

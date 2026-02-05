@@ -10,7 +10,6 @@ from tigrbl.orm.tables import Base
 from tigrbl.config.constants import TIGRBL_AUTH_CONTEXT_ATTR
 from tigrbl.types import (
     AllowAnonProvider,
-    App,
     AuthNProvider,
     Column,
     ForeignKey,
@@ -66,7 +65,7 @@ def _build_client():
     api.set_auth(authn=auth.get_principal)
     api.include_models([Tenant, Item])
     api.initialize()
-    app = App()
+    app = TigrblApp()
     app.include_router(api.router)
     prov = _resolver.resolve_provider()
     engine, maker = prov.ensure()
@@ -98,7 +97,7 @@ def _build_client_attr():
     api.set_auth(authn=auth.get_principal)
     api.include_models([Tenant, Item])
     api.initialize()
-    app = App()
+    app = TigrblApp()
     app.include_router(api.router)
     prov = _resolver.resolve_provider()
     engine, maker = prov.ensure()
@@ -166,7 +165,7 @@ def _build_client_create_noauth():
     api = TigrblApp(engine=cfg)
     api.include_models([Tenant, Item])
     api.initialize()
-    app = App()
+    app = TigrblApp()
     app.include_router(api.router)
     prov = _resolver.resolve_provider()
     engine, maker = prov.ensure()
@@ -196,7 +195,7 @@ def _build_client_create_attr_noauth():
     api = TigrblApp(engine=cfg)
     api.include_models([Tenant, Item])
     api.initialize()
-    app = App()
+    app = TigrblApp()
     app.include_router(api.router)
     prov = _resolver.resolve_provider()
     engine, maker = prov.ensure()

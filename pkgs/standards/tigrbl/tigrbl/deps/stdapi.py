@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import asyncio
+import importlib
+import importlib.util
 import inspect
 import json
 import mimetypes
@@ -895,21 +897,8 @@ class APIRouter:
 """
 
 
-class FastAPI(APIRouter):
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        kwargs.setdefault("include_docs", True)
-        super().__init__(*args, **kwargs)
-        self.router = self
-        self._middlewares: list[tuple[Any, dict[str, Any]]] = []
-
-    def add_middleware(self, middleware_class: Any, **options: Any) -> None:
-        self._middlewares.append((middleware_class, options))
-
-
 __all__ = [
     "APIRouter",
-    "App",
-    "FastAPI",
     "Router",
     "Request",
     "Response",
@@ -930,20 +919,30 @@ __all__ = [
 ]
 
 
+Router = APIRouter
+
 FAVICON_PATH = FilePath(__file__).with_name("favicon.svg")
 
 
-def App(*args: Any, **kwargs: Any) -> FastAPI:
-    app = FastAPI(*args, **kwargs)
+def _ensure_httpx_sync_transport() -> None:
+    spec = importlib.util.find_spec("httpx")
+    if spec is None:
+        return
+    httpx = importlib.import_module("httpx")
+    if hasattr(httpx.ASGITransport, "__enter__"):
+        return
 
-    @app.get("/favicon.ico", include_in_schema=False)
-    async def favicon() -> FileResponse:  # pragma: no cover - simple static route
-        return FileResponse(str(FAVICON_PATH), media_type="image/svg+xml")
+    def __enter__(self) -> Any:
+        return self
 
-    return app
+    def __exit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
+        return None
+
+    httpx.ASGITransport.__enter__ = __enter__
+    httpx.ASGITransport.__exit__ = __exit__
 
 
-Router = APIRouter
+_ensure_httpx_sync_transport()
 
 
 def _schema_from_model(model: Any) -> dict[str, Any]:

@@ -1,4 +1,4 @@
-from tigrbl.types import App, HTTPException, Request, Security
+from tigrbl.types import HTTPException, Request, Security
 from typing import Iterable
 
 from httpx import ASGITransport, Client
@@ -71,7 +71,7 @@ def _client_for_owner(
     api = TigrblApp(engine=engine)
     api.set_auth(authn=authn.get_principal)
     api.include_models([User, Item])
-    app = App()
+    app = TigrblApp()
     app.include_router(api.router)
     api.initialize()
     transport = ASGITransport(app=app)
@@ -149,7 +149,7 @@ def _client_for_tenant(
     api = TigrblApp(engine=engine)
     api.set_auth(authn=authn.get_principal)
     api.include_models([Tenant, Item])
-    app = App()
+    app = TigrblApp()
     app.include_router(api.router)
     api.initialize()
     transport = ASGITransport(app=app)

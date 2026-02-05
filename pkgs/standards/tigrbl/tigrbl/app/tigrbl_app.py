@@ -35,6 +35,7 @@ from ..transport import mount_jsonrpc as _mount_jsonrpc
 from ..system import mount_diagnostics as _mount_diagnostics
 from ..op import get_registry, OpSpec
 from ._model_registry import initialize_model_registry
+from ..deps.stdapi import FileResponse, FAVICON_PATH
 
 
 # optional compat: legacy transactional decorator
@@ -91,6 +92,12 @@ class TigrblApp(_App):
         if lifespan is not None:
             self.LIFESPAN = lifespan
         super().__init__(engine=engine, **fastapi_kwargs)
+        self.router = self
+        self._middlewares: list[tuple[Any, dict[str, Any]]] = []
+        self.middlewares = tuple(getattr(self, "MIDDLEWARES", ()))
+        for mw in self.middlewares:
+            self.add_middleware(mw.__class__, **getattr(mw, "kwargs", {}))
+        self._install_favicon()
         # capture initial routes so refreshes retain FastAPI defaults
         self._base_routes = list(self.router.routes)
         self.jsonrpc_prefix = jsonrpc_prefix
@@ -116,6 +123,21 @@ class TigrblApp(_App):
         if apis:
             self.apis.extend(list(apis))
             self.include_apis(self.apis)
+
+    def add_middleware(self, middleware_class: Any, **options: Any) -> None:
+        self._middlewares.append((middleware_class, options))
+
+    def _install_favicon(self) -> None:
+        def favicon() -> FileResponse:
+            return FileResponse(str(FAVICON_PATH), media_type="image/svg+xml")
+
+        self.add_api_route(
+            "/favicon.ico",
+            favicon,
+            methods=["GET"],
+            name="__favicon__",
+            include_in_schema=False,
+        )
 
     # ------------------------- internal helpers -------------------------
 

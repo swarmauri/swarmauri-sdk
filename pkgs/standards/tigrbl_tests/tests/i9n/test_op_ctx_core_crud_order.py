@@ -1,5 +1,4 @@
 import pytest
-from tigrbl.types import App
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, String
 
@@ -17,7 +16,7 @@ def setup_api(model_cls):
     Base.metadata.clear()
     spec = EngineSpec.from_any(mem(async_=False))
     engine = Engine(spec)
-    app = App(engine=engine)
+    app = TigrblApp(engine=engine)
     api = TigrblApp(engine=engine)
     api.include_model(model_cls, prefix="")
     api.initialize()

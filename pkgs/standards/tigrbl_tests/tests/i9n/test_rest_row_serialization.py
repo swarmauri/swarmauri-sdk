@@ -1,6 +1,5 @@
 import pytest
 import pytest_asyncio
-from tigrbl.types import App
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Integer, String, select
 from sqlalchemy.orm import Mapped
@@ -32,7 +31,7 @@ async def client_and_model():
 
         __tigrbl_cols__ = {"id": id, "name": name}
 
-    app = App()
+    app = Tigrblv3()
     api = Tigrblv3(engine=mem())
     api.include_model(Widget, prefix="")
     await api.initialize()

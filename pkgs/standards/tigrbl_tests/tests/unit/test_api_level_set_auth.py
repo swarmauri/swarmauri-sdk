@@ -1,5 +1,5 @@
 from tigrbl import TigrblApp
-from tigrbl.deps.stdapi import FastAPI, HTTPBearer, Security
+from tigrbl.deps.stdapi import APIRouter, HTTPBearer, Security
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base
 
@@ -10,7 +10,7 @@ class Widget(Base, GUIDPk):
 
 
 def test_api_level_auth_dep_applied_per_route():
-    app = FastAPI()
+    app = APIRouter()
     api = TigrblApp()
     api.set_auth(authn=lambda cred=Security(HTTPBearer()): cred, allow_anon=False)
     api.include_models([Widget])

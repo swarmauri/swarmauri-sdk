@@ -1,13 +1,12 @@
-from tigrbl.types import App
-
 from tigrbl import TigrblApp
+
 from tigrbl.orm.tables import Base
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
 
 
 def test_include_models_base_prefix_avoids_duplicate_segments():
-    app = App()
+    app = TigrblApp()
 
     class Key(Base, GUIDPk):
         __tablename__ = "Key"

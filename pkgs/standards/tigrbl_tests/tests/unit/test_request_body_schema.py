@@ -1,4 +1,4 @@
-from tigrbl.types import App
+from tigrbl import TigrblApp
 
 from tigrbl.bindings.rest.router import _build_router
 from tigrbl.op import OpSpec
@@ -15,7 +15,7 @@ class Widget(Base, GUIDPk):
 def test_request_body_uses_schema_model():
     sp = OpSpec(alias="create", target="create")
     router = _build_router(Widget, [sp])
-    app = App()
+    app = TigrblApp()
     app.include_router(router)
     spec = app.openapi()
     path = f"/{Widget.__name__.lower()}"
@@ -45,7 +45,7 @@ def test_replace_request_body_excludes_pk():
 
     sp = OpSpec(alias="replace", target="replace")
     router = _build_router(Gadget, [sp])
-    app = App()
+    app = TigrblApp()
     app.include_router(router)
     spec = app.openapi()
 

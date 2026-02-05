@@ -1,11 +1,11 @@
 import pytest
-from tigrbl.types import App
+from tigrbl import TigrblApp
 from httpx import AsyncClient, ASGITransport
 
 
 @pytest.mark.asyncio
 async def test_favicon_endpoint_serves_default_icon():
-    app = App()
+    app = TigrblApp()
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"

@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 
 import pytest
-from tigrbl.types import App
+from tigrbl import TigrblApp
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import String, create_engine
 from sqlalchemy.orm import sessionmaker
@@ -116,7 +116,7 @@ def test_openapi_includes_path():
         )
 
     bind(Gadget)
-    app = App()
+    app = TigrblApp()
     app.include_router(Gadget.rest.router)
     schema = app.openapi()
     assert "/gadget" in schema["paths"]
@@ -163,7 +163,7 @@ async def test_rest_routes_bound():
 
     Gadget.__tigrbl_get_db__ = staticmethod(get_db)  # type: ignore[attr-defined]
     bind(Gadget)
-    app = App()
+    app = TigrblApp()
     app.include_router(Gadget.rest.router)
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"

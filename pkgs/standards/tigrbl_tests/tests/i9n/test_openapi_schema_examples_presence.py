@@ -3,7 +3,7 @@ from tigrbl import TigrblApp, Base
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import F, S, acol
-from tigrbl.types import App, Mapped, String
+from tigrbl.types import Mapped, String
 from httpx import ASGITransport, AsyncClient
 
 
@@ -31,7 +31,7 @@ def _resolve_schema(spec, schema):
 @pytest.mark.asyncio
 @pytest.mark.i9n
 async def test_openapi_examples_and_schemas_present(db_mode):
-    fastapi_app = App()
+    fastapi_app = TigrblApp()
     engine = mem() if db_mode == "async" else mem(async_=False)
     api = TigrblApp(engine=engine)
     api.include_model(Widget)

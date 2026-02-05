@@ -14,7 +14,8 @@ from tigrbl.bindings import build_schemas, build_hooks, build_handlers, build_re
 # REST test client
 from httpx import ASGITransport, Client
 
-from tigrbl.types import App, BaseModel
+from tigrbl import TigrblApp
+from tigrbl.types import BaseModel
 
 
 @alias_ctx(read=alias("get", response_schema="Search.out"))
@@ -93,7 +94,7 @@ def test_schema_ctx_seed_and_alias_ctx_override():
 def test_rest_serialization_with_and_without_out_schema():
     _build_all(Widget)
 
-    app = App()
+    app = TigrblApp()
     # Router was attached by build_rest
     app.include_router(Widget.rest.router)
     transport = ASGITransport(app=app)

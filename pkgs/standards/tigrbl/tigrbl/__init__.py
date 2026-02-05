@@ -80,12 +80,11 @@ from .api import Api, TigrblApi
 
 from .table import Base
 from .op import Op
-from .app._app import App
 
 
 __all__: list[str] = []
 
-__all__ += ["TigrblApp", "TigrblApi", "Api", "Base", "App", "Op"]
+__all__ += ["TigrblApp", "TigrblApi", "Api", "Base", "Op"]
 
 __all__ += [
     # OpSpec core

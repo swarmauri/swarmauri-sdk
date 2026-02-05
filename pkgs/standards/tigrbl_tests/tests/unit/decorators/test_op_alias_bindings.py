@@ -1,4 +1,4 @@
-from tigrbl import App, op_alias
+from tigrbl import op_alias, TigrblApp
 
 
 def _latest_spec(obj):
@@ -29,7 +29,7 @@ def test_op_alias_external_binding_on_model_class():
 
 
 def test_op_alias_binding_on_app_class_stores_spec_for_reference():
-    class ExampleApp(App):
+    class ExampleApp(TigrblApp):
         pass
 
     op_alias(alias="diagnostics", target="custom")(ExampleApp)

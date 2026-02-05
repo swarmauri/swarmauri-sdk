@@ -5,7 +5,7 @@ from typing import Iterable, Sequence
 from tigrbl import Base, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.specs import F, IO, S, acol, vcol
-from tigrbl.types import App, Integer, String
+from tigrbl.types import Integer, String
 
 
 def make_widget_model(
@@ -51,8 +51,8 @@ async def build_widget_app(
     *,
     jsonrpc: bool = True,
     diagnostics_prefixes: Iterable[str] = ("", "/systemz"),
-) -> tuple[App, TigrblApp]:
-    app = App()
+) -> tuple[TigrblApp, TigrblApp]:
+    app = TigrblApp()
     api = TigrblApp(engine=mem(async_=False))
     api.include_model(model, prefix="")
     await api.initialize()

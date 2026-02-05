@@ -14,7 +14,7 @@ from tigrbl.bindings import (
     register_rpc,
     include_model,
 )
-from tigrbl.types import App as FastApp
+from tigrbl import TigrblApp as FastApp
 from tigrbl.types import Integer, Mapped, mapped_column
 from tigrbl.table import Table
 from tigrbl.api._api import Api

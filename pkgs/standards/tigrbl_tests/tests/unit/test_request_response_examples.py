@@ -3,7 +3,8 @@ from tigrbl.op import OpSpec
 from tigrbl.orm.tables import Base
 from tigrbl.orm.mixins import GUIDPk, BulkCapable, Mergeable
 from tigrbl.specs import F, S, acol
-from tigrbl.types import App, Mapped, String
+from tigrbl import TigrblApp
+from tigrbl.types import Mapped, String
 
 
 class Widget(Base, GUIDPk, Mergeable):
@@ -27,7 +28,7 @@ def _openapi_for(model, ops):
         arity = "member" if t in member_ops else "collection"
         specs.append(OpSpec(alias=a, target=t, arity=arity))
     router = _build_router(model, specs)
-    app = App()
+    app = TigrblApp()
     app.include_router(router)
     return app.openapi()
 

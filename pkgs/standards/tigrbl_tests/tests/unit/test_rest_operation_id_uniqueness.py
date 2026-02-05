@@ -1,4 +1,4 @@
-from tigrbl.deps.stdapi import FastAPI
+from tigrbl.deps.stdapi import APIRouter
 
 from tigrbl.bindings.rest.router import _build_router
 from tigrbl.op import OpSpec
@@ -29,7 +29,7 @@ def test_operation_ids_are_unique():
             OpSpec(alias="dup", target="custom", arity="member"),
         ],
     )
-    app = FastAPI()
+    app = APIRouter()
     app.include_router(router)
     schema = app.openapi()
     operation_ids = _collect_operation_ids(schema)

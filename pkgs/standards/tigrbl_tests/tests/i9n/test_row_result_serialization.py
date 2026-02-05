@@ -1,6 +1,5 @@
 import pytest
 import pytest_asyncio
-from tigrbl.types import App
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Integer, String, select
 from sqlalchemy.orm import Mapped
@@ -57,7 +56,7 @@ async def client():
     crud.read = row_read  # type: ignore
     crud.list = row_list  # type: ignore
 
-    app = App()
+    app = Tigrblv3()
     app.include_router(api.router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")

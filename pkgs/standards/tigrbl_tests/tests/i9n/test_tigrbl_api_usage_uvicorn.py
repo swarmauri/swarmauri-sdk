@@ -11,7 +11,8 @@ from tigrbl.deps.stdapi import (
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import F, IO, S, acol
-from tigrbl.types import App, Mapped, String
+from tigrbl import TigrblApp
+from tigrbl.types import Mapped, String
 
 from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server
 
@@ -53,7 +54,7 @@ class Beta(Base, GUIDPk):
 
 @pytest_asyncio.fixture()
 async def running_api():
-    app = App()
+    app = TigrblApp()
     api = TigrblApi(engine=mem(async_=False))
     api.set_auth(authn=auth_dependency, allow_anon=False)
     api.include_models([Alpha, Beta])

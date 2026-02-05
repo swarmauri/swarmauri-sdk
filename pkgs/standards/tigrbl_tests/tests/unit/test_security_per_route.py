@@ -1,5 +1,5 @@
 from tigrbl import TigrblApp
-from tigrbl.deps.stdapi import FastAPI, HTTPBearer, Security
+from tigrbl.deps.stdapi import APIRouter, HTTPBearer, Security
 from tigrbl.op import OpSpec
 from tigrbl.orm.tables import Base
 from tigrbl.orm.mixins import GUIDPk
@@ -17,7 +17,7 @@ def test_security_applied_per_route():
         Widget,
         [OpSpec(alias="list", target="list"), OpSpec(alias="read", target="read")],
     )
-    app = FastAPI()
+    app = APIRouter()
     app.include_router(router)
     schema = app.openapi()
     paths = {route.name: route.path_template for route in router.routes}
@@ -35,7 +35,7 @@ def test_set_auth_after_include_model_applies_security():
     api = TigrblApp()
     api.include_model(Gadget)
     api.set_auth(authn=lambda cred=Security(HTTPBearer()): cred, allow_anon=False)
-    app = FastAPI()
+    app = APIRouter()
     app.include_router(api.router)
     spec = app.openapi()
     post_sec = spec["paths"]["/gadget"]["post"].get("security")

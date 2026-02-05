@@ -7,7 +7,7 @@ from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 from tigrbl import Base, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.types import App, Column, String
+from tigrbl.types import Column, String
 
 
 @pytest.mark.asyncio
@@ -27,7 +27,7 @@ async def test_kernelz_returns_operation_plan():
         await init_result
     api.mount_jsonrpc(prefix="/rpc")
 
-    app = App()
+    app = TigrblApp()
     app.include_router(api.router)
     api.attach_diagnostics(prefix="", app=app)
 

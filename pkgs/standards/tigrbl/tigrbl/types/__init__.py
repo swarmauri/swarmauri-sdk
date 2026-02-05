@@ -54,7 +54,6 @@ from ..deps.pydantic import (
 
 from ..deps.stdapi import (
     APIRouter,
-    App,
     Body,
     Depends,
     HTTPException,
@@ -162,7 +161,6 @@ __all__: list[str] = [
     "Response",
     "APIRouter",
     "Router",
-    "App",
     "Security",
     "Depends",
     "Path",

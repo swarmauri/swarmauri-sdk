@@ -14,7 +14,6 @@ from tigrbl import Base, TigrblApi, TigrblApp, engine_ctx, op_ctx
 from tigrbl.engine import resolver
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.types import App
 
 from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server
 
@@ -116,7 +115,7 @@ async def test_tigrblapi_multi_table_engine_binding_uvicorn() -> None:
     api.mount_jsonrpc()
     api.initialize()
 
-    app = App()
+    app = TigrblApp()
     app.include_router(api.router, prefix="/api")
 
     # Step 2: Assert resolver bindings (api vs table overrides).
