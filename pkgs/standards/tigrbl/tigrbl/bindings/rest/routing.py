@@ -6,7 +6,7 @@ from types import SimpleNamespace
 from typing import Any, Dict, Optional, Sequence, Tuple
 
 
-from fastapi.security import HTTPBearer
+from ...deps.stdapi import HTTPBearer
 from .fastapi import Depends, HTTPException, Request, Security, _status
 from ...op import OpSpec
 from ...op.types import CANON
@@ -51,7 +51,7 @@ def _requires_auth_header(auth_dep: Any) -> bool:
 
 
 def _require_auth_header(request: Request) -> None:
-    if not request.headers.get("Authorization"):
+    if not request.headers.get("authorization"):
         raise HTTPException(status_code=_status.HTTP_403_FORBIDDEN, detail="Forbidden")
 
 

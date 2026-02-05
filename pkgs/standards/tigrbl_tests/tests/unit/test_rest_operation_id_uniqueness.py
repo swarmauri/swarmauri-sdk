@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from tigrbl.deps.stdapi import FastAPI
 
 from tigrbl.bindings.rest.router import _build_router
 from tigrbl.op import OpSpec

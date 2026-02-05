@@ -18,8 +18,7 @@ try:
         Path,
         Security,
     )
-    from fastapi import Query
-    from fastapi import status as _status
+    from ...deps.stdapi import Query, status as _status
 except Exception:  # pragma: no cover
 
     class Router:  # type: ignore

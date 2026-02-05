@@ -52,17 +52,18 @@ from ..deps.pydantic import (
     ValidationError,
 )
 
-from ..deps.fastapi import (
+from ..deps.stdapi import (
     APIRouter,
+    App,
+    Body,
+    Depends,
+    HTTPException,
+    Path,
+    Request,
+    Response,
     Router,
     Security,
-    Depends,
-    Path,
-    Body,
-    HTTPException,
-    App,
 )
-from ..deps.starlette import Request, Response
 
 # ── Local Package ─────────────────────────────────────────────────────────
 from .op import _Op, _SchemaVerb

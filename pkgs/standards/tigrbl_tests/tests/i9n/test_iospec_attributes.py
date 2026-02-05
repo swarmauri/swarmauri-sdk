@@ -1,6 +1,7 @@
 import pytest
+from httpx import ASGITransport, Client
+
 from tigrbl.types import App, SimpleNamespace
-from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Mapped, sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -213,11 +214,11 @@ def test_rest_call_respects_aliases():
     api = TigrblApp(engine=eng)
     api.include_model(Thing)
     Base.metadata.create_all(eng.raw()[0])
-    client = TestClient(api)
-
-    resp = client.post("/thing", json={"name": "Ada"})
-    data = resp.json()
-    assert data["name"] == "Ada"
+    transport = ASGITransport(app=api)
+    with Client(transport=transport, base_url="http://test") as client:
+        resp = client.post("/thing", json={"name": "Ada"})
+        data = resp.json()
+        assert data["name"] == "Ada"
 
 
 @pytest.mark.i9n

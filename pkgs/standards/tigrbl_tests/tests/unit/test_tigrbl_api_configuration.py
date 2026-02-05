@@ -1,8 +1,11 @@
 import pytest
-from fastapi import Security
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from tigrbl import TigrblApi
+from tigrbl.deps.stdapi import (
+    HTTPAuthorizationCredentials,
+    HTTPBearer,
+    Security,
+)
 from tigrbl.engine.shortcuts import mem
 
 

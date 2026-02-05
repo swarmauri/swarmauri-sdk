@@ -5,9 +5,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Prefer FastAPI HTTPException/status; fall back to Starlette; finally a tiny shim.
-try:  # FastAPI present
-    from fastapi import HTTPException, status
+# Prefer stdlib API HTTPException/status; fall back to Starlette; finally a tiny shim.
+try:
+    from ...deps.stdapi import HTTPException, status
 except Exception:  # pragma: no cover
     try:  # Starlette present
         from starlette.exceptions import HTTPException  # type: ignore

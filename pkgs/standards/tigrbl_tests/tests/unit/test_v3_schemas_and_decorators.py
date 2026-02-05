@@ -12,8 +12,9 @@ from tigrbl.op.mro_collect import mro_collect_decorated_ops
 from tigrbl.bindings import build_schemas, build_hooks, build_handlers, build_rest
 
 # REST test client
+from httpx import ASGITransport, Client
+
 from tigrbl.types import App, BaseModel
-from fastapi.testclient import TestClient
 
 
 @alias_ctx(read=alias("get", response_schema="Search.out"))
@@ -95,20 +96,20 @@ def test_rest_serialization_with_and_without_out_schema():
     app = App()
     # Router was attached by build_rest
     app.include_router(Widget.rest.router)
-    client = TestClient(app)
+    transport = ASGITransport(app=app)
+    with Client(transport=transport, base_url="http://test") as client:
+        # custom op "search" (collection + custom path): /widget/search
+        # request_schema is applied; response_schema enforces typing (id coerced to int)
+        r1 = client.post("/widget/search", json={"q": "abc"})
+        assert r1.status_code == 200
+        assert r1.json() == {"id": 7, "name": "abc"}  # id coerced by out schema
 
-    # custom op "search" (collection + custom path): /widget/search
-    # request_schema is applied; response_schema enforces typing (id coerced to int)
-    r1 = client.post("/widget/search", json={"q": "abc"})
-    assert r1.status_code == 200
-    assert r1.json() == {"id": 7, "name": "abc"}  # id coerced by out schema
+        # confirm request schema coercion: q=int → str
+        r2 = client.post("/widget/search", json={"q": 123})
+        # Invalid type for ``q`` now triggers a 422 validation error
+        assert r2.status_code == 422
 
-    # confirm request schema coercion: q=int → str
-    r2 = client.post("/widget/search", json={"q": 123})
-    # Invalid type for ``q`` now triggers a 422 validation error
-    assert r2.status_code == 422
-
-    # custom op "ping" uses response_schema="raw" → no serialization/coercion
-    r3 = client.post("/widget/ping", json={})
-    assert r3.status_code == 200
-    assert r3.json() == {"id": "5", "name": "x"}  # stays raw (no coercion)
+        # custom op "ping" uses response_schema="raw" → no serialization/coercion
+        r3 = client.post("/widget/ping", json={})
+        assert r3.status_code == 200
+        assert r3.json() == {"id": "5", "name": "x"}  # stays raw (no coercion)

@@ -5,8 +5,9 @@ Tests all hook phases and their behavior across CRUD, nested CRUD, and RPC opera
 """
 
 import pytest
-from fastapi import FastAPI
-from tigrbl import TigrblApp, Base
+
+from tigrbl import Base, TigrblApp
+from tigrbl.deps.stdapi import FastAPI
 from tigrbl.hook import hook_ctx
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk

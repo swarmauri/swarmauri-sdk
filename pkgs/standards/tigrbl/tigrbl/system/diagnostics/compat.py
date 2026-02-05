@@ -4,8 +4,8 @@ from typing import Any, Callable, Sequence
 from types import SimpleNamespace
 
 try:
-    from ...types import Router, Request, Depends
-    from fastapi.responses import JSONResponse
+    from ...deps.stdapi import JSONResponse
+    from ...types import Depends, Request, Router
 except Exception:  # pragma: no cover
 
     class Router:  # type: ignore

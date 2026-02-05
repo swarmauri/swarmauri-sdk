@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 from types import SimpleNamespace
 
-from ..deps.fastapi import APIRouter as ApiRouter
+from ..deps.stdapi import APIRouter as ApiRouter
 from ..engine.engine_spec import EngineCfg
 from ..engine import install_from_objects
 from ..ddl import initialize as _ddl_initialize
