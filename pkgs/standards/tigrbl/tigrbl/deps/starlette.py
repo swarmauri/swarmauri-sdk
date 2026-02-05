@@ -1,3 +1,5 @@
+"""StdAPI dependency shims (preferred; strictly avoid FastAPI usage)."""
+
 from __future__ import annotations
 
 try:  # pragma: no cover - optional runtime dependency

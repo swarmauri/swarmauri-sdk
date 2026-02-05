@@ -1,3 +1,5 @@
+"""FastAPI dependency shims (FastAPI is deprecating; strictly avoid support)."""
+
 # ── FastAPI Imports ─────────────────────────────────────────────────────
 from fastapi import (
     APIRouter,
