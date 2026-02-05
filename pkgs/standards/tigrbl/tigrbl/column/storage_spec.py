@@ -30,6 +30,11 @@ class ForeignKeySpec:
 
 
 @dataclass(frozen=True)
+class ForeignKey(ForeignKeySpec):
+    """Concrete foreign key configuration used at runtime."""
+
+
+@dataclass(frozen=True)
 class StorageSpec:
     """Describe the database-level shape and behaviour of a column.
 
@@ -63,3 +68,11 @@ class StorageSpec:
     fk: ForeignKeySpec | None = None
     check: str | None = None
     comment: str | None = None
+
+
+__all__ = [
+    "StorageTransform",
+    "ForeignKeySpec",
+    "ForeignKey",
+    "StorageSpec",
+]
