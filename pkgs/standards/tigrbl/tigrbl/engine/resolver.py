@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import asyncio
 import inspect
+import hashlib
+import json
 import logging
 import threading
 from typing import Any, Callable, Optional
@@ -18,6 +20,62 @@ _DEFAULT: Optional[Provider] = None
 _API: dict[int, Provider] = {}
 _TAB: dict[Any, Provider] = {}
 _OP: dict[tuple[Any, str], Provider] = {}
+_PROV_BY_KEY: dict[tuple, Provider] = {}
+_SECRET_KEYS = {
+    "pwd",
+    "password",
+    "pass",
+    "secret",
+    "token",
+    "apikey",
+    "api_key",
+    "key",
+}
+
+
+def _stable_json(obj: object) -> str:
+    return json.dumps(obj, sort_keys=True, default=str, separators=(",", ":"))
+
+
+def _hash_secret(value: object) -> str:
+    encoded = str(value).encode("utf-8", "surrogatepass")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def _spec_key(spec: EngineSpec) -> tuple:
+    mapping = dict(spec.mapping or {})
+    norm: dict[str, object] = {}
+    for key, value in mapping.items():
+        if str(key).lower() in _SECRET_KEYS:
+            norm[key] = {"__sha256__": _hash_secret(value)}
+        else:
+            norm[key] = value
+    mapping_s = _stable_json(norm)
+    return (
+        spec.kind,
+        bool(spec.async_),
+        spec.dsn,
+        spec.path,
+        bool(spec.memory),
+        spec.user,
+        spec.host,
+        spec.port,
+        spec.name,
+        int(spec.pool_size or 0),
+        int(spec.max or 0),
+        mapping_s,
+    )
+
+
+def _intern_provider(spec: EngineSpec, *, provider: Provider | None = None) -> Provider:
+    key = _spec_key(spec)
+    with _LOCK:
+        existing = _PROV_BY_KEY.get(key)
+        if existing is not None:
+            return existing
+        new_provider = provider or spec.to_provider()
+        _PROV_BY_KEY[key] = new_provider
+        return new_provider
 
 
 def _with_class(obj: Any) -> list[Any]:
@@ -39,16 +97,16 @@ def _coerce(ctx: Optional[EngineCfg]) -> Optional[Provider]:
         return None
     if isinstance(ctx, Provider):
         logger.debug("_coerce: ctx is already a Provider")
-        return ctx
+        return _intern_provider(ctx.spec, provider=ctx)
     if isinstance(ctx, Engine):
         logger.debug("_coerce: ctx is an Engine; returning provider")
-        return ctx.provider
+        return _intern_provider(ctx.spec, provider=ctx.provider)
     if isinstance(ctx, EngineSpec):
         logger.debug("_coerce: ctx is an EngineSpec; converting to provider")
-        return ctx.to_provider()
+        return _intern_provider(ctx)
     spec = EngineSpec.from_any(ctx)
     logger.debug("_coerce: EngineSpec.from_any returned %r", spec)
-    return spec.to_provider() if spec else None
+    return _intern_provider(spec) if spec else None
 
 
 # ---- registration -----------------------------------------------------------
@@ -221,3 +279,75 @@ def acquire(
         logger.debug("_release: release complete for session %r", db)
 
     return db, _release
+
+
+def iter_providers() -> list[Provider]:
+    with _LOCK:
+        out: list[Provider] = []
+        if _DEFAULT is not None:
+            out.append(_DEFAULT)
+        out.extend(_API.values())
+        out.extend(_TAB.values())
+        out.extend(_OP.values())
+    seen: set[int] = set()
+    uniq: list[Provider] = []
+    for provider in out:
+        pid = id(provider)
+        if pid not in seen:
+            seen.add(pid)
+            uniq.append(provider)
+    return uniq
+
+
+def warmup(*, ensure: bool = True) -> None:
+    if not ensure:
+        return
+    for provider in iter_providers():
+        provider.ensure()
+
+
+def reset(*, dispose: bool = True) -> None:
+    """Reset resolver state; optionally dispose any built engines."""
+    global _DEFAULT
+    with _LOCK:
+        providers: list[Provider] = []
+        if _DEFAULT is not None:
+            providers.append(_DEFAULT)
+        providers.extend(_API.values())
+        providers.extend(_TAB.values())
+        providers.extend(_OP.values())
+        providers.extend(_PROV_BY_KEY.values())
+
+        seen: set[int] = set()
+        uniq: list[Provider] = []
+        for provider in providers:
+            pid = id(provider)
+            if pid not in seen:
+                seen.add(pid)
+                uniq.append(provider)
+
+        if dispose:
+            for provider in uniq:
+                try:
+                    engine = getattr(provider, "_engine", None)
+                    if engine is None:
+                        continue
+                    dispose_fn = getattr(engine, "dispose", None)
+                    if dispose_fn is None:
+                        continue
+                    result = dispose_fn()
+                    if inspect.isawaitable(result):
+                        try:
+                            loop = asyncio.get_running_loop()
+                        except RuntimeError:
+                            asyncio.run(result)
+                        else:
+                            loop.create_task(result)
+                except Exception:
+                    logger.debug("reset: error disposing engine", exc_info=True)
+
+        _DEFAULT = None
+        _API.clear()
+        _TAB.clear()
+        _OP.clear()
+        _PROV_BY_KEY.clear()
