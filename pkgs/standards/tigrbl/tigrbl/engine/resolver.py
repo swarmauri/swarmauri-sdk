@@ -51,6 +51,7 @@ def _spec_key(spec: EngineSpec) -> tuple:
         else:
             norm[key] = value
     mapping_s = _stable_json(norm)
+    pwd_hash = _hash_secret(spec.pwd) if spec.pwd is not None else None
     return (
         spec.kind,
         bool(spec.async_),
@@ -58,6 +59,7 @@ def _spec_key(spec: EngineSpec) -> tuple:
         spec.path,
         bool(spec.memory),
         spec.user,
+        pwd_hash,
         spec.host,
         spec.port,
         spec.name,
