@@ -23,6 +23,7 @@ def _reset_tigrbl_state() -> None:
     Base.metadata.clear()
     v3_builder._SchemaCache.clear()
     runtime_kernel._default_kernel = runtime_kernel.Kernel()
+    _resolver.reset(dispose=True)
 
 
 @pytest.fixture(scope="session")

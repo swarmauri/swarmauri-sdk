@@ -1,5 +1,5 @@
 from tigrbl.column import S
-from tigrbl.column.storage_spec import ForeignKeySpec, StorageTransform
+from tigrbl.column.storage_spec import ForeignKey, ForeignKeySpec, StorageTransform
 
 
 def test_storage_spec_defaults_and_fk():
@@ -9,6 +9,15 @@ def test_storage_spec_defaults_and_fk():
     assert spec.primary_key is True
     assert spec.fk is fk
     assert spec.nullable is None
+
+
+def test_foreign_key_impl_inherits_spec():
+    fk = ForeignKey(target="tenants.id", on_delete="CASCADE")
+    assert isinstance(fk, ForeignKeySpec)
+    assert fk.target == "tenants.id"
+    assert fk.on_delete == "CASCADE"
+    spec = S(type_=int, fk=fk)
+    assert spec.fk is fk
 
 
 def test_storage_spec_transform_settings():
