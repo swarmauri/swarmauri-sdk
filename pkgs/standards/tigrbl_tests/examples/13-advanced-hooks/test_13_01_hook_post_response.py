@@ -6,7 +6,7 @@ import pytest
 from tigrbl import Base, TigrblApp, hook_ctx
 from tigrbl.engine.shortcuts import mem
 from tigrbl.specs import F, IO, S, acol
-from tigrbl.types import App, Integer, Mapped, String
+from tigrbl.types import Integer, Mapped, String
 
 from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 
@@ -32,7 +32,7 @@ async def test_hook_modifies_response() -> None:
         async def add_flag(cls, ctx):
             ctx["response"].result["hooked"] = True
 
-    app = App()
+    app = TigrblApp()
     api = TigrblApp(engine=mem(async_=False))
     api.include_model(Item, prefix="")
     await api.initialize()

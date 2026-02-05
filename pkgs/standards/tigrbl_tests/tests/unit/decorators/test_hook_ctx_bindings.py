@@ -1,4 +1,4 @@
-from tigrbl import App, hook_ctx
+from tigrbl import hook_ctx, TigrblApp
 from tigrbl.config.constants import HOOK_DECLS_ATTR
 from tigrbl.hook._hook import Hook
 
@@ -29,7 +29,7 @@ def test_hook_ctx_external_binding_transfers_to_other_class():
         def before_change(cls, ctx):
             return None
 
-    class ExampleApp(App):
+    class ExampleApp(TigrblApp):
         TITLE = "Example"
         VERSION = "0.1.0"
         LIFESPAN = None

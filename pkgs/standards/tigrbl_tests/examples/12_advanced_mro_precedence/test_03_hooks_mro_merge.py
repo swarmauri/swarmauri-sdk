@@ -1,4 +1,4 @@
-from tigrbl import App
+from tigrbl import TigrblApp
 from tigrbl.app.shortcuts import defineAppSpec
 
 
@@ -14,7 +14,7 @@ def test_hook_sequence_merges_across_mro():
         pass
 
     # Deployment: instantiate the App with the composed hooks.
-    class ChildApp(ChildConfig, App):
+    class ChildApp(ChildConfig, TigrblApp):
         pass
 
     app = ChildApp()

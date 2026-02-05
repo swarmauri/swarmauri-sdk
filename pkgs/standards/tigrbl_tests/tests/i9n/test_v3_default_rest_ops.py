@@ -2,7 +2,7 @@ import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 
-from tigrbl.types import App, Integer, Mapped, String
+from tigrbl.types import Integer, Mapped, String
 
 from tigrbl import TigrblApp as Tigrblv3
 from tigrbl.engine.shortcuts import mem
@@ -40,7 +40,7 @@ async def client_and_model():
 
         __tigrbl_cols__ = {"id": id, "name": name, "age": age}
 
-    app = App()
+    app = Tigrblv3()
     # TigrblApp/Tigrbl dropped the ``get_db`` attribute in favor of using the
     # engine facade. Using an async SQLite engine in this test triggers a
     # ``MissingGreenlet`` error when SQLAlchemy performs I/O. Configure a

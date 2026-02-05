@@ -2,13 +2,12 @@ from types import SimpleNamespace
 
 import pytest
 import pytest_asyncio
-from tigrbl.types import App
+from tigrbl import TigrblApp
 from httpx import ASGITransport, AsyncClient
 from tigrbl.engine import resolver as _resolver
 from tigrbl.engine.shortcuts import mem
 from sqlalchemy.orm import sessionmaker
 
-from tigrbl import TigrblApp
 from tigrbl.orm.tables import Base
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import acol, F, IO, S
@@ -38,7 +37,7 @@ async def fs_app():
         )
 
     Base.metadata.create_all(engine)
-    app = App()
+    app = TigrblApp()
     api = TigrblApp(engine=cfg)
     api.include_model(FSItem)
     api.initialize()

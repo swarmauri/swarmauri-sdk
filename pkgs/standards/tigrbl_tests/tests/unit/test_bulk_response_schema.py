@@ -2,7 +2,8 @@ from tigrbl.bindings.rest.router import _build_router
 from tigrbl.op import OpSpec
 from tigrbl.orm.tables import Base
 from tigrbl.orm.mixins import GUIDPk, BulkCapable, Replaceable
-from tigrbl.types import Column, String, App
+from tigrbl import TigrblApp
+from tigrbl.types import Column, String
 
 
 class Widget(Base, GUIDPk, BulkCapable, Replaceable):
@@ -12,7 +13,7 @@ class Widget(Base, GUIDPk, BulkCapable, Replaceable):
 
 def _openapi_for(ops):
     router = _build_router(Widget, [OpSpec(alias=a, target=t) for a, t in ops])
-    app = App()
+    app = TigrblApp()
     app.include_router(router)
     return app.openapi()
 

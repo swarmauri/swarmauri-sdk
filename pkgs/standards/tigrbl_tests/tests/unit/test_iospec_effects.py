@@ -1,5 +1,5 @@
+from tigrbl import TigrblApp
 from tigrbl.types import (
-    App,
     Column,
     InstrumentedAttribute,
     Integer,
@@ -143,7 +143,7 @@ def test_iospec_in_verbs_reflected_in_openapi() -> None:
     sp_create = OpSpec(alias="create", target="create")
     sp_read = OpSpec(alias="read", target="read")
     router = _build_router(Widget, [sp_create, sp_read])
-    app = App()
+    app = TigrblApp()
     app.include_router(router)
     spec = app.openapi()
 

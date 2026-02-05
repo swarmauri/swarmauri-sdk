@@ -5,7 +5,8 @@ from tigrbl.bindings.rest.router import _build_router
 from tigrbl.op import OpSpec
 from tigrbl.orm.tables import Base
 from tigrbl.orm.mixins import GUIDPk, BulkCapable
-from tigrbl.types import App, Column, String
+from tigrbl import TigrblApp
+from tigrbl.types import Column, String
 
 
 @pytest.mark.asyncio()
@@ -17,7 +18,7 @@ async def test_openapi_client_create_request_schema_contains_object() -> None:
         name = Column(String, nullable=False)
 
     router = _build_router(Widget, [OpSpec(alias="create", target="create")])
-    app = App()
+    app = TigrblApp()
     app.include_router(router)
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
@@ -58,7 +59,7 @@ async def test_openapi_client_bulk_create_response_schema() -> None:
         name = Column(String, nullable=False)
 
     router = _build_router(Widget, [OpSpec(alias="bulk_create", target="bulk_create")])
-    app = App()
+    app = TigrblApp()
     app.include_router(router)
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
@@ -83,7 +84,7 @@ async def test_openapi_client_bulk_delete_response_schema() -> None:
         name = Column(String, nullable=False)
 
     router = _build_router(Widget, [OpSpec(alias="bulk_delete", target="bulk_delete")])
-    app = App()
+    app = TigrblApp()
     app.include_router(router)
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"

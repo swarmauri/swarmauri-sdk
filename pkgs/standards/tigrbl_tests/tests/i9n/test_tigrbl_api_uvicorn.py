@@ -6,7 +6,8 @@ from tigrbl import Base, TigrblApi
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import F, IO, S, acol
-from tigrbl.types import App, Mapped, String
+from tigrbl import TigrblApp
+from tigrbl.types import Mapped, String
 
 from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server
 
@@ -32,7 +33,7 @@ async def running_api_app():
     )
     await api.initialize()
 
-    app = App()
+    app = TigrblApp()
     app.include_router(api.router)
     api.attach_diagnostics(app=app)
 

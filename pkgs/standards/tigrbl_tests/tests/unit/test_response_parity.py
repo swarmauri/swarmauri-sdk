@@ -5,14 +5,14 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from tigrbl.bindings import rpc_call
-from tigrbl.types import App
+from tigrbl import TigrblApp
 from .response_utils import build_ping_model
 
 
 @pytest.mark.asyncio
 async def test_response_rest_rpc_parity():
     Widget = build_ping_model()
-    app = App()
+    app = TigrblApp()
     app.include_router(Widget.rest.router)
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"

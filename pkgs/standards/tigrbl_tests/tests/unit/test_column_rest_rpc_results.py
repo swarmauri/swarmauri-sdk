@@ -5,7 +5,8 @@ from tigrbl import TigrblApi, alias_ctx
 from tigrbl.column import F, IO, S, makeColumn, makeVirtualColumn
 from tigrbl.engine.shortcuts import engine as build_engine, mem
 from tigrbl.orm.tables import Base
-from tigrbl.types import App, Integer, Mapped, String
+from tigrbl import TigrblApp
+from tigrbl.types import Integer, Mapped, String
 
 
 # Helper to bootstrap API and test client for a model
@@ -17,7 +18,7 @@ def _setup_api(model):
     api.include_model(model)
     api.initialize()
 
-    app = App()
+    app = TigrblApp()
     app.include_router(api)
     transport = ASGITransport(app=app)
     client = Client(transport=transport, base_url="http://test")

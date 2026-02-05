@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from tigrbl import Api, App, op_ctx
+from tigrbl import Api, op_ctx, TigrblApp
 
 
 def test_op_ctx_internal_binding_returns_classmethod_with_decl():
@@ -40,7 +40,7 @@ def test_op_ctx_external_binding_to_multiple_table_classes():
 
 
 def test_op_ctx_binding_to_app_instance_uses_classmethod_descriptor():
-    class ExampleApp(App):
+    class ExampleApp(TigrblApp):
         TITLE = "Example"
         VERSION = "0.1.0"
         LIFESPAN = None

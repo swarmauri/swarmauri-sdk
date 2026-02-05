@@ -1,6 +1,5 @@
 import pytest
 import pytest_asyncio
-from tigrbl.types import App
 from httpx import ASGITransport, AsyncClient
 from pydantic import Field
 from sqlalchemy import Column, String
@@ -34,7 +33,7 @@ async def api_client_with_extras(db_mode):
         api.include_model(Widget)
         api.initialize()
 
-    app = App()
+    app = TigrblApp()
     app.include_router(api.router)
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")

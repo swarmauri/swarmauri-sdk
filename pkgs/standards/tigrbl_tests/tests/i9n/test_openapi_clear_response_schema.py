@@ -4,7 +4,7 @@ from httpx import ASGITransport, AsyncClient
 from tigrbl import TigrblApp
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base
-from tigrbl.types import App, Column, String
+from tigrbl.types import Column, String
 
 
 @pytest.mark.asyncio()
@@ -15,7 +15,7 @@ async def test_openapi_clear_response_schema() -> None:
         __tablename__ = "widgets_openapi_clear"
         name = Column(String, nullable=False)
 
-    app = App()
+    app = TigrblApp()
     api = TigrblApp()
     api.include_model(Widget)
     app.include_router(api.router)
