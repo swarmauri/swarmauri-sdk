@@ -11,6 +11,7 @@ from tigrbl.engine.shortcuts import (
 from tigrbl.engine.engine_spec import (
     EngineSpec,
 )  # :contentReference[oaicite:3]{index=3}
+from tigrbl.engine.resolver import _spec_key
 
 
 def test_engine_spec_builds_from_kwargs_sqlite_memory_async():
@@ -47,6 +48,14 @@ def test_engine_spec_repr_redacts_password():
     rep = repr(spec)
     assert "pwd" not in rep
     assert "***" in rep
+
+
+def test_spec_key_accounts_for_pwd_in_direct_spec():
+    base = dict(kind="postgres", user="app", host="db", name="app_db", port=5432)
+    spec_a = EngineSpec(**base, pwd="alpha")
+    spec_b = EngineSpec(**base, pwd="bravo")
+
+    assert _spec_key(spec_a) != _spec_key(spec_b)
 
 
 def test_engine_builds_from_dsn_postgres():
