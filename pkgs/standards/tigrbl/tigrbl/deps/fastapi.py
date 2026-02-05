@@ -1,3 +1,8 @@
+"""Deprecated FastAPI compatibility layer.
+
+FastAPI is deprecating here; strictly avoid adding or relying on FastAPI support.
+"""
+
 from __future__ import annotations
 
 import warnings
