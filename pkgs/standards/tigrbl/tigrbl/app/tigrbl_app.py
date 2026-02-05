@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 import copy
 import inspect
+from pathlib import Path
 from types import SimpleNamespace
 from typing import (
     Any,
@@ -77,6 +78,7 @@ class TigrblApp(_App):
         apis: Sequence[Any] | None = None,
         jsonrpc_prefix: str = "/rpc",
         system_prefix: str = "/system",
+        favicon_path: str | Path = FAVICON_PATH,
         api_hooks: Mapping[str, Iterable[Callable]]
         | Mapping[str, Mapping[str, Iterable[Callable]]]
         | None = None,
@@ -95,6 +97,7 @@ class TigrblApp(_App):
         self.router = self
         self._middlewares: list[tuple[Any, dict[str, Any]]] = []
         self.middlewares = tuple(getattr(self, "MIDDLEWARES", ()))
+        self._favicon_path = favicon_path
         for mw in self.middlewares:
             self.add_middleware(mw.__class__, **getattr(mw, "kwargs", {}))
         self._install_favicon()
@@ -129,7 +132,7 @@ class TigrblApp(_App):
 
     def _install_favicon(self) -> None:
         def favicon() -> FileResponse:
-            return FileResponse(str(FAVICON_PATH), media_type="image/svg+xml")
+            return FileResponse(str(self._favicon_path), media_type="image/svg+xml")
 
         self.add_api_route(
             "/favicon.ico",
