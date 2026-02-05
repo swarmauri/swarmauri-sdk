@@ -1,3 +1,8 @@
+"""Standard API primitives for Tigrbl.
+
+This module strictly does not use FastAPI.
+"""
+
 from __future__ import annotations
 
 import asyncio
