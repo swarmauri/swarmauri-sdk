@@ -56,7 +56,8 @@ def _client_for_owner(
     from tigrbl.engine.engine_spec import EngineSpec
     from tigrbl.engine._engine import Engine
 
-    engine = Engine(EngineSpec.from_any(mem(async_=False)))
+    cfg = {**mem(async_=False), "tag": str(uuid.uuid4())}
+    engine = Engine(EngineSpec.from_any(cfg))
     db_engine, _ = engine.raw()
     Base.metadata.create_all(bind=db_engine)
 
@@ -126,7 +127,8 @@ def _client_for_tenant(
     from tigrbl.engine.engine_spec import EngineSpec
     from tigrbl.engine._engine import Engine
 
-    engine = Engine(EngineSpec.from_any(mem(async_=False)))
+    cfg = {**mem(async_=False), "tag": str(uuid.uuid4())}
+    engine = Engine(EngineSpec.from_any(cfg))
     db_engine, _ = engine.raw()
     Base.metadata.create_all(bind=db_engine)
 
