@@ -9,6 +9,7 @@ from unittest.mock import patch
 import pytest
 
 from tigrbl_auth.errors import InvalidTokenError
+from tigrbl_auth.rfc import rfc8523
 from tigrbl_auth.rfc.rfc8523 import (
     RFC8523_SPEC_URL,
     validate_enhanced_jwt_bearer,
@@ -189,10 +190,31 @@ def test_validate_enhanced_jwt_bearer_disabled():
 
 @pytest.mark.unit
 def test_is_jwt_replay():
-    """RFC 8523: JWT replay detection placeholder."""
-    # This is a placeholder test for the replay detection function
-    result = is_jwt_replay("test-jti", int(time.time()), 300)
-    assert result is False  # Currently always returns False
+    """RFC 8523: JWT replay detection with in-memory cache."""
+    rfc8523._JTI_CACHE.clear()
+    iat = int(time.time())
+    assert is_jwt_replay("test-jti", iat, 300) is False
+    assert is_jwt_replay("test-jti", iat, 300) is True
+
+
+@pytest.mark.unit
+def test_validate_enhanced_jwt_bearer_replay_detected():
+    """RFC 8523: Replay protection rejects reused JTIs."""
+    rfc8523._JTI_CACHE.clear()
+    with patch.object(settings, "enable_rfc8523", True):
+        with patch.object(settings, "enable_rfc7523", True):
+            token = encode_jwt(
+                iss="client",
+                sub="client",
+                aud="token-endpoint",
+                exp=int(time.time()) + 300,
+                iat=int(time.time()),
+                jti="unique-jwt-id-456",
+                tid="tenant-1",
+            )
+            validate_enhanced_jwt_bearer(token, audience="token-endpoint")
+            with pytest.raises(InvalidTokenError, match="JWT replay detected"):
+                validate_enhanced_jwt_bearer(token, audience="token-endpoint")
 
 
 @pytest.mark.unit
