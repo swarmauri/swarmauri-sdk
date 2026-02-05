@@ -58,6 +58,7 @@ def _spec_key(spec: EngineSpec) -> tuple:
         spec.dsn,
         spec.path,
         bool(spec.memory),
+        spec.pool,
         spec.user,
         pwd_hash,
         spec.host,

@@ -4,7 +4,7 @@ import logging
 import os
 from sqlalchemy import create_engine, event
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.pool import StaticPool  # only for SQLite
+from sqlalchemy.pool import NullPool, StaticPool  # only for SQLite
 from sqlalchemy.orm import sessionmaker
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -15,7 +15,7 @@ logger = logging.getLogger("uvicorn")
 # ---------------------------------------------------------------------
 # 1. BLOCKING  •  SQLite
 # ---------------------------------------------------------------------
-def blocking_sqlite_engine(path: str | None = None):
+def blocking_sqlite_engine(path: str | None = None, *, pool: str | None = None):
     """
     Parameters
     ----------
@@ -39,7 +39,11 @@ def blocking_sqlite_engine(path: str | None = None):
             path,
         )
         url = f"sqlite+pysqlite:///{path}"
+        poolclass = NullPool if pool == "null" else None
         kwargs = dict(echo=False, future=True)
+        if poolclass is not None:
+            kwargs["poolclass"] = poolclass
+            kwargs["connect_args"] = {"check_same_thread": False}
 
     eng = create_engine(url, **kwargs)
 
@@ -162,14 +166,15 @@ class HybridSession(AsyncSession):
 # ----------------------------------------------------------------------
 # 2. ASYNC  •  SQLite  (aiosqlite driver)
 # ----------------------------------------------------------------------
-def async_sqlite_engine(path: str | None = None):
+def async_sqlite_engine(path: str | None = None, *, pool: str | None = None):
     logger.debug("async_sqlite_engine called with path=%r", path)
     url = "sqlite+aiosqlite://" + (f"/{path}" if path else "")
     logger.debug("async_sqlite_engine: using url=%s", url)
+    poolclass = StaticPool if path is None or pool != "null" else NullPool
     eng = create_async_engine(
         url,
         connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
+        poolclass=poolclass,
         echo=False,
     )
 

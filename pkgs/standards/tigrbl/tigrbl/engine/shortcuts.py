@@ -39,6 +39,7 @@ def engine_spec(
                 path = kw.get("path")
                 mode = kw.get("mode")
                 memory_flag = kw.get("memory")
+                pool = kw.get("pool")
                 memory = (
                     (mode == "memory")
                     or (memory_flag is True)
@@ -52,6 +53,8 @@ def engine_spec(
                     if not path:
                         raise ValueError("sqlite file requires 'path'")
                     spec = {"kind": "sqlite", "async": async_, "path": path}
+                if pool:
+                    spec["pool"] = pool
 
             elif kind == "postgres":
                 async_ = bool(async_kw) if async_kw is not None else False
@@ -99,13 +102,20 @@ def engine(
 
 
 def sqlite_cfg(
-    path: Optional[str] = None, *, async_: bool = True, memory: Optional[bool] = None
+    path: Optional[str] = None,
+    *,
+    async_: bool = True,
+    memory: Optional[bool] = None,
+    pool: Optional[str] = None,
 ) -> EngineCfg:
-    return (
+    cfg = (
         {"kind": "sqlite", "async": async_, "mode": "memory"}
         if (memory or path is None)
         else {"kind": "sqlite", "async": async_, "path": path}
     )
+    if pool:
+        cfg["pool"] = pool
+    return cfg
 
 
 def pg_cfg(
@@ -137,9 +147,14 @@ def mem(async_: bool = True) -> EngineCfg:
     return {"kind": "sqlite", "async": async_, "mode": "memory"}
 
 
-def sqlitef(path: str, *, async_: bool = False) -> EngineCfg:
+def sqlitef(
+    path: str, *, async_: bool = False, pool: Optional[str] = None
+) -> EngineCfg:
     """SQLite file EngineCfg mapping."""
-    return {"kind": "sqlite", "async": async_, "path": path}
+    cfg = {"kind": "sqlite", "async": async_, "path": path}
+    if pool:
+        cfg["pool"] = pool
+    return cfg
 
 
 def pg(**kw: Any) -> EngineCfg:

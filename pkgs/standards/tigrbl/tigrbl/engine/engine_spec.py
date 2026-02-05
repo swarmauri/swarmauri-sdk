@@ -46,6 +46,7 @@ class EngineSpec:
     # sqlite
     path: Optional[str] = None  # file path (None → memory)
     memory: bool = False
+    pool: Optional[str] = None
 
     # postgres
     user: Optional[str] = None
@@ -163,6 +164,7 @@ class EngineSpec:
                 async_=async_,
                 path=path,
                 memory=memory,
+                pool=_get_str("pool"),
                 dsn=_get_str("dsn", "url"),
                 mapping=m,
             )
@@ -198,13 +200,13 @@ class EngineSpec:
         if self.kind == "sqlite":
             if self.memory:
                 if self.async_:
-                    return async_sqlite_engine(path=None)
-                return blocking_sqlite_engine(path=None)
+                    return async_sqlite_engine(path=None, pool=self.pool)
+                return blocking_sqlite_engine(path=None, pool=self.pool)
             if not self.path:
                 raise ValueError("sqlite file requires 'path'")
             if self.async_:
-                return async_sqlite_engine(path=self.path)
-            return blocking_sqlite_engine(path=self.path)
+                return async_sqlite_engine(path=self.path, pool=self.pool)
+            return blocking_sqlite_engine(path=self.path, pool=self.pool)
 
         if self.kind == "postgres":
             if self.dsn:
@@ -345,6 +347,7 @@ class EngineSpec:
             ("mapping", _redact_mapping(self.mapping)),
             ("path", self.path),
             ("memory", self.memory),
+            ("pool", self.pool),
             ("user", self.user),
             ("host", self.host),
             ("port", self.port),
