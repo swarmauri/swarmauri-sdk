@@ -55,10 +55,16 @@ except Exception:  # pragma: no cover
 
 try:
     # SQLAlchemy v1/v2 exception sets
-    from sqlalchemy.exc import IntegrityError, DBAPIError, OperationalError
+    from sqlalchemy.exc import (
+        IntegrityError,
+        DBAPIError,
+        OperationalError,
+        StatementError,
+    )
     from sqlalchemy.orm.exc import NoResultFound  # type: ignore
 except Exception:  # pragma: no cover
-    IntegrityError = DBAPIError = OperationalError = NoResultFound = None  # type: ignore
+    IntegrityError = DBAPIError = OperationalError = StatementError = None  # type: ignore
+    NoResultFound = None  # type: ignore
 
 
 # Detect asyncpg constraint errors without importing asyncpg (optional dep).
@@ -97,6 +103,28 @@ def _format_validation(err: Any) -> Any:
     except Exception:  # pragma: no cover
         pass
     return _limit(str(err))
+
+
+def _format_sqlalchemy_error_data(exc: BaseException) -> Optional[Dict[str, Any]]:
+    data: Dict[str, Any] = {}
+    statement = getattr(exc, "statement", None)
+    if statement:
+        data["statement"] = _limit(str(statement))
+    if hasattr(exc, "params"):
+        try:
+            params_repr = repr(getattr(exc, "params"))
+        except Exception:  # pragma: no cover
+            params_repr = "<unrepresentable params>"
+        data["params"] = _limit(params_repr)
+    orig = getattr(exc, "orig", None)
+    if orig:
+        data["orig"] = _limit(f"{type(orig).__name__}: {orig}")
+    return data or None
+
+
+def _looks_like_validation_error(message: str) -> bool:
+    lowered = message.lower()
+    return "not null constraint" in lowered or "check constraint" in lowered
 
 
 def _get_temp(ctx: Any) -> Mapping[str, Any]:
@@ -139,11 +167,14 @@ __all__ = [
     "IntegrityError",
     "DBAPIError",
     "OperationalError",
+    "StatementError",
     "NoResultFound",
     "_is_asyncpg_constraint_error",
     "_limit",
     "_stringify_exc",
     "_format_validation",
+    "_format_sqlalchemy_error_data",
+    "_looks_like_validation_error",
     "_get_temp",
     "_has_in_errors",
     "_read_in_errors",
