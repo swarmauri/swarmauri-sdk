@@ -21,7 +21,7 @@ from __future__ import annotations
 from .column_spec import ColumnSpec
 from ._column import Column
 from .field_spec import FieldSpec as F
-from .storage_spec import StorageSpec as S
+from .storage_spec import ForeignKey, ForeignKeySpec, StorageSpec as S, StorageTransform
 from .io_spec import IOSpec as IO
 
 # Ergonomic constructors
@@ -46,6 +46,9 @@ __all__ = [
     "F",
     "S",
     "IO",
+    "ForeignKey",
+    "ForeignKeySpec",
+    "StorageTransform",
     "makeColumn",
     "makeVirtualColumn",
     "acol",
