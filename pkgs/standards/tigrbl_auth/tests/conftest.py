@@ -62,7 +62,9 @@ async def test_db_engine() -> AsyncGenerator[Engine, None]:
     engine_resolver.register_api(surface_api, provider)
     engine_resolver.register_api(app, provider)
     setattr(surface_api, "_ddl_executed", False)
-    await surface_api.initialize()
+    temp_dir = Path(tempfile.mkdtemp())
+    authn_db = temp_dir / "authn.db"
+    await surface_api.initialize(sqlite_attachments={"authn": str(authn_db)})
     try:
         yield engine
     finally:
@@ -71,6 +73,7 @@ async def test_db_engine() -> AsyncGenerator[Engine, None]:
         engine_resolver.register_api(surface_api, original_surface)
         engine_resolver.register_api(app, original_app)
         setattr(surface_api, "_ddl_executed", False)
+        shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 @pytest_asyncio.fixture
