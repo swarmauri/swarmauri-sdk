@@ -9,6 +9,7 @@ See RFC 8523: https://www.rfc-editor.org/rfc/rfc8523
 
 from __future__ import annotations
 
+import threading
 import time
 import warnings
 from typing import Any, Dict, Iterable, Optional, Set, Union
@@ -19,6 +20,18 @@ from .rfc7523 import validate_client_jwt_bearer
 
 RFC8523_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8523"
 REQUIRED_CLAIMS: Set[str] = {"iss", "sub", "aud", "exp", "iat", "jti"}
+_JTI_CACHE: Dict[str, int] = {}
+_JTI_LOCK = threading.Lock()
+
+
+def _purge_expired_jtis(current_time: int, max_age_seconds: int) -> None:
+    expired = [
+        jti
+        for jti, seen_at in _JTI_CACHE.items()
+        if current_time - seen_at > max_age_seconds
+    ]
+    for jti in expired:
+        _JTI_CACHE.pop(jti, None)
 
 
 def validate_enhanced_jwt_bearer(
@@ -82,6 +95,8 @@ def validate_enhanced_jwt_bearer(
     jti = claims.get("jti")
     if not isinstance(jti, str) or not jti.strip():
         raise ValueError("'jti' claim must be a non-empty string")
+    if is_jwt_replay(jti, iat, max_age_seconds=max_age_seconds):
+        raise InvalidTokenError("JWT replay detected")
 
     return claims
 
@@ -152,8 +167,8 @@ def create_client_assertion_jwt(
 def is_jwt_replay(jti: str, iat: int, max_age_seconds: int = 300) -> bool:
     """Check if a JWT ID indicates a replay attack.
 
-    This is a placeholder implementation. In production, this should
-    check against a cache/database of recently used JTIs.
+    This uses an in-memory cache of recently seen JTIs. In production, this should
+    be backed by a shared cache or database to enforce replay protection.
 
     Args:
         jti: JWT ID claim value
@@ -163,8 +178,13 @@ def is_jwt_replay(jti: str, iat: int, max_age_seconds: int = 300) -> bool:
     Returns:
         True if the JWT appears to be a replay, False otherwise
     """
-    # TODO: Implement proper JTI tracking with cache/database
-    # For now, always return False (no replay detection)
+    current_time = int(time.time())
+    with _JTI_LOCK:
+        _purge_expired_jtis(current_time, max_age_seconds)
+        if jti in _JTI_CACHE:
+            return True
+        if current_time - iat <= max_age_seconds:
+            _JTI_CACHE[jti] = iat
     return False
 
 

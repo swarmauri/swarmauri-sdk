@@ -10,10 +10,13 @@ from .utils import (
     IntegrityError,
     DBAPIError,
     OperationalError,
+    StatementError,
     NoResultFound,
     _is_asyncpg_constraint_error,
     _stringify_exc,
     _format_validation,
+    _format_sqlalchemy_error_data,
+    _looks_like_validation_error,
 )
 from .exceptions import TigrblError
 from .mappings import (
@@ -122,6 +125,16 @@ def _classify_exception(
     if _is_asyncpg_constraint_error(exc):
         return status.HTTP_409_CONFLICT, _stringify_exc(exc), None
 
+    if (StatementError is not None) and isinstance(exc, StatementError):
+        msg = _stringify_exc(exc)
+        if _looks_like_validation_error(msg):
+            return status.HTTP_422_UNPROCESSABLE_ENTITY, msg, None
+        return (
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            msg,
+            _format_sqlalchemy_error_data(exc),
+        )
+
     if (IntegrityError is not None) and isinstance(exc, IntegrityError):
         msg = _stringify_exc(exc)
         lower_msg = msg.lower()
@@ -130,10 +143,21 @@ def _classify_exception(
         return status.HTTP_409_CONFLICT, msg, None
 
     if (OperationalError is not None) and isinstance(exc, OperationalError):
-        return status.HTTP_503_SERVICE_UNAVAILABLE, _stringify_exc(exc), None
+        return (
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            _stringify_exc(exc),
+            _format_sqlalchemy_error_data(exc),
+        )
 
     if (DBAPIError is not None) and isinstance(exc, DBAPIError):
-        return status.HTTP_500_INTERNAL_SERVER_ERROR, _stringify_exc(exc), None
+        msg = _stringify_exc(exc)
+        if _looks_like_validation_error(msg):
+            return status.HTTP_422_UNPROCESSABLE_ENTITY, msg, None
+        return (
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            msg,
+            _format_sqlalchemy_error_data(exc),
+        )
 
     # 5) Fallback
     return status.HTTP_500_INTERNAL_SERVER_ERROR, _stringify_exc(exc), None
