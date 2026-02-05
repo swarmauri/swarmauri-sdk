@@ -85,7 +85,8 @@ def _attach_sqlite_dbapi(dbapi_conn: Any, attachments: Mapping[str, str]) -> Non
 
 def sqlite_default_attach_map(engine: Engine, schemas: Iterable[str]) -> Dict[str, str]:
     """Return a deterministic SQLite ATTACH map for ``schemas``."""
-    db = getattr(getattr(engine, "url", None), "database", None) or ":memory:"
+    sync_engine = getattr(engine, "sync_engine", engine)
+    db = getattr(getattr(sync_engine, "url", None), "database", None) or ":memory:"
     if db == ":memory:" or str(db).startswith("file::memory:"):
         return {s: ":memory:" for s in schemas}
     p = Path(db)
@@ -94,9 +95,10 @@ def sqlite_default_attach_map(engine: Engine, schemas: Iterable[str]) -> Dict[st
 
 
 def register_sqlite_attach(engine: Engine, attachments: Mapping[str, str]) -> Any:
+    sync_engine = getattr(engine, "sync_engine", engine)
     if (
-        not hasattr(engine, "dialect")
-        or getattr(engine.dialect, "name", "") != "sqlite"
+        not hasattr(sync_engine, "dialect")
+        or getattr(sync_engine.dialect, "name", "") != "sqlite"
     ):
         return None
 
@@ -106,7 +108,7 @@ def register_sqlite_attach(engine: Engine, attachments: Mapping[str, str]) -> An
         except Exception:
             pass
 
-    event.listen(engine, "connect", _connect_listener)
+    event.listen(sync_engine, "connect", _connect_listener)
     return _connect_listener
 
 
@@ -171,9 +173,10 @@ def bootstrap_dbschema(
     listener = None
     if sqlite_attachments:
         listener = register_sqlite_attach(engine, sqlite_attachments)
-        if immediate and getattr(engine.dialect, "name", "") == "sqlite":
+        sync_engine = getattr(engine, "sync_engine", engine)
+        if immediate and getattr(sync_engine.dialect, "name", "") == "sqlite":
             try:
-                with engine.connect() as conn:
+                with sync_engine.connect() as conn:
                     dbapi = getattr(conn, "connection", None)
                     if dbapi is not None:
                         _attach_sqlite_dbapi(dbapi, sqlite_attachments)
