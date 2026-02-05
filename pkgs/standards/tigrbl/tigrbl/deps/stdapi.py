@@ -11,7 +11,7 @@ import traceback
 from dataclasses import dataclass, field
 from pathlib import Path as FilePath
 from types import SimpleNamespace
-from typing import Any, Callable, Iterable, Mapping
+from typing import Any, Callable, Iterable, Mapping, get_args, get_origin, Annotated
 from urllib.parse import parse_qs
 
 
@@ -667,45 +667,42 @@ class APIRouter:
         body_cache: Any | None = None
 
         for name, param in sig.parameters.items():
+            base_annotation, extras = _split_annotated(param.annotation)
+            dependency_marker = _annotation_marker(extras, _Dependency)
+            param_marker = _annotation_marker(extras, Param)
             if param.kind is inspect.Parameter.VAR_KEYWORD:
                 kwargs.update(req.path_params)
                 continue
             if name in req.path_params:
                 kwargs[name] = req.path_params[name]
                 continue
-            if param.annotation is Request or name == "request":
+            if base_annotation is Request or name == "request":
                 kwargs[name] = req
                 continue
             default = param.default
-            if isinstance(default, _Dependency):
-                kwargs[name] = await self._invoke_dependency(default.dependency, req)
+            if isinstance(default, _Dependency) or dependency_marker is not None:
+                dep = default.dependency if isinstance(default, _Dependency) else None
+                dep = dep or dependency_marker.dependency
+                kwargs[name] = await self._invoke_dependency(dep, req)
                 continue
-            if isinstance(default, Param):
-                alias = default.alias or name
-                if default.location == "query":
-                    if alias in req.query_params:
-                        kwargs[name] = req.query_params[alias]
-                        continue
-                if default.location == "header":
-                    if alias.lower() in req.headers:
-                        kwargs[name] = req.headers.get(alias.lower())
-                        continue
-                if default.location == "path":
-                    if alias in req.path_params:
-                        kwargs[name] = req.path_params[alias]
-                        continue
-                if default.location == "body":
-                    if body_cache is None:
-                        body_cache = req.json()
-                    kwargs[name] = body_cache
+            if isinstance(default, Param) or param_marker is not None:
+                marker = default if isinstance(default, Param) else param_marker
+                value, found = _extract_param_value(marker, req, name, body_cache)
+                if found:
+                    kwargs[name] = value
+                    if marker.location == "body":
+                        body_cache = value
                     continue
-                if body_cache is None:
-                    body_cache = req.json()
-                kwargs[name] = body_cache
+                if marker.required:
+                    raise HTTPException(
+                        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                        detail=f"Missing required parameter: {marker.alias or name}",
+                    )
+                kwargs[name] = marker.default
                 continue
             if default is inspect._empty:
                 if body_cache is None:
-                    body_cache = req.json()
+                    body_cache = _load_body(req)
                 if isinstance(body_cache, dict) and name in body_cache:
                     kwargs[name] = body_cache[name]
                     continue
@@ -717,8 +714,25 @@ class APIRouter:
         sig = inspect.signature(dep)
         kwargs: dict[str, Any] = {}
         for name, param in sig.parameters.items():
-            if param.annotation is Request or name == "request":
+            base_annotation, extras = _split_annotated(param.annotation)
+            param_marker = _annotation_marker(extras, Param)
+            if base_annotation is Request or name == "request":
                 kwargs[name] = req
+                continue
+            if isinstance(param.default, Param) or param_marker is not None:
+                marker = (
+                    param.default if isinstance(param.default, Param) else param_marker
+                )
+                value, found = _extract_param_value(marker, req, name, None)
+                if found:
+                    kwargs[name] = value
+                    continue
+                if marker.required:
+                    raise HTTPException(
+                        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                        detail=f"Missing required parameter: {marker.alias or name}",
+                    )
+                kwargs[name] = marker.default
                 continue
             if name in req.path_params:
                 kwargs[name] = req.path_params[name]
@@ -899,6 +913,7 @@ class APIRouter:
 
 __all__ = [
     "APIRouter",
+    "FastAPI",
     "Router",
     "Request",
     "Response",
@@ -920,6 +935,13 @@ __all__ = [
 
 
 Router = APIRouter
+
+
+class FastAPI(APIRouter):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        kwargs.setdefault("include_docs", True)
+        super().__init__(*args, **kwargs)
+
 
 FAVICON_PATH = FilePath(__file__).with_name("favicon.svg")
 
@@ -959,6 +981,56 @@ def _schema_from_model(model: Any) -> dict[str, Any]:
         item = model.__args__[0] if getattr(model, "__args__", None) else Any
         return {"type": "array", "items": _schema_from_model(item)}
     return {"type": "object"}
+
+
+def _split_annotated(annotation: Any) -> tuple[Any, tuple[Any, ...]]:
+    if get_origin(annotation) is Annotated:
+        args = get_args(annotation)
+        if args:
+            return args[0], tuple(args[1:])
+    return annotation, ()
+
+
+def _annotation_marker(extras: Iterable[Any], marker_type: type[Any]) -> Any | None:
+    for extra in extras:
+        if isinstance(extra, marker_type):
+            return extra
+    return None
+
+
+def _load_body(req: Request) -> Any:
+    try:
+        return req.json()
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Invalid JSON: {exc}",
+        ) from exc
+
+
+def _extract_param_value(
+    marker: Param, req: Request, param_name: str, body_cache: Any | None
+) -> tuple[Any, bool]:
+    alias = marker.alias or param_name
+    if marker.location == "query":
+        if alias in req.query_params:
+            return req.query_params[alias], True
+        return None, False
+    if marker.location == "header":
+        key = alias.lower()
+        if key in req.headers:
+            return req.headers.get(key), True
+        return None, False
+    if marker.location == "path":
+        if alias in req.path_params:
+            return req.path_params[alias], True
+        return None, False
+    if marker.location == "body":
+        value = body_cache if body_cache is not None else _load_body(req)
+        if value is None:
+            return None, False
+        return value, True
+    return None, False
 
 
 def _security_from_dependencies(deps: Iterable[Any]) -> list[dict[str, list[str]]]:
