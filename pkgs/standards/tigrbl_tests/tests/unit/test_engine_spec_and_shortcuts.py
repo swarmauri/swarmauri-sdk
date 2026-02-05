@@ -1,4 +1,6 @@
 # tests/test_engine_spec_and_shortcuts.py
+import json
+
 import pytest
 
 from tigrbl.engine.shortcuts import (
@@ -11,6 +13,7 @@ from tigrbl.engine.shortcuts import (
 from tigrbl.engine.engine_spec import (
     EngineSpec,
 )  # :contentReference[oaicite:3]{index=3}
+from tigrbl.engine.resolver import _SECRET_KEYS, _hash_secret, _spec_key
 
 
 def test_engine_spec_builds_from_kwargs_sqlite_memory_async():
@@ -47,6 +50,27 @@ def test_engine_spec_repr_redacts_password():
     rep = repr(spec)
     assert "pwd" not in rep
     assert "***" in rep
+
+
+def test_spec_key_accounts_for_pwd_in_direct_spec():
+    base = dict(kind="postgres", user="app", host="db", name="app_db", port=5432)
+    spec_a = EngineSpec(**base, pwd="alpha")
+    spec_b = EngineSpec(**base, pwd="bravo")
+
+    assert _spec_key(spec_a) != _spec_key(spec_b)
+
+
+@pytest.mark.parametrize("secret_key", sorted(_SECRET_KEYS))
+def test_spec_key_hashes_secret_mapping_values(secret_key: str):
+    mapping = {secret_key: "s3cret", "other": "value"}
+    spec = EngineSpec(kind="postgres", mapping=mapping)
+
+    key = _spec_key(spec)
+    mapping_s = key[-1]
+    normalized = json.loads(mapping_s)
+
+    assert normalized["other"] == "value"
+    assert normalized[secret_key] == {"__sha256__": _hash_secret("s3cret")}
 
 
 def test_engine_builds_from_dsn_postgres():
