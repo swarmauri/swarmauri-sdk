@@ -21,14 +21,12 @@ classifiers = [
     "Programming Language :: Python :: 3 :: Only",
 ]
 dependencies = [
-    "peagen",
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
 ]
 keywords = [
     "swarmauri",
-    "peagen",
     "sdk",
     "standards",
     "storage",
