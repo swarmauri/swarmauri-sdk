@@ -143,8 +143,13 @@ class TigrblApi(_Api):
         """
         # inject API-level hooks so the binder merges them
         self._merge_api_hooks_into_model(model, self._api_hooks_map)
+        effective_prefix = self.PREFIX if prefix is None else prefix
         return _include_model(
-            self, model, app=None, prefix=prefix, mount_router=mount_router
+            self,
+            model,
+            app=None,
+            prefix=effective_prefix,
+            mount_router=mount_router,
         )
 
     def include_models(
@@ -156,11 +161,12 @@ class TigrblApi(_Api):
     ) -> Dict[str, Any]:
         for m in models:
             self._merge_api_hooks_into_model(m, self._api_hooks_map)
+        effective_base_prefix = self.PREFIX if base_prefix is None else base_prefix
         return _include_models(
             self,
             models,
             app=None,
-            base_prefix=base_prefix,
+            base_prefix=effective_base_prefix,
             mount_router=mount_router,
         )
 
