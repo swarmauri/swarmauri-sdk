@@ -15,12 +15,12 @@ class HTTPException(Exception):
     def __init__(
         self,
         status_code: int,
-        detail: str = "",
+        detail: Any = "",
         headers: Mapping[str, str] | None = None,
     ) -> None:
         super().__init__(detail)
         self.status_code = int(status_code)
-        self.detail = str(detail)
+        self.detail = detail
         self.headers = dict(headers or {})
 
 
@@ -68,6 +68,17 @@ class Request:
         if not vals:
             return default
         return vals[0]
+
+    @property
+    def url(self) -> str:
+        base = (self.script_name or "").rstrip("/")
+        query_string = "&".join(
+            f"{name}={value}" for name, values in self.query.items() for value in values
+        )
+        path = f"{base}{self.path}" if base else self.path
+        if query_string:
+            return f"{path}?{query_string}"
+        return path
 
     @property
     def query_params(self) -> dict[str, str]:
