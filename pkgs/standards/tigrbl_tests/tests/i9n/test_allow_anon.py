@@ -1,5 +1,5 @@
 from httpx import ASGITransport, Client
-from tigrbl.deps.stdapi import HTTPAuthorizationCredentials, HTTPBearer
+from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
 from tigrbl.engine import resolver as _resolver
 from tigrbl.engine.shortcuts import mem
 from sqlalchemy.orm import sessionmaker
