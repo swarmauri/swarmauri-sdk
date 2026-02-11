@@ -32,6 +32,26 @@ def test_upload_download(adapter):
     assert out == b"hello"
 
 
+def test_put_get_blob(adapter):
+    uri = adapter.put_blob("blob.txt", b"payload")
+    assert uri.endswith("blob.txt")
+    assert adapter.get_blob("blob.txt") == b"payload"
+
+
+def test_push_pull(tmp_path):
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "nested.txt").write_bytes(b"hello")
+
+    adapter = MemoryStorageAdapter()
+    adapter.push(src, prefix="prefix")
+
+    dest = tmp_path / "dest"
+    adapter.pull("prefix", dest)
+
+    assert (dest / "nested.txt").read_bytes() == b"hello"
+
+
 def test_prefix_scoping():
     adapter = MemoryStorageAdapter(prefix="demo")
     adapter.upload("bar.txt", io.BytesIO(b"payload"))

@@ -43,6 +43,7 @@ class InterfaceRegistry:
         "swarmauri.tts": "swarmauri_base.tts.TTSBase",
         "swarmauri.ocrs": "swarmauri_base.ocrs.OCRBase",
         "swarmauri.stt": "swarmauri_base.stt.STTBase",
+        "swarmauri.storage_adapters": "swarmauri_base.storage.StorageAdapterBase",
         "swarmauri.vlms": "swarmauri_base.vlms.VLMBase",
         "swarmauri.measurements": "swarmauri_base.measurements.MeasurementBase",
         "swarmauri.messages": "swarmauri_base.messages.MessageBase",

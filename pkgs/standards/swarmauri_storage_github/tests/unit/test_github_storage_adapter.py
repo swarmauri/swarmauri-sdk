@@ -21,3 +21,9 @@ def test_upload_returns_uri():
     adapter = GithubStorageAdapter()
     uri = adapter.upload("foo.txt", io.BytesIO(b"hi"))
     assert uri == "github://foo.txt"
+
+
+def test_put_blob_returns_uri():
+    adapter = GithubStorageAdapter()
+    uri = adapter.put_blob("foo.txt", b"hi")
+    assert uri == "github://foo.txt"
