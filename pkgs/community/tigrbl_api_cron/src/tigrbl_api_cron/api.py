@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import os
+import tempfile
 from typing import Any
 
 from tigrbl import TigrblApp
-from tigrbl.engine.shortcuts import engine as build_engine, mem
+from tigrbl.engine.shortcuts import engine as build_engine
 
 from .tables import CronJob, CronJobResult
 
@@ -15,7 +17,12 @@ def build_app(
 ) -> TigrblApp:
     """Create a :class:`TigrblApp` with the cron job models registered."""
 
-    cfg = engine_cfg or mem(async_=async_mode)
+    if engine_cfg is None:
+        fd, path = tempfile.mkstemp(prefix="tigrbl_api_cron_", suffix=".db")
+        os.close(fd)
+        cfg = {"kind": "sqlite", "async": async_mode, "path": path}
+    else:
+        cfg = engine_cfg
     app = TigrblApp(engine=build_engine(cfg))
     app.include_models([CronJob, CronJobResult], base_prefix="/cron")
     app.attach_diagnostics(prefix="/system")
