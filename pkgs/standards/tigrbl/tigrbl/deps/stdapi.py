@@ -306,6 +306,66 @@ class Route:
     status_code: int | None = None
     dependencies: list[Any] | None = None
 
+    @property
+    def path(self) -> str:
+        """Starlette-compatible path attribute."""
+        return self.path_template
+
+    @property
+    def endpoint(self) -> Handler:
+        """Starlette-compatible endpoint attribute."""
+        return self.handler
+
+    @property
+    def dependant(self) -> Any:
+        """FastAPI-style dependency metadata shim for compatibility tests."""
+
+        def _param(name: str) -> SimpleNamespace:
+            return SimpleNamespace(name=name)
+
+        path_param_names = set(self.param_names)
+        path_params = [_param(name) for name in self.param_names]
+        query_params: list[SimpleNamespace] = []
+        dependencies: list[SimpleNamespace] = []
+
+        signature = inspect.signature(self.handler)
+        for param in signature.parameters.values():
+            if param.name in path_param_names:
+                continue
+
+            dep_callable = None
+            default = param.default
+            if isinstance(default, _Dependency):
+                dep_callable = default.dependency
+
+            annotation = param.annotation
+            if dep_callable is None and get_origin(annotation) is Annotated:
+                for meta in get_args(annotation)[1:]:
+                    if isinstance(meta, _Dependency):
+                        dep_callable = meta.dependency
+                        break
+
+            if dep_callable is not None:
+                dependencies.append(_param(param.name))
+                continue
+
+            if param.kind in {
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                inspect.Parameter.KEYWORD_ONLY,
+            }:
+                query_params.append(_param(param.name))
+
+        for dep in self.dependencies or []:
+            dep_fn = getattr(dep, "dependency", dep)
+            dep_name = getattr(dep_fn, "__name__", None) or "dependency"
+            dependencies.append(_param(dep_name))
+
+        return SimpleNamespace(
+            path_params=path_params,
+            query_params=query_params,
+            dependencies=dependencies,
+        )
+
 
 def _compile_path(path_template: str) -> tuple[re.Pattern[str], tuple[str, ...]]:
     if not path_template.startswith("/"):
