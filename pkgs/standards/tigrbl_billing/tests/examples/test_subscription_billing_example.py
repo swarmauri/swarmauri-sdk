@@ -1,8 +1,6 @@
 import datetime as dt
 
 import pytest
-from fastapi.routing import APIRoute
-
 from tigrbl_billing.examples.subscription_billing_app import (
     build_subscription_billing_app,
     run_subscription_billing_flow,
@@ -13,9 +11,7 @@ from tigrbl_billing.examples.subscription_billing_app import (
 @pytest.mark.example
 async def test_build_subscription_billing_app_registers_core_routes() -> None:
     app = build_subscription_billing_app(async_mode=True)
-    registered_paths = {
-        route.path for route in app.routes if isinstance(route, APIRoute)
-    }
+    registered_paths = {route.path for route in app.routes}
 
     expected_paths = {
         "/product",

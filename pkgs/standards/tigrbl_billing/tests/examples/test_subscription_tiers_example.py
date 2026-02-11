@@ -1,6 +1,4 @@
 import pytest
-from fastapi.routing import APIRoute
-
 from tigrbl_billing.examples.subscription_tiers_app import (
     build_subscription_tiers_app,
     run_subscription_tiers_flow,
@@ -11,9 +9,7 @@ from tigrbl_billing.examples.subscription_tiers_app import (
 @pytest.mark.example
 async def test_build_subscription_tiers_app_registers_routes():
     app = build_subscription_tiers_app(async_mode=True)
-    registered_paths = {
-        route.path for route in app.routes if isinstance(route, APIRoute)
-    }
+    registered_paths = {route.path for route in app.routes}
 
     expected_paths = {
         "/product",
