@@ -96,6 +96,15 @@ Json = Mapping[str, Any]
 Batch = Sequence[Mapping[str, Any]]
 
 
+def _request_obj_to_mapping(obj: RPCRequest | Mapping[str, Any]) -> Mapping[str, Any]:
+    """Convert endpoint payload objects to the mapping expected by dispatcher."""
+    if isinstance(obj, RPCRequest):
+        return obj.model_dump()
+    if isinstance(obj, Mapping):
+        return obj
+    raise HTTPException(status_code=400, detail="Invalid Request")
+
+
 async def _dispatch_one(
     *,
     api: Any,
@@ -226,14 +235,20 @@ def build_jsonrpc_router(
                 responses: List[Dict[str, Any]] = []
                 for item in body:
                     resp = await _dispatch_one(
-                        api=api, request=request, db=db, obj=item.model_dump()
+                        api=api,
+                        request=request,
+                        db=db,
+                        obj=_request_obj_to_mapping(item),
                     )
                     if resp is not None:
                         responses.append(resp)
                 return responses
             elif isinstance(body, RPCRequest):
                 resp = await _dispatch_one(
-                    api=api, request=request, db=db, obj=body.model_dump()
+                    api=api,
+                    request=request,
+                    db=db,
+                    obj=_request_obj_to_mapping(body),
                 )
                 if resp is None:
                     return Response(status_code=204)
@@ -252,14 +267,20 @@ def build_jsonrpc_router(
                 responses: List[Dict[str, Any]] = []
                 for item in body:
                     resp = await _dispatch_one(
-                        api=api, request=request, db=db, obj=item.model_dump()
+                        api=api,
+                        request=request,
+                        db=db,
+                        obj=_request_obj_to_mapping(item),
                     )
                     if resp is not None:
                         responses.append(resp)
                 return responses
             elif isinstance(body, RPCRequest):
                 resp = await _dispatch_one(
-                    api=api, request=request, db=db, obj=body.model_dump()
+                    api=api,
+                    request=request,
+                    db=db,
+                    obj=_request_obj_to_mapping(body),
                 )
                 if resp is None:
                     return Response(status_code=204)
@@ -285,14 +306,20 @@ def build_jsonrpc_router(
                 responses: List[Dict[str, Any]] = []
                 for item in body:
                     resp = await _dispatch_one(
-                        api=api, request=request, db=db, obj=item.model_dump()
+                        api=api,
+                        request=request,
+                        db=db,
+                        obj=_request_obj_to_mapping(item),
                     )
                     if resp is not None:
                         responses.append(resp)
                 return responses
             elif isinstance(body, RPCRequest):
                 resp = await _dispatch_one(
-                    api=api, request=request, db=db, obj=body.model_dump()
+                    api=api,
+                    request=request,
+                    db=db,
+                    obj=_request_obj_to_mapping(body),
                 )
                 if resp is None:
                     return Response(status_code=204)
@@ -310,14 +337,20 @@ def build_jsonrpc_router(
                 responses: List[Dict[str, Any]] = []
                 for item in body:
                     resp = await _dispatch_one(
-                        api=api, request=request, db=db, obj=item.model_dump()
+                        api=api,
+                        request=request,
+                        db=db,
+                        obj=_request_obj_to_mapping(item),
                     )
                     if resp is not None:
                         responses.append(resp)
                 return responses
             elif isinstance(body, RPCRequest):
                 resp = await _dispatch_one(
-                    api=api, request=request, db=db, obj=body.model_dump()
+                    api=api,
+                    request=request,
+                    db=db,
+                    obj=_request_obj_to_mapping(body),
                 )
                 if resp is None:
                     return Response(status_code=204)

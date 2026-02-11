@@ -114,9 +114,9 @@ class Response:
         status_code: int = 200,
         headers: Mapping[str, str] | None = None,
     ) -> "Response":
-        payload = json.dumps(data, ensure_ascii=False, separators=(",", ":")).encode(
-            "utf-8"
-        )
+        payload = json.dumps(
+            data, ensure_ascii=False, separators=(",", ":"), default=str
+        ).encode("utf-8")
         hdrs = [("content-type", "application/json; charset=utf-8")]
         for k, v in (headers or {}).items():
             hdrs.append((k.lower(), v))
@@ -151,9 +151,9 @@ class Response:
 
 class JSONResponse(Response):
     def __init__(self, content: Any, status_code: int = 200) -> None:
-        payload = json.dumps(content, ensure_ascii=False, separators=(",", ":")).encode(
-            "utf-8"
-        )
+        payload = json.dumps(
+            content, ensure_ascii=False, separators=(",", ":"), default=str
+        ).encode("utf-8")
         super().__init__(
             status_code=status_code,
             headers=[("content-type", "application/json; charset=utf-8")],
@@ -633,6 +633,8 @@ class APIRouter:
         )
 
     async def _call_handler(self, route: Route, req: Request) -> Response:
+        dependency_cleanups: list[Callable[[], Any]] = []
+        setattr(req.state, "_dependency_cleanups", dependency_cleanups)
         try:
             kwargs = await self._resolve_handler_kwargs(route, req)
             out = route.handler(**kwargs)
@@ -644,6 +646,14 @@ class APIRouter:
                 status_code=he.status_code,
                 headers=he.headers,
             )
+        finally:
+            for cleanup in reversed(dependency_cleanups):
+                try:
+                    result = cleanup()
+                    if inspect.isawaitable(result):
+                        await result
+                except Exception:
+                    pass
 
         if isinstance(out, Response):
             return out
@@ -749,6 +759,28 @@ class APIRouter:
                 continue
             kwargs[name] = param.default
         out = dep(**kwargs)
+        if inspect.isgenerator(out):
+            try:
+                value = next(out)
+            except StopIteration:
+                return None
+
+            cleanups = getattr(req.state, "_dependency_cleanups", None)
+            if isinstance(cleanups, list):
+                cleanups.append(out.close)
+            return value
+
+        if inspect.isasyncgen(out):
+            try:
+                value = await anext(out)
+            except StopAsyncIteration:
+                return None
+
+            cleanups = getattr(req.state, "_dependency_cleanups", None)
+            if isinstance(cleanups, list):
+                cleanups.append(out.aclose)
+            return value
+
         if inspect.isawaitable(out):
             out = await out
         return out
