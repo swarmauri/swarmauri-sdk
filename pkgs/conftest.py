@@ -4,11 +4,12 @@ from importlib import util as importlib_util
 from pathlib import Path
 
 import pytest
-from tigrbl import Base
 
 
 def _should_load_griffe_plugin() -> bool:
-    plugin_root = (Path(__file__).resolve().parent / "community" / "swarmauri_tests_griffe").resolve()
+    plugin_root = (
+        Path(__file__).resolve().parent / "community" / "swarmauri_tests_griffe"
+    ).resolve()
     try:
         cwd = Path.cwd().resolve()
     except FileNotFoundError:
@@ -54,12 +55,3 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(skip_infra)
         if "smoke" in item.keywords:
             item.add_marker(skip_smoke)
-
-
-@pytest.fixture(autouse=True)
-def reset_tigrbl_base_registry():
-    Base.metadata.clear()
-    Base.registry._class_registry.clear()
-    yield
-    Base.metadata.clear()
-    Base.registry._class_registry.clear()
