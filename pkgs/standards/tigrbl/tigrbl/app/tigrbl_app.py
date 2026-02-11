@@ -36,7 +36,7 @@ from ..transport import mount_jsonrpc as _mount_jsonrpc
 from ..system import mount_diagnostics as _mount_diagnostics
 from ..op import get_registry, OpSpec
 from ._model_registry import initialize_model_registry
-from ..deps.stdapi import FileResponse, FAVICON_PATH
+from ..system.favicon import FAVICON_PATH, mount_favicon
 
 
 # optional compat: legacy transactional decorator
@@ -139,16 +139,7 @@ class TigrblApp(_App):
         self._middlewares.append((middleware_class, options))
 
     def _install_favicon(self) -> None:
-        def favicon() -> FileResponse:
-            return FileResponse(str(self._favicon_path), media_type="image/svg+xml")
-
-        self.add_api_route(
-            "/favicon.ico",
-            favicon,
-            methods=["GET"],
-            name="__favicon__",
-            include_in_schema=False,
-        )
+        mount_favicon(self, favicon_path=self._favicon_path)
 
     # ------------------------- internal helpers -------------------------
 
