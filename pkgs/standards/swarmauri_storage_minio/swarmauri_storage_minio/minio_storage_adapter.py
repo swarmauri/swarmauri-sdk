@@ -114,22 +114,36 @@ class MinioStorageAdapter(StorageAdapterBase):
     # ------------------------------------------------------------------
     def iter_prefix(self, prefix: str):
         """Yield keys under ``prefix`` relative to the run root."""
+        normalized_prefix = prefix.strip("/")
+        full_prefix = self._full_key(normalized_prefix)
+        prefix_root = normalized_prefix.rstrip("/")
         for obj in self._client.list_objects(
-            self._bucket, prefix=prefix, recursive=True
+            self._bucket, prefix=full_prefix, recursive=True
         ):
             key = obj.object_name
             if self._prefix and key.startswith(self._prefix.rstrip("/") + "/"):
                 key = key[len(self._prefix.rstrip("/")) + 1 :]
+            if prefix_root:
+                if key == prefix_root:
+                    key = ""
+                elif key.startswith(prefix_root + "/"):
+                    key = key[len(prefix_root) + 1 :]
             yield key
 
     # ------------------------------------------------------------------
     def download_dir(self, prefix: str, dest_dir: str | os.PathLike) -> None:
         """Download everything under ``prefix`` into ``dest_dir``."""
         dest = Path(dest_dir)
+        normalized_prefix = prefix.strip("/")
         for rel_key in self.iter_prefix(prefix):
+            if not rel_key:
+                continue
+            source_key = (
+                f"{normalized_prefix}/{rel_key}" if normalized_prefix else rel_key
+            )
             target = dest / rel_key
             target.parent.mkdir(parents=True, exist_ok=True)
-            data = self.download(rel_key)
+            data = self.download(source_key)
             with target.open("wb") as fh:
                 shutil.copyfileobj(data, fh)
 
