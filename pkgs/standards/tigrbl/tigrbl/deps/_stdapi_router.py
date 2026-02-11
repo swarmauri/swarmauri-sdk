@@ -2,12 +2,24 @@
 
 from __future__ import annotations
 
-import importlib
-import importlib.util
-import inspect
 import warnings
-from typing import Any, Callable, Iterable
+from typing import Any, Callable
 
+from tigrbl.api._routing import (
+    add_api_route,
+    include_router,
+    merge_tags,
+    normalize_prefix,
+    route,
+)
+from tigrbl.core.router_runtime import (
+    _invoke_dependency,
+    _resolve_handler_kwargs,
+    _resolve_route_dependencies,
+    call_handler,
+    dispatch,
+    is_metadata_route,
+)
 from tigrbl.transport.asgi_wsgi import (
     asgi_app as _asgi_app_impl,
     request_from_asgi as _request_from_asgi_impl,
@@ -15,8 +27,9 @@ from tigrbl.transport.asgi_wsgi import (
     router_call as _router_call_impl,
     wsgi_app as _wsgi_app_impl,
 )
+from tigrbl.transport.httpx import ensure_httpx_sync_transport
 
-from .starlette import Response as StarletteResponse
+from ..api._route import Route
 from ..system.docs.openapi import (
     _annotation_marker,
     _extract_param_value,
@@ -36,28 +49,13 @@ from ..system.docs.openapi import (
     openapi as build_openapi,
 )
 from ..system.docs.swagger import mount_swagger
-
+from ..transport.request import Request
 from ..transport.rest.decorators import (
     delete as rest_delete,
     get as rest_get,
     patch as rest_patch,
     post as rest_post,
     put as rest_put,
-)
-from ..security import (
-    security_requirement_from_dependency,
-    security_scheme_from_dependency,
-)
-
-from ._stdapi_types import (
-    HTTPException,
-    Param,
-    Request,
-    Response,
-    Route,
-    _Dependency,
-    _compile_path,
-    status,
 )
 
 Handler = Callable[..., Any]
@@ -86,7 +84,7 @@ class APIRouter:
         self.docs_url = docs_url
         self.debug = debug
         self.swagger_ui_version = swagger_ui_version
-        self.prefix = self._normalize_prefix(prefix)
+        self.prefix = normalize_prefix(prefix)
         self.tags = list(tags or [])
         self.dependencies = list(dependencies or [])
 
@@ -97,75 +95,18 @@ class APIRouter:
             self._install_builtin_routes()
 
     def _normalize_prefix(self, prefix: str) -> str:
-        if not prefix:
-            return ""
-        if not prefix.startswith("/"):
-            prefix = "/" + prefix
-        return prefix.rstrip("/")
+        return normalize_prefix(prefix)
 
-    def add_api_route(
-        self,
-        path: str,
-        endpoint: Handler,
-        *,
-        methods: Iterable[str],
-        name: str | None = None,
-        summary: str | None = None,
-        description: str | None = None,
-        tags: list[str] | None = None,
-        deprecated: bool = False,
-        request_schema: dict[str, Any] | None = None,
-        response_schema: dict[str, Any] | None = None,
-        path_param_schemas: dict[str, dict[str, Any]] | None = None,
-        query_param_schemas: dict[str, dict[str, Any]] | None = None,
-        include_in_schema: bool = True,
-        operation_id: str | None = None,
-        response_model: Any | None = None,
-        request_model: Any | None = None,
-        responses: dict[int, dict[str, Any]] | None = None,
-        status_code: int | None = None,
-        dependencies: list[Any] | None = None,
-        **_: Any,
-    ) -> None:
-        full_path = self.prefix + (path if path.startswith("/") else "/" + path)
-        pattern, param_names = _compile_path(full_path)
-        route = Route(
-            methods=frozenset(m.upper() for m in methods),
-            path_template=full_path,
-            pattern=pattern,
-            param_names=param_names,
-            handler=endpoint,
-            name=name or getattr(endpoint, "__name__", "handler"),
-            summary=summary,
-            description=description,
-            tags=self._merge_tags(tags),
-            deprecated=deprecated,
-            request_schema=request_schema,
-            response_schema=response_schema,
-            path_param_schemas=path_param_schemas,
-            query_param_schemas=query_param_schemas,
-            include_in_schema=include_in_schema,
-            operation_id=operation_id,
-            response_model=response_model,
-            request_model=request_model,
-            responses=responses,
-            status_code=status_code,
-            dependencies=list(self.dependencies or []) + list(dependencies or []),
-        )
-        self._routes.append(route)
+    def add_api_route(self, path: str, endpoint: Handler, **kwargs: Any) -> None:
+        return add_api_route(self, path, endpoint, **kwargs)
 
     def _merge_tags(self, tags: list[str] | None) -> list[str] | None:
-        merged = list(dict.fromkeys((self.tags or []) + (tags or [])))
-        return merged or None
+        return merge_tags(self.tags, tags)
 
     def route(
-        self, path: str, *, methods: Iterable[str], **kwargs: Any
+        self, path: str, *, methods: Any, **kwargs: Any
     ) -> Callable[[Handler], Handler]:
-        def deco(fn: Handler) -> Handler:
-            self.add_api_route(path, fn, methods=methods, **kwargs)
-            return fn
-
-        return deco
+        return route(self, path, methods=methods, **kwargs)
 
     def get(self, path: str, **kwargs: Any) -> Callable[[Handler], Handler]:
         return rest_get(self, path, **kwargs)
@@ -182,74 +123,8 @@ class APIRouter:
     def delete(self, path: str, **kwargs: Any) -> Callable[[Handler], Handler]:
         return rest_delete(self, path, **kwargs)
 
-    def include_router(
-        self,
-        other: "APIRouter",
-        *,
-        prefix: str = "",
-        tags: list[str] | None = None,
-        **_: Any,
-    ) -> None:
-        if prefix and not prefix.startswith("/"):
-            prefix = "/" + prefix
-        prefix = prefix.rstrip("/")
-
-        # Keep nested mounting semantics aligned with FastAPI by honoring
-        # the current router's own prefix as well as the include-time prefix.
-        base_prefix = (self.prefix or "") + prefix
-
-        routes = getattr(other, "_routes", None)
-        if routes is None:
-            routes = getattr(other, "routes", [])
-
-        for route in routes:
-            if route.name in ("__openapi__", "__docs__"):
-                continue
-
-            route_path = getattr(route, "path_template", None) or getattr(
-                route, "path", ""
-            )
-            route_handler = getattr(route, "handler", None) or getattr(
-                route, "endpoint", None
-            )
-            if not route_path or route_handler is None:
-                continue
-
-            route_methods = getattr(route, "methods", None) or {"GET"}
-            route_methods = frozenset(str(method).upper() for method in route_methods)
-
-            new_path = base_prefix + route_path
-            pattern, param_names = _compile_path(new_path)
-
-            route_tags = getattr(route, "tags", None) or []
-            merged_tags = list(dict.fromkeys((tags or []) + route_tags)) or None
-            self._routes.append(
-                Route(
-                    methods=route_methods,
-                    path_template=new_path,
-                    pattern=pattern,
-                    param_names=param_names,
-                    handler=route_handler,
-                    name=getattr(route, "name", None)
-                    or getattr(route_handler, "__name__", "handler"),
-                    summary=getattr(route, "summary", None),
-                    description=getattr(route, "description", None),
-                    tags=merged_tags,
-                    deprecated=bool(getattr(route, "deprecated", False)),
-                    request_schema=getattr(route, "request_schema", None),
-                    response_schema=getattr(route, "response_schema", None),
-                    path_param_schemas=getattr(route, "path_param_schemas", None),
-                    query_param_schemas=getattr(route, "query_param_schemas", None),
-                    include_in_schema=getattr(route, "include_in_schema", True),
-                    operation_id=getattr(route, "operation_id", None),
-                    response_model=getattr(route, "response_model", None),
-                    request_model=getattr(route, "request_model", None),
-                    responses=getattr(route, "responses", None),
-                    status_code=getattr(route, "status_code", None),
-                    dependencies=list(self.dependencies or [])
-                    + list(getattr(route, "dependencies", None) or []),
-                )
-            )
+    def include_router(self, other: "APIRouter", **kwargs: Any) -> None:
+        return include_router(self, other, **kwargs)
 
     def __call__(self, *args: Any, **kwargs: Any):
         return _router_call_impl(self, *args, **kwargs)
@@ -270,265 +145,28 @@ class APIRouter:
     def _request_from_asgi(self, scope: dict[str, Any], body: bytes) -> Request:
         return _request_from_asgi_impl(self, scope, body)
 
-    async def _dispatch(self, req: Request) -> Response:
-        candidates = [r for r in self._routes if req.method in r.methods]
-        candidates.sort(key=_route_match_priority)
-        for route in candidates:
-            match = route.pattern.match(req.path)
-            if not match:
-                continue
-            req2 = Request(
-                method=req.method,
-                path=req.path,
-                headers=req.headers,
-                query=req.query,
-                path_params={k: v for k, v in match.groupdict().items()},
-                body=req.body,
-                script_name=req.script_name,
-                app=self,
-                state=req.state,
-                scope=req.scope,
-            )
-            return await self._call_handler(route, req2)
+    def _route_match_priority(self, route: Route) -> tuple[int, int, int]:
+        return _route_match_priority(route)
 
-        for route in self._routes:
-            if route.pattern.match(req.path):
-                allowed = ",".join(sorted(route.methods))
-                return Response.json(
-                    {"detail": "Method Not Allowed"},
-                    status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
-                    headers={"allow": allowed},
-                )
+    async def _dispatch(self, req: Request):
+        return await dispatch(self, req)
 
-        return Response.json(
-            {"detail": "Not Found"}, status_code=status.HTTP_404_NOT_FOUND
-        )
-
-    async def _call_handler(self, route: Route, req: Request) -> Response:
-        dependency_cleanups: list[Callable[[], Any]] = []
-        setattr(req.state, "_dependency_cleanups", dependency_cleanups)
-        try:
-            await self._resolve_route_dependencies(route, req)
-            kwargs = await self._resolve_handler_kwargs(route, req)
-            out = route.handler(**kwargs)
-            if inspect.isawaitable(out):
-                out = await out
-        except HTTPException as he:
-            return Response.json(
-                {"detail": he.detail},
-                status_code=he.status_code,
-                headers=he.headers,
-            )
-        finally:
-            for cleanup in reversed(dependency_cleanups):
-                try:
-                    result = cleanup()
-                    if inspect.isawaitable(result):
-                        await result
-                except Exception:
-                    pass
-
-        if isinstance(out, Response):
-            return out
-        if isinstance(out, StarletteResponse):
-            body = bytes(getattr(out, "body", b"") or b"")
-            if not body and hasattr(out, "body_iterator"):
-                chunks: list[bytes] = []
-                body_iter = getattr(out, "body_iterator")
-                if body_iter is not None:
-                    if hasattr(body_iter, "__aiter__"):
-                        async for chunk in body_iter:
-                            if isinstance(chunk, str):
-                                chunks.append(chunk.encode("utf-8"))
-                            else:
-                                chunks.append(bytes(chunk))
-                    else:
-                        for chunk in body_iter:
-                            if isinstance(chunk, str):
-                                chunks.append(chunk.encode("utf-8"))
-                            else:
-                                chunks.append(bytes(chunk))
-                    body = b"".join(chunks)
-            if not body and hasattr(out, "path"):
-                path = getattr(out, "path")
-                if isinstance(path, str):
-                    try:
-                        with open(path, "rb") as handle:
-                            body = handle.read()
-                    except OSError:
-                        body = b""
-            return Response(
-                status_code=int(getattr(out, "status_code", status.HTTP_200_OK)),
-                headers=[
-                    (str(k).lower(), str(v))
-                    for k, v in dict(getattr(out, "headers", {}) or {}).items()
-                ],
-                body=body,
-            )
-        if out is None:
-            code = route.status_code or status.HTTP_204_NO_CONTENT
-            return Response(status_code=code, headers=[], body=b"")
-        code = route.status_code or status.HTTP_200_OK
-        if isinstance(out, (dict, list, int, float, bool)):
-            return Response.json(out, status_code=code)
-        if isinstance(out, str):
-            return Response.text(out, status_code=code)
-        if isinstance(out, (bytes, bytearray)):
-            return Response(
-                status_code=code,
-                headers=[("content-type", "application/octet-stream")],
-                body=bytes(out),
-            )
-
-        return Response.json(out, status_code=code)
+    async def _call_handler(self, route: Route, req: Request):
+        return await call_handler(self, route, req)
 
     async def _resolve_route_dependencies(self, route: Route, req: Request) -> None:
-        if self._is_metadata_route(route):
-            return
-        for dep in route.dependencies or []:
-            dep_callable = dep.dependency if isinstance(dep, _Dependency) else dep
-            await self._invoke_dependency(dep_callable, req)
+        return await _resolve_route_dependencies(self, route, req)
 
     def _is_metadata_route(self, route: Route) -> bool:
-        if route.name in {"__openapi__", "__docs__"}:
-            return True
-
-        openapi_path = (
-            self.openapi_url
-            if self.openapi_url.startswith("/")
-            else f"/{self.openapi_url}"
-        )
-        docs_path = (
-            self.docs_url if self.docs_url.startswith("/") else f"/{self.docs_url}"
-        )
-        metadata_paths = {
-            self.prefix + openapi_path,
-            self.prefix + docs_path,
-        }
-        return route.path_template in metadata_paths
+        return is_metadata_route(self, route)
 
     async def _resolve_handler_kwargs(
         self, route: Route, req: Request
     ) -> dict[str, Any]:
-        sig = inspect.signature(route.handler)
-        kwargs: dict[str, Any] = {}
-        body_cache: Any | None = None
-
-        for name, param in sig.parameters.items():
-            base_annotation, extras = _split_annotated(param.annotation)
-            dependency_marker = _annotation_marker(extras, _Dependency)
-            param_marker = _annotation_marker(extras, Param)
-            if param.kind is inspect.Parameter.VAR_KEYWORD:
-                kwargs.update(req.path_params)
-                continue
-            if name in req.path_params:
-                kwargs[name] = req.path_params[name]
-                continue
-            if _is_request_annotation(base_annotation) or name == "request":
-                kwargs[name] = req
-                continue
-            if base_annotation is inspect._empty and name.endswith("request"):
-                kwargs[name] = req
-                continue
-            default = param.default
-            if isinstance(default, _Dependency) or dependency_marker is not None:
-                dep = default.dependency if isinstance(default, _Dependency) else None
-                dep = dep or dependency_marker.dependency
-                kwargs[name] = await self._invoke_dependency(dep, req)
-                continue
-            if isinstance(default, Param) or param_marker is not None:
-                marker = default if isinstance(default, Param) else param_marker
-                value, found = _extract_param_value(marker, req, name, body_cache)
-                if found:
-                    kwargs[name] = value
-                    if marker.location == "body":
-                        body_cache = value
-                    continue
-                if marker.required:
-                    raise HTTPException(
-                        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                        detail=f"Missing required parameter: {marker.alias or name}",
-                    )
-                kwargs[name] = marker.default
-                continue
-            if default is inspect._empty:
-                if body_cache is None:
-                    body_cache = _load_body(req)
-                if isinstance(body_cache, dict) and name in body_cache:
-                    kwargs[name] = body_cache[name]
-                    continue
-            if default is not inspect._empty:
-                kwargs[name] = default
-        return kwargs
+        return await _resolve_handler_kwargs(self, route, req)
 
     async def _invoke_dependency(self, dep: Callable[..., Any], req: Request) -> Any:
-        sig = inspect.signature(dep)
-        kwargs: dict[str, Any] = {}
-        for name, param in sig.parameters.items():
-            base_annotation, extras = _split_annotated(param.annotation)
-            dependency_marker = _annotation_marker(extras, _Dependency)
-            param_marker = _annotation_marker(extras, Param)
-            if _is_request_annotation(base_annotation) or name == "request":
-                kwargs[name] = req
-                continue
-            if isinstance(param.default, _Dependency) or dependency_marker is not None:
-                child = (
-                    param.default.dependency
-                    if isinstance(param.default, _Dependency)
-                    else dependency_marker.dependency
-                )
-                kwargs[name] = await self._invoke_dependency(child, req)
-                continue
-            if isinstance(param.default, Param) or param_marker is not None:
-                marker = (
-                    param.default if isinstance(param.default, Param) else param_marker
-                )
-                value, found = _extract_param_value(marker, req, name, None)
-                if found:
-                    kwargs[name] = value
-                    continue
-                if marker.required:
-                    raise HTTPException(
-                        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                        detail=f"Missing required parameter: {marker.alias or name}",
-                    )
-                kwargs[name] = marker.default
-                continue
-            if name in req.path_params:
-                kwargs[name] = req.path_params[name]
-                continue
-            if name in req.query_params:
-                kwargs[name] = req.query_params[name]
-                continue
-            if param.default is inspect._empty:
-                continue
-            kwargs[name] = param.default
-        out = dep(**kwargs)
-        if inspect.isgenerator(out):
-            try:
-                value = next(out)
-            except StopIteration:
-                return None
-
-            cleanups = getattr(req.state, "_dependency_cleanups", None)
-            if isinstance(cleanups, list):
-                cleanups.append(out.close)
-            return value
-
-        if inspect.isasyncgen(out):
-            try:
-                value = await anext(out)
-            except StopAsyncIteration:
-                return None
-
-            cleanups = getattr(req.state, "_dependency_cleanups", None)
-            if isinstance(cleanups, list):
-                cleanups.append(out.aclose)
-            return value
-
-        if inspect.isawaitable(out):
-            out = await out
-        return out
+        return await _invoke_dependency(self, dep, req)
 
     def openapi(self) -> dict[str, Any]:
         return build_openapi(self)
@@ -547,14 +185,12 @@ class APIRouter:
         )
 
         docs_route = next(
-            (route for route in self._routes if route.name == "__docs__"),
-            None,
+            (route for route in self._routes if route.name == "__docs__"), None
         )
         if docs_route is None:
             mount_swagger(self, path=self.docs_url)
             docs_route = next(
-                (route for route in self._routes if route.name == "__docs__"),
-                None,
+                (route for route in self._routes if route.name == "__docs__"), None
             )
 
         if docs_route is None:
@@ -571,8 +207,6 @@ Router = APIRouter
 
 
 def _route_match_priority(route: Route) -> tuple[int, int, int]:
-    """Prefer exact, metadata routes before dynamic routes."""
-
     is_metadata = int(getattr(route, "name", "") in {"__openapi__", "__docs__"})
     dynamic_segments = route.path_template.count("{")
     path_length = -len(route.path_template)
@@ -585,25 +219,7 @@ class FastAPI(APIRouter):
         super().__init__(*args, **kwargs)
 
 
-def _ensure_httpx_sync_transport() -> None:
-    spec = importlib.util.find_spec("httpx")
-    if spec is None:
-        return
-    httpx = importlib.import_module("httpx")
-    if hasattr(httpx.ASGITransport, "__enter__"):
-        return
-
-    def __enter__(self) -> Any:
-        return self
-
-    def __exit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
-        return None
-
-    httpx.ASGITransport.__enter__ = __enter__
-    httpx.ASGITransport.__exit__ = __exit__
-
-
-_ensure_httpx_sync_transport()
+ensure_httpx_sync_transport()
 
 
 __all__ = [

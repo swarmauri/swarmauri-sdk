@@ -7,6 +7,7 @@ from typing import Any, Mapping, Sequence
 
 from ..runtime.status.exceptions import HTTPException
 from ..runtime.status.mappings import status
+from .dependencies import Dependency, Depends, Security
 
 _VALID_SECURITY_SCHEME_TYPES = {
     "http",
@@ -281,6 +282,9 @@ def security_scheme_from_dependency(dep: Any) -> tuple[str, dict[str, Any]] | No
 
 
 __all__ = [
+    "Dependency",
+    "Depends",
+    "Security",
     "HTTPAuthorizationCredentials",
     "OpenAPISecurityDependency",
     "HTTPBearer",

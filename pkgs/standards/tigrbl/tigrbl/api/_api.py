@@ -110,4 +110,31 @@ class Api(APISpec, ApiRouter):
                 tables.append(table)
         return tables
 
+    def _normalize_prefix(self, prefix: str) -> str:
+        return super()._normalize_prefix(prefix)
+
+    def add_api_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
+        return super().add_api_route(path, endpoint, **kwargs)
+
+    def _merge_tags(self, tags: list[str] | None) -> list[str] | None:
+        return super()._merge_tags(tags)
+
+    def route(self, path: str, *, methods: Any, **kwargs: Any):
+        return super().route(path, methods=methods, **kwargs)
+
+    def include_router(self, other: Any, **kwargs: Any) -> None:
+        return super().include_router(other, **kwargs)
+
+    async def _resolve_route_dependencies(self, route: Any, req: Any) -> None:
+        return await super()._resolve_route_dependencies(route, req)
+
+    def _is_metadata_route(self, route: Any) -> bool:
+        return super()._is_metadata_route(route)
+
+    async def _resolve_handler_kwargs(self, route: Any, req: Any) -> dict[str, Any]:
+        return await super()._resolve_handler_kwargs(route, req)
+
+    async def _invoke_dependency(self, dep: Any, req: Any) -> Any:
+        return await super()._invoke_dependency(dep, req)
+
     initialize = _ddl_initialize
