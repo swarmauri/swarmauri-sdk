@@ -371,6 +371,7 @@ class APIRouter:
         dependency_cleanups: list[Callable[[], Any]] = []
         setattr(req.state, "_dependency_cleanups", dependency_cleanups)
         try:
+            await self._resolve_route_dependencies(route, req)
             kwargs = await self._resolve_handler_kwargs(route, req)
             out = route.handler(**kwargs)
             if inspect.isawaitable(out):
@@ -445,6 +446,11 @@ class APIRouter:
 
         return Response.json(out, status_code=code)
 
+    async def _resolve_route_dependencies(self, route: Route, req: Request) -> None:
+        for dep in route.dependencies or []:
+            dep_callable = dep.dependency if isinstance(dep, _Dependency) else dep
+            await self._invoke_dependency(dep_callable, req)
+
     async def _resolve_handler_kwargs(
         self, route: Route, req: Request
     ) -> dict[str, Any]:
@@ -501,9 +507,18 @@ class APIRouter:
         kwargs: dict[str, Any] = {}
         for name, param in sig.parameters.items():
             base_annotation, extras = _split_annotated(param.annotation)
+            dependency_marker = _annotation_marker(extras, _Dependency)
             param_marker = _annotation_marker(extras, Param)
             if _is_request_annotation(base_annotation) or name == "request":
                 kwargs[name] = req
+                continue
+            if isinstance(param.default, _Dependency) or dependency_marker is not None:
+                child = (
+                    param.default.dependency
+                    if isinstance(param.default, _Dependency)
+                    else dependency_marker.dependency
+                )
+                kwargs[name] = await self._invoke_dependency(child, req)
                 continue
             if isinstance(param.default, Param) or param_marker is not None:
                 marker = (
