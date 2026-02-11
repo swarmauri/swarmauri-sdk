@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from uuid import UUID, uuid4
 
-from fastapi import HTTPException
+from tigrbl.runtime.status.exceptions import HTTPException
 
 from tigrbl.hook import hook_ctx
 from tigrbl.specs import IO, F, S, acol
