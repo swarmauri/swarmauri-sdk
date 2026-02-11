@@ -168,7 +168,11 @@ class HybridSession(AsyncSession):
 # ----------------------------------------------------------------------
 def async_sqlite_engine(path: str | None = None, *, pool: str | None = None):
     logger.debug("async_sqlite_engine called with path=%r", path)
-    url = "sqlite+aiosqlite://" + (f"/{path}" if path else "")
+    url = (
+        "sqlite+aiosqlite:///:memory:"
+        if path is None
+        else f"sqlite+aiosqlite:///{path}"
+    )
     logger.debug("async_sqlite_engine: using url=%s", url)
     poolclass = StaticPool if path is None or pool != "null" else NullPool
     eng = create_async_engine(
