@@ -243,7 +243,7 @@ def build_jsonrpc_router(
                     if resp is not None:
                         responses.append(resp)
                 return responses
-            elif isinstance(body, RPCRequest):
+            elif isinstance(body, (RPCRequest, Mapping)):
                 resp = await _dispatch_one(
                     api=api,
                     request=request,
@@ -275,7 +275,7 @@ def build_jsonrpc_router(
                     if resp is not None:
                         responses.append(resp)
                 return responses
-            elif isinstance(body, RPCRequest):
+            elif isinstance(body, (RPCRequest, Mapping)):
                 resp = await _dispatch_one(
                     api=api,
                     request=request,
@@ -314,7 +314,7 @@ def build_jsonrpc_router(
                     if resp is not None:
                         responses.append(resp)
                 return responses
-            elif isinstance(body, RPCRequest):
+            elif isinstance(body, (RPCRequest, Mapping)):
                 resp = await _dispatch_one(
                     api=api,
                     request=request,
@@ -329,9 +329,7 @@ def build_jsonrpc_router(
 
     else:
         # No dependencies; attempt to read db (and user) from request.state
-        async def _endpoint(
-            request: Request, body: RPCRequest | list[RPCRequest] = Body(...)
-        ):
+        async def _endpoint(request: Request, body: Any = Body(...)):
             db = getattr(request.state, "db", None)
             if isinstance(body, list):
                 responses: List[Dict[str, Any]] = []
@@ -345,7 +343,7 @@ def build_jsonrpc_router(
                     if resp is not None:
                         responses.append(resp)
                 return responses
-            elif isinstance(body, RPCRequest):
+            elif isinstance(body, (RPCRequest, Mapping)):
                 resp = await _dispatch_one(
                     api=api,
                     request=request,
