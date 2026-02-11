@@ -1040,8 +1040,7 @@ def _extract_param_value(
 
 def _security_from_dependencies(deps: Iterable[Any]) -> list[dict[str, list[str]]]:
     security: list[dict[str, list[str]]] = []
-    for dep in deps:
-        dependency = getattr(dep, "dependency", None) or dep
+    for dependency in _extract_security_dependencies(deps):
         if isinstance(dependency, HTTPBearer):
             security.append({"HTTPBearer": []})
     return security
@@ -1049,8 +1048,44 @@ def _security_from_dependencies(deps: Iterable[Any]) -> list[dict[str, list[str]
 
 def _security_schemes_from_dependencies(deps: Iterable[Any]) -> dict[str, Any]:
     schemes: dict[str, Any] = {}
-    for dep in deps:
-        dependency = getattr(dep, "dependency", None) or dep
+    for dependency in _extract_security_dependencies(deps):
         if isinstance(dependency, HTTPBearer):
             schemes["HTTPBearer"] = {"type": "http", "scheme": "bearer"}
     return schemes
+
+
+def _extract_security_dependencies(deps: Iterable[Any]) -> Iterable[Any]:
+    seen: set[int] = set()
+    for dep in deps:
+        yield from _iter_security_dependencies(dep, seen)
+
+
+def _iter_security_dependencies(dep: Any, seen: set[int]) -> Iterable[Any]:
+    if dep is None:
+        return
+
+    dep_id = id(dep)
+    if dep_id in seen:
+        return
+    seen.add(dep_id)
+
+    dependency = getattr(dep, "dependency", None)
+    if dependency is not None:
+        yield from _iter_security_dependencies(dependency, seen)
+        return
+
+    yield dep
+
+    if not callable(dep):
+        return
+
+    try:
+        signature = inspect.signature(dep)
+    except (TypeError, ValueError):
+        return
+
+    for param in signature.parameters.values():
+        default = param.default
+        if default is inspect._empty:
+            continue
+        yield from _iter_security_dependencies(default, seen)
