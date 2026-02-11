@@ -52,7 +52,7 @@ from ..deps.pydantic import (
     ValidationError,
 )
 
-from ..deps.stdapi import (
+from ..deps import (
     APIRouter,
     Body,
     Depends,
@@ -156,7 +156,7 @@ __all__: list[str] = [
     "BaseModel",
     "Field",
     "ValidationError",
-    # fastapi support (from deps.fastapi)
+    # ASGI dependency support (from deps)
     "Request",
     "Response",
     "APIRouter",

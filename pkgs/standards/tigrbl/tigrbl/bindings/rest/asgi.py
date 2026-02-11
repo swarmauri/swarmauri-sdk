@@ -1,16 +1,16 @@
-"""Deprecated compatibility module for REST FastAPI-style primitives.
+"""Compatibility module for REST ASGI primitives.
 
 Prefer importing directly from:
 - ``tigrbl.response`` for response classes
 - ``tigrbl.runtime.status`` for ``status`` and ``HTTPException``
-- ``tigrbl.deps.stdapi`` for ``Request`` and dependency helpers
+- ``tigrbl.deps`` for ``Request`` and dependency helpers
 """
 
 from __future__ import annotations
 
 import warnings
 
-from ...deps.stdapi import Body, Depends, Path, Query, Request, Router, Security
+from ...deps import Body, Depends, Path, Query, Request, Router, Security
 from ...response import (
     FileResponse,
     HTMLResponse,
@@ -21,8 +21,8 @@ from ...response import (
 from ...runtime.status import HTTPException, status
 
 warnings.warn(
-    "tigrbl.bindings.rest.fastapi is deprecated; import from "
-    "tigrbl.response, tigrbl.runtime.status, and tigrbl.deps.stdapi instead.",
+    "tigrbl.bindings.rest.asgi is a compatibility shim; import from "
+    "tigrbl.response, tigrbl.runtime.status, and tigrbl.deps instead.",
     DeprecationWarning,
     stacklevel=2,
 )

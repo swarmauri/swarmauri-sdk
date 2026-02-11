@@ -14,11 +14,9 @@ from typing import (
     runtime_checkable,
 )
 
-from ...deps.starlette import Request as StarletteRequest
+from ...transport.request import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
-
-Request = StarletteRequest if StarletteRequest is not None else Any  # type: ignore
 
 
 @runtime_checkable
@@ -38,7 +36,7 @@ class _Ctx(dict):
     """Dict-like context with attribute access.
 
     Common keys:
-      • request: FastAPI Request (optional)
+      • request: transport Request (optional)
       • db: Session | AsyncSession
       • api/model/op: optional metadata
       • result: last non-None step result
@@ -65,7 +63,7 @@ class _Ctx(dict):
             state = getattr(request, "state", None)
             if state is not None and getattr(state, "ctx", None) is None:
                 try:
-                    state.ctx = ctx  # make ctx available to deps
+                    state.ctx = ctx
                 except Exception:  # pragma: no cover
                     pass
         if db is not None:

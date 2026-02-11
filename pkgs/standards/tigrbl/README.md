@@ -365,7 +365,20 @@ control headers, status codes, and optional template rendering. See
 
 * SQLAlchemy for ORM integration.
 * Pydantic for schema generation.
-* FastAPI for routing and dependency injection.
+* Native ASGI runtime for routing, dependency injection, and response handling.
+
+### Tigrbl as an ASGI application 🚀
+
+`TigrblApp` is an ASGI callable. You can mount routers, include models, and run the app
+with any ASGI server (for example, uvicorn).
+
+```python
+from tigrbl import TigrblApp
+
+app = TigrblApp(title="Inventory API", version="1.0.0")
+
+# app is an ASGI application callable
+```
 
 ## Best Design Practices ✅
 
@@ -375,7 +388,7 @@ approved usage. These are not optional—adhering to them keeps the runtime
 predictable, preserves hook lifecycle guarantees, and ensures schema
 consistency across REST and RPC surfaces.
 
-### 1) Never import SQLAlchemy or FastAPI directly
+### 1) Never import SQLAlchemy or external web frameworks directly
 
 **Why:** Direct imports bypass Tigrbl's compatibility layer and make it
 harder to evolve internal dependencies. Use the Tigrbl exports so your
@@ -391,7 +404,8 @@ from tigrbl.deps import Depends, Request, HTTPException
 🚫 **Avoid:**
 ```python
 from sqlalchemy import Integer, String
-from fastapi import FastAPI, Depends
+from tigrbl import TigrblApp
+from tigrbl.deps import Depends
 ```
 
 ### 2) Do not coerce UUIDs manually
@@ -539,10 +553,10 @@ db.flush()
 db.commit()
 ```
 
-### 9) Use ops for new REST/RPC methods—never add FastAPI routes
+### 9) Use ops for new REST/RPC methods—never add ad-hoc framework routes
 
 **Why:** Ops keep routing, schemas, hooks, and policies unified. Custom
-FastAPI routes bypass these guarantees.
+Direct framework routes bypass these guarantees.
 
 ✅ **Preferred:**
 ```python
@@ -555,7 +569,7 @@ async def rotate_keys(payload, *, ctx):
 
 🚫 **Avoid:**
 ```python
-from fastapi import APIRouter
+from tigrbl.deps import APIRouter
 
 router = APIRouter()
 

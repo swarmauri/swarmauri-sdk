@@ -10,7 +10,6 @@ from ..api.resolve import (
     resolve_handler_kwargs,
     resolve_route_dependencies,
 )
-from ..deps.starlette import Response as StarletteResponse
 from ..response.stdapi import Response
 from ..runtime.status.exceptions import HTTPException
 from ..runtime.status.mappings import status
@@ -76,7 +75,15 @@ async def call_handler(router: Any, route: Any, req: Request) -> Response:
 
     if isinstance(out, Response):
         return out
-    if isinstance(out, StarletteResponse):
+    if (
+        hasattr(out, "status_code")
+        and hasattr(out, "headers")
+        and (
+            hasattr(out, "body")
+            or hasattr(out, "body_iterator")
+            or hasattr(out, "path")
+        )
+    ):
         body = bytes(getattr(out, "body", b"") or b"")
         if not body and hasattr(out, "body_iterator"):
             chunks: list[bytes] = []

@@ -11,12 +11,7 @@ try:
 except Exception:  # pragma: no cover
     PydanticValidationError = None  # type: ignore
 
-try:
-    from fastapi.exceptions import (
-        RequestValidationError,
-    )  # emitted by FastAPI input validation
-except Exception:  # pragma: no cover
-    RequestValidationError = None  # type: ignore
+RequestValidationError = None
 
 try:
     # SQLAlchemy v1/v2 exception sets
@@ -56,7 +51,7 @@ def _stringify_exc(exc: BaseException) -> str:
 
 def _format_validation(err: Any) -> Any:
     try:
-        items = err.errors()  # pydantic / fastapi RequestValidationError
+        items = err.errors()  # pydantic-style validation payload
         if isinstance(items, Iterable):
             return list(items)
     except Exception:  # pragma: no cover

@@ -82,18 +82,18 @@ class TigrblApp(_App):
         api_hooks: Mapping[str, Iterable[Callable]]
         | Mapping[str, Mapping[str, Iterable[Callable]]]
         | None = None,
-        **fastapi_kwargs: Any,
+        **app_kwargs: Any,
     ) -> None:
-        title = fastapi_kwargs.pop("title", None)
+        title = app_kwargs.pop("title", None)
         if title is not None:
             self.TITLE = title
-        version = fastapi_kwargs.pop("version", None)
+        version = app_kwargs.pop("version", None)
         if version is not None:
             self.VERSION = version
-        lifespan = fastapi_kwargs.pop("lifespan", None)
+        lifespan = app_kwargs.pop("lifespan", None)
         if lifespan is not None:
             self.LIFESPAN = lifespan
-        super().__init__(engine=engine, **fastapi_kwargs)
+        super().__init__(engine=engine, **app_kwargs)
         self.router = self
         self._middlewares: list[tuple[Any, dict[str, Any]]] = []
         self.middlewares = tuple(getattr(self, "MIDDLEWARES", ()))

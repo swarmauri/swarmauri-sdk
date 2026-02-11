@@ -21,7 +21,6 @@ dependencies = [
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
-    "fastapi>=0.100.0",
     "pydantic>=2.0.0",
     "sqlalchemy>=2.0",
     "aiosqlite>=0.19.0",
@@ -33,6 +32,11 @@ keywords = [
     'tigrbl',
     'sdk',
     'standards',
+    'asgi',
+    'api-framework',
+    'orm',
+    'sqlalchemy',
+    'pydantic',
 ]
 
 [project.optional-dependencies]

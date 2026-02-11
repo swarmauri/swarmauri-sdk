@@ -1,19 +1,16 @@
 from __future__ import annotations
-from typing import Any, AsyncIterable, Iterable, Mapping, Optional, Union
+
+import base64
+import json
+import mimetypes
 from datetime import datetime, timezone
 from pathlib import Path
-import json
-import os
-import mimetypes
-import base64
+from typing import Any, AsyncIterable, Iterable, Mapping, Optional, Union
 
-from ..deps.starlette import (
-    JSONResponse,
+from .stdapi import (
+    FileResponse,
     HTMLResponse,
     PlainTextResponse,
-    StreamingResponse,
-    FileResponse as StarletteFileResponse,
-    RedirectResponse,
     Response,
 )
 
@@ -26,39 +23,13 @@ def _json_default(value: Any) -> Any:
     return str(value)
 
 
-try:
-    import orjson as _orjson
-
-    _ORJSON_OPTIONS = (
-        getattr(_orjson, "OPT_NON_STR_KEYS", 0)
-        | getattr(_orjson, "OPT_SERIALIZE_NUMPY", 0)
-        | getattr(_orjson, "OPT_SERIALIZE_BYTES", 0)
-    )
-
-    def _dumps(obj: Any) -> bytes:
-        try:
-            return _orjson.dumps(
-                obj,
-                option=_ORJSON_OPTIONS,
-                default=_json_default,
-            )
-        except TypeError:
-            # Fallback for older orjson builds missing optional flags
-            return json.dumps(
-                obj,
-                separators=(",", ":"),
-                ensure_ascii=False,
-                default=_json_default,
-            ).encode("utf-8")
-except Exception:  # pragma: no cover - fallback
-
-    def _dumps(obj: Any) -> bytes:
-        return json.dumps(
-            obj,
-            separators=(",", ":"),
-            ensure_ascii=False,
-            default=_json_default,
-        ).encode("utf-8")
+def _dumps(obj: Any) -> bytes:
+    return json.dumps(
+        obj,
+        separators=(",", ":"),
+        ensure_ascii=False,
+        default=_json_default,
+    ).encode("utf-8")
 
 
 def _maybe_envelope(data: Any) -> Any:
@@ -71,6 +42,10 @@ JSON = Mapping[str, Any]
 Headers = Mapping[str, str]
 
 
+def _header_pairs(headers: Optional[Headers]) -> list[tuple[str, str]]:
+    return [(k.lower(), v) for k, v in (headers or {}).items()]
+
+
 def as_json(
     data: Any,
     *,
@@ -80,38 +55,38 @@ def as_json(
     dumps=_dumps,
 ) -> Response:
     payload = _maybe_envelope(data) if envelope else data
-    try:
-        return JSONResponse(
-            payload,
-            status_code=status,
-            headers=dict(headers or {}),
-            dumps=lambda o: dumps(o).decode(),
-        )
-    except TypeError:  # pragma: no cover - starlette >= 0.44
-        return Response(
-            dumps(payload),
-            status_code=status,
-            headers=dict(headers or {}),
-            media_type="application/json",
-        )
+    body = dumps(payload)
+    return Response(
+        status_code=status,
+        headers=[
+            ("content-type", "application/json; charset=utf-8"),
+            *_header_pairs(headers),
+        ],
+        body=body,
+    )
 
 
 def as_html(
     html: str, *, status: int = 200, headers: Optional[Headers] = None
 ) -> Response:
-    return HTMLResponse(html, status_code=status, headers=dict(headers or {}))
+    resp = HTMLResponse(html, status_code=status)
+    resp.headers.extend(_header_pairs(headers))
+    return resp
 
 
 def as_text(
     text: str, *, status: int = 200, headers: Optional[Headers] = None
 ) -> Response:
-    return PlainTextResponse(text, status_code=status, headers=dict(headers or {}))
+    resp = PlainTextResponse(text, status_code=status)
+    resp.headers.extend(_header_pairs(headers))
+    return resp
 
 
 def as_redirect(
     url: str, *, status: int = 307, headers: Optional[Headers] = None
 ) -> Response:
-    return RedirectResponse(url, status_code=status, headers=dict(headers or {}))
+    hdrs = [("location", url), *_header_pairs(headers)]
+    return Response(status_code=status, headers=hdrs, body=b"")
 
 
 def as_stream(
@@ -121,8 +96,13 @@ def as_stream(
     status: int = 200,
     headers: Optional[Headers] = None,
 ) -> Response:
-    return StreamingResponse(
-        chunks, media_type=media_type, status_code=status, headers=dict(headers or {})
+    if hasattr(chunks, "__aiter__"):
+        raise TypeError("Async streams are not supported by stdapi Response")
+    body = b"".join(bytes(c) for c in chunks)  # type: ignore[arg-type]
+    return Response(
+        status_code=status,
+        headers=[("content-type", media_type), *_header_pairs(headers)],
+        body=body,
     )
 
 
@@ -133,7 +113,7 @@ def as_file(
     download: bool = False,
     status: int = 200,
     headers: Optional[Headers] = None,
-    stat_result: Optional[os.stat_result] = None,
+    stat_result: Optional[Any] = None,
     etag: Optional[str] = None,
     last_modified: Optional[datetime] = None,
 ) -> Response:
@@ -143,7 +123,7 @@ def as_file(
     media_type, _ = mimetypes.guess_type(str(p))
     media_type = media_type or "application/octet-stream"
     hdrs = dict(headers or {})
-    st = stat_result or os.stat(p)
+    st = stat_result or p.stat()
     if etag is None:
         etag = f'W/"{st.st_mtime_ns}-{st.st_size}"'
     lm = last_modified or datetime.fromtimestamp(st.st_mtime, tz=timezone.utc)
@@ -152,13 +132,10 @@ def as_file(
     if download or filename:
         fname = filename or p.name
         hdrs.setdefault("Content-Disposition", f'attachment; filename="{fname}"')
-    return StarletteFileResponse(
-        str(p),
-        status_code=status,
-        media_type=media_type,
-        filename=filename,
-        headers=hdrs,
-    )
+    response = FileResponse(str(p), media_type=media_type)
+    response.status_code = status
+    response.headers.extend(_header_pairs(hdrs))
+    return response
 
 
 __all__ = [
