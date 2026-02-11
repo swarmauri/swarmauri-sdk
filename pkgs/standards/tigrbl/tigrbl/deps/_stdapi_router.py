@@ -27,6 +27,7 @@ from ..transport.rest.decorators import (
     post as rest_post,
     put as rest_put,
 )
+from ..bindings.rest.routing import _is_http_bearer_dependency
 
 from ._stdapi_types import (
     HTTPException,
@@ -680,10 +681,6 @@ def _route_match_priority(route: Route) -> tuple[int, int, int]:
     dynamic_segments = route.path_template.count("{")
     path_length = -len(route.path_template)
     return (-is_metadata, dynamic_segments, path_length)
-
-
-def _is_http_bearer_dependency(dep: Any) -> bool:
-    return dep.__class__.__name__ == "HTTPBearer"
 
 
 class FastAPI(APIRouter):
