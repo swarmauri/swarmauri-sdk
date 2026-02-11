@@ -1,7 +1,7 @@
 import asyncio
 import json
 
-from tigrbl.deps import stdapi
+from tigrbl.deps import asgi as stdapi
 
 
 def test_routing_and_dependency_injection():

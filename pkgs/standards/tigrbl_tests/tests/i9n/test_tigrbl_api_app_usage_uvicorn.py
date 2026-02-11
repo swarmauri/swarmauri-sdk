@@ -3,7 +3,7 @@ import pytest
 import pytest_asyncio
 
 from tigrbl import Base, TigrblApi, TigrblApp
-from tigrbl.deps.stdapi import (
+from tigrbl.deps.asgi import (
     HTTPAuthorizationCredentials,
     HTTPBearer,
     Security,

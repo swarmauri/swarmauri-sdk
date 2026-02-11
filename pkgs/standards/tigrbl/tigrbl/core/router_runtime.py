@@ -10,7 +10,7 @@ from ..api.resolve import (
     resolve_handler_kwargs,
     resolve_route_dependencies,
 )
-from ..deps.starlette import Response as StarletteResponse
+from ..response.stdapi import Response as StarletteResponse
 from ..response.stdapi import Response
 from ..runtime.status.exceptions import HTTPException
 from ..runtime.status.mappings import status

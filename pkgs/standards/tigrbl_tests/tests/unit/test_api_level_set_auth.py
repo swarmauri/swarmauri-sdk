@@ -1,5 +1,5 @@
 from tigrbl import TigrblApp
-from tigrbl.deps.stdapi import APIRouter, HTTPBearer, Security
+from tigrbl.deps.asgi import APIRouter, HTTPBearer, Security
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base
 

@@ -26,7 +26,7 @@ class AppSpec:
     schemas: Sequence[Any] = field(default_factory=tuple)  # schema classes/defs
     hooks: Sequence[Callable[..., Any]] = field(default_factory=tuple)
 
-    # security/dep stacks (FastAPI dependencies or callables)
+    # security/dep stacks (ASGI app dependencies or callables)
     security_deps: Sequence[Callable[..., Any]] = field(default_factory=tuple)
     deps: Sequence[Callable[..., Any]] = field(default_factory=tuple)
 

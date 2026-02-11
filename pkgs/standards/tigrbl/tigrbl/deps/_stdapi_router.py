@@ -213,7 +213,7 @@ def _route_match_priority(route: Route) -> tuple[int, int, int]:
     return (-is_metadata, dynamic_segments, path_length)
 
 
-class FastAPI(APIRouter):
+class ASGIApp(APIRouter):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         kwargs.setdefault("include_docs", True)
         super().__init__(*args, **kwargs)
@@ -224,7 +224,7 @@ ensure_httpx_sync_transport()
 
 __all__ = [
     "APIRouter",
-    "FastAPI",
+    "ASGIApp",
     "Router",
     "_annotation_marker",
     "_extract_param_value",

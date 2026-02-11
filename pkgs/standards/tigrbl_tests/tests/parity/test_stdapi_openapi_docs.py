@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from tigrbl.deps import stdapi
+from tigrbl.deps import asgi as stdapi
 
 
 class CreateWidget(BaseModel):

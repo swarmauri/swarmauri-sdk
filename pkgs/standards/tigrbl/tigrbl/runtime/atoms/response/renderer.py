@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, AsyncIterable, Iterable, Mapping, Optional, Union, cast
 import logging
 
-from ....deps.starlette import BackgroundTask, Response
+from ....response.stdapi import Response
 
 from ....response.shortcuts import (
     as_file,
@@ -28,7 +28,7 @@ class ResponseHints:
     download: bool = False
     etag: Optional[str] = None
     last_modified: Optional[Any] = None
-    background: Optional[BackgroundTask] = None
+    background: Optional[Any] = None
 
 
 class ResponseKind:

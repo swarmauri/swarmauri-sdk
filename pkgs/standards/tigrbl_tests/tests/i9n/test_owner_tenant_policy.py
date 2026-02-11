@@ -7,7 +7,7 @@ import uuid
 from sqlalchemy import Column, String
 
 from tigrbl import TigrblApp, Base
-from tigrbl.deps.stdapi import HTTPAuthorizationCredentials, HTTPBearer
+from tigrbl.deps.asgi import HTTPAuthorizationCredentials, HTTPBearer
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.mixins.ownable import Ownable, OwnerPolicy
 from tigrbl.orm.mixins.tenant_bound import TenantBound, TenantPolicy

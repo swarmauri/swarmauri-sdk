@@ -20,8 +20,8 @@ def build_router_and_attach(
 ) -> None:
     """
     Build a Router for the model and attach it to `model.rest.router`.
-    For simplicity and correctness with FastAPI, we **rebuild the entire router**
-    on each call (FastAPI does not support removing individual routes cleanly).
+    For simplicity and correctness with ASGI app, we **rebuild the entire router**
+    on each call (ASGI app does not support removing individual routes cleanly).
     """
     router = _build_router(model, specs, api=api)
     rest_ns = getattr(model, "rest", None) or SimpleNamespace()

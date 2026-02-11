@@ -2,7 +2,7 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 
-from ..deps.starlette import Request
+from ..transport.request import Request
 
 
 class AuthNProvider(ABC):
@@ -11,7 +11,7 @@ class AuthNProvider(ABC):
     so that Tigrbl can plug itself in at run‑time.
     """
 
-    # ---------- FastAPI dependency ----------
+    # ---------- ASGI app dependency ----------
     @abstractmethod
     async def get_principal(self, request: Request):  # -> dict[str, str]
         """Return {"sub": user_id, "tid": tenant_id, ...} or raise HTTP 401."""

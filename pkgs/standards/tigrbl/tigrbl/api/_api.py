@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 from types import SimpleNamespace
 
-from ..deps.stdapi import APIRouter as ApiRouter
+from ..deps.asgi import APIRouter as ApiRouter
 from ..engine.engine_spec import EngineCfg
 from ..engine import install_from_objects
 from ..ddl import initialize as _ddl_initialize
@@ -28,7 +28,7 @@ class Api(APISpec, ApiRouter):
 
     @property
     def router(self) -> "Api":  # pragma: no cover - simple alias
-        """Mirror FastAPI-style router access for API instances."""
+        """Mirror ASGI app-style router access for API instances."""
         return self
 
     def __init__(

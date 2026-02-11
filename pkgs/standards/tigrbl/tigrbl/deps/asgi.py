@@ -1,9 +1,6 @@
-"""Standard API primitives for Tigrbl.
+"""ASGI-oriented API primitives for Tigrbl."""
 
-This module strictly does not use FastAPI.
-"""
-
-from ._stdapi_router import APIRouter, FastAPI
+from ._stdapi_router import APIRouter, ASGIApp
 from ..api._route import Route, compile_path
 from ..core.crud.params import Body, Header, Path, Query
 from ..response.stdapi import (
@@ -23,10 +20,12 @@ from ..security import APIKey, MutualTLS, OAuth2, OpenIdConnect
 from ..transport.request import Request
 
 Router = APIRouter
+App = ASGIApp
 
 __all__ = [
     "APIRouter",
-    "FastAPI",
+    "ASGIApp",
+    "App",
     "Router",
     "Request",
     "Response",

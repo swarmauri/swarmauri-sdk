@@ -24,7 +24,7 @@ A high-leverage meta-framework that turns plain SQLAlchemy models into a fully-f
 - 🔌 Unified REST and RPC endpoints from a single definition
 - 🪝 Hookable phase system for deep customization
 - 🧩 Pluggable engine and provider abstractions
-- 🚀 Built on FastAPI and Pydantic for modern Python web apps
+- 🚀 Built on ASGI app and Pydantic for modern Python web apps
 
 ## Terminology 📚
 
@@ -156,7 +156,7 @@ v
 HTTP Request
 |
 v
-FastAPI Router
+ASGI app Router
 |
 v
 Tigrbl Runtime
@@ -365,7 +365,7 @@ control headers, status codes, and optional template rendering. See
 
 * SQLAlchemy for ORM integration.
 * Pydantic for schema generation.
-* FastAPI for routing and dependency injection.
+* ASGI app for routing and dependency injection.
 
 ## Best Design Practices ✅
 
@@ -375,7 +375,7 @@ approved usage. These are not optional—adhering to them keeps the runtime
 predictable, preserves hook lifecycle guarantees, and ensures schema
 consistency across REST and RPC surfaces.
 
-### 1) Never import SQLAlchemy or FastAPI directly
+### 1) Never import SQLAlchemy or ASGI app directly
 
 **Why:** Direct imports bypass Tigrbl's compatibility layer and make it
 harder to evolve internal dependencies. Use the Tigrbl exports so your
@@ -391,7 +391,7 @@ from tigrbl.deps import Depends, Request, HTTPException
 🚫 **Avoid:**
 ```python
 from sqlalchemy import Integer, String
-from fastapi import FastAPI, Depends
+from asgi import ASGI app, Depends
 ```
 
 ### 2) Do not coerce UUIDs manually
@@ -539,10 +539,10 @@ db.flush()
 db.commit()
 ```
 
-### 9) Use ops for new REST/RPC methods—never add FastAPI routes
+### 9) Use ops for new REST/RPC methods—never add ASGI app routes
 
 **Why:** Ops keep routing, schemas, hooks, and policies unified. Custom
-FastAPI routes bypass these guarantees.
+ASGI app routes bypass these guarantees.
 
 ✅ **Preferred:**
 ```python
@@ -555,7 +555,7 @@ async def rotate_keys(payload, *, ctx):
 
 🚫 **Avoid:**
 ```python
-from fastapi import APIRouter
+from asgi import APIRouter
 
 router = APIRouter()
 

@@ -2,7 +2,7 @@
 from __future__ import annotations
 from typing import Any
 
-from ..deps.stdapi import APIRouter
+from ..deps.asgi import APIRouter
 from ..engine.engine_spec import EngineCfg
 from ..engine import resolver as _resolver
 from ..engine import install_from_objects
@@ -26,22 +26,20 @@ class App(AppSpec, APIRouter):
     JSONRPC_PREFIX = "/rpc"
     SYSTEM_PREFIX = "/system"
 
-    def __init__(
-        self, *, engine: EngineCfg | None = None, **fastapi_kwargs: Any
-    ) -> None:
+    def __init__(self, *, engine: EngineCfg | None = None, **asgi_kwargs: Any) -> None:
         # Manually mirror ``AppSpec`` fields so the dataclass-generated ``repr``
         # and friends have expected attributes while runtime structures remain
         # mutable dictionaries or lists as needed.
-        title = fastapi_kwargs.pop("title", None)
+        title = asgi_kwargs.pop("title", None)
         if title is not None:
             self.TITLE = title
-        version = fastapi_kwargs.pop("version", None)
+        version = asgi_kwargs.pop("version", None)
         if version is not None:
             self.VERSION = version
-        lifespan = fastapi_kwargs.pop("lifespan", None)
+        lifespan = asgi_kwargs.pop("lifespan", None)
         if lifespan is not None:
             self.LIFESPAN = lifespan
-        get_db = fastapi_kwargs.pop("get_db", None)
+        get_db = asgi_kwargs.pop("get_db", None)
         if get_db is not None:
             self.get_db = get_db
         self.title = self.TITLE
@@ -66,7 +64,7 @@ class App(AppSpec, APIRouter):
             title=self.title,
             version=self.version,
             include_docs=True,
-            **fastapi_kwargs,
+            **asgi_kwargs,
         )
         _engine_ctx = self.engine
         if _engine_ctx is not None:

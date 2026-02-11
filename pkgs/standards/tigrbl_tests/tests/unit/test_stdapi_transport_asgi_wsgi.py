@@ -4,7 +4,7 @@ import io
 
 import pytest
 
-from tigrbl.deps.stdapi import APIRouter, Request
+from tigrbl.deps.asgi import APIRouter, Request
 
 
 @pytest.mark.asyncio()

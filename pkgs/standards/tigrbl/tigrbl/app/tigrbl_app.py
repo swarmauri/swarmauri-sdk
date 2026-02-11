@@ -82,18 +82,18 @@ class TigrblApp(_App):
         api_hooks: Mapping[str, Iterable[Callable]]
         | Mapping[str, Mapping[str, Iterable[Callable]]]
         | None = None,
-        **fastapi_kwargs: Any,
+        **asgi_kwargs: Any,
     ) -> None:
-        title = fastapi_kwargs.pop("title", None)
+        title = asgi_kwargs.pop("title", None)
         if title is not None:
             self.TITLE = title
-        version = fastapi_kwargs.pop("version", None)
+        version = asgi_kwargs.pop("version", None)
         if version is not None:
             self.VERSION = version
-        lifespan = fastapi_kwargs.pop("lifespan", None)
+        lifespan = asgi_kwargs.pop("lifespan", None)
         if lifespan is not None:
             self.LIFESPAN = lifespan
-        super().__init__(engine=engine, **fastapi_kwargs)
+        super().__init__(engine=engine, **asgi_kwargs)
         self.router = self
         self._middlewares: list[tuple[Any, dict[str, Any]]] = []
         self.middlewares = tuple(getattr(self, "MIDDLEWARES", ()))
@@ -101,7 +101,7 @@ class TigrblApp(_App):
         for mw in self.middlewares:
             self.add_middleware(mw.__class__, **getattr(mw, "kwargs", {}))
         self._install_favicon()
-        # capture initial routes so refreshes retain FastAPI defaults
+        # capture initial routes so refreshes retain ASGI defaults
         self._base_routes = list(self.router.routes)
         self.jsonrpc_prefix = (
             jsonrpc_prefix
@@ -228,7 +228,7 @@ class TigrblApp(_App):
         return api
 
     def include_router(self, router: Any, *args: Any, **kwargs: Any) -> None:
-        """Extend FastAPI include_router to track Tigrbl APIs."""
+        """Extend ASGI include_router to track Tigrbl APIs."""
         if hasattr(router, "models") and hasattr(router, "initialize"):
             self.include_api(
                 router,

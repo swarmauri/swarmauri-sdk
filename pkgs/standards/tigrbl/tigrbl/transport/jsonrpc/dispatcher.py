@@ -37,7 +37,7 @@ from typing import (
 try:
     from ...types import Router, Request, Body, Depends, HTTPException, Response
 except Exception:  # pragma: no cover
-    # Minimal shims to keep this importable without FastAPI (for typing/tools)
+    # Minimal shims to keep this importable without ASGI app (for typing/tools)
     class Router:  # type: ignore
         def __init__(self, *a, **kw):
             self.routes = []
@@ -196,7 +196,7 @@ def build_jsonrpc_router(
     Build and return a Router that serves a single POST endpoint at "/".
     Mount it at your preferred prefix (e.g., "/rpc").
 
-    If `get_db` is provided, it will be used as a FastAPI
+    If `get_db` is provided, it will be used as a ASGI app
     dependency for obtaining a DB session/connection. If not provided,
     the dispatcher will try to use `request.state.db` (or pass `db=None`).
 

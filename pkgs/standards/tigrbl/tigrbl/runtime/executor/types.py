@@ -14,11 +14,9 @@ from typing import (
     runtime_checkable,
 )
 
-from ...deps.starlette import Request as StarletteRequest
+from ...transport.request import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
-
-Request = StarletteRequest if StarletteRequest is not None else Any  # type: ignore
 
 
 @runtime_checkable
@@ -38,7 +36,7 @@ class _Ctx(dict):
     """Dict-like context with attribute access.
 
     Common keys:
-      • request: FastAPI Request (optional)
+      • request: ASGI request (optional)
       • db: Session | AsyncSession
       • api/model/op: optional metadata
       • result: last non-None step result

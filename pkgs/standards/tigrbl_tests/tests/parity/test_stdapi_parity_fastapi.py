@@ -1,13 +1,12 @@
 import asyncio
 
 from httpx import ASGITransport, AsyncClient
-from fastapi import FastAPI as FastAPILib
 
-from tigrbl.deps import stdapi
+from tigrbl.deps import asgi as stdapi
 
 
 def _build_fastapi():
-    app = FastAPILib(title="Parity", version="0.0.1")
+    app = stdapi.ASGIApp(title="Parity", version="0.0.1")
 
     @app.get("/items/{item_id}", tags=["items"], summary="Get item")
     def read_item(item_id: str):
@@ -17,7 +16,7 @@ def _build_fastapi():
 
 
 def _build_stdapi():
-    app = stdapi.FastAPI(title="Parity", version="0.0.1")
+    app = stdapi.ASGIApp(title="Parity", version="0.0.1")
 
     @app.get("/items/{item_id}", tags=["items"], summary="Get item")
     def read_item(item_id: str):

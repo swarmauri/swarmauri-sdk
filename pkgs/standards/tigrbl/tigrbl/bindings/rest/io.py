@@ -9,10 +9,10 @@ import typing as _typing
 
 from pydantic import BaseModel, Field, create_model
 
-from .fastapi import HTTPException, Query, Request, _status
+from .common import HTTPException, Query, Request, _status
 from .helpers import _ensure_jsonable
 from ...op import OpSpec
-from ...deps.starlette import Response as _StarletteResponse
+from ...response.stdapi import Response as _StarletteResponse
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/rest/io")
@@ -23,7 +23,7 @@ def _serialize_output(
 ) -> Any:
     """
     If a response schema exists (model.schemas.<alias>.out), serialize to it.
-    Otherwise, attempt a best-effort conversion to primitive types so FastAPI
+    Otherwise, attempt a best-effort conversion to primitive types so ASGI app
     can JSON-encode the response.
     """
 

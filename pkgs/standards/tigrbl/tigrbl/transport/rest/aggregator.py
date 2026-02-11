@@ -28,7 +28,7 @@ from typing import Any, Mapping, Optional, Sequence
 try:
     from ...types import Router, Depends
 except Exception:  # pragma: no cover
-    # Minimal shim to keep importable without FastAPI
+    # Minimal shim to keep importable without ASGI app
     class Router:  # type: ignore
         def __init__(self, *a, dependencies: Optional[Sequence[Any]] = None, **kw):
             self.routes = []
@@ -50,7 +50,7 @@ def _norm_prefix(p: Optional[str]) -> str:
         return ""
     if not p.startswith("/"):
         p = "/" + p
-    # Avoid double trailing slashes; FastAPI is lenient but keep it clean
+    # Avoid double trailing slashes; ASGI app is lenient but keep it clean
     return p.rstrip("/")
 
 
@@ -91,7 +91,7 @@ def build_rest_router(
         dependencies: additional router-level dependencies (Depends(...) or callables).
 
     Returns:
-        Router ready to be mounted on your FastAPI app.
+        Router ready to be mounted on your ASGI app app.
     """
     root = Router(dependencies=_normalize_deps(dependencies))
     prefix = _norm_prefix(base_prefix)

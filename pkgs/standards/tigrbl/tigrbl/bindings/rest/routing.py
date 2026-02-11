@@ -6,7 +6,7 @@ from types import SimpleNamespace
 from typing import Any, Dict, Optional, Sequence, Tuple
 
 
-from .fastapi import Depends, HTTPException, Request, Security, _status
+from .common import Depends, HTTPException, Request, Security, _status
 from ...op import OpSpec
 from ...security import HTTPBearer
 from ...op.types import CANON

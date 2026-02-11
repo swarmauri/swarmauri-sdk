@@ -45,7 +45,7 @@ def _coerce_model_columns(columns: Any) -> Tuple[str, ...]:
 def _seed_security_and_deps(api: Any, model: type) -> None:
     """
     Copy API-level dependency hooks onto the model so downstream binders can use them.
-    - __tigrbl_get_db__             : DB dep (FastAPI Depends-compatible)
+    - __tigrbl_get_db__             : DB dep (ASGI app Depends-compatible)
     - __tigrbl_auth_dep__           : auth dependency (returns user or raises 401)
     - __tigrbl_authorize__          : callable(request, model, alias, payload, user)→None/raise 403
     - __tigrbl_rest_dependencies__  : list of extra dependencies for REST (e.g., rate-limits)
@@ -177,7 +177,7 @@ def include_model(
     Args:
         api: An arbitrary facade object; we’ll attach containers onto it if missing.
         model: The SQLAlchemy model (table class).
-        app: Optional FastAPI app or Router (anything with `include_router`).
+        app: Optional ASGI app app or Router (anything with `include_router`).
              Routers are always mounted on `api.router`; if provided, we also
              mount onto this `app` (or `api.app` when not given).
         prefix: Optional mount prefix. When None, defaults to `/{ModelClassName}` or
