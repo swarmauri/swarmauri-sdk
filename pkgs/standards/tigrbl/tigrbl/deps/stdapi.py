@@ -681,7 +681,7 @@ class APIRouter:
             if name in req.path_params:
                 kwargs[name] = req.path_params[name]
                 continue
-            if base_annotation is Request or name == "request":
+            if _is_request_annotation(base_annotation) or name == "request":
                 kwargs[name] = req
                 continue
             default = param.default
@@ -721,7 +721,7 @@ class APIRouter:
         for name, param in sig.parameters.items():
             base_annotation, extras = _split_annotated(param.annotation)
             param_marker = _annotation_marker(extras, Param)
-            if base_annotation is Request or name == "request":
+            if _is_request_annotation(base_annotation) or name == "request":
                 kwargs[name] = req
                 continue
             if isinstance(param.default, Param) or param_marker is not None:
@@ -859,7 +859,7 @@ class APIRouter:
         return doc
 
     def _install_builtin_routes(self) -> None:
-        def _openapi_handler(req: Request) -> Response:
+        def _openapi_handler(request: Request) -> Response:
             return Response.json(self.openapi())
 
         self.add_api_route(
@@ -870,8 +870,8 @@ class APIRouter:
             include_in_schema=False,
         )
 
-        def _docs_handler(req: Request) -> Response:
-            return Response.html(self._swagger_ui_html(req))
+        def _docs_handler(request: Request) -> Response:
+            return Response.html(self._swagger_ui_html(request))
 
         self.add_api_route(
             self.docs_url,
@@ -1001,6 +1001,15 @@ def _annotation_marker(extras: Iterable[Any], marker_type: type[Any]) -> Any | N
         if isinstance(extra, marker_type):
             return extra
     return None
+
+
+def _is_request_annotation(annotation: Any) -> bool:
+    if annotation is Request:
+        return True
+    if isinstance(annotation, str):
+        normalized = annotation.strip().strip("\"'")
+        return normalized.rsplit(".", maxsplit=1)[-1] == "Request"
+    return False
 
 
 def _load_body(req: Request) -> Any:
