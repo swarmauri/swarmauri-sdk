@@ -659,6 +659,19 @@ class APIRouter:
                         route.request_model,
                         components_schemas,
                     )
+
+                alias = route.name.rsplit(".", maxsplit=1)[-1]
+                if request_schema is None:
+                    request_schema = _request_schema_from_handler(
+                        route, components_schemas
+                    )
+
+                if isinstance(request_schema, dict) and alias.startswith("bulk_"):
+                    request_schema = _resolve_component_schema_ref(
+                        request_schema,
+                        components_schemas,
+                    )
+
                 if request_schema is not None:
                     op["requestBody"] = {
                         "required": True,
@@ -829,6 +842,89 @@ def _schema_from_model(
             "items": _schema_from_model(item, components_schemas),
         }
     return {"type": "object"}
+
+
+def _resolve_component_schema_ref(
+    schema: dict[str, Any],
+    components_schemas: dict[str, Any],
+) -> dict[str, Any]:
+    ref = schema.get("$ref")
+    if not isinstance(ref, str) or not ref.startswith("#/components/schemas/"):
+        return schema
+
+    schema_name = ref.rsplit("/", maxsplit=1)[-1]
+    component = components_schemas.get(schema_name)
+    if not isinstance(component, dict):
+        return schema
+    return component
+
+
+def _schema_from_annotation(
+    annotation: Any,
+    components_schemas: dict[str, Any],
+) -> dict[str, Any]:
+    annotation, _ = _split_annotated(annotation)
+
+    if annotation is Any:
+        return {"type": "object"}
+
+    origin = get_origin(annotation)
+    if origin in (list, tuple, set):
+        args = get_args(annotation)
+        item_annotation = args[0] if args else Any
+        return {
+            "type": "array",
+            "items": _schema_from_annotation(item_annotation, components_schemas),
+        }
+
+    if origin is not None:
+        args = [arg for arg in get_args(annotation) if arg is not type(None)]
+        if len(args) == 1:
+            return _schema_from_annotation(args[0], components_schemas)
+
+    if annotation in (dict,):
+        return {"type": "object"}
+
+    try:
+        from collections.abc import Mapping as _Mapping
+
+        if isinstance(annotation, type) and issubclass(annotation, _Mapping):
+            return {"type": "object"}
+    except Exception:
+        pass
+
+    return _schema_from_model(annotation, components_schemas)
+
+
+def _request_schema_from_handler(
+    route: Route,
+    components_schemas: dict[str, Any],
+) -> dict[str, Any] | None:
+    handler = getattr(route, "handler", None)
+    if handler is None:
+        return None
+
+    try:
+        signature = inspect.signature(handler)
+    except Exception:
+        return None
+
+    for param in signature.parameters.values():
+        if param.kind not in (
+            inspect.Parameter.POSITIONAL_ONLY,
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            inspect.Parameter.KEYWORD_ONLY,
+        ):
+            continue
+
+        annotation, extras = _split_annotated(param.annotation)
+        marker = _annotation_marker(extras, Param)
+        if marker is None or marker.location != "body":
+            continue
+
+        return _schema_from_annotation(annotation, components_schemas)
+
+    return None
 
 
 def _split_annotated(annotation: Any) -> tuple[Any, tuple[Any, ...]]:
