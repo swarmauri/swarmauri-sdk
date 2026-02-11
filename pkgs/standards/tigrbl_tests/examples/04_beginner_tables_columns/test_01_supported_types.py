@@ -38,7 +38,7 @@ def test_type_gallery_defines_all_supported_columns():
         boolean = Column(Boolean)
         integer = Column(Integer)
         numeric = Column(Numeric(10, 2))
-        json = Column(JSON)
+        json_data = Column(JSON)
         datetime = Column(DateTime)
         tzdatetime = Column(TZDateTime)
         binary = Column(LargeBinary)
@@ -56,7 +56,7 @@ def test_type_gallery_defines_all_supported_columns():
         "boolean",
         "integer",
         "numeric",
-        "json",
+        "json_data",
         "datetime",
         "tzdatetime",
         "binary",

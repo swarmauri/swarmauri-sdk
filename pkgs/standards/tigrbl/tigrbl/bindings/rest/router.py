@@ -308,12 +308,10 @@ def _build_router(
                 else None
             ),
         )
-        if route_deps:
-            route_kwargs["dependencies"] = route_deps
         if response_class is not None:
             route_kwargs["response_class"] = response_class
 
-        secdeps: list[Any] = []
+        secdeps: list[Any] = list(route_deps or [])
         if auth_dep and sp.alias not in allow_anon and sp.target not in allow_anon:
             if _requires_auth_header(auth_dep):
                 secdeps.append(_require_auth_header)

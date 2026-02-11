@@ -76,8 +76,8 @@ class TigrblApp(_App):
         *,
         engine: EngineCfg | None = None,
         apis: Sequence[Any] | None = None,
-        jsonrpc_prefix: str = "/rpc",
-        system_prefix: str = "/system",
+        jsonrpc_prefix: str | None = None,
+        system_prefix: str | None = None,
         favicon_path: str | Path = FAVICON_PATH,
         api_hooks: Mapping[str, Iterable[Callable]]
         | Mapping[str, Mapping[str, Iterable[Callable]]]
@@ -103,14 +103,22 @@ class TigrblApp(_App):
         self._install_favicon()
         # capture initial routes so refreshes retain FastAPI defaults
         self._base_routes = list(self.router.routes)
-        self.jsonrpc_prefix = jsonrpc_prefix
-        self.system_prefix = system_prefix
+        self.jsonrpc_prefix = (
+            jsonrpc_prefix
+            if jsonrpc_prefix is not None
+            else getattr(self, "JSONRPC_PREFIX", "/rpc")
+        )
+        self.system_prefix = (
+            system_prefix
+            if system_prefix is not None
+            else getattr(self, "SYSTEM_PREFIX", "/system")
+        )
 
         # public containers (mirrors used by bindings.api)
         self.models = initialize_model_registry(getattr(self, "MODELS", ()))
         self.schemas = SimpleNamespace()
         self.handlers = SimpleNamespace()
-        self.hooks = SimpleNamespace()
+        self.hooks = tuple(getattr(self, "HOOKS", ()))
         self.rpc = SimpleNamespace()
         self.rest = SimpleNamespace()
         self.routers: Dict[str, Any] = {}
@@ -187,6 +195,8 @@ class TigrblApp(_App):
         """
         Bind a model, mount its REST router, and attach all namespaces to this facade.
         """
+        if not isinstance(self.hooks, SimpleNamespace):
+            self.hooks = SimpleNamespace()
         # inject API-level hooks so the binder merges them
         self._merge_api_hooks_into_model(model, self._api_hooks_map)
         return _include_model(self, model, prefix=prefix, mount_router=mount_router)
@@ -198,6 +208,8 @@ class TigrblApp(_App):
         base_prefix: str | None = None,
         mount_router: bool = True,
     ) -> Dict[str, Any]:
+        if not isinstance(self.hooks, SimpleNamespace):
+            self.hooks = SimpleNamespace()
         for m in models:
             self._merge_api_hooks_into_model(m, self._api_hooks_map)
         return _include_models(

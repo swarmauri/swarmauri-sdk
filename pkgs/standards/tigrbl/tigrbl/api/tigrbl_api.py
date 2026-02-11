@@ -64,8 +64,8 @@ class TigrblApi(_Api):
         engine: EngineCfg | None = None,
         models: Sequence[type] | None = None,
         prefix: str | None = None,
-        jsonrpc_prefix: str = "/rpc",
-        system_prefix: str = "/system",
+        jsonrpc_prefix: str | None = None,
+        system_prefix: str | None = None,
         api_hooks: Mapping[str, Iterable[Callable]]
         | Mapping[str, Mapping[str, Iterable[Callable]]]
         | None = None,
@@ -74,8 +74,16 @@ class TigrblApi(_Api):
         if prefix is not None:
             self.PREFIX = prefix
         _Api.__init__(self, engine=engine, **router_kwargs)
-        self.jsonrpc_prefix = jsonrpc_prefix
-        self.system_prefix = system_prefix
+        self.jsonrpc_prefix = (
+            jsonrpc_prefix
+            if jsonrpc_prefix is not None
+            else getattr(self, "JSONRPC_PREFIX", "/rpc")
+        )
+        self.system_prefix = (
+            system_prefix
+            if system_prefix is not None
+            else getattr(self, "SYSTEM_PREFIX", "/system")
+        )
 
         # public containers (mirrors used by bindings.api)
         self.models = initialize_model_registry(getattr(self, "MODELS", ()))
