@@ -15,6 +15,67 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, Session
 from typing import AsyncIterator, Iterator
 import asyncio
+import httpx
+
+
+def _run_coro_sync(coro):
+    """Run a coroutine from sync code, even when an event loop is already running."""
+
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(coro)
+
+    result: dict[str, object] = {}
+
+    def _worker():
+        try:
+            result["value"] = asyncio.run(coro)
+        except Exception as exc:  # pragma: no cover - surfaced in caller
+            result["error"] = exc
+
+    import threading
+
+    thread = threading.Thread(target=_worker)
+    thread.start()
+    thread.join()
+
+    if "error" in result:
+        raise result["error"]
+    return result.get("value")
+
+
+def _patch_httpx_asgi_transport_sync_api() -> None:
+    """Bridge HTTPX ASGITransport async-only API for sync httpx.Client tests."""
+
+    if not hasattr(ASGITransport, "close"):
+
+        def close(self):
+            return _run_coro_sync(self.aclose())
+
+        ASGITransport.close = close
+
+    if not hasattr(ASGITransport, "handle_request"):
+
+        async def _to_sync_response(transport, request):
+            response = await transport.handle_async_request(request)
+            content = await response.aread()
+            await response.aclose()
+            return httpx.Response(
+                status_code=response.status_code,
+                headers=response.headers,
+                content=content,
+                request=request,
+                extensions=response.extensions,
+            )
+
+        def handle_request(self, request):
+            return _run_coro_sync(_to_sync_response(self, request))
+
+        ASGITransport.handle_request = handle_request
+
+
+_patch_httpx_asgi_transport_sync_api()
 
 
 def _reset_tigrbl_state() -> None:
