@@ -1,20 +1,21 @@
 from __future__ import annotations
-from typing import Any, AsyncIterable, Iterable, Mapping, Optional, Union
+
+import base64
+import json
+import mimetypes
+import os
 from datetime import datetime, timezone
 from pathlib import Path
-import json
-import os
-import mimetypes
-import base64
+from typing import Any, AsyncIterable, Iterable, Mapping, Optional, Union
 
-from ..deps.starlette import (
-    JSONResponse,
+from .stdapi import (
+    FileResponse,
     HTMLResponse,
+    JSONResponse,
     PlainTextResponse,
-    StreamingResponse,
-    FileResponse as StarletteFileResponse,
     RedirectResponse,
     Response,
+    StreamingResponse,
 )
 
 
@@ -43,7 +44,6 @@ try:
                 default=_json_default,
             )
         except TypeError:
-            # Fallback for older orjson builds missing optional flags
             return json.dumps(
                 obj,
                 separators=(",", ":"),
@@ -71,6 +71,12 @@ JSON = Mapping[str, Any]
 Headers = Mapping[str, str]
 
 
+def _with_headers(resp: Response, headers: Optional[Headers]) -> Response:
+    for k, v in (headers or {}).items():
+        resp.headers.append((k.lower(), v))
+    return resp
+
+
 def as_json(
     data: Any,
     *,
@@ -80,38 +86,27 @@ def as_json(
     dumps=_dumps,
 ) -> Response:
     payload = _maybe_envelope(data) if envelope else data
-    try:
-        return JSONResponse(
-            payload,
-            status_code=status,
-            headers=dict(headers or {}),
-            dumps=lambda o: dumps(o).decode(),
-        )
-    except TypeError:  # pragma: no cover - starlette >= 0.44
-        return Response(
-            dumps(payload),
-            status_code=status,
-            headers=dict(headers or {}),
-            media_type="application/json",
-        )
+    resp = JSONResponse(payload, status_code=status)
+    resp.body = dumps(payload)
+    return _with_headers(resp, headers)
 
 
 def as_html(
     html: str, *, status: int = 200, headers: Optional[Headers] = None
 ) -> Response:
-    return HTMLResponse(html, status_code=status, headers=dict(headers or {}))
+    return _with_headers(HTMLResponse(html, status_code=status), headers)
 
 
 def as_text(
     text: str, *, status: int = 200, headers: Optional[Headers] = None
 ) -> Response:
-    return PlainTextResponse(text, status_code=status, headers=dict(headers or {}))
+    return _with_headers(PlainTextResponse(text, status_code=status), headers)
 
 
 def as_redirect(
     url: str, *, status: int = 307, headers: Optional[Headers] = None
 ) -> Response:
-    return RedirectResponse(url, status_code=status, headers=dict(headers or {}))
+    return _with_headers(RedirectResponse(url, status_code=status), headers)
 
 
 def as_stream(
@@ -121,8 +116,11 @@ def as_stream(
     status: int = 200,
     headers: Optional[Headers] = None,
 ) -> Response:
-    return StreamingResponse(
-        chunks, media_type=media_type, status_code=status, headers=dict(headers or {})
+    if hasattr(chunks, "__aiter__"):
+        raise TypeError("AsyncIterable streaming is not supported in stdapi shortcuts")
+    return _with_headers(
+        StreamingResponse(chunks, status_code=status, media_type=media_type),
+        headers,
     )
 
 
@@ -142,23 +140,19 @@ def as_file(
         return PlainTextResponse("Not Found", status_code=404)
     media_type, _ = mimetypes.guess_type(str(p))
     media_type = media_type or "application/octet-stream"
-    hdrs = dict(headers or {})
     st = stat_result or os.stat(p)
     if etag is None:
         etag = f'W/"{st.st_mtime_ns}-{st.st_size}"'
     lm = last_modified or datetime.fromtimestamp(st.st_mtime, tz=timezone.utc)
-    hdrs.setdefault("ETag", etag)
-    hdrs.setdefault("Last-Modified", lm.strftime("%a, %d %b %Y %H:%M:%S GMT"))
+
+    resp = FileResponse(str(p), media_type=media_type)
+    resp.status_code = status
+    resp.headers.append(("etag", etag))
+    resp.headers.append(("last-modified", lm.strftime("%a, %d %b %Y %H:%M:%S GMT")))
     if download or filename:
         fname = filename or p.name
-        hdrs.setdefault("Content-Disposition", f'attachment; filename="{fname}"')
-    return StarletteFileResponse(
-        str(p),
-        status_code=status,
-        media_type=media_type,
-        filename=filename,
-        headers=hdrs,
-    )
+        resp.headers.append(("content-disposition", f'attachment; filename="{fname}"'))
+    return _with_headers(resp, headers)
 
 
 __all__ = [

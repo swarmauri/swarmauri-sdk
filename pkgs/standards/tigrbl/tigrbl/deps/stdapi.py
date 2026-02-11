@@ -1,9 +1,11 @@
-"""Standard API primitives for Tigrbl.
+"""Compatibility exports for legacy ``tigrbl.deps.stdapi`` imports."""
 
-This module strictly does not use FastAPI.
-"""
+from __future__ import annotations
 
-from ._stdapi_router import APIRouter, FastAPI
+import warnings
+
+from ..api._api import APIRouter
+from ..api._router import Router
 from ..api._route import Route, compile_path
 from ..core.crud.params import Body, Header, Path, Query
 from ..response.stdapi import (
@@ -11,18 +13,33 @@ from ..response.stdapi import (
     HTMLResponse,
     JSONResponse,
     PlainTextResponse,
+    RedirectResponse,
     Response,
+    StreamingResponse,
 )
 from ..runtime.status.exceptions import HTTPException
 from ..runtime.status.mappings import status
-from ..security import HTTPAuthorizationCredentials as HTTPAuthorizationCredentials
-from ..security import HTTPBearer as HTTPBearer
+from ..security import (
+    APIKey,
+    HTTPAuthorizationCredentials,
+    HTTPBearer,
+    MutualTLS,
+    OAuth2,
+    OpenIdConnect,
+)
 from ..security.dependencies import Depends, Security
 from ..system.favicon import FAVICON_PATH
-from ..security import APIKey, MutualTLS, OAuth2, OpenIdConnect
 from ..transport.request import Request
 
-Router = APIRouter
+warnings.warn(
+    "tigrbl.deps.stdapi is deprecated; import from concrete modules such as "
+    "tigrbl.api._api, tigrbl.transport.request, tigrbl.response.stdapi, "
+    "tigrbl.core.crud.params, and tigrbl.security.dependencies.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
+FastAPI = APIRouter
 
 __all__ = [
     "APIRouter",
@@ -33,7 +50,9 @@ __all__ = [
     "JSONResponse",
     "HTMLResponse",
     "PlainTextResponse",
+    "StreamingResponse",
     "FileResponse",
+    "RedirectResponse",
     "HTTPException",
     "Depends",
     "Security",

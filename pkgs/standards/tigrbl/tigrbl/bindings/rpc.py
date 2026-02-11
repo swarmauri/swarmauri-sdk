@@ -109,6 +109,26 @@ def _coerce_payload(payload: Any) -> Any:
 
 def _ensure_jsonable(obj: Any) -> Any:
     """Best-effort conversion of DB rows or ORM objects to primitives."""
+    if hasattr(obj, "status_code") and hasattr(obj, "headers") and hasattr(obj, "body"):
+        response_like = AttrDict(
+            {
+                "status_code": getattr(obj, "status_code"),
+                "headers": getattr(obj, "headers"),
+                "body": getattr(obj, "body"),
+            }
+        )
+        if hasattr(obj, "media_type"):
+            response_like["media_type"] = getattr(obj, "media_type")
+        if hasattr(obj, "raw_headers"):
+            response_like["raw_headers"] = getattr(obj, "raw_headers")
+        if hasattr(obj, "body_iterator"):
+            response_like["body_iterator"] = getattr(obj, "body_iterator")
+        if hasattr(obj, "path"):
+            response_like["path"] = getattr(obj, "path")
+        if hasattr(obj, "url"):
+            response_like["url"] = getattr(obj, "url")
+        return response_like
+
     if isinstance(obj, (list, tuple)):
         return [_ensure_jsonable(x) for x in obj]
     if isinstance(obj, Mapping):

@@ -1,18 +1,19 @@
 # tigrbl/tigrbl/v3/api/_api.py
 from __future__ import annotations
-from typing import Any
-from types import SimpleNamespace
 
-from ..deps.stdapi import APIRouter as ApiRouter
-from ..engine.engine_spec import EngineCfg
-from ..engine import install_from_objects
-from ..ddl import initialize as _ddl_initialize
-from ..engine import resolver as _resolver
+from types import SimpleNamespace
+from typing import Any
+
 from ..app._model_registry import initialize_model_registry
+from ..ddl import initialize as _ddl_initialize
+from ..engine import install_from_objects
+from ..engine import resolver as _resolver
+from ..engine.engine_spec import EngineCfg
+from ._router import APIRouter, Router
 from .api_spec import APISpec
 
 
-class Api(APISpec, ApiRouter):
+class Api(APISpec, Router):
     """API router with model and table registries."""
 
     MODELS: tuple[Any, ...] = ()
@@ -50,7 +51,7 @@ class Api(APISpec, ApiRouter):
         # ``models`` is expected to be a dict at runtime for registry lookups.
         self.models = initialize_model_registry(getattr(self, "MODELS", ()))
 
-        ApiRouter.__init__(
+        Router.__init__(
             self,
             prefix=self.PREFIX,
             tags=self.tags,
@@ -138,3 +139,6 @@ class Api(APISpec, ApiRouter):
         return await super()._invoke_dependency(dep, req)
 
     initialize = _ddl_initialize
+
+
+__all__ = ["Api", "Router", "APIRouter"]

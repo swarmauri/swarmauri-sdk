@@ -3,14 +3,15 @@
 Prefer importing directly from:
 - ``tigrbl.response`` for response classes
 - ``tigrbl.runtime.status`` for ``status`` and ``HTTPException``
-- ``tigrbl.deps.stdapi`` for ``Request`` and dependency helpers
+- ``tigrbl.api._api`` / ``tigrbl.transport.request`` / ``tigrbl.security.dependencies``
 """
 
 from __future__ import annotations
 
 import warnings
 
-from ...deps.stdapi import Body, Depends, Path, Query, Request, Router, Security
+from ...api._api import Router
+from ...core.crud.params import Body, Path, Query
 from ...response import (
     FileResponse,
     HTMLResponse,
@@ -19,10 +20,12 @@ from ...response import (
     StdApiResponse,
 )
 from ...runtime.status import HTTPException, status
+from ...security.dependencies import Depends, Security
+from ...transport.request import Request
 
 warnings.warn(
     "tigrbl.bindings.rest.fastapi is deprecated; import from "
-    "tigrbl.response, tigrbl.runtime.status, and tigrbl.deps.stdapi instead.",
+    "tigrbl.response, tigrbl.runtime.status, and concrete modules instead.",
     DeprecationWarning,
     stacklevel=2,
 )

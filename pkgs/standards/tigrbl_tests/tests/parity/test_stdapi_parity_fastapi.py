@@ -1,9 +1,11 @@
 import asyncio
 
+import pytest
 from httpx import ASGITransport, AsyncClient
 from fastapi import FastAPI as FastAPILib
 
-from tigrbl.deps import stdapi
+from tigrbl.api import _api
+from tigrbl.api._api import APIRouter
 
 
 def _build_fastapi():
@@ -17,7 +19,7 @@ def _build_fastapi():
 
 
 def _build_stdapi():
-    app = stdapi.FastAPI(title="Parity", version="0.0.1")
+    app = APIRouter(title="Parity", version="0.0.1", include_docs=True)
 
     @app.get("/items/{item_id}", tags=["items"], summary="Get item")
     def read_item(item_id: str):
@@ -66,3 +68,8 @@ def test_parity_e2e_response():
 
     assert fast_resp.status_code == std_resp.status_code == 200
     assert fast_resp.json() == std_resp.json() == {"id": "42"}
+
+
+@pytest.mark.xfail(reason="FastAPI shim removed from tigrbl.api._api", strict=False)
+def test_api_module_fastapi_shim_removed():
+    assert not hasattr(_api, "FastAPI")

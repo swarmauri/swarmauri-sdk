@@ -3,7 +3,9 @@ from .stdapi import (
     JSONResponse,
     HTMLResponse,
     PlainTextResponse,
+    StreamingResponse,
     FileResponse,
+    RedirectResponse,
 )
 from .decorators import (
     response_ctx,
@@ -27,7 +29,9 @@ __all__ = [
     "JSONResponse",
     "HTMLResponse",
     "PlainTextResponse",
+    "StreamingResponse",
     "FileResponse",
+    "RedirectResponse",
     "response_ctx",
     "get_attached_response_spec",
     "get_attached_response_alias",

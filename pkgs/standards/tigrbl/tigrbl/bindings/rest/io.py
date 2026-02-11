@@ -12,7 +12,6 @@ from pydantic import BaseModel, Field, create_model
 from .fastapi import HTTPException, Query, Request, _status
 from .helpers import _ensure_jsonable
 from ...op import OpSpec
-from ...deps.starlette import Response as _StarletteResponse
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/rest/io")
@@ -29,7 +28,7 @@ def _serialize_output(
 
     from ...types import Response as _Response  # local import to avoid cycles
 
-    if isinstance(result, (_Response, _StarletteResponse)):
+    if isinstance(result, _Response):
         return result
 
     def _final(val: Any) -> Any:

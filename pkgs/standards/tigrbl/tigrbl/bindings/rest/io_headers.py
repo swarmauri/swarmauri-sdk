@@ -3,7 +3,7 @@ from __future__ import annotations
 import inspect
 from typing import Mapping, Any
 
-from ...deps.stdapi import Header
+from ...deps import Header
 
 
 def _build_signature_with_header_params(

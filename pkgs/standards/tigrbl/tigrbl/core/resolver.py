@@ -68,10 +68,14 @@ def extract_param_value(
         if body_cache is None:
             body_cache = load_body(req)
         if isinstance(body_cache, dict):
+            if marker.alias is None and param_name == "body":
+                return body_cache, True
             if alias in body_cache:
                 return body_cache[alias], True
             if param_name in body_cache:
                 return body_cache[param_name], True
+            if marker.alias is None:
+                return body_cache, True
         elif body_cache is not None:
             return body_cache, True
     return None, False

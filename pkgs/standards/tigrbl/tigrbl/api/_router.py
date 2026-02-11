@@ -1,8 +1,11 @@
-"""Router implementation for tigrbl stdapi."""
+"""Router primitives backing ``tigrbl.api.Api`` and ``tigrbl.app.App``.
+
+This compatibility router surface is slated for deprecation in favor of the
+higher-level ``Api``/``App`` interfaces.
+"""
 
 from __future__ import annotations
 
-import warnings
 from typing import Any, Callable
 
 from tigrbl.api._routing import (
@@ -29,25 +32,8 @@ from tigrbl.transport.asgi_wsgi import (
 )
 from tigrbl.transport.httpx import ensure_httpx_sync_transport
 
-from ..api._route import Route
-from ..system.docs.openapi import (
-    _annotation_marker,
-    _extract_param_value,
-    _extract_security_dependencies,
-    _is_request_annotation,
-    _iter_security_dependencies,
-    _load_body,
-    _normalize_schema_refs,
-    _request_schema_from_handler,
-    _resolve_component_schema_ref,
-    _schema_from_annotation,
-    _schema_from_model,
-    _security_from_dependencies,
-    _security_schemes_from_dependencies,
-    _split_annotated,
-    mount_openapi,
-    openapi as build_openapi,
-)
+from ._route import Route
+from ..system.docs.openapi import build_openapi, mount_openapi
 from ..system.docs.swagger import mount_swagger
 from ..transport.request import Request
 from ..transport.rest.decorators import (
@@ -61,7 +47,7 @@ from ..transport.rest.decorators import (
 Handler = Callable[..., Any]
 
 
-class APIRouter:
+class Router:
     def __init__(
         self,
         *,
@@ -123,7 +109,7 @@ class APIRouter:
     def delete(self, path: str, **kwargs: Any) -> Callable[[Handler], Handler]:
         return rest_delete(self, path, **kwargs)
 
-    def include_router(self, other: "APIRouter", **kwargs: Any) -> None:
+    def include_router(self, other: "Router", **kwargs: Any) -> None:
         return include_router(self, other, **kwargs)
 
     def __call__(self, *args: Any, **kwargs: Any):
@@ -176,14 +162,6 @@ class APIRouter:
         mount_swagger(self, path=self.docs_url)
 
     def _swagger_ui_html(self, request: Request) -> str:
-        warnings.warn(
-            "APIRouter._swagger_ui_html is deprecated and will be removed in a "
-            "future release. Use mount_swagger(router, path=...) and call the "
-            "mounted docs route directly instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
         docs_route = next(
             (route for route in self._routes if route.name == "__docs__"), None
         )
@@ -192,7 +170,6 @@ class APIRouter:
             docs_route = next(
                 (route for route in self._routes if route.name == "__docs__"), None
             )
-
         if docs_route is None:
             raise RuntimeError("Unable to resolve mounted swagger docs route.")
 
@@ -203,9 +180,6 @@ class APIRouter:
         return str(body)
 
 
-Router = APIRouter
-
-
 def _route_match_priority(route: Route) -> tuple[int, int, int]:
     is_metadata = int(getattr(route, "name", "") in {"__openapi__", "__docs__"})
     dynamic_segments = route.path_template.count("{")
@@ -213,31 +187,7 @@ def _route_match_priority(route: Route) -> tuple[int, int, int]:
     return (-is_metadata, dynamic_segments, path_length)
 
 
-class FastAPI(APIRouter):
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        kwargs.setdefault("include_docs", True)
-        super().__init__(*args, **kwargs)
-
-
 ensure_httpx_sync_transport()
 
 
-__all__ = [
-    "APIRouter",
-    "FastAPI",
-    "Router",
-    "_annotation_marker",
-    "_extract_param_value",
-    "_extract_security_dependencies",
-    "_is_request_annotation",
-    "_iter_security_dependencies",
-    "_load_body",
-    "_normalize_schema_refs",
-    "_request_schema_from_handler",
-    "_resolve_component_schema_ref",
-    "_schema_from_annotation",
-    "_schema_from_model",
-    "_security_from_dependencies",
-    "_security_schemes_from_dependencies",
-    "_split_annotated",
-]
+APIRouter = Router
