@@ -3,7 +3,8 @@
 This module strictly does not use FastAPI.
 """
 
-from ._stdapi_router import APIRouter, FAVICON_PATH, FastAPI
+from ._stdapi_router import APIRouter, FastAPI
+from ..system.favicon import FAVICON_PATH
 from ._stdapi_types import (
     Body,
     Depends,

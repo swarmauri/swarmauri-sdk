@@ -7,7 +7,6 @@ import importlib
 import importlib.util
 import inspect
 import traceback
-from pathlib import Path as FilePath
 from typing import Annotated, Any, Callable, Iterable, get_args, get_origin
 from urllib.parse import parse_qs
 
@@ -722,61 +721,10 @@ class APIRouter:
         return doc
 
     def _install_builtin_routes(self) -> None:
-        def _openapi_handler(request: Request) -> Response:
-            return Response.json(self.openapi())
+        from tigrbl.system.docs import mount_openapi, mount_swagger
 
-        self.add_api_route(
-            self.openapi_url,
-            _openapi_handler,
-            methods=["GET"],
-            name="__openapi__",
-            include_in_schema=False,
-        )
-
-        def _docs_handler(request: Request) -> Response:
-            return Response.html(self._swagger_ui_html(request))
-
-        self.add_api_route(
-            self.docs_url,
-            _docs_handler,
-            methods=["GET"],
-            name="__docs__",
-            include_in_schema=False,
-        )
-
-    def _swagger_ui_html(self, req: Request) -> str:
-        base = (req.script_name or "").rstrip("/")
-        spec_url = f"{base}{self.openapi_url if self.openapi_url.startswith('/') else '/' + self.openapi_url}"
-
-        version = self.swagger_ui_version
-        return f"""<!doctype html>
-<html>
-  <head>
-    <meta charset=\"utf-8\" />
-    <title>{self.title} — API Docs</title>
-    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
-    <link rel=\"stylesheet\" href=\"https://unpkg.com/swagger-ui-dist@{version}/swagger-ui.css\" />
-  </head>
-  <body>
-    <div id=\"swagger-ui\"></div>
-    <script src=\"https://unpkg.com/swagger-ui-dist@{version}/swagger-ui-bundle.js\"></script>
-    <script src=\"https://unpkg.com/swagger-ui-dist@{version}/swagger-ui-standalone-preset.js\"></script>
-    <script>
-      window.onload = function () {{
-        window.ui = SwaggerUIBundle({{
-          url: "{spec_url}",
-          dom_id: "#swagger-ui",
-          presets: [
-            SwaggerUIBundle.presets.apis,
-            SwaggerUIStandalonePreset
-          ],
-          layout: "StandaloneLayout"
-        }});
-      }};
-    </script>
-  </body>
-</html>
-"""
+        mount_openapi(self)
+        mount_swagger(self)
 
 
 Router = APIRouter
@@ -799,9 +747,6 @@ class FastAPI(APIRouter):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         kwargs.setdefault("include_docs", True)
         super().__init__(*args, **kwargs)
-
-
-FAVICON_PATH = FilePath(__file__).with_name("favicon.svg")
 
 
 def _ensure_httpx_sync_transport() -> None:

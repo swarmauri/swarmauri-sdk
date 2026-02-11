@@ -36,7 +36,8 @@ from ..transport import mount_jsonrpc as _mount_jsonrpc
 from ..system import mount_diagnostics as _mount_diagnostics
 from ..op import get_registry, OpSpec
 from ._model_registry import initialize_model_registry
-from ..deps.stdapi import FileResponse, FAVICON_PATH
+from ..deps.stdapi import FileResponse
+from ..system.favicon import FAVICON_PATH
 
 
 # optional compat: legacy transactional decorator
