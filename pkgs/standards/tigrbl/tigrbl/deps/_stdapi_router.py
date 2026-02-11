@@ -27,7 +27,10 @@ from ..transport.rest.decorators import (
     post as rest_post,
     put as rest_put,
 )
-from ..bindings.rest.routing import _is_http_bearer_dependency
+from ..security import (
+    security_requirement_from_dependency,
+    security_scheme_from_dependency,
+)
 
 from ._stdapi_types import (
     HTTPException,
@@ -911,18 +914,19 @@ def _extract_param_value(
 def _security_from_dependencies(deps: Iterable[Any]) -> list[dict[str, list[str]]]:
     security: list[dict[str, list[str]]] = []
     for dependency in _extract_security_dependencies(deps):
-        if _is_http_bearer_dependency(dependency):
-            scheme_name = getattr(dependency, "scheme_name", None) or "HTTPBearer"
-            security.append({scheme_name: []})
+        requirement = security_requirement_from_dependency(dependency)
+        if requirement:
+            security.append(requirement)
     return security
 
 
 def _security_schemes_from_dependencies(deps: Iterable[Any]) -> dict[str, Any]:
     schemes: dict[str, Any] = {}
     for dependency in _extract_security_dependencies(deps):
-        if _is_http_bearer_dependency(dependency):
-            scheme_name = getattr(dependency, "scheme_name", None) or "HTTPBearer"
-            schemes[scheme_name] = {"type": "http", "scheme": "bearer"}
+        scheme = security_scheme_from_dependency(dependency)
+        if scheme:
+            scheme_name, payload = scheme
+            schemes[scheme_name] = payload
     return schemes
 
 

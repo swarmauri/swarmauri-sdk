@@ -80,11 +80,23 @@ from .api import Api, TigrblApi
 
 from .table import Base
 from .op import Op
+from .security import APIKey, HTTPBearer, MutualTLS, OAuth2, OpenIdConnect
 
 
 __all__: list[str] = []
 
-__all__ += ["TigrblApp", "TigrblApi", "Api", "Base", "Op"]
+__all__ += [
+    "TigrblApp",
+    "TigrblApi",
+    "Api",
+    "Base",
+    "Op",
+    "HTTPBearer",
+    "APIKey",
+    "OAuth2",
+    "OpenIdConnect",
+    "MutualTLS",
+]
 
 __all__ += [
     # OpSpec core
