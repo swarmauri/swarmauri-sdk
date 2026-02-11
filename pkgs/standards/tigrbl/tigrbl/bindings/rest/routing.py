@@ -8,6 +8,7 @@ from typing import Any, Dict, Optional, Sequence, Tuple
 
 from .fastapi import Depends, HTTPException, Request, Security, _status
 from ...op import OpSpec
+from ...security import HTTPBearer
 from ...op.types import CANON
 
 logger = logging.getLogger("uvicorn")
@@ -15,7 +16,7 @@ logger.debug("Loaded module v3/bindings/rest/routing")
 
 
 def _is_http_bearer_dependency(dep: Any) -> bool:
-    return dep.__class__.__name__ == "HTTPBearer"
+    return isinstance(dep, HTTPBearer)
 
 
 def _normalize_deps(deps: Optional[Sequence[Any]]) -> list[Any]:

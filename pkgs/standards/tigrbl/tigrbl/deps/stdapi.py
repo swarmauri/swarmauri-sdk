@@ -5,6 +5,7 @@ This module strictly does not use FastAPI.
 
 from ._stdapi_router import APIRouter, FastAPI
 from ..system.favicon import FAVICON_PATH
+from ..security import APIKey, MutualTLS, OAuth2, OpenIdConnect
 from ._stdapi_types import (
     Body,
     Depends,
@@ -45,6 +46,10 @@ __all__ = [
     "Header",
     "HTTPBearer",
     "HTTPAuthorizationCredentials",
+    "APIKey",
+    "OAuth2",
+    "OpenIdConnect",
+    "MutualTLS",
     "status",
     "FAVICON_PATH",
 ]

@@ -44,7 +44,10 @@ from ..transport.rest.decorators import (
     post as rest_post,
     put as rest_put,
 )
-from ..bindings.rest.routing import _is_http_bearer_dependency
+from ..security import (
+    security_requirement_from_dependency,
+    security_scheme_from_dependency,
+)
 
 from ._stdapi_types import (
     HTTPException,
