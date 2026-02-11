@@ -16,7 +16,16 @@ import traceback
 from dataclasses import dataclass, field
 from pathlib import Path as FilePath
 from types import SimpleNamespace
-from typing import Any, Callable, Iterable, Mapping, get_args, get_origin, Annotated
+from typing import (
+    Any,
+    Callable,
+    Iterable,
+    Mapping,
+    get_args,
+    get_origin,
+    Annotated,
+    get_type_hints,
+)
 from urllib.parse import parse_qs
 
 
@@ -306,6 +315,14 @@ class Route:
     status_code: int | None = None
     dependencies: list[Any] | None = None
 
+    @property
+    def path(self) -> str:
+        return self.path_template
+
+    @property
+    def endpoint(self) -> Handler:
+        return self.handler
+
 
 def _compile_path(path_template: str) -> tuple[re.Pattern[str], tuple[str, ...]]:
     if not path_template.startswith("/"):
@@ -321,6 +338,21 @@ def _compile_path(path_template: str) -> tuple[re.Pattern[str], tuple[str, ...]]
     pattern_src = re.sub(r"\{([A-Za-z_][A-Za-z0-9_]*)\}", repl, path_template)
     pattern = re.compile("^" + pattern_src + "$")
     return pattern, tuple(param_names)
+
+
+def _join_paths(prefix: str, path: str) -> str:
+    if path == "":
+        return prefix or "/"
+    if path == "/":
+        return f"{prefix}/" if prefix else "/"
+    keep_trailing = path.endswith("/")
+    joined = f"{prefix}{path if path.startswith('/') else '/' + path}"
+    normalized = re.sub(r"/{2,}", "/", joined)
+    if normalized != "/":
+        normalized = normalized.rstrip("/")
+    if keep_trailing and normalized != "/":
+        normalized = normalized + "/"
+    return normalized or "/"
 
 
 class APIRouter:
@@ -387,7 +419,7 @@ class APIRouter:
         dependencies: list[Any] | None = None,
         **_: Any,
     ) -> None:
-        full_path = self.prefix + (path if path.startswith("/") else "/" + path)
+        full_path = _join_paths(self.prefix, path)
         pattern, param_names = _compile_path(full_path)
         route = Route(
             methods=frozenset(m.upper() for m in methods),
@@ -457,7 +489,7 @@ class APIRouter:
         for route in other._routes:
             if route.name in ("__openapi__", "__docs__"):
                 continue
-            new_path = prefix + route.path_template
+            new_path = _join_paths(prefix, route.path_template)
             pattern, param_names = _compile_path(new_path)
             merged_tags = list(dict.fromkeys((tags or []) + (route.tags or []))) or None
             self._routes.append(
@@ -487,6 +519,13 @@ class APIRouter:
             )
 
     def __call__(self, *args: Any, **kwargs: Any):
+        if len(args) == 1 and isinstance(args[0], dict) and "type" in args[0]:
+            scope = args[0]
+
+            async def _asgi2(receive: Callable, send: Callable) -> None:
+                await self._asgi_app(scope, receive, send)
+
+            return _asgi2
         if len(args) == 2 and isinstance(args[0], dict) and callable(args[1]):
             return self._wsgi_app(args[0], args[1])
         if len(args) == 3 and isinstance(args[0], dict) and "type" in args[0]:
@@ -600,9 +639,21 @@ class APIRouter:
         )
 
     async def _dispatch(self, req: Request) -> Response:
+        candidate_paths = {req.path}
+        if req.path != "/":
+            candidate_paths.add(req.path.rstrip("/"))
+            candidate_paths.add(req.path.rstrip("/") + "/")
+
         candidates = [r for r in self._routes if req.method in r.methods]
         for route in candidates:
-            match = route.pattern.match(req.path)
+            match = next(
+                (
+                    route.pattern.match(candidate_path)
+                    for candidate_path in candidate_paths
+                    if route.pattern.match(candidate_path)
+                ),
+                None,
+            )
             if not match:
                 continue
             req2 = Request(
@@ -633,8 +684,10 @@ class APIRouter:
         )
 
     async def _call_handler(self, route: Route, req: Request) -> Response:
+        cleanup_callbacks: list[Callable[[], Any]] = []
+        default_status = route.status_code or status.HTTP_200_OK
         try:
-            kwargs = await self._resolve_handler_kwargs(route, req)
+            kwargs = await self._resolve_handler_kwargs(route, req, cleanup_callbacks)
             out = route.handler(**kwargs)
             if inspect.isawaitable(out):
                 out = await out
@@ -644,35 +697,65 @@ class APIRouter:
                 status_code=he.status_code,
                 headers=he.headers,
             )
+        except Exception as exc:
+            if self.debug:
+                return Response.json(
+                    {"detail": str(exc), "traceback": traceback.format_exc()},
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
+            return Response.json(
+                {"detail": "Internal Server Error"},
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        finally:
+            while cleanup_callbacks:
+                callback = cleanup_callbacks.pop()
+                try:
+                    rv = callback()
+                    if inspect.isawaitable(rv):
+                        await rv
+                except Exception:
+                    # Dependency cleanup should not mask handler response.
+                    continue
 
         if isinstance(out, Response):
             return out
+        coerced = _coerce_response_object(out)
+        if coerced is not None:
+            if route.status_code is not None and coerced.status_code == 200:
+                coerced.status_code = route.status_code
+            return coerced
         if out is None:
-            return Response(
-                status_code=status.HTTP_204_NO_CONTENT, headers=[], body=b""
-            )
+            if default_status == status.HTTP_204_NO_CONTENT:
+                return Response(status_code=default_status, headers=[], body=b"")
+            return Response.json(None, status_code=default_status)
         if isinstance(out, (dict, list, int, float, bool)):
-            return Response.json(out)
+            return Response.json(_to_jsonable(out), status_code=default_status)
         if isinstance(out, str):
-            return Response.text(out)
+            return Response.text(out, status_code=default_status)
         if isinstance(out, (bytes, bytearray)):
             return Response(
-                status_code=status.HTTP_200_OK,
+                status_code=default_status,
                 headers=[("content-type", "application/octet-stream")],
                 body=bytes(out),
             )
 
-        return Response.json(out)
+        return Response.json(_to_jsonable(out), status_code=default_status)
 
     async def _resolve_handler_kwargs(
-        self, route: Route, req: Request
+        self,
+        route: Route,
+        req: Request,
+        cleanup_callbacks: list[Callable[[], Any]],
     ) -> dict[str, Any]:
         sig = inspect.signature(route.handler)
+        type_hints = _resolve_type_hints(route.handler)
         kwargs: dict[str, Any] = {}
         body_cache: Any | None = None
 
         for name, param in sig.parameters.items():
-            base_annotation, extras = _split_annotated(param.annotation)
+            hinted_annotation = _resolved_annotation(param.annotation, type_hints, name)
+            base_annotation, extras = _split_annotated(hinted_annotation)
             dependency_marker = _annotation_marker(extras, _Dependency)
             param_marker = _annotation_marker(extras, Param)
             if param.kind is inspect.Parameter.VAR_KEYWORD:
@@ -681,19 +764,22 @@ class APIRouter:
             if name in req.path_params:
                 kwargs[name] = req.path_params[name]
                 continue
-            if base_annotation is Request or name == "request":
+            if _is_request_annotation(base_annotation) or name == "request":
                 kwargs[name] = req
                 continue
             default = param.default
             if isinstance(default, _Dependency) or dependency_marker is not None:
                 dep = default.dependency if isinstance(default, _Dependency) else None
                 dep = dep or dependency_marker.dependency
-                kwargs[name] = await self._invoke_dependency(dep, req)
+                kwargs[name] = await self._invoke_dependency(
+                    dep, req, cleanup_callbacks
+                )
                 continue
             if isinstance(default, Param) or param_marker is not None:
                 marker = default if isinstance(default, Param) else param_marker
                 value, found = _extract_param_value(marker, req, name, body_cache)
                 if found:
+                    value = _coerce_annotation_value(base_annotation, value)
                     kwargs[name] = value
                     if marker.location == "body":
                         body_cache = value
@@ -709,19 +795,28 @@ class APIRouter:
                 if body_cache is None:
                     body_cache = _load_body(req)
                 if isinstance(body_cache, dict) and name in body_cache:
-                    kwargs[name] = body_cache[name]
+                    kwargs[name] = _coerce_annotation_value(
+                        base_annotation, body_cache[name]
+                    )
                     continue
             if default is not inspect._empty:
                 kwargs[name] = default
         return kwargs
 
-    async def _invoke_dependency(self, dep: Callable[..., Any], req: Request) -> Any:
+    async def _invoke_dependency(
+        self,
+        dep: Callable[..., Any],
+        req: Request,
+        cleanup_callbacks: list[Callable[[], Any]],
+    ) -> Any:
         sig = inspect.signature(dep)
+        type_hints = _resolve_type_hints(dep)
         kwargs: dict[str, Any] = {}
         for name, param in sig.parameters.items():
-            base_annotation, extras = _split_annotated(param.annotation)
+            hinted_annotation = _resolved_annotation(param.annotation, type_hints, name)
+            base_annotation, extras = _split_annotated(hinted_annotation)
             param_marker = _annotation_marker(extras, Param)
-            if base_annotation is Request or name == "request":
+            if _is_request_annotation(base_annotation) or name == "request":
                 kwargs[name] = req
                 continue
             if isinstance(param.default, Param) or param_marker is not None:
@@ -751,6 +846,26 @@ class APIRouter:
         out = dep(**kwargs)
         if inspect.isawaitable(out):
             out = await out
+        if inspect.isasyncgen(out):
+            agen = out
+            try:
+                value = await anext(agen)
+            except StopAsyncIteration:
+                return None
+            cleanup_callbacks.append(agen.aclose)
+            return value
+        if inspect.isgenerator(out):
+            gen = out
+            try:
+                value = next(gen)
+            except StopIteration:
+                return None
+
+            def _close_gen() -> None:
+                gen.close()
+
+            cleanup_callbacks.append(_close_gen)
+            return value
         return out
 
     def openapi(self) -> dict[str, Any]:
@@ -1003,6 +1118,14 @@ def _annotation_marker(extras: Iterable[Any], marker_type: type[Any]) -> Any | N
     return None
 
 
+def _is_request_annotation(annotation: Any) -> bool:
+    if annotation is Request:
+        return True
+    if isinstance(annotation, str):
+        return annotation.split(".")[-1] == "Request"
+    return getattr(annotation, "__name__", None) == "Request"
+
+
 def _load_body(req: Request) -> Any:
     try:
         return req.json()
@@ -1036,6 +1159,103 @@ def _extract_param_value(
             return None, False
         return value, True
     return None, False
+
+
+def _to_jsonable(value: Any) -> Any:
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, dict):
+        return {str(k): _to_jsonable(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_to_jsonable(v) for v in value]
+    if isinstance(value, tuple):
+        return [_to_jsonable(v) for v in value]
+    if isinstance(value, set):
+        return [_to_jsonable(v) for v in sorted(value, key=repr)]
+    if isinstance(value, (bytes, bytearray)):
+        try:
+            return bytes(value).decode("utf-8")
+        except UnicodeDecodeError:
+            return bytes(value).hex()
+    if hasattr(value, "model_dump") and callable(value.model_dump):
+        return _to_jsonable(value.model_dump())
+    if hasattr(value, "dict") and callable(value.dict):
+        return _to_jsonable(value.dict())
+    if hasattr(value, "__dict__"):
+        return {
+            k: _to_jsonable(v) for k, v in vars(value).items() if not k.startswith("_")
+        }
+    return str(value)
+
+
+def _coerce_annotation_value(annotation: Any, value: Any) -> Any:
+    if value is None:
+        return None
+    if annotation in (inspect._empty, Any):
+        return value
+    if get_origin(annotation) is Annotated:
+        args = get_args(annotation)
+        if args:
+            annotation = args[0]
+    origin = get_origin(annotation)
+    if origin is not None:
+        if origin in (list, tuple, set):
+            return value
+        for candidate in get_args(annotation):
+            if candidate is type(None):
+                continue
+            coerced = _coerce_annotation_value(candidate, value)
+            if coerced is not value:
+                return coerced
+        return value
+    if inspect.isclass(annotation):
+        if hasattr(annotation, "model_validate") and callable(
+            annotation.model_validate
+        ):
+            try:
+                return annotation.model_validate(value)
+            except Exception:
+                return value
+        if isinstance(value, annotation):
+            return value
+    return value
+
+
+def _resolve_type_hints(fn: Callable[..., Any]) -> dict[str, Any]:
+    try:
+        return get_type_hints(fn, include_extras=True)
+    except Exception:
+        return {}
+
+
+def _resolved_annotation(declared: Any, type_hints: dict[str, Any], name: str) -> Any:
+    if get_origin(declared) is Annotated:
+        return declared
+    return type_hints.get(name, declared)
+
+
+def _coerce_response_object(value: Any) -> Response | None:
+    if value is None or isinstance(value, Response):
+        return None
+
+    status_code = getattr(value, "status_code", None)
+    body = getattr(value, "body", None)
+    if not isinstance(status_code, int) or not isinstance(body, (bytes, bytearray)):
+        return None
+
+    header_items: list[tuple[str, str]] = []
+    raw_headers = getattr(value, "raw_headers", None)
+    if isinstance(raw_headers, list):
+        for k, v in raw_headers:
+            if isinstance(k, bytes) and isinstance(v, bytes):
+                header_items.append((k.decode("latin-1").lower(), v.decode("latin-1")))
+    else:
+        headers_obj = getattr(value, "headers", None)
+        if hasattr(headers_obj, "items"):
+            for k, v in headers_obj.items():
+                header_items.append((str(k).lower(), str(v)))
+
+    return Response(status_code=status_code, headers=header_items, body=bytes(body))
 
 
 def _security_from_dependencies(deps: Iterable[Any]) -> list[dict[str, list[str]]]:
