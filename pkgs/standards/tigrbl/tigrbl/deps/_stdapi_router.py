@@ -6,7 +6,7 @@ import importlib
 import importlib.util
 import inspect
 import warnings
-from typing import Annotated, Any, Callable, Iterable, get_args, get_origin
+from typing import Any, Callable, Iterable
 
 from tigrbl.transport.asgi_wsgi import (
     asgi_app as _asgi_app_impl,
@@ -17,7 +17,24 @@ from tigrbl.transport.asgi_wsgi import (
 )
 
 from .starlette import Response as StarletteResponse
-from ..system.docs.openapi import mount_openapi
+from ..system.docs.openapi import (
+    _annotation_marker,
+    _extract_param_value,
+    _extract_security_dependencies,
+    _is_request_annotation,
+    _iter_security_dependencies,
+    _load_body,
+    _normalize_schema_refs,
+    _request_schema_from_handler,
+    _resolve_component_schema_ref,
+    _schema_from_annotation,
+    _schema_from_model,
+    _security_from_dependencies,
+    _security_schemes_from_dependencies,
+    _split_annotated,
+    mount_openapi,
+    openapi as build_openapi,
+)
 from ..system.docs.swagger import mount_swagger
 
 from ..transport.rest.decorators import (
@@ -510,131 +527,7 @@ class APIRouter:
         return out
 
     def openapi(self) -> dict[str, Any]:
-        paths: dict[str, Any] = {}
-        components: dict[str, Any] = {"schemas": {}}
-        components_schemas: dict[str, Any] = components["schemas"]
-
-        for route in self._routes:
-            if not route.include_in_schema:
-                continue
-
-            path_item = paths.setdefault(route.path_template, {})
-            for method in sorted(route.methods):
-                status_code = route.status_code or status.HTTP_200_OK
-                responses: dict[str, Any] = {}
-                if route.responses:
-                    for code, meta in route.responses.items():
-                        entry: dict[str, Any] = {
-                            "description": meta.get("description", "") or "",
-                        }
-                        model = meta.get("model")
-                        if model is not None:
-                            entry["content"] = {
-                                "application/json": {
-                                    "schema": _schema_from_model(
-                                        model,
-                                        components_schemas,
-                                    )
-                                }
-                            }
-                        responses[str(code)] = entry
-                if str(status_code) not in responses:
-                    entry: dict[str, Any] = {"description": "Successful Response"}
-                    schema = route.response_schema
-                    if schema is None and route.response_model is not None:
-                        schema = _schema_from_model(
-                            route.response_model,
-                            components_schemas,
-                        )
-                    if schema is not None:
-                        entry["content"] = {"application/json": {"schema": schema}}
-                    responses[str(status_code)] = entry
-
-                op: dict[str, Any] = {
-                    "operationId": route.operation_id or route.name,
-                    "responses": responses,
-                }
-                if route.summary:
-                    op["summary"] = route.summary
-                if route.description:
-                    op["description"] = route.description
-                if route.tags:
-                    op["tags"] = route.tags
-                if route.deprecated:
-                    op["deprecated"] = True
-
-                params: list[dict[str, Any]] = []
-                for param_name in route.param_names:
-                    schema = (route.path_param_schemas or {}).get(param_name) or {
-                        "type": "string"
-                    }
-                    params.append(
-                        {
-                            "name": param_name,
-                            "in": "path",
-                            "required": True,
-                            "schema": schema,
-                        }
-                    )
-
-                for qname, qschema in (route.query_param_schemas or {}).items():
-                    params.append(
-                        {
-                            "name": qname,
-                            "in": "query",
-                            "required": bool(qschema.get("required", False)),
-                            "schema": {
-                                k: v for k, v in qschema.items() if k != "required"
-                            },
-                        }
-                    )
-
-                if params:
-                    op["parameters"] = params
-
-                request_schema = route.request_schema
-                if request_schema is None and route.request_model is not None:
-                    request_schema = _schema_from_model(
-                        route.request_model,
-                        components_schemas,
-                    )
-
-                alias = route.name.rsplit(".", maxsplit=1)[-1]
-                if request_schema is None:
-                    request_schema = _request_schema_from_handler(
-                        route, components_schemas
-                    )
-
-                if isinstance(request_schema, dict) and alias.startswith("bulk_"):
-                    request_schema = _resolve_component_schema_ref(
-                        request_schema,
-                        components_schemas,
-                    )
-
-                if request_schema is not None:
-                    op["requestBody"] = {
-                        "required": True,
-                        "content": {"application/json": {"schema": request_schema}},
-                    }
-
-                sec = _security_from_dependencies(route.dependencies or [])
-                if sec:
-                    op["security"] = sec
-                    components.setdefault("securitySchemes", {}).update(
-                        _security_schemes_from_dependencies(route.dependencies or [])
-                    )
-
-                path_item[method.lower()] = op
-
-        doc: dict[str, Any] = {
-            "openapi": "3.1.0",
-            "info": {"title": self.title, "version": self.version},
-            "paths": paths,
-            "components": components,
-        }
-        if self.description:
-            doc["info"]["description"] = self.description
-        return doc
+        return build_openapi(self)
 
     def _install_builtin_routes(self) -> None:
         mount_openapi(self, path=self.openapi_url)
@@ -682,10 +575,6 @@ def _route_match_priority(route: Route) -> tuple[int, int, int]:
     return (-is_metadata, dynamic_segments, path_length)
 
 
-def _is_http_bearer_dependency(dep: Any) -> bool:
-    return dep.__class__.__name__ == "HTTPBearer"
-
-
 class FastAPI(APIRouter):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         kwargs.setdefault("include_docs", True)
@@ -713,254 +602,22 @@ def _ensure_httpx_sync_transport() -> None:
 _ensure_httpx_sync_transport()
 
 
-def _normalize_schema_refs(node: Any) -> Any:
-    if isinstance(node, dict):
-        normalized: dict[str, Any] = {}
-        for key, value in node.items():
-            if (
-                key == "$ref"
-                and isinstance(value, str)
-                and value.startswith("#/$defs/")
-            ):
-                normalized[key] = value.replace("#/$defs/", "#/components/schemas/")
-                continue
-            normalized[key] = _normalize_schema_refs(value)
-        return normalized
-    if isinstance(node, list):
-        return [_normalize_schema_refs(item) for item in node]
-    return node
-
-
-def _schema_from_model(
-    model: Any,
-    components_schemas: dict[str, Any] | None = None,
-) -> dict[str, Any]:
-    try:
-        import pydantic
-
-        if isinstance(model, type) and issubclass(model, pydantic.BaseModel):
-            schema = model.model_json_schema(
-                ref_template="#/components/schemas/{model}"
-            )
-            schema = _normalize_schema_refs(schema)
-            defs = schema.pop("$defs", None)
-            if isinstance(defs, dict) and components_schemas is not None:
-                for name, definition in defs.items():
-                    components_schemas.setdefault(
-                        name,
-                        _normalize_schema_refs(definition),
-                    )
-            if components_schemas is None:
-                return schema  # type: ignore[no-any-return]
-
-            schema_name = str(schema.get("title") or model.__name__)
-            components_schemas.setdefault(schema_name, schema)
-            return {"$ref": f"#/components/schemas/{schema_name}"}
-    except Exception:
-        pass
-
-    origin = getattr(model, "__origin__", None)
-    if origin in (list, tuple, set):
-        item = model.__args__[0] if getattr(model, "__args__", None) else Any
-        return {
-            "type": "array",
-            "items": _schema_from_model(item, components_schemas),
-        }
-    return {"type": "object"}
-
-
-def _resolve_component_schema_ref(
-    schema: dict[str, Any],
-    components_schemas: dict[str, Any],
-) -> dict[str, Any]:
-    ref = schema.get("$ref")
-    if not isinstance(ref, str) or not ref.startswith("#/components/schemas/"):
-        return schema
-
-    schema_name = ref.rsplit("/", maxsplit=1)[-1]
-    component = components_schemas.get(schema_name)
-    if not isinstance(component, dict):
-        return schema
-    return component
-
-
-def _schema_from_annotation(
-    annotation: Any,
-    components_schemas: dict[str, Any],
-) -> dict[str, Any]:
-    annotation, _ = _split_annotated(annotation)
-
-    if annotation is Any:
-        return {"type": "object"}
-
-    origin = get_origin(annotation)
-    if origin in (list, tuple, set):
-        args = get_args(annotation)
-        item_annotation = args[0] if args else Any
-        return {
-            "type": "array",
-            "items": _schema_from_annotation(item_annotation, components_schemas),
-        }
-
-    if origin is not None:
-        args = [arg for arg in get_args(annotation) if arg is not type(None)]
-        if len(args) == 1:
-            return _schema_from_annotation(args[0], components_schemas)
-
-    if annotation in (dict,):
-        return {"type": "object"}
-
-    try:
-        from collections.abc import Mapping as _Mapping
-
-        if isinstance(annotation, type) and issubclass(annotation, _Mapping):
-            return {"type": "object"}
-    except Exception:
-        pass
-
-    return _schema_from_model(annotation, components_schemas)
-
-
-def _request_schema_from_handler(
-    route: Route,
-    components_schemas: dict[str, Any],
-) -> dict[str, Any] | None:
-    handler = getattr(route, "handler", None)
-    if handler is None:
-        return None
-
-    try:
-        signature = inspect.signature(handler)
-    except Exception:
-        return None
-
-    for param in signature.parameters.values():
-        if param.kind not in (
-            inspect.Parameter.POSITIONAL_ONLY,
-            inspect.Parameter.POSITIONAL_OR_KEYWORD,
-            inspect.Parameter.KEYWORD_ONLY,
-        ):
-            continue
-
-        annotation, extras = _split_annotated(param.annotation)
-        marker = _annotation_marker(extras, Param)
-        if marker is None or marker.location != "body":
-            continue
-
-        return _schema_from_annotation(annotation, components_schemas)
-
-    return None
-
-
-def _split_annotated(annotation: Any) -> tuple[Any, tuple[Any, ...]]:
-    if get_origin(annotation) is Annotated:
-        args = get_args(annotation)
-        if args:
-            return args[0], tuple(args[1:])
-    return annotation, ()
-
-
-def _annotation_marker(extras: Iterable[Any], marker_type: type[Any]) -> Any | None:
-    for extra in extras:
-        if isinstance(extra, marker_type):
-            return extra
-    return None
-
-
-def _is_request_annotation(annotation: Any) -> bool:
-    if annotation is Request:
-        return True
-    if isinstance(annotation, str):
-        normalized = annotation.strip().strip("\"'")
-        return normalized.rsplit(".", maxsplit=1)[-1] == "Request"
-    return False
-
-
-def _load_body(req: Request) -> Any:
-    try:
-        return req.json()
-    except Exception as exc:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Invalid JSON: {exc}",
-        ) from exc
-
-
-def _extract_param_value(
-    marker: Param, req: Request, param_name: str, body_cache: Any | None
-) -> tuple[Any, bool]:
-    alias = marker.alias or param_name
-    if marker.location == "query":
-        if alias in req.query_params:
-            return req.query_params[alias], True
-        return None, False
-    if marker.location == "header":
-        key = alias.lower()
-        if key in req.headers:
-            return req.headers.get(key), True
-        return None, False
-    if marker.location == "path":
-        if alias in req.path_params:
-            return req.path_params[alias], True
-        return None, False
-    if marker.location == "body":
-        value = body_cache if body_cache is not None else _load_body(req)
-        if value is None:
-            return None, False
-        return value, True
-    return None, False
-
-
-def _security_from_dependencies(deps: Iterable[Any]) -> list[dict[str, list[str]]]:
-    security: list[dict[str, list[str]]] = []
-    for dependency in _extract_security_dependencies(deps):
-        if _is_http_bearer_dependency(dependency):
-            scheme_name = getattr(dependency, "scheme_name", None) or "HTTPBearer"
-            security.append({scheme_name: []})
-    return security
-
-
-def _security_schemes_from_dependencies(deps: Iterable[Any]) -> dict[str, Any]:
-    schemes: dict[str, Any] = {}
-    for dependency in _extract_security_dependencies(deps):
-        if _is_http_bearer_dependency(dependency):
-            scheme_name = getattr(dependency, "scheme_name", None) or "HTTPBearer"
-            schemes[scheme_name] = {"type": "http", "scheme": "bearer"}
-    return schemes
-
-
-def _extract_security_dependencies(deps: Iterable[Any]) -> Iterable[Any]:
-    seen: set[int] = set()
-    for dep in deps:
-        yield from _iter_security_dependencies(dep, seen)
-
-
-def _iter_security_dependencies(dep: Any, seen: set[int]) -> Iterable[Any]:
-    if dep is None:
-        return
-
-    dep_id = id(dep)
-    if dep_id in seen:
-        return
-    seen.add(dep_id)
-
-    dependency = getattr(dep, "dependency", None)
-    if dependency is not None:
-        yield from _iter_security_dependencies(dependency, seen)
-        return
-
-    yield dep
-
-    if not callable(dep):
-        return
-
-    try:
-        signature = inspect.signature(dep)
-    except (TypeError, ValueError):
-        return
-
-    for param in signature.parameters.values():
-        default = param.default
-        if default is inspect._empty:
-            continue
-        yield from _iter_security_dependencies(default, seen)
+__all__ = [
+    "APIRouter",
+    "FastAPI",
+    "Router",
+    "_annotation_marker",
+    "_extract_param_value",
+    "_extract_security_dependencies",
+    "_is_request_annotation",
+    "_iter_security_dependencies",
+    "_load_body",
+    "_normalize_schema_refs",
+    "_request_schema_from_handler",
+    "_resolve_component_schema_ref",
+    "_schema_from_annotation",
+    "_schema_from_model",
+    "_security_from_dependencies",
+    "_security_schemes_from_dependencies",
+    "_split_annotated",
+]

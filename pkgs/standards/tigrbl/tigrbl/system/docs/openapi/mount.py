@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from ...deps._stdapi_types import Response
+from ....deps._stdapi_types import Response
+from .schema import openapi
 
 
 def mount_openapi(
@@ -14,7 +15,7 @@ def mount_openapi(
     """Mount an OpenAPI JSON endpoint onto ``router``."""
 
     def _openapi_handler(request: Any) -> Response:
-        return Response.json(router.openapi())
+        return Response.json(openapi(router))
 
     router.add_api_route(
         path,
