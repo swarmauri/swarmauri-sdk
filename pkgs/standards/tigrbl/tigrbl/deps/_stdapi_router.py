@@ -158,6 +158,10 @@ class APIRouter:
             prefix = "/" + prefix
         prefix = prefix.rstrip("/")
 
+        # Keep nested mounting semantics aligned with FastAPI by honoring
+        # the current router's own prefix as well as the include-time prefix.
+        base_prefix = (self.prefix or "") + prefix
+
         routes = getattr(other, "_routes", None)
         if routes is None:
             routes = getattr(other, "routes", [])
@@ -178,7 +182,7 @@ class APIRouter:
             route_methods = getattr(route, "methods", None) or {"GET"}
             route_methods = frozenset(str(method).upper() for method in route_methods)
 
-            new_path = prefix + route_path
+            new_path = base_prefix + route_path
             pattern, param_names = _compile_path(new_path)
 
             route_tags = getattr(route, "tags", None) or []
