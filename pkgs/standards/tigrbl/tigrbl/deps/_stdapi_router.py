@@ -5,8 +5,7 @@ from __future__ import annotations
 import importlib
 import importlib.util
 import inspect
-import traceback
-from pathlib import Path as FilePath
+import warnings
 from typing import Annotated, Any, Callable, Iterable, get_args, get_origin
 
 from tigrbl.transport.asgi_wsgi import (
@@ -640,6 +639,35 @@ class APIRouter:
     def _install_builtin_routes(self) -> None:
         mount_openapi(self, path=self.openapi_url)
         mount_swagger(self, path=self.docs_url)
+
+    def _swagger_ui_html(self, request: Request) -> str:
+        warnings.warn(
+            "APIRouter._swagger_ui_html is deprecated and will be removed in a "
+            "future release. Use mount_swagger(router, path=...) and call the "
+            "mounted docs route directly instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        docs_route = next(
+            (route for route in self._routes if route.name == "__docs__"),
+            None,
+        )
+        if docs_route is None:
+            mount_swagger(self, path=self.docs_url)
+            docs_route = next(
+                (route for route in self._routes if route.name == "__docs__"),
+                None,
+            )
+
+        if docs_route is None:
+            raise RuntimeError("Unable to resolve mounted swagger docs route.")
+
+        response = docs_route.handler(request)
+        body = getattr(response, "body", b"")
+        if isinstance(body, bytes):
+            return body.decode("utf-8")
+        return str(body)
 
 
 Router = APIRouter
