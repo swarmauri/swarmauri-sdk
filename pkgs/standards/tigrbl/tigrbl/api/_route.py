@@ -39,7 +39,9 @@ class Route:
 
     @property
     def path(self) -> str:
-        return self.path_template
+        if self.path_template == "/":
+            return "/"
+        return self.path_template.rstrip("/")
 
     @property
     def endpoint(self) -> Handler:
@@ -98,6 +100,11 @@ def compile_path(path_template: str) -> tuple[re.Pattern[str], tuple[str, ...]]:
     if not path_template.startswith("/"):
         path_template = "/" + path_template
 
+    # Accept both slashless and trailing-slash variants for non-root routes.
+    # This keeps route matching stable for clients that call `/resource` while
+    # routers expose `/resource/` (or vice-versa).
+    normalized_path = path_template.rstrip("/") or "/"
+
     param_names: list[str] = []
 
     def repl(match: re.Match[str]) -> str:
@@ -105,6 +112,8 @@ def compile_path(path_template: str) -> tuple[re.Pattern[str], tuple[str, ...]]:
         param_names.append(name)
         return rf"(?P<{name}>[^/]+)"
 
-    pattern_src = re.sub(r"\{([A-Za-z_][A-Za-z0-9_]*)\}", repl, path_template)
+    pattern_src = re.sub(r"\{([A-Za-z_][A-Za-z0-9_]*)\}", repl, normalized_path)
+    if normalized_path != "/":
+        pattern_src += "/?"
     pattern = re.compile("^" + pattern_src + "$")
     return pattern, tuple(param_names)
