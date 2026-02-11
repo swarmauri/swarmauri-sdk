@@ -385,7 +385,9 @@ code stays aligned with the framework’s versioned API.
 ```python
 from tigrbl import Base, TigrblApp, TigrblApi
 from tigrbl.types import Integer, String, Mapped
-from tigrbl.deps import Depends, Request, HTTPException
+from tigrbl.security.dependencies import Depends
+from tigrbl.transport.request import Request
+from tigrbl.runtime.status.exceptions import HTTPException
 ```
 
 🚫 **Avoid:**
