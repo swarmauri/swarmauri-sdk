@@ -6,6 +6,7 @@ higher-level ``Api``/``App`` interfaces.
 
 from __future__ import annotations
 
+import inspect
 from typing import Any, Callable
 
 from tigrbl.api._routing import (
@@ -73,12 +74,57 @@ class Router:
         self.prefix = normalize_prefix(prefix)
         self.tags = list(tags or [])
         self.dependencies = list(dependencies or [])
+        self._event_handlers: dict[str, list[Callable[..., Any]]] = {
+            "startup": [],
+            "shutdown": [],
+        }
 
         self._routes: list[Route] = []
         self.routes = self._routes
 
         if include_docs:
             self._install_builtin_routes()
+
+    @property
+    def event_handlers(self) -> dict[str, list[Callable[..., Any]]]:
+        """FastAPI-style event handler registry."""
+        return self._event_handlers
+
+    def add_event_handler(
+        self,
+        event_type: str,
+        handler: Callable[..., Any],
+    ) -> None:
+        """Register a startup or shutdown handler."""
+        if event_type not in self._event_handlers:
+            raise ValueError(
+                f"Unsupported event type '{event_type}'. "
+                f"Expected one of: {tuple(self._event_handlers.keys())}."
+            )
+        self._event_handlers[event_type].append(handler)
+
+    def on_event(
+        self, event_type: str
+    ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+        """Decorator form of :meth:`add_event_handler`."""
+
+        def _decorator(handler: Callable[..., Any]) -> Callable[..., Any]:
+            self.add_event_handler(event_type, handler)
+            return handler
+
+        return _decorator
+
+    async def run_event_handlers(self, event_type: str) -> None:
+        """Execute registered handlers for an event type in registration order."""
+        if event_type not in self._event_handlers:
+            raise ValueError(
+                f"Unsupported event type '{event_type}'. "
+                f"Expected one of: {tuple(self._event_handlers.keys())}."
+            )
+        for handler in self._event_handlers[event_type]:
+            result = handler()
+            if inspect.isawaitable(result):
+                await result
 
     def _normalize_prefix(self, prefix: str) -> str:
         return normalize_prefix(prefix)
