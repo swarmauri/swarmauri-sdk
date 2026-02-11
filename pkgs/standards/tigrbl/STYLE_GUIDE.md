@@ -8,3 +8,10 @@
   `define` and use CamelCase, e.g. `defineApiSpec`.
 - **derive + CamelCase** — Functions that produce subclasses from existing classes
   should begin with `derive` in CamelCase form, e.g. `deriveApp`.
+
+## Framework Policy
+
+- Tigrbl packages must use **Tigrbl-native APIs only** for application and router construction.
+- Do **not** introduce FastAPI- or Starlette-specific application objects, routers, lifecycle hooks, request/response abstractions, or middleware as core framework dependencies.
+- Treat Tigrbl as a pure ASGI/WSGI framework surface: build services with `TigrblApp`, `TigrblApi`, and related Tigrbl primitives.
+
