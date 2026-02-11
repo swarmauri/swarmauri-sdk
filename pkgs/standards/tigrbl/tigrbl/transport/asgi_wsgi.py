@@ -17,7 +17,12 @@ async def asgi_app(
     receive: Callable,
     send: Callable,
 ) -> None:
-    if scope.get("type") != "http":
+    scope_type = scope.get("type")
+    if scope_type == "lifespan":
+        await _asgi_lifespan(router, receive, send)
+        return
+
+    if scope_type != "http":
         await send(
             {
                 "type": "http.response.start",
@@ -47,6 +52,40 @@ async def asgi_app(
         }
     )
     await send({"type": "http.response.body", "body": resp.body})
+
+
+async def _asgi_lifespan(router: Any, receive: Callable, send: Callable) -> None:
+    while True:
+        message = await receive()
+        msg_type = message.get("type")
+        if msg_type == "lifespan.startup":
+            try:
+                runner = getattr(router, "_run_event_handlers", None)
+                if callable(runner):
+                    await runner("startup")
+                await send({"type": "lifespan.startup.complete"})
+            except Exception as exc:  # pragma: no cover - defensive
+                await send(
+                    {
+                        "type": "lifespan.startup.failed",
+                        "message": str(exc),
+                    }
+                )
+                return
+        elif msg_type == "lifespan.shutdown":
+            try:
+                runner = getattr(router, "_run_event_handlers", None)
+                if callable(runner):
+                    await runner("shutdown")
+                await send({"type": "lifespan.shutdown.complete"})
+            except Exception as exc:  # pragma: no cover - defensive
+                await send(
+                    {
+                        "type": "lifespan.shutdown.failed",
+                        "message": str(exc),
+                    }
+                )
+            return
 
 
 def wsgi_app(

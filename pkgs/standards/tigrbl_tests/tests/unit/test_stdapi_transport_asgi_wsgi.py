@@ -119,3 +119,38 @@ def test_invalid_asgi_wsgi_invocation_raises_type_error() -> None:
 
     with pytest.raises(TypeError, match="Invalid ASGI/WSGI invocation"):
         app("not-a-scope")
+
+
+@pytest.mark.asyncio()
+async def test_asgi_lifespan_scope_runs_startup_and_shutdown_handlers() -> None:
+    app = APIRouter()
+    calls: list[str] = []
+
+    app.add_event_handler("startup", lambda: calls.append("startup"))
+
+    async def shutdown_handler() -> None:
+        calls.append("shutdown")
+
+    app.add_event_handler("shutdown", shutdown_handler)
+
+    messages: list[dict[str, object]] = []
+    request_messages = iter(
+        [
+            {"type": "lifespan.startup"},
+            {"type": "lifespan.shutdown"},
+        ]
+    )
+
+    async def receive() -> dict[str, object]:
+        return next(request_messages)
+
+    async def send(message: dict[str, object]) -> None:
+        messages.append(message)
+
+    await app._asgi_app({"type": "lifespan"}, receive, send)
+
+    assert calls == ["startup", "shutdown"]
+    assert messages == [
+        {"type": "lifespan.startup.complete"},
+        {"type": "lifespan.shutdown.complete"},
+    ]

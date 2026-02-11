@@ -6,6 +6,9 @@ higher-level ``Api``/``App`` interfaces.
 
 from __future__ import annotations
 
+import inspect
+from contextlib import asynccontextmanager
+from types import SimpleNamespace
 from typing import Any, Callable
 
 from tigrbl.api._routing import (
@@ -73,6 +76,18 @@ class Router:
         self.prefix = normalize_prefix(prefix)
         self.tags = list(tags or [])
         self.dependencies = list(dependencies or [])
+        # FastAPI compatibility fields used by ``fastapi.testclient.TestClient``
+        # and dependency override workflows.
+        self.dependency_overrides: dict[Any, Any] = {}
+        self.state = SimpleNamespace()
+        self.on_startup: list[Callable[..., Any]] = []
+        self.on_shutdown: list[Callable[..., Any]] = []
+
+        @asynccontextmanager
+        async def _lifespan_context(_app: Any):
+            yield
+
+        self.lifespan_context = _lifespan_context
 
         self._routes: list[Route] = []
         self.routes = self._routes
@@ -111,6 +126,37 @@ class Router:
 
     def include_router(self, other: "Router", **kwargs: Any) -> None:
         return include_router(self, other, **kwargs)
+
+    def add_event_handler(self, event_type: str, handler: Callable[..., Any]) -> None:
+        """FastAPI-compatible event registration for startup/shutdown hooks."""
+        if event_type == "startup":
+            self.on_startup.append(handler)
+            return
+        if event_type == "shutdown":
+            self.on_shutdown.append(handler)
+            return
+        raise ValueError(
+            f"Unsupported event type '{event_type}'. Expected one of: "
+            "('startup', 'shutdown')."
+        )
+
+    def on_event(
+        self, event_type: str
+    ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+        """Decorator form of :meth:`add_event_handler`."""
+
+        def _decorator(handler: Callable[..., Any]) -> Callable[..., Any]:
+            self.add_event_handler(event_type, handler)
+            return handler
+
+        return _decorator
+
+    async def _run_event_handlers(self, event_type: str) -> None:
+        handlers = self.on_startup if event_type == "startup" else self.on_shutdown
+        for handler in handlers:
+            result = handler()
+            if inspect.isawaitable(result):
+                await result
 
     def __call__(self, *args: Any, **kwargs: Any):
         return _router_call_impl(self, *args, **kwargs)

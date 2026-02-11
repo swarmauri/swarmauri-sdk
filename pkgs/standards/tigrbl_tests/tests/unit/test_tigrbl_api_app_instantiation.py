@@ -40,3 +40,20 @@ def test_tigrbl_api_app_instantiation_sets_composed_state() -> None:
     assert api.models["Theta"] is Theta
     assert "apis" in app_dir
     assert app.apis == [api]
+
+
+@pytest.mark.unit
+def test_tigrbl_api_exposes_fastapi_compat_fields() -> None:
+    api = TigrblApi()
+
+    assert isinstance(api.dependency_overrides, dict)
+    assert isinstance(api.on_startup, list)
+    assert isinstance(api.on_shutdown, list)
+
+
+@pytest.mark.unit
+def test_tigrbl_app_exposes_fastapi_compat_dependency_overrides() -> None:
+    app = TigrblApp()
+
+    assert isinstance(app.dependency_overrides, dict)
+    assert isinstance(app.state, object)
