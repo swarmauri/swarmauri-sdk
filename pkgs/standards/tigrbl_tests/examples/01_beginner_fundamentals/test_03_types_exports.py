@@ -1,3 +1,4 @@
+import pytest
 from tigrbl import Base
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, Integer, JSON, String, Text
@@ -41,28 +42,44 @@ def test_types_exports_support_json_columns():
     class Gallery(Base, GUIDPk):
         __tablename__ = "type_gallery_json"
         __allow_unmapped__ = True
-        json = Column(JSON)
+        payload = Column(JSON)
 
     # Deployment: table metadata is available immediately.
     # Assertion: JSON columns are typed as JSON in metadata.
-    assert isinstance(Gallery.__table__.c.json.type, JSON)
+    assert isinstance(Gallery.__table__.c.payload.type, JSON)
 
 
 def test_types_exports_allow_json_column_name_without_shadowing_json_type():
-    """Ensure a ``json`` column name does not shadow the imported JSON type.
+    """Ensure a ``json`` SQL column name can be used without model attribute shadowing.
 
-    Purpose: guard against accidental symbol-shadowing regressions where using
-    ``json`` as a column name could interfere with JSON type references.
+    Purpose: keep ``json`` available as a column name while avoiding collisions
+    with Pydantic ``BaseModel.json`` method names.
 
-    Best practice: schema column names can be simple domain terms while type
-    imports remain explicit and reusable in subsequent declarations.
+    Best practice: use a Python-safe attribute name plus explicit DB column name
+    when names could collide with framework attributes.
     """
 
     class Gallery(Base, GUIDPk):
         __tablename__ = "type_gallery_json_shadow"
         __allow_unmapped__ = True
-        json = Column(JSON)
+        json_data = Column("json", JSON)
         json_backup = Column(JSON)
 
     assert isinstance(Gallery.__table__.c.json.type, JSON)
     assert isinstance(Gallery.__table__.c.json_backup.type, JSON)
+
+
+def test_types_exports_warn_when_json_attribute_shadows_basemodel_json():
+    """Document Pydantic warning behavior when model attribute ``json`` is used."""
+
+    with pytest.warns(
+        UserWarning,
+        match='Field name "json" in "Gallery" shadows an attribute in parent "BaseModel"',
+    ):
+
+        class Gallery(Base, GUIDPk):
+            __tablename__ = "type_gallery_json_warning"
+            __allow_unmapped__ = True
+            json = Column(JSON)
+
+    assert isinstance(Gallery.__table__.c.json.type, JSON)
