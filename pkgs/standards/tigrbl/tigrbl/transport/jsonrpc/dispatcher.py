@@ -75,7 +75,7 @@ except Exception:  # pragma: no cover
             self.detail = detail
 
 
-from ...runtime.errors import ERROR_MESSAGES, http_exc_to_rpc
+from ...runtime.status import ERROR_MESSAGES, http_exc_to_rpc
 from ...config.constants import TIGRBL_AUTH_CONTEXT_ATTR
 from .models import RPCRequest, RPCResponse
 from .openrpc import build_openrpc_spec

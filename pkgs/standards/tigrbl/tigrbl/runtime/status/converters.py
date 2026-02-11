@@ -3,8 +3,6 @@ from __future__ import annotations
 from typing import Any, Tuple
 
 from .utils import (
-    HTTPException,
-    status,
     PydanticValidationError,
     RequestValidationError,
     IntegrityError,
@@ -15,8 +13,9 @@ from .utils import (
     _stringify_exc,
     _format_validation,
 )
-from .exceptions import TigrblError
+from .exceptions import HTTPException, TigrblError
 from .mappings import (
+    status,
     _HTTP_TO_RPC,
     _RPC_TO_HTTP,
     ERROR_MESSAGES,

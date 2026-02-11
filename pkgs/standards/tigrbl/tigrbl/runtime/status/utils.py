@@ -1,44 +1,9 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, List, Mapping, Optional
+from typing import Any, Dict, Iterable, List, Mapping
 import logging
 
 logger = logging.getLogger(__name__)
-
-# Prefer stdlib API HTTPException/status; fall back to Starlette; finally a tiny shim.
-try:
-    from ...deps.stdapi import HTTPException, status
-except Exception:  # pragma: no cover
-    try:  # Starlette present
-        from starlette.exceptions import HTTPException  # type: ignore
-        from starlette import status  # type: ignore
-    except Exception:  # pragma: no cover
-
-        class HTTPException(Exception):  # minimal shim
-            def __init__(
-                self,
-                status_code: int,
-                detail: Any = None,
-                headers: Optional[dict] = None,
-            ) -> None:
-                super().__init__(detail)
-                self.status_code = status_code
-                self.detail = detail
-                self.headers = headers
-
-        class _Status:
-            HTTP_400_BAD_REQUEST = 400
-            HTTP_401_UNAUTHORIZED = 401
-            HTTP_403_FORBIDDEN = 403
-            HTTP_404_NOT_FOUND = 404
-            HTTP_409_CONFLICT = 409
-            HTTP_422_UNPROCESSABLE_ENTITY = 422
-            HTTP_500_INTERNAL_SERVER_ERROR = 500
-            HTTP_501_NOT_IMPLEMENTED = 501
-            HTTP_503_SERVICE_UNAVAILABLE = 503
-            HTTP_504_GATEWAY_TIMEOUT = 504
-
-        status = _Status()  # type: ignore
 
 # Optional imports – code must run even if these packages aren’t installed.
 try:
@@ -132,8 +97,6 @@ def _read_in_errors(ctx: Any) -> List[Dict[str, Any]]:
 
 
 __all__ = [
-    "HTTPException",
-    "status",
     "PydanticValidationError",
     "RequestValidationError",
     "IntegrityError",

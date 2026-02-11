@@ -3,7 +3,7 @@ from types import SimpleNamespace
 import pytest
 
 from tigrbl.runtime import system
-from tigrbl.runtime.errors import SystemStepError
+from tigrbl.runtime.status import SystemStepError
 
 
 def test_registry_tx_begin_step() -> None:

@@ -3,7 +3,7 @@ from types import SimpleNamespace
 import pytest
 
 from tigrbl.runtime.atoms.wire import validate_in
-from tigrbl.runtime.errors import HTTPException
+from tigrbl.runtime.status import HTTPException
 from tigrbl.runtime.kernel import (
     SchemaIn,
     SchemaOut,
