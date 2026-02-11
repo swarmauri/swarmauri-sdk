@@ -16,7 +16,10 @@ from typing import Any, Callable, Dict, Iterable, List, Mapping, Sequence
 import httpx
 import pytest
 import uvicorn
-from fastapi import APIRouter, Body, FastAPI, HTTPException
+
+import tigrbl as tigrbl_module
+from tigrbl.engine import shortcuts as tigrbl_engine_shortcuts
+from tigrbl.types import APIRouter, Body, HTTPException
 
 PACKAGE_DIR = Path(__file__).resolve().parents[1]
 SRC_DIR = PACKAGE_DIR / "src"
@@ -91,15 +94,7 @@ def _op_ctx_decorator(**metadata):
     return decorator
 
 
-tigrbl_module = types.ModuleType("tigrbl")
 tigrbl_module.op_ctx = _op_ctx_decorator
-sys.modules.setdefault("tigrbl", tigrbl_module)
-
-tigrbl_engine_module = types.ModuleType("tigrbl.engine")
-tigrbl_engine_shortcuts = types.ModuleType("tigrbl.engine.shortcuts")
-sys.modules.setdefault("tigrbl.engine", tigrbl_engine_module)
-sys.modules.setdefault("tigrbl.engine.shortcuts", tigrbl_engine_shortcuts)
-tigrbl_engine_module.shortcuts = tigrbl_engine_shortcuts  # type: ignore[attr-defined]
 
 
 def _stub_build_engine(cfg: Mapping[str, Any] | None = None, **_) -> Mapping[str, Any]:
@@ -112,11 +107,6 @@ def _stub_mem(async_: bool = True) -> Mapping[str, Any]:
 
 tigrbl_engine_shortcuts.engine = _stub_build_engine  # type: ignore[attr-defined]
 tigrbl_engine_shortcuts.mem = _stub_mem  # type: ignore[attr-defined]
-
-tigrbl_types_module = types.ModuleType("tigrbl.types")
-tigrbl_types_module.Session = object
-tigrbl_types_module.UUID = str
-sys.modules.setdefault("tigrbl.types", tigrbl_types_module)
 
 
 # ----------------------------------------------------------------------------
@@ -401,7 +391,7 @@ def _ensure_model_handlers(model: type) -> None:
     )
 
 
-class TigrblApp(FastAPI):
+class TigrblApp(tigrbl_module.TigrblApp):
     def __init__(self, *, engine: Mapping[str, Any] | None = None, **kwargs: Any):
         super().__init__(**kwargs)
         self.engine = engine
@@ -771,7 +761,7 @@ def _get_free_port() -> int:
 
 
 @contextlib.asynccontextmanager
-async def run_uvicorn_app(app: FastAPI):
+async def run_uvicorn_app(app: tigrbl_module.TigrblApp):
     port = _get_free_port()
     config = uvicorn.Config(
         app,
