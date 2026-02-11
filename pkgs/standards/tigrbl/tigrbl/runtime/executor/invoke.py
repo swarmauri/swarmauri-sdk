@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import inspect
 from typing import Any, MutableMapping, Optional, Union
 
 from .types import _Ctx, PhaseChains, Request, Session, AsyncSession
@@ -22,7 +23,25 @@ async def _invoke(
 ) -> Any:
     """Execute an operation through explicit phases with strict write policies."""
 
-    ctx = _Ctx.ensure(request=request, db=db, seed=ctx)
+    managed_db = db
+    db_cleanup: Any | None = None
+
+    if inspect.isgenerator(db):
+        try:
+            managed_db = next(db)
+        except StopIteration:
+            managed_db = None
+
+        db_cleanup = db.close
+    elif inspect.isasyncgen(db):
+        try:
+            managed_db = await anext(db)
+        except StopAsyncIteration:
+            managed_db = None
+
+        db_cleanup = db.aclose
+
+    ctx = _Ctx.ensure(request=request, db=managed_db, seed=ctx)
     if getattr(ctx, "app", None) is None and getattr(ctx, "api", None) is not None:
         ctx.app = ctx.api
     if getattr(ctx, "op", None) is None and getattr(ctx, "method", None) is not None:
@@ -33,7 +52,7 @@ async def _invoke(
             ctx.model = type(obj)
     skip_persist: bool = bool(ctx.get(CTX_SKIP_PERSIST_FLAG) or ctx.get("skip_persist"))
 
-    existed_tx_before = _in_tx(db) if db is not None else False
+    existed_tx_before = _in_tx(managed_db) if managed_db is not None else False
 
     async def _run_phase(
         name: str,
@@ -57,7 +76,7 @@ async def _invoke(
             owns_tx_now = not existed_tx_before
 
         guard = _install_db_guards(
-            db,
+            managed_db,
             phase=name,
             allow_flush=eff_allow_flush,
             allow_commit=eff_allow_commit,
@@ -70,7 +89,9 @@ async def _invoke(
         except Exception as exc:
             ctx.error = exc
             if in_tx:
-                await _rollback_if_owned(db, owns_tx_now, phases=phases, ctx=ctx)
+                await _rollback_if_owned(
+                    managed_db, owns_tx_now, phases=phases, ctx=ctx
+                )
             err_name = f"ON_{name}_ERROR"
             try:
                 await _run_chain(
@@ -113,7 +134,9 @@ async def _invoke(
     )
 
     if not skip_persist:
-        owns_tx_for_commit = (not existed_tx_before) and (db is not None and _in_tx(db))
+        owns_tx_for_commit = (not existed_tx_before) and (
+            managed_db is not None and _in_tx(managed_db)
+        )
         await _run_phase(
             "END_TX",
             allow_flush=True,
@@ -144,7 +167,13 @@ async def _invoke(
     )
     if ctx.get("result") is not None:
         ctx.response.result = ctx.get("result")
-    return ctx.response.result
+    try:
+        return ctx.response.result
+    finally:
+        if callable(db_cleanup):
+            rv = db_cleanup()
+            if inspect.isawaitable(rv):
+                await rv
 
 
 __all__ = ["_invoke"]
