@@ -16,6 +16,19 @@ from ..runtime.status.mappings import status
 from ..transport.request import Request
 
 
+def _is_http_response_like(obj: Any) -> bool:
+    return (
+        hasattr(obj, "status_code")
+        and hasattr(obj, "headers")
+        and (
+            hasattr(obj, "body")
+            or hasattr(obj, "body_iterator")
+            or hasattr(obj, "render")
+            or hasattr(obj, "path")
+        )
+    )
+
+
 async def dispatch(router: Any, req: Request) -> Response:
     candidates = [r for r in router._routes if req.method in r.methods]
     candidates.sort(key=router._route_match_priority)
@@ -75,6 +88,45 @@ async def call_handler(router: Any, route: Any, req: Request) -> Response:
 
     if isinstance(out, Response):
         return out
+    if _is_http_response_like(out):
+        body = bytes(getattr(out, "body", b"") or b"")
+        if not body and hasattr(out, "body_iterator"):
+            chunks: list[bytes] = []
+            body_iter = getattr(out, "body_iterator")
+            if body_iter is not None:
+                if hasattr(body_iter, "__aiter__"):
+                    async for chunk in body_iter:
+                        chunks.append(
+                            chunk.encode("utf-8")
+                            if isinstance(chunk, str)
+                            else bytes(chunk)
+                        )
+                else:
+                    for chunk in body_iter:
+                        chunks.append(
+                            chunk.encode("utf-8")
+                            if isinstance(chunk, str)
+                            else bytes(chunk)
+                        )
+                body = b"".join(chunks)
+        if not body and hasattr(out, "path"):
+            path = getattr(out, "path")
+            if isinstance(path, str):
+                with open(path, "rb") as fp:
+                    body = fp.read()
+        raw_headers = getattr(out, "headers", {})
+        if hasattr(raw_headers, "items"):
+            headers = list(raw_headers.items())
+        else:
+            headers = list(raw_headers)
+        media_type = getattr(out, "media_type", None)
+        if media_type and not any(k.lower() == "content-type" for k, _ in headers):
+            headers.append(("content-type", media_type))
+        return Response(
+            status_code=getattr(out, "status_code", 200),
+            headers=headers,
+            body=body,
+        )
     code = route.status_code if route.status_code is not None else 200
     if out is None:
         if code == 204:

@@ -161,6 +161,24 @@ class Router:
         mount_openapi(self, path=self.openapi_url)
         mount_swagger(self, path=self.docs_url)
 
+    def _swagger_ui_html(self, request: Request) -> str:
+        docs_route = next(
+            (route for route in self._routes if route.name == "__docs__"), None
+        )
+        if docs_route is None:
+            mount_swagger(self, path=self.docs_url)
+            docs_route = next(
+                (route for route in self._routes if route.name == "__docs__"), None
+            )
+        if docs_route is None:
+            raise RuntimeError("Unable to resolve mounted swagger docs route.")
+
+        response = docs_route.handler(request)
+        body = getattr(response, "body", b"")
+        if isinstance(body, bytes):
+            return body.decode("utf-8")
+        return str(body)
+
 
 def _route_match_priority(route: Route) -> tuple[int, int, int]:
     is_metadata = int(getattr(route, "name", "") in {"__openapi__", "__docs__"})

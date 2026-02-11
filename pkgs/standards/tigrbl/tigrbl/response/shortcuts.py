@@ -87,8 +87,7 @@ def as_json(
 ) -> Response:
     payload = _maybe_envelope(data) if envelope else data
     resp = JSONResponse(payload, status_code=status)
-    if dumps is not _dumps:
-        resp.body = dumps(payload)
+    resp.body = dumps(payload)
     return _with_headers(resp, headers)
 
 

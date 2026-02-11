@@ -6,7 +6,7 @@ import json as json_module
 import mimetypes
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Iterable, Mapping
+from typing import Any, AsyncIterator, Iterable, Mapping
 
 
 @dataclass
@@ -14,6 +14,7 @@ class Response:
     status_code: int = 200
     headers: list[tuple[str, str]] = field(default_factory=list)
     body: bytes = b""
+    media_type: str | None = None
 
     @staticmethod
     def _status_text(code: int) -> str:
@@ -37,6 +38,10 @@ class Response:
     def status_line(self) -> str:
         return f"{self.status_code} {self._status_text(self.status_code)}"
 
+    @property
+    def raw_headers(self) -> list[tuple[bytes, bytes]]:
+        return [(k.encode("latin-1"), v.encode("latin-1")) for k, v in self.headers]
+
     @classmethod
     def json(
         cls,
@@ -50,7 +55,12 @@ class Response:
         hdrs = [("content-type", "application/json; charset=utf-8")]
         for k, v in (headers or {}).items():
             hdrs.append((k.lower(), v))
-        return cls(status_code=status_code, headers=hdrs, body=payload)
+        return cls(
+            status_code=status_code,
+            headers=hdrs,
+            body=payload,
+            media_type="application/json",
+        )
 
     @classmethod
     def html(
@@ -63,7 +73,12 @@ class Response:
         hdrs = [("content-type", "text/html; charset=utf-8")]
         for k, v in (headers or {}).items():
             hdrs.append((k.lower(), v))
-        return cls(status_code=status_code, headers=hdrs, body=payload)
+        return cls(
+            status_code=status_code,
+            headers=hdrs,
+            body=payload,
+            media_type="text/html",
+        )
 
     @classmethod
     def text(
@@ -76,7 +91,12 @@ class Response:
         hdrs = [("content-type", "text/plain; charset=utf-8")]
         for k, v in (headers or {}).items():
             hdrs.append((k.lower(), v))
-        return cls(status_code=status_code, headers=hdrs, body=payload)
+        return cls(
+            status_code=status_code,
+            headers=hdrs,
+            body=payload,
+            media_type="text/plain",
+        )
 
 
 class JSONResponse(Response):
@@ -88,6 +108,7 @@ class JSONResponse(Response):
             status_code=status_code,
             headers=[("content-type", "application/json; charset=utf-8")],
             body=payload,
+            media_type="application/json",
         )
 
 
@@ -97,6 +118,7 @@ class HTMLResponse(Response):
             status_code=status_code,
             headers=[("content-type", "text/html; charset=utf-8")],
             body=content.encode("utf-8"),
+            media_type="text/html",
         )
 
 
@@ -106,6 +128,7 @@ class PlainTextResponse(Response):
             status_code=status_code,
             headers=[("content-type", "text/plain; charset=utf-8")],
             body=content.encode("utf-8"),
+            media_type="text/plain",
         )
 
 
@@ -116,15 +139,22 @@ class StreamingResponse(Response):
         status_code: int = 200,
         media_type: str = "application/octet-stream",
     ) -> None:
-        if isinstance(content, bytes):
-            payload = content
-        else:
-            payload = b"".join(content)
+        chunks = [content] if isinstance(content, bytes) else list(content)
         super().__init__(
             status_code=status_code,
             headers=[("content-type", media_type)],
-            body=payload,
+            body=b"".join(chunks),
+            media_type=media_type,
         )
+        self._chunks = [bytes(chunk) for chunk in chunks]
+
+    @property
+    def body_iterator(self) -> AsyncIterator[bytes]:
+        async def _iter() -> AsyncIterator[bytes]:
+            for chunk in self._chunks:
+                yield chunk
+
+        return _iter()
 
 
 class FileResponse(Response):
@@ -137,7 +167,9 @@ class FileResponse(Response):
             status_code=200,
             headers=[("content-type", content_type)],
             body=payload,
+            media_type=content_type,
         )
+        self.path = str(path)
 
 
 class RedirectResponse(Response):
@@ -146,7 +178,9 @@ class RedirectResponse(Response):
             status_code=status_code,
             headers=[("location", url)],
             body=b"",
+            media_type=None,
         )
+        self.url = url
 
 
 __all__ = [
