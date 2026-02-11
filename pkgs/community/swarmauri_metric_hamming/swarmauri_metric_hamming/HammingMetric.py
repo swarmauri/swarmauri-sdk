@@ -39,6 +39,30 @@ def _flatten_once(value: Sequence[object]) -> List[object]:
     return flattened
 
 
+def _coerce_scalar(value: object) -> object:
+    """Coerce scalar values to comparable primitives when possible."""
+
+    if isinstance(value, np.generic):
+        value = value.item()
+
+    if isinstance(value, bytes):
+        value = value.decode()
+
+    if isinstance(value, str):
+        stripped = value.strip()
+        if stripped:
+            if stripped.isdigit() or (
+                stripped[0] in {"-", "+"} and stripped[1:].isdigit()
+            ):
+                return int(stripped)
+            try:
+                return float(stripped)
+            except ValueError:
+                return value
+
+    return value
+
+
 @ComponentBase.register_type(MetricBase, "HammingMetric")
 class HammingMetric(MetricBase):
     """Concrete implementation of the Hamming distance."""
@@ -52,37 +76,44 @@ class HammingMetric(MetricBase):
             return [value]
 
         if isinstance(value, (str, bytes)):
-            return list(value.decode() if isinstance(value, bytes) else value)
+            sequence = value.decode() if isinstance(value, bytes) else value
+            return [_coerce_scalar(item) for item in sequence]
 
         if isinstance(value, dict):
-            return list(value.values())
+            return [_coerce_scalar(item) for item in value.values()]
 
         if isinstance(value, np.ndarray):
-            return value.flatten().tolist()
+            return [_coerce_scalar(item) for item in value.flatten().tolist()]
 
         if isinstance(value, IMatrix):
-            return _flatten_once(cast(Sequence[object], value.tolist()))
+            flattened = _flatten_once(cast(Sequence[object], value.tolist()))
+            return [_coerce_scalar(item) for item in flattened]
 
         if isinstance(value, IVector):
             if hasattr(value, "tolist"):
                 result = cast(Sequence[object], value.tolist())
-                return (
+                flattened = (
                     list(result)
                     if _is_scalar_sequence(result)
                     else _flatten_once(result)
                 )
+                return [_coerce_scalar(item) for item in flattened]
             return list(value)  # type: ignore[arg-type]
 
         if hasattr(value, "tolist"):
             as_list = cast(Sequence[object], value.tolist())
-            return (
+            flattened = (
                 list(as_list)
                 if _is_scalar_sequence(as_list)
                 else _flatten_once(as_list)
             )
+            return [_coerce_scalar(item) for item in flattened]
 
         if isinstance(value, Sequence):
-            return list(value) if _is_scalar_sequence(value) else _flatten_once(value)
+            flattened = (
+                list(value) if _is_scalar_sequence(value) else _flatten_once(value)
+            )
+            return [_coerce_scalar(item) for item in flattened]
 
         raise TypeError(f"Unsupported metric input type: {type(value)!r}")
 
