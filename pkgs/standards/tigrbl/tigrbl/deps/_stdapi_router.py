@@ -2,14 +2,19 @@
 
 from __future__ import annotations
 
-import asyncio
 import importlib
 import importlib.util
 import inspect
-import traceback
 from pathlib import Path as FilePath
 from typing import Annotated, Any, Callable, Iterable, get_args, get_origin
-from urllib.parse import parse_qs
+
+from tigrbl.transport.asgi_wsgi import (
+    asgi_app as _asgi_app_impl,
+    request_from_asgi as _request_from_asgi_impl,
+    request_from_wsgi as _request_from_wsgi_impl,
+    router_call as _router_call_impl,
+    wsgi_app as _wsgi_app_impl,
+)
 
 from .starlette import Response as StarletteResponse
 from ._stdapi_types import (
@@ -215,124 +220,23 @@ class APIRouter:
             )
 
     def __call__(self, *args: Any, **kwargs: Any):
-        if len(args) == 2 and isinstance(args[0], dict) and callable(args[1]):
-            return self._wsgi_app(args[0], args[1])
-        if len(args) == 1 and isinstance(args[0], dict):
-            scope = args[0]
-
-            async def _asgi2_instance(receive: Callable, send: Callable) -> None:
-                await self._asgi_app(scope, receive, send)
-
-            return _asgi2_instance
-        if len(args) == 3 and isinstance(args[0], dict):
-            return self._asgi_app(args[0], args[1], args[2])
-        raise TypeError("Invalid ASGI/WSGI invocation")
+        return _router_call_impl(self, *args, **kwargs)
 
     def _wsgi_app(
         self, environ: dict[str, Any], start_response: Callable[..., Any]
     ) -> list[bytes]:
-        try:
-            req = self._request_from_wsgi(environ)
-            resp = asyncio.run(self._dispatch(req))
-        except Exception as exc:  # pragma: no cover - defensive
-            if self.debug:
-                tb = traceback.format_exc()
-                resp = Response.json(
-                    {"detail": str(exc), "traceback": tb}, status_code=500
-                )
-            else:
-                resp = Response.json(
-                    {"detail": "Internal Server Error"}, status_code=500
-                )
-
-        start_response(resp.status_line(), resp.headers)
-        return [resp.body]
+        return _wsgi_app_impl(self, environ, start_response)
 
     async def _asgi_app(
         self, scope: dict[str, Any], receive: Callable, send: Callable
     ) -> None:
-        if scope.get("type") != "http":
-            await send(
-                {
-                    "type": "http.response.start",
-                    "status": 500,
-                    "headers": [],
-                }
-            )
-            await send({"type": "http.response.body", "body": b""})
-            return
-        body = b""
-        more_body = True
-        while more_body:
-            message = await receive()
-            body += message.get("body", b"")
-            more_body = message.get("more_body", False)
-        req = self._request_from_asgi(scope, body)
-        resp = await self._dispatch(req)
-        await send(
-            {
-                "type": "http.response.start",
-                "status": resp.status_code,
-                "headers": [
-                    (k.encode("latin-1"), v.encode("latin-1")) for k, v in resp.headers
-                ],
-            }
-        )
-        await send({"type": "http.response.body", "body": resp.body})
+        await _asgi_app_impl(self, scope, receive, send)
 
     def _request_from_wsgi(self, environ: dict[str, Any]) -> Request:
-        method = (environ.get("REQUEST_METHOD") or "GET").upper()
-        path = environ.get("PATH_INFO") or "/"
-        script_name = environ.get("SCRIPT_NAME") or ""
-
-        headers: dict[str, str] = {}
-        for k, v in environ.items():
-            if k.startswith("HTTP_"):
-                hk = k[5:].replace("_", "-").lower()
-                headers[hk] = str(v)
-        if "CONTENT_TYPE" in environ:
-            headers["content-type"] = str(environ["CONTENT_TYPE"])
-
-        query = parse_qs(environ.get("QUERY_STRING") or "", keep_blank_values=True)
-
-        try:
-            length = int(environ.get("CONTENT_LENGTH") or "0")
-        except ValueError:
-            length = 0
-        body = environ["wsgi.input"].read(length) if length > 0 else b""
-
-        return Request(
-            method=method,
-            path=path,
-            headers=headers,
-            query=query,
-            path_params={},
-            body=body,
-            script_name=script_name,
-            app=self,
-        )
+        return _request_from_wsgi_impl(self, environ)
 
     def _request_from_asgi(self, scope: dict[str, Any], body: bytes) -> Request:
-        method = (scope.get("method") or "GET").upper()
-        path = scope.get("path") or "/"
-        headers: dict[str, str] = {
-            k.decode("latin-1").lower(): v.decode("latin-1")
-            for k, v in scope.get("headers", [])
-        }
-        query = parse_qs(
-            scope.get("query_string", b"").decode("latin-1"), keep_blank_values=True
-        )
-        return Request(
-            method=method,
-            path=path,
-            headers=headers,
-            query=query,
-            path_params={},
-            body=body,
-            script_name=scope.get("root_path") or "",
-            app=self,
-            scope=scope,
-        )
+        return _request_from_asgi_impl(self, scope, body)
 
     async def _dispatch(self, req: Request) -> Response:
         candidates = [r for r in self._routes if req.method in r.methods]
