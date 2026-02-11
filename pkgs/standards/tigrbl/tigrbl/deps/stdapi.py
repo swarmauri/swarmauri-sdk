@@ -6,6 +6,7 @@ This module strictly does not use FastAPI.
 from __future__ import annotations
 
 import asyncio
+import dataclasses
 import importlib
 import importlib.util
 import inspect
@@ -14,9 +15,21 @@ import mimetypes
 import re
 import traceback
 from dataclasses import dataclass, field
+import types
+from uuid import UUID
 from pathlib import Path as FilePath
 from types import SimpleNamespace
-from typing import Any, Callable, Iterable, Mapping, get_args, get_origin, Annotated
+from typing import (
+    Any,
+    Callable,
+    Iterable,
+    Mapping,
+    Union,
+    get_args,
+    get_origin,
+    get_type_hints,
+    Annotated,
+)
 from urllib.parse import parse_qs
 
 
@@ -306,6 +319,10 @@ class Route:
     status_code: int | None = None
     dependencies: list[Any] | None = None
 
+    @property
+    def path(self) -> str:
+        return self.path_template
+
 
 def _compile_path(path_template: str) -> tuple[re.Pattern[str], tuple[str, ...]]:
     if not path_template.startswith("/"):
@@ -410,7 +427,7 @@ class APIRouter:
             request_model=request_model,
             responses=responses,
             status_code=status_code,
-            dependencies=list(dependencies or []),
+            dependencies=list(self.dependencies or []) + list(dependencies or []),
         )
         self._routes.append(route)
 
@@ -450,6 +467,8 @@ class APIRouter:
         tags: list[str] | None = None,
         **_: Any,
     ) -> None:
+        if not prefix:
+            prefix = getattr(other, "prefix", "") or ""
         if prefix and not prefix.startswith("/"):
             prefix = "/" + prefix
         prefix = prefix.rstrip("/")
@@ -457,7 +476,12 @@ class APIRouter:
         for route in other._routes:
             if route.name in ("__openapi__", "__docs__"):
                 continue
-            new_path = prefix + route.path_template
+            if prefix and route.path_template.startswith(prefix + "/"):
+                new_path = route.path_template
+            elif prefix == route.path_template:
+                new_path = route.path_template
+            else:
+                new_path = prefix + route.path_template
             pattern, param_names = _compile_path(new_path)
             merged_tags = list(dict.fromkeys((tags or []) + (route.tags or []))) or None
             self._routes.append(
@@ -482,11 +506,19 @@ class APIRouter:
                     request_model=route.request_model,
                     responses=route.responses,
                     status_code=route.status_code,
-                    dependencies=list(route.dependencies or []),
+                    dependencies=list(self.dependencies or [])
+                    + list(route.dependencies or []),
                 )
             )
 
     def __call__(self, *args: Any, **kwargs: Any):
+        if len(args) == 1 and isinstance(args[0], dict) and "type" in args[0]:
+            scope = args[0]
+
+            async def _instance(receive: Callable, send: Callable) -> None:
+                await self._asgi_app(scope, receive, send)
+
+            return _instance
         if len(args) == 2 and isinstance(args[0], dict) and callable(args[1]):
             return self._wsgi_app(args[0], args[1])
         if len(args) == 3 and isinstance(args[0], dict) and "type" in args[0]:
@@ -601,8 +633,15 @@ class APIRouter:
 
     async def _dispatch(self, req: Request) -> Response:
         candidates = [r for r in self._routes if req.method in r.methods]
+        alt_path = (
+            req.path[:-1]
+            if req.path.endswith("/") and req.path != "/"
+            else req.path + "/"
+        )
         for route in candidates:
             match = route.pattern.match(req.path)
+            if not match:
+                match = route.pattern.match(alt_path)
             if not match:
                 continue
             req2 = Request(
@@ -633,8 +672,9 @@ class APIRouter:
         )
 
     async def _call_handler(self, route: Route, req: Request) -> Response:
+        cleanups: list[Callable[[], Any]] = []
         try:
-            kwargs = await self._resolve_handler_kwargs(route, req)
+            kwargs = await self._resolve_handler_kwargs(route, req, cleanups)
             out = route.handler(**kwargs)
             if inspect.isawaitable(out):
                 out = await out
@@ -645,34 +685,64 @@ class APIRouter:
                 headers=he.headers,
             )
 
+        finally:
+            for cleanup in reversed(cleanups):
+                rv = cleanup()
+                if inspect.isawaitable(rv):
+                    await rv
+
         if isinstance(out, Response):
+            if route.status_code is not None and out.status_code == status.HTTP_200_OK:
+                out.status_code = route.status_code
             return out
+        if _looks_like_http_response(out):
+            resp = _coerce_http_response(out)
+            if route.status_code is not None and resp.status_code == status.HTTP_200_OK:
+                resp.status_code = route.status_code
+            return resp
         if out is None:
             return Response(
                 status_code=status.HTTP_204_NO_CONTENT, headers=[], body=b""
             )
         if isinstance(out, (dict, list, int, float, bool)):
-            return Response.json(out)
+            return Response.json(
+                _jsonable(out), status_code=route.status_code or status.HTTP_200_OK
+            )
         if isinstance(out, str):
-            return Response.text(out)
+            return Response.text(
+                out, status_code=route.status_code or status.HTTP_200_OK
+            )
         if isinstance(out, (bytes, bytearray)):
             return Response(
-                status_code=status.HTTP_200_OK,
+                status_code=route.status_code or status.HTTP_200_OK,
                 headers=[("content-type", "application/octet-stream")],
                 body=bytes(out),
             )
 
-        return Response.json(out)
+        return Response.json(
+            _jsonable(out), status_code=route.status_code or status.HTTP_200_OK
+        )
 
     async def _resolve_handler_kwargs(
-        self, route: Route, req: Request
+        self,
+        route: Route,
+        req: Request,
+        cleanups: list[Callable[[], Any]],
     ) -> dict[str, Any]:
         sig = inspect.signature(route.handler)
         kwargs: dict[str, Any] = {}
         body_cache: Any | None = None
 
         for name, param in sig.parameters.items():
-            base_annotation, extras = _split_annotated(param.annotation)
+            annotation = param.annotation
+            if isinstance(annotation, str):
+                try:
+                    annotation = get_type_hints(route.handler, include_extras=True).get(
+                        name, annotation
+                    )
+                except Exception:
+                    pass
+            base_annotation, extras = _split_annotated(annotation)
             dependency_marker = _annotation_marker(extras, _Dependency)
             param_marker = _annotation_marker(extras, Param)
             if param.kind is inspect.Parameter.VAR_KEYWORD:
@@ -681,20 +751,20 @@ class APIRouter:
             if name in req.path_params:
                 kwargs[name] = req.path_params[name]
                 continue
-            if base_annotation is Request or name == "request":
+            if base_annotation is Request or name in {"request", "req"}:
                 kwargs[name] = req
                 continue
             default = param.default
             if isinstance(default, _Dependency) or dependency_marker is not None:
                 dep = default.dependency if isinstance(default, _Dependency) else None
                 dep = dep or dependency_marker.dependency
-                kwargs[name] = await self._invoke_dependency(dep, req)
+                kwargs[name] = await self._invoke_dependency(dep, req, cleanups)
                 continue
             if isinstance(default, Param) or param_marker is not None:
                 marker = default if isinstance(default, Param) else param_marker
                 value, found = _extract_param_value(marker, req, name, body_cache)
                 if found:
-                    kwargs[name] = value
+                    kwargs[name] = _coerce_annotation_value(base_annotation, value)
                     if marker.location == "body":
                         body_cache = value
                     continue
@@ -709,19 +779,34 @@ class APIRouter:
                 if body_cache is None:
                     body_cache = _load_body(req)
                 if isinstance(body_cache, dict) and name in body_cache:
-                    kwargs[name] = body_cache[name]
+                    kwargs[name] = _coerce_annotation_value(
+                        base_annotation, body_cache[name]
+                    )
                     continue
             if default is not inspect._empty:
                 kwargs[name] = default
         return kwargs
 
-    async def _invoke_dependency(self, dep: Callable[..., Any], req: Request) -> Any:
+    async def _invoke_dependency(
+        self,
+        dep: Callable[..., Any],
+        req: Request,
+        cleanups: list[Callable[[], Any]],
+    ) -> Any:
         sig = inspect.signature(dep)
         kwargs: dict[str, Any] = {}
         for name, param in sig.parameters.items():
-            base_annotation, extras = _split_annotated(param.annotation)
+            annotation = param.annotation
+            if isinstance(annotation, str):
+                try:
+                    annotation = get_type_hints(dep, include_extras=True).get(
+                        name, annotation
+                    )
+                except Exception:
+                    pass
+            base_annotation, extras = _split_annotated(annotation)
             param_marker = _annotation_marker(extras, Param)
-            if base_annotation is Request or name == "request":
+            if base_annotation is Request or name in {"request", "req"}:
                 kwargs[name] = req
                 continue
             if isinstance(param.default, Param) or param_marker is not None:
@@ -751,6 +836,20 @@ class APIRouter:
         out = dep(**kwargs)
         if inspect.isawaitable(out):
             out = await out
+        if inspect.isgenerator(out):
+            gen = out
+            try:
+                out = next(gen)
+            except StopIteration:
+                out = None
+            cleanups.append(gen.close)
+        elif inspect.isasyncgen(out):
+            agen = out
+            try:
+                out = await agen.__anext__()
+            except StopAsyncIteration:
+                out = None
+            cleanups.append(agen.aclose)
         return out
 
     def openapi(self) -> dict[str, Any]:
@@ -838,11 +937,13 @@ class APIRouter:
                         "content": {"application/json": {"schema": request_schema}},
                     }
 
-                sec = _security_from_dependencies(route.dependencies or [])
+                signature_deps = _dependencies_from_callable(route.handler)
+                all_deps = list(route.dependencies or []) + signature_deps
+                sec = _security_from_dependencies(all_deps)
                 if sec:
                     op["security"] = sec
                     components.setdefault("securitySchemes", {}).update(
-                        _security_schemes_from_dependencies(route.dependencies or [])
+                        _security_schemes_from_dependencies(all_deps)
                     )
 
                 path_item[method.lower()] = op
@@ -1013,6 +1114,97 @@ def _load_body(req: Request) -> Any:
         ) from exc
 
 
+def _looks_like_http_response(value: Any) -> bool:
+    return (
+        hasattr(value, "status_code")
+        and hasattr(value, "headers")
+        and hasattr(value, "body")
+    )
+
+
+def _coerce_http_response(value: Any) -> Response:
+    hdrs = value.headers
+    if isinstance(hdrs, Mapping):
+        headers = [(str(k).lower(), str(v)) for k, v in hdrs.items()]
+    else:
+        headers = [(str(k).lower(), str(v)) for k, v in (hdrs or [])]
+    body = value.body
+    if isinstance(body, str):
+        body = body.encode("utf-8")
+    elif isinstance(body, bytearray):
+        body = bytes(body)
+    return Response(status_code=int(value.status_code), headers=headers, body=body)
+
+
+def _jsonable(value: Any) -> Any:
+    if dataclasses.is_dataclass(value):
+        return {k: _jsonable(v) for k, v in dataclasses.asdict(value).items()}
+    if isinstance(value, Mapping):
+        return {str(k): _jsonable(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [_jsonable(v) for v in value]
+    if isinstance(value, (str, int, float, bool)) or value is None:
+        return value
+    if isinstance(value, UUID):
+        return str(value)
+    if hasattr(value, "model_dump"):
+        try:
+            return _jsonable(value.model_dump())
+        except Exception:
+            pass
+    if hasattr(value, "dict"):
+        try:
+            return _jsonable(value.dict())
+        except Exception:
+            pass
+    if hasattr(value, "__dict__"):
+        return {
+            str(k): _jsonable(v)
+            for k, v in vars(value).items()
+            if not str(k).startswith("_")
+        }
+    return str(value)
+
+
+def _coerce_annotation_value(annotation: Any, value: Any) -> Any:
+    if value is None:
+        return None
+    origin = get_origin(annotation)
+    if origin is Annotated:
+        args = get_args(annotation)
+        annotation = args[0] if args else annotation
+    if annotation is inspect._empty:
+        return value
+    if annotation in (Any, object):
+        return value
+    if origin in (types.UnionType, Union):
+        for option in get_args(annotation):
+            coerced = _coerce_annotation_value(option, value)
+            if coerced is not value:
+                return coerced
+        return value
+    if origin in (list, tuple, set):
+        if not isinstance(value, list):
+            return value
+        args = get_args(annotation)
+        item_type = args[0] if args else Any
+        return [_coerce_annotation_value(item_type, item) for item in value]
+    if origin is not None:
+        return value
+    if inspect.isclass(annotation):
+        if hasattr(annotation, "model_validate") and isinstance(value, Mapping):
+            try:
+                return annotation.model_validate(value)
+            except Exception:
+                return value
+        if hasattr(annotation, "parse_obj") and isinstance(value, Mapping):
+            try:
+                return annotation.parse_obj(value)
+            except Exception:
+                return value
+    return value
+
+
 def _extract_param_value(
     marker: Param, req: Request, param_name: str, body_cache: Any | None
 ) -> tuple[Any, bool]:
@@ -1038,11 +1230,34 @@ def _extract_param_value(
     return None, False
 
 
+def _dependencies_from_callable(fn: Callable[..., Any]) -> list[Any]:
+    deps: list[Any] = []
+    try:
+        sig = inspect.signature(fn)
+    except Exception:
+        return deps
+    for param in sig.parameters.values():
+        annotation = param.annotation
+        if isinstance(annotation, str):
+            try:
+                annotation = get_type_hints(fn, include_extras=True).get(
+                    param.name, annotation
+                )
+            except Exception:
+                pass
+        _, extras = _split_annotated(annotation)
+        dep_marker = _annotation_marker(extras, _Dependency)
+        if dep_marker is not None:
+            deps.append(dep_marker)
+        if isinstance(param.default, _Dependency):
+            deps.append(param.default)
+    return deps
+
+
 def _security_from_dependencies(deps: Iterable[Any]) -> list[dict[str, list[str]]]:
     security: list[dict[str, list[str]]] = []
     for dep in deps:
-        dependency = getattr(dep, "dependency", None) or dep
-        if isinstance(dependency, HTTPBearer):
+        if _contains_http_bearer(dep):
             security.append({"HTTPBearer": []})
     return security
 
@@ -1050,7 +1265,18 @@ def _security_from_dependencies(deps: Iterable[Any]) -> list[dict[str, list[str]
 def _security_schemes_from_dependencies(deps: Iterable[Any]) -> dict[str, Any]:
     schemes: dict[str, Any] = {}
     for dep in deps:
-        dependency = getattr(dep, "dependency", None) or dep
-        if isinstance(dependency, HTTPBearer):
+        if _contains_http_bearer(dep):
             schemes["HTTPBearer"] = {"type": "http", "scheme": "bearer"}
     return schemes
+
+
+def _contains_http_bearer(dep: Any) -> bool:
+    dependency = getattr(dep, "dependency", None) or dep
+    if isinstance(dependency, HTTPBearer):
+        return True
+    if not callable(dependency):
+        return False
+    for child in _dependencies_from_callable(dependency):
+        if _contains_http_bearer(child):
+            return True
+    return False
