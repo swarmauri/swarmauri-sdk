@@ -89,3 +89,24 @@ def test_upload_download(monkeypatch):
     assert uri.endswith("foo.txt")
     data = adapter.download("foo.txt").read()
     assert data == b"hi"
+
+
+def test_put_get_blob(monkeypatch):
+    adapter = create_adapter(monkeypatch)
+    uri = adapter.put_blob("blob.txt", b"payload")
+    assert uri.endswith("blob.txt")
+    assert adapter.get_blob("blob.txt") == b"payload"
+
+
+def test_push_pull(monkeypatch, tmp_path):
+    adapter = create_adapter(monkeypatch)
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "nested.txt").write_bytes(b"hello")
+
+    adapter.push(src, prefix="prefix")
+
+    dest = tmp_path / "dest"
+    adapter.pull("prefix", dest)
+
+    assert (dest / "nested.txt").read_bytes() == b"hello"

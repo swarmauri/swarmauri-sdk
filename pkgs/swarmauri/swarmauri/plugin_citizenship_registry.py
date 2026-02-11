@@ -87,6 +87,7 @@ class PluginCitizenshipRegistry:
         # key providers
         ###
         "swarmauri.key_providers.InMemoryKeyProvider": "swarmauri_standard.key_providers.InMemoryKeyProvider",
+        "swarmauri.storage_adapters.MemoryStorageAdapter": "swarmauri_storage_memory.MemoryStorageAdapter",
         "swarmauri.agents.ExampleAgent": "swm_example_package.ExampleAgent",
         "swarmauri.agents.QAAgent": "swarmauri_standard.agents.QAAgent",
         "swarmauri.agents.RagAgent": "swarmauri_standard.agents.RagAgent",

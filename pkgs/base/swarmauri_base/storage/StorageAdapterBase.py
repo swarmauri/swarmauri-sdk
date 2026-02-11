@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import io
 import os
 from typing import BinaryIO, Optional, Literal
 from pydantic import Field
@@ -25,12 +26,35 @@ class StorageAdapterBase(IStorageAdapter, ComponentBase):
         raise NotImplementedError("download() must be implemented by subclass")
 
     # ------------------------------------------------------------------
+    def get_blob(self, key: str) -> bytes:
+        stream = self.download(key)
+        try:
+            return stream.read()
+        finally:
+            close = getattr(stream, "close", None)
+            if callable(close):
+                close()
+
+    # ------------------------------------------------------------------
+    def put_blob(self, key: str, data: bytes) -> str:
+        buffer = io.BytesIO(data)
+        return self.upload(key, buffer)
+
+    # ------------------------------------------------------------------
     def upload_dir(self, src: str | os.PathLike, *, prefix: str = "") -> None:
         raise NotImplementedError("upload_dir() must be implemented by subclass")
 
     # ------------------------------------------------------------------
+    def push(self, src: str | os.PathLike, *, prefix: str = "") -> None:
+        self.upload_dir(src, prefix=prefix)
+
+    # ------------------------------------------------------------------
     def download_dir(self, prefix: str, dest_dir: str | os.PathLike) -> None:
         raise NotImplementedError("download_dir() must be implemented by subclass")
+
+    # ------------------------------------------------------------------
+    def pull(self, prefix: str, dest_dir: str | os.PathLike) -> None:
+        self.download_dir(prefix, dest_dir)
 
     # ------------------------------------------------------------------
     @classmethod
