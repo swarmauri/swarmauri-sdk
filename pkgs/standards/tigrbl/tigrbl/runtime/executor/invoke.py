@@ -131,7 +131,8 @@ async def _invoke(
             ctx["result"] = serializer(ctx.get("result"))
         except Exception:
             logger.exception("response serialization failed", exc_info=True)
-    ctx.response = _NS(result=ctx.get("result"))
+    rendered_result = ctx.get("result")
+    ctx.response = _NS(result=rendered_result)
 
     await _run_phase("POST_COMMIT", allow_flush=True, allow_commit=False, in_tx=False)
 
@@ -142,8 +143,6 @@ async def _invoke(
         in_tx=False,
         nonfatal=True,
     )
-    if ctx.get("result") is not None:
-        ctx.response.result = ctx.get("result")
     return ctx.response.result
 
 

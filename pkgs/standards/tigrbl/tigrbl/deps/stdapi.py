@@ -6,6 +6,7 @@ This module strictly does not use FastAPI.
 from __future__ import annotations
 
 import asyncio
+import types
 import importlib
 import importlib.util
 import inspect
@@ -18,6 +19,11 @@ from pathlib import Path as FilePath
 from types import SimpleNamespace
 from typing import Any, Callable, Iterable, Mapping, get_args, get_origin, Annotated
 from urllib.parse import parse_qs
+
+try:  # pragma: no cover - optional dependency
+    from starlette.responses import Response as StarletteResponse
+except Exception:  # pragma: no cover
+    StarletteResponse = None  # type: ignore[assignment]
 
 
 class HTTPException(Exception):
@@ -487,6 +493,13 @@ class APIRouter:
             )
 
     def __call__(self, *args: Any, **kwargs: Any):
+        if len(args) == 1 and isinstance(args[0], dict) and "type" in args[0]:
+            scope = args[0]
+
+            async def _asgi2_instance(receive: Callable, send: Callable) -> None:
+                await self._asgi_app(scope, receive, send)
+
+            return _asgi2_instance
         if len(args) == 2 and isinstance(args[0], dict) and callable(args[1]):
             return self._wsgi_app(args[0], args[1])
         if len(args) == 3 and isinstance(args[0], dict) and "type" in args[0]:
@@ -633,6 +646,7 @@ class APIRouter:
         )
 
     async def _call_handler(self, route: Route, req: Request) -> Response:
+        route_status = int(route.status_code or status.HTTP_200_OK)
         try:
             kwargs = await self._resolve_handler_kwargs(route, req)
             out = route.handler(**kwargs)
@@ -644,25 +658,50 @@ class APIRouter:
                 status_code=he.status_code,
                 headers=he.headers,
             )
+        except Exception as exc:
+            if self.debug:
+                return Response.json(
+                    {"detail": str(exc), "traceback": traceback.format_exc()},
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
+            return Response.json(
+                {"detail": "Internal Server Error"},
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         if isinstance(out, Response):
+            if route.status_code is not None and out.status_code == status.HTTP_200_OK:
+                out.status_code = route_status
             return out
+        if StarletteResponse is not None and isinstance(out, StarletteResponse):
+            body = getattr(out, "body", b"")
+            headers = [
+                (str(k).lower(), str(v)) for k, v in getattr(out, "headers", {}).items()
+            ]
+            out_status = int(getattr(out, "status_code", status.HTTP_200_OK))
+            if route.status_code is not None and out_status == status.HTTP_200_OK:
+                out_status = route_status
+            return Response(
+                status_code=out_status,
+                headers=headers,
+                body=bytes(body or b""),
+            )
         if out is None:
             return Response(
                 status_code=status.HTTP_204_NO_CONTENT, headers=[], body=b""
             )
         if isinstance(out, (dict, list, int, float, bool)):
-            return Response.json(out)
+            return Response.json(out, status_code=route_status)
         if isinstance(out, str):
-            return Response.text(out)
+            return Response.text(out, status_code=route_status)
         if isinstance(out, (bytes, bytearray)):
             return Response(
-                status_code=status.HTTP_200_OK,
+                status_code=route_status,
                 headers=[("content-type", "application/octet-stream")],
                 body=bytes(out),
             )
 
-        return Response.json(out)
+        return Response.json(out, status_code=route_status)
 
     async def _resolve_handler_kwargs(
         self, route: Route, req: Request
@@ -749,6 +788,16 @@ class APIRouter:
                 continue
             kwargs[name] = param.default
         out = dep(**kwargs)
+        if isinstance(out, types.GeneratorType):
+            try:
+                return next(out)
+            except StopIteration:
+                return None
+        if isinstance(out, types.AsyncGeneratorType):
+            try:
+                return await out.__anext__()
+            except StopAsyncIteration:
+                return None
         if inspect.isawaitable(out):
             out = await out
         return out
