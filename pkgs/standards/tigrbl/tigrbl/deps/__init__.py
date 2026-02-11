@@ -38,15 +38,8 @@ from .sqlalchemy import *  # noqa: F403, F401
 # Re-export all Pydantic dependencies
 from .pydantic import *  # noqa: F403, F401
 
-from .fastapi import FastAPI
-
-# Re-export FastAPI compatibility and Starlette compatibility modules
-from .fastapi import *  # noqa: F403, F401
-from .starlette import *  # noqa: F403, F401
-
 __all__ = [
     "APIRouter",
-    "FastAPI",
     "Router",
     "Request",
     "Response",

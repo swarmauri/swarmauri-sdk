@@ -14,7 +14,7 @@ from typing import (
     runtime_checkable,
 )
 
-from ...deps.starlette import Request as StarletteRequest
+from ...transport.request import Request as StarletteRequest
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 

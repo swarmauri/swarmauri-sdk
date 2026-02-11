@@ -156,7 +156,7 @@ __all__: list[str] = [
     "BaseModel",
     "Field",
     "ValidationError",
-    # fastapi support (from deps.fastapi)
+    # routing/dependency support (from deps)
     "Request",
     "Response",
     "APIRouter",

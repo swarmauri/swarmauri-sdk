@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field, create_model
 from .fastapi import HTTPException, Query, Request, _status
 from .helpers import _ensure_jsonable
 from ...op import OpSpec
-from ...deps.starlette import Response as _StarletteResponse
+from starlette.responses import Response as _StarletteResponse
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/rest/io")

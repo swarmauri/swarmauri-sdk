@@ -7,7 +7,7 @@ import os
 import mimetypes
 import base64
 
-from ..deps.starlette import (
+from starlette.responses import (
     JSONResponse,
     HTMLResponse,
     PlainTextResponse,

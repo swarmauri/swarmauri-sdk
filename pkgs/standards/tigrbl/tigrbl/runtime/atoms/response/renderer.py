@@ -4,7 +4,9 @@ from pathlib import Path
 from typing import Any, AsyncIterable, Iterable, Mapping, Optional, Union, cast
 import logging
 
-from ....deps.starlette import BackgroundTask, Response
+from starlette.responses import Response
+
+from ....transport.background import BackgroundTask
 
 from ....response.shortcuts import (
     as_file,
