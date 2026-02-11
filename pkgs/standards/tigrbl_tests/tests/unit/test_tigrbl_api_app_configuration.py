@@ -1,7 +1,7 @@
 import pytest
 
 from tigrbl import Base, TigrblApi, TigrblApp
-from tigrbl.deps.stdapi import (
+from tigrbl.deps import (
     HTTPAuthorizationCredentials,
     HTTPBearer,
     Security,

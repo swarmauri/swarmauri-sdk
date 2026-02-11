@@ -1,4 +1,4 @@
-from tigrbl.deps import stdapi
+import tigrbl.deps as stdapi
 
 
 def test_request_parses_json_and_query_params():

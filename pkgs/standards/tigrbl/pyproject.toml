@@ -32,6 +32,9 @@ keywords = [
     'tigrbl',
     'sdk',
     'standards',
+    'asgi',
+    'rest',
+    'rpc',
 ]
 
 [project.optional-dependencies]
@@ -96,6 +99,4 @@ dev = [
     "pytest-benchmark>=4.0.0",
     "asyncpg>=0.30.0",
     "psycopg2-binary>=2.9.9",
-    "fastapi>=0.100.0",
-    "starlette>=0.37.0",
 ]
