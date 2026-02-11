@@ -41,8 +41,28 @@ def test_types_exports_support_json_columns():
     class Gallery(Base, GUIDPk):
         __tablename__ = "type_gallery_json"
         __allow_unmapped__ = True
-        json_data = Column(JSON)
+        json = Column(JSON)
 
     # Deployment: table metadata is available immediately.
     # Assertion: JSON columns are typed as JSON in metadata.
-    assert isinstance(Gallery.__table__.c.json_data.type, JSON)
+    assert isinstance(Gallery.__table__.c.json.type, JSON)
+
+
+def test_types_exports_allow_json_column_name_without_shadowing_json_type():
+    """Ensure a ``json`` column name does not shadow the imported JSON type.
+
+    Purpose: guard against accidental symbol-shadowing regressions where using
+    ``json`` as a column name could interfere with JSON type references.
+
+    Best practice: schema column names can be simple domain terms while type
+    imports remain explicit and reusable in subsequent declarations.
+    """
+
+    class Gallery(Base, GUIDPk):
+        __tablename__ = "type_gallery_json_shadow"
+        __allow_unmapped__ = True
+        json = Column(JSON)
+        json_backup = Column(JSON)
+
+    assert isinstance(Gallery.__table__.c.json.type, JSON)
+    assert isinstance(Gallery.__table__.c.json_backup.type, JSON)

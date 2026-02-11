@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import inspect
-import json
+import json as json_module
 import mimetypes
 import re
 from dataclasses import dataclass, field
@@ -61,7 +61,7 @@ class Request:
     def json(self) -> Any:
         if not self.body:
             return None
-        return json.loads(self.body.decode("utf-8"))
+        return json_module.loads(self.body.decode("utf-8"))
 
     def query_param(self, name: str, default: str | None = None) -> str | None:
         vals = self.query.get(name)
@@ -116,7 +116,7 @@ class Response:
         status_code: int = 200,
         headers: Mapping[str, str] | None = None,
     ) -> "Response":
-        payload = json.dumps(
+        payload = json_module.dumps(
             data, ensure_ascii=False, separators=(",", ":"), default=str
         ).encode("utf-8")
         hdrs = [("content-type", "application/json; charset=utf-8")]
@@ -153,7 +153,7 @@ class Response:
 
 class JSONResponse(Response):
     def __init__(self, content: Any, status_code: int = 200) -> None:
-        payload = json.dumps(
+        payload = json_module.dumps(
             content, ensure_ascii=False, separators=(",", ":"), default=str
         ).encode("utf-8")
         super().__init__(
