@@ -912,7 +912,8 @@ class APIRouter:
 
     def openapi(self) -> dict[str, Any]:
         paths: dict[str, Any] = {}
-        components: dict[str, Any] = {}
+        components: dict[str, Any] = {"schemas": {}}
+        components_schemas: dict[str, Any] = components["schemas"]
 
         for route in self._routes:
             if not route.include_in_schema:
@@ -931,7 +932,10 @@ class APIRouter:
                         if model is not None:
                             entry["content"] = {
                                 "application/json": {
-                                    "schema": _schema_from_model(model)
+                                    "schema": _schema_from_model(
+                                        model,
+                                        components_schemas,
+                                    )
                                 }
                             }
                         responses[str(code)] = entry
@@ -939,7 +943,10 @@ class APIRouter:
                     entry: dict[str, Any] = {"description": "Successful Response"}
                     schema = route.response_schema
                     if schema is None and route.response_model is not None:
-                        schema = _schema_from_model(route.response_model)
+                        schema = _schema_from_model(
+                            route.response_model,
+                            components_schemas,
+                        )
                     if schema is not None:
                         entry["content"] = {"application/json": {"schema": schema}}
                     responses[str(status_code)] = entry
@@ -988,7 +995,10 @@ class APIRouter:
 
                 request_schema = route.request_schema
                 if request_schema is None and route.request_model is not None:
-                    request_schema = _schema_from_model(route.request_model)
+                    request_schema = _schema_from_model(
+                        route.request_model,
+                        components_schemas,
+                    )
                 if request_schema is not None:
                     op["requestBody"] = {
                         "required": True,
@@ -1008,9 +1018,8 @@ class APIRouter:
             "openapi": "3.1.0",
             "info": {"title": self.title, "version": self.version},
             "paths": paths,
+            "components": components,
         }
-        if components:
-            doc["components"] = components
         if self.description:
             doc["info"]["description"] = self.description
         return doc
@@ -1129,19 +1138,59 @@ def _ensure_httpx_sync_transport() -> None:
 _ensure_httpx_sync_transport()
 
 
-def _schema_from_model(model: Any) -> dict[str, Any]:
+def _normalize_schema_refs(node: Any) -> Any:
+    if isinstance(node, dict):
+        normalized: dict[str, Any] = {}
+        for key, value in node.items():
+            if (
+                key == "$ref"
+                and isinstance(value, str)
+                and value.startswith("#/$defs/")
+            ):
+                normalized[key] = value.replace("#/$defs/", "#/components/schemas/")
+                continue
+            normalized[key] = _normalize_schema_refs(value)
+        return normalized
+    if isinstance(node, list):
+        return [_normalize_schema_refs(item) for item in node]
+    return node
+
+
+def _schema_from_model(
+    model: Any,
+    components_schemas: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     try:
         import pydantic
 
         if isinstance(model, type) and issubclass(model, pydantic.BaseModel):
-            return model.model_json_schema()  # type: ignore[no-any-return]
+            schema = model.model_json_schema(
+                ref_template="#/components/schemas/{model}"
+            )
+            schema = _normalize_schema_refs(schema)
+            defs = schema.pop("$defs", None)
+            if isinstance(defs, dict) and components_schemas is not None:
+                for name, definition in defs.items():
+                    components_schemas.setdefault(
+                        name,
+                        _normalize_schema_refs(definition),
+                    )
+            if components_schemas is None:
+                return schema  # type: ignore[no-any-return]
+
+            schema_name = str(schema.get("title") or model.__name__)
+            components_schemas.setdefault(schema_name, schema)
+            return {"$ref": f"#/components/schemas/{schema_name}"}
     except Exception:
         pass
 
     origin = getattr(model, "__origin__", None)
     if origin in (list, tuple, set):
         item = model.__args__[0] if getattr(model, "__args__", None) else Any
-        return {"type": "array", "items": _schema_from_model(item)}
+        return {
+            "type": "array",
+            "items": _schema_from_model(item, components_schemas),
+        }
     return {"type": "object"}
 
 

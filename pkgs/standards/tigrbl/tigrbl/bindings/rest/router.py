@@ -226,6 +226,7 @@ def _build_router(
         # Capture OUT schema for OpenAPI without enforcing runtime validation
         alias_ns = getattr(getattr(model, "schemas", None), sp.alias, None)
         out_model = getattr(alias_ns, "out", None) if alias_ns else None
+        in_model = getattr(alias_ns, "in_", None) if alias_ns else None
 
         responses_meta = dict(_RESPONSES_META)
         if out_model is not None and status_code != _status.HTTP_204_NO_CONTENT:
@@ -259,6 +260,7 @@ def _build_router(
             tags=list(sp.tags or (model.__name__,)),
             responses=responses_meta,
             include_in_schema=include_in_schema,
+            request_model=in_model,
         )
         if route_deps:
             route_kwargs["dependencies"] = route_deps
