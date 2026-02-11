@@ -1,15 +1,16 @@
 [project]
-name = "swarmauri_storage_minio"
-version = "0.2.0.dev14"
+name = "swarmauri_storage_memory"
+version = "0.1.0.dev1"
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" }
 ]
-description = "MinIO storage adapter for SwarmauriSDK"
+description = "In-memory storage adapter for SwarmauriSDK"
 readme = "README.md"
 license = "Apache-2.0"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
 requires-python = ">=3.10,<3.13"
 classifiers = [
+    "Development Status :: 1 - Planning",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
@@ -20,19 +21,18 @@ classifiers = [
     "Programming Language :: Python :: 3 :: Only",
 ]
 dependencies = [
-    # "peagen",
-    "minio",
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
 ]
 keywords = [
-    'swarmauri',
-    'peagen',
-    'sdk',
-    'standards',
-    'storage',
-    'minio',
+    "swarmauri",
+    "sdk",
+    "standards",
+    "storage",
+    "memory",
+    "in-memory",
+    "adapter",
 ]
 
 [tool.uv.sources]
@@ -42,10 +42,10 @@ swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 
 [project.entry-points.'swarmauri.storage_adapters']
-MinioStorageAdapter = "swarmauri_storage_minio.minio_storage_adapter:MinioStorageAdapter"
+MemoryStorageAdapter = "swarmauri_storage_memory.memory_storage_adapter:MemoryStorageAdapter"
 
 [project.entry-points."peagen.plugins.storage_adapters"]
-minio = "swarmauri_storage_minio.minio_storage_adapter:MinioStorageAdapter"
+memory = "swarmauri_storage_memory.memory_storage_adapter:MemoryStorageAdapter"
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
@@ -59,7 +59,7 @@ markers = [
     "xfail: Expected failures",
     "acceptance: Acceptance tests",
     "perf: Performance tests that measure execution time and resource usage",
-    "example: README-backed usage examples",
+    "example: Example usage tests",
 ]
 timeout = 300
 log_cli = true

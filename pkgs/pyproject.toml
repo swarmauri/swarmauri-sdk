@@ -110,6 +110,7 @@ members = [
     "standards/swarmauri_storage_github",
     "standards/swarmauri_storage_github_release",
     "standards/swarmauri_storage_minio",
+    "standards/swarmauri_storage_memory",
     "standards/swarmauri_gitfilter_file",
     "standards/swarmauri_gitfilter_s3fs",
     "standards/swarmauri_gitfilter_minio",
@@ -357,6 +358,7 @@ swarmauri_storage_file = { workspace = true }
 swarmauri_storage_github = { workspace = true }
 swarmauri_storage_github_release = { workspace = true }
 swarmauri_storage_minio = { workspace = true }
+swarmauri_storage_memory = { workspace = true }
 swarmauri_gitfilter_file = { workspace = true }
 swarmauri_gitfilter_s3fs = { workspace = true }
 swarmauri_gitfilter_minio = { workspace = true }
