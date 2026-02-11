@@ -243,7 +243,7 @@ def build_jsonrpc_router(
                     if resp is not None:
                         responses.append(resp)
                 return responses
-            elif isinstance(body, RPCRequest):
+            elif isinstance(body, (RPCRequest, Mapping)):
                 resp = await _dispatch_one(
                     api=api,
                     request=request,
@@ -275,7 +275,7 @@ def build_jsonrpc_router(
                     if resp is not None:
                         responses.append(resp)
                 return responses
-            elif isinstance(body, RPCRequest):
+            elif isinstance(body, (RPCRequest, Mapping)):
                 resp = await _dispatch_one(
                     api=api,
                     request=request,
@@ -314,7 +314,7 @@ def build_jsonrpc_router(
                     if resp is not None:
                         responses.append(resp)
                 return responses
-            elif isinstance(body, RPCRequest):
+            elif isinstance(body, (RPCRequest, Mapping)):
                 resp = await _dispatch_one(
                     api=api,
                     request=request,
@@ -345,7 +345,7 @@ def build_jsonrpc_router(
                     if resp is not None:
                         responses.append(resp)
                 return responses
-            elif isinstance(body, RPCRequest):
+            elif isinstance(body, (RPCRequest, Mapping)):
                 resp = await _dispatch_one(
                     api=api,
                     request=request,

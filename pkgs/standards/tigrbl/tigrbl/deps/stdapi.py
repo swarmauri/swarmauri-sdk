@@ -15,8 +15,17 @@ import re
 import traceback
 from dataclasses import dataclass, field
 from pathlib import Path as FilePath
-from types import SimpleNamespace
-from typing import Any, Callable, Iterable, Mapping, get_args, get_origin, Annotated
+from types import SimpleNamespace, UnionType
+from typing import (
+    Any,
+    Callable,
+    Iterable,
+    Mapping,
+    get_args,
+    get_origin,
+    Annotated,
+    Union,
+)
 from urllib.parse import parse_qs
 
 
@@ -52,6 +61,54 @@ class _Status:
 
 
 status = _Status()
+
+
+def _json_default(value: Any) -> Any:
+    if hasattr(value, "model_dump") and callable(getattr(value, "model_dump")):
+        try:
+            return value.model_dump()
+        except Exception:
+            pass
+
+    if isinstance(value, Mapping):
+        try:
+            return dict(value)
+        except Exception:
+            pass
+
+    mapping = getattr(value, "_mapping", None)
+    if mapping is not None:
+        try:
+            return dict(mapping)
+        except Exception:
+            pass
+
+    for attr in ("_asdict", "dict"):
+        fn = getattr(value, attr, None)
+        if callable(fn):
+            try:
+                return dict(fn())
+            except Exception:
+                pass
+
+    table = getattr(value, "__table__", None)
+    cols = getattr(table, "columns", None)
+    if cols is not None:
+        try:
+            return {
+                getattr(c, "name", str(c)): getattr(value, getattr(c, "name", str(c)))
+                for c in cols
+            }
+        except Exception:
+            pass
+
+    try:
+        data = vars(value)
+    except TypeError:
+        return str(value)
+
+    out = {k: v for k, v in data.items() if not str(k).startswith("_")}
+    return out if out else str(value)
 
 
 @dataclass
@@ -115,7 +172,7 @@ class Response:
         headers: Mapping[str, str] | None = None,
     ) -> "Response":
         payload = json.dumps(
-            data, ensure_ascii=False, separators=(",", ":"), default=str
+            data, ensure_ascii=False, separators=(",", ":"), default=_json_default
         ).encode("utf-8")
         hdrs = [("content-type", "application/json; charset=utf-8")]
         for k, v in (headers or {}).items():
@@ -152,7 +209,7 @@ class Response:
 class JSONResponse(Response):
     def __init__(self, content: Any, status_code: int = 200) -> None:
         payload = json.dumps(
-            content, ensure_ascii=False, separators=(",", ":"), default=str
+            content, ensure_ascii=False, separators=(",", ":"), default=_json_default
         ).encode("utf-8")
         super().__init__(
             status_code=status_code,
@@ -306,6 +363,11 @@ class Route:
     status_code: int | None = None
     dependencies: list[Any] | None = None
 
+    @property
+    def path(self) -> str:
+        """FastAPI-compatible route path alias."""
+        return self.path_template
+
 
 def _compile_path(path_template: str) -> tuple[re.Pattern[str], tuple[str, ...]]:
     if not path_template.startswith("/"):
@@ -321,6 +383,49 @@ def _compile_path(path_template: str) -> tuple[re.Pattern[str], tuple[str, ...]]
     pattern_src = re.sub(r"\{([A-Za-z_][A-Za-z0-9_]*)\}", repl, path_template)
     pattern = re.compile("^" + pattern_src + "$")
     return pattern, tuple(param_names)
+
+
+def _coerce_foreign_response(value: Any) -> Response | None:
+    if isinstance(value, Response):
+        return value
+
+    status_code = getattr(value, "status_code", None)
+    body = getattr(value, "body", None)
+    if not isinstance(status_code, int) or not isinstance(body, (bytes, bytearray)):
+        return None
+
+    headers_obj = getattr(value, "headers", None)
+    hdrs: list[tuple[str, str]] = []
+    if isinstance(headers_obj, Mapping):
+        hdrs = [(str(k).lower(), str(v)) for k, v in headers_obj.items()]
+    else:
+        raw_headers = getattr(value, "raw_headers", None)
+        if isinstance(raw_headers, (list, tuple)):
+            for item in raw_headers:
+                if not isinstance(item, (list, tuple)) or len(item) != 2:
+                    continue
+                k, v = item
+                if isinstance(k, (bytes, bytearray)):
+                    k = k.decode("latin-1")
+                if isinstance(v, (bytes, bytearray)):
+                    v = v.decode("latin-1")
+                hdrs.append((str(k).lower(), str(v)))
+
+    return Response(status_code=status_code, headers=hdrs, body=bytes(body))
+
+
+def _match_route_path(route: Route, path: str) -> re.Match[str] | None:
+    match = route.pattern.match(path)
+    if match:
+        return match
+
+    if path != "/" and path.endswith("/"):
+        return route.pattern.match(path.rstrip("/"))
+
+    if path != "/":
+        return route.pattern.match(path + "/")
+
+    return None
 
 
 class APIRouter:
@@ -487,6 +592,15 @@ class APIRouter:
             )
 
     def __call__(self, *args: Any, **kwargs: Any):
+        # ASGI2 style: app(scope) -> awaitable(receive, send)
+        if len(args) == 1 and isinstance(args[0], dict) and "type" in args[0]:
+            scope = args[0]
+
+            async def _instance(receive: Callable, send: Callable) -> None:
+                await self._asgi_app(scope, receive, send)
+
+            return _instance
+
         if len(args) == 2 and isinstance(args[0], dict) and callable(args[1]):
             return self._wsgi_app(args[0], args[1])
         if len(args) == 3 and isinstance(args[0], dict) and "type" in args[0]:
@@ -602,7 +716,7 @@ class APIRouter:
     async def _dispatch(self, req: Request) -> Response:
         candidates = [r for r in self._routes if req.method in r.methods]
         for route in candidates:
-            match = route.pattern.match(req.path)
+            match = _match_route_path(route, req.path)
             if not match:
                 continue
             req2 = Request(
@@ -620,7 +734,7 @@ class APIRouter:
             return await self._call_handler(route, req2)
 
         for route in self._routes:
-            if route.pattern.match(req.path):
+            if _match_route_path(route, req.path):
                 allowed = ",".join(sorted(route.methods))
                 return Response.json(
                     {"detail": "Method Not Allowed"},
@@ -655,24 +769,31 @@ class APIRouter:
                 except Exception:
                     pass
 
-        if isinstance(out, Response):
-            return out
+        out_response = _coerce_foreign_response(out)
+        if out_response is not None:
+            if (
+                route.status_code is not None
+                and out_response.status_code == status.HTTP_200_OK
+            ):
+                out_response.status_code = route.status_code
+            return out_response
+
+        default_status = route.status_code or status.HTTP_200_OK
         if out is None:
-            return Response(
-                status_code=status.HTTP_204_NO_CONTENT, headers=[], body=b""
-            )
+            empty_status = route.status_code or status.HTTP_204_NO_CONTENT
+            return Response(status_code=empty_status, headers=[], body=b"")
         if isinstance(out, (dict, list, int, float, bool)):
-            return Response.json(out)
+            return Response.json(out, status_code=default_status)
         if isinstance(out, str):
-            return Response.text(out)
+            return Response.text(out, status_code=default_status)
         if isinstance(out, (bytes, bytearray)):
             return Response(
-                status_code=status.HTTP_200_OK,
+                status_code=default_status,
                 headers=[("content-type", "application/octet-stream")],
                 body=bytes(out),
             )
 
-        return Response.json(out)
+        return Response.json(out, status_code=default_status)
 
     async def _resolve_handler_kwargs(
         self, route: Route, req: Request
@@ -704,9 +825,10 @@ class APIRouter:
                 marker = default if isinstance(default, Param) else param_marker
                 value, found = _extract_param_value(marker, req, name, body_cache)
                 if found:
-                    kwargs[name] = value
+                    coerced = _coerce_annotation(value, base_annotation)
+                    kwargs[name] = coerced
                     if marker.location == "body":
-                        body_cache = value
+                        body_cache = coerced
                     continue
                 if marker.required:
                     raise HTTPException(
@@ -719,7 +841,7 @@ class APIRouter:
                 if body_cache is None:
                     body_cache = _load_body(req)
                 if isinstance(body_cache, dict) and name in body_cache:
-                    kwargs[name] = body_cache[name]
+                    kwargs[name] = _coerce_annotation(body_cache[name], base_annotation)
                     continue
             if default is not inspect._empty:
                 kwargs[name] = default
@@ -1052,6 +1174,42 @@ def _load_body(req: Request) -> Any:
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Invalid JSON: {exc}",
         ) from exc
+
+
+def _coerce_annotation(value: Any, annotation: Any) -> Any:
+    if annotation in (inspect._empty, Any, None):
+        return value
+
+    origin = get_origin(annotation)
+    args = get_args(annotation)
+
+    if origin in (list, tuple, set) and isinstance(value, list):
+        inner = args[0] if args else Any
+        coerced = [_coerce_annotation(item, inner) for item in value]
+        if origin is tuple:
+            return tuple(coerced)
+        if origin is set:
+            return set(coerced)
+        return coerced
+
+    if origin in (UnionType, Union):
+        for arg in args:
+            if arg is type(None) and value is None:
+                return None
+            try:
+                return _coerce_annotation(value, arg)
+            except Exception:
+                continue
+        return value
+
+    validator = getattr(annotation, "model_validate", None)
+    if callable(validator):
+        return validator(value)
+
+    if isinstance(annotation, type) and isinstance(value, annotation):
+        return value
+
+    return value
 
 
 def _extract_param_value(
