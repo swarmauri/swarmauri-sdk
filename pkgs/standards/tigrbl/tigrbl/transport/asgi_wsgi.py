@@ -17,7 +17,47 @@ async def asgi_app(
     receive: Callable,
     send: Callable,
 ) -> None:
-    if scope.get("type") != "http":
+    scope_type = scope.get("type")
+
+    if scope_type == "lifespan":
+        while True:
+            message = await receive()
+            message_type = message.get("type")
+
+            if message_type == "lifespan.startup":
+                try:
+                    run_handlers = getattr(router, "run_event_handlers", None)
+                    if callable(run_handlers):
+                        await run_handlers("startup")
+                    await send({"type": "lifespan.startup.complete"})
+                except Exception as exc:  # pragma: no cover - defensive
+                    await send(
+                        {
+                            "type": "lifespan.startup.failed",
+                            "message": str(exc),
+                        }
+                    )
+                    return
+
+            elif message_type == "lifespan.shutdown":
+                try:
+                    run_handlers = getattr(router, "run_event_handlers", None)
+                    if callable(run_handlers):
+                        await run_handlers("shutdown")
+                    await send({"type": "lifespan.shutdown.complete"})
+                except Exception as exc:  # pragma: no cover - defensive
+                    await send(
+                        {
+                            "type": "lifespan.shutdown.failed",
+                            "message": str(exc),
+                        }
+                    )
+                return
+
+            else:  # pragma: no cover - unexpected lifespan frame
+                return
+
+    if scope_type != "http":
         await send(
             {
                 "type": "http.response.start",
