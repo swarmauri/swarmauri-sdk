@@ -17,6 +17,15 @@ from tigrbl.transport.asgi_wsgi import (
 )
 
 from .starlette import Response as StarletteResponse
+
+from ..transport.rest.decorators import (
+    delete as rest_delete,
+    get as rest_get,
+    patch as rest_patch,
+    post as rest_post,
+    put as rest_put,
+)
+
 from ._stdapi_types import (
     HTTPException,
     Param,
@@ -136,19 +145,19 @@ class APIRouter:
         return deco
 
     def get(self, path: str, **kwargs: Any) -> Callable[[Handler], Handler]:
-        return self.route(path, methods=["GET"], **kwargs)
+        return rest_get(self, path, **kwargs)
 
     def post(self, path: str, **kwargs: Any) -> Callable[[Handler], Handler]:
-        return self.route(path, methods=["POST"], **kwargs)
+        return rest_post(self, path, **kwargs)
 
     def put(self, path: str, **kwargs: Any) -> Callable[[Handler], Handler]:
-        return self.route(path, methods=["PUT"], **kwargs)
+        return rest_put(self, path, **kwargs)
 
     def patch(self, path: str, **kwargs: Any) -> Callable[[Handler], Handler]:
-        return self.route(path, methods=["PATCH"], **kwargs)
+        return rest_patch(self, path, **kwargs)
 
     def delete(self, path: str, **kwargs: Any) -> Callable[[Handler], Handler]:
-        return self.route(path, methods=["DELETE"], **kwargs)
+        return rest_delete(self, path, **kwargs)
 
     def include_router(
         self,
