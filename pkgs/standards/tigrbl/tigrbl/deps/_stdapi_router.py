@@ -428,8 +428,11 @@ class APIRouter:
                 body=body,
             )
         if out is None:
+            code = route.status_code or status.HTTP_204_NO_CONTENT
             return Response(
-                status_code=status.HTTP_204_NO_CONTENT, headers=[], body=b""
+                status_code=code,
+                headers=[],
+                body=b"",
             )
         code = route.status_code or status.HTTP_200_OK
         if isinstance(out, (dict, list, int, float, bool)):
