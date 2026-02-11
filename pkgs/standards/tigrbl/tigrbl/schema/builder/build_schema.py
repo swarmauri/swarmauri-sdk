@@ -51,8 +51,15 @@ def _build_schema(
     table_cols: Iterable[Any] = tuple(table.columns) if table is not None else ()
     specs: Dict[str, Any] = mro_collect_columns(orm_cls)
 
+    column_attr_names: Dict[int, str] = {}
+    mapper = getattr(orm_cls, "__mapper__", None)
+    if mapper is not None:
+        for prop in getattr(mapper, "column_attrs", ()):
+            for mapped_col in getattr(prop, "columns", ()):
+                column_attr_names[id(mapped_col)] = prop.key
+
     for col in table_cols:
-        attr_name = col.key or col.name
+        attr_name = column_attr_names.get(id(col), col.key or col.name)
 
         if include and attr_name not in include:
             continue
