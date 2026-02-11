@@ -65,7 +65,6 @@ from ...op.types import CANON, PHASES
 from ...rest import _nested_prefix
 from ...runtime import executor as _executor
 from ...schema.builder import _strip_parent_fields
-from starlette.responses import Response as StarletteResponse
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/rest/common")
@@ -73,7 +72,7 @@ logger.debug("Loaded module v3/bindings/rest/common")
 
 def _is_http_response(obj: Any) -> bool:
     """Best-effort response detection across stdapi and Starlette response types."""
-    if isinstance(obj, (Response, StarletteResponse)):
+    if isinstance(obj, Response):
         return True
     return (
         hasattr(obj, "status_code")
@@ -94,7 +93,6 @@ __all__ = [
     "Query",
     "Request",
     "Response",
-    "StarletteResponse",
     "Router",
     "Security",
     "_status",

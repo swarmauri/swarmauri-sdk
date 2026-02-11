@@ -5,7 +5,7 @@ from httpx import ASGITransport, AsyncClient
 from fastapi import FastAPI as FastAPILib
 
 from tigrbl.api import _api
-from tigrbl.deps import APIRouter
+from tigrbl.api._api import APIRouter
 
 
 def _build_fastapi():

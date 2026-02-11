@@ -10,7 +10,10 @@ from __future__ import annotations
 
 import warnings
 
-from ...deps import Body, Depends, Path, Query, Request, Router, Security
+from ...api._api import Router
+from ...core.crud.params import Body, Path, Query
+from ...security.dependencies import Depends, Security
+from ...transport.request import Request
 from ...response import (
     FileResponse,
     HTMLResponse,

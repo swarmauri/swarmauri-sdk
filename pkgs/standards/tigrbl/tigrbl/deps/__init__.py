@@ -6,7 +6,6 @@ This module provides a single location for all third-party dependencies,
 making it easier to manage versions and potential replacements.
 """
 
-from ..api._api import APIRouter, Router
 from ..core.crud.params import Body, Header, Path, Query
 from ..response.stdapi import (
     FileResponse,
@@ -39,8 +38,6 @@ from .sqlalchemy import *  # noqa: F403, F401
 from .pydantic import *  # noqa: F403, F401
 
 __all__ = [
-    "APIRouter",
-    "Router",
     "Request",
     "Response",
     "JSONResponse",

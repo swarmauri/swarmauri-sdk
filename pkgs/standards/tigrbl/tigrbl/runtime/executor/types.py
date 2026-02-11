@@ -14,11 +14,9 @@ from typing import (
     runtime_checkable,
 )
 
-from ...transport.request import Request as StarletteRequest
+from ...transport.request import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
-
-Request = StarletteRequest if StarletteRequest is not None else Any  # type: ignore
 
 
 @runtime_checkable

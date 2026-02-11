@@ -10,7 +10,6 @@ from ..api.resolve import (
     resolve_handler_kwargs,
     resolve_route_dependencies,
 )
-from starlette.responses import Response as StarletteResponse
 from ..response.stdapi import Response
 from ..runtime.status.exceptions import HTTPException
 from ..runtime.status.mappings import status
@@ -76,42 +75,6 @@ async def call_handler(router: Any, route: Any, req: Request) -> Response:
 
     if isinstance(out, Response):
         return out
-    if isinstance(out, StarletteResponse):
-        body = bytes(getattr(out, "body", b"") or b"")
-        if not body and hasattr(out, "body_iterator"):
-            chunks: list[bytes] = []
-            body_iter = getattr(out, "body_iterator")
-            if body_iter is not None:
-                if hasattr(body_iter, "__aiter__"):
-                    async for chunk in body_iter:
-                        chunks.append(
-                            chunk.encode("utf-8")
-                            if isinstance(chunk, str)
-                            else bytes(chunk)
-                        )
-                else:
-                    for chunk in body_iter:
-                        chunks.append(
-                            chunk.encode("utf-8")
-                            if isinstance(chunk, str)
-                            else bytes(chunk)
-                        )
-                body = b"".join(chunks)
-        if not body and hasattr(out, "path"):
-            path = getattr(out, "path")
-            if isinstance(path, str):
-                with open(path, "rb") as fp:
-                    body = fp.read()
-        headers = list(getattr(out, "headers", {}).items())
-        media_type = getattr(out, "media_type", None)
-        if media_type and not any(k.lower() == "content-type" for k, _ in headers):
-            headers.append(("content-type", media_type))
-        return Response(
-            status_code=getattr(out, "status_code", 200),
-            headers=headers,
-            body=body,
-        )
-
     code = route.status_code if route.status_code is not None else 200
     if out is None:
         if code == 204:
