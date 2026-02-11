@@ -66,6 +66,17 @@ class Api(APISpec, ApiRouter):
             _resolver.register_api(self, _engine_ctx)
             _resolver.resolve_provider(api=self)
 
+    def add_route(
+        self,
+        path: str,
+        endpoint: Any,
+        *,
+        methods: list[str] | tuple[str, ...],
+        **kwargs: Any,
+    ) -> None:
+        """Compatibility alias for frameworks/tests expecting ``add_route``."""
+        self.add_api_route(path, endpoint, methods=methods, **kwargs)
+
     def install_engines(
         self, *, api: Any = None, models: tuple[Any, ...] | None = None
     ) -> None:

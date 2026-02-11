@@ -93,8 +93,13 @@ def _seed_security_and_deps(api: Any, model: type) -> None:
         logger.debug("No authorization hook for %s", model.__name__)
 
     # Extra deps (router-level only; never part of kernel plan)
+    rest_deps: list[Any] = []
+    if getattr(api, "security_deps", None):
+        rest_deps.extend(list(getattr(api, "security_deps", ()) or ()))
     if getattr(api, "rest_dependencies", None):
-        setattr(model, TIGRBL_REST_DEPENDENCIES_ATTR, list(api.rest_dependencies))
+        rest_deps.extend(list(api.rest_dependencies))
+    if rest_deps:
+        setattr(model, TIGRBL_REST_DEPENDENCIES_ATTR, rest_deps)
         logger.debug("REST dependencies seeded for %s", model.__name__)
     else:
         logger.debug("No REST dependencies for %s", model.__name__)
