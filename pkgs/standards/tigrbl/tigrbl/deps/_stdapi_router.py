@@ -336,6 +336,7 @@ class APIRouter:
 
     async def _dispatch(self, req: Request) -> Response:
         candidates = [r for r in self._routes if req.method in r.methods]
+        candidates.sort(key=_route_match_priority)
         for route in candidates:
             match = route.pattern.match(req.path)
             if not match:
@@ -446,9 +447,29 @@ class APIRouter:
         return Response.json(out, status_code=code)
 
     async def _resolve_route_dependencies(self, route: Route, req: Request) -> None:
+        if self._is_metadata_route(route):
+            return
         for dep in route.dependencies or []:
             dep_callable = dep.dependency if isinstance(dep, _Dependency) else dep
             await self._invoke_dependency(dep_callable, req)
+
+    def _is_metadata_route(self, route: Route) -> bool:
+        if route.name in {"__openapi__", "__docs__"}:
+            return True
+
+        openapi_path = (
+            self.openapi_url
+            if self.openapi_url.startswith("/")
+            else f"/{self.openapi_url}"
+        )
+        docs_path = (
+            self.docs_url if self.docs_url.startswith("/") else f"/{self.docs_url}"
+        )
+        metadata_paths = {
+            self.prefix + openapi_path,
+            self.prefix + docs_path,
+        }
+        return route.path_template in metadata_paths
 
     async def _resolve_handler_kwargs(
         self, route: Route, req: Request
@@ -468,6 +489,9 @@ class APIRouter:
                 kwargs[name] = req.path_params[name]
                 continue
             if _is_request_annotation(base_annotation) or name == "request":
+                kwargs[name] = req
+                continue
+            if base_annotation is inspect._empty and name.endswith("request"):
                 kwargs[name] = req
                 continue
             default = param.default
@@ -756,6 +780,15 @@ class APIRouter:
 
 
 Router = APIRouter
+
+
+def _route_match_priority(route: Route) -> tuple[int, int, int]:
+    """Prefer exact, metadata routes before dynamic routes."""
+
+    is_metadata = int(getattr(route, "name", "") in {"__openapi__", "__docs__"})
+    dynamic_segments = route.path_template.count("{")
+    path_length = -len(route.path_template)
+    return (-is_metadata, dynamic_segments, path_length)
 
 
 def _is_http_bearer_dependency(dep: Any) -> bool:
