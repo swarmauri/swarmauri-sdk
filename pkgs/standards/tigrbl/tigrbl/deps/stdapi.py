@@ -747,13 +747,39 @@ class APIRouter:
         if isinstance(out, Response):
             return out
         if isinstance(out, StarletteResponse):
+            body = bytes(getattr(out, "body", b"") or b"")
+            if not body and hasattr(out, "body_iterator"):
+                chunks: list[bytes] = []
+                body_iter = getattr(out, "body_iterator")
+                if body_iter is not None:
+                    if hasattr(body_iter, "__aiter__"):
+                        async for chunk in body_iter:
+                            if isinstance(chunk, str):
+                                chunks.append(chunk.encode("utf-8"))
+                            else:
+                                chunks.append(bytes(chunk))
+                    else:
+                        for chunk in body_iter:
+                            if isinstance(chunk, str):
+                                chunks.append(chunk.encode("utf-8"))
+                            else:
+                                chunks.append(bytes(chunk))
+                    body = b"".join(chunks)
+            if not body and hasattr(out, "path"):
+                path = getattr(out, "path")
+                if isinstance(path, str):
+                    try:
+                        with open(path, "rb") as handle:
+                            body = handle.read()
+                    except OSError:
+                        body = b""
             return Response(
                 status_code=int(getattr(out, "status_code", status.HTTP_200_OK)),
                 headers=[
                     (str(k).lower(), str(v))
                     for k, v in dict(getattr(out, "headers", {}) or {}).items()
                 ],
-                body=bytes(getattr(out, "body", b"") or b""),
+                body=body,
             )
         if out is None:
             return Response(
