@@ -283,6 +283,24 @@ Handler = Callable[..., Any]
 
 
 @dataclass(frozen=True)
+class _CompatParam:
+    name: str
+
+
+@dataclass(frozen=True)
+class _CompatDependency:
+    name: str
+    call: Callable[..., Any]
+
+
+@dataclass(frozen=True)
+class _CompatDependant:
+    path_params: tuple[_CompatParam, ...]
+    query_params: tuple[_CompatParam, ...]
+    dependencies: tuple[_CompatDependency, ...]
+
+
+@dataclass(frozen=True)
 class Route:
     methods: frozenset[str]
     path_template: str
@@ -305,6 +323,63 @@ class Route:
     responses: dict[int, dict[str, Any]] | None = None
     status_code: int | None = None
     dependencies: list[Any] | None = None
+
+    @property
+    def path(self) -> str:
+        """FastAPI/Starlette compatibility alias for route path template."""
+        return self.path_template
+
+    @property
+    def endpoint(self) -> Handler:
+        """FastAPI/Starlette compatibility alias for handler callable."""
+        return self.handler
+
+    @property
+    def dependant(self) -> _CompatDependant:
+        """FastAPI-style dependency metadata used by compatibility tests."""
+        path_params: list[_CompatParam] = []
+        query_params: list[_CompatParam] = []
+        dependencies: list[_CompatDependency] = []
+
+        sig = inspect.signature(self.handler)
+        for name, param in sig.parameters.items():
+            base_annotation, extras = _split_annotated(param.annotation)
+            dependency_marker = _annotation_marker(extras, _Dependency)
+            param_marker = _annotation_marker(extras, Param)
+
+            default = param.default
+            dep = None
+            if isinstance(default, _Dependency):
+                dep = default.dependency
+            elif dependency_marker is not None:
+                dep = dependency_marker.dependency
+            if dep is not None:
+                dependencies.append(_CompatDependency(name=name, call=dep))
+                continue
+
+            marker = None
+            if isinstance(default, Param):
+                marker = default
+            elif param_marker is not None:
+                marker = param_marker
+
+            if marker is not None:
+                if marker.location == "path":
+                    path_params.append(_CompatParam(name=name))
+                elif marker.location == "query":
+                    query_params.append(_CompatParam(name=name))
+                continue
+
+            if name in self.param_names:
+                path_params.append(_CompatParam(name=name))
+            elif base_annotation is not Request and name != "request":
+                query_params.append(_CompatParam(name=name))
+
+        return _CompatDependant(
+            path_params=tuple(path_params),
+            query_params=tuple(query_params),
+            dependencies=tuple(dependencies),
+        )
 
 
 def _compile_path(path_template: str) -> tuple[re.Pattern[str], tuple[str, ...]]:
@@ -681,7 +756,7 @@ class APIRouter:
             if name in req.path_params:
                 kwargs[name] = req.path_params[name]
                 continue
-            if base_annotation is Request or name == "request":
+            if base_annotation is Request or name in {"request", "req"}:
                 kwargs[name] = req
                 continue
             default = param.default
@@ -721,7 +796,7 @@ class APIRouter:
         for name, param in sig.parameters.items():
             base_annotation, extras = _split_annotated(param.annotation)
             param_marker = _annotation_marker(extras, Param)
-            if base_annotation is Request or name == "request":
+            if base_annotation is Request or name in {"request", "req"}:
                 kwargs[name] = req
                 continue
             if isinstance(param.default, Param) or param_marker is not None:
@@ -749,6 +824,16 @@ class APIRouter:
                 continue
             kwargs[name] = param.default
         out = dep(**kwargs)
+        if inspect.isgenerator(out):
+            try:
+                return next(out)
+            except StopIteration:
+                return None
+        if inspect.isasyncgen(out):
+            try:
+                return await out.__anext__()
+            except StopAsyncIteration:
+                return None
         if inspect.isawaitable(out):
             out = await out
         return out
