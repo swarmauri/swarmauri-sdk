@@ -1,6 +1,5 @@
 import pytest
 import pytest_asyncio
-from tigrbl.types import App
 from httpx import ASGITransport, AsyncClient
 from pydantic import BaseModel
 from sqlalchemy import Integer, String
@@ -65,7 +64,7 @@ async def schema_ctx_client():
             "secret": secret,
         }
 
-    app = App()
+    app = Tigrblv3()
     api = Tigrblv3(engine=mem(async_=False))
     api.include_model(Widget, prefix="")
     api.mount_jsonrpc()

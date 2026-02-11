@@ -1,13 +1,13 @@
-from tigrbl.types import App, HTTPException, Request, Security
+from tigrbl.types import HTTPException, Request, Security
 from typing import Iterable
 
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from fastapi.testclient import TestClient
+from httpx import ASGITransport, Client
 import pytest
 import uuid
 from sqlalchemy import Column, String
 
 from tigrbl import TigrblApp, Base
+from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.mixins.ownable import Ownable, OwnerPolicy
 from tigrbl.orm.mixins.tenant_bound import TenantBound, TenantPolicy
@@ -38,7 +38,7 @@ def _client_for_owner(
     user_id: uuid.UUID,
     tenant_id: uuid.UUID,
     extra_user_ids: Iterable[uuid.UUID] | None = None,
-) -> TestClient:
+) -> Client:
     Base.metadata.clear()
 
     class User(Base, GUIDPk):
@@ -71,10 +71,11 @@ def _client_for_owner(
     api = TigrblApp(engine=engine)
     api.set_auth(authn=authn.get_principal)
     api.include_models([User, Item])
-    app = App()
+    app = TigrblApp()
     app.include_router(api.router)
     api.initialize()
-    return TestClient(app)
+    transport = ASGITransport(app=app)
+    return Client(transport=transport, base_url="http://test")
 
 
 @pytest.mark.i9n
@@ -84,24 +85,30 @@ def test_owner_policy_runtime_switch():
     headers = {"Authorization": "Bearer secret"}
 
     client = _client_for_owner(OwnerPolicy.STRICT_SERVER, user_id, tenant_id)
-    res = client.post(
-        "/item",
-        json={"name": "one", "owner_id": str(user_id)},
-        headers=headers,
-    )
-    assert res.status_code == 400
+    try:
+        res = client.post(
+            "/item",
+            json={"name": "one", "owner_id": str(user_id)},
+            headers=headers,
+        )
+        assert res.status_code == 400
+    finally:
+        client.close()
 
     supplied = uuid.uuid4()
     client = _client_for_owner(
         OwnerPolicy.CLIENT_SET, user_id, tenant_id, extra_user_ids=[supplied]
     )
-    res = client.post(
-        "/item",
-        json={"name": "two", "owner_id": str(supplied)},
-        headers=headers,
-    )
-    assert res.status_code == 201
-    assert res.json()["owner_id"] == str(supplied)
+    try:
+        res = client.post(
+            "/item",
+            json={"name": "two", "owner_id": str(supplied)},
+            headers=headers,
+        )
+        assert res.status_code == 201
+        assert res.json()["owner_id"] == str(supplied)
+    finally:
+        client.close()
 
 
 def _client_for_tenant(
@@ -109,7 +116,7 @@ def _client_for_tenant(
     user_id: uuid.UUID,
     tenant_id: uuid.UUID,
     extra_tenant_ids: Iterable[uuid.UUID] | None = None,
-) -> TestClient:
+) -> Client:
     Base.metadata.clear()
 
     class Tenant(Base, GUIDPk):
@@ -142,10 +149,11 @@ def _client_for_tenant(
     api = TigrblApp(engine=engine)
     api.set_auth(authn=authn.get_principal)
     api.include_models([Tenant, Item])
-    app = App()
+    app = TigrblApp()
     app.include_router(api.router)
     api.initialize()
-    return TestClient(app)
+    transport = ASGITransport(app=app)
+    return Client(transport=transport, base_url="http://test")
 
 
 @pytest.mark.i9n
@@ -155,21 +163,27 @@ def test_tenant_policy_runtime_switch():
     headers = {"Authorization": "Bearer secret"}
 
     client = _client_for_tenant(TenantPolicy.STRICT_SERVER, user_id, tenant_id)
-    res = client.post(
-        "/item",
-        json={"name": "one", "tenant_id": str(tenant_id)},
-        headers=headers,
-    )
-    assert res.status_code == 400
+    try:
+        res = client.post(
+            "/item",
+            json={"name": "one", "tenant_id": str(tenant_id)},
+            headers=headers,
+        )
+        assert res.status_code == 400
+    finally:
+        client.close()
 
     supplied = uuid.uuid4()
     client = _client_for_tenant(
         TenantPolicy.CLIENT_SET, user_id, tenant_id, extra_tenant_ids=[supplied]
     )
-    res = client.post(
-        "/item",
-        json={"name": "two", "tenant_id": str(supplied)},
-        headers=headers,
-    )
-    assert res.status_code == 201
-    assert res.json()["tenant_id"] == str(supplied)
+    try:
+        res = client.post(
+            "/item",
+            json={"name": "two", "tenant_id": str(supplied)},
+            headers=headers,
+        )
+        assert res.status_code == 201
+        assert res.json()["tenant_id"] == str(supplied)
+    finally:
+        client.close()

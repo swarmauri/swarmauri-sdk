@@ -5,22 +5,19 @@ import surface stable while easing maintenance.
 """
 
 from __future__ import annotations
+
 import logging
+from typing import Any
 
 from pydantic import BaseModel
 
-from .fastapi import (
-    Body,
-    Depends,
-    HTTPException,
-    Path,
-    Query,
-    Request,
-    Response,
-    Router,
-    Security,
-    _status,
-)
+from ...api._api import APIRouter as Router
+from ...core.crud.params import Body, Path, Query
+from ...response.stdapi import Response
+from ...runtime.status.exceptions import HTTPException
+from ...runtime.status.mappings import status as _status
+from ...security.dependencies import Depends, Security
+from ...transport.request import Request
 from .helpers import (
     _Key,
     _coerce_parent_kw,
@@ -68,6 +65,22 @@ from ...schema.builder import _strip_parent_fields
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/rest/common")
 
+
+def _is_http_response(obj: Any) -> bool:
+    """Best-effort response detection across stdapi and Starlette response types."""
+    if isinstance(obj, Response):
+        return True
+    return (
+        hasattr(obj, "status_code")
+        and hasattr(obj, "headers")
+        and (
+            hasattr(obj, "body")
+            or hasattr(obj, "body_iterator")
+            or hasattr(obj, "render")
+        )
+    )
+
+
 __all__ = [
     "Body",
     "Depends",
@@ -100,6 +113,7 @@ __all__ = [
     "_pk_names",
     "_get_phase_chains",
     "_coerce_parent_kw",
+    "_is_http_response",
     "_serialize_output",
     "_validate_body",
     "_validate_query",

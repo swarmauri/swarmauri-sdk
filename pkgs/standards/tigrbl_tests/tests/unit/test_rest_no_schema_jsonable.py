@@ -1,5 +1,5 @@
 import pytest
-from fastapi.testclient import TestClient
+from httpx import ASGITransport, Client
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped
 
@@ -46,11 +46,9 @@ def client_and_model():
     Gadget.schemas.read.out = None  # type: ignore[attr-defined]
     Gadget.schemas.list.out = None  # type: ignore[attr-defined]
 
-    client = TestClient(api)
-    try:
+    transport = ASGITransport(app=api)
+    with Client(transport=transport, base_url="http://test") as client:
         yield client, Gadget
-    finally:
-        client.close()
 
 
 def test_rest_read_and_list_without_schema(client_and_model):

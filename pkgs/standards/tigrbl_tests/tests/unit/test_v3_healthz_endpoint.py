@@ -1,6 +1,6 @@
 import pytest
 from types import SimpleNamespace
-from tigrbl.types import App
+from tigrbl import TigrblApp
 from httpx import AsyncClient, ASGITransport
 
 from tigrbl.system.diagnostics import mount_diagnostics
@@ -26,7 +26,7 @@ async def test_healthz_endpoint_select_case_fallback():
         return db
 
     api = SimpleNamespace(models={})
-    app = App()
+    app = TigrblApp()
     app.include_router(mount_diagnostics(api, get_db=get_db), prefix="/system")
 
     async with AsyncClient(

@@ -1,7 +1,7 @@
 import pytest
 import pytest_asyncio
 from tigrbl.orm.mixins import BulkCapable, Replaceable, Mergeable
-from tigrbl.types import App, Integer, Mapped, String, uuid4
+from tigrbl.types import Integer, Mapped, String, uuid4
 from httpx import AsyncClient, ASGITransport
 
 from tigrbl import TigrblApp as Tigrblv3
@@ -40,7 +40,7 @@ async def client_and_model():
 
         __tigrbl_cols__ = {"id": id, "name": name, "age": age}
 
-    app = App()
+    app = Tigrblv3()
     api = Tigrblv3(engine=mem())
     api.include_model(Gadget, prefix="")
     api.mount_jsonrpc(prefix="/rpc")
@@ -170,7 +170,7 @@ async def bulk_client_and_model():
 
         __tigrbl_cols__ = {"id": id, "name": name, "age": age}
 
-    app = App()
+    app = Tigrblv3()
     api = Tigrblv3(engine=mem())
     api.include_model(Gadget, prefix="")
     api.mount_jsonrpc(prefix="/rpc")

@@ -1,7 +1,9 @@
 from __future__ import annotations
+
 import pytest
-from tigrbl.types import App
-from fastapi.testclient import TestClient
+from httpx import ASGITransport, Client
+
+from tigrbl import TigrblApp
 
 from .response_utils import (
     RESPONSE_KINDS,
@@ -14,10 +16,11 @@ from .response_utils import (
 
 def test_response_rest_call():
     Widget = build_ping_model()
-    app = App()
+    app = TigrblApp()
     app.include_router(Widget.rest.router)
-    client = TestClient(app)
-    r = client.post("/widget/ping", json={})
+    transport = ASGITransport(app=app)
+    with Client(transport=transport, base_url="http://test") as client:
+        r = client.post("/widget/ping", json={})
     assert r.status_code == 200
     assert r.json() == {"pong": True}
 
@@ -25,13 +28,14 @@ def test_response_rest_call():
 @pytest.mark.parametrize("kind", RESPONSE_KINDS)
 def test_response_rest_alias_table(kind, tmp_path):
     Widget, file_path = build_model_for_response(kind, tmp_path)
-    app = App()
+    app = TigrblApp()
     app.include_router(Widget.rest.router)
-    client = TestClient(app)
-    kwargs = {"json": {}}
-    if kind == "redirect":
-        kwargs["follow_redirects"] = False
-    r = client.post("/widget/download", **kwargs)
+    transport = ASGITransport(app=app)
+    with Client(transport=transport, base_url="http://test") as client:
+        kwargs = {"json": {}}
+        if kind == "redirect":
+            kwargs["follow_redirects"] = False
+        r = client.post("/widget/download", **kwargs)
     if kind == "auto":
         assert r.json() == {"data": {"pong": True}, "ok": True}
     elif kind == "json":
@@ -54,13 +58,14 @@ def test_response_rest_alias_table(kind, tmp_path):
 @pytest.mark.parametrize("kind", RESPONSE_KINDS)
 def test_response_rest_non_alias_table(kind, tmp_path):
     Widget, file_path = build_model_for_response_non_alias(kind, tmp_path)
-    app = App()
+    app = TigrblApp()
     app.include_router(Widget.rest.router)
-    client = TestClient(app)
-    kwargs = {"json": {}}
-    if kind == "redirect":
-        kwargs["follow_redirects"] = False
-    r = client.post("/widget/download", **kwargs)
+    transport = ASGITransport(app=app)
+    with Client(transport=transport, base_url="http://test") as client:
+        kwargs = {"json": {}}
+        if kind == "redirect":
+            kwargs["follow_redirects"] = False
+        r = client.post("/widget/download", **kwargs)
     if kind == "auto":
         assert r.json() == {"data": {"pong": True}, "ok": True}
     elif kind == "json":
@@ -83,9 +88,10 @@ def test_response_rest_non_alias_table(kind, tmp_path):
 def test_response_rest_alias_table_jinja(tmp_path):
     pytest.importorskip("jinja2")
     Widget = build_model_for_jinja_response(tmp_path)
-    app = App()
+    app = TigrblApp()
     app.include_router(Widget.rest.router)
-    client = TestClient(app)
-    r = client.post("/widget/download", json={})
+    transport = ASGITransport(app=app)
+    with Client(transport=transport, base_url="http://test") as client:
+        r = client.post("/widget/download", json={})
     assert r.status_code == 200
     assert r.text == "<h1>World</h1>"

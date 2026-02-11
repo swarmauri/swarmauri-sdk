@@ -1,4 +1,4 @@
-from tigrbl import App, alias, alias_ctx
+from tigrbl import alias, alias_ctx, TigrblApp
 
 
 def test_alias_ctx_internal_binding_on_model_class():
@@ -24,7 +24,7 @@ def test_alias_ctx_external_binding_on_model_class_with_overrides():
 
 
 def test_alias_ctx_binding_on_app_class_retains_alias_mapping():
-    class ExampleApp(App):
+    class ExampleApp(TigrblApp):
         pass
 
     alias_ctx(delete="remove")(ExampleApp)

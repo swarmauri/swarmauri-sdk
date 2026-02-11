@@ -9,7 +9,6 @@ import inspect
 
 import httpx
 import pytest
-from fastapi.openapi.utils import get_openapi
 from fastapi.security import HTTPBearer
 from starlette.responses import JSONResponse
 
@@ -51,13 +50,7 @@ async def test_openapi_security_from_api_constructor_deps() -> None:
         await init_result
 
     def openapi_endpoint(_request) -> JSONResponse:
-        return JSONResponse(
-            get_openapi(
-                title="TigrblApi",
-                version="0.1.0",
-                routes=api.routes,
-            )
-        )
+        return JSONResponse(api.openapi())
 
     api.add_route("/openapi.json", openapi_endpoint, methods=["GET"])
 

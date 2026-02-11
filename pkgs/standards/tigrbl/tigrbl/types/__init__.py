@@ -52,17 +52,12 @@ from ..deps.pydantic import (
     ValidationError,
 )
 
-from ..deps.fastapi import (
-    APIRouter,
-    Router,
-    Security,
-    Depends,
-    Path,
-    Body,
-    HTTPException,
-    App,
-)
-from ..deps.starlette import Request, Response
+from ..api._api import APIRouter, Router
+from ..core.crud.params import Body, Path
+from ..response.stdapi import Response
+from ..runtime.status.exceptions import HTTPException
+from ..security.dependencies import Depends, Security
+from ..transport.request import Request
 
 # ── Local Package ─────────────────────────────────────────────────────────
 from .op import _Op, _SchemaVerb
@@ -156,12 +151,11 @@ __all__: list[str] = [
     "BaseModel",
     "Field",
     "ValidationError",
-    # fastapi support (from deps.fastapi)
+    # routing/dependency support (from deps)
     "Request",
     "Response",
     "APIRouter",
     "Router",
-    "App",
     "Security",
     "Depends",
     "Path",

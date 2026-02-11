@@ -1,14 +1,15 @@
 import httpx
 import pytest
 import pytest_asyncio
-from fastapi import Security
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from tigrbl import Base, TigrblApi
+from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
+from tigrbl.types import Security
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import F, IO, S, acol
-from tigrbl.types import App, Mapped, String
+from tigrbl import TigrblApp
+from tigrbl.types import Mapped, String
 
 from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server
 
@@ -50,7 +51,7 @@ class Beta(Base, GUIDPk):
 
 @pytest_asyncio.fixture()
 async def running_api():
-    app = App()
+    app = TigrblApp()
     api = TigrblApi(engine=mem(async_=False))
     api.set_auth(authn=auth_dependency, allow_anon=False)
     api.include_models([Alpha, Beta])

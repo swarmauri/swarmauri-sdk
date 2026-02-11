@@ -1,11 +1,12 @@
 import pytest
-from fastapi.testclient import TestClient
+from httpx import ASGITransport, Client
 
 from tigrbl import TigrblApi, alias_ctx
 from tigrbl.column import F, IO, S, makeColumn, makeVirtualColumn
 from tigrbl.engine.shortcuts import engine as build_engine, mem
 from tigrbl.orm.tables import Base
-from tigrbl.types import App, Integer, Mapped, String
+from tigrbl import TigrblApp
+from tigrbl.types import Integer, Mapped, String
 
 
 # Helper to bootstrap API and test client for a model
@@ -17,9 +18,10 @@ def _setup_api(model):
     api.include_model(model)
     api.initialize()
 
-    app = App()
+    app = TigrblApp()
     app.include_router(api)
-    client = TestClient(app)
+    transport = ASGITransport(app=app)
+    client = Client(transport=transport, base_url="http://test")
     return api, client, eng
 
 
@@ -54,6 +56,7 @@ async def test_make_column_only_rest_rpc(use_mapped):
         rest_data = resp.json()
         assert db_read == rpc_read == rest_data == {"id": created["id"], "name": "x"}
     finally:
+        client.close()
         raw_eng, _ = eng.raw()
         raw_eng.dispose()
 
@@ -99,6 +102,7 @@ async def test_make_virtual_column_only_rest_rpc(use_mapped):
         rest_data = resp.json()
         assert db_read == rpc_read == rest_data == {"id": created["id"], "code": None}
     finally:
+        client.close()
         raw_eng, _ = eng.raw()
         raw_eng.dispose()
 
@@ -135,6 +139,7 @@ async def test_make_column_with_alias_rest_rpc(use_mapped):
         rest_data = resp.json()
         assert db_read == rpc_read == rest_data == {"id": created["id"], "name": "y"}
     finally:
+        client.close()
         raw_eng, _ = eng.raw()
         raw_eng.dispose()
 
@@ -181,6 +186,7 @@ async def test_make_virtual_column_with_aliases_rest_rpc(use_mapped):
         rest_data = resp.json()
         assert db_read == rpc_read == rest_data == {"id": created["id"], "code": None}
     finally:
+        client.close()
         raw_eng, _ = eng.raw()
         raw_eng.dispose()
 
@@ -237,6 +243,7 @@ async def test_make_column_and_virtual_rest_rpc(use_mapped):
             }
         )
     finally:
+        client.close()
         raw_eng, _ = eng.raw()
         raw_eng.dispose()
 
@@ -294,5 +301,6 @@ async def test_make_column_and_virtual_with_alias_rest_rpc(use_mapped):
             }
         )
     finally:
+        client.close()
         raw_eng, _ = eng.raw()
         raw_eng.dispose()

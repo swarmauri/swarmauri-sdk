@@ -1,6 +1,6 @@
 import pytest
 from httpx import ASGITransport, AsyncClient
-from tigrbl.types import App, BaseModel, Column, String, UUID
+from tigrbl.types import BaseModel, Column, String, UUID
 
 from tigrbl import TigrblApp, op_ctx, schema_ctx, hook_ctx
 from tigrbl.orm.tables import Base
@@ -13,7 +13,7 @@ from tigrbl.runtime.kernel import build_phase_chains
 
 def setup_api(model_cls, get_db):
     Base.metadata.clear()
-    app = App()
+    app = TigrblApp()
     api = TigrblApp(get_db=get_db)
     api.include_model(model_cls, prefix="")
     api.initialize()

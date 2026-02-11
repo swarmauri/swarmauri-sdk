@@ -1,4 +1,4 @@
-from tigrbl.types import App
+from tigrbl import TigrblApp
 from tigrbl import op_ctx
 from tigrbl.op.mro_collect import mro_collect_decorated_ops
 from tigrbl.bindings.rest.router import _build_router
@@ -54,7 +54,7 @@ def test_member_arity_openapi_has_path_param():
 
     spec = mro_collect_decorated_ops(MemberModel)[0]
     router = _build_router(MemberModel, [spec])
-    app = App()
+    app = TigrblApp()
     app.include_router(router)
     params = app.openapi()["paths"][f"/{MemberModel.__name__.lower()}/{{item_id}}/do"][
         "post"
@@ -75,7 +75,7 @@ def test_collection_arity_openapi_has_no_path_param():
 
     spec = mro_collect_decorated_ops(CollectionModel)[0]
     router = _build_router(CollectionModel, [spec])
-    app = App()
+    app = TigrblApp()
     app.include_router(router)
     operation = app.openapi()["paths"][f"/{CollectionModel.__name__.lower()}/do"][
         "post"

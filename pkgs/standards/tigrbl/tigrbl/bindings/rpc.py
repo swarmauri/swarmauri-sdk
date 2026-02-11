@@ -109,6 +109,26 @@ def _coerce_payload(payload: Any) -> Any:
 
 def _ensure_jsonable(obj: Any) -> Any:
     """Best-effort conversion of DB rows or ORM objects to primitives."""
+    if hasattr(obj, "status_code") and hasattr(obj, "headers") and hasattr(obj, "body"):
+        response_like = AttrDict(
+            {
+                "status_code": getattr(obj, "status_code"),
+                "headers": getattr(obj, "headers"),
+                "body": getattr(obj, "body"),
+            }
+        )
+        if hasattr(obj, "media_type"):
+            response_like["media_type"] = getattr(obj, "media_type")
+        if hasattr(obj, "raw_headers"):
+            response_like["raw_headers"] = getattr(obj, "raw_headers")
+        if hasattr(obj, "body_iterator"):
+            response_like["body_iterator"] = getattr(obj, "body_iterator")
+        if hasattr(obj, "path"):
+            response_like["path"] = getattr(obj, "path")
+        if hasattr(obj, "url"):
+            response_like["url"] = getattr(obj, "url")
+        return response_like
+
     if isinstance(obj, (list, tuple)):
         return [_ensure_jsonable(x) for x in obj]
     if isinstance(obj, Mapping):
@@ -300,18 +320,12 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
         )
 
         phases = _get_phase_chains(model, alias)
-        # RPC methods should return raw data for JSON-RPC envelopes;
-        # remove response rendering atoms (which produce Starlette responses)
-        # JSON-RPC endpoints handle rendering at the transport layer. Filter
-        # out response rendering atoms but preserve any POST_RESPONSE hooks.
-        phases["POST_RESPONSE"] = [
-            fn
-            for fn in phases.get("POST_RESPONSE", [])
-            if not (
-                isinstance(getattr(fn, "__tigrbl_label", None), str)
-                and getattr(fn, "__tigrbl_label").endswith("@out:dump")
-            )
-        ]
+        # RPC methods should return JSON-serializable data, not transport
+        # Response objects. Kernel-composed POST_RESPONSE chains include
+        # renderer atoms that convert payloads into Response instances. Keep
+        # only explicit user hooks for RPC execution.
+        model_hooks = getattr(getattr(model, "hooks", None), alias, None)
+        phases["POST_RESPONSE"] = list(getattr(model_hooks, "POST_RESPONSE", []) or [])
 
         base_ctx["response_serializer"] = lambda r: _serialize_output(
             model, alias, target, r

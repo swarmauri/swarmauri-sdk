@@ -1,18 +1,19 @@
 # tigrbl/tigrbl/v3/api/_api.py
 from __future__ import annotations
-from typing import Any
-from types import SimpleNamespace
 
-from ..deps.fastapi import APIRouter as ApiRouter
-from ..engine.engine_spec import EngineCfg
-from ..engine import install_from_objects
-from ..ddl import initialize as _ddl_initialize
-from ..engine import resolver as _resolver
+from types import SimpleNamespace
+from typing import Any
+
 from ..app._model_registry import initialize_model_registry
+from ..ddl import initialize as _ddl_initialize
+from ..engine import install_from_objects
+from ..engine import resolver as _resolver
+from ..engine.engine_spec import EngineCfg
+from ._router import APIRouter, Router
 from .api_spec import APISpec
 
 
-class Api(APISpec, ApiRouter):
+class Api(APISpec, Router):
     """API router with model and table registries."""
 
     MODELS: tuple[Any, ...] = ()
@@ -50,7 +51,7 @@ class Api(APISpec, ApiRouter):
         # ``models`` is expected to be a dict at runtime for registry lookups.
         self.models = initialize_model_registry(getattr(self, "MODELS", ()))
 
-        ApiRouter.__init__(
+        Router.__init__(
             self,
             prefix=self.PREFIX,
             tags=self.tags,
@@ -65,6 +66,17 @@ class Api(APISpec, ApiRouter):
         if _engine_ctx is not None:
             _resolver.register_api(self, _engine_ctx)
             _resolver.resolve_provider(api=self)
+
+    def add_route(
+        self,
+        path: str,
+        endpoint: Any,
+        *,
+        methods: list[str] | tuple[str, ...],
+        **kwargs: Any,
+    ) -> None:
+        """Compatibility alias for frameworks/tests expecting ``add_route``."""
+        self.add_api_route(path, endpoint, methods=methods, **kwargs)
 
     def install_engines(
         self, *, api: Any = None, models: tuple[Any, ...] | None = None
@@ -99,4 +111,34 @@ class Api(APISpec, ApiRouter):
                 tables.append(table)
         return tables
 
+    def _normalize_prefix(self, prefix: str) -> str:
+        return super()._normalize_prefix(prefix)
+
+    def add_api_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
+        return super().add_api_route(path, endpoint, **kwargs)
+
+    def _merge_tags(self, tags: list[str] | None) -> list[str] | None:
+        return super()._merge_tags(tags)
+
+    def route(self, path: str, *, methods: Any, **kwargs: Any):
+        return super().route(path, methods=methods, **kwargs)
+
+    def include_router(self, other: Any, **kwargs: Any) -> None:
+        return super().include_router(other, **kwargs)
+
+    async def _resolve_route_dependencies(self, route: Any, req: Any) -> None:
+        return await super()._resolve_route_dependencies(route, req)
+
+    def _is_metadata_route(self, route: Any) -> bool:
+        return super()._is_metadata_route(route)
+
+    async def _resolve_handler_kwargs(self, route: Any, req: Any) -> dict[str, Any]:
+        return await super()._resolve_handler_kwargs(route, req)
+
+    async def _invoke_dependency(self, dep: Any, req: Any) -> Any:
+        return await super()._invoke_dependency(dep, req)
+
     initialize = _ddl_initialize
+
+
+__all__ = ["Api", "Router", "APIRouter"]

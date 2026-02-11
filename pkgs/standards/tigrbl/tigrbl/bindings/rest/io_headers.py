@@ -3,7 +3,7 @@ from __future__ import annotations
 import inspect
 from typing import Mapping, Any
 
-from fastapi import Header
+from ...core.crud.params import Header
 
 
 def _build_signature_with_header_params(

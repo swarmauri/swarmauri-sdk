@@ -1,7 +1,6 @@
 import pytest_asyncio
 import pytest
 from pydantic import BaseModel
-from tigrbl.types import App
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Column, String
 
@@ -35,7 +34,7 @@ async def widget_client():
         async def echo(cls, ctx):
             return ctx["payload"]
 
-    app = App()
+    app = TigrblApp()
     api = TigrblApp(engine=mem())
     api.include_model(Widget, prefix="")
     api.mount_jsonrpc()

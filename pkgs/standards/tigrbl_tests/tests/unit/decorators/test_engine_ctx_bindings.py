@@ -1,4 +1,4 @@
-from tigrbl import Api, App, engine_ctx
+from tigrbl import Api, engine_ctx, TigrblApp
 
 
 def test_engine_ctx_binding_on_function_sets_attributes():
@@ -32,7 +32,7 @@ def test_engine_ctx_external_binding_on_api_class():
 
 
 def test_engine_ctx_binding_on_app_instance():
-    class ExampleApp(App):
+    class ExampleApp(TigrblApp):
         TITLE = "Example"
         VERSION = "0.1.0"
         LIFESPAN = None

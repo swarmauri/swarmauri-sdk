@@ -17,7 +17,6 @@ from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import F, IO, S, acol
 from tigrbl.specs.storage_spec import ForeignKeySpec
 from tigrbl.types import (
-    App,
     Integer,
     Mapped,
     PgUUID,
@@ -180,7 +179,7 @@ async def test_document_versions_self_referential_lineage() -> None:
         await init_result
     api.mount_jsonrpc(prefix="/rpc")
 
-    app = App()
+    app = TigrblApp()
     app.include_router(api.router)
     api.attach_diagnostics(prefix="", app=app)
 

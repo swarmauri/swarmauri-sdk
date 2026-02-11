@@ -1,7 +1,7 @@
 import asyncio
 from pathlib import Path
 
-from fastapi.testclient import TestClient
+from httpx import ASGITransport, Client
 
 from tigrbl.op.mro_collect import mro_collect_decorated_ops
 from tigrbl.op import op_ctx
@@ -14,7 +14,7 @@ from tigrbl.bindings import (
     register_rpc,
     include_model,
 )
-from tigrbl.types import App as FastApp
+from tigrbl import TigrblApp as FastApp
 from tigrbl.types import Integer, Mapped, mapped_column
 from tigrbl.table import Table
 from tigrbl.api._api import Api
@@ -55,9 +55,10 @@ def _build_model(base: type, file_path: Path, *, bind: bool = True) -> type:
 def _server_client_roundtrip(router_provider):
     app = FastApp()
     app.include_router(router_provider)
-    client = TestClient(app)
-    response = client.post("/widget/download", json={})
-    return response
+    transport = ASGITransport(app=app)
+    with Client(transport=transport, base_url="http://test") as client:
+        response = client.post("/widget/download", json={})
+        return response
 
 
 def test_file_response_ops(tmp_path):
@@ -108,10 +109,11 @@ def test_file_response_api(tmp_path):
 
     app = FastApp()
     app.include_router(api)
-    client = TestClient(app)
-    response = client.post("/widget/download", json={})
-    assert response.status_code == 200
-    assert response.content == file_path.read_bytes()
+    transport = ASGITransport(app=app)
+    with Client(transport=transport, base_url="http://test") as client:
+        response = client.post("/widget/download", json={})
+        assert response.status_code == 200
+        assert response.content == file_path.read_bytes()
 
 
 def test_file_response_app(tmp_path):
@@ -142,7 +144,8 @@ def test_file_response_app(tmp_path):
     resp = asyncio.run(Widget.handlers.download.handler({}))
     assert resp.path == str(file_path)
 
-    client = TestClient(app)
-    response = client.post("/widget/download", json={})
-    assert response.status_code == 200
-    assert response.content == file_path.read_bytes()
+    transport = ASGITransport(app=app)
+    with Client(transport=transport, base_url="http://test") as client:
+        response = client.post("/widget/download", json={})
+        assert response.status_code == 200
+        assert response.content == file_path.read_bytes()

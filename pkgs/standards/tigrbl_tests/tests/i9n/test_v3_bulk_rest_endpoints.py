@@ -1,10 +1,9 @@
 import pytest
 import pytest_asyncio
 from typing import Iterator
-from tigrbl.types import App
+from tigrbl import TigrblApp
 from httpx import AsyncClient, ASGITransport
 
-from tigrbl import TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.tables import Base
 from tigrbl.orm.mixins import GUIDPk, BulkCapable, Replaceable
@@ -22,7 +21,7 @@ async def v3_client() -> Iterator[tuple[AsyncClient, type]]:
         name = Column(String, nullable=False)
         description = Column(String, nullable=True)
 
-    app = App()
+    app = TigrblApp()
     api = TigrblApp(engine=mem(async_=False))
     api.include_model(Widget)
     api.initialize()

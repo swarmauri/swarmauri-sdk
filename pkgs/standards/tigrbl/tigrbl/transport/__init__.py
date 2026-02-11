@@ -24,13 +24,33 @@ Quick usage:
 
 from __future__ import annotations
 
+from dataclasses import replace
+import re
 from typing import Any, Callable, Optional, Sequence
 
-# JSON-RPC transport
-from .jsonrpc import build_jsonrpc_router, build_openrpc_spec
 
-# REST transport (aggregator over per-model routers)
-from .rest import build_rest_router, mount_rest
+def build_jsonrpc_router(*args: Any, **kwargs: Any):
+    from .jsonrpc import build_jsonrpc_router as _build_jsonrpc_router
+
+    return _build_jsonrpc_router(*args, **kwargs)
+
+
+def build_openrpc_spec(*args: Any, **kwargs: Any):
+    from .jsonrpc import build_openrpc_spec as _build_openrpc_spec
+
+    return _build_openrpc_spec(*args, **kwargs)
+
+
+def build_rest_router(*args: Any, **kwargs: Any):
+    from .rest import build_rest_router as _build_rest_router
+
+    return _build_rest_router(*args, **kwargs)
+
+
+def mount_rest(*args: Any, **kwargs: Any):
+    from .rest import mount_rest as _mount_rest
+
+    return _mount_rest(*args, **kwargs)
 
 
 def mount_jsonrpc(
@@ -61,6 +81,32 @@ def mount_jsonrpc(
     include_router = getattr(app, "include_router", None)
     if callable(include_router):
         include_router(router, prefix=prefix)
+
+    # Compatibility alias: some router backends normalize empty-path routes to
+    # ``<prefix>/`` only. Duplicate JSON-RPC POST routes at ``<prefix>``.
+    alias_path = prefix.rstrip("/") or "/"
+    if alias_path != "/":
+        app_routes = getattr(app, "routes", None)
+        if isinstance(app_routes, list):
+            escaped = re.escape(alias_path)
+            matched = [
+                route
+                for route in app_routes
+                if "POST" in (getattr(route, "methods", ()) or ())
+                and getattr(route, "name", None) in {"jsonrpc", "jsonrpc_alt"}
+                and getattr(getattr(route, "pattern", None), "pattern", None)
+                == f"^{escaped}/$"
+            ]
+            for route in matched:
+                app_routes.append(
+                    replace(
+                        route,
+                        path_template=alias_path,
+                        pattern=re.compile(f"^{escaped}$"),
+                        name=f"{getattr(route, 'name', 'jsonrpc')}_no_slash",
+                        include_in_schema=False,
+                    )
+                )
     return router
 
 

@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
-import pytest
-from fastapi.testclient import TestClient
 
-from tigrbl.types import App
+import pytest
+from httpx import ASGITransport, Client
+
+from tigrbl import TigrblApp
 from tigrbl.bindings import rpc_call
 from tigrbl.system.diagnostics import _build_kernelz_endpoint
 from tigrbl.runtime.kernel import _default_kernel as K
@@ -18,12 +19,13 @@ from .response_utils import build_model_for_response, build_model_for_jinja_resp
 
 def test_html_response_rest_alias_table(tmp_path):
     Widget, _ = build_model_for_response("html", tmp_path)
-    app = App()
+    app = TigrblApp()
     app.include_router(Widget.rest.router)
-    client = TestClient(app)
-    r = client.post("/widget/download", json={})
-    assert r.status_code == 200
-    assert r.text == "<h1>pong</h1>"
+    transport = ASGITransport(app=app)
+    with Client(transport=transport, base_url="http://test") as client:
+        r = client.post("/widget/download", json={})
+        assert r.status_code == 200
+        assert r.text == "<h1>pong</h1>"
 
 
 # 1b. REST call on an alias decorated table using JinjaResponse
@@ -32,12 +34,13 @@ def test_html_response_rest_alias_table(tmp_path):
 def test_jinja_response_rest_alias_table(tmp_path):
     pytest.importorskip("jinja2")
     Widget = build_model_for_jinja_response(tmp_path)
-    app = App()
+    app = TigrblApp()
     app.include_router(Widget.rest.router)
-    client = TestClient(app)
-    r = client.post("/widget/download", json={})
-    assert r.status_code == 200
-    assert r.text == "<h1>World</h1>"
+    transport = ASGITransport(app=app)
+    with Client(transport=transport, base_url="http://test") as client:
+        r = client.post("/widget/download", json={})
+        assert r.status_code == 200
+        assert r.text == "<h1>World</h1>"
 
 
 # 2. RPC call on an alias decorated table using HtmlResponse

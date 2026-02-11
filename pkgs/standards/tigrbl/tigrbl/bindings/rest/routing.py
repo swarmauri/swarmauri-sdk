@@ -6,13 +6,17 @@ from types import SimpleNamespace
 from typing import Any, Dict, Optional, Sequence, Tuple
 
 
-from fastapi.security import HTTPBearer
 from .fastapi import Depends, HTTPException, Request, Security, _status
 from ...op import OpSpec
+from ...security import HTTPBearer
 from ...op.types import CANON
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/rest/routing")
+
+
+def _is_http_bearer_dependency(dep: Any) -> bool:
+    return isinstance(dep, HTTPBearer)
 
 
 def _normalize_deps(deps: Optional[Sequence[Any]]) -> list[Any]:
@@ -45,13 +49,13 @@ def _requires_auth_header(auth_dep: Any) -> bool:
     for param in sig.parameters.values():
         default = param.default
         dep = getattr(default, "dependency", None)
-        if isinstance(dep, HTTPBearer) and getattr(dep, "auto_error", True):
+        if _is_http_bearer_dependency(dep) and getattr(dep, "auto_error", True):
             return True
     return False
 
 
 def _require_auth_header(request: Request) -> None:
-    if not request.headers.get("Authorization"):
+    if not request.headers.get("authorization"):
         raise HTTPException(status_code=_status.HTTP_403_FORBIDDEN, detail="Forbidden")
 
 

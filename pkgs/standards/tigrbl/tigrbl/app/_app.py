@@ -2,7 +2,7 @@
 from __future__ import annotations
 from typing import Any
 
-from ..deps.fastapi import FastAPI
+from ..api._api import APIRouter
 from ..engine.engine_spec import EngineCfg
 from ..engine import resolver as _resolver
 from ..engine import install_from_objects
@@ -11,11 +11,10 @@ from ._model_registry import initialize_model_registry
 from .app_spec import AppSpec
 
 
-class App(AppSpec, FastAPI):
+class App(AppSpec, APIRouter):
     TITLE = "Tigrbl"
     VERSION = "0.1.0"
     LIFESPAN = None
-    MIDDLEWARES = ()
     APIS = ()
     OPS = ()
     MODELS = ()
@@ -42,6 +41,9 @@ class App(AppSpec, FastAPI):
         lifespan = fastapi_kwargs.pop("lifespan", None)
         if lifespan is not None:
             self.LIFESPAN = lifespan
+        get_db = fastapi_kwargs.pop("get_db", None)
+        if get_db is not None:
+            self.get_db = get_db
         self.title = self.TITLE
         self.version = self.VERSION
         self.engine = engine if engine is not None else getattr(self, "ENGINE", None)
@@ -57,22 +59,19 @@ class App(AppSpec, FastAPI):
         self.response = getattr(self, "RESPONSE", None)
         self.jsonrpc_prefix = getattr(self, "JSONRPC_PREFIX", "/rpc")
         self.system_prefix = getattr(self, "SYSTEM_PREFIX", "/system")
-        self.middlewares = tuple(getattr(self, "MIDDLEWARES", ()))
         self.lifespan = self.LIFESPAN
 
-        FastAPI.__init__(
+        APIRouter.__init__(
             self,
             title=self.title,
             version=self.version,
-            lifespan=self.lifespan,
+            include_docs=True,
             **fastapi_kwargs,
         )
         _engine_ctx = self.engine
         if _engine_ctx is not None:
             _resolver.set_default(_engine_ctx)
             _resolver.resolve_provider()
-        for mw in getattr(self, "MIDDLEWARES", []):
-            self.add_middleware(mw.__class__, **getattr(mw, "kwargs", {}))
 
     def install_engines(
         self, *, api: Any = None, models: tuple[Any, ...] | None = None
@@ -106,5 +105,17 @@ class App(AppSpec, FastAPI):
                 seen.add(table)
                 tables.append(table)
         return tables
+
+    def _wsgi_app(self, environ: dict[str, Any], start_response: Any) -> list[bytes]:
+        return super()._wsgi_app(environ, start_response)
+
+    async def _asgi_app(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
+        await super()._asgi_app(scope, receive, send)
+
+    async def _dispatch(self, req: Any):
+        return await super()._dispatch(req)
+
+    async def _call_handler(self, route: Any, req: Any):
+        return await super()._call_handler(route, req)
 
     initialize = _ddl_initialize

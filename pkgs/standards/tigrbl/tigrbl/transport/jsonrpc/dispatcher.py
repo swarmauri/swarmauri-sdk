@@ -75,10 +75,10 @@ except Exception:  # pragma: no cover
             self.detail = detail
 
 
-from ...runtime.errors import ERROR_MESSAGES, http_exc_to_rpc
+from ...runtime.status import ERROR_MESSAGES, http_exc_to_rpc
 from ...config.constants import TIGRBL_AUTH_CONTEXT_ATTR
 from .models import RPCRequest, RPCResponse
-from .openrpc import build_openrpc_spec
+from ...system.docs import mount_openrpc
 from .helpers import (
     _authorize,
     _err,
@@ -94,6 +94,15 @@ logger = logging.getLogger(__name__)
 
 Json = Mapping[str, Any]
 Batch = Sequence[Mapping[str, Any]]
+
+
+def _request_obj_to_mapping(obj: RPCRequest | Mapping[str, Any]) -> Mapping[str, Any]:
+    """Convert endpoint payload objects to the mapping expected by dispatcher."""
+    if isinstance(obj, RPCRequest):
+        return obj.model_dump()
+    if isinstance(obj, Mapping):
+        return obj
+    raise HTTPException(status_code=400, detail="Invalid Request")
 
 
 async def _dispatch_one(
@@ -226,14 +235,20 @@ def build_jsonrpc_router(
                 responses: List[Dict[str, Any]] = []
                 for item in body:
                     resp = await _dispatch_one(
-                        api=api, request=request, db=db, obj=item.model_dump()
+                        api=api,
+                        request=request,
+                        db=db,
+                        obj=_request_obj_to_mapping(item),
                     )
                     if resp is not None:
                         responses.append(resp)
                 return responses
-            elif isinstance(body, RPCRequest):
+            elif isinstance(body, (RPCRequest, Mapping)):
                 resp = await _dispatch_one(
-                    api=api, request=request, db=db, obj=body.model_dump()
+                    api=api,
+                    request=request,
+                    db=db,
+                    obj=_request_obj_to_mapping(body),
                 )
                 if resp is None:
                     return Response(status_code=204)
@@ -252,14 +267,20 @@ def build_jsonrpc_router(
                 responses: List[Dict[str, Any]] = []
                 for item in body:
                     resp = await _dispatch_one(
-                        api=api, request=request, db=db, obj=item.model_dump()
+                        api=api,
+                        request=request,
+                        db=db,
+                        obj=_request_obj_to_mapping(item),
                     )
                     if resp is not None:
                         responses.append(resp)
                 return responses
-            elif isinstance(body, RPCRequest):
+            elif isinstance(body, (RPCRequest, Mapping)):
                 resp = await _dispatch_one(
-                    api=api, request=request, db=db, obj=body.model_dump()
+                    api=api,
+                    request=request,
+                    db=db,
+                    obj=_request_obj_to_mapping(body),
                 )
                 if resp is None:
                     return Response(status_code=204)
@@ -285,14 +306,20 @@ def build_jsonrpc_router(
                 responses: List[Dict[str, Any]] = []
                 for item in body:
                     resp = await _dispatch_one(
-                        api=api, request=request, db=db, obj=item.model_dump()
+                        api=api,
+                        request=request,
+                        db=db,
+                        obj=_request_obj_to_mapping(item),
                     )
                     if resp is not None:
                         responses.append(resp)
                 return responses
-            elif isinstance(body, RPCRequest):
+            elif isinstance(body, (RPCRequest, Mapping)):
                 resp = await _dispatch_one(
-                    api=api, request=request, db=db, obj=body.model_dump()
+                    api=api,
+                    request=request,
+                    db=db,
+                    obj=_request_obj_to_mapping(body),
                 )
                 if resp is None:
                     return Response(status_code=204)
@@ -302,22 +329,26 @@ def build_jsonrpc_router(
 
     else:
         # No dependencies; attempt to read db (and user) from request.state
-        async def _endpoint(
-            request: Request, body: RPCRequest | list[RPCRequest] = Body(...)
-        ):
+        async def _endpoint(request: Request, body: Any = Body(...)):
             db = getattr(request.state, "db", None)
             if isinstance(body, list):
                 responses: List[Dict[str, Any]] = []
                 for item in body:
                     resp = await _dispatch_one(
-                        api=api, request=request, db=db, obj=item.model_dump()
+                        api=api,
+                        request=request,
+                        db=db,
+                        obj=_request_obj_to_mapping(item),
                     )
                     if resp is not None:
                         responses.append(resp)
                 return responses
-            elif isinstance(body, RPCRequest):
+            elif isinstance(body, (RPCRequest, Mapping)):
                 resp = await _dispatch_one(
-                    api=api, request=request, db=db, obj=body.model_dump()
+                    api=api,
+                    request=request,
+                    db=db,
+                    obj=_request_obj_to_mapping(body),
                 )
                 if resp is None:
                     return Response(status_code=204)
@@ -338,18 +369,7 @@ def build_jsonrpc_router(
         # extra router deps already applied via Router(dependencies=...)
     )
 
-    def _openrpc_endpoint():
-        return build_openrpc_spec(api)
-
-    router.add_api_route(
-        path="/openrpc.json",
-        endpoint=_openrpc_endpoint,
-        methods=["GET"],
-        name="openrpc_json",
-        tags=list(tags) if tags else None,
-        summary="OpenRPC",
-        description="OpenRPC 1.2.6 schema for JSON-RPC methods.",
-    )
+    mount_openrpc(api, router, tags=list(tags) if tags else None)
 
     # Compatibility: serve same endpoint without trailing slash
     router.add_api_route(

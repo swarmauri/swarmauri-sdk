@@ -9,7 +9,6 @@ import inspect
 
 import httpx
 import pytest
-from fastapi.openapi.utils import get_openapi
 from starlette.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
@@ -110,13 +109,7 @@ async def test_openapi_security_from_api_authn_dependency() -> None:
 
     # Deployment: add an OpenAPI endpoint directly on the router-only API.
     def openapi_endpoint(_request) -> JSONResponse:
-        return JSONResponse(
-            get_openapi(
-                title="TigrblApi",
-                version="0.1.0",
-                routes=api.routes,
-            )
-        )
+        return JSONResponse(api.openapi())
 
     api.add_route("/openapi.json", openapi_endpoint, methods=["GET"])
 

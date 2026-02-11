@@ -6,6 +6,10 @@ This module provides a single location for all third-party dependencies,
 making it easier to manage versions and potential replacements.
 """
 
+from ..api._api import APIRouter
+from ..api._route import Route, compile_path
+from ..api._router import Router
+
 # Re-export all SQLAlchemy dependencies
 from .sqlalchemy import relationship  # noqa: F401
 from .sqlalchemy import *  # noqa: F403, F401
@@ -13,8 +17,9 @@ from .sqlalchemy import *  # noqa: F403, F401
 # Re-export all Pydantic dependencies
 from .pydantic import *  # noqa: F403, F401
 
-# Re-export all FastAPI dependencies
-from .fastapi import *  # noqa: F403, F401
-
-# Re-export Starlette dependencies (Request/Response live here)
-from .starlette import *  # noqa: F403, F401
+__all__ = [
+    "APIRouter",
+    "Router",
+    "Route",
+    "compile_path",
+]

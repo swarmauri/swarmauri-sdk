@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 import copy
 import inspect
+from pathlib import Path
 from types import SimpleNamespace
 from typing import (
     Any,
@@ -35,6 +36,7 @@ from ..transport import mount_jsonrpc as _mount_jsonrpc
 from ..system import mount_diagnostics as _mount_diagnostics
 from ..op import get_registry, OpSpec
 from ._model_registry import initialize_model_registry
+from ..system.favicon import FAVICON_PATH, mount_favicon
 
 
 # optional compat: legacy transactional decorator
@@ -74,8 +76,9 @@ class TigrblApp(_App):
         *,
         engine: EngineCfg | None = None,
         apis: Sequence[Any] | None = None,
-        jsonrpc_prefix: str = "/rpc",
-        system_prefix: str = "/system",
+        jsonrpc_prefix: str | None = None,
+        system_prefix: str | None = None,
+        favicon_path: str | Path = FAVICON_PATH,
         api_hooks: Mapping[str, Iterable[Callable]]
         | Mapping[str, Mapping[str, Iterable[Callable]]]
         | None = None,
@@ -91,16 +94,31 @@ class TigrblApp(_App):
         if lifespan is not None:
             self.LIFESPAN = lifespan
         super().__init__(engine=engine, **fastapi_kwargs)
+        self.router = self
+        self._middlewares: list[tuple[Any, dict[str, Any]]] = []
+        self.middlewares = tuple(getattr(self, "MIDDLEWARES", ()))
+        self._favicon_path = favicon_path
+        for mw in self.middlewares:
+            self.add_middleware(mw.__class__, **getattr(mw, "kwargs", {}))
+        self._install_favicon()
         # capture initial routes so refreshes retain FastAPI defaults
         self._base_routes = list(self.router.routes)
-        self.jsonrpc_prefix = jsonrpc_prefix
-        self.system_prefix = system_prefix
+        self.jsonrpc_prefix = (
+            jsonrpc_prefix
+            if jsonrpc_prefix is not None
+            else getattr(self, "JSONRPC_PREFIX", "/rpc")
+        )
+        self.system_prefix = (
+            system_prefix
+            if system_prefix is not None
+            else getattr(self, "SYSTEM_PREFIX", "/system")
+        )
 
         # public containers (mirrors used by bindings.api)
         self.models = initialize_model_registry(getattr(self, "MODELS", ()))
         self.schemas = SimpleNamespace()
         self.handlers = SimpleNamespace()
-        self.hooks = SimpleNamespace()
+        self.hooks = tuple(getattr(self, "HOOKS", ()))
         self.rpc = SimpleNamespace()
         self.rest = SimpleNamespace()
         self.routers: Dict[str, Any] = {}
@@ -116,6 +134,12 @@ class TigrblApp(_App):
         if apis:
             self.apis.extend(list(apis))
             self.include_apis(self.apis)
+
+    def add_middleware(self, middleware_class: Any, **options: Any) -> None:
+        self._middlewares.append((middleware_class, options))
+
+    def _install_favicon(self) -> None:
+        mount_favicon(self, favicon_path=self._favicon_path)
 
     # ------------------------- internal helpers -------------------------
 
@@ -162,6 +186,8 @@ class TigrblApp(_App):
         """
         Bind a model, mount its REST router, and attach all namespaces to this facade.
         """
+        if not isinstance(self.hooks, SimpleNamespace):
+            self.hooks = SimpleNamespace()
         # inject API-level hooks so the binder merges them
         self._merge_api_hooks_into_model(model, self._api_hooks_map)
         return _include_model(self, model, prefix=prefix, mount_router=mount_router)
@@ -173,6 +199,8 @@ class TigrblApp(_App):
         base_prefix: str | None = None,
         mount_router: bool = True,
     ) -> Dict[str, Any]:
+        if not isinstance(self.hooks, SimpleNamespace):
+            self.hooks = SimpleNamespace()
         for m in models:
             self._merge_api_hooks_into_model(m, self._api_hooks_map)
         return _include_models(

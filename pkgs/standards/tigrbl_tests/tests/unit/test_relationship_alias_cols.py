@@ -2,7 +2,7 @@ import pytest
 from tigrbl.specs import F, S, acol, vcol
 from tigrbl.op import alias_ctx
 from tigrbl.orm.tables import Base
-from tigrbl.deps import (
+from tigrbl.types import (
     Column,
     Integer,
     String,

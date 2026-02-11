@@ -1,4 +1,4 @@
-from fastapi.testclient import TestClient
+from httpx import ASGITransport, Client
 from sqlalchemy import Column, String
 from tigrbl import Base, TigrblApp
 from tigrbl.engine.shortcuts import mem
@@ -19,30 +19,30 @@ def _build_app():
 
 def test_openrpc_endpoint_exposed():
     app, _ = _build_app()
-    client = TestClient(app)
+    transport = ASGITransport(app=app)
+    with Client(transport=transport, base_url="http://test") as client:
+        response = client.get("/rpc/openrpc.json")
 
-    response = client.get("/rpc/openrpc.json")
-
-    assert response.status_code == 200
-    payload = response.json()
-    assert payload["openrpc"] == "1.2.6"
-    assert "methods" in payload
+        assert response.status_code == 200
+        payload = response.json()
+        assert payload["openrpc"] == "1.2.6"
+        assert "methods" in payload
 
 
 def test_openrpc_includes_method_schema():
     app, model = _build_app()
-    client = TestClient(app)
+    transport = ASGITransport(app=app)
+    with Client(transport=transport, base_url="http://test") as client:
+        payload = client.get("/rpc/openrpc.json").json()
+        methods = {method["name"]: method for method in payload["methods"]}
 
-    payload = client.get("/rpc/openrpc.json").json()
-    methods = {method["name"]: method for method in payload["methods"]}
+        create_method = methods[f"{model.__name__}.create"]
+        assert create_method["paramStructure"] == "by-name"
 
-    create_method = methods[f"{model.__name__}.create"]
-    assert create_method["paramStructure"] == "by-name"
+        params = create_method["params"][0]["schema"]
+        assert params["title"].startswith(model.__name__)
+        assert "Create" in params["title"]
 
-    params = create_method["params"][0]["schema"]
-    assert params["title"].startswith(model.__name__)
-    assert "Create" in params["title"]
-
-    result = create_method["result"]["schema"]
-    assert result["title"].startswith(model.__name__)
-    assert "Response" in result["title"]
+        result = create_method["result"]["schema"]
+        assert result["title"].startswith(model.__name__)
+        assert "Response" in result["title"]

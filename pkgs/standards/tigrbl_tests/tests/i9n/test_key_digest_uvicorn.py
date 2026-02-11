@@ -17,7 +17,7 @@ from tigrbl.orm.mixins import (
 from tigrbl.orm.mixins.utils import CRUD_IO
 from tigrbl.orm.tables._base import Base
 from tigrbl.specs import F, S, acol
-from tigrbl.types import App, Mapped, String
+from tigrbl.types import Mapped, String
 from sqlalchemy import inspect
 
 from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server
@@ -44,7 +44,7 @@ class ApiKey(Base, GUIDPk, Created, LastUsed, ValidityWindow, KeyDigest):
 async def running_app(sync_db_session):
     engine, get_sync_db = sync_db_session
 
-    app = App()
+    app = TigrblApp()
     api = TigrblApp(get_db=get_sync_db)
     api.include_models([ApiKey])
     await api.initialize()

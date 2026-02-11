@@ -9,7 +9,7 @@ Quick start:
     from tigrbl import include_model, build_jsonrpc_router, mount_diagnostics
     from tigrbl import OpSpec, hook_ctx, op_ctx, alias_ctx, schema_ctx, SchemaRef
 
-    include_model(api, User, app=fastapi_app)
+    include_model(api, User, app=asgi_app)
     app.include_router(build_jsonrpc_router(api), prefix="/rpc")
     app.include_router(mount_diagnostics(api), prefix="/system")
 
@@ -80,12 +80,23 @@ from .api import Api, TigrblApi
 
 from .table import Base
 from .op import Op
-from .app._app import App
+from .security import APIKey, HTTPBearer, MutualTLS, OAuth2, OpenIdConnect
 
 
 __all__: list[str] = []
 
-__all__ += ["TigrblApp", "TigrblApi", "Api", "Base", "App", "Op"]
+__all__ += [
+    "TigrblApp",
+    "TigrblApi",
+    "Api",
+    "Base",
+    "Op",
+    "HTTPBearer",
+    "APIKey",
+    "OAuth2",
+    "OpenIdConnect",
+    "MutualTLS",
+]
 
 __all__ += [
     # OpSpec core

@@ -10,7 +10,7 @@ import pytest
 from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 from tigrbl import Base, TigrblApp
 from tigrbl.engine.shortcuts import mem
-from tigrbl.types import App, Column, ForeignKey, Integer, String, relationship
+from tigrbl.types import Column, ForeignKey, Integer, String, relationship
 
 
 @pytest.mark.asyncio
@@ -39,7 +39,7 @@ async def test_self_referential_relationship_via_rest() -> None:
         await init_result
 
     # Step 3: Mount the API routes on an application instance.
-    app = App()
+    app = TigrblApp()
     app.include_router(api.router)
     api.attach_diagnostics(prefix="", app=app)
 

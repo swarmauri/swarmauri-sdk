@@ -1,11 +1,12 @@
 import pytest
-from tigrbl.types import App, SimpleNamespace
-from fastapi.testclient import TestClient
+from httpx import ASGITransport, Client
+
+from tigrbl import TigrblApp
+from tigrbl.types import SimpleNamespace
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Mapped, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from tigrbl import TigrblApp
 from tigrbl.engine.shortcuts import engine as engine_factory, mem
 from tigrbl.bindings.model import bind
 from tigrbl.bindings.rest.router import _build_router
@@ -144,7 +145,7 @@ def test_openapi_reflects_io_verbs():
     sp_create = OpSpec(alias="create", target="create")
     sp_read = OpSpec(alias="read", target="read")
     router = _build_router(Widget, [sp_create, sp_read])
-    app = App()
+    app = TigrblApp()
     app.include_router(router)
     spec = app.openapi()
 
@@ -213,11 +214,11 @@ def test_rest_call_respects_aliases():
     api = TigrblApp(engine=eng)
     api.include_model(Thing)
     Base.metadata.create_all(eng.raw()[0])
-    client = TestClient(api)
-
-    resp = client.post("/thing", json={"name": "Ada"})
-    data = resp.json()
-    assert data["name"] == "Ada"
+    transport = ASGITransport(app=api)
+    with Client(transport=transport, base_url="http://test") as client:
+        resp = client.post("/thing", json={"name": "Ada"})
+        data = resp.json()
+        assert data["name"] == "Ada"
 
 
 @pytest.mark.i9n

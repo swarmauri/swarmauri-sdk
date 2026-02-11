@@ -3,7 +3,7 @@ import pytest_asyncio
 
 from httpx import ASGITransport, AsyncClient
 
-from tigrbl.types import App, BaseModel, Column, Integer, String
+from tigrbl.types import BaseModel, Column, Integer, String
 
 from tigrbl import TigrblApp, Base, schema_ctx
 from tigrbl.core import crud
@@ -32,7 +32,7 @@ async def schema_ctx_client():
             age: int
 
     cfg = mem()
-    app = App()
+    app = TigrblApp()
     api = TigrblApp(engine=cfg)
     api.include_model(Widget, prefix="")
     api.mount_jsonrpc()
