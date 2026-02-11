@@ -86,45 +86,65 @@ uv pip install -e .
 
 ## Using Swarmauri Components
 
-### Method 1: Access via Namespace (Recommended)
+### Method 1: Use the namespace package (recommended)
 
-The namespace approach provides a clean, unified interface to all components:
+The `swarmauri` package acts as a namespace microkernel. Importing `swarmauri`
+registers a custom importer that resolves classes from installed first-party and
+community plugins.
+
 ```python
-# Import through the swarmauri namespace
-from swarmauri.vectorstores import PineconeVectorStore, AnnoyVectorStore
+import swarmauri
+
+# import concrete implementations through the unified namespace
 from swarmauri.documents import Document
-from swarmauri.tools import JupyterExportLatexTool
+from swarmauri.tools import AdditionTool
+from swarmauri.messages import HumanMessage
 
-# Create a vector store
-vector_store = PineconeVectorStore(
-    api_key="your-api-key",
-    environment="your-environment",
-    index_name="your-index"
-)
+doc = Document(content="Hello from the namespace package")
+tool = AdditionTool()
+msg = HumanMessage(content="Run a quick tool check")
 
-# Create a document
-document = Document(
-    content="Sample text content",
-    metadata={"source": "example"}
-)
-
-# Add document to vector store
-vector_store.add_document(document)
-
-# Retrieve similar documents
-results = vector_store.retrieve("query text", top_k=5)
+print(doc.type)
+print(tool("2+2"))
+print(msg.content)
 ```
-### Method 2: Direct Package Access
-For more explicit imports or when working with specific packages:
+
+### Method 2: Use the index to discover what is available
+
+Use the plugin citizenship registry as an index of resource paths to concrete
+module locations.
 
 ```python
-# Import directly from individual packages
-from swarmauri_vectorstore_pinecone import PineconeVectorStore
-from swarmauri_standard.documents import Document
-from swarmauri_tool_jupyterexportlatex import JupyterExportLatexTool
+from swarmauri.plugin_citizenship_registry import PluginCitizenshipRegistry
 
-# Use components as before
-vector_store = PineconeVectorStore(...)
+# Full index across first-, second-, and third-class plugins
+index = PluginCitizenshipRegistry.total_registry()
+print(f"Indexed resources: {len(index)}")
+
+# Example: inspect a few tool entries
+tool_rows = sorted(
+    (resource, module)
+    for resource, module in index.items()
+    if resource.startswith("swarmauri.tools.")
+)
+for resource, module in tool_rows[:5]:
+    print(f"{resource} -> {module}")
+
+# Optional: inspect by citizenship class
+first_class_only = PluginCitizenshipRegistry.list_registry("first")
+print(f"First-class resources: {len(first_class_only)}")
+```
+
+### Method 3: Direct package imports
+
+For explicit dependency control, import classes directly from their package.
+
+```python
+from swarmauri_standard.documents import Document
+from swarmauri_standard.tools import AdditionTool
+
+doc = Document(content="Direct package import")
+tool = AdditionTool()
 ```
 
 ## Package Structure
@@ -165,4 +185,3 @@ class YourVectorStore(VectorStoreBase):
 
 ## License
 The Swarmauri SDK is licensed under the Apache License 2.0. See the [LICENSE](https://github.com/swarmauri/swarmauri-sdk/blob/master/LICENSE) file for details.
-
