@@ -39,10 +39,6 @@ def disable_tls_requirement():
         settings.require_tls = original
 
 
-# Test database configuration
-TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:?cache=shared"
-
-
 @pytest.fixture(scope="session")
 def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
     """Create an event loop for the test session."""
@@ -54,7 +50,9 @@ def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
 @pytest_asyncio.fixture
 async def test_db_engine() -> AsyncGenerator[Engine, None]:
     """Create and initialize a test database engine."""
-    spec = EngineSpec.from_any(TEST_DATABASE_URL)
+    temp_dir = Path(tempfile.mkdtemp())
+    db_path = temp_dir / "authn_test.db"
+    spec = EngineSpec.from_any(f"sqlite+aiosqlite:///{db_path}")
     engine = Engine(spec)
     provider = engine.provider
     original_surface = engine_resolver.resolve_provider(api=surface_api)
@@ -62,7 +60,7 @@ async def test_db_engine() -> AsyncGenerator[Engine, None]:
     engine_resolver.register_api(surface_api, provider)
     engine_resolver.register_api(app, provider)
     setattr(surface_api, "_ddl_executed", False)
-    await surface_api.initialize()
+    await surface_api.initialize(sqlite_attachments={"authn": str(db_path)})
     try:
         yield engine
     finally:
@@ -71,6 +69,7 @@ async def test_db_engine() -> AsyncGenerator[Engine, None]:
         engine_resolver.register_api(surface_api, original_surface)
         engine_resolver.register_api(app, original_app)
         setattr(surface_api, "_ddl_executed", False)
+        shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 @pytest_asyncio.fixture

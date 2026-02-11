@@ -1,5 +1,12 @@
 # Tigrbl Style Guide
 
+## Framework Policy
+
+- Tigrbl code must use **Tigrbl-native interfaces only**.
+- Do **not** introduce FastAPI or Starlette dependencies in Tigrbl packages.
+- Tigrbl applications are pure **ASGI/WSGI** apps and should rely on Tigrbl's own
+  app/router primitives instead of FastAPI/Starlette abstractions.
+
 ## Naming Conventions
 
 - **make + CamelCase** — Functions that create and return instances should begin with
