@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ....deps._stdapi_types import status
+from ....runtime.status.mappings import status
 from .helpers import (
     _request_schema_from_handler,
     _resolve_component_schema_ref,

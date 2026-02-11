@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from ...deps._stdapi_types import FileResponse
+from ...response.stdapi import FileResponse
 
 FAVICON_PATH = Path(__file__).with_name("assets") / "favicon.svg"
 

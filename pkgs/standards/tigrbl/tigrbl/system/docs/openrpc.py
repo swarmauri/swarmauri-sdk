@@ -4,7 +4,7 @@ from typing import Any, Dict, Iterable, List, Mapping, Sequence
 
 from pydantic import BaseModel
 
-from ...deps._stdapi_types import Response
+from ...response.stdapi import Response
 from ...op import OpSpec
 
 JsonObject = Dict[str, Any]
