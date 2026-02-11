@@ -24,15 +24,33 @@ Quick usage:
 
 from __future__ import annotations
 
-from typing import Any, Callable, Optional, Sequence
 from dataclasses import replace
 import re
+from typing import Any, Callable, Optional, Sequence
 
-# JSON-RPC transport
-from .jsonrpc import build_jsonrpc_router, build_openrpc_spec
 
-# REST transport (aggregator over per-model routers)
-from .rest import build_rest_router, mount_rest
+def build_jsonrpc_router(*args: Any, **kwargs: Any):
+    from .jsonrpc import build_jsonrpc_router as _build_jsonrpc_router
+
+    return _build_jsonrpc_router(*args, **kwargs)
+
+
+def build_openrpc_spec(*args: Any, **kwargs: Any):
+    from .jsonrpc import build_openrpc_spec as _build_openrpc_spec
+
+    return _build_openrpc_spec(*args, **kwargs)
+
+
+def build_rest_router(*args: Any, **kwargs: Any):
+    from .rest import build_rest_router as _build_rest_router
+
+    return _build_rest_router(*args, **kwargs)
+
+
+def mount_rest(*args: Any, **kwargs: Any):
+    from .rest import mount_rest as _mount_rest
+
+    return _mount_rest(*args, **kwargs)
 
 
 def mount_jsonrpc(
