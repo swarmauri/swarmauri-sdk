@@ -19,6 +19,8 @@ from types import SimpleNamespace
 from typing import Any, Callable, Iterable, Mapping, get_args, get_origin, Annotated
 from urllib.parse import parse_qs
 
+from .starlette import Response as StarletteResponse
+
 
 class HTTPException(Exception):
     def __init__(
@@ -549,7 +551,14 @@ class APIRouter:
     def __call__(self, *args: Any, **kwargs: Any):
         if len(args) == 2 and isinstance(args[0], dict) and callable(args[1]):
             return self._wsgi_app(args[0], args[1])
-        if len(args) == 3 and isinstance(args[0], dict) and "type" in args[0]:
+        if len(args) == 1 and isinstance(args[0], dict):
+            scope = args[0]
+
+            async def _asgi2_instance(receive: Callable, send: Callable) -> None:
+                await self._asgi_app(scope, receive, send)
+
+            return _asgi2_instance
+        if len(args) == 3 and isinstance(args[0], dict):
             return self._asgi_app(args[0], args[1], args[2])
         raise TypeError("Invalid ASGI/WSGI invocation")
 
@@ -717,22 +726,32 @@ class APIRouter:
 
         if isinstance(out, Response):
             return out
+        if isinstance(out, StarletteResponse):
+            return Response(
+                status_code=int(getattr(out, "status_code", status.HTTP_200_OK)),
+                headers=[
+                    (str(k).lower(), str(v))
+                    for k, v in dict(getattr(out, "headers", {}) or {}).items()
+                ],
+                body=bytes(getattr(out, "body", b"") or b""),
+            )
         if out is None:
             return Response(
                 status_code=status.HTTP_204_NO_CONTENT, headers=[], body=b""
             )
+        code = route.status_code or status.HTTP_200_OK
         if isinstance(out, (dict, list, int, float, bool)):
-            return Response.json(out)
+            return Response.json(out, status_code=code)
         if isinstance(out, str):
-            return Response.text(out)
+            return Response.text(out, status_code=code)
         if isinstance(out, (bytes, bytearray)):
             return Response(
-                status_code=status.HTTP_200_OK,
+                status_code=code,
                 headers=[("content-type", "application/octet-stream")],
                 body=bytes(out),
             )
 
-        return Response.json(out)
+        return Response.json(out, status_code=code)
 
     async def _resolve_handler_kwargs(
         self, route: Route, req: Request
