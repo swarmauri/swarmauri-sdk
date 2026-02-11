@@ -1,5 +1,6 @@
 from tigrbl import TigrblApp
-from tigrbl.deps import APIRouter, HTTPBearer, Security
+from tigrbl.security import HTTPBearer
+from tigrbl.types import APIRouter, Security
 from tigrbl.op import OpSpec
 from tigrbl.orm.tables import Base
 from tigrbl.orm.mixins import GUIDPk

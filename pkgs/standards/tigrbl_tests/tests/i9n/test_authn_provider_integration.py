@@ -1,6 +1,6 @@
 from httpx import ASGITransport, Client
 
-from tigrbl.deps import HTTPAuthorizationCredentials, HTTPBearer
+from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
 from tigrbl.engine.shortcuts import mem
 from tigrbl.types import HTTPException, Request, Security
 

@@ -1,22 +1,24 @@
 import asyncio
 import json
 
-import tigrbl.deps as stdapi
+from tigrbl.core.crud.params import Body, Query
+from tigrbl.runtime.status.mappings import status
+from tigrbl.types import APIRouter, Depends, Request
 
 
 def test_routing_and_dependency_injection():
-    router = stdapi.APIRouter()
+    router = APIRouter()
 
-    def provide_token(request: stdapi.Request):
+    def provide_token(request: Request):
         return request.headers.get("authorization")
 
     @router.post("/items/{item_id}")
     def handler(
         item_id: str,
-        request: stdapi.Request,
-        payload=stdapi.Body(...),
-        q=stdapi.Query(None),
-        token=stdapi.Depends(provide_token),
+        request: Request,
+        payload=Body(...),
+        q=Query(None),
+        token=Depends(provide_token),
     ):
         return {
             "item_id": item_id,
@@ -26,7 +28,7 @@ def test_routing_and_dependency_injection():
             "path": request.path,
         }
 
-    req = stdapi.Request(
+    req = Request(
         method="POST",
         path="/items/123",
         headers={"authorization": "Bearer token"},
@@ -48,13 +50,13 @@ def test_routing_and_dependency_injection():
 
 
 def test_method_not_allowed_and_not_found():
-    router = stdapi.APIRouter()
+    router = APIRouter()
 
     @router.get("/healthz")
     def health():
         return {"ok": True}
 
-    req = stdapi.Request(
+    req = Request(
         method="POST",
         path="/healthz",
         headers={},
@@ -63,9 +65,9 @@ def test_method_not_allowed_and_not_found():
         body=b"",
     )
     resp = asyncio.run(router._dispatch(req))
-    assert resp.status_code == stdapi.status.HTTP_405_METHOD_NOT_ALLOWED
+    assert resp.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
-    missing = stdapi.Request(
+    missing = Request(
         method="GET",
         path="/missing",
         headers={},
@@ -74,4 +76,4 @@ def test_method_not_allowed_and_not_found():
         body=b"",
     )
     missing_resp = asyncio.run(router._dispatch(missing))
-    assert missing_resp.status_code == stdapi.status.HTTP_404_NOT_FOUND
+    assert missing_resp.status_code == status.HTTP_404_NOT_FOUND

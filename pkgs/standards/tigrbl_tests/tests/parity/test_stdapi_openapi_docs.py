@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-import tigrbl.deps as stdapi
+from tigrbl.types import APIRouter, Request
 
 
 class CreateWidget(BaseModel):
@@ -13,7 +13,7 @@ class WidgetOut(BaseModel):
 
 
 def test_openapi_generation_and_docs_html():
-    router = stdapi.APIRouter(title="Widgets", version="1.2.3", include_docs=True)
+    router = APIRouter(title="Widgets", version="1.2.3", include_docs=True)
 
     @router.post(
         "/widgets/{widget_id}",
@@ -44,7 +44,7 @@ def test_openapi_generation_and_docs_html():
     assert "responses" in op
 
     html = router._swagger_ui_html(
-        stdapi.Request(
+        Request(
             method="GET",
             path="/docs",
             headers={},

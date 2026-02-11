@@ -385,7 +385,7 @@ code stays aligned with the framework’s versioned ASGI API.
 ```python
 from tigrbl import Base, TigrblApp, TigrblApi
 from tigrbl.types import Integer, String, Mapped
-from tigrbl.deps import Depends, Request, HTTPException
+from tigrbl.types import Depends, HTTPException, Request
 ```
 
 🚫 **Avoid:**
