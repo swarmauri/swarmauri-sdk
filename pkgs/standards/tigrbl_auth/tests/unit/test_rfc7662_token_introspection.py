@@ -1,11 +1,10 @@
 """Tests for OAuth2 token introspection compliance with RFC 7662."""
 
 import pytest
-from fastapi import FastAPI, status
 from httpx import ASGITransport, AsyncClient
 
+from tigrbl_auth.deps import TigrblApp, status
 from tigrbl_auth.routers.auth_flows import router
-from tigrbl_auth.fastapi_deps import get_db
 from tigrbl_auth.rfc.rfc7662 import register_token, reset_tokens
 
 
@@ -29,15 +28,8 @@ RFC 7662 - OAuth 2.0 Token Introspection
 @pytest.mark.asyncio
 async def test_introspection_endpoint_returns_active_field(enable_rfc7662):
     """RFC 7662 §2.2: Response must include an 'active' boolean."""
-    app = FastAPI()
+    app = TigrblApp()
     app.include_router(router)
-
-    async def override_db():
-        yield None
-
-    app.dependency_overrides[get_db] = override_db
-
-    # Register a token in the introspection registry to mark it as active
     register_token("dummy")
 
     transport = ASGITransport(app=app)
@@ -55,13 +47,8 @@ async def test_introspection_endpoint_returns_active_field(enable_rfc7662):
 @pytest.mark.asyncio
 async def test_introspection_requires_token_parameter(enable_rfc7662):
     """RFC 7662 §2.1: Request body MUST include the 'token' parameter."""
-    app = FastAPI()
+    app = TigrblApp()
     app.include_router(router)
-
-    async def override_db():
-        yield None
-
-    app.dependency_overrides[get_db] = override_db
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:

@@ -39,10 +39,6 @@ def disable_tls_requirement():
         settings.require_tls = original
 
 
-# Test database configuration
-TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:?cache=shared"
-
-
 @pytest.fixture(scope="session")
 def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
     """Create an event loop for the test session."""
@@ -54,7 +50,9 @@ def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
 @pytest_asyncio.fixture
 async def test_db_engine() -> AsyncGenerator[Engine, None]:
     """Create and initialize a test database engine."""
-    spec = EngineSpec.from_any(TEST_DATABASE_URL)
+    db_path = Path(tempfile.mkdtemp()) / "tigrbl_auth_test.db"
+    test_database_url = f"sqlite+aiosqlite:///{db_path}"
+    spec = EngineSpec.from_any(test_database_url)
     engine = Engine(spec)
     provider = engine.provider
     original_surface = engine_resolver.resolve_provider(api=surface_api)
@@ -71,6 +69,10 @@ async def test_db_engine() -> AsyncGenerator[Engine, None]:
         engine_resolver.register_api(surface_api, original_surface)
         engine_resolver.register_api(app, original_app)
         setattr(surface_api, "_ddl_executed", False)
+        db_path.unlink(missing_ok=True)
+        db_path.with_suffix(".db-shm").unlink(missing_ok=True)
+        db_path.with_suffix(".db-wal").unlink(missing_ok=True)
+        shutil.rmtree(db_path.parent, ignore_errors=True)
 
 
 @pytest_asyncio.fixture
