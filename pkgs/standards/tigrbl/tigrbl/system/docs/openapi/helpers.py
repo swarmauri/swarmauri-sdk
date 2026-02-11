@@ -10,7 +10,7 @@ from ....core.resolver import (
     annotation_marker as _annotation_marker,
     split_annotated as _split_annotated,
 )
-from ....deps._stdapi_types import Route
+from ....api._route import Route
 
 
 def _normalize_schema_refs(node: Any) -> Any:

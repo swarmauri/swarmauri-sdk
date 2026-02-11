@@ -7,7 +7,8 @@ import traceback
 from typing import Any, Callable
 from urllib.parse import parse_qs
 
-from tigrbl.deps._stdapi_types import Request, Response
+from tigrbl.response.stdapi import Response
+from tigrbl.transport.request import Request
 
 
 async def asgi_app(

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ....deps._stdapi_types import Response
+from ....response.stdapi import Response
 from .schema import openapi
 
 
