@@ -6,7 +6,7 @@ Tests error mappings between RPC and HTTP, and verifies parity between error res
 
 import pytest
 from tigrbl.types import HTTPException
-from tigrbl.runtime.errors import (
+from tigrbl.runtime.status import (
     ERROR_MESSAGES,
     HTTP_ERROR_MESSAGES,
     _HTTP_TO_RPC,

@@ -1,5 +1,26 @@
 from __future__ import annotations
 
+
+class _Status:
+    HTTP_200_OK = 200
+    HTTP_201_CREATED = 201
+    HTTP_204_NO_CONTENT = 204
+    HTTP_400_BAD_REQUEST = 400
+    HTTP_401_UNAUTHORIZED = 401
+    HTTP_403_FORBIDDEN = 403
+    HTTP_404_NOT_FOUND = 404
+    HTTP_405_METHOD_NOT_ALLOWED = 405
+    HTTP_409_CONFLICT = 409
+    HTTP_422_UNPROCESSABLE_ENTITY = 422
+    HTTP_429_TOO_MANY_REQUESTS = 429
+    HTTP_500_INTERNAL_SERVER_ERROR = 500
+    HTTP_501_NOT_IMPLEMENTED = 501
+    HTTP_503_SERVICE_UNAVAILABLE = 503
+    HTTP_504_GATEWAY_TIMEOUT = 504
+
+
+status = _Status()
+
 # HTTP → JSON-RPC code map
 _HTTP_TO_RPC: dict[int, int] = {
     400: -32602,
@@ -64,6 +85,8 @@ HTTP_ERROR_MESSAGES: dict[int, str] = {
 }
 
 __all__ = [
+    "_Status",
+    "status",
     "_HTTP_TO_RPC",
     "_RPC_TO_HTTP",
     "ERROR_MESSAGES",

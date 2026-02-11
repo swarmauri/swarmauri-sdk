@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from .utils import HTTPException, status
+from .exceptions import HTTPException
 from .mappings import (
+    status,
     HTTP_ERROR_MESSAGES,
     ERROR_MESSAGES,
     _HTTP_TO_RPC,

@@ -1,8 +1,21 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Mapping, Optional
 
 from .utils import _read_in_errors, _has_in_errors
+
+
+class HTTPException(Exception):
+    def __init__(
+        self,
+        status_code: int,
+        detail: Any = "",
+        headers: Mapping[str, str] | None = None,
+    ) -> None:
+        super().__init__(detail)
+        self.status_code = int(status_code)
+        self.detail = detail
+        self.headers = dict(headers or {})
 
 
 class TigrblError(Exception):
@@ -110,6 +123,7 @@ def raise_for_in_errors(ctx: Any) -> None:
 
 
 __all__ = [
+    "HTTPException",
     "TigrblError",
     "PlanningError",
     "LabelError",
