@@ -106,4 +106,16 @@ class App(AppSpec, APIRouter):
                 tables.append(table)
         return tables
 
+    def _wsgi_app(self, environ: dict[str, Any], start_response: Any) -> list[bytes]:
+        return super()._wsgi_app(environ, start_response)
+
+    async def _asgi_app(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
+        await super()._asgi_app(scope, receive, send)
+
+    async def _dispatch(self, req: Any):
+        return await super()._dispatch(req)
+
+    async def _call_handler(self, route: Any, req: Any):
+        return await super()._call_handler(route, req)
+
     initialize = _ddl_initialize

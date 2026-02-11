@@ -3,9 +3,14 @@
 from __future__ import annotations
 
 import inspect
-from typing import Annotated, Any, Iterable, get_args, get_origin
+from typing import Any, Iterable, get_args, get_origin
 
-from ....deps._stdapi_types import HTTPException, Param, Request, Route, status
+from ....core.crud.params import Param
+from ....core.resolver import (
+    annotation_marker as _annotation_marker,
+    split_annotated as _split_annotated,
+)
+from ....deps._stdapi_types import Route
 
 
 def _normalize_schema_refs(node: Any) -> Any:
@@ -27,8 +32,7 @@ def _normalize_schema_refs(node: Any) -> Any:
 
 
 def _schema_from_model(
-    model: Any,
-    components_schemas: dict[str, Any] | None = None,
+    model: Any, components_schemas: dict[str, Any] | None = None
 ) -> dict[str, Any]:
     try:
         import pydantic
@@ -56,10 +60,7 @@ def _schema_from_model(
     origin = getattr(model, "__origin__", None)
     if origin in (list, tuple, set):
         item = model.__args__[0] if getattr(model, "__args__", None) else Any
-        return {
-            "type": "array",
-            "items": _schema_from_model(item, components_schemas),
-        }
+        return {"type": "array", "items": _schema_from_model(item, components_schemas)}
     return {"type": "object"}
 
 
@@ -79,8 +80,7 @@ def _resolve_component_schema_ref(
 
 
 def _schema_from_annotation(
-    annotation: Any,
-    components_schemas: dict[str, Any],
+    annotation: Any, components_schemas: dict[str, Any]
 ) -> dict[str, Any]:
     annotation, _ = _split_annotated(annotation)
 
@@ -116,8 +116,7 @@ def _schema_from_annotation(
 
 
 def _request_schema_from_handler(
-    route: Route,
-    components_schemas: dict[str, Any],
+    route: Route, components_schemas: dict[str, Any]
 ) -> dict[str, Any] | None:
     handler = getattr(route, "handler", None)
     if handler is None:
@@ -144,65 +143,6 @@ def _request_schema_from_handler(
         return _schema_from_annotation(annotation, components_schemas)
 
     return None
-
-
-def _split_annotated(annotation: Any) -> tuple[Any, tuple[Any, ...]]:
-    if get_origin(annotation) is Annotated:
-        args = get_args(annotation)
-        if args:
-            return args[0], tuple(args[1:])
-    return annotation, ()
-
-
-def _annotation_marker(extras: Iterable[Any], marker_type: type[Any]) -> Any | None:
-    for extra in extras:
-        if isinstance(extra, marker_type):
-            return extra
-    return None
-
-
-def _is_request_annotation(annotation: Any) -> bool:
-    if annotation is Request:
-        return True
-    if isinstance(annotation, str):
-        normalized = annotation.strip().strip("\"'")
-        return normalized.rsplit(".", maxsplit=1)[-1] == "Request"
-    return False
-
-
-def _load_body(req: Request) -> Any:
-    try:
-        return req.json()
-    except Exception as exc:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Invalid JSON: {exc}",
-        ) from exc
-
-
-def _extract_param_value(
-    marker: Param, req: Request, param_name: str, body_cache: Any | None
-) -> tuple[Any, bool]:
-    alias = marker.alias or param_name
-    if marker.location == "query":
-        if alias in req.query_params:
-            return req.query_params[alias], True
-        return None, False
-    if marker.location == "header":
-        key = alias.lower()
-        if key in req.headers:
-            return req.headers.get(key), True
-        return None, False
-    if marker.location == "path":
-        if alias in req.path_params:
-            return req.path_params[alias], True
-        return None, False
-    if marker.location == "body":
-        value = body_cache if body_cache is not None else _load_body(req)
-        if value is None:
-            return None, False
-        return value, True
-    return None, False
 
 
 def _security_from_dependencies(deps: Iterable[Any]) -> list[dict[str, list[str]]]:

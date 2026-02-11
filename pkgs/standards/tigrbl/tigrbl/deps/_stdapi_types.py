@@ -12,13 +12,14 @@ from ..response.stdapi import (
 )
 from ..runtime.status.exceptions import HTTPException
 from ..runtime.status.mappings import status
-from ._stdapi_request import Request
-from ._stdapi_route import Handler, Route, _compile_path
+from ..transport.request import Request
+from ..api._route import Handler, Route, compile_path
 from ._stdapi_security import (
     Depends,
     HTTPAuthorizationCredentials,
     HTTPBearer,
     Security,
+    Dependency,
     _Dependency,
 )
 
@@ -33,6 +34,7 @@ __all__ = [
     "status",
     "HTTPAuthorizationCredentials",
     "HTTPBearer",
+    "Dependency",
     "_Dependency",
     "Depends",
     "Security",
@@ -43,5 +45,8 @@ __all__ = [
     "Header",
     "Handler",
     "Route",
+    "compile_path",
     "_compile_path",
 ]
+
+_compile_path = compile_path
