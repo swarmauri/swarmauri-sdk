@@ -1,6 +1,6 @@
 [project]
 name = "swm-example-plugin"
-version = "0.6.4.dev1"
+version = "0.6.4.dev2"
 description = "This repository includes an example of a Swarmauri Plugin."
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 license = "Apache-2.0"
