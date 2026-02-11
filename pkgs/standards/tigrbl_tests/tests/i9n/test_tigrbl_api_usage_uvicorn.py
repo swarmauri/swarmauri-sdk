@@ -3,11 +3,8 @@ import pytest
 import pytest_asyncio
 
 from tigrbl import Base, TigrblApi
-from tigrbl.deps.stdapi import (
-    HTTPAuthorizationCredentials,
-    HTTPBearer,
-    Security,
-)
+from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
+from tigrbl.security.dependencies import Security
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import F, IO, S, acol

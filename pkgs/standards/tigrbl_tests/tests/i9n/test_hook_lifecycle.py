@@ -7,7 +7,7 @@ Tests all hook phases and their behavior across CRUD, nested CRUD, and RPC opera
 import pytest
 
 from tigrbl import Base, TigrblApp
-from tigrbl.deps.stdapi import APIRouter
+from tigrbl.api._api import APIRouter
 from tigrbl.hook import hook_ctx
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk

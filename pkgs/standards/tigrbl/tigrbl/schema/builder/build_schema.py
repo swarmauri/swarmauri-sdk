@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import warnings
 from typing import Any, Dict, Iterable, Set, Tuple, Type, Union
 
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, create_model
@@ -200,7 +201,13 @@ def _build_schema(
         cfg_kwargs["extra"] = "forbid"
     cfg = ConfigDict(**cfg_kwargs)
 
-    schema_cls = create_model(model_name, __config__=cfg, **fields)  # type: ignore[arg-type]
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            message=r'Field name ".*" in ".*" shadows an attribute in parent "BaseModel"',
+            category=UserWarning,
+        )
+        schema_cls = create_model(model_name, __config__=cfg, **fields)  # type: ignore[arg-type]
     schema_cls.model_rebuild(force=True)
     schema_cls = namely_model(
         schema_cls,

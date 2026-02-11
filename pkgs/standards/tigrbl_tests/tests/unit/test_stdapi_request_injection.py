@@ -4,7 +4,8 @@ from httpx import ASGITransport, AsyncClient
 
 import pytest
 
-from tigrbl.deps.stdapi import APIRouter, Request
+from tigrbl.api._api import APIRouter
+from tigrbl.transport.request import Request
 
 
 @pytest.mark.asyncio()
