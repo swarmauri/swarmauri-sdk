@@ -128,6 +128,12 @@ async def call_handler(router: Any, route: Any, req: Request) -> Response:
     return Response.json(out, status_code=code)
 
 
+def is_metadata_route(router: Any, route: Any) -> bool:
+    from ..system.docs.openapi.metadata import is_metadata_route as _is_metadata_route
+
+    return _is_metadata_route(router, route)
+
+
 _resolve_route_dependencies = resolve_route_dependencies
 _resolve_handler_kwargs = resolve_handler_kwargs
 _invoke_dependency = invoke_dependency
