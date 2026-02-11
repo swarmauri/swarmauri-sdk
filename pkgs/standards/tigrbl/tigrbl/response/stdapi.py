@@ -5,7 +5,8 @@ from __future__ import annotations
 import json as json_module
 import mimetypes
 from dataclasses import dataclass, field
-from typing import Any, Mapping
+from pathlib import Path
+from typing import Any, Iterable, Mapping
 
 
 @dataclass
@@ -20,6 +21,10 @@ class Response:
             200: "OK",
             201: "Created",
             204: "No Content",
+            301: "Moved Permanently",
+            302: "Found",
+            307: "Temporary Redirect",
+            308: "Permanent Redirect",
             400: "Bad Request",
             401: "Unauthorized",
             403: "Forbidden",
@@ -104,10 +109,27 @@ class PlainTextResponse(Response):
         )
 
 
+class StreamingResponse(Response):
+    def __init__(
+        self,
+        content: Iterable[bytes] | bytes,
+        status_code: int = 200,
+        media_type: str = "application/octet-stream",
+    ) -> None:
+        if isinstance(content, bytes):
+            payload = content
+        else:
+            payload = b"".join(content)
+        super().__init__(
+            status_code=status_code,
+            headers=[("content-type", media_type)],
+            body=payload,
+        )
+
+
 class FileResponse(Response):
     def __init__(self, path: str, media_type: str | None = None) -> None:
-        with open(path, "rb") as handle:
-            payload = handle.read()
+        payload = Path(path).read_bytes()
         content_type = (
             media_type or mimetypes.guess_type(path)[0] or "application/octet-stream"
         )
@@ -118,10 +140,21 @@ class FileResponse(Response):
         )
 
 
+class RedirectResponse(Response):
+    def __init__(self, url: str, status_code: int = 307) -> None:
+        super().__init__(
+            status_code=status_code,
+            headers=[("location", url)],
+            body=b"",
+        )
+
+
 __all__ = [
     "Response",
     "JSONResponse",
     "HTMLResponse",
     "PlainTextResponse",
+    "StreamingResponse",
     "FileResponse",
+    "RedirectResponse",
 ]

@@ -1,5 +1,14 @@
 from __future__ import annotations
 
+import warnings
+
+warnings.warn(
+    "tigrbl.deps.starlette Request and response re-exports are deprecated; "
+    "use tigrbl.transport.request.Request and tigrbl.response response classes.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 try:  # pragma: no cover - optional runtime dependency
     from starlette.background import BackgroundTask
     from starlette.requests import Request

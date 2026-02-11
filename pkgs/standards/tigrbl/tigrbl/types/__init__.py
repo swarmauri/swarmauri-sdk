@@ -52,7 +52,7 @@ from ..deps.pydantic import (
     ValidationError,
 )
 
-from ..deps.stdapi import (
+from ..deps import (
     APIRouter,
     Body,
     Depends,

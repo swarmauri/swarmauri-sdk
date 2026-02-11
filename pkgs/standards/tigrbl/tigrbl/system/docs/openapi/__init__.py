@@ -19,8 +19,11 @@ from .helpers import (
 from .mount import mount_openapi
 from .schema import openapi
 
+build_openapi = openapi
+
 __all__ = [
     "openapi",
+    "build_openapi",
     "mount_openapi",
     "_annotation_marker",
     "_extract_param_value",

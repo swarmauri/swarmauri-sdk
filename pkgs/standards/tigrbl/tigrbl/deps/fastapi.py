@@ -10,7 +10,7 @@ import warnings
 from fastapi import APIRouter, Body, Depends, FastAPI, HTTPException, Path, Security
 
 warnings.warn(
-    "tigrbl.deps.fastapi is deprecated; use tigrbl.deps.stdapi instead.",
+    "tigrbl.deps.fastapi is deprecated; use tigrbl.api.Api, tigrbl.app.App, tigrbl.response, and tigrbl.deps.",
     DeprecationWarning,
     stacklevel=2,
 )

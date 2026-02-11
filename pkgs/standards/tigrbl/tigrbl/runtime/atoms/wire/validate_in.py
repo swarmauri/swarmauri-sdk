@@ -7,7 +7,7 @@ import uuid as _uuid
 import logging
 from typing import Any, Dict, Mapping, Optional, Tuple
 
-from ....deps.stdapi import HTTPException, status as _status
+from ....deps import HTTPException, status as _status
 
 from ... import events as _ev
 from ...opview import opview_from_ctx, ensure_schema_in, _ensure_temp
