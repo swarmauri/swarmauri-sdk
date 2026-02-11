@@ -516,35 +516,55 @@ class APIRouter:
             prefix = "/" + prefix
         prefix = prefix.rstrip("/")
 
-        for route in other._routes:
+        routes = getattr(other, "_routes", None)
+        if routes is None:
+            routes = getattr(other, "routes", [])
+
+        for route in routes:
             if route.name in ("__openapi__", "__docs__"):
                 continue
-            new_path = prefix + route.path_template
+
+            route_path = getattr(route, "path_template", None) or getattr(
+                route, "path", ""
+            )
+            route_handler = getattr(route, "handler", None) or getattr(
+                route, "endpoint", None
+            )
+            if not route_path or route_handler is None:
+                continue
+
+            route_methods = getattr(route, "methods", None) or {"GET"}
+            route_methods = frozenset(str(method).upper() for method in route_methods)
+
+            new_path = prefix + route_path
             pattern, param_names = _compile_path(new_path)
-            merged_tags = list(dict.fromkeys((tags or []) + (route.tags or []))) or None
+
+            route_tags = getattr(route, "tags", None) or []
+            merged_tags = list(dict.fromkeys((tags or []) + route_tags)) or None
             self._routes.append(
                 Route(
-                    methods=route.methods,
+                    methods=route_methods,
                     path_template=new_path,
                     pattern=pattern,
                     param_names=param_names,
-                    handler=route.handler,
-                    name=route.name,
-                    summary=route.summary,
-                    description=route.description,
+                    handler=route_handler,
+                    name=getattr(route, "name", None)
+                    or getattr(route_handler, "__name__", "handler"),
+                    summary=getattr(route, "summary", None),
+                    description=getattr(route, "description", None),
                     tags=merged_tags,
-                    deprecated=route.deprecated,
-                    request_schema=route.request_schema,
-                    response_schema=route.response_schema,
-                    path_param_schemas=route.path_param_schemas,
-                    query_param_schemas=route.query_param_schemas,
-                    include_in_schema=route.include_in_schema,
-                    operation_id=route.operation_id,
-                    response_model=route.response_model,
-                    request_model=route.request_model,
-                    responses=route.responses,
-                    status_code=route.status_code,
-                    dependencies=list(route.dependencies or []),
+                    deprecated=bool(getattr(route, "deprecated", False)),
+                    request_schema=getattr(route, "request_schema", None),
+                    response_schema=getattr(route, "response_schema", None),
+                    path_param_schemas=getattr(route, "path_param_schemas", None),
+                    query_param_schemas=getattr(route, "query_param_schemas", None),
+                    include_in_schema=getattr(route, "include_in_schema", True),
+                    operation_id=getattr(route, "operation_id", None),
+                    response_model=getattr(route, "response_model", None),
+                    request_model=getattr(route, "request_model", None),
+                    responses=getattr(route, "responses", None),
+                    status_code=getattr(route, "status_code", None),
+                    dependencies=list(getattr(route, "dependencies", None) or []),
                 )
             )
 
