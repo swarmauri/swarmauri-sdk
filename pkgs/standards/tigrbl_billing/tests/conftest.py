@@ -430,6 +430,7 @@ class TigrblApp(tigrbl_module.TigrblApp):
         router = APIRouter(prefix=prefix)
 
         @router.post("")
+        @router.post("/", include_in_schema=False)
         async def create_item(
             payload: Mapping[str, Any] = Body(default={}),
         ):  # pragma: no cover - dynamic
@@ -437,8 +438,23 @@ class TigrblApp(tigrbl_module.TigrblApp):
             return await model.handlers.create.handler(ctx)
 
         @router.get("")
+        @router.get("/", include_in_schema=False)
         async def list_items():  # pragma: no cover - dynamic
             return await model.handlers.list.handler({})
+
+        if callable(getattr(self, "add_api_route", None)):
+            self.add_api_route(
+                prefix,
+                create_item,
+                methods=["POST"],
+                include_in_schema=False,
+            )
+            self.add_api_route(
+                prefix,
+                list_items,
+                methods=["GET"],
+                include_in_schema=False,
+            )
 
         @router.get("/{item_id}")
         async def read_item(item_id: str):  # pragma: no cover - dynamic
