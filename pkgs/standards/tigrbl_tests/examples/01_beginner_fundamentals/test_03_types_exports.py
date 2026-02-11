@@ -1,3 +1,6 @@
+import logging
+import re
+
 import pytest
 from tigrbl import Base
 from tigrbl.orm.mixins import GUIDPk
@@ -72,14 +75,22 @@ def test_types_exports_allow_json_column_name_without_shadowing_json_type():
 def test_types_exports_warn_when_json_attribute_shadows_basemodel_json():
     """Document Pydantic warning behavior when model attribute ``json`` is used."""
 
-    with pytest.warns(
-        UserWarning,
-        match='Field name "json" in "Gallery" shadows an attribute in parent "BaseModel"',
-    ):
+    warning_pattern = re.compile(
+        r'Field name "json" in "Gallery(?:Read|Create|Update|Replace|Delete)?" shadows an attribute in parent "BaseModel"'
+    )
+
+    with pytest.warns(UserWarning) as captured_warnings:
 
         class Gallery(Base, GUIDPk):
             __tablename__ = "type_gallery_json_warning"
             __allow_unmapped__ = True
             json = Column(JSON)
+
+    warning_messages = [str(warning.message) for warning in captured_warnings]
+    assert any(warning_pattern.search(message) for message in warning_messages)
+
+    logger = logging.getLogger(__name__)
+    for message in warning_messages:
+        logger.info("Captured expected schema warning: %s", message)
 
     assert isinstance(Gallery.__table__.c.json.type, JSON)
