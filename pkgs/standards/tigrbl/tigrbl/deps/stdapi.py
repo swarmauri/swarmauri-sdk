@@ -6,6 +6,7 @@ This module strictly does not use FastAPI.
 from __future__ import annotations
 
 import asyncio
+from contextlib import AsyncExitStack, asynccontextmanager, contextmanager
 import importlib
 import importlib.util
 import inspect
@@ -633,8 +634,9 @@ class APIRouter:
         )
 
     async def _call_handler(self, route: Route, req: Request) -> Response:
+        stack = AsyncExitStack()
         try:
-            kwargs = await self._resolve_handler_kwargs(route, req)
+            kwargs = await self._resolve_handler_kwargs(route, req, stack)
             out = route.handler(**kwargs)
             if inspect.isawaitable(out):
                 out = await out
@@ -644,6 +646,8 @@ class APIRouter:
                 status_code=he.status_code,
                 headers=he.headers,
             )
+        finally:
+            await stack.aclose()
 
         if isinstance(out, Response):
             return out
@@ -665,7 +669,7 @@ class APIRouter:
         return Response.json(out)
 
     async def _resolve_handler_kwargs(
-        self, route: Route, req: Request
+        self, route: Route, req: Request, stack: AsyncExitStack
     ) -> dict[str, Any]:
         sig = inspect.signature(route.handler)
         kwargs: dict[str, Any] = {}
@@ -688,7 +692,7 @@ class APIRouter:
             if isinstance(default, _Dependency) or dependency_marker is not None:
                 dep = default.dependency if isinstance(default, _Dependency) else None
                 dep = dep or dependency_marker.dependency
-                kwargs[name] = await self._invoke_dependency(dep, req)
+                kwargs[name] = await self._invoke_dependency(dep, req, stack)
                 continue
             if isinstance(default, Param) or param_marker is not None:
                 marker = default if isinstance(default, Param) else param_marker
@@ -715,7 +719,9 @@ class APIRouter:
                 kwargs[name] = default
         return kwargs
 
-    async def _invoke_dependency(self, dep: Callable[..., Any], req: Request) -> Any:
+    async def _invoke_dependency(
+        self, dep: Callable[..., Any], req: Request, stack: AsyncExitStack
+    ) -> Any:
         sig = inspect.signature(dep)
         kwargs: dict[str, Any] = {}
         for name, param in sig.parameters.items():
@@ -749,6 +755,30 @@ class APIRouter:
                 continue
             kwargs[name] = param.default
         out = dep(**kwargs)
+        if inspect.isasyncgen(out):
+
+            @asynccontextmanager
+            async def _managed_async_gen() -> Any:
+                try:
+                    value = await anext(out)
+                    yield value
+                finally:
+                    await out.aclose()
+
+            return await stack.enter_async_context(_managed_async_gen())
+
+        if inspect.isgenerator(out):
+
+            @contextmanager
+            def _managed_gen() -> Any:
+                try:
+                    value = next(out)
+                    yield value
+                finally:
+                    out.close()
+
+            return stack.enter_context(_managed_gen())
+
         if inspect.isawaitable(out):
             out = await out
         return out
