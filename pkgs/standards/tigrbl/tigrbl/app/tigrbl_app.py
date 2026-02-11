@@ -70,6 +70,7 @@ class TigrblApp(_App):
     _authorize: Any = None
     _optional_authn_dep: Any = None
     _allow_anon_ops: set[str] = set()
+    _event_handlers: Dict[str, list[Callable[..., Any]]]
 
     def __init__(
         self,
@@ -128,12 +129,57 @@ class TigrblApp(_App):
         self.core = SimpleNamespace()
         self.core_raw = SimpleNamespace()
         self.apis = list(getattr(self, "APIS", ()))
+        self._event_handlers = {
+            "startup": [],
+            "shutdown": [],
+        }
 
         # API-level hooks map (merged into each model at include-time; precedence handled in bindings.hooks)
         self._api_hooks_map = copy.deepcopy(api_hooks) if api_hooks else None
         if apis:
             self.apis.extend(list(apis))
             self.include_apis(self.apis)
+
+    @property
+    def event_handlers(self) -> Dict[str, list[Callable[..., Any]]]:
+        """FastAPI-style event handler registry."""
+        return self._event_handlers
+
+    def add_event_handler(
+        self,
+        event_type: str,
+        handler: Callable[..., Any],
+    ) -> None:
+        """Register a startup or shutdown handler."""
+        if event_type not in self._event_handlers:
+            raise ValueError(
+                f"Unsupported event type '{event_type}'. "
+                f"Expected one of: {tuple(self._event_handlers.keys())}."
+            )
+        self._event_handlers[event_type].append(handler)
+
+    def on_event(
+        self, event_type: str
+    ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+        """Decorator form of :meth:`add_event_handler`."""
+
+        def _decorator(handler: Callable[..., Any]) -> Callable[..., Any]:
+            self.add_event_handler(event_type, handler)
+            return handler
+
+        return _decorator
+
+    async def run_event_handlers(self, event_type: str) -> None:
+        """Execute registered handlers for an event type in registration order."""
+        if event_type not in self._event_handlers:
+            raise ValueError(
+                f"Unsupported event type '{event_type}'. "
+                f"Expected one of: {tuple(self._event_handlers.keys())}."
+            )
+        for handler in self._event_handlers[event_type]:
+            result = handler()
+            if inspect.isawaitable(result):
+                await result
 
     def add_middleware(self, middleware_class: Any, **options: Any) -> None:
         self._middlewares.append((middleware_class, options))

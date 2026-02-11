@@ -46,11 +46,16 @@ app = TigrblApp(
 surface_api.mount_jsonrpc(prefix="/rpc")
 surface_api.attach_diagnostics(prefix="/system")
 app.include_router(surface_api)  # /authn/<model> resources & flows
+
+
+include_oidc_userinfo(app)
+
 if settings.enable_rfc8693:
     include_rfc8693(app)
-include_oidc_userinfo(app)
+
 if settings.enable_rfc7009:
     include_rfc7009(app)
+
 if settings.enable_rfc8414:
     include_rfc8414(app)
     include_oidc_discovery(app)
