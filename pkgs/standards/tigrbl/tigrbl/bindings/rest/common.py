@@ -6,6 +6,7 @@ import surface stable while easing maintenance.
 
 from __future__ import annotations
 import logging
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -64,9 +65,26 @@ from ...op.types import CANON, PHASES
 from ...rest import _nested_prefix
 from ...runtime import executor as _executor
 from ...schema.builder import _strip_parent_fields
+from ...deps.starlette import Response as StarletteResponse
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/rest/common")
+
+
+def _is_http_response(obj: Any) -> bool:
+    """Best-effort response detection across stdapi and Starlette response types."""
+    if isinstance(obj, (Response, StarletteResponse)):
+        return True
+    return (
+        hasattr(obj, "status_code")
+        and hasattr(obj, "headers")
+        and (
+            hasattr(obj, "body")
+            or hasattr(obj, "body_iterator")
+            or hasattr(obj, "render")
+        )
+    )
+
 
 __all__ = [
     "Body",
@@ -76,6 +94,7 @@ __all__ = [
     "Query",
     "Request",
     "Response",
+    "StarletteResponse",
     "Router",
     "Security",
     "_status",
@@ -100,6 +119,7 @@ __all__ = [
     "_pk_names",
     "_get_phase_chains",
     "_coerce_parent_kw",
+    "_is_http_response",
     "_serialize_output",
     "_validate_body",
     "_validate_query",
