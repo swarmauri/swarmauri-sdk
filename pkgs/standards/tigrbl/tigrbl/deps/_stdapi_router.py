@@ -114,7 +114,7 @@ class APIRouter:
             request_model=request_model,
             responses=responses,
             status_code=status_code,
-            dependencies=list(dependencies or []),
+            dependencies=list(self.dependencies) + list(dependencies or []),
         )
         self._routes.append(route)
 
@@ -210,7 +210,8 @@ class APIRouter:
                     request_model=getattr(route, "request_model", None),
                     responses=getattr(route, "responses", None),
                     status_code=getattr(route, "status_code", None),
-                    dependencies=list(getattr(route, "dependencies", None) or []),
+                    dependencies=list(self.dependencies)
+                    + list(getattr(route, "dependencies", None) or []),
                 )
             )
 
@@ -986,19 +987,32 @@ def _extract_param_value(
     return None, False
 
 
+def _is_http_bearer_dependency(dep: Any) -> bool:
+    if isinstance(dep, HTTPBearer):
+        return True
+    return dep.__class__.__name__ == "HTTPBearer"
+
+
+def _security_scheme_name(dep: Any) -> str:
+    return getattr(dep, "scheme_name", None) or "HTTPBearer"
+
+
 def _security_from_dependencies(deps: Iterable[Any]) -> list[dict[str, list[str]]]:
     security: list[dict[str, list[str]]] = []
     for dependency in _extract_security_dependencies(deps):
-        if isinstance(dependency, HTTPBearer):
-            security.append({"HTTPBearer": []})
+        if _is_http_bearer_dependency(dependency):
+            security.append({_security_scheme_name(dependency): []})
     return security
 
 
 def _security_schemes_from_dependencies(deps: Iterable[Any]) -> dict[str, Any]:
     schemes: dict[str, Any] = {}
     for dependency in _extract_security_dependencies(deps):
-        if isinstance(dependency, HTTPBearer):
-            schemes["HTTPBearer"] = {"type": "http", "scheme": "bearer"}
+        if _is_http_bearer_dependency(dependency):
+            schemes[_security_scheme_name(dependency)] = {
+                "type": "http",
+                "scheme": "bearer",
+            }
     return schemes
 
 

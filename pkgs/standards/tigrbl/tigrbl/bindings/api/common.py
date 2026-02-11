@@ -104,5 +104,12 @@ def _ensure_api_ns(api: ApiLike) -> None:
         if not hasattr(api, attr):
             setattr(api, attr, default)
             logger.debug("Initialized api.%s", attr)
+        elif attr == "hooks" and not isinstance(getattr(api, attr), SimpleNamespace):
+            # ``App`` instances may expose tuple-based app hook composition.
+            # Promote to a namespace when binding models and preserve original
+            # value for callers that need introspection.
+            setattr(api, "app_hooks", getattr(api, attr))
+            setattr(api, attr, SimpleNamespace())
+            logger.debug("Promoted api.hooks into namespace container")
         else:
             logger.debug("api already has attribute %s", attr)

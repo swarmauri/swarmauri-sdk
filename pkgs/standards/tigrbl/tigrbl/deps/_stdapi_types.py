@@ -202,8 +202,9 @@ class HTTPAuthorizationCredentials:
 
 
 class HTTPBearer:
-    def __init__(self, auto_error: bool = True) -> None:
+    def __init__(self, auto_error: bool = True, scheme_name: str | None = None) -> None:
         self.auto_error = auto_error
+        self.scheme_name = scheme_name or "HTTPBearer"
 
     def __call__(self, request: Request) -> HTTPAuthorizationCredentials | None:
         header = request.headers.get("authorization")

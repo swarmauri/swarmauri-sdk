@@ -41,8 +41,8 @@ def test_types_exports_support_json_columns():
     class Gallery(Base, GUIDPk):
         __tablename__ = "type_gallery_json"
         __allow_unmapped__ = True
-        json = Column(JSON)
+        payload_json = Column(JSON)
 
     # Deployment: table metadata is available immediately.
     # Assertion: JSON columns are typed as JSON in metadata.
-    assert isinstance(Gallery.__table__.c.json.type, JSON)
+    assert isinstance(Gallery.__table__.c.payload_json.type, JSON)

@@ -195,7 +195,12 @@ def _build_schema(
     _merge_response_extras(orm_cls, verb, fields, include=include, exclude=exclude)
 
     model_name = name or f"{orm_cls.__name__}{verb.capitalize()}"
-    cfg_kwargs = {"from_attributes": True}
+    cfg_kwargs = {
+        "from_attributes": True,
+        # Allow domain models to expose natural names like ``json`` without
+        # noisy warnings about BaseModel method shadowing.
+        "protected_namespaces": (),
+    }
     if verb in {"create", "update", "replace"}:
         cfg_kwargs["extra"] = "forbid"
     cfg = ConfigDict(**cfg_kwargs)

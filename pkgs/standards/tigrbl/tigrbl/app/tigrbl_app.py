@@ -76,8 +76,8 @@ class TigrblApp(_App):
         *,
         engine: EngineCfg | None = None,
         apis: Sequence[Any] | None = None,
-        jsonrpc_prefix: str = "/rpc",
-        system_prefix: str = "/system",
+        jsonrpc_prefix: str | None = None,
+        system_prefix: str | None = None,
         favicon_path: str | Path = FAVICON_PATH,
         api_hooks: Mapping[str, Iterable[Callable]]
         | Mapping[str, Mapping[str, Iterable[Callable]]]
@@ -103,14 +103,16 @@ class TigrblApp(_App):
         self._install_favicon()
         # capture initial routes so refreshes retain FastAPI defaults
         self._base_routes = list(self.router.routes)
-        self.jsonrpc_prefix = jsonrpc_prefix
-        self.system_prefix = system_prefix
+        self.jsonrpc_prefix = jsonrpc_prefix or getattr(self, "JSONRPC_PREFIX", "/rpc")
+        self.system_prefix = system_prefix or getattr(self, "SYSTEM_PREFIX", "/system")
 
         # public containers (mirrors used by bindings.api)
         self.models = initialize_model_registry(getattr(self, "MODELS", ()))
         self.schemas = SimpleNamespace()
         self.handlers = SimpleNamespace()
-        self.hooks = SimpleNamespace()
+        # Keep App-level hook composition from AppSpec available on ``self.hooks``.
+        # API/model hook namespaces are attached lazily by bindings when models
+        # are included.
         self.rpc = SimpleNamespace()
         self.rest = SimpleNamespace()
         self.routers: Dict[str, Any] = {}
