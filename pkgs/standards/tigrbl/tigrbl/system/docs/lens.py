@@ -6,7 +6,7 @@ from urllib.parse import quote
 from ...response.stdapi import Response
 
 
-TIGRBL_LENS_VERSION = "0.0.8"
+TIGRBL_LENS_VERSION = "0.0.9"
 
 
 def _with_leading_slash(path: str) -> str:
@@ -52,7 +52,7 @@ def build_lens_html(router: Any, request: Any, *, spec_path: str) -> str:
     <script type="module">
       import React from "react";
       import {{ createRoot }} from "react-dom/client";
-      import Lens from "@tigrbljs/tigrbl-lens";
+      import {{ EmbeddedLens }} from "@tigrbljs/tigrbl-lens";
 
       const rootEl = document.getElementById("root");
       if (rootEl) {{
@@ -60,7 +60,7 @@ def build_lens_html(router: Any, request: Any, *, spec_path: str) -> str:
           React.createElement(
             React.StrictMode,
             null,
-            React.createElement(Lens, {{ url: "{quoted_spec_url}" }}),
+            React.createElement(EmbeddedLens, {{ url: "{quoted_spec_url}" }}),
           ),
         );
       }}
