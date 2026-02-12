@@ -74,6 +74,10 @@ class Router:
         self.prefix = normalize_prefix(prefix)
         self.tags = list(tags or [])
         self.dependencies = list(dependencies or [])
+        # FastAPI compatibility shims used by test clients and dependency
+        # override helpers.
+        self.dependency_overrides: dict[Callable[..., Any], Callable[..., Any]] = {}
+        self.dependency_overrides_provider = self
         self._event_handlers: dict[str, list[Callable[..., Any]]] = {
             "startup": [],
             "shutdown": [],
@@ -89,6 +93,16 @@ class Router:
     def event_handlers(self) -> dict[str, list[Callable[..., Any]]]:
         """FastAPI-style event handler registry."""
         return self._event_handlers
+
+    @property
+    def on_startup(self) -> list[Callable[..., Any]]:
+        """Starlette-compatible startup handler list."""
+        return self._event_handlers["startup"]
+
+    @property
+    def on_shutdown(self) -> list[Callable[..., Any]]:
+        """Starlette-compatible shutdown handler list."""
+        return self._event_handlers["shutdown"]
 
     def add_event_handler(
         self,

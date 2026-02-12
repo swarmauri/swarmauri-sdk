@@ -77,6 +77,17 @@ async def call_handler(router: Any, route: Any, req: Request) -> Response:
             status_code=he.status_code,
             headers=he.headers,
         )
+    except Exception as exc:
+        # Compatibility: many integrations raise framework-specific HTTP
+        # exceptions (e.g., FastAPI/Starlette). Handle any exception exposing
+        # ``status_code`` + ``detail`` to preserve expected error responses.
+        if hasattr(exc, "status_code") and hasattr(exc, "detail"):
+            return Response.json(
+                {"detail": getattr(exc, "detail")},
+                status_code=getattr(exc, "status_code"),
+                headers=getattr(exc, "headers", None),
+            )
+        raise
     finally:
         for cleanup in reversed(dependency_cleanups):
             try:
