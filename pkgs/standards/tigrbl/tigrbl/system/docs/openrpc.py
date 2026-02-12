@@ -116,18 +116,20 @@ def build_openrpc_spec(api: Any) -> JsonObject:
 
 def mount_openrpc(
     api: Any,
-    router: Any,
+    router: Any | None = None,
     *,
     path: str = "/openrpc.json",
     name: str = "openrpc_json",
     tags: list[str] | None = None,
 ) -> Any:
-    """Mount an OpenRPC JSON endpoint onto ``router``."""
+    """Mount an OpenRPC JSON endpoint onto ``router`` or ``api``."""
+
+    target_router = router if router is not None else api
 
     def _openrpc_endpoint() -> Response:
         return Response.json(build_openrpc_spec(api))
 
-    router.add_api_route(
+    target_router.add_api_route(
         path,
         _openrpc_endpoint,
         methods=["GET"],
@@ -136,7 +138,7 @@ def mount_openrpc(
         summary="OpenRPC",
         description="OpenRPC 1.2.6 schema for JSON-RPC methods.",
     )
-    return router
+    return target_router
 
 
 __all__ = ["build_openrpc_spec", "mount_openrpc"]
