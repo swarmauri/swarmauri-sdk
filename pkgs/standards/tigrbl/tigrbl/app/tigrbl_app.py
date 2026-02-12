@@ -142,7 +142,7 @@ class TigrblApp(_App):
 
     @property
     def event_handlers(self) -> Dict[str, list[Callable[..., Any]]]:
-        """FastAPI-style event handler registry."""
+        """Expose registered startup and shutdown callbacks by event name."""
         return self._event_handlers
 
     def add_event_handler(

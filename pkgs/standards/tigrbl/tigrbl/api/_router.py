@@ -91,17 +91,17 @@ class Router:
 
     @property
     def event_handlers(self) -> dict[str, list[Callable[..., Any]]]:
-        """FastAPI-style event handler registry."""
+        """Expose registered startup and shutdown callbacks by event name."""
         return self._event_handlers
 
     @property
     def on_startup(self) -> list[Callable[..., Any]]:
-        """Starlette-compatible startup handler list."""
+        """Provide direct access to startup callbacks for lifecycle runners."""
         return self._event_handlers["startup"]
 
     @property
     def on_shutdown(self) -> list[Callable[..., Any]]:
-        """Starlette-compatible shutdown handler list."""
+        """Provide direct access to shutdown callbacks for lifecycle runners."""
         return self._event_handlers["shutdown"]
 
     def add_event_handler(
