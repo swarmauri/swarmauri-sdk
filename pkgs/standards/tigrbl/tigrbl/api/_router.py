@@ -7,6 +7,7 @@ higher-level ``Api``/``App`` interfaces.
 from __future__ import annotations
 
 import inspect
+from contextlib import asynccontextmanager
 from typing import Any, Callable
 
 from tigrbl.api._routing import (
@@ -82,12 +83,22 @@ class Router:
             "startup": [],
             "shutdown": [],
         }
+        self.lifespan_context = self._lifespan_context
 
         self._routes: list[Route] = []
         self.routes = self._routes
 
         if include_docs:
             self._install_builtin_routes()
+
+    @asynccontextmanager
+    async def _lifespan_context(self, _: Any):
+        """ASGI lifecycle context manager for startup/shutdown hooks."""
+        await self.run_event_handlers("startup")
+        try:
+            yield
+        finally:
+            await self.run_event_handlers("shutdown")
 
     @property
     def event_handlers(self) -> dict[str, list[Callable[..., Any]]]:

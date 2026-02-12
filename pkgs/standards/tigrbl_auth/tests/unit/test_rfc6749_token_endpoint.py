@@ -2,7 +2,7 @@
 
 import pytest
 import pytest_asyncio
-from fastapi import FastAPI, status
+from fastapi import status
 from httpx import ASGITransport, AsyncClient, BasicAuth
 from unittest.mock import AsyncMock
 
@@ -35,8 +35,7 @@ async def _override_db():
 
 @pytest_asyncio.fixture()
 async def client(monkeypatch):
-    app = FastAPI()
-    app.include_router(router)
+    app = router
     app.dependency_overrides[get_db] = _override_db
     monkeypatch.setattr(
         Client.handlers.read,
