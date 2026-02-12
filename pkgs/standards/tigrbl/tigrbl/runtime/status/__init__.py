@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .exceptions import HTTPException
+from .exceptions import HTTPException, StatusDetailError
 from .mappings import (
     status,
     HTTP_ERROR_MESSAGES,
@@ -33,6 +33,7 @@ from .exceptions import (
 
 __all__ = [
     "HTTPException",
+    "StatusDetailError",
     "status",
     # maps & messages
     "HTTP_ERROR_MESSAGES",
