@@ -38,7 +38,7 @@ def build_lens_html(router: Any, request: Any, *, spec_path: str) -> str:
         "imports": {{
           "react": "https://esm.sh/react@19",
           "react-dom/client": "https://esm.sh/react-dom@19/client",
-          "@tigrbljs/tigrbl-lens": "https://esm.sh/@tigrbljs/tigrbl-lens@0.0.6"
+          "@tigrbljs/tigrbl-lens": "https://esm.sh/@tigrbljs/tigrbl-lens@0.0.7"
         }}
       }}
     </script>
