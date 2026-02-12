@@ -88,6 +88,7 @@ class Router:
             "startup": [],
             "shutdown": [],
         }
+        self.lifespan_context = self._lifespan_context
 
         self.lifespan_context = _default_lifespan_context
 
@@ -96,6 +97,15 @@ class Router:
 
         if include_docs:
             self._install_builtin_routes()
+
+    @asynccontextmanager
+    async def _lifespan_context(self, _: Any):
+        """ASGI lifespan-compatible context manager for startup/shutdown hooks."""
+        await self.run_event_handlers("startup")
+        try:
+            yield
+        finally:
+            await self.run_event_handlers("shutdown")
 
     @property
     def event_handlers(self) -> dict[str, list[Callable[..., Any]]]:
