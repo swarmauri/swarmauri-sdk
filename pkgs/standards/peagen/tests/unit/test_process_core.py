@@ -152,14 +152,13 @@ def test_process_single_project_integration(
     monkeypatch.setattr(
         process_core,
         "sort_file_records",
-        lambda records,
-        start_idx=0,
-        start_file=None,
-        transitive=False: sort_file_records(
-            file_records=records,
-            start_idx=start_idx,
-            start_file=start_file,
-            transitive=transitive,
+        lambda records, start_idx=0, start_file=None, transitive=False: (
+            sort_file_records(
+                file_records=records,
+                start_idx=start_idx,
+                start_file=start_file,
+                transitive=transitive,
+            )
         ),
     )
 
