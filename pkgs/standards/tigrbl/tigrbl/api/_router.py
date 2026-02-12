@@ -100,7 +100,7 @@ class Router:
 
     @asynccontextmanager
     async def _lifespan_context(self, _: Any):
-        """ASGI lifespan-compatible context manager for startup/shutdown hooks."""
+        """ASGI lifecycle context manager for startup/shutdown hooks."""
         await self.run_event_handlers("startup")
         try:
             yield
