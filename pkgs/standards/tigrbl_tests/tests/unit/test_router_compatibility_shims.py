@@ -1,9 +1,17 @@
 import pytest
-from fastapi.exceptions import HTTPException as FastAPIHTTPException
 from httpx import ASGITransport, AsyncClient
 
 from tigrbl import TigrblApi, TigrblApp
 from tigrbl.security.dependencies import Dependency
+
+
+class StatusDetailError(Exception):
+    def __init__(
+        self, status_code: int, detail: str, headers: dict[str, str] | None = None
+    ):
+        self.status_code = status_code
+        self.detail = detail
+        self.headers = headers
 
 
 @pytest.mark.unit
@@ -53,7 +61,7 @@ async def test_framework_http_exception_is_translated_to_json_response() -> None
 
     @api.get("/boom")
     def boom() -> None:
-        raise FastAPIHTTPException(status_code=418, detail="teapot")
+        raise StatusDetailError(status_code=418, detail="teapot")
 
     async with AsyncClient(
         transport=ASGITransport(app=api), base_url="http://test"

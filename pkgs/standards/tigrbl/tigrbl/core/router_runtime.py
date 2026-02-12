@@ -78,9 +78,8 @@ async def call_handler(router: Any, route: Any, req: Request) -> Response:
             headers=he.headers,
         )
     except Exception as exc:
-        # Compatibility: many integrations raise framework-specific HTTP
-        # exceptions (e.g., FastAPI/Starlette). Handle any exception exposing
-        # ``status_code`` + ``detail`` to preserve expected error responses.
+        # Normalize exception objects that provide ``status_code`` + ``detail``
+        # into HTTP JSON responses.
         if hasattr(exc, "status_code") and hasattr(exc, "detail"):
             return Response.json(
                 {"detail": getattr(exc, "detail")},
