@@ -77,6 +77,16 @@ async def call_handler(router: Any, route: Any, req: Request) -> Response:
             status_code=he.status_code,
             headers=he.headers,
         )
+    except Exception as exc:
+        # Normalize exception objects that provide ``status_code`` + ``detail``
+        # into HTTP JSON responses.
+        if hasattr(exc, "status_code") and hasattr(exc, "detail"):
+            return Response.json(
+                {"detail": getattr(exc, "detail")},
+                status_code=getattr(exc, "status_code"),
+                headers=getattr(exc, "headers", None),
+            )
+        raise
     finally:
         for cleanup in reversed(dependency_cleanups):
             try:

@@ -74,6 +74,10 @@ class Router:
         self.prefix = normalize_prefix(prefix)
         self.tags = list(tags or [])
         self.dependencies = list(dependencies or [])
+        # Allow dependencies to be replaced at runtime, typically for testing
+        # and environment-specific wiring.
+        self.dependency_overrides: dict[Callable[..., Any], Callable[..., Any]] = {}
+        self.dependency_overrides_provider = self
         self._event_handlers: dict[str, list[Callable[..., Any]]] = {
             "startup": [],
             "shutdown": [],
@@ -87,8 +91,18 @@ class Router:
 
     @property
     def event_handlers(self) -> dict[str, list[Callable[..., Any]]]:
-        """FastAPI-style event handler registry."""
+        """Expose registered startup and shutdown callbacks by event name."""
         return self._event_handlers
+
+    @property
+    def on_startup(self) -> list[Callable[..., Any]]:
+        """Provide direct access to startup callbacks for lifecycle runners."""
+        return self._event_handlers["startup"]
+
+    @property
+    def on_shutdown(self) -> list[Callable[..., Any]]:
+        """Provide direct access to shutdown callbacks for lifecycle runners."""
+        return self._event_handlers["shutdown"]
 
     def add_event_handler(
         self,

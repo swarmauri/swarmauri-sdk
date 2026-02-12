@@ -81,6 +81,9 @@ async def resolve_handler_kwargs(router: Any, route: Any, req: Any) -> dict[str,
 
 
 async def invoke_dependency(router: Any, dep: Callable[..., Any], req: Any) -> Any:
+    provider = getattr(router, "dependency_overrides_provider", None) or router
+    overrides = getattr(provider, "dependency_overrides", {})
+    dep = overrides.get(dep, dep)
     sig = inspect.signature(dep)
     kwargs: dict[str, Any] = {}
     for name, param in sig.parameters.items():
