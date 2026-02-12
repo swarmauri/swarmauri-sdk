@@ -49,6 +49,11 @@ from ..transport.rest.decorators import (
 Handler = Callable[..., Any]
 
 
+@asynccontextmanager
+async def _default_lifespan_context(app: Any):
+    yield
+
+
 class Router:
     def __init__(
         self,
@@ -84,6 +89,8 @@ class Router:
             "shutdown": [],
         }
         self.lifespan_context = self._lifespan_context
+
+        self.lifespan_context = _default_lifespan_context
 
         self._routes: list[Route] = []
         self.routes = self._routes
