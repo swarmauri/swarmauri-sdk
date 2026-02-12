@@ -55,7 +55,7 @@ from ..deps.pydantic import (
 from ..api._api import APIRouter, Router
 from ..core.crud.params import Body, Path
 from ..response.stdapi import Response
-from ..runtime.status.exceptions import HTTPException
+from ..runtime.status.exceptions import HTTPException, StatusDetailError
 from ..security.dependencies import Depends, Security
 from ..transport.request import Request
 
@@ -161,4 +161,5 @@ __all__: list[str] = [
     "Path",
     "Body",
     "HTTPException",
+    "StatusDetailError",
 ]

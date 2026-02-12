@@ -5,7 +5,7 @@ from typing import Any, Dict, Mapping, Optional
 from .utils import _read_in_errors, _has_in_errors
 
 
-class HTTPException(Exception):
+class StatusDetailError(Exception):
     def __init__(
         self,
         status_code: int,
@@ -16,6 +16,16 @@ class HTTPException(Exception):
         self.status_code = int(status_code)
         self.detail = detail
         self.headers = dict(headers or {})
+
+
+class HTTPException(StatusDetailError):
+    def __init__(
+        self,
+        status_code: int,
+        detail: Any = "",
+        headers: Mapping[str, str] | None = None,
+    ) -> None:
+        super().__init__(status_code=status_code, detail=detail, headers=headers)
 
 
 class TigrblError(Exception):
@@ -123,6 +133,7 @@ def raise_for_in_errors(ctx: Any) -> None:
 
 
 __all__ = [
+    "StatusDetailError",
     "HTTPException",
     "TigrblError",
     "PlanningError",
