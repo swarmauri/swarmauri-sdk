@@ -1,7 +1,7 @@
 [project]
 name = "tigrbl"
 version = "0.3.5.dev3"
-description = "Automatic API generation tools by Swarmauri."
+description = "A modern pure ASGI/WSGI Python framework for building schema-first REST and JSON-RPC APIs with SQLAlchemy models, typed validation, lifecycle hooks, and engine extension support."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
@@ -16,11 +16,8 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
 ]
-authors = [{ name = "Swarmauri Team", email = "team@swarmauri.com" }]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
-    "swarmauri_core",
-    "swarmauri_base",
-    "swarmauri_standard",
     "pydantic>=2.0.0",
     "sqlalchemy>=2.0",
     "aiosqlite>=0.19.0",
@@ -50,9 +47,6 @@ tests = [
 ]
 
 [tool.uv.sources]
-swarmauri_core = { workspace = true }
-swarmauri_base = { workspace = true }
-swarmauri_standard = { workspace = true }
 tigrbl-tests = { workspace = true }
 
 [tool.pytest.ini_options]
