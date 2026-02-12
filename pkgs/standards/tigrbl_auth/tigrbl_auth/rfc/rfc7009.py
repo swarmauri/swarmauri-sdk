@@ -9,9 +9,11 @@ See RFC 7009: https://www.rfc-editor.org/rfc/rfc7009
 
 from __future__ import annotations
 
+from urllib.parse import parse_qs
+
 from typing import Final, Set
 
-from tigrbl_auth.deps import TigrblApi, TigrblApp, Form, HTTPException, status
+from tigrbl_auth.deps import TigrblApi, TigrblApp, HTTPException, Request, status
 
 from ..runtime_cfg import settings
 
@@ -56,12 +58,18 @@ def reset_revocations() -> None:
 
 
 @api.post("/revoked_tokens/revoke")
-async def revoke(token: str = Form(...)) -> dict[str, str]:
+async def revoke(request: Request) -> dict[str, str]:
     """RFC 7009 token revocation endpoint."""
     if not settings.enable_rfc7009:
         raise HTTPException(
             status.HTTP_404_NOT_FOUND, f"RFC 7009 disabled: {RFC7009_SPEC_URL}"
         )
+
+    parsed = parse_qs(request.body.decode("utf-8"), keep_blank_values=True)
+    token = parsed.get("token", [None])[0]
+    if token is None:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "missing token")
+
     revoke_token(token)
     return {}
 

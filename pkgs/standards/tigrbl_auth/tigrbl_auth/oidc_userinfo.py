@@ -11,8 +11,9 @@ omitted from the response.
 
 from __future__ import annotations
 
+import inspect
+
 from tigrbl_auth.deps import (
-    Depends,
     TigrblApi,
     TigrblApp,
     HTTPException,
@@ -31,10 +32,29 @@ api = TigrblApi()
 router = api
 
 
+def _header(request: Request, name: str) -> str:
+    """Return header value from case-insensitive transport headers."""
+
+    return request.headers.get(name) or request.headers.get(name.lower(), "")
+
+
+async def _resolve_current_user(request: Request) -> User:
+    """Resolve the current principal, honoring app dependency overrides."""
+
+    overrides = getattr(getattr(request, "app", None), "dependency_overrides", {})
+    override = overrides.get(get_current_principal)
+    if override is not None:
+        try:
+            resolved = override(request)
+        except TypeError:
+            resolved = override()
+        return await resolved if inspect.isawaitable(resolved) else resolved
+
+    return await get_current_principal(request)
+
+
 @api.get("/userinfo", response_model=None)
-async def userinfo(
-    request: Request, user: User = Depends(get_current_principal)
-) -> Response | dict[str, str]:
+async def userinfo(request: Request) -> Response | dict[str, str]:
     """Return claims about the authenticated user.
 
     The caller must present a valid access token in the ``Authorization``
@@ -43,9 +63,7 @@ async def userinfo(
     response will be JWS signed.
     """
 
-    token = await extract_bearer_token(
-        request, request.headers.get("Authorization", "")
-    )
+    token = await extract_bearer_token(request, _header(request, "Authorization"))
     if not token:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "missing access token")
     try:
@@ -55,6 +73,7 @@ async def userinfo(
             status.HTTP_401_UNAUTHORIZED, "invalid access token"
         ) from exc
     scopes: set[str] = set(payload.get("scope", "").split())
+    user = await _resolve_current_user(request)
 
     claims: dict[str, str] = {"sub": str(user.id)}
     if "profile" in scopes:
@@ -66,7 +85,7 @@ async def userinfo(
     if "phone" in scopes and getattr(user, "phone", None):
         claims["phone_number"] = getattr(user, "phone")
 
-    if "application/jwt" in request.headers.get("accept", ""):
+    if "application/jwt" in _header(request, "Accept"):
         svc, kid = _svc()
         token = await svc.mint(claims, alg=JWAAlg.EDDSA, kid=kid)
         return Response(content=token, media_type="application/jwt")
