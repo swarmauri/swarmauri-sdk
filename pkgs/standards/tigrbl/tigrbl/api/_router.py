@@ -7,6 +7,7 @@ higher-level ``Api``/``App`` interfaces.
 from __future__ import annotations
 
 import inspect
+from contextlib import asynccontextmanager
 from typing import Any, Callable
 
 from tigrbl.api._routing import (
@@ -48,6 +49,11 @@ from ..transport.rest.decorators import (
 Handler = Callable[..., Any]
 
 
+@asynccontextmanager
+async def _default_lifespan_context(app: Any):
+    yield
+
+
 class Router:
     def __init__(
         self,
@@ -82,6 +88,8 @@ class Router:
             "startup": [],
             "shutdown": [],
         }
+
+        self.lifespan_context = _default_lifespan_context
 
         self._routes: list[Route] = []
         self.routes = self._routes
