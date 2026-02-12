@@ -22,11 +22,11 @@ async def test_lens_mountable_on_tigrbl_app_uvicorn():
         assert 'id="root"' in response.text
         assert 'type="importmap"' in response.text
         assert (
-            '"@tigrbljs/tigrbl-lens": "https://esm.sh/@tigrbljs/tigrbl-lens@0.0.11"'
+            '"@tigrbljs/tigrbl-lens": "https://esm.sh/@tigrbljs/tigrbl-lens@0.0.12"'
             in response.text
         )
         assert (
-            'href="https://esm.sh/@tigrbljs/tigrbl-lens@0.0.11/dist/tigrbl-lens.css"'
+            'href="https://esm.sh/@tigrbljs/tigrbl-lens@0.0.12/dist/tigrbl-lens.css"'
             in response.text
         )
         assert 'import { createRoot } from "react-dom/client";' in response.text
