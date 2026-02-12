@@ -51,6 +51,10 @@ api = TigrblApi()
 router = api
 
 
+def _header(request: Request, name: str) -> str | None:
+    return request.headers.get(name) or request.headers.get(name.lower())
+
+
 async def _parse_request_form(request: Request) -> tuple[dict[str, str], list[str]]:
     form_reader = getattr(request, "form", None)
     if callable(form_reader):
@@ -73,7 +77,7 @@ async def token(
 ) -> TokenPair:
     _require_tls(request)
     data, resources = await _parse_request_form(request)
-    auth = request.headers.get("Authorization")
+    auth = _header(request, "Authorization")
     client_id = None
     client_secret = None
     if auth and auth.startswith("Basic "):
@@ -148,7 +152,9 @@ async def token(
         access, refresh = await _jwt.async_sign_pair(
             sub=client_id, tid=str(client.tenant_id), **jwt_kwargs
         )
-        return TokenPair(access_token=access, refresh_token=refresh)
+        return TokenPair(access_token=access, refresh_token=refresh).model_dump(
+            exclude_none=True
+        )
     if grant_type == "password":
         try:
             enforce_password_grant(data)
@@ -169,7 +175,9 @@ async def token(
         access, refresh = await _jwt.async_sign_pair(
             sub=str(user.id), tid=str(user.tenant_id), **jwt_kwargs
         )
-        return TokenPair(access_token=access, refresh_token=refresh)
+        return TokenPair(access_token=access, refresh_token=refresh).model_dump(
+            exclude_none=True
+        )
     if grant_type == "authorization_code":
         try:
             enforce_authorization_code_grant(data)
@@ -232,7 +240,9 @@ async def token(
             **extra_claims,
         )
         await AuthCode.handlers.delete.core({"db": db, "payload": {"id": auth_code.id}})
-        return TokenPair(access_token=access, refresh_token=refresh, id_token=id_token)
+        return TokenPair(
+            access_token=access, refresh_token=refresh, id_token=id_token
+        ).model_dump(exclude_none=True)
     if grant_type == "urn:ietf:params:oauth:grant-type:device_code":
         try:
             parsed = DeviceGrantForm(**data)
@@ -265,7 +275,9 @@ async def token(
         await DeviceCode.handlers.delete.core(
             {"db": db, "payload": {"id": device_obj.id}}
         )
-        return TokenPair(access_token=access, refresh_token=refresh)
+        return TokenPair(access_token=access, refresh_token=refresh).model_dump(
+            exclude_none=True
+        )
     if rfc6749_enabled():
         return JSONResponse(
             {"error": "unsupported_grant_type"},
