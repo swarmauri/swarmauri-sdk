@@ -34,6 +34,8 @@ from ..bindings.model import rebind as _rebind, bind as _bind
 from ..bindings.rest import build_router_and_attach as _build_router_and_attach
 from ..transport import mount_jsonrpc as _mount_jsonrpc
 from ..system import mount_diagnostics as _mount_diagnostics
+from ..system import mount_lens as _mount_lens
+from ..system import mount_openrpc as _mount_openrpc
 from ..op import get_registry, OpSpec
 from ._model_registry import initialize_model_registry
 from ..system.favicon import FAVICON_PATH, mount_favicon
@@ -371,6 +373,26 @@ class TigrblApp(_App):
         )
         self._base_routes = list(self.router.routes)
         return router
+
+    def mount_openrpc(
+        self,
+        *,
+        path: str = "/openrpc.json",
+        name: str = "openrpc_json",
+        tags: list[str] | None = None,
+    ) -> Any:
+        """Mount an OpenRPC JSON endpoint onto this instance."""
+        return _mount_openrpc(self, path=path, name=name, tags=tags)
+
+    def mount_lens(
+        self,
+        *,
+        path: str = "/lens",
+        name: str = "__lens__",
+        spec_path: str | None = None,
+    ) -> Any:
+        """Mount a tigrbl-lens HTML endpoint onto this instance."""
+        return _mount_lens(self, path=path, name=name, spec_path=spec_path)
 
     def attach_diagnostics(
         self, *, prefix: str | None = None, app: Any | None = None

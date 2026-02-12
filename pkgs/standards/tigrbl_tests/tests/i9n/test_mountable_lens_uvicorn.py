@@ -71,3 +71,37 @@ async def test_lens_mountable_with_openrpc_spec_path_uvicorn():
         assert 'url: "/custom/openrpc.json"' in response.text
     finally:
         await stop_uvicorn_server(server, task)
+
+
+@pytest.mark.i9n
+@pytest.mark.asyncio
+async def test_lens_mountable_with_tigrbl_app_method_uvicorn():
+    app = TigrblApp()
+    app.mount_lens(
+        path="/custom/lens", name="lens_custom", spec_path="/custom/openrpc.json"
+    )
+
+    base_url, server, task = await run_uvicorn_in_task(app)
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{base_url}/custom/lens")
+        assert response.status_code == 200
+        assert 'url: "/custom/openrpc.json"' in response.text
+    finally:
+        await stop_uvicorn_server(server, task)
+
+
+@pytest.mark.i9n
+@pytest.mark.asyncio
+async def test_lens_mountable_with_tigrbl_api_method_uvicorn():
+    api = TigrblApi()
+    api.mount_lens(path="/custom/lens", name="lens_custom")
+
+    base_url, server, task = await run_uvicorn_in_task(api)
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{base_url}/custom/lens")
+        assert response.status_code == 200
+        assert 'url: "/openrpc.json"' in response.text
+    finally:
+        await stop_uvicorn_server(server, task)

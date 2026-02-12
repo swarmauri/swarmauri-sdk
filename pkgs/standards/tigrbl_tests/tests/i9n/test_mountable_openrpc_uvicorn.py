@@ -22,7 +22,7 @@ async def test_openrpc_mountable_on_tigrbl_app_uvicorn():
     app.include_model(Thing)
     app.initialize()
     app.mount_jsonrpc(prefix="/rpc")
-    mount_openrpc(app, app, path="/custom/openrpc.json", name="openrpc_custom")
+    mount_openrpc(app, path="/custom/openrpc.json", name="openrpc_custom")
 
     base_url, server, task = await run_uvicorn_in_task(app)
     try:
@@ -42,7 +42,7 @@ async def test_openrpc_mountable_on_tigrbl_api_uvicorn():
     api = TigrblApi(engine=mem(async_=False), models=[Thing])
     api.initialize()
     api.mount_jsonrpc(prefix="/rpc")
-    mount_openrpc(api, api, path="/custom/openrpc.json", name="openrpc_custom")
+    mount_openrpc(api, path="/custom/openrpc.json", name="openrpc_custom")
 
     base_url, server, task = await run_uvicorn_in_task(api)
     try:
@@ -52,5 +52,42 @@ async def test_openrpc_mountable_on_tigrbl_api_uvicorn():
         payload = response.json()
         assert payload["openrpc"] == "1.2.6"
         assert "methods" in payload
+    finally:
+        await stop_uvicorn_server(server, task)
+
+
+@pytest.mark.i9n
+@pytest.mark.asyncio
+async def test_openrpc_mountable_with_tigrbl_app_method_uvicorn():
+    app = TigrblApp(engine=mem(async_=False))
+    app.include_model(Thing)
+    app.initialize()
+    app.mount_jsonrpc(prefix="/rpc")
+    app.mount_openrpc(path="/custom/openrpc.json", name="openrpc_custom")
+
+    base_url, server, task = await run_uvicorn_in_task(app)
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{base_url}/custom/openrpc.json")
+        assert response.status_code == 200
+        assert response.json()["openrpc"] == "1.2.6"
+    finally:
+        await stop_uvicorn_server(server, task)
+
+
+@pytest.mark.i9n
+@pytest.mark.asyncio
+async def test_openrpc_mountable_with_tigrbl_api_method_uvicorn():
+    api = TigrblApi(engine=mem(async_=False), models=[Thing])
+    api.initialize()
+    api.mount_jsonrpc(prefix="/rpc")
+    api.mount_openrpc(path="/custom/openrpc.json", name="openrpc_custom")
+
+    base_url, server, task = await run_uvicorn_in_task(api)
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{base_url}/custom/openrpc.json")
+        assert response.status_code == 200
+        assert response.json()["openrpc"] == "1.2.6"
     finally:
         await stop_uvicorn_server(server, task)
