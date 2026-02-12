@@ -29,6 +29,7 @@ async def test_lens_mountable_on_tigrbl_app_uvicorn():
             'href="https://esm.sh/@tigrbljs/tigrbl-lens@0.0.7/dist/tigrbl-lens.css"'
             in response.text
         )
+        assert 'import { createRoot } from "react-dom/client";' in response.text
     finally:
         await stop_uvicorn_server(server, task)
 

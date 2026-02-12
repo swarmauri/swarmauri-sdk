@@ -51,12 +51,12 @@ def build_lens_html(router: Any, request: Any, *, spec_path: str) -> str:
     </script>
     <script type="module">
       import React from "react";
-      import ReactDOM from "react-dom/client";
+      import {{ createRoot }} from "react-dom/client";
       import Lens from "@tigrbljs/tigrbl-lens";
 
       const rootEl = document.getElementById("root");
       if (rootEl) {{
-        ReactDOM.createRoot(rootEl).render(
+        createRoot(rootEl).render(
           React.createElement(
             React.StrictMode,
             null,
