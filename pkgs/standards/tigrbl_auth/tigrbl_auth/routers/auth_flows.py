@@ -3,7 +3,8 @@ from __future__ import annotations
 
 import secrets
 
-from tigrbl_auth.deps import AsyncSession, Depends, HTTPException, JSONResponse, Request
+from tigrbl.security.dependencies import Depends as TigrblDepends
+from tigrbl_auth.deps import AsyncSession, HTTPException, JSONResponse, Request
 from ..db import get_db
 from ..orm import AuthSession, User
 from ..routers.schemas import CredsIn, TokenPair
@@ -15,13 +16,16 @@ from .authz import router as router
 api = router
 
 
-@router.post("/login", response_model=TokenPair)
+@router.post("/login", request_model=CredsIn, response_model=TokenPair)
 async def login(
-    creds: CredsIn,
     request: Request,
-    db: AsyncSession = Depends(get_db),
+    creds: CredsIn | None = None,
+    db: AsyncSession = TigrblDepends(get_db),
 ):
     _require_tls(request)
+    if creds is None:
+        body = request.json() or {}
+        creds = CredsIn.model_validate(body)
     users = await User.handlers.list.core(
         {"payload": {"filters": {"username": creds.identifier}}, "db": db}
     )

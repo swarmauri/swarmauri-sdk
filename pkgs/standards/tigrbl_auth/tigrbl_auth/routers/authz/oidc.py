@@ -6,6 +6,7 @@ from typing import Any, Optional
 from uuid import UUID, uuid4
 from urllib.parse import urlencode
 
+from tigrbl.security.dependencies import Depends as TigrblDepends
 from tigrbl_auth.deps import (
     HTTPException,
     Request,
@@ -13,7 +14,6 @@ from tigrbl_auth.deps import (
     HTMLResponse,
     RedirectResponse,
     AsyncSession,
-    Depends,
 )
 
 from ...db import get_db
@@ -26,13 +26,24 @@ from ..shared import _require_tls
 from . import api
 
 
+def _cookie_value(request: Request, name: str) -> str | None:
+    cookie_header = request.headers.get("cookie") or request.headers.get("Cookie")
+    if not cookie_header:
+        return None
+    for part in cookie_header.split(";"):
+        key, sep, value = part.strip().partition("=")
+        if sep and key == name:
+            return value
+    return None
+
+
 @api.get("/authorize")
 async def authorize(
-    response_type: str,
-    client_id: str,
-    redirect_uri: str,
-    scope: str,
     request: Request,
+    response_type: str | None = None,
+    client_id: str | None = None,
+    redirect_uri: str | None = None,
+    scope: str | None = None,
     response_mode: Optional[str] = None,
     state: Optional[str] = None,
     nonce: Optional[str] = None,
@@ -42,9 +53,34 @@ async def authorize(
     max_age: Optional[int] = None,
     login_hint: Optional[str] = None,
     claims: Optional[str] = None,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = TigrblDepends(get_db),
 ):
     _require_tls(request)
+    response_type = response_type or request.query_params.get("response_type")
+    client_id = client_id or request.query_params.get("client_id")
+    redirect_uri = redirect_uri or request.query_params.get("redirect_uri")
+    scope = scope or request.query_params.get("scope")
+    if not all((response_type, client_id, redirect_uri, scope)):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
+    response_mode = response_mode or request.query_params.get("response_mode")
+    state = state or request.query_params.get("state")
+    nonce = nonce or request.query_params.get("nonce")
+    code_challenge = code_challenge or request.query_params.get("code_challenge")
+    code_challenge_method = code_challenge_method or request.query_params.get(
+        "code_challenge_method"
+    )
+    prompt = prompt or request.query_params.get("prompt")
+    login_hint = login_hint or request.query_params.get("login_hint")
+    claims = claims or request.query_params.get("claims")
+    if max_age is None:
+        max_age_raw = request.query_params.get("max_age")
+        if max_age_raw is not None:
+            try:
+                max_age = int(max_age_raw)
+            except ValueError as exc:
+                raise HTTPException(
+                    status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"}
+                ) from exc
     rts = set(response_type.split())
     allowed = {"code", "token", "id_token"}
     if not rts or not rts.issubset(allowed):
@@ -65,7 +101,7 @@ async def authorize(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
 
     prompts = set(prompt.split()) if prompt else set()
-    sid = request.cookies.get("sid")
+    sid = _cookie_value(request, "sid")
     session = (
         await AuthSession.handlers.read.core({"payload": {"id": UUID(sid)}, "db": db})
         if sid
