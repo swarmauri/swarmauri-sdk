@@ -74,8 +74,8 @@ class Router:
         self.prefix = normalize_prefix(prefix)
         self.tags = list(tags or [])
         self.dependencies = list(dependencies or [])
-        # FastAPI compatibility shims used by test clients and dependency
-        # override helpers.
+        # Allow dependencies to be replaced at runtime, typically for testing
+        # and environment-specific wiring.
         self.dependency_overrides: dict[Callable[..., Any], Callable[..., Any]] = {}
         self.dependency_overrides_provider = self
         self._event_handlers: dict[str, list[Callable[..., Any]]] = {
