@@ -20,6 +20,10 @@ def build_lens_html(router: Any, request: Any, *, spec_path: str) -> str:
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{router.title} — Lens</title>
+    <link
+      rel="stylesheet"
+      href="https://esm.sh/@tigrbljs/tigrbl-lens@0.0.7/dist/tigrbl-lens.css"
+    />
     <style>
       html, body, #root {{
         margin: 0;
@@ -44,12 +48,12 @@ def build_lens_html(router: Any, request: Any, *, spec_path: str) -> str:
     </script>
     <script type="module">
       import React from "react";
-      import ReactDOM from "react-dom/client";
+      import {{ createRoot }} from "react-dom/client";
       import Lens from "@tigrbljs/tigrbl-lens";
 
       const rootEl = document.getElementById("root");
       if (rootEl) {{
-        ReactDOM.createRoot(rootEl).render(
+        createRoot(rootEl).render(
           React.createElement(
             React.StrictMode,
             null,
