@@ -3,13 +3,14 @@ from __future__ import annotations
 import inspect
 import secrets
 from datetime import datetime, timezone
+from urllib.parse import parse_qs
 from typing import Any
 from uuid import UUID
 
+from tigrbl.security.dependencies import Depends as TigrblDepends
 from tigrbl_auth.deps import (
     TigrblApi,
     AsyncSession,
-    Depends,
     HTTPException,
     JSONResponse,
     Request,
@@ -50,13 +51,28 @@ api = TigrblApi()
 router = api
 
 
+async def _parse_request_form(request: Request) -> tuple[dict[str, str], list[str]]:
+    form_reader = getattr(request, "form", None)
+    if callable(form_reader):
+        form = await form_reader()
+        resources = list(form.getlist("resource")) if hasattr(form, "getlist") else []
+        data = dict(form)
+        data.pop("resource", None)
+        return data, resources
+
+    body_text = request.body.decode("utf-8") if request.body else ""
+    parsed = parse_qs(body_text, keep_blank_values=True)
+    data = {k: v[-1] for k, v in parsed.items() if k != "resource" and v}
+    resources = parsed.get("resource", [])
+    return data, resources
+
+
 @api.post("/token", response_model=TokenPair)
-async def token(request: Request, db: AsyncSession = Depends(get_db)) -> TokenPair:
+async def token(
+    request: Request, db: AsyncSession = TigrblDepends(get_db)
+) -> TokenPair:
     _require_tls(request)
-    form = await request.form()
-    resources = form.getlist("resource")
-    data = dict(form)
-    data.pop("resource", None)
+    data, resources = await _parse_request_form(request)
     auth = request.headers.get("Authorization")
     client_id = None
     client_secret = None
