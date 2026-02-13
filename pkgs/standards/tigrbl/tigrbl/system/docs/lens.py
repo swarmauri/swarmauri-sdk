@@ -6,7 +6,7 @@ from urllib.parse import quote
 from ...response.stdapi import Response
 
 
-TIGRBL_LENS_VERSION = "0.0.12"
+TIGRBL_LENS_VERSION = "0.0.14"
 
 
 def _with_leading_slash(path: str) -> str:
