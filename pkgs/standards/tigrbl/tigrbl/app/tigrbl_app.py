@@ -35,7 +35,9 @@ from ..bindings.rest import build_router_and_attach as _build_router_and_attach
 from ..transport import mount_jsonrpc as _mount_jsonrpc
 from ..system import mount_diagnostics as _mount_diagnostics
 from ..system import mount_lens as _mount_lens
+from ..system import mount_openapi as _mount_openapi
 from ..system import mount_openrpc as _mount_openrpc
+from ..system import build_openrpc_spec as _build_openrpc_spec
 from ..op import get_registry, OpSpec
 from ._model_registry import initialize_model_registry
 from ..system.favicon import FAVICON_PATH, mount_favicon
@@ -374,6 +376,15 @@ class TigrblApp(_App):
         self._base_routes = list(self.router.routes)
         return router
 
+    def mount_openapi(
+        self,
+        *,
+        path: str = "/openapi.json",
+        name: str = "__openapi__",
+    ) -> Any:
+        """Mount an OpenAPI JSON endpoint onto this instance."""
+        return _mount_openapi(self, path=path, name=name)
+
     def mount_openrpc(
         self,
         *,
@@ -383,6 +394,10 @@ class TigrblApp(_App):
     ) -> Any:
         """Mount an OpenRPC JSON endpoint onto this instance."""
         return _mount_openrpc(self, path=path, name=name, tags=tags)
+
+    def openrpc(self) -> Dict[str, Any]:
+        """Build and return the OpenRPC document for this app."""
+        return _build_openrpc_spec(self)
 
     def mount_lens(
         self,
