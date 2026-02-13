@@ -692,15 +692,24 @@ async def decorated_create(payload, *, db=None):
 If you need to run concrete Swarmauri classes inside Tigrbl's runtime, see:
 
 * [`examples/swarmauri_tigrbl_bridge.py`](./examples/swarmauri_tigrbl_bridge.py)
+* [`examples/swarmauri_tigrbl_bridge_smooth.py`](./examples/swarmauri_tigrbl_bridge_smooth.py)
 
-The example demonstrates all of the following in one place:
+The bridge examples cover two integration styles:
 
-* Swarmauri Pydantic JSON workflows (`model_validate_json`, `model_dump_json`,
-  `model_json_schema`) with `HumanMessage`.
-* A Swarmauri `Factory` invocation during `PRE_HANDLER` via `hook_ctx`.
-* Tigrbl default verbs (`create`, `get`, `list`, `update`, `delete`) plus a custom op.
-* `engine_ctx` at model and operation scope.
-* Generated OpenAPI and OpenRPC documents mounted from the same model bindings.
+* **Factory + schema-rich envelope** (`swarmauri_tigrbl_bridge.py`)
+  * Swarmauri Pydantic JSON workflows (`model_validate_json`, `model_dump_json`,
+    `model_json_schema`) with `HumanMessage`.
+  * A Swarmauri `Factory` invocation during `PRE_HANDLER` via `hook_ctx`.
+  * Tigrbl default verbs (`create`, `get`, `list`, `update`, `delete`) plus a custom op.
+  * `engine_ctx` at model and operation scope.
+  * Generated OpenAPI and OpenRPC documents mounted from the same model bindings.
+
+* **Smoother direct-model flow** (`swarmauri_tigrbl_bridge_smooth.py`)
+  * Uses hooks + default `create` persistence to normalize Swarmauri payloads.
+  * Adds a `Conversation` table with a persisted one-to-many relationship to messages.
+  * Avoids extra `json_schema` fields in request/response payload contracts.
+  * Returns `HumanMessage.model_validate_json(...)` directly from a custom op.
+  * Uses the concrete model classes themselves to derive input/output schema docs.
 
 ## Glossary 📖
 
