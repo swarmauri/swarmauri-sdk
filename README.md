@@ -165,6 +165,33 @@ Individual components follow these naming conventions:
 - `swarmauri_parser_`*: Text parsing utilities
 - `swarmauri_distance_`*: Distance calculation methods
 
+## TomlMixin
+
+TomlMixin mirrors the YAML utilities provided by `YamlMixin` but for TOML configuration files. See the YAML example in this README for a parallel structure.
+
+```python
+from swarmauri_base import TomlMixin
+
+class Config(TomlMixin):
+    name: str
+    age: int
+    api_key: str | None = None
+
+toml_text = """
+name = "Alice"
+age = 25
+api_key = "secret_key"
+"""
+
+# Parse TOML input
+model = Config.model_validate_toml(toml_text)
+```
+
+```python
+# Dump the instance back to TOML
+toml_output = model.model_dump_toml(api_key_placeholder="REDACTED")
+```
+
 
 ## For Contributors
 If you want to contribute to the Swarmauri SDK, please read our [guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md) and [style guide](https://github.com/swarmauri/swarmauri-sdk/blob/master/STYLE_GUIDE.md) to get started.
