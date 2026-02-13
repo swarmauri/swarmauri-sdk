@@ -687,6 +687,21 @@ async def decorated_create(payload, *, db=None):
     ...
 ```
 
+### Swarmauri class + Tigrbl lifecycle integration 🧬
+
+If you need to run concrete Swarmauri classes inside Tigrbl's runtime, see:
+
+* [`examples/swarmauri_tigrbl_bridge.py`](./examples/swarmauri_tigrbl_bridge.py)
+
+The example demonstrates all of the following in one place:
+
+* Swarmauri Pydantic JSON workflows (`model_validate_json`, `model_dump_json`,
+  `model_json_schema`) with `HumanMessage`.
+* A Swarmauri `Factory` invocation during `PRE_HANDLER` via `hook_ctx`.
+* Tigrbl default verbs (`create`, `get`, `list`, `update`, `delete`) plus a custom op.
+* `engine_ctx` at model and operation scope.
+* Generated OpenAPI and OpenRPC documents mounted from the same model bindings.
+
 ## Glossary 📖
 
 1. Tables
