@@ -103,15 +103,15 @@ class SmoothMessage(Base):
 
 
 app = TigrblApp(title="Swarmauri/Tigrbl Smooth Bridge", version="0.1.0")
-include_model(app, Conversation)
-include_model(app, SmoothMessage)
+app.include_model(Conversation)
+app.include_model(SmoothMessage)
 
-mount_openapi(app, path="/openapi.json")
-mount_openrpc(app, path="/openrpc.json")
+app.mount_openapi(path="/openapi.json")
+app.mount_openrpc(path="/openrpc.json")
 
 CONVERSATION_DEFAULT_OPS = [spec.alias for spec in Conversation.ops.all]
 MESSAGE_DEFAULT_OPS = [spec.alias for spec in SmoothMessage.ops.all]
 VALIDATE_IN_SCHEMA = ValidateHumanMessageIn.model_json_schema()
 VALIDATE_OUT_SCHEMA = HumanMessage.model_json_schema()
 OPENAPI_SPEC = app.openapi()
-OPENRPC_SPEC = build_openrpc_spec(app)
+OPENRPC_SPEC = app.openrpc()
