@@ -1,13 +1,16 @@
+import httpx
 import pytest
 
-import httpx
-
 from swarmauri_canon_http import HttpClient
+from tests.parity.httpx.helpers import build_httpx_request
 
 
 def test_httpx_base_transport_is_available():
+    request = build_httpx_request("GET", "http://example.com")
+
     assert hasattr(httpx, "BaseTransport")
     assert issubclass(httpx.BaseTransport, object)
+    assert request.url.path == "/"
 
 
 def test_httpx_client_accepts_base_transport_subclass():

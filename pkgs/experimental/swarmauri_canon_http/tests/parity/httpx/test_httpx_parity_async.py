@@ -3,6 +3,7 @@ import asyncio
 import pytest
 
 from swarmauri_canon_http import HttpClient
+from tests.parity.httpx.helpers import build_httpx_request
 
 
 class AsyncCapture:
@@ -36,8 +37,13 @@ async def test_async_get_writes_expected_request_line(monkeypatch):
 
     await client.aget("/async", params={"q": "value"})
 
+    expected = build_httpx_request(
+        "GET", "http://example.com/async", params={"q": "value"}
+    )
     request_text = AsyncCapture.request_bytes.decode("utf-8")
-    assert request_text.startswith("GET /async?q=value HTTP/1.1")
+    assert request_text.startswith(
+        f"GET {expected.url.raw_path.decode('utf-8')} HTTP/1.1"
+    )
     assert "Host: example.com" in request_text
 
 

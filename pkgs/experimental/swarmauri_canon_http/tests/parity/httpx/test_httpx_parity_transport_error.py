@@ -1,13 +1,16 @@
+import httpx
 import pytest
 
-import httpx
-
 from swarmauri_canon_http.exceptions import HTTP2Error, HttpClientError, TimeoutError
+from tests.parity.httpx.helpers import build_httpx_request
 
 
 def test_httpx_transport_error_is_httpx_exception_type():
     error = httpx.TransportError("transport failed")
+    request = build_httpx_request("GET", "http://example.com")
+
     assert isinstance(error, httpx.HTTPError)
+    assert request.url.host == "example.com"
 
 
 def test_canon_transport_errors_are_http_client_error_types():
