@@ -43,7 +43,7 @@ dev = [
 
 
 [tool.uv.sources]
-swarmauri = { path = "../../swarmauri" }
+swarmauri =  { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
