@@ -1,13 +1,16 @@
+import httpx
 import pytest
 
-import httpx
-
 from swarmauri_canon_http import HttpClient
+from tests.parity.httpx.helpers import build_httpx_request
 
 
 def test_httpx_async_http_transport_exists_and_is_constructible():
     transport = httpx.AsyncHTTPTransport()
+    request = build_httpx_request("GET", "https://example.com")
+
     assert isinstance(transport, httpx.AsyncHTTPTransport)
+    assert request.url.scheme == "https"
 
 
 @pytest.mark.asyncio

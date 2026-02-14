@@ -1,8 +1,8 @@
+import httpx
 import pytest
 
-import httpx
-
 from swarmauri_canon_http import HttpClient
+from tests.parity.httpx.helpers import build_httpx_request
 
 
 def test_httpx_wsgi_transport_exists_and_is_constructible():
@@ -11,7 +11,9 @@ def test_httpx_wsgi_transport_exists_and_is_constructible():
         return [b"ok"]
 
     transport = httpx.WSGITransport(app=app)
+    request = build_httpx_request("GET", "http://test")
     assert isinstance(transport, httpx.WSGITransport)
+    assert request.url.host == "test"
 
 
 def test_httpx_client_can_use_wsgi_transport_without_network():
