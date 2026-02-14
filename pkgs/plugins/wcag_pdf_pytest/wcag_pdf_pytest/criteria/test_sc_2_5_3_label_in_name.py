@@ -1,11 +1,13 @@
 import pytest
-from wcag_pdf_pytest.pdf_inspector import evaluate_sc, SCResult
+
+from wcag_pdf_pytest.pdf_inspector import SCResult, evaluate_sc
 
 SC_NUM = "2.5.3"
 SC_TITLE = "Label in Name"
 SC_LEVEL = "A"
 SC_APPLICABILITY = "Depends"
-SC_NOTES = 'For interactive controls, accessible name should contain the visible label.'
+SC_NOTES = "For interactive controls, accessible name should contain the visible label."
+
 
 @pytest.mark.wcag21
 @pytest.mark.A

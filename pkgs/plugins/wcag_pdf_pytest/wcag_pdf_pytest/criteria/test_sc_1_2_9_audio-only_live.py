@@ -1,11 +1,13 @@
 import pytest
-from wcag_pdf_pytest.pdf_inspector import evaluate_sc, SCResult
+
+from wcag_pdf_pytest.pdf_inspector import SCResult, evaluate_sc
 
 SC_NUM = "1.2.9"
 SC_TITLE = "Audio-only (Live)"
 SC_LEVEL = "AAA"
 SC_APPLICABILITY = "Depends"
-SC_NOTES = 'Relevant only if live audio is embedded in the PDF (rare).'
+SC_NOTES = "Relevant only if live audio is embedded in the PDF (rare)."
+
 
 @pytest.mark.wcag21
 @pytest.mark.AAA

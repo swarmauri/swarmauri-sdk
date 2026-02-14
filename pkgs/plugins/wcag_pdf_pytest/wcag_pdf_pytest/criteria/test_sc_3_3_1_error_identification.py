@@ -1,11 +1,13 @@
 import pytest
-from wcag_pdf_pytest.pdf_inspector import evaluate_sc, SCResult
+
+from wcag_pdf_pytest.pdf_inspector import SCResult, evaluate_sc
 
 SC_NUM = "3.3.1"
 SC_TITLE = "Error Identification"
 SC_LEVEL = "A"
 SC_APPLICABILITY = "Applies"
-SC_NOTES = 'Identify input errors in PDF forms.'
+SC_NOTES = "Identify input errors in PDF forms."
+
 
 @pytest.mark.wcag21
 @pytest.mark.A
