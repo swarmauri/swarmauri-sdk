@@ -1,15 +1,13 @@
-# Tigrbl Examples Curriculum
+# Tigrbl Examples for Implementers
 
-The `examples/` directory is a downstream-facing learning workspace for
-implementers of Tigrbl. Each lesson is a pytest module that demonstrates
-intended usage patterns from model definition to fully running APIs. The
-curriculum is structured to ramp from beginner fundamentals through advanced
-patterns, with a placeholder for future expert modules.
+The `examples/` tree is a lesson-oriented test curriculum for implementers.
+Each module demonstrates practical usage patterns you can apply in production
+Tigrbl services.
 
-> ✅ These lessons use pytest only (no monkeypatch or mock).
-> ✅ Usage lessons deploy a real uvicorn server to validate end-to-end behavior.
+Most lessons are written as pytest tests so each concept is both documented and
+executable.
 
-## How to run the lessons
+## How to run
 
 From `/workspace/swarmauri-sdk/pkgs`:
 
@@ -17,92 +15,70 @@ From `/workspace/swarmauri-sdk/pkgs`:
 uv run --package tigrbl-tests --directory standards/tigrbl_tests pytest examples
 ```
 
-## Curriculum overview
+## How to read the curriculum
 
-### Beginner modules (01–05)
-1. **01 - Foundations**
-   - 01: Class creation basics
-   - 02: Instantiation and attribute access
-   - 03: Column registration fundamentals
-   - 04: Mapped vs. virtual (non-mapped) columns
-2. **02 - Column Specs**
-   - 01: Storage specs (`S`)
-   - 02: Field specs (`F`)
-   - 03: IO specs (`IO`)
-   - 04: Column spec composition
-3. **03 - Mixins + Table Args**
-   - 01: GUID primary keys
-   - 02: Timestamped mixins
-   - 03: Table args (constraints + indexes)
-   - 04: Engine binding via table config
-4. **04 - App + API Basics**
-   - 01: Defining app specs
-   - 02: Deriving app classes
-   - 03: Table specs and MRO merge
-   - 04: Including models in APIs
-5. **05 - Usage Essentials**
-   - 01: REST create + read
-   - 02: OpenAPI path discovery
-   - 03: Health and kernel diagnostics
-   - 04: RPC create via `tigrbl_client`
+The folder names reflect the lesson sequence. Hyphenated and underscored module
+families coexist because they capture different generations of example tracks.
+Both are useful for implementers.
 
-### Intermediate modules (06–10)
-6. **06 - Bindings**
-   - 01: Binding opspecs
-   - 02: Binding columns
-   - 03: Including multiple models
-   - 04: REST router attachment
-7. **07 - Decorators**
-   - 01: `@schema_ctx`
-   - 02: `@op_ctx`
-   - 03: `@hook_ctx`
-   - 04: `@response_ctx`
-8. **08 - Configuration + MRO**
-   - 01: Table engine precedence
-   - 02: Table sequence merge
-   - 03: App spec precedence
-   - 04: Table config inheritance
-9. **09 - Ops + IO**
-   - 01: IO aliasing
-   - 02: IO filters
-   - 03: Column IO usage
-   - 04: Default opspecs
-10. **10 - System Diagnostics**
-    - 01: `/healthz`
-    - 02: `/hookz` + `/methodz`
-    - 03: `/systemz` prefix routes
-    - 04: OpenAPI system paths
+## Module families and lesson intent
 
-### Advanced modules (11–15)
-11. **11 - Uvicorn E2E**
-    - 01: REST update flows
-    - 02: REST list + delete
-    - 03: `/kernelz` visibility
-    - 04: `/healthz` validation
-12. **12 - REST/RPC Parity**
-    - 01: httpx vs `tigrbl_client` REST
-    - 02: JSON-RPC parity
-    - 03: REST + RPC ID alignment
-    - 04: Async `tigrbl_client`
-13. **13 - Hooks**
-    - 01: POST_RESPONSE hook mutation
-    - 02: `/hookz` endpoint
-    - 03: `/kernelz` endpoint
-    - 04: Custom op + hook chain
-14. **14 - Column Types**
-    - 01: Scalar types
-    - 02: Text + JSON types
-    - 03: Binary + array types
-    - 04: Postgres-specific types
-15. **15 - Advanced Table Design**
-    - 01: Table args (constraints)
-    - 02: Default factories
-    - 03: Virtual read producers
-    - 04: Mixins + custom columns
+### Beginner lessons
 
-### Expert modules (placeholder)
-16. **16 - Expert: Multi-tenant orchestration** *(placeholder)*
-17. **17 - Expert: Policy-driven hooks** *(placeholder)*
-18. **18 - Expert: Advanced op pipelines** *(placeholder)*
-19. **19 - Expert: Custom engine providers** *(placeholder)*
-20. **20 - Expert: Observability + tracing** *(placeholder)*
+- `01-beginner-foundations` / `01_beginner_fundamentals`
+  - class/model basics, app setup fundamentals.
+- `02-beginner-columns` / `02_beginner_models`
+  - storage, field, and IO basics with mapped model columns.
+- `03-beginner-mixins` / `03_beginner_specs`
+  - common mixins and reusable column specification patterns.
+- `04-beginner-app-api` / `04_beginner_tables_columns`
+  - app/table specification and model inclusion in API routers.
+- `05-beginner-usage` / `05_beginner_app_api`
+  - first REST and JSON-RPC usage flows.
+
+### Intermediate lessons
+
+- `06-intermediate-bindings` / `06_intermediate_ops`
+  - operation binding and API behavior customization.
+- `07-intermediate-decorators` / `07_intermediate_hooks`
+  - schema/op/hook decorators and execution flow.
+- `08-intermediate-config` / `08_intermediate_bindings`
+  - configuration precedence and inheritance behavior.
+- `09-intermediate-ops-io` / `09_intermediate_config`
+  - operation contracts and request/response shaping.
+- `10-intermediate-system` / `10_intermediate_clients`
+  - diagnostics and client interaction patterns.
+- `17_intermediate_relationships`
+  - relationship-focused lessons, including one-to-one, one-to-many,
+    many-to-many, and self-referential patterns using REST and JSON-RPC.
+
+### Advanced lessons
+
+- `11-advanced-uvicorn` / `11_advanced_mapped_vs_nonmapped`
+  - deeper runtime and model semantics under real server execution.
+- `12-advanced-parity` / `12_advanced_mro_precedence`
+  - protocol parity and inheritance precedence behavior.
+- `13-advanced-hooks` / `13_advanced_custom_ops`
+  - advanced hook orchestration and custom operations.
+- `14-advanced-column-types` / `14_advanced_uvicorn_e2e`
+  - richer types and full end-to-end API interaction.
+- `15-advanced-table-design` / `15_advanced_diagnostics`
+  - robust table design and diagnostics-driven validation.
+
+### Expert lessons
+
+- `16_expert_table_bindings`
+- `17_expert_column_bindings`
+- `18_expert_api_bindings`
+- `19_expert_app_bindings`
+- `20_expert_hook_op_engine_bindings` / `20_expert_mounts`
+- `21_expert_security`
+- `22_expert_document_versioning`
+
+These modules combine multiple concepts (bindings, hooks, mounts, security,
+versioning) for advanced implementation scenarios.
+
+## Maintainer notes
+
+For maintainer-facing expectations on style, pedagogical structure, and
+relationship lesson requirements, see `MAINTAINERS_GUIDE.md`.

@@ -17,15 +17,14 @@
 
 # Tigrbl Tests 🧪
 
-Test suite distribution for the Tigrbl framework. Install this package to get
-Tigrbl's curated test fixtures and test-only dependencies without bloating the
-base `tigrbl` install.
+`tigrbl-tests` packages the test suite, fixtures, and examples used to validate
+and teach the Tigrbl framework.
 
 ## Features ✨
 
-- ✅ Bundled unit, integration, and performance test suites for Tigrbl.
-- 🧰 Test dependencies prewired for pytest + async tooling.
-- 🧭 Pairs cleanly with `tigrbl[tests]` for a one-command setup.
+- ✅ Includes tests used to validate framework behavior and API contracts.
+- 📚 Includes example-first lesson tests for implementers.
+- 🧰 Installs test dependencies for async API testing workflows.
 
 ## Installation 📦
 
@@ -41,7 +40,7 @@ uv add "tigrbl[tests]"
 pip install "tigrbl[tests]"
 ```
 
-You can also install the test package directly if you only want the suite:
+Install `tigrbl-tests` directly when you only need the test package:
 
 ```bash
 uv add tigrbl-tests
@@ -53,30 +52,29 @@ pip install tigrbl-tests
 
 ## Usage 🧭
 
-Run the tests from the `pkgs` directory to mirror the monorepo workflow:
+### Maintainer-facing tests (framework validation)
+
+These tests verify behavior for Tigrbl maintainers: model internals, routing,
+hooks, diagnostics, and contract stability.
 
 ```bash
 cd /workspace/swarmauri-sdk/pkgs
-uv run --package tigrbl --directory standards/tigrbl pytest
+uv run --package tigrbl-tests --directory standards/tigrbl_tests pytest tests
 ```
 
-Use pytest selectors to focus on specific suites:
+### Implementer-facing tests (learning examples)
+
+These tests are structured as lessons for implementers building Tigrbl apps.
+They emphasize explicit model definitions, API setup, and client calls.
 
 ```bash
-pytest standards/tigrbl_tests/tests/unit
-```
-
-## Examples Curriculum 📚
-
-The `examples/` directory contains downstream-facing pytest lessons that
-demonstrate how to implement Tigrbl in real applications. These lessons are
-organized as a multi-module curriculum with uvicorn-backed usage examples and
-system diagnostics validation. See the full curriculum plan for the learning
-sequence and module descriptions.[^tigrbl-examples]
-Run the examples from the `pkgs` directory:
-
-```bash
+cd /workspace/swarmauri-sdk/pkgs
 uv run --package tigrbl-tests --directory standards/tigrbl_tests pytest examples
 ```
 
-[^tigrbl-examples]: examples/README.md
+## Tests at a glance
+
+- `tests/`: maintainers' validation suite for the framework itself.
+- `examples/`: implementers' learning lessons and pedagogical walkthroughs.
+
+See `examples/README.md` for module-by-module lesson descriptions.
