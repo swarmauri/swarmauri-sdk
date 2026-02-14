@@ -1,5 +1,5 @@
 [project]
-name = "swarmauri-transport-sseoutbound"
+name = "swarmauri_transport_sseoutbound"
 version = "0.1.0"
 description = "Server-Sent Events broadcaster transport for Swarmauri agents." 
 readme = "README.md"
