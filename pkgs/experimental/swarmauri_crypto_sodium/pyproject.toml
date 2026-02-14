@@ -5,16 +5,13 @@ description = "Libsodium-backed crypto provider for Swarmauri"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+keywords = ["swarmauri_crypto_sodium", "swarmauri", "experimental"]
 classifiers = [
+    "Development Status :: 1 - Planning",
     "License :: OSI Approved :: Apache Software License",
-    "Natural Language :: English",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Development Status :: 3 - Alpha",
-    "Topic :: Security :: Cryptography",
-    "Intended Audience :: Developers",
 ]
 dependencies = [
     "swarmauri_core",

@@ -3,11 +3,13 @@ name = "ptree_dag_extension_example"
 version = "0.1.1.dev3"
 description = "Swarmauri's Ptree Dag"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+keywords = ["ptree_dag_extension_example", "swarmauri", "experimental"]
 license = "Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/swarmauri/swarmauri-sdk/pkgs/experimental/ptree_dag_extension_example"
 requires-python = ">=3.10,<3.13"
 classifiers = [
+    "Development Status :: 1 - Planning",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",

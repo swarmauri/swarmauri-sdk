@@ -3,6 +3,7 @@ name = "swarmauri_tests_pylicense"
 version = "0.1.2.dev4"
 description = "Pytest plugin reporting dependency licenses"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+keywords = ["swarmauri_tests_pylicense", "swarmauri", "experimental"]
 license = "Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/swarmauri/swarmauri-sdk/pkgs/experimental/swarmauri_tests_pylicense"
@@ -10,8 +11,6 @@ requires-python = ">=3.10,<3.13"
 classifiers = [
     "Development Status :: 1 - Planning",
     "License :: OSI Approved :: Apache Software License",
-    "Framework :: Pytest",
-    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
