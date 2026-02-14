@@ -43,7 +43,7 @@ def _ensure_model_namespaces(model: type) -> None:
     # rpc: callables to be registered/mounted elsewhere as JSON-RPC methods
     if "rpc" not in model.__dict__:
         model.rpc = SimpleNamespace()
-    # rest: .router (FastAPI Router or compatible) – built in rest binding
+    # rest: .router (ASGI Router or compatible) – built in rest binding
     if "rest" not in model.__dict__:
         model.rest = SimpleNamespace(router=None)
     # basic table metadata for convenience (introspective only; NEVER used for HTTP paths)

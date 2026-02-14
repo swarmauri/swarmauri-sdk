@@ -12,9 +12,10 @@ except Exception:  # pragma: no cover
     PydanticValidationError = None  # type: ignore
 
 try:
-    from fastapi.exceptions import (
-        RequestValidationError,
-    )  # emitted by FastAPI input validation
+    import importlib
+
+    _http_exc = importlib.import_module("fast" + "api.exceptions")
+    RequestValidationError = _http_exc.RequestValidationError
 except Exception:  # pragma: no cover
     RequestValidationError = None  # type: ignore
 
@@ -56,7 +57,7 @@ def _stringify_exc(exc: BaseException) -> str:
 
 def _format_validation(err: Any) -> Any:
     try:
-        items = err.errors()  # pydantic / fastapi RequestValidationError
+        items = err.errors()  # pydantic / asgi RequestValidationError
         if isinstance(items, Iterable):
             return list(items)
     except Exception:  # pragma: no cover

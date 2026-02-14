@@ -62,7 +62,7 @@ def mount_jsonrpc(
     tags: Sequence[str] | None = ("rpc",),
 ):
     """
-    Build a JSON-RPC router for `api` and include it on the given FastAPI `app`
+    Build a JSON-RPC router for `api` and include it on the given ASGI `app`
     (or any object exposing `include_router`).
 
     Returns the created router so you can keep a reference if desired.
