@@ -9,7 +9,7 @@ import inspect
 
 import httpx
 import pytest
-from fastapi.security import HTTPBearer
+from tigrbl.security import HTTPBearer
 
 from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 from tigrbl import Base, TigrblApi, TigrblApp
