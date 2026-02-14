@@ -76,6 +76,8 @@ class TigrblApp(_App):
     _allow_anon_ops: set[str] = set()
     _event_handlers: Dict[str, list[Callable[..., Any]]]
 
+    mount_favicon = mount_favicon
+
     def __init__(
         self,
         *,
@@ -189,7 +191,7 @@ class TigrblApp(_App):
         self._middlewares.append((middleware_class, options))
 
     def _install_favicon(self) -> None:
-        mount_favicon(self, favicon_path=self._favicon_path)
+        self.mount_favicon(favicon_path=self._favicon_path)
 
     # ------------------------- internal helpers -------------------------
 
