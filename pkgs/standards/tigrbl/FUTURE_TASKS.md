@@ -26,7 +26,7 @@ source of truth for the remaining follow-ups.
 - [ ] Provide an OpenRPC UI HTML endpoint.
 - [ ] Ensure built-in routes can all be installed in one place.
 - [ ] Provide dependency handling in the new router stack.
-- [ ] Remove the `FastApi` class from stdapi, then update `TigrblApp` to import
+- [ ] Remove the `LegacyApi` class from stdapi, then update `TigrblApp` to import
   `APIRouter` instead; add `router` and `middleware` attributes and implement
   `add_middleware` on `TigrblApp`.
 - [ ] Create a mountable favicon system endpoint; mount it by default on

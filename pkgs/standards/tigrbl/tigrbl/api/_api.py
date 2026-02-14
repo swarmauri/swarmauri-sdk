@@ -29,7 +29,7 @@ class Api(APISpec, Router):
 
     @property
     def router(self) -> "Api":  # pragma: no cover - simple alias
-        """Mirror FastAPI-style router access for API instances."""
+        """Mirror ASGI-style router access for API instances."""
         return self
 
     def __init__(

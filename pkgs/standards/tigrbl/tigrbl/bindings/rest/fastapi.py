@@ -1,4 +1,4 @@
-"""Deprecated compatibility module for REST FastAPI-style primitives.
+"""Deprecated compatibility module for REST ASGI-style primitives.
 
 Prefer importing directly from:
 - ``tigrbl.response`` for response classes
@@ -24,7 +24,7 @@ from ...security.dependencies import Depends, Security
 from ...transport.request import Request
 
 warnings.warn(
-    "tigrbl.bindings.rest.fastapi is deprecated; import from "
+    "tigrbl.bindings.rest.asgi is deprecated; import from "
     "tigrbl.response, tigrbl.runtime.status, and concrete modules instead.",
     DeprecationWarning,
     stacklevel=2,

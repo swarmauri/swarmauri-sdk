@@ -25,7 +25,7 @@
 - 🪪 Tracks validity windows, timestamps, and last execution metadata for each schedule.
 - 📜 Records every execution in the `CronJobResult` table for full observability.
 - ⚙️ Provides a simple registry and executor to run due jobs and persist their outputs or failures.
-- 🚀 Ships with a `FastAPI` application constructor for rapid deployment.
+- 🚀 Ships with a `ASGI` application constructor for rapid deployment.
 
 ## 📦 Installation
 

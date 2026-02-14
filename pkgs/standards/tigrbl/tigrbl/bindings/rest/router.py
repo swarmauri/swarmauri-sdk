@@ -170,7 +170,7 @@ def _build_router(
 
     # Register collection-level bulk routes before member routes so static paths
     # like "/resource/bulk" aren't captured by dynamic member routes such as
-    # "/resource/{item_id}". FastAPI matches routes in the order they are
+    # "/resource/{item_id}". ASGI matches routes in the order they are
     # added, so sorting here prevents "bulk" from being treated as an
     # identifier.
     specs = sorted(
