@@ -1,5 +1,5 @@
 [project]
-name = "swarmauri-typing"
+name = "swarmauri_typing"
 version = "0.9.2.dev7"
 
 description = "This repository includes typing used in the Swarmauri framework."
