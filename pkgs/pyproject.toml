@@ -145,7 +145,7 @@ members = [
     "experimental/swarmauri_parser_asn1",
     "experimental/swarmauri_certs_pkcs11",
     "experimental/swarmauri_crypto_sodium",
-    "experimental/swarmauri_experimental",
+    # "experimental/swarmauri_experimental",
     "experimental/swarmauri_keyprovider_pkcs11",
     "experimental/swarmauri_tests_loc_tersity",
     "experimental/swarmauri_tests_pylicense",

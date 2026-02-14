@@ -9,8 +9,8 @@ import inspect
 
 import httpx
 import pytest
-from starlette.responses import JSONResponse
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from tigrbl.response import JSONResponse
+from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
 from tigrbl import Base, TigrblApi, TigrblApp
