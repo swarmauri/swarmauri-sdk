@@ -1,5 +1,5 @@
 [project]
-name = "swarmauri-transport-wsjsonrpcmux"
+name = "swarmauri_transport_wsjsonrpcmux"
 version = "0.1.0"
 description = "WebSocket JSON-RPC multiplexer transport for Swarmauri agents." 
 readme = "README.md"

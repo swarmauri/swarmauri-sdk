@@ -1,5 +1,5 @@
 [project]
-name = "swarmauri-transport-sshtunnel"
+name = "swarmauri_transport_sshtunnel"
 version = "0.1.0"
 description = "SSH tunnel transport for forwarding Swarmauri traffic through bastions." 
 readme = "README.md"

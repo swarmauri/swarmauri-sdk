@@ -1,5 +1,5 @@
 [project]
-name = "swarmauri-transport-meshsidecarhttp2"
+name = "swarmauri_transport_meshsidecarhttp2"
 version = "0.1.0"
 description = "Client transport for Swarmauri agents targeting mesh sidecar proxies."
 readme = "README.md"
