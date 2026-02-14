@@ -1,5 +1,5 @@
 [project]
-name = "http_client"
+name = "swarmauri_canon_http"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
