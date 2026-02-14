@@ -103,7 +103,7 @@ members = [
     "community/swarmauri_tool_sentimentanalysis",
     "community/swarmauri_tool_smogindex",
     "community/swarmauri_tool_textlength",
-    "community/swarmauri_tool_webscraping"
+    "community/swarmauri_tool_webscraping",
     "community/swarmauri_tool_zapierhook",
     "community/swarmauri_toolkit_github",
     "community/swarmauri_toolkit_jupytertoolkit",
