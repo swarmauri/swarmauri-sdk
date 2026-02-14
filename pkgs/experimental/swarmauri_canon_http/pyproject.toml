@@ -15,6 +15,55 @@ authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 keywords = ["swarmauri_canon_http", "swarmauri", "experimental"]
 dependencies = ["httpx>=0.27.0", "pytest-asyncio>=0.23.0"]
 
+[project.optional-dependencies]
+swarmauri_transport_asgi = ["swarmauri_transport_asgi>=0.1.0"]
+swarmauri_transport_h2 = ["swarmauri_transport_h2>=0.1.0"]
+swarmauri_transport_h2mux = ["swarmauri_transport_h2mux>=0.1.0"]
+swarmauri_transport_meshsidecarhttp2 = ["swarmauri_transport_meshsidecarhttp2>=0.1.0"]
+swarmauri_transport_mtlsunicast = ["swarmauri_transport_mtlsunicast>=0.1.0"]
+swarmauri_transport_quic = ["swarmauri_transport_quic>=0.1.0"]
+swarmauri_transport_sseoutbound = ["swarmauri_transport_sseoutbound>=0.1.0"]
+swarmauri_transport_sshtunnel = ["swarmauri_transport_sshtunnel>=0.1.0"]
+swarmauri_transport_stdio = ["swarmauri_transport_stdio>=0.1.0"]
+swarmauri_transport_tcpunicast = ["swarmauri_transport_tcpunicast>=0.1.0"]
+swarmauri_transport_tls_unicast = ["swarmauri_transport_tls_unicast>=0.1.0"]
+swarmauri_transport_udp = ["swarmauri_transport_udp>=0.1.0"]
+swarmauri_transport_uds_unicast = ["swarmauri_transport_uds_unicast>=0.1.0"]
+swarmauri_transport_wsjsonrpcmux = ["swarmauri_transport_wsjsonrpcmux>=0.1.0"]
+transports = [
+    "swarmauri_transport_asgi>=0.1.0",
+    "swarmauri_transport_h2>=0.1.0",
+    "swarmauri_transport_h2mux>=0.1.0",
+    "swarmauri_transport_meshsidecarhttp2>=0.1.0",
+    "swarmauri_transport_mtlsunicast>=0.1.0",
+    "swarmauri_transport_quic>=0.1.0",
+    "swarmauri_transport_sseoutbound>=0.1.0",
+    "swarmauri_transport_sshtunnel>=0.1.0",
+    "swarmauri_transport_stdio>=0.1.0",
+    "swarmauri_transport_tcpunicast>=0.1.0",
+    "swarmauri_transport_tls_unicast>=0.1.0",
+    "swarmauri_transport_udp>=0.1.0",
+    "swarmauri_transport_uds_unicast>=0.1.0",
+    "swarmauri_transport_wsjsonrpcmux>=0.1.0",
+]
+
+
+[tool.uv.sources]
+swarmauri_transport_asgi = { path = "../../standards/swarmauri_transport_asgi" }
+swarmauri_transport_h2 = { path = "../../standards/swarmauri_transport_h2" }
+swarmauri_transport_h2mux = { path = "../../standards/swarmauri_transport_h2mux" }
+swarmauri_transport_meshsidecarhttp2 = { path = "../../standards/swarmauri_transport_meshsidecarhttp2" }
+swarmauri_transport_mtlsunicast = { path = "../../standards/swarmauri_transport_mtlsunicast" }
+swarmauri_transport_quic = { path = "../../standards/swarmauri_transport_quic" }
+swarmauri_transport_sseoutbound = { path = "../../standards/swarmauri_transport_sseoutbound" }
+swarmauri_transport_sshtunnel = { path = "../../standards/swarmauri_transport_sshtunnel" }
+swarmauri_transport_stdio = { path = "../../standards/swarmauri_transport_stdio" }
+swarmauri_transport_tcpunicast = { path = "../../standards/swarmauri_transport_tcpunicast" }
+swarmauri_transport_tls_unicast = { path = "../../standards/swarmauri_transport_tls_unicast" }
+swarmauri_transport_udp = { path = "../../standards/swarmauri_transport_udp" }
+swarmauri_transport_uds_unicast = { path = "../../standards/swarmauri_transport_uds_unicast" }
+swarmauri_transport_wsjsonrpcmux = { path = "../../standards/swarmauri_transport_wsjsonrpcmux" }
+
 [tool.pytest.ini_options]
 markers = [
     "test: standard test",
