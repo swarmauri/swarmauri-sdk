@@ -156,7 +156,7 @@ v
 HTTP Request
 |
 v
-FastAPI Router
+ASGI Router
 |
 v
 Tigrbl Runtime

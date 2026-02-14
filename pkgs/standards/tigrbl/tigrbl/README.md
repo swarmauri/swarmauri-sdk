@@ -14,7 +14,7 @@ DB = engine("sqlite+aiosqlite:///./app.db")
 app = TigrblApp(engine=DB)
 ```
 
-Use `DB.get_db` as the FastAPI dependency for acquiring sessions and avoid
+Use `DB.get_db` as the framework dependency for acquiring sessions and avoid
 exporting custom `get_async_db` helpers.
 
 These rules apply to all first-party applications, including
