@@ -35,6 +35,7 @@ from ..system import mount_lens as _mount_lens
 from ..system import mount_openapi as _mount_openapi
 from ..system import mount_openrpc as _mount_openrpc
 from ..system import build_openrpc_spec as _build_openrpc_spec
+from ..system.favicon import mount_favicon
 from ..op import get_registry, OpSpec
 from ..app._model_registry import initialize_model_registry
 
@@ -61,6 +62,8 @@ class TigrblApi(_Api):
     _authorize: Any = None
     _optional_authn_dep: Any = None
     _allow_anon_ops: set[str] = set()
+
+    mount_favicon = mount_favicon
 
     def __init__(
         self,
