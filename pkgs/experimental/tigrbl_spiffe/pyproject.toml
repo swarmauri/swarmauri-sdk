@@ -3,7 +3,7 @@ requires = ["poetry-core>=1.8.0"]
 build-backend = "poetry.core.masonry.api"
 
 [project]
-name = "tigrbl-spiffe"
+name = "tigrbl_spiffe"
 version = "0.1.0"
 description = "SPIFFE/SPIRE implementation for Tigrbl with table/op-centric UDS + HTTP(S) transports"
 readme = "README.md"
