@@ -1,11 +1,13 @@
 import pytest
-from wcag_pdf_pytest.pdf_inspector import evaluate_sc, SCResult
+
+from wcag_pdf_pytest.pdf_inspector import SCResult, evaluate_sc
 
 SC_NUM = "3.3.4"
 SC_TITLE = "Error Prevention (Legal, Financial, Data)"
 SC_LEVEL = "AA"
 SC_APPLICABILITY = "Depends"
-SC_NOTES = 'Applies if the PDF submits important data; provide reversals/confirmations/checks.'
+SC_NOTES = "Applies if the PDF submits important data; provide reversals/confirmations/checks."
+
 
 @pytest.mark.wcag21
 @pytest.mark.AA

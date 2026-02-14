@@ -1,11 +1,13 @@
 import pytest
-from wcag_pdf_pytest.pdf_inspector import evaluate_sc, SCResult
+
+from wcag_pdf_pytest.pdf_inspector import SCResult, evaluate_sc
 
 SC_NUM = "2.4.8"
 SC_TITLE = "Location"
 SC_LEVEL = "AAA"
 SC_APPLICABILITY = "Depends"
-SC_NOTES = 'Applies when part of a set of documents (breadcrumbs/indicators).'
+SC_NOTES = "Applies when part of a set of documents (breadcrumbs/indicators)."
+
 
 @pytest.mark.wcag21
 @pytest.mark.AAA

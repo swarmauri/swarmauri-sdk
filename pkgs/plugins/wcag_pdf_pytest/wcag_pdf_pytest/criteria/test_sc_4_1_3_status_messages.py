@@ -1,11 +1,13 @@
 import pytest
-from wcag_pdf_pytest.pdf_inspector import evaluate_sc, SCResult
+
+from wcag_pdf_pytest.pdf_inspector import SCResult, evaluate_sc
 
 SC_NUM = "4.1.3"
 SC_TITLE = "Status Messages"
 SC_LEVEL = "AA"
 SC_APPLICABILITY = "Depends"
-SC_NOTES = 'If the PDF uses scripted status messages, they must be programmatically determinable.'
+SC_NOTES = "If the PDF uses scripted status messages, they must be programmatically determinable."
+
 
 @pytest.mark.wcag21
 @pytest.mark.AA

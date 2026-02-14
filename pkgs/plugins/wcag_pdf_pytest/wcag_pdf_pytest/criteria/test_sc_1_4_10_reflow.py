@@ -1,11 +1,13 @@
 import pytest
-from wcag_pdf_pytest.pdf_inspector import evaluate_sc, SCResult
+
+from wcag_pdf_pytest.pdf_inspector import SCResult, evaluate_sc
 
 SC_NUM = "1.4.10"
 SC_TITLE = "Reflow"
 SC_LEVEL = "AA"
 SC_APPLICABILITY = "Applies"
-SC_NOTES = 'Tagged PDFs should reflow at narrow widths without loss of content.'
+SC_NOTES = "Tagged PDFs should reflow at narrow widths without loss of content."
+
 
 @pytest.mark.wcag21
 @pytest.mark.AA

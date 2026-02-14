@@ -1,11 +1,13 @@
 import pytest
-from wcag_pdf_pytest.pdf_inspector import evaluate_sc, SCResult
+
+from wcag_pdf_pytest.pdf_inspector import SCResult, evaluate_sc
 
 SC_NUM = "2.4.6"
 SC_TITLE = "Headings and Labels"
 SC_LEVEL = "AA"
 SC_APPLICABILITY = "Applies"
-SC_NOTES = 'Use clear headings and form labels in tagged PDFs.'
+SC_NOTES = "Use clear headings and form labels in tagged PDFs."
+
 
 @pytest.mark.wcag21
 @pytest.mark.AA

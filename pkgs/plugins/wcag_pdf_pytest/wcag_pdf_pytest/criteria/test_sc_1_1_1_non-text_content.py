@@ -1,11 +1,13 @@
 import pytest
-from wcag_pdf_pytest.pdf_inspector import evaluate_sc, SCResult
+
+from wcag_pdf_pytest.pdf_inspector import SCResult, evaluate_sc
 
 SC_NUM = "1.1.1"
 SC_TITLE = "Non-text Content"
 SC_LEVEL = "A"
 SC_APPLICABILITY = "Applies"
-SC_NOTES = 'Provide text alternatives for images and other non-text content in tagged PDFs.'
+SC_NOTES = "Provide text alternatives for images and other non-text content in tagged PDFs."
+
 
 @pytest.mark.wcag21
 @pytest.mark.A

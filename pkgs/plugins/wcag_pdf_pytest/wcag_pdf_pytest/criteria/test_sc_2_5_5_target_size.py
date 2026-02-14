@@ -1,11 +1,13 @@
 import pytest
-from wcag_pdf_pytest.pdf_inspector import evaluate_sc, SCResult
+
+from wcag_pdf_pytest.pdf_inspector import SCResult, evaluate_sc
 
 SC_NUM = "2.5.5"
 SC_TITLE = "Target Size"
 SC_LEVEL = "AAA"
 SC_APPLICABILITY = "Depends"
-SC_NOTES = 'If interactive controls exist, targets should be large enough.'
+SC_NOTES = "If interactive controls exist, targets should be large enough."
+
 
 @pytest.mark.wcag21
 @pytest.mark.AAA
