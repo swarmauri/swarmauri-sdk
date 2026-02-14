@@ -36,7 +36,7 @@ def is_request_annotation(annotation: Any) -> bool:
 
 def load_body(req: Request) -> Any:
     try:
-        return req.json()
+        return req.json_sync()
     except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
