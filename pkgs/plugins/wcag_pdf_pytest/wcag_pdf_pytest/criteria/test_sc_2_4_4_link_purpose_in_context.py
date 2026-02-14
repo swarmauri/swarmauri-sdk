@@ -1,11 +1,13 @@
 import pytest
-from wcag_pdf_pytest.pdf_inspector import evaluate_sc, SCResult
+
+from wcag_pdf_pytest.pdf_inspector import SCResult, evaluate_sc
 
 SC_NUM = "2.4.4"
 SC_TITLE = "Link Purpose (In Context)"
 SC_LEVEL = "A"
 SC_APPLICABILITY = "Applies"
-SC_NOTES = 'Ensure link purpose is clear from link text and its context.'
+SC_NOTES = "Ensure link purpose is clear from link text and its context."
+
 
 @pytest.mark.wcag21
 @pytest.mark.A

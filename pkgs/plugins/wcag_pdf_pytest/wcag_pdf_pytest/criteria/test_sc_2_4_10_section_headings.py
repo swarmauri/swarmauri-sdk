@@ -1,11 +1,13 @@
 import pytest
-from wcag_pdf_pytest.pdf_inspector import evaluate_sc, SCResult
+
+from wcag_pdf_pytest.pdf_inspector import SCResult, evaluate_sc
 
 SC_NUM = "2.4.10"
 SC_TITLE = "Section Headings"
 SC_LEVEL = "AAA"
 SC_APPLICABILITY = "Applies"
-SC_NOTES = 'Use section headings to organize content in PDFs.'
+SC_NOTES = "Use section headings to organize content in PDFs."
+
 
 @pytest.mark.wcag21
 @pytest.mark.AAA

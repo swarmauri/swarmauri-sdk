@@ -1,5 +1,5 @@
 [project]
-name = "layout-engine-atoms"
+name = "layout_engine_atoms"
 version = "0.1.0.dev1"
 description = "Curated atom presets and registries for layout-engine."
 authors = [

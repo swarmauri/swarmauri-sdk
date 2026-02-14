@@ -1,11 +1,13 @@
 import pytest
-from wcag_pdf_pytest.pdf_inspector import evaluate_sc, SCResult
+
+from wcag_pdf_pytest.pdf_inspector import SCResult, evaluate_sc
 
 SC_NUM = "2.2.3"
 SC_TITLE = "No Timing"
 SC_LEVEL = "AAA"
 SC_APPLICABILITY = "Depends"
-SC_NOTES = 'Applies if any timing is used; rare in PDFs.'
+SC_NOTES = "Applies if any timing is used; rare in PDFs."
+
 
 @pytest.mark.wcag21
 @pytest.mark.AAA

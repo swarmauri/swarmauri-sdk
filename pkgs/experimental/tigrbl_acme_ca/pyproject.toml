@@ -1,5 +1,5 @@
 [project]
-name = "tigrbl-acme-ca"
+name = "tigrbl_acme_ca"
 version = "0.1.0"
 description = "ACME v2 CA tables for Tigrbl."
 readme = "README.md"

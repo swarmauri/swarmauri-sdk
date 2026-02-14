@@ -1,11 +1,13 @@
 import pytest
-from wcag_pdf_pytest.pdf_inspector import evaluate_sc, SCResult
+
+from wcag_pdf_pytest.pdf_inspector import SCResult, evaluate_sc
 
 SC_NUM = "2.2.1"
 SC_TITLE = "Timing Adjustable"
 SC_LEVEL = "A"
 SC_APPLICABILITY = "Depends"
-SC_NOTES = 'Applies if the PDF imposes time limits (uncommon for static PDFs).'
+SC_NOTES = "Applies if the PDF imposes time limits (uncommon for static PDFs)."
+
 
 @pytest.mark.wcag21
 @pytest.mark.A

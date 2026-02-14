@@ -1,5 +1,5 @@
 [project]
-name = "swarmauri-transport-mtlsunicast"
+name = "swarmauri_transport_mtlsunicast"
 version = "0.1.0"
 description = "Mutual TLS transport utilities for Swarmauri unicast channels."
 readme = "README.md"

@@ -1,5 +1,5 @@
 [project]
-name = "swarmauri-experimental"
+name = "swarmauri_experimental"
 version = "0.6.2.dev3"
 description = "This repository includes experimental components. (Inactive: experimental packages are now standalone.)"
 authors = [
