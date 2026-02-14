@@ -64,7 +64,7 @@ def _has_include_router(obj: Any) -> bool:
 
 def _mount_router(app_or_router: Any, router: Any, *, prefix: str) -> None:
     """
-    Best-effort mount onto a FastAPI app or Router.
+    Best-effort mount onto a ASGI app or Router.
     If not available, we still attach router under api.routers for later use.
     """
     if app_or_router is None:
@@ -73,7 +73,7 @@ def _mount_router(app_or_router: Any, router: Any, *, prefix: str) -> None:
     try:
         if _has_include_router(app_or_router):
             logger.debug("Mounting router %s at prefix %s", router, prefix)
-            app_or_router.include_router(router, prefix=prefix)  # FastAPI / Router
+            app_or_router.include_router(router, prefix=prefix)  # ASGI / Router
         else:
             logger.debug(
                 "Provided object %s lacks include_router; not mounting router",

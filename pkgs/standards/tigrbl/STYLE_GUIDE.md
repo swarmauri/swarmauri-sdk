@@ -12,7 +12,7 @@
 ## Framework Policy
 
 - Tigrbl packages must use **Tigrbl-native APIs only** for application and router construction.
-- Do **not** introduce FastAPI- or Starlette-specific application objects, routers, lifecycle hooks, request/response abstractions, or middleware as core framework dependencies.
+- Do **not** introduce ASGI- or Starlette-specific application objects, routers, lifecycle hooks, request/response abstractions, or middleware as core framework dependencies.
 - Treat Tigrbl as a pure ASGI/WSGI framework surface: build services with `TigrblApp`, `TigrblApi`, and related Tigrbl primitives.
-- **No FastAPI, no Starlette.** Do not introduce runtime or test dependencies on either framework.
+- **No ASGI, no Starlette.** Do not introduce runtime or test dependencies on either framework.
 

@@ -49,7 +49,7 @@ def _ctx(model, alias, target, request, db, payload, parent_kw, api):
         "db": db,
         "payload": payload,
         "path_params": parent_kw,
-        # expose both API router and FastAPI app; runtime opview resolution
+        # expose both API router and ASGI app; runtime opview resolution
         # relies on the app object, which must be hashable.
         "api": api if api is not None else getattr(request, "app", None),
         "app": getattr(request, "app", None),

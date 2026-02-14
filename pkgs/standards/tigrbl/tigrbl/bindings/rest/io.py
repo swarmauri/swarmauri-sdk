@@ -25,7 +25,7 @@ def _serialize_output(
 ) -> Any:
     """
     If a response schema exists (model.schemas.<alias>.out), serialize to it.
-    Otherwise, attempt a best-effort conversion to primitive types so FastAPI
+    Otherwise, attempt a best-effort conversion to primitive types so ASGI
     can JSON-encode the response.
     """
 

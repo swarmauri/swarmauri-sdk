@@ -36,7 +36,7 @@ class _Ctx(dict):
     """Dict-like context with attribute access.
 
     Common keys:
-      • request: FastAPI Request (optional)
+      • request: ASGI Request (optional)
       • db: Session | AsyncSession
       • api/model/op: optional metadata
       • result: last non-None step result
