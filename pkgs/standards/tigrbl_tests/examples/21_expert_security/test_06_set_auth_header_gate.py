@@ -155,7 +155,7 @@ async def test_set_auth_header_gate_for_rpc_methods() -> None:
         session_token = credentials.credentials if credentials else None
         if session_token == PUBLIC_SESSION_TOKEN:
             if request.path == "/rpc":
-                body = request.json()
+                body = await request.json()
                 calls = body if isinstance(body, list) else [body]
                 methods = {
                     call.get("method")
