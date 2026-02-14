@@ -1,5 +1,5 @@
 [project]
-name = "swarmauri-standard"
+name = "swarmauri_standard"
 version = "0.9.2.dev7"
 description = "This repository includes standard components within the Swarmauri framework."
 authors = [

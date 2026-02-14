@@ -1,11 +1,13 @@
 import pytest
-from wcag_pdf_pytest.pdf_inspector import evaluate_sc, SCResult
+
+from wcag_pdf_pytest.pdf_inspector import SCResult, evaluate_sc
 
 SC_NUM = "2.3.1"
 SC_TITLE = "Three Flashes or Below Threshold"
 SC_LEVEL = "A"
 SC_APPLICABILITY = "Depends"
-SC_NOTES = 'Applies if flashing content (e.g., embedded media) is present.'
+SC_NOTES = "Applies if flashing content (e.g., embedded media) is present."
+
 
 @pytest.mark.wcag21
 @pytest.mark.A

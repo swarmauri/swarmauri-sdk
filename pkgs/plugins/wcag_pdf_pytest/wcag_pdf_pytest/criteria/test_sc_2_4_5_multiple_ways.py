@@ -1,11 +1,13 @@
 import pytest
-from wcag_pdf_pytest.pdf_inspector import evaluate_sc, SCResult
+
+from wcag_pdf_pytest.pdf_inspector import SCResult, evaluate_sc
 
 SC_NUM = "2.4.5"
 SC_TITLE = "Multiple Ways"
 SC_LEVEL = "AA"
 SC_APPLICABILITY = "Depends"
-SC_NOTES = 'Applies when PDFs are part of a set; provide more than one way to locate content.'
+SC_NOTES = "Applies when PDFs are part of a set; provide more than one way to locate content."
+
 
 @pytest.mark.wcag21
 @pytest.mark.AA

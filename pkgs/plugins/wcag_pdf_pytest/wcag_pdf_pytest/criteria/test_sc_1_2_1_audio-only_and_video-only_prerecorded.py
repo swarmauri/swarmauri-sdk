@@ -1,11 +1,13 @@
 import pytest
-from wcag_pdf_pytest.pdf_inspector import evaluate_sc, SCResult
+
+from wcag_pdf_pytest.pdf_inspector import SCResult, evaluate_sc
 
 SC_NUM = "1.2.1"
 SC_TITLE = "Audio-only and Video-only (Prerecorded)"
 SC_LEVEL = "A"
 SC_APPLICABILITY = "Depends"
-SC_NOTES = 'Relevant only if the PDF embeds prerecorded audio-only or video-only media.'
+SC_NOTES = "Relevant only if the PDF embeds prerecorded audio-only or video-only media."
+
 
 @pytest.mark.wcag21
 @pytest.mark.A

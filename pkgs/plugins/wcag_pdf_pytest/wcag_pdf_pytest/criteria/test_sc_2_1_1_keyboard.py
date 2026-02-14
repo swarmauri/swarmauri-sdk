@@ -1,11 +1,13 @@
 import pytest
-from wcag_pdf_pytest.pdf_inspector import evaluate_sc, SCResult
+
+from wcag_pdf_pytest.pdf_inspector import SCResult, evaluate_sc
 
 SC_NUM = "2.1.1"
 SC_TITLE = "Keyboard"
 SC_LEVEL = "A"
 SC_APPLICABILITY = "Depends"
-SC_NOTES = 'Applies for interactive PDF content; all functionality should be operable via keyboard.'
+SC_NOTES = "Applies for interactive PDF content; all functionality should be operable via keyboard."
+
 
 @pytest.mark.wcag21
 @pytest.mark.A

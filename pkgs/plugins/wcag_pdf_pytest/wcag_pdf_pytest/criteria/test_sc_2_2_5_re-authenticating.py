@@ -1,11 +1,13 @@
 import pytest
-from wcag_pdf_pytest.pdf_inspector import evaluate_sc, SCResult
+
+from wcag_pdf_pytest.pdf_inspector import SCResult, evaluate_sc
 
 SC_NUM = "2.2.5"
 SC_TITLE = "Re-authenticating"
 SC_LEVEL = "AAA"
 SC_APPLICABILITY = "Depends"
-SC_NOTES = 'Applies if the PDF includes authenticated workflows.'
+SC_NOTES = "Applies if the PDF includes authenticated workflows."
+
 
 @pytest.mark.wcag21
 @pytest.mark.AAA

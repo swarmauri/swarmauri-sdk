@@ -1,11 +1,13 @@
 import pytest
-from wcag_pdf_pytest.pdf_inspector import evaluate_sc, SCResult
+
+from wcag_pdf_pytest.pdf_inspector import SCResult, evaluate_sc
 
 SC_NUM = "2.4.3"
 SC_TITLE = "Focus Order"
 SC_LEVEL = "A"
 SC_APPLICABILITY = "Depends"
-SC_NOTES = 'For interactive content, ensure a logical focus order.'
+SC_NOTES = "For interactive content, ensure a logical focus order."
+
 
 @pytest.mark.wcag21
 @pytest.mark.A

@@ -1,5 +1,5 @@
 [project]
-name = "swarmauri-transport-asgi"
+name = "swarmauri_transport_asgi"
 version = "0.1.0"
 description = "ASGI transport runner for Swarmauri components using Uvicorn."
 readme = "README.md"

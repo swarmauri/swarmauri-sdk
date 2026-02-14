@@ -1,11 +1,13 @@
 import pytest
-from wcag_pdf_pytest.pdf_inspector import evaluate_sc, SCResult
+
+from wcag_pdf_pytest.pdf_inspector import SCResult, evaluate_sc
 
 SC_NUM = "2.1.3"
 SC_TITLE = "Keyboard (No Exception)"
 SC_LEVEL = "AAA"
 SC_APPLICABILITY = "Depends"
-SC_NOTES = 'For interactive PDFs, all functionality must be keyboard operable without exceptions.'
+SC_NOTES = "For interactive PDFs, all functionality must be keyboard operable without exceptions."
+
 
 @pytest.mark.wcag21
 @pytest.mark.AAA

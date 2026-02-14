@@ -1,11 +1,13 @@
 import pytest
-from wcag_pdf_pytest.pdf_inspector import evaluate_sc, SCResult
+
+from wcag_pdf_pytest.pdf_inspector import SCResult, evaluate_sc
 
 SC_NUM = "1.2.4"
 SC_TITLE = "Captions (Live)"
 SC_LEVEL = "AA"
 SC_APPLICABILITY = "Depends"
-SC_NOTES = 'Applies if the PDF contains live media (rare for PDFs).'
+SC_NOTES = "Applies if the PDF contains live media (rare for PDFs)."
+
 
 @pytest.mark.wcag21
 @pytest.mark.AA

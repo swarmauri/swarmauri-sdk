@@ -1,11 +1,13 @@
 import pytest
-from wcag_pdf_pytest.pdf_inspector import evaluate_sc, SCResult
+
+from wcag_pdf_pytest.pdf_inspector import SCResult, evaluate_sc
 
 SC_NUM = "2.2.2"
 SC_TITLE = "Pause, Stop, Hide"
 SC_LEVEL = "A"
 SC_APPLICABILITY = "Depends"
-SC_NOTES = 'Applies if auto-updating or moving content is embedded (rare in PDFs).'
+SC_NOTES = "Applies if auto-updating or moving content is embedded (rare in PDFs)."
+
 
 @pytest.mark.wcag21
 @pytest.mark.A

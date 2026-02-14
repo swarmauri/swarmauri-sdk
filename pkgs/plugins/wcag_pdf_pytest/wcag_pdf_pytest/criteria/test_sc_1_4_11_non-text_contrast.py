@@ -1,11 +1,13 @@
 import pytest
-from wcag_pdf_pytest.pdf_inspector import evaluate_sc, SCResult
+
+from wcag_pdf_pytest.pdf_inspector import SCResult, evaluate_sc
 
 SC_NUM = "1.4.11"
 SC_TITLE = "Non-text Contrast"
 SC_LEVEL = "AA"
 SC_APPLICABILITY = "Applies"
-SC_NOTES = 'UI components and graphical objects (e.g., form controls) must meet 3:1 contrast.'
+SC_NOTES = "UI components and graphical objects (e.g., form controls) must meet 3:1 contrast."
+
 
 @pytest.mark.wcag21
 @pytest.mark.AA

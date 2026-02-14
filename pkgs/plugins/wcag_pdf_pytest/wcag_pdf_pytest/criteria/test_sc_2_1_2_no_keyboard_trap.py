@@ -1,11 +1,13 @@
 import pytest
-from wcag_pdf_pytest.pdf_inspector import evaluate_sc, SCResult
+
+from wcag_pdf_pytest.pdf_inspector import SCResult, evaluate_sc
 
 SC_NUM = "2.1.2"
 SC_TITLE = "No Keyboard Trap"
 SC_LEVEL = "A"
 SC_APPLICABILITY = "Depends"
-SC_NOTES = 'For interactive PDFs, ensure focus is not trapped.'
+SC_NOTES = "For interactive PDFs, ensure focus is not trapped."
+
 
 @pytest.mark.wcag21
 @pytest.mark.A
