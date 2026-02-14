@@ -297,218 +297,374 @@ members = [
     "standards/swarmauri_toolkit_containertoolkit",
     "experimental/swarmauri_workflow_statedriven",
 
+    "community/swm_example_community_package",
+    "community/zdx",
+    "experimental/6w",
+    "experimental/6x",
+    "experimental/6y",
+    "experimental/6z",
+    "experimental/77",
+    "experimental/9x",
+    "experimental/CanonHttp",
+    "experimental/FastTokenizer",
+    "experimental/RapidSimilarity/DistanceMetrics",
+    "experimental/RapidSimilarity/IndexBuilder",
+    "experimental/RapidSimilarity/QueryEngine",
+    "experimental/g9",
+    "experimental/idp_clients",
+    "experimental/jz",
+    "experimental/layout_engine",
+    "experimental/layout_engine_atoms",
+    "experimental/ptree_dag_extension_example",
+    "experimental/s_f",
+    "experimental/sfw",
+    "experimental/snt",
+    "experimental/swarmauri_asn1/swarmauri_asn1",
+    "experimental/swarmauri_crypto_sodium",
+    "experimental/swarmauri_experimental",
+    "experimental/tigrbl_acme_ca",
+    "experimental/tigrbl_engine_bigquery/tigrbl_engine_bigquery",
+    "experimental/tigrbl_engine_clickhouse/tigrbl_engine_clickhouse",
+    "experimental/tigrbl_engine_dataframe/tigrbl_engine_dataframe",
+    "experimental/tigrbl_engine_duckdb",
+    "experimental/tigrbl_engine_pgsqli_wal/tigrbl_engine_pgsqli_wal",
+    "experimental/tigrbl_engine_pyspark",
+    "experimental/tigrbl_engine_redis/tigrbl_engine_redis",
+    "experimental/tigrbl_engine_rediscachethrough",
+    "experimental/tigrbl_engine_snowflake/tigrbl_engine_snowflake",
+    "experimental/tigrbl_spiffe",
+    "experimental/wcag_pdf_pytest",
+    "experimental/ye",
+    "experimental/ymls",
+    "experimental/zr0",
+    "standards/swarmauri_cipher_suite_fips203",
+    "standards/swarmauri_transport_asgi",
+    "standards/swarmauri_transport_h2",
+    "standards/swarmauri_transport_h2mux",
+    "standards/swarmauri_transport_meshsidecarhttp2",
+    "standards/swarmauri_transport_mtlsunicast",
+    "standards/swarmauri_transport_sseoutbound",
+    "standards/swarmauri_transport_sshtunnel",
+    "standards/swarmauri_transport_stdio",
+    "standards/swarmauri_transport_tcpunicast",
+    "standards/swarmauri_transport_wsjsonrpcmux",
+    "standards/swm_example_package",
 ]
 
 [tool.uv.sources]
-swarmauri_core = { workspace = true }
-swarmauri_base = { workspace = true }
-swarmauri_standard = { workspace = true }
-swarmauri = { workspace = true }
-typing = { workspace = true }
-cayaml = { workspace = true }
+6w = { workspace = true }
+6x = { workspace = true }
+6y = { workspace = true }
+6z = { workspace = true }
+77 = { workspace = true }
+9x = { workspace = true }
 catoml = { workspace = true }
+cayaml = { workspace = true }
+DistanceMetrics = { workspace = true }
+EmbeddedSigner = { workspace = true }
+EmbedXMP = { workspace = true }
+FastTokenizer = { workspace = true }
+g9 = { workspace = true }
+http_client = { workspace = true }
+idp-clients = { workspace = true }
+IndexBuilder = { workspace = true }
 jaml = { workspace = true }
-
-
-swarmauri_vectorstore_doc2vec = { workspace = true }
-swarmauri_embedding_doc2vec = { workspace = true }
-#swarmauri_embedding_tfidf = { workspace = true } # We have a tfidf with built-in formula now, this can move to community support with minor rename
-swarmauri_embedding_nmf = { workspace = true }
-swarmauri_tool_matplotlib = { workspace = true }
-swarmauri_parser_keywordextractor = { workspace = true }
-swarmauri_parser_beautifulsoupelement = { workspace = true }
-swarmauri_prompt_j2prompttemplate = { workspace = true }
-swarmauri_evaluator_abstractmethods = { workspace = true }
-swarmauri_evaluator_anyusage = { workspace = true }
-swarmauri_evaluator_externalimports = { workspace = true }
-swarmauri_evaluator_subprocess = { workspace = true }
-swarmauri_evaluatorpool_accessibility = { workspace = true }
-#swarmauri_vectorstore_tfidf = { workspace = true } # We have a tfidf with built-in formula now, this can move to community support with minor rename
-swarmauri_distance_minkowski = { workspace = true }
-swarmauri_middleware_auth = { workspace = true }
-swarmauri_middleware_bulkhead = { workspace = true }
-swarmauri_middleware_cachecontrol = { workspace = true }
-swarmauri_middleware_cors = { workspace = true }
-swarmauri_middleware_exceptionhadling = { workspace = true }
-swarmauri_middleware_gzipcompression = { workspace = true }
-swarmauri_middleware_jwksverifier = { workspace = true }
-swarmauri_middleware_jwt = { workspace = true } # ❓
-swarmauri_middleware_llamaguard = { workspace = true }
-swarmauri_middleware_logging = { workspace = true }
-swarmauri_middleware_ratelimit = { workspace = true }
-swarmauri_middleware_sercurityheaders = { workspace = true }
-swarmauri_middleware_httpsig = { workspace = true }
-swarmauri_middleware_session = { workspace = true }
-swarmauri_middleware_time = { workspace = true }
-swarmauri_middleware_stdio = { workspace = true }
-swarmauri_middleware_jsonrpc = { workspace = true }
-swarmauri_middleware_circuitbreaker = { workspace = true }
-swarmauri_middleware_ratepolicy = { workspace = true }
-
-tigrbl = { workspace = true }
-tigrbl-tests = { workspace = true }
-tigrbl_client = { workspace = true }
-tigrbl_auth = { workspace = true }
-tigrbl_kms = { workspace = true }
-tigrbl_billing = { workspace = true }
+jz = { workspace = true }
+layout-engine = { workspace = true }
+layout-engine-atoms = { workspace = true }
+MediaSigner = { workspace = true }
 peagen = { workspace = true }
-peagen_templset_vue  = { workspace = true }
-
-swarmauri_storage_file = { workspace = true }
-swarmauri_storage_github = { workspace = true }
-swarmauri_storage_github_release = { workspace = true }
-swarmauri_storage_minio = { workspace = true }
-swarmauri_storage_memory = { workspace = true }
-swarmauri_gitfilter_file = { workspace = true }
-swarmauri_gitfilter_s3fs = { workspace = true }
-swarmauri_gitfilter_minio = { workspace = true }
-swarmauri_gitfilter_gh_release = { workspace = true }
-
-swarmauri_crypto_paramiko = { workspace = true }
-swarmauri_crypto_pgp = { workspace = true }
-swarmauri_crypto_rust = { workspace = true }
-swarmauri_crypto_nacl_pkcs11 = { workspace = true }
-swarmauri_crypto_composite = { workspace = true }
-swarmauri_crypto_ecdh_es_a128kw = { workspace = true }
-swarmauri_crypto_jwe = { workspace = true }
-swarmauri_mre_crypto_shamir = { workspace = true }
-swarmauri_mre_crypto_keyring = { workspace = true }
-swarmauri_mre_crypto_age = { workspace = true }
-swarmauri_mre_crypto_pgp = { workspace = true }
-swarmauri_mre_crypto_ecdh_es_kw = { workspace = true }
-swarmauri_signing_ed25519 = { workspace = true }
-swarmauri_certs_cfssl = { workspace = true }
-swarmauri_keyprovider_local = { workspace = true }
-swarmauri_keyprovider_pkcs11 = { workspace = true }
-swarmauri_keyprovider_remote_jwks = { workspace = true }
-swarmauri_keyprovider_ssh = { workspace = true }
-swarmauri_keyprovider_aws_kms = { workspace = true }
-swarmauri_certservice_stepca = { workspace = true }
-swarmauri_certs_acme = { workspace = true }
-swarmauri_keyprovider_file = { workspace = true }
-swarmauri_keyproviders_mirrored = { workspace = true }
-swarmauri_keyprovider_hierarchical = { workspace = true }
-swarmauri_keyprovider_inmemory = { workspace = true }
-swarmauri_signing_hmac = { workspace = true }
-swarmauri_signing_sigv4 = { workspace = true }
-swarmauri_signing_ecdsa = { workspace = true }
-swarmauri_signing_ca = { workspace = true }
-swarmauri_certs_remote_ca = { workspace = true }
-swarmauri_signing_jws = { workspace = true }
-swarmauri_signing_dpop = { workspace = true }
-swarmauri_signing_dsse = { workspace = true }
-swarmauri_certs_pkcs11 = { workspace = true }
-swarmauri_certs_local_ca = { workspace = true }
-swarmauri_certs_self_signed = { workspace = true }
-swarmauri_tokens_dpopboundjwt = { workspace = true }
-swarmauri_tokens_jwt = { workspace = true }
-swarmauri_tokens_sshsig = { workspace = true }
-swarmauri_tokens_sshcert = { workspace = true }
-swarmauri_signing_pgp = { workspace = true }
-swarmauri_signing_rsa = { workspace = true }
-swarmauri_signing_ssh = { workspace = true }
-swarmauri_cipher_suite_jwa = { workspace = true }
-swarmauri_cipher_suite_cades = { workspace = true }
-swarmauri_cipher_suite_pades = { workspace = true }
-swarmauri_certs_x509verify = { workspace = true }
+peagen_templset_vue = { workspace = true }
+ptree_dag_extension_example = { workspace = true }
+QueryEngine = { workspace = true }
+s.f = { workspace = true }
+sfw = { workspace = true }
+snt = { workspace = true }
+swarmauri = { workspace = true }
+swarmauri-asn1 = { workspace = true }
+swarmauri-base = { workspace = true }
+swarmauri-core = { workspace = true }
+swarmauri-experimental = { workspace = true }
+swarmauri-standard = { workspace = true }
+swarmauri-transport-asgi = { workspace = true }
+swarmauri-transport-h2 = { workspace = true }
+swarmauri-transport-h2mux = { workspace = true }
+swarmauri-transport-meshsidecarhttp2 = { workspace = true }
+swarmauri-transport-mtlsunicast = { workspace = true }
+swarmauri-transport-sseoutbound = { workspace = true }
+swarmauri-transport-sshtunnel = { workspace = true }
+swarmauri-transport-stdio = { workspace = true }
+swarmauri-transport-tcpunicast = { workspace = true }
+swarmauri-transport-wsjsonrpcmux = { workspace = true }
+swarmauri-typing = { workspace = true }
 swarmauri_auth_idp_apple = { workspace = true }
+swarmauri_auth_idp_aws = { workspace = true }
+swarmauri_auth_idp_azure = { workspace = true }
 swarmauri_auth_idp_cognito = { workspace = true }
+swarmauri_auth_idp_facebook = { workspace = true }
 swarmauri_auth_idp_gitea = { workspace = true }
 swarmauri_auth_idp_github = { workspace = true }
 swarmauri_auth_idp_gitlab = { workspace = true }
 swarmauri_auth_idp_google = { workspace = true }
-swarmauri_auth_idp_okta = { workspace = true }
 swarmauri_auth_idp_keycloak = { workspace = true }
+swarmauri_auth_idp_okta = { workspace = true }
 swarmauri_auth_idp_salesforce = { workspace = true }
-swarmauri_auth_idp_azure = { workspace = true }
-swarmauri_auth_idp_aws = { workspace = true }
-swarmauri_auth_idp_facebook = { workspace = true }
-
-swarmauri_tokens_introspection = { workspace = true }
-swarmauri_tokens_paseto_v4 = { workspace = true }
-swarmauri_tokens_composite = { workspace = true }
-swarmauri_tokens_remoteoidc = { workspace = true }
-swarmauri_tokens_rotatingjwt = { workspace = true }
-swarmauri_tokens_tlsboundjwt = { workspace = true }
+swarmauri_billing_adyen = { workspace = true }
+swarmauri_billing_authorize_net = { workspace = true }
+swarmauri_billing_braintree = { workspace = true }
+swarmauri_billing_mock = { workspace = true }
+swarmauri_billing_paypal = { workspace = true }
+swarmauri_billing_paystack = { workspace = true }
+swarmauri_billing_razorpay = { workspace = true }
+swarmauri_billing_square = { workspace = true }
+swarmauri_billing_stripe = { workspace = true }
+swarmauri_certs_acme = { workspace = true }
+swarmauri_certs_azure = { workspace = true }
+swarmauri_certs_cfssl = { workspace = true }
+swarmauri_certs_composite = { workspace = true }
+swarmauri_certs_crlverifyservice = { workspace = true }
+swarmauri_certs_csronly = { workspace = true }
+swarmauri_certs_local_ca = { workspace = true }
+swarmauri_certs_ocspverify = { workspace = true }
+swarmauri_certs_pkcs11 = { workspace = true }
+swarmauri_certs_remote_ca = { workspace = true }
+swarmauri_certs_self_signed = { workspace = true }
 swarmauri_certs_x509 = { workspace = true }
-swarmauri_vectorstore_redis = { workspace = true }
-swarmauri_vectorstore_qdrant = { workspace = true }
-swarmauri_vectorstore_pinecone = { workspace = true }
-swarmauri_vectorstore_persistentchromadb = { workspace = true }
-swarmauri_vectorstore_neo4j = { workspace = true }
-swarmauri_vectorstore_mlm = { workspace = true }
-swarmauri_vectorstore_duckdb = { workspace = true }
-swarmauri_vectorstore_cloudweaviate = { workspace = true }
-swarmauri_tool_zapierhook = { workspace = true }
-swarmauri_tool_webscraping = { workspace = true }
-swarmauri_tool_textlength = { workspace = true }
-swarmauri_tool_smogindex = { workspace = true }
-swarmauri_tool_sentimentanalysis = { workspace = true }
-swarmauri_tool_sentencecomplexity = { workspace = true }
-swarmauri_tool_qrcodegenerator = { workspace = true }
-swarmauri_tool_lexicaldensity = { workspace = true }
-swarmauri_tool_captchagenerator = { workspace = true }
-swarmauri_tool_downloadpdf = { workspace = true }
-swarmauri_tool_dalechallreadability = { workspace = true }
-swarmauri_tool_gmail = { workspace = true }
-swarmauri_tool_folium = { workspace = true }
-swarmauri_tool_psutil = { workspace = true }
-swarmauri_toolkit_github = { workspace = true }
-swarmauri_state_clipboard = { workspace = true }
-swarmauri_parser_textblob = { workspace = true }
-swarmauri_parser_fitzpdf = { workspace = true }
-swarmauri_parser_entityrecognition = { workspace = true }
-swarmauri_parser_bertembedding = { workspace = true }
-swarmauri_parser_pypdf2 = { workspace = true }
-swarmauri_parser_pypdftk = { workspace = true }
+swarmauri_certs_x509verify = { workspace = true }
+swarmauri_certservice_aws_kms = { workspace = true }
+swarmauri_certservice_gcpkms = { workspace = true }
+swarmauri_certservice_ms_adcs = { workspace = true }
+swarmauri_certservice_scep = { workspace = true }
+swarmauri_certservice_stepca = { workspace = true }
+swarmauri_cipher_suite_cades = { workspace = true }
+swarmauri_cipher_suite_cnsa20 = { workspace = true }
+swarmauri_cipher_suite_cose = { workspace = true }
+swarmauri_cipher_suite_fips1403 = { workspace = true }
+swarmauri_cipher_suite_fips203 = { workspace = true }
+swarmauri_cipher_suite_fips204 = { workspace = true }
+swarmauri_cipher_suite_fips205 = { workspace = true }
+swarmauri_cipher_suite_ipsec = { workspace = true }
+swarmauri_cipher_suite_jwa = { workspace = true }
+swarmauri_cipher_suite_pades = { workspace = true }
+swarmauri_cipher_suite_pep458 = { workspace = true }
+swarmauri_cipher_suite_sigstore = { workspace = true }
+swarmauri_cipher_suite_ssh = { workspace = true }
+swarmauri_cipher_suite_tls13 = { workspace = true }
+swarmauri_cipher_suite_webauthn = { workspace = true }
+swarmauri_cipher_suite_xades = { workspace = true }
+swarmauri_cipher_suite_yubikey = { workspace = true }
+swarmauri_cipher_suite_yubikey_fips = { workspace = true }
+swarmauri_crypto_composite = { workspace = true }
+swarmauri_crypto_ecdh_es_a128kw = { workspace = true }
+swarmauri_crypto_jwe = { workspace = true }
+swarmauri_crypto_nacl_pkcs11 = { workspace = true }
+swarmauri_crypto_paramiko = { workspace = true }
+swarmauri_crypto_pgp = { workspace = true }
+swarmauri_crypto_rust = { workspace = true }
+swarmauri_crypto_sodium = { workspace = true }
+swarmauri_distance_minkowski = { workspace = true }
+swarmauri_embedding_doc2vec = { workspace = true }
+swarmauri_embedding_mlm = { workspace = true }
+swarmauri_embedding_nmf = { workspace = true }
+swarmauri_evaluator_abstractmethods = { workspace = true }
+swarmauri_evaluator_anyusage = { workspace = true }
+swarmauri_evaluator_constanttime = { workspace = true }
+swarmauri_evaluator_externalimports = { workspace = true }
+swarmauri_evaluator_subprocess = { workspace = true }
+swarmauri_evaluatorpool_accessibility = { workspace = true }
+swarmauri_gitfilter_file = { workspace = true }
+swarmauri_gitfilter_gh_release = { workspace = true }
+swarmauri_gitfilter_minio = { workspace = true }
+swarmauri_gitfilter_s3fs = { workspace = true }
+swarmauri_keyprovider_aws_kms = { workspace = true }
+swarmauri_keyprovider_file = { workspace = true }
+swarmauri_keyprovider_gcpkms = { workspace = true }
+swarmauri_keyprovider_hierarchical = { workspace = true }
+swarmauri_keyprovider_inmemory = { workspace = true }
+swarmauri_keyprovider_local = { workspace = true }
+swarmauri_keyprovider_pkcs11 = { workspace = true }
+swarmauri_keyprovider_remote_jwks = { workspace = true }
+swarmauri_keyprovider_ssh = { workspace = true }
+swarmauri_keyprovider_vaulttransit = { workspace = true }
+swarmauri_keyproviders_mirrored = { workspace = true }
+swarmauri_llm_leptonai = { workspace = true }
+swarmauri_matrix_hamming74 = { workspace = true }
 swarmauri_measurement_mutualinformation = { workspace = true }
 swarmauri_measurement_tokencountestimator = { workspace = true }
 swarmauri_metric_hamming = { workspace = true }
-swarmauri_matrix_hamming74 = { workspace = true }
+swarmauri_middleware_auth = { workspace = true }
+swarmauri_middleware_bulkhead = { workspace = true }
+swarmauri_middleware_cachecontrol = { workspace = true }
+swarmauri_middleware_circuitbreaker = { workspace = true }
+swarmauri_middleware_cors = { workspace = true }
+swarmauri_middleware_exceptionhandling = { workspace = true }
+swarmauri_middleware_gzipcompression = { workspace = true }
+swarmauri_middleware_httpsig = { workspace = true }
+swarmauri_middleware_jsonrpc = { workspace = true }
+swarmauri_middleware_jwksverifier = { workspace = true }
+swarmauri_middleware_jwt = { workspace = true }
+swarmauri_middleware_llamaguard = { workspace = true }
+swarmauri_middleware_logging = { workspace = true }
+swarmauri_middleware_ratelimit = { workspace = true }
+swarmauri_middleware_ratepolicy = { workspace = true }
+swarmauri_middleware_securityheaders = { workspace = true }
+swarmauri_middleware_session = { workspace = true }
+swarmauri_middleware_stdio = { workspace = true }
+swarmauri_middleware_time = { workspace = true }
+swarmauri_mre_crypto_age = { workspace = true }
+swarmauri_mre_crypto_ecdh_es_kw = { workspace = true }
+swarmauri_mre_crypto_keyring = { workspace = true }
+swarmauri_mre_crypto_pgp = { workspace = true }
+swarmauri_mre_crypto_shamir = { workspace = true }
 swarmauri_ocr_pytesseract = { workspace = true }
-swarmauri_tests_griffe = { workspace = true }
-swarmauri_embedding_mlm = { workspace = true }
-swarmauri_tool_entityrecognition = { workspace = true }
-swarmauri_certservice_ms_adcs = { workspace = true }
-swarmauri_keyprovider_vaulttransit = { workspace = true }
-swarmauri_llm_leptonai = { workspace = true }
-swarmauri_vectorstore_annoy = { workspace = true }
-swarmauri_tool_jupyterwritenotebook = { workspace = true }
-swarmauri_tool_jupytervalidatenotebook = { workspace = true }
-swarmauri_tool_jupyterstartkernel = { workspace = true }
-swarmauri_tool_jupytershutdownkernel = { workspace = true }
-swarmauri_tool_jupyterruncell = { workspace = true }
-swarmauri_tool_jupyterreadnotebook = { workspace = true }
-swarmauri_tool_jupytergetshellmessage = { workspace = true }
-swarmauri_tool_jupyterfromdict = { workspace = true }
-swarmauri_tool_jupyterexportpython = { workspace = true }
-swarmauri_tool_jupyterexportmarkdown = { workspace = true }
-swarmauri_tool_jupyterexporthtml = { workspace = true }
-swarmauri_tool_jupyterexecutenotebookwithparameters = { workspace = true }
-swarmauri_tool_jupyterexecutenotebook = { workspace = true }
-swarmauri_tool_jupyterexecutecell = { workspace = true }
-swarmauri_tool_jupyterexecuteandconvert = { workspace = true }
-swarmauri_tool_jupyterdisplayhtml = { workspace = true }
-swarmauri_tool_jupyterdisplay = { workspace = true }
-swarmauri_tool_jupyterclearoutput = { workspace = true }
-swarmauri_tool_jupyterexportlatex = { workspace = true }
-swarmauri_toolkit_jupytertoolkit = { workspace = true }
-swarmauri_tool_jupytergetiopubmessage = { workspace = true }
+swarmauri_parser_beautifulsoupelement = { workspace = true }
+swarmauri_parser_bertembedding = { workspace = true }
+swarmauri_parser_entityrecognition = { workspace = true }
+swarmauri_parser_fitzpdf = { workspace = true }
+swarmauri_parser_keywordextractor = { workspace = true }
+swarmauri_parser_pypdf2 = { workspace = true }
+swarmauri_parser_pypdftk = { workspace = true }
 swarmauri_parser_slate = { workspace = true }
-swarmauri_tool_searchword = { workspace = true }
-swarmauri_keyprovider_gcpkms = { workspace = true }
-swarmauri_certs_csronly = { workspace = true }
-swarmauri_certs_azure = { workspace = true }
-swarmauri_certs_ocspverify = { workspace = true }
-swarmauri_tool_containernewsession = { workspace = true }
+swarmauri_parser_textblob = { workspace = true }
+swarmauri_pop_cwt = { workspace = true }
+swarmauri_pop_dpop = { workspace = true }
+swarmauri_pop_x509 = { workspace = true }
+swarmauri_prompt_j2prompttemplate = { workspace = true }
+swarmauri_publisher_rabbitmq = { workspace = true }
+swarmauri_publisher_redis = { workspace = true }
+swarmauri_publisher_webhook = { workspace = true }
+swarmauri_signing_ca = { workspace = true }
+swarmauri_signing_cms = { workspace = true }
+swarmauri_signing_dpop = { workspace = true }
+swarmauri_signing_dsse = { workspace = true }
+swarmauri_signing_ecdsa = { workspace = true }
+swarmauri_signing_ed25519 = { workspace = true }
+swarmauri_signing_hmac = { workspace = true }
+swarmauri_signing_jws = { workspace = true }
+swarmauri_signing_openpgp = { workspace = true }
+swarmauri_signing_pdf = { workspace = true }
+swarmauri_signing_pep458 = { workspace = true }
+swarmauri_signing_pgp = { workspace = true }
+swarmauri_signing_rsa = { workspace = true }
+swarmauri_signing_secp256k1 = { workspace = true }
+swarmauri_signing_sigv4 = { workspace = true }
+swarmauri_signing_ssh = { workspace = true }
+swarmauri_signing_xmld = { workspace = true }
+swarmauri_state_clipboard = { workspace = true }
+swarmauri_storage_file = { workspace = true }
+swarmauri_storage_github = { workspace = true }
+swarmauri_storage_github_release = { workspace = true }
+swarmauri_storage_memory = { workspace = true }
+swarmauri_storage_minio = { workspace = true }
+swarmauri_tests_griffe = { workspace = true }
+swarmauri_tests_loc_tersity = { workspace = true }
+swarmauri_tests_pylicense = { workspace = true }
+swarmauri_tests_readme_examples = { workspace = true }
+swarmauri_tokens_composite = { workspace = true }
+swarmauri_tokens_dpopboundjwt = { workspace = true }
+swarmauri_tokens_introspection = { workspace = true }
+swarmauri_tokens_jwt = { workspace = true }
+swarmauri_tokens_paseto_v4 = { workspace = true }
+swarmauri_tokens_remoteoidc = { workspace = true }
+swarmauri_tokens_rotatingjwt = { workspace = true }
+swarmauri_tokens_sshcert = { workspace = true }
+swarmauri_tokens_sshsig = { workspace = true }
+swarmauri_tokens_tlsboundjwt = { workspace = true }
+swarmauri_tool_captchagenerator = { workspace = true }
 swarmauri_tool_containerfeedchars = { workspace = true }
 swarmauri_tool_containermakepr = { workspace = true }
-swarmauri_tool_httploaded = { workspace = true }
+swarmauri_tool_containernewsession = { workspace = true }
+swarmauri_tool_dalechallreadability = { workspace = true }
+swarmauri_tool_downloadpdf = { workspace = true }
+swarmauri_tool_entityrecognition = { workspace = true }
+swarmauri_tool_folium = { workspace = true }
 swarmauri_tool_githubloader = { workspace = true }
+swarmauri_tool_gmail = { workspace = true }
+swarmauri_tool_httploaded = { workspace = true }
+swarmauri_tool_jupyterclearoutput = { workspace = true }
+swarmauri_tool_jupyterdisplay = { workspace = true }
+swarmauri_tool_jupyterdisplayhtml = { workspace = true }
+swarmauri_tool_jupyterexecuteandconvert = { workspace = true }
+swarmauri_tool_jupyterexecutecell = { workspace = true }
+swarmauri_tool_jupyterexecutenotebook = { workspace = true }
+swarmauri_tool_jupyterexecutenotebookwithparameters = { workspace = true }
+swarmauri_tool_jupyterexporthtml = { workspace = true }
+swarmauri_tool_jupyterexportlatex = { workspace = true }
+swarmauri_tool_jupyterexportmarkdown = { workspace = true }
+swarmauri_tool_jupyterexportpython = { workspace = true }
+swarmauri_tool_jupyterfromdict = { workspace = true }
+swarmauri_tool_jupytergetiopubmessage = { workspace = true }
+swarmauri_tool_jupytergetshellmessage = { workspace = true }
+swarmauri_tool_jupyterreadnotebook = { workspace = true }
+swarmauri_tool_jupyterruncell = { workspace = true }
+swarmauri_tool_jupytershutdownkernel = { workspace = true }
+swarmauri_tool_jupyterstartkernel = { workspace = true }
+swarmauri_tool_jupytervalidatenotebook = { workspace = true }
+swarmauri_tool_jupyterwritenotebook = { workspace = true }
+swarmauri_tool_lexicaldensity = { workspace = true }
+swarmauri_tool_matplotlib = { workspace = true }
+swarmauri_tool_psutil = { workspace = true }
+swarmauri_tool_qrcodegenerator = { workspace = true }
+swarmauri_tool_searchword = { workspace = true }
+swarmauri_tool_sentencecomplexity = { workspace = true }
+swarmauri_tool_sentimentanalysis = { workspace = true }
+swarmauri_tool_smogindex = { workspace = true }
+swarmauri_tool_textlength = { workspace = true }
+swarmauri_tool_webscraping = { workspace = true }
+swarmauri_tool_zapierhook = { workspace = true }
 swarmauri_toolkit_containertoolkit = { workspace = true }
+swarmauri_toolkit_github = { workspace = true }
+swarmauri_toolkit_jupytertoolkit = { workspace = true }
+swarmauri_transport_quic = { workspace = true }
+swarmauri_transport_tls_unicast = { workspace = true }
+swarmauri_transport_udp = { workspace = true }
+swarmauri_transport_uds_unicast = { workspace = true }
+swarmauri_vectorstore_annoy = { workspace = true }
+swarmauri_vectorstore_cloudweaviate = { workspace = true }
+swarmauri_vectorstore_doc2vec = { workspace = true }
+swarmauri_vectorstore_duckdb = { workspace = true }
+swarmauri_vectorstore_mlm = { workspace = true }
+swarmauri_vectorstore_neo4j = { workspace = true }
+swarmauri_vectorstore_persistentchromadb = { workspace = true }
+swarmauri_vectorstore_pinecone = { workspace = true }
+swarmauri_vectorstore_qdrant = { workspace = true }
+swarmauri_vectorstore_redis = { workspace = true }
 swarmauri_workflow_statedriven = { workspace = true }
-swarmauri_certservice_gcpkms = { workspace = true }
-
+swarmauri_xmp_gif = { workspace = true }
+swarmauri_xmp_jpeg = { workspace = true }
+swarmauri_xmp_mp4 = { workspace = true }
+swarmauri_xmp_pdf = { workspace = true }
+swarmauri_xmp_png = { workspace = true }
+swarmauri_xmp_svg = { workspace = true }
+swarmauri_xmp_tiff = { workspace = true }
+swarmauri_xmp_webp = { workspace = true }
+swm-example-package = { workspace = true }
+swm-example-plugin = { workspace = true }
+swm_example_community_package = { workspace = true }
+tigrbl = { workspace = true }
+tigrbl-acme-ca = { workspace = true }
+tigrbl-auth = { workspace = true }
+tigrbl-billing = { workspace = true }
+tigrbl-client = { workspace = true }
+tigrbl-kms = { workspace = true }
+tigrbl-spiffe = { workspace = true }
+tigrbl-tests = { workspace = true }
+tigrbl_api_cron = { workspace = true }
+tigrbl_api_hpks = { workspace = true }
+tigrbl_engine_bigquery = { workspace = true }
+tigrbl_engine_clickhouse = { workspace = true }
+tigrbl_engine_dataframe = { workspace = true }
+tigrbl_engine_duckdb = { workspace = true }
+tigrbl_engine_pgsqli_wal = { workspace = true }
+tigrbl_engine_pyspark = { workspace = true }
+tigrbl_engine_redis = { workspace = true }
+tigrbl_engine_rediscachethrough = { workspace = true }
+tigrbl_engine_snowflake = { workspace = true }
+wcag-pdf-pytest = { workspace = true }
+ye = { workspace = true }
+ymls = { workspace = true }
+zdx = { workspace = true }
+zr0 = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = [
