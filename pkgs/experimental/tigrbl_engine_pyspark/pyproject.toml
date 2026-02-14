@@ -8,8 +8,16 @@ version = "0.1.0"
 description = "PySpark engine plugin for tigrbl."
 readme = "README.md"
 license = { file = "LICENSE" }
-authors = [{ name = "Swarmauri Team", email = "team@swarmauri.com" }]
-requires-python = ">=3.10"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+keywords = ["tigrbl_engine_pyspark", "tigrbl", "experimental"]
+requires-python = ">=3.10,<3.13"
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
 dependencies = [
   "pyspark>=3.4",
   "tigrbl>=0.3.0.dev4",

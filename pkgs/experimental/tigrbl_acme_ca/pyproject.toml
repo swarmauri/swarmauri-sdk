@@ -7,25 +7,13 @@ requires-python = ">=3.10,<3.13"
 license = { text = "Apache-2.0" }
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 classifiers = [
-  "Development Status :: 1 - Planning",
-  "License :: OSI Approved :: Apache Software License",
-  "Programming Language :: Python",
-  "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12",
-  "Intended Audience :: Developers",
-  "Topic :: Security",
-  "Topic :: Software Development :: Libraries",
+    "Development Status :: 1 - Planning",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
-keywords = [
-  "tigrbl",
-  "acme",
-  "certificate",
-  "ca",
-  "security",
-]
+keywords = ["tigrbl_acme_ca", "tigrbl", "experimental"]
 dependencies = ["tigrbl>=0.3.0.dev4"]
 
 [build-system]
