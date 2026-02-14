@@ -119,31 +119,29 @@ members = [
     "community/swm_example_community_package",
     "community/tigrbl_api_cron",
     "community/tigrbl_api_hpks",
-    "community/zdx",
     "core",
-    "experimental/6w",
-    "experimental/6x",
-    "experimental/6y",
-    "experimental/6z",
-    "experimental/77",
-    "experimental/9x",
-    "experimental/CanonHttp",
-    "experimental/catoml",
-    "experimental/cayaml",
-    "experimental/FastTokenizer",
-    "experimental/g9",
-    "experimental/idp_clients",
-    "experimental/jaml",
-    "experimental/jz",
-    "experimental/layout_engine",
-    "experimental/layout_engine_atoms",
+    # "experimental/6w",
+    # "experimental/6x",
+    # "experimental/6y",
+    # "experimental/6z",
+    # "experimental/77",
+    # "experimental/9x",
+    # "experimental/swarmauri_canon_http",
+    # "experimental/catoml",
+    # "experimental/cayaml",
+    # "experimental/FastTokenizer",
+    # "experimental/g9",
+    # "experimental/jaml",
+    # "experimental/jz",
+    # "experimental/layout_engine",
+    # "experimental/layout_engine_atoms",
     "experimental/ptree_dag_extension_example",
-    "experimental/RapidSimilarity/DistanceMetrics",
-    "experimental/RapidSimilarity/IndexBuilder",
-    "experimental/RapidSimilarity/QueryEngine",
-    "experimental/s_f",
-    "experimental/sfw",
-    "experimental/snt",
+    # "experimental/RapidSimilarity/DistanceMetrics",
+    # "experimental/RapidSimilarity/IndexBuilder",
+    # "experimental/RapidSimilarity/QueryEngine",
+    # "experimental/s_f",
+    # "experimental/sfw",
+    # "experimental/snt",
     "experimental/swarmauri_parser_asn1",
     "experimental/swarmauri_certs_pkcs11",
     "experimental/swarmauri_crypto_sodium",
@@ -164,14 +162,14 @@ members = [
     "experimental/tigrbl_engine_rediscachethrough",
     "experimental/tigrbl_engine_snowflake/tigrbl_engine_snowflake",
     "experimental/tigrbl_spiffe",
-    "experimental/wcag_pdf_pytest",
-    "experimental/ye",
-    "experimental/ymls",
-    "experimental/zr0",
+    # "experimental/ye",
+    # "experimental/ymls",
+    # "experimental/zr0",
     "plugins/embedded_signer",
     "plugins/EmbedXMP",
     "plugins/example_plugin",
     "plugins/media_signer",
+    "plugins/wcag_pdf_pytest",
     "plugins/zdx",
     "standards/peagen",
     "standards/peagen_templset_vue",
@@ -346,36 +344,33 @@ members = [
 ]
 
 [tool.uv.sources]
-6w = { workspace = true }
-6x = { workspace = true }
-6y = { workspace = true }
-6z = { workspace = true }
-77 = { workspace = true }
-9x = { workspace = true }
-catoml = { workspace = true }
-cayaml = { workspace = true }
-DistanceMetrics = { workspace = true }
+# 6w = { workspace = true }
+# 6x = { workspace = true }
+# 6y = { workspace = true }
+# 6z = { workspace = true }
+# 77 = { workspace = true }
+# 9x = { workspace = true }
+# catoml = { workspace = true }
+# cayaml = { workspace = true }
+# DistanceMetrics = { workspace = true }
 EmbeddedSigner = { workspace = true }
 EmbedXMP = { workspace = true }
-FastTokenizer = { workspace = true }
-g9 = { workspace = true }
-http_client = { workspace = true }
-idp-clients = { workspace = true }
-IndexBuilder = { workspace = true }
-jaml = { workspace = true }
-jz = { workspace = true }
-layout-engine = { workspace = true }
-layout-engine-atoms = { workspace = true }
+# FastTokenizer = { workspace = true }
+# g9 = { workspace = true }
+# IndexBuilder = { workspace = true }
+# jaml = { workspace = true }
+# jz = { workspace = true }
+# layout-engine = { workspace = true }
+# layout-engine-atoms = { workspace = true }
 MediaSigner = { workspace = true }
 peagen = { workspace = true }
 peagen_templset_vue = { workspace = true }
 ptree_dag_extension_example = { workspace = true }
-QueryEngine = { workspace = true }
-s = { workspace = true }
-sfw = { workspace = true }
-snt = { workspace = true }
+# QueryEngine = { workspace = true }
+# s = { workspace = true }
+# sfw = { workspace = true }
+# snt = { workspace = true }
 swarmauri = { workspace = true }
-swarmauri_parser_asn1 = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_core = { workspace = true }
 #swarmauri_experimental = { workspace = true }
@@ -511,6 +506,7 @@ swarmauri_mre_crypto_keyring = { workspace = true }
 swarmauri_mre_crypto_pgp = { workspace = true }
 swarmauri_mre_crypto_shamir = { workspace = true }
 swarmauri_ocr_pytesseract = { workspace = true }
+swarmauri_parser_asn1 = { workspace = true }
 swarmauri_parser_beautifulsoupelement = { workspace = true }
 swarmauri_parser_bertembedding = { workspace = true }
 swarmauri_parser_entityrecognition = { workspace = true }
@@ -655,10 +651,10 @@ tigrbl_engine_redis = { workspace = true }
 tigrbl_engine_rediscachethrough = { workspace = true }
 tigrbl_engine_snowflake = { workspace = true }
 wcag_pdf_pytest = { workspace = true }
-ye = { workspace = true }
-ymls = { workspace = true }
-zdx = { workspace = true }
-zr0 = { workspace = true }
+# ye = { workspace = true }
+# ymls = { workspace = true }
+# zdx = { workspace = true }
+# zr0 = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = [
