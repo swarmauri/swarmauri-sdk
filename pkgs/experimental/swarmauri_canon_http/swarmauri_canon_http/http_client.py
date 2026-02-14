@@ -5,10 +5,10 @@ import asyncio
 import ssl
 
 from .exceptions import TimeoutError, HTTP2Error, HttpClientError
-from .utils import merge_headers, to_bytes, to_str
+from .utils import to_bytes
 
 # Import HTTP/2 components from our subpackage.
-from .h2 import frames, hpack, multiplex, flow_control
+from .h2 import frames, hpack, multiplex
 
 # A helper to send the HTTP/2 connection preface.
 async def send_connection_preface(writer):
