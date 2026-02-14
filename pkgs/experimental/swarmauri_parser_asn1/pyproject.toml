@@ -6,10 +6,11 @@ build-backend = "setuptools.build_meta"
 name = "swarmauri_parser_asn1"
 version = "0.1.0"
 description = "Grammar-driven ASN.1 (X.680/X.690 DER subset) parser plugin for swarmauri-sdk using Lark Earley."
-authors = [{name = "Your Team"}]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = ["lark>=1.1.9"]
+
 
 [tool.setuptools.packages.find]
 include = ["swarmauri_parser_asn1*"]
