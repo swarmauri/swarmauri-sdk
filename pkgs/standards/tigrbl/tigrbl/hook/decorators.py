@@ -6,10 +6,15 @@ from typing import Iterable, Union
 
 from ..config.constants import HOOK_DECLS_ATTR
 from ._hook import Hook
+from .exceptions import InvalidHookPhaseError
+from .types import PHASES
 
 
 def hook_ctx(ops: Union[str, Iterable[str]], *, phase: str):
     """Declare a ctx-only hook for one/many ops at a given phase."""
+
+    if phase not in PHASES:
+        raise InvalidHookPhaseError(phase=phase, allowed_phases=PHASES)
 
     def deco(fn):
         from ..op.decorators import _ensure_cm, _unwrap
