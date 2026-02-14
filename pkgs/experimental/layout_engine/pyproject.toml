@@ -1,5 +1,5 @@
 [project]
-name = "layout-engine"
+name = "layout_engine"
 version = "0.1.1.dev1"
 authors = [
     { name = "Jacob Stewart", email = "jacob@swarmauri.com" },
