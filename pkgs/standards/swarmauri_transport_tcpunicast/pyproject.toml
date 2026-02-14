@@ -1,5 +1,5 @@
 [project]
-name = "swarmauri-transport-tcpunicast"
+name = "swarmauri_transport_tcpunicast"
 version = "0.1.0"
 description = "Basic TCP unicast transport for Swarmauri prototyping."
 readme = "README.md"

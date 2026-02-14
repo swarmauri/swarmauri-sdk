@@ -1,5 +1,5 @@
 [project]
-name = "tigrbl-billing"
+name = "tigrbl_billing"
 version = "0.1.2.dev4"
 description = "Canonical billing models, lifecycle operations, and analytics for the Tigrbl platform."
 license = "Apache-2.0"
