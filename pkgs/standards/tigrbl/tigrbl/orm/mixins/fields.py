@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-import datetime as dt
 from decimal import Decimal
 
 from ...specs import ColumnSpec, F, IO, S, acol
 from ...types import (
-    TZDateTime,
     PgUUID,
     String,
     SAEnum,
@@ -19,7 +17,7 @@ from ...types import (
     Mapped,
 )
 
-from .utils import tzutcnow, tzutcnow_plus_day, CRUD_IO
+from .utils import CRUD_IO
 
 
 @declarative_mixin
@@ -57,24 +55,6 @@ class StatusColumn:
                 nullable=False,
             ),
             field=F(py_type=str),
-            io=CRUD_IO,
-        )
-    )
-
-
-@declarative_mixin
-class ValidityWindow:
-    valid_from: Mapped[dt.datetime] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=TZDateTime, default=tzutcnow, nullable=False),
-            field=F(py_type=dt.datetime),
-            io=CRUD_IO,
-        )
-    )
-    valid_to: Mapped[dt.datetime | None] = acol(
-        spec=ColumnSpec(
-            storage=S(type_=TZDateTime, default=tzutcnow_plus_day),
-            field=F(py_type=dt.datetime),
             io=CRUD_IO,
         )
     )
@@ -156,7 +136,6 @@ class SearchVector:
 __all__ = [
     "Slugged",
     "StatusColumn",
-    "ValidityWindow",
     "Monetary",
     "ExtRef",
     "MetaJSON",

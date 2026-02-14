@@ -13,7 +13,7 @@ from ...types import (
     Mapped,
 )
 
-from .utils import tzutcnow, CRUD_IO, RO_IO
+from .utils import tzutcnow, tzutcnow_plus_day, CRUD_IO, RO_IO
 
 
 @declarative_mixin
@@ -66,6 +66,24 @@ class Timestamped:
 
 
 @declarative_mixin
+class ValidityWindow:
+    valid_from: Mapped[dt.datetime] = acol(
+        spec=ColumnSpec(
+            storage=S(type_=TZDateTime, default=tzutcnow, nullable=False),
+            field=F(py_type=dt.datetime),
+            io=CRUD_IO,
+        )
+    )
+    valid_to: Mapped[dt.datetime | None] = acol(
+        spec=ColumnSpec(
+            storage=S(type_=TZDateTime, default=tzutcnow_plus_day),
+            field=F(py_type=dt.datetime),
+            io=CRUD_IO,
+        )
+    )
+
+
+@declarative_mixin
 class ActiveToggle:
     is_active: Mapped[bool] = acol(
         spec=ColumnSpec(
@@ -109,6 +127,7 @@ __all__ = [
     "Created",
     "LastUsed",
     "Timestamped",
+    "ValidityWindow",
     "ActiveToggle",
     "SoftDelete",
     "Versioned",
