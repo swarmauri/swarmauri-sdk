@@ -103,7 +103,7 @@ members = [
     "community/swarmauri_tool_sentimentanalysis",
     "community/swarmauri_tool_smogindex",
     "community/swarmauri_tool_textlength",
-    "community/swarmauri_tool_webscraping",
+    "community/swarmauri_tool_webscraping"
     "community/swarmauri_tool_zapierhook",
     "community/swarmauri_toolkit_github",
     "community/swarmauri_toolkit_jupytertoolkit",
@@ -144,7 +144,7 @@ members = [
     "experimental/s_f",
     "experimental/sfw",
     "experimental/snt",
-    "experimental/swarmauri_asn1/swarmauri_asn1",
+    "experimental/swarmauri_parser_asn1",
     "experimental/swarmauri_certs_pkcs11",
     "experimental/swarmauri_crypto_sodium",
     "experimental/swarmauri_experimental",
@@ -375,22 +375,22 @@ s = { workspace = true }
 sfw = { workspace = true }
 snt = { workspace = true }
 swarmauri = { workspace = true }
-swarmauri-asn1 = { workspace = true }
-swarmauri-base = { workspace = true }
-swarmauri-core = { workspace = true }
-swarmauri-experimental = { workspace = true }
-swarmauri-standard = { workspace = true }
-swarmauri-transport-asgi = { workspace = true }
-swarmauri-transport-h2 = { workspace = true }
-swarmauri-transport-h2mux = { workspace = true }
-swarmauri-transport-meshsidecarhttp2 = { workspace = true }
-swarmauri-transport-mtlsunicast = { workspace = true }
-swarmauri-transport-sseoutbound = { workspace = true }
-swarmauri-transport-sshtunnel = { workspace = true }
-swarmauri-transport-stdio = { workspace = true }
-swarmauri-transport-tcpunicast = { workspace = true }
-swarmauri-transport-wsjsonrpcmux = { workspace = true }
-swarmauri-typing = { workspace = true }
+swarmauri_parser_asn1 = { workspace = true }
+swarmauri_base = { workspace = true }
+swarmauri_core = { workspace = true }
+#swarmauri_experimental = { workspace = true }
+swarmauri_standard = { workspace = true }
+swarmauri_transport_asgi = { workspace = true }
+swarmauri_transport_h2 = { workspace = true }
+swarmauri_transport_h2mux = { workspace = true }
+swarmauri_transport_meshsidecarhttp2 = { workspace = true }
+swarmauri_transport_mtlsunicast = { workspace = true }
+swarmauri_transport_sseoutbound = { workspace = true }
+swarmauri_transport_sshtunnel = { workspace = true }
+swarmauri_transport_stdio = { workspace = true }
+swarmauri_transport_tcpunicast = { workspace = true }
+swarmauri_transport_wsjsonrpcmux = { workspace = true }
+swarmauri_typing = { workspace = true }
 swarmauri_auth_idp_apple = { workspace = true }
 swarmauri_auth_idp_aws = { workspace = true }
 swarmauri_auth_idp_azure = { workspace = true }
@@ -632,17 +632,17 @@ swarmauri_xmp_png = { workspace = true }
 swarmauri_xmp_svg = { workspace = true }
 swarmauri_xmp_tiff = { workspace = true }
 swarmauri_xmp_webp = { workspace = true }
-swm-example-package = { workspace = true }
-swm-example-plugin = { workspace = true }
+swm_example_package = { workspace = true }
+swm_example_plugin = { workspace = true }
 swm_example_community_package = { workspace = true }
 tigrbl = { workspace = true }
-tigrbl-acme-ca = { workspace = true }
-tigrbl-auth = { workspace = true }
-tigrbl-billing = { workspace = true }
-tigrbl-client = { workspace = true }
-tigrbl-kms = { workspace = true }
-tigrbl-spiffe = { workspace = true }
-tigrbl-tests = { workspace = true }
+tigrbl_acme_ca = { workspace = true }
+tigrbl_auth = { workspace = true }
+tigrbl_billing = { workspace = true }
+tigrbl_client = { workspace = true }
+tigrbl_kms = { workspace = true }
+tigrbl_spiffe = { workspace = true }
+tigrbl_tests = { workspace = true }
 tigrbl_api_cron = { workspace = true }
 tigrbl_api_hpks = { workspace = true }
 tigrbl_engine_bigquery = { workspace = true }
@@ -654,7 +654,7 @@ tigrbl_engine_pyspark = { workspace = true }
 tigrbl_engine_redis = { workspace = true }
 tigrbl_engine_rediscachethrough = { workspace = true }
 tigrbl_engine_snowflake = { workspace = true }
-wcag-pdf-pytest = { workspace = true }
+wcag_pdf_pytest = { workspace = true }
 ye = { workspace = true }
 ymls = { workspace = true }
 zdx = { workspace = true }
