@@ -18,7 +18,7 @@ classifiers = [
 requires-python = ">=3.10,<3.13"
 
 dependencies = [
-    "swarmauri==0.5.3.dev5",
+    "swarmauri",
     "gensim",
     "neo4j",
     "numpy",
@@ -40,6 +40,10 @@ dev = [
     "pytest-json-report>=1.5.0",
     "ruff>=0.9.9",
 ]
+
+
+[tool.uv.sources]
+swarmauri =  { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
