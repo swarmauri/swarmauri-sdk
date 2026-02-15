@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pandas as pd
+from openpyxl import Workbook
 import pytest
 
 from tigrbl import TigrblApp
@@ -34,10 +34,11 @@ class XlsxWidget(Table, GUIDPk):
 def app_and_db(tmp_path: Path) -> tuple[TigrblApp, object]:
     register()
     path = tmp_path / "demo.xlsx"
-    with pd.ExcelWriter(path) as writer:
-        pd.DataFrame(columns=["id", "name"]).to_excel(
-            writer, index=False, sheet_name=XlsxWidget.__tablename__
-        )
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = XlsxWidget.__tablename__
+    sheet.append(["id", "name"])
+    workbook.save(path)
 
     spec = EngineSpec(kind="xlsx", mapping={"path": str(path), "pk": "id"})
     _, session_factory = xlsx_engine(mapping=spec.mapping)
@@ -50,12 +51,8 @@ def app_and_db(tmp_path: Path) -> tuple[TigrblApp, object]:
 
 
 def _snapshot_xlsx(db: object) -> list[dict[str, object]]:
-    rows = db.table(XlsxWidget.__tablename__).copy()  # type: ignore[attr-defined]
-    if rows.empty:
-        return []
-    if "id" in rows.columns:
-        rows = rows.sort_values("id")
-    return rows.to_dict(orient="records")
+    rows = db.table(XlsxWidget.__tablename__)  # type: ignore[attr-defined]
+    return sorted(rows, key=lambda row: str(row.get("id")))
 
 
 @pytest.mark.asyncio
