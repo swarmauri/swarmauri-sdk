@@ -47,6 +47,23 @@ transports = [
     "swarmauri_transport_wsjsonrpcmux>=0.1.0",
 ]
 
+
+[tool.uv.sources]
+swarmauri_transport_asgi = { workspace = true }
+swarmauri_transport_h2 = { workspace = true }
+swarmauri_transport_h2mux = { workspace = true }
+swarmauri_transport_meshsidecarhttp2 = { workspace = true }
+swarmauri_transport_mtlsunicast = { workspace = true }
+swarmauri_transport_quic = { workspace = true }
+swarmauri_transport_sseoutbound = { workspace = true }
+swarmauri_transport_sshtunnel = { workspace = true }
+swarmauri_transport_stdio = { workspace = true }
+swarmauri_transport_tcpunicast = { workspace = true }
+swarmauri_transport_tls_unicast = { workspace = true }
+swarmauri_transport_udp = { workspace = true }
+swarmauri_transport_uds_unicast = { workspace = true }
+swarmauri_transport_wsjsonrpcmux = { workspace = true }
+
 [tool.pytest.ini_options]
 markers = [
     "test: standard test",
