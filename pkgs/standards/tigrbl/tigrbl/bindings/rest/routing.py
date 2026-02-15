@@ -9,7 +9,7 @@ from typing import Any, Dict, Optional, Sequence, Tuple
 from ...runtime.status.exceptions import HTTPException
 from ...runtime.status.mappings import status as _status
 from ...security.dependencies import Depends, Security
-from ...transport.request import Request
+from ...requests._request import Request
 from ...op import OpSpec
 from ...security import HTTPBearer
 from ...op.types import CANON

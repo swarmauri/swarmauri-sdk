@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, AsyncIterable, Iterable, Mapping, Optional, Union, cast
 import logging
 
-from ....response.stdapi import Response
+from ....responses._response import Response
 from ....transport.background import BackgroundTask
 
 from ....response.shortcuts import (
