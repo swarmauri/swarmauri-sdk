@@ -1,0 +1,39 @@
+[build-system]
+requires = ["hatchling>=1.25.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "tigrbl_engine_numpy"
+version = "0.1.0"
+description = "NumPy engine plugin for tigrbl with array-to-table helpers."
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+keywords = ["tigrbl", "engine", "numpy", "array", "experimental"]
+requires-python = ">=3.10,<3.13"
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "numpy>=1.26",
+    "pandas>=2.0",
+    "tigrbl>=0.3.0.dev4",
+    "tigrbl_engine_pandas>=0.1.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/swarmauri/swarmauri-sdk"
+
+[project.entry-points."tigrbl.engine"]
+numpy = "tigrbl_engine_numpy:register"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "sqlalchemy>=2.0",
+]

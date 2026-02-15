@@ -1,0 +1,38 @@
+[build-system]
+requires = ["hatchling>=1.25.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "tigrbl_engine_xlsx"
+version = "0.1.0"
+description = "XLSX engine plugin for tigrbl where each workbook is a database and each sheet is a table."
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+keywords = ["tigrbl", "engine", "xlsx", "excel", "dataframe", "experimental"]
+requires-python = ">=3.10,<3.13"
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "openpyxl>=3.1",
+    "pandas>=2.0",
+    "tigrbl>=0.3.0.dev4",
+]
+
+[project.urls]
+Homepage = "https://github.com/swarmauri/swarmauri-sdk"
+
+[project.entry-points."tigrbl.engine"]
+xlsx = "tigrbl_engine_xlsx:register"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "sqlalchemy>=2.0",
+]
