@@ -96,7 +96,7 @@ def xlsx_capabilities() -> dict[str, object]:
         "files": ["xlsx"],
         "workbook_database": True,
         "multi_table": True,
-        "workbook_api": ["load_workbook", "wb[...]", "wb.save"],
+        "workbook_api": ["load_workbook", "wb[...]", "wb.save(...)"],
         "transactions": True,
         "dialect": "xlsx",
     }

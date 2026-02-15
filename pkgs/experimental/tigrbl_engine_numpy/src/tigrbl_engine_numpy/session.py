@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+import os
+from pathlib import Path
+import tempfile
+
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -76,7 +80,7 @@ class NumpySession(TigrblSessionBase):
     def load(
         self, file: str, *, mmap_mode: str | None = None, npz_key: str | None = None
     ) -> np.ndarray:
-        loaded = np.load(file, mmap_mode=mmap_mode)
+        loaded = np.load(file, mmap_mode=mmap_mode, allow_pickle=True)
         if isinstance(loaded, np.lib.npyio.NpzFile):
             key = npz_key or (loaded.files[0] if len(loaded.files) == 1 else None)
             if key is None:
@@ -94,10 +98,52 @@ class NumpySession(TigrblSessionBase):
         mode: str = "r+",
         shape: Any = None,
     ) -> np.memmap:
+        valid_modes = {"r", "r+", "w+", "c"}
+        if mode not in valid_modes:
+            raise ValueError(f"mode must be one of {sorted(valid_modes)}")
+        if mode == "w+" and shape is None:
+            raise ValueError("shape is required when mode='w+'")
         return np.memmap(filename, dtype=dtype, mode=mode, shape=shape)
 
-    def save(self, file: str, array: np.ndarray | None = None) -> None:
-        np.save(file, self.array() if array is None else array)
+    def save(
+        self,
+        file: str | None = None,
+        array: np.ndarray | None = None,
+        *,
+        npz_key: str | None = None,
+    ) -> None:
+        target = file or self._engine.catalog.path
+        if not target:
+            raise ValueError("A target file path is required")
+
+        payload = self.array() if array is None else np.asarray(array)
+        self._atomic_save_numpy(target, payload, npz_key=npz_key)
+
+    def _atomic_save_numpy(
+        self, file: str, array: np.ndarray, *, npz_key: str | None = None
+    ) -> None:
+        path = Path(file)
+        directory = str(path.parent if str(path.parent) else Path("."))
+        suffix = path.suffix.lower()
+        if suffix not in {".npy", ".npz"}:
+            raise ValueError("file must use .npy or .npz suffix")
+
+        fd, tmp = tempfile.mkstemp(
+            dir=directory,
+            prefix=".tmp_",
+            suffix=suffix,
+        )
+        os.close(fd)
+        try:
+            if suffix == ".npz":
+                key = npz_key or self._engine.catalog.npz_key or "data"
+                np.savez(tmp, **{key: array})
+            else:
+                np.save(tmp, array)
+            os.replace(tmp, str(path))
+        finally:
+            if os.path.exists(tmp):
+                os.remove(tmp)
 
     async def run_sync(self, fn: Callable[[Any], Any]) -> Any:
         out = fn(self)
@@ -129,6 +175,12 @@ class NumpySession(TigrblSessionBase):
                 live.append(dict(row))
             self._engine.catalog.rows = live
             self._engine.catalog.bump()
+            if self._engine.catalog.path:
+                self._atomic_save_numpy(
+                    self._engine.catalog.path,
+                    self.array(),
+                    npz_key=self._engine.catalog.npz_key,
+                )
         self._puts.clear()
         self._dels.clear()
 
