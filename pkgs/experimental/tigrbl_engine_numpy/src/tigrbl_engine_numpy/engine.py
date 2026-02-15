@@ -56,17 +56,22 @@ def _resolve_array(config: dict[str, Any]) -> np.ndarray:
         or config.get("file")
     ):
         path = Path(path_value)
-        loaded = np.load(path, mmap_mode=config.get("mmap_mode"))
+        loaded = np.load(
+            path,
+            mmap_mode=config.get("mmap_mode"),
+            allow_pickle=True,
+        )
         if isinstance(loaded, np.lib.npyio.NpzFile):
-            npz_key = config.get("npz_key")
-            if npz_key is None:
-                if len(loaded.files) != 1:
-                    raise ValueError(
-                        "mapping['npz_key'] is required for multi-array .npz files"
-                    )
-                npz_key = loaded.files[0]
-            return np.asarray(loaded[npz_key])
-        return np.asarray(loaded)
+            with loaded as archive:
+                npz_key = config.get("npz_key")
+                if npz_key is None:
+                    if len(archive.files) != 1:
+                        raise ValueError(
+                            "mapping['npz_key'] is required for multi-array .npz files"
+                        )
+                    npz_key = archive.files[0]
+                return np.asarray(archive[npz_key])
+        return loaded
 
     if (memmap_path := config.get("memmap_path")) is not None:
         mode = config.get("memmap_mode", "r+")
