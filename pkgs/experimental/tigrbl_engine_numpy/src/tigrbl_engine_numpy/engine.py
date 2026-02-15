@@ -16,6 +16,9 @@ class NumpyCatalog:
     columns: list[str] = field(default_factory=list)
     pk: str = "id"
     table_ver: int = 0
+    path: str | None = None
+    file_format: str | None = None
+    npz_key: str | None = None
     lock: threading.RLock = field(default_factory=threading.RLock)
 
     def bump(self) -> None:
@@ -103,8 +106,26 @@ def numpy_engine(
     if pk not in columns:
         columns = [pk, *columns]
 
+    storage_path = config.get("path") or config.get("load_path") or config.get("file")
+    resolved_path = str(Path(storage_path)) if isinstance(storage_path, str) else None
+    npz_key = config.get("npz_key") if isinstance(config.get("npz_key"), str) else None
+    file_format: str | None = None
+    if resolved_path:
+        suffix = Path(resolved_path).suffix.lower()
+        if suffix == ".npy":
+            file_format = "npy"
+        elif suffix == ".npz":
+            file_format = "npz"
+
     rows = _rows_from_array(array, columns)
-    catalog = NumpyCatalog(rows=rows, columns=columns, pk=pk)
+    catalog = NumpyCatalog(
+        rows=rows,
+        columns=columns,
+        pk=pk,
+        path=resolved_path,
+        file_format=file_format,
+        npz_key=npz_key,
+    )
     engine = NumpyEngine(
         array=array, table=table, pk=pk, columns=columns, catalog=catalog
     )
@@ -120,6 +141,7 @@ def numpy_capabilities() -> dict[str, object]:
         "ndarray": True,
         "single_table_database": True,
         "file_formats": ["npy", "npz"],
+        "numpy_api": ["np.load", "np.memmap", "np.save"],
         "memmap_modes": ["r", "r+", "w+", "c"],
         "transactions": True,
         "dialect": "numpy",

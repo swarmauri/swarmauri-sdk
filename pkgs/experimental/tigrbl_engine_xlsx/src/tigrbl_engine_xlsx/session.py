@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import os
+import tempfile
+
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -307,7 +310,18 @@ class XlsxSession(TigrblSessionBase):
             sheet.append(columns)
             for row in rows:
                 sheet.append([row.get(col) for col in columns])
-        workbook.save(self._cat.path)
+        self._atomic_save_workbook(workbook, self._cat.path)
+
+    def _atomic_save_workbook(self, workbook: Any, path: str) -> None:
+        directory = os.path.dirname(path) or "."
+        fd, tmp = tempfile.mkstemp(dir=directory, prefix=".tmp_", suffix=".xlsx")
+        os.close(fd)
+        try:
+            workbook.save(tmp)
+            os.replace(tmp, path)
+        finally:
+            if os.path.exists(tmp):
+                os.remove(tmp)
 
     def _decompose_select(
         self, stmt: Any
