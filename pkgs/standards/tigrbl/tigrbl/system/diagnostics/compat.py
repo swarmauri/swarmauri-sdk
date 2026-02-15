@@ -4,7 +4,7 @@ from typing import Any, Callable, Sequence
 from types import SimpleNamespace
 
 try:
-    from ...response.stdapi import JSONResponse
+    from ...responses._response import JSONResponse
     from ...types import Depends, Request, Router
 except Exception:  # pragma: no cover
 

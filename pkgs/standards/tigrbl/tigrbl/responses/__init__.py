@@ -1,16 +1,11 @@
-"""Backward-compatible stdapi response exports.
-
-Prefer importing from ``tigrbl.responses``.
-"""
-
-from tigrbl.responses._response import (
-    FileResponse,
-    HTMLResponse,
-    JSONResponse,
-    PlainTextResponse,
-    RedirectResponse,
+from ._response import (
     Response,
+    JSONResponse,
+    HTMLResponse,
+    PlainTextResponse,
     StreamingResponse,
+    FileResponse,
+    RedirectResponse,
 )
 
 __all__ = [

@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 from urllib.parse import quote
 
-from ...response.stdapi import Response
+from ...responses._response import Response
 
 
 TIGRBL_LENS_VERSION = "0.0.14"
