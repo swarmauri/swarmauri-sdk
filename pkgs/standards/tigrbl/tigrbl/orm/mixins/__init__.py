@@ -22,6 +22,7 @@ from .lifecycle import (
     Created,
     LastUsed,
     Timestamped,
+    ValidityWindow,
     ActiveToggle,
     SoftDelete,
     Versioned,
@@ -34,7 +35,6 @@ from .operations import BulkCapable, Replaceable, Mergeable, Streamable
 from .fields import (
     Slugged,
     StatusColumn,
-    ValidityWindow,
     Monetary,
     ExtRef,
     MetaJSON,
