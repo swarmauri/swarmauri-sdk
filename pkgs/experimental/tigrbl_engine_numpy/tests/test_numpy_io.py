@@ -46,6 +46,25 @@ def test_numpy_session_save_and_load_npz(tmp_path: Path) -> None:
     assert loaded[0, 0] == 1
 
 
+def test_numpy_session_load_with_mmap_mode_returns_memmap(tmp_path: Path) -> None:
+    source = tmp_path / "source.npy"
+    np.save(source, np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64))
+
+    _, session_factory = numpy_engine(
+        mapping={
+            "array": np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64),
+            "columns": ["id", "value"],
+            "pk": "id",
+        }
+    )
+    session = session_factory()
+
+    loaded = session.load(str(source), mmap_mode="r")
+
+    assert isinstance(loaded, np.memmap)
+    assert loaded[1, 0] == 3.0
+
+
 def test_numpy_session_memmap_modes(tmp_path: Path) -> None:
     path = tmp_path / "mapped.npy"
     _, session_factory = numpy_engine(
