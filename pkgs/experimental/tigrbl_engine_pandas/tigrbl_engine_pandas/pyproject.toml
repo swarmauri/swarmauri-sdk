@@ -3,7 +3,7 @@ requires = ["hatchling>=1.20"]
 build-backend = "hatchling.build"
 
 [project]
-name = "tigrbl_engine_dataframe"
+name = "tigrbl_engine_pandas"
 version = "0.1.0"
 description = "Tigrbl engine plugin providing transactional pandas DataFrame sessions."
 readme = "README.md"
@@ -39,13 +39,13 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/swarmauri/swarmauri-sdk"
-Repository = "https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/tigrbl_engine_dataframe"
+Repository = "https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/tigrbl_engine_pandas"
 
 [project.entry-points."tigrbl.engine"]
-dataframe = "tigrbl_engine_dataframe:register"
+pandas = "tigrbl_engine_pandas:register"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/tigrbl_engine_dataframe"]
+packages = ["src/tigrbl_engine_pandas"]
 
 [dependency-groups]
 dev = [

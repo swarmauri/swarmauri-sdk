@@ -1,11 +1,11 @@
-"""tigrbl_engine_dataframe: DataFrame-backed Tigrbl engine"""
+"""tigrbl_engine_pandas: DataFrame-backed Tigrbl engine"""
 
-from .df_engine import dataframe_engine, dataframe_capabilities, DataFrameCatalog
-from .df_session import TransactionalDataFrameSession
+from .engine import pandas_engine, pandas_capabilities, DataFrameCatalog
+from .session import TransactionalDataFrameSession
 
 __all__ = [
-    "dataframe_engine",
-    "dataframe_capabilities",
+    "pandas_engine",
+    "pandas_capabilities",
     "DataFrameCatalog",
     "TransactionalDataFrameSession",
     "register",
@@ -15,7 +15,7 @@ __all__ = [
 def register() -> None:
     """
     Entry point target for group 'tigrbl.engine'. This function will be loaded
-    by Tigrbl's plugin system. It attempts to register the 'dataframe' kind
+    by Tigrbl's plugin system. It attempts to register the 'pandas' kind
     with whatever registry is exposed by the installed Tigrbl version.
     """
     register_fn = None
@@ -38,4 +38,4 @@ def register() -> None:
                     "Could not locate Tigrbl engine registry to register plugin"
                 ) from exc
 
-    register_fn("dataframe", dataframe_engine, dataframe_capabilities)
+    register_fn("pandas", pandas_engine, pandas_capabilities)

@@ -154,13 +154,16 @@ members = [
     "experimental/tigrbl_acme_ca",
     "experimental/tigrbl_engine_bigquery/tigrbl_engine_bigquery",
     "experimental/tigrbl_engine_clickhouse/tigrbl_engine_clickhouse",
-    "experimental/tigrbl_engine_dataframe/tigrbl_engine_dataframe",
+    "experimental/tigrbl_engine_csv",
+    "experimental/tigrbl_engine_pandas/tigrbl_engine_pandas",
     "experimental/tigrbl_engine_duckdb",
     "experimental/tigrbl_engine_pgsqli_wal/tigrbl_engine_pgsqli_wal",
+    "experimental/tigrbl_engine_numpy",
     "experimental/tigrbl_engine_pyspark",
     "experimental/tigrbl_engine_redis/tigrbl_engine_redis",
     "experimental/tigrbl_engine_rediscachethrough",
     "experimental/tigrbl_engine_snowflake/tigrbl_engine_snowflake",
+    "experimental/tigrbl_engine_xlsx",
     "experimental/tigrbl_spiffe",
     # "experimental/ye",
     # "experimental/ymls",
@@ -643,13 +646,16 @@ tigrbl_api_cron = { workspace = true }
 tigrbl_api_hpks = { workspace = true }
 tigrbl_engine_bigquery = { workspace = true }
 tigrbl_engine_clickhouse = { workspace = true }
-tigrbl_engine_dataframe = { workspace = true }
+tigrbl_engine_csv = { workspace = true }
+tigrbl_engine_pandas = { workspace = true }
 tigrbl_engine_duckdb = { workspace = true }
+tigrbl_engine_numpy = { workspace = true }
 tigrbl_engine_pgsqli_wal = { workspace = true }
 tigrbl_engine_pyspark = { workspace = true }
 tigrbl_engine_redis = { workspace = true }
 tigrbl_engine_rediscachethrough = { workspace = true }
 tigrbl_engine_snowflake = { workspace = true }
+tigrbl_engine_xlsx = { workspace = true }
 wcag_pdf_pytest = { workspace = true }
 # ye = { workspace = true }
 # ymls = { workspace = true }

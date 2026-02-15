@@ -112,7 +112,10 @@ except Exception:
         pass
 
 
-from .df_engine import DataFrameCatalog
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .engine import DataFrameCatalog
 
 # ---- Result facades compatible with Tigrbl CRUD ----
 
@@ -144,7 +147,7 @@ class TransactionalDataFrameSession(TigrblSessionBase):
     """Native-transaction session over pandas DataFrames."""
 
     def __init__(
-        self, catalog: DataFrameCatalog, spec: Optional[SessionSpec] = None
+        self, catalog: "DataFrameCatalog", spec: Optional[SessionSpec] = None
     ) -> None:
         super().__init__(spec)
         self._cat = catalog

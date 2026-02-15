@@ -7,7 +7,7 @@ import threading
 import pandas as pd
 
 from tigrbl.session.spec import SessionSpec
-from .df_session import TransactionalDataFrameSession
+from .session import TransactionalDataFrameSession
 
 # ---- Engine object: in-memory catalog of DataFrames + versions ----
 
@@ -32,19 +32,19 @@ class DataFrameCatalog:
         self.table_ver[name] = self.table_ver.get(name, 0) + 1
 
 
-# ---- Builder expected by Tigrbl EngineSpec (kind='dataframe') ----
+# ---- Builder expected by Tigrbl EngineSpec (kind='pandas') ----
 
 
-def dataframe_engine(
+def pandas_engine(
     *,
     mapping: Optional[Mapping[str, object]] = None,
     spec: Any = None,
     dsn: Optional[str] = None,
 ) -> Tuple[DataFrameCatalog, Callable[[], TransactionalDataFrameSession]]:
     """
-    Return (engine, sessionmaker) for the 'dataframe' kind.
+    Return (engine, sessionmaker) for the 'pandas' kind.
 
-    EngineSpec(kind="dataframe") calls this with:
+    EngineSpec(kind="pandas") calls this with:
       - mapping: plugin-specific config (tables, pks)
       - spec: the EngineSpec instance (not used here)
       - dsn: optional DSN (not used here)
@@ -76,8 +76,8 @@ def dataframe_engine(
 # ---- Capabilities (optional but useful for validation) ----
 
 
-def dataframe_capabilities() -> dict[str, object]:
-    """Report capabilities for the 'dataframe' engine."""
+def pandas_capabilities() -> dict[str, object]:
+    """Report capabilities for the 'pandas' engine."""
     return {
         "transactional": True,
         "read_only_enforced": True,
