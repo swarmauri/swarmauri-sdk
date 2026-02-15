@@ -82,13 +82,14 @@ class NumpySession(TigrblSessionBase):
     ) -> np.ndarray:
         loaded = np.load(file, mmap_mode=mmap_mode, allow_pickle=True)
         if isinstance(loaded, np.lib.npyio.NpzFile):
-            key = npz_key or (loaded.files[0] if len(loaded.files) == 1 else None)
-            if key is None:
-                raise ValueError(
-                    "npz_key is required when loading multi-array .npz files"
-                )
-            return np.asarray(loaded[key])
-        return np.asarray(loaded)
+            with loaded as archive:
+                key = npz_key or (archive.files[0] if len(archive.files) == 1 else None)
+                if key is None:
+                    raise ValueError(
+                        "npz_key is required when loading multi-array .npz files"
+                    )
+                return np.asarray(archive[key])
+        return loaded
 
     def memmap(
         self,
