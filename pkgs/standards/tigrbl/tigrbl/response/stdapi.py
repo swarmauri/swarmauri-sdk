@@ -3,6 +3,7 @@
 Prefer importing from ``tigrbl.responses``.
 """
 
+from tigrbl.headers import Headers
 from tigrbl.responses._response import (
     FileResponse,
     HTMLResponse,
@@ -14,6 +15,7 @@ from tigrbl.responses._response import (
 )
 
 __all__ = [
+    "Headers",
     "Response",
     "JSONResponse",
     "HTMLResponse",
