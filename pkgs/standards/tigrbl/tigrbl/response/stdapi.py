@@ -24,6 +24,10 @@ class Headers(MutableMapping[str, str]):
         for key, value in items:
             self._data[key.lower()] = (key.lower(), value)
 
+    @staticmethod
+    def _attribute_key(name: str) -> str:
+        return name.replace("_", "-").lower()
+
     def __getitem__(self, key: str) -> str:
         return self._data[key.lower()][1]
 
@@ -45,6 +49,18 @@ class Headers(MutableMapping[str, str]):
 
     def as_list(self) -> list[tuple[str, str]]:
         return [(k, v) for k, v in self._data.values()]
+
+    def __getattr__(self, name: str) -> str:
+        key = self._attribute_key(name)
+        if key in self._data:
+            return self._data[key][1]
+        raise AttributeError(name)
+
+    def __setattr__(self, name: str, value: str) -> None:
+        if name.startswith("_"):
+            object.__setattr__(self, name, value)
+            return
+        self[self._attribute_key(name)] = value
 
 
 @dataclass

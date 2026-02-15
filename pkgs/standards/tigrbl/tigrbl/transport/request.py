@@ -36,6 +36,22 @@ class Headers(MutableMapping[str, str]):
     def get(self, key: str, default: str | None = None) -> str | None:
         return self._data.get(key.lower(), default)
 
+    @staticmethod
+    def _attribute_key(name: str) -> str:
+        return name.replace("_", "-").lower()
+
+    def __getattr__(self, name: str) -> str:
+        key = self._attribute_key(name)
+        if key in self._data:
+            return self._data[key]
+        raise AttributeError(name)
+
+    def __setattr__(self, name: str, value: str) -> None:
+        if name.startswith("_"):
+            object.__setattr__(self, name, value)
+            return
+        self[self._attribute_key(name)] = value
+
 
 @dataclass(frozen=True)
 class URL:
