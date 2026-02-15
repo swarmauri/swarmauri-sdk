@@ -14,4 +14,4 @@ def test_numpy_engine_smoke() -> None:
     )
     session = session_factory()
     assert engine.array.shape == (2, 2)
-    assert session.to_dataframe().shape == (2, 2)
+    assert session.array().shape == (2, 2)

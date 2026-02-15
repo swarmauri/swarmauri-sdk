@@ -26,7 +26,8 @@ A tigrbl engine plugin that registers `kind="numpy"` where each array/matrix is 
 
 - Registers a `numpy` engine through the `tigrbl.engine` entry-point group.
 - Treats one NumPy array/matrix as one table.
-- Provides a first-class `NumpySession` (subclass of `TigrblSessionBase`) backed by transactional DataFrame semantics.
+- Provides a first-class `NumpySession` (subclass of `TigrblSessionBase`) without pandas dependencies.
+- Supports loading `.npy`/`.npz` via `np.load(...)`, memory-mapped arrays via `np.memmap(...)`, and persistence via `np.save(...)`.
 
 ## Installation
 
@@ -54,6 +55,6 @@ engine, session_factory = provider.build()
 
 session = session_factory()
 print(session.array())
-print(session.to_dataframe())
+print(session.to_records())
 session.close()
 ```

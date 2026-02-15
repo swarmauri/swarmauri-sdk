@@ -25,8 +25,8 @@ A tigrbl engine plugin where each workbook is a database-like object and each sh
 ## Features
 
 - Registers `kind="xlsx"` through the `tigrbl.engine` entry-point group.
-- Loads workbook sheets into table-like pandas DataFrames.
-- Uses a first-class `XslxSession` (`TigrblSessionBase`) with transactional table semantics.
+- Uses `load_workbook`, `wb[...]`, and `wb.save(...)` directly for workbook operations.
+- Treats each sheet as a table with transactional table semantics.
 
 ## Installation
 
@@ -52,5 +52,7 @@ provider = spec.provider()
 engine, session_factory = provider.build()
 
 session = session_factory()
+wb = session.workbook()
+print(wb["Sheet1"])
 print(session.table("Sheet1"))
 ```

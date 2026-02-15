@@ -50,12 +50,8 @@ def app_and_db() -> tuple[TigrblApp, object]:
 
 
 def _snapshot_numpy(db: object) -> list[dict[str, object]]:
-    rows = db.to_dataframe()  # type: ignore[attr-defined]
-    if rows.empty:
-        return []
-    if "id" in rows.columns:
-        rows = rows.sort_values("id")
-    return rows.to_dict(orient="records")
+    rows = db.to_records()  # type: ignore[attr-defined]
+    return sorted(rows, key=lambda row: str(row.get("id")))
 
 
 @pytest.mark.asyncio
