@@ -1,4 +1,4 @@
-from .stdapi import (
+from ..responses._response import (
     Response as StdApiResponse,
     JSONResponse,
     HTMLResponse,

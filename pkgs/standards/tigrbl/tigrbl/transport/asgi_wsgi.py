@@ -7,8 +7,9 @@ import traceback
 from typing import Any, Callable
 from urllib.parse import parse_qs
 
-from tigrbl.response.stdapi import Response
-from tigrbl.transport.request import Request
+from tigrbl.middlewares import apply_middlewares
+from tigrbl.requests._request import Request
+from tigrbl.responses._response import Response
 
 
 async def asgi_app(
@@ -68,25 +69,33 @@ async def asgi_app(
         await send({"type": "http.response.body", "body": b""})
         return
 
-    body = b""
-    more_body = True
-    while more_body:
-        message = await receive()
-        body += message.get("body", b"")
-        more_body = message.get("more_body", False)
+    async def _endpoint(
+        _scope: dict[str, Any], _receive: Callable, _send: Callable
+    ) -> None:
+        del _scope, _receive, _send
 
-    req = request_from_asgi(router, scope, body)
-    resp = await router._dispatch(req)
-    await send(
-        {
-            "type": "http.response.start",
-            "status": resp.status_code,
-            "headers": [
-                (k.encode("latin-1"), v.encode("latin-1")) for k, v in resp.headers
-            ],
-        }
-    )
-    await send({"type": "http.response.body", "body": resp.body})
+        body = b""
+        more_body = True
+        while more_body:
+            message = await receive()
+            body += message.get("body", b"")
+            more_body = message.get("more_body", False)
+
+        req = request_from_asgi(router, scope, body)
+        resp = await router._dispatch(req)
+        await send(
+            {
+                "type": "http.response.start",
+                "status": resp.status_code,
+                "headers": [
+                    (k.encode("latin-1"), v.encode("latin-1")) for k, v in resp.headers
+                ],
+            }
+        )
+        await send({"type": "http.response.body", "body": resp.body})
+
+    app = apply_middlewares(_endpoint, list(getattr(router, "_middlewares", [])))
+    await app(scope, receive, send)
 
 
 def wsgi_app(
@@ -94,9 +103,18 @@ def wsgi_app(
     environ: dict[str, Any],
     start_response: Callable[..., Any],
 ) -> list[bytes]:
-    try:
-        req = request_from_wsgi(router, environ)
+    def _endpoint(
+        _environ: dict[str, Any], _start_response: Callable[..., Any]
+    ) -> list[bytes]:
+        req = request_from_wsgi(router, _environ)
         resp = asyncio.run(router._dispatch(req))
+        _start_response(resp.status_line(), resp.headers)
+        return [resp.body]
+
+    app = apply_middlewares(_endpoint, list(getattr(router, "_middlewares", [])))
+
+    try:
+        return app(environ, start_response)
     except Exception as exc:  # pragma: no cover - defensive
         if router.debug:
             tb = traceback.format_exc()

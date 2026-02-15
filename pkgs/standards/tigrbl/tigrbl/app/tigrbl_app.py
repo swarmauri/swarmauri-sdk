@@ -106,7 +106,8 @@ class TigrblApp(_App):
         self.middlewares = tuple(getattr(self, "MIDDLEWARES", ()))
         self._favicon_path = favicon_path
         for mw in self.middlewares:
-            self.add_middleware(mw.__class__, **getattr(mw, "kwargs", {}))
+            mw_cls = getattr(mw, "cls", mw.__class__)
+            self.add_middleware(mw_cls, **getattr(mw, "kwargs", {}))
         self._install_favicon()
         # capture initial routes so refreshes retain ASGI defaults
         self._base_routes = list(self.router.routes)
