@@ -41,7 +41,7 @@ class HTTPBearer(OpenAPISecurityDependency):
         self.http_scheme = scheme
 
     def __call__(self, request: Any) -> HTTPAuthorizationCredentials | None:
-        header = (getattr(request, "headers", None) or {}).get("authorization")
+        header = request.headers.get("authorization")
         if not header:
             if self.auto_error:
                 raise HTTPException(

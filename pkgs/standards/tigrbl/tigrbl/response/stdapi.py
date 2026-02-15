@@ -4,9 +4,63 @@ from __future__ import annotations
 
 import json as json_module
 import mimetypes
+from collections.abc import MutableMapping
 from dataclasses import dataclass, field
+from http.cookies import SimpleCookie
 from pathlib import Path
 from typing import Any, AsyncIterator, Iterable, Mapping
+
+
+class Headers(MutableMapping[str, str]):
+    """Case-insensitive header mapping for response objects."""
+
+    def __init__(
+        self, values: Iterable[tuple[str, str]] | Mapping[str, str] | None = None
+    ):
+        self._data: dict[str, tuple[str, str]] = {}
+        if values is None:
+            return
+        items = values.items() if hasattr(values, "items") else values
+        for key, value in items:
+            self._data[key.lower()] = (key.lower(), value)
+
+    @staticmethod
+    def _attribute_key(name: str) -> str:
+        return name.replace("_", "-").lower()
+
+    def __getitem__(self, key: str) -> str:
+        return self._data[key.lower()][1]
+
+    def __setitem__(self, key: str, value: str) -> None:
+        self._data[key.lower()] = (key.lower(), value)
+
+    def __delitem__(self, key: str) -> None:
+        del self._data[key.lower()]
+
+    def __iter__(self):
+        for original, _ in self._data.values():
+            yield original
+
+    def __len__(self) -> int:
+        return len(self._data)
+
+    def items(self):
+        return ((k, v) for k, v in self._data.values())
+
+    def as_list(self) -> list[tuple[str, str]]:
+        return [(k, v) for k, v in self._data.values()]
+
+    def __getattr__(self, name: str) -> str:
+        key = self._attribute_key(name)
+        if key in self._data:
+            return self._data[key][1]
+        raise AttributeError(name)
+
+    def __setattr__(self, name: str, value: str) -> None:
+        if name.startswith("_"):
+            object.__setattr__(self, name, value)
+            return
+        self[self._attribute_key(name)] = value
 
 
 @dataclass
@@ -15,6 +69,10 @@ class Response:
     headers: list[tuple[str, str]] = field(default_factory=list)
     body: bytes = b""
     media_type: str | None = None
+    _headers: Headers = field(init=False, repr=False)
+
+    def __post_init__(self) -> None:
+        self._headers = Headers(self.headers)
 
     @staticmethod
     def _status_text(code: int) -> str:
@@ -40,7 +98,37 @@ class Response:
 
     @property
     def raw_headers(self) -> list[tuple[bytes, bytes]]:
-        return [(k.encode("latin-1"), v.encode("latin-1")) for k, v in self.headers]
+        return [
+            (k.encode("latin-1"), v.encode("latin-1")) for k, v in self._headers.items()
+        ]
+
+    @property
+    def headers_map(self) -> Headers:
+        return self._headers
+
+    @property
+    def body_text(self) -> str:
+        return self.body.decode("utf-8")
+
+    def json_body(self) -> Any:
+        if not self.body:
+            return None
+        return json_module.loads(self.body.decode("utf-8"))
+
+    @property
+    def cookies(self) -> dict[str, str]:
+        cookie = SimpleCookie()
+        for name, value in self._headers.items():
+            if name == "set-cookie":
+                cookie.load(value)
+        return {name: morsel.value for name, morsel in cookie.items()}
+
+    def set_cookie(self, key: str, value: str, *, path: str = "/") -> None:
+        cookie = SimpleCookie()
+        cookie[key] = value
+        cookie[key]["path"] = path
+        self._headers["set-cookie"] = cookie.output(header="").strip()
+        self.headers = self._headers.as_list()
 
     @classmethod
     def json(

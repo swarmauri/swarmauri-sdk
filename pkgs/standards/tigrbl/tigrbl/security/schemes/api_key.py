@@ -33,8 +33,8 @@ class APIKey(OpenAPISecurityDependency):
         self.key_in = in_
 
     def __call__(self, request: Any) -> str | None:
-        headers = getattr(request, "headers", None) or {}
-        query = getattr(request, "query_params", None) or {}
+        headers = request.headers
+        query = request.query_params
         value: str | None = None
 
         if self.key_in == "header":
