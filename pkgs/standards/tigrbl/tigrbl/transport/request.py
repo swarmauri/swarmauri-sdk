@@ -89,6 +89,22 @@ class AwaitableValue:
     def __repr__(self) -> str:
         return repr(self.value)
 
+    def __getattr__(self, name: str) -> Any:
+        attr = getattr(self.value, name)
+        if callable(attr):
+
+            def _wrapped(*args: Any, **kwargs: Any) -> Any:
+                return attr(*args, **kwargs)
+
+            return _wrapped
+        return attr
+
+    def __iter__(self):
+        return iter(self.value)
+
+    def __len__(self) -> int:
+        return len(self.value)
+
 
 @dataclass
 class Request:
