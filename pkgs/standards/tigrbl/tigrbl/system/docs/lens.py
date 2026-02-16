@@ -7,6 +7,7 @@ from ...responses import Response
 
 
 TIGRBL_LENS_VERSION = "latest"
+TIGRBL_LENS_CSS_URL = f"https://esm.sh/@tigrbljs/tigrbl-lens@{TIGRBL_LENS_VERSION}/dist/tigrbl-lens.css?css"
 
 
 def _with_leading_slash(path: str) -> str:
@@ -25,7 +26,7 @@ def build_lens_html(router: Any, request: Any, *, spec_path: str) -> str:
     <title>{router.title} — Lens</title>
     <link
       rel="stylesheet"
-      href="https://esm.sh/@tigrbljs/tigrbl-lens@{TIGRBL_LENS_VERSION}/dist/tigrbl-lens.css"
+      href="{TIGRBL_LENS_CSS_URL}"
     />
     <style>
       html, body, #root {{
