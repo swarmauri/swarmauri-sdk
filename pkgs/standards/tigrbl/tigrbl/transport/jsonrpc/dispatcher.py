@@ -75,7 +75,7 @@ except Exception:  # pragma: no cover
             self.detail = detail
 
 
-from ...runtime.status import ERROR_MESSAGES, http_exc_to_rpc
+from ...runtime.status import ERROR_MESSAGES, _RPC_TO_HTTP, http_exc_to_rpc
 from ...config.constants import TIGRBL_AUTH_CONTEXT_ATTR
 from .models import RPCRequest, RPCResponse
 from ...system.docs import mount_openrpc
@@ -94,6 +94,26 @@ logger = logging.getLogger(__name__)
 
 Json = Mapping[str, Any]
 Batch = Sequence[Mapping[str, Any]]
+
+
+def _log_rpc_success(method: Any, rid: Any) -> None:
+    logger.info(
+        "jsonrpc response method=%s id=%s status_code=%s",
+        method,
+        rid,
+        200,
+    )
+
+
+def _log_rpc_error(method: Any, rid: Any, code: int, message: str) -> None:
+    logger.info(
+        "jsonrpc response method=%s id=%s status_code=%s error_code=%s error_message=%s",
+        method,
+        rid,
+        _RPC_TO_HTTP.get(code, 500),
+        code,
+        message,
+    )
 
 
 def _request_obj_to_mapping(obj: RPCRequest | Mapping[str, Any]) -> Mapping[str, Any]:
@@ -117,34 +137,40 @@ async def _dispatch_one(
     or None if it's a "notification" (no id field).
     """
     rid = obj.get("id", 1)
+    method = obj.get("method")
+
+    def _rpc_error(code: int, message: str, data: Any | None = None) -> Dict[str, Any]:
+        _log_rpc_error(method, rid, code, message)
+        return _err(code, message, rid, data)
+
     try:
         # Basic JSON-RPC validation
         if not isinstance(obj, Mapping):
-            return _err(-32600, "Invalid Request", rid)  # not an object
+            return _rpc_error(-32600, "Invalid Request")  # not an object
         # Be lenient: default to 2.0 when "jsonrpc" is omitted
         if obj.get("jsonrpc", "2.0") != "2.0":
-            return _err(-32600, "Invalid Request", rid)
+            return _rpc_error(-32600, "Invalid Request")
         method = obj.get("method")
         if not isinstance(method, str) or "." not in method:
-            return _err(-32601, "Method not found", rid)
+            return _rpc_error(-32601, "Method not found")
 
         model_name, alias = method.split(".", 1)
         model = _model_for(api, model_name)
         if model is None:
-            return _err(-32601, f"Unknown model '{model_name}'", rid)
+            return _rpc_error(-32601, f"Unknown model '{model_name}'")
 
         # Locate RPC callable built by bindings.rpc
         rpc_ns = getattr(model, "rpc", None)
         rpc_call = getattr(rpc_ns, alias, None)
         if rpc_call is None:
-            return _err(-32601, f"Method not found: {model_name}.{alias}", rid)
+            return _rpc_error(-32601, f"Method not found: {model_name}.{alias}")
 
         # Params
         try:
             params = _normalize_params(obj.get("params"))
         except HTTPException as exc:
             code, msg, data = http_exc_to_rpc(exc)
-            return _err(code, msg, rid, data)
+            return _rpc_error(code, msg, data)
 
         # Enforce auth when required
         if getattr(api, "_authn", None):
@@ -169,16 +195,16 @@ async def _dispatch_one(
 
         # Execute
         result = await rpc_call(params, db=db, request=request, ctx=base_ctx)
-
+        _log_rpc_success(method, rid)
         return _ok(result, rid)
 
     except HTTPException as exc:
         code, msg, data = http_exc_to_rpc(exc)
-        return _err(code, msg, rid, data)
+        return _rpc_error(code, msg, data)
     except Exception:
         logger.exception("jsonrpc dispatch failed")
         # Internal error (per JSON-RPC); do not leak details
-        return _err(-32603, ERROR_MESSAGES.get(-32603, "Internal error"), rid)
+        return _rpc_error(-32603, ERROR_MESSAGES.get(-32603, "Internal error"))
 
 
 # --------------------------------------------------------------------------- #
