@@ -28,6 +28,7 @@ class Response:
         return {
             200: "OK",
             201: "Created",
+            205: "Reset Content",
             204: "No Content",
             301: "Moved Permanently",
             302: "Found",
