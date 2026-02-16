@@ -37,7 +37,7 @@ async def test_rest_create_and_read() -> None:
             create = await client.post("/widget", json={"name": "Alpha"})
             assert create.status_code == 201
             item_id = create.json()["id"]
-            read = await client.get(f"/widget/{item_id}")
+            read = await client.get(f"/widget/__/{item_id}")
             assert read.status_code == 200
             assert read.json()["name"] == "Alpha"
     finally:

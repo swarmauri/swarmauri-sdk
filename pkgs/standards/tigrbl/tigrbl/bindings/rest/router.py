@@ -170,7 +170,7 @@ def _build_router(
 
     # Register collection-level bulk routes before member routes so static paths
     # like "/resource/bulk" aren't captured by dynamic member routes such as
-    # "/resource/{item_id}". ASGI matches routes in the order they are
+    # "/resource/__/{item_id}". ASGI matches routes in the order they are
     # added, so sorting here prevents "bulk" from being treated as an
     # identifier.
     specs = sorted(
@@ -210,7 +210,7 @@ def _build_router(
                 "merge",
                 "delete",
             }:
-                path = f"{base}/{{{pk_param}}}{suffix}"
+                path = f"{base}/__/{{{pk_param}}}{suffix}"
                 is_member = True
             else:
                 path = f"{base}{suffix}"

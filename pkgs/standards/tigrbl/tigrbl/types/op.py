@@ -26,7 +26,7 @@ class _Op(NamedTuple):
 
     verb: str  # e.g. "create", "list"
     http: str  # "POST" | "GET" | "PATCH" | …
-    path: str  # URL suffix, e.g. "/{item_id}"
+    path: str  # URL suffix, e.g. "/__/{item_id}"
     In: Type | None  # Pydantic input model (or None)
     Out: Type  # Pydantic output model
     core: Callable[..., Any]  # The actual implementation

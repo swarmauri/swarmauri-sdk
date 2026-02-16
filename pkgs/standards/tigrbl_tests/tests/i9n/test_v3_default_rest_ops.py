@@ -75,7 +75,7 @@ async def test_rest_read(client_and_model):
     client, _ = client_and_model
     created = await client.post("/gadget", json={"name": "A", "age": 1})
     item_id = created.json()["id"]
-    resp = await client.get(f"/gadget/{item_id}")
+    resp = await client.get(f"/gadget/__/{item_id}")
     assert resp.status_code == 200
     assert resp.json()["id"] == item_id
 
@@ -86,7 +86,7 @@ async def test_rest_update(client_and_model):
     client, _ = client_and_model
     created = await client.post("/gadget", json={"name": "A", "age": 1})
     item_id = created.json()["id"]
-    resp = await client.patch(f"/gadget/{item_id}", json={"name": "B", "age": 2})
+    resp = await client.patch(f"/gadget/__/{item_id}", json={"name": "B", "age": 2})
     assert resp.status_code == 200
     data = resp.json()
     assert data["name"] == "B"
@@ -99,7 +99,7 @@ async def test_rest_replace(client_and_model):
     client, _ = client_and_model
     created = await client.post("/gadget", json={"name": "A", "age": 1})
     item_id = created.json()["id"]
-    resp = await client.put(f"/gadget/{item_id}", json={"name": "C", "age": 5})
+    resp = await client.put(f"/gadget/__/{item_id}", json={"name": "C", "age": 5})
     assert resp.status_code == 200
     data = resp.json()
     assert data["name"] == "C"
@@ -112,10 +112,10 @@ async def test_rest_delete(client_and_model):
     client, _ = client_and_model
     created = await client.post("/gadget", json={"name": "A", "age": 1})
     item_id = created.json()["id"]
-    resp = await client.delete(f"/gadget/{item_id}")
+    resp = await client.delete(f"/gadget/__/{item_id}")
     assert resp.status_code == 200
     assert resp.json()["deleted"] == 1
-    follow = await client.get(f"/gadget/{item_id}")
+    follow = await client.get(f"/gadget/__/{item_id}")
     assert follow.status_code == 404
 
 

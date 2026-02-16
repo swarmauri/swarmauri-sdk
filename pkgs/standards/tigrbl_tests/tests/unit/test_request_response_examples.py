@@ -90,7 +90,7 @@ def test_bulk_response_model_examples():
 
 def test_merge_request_model_examples():
     spec = _openapi_for(Widget, [("merge", "merge")])
-    path = f"/{Widget.__name__.lower()}/{{item_id}}"
+    path = f"/{Widget.__name__.lower()}/__/{{item_id}}"
     schema = spec["paths"][path]["patch"]["requestBody"]["content"]["application/json"][
         "schema"
     ]
@@ -100,7 +100,7 @@ def test_merge_request_model_examples():
 
 def test_merge_response_model_examples():
     spec = _openapi_for(Widget, [("merge", "merge")])
-    path = f"/{Widget.__name__.lower()}/{{item_id}}"
+    path = f"/{Widget.__name__.lower()}/__/{{item_id}}"
     schema = spec["paths"][path]["patch"]["responses"]["200"]["content"][
         "application/json"
     ]["schema"]
@@ -110,7 +110,7 @@ def test_merge_response_model_examples():
 
 def test_replace_request_model_examples():
     spec = _openapi_for(Widget, [("replace", "replace")])
-    path = f"/{Widget.__name__.lower()}/{{item_id}}"
+    path = f"/{Widget.__name__.lower()}/__/{{item_id}}"
     schema = spec["paths"][path]["put"]["requestBody"]["content"]["application/json"][
         "schema"
     ]
@@ -120,7 +120,7 @@ def test_replace_request_model_examples():
 
 def test_replace_response_model_examples():
     spec = _openapi_for(Widget, [("replace", "replace")])
-    path = f"/{Widget.__name__.lower()}/{{item_id}}"
+    path = f"/{Widget.__name__.lower()}/__/{{item_id}}"
     schema = spec["paths"][path]["put"]["responses"]["200"]["content"][
         "application/json"
     ]["schema"]

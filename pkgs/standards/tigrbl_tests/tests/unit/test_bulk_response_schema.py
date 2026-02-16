@@ -140,7 +140,7 @@ def test_bulk_merge_request_and_response_schemas():
 def test_update_and_bulk_update_schema_names_do_not_collide():
     spec = _openapi_for([("update", "update"), ("bulk_update", "bulk_update")])
     base = f"/{Widget.__name__.lower()}"
-    update_path = f"{base}/{{item_id}}"
+    update_path = f"{base}/__/{{item_id}}"
     # single update schema
     upd_ref = spec["paths"][update_path]["patch"]["requestBody"]["content"][
         "application/json"

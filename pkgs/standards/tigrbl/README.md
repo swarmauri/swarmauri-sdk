@@ -55,11 +55,11 @@ primary key placeholder.
 | Verb | REST route | RPC method | Arity | Input type | Output type |
 |------|------------|------------|-------|------------|-------------|
 | `create` ➕ | `POST /{resource}` | `Model.create` | collection | dict | dict |
-| `read` 🔍 | `GET /{resource}/{id}` | `Model.read` | member | – | dict |
-| `update` ✏️ | `PATCH /{resource}/{id}` | `Model.update` | member | dict | dict |
-| `replace` ♻️ | `PUT /{resource}/{id}` | `Model.replace` | member | dict | dict |
-| `merge` 🧬 | `PATCH /{resource}/{id}` | `Model.merge` | member | dict | dict |
-| `delete` 🗑️ | `DELETE /{resource}/{id}` | `Model.delete` | member | – | dict |
+| `read` 🔍 | `GET /{resource}/__/{id}` | `Model.read` | member | – | dict |
+| `update` ✏️ | `PATCH /{resource}/__/{id}` | `Model.update` | member | dict | dict |
+| `replace` ♻️ | `PUT /{resource}/__/{id}` | `Model.replace` | member | dict | dict |
+| `merge` 🧬 | `PATCH /{resource}/__/{id}` | `Model.merge` | member | dict | dict |
+| `delete` 🗑️ | `DELETE /{resource}/__/{id}` | `Model.delete` | member | – | dict |
 | `list` 📃 | `GET /{resource}` | `Model.list` | collection | dict | array |
 | `clear` 🧹 | `DELETE /{resource}` | `Model.clear` | collection | dict | dict |
 | `bulk_create` 📦➕ | `POST /{resource}` | `Model.bulk_create` | collection | array | array |

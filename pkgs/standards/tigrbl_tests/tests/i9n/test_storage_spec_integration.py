@@ -67,7 +67,7 @@ async def test_storage_spec_rest_calls(api_client_v3):
     client, _, _, _ = api_client_v3
     resp = await client.post("/widget", json={"name": "C", "secret": "xyz"})
     item_id = resp.json()["id"]
-    read = await client.get(f"/widget/{item_id}")
+    read = await client.get(f"/widget/__/{item_id}")
     assert read.status_code == 200
     assert read.json()["id"] == item_id
 

@@ -314,7 +314,7 @@ async def test_op_ctx_core_crud(sync_db_session):
     ) as client:
         r1 = await client.post("/widget", json={"name": "w"})
         wid = UUID(r1.json()["id"])  # capture id as UUID
-        r2 = await client.get(f"/widget/{wid}")
+        r2 = await client.get(f"/widget/__/{wid}")
     assert r2.status_code == 200
     assert r2.json()["name"] == "w"
 
