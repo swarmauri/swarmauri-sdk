@@ -70,6 +70,7 @@ def build_openrpc_spec(api: Any) -> JsonObject:
     spec: JsonObject = {
         "openrpc": "1.2.6",
         "info": {"title": f"{info_title} JSON-RPC API", "version": info_version},
+        "servers": [{"name": info_title, "url": "/jsonrpc"}],
         "methods": [],
         "components": {"schemas": {}},
     }

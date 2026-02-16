@@ -26,6 +26,7 @@ def test_openrpc_endpoint_exposed():
         assert response.status_code == 200
         payload = response.json()
         assert payload["openrpc"] == "1.2.6"
+        assert payload["servers"] == [{"name": app.title, "url": "/jsonrpc"}]
         assert "methods" in payload
 
 
