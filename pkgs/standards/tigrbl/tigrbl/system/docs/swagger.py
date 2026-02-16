@@ -21,6 +21,11 @@ def build_swagger_html(router: Any, request: Any) -> str:
     <title>{router.title} — API Docs</title>
     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
     <link rel=\"stylesheet\" href=\"https://unpkg.com/swagger-ui-dist@{version}/swagger-ui.css\" />
+    <style>
+      .swagger-ui .topbar {{
+        display: none;
+      }}
+    </style>
   </head>
   <body>
     <div id=\"swagger-ui\"></div>

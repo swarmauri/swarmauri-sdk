@@ -21,7 +21,7 @@ def test_openrpc_endpoint_exposed():
     app, _ = _build_app()
     transport = ASGITransport(app=app)
     with Client(transport=transport, base_url="http://test") as client:
-        response = client.get("/rpc/openrpc.json")
+        response = client.get("/openrpc.json")
 
         assert response.status_code == 200
         payload = response.json()
@@ -33,7 +33,7 @@ def test_openrpc_includes_method_schema():
     app, model = _build_app()
     transport = ASGITransport(app=app)
     with Client(transport=transport, base_url="http://test") as client:
-        payload = client.get("/rpc/openrpc.json").json()
+        payload = client.get("/openrpc.json").json()
         methods = {method["name"]: method for method in payload["methods"]}
 
         create_method = methods[f"{model.__name__}.create"]

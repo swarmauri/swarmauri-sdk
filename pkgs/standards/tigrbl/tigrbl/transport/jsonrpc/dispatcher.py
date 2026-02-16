@@ -78,7 +78,6 @@ except Exception:  # pragma: no cover
 from ...runtime.status import ERROR_MESSAGES, _RPC_TO_HTTP, http_exc_to_rpc
 from ...config.constants import TIGRBL_AUTH_CONTEXT_ATTR
 from .models import RPCRequest, RPCResponse
-from ...system.docs import mount_openrpc
 from .helpers import (
     _authorize,
     _err,
@@ -394,8 +393,6 @@ def build_jsonrpc_router(
         response_model=RPCResponse | list[RPCResponse],
         # extra router deps already applied via Router(dependencies=...)
     )
-
-    mount_openrpc(api, router, tags=list(tags) if tags else None)
 
     # Compatibility: serve same endpoint without trailing slash
     router.add_api_route(

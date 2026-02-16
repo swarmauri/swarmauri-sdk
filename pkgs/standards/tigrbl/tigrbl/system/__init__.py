@@ -15,6 +15,24 @@ def mount_diagnostics(*args: Any, **kwargs: Any) -> Any:
     return _mount_diagnostics(*args, **kwargs)
 
 
+def build_openapi(*args: Any, **kwargs: Any) -> Any:
+    from .docs import build_openapi as _build_openapi
+
+    return _build_openapi(*args, **kwargs)
+
+
+def build_swagger(*args: Any, **kwargs: Any) -> Any:
+    from .docs import build_swagger as _build_swagger
+
+    return _build_swagger(*args, **kwargs)
+
+
+def build_lens(*args: Any, **kwargs: Any) -> Any:
+    from .docs import build_lens as _build_lens
+
+    return _build_lens(*args, **kwargs)
+
+
 def mount_openapi(*args: Any, **kwargs: Any) -> Any:
     from .docs import mount_openapi as _mount_openapi
 
@@ -64,8 +82,11 @@ def stop_uvicorn_server(*args: Any, **kwargs: Any) -> Any:
 
 
 __all__ = [
-    "FAVICON_PATH",
+    "build_lens",
+    "build_openapi",
     "build_openrpc_spec",
+    "build_swagger",
+    "FAVICON_PATH",
     "favicon_endpoint",
     "mount_diagnostics",
     "mount_favicon",
