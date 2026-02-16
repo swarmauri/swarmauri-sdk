@@ -2,7 +2,7 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 
-from ..requests._request import Request
+from ..requests import Request
 
 
 class AuthNProvider(ABC):

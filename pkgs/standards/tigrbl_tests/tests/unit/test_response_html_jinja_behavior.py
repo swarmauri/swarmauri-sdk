@@ -9,7 +9,7 @@ from tigrbl import TigrblApp
 from tigrbl.bindings import rpc_call
 from tigrbl.system.diagnostics import _build_kernelz_endpoint
 from tigrbl.runtime.kernel import _default_kernel as K
-from tigrbl.response import render_template
+from tigrbl.responses import render_template
 
 from .response_utils import build_model_for_response, build_model_for_jinja_response
 

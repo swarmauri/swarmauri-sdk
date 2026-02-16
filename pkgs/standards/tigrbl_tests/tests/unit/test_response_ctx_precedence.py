@@ -1,7 +1,7 @@
 from __future__ import annotations
 from types import SimpleNamespace
 
-from tigrbl.response import (
+from tigrbl.responses import (
     ResponseSpec,
     get_attached_response_spec,
     infer_hints,

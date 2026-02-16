@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from tigrbl.security import APIKey, HTTPBearer
-from tigrbl.transport.request import Request
+from tigrbl.requests import Request
 
 
 def test_http_bearer_reads_authorization_from_request_headers_attribute() -> None:

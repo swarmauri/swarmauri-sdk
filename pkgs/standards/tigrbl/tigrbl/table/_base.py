@@ -379,7 +379,7 @@ class Base(DeclarativeBase):
 
         # 2.6) Collect response specs declared via @response_ctx
         try:
-            from tigrbl.response import (
+            from tigrbl.responses import (
                 get_attached_response_spec,
                 get_attached_response_alias,
             )

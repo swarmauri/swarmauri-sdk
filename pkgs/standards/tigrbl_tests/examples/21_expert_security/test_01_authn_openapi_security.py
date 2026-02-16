@@ -9,7 +9,7 @@ import inspect
 
 import httpx
 import pytest
-from tigrbl.response import JSONResponse
+from tigrbl.responses import JSONResponse
 from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn

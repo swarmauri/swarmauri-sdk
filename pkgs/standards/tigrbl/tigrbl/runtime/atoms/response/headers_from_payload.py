@@ -13,7 +13,7 @@ def run(_, ctx) -> None:
     - Honors op-specific exposure via ``io.out_verbs``.
     Complexity: O(#fields in opview).
     """
-    from tigrbl.response import ResponseHints
+    from tigrbl.responses import ResponseHints
 
     resp = getattr(ctx, "response", None)
     if resp is None:

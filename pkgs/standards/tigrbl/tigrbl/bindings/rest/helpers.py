@@ -4,7 +4,7 @@ import logging
 from types import SimpleNamespace
 from typing import Any, Awaitable, Callable, Dict, Mapping, Sequence, Tuple
 
-from ...requests._request import Request
+from ...requests import Request
 from ...op.types import PHASES
 
 try:

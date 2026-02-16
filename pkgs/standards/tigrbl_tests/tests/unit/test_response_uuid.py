@@ -8,7 +8,7 @@ import types
 from uuid import uuid4
 
 
-from tigrbl.response.shortcuts import as_json
+from tigrbl.responses.shortcuts import as_json
 
 
 def test_as_json_serializes_uuid() -> None:
@@ -27,7 +27,7 @@ def test_as_json_serializes_bytes() -> None:
 
 
 def test_as_json_fallbacks_when_orjson_unsupported(monkeypatch) -> None:
-    import tigrbl.response.shortcuts as shortcuts
+    import tigrbl.responses.shortcuts as shortcuts
 
     original_orjson = sys.modules.get("orjson")
     fake_orjson = types.SimpleNamespace(
