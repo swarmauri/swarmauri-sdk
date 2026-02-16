@@ -13,6 +13,15 @@ from .spec import WSGIStartResponse
 
 
 class CORSMiddleware(BaseHTTPMiddleware):
+    _CORS_HEADER_NAMES = {
+        "access-control-allow-origin",
+        "access-control-allow-methods",
+        "access-control-allow-headers",
+        "access-control-max-age",
+        "access-control-allow-credentials",
+        "vary",
+    }
+
     def __init__(
         self,
         app,
@@ -80,7 +89,7 @@ class CORSMiddleware(BaseHTTPMiddleware):
             )
 
         response = await call_next(request)
-        response_headers = Headers(response.headers)
+        response_headers = response.headers_map
         for key, value in self._cors_headers(request_headers):
             response_headers[key] = value
         response.headers = response_headers.as_list()
@@ -114,10 +123,14 @@ class CORSMiddleware(BaseHTTPMiddleware):
         def cors_start_response(
             status: str, headers: list[tuple[str, str]], *args: Any
         ):
-            merged = Headers(headers)
+            merged = [
+                (key, value)
+                for key, value in headers
+                if key.lower() not in self._CORS_HEADER_NAMES
+            ]
             for key, value in self._cors_headers(request_headers):
-                merged[key] = value
-            return start_response(status, merged.as_list(), *args)
+                merged.append((key, value))
+            return start_response(status, merged, *args)
 
         return self.app(environ, cors_start_response)
 

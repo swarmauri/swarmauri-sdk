@@ -162,3 +162,45 @@ async def test_cors_middleware_handles_preflight_and_simple_requests() -> None:
     }
     assert simple_start["status"] == 200
     assert simple_headers["access-control-allow-origin"] == "https://client.test"
+
+
+def test_cors_middleware_wsgi_preserves_duplicate_headers() -> None:
+    captured: dict[str, object] = {}
+
+    def wsgi_app(environ, start_response):
+        del environ
+        start_response(
+            "200 OK",
+            [("set-cookie", "session=abc"), ("set-cookie", "theme=dark")],
+        )
+        return [b"ok"]
+
+    app = CORSMiddleware(wsgi_app, allow_origin="https://client.test")
+
+    def start_response(status: str, headers: list[tuple[str, str]], *args):
+        del args
+        captured["status"] = status
+        captured["headers"] = headers
+
+    body = app.wsgi(
+        {
+            "REQUEST_METHOD": "GET",
+            "HTTP_ORIGIN": "https://client.test",
+        },
+        start_response,
+    )
+
+    assert body == [b"ok"]
+    assert captured["status"] == "200 OK"
+    headers = captured["headers"]
+    assert isinstance(headers, list)
+    assert [value for key, value in headers if key.lower() == "set-cookie"] == [
+        "session=abc",
+        "theme=dark",
+    ]
+    assert (
+        dict((key.lower(), value) for key, value in headers)[
+            "access-control-allow-origin"
+        ]
+        == "https://client.test"
+    )
