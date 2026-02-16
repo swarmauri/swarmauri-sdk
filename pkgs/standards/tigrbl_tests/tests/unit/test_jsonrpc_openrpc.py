@@ -26,8 +26,19 @@ def test_openrpc_endpoint_exposed():
         assert response.status_code == 200
         payload = response.json()
         assert payload["openrpc"] == "1.2.6"
-        assert payload["servers"] == [{"name": app.title, "url": "http://test/rpc"}]
+        assert payload["servers"] == [{"name": app.title, "url": "/rpc"}]
         assert "methods" in payload
+
+
+def test_openrpc_server_url_respects_jsonrpc_prefix():
+    app, _ = _build_app()
+    app.jsonrpc_prefix = "/rpc/custom"
+    transport = ASGITransport(app=app)
+
+    with Client(transport=transport, base_url="http://test") as client:
+        payload = client.get("/openrpc.json").json()
+
+    assert payload["servers"] == [{"name": app.title, "url": "/rpc/custom"}]
 
 
 def test_openrpc_includes_method_schema():
