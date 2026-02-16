@@ -11,10 +11,10 @@ from urllib.parse import parse_qs
 from tigrbl import TigrblApp
 from tigrbl.api._api import Router
 from tigrbl.engine.shortcuts import engine as build_engine
-from tigrbl.response import StdApiResponse
+from tigrbl.responses import Response
 from tigrbl.runtime.status import HTTPException
 from tigrbl.security.dependencies import Depends
-from tigrbl.transport.request import Request
+from tigrbl.requests import Request
 
 from .ops import pks as pks_ops
 from .tables import OpenPGPKey
@@ -35,8 +35,8 @@ def _response_text(
     status_code: int = 200,
     headers: dict[str, str] | None = None,
     media_type: str | None = None,
-) -> StdApiResponse:
-    resp = StdApiResponse.text(content, status_code=status_code, headers=headers)
+) -> Response:
+    resp = Response.text(content, status_code=status_code, headers=headers)
     if media_type:
         resp.media_type = media_type
         resp.headers = [
@@ -50,8 +50,8 @@ def _response_json(
     *,
     status_code: int = 200,
     headers: dict[str, str] | None = None,
-) -> StdApiResponse:
-    return StdApiResponse.json(payload, status_code=status_code, headers=headers)
+) -> Response:
+    return Response.json(payload, status_code=status_code, headers=headers)
 
 
 def _response_binary(
@@ -60,10 +60,10 @@ def _response_binary(
     media_type: str,
     status_code: int = 200,
     headers: dict[str, str] | None = None,
-) -> StdApiResponse:
+) -> Response:
     merged_headers = {k.lower(): v for k, v in (headers or {}).items()}
     merged_headers["content-type"] = media_type
-    return StdApiResponse(
+    return Response(
         status_code=status_code,
         headers=list(merged_headers.items()),
         body=payload,
@@ -98,7 +98,7 @@ def build_app(
     @router.post("/add")
     async def legacy_add(
         request: Request, *, db: Any = Depends(get_session)
-    ) -> StdApiResponse:
+    ) -> Response:
         body = request.body.decode("utf-8")
         form_data = parse_qs(body, keep_blank_values=True)
         keytext = form_data.get("keytext", [""])[0]
@@ -160,8 +160,8 @@ def build_app(
         *,
         fingerprint: str,
         db: Any = Depends(get_session),
-    ) -> StdApiResponse:
-        payload = request.json() or {}
+    ) -> Response:
+        payload = await request.json() or {}
         try:
             record = await pks_ops.merge_json_payload(
                 db=db, fingerprint=fingerprint, payload=payload
@@ -173,9 +173,7 @@ def build_app(
         return _response_json(pks_ops.to_v2_document(record), headers=HPKS_CORS_HEADERS)
 
     @router.post("/v2/add")
-    async def v2_add(
-        request: Request, *, db: Any = Depends(get_session)
-    ) -> StdApiResponse:
+    async def v2_add(request: Request, *, db: Any = Depends(get_session)) -> Response:
         content_type = request.headers.get("content-type", "")
         if "application/pgp-keys" not in content_type:
             raise HTTPException(
@@ -197,7 +195,7 @@ def build_app(
         return _response_json(summary, status_code=202, headers=HPKS_CORS_HEADERS)
 
     @router.get("/v2/index/{query}")
-    async def v2_index(query: str, *, db: Any = Depends(get_session)) -> StdApiResponse:
+    async def v2_index(query: str, *, db: Any = Depends(get_session)) -> Response:
         results = await pks_ops.search_index(db=db, search=query)
         if not results:
             raise _not_found()
@@ -205,9 +203,7 @@ def build_app(
         return _response_json(payload, headers=HPKS_CORS_HEADERS)
 
     @router.get("/v2/vfpget/{fingerprint}")
-    async def vfpget(
-        fingerprint: str, *, db: Any = Depends(get_session)
-    ) -> StdApiResponse:
+    async def vfpget(fingerprint: str, *, db: Any = Depends(get_session)) -> Response:
         record = await pks_ops.lookup_by_fingerprint(db=db, fingerprint=fingerprint)
         if record is None:
             raise _not_found()
@@ -218,7 +214,7 @@ def build_app(
         )
 
     @router.get("/v2/kidget/{keyid}")
-    async def kidget(keyid: str, *, db: Any = Depends(get_session)) -> StdApiResponse:
+    async def kidget(keyid: str, *, db: Any = Depends(get_session)) -> Response:
         record = await pks_ops.lookup_by_keyid(db=db, key_id=keyid)
         if record is None or (record.version and record.version > 4):
             raise _not_found()
@@ -229,9 +225,7 @@ def build_app(
         )
 
     @router.get("/v2/authget/{identifier}")
-    async def authget(
-        identifier: str, *, db: Any = Depends(get_session)
-    ) -> StdApiResponse:
+    async def authget(identifier: str, *, db: Any = Depends(get_session)) -> Response:
         matches = await pks_ops.search_index(db=db, search=identifier)
         lowered = identifier.lower()
         record = next(
@@ -253,7 +247,7 @@ def build_app(
     @router.get("/v2/prefixlog/{since}")
     async def prefixlog_route(
         since: str, *, db: Any = Depends(get_session)
-    ) -> StdApiResponse:
+    ) -> Response:
         try:
             parsed = dt.datetime.fromisoformat(since)
         except ValueError:
@@ -272,8 +266,8 @@ def build_app(
         return _response_text(body, headers=HPKS_CORS_HEADERS)
 
     @router.post("/v2/tokensend")
-    async def tokensend(_: Request) -> StdApiResponse:
-        return StdApiResponse(status_code=501, headers=list(HPKS_CORS_HEADERS.items()))
+    async def tokensend(_: Request) -> Response:
+        return Response(status_code=501, headers=list(HPKS_CORS_HEADERS.items()))
 
     app.include_router(router)
     return app

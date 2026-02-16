@@ -270,11 +270,11 @@ class TigrblApp(_App):
             _, router = result
             if router is not None:
                 mount_prefix = prefix if prefix is not None else _default_prefix(model)
-                self.include_router(router, prefix=mount_prefix)
                 self.include_router(
                     router,
                     prefix=f"{default_api.rest_prefix}{mount_prefix}",
                 )
+                self.include_router(router, prefix=mount_prefix)
         self._sync_default_api_namespaces()
         return result
 
@@ -306,11 +306,11 @@ class TigrblApp(_App):
                     if base_prefix is not None
                     else _default_prefix(model)
                 )
-                self.include_router(router, prefix=mount_prefix)
                 self.include_router(
                     router,
                     prefix=f"{default_api.rest_prefix}{mount_prefix}",
                 )
+                self.include_router(router, prefix=mount_prefix)
         self._sync_default_api_namespaces()
         return result
 
