@@ -24,7 +24,11 @@ def _request_origin(request: Any) -> str | None:
     if headers is None or not hasattr(headers, "get"):
         return None
 
-    host = headers.get("x-forwarded-host") or headers.get("host")
+    forwarded_host = headers.get("x-forwarded-host")
+    host = forwarded_host or headers.get("host")
+    if not host:
+        return None
+    host = str(host).split(",", maxsplit=1)[0].strip()
     if not host:
         return None
 
@@ -33,14 +37,26 @@ def _request_origin(request: Any) -> str | None:
         or headers.get("x-forwarded-protocol")
         or headers.get("x-forwarded-scheme")
     )
+    forwarded = headers.get("forwarded", "")
+    if not (forwarded_host or proto or forwarded):
+        return None
+
+    scheme = None
     if proto:
         scheme = str(proto).split(",", maxsplit=1)[0].strip()
-    else:
-        scheme = (
-            "https"
-            if headers.get("forwarded", "").lower().find("proto=https") >= 0
-            else "http"
-        )
+
+    if not scheme:
+        request_url = getattr(request, "url", None)
+        if request_url is not None:
+            scheme = getattr(request_url, "scheme", None)
+
+    if not scheme:
+        scope = getattr(request, "scope", None)
+        if isinstance(scope, Mapping):
+            scheme = scope.get("scheme")
+
+    if not scheme:
+        scheme = "https" if str(forwarded).lower().find("proto=https") >= 0 else "http"
     return f"{scheme}://{host}"
 
 
