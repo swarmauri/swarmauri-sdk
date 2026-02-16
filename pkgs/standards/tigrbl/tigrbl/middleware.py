@@ -1,15 +1,22 @@
-from .spec import (
+"""Compatibility exports for middleware primitives."""
+
+from __future__ import annotations
+
+from .middlewares import (
     ASGIApp,
     ASGIReceive,
     ASGISend,
+    BaseHTTPMiddleware,
+    CORSMiddleware,
+    Middleware,
+    MiddlewareConfig,
     MiddlewareSpec,
     WSGIApp,
     WSGIStartResponse,
+    apply_middlewares,
+    middleware,
+    middlewares,
 )
-from .middleware import BaseHTTPMiddleware, Middleware
-from .decorators import MiddlewareConfig, middleware, middlewares
-from .compose import apply_middlewares
-from .cors import CORSMiddleware
 
 __all__ = [
     "ASGIApp",
