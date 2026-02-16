@@ -406,7 +406,7 @@ def build_jsonrpc_router(
                 err = _err(-32600, "Invalid Request", None)
                 return JSONResponse(content=err)
 
-    # Attach routes for both "/rpc" and "/rpc/"
+    # Attach a single JSON-RPC POST route. Mount prefix controls final path.
     router.add_api_route(
         path="",
         endpoint=_endpoint,
@@ -417,16 +417,6 @@ def build_jsonrpc_router(
         description="JSON-RPC 2.0 endpoint.",
         response_model=RPCResponse | list[RPCResponse],
         # extra router deps already applied via Router(dependencies=...)
-    )
-
-    # Compatibility: serve same endpoint without trailing slash
-    router.add_api_route(
-        path="/",
-        endpoint=_endpoint,
-        methods=["POST"],
-        name="jsonrpc_alt",
-        include_in_schema=False,
-        response_model=RPCResponse | list[RPCResponse],
     )
     return router
 
