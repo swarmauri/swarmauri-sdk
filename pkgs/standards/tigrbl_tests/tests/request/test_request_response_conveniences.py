@@ -65,3 +65,38 @@ def test_response_supports_text_json_headers_and_cookies() -> None:
 
     resp.set_cookie("session", "abc123")
     assert resp.cookies.get("session") == "abc123"
+
+
+def test_response_set_cookie_accepts_extended_cookie_kwargs() -> None:
+    resp = Response()
+
+    resp.set_cookie(
+        "session",
+        "abc123",
+        path="/auth",
+        domain="example.com",
+        secure=True,
+        httponly=True,
+        samesite="lax",
+        max_age=120,
+        expires="Wed, 09 Jun 2021 10:18:14 GMT",
+    )
+
+    set_cookie_header = resp.headers_map.get("set-cookie", "")
+    assert "session=abc123" in set_cookie_header
+    assert "Path=/auth" in set_cookie_header
+    assert "Domain=example.com" in set_cookie_header
+    assert "Secure" in set_cookie_header
+    assert "HttpOnly" in set_cookie_header
+    assert "SameSite=lax" in set_cookie_header
+    assert "Max-Age=120" in set_cookie_header
+    assert "expires=Wed, 09 Jun 2021 10:18:14 GMT" in set_cookie_header
+
+
+def test_response_set_cookie_omits_optional_attributes_by_default() -> None:
+    resp = Response()
+
+    resp.set_cookie("session", "abc123")
+
+    set_cookie_header = resp.headers_map.get("set-cookie", "")
+    assert set_cookie_header == "session=abc123; Path=/"

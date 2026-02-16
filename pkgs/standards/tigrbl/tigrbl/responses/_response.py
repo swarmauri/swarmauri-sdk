@@ -94,10 +94,35 @@ class Response:
                 cookie.load(value)
         return HeaderCookies({name: morsel.value for name, morsel in cookie.items()})
 
-    def set_cookie(self, key: str, value: str, *, path: str = "/") -> None:
+    def set_cookie(
+        self,
+        key: str,
+        value: str,
+        *,
+        path: str = "/",
+        domain: str | None = None,
+        secure: bool = False,
+        httponly: bool = False,
+        samesite: str | None = None,
+        max_age: int | None = None,
+        expires: str | None = None,
+    ) -> None:
         cookie = SimpleCookie()
         cookie[key] = value
-        cookie[key]["path"] = path
+        morsel = cookie[key]
+        morsel["path"] = path
+        if domain is not None:
+            morsel["domain"] = domain
+        if secure:
+            morsel["secure"] = True
+        if httponly:
+            morsel["httponly"] = True
+        if samesite is not None:
+            morsel["samesite"] = samesite
+        if max_age is not None:
+            morsel["max-age"] = str(max_age)
+        if expires is not None:
+            morsel["expires"] = expires
         self._headers["set-cookie"] = cookie.output(header="").strip()
         self.headers = self._headers.as_list()
 
