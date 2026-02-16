@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from http.cookies import SimpleCookie
 from types import SimpleNamespace
 from typing import Any
+from urllib.parse import parse_qs
 
 from tigrbl.headers import HeaderCookies, Headers
 
@@ -74,7 +75,7 @@ def _b64url_decode(data: str) -> bytes:
     return base64.urlsafe_b64decode((data + pad).encode("ascii"))
 
 
-@dataclass
+@dataclass(init=False)
 class Request:
     method: str
     path: str
@@ -88,6 +89,79 @@ class Request:
     scope: dict[str, Any] = field(default_factory=dict)
     _json_cache: Any = field(default=None, init=False, repr=False)
     _json_loaded: bool = field(default=False, init=False, repr=False)
+
+    def __init__(
+        self,
+        method: str | dict[str, Any],
+        path: str | None = None,
+        headers: dict[str, str] | None = None,
+        query: dict[str, list[str]] | None = None,
+        path_params: dict[str, str] | None = None,
+        body: bytes = b"",
+        script_name: str = "",
+        app: Any | None = None,
+        state: SimpleNamespace | None = None,
+        scope: dict[str, Any] | None = None,
+        receive: Any | None = None,
+    ) -> None:
+        """Create a request from canonical fields or an ASGI scope.
+
+        The compatibility path accepts ``Request(scope, receive=...)`` to ease
+        migrations from frameworks whose request objects support that calling
+        convention. The ``receive`` callable is accepted for API compatibility
+        but not consumed directly by this transport model.
+        """
+
+        del receive
+
+        self._json_cache = None
+        self._json_loaded = False
+
+        if isinstance(method, dict):
+            if scope is not None:
+                raise TypeError("scope cannot be provided when first argument is scope")
+            self._init_from_scope(method, app=app, state=state)
+            return
+
+        if path is None:
+            raise TypeError("path is required when constructing Request from fields")
+
+        self.method = method
+        self.path = path
+        self.headers = headers or {}
+        self.query = query or {}
+        self.path_params = path_params or {}
+        self.body = body
+        self.script_name = script_name
+        self.app = app
+        self.state = state or SimpleNamespace()
+        self.scope = scope or {}
+        self.__post_init__()
+
+    def _init_from_scope(
+        self,
+        scope: dict[str, Any],
+        *,
+        app: Any | None,
+        state: SimpleNamespace | None,
+    ) -> None:
+        self.method = (scope.get("method") or "GET").upper()
+        self.path = scope.get("path") or "/"
+        self.headers = {
+            key.decode("latin-1").lower(): value.decode("latin-1")
+            for key, value in scope.get("headers", [])
+        }
+        self.query = parse_qs(
+            scope.get("query_string", b"").decode("latin-1"),
+            keep_blank_values=True,
+        )
+        self.path_params = scope.get("path_params") or {}
+        self.body = b""
+        self.script_name = scope.get("root_path") or ""
+        self.app = app
+        self.state = state or SimpleNamespace()
+        self.scope = scope
+        self.__post_init__()
 
     def __post_init__(self) -> None:
         self.headers = Headers(self.headers)
