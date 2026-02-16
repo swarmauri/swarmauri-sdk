@@ -69,9 +69,6 @@ class CORSMiddleware(BaseHTTPMiddleware):
         if not origin:
             return self.allow_origin
 
-        if self.allow_origin == "*":
-            return self.allow_origin
-
         if self._allow_origin_pattern and self._allow_origin_pattern.match(origin):
             return origin
 
@@ -79,6 +76,9 @@ class CORSMiddleware(BaseHTTPMiddleware):
             if origin in self.allow_origins:
                 return origin
             return "null"
+
+        if self.allow_origin == "*":
+            return self.allow_origin
 
         allowed = [candidate.strip() for candidate in self.allow_origin.split(",")]
         if origin in allowed:
