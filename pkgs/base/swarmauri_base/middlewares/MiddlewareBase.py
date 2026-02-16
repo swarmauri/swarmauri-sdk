@@ -79,6 +79,29 @@ class MiddlewareBase(IMiddleware, ComponentBase):
     def _uses_custom_dispatch(self) -> bool:
         return type(self).dispatch is not MiddlewareBase.dispatch
 
+    @staticmethod
+    def _normalize_http_response(
+        scope: Scope,
+        status_code: int,
+        headers: list[tuple[bytes, bytes]],
+        body: bytes,
+    ) -> tuple[list[tuple[bytes, bytes]], bytes]:
+        """Enforce HTTP transport invariants for bodies and entity headers."""
+
+        no_body_status = set(range(100, 200)) | {204, 205, 304}
+        method = str(scope.get("method", "GET")).upper()
+
+        if method == "HEAD" or status_code in no_body_status:
+            drop = {b"content-length", b"content-type", b"transfer-encoding"}
+            filtered_headers = [(k, v) for (k, v) in headers if k.lower() not in drop]
+            return filtered_headers, b""
+
+        filtered_headers = [
+            (k, v) for (k, v) in headers if k.lower() != b"content-length"
+        ]
+        filtered_headers.append((b"content-length", str(len(body)).encode("latin-1")))
+        return filtered_headers, body
+
     async def _dispatch_with_request(
         self, scope: Scope, receive: ReceiveCallable, send: SendCallable
     ) -> None:
@@ -92,6 +115,7 @@ class MiddlewareBase(IMiddleware, ComponentBase):
         request = Request(scope, receive=receive)
 
         async def call_next(request: Request) -> Response:
+            forward_scope = request.scope
             status_code: int = 200
             response_headers: list[tuple[bytes, bytes]] = []
             body_chunks: list[bytes] = []
@@ -109,7 +133,7 @@ class MiddlewareBase(IMiddleware, ComponentBase):
                 else:
                     await send(message)
 
-            await self.app(scope, request.receive, send_wrapper)
+            await self.app(forward_scope, request.receive, send_wrapper)
 
             response = Response(content=b"".join(body_chunks), status_code=status_code)
             for key, value in response_headers:
@@ -117,7 +141,33 @@ class MiddlewareBase(IMiddleware, ComponentBase):
             return response
 
         response = await self.dispatch(request, call_next)
-        await response(scope, receive, send)
+        response_body = getattr(response, "body", b"")
+        if isinstance(response_body, str):
+            response_body = response_body.encode("utf-8")
+        elif not isinstance(response_body, bytes):
+            response_body = bytes(response_body)
+
+        normalized_headers, normalized_body = self._normalize_http_response(
+            request.scope,
+            response.status_code,
+            list(getattr(response, "raw_headers", [])),
+            response_body,
+        )
+
+        await send(
+            {
+                "type": "http.response.start",
+                "status": response.status_code,
+                "headers": normalized_headers,
+            }
+        )
+        await send(
+            {
+                "type": "http.response.body",
+                "body": normalized_body,
+                "more_body": False,
+            }
+        )
 
     async def __call__(
         self, scope: Scope, receive: ReceiveCallable, send: SendCallable
