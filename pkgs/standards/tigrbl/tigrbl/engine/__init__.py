@@ -10,6 +10,7 @@ from .builders import (
     HybridSession,
 )
 from ._engine import Engine
+from .engine_spec import EngineSpec
 from .shortcuts import engine
 
 __all__ = [
@@ -22,6 +23,7 @@ __all__ = [
     "async_postgres_engine",
     "HybridSession",
     "Engine",
+    "EngineSpec",
     "engine",
 ]
 

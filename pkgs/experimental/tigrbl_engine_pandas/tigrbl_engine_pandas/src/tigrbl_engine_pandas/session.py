@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from uuid import uuid4
 from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Tuple
 
 import pandas as pd
@@ -225,7 +226,8 @@ class TransactionalDataFrameSession(TigrblSessionBase):
         pk = _single_pk_name(model)
         ident = getattr(obj, pk)
         if ident is None:
-            raise ValueError(f"primary key {pk!r} must be set")
+            ident = uuid4()
+            setattr(obj, pk, ident)
         row = {c: getattr(obj, c, None) for c in _model_columns(model)}
         self._puts[(model, ident)] = row
         self._dels.discard((model, ident))
@@ -363,24 +365,57 @@ class TransactionalDataFrameSession(TigrblSessionBase):
         return model, where
 
     def _extract_model(self, stmt: Any) -> type:
+        descs = getattr(stmt, "column_descriptions", None) or []
+        for desc in descs:
+            entity = desc.get("entity") if isinstance(desc, dict) else None
+            if isinstance(entity, type):
+                return entity
+
+        def _all_subclasses(base: type) -> list[type]:
+            out: list[type] = []
+            stack = list(base.__subclasses__())
+            while stack:
+                cls = stack.pop()
+                out.append(cls)
+                stack.extend(cls.__subclasses__())
+            return out
+
+        def _find_by_table(name: str) -> type | None:
+            for cls in _all_subclasses(object):
+                if getattr(cls, "__tablename__", None) == name:
+                    return cls
+            return None
+
         for a in ("_from_objects", "_froms", "froms"):
             v = getattr(stmt, a, None)
-            if v:
-                t = v[0] if isinstance(v, (list, tuple)) else v
-                name = getattr(t, "name", None)
-                if isinstance(name, str):
-                    for cls in object.__subclasses__(object):
-                        if getattr(cls, "__tablename__", None) == name:
-                            return cls
-        rc = getattr(stmt, "_raw_columns", None) or getattr(stmt, "columns", None)
-        if rc:
-            ent = rc[0]
-            table = getattr(ent, "table", None)
+            if v is None:
+                continue
+            if isinstance(v, (list, tuple)) and not v:
+                continue
+            table = v[0] if isinstance(v, (list, tuple)) else v
             name = getattr(table, "name", None)
-            if name:
-                for cls in object.__subclasses__(object):
-                    if getattr(cls, "__tablename__", None) == name:
-                        return cls
+            if isinstance(name, str):
+                found = _find_by_table(name)
+                if found is not None:
+                    return found
+
+        table = getattr(stmt, "table", None)
+        name = getattr(table, "name", None)
+        if isinstance(name, str):
+            found = _find_by_table(name)
+            if found is not None:
+                return found
+
+        rc = getattr(stmt, "_raw_columns", None) or getattr(stmt, "columns", None)
+        if rc is not None:
+            entity = rc[0]
+            table = getattr(entity, "table", None)
+            name = getattr(table, "name", None)
+            if isinstance(name, str):
+                found = _find_by_table(name)
+                if found is not None:
+                    return found
+
         raise RuntimeError("Cannot resolve model from statement")
 
     def _extract_predicates(self, stmt: Any) -> list[Tuple[str, str, Any]]:
@@ -427,10 +462,10 @@ class TransactionalDataFrameSession(TigrblSessionBase):
         return out
 
     def _extract_order_by(self, stmt: Any) -> list[Tuple[str, str]]:
-        order = getattr(stmt, "_order_by_clause", None) or getattr(
-            stmt, "_order_by_clauses", None
-        )
-        if not order:
+        order = getattr(stmt, "_order_by_clause", None)
+        if order is None:
+            order = getattr(stmt, "_order_by_clauses", None)
+        if order is None:
             return []
         clauses = getattr(order, "clauses", None) or order
         clauses = clauses if isinstance(clauses, (list, tuple)) else [clauses]
