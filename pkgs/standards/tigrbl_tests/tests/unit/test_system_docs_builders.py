@@ -19,6 +19,25 @@ def test_system_build_helpers_return_documents() -> None:
 
     assert openapi_doc["openapi"].startswith("3.")
     assert openrpc_doc["openrpc"] == "1.2.6"
-    assert openrpc_doc["servers"] == [{"name": app.title, "url": "/jsonrpc"}]
+    assert openrpc_doc["servers"] == [{"name": app.title, "url": "/rpc"}]
     assert "swagger-ui" in swagger_html
     assert "tigrbl-lens" in lens_html
+
+
+@pytest.mark.unit
+def test_openrpc_builder_uses_request_origin_and_jsonrpc_prefix() -> None:
+    app = TigrblApp(jsonrpc_prefix="/gateway/rpc")
+    request = Request(
+        method="GET",
+        path="/openrpc.json",
+        headers={"host": "api.example.com", "x-forwarded-proto": "https"},
+        query={},
+        path_params={},
+        body=b"",
+    )
+
+    openrpc_doc = build_openrpc_spec(app, request=request)
+
+    assert openrpc_doc["servers"] == [
+        {"name": app.title, "url": "https://api.example.com/gateway/rpc"}
+    ]
