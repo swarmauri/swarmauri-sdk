@@ -6,9 +6,12 @@ from collections.abc import Awaitable, Callable
 from typing import Any, Protocol
 
 Message = dict[str, Any]
+Scope = dict[str, Any]
 ASGIReceive = Callable[[], Awaitable[Message]]
 ASGISend = Callable[[Message], Awaitable[None]]
-ASGIApp = Callable[[dict[str, Any], ASGIReceive, ASGISend], Awaitable[None]]
+Receive = ASGIReceive
+Send = ASGISend
+ASGIApp = Callable[[Scope, Receive, Send], Awaitable[None]]
 WSGIStartResponse = Callable[..., Any]
 WSGIApp = Callable[[dict[str, Any], WSGIStartResponse], list[bytes]]
 
@@ -18,9 +21,7 @@ class MiddlewareSpec(Protocol):
 
     kwargs: dict[str, Any]
 
-    async def asgi(
-        self, scope: dict[str, Any], receive: ASGIReceive, send: ASGISend
-    ) -> None: ...
+    async def asgi(self, scope: Scope, receive: Receive, send: Send) -> None: ...
 
     def wsgi(
         self, environ: dict[str, Any], start_response: WSGIStartResponse
