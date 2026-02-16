@@ -1,39 +1,15 @@
-"""ASGI and WSGI runtime adapters for stdapi routers."""
+"""ASGI/WSGI application adapters for router instances."""
 
 from __future__ import annotations
 
 import asyncio
 import traceback
 from typing import Any, Callable
-from urllib.parse import parse_qs
 
 from tigrbl.middlewares import apply_middlewares
-from tigrbl.requests import Request
+from tigrbl.requests.adapters import request_from_asgi, request_from_wsgi
 from tigrbl.responses import Response
-
-
-NO_BODY_STATUS = set(range(100, 200)) | {204, 205, 304}
-
-
-def _finalize_response(
-    scope: dict[str, Any],
-    status: int,
-    headers: list[tuple[bytes, bytes]],
-    body: bytes,
-) -> tuple[list[tuple[bytes, bytes]], bytes]:
-    """Enforce HTTP body/header invariants immediately before transport writes."""
-
-    method = str(scope.get("method", "GET")).upper()
-
-    if method == "HEAD" or status in NO_BODY_STATUS:
-        drop = {b"content-length", b"content-type", b"transfer-encoding"}
-        headers = [(k, v) for (k, v) in headers if k.lower() not in drop]
-        return headers, b""
-
-    headers = [(k, v) for (k, v) in headers if k.lower() != b"content-length"]
-    headers.append((b"content-length", str(len(body)).encode("latin-1")))
-
-    return headers, body
+from tigrbl.responses._transport import finalize_transport_response
 
 
 async def asgi_app(
@@ -107,7 +83,7 @@ async def asgi_app(
 
         req = request_from_asgi(router, scope, body)
         resp = await router._dispatch(req)
-        headers, finalized_body = _finalize_response(
+        headers, finalized_body = finalize_transport_response(
             scope,
             resp.status_code,
             [(k.encode("latin-1"), v.encode("latin-1")) for k, v in resp.headers],
@@ -142,7 +118,7 @@ def wsgi_app(
     ) -> list[bytes]:
         req = request_from_wsgi(router, _environ)
         resp = asyncio.run(router._dispatch(req))
-        headers, finalized_body = _finalize_response(
+        headers, finalized_body = finalize_transport_response(
             {"method": req.method},
             resp.status_code,
             [(k.encode("latin-1"), v.encode("latin-1")) for k, v in resp.headers],
@@ -169,63 +145,6 @@ def wsgi_app(
     return [resp.body]
 
 
-def request_from_wsgi(router: Any, environ: dict[str, Any]) -> Request:
-    method = (environ.get("REQUEST_METHOD") or "GET").upper()
-    path = environ.get("PATH_INFO") or "/"
-    script_name = environ.get("SCRIPT_NAME") or ""
-
-    headers: dict[str, str] = {}
-    for key, value in environ.items():
-        if key.startswith("HTTP_"):
-            header_key = key[5:].replace("_", "-").lower()
-            headers[header_key] = str(value)
-    if "CONTENT_TYPE" in environ:
-        headers["content-type"] = str(environ["CONTENT_TYPE"])
-
-    query = parse_qs(environ.get("QUERY_STRING") or "", keep_blank_values=True)
-
-    try:
-        length = int(environ.get("CONTENT_LENGTH") or "0")
-    except ValueError:
-        length = 0
-    body = environ["wsgi.input"].read(length) if length > 0 else b""
-
-    return Request(
-        method=method,
-        path=path,
-        headers=headers,
-        query=query,
-        path_params={},
-        body=body,
-        script_name=script_name,
-        app=router,
-    )
-
-
-def request_from_asgi(router: Any, scope: dict[str, Any], body: bytes) -> Request:
-    method = (scope.get("method") or "GET").upper()
-    path = scope.get("path") or "/"
-    headers: dict[str, str] = {
-        key.decode("latin-1").lower(): value.decode("latin-1")
-        for key, value in scope.get("headers", [])
-    }
-    query = parse_qs(
-        scope.get("query_string", b"").decode("latin-1"),
-        keep_blank_values=True,
-    )
-    return Request(
-        method=method,
-        path=path,
-        headers=headers,
-        query=query,
-        path_params={},
-        body=body,
-        script_name=scope.get("root_path") or "",
-        app=router,
-        scope=scope,
-    )
-
-
 def router_call(router: Any, *args: Any, **kwargs: Any):
     del kwargs
     if len(args) == 2 and isinstance(args[0], dict) and callable(args[1]):
@@ -240,3 +159,6 @@ def router_call(router: Any, *args: Any, **kwargs: Any):
     if len(args) == 3 and isinstance(args[0], dict):
         return asgi_app(router, args[0], args[1], args[2])
     raise TypeError("Invalid ASGI/WSGI invocation")
+
+
+__all__ = ["asgi_app", "router_call", "wsgi_app"]

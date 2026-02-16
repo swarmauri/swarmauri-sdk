@@ -25,12 +25,14 @@ from tigrbl.core.router_runtime import (
     dispatch,
     is_metadata_route,
 )
-from tigrbl.transport.asgi_wsgi import (
+from tigrbl.app.transport import (
     asgi_app as _asgi_app_impl,
-    request_from_asgi as _request_from_asgi_impl,
-    request_from_wsgi as _request_from_wsgi_impl,
     router_call as _router_call_impl,
     wsgi_app as _wsgi_app_impl,
+)
+from tigrbl.requests.adapters import (
+    request_from_asgi as _request_from_asgi_impl,
+    request_from_wsgi as _request_from_wsgi_impl,
 )
 from tigrbl.transport.httpx import ensure_httpx_sync_transport
 
