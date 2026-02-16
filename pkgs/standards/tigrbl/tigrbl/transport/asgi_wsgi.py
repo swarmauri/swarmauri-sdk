@@ -8,47 +8,32 @@ from typing import Any, Callable
 from urllib.parse import parse_qs
 
 from tigrbl.middlewares import apply_middlewares
-from tigrbl.requests._request import Request
-from tigrbl.responses._response import Response
+from tigrbl.requests import Request
+from tigrbl.responses import Response
 
 
-_BODYLESS_STATUS_CODES = {204, 304}
+NO_BODY_STATUS = set(range(100, 200)) | {204, 205, 304}
 
 
-def _normalize_http_response(resp: Response, method: str) -> Response:
-    """Normalize payload/body headers before writing to ASGI/WSGI transports."""
+def _finalize_response(
+    scope: dict[str, Any],
+    status: int,
+    headers: list[tuple[bytes, bytes]],
+    body: bytes,
+) -> tuple[list[tuple[bytes, bytes]], bytes]:
+    """Enforce HTTP body/header invariants immediately before transport writes."""
 
-    method_upper = method.upper()
-    is_bodyless_status = (
-        100 <= resp.status_code < 200 or resp.status_code in _BODYLESS_STATUS_CODES
-    )
-    should_strip_body = is_bodyless_status or method_upper == "HEAD"
+    method = str(scope.get("method", "GET")).upper()
 
-    headers = [(k, v) for k, v in resp.headers]
+    if method == "HEAD" or status in NO_BODY_STATUS:
+        drop = {b"content-length", b"content-type", b"transfer-encoding"}
+        headers = [(k, v) for (k, v) in headers if k.lower() not in drop]
+        return headers, b""
 
-    if should_strip_body:
-        resp.body = b""
-        headers = [
-            (k, v)
-            for k, v in headers
-            if k.lower() not in {"content-length", "transfer-encoding"}
-        ]
-    else:
-        body_length = str(len(resp.body))
-        has_content_length = False
-        normalized_headers: list[tuple[str, str]] = []
-        for key, value in headers:
-            if key.lower() == "content-length":
-                normalized_headers.append((key, body_length))
-                has_content_length = True
-            else:
-                normalized_headers.append((key, value))
-        if not has_content_length:
-            normalized_headers.append(("content-length", body_length))
-        headers = normalized_headers
+    headers = [(k, v) for (k, v) in headers if k.lower() != b"content-length"]
+    headers.append((b"content-length", str(len(body)).encode("latin-1")))
 
-    resp.headers = headers
-    return resp
+    return headers, body
 
 
 async def asgi_app(
@@ -121,17 +106,27 @@ async def asgi_app(
             more_body = message.get("more_body", False)
 
         req = request_from_asgi(router, scope, body)
-        resp = _normalize_http_response(await router._dispatch(req), req.method)
+        resp = await router._dispatch(req)
+        headers, finalized_body = _finalize_response(
+            scope,
+            resp.status_code,
+            [(k.encode("latin-1"), v.encode("latin-1")) for k, v in resp.headers],
+            resp.body,
+        )
         await send(
             {
                 "type": "http.response.start",
                 "status": resp.status_code,
-                "headers": [
-                    (k.encode("latin-1"), v.encode("latin-1")) for k, v in resp.headers
-                ],
+                "headers": headers,
             }
         )
-        await send({"type": "http.response.body", "body": resp.body})
+        await send(
+            {
+                "type": "http.response.body",
+                "body": finalized_body,
+                "more_body": False,
+            }
+        )
 
     app = apply_middlewares(_endpoint, list(getattr(router, "_middlewares", [])))
     await app(scope, receive, send)
@@ -146,9 +141,18 @@ def wsgi_app(
         _environ: dict[str, Any], _start_response: Callable[..., Any]
     ) -> list[bytes]:
         req = request_from_wsgi(router, _environ)
-        resp = _normalize_http_response(asyncio.run(router._dispatch(req)), req.method)
-        _start_response(resp.status_line(), resp.headers)
-        return [resp.body]
+        resp = asyncio.run(router._dispatch(req))
+        headers, finalized_body = _finalize_response(
+            {"method": req.method},
+            resp.status_code,
+            [(k.encode("latin-1"), v.encode("latin-1")) for k, v in resp.headers],
+            resp.body,
+        )
+        _start_response(
+            resp.status_line(),
+            [(k.decode("latin-1"), v.decode("latin-1")) for k, v in headers],
+        )
+        return [finalized_body]
 
     app = apply_middlewares(_endpoint, list(getattr(router, "_middlewares", [])))
 

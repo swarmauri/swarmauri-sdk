@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, AsyncIterable, Iterable, Mapping, Optional, Union
 
-from .stdapi import (
+from ._response import (
     FileResponse,
     HTMLResponse,
     JSONResponse,

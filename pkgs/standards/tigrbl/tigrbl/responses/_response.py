@@ -9,7 +9,26 @@ from http.cookies import SimpleCookie
 from pathlib import Path
 from typing import Any, AsyncIterator, Iterable, Mapping
 
-from tigrbl.headers import Headers
+from tigrbl.headers import HeaderCookies, Headers
+
+
+class _JSONDualMethod:
+    def __get__(self, obj: "Response" | None, owner: type["Response"]):
+        if obj is None:
+
+            def _factory(
+                data: Any,
+                status_code: int = 200,
+                headers: Mapping[str, str] | None = None,
+            ) -> "Response":
+                return owner.from_json(data, status_code=status_code, headers=headers)
+
+            return _factory
+
+        def _instance_json() -> Any:
+            return obj.json_body()
+
+        return _instance_json
 
 
 @dataclass
@@ -20,6 +39,8 @@ class Response:
     media_type: str | None = None
     _headers: Headers = field(init=False, repr=False)
 
+    json = _JSONDualMethod()
+
     def __post_init__(self) -> None:
         self._headers = Headers(self.headers)
 
@@ -28,6 +49,7 @@ class Response:
         return {
             200: "OK",
             201: "Created",
+            205: "Reset Content",
             204: "No Content",
             301: "Moved Permanently",
             302: "Found",
@@ -65,12 +87,12 @@ class Response:
         return json_module.loads(self.body.decode("utf-8"))
 
     @property
-    def cookies(self) -> dict[str, str]:
+    def cookies(self) -> HeaderCookies:
         cookie = SimpleCookie()
         for name, value in self._headers.items():
             if name == "set-cookie":
                 cookie.load(value)
-        return {name: morsel.value for name, morsel in cookie.items()}
+        return HeaderCookies({name: morsel.value for name, morsel in cookie.items()})
 
     def set_cookie(self, key: str, value: str, *, path: str = "/") -> None:
         cookie = SimpleCookie()
@@ -80,7 +102,7 @@ class Response:
         self.headers = self._headers.as_list()
 
     @classmethod
-    def json(
+    def from_json(
         cls,
         data: Any,
         status_code: int = 200,

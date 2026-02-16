@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ...responses._response import Response
+from ...responses import Response
 
 
 def build_swagger_html(router: Any, request: Any) -> str:

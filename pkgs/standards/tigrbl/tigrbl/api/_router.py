@@ -37,7 +37,7 @@ from tigrbl.transport.httpx import ensure_httpx_sync_transport
 from ._route import Route
 from ..system.docs.openapi import build_openapi, mount_openapi
 from ..system.docs.swagger import mount_swagger
-from ..requests._request import Request
+from ..requests import Request
 from ..transport.rest.decorators import (
     delete as rest_delete,
     get as rest_get,

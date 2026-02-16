@@ -1,9 +1,9 @@
 """Deprecated compatibility module for REST ASGI-style primitives.
 
 Prefer importing directly from:
-- ``tigrbl.response`` for response classes
+- ``tigrbl.responses`` for response classes
 - ``tigrbl.runtime.status`` for ``status`` and ``HTTPException``
-- ``tigrbl.api._api`` / ``tigrbl.requests._request`` / ``tigrbl.security.dependencies``
+- ``tigrbl.api._api`` / ``tigrbl.requests`` / ``tigrbl.security.dependencies``
 """
 
 from __future__ import annotations
@@ -21,11 +21,11 @@ from ...response import (
 )
 from ...runtime.status import HTTPException, status
 from ...security.dependencies import Depends, Security
-from ...requests._request import Request
+from ...requests import Request
 
 warnings.warn(
     "tigrbl.bindings.rest.asgi is deprecated; import from "
-    "tigrbl.response, tigrbl.runtime.status, and concrete modules instead.",
+    "tigrbl.responses, tigrbl.runtime.status, and concrete modules instead.",
     DeprecationWarning,
     stacklevel=2,
 )

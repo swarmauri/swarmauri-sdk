@@ -4,8 +4,8 @@ import json
 
 import pytest
 
-from tigrbl.response.stdapi import Response
-from tigrbl.transport.request import Request
+from tigrbl.responses import Response
+from tigrbl.requests import Request
 
 
 def _make_request(

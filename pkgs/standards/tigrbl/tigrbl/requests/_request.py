@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import base64
 import json as json_module
 from dataclasses import dataclass, field
 from http.cookies import SimpleCookie
 from types import SimpleNamespace
 from typing import Any
 
-from tigrbl.headers import Headers
+from tigrbl.headers import HeaderCookies, Headers
 
 
 @dataclass(frozen=True)
@@ -64,6 +65,15 @@ class AwaitableValue:
         return len(self.value)
 
 
+def _b64url_encode(data: bytes) -> str:
+    return base64.urlsafe_b64encode(data).decode("ascii").rstrip("=")
+
+
+def _b64url_decode(data: str) -> bytes:
+    pad = "=" * (-len(data) % 4)
+    return base64.urlsafe_b64decode((data + pad).encode("ascii"))
+
+
 @dataclass
 class Request:
     method: str
@@ -111,11 +121,45 @@ class Request:
         return {name: vals[0] for name, vals in self.query.items() if vals}
 
     @property
-    def cookies(self) -> dict[str, str]:
+    def cookies(self) -> HeaderCookies:
         raw = self.headers.get("cookie", "") or ""
         parsed = SimpleCookie()
         parsed.load(raw)
-        return {name: morsel.value for name, morsel in parsed.items()}
+        return HeaderCookies({name: morsel.value for name, morsel in parsed.items()})
+
+    @property
+    def bearer_token(self) -> str | None:
+        authorization = self.headers.get("authorization", "") or ""
+        scheme, _, token = authorization.partition(" ")
+        if scheme.lower() == "bearer" and token:
+            return token
+        return None
+
+    @property
+    def session_token(self) -> str | None:
+        bearer = self.bearer_token
+        if bearer:
+            return bearer
+        return self.cookies.get("sid")
+
+    @property
+    def client(self) -> SimpleNamespace:
+        host = ""
+        try:
+            client = self.scope.get("client")
+        except AttributeError:
+            client = None
+        if isinstance(client, tuple) and client:
+            host = str(client[0])
+        return SimpleNamespace(ip=host, host=host)
+
+    @staticmethod
+    def b64url_encode(data: bytes) -> str:
+        return _b64url_encode(data)
+
+    @staticmethod
+    def b64url_decode(data: str) -> bytes:
+        return _b64url_decode(data)
 
 
-__all__ = ["Request", "AwaitableValue", "URL"]
+__all__ = ["Request", "AwaitableValue", "URL", "_b64url_encode", "_b64url_decode"]

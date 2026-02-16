@@ -1,3 +1,5 @@
-from ._request import Request, AwaitableValue, URL
+from tigrbl.headers import Headers
 
-__all__ = ["Request", "AwaitableValue", "URL"]
+from ._request import AwaitableValue, Request, URL
+
+__all__ = ["Headers", "Request", "AwaitableValue", "URL"]

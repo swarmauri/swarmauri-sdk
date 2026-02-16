@@ -46,7 +46,7 @@ from .hooks import normalize_and_attach as build_hooks
 from .handlers import build_and_attach as build_handlers
 from .rpc import register_and_attach as register_rpc
 from .rest import build_router_and_attach as build_rest
-from ..response.bind import bind as bind_response
+from ..responses.bind import bind as bind_response
 
 # API facade integration
 from .api import include_model, include_models, rpc_call
