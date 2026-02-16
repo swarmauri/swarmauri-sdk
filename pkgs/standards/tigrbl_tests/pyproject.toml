@@ -1,6 +1,6 @@
 [project]
 name = "tigrbl_tests"
-version = "0.3.9.dev4"
+version = "0.3.9.dev5"
 description = "Test suite and fixtures for the Tigrbl framework."
 license = "Apache-2.0"
 readme = "README.md"
