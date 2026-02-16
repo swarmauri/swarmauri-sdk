@@ -5,8 +5,9 @@ from __future__ import annotations
 from collections.abc import Awaitable, Callable
 from typing import Any, Protocol
 
-ASGIReceive = Callable[[], Awaitable[dict[str, Any]]]
-ASGISend = Callable[[dict[str, Any]], Awaitable[None]]
+Message = dict[str, Any]
+ASGIReceive = Callable[[], Awaitable[Message]]
+ASGISend = Callable[[Message], Awaitable[None]]
 ASGIApp = Callable[[dict[str, Any], ASGIReceive, ASGISend], Awaitable[None]]
 WSGIStartResponse = Callable[..., Any]
 WSGIApp = Callable[[dict[str, Any], WSGIStartResponse], list[bytes]]

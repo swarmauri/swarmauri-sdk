@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from .spec import ASGIApp, ASGIReceive, ASGISend, WSGIApp, WSGIStartResponse
+from .spec import ASGIApp, ASGIReceive, ASGISend, Message, WSGIApp, WSGIStartResponse
 
 
 class Middleware:
@@ -16,7 +16,7 @@ class Middleware:
 
     async def asgi(
         self,
-        scope: dict[str, Any],
+        scope: Message,
         receive: ASGIReceive,
         send: ASGISend,
     ) -> None:

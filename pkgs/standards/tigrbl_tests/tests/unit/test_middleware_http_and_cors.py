@@ -204,3 +204,63 @@ def test_cors_middleware_wsgi_preserves_duplicate_headers() -> None:
         ]
         == "https://client.test"
     )
+
+
+@pytest.mark.asyncio
+async def test_cors_middleware_accepts_list_origins_and_regex() -> None:
+    async def endpoint(scope, receive, send):
+        del scope, receive
+        await send(
+            {
+                "type": "http.response.start",
+                "status": 200,
+                "headers": [],
+            }
+        )
+        await send({"type": "http.response.body", "body": b"ok", "more_body": False})
+
+    app = CORSMiddleware(
+        endpoint,
+        allow_origins=["https://allowed.example", "https://other.example"],
+        allow_origin_regex=r"https://.*\.trusted\.example",
+        allow_methods=["GET", "POST"],
+        allow_headers=["x-custom", "authorization"],
+    )
+
+    allowed = await _run_asgi(
+        app,
+        {
+            "type": "http",
+            "method": "GET",
+            "path": "/",
+            "query_string": b"",
+            "headers": [(b"origin", b"https://allowed.example")],
+        },
+    )
+    allowed_headers = {
+        k.decode("latin-1"): v.decode("latin-1")
+        for k, v in next(m for m in allowed if m["type"] == "http.response.start")[
+            "headers"
+        ]
+    }
+    assert allowed_headers["access-control-allow-origin"] == "https://allowed.example"
+    assert allowed_headers["access-control-allow-methods"] == "GET,POST"
+    assert allowed_headers["access-control-allow-headers"] == "x-custom,authorization"
+
+    regex_allowed = await _run_asgi(
+        app,
+        {
+            "type": "http",
+            "method": "GET",
+            "path": "/",
+            "query_string": b"",
+            "headers": [(b"origin", b"https://api.trusted.example")],
+        },
+    )
+    regex_headers = {
+        k.decode("latin-1"): v.decode("latin-1")
+        for k, v in next(
+            m for m in regex_allowed if m["type"] == "http.response.start"
+        )["headers"]
+    }
+    assert regex_headers["access-control-allow-origin"] == "https://api.trusted.example"

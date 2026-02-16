@@ -11,7 +11,7 @@ from tigrbl.responses import Response
 from tigrbl.responses._transport import finalize_transport_response
 
 from .middleware import Middleware
-from .spec import ASGIReceive, ASGISend
+from .spec import ASGIReceive, ASGISend, Message
 
 
 class BaseHTTPMiddleware(Middleware):
@@ -71,10 +71,10 @@ class BaseHTTPMiddleware(Middleware):
             target_request = forward_request or request
             target_scope = self._scope_from_request(scope, target_request)
 
-            messages: list[dict[str, Any]] = []
+            messages: list[Message] = []
             body_sent = False
 
-            async def receive_for_app() -> dict[str, Any]:
+            async def receive_for_app() -> Message:
                 nonlocal body_sent
                 if body_sent:
                     return {"type": "http.request", "body": b"", "more_body": False}
@@ -85,7 +85,7 @@ class BaseHTTPMiddleware(Middleware):
                     "more_body": False,
                 }
 
-            async def send_from_app(message: dict[str, Any]) -> None:
+            async def send_from_app(message: Message) -> None:
                 messages.append(message)
 
             await self.app(target_scope, receive_for_app, send_from_app)
