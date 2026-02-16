@@ -213,6 +213,7 @@ class TigrblApi(_Api):
     def mount_jsonrpc(self, *, prefix: str | None = None) -> Any:
         """Mount a JSON-RPC router onto this TigrblApi instance."""
         px = prefix if prefix is not None else self.jsonrpc_prefix
+        self.jsonrpc_prefix = px
         prov = _resolver.resolve_provider(api=self)
         get_db = prov.get_db if prov else None
         router = _mount_jsonrpc(
