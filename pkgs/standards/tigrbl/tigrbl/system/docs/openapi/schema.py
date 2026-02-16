@@ -23,7 +23,8 @@ def openapi(router: Any) -> dict[str, Any]:
         if not route.include_in_schema:
             continue
 
-        path_item = paths.setdefault(route.path_template, {})
+        canonical_path = route.path_template.rstrip("/") or "/"
+        path_item = paths.setdefault(canonical_path, {})
         for method in sorted(route.methods):
             status_code = route.status_code or status.HTTP_200_OK
             responses: dict[str, Any] = {}
