@@ -24,8 +24,6 @@ Quick usage:
 
 from __future__ import annotations
 
-from dataclasses import replace
-import re
 from typing import Any, Callable, Optional, Sequence
 
 
@@ -78,31 +76,6 @@ def mount_jsonrpc(
     if callable(include_router):
         include_router(router, prefix=prefix)
 
-    # Compatibility alias: some router backends normalize empty-path routes to
-    # ``<prefix>/`` only. Duplicate JSON-RPC POST routes at ``<prefix>``.
-    alias_path = prefix.rstrip("/") or "/"
-    if alias_path != "/":
-        app_routes = getattr(app, "routes", None)
-        if isinstance(app_routes, list):
-            escaped = re.escape(alias_path)
-            matched = [
-                route
-                for route in app_routes
-                if "POST" in (getattr(route, "methods", ()) or ())
-                and getattr(route, "name", None) in {"jsonrpc", "jsonrpc_alt"}
-                and getattr(getattr(route, "pattern", None), "pattern", None)
-                == f"^{escaped}/$"
-            ]
-            for route in matched:
-                app_routes.append(
-                    replace(
-                        route,
-                        path_template=alias_path,
-                        pattern=re.compile(f"^{escaped}$"),
-                        name=f"{getattr(route, 'name', 'jsonrpc')}_no_slash",
-                        include_in_schema=False,
-                    )
-                )
     return router
 
 
