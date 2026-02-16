@@ -35,6 +35,11 @@ class RPCMixin:
         """Get the async HTTP client."""
         return self._async_client
 
+    @staticmethod
+    def _to_jsonrpc_status_code(http_status_code: int) -> int:
+        """Return JSON-RPC status code with HTTP parity."""
+        return http_status_code
+
     # ─────────── public high-level call helpers ────────────────────── #
     @overload
     def call(  # result with schema
@@ -45,6 +50,7 @@ class RPCMixin:
         out_schema: type[_Schema[T]],
         status_code: bool = False,
         error_code: bool = False,
+        jsonrpc_status_code: bool = False,
         raise_status: bool = True,
         raise_error: bool = True,
     ) -> T: ...
@@ -58,6 +64,7 @@ class RPCMixin:
         out_schema: None = None,
         status_code: bool = False,
         error_code: bool = False,
+        jsonrpc_status_code: bool = False,
         raise_status: bool = True,
         raise_error: bool = True,
     ) -> Any: ...
@@ -70,6 +77,7 @@ class RPCMixin:
         out_schema: type[_Schema[T]] | None = None,
         status_code: bool = False,
         error_code: bool = False,
+        jsonrpc_status_code: bool = False,
         raise_status: bool = True,
         raise_error: bool = True,
     ) -> Any:
@@ -134,6 +142,8 @@ class RPCMixin:
             parts.append(r.status_code)
         if error_code:
             parts.append(err_code)
+        if jsonrpc_status_code:
+            parts.append(self._to_jsonrpc_status_code(r.status_code))
         return parts[0] if len(parts) == 1 else tuple(parts)
 
     # ─────────── Async call helper ──────────────────────────────────── #
@@ -146,6 +156,7 @@ class RPCMixin:
         out_schema: type[_Schema[T]],
         status_code: bool = False,
         error_code: bool = False,
+        jsonrpc_status_code: bool = False,
         raise_status: bool = True,
         raise_error: bool = True,
     ) -> T: ...
@@ -159,6 +170,7 @@ class RPCMixin:
         out_schema: None = None,
         status_code: bool = False,
         error_code: bool = False,
+        jsonrpc_status_code: bool = False,
         raise_status: bool = True,
         raise_error: bool = True,
     ) -> Any: ...
@@ -171,6 +183,7 @@ class RPCMixin:
         out_schema: type[_Schema[T]] | None = None,
         status_code: bool = False,
         error_code: bool = False,
+        jsonrpc_status_code: bool = False,
         raise_status: bool = True,
         raise_error: bool = True,
     ) -> Any:
@@ -233,4 +246,6 @@ class RPCMixin:
             parts.append(r.status_code)
         if error_code:
             parts.append(err_code)
+        if jsonrpc_status_code:
+            parts.append(self._to_jsonrpc_status_code(r.status_code))
         return parts[0] if len(parts) == 1 else tuple(parts)

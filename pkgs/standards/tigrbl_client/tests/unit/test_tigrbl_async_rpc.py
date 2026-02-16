@@ -86,3 +86,53 @@ async def test_acall_invalid_json_propagates():
         client = TigrblClient("http://example.com/api")
         with pytest.raises(json.JSONDecodeError):
             await client.acall("test.method")
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_acall_jsonrpc_status_code():
+    """Ensure jsonrpc_status_code mirrors HTTP status for parity."""
+
+    async def fake_post(self, url, *, json=None, headers=None):
+        request = httpx.Request("POST", url)
+        return httpx.Response(
+            202, request=request, json={"jsonrpc": "2.0", "result": {"ok": True}}
+        )
+
+    with patch.object(httpx.AsyncClient, "post", new=fake_post):
+        client = TigrblClient("http://example.com/api")
+        result, rpc_status = await client.acall("test.method", jsonrpc_status_code=True)
+
+    assert result == {"ok": True}
+    assert rpc_status == 202
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_acall_error_code_and_jsonrpc_status_code():
+    """Ensure error and jsonrpc status codes are both returned when requested."""
+
+    async def fake_post(self, url, *, json=None, headers=None):
+        request = httpx.Request("POST", url)
+        return httpx.Response(
+            503,
+            request=request,
+            json={
+                "jsonrpc": "2.0",
+                "error": {"code": -32001, "message": "Backend unavailable"},
+            },
+        )
+
+    with patch.object(httpx.AsyncClient, "post", new=fake_post):
+        client = TigrblClient("http://example.com/api")
+        result, err_code, rpc_status = await client.acall(
+            "test.method",
+            error_code=True,
+            jsonrpc_status_code=True,
+            raise_status=False,
+            raise_error=False,
+        )
+
+    assert result is None
+    assert err_code == -32001
+    assert rpc_status == 503

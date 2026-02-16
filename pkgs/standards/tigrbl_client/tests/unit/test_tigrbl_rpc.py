@@ -184,7 +184,8 @@ def test_rpc_call_filter_params():
 @pytest.mark.unit
 @pytest.mark.parametrize("status_code", [False, True])
 @pytest.mark.parametrize("error_code", [False, True])
-def test_rpc_call_success_combinations(status_code, error_code):
+@pytest.mark.parametrize("jsonrpc_status_code", [False, True])
+def test_rpc_call_success_combinations(status_code, error_code, jsonrpc_status_code):
     """Successful RPC call under various flag combinations."""
 
     def fake_post(self, url, *, json=None, headers=None):
@@ -195,26 +196,33 @@ def test_rpc_call_success_combinations(status_code, error_code):
 
     with patch.object(httpx.Client, "post", new=fake_post):
         client = TigrblClient("http://example.com/api")
-        result = client.call("ping", status_code=status_code, error_code=error_code)
+        result = client.call(
+            "ping",
+            status_code=status_code,
+            error_code=error_code,
+            jsonrpc_status_code=jsonrpc_status_code,
+        )
 
     expected = {"ok": True}
-    if status_code and error_code:
-        assert result == (expected, 200, None)
-    elif status_code:
-        assert result == (expected, 200)
-    elif error_code:
-        assert result == (expected, None)
-    else:
-        assert result == expected
+    parts = [expected]
+    if status_code:
+        parts.append(200)
+    if error_code:
+        parts.append(None)
+    if jsonrpc_status_code:
+        parts.append(200)
+
+    assert result == (parts[0] if len(parts) == 1 else tuple(parts))
 
 
 @pytest.mark.unit
 @pytest.mark.parametrize("status_code", [False, True])
 @pytest.mark.parametrize("error_code", [False, True])
+@pytest.mark.parametrize("jsonrpc_status_code", [False, True])
 @pytest.mark.parametrize("raise_status", [True, False])
 @pytest.mark.parametrize("raise_error", [True, False])
 def test_rpc_call_error_combinations(
-    status_code, error_code, raise_status, raise_error
+    status_code, error_code, jsonrpc_status_code, raise_status, raise_error
 ):
     """RPC call flag combinations when both HTTP and RPC errors occur."""
 
@@ -234,6 +242,7 @@ def test_rpc_call_error_combinations(
                 "bad",
                 status_code=status_code,
                 error_code=error_code,
+                jsonrpc_status_code=jsonrpc_status_code,
                 raise_status=raise_status,
                 raise_error=raise_error,
             )
@@ -254,6 +263,8 @@ def test_rpc_call_error_combinations(
             expected.append(500)
         if error_code:
             expected.append(-32602)
+        if jsonrpc_status_code:
+            expected.append(500)
         assert result == (expected[0] if len(expected) == 1 else tuple(expected))
 
 
