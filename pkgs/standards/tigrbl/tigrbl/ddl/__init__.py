@@ -304,7 +304,10 @@ def initialize(
         if not callable(close):
             return None
         out = close()
-        return out if inspect.isawaitable(out) else None
+        if inspect.isawaitable(out):
+            loop = asyncio.get_running_loop()
+            return loop.create_task(out)
+        return None
 
     try:
         asyncio.get_running_loop()
@@ -343,7 +346,12 @@ def initialize(
                         if False:
                             yield None
                         return None
-                    return self._pending.__await__()
+
+                    async def _wait_pending():
+                        await self._pending
+                        return None
+
+                    return _wait_pending().__await__()
 
             return _Completed(pending_close)
 
