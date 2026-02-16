@@ -279,7 +279,7 @@ increasing order of precedence:
 2. app config
 3. API config
 4. table config
-5. column `.cfg` entries
+5. column config
 6. operation spec
 7. per-request overrides
 
