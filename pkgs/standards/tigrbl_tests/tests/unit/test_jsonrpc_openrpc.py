@@ -1,6 +1,6 @@
 from httpx import ASGITransport, Client
 from sqlalchemy import Column, String
-from tigrbl import Base, TigrblApp
+from tigrbl import Base, TigrblApi, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 
@@ -58,3 +58,32 @@ def test_openrpc_includes_method_schema():
         result = create_method["result"]["schema"]
         assert result["title"].startswith(model.__name__)
         assert "Response" in result["title"]
+
+
+def test_openrpc_server_url_respects_mount_jsonrpc_prefix_argument():
+    app, _ = _build_app()
+    app.mount_jsonrpc(prefix="/jsonrpc")
+    transport = ASGITransport(app=app)
+
+    with Client(transport=transport, base_url="http://test") as client:
+        payload = client.get("/openrpc.json").json()
+
+    assert payload["servers"] == [{"name": app.title, "url": "/jsonrpc"}]
+
+
+def test_openrpc_server_url_respects_api_mount_jsonrpc_prefix_argument():
+    class Widget(Base, GUIDPk):
+        __tablename__ = "widgets_openrpc_api_mount_prefix"
+        name = Column(String, nullable=False)
+
+    api = TigrblApi(engine=mem(async_=False))
+    api.include_model(Widget)
+    api.initialize()
+    api.mount_jsonrpc(prefix="/jsonrpc")
+    api.mount_openrpc()
+
+    transport = ASGITransport(app=api)
+    with Client(transport=transport, base_url="http://test") as client:
+        payload = client.get("/openrpc.json").json()
+
+    assert payload["servers"] == [{"name": api.title, "url": "/jsonrpc"}]
