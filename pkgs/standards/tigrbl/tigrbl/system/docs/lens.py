@@ -79,7 +79,8 @@ def mount_lens(
 ) -> Any:
     """Mount a tigrbl-lens HTML endpoint onto ``router``."""
 
-    resolved_spec_path = spec_path or "/openrpc.json"
+    resolved_spec_path = spec_path or getattr(router, "openrpc_path", "/openrpc.json")
+    resolved_spec_path = _with_leading_slash(resolved_spec_path)
 
     def _lens_handler(request: Any) -> Response:
         return Response.html(

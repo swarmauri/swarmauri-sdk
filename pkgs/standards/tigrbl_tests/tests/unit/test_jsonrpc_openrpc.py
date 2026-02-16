@@ -60,7 +60,7 @@ def test_openrpc_includes_method_schema():
         assert "Response" in result["title"]
 
 
-def test_openrpc_server_url_respects_mount_jsonrpc_prefix_argument():
+def test_mount_jsonrpc_updates_openrpc_server_url() -> None:
     app, _ = _build_app()
     app.mount_jsonrpc(prefix="/jsonrpc")
     transport = ASGITransport(app=app)
@@ -71,6 +71,37 @@ def test_openrpc_server_url_respects_mount_jsonrpc_prefix_argument():
     assert payload["servers"] == [{"name": app.title, "url": "/jsonrpc"}]
 
 
+def test_jsonrpc_create_accepts_nested_params_mapping() -> None:
+    app, model = _build_app()
+    transport = ASGITransport(app=app)
+
+    request_payload = {
+        "jsonrpc": "2.0",
+        "method": f"{model.__name__}.create",
+        "params": {"params": {"name": "New Widget"}},
+        "id": 1,
+    }
+
+    with Client(transport=transport, base_url="http://test") as client:
+        response = client.post("/rpc", json=request_payload)
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["id"] == 1
+    assert "error" not in data
+    assert data["result"]["name"] == "New Widget"
+
+
+def test_mount_lens_uses_latest_openrpc_path_by_default() -> None:
+    app, _ = _build_app()
+    app.mount_openrpc(path="/schema/openrpc.json")
+    app.mount_lens(path="/lens-custom")
+
+    transport = ASGITransport(app=app)
+    with Client(transport=transport, base_url="http://test") as client:
+        html = client.get("/lens-custom").text
+
+    assert "/schema/openrpc.json" in html
 def test_openrpc_server_url_respects_api_mount_jsonrpc_prefix_argument():
     class Widget(Base, GUIDPk):
         __tablename__ = "widgets_openrpc_api_mount_prefix"
