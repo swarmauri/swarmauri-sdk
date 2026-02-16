@@ -20,6 +20,7 @@ from pydantic import BaseModel
 from ..op import OpSpec
 from ..op.types import PHASES
 from ..runtime import executor as _executor  # expects _invoke(request, db, phases, ctx)
+from ..runtime.status import HTTPException
 
 # Prefer Kernel phase-chains if available (atoms + system steps + hooks)
 try:
@@ -31,6 +32,24 @@ logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/rpc")
 
 _Key = Tuple[str, str]  # (alias, target)
+
+
+_WRAPPER_KEYS = frozenset({"data", "payload", "body", "item"})
+
+
+def _reject_wrapper_keys(payload: Any) -> None:
+    if not isinstance(payload, Mapping):
+        return
+    disallowed = sorted(k for k in payload if k in _WRAPPER_KEYS)
+    if not disallowed:
+        return
+    raise HTTPException(
+        status_code=422,
+        detail={
+            "reason": "Wrapper keys are not allowed; params must match the operation schema.",
+            "disallowed_keys": disallowed,
+        },
+    )
 
 
 # Mapping with attribute-style access
@@ -265,6 +284,7 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
         item_in_model = getattr(alias_ns, "in_item", None)
 
         raw_payload = _coerce_payload(payload)
+        _reject_wrapper_keys(raw_payload)
         if target == "bulk_delete" and not isinstance(raw_payload, Mapping):
             raw_payload = {"ids": raw_payload}
         if (

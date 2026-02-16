@@ -140,6 +140,41 @@ async def test_bulk_methods_absent(client_and_model):
         assert not hasattr(Gadget.rpc, name)
 
 
+@pytest.mark.i9n
+@pytest.mark.asyncio
+@pytest.mark.parametrize("wrapper_key", ["data", "payload", "body", "item"])
+async def test_rpc_create_rejects_wrapper_object(wrapper_key, client_and_model):
+    client, _ = client_and_model
+    payload = {
+        "jsonrpc": "2.0",
+        "method": "Gadget.create",
+        "params": {wrapper_key: {"name": "Wrapped", "age": 7}},
+        "id": 11,
+    }
+
+    response = await client.post("/rpc", json=payload)
+
+    assert response.status_code == 200
+    error = response.json()["error"]
+    assert error["code"] == -32602
+    assert error["message"] == "Invalid params"
+    assert error["data"]["disallowed_keys"] == [wrapper_key]
+
+
+@pytest.mark.i9n
+@pytest.mark.asyncio
+@pytest.mark.parametrize("wrapper_key", ["data", "payload", "body", "item"])
+async def test_rest_create_rejects_wrapper_object(wrapper_key, client_and_model):
+    client, _ = client_and_model
+
+    response = await client.post(
+        "/gadget",
+        json={wrapper_key: {"name": "Wrapped", "age": 7}},
+    )
+
+    assert response.status_code == 422
+
+
 @pytest_asyncio.fixture()
 async def bulk_client_and_model():
     Base3.metadata.clear()
