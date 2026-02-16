@@ -37,7 +37,7 @@ async def test_async_client_get() -> None:
         client = TigrblClient(base_url)
         created = await client.apost("/widget", data={"name": "Async"})
         item_id = created["id"]
-        response = await client.aget(f"/widget/{item_id}")
+        response = await client.aget(f"/widget/__/{item_id}")
         assert response["name"] == "Async"
     finally:
         await stop_uvicorn(server, task)

@@ -1,12 +1,12 @@
 import pytest
 
 CRUD_MAP = {
-    "create": ("post", "/tenant/{tenant_id}/item"),
-    "list": ("get", "/tenant/{tenant_id}/item"),
-    "clear": ("delete", "/tenant/{tenant_id}/item"),
-    "read": ("get", "/tenant/{tenant_id}/item/{item_id}"),
-    "update": ("patch", "/tenant/{tenant_id}/item/{item_id}"),
-    "delete": ("delete", "/tenant/{tenant_id}/item/{item_id}"),
+    "create": ("post", "/tenant/__/{tenant_id}/item"),
+    "list": ("get", "/tenant/__/{tenant_id}/item"),
+    "clear": ("delete", "/tenant/__/{tenant_id}/item"),
+    "read": ("get", "/tenant/__/{tenant_id}/item/__/{item_id}"),
+    "update": ("patch", "/tenant/__/{tenant_id}/item/__/{item_id}"),
+    "delete": ("delete", "/tenant/__/{tenant_id}/item/__/{item_id}"),
 }
 
 

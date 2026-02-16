@@ -132,7 +132,7 @@ async def test_rest_calls_honor_io_spec(widget_setup):
     }
     resp = await client.post("/widget/widget", json=payload)
     wid = resp.json()["id"]
-    data = (await client.get(f"/widget/widget/{wid}")).json()
+    data = (await client.get(f"/widget/widget/__/{wid}")).json()
     assert data["secret"] == "s"
     assert data["name"] == "hi"
 

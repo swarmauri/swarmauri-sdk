@@ -36,9 +36,9 @@ async def test_aget_basic():
 
     with patch.object(httpx.AsyncClient, "get", new=fake_aget):
         client = TigrblClient("http://example.com/api")
-        result = await client.aget("/users/1")
+        result = await client.aget("/users/__/1")
 
-    assert captured["url"] == "http://example.com/api/users/1"
+    assert captured["url"] == "http://example.com/api/users/__/1"
     assert result == {"id": 1, "name": "test"}
 
 
@@ -71,7 +71,7 @@ async def test_aget_with_schema():
 
     with patch.object(httpx.AsyncClient, "get", new=fake_aget):
         client = TigrblClient("http://example.com/api")
-        result = await client.aget("/items/1", out_schema=DummySchema)
+        result = await client.aget("/items/__/1", out_schema=DummySchema)
 
     assert isinstance(result, DummySchema)
     assert result._data == {"name": "test", "value": 42}
@@ -154,9 +154,9 @@ async def test_aput_basic():
 
     with patch.object(httpx.AsyncClient, "put", new=fake_aput):
         client = TigrblClient("http://example.com/api")
-        result = await client.aput("/users/1", data=data)
+        result = await client.aput("/users/__/1", data=data)
 
-    assert captured["url"] == "http://example.com/api/users/1"
+    assert captured["url"] == "http://example.com/api/users/__/1"
     assert captured["json"] == data
     assert result == {"id": 1, **data}
 
@@ -178,9 +178,9 @@ async def test_apatch_basic():
 
     with patch.object(httpx.AsyncClient, "patch", new=fake_apatch):
         client = TigrblClient("http://example.com/api")
-        await client.apatch("/users/1", data=data)
+        await client.apatch("/users/__/1", data=data)
 
-    assert captured["url"] == "http://example.com/api/users/1"
+    assert captured["url"] == "http://example.com/api/users/__/1"
     assert captured["json"] == data
 
 
@@ -198,9 +198,9 @@ async def test_adelete_basic():
 
     with patch.object(httpx.AsyncClient, "delete", new=fake_adelete):
         client = TigrblClient("http://example.com/api")
-        result = await client.adelete("/users/1")
+        result = await client.adelete("/users/__/1")
 
-    assert captured["url"] == "http://example.com/api/users/1"
+    assert captured["url"] == "http://example.com/api/users/__/1"
     assert result is None  # 204 No Content
 
 
@@ -217,7 +217,7 @@ async def test_adelete_with_response():
 
     with patch.object(httpx.AsyncClient, "delete", new=fake_adelete):
         client = TigrblClient("http://example.com/api")
-        result = await client.adelete("/users/1")
+        result = await client.adelete("/users/__/1")
 
     assert result == {"message": "User deleted successfully"}
 
@@ -241,7 +241,7 @@ async def test_async_rest_http_error():
     with patch.object(httpx.AsyncClient, "get", new=fake_aget):
         client = TigrblClient("http://example.com/api")
         with pytest.raises(httpx.HTTPStatusError):
-            await client.aget("/users/999")
+            await client.aget("/users/__/999")
 
 
 # Async Complex Filter Tests

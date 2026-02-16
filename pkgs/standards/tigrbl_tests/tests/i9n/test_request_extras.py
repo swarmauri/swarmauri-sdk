@@ -64,7 +64,7 @@ async def test_request_extras_runtime(api_client_with_extras):
     assert "token" not in body and "create_note" not in body
 
     res = await client.patch(
-        f"/widget/{wid}",
+        f"/widget/__/{wid}",
         json={"name": "w2", "token": "t2", "update_flag": True},
     )
     assert res.status_code == 200

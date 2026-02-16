@@ -283,7 +283,7 @@ class Key(Base, BulkCapable, Replaceable):
     @op_ctx(
         alias="encrypt",
         target="custom",
-        arity="member",  # /key/{item_id}/encrypt
+        arity="member",  # /key/__/{item_id}/encrypt
         persist="skip",
     )
     async def encrypt(cls, ctx):
@@ -376,7 +376,7 @@ class Key(Base, BulkCapable, Replaceable):
     @op_ctx(
         alias="decrypt",
         target="custom",
-        arity="member",  # /key/{item_id}/decrypt
+        arity="member",  # /key/__/{item_id}/decrypt
         persist="skip",
     )
     async def decrypt(cls, ctx):
@@ -467,7 +467,7 @@ class Key(Base, BulkCapable, Replaceable):
     @op_ctx(
         alias="wrap",
         target="custom",
-        arity="member",  # /key/{item_id}/wrap
+        arity="member",  # /key/__/{item_id}/wrap
         persist="skip",
     )
     async def wrap(cls, ctx):
@@ -559,7 +559,7 @@ class Key(Base, BulkCapable, Replaceable):
     @op_ctx(
         alias="unwrap",
         target="custom",
-        arity="member",  # /key/{item_id}/unwrap
+        arity="member",  # /key/__/{item_id}/unwrap
         persist="skip",
     )
     async def unwrap(cls, ctx):
@@ -663,7 +663,7 @@ class Key(Base, BulkCapable, Replaceable):
     @op_ctx(
         alias="rotate",
         target="custom",
-        arity="member",  # /key/{item_id}/rotate
+        arity="member",  # /key/__/{item_id}/rotate
         status_code=201,
     )
     async def rotate(cls, ctx):

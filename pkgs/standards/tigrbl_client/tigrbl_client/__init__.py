@@ -36,11 +36,11 @@ class TigrblClient(RPCMixin, CRUDMixin, NestedCRUDMixin):
 
         # REST CRUD usage
         client = TigrblClient("http://api.example.com")
-        user = client.get("/users/123")
+        user = client.get("/users/__/123")
         new_user = client.post("/users", data={"name": "John", "email": "john@example.com"})
 
         # Async usage
-        user = await client.aget("/users/123")
+        user = await client.aget("/users/__/123")
         result = await client.apost("/users", data={"name": "Jane"})
     """
 

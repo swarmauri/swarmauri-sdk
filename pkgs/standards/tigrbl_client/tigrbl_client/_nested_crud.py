@@ -1,50 +1,62 @@
 # tigrbl_client/_nested_crud.py
-"""
-Placeholder module for nested CRUD operations.
+"""Helpers for constructing canonical Tigrbl REST paths.
 
-This module will be developed in the future to support nested resource paths
-and more complex CRUD operations with hierarchical data structures.
-
-Examples of future functionality:
-- /users/{user_id}/posts/{post_id}/comments
-- /organizations/{org_id}/teams/{team_id}/members
-- Complex resource relationships and nested operations
+The canonical route shapes are:
+- ``/{collection}/__/{id}``
+- ``/{collection}/__/{id}/{member_op}``
+- ``/{collection}/__/{id}/{child_collection}/__/{child_id}``
+- ``/{collection}/__/{id}/{child_collection}/__/{child_id}/{member_op}``
+- ``/{collection}/{collection_op}``
 """
 
 from __future__ import annotations
 
-from typing import Any, TypeVar, Protocol
-from typing import runtime_checkable
-
-T = TypeVar("T")
-
-
-@runtime_checkable
-class _Schema(Protocol[T]):  # anything with Pydantic-v2 interface
-    @classmethod
-    def model_validate(cls, data: Any) -> T: ...
-    @classmethod
-    def model_dump_json(cls, **kw) -> str: ...
+from urllib.parse import quote
 
 
 class NestedCRUDMixin:
-    """
-    Placeholder mixin class for nested CRUD functionality.
+    """Utility methods for generating canonical Tigrbl REST paths."""
 
-    This will be developed to support complex nested resource paths
-    and hierarchical data operations.
-    """
+    @staticmethod
+    def _segment(value: str | int) -> str:
+        """Encode a path segment safely for URL usage."""
+        return quote(str(value), safe="")
 
-    def __init__(self):
-        """Initialize the NestedCRUDMixin."""
-        # Placeholder for future initialization
-        pass
+    @classmethod
+    def collection_path(cls, collection: str, collection_op: str | None = None) -> str:
+        """Build ``/{collection}`` or ``/{collection}/{collection_op}``."""
+        base = f"/{cls._segment(collection)}"
+        if collection_op:
+            return f"{base}/{cls._segment(collection_op)}"
+        return base
 
-    def _placeholder_method(self) -> str:
-        """
-        Placeholder method to demonstrate future functionality.
+    @classmethod
+    def member_path(
+        cls,
+        collection: str,
+        item_id: str | int,
+        member_op: str | None = None,
+    ) -> str:
+        """Build ``/{collection}/__/{id}`` with optional member operation."""
+        path = f"/{cls._segment(collection)}/__/{cls._segment(item_id)}"
+        if member_op:
+            return f"{path}/{cls._segment(member_op)}"
+        return path
 
-        Returns:
-            A message indicating this is a placeholder
-        """
-        return "This is a placeholder for future nested CRUD functionality"
+    @classmethod
+    def child_member_path(
+        cls,
+        collection: str,
+        item_id: str | int,
+        child_collection: str,
+        child_id: str | int,
+        member_op: str | None = None,
+    ) -> str:
+        """Build nested member paths with optional member operation."""
+        path = (
+            f"/{cls._segment(collection)}/__/{cls._segment(item_id)}"
+            f"/{cls._segment(child_collection)}/__/{cls._segment(child_id)}"
+        )
+        if member_op:
+            return f"{path}/{cls._segment(member_op)}"
+        return path

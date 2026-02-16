@@ -86,7 +86,7 @@ def test_wrap_nonexistent_key(client):
     key_material_b64 = base64.b64encode(secrets.token_bytes(32)).decode()
 
     wrap_payload = {"key_material_b64": key_material_b64}
-    wrap_response = client.post(f"/kms/key/{fake_key_id}/wrap", json=wrap_payload)
+    wrap_response = client.post(f"/kms/key/__/{fake_key_id}/wrap", json=wrap_payload)
     assert wrap_response.status_code == 404
     assert "Key not found" in wrap_response.json()["detail"]
 
@@ -266,7 +266,9 @@ def test_unwrap_nonexistent_key(client):
         "wrapped_key_b64": base64.b64encode(secrets.token_bytes(32)).decode(),
         "nonce_b64": base64.b64encode(secrets.token_bytes(12)).decode(),
     }
-    unwrap_response = client.post(f"/kms/key/{fake_key_id}/unwrap", json=unwrap_payload)
+    unwrap_response = client.post(
+        f"/kms/key/__/{fake_key_id}/unwrap", json=unwrap_payload
+    )
     assert unwrap_response.status_code == 404
     assert "Key not found" in unwrap_response.json()["detail"]
 

@@ -88,7 +88,7 @@ async def test_op_ctx_alias(
         if needs_id or verb in {"update", "delete", "list", "clear"}:
             r = await client.post("/widget", json={"name": "a"})
             wid = r.json()["id"]
-        path = f"/widget/{wid}/{alias}" if needs_id else f"/widget/{alias}"
+        path = f"/widget/__/{wid}/{alias}" if needs_id else f"/widget/{alias}"
         body = (
             {"name": "b"}
             if verb == "update"
@@ -171,7 +171,7 @@ async def test_op_ctx_override(verb, http_method, arity, needs_id):
         if needs_id or verb in {"update", "delete", "list", "clear"}:
             r = await client.post("/widget", json={"name": "a"})
             wid = r.json()["id"]
-        path = f"/widget/{wid}" if needs_id else "/widget"
+        path = f"/widget/__/{wid}" if needs_id else "/widget"
         body = (
             {"name": "b"}
             if verb == "update"
@@ -214,5 +214,5 @@ async def test_op_ctx_override(verb, http_method, arity, needs_id):
             pass
 
         openapi, _, _ = await fetch_inspection(client)
-        template = "/widget/{item_id}" if needs_id else "/widget"
+        template = "/widget/__/{item_id}" if needs_id else "/widget"
         assert template in openapi["paths"]

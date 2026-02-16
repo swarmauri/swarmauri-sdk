@@ -38,6 +38,6 @@ async def test_openapi_includes_widget_paths() -> None:
         assert response.status_code == 200
         paths = response.json()["paths"]
         assert "/widget" in paths
-        assert "/widget/{item_id}" in paths
+        assert "/widget/__/{item_id}" in paths
     finally:
         await stop_uvicorn(server, task)

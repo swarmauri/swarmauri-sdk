@@ -23,10 +23,10 @@ def key_version_routes(tmp_path, monkeypatch):
 @pytest.mark.parametrize(
     "alias,path,methods",
     [
-        ("read", "/kms/key_version/{item_id}", {"GET"}),
-        ("update", "/kms/key_version/{item_id}", {"PATCH"}),
-        ("replace", "/kms/key_version/{item_id}", {"PUT"}),
-        ("delete", "/kms/key_version/{item_id}", {"DELETE"}),
+        ("read", "/kms/key_version/__/{item_id}", {"GET"}),
+        ("update", "/kms/key_version/__/{item_id}", {"PATCH"}),
+        ("replace", "/kms/key_version/__/{item_id}", {"PUT"}),
+        ("delete", "/kms/key_version/__/{item_id}", {"DELETE"}),
         ("list", "/kms/key_version", {"GET"}),
         ("bulk_create", "/kms/key_version", {"POST"}),
         ("bulk_update", "/kms/key_version", {"PATCH"}),
