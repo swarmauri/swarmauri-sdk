@@ -205,8 +205,16 @@ class Request:
     def bearer_token(self) -> str | None:
         authorization = self.headers.get("authorization", "") or ""
         scheme, _, token = authorization.partition(" ")
-        if scheme.lower() == "bearer" and token:
-            return token
+        cleaned = token.strip()
+        if scheme.lower() == "bearer" and cleaned:
+            return cleaned
+        return None
+
+    @property
+    def admin_key(self) -> str | None:
+        key = (self.headers.get("x-admin-key") or "").strip()
+        if key:
+            return key
         return None
 
     @property
@@ -214,7 +222,10 @@ class Request:
         bearer = self.bearer_token
         if bearer:
             return bearer
-        return self.cookies.get("sid")
+        cookie_token = (self.cookies.get("sid") or "").strip()
+        if cookie_token:
+            return cookie_token
+        return None
 
     @property
     def client(self) -> SimpleNamespace:

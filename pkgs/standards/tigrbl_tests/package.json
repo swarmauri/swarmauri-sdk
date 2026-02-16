@@ -1,0 +1,9 @@
+{
+  "name": "tigrbl-tests",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Node-side contract tests for tigrbl request auth header trimming",
+  "scripts": {
+    "test": "node --test npm-tests/*.test.mjs"
+  }
+}
