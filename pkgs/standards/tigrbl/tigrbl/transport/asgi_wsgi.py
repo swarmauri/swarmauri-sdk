@@ -96,31 +96,29 @@ async def asgi_app(
     async def _endpoint(
         _scope: dict[str, Any], _receive: Callable, _send: Callable
     ) -> None:
-        del _scope, _receive, _send
-
         body = b""
         more_body = True
         while more_body:
-            message = await receive()
+            message = await _receive()
             body += message.get("body", b"")
             more_body = message.get("more_body", False)
 
-        req = request_from_asgi(router, scope, body)
+        req = request_from_asgi(router, _scope, body)
         resp = await router._dispatch(req)
         headers, finalized_body = _finalize_response(
-            scope,
+            _scope,
             resp.status_code,
             [(k.encode("latin-1"), v.encode("latin-1")) for k, v in resp.headers],
             resp.body,
         )
-        await send(
+        await _send(
             {
                 "type": "http.response.start",
                 "status": resp.status_code,
                 "headers": headers,
             }
         )
-        await send(
+        await _send(
             {
                 "type": "http.response.body",
                 "body": finalized_body,

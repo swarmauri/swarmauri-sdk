@@ -81,6 +81,7 @@ from .api import Api, TigrblApi
 from .table import Base
 from .op import Op
 from .security import APIKey, HTTPBearer, MutualTLS, OAuth2, OpenIdConnect
+from .middleware import BaseHTTPMiddleware, RequestResponseEndpoint
 
 
 __all__: list[str] = []
@@ -96,6 +97,8 @@ __all__ += [
     "OAuth2",
     "OpenIdConnect",
     "MutualTLS",
+    "BaseHTTPMiddleware",
+    "RequestResponseEndpoint",
 ]
 
 __all__ += [
