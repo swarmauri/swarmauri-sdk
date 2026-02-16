@@ -11,10 +11,10 @@ from urllib.parse import parse_qs
 from tigrbl import TigrblApp
 from tigrbl.api._api import Router
 from tigrbl.engine.shortcuts import engine as build_engine
-from tigrbl.response import StdApiResponse
+from tigrbl.responses import Response as StdApiResponse
 from tigrbl.runtime.status import HTTPException
 from tigrbl.security.dependencies import Depends
-from tigrbl.transport.request import Request
+from tigrbl.requests import Request
 
 from .ops import pks as pks_ops
 from .tables import OpenPGPKey
