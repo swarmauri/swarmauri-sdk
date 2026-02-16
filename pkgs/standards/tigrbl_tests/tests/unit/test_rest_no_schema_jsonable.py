@@ -56,7 +56,7 @@ def test_rest_read_and_list_without_schema(client_and_model):
     created = client.post("/gadget", json={"name": "A", "age": 1})
     item_id = created.json()["id"]
 
-    resp = client.get(f"/gadget/{item_id}")
+    resp = client.get(f"/gadget/#/{item_id}")
     assert resp.status_code == 200
     assert resp.json()["id"] == item_id
 

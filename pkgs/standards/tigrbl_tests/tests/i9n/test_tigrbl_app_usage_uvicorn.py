@@ -75,11 +75,11 @@ async def test_tigrbl_app_deploys_and_serves_openapi(running_app) -> None:
     paths = openapi["paths"]
 
     assert "/gamma" in paths
-    assert "/gamma/{item_id}" in paths
+    assert "/gamma/#/{item_id}" in paths
     assert "/delta" in paths
-    assert "/delta/{item_id}" in paths
+    assert "/delta/#/{item_id}" in paths
     assert {"get", "post", "delete"}.issubset(paths["/gamma"])
-    assert {"get", "patch", "put", "delete"}.issubset(paths["/gamma/{item_id}"])
+    assert {"get", "patch", "put", "delete"}.issubset(paths["/gamma/#/{item_id}"])
 
     security_schemes = openapi.get("components", {}).get("securitySchemes", {})
     assert "HTTPBearer" in security_schemes

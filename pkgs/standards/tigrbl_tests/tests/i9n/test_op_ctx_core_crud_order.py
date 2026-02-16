@@ -214,5 +214,5 @@ async def test_op_ctx_override(verb, http_method, arity, needs_id):
             pass
 
         openapi, _, _ = await fetch_inspection(client)
-        template = "/widget/{item_id}" if needs_id else "/widget"
+        template = "/widget/#/{item_id}" if needs_id else "/widget"
         assert template in openapi["paths"]

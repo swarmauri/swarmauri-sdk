@@ -132,7 +132,7 @@ def _path_for_spec(
         "merge",
         "delete",
     }:
-        return f"/{resource}/{{{pk_param}}}{suffix}", True
+        return f"/{resource}/#/{{{pk_param}}}{suffix}", True
     return f"/{resource}{suffix}", False
 
 

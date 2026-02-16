@@ -72,7 +72,7 @@ async def test_one_to_one_relationship_via_rest() -> None:
 
             # Read back the profile to verify the link.
             profile_id = create_profile.json()["id"]
-            read_profile = await client.get(f"/profile/{profile_id}")
+            read_profile = await client.get(f"/profile/#/{profile_id}")
             assert read_profile.status_code == 200
             assert read_profile.json()["user_id"] == user_id
     finally:

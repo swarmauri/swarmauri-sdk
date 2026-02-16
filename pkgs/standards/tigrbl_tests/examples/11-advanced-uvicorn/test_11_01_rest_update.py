@@ -37,7 +37,7 @@ async def test_rest_update_round_trip() -> None:
             create = await client.post("/widget", json={"name": "Gamma"})
             item_id = create.json()["id"]
             update = await client.patch(
-                f"/widget/{item_id}",
+                f"/widget/#/{item_id}",
                 json={"name": "Delta"},
             )
             assert update.status_code == 200

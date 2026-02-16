@@ -20,7 +20,7 @@ async def test_nested_path_schema_and_rpc(api_client):
 
     # REST call should inject path params
     rest_payload = [create_model(name="rest-item").model_dump(exclude_none=True)]
-    rest_res = await client.post(f"/tenant/{tenant_id}/item", json=rest_payload)
+    rest_res = await client.post(f"/tenant/#/{tenant_id}/item", json=rest_payload)
     rest_res.raise_for_status()
     rest_item = rest_res.json()[0]
     assert rest_item["tenant_id"] == tenant_id

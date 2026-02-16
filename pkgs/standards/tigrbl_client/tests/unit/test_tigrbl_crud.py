@@ -35,9 +35,9 @@ def test_get_basic():
 
     with patch.object(httpx.Client, "get", new=fake_get):
         client = TigrblClient("http://example.com/api")
-        result = client.get("/users/1")
+        result = client.get("/users/#/1")
 
-    assert captured["url"] == "http://example.com/api/users/1"
+    assert captured["url"] == "http://example.com/api/users/#/1"
     assert result == {"id": 1, "name": "test"}
 
 
@@ -94,7 +94,7 @@ def test_get_with_schema():
 
     with patch.object(httpx.Client, "get", new=fake_get):
         client = TigrblClient("http://example.com/api")
-        result = client.get("/items/1", out_schema=DummySchema)
+        result = client.get("/items/#/1", out_schema=DummySchema)
 
     assert isinstance(result, DummySchema)
     assert result._data == {"name": "test", "value": 42}
@@ -173,9 +173,9 @@ def test_put_basic():
 
     with patch.object(httpx.Client, "put", new=fake_put):
         client = TigrblClient("http://example.com/api")
-        result = client.put("/users/1", data=data)
+        result = client.put("/users/#/1", data=data)
 
-    assert captured["url"] == "http://example.com/api/users/1"
+    assert captured["url"] == "http://example.com/api/users/#/1"
     assert captured["json"] == data
     assert result == {"id": 1, **data}
 
@@ -196,9 +196,9 @@ def test_patch_basic():
 
     with patch.object(httpx.Client, "patch", new=fake_patch):
         client = TigrblClient("http://example.com/api")
-        client.patch("/users/1", data=data)
+        client.patch("/users/#/1", data=data)
 
-    assert captured["url"] == "http://example.com/api/users/1"
+    assert captured["url"] == "http://example.com/api/users/#/1"
     assert captured["json"] == data
 
 
@@ -215,9 +215,9 @@ def test_delete_basic():
 
     with patch.object(httpx.Client, "delete", new=fake_delete):
         client = TigrblClient("http://example.com/api")
-        result = client.delete("/users/1")
+        result = client.delete("/users/#/1")
 
-    assert captured["url"] == "http://example.com/api/users/1"
+    assert captured["url"] == "http://example.com/api/users/#/1"
     assert result is None  # 204 No Content
 
 
@@ -233,7 +233,7 @@ def test_delete_with_response():
 
     with patch.object(httpx.Client, "delete", new=fake_delete):
         client = TigrblClient("http://example.com/api")
-        result = client.delete("/users/1")
+        result = client.delete("/users/#/1")
 
     assert result == {"message": "User deleted successfully"}
 
@@ -256,7 +256,7 @@ def test_rest_http_error():
     with patch.object(httpx.Client, "get", new=fake_get):
         client = TigrblClient("http://example.com/api")
         with pytest.raises(httpx.HTTPStatusError):
-            client.get("/users/999")
+            client.get("/users/#/999")
 
 
 # Complex Filter Tests

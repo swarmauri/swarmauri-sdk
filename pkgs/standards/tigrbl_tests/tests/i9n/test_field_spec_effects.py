@@ -83,7 +83,7 @@ async def test_field_spec_allow_null_update(fs_app):
     client, _, SessionLocal, FSItem = fs_app
     create = await client.post("/fsitem", json={"name": "ok"})
     item_id = create.json()["id"]
-    upd = await client.patch(f"/fsitem/{item_id}", json={"name": None})
+    upd = await client.patch(f"/fsitem/#/{item_id}", json={"name": None})
     assert upd.status_code == 422
 
 

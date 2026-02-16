@@ -42,7 +42,7 @@ def test_key_creation_seeded_version(client_app):
     key = _create_key(client)
     key_id = key["id"]
 
-    read = client.get(f"/kms/key/{key_id}")
+    read = client.get(f"/kms/key/#/{key_id}")
     assert read.status_code == 200
     data = read.json()
     assert data["id"] == key_id

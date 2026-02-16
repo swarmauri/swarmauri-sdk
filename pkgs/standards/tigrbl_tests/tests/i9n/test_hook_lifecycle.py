@@ -382,14 +382,14 @@ async def test_catch_all_hooks(db_mode):
 
     items = await client.get("/item")
     item_id = items.json()[0]["id"]
-    await client.get(f"/item/{item_id}")
+    await client.get(f"/item/#/{item_id}")
 
     update_res = await client.patch(
-        f"/item/{item_id}", json={"tenant_id": tid, "name": "updated-item"}
+        f"/item/#/{item_id}", json={"tenant_id": tid, "name": "updated-item"}
     )
     update_succeeded = update_res.status_code < 400
 
-    delete_res = await client.delete(f"/item/{item_id}")
+    delete_res = await client.delete(f"/item/#/{item_id}")
     delete_succeeded = delete_res.status_code < 400
 
     expected_methods = [

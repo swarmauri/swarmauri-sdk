@@ -69,7 +69,7 @@ async def test_rest_read_and_list_with_row_results(client_and_model, monkeypatch
     created = await client.post("/widget", json={"name": "A"})
     item_id = created.json()["id"]
 
-    resp = await client.get(f"/widget/{item_id}")
+    resp = await client.get(f"/widget/#/{item_id}")
     assert resp.status_code == 200
     assert resp.json()["id"] == item_id
 

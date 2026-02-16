@@ -210,7 +210,7 @@ def _build_router(
                 "merge",
                 "delete",
             }:
-                path = f"{base}/{{{pk_param}}}{suffix}"
+                path = f"{base}/#/{{{pk_param}}}{suffix}"
                 is_member = True
             else:
                 path = f"{base}{suffix}"
@@ -330,6 +330,16 @@ def _build_router(
 
         router.add_api_route(**route_kwargs)
 
+        legacy_path = None
+        if is_member and "/#/" in path:
+            legacy_path = path.replace("/#/", "/", 1)
+            legacy_kwargs = dict(route_kwargs)
+            legacy_kwargs["path"] = legacy_path
+            legacy_kwargs["include_in_schema"] = False
+            legacy_kwargs["operation_id"] = f"{endpoint.__name__}_{uuid4().hex}"
+            legacy_kwargs["name"] = f"{model.__name__}.{sp.alias}.legacy"
+            router.add_api_route(**legacy_kwargs)
+
         logger.debug(
             "rest: registered %s %s -> %s.%s (response_model=%s)",
             methods,
@@ -338,5 +348,12 @@ def _build_router(
             sp.alias,
             getattr(response_model, "__name__", None) if response_model else None,
         )
+        if legacy_path:
+            logger.debug(
+                "rest: registered legacy member path %s for %s.%s",
+                legacy_path,
+                model.__name__,
+                sp.alias,
+            )
 
     return router

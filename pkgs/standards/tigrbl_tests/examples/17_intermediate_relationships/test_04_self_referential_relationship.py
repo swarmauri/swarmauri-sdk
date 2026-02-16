@@ -62,7 +62,7 @@ async def test_self_referential_relationship_via_rest() -> None:
             child_id = create_child.json()["id"]
 
             # Read the child to confirm the parent_id value.
-            read_child = await client.get(f"/category/{child_id}")
+            read_child = await client.get(f"/category/#/{child_id}")
             assert read_child.status_code == 200
             assert read_child.json()["parent_id"] == root_id
     finally:

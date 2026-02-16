@@ -250,7 +250,7 @@ async def api_client(db_mode):
 
         @classmethod
         def __tigrbl_nested_paths__(cls):
-            return "/tenant/{tenant_id}/item"
+            return "/tenant/#/{tenant_id}/item"
 
     fastapi_app = TigrblApp()
 

@@ -6,8 +6,8 @@ This module will be developed in the future to support nested resource paths
 and more complex CRUD operations with hierarchical data structures.
 
 Examples of future functionality:
-- /users/{user_id}/posts/{post_id}/comments
-- /organizations/{org_id}/teams/{team_id}/members
+- /users/#/{user_id}/posts/#/{post_id}/comments
+- /organizations/#/{org_id}/teams/#/{team_id}/members
 - Complex resource relationships and nested operations
 """
 
@@ -48,3 +48,50 @@ class NestedCRUDMixin:
             A message indicating this is a placeholder
         """
         return "This is a placeholder for future nested CRUD functionality"
+
+    def member_path(
+        self, collection: str, item_id: str | int, member_op: str = ""
+    ) -> str:
+        """Construct a canonical member path using the ``/#/`` id segment.
+
+        Examples:
+        - ``member_path("users", "u1")`` -> ``/users/#/u1``
+        - ``member_path("users", "u1", "disable")`` -> ``/users/#/u1/disable``
+        """
+
+        collection = collection.strip("/")
+        op = member_op.strip("/")
+        base = f"/{collection}/#/{item_id}"
+        return f"{base}/{op}" if op else base
+
+    def child_member_path(
+        self,
+        collection: str,
+        item_id: str | int,
+        child_collection: str,
+        child_id: str | int,
+        member_op: str = "",
+    ) -> str:
+        """Construct a canonical nested member path using ``/#/`` segments.
+
+        Example:
+        ``child_member_path("users", "u1", "posts", "p1")``
+        -> ``/users/#/u1/posts/#/p1``
+        """
+
+        parent = self.member_path(collection, item_id)
+        child_collection = child_collection.strip("/")
+        op = member_op.strip("/")
+        base = f"{parent}/{child_collection}/#/{child_id}"
+        return f"{base}/{op}" if op else base
+
+    def collection_op_path(self, collection: str, collection_op: str) -> str:
+        """Construct a canonical collection-op path.
+
+        Example:
+        - ``collection_op_path("users", "search")`` -> ``/users/search``
+        """
+
+        collection = collection.strip("/")
+        collection_op = collection_op.strip("/")
+        return f"/{collection}/{collection_op}"

@@ -119,7 +119,7 @@ async def test_schema_ctx_rest_calls(schema_ctx_client):
     client, _, _, _ = schema_ctx_client
     resp = await client.post("/widget", json={"name": "C"})
     item_id = resp.json()["id"]
-    read = await client.get(f"/widget/{item_id}")
+    read = await client.get(f"/widget/#/{item_id}")
     assert read.status_code == 200
     assert read.json()["id"] == item_id
 

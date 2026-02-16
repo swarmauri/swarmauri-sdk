@@ -23,10 +23,10 @@ def key_routes(tmp_path, monkeypatch):
 @pytest.mark.parametrize(
     "alias,path,methods",
     [
-        ("read", "/kms/key/{item_id}", {"GET"}),
-        ("update", "/kms/key/{item_id}", {"PATCH"}),
-        ("replace", "/kms/key/{item_id}", {"PUT"}),
-        ("delete", "/kms/key/{item_id}", {"DELETE"}),
+        ("read", "/kms/key/#/{item_id}", {"GET"}),
+        ("update", "/kms/key/#/{item_id}", {"PATCH"}),
+        ("replace", "/kms/key/#/{item_id}", {"PUT"}),
+        ("delete", "/kms/key/#/{item_id}", {"DELETE"}),
         ("list", "/kms/key", {"GET"}),
         ("bulk_create", "/kms/key", {"POST"}),
         ("bulk_update", "/kms/key", {"PATCH"}),
