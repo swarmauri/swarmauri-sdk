@@ -188,6 +188,7 @@ def mount_openrpc(
         _openrpc_endpoint,
         methods=["GET"],
         name=name,
+        include_in_schema=False,
         tags=list(tags) if tags else None,
         summary="OpenRPC",
         description="OpenRPC 1.2.6 schema for JSON-RPC methods.",
