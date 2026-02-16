@@ -10,6 +10,10 @@ from ...op import OpSpec
 JsonObject = Dict[str, Any]
 
 
+def _with_leading_slash(path: str) -> str:
+    return path if path.startswith("/") else f"/{path}"
+
+
 def _iter_models(api: Any) -> List[type]:
     seen: set[type] = set()
     models: List[type] = []
@@ -67,10 +71,11 @@ def _describe_method(model: type, spec: OpSpec) -> str | None:
 def build_openrpc_spec(api: Any) -> JsonObject:
     info_title = getattr(api, "title", None) or getattr(api, "name", None) or "API"
     info_version = getattr(api, "version", None) or "0.1.0"
+    jsonrpc_prefix = _with_leading_slash(getattr(api, "jsonrpc_prefix", None) or "/rpc")
     spec: JsonObject = {
         "openrpc": "1.2.6",
         "info": {"title": f"{info_title} JSON-RPC API", "version": info_version},
-        "servers": [{"name": info_title, "url": "/jsonrpc"}],
+        "servers": [{"name": info_title, "url": jsonrpc_prefix}],
         "methods": [],
         "components": {"schemas": {}},
     }
