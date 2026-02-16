@@ -77,6 +77,43 @@ async def test_asgi_non_http_scope_returns_500() -> None:
     ]
 
 
+@pytest.mark.asyncio()
+async def test_asgi_204_response_omits_body_and_content_length() -> None:
+    app = APIRouter()
+
+    @app.delete("/items/{item_id}", status_code=204)
+    def delete_item(item_id: str) -> None:
+        assert item_id == "1"
+        return None
+
+    messages: list[dict[str, object]] = []
+
+    request_messages = iter([{"type": "http.request", "body": b"", "more_body": False}])
+
+    async def receive() -> dict[str, object]:
+        return next(request_messages)
+
+    async def send(message: dict[str, object]) -> None:
+        messages.append(message)
+
+    await app._asgi_app(
+        {
+            "type": "http",
+            "method": "DELETE",
+            "path": "/items/1",
+            "query_string": b"",
+            "headers": [],
+        },
+        receive,
+        send,
+    )
+
+    assert messages[0]["type"] == "http.response.start"
+    assert messages[0]["status"] == 204
+    assert ("content-length", "0") not in messages[0]["headers"]
+    assert messages[1] == {"type": "http.response.body", "body": b""}
+
+
 def test_wsgi_dispatch_reads_body_and_query() -> None:
     app = APIRouter()
 
