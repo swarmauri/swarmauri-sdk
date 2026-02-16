@@ -205,6 +205,9 @@ def _create_all_on_bind(
     engine = getattr(bind, "engine", bind)
     tables = list(tables or [])
 
+    if not hasattr(engine, "dialect"):
+        return
+
     schema_names = set(schemas or [])
     for t in tables:
         if getattr(t, "schema", None):
@@ -288,12 +291,30 @@ def initialize(
             else:
                 setattr(obj, "tables", SimpleNamespace(**tables_map))
 
+    def _close_without_loop(db):
+        close = getattr(db, "close", None)
+        if not callable(close):
+            return
+        out = close()
+        if inspect.isawaitable(out):
+            asyncio.run(out)
+
+    def _close_with_loop(db):
+        close = getattr(db, "close", None)
+        if not callable(close):
+            return None
+        out = close()
+        return out if inspect.isawaitable(out) else None
+
     try:
         asyncio.get_running_loop()
     except RuntimeError:
         # No running event loop; fall back to fully synchronous bootstrap
-        with next(prov.get_db()) as db:
+        db = next(prov.get_db())
+        try:
             _bootstrap(db)
+        finally:
+            _close_without_loop(db)
         setattr(obj, "_ddl_executed", True)
         return
     else:
@@ -305,17 +326,26 @@ def initialize(
         if not inspect.iscoroutinefunction(
             prov.get_db
         ) and not inspect.isasyncgenfunction(prov.get_db):
-            with next(prov.get_db()) as db:
+            db = next(prov.get_db())
+            pending_close = None
+            try:
                 _bootstrap(db)
+            finally:
+                pending_close = _close_with_loop(db)
             setattr(obj, "_ddl_executed", True)
 
             class _Completed:
-                def __await__(self):  # pragma: no cover - trivial
-                    if False:
-                        yield None
-                    return None
+                def __init__(self, pending):
+                    self._pending = pending
 
-            return _Completed()
+                def __await__(self):  # pragma: no cover - trivial
+                    if self._pending is None:
+                        if False:
+                            yield None
+                        return None
+                    return self._pending.__await__()
+
+            return _Completed(pending_close)
 
         async def _inner():
             if inspect.isasyncgenfunction(prov.get_db):

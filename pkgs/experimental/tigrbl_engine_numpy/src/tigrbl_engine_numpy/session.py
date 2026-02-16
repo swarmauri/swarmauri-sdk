@@ -294,15 +294,38 @@ class NumpySession(TigrblSessionBase):
         return self._extract_model(stmt), self._extract_predicates(stmt)
 
     def _extract_model(self, stmt: Any) -> type:
+        descs = getattr(stmt, "column_descriptions", None) or []
+        for desc in descs:
+            entity = desc.get("entity") if isinstance(desc, dict) else None
+            if isinstance(entity, type):
+                return entity
+
+        def _all_subclasses(base: type) -> list[type]:
+            out: list[type] = []
+            stack = list(base.__subclasses__())
+            while stack:
+                cls = stack.pop()
+                out.append(cls)
+                stack.extend(cls.__subclasses__())
+            return out
+
+        def _find_by_table(name: str) -> type | None:
+            for cls in _all_subclasses(object):
+                if getattr(cls, "__tablename__", None) == name:
+                    return cls
+            return None
+
         for attr_name in ("_from_objects", "_froms", "froms"):
             value = getattr(stmt, attr_name, None)
-            if value:
+            if value is not None:
+                if isinstance(value, (list, tuple)) and not value:
+                    continue
                 table = value[0] if isinstance(value, (list, tuple)) else value
                 name = getattr(table, "name", None)
                 if isinstance(name, str):
-                    for cls in object.__subclasses__(object):
-                        if getattr(cls, "__tablename__", None) == name:
-                            return cls
+                    found = _find_by_table(name)
+                    if found is not None:
+                        return found
         raise RuntimeError("Cannot resolve model from statement")
 
     def _extract_predicates(self, stmt: Any) -> list[Tuple[str, str, Any]]:
@@ -328,10 +351,10 @@ class NumpySession(TigrblSessionBase):
         return out
 
     def _extract_order_by(self, stmt: Any) -> list[Tuple[str, str]]:
-        order = getattr(stmt, "_order_by_clause", None) or getattr(
-            stmt, "_order_by_clauses", None
-        )
-        if not order:
+        order = getattr(stmt, "_order_by_clause", None)
+        if order is None:
+            order = getattr(stmt, "_order_by_clauses", None)
+        if order is None:
             return []
         clauses = getattr(order, "clauses", None) or order
         clauses = clauses if isinstance(clauses, (list, tuple)) else [clauses]

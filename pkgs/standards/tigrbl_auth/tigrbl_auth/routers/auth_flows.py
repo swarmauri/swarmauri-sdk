@@ -24,7 +24,7 @@ async def login(
 ):
     _require_tls(request)
     if creds is None:
-        body = request.json() or {}
+        body = await request.json() or {}
         creds = CredsIn.model_validate(body)
     users = await User.handlers.list.core(
         {"payload": {"filters": {"username": creds.identifier}}, "db": db}
