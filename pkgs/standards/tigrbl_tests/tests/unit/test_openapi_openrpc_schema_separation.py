@@ -48,3 +48,24 @@ def test_openrpc_schema_excludes_openapi_endpoint() -> None:
     method_names = {method["name"].lower() for method in payload["methods"]}
     assert all("openapi" not in name for name in method_names)
     assert all("openrpc" not in name for name in method_names)
+
+
+def test_openapi_schema_excludes_openrpc_even_if_route_is_schema_visible() -> None:
+    app = _build_app()
+
+    def openrpc_override(_request):
+        return {"openrpc": "1.2.6"}
+
+    app.add_api_route(
+        "/openrpc.json",
+        openrpc_override,
+        methods=["GET"],
+        name="openrpc_json",
+        include_in_schema=True,
+    )
+
+    transport = ASGITransport(app=app)
+    with Client(transport=transport, base_url="http://test") as client:
+        payload = client.get("/openapi.json").json()
+
+    assert "/openrpc.json" not in payload["paths"]
