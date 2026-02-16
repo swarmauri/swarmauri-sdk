@@ -406,6 +406,8 @@ class TransactionalDataFrameSession(TigrblSessionBase):
 
         rc = getattr(stmt, "_raw_columns", None) or getattr(stmt, "columns", None)
         if rc is not None:
+            if isinstance(rc, (list, tuple)) and not rc:
+                raise RuntimeError("Cannot resolve model from statement")
             entity = rc[0]
             table = getattr(entity, "table", None)
             name = getattr(table, "name", None)
