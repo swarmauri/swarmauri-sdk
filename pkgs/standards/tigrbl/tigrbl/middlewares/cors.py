@@ -5,12 +5,14 @@ from __future__ import annotations
 from typing import Any
 
 from tigrbl.headers import Headers
+from tigrbl.requests import Request
+from tigrbl.responses import Response
 
-from .middleware import Middleware
-from .spec import ASGIReceive, ASGISend, WSGIStartResponse
+from .base import BaseHTTPMiddleware
+from .spec import WSGIStartResponse
 
 
-class CORSMiddleware(Middleware):
+class CORSMiddleware(BaseHTTPMiddleware):
     def __init__(
         self,
         app,
@@ -35,65 +37,54 @@ class CORSMiddleware(Middleware):
         self.allow_credentials = allow_credentials
         self.max_age = max_age
 
-    def _cors_headers(self) -> list[tuple[str, str]]:
+    def _resolve_allow_origin(self, request_headers: Headers) -> str:
+        origin = request_headers.get("origin")
+        if self.allow_origin == "*" or not origin:
+            return self.allow_origin
+        allowed = [candidate.strip() for candidate in self.allow_origin.split(",")]
+        if origin in allowed:
+            return origin
+        return "null"
+
+    def _cors_headers(self, request_headers: Headers) -> list[tuple[str, str]]:
+        allow_origin = self._resolve_allow_origin(request_headers)
+        allow_headers = self.allow_headers
+        requested_headers = request_headers.get("access-control-request-headers")
+        if allow_headers == "*" and requested_headers:
+            allow_headers = requested_headers
+
         headers = [
-            ("access-control-allow-origin", self.allow_origin),
+            ("access-control-allow-origin", allow_origin),
             ("access-control-allow-methods", self.allow_methods),
-            ("access-control-allow-headers", self.allow_headers),
+            ("access-control-allow-headers", allow_headers),
             ("access-control-max-age", str(self.max_age)),
+            ("vary", "origin"),
         ]
         if self.allow_credentials:
             headers.append(("access-control-allow-credentials", "true"))
         return headers
 
-    async def asgi(
-        self,
-        scope: dict[str, Any],
-        receive: ASGIReceive,
-        send: ASGISend,
-    ) -> None:
-        if scope.get("type") != "http":
-            await self.app(scope, receive, send)
-            return
-
-        request_headers = Headers(
-            [
-                (k.decode("latin-1"), v.decode("latin-1"))
-                for k, v in scope.get("headers", [])
-            ]
-        )
+    async def dispatch(self, request: Request, call_next: Any) -> Response:
+        request_headers = Headers(request.headers)
         is_preflight = (
-            (scope.get("method") or "").upper() == "OPTIONS"
+            request.method.upper() == "OPTIONS"
             and request_headers.get("origin") is not None
             and request_headers.get("access-control-request-method") is not None
         )
+
         if is_preflight:
-            await send(
-                {
-                    "type": "http.response.start",
-                    "status": 204,
-                    "headers": [
-                        (k.encode("latin-1"), v.encode("latin-1"))
-                        for k, v in self._cors_headers()
-                    ],
-                }
+            return Response(
+                status_code=204,
+                headers=self._cors_headers(request_headers),
+                body=b"",
             )
-            await send({"type": "http.response.body", "body": b""})
-            return
 
-        async def send_with_cors(message: dict[str, Any]) -> None:
-            if message.get("type") == "http.response.start":
-                headers = list(message.get("headers", []))
-                headers.extend(
-                    [
-                        (k.encode("latin-1"), v.encode("latin-1"))
-                        for k, v in self._cors_headers()
-                    ]
-                )
-                message = {**message, "headers": headers}
-            await send(message)
-
-        await self.app(scope, receive, send_with_cors)
+        response = await call_next(request)
+        response_headers = Headers(response.headers)
+        for key, value in self._cors_headers(request_headers):
+            response_headers[key] = value
+        response.headers = response_headers.as_list()
+        return response
 
     def wsgi(
         self,
@@ -107,15 +98,26 @@ class CORSMiddleware(Middleware):
             and environ.get("HTTP_ACCESS_CONTROL_REQUEST_METHOD")
         )
 
+        request_headers = Headers(
+            {
+                "origin": str(environ.get("HTTP_ORIGIN") or ""),
+                "access-control-request-headers": str(
+                    environ.get("HTTP_ACCESS_CONTROL_REQUEST_HEADERS") or ""
+                ),
+            }
+        )
+
         if is_preflight:
-            start_response("204 No Content", self._cors_headers())
+            start_response("204 No Content", self._cors_headers(request_headers))
             return [b""]
 
         def cors_start_response(
             status: str, headers: list[tuple[str, str]], *args: Any
         ):
-            merged = list(headers) + self._cors_headers()
-            return start_response(status, merged, *args)
+            merged = Headers(headers)
+            for key, value in self._cors_headers(request_headers):
+                merged[key] = value
+            return start_response(status, merged.as_list(), *args)
 
         return self.app(environ, cors_start_response)
 
