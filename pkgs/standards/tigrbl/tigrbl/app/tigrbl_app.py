@@ -18,12 +18,11 @@ from typing import (
 )
 
 from ._app import App as _App
+from ..api.tigrbl_api import TigrblApi
 from ..engine.engine_spec import EngineCfg
 from ..engine import resolver as _resolver
 from ..ddl import initialize as _ddl_initialize
 from ..bindings.api import (
-    include_model as _include_model,
-    include_models as _include_models,
     rpc_call as _rpc_call,
     _seed_security_and_deps,
     _mount_router,
@@ -143,6 +142,9 @@ class TigrblApp(_App):
 
         # API-level hooks map (merged into each model at include-time; precedence handled in bindings.hooks)
         self._api_hooks_map = copy.deepcopy(api_hooks) if api_hooks else None
+        self._default_api: TigrblApi | None = None
+        self.mount_openrpc(path="/openrpc.json")
+        self.mount_lens(path="/rdocs", spec_path="/openrpc.json")
         if apis:
             self.apis.extend(list(apis))
             self.include_apis(self.apis)
@@ -233,17 +235,47 @@ class TigrblApp(_App):
 
     # ------------------------- primary operations -------------------------
 
+    def _ensure_default_api(self) -> TigrblApi:
+        """Create and register the app-scoped default API when needed."""
+        if self._default_api is None:
+            self._default_api = TigrblApi(
+                engine=self.engine,
+                api_hooks=self._api_hooks_map,
+            )
+            # Mirror current app auth knobs onto the default API.
+            self._default_api.set_auth(
+                authn=self._authn,
+                allow_anon=self._allow_anon,
+                authorize=self._authorize,
+                optional_authn_dep=self._optional_authn_dep,
+            )
+            self.include_api(self._default_api)
+        return self._default_api
+
     def include_model(
         self, model: type, *, prefix: str | None = None, mount_router: bool = True
     ) -> Tuple[type, Any]:
         """
-        Bind a model, mount its REST router, and attach all namespaces to this facade.
+        Include a model through an internal ``TigrblApi`` mounted on this app.
         """
-        if not isinstance(self.hooks, SimpleNamespace):
-            self.hooks = SimpleNamespace()
-        # inject API-level hooks so the binder merges them
-        self._merge_api_hooks_into_model(model, self._api_hooks_map)
-        return _include_model(self, model, prefix=prefix, mount_router=mount_router)
+        default_api = self._ensure_default_api()
+
+        result = default_api.include_model(
+            model,
+            prefix=prefix,
+            mount_router=mount_router,
+        )
+        if mount_router:
+            _, router = result
+            if router is not None:
+                mount_prefix = prefix if prefix is not None else _default_prefix(model)
+                self.include_router(router, prefix=mount_prefix)
+                self.include_router(
+                    router,
+                    prefix=f"{default_api.rest_prefix}{mount_prefix}",
+                )
+        self._sync_default_api_namespaces()
+        return result
 
     def include_models(
         self,
@@ -252,16 +284,51 @@ class TigrblApp(_App):
         base_prefix: str | None = None,
         mount_router: bool = True,
     ) -> Dict[str, Any]:
-        if not isinstance(self.hooks, SimpleNamespace):
-            self.hooks = SimpleNamespace()
-        for m in models:
-            self._merge_api_hooks_into_model(m, self._api_hooks_map)
-        return _include_models(
-            self,
+        default_api = self._ensure_default_api()
+
+        result = default_api.include_models(
             models,
             base_prefix=base_prefix,
             mount_router=mount_router,
         )
+        if mount_router:
+            for model in models:
+                router = getattr(
+                    getattr(model, "rest", SimpleNamespace()),
+                    "router",
+                    None,
+                )
+                if router is None:
+                    continue
+                mount_prefix = (
+                    f"{base_prefix}{_default_prefix(model)}"
+                    if base_prefix is not None
+                    else _default_prefix(model)
+                )
+                self.include_router(router, prefix=mount_prefix)
+                self.include_router(
+                    router,
+                    prefix=f"{default_api.rest_prefix}{mount_prefix}",
+                )
+        self._sync_default_api_namespaces()
+        return result
+
+    def _sync_default_api_namespaces(self) -> None:
+        """Mirror the auto-created API registries onto the app facade."""
+        if self._default_api is None:
+            return
+        self.models = self._default_api.models
+        self.schemas = self._default_api.schemas
+        self.handlers = self._default_api.handlers
+        self.hooks = self._default_api.hooks
+        self.rpc = self._default_api.rpc
+        self.rest = self._default_api.rest
+        self.routers = self._default_api.routers
+        self.tables = self._default_api.tables
+        self.columns = self._default_api.columns
+        self.table_config = self._default_api.table_config
+        self.core = self._default_api.core
+        self.core_raw = self._default_api.core_raw
 
     def include_api(
         self,
@@ -478,6 +545,15 @@ class TigrblApp(_App):
             self._authorize = authorize
         if optional_authn_dep is not None:
             self._optional_authn_dep = optional_authn_dep
+
+        if self._default_api is not None:
+            self._default_api.set_auth(
+                authn=self._authn,
+                allow_anon=self._allow_anon,
+                authorize=self._authorize,
+                optional_authn_dep=self._optional_authn_dep,
+            )
+            self._sync_default_api_namespaces()
 
         # Refresh already-included models so routers pick up new auth settings
         if self.models:

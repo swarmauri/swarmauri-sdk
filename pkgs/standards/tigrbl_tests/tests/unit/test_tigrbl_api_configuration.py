@@ -45,3 +45,15 @@ def test_tigrbl_api_post_instantiation_set_auth_updates_state() -> None:
     assert "_allow_anon" in api_dir
     assert api._authn is _auth_dependency
     assert api._allow_anon is False
+
+
+@pytest.mark.unit
+def test_tigrbl_api_class_prefix_defaults() -> None:
+    assert TigrblApi.REST_PREFIX == "/api"
+    assert TigrblApi.RPC_PREFIX == "/rpc"
+    assert TigrblApi.SYSTEM_PREFIX == "/system"
+
+    api = TigrblApi(engine=mem(async_=False))
+    assert api.rest_prefix == "/api"
+    assert api.rpc_prefix == "/rpc"
+    assert api.system_prefix == "/system"

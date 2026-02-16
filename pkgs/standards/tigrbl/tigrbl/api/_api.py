@@ -18,6 +18,9 @@ class Api(APISpec, Router):
 
     MODELS: tuple[Any, ...] = ()
     TABLES: tuple[Any, ...] = ()
+    REST_PREFIX = "/api"
+    RPC_PREFIX = "/rpc"
+    SYSTEM_PREFIX = "/system"
 
     # dataclass inheritance makes instances unhashable; use identity semantics
     # for both hashing and equality so objects can participate in sets/dicts
@@ -48,6 +51,9 @@ class Api(APISpec, Router):
         self.security_deps = tuple(getattr(self, "SECURITY_DEPS", ()))
         self.deps = tuple(getattr(self, "DEPS", ()))
         self.response = getattr(self, "RESPONSE", None)
+        self.rest_prefix = getattr(self, "REST_PREFIX", "/api")
+        self.rpc_prefix = getattr(self, "RPC_PREFIX", "/rpc")
+        self.system_prefix = getattr(self, "SYSTEM_PREFIX", "/system")
         # ``models`` is expected to be a dict at runtime for registry lookups.
         self.models = initialize_model_registry(getattr(self, "MODELS", ()))
 

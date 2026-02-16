@@ -73,11 +73,7 @@ def mount_jsonrpc(
         Optional tags applied to the mounted "/rpc" endpoint. Defaults to
         ``("rpc",)``.
     """
-    router = build_jsonrpc_router(
-        api,
-        get_db=get_db,
-        tags=tags,
-    )
+    router = build_jsonrpc_router(api, get_db=get_db, tags=tags)
     include_router = getattr(app, "include_router", None)
     if callable(include_router):
         include_router(router, prefix=prefix)

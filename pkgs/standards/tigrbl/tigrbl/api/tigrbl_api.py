@@ -52,6 +52,9 @@ class TigrblApi(_Api):
     """
 
     PREFIX = ""
+    REST_PREFIX = "/api"
+    RPC_PREFIX = "/rpc"
+    SYSTEM_PREFIX = "/system"
     TAGS: Sequence[Any] = ()
     APIS: Sequence[Any] = ()
     MODELS: Sequence[Any] = ()
@@ -84,13 +87,14 @@ class TigrblApi(_Api):
         self.jsonrpc_prefix = (
             jsonrpc_prefix
             if jsonrpc_prefix is not None
-            else getattr(self, "JSONRPC_PREFIX", "/rpc")
+            else getattr(self, "RPC_PREFIX", getattr(self, "JSONRPC_PREFIX", "/rpc"))
         )
         self.system_prefix = (
             system_prefix
             if system_prefix is not None
             else getattr(self, "SYSTEM_PREFIX", "/system")
         )
+        self.rest_prefix = getattr(self, "REST_PREFIX", "/api")
 
         # public containers (mirrors used by bindings.api)
         self.models = initialize_model_registry(getattr(self, "MODELS", ()))
@@ -105,6 +109,9 @@ class TigrblApi(_Api):
         self.table_config: Dict[str, Dict[str, Any]] = {}
         self.core = SimpleNamespace()
         self.core_raw = SimpleNamespace()
+
+        # Auto-mount canonical API surfaces for standalone usage.
+        self.mount_jsonrpc()
 
         # API-level hooks map (merged into each model at include-time; precedence handled in bindings.hooks)
         self._api_hooks_map = copy.deepcopy(api_hooks) if api_hooks else None
@@ -158,9 +165,12 @@ class TigrblApi(_Api):
         """
         # inject API-level hooks so the binder merges them
         self._merge_api_hooks_into_model(model, self._api_hooks_map)
-        return _include_model(
+        included_model, router = _include_model(
             self, model, app=None, prefix=prefix, mount_router=mount_router
         )
+        if mount_router and prefix is None and router is not None:
+            self.include_router(router, prefix=self.rest_prefix)
+        return included_model, router
 
     def include_models(
         self,
@@ -171,13 +181,18 @@ class TigrblApi(_Api):
     ) -> Dict[str, Any]:
         for m in models:
             self._merge_api_hooks_into_model(m, self._api_hooks_map)
-        return _include_models(
+        included = _include_models(
             self,
             models,
             app=None,
             base_prefix=base_prefix,
             mount_router=mount_router,
         )
+        if mount_router and base_prefix is None:
+            for router in included.values():
+                if router is not None:
+                    self.include_router(router, prefix=self.rest_prefix)
+        return included
 
     async def rpc_call(
         self,
