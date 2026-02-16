@@ -264,17 +264,13 @@ class TigrblApp(_App):
         result = default_api.include_model(
             model,
             prefix=prefix,
-            mount_router=mount_router,
+            mount_router=False,
         )
         if mount_router:
             _, router = result
             if router is not None:
                 mount_prefix = prefix if prefix is not None else _default_prefix(model)
                 self.include_router(router, prefix=mount_prefix)
-                self.include_router(
-                    router,
-                    prefix=f"{default_api.rest_prefix}{mount_prefix}",
-                )
         self._sync_default_api_namespaces()
         return result
 
@@ -290,7 +286,7 @@ class TigrblApp(_App):
         result = default_api.include_models(
             models,
             base_prefix=base_prefix,
-            mount_router=mount_router,
+            mount_router=False,
         )
         if mount_router:
             for model in models:
@@ -307,10 +303,6 @@ class TigrblApp(_App):
                     else _default_prefix(model)
                 )
                 self.include_router(router, prefix=mount_prefix)
-                self.include_router(
-                    router,
-                    prefix=f"{default_api.rest_prefix}{mount_prefix}",
-                )
         self._sync_default_api_namespaces()
         return result
 
