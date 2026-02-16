@@ -179,12 +179,14 @@ def mount_openrpc(
     """Mount an OpenRPC JSON endpoint onto ``router`` or ``api``."""
 
     target_router = router if router is not None else api
+    normalized_path = _with_leading_slash(path)
+    setattr(api, "openrpc_path", normalized_path)
 
     def _openrpc_endpoint(request: Any) -> Response:
         return Response.json(build_openrpc_spec(api, request=request))
 
     target_router.add_api_route(
-        path,
+        normalized_path,
         _openrpc_endpoint,
         methods=["GET"],
         name=name,
