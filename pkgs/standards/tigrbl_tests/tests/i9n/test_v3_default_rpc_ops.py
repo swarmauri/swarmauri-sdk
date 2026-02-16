@@ -140,6 +140,61 @@ async def test_bulk_methods_absent(client_and_model):
         assert not hasattr(Gadget.rpc, name)
 
 
+@pytest_asyncio.fixture()
+async def wrapper_field_client_and_model():
+    Base3.metadata.clear()
+    Base3.registry.dispose()
+
+    class WrapperNamed(Base3):
+        __tablename__ = "wrapper_named"
+        __allow_unmapped__ = True
+
+        id: Mapped[int] = acol(
+            storage=S(type_=Integer, primary_key=True, autoincrement=True)
+        )
+        data: Mapped[str] = acol(
+            storage=S(type_=String, nullable=False),
+            field=F(required_in=("create",)),
+            io=IO(in_verbs=("create", "update"), out_verbs=("read", "list")),
+        )
+
+        __tigrbl_cols__ = {"id": id, "data": data}
+
+    app = Tigrblv3()
+    api = Tigrblv3(engine=mem())
+    api.include_model(WrapperNamed, prefix="")
+    api.mount_jsonrpc(prefix="/rpc")
+    await api.initialize()
+    app.include_router(api.router)
+    transport = ASGITransport(app=app)
+    client = AsyncClient(transport=transport, base_url="http://test")
+    try:
+        yield client, WrapperNamed
+    finally:
+        await client.aclose()
+
+
+@pytest.mark.i9n
+@pytest.mark.asyncio
+async def test_rpc_create_allows_schema_defined_wrapper_like_fields(
+    wrapper_field_client_and_model,
+):
+    client, _ = wrapper_field_client_and_model
+    payload = {
+        "jsonrpc": "2.0",
+        "method": "WrapperNamed.create",
+        "params": {"data": "legit"},
+        "id": 99,
+    }
+
+    response = await client.post("/rpc", json=payload)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert "error" not in body
+    assert body["result"]["data"] == "legit"
+
+
 @pytest.mark.i9n
 @pytest.mark.asyncio
 @pytest.mark.parametrize("wrapper_key", ["data", "payload", "body", "item"])
@@ -217,6 +272,31 @@ async def bulk_client_and_model():
         yield client, Gadget
     finally:
         await client.aclose()
+
+
+@pytest.mark.i9n
+@pytest.mark.asyncio
+@pytest.mark.parametrize("wrapper_key", ["data", "payload", "body", "item"])
+async def test_rpc_bulk_create_rejects_wrapper_object_items(
+    wrapper_key,
+    bulk_client_and_model,
+):
+    client, _ = bulk_client_and_model
+
+    payload = {
+        "jsonrpc": "2.0",
+        "method": "Gadget.bulk_create",
+        "params": [{wrapper_key: {"name": "Wrapped", "age": 7}}],
+        "id": 20,
+    }
+
+    response = await client.post("/rpc", json=payload)
+
+    assert response.status_code == 200
+    error = response.json()["error"]
+    assert error["code"] == -32602
+    assert error["message"] == "Invalid params"
+    assert error["data"]["disallowed_keys"] == [wrapper_key]
 
 
 @pytest.mark.i9n
