@@ -102,7 +102,16 @@ def _filter_in_values(
             if mutable and verb not in mutable:
                 allowed = False
         if allowed:
-            out[k] = v
+            try:
+                col = getattr(getattr(model, "__table__", None), "columns", {}).get(k)
+                py_t = getattr(getattr(col, "type", None), "python_type", None)
+                if py_t is not None and v is not None and not isinstance(v, py_t):
+                    out[k] = py_t(v)
+                else:
+                    out[k] = v
+            except Exception:
+                # Best effort coercion only; preserve original value on failure.
+                out[k] = v
     logger.info("_filter_in_values returning %s", out)
     return out
 
