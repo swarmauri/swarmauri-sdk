@@ -71,10 +71,13 @@ def mount_jsonrpc(
         Optional tags applied to the mounted "/rpc" endpoint. Defaults to
         ``("rpc",)``.
     """
+    normalized_prefix = prefix if str(prefix).startswith("/") else f"/{prefix}"
+    setattr(api, "jsonrpc_prefix", normalized_prefix.rstrip("/") or "/")
+
     router = build_jsonrpc_router(api, get_db=get_db, tags=tags)
     include_router = getattr(app, "include_router", None)
     if callable(include_router):
-        include_router(router, prefix=prefix)
+        include_router(router, prefix=normalized_prefix)
 
     return router
 

@@ -35,7 +35,11 @@ def _normalize_params(params: Any) -> Any:
     if params is None:
         return {}
     if isinstance(params, Mapping):
-        return dict(params)
+        normalized = dict(params)
+        nested = normalized.get("params")
+        if set(normalized) == {"params"} and isinstance(nested, Mapping):
+            return dict(nested)
+        return normalized
     if isinstance(params, Sequence) and not isinstance(params, (str, bytes)):
         return list(params)
     raise HTTPException(
