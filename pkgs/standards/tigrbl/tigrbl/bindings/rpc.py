@@ -37,19 +37,60 @@ _Key = Tuple[str, str]  # (alias, target)
 _WRAPPER_KEYS = frozenset({"data", "payload", "body", "item"})
 
 
-def _reject_wrapper_keys(payload: Any) -> None:
-    if not isinstance(payload, Mapping):
+def _schema_field_names(schema: Any) -> set[str]:
+    """Return top-level field names declared by a Pydantic schema class."""
+    if not schema or not inspect.isclass(schema) or not issubclass(schema, BaseModel):
+        return set()
+
+    fields = getattr(schema, "model_fields", None)
+    if not isinstance(fields, Mapping):
+        return set()
+
+    names: set[str] = set(fields.keys())
+    for field_name, field_info in fields.items():
+        alias = getattr(field_info, "alias", None)
+        if isinstance(alias, str) and alias:
+            names.add(alias)
+        validation_alias = getattr(field_info, "validation_alias", None)
+        if isinstance(validation_alias, str) and validation_alias:
+            names.add(validation_alias)
+    return names
+
+
+def _allowed_wrapper_keys(model: type, alias: str, target: str) -> set[str]:
+    """Wrapper-like names that are valid operation fields for this RPC method."""
+    schemas_root = getattr(model, "schemas", None)
+    alias_ns = getattr(schemas_root, alias, None) if schemas_root else None
+    if not alias_ns:
+        return set()
+
+    allowed = _schema_field_names(getattr(alias_ns, "in_", None))
+    if target.startswith("bulk_") and target != "bulk_delete":
+        allowed |= _schema_field_names(getattr(alias_ns, "in_item", None))
+    return allowed & set(_WRAPPER_KEYS)
+
+
+def _reject_wrapper_keys(payload: Any, *, allowed_keys: set[str] | None = None) -> None:
+    allowed = allowed_keys or set()
+
+    if isinstance(payload, Mapping):
+        disallowed = sorted(
+            k for k in payload if k in _WRAPPER_KEYS and k not in allowed
+        )
+        if disallowed:
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "reason": "Wrapper keys are not allowed; params must match the operation schema.",
+                    "disallowed_keys": disallowed,
+                },
+            )
         return
-    disallowed = sorted(k for k in payload if k in _WRAPPER_KEYS)
-    if not disallowed:
-        return
-    raise HTTPException(
-        status_code=422,
-        detail={
-            "reason": "Wrapper keys are not allowed; params must match the operation schema.",
-            "disallowed_keys": disallowed,
-        },
-    )
+
+    if isinstance(payload, Sequence) and not isinstance(payload, (str, bytes)):
+        for item in payload:
+            if isinstance(item, Mapping):
+                _reject_wrapper_keys(item, allowed_keys=allowed)
 
 
 # Mapping with attribute-style access
@@ -118,7 +159,12 @@ def _coerce_payload(payload: Any) -> Any:
     if isinstance(payload, Sequence) and not isinstance(payload, (str, bytes)):
         out: list[Any] = []
         for item in payload:
-            if isinstance(item, Mapping):
+            if isinstance(item, BaseModel):
+                try:
+                    out.append(item.model_dump(exclude_none=False))
+                except Exception:
+                    out.append(dict(item.__dict__))
+            elif isinstance(item, Mapping):
                 out.append(dict(item))
             else:
                 out.append(item)
@@ -282,9 +328,10 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
         schemas_root = getattr(model, "schemas", None)
         alias_ns = getattr(schemas_root, alias, None)
         item_in_model = getattr(alias_ns, "in_item", None)
+        allowed_wrapper_keys = _allowed_wrapper_keys(model, alias, target)
 
         raw_payload = _coerce_payload(payload)
-        _reject_wrapper_keys(raw_payload)
+        _reject_wrapper_keys(raw_payload, allowed_keys=allowed_wrapper_keys)
         if target == "bulk_delete" and not isinstance(raw_payload, Mapping):
             raw_payload = {"ids": raw_payload}
         if (
