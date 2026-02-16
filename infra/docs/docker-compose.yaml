@@ -7,6 +7,71 @@ x-as-user: &as_user
   init: true
 
 services:
+  trustsig-certs:
+    image: alpine:3.21
+    container_name: trustsig-certs
+    command:
+      - /bin/sh
+      - -c
+      - |
+        set -eu
+        apk add --no-cache openssl >/dev/null
+        mkdir -p /certs
+
+        if [ ! -f /certs/backend-ca.key ] || [ ! -f /certs/backend-ca.crt ]; then
+          openssl genrsa -out /certs/backend-ca.key 4096
+          openssl req -x509 -new -nodes \
+            -key /certs/backend-ca.key \
+            -sha256 \
+            -days 3650 \
+            -subj "/C=US/O=TrustSig/CN=trustsig-backend-ca" \
+            -out /certs/backend-ca.crt
+        fi
+
+        if [ ! -f /certs/backend.key ] || [ ! -f /certs/backend.crt ]; then
+          openssl genrsa -out /certs/backend.key 2048
+          openssl req -new \
+            -key /certs/backend.key \
+            -subj "/C=US/O=TrustSig/CN=backend.local" \
+            -out /certs/backend.csr
+          printf "subjectAltName=DNS:backend.local,DNS:localhost,IP:127.0.0.1\nextendedKeyUsage=serverAuth\n" > /tmp/backend.ext
+          openssl x509 -req \
+            -in /certs/backend.csr \
+            -CA /certs/backend-ca.crt \
+            -CAkey /certs/backend-ca.key \
+            -CAcreateserial \
+            -out /certs/backend.crt \
+            -days 825 \
+            -sha256 \
+            -extfile /tmp/backend.ext
+          rm -f /certs/backend.csr
+        fi
+
+        if [ ! -f /certs/client.key ] || [ ! -f /certs/client.crt ]; then
+          openssl genrsa -out /certs/client.key 2048
+          openssl req -new \
+            -key /certs/client.key \
+            -subj "/C=US/O=TrustSig/CN=docs-client" \
+            -out /certs/client.csr
+          printf "extendedKeyUsage=clientAuth\n" > /tmp/client.ext
+          openssl x509 -req \
+            -in /certs/client.csr \
+            -CA /certs/backend-ca.crt \
+            -CAkey /certs/backend-ca.key \
+            -CAcreateserial \
+            -out /certs/client.crt \
+            -days 825 \
+            -sha256 \
+            -extfile /tmp/client.ext
+          rm -f /certs/client.csr
+        fi
+
+        chmod 600 /certs/*.key
+        chmod 644 /certs/*.crt
+    volumes:
+      - /mnt/data/trustsig/certs:/certs
+    restart: "no"
+
   swarmauri-sdk-docs:
     <<: *as_user
     build:
@@ -16,7 +81,9 @@ services:
     volumes:
       - ./swarmauri-sdk:/docs   # Mount the swarmauri-sdk docs directory
       - ../../pkgs:/pkgs           # Mount the repo pkgs directory
+      - /mnt/data/trustsig/certs:/certs:ro
     depends_on:
+      - trustsig-certs
       - nginx-proxy-manager
     networks:
       - dockernet
@@ -31,7 +98,9 @@ services:
     volumes:
       - ./peagen:/docs
       - ../../pkgs:/pkgs
+      - /mnt/data/trustsig/certs:/certs:ro
     depends_on:
+      - trustsig-certs
       - nginx-proxy-manager
     networks:
       - dockernet
@@ -46,7 +115,9 @@ services:
     volumes:
       - ./tigrbl:/docs
       - ../../pkgs:/pkgs
+      - /mnt/data/trustsig/certs:/certs:ro
     depends_on:
+      - trustsig-certs
       - nginx-proxy-manager
     networks:
       - dockernet
