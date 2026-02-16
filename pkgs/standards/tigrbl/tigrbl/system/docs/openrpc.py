@@ -14,6 +14,52 @@ def _with_leading_slash(path: str) -> str:
     return path if path.startswith("/") else f"/{path}"
 
 
+def _jsonrpc_path(api: Any) -> str:
+    configured = getattr(api, "jsonrpc_prefix", None) or "/rpc"
+    return _with_leading_slash(str(configured)).rstrip("/") or "/"
+
+
+def _request_origin(request: Any) -> str | None:
+    headers = getattr(request, "headers", None)
+    if headers is None or not hasattr(headers, "get"):
+        return None
+
+    forwarded_host = headers.get("x-forwarded-host")
+    host = forwarded_host or headers.get("host")
+    if not host:
+        return None
+    host = str(host).split(",", maxsplit=1)[0].strip()
+    if not host:
+        return None
+
+    proto = (
+        headers.get("x-forwarded-proto")
+        or headers.get("x-forwarded-protocol")
+        or headers.get("x-forwarded-scheme")
+    )
+    forwarded = headers.get("forwarded", "")
+    if not (forwarded_host or proto or forwarded):
+        return None
+
+    scheme = None
+    if proto:
+        scheme = str(proto).split(",", maxsplit=1)[0].strip()
+
+    if not scheme:
+        request_url = getattr(request, "url", None)
+        if request_url is not None:
+            scheme = getattr(request_url, "scheme", None)
+
+    if not scheme:
+        scope = getattr(request, "scope", None)
+        if isinstance(scope, Mapping):
+            scheme = scope.get("scheme")
+
+    if not scheme:
+        scheme = "https" if str(forwarded).lower().find("proto=https") >= 0 else "http"
+    return f"{scheme}://{host}"
+
+
 def _iter_models(api: Any) -> List[type]:
     seen: set[type] = set()
     models: List[type] = []
@@ -68,14 +114,16 @@ def _describe_method(model: type, spec: OpSpec) -> str | None:
     return None
 
 
-def build_openrpc_spec(api: Any) -> JsonObject:
+def build_openrpc_spec(api: Any, request: Any | None = None) -> JsonObject:
     info_title = getattr(api, "title", None) or getattr(api, "name", None) or "API"
     info_version = getattr(api, "version", None) or "0.1.0"
-    jsonrpc_prefix = _with_leading_slash(getattr(api, "jsonrpc_prefix", None) or "/rpc")
+    jsonrpc_url = _jsonrpc_path(api)
+    origin = _request_origin(request)
+    server_url = f"{origin}{jsonrpc_url}" if origin else jsonrpc_url
     spec: JsonObject = {
         "openrpc": "1.2.6",
         "info": {"title": f"{info_title} JSON-RPC API", "version": info_version},
-        "servers": [{"name": info_title, "url": jsonrpc_prefix}],
+        "servers": [{"name": info_title, "url": server_url}],
         "methods": [],
         "components": {"schemas": {}},
     }
@@ -132,8 +180,8 @@ def mount_openrpc(
 
     target_router = router if router is not None else api
 
-    def _openrpc_endpoint() -> Response:
-        return Response.json(build_openrpc_spec(api))
+    def _openrpc_endpoint(request: Any) -> Response:
+        return Response.json(build_openrpc_spec(api, request=request))
 
     target_router.add_api_route(
         path,

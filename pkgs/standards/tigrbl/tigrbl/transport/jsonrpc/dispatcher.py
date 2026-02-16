@@ -100,38 +100,6 @@ Json = Mapping[str, Any]
 Batch = Sequence[Mapping[str, Any]]
 
 
-def _status_from_rpc_payload(payload: Mapping[str, Any]) -> int:
-    """Translate a JSON-RPC payload into an HTTP status code."""
-    error = payload.get("error")
-    if isinstance(error, Mapping):
-        code = error.get("code")
-        if isinstance(code, int):
-            return _RPC_TO_HTTP.get(code, 500)
-
-    result = payload.get("result")
-    if isinstance(result, Mapping):
-        status_code = result.get("status_code")
-        if isinstance(status_code, int):
-            return status_code
-
-    return 200
-
-
-def _status_from_rpc_batch(payloads: Sequence[Mapping[str, Any]]) -> int:
-    """Pick a representative HTTP status for a JSON-RPC batch response."""
-    if not payloads:
-        return 204
-
-    statuses = [_status_from_rpc_payload(payload) for payload in payloads]
-    for status_code in statuses:
-        if status_code >= 500:
-            return status_code
-    for status_code in statuses:
-        if status_code >= 400:
-            return status_code
-    return statuses[0]
-
-
 def _log_rpc_success(method: Any, rid: Any) -> None:
     logger.info(
         "jsonrpc response method=%s id=%s status_code=%s",
@@ -306,7 +274,6 @@ def build_jsonrpc_router(
                         responses.append(resp)
                 return JSONResponse(
                     content=responses,
-                    status_code=_status_from_rpc_batch(responses),
                 )
             elif isinstance(body, (RPCRequest, Mapping)):
                 resp = await _dispatch_one(
@@ -319,13 +286,10 @@ def build_jsonrpc_router(
                     return Response(status_code=204)
                 return JSONResponse(
                     content=resp,
-                    status_code=_status_from_rpc_payload(resp),
                 )
             else:
                 err = _err(-32600, "Invalid Request", None)
-                return JSONResponse(
-                    content=err, status_code=_status_from_rpc_payload(err)
-                )
+                return JSONResponse(content=err)
 
     elif dep is not None:
         # Only DB dependency
@@ -347,7 +311,6 @@ def build_jsonrpc_router(
                         responses.append(resp)
                 return JSONResponse(
                     content=responses,
-                    status_code=_status_from_rpc_batch(responses),
                 )
             elif isinstance(body, (RPCRequest, Mapping)):
                 resp = await _dispatch_one(
@@ -360,13 +323,10 @@ def build_jsonrpc_router(
                     return Response(status_code=204)
                 return JSONResponse(
                     content=resp,
-                    status_code=_status_from_rpc_payload(resp),
                 )
             else:
                 err = _err(-32600, "Invalid Request", None)
-                return JSONResponse(
-                    content=err, status_code=_status_from_rpc_payload(err)
-                )
+                return JSONResponse(content=err)
 
     elif auth_dep is not None:
         # Only auth dependency; DB will come from request.state.db
@@ -395,7 +355,6 @@ def build_jsonrpc_router(
                         responses.append(resp)
                 return JSONResponse(
                     content=responses,
-                    status_code=_status_from_rpc_batch(responses),
                 )
             elif isinstance(body, (RPCRequest, Mapping)):
                 resp = await _dispatch_one(
@@ -408,13 +367,10 @@ def build_jsonrpc_router(
                     return Response(status_code=204)
                 return JSONResponse(
                     content=resp,
-                    status_code=_status_from_rpc_payload(resp),
                 )
             else:
                 err = _err(-32600, "Invalid Request", None)
-                return JSONResponse(
-                    content=err, status_code=_status_from_rpc_payload(err)
-                )
+                return JSONResponse(content=err)
 
     else:
         # No dependencies; attempt to read db (and user) from request.state
@@ -433,7 +389,6 @@ def build_jsonrpc_router(
                         responses.append(resp)
                 return JSONResponse(
                     content=responses,
-                    status_code=_status_from_rpc_batch(responses),
                 )
             elif isinstance(body, (RPCRequest, Mapping)):
                 resp = await _dispatch_one(
@@ -446,13 +401,10 @@ def build_jsonrpc_router(
                     return Response(status_code=204)
                 return JSONResponse(
                     content=resp,
-                    status_code=_status_from_rpc_payload(resp),
                 )
             else:
                 err = _err(-32600, "Invalid Request", None)
-                return JSONResponse(
-                    content=err, status_code=_status_from_rpc_payload(err)
-                )
+                return JSONResponse(content=err)
 
     # Attach routes for both "/rpc" and "/rpc/"
     router.add_api_route(
