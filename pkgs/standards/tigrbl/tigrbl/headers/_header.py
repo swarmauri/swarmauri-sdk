@@ -3,6 +3,17 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping, MutableMapping
+from http.cookies import SimpleCookie
+
+
+class HeaderCookies(dict[str, str]):
+    """Dot-addressable cookie mapping parsed from a Cookie header value."""
+
+    def __getattr__(self, name: str) -> str:
+        try:
+            return self[name]
+        except KeyError as exc:  # pragma: no cover - defensive
+            raise AttributeError(name) from exc
 
 
 class Headers(MutableMapping[str, str]):
@@ -23,6 +34,12 @@ class Headers(MutableMapping[str, str]):
     @staticmethod
     def _attribute_key(name: str) -> str:
         return name.replace("_", "-").lower()
+
+    @staticmethod
+    def _parse_cookie_header(value: str) -> HeaderCookies:
+        parsed = SimpleCookie()
+        parsed.load(value)
+        return HeaderCookies({name: morsel.value for name, morsel in parsed.items()})
 
     def __getitem__(self, key: str) -> str:
         return self._data[key.lower()][1]
@@ -53,11 +70,14 @@ class Headers(MutableMapping[str, str]):
             return default
         return item[1]
 
-    def __getattr__(self, name: str) -> str:
+    def __getattr__(self, name: str) -> str | HeaderCookies:
         key = self._attribute_key(name)
-        if key in self._data:
-            return self._data[key][1]
-        raise AttributeError(name)
+        if key not in self._data:
+            raise AttributeError(name)
+        value = self._data[key][1]
+        if key == "cookie":
+            return self._parse_cookie_header(value)
+        return value
 
     def __setattr__(self, name: str, value: str) -> None:
         if name.startswith("_"):
@@ -66,4 +86,4 @@ class Headers(MutableMapping[str, str]):
         self[self._attribute_key(name)] = value
 
 
-__all__ = ["Headers"]
+__all__ = ["Headers", "HeaderCookies"]

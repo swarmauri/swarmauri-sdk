@@ -8,7 +8,7 @@ from typing import Any, Literal, Mapping, Optional, Tuple, cast
 from ..config.constants import CANON as CANONICAL_VERB_TUPLE
 from ..hook.types import PHASE, HookPhase, PHASES, Ctx, StepFn, HookPredicate
 from ..hook import HookSpec as OpHook
-from ..response.types import ResponseSpec
+from ..responses.types import ResponseSpec
 from ..engine.engine_spec import EngineCfg
 from typing import TYPE_CHECKING
 

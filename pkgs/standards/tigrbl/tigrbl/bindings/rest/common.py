@@ -13,11 +13,11 @@ from pydantic import BaseModel
 
 from ...api._api import APIRouter as Router
 from ...core.crud.params import Body, Path, Query
-from ...responses._response import Response
+from ...responses import Response
 from ...runtime.status.exceptions import HTTPException
 from ...runtime.status.mappings import status as _status
 from ...security.dependencies import Depends, Security
-from ...requests._request import Request
+from ...requests import Request
 from .helpers import (
     _Key,
     _coerce_parent_kw,

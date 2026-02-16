@@ -14,7 +14,7 @@ from typing import (
     runtime_checkable,
 )
 
-from ...requests._request import Request
+from ...requests import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 

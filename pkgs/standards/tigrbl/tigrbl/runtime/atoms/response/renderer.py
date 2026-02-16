@@ -4,10 +4,10 @@ from pathlib import Path
 from typing import Any, AsyncIterable, Iterable, Mapping, Optional, Union, cast
 import logging
 
-from ....responses._response import Response
+from ....responses import Response
 from ....transport.background import BackgroundTask
 
-from ....response.shortcuts import (
+from ....responses.shortcuts import (
     as_file,
     as_html,
     as_json,

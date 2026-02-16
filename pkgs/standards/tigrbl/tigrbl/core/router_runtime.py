@@ -10,10 +10,10 @@ from ..api.resolve import (
     resolve_handler_kwargs,
     resolve_route_dependencies,
 )
-from ..responses._response import Response
+from ..responses import Response
 from ..runtime.status.exceptions import HTTPException
 from ..runtime.status.mappings import status
-from ..requests._request import Request
+from ..requests import Request
 
 
 def _is_http_response_like(obj: Any) -> bool:

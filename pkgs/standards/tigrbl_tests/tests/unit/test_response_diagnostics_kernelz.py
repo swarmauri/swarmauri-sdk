@@ -3,7 +3,7 @@ from types import SimpleNamespace
 import pytest
 
 from tigrbl.op.types import OpSpec
-from tigrbl.response.types import ResponseSpec, TemplateSpec
+from tigrbl.responses.types import ResponseSpec, TemplateSpec
 from tigrbl.system.diagnostics import _build_kernelz_endpoint
 
 from .response_utils import RESPONSE_KINDS

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from tigrbl.transport.request import Headers, Request
+from tigrbl.headers import Headers
+from tigrbl.requests import Request
 
 
 def test_request_headers_support_dot_notation_access_and_assignment() -> None:

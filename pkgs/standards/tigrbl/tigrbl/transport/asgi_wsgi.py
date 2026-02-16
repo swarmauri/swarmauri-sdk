@@ -8,8 +8,8 @@ from typing import Any, Callable
 from urllib.parse import parse_qs
 
 from tigrbl.middlewares import apply_middlewares
-from tigrbl.requests._request import Request
-from tigrbl.responses._response import Response
+from tigrbl.requests import Request
+from tigrbl.responses import Response
 
 
 NO_BODY_STATUS = set(range(100, 200)) | {204, 205, 304}
