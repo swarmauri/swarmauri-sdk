@@ -4,6 +4,20 @@ run-name: v0.9.0 prepare/validate/publish dispatcher
 on:
   workflow_dispatch:
     inputs:
+      member_group:
+        description: "Workspace member group to publish"
+        required: false
+        default: "all"
+        type: choice
+        options:
+          - all
+          - foundational
+          - standards
+          - community
+          - tigrbl
+          - peagen
+          - general
+          - experimental
       bump_type:
         description: "Bump type {major,minor,patch,finalize}"
         required: false
@@ -42,6 +56,8 @@ jobs:
 
       - name: Chunk workspace members
         id: chunk-members
+        env:
+          MEMBER_GROUP: ${{ github.event.inputs.member_group || 'all' }}
         run: |
           cd pkgs
           python - <<'PY'
@@ -92,15 +108,28 @@ jobs:
           sixth_batch = [member for member in remaining if not member.startswith("experimental/")]
           remaining = [member for member in remaining if member not in sixth_batch]
           seventh_batch = remaining
-          named_batches = [
-              ("Foundational packages", first_batch),
-              ("Swarmauri standards", second_batch),
-              ("Swarmauri community", third_batch),
-              ("Tigrbl packages", fourth_batch),
-              ("Peagen packages", fifth_batch),
-              ("General packages", sixth_batch),
-              ("Experimental packages", seventh_batch),
-          ]
+          named_batches = {
+              "foundational": ("Foundational packages", first_batch),
+              "standards": ("Swarmauri standards", second_batch),
+              "community": ("Swarmauri community", third_batch),
+              "tigrbl": ("Tigrbl packages", fourth_batch),
+              "peagen": ("Peagen packages", fifth_batch),
+              "general": ("General packages", sixth_batch),
+              "experimental": ("Experimental packages", seventh_batch),
+          }
+
+          member_group = os.environ.get("MEMBER_GROUP", "all").strip().lower()
+          if member_group and member_group != "all":
+              if member_group not in named_batches:
+                  valid = ["all", *named_batches.keys()]
+                  raise RuntimeError(
+                      f"Unknown member_group '{member_group}'. Valid options: {', '.join(valid)}"
+                  )
+              label, batch = named_batches[member_group]
+              named_batches = [(label, batch)]
+          else:
+              named_batches = list(named_batches.values())
+
           chunks = [(label, batch) for label, batch in named_batches if batch]
           has_batches = "true" if chunks else "false"
           matrix = {
@@ -114,7 +143,7 @@ jobs:
               print(f"chunk_matrix={json.dumps(matrix)}", file=fh)
               print(f"has_batches={has_batches}", file=fh)
 
-          print(f"Chunked {len(members)} members into {len(chunks)} batches.")
+          print(f"Chunked {len(members)} members into {len(chunks)} batches for group '{member_group}'.")
           PY
 
   dispatch-batches:
