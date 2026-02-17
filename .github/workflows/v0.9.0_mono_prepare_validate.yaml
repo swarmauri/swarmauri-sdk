@@ -1,4 +1,5 @@
 name: v0.9.0 - Mono (Prepare, Validate) [Dispatcher]
+run-name: v0.9.0 prepare/validate dispatcher
 
 on:
   workflow_dispatch:
@@ -83,24 +84,21 @@ jobs:
           sixth_batch = [member for member in remaining if not member.startswith("experimental/")]
           remaining = [member for member in remaining if member not in sixth_batch]
           seventh_batch = remaining
-          chunks = [
-              batch
-              for batch in [
-                  first_batch,
-                  second_batch,
-                  third_batch,
-                  fourth_batch,
-                  fifth_batch,
-                  sixth_batch,
-                  seventh_batch,
-              ]
-              if batch
+          named_batches = [
+              ("Foundational packages", first_batch),
+              ("Swarmauri standards", second_batch),
+              ("Swarmauri community", third_batch),
+              ("Tigrbl packages", fourth_batch),
+              ("Peagen packages", fifth_batch),
+              ("General packages", sixth_batch),
+              ("Experimental packages", seventh_batch),
           ]
+          chunks = [(label, batch) for label, batch in named_batches if batch]
           has_batches = "true" if chunks else "false"
           matrix = {
               "include": [
-                  {"index": index, "members": chunk}
-                  for index, chunk in enumerate(chunks)
+                  {"index": index, "label": label, "members": chunk}
+                  for index, (label, chunk) in enumerate(chunks)
               ]
           }
 
@@ -126,6 +124,7 @@ jobs:
           script: |
             const members = ${{ toJson(matrix.members) }};
             const batchIndex = '${{ matrix.index }}';
+            const batchLabel = '${{ matrix.label }}';
 
             await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
@@ -135,7 +134,8 @@ jobs:
               inputs: {
                 members_json: JSON.stringify(members),
                 batch_index: batchIndex,
+                batch_label: batchLabel,
               },
             });
 
-            core.info(`Dispatched batch ${batchIndex} with ${members.length} members.`);
+            core.info(`Dispatched batch ${batchIndex} (${batchLabel}) with ${members.length} members.`);

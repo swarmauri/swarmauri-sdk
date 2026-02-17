@@ -1,4 +1,5 @@
 name: v0.9.0 - Mono (Prepare, Validate, Publish) [Batch]
+run-name: v0.9.0 prepare/validate/publish [batch ${{ github.event.inputs.batch_index || 'n/a' }}] ${{ github.event.inputs.batch_label || 'Unlabeled batch' }}
 
 on:
   workflow_dispatch:
@@ -8,6 +9,9 @@ on:
         required: true
       batch_index:
         description: "Batch index for logging"
+        required: false
+      batch_label:
+        description: "Batch label for logging"
         required: false
       bump_type:
         description: "Bump type {major,minor,patch,finalize}"
