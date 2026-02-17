@@ -1,6 +1,6 @@
 [project]
 name = "tigrbl"
-version = "0.3.16.dev1"
+version = "0.3.16.dev2"
 description = "A modern pure ASGI/WSGI Python framework for building schema-first REST and JSON-RPC APIs with SQLAlchemy models, typed validation, lifecycle hooks, and engine extension support."
 license = "Apache-2.0"
 readme = "README.md"
