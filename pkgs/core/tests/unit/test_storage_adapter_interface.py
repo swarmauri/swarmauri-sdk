@@ -12,6 +12,13 @@ def test_storage_adapter_interface_methods():
         "push",
         "download_dir",
         "pull",
+        "ensure_bucket",
+        "put_bytes",
+        "get_bytes",
+        "get_range",
+        "_parse_range",
+        "_parse_range_header",
+        "remove_object",
         "from_uri",
     }
     assert expected.issubset(abstract_methods)
