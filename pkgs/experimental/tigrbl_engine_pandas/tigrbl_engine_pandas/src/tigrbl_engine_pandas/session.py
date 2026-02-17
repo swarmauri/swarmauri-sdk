@@ -220,10 +220,37 @@ class TransactionalDataFrameSession(TigrblSessionBase):
         self._dels.clear()
 
     # ---- CRUD primitives ----
+    @staticmethod
+    def _pk_default(model: type, pk: str) -> Any:
+        table = getattr(model, "__table__", None)
+        if table is None:
+            return None
+        try:
+            column = table.columns.get(pk)
+        except Exception:
+            return None
+        if column is None:
+            return None
+        default = getattr(column, "default", None)
+        if default is None:
+            return None
+        arg = getattr(default, "arg", None)
+        if callable(arg):
+            try:
+                return arg()
+            except TypeError:
+                # Some SQLAlchemy defaults accept a context parameter.
+                return arg(None)
+        return arg
+
     def _add_impl(self, obj: Any) -> Any:
         model = obj.__class__
         pk = _single_pk_name(model)
         ident = getattr(obj, pk)
+        if ident is None:
+            ident = self._pk_default(model, pk)
+            if ident is not None:
+                setattr(obj, pk, ident)
         if ident is None:
             raise ValueError(f"primary key {pk!r} must be set")
         row = {c: getattr(obj, c, None) for c in _model_columns(model)}
@@ -370,12 +397,20 @@ class TransactionalDataFrameSession(TigrblSessionBase):
                 return entity
 
         def _all_subclasses(base: type) -> list[type]:
+            def _safe_subclasses(cls: type) -> list[type]:
+                try:
+                    return list(cls.__subclasses__())
+                except TypeError:
+                    # Some metaclass entries (e.g. ``type``) expose an unbound
+                    # descriptor here; treat as leaf.
+                    return []
+
             out: list[type] = []
-            stack = list(base.__subclasses__())
+            stack = _safe_subclasses(base)
             while stack:
                 cls = stack.pop()
                 out.append(cls)
-                stack.extend(cls.__subclasses__())
+                stack.extend(_safe_subclasses(cls))
             return out
 
         def _find_by_table(name: str) -> type | None:

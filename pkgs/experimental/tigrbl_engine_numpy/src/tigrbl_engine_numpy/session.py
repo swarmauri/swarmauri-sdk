@@ -68,9 +68,16 @@ class NumpySession(TigrblSessionBase):
         self._snap_ver: Optional[int] = None
         self._puts: dict[tuple[type, Any], dict[str, Any]] = {}
         self._dels: set[tuple[type, Any]] = set()
+        self._tracked: dict[tuple[type, Any], Any] = {}
 
     def to_records(self) -> list[dict[str, Any]]:
-        return [dict(row) for row in self._engine.catalog.rows]
+        pk = self._engine.catalog.pk
+        rows = [dict(row) for row in self._engine.catalog.rows]
+        deleted = {ident for (_model, ident) in self._dels}
+        by_pk = {row.get(pk): row for row in rows if row.get(pk) not in deleted}
+        for (_model, ident), row in self._puts.items():
+            by_pk[ident] = dict(row)
+        return list(by_pk.values())
 
     def array(self) -> np.ndarray:
         rows = self.to_records()
@@ -155,6 +162,7 @@ class NumpySession(TigrblSessionBase):
         self._snap_ver = self._engine.catalog.table_ver
         self._puts.clear()
         self._dels.clear()
+        self._tracked.clear()
 
     async def _tx_commit_impl(self) -> None:
         iso = (self._spec.isolation if self._spec else None) or "read_committed"
@@ -184,15 +192,43 @@ class NumpySession(TigrblSessionBase):
                 )
         self._puts.clear()
         self._dels.clear()
+        self._tracked.clear()
 
     async def _tx_rollback_impl(self) -> None:
         self._puts.clear()
         self._dels.clear()
+        self._tracked.clear()
+
+    @staticmethod
+    def _pk_default(model: type, pk: str) -> Any:
+        table = getattr(model, "__table__", None)
+        if table is None:
+            return None
+        try:
+            column = table.columns.get(pk)
+        except Exception:
+            return None
+        if column is None:
+            return None
+        default = getattr(column, "default", None)
+        if default is None:
+            return None
+        arg = getattr(default, "arg", None)
+        if callable(arg):
+            try:
+                return arg()
+            except TypeError:
+                return arg(None)
+        return arg
 
     def _add_impl(self, obj: Any) -> Any:
         model = obj.__class__
         pk = _single_pk_name(model)
         ident = getattr(obj, pk)
+        if ident is None:
+            ident = self._pk_default(model, pk)
+            if ident is not None:
+                setattr(obj, pk, ident)
         if ident is None:
             raise ValueError(f"primary key {pk!r} must be set")
         row = {c: getattr(obj, c, None) for c in _model_columns(model)}
@@ -206,8 +242,15 @@ class NumpySession(TigrblSessionBase):
         ident = getattr(obj, pk)
         self._puts.pop((model, ident), None)
         self._dels.add((model, ident))
+        self._tracked.pop((model, ident), None)
 
     async def _flush_impl(self) -> None:
+        for (model, ident), obj in self._tracked.items():
+            if (model, ident) in self._dels:
+                continue
+            self._puts[(model, ident)] = {
+                column: getattr(obj, column, None) for column in _model_columns(model)
+            }
         return
 
     async def _refresh_impl(self, obj: Any) -> None:
@@ -222,13 +265,17 @@ class NumpySession(TigrblSessionBase):
     async def _get_impl(self, model: type, ident: Any) -> Any | None:
         row = self._puts.get((model, ident))
         if row is not None:
-            return self._inflate(model, row)
+            obj = self._inflate(model, row)
+            self._tracked[(model, ident)] = obj
+            return obj
         if (model, ident) in self._dels:
             return None
         pk = _single_pk_name(model)
         for record in self._engine.catalog.rows:
             if record.get(pk) == ident:
-                return self._inflate(model, record)
+                obj = self._inflate(model, record)
+                self._tracked[(model, ident)] = obj
+                return obj
         return None
 
     async def _execute_impl(self, stmt: Any) -> Any:
@@ -306,7 +353,10 @@ class NumpySession(TigrblSessionBase):
             while stack:
                 cls = stack.pop()
                 out.append(cls)
-                stack.extend(cls.__subclasses__())
+                try:
+                    stack.extend(cls.__subclasses__())
+                except TypeError:
+                    stack.extend(type.__subclasses__(cls))
             return out
 
         def _find_by_table(name: str) -> type | None:
@@ -326,6 +376,27 @@ class NumpySession(TigrblSessionBase):
                     found = _find_by_table(name)
                     if found is not None:
                         return found
+
+        table = getattr(stmt, "table", None)
+        name = getattr(table, "name", None)
+        if isinstance(name, str):
+            found = _find_by_table(name)
+            if found is not None:
+                return found
+
+        raw_columns = getattr(stmt, "_raw_columns", None) or getattr(
+            stmt, "columns", None
+        )
+        if raw_columns is not None:
+            if isinstance(raw_columns, (list, tuple)) and not raw_columns:
+                raise RuntimeError("Cannot resolve model from statement")
+            entity = raw_columns[0]
+            table = getattr(entity, "table", None)
+            name = getattr(table, "name", None)
+            if isinstance(name, str):
+                found = _find_by_table(name)
+                if found is not None:
+                    return found
         raise RuntimeError("Cannot resolve model from statement")
 
     def _extract_predicates(self, stmt: Any) -> list[Tuple[str, str, Any]]:
