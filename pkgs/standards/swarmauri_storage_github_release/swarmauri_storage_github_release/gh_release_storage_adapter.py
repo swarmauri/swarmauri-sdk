@@ -14,7 +14,6 @@ from typing import BinaryIO, Optional
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.storage import StorageAdapterBase
 
-from peagen._utils.config_loader import load_peagen_toml
 from github import Github, UnknownObjectException
 
 
@@ -171,18 +170,13 @@ class GithubReleaseStorageAdapter(StorageAdapterBase):
 
     # --------------------------------------------------------------------- class
     @classmethod
-    def from_uri(cls, uri: str) -> "GithubReleaseStorageAdapter":
+    def from_uri(cls, uri: str, token) -> "GithubReleaseStorageAdapter":
         from urllib.parse import urlparse
 
         p = urlparse(uri)
         org = p.netloc
         repo, tag, *rest = p.path.lstrip("/").split("/", 2)
         prefix = rest[0] if rest else ""
-
-        cfg = load_peagen_toml()
-        gh_cfg = cfg.get("storage", {}).get("adapters", {}).get("gh_release", {})
-
-        token = gh_cfg.get("token") or os.getenv("GITHUB_TOKEN", "")
 
         return cls(
             token=token,

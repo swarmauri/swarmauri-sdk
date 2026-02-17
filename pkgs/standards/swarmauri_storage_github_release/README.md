@@ -33,9 +33,8 @@ still being usable as a standalone utility.
 - **Bulk helpers** – use `upload_dir` and `download_dir` to synchronise entire
   directories, or `iter_prefix` to discover stored assets.
 - **Configuration friendly** – `GithubReleaseStorageAdapter.from_uri` reads
-  credentials from `peagen.toml` (via `storage.adapters.gh_release.token`) or
-  the `GITHUB_TOKEN` environment variable, enabling zero-code configuration in
-  workflows.
+  credentials from the `GITHUB_TOKEN` environment variable for simple
+  environment-driven configuration in workflows.
 
 ## Requirements
 
@@ -131,13 +130,12 @@ adapter = GithubReleaseStorageAdapter.from_uri(
 )
 ```
 
-When invoked this way the adapter resolves credentials from, in order:
-
-1. `storage.adapters.gh_release.token` in `peagen.toml`.
-2. The `GITHUB_TOKEN` environment variable.
+When invoked this way the adapter builds an unauthenticated client
+(`token=""`).
 
 Any prefix encoded in the URI is respected, and the resulting instance exposes
-the same API shown above.
+the same API shown above. For private repositories or higher rate limits,
+instantiate the adapter directly and provide a token.
 
 ### Controlling release metadata
 
