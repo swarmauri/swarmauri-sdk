@@ -63,9 +63,9 @@ def test_features_descriptor(cipher_suite: Fips203CipherSuite) -> None:
         "ML-KEM-1024",
     }
     assert features["ops"]["wrap"]["default"] == "ML-KEM-768"
-    assert features["constraints"]["nistSecurityLevels"] == policy[
-        "nist_security_levels"
-    ]
+    assert (
+        features["constraints"]["nistSecurityLevels"] == policy["nist_security_levels"]
+    )
     assert features["compliance"]["fips203"] is True
 
 
