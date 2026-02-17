@@ -21,6 +21,7 @@ jobs:
     timeout-minutes: 15
     outputs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
+      has_members: ${{ steps.get-matrix.outputs.has_members }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -49,16 +50,18 @@ jobs:
 
           members = list(dict.fromkeys(members))
           matrix = {"include": [{"member": member} for member in members]}
+          has_members = "true" if members else "false"
 
           with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
               print(f"matrix={json.dumps(matrix)}", file=fh)
+              print(f"has_members={has_members}", file=fh)
 
           print(f"Prepared matrix for {len(members)} members.")
           PY
 
   test:
     needs: set-matrix
-    if: ${{ !cancelled() }}
+    if: ${{ !cancelled() && needs.set-matrix.outputs.has_members == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
@@ -136,9 +139,9 @@ jobs:
 
   commit:
     name: Commit Changes
-    needs: test
+    needs: [set-matrix, test]
     runs-on: ubuntu-latest
-    if: ${{ !cancelled() && always() }}
+    if: ${{ !cancelled() && always() && needs.set-matrix.outputs.has_members == 'true' }}
     timeout-minutes: 15
     steps:
       - name: Checkout code
