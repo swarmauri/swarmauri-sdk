@@ -140,7 +140,8 @@ async def _dispatch_one(
     Handle a single JSON-RPC request object and return a response dict,
     or None if it's a "notification" (no id field).
     """
-    rid = obj.get("id", 1)
+    has_id = "id" in obj
+    rid = obj.get("id") if has_id else None
     method = obj.get("method")
 
     def _rpc_error(code: int, message: str, data: Any | None = None) -> Dict[str, Any]:
@@ -199,6 +200,9 @@ async def _dispatch_one(
 
         # Execute
         result = await rpc_call(params, db=db, request=request, ctx=base_ctx)
+        if not has_id:
+            _log_rpc_success(method, None)
+            return None
         _log_rpc_success(method, rid)
         return _ok(result, rid)
 

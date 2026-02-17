@@ -92,6 +92,23 @@ def test_jsonrpc_create_accepts_nested_params_mapping() -> None:
     assert data["result"]["name"] == "New Widget"
 
 
+def test_jsonrpc_notification_without_id_returns_no_content() -> None:
+    app, model = _build_app()
+    transport = ASGITransport(app=app)
+
+    request_payload = {
+        "jsonrpc": "2.0",
+        "method": f"{model.__name__}.create",
+        "params": {"name": "Silent Widget"},
+    }
+
+    with Client(transport=transport, base_url="http://test") as client:
+        response = client.post("/rpc", json=request_payload)
+
+    assert response.status_code == 204
+    assert response.content == b""
+
+
 def test_mount_lens_uses_latest_openrpc_path_by_default() -> None:
     app, _ = _build_app()
     app.mount_openrpc(path="/schema/openrpc.json")
