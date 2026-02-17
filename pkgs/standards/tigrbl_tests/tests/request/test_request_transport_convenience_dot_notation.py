@@ -32,6 +32,23 @@ def test_request_headers_and_cookies_support_nested_dot_notation_access() -> Non
     assert request.headers.cookie.tenant == "acme"
 
 
+def test_request_cookie_header_supports_many_cookies_with_terse_getters() -> None:
+    request = _make_request(
+        headers={
+            "Cookie": "sid=session-token; tenant=acme; theme=dark; mode=compact",
+        }
+    )
+
+    assert request.headers.get("cookie", "")
+    assert request.headers.cookie.sid == "session-token"
+    assert request.headers.cookie.tenant == "acme"
+    assert request.headers.cookie.theme == "dark"
+    assert request.cookies.get("sid") == "session-token"
+    assert request.cookies.get("tenant") == "acme"
+    assert request.cookies.get("theme") == "dark"
+    assert request.cookies.get("mode") == "compact"
+
+
 @pytest.mark.asyncio()
 async def test_request_exposes_json_and_dot_notation_bearer_conveniences() -> None:
     request = _make_request(

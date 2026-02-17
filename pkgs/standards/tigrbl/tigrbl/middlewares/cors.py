@@ -122,7 +122,6 @@ class CORSMiddleware(BaseHTTPMiddleware):
         response_headers = response.headers_map
         for key, value in self._cors_headers(request_headers):
             response_headers[key] = value
-        response.headers = response_headers.as_list()
         return response
 
     def wsgi(

@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from http.cookies import SimpleCookie
 from types import SimpleNamespace
 from typing import Any
+from collections.abc import Iterable, Mapping
 from urllib.parse import parse_qs
 
 from tigrbl.headers import HeaderCookies, Headers
@@ -79,7 +80,7 @@ def _b64url_decode(data: str) -> bytes:
 class Request:
     method: str
     path: str
-    headers: dict[str, str]
+    headers: Mapping[str, str] | Iterable[tuple[str, str]]
     query: dict[str, list[str]]
     path_params: dict[str, str]
     body: bytes
@@ -94,7 +95,7 @@ class Request:
         self,
         method: str | dict[str, Any],
         path: str | None = None,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | Iterable[tuple[str, str]] | None = None,
         query: dict[str, list[str]] | None = None,
         path_params: dict[str, str] | None = None,
         body: bytes = b"",

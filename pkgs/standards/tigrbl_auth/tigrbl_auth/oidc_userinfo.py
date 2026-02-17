@@ -32,12 +32,6 @@ api = TigrblApi()
 router = api
 
 
-def _header(request: Request, name: str) -> str:
-    """Return header value from case-insensitive transport headers."""
-
-    return request.headers.get(name) or request.headers.get(name.lower(), "")
-
-
 async def _resolve_current_user(request: Request) -> User:
     """Resolve the current principal, honoring app dependency overrides."""
 
@@ -63,7 +57,11 @@ async def userinfo(request: Request) -> Response | dict[str, str]:
     response will be JWS signed.
     """
 
-    token = await extract_bearer_token(request, _header(request, "Authorization"))
+    token = await extract_bearer_token(
+        request,
+        request.headers.get("Authorization")
+        or request.headers.get("authorization", ""),
+    )
     if not token:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "missing access token")
     try:
@@ -85,7 +83,9 @@ async def userinfo(request: Request) -> Response | dict[str, str]:
     if "phone" in scopes and getattr(user, "phone", None):
         claims["phone_number"] = getattr(user, "phone")
 
-    if "application/jwt" in _header(request, "Accept"):
+    if "application/jwt" in (
+        request.headers.get("Accept") or request.headers.get("accept", "")
+    ):
         svc, kid = _svc()
         token = await svc.mint(claims, alg=JWAAlg.EDDSA, kid=kid)
         return Response(content=token, media_type="application/jwt")
