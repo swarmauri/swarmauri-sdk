@@ -98,6 +98,7 @@ async def test_hook_phases_execution_order(db_mode):
     res = await client.post(
         "/rpc",
         json={
+            "id": "hook-order-check",
             "method": "Item.create",
             "params": {"tenant_id": tid, "name": "test-item"},
         },
@@ -163,6 +164,7 @@ async def test_hook_parity_crud_vs_rpc(db_mode):
     await client.post(
         "/rpc",
         json={
+            "id": "hook-parity-check",
             "method": "Item.create",
             "params": {"tenant_id": tid, "name": "rpc-item"},
         },
