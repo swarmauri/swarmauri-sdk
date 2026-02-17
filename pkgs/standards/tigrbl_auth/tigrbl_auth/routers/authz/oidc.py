@@ -26,17 +26,6 @@ from ..shared import _require_tls
 from . import api
 
 
-def _cookie_value(request: Request, name: str) -> str | None:
-    cookie_header = request.headers.get("cookie") or request.headers.get("Cookie")
-    if not cookie_header:
-        return None
-    for part in cookie_header.split(";"):
-        key, sep, value = part.strip().partition("=")
-        if sep and key == name:
-            return value
-    return None
-
-
 @api.get("/authorize")
 async def authorize(
     request: Request,
@@ -101,7 +90,7 @@ async def authorize(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, {"error": "invalid_request"})
 
     prompts = set(prompt.split()) if prompt else set()
-    sid = _cookie_value(request, "sid")
+    sid = request.cookies.get("sid")
     session = (
         await AuthSession.handlers.read.core({"payload": {"id": UUID(sid)}, "db": db})
         if sid

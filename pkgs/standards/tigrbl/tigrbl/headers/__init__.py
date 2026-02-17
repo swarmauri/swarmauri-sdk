@@ -1,3 +1,3 @@
-from ._header import HeaderCookies, Headers
+from ._header import HeaderCookies, Headers, SetCookieHeader
 
-__all__ = ["Headers", "HeaderCookies"]
+__all__ = ["Headers", "HeaderCookies", "SetCookieHeader"]

@@ -26,6 +26,8 @@ def test_request_accepts_scope_with_receive_kwarg_for_compatibility() -> None:
     assert request.query == {"a": ["1", "2"], "b": ["3"]}
     assert request.path_params == {"tenant_id": "abc"}
     assert request.headers.authorization == "Bearer test-token"
+    assert request.headers.get("Authorization") == "Bearer test-token"
+    assert request.headers.get("authorization") == "Bearer test-token"
     assert request.bearer_token == "test-token"
     assert request.client.ip == "198.51.100.77"
 

@@ -86,7 +86,10 @@ async def asgi_app(
         headers, finalized_body = finalize_transport_response(
             scope,
             resp.status_code,
-            [(k.encode("latin-1"), v.encode("latin-1")) for k, v in resp.headers],
+            [
+                (k.encode("latin-1"), v.encode("latin-1"))
+                for k, v in resp.headers.items()
+            ],
             resp.body,
         )
         await send(
@@ -121,7 +124,10 @@ def wsgi_app(
         headers, finalized_body = finalize_transport_response(
             {"method": req.method},
             resp.status_code,
-            [(k.encode("latin-1"), v.encode("latin-1")) for k, v in resp.headers],
+            [
+                (k.encode("latin-1"), v.encode("latin-1"))
+                for k, v in resp.headers.items()
+            ],
             resp.body,
         )
         _start_response(
@@ -141,7 +147,7 @@ def wsgi_app(
         else:
             resp = Response.json({"detail": "Internal Server Error"}, status_code=500)
 
-    start_response(resp.status_line(), resp.headers)
+    start_response(resp.status_line(), resp.headers.as_list())
     return [resp.body]
 
 

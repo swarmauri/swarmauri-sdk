@@ -34,7 +34,7 @@ class _JSONDualMethod:
 @dataclass
 class Response:
     status_code: int = 200
-    headers: list[tuple[str, str]] = field(default_factory=list)
+    headers: Headers = field(default_factory=Headers)
     body: bytes = b""
     media_type: str | None = None
     _headers: Headers = field(init=False, repr=False)
@@ -42,7 +42,8 @@ class Response:
     json = _JSONDualMethod()
 
     def __post_init__(self) -> None:
-        self._headers = Headers(self.headers)
+        self.headers = Headers(self.headers)
+        self._headers = self.headers
 
     @staticmethod
     def _status_text(code: int) -> str:
@@ -70,12 +71,12 @@ class Response:
     @property
     def raw_headers(self) -> list[tuple[bytes, bytes]]:
         return [
-            (k.encode("latin-1"), v.encode("latin-1")) for k, v in self._headers.items()
+            (k.encode("latin-1"), v.encode("latin-1")) for k, v in self.headers.items()
         ]
 
     @property
     def headers_map(self) -> Headers:
-        return self._headers
+        return self.headers
 
     @property
     def body_text(self) -> str:
@@ -89,7 +90,7 @@ class Response:
     @property
     def cookies(self) -> HeaderCookies:
         cookie = SimpleCookie()
-        for name, value in self._headers.items():
+        for name, value in self.headers.items():
             if name == "set-cookie":
                 cookie.load(value)
         return HeaderCookies({name: morsel.value for name, morsel in cookie.items()})
@@ -123,8 +124,7 @@ class Response:
             morsel["max-age"] = str(max_age)
         if expires is not None:
             morsel["expires"] = expires
-        self._headers["set-cookie"] = cookie.output(header="").strip()
-        self.headers = self._headers.as_list()
+        self.headers["set-cookie"] = cookie.output(header="").strip()
 
     @classmethod
     def from_json(
