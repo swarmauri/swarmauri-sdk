@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_transport_meshsidecarhttp2"
-version = "0.1.1.dev1"
+version = "0.1.1.dev2"
 description = "Client transport for Swarmauri agents targeting mesh sidecar proxies."
 readme = "README.md"
 requires-python = ">=3.10"
