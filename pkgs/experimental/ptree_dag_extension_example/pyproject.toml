@@ -1,6 +1,6 @@
 [project]
 name = "ptree_dag_extension_example"
-version = "0.1.1"
+version = "0.1.2.dev1"
 description = "Swarmauri's Ptree Dag"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 keywords = ["ptree_dag_extension_example", "swarmauri", "experimental"]

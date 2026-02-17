@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "swarmauri_parser_asn1"
-version = "0.1.1"
+version = "0.1.2.dev1"
 description = "Grammar-driven ASN.1 (X.680/X.690 DER subset) parser plugin for swarmauri-sdk using Lark Earley."
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 keywords = ["swarmauri_parser_asn1", "swarmauri", "experimental"]
