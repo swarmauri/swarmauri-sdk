@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "wcag_pdf_pytest"
-version = "0.2.1.dev2"
+version = "0.2.1"
 description = "Pytest plugin for WCAG 2.1 A/AA/AAA compliance checks on PDFs."
 readme = "README.md"
 license = "Apache-2.0"
