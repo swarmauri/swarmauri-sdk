@@ -251,6 +251,7 @@ jobs:
           fi
 
   pypi_approval_gate:
+    name: PyPI approval gate (${{ matrix.package_name }})
     needs: set-matrix
     if: ${{ !cancelled() && needs.set-matrix.outputs.has_members == 'true' && needs.set-matrix.outputs.approval_required == 'true' }}
     runs-on: ubuntu-latest
@@ -260,7 +261,9 @@ jobs:
       max-parallel: 1
     timeout-minutes: 15
     environment:
-      name: ${{ matrix.package_name }}
+      # Use the shared protected environment so required reviewers are always enforced.
+      # Package-specific context is still visible via the job name and deployment URL.
+      name: pypi-new-package-approval
       url: https://pypi.org/project/${{ matrix.package_name }}/
     steps:
       - name: Await manual approval in the environment gate
