@@ -170,7 +170,7 @@ class GithubReleaseStorageAdapter(StorageAdapterBase):
 
     # --------------------------------------------------------------------- class
     @classmethod
-    def from_uri(cls, uri: str) -> "GithubReleaseStorageAdapter":
+    def from_uri(cls, uri: str, token) -> "GithubReleaseStorageAdapter":
         from urllib.parse import urlparse
 
         p = urlparse(uri)
@@ -179,7 +179,7 @@ class GithubReleaseStorageAdapter(StorageAdapterBase):
         prefix = rest[0] if rest else ""
 
         return cls(
-            token="",
+            token=token,
             org=org,
             repo=repo,
             tag=tag,
