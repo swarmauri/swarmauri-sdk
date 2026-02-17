@@ -36,7 +36,6 @@ keywords = [
 ]
 
 [tool.uv.sources]
-peagen = { workspace = true }
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
