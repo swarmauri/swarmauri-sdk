@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tigrbl_engine_duckdb"
-version = "0.1.1.dev1"
+version = "0.1.1.dev2"
 description = "DuckDB engine extension for Tigrbl (optional plugin)."
 readme = "README.md"
 license = { file = "LICENSE" }

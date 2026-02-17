@@ -1,6 +1,6 @@
 [project]
 name = "tigrbl_kms"
-version = "0.3.2.dev4"
+version = "0.3.2.dev5"
 description = "A Tigrbl key management service for Swarmauri."
 license = "Apache-2.0"
 readme = "README.md"

@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "tigrbl_spiffe"
-version = "0.1.1.dev1"
+version = "0.1.1.dev2"
 description = "SPIFFE/SPIRE implementation for Tigrbl with table/op-centric UDS + HTTP(S) transports"
 readme = "README.md"
 license = { file = "LICENSE" }
