@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tigrbl_engine_numpy"
-version = "0.1.0"
+version = "0.1.1.dev1"
 description = "NumPy engine plugin for tigrbl with array-to-table helpers."
 readme = "README.md"
 license = { file = "LICENSE" }
