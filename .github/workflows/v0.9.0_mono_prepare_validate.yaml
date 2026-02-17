@@ -117,7 +117,6 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.generate-chunks.outputs.chunk_matrix) }}
       fail-fast: false
-      max-parallel: 1
     steps:
       - name: Dispatch batch workflow
         uses: actions/github-script@v7
