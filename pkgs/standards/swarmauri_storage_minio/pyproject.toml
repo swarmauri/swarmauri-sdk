@@ -20,7 +20,6 @@ classifiers = [
     "Programming Language :: Python :: 3 :: Only",
 ]
 dependencies = [
-    # "peagen",
     "minio",
     "swarmauri_core",
     "swarmauri_base",
@@ -28,7 +27,6 @@ dependencies = [
 ]
 keywords = [
     'swarmauri',
-    'peagen',
     'sdk',
     'standards',
     'storage',
@@ -36,7 +34,6 @@ keywords = [
 ]
 
 [tool.uv.sources]
-peagen = { workspace = true }
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
