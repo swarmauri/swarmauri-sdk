@@ -36,6 +36,8 @@ def pytest_addoption(parser: object) -> None:
 @pytest.fixture(scope="session")
 def wcag_pdf_paths(pytestconfig: pytest.Config) -> list[str]:
     paths = pytestconfig.getoption("wcag_pdf_paths") or []
+    if not paths:
+        pytest.skip("No --wcag-pdf provided. Pass --wcag-pdf <path-to-pdf>.")
     return [os.path.abspath(os.path.expanduser(p)) for p in paths]
 
 
