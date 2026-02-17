@@ -7,7 +7,12 @@ from typing import ClassVar, FrozenSet
 from pydantic import ConfigDict, Field
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri_core.billing import ALL_CAPABILITIES, Capability, IBillingProvider
+from swarmauri_core.billing import (
+    ALL_API_STRATEGIES,
+    ALL_CAPABILITIES,
+    Capability,
+    IBillingProvider,
+)
 
 
 class BillingProviderBase(IBillingProvider, ComponentBase):
@@ -34,3 +39,7 @@ class BillingProviderBase(IBillingProvider, ComponentBase):
     @property
     def capabilities(self) -> FrozenSet[Capability]:
         return self.CAPABILITIES
+
+    @property
+    def api_strategies(self) -> tuple[type[object], ...]:
+        return ALL_API_STRATEGIES
