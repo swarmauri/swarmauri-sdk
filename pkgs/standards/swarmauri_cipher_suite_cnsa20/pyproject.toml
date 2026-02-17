@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_cipher_suite_cnsa20"
-version = "0.2.0.dev1"
+version = "0.2.0.dev2"
 description = "CNSA 2.0 policy cipher suite with classical and post-quantum algorithms"
 license = "Apache-2.0"
 readme = "README.md"

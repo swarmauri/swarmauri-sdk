@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_transport_asgi"
-version = "0.1.1.dev3"
+version = "0.1.1.dev4"
 description = "ASGI transport runner for Swarmauri components using Uvicorn."
 readme = "README.md"
 requires-python = ">=3.10"
