@@ -26,6 +26,7 @@ jobs:
     timeout-minutes: 15
     outputs:
       chunk_matrix: ${{ steps.chunk-members.outputs.chunk_matrix }}
+      has_batches: ${{ steps.chunk-members.outputs.has_batches }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -103,6 +104,7 @@ jobs:
               ]
               if batch
           ]
+          has_batches = "true" if chunks else "false"
           matrix = {
               "include": [
                   {"index": index, "members": chunk}
@@ -112,13 +114,14 @@ jobs:
 
           with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
               print(f"chunk_matrix={json.dumps(matrix)}", file=fh)
+              print(f"has_batches={has_batches}", file=fh)
 
           print(f"Chunked {len(members)} members into {len(chunks)} batches.")
           PY
 
   dispatch-batches:
     needs: generate-chunks
-    if: ${{ !cancelled() }}
+    if: ${{ !cancelled() && needs.generate-chunks.outputs.has_batches == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
