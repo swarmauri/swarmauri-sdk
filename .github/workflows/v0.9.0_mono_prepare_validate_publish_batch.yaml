@@ -260,12 +260,12 @@ jobs:
       max-parallel: 1
     timeout-minutes: 15
     environment:
-      name: pypi-new-package-approval
+      name: ${{ matrix.package_name }}
       url: https://pypi.org/project/${{ matrix.package_name }}/
     steps:
       - name: Await manual approval in the environment gate
         run: |
-          echo "::notice::Approval gate for '${{ matrix.package_name }}'. Use the 'Review deployments' banner to Approve and deploy."
+          echo "::notice::Approval gate for package '${{ matrix.package_name }}' (directory: '${{ matrix.member }}'). Use the 'Review deployments' banner to Approve and deploy."
 
   release:
     needs: [commit, set-matrix, pypi_approval_gate]
