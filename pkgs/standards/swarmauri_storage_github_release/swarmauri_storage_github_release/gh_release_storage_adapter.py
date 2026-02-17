@@ -144,8 +144,18 @@ class GithubReleaseStorageAdapter(StorageAdapterBase):
     def download_dir(self, prefix: str, dest_dir: str | os.PathLike) -> None:
         """Download all assets under *prefix* into *dest_dir*."""
         dest = Path(dest_dir)
+        base = prefix.strip("/")
         for rel_key in self.iter_prefix(prefix):
-            target = dest / rel_key
+            rel = rel_key
+            if base:
+                rel = (
+                    rel_key[len(base) :].lstrip("/")
+                    if rel_key.startswith(base)
+                    else rel
+                )
+            if not rel:
+                continue
+            target = dest / rel
             target.parent.mkdir(parents=True, exist_ok=True)
             data = self.download(rel_key)
             with target.open("wb") as fh:
