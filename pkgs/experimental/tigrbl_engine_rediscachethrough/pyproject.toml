@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tigrbl_engine_rediscachethrough"
-version = "0.1.0"
+version = "0.1.1.dev1"
 description = "Tigrbl engine plugin for Redis/Postgres cache-through workflows."
 readme = "README.md"
 license = { file = "LICENSE" }

@@ -138,16 +138,18 @@ class Svid(Base):
     # Expose convenience views
     token: Optional[str] = vcol(
         io=IO(out_verbs=("read",)),
-        read_producer=lambda obj, ctx: obj.material.decode("utf-8")
-        if getattr(obj, "kind", "jwt") in ("jwt", "cwt")
-        else None,
+        read_producer=lambda obj, ctx: (
+            obj.material.decode("utf-8")
+            if getattr(obj, "kind", "jwt") in ("jwt", "cwt")
+            else None
+        ),
     )
 
     chain_der_hex: Optional[str] = vcol(
         io=IO(out_verbs=("read",)),
-        read_producer=lambda obj, ctx: obj.material.hex()
-        if getattr(obj, "kind", "x509") == "x509"
-        else None,
+        read_producer=lambda obj, ctx: (
+            obj.material.hex() if getattr(obj, "kind", "x509") == "x509" else None
+        ),
     )
 
     @hook_ctx(ops=("create", "merge", "replace"), phase="PRE_HANDLER")

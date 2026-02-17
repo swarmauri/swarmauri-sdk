@@ -2,12 +2,14 @@ from __future__ import annotations
 
 from typing import Any, Callable, Awaitable, Iterable
 
+
 class RequireTrustDomain:
     """Simple authz middleware to require a SPIFFE trust domain for the principal.
 
     In real deployments, prefer integrating with the platform's security dependency system.
 
     """
+
     def __init__(self, allowed_trust_domains: Iterable[str]):
         self._domains = set(allowed_trust_domains)
 
@@ -17,11 +19,15 @@ class RequireTrustDomain:
             return None
         # naive parse: spiffe://<td>/<rest>
         if spiffe_id.startswith("spiffe://"):
-            rest = spiffe_id[len("spiffe://"):]
+            rest = spiffe_id[len("spiffe://") :]
             return rest.split("/", 1)[0]
         return None
 
-    async def __call__(self, ctx: dict[str, Any], next_handler: Callable[[dict[str, Any]], Awaitable[Any]]):
+    async def __call__(
+        self,
+        ctx: dict[str, Any],
+        next_handler: Callable[[dict[str, Any]], Awaitable[Any]],
+    ):
         principal = ctx.get("principal") or {}
         spiffe_id = principal.get("spiffe_id")
         td = self._domain_of(spiffe_id)

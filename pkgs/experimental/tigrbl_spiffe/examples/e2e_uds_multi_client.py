@@ -9,14 +9,20 @@ from _e2e_shared import EchoServerASGI, make_client_for_asgi_app
 
 UDS = "unix:///tmp/spire-agent/public/api.sock"
 
+
 async def make_token(plugin: TigrblSpiffePlugin) -> str:
-    ctx_fetch = {**plugin.ctx_extras(), "payload": {"remote": True, "kind": "jwt", "aud": ["echo"]}}
+    ctx_fetch = {
+        **plugin.ctx_extras(),
+        "payload": {"remote": True, "kind": "jwt", "aud": ["echo"]},
+    }
     jwt_row = await Svid.handlers.read.raw(ctx_fetch)
     return jwt_row["material"].decode("utf-8")
+
 
 async def call_server(client, token: str) -> dict:
     resp = await client.get("/echo", headers={"Authorization": f"Bearer {token}"})
     return resp.json()
+
 
 async def main():
     plugin = TigrblSpiffePlugin(workload_endpoint=Endpoint(scheme="uds", address=UDS))
@@ -34,6 +40,7 @@ async def main():
         print(f"[{i}] ok={r.get('ok')} principal={r.get('principal')}")
 
     await client.aclose()
+
 
 if __name__ == "__main__":
     asyncio.run(main())
