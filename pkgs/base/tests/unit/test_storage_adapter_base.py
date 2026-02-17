@@ -41,3 +41,16 @@ def test_storage_adapter_base_push_pull():
     adapter.pull("prefix", "dest")
     assert adapter.upload_dir_calls == [("src", "prefix")]
     assert adapter.download_dir_calls == [("prefix", "dest")]
+
+
+def test_storage_adapter_base_parse_range():
+    adapter = DummyStorageAdapter()
+    assert adapter._parse_range(start=0, length=5, total=10) == (0, 5)
+    assert adapter._parse_range(start=8, length=10, total=10) == (8, 10)
+
+
+def test_storage_adapter_base_parse_range_header():
+    adapter = DummyStorageAdapter()
+    assert adapter._parse_range_header("bytes=0-4", 10) == (0, 4)
+    assert adapter._parse_range_header("bytes=3-", 10) == (3, 9)
+    assert adapter._parse_range_header("bytes=-4", 10) == (6, 9)

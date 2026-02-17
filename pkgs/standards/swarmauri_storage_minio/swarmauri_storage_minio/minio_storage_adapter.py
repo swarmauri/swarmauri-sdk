@@ -147,6 +147,24 @@ class MinioStorageAdapter(StorageAdapterBase):
             with target.open("wb") as fh:
                 shutil.copyfileobj(data, fh)
 
+    async def ensure_bucket(self) -> None:
+        """Create the configured bucket when it does not exist."""
+        if not self._client.bucket_exists(self._bucket):
+            self._client.make_bucket(self._bucket)
+
+    async def remove_object(self, object_key: str) -> None:
+        """Delete ``object_key`` when it exists."""
+        try:
+            self._client.remove_object(self._bucket, self._full_key(object_key))
+        except S3Error as exc:
+            if getattr(exc, "code", "") in {
+                "NoSuchKey",
+                "NoSuchObject",
+                "NoSuchBucket",
+            }:
+                return
+            raise
+
     # ------------------------------------------------------------------
     @classmethod
     def from_uri(cls, uri: str) -> "MinioStorageAdapter":

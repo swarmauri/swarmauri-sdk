@@ -151,6 +151,14 @@ class GithubReleaseStorageAdapter(StorageAdapterBase):
             with target.open("wb") as fh:
                 shutil.copyfileobj(data, fh)
 
+    async def remove_object(self, object_key: str) -> None:
+        """Delete an asset when present in the release."""
+        key = self._full_key(object_key)
+        for asset in self._release.get_assets():
+            if asset.name == key:
+                asset.delete_asset()
+                return
+
     # --------------------------------------------------------------------- class
     @classmethod
     def from_uri(cls, uri: str) -> "GithubReleaseStorageAdapter":

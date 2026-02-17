@@ -79,6 +79,10 @@ class MemoryStorageAdapter(StorageAdapterBase):
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(payload)
 
+    async def remove_object(self, object_key: str) -> None:
+        """Delete ``object_key`` when it exists."""
+        self._store.pop(self._full_key(object_key), None)
+
     @classmethod
     def from_uri(cls, uri: str) -> "MemoryStorageAdapter":
         """Instantiate the adapter from a ``memory://`` URI."""

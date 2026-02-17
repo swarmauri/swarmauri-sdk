@@ -29,6 +29,10 @@ class GithubStorageAdapter(StorageAdapterBase):
     ) -> None:  # pragma: no cover - stub
         raise NotImplementedError("download_dir() not implemented")
 
+    async def remove_object(self, object_key: str) -> None:  # pragma: no cover - stub
+        del object_key
+        return
+
     @classmethod
     def from_uri(cls, uri: str) -> "GithubStorageAdapter":  # pragma: no cover - stub
         return cls()
