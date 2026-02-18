@@ -1,6 +1,6 @@
 [project]
 name = "swm_example_package"
-version = "0.6.3.dev3"
+version = "0.6.3.dev4"
 description = "This repository includes an example of a First Class Swarmauri Example."
 license = "Apache-2.0"
 readme = "README.md"
