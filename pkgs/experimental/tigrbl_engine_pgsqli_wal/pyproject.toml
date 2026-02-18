@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tigrbl_engine_pgsqli_wal"
-version = "0.1.1.dev1"
+version = "0.1.1.dev2"
 description = "PostgreSQL and SQLite WAL engine plugin for Tigrbl (auto-registered via entry points)."
 readme = "README.md"
 requires-python = ">=3.10,<3.13"

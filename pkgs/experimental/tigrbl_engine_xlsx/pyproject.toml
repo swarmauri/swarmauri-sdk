@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tigrbl_engine_xlsx"
-version = "0.1.1.dev1"
+version = "0.1.1.dev2"
 description = "XLSX engine plugin for tigrbl where each workbook is a database and each sheet is a table."
 readme = "README.md"
 license = { file = "LICENSE" }
