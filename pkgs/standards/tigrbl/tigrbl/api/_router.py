@@ -17,27 +17,27 @@ from tigrbl.api._routing import (
     normalize_prefix,
     route,
 )
-from tigrbl.core.router_runtime import (
-    _invoke_dependency,
-    _resolve_handler_kwargs,
-    _resolve_route_dependencies,
-    call_handler,
-    dispatch,
-    is_metadata_route,
+from tigrbl.api.resolve import (
+    invoke_dependency as _invoke_dependency_impl,
+    resolve_handler_kwargs as _resolve_handler_kwargs_impl,
+    resolve_route_dependencies as _resolve_route_dependencies_impl,
 )
 from tigrbl.app.transport import (
     asgi_app as _asgi_app_impl,
-    router_call as _router_call_impl,
     wsgi_app as _wsgi_app_impl,
 )
 from tigrbl.requests.adapters import (
     request_from_asgi as _request_from_asgi_impl,
     request_from_wsgi as _request_from_wsgi_impl,
 )
+from tigrbl.responses import Response
+from tigrbl.runtime.status.exceptions import HTTPException
+from tigrbl.runtime.status.mappings import status
 from tigrbl.transport.httpx import ensure_httpx_sync_transport
 
 from ._route import Route
 from ..system.docs.openapi import build_openapi, mount_openapi
+from ..system.docs.openapi.metadata import is_metadata_route as _is_metadata_route_impl
 from ..system.docs.swagger import mount_swagger
 from ..requests import Request
 from ..transport.rest.decorators import (
@@ -193,7 +193,41 @@ class Router:
         return include_router(self, other, **kwargs)
 
     def __call__(self, *args: Any, **kwargs: Any):
-        return _router_call_impl(self, *args, **kwargs)
+        return self._router_call(*args, **kwargs)
+
+    def _router_call(self, *args: Any, **kwargs: Any):
+        """Dispatch entrypoint supporting WSGI and ASGI call conventions.
+
+        The router is designed to be directly mountable on WSGI *or* ASGI
+        servers without additional glue code.
+
+        Supported invocation forms
+        --------------------------
+        WSGI (PEP 3333)
+            ``router(environ: dict, start_response: Callable) -> list[bytes]``
+
+        ASGI 3 (single callable)
+            ``router(scope: dict, receive: Callable, send: Callable) -> Awaitable[None]``
+
+        ASGI 2 (callable factory)
+            ``router(scope: dict) -> Callable[[receive, send], Awaitable[None]]``
+
+        The protocol is inferred from positional arguments.
+        """
+
+        del kwargs
+        if len(args) == 2 and isinstance(args[0], dict) and callable(args[1]):
+            return self._wsgi_app(args[0], args[1])
+        if len(args) == 1 and isinstance(args[0], dict):
+            scope = args[0]
+
+            async def _asgi2_instance(receive: Callable, send: Callable) -> None:
+                await self._asgi_app(scope, receive, send)
+
+            return _asgi2_instance
+        if len(args) == 3 and isinstance(args[0], dict):
+            return self._asgi_app(args[0], args[1], args[2])
+        raise TypeError("Invalid ASGI/WSGI invocation")
 
     def _wsgi_app(
         self, environ: dict[str, Any], start_response: Callable[..., Any]
@@ -214,25 +248,172 @@ class Router:
     def _route_match_priority(self, route: Route) -> tuple[int, int, int]:
         return _route_match_priority(route)
 
+    @staticmethod
+    def _is_http_response_like(obj: Any) -> bool:
+        return (
+            hasattr(obj, "status_code")
+            and hasattr(obj, "headers")
+            and (
+                hasattr(obj, "body")
+                or hasattr(obj, "body_iterator")
+                or hasattr(obj, "render")
+                or hasattr(obj, "path")
+            )
+        )
+
+    async def dispatch(self, req: Request) -> Response:
+        """Route an incoming request to the best matching handler."""
+
+        candidates = [r for r in self._routes if req.method in r.methods]
+        candidates.sort(key=self._route_match_priority)
+        for candidate in candidates:
+            match = candidate.pattern.match(req.path)
+            if not match:
+                continue
+            req2 = Request(
+                method=req.method,
+                path=req.path,
+                headers=req.headers,
+                query=req.query,
+                path_params={k: v for k, v in match.groupdict().items()},
+                body=req.body,
+                script_name=req.script_name,
+                app=self,
+                state=req.state,
+                scope=req.scope,
+            )
+            return await self.call_handler(candidate, req2)
+
+        # If the path exists for any method, return a 405 + Allow header.
+        for candidate in self._routes:
+            if candidate.pattern.match(req.path):
+                allowed = ",".join(sorted(candidate.methods))
+                return Response.json(
+                    {"detail": "Method Not Allowed"},
+                    status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
+                    headers={"allow": allowed},
+                )
+
+        return Response.json(
+            {"detail": "Not Found"},
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+
+    async def call_handler(self, route: Route, req: Request) -> Response:
+        """Resolve dependencies, invoke the handler, and normalize its output."""
+
+        dependency_cleanups: list[Callable[[], Any]] = []
+        setattr(req.state, "_dependency_cleanups", dependency_cleanups)
+        try:
+            await self._resolve_route_dependencies(route, req)
+            kwargs = await self._resolve_handler_kwargs(route, req)
+            out = route.handler(**kwargs)
+            if inspect.isawaitable(out):
+                out = await out
+        except HTTPException as he:
+            return Response.json(
+                {"detail": he.detail},
+                status_code=he.status_code,
+                headers=he.headers,
+            )
+        except Exception as exc:
+            # Normalize exception objects that provide ``status_code`` + ``detail``
+            # into HTTP JSON responses.
+            if hasattr(exc, "status_code") and hasattr(exc, "detail"):
+                return Response.json(
+                    {"detail": getattr(exc, "detail")},
+                    status_code=getattr(exc, "status_code"),
+                    headers=getattr(exc, "headers", None),
+                )
+            raise
+        finally:
+            for cleanup in reversed(dependency_cleanups):
+                try:
+                    result = cleanup()
+                    if inspect.isawaitable(result):
+                        await result
+                except Exception:
+                    pass
+
+        if isinstance(out, Response):
+            return out
+
+        if self._is_http_response_like(out):
+            body = bytes(getattr(out, "body", b"") or b"")
+            if not body and hasattr(out, "body_iterator"):
+                chunks: list[bytes] = []
+                body_iter = getattr(out, "body_iterator")
+                if body_iter is not None:
+                    if hasattr(body_iter, "__aiter__"):
+                        async for chunk in body_iter:
+                            chunks.append(
+                                chunk.encode("utf-8")
+                                if isinstance(chunk, str)
+                                else bytes(chunk)
+                            )
+                    else:
+                        for chunk in body_iter:
+                            chunks.append(
+                                chunk.encode("utf-8")
+                                if isinstance(chunk, str)
+                                else bytes(chunk)
+                            )
+                    body = b"".join(chunks)
+            if not body and hasattr(out, "path"):
+                path = getattr(out, "path")
+                if isinstance(path, str):
+                    with open(path, "rb") as fp:
+                        body = fp.read()
+            raw_headers = getattr(out, "headers", {})
+            if hasattr(raw_headers, "items"):
+                headers = list(raw_headers.items())
+            else:
+                headers = list(raw_headers)
+            media_type = getattr(out, "media_type", None)
+            if media_type and not any(k.lower() == "content-type" for k, _ in headers):
+                headers.append(("content-type", media_type))
+            return Response(
+                status_code=getattr(out, "status_code", 200),
+                headers=headers,
+                body=body,
+            )
+
+        code = route.status_code if route.status_code is not None else 200
+        if out is None:
+            if code == 204:
+                return Response(
+                    status_code=204,
+                    headers=[("content-length", "0")],
+                    body=b"",
+                )
+            return Response.json(None, status_code=code)
+        if isinstance(out, (str, bytes, bytearray)):
+            return Response(
+                status_code=code,
+                headers=[("content-type", "application/octet-stream")],
+                body=bytes(out),
+            )
+        return Response.json(out, status_code=code)
+
     async def _dispatch(self, req: Request):
-        return await dispatch(self, req)
+        return await self.dispatch(req)
 
     async def _call_handler(self, route: Route, req: Request):
-        return await call_handler(self, route, req)
+        return await self.call_handler(route, req)
 
     async def _resolve_route_dependencies(self, route: Route, req: Request) -> None:
-        return await _resolve_route_dependencies(self, route, req)
+        return await _resolve_route_dependencies_impl(self, route, req)
 
     def _is_metadata_route(self, route: Route) -> bool:
-        return is_metadata_route(self, route)
+        return _is_metadata_route_impl(self, route)
 
     async def _resolve_handler_kwargs(
         self, route: Route, req: Request
     ) -> dict[str, Any]:
-        return await _resolve_handler_kwargs(self, route, req)
+        return await _resolve_handler_kwargs_impl(self, route, req)
 
     async def _invoke_dependency(self, dep: Callable[..., Any], req: Request) -> Any:
-        return await _invoke_dependency(self, dep, req)
+        return await _invoke_dependency_impl(self, dep, req)
 
     def openapi(self) -> dict[str, Any]:
         return build_openapi(self)
