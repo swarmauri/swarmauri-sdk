@@ -410,7 +410,38 @@ def build_jsonrpc_router(
                 err = _err(-32600, "Invalid Request", None)
                 return JSONResponse(content=err)
 
+    async def _options_endpoint(request: Request):
+        allow = "OPTIONS,POST"
+        headers: Dict[str, str] = {
+            "allow": allow,
+            "access-control-allow-methods": allow,
+        }
+
+        origin = request.headers.get("origin")
+        if origin:
+            headers["access-control-allow-origin"] = origin
+            headers["vary"] = "origin"
+
+        req_headers = request.headers.get("access-control-request-headers")
+        if req_headers:
+            headers["access-control-allow-headers"] = req_headers
+            headers["vary"] = (
+                "origin,access-control-request-headers"
+                if origin
+                else "access-control-request-headers"
+            )
+
+        return Response(status_code=204, headers=headers)
+
     # Attach a single JSON-RPC POST route. Mount prefix controls final path.
+    router.add_api_route(
+        path="",
+        endpoint=_options_endpoint,
+        methods=["OPTIONS"],
+        name="jsonrpc_options",
+        include_in_schema=False,
+    )
+
     router.add_api_route(
         path="",
         endpoint=_endpoint,

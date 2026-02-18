@@ -264,7 +264,12 @@ class Router:
     async def dispatch(self, req: Request) -> Response:
         """Route an incoming request to the best matching handler."""
 
-        candidates = [r for r in self._routes if req.method in r.methods]
+        path_matches = [r for r in self._routes if r.pattern.match(req.path)]
+
+        if req.method.upper() == "OPTIONS" and path_matches:
+            return _build_options_response(req, path_matches)
+
+        candidates = [r for r in path_matches if req.method in r.methods]
         candidates.sort(key=self._route_match_priority)
         for candidate in candidates:
             match = candidate.pattern.match(req.path)
@@ -285,14 +290,18 @@ class Router:
             return await self.call_handler(candidate, req2)
 
         # If the path exists for any method, return a 405 + Allow header.
-        for candidate in self._routes:
-            if candidate.pattern.match(req.path):
-                allowed = ",".join(sorted(candidate.methods))
-                return Response.json(
-                    {"detail": "Method Not Allowed"},
-                    status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
-                    headers={"allow": allowed},
-                )
+        if path_matches:
+            allowed = {
+                method.upper()
+                for candidate in path_matches
+                for method in getattr(candidate, "methods", ())
+            }
+            allowed.add("OPTIONS")
+            return Response.json(
+                {"detail": "Method Not Allowed"},
+                status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
+                headers={"allow": ",".join(sorted(allowed))},
+            )
 
         return Response.json(
             {"detail": "Not Found"},
@@ -446,6 +455,33 @@ def _route_match_priority(route: Route) -> tuple[int, int, int]:
     dynamic_segments = route.path_template.count("{")
     path_length = -len(route.path_template)
     return (-is_metadata, dynamic_segments, path_length)
+
+
+def _build_options_response(req: Request, routes: list[Route]) -> Response:
+    """Build an automatic OPTIONS response for a matched path."""
+    allowed_methods = {
+        method.upper() for route in routes for method in getattr(route, "methods", ())
+    }
+    allowed_methods.add("OPTIONS")
+    allow_value = ",".join(sorted(allowed_methods))
+
+    headers: dict[str, str] = {"allow": allow_value}
+
+    origin = req.headers.get("origin")
+    if origin:
+        headers["access-control-allow-origin"] = origin
+        headers["vary"] = "origin"
+
+    request_headers = req.headers.get("access-control-request-headers")
+    if request_headers:
+        headers["access-control-allow-headers"] = request_headers
+
+    if origin and request_headers:
+        headers["vary"] = "origin,access-control-request-headers"
+
+    headers["access-control-allow-methods"] = allow_value
+
+    return Response(status_code=204, headers=headers, body=b"")
 
 
 ensure_httpx_sync_transport()
