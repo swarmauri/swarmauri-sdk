@@ -118,7 +118,7 @@ jobs:
               "include": [
                   {
                       "index": index + 1,
-                      "label": f"<{label}>",
+                      "label": label,
                       "members": chunk,
                   }
                   for index, (label, chunk) in enumerate(chunks)

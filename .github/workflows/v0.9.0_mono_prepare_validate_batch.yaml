@@ -1,5 +1,5 @@
 name: v0.9.0 - Mono (Prepare, Validate) [Batch]
-run-name: v0.9.0 prepare/validate [batch ${{ github.event.inputs.batch_index || 'n/a' }}]
+run-name: v0.9.0 prepare/validate [batch ${{ github.event.inputs.batch_index || 'n/a' }}] <${{ github.event.inputs.batch_label || 'unknown group 0-0' }}>
 
 on:
   workflow_dispatch:
@@ -192,13 +192,15 @@ jobs:
           git add .
 
           DEFAULT_REF="${{ github.ref }}"
-          BRANCH_NAME="automation/batch-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.event.inputs.batch_index || 'na' }}"
+          if [ "${{ github.ref_type }}" != "branch" ]; then
+            echo "Expected a branch ref, got '${{ github.ref_type }}' (${DEFAULT_REF})."
+            exit 1
+          fi
 
           if ! git diff-index --quiet HEAD; then
-            git checkout -B "$BRANCH_NAME"
             git commit -m "chore: apply automatic formatting and lint fixes"
-            git push origin "HEAD:refs/heads/$BRANCH_NAME" --force
-            echo "checkout_ref=refs/heads/$BRANCH_NAME" >> $GITHUB_OUTPUT
+            git push origin "HEAD:${DEFAULT_REF}" --force
+            echo "checkout_ref=${DEFAULT_REF}" >> $GITHUB_OUTPUT
           else
             echo "No changes to commit."
             echo "checkout_ref=$DEFAULT_REF" >> $GITHUB_OUTPUT
