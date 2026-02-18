@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tigrbl_engine_csv"
-version = "0.1.1.dev1"
+version = "0.1.1.dev2"
 description = "CSV engine plugin for tigrbl backed by pandas DataFrames."
 readme = "README.md"
 license = { file = "LICENSE" }

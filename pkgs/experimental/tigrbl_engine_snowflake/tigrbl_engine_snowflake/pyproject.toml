@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tigrbl_engine_snowflake"
-version = "0.1.1.dev2"
+version = "0.1.1.dev3"
 description = "Tigrbl engine plugin for Snowflake, auto-registered via entry points."
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
