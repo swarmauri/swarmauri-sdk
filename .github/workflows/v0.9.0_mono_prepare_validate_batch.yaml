@@ -197,9 +197,15 @@ jobs:
             exit 1
           fi
 
+          TARGET_BRANCH="${DEFAULT_REF#refs/heads/}"
+
           if ! git diff-index --quiet HEAD; then
             git commit -m "chore: apply automatic formatting and lint fixes"
-            git push origin "HEAD:${DEFAULT_REF}" --force
+            # Keep updates on the trigger branch (e.g. master) while avoiding protected-branch force pushes.
+            # Sync with any upstream movement first, then push as a fast-forward update.
+            git fetch origin "$TARGET_BRANCH"
+            git pull --rebase origin "$TARGET_BRANCH"
+            git push origin "HEAD:${DEFAULT_REF}"
             echo "checkout_ref=${DEFAULT_REF}" >> $GITHUB_OUTPUT
           else
             echo "No changes to commit."
