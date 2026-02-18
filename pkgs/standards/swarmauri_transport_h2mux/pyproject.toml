@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_transport_h2mux"
-version = "0.1.1.dev5"
+version = "0.1.1.dev6"
 description = "Core HTTP/2 multiplexer transport for Swarmauri agents." 
 readme = "README.md"
 requires-python = ">=3.10"

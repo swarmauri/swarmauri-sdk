@@ -1,4 +1,5 @@
 import pytest
+import requests
 from swarmauri_tool_webscraping.WebScrapingTool import (
     WebScrapingTool as Tool,
 )
@@ -64,8 +65,40 @@ def test_call(url, selector, expected_substring):
     - If extraction is successful, check that the text contains the expected substring.
     - If an error occurs, ensure the error contains the expected message.
     """
+
+    class MockResponse:
+        def __init__(self, content, status_code=200):
+            self.content = content.encode("utf-8")
+            self.status_code = status_code
+
+        def raise_for_status(self):
+            if self.status_code >= 400:
+                raise requests.HTTPError(f"{self.status_code} Client Error")
+
+    def mock_get(mock_url):
+        if mock_url == "https://example.com":
+            return MockResponse(
+                (
+                    "<html><body><h1>Example Domain</h1>"
+                    "<p>This domain is for use in illustrative examples.</p>"
+                    "</body></html>"
+                ),
+                200,
+            )
+        if mock_url == "https://example.com/nonexistent":
+            return MockResponse(
+                "<html><body><h1>404 Not Found</h1></body></html>",
+                404,
+            )
+        raise requests.RequestException("Unexpected URL")
+
     tool = Tool()
-    result = tool(url, selector)
+    original_get = requests.get
+    requests.get = mock_get
+    try:
+        result = tool(url, selector)
+    finally:
+        requests.get = original_get
 
     # Check the result type
     assert isinstance(result, dict), "Result should be a dictionary."
