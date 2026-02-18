@@ -22,8 +22,9 @@ from tigrbl.api.resolve import (
     resolve_handler_kwargs as _resolve_handler_kwargs_impl,
     resolve_route_dependencies as _resolve_route_dependencies_impl,
 )
-from tigrbl.app.transport import (
+from tigrbl.transport.http import (
     asgi_app as _asgi_app_impl,
+    http_app_call as _router_call_impl,
     wsgi_app as _wsgi_app_impl,
 )
 from tigrbl.requests.adapters import (
@@ -193,41 +194,7 @@ class Router:
         return include_router(self, other, **kwargs)
 
     def __call__(self, *args: Any, **kwargs: Any):
-        return self._router_call(*args, **kwargs)
-
-    def _router_call(self, *args: Any, **kwargs: Any):
-        """Dispatch entrypoint supporting WSGI and ASGI call conventions.
-
-        The router is designed to be directly mountable on WSGI *or* ASGI
-        servers without additional glue code.
-
-        Supported invocation forms
-        --------------------------
-        WSGI (PEP 3333)
-            ``router(environ: dict, start_response: Callable) -> list[bytes]``
-
-        ASGI 3 (single callable)
-            ``router(scope: dict, receive: Callable, send: Callable) -> Awaitable[None]``
-
-        ASGI 2 (callable factory)
-            ``router(scope: dict) -> Callable[[receive, send], Awaitable[None]]``
-
-        The protocol is inferred from positional arguments.
-        """
-
-        del kwargs
-        if len(args) == 2 and isinstance(args[0], dict) and callable(args[1]):
-            return self._wsgi_app(args[0], args[1])
-        if len(args) == 1 and isinstance(args[0], dict):
-            scope = args[0]
-
-            async def _asgi2_instance(receive: Callable, send: Callable) -> None:
-                await self._asgi_app(scope, receive, send)
-
-            return _asgi2_instance
-        if len(args) == 3 and isinstance(args[0], dict):
-            return self._asgi_app(args[0], args[1], args[2])
-        raise TypeError("Invalid ASGI/WSGI invocation")
+        return _router_call_impl(self, *args, **kwargs)
 
     def _wsgi_app(
         self, environ: dict[str, Any], start_response: Callable[..., Any]
