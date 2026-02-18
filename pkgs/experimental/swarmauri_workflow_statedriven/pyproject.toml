@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_workflow_statedriven"
-version = "0.2.3.dev4"
+version = "0.2.3.dev5"
 description = "Swarmauri's StateDrivenWorkflow"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 keywords = ["swarmauri_workflow_statedriven", "swarmauri", "experimental"]

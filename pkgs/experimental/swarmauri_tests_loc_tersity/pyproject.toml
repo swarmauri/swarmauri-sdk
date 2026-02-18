@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tests_loc_tersity"
-version = "0.1.3.dev4"
+version = "0.1.3.dev5"
 description = "Pytest plugin enforcing line count limits"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 keywords = ["swarmauri_tests_loc_tersity", "swarmauri", "experimental"]
