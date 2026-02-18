@@ -439,6 +439,7 @@ def build_jsonrpc_router(
         endpoint=_options_endpoint,
         methods=["OPTIONS"],
         name="jsonrpc_options",
+        tags=list(tags) if tags else None,
         include_in_schema=False,
     )
 
