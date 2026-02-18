@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tigrbl_engine_pandas"
-version = "0.1.1.dev2"
+version = "0.1.1.dev3"
 description = "Tigrbl engine plugin providing transactional pandas DataFrame sessions."
 readme = "README.md"
 license = { file = "LICENSE" }

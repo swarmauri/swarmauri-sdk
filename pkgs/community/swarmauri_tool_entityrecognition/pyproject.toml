@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_entityrecognition"
-version = "0.8.2.dev2"
+version = "0.8.2.dev3"
 description = "Swarmauri Community Entity Recognition Tool"
 license = "Apache-2.0"
 readme = "README.md"
@@ -21,6 +21,7 @@ dependencies = [
     "transformers>=4.45.0",
     "tensorflow>=2.16.1",
     "tf-keras==2.16.0",
+    "torch>=2.6.0",
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
