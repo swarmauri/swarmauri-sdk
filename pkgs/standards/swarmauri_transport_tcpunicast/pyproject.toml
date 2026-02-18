@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_transport_tcpunicast"
-version = "0.1.1.dev7"
+version = "0.1.1.dev8"
 description = "Basic TCP unicast transport for Swarmauri prototyping."
 readme = "README.md"
 requires-python = ">=3.10"
