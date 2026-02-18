@@ -93,11 +93,26 @@ jobs:
               ("General packages", sixth_batch),
               ("Experimental packages", seventh_batch),
           ]
-          chunks = [(label, batch) for label, batch in named_batches if batch]
+          chunks = []
+          batch_size = 50
+          for primary_label, group_members in named_batches:
+              if not group_members:
+                  continue
+
+              for start in range(0, len(group_members), batch_size):
+                  end = min(start + batch_size, len(group_members))
+                  chunk_members = group_members[start:end]
+                  label = f"{primary_label} group {start}-{end - 1}"
+                  chunks.append((label, chunk_members))
+
           has_batches = "true" if chunks else "false"
           matrix = {
               "include": [
-                  {"index": index, "label": label, "members": chunk}
+                  {
+                      "index": index,
+                      "label": f"batch {index + 1} <{label}>",
+                      "members": chunk,
+                  }
                   for index, (label, chunk) in enumerate(chunks)
               ]
           }
