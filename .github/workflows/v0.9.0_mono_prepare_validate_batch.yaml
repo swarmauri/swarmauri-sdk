@@ -1,5 +1,5 @@
 name: v0.9.0 - Mono (Prepare, Validate) [Batch]
-run-name: v0.9.0 prepare/validate [batch ${{ github.event.inputs.batch_index || 'n/a' }}] ${{ github.event.inputs.batch_label || 'Unlabeled batch' }}
+run-name: v0.9.0 prepare/validate [batch ${{ github.event.inputs.batch_index || 'n/a' }}]
 
 on:
   workflow_dispatch:
@@ -147,6 +147,8 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ !cancelled() && always() && needs.set-matrix.outputs.has_members == 'true' }}
     timeout-minutes: 15
+    outputs:
+      checkout_ref: ${{ steps.commit_and_push.outputs.checkout_ref }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -183,14 +185,21 @@ jobs:
           git remote set-url origin git@github.com:${{ github.repository }}.git
 
       - name: Git Commit and Push
+        id: commit_and_push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
+
+          DEFAULT_REF="${{ github.ref }}"
+          BRANCH_NAME="automation/batch-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.event.inputs.batch_index || 'na' }}"
+
           if ! git diff-index --quiet HEAD; then
+            git checkout -B "$BRANCH_NAME"
             git commit -m "chore: apply automatic formatting and lint fixes"
-            git pull --rebase origin "${{ github.ref }}"
-            git push origin HEAD:"${{ github.ref }}" --force
+            git push origin "HEAD:refs/heads/$BRANCH_NAME" --force
+            echo "checkout_ref=refs/heads/$BRANCH_NAME" >> $GITHUB_OUTPUT
           else
             echo "No changes to commit."
+            echo "checkout_ref=$DEFAULT_REF" >> $GITHUB_OUTPUT
           fi

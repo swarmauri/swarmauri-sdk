@@ -109,8 +109,8 @@ jobs:
           matrix = {
               "include": [
                   {
-                      "index": index,
-                      "label": f"batch {index + 1} <{label}>",
+                      "index": index + 1,
+                      "label": f"<{label}>",
                       "members": chunk,
                   }
                   for index, (label, chunk) in enumerate(chunks)
