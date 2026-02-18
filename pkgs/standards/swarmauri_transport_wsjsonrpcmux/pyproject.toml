@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_transport_wsjsonrpcmux"
-version = "0.1.1.dev7"
+version = "0.1.1.dev8"
 description = "WebSocket JSON-RPC multiplexer transport for Swarmauri agents." 
 readme = "README.md"
 requires-python = ">=3.10"
