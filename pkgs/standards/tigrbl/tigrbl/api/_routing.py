@@ -42,6 +42,7 @@ def add_api_route(
     responses: dict[int, dict[str, Any]] | None = None,
     status_code: int | None = None,
     dependencies: list[Any] | None = None,
+    security_dependencies: list[Any] | None = None,
     **_: Any,
 ) -> None:
     full_path = router.prefix + (path if path.startswith("/") else "/" + path)
@@ -68,6 +69,7 @@ def add_api_route(
         responses=responses,
         status_code=status_code,
         dependencies=list(router.dependencies or []) + list(dependencies or []),
+        security_dependencies=list(security_dependencies or []),
     )
     router._routes.append(route)
 
@@ -139,5 +141,8 @@ def include_router(
                 status_code=getattr(r, "status_code", None),
                 dependencies=list(router.dependencies or [])
                 + list(getattr(r, "dependencies", None) or []),
+                security_dependencies=list(
+                    getattr(r, "security_dependencies", None) or []
+                ),
             )
         )

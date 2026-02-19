@@ -23,14 +23,12 @@ from .common import (
     Request,
     OpSpec,
     _coerce_parent_kw,
-    _get_phase_chains,
     _is_http_response,
     _pk_name,
     _pk_names,
     _request_model_for,
     _serialize_output,
     _validate_body,
-    _executor,
     _status,
     _status_for,
 )
@@ -38,6 +36,7 @@ from .common import (
 from .io_headers import _make_header_dep
 
 from ...runtime.executor.types import _Ctx
+from ...transport.dispatcher import dispatch_operation
 
 
 logger = logging.getLogger("uvicorn")
@@ -110,12 +109,15 @@ def _make_member_endpoint(
                 return out
 
             ctx["response_serializer"] = _serializer
-            phases = _get_phase_chains(model, alias)
-            result = await _executor._invoke(
-                request=request,
+            result = await dispatch_operation(
+                api=api,
+                model_or_name=model,
+                alias=alias,
+                payload=ctx.get("payload"),
                 db=db,
-                phases=phases,
+                request=request,
                 ctx=ctx,
+                response_serializer=ctx.get("response_serializer"),
             )
             if _is_http_response(result):
                 if sp.status_code is not None or result.status_code == 200:
@@ -210,12 +212,15 @@ def _make_member_endpoint(
                 return out
 
             ctx["response_serializer"] = _serializer
-            phases = _get_phase_chains(model, alias)
-            result = await _executor._invoke(
-                request=request,
+            result = await dispatch_operation(
+                api=api,
+                model_or_name=model,
+                alias=alias,
+                payload=ctx.get("payload"),
                 db=db,
-                phases=phases,
+                request=request,
                 ctx=ctx,
+                response_serializer=ctx.get("response_serializer"),
             )
             return result
 
@@ -325,12 +330,15 @@ def _make_member_endpoint(
             return out
 
         ctx["response_serializer"] = _serializer
-        phases = _get_phase_chains(model, alias)
-        result = await _executor._invoke(
-            request=request,
+        result = await dispatch_operation(
+            api=api,
+            model_or_name=model,
+            alias=alias,
+            payload=ctx.get("payload"),
             db=db,
-            phases=phases,
+            request=request,
             ctx=ctx,
+            response_serializer=ctx.get("response_serializer"),
         )
 
         if _is_http_response(result):

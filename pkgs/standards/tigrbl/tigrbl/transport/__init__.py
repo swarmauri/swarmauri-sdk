@@ -26,6 +26,7 @@ from __future__ import annotations
 
 from typing import Any, Callable, Optional, Sequence
 
+from .contracts import Request, Response, get_header
 
 def build_jsonrpc_router(*args: Any, **kwargs: Any):
     from .jsonrpc import build_jsonrpc_router as _build_jsonrpc_router
@@ -90,4 +91,7 @@ __all__ = [
     # REST
     "build_rest_router",
     "mount_rest",
+    "Request",
+    "Response",
+    "get_header",
 ]

@@ -36,6 +36,7 @@ class Route:
     responses: dict[int, dict[str, Any]] | None = None
     status_code: int | None = None
     dependencies: list[Any] | None = None
+    security_dependencies: list[Any] | None = None
 
     @property
     def path(self) -> str:

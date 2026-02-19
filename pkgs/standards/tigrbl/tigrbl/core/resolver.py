@@ -7,7 +7,7 @@ from typing import Annotated, Any, Iterable, get_args, get_origin
 from ..core.crud.params import Param
 from ..runtime.status.exceptions import HTTPException
 from ..runtime.status.mappings import status
-from ..requests import Request
+from ..transport import Request
 
 
 def split_annotated(annotation: Any) -> tuple[Any, tuple[Any, ...]]:

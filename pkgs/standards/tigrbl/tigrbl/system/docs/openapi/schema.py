@@ -122,11 +122,14 @@ def openapi(router: Any) -> dict[str, Any]:
                     "content": {"application/json": {"schema": request_schema}},
                 }
 
-            sec = _security_from_dependencies(route.dependencies or [])
+            security_deps = list(route.dependencies or []) + list(
+                getattr(route, "security_dependencies", None) or []
+            )
+            sec = _security_from_dependencies(security_deps)
             if sec:
                 op["security"] = sec
                 components.setdefault("securitySchemes", {}).update(
-                    _security_schemes_from_dependencies(route.dependencies or [])
+                    _security_schemes_from_dependencies(security_deps)
                 )
 
             path_item[method.lower()] = op

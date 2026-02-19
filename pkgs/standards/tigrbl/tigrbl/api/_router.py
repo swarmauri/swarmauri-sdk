@@ -30,7 +30,7 @@ from tigrbl.requests.adapters import (
     request_from_asgi as _request_from_asgi_impl,
     request_from_wsgi as _request_from_wsgi_impl,
 )
-from tigrbl.responses import Response
+from tigrbl.transport import Response
 from tigrbl.runtime.status.exceptions import HTTPException
 from tigrbl.runtime.status.mappings import status
 from tigrbl.transport.httpx import ensure_httpx_sync_transport
@@ -39,16 +39,29 @@ from ._route import Route
 from ..system.docs.openapi import build_openapi, mount_openapi
 from ..system.docs.openapi.metadata import is_metadata_route as _is_metadata_route_impl
 from ..system.docs.swagger import mount_swagger
-from ..requests import Request
-from ..transport.rest.decorators import (
-    delete as rest_delete,
-    get as rest_get,
-    patch as rest_patch,
-    post as rest_post,
-    put as rest_put,
-)
+from ..transport import Request
 
 Handler = Callable[..., Any]
+
+
+def _rest_get(router: Any, path: str, **kwargs: Any):
+    return router.route(path, methods=["GET"], **kwargs)
+
+
+def _rest_post(router: Any, path: str, **kwargs: Any):
+    return router.route(path, methods=["POST"], **kwargs)
+
+
+def _rest_put(router: Any, path: str, **kwargs: Any):
+    return router.route(path, methods=["PUT"], **kwargs)
+
+
+def _rest_patch(router: Any, path: str, **kwargs: Any):
+    return router.route(path, methods=["PATCH"], **kwargs)
+
+
+def _rest_delete(router: Any, path: str, **kwargs: Any):
+    return router.route(path, methods=["DELETE"], **kwargs)
 
 
 @asynccontextmanager
@@ -175,19 +188,19 @@ class Router:
         return route(self, path, methods=methods, **kwargs)
 
     def get(self, path: str, **kwargs: Any) -> Callable[[Handler], Handler]:
-        return rest_get(self, path, **kwargs)
+        return _rest_get(self, path, **kwargs)
 
     def post(self, path: str, **kwargs: Any) -> Callable[[Handler], Handler]:
-        return rest_post(self, path, **kwargs)
+        return _rest_post(self, path, **kwargs)
 
     def put(self, path: str, **kwargs: Any) -> Callable[[Handler], Handler]:
-        return rest_put(self, path, **kwargs)
+        return _rest_put(self, path, **kwargs)
 
     def patch(self, path: str, **kwargs: Any) -> Callable[[Handler], Handler]:
-        return rest_patch(self, path, **kwargs)
+        return _rest_patch(self, path, **kwargs)
 
     def delete(self, path: str, **kwargs: Any) -> Callable[[Handler], Handler]:
-        return rest_delete(self, path, **kwargs)
+        return _rest_delete(self, path, **kwargs)
 
     def include_router(self, other: "Router", **kwargs: Any) -> None:
         return include_router(self, other, **kwargs)

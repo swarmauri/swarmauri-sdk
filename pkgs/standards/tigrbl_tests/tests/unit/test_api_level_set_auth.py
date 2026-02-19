@@ -10,10 +10,14 @@ class Widget(Base, GUIDPk):
     __tigrbl_allow_anon__ = ["list"]
 
 
-def test_api_level_auth_dep_applied_per_route():
+def test_api_level_auth_dep_applied_as_openapi_metadata_only():
     app = APIRouter()
     api = TigrblApp()
-    api.set_auth(authn=lambda cred=Security(HTTPBearer()): cred, allow_anon=False)
+
+    def authn(cred=Security(HTTPBearer())):
+        return cred
+
+    api.set_auth(authn=authn, allow_anon=False)
     api.include_models([Widget])
     app.include_router(api.router)
     schema = app.openapi()

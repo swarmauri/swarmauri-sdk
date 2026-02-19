@@ -24,11 +24,8 @@ from .common import (
     _default_path_suffix,
     _nested_prefix,
     _normalize_deps,
-    _normalize_secdeps,
     _optionalize_list_in_model,
     _path_for_spec,
-    _require_auth_header,
-    _requires_auth_header,
     _req_state_db,
     _resource_name,
     _status,
@@ -94,7 +91,6 @@ def _build_router(
     )
     auth_dep = getattr(model, TIGRBL_AUTH_DEP_ATTR, None)
 
-    # Verbs explicitly allowed without auth
     allow_anon_attr = getattr(model, TIGRBL_ALLOW_ANON_ATTR, None)
     allow_anon = set(
         allow_anon_attr() if callable(allow_anon_attr) else allow_anon_attr or []
@@ -279,10 +275,6 @@ def _build_router(
 
         # Attach route
         label = f"{model.__name__} - {sp.alias}"
-        route_deps = None
-        if auth_dep and sp.alias not in allow_anon and sp.target not in allow_anon:
-            route_deps = _normalize_deps([auth_dep])
-
         unique_id = f"{endpoint.__name__}_{uuid4().hex}"
         include_in_schema = bool(
             getattr(sp, "extra", {}).get("include_in_schema", True)
@@ -291,6 +283,16 @@ def _build_router(
             path=path,
             endpoint=endpoint,
             methods=methods,
+            security_dependencies=list(getattr(sp, "secdeps", ()) or ())
+            + (
+                [auth_dep]
+                if (
+                    auth_dep
+                    and sp.alias not in allow_anon
+                    and sp.target not in allow_anon
+                )
+                else []
+            ),
             name=f"{model.__name__}.{sp.alias}",
             operation_id=unique_id,
             summary=label,
@@ -310,16 +312,6 @@ def _build_router(
         )
         if response_class is not None:
             route_kwargs["response_class"] = response_class
-
-        secdeps: list[Any] = list(route_deps or [])
-        if auth_dep and sp.alias not in allow_anon and sp.target not in allow_anon:
-            if _requires_auth_header(auth_dep):
-                secdeps.append(_require_auth_header)
-            secdeps.append(auth_dep)
-        secdeps.extend(getattr(sp, "secdeps", ()))
-        route_secdeps = _normalize_secdeps(secdeps)
-        if route_secdeps:
-            route_kwargs["dependencies"] = route_secdeps
 
         if (
             sp.alias != sp.target

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from dataclasses import replace
 from types import SimpleNamespace
 from typing import Any, Dict, Sequence, Tuple
 
@@ -77,13 +78,36 @@ def _seed_security_and_deps(api: Any, model: type) -> None:
 
     # Allow anonymous verbs
     allow_attr = getattr(model, TIGRBL_ALLOW_ANON_ATTR, None)
+    allow_anon: set[Any] = set()
     if allow_attr:
         verbs = allow_attr() if callable(allow_attr) else allow_attr
+        allow_anon = set(verbs or ())
         logger.debug("Allowing anonymous verbs %s for %s", verbs, model.__name__)
         for v in verbs:
             api._allow_anon_ops.add(f"{model.__name__}.{v}")
     else:
         logger.debug("No anonymous verbs for %s", model.__name__)
+
+    # Runtime-only security: push API/model auth dependency into OpSpec.secdeps
+    # so enforcement happens in PRE_TX_BEGIN atoms instead of transport deps.
+    if auth_dep is not None:
+        declared_ops = tuple(getattr(model, "__tigrbl_ops__", ()) or ())
+        if declared_ops:
+            patched = []
+            changed = False
+            for sp in declared_ops:
+                exempt = sp.alias in allow_anon or sp.target in allow_anon
+                if exempt:
+                    patched.append(sp)
+                    continue
+                secdeps = tuple(getattr(sp, "secdeps", ()) or ())
+                if auth_dep in secdeps:
+                    patched.append(sp)
+                    continue
+                patched.append(replace(sp, secdeps=(auth_dep, *secdeps)))
+                changed = True
+            if changed:
+                setattr(model, "__tigrbl_ops__", tuple(patched))
 
     # Authz
     if getattr(api, "_authorize", None):
@@ -94,8 +118,6 @@ def _seed_security_and_deps(api: Any, model: type) -> None:
 
     # Extra deps (router-level only; never part of kernel plan)
     rest_deps: list[Any] = []
-    if getattr(api, "security_deps", None):
-        rest_deps.extend(list(getattr(api, "security_deps", ()) or ()))
     if getattr(api, "rest_dependencies", None):
         rest_deps.extend(list(api.rest_dependencies))
     if rest_deps:
@@ -108,6 +130,32 @@ def _seed_security_and_deps(api: Any, model: type) -> None:
         logger.debug("RPC dependencies seeded for %s", model.__name__)
     else:
         logger.debug("No RPC dependencies for %s", model.__name__)
+
+
+def _inject_runtime_secdeps(model: type, auth_dep: Any, allow_anon: set[Any]) -> None:
+    if auth_dep is None:
+        return
+    ops_ns = getattr(model, "ops", None)
+    by_alias = getattr(ops_ns, "by_alias", None)
+    if not isinstance(by_alias, dict):
+        return
+
+    for alias, specs in list(by_alias.items()):
+        patched_specs = []
+        changed = False
+        for sp in tuple(specs or ()):  # type: ignore[arg-type]
+            exempt = sp.alias in allow_anon or sp.target in allow_anon
+            if exempt:
+                patched_specs.append(sp)
+                continue
+            secdeps = tuple(getattr(sp, "secdeps", ()) or ())
+            if auth_dep in secdeps:
+                patched_specs.append(sp)
+                continue
+            patched_specs.append(replace(sp, secdeps=(auth_dep, *secdeps)))
+            changed = True
+        if changed:
+            by_alias[alias] = tuple(patched_specs)
 
 
 def _attach_to_api(api: ApiLike, model: type) -> None:
@@ -209,6 +257,11 @@ def include_model(
 
     # 1) Build/bind model namespaces (idempotent)
     _binder.bind(model, api=api)
+
+    auth_dep = getattr(model, TIGRBL_AUTH_DEP_ATTR, None)
+    allow_attr = getattr(model, TIGRBL_ALLOW_ANON_ATTR, None)
+    allow_anon = set((allow_attr() if callable(allow_attr) else allow_attr) or ())
+    _inject_runtime_secdeps(model, auth_dep, allow_anon)
 
     # 2) Pick a router & mount prefix
     router = getattr(getattr(model, "rest", SimpleNamespace()), "router", None)
