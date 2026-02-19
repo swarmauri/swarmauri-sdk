@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_keyprovider_aws_kms"
-version = "0.3.3.dev8"
+version = "0.3.3.dev9"
 description = "AWS KMS KeyProvider for Swarmauri"
 license = "Apache-2.0"
 readme = "README.md"
