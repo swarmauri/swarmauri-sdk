@@ -35,8 +35,7 @@ from typing import (
 )
 
 try:
-    from ...types import Router, Request, Body, Depends, HTTPException, Response
-    from ...responses import JSONResponse
+    from ...types import Router, Request, Body, Depends, HTTPException
 except Exception:  # pragma: no cover
     # Minimal shims to keep this importable without ASGI (for typing/tools)
     class Router:  # type: ignore
@@ -64,15 +63,6 @@ except Exception:  # pragma: no cover
     def Depends(fn):  # type: ignore
         return fn
 
-    class Response:  # type: ignore
-        def __init__(self, status_code: int = 200, content: Any = None):
-            self.status_code = status_code
-            self.body = content
-
-    class JSONResponse(Response):  # type: ignore
-        def __init__(self, content: Any = None, status_code: int = 200):
-            super().__init__(status_code=status_code, content=content)
-
     class HTTPException(Exception):  # type: ignore
         def __init__(self, status_code: int, detail: Any = None):
             super().__init__(detail)
@@ -80,18 +70,31 @@ except Exception:  # pragma: no cover
             self.detail = detail
 
 
+try:
+    from ...transport.response import JSONResponse, Response
+except Exception:  # pragma: no cover
+
+    class Response:  # type: ignore
+        def __init__(
+            self, status_code: int = 200, content: Any = None, headers: Any = None
+        ):
+            self.status_code = status_code
+            self.body = content
+            self.headers = headers or {}
+
+    class JSONResponse(Response):  # type: ignore
+        def __init__(self, content: Any = None, status_code: int = 200):
+            super().__init__(status_code=status_code, content=content)
+
+
 from ...runtime.status import ERROR_MESSAGES, _RPC_TO_HTTP, http_exc_to_rpc
-from ...config.constants import TIGRBL_AUTH_CONTEXT_ATTR
-from ...transport.dispatcher import resolve_operation
+from ...transport.dispatcher import dispatch_operation, resolve_operation
 from .models import RPCRequest, RPCResponse
 from .helpers import (
-    _authorize,
     _err,
     _normalize_deps,
     _normalize_params,
     _ok,
-    _select_auth_dep,
-    _user_from_request,
 )
 
 logger = logging.getLogger(__name__)
@@ -168,11 +171,6 @@ async def _dispatch_one(
             return _rpc_error(-32601, f"Unknown model '{model_name}'")
 
         model = resolution.model
-        # Locate RPC callable built by bindings.rpc
-        rpc_ns = getattr(model, "rpc", None)
-        rpc_call = getattr(rpc_ns, alias, None)
-        if rpc_call is None:
-            return _rpc_error(-32601, f"Method not found: {model_name}.{alias}")
 
         # Params
         try:
@@ -181,29 +179,24 @@ async def _dispatch_one(
             code, msg, data = http_exc_to_rpc(exc)
             return _rpc_error(code, msg, data)
 
-        # Enforce auth when required
-        if getattr(api, "_authn", None):
-            method_id = f"{model.__name__}.{alias}"
-            allow = getattr(api, "_allow_anon_ops", set())
-            user = _user_from_request(request)
-            if method_id not in allow and user is None:
-                raise HTTPException(status_code=401, detail="Unauthorized")
-
         # Compose a context; allow middlewares to seed request.state.ctx
         base_ctx: Dict[str, Any] = {}
         extra_ctx = getattr(request.state, "ctx", None)
         if isinstance(extra_ctx, Mapping):
             base_ctx.update(extra_ctx)
         base_ctx.setdefault("rpc_id", rid)
-        ac = getattr(request.state, TIGRBL_AUTH_CONTEXT_ATTR, None)
-        if ac is not None:
-            base_ctx["auth_context"] = ac
 
-        # Authorize (auth dep may already have raised; user may be on request.state)
-        _authorize(api, request, model, alias, params, _user_from_request(request))
-
-        # Execute
-        result = await rpc_call(params, db=db, request=request, ctx=base_ctx)
+        # Execute via the unified transport dispatcher
+        result = await dispatch_operation(
+            api=api,
+            model_or_name=model,
+            alias=alias,
+            payload=params,
+            db=db,
+            request=request,
+            ctx=base_ctx,
+            rpc_mode=True,
+        )
         if not has_id:
             _log_rpc_success(method, None)
             return None
@@ -252,104 +245,13 @@ def build_jsonrpc_router(
     router = Router(dependencies=extra_router_deps or None)
 
     dep = get_db
-    auth_dep = _select_auth_dep(api)
+    if dep is not None:
 
-    if dep is not None and auth_dep is not None:
-        # Inject both DB and user via Depends
-        async def _endpoint(
-            request: Request,
-            body: RPCRequest | list[RPCRequest] = Body(...),
-            db: Any = Depends(dep),
-            user: Any = Depends(auth_dep),
-        ):
-            # set state for downstream handlers if dep returned user
-            try:
-                if user is not None and not hasattr(request.state, "user"):
-                    setattr(request.state, "user", user)
-            except Exception:
-                pass
-
-            if isinstance(body, list):
-                responses: List[Dict[str, Any]] = []
-                for item in body:
-                    resp = await _dispatch_one(
-                        api=api,
-                        request=request,
-                        db=db,
-                        obj=_request_obj_to_mapping(item),
-                    )
-                    if resp is not None:
-                        responses.append(resp)
-                return JSONResponse(
-                    content=responses,
-                )
-            elif isinstance(body, (RPCRequest, Mapping)):
-                resp = await _dispatch_one(
-                    api=api,
-                    request=request,
-                    db=db,
-                    obj=_request_obj_to_mapping(body),
-                )
-                if resp is None:
-                    return Response(status_code=204)
-                return JSONResponse(
-                    content=resp,
-                )
-            else:
-                err = _err(-32600, "Invalid Request", None)
-                return JSONResponse(content=err)
-
-    elif dep is not None:
-        # Only DB dependency
         async def _endpoint(
             request: Request,
             body: RPCRequest | list[RPCRequest] = Body(...),
             db: Any = Depends(dep),
         ):
-            if isinstance(body, list):
-                responses: List[Dict[str, Any]] = []
-                for item in body:
-                    resp = await _dispatch_one(
-                        api=api,
-                        request=request,
-                        db=db,
-                        obj=_request_obj_to_mapping(item),
-                    )
-                    if resp is not None:
-                        responses.append(resp)
-                return JSONResponse(
-                    content=responses,
-                )
-            elif isinstance(body, (RPCRequest, Mapping)):
-                resp = await _dispatch_one(
-                    api=api,
-                    request=request,
-                    db=db,
-                    obj=_request_obj_to_mapping(body),
-                )
-                if resp is None:
-                    return Response(status_code=204)
-                return JSONResponse(
-                    content=resp,
-                )
-            else:
-                err = _err(-32600, "Invalid Request", None)
-                return JSONResponse(content=err)
-
-    elif auth_dep is not None:
-        # Only auth dependency; DB will come from request.state.db
-        async def _endpoint(
-            request: Request,
-            body: RPCRequest | list[RPCRequest] = Body(...),
-            user: Any = Depends(auth_dep),
-        ):
-            try:
-                if user is not None and not hasattr(request.state, "user"):
-                    setattr(request.state, "user", user)
-            except Exception:
-                pass
-
-            db = getattr(request.state, "db", None)
             if isinstance(body, list):
                 responses: List[Dict[str, Any]] = []
                 for item in body:

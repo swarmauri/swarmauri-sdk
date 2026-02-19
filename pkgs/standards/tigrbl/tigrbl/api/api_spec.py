@@ -1,4 +1,5 @@
-from __future__ import annotations
-from ..router.api_spec import APISpec
+"""Compatibility shim: moved to `tigrbl.router`."""
 
-__all__ = ["APISpec"]
+from __future__ import annotations
+
+from ..router.api_spec import *  # noqa: F401,F403

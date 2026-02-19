@@ -11,8 +11,6 @@ from typing import get_args as _get_args, get_origin as _get_origin
 from .collection import _make_collection_endpoint
 from .member import _make_member_endpoint
 from .common import (
-    TIGRBL_ALLOW_ANON_ATTR,
-    TIGRBL_AUTH_DEP_ATTR,
     TIGRBL_GET_DB_ATTR,
     TIGRBL_REST_DEPENDENCIES_ATTR,
     BaseModel,
@@ -88,12 +86,6 @@ def _build_router(
     # Router-level deps: extra deps only (transport-level; never part of kernel plan)
     extra_router_deps = _normalize_deps(
         getattr(model, TIGRBL_REST_DEPENDENCIES_ATTR, None)
-    )
-    auth_dep = getattr(model, TIGRBL_AUTH_DEP_ATTR, None)
-
-    allow_anon_attr = getattr(model, TIGRBL_ALLOW_ANON_ATTR, None)
-    allow_anon = set(
-        allow_anon_attr() if callable(allow_anon_attr) else allow_anon_attr or []
     )
 
     router = Router(dependencies=extra_router_deps or None)
@@ -283,16 +275,6 @@ def _build_router(
             path=path,
             endpoint=endpoint,
             methods=methods,
-            security_dependencies=list(getattr(sp, "secdeps", ()) or ())
-            + (
-                [auth_dep]
-                if (
-                    auth_dep
-                    and sp.alias not in allow_anon
-                    and sp.target not in allow_anon
-                )
-                else []
-            ),
             name=f"{model.__name__}.{sp.alias}",
             operation_id=unique_id,
             summary=label,
@@ -309,6 +291,8 @@ def _build_router(
                 if sp.target in {"list", "clear"}
                 else None
             ),
+            tigrbl_model=model,
+            tigrbl_alias=sp.alias,
         )
         if response_class is not None:
             route_kwargs["response_class"] = response_class

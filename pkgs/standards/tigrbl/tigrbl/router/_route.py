@@ -37,6 +37,8 @@ class Route:
     status_code: int | None = None
     dependencies: list[Any] | None = None
     security_dependencies: list[Any] | None = None
+    tigrbl_model: Any | None = None
+    tigrbl_alias: str | None = None
 
     @property
     def path(self) -> str:

@@ -43,7 +43,7 @@ def test_transport_public_surface_centralizes_core_exports() -> None:
     init_file = ROOT / "transport" / "__init__.py"
     text = init_file.read_text()
     expected = [
-        "from .gateway import asgi_app, wsgi_app",
+        "from .gw import asgi_app, wsgi_app, wrap_middleware_stack",
         "from .headers import HeaderCookies, Headers, SetCookieHeader",
         "from .request import AwaitableValue, Request, URL, request_from_asgi, request_from_wsgi",
         "from .response import (",

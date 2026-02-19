@@ -107,3 +107,36 @@ async def test_rest_and_rpc_paths_execute_same_handler_once():
     assert rest_result["path"] == "handler"
     assert rpc_result["path"] == "handler"
     assert events == ["read:read", "read:read"]
+
+
+def test_rest_and_jsonrpc_resolution_map_to_same_model_alias_pairs():
+    from tigrbl import TigrblApp
+    from tigrbl.engine.shortcuts import mem
+    from tigrbl.orm.tables import Base
+    from tigrbl.orm.mixins import GUIDPk
+    from sqlalchemy import Column, String
+
+    class DemoItem(Base, GUIDPk):
+        __tablename__ = "resolution_parity_demo_item"
+        name = Column(String, nullable=False)
+
+    app = TigrblApp(engine=mem(async_=False))
+    app.include_model(DemoItem)
+    app.initialize()
+    app.mount_jsonrpc()
+
+    rest_pairs = {
+        (route.name.split(".", 1)[0], route.name.split(".", 1)[1]): route.path_template
+        for route in app.routers["DemoItem"].routes
+        if route.name.startswith("DemoItem.")
+    }
+    rpc_pairs = {
+        ("DemoItem", method["name"].split(".", 1)[1])
+        for method in app.openrpc()["methods"]
+        if method["name"].startswith("DemoItem.")
+    }
+
+    assert rest_pairs, "expected REST routes for DemoItem"
+    assert rpc_pairs, "expected RPC methods for DemoItem"
+    # Every RPC op should resolve to a model+alias pair that REST also registers.
+    assert rpc_pairs.issubset(set(rest_pairs))

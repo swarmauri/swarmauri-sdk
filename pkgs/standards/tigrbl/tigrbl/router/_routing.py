@@ -43,6 +43,8 @@ def add_api_route(
     status_code: int | None = None,
     dependencies: list[Any] | None = None,
     security_dependencies: list[Any] | None = None,
+    tigrbl_model: Any | None = None,
+    tigrbl_alias: str | None = None,
     **_: Any,
 ) -> None:
     full_path = router.prefix + (path if path.startswith("/") else "/" + path)
@@ -70,6 +72,8 @@ def add_api_route(
         status_code=status_code,
         dependencies=list(router.dependencies or []) + list(dependencies or []),
         security_dependencies=list(security_dependencies or []),
+        tigrbl_model=tigrbl_model,
+        tigrbl_alias=tigrbl_alias,
     )
     router._routes.append(route)
 

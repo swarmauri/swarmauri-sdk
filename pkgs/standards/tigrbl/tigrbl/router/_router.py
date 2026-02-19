@@ -245,14 +245,14 @@ class Router:
     def _wsgi_app(
         self, environ: dict[str, Any], start_response: Callable[..., Any]
     ) -> list[bytes]:
-        from tigrbl.transport.gateway import wsgi_app as _wsgi_app_impl
+        from tigrbl.transport import wsgi_app as _wsgi_app_impl
 
         return _wsgi_app_impl(self, environ, start_response)
 
     async def _asgi_app(
         self, scope: dict[str, Any], receive: Callable, send: Callable
     ) -> None:
-        from tigrbl.transport.gateway import asgi_app as _asgi_app_impl
+        from tigrbl.transport import asgi_app as _asgi_app_impl
 
         await _asgi_app_impl(self, scope, receive, send)
 

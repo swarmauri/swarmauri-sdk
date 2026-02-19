@@ -118,3 +118,73 @@ async def test_trace_labels_match_kernel_plan_for_rest_and_rpc(alias: str):
     assert rest_labels == expected_rest
     assert rpc_labels == expected_rpc
     assert rpc_labels == [label for label in rest_labels if label in rpc_labels]
+
+
+@pytest.mark.asyncio
+async def test_kernelz_plan_and_trace_include_named_secdeps_and_deps():
+    from tigrbl.op.types import OpSpec
+    from tigrbl.runtime.kernel import Kernel
+    from tigrbl.transport.dispatcher import dispatch_operation
+
+    calls: list[str] = []
+
+    async def secdep(ctx):
+        calls.append("secdep")
+        return {"user": "demo"}
+
+    async def dep(ctx):
+        calls.append("dep")
+        return None
+
+    class DemoModel:
+        pass
+
+    spec = OpSpec(alias="read", target="read", secdeps=(secdep,), deps=(dep,))
+    DemoModel.ops = SimpleNamespace(by_alias={"read": (spec,)})
+    DemoModel.opspecs = SimpleNamespace(all=(spec,))
+    DemoModel.schemas = SimpleNamespace()
+    DemoModel.hooks = SimpleNamespace(
+        read=SimpleNamespace(
+            START_TX=[],
+            PRE_TX_BEGIN=[],
+            PRE_HANDLER=[],
+            HANDLER=[_mk_labeled_step("hook:handler:read@HANDLER", result={"ok": 1})],
+            POST_HANDLER=[],
+            PRE_COMMIT=[],
+            END_TX=[],
+            POST_RESPONSE=[],
+            ON_ERROR=[],
+            ON_SUCCESS=[],
+        )
+    )
+
+    api = SimpleNamespace(models={"DemoModel": DemoModel})
+
+    kernel = Kernel()
+    payload = kernel.kernelz_payload(api)
+    labels = payload["DemoModel"]["read"]
+    assert any("secdep:" in entry and "secdep" in entry for entry in labels)
+    assert any("dep:" in entry and ".dep" in entry for entry in labels)
+
+    ctx_seed = {"temp": {}}
+    await dispatch_operation(
+        api=api,
+        model_or_name="DemoModel",
+        alias="read",
+        payload={},
+        db=_DummyDB(),
+        request=None,
+        ctx=ctx_seed,
+    )
+
+    observed = [
+        step.get("label")
+        for step in ctx_seed["temp"]["__trace__"].steps
+        if isinstance(step.get("label"), str)
+    ]
+    secdep_idx = next(i for i, lbl in enumerate(observed) if lbl.startswith("secdep:"))
+    dep_idx = next(i for i, lbl in enumerate(observed) if lbl.startswith("dep:"))
+    handler_idx = next(i for i, lbl in enumerate(observed) if lbl.endswith("@HANDLER"))
+    assert secdep_idx < handler_idx
+    assert dep_idx < handler_idx
+    assert calls[:2] == ["secdep", "dep"]

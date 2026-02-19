@@ -1,10 +1,5 @@
-from __future__ import annotations
-from ..router._routing import (
-    add_api_route,
-    include_router,
-    merge_tags,
-    normalize_prefix,
-    route,
-)
+"""Compatibility shim: moved to `tigrbl.router`."""
 
-__all__ = ["add_api_route", "include_router", "merge_tags", "normalize_prefix", "route"]
+from __future__ import annotations
+
+from ..router._routing import *  # noqa: F401,F403

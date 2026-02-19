@@ -47,32 +47,6 @@ def _normalize_params(params: Any) -> Any:
     )
 
 
-def _model_for(api: Any, name: str) -> Optional[type]:
-    models: Dict[str, type] = getattr(api, "models", {}) or {}
-    mdl = models.get(name)
-    if mdl is not None:
-        return mdl
-    lower = name.lower()
-    for k, v in models.items():
-        if k.lower() == lower:
-            return v
-    return None
-
-
-def _user_from_request(request: Any) -> Any | None:
-    return getattr(request.state, "user", None)
-
-
-def _select_auth_dep(api: Any):
-    if getattr(api, "_optional_authn_dep", None):
-        return api._optional_authn_dep
-    if getattr(api, "_allow_anon", True) is False and getattr(api, "_authn", None):
-        return api._authn
-    if getattr(api, "_authn", None):
-        return api._authn
-    return None
-
-
 def _normalize_deps(deps: Optional[Sequence[Any]]) -> list:
     out = []
     for d in deps or ():
@@ -84,36 +58,9 @@ def _normalize_deps(deps: Optional[Sequence[Any]]) -> list:
     return out
 
 
-def _authorize(
-    api: Any,
-    request: Any,
-    model: type,
-    alias: str,
-    payload: Mapping[str, Any],
-    user: Any | None,
-):
-    fn = getattr(api, "_authorize", None) or getattr(
-        model, "__tigrbl_authorize__", None
-    )
-    if not fn:
-        return
-    try:
-        rv = fn(request=request, model=model, alias=alias, payload=payload, user=user)
-        if rv is False:
-            raise HTTPException(status_code=403, detail="Forbidden")
-    except HTTPException:
-        raise
-    except Exception:
-        raise HTTPException(status_code=403, detail="Forbidden")
-
-
 __all__ = [
     "_ok",
     "_err",
     "_normalize_params",
-    "_model_for",
-    "_user_from_request",
-    "_select_auth_dep",
     "_normalize_deps",
-    "_authorize",
 ]
