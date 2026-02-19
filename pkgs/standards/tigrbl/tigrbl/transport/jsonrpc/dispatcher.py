@@ -232,9 +232,8 @@ def build_jsonrpc_router(
     the dispatcher will try to use `request.state.db` (or pass `db=None`).
 
     Security:
-        • If `api._authn` (or `api._optional_authn_dep`) is set, we inject it as a dependency
-          so it runs before dispatch. It may set `request.state.user` and/or raise 401.
-        • If `api._authorize` is set, we call it before executing the op; False/exception → 403.
+        • Authn/authz is enforced by runtime secdeps in PRE_TX_BEGIN.
+        • Transport does not execute authorization directly.
         • Additional router-level dependencies can be provided via `api.rpc_dependencies`.
 
     The generated endpoint is tagged as "rpc" by default. Supply a custom
