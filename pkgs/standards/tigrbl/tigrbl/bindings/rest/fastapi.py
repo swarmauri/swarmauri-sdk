@@ -3,14 +3,14 @@
 Prefer importing directly from:
 - ``tigrbl.responses`` for response classes
 - ``tigrbl.runtime.status`` for ``status`` and ``HTTPException``
-- ``tigrbl.api._api`` / ``tigrbl.requests`` / ``tigrbl.security.dependencies``
+- ``tigrbl.router._api`` / ``tigrbl.requests`` / ``tigrbl.security.dependencies``
 """
 
 from __future__ import annotations
 
 import warnings
 
-from ...api._api import Router
+from ...router._router import Router
 from ...core.crud.params import Body, Path, Query
 from ...response import (
     FileResponse,

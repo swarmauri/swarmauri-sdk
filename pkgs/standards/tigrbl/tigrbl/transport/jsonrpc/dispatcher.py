@@ -82,11 +82,11 @@ except Exception:  # pragma: no cover
 
 from ...runtime.status import ERROR_MESSAGES, _RPC_TO_HTTP, http_exc_to_rpc
 from ...config.constants import TIGRBL_AUTH_CONTEXT_ATTR
+from ...transport.dispatcher import resolve_operation
 from .models import RPCRequest, RPCResponse
 from .helpers import (
     _authorize,
     _err,
-    _model_for,
     _normalize_deps,
     _normalize_params,
     _ok,
@@ -160,10 +160,14 @@ async def _dispatch_one(
             return _rpc_error(-32601, "Method not found")
 
         model_name, alias = method.split(".", 1)
-        model = _model_for(api, model_name)
-        if model is None:
+        try:
+            resolution = resolve_operation(
+                api=api, model_or_name=model_name, alias=alias
+            )
+        except LookupError:
             return _rpc_error(-32601, f"Unknown model '{model_name}'")
 
+        model = resolution.model
         # Locate RPC callable built by bindings.rpc
         rpc_ns = getattr(model, "rpc", None)
         rpc_call = getattr(rpc_ns, alias, None)

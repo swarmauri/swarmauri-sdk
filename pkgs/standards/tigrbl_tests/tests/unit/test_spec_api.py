@@ -1,5 +1,5 @@
-from tigrbl.api.mro_collect import mro_collect_api_hooks
-from tigrbl.api.shortcuts import defineApiSpec, deriveApi
+from tigrbl.router.mro_collect import mro_collect_api_hooks
+from tigrbl.router.shortcuts import defineApiSpec, deriveApi
 from tigrbl.config.constants import TIGRBL_API_HOOKS_ATTR
 
 

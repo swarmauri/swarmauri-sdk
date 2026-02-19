@@ -1,7 +1,7 @@
 import httpx
 import pytest
 
-from tigrbl import TigrblApi, TigrblApp
+from tigrbl import TigrblRouter, TigrblApp
 from tigrbl.system import mount_openapi
 
 from .uvicorn_utils import run_uvicorn_in_task, stop_uvicorn_server
@@ -27,7 +27,7 @@ async def test_openapi_mountable_on_tigrbl_app_uvicorn():
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_openapi_mountable_on_tigrbl_api_uvicorn():
-    api = TigrblApi()
+    api = TigrblRouter()
     mount_openapi(api, path="/custom/openapi.json", name="openapi_custom")
 
     base_url, server, task = await run_uvicorn_in_task(api)

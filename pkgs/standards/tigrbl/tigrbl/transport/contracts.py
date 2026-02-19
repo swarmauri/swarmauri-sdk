@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..requests import Request
-from ..responses import Response
+from .request import Request
+from .response import Response
 
 
 def get_header(request: Request, name: str, default: Any = None) -> Any:

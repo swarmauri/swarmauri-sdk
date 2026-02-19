@@ -1,6 +1,6 @@
 import pytest
 
-from tigrbl import Base, TigrblApi, TigrblApp
+from tigrbl import Base, TigrblRouter, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import F, IO, S, acol
@@ -20,7 +20,7 @@ class Theta(Base, GUIDPk):
     __tigrbl_cols__ = {"id": GUIDPk.id, "name": name}
 
 
-class ThetaApi(TigrblApi):
+class ThetaApi(TigrblRouter):
     MODELS = (Theta,)
 
 

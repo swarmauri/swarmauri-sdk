@@ -1,6 +1,6 @@
 import pytest
 
-from tigrbl import Base, TigrblApi
+from tigrbl import Base, TigrblRouter
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import F, IO, S, acol
@@ -20,7 +20,7 @@ class Widget(Base, GUIDPk):
     __tigrbl_cols__ = {"id": GUIDPk.id, "name": name}
 
 
-class WidgetApi(TigrblApi):
+class WidgetApi(TigrblRouter):
     MODELS = (Widget,)
 
 

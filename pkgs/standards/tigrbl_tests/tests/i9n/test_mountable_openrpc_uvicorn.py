@@ -2,7 +2,7 @@ import httpx
 import pytest
 from sqlalchemy import Column, String
 
-from tigrbl import Base, TigrblApi, TigrblApp
+from tigrbl import Base, TigrblRouter, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.system import mount_openrpc
@@ -39,7 +39,7 @@ async def test_openrpc_mountable_on_tigrbl_app_uvicorn():
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_openrpc_mountable_on_tigrbl_api_uvicorn():
-    api = TigrblApi(engine=mem(async_=False), models=[Thing])
+    api = TigrblRouter(engine=mem(async_=False), models=[Thing])
     api.initialize()
     api.mount_jsonrpc(prefix="/rpc")
     mount_openrpc(api, path="/custom/openrpc.json", name="openrpc_custom")
@@ -78,7 +78,7 @@ async def test_openrpc_mountable_with_tigrbl_app_method_uvicorn():
 @pytest.mark.i9n
 @pytest.mark.asyncio
 async def test_openrpc_mountable_with_tigrbl_api_method_uvicorn():
-    api = TigrblApi(engine=mem(async_=False), models=[Thing])
+    api = TigrblRouter(engine=mem(async_=False), models=[Thing])
     api.initialize()
     api.mount_jsonrpc(prefix="/rpc")
     api.mount_openrpc(path="/custom/openrpc.json", name="openrpc_custom")

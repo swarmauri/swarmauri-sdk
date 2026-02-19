@@ -1,17 +1,28 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from types import SimpleNamespace
-from typing import Any, Dict, Mapping, Optional, MutableMapping
+from typing import Any, Dict, Mapping, Optional, MutableMapping, cast
 
 from ..config.constants import TIGRBL_AUTH_CONTEXT_ATTR
 from ..runtime import executor as _executor
+from ..runtime import trace as _trace
 from ..op.types import PHASES
-from typing import cast
 
 try:
     from ..runtime.kernel import build_phase_chains as _kernel_build_phase_chains  # type: ignore
+    from ..runtime.kernel import plan_labels as _kernel_plan_labels  # type: ignore
 except Exception:  # pragma: no cover
     _kernel_build_phase_chains = None  # type: ignore
+    _kernel_plan_labels = None  # type: ignore
+
+
+@dataclass(frozen=True)
+class OperationResolution:
+    model: type
+    alias: str
+    target: str
+    spec: Any | None
 
 
 def _get_phase_chains(model: type, alias: str) -> Dict[str, Any]:
@@ -40,6 +51,17 @@ def _resolve_model(api: Any, model_or_name: type | str) -> type:
     return mdl
 
 
+def resolve_operation(
+    *, api: Any, model_or_name: type | str, alias: str
+) -> OperationResolution:
+    model = _resolve_model(api, model_or_name)
+    specs = getattr(getattr(model, "ops", SimpleNamespace()), "by_alias", {})
+    sp_list = specs.get(alias) or ()
+    sp = sp_list[0] if sp_list else None
+    target = getattr(sp, "target", alias) or alias
+    return OperationResolution(model=model, alias=alias, target=target, spec=sp)
+
+
 async def dispatch_operation(
     *,
     api: Any,
@@ -52,7 +74,8 @@ async def dispatch_operation(
     response_serializer: Any = None,
     rpc_mode: bool = False,
 ) -> Any:
-    model = _resolve_model(api, model_or_name)
+    resolution = resolve_operation(api=api, model_or_name=model_or_name, alias=alias)
+    model = resolution.model
     if isinstance(ctx, MutableMapping):
         base_ctx = cast(Dict[str, Any], ctx)
     else:
@@ -74,16 +97,14 @@ async def dispatch_operation(
     base_ctx.setdefault("model", model)
     base_ctx.setdefault("op", alias)
     base_ctx.setdefault("method", alias)
-
-    specs = getattr(getattr(model, "ops", SimpleNamespace()), "by_alias", {})
-    sp_list = specs.get(alias) or ()
-    sp = sp_list[0] if sp_list else None
-    target = getattr(sp, "target", alias) or alias
-    base_ctx.setdefault("target", target)
+    base_ctx.setdefault("target", resolution.target)
     base_ctx.setdefault(
         "env",
         SimpleNamespace(
-            method=alias, params=base_ctx.get("payload"), target=target, model=model
+            method=alias,
+            params=base_ctx.get("payload"),
+            target=resolution.target,
+            model=model,
         ),
     )
 
@@ -100,7 +121,15 @@ async def dispatch_operation(
         model_hooks = getattr(getattr(model, "hooks", None), alias, None)
         phases["POST_RESPONSE"] = list(getattr(model_hooks, "POST_RESPONSE", []) or [])
 
+    try:
+        if _kernel_plan_labels is not None:
+            _trace.init(base_ctx, plan_labels=_kernel_plan_labels(model, alias))
+        else:
+            _trace.init(base_ctx)
+    except Exception:
+        pass
+
     return await _executor._invoke(request=request, db=db, phases=phases, ctx=base_ctx)
 
 
-__all__ = ["dispatch_operation"]
+__all__ = ["OperationResolution", "dispatch_operation", "resolve_operation"]

@@ -3,7 +3,7 @@ import asyncio
 import pytest
 from sqlalchemy import Column, Integer
 
-from tigrbl import Base, TigrblApi, TigrblApp
+from tigrbl import Base, TigrblRouter, TigrblApp
 from tigrbl.engine.shortcuts import mem
 
 
@@ -21,10 +21,10 @@ class SyncWidget(Base):
 
 @pytest.mark.asyncio
 async def test_initialize_handles_mixed_sync_async_apis():
-    async_api = TigrblApi(engine=mem())
+    async_api = TigrblRouter(engine=mem())
     async_api.include_model(AsyncWidget, prefix="")
 
-    sync_api = TigrblApi(engine=mem(async_=False))
+    sync_api = TigrblRouter(engine=mem(async_=False))
     sync_api.include_model(SyncWidget, prefix="")
 
     app = TigrblApp(engine=mem(async_=False))

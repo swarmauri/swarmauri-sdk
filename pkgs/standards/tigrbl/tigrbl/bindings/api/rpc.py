@@ -7,6 +7,7 @@ from typing import Any, Dict, Mapping, Optional, Union
 from .common import ApiLike, _ensure_api_ns
 from ...engine import resolver as _resolver
 from ...core.crud.helpers.model import _single_pk_name
+from ...transport.dispatcher import resolve_operation
 
 logger = logging.getLogger("uvicorn")
 logger.debug("Loaded module v3/bindings/api/rpc")
@@ -29,15 +30,14 @@ async def rpc_call(
     logger.debug("rpc_call invoked for model=%s method=%s", model_or_name, method)
     _ensure_api_ns(api)
 
-    if isinstance(model_or_name, str):
-        mdl = api.models.get(model_or_name)
-        if mdl is None:
-            logger.debug("Unknown model name '%s'", model_or_name)
-            raise KeyError(f"Unknown model '{model_or_name}'")
-        logger.debug("Resolved model name '%s' to %s", model_or_name, mdl)
-    else:
-        mdl = model_or_name
-        logger.debug("Using model class %s", getattr(mdl, "__name__", mdl))
+    resolution = resolve_operation(api=api, model_or_name=model_or_name, alias=method)
+    mdl = resolution.model
+    logger.debug(
+        "Resolved operation model=%s alias=%s target=%s",
+        getattr(mdl, "__name__", mdl),
+        method,
+        resolution.target,
+    )
 
     fn = getattr(getattr(mdl, "rpc", SimpleNamespace()), method, None)
     if fn is None:

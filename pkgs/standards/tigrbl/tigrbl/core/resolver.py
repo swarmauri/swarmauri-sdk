@@ -2,12 +2,19 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Any, Iterable, get_args, get_origin
+from typing import Annotated, Any, Iterable, Protocol, get_args, get_origin
 
 from ..core.crud.params import Param
 from ..runtime.status.exceptions import HTTPException
 from ..runtime.status.mappings import status
-from ..transport import Request
+
+
+class RequestLike(Protocol):
+    query_params: dict[str, Any]
+    path_params: dict[str, Any]
+    headers: dict[str, Any]
+
+    def json_sync(self) -> Any: ...
 
 
 def split_annotated(annotation: Any) -> tuple[Any, tuple[Any, ...]]:
@@ -26,7 +33,7 @@ def annotation_marker(extras: Iterable[Any], marker_type: type[Any]) -> Any | No
 
 
 def is_request_annotation(annotation: Any) -> bool:
-    if annotation is Request:
+    if isinstance(annotation, type) and annotation.__name__ == "Request":
         return True
     if isinstance(annotation, str):
         normalized = annotation.strip().strip("\"'")
@@ -34,7 +41,7 @@ def is_request_annotation(annotation: Any) -> bool:
     return False
 
 
-def load_body(req: Request) -> Any:
+def load_body(req: RequestLike) -> Any:
     try:
         return req.json_sync()
     except Exception as exc:
@@ -46,7 +53,7 @@ def load_body(req: Request) -> Any:
 
 def extract_param_value(
     marker: Param,
-    req: Request,
+    req: RequestLike,
     param_name: str,
     body_cache: Any | None,
 ) -> tuple[Any, bool]:

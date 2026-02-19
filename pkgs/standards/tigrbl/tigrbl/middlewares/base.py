@@ -5,10 +5,8 @@ from __future__ import annotations
 from typing import Any
 from urllib.parse import urlencode
 
-from tigrbl.requests import Request
-from tigrbl.requests.adapters import request_from_asgi
-from tigrbl.responses import Response
-from tigrbl.responses._transport import finalize_transport_response
+from tigrbl.transport.request import Request, request_from_asgi
+from tigrbl.transport.response import Response, finalize_transport_response
 
 from .middleware import Middleware
 from .spec import ASGIReceive, ASGISend, Message

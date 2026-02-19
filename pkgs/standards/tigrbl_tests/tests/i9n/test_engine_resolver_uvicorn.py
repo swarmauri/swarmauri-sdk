@@ -1,6 +1,6 @@
 """Integration coverage for engine precedence, interning, and uvicorn routing.
 
-These scenarios validate resolver binding across TigrblApp/TigrblApi surfaces,
+These scenarios validate resolver binding across TigrblApp/TigrblRouter surfaces,
 including REST + JSON-RPC flows against a live uvicorn server.
 """
 
@@ -10,7 +10,7 @@ import httpx
 import pytest
 from sqlalchemy import Column, String
 
-from tigrbl import Base, TigrblApi, TigrblApp, engine_ctx, op_ctx
+from tigrbl import Base, TigrblRouter, TigrblApp, engine_ctx, op_ctx
 from tigrbl.engine import resolver
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
@@ -90,7 +90,7 @@ async def test_tigrblapi_multi_table_engine_binding_uvicorn() -> None:
     """Validate API-level engine defaults and table overrides via uvicorn.
 
     Steps:
-        1) Build a TigrblApi with two tables and a table override.
+        1) Build a TigrblRouter with two tables and a table override.
         2) Assert resolver bindings for api + models.
         3) Exercise REST + JSON-RPC routes in uvicorn.
     """
@@ -109,7 +109,7 @@ async def test_tigrblapi_multi_table_engine_binding_uvicorn() -> None:
         __resource__ = "api-gadget"
         name = Column(String, nullable=False)
 
-    api = TigrblApi(engine=api_engine)
+    api = TigrblRouter(engine=api_engine)
     api.include_models([ApiWidget, ApiGadget])
     api.install_engines(models=tuple(api.models.values()))
     api.mount_jsonrpc()
@@ -196,13 +196,13 @@ async def test_multi_api_precedence_dedupe_and_op_engine_uvicorn() -> None:
         __resource__ = "beta-gadget"
         name = Column(String, nullable=False)
 
-    api_one = TigrblApi(engine=api_one_engine)
+    api_one = TigrblRouter(engine=api_one_engine)
     api_one.include_models([AlphaWidget, AlphaGadget])
     api_one.initialize()
     api_one.install_engines(models=tuple(api_one.models.values()))
     api_one.mount_jsonrpc()
 
-    api_two = TigrblApi(engine=api_two_engine)
+    api_two = TigrblRouter(engine=api_two_engine)
     api_two.include_models([BetaWidget, BetaGadget])
     api_two.initialize()
     api_two.install_engines(models=tuple(api_two.models.values()))
