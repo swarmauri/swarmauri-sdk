@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_transport_stdio"
-version = "0.1.1.dev8"
+version = "0.1.1.dev9"
 description = "STDIO bridge transport for spawning Swarmauri-compatible subprocesses." 
 readme = "README.md"
 requires-python = ">=3.10"
