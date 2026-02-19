@@ -18,14 +18,14 @@ def test_rest_and_rpc_flow_through_dispatcher():
     rpc_dispatcher = (PKG / "transport" / "jsonrpc" / "dispatcher.py").read_text()
     assert "dispatch_operation" in rest_member
     assert "dispatch_operation" in rest_collection
-    assert "rpc_call" in rpc_dispatcher
+    assert "dispatch_operation" in rpc_dispatcher
     assert "resolve_operation" in rpc_dispatcher
 
 
 def test_docs_generation_reads_secdeps_metadata():
     openapi = (PKG / "system" / "docs" / "openapi" / "schema.py").read_text()
     openrpc = (PKG / "system" / "docs" / "openrpc.py").read_text()
-    assert "security_dependencies" in openapi
+    assert "secdeps" in openapi
     assert 'item["name"]' in openrpc
 
 

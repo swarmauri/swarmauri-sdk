@@ -18,6 +18,7 @@ def test_transport_modules_do_not_execute_security_dependencies() -> None:
         "Security(",
         "HTTPBearer(",
         "authorization",
+        "security_dependencies",
     )
     for path in targets:
         text = path.read_text()

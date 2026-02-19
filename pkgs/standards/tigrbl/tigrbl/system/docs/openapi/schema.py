@@ -122,9 +122,14 @@ def openapi(router: Any) -> dict[str, Any]:
                     "content": {"application/json": {"schema": request_schema}},
                 }
 
-            security_deps = list(route.dependencies or []) + list(
-                getattr(route, "security_dependencies", None) or []
-            )
+            model = getattr(route, "tigrbl_model", None)
+            alias = getattr(route, "tigrbl_alias", None)
+            security_deps: list[Any] = []
+            if model is not None and isinstance(alias, str):
+                specs = getattr(getattr(model, "ops", None), "by_alias", {})
+                sp_list = specs.get(alias) or ()
+                if sp_list:
+                    security_deps = list(getattr(sp_list[0], "secdeps", ()) or ())
             sec = _security_from_dependencies(security_deps)
             if sec:
                 op["security"] = sec

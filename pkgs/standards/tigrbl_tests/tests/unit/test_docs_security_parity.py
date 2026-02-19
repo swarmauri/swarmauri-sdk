@@ -58,3 +58,33 @@ def test_openapi_and_openrpc_security_are_derived_from_opspec_secdeps() -> None:
     openrpc_schemes = openrpc["components"]["securitySchemes"]
     assert set(openapi_schemes) >= {"AlphaToken", "BetaToken"}
     assert set(openrpc_schemes) >= {"AlphaToken", "BetaToken"}
+
+
+def test_docs_ignore_router_security_dependency_metadata() -> None:
+    app = TigrblApp(engine=mem(async_=False))
+    app.include_model(Widget)
+    app.initialize()
+    app.mount_jsonrpc()
+    app.mount_openrpc()
+
+    # Tamper with transport/router metadata; docs must still come from OpSpec.secdeps.
+    widget_router = app.routers["Widget"]
+    for route in getattr(widget_router, "routes", []):
+        try:
+            object.__setattr__(route, "security_dependencies", [])
+        except Exception:
+            pass
+
+    transport = ASGITransport(app=app)
+    with Client(transport=transport, base_url="http://test") as client:
+        openapi = client.get("/openapi.json").json()
+        openrpc = client.get("/openrpc.json").json()
+
+    assert openapi["paths"]["/widget"]["get"].get("security") is None
+    assert openapi["paths"]["/widget/{item_id}"]["get"]["security"] == [
+        {"AlphaToken": []}
+    ]
+
+    method_map = {method["name"]: method for method in openrpc["methods"]}
+    assert method_map["Widget.list"].get("security") is None
+    assert method_map["Widget.read"]["security"] == [{"AlphaToken": []}]

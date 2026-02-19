@@ -1,8 +1,5 @@
-from __future__ import annotations
-from ..router.resolve import (
-    invoke_dependency,
-    resolve_handler_kwargs,
-    resolve_route_dependencies,
-)
+"""Compatibility shim: moved to `tigrbl.router`."""
 
-__all__ = ["invoke_dependency", "resolve_handler_kwargs", "resolve_route_dependencies"]
+from __future__ import annotations
+
+from ..router.resolve import *  # noqa: F401,F403

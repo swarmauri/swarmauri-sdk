@@ -59,3 +59,17 @@ def test_tigrbl_router_class_has_no_transport_facade_imports():
         or mod.endswith("transport.gateway")
         for mod in modules
     )
+
+
+def test_router_domain_does_not_import_gateway_implementations():
+    router_root = ROOT / "router"
+    violations: list[str] = []
+    for path in router_root.rglob("*.py"):
+        tree = ast.parse(path.read_text(), filename=str(path))
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.ImportFrom) or not node.module:
+                continue
+            mod = node.module
+            if mod.endswith("transport.gateway") or mod.endswith("transport.gw"):
+                violations.append(f"{path.relative_to(ROOT)}:{node.lineno}:{mod}")
+    assert violations == [], "\n".join(violations)

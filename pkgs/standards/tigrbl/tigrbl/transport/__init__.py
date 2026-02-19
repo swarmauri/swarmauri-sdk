@@ -27,7 +27,7 @@ from __future__ import annotations
 from typing import Any, Callable, Optional, Sequence
 
 from .contracts import get_header
-from .gateway import asgi_app, wsgi_app
+from .gw import asgi_app, wsgi_app, wrap_middleware_stack
 from .headers import HeaderCookies, Headers, SetCookieHeader
 from .request import AwaitableValue, Request, URL, request_from_asgi, request_from_wsgi
 from .response import (
@@ -126,4 +126,5 @@ __all__ = [
     "asgi_app",
     "wsgi_app",
     "get_header",
+    "wrap_middleware_stack",
 ]

@@ -4,6 +4,8 @@ import inspect
 from types import SimpleNamespace
 from typing import Any, Callable, Dict, Optional, cast
 
+from ... import trace as _trace
+
 
 def _op_spec_from_ctx(ctx: Any) -> Any | None:
     model = getattr(ctx, "model", None) or ctx.get("model")
@@ -69,14 +71,35 @@ async def _invoke_kwargs(
 
 
 def dep_name(dep: Any) -> str:
+    explicit_name = getattr(dep, "__tigrbl_dep_name__", None)
+    if isinstance(explicit_name, str) and explicit_name:
+        return explicit_name
+
     fn = _dep_callable(dep)
-    if fn is None:
-        return str(dep)
-    if isinstance(getattr(fn, "__name__", None), str) and fn.__name__:
-        return fn.__name__
-    if isinstance(getattr(fn, "__qualname__", None), str) and fn.__qualname__:
-        return fn.__qualname__
-    return fn.__class__.__name__
+    target = fn if fn is not None else dep
+
+    explicit_target_name = getattr(target, "__tigrbl_dep_name__", None)
+    if isinstance(explicit_target_name, str) and explicit_target_name:
+        return explicit_target_name
+
+    if fn is not None:
+        module = getattr(fn, "__module__", None)
+        qualname = getattr(fn, "__qualname__", None)
+        if (
+            isinstance(module, str)
+            and module
+            and isinstance(qualname, str)
+            and qualname
+        ):
+            return f"{module}.{qualname}"
+
+    obj_type = type(target)
+    module = getattr(obj_type, "__module__", None)
+    qualname = getattr(obj_type, "__qualname__", None)
+    if isinstance(module, str) and module and isinstance(qualname, str) and qualname:
+        return f"{module}.{qualname}"
+
+    return str(dep)
 
 
 async def run_deps(ctx: Any, *, kind: str) -> None:
@@ -88,12 +111,20 @@ async def run_deps(ctx: Any, *, kind: str) -> None:
         fn = _dep_callable(dep)
         if fn is None:
             continue
+        label = f"{kind}:{dep_name(dep)}"
+        seq = _trace.start(ctx, label)
         try:
             kwargs, has_required = await _invoke_kwargs(fn, ctx)
             rv = fn(ctx) if (has_required and not kwargs) else fn(**kwargs)
         except (TypeError, ValueError):
             rv = fn(ctx)
-        if hasattr(rv, "__await__"):
-            rv = await cast(Any, rv)
-        if kind == "secdep" and rv is not None:
-            ctx["auth_context"] = rv
+        try:
+            if hasattr(rv, "__await__"):
+                rv = await cast(Any, rv)
+            if kind == "secdep" and rv is not None:
+                ctx["auth_context"] = rv
+            _trace.end(ctx, seq)
+        except Exception as exc:
+            _trace.attach_error(ctx, seq, exc)
+            _trace.end(ctx, seq, status=_trace.ERROR)
+            raise
