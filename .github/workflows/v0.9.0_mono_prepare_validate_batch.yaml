@@ -15,9 +15,7 @@ on:
         required: false
 
 concurrency:
-  # Queue all batch workflow runs for the same ref so batches execute one at a time.
-  # Each batch still parallelizes member jobs internally via its matrix strategy.
-  group: v0.9.0-mono-prepare-validate-batch-queue-${{ github.ref_name }}
+  group: v0.9.0-mono-prepare-validate-batch-${{ github.run_id }}
   cancel-in-progress: false
 
 jobs:
