@@ -17,7 +17,6 @@ from .resource_proxy import _ResourceProxy
 from .. import model as _binder
 from ...config.constants import (
     TIGRBL_AUTH_DEP_ATTR,
-    TIGRBL_AUTHORIZE_ATTR,
     TIGRBL_GET_DB_ATTR,
     TIGRBL_REST_DEPENDENCIES_ATTR,
     TIGRBL_RPC_DEPENDENCIES_ATTR,
@@ -48,7 +47,6 @@ def _seed_security_and_deps(api: Any, model: type) -> None:
     Copy API-level dependency hooks onto the model so downstream binders can use them.
     - __tigrbl_get_db__             : DB dep (ASGI Depends-compatible)
     - __tigrbl_auth_dep__           : auth dependency (returns user or raises 401)
-    - __tigrbl_authorize__          : callable(request, model, alias, payload, user)→None/raise 403
     - __tigrbl_rest_dependencies__  : list of extra dependencies for REST (e.g., rate-limits)
     - __tigrbl_rpc_dependencies__   : list of extra dependencies for JSON-RPC router
     """
@@ -88,9 +86,17 @@ def _seed_security_and_deps(api: Any, model: type) -> None:
     else:
         logger.debug("No anonymous verbs for %s", model.__name__)
 
-    # Runtime-only security: push API/model auth dependency into OpSpec.secdeps
-    # so enforcement happens in PRE_TX_BEGIN atoms instead of transport deps.
+    runtime_secdeps: tuple[Any, ...] = ()
     if auth_dep is not None:
+        runtime_secdeps = runtime_secdeps + (auth_dep,)
+
+    authorize_dep = _make_authorize_secdep(api)
+    if authorize_dep is not None:
+        runtime_secdeps = runtime_secdeps + (authorize_dep,)
+
+    # Runtime-only security: push API/model authz deps into OpSpec.secdeps so
+    # enforcement happens in PRE_TX_BEGIN atoms instead of transport deps.
+    if runtime_secdeps:
         declared_ops = tuple(getattr(model, "__tigrbl_ops__", ()) or ())
         if declared_ops:
             patched = []
@@ -101,20 +107,19 @@ def _seed_security_and_deps(api: Any, model: type) -> None:
                     patched.append(sp)
                     continue
                 secdeps = tuple(getattr(sp, "secdeps", ()) or ())
-                if auth_dep in secdeps:
+                missing = tuple(dep for dep in runtime_secdeps if dep not in secdeps)
+                if not missing:
                     patched.append(sp)
                     continue
-                patched.append(replace(sp, secdeps=(auth_dep, *secdeps)))
+                patched.append(replace(sp, secdeps=((*missing, *secdeps))))
                 changed = True
             if changed:
                 setattr(model, "__tigrbl_ops__", tuple(patched))
 
-    # Authz
-    if getattr(api, "_authorize", None):
-        setattr(model, TIGRBL_AUTHORIZE_ATTR, api._authorize)
-        logger.debug("Authorization hook attached for %s", model.__name__)
+    if authorize_dep is not None:
+        logger.debug("Authorization secdep attached for %s", model.__name__)
     else:
-        logger.debug("No authorization hook for %s", model.__name__)
+        logger.debug("No authorization secdep for %s", model.__name__)
 
     # Extra deps (router-level only; never part of kernel plan)
     rest_deps: list[Any] = []
@@ -132,8 +137,10 @@ def _seed_security_and_deps(api: Any, model: type) -> None:
         logger.debug("No RPC dependencies for %s", model.__name__)
 
 
-def _inject_runtime_secdeps(model: type, auth_dep: Any, allow_anon: set[Any]) -> None:
-    if auth_dep is None:
+def _inject_runtime_secdeps(
+    model: type, runtime_secdeps: tuple[Any, ...], allow_anon: set[Any]
+) -> None:
+    if not runtime_secdeps:
         return
     ops_ns = getattr(model, "ops", None)
     by_alias = getattr(ops_ns, "by_alias", None)
@@ -149,13 +156,44 @@ def _inject_runtime_secdeps(model: type, auth_dep: Any, allow_anon: set[Any]) ->
                 patched_specs.append(sp)
                 continue
             secdeps = tuple(getattr(sp, "secdeps", ()) or ())
-            if auth_dep in secdeps:
+            missing = tuple(dep for dep in runtime_secdeps if dep not in secdeps)
+            if not missing:
                 patched_specs.append(sp)
                 continue
-            patched_specs.append(replace(sp, secdeps=(auth_dep, *secdeps)))
+            patched_specs.append(replace(sp, secdeps=((*missing, *secdeps))))
             changed = True
         if changed:
             by_alias[alias] = tuple(patched_specs)
+
+
+def _make_authorize_secdep(api: Any) -> Any | None:
+    authorize = getattr(api, "_authorize", None)
+    if not callable(authorize):
+        return None
+
+    async def _authorize_secdep(ctx: Any) -> None:
+        request = getattr(ctx, "request", None) or ctx.get("request")
+        model = getattr(ctx, "model", None) or ctx.get("model")
+        alias = getattr(ctx, "op", None) or ctx.get("op") or ctx.get("method")
+        payload = getattr(ctx, "payload", None) or ctx.get("payload")
+        user = (
+            getattr(ctx, "auth_context", None)
+            or ctx.get("auth_context")
+            or getattr(getattr(request, "state", None), "user", None)
+            if request is not None
+            else None
+        )
+
+        rv = authorize(request, model, alias, payload, user)
+        if hasattr(rv, "__await__"):
+            rv = await rv
+        if rv is False:
+            from ...errors import ForbiddenError
+
+            raise ForbiddenError("Forbidden")
+
+    setattr(_authorize_secdep, "__tigrbl_dep_name__", "security.authorize")
+    return _authorize_secdep
 
 
 def _attach_to_api(api: ApiLike, model: type) -> None:
@@ -259,9 +297,11 @@ def include_model(
     _binder.bind(model, api=api)
 
     auth_dep = getattr(model, TIGRBL_AUTH_DEP_ATTR, None)
+    authorize_dep = _make_authorize_secdep(api)
+    runtime_secdeps = tuple(d for d in (auth_dep, authorize_dep) if d is not None)
     allow_attr = getattr(model, TIGRBL_ALLOW_ANON_ATTR, None)
     allow_anon = set((allow_attr() if callable(allow_attr) else allow_attr) or ())
-    _inject_runtime_secdeps(model, auth_dep, allow_anon)
+    _inject_runtime_secdeps(model, runtime_secdeps, allow_anon)
 
     # 2) Pick a router & mount prefix
     router = getattr(getattr(model, "rest", SimpleNamespace()), "router", None)
