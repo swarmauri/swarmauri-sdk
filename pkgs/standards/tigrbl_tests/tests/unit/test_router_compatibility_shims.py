@@ -1,7 +1,7 @@
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from tigrbl import TigrblApi, TigrblApp
+from tigrbl import TigrblRouter, TigrblApp
 from tigrbl.security.dependencies import Dependency
 
 
@@ -57,7 +57,7 @@ async def test_dependency_overrides_provider_is_applied_during_resolution() -> N
 
 @pytest.mark.asyncio
 async def test_framework_http_exception_is_translated_to_json_response() -> None:
-    api = TigrblApi()
+    api = TigrblRouter()
 
     @api.get("/boom")
     def boom() -> None:

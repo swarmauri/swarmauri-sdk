@@ -1,6 +1,6 @@
 import pytest
 
-from tigrbl import Base, TigrblApi
+from tigrbl import Base, TigrblRouter
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import F, IO, S, acol
 from tigrbl.types import Mapped, String
@@ -19,7 +19,7 @@ class Widget(Base, GUIDPk):
     __tigrbl_cols__ = {"id": GUIDPk.id, "name": name}
 
 
-class WidgetApi(TigrblApi):
+class WidgetApi(TigrblRouter):
     PREFIX = "/widgets"
     TAGS = ("widgets",)
     MODELS = (Widget,)

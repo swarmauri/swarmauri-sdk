@@ -1,6 +1,6 @@
 from httpx import ASGITransport, AsyncClient
 
-from tigrbl import TigrblApi, TigrblApp
+from tigrbl import TigrblRouter, TigrblApp
 
 
 async def _get_json(app, path: str):
@@ -11,8 +11,8 @@ async def _get_json(app, path: str):
 
 
 def test_tigrbl_api_is_asgi_compatible():
-    """TigrblApi should serve routes as an ASGI app."""
-    api = TigrblApi()
+    """TigrblRouter should serve routes as an ASGI app."""
+    api = TigrblRouter()
 
     @api.get("/health")
     def health():

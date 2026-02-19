@@ -77,7 +77,7 @@ from .ddl import ensure_schemas, register_sqlite_attach, bootstrap_dbschema
 # ── Config constants (defaults used by REST) ───────────────────────────────────
 from .config.constants import DEFAULT_HTTP_METHODS
 from .app.tigrbl_app import TigrblApp
-from .api import Api, TigrblApi
+from .router import Api, TigrblRouter
 
 from .table import Base
 from .op import Op
@@ -88,7 +88,7 @@ __all__: list[str] = []
 
 __all__ += [
     "TigrblApp",
-    "TigrblApi",
+    "TigrblRouter",
     "Api",
     "Base",
     "Op",

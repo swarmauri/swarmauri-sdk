@@ -6,6 +6,10 @@ from pydantic import BaseModel
 
 from ...responses import Response
 from ...op import OpSpec
+from .openapi.helpers import (
+    _security_from_dependencies,
+    _security_schemes_from_dependencies,
+)
 
 JsonObject = Dict[str, Any]
 
@@ -125,10 +129,11 @@ def build_openrpc_spec(api: Any, request: Any | None = None) -> JsonObject:
         "info": {"title": f"{info_title} JSON-RPC API", "version": info_version},
         "servers": [{"name": info_title, "url": server_url}],
         "methods": [],
-        "components": {"schemas": {}},
+        "components": {"schemas": {}, "securitySchemes": {}},
     }
 
     components = spec["components"]["schemas"]
+    security_schemes = spec["components"]["securitySchemes"]
     methods: List[JsonObject] = []
 
     for model in _iter_models(api):
@@ -161,6 +166,12 @@ def build_openrpc_spec(api: Any, request: Any | None = None) -> JsonObject:
                 for key, value in defs.items():
                     components.setdefault(key, value)
                 method["result"] = {"name": "result", "schema": out_json}
+
+            secdeps = tuple(getattr(op, "secdeps", ()) or ())
+            security = _security_from_dependencies(secdeps)
+            if security:
+                method["security"] = security
+                security_schemes.update(_security_schemes_from_dependencies(secdeps))
 
             methods.append(method)
 

@@ -1,6 +1,6 @@
 from httpx import ASGITransport, Client
 from sqlalchemy import Column, String
-from tigrbl import Base, TigrblApi, TigrblApp
+from tigrbl import Base, TigrblRouter, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 
@@ -126,7 +126,7 @@ def test_openrpc_server_url_respects_api_mount_jsonrpc_prefix_argument():
         __tablename__ = "widgets_openrpc_api_mount_prefix"
         name = Column(String, nullable=False)
 
-    api = TigrblApi(engine=mem(async_=False))
+    api = TigrblRouter(engine=mem(async_=False))
     api.include_model(Widget)
     api.initialize()
     api.mount_jsonrpc(prefix="/jsonrpc")

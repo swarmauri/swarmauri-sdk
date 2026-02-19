@@ -582,7 +582,6 @@ class Kernel:
                 # Chains and system hooks in canonical phase order
                 chains = self.build(model, sp.alias)
                 persist = getattr(sp, "persist", "default") != "skip"
-
                 for ph in PHASES:
                     if ph == "START_TX" and persist:
                         seq.append("START_TX:hook:sys:txn:begin@START_TX")
@@ -631,6 +630,10 @@ def build_phase_chains(model: type, alias: str) -> Dict[str, List[StepFn]]:
     return _default_kernel.build(model, alias)
 
 
+def plan_labels(model: type, alias: str) -> list[str]:
+    return _default_kernel.plan_labels(model, alias)
+
+
 async def run(
     model: type,
     alias: str,
@@ -644,4 +647,11 @@ async def run(
     return await _invoke(request=request, db=db, phases=phases, ctx=base_ctx)
 
 
-__all__ = ["Kernel", "get_cached_specs", "_default_kernel", "build_phase_chains", "run"]
+__all__ = [
+    "Kernel",
+    "get_cached_specs",
+    "_default_kernel",
+    "build_phase_chains",
+    "plan_labels",
+    "run",
+]
