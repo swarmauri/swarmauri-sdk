@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from ..responses._response import (
+from ._response import (
     FileResponse,
     HTMLResponse,
     JSONResponse,
@@ -11,7 +11,7 @@ from ..responses._response import (
     Response,
     StreamingResponse,
 )
-from ..responses._transport import NO_BODY_STATUS, finalize_transport_response
+from ._response_transport import NO_BODY_STATUS, finalize_transport_response
 
 __all__ = [
     "Response",
