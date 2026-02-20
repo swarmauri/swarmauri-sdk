@@ -20,7 +20,7 @@ from ..op import OpSpec
 from ..hook import HookSpec
 from ..hook.types import PHASES, StepFn
 from ..config.constants import (
-    TIGRBL_API_HOOKS_ATTR,
+    TIGRBL_ROUTER_HOOKS_ATTR,
     TIGRBL_HOOKS_ATTR,
     CTX_SKIP_PERSIST_FLAG,
 )
@@ -264,7 +264,7 @@ def _attach_one(model: type, sp: OpSpec) -> None:
         setattr(ns, ph, [])
 
     # Resolve source maps for this alias
-    api_src = getattr(model, TIGRBL_API_HOOKS_ATTR, None)
+    api_src = getattr(model, TIGRBL_ROUTER_HOOKS_ATTR, None)
     model_src = getattr(model, TIGRBL_HOOKS_ATTR, None)
 
     api_map = _to_phase_map_for_alias(api_src, alias)

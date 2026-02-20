@@ -11,7 +11,7 @@ from contextlib import asynccontextmanager
 from typing import Any, Callable
 from types import SimpleNamespace
 
-from .api_spec import APISpec
+from .router_spec import RouterSpec
 from ..app._model_registry import initialize_model_registry
 from ..ddl import initialize as _ddl_initialize
 from ..engine import install_from_objects
@@ -522,7 +522,7 @@ ensure_httpx_sync_transport()
 APIRouter = Router
 
 
-class Api(APISpec, Router):
+class Api(RouterSpec, Router):
     """API router with model and table registries."""
 
     MODELS: tuple[Any, ...] = ()

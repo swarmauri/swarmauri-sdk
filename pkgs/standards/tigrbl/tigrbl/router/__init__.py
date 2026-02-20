@@ -9,7 +9,7 @@ __all__ = ["Api", "TigrblRouter", "TigrblRouter"]
 
 def __getattr__(name: str) -> Any:
     if name == "Api":
-        from ._api import Api
+        from ._router import Api
 
         return Api
     if name == "TigrblRouter":

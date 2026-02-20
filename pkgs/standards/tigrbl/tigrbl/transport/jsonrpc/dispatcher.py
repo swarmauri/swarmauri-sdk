@@ -1,115 +1,23 @@
-# tigrbl/v3/transport/jsonrpc/dispatcher.py
-"""
-JSON-RPC 2.0 dispatcher for Tigrbl v3.
-
-This module exposes a single helper:
-
-    build_jsonrpc_router(api, *, get_db=None) -> Router
-
-- It mounts a POST endpoint at "/" that accepts either a single JSON-RPC request
-  object or a batch (array) of request objects.
-- Each JSON-RPC `method` must be of the form "Model.alias". The dispatcher will
-  look up `api.models["Model"]`, then call the bound coroutine at
-  `Model.rpc.<alias>(params, *, db, request, ctx)`.
-- Input validation and output shaping are handled by the per-op RPC wrappers
-  built in `tigrbl.bindings.rpc`.
-- Errors are converted to JSON-RPC error objects using the v3 runtime error
-  mappers (HTTP → RPC codes).
-
-You would usually mount the returned router at `/rpc`, e.g.:
-
-    app.include_router(build_jsonrpc_router(api), prefix="/rpc")
-"""
-
 from __future__ import annotations
 
 import logging
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    List,
-    Mapping,
-    Optional,
-    Sequence,
-)
-
-try:
-    from ...types import Router, Request, Body, Depends, HTTPException
-except Exception:  # pragma: no cover
-    # Minimal shims to keep this importable without ASGI (for typing/tools)
-    class Router:  # type: ignore
-        def __init__(self, *a, **kw):
-            self.routes = []
-            self.dependencies = kw.get("dependencies", [])  # for parity
-
-        def add_api_route(
-            self, path: str, endpoint: Callable, methods: Sequence[str], **opts
-        ):
-            self.routes.append((path, methods, endpoint, opts))
-
-    class Request:  # type: ignore
-        def __init__(self, scope=None):
-            self.scope = scope or {}
-            self.state = type("S", (), {})()
-            self.query_params = {}
-
-        async def json(self) -> Any:
-            return {}
-
-    def Body(default=None, **kw):  # type: ignore
-        return default
-
-    def Depends(fn):  # type: ignore
-        return fn
-
-    class HTTPException(Exception):  # type: ignore
-        def __init__(self, status_code: int, detail: Any = None):
-            super().__init__(detail)
-            self.status_code = status_code
-            self.detail = detail
-
-
-try:
-    from ...transport.response import JSONResponse, Response
-except Exception:  # pragma: no cover
-
-    class Response:  # type: ignore
-        def __init__(
-            self, status_code: int = 200, content: Any = None, headers: Any = None
-        ):
-            self.status_code = status_code
-            self.body = content
-            self.headers = headers or {}
-
-    class JSONResponse(Response):  # type: ignore
-        def __init__(self, content: Any = None, status_code: int = 200):
-            super().__init__(status_code=status_code, content=content)
-
+from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence
 
 from ...runtime.status import ERROR_MESSAGES, _RPC_TO_HTTP, http_exc_to_rpc
+from ...runtime.status.exceptions import HTTPException
+from ...security.dependencies import Depends
+from ...transport import JSONResponse, Request, Response
 from ...transport.dispatcher import dispatch_operation, resolve_operation
+from ...core.crud.params import Body
+from ...router._router import Router
+from .helpers import _err, _normalize_deps, _normalize_params, _ok
 from .models import RPCRequest, RPCResponse
-from .helpers import (
-    _err,
-    _normalize_deps,
-    _normalize_params,
-    _ok,
-)
 
 logger = logging.getLogger(__name__)
 
-Json = Mapping[str, Any]
-Batch = Sequence[Mapping[str, Any]]
-
 
 def _log_rpc_success(method: Any, rid: Any) -> None:
-    logger.info(
-        "jsonrpc response method=%s id=%s status_code=%s",
-        method,
-        rid,
-        200,
-    )
+    logger.info("jsonrpc response method=%s id=%s status_code=%s", method, rid, 200)
 
 
 def _log_rpc_error(method: Any, rid: Any, code: int, message: str) -> None:
@@ -124,7 +32,6 @@ def _log_rpc_error(method: Any, rid: Any, code: int, message: str) -> None:
 
 
 def _request_obj_to_mapping(obj: RPCRequest | Mapping[str, Any]) -> Mapping[str, Any]:
-    """Convert endpoint payload objects to the mapping expected by dispatcher."""
     if isinstance(obj, RPCRequest):
         return obj.model_dump()
     if isinstance(obj, Mapping):
@@ -133,16 +40,8 @@ def _request_obj_to_mapping(obj: RPCRequest | Mapping[str, Any]) -> Mapping[str,
 
 
 async def _dispatch_one(
-    *,
-    api: Any,
-    request: Request,
-    db: Any,
-    obj: Mapping[str, Any],
+    *, api: Any, request: Request, db: Any, obj: Mapping[str, Any]
 ) -> Optional[Dict[str, Any]]:
-    """
-    Handle a single JSON-RPC request object and return a response dict,
-    or None if it's a "notification" (no id field).
-    """
     has_id = "id" in obj
     rid = obj.get("id") if has_id else None
     method = obj.get("method")
@@ -152,13 +51,8 @@ async def _dispatch_one(
         return _err(code, message, rid, data)
 
     try:
-        # Basic JSON-RPC validation
-        if not isinstance(obj, Mapping):
-            return _rpc_error(-32600, "Invalid Request")  # not an object
-        # Be lenient: default to 2.0 when "jsonrpc" is omitted
         if obj.get("jsonrpc", "2.0") != "2.0":
             return _rpc_error(-32600, "Invalid Request")
-        method = obj.get("method")
         if not isinstance(method, str) or "." not in method:
             return _rpc_error(-32601, "Method not found")
 
@@ -170,26 +64,16 @@ async def _dispatch_one(
         except LookupError:
             return _rpc_error(-32601, f"Unknown model '{model_name}'")
 
-        model = resolution.model
-
-        # Params
-        try:
-            params = _normalize_params(obj.get("params"))
-        except HTTPException as exc:
-            code, msg, data = http_exc_to_rpc(exc)
-            return _rpc_error(code, msg, data)
-
-        # Compose a context; allow middlewares to seed request.state.ctx
+        params = _normalize_params(obj.get("params"))
         base_ctx: Dict[str, Any] = {}
         extra_ctx = getattr(request.state, "ctx", None)
         if isinstance(extra_ctx, Mapping):
             base_ctx.update(extra_ctx)
         base_ctx.setdefault("rpc_id", rid)
 
-        # Execute via the unified transport dispatcher
         result = await dispatch_operation(
             api=api,
-            model_or_name=model,
+            model_or_name=resolution.model,
             alias=alias,
             payload=params,
             db=db,
@@ -202,19 +86,12 @@ async def _dispatch_one(
             return None
         _log_rpc_success(method, rid)
         return _ok(result, rid)
-
     except HTTPException as exc:
         code, msg, data = http_exc_to_rpc(exc)
         return _rpc_error(code, msg, data)
     except Exception:
         logger.exception("jsonrpc dispatch failed")
-        # Internal error (per JSON-RPC); do not leak details
         return _rpc_error(-32603, ERROR_MESSAGES.get(-32603, "Internal error"))
-
-
-# --------------------------------------------------------------------------- #
-# Public router factory
-# --------------------------------------------------------------------------- #
 
 
 def build_jsonrpc_router(
@@ -223,97 +100,23 @@ def build_jsonrpc_router(
     get_db: Optional[Callable[..., Any]] = None,
     tags: Sequence[str] | None = ("rpc",),
 ) -> Router:
-    """
-    Build and return a Router that serves a single POST endpoint at "/".
-    Mount it at your preferred prefix (e.g., "/rpc").
-
-    If `get_db` is provided, it will be used as a ASGI
-    dependency for obtaining a DB session/connection. If not provided,
-    the dispatcher will try to use `request.state.db` (or pass `db=None`).
-
-    Security:
-        • Authn/authz is enforced by runtime secdeps in PRE_TX_BEGIN.
-        • Transport does not execute authorization directly.
-        • Additional router-level dependencies can be provided via `api.rpc_dependencies`.
-
-    The generated endpoint is tagged as "rpc" by default. Supply a custom
-    sequence via ``tags`` to override or set ``None`` to omit tags.
-    """
-    # Extra router-level deps (e.g., tracing, IP allowlist)
     extra_router_deps = _normalize_deps(getattr(api, "rpc_dependencies", None))
     router = Router(dependencies=extra_router_deps or None)
 
-    dep = get_db
-    if dep is not None:
+    if get_db is not None:
 
         async def _endpoint(
             request: Request,
             body: RPCRequest | list[RPCRequest] = Body(...),
-            db: Any = Depends(dep),
+            db: Any = Depends(get_db),
         ):
-            if isinstance(body, list):
-                responses: List[Dict[str, Any]] = []
-                for item in body:
-                    resp = await _dispatch_one(
-                        api=api,
-                        request=request,
-                        db=db,
-                        obj=_request_obj_to_mapping(item),
-                    )
-                    if resp is not None:
-                        responses.append(resp)
-                return JSONResponse(
-                    content=responses,
-                )
-            elif isinstance(body, (RPCRequest, Mapping)):
-                resp = await _dispatch_one(
-                    api=api,
-                    request=request,
-                    db=db,
-                    obj=_request_obj_to_mapping(body),
-                )
-                if resp is None:
-                    return Response(status_code=204)
-                return JSONResponse(
-                    content=resp,
-                )
-            else:
-                err = _err(-32600, "Invalid Request", None)
-                return JSONResponse(content=err)
+            return await _handle_body(api=api, request=request, db=db, body=body)
 
     else:
-        # No dependencies; attempt to read db (and user) from request.state
+
         async def _endpoint(request: Request, body: Any = Body(...)):
             db = getattr(request.state, "db", None)
-            if isinstance(body, list):
-                responses: List[Dict[str, Any]] = []
-                for item in body:
-                    resp = await _dispatch_one(
-                        api=api,
-                        request=request,
-                        db=db,
-                        obj=_request_obj_to_mapping(item),
-                    )
-                    if resp is not None:
-                        responses.append(resp)
-                return JSONResponse(
-                    content=responses,
-                )
-            elif isinstance(body, (RPCRequest, Mapping)):
-                resp = await _dispatch_one(
-                    api=api,
-                    request=request,
-                    db=db,
-                    obj=_request_obj_to_mapping(body),
-                )
-                if resp is None:
-                    return Response(status_code=204)
-                return JSONResponse(
-                    content=resp,
-                )
-            else:
-                err = _err(-32600, "Invalid Request", None)
-                return JSONResponse(content=err)
+            return await _handle_body(api=api, request=request, db=db, body=body)
 
     async def _options_endpoint(request: Request):
         allow = "OPTIONS,POST"
@@ -321,12 +124,10 @@ def build_jsonrpc_router(
             "allow": allow,
             "access-control-allow-methods": allow,
         }
-
         origin = request.headers.get("origin")
         if origin:
             headers["access-control-allow-origin"] = origin
             headers["vary"] = "origin"
-
         req_headers = request.headers.get("access-control-request-headers")
         if req_headers:
             headers["access-control-allow-headers"] = req_headers
@@ -335,10 +136,8 @@ def build_jsonrpc_router(
                 if origin
                 else "access-control-request-headers"
             )
-
         return Response(status_code=204, headers=headers)
 
-    # Attach a single JSON-RPC POST route. Mount prefix controls final path.
     router.add_api_route(
         path="",
         endpoint=_options_endpoint,
@@ -347,7 +146,6 @@ def build_jsonrpc_router(
         tags=list(tags) if tags else None,
         include_in_schema=False,
     )
-
     router.add_api_route(
         path="",
         endpoint=_endpoint,
@@ -357,9 +155,30 @@ def build_jsonrpc_router(
         summary="JSONRPC",
         description="JSON-RPC 2.0 endpoint.",
         response_model=RPCResponse | list[RPCResponse],
-        # extra router deps already applied via Router(dependencies=...)
     )
     return router
+
+
+async def _handle_body(*, api: Any, request: Request, db: Any, body: Any) -> Response:
+    if isinstance(body, list):
+        responses: List[Dict[str, Any]] = []
+        for item in body:
+            resp = await _dispatch_one(
+                api=api, request=request, db=db, obj=_request_obj_to_mapping(item)
+            )
+            if resp is not None:
+                responses.append(resp)
+        return JSONResponse(content=responses)
+
+    if isinstance(body, (RPCRequest, Mapping)):
+        resp = await _dispatch_one(
+            api=api, request=request, db=db, obj=_request_obj_to_mapping(body)
+        )
+        if resp is None:
+            return Response(status_code=204)
+        return JSONResponse(content=resp)
+
+    return JSONResponse(content=_err(-32600, "Invalid Request", None))
 
 
 __all__ = ["build_jsonrpc_router"]
