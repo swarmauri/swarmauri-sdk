@@ -1,37 +1,24 @@
-# tigrbl/tigrbl/v3/api/shortcuts.py
 from __future__ import annotations
 
 from typing import Any, Sequence, Type
 
-from .api_spec import APISpec
-from ._api import Api
+from .router_spec import RouterSpec
+from ._router import Api
 
 
-def defineApiSpec(
+def defineRouterSpec(
     *,
-    # identity
-    name: str = "api",
+    name: str = "router",
     prefix: str = "",
     tags: Sequence[str] = (),
-    # engine
     engine: Any = None,
-    # composition
     ops: Sequence[Any] = (),
     schemas: Sequence[Any] = (),
     hooks: Sequence[Any] = (),
     security_deps: Sequence[Any] = (),
     deps: Sequence[Any] = (),
     models: Sequence[Any] = (),
-) -> Type[APISpec]:
-    """
-    Build an API-spec class with class attributes only (no instances).
-    Use it directly in your class MRO:
-
-        class TenantA(defineApiSpec(name="tenantA", engine=...)):
-            pass
-
-    or pass it to `deriveApi(...)` to get a concrete API subclass.
-    """
+) -> Type[RouterSpec]:
     attrs = dict(
         NAME=name,
         PREFIX=prefix,
@@ -44,13 +31,12 @@ def defineApiSpec(
         DEPS=tuple(deps or ()),
         MODELS=tuple(models or ()),
     )
-    return type("APISpec", (APISpec,), attrs)
+    return type("RouterSpec", (RouterSpec,), attrs)
 
 
-def deriveApi(**kw: Any) -> Type[Api]:
-    """Produce a concrete :class:`Api` subclass that inherits the spec."""
-    Spec = defineApiSpec(**kw)
-    return type("APIWithSpec", (Spec, Api), {})
+def deriveRouter(**kw: Any) -> Type[Api]:
+    spec = defineRouterSpec(**kw)
+    return type("RouterWithSpec", (spec, Api), {})
 
 
-__all__ = ["defineApiSpec", "deriveApi"]
+__all__ = ["defineRouterSpec", "deriveRouter"]

@@ -85,7 +85,7 @@ class TigrblApp(_App):
         jsonrpc_prefix: str | None = None,
         system_prefix: str | None = None,
         favicon_path: str | Path = FAVICON_PATH,
-        api_hooks: Mapping[str, Iterable[Callable]]
+        router_hooks: Mapping[str, Iterable[Callable]]
         | Mapping[str, Mapping[str, Iterable[Callable]]]
         | None = None,
         **asgi_kwargs: Any,
@@ -141,8 +141,8 @@ class TigrblApp(_App):
             "shutdown": [],
         }
 
-        # API-level hooks map (merged into each model at include-time; precedence handled in bindings.hooks)
-        self._api_hooks_map = copy.deepcopy(api_hooks) if api_hooks else None
+        # Router-level hooks map (merged into each model at include-time; precedence handled in bindings.hooks)
+        self._router_hooks_map = copy.deepcopy(router_hooks) if router_hooks else None
         self._default_api: TigrblRouter | None = None
         self.mount_openrpc(path="/openrpc.json")
         self.mount_lens(path="/rdocs", spec_path="/openrpc.json")
@@ -200,19 +200,19 @@ class TigrblApp(_App):
     # ------------------------- internal helpers -------------------------
 
     @staticmethod
-    def _merge_api_hooks_into_model(model: type, hooks_map: Any) -> None:
+    def _merge_router_hooks_into_model(model: type, hooks_map: Any) -> None:
         """
-        Install API-level hooks on the model so the binder can see them.
+        Install Router-level hooks on the model so the binder can see them.
         Accepted shapes:
             {phase: [fn, ...]}                           # global, all aliases
             {alias: {phase: [fn, ...]}, "*": {...}}      # per-alias + wildcard
-        If the model already has __tigrbl_api_hooks__, we shallow-merge keys.
+        If the model already has __tigrbl_router_hooks__, we shallow-merge keys.
         """
         if not hooks_map:
             return
-        existing = getattr(model, "__tigrbl_api_hooks__", None)
+        existing = getattr(model, "__tigrbl_router_hooks__", None)
         if existing is None:
-            setattr(model, "__tigrbl_api_hooks__", copy.deepcopy(hooks_map))
+            setattr(model, "__tigrbl_router_hooks__", copy.deepcopy(hooks_map))
             return
 
         # shallow merge (alias or phase keys); values are lists we extend
@@ -232,7 +232,7 @@ class TigrblApp(_App):
                         merged[k] = list(merged[k]) + list(v or [])
                     else:
                         merged[k] = v
-        setattr(model, "__tigrbl_api_hooks__", merged)
+        setattr(model, "__tigrbl_router_hooks__", merged)
 
     # ------------------------- primary operations -------------------------
 
@@ -241,7 +241,7 @@ class TigrblApp(_App):
         if self._default_api is None:
             self._default_api = TigrblRouter(
                 engine=self.engine,
-                api_hooks=self._api_hooks_map,
+                router_hooks=self._router_hooks_map,
             )
             # Mirror current app auth knobs onto the default API.
             self._default_api.set_auth(
@@ -500,7 +500,7 @@ class TigrblApp(_App):
 
     def bind(self, model: type) -> Tuple[OpSpec, ...]:
         """Bind/rebuild a model in place (without mounting)."""
-        self._merge_api_hooks_into_model(model, self._api_hooks_map)
+        self._merge_router_hooks_into_model(model, self._router_hooks_map)
         return _bind(model)
 
     def rebind(

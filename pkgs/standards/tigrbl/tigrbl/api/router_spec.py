@@ -2,4 +2,4 @@
 
 from __future__ import annotations
 
-from ..router.api_spec import *  # noqa: F401,F403
+from ..router.router_spec import *  # noqa: F401,F403
