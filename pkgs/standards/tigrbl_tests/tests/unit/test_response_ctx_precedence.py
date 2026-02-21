@@ -8,7 +8,7 @@ from tigrbl.responses import (
     response_ctx,
     resolve_response_spec,
 )
-from tigrbl.router.api_spec import APISpec
+from tigrbl.router.router_spec import RouterSpec
 from tigrbl.app.app_spec import AppSpec
 from tigrbl.op.types import OpSpec
 from tigrbl.table.table_spec import TableSpec
@@ -32,7 +32,7 @@ def test_response_ctx_precedence():
         pass
 
     app_spec = AppSpec(response=ResponseSpec(status_code=200))
-    api_spec = APISpec(response=ResponseSpec(status_code=201))
+    api_spec = RouterSpec(response=ResponseSpec(status_code=201))
     table_spec = TableSpec(
         model=SimpleNamespace(), response=ResponseSpec(status_code=202)
     )
