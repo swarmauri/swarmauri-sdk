@@ -119,7 +119,7 @@ def _inject_pre_tx_dep_atoms(chains: Dict[str, List[StepFn]], sp: Any | None) ->
         return
     try:
         from ..atoms.dep.security import ANCHOR as sec_anchor, run as sec_run
-        from ..atoms.dep.extras import ANCHOR as dep_anchor, run as dep_run
+        from ..atoms.dep.extra import ANCHOR as dep_anchor, run as dep_run
     except Exception:
         return
 
@@ -137,7 +137,7 @@ def _inject_pre_tx_dep_atoms(chains: Dict[str, List[StepFn]], sp: Any | None) ->
             _make_dep_atom_step(
                 dep_run,
                 dep,
-                label=_label_dep_atom(subject="extras", anchor=dep_anchor, index=i),
+                label=_label_dep_atom(subject="extra", anchor=dep_anchor, index=i),
             )
         )
 

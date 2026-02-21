@@ -12,7 +12,7 @@ from typing import Dict, Iterable, List, Literal, Tuple
 # ──────────────────────────────────────────────────────────────────────────────
 
 Phase = Literal[
-    "PRE_TX",
+    "PRE_TX_BEGIN",
     "START_TX",
     "PRE_HANDLER",
     "HANDLER",
@@ -22,7 +22,7 @@ Phase = Literal[
 ]
 
 PHASES: Tuple[Phase, ...] = (
-    "PRE_TX",
+    "PRE_TX_BEGIN",
     "START_TX",  # system-only
     "PRE_HANDLER",
     "HANDLER",
@@ -39,6 +39,8 @@ PHASES: Tuple[Phase, ...] = (
 # PRE_TX
 PRE_TX_SECDEP = "pre:tx:secdep"
 PRE_TX_DEP = "pre:tx:dep"
+DEP_SECURITY = "dep:security"
+DEP_EXTRA = "dep:extra"
 
 # PRE_HANDLER
 SCHEMA_COLLECT_IN = "schema:collect_in"
@@ -96,8 +98,8 @@ class AnchorInfo:
 
 _ANCHORS: Dict[str, AnchorInfo] = {
     # PRE_TX (not persist-tied)
-    PRE_TX_SECDEP: AnchorInfo(PRE_TX_SECDEP, "PRE_TX", 0, False),
-    PRE_TX_DEP: AnchorInfo(PRE_TX_DEP, "PRE_TX", 1, False),
+    PRE_TX_SECDEP: AnchorInfo(PRE_TX_SECDEP, "PRE_TX_BEGIN", 0, False),
+    PRE_TX_DEP: AnchorInfo(PRE_TX_DEP, "PRE_TX_BEGIN", 1, False),
     # PRE_HANDLER (not persist-tied)
     SCHEMA_COLLECT_IN: AnchorInfo(SCHEMA_COLLECT_IN, "PRE_HANDLER", 2, False),
     IN_VALIDATE: AnchorInfo(IN_VALIDATE, "PRE_HANDLER", 3, False),
@@ -197,6 +199,8 @@ __all__ = [
     # Anchors (constants)
     "PRE_TX_SECDEP",
     "PRE_TX_DEP",
+    "DEP_SECURITY",
+    "DEP_EXTRA",
     "SCHEMA_COLLECT_IN",
     "IN_VALIDATE",
     "RESOLVE_VALUES",

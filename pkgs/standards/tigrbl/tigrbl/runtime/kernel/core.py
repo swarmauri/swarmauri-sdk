@@ -112,8 +112,7 @@ class Kernel:
         }
         for anchor in ordered_anchors:
             phase = phase_for[anchor]
-            chain_phase = "PRE_TX_BEGIN" if phase == "PRE_TX" else phase
-            for step in chains.get(chain_phase, []) or []:
+            for step in chains.get(phase, []) or []:
                 label = getattr(step, "__tigrbl_label", None)
                 if isinstance(label, str) and label.endswith(f"@{anchor}"):
                     labels.append(label)
