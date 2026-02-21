@@ -110,7 +110,7 @@ def _make_member_endpoint(
 
             ctx["response_serializer"] = _serializer
             result = await dispatch_operation(
-                api=api,
+                router=api,
                 model_or_name=model,
                 alias=alias,
                 payload=ctx.get("payload"),
@@ -213,7 +213,7 @@ def _make_member_endpoint(
 
             ctx["response_serializer"] = _serializer
             result = await dispatch_operation(
-                api=api,
+                router=api,
                 model_or_name=model,
                 alias=alias,
                 payload=ctx.get("payload"),
@@ -331,7 +331,7 @@ def _make_member_endpoint(
 
         ctx["response_serializer"] = _serializer
         result = await dispatch_operation(
-            api=api,
+            router=api,
             model_or_name=model,
             alias=alias,
             payload=ctx.get("payload"),

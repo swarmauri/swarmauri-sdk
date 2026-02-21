@@ -130,7 +130,7 @@ def _make_collection_endpoint(
                 model, alias, target, sp, r
             )
             result = await dispatch_operation(
-                api=api,
+                router=api,
                 model_or_name=model,
                 alias=alias,
                 payload=ctx.get("payload"),
@@ -214,7 +214,7 @@ def _make_collection_endpoint(
 
                 ctx["response_serializer"] = _serializer
                 result = await dispatch_operation(
-                    api=api,
+                    router=api,
                     model_or_name=model,
                     alias=alias,
                     payload=ctx.get("payload"),
@@ -322,7 +322,7 @@ def _make_collection_endpoint(
 
             ctx["response_serializer"] = _serializer
             result = await dispatch_operation(
-                api=api,
+                router=api,
                 model_or_name=model,
                 alias=exec_alias,
                 payload=ctx.get("payload"),

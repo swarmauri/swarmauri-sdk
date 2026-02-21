@@ -30,7 +30,9 @@ async def rpc_call(
     logger.debug("rpc_call invoked for model=%s method=%s", model_or_name, method)
     _ensure_api_ns(api)
 
-    resolution = resolve_operation(api=api, model_or_name=model_or_name, alias=method)
+    resolution = resolve_operation(
+        router=api, model_or_name=model_or_name, alias=method
+    )
     mdl = resolution.model
     logger.debug(
         "Resolved operation model=%s alias=%s target=%s",

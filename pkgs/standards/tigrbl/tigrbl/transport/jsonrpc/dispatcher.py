@@ -10,6 +10,7 @@ from ...transport import JSONResponse, Request, Response
 from ...transport.dispatcher import dispatch_operation, resolve_operation
 from ...core.crud.params import Body
 from ...router._router import Router
+from ...bindings.rpc import _serialize_output
 from .helpers import _err, _normalize_deps, _normalize_params, _ok
 from .models import RPCRequest, RPCResponse
 
@@ -40,7 +41,7 @@ def _request_obj_to_mapping(obj: RPCRequest | Mapping[str, Any]) -> Mapping[str,
 
 
 async def _dispatch_one(
-    *, api: Any, request: Request, db: Any, obj: Mapping[str, Any]
+    *, router: Any, request: Request, db: Any, obj: Mapping[str, Any]
 ) -> Optional[Dict[str, Any]]:
     has_id = "id" in obj
     rid = obj.get("id") if has_id else None
@@ -59,7 +60,7 @@ async def _dispatch_one(
         model_name, alias = method.split(".", 1)
         try:
             resolution = resolve_operation(
-                api=api, model_or_name=model_name, alias=alias
+                router=router, model_or_name=model_name, alias=alias
             )
         except LookupError:
             return _rpc_error(-32601, f"Unknown model '{model_name}'")
@@ -72,13 +73,19 @@ async def _dispatch_one(
         base_ctx.setdefault("rpc_id", rid)
 
         result = await dispatch_operation(
-            api=api,
+            router=router,
             model_or_name=resolution.model,
             alias=alias,
             payload=params,
             db=db,
             request=request,
             ctx=base_ctx,
+            response_serializer=lambda r: _serialize_output(
+                resolution.model,
+                alias,
+                resolution.target,
+                r,
+            ),
             rpc_mode=True,
         )
         if not has_id:
@@ -95,13 +102,13 @@ async def _dispatch_one(
 
 
 def build_jsonrpc_router(
-    api: Any,
+    router: Any,
     *,
     get_db: Optional[Callable[..., Any]] = None,
     tags: Sequence[str] | None = ("rpc",),
 ) -> Router:
-    extra_router_deps = _normalize_deps(getattr(api, "rpc_dependencies", None))
-    router = Router(dependencies=extra_router_deps or None)
+    extra_router_deps = _normalize_deps(getattr(router, "rpc_dependencies", None))
+    api_router = Router(dependencies=extra_router_deps or None)
 
     if get_db is not None:
 
@@ -110,13 +117,13 @@ def build_jsonrpc_router(
             body: RPCRequest | list[RPCRequest] = Body(...),
             db: Any = Depends(get_db),
         ):
-            return await _handle_body(api=api, request=request, db=db, body=body)
+            return await _handle_body(router=router, request=request, db=db, body=body)
 
     else:
 
         async def _endpoint(request: Request, body: Any = Body(...)):
             db = getattr(request.state, "db", None)
-            return await _handle_body(api=api, request=request, db=db, body=body)
+            return await _handle_body(router=router, request=request, db=db, body=body)
 
     async def _options_endpoint(request: Request):
         allow = "OPTIONS,POST"
@@ -138,7 +145,7 @@ def build_jsonrpc_router(
             )
         return Response(status_code=204, headers=headers)
 
-    router.add_api_route(
+    api_router.add_api_route(
         path="",
         endpoint=_options_endpoint,
         methods=["OPTIONS"],
@@ -146,7 +153,7 @@ def build_jsonrpc_router(
         tags=list(tags) if tags else None,
         include_in_schema=False,
     )
-    router.add_api_route(
+    api_router.add_api_route(
         path="",
         endpoint=_endpoint,
         methods=["POST"],
@@ -156,15 +163,17 @@ def build_jsonrpc_router(
         description="JSON-RPC 2.0 endpoint.",
         response_model=RPCResponse | list[RPCResponse],
     )
-    return router
+    return api_router
 
 
-async def _handle_body(*, api: Any, request: Request, db: Any, body: Any) -> Response:
+async def _handle_body(
+    *, router: Any, request: Request, db: Any, body: Any
+) -> Response:
     if isinstance(body, list):
         responses: List[Dict[str, Any]] = []
         for item in body:
             resp = await _dispatch_one(
-                api=api, request=request, db=db, obj=_request_obj_to_mapping(item)
+                router=router, request=request, db=db, obj=_request_obj_to_mapping(item)
             )
             if resp is not None:
                 responses.append(resp)
@@ -172,7 +181,7 @@ async def _handle_body(*, api: Any, request: Request, db: Any, body: Any) -> Res
 
     if isinstance(body, (RPCRequest, Mapping)):
         resp = await _dispatch_one(
-            api=api, request=request, db=db, obj=_request_obj_to_mapping(body)
+            router=router, request=request, db=db, obj=_request_obj_to_mapping(body)
         )
         if resp is None:
             return Response(status_code=204)
