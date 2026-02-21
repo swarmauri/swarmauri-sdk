@@ -81,7 +81,7 @@ except Exception:  # pragma: no cover
 
 
 from ...runtime.status import ERROR_MESSAGES, _RPC_TO_HTTP, http_exc_to_rpc
-from ...transport.dispatch import dispatch_operation, resolve_model, resolve_target
+from ...transport.dispatch import dispatch_operation, resolve_operation
 from ...bindings.rpc import (
     _allowed_wrapper_keys,
     _coerce_payload,
@@ -166,12 +166,11 @@ async def _dispatch_one(
             return _rpc_error(-32601, "Method not found")
 
         model_name, alias = method.split(".", 1)
-        model = resolve_model(api, model_name)
-        if model is None:
-            return _rpc_error(-32601, f"Unknown model '{model_name}'")
-
-        by_alias = getattr(getattr(model, "ops", None), "by_alias", {}) or {}
-        if alias not in by_alias:
+        try:
+            model, target = resolve_operation(
+                router=api, model_or_name=model_name, alias=alias, strict=True
+            )
+        except LookupError:
             return _rpc_error(-32601, f"Method not found: {model_name}.{alias}")
 
         # Params
@@ -181,7 +180,6 @@ async def _dispatch_one(
             code, msg, data = http_exc_to_rpc(exc)
             return _rpc_error(code, msg, data)
 
-        target = resolve_target(model, alias)
         payload = _coerce_payload(params)
         _reject_wrapper_keys(
             payload, allowed_keys=_allowed_wrapper_keys(model, alias, target)
@@ -215,7 +213,7 @@ async def _dispatch_one(
 
         # Execute through unified transport dispatcher
         result = await dispatch_operation(
-            api=api,
+            router=api,
             request=request,
             db=db,
             model_or_name=model,

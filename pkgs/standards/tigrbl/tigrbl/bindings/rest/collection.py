@@ -100,7 +100,7 @@ def _make_collection_endpoint(
             if isinstance(h, Mapping):
                 payload = {**payload, **dict(h)}
             result = await dispatch_operation(
-                api=api,
+                router=api,
                 request=request,
                 db=db,
                 model_or_name=model,
@@ -184,7 +184,7 @@ def _make_collection_endpoint(
                     return out
 
                 result = await dispatch_operation(
-                    api=api,
+                    router=api,
                     request=request,
                     db=db,
                     model_or_name=model,
@@ -291,7 +291,7 @@ def _make_collection_endpoint(
                 return out
 
             result = await dispatch_operation(
-                api=api,
+                router=api,
                 request=request,
                 db=db,
                 model_or_name=model,
