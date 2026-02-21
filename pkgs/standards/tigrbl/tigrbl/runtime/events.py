@@ -36,6 +36,10 @@ PHASES: Tuple[Phase, ...] = (
 # Keep these names stable; labels use them directly: step_kind:domain:subject@ANCHOR
 # ──────────────────────────────────────────────────────────────────────────────
 
+# PRE_TX
+PRE_TX_SECDEP = "pre:tx:secdep"
+PRE_TX_DEP = "pre:tx:dep"
+
 # PRE_HANDLER
 SCHEMA_COLLECT_IN = "schema:collect_in"
 IN_VALIDATE = "in:validate"
@@ -58,6 +62,9 @@ OUT_DUMP = "out:dump"
 # Canonical order of event anchors within the request lifecycle.
 # This ordering is global and stable; use it to produce deterministic plans/traces.
 _EVENT_ORDER: Tuple[str, ...] = (
+    # PRE_TX
+    PRE_TX_SECDEP,
+    PRE_TX_DEP,
     # PRE_HANDLER
     SCHEMA_COLLECT_IN,
     IN_VALIDATE,
@@ -88,20 +95,23 @@ class AnchorInfo:
 
 
 _ANCHORS: Dict[str, AnchorInfo] = {
+    # PRE_TX (not persist-tied)
+    PRE_TX_SECDEP: AnchorInfo(PRE_TX_SECDEP, "PRE_TX", 0, False),
+    PRE_TX_DEP: AnchorInfo(PRE_TX_DEP, "PRE_TX", 1, False),
     # PRE_HANDLER (not persist-tied)
-    SCHEMA_COLLECT_IN: AnchorInfo(SCHEMA_COLLECT_IN, "PRE_HANDLER", 0, False),
-    IN_VALIDATE: AnchorInfo(IN_VALIDATE, "PRE_HANDLER", 1, False),
-    RESOLVE_VALUES: AnchorInfo(RESOLVE_VALUES, "PRE_HANDLER", 2, True),
-    PRE_FLUSH: AnchorInfo(PRE_FLUSH, "PRE_HANDLER", 3, True),
-    EMIT_ALIASES_PRE: AnchorInfo(EMIT_ALIASES_PRE, "PRE_HANDLER", 4, True),
+    SCHEMA_COLLECT_IN: AnchorInfo(SCHEMA_COLLECT_IN, "PRE_HANDLER", 2, False),
+    IN_VALIDATE: AnchorInfo(IN_VALIDATE, "PRE_HANDLER", 3, False),
+    RESOLVE_VALUES: AnchorInfo(RESOLVE_VALUES, "PRE_HANDLER", 4, True),
+    PRE_FLUSH: AnchorInfo(PRE_FLUSH, "PRE_HANDLER", 5, True),
+    EMIT_ALIASES_PRE: AnchorInfo(EMIT_ALIASES_PRE, "PRE_HANDLER", 6, True),
     # POST_HANDLER (mixed)
-    POST_FLUSH: AnchorInfo(POST_FLUSH, "POST_HANDLER", 5, True),
-    EMIT_ALIASES_POST: AnchorInfo(EMIT_ALIASES_POST, "POST_HANDLER", 6, True),
-    SCHEMA_COLLECT_OUT: AnchorInfo(SCHEMA_COLLECT_OUT, "POST_HANDLER", 7, False),
-    OUT_BUILD: AnchorInfo(OUT_BUILD, "POST_HANDLER", 8, False),
+    POST_FLUSH: AnchorInfo(POST_FLUSH, "POST_HANDLER", 7, True),
+    EMIT_ALIASES_POST: AnchorInfo(EMIT_ALIASES_POST, "POST_HANDLER", 8, True),
+    SCHEMA_COLLECT_OUT: AnchorInfo(SCHEMA_COLLECT_OUT, "POST_HANDLER", 9, False),
+    OUT_BUILD: AnchorInfo(OUT_BUILD, "POST_HANDLER", 10, False),
     # POST_RESPONSE (not persist-tied)
-    EMIT_ALIASES_READ: AnchorInfo(EMIT_ALIASES_READ, "POST_RESPONSE", 9, False),
-    OUT_DUMP: AnchorInfo(OUT_DUMP, "POST_RESPONSE", 10, False),
+    EMIT_ALIASES_READ: AnchorInfo(EMIT_ALIASES_READ, "POST_RESPONSE", 11, False),
+    OUT_DUMP: AnchorInfo(OUT_DUMP, "POST_RESPONSE", 12, False),
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -185,6 +195,8 @@ __all__ = [
     "Phase",
     "PHASES",
     # Anchors (constants)
+    "PRE_TX_SECDEP",
+    "PRE_TX_DEP",
     "SCHEMA_COLLECT_IN",
     "IN_VALIDATE",
     "RESOLVE_VALUES",

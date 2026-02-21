@@ -16,6 +16,8 @@ from .labels import Label
 
 # tokens: "domain:subject"
 _PREF: Dict[str, Tuple[str, ...]] = {
+    _ev.PRE_TX_SECDEP: ("dep:security",),
+    _ev.PRE_TX_DEP: ("dep:extras",),
     _ev.SCHEMA_COLLECT_IN: ("schema:collect_in",),
     _ev.IN_VALIDATE: ("wire:build_in", "wire:validate_in"),
     _ev.RESOLVE_VALUES: ("resolve:assemble", "resolve:paired_gen"),

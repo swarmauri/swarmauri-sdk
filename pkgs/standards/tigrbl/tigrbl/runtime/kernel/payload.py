@@ -22,6 +22,10 @@ def build_kernelz_payload(
         opspecs as _opspecs,
     )
 
+    def _dep_label(dep: Any) -> str:
+        target = getattr(dep, "dependency", dep)
+        return _label_callable(target) if callable(target) else str(dep)
+
     start = time.monotonic()
     out: Dict[str, Dict[str, List[str]]] = {}
     for model in _model_iter(app):
@@ -31,14 +35,8 @@ def build_kernelz_payload(
         for sp in _opspecs(model):
             seq: List[str] = []
 
-            secdeps = [
-                _label_callable(dep) if callable(dep) else str(dep)
-                for dep in (getattr(sp, "secdeps", []) or [])
-            ]
-            deps = [
-                _label_callable(dep) if callable(dep) else str(dep)
-                for dep in (getattr(sp, "deps", []) or [])
-            ]
+            secdeps = [_dep_label(dep) for dep in (getattr(sp, "secdeps", []) or [])]
+            deps = [_dep_label(dep) for dep in (getattr(sp, "deps", []) or [])]
             seq.extend(f"PRE_TX:secdep:{label}" for label in secdeps)
             seq.extend(f"PRE_TX:dep:{label}" for label in deps)
 
