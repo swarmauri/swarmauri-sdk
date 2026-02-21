@@ -40,6 +40,7 @@ from ..system import build_openrpc_spec as _build_openrpc_spec
 from ..op import get_registry, OpSpec
 from ._model_registry import initialize_model_registry
 from ..system.favicon import FAVICON_PATH, mount_favicon
+from .transport import asgi_app as _asgi_transport, wsgi_app as _wsgi_transport
 
 
 # optional compat: legacy transactional decorator
@@ -190,6 +191,18 @@ class TigrblApp(_App):
             result = handler()
             if inspect.isawaitable(result):
                 await result
+
+    async def __call__(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
+        """Expose ``TigrblApp`` as a native ASGI callable for uvicorn/gunicorn."""
+        await self.asgi_app(scope, receive, send)
+
+    async def asgi_app(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
+        """Serve ASGI requests using the shared transport adapter."""
+        await _asgi_transport(self, scope, receive, send)
+
+    def wsgi_app(self, environ: dict[str, Any], start_response: Any) -> list[bytes]:
+        """Serve WSGI requests using the shared transport adapter."""
+        return _wsgi_transport(self, environ, start_response)
 
     def add_middleware(self, middleware_class: Any, **options: Any) -> None:
         self._middlewares.append((middleware_class, options))
