@@ -99,6 +99,49 @@ def _is_persistent(chains: Mapping[str, Sequence[StepFn]]) -> bool:
     return False
 
 
+def _label_dep_atom(*, subject: str, anchor: str, index: int) -> str:
+    return f"atom:dep:{subject}:{index}@{anchor}"
+
+
+def _make_dep_atom_step(run_fn: _AtomRun, dep: Any, *, label: str) -> StepFn:
+    async def _step(ctx: Any) -> Any:
+        rv = run_fn(dep, ctx)
+        if hasattr(rv, "__await__"):
+            return await cast(Any, rv)
+        return rv
+
+    setattr(_step, "__tigrbl_label", label)
+    return _step
+
+
+def _inject_pre_tx_dep_atoms(chains: Dict[str, List[StepFn]], sp: Any | None) -> None:
+    if sp is None:
+        return
+    try:
+        from ..atoms.dep.security import ANCHOR as sec_anchor, run as sec_run
+        from ..atoms.dep.extra import ANCHOR as dep_anchor, run as dep_run
+    except Exception:
+        return
+
+    pre_tx = chains.setdefault("PRE_TX_BEGIN", [])
+    for i, dep in enumerate(getattr(sp, "secdeps", ()) or ()):
+        pre_tx.append(
+            _make_dep_atom_step(
+                sec_run,
+                dep,
+                label=_label_dep_atom(subject="security", anchor=sec_anchor, index=i),
+            )
+        )
+    for i, dep in enumerate(getattr(sp, "deps", ()) or ()):
+        pre_tx.append(
+            _make_dep_atom_step(
+                dep_run,
+                dep,
+                label=_label_dep_atom(subject="extra", anchor=dep_anchor, index=i),
+            )
+        )
+
+
 def _inject_atoms(
     chains: Dict[str, List[StepFn]],
     atoms: Iterable[_DiscoveredAtom],
@@ -125,6 +168,10 @@ def _inject_atoms(
             continue
         if not persistent and info.persist_tied:
             continue
+        domain, _subject = _infer_domain_subject(run)
+        if domain == "dep":
+            continue
+
         chains.setdefault(info.phase, []).append(_wrap_atom(run, anchor=anchor))
 
 

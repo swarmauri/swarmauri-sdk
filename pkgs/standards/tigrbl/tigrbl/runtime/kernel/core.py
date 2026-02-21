@@ -13,6 +13,7 @@ from .atoms import (
     _discover_atoms,
     _hook_phase_chains,
     _inject_atoms,
+    _inject_pre_tx_dep_atoms,
     _inject_txn_system_steps,
     _is_persistent,
 )
@@ -86,6 +87,8 @@ class Kernel:
                 getattr(model, "__name__", model),
                 alias,
             )
+
+        _inject_pre_tx_dep_atoms(chains, sp)
 
         if persistent:
             try:
