@@ -377,7 +377,7 @@ def _build_rpc_callable(model: type, sp: OpSpec) -> Callable[..., Awaitable[Any]
         )
 
         result = await dispatch_operation(
-            api=getattr(model, "api", None),
+            router=getattr(model, "api", None),
             model_or_name=model,
             alias=alias,
             payload=base_ctx.get("payload"),

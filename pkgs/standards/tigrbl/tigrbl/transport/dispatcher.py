@@ -40,21 +40,21 @@ def _get_phase_chains(model: type, alias: str) -> Dict[str, Any]:
     return out
 
 
-def _resolve_model(api: Any, model_or_name: type | str) -> type:
+def _resolve_model(router: Any, model_or_name: type | str) -> type:
     if isinstance(model_or_name, type):
         return model_or_name
-    if api is None:
+    if router is None:
         raise LookupError(f"Unknown model '{model_or_name}'")
-    mdl = getattr(api, "models", {}).get(model_or_name)
+    mdl = getattr(router, "models", {}).get(model_or_name)
     if mdl is None:
         raise LookupError(f"Unknown model '{model_or_name}'")
     return mdl
 
 
 def resolve_operation(
-    *, api: Any, model_or_name: type | str, alias: str
+    *, router: Any, model_or_name: type | str, alias: str
 ) -> OperationResolution:
-    model = _resolve_model(api, model_or_name)
+    model = _resolve_model(router, model_or_name)
     specs = getattr(getattr(model, "ops", SimpleNamespace()), "by_alias", {})
     sp_list = specs.get(alias) or ()
     sp = sp_list[0] if sp_list else None
@@ -64,7 +64,7 @@ def resolve_operation(
 
 async def dispatch_operation(
     *,
-    api: Any,
+    router: Any,
     model_or_name: type | str,
     alias: str,
     payload: Any,
@@ -74,7 +74,9 @@ async def dispatch_operation(
     response_serializer: Any = None,
     rpc_mode: bool = False,
 ) -> Any:
-    resolution = resolve_operation(api=api, model_or_name=model_or_name, alias=alias)
+    resolution = resolve_operation(
+        router=router, model_or_name=model_or_name, alias=alias
+    )
     model = resolution.model
     if isinstance(ctx, MutableMapping):
         base_ctx = cast(Dict[str, Any], ctx)
@@ -89,10 +91,10 @@ async def dispatch_operation(
         getattr(request, "app", None)
         or base_ctx.get("app")
         or base_ctx.get("api")
-        or api
+        or router
         or model
     )
-    base_ctx.setdefault("api", api if api is not None else app_ref)
+    base_ctx.setdefault("api", router if router is not None else app_ref)
     base_ctx.setdefault("app", app_ref)
     base_ctx.setdefault("model", model)
     base_ctx.setdefault("op", alias)

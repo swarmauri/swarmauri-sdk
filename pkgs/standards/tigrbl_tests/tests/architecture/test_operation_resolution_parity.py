@@ -22,11 +22,11 @@ async def test_canonical_and_custom_resolution_targets():
         }
     )
 
-    api = SimpleNamespace(models={"DemoModel": DemoModel})
+    router = SimpleNamespace(models={"DemoModel": DemoModel})
 
-    read = resolve_operation(api=api, model_or_name="DemoModel", alias="read")
+    read = resolve_operation(router=router, model_or_name="DemoModel", alias="read")
     custom = resolve_operation(
-        api=api,
+        router=router,
         model_or_name="DemoModel",
         alias="sync_profile",
     )
@@ -72,7 +72,7 @@ async def test_rest_and_rpc_paths_execute_same_handler_once():
 
     register_and_attach(DemoModel, (read_spec,))
 
-    api = SimpleNamespace(models={"DemoModel": DemoModel})
+    router = SimpleNamespace(models={"DemoModel": DemoModel})
 
     class DummyDB:
         def commit(self):
@@ -87,7 +87,7 @@ async def test_rest_and_rpc_paths_execute_same_handler_once():
     db = DummyDB()
 
     rest_result = await dispatch_operation(
-        api=api,
+        router=router,
         model_or_name=DemoModel,
         alias="read",
         payload={"id": 1},
