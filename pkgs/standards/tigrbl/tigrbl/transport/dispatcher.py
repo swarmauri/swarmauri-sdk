@@ -90,11 +90,11 @@ async def dispatch_operation(
     app_ref = (
         getattr(request, "app", None)
         or base_ctx.get("app")
-        or base_ctx.get("api")
+        or base_ctx.get("router")
         or router
         or model
     )
-    base_ctx.setdefault("api", router if router is not None else app_ref)
+    base_ctx.setdefault("router", router if router is not None else app_ref)
     base_ctx.setdefault("app", app_ref)
     base_ctx.setdefault("model", model)
     base_ctx.setdefault("op", alias)
