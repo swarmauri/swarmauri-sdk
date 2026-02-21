@@ -85,7 +85,7 @@ async def _invoke(
         finally:
             guard.restore()
 
-    await _run_phase("PRE_TX", allow_flush=False, allow_commit=False, in_tx=False)
+    await _run_phase("PRE_TX_BEGIN", allow_flush=False, allow_commit=False, in_tx=False)
 
     if not skip_persist:
         await _run_phase(

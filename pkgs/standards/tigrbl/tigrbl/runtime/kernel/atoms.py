@@ -100,7 +100,7 @@ def _is_persistent(chains: Mapping[str, Sequence[StepFn]]) -> bool:
 
 
 def _label_dep_atom(*, subject: str, anchor: str, index: int) -> str:
-    return f"atom:dep:{subject}@{anchor}#{index}"
+    return f"atom:dep:{subject}:{index}@{anchor}"
 
 
 def _make_dep_atom_step(run_fn: _AtomRun, dep: Any, *, label: str) -> StepFn:
@@ -123,7 +123,7 @@ def _inject_pre_tx_dep_atoms(chains: Dict[str, List[StepFn]], sp: Any | None) ->
     except Exception:
         return
 
-    pre_tx = chains.setdefault("PRE_TX", [])
+    pre_tx = chains.setdefault("PRE_TX_BEGIN", [])
     for i, dep in enumerate(getattr(sp, "secdeps", ()) or ()):
         pre_tx.append(
             _make_dep_atom_step(

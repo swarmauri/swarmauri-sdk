@@ -87,9 +87,9 @@ async def test_secdeps_execute_before_txn_begin_and_handler(
 
         k = _kernel()
         labels = k.plan_labels(Model, alias)
-        assert labels.count(f"atom:dep:security@{_ev.PRE_TX_SECDEP}#0") == 1
-        assert labels.count(f"atom:dep:security@{_ev.PRE_TX_SECDEP}#1") == 1
-        assert labels.count(f"atom:dep:extras@{_ev.PRE_TX_DEP}#0") == 1
+        assert labels.count(f"atom:dep:security:0@{_ev.PRE_TX_SECDEP}") == 1
+        assert labels.count(f"atom:dep:security:1@{_ev.PRE_TX_SECDEP}") == 1
+        assert labels.count(f"atom:dep:extras:0@{_ev.PRE_TX_DEP}") == 1
 
         result = await k.invoke(
             model=Model, alias=alias, db=_FakeDB(), request=None, ctx={}
