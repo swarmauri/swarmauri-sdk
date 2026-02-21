@@ -62,6 +62,10 @@ class Kernel:
     def get_specs(self, model: type) -> Mapping[str, Any]:
         return self._specs_cache.get(model)
 
+    def _compile_opview_from_specs(self, specs: Mapping[str, Any], sp: Any) -> OpView:
+        """Compatibility shim for callers using legacy Kernel method dispatch."""
+        return compile_opview_from_specs(specs, sp)
+
     def prime_specs(self, models: Sequence[type]) -> None:
         self._specs_cache.prime(models)
 
