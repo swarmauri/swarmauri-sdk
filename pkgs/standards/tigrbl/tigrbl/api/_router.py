@@ -7,7 +7,6 @@ higher-level ``Api``/``App`` interfaces.
 from __future__ import annotations
 
 import inspect
-from contextlib import asynccontextmanager
 from typing import Any, Callable
 
 from tigrbl.api._routing import (
@@ -22,14 +21,6 @@ from tigrbl.api.resolve import (
     resolve_handler_kwargs as _resolve_handler_kwargs_impl,
     resolve_route_dependencies as _resolve_route_dependencies_impl,
 )
-from tigrbl.app.transport import (
-    asgi_app as _asgi_app_impl,
-    wsgi_app as _wsgi_app_impl,
-)
-from tigrbl.requests.adapters import (
-    request_from_asgi as _request_from_asgi_impl,
-    request_from_wsgi as _request_from_wsgi_impl,
-)
 from tigrbl.responses import Response
 from tigrbl.runtime.status.exceptions import HTTPException
 from tigrbl.runtime.status.mappings import status
@@ -40,20 +31,8 @@ from ..system.docs.openapi import build_openapi, mount_openapi
 from ..system.docs.openapi.metadata import is_metadata_route as _is_metadata_route_impl
 from ..system.docs.swagger import mount_swagger
 from ..requests import Request
-from ..transport.rest.decorators import (
-    delete as rest_delete,
-    get as rest_get,
-    patch as rest_patch,
-    post as rest_post,
-    put as rest_put,
-)
 
 Handler = Callable[..., Any]
-
-
-@asynccontextmanager
-async def _default_lifespan_context(app: Any):
-    yield
 
 
 class Router:
@@ -86,79 +65,11 @@ class Router:
         # and environment-specific wiring.
         self.dependency_overrides: dict[Callable[..., Any], Callable[..., Any]] = {}
         self.dependency_overrides_provider = self
-        self._event_handlers: dict[str, list[Callable[..., Any]]] = {
-            "startup": [],
-            "shutdown": [],
-        }
-        self.lifespan_context = self._lifespan_context
-
-        self.lifespan_context = _default_lifespan_context
-
         self._routes: list[Route] = []
         self.routes = self._routes
 
         if include_docs:
             self._install_builtin_routes()
-
-    @asynccontextmanager
-    async def _lifespan_context(self, _: Any):
-        """ASGI lifecycle context manager for startup/shutdown hooks."""
-        await self.run_event_handlers("startup")
-        try:
-            yield
-        finally:
-            await self.run_event_handlers("shutdown")
-
-    @property
-    def event_handlers(self) -> dict[str, list[Callable[..., Any]]]:
-        """Expose registered startup and shutdown callbacks by event name."""
-        return self._event_handlers
-
-    @property
-    def on_startup(self) -> list[Callable[..., Any]]:
-        """Provide direct access to startup callbacks for lifecycle runners."""
-        return self._event_handlers["startup"]
-
-    @property
-    def on_shutdown(self) -> list[Callable[..., Any]]:
-        """Provide direct access to shutdown callbacks for lifecycle runners."""
-        return self._event_handlers["shutdown"]
-
-    def add_event_handler(
-        self,
-        event_type: str,
-        handler: Callable[..., Any],
-    ) -> None:
-        """Register a startup or shutdown handler."""
-        if event_type not in self._event_handlers:
-            raise ValueError(
-                f"Unsupported event type '{event_type}'. "
-                f"Expected one of: {tuple(self._event_handlers.keys())}."
-            )
-        self._event_handlers[event_type].append(handler)
-
-    def on_event(
-        self, event_type: str
-    ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
-        """Decorator form of :meth:`add_event_handler`."""
-
-        def _decorator(handler: Callable[..., Any]) -> Callable[..., Any]:
-            self.add_event_handler(event_type, handler)
-            return handler
-
-        return _decorator
-
-    async def run_event_handlers(self, event_type: str) -> None:
-        """Execute registered handlers for an event type in registration order."""
-        if event_type not in self._event_handlers:
-            raise ValueError(
-                f"Unsupported event type '{event_type}'. "
-                f"Expected one of: {tuple(self._event_handlers.keys())}."
-            )
-        for handler in self._event_handlers[event_type]:
-            result = handler()
-            if inspect.isawaitable(result):
-                await result
 
     def _normalize_prefix(self, prefix: str) -> str:
         return normalize_prefix(prefix)
@@ -174,76 +85,8 @@ class Router:
     ) -> Callable[[Handler], Handler]:
         return route(self, path, methods=methods, **kwargs)
 
-    def get(self, path: str, **kwargs: Any) -> Callable[[Handler], Handler]:
-        return rest_get(self, path, **kwargs)
-
-    def post(self, path: str, **kwargs: Any) -> Callable[[Handler], Handler]:
-        return rest_post(self, path, **kwargs)
-
-    def put(self, path: str, **kwargs: Any) -> Callable[[Handler], Handler]:
-        return rest_put(self, path, **kwargs)
-
-    def patch(self, path: str, **kwargs: Any) -> Callable[[Handler], Handler]:
-        return rest_patch(self, path, **kwargs)
-
-    def delete(self, path: str, **kwargs: Any) -> Callable[[Handler], Handler]:
-        return rest_delete(self, path, **kwargs)
-
     def include_router(self, other: "Router", **kwargs: Any) -> None:
         return include_router(self, other, **kwargs)
-
-    def __call__(self, *args: Any, **kwargs: Any):
-        return self._router_call(*args, **kwargs)
-
-    def _router_call(self, *args: Any, **kwargs: Any):
-        """Dispatch entrypoint supporting WSGI and ASGI call conventions.
-
-        The router is designed to be directly mountable on WSGI *or* ASGI
-        servers without additional glue code.
-
-        Supported invocation forms
-        --------------------------
-        WSGI (PEP 3333)
-            ``router(environ: dict, start_response: Callable) -> list[bytes]``
-
-        ASGI 3 (single callable)
-            ``router(scope: dict, receive: Callable, send: Callable) -> Awaitable[None]``
-
-        ASGI 2 (callable factory)
-            ``router(scope: dict) -> Callable[[receive, send], Awaitable[None]]``
-
-        The protocol is inferred from positional arguments.
-        """
-
-        del kwargs
-        if len(args) == 2 and isinstance(args[0], dict) and callable(args[1]):
-            return self._wsgi_app(args[0], args[1])
-        if len(args) == 1 and isinstance(args[0], dict):
-            scope = args[0]
-
-            async def _asgi2_instance(receive: Callable, send: Callable) -> None:
-                await self._asgi_app(scope, receive, send)
-
-            return _asgi2_instance
-        if len(args) == 3 and isinstance(args[0], dict):
-            return self._asgi_app(args[0], args[1], args[2])
-        raise TypeError("Invalid ASGI/WSGI invocation")
-
-    def _wsgi_app(
-        self, environ: dict[str, Any], start_response: Callable[..., Any]
-    ) -> list[bytes]:
-        return _wsgi_app_impl(self, environ, start_response)
-
-    async def _asgi_app(
-        self, scope: dict[str, Any], receive: Callable, send: Callable
-    ) -> None:
-        await _asgi_app_impl(self, scope, receive, send)
-
-    def _request_from_wsgi(self, environ: dict[str, Any]) -> Request:
-        return _request_from_wsgi_impl(self, environ)
-
-    def _request_from_asgi(self, scope: dict[str, Any], body: bytes) -> Request:
-        return _request_from_asgi_impl(self, scope, body)
 
     def _route_match_priority(self, route: Route) -> tuple[int, int, int]:
         return _route_match_priority(route)
