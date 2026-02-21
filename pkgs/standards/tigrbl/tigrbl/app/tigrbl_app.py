@@ -156,6 +156,16 @@ class TigrblApp(_App):
         """Expose registered startup and shutdown callbacks by event name."""
         return self._event_handlers
 
+    @property
+    def on_startup(self) -> list[Callable[..., Any]]:
+        """Compatibility alias for startup handlers list."""
+        return self._event_handlers["startup"]
+
+    @property
+    def on_shutdown(self) -> list[Callable[..., Any]]:
+        """Compatibility alias for shutdown handlers list."""
+        return self._event_handlers["shutdown"]
+
     def add_event_handler(
         self,
         event_type: str,
