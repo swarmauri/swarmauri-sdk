@@ -28,7 +28,3 @@ class RouterSpec:
 
     # optional: models this router exposes (auto-install)
     models: Sequence[Any] = field(default_factory=tuple)
-
-
-# Backward-compatible alias while callers migrate.
-APISpec = RouterSpec

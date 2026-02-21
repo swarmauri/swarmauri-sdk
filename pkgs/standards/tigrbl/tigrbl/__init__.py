@@ -76,7 +76,7 @@ from .ddl import ensure_schemas, register_sqlite_attach, bootstrap_dbschema
 # ── Config constants (defaults used by REST) ───────────────────────────────────
 from .config.constants import DEFAULT_HTTP_METHODS
 from .app.tigrbl_app import TigrblApp
-from .api import Api, TigrblRouter
+from .api import Router, TigrblRouter
 
 
 from .table import Base
@@ -92,7 +92,7 @@ __all__ += [
     "TigrblApp",
     "TigrblRouter",
     "TigrblApi",
-    "Api",
+    "Router",
     "Base",
     "Op",
     "HTTPBearer",

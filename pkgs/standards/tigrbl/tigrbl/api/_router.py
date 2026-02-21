@@ -7,11 +7,11 @@ higher-level ``Api``/``App`` interfaces.
 from __future__ import annotations
 
 import inspect
+from types import SimpleNamespace
 from typing import Any, Callable
 
 from tigrbl.api._routing import (
     add_api_route,
-    include_router,
     merge_tags,
     normalize_prefix,
     route,
@@ -27,6 +27,12 @@ from tigrbl.runtime.status.mappings import status
 from tigrbl.transport.httpx import ensure_httpx_sync_transport
 
 from ._route import Route
+from .router_spec import RouterSpec
+from ..app._model_registry import initialize_model_registry
+from ..ddl import initialize as _ddl_initialize
+from ..engine import install_from_objects
+from ..engine import resolver as _resolver
+from ..engine.engine_spec import EngineCfg
 from ..system.docs.openapi import build_openapi, mount_openapi
 from ..system.docs.openapi.metadata import is_metadata_route as _is_metadata_route_impl
 from ..system.docs.swagger import mount_swagger
@@ -35,10 +41,32 @@ from ..requests import Request
 Handler = Callable[..., Any]
 
 
-class Router:
+class Router(RouterSpec):
+    PREFIX = ""
+    APIS: tuple[Any, ...] = ()
+    MODELS: tuple[Any, ...] = ()
+    TABLES: tuple[Any, ...] = ()
+    REST_PREFIX = "/api"
+    RPC_PREFIX = "/rpc"
+    SYSTEM_PREFIX = "/system"
+
+    # dataclass inheritance makes instances unhashable; use identity semantics
+    # for both hashing and equality so objects can participate in sets/dicts
+    def __hash__(self) -> int:  # pragma: no cover - simple identity hash
+        return id(self)
+
+    def __eq__(self, other: object) -> bool:  # pragma: no cover - identity compare
+        return self is other
+
+    @property
+    def router(self) -> "Router":  # pragma: no cover - simple alias
+        """Mirror ASGI-style router access for API instances."""
+        return self
+
     def __init__(
         self,
         *,
+        engine: EngineCfg | None = None,
         title: str = "API",
         version: str = "0.1.0",
         description: str | None = None,
@@ -51,6 +79,29 @@ class Router:
         dependencies: list[Any] | None = None,
         include_docs: bool = False,
     ) -> None:
+        # Initialize the RouterSpec field attributes expected by API surfaces.
+        self.name = getattr(self, "NAME", "api")
+        self.prefix = self.PREFIX
+        self.engine = engine if engine is not None else getattr(self, "ENGINE", None)
+        self.tags = list(getattr(self, "TAGS", []))
+        self.ops = tuple(getattr(self, "OPS", ()))
+        self.schemas = SimpleNamespace()
+        self.hooks = SimpleNamespace()
+        self.security_deps = tuple(getattr(self, "SECURITY_DEPS", ()))
+        self.deps = tuple(getattr(self, "DEPS", ()))
+        self.response = getattr(self, "RESPONSE", None)
+        self.rest_prefix = getattr(self, "REST_PREFIX", "/api")
+        self.rpc_prefix = getattr(self, "RPC_PREFIX", "/rpc")
+        self.system_prefix = getattr(self, "SYSTEM_PREFIX", "/system")
+        self.models = initialize_model_registry(getattr(self, "MODELS", ()))
+
+        resolved_tags = self.tags if tags is None else tags
+        resolved_dependencies = (
+            list(self.security_deps) + list(self.deps)
+            if dependencies is None
+            else dependencies
+        )
+
         self.title = title
         self.version = version
         self.description = description
@@ -58,9 +109,9 @@ class Router:
         self.docs_url = docs_url
         self.debug = debug
         self.swagger_ui_version = swagger_ui_version
-        self.prefix = normalize_prefix(prefix)
-        self.tags = list(tags or [])
-        self.dependencies = list(dependencies or [])
+        self.prefix = normalize_prefix(prefix or self.prefix)
+        self.tags = list(resolved_tags or [])
+        self.dependencies = list(resolved_dependencies or [])
         # Allow dependencies to be replaced at runtime, typically for testing
         # and environment-specific wiring.
         self.dependency_overrides: dict[Callable[..., Any], Callable[..., Any]] = {}
@@ -68,8 +119,58 @@ class Router:
         self._routes: list[Route] = []
         self.routes = self._routes
 
+        self.tables: dict[str, Any] = {}
+
+        _engine_ctx = engine if engine is not None else getattr(self, "ENGINE", None)
+        if _engine_ctx is not None:
+            _resolver.register_api(self, _engine_ctx)
+            _resolver.resolve_provider(api=self)
+
         if include_docs:
             self._install_builtin_routes()
+
+    def add_route(
+        self,
+        path: str,
+        endpoint: Any,
+        *,
+        methods: list[str] | tuple[str, ...],
+        **kwargs: Any,
+    ) -> None:
+        """Compatibility alias for frameworks/tests expecting ``add_route``."""
+        self.add_api_route(path, endpoint, methods=methods, **kwargs)
+
+    def install_engines(
+        self, *, api: Any = None, models: tuple[Any, ...] | None = None
+    ) -> None:
+        apis = (api,) if api is not None else self.APIS
+        models = models if models is not None else self.MODELS
+        if apis:
+            for a in apis:
+                install_from_objects(app=self, api=a, models=models)
+        else:
+            install_from_objects(app=self, api=None, models=models)
+
+    def _collect_tables(self) -> list[Any]:
+        seen = set()
+        tables = []
+        for model in self.models.values():
+            if not hasattr(model, "__table__"):
+                try:  # pragma: no cover - defensive remap
+                    from ..table import Base
+                    from ..table._base import _materialize_colspecs_to_sqla
+
+                    _materialize_colspecs_to_sqla(model)
+                    Base.registry.map_declaratively(model)
+                except Exception:
+                    pass
+            table = getattr(model, "__table__", None)
+            if table is not None and not table.columns:
+                continue
+            if table is not None and table not in seen:
+                seen.add(table)
+                tables.append(table)
+        return tables
 
     def _normalize_prefix(self, prefix: str) -> str:
         return normalize_prefix(prefix)
@@ -84,9 +185,6 @@ class Router:
         self, path: str, *, methods: Any, **kwargs: Any
     ) -> Callable[[Handler], Handler]:
         return route(self, path, methods=methods, **kwargs)
-
-    def include_router(self, other: "Router", **kwargs: Any) -> None:
-        return include_router(self, other, **kwargs)
 
     def _route_match_priority(self, route: Route) -> tuple[int, int, int]:
         return _route_match_priority(route)
@@ -330,4 +428,4 @@ def _build_options_response(req: Request, routes: list[Route]) -> Response:
 ensure_httpx_sync_transport()
 
 
-APIRouter = Router
+Router.initialize = _ddl_initialize

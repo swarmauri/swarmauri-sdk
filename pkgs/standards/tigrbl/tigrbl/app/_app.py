@@ -2,7 +2,8 @@
 from __future__ import annotations
 from typing import Any
 
-from ..api._api import APIRouter
+from ..api._routing import include_router
+from ..api._router import Router
 from ..engine.engine_spec import EngineCfg
 from ..engine import resolver as _resolver
 from ..engine import install_from_objects
@@ -11,11 +12,11 @@ from ._model_registry import initialize_model_registry
 from .app_spec import AppSpec
 
 
-class App(AppSpec, APIRouter):
+class App(AppSpec):
     TITLE = "Tigrbl"
     VERSION = "0.1.0"
     LIFESPAN = None
-    APIS = ()
+    ROUTERS = ()
     OPS = ()
     MODELS = ()
     SCHEMAS = ()
@@ -45,7 +46,7 @@ class App(AppSpec, APIRouter):
         self.title = self.TITLE
         self.version = self.VERSION
         self.engine = engine if engine is not None else getattr(self, "ENGINE", None)
-        self.apis = tuple(getattr(self, "APIS", ()))
+        self.routers = tuple(getattr(self, "ROUTERS", ()))
         self.ops = tuple(getattr(self, "OPS", ()))
         # Runtime registries use mutable containers (dict/namespace), but the
         # dataclass fields expect sequences. Storing a dict here satisfies both.
@@ -59,8 +60,7 @@ class App(AppSpec, APIRouter):
         self.system_prefix = getattr(self, "SYSTEM_PREFIX", "/system")
         self.lifespan = self.LIFESPAN
 
-        APIRouter.__init__(
-            self,
+        self.router = Router(
             title=self.title,
             version=self.version,
             include_docs=True,
@@ -71,22 +71,31 @@ class App(AppSpec, APIRouter):
             _resolver.set_default(_engine_ctx)
             _resolver.resolve_provider()
 
+    def include_router(self, other: Any, **kwargs: Any) -> None:
+        return include_router(self.router, other, **kwargs)
+
+    def add_api_route(self, path: str, endpoint: Any, **kwargs: Any) -> None:
+        self.router.add_api_route(path, endpoint, **kwargs)
+
+    def route(self, path: str, *, methods: Any, **kwargs: Any):
+        return self.router.route(path, methods=methods, **kwargs)
+
     def install_engines(
         self, *, api: Any = None, models: tuple[Any, ...] | None = None
     ) -> None:
         # If class declared APIS/MODELS, use them unless explicit args are passed.
-        apis = (api,) if api is not None else self.APIS
+        routers = (api,) if api is not None else self.ROUTERS
         models = models if models is not None else self.MODELS
-        if apis:
-            for a in apis:
-                install_from_objects(app=self, api=a, models=models)
+        if routers:
+            for a in routers:
+                install_from_objects(app=self.router, api=a, models=models)
         else:
-            install_from_objects(app=self, api=None, models=models)
+            install_from_objects(app=self.router, api=None, models=models)
 
     def _collect_tables(self) -> list[Any]:
         seen = set()
         tables = []
-        for model in self.models.values():
+        for model in self.router.models.values():
             if not hasattr(model, "__table__"):
                 try:  # pragma: no cover - defensive remap
                     from ..table import Base
@@ -104,16 +113,10 @@ class App(AppSpec, APIRouter):
                 tables.append(table)
         return tables
 
-    def _wsgi_app(self, environ: dict[str, Any], start_response: Any) -> list[bytes]:
-        return super()._wsgi_app(environ, start_response)
-
-    async def _asgi_app(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
-        await super()._asgi_app(scope, receive, send)
-
     async def _dispatch(self, req: Any):
-        return await super()._dispatch(req)
+        return await self.router._dispatch(req)
 
     async def _call_handler(self, route: Any, req: Any):
-        return await super()._call_handler(route, req)
+        return await self.router._call_handler(route, req)
 
     initialize = _ddl_initialize
