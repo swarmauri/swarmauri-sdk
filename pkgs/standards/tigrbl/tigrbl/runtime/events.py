@@ -37,8 +37,6 @@ PHASES: Tuple[Phase, ...] = (
 # ──────────────────────────────────────────────────────────────────────────────
 
 # PRE_TX
-PRE_TX_SECDEP = "pre:tx:secdep"
-PRE_TX_DEP = "pre:tx:dep"
 DEP_SECURITY = "dep:security"
 DEP_EXTRA = "dep:extra"
 
@@ -65,8 +63,8 @@ OUT_DUMP = "out:dump"
 # This ordering is global and stable; use it to produce deterministic plans/traces.
 _EVENT_ORDER: Tuple[str, ...] = (
     # PRE_TX
-    PRE_TX_SECDEP,
-    PRE_TX_DEP,
+    DEP_SECURITY,
+    DEP_EXTRA,
     # PRE_HANDLER
     SCHEMA_COLLECT_IN,
     IN_VALIDATE,
@@ -98,8 +96,8 @@ class AnchorInfo:
 
 _ANCHORS: Dict[str, AnchorInfo] = {
     # PRE_TX (not persist-tied)
-    PRE_TX_SECDEP: AnchorInfo(PRE_TX_SECDEP, "PRE_TX_BEGIN", 0, False),
-    PRE_TX_DEP: AnchorInfo(PRE_TX_DEP, "PRE_TX_BEGIN", 1, False),
+    DEP_SECURITY: AnchorInfo(PRE_TX_SECDEP, "PRE_TX_BEGIN", 0, False),
+    DEP_EXTRA: AnchorInfo(PRE_TX_DEP, "PRE_TX_BEGIN", 1, False),
     # PRE_HANDLER (not persist-tied)
     SCHEMA_COLLECT_IN: AnchorInfo(SCHEMA_COLLECT_IN, "PRE_HANDLER", 2, False),
     IN_VALIDATE: AnchorInfo(IN_VALIDATE, "PRE_HANDLER", 3, False),
@@ -197,8 +195,6 @@ __all__ = [
     "Phase",
     "PHASES",
     # Anchors (constants)
-    "PRE_TX_SECDEP",
-    "PRE_TX_DEP",
     "DEP_SECURITY",
     "DEP_EXTRA",
     "SCHEMA_COLLECT_IN",
