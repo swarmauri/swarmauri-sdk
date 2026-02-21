@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Mapping, Optional
 from ...op.types import StepFn
 from ..executor import _Ctx, _invoke
 from .core import Kernel
+from .models import OpView, SchemaIn, SchemaOut
 
 _default_kernel = Kernel()
 
@@ -31,4 +32,13 @@ async def run(
     return await _invoke(request=request, db=db, phases=phases, ctx=base_ctx)
 
 
-__all__ = ["Kernel", "get_cached_specs", "_default_kernel", "build_phase_chains", "run"]
+__all__ = [
+    "Kernel",
+    "OpView",
+    "SchemaIn",
+    "SchemaOut",
+    "get_cached_specs",
+    "_default_kernel",
+    "build_phase_chains",
+    "run",
+]
