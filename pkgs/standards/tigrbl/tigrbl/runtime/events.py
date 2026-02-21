@@ -96,8 +96,8 @@ class AnchorInfo:
 
 _ANCHORS: Dict[str, AnchorInfo] = {
     # PRE_TX (not persist-tied)
-    DEP_SECURITY: AnchorInfo(PRE_TX_SECDEP, "PRE_TX_BEGIN", 0, False),
-    DEP_EXTRA: AnchorInfo(PRE_TX_DEP, "PRE_TX_BEGIN", 1, False),
+    DEP_SECURITY: AnchorInfo(DEP_SECURITY, "PRE_TX_BEGIN", 0, False),
+    DEP_EXTRA: AnchorInfo(DEP_EXTRA, "PRE_TX_BEGIN", 1, False),
     # PRE_HANDLER (not persist-tied)
     SCHEMA_COLLECT_IN: AnchorInfo(SCHEMA_COLLECT_IN, "PRE_HANDLER", 2, False),
     IN_VALIDATE: AnchorInfo(IN_VALIDATE, "PRE_HANDLER", 3, False),
