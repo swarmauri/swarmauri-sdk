@@ -10,10 +10,10 @@ from ..engine import install_from_objects
 from ..engine import resolver as _resolver
 from ..engine.engine_spec import EngineCfg
 from ._router import APIRouter, Router
-from .api_spec import APISpec
+from .router_spec import RouterSpec
 
 
-class Api(APISpec, Router):
+class Api(RouterSpec, Router):
     """API router with model and table registries."""
 
     MODELS: tuple[Any, ...] = ()
@@ -38,7 +38,7 @@ class Api(APISpec, Router):
     def __init__(
         self, *, engine: EngineCfg | None = None, **router_kwargs: Any
     ) -> None:
-        # Manually initialize fields from ``APISpec`` so ``repr`` and other
+        # Manually initialize fields from ``RouterSpec`` so ``repr`` and other
         # dataclass-generated helpers have the expected attributes, while also
         # preparing mutable containers used at runtime.
         self.name = getattr(self, "NAME", "api")

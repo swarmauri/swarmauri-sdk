@@ -1,4 +1,4 @@
-# tigrbl/v3/api/tigrbl_api.py
+# tigrbl/v3/api/tigrbl_router.py
 from __future__ import annotations
 
 import copy
@@ -40,7 +40,7 @@ from ..op import get_registry, OpSpec
 from ..app._model_registry import initialize_model_registry
 
 
-class TigrblApi(_Api):
+class TigrblRouter(_Api):
     """
     Canonical router-focused facade that owns:
       • containers (models, schemas, handlers, hooks, rpc, rest, routers, columns, table_config, core proxies)
@@ -211,7 +211,7 @@ class TigrblApi(_Api):
     # ------------------------- extras / mounting -------------------------
 
     def mount_jsonrpc(self, *, prefix: str | None = None) -> Any:
-        """Mount a JSON-RPC router onto this TigrblApi instance."""
+        """Mount a JSON-RPC router onto this TigrblRouter instance."""
         px = prefix if prefix is not None else self.jsonrpc_prefix
         self.jsonrpc_prefix = px
         prov = _resolver.resolve_provider(api=self)
@@ -260,7 +260,7 @@ class TigrblApi(_Api):
     def attach_diagnostics(
         self, *, prefix: str | None = None, app: Any | None = None
     ) -> Any:
-        """Mount a diagnostics router onto this TigrblApi instance or ``app``."""
+        """Mount a diagnostics router onto this TigrblRouter instance or ``app``."""
         px = prefix if prefix is not None else self.system_prefix
         prov = _resolver.resolve_provider(api=self)
         get_db = prov.get_db if prov else None
@@ -358,4 +358,4 @@ class TigrblApi(_Api):
         models = list(getattr(self, "models", {}))
         rpc_ns = getattr(self, "rpc", None)
         rpc_keys = list(getattr(rpc_ns, "__dict__", {}).keys()) if rpc_ns else []
-        return f"<TigrblApi models={models} rpc={rpc_keys}>"
+        return f"<TigrblRouter models={models} rpc={rpc_keys}>"

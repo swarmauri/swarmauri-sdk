@@ -383,7 +383,7 @@ code stays aligned with the framework’s versioned ASGI API.
 
 ✅ **Preferred:**
 ```python
-from tigrbl import Base, TigrblApp, TigrblApi
+from tigrbl import Base, TigrblApp, TigrblRouter
 from tigrbl.types import Integer, String, Mapped
 from tigrbl.types import Depends, HTTPException, Request
 ```

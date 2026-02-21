@@ -18,7 +18,7 @@ from typing import (
 )
 
 from ._app import App as _App
-from ..api.tigrbl_api import TigrblApi
+from ..api.tigrbl_router import TigrblRouter
 from ..engine.engine_spec import EngineCfg
 from ..engine import resolver as _resolver
 from ..ddl import initialize as _ddl_initialize
@@ -144,7 +144,7 @@ class TigrblApp(_App):
 
         # API-level hooks map (merged into each model at include-time; precedence handled in bindings.hooks)
         self._api_hooks_map = copy.deepcopy(api_hooks) if api_hooks else None
-        self._default_api: TigrblApi | None = None
+        self._default_api: TigrblRouter | None = None
         self.mount_openrpc(path="/openrpc.json")
         self.mount_lens(path="/rdocs", spec_path="/openrpc.json")
         if apis:
@@ -259,10 +259,10 @@ class TigrblApp(_App):
 
     # ------------------------- primary operations -------------------------
 
-    def _ensure_default_api(self) -> TigrblApi:
+    def _ensure_default_api(self) -> TigrblRouter:
         """Create and register the app-scoped default API when needed."""
         if self._default_api is None:
-            self._default_api = TigrblApi(
+            self._default_api = TigrblRouter(
                 engine=self.engine,
                 api_hooks=self._api_hooks_map,
             )
@@ -280,7 +280,7 @@ class TigrblApp(_App):
         self, model: type, *, prefix: str | None = None, mount_router: bool = True
     ) -> Tuple[type, Any]:
         """
-        Include a model through an internal ``TigrblApi`` mounted on this app.
+        Include a model through an internal ``TigrblRouter`` mounted on this app.
         """
         default_api = self._ensure_default_api()
 

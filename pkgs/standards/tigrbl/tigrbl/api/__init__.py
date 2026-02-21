@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-__all__ = ["Api", "TigrblApi"]
+__all__ = ["Api", "TigrblRouter", "TigrblApi"]
 
 
 def __getattr__(name: str) -> Any:
@@ -12,8 +12,12 @@ def __getattr__(name: str) -> Any:
         from ._api import Api
 
         return Api
-    if name == "TigrblApi":
-        from .tigrbl_api import TigrblApi
+    if name == "TigrblRouter":
+        from .tigrbl_router import TigrblRouter
 
-        return TigrblApi
+        return TigrblRouter
+    if name == "TigrblApi":
+        from .tigrbl_router import TigrblRouter
+
+        return TigrblRouter
     raise AttributeError(name)
