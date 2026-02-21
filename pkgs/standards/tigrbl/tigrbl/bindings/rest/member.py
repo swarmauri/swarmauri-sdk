@@ -2,7 +2,6 @@ from __future__ import annotations
 import logging
 
 import inspect
-from types import SimpleNamespace
 from typing import (
     Annotated,
     Any,
@@ -15,7 +14,6 @@ from typing import (
 )
 
 from .common import (
-    TIGRBL_AUTH_CONTEXT_ATTR,
     Body,
     Depends,
     HTTPException,
@@ -23,21 +21,19 @@ from .common import (
     Request,
     OpSpec,
     _coerce_parent_kw,
-    _get_phase_chains,
     _is_http_response,
     _pk_name,
     _pk_names,
     _request_model_for,
     _serialize_output,
     _validate_body,
-    _executor,
     _status,
     _status_for,
 )
 
 from .io_headers import _make_header_dep
 
-from ...runtime.executor.types import _Ctx
+from ...transport.dispatcher import dispatch_operation
 
 
 logger = logging.getLogger("uvicorn")
@@ -78,30 +74,11 @@ def _make_member_endpoint(
             if isinstance(h, Mapping):
                 payload = {**payload, **dict(h)}
             path_params = {real_pk: item_id, pk_param: item_id, **parent_kw}
-            ctx: Dict[str, Any] = {
-                "request": request,
-                "db": db,
-                "payload": payload,
-                "path_params": path_params,
-                # expose contextual metadata for downstream atoms
-                "api": api if api is not None else getattr(request, "app", None),
-                "app": getattr(request, "app", None),
-                "model": model,
-                "op": alias,
-                "method": alias,
-                "target": target,
-                "env": SimpleNamespace(
-                    method=alias, params=payload, target=target, model=model
-                ),
-            }
-            ac = getattr(request.state, TIGRBL_AUTH_CONTEXT_ATTR, None)
-            if ac is not None:
-                ctx["auth_context"] = ac
-            ctx = _Ctx(ctx)
+            ctx_seed: Dict[str, Any] = {}
 
-            def _serializer(r, _ctx=ctx):
+            def _serializer(r, _ctx=ctx_seed):
                 out = _serialize_output(model, alias, target, sp, r)
-                temp = getattr(_ctx, "temp", {}) if isinstance(_ctx, Mapping) else {}
+                temp = _ctx.get("temp", {}) if isinstance(_ctx, Mapping) else {}
                 extras = (
                     temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}
                 )
@@ -109,13 +86,17 @@ def _make_member_endpoint(
                     out.update(extras)
                 return out
 
-            ctx["response_serializer"] = _serializer
-            phases = _get_phase_chains(model, alias)
-            result = await _executor._invoke(
+            result = await dispatch_operation(
                 request=request,
                 db=db,
-                phases=phases,
-                ctx=ctx,
+                api=api if api is not None else getattr(request, "app", None),
+                model=model,
+                alias=alias,
+                target=target,
+                payload=payload,
+                path_params=path_params,
+                ctx_seed=ctx_seed,
+                response_serializer=_serializer,
             )
             if _is_http_response(result):
                 if sp.status_code is not None or result.status_code == 200:
@@ -178,30 +159,11 @@ def _make_member_endpoint(
             _coerce_parent_kw(model, parent_kw)
             payload: Mapping[str, Any] = dict(parent_kw)
             path_params = {real_pk: item_id, pk_param: item_id, **parent_kw}
-            ctx: Dict[str, Any] = {
-                "request": request,
-                "db": db,
-                "payload": payload,
-                "path_params": path_params,
-                # expose contextual metadata for downstream atoms
-                "api": api if api is not None else getattr(request, "app", None),
-                "app": getattr(request, "app", None),
-                "model": model,
-                "op": alias,
-                "method": alias,
-                "target": target,
-                "env": SimpleNamespace(
-                    method=alias, params=payload, target=target, model=model
-                ),
-            }
-            ac = getattr(request.state, TIGRBL_AUTH_CONTEXT_ATTR, None)
-            if ac is not None:
-                ctx["auth_context"] = ac
-            ctx = _Ctx(ctx)
+            ctx_seed: Dict[str, Any] = {}
 
-            def _serializer(r, _ctx=ctx):
+            def _serializer(r, _ctx=ctx_seed):
                 out = _serialize_output(model, alias, target, sp, r)
-                temp = getattr(_ctx, "temp", {}) if isinstance(_ctx, Mapping) else {}
+                temp = _ctx.get("temp", {}) if isinstance(_ctx, Mapping) else {}
                 extras = (
                     temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}
                 )
@@ -209,13 +171,17 @@ def _make_member_endpoint(
                     out.update(extras)
                 return out
 
-            ctx["response_serializer"] = _serializer
-            phases = _get_phase_chains(model, alias)
-            result = await _executor._invoke(
+            result = await dispatch_operation(
                 request=request,
                 db=db,
-                phases=phases,
-                ctx=ctx,
+                api=api if api is not None else getattr(request, "app", None),
+                model=model,
+                alias=alias,
+                target=target,
+                payload=payload,
+                path_params=path_params,
+                ctx_seed=ctx_seed,
+                response_serializer=_serializer,
             )
             return result
 
@@ -293,30 +259,11 @@ def _make_member_endpoint(
 
         path_params = {real_pk: item_id, pk_param: item_id, **parent_kw}
 
-        ctx: Dict[str, Any] = {
-            "request": request,
-            "db": db,
-            "payload": payload,
-            "path_params": path_params,
-            # expose contextual metadata for downstream atoms
-            "app": getattr(request, "app", None),
-            "api": getattr(request, "app", None),
-            "model": model,
-            "op": alias,
-            "method": alias,
-            "target": target,
-            "env": SimpleNamespace(
-                method=alias, params=payload, target=target, model=model
-            ),
-        }
-        ac = getattr(request.state, TIGRBL_AUTH_CONTEXT_ATTR, None)
-        if ac is not None:
-            ctx["auth_context"] = ac
-        ctx = _Ctx(ctx)
+        ctx_seed: Dict[str, Any] = {}
 
-        def _serializer(r, _ctx=ctx):
+        def _serializer(r, _ctx=ctx_seed):
             out = _serialize_output(model, alias, target, sp, r)
-            temp = getattr(_ctx, "temp", {}) if isinstance(_ctx, Mapping) else {}
+            temp = _ctx.get("temp", {}) if isinstance(_ctx, Mapping) else {}
             extras = (
                 temp.get("response_extras", {}) if isinstance(temp, Mapping) else {}
             )
@@ -324,13 +271,17 @@ def _make_member_endpoint(
                 out.update(extras)
             return out
 
-        ctx["response_serializer"] = _serializer
-        phases = _get_phase_chains(model, alias)
-        result = await _executor._invoke(
+        result = await dispatch_operation(
             request=request,
             db=db,
-            phases=phases,
-            ctx=ctx,
+            api=api if api is not None else getattr(request, "app", None),
+            model=model,
+            alias=alias,
+            target=target,
+            payload=payload,
+            path_params=path_params,
+            ctx_seed=ctx_seed,
+            response_serializer=_serializer,
         )
 
         if _is_http_response(result):

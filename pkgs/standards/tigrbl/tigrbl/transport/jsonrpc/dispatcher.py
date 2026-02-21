@@ -81,12 +81,11 @@ except Exception:  # pragma: no cover
 
 
 from ...runtime.status import ERROR_MESSAGES, _RPC_TO_HTTP, http_exc_to_rpc
-from ...config.constants import TIGRBL_AUTH_CONTEXT_ATTR
+from ..dispatcher import dispatch_operation, resolve_model
 from .models import RPCRequest, RPCResponse
 from .helpers import (
     _authorize,
     _err,
-    _model_for,
     _normalize_deps,
     _normalize_params,
     _ok,
@@ -160,15 +159,9 @@ async def _dispatch_one(
             return _rpc_error(-32601, "Method not found")
 
         model_name, alias = method.split(".", 1)
-        model = _model_for(api, model_name)
+        model = resolve_model(api, model_name)
         if model is None:
             return _rpc_error(-32601, f"Unknown model '{model_name}'")
-
-        # Locate RPC callable built by bindings.rpc
-        rpc_ns = getattr(model, "rpc", None)
-        rpc_call = getattr(rpc_ns, alias, None)
-        if rpc_call is None:
-            return _rpc_error(-32601, f"Method not found: {model_name}.{alias}")
 
         # Params
         try:
@@ -191,15 +184,20 @@ async def _dispatch_one(
         if isinstance(extra_ctx, Mapping):
             base_ctx.update(extra_ctx)
         base_ctx.setdefault("rpc_id", rid)
-        ac = getattr(request.state, TIGRBL_AUTH_CONTEXT_ATTR, None)
-        if ac is not None:
-            base_ctx["auth_context"] = ac
 
         # Authorize (auth dep may already have raised; user may be on request.state)
         _authorize(api, request, model, alias, params, _user_from_request(request))
 
-        # Execute
-        result = await rpc_call(params, db=db, request=request, ctx=base_ctx)
+        # Execute through shared transport dispatcher
+        result = await dispatch_operation(
+            request=request,
+            db=db,
+            api=api,
+            model=model,
+            alias=alias,
+            payload=params,
+            ctx_seed=base_ctx,
+        )
         if not has_id:
             _log_rpc_success(method, None)
             return None
@@ -209,6 +207,8 @@ async def _dispatch_one(
     except HTTPException as exc:
         code, msg, data = http_exc_to_rpc(exc)
         return _rpc_error(code, msg, data)
+    except KeyError:
+        return _rpc_error(-32601, "Method not found")
     except Exception:
         logger.exception("jsonrpc dispatch failed")
         # Internal error (per JSON-RPC); do not leak details
