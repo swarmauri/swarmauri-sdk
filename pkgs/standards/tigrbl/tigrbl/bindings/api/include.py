@@ -153,11 +153,11 @@ def _attach_to_api(api: ApiLike, model: type) -> None:
     api.table_config[mname] = dict(getattr(model, "table_config", {}) or {})
 
     # Core helper proxies (now aware of API for DB resolution precedence)
-    core_proxy = _ResourceProxy(model, api=api)
+    core_proxy = _ResourceProxy(model, router=api)
     setattr(api.core, mname, core_proxy)
     if rtitle != mname:
         setattr(api.core, rtitle, core_proxy)
-    core_raw_proxy = _ResourceProxy(model, serialize=False, api=api)
+    core_raw_proxy = _ResourceProxy(model, serialize=False, router=api)
     setattr(api.core_raw, mname, core_raw_proxy)
     if rtitle != mname:
         setattr(api.core_raw, rtitle, core_raw_proxy)

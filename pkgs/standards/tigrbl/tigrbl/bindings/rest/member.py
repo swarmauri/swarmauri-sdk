@@ -87,7 +87,7 @@ def _make_member_endpoint(
                 return out
 
             result = await dispatch_operation(
-                api=api,
+                router=api,
                 request=request,
                 db=db,
                 model_or_name=model,
@@ -172,7 +172,7 @@ def _make_member_endpoint(
                 return out
 
             result = await dispatch_operation(
-                api=api,
+                router=api,
                 request=request,
                 db=db,
                 model_or_name=model,
@@ -272,7 +272,7 @@ def _make_member_endpoint(
             return out
 
         result = await dispatch_operation(
-            api=api,
+            router=api,
             request=request,
             db=db,
             model_or_name=model,

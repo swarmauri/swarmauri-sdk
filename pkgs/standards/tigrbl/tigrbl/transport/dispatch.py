@@ -22,10 +22,10 @@ except Exception:  # pragma: no cover
     _kernel_build_phase_chains = None  # type: ignore
 
 
-def resolve_model(api: Any, model_or_name: type | str) -> type | None:
+def resolve_model(router: Any, model_or_name: type | str) -> type | None:
     if isinstance(model_or_name, type):
         return model_or_name
-    models: Dict[str, type] = getattr(api, "models", {}) or {}
+    models: Dict[str, type] = getattr(router, "models", {}) or {}
     mdl = models.get(model_or_name)
     if mdl is not None:
         return mdl
@@ -59,7 +59,7 @@ def build_phase_chains(
 
 def build_ctx(
     *,
-    api: Any,
+    router: Any,
     request: Any,
     db: Any,
     model: type,
@@ -77,13 +77,13 @@ def build_ctx(
     if isinstance(seed_ctx, Mapping):
         ctx.update(seed_ctx)
 
-    app_ref = getattr(request, "app", None) or api
+    app_ref = getattr(request, "app", None) or router or model
     ctx.setdefault("request", request)
     ctx.setdefault("db", db)
     ctx.setdefault("payload", payload)
     ctx.setdefault("path_params", dict(path_params or {}))
     ctx.setdefault("app", app_ref)
-    ctx.setdefault("api", api if api is not None else app_ref)
+    ctx.setdefault("api", router if router is not None else app_ref)
     ctx.setdefault("model", model)
     ctx.setdefault("op", alias)
     ctx.setdefault("method", alias)
@@ -103,9 +103,24 @@ def build_ctx(
     return _Ctx(ctx)
 
 
+def resolve_operation(
+    router: Any, model_or_name: type | str, alias: str, *, strict: bool = False
+) -> tuple[type, str]:
+    model = resolve_model(router, model_or_name)
+    if model is None:
+        raise LookupError(f"Unknown model '{model_or_name}'")
+    by_alias = getattr(getattr(model, "ops", None), "by_alias", {}) or {}
+    if alias not in by_alias:
+        if strict:
+            model_name = getattr(model, "__name__", model)
+            raise LookupError(f"Unknown operation '{alias}' for model '{model_name}'")
+        return model, alias
+    return model, resolve_target(model, alias)
+
+
 async def dispatch_operation(
     *,
-    api: Any,
+    router: Any,
     request: Any,
     db: Any,
     model_or_name: type | str,
@@ -118,12 +133,11 @@ async def dispatch_operation(
     rpc_id: Any | None = None,
     rpc_mode: bool = False,
 ) -> Any:
-    model = resolve_model(api, model_or_name)
-    if model is None:
-        raise LookupError(f"Unknown model '{model_or_name}'")
-    resolved_target = target or resolve_target(model, alias)
+    model, resolved_target = resolve_operation(router, model_or_name, alias)
+    if target is not None:
+        resolved_target = target
     ctx = build_ctx(
-        api=api,
+        router=router,
         request=request,
         db=db,
         model=model,
@@ -150,5 +164,6 @@ __all__ = [
     "build_phase_chains",
     "dispatch_operation",
     "resolve_model",
+    "resolve_operation",
     "resolve_target",
 ]
