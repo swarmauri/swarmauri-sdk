@@ -148,5 +148,7 @@ def include_router(
                 security_dependencies=list(
                     getattr(r, "security_dependencies", None) or []
                 ),
+                tigrbl_model=getattr(r, "tigrbl_model", None),
+                tigrbl_alias=getattr(r, "tigrbl_alias", None),
             )
         )
