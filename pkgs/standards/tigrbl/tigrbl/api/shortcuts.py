@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Any, Sequence, Type
 
 from .router_spec import RouterSpec
-from ._api import Api
+from ._router import Router
 
 
 def defineRouterSpec(
@@ -47,10 +47,10 @@ def defineRouterSpec(
     return type("RouterSpec", (RouterSpec,), attrs)
 
 
-def deriveRouter(**kw: Any) -> Type[Api]:
-    """Produce a concrete :class:`Api` subclass that inherits the spec."""
-    Spec = defineRouterSpec(**kw)
-    return type("APIWithSpec", (Spec, Api), {})
+def deriveRouter(**kw: Any) -> Type[Router]:
+    """Produce a concrete :class:`Router` subclass that inherits the spec."""
+    spec = defineRouterSpec(**kw)
+    return type("RouterWithSpec", (spec, Router), {})
 
 
 __all__ = ["defineRouterSpec", "deriveRouter", "defineApiSpec", "deriveApi"]

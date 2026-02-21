@@ -14,7 +14,8 @@ from typing import (
     Tuple,
 )
 
-from ._api import Api as _Api
+from ._router import Router
+from ._routing import include_router as _include_router_impl
 from ..engine.engine_spec import EngineCfg
 from ..engine import resolver as _resolver
 from ..ddl import initialize as _ddl_initialize
@@ -40,7 +41,7 @@ from ..op import get_registry, OpSpec
 from ..app._model_registry import initialize_model_registry
 
 
-class TigrblRouter(_Api):
+class TigrblRouter(Router):
     """
     Canonical router-focused facade that owns:
       • containers (models, schemas, handlers, hooks, rpc, rest, routers, columns, table_config, core proxies)
@@ -83,7 +84,7 @@ class TigrblRouter(_Api):
     ) -> None:
         if prefix is not None:
             self.PREFIX = prefix
-        _Api.__init__(self, engine=engine, **router_kwargs)
+        Router.__init__(self, engine=engine, **router_kwargs)
         self.jsonrpc_prefix = (
             jsonrpc_prefix
             if jsonrpc_prefix is not None
@@ -156,6 +157,9 @@ class TigrblRouter(_Api):
         setattr(model, "__tigrbl_api_hooks__", merged)
 
     # ------------------------- primary operations -------------------------
+
+    def include_router(self, other: Any, **kwargs: Any) -> None:
+        return _include_router_impl(self, other, **kwargs)
 
     def include_model(
         self, model: type, *, prefix: str | None = None, mount_router: bool = True

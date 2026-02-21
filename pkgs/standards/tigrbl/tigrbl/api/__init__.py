@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from typing import Any
 
-__all__ = ["Api", "TigrblRouter", "TigrblApi"]
+__all__ = ["Router", "TigrblRouter", "TigrblApi"]
 
 
 def __getattr__(name: str) -> Any:
-    if name == "Api":
-        from ._api import Api
+    if name == "Router":
+        from ._router import Router
 
-        return Api
+        return Router
     if name == "TigrblRouter":
         from .tigrbl_router import TigrblRouter
 

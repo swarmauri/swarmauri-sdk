@@ -11,7 +11,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from ...api._api import APIRouter as Router
+from ...api._router import Router
 from ...core.crud.params import Body, Path, Query
 from ...responses import Response
 from ...runtime.status.exceptions import HTTPException
