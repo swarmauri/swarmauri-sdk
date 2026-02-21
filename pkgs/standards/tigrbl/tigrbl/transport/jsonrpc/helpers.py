@@ -47,18 +47,6 @@ def _normalize_params(params: Any) -> Any:
     )
 
 
-def _model_for(api: Any, name: str) -> Optional[type]:
-    models: Dict[str, type] = getattr(api, "models", {}) or {}
-    mdl = models.get(name)
-    if mdl is not None:
-        return mdl
-    lower = name.lower()
-    for k, v in models.items():
-        if k.lower() == lower:
-            return v
-    return None
-
-
 def _user_from_request(request: Any) -> Any | None:
     return getattr(request.state, "user", None)
 
@@ -111,7 +99,6 @@ __all__ = [
     "_ok",
     "_err",
     "_normalize_params",
-    "_model_for",
     "_user_from_request",
     "_select_auth_dep",
     "_normalize_deps",

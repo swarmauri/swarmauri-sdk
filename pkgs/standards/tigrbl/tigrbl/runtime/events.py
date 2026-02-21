@@ -40,6 +40,10 @@ PHASES: Tuple[Phase, ...] = (
 DEP_SECURITY = "dep:security"
 DEP_EXTRA = "dep:extra"
 
+# Back-compat aliases used by atom modules
+PRE_TX_SECDEP = DEP_SECURITY
+PRE_TX_DEP = DEP_EXTRA
+
 # PRE_HANDLER
 SCHEMA_COLLECT_IN = "schema:collect_in"
 IN_VALIDATE = "in:validate"

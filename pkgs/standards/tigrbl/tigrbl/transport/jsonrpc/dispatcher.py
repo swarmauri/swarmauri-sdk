@@ -81,12 +81,18 @@ except Exception:  # pragma: no cover
 
 
 from ...runtime.status import ERROR_MESSAGES, _RPC_TO_HTTP, http_exc_to_rpc
-from ...config.constants import TIGRBL_AUTH_CONTEXT_ATTR
+from ...transport.dispatch import dispatch_operation, resolve_model, resolve_target
+from ...bindings.rpc import (
+    _allowed_wrapper_keys,
+    _coerce_payload,
+    _reject_wrapper_keys,
+    _serialize_output as _rpc_serialize_output,
+    _validate_input,
+)
 from .models import RPCRequest, RPCResponse
 from .helpers import (
     _authorize,
     _err,
-    _model_for,
     _normalize_deps,
     _normalize_params,
     _ok,
@@ -160,14 +166,12 @@ async def _dispatch_one(
             return _rpc_error(-32601, "Method not found")
 
         model_name, alias = method.split(".", 1)
-        model = _model_for(api, model_name)
+        model = resolve_model(api, model_name)
         if model is None:
             return _rpc_error(-32601, f"Unknown model '{model_name}'")
 
-        # Locate RPC callable built by bindings.rpc
-        rpc_ns = getattr(model, "rpc", None)
-        rpc_call = getattr(rpc_ns, alias, None)
-        if rpc_call is None:
+        by_alias = getattr(getattr(model, "ops", None), "by_alias", {}) or {}
+        if alias not in by_alias:
             return _rpc_error(-32601, f"Method not found: {model_name}.{alias}")
 
         # Params
@@ -177,6 +181,27 @@ async def _dispatch_one(
             code, msg, data = http_exc_to_rpc(exc)
             return _rpc_error(code, msg, data)
 
+        target = resolve_target(model, alias)
+        payload = _coerce_payload(params)
+        _reject_wrapper_keys(
+            payload, allowed_keys=_allowed_wrapper_keys(model, alias, target)
+        )
+        if target == "bulk_delete" and not isinstance(payload, Mapping):
+            payload = {"ids": payload}
+        if not (
+            target.startswith("bulk_")
+            and target != "bulk_delete"
+            and isinstance(payload, Sequence)
+            and not isinstance(payload, (str, bytes, Mapping))
+        ):
+            norm_payload = _validate_input(model, alias, target, payload)
+            if isinstance(payload, Mapping) and isinstance(norm_payload, Mapping):
+                merged_payload = dict(payload)
+                merged_payload.update(norm_payload)
+                payload = merged_payload
+            else:
+                payload = norm_payload
+
         # Enforce auth when required
         if getattr(api, "_authn", None):
             method_id = f"{model.__name__}.{alias}"
@@ -185,21 +210,24 @@ async def _dispatch_one(
             if method_id not in allow and user is None:
                 raise HTTPException(status_code=401, detail="Unauthorized")
 
-        # Compose a context; allow middlewares to seed request.state.ctx
-        base_ctx: Dict[str, Any] = {}
-        extra_ctx = getattr(request.state, "ctx", None)
-        if isinstance(extra_ctx, Mapping):
-            base_ctx.update(extra_ctx)
-        base_ctx.setdefault("rpc_id", rid)
-        ac = getattr(request.state, TIGRBL_AUTH_CONTEXT_ATTR, None)
-        if ac is not None:
-            base_ctx["auth_context"] = ac
-
         # Authorize (auth dep may already have raised; user may be on request.state)
-        _authorize(api, request, model, alias, params, _user_from_request(request))
+        _authorize(api, request, model, alias, payload, _user_from_request(request))
 
-        # Execute
-        result = await rpc_call(params, db=db, request=request, ctx=base_ctx)
+        # Execute through unified transport dispatcher
+        result = await dispatch_operation(
+            api=api,
+            request=request,
+            db=db,
+            model_or_name=model,
+            alias=alias,
+            target=target,
+            payload=payload,
+            rpc_id=rid,
+            rpc_mode=True,
+            response_serializer=lambda r: _rpc_serialize_output(
+                model, alias, target, r
+            ),
+        )
         if not has_id:
             _log_rpc_success(method, None)
             return None
