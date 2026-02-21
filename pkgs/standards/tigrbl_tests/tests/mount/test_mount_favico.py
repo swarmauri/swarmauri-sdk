@@ -86,7 +86,10 @@ class TestMountFaviconOnTigrblApi:
         api = TigrblApi()
         api.mount_favicon(path="/branding/favicon.svg", name="api_branding_favicon")
 
-        transport = ASGITransport(app=api)
+        app = TigrblApp()
+        app.include_router(api.router)
+
+        transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             svg_response = await client.get("/branding/favicon.svg")
             ico_response = await client.get("/favicon.ico", follow_redirects=False)
@@ -102,7 +105,10 @@ class TestMountFaviconOnTigrblApi:
         api = TigrblApi()
         api.mount_favicon(path="/fallback/favicon.svg", favicon_path=None)
 
-        transport = ASGITransport(app=api)
+        app = TigrblApp()
+        app.include_router(api.router)
+
+        transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             svg_response = await client.get("/fallback/favicon.svg")
             ico_response = await client.get("/favicon.ico", follow_redirects=False)

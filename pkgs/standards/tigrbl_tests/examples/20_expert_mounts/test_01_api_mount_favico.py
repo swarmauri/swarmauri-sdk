@@ -7,7 +7,7 @@ binding the system helper to the API class.
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from tigrbl import TigrblApi
+from tigrbl import TigrblApi, TigrblApp
 
 
 @pytest.mark.asyncio
@@ -18,7 +18,10 @@ async def test_api_mount_favicon_default_route() -> None:
     # Pedagogical pattern: use the bound helper directly from the API object.
     api.mount_favicon(name="lesson_api_default_favicon")
 
-    transport = ASGITransport(app=api)
+    app = TigrblApp()
+    app.include_router(api.router)
+
+    transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         svg_response = await client.get("/favicon.svg")
         ico_response = await client.get("/favicon.ico", follow_redirects=False)
@@ -35,7 +38,10 @@ async def test_api_mount_favicon_custom_route() -> None:
     api = TigrblApi()
     api.mount_favicon(path="/brand/favicon.svg", name="lesson_api_brand_favicon")
 
-    transport = ASGITransport(app=api)
+    app = TigrblApp()
+    app.include_router(api.router)
+
+    transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         svg_response = await client.get("/brand/favicon.svg")
         ico_response = await client.get("/favicon.ico", follow_redirects=False)

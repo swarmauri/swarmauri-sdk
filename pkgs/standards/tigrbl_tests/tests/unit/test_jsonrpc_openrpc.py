@@ -132,7 +132,10 @@ def test_openrpc_server_url_respects_api_mount_jsonrpc_prefix_argument():
     api.mount_jsonrpc(prefix="/jsonrpc")
     api.mount_openrpc()
 
-    transport = ASGITransport(app=api)
+    app = TigrblApp()
+    app.include_router(api.router)
+
+    transport = ASGITransport(app=app)
     with Client(transport=transport, base_url="http://test") as client:
         payload = client.get("/openrpc.json").json()
 
