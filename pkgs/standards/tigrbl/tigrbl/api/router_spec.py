@@ -1,4 +1,4 @@
-# tigrbl/tigrbl/v3/api/api_spec.py
+# tigrbl/tigrbl/v3/api/router_spec.py
 from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional, Sequence
@@ -7,9 +7,9 @@ from ..responses.types import ResponseSpec
 
 
 @dataclass
-class APISpec:
+class RouterSpec:
     """
-    Used to *produce an API subclass* via API.from_spec().
+    Used to *produce a router subclass* via Api.from_spec().
     """
 
     name: str = "api"
@@ -26,5 +26,9 @@ class APISpec:
 
     response: Optional[ResponseSpec] = None
 
-    # optional: models this API exposes (auto-install)
+    # optional: models this router exposes (auto-install)
     models: Sequence[Any] = field(default_factory=tuple)
+
+
+# Backward-compatible alias while callers migrate.
+APISpec = RouterSpec

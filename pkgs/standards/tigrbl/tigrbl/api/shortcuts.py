@@ -3,11 +3,11 @@ from __future__ import annotations
 
 from typing import Any, Sequence, Type
 
-from .api_spec import APISpec
+from .router_spec import RouterSpec
 from ._api import Api
 
 
-def defineApiSpec(
+def defineRouterSpec(
     *,
     # identity
     name: str = "api",
@@ -22,15 +22,15 @@ def defineApiSpec(
     security_deps: Sequence[Any] = (),
     deps: Sequence[Any] = (),
     models: Sequence[Any] = (),
-) -> Type[APISpec]:
+) -> Type[RouterSpec]:
     """
     Build an API-spec class with class attributes only (no instances).
     Use it directly in your class MRO:
 
-        class TenantA(defineApiSpec(name="tenantA", engine=...)):
+        class TenantA(defineRouterSpec(name="tenantA", engine=...)):
             pass
 
-    or pass it to `deriveApi(...)` to get a concrete API subclass.
+    or pass it to `deriveRouter(...)` to get a concrete API subclass.
     """
     attrs = dict(
         NAME=name,
@@ -44,13 +44,18 @@ def defineApiSpec(
         DEPS=tuple(deps or ()),
         MODELS=tuple(models or ()),
     )
-    return type("APISpec", (APISpec,), attrs)
+    return type("RouterSpec", (RouterSpec,), attrs)
 
 
-def deriveApi(**kw: Any) -> Type[Api]:
+def deriveRouter(**kw: Any) -> Type[Api]:
     """Produce a concrete :class:`Api` subclass that inherits the spec."""
-    Spec = defineApiSpec(**kw)
+    Spec = defineRouterSpec(**kw)
     return type("APIWithSpec", (Spec, Api), {})
 
 
-__all__ = ["defineApiSpec", "deriveApi"]
+__all__ = ["defineRouterSpec", "deriveRouter", "defineApiSpec", "deriveApi"]
+
+
+# Backward-compatible aliases
+defineApiSpec = defineRouterSpec
+deriveApi = deriveRouter
