@@ -20,7 +20,7 @@ from ..op import OpSpec
 from ..hook import HookSpec
 from ..hook.types import PHASES, StepFn
 from ..config.constants import (
-    TIGRBL_API_HOOKS_ATTR,
+    TIGRBL_ROUTER_HOOKS_ATTR,
     TIGRBL_HOOKS_ATTR,
     CTX_SKIP_PERSIST_FLAG,
 )
@@ -32,8 +32,8 @@ _Key = Tuple[str, str]  # (alias, target)
 
 # ───────────────────────────────────────────────────────────────────────────────
 # Phase groupings (v2-compatible precedence)
-#   pre-like:    API → MODEL → OP
-#   post/error:  OP  → MODEL → API
+#   pre-like:    ROUTER → MODEL → OP
+#   post/error:  OP  → MODEL → ROUTER
 # ───────────────────────────────────────────────────────────────────────────────
 
 _PRE_LIKE = frozenset({"PRE_TX_BEGIN", "START_TX", "PRE_HANDLER", "PRE_COMMIT"})
@@ -167,8 +167,8 @@ def _wrap_step_fn(fn: Callable[..., Any]) -> StepFn:
 
 
 # ───────────────────────────────────────────────────────────────────────────────
-# Source collection (API / MODEL / OP) for a single alias
-# Accepted shapes for API/MODEL sources:
+# Source collection (ROUTER / MODEL / OP) for a single alias
+# Accepted shapes for ROUTER/MODEL sources:
 #   • { phase: Iterable[callable] }                    (applies to all aliases)
 #   • { alias: { phase: Iterable[callable] } }         (per-alias)
 # ───────────────────────────────────────────────────────────────────────────────
@@ -202,7 +202,7 @@ def _to_phase_map_for_alias(source: Any, alias: str) -> Dict[str, List[StepFn]]:
 
 
 # ───────────────────────────────────────────────────────────────────────────────
-# Precedence merge (API/MODEL/OP only; no imperative source)
+# Precedence merge (ROUTER/MODEL/OP only; no imperative source)
 # ───────────────────────────────────────────────────────────────────────────────
 
 
@@ -215,8 +215,8 @@ def _merge_for_phase(
 ) -> List[StepFn]:
     """
     Merge lists from sources for one phase:
-      • pre-like  → API + MODEL + OP
-      • post/error→ OP + MODEL + API
+      • pre-like  → ROUTER + MODEL + OP
+      • post/error→ OP + MODEL + ROUTER
     """
 
     def _get(m: Mapping[str, List[StepFn]] | None) -> List[StepFn]:
@@ -264,7 +264,7 @@ def _attach_one(model: type, sp: OpSpec) -> None:
         setattr(ns, ph, [])
 
     # Resolve source maps for this alias
-    api_src = getattr(model, TIGRBL_API_HOOKS_ATTR, None)
+    api_src = getattr(model, TIGRBL_ROUTER_HOOKS_ATTR, None)
     model_src = getattr(model, TIGRBL_HOOKS_ATTR, None)
 
     api_map = _to_phase_map_for_alias(api_src, alias)
@@ -297,8 +297,8 @@ def normalize_and_attach(
     """
     Build sequential phase chains for each OpSpec and attach them to model.hooks.<alias>.
     Sources merged per phase (in precedence order):
-      • PRE-like:   API → MODEL → OP
-      • POST/ERROR: OP  → MODEL → API
+      • PRE-like:   ROUTER → MODEL → OP
+      • POST/ERROR: OP  → MODEL → ROUTER
     """
     wanted = set(only_keys or ())
     for sp in specs:
