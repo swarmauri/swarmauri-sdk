@@ -145,7 +145,7 @@ def build_jsonrpc_router(
             )
         return Response(status_code=204, headers=headers)
 
-    api_router.add_api_route(
+    api_router.add_route(
         path="",
         endpoint=_options_endpoint,
         methods=["OPTIONS"],
@@ -153,7 +153,7 @@ def build_jsonrpc_router(
         tags=list(tags) if tags else None,
         include_in_schema=False,
     )
-    api_router.add_api_route(
+    api_router.add_route(
         path="",
         endpoint=_endpoint,
         methods=["POST"],

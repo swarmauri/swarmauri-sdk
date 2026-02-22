@@ -304,7 +304,7 @@ def _build_router(
         ):
             route_kwargs["include_in_schema"] = False
 
-        router.add_api_route(**route_kwargs)
+        router.add_route(**route_kwargs)
 
         logger.debug(
             "rest: registered %s %s -> %s.%s (response_model=%s)",

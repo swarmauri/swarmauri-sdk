@@ -198,7 +198,7 @@ def mount_openrpc(
     def _openrpc_endpoint(request: Any) -> Response:
         return Response.json(build_openrpc_spec(router, request=request))
 
-    target_router.add_api_route(
+    target_router.add_route(
         normalized_path,
         _openrpc_endpoint,
         methods=["GET"],
