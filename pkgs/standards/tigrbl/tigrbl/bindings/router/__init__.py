@@ -6,7 +6,7 @@ from .include import include_table, include_tables, _seed_security_and_deps  # n
 from .rpc import rpc_call
 
 logger = logging.getLogger("uvicorn")
-logger.debug("Loaded module v3/bindings/api/__init__")
+logger.debug("Loaded module v3/bindings/router/__init__")
 
 __all__ = [
     "include_table",
