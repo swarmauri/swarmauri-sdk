@@ -79,7 +79,7 @@ from .config.constants import DEFAULT_HTTP_METHODS
 from .app.tigrbl_app import TigrblApp
 from .router import Route, Router, TigrblRouter
 
-from .table import Base
+from .table import Table
 from .op import Op
 from .security import APIKey, HTTPBearer, MutualTLS, OAuth2, OpenIdConnect
 
@@ -91,7 +91,7 @@ __all__ += [
     "TigrblRouter",
     "Router",
     "Route",
-    "Base",
+    "Table",
     "Op",
     "HTTPBearer",
     "APIKey",
