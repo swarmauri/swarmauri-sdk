@@ -2,18 +2,8 @@ from __future__ import annotations
 
 from typing import Any, Dict, Mapping, Optional, Sequence
 
-try:
-    from ...types import Depends, HTTPException
-except Exception:  # pragma: no cover
-
-    def Depends(fn):  # type: ignore
-        return fn
-
-    class HTTPException(Exception):  # type: ignore
-        def __init__(self, status_code: int, detail: Any = None):
-            super().__init__(detail)
-            self.status_code = status_code
-            self.detail = detail
+from ...runtime.status import HTTPException
+from ...security import Depends
 
 
 def _ok(result: Any, id_: Any) -> Dict[str, Any]:
@@ -45,18 +35,6 @@ def _normalize_params(params: Any) -> Any:
     raise HTTPException(
         status_code=400, detail="Invalid params: expected object or array"
     )
-
-
-def _model_for(api: Any, name: str) -> Optional[type]:
-    models: Dict[str, type] = getattr(api, "models", {}) or {}
-    mdl = models.get(name)
-    if mdl is not None:
-        return mdl
-    lower = name.lower()
-    for k, v in models.items():
-        if k.lower() == lower:
-            return v
-    return None
 
 
 def _user_from_request(request: Any) -> Any | None:
@@ -111,7 +89,6 @@ __all__ = [
     "_ok",
     "_err",
     "_normalize_params",
-    "_model_for",
     "_user_from_request",
     "_select_auth_dep",
     "_normalize_deps",

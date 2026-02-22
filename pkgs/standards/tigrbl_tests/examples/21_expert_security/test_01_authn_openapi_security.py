@@ -1,9 +1,11 @@
 """Lesson 21.1: Authn dependencies update OpenAPI security per route.
 
 This example demonstrates how to configure authn dependencies on both
-``TigrblApp`` and ``TigrblApi``, allow anonymous access to selected operations,
+``TigrblApp`` and ``TigrblRouter``, allow anonymous access to selected operations,
 and confirm OpenAPI reflects security requirements on a per-route basis.
 """
+
+from tigrbl.security import Security
 
 import inspect
 
@@ -13,10 +15,10 @@ from tigrbl.responses import JSONResponse
 from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl import Base, TigrblApi, TigrblApp
+from tigrbl import Base, TigrblRouter, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.types import Column, Security, String
+from tigrbl.types import Column, String
 
 
 @pytest.mark.asyncio
@@ -76,7 +78,7 @@ async def test_openapi_security_from_app_authn_dependency() -> None:
 async def test_openapi_security_from_api_authn_dependency() -> None:
     """Show API-level authn dependencies mark secured routes in OpenAPI.
 
-    This test configures a bearer-token authn dependency on ``TigrblApi``,
+    This test configures a bearer-token authn dependency on ``TigrblRouter``,
     allows anonymous access to list operations, and asserts that only the
     secured routes include OpenAPI security metadata.
     """
@@ -98,7 +100,7 @@ async def test_openapi_security_from_api_authn_dependency() -> None:
         name = Column(String, nullable=False)
 
     # Instantiation: build the API, apply authn, and include the model.
-    api = TigrblApi(engine=mem(async_=False))
+    api = TigrblRouter(engine=mem(async_=False))
     api.set_auth(authn=authn_dependency)
     api.include_model(SecureApiWidget)
 

@@ -2,7 +2,7 @@ import httpx
 import pytest
 import pytest_asyncio
 
-from tigrbl import Base, TigrblApi, TigrblApp
+from tigrbl import Base, TigrblRouter, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import F, IO, S, acol
@@ -47,10 +47,10 @@ class ZetaWidget(Base, GUIDPk):
 @pytest_asyncio.fixture()
 async def running_app_with_apis():
     engine = mem(async_=False)
-    alpha_api = TigrblApi(engine=engine, models=[AlphaWidget], prefix="/alpha")
-    beta_api = TigrblApi(engine=engine)
+    alpha_api = TigrblRouter(engine=engine, models=[AlphaWidget], prefix="/alpha")
+    beta_api = TigrblRouter(engine=engine)
     beta_api.include_model(BetaWidget)
-    zeta_api = TigrblApi(engine=engine)
+    zeta_api = TigrblRouter(engine=engine)
     zeta_api.include_model(ZetaWidget)
 
     app = TigrblApp(engine=engine, apis=[alpha_api, (zeta_api, "/zeta")])
@@ -67,9 +67,9 @@ async def running_app_with_apis():
 @pytest_asyncio.fixture()
 async def running_app_with_api_router():
     engine = mem(async_=False)
-    alpha_api = TigrblApi(engine=engine)
+    alpha_api = TigrblRouter(engine=engine)
     alpha_api.include_model(AlphaWidget)
-    beta_api = TigrblApi(engine=engine)
+    beta_api = TigrblRouter(engine=engine)
     beta_api.include_model(BetaWidget)
 
     app = TigrblApp(engine=engine, apis=[alpha_api])

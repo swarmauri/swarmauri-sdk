@@ -1,9 +1,11 @@
 """Lesson 21.4: API-level security deps via construction params.
 
-This example shows how to supply security dependencies for a ``TigrblApi``
+This example shows how to supply security dependencies for a ``TigrblRouter``
 through its class configuration and verify that the OpenAPI schema marks
 routes as secured when the API runs under Uvicorn.
 """
+
+from tigrbl.security import Security
 
 import inspect
 
@@ -13,17 +15,17 @@ from tigrbl.security import HTTPBearer
 from tigrbl.responses import JSONResponse
 
 from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl import Base, TigrblApi
+from tigrbl import Base, TigrblRouter
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.types import Column, Security, String
+from tigrbl.types import Column, String
 
 
 @pytest.mark.asyncio
 async def test_openapi_security_from_api_constructor_deps() -> None:
     """Confirm API-level constructor deps appear in OpenAPI security metadata.
 
-    This test defines a ``TigrblApi`` subclass with security deps and verifies
+    This test defines a ``TigrblRouter`` subclass with security deps and verifies
     that the OpenAPI schema marks both list and create routes as secured.
     """
 
@@ -38,7 +40,7 @@ async def test_openapi_security_from_api_constructor_deps() -> None:
         name = Column(String, nullable=False)
 
     # Instantiation: define the API class with constructor-level security deps.
-    class SecuredApi(TigrblApi):
+    class SecuredApi(TigrblRouter):
         SECURITY_DEPS = (Security(bearer_scheme),)
 
     api = SecuredApi(engine=mem(async_=False))

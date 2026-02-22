@@ -14,6 +14,7 @@ class AppSpec:
     """
 
     title: str = "Tigrbl"
+    description: str | None = None
     version: str = "0.1.0"
     engine: Optional[EngineCfg] = None
 

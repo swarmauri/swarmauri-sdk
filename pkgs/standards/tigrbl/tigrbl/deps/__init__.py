@@ -6,9 +6,8 @@ This module provides a single location for all third-party dependencies,
 making it easier to manage versions and potential replacements.
 """
 
-from ..api._api import APIRouter
-from ..api._route import Route, compile_path
-from ..api._router import Router
+from ..router._route import Route, compile_path
+from ..router._router import Router
 
 # Re-export all SQLAlchemy dependencies
 from .sqlalchemy import relationship  # noqa: F401
@@ -18,7 +17,6 @@ from .sqlalchemy import *  # noqa: F403, F401
 from .pydantic import *  # noqa: F403, F401
 
 __all__ = [
-    "APIRouter",
     "Router",
     "Route",
     "compile_path",

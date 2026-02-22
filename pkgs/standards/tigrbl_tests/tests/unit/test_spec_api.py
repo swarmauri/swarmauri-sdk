@@ -1,6 +1,6 @@
-from tigrbl.api.mro_collect import mro_collect_api_hooks
-from tigrbl.api.shortcuts import defineApiSpec, deriveApi
-from tigrbl.config.constants import TIGRBL_API_HOOKS_ATTR
+from tigrbl.router.mro_collect import mro_collect_api_hooks
+from tigrbl.router.shortcuts import defineRouterSpec, deriveRouter
+from tigrbl.config.constants import TIGRBL_ROUTER_HOOKS_ATTR
 
 
 def _sample_hook(ctx):
@@ -11,7 +11,7 @@ def _override_hook(ctx):
     return ctx
 
 
-class BaseApiSpec(defineApiSpec(name="tenant", prefix="/t", tags=("base",))):
+class BaseApiSpec(defineRouterSpec(name="tenant", prefix="/t", tags=("base",))):
     pass
 
 
@@ -20,7 +20,7 @@ class ChildApi(BaseApiSpec):
 
 
 def test_api_spec_shortcuts_and_defaults():
-    Derived = deriveApi(name="svc", prefix="/svc", tags=("svc",))
+    Derived = deriveRouter(name="svc", prefix="/svc", tags=("svc",))
     assert Derived.NAME == "svc"
     assert Derived.PREFIX == "/svc"
     assert Derived.TAGS == ("svc",)
@@ -32,7 +32,7 @@ def test_api_hook_mro_collection():
 
     setattr(
         Base,
-        TIGRBL_API_HOOKS_ATTR,
+        TIGRBL_ROUTER_HOOKS_ATTR,
         {"read": {"pre": [_sample_hook]}},
     )
 
@@ -41,7 +41,7 @@ def test_api_hook_mro_collection():
 
     setattr(
         Child,
-        TIGRBL_API_HOOKS_ATTR,
+        TIGRBL_ROUTER_HOOKS_ATTR,
         {"read": {"pre": [_override_hook]}, "list": {"post": [_sample_hook]}},
     )
 

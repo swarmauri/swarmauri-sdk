@@ -7,7 +7,7 @@ from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base
 from tigrbl.specs import IO, S, F, acol as spec_acol
 from tigrbl.types import String
-from tigrbl.api import TigrblApi
+from tigrbl.router import TigrblRouter
 
 
 @pytest.mark.asyncio
@@ -25,14 +25,14 @@ async def test_response_ctx_alias_table_rpc():
         )
 
     eng = build_engine(mem(async_=False))
-    api = TigrblApi(engine=eng)
-    api.include_model(Widget, mount_router=False)
-    api.initialize()
+    router = TigrblRouter(engine=eng)
+    router.include_model(Widget, mount_router=False)
+    router.initialize()
     raw_eng, _ = eng.raw()
     try:
         with eng.session() as session:
-            created = await api.rpc_call(Widget, "create", {"name": "a"}, db=session)
-            fetched = await api.rpc_call(
+            created = await router.rpc_call(Widget, "create", {"name": "a"}, db=session)
+            fetched = await router.rpc_call(
                 Widget, "fetch", {"id": created["id"]}, db=session
             )
             assert fetched["id"] == created["id"]

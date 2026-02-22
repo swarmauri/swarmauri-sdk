@@ -1,5 +1,7 @@
 from httpx import ASGITransport, Client
-from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer
+from tigrbl.security import HTTPAuthorizationCredentials, HTTPBearer, Security
+from tigrbl.requests import Request
+from tigrbl.runtime.status import HTTPException
 from tigrbl.engine import resolver as _resolver
 from tigrbl.engine.shortcuts import mem
 from sqlalchemy.orm import sessionmaker
@@ -13,10 +15,7 @@ from tigrbl.types import (
     AuthNProvider,
     Column,
     ForeignKey,
-    HTTPException,
     PgUUID,
-    Request,
-    Security,
     String,
     uuid4,
 )
@@ -63,7 +62,7 @@ def _build_client():
     auth = DummyAuth()
     api = TigrblApp(engine=cfg)
     api.set_auth(authn=auth.get_principal)
-    api.include_models([Tenant, Item])
+    api.include_tables([Tenant, Item])
     api.initialize()
     app = TigrblApp()
     app.include_router(api.router)
@@ -95,7 +94,7 @@ def _build_client_attr():
     auth = DummyAuth()
     api = TigrblApp(engine=cfg)
     api.set_auth(authn=auth.get_principal)
-    api.include_models([Tenant, Item])
+    api.include_tables([Tenant, Item])
     api.initialize()
     app = TigrblApp()
     app.include_router(api.router)
@@ -163,7 +162,7 @@ def _build_client_create_noauth():
 
     cfg = mem(async_=False)
     api = TigrblApp(engine=cfg)
-    api.include_models([Tenant, Item])
+    api.include_tables([Tenant, Item])
     api.initialize()
     app = TigrblApp()
     app.include_router(api.router)
@@ -193,7 +192,7 @@ def _build_client_create_attr_noauth():
 
     cfg = mem(async_=False)
     api = TigrblApp(engine=cfg)
-    api.include_models([Tenant, Item])
+    api.include_tables([Tenant, Item])
     api.initialize()
     app = TigrblApp()
     app.include_router(api.router)

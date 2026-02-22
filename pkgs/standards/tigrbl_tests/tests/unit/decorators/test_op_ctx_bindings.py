@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from tigrbl import Api, op_ctx, TigrblApp
+from tigrbl import Router, op_ctx, TigrblApp
 
 
 def test_op_ctx_internal_binding_returns_classmethod_with_decl():
@@ -56,16 +56,16 @@ def test_op_ctx_binding_to_app_instance_uses_classmethod_descriptor():
     assert bound.__func__.__tigrbl_op_decl__.alias == "diagnostics"
 
 
-def test_op_ctx_binding_to_api_class():
-    class ExampleApi(Api):
+def test_op_ctx_binding_to_router_class():
+    class ExampleRouter(Router):
         PREFIX = ""
         NAME = "example"
 
-    @op_ctx(alias="hook", target="custom", bind=ExampleApi)
+    @op_ctx(alias="hook", target="custom", bind=ExampleRouter)
     def hook(cls, ctx):
         return None
 
-    method = ExampleApi.__dict__["hook"]
+    method = ExampleRouter.__dict__["hook"]
     assert isinstance(method, classmethod)
     assert method.__func__.__tigrbl_op_decl__.alias == "hook"
 

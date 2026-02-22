@@ -1,9 +1,11 @@
 """Lesson 21.5: App + API security deps and OpenAPI precedence.
 
-This example demonstrates how ``TigrblApp`` and ``TigrblApi`` security deps
+This example demonstrates how ``TigrblApp`` and ``TigrblRouter`` security deps
 combine when the API is mounted on the app, including shared scheme names that
 show OpenAPI precedence behavior.
 """
+
+from tigrbl.security import Security
 
 import inspect
 
@@ -12,10 +14,10 @@ import pytest
 from tigrbl.security import HTTPBearer
 
 from examples._support import pick_unique_port, start_uvicorn, stop_uvicorn
-from tigrbl import Base, TigrblApi, TigrblApp
+from tigrbl import Base, TigrblRouter, TigrblApp
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
-from tigrbl.types import Column, Security, String
+from tigrbl.types import Column, String
 
 
 @pytest.mark.asyncio
@@ -40,7 +42,7 @@ async def test_openapi_security_from_app_and_api_deps() -> None:
         name = Column(String, nullable=False)
 
     # Instantiation: define the API with two security deps (shared + api-only).
-    class SecuredApi(TigrblApi):
+    class SecuredApi(TigrblRouter):
         SECURITY_DEPS = (
             Security(shared_api_scheme),
             Security(api_only_scheme),

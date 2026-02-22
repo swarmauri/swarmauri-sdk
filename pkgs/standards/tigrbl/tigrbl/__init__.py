@@ -6,10 +6,12 @@ OpSpec-centric building blocks to bind models, wire schemas/handlers/hooks,
 register RPC & REST, and (optionally) mount JSON-RPC and diagnostics.
 
 Quick start:
-    from tigrbl import include_model, build_jsonrpc_router, mount_diagnostics
+    from tigrbl import include_table, include_tables, build_jsonrpc_router, mount_diagnostics
     from tigrbl import OpSpec, hook_ctx, op_ctx, alias_ctx, schema_ctx, SchemaRef
 
-    include_model(api, User, app=asgi_app)
+    include_table(api, User, app=asgi_app)
+    # or include multiple in one call:
+    include_tables(api, [User, Team], app=asgi_app)
     app.include_router(build_jsonrpc_router(api), prefix="/rpc")
     app.include_router(mount_diagnostics(api), prefix="/system")
 
@@ -55,8 +57,8 @@ from .bindings import (
     build_handlers,
     register_rpc,
     build_rest,
-    include_model,
-    include_models,
+    include_table,
+    include_tables,
     rpc_call,
 )
 
@@ -76,19 +78,19 @@ from .ddl import ensure_schemas, register_sqlite_attach, bootstrap_dbschema
 # ── Config constants (defaults used by REST) ───────────────────────────────────
 from .config.constants import DEFAULT_HTTP_METHODS
 from .app.tigrbl_app import TigrblApp
-from .api import Api, TigrblApi
+from .router import Router, TigrblRouter
+
 
 from .table import Base
 from .op import Op
 from .security import APIKey, HTTPBearer, MutualTLS, OAuth2, OpenIdConnect
 
-
 __all__: list[str] = []
 
 __all__ += [
     "TigrblApp",
-    "TigrblApi",
-    "Api",
+    "TigrblRouter",
+    "Router",
     "Base",
     "Op",
     "HTTPBearer",
@@ -129,8 +131,8 @@ __all__ += [
     "build_handlers",
     "register_rpc",
     "build_rest",
-    "include_model",
-    "include_models",
+    "include_table",
+    "include_tables",
     "rpc_call",
     # Runtime
     "_invoke",

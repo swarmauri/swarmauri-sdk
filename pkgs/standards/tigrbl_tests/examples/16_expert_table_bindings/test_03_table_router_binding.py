@@ -6,7 +6,7 @@ The router registry is the preferred pattern because it centralizes routing
 metadata with the API configuration.
 """
 
-from tigrbl import Base, TigrblApi
+from tigrbl import Base, TigrblRouter
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.types import Column, String
@@ -21,7 +21,7 @@ def test_table_binding_attaches_rest_router():
 
         name = Column(String, nullable=False)
 
-    api = TigrblApi(engine=mem(async_=False))
+    api = TigrblRouter(engine=mem(async_=False))
 
     _, router = api.include_model(Widget)
 
@@ -38,7 +38,7 @@ def test_router_registry_tracks_model_alias():
 
         name = Column(String, nullable=False)
 
-    api = TigrblApi(engine=mem(async_=False))
+    api = TigrblRouter(engine=mem(async_=False))
 
     _, router = api.include_model(Widget)
 

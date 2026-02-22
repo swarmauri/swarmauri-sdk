@@ -1,6 +1,6 @@
 import pytest
 
-from tigrbl import Base, TigrblApi
+from tigrbl import Base, TigrblRouter
 from tigrbl.engine.shortcuts import mem
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import F, IO, S, acol
@@ -20,18 +20,18 @@ class Widget(Base, GUIDPk):
     __tigrbl_cols__ = {"id": GUIDPk.id, "name": name}
 
 
-class WidgetApi(TigrblApi):
+class WidgetApi(TigrblRouter):
     MODELS = (Widget,)
 
 
 @pytest.mark.unit
 def test_tigrbl_api_instantiation_sets_containers() -> None:
-    api = WidgetApi(engine=mem(async_=False))
-    api_dir = dir(api)
+    router = WidgetApi(engine=mem(async_=False))
+    api_dir = dir(router)
 
     assert "models" in api_dir
     assert "routers" in api_dir
     assert "schemas" in api_dir
     assert "jsonrpc_prefix" in api_dir
     assert "system_prefix" in api_dir
-    assert api.models["Widget"] is Widget
+    assert router.models["Widget"] is Widget

@@ -7,8 +7,10 @@ This does not build endpoints by itself — it simply collects the routers that
 
 Recommended workflow:
   1) Include models with `mount_router=False` so you don't double-mount:
-        api.include_model(User, mount_router=False)
-        api.include_model(Team, mount_router=False)
+        api.include_table(User, mount_router=False)
+        api.include_table(Team, mount_router=False)
+        # or:
+        api.include_tables([User, Team], mount_router=False)
   2) Aggregate and mount once:
         app.include_router(build_rest_router(api, base_prefix="/api"))
      or:
@@ -25,24 +27,8 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Optional, Sequence
 
-try:
-    from ...types import Router, Depends
-except Exception:  # pragma: no cover
-    # Minimal shim to keep importable without ASGI
-    class Router:  # type: ignore
-        def __init__(self, *a, dependencies: Optional[Sequence[Any]] = None, **kw):
-            self.routes = []
-            self.includes = []
-            self.dependencies = list(dependencies or [])
-
-        def add_api_route(self, path: str, endpoint, methods: Sequence[str], **opts):
-            self.routes.append((path, methods, endpoint, opts))
-
-        def include_router(self, router: "Router", *, prefix: str = "", **opts):
-            self.includes.append((router, prefix, opts))
-
-    def Depends(fn):  # type: ignore
-        return fn
+from ...router import Router
+from ...security import Depends
 
 
 def _norm_prefix(p: Optional[str]) -> str:

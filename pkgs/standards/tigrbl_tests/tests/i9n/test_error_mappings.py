@@ -4,8 +4,9 @@ Error Mappings and Parity Tests for Tigrbl v3
 Tests error mappings between RPC and HTTP, and verifies parity between error responses.
 """
 
+from tigrbl.runtime.status import HTTPException
+
 import pytest
-from tigrbl.types import HTTPException
 from tigrbl.runtime.status import (
     ERROR_MESSAGES,
     HTTP_ERROR_MESSAGES,

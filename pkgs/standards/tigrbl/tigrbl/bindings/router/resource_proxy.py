@@ -1,28 +1,27 @@
 from __future__ import annotations
 
 import logging
-from types import SimpleNamespace
 from typing import Any, Awaitable, Callable, Dict, Mapping, Optional
 
-from ..rpc import _coerce_payload, _get_phase_chains, _validate_input, _serialize_output
-from ...runtime import executor as _executor
+from ..rpc import _coerce_payload, _validate_input, _serialize_output
+from ...transport.dispatch import dispatch_operation
 from ...engine import resolver as _resolver
 
 logger = logging.getLogger("uvicorn")
-logger.debug("Loaded module v3/bindings/api/resource_proxy")
+logger.debug("Loaded module v3/bindings/router/resource_proxy")
 
 
 class _ResourceProxy:
     """Dynamic proxy that executes core operations."""
 
-    __slots__ = ("_model", "_serialize", "_api")
+    __slots__ = ("_model", "_serialize", "_router")
 
     def __init__(
-        self, model: type, *, serialize: bool = True, api: Any = None
+        self, model: type, *, serialize: bool = True, router: Any = None
     ) -> None:  # pragma: no cover - trivial
         self._model = model
         self._serialize = serialize
-        self._api = api
+        self._router = router
 
     def __repr__(self) -> str:  # pragma: no cover - debug helper
         return f"<ResourceProxy {self._model.__name__}>"
@@ -62,40 +61,14 @@ class _ResourceProxy:
                 norm_payload,
             )
 
-            base_ctx: Dict[str, Any] = dict(ctx or {})
-            base_ctx.setdefault("payload", norm_payload)
-            if request is not None:
-                logger.debug("Request provided for %s.%s", self._model.__name__, alias)
-                base_ctx.setdefault("request", request)
-            # surface contextual metadata for runtime atoms
-            app_ref = getattr(request, "app", None) or base_ctx.get("app") or self._api
-            base_ctx.setdefault("app", app_ref)
-            base_ctx.setdefault("api", base_ctx.get("api") or self._api or app_ref)
-            base_ctx.setdefault("model", self._model)
-            base_ctx.setdefault("op", alias)
-            base_ctx.setdefault("method", alias)
-            base_ctx.setdefault("target", alias)
-            base_ctx.setdefault(
-                "env",
-                SimpleNamespace(
-                    method=alias, params=norm_payload, target=alias, model=self._model
-                ),
+            seed_ctx: Dict[str, Any] = dict(ctx or {})
+            serializer = (
+                (lambda r: _serialize_output(self._model, alias, alias, r))
+                if self._serialize
+                else (lambda r: r)
             )
-            if self._serialize:
-                logger.debug(
-                    "Serialization enabled for %s.%s", self._model.__name__, alias
-                )
-                base_ctx.setdefault(
-                    "response_serializer",
-                    lambda r: _serialize_output(self._model, alias, alias, r),
-                )
-            else:
-                logger.debug(
-                    "Serialization disabled for %s.%s", self._model.__name__, alias
-                )
-                base_ctx.setdefault("response_serializer", lambda r: r)
 
-            # Acquire DB if one was not explicitly provided (op > model > api > app)
+            # Acquire DB if one was not explicitly provided (op > model > router > app)
             _release_db = None
             if db is None:
                 try:
@@ -105,7 +78,7 @@ class _ResourceProxy:
                         alias,
                     )
                     db, _release_db = _resolver.acquire(
-                        api=self._api, model=self._model, op_alias=alias
+                        router=self._router, model=self._model, op_alias=alias
                     )
                 except Exception:
                     logger.exception(
@@ -117,17 +90,18 @@ class _ResourceProxy:
             else:
                 logger.debug("Using provided DB for %s.%s", self._model.__name__, alias)
 
-            base_ctx.setdefault("db", db)
-            phases = _get_phase_chains(self._model, alias)
-            logger.debug(
-                "Executing phases %s for %s.%s", phases, self._model.__name__, alias
-            )
             try:
-                return await _executor._invoke(
+                return await dispatch_operation(
+                    router=self._router,
                     request=request,
                     db=db,
-                    phases=phases,
-                    ctx=base_ctx,
+                    model_or_name=self._model,
+                    alias=alias,
+                    target=alias,
+                    payload=norm_payload,
+                    seed_ctx=seed_ctx,
+                    rpc_mode=True,
+                    response_serializer=serializer,
                 )
             finally:
                 if _release_db is not None:

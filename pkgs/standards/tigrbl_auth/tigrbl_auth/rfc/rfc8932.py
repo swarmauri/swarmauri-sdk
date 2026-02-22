@@ -14,14 +14,14 @@ from __future__ import annotations
 
 
 from typing import Any, Dict, List
-from tigrbl_auth.deps import TigrblApi, HTTPException, status
+from tigrbl_auth.deps import TigrblRouter, HTTPException, status
 
 from ..runtime_cfg import settings
 from .rfc8414_metadata import ISSUER, JWKS_PATH
 
 RFC8932_SPEC_URL = "https://www.rfc-editor.org/rfc/rfc8932"
 
-api = TigrblApi()
+api = TigrblRouter()
 router = api
 
 # Supported encrypted DNS transports per RFC 8932 recommendations

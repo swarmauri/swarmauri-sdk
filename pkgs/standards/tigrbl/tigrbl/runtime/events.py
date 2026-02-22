@@ -12,29 +12,63 @@ from typing import Dict, Iterable, List, Literal, Tuple
 # ──────────────────────────────────────────────────────────────────────────────
 
 Phase = Literal[
-    "PRE_TX",
+    "PRE_TX_BEGIN",
     "START_TX",
     "PRE_HANDLER",
     "HANDLER",
     "POST_HANDLER",
+    "PRE_COMMIT",
     "END_TX",
+    "POST_COMMIT",
     "POST_RESPONSE",
+    "ON_ERROR",
+    "ON_PRE_TX_BEGIN_ERROR",
+    "ON_START_TX_ERROR",
+    "ON_PRE_HANDLER_ERROR",
+    "ON_HANDLER_ERROR",
+    "ON_POST_HANDLER_ERROR",
+    "ON_PRE_COMMIT_ERROR",
+    "ON_END_TX_ERROR",
+    "ON_POST_COMMIT_ERROR",
+    "ON_POST_RESPONSE_ERROR",
+    "ON_ROLLBACK",
 ]
 
 PHASES: Tuple[Phase, ...] = (
-    "PRE_TX",
+    "PRE_TX_BEGIN",
     "START_TX",  # system-only
     "PRE_HANDLER",
     "HANDLER",
     "POST_HANDLER",
+    "PRE_COMMIT",  # system-only
     "END_TX",  # system-only
+    "POST_COMMIT",  # system-only
     "POST_RESPONSE",
+    "ON_ERROR",
+    "ON_PRE_TX_BEGIN_ERROR",
+    "ON_START_TX_ERROR",
+    "ON_PRE_HANDLER_ERROR",
+    "ON_HANDLER_ERROR",
+    "ON_POST_HANDLER_ERROR",
+    "ON_PRE_COMMIT_ERROR",
+    "ON_END_TX_ERROR",
+    "ON_POST_COMMIT_ERROR",
+    "ON_POST_RESPONSE_ERROR",
+    "ON_ROLLBACK",
 )
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Canonical anchors (events) — the only moments atoms can bind to
 # Keep these names stable; labels use them directly: step_kind:domain:subject@ANCHOR
 # ──────────────────────────────────────────────────────────────────────────────
+
+# PRE_TX
+DEP_SECURITY = "dep:security"
+DEP_EXTRA = "dep:extra"
+
+# Back-compat aliases used by atom modules
+PRE_TX_SECDEP = DEP_SECURITY
+PRE_TX_DEP = DEP_EXTRA
 
 # PRE_HANDLER
 SCHEMA_COLLECT_IN = "schema:collect_in"
@@ -58,6 +92,9 @@ OUT_DUMP = "out:dump"
 # Canonical order of event anchors within the request lifecycle.
 # This ordering is global and stable; use it to produce deterministic plans/traces.
 _EVENT_ORDER: Tuple[str, ...] = (
+    # PRE_TX
+    DEP_SECURITY,
+    DEP_EXTRA,
     # PRE_HANDLER
     SCHEMA_COLLECT_IN,
     IN_VALIDATE,
@@ -88,20 +125,23 @@ class AnchorInfo:
 
 
 _ANCHORS: Dict[str, AnchorInfo] = {
+    # PRE_TX (not persist-tied)
+    DEP_SECURITY: AnchorInfo(DEP_SECURITY, "PRE_TX_BEGIN", 0, False),
+    DEP_EXTRA: AnchorInfo(DEP_EXTRA, "PRE_TX_BEGIN", 1, False),
     # PRE_HANDLER (not persist-tied)
-    SCHEMA_COLLECT_IN: AnchorInfo(SCHEMA_COLLECT_IN, "PRE_HANDLER", 0, False),
-    IN_VALIDATE: AnchorInfo(IN_VALIDATE, "PRE_HANDLER", 1, False),
-    RESOLVE_VALUES: AnchorInfo(RESOLVE_VALUES, "PRE_HANDLER", 2, True),
-    PRE_FLUSH: AnchorInfo(PRE_FLUSH, "PRE_HANDLER", 3, True),
-    EMIT_ALIASES_PRE: AnchorInfo(EMIT_ALIASES_PRE, "PRE_HANDLER", 4, True),
+    SCHEMA_COLLECT_IN: AnchorInfo(SCHEMA_COLLECT_IN, "PRE_HANDLER", 2, False),
+    IN_VALIDATE: AnchorInfo(IN_VALIDATE, "PRE_HANDLER", 3, False),
+    RESOLVE_VALUES: AnchorInfo(RESOLVE_VALUES, "PRE_HANDLER", 4, True),
+    PRE_FLUSH: AnchorInfo(PRE_FLUSH, "PRE_HANDLER", 5, True),
+    EMIT_ALIASES_PRE: AnchorInfo(EMIT_ALIASES_PRE, "PRE_HANDLER", 6, True),
     # POST_HANDLER (mixed)
-    POST_FLUSH: AnchorInfo(POST_FLUSH, "POST_HANDLER", 5, True),
-    EMIT_ALIASES_POST: AnchorInfo(EMIT_ALIASES_POST, "POST_HANDLER", 6, True),
-    SCHEMA_COLLECT_OUT: AnchorInfo(SCHEMA_COLLECT_OUT, "POST_HANDLER", 7, False),
-    OUT_BUILD: AnchorInfo(OUT_BUILD, "POST_HANDLER", 8, False),
+    POST_FLUSH: AnchorInfo(POST_FLUSH, "POST_HANDLER", 7, True),
+    EMIT_ALIASES_POST: AnchorInfo(EMIT_ALIASES_POST, "POST_HANDLER", 8, True),
+    SCHEMA_COLLECT_OUT: AnchorInfo(SCHEMA_COLLECT_OUT, "POST_HANDLER", 9, False),
+    OUT_BUILD: AnchorInfo(OUT_BUILD, "POST_HANDLER", 10, False),
     # POST_RESPONSE (not persist-tied)
-    EMIT_ALIASES_READ: AnchorInfo(EMIT_ALIASES_READ, "POST_RESPONSE", 9, False),
-    OUT_DUMP: AnchorInfo(OUT_DUMP, "POST_RESPONSE", 10, False),
+    EMIT_ALIASES_READ: AnchorInfo(EMIT_ALIASES_READ, "POST_RESPONSE", 11, False),
+    OUT_DUMP: AnchorInfo(OUT_DUMP, "POST_RESPONSE", 12, False),
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -185,6 +225,8 @@ __all__ = [
     "Phase",
     "PHASES",
     # Anchors (constants)
+    "DEP_SECURITY",
+    "DEP_EXTRA",
     "SCHEMA_COLLECT_IN",
     "IN_VALIDATE",
     "RESOLVE_VALUES",

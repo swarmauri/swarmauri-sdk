@@ -12,8 +12,8 @@ from tigrbl.orm.mixins import GUIDPk
 from tigrbl.specs import IO, S, acol
 from tigrbl.bindings import (
     bind,
-    include_model,
-    include_models,
+    include_table,
+    include_tables,
     rpc_call,
     rebind,
 )
@@ -55,12 +55,12 @@ def _make_db():
     return engine, db
 
 
-def test_include_model_and_rpc_call():
+def test_include_table_and_rpc_call():
     engine, db = _make_db()
     api = SimpleNamespace(engine=engine)
-    _resolver.register_api(api, engine)
+    _resolver.register_router(api, engine)
 
-    include_model(api, Widget, mount_router=False)
+    include_table(api, Widget, mount_router=False)
 
     # api facade populated
     assert api.models["Widget"] is Widget
@@ -87,12 +87,12 @@ def test_include_model_and_rpc_call():
     assert rows and rows[0]["name"] == "w"
 
 
-def test_include_models():
+def test_include_tables():
     engine, db = _make_db()
     api = SimpleNamespace(engine=engine)
-    _resolver.register_api(api, engine)
+    _resolver.register_router(api, engine)
 
-    include_models(api, [Widget, Gizmo], mount_router=False)
+    include_tables(api, [Widget, Gizmo], mount_router=False)
 
     assert set(api.models) == {"Widget", "Gizmo"}
     assert hasattr(api.schemas, "Widget")

@@ -5,7 +5,9 @@ from types import SimpleNamespace
 
 try:
     from ...responses import JSONResponse
-    from ...types import Depends, Request, Router
+    from ...requests import Request
+    from ...security import Depends
+    from ...router import Router
 except Exception:  # pragma: no cover
 
     class Router:  # type: ignore
