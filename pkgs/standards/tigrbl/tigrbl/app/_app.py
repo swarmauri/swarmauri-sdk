@@ -14,7 +14,6 @@ from ..router._route import Route
 from ..runtime.dependencies import (
     execute_dependency_tokens as _execute_dependency_tokens_impl,
     execute_route_dependencies as _execute_route_dependencies_impl,
-    invoke_dependency as _invoke_dependency_impl,
 )
 from ..router.resolve import resolve_handler_kwargs as _resolve_handler_kwargs_impl
 from ..runtime.status.exceptions import HTTPException
@@ -227,9 +226,9 @@ class App(AppSpec):
         dependency_cleanups: list[Any] = []
         setattr(req.state, "_dependency_cleanups", dependency_cleanups)
         try:
-            await self._execute_route_dependencies(route, req)
+            await _execute_route_dependencies_impl(self, route, req)
             kwargs = await self._resolve_handler_kwargs(route, req)
-            kwargs = await self._execute_dependency_tokens(kwargs, req)
+            kwargs = await _execute_dependency_tokens_impl(self, kwargs, req)
             out = route.handler(**kwargs)
             if inspect.isawaitable(out):
                 out = await out
@@ -254,9 +253,6 @@ class App(AppSpec):
     async def _call_handler(self, route: Any, req: Any):
         return await self.call_handler(route, req)
 
-    async def _execute_route_dependencies(self, route: Route, req: Request) -> None:
-        return await _execute_route_dependencies_impl(self, route, req)
-
     def _is_metadata_route(self, route: Route) -> bool:
         return _is_metadata_route_impl(self, route)
 
@@ -264,14 +260,6 @@ class App(AppSpec):
         self, route: Route, req: Request
     ) -> dict[str, Any]:
         return await _resolve_handler_kwargs_impl(self, route, req)
-
-    async def _execute_dependency_tokens(
-        self, kwargs: dict[str, Any], req: Request
-    ) -> dict[str, Any]:
-        return await _execute_dependency_tokens_impl(self, kwargs, req)
-
-    async def _invoke_dependency(self, dep: Any, req: Request) -> Any:
-        return await _invoke_dependency_impl(self, dep, req)
 
     initialize = _ddl_initialize
 
