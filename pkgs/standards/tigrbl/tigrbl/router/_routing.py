@@ -98,9 +98,6 @@ def include_router(
         routes = getattr(other, "routes", [])
 
     for r in routes:
-        if r.name in ("__openapi__", "__docs__"):
-            continue
-
         route_path = getattr(r, "path_template", None) or getattr(r, "path", "")
         route_handler = getattr(r, "handler", None) or getattr(r, "endpoint", None)
         if not route_path or route_handler is None:

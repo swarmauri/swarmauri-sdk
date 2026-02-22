@@ -34,9 +34,11 @@ def _remove_existing_favicon_routes(router: Any, *paths: str) -> None:
     """Remove existing routes matching favicon paths so remounts take precedence."""
 
     path_set = set(paths)
-    routes = getattr(router, "_routes", None)
+    target = getattr(router, "router", router)
+
+    routes = getattr(target, "_routes", None)
     if routes is None:
-        routes = getattr(router, "routes", None)
+        routes = getattr(target, "routes", None)
     if routes is None:
         return
 
@@ -47,10 +49,10 @@ def _remove_existing_favicon_routes(router: Any, *paths: str) -> None:
         not in path_set
     ]
 
-    if hasattr(router, "_routes"):
-        router._routes = filtered
-    if hasattr(router, "routes"):
-        router.routes = filtered
+    if hasattr(target, "_routes"):
+        target._routes = filtered
+    if hasattr(target, "routes"):
+        target.routes = filtered
 
 
 def mount_favicon(
