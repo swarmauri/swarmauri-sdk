@@ -52,7 +52,7 @@ from ..deps.pydantic import (
     ValidationError,
 )
 
-from ..api._router import Router
+from ..router._router import Router
 from ..core.crud.params import Body, Path
 from ..responses import Response
 from ..runtime.status.exceptions import HTTPException, StatusDetailError

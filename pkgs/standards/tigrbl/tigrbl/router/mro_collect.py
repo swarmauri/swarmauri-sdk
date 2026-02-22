@@ -1,4 +1,4 @@
-# tigrbl/v3/api/mro_collect.py
+# tigrbl/v3/router/mro_collect.py
 from __future__ import annotations
 
 import logging

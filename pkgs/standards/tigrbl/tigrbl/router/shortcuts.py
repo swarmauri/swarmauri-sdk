@@ -1,4 +1,4 @@
-# tigrbl/tigrbl/v3/api/shortcuts.py
+# tigrbl/tigrbl/v3/router/shortcuts.py
 from __future__ import annotations
 
 from typing import Any, Sequence, Type

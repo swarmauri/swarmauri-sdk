@@ -18,7 +18,7 @@ from typing import (
 )
 
 from ._app import App as _App
-from ..api.tigrbl_router import TigrblRouter
+from ..router.tigrbl_router import TigrblRouter
 from ..engine.engine_spec import EngineCfg
 from ..engine import resolver as _resolver
 from ..ddl import initialize as _ddl_initialize

@@ -1,4 +1,4 @@
-# tigrbl/v3/api/tigrbl_router.py
+# tigrbl/v3/router/tigrbl_router.py
 from __future__ import annotations
 
 import copy

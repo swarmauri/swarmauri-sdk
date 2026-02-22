@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy import Column, Integer
 
 from tigrbl.app._app import App as _App
-from tigrbl.api._api import Api as _Api
+from tigrbl.router._router import Router as _Api
 from tigrbl.engine import resolver as _resolver
 from tigrbl.engine.shortcuts import mem
 from tigrbl.table import Base
