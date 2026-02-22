@@ -1,5 +1,5 @@
 from tigrbl.app.shortcuts import deriveApp
-from tigrbl.api.shortcuts import deriveApi
+from tigrbl.router.shortcuts import deriveApi
 
 
 class Model:

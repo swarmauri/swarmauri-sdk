@@ -1,4 +1,4 @@
-"""Router primitives backing ``tigrbl.api.Api`` and ``tigrbl.app.App``.
+"""Router primitives backing ``tigrbl.router.Router`` and ``tigrbl.app.App``.
 
 This compatibility router surface is slated for deprecation in favor of the
 higher-level ``Api``/``App`` interfaces.
@@ -10,13 +10,13 @@ import inspect
 from types import SimpleNamespace
 from typing import Any, Callable
 
-from tigrbl.api._routing import (
+from tigrbl.router._routing import (
     add_api_route,
     merge_tags,
     normalize_prefix,
     route,
 )
-from tigrbl.api.resolve import (
+from tigrbl.router.resolve import (
     invoke_dependency as _invoke_dependency_impl,
     resolve_handler_kwargs as _resolve_handler_kwargs_impl,
     resolve_route_dependencies as _resolve_route_dependencies_impl,

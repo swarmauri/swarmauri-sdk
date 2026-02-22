@@ -17,7 +17,7 @@ from tigrbl.bindings import (
 from tigrbl import TigrblApp as FastApp
 from tigrbl.types import Integer, Mapped, mapped_column
 from tigrbl.table import Table
-from tigrbl.api._api import Api
+from tigrbl.router._router import Router as Api
 from tigrbl.app._app import App as BaseApp
 
 
