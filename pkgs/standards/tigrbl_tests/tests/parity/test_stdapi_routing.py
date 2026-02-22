@@ -3,11 +3,11 @@ import json
 
 from tigrbl.core.crud.params import Body, Query
 from tigrbl.runtime.status.mappings import status
-from tigrbl.types import APIRouter, Depends, Request
+from tigrbl.types import Router, Depends, Request
 
 
 def test_routing_and_dependency_injection():
-    router = APIRouter()
+    router = Router()
 
     def provide_token(request: Request):
         return request.headers.get("authorization")
@@ -50,7 +50,7 @@ def test_routing_and_dependency_injection():
 
 
 def test_method_not_allowed_and_not_found():
-    router = APIRouter()
+    router = Router()
 
     @router.get("/healthz")
     def health():

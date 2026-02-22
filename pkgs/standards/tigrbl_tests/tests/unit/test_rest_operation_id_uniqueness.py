@@ -1,4 +1,4 @@
-from tigrbl.types import APIRouter
+from tigrbl.types import Router
 
 from tigrbl.bindings.rest.router import _build_router
 from tigrbl.op import OpSpec
@@ -22,15 +22,15 @@ def _collect_operation_ids(schema: dict) -> list[str]:
 
 def test_operation_ids_are_unique():
     Base.metadata.clear()
-    router = _build_router(
+    child_router = _build_router(
         Item,
         [
             OpSpec(alias="dup", target="custom", arity="collection"),
             OpSpec(alias="dup", target="custom", arity="member"),
         ],
     )
-    app = APIRouter()
-    app.include_router(router)
-    schema = app.openapi()
+    router = Router()
+    router.include_router(child_router)
+    schema = router.openapi()
     operation_ids = _collect_operation_ids(schema)
     assert len(operation_ids) == len(set(operation_ids))

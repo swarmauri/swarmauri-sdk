@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from tigrbl.types import APIRouter, Request
+from tigrbl.types import Router, Request
 
 
 class CreateWidget(BaseModel):
@@ -13,7 +13,7 @@ class WidgetOut(BaseModel):
 
 
 def test_openapi_generation_and_docs_html():
-    router = APIRouter(title="Widgets", version="1.2.3", include_docs=True)
+    router = Router(title="Widgets", version="1.2.3", include_docs=True)
 
     @router.post(
         "/widgets/{widget_id}",

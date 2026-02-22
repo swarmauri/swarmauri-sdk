@@ -1,6 +1,6 @@
 from tigrbl import TigrblApp
 from tigrbl.security import HTTPBearer
-from tigrbl.types import APIRouter, Security
+from tigrbl.types import Router, Security
 from tigrbl.orm.mixins import GUIDPk
 from tigrbl.orm.tables import Base
 
@@ -11,13 +11,13 @@ class Widget(Base, GUIDPk):
 
 
 def test_api_level_auth_dep_applied_per_route():
-    app = APIRouter()
-    api = TigrblApp()
-    api.set_auth(authn=lambda cred=Security(HTTPBearer()): cred, allow_anon=False)
-    api.include_models([Widget])
-    app.include_router(api.router)
-    schema = app.openapi()
-    paths = {route.name: route.path_template for route in api.routers["Widget"].routes}
+    router = Router()
+    app = TigrblApp()
+    app.set_auth(authn=lambda cred=Security(HTTPBearer()): cred, allow_anon=False)
+    app.include_models([Widget])
+    router.include_router(app.router)
+    schema = router.openapi()
+    paths = {route.name: route.path_template for route in app.routers["Widget"].routes}
     list_sec = schema["paths"][paths["Widget.list"]]["get"].get("security")
     read_sec = schema["paths"][paths["Widget.read"]]["get"].get("security")
     assert not list_sec

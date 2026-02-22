@@ -4,14 +4,14 @@ import io
 
 import pytest
 
-from tigrbl.types import APIRouter, Request, Response
+from tigrbl.types import Router, Request, Response
 
 
 @pytest.mark.asyncio()
 async def test_asgi_http_scope_dispatches_with_query_and_body() -> None:
-    app = APIRouter()
+    router = Router()
 
-    @app.post("/echo")
+    @router.post("/echo")
     async def echo(request: Request) -> dict[str, object]:
         return {
             "method": request.method,
@@ -37,7 +37,7 @@ async def test_asgi_http_scope_dispatches_with_query_and_body() -> None:
     async def send(message: dict[str, object]) -> None:
         messages.append(message)
 
-    await app._asgi_app(
+    await router._asgi_app(
         {
             "type": "http",
             "method": "POST",
@@ -60,7 +60,7 @@ async def test_asgi_http_scope_dispatches_with_query_and_body() -> None:
 
 @pytest.mark.asyncio()
 async def test_asgi_non_http_scope_returns_500() -> None:
-    app = APIRouter()
+    router = Router()
     messages: list[dict[str, object]] = []
 
     async def receive() -> dict[str, object]:
@@ -69,7 +69,7 @@ async def test_asgi_non_http_scope_returns_500() -> None:
     async def send(message: dict[str, object]) -> None:
         messages.append(message)
 
-    await app._asgi_app({"type": "websocket"}, receive, send)
+    await router._asgi_app({"type": "websocket"}, receive, send)
 
     assert messages == [
         {"type": "http.response.start", "status": 500, "headers": []},
@@ -79,9 +79,9 @@ async def test_asgi_non_http_scope_returns_500() -> None:
 
 @pytest.mark.asyncio()
 async def test_asgi_204_response_omits_body_and_content_length() -> None:
-    app = APIRouter()
+    router = Router()
 
-    @app.delete("/items/{item_id}", status_code=204)
+    @router.delete("/items/{item_id}", status_code=204)
     def delete_item(item_id: str) -> None:
         assert item_id == "1"
         return None
@@ -96,7 +96,7 @@ async def test_asgi_204_response_omits_body_and_content_length() -> None:
     async def send(message: dict[str, object]) -> None:
         messages.append(message)
 
-    await app._asgi_app(
+    await router._asgi_app(
         {
             "type": "http",
             "method": "DELETE",
@@ -120,9 +120,9 @@ async def test_asgi_204_response_omits_body_and_content_length() -> None:
 
 @pytest.mark.asyncio()
 async def test_asgi_head_response_strips_body_and_entity_headers() -> None:
-    app = APIRouter()
+    router = Router()
 
-    @app.get("/items")
+    @router.get("/items")
     def list_items() -> dict[str, str]:
         return {"ok": "yes"}
 
@@ -136,7 +136,7 @@ async def test_asgi_head_response_strips_body_and_entity_headers() -> None:
     async def send(message: dict[str, object]) -> None:
         messages.append(message)
 
-    await app._asgi_app(
+    await router._asgi_app(
         {
             "type": "http",
             "method": "HEAD",
@@ -161,9 +161,9 @@ async def test_asgi_head_response_strips_body_and_entity_headers() -> None:
 
 
 def test_wsgi_205_response_strips_body_and_entity_headers() -> None:
-    app = APIRouter()
+    router = Router()
 
-    @app.get("/reset", status_code=205)
+    @router.get("/reset", status_code=205)
     def reset() -> dict[str, str]:
         return {"reset": "ok"}
 
@@ -173,7 +173,7 @@ def test_wsgi_205_response_strips_body_and_entity_headers() -> None:
         called["status"] = status
         called["headers"] = headers
 
-    response_chunks = app._wsgi_app(
+    response_chunks = router._wsgi_app(
         {
             "REQUEST_METHOD": "GET",
             "PATH_INFO": "/reset",
@@ -193,9 +193,9 @@ def test_wsgi_205_response_strips_body_and_entity_headers() -> None:
 
 
 def test_wsgi_recomputes_stale_content_length() -> None:
-    app = APIRouter()
+    router = Router()
 
-    @app.get("/raw")
+    @router.get("/raw")
     def raw() -> object:
         return Response(
             body=b"hello",
@@ -208,7 +208,7 @@ def test_wsgi_recomputes_stale_content_length() -> None:
         called["status"] = status
         called["headers"] = headers
 
-    response_chunks = app._wsgi_app(
+    response_chunks = router._wsgi_app(
         {
             "REQUEST_METHOD": "GET",
             "PATH_INFO": "/raw",
@@ -226,9 +226,9 @@ def test_wsgi_recomputes_stale_content_length() -> None:
 
 
 def test_wsgi_dispatch_reads_body_and_query() -> None:
-    app = APIRouter()
+    router = Router()
 
-    @app.post("/echo")
+    @router.post("/echo")
     def echo(request: Request) -> dict[str, object]:
         return {
             "path": request.path,
@@ -243,7 +243,7 @@ def test_wsgi_dispatch_reads_body_and_query() -> None:
         called["status"] = status
         called["headers"] = headers
 
-    response_chunks = app._wsgi_app(
+    response_chunks = router._wsgi_app(
         {
             "REQUEST_METHOD": "POST",
             "PATH_INFO": "/echo",
@@ -263,7 +263,7 @@ def test_wsgi_dispatch_reads_body_and_query() -> None:
 
 
 def test_invalid_asgi_wsgi_invocation_raises_type_error() -> None:
-    app = APIRouter()
+    router = Router()
 
     with pytest.raises(TypeError, match="Invalid ASGI/WSGI invocation"):
-        app("not-a-scope")
+        router("not-a-scope")
