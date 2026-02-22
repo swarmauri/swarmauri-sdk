@@ -54,7 +54,7 @@ async def running_app_with_apis():
     zeta_api.include_model(ZetaWidget)
 
     app = TigrblApp(engine=engine, apis=[alpha_api, (zeta_api, "/zeta")])
-    app.include_router(beta_api.router, prefix="/beta")
+    app.include_router(beta_api, prefix="/beta")
     await app.initialize()
 
     base_url, server, task = await run_uvicorn_in_task(app)
@@ -73,7 +73,7 @@ async def running_app_with_api_router():
     beta_api.include_model(BetaWidget)
 
     app = TigrblApp(engine=engine, apis=[alpha_api])
-    app.include_router(beta_api.router, prefix="/beta")
+    app.include_router(beta_api, prefix="/beta")
     app.include_router(alpha_api.router, prefix="/alpha")
     await app.initialize()
 
