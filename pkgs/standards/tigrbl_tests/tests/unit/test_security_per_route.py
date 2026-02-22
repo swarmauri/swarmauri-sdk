@@ -1,6 +1,6 @@
 from tigrbl import TigrblApp
 from tigrbl.security import HTTPBearer
-from tigrbl.types import APIRouter, Security
+from tigrbl.types import Router, Security
 from tigrbl.op import OpSpec
 from tigrbl.orm.tables import Base
 from tigrbl.orm.mixins import GUIDPk
@@ -14,14 +14,14 @@ class Widget(Base, GUIDPk):
 
 
 def test_security_applied_per_route():
-    router = _build_router(
+    child_router = _build_router(
         Widget,
         [OpSpec(alias="list", target="list"), OpSpec(alias="read", target="read")],
     )
-    app = APIRouter()
-    app.include_router(router)
-    schema = app.openapi()
-    paths = {route.name: route.path_template for route in router.routes}
+    router = Router()
+    router.include_router(child_router)
+    schema = router.openapi()
+    paths = {route.name: route.path_template for route in child_router.routes}
     list_sec = schema["paths"][paths["Widget.list"]]["get"].get("security")
     read_sec = schema["paths"][paths["Widget.read"]]["get"].get("security")
     assert not list_sec
@@ -33,11 +33,11 @@ def test_set_auth_after_include_model_applies_security():
     class Gadget(Base, GUIDPk):
         __tablename__ = "gadgets_security"
 
-    api = TigrblApp()
-    api.include_model(Gadget)
-    api.set_auth(authn=lambda cred=Security(HTTPBearer()): cred, allow_anon=False)
-    app = APIRouter()
-    app.include_router(api.router)
-    spec = app.openapi()
+    app = TigrblApp()
+    app.include_model(Gadget)
+    app.set_auth(authn=lambda cred=Security(HTTPBearer()): cred, allow_anon=False)
+    router = Router()
+    router.include_router(app.router)
+    spec = router.openapi()
     post_sec = spec["paths"]["/gadget"]["post"].get("security")
     assert post_sec == [{"HTTPBearer": []}]
